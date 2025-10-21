@@ -1,0 +1,17 @@
+{
+  "$schema": "https://inlang.com/schema/project-settings",
+  "baseLocale": "en",
+  "locales": ["en", "zh-Hant", "zh-Hans"],
+  "modules": [
+    "https://cdn.jsdelivr.net/npm/@inlang/plugin-message-format@4/dist/index.js",
+    "https://cdn.jsdelivr.net/npm/@inlang/plugin-m-function-matcher@2/dist/index.js"
+  ],
+  "plugin.inlang.paraglide": {
+    "outputDirectory": "./src/paraglide",
+    "declarationEncoding": "utf-8",
+    "jsdoc": {
+      "variables": true,
+      "functions": true
+    }
+  }
+}

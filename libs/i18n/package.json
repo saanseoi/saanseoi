@@ -1,0 +1,14 @@
+{
+  "name": "@repo/i18n",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "paraglide-js compile --project ./project.inlang",
+    "dev": "paraglide-js compile --project ./project.inlang"
+  },
+  "devDependencies": {
+    "@inlang/paraglide-js": "latest"
+  }
+}
