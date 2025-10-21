@@ -4,6 +4,7 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-10-21",
   "assets": { "directory": "public" },
+  "minify": true,
   // "compatibility_flags": [
   //   "nodejs_compat"
   // ],

@@ -37,5 +37,5 @@ jobs:
       - name: "DEPLOY :: Primary"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bun wrangler deploy --name place-api
-        working-directory: apps/place-api
+        run: bun wrangler deploy --name places-api
+        working-directory: apps/places-api
