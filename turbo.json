@@ -1,0 +1,39 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.*"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**"]
+    },
+    "deploy": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check": {
+      "dependsOn": ["^check"]
+    },
+    "dev": {
+      "persistent": true,
+      "cache": false
+    },
+    "update": {
+      "dependsOn": ["^update"],
+      "cache": false
+    },
+    "install": {
+      "dependsOn": ["^install"],
+      "cache": false
+    },
+    "outdated": {
+      "outputs": []
+    },
+    "machine-translate": {
+      "outputs": ["src/paraglide/**"]
+    }
+  }
+}
