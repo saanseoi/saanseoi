@@ -34,6 +34,24 @@
     },
     "machine-translate": {
       "outputs": ["src/paraglide/**"]
+    },
+
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "**/*.test.ts", "bunfig.toml"],
+      "outputs": []
+    },
+
+    "test:watch": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "**/*.test.ts", "bunfig.toml"],
+      "cache": false,
+      "persistent": true
+    },
+
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "**/*.test.ts", "bunfig.toml"]
     }
   }
 }
