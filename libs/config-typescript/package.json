@@ -1,0 +1,13 @@
+{
+  "name": "@repo/config-typescript",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "tsconfig.json"
+  ]
+}
