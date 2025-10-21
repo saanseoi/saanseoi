@@ -1,0 +1,41 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+  DO_NOT_TRACK: 1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "INSTALL :: Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: "INSTALL :: Bun"
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.0 # or "latest", "canary", <sha>
+
+      - name: "INSTALL :: Dependencies"
+        continue-on-error: true # This is a workaround for parallel jobs
+        run: bun install
+
+      - name: "BUILD :: All"
+        run: bun turbo run build
+
+      - name: "DEPLOY :: Primary"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: bun wrangler deploy --name place-api
+        working-directory: apps/place-api
