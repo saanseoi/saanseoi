@@ -25,7 +25,7 @@
 
     "outDir": "dist",
     "rootDir": "src",
-    "types": ["vitest/globals", "@cloudflare/workers-types"],
+    "types": ["bun-types", "vitest/globals", "@cloudflare/workers-types"],
     "paths": {
       "@/*": ["./src/*"]
     }
