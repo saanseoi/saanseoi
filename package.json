@@ -15,7 +15,7 @@
     "test:coverage": "turbo run test:coverage",
     "preview": "turbo run preview",
     "check": "turbo run check",
-    "format": "prettier --write .",
+    "format": "biome format --write .",
     "deploy": "turbo run deploy",
     "lint": "turbo run lint",
     "machine-translate": "turbo run machine-translate",
@@ -32,6 +32,7 @@
     "@changesets/cli": "^2.31.0",
     "@cloudflare/workers-types": "^4.20260527.1",
     "@types/bun": "latest",
+    "@biomejs/biome": "^2.2.6",
     "prettier": "^3.8.3",
     "turbo": "^2.9.15",
     "wrangler": "^4.95.0"
