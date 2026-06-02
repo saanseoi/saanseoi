@@ -27,6 +27,8 @@
   "dependencies": {
     "@clack/prompts": "^0.11.0",
     "@repo/db": "workspace:*",
+    "hyparquet": "^1.17.7",
+    "hyparquet-compressors": "^1.1.1",
     "hono": "^4.10.1"
   }
 }
