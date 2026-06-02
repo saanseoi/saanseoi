@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-target_dir="${1:-../../.local/d1/dev}"
+repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
+target_dir="${1:-$repo_root/.local/d1/dev}"
 
 rm -rf "$target_dir"
 mkdir -p "$target_dir"

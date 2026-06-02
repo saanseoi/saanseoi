@@ -2,7 +2,7 @@
   "name": "atlas-api",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev --env preview --persist-to ../../.local/d1/dev",
+    "dev": "bash ./scripts/dev.sh",
     "build": "mkdir -p dist && wrangler deploy --dry-run --env production --outdir dist --minify",
     "build:preview": "mkdir -p dist && wrangler deploy --dry-run --env preview --outdir dist --minify",
     "build:production": "mkdir -p dist && wrangler deploy --dry-run --env production --outdir dist --minify",

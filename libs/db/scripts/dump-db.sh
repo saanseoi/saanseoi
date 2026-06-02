@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
 target="${1:-}"
-wrangler_config="${2:-../../apps/atlas-api/wrangler.jsonc}"
-dump_dir="${3:-../../.local/d1/dumps}"
+wrangler_config="${2:-$repo_root/apps/atlas-api/wrangler.jsonc}"
+dump_dir="${3:-$repo_root/.local/d1/dumps}"
 
 if [[ -z "$target" ]]; then
   echo "Usage: $0 <preview|production> [wrangler-config] [dump-dir]" >&2
@@ -64,7 +65,7 @@ printf 'PRAGMA defer_foreign_keys = true;\n' > "$output_file"
 for table_name in "${tables[@]}"; do
   table_file="$dump_dir/${target}-${table_name}.sql"
 
-  wrangler d1 export "$database_name" \
+  bun x wrangler d1 export "$database_name" \
     --config "$wrangler_config" \
     --env "$env_name" \
     --remote \
