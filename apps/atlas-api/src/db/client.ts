@@ -1,2 +1,2 @@
-export { createDb } from "@repo/db";
-export type { Database } from "@repo/db";
+export { createDb } from '@repo/db'
+export type { Database } from '@repo/db'
