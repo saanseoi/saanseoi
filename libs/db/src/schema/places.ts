@@ -43,6 +43,50 @@ export const places = sqliteTable(
   }),
 );
 
+export const placesVersions = sqliteTable(
+  "placesVersions",
+  {
+    id: text("id").notNull(),
+    versionHash: text("versionHash").notNull(),
+    regionCode: text("regionCode").notNull(),
+    datasetId: text("datasetId")
+      .notNull()
+      .references(() => datasets.datasetId),
+    validFromMonth: text("validFromMonth").notNull(),
+    validToMonth: text("validToMonth"),
+    isCurrent: integer("isCurrent", { mode: "boolean" }).notNull(),
+    address2dId: text("address2dId"),
+    address3dId: text("address3dId"),
+    otVersionHash: text("otVersionHash").notNull(),
+    otVersion: text("otVersion").notNull(),
+    otLng: real("otLng").notNull(),
+    otLat: real("otLat").notNull(),
+    otBboxJson: text("otBboxJson"),
+    otOperatingStatus: text("otOperatingStatus"),
+    otBasicCategory: text("otBasicCategory"),
+    otTaxonomyPrimary: text("otTaxonomyPrimary"),
+    otTaxonomyHierarchyJson: text("otTaxonomyHierarchyJson"),
+    otTaxonomyAlternatesJson: text("otTaxonomyAlternatesJson"),
+    otBrandWikidata: text("otBrandWikidata"),
+    otWebsitesJson: text("otWebsitesJson"),
+    otSocialsJson: text("otSocialsJson"),
+    otEmailsJson: text("otEmailsJson"),
+    otPhonesJson: text("otPhonesJson"),
+    otAddressesJson: text("otAddressesJson"),
+    otConfidence: real("otConfidence"),
+    sourcesJson: text("sourcesJson"),
+    createdAt: text("createdAt").notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({
+      columns: [table.id, table.versionHash],
+    }),
+    currentLookupIdx: index("placesVersions_current_lookup_idx").on(table.regionCode, table.id, table.isCurrent),
+    validityIdx: index("placesVersions_validity_idx").on(table.regionCode, table.validFromMonth, table.validToMonth),
+    datasetIdx: index("placesVersions_datasetId_idx").on(table.datasetId),
+  }),
+);
+
 export const placesI18n = sqliteTable(
   "placesI18n",
   {
@@ -63,6 +107,28 @@ export const placesI18n = sqliteTable(
     }),
     localeIdx: index("placesI18n_locale_idx").on(table.locale),
     nameIdx: index("placesI18n_name_idx").on(table.locale, table.otName),
+  }),
+);
+
+export const placesVersionsI18n = sqliteTable(
+  "placesVersionsI18n",
+  {
+    placeId: text("placeId").notNull(),
+    versionHash: text("versionHash").notNull(),
+    locale: text("locale").notNull(),
+    otName: text("otName"),
+    otNameVariantJson: text("otNameVariantJson"),
+    otNameAlts: text("otNameAlts"),
+    otBrandName: text("otBrandName"),
+    otBrandNameVariantJson: text("otBrandNameVariantJson"),
+    otBrandNameAlts: text("otBrandNameAlts"),
+  },
+  (table) => ({
+    pk: primaryKey({
+      columns: [table.placeId, table.versionHash, table.locale],
+    }),
+    localeIdx: index("placesVersionsI18n_locale_idx").on(table.locale),
+    nameIdx: index("placesVersionsI18n_name_idx").on(table.locale, table.otName),
   }),
 );
 

@@ -111,7 +111,7 @@ Instead:
 The `places` serving model now depends on these normalized entity groups:
 
 - dataset and ingest metadata
-- canonical version lineage
+- typed version lineage
 - alias mappings
 - places
 - place i18n
@@ -182,39 +182,6 @@ Fields:
 
 Each resumable step should update `ingestRuns`.
 
-### `entityVersions`
-
-Stores deduplicated version lineage for canonical entities.
-
-Fields:
-
-- `regionCode` text not null
-- `theme` text not null
-- `entityId` text not null
-- `datasetId` text not null
-- `featureType` text not null
-- `otVersion` text not null
-- `versionHash` text not null
-- `validFromMonth` text not null
-- `validToMonth` text null
-- `isCurrent` integer not null
-- `geometryType` text not null
-- `otBboxJson` text null
-- `payloadJson` text not null
-- `sourcesJson` text null
-- `createdAt` text not null
-
-Primary key:
-
-- `(regionCode, theme, entityId, versionHash)`
-
-Semantics:
-
-- a new row is added only when normalized stored content changes
-- unchanged entities are not duplicated across months
-- deletions close the prior current version
-- corrected datasets produce a new active lineage for the affected month
-
 ### `entityAliases`
 
 Tracks historical and alternative identifiers.
@@ -277,6 +244,47 @@ For the initial implementation:
 
 When implemented, `spatialKeyType` should standardize on `h3`.
 
+## Versioning rules
+
+### Typed version tables
+
+Historical records are stored in typed version tables rather than a generic JSON snapshot table.
+
+The initial typed history tables are:
+
+- `placesVersions`
+- `placesVersionsI18n`
+- `divisionsVersions`
+- `divisionsVersionsI18n`
+- `address2dVersions`
+- `address2dVersionsI18n`
+- `address3dVersions`
+- `address3dVersionsI18n`
+- `streetVersions`
+- `streetVersionsI18n`
+
+Each version table:
+
+- uses the stable canonical entity ID as its identity anchor
+- adds `versionHash`
+- tracks `datasetId`
+- tracks `validFromMonth` and `validToMonth`
+- tracks `isCurrent`
+- stores typed columns rather than a JSON payload blob
+
+### Stable ID references across versions
+
+Relationship fields inside version tables point to stable canonical entity IDs, not to specific version rows of related entities.
+
+Example:
+
+- `address2dVersions.streetId` points to the stable `street.id`
+- it does not point to a `streetVersions` row
+
+This means a new street version does not force a new address version unless the address record itself changed.
+
+That non-cascading version policy is intentional and preferred.
+
 ## Places tables
 
 ### `places`
@@ -317,6 +325,24 @@ Notes:
 - `theme` and `type` are omitted because this table is already theme-specific
 - this table stores current place state only
 
+### `placesVersions`
+
+Typed historical versions for `places`.
+
+Primary key:
+
+- `(id, versionHash)`
+
+Version metadata fields:
+
+- `datasetId`
+- `validFromMonth`
+- `validToMonth`
+- `isCurrent`
+- `createdAt`
+
+The remaining columns mirror the normalized place fields needed for historical reads.
+
 ### `placesI18n`
 
 Localized place names and brand display data.
@@ -341,6 +367,10 @@ Locale values initially supported:
 - `en`
 - `zh-hant`
 - `zh-hans`
+
+### `placesVersionsI18n`
+
+Localized historical place text keyed by `(placeId, versionHash, locale)`.
 
 ### `placesDivision`
 
@@ -443,6 +473,23 @@ Division levels:
 
 If no canonical external ID exists yet, use an `SS` ID.
 
+### `divisionsVersions`
+
+Typed historical versions for `divisions`.
+
+Primary key:
+
+- `(id, versionHash)`
+
+Version metadata fields:
+
+- `regionCode`
+- `datasetId`
+- `validFromMonth`
+- `validToMonth`
+- `isCurrent`
+- `createdAt`
+
 ### `divisionsI18n`
 
 Localized division names and labels.
@@ -462,6 +509,42 @@ Fields:
 - `hierarchyJson` text null
 
 `hierarchyJson` includes the resolved names for the localized division hierarchy.
+
+### `divisionsVersionsI18n`
+
+Localized historical division text keyed by `(divisionId, versionHash, locale)`.
+
+## Address tables
+
+### `address2dVersions`
+
+Typed historical versions for `address2d`.
+
+Relationship columns such as `streetId`, `districtId`, and other division IDs store stable canonical IDs.
+
+### `address2dVersionsI18n`
+
+Localized historical 2D address text keyed by `(addressId, versionHash, locale)`.
+
+### `address3dVersions`
+
+Typed historical versions for `address3d`.
+
+`address2dId` stores the stable canonical `address2d.id`.
+
+### `address3dVersionsI18n`
+
+Localized historical 3D address text keyed by `(address3dId, versionHash, locale)`.
+
+## Street tables
+
+### `streetVersions`
+
+Typed historical versions for `street`.
+
+### `streetVersionsI18n`
+
+Localized historical street text keyed by `(streetId, versionHash, locale)`.
 
 ### `issues`
 
@@ -746,14 +829,14 @@ For each source place row:
 - normalize the source feature
 - compute `otVersionHash`
 - detect whether the canonical current row changed
-- insert or update `entityVersions`
 - upsert `places`
+- insert or update `placesVersions` only when the normalized place row changed
 - clear or preserve nullable foreign keys according to later enrichment results
 
 Delete handling:
 
 - if a previously current place is absent from the new active dataset, treat it as a real deletion
-- close the prior version in `entityVersions`
+- close the prior current row in `placesVersions`
 - remove it from `places` and dependent current indexes
 
 ### 4. `extractPlacesI18n`
@@ -761,6 +844,7 @@ Delete handling:
 - resolve `names.common` and `names.rules` into localized rows
 - resolve `brand.names.common` and `brand.names.rules` into localized rows
 - upsert `placesI18n`
+- insert or update `placesVersionsI18n` for the same `versionHash`
 
 No nested i18n structures should remain in normalized localized tables.
 
@@ -866,7 +950,8 @@ Relationship enrichment stages may update normalized linked entities independent
 This document is focused on the data model, but the following indexes are structurally important:
 
 - `datasets`: unique active dataset lookup by `(regionCode, snapshotMonth, theme, isActive)`
-- `entityVersions`: `(regionCode, theme, entityId, isCurrent)`
+- `placesVersions`: `(regionCode, id, isCurrent)`
+- `divisionsVersions`: `(regionCode, id, isCurrent)`
 - `entityAliases`: unique `(entityType, aliasValue)`
 - `placesDivision`: `(divisionId, placeId)`
 - `streetAddress`: `(addressId, streetId)`
