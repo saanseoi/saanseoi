@@ -6,7 +6,7 @@ This repository is a Bun workspace monorepo managed by [Turborepo](https://turbo
 
 ```text
 apps/
-  places-api/          Cloudflare Workers app built with Hono
+  atlas-api/          Cloudflare Workers app built with Hono
 libs/
   config-typescript/   Shared base tsconfig used by apps
   i18n/                Shared Paraglide/inlang assets and compile step
@@ -32,7 +32,7 @@ In practice:
 - Run `bun run lint` from the repo root to lint every workspace package that exposes a `lint` script.
 - Run `bun run check` from the repo root to type-check every package with a `check` script.
 - Run `bun run test` from the repo root to execute tests across all apps/libs that define them.
-- Run package-local commands inside `apps/places-api` when you only want to work on that app.
+- Run package-local commands inside `apps/atlas-api` when you only want to work on that app.
 
 ## Shared configuration
 

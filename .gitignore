@@ -41,4 +41,4 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Dev Vars
 .dev.vars*
-apps/places-api/.env.local
+apps/atlas-api/.env.local
