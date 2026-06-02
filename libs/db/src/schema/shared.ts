@@ -7,6 +7,7 @@ export const datasets = sqliteTable(
     regionCode: text('regionCode').notNull(),
     snapshotMonth: text('snapshotMonth').notNull(),
     theme: text('theme').notNull(),
+    type: text('type').notNull(),
     source: text('source').notNull(),
     sourceVersion: text('sourceVersion').notNull(),
     rawObjectKey: text('rawObjectKey').notNull(),
@@ -21,7 +22,7 @@ export const datasets = sqliteTable(
     activeLookupIdx: index('datasets_active_lookup_idx').on(
       table.regionCode,
       table.snapshotMonth,
-      table.theme,
+      table.type,
       table.isActive,
     ),
     monthThemeUniqueIdx: uniqueIndex('datasets_dataset_id_unique_idx').on(
