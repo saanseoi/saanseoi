@@ -2,9 +2,7 @@
   "version": "7",
   "dialect": "sqlite",
   "id": "31bf7f91-407f-49d7-bead-a01302915d15",
-  "prevIds": [
-    "00000000-0000-0000-0000-000000000000"
-  ],
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
       "name": "datasets",
@@ -3011,13 +3009,9 @@
       "table": "placesVersionsI18n"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "datasetId"
-      ],
+      "columnsTo": ["datasetId"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3026,13 +3020,9 @@
       "table": "ingestRuns"
     },
     {
-      "columns": [
-        "divisionId"
-      ],
+      "columns": ["divisionId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3041,13 +3031,9 @@
       "table": "divisionsI18n"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "datasetId"
-      ],
+      "columnsTo": ["datasetId"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3056,13 +3042,9 @@
       "table": "divisionsVersions"
     },
     {
-      "columns": [
-        "microhoodId"
-      ],
+      "columns": ["microhoodId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3071,13 +3053,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "neighbourhoodId"
-      ],
+      "columns": ["neighbourhoodId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3086,13 +3064,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "subDistrictId"
-      ],
+      "columns": ["subDistrictId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3101,13 +3075,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "districtId"
-      ],
+      "columns": ["districtId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3116,13 +3086,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "regionId"
-      ],
+      "columns": ["regionId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3131,13 +3097,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "countryId"
-      ],
+      "columns": ["countryId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3146,13 +3108,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "addressId"
-      ],
+      "columns": ["addressId"],
       "tableTo": "address2d",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3161,13 +3119,9 @@
       "table": "address2dI18n"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "datasetId"
-      ],
+      "columnsTo": ["datasetId"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3176,13 +3130,9 @@
       "table": "address2dVersions"
     },
     {
-      "columns": [
-        "address2dId"
-      ],
+      "columns": ["address2dId"],
       "tableTo": "address2d",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3191,13 +3141,9 @@
       "table": "address3d"
     },
     {
-      "columns": [
-        "address3dId"
-      ],
+      "columns": ["address3dId"],
       "tableTo": "address3d",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3206,13 +3152,9 @@
       "table": "address3dI18n"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "datasetId"
-      ],
+      "columnsTo": ["datasetId"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3221,13 +3163,9 @@
       "table": "address3dVersions"
     },
     {
-      "columns": [
-        "streetId"
-      ],
+      "columns": ["streetId"],
       "tableTo": "streets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3236,13 +3174,9 @@
       "table": "streetsAddress"
     },
     {
-      "columns": [
-        "addressId"
-      ],
+      "columns": ["addressId"],
       "tableTo": "address2d",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3251,13 +3185,9 @@
       "table": "streetsAddress"
     },
     {
-      "columns": [
-        "streetId"
-      ],
+      "columns": ["streetId"],
       "tableTo": "streets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3266,13 +3196,9 @@
       "table": "streetsI18n"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "datasetId"
-      ],
+      "columnsTo": ["datasetId"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3281,13 +3207,9 @@
       "table": "streetsVersions"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "datasetId"
-      ],
+      "columnsTo": ["datasetId"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3296,13 +3218,9 @@
       "table": "places"
     },
     {
-      "columns": [
-        "address2dId"
-      ],
+      "columns": ["address2dId"],
       "tableTo": "address2d",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3311,13 +3229,9 @@
       "table": "places"
     },
     {
-      "columns": [
-        "address3dId"
-      ],
+      "columns": ["address3dId"],
       "tableTo": "address3d",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3326,13 +3240,9 @@
       "table": "places"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "tableTo": "places",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3341,13 +3251,9 @@
       "table": "placesCells"
     },
     {
-      "columns": [
-        "placeId"
-      ],
+      "columns": ["placeId"],
       "tableTo": "places",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3356,13 +3262,9 @@
       "table": "placesDivision"
     },
     {
-      "columns": [
-        "divisionId"
-      ],
+      "columns": ["divisionId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3371,13 +3273,9 @@
       "table": "placesDivision"
     },
     {
-      "columns": [
-        "placeId"
-      ],
+      "columns": ["placeId"],
       "tableTo": "places",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3386,13 +3284,9 @@
       "table": "placesI18n"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "datasetId"
-      ],
+      "columnsTo": ["datasetId"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -3401,259 +3295,182 @@
       "table": "placesVersions"
     },
     {
-      "columns": [
-        "divisionId",
-        "locale"
-      ],
+      "columns": ["divisionId", "locale"],
       "nameExplicit": false,
       "name": "divisionsI18n_pk",
       "entityType": "pks",
       "table": "divisionsI18n"
     },
     {
-      "columns": [
-        "id",
-        "versionHash"
-      ],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "divisionsVersions_pk",
       "entityType": "pks",
       "table": "divisionsVersions"
     },
     {
-      "columns": [
-        "divisionId",
-        "versionHash",
-        "locale"
-      ],
+      "columns": ["divisionId", "versionHash", "locale"],
       "nameExplicit": false,
       "name": "divisionsVersionsI18n_pk",
       "entityType": "pks",
       "table": "divisionsVersionsI18n"
     },
     {
-      "columns": [
-        "addressId",
-        "locale"
-      ],
+      "columns": ["addressId", "locale"],
       "nameExplicit": false,
       "name": "address2dI18n_pk",
       "entityType": "pks",
       "table": "address2dI18n"
     },
     {
-      "columns": [
-        "id",
-        "versionHash"
-      ],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "address2dVersions_pk",
       "entityType": "pks",
       "table": "address2dVersions"
     },
     {
-      "columns": [
-        "addressId",
-        "versionHash",
-        "locale"
-      ],
+      "columns": ["addressId", "versionHash", "locale"],
       "nameExplicit": false,
       "name": "address2dVersionsI18n_pk",
       "entityType": "pks",
       "table": "address2dVersionsI18n"
     },
     {
-      "columns": [
-        "address3dId",
-        "locale"
-      ],
+      "columns": ["address3dId", "locale"],
       "nameExplicit": false,
       "name": "address3dI18n_pk",
       "entityType": "pks",
       "table": "address3dI18n"
     },
     {
-      "columns": [
-        "id",
-        "versionHash"
-      ],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "address3dVersions_pk",
       "entityType": "pks",
       "table": "address3dVersions"
     },
     {
-      "columns": [
-        "address3dId",
-        "versionHash",
-        "locale"
-      ],
+      "columns": ["address3dId", "versionHash", "locale"],
       "nameExplicit": false,
       "name": "address3dVersionsI18n_pk",
       "entityType": "pks",
       "table": "address3dVersionsI18n"
     },
     {
-      "columns": [
-        "streetId",
-        "addressId"
-      ],
+      "columns": ["streetId", "addressId"],
       "nameExplicit": false,
       "name": "streetsAddress_pk",
       "entityType": "pks",
       "table": "streetsAddress"
     },
     {
-      "columns": [
-        "streetId",
-        "locale"
-      ],
+      "columns": ["streetId", "locale"],
       "nameExplicit": false,
       "name": "streetsI18n_pk",
       "entityType": "pks",
       "table": "streetsI18n"
     },
     {
-      "columns": [
-        "id",
-        "versionHash"
-      ],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "streetsVersions_pk",
       "entityType": "pks",
       "table": "streetsVersions"
     },
     {
-      "columns": [
-        "streetId",
-        "versionHash",
-        "locale"
-      ],
+      "columns": ["streetId", "versionHash", "locale"],
       "nameExplicit": false,
       "name": "streetsVersionsI18n_pk",
       "entityType": "pks",
       "table": "streetsVersionsI18n"
     },
     {
-      "columns": [
-        "regionCode",
-        "id",
-        "h3Level",
-        "h3Cell"
-      ],
+      "columns": ["regionCode", "id", "h3Level", "h3Cell"],
       "nameExplicit": false,
       "name": "placesCells_pk",
       "entityType": "pks",
       "table": "placesCells"
     },
     {
-      "columns": [
-        "placeId",
-        "divisionId"
-      ],
+      "columns": ["placeId", "divisionId"],
       "nameExplicit": false,
       "name": "placesDivision_pk",
       "entityType": "pks",
       "table": "placesDivision"
     },
     {
-      "columns": [
-        "placeId",
-        "locale"
-      ],
+      "columns": ["placeId", "locale"],
       "nameExplicit": false,
       "name": "placesI18n_pk",
       "entityType": "pks",
       "table": "placesI18n"
     },
     {
-      "columns": [
-        "id",
-        "versionHash"
-      ],
+      "columns": ["id", "versionHash"],
       "nameExplicit": false,
       "name": "placesVersions_pk",
       "entityType": "pks",
       "table": "placesVersions"
     },
     {
-      "columns": [
-        "placeId",
-        "versionHash",
-        "locale"
-      ],
+      "columns": ["placeId", "versionHash", "locale"],
       "nameExplicit": false,
       "name": "placesVersionsI18n_pk",
       "entityType": "pks",
       "table": "placesVersionsI18n"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "nameExplicit": false,
       "name": "datasets_pk",
       "table": "datasets",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "aliasId"
-      ],
+      "columns": ["aliasId"],
       "nameExplicit": false,
       "name": "entityAliases_pk",
       "table": "entityAliases",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "runId"
-      ],
+      "columns": ["runId"],
       "nameExplicit": false,
       "name": "ingestRuns_pk",
       "table": "ingestRuns",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "divisions_pk",
       "table": "divisions",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "address2d_pk",
       "table": "address2d",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "address3d_pk",
       "table": "address3d",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "streets_pk",
       "table": "streets",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "places_pk",
       "table": "places",
@@ -4486,9 +4303,7 @@
       "table": "placesVersionsI18n"
     },
     {
-      "columns": [
-        "canonicalKey"
-      ],
+      "columns": ["canonicalKey"],
       "nameExplicit": false,
       "name": "address2d_canonicalKey_unique",
       "entityType": "uniques",
