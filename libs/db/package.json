@@ -12,7 +12,7 @@
     "db:migration:run:preview": "wrangler d1 migrations apply ss-preview --config ../../apps/atlas-api/wrangler.jsonc --env preview",
     "db:migration:run:production": "wrangler d1 migrations apply ss-prod --config ../../apps/atlas-api/wrangler.jsonc --env production",
     "db:import:local": "bash ./scripts/import-local-db.sh ../../apps/atlas-api/.local/d1/dumps/latest.sql ../../apps/atlas-api/wrangler.jsonc ../../apps/atlas-api/.local/d1/dev",
-    "db:rebuild-fts:local": "wrangler d1 execute ss-preview --config ../../apps/atlas-api/wrangler.jsonc --env preview --local --persist-to ../../apps/atlas-api/.local/d1/dev --file ./scripts/sql/rebuild-places-current-fts.sql",
+    "db:rebuild-fts:local": "wrangler d1 execute ss-preview --config ../../apps/atlas-api/wrangler.jsonc --env preview --local --persist-to ../../apps/atlas-api/.local/d1/dev --file ./scripts/sql/rebuild-places-fts.sql",
     "db:mirror:preview:to:local": "bash ./scripts/mirror-db-to-local.sh preview",
     "db:mirror:production:to:local": "bash ./scripts/mirror-db-to-local.sh production"
   },

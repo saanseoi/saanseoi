@@ -1,11 +1,11 @@
 import { index, integer, primaryKey, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 import { address2d, address3d } from "./addresses";
-import { division } from "./divisions";
+import { divisions } from "./divisions";
 import { datasets } from "./shared";
 
-export const placesCurrent = sqliteTable(
-  "placesCurrent",
+export const places = sqliteTable(
+  "places",
   {
     regionCode: text("regionCode").notNull(),
     datasetId: text("datasetId")
@@ -36,19 +36,19 @@ export const placesCurrent = sqliteTable(
     lastSeenMonth: text("lastSeenMonth").notNull(),
   },
   (table) => ({
-    datasetIdx: index("placesCurrent_datasetId_idx").on(table.datasetId),
-    categoryIdx: index("placesCurrent_category_idx").on(table.regionCode, table.otBasicCategory),
-    taxonomyIdx: index("placesCurrent_taxonomy_idx").on(table.regionCode, table.otTaxonomyPrimary),
-    statusIdx: index("placesCurrent_status_idx").on(table.regionCode, table.otOperatingStatus),
+    datasetIdx: index("places_datasetId_idx").on(table.datasetId),
+    categoryIdx: index("places_category_idx").on(table.regionCode, table.otBasicCategory),
+    taxonomyIdx: index("places_taxonomy_idx").on(table.regionCode, table.otTaxonomyPrimary),
+    statusIdx: index("places_status_idx").on(table.regionCode, table.otOperatingStatus),
   }),
 );
 
-export const placesCurrentI18n = sqliteTable(
-  "placesCurrentI18n",
+export const placesI18n = sqliteTable(
+  "placesI18n",
   {
     placeId: text("placeId")
       .notNull()
-      .references(() => placesCurrent.id),
+      .references(() => places.id),
     locale: text("locale").notNull(),
     otName: text("otName"),
     otNameVariantJson: text("otNameVariantJson"),
@@ -61,36 +61,36 @@ export const placesCurrentI18n = sqliteTable(
     pk: primaryKey({
       columns: [table.placeId, table.locale],
     }),
-    localeIdx: index("placesCurrentI18n_locale_idx").on(table.locale),
-    nameIdx: index("placesCurrentI18n_name_idx").on(table.locale, table.otName),
+    localeIdx: index("placesI18n_locale_idx").on(table.locale),
+    nameIdx: index("placesI18n_name_idx").on(table.locale, table.otName),
   }),
 );
 
-export const placesCurrentDivision = sqliteTable(
-  "placesCurrentDivision",
+export const placesDivision = sqliteTable(
+  "placesDivision",
   {
     placeId: text("placeId")
       .notNull()
-      .references(() => placesCurrent.id),
+      .references(() => places.id),
     divisionId: text("divisionId")
       .notNull()
-      .references(() => division.id),
+      .references(() => divisions.id),
   },
   (table) => ({
     pk: primaryKey({
       columns: [table.placeId, table.divisionId],
     }),
-    divisionIdx: index("placesCurrentDivision_divisionId_idx").on(table.divisionId, table.placeId),
+    divisionIdx: index("placesDivision_divisionId_idx").on(table.divisionId, table.placeId),
   }),
 );
 
-export const placesCurrentCells = sqliteTable(
-  "placesCurrentCells",
+export const placesCells = sqliteTable(
+  "placesCells",
   {
     regionCode: text("regionCode").notNull(),
     id: text("id")
       .notNull()
-      .references(() => placesCurrent.id),
+      .references(() => places.id),
     h3Level: integer("h3Level").notNull(),
     h3Cell: text("h3Cell").notNull(),
   },
@@ -98,6 +98,6 @@ export const placesCurrentCells = sqliteTable(
     pk: primaryKey({
       columns: [table.regionCode, table.id, table.h3Level, table.h3Cell],
     }),
-    cellIdx: index("placesCurrentCells_lookup_idx").on(table.regionCode, table.h3Level, table.h3Cell, table.id),
+    cellIdx: index("placesCells_lookup_idx").on(table.regionCode, table.h3Level, table.h3Cell, table.id),
   }),
 );

@@ -272,14 +272,14 @@ This is the shared cross-theme and potentially version-aware spatial index.
 
 For the initial implementation:
 
-- `placesCurrentCells` is the implemented serving index for current `places`
+- `placesCells` is the implemented serving index for current `places`
 - `entitySpatialIndex` remains documented for future cross-theme or historical spatial indexing
 
 When implemented, `spatialKeyType` should standardize on `h3`.
 
 ## Places tables
 
-### `placesCurrent`
+### `places`
 
 Current serving projection for places.
 
@@ -317,7 +317,7 @@ Notes:
 - `theme` and `type` are omitted because this table is already theme-specific
 - this table stores current place state only
 
-### `placesCurrentI18n`
+### `placesI18n`
 
 Localized place names and brand display data.
 
@@ -342,7 +342,7 @@ Locale values initially supported:
 - `zh-hant`
 - `zh-hans`
 
-### `placesCurrentDivision`
+### `placesDivision`
 
 Join table from places to divisions.
 
@@ -357,7 +357,7 @@ Fields:
 
 A place may map to multiple divisions across the hierarchy.
 
-### `placesCurrentMembership`
+### `placesMembership`
 
 Future join table for places inside other places.
 
@@ -372,7 +372,7 @@ Fields:
 
 Not ingested in the first implementation.
 
-### `placesCurrentCells`
+### `placesCells`
 
 Current H3 lookup rows for places.
 
@@ -387,11 +387,11 @@ Fields:
 - `h3Level` integer not null
 - `h3Cell` text not null
 
-### `placesCurrentFts`
+### `placesFts`
 
 Locale-aware FTS5 search table for places.
 
-This table should be built around normalized i18n rows rather than JSON blobs embedded in `placesCurrent`.
+This table should be built around normalized i18n rows rather than JSON blobs embedded in `places`.
 
 Suggested columns:
 
@@ -408,7 +408,7 @@ Primary key strategy depends on the FTS5 layout chosen during implementation, bu
 
 ## Division tables
 
-### `division`
+### `divisions`
 
 Canonical division table for HK/MO-specific hierarchy.
 
@@ -443,7 +443,7 @@ Division levels:
 
 If no canonical external ID exists yet, use an `SS` ID.
 
-### `divisionI18n`
+### `divisionsI18n`
 
 Localized division names and labels.
 
@@ -747,48 +747,48 @@ For each source place row:
 - compute `otVersionHash`
 - detect whether the canonical current row changed
 - insert or update `entityVersions`
-- upsert `placesCurrent`
+- upsert `places`
 - clear or preserve nullable foreign keys according to later enrichment results
 
 Delete handling:
 
 - if a previously current place is absent from the new active dataset, treat it as a real deletion
 - close the prior version in `entityVersions`
-- remove it from `placesCurrent` and dependent current indexes
+- remove it from `places` and dependent current indexes
 
 ### 4. `extractPlacesI18n`
 
 - resolve `names.common` and `names.rules` into localized rows
 - resolve `brand.names.common` and `brand.names.rules` into localized rows
-- upsert `placesCurrentI18n`
+- upsert `placesI18n`
 
 No nested i18n structures should remain in normalized localized tables.
 
 ### 5. `reconcileAddress2d`
 
-Use `placesCurrent.otAddressesJson` and other place-derived cues to:
+Use `places.otAddressesJson` and other place-derived cues to:
 
 - parse canonical two-dimensional address candidates
 - match against existing `address2d` rows
 - create new `address2d` rows where needed
 - create or update `address2dI18n`
-- link matched `address2dId` back to `placesCurrent`
+- link matched `address2dId` back to `places`
 
 `address2d` matching is deterministic from the canonical normalized structure. This stage should not use fuzzy duplicate merging as part of the canonical deduplication rule.
 
-Because this may be incomplete or deferred, `placesCurrent.address2dId` remains nullable.
+Because this may be incomplete or deferred, `places.address2dId` remains nullable.
 
 ### 6. `reconcileDivisions`
 
 Using reconciled address data and geographic context:
 
 - map places to the managed division hierarchy
-- populate `placesCurrentDivision`
+- populate `placesDivision`
 - populate division foreign keys on `address2d`
 
 Important:
 
-- ordinary place ingest must not create new `division` rows
+- ordinary place ingest must not create new `divisions` rows
 - missing or ambiguous division mappings should surface as reviewable quality issues rather than triggering in-process division creation
 
 ### 7. `reconcileStreets`
@@ -809,7 +809,7 @@ Use freeform address parsing and geocoding/enrichment to:
 - derive canonical three-dimensional addresses where enough evidence exists
 - create `address3d` rows
 - create `address3dI18n` rows
-- link `address3dId` back to `placesCurrent`
+- link `address3dId` back to `places`
 
 This phase is intentionally separate because it may depend on slower external or heuristic processing.
 
@@ -818,15 +818,15 @@ This phase is intentionally separate because it may depend on slower external or
 For each current place:
 
 - derive H3 cells from `otLat`/`otLng`
-- update `placesCurrentCells`
+- update `placesCells`
 
-`entitySpatialIndex` is deferred. The implemented current-state spatial index is `placesCurrentCells`.
+`entitySpatialIndex` is deferred. The implemented current-state spatial index is `placesCells`.
 
 ### 10. `refreshFts`
 
 Build locale-aware search rows using:
 
-- `placesCurrentI18n`
+- `placesI18n`
 - reconciled address display text
 - reconciled division display text
 - reconciled street display text
@@ -868,9 +868,9 @@ This document is focused on the data model, but the following indexes are struct
 - `datasets`: unique active dataset lookup by `(regionCode, snapshotMonth, theme, isActive)`
 - `entityVersions`: `(regionCode, theme, entityId, isCurrent)`
 - `entityAliases`: unique `(entityType, aliasValue)`
-- `placesCurrentDivision`: `(divisionId, placeId)`
+- `placesDivision`: `(divisionId, placeId)`
 - `streetAddress`: `(addressId, streetId)`
-- `placesCurrentCells`: `(regionCode, h3Level, h3Cell, id)`
+- `placesCells`: `(regionCode, h3Level, h3Cell, id)`
 - locale tables: indexes by `(locale)` in addition to composite primary keys if locale-specific queries are common
 
 ## Deferred items

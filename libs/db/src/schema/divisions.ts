@@ -1,7 +1,7 @@
 import { index, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-export const division = sqliteTable(
-  "division",
+export const divisions = sqliteTable(
+  "divisions",
   {
     id: text("id").primaryKey(),
     level: integer("level").notNull(),
@@ -18,17 +18,17 @@ export const division = sqliteTable(
     sourcesJson: text("sourcesJson"),
   },
   (table) => ({
-    levelIdx: index("division_level_idx").on(table.level),
-    parentIdx: index("division_parentDivisionId_idx").on(table.parentDivisionId),
+    levelIdx: index("divisions_level_idx").on(table.level),
+    parentIdx: index("divisions_parentDivisionId_idx").on(table.parentDivisionId),
   }),
 );
 
-export const divisionI18n = sqliteTable(
-  "divisionI18n",
+export const divisionsI18n = sqliteTable(
+  "divisionsI18n",
   {
     divisionId: text("divisionId")
       .notNull()
-      .references(() => division.id),
+      .references(() => divisions.id),
     locale: text("locale").notNull(),
     otName: text("otName"),
     otNameVariantJson: text("otNameVariantJson"),
@@ -40,7 +40,7 @@ export const divisionI18n = sqliteTable(
     pk: primaryKey({
       columns: [table.divisionId, table.locale],
     }),
-    localeIdx: index("divisionI18n_locale_idx").on(table.locale),
-    nameIdx: index("divisionI18n_name_idx").on(table.locale, table.otName),
+    localeIdx: index("divisionsI18n_locale_idx").on(table.locale),
+    nameIdx: index("divisionsI18n_name_idx").on(table.locale, table.otName),
   }),
 );
