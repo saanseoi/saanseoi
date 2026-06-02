@@ -11,10 +11,9 @@ const localD1Dir = join(
 
 const localD1SqlitePath = existsSync(localD1Dir)
   ? readdirSync(localD1Dir)
-      .filter((file) => file.endsWith('.sqlite') && file !== 'metadata.sqlite')
-      .map((file) => join(localD1Dir, file))
-      .sort()
-      .at(0)
+      .filter(file => file.endsWith('.sqlite') && file !== 'metadata.sqlite')
+      .map(file => join(localD1Dir, file))
+      .sort()[0]
   : undefined
 
 export default defineConfig({
