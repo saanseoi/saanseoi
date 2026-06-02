@@ -81,7 +81,7 @@ export async function getPlaceCurrent(binding: D1Database, lookup: PlaceLookup) 
     .prepare(
       `
         SELECT *
-        FROM "placesCurrent"
+        FROM "places"
         WHERE "regionCode" = ?
           AND "id" = ?
         LIMIT 1
@@ -98,7 +98,7 @@ export async function listPlaceI18n(binding: D1Database, lookup: I18nLookup) {
     .prepare(
       `
         SELECT *
-        FROM "placesCurrentI18n"
+        FROM "placesI18n"
         WHERE "placeId" = ?
           ${localeSql}
         ORDER BY "locale"
@@ -123,10 +123,10 @@ export async function listPlaceDivisions(binding: D1Database, lookup: I18nLookup
           di."locale" AS "locale",
           di."otName" AS "otName",
           di."otLocalType" AS "otLocalType"
-        FROM "placesCurrentDivision" pcd
-        INNER JOIN "division" d
+        FROM "placesDivision" pcd
+        INNER JOIN "divisions" d
           ON d."id" = pcd."divisionId"
-        LEFT JOIN "divisionI18n" di
+        LEFT JOIN "divisionsI18n" di
           ON di."divisionId" = d."id"
           ${localeSql}
         WHERE pcd."placeId" = ?
@@ -156,8 +156,8 @@ export async function listPlacesByH3Cell(binding: D1Database, lookup: H3Lookup) 
           p."otLng" AS "otLng",
           c."h3Level" AS "h3Level",
           c."h3Cell" AS "h3Cell"
-        FROM "placesCurrentCells" c
-        INNER JOIN "placesCurrent" p
+        FROM "placesCells" c
+        INNER JOIN "places" p
           ON p."id" = c."id"
         WHERE c."regionCode" = ?
           AND c."h3Level" = ?
@@ -181,12 +181,12 @@ export async function searchPlacesFts(binding: D1Database, lookup: FtsLookup) {
       f."locale" AS "locale",
       f."nameText" AS "nameText",
       f."brandText" AS "brandText"
-    FROM "placesCurrentFts" f
-    INNER JOIN "placesCurrent" p
+    FROM "placesFts" f
+    INNER JOIN "places" p
       ON p."id" = f."placeId"
     WHERE p."regionCode" = ?
       ${localeSql}
-      AND "placesCurrentFts" MATCH ?
+      AND "placesFts" MATCH ?
     LIMIT ?
   `;
 
@@ -209,8 +209,8 @@ export async function searchPlacesFts(binding: D1Database, lookup: FtsLookup) {
 
     return result.results;
   } catch (error) {
-    if (error instanceof Error && error.message.includes('no such table: placesCurrentFts')) {
-      throw new Error("FTS index is not initialized. Rebuild placesCurrentFts before using search.");
+    if (error instanceof Error && error.message.includes('no such table: placesFts')) {
+      throw new Error("FTS index is not initialized. Rebuild placesFts before using search.");
     }
 
     throw error;

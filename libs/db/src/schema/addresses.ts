@@ -1,6 +1,6 @@
 import { index, integer, primaryKey, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-import { division } from "./divisions";
+import { divisions } from "./divisions";
 
 export const address2d = sqliteTable(
   "address2d",
@@ -8,12 +8,12 @@ export const address2d = sqliteTable(
     id: text("id").primaryKey(),
     canonicalKey: text("canonicalKey").notNull().unique(),
     streetId: text("streetId"),
-    microhoodId: text("microhoodId").references(() => division.id),
-    neighbourhoodId: text("neighbourhoodId").references(() => division.id),
-    subDistrictId: text("subDistrictId").references(() => division.id),
-    districtId: text("districtId").references(() => division.id),
-    regionId: text("regionId").references(() => division.id),
-    countryId: text("countryId").references(() => division.id),
+    microhoodId: text("microhoodId").references(() => divisions.id),
+    neighbourhoodId: text("neighbourhoodId").references(() => divisions.id),
+    subDistrictId: text("subDistrictId").references(() => divisions.id),
+    districtId: text("districtId").references(() => divisions.id),
+    regionId: text("regionId").references(() => divisions.id),
+    countryId: text("countryId").references(() => divisions.id),
     otLng: real("otLng").notNull(),
     otLat: real("otLat").notNull(),
     otStreet: text("otStreet"),
