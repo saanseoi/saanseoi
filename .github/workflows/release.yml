@@ -1,0 +1,74 @@
+name: 'VERSION :: Release'
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  DO_NOT_TRACK: 1
+  TURBO_TELEMETRY_DISABLED: 1
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  check-changesets:
+    name: 'VERSION :: Check for Changesets'
+    runs-on: ubuntu-latest
+    outputs:
+      has_changesets: ${{ steps.check.outputs.has_changesets }}
+    steps:
+      - name: 'GIT :: Checkout Repo'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 'CHECK :: Changesets'
+        id: check
+        run: |
+          if [ -d ".changeset" ] && [ "$(find .changeset -name "*.md" ! -name "README.md" | wc -l)" -gt 0 ]; then
+            echo "has_changesets=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changesets=false" >> $GITHUB_OUTPUT
+          fi
+
+  release:
+    name: 'VERSION :: Release'
+    needs: check-changesets
+    if: |
+      github.ref == 'refs/heads/main' &&
+      needs.check-changesets.outputs.has_changesets == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'GIT :: Checkout Repo'
+        uses: actions/checkout@v4
+
+      - name: 'INSTALL :: Bun'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.14'
+
+      - name: 'CACHE :: Restore Dependencies'
+        uses: actions/cache@v3
+        id: cache-deps
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: 'INSTALL :: Dependencies'
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+      - name: 'BUILD :: Places API'
+        run: bun run build:production
+        working-directory: apps/places-api
+
+      - name: 'RELEASE :: Create Release PR'
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: bun run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

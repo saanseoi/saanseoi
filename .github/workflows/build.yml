@@ -1,0 +1,49 @@
+name: 'BUILD :: Build Application'
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: 'BUILD :: Places API'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'GIT :: Checkout'
+        uses: actions/checkout@v4
+
+      - name: 'INSTALL :: Bun'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.14'
+
+      - name: 'CACHE :: Restore Dependencies'
+        uses: actions/cache@v3
+        id: cache-deps
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock') }}
+
+      - name: 'INSTALL :: Dependencies'
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+      - name: 'CACHE :: Restore Build'
+        uses: actions/cache@v3
+        id: cache-build
+        with:
+          path: |
+            .turbo
+            apps/places-api/dist
+          key: ${{ runner.os }}-places-api-build-${{ inputs.environment }}-${{ hashFiles('bun.lock', 'turbo.json', 'package.json', 'apps/places-api/**', 'libs/**') }}
+          restore-keys: |
+            ${{ runner.os }}-places-api-build-${{ inputs.environment }}-
+            ${{ runner.os }}-places-api-build-
+
+      - name: 'BUILD :: Worker Bundle'
+        if: steps.cache-build.outputs.cache-hit != 'true'
+        run: bun run build:${{ inputs.environment }}
+        working-directory: apps/places-api

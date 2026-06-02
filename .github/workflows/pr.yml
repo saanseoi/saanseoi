@@ -1,0 +1,19 @@
+name: 'PR :: Build and Test'
+
+on:
+  pull_request:
+    branches:
+      - preview
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      environment: 'preview'
+
+  test:
+    needs: build
+    uses: ./.github/workflows/test.yml
+    with:
+      environment: 'preview'
