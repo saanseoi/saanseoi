@@ -7,8 +7,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "ss-prod",
-      "database_id": "a8c8cdd6-23a5-47f1-a80e-0fd7f88a5a6c",
+      "database_name": "ss-db-prod",
+      "database_id": "658e67b6-f259-4e5d-907e-7e361d2edf3c",
       "migrations_dir": "../../libs/db/migrations"
     }
   ],
@@ -19,8 +19,8 @@
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "ss-preview",
-          "database_id": "2cf49c36-e9e5-44ec-9167-7c985194a186",
+          "database_name": "ss-db-preview",
+          "database_id": "06499402-a8ca-4e6c-ab3e-ea2bf9e81dea",
           "migrations_dir": "../../libs/db/migrations"
         }
       ]
@@ -30,8 +30,8 @@
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "ss-prod",
-          "database_id": "a8c8cdd6-23a5-47f1-a80e-0fd7f88a5a6c",
+          "database_name": "ss-db-prod",
+          "database_id": "658e67b6-f259-4e5d-907e-7e361d2edf3c",
           "migrations_dir": "../../libs/db/migrations"
         }
       ]

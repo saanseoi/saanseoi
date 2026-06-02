@@ -12,12 +12,12 @@ fi
 
 case "$target" in
   preview)
-    database_name="ss-preview"
+    database_name="ss-db-preview"
     env_name="preview"
     output_file="$dump_dir/preview.sql"
     ;;
   production)
-    database_name="ss-prod"
+    database_name="ss-db-prod"
     env_name="production"
     output_file="$dump_dir/production.sql"
     ;;
