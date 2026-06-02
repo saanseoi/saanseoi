@@ -15,7 +15,7 @@ if [[ ! -f "$dump_file" ]]; then
   exit 1
 fi
 
-wrangler d1 execute ss-preview \
+wrangler d1 execute ss-db-preview \
   --config "$wrangler_config" \
   --env preview \
   --local \

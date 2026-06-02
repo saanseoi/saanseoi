@@ -46,8 +46,8 @@ Current Worker names:
 
 Current D1 databases:
 
-- preview database: `ss-preview`
-- production database: `ss-prod`
+- preview database: `ss-db-preview`
+- production database: `ss-db-prod`
 
 Current D1 binding name in the Worker:
 
@@ -477,8 +477,8 @@ Main branch:
 
 ### Current remote migration commands
 
-- preview: `wrangler d1 migrations apply ss-preview --env preview`
-- production: `wrangler d1 migrations apply ss-prod --env production`
+- preview: `wrangler d1 migrations apply ss-db-preview --env preview`
+- production: `wrangler d1 migrations apply ss-db-prod --env production`
 
 ## What is already done
 
