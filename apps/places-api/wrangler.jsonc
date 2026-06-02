@@ -1,10 +1,15 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  "name": "places-api",
+  "name": "ss-places-prod",
   "main": "src/index.ts",
   "compatibility_date": "2025-10-21",
   "assets": { "directory": "public" },
   "minify": true,
+  "env": {
+    "preview": {
+      "name": "ss-places-preview"
+    }
+  },
   // "compatibility_flags": [
   //   "nodejs_compat"
   // ],
