@@ -23,7 +23,7 @@ esac
 
 bun run "$dump_script"
 bun run db:reset:local
-bun run db:migrate:local
+bun run db:migration:run:local
 bun run db:import:local
 bun run db:rebuild-fts:local
 
