@@ -2,14 +2,21 @@
   "name": "places-api",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --persist-to .local/d1/dev",
     "build": "mkdir -p dist && wrangler deploy --dry-run --env production --outdir dist --minify",
     "build:preview": "mkdir -p dist && wrangler deploy --dry-run --env preview --outdir dist --minify",
     "build:production": "mkdir -p dist && wrangler deploy --dry-run --env production --outdir dist --minify",
     "db:generate": "drizzle-kit generate",
-    "db:migrate:local": "wrangler d1 migrations apply ss-preview --local",
+    "db:dump:preview": "bash ./scripts/dump-db.sh preview",
+    "db:dump:production": "bash ./scripts/dump-db.sh production",
+    "db:reset:local": "bash ./scripts/reset-local-db.sh",
+    "db:migrate:local": "wrangler d1 migrations apply ss-preview --env preview --local --persist-to .local/d1/dev",
     "db:migrate:preview": "wrangler d1 migrations apply ss-preview --env preview",
     "db:migrate:production": "wrangler d1 migrations apply ss-prod --env production",
+    "db:import:local": "bash ./scripts/import-local-db.sh ./.local/d1/dumps/latest.sql",
+    "db:rebuild-fts:local": "wrangler d1 execute ss-preview --env preview --local --persist-to .local/d1/dev --file ./scripts/sql/rebuild-places-current-fts.sql",
+    "db:mirror:preview:to:local": "bash ./scripts/mirror-db-to-local.sh preview",
+    "db:mirror:production:to:local": "bash ./scripts/mirror-db-to-local.sh production",
     "deploy": "wrangler deploy --env production --minify",
     "deploy:preview": "wrangler deploy --env preview --minify",
     "deploy:production": "wrangler deploy --env production --minify",
@@ -31,7 +38,7 @@
     "wrangler": "^4.44.0"
   },
   "dependencies": {
-    "drizzle-orm": "^0.44.2",
+    "drizzle-orm": "^1.0.0-rc.3",
     "hono": "^4.10.1"
   }
 }
