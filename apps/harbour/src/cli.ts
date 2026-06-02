@@ -2,7 +2,7 @@ import { resolve } from 'node:path'
 
 import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/prompts'
 
-import { registerUpload } from './lib/upload-intake'
+import { registerUpload } from './lib/services/upload'
 
 type ParsedArgs = {
   command: string | null
