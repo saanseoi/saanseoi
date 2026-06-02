@@ -1,5 +1,7 @@
 import { index, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
+import { datasets } from "./shared";
+
 export const divisions = sqliteTable(
   "divisions",
   {
@@ -23,6 +25,43 @@ export const divisions = sqliteTable(
   }),
 );
 
+export const divisionsVersions = sqliteTable(
+  "divisionsVersions",
+  {
+    id: text("id").notNull(),
+    versionHash: text("versionHash").notNull(),
+    regionCode: text("regionCode").notNull(),
+    datasetId: text("datasetId")
+      .notNull()
+      .references(() => datasets.datasetId),
+    validFromMonth: text("validFromMonth").notNull(),
+    validToMonth: text("validToMonth"),
+    isCurrent: integer("isCurrent", { mode: "boolean" }).notNull(),
+    level: integer("level").notNull(),
+    otVersion: text("otVersion"),
+    otVersionHash: text("otVersionHash").notNull(),
+    otSubtype: text("otSubtype"),
+    otAdminLevel: text("otAdminLevel"),
+    otClass: text("otClass"),
+    otWikidata: text("otWikidata"),
+    otHierarchyJson: text("otHierarchyJson"),
+    hierarchyJson: text("hierarchyJson"),
+    parentDivisionId: text("parentDivisionId"),
+    otCartographyJson: text("otCartographyJson"),
+    otBboxJson: text("otBboxJson"),
+    sourcesJson: text("sourcesJson"),
+    createdAt: text("createdAt").notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({
+      columns: [table.id, table.versionHash],
+    }),
+    currentLookupIdx: index("divisionsVersions_current_lookup_idx").on(table.regionCode, table.id, table.isCurrent),
+    validityIdx: index("divisionsVersions_validity_idx").on(table.regionCode, table.validFromMonth, table.validToMonth),
+    datasetIdx: index("divisionsVersions_datasetId_idx").on(table.datasetId),
+  }),
+);
+
 export const divisionsI18n = sqliteTable(
   "divisionsI18n",
   {
@@ -42,5 +81,26 @@ export const divisionsI18n = sqliteTable(
     }),
     localeIdx: index("divisionsI18n_locale_idx").on(table.locale),
     nameIdx: index("divisionsI18n_name_idx").on(table.locale, table.otName),
+  }),
+);
+
+export const divisionsVersionsI18n = sqliteTable(
+  "divisionsVersionsI18n",
+  {
+    divisionId: text("divisionId").notNull(),
+    versionHash: text("versionHash").notNull(),
+    locale: text("locale").notNull(),
+    otName: text("otName"),
+    otNameVariantJson: text("otNameVariantJson"),
+    otNameAlts: text("otNameAlts"),
+    otLocalType: text("otLocalType"),
+    hierarchyJson: text("hierarchyJson"),
+  },
+  (table) => ({
+    pk: primaryKey({
+      columns: [table.divisionId, table.versionHash, table.locale],
+    }),
+    localeIdx: index("divisionsVersionsI18n_locale_idx").on(table.locale),
+    nameIdx: index("divisionsVersionsI18n_name_idx").on(table.locale, table.otName),
   }),
 );
