@@ -330,14 +330,3 @@ CREATE TABLE "placesCurrentCells" (
 
 CREATE INDEX "placesCurrentCells_lookup_idx"
   ON "placesCurrentCells" ("regionCode", "h3Level", "h3Cell", "id");
-
-CREATE VIRTUAL TABLE "placesCurrentFts" USING fts5(
-  "placeId" UNINDEXED,
-  "locale" UNINDEXED,
-  "nameText",
-  "brandText",
-  "taxonomyText",
-  "addressText",
-  "divisionText",
-  "streetText"
-);

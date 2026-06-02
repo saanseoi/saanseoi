@@ -1,8 +1,8 @@
 import { index, integer, primaryKey, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 import { address2d, address3d } from "./addresses";
-import { datasets } from "./shared";
 import { division } from "./divisions";
+import { datasets } from "./shared";
 
 export const placesCurrent = sqliteTable(
   "placesCurrent",
