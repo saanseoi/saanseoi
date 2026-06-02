@@ -3,14 +3,14 @@ import { index, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlit
 import { address2d } from "./addresses";
 import { datasets } from "./shared";
 
-export const street = sqliteTable("street", {
+export const streets = sqliteTable("streets", {
   id: text("id").primaryKey(),
   yearBuiltJson: text("yearBuiltJson"),
   referencesJson: text("referencesJson"),
 });
 
-export const streetVersions = sqliteTable(
-  "streetVersions",
+export const streetsVersions = sqliteTable(
+  "streetsVersions",
   {
     id: text("id").notNull(),
     versionHash: text("versionHash").notNull(),
@@ -28,18 +28,18 @@ export const streetVersions = sqliteTable(
     pk: primaryKey({
       columns: [table.id, table.versionHash],
     }),
-    currentLookupIdx: index("streetVersions_current_lookup_idx").on(table.id, table.isCurrent),
-    validityIdx: index("streetVersions_validity_idx").on(table.validFromMonth, table.validToMonth),
-    datasetIdx: index("streetVersions_datasetId_idx").on(table.datasetId),
+    currentLookupIdx: index("streetsVersions_current_lookup_idx").on(table.id, table.isCurrent),
+    validityIdx: index("streetsVersions_validity_idx").on(table.validFromMonth, table.validToMonth),
+    datasetIdx: index("streetsVersions_datasetId_idx").on(table.datasetId),
   }),
 );
 
-export const streetI18n = sqliteTable(
-  "streetI18n",
+export const streetsI18n = sqliteTable(
+  "streetsI18n",
   {
     streetId: text("streetId")
       .notNull()
-      .references(() => street.id),
+      .references(() => streets.id),
     locale: text("locale").notNull(),
     name: text("name").notNull(),
     base: text("base"),
@@ -52,13 +52,13 @@ export const streetI18n = sqliteTable(
     pk: primaryKey({
       columns: [table.streetId, table.locale],
     }),
-    localeIdx: index("streetI18n_locale_idx").on(table.locale),
-    nameIdx: index("streetI18n_name_idx").on(table.locale, table.name),
+    localeIdx: index("streetsI18n_locale_idx").on(table.locale),
+    nameIdx: index("streetsI18n_name_idx").on(table.locale, table.name),
   }),
 );
 
-export const streetVersionsI18n = sqliteTable(
-  "streetVersionsI18n",
+export const streetsVersionsI18n = sqliteTable(
+  "streetsVersionsI18n",
   {
     streetId: text("streetId").notNull(),
     versionHash: text("versionHash").notNull(),
@@ -74,17 +74,17 @@ export const streetVersionsI18n = sqliteTable(
     pk: primaryKey({
       columns: [table.streetId, table.versionHash, table.locale],
     }),
-    localeIdx: index("streetVersionsI18n_locale_idx").on(table.locale),
-    nameIdx: index("streetVersionsI18n_name_idx").on(table.locale, table.name),
+    localeIdx: index("streetsVersionsI18n_locale_idx").on(table.locale),
+    nameIdx: index("streetsVersionsI18n_name_idx").on(table.locale, table.name),
   }),
 );
 
-export const streetAddress = sqliteTable(
-  "streetAddress",
+export const streetsAddress = sqliteTable(
+  "streetsAddress",
   {
     streetId: text("streetId")
       .notNull()
-      .references(() => street.id),
+      .references(() => streets.id),
     addressId: text("addressId")
       .notNull()
       .references(() => address2d.id),
@@ -93,6 +93,6 @@ export const streetAddress = sqliteTable(
     pk: primaryKey({
       columns: [table.streetId, table.addressId],
     }),
-    addressIdx: index("streetAddress_addressId_idx").on(table.addressId),
+    addressIdx: index("streetsAddress_addressId_idx").on(table.addressId),
   }),
 );
