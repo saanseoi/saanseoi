@@ -1,0 +1,19 @@
+name: 'REQUIRE :: Tests Pass'
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      environment: 'production'
+
+  test:
+    needs: build
+    uses: ./.github/workflows/test.yml
+    with:
+      environment: 'production'
