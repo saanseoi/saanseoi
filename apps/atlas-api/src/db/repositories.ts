@@ -1,79 +1,79 @@
 type DatasetFilters = {
-  regionCode?: string;
-  snapshotMonth?: string;
-  theme?: string;
-  status?: string;
-  isActive?: boolean;
-  limit?: number;
-};
+  regionCode?: string
+  snapshotMonth?: string
+  theme?: string
+  status?: string
+  isActive?: boolean
+  limit?: number
+}
 
 type PlaceLookup = {
-  regionCode: string;
-  placeId: string;
-};
+  regionCode: string
+  placeId: string
+}
 
 type I18nLookup = {
-  placeId: string;
-  locale?: string;
-};
+  placeId: string
+  locale?: string
+}
 
 type H3Lookup = {
-  regionCode: string;
-  h3Level: number;
-  h3Cell: string;
-  limit?: number;
-};
+  regionCode: string
+  h3Level: number
+  h3Cell: string
+  limit?: number
+}
 
 type FtsLookup = {
-  regionCode: string;
-  locale?: string;
-  query: string;
-  limit?: number;
-};
+  regionCode: string
+  locale?: string
+  query: string
+  limit?: number
+}
 
 export async function listDatasets(binding: D1Database, filters: DatasetFilters = {}) {
-  const clauses = ['1 = 1'];
-  const bindings: Array<string | number> = [];
+  const clauses = ['1 = 1']
+  const bindings: Array<string | number> = []
 
   if (filters.regionCode) {
-    clauses.push('"regionCode" = ?');
-    bindings.push(filters.regionCode);
+    clauses.push('"regionCode" = ?')
+    bindings.push(filters.regionCode)
   }
 
   if (filters.snapshotMonth) {
-    clauses.push('"snapshotMonth" = ?');
-    bindings.push(filters.snapshotMonth);
+    clauses.push('"snapshotMonth" = ?')
+    bindings.push(filters.snapshotMonth)
   }
 
   if (filters.theme) {
-    clauses.push('"theme" = ?');
-    bindings.push(filters.theme);
+    clauses.push('"theme" = ?')
+    bindings.push(filters.theme)
   }
 
   if (filters.status) {
-    clauses.push('"status" = ?');
-    bindings.push(filters.status);
+    clauses.push('"status" = ?')
+    bindings.push(filters.status)
   }
 
-  if (typeof filters.isActive === "boolean") {
-    clauses.push('"isActive" = ?');
-    bindings.push(filters.isActive ? 1 : 0);
+  if (typeof filters.isActive === 'boolean') {
+    clauses.push('"isActive" = ?')
+    bindings.push(filters.isActive ? 1 : 0)
   }
 
   const sqlText = `
     SELECT *
     FROM "datasets"
-    WHERE ${clauses.join(" AND ")}
+    WHERE ${clauses.join(' AND ')}
     ORDER BY "snapshotMonth" DESC, "ingestedAt" DESC
     LIMIT ?
-  `;
+  `
 
   const result = await binding
     .prepare(sqlText)
     .bind(...bindings, filters.limit ?? 100)
-    .all();
+    .all()
 
-  return result.results;
+  return result.results
 }
 
 export async function getPlaceCurrent(binding: D1Database, lookup: PlaceLookup) {
@@ -88,12 +88,12 @@ export async function getPlaceCurrent(binding: D1Database, lookup: PlaceLookup) 
       `,
     )
     .bind(lookup.regionCode, lookup.placeId)
-    .first();
+    .first()
 }
 
 export async function listPlaceI18n(binding: D1Database, lookup: I18nLookup) {
-  const localeSql = lookup.locale ? 'AND "locale" = ?' : "";
-  const bindings = lookup.locale ? [lookup.placeId, lookup.locale] : [lookup.placeId];
+  const localeSql = lookup.locale ? 'AND "locale" = ?' : ''
+  const bindings = lookup.locale ? [lookup.placeId, lookup.locale] : [lookup.placeId]
   const result = await binding
     .prepare(
       `
@@ -105,14 +105,14 @@ export async function listPlaceI18n(binding: D1Database, lookup: I18nLookup) {
       `,
     )
     .bind(...bindings)
-    .all();
+    .all()
 
-  return result.results;
+  return result.results
 }
 
 export async function listPlaceDivisions(binding: D1Database, lookup: I18nLookup) {
-  const localeSql = lookup.locale ? 'AND di."locale" = ?' : "";
-  const bindings = lookup.locale ? [lookup.locale, lookup.placeId] : [lookup.placeId];
+  const localeSql = lookup.locale ? 'AND di."locale" = ?' : ''
+  const bindings = lookup.locale ? [lookup.locale, lookup.placeId] : [lookup.placeId]
   const result = await binding
     .prepare(
       `
@@ -134,9 +134,9 @@ export async function listPlaceDivisions(binding: D1Database, lookup: I18nLookup
       `,
     )
     .bind(...bindings)
-    .all();
+    .all()
 
-  return result.results;
+  return result.results
 }
 
 export async function listPlacesByH3Cell(binding: D1Database, lookup: H3Lookup) {
@@ -166,13 +166,13 @@ export async function listPlacesByH3Cell(binding: D1Database, lookup: H3Lookup) 
       `,
     )
     .bind(lookup.regionCode, lookup.h3Level, lookup.h3Cell, lookup.limit ?? 50)
-    .all();
+    .all()
 
-  return result.results;
+  return result.results
 }
 
 export async function searchPlacesFts(binding: D1Database, lookup: FtsLookup) {
-  const localeSql = lookup.locale ? 'AND f."locale" = ?' : "";
+  const localeSql = lookup.locale ? 'AND f."locale" = ?' : ''
   const sqlText = `
     SELECT
       p."id" AS "placeId",
@@ -188,31 +188,33 @@ export async function searchPlacesFts(binding: D1Database, lookup: FtsLookup) {
       ${localeSql}
       AND "placesFts" MATCH ?
     LIMIT ?
-  `;
+  `
 
   const bindings = lookup.locale
     ? [lookup.regionCode, lookup.locale, lookup.query, lookup.limit ?? 20]
-    : [lookup.regionCode, lookup.query, lookup.limit ?? 20];
+    : [lookup.regionCode, lookup.query, lookup.limit ?? 20]
 
   try {
     const result = await binding
       .prepare(sqlText)
       .bind(...bindings)
       .all<{
-        placeId: string;
-        regionCode: string;
-        datasetId: string;
-        locale: string;
-        nameText: string | null;
-        brandText: string | null;
-      }>();
+        placeId: string
+        regionCode: string
+        datasetId: string
+        locale: string
+        nameText: string | null
+        brandText: string | null
+      }>()
 
-    return result.results;
+    return result.results
   } catch (error) {
     if (error instanceof Error && error.message.includes('no such table: placesFts')) {
-      throw new Error("FTS index is not initialized. Rebuild placesFts before using search.");
+      throw new Error(
+        'FTS index is not initialized. Rebuild placesFts before using search.',
+      )
     }
 
-    throw error;
+    throw error
   }
 }
