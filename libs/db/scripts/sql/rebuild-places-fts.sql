@@ -1,6 +1,6 @@
-DELETE FROM "placesCurrentFts";
+DELETE FROM "placesFts";
 
-INSERT INTO "placesCurrentFts" (
+INSERT INTO "placesFts" (
   "placeId",
   "locale",
   "nameText",
@@ -26,8 +26,8 @@ SELECT
   ) AS "addressText",
   COALESCE(GROUP_CONCAT(DISTINCT di."otName"), '') AS "divisionText",
   COALESCE(MAX(si."name"), '') AS "streetText"
-FROM "placesCurrent" p
-JOIN "placesCurrentI18n" pi
+FROM "places" p
+JOIN "placesI18n" pi
   ON pi."placeId" = p."id"
 LEFT JOIN "address2dI18n" a2
   ON a2."addressId" = p."address2dId"
@@ -35,14 +35,14 @@ LEFT JOIN "address2dI18n" a2
 LEFT JOIN "address3dI18n" a3
   ON a3."address3dId" = p."address3dId"
  AND a3."locale" = pi."locale"
-LEFT JOIN "streetAddress" sa
+LEFT JOIN "streetsAddress" sa
   ON sa."addressId" = p."address2dId"
-LEFT JOIN "streetI18n" si
+LEFT JOIN "streetsI18n" si
   ON si."streetId" = sa."streetId"
  AND si."locale" = pi."locale"
-LEFT JOIN "placesCurrentDivision" pcd
+LEFT JOIN "placesDivision" pcd
   ON pcd."placeId" = p."id"
-LEFT JOIN "divisionI18n" di
+LEFT JOIN "divisionsI18n" di
   ON di."divisionId" = pcd."divisionId"
  AND di."locale" = pi."locale"
 GROUP BY
