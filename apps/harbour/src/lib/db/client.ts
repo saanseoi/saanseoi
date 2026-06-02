@@ -5,7 +5,7 @@ import { dirname, resolve } from 'node:path'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import * as schema from './schema'
+import * as schema from '@repo/db/schema'
 
 const DEFAULT_LOCAL_D1_GLOB = resolve(
   dirname(import.meta.dir),

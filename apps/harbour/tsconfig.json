@@ -23,7 +23,9 @@
     "rootDir": "src",
     "types": ["bun-types", "@cloudflare/workers-types", "vitest/globals"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "drizzle-orm": ["../../libs/db/node_modules/drizzle-orm"],
+      "drizzle-orm/*": ["../../libs/db/node_modules/drizzle-orm/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
