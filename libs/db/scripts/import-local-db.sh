@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-dump_file="${1:-}"
-wrangler_config="${2:-../../apps/atlas-api/wrangler.jsonc}"
-persist_dir="${3:-../../.local/d1/dev}"
+repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
+dump_file="${1:-$repo_root/.local/d1/dumps/latest.sql}"
+wrangler_config="${2:-$repo_root/apps/atlas-api/wrangler.jsonc}"
+persist_dir="${3:-$repo_root/.local/d1/dev}"
 
 if [[ -z "$dump_file" ]]; then
   echo "Usage: $0 <dump.sql> [wrangler-config] [persist-dir]" >&2
@@ -15,7 +16,7 @@ if [[ ! -f "$dump_file" ]]; then
   exit 1
 fi
 
-wrangler d1 execute ss-db-preview \
+bun x wrangler d1 execute ss-db-preview \
   --config "$wrangler_config" \
   --env preview \
   --local \
