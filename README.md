@@ -8,7 +8,7 @@ This project is a monorepo managed by [Turborepo](https://turbo.build/).
 ```bash
 # Applications
 /apps
-    /places-api # Hong Kong Places API
+    /atlas-api # HK Atlas (Places API)
 # Shared Libraries
 /libs
     /i18n # ParaglideJs

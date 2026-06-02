@@ -37,13 +37,13 @@ jobs:
         with:
           path: |
             .turbo
-            apps/places-api/dist
-          key: ${{ runner.os }}-places-api-build-${{ inputs.environment }}-${{ hashFiles('bun.lock', 'turbo.json', 'package.json', 'apps/places-api/**', 'libs/**') }}
+            apps/atlas-api/dist
+          key: ${{ runner.os }}-atlas-api-build-${{ inputs.environment }}-${{ hashFiles('bun.lock', 'turbo.json', 'package.json', 'apps/atlas-api/**', 'libs/**') }}
           restore-keys: |
-            ${{ runner.os }}-places-api-build-${{ inputs.environment }}-
-            ${{ runner.os }}-places-api-build-
+            ${{ runner.os }}-atlas-api-build-${{ inputs.environment }}-
+            ${{ runner.os }}-atlas-api-build-
 
       - name: 'BUILD :: Worker Bundle'
         if: steps.cache-build.outputs.cache-hit != 'true'
         run: bun run build:${{ inputs.environment }}
-        working-directory: apps/places-api
+        working-directory: apps/atlas-api

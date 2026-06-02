@@ -36,16 +36,16 @@ jobs:
         with:
           path: |
             .turbo
-            apps/places-api/dist
-          key: ${{ runner.os }}-places-api-build-${{ inputs.environment }}-${{ hashFiles('bun.lock', 'turbo.json', 'package.json', 'apps/places-api/**', 'libs/**') }}
+            apps/atlas-api/dist
+          key: ${{ runner.os }}-atlas-api-build-${{ inputs.environment }}-${{ hashFiles('bun.lock', 'turbo.json', 'package.json', 'apps/atlas-api/**', 'libs/**') }}
           restore-keys: |
-            ${{ runner.os }}-places-api-build-${{ inputs.environment }}-
-            ${{ runner.os }}-places-api-build-
+            ${{ runner.os }}-atlas-api-build-${{ inputs.environment }}-
+            ${{ runner.os }}-atlas-api-build-
 
       - name: 'CHECK :: Types'
         run: bun run check
-        working-directory: apps/places-api
+        working-directory: apps/atlas-api
 
       - name: 'TEST :: Run tests'
         run: bun run test
-        working-directory: apps/places-api
+        working-directory: apps/atlas-api
