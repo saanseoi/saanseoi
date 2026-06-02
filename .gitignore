@@ -42,3 +42,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Dev Vars
 .dev.vars*
 apps/atlas-api/.env.local
+
+# Data
+data/
+*.sql
+*.db
+*.sqlite3
+*.sqlite
