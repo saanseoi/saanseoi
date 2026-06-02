@@ -4,10 +4,37 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-10-21",
   "assets": { "directory": "public" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ss-prod",
+      "database_id": "a8c8cdd6-23a5-47f1-a80e-0fd7f88a5a6c",
+      "migrations_dir": "migrations"
+    }
+  ],
   "minify": true,
   "env": {
     "preview": {
-      "name": "ss-places-preview"
+      "name": "ss-places-preview",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ss-preview",
+          "database_id": "2cf49c36-e9e5-44ec-9167-7c985194a186",
+          "migrations_dir": "migrations"
+        }
+      ]
+    },
+    "production": {
+      "name": "ss-places-prod",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ss-prod",
+          "database_id": "a8c8cdd6-23a5-47f1-a80e-0fd7f88a5a6c",
+          "migrations_dir": "migrations"
+        }
+      ]
     }
   },
   // "compatibility_flags": [
@@ -26,13 +53,6 @@
   //   {
   //     "binding": "MY_BUCKET",
   //     "bucket_name": "my-bucket"
-  //   }
-  // ],
-  // "d1_databases": [
-  //   {
-  //     "binding": "MY_DB",
-  //     "database_name": "my-database",
-  //     "database_id": ""
   //   }
   // ],
   // "ai": {
