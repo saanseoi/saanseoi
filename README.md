@@ -24,3 +24,18 @@ bun run test:watch
 # get test suite coverage
 bun run test:coverage
 ```
+
+## Fish Completion For Upload
+
+To enable Fish completions for `bun run upload ...`, install the repo-managed snippet once:
+
+```sh
+bun run fish:install-completions
+source ~/.config/fish/conf.d/saanseoi-upload-completion.fish
+```
+
+This adds:
+
+- file and directory completion for `bun run upload <file>`
+- file completion for `--db` and `--raw-root`
+- option-value completion for `--type`, `--theme`, and `--region`
