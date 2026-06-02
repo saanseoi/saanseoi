@@ -2,9 +2,11 @@
 set -euo pipefail
 
 target="${1:-}"
+wrangler_config="${2:-../../apps/atlas-api/wrangler.jsonc}"
+dump_dir="${3:-../../apps/atlas-api/.local/d1/dumps}"
 
 if [[ -z "$target" ]]; then
-  echo "Usage: $0 <preview|production>" >&2
+  echo "Usage: $0 <preview|production> [wrangler-config] [dump-dir]" >&2
   exit 1
 fi
 
@@ -12,12 +14,12 @@ case "$target" in
   preview)
     database_name="ss-preview"
     env_name="preview"
-    output_file=".local/d1/dumps/preview.sql"
+    output_file="$dump_dir/preview.sql"
     ;;
   production)
     database_name="ss-prod"
     env_name="production"
-    output_file=".local/d1/dumps/production.sql"
+    output_file="$dump_dir/production.sql"
     ;;
   *)
     echo "Unsupported target: $target" >&2
@@ -25,8 +27,8 @@ case "$target" in
     ;;
 esac
 
-mkdir -p ".local/d1/dumps"
-rm -f "$output_file" ".local/d1/dumps/latest.sql"
+mkdir -p "$dump_dir"
+rm -f "$output_file" "$dump_dir/latest.sql"
 
 tables=(
   "datasets"
@@ -51,9 +53,10 @@ tables=(
 printf 'PRAGMA defer_foreign_keys = true;\n' > "$output_file"
 
 for table_name in "${tables[@]}"; do
-  table_file=".local/d1/dumps/${target}-${table_name}.sql"
+  table_file="$dump_dir/${target}-${table_name}.sql"
 
   wrangler d1 export "$database_name" \
+    --config "$wrangler_config" \
     --env "$env_name" \
     --remote \
     --table="$table_name" \
@@ -63,5 +66,5 @@ for table_name in "${tables[@]}"; do
   cat "$table_file" >> "$output_file"
 done
 
-cp "$output_file" ".local/d1/dumps/latest.sql"
+cp "$output_file" "$dump_dir/latest.sql"
 echo "Dumped $database_name to $output_file"
