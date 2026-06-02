@@ -1,0 +1,39 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ss-harbour-production",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-10-21",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ss-db-prod",
+      "database_id": "658e67b6-f259-4e5d-907e-7e361d2edf3c",
+      "migrations_dir": "../../libs/db/migrations"
+    }
+  ],
+  "minify": true,
+  "env": {
+    "preview": {
+      "name": "ss-harbour-preview",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ss-db-preview",
+          "database_id": "06499402-a8ca-4e6c-ab3e-ea2bf9e81dea",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ]
+    },
+    "production": {
+      "name": "ss-harbour-production",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ss-db-prod",
+          "database_id": "658e67b6-f259-4e5d-907e-7e361d2edf3c",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ]
+    }
+  }
+}
