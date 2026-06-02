@@ -28,4 +28,4 @@ bun run --cwd "$repo_root" db:migration:run:local
 bun run --cwd "$repo_root" db:import:local
 bun run --cwd "$repo_root" db:rebuild-fts:local
 
-echo "Mirrored $target database into local D1 at apps/atlas-api/.local/d1/dev"
+echo "Mirrored $target database into local D1 at .local/d1/dev"

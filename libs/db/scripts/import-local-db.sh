@@ -3,7 +3,7 @@ set -euo pipefail
 
 dump_file="${1:-}"
 wrangler_config="${2:-../../apps/atlas-api/wrangler.jsonc}"
-persist_dir="${3:-../../apps/atlas-api/.local/d1/dev}"
+persist_dir="${3:-../../.local/d1/dev}"
 
 if [[ -z "$dump_file" ]]; then
   echo "Usage: $0 <dump.sql> [wrangler-config] [persist-dir]" >&2
