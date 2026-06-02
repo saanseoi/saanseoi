@@ -45,7 +45,6 @@ apps/atlas-api/.env.local
 
 # Data
 data/
-*.sql
 *.db
 *.sqlite3
 *.sqlite

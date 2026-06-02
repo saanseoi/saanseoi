@@ -4,10 +4,11 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "db:generate": "drizzle-kit generate --config=./drizzle.config.ts",
+    "db:studio": "bun drizzle-kit studio --config=./drizzle.config.ts",
     "db:dump:preview": "bash ./scripts/dump-db.sh preview ../../apps/atlas-api/wrangler.jsonc ../../apps/atlas-api/.local/d1/dumps",
     "db:dump:production": "bash ./scripts/dump-db.sh production ../../apps/atlas-api/wrangler.jsonc ../../apps/atlas-api/.local/d1/dumps",
     "db:reset:local": "bash ./scripts/reset-local-db.sh ../../apps/atlas-api/.local/d1/dev",
+    "db:migration:generate": "bun drizzle-kit generate --config=./drizzle.config.ts",
     "db:migration:run:local": "wrangler d1 migrations apply ss-preview --config ../../apps/atlas-api/wrangler.jsonc --env preview --local --persist-to ../../apps/atlas-api/.local/d1/dev",
     "db:migration:run:preview": "wrangler d1 migrations apply ss-preview --config ../../apps/atlas-api/wrangler.jsonc --env preview",
     "db:migration:run:production": "wrangler d1 migrations apply ss-prod --config ../../apps/atlas-api/wrangler.jsonc --env production",
