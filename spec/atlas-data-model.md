@@ -260,8 +260,8 @@ The initial typed history tables are:
 - `address2dVersionsI18n`
 - `address3dVersions`
 - `address3dVersionsI18n`
-- `streetVersions`
-- `streetVersionsI18n`
+- `streetsVersions`
+- `streetsVersionsI18n`
 
 Each version table:
 
@@ -278,10 +278,10 @@ Relationship fields inside version tables point to stable canonical entity IDs, 
 
 Example:
 
-- `address2dVersions.streetId` points to the stable `street.id`
-- it does not point to a `streetVersions` row
+- `address2dVersions.streetId` points to the stable `streets.id`
+- it does not point to a `streetsVersions` row
 
-This means a new street version does not force a new address version unless the address record itself changed.
+This means a new streets version does not force a new address version unless the address record itself changed.
 
 That non-cascading version policy is intentional and preferred.
 
@@ -538,11 +538,11 @@ Localized historical 3D address text keyed by `(address3dId, versionHash, locale
 
 ## Street tables
 
-### `streetVersions`
+### `streetsVersions`
 
-Typed historical versions for `street`.
+Typed historical versions for `streets`.
 
-### `streetVersionsI18n`
+### `streetsVersionsI18n`
 
 Localized historical street text keyed by `(streetId, versionHash, locale)`.
 
@@ -695,7 +695,7 @@ These fields are fully normalized columns, not nested JSON.
 
 ## Street tables
 
-### `street`
+### `streets`
 
 Canonical named street entity.
 
@@ -711,7 +711,7 @@ Notes:
 - geometry and segment ingestion are deferred
 - use an `SS` ID if no canonical ID exists yet
 
-### `streetI18n`
+### `streetsI18n`
 
 Localized street naming components.
 
@@ -730,7 +730,7 @@ Fields:
 - `directionalSuffix` text null
 - `normalised` text null
 
-### `streetAddress`
+### `streetsAddress`
 
 Join table from streets to canonical two-dimensional addresses.
 
@@ -879,9 +879,9 @@ Important:
 
 Using normalized address data:
 
-- match or create `street` rows
-- create or update `streetI18n`
-- populate `streetAddress`
+- match or create `streets` rows
+- create or update `streetsI18n`
+- populate `streetsAddress`
 - set `address2d.streetId`
 
 Street geometry/segments remain out of scope for the initial implementation.
@@ -954,7 +954,7 @@ This document is focused on the data model, but the following indexes are struct
 - `divisionsVersions`: `(regionCode, id, isCurrent)`
 - `entityAliases`: unique `(entityType, aliasValue)`
 - `placesDivision`: `(divisionId, placeId)`
-- `streetAddress`: `(addressId, streetId)`
+- `streetsAddress`: `(addressId, streetId)`
 - `placesCells`: `(regionCode, h3Level, h3Cell, id)`
 - locale tables: indexes by `(locale)` in addition to composite primary keys if locale-specific queries are common
 
