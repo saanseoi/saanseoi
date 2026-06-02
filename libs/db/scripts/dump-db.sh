@@ -3,7 +3,7 @@ set -euo pipefail
 
 target="${1:-}"
 wrangler_config="${2:-../../apps/atlas-api/wrangler.jsonc}"
-dump_dir="${3:-../../apps/atlas-api/.local/d1/dumps}"
+dump_dir="${3:-../../.local/d1/dumps}"
 
 if [[ -z "$target" ]]; then
   echo "Usage: $0 <preview|production> [wrangler-config] [dump-dir]" >&2
