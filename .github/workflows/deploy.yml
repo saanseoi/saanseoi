@@ -53,6 +53,13 @@ jobs:
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
 
+      - name: 'MIGRATE :: D1 Preview'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run db:migrate:preview
+        working-directory: apps/places-api
+
       - name: 'DEPLOY :: Worker'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -98,6 +105,13 @@ jobs:
       - name: 'INSTALL :: Dependencies'
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
+
+      - name: 'MIGRATE :: D1 Production'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run db:migrate:production
+        working-directory: apps/places-api
 
       - name: 'DEPLOY :: Worker'
         env:
