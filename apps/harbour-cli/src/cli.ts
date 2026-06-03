@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 
 import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/prompts'
 
-import { prepareUpload } from '@repo/harbour-core/upload-local'
+import { prepareUpload } from '@repo/core/upload-local'
 
 type ParsedArgs = {
   command: string | null

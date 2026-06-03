@@ -3,7 +3,7 @@ import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 
 import { createDb } from '@repo/db'
-import { handleUploadRequest } from '@repo/harbour-core/upload-request'
+import { handleUploadRequest } from '@repo/core/upload-request'
 
 type AppEnv = {
   Bindings: {

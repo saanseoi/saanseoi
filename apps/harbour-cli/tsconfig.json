@@ -23,9 +23,9 @@
     "types": ["bun-types"],
     "paths": {
       "@/*": ["./src/*"],
-      "@repo/harbour-core": ["../../libs/harbour-core/src/index.ts"],
-      "@repo/harbour-core/upload-local": [
-        "../../libs/harbour-core/src/lib/services/upload-local.ts"
+      "@repo/core": ["../../libs/core/src/index.ts"],
+      "@repo/core/upload-local": [
+        "../../libs/core/src/lib/services/upload-local.ts"
       ],
       "drizzle-orm": ["../../libs/db/node_modules/drizzle-orm"],
       "drizzle-orm/*": ["../../libs/db/node_modules/drizzle-orm/*"]
