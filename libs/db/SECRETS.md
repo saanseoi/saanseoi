@@ -11,6 +11,7 @@ Drizzle Studio connects to remote Cloudflare D1 with these secrets:
 
 The Studio launcher script loads local secrets from env files at the repo root.
 
+- `bun run db:studio`: local SQLite Studio, using `LOCAL_D1_SQLITE_PATH` or the default `.local/d1/dev` Miniflare D1 path
 - `.env`: shared Cloudflare credentials for all Studio targets
 - `.env.preview.local`: preview database ID for `bun run db:studio:preview`
 - `.env.prod.local`: production database ID for `bun run db:studio:production`
