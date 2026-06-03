@@ -3,9 +3,17 @@
   "name": "ss-harbour-production",
   "main": "src/index.ts",
   "compatibility_date": "2025-10-21",
+  "secrets": {
+    "required": [
+      "R2_ACCOUNT_ID",
+      "R2_RAW_ACCESS_KEY_ID",
+      "R2_RAW_SECRET_ACCESS_KEY"
+    ]
+  },
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
-    "HARBOUR_BASE_URL": "http://localhost:8788"
+    "HARBOUR_BASE_URL": "http://localhost:8788",
+    "R2_RAW_BUCKET_NAME": "ss-raw-prod"
   },
   "d1_databases": [
     {
@@ -25,9 +33,17 @@
   "env": {
     "preview": {
       "name": "ss-harbour-preview",
+      "secrets": {
+        "required": [
+          "R2_ACCOUNT_ID",
+          "R2_RAW_ACCESS_KEY_ID",
+          "R2_RAW_SECRET_ACCESS_KEY"
+        ]
+      },
       "vars": {
         "ATLAS_BASE_URL": "https://ss-atlas-preview.hypehk.workers.dev",
-        "HARBOUR_BASE_URL": "https://ss-harbour-preview.hypehk.workers.dev"
+        "HARBOUR_BASE_URL": "https://ss-harbour-preview.hypehk.workers.dev",
+        "R2_RAW_BUCKET_NAME": "ss-raw-preview"
       },
       "d1_databases": [
         {
@@ -46,9 +62,17 @@
     },
     "production": {
       "name": "ss-harbour-production",
+      "secrets": {
+        "required": [
+          "R2_ACCOUNT_ID",
+          "R2_RAW_ACCESS_KEY_ID",
+          "R2_RAW_SECRET_ACCESS_KEY"
+        ]
+      },
       "vars": {
         "ATLAS_BASE_URL": "https://ss-atlas-production.hypehk.workers.dev",
-        "HARBOUR_BASE_URL": "https://ss-harbour-production.hypehk.workers.dev"
+        "HARBOUR_BASE_URL": "https://ss-harbour-production.hypehk.workers.dev",
+        "R2_RAW_BUCKET_NAME": "ss-raw-prod"
       },
       "d1_databases": [
         {

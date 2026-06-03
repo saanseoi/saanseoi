@@ -30,10 +30,15 @@ function createMockBucket() {
     async head() {
       return null
     },
+    async get() {
+      return null
+    },
     async put() {
       return null
     },
-    async delete() {},
+    async delete() {
+      return undefined
+    },
   } as unknown as R2Bucket
 }
 
@@ -51,14 +56,18 @@ describe('harbour', () => {
     expect(body).toEqual({
       service: 'harbour',
       version: 1,
-      routes: ['/v1/meta/health', '/v1/uploads'],
+      routes: ['/v1/meta/health', '/v1/upload', '/v1/signUpload', '/v1/finalizeUpload'],
     })
   })
 
   test('GET /v1/meta/health checks DB access', async () => {
     const res = await app.fetch(new Request('http://localhost/v1/meta/health'), {
       DB: createMockDb(),
+      R2_ACCOUNT_ID: 'test-account',
       R2_RAW: createMockBucket(),
+      R2_RAW_ACCESS_KEY_ID: 'test-access-key',
+      R2_RAW_BUCKET_NAME: 'ss-raw-preview',
+      R2_RAW_SECRET_ACCESS_KEY: 'test-secret-key',
     })
     const body = (await res.json()) as {
       ok: boolean

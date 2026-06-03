@@ -1,4 +1,4 @@
-import { and, desc, eq, ne } from 'drizzle-orm'
+import { and, desc, eq, notInArray } from 'drizzle-orm'
 
 import { datasets, ingestRuns } from '@repo/db/schema'
 
@@ -10,12 +10,15 @@ export type HarbourReadableDb = {
 
 export type HarbourWritableDb = {
   insert: (...args: any[]) => any
+  update: (...args: any[]) => any
 }
 
 type LatestDatasetLookup = {
   latestDataset: DatasetRecord | null
   supersedesDatasetId: string | null
 }
+
+const NON_FINAL_DATASET_STATUSES = ['failed', 'uploading']
 
 /**
  * Returns the most recent non-failed dataset for a region/type pair and the
@@ -34,7 +37,7 @@ export async function getLatestDatasetForTypeRegion(
         and(
           eq(datasets.regionCode, regionCode),
           eq(datasets.type, type),
-          ne(datasets.status, 'failed'),
+          notInArray(datasets.status, NON_FINAL_DATASET_STATUSES),
         ),
       )
       .orderBy(desc(datasets.snapshotMonth), desc(datasets.ingestedAt))
@@ -69,6 +72,20 @@ export async function getDatasetById(db: HarbourReadableDb, datasetId: string) {
   )
 }
 
+export async function getDatasetRecordById(
+  db: HarbourReadableDb,
+  datasetId: string,
+) {
+  return (
+    ((await db
+      .select()
+      .from(datasets)
+      .where(eq(datasets.datasetId, datasetId))
+      .limit(1)
+      .get()) as DatasetRecord | undefined) ?? null
+  )
+}
+
 /**
  * Persists a newly registered dataset row in its initial staged state.
  */
@@ -77,6 +94,7 @@ export async function insertDataset(
   plan: UploadPlan,
   rawObjectKey: string,
   ingestedAt: string,
+  status = 'staged',
 ) {
   await db
     .insert(datasets)
@@ -89,7 +107,7 @@ export async function insertDataset(
       source: plan.source,
       sourceVersion: plan.sourceVersion,
       rawObjectKey,
-      status: 'staged',
+      status,
       isActive: false,
       supersedesDatasetId: plan.supersedesDatasetId,
       revokedAt: null,
@@ -97,6 +115,14 @@ export async function insertDataset(
       ingestedAt,
     })
     .run()
+}
+
+export async function updateDatasetStatus(
+  db: HarbourWritableDb,
+  datasetId: string,
+  status: string,
+) {
+  await db.update(datasets).set({ status }).where(eq(datasets.datasetId, datasetId)).run()
 }
 
 /**
