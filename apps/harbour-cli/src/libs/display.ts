@@ -1,4 +1,4 @@
-import { prepareUpload } from '@repo/core/upload-local'
+import type { prepareUpload } from '@repo/core/upload-local'
 
 import type { UploadTarget } from './options.ts'
 import { buildUploadEndpoint, resolveHarbourBaseUrl } from './upload.ts'
@@ -92,7 +92,6 @@ export function formatPlan(result: UploadPreviewResult) {
 export function formatSummary(result: UploadPreviewResult, target: UploadTarget) {
   const targetMode = target.remote ? 'cf' : 'local'
   const harbourBaseUrl = resolveHarbourBaseUrl(target)
-  const uploadEndpoint = buildUploadEndpoint(harbourBaseUrl)
 
   return [
     formatField('target', `${target.environment} (${redText(targetMode)})`),

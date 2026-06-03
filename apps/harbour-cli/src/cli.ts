@@ -7,11 +7,7 @@ import {
   formatField,
   formatSummary,
 } from './libs/display.ts'
-import {
-  buildRegisterOptions,
-  parseArgs,
-  resolveUploadTarget,
-} from './libs/options.ts'
+import { buildRegisterOptions, parseArgs, resolveUploadTarget } from './libs/options.ts'
 import { dispatchUpload, resolveHarbourApiUrl } from './libs/upload.ts'
 
 function printUsage() {
@@ -19,7 +15,6 @@ function printUsage() {
   bun run upload <file> [--target local|cf-preview|cf-production] [--remote] [--env dev|preview|production] [--api URL] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
 `)
 }
-
 
 async function main() {
   const args = parseArgs(process.argv)

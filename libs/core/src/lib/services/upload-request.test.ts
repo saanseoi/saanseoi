@@ -116,9 +116,9 @@ describe('handleUploadRequest', () => {
     expect(result.rawObjectKey).toBe(
       'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
     )
-    expect(bucket.objects.get(result.rawObjectKey ?? '')?.customMetadata?.datasetId).toBe(
-      'hk-2026-05-division',
-    )
+    expect(
+      bucket.objects.get(result.rawObjectKey ?? '')?.customMetadata?.datasetId,
+    ).toBe('hk-2026-05-division')
     expect(dataset?.status).toBe('staged')
     expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
   })

@@ -24,7 +24,8 @@ const DEFAULT_RAW_ROOT = resolve(
 export * from './upload'
 
 export async function prepareUpload(options: RegisterUploadOptions) {
-  const inspection = options.inspection ?? (await inspectRequiredParquetFile(options.filePath))
+  const inspection =
+    options.inspection ?? (await inspectRequiredParquetFile(options.filePath))
 
   return prepareWorkerUpload(
     {
@@ -39,7 +40,8 @@ export async function planUpload(
   db: HarbourReadableDb,
   options: RegisterUploadOptions,
 ) {
-  const inspection = options.inspection ?? (await inspectRequiredParquetFile(options.filePath))
+  const inspection =
+    options.inspection ?? (await inspectRequiredParquetFile(options.filePath))
 
   return planWorkerUpload(
     db,
@@ -61,7 +63,8 @@ export async function registerUpload(
     throw new Error(`File not found: ${options.filePath}`)
   }
 
-  const inspection = options.inspection ?? (await inspectRequiredParquetFile(options.filePath))
+  const inspection =
+    options.inspection ?? (await inspectRequiredParquetFile(options.filePath))
   const planned = await planUpload(db, {
     ...options,
     inspection,
