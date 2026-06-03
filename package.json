@@ -15,6 +15,8 @@
     "upload:cf:production": "bun --cwd ./apps/harbour-cli ./src/cli.ts upload --target cf-production",
     "fish:install-completions": "bash ./scripts/install-fish-completions.sh",
     "db:studio": "bun run --filter @repo/db db:studio",
+    "db:studio:preview": "bun run --filter @repo/db db:studio:preview",
+    "db:studio:production": "bun run --filter @repo/db db:studio:production",
     "db:dump:preview": "bun run --filter @repo/db db:dump:preview",
     "db:dump:production": "bun run --filter @repo/db db:dump:production",
     "db:reset:local": "bun run --filter @repo/db db:reset:local",

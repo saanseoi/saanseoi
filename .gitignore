@@ -20,6 +20,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.development.local
 .env.test.local
 .env.production.local
+.env.preview.local
+.env.prod.local
 .env.local
 
 # caches
