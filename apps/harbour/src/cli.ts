@@ -2,7 +2,7 @@ import { resolve } from 'node:path'
 
 import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/prompts'
 
-import { registerUpload } from './lib/services/upload'
+import { prepareUpload } from './lib/services/upload'
 
 type ParsedArgs = {
   command: string | null
@@ -10,9 +10,14 @@ type ParsedArgs = {
   options: Record<string, string | boolean>
 }
 
-type RegisterUploadOptions = Parameters<typeof registerUpload>[0]
+type CliUploadOptions = Parameters<typeof prepareUpload>[0]
+type UploadEnvironment = 'dev' | 'preview' | 'production'
+type UploadTarget = {
+  remote: boolean
+  environment: UploadEnvironment
+}
 
-function cyanLabel(label: string) {
+function cyanText(label: string) {
   return `\u001B[36m${label}\u001B[39m`
 }
 
@@ -20,9 +25,13 @@ function deEmphasize(text: string) {
   return `\u001B[90m${text}\u001B[39m`
 }
 
+function redText(text: string) {
+  return `\u001B[31m${text}\u001B[39m`
+}
+
 function formatField(label: string, value: string | number, inferredFrom?: string) {
   const suffix = inferredFrom ? ` ${deEmphasize(`(${inferredFrom})`)}` : ''
-  return `${cyanLabel(label)}: ${value}${suffix}`
+  return `${cyanText(label)}: ${value}${suffix}`
 }
 
 function parseArgs(argv: string[]): ParsedArgs {
@@ -63,8 +72,7 @@ function parseArgs(argv: string[]): ParsedArgs {
 
 function printUsage() {
   console.log(`Usage:
-  bun run upload <file> [--type place|division|address] [--theme places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
-  bun run --filter harbour upload <file> [--db /path/to/local.sqlite] [--raw-root /path/to/staging]
+  bun run upload <file> [--target local|cf-preview|cf-production] [--remote] [--env dev|preview|production] [--type place|division|address] [--theme places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
 `)
 }
 
@@ -72,58 +80,158 @@ function buildRegisterOptions(
   invocationCwd: string,
   inputFile: string,
   args: ParsedArgs,
-): RegisterUploadOptions {
+): CliUploadOptions {
   return {
     filePath: resolve(invocationCwd, inputFile),
-    type:
-      typeof args.options.type === 'string' ? args.options.type : undefined,
-    theme:
-      typeof args.options.theme === 'string' ? args.options.theme : undefined,
+    type: typeof args.options.type === 'string' ? args.options.type : undefined,
+    theme: typeof args.options.theme === 'string' ? args.options.theme : undefined,
     regionCode:
       typeof args.options.region === 'string' ? args.options.region : undefined,
     snapshotMonth:
       typeof args.options.month === 'string' ? args.options.month : undefined,
-    source:
-      typeof args.options.source === 'string' ? args.options.source : undefined,
+    source: typeof args.options.source === 'string' ? args.options.source : undefined,
     sourceVersion:
       typeof args.options['source-version'] === 'string'
         ? args.options['source-version']
         : undefined,
     dryRun: Boolean(args.options['dry-run']),
-    localDbPath:
-      typeof args.options.db === 'string'
-        ? resolve(invocationCwd, args.options.db)
-        : undefined,
-    localRawRoot:
-      typeof args.options['raw-root'] === 'string'
-        ? resolve(invocationCwd, args.options['raw-root'])
-        : undefined,
   }
 }
 
-function formatPlan(result: Awaited<ReturnType<typeof registerUpload>>) {
+function resolveUploadTarget(args: ParsedArgs): UploadTarget {
+  const explicitRemote =
+    typeof args.options.remote === 'boolean' ? args.options.remote : undefined
+  const explicitEnvironment =
+    typeof args.options.env === 'string' ? args.options.env : undefined
+
+  if (explicitRemote !== undefined || explicitEnvironment !== undefined) {
+    const remote = explicitRemote ?? false
+
+    switch (explicitEnvironment) {
+      case undefined:
+        return {
+          remote,
+          environment: remote ? 'preview' : 'dev',
+        }
+      case 'dev':
+      case 'preview':
+      case 'production':
+        return {
+          remote,
+          environment: explicitEnvironment,
+        }
+      default:
+        throw new Error(
+          `Unsupported upload environment: ${explicitEnvironment}. Use dev, preview, or production.`,
+        )
+    }
+  }
+
+  const rawTarget =
+    typeof args.options.target === 'string'
+      ? args.options.target
+      : process.env.HARBOUR_UPLOAD_TARGET
+
+  switch (rawTarget) {
+    case undefined:
+    case 'local':
+      return {
+        remote: false,
+        environment: 'dev',
+      }
+    case 'cf-preview':
+      return {
+        remote: true,
+        environment: 'preview',
+      }
+    case 'cf-production':
+      return {
+        remote: true,
+        environment: 'production',
+      }
+    default:
+      throw new Error(
+        `Unsupported upload target: ${rawTarget}. Use local, cf-preview, or cf-production.`,
+      )
+  }
+}
+
+function describeTarget(target: UploadTarget) {
+  if (!target.remote) {
+    switch (target.environment) {
+      case 'dev':
+        return {
+          label: 'local-dev',
+          destination: 'local Wrangler dev / Miniflare environment',
+        }
+      case 'preview':
+      case 'production':
+        throw new Error(
+          `Invalid local upload environment: ${target.environment}. Local uploads must use env=dev.`,
+        )
+    }
+  }
+
+  switch (target.environment) {
+    case 'dev':
+      return {
+        label: 'cf-dev',
+        destination: 'Cloudflare dev environment',
+      }
+    case 'preview':
+      return {
+        label: 'cf-preview',
+        destination: 'Cloudflare preview environment',
+      }
+    case 'production':
+      return {
+        label: 'cf-production',
+        destination: 'Cloudflare production environment',
+      }
+  }
+}
+
+function formatPlan(result: Awaited<ReturnType<typeof prepareUpload>>) {
   return [
     formatField('datasetId', result.plan.datasetId),
-    formatField('theme', result.plan.theme, result.plan.inferredFrom.theme),
-    formatField('type', result.plan.type, result.plan.inferredFrom.type),
+    formatField('sourceVersion', result.plan.sourceVersion),
     formatField('region', result.plan.regionCode, result.plan.inferredFrom.regionCode),
     formatField(
       'snapshotMonth',
       result.plan.snapshotMonth,
       result.plan.inferredFrom.snapshotMonth,
     ),
-    formatField('sourceVersion', result.plan.sourceVersion),
+    formatField('type', result.plan.type, result.plan.inferredFrom.type),
     formatField('rows', result.plan.rowCount),
     formatField('supersedes', result.plan.supersedesDatasetId ?? '-'),
   ]
 }
 
-function formatSummary(result: Awaited<ReturnType<typeof registerUpload>>) {
+function formatSummary(
+  result: Awaited<ReturnType<typeof prepareUpload>>,
+  target: UploadTarget,
+) {
+  const targetMode = target.remote ? 'cf' : 'local'
+
   return [
+    formatField('target', `${target.environment} (${redText(targetMode)})`),
     ...formatPlan(result),
-    formatField('stagedFilePath', result.stagedFilePath ?? '(dry run)'),
-    formatField('metadataPath', result.metadataPath ?? '(dry run)'),
   ]
+}
+
+function explainDispatch(target: UploadTarget) {
+  const targetDetails = describeTarget(target)
+
+  return [
+    `CLI target: ${targetDetails.label}`,
+    `Destination: ${targetDetails.destination}`,
+    'Expected runtime flow:',
+    '1. upload parquet to Cloudflare-backed object storage',
+    '2. call the Harbour API to register the dataset and update ingest status',
+    '3. enqueue downstream processing for the Worker ingest pipeline',
+    '',
+    'This handoff path is not implemented yet, so the CLI currently stops after local parquet preflight.',
+  ].join('\n')
 }
 
 async function main() {
@@ -131,6 +239,7 @@ async function main() {
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const dryRun = Boolean(args.options['dry-run'])
   const skipConfirm = Boolean(args.options.yes)
+  const target = resolveUploadTarget(args)
 
   if (!args.command || args.command === '--help' || args.options.help) {
     printUsage()
@@ -159,27 +268,25 @@ async function main() {
 │  `)
 
   const registerOptions = buildRegisterOptions(invocationCwd, inputFile, args)
-
-  const previewResult = await registerUpload({
-    ...registerOptions,
-    dryRun: true,
-  })
+  const previewResult = await prepareUpload(registerOptions)
 
   note(
-    formatPlan(previewResult).join('\n'),
+    formatSummary(previewResult, target).join('\n'),
     dryRun ? 'UPLOAD DRY RUN' : 'UPLOAD PLAN',
   )
 
   if (dryRun) {
-    log.success('Local validation passed.')
-    log.message('No files were staged and no database rows were written.')
+    log.success('Local parquet validation passed.')
+    log.message(
+      'No object upload, API call, queue enqueue, or database mutation was attempted.',
+    )
     outro('Harbour upload complete')
     return
   }
 
   if (!skipConfirm) {
     const shouldContinue = await confirm({
-      message: `Register and stage ${previewResult.plan.datasetId}?`,
+      message: `Prepare ${previewResult.plan.datasetId} for ${describeTarget(target).label}?`,
       initialValue: true,
     })
 
@@ -189,14 +296,7 @@ async function main() {
     }
   }
 
-  const result = await registerUpload(registerOptions)
-
-  note(
-    formatSummary(result).join('\n'),
-    'UPLOAD RESULT',
-  )
-  log.success(`Registered ${result.plan.datasetId}`)
-  outro('TIDE WENT OUT')
+  throw new Error(explainDispatch(target))
 }
 
 main().catch(error => {

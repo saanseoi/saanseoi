@@ -15,7 +15,10 @@
     "test": "bun test",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
-    "upload": "bun run ./src/cli.ts upload"
+    "upload": "bun run upload:local",
+    "upload:local": "bun run ./src/cli.ts upload --target local",
+    "upload:cf:preview": "bun run ./src/cli.ts upload --target cf-preview",
+    "upload:cf:production": "bun run ./src/cli.ts upload --target cf-production"
   },
   "devDependencies": {
     "@types/bun": "latest",

@@ -137,8 +137,7 @@ function extractLogicalType(element: SchemaElementLike) {
  * Treats non-`REQUIRED` parquet fields as nullable for upload schema checks.
  */
 function isNullableField(node: { element: SchemaElementLike }) {
-  const repetitionType =
-    node.element.repetition_type ?? node.element.repetitionType
+  const repetitionType = node.element.repetition_type ?? node.element.repetitionType
 
   if (typeof repetitionType === 'string') {
     return repetitionType.toUpperCase() !== 'REQUIRED'
