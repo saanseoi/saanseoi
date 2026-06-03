@@ -34,12 +34,12 @@ const TYPE_THEME_MAP: Record<SupportedType, SupportedTheme> = {
 }
 
 const THEME_ALIASES: Record<string, SupportedTheme> = {
+  address: 'addresses',
+  addresses: 'addresses',
   division: 'divisions',
   divisions: 'divisions',
   place: 'places',
   places: 'places',
-  address: 'places',
-  addresses: 'places',
 }
 
 const REGION_ALIASES: Record<string, RegionCode> = {
@@ -419,7 +419,7 @@ function resolveUploadPlan(
 
   if (!theme) {
     throw new Error(
-      'Could not determine a supported theme. Pass `--theme places|divisions` or use a recognizable path/file name.',
+      'Could not determine a supported theme. Pass `--theme addresses|places|divisions` or use a recognizable path/file name.',
     )
   }
 

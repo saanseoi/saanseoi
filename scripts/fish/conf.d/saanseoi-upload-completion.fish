@@ -149,7 +149,7 @@ complete -c bun -n '__saanseoi_bun_upload_complete_options' -l dry-run -d 'Previ
 complete -c bun -n '__saanseoi_bun_upload_complete_options' -l yes -d 'Skip confirmation prompt'
 
 complete -c bun -n '__saanseoi_bun_upload_expect_value_for --type' -a 'place division address'
-complete -c bun -n '__saanseoi_bun_upload_expect_value_for --theme' -a 'places divisions'
+complete -c bun -n '__saanseoi_bun_upload_expect_value_for --theme' -a 'addresses places divisions'
 complete -c bun -n '__saanseoi_bun_upload_expect_value_for --region' -a 'hk mo'
 complete -c bun -n '__saanseoi_bun_upload_complete_path_option' -F
 complete -c bun -n '__saanseoi_bun_upload_complete_enum_option' -f
