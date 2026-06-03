@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "dev": "turbo run dev",
-    "upload": "bun run ./apps/harbour/src/cli.ts upload",
+    "upload": "bun --cwd ./apps/harbour-cli ./src/cli.ts upload",
     "fish:install-completions": "bash ./scripts/install-fish-completions.sh",
     "db:studio": "bun run --filter @repo/db db:studio",
     "db:dump:preview": "bun run --filter @repo/db db:dump:preview",

@@ -19,11 +19,15 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
+    "rootDir": "../../",
     "outDir": "dist",
-    "rootDir": "src",
     "types": ["bun-types", "@cloudflare/workers-types", "vitest/globals"],
     "paths": {
       "@/*": ["./src/*"],
+      "@repo/harbour-core": ["../../libs/harbour-core/src/index.ts"],
+      "@repo/harbour-core/upload-request": [
+        "../../libs/harbour-core/src/lib/services/upload-request.ts"
+      ],
       "drizzle-orm": ["../../libs/db/node_modules/drizzle-orm"],
       "drizzle-orm/*": ["../../libs/db/node_modules/drizzle-orm/*"]
     }
