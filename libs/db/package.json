@@ -7,6 +7,8 @@
     "db:generate": "bash ./scripts/generate-migration.sh",
     "db:migration:generate": "bash ./scripts/generate-migration.sh",
     "db:studio": "bun drizzle-kit studio --config=./drizzle.config.ts",
+    "db:studio:preview": "bash ./scripts/run-drizzle-studio.sh preview",
+    "db:studio:production": "bash ./scripts/run-drizzle-studio.sh production",
     "db:dump:preview": "bash ./scripts/dump-db.sh preview",
     "db:dump:production": "bash ./scripts/dump-db.sh production",
     "db:reset:local": "bash ./scripts/reset-local-db.sh",
