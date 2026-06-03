@@ -25,6 +25,18 @@ function createMockDb() {
   } as unknown as D1Database
 }
 
+function createMockBucket() {
+  return {
+    async head() {
+      return null
+    },
+    async put() {
+      return null
+    },
+    async delete() {},
+  } as unknown as R2Bucket
+}
+
 describe('harbour', () => {
   test('GET / returns harbour metadata', async () => {
     const res = await app.request('http://localhost/')
@@ -39,13 +51,14 @@ describe('harbour', () => {
     expect(body).toEqual({
       service: 'harbour',
       version: 1,
-      routes: ['/v1/meta/health'],
+      routes: ['/v1/meta/health', '/v1/uploads'],
     })
   })
 
   test('GET /v1/meta/health checks DB access', async () => {
     const res = await app.fetch(new Request('http://localhost/v1/meta/health'), {
       DB: createMockDb(),
+      R2_RAW: createMockBucket(),
     })
     const body = (await res.json()) as {
       ok: boolean
