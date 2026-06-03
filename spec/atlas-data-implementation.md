@@ -134,6 +134,14 @@ Examples:
 
 The following files already exist and should be treated as the implementation starting point:
 
+- Harbour upload entrypoints:
+  - [apps/harbour/src/index.ts](/home/io/code/saanseoi/apps/harbour/src/index.ts)
+  - [apps/harbour/src/lib/services/upload-session.ts](/home/io/code/saanseoi/apps/harbour/src/lib/services/upload-session.ts)
+- Harbour CLI upload flow:
+  - [apps/harbour-cli/src/cli.ts](/home/io/code/saanseoi/apps/harbour-cli/src/cli.ts)
+  - [apps/harbour-cli/src/lib/upload.ts](/home/io/code/saanseoi/apps/harbour-cli/src/lib/upload.ts)
+  - [apps/harbour-cli/src/lib/schema/overture.ts](/home/io/code/saanseoi/apps/harbour-cli/src/lib/schema/overture.ts)
+
 - Drizzle config:
   - [apps/atlas-api/drizzle.config.ts](/home/io/code/saanseoi/apps/atlas-api/drizzle.config.ts)
 - Drizzle client:
@@ -288,7 +296,7 @@ It is locale-aware and should be rebuilt from normalized canonical rows, not tre
 
 The canonical ingest pipeline is:
 
-1. `registerDataset`
+1. `requestUpload`
 2. `stageRawParquet`
 3. `extractPlaces`
 4. `extractPlacesI18n`
@@ -304,17 +312,28 @@ Each phase should be tracked in `ingestRuns` and be independently resumable.
 
 ### Phase behavior
 
-#### 1. `registerDataset`
+#### 1. `requestUpload`
 
-- create a `datasets` row in `staged`
-- validate region/month/theme targeting
-- detect whether the dataset supersedes an active dataset
+- the CLI inspects the parquet locally and derives the upload plan before any network upload
+- the CLI validates the parquet against an accepted source schema registry
+- the Harbour API receives the proposed plan plus parquet inspection and:
+  - validates region/month/theme targeting
+  - validates chronology and duplicate dataset rejection
+  - validates schema compatibility against the latest accepted Harbour upload
+  - creates a provisional `datasets` row in `uploading`
+  - records an ingest run for the upload request
+- the API returns a short-lived signed `PUT` URL for a single `R2` object key
+- the client uploads the parquet directly to `R2` without proxying file bytes through the Harbour Worker
 
 #### 2. `stageRawParquet`
 
-- write parquet to `R2`
-- record the object key
-- attach ingest metadata
+- the client calls Harbour again after the direct `R2` upload succeeds
+- Harbour fetches the uploaded object from `R2`
+- Harbour re-inspects the parquet server-side
+- Harbour replays the upload plan against the actual object and rejects drift or tampering
+- Harbour writes the canonical `R2` object metadata used for future schema-drift checks
+- Harbour promotes the dataset to `staged`
+- the follow-up processing task enqueue is still deferred
 
 #### 3. `extractPlaces`
 
@@ -518,17 +537,61 @@ Completed:
 
 ### Phase C: Implement ingest orchestration
 
-1. Add dataset registration flow.
-2. Add ingest phase tracking through `ingestRuns`.
-3. Add place normalization and version-hash logic.
-4. Add localized name extraction.
-5. Add `address2d` reconciliation and deterministic `canonicalKey` generation.
-6. Add division reconciliation without division creation.
-7. Add street reconciliation.
-8. Add `address3d` derivation.
-9. Add spatial index refresh.
-10. Add FTS rebuild.
-11. Add dataset publication and revocation handling.
+1. Keep the signed-upload flow as the only supported remote ingestion path:
+   - CLI plan and prompt
+   - CLI schema validation
+   - `POST /v1/signUpload`
+   - direct client `PUT` to `R2`
+   - `POST /v1/finalizeUpload`
+2. Keep ingest phase tracking through `ingestRuns`, including resumable phase state plus per-phase stats and error payloads.
+3. Keep raw-object metadata on the finalized `R2` object so each dataset can validate future schema compatibility against Harbour-managed state.
+4. Keep dataset lineage checks:
+   - reject duplicate `datasetId`
+   - require monotonic monthly versions within each `regionCode` + `type`
+   - record `supersedesDatasetId` candidates before publication
+5. Extend the CLI-managed schema registry:
+   - keep accepted top-level source schemas per upload type
+   - version schemas by month window and/or release window
+   - fail fast on schema drift before requesting an upload URL
+6. Add a shared normalization layer used by all dataset types:
+   - stable source-version parsing
+   - text cleanup and whitespace normalization
+   - language-tag normalization
+   - deterministic per-row content hashing for change detection
+
+7. Add the deferred processing-task enqueue after `finalizeUpload`.
+8. Add division ingest subphases first.
+9. Add division row validation and canonical source field mapping.
+10. Add division name extraction and i18n normalization.
+11. Add division version-hash computation and current-vs-history comparison.
+12. Add division reconciliation restricted to existing logical divisions.
+13. Add division current/history writes plus ingest diagnostics.
+14. Add division publication handling, including active dataset flip and revocation of superseded division datasets.
+
+15. Add address ingest subphases second.
+16. Add address row validation and canonical source field mapping.
+17. Add address localized name extraction and i18n normalization.
+18. Add `address2d` reconciliation:
+    - normalize street, number, floor, unit, block, estate, and locality fields
+    - derive deterministic `canonicalKey`
+    - compute version hashes independent of source row order
+19. Add address-to-division linkage without creating missing divisions.
+20. Add street reconciliation for addresses.
+21. Add `address3d` derivation from normalized `address2d` plus vertical components.
+22. Add address current/history writes plus ingest diagnostics.
+23. Add address publication handling, including active dataset flip and revocation of superseded address datasets.
+
+24. Add place ingest subphases last.
+25. Add place row validation and canonical source field mapping.
+26. Add place normalization and version-hash logic.
+27. Add place localized name extraction and i18n normalization.
+28. Add place-to-address reconciliation against previously ingested address datasets.
+29. Add place-to-division reconciliation against previously ingested division datasets.
+30. Add place canonical identity resolution and historical change detection.
+31. Add place current/history/name writes plus ingest diagnostics.
+32. Add spatial index refresh after place and address writes.
+33. Add FTS rebuild after place publication.
+34. Add final dataset publication and revocation handling across all three dataset types so only the intended lineage is active per region/type.
 
 
 ### Phase D: Implement current-state places reads
@@ -576,17 +639,16 @@ Requirements:
 
 The next practical coding step is:
 
-1. wire Drizzle into the Worker runtime
-2. add a minimal DB-backed route
-3. implement the first real current-state `places` read path
+1. add the deferred task enqueue after `finalizeUpload`
+2. define the processor contract for `division`, `address`, and `place` datasets
+3. implement the first real `division` extraction path from staged raw parquet
 
 That is the shortest path to validating:
 
-- D1 binding configuration
-- Drizzle runtime integration
-- schema correctness
-- migration correctness
-- query ergonomics
+- signed upload finalization boundaries
+- resumable ingest phase orchestration
+- raw parquet to canonical-row extraction
+- publish-time lineage handling
 
 ## Constraints and cautions
 

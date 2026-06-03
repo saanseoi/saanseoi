@@ -1,28 +1,46 @@
-import { afterEach, describe, expect, test } from 'bun:test'
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 
-import { inspectParquetFile } from '@repo/core/parquet-inspector-node'
+import type { ParquetInspection } from '@repo/core'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
-import {
-  handleFinalizeUploadRequest,
-  handleSignUploadRequest,
-  type UploadSigningEnv,
-} from './upload-session'
+import type { UploadSigningEnv } from './upload-session'
 
-const migrationSql = readFileSync(
+const migrationSql = await Bun.file(
   resolve(
     import.meta.dir,
     '../../../../../libs/db/migrations/20260602105608_ordinary_true_believers.sql',
   ),
-  'utf8',
-)
-
-const fixtureFile = resolve(import.meta.dir, '../../../../../data/division.parquet')
+).text()
 const tempDirs: string[] = []
+const fixtureInspection: ParquetInspection = {
+  rowCount: 3,
+  schema: [
+    { name: 'id', type: 'string', nullable: false },
+    { name: 'theme', type: 'string', nullable: true },
+    { name: 'type', type: 'string', nullable: true },
+    { name: 'country', type: 'string', nullable: true },
+    { name: 'region', type: 'string', nullable: true },
+  ],
+  distinctThemeValues: ['divisions'],
+  distinctTypeValues: ['division'],
+  distinctCountryValues: ['hk'],
+  distinctRegionValues: ['hk'],
+}
+const fixtureBytes = new Uint8Array([0x50, 0x41, 0x52, 0x31])
+const inspectParquetMock = mock(async () => fixtureInspection)
+
+mock.module('@repo/core/parquet-inspector', () => ({
+  inspectParquet: inspectParquetMock,
+}))
+
+const {
+  handleFinalizeUploadRequest,
+  handleSignUploadRequest,
+} = await import('./upload-session')
 
 function createTempDir() {
   const dir = mkdtempSync(join(tmpdir(), 'harbour-upload-session-test-'))
@@ -105,6 +123,8 @@ function toArrayBuffer(bytes: Uint8Array) {
 }
 
 afterEach(() => {
+  inspectParquetMock.mockClear()
+
   while (tempDirs.length > 0) {
     const dir = tempDirs.pop()
 
@@ -121,13 +141,12 @@ describe('upload session flow', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const bucket = new FakeR2Bucket()
-    const inspection = await inspectParquetFile(fixtureFile)
 
     const signResult = await handleSignUploadRequest(db, bucket, signingEnv, {
       contentType: 'application/octet-stream',
       fileName: 'division.parquet',
-      fileSize: readFileSync(fixtureFile).byteLength,
-      inspection,
+      fileSize: fixtureBytes.byteLength,
+      inspection: fixtureInspection,
       plan: {
         snapshotMonth: '2026-05',
       },
@@ -140,7 +159,7 @@ describe('upload session flow', () => {
     )
     expect(signResult.uploadUrl).toContain('X-Amz-Algorithm=AWS4-HMAC-SHA256')
 
-    await bucket.put(signResult.rawObjectKey, toArrayBuffer(readFileSync(fixtureFile)))
+    await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
 
     const finalizeResult = await handleFinalizeUploadRequest(db, bucket, {
       datasetId: signResult.datasetId,
@@ -156,6 +175,7 @@ describe('upload session flow', () => {
     sqlite.close()
 
     expect(finalizeResult.plan.datasetId).toBe('hk-2026-05-division')
+    expect(inspectParquetMock).toHaveBeenCalledTimes(1)
     expect(dataset?.status).toBe('staged')
     expect(dataset?.rawObjectKey).toBe(signResult.rawObjectKey)
     expect(bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.datasetId).toBe(
