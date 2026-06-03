@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, stat } from 'node:fs/promises'
 
 import type { prepareUpload } from '@repo/core/upload-local'
 
@@ -6,13 +6,20 @@ import type { CliUploadOptions, ParsedArgs, UploadTarget } from './options.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 
+type SignUploadResponse = {
+  datasetId: string
+  expiresAt: string
+  rawObjectKey: string
+  status: string
+  uploadHeaders: Record<string, string>
+  uploadMethod: 'PUT'
+  uploadUrl: string
+}
+
 function normalizeBaseUrl(value: string) {
   return value.trim().replace(/\/+$/, '')
 }
 
-/**
- * Resolve the default Harbour base URL for a given deployment environment.
- */
 export function resolveHarbourBaseUrl(target: UploadTarget) {
   switch (target.environment) {
     case 'dev':
@@ -24,9 +31,6 @@ export function resolveHarbourBaseUrl(target: UploadTarget) {
   }
 }
 
-/**
- * Resolve the Harbour API base URL from CLI flags, env overrides, or defaults.
- */
 export function resolveHarbourApiUrl(args: ParsedArgs, target: UploadTarget) {
   const explicitUrl =
     typeof args.options.api === 'string' ? args.options.api.trim() : undefined
@@ -63,47 +67,24 @@ export function resolveHarbourApiUrl(args: ParsedArgs, target: UploadTarget) {
   }
 }
 
-/**
- * Build the dataset upload endpoint from a Harbour API base URL.
- */
-export function buildUploadEndpoint(apiBaseUrl: string) {
-  return `${apiBaseUrl}/v1/uploads`
+export function buildSignUploadEndpoint(apiBaseUrl: string) {
+  return `${apiBaseUrl}/v1/signUpload`
 }
 
-function buildUploadFormData(
-  inputFilePath: string,
-  previewResult: UploadPreviewResult,
-): Promise<FormData> {
-  return readFile(inputFilePath).then(fileBytes => {
-    const formData = new FormData()
-    const fileName = inputFilePath.split(/[\\/]+/).pop() ?? 'upload.parquet'
-
-    formData.set(
-      'file',
-      new File([fileBytes], fileName, {
-        type: 'application/octet-stream',
-      }),
-    )
-
-    formData.set('type', previewResult.plan.type)
-    formData.set('theme', previewResult.plan.theme)
-    formData.set('regionCode', previewResult.plan.regionCode)
-    formData.set('snapshotMonth', previewResult.plan.snapshotMonth)
-    formData.set('source', previewResult.plan.source)
-    formData.set('sourceVersion', previewResult.plan.sourceVersion)
-
-    return formData
-  })
+export function buildDirectUploadEndpoint(apiBaseUrl: string) {
+  return `${apiBaseUrl}/v1/upload`
 }
 
-/**
- * Send the prepared parquet file and metadata to the Harbour upload endpoint.
- */
+export function buildFinalizeUploadEndpoint(apiBaseUrl: string) {
+  return `${apiBaseUrl}/v1/finalizeUpload`
+}
+
 export async function dispatchUpload(
   args: ParsedArgs,
   target: UploadTarget,
   registerOptions: CliUploadOptions,
   previewResult: UploadPreviewResult,
+  schemaVersionId: string,
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(args, target)
 
@@ -120,13 +101,112 @@ export async function dispatchUpload(
     )
   }
 
-  const formData = await buildUploadFormData(registerOptions.filePath, previewResult)
-  const uploadEndpoint = buildUploadEndpoint(apiBaseUrl)
-  const response = await fetch(uploadEndpoint, {
+  if (!target.remote) {
+    return uploadFileViaWorker(apiBaseUrl, registerOptions, previewResult)
+  }
+
+  const fileBytes = await readFile(registerOptions.filePath)
+  const fileStats = await stat(registerOptions.filePath)
+  const signResponse = await requestSignedUpload(
+    apiBaseUrl,
+    previewResult,
+    fileStats.size,
+    schemaVersionId,
+  )
+
+  await uploadFileToSignedUrl(signResponse, fileBytes)
+
+  return finalizeUpload(apiBaseUrl, signResponse.datasetId)
+}
+
+async function uploadFileViaWorker(
+  apiBaseUrl: string,
+  registerOptions: CliUploadOptions,
+  previewResult: UploadPreviewResult,
+) {
+  const fileBytes = await readFile(registerOptions.filePath)
+  const formData = new FormData()
+  const file = new File([fileBytes], previewResult.plan.fileName, {
+    type: 'application/octet-stream',
+  })
+
+  formData.set('file', file)
+  formData.set('regionCode', previewResult.plan.regionCode)
+  formData.set('snapshotMonth', previewResult.plan.snapshotMonth)
+  formData.set('theme', previewResult.plan.theme)
+  formData.set('type', previewResult.plan.type)
+  formData.set('source', previewResult.plan.source)
+  formData.set('sourceVersion', previewResult.plan.sourceVersion)
+
+  const response = await fetch(buildDirectUploadEndpoint(apiBaseUrl), {
     method: 'POST',
     body: formData,
   })
 
+  return parseJsonResponse<Record<string, unknown>>(response, 'Harbour upload')
+}
+
+async function requestSignedUpload(
+  apiBaseUrl: string,
+  previewResult: UploadPreviewResult,
+  fileSize: number,
+  schemaVersionId: string,
+) {
+  const response = await fetch(buildSignUploadEndpoint(apiBaseUrl), {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      fileName: previewResult.plan.fileName,
+      contentType: 'application/octet-stream',
+      fileSize,
+      inspection: previewResult.inspection,
+      plan: {
+        regionCode: previewResult.plan.regionCode,
+        source: previewResult.plan.source,
+        sourceVersion: previewResult.plan.sourceVersion,
+        snapshotMonth: previewResult.plan.snapshotMonth,
+        theme: previewResult.plan.theme,
+        type: previewResult.plan.type,
+      },
+      schemaVersionId,
+    }),
+  })
+
+  return parseJsonResponse<SignUploadResponse>(response, 'Harbour signUpload')
+}
+
+async function uploadFileToSignedUrl(
+  signResponse: SignUploadResponse,
+  fileBytes: Uint8Array,
+) {
+  const response = await fetch(signResponse.uploadUrl, {
+    method: signResponse.uploadMethod,
+    headers: signResponse.uploadHeaders,
+    body: fileBytes,
+  })
+
+  if (!response.ok) {
+    throw new Error(`R2 upload failed with status ${response.status}.`)
+  }
+}
+
+async function finalizeUpload(apiBaseUrl: string, datasetId: string) {
+  const response = await fetch(buildFinalizeUploadEndpoint(apiBaseUrl), {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      datasetId,
+    }),
+  })
+
+  return parseJsonResponse<Record<string, unknown>>(response, 'Harbour finalizeUpload')
+}
+
+async function parseJsonResponse<T>(response: Response, action: string) {
   const payload = (await response.json().catch(() => null)) as Record<
     string,
     unknown
@@ -136,10 +216,10 @@ export async function dispatchUpload(
     const message =
       typeof payload?.message === 'string'
         ? payload.message
-        : `Harbour API upload failed with status ${response.status}.`
+        : `${action} failed with status ${response.status}.`
 
     throw new Error(message)
   }
 
-  return payload
+  return payload as T
 }

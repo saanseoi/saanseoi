@@ -93,10 +93,9 @@ describe('upload', () => {
     expect(inferSnapshotMonthFromPath(overtureFixturePath)).toBe('2025-09')
   })
 
-  test('registers the first dataset upload into local D1 and staging', async () => {
+  test('registers the first dataset upload against a provided raw object key', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
-    const rawRoot = join(tempDir, 'raw')
 
     initDb(dbPath).close()
     const sqlite = new Database(dbPath)
@@ -105,16 +104,15 @@ describe('upload', () => {
     const result = await registerUpload(db, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
-      localRawRoot: rawRoot,
+      rawObjectKey: 'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
     })
     sqlite.close()
 
     expect(result.plan.datasetId).toBe('hk-2026-05-division')
     expect(result.plan.type).toBe('division')
-    expect(result.stagedFilePath).toContain(
-      '/hk/divisions/division/2026-05/division.parquet',
+    expect(result.rawObjectKey).toBe(
+      'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
     )
-    expect(result.metadataPath).toContain('/hk/divisions/division/2026-05/upload.json')
 
     const sqliteCheck = new Database(dbPath)
     const dataset = sqliteCheck
@@ -132,7 +130,7 @@ describe('upload', () => {
 
     expect(dataset).not.toBeNull()
     expect(dataset?.status).toBe('staged')
-    expect(dataset?.rawObjectKey).toBe(result.stagedFilePath ?? undefined)
+    expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
     expect(ingestRunCount.count).toBe(2)
   })
 
@@ -165,7 +163,7 @@ describe('upload', () => {
       registerUpload(db, {
         filePath: fixtureFile,
         snapshotMonth: '2026-04',
-        localRawRoot: join(tempDir, 'raw'),
+        rawObjectKey: 'raw/hk/divisions/division/2026-04/2026-04/division.parquet',
       }),
     ).rejects.toThrow('strictly newer monthly uploads')
     sqlite.close()
@@ -188,7 +186,7 @@ describe('upload', () => {
     expect(planned.plan.type).toBe('division')
   })
 
-  test('registers an already-uploaded remote object without local staging', async () => {
+  test('registers an already-uploaded remote object', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
     const sqlite = initDb(dbPath)
@@ -216,8 +214,6 @@ describe('upload', () => {
     expect(result.rawObjectKey).toBe(
       'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
     )
-    expect(result.stagedFilePath).toBeNull()
-    expect(result.metadataPath).toBeNull()
     expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
   })
 

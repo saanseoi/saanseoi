@@ -8,6 +8,7 @@ import {
   formatSummary,
 } from './lib/display.ts'
 import { buildRegisterOptions, parseArgs, resolveUploadTarget } from './lib/options.ts'
+import { validateOvertureSchema } from './lib/schema/overture.ts'
 import { dispatchUpload, resolveHarbourApiUrl } from './lib/upload.ts'
 
 function printUsage() {
@@ -79,11 +80,17 @@ async function main() {
   }
 
   log.message(explainDispatch(target, resolveHarbourApiUrl(args, target)))
+  const schemaValidation = validateOvertureSchema(
+    previewResult.plan,
+    previewResult.inspection,
+  )
+  log.success(`Schema check passed: ${schemaValidation.schema.id}`)
   const uploadResult = await dispatchUpload(
     args,
     target,
     registerOptions,
     previewResult,
+    schemaValidation.schema.id,
   )
 
   note(

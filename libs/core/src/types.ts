@@ -72,10 +72,8 @@ export type RegisterUploadOptions = {
   source?: string
   sourceVersion?: string
   dryRun?: boolean
-  localRawRoot?: string
   inspection?: ParquetInspection
   rawObjectKey?: string
-  metadataPath?: string | null
   resolveSchemaFingerprint?: SchemaFingerprintResolver
 }
 
@@ -88,6 +86,4 @@ export type RegisterUploadResult = {
   plan: UploadPlan
   inspection: ParquetInspection
   rawObjectKey: string | null
-  stagedFilePath: string | null
-  metadataPath: string | null
 }

@@ -1,7 +1,11 @@
 import type { prepareUpload } from '@repo/core/upload-local'
 
 import type { UploadTarget } from './options.ts'
-import { buildUploadEndpoint, resolveHarbourBaseUrl } from './upload.ts'
+import {
+  buildFinalizeUploadEndpoint,
+  buildSignUploadEndpoint,
+  resolveHarbourBaseUrl,
+} from './upload.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 
@@ -105,16 +109,18 @@ export function formatSummary(result: UploadPreviewResult, target: UploadTarget)
  */
 export function explainDispatch(target: UploadTarget, apiBaseUrl: string) {
   const targetDetails = describeTarget(target)
-  const uploadEndpoint = buildUploadEndpoint(apiBaseUrl)
+  const signUploadEndpoint = buildSignUploadEndpoint(apiBaseUrl)
+  const finalizeUploadEndpoint = buildFinalizeUploadEndpoint(apiBaseUrl)
 
   return [
     `CLI target: ${targetDetails.label}`,
     `Destination: ${targetDetails.destination}`,
-    `POST ${uploadEndpoint}`,
+    `POST ${signUploadEndpoint}`,
+    `POST ${finalizeUploadEndpoint}`,
     'Expected runtime flow:',
-    '1. send parquet plus upload metadata to the Harbour API',
-    '2. write the parquet into the bound R2 bucket',
-    '3. register the dataset and initial ingest phases in Harbour D1',
+    '1. send the inspected upload plan to Harbour and request a signed R2 upload URL',
+    '2. upload the parquet directly from the CLI to R2 using the signed PUT URL',
+    '3. tell Harbour the object upload is complete so it can validate and stage the dataset',
     '',
     'Downstream ingest execution is still deferred after dataset registration.',
   ].join('\n')

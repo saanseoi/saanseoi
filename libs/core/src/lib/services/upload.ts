@@ -5,6 +5,7 @@ import {
   getLatestDatasetForTypeRegion,
   insertDataset,
   insertIngestRun,
+  updateDatasetStatus,
 } from '../db/repository'
 import type {
   DatasetRecord,
@@ -569,8 +570,6 @@ export async function registerUpload(
       plan,
       inspection,
       rawObjectKey: null,
-      stagedFilePath: null,
-      metadataPath: null,
     }
   }
 
@@ -580,13 +579,11 @@ export async function registerUpload(
     throw new Error(`Dataset already exists: ${plan.datasetId}`)
   }
 
-  const stagedFilePath = null
-  const metadataPath = options.metadataPath ?? null
   const rawObjectKey = options.rawObjectKey ?? null
 
   if (!rawObjectKey) {
     throw new Error(
-      'A rawObjectKey is required for Worker-safe registration. Use the CLI-local upload service for filesystem staging.',
+      'A rawObjectKey is required for Worker-safe registration.',
     )
   }
 
@@ -628,7 +625,72 @@ export async function registerUpload(
     plan,
     inspection,
     rawObjectKey,
-    stagedFilePath,
-    metadataPath,
+  }
+}
+
+export async function requestUpload(
+  db: HarbourReadableDb & HarbourWritableDb,
+  options: RegisterUploadOptions,
+) {
+  const { plan, inspection } = await planUpload(db, options)
+  const existingDataset = await getDatasetById(db, plan.datasetId)
+
+  if (existingDataset) {
+    throw new Error(`Dataset already exists: ${plan.datasetId}`)
+  }
+
+  const rawObjectKey = createRawObjectKey(plan)
+  const now = new Date().toISOString()
+
+  await insertDataset(db, plan, rawObjectKey, now, 'uploading')
+  await insertIngestRun(
+    db,
+    plan.datasetId,
+    'requestUpload',
+    'completed',
+    JSON.stringify({
+      datasetId: plan.datasetId,
+      rawObjectKey,
+      rowCount: inspection.rowCount,
+      schemaFingerprint: plan.schemaFingerprint,
+    }),
+    now,
+    now,
+  )
+
+  return {
+    plan,
+    inspection,
+    rawObjectKey,
+  }
+}
+
+export async function finalizeUpload(
+  db: HarbourReadableDb & HarbourWritableDb,
+  options: RegisterUploadOptions,
+) {
+  const { plan, inspection } = await planUpload(db, options)
+  const rawObjectKey = options.rawObjectKey ?? createRawObjectKey(plan)
+  const now = new Date().toISOString()
+
+  await updateDatasetStatus(db, plan.datasetId, 'staged')
+  await insertIngestRun(
+    db,
+    plan.datasetId,
+    'stageRawParquet',
+    'completed',
+    JSON.stringify({
+      rawObjectKey,
+      rowCount: inspection.rowCount,
+      schemaFieldCount: inspection.schema.length,
+    }),
+    now,
+    now,
+  )
+
+  return {
+    plan,
+    inspection,
+    rawObjectKey,
   }
 }

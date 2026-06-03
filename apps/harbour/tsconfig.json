@@ -25,9 +25,6 @@
     "paths": {
       "@/*": ["./src/*"],
       "@repo/core": ["../../libs/core/src/index.ts"],
-      "@repo/core/upload-request": [
-        "../../libs/core/src/lib/services/upload-request.ts"
-      ],
       "drizzle-orm": ["../../libs/db/node_modules/drizzle-orm"],
       "drizzle-orm/*": ["../../libs/db/node_modules/drizzle-orm/*"]
     }

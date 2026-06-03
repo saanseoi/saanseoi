@@ -15,7 +15,6 @@
     ".": "./src/index.ts",
     "./upload": "./src/lib/services/upload.ts",
     "./upload-local": "./src/lib/services/upload-local.ts",
-    "./upload-request": "./src/lib/services/upload-request.ts",
     "./parquet-inspector": "./src/lib/parquet-inspector.ts",
     "./parquet-inspector-node": "./src/lib/parquet-inspector-node.ts",
     "./db/repository": "./src/lib/db/repository.ts"
