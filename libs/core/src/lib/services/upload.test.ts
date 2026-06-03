@@ -63,9 +63,24 @@ afterEach(() => {
 })
 
 describe('upload', () => {
+  test('infers addresses theme from a singular filename', () => {
+    expect(inferThemeFromFilename('address.parquet')).toBe('addresses')
+    expect(inferTypeFromFilename('address.parquet')).toBe('address')
+  })
+
   test('infers divisions theme from a singular filename', () => {
     expect(inferThemeFromFilename('division.parquet')).toBe('divisions')
     expect(inferTypeFromFilename('division.parquet')).toBe('division')
+  })
+
+  test('prefers the address filename signal over a broader parent theme folder', () => {
+    const filePath =
+      '/tmp/data/2025-09-24.0/divisions/中国/Hong Kong SAR/address.parquet'
+
+    expect(inferTypeFromPath(filePath)).toBe('address')
+    expect(inferThemeFromPath(filePath)).toBe('addresses')
+    expect(inferRegionFromPath(filePath)).toBe('hk')
+    expect(inferSnapshotMonthFromPath(filePath)).toBe('2025-09')
   })
 
   test('infers theme, region, and month from the full overture-style path', () => {

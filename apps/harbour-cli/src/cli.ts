@@ -16,7 +16,7 @@ import { dispatchUpload, resolveHarbourApiUrl } from './libs/upload.ts'
 
 function printUsage() {
   console.log(`Usage:
-  bun run upload <file> [--target local|cf-preview|cf-production] [--remote] [--env dev|preview|production] [--api URL] [--type place|division|address] [--theme places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
+  bun run upload <file> [--target local|cf-preview|cf-production] [--remote] [--env dev|preview|production] [--api URL] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
 `)
 }
 

@@ -96,9 +96,8 @@ export function formatSummary(result: UploadPreviewResult, target: UploadTarget)
 
   return [
     formatField('target', `${target.environment} (${redText(targetMode)})`),
-    formatField('harbourApi', harbourBaseUrl),
-    formatField('uploadEndpoint', uploadEndpoint),
     ...formatPlan(result),
+    formatField('harbourApi', harbourBaseUrl),
   ]
 }
 
