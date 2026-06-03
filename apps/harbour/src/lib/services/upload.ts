@@ -2,8 +2,9 @@ import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
 
 import { inspectParquet } from '../parquet-inspector'
-import { openLocalD1 } from '../db/client'
 import {
+  type HarbourReadableDb,
+  type HarbourWritableDb,
   getDatasetById,
   getLatestDatasetForTypeRegion,
   insertDataset,
@@ -12,6 +13,7 @@ import {
 import type {
   DatasetRecord,
   ParquetInspection,
+  PreparedUploadResult,
   RegisterUploadOptions,
   RegisterUploadResult,
   RegionCode,
@@ -19,9 +21,11 @@ import type {
   SupportedType,
   UploadPlan,
 } from '../../types'
-import type { HarbourDb } from '../db/client'
 
-const DEFAULT_RAW_ROOT = resolve(dirname(import.meta.dir), '../../../.local/harbour/raw')
+const DEFAULT_RAW_ROOT = resolve(
+  dirname(import.meta.dir),
+  '../../../.local/harbour/raw',
+)
 
 const TYPE_ALIASES: Record<string, SupportedType> = {
   address: 'address',
@@ -33,7 +37,7 @@ const TYPE_ALIASES: Record<string, SupportedType> = {
 }
 
 const TYPE_THEME_MAP: Record<SupportedType, SupportedTheme> = {
-  address: 'places',
+  address: 'addresses',
   division: 'divisions',
   place: 'places',
 }
@@ -75,10 +79,7 @@ function splitPathSegments(filePath: string) {
  * Lowercases and whitespace-normalizes a token before alias matching.
  */
 function normalizeToken(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ')
+  return value.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
 /**
@@ -469,17 +470,11 @@ async function ensureSchemaCompatible(
   }
 }
 
-/**
- * Resolves upload metadata from flags, file naming conventions, and parquet
- * content, then validates chronology and schema compatibility.
- */
-export async function planUpload(
-  db: Pick<HarbourDb, 'select'>,
+function resolveUploadPlan(
   options: RegisterUploadOptions,
-  inspection?: ParquetInspection,
+  resolvedInspection: ParquetInspection,
+  supersedesDatasetId: string | null,
 ) {
-  const resolvedInspection = inspection ?? (await inspectParquet(options.filePath))
-
   const typeFromFlag = normalizeType(options.type)
   const typeFromPath = inferTypeFromPath(options.filePath)
   const typeFromParquet = inferTypeFromParquet(resolvedInspection)
@@ -494,7 +489,8 @@ export async function planUpload(
   const themeFromFlag = normalizeTheme(options.theme)
   const themeFromPath = inferThemeFromPath(options.filePath) ?? TYPE_THEME_MAP[type]
   const themeFromParquet = inferThemeFromParquet(resolvedInspection)
-  const theme = themeFromFlag ?? themeFromPath ?? themeFromParquet ?? TYPE_THEME_MAP[type]
+  const theme =
+    themeFromFlag ?? themeFromPath ?? themeFromParquet ?? TYPE_THEME_MAP[type]
 
   if (!theme) {
     throw new Error(
@@ -534,7 +530,8 @@ export async function planUpload(
   }
 
   const snapshotMonth =
-    normalizeSnapshotMonth(options.snapshotMonth) ?? inferSnapshotMonthFromPath(options.filePath)
+    normalizeSnapshotMonth(options.snapshotMonth) ??
+    inferSnapshotMonthFromPath(options.filePath)
 
   if (!snapshotMonth) {
     throw new Error(
@@ -544,16 +541,10 @@ export async function planUpload(
 
   const source = options.source ?? 'overture'
   const sourceVersion =
-    options.sourceVersion ?? inferSourceVersionFromPath(options.filePath) ?? snapshotMonth
+    options.sourceVersion ??
+    inferSourceVersionFromPath(options.filePath) ??
+    snapshotMonth
   const datasetId = `${regionCode}-${snapshotMonth}-${type}`
-  const { latestDataset, supersedesDatasetId } = getLatestDatasetForTypeRegion(
-    db,
-    regionCode,
-    type,
-  )
-
-  ensureChronologicalUpload(latestDataset, snapshotMonth, datasetId)
-  await ensureSchemaCompatible(latestDataset, resolvedInspection)
 
   return {
     plan: {
@@ -581,6 +572,45 @@ export async function planUpload(
 }
 
 /**
+ * Prepares an upload manifest from the local parquet alone. This is the CLI
+ * preflight path and intentionally does not talk to Harbour's database.
+ */
+export async function prepareUpload(
+  options: RegisterUploadOptions,
+  inspection?: ParquetInspection,
+): Promise<PreparedUploadResult> {
+  const resolvedInspection = inspection ?? (await inspectParquet(options.filePath))
+
+  return resolveUploadPlan(options, resolvedInspection, null)
+}
+
+/**
+ * Resolves upload metadata from flags, file naming conventions, and parquet
+ * content, then validates chronology and schema compatibility.
+ */
+export async function planUpload(
+  db: HarbourReadableDb,
+  options: RegisterUploadOptions,
+  inspection?: ParquetInspection,
+) {
+  const resolvedInspection = inspection ?? (await inspectParquet(options.filePath))
+  const preparedUpload = resolveUploadPlan(options, resolvedInspection, null)
+  const {
+    plan: { datasetId, regionCode, snapshotMonth, type },
+  } = preparedUpload
+  const { latestDataset, supersedesDatasetId } = await getLatestDatasetForTypeRegion(
+    db,
+    regionCode,
+    type,
+  )
+
+  ensureChronologicalUpload(latestDataset, snapshotMonth, datasetId)
+  await ensureSchemaCompatible(latestDataset, resolvedInspection)
+
+  return resolveUploadPlan(options, resolvedInspection, supersedesDatasetId)
+}
+
+/**
  * Copies the raw parquet into the local staging area and writes upload metadata.
  */
 function stageRawFile(
@@ -588,7 +618,13 @@ function stageRawFile(
   plan: UploadPlan,
   inspection: ParquetInspection,
 ) {
-  const targetDir = join(rawRoot, plan.regionCode, plan.theme, plan.type, plan.snapshotMonth)
+  const targetDir = join(
+    rawRoot,
+    plan.regionCode,
+    plan.theme,
+    plan.type,
+    plan.snapshotMonth,
+  )
   const stagedFilePath = join(targetDir, plan.fileName)
   const metadataPath = join(targetDir, 'upload.json')
 
@@ -617,81 +653,75 @@ function stageRawFile(
 }
 
 /**
- * Registers a parquet upload locally, optionally as a dry run, and records the
- * dataset plus ingest run history in the Harbour database.
+ * Registers a parquet upload against the provided Harbour database and records
+ * the dataset plus ingest run history. Raw parquet staging remains local-file
+ * based for now and is intended for CLI-driven ingestion.
  */
 export async function registerUpload(
+  db: HarbourReadableDb & HarbourWritableDb,
   options: RegisterUploadOptions,
 ): Promise<RegisterUploadResult> {
   if (!existsSync(options.filePath)) {
     throw new Error(`File not found: ${options.filePath}`)
   }
 
-  const { db, sqlite } = openLocalD1(options.localDbPath)
+  const { plan, inspection } = await planUpload(db, options)
 
-  try {
-    const { plan, inspection } = await planUpload(db, options)
-
-    if (options.dryRun) {
-      return {
-        plan,
-        inspection,
-        stagedFilePath: null,
-        metadataPath: null,
-      }
-    }
-
-    const existingDataset = getDatasetById(db, plan.datasetId)
-
-    if (existingDataset) {
-      throw new Error(`Dataset already exists: ${plan.datasetId}`)
-    }
-
-    const rawRoot = options.localRawRoot ?? DEFAULT_RAW_ROOT
-    const { stagedFilePath, metadataPath } = stageRawFile(rawRoot, plan, inspection)
-    const now = new Date().toISOString()
-
-    db.transaction(tx => {
-      insertDataset(tx, plan, stagedFilePath, now)
-
-      insertIngestRun(
-        tx,
-        plan.datasetId,
-        'registerDataset',
-        'completed',
-        JSON.stringify({
-          datasetId: plan.datasetId,
-          regionCode: plan.regionCode,
-          snapshotMonth: plan.snapshotMonth,
-          theme: plan.theme,
-          type: plan.type,
-        }),
-        now,
-        now,
-      )
-
-      insertIngestRun(
-        tx,
-        plan.datasetId,
-        'stageRawParquet',
-        'completed',
-        JSON.stringify({
-          rawObjectKey: stagedFilePath,
-          rowCount: inspection.rowCount,
-          schemaFieldCount: inspection.schema.length,
-        }),
-        now,
-        now,
-      )
-    })
-
+  if (options.dryRun) {
     return {
       plan,
       inspection,
-      stagedFilePath,
-      metadataPath,
+      stagedFilePath: null,
+      metadataPath: null,
     }
-  } finally {
-    sqlite.close()
+  }
+
+  const existingDataset = await getDatasetById(db, plan.datasetId)
+
+  if (existingDataset) {
+    throw new Error(`Dataset already exists: ${plan.datasetId}`)
+  }
+
+  const rawRoot = options.localRawRoot ?? DEFAULT_RAW_ROOT
+  const { stagedFilePath, metadataPath } = stageRawFile(rawRoot, plan, inspection)
+  const now = new Date().toISOString()
+
+  await insertDataset(db, plan, stagedFilePath, now)
+
+  await insertIngestRun(
+    db,
+    plan.datasetId,
+    'registerDataset',
+    'completed',
+    JSON.stringify({
+      datasetId: plan.datasetId,
+      regionCode: plan.regionCode,
+      snapshotMonth: plan.snapshotMonth,
+      theme: plan.theme,
+      type: plan.type,
+    }),
+    now,
+    now,
+  )
+
+  await insertIngestRun(
+    db,
+    plan.datasetId,
+    'stageRawParquet',
+    'completed',
+    JSON.stringify({
+      rawObjectKey: stagedFilePath,
+      rowCount: inspection.rowCount,
+      schemaFieldCount: inspection.schema.length,
+    }),
+    now,
+    now,
+  )
+
+  return {
+    plan,
+    inspection,
+    stagedFilePath,
+    metadataPath,
   }
 }

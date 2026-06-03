@@ -15,17 +15,17 @@ import {
   planUpload,
   registerUpload,
 } from './upload'
-import { createHarbourDb } from '../db/client'
+import { createLocalHarbourDb } from '../db/local'
 import { datasets } from '@repo/db/schema'
 const migrationSql = readFileSync(
-  resolve(import.meta.dir, '../../../../../libs/db/migrations/20260602105608_ordinary_true_believers.sql'),
+  resolve(
+    import.meta.dir,
+    '../../../../../libs/db/migrations/20260602105608_ordinary_true_believers.sql',
+  ),
   'utf8',
 )
 
-const fixtureFile = resolve(
-  import.meta.dir,
-  '../../../../../data/division.parquet',
-)
+const fixtureFile = resolve(import.meta.dir, '../../../../../data/division.parquet')
 const tempDirs: string[] = []
 
 function createTempDir() {
@@ -82,34 +82,36 @@ describe('upload', () => {
     const rawRoot = join(tempDir, 'raw')
 
     initDb(dbPath).close()
+    const sqlite = new Database(dbPath)
+    const db = createLocalHarbourDb(sqlite)
 
-    const result = await registerUpload({
+    const result = await registerUpload(db, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
-      localDbPath: dbPath,
       localRawRoot: rawRoot,
     })
+    sqlite.close()
 
     expect(result.plan.datasetId).toBe('hk-2026-05-division')
     expect(result.plan.type).toBe('division')
-    expect(result.stagedFilePath).toContain('/hk/divisions/division/2026-05/division.parquet')
+    expect(result.stagedFilePath).toContain(
+      '/hk/divisions/division/2026-05/division.parquet',
+    )
     expect(result.metadataPath).toContain('/hk/divisions/division/2026-05/upload.json')
 
-    const db = new Database(dbPath)
-    const dataset = db
-      .query(
-        'SELECT datasetId, status, rawObjectKey FROM datasets WHERE datasetId = ?',
-      )
+    const sqliteCheck = new Database(dbPath)
+    const dataset = sqliteCheck
+      .query('SELECT datasetId, status, rawObjectKey FROM datasets WHERE datasetId = ?')
       .get('hk-2026-05-division') as {
       datasetId: string
       status: string
       rawObjectKey: string
     } | null
-    const ingestRunCount = db
+    const ingestRunCount = sqliteCheck
       .query('SELECT COUNT(*) AS count FROM ingestRuns WHERE datasetId = ?')
       .get('hk-2026-05-division') as { count: number }
 
-    db.close()
+    sqliteCheck.close()
 
     expect(dataset).not.toBeNull()
     expect(dataset?.status).toBe('staged')
@@ -121,49 +123,47 @@ describe('upload', () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
     const sqlite = initDb(dbPath)
-    const db = createHarbourDb(sqlite)
+    const db = createLocalHarbourDb(sqlite)
 
-    db.insert(datasets).values({
-      datasetId: 'hk-2026-05-division',
-      regionCode: 'hk',
-      snapshotMonth: '2026-05',
-      theme: 'divisions',
-      type: 'division',
-      source: 'overture',
-      sourceVersion: '2026-05',
-      rawObjectKey: fixtureFile,
-      status: 'active',
-      isActive: true,
-      supersedesDatasetId: null,
-      revokedAt: null,
-      revocationReason: null,
-      ingestedAt: '2026-06-02T00:00:00.000Z',
-    }).run()
-    sqlite.close()
+    db.insert(datasets)
+      .values({
+        datasetId: 'hk-2026-05-division',
+        regionCode: 'hk',
+        snapshotMonth: '2026-05',
+        theme: 'divisions',
+        type: 'division',
+        source: 'overture',
+        sourceVersion: '2026-05',
+        rawObjectKey: fixtureFile,
+        status: 'active',
+        isActive: true,
+        supersedesDatasetId: null,
+        revokedAt: null,
+        revocationReason: null,
+        ingestedAt: '2026-06-02T00:00:00.000Z',
+      })
+      .run()
 
     await expect(
-      registerUpload({
+      registerUpload(db, {
         filePath: fixtureFile,
         snapshotMonth: '2026-04',
-        localDbPath: dbPath,
         localRawRoot: join(tempDir, 'raw'),
       }),
     ).rejects.toThrow('strictly newer monthly uploads')
+    sqlite.close()
   })
 
   test('can dry-run without staging files', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
     const db = initDb(dbPath)
-    const harbourDb = createHarbourDb(db)
+    const harbourDb = createLocalHarbourDb(db)
 
-    const planned = await planUpload(
-      harbourDb,
-      {
-        filePath: fixtureFile,
-        snapshotMonth: '2026-05',
-      },
-    )
+    const planned = await planUpload(harbourDb, {
+      filePath: fixtureFile,
+      snapshotMonth: '2026-05',
+    })
 
     db.close()
 
@@ -176,7 +176,7 @@ describe('upload', () => {
     const dbPath = join(tempDir, 'harbour.sqlite')
     const overtureFixturePath = createOvertureStyleFixture(tempDir)
     const db = initDb(dbPath)
-    const harbourDb = createHarbourDb(db)
+    const harbourDb = createLocalHarbourDb(db)
 
     const planned = await planUpload(harbourDb, {
       filePath: overtureFixturePath,

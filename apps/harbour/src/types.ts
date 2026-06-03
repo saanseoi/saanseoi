@@ -1,5 +1,5 @@
-export const SUPPORTED_THEMES = ['places', 'divisions'] as const
-export const SUPPORTED_TYPES = ['place', 'division', 'address'] as const
+export const SUPPORTED_THEMES = ['addresses', 'divisions', 'places'] as const
+export const SUPPORTED_TYPES = ['address', 'division', 'place'] as const
 
 export type SupportedTheme = (typeof SUPPORTED_THEMES)[number]
 export type SupportedType = (typeof SUPPORTED_TYPES)[number]
@@ -67,8 +67,12 @@ export type RegisterUploadOptions = {
   source?: string
   sourceVersion?: string
   dryRun?: boolean
-  localDbPath?: string
   localRawRoot?: string
+}
+
+export type PreparedUploadResult = {
+  plan: UploadPlan
+  inspection: ParquetInspection
 }
 
 export type RegisterUploadResult = {
