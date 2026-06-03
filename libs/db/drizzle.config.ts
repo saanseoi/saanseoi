@@ -1,28 +1,37 @@
-import { existsSync, readdirSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import 'dotenv/config'
+
 import { defineConfig } from 'drizzle-kit'
 
-const configDir = dirname(fileURLToPath(import.meta.url))
-const localD1Dir = join(
-  configDir,
-  '../../.local/d1/dev/v3/d1/miniflare-D1DatabaseObject',
+const {
+  CLOUDFLARE_ACCOUNT_ID,
+  CLOUDFLARE_DATABASE_ID,
+  CLOUDFLARE_D1_TOKEN,
+  LOCAL_D1_SQLITE_PATH,
+} = process.env
+
+export default defineConfig(
+  LOCAL_D1_SQLITE_PATH
+    ? {
+        dialect: 'sqlite',
+        dbCredentials: {
+          url: LOCAL_D1_SQLITE_PATH,
+        },
+        schema: './src/schema/index.ts',
+        out: './migrations',
+        strict: true,
+        verbose: true,
+      }
+    : {
+        dialect: 'sqlite',
+        driver: 'd1-http',
+        dbCredentials: {
+          accountId: CLOUDFLARE_ACCOUNT_ID ?? '',
+          databaseId: CLOUDFLARE_DATABASE_ID ?? '',
+          token: CLOUDFLARE_D1_TOKEN ?? '',
+        },
+        schema: './src/schema/index.ts',
+        out: './migrations',
+        strict: true,
+        verbose: true,
+      },
 )
-
-const localD1SqlitePath = existsSync(localD1Dir)
-  ? readdirSync(localD1Dir)
-      .filter(file => file.endsWith('.sqlite') && file !== 'metadata.sqlite')
-      .map(file => join(localD1Dir, file))
-      .sort()[0]
-  : undefined
-
-export default defineConfig({
-  dialect: 'sqlite',
-  dbCredentials: {
-    url: localD1SqlitePath ?? join(localD1Dir, 'local.sqlite'),
-  },
-  schema: './src/schema/index.ts',
-  out: './migrations',
-  strict: true,
-  verbose: true,
-})
