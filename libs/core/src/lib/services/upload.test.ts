@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -18,17 +18,29 @@ import { planUpload, registerUpload } from './upload-local'
 import { createLocalHarbourDb } from '../../testing/local-db'
 
 import { datasets } from '@repo/db/schema'
+import type { ParquetInspection } from '../../types'
 
-const migrationSql = readFileSync(
+const migrationSql = await Bun.file(
   resolve(
     import.meta.dir,
     '../../../../../libs/db/migrations/20260602105608_ordinary_true_believers.sql',
   ),
-  'utf8',
-)
-
-const fixtureFile = resolve(import.meta.dir, '../../../../../data/division.parquet')
+).text()
 const tempDirs: string[] = []
+const fixtureInspection: ParquetInspection = {
+  rowCount: 3,
+  schema: [
+    { name: 'id', type: 'string', nullable: false },
+    { name: 'theme', type: 'string', nullable: true },
+    { name: 'type', type: 'string', nullable: true },
+    { name: 'country', type: 'string', nullable: true },
+    { name: 'region', type: 'string', nullable: true },
+  ],
+  distinctThemeValues: ['divisions'],
+  distinctTypeValues: ['division'],
+  distinctCountryValues: ['hk'],
+  distinctRegionValues: ['hk'],
+}
 
 function createTempDir() {
   const dir = mkdtempSync(join(tmpdir(), 'harbour-test-'))
@@ -41,9 +53,17 @@ function createOvertureStyleFixture(tempDir: string) {
   const targetFile = join(targetDir, 'division.parquet')
 
   mkdirSync(targetDir, { recursive: true })
-  copyFileSync(fixtureFile, targetFile)
+  writeFileSync(targetFile, 'fixture')
 
   return targetFile
+}
+
+function createFixturePath(tempDir: string) {
+  const fixtureFile = join(tempDir, 'hk-division-2026-05.parquet')
+
+  writeFileSync(fixtureFile, 'fixture')
+
+  return fixtureFile
 }
 
 function initDb(dbPath: string) {
@@ -96,6 +116,7 @@ describe('upload', () => {
   test('registers the first dataset upload against a provided raw object key', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
 
     initDb(dbPath).close()
     const sqlite = new Database(dbPath)
@@ -104,6 +125,7 @@ describe('upload', () => {
     const result = await registerUpload(db, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
+      inspection: fixtureInspection,
       rawObjectKey: 'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
     })
     sqlite.close()
@@ -137,6 +159,7 @@ describe('upload', () => {
   test('rejects non-chronological uploads for the same region/type', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
@@ -163,6 +186,7 @@ describe('upload', () => {
       registerUpload(db, {
         filePath: fixtureFile,
         snapshotMonth: '2026-04',
+        inspection: fixtureInspection,
         rawObjectKey: 'raw/hk/divisions/division/2026-04/2026-04/division.parquet',
       }),
     ).rejects.toThrow('strictly newer monthly uploads')
@@ -172,12 +196,14 @@ describe('upload', () => {
   test('can dry-run without staging files', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
     const db = initDb(dbPath)
     const harbourDb = createLocalHarbourDb(db)
 
     const planned = await planUpload(harbourDb, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
+      inspection: fixtureInspection,
     })
 
     db.close()
@@ -189,16 +215,14 @@ describe('upload', () => {
   test('registers an already-uploaded remote object', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
     const result = await registerUpload(db, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
-      inspection: await planUpload(db, {
-        filePath: fixtureFile,
-        snapshotMonth: '2026-05',
-      }).then(planned => planned.inspection),
+      inspection: fixtureInspection,
       rawObjectKey: 'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
     })
 
@@ -220,12 +244,10 @@ describe('upload', () => {
   test('uses injected schema metadata for remote chronology checks', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
-    const inspection = await planUpload(db, {
-      filePath: fixtureFile,
-      snapshotMonth: '2026-05',
-    }).then(planned => planned.inspection)
+    const inspection = fixtureInspection
 
     db.insert(datasets)
       .values({
