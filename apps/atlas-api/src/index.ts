@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 
-import { createDb } from './db/client'
+import { createDb } from '@repo/db'
 import {
   getPlaceCurrent,
   listDatasets,
