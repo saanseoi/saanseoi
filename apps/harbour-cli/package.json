@@ -1,0 +1,22 @@
+{
+  "name": "harbour-cli",
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "upload": "bun ./src/cli.ts upload",
+    "upload:local": "bun ./src/cli.ts upload --target local",
+    "upload:cf:preview": "bun ./src/cli.ts upload --target cf-preview",
+    "upload:cf:production": "bun ./src/cli.ts upload --target cf-production"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "bun-types": "^1.3.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "@repo/harbour-core": "workspace:*"
+  }
+}

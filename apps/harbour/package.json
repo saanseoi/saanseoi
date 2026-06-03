@@ -14,11 +14,7 @@
     "format": "biome format --write .",
     "test": "bun test",
     "test:watch": "bun test --watch",
-    "test:coverage": "bun test --coverage",
-    "upload": "bun run upload:local",
-    "upload:local": "bun run ./src/cli.ts upload --target local",
-    "upload:cf:preview": "bun run ./src/cli.ts upload --target cf-preview",
-    "upload:cf:production": "bun run ./src/cli.ts upload --target cf-production"
+    "test:coverage": "bun test --coverage"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -28,10 +24,8 @@
     "wrangler": "^4.44.0"
   },
   "dependencies": {
-    "@clack/prompts": "^0.11.0",
     "@repo/db": "workspace:*",
-    "hyparquet": "^1.17.7",
-    "hyparquet-compressors": "^1.1.1",
+    "@repo/harbour-core": "workspace:*",
     "hono": "^4.10.1"
   }
 }

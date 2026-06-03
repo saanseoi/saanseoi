@@ -1,8 +1,9 @@
+import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
 import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/prompts'
 
-import { prepareUpload } from './lib/services/upload'
+import { prepareUpload } from '@repo/harbour-core/upload-local'
 
 type ParsedArgs = {
   command: string | null
@@ -72,7 +73,7 @@ function parseArgs(argv: string[]): ParsedArgs {
 
 function printUsage() {
   console.log(`Usage:
-  bun run upload <file> [--target local|cf-preview|cf-production] [--remote] [--env dev|preview|production] [--type place|division|address] [--theme places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
+  bun run upload <file> [--target local|cf-preview|cf-production] [--remote] [--env dev|preview|production] [--api URL] [--type place|division|address] [--theme places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
 `)
 }
 
@@ -212,26 +213,150 @@ function formatSummary(
   target: UploadTarget,
 ) {
   const targetMode = target.remote ? 'cf' : 'local'
+  const harbourBaseUrl = resolveHarbourBaseUrl(target)
+  const uploadEndpoint = buildUploadEndpoint(harbourBaseUrl)
 
   return [
     formatField('target', `${target.environment} (${redText(targetMode)})`),
+    formatField('harbourApi', harbourBaseUrl),
+    formatField('uploadEndpoint', uploadEndpoint),
     ...formatPlan(result),
   ]
 }
 
-function explainDispatch(target: UploadTarget) {
+function explainDispatch(target: UploadTarget, apiBaseUrl: string) {
   const targetDetails = describeTarget(target)
+  const uploadEndpoint = buildUploadEndpoint(apiBaseUrl)
 
   return [
     `CLI target: ${targetDetails.label}`,
     `Destination: ${targetDetails.destination}`,
+    `POST ${uploadEndpoint}`,
     'Expected runtime flow:',
-    '1. upload parquet to Cloudflare-backed object storage',
-    '2. call the Harbour API to register the dataset and update ingest status',
-    '3. enqueue downstream processing for the Worker ingest pipeline',
+    '1. send parquet plus upload metadata to the Harbour API',
+    '2. write the parquet into the bound R2 bucket',
+    '3. register the dataset and initial ingest phases in Harbour D1',
     '',
-    'This handoff path is not implemented yet, so the CLI currently stops after local parquet preflight.',
+    'Downstream ingest execution is still deferred after dataset registration.',
   ].join('\n')
+}
+
+function normalizeBaseUrl(value: string) {
+  return value.trim().replace(/\/+$/, '')
+}
+
+function resolveHarbourBaseUrl(target: UploadTarget) {
+  switch (target.environment) {
+    case 'dev':
+      return 'http://localhost:8788'
+    case 'preview':
+      return 'https://ss-harbour-preview.hypehk.workers.dev'
+    case 'production':
+      return 'https://ss-harbour-production.hypehk.workers.dev'
+  }
+}
+
+function resolveHarbourApiUrl(args: ParsedArgs, target: UploadTarget) {
+  const explicitUrl =
+    typeof args.options.api === 'string' ? args.options.api.trim() : undefined
+
+  if (explicitUrl) {
+    return normalizeBaseUrl(explicitUrl)
+  }
+
+  const genericBaseUrl =
+    process.env.HARBOUR_BASE_URL?.trim() ?? process.env.HARBOUR_API_URL?.trim()
+
+  switch (target.environment) {
+    case 'dev':
+      return normalizeBaseUrl(
+        process.env.HARBOUR_BASE_URL_DEV?.trim() ??
+          process.env.HARBOUR_API_URL_DEV?.trim() ??
+          genericBaseUrl ??
+          resolveHarbourBaseUrl(target),
+      )
+    case 'preview':
+      return normalizeBaseUrl(
+        process.env.HARBOUR_BASE_URL_PREVIEW?.trim() ??
+          process.env.HARBOUR_API_URL_PREVIEW?.trim() ??
+          genericBaseUrl ??
+          resolveHarbourBaseUrl(target),
+      )
+    case 'production':
+      return normalizeBaseUrl(
+        process.env.HARBOUR_BASE_URL_PRODUCTION?.trim() ??
+          process.env.HARBOUR_API_URL_PRODUCTION?.trim() ??
+          genericBaseUrl ??
+          resolveHarbourBaseUrl(target),
+      )
+  }
+}
+
+function buildUploadEndpoint(apiBaseUrl: string) {
+  return `${apiBaseUrl}/v1/uploads`
+}
+
+function buildUploadFormData(
+  inputFilePath: string,
+  previewResult: Awaited<ReturnType<typeof prepareUpload>>,
+): Promise<FormData> {
+  return readFile(inputFilePath).then(fileBytes => {
+    const formData = new FormData()
+    const fileName = inputFilePath.split(/[\\/]+/).pop() ?? 'upload.parquet'
+
+    formData.set(
+      'file',
+      new File([fileBytes], fileName, {
+        type: 'application/octet-stream',
+      }),
+    )
+
+    formData.set('type', previewResult.plan.type)
+    formData.set('theme', previewResult.plan.theme)
+    formData.set('regionCode', previewResult.plan.regionCode)
+    formData.set('snapshotMonth', previewResult.plan.snapshotMonth)
+    formData.set('source', previewResult.plan.source)
+    formData.set('sourceVersion', previewResult.plan.sourceVersion)
+
+    return formData
+  })
+}
+
+async function dispatchUpload(
+  args: ParsedArgs,
+  target: UploadTarget,
+  registerOptions: CliUploadOptions,
+  previewResult: Awaited<ReturnType<typeof prepareUpload>>,
+) {
+  const apiBaseUrl = resolveHarbourApiUrl(args, target)
+
+  if (!apiBaseUrl) {
+    throw new Error(
+      `Missing Harbour API URL for ${describeTarget(target).label}. Pass --api or set HARBOUR_API_URL${target.environment === 'preview' ? '_PREVIEW' : target.environment === 'production' ? '_PRODUCTION' : '_DEV'}.`,
+    )
+  }
+
+  const formData = await buildUploadFormData(registerOptions.filePath, previewResult)
+  const uploadEndpoint = buildUploadEndpoint(apiBaseUrl)
+  const response = await fetch(uploadEndpoint, {
+    method: 'POST',
+    body: formData,
+  })
+
+  const payload = (await response.json().catch(() => null)) as
+    | Record<string, unknown>
+    | null
+
+  if (!response.ok) {
+    const message =
+      typeof payload?.message === 'string'
+        ? payload.message
+        : `Harbour API upload failed with status ${response.status}.`
+
+    throw new Error(message)
+  }
+
+  return payload
 }
 
 async function main() {
@@ -296,7 +421,38 @@ async function main() {
     }
   }
 
-  throw new Error(explainDispatch(target))
+  log.message(explainDispatch(target, resolveHarbourApiUrl(args, target)))
+  const uploadResult = await dispatchUpload(
+    args,
+    target,
+    registerOptions,
+    previewResult,
+  )
+
+  note(
+    [
+      formatField(
+        'datasetId',
+        typeof uploadResult?.datasetId === 'string'
+          ? uploadResult.datasetId
+          : previewResult.plan.datasetId,
+      ),
+      formatField(
+        'rawObjectKey',
+        typeof uploadResult?.rawObjectKey === 'string'
+          ? uploadResult.rawObjectKey
+          : '-',
+      ),
+      formatField(
+        'status',
+        typeof uploadResult?.status === 'string' ? uploadResult.status : 'staged',
+      ),
+    ].join('\n'),
+    'UPLOAD RESULT',
+  )
+  log.success('Dataset uploaded and registered in Harbour.')
+  log.message('Downstream ingest execution is not implemented yet.')
+  outro('Harbour upload complete')
 }
 
 main().catch(error => {
