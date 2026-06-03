@@ -11,7 +11,9 @@ export async function inspectParquet(input: ParquetInput) {
   return inspectParquetFromBuffer(await createAsyncBuffer(input))
 }
 
-async function createAsyncBuffer(input: ParquetInput): Promise<AsyncBuffer | ArrayBuffer> {
+async function createAsyncBuffer(
+  input: ParquetInput,
+): Promise<AsyncBuffer | ArrayBuffer> {
   const buffer = toArrayBuffer(input)
 
   return {

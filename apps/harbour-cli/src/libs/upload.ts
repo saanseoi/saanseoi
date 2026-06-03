@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises'
 
-import { prepareUpload } from '@repo/core/upload-local'
+import type { prepareUpload } from '@repo/core/upload-local'
 
 import type { CliUploadOptions, ParsedArgs, UploadTarget } from './options.ts'
 
@@ -127,9 +127,10 @@ export async function dispatchUpload(
     body: formData,
   })
 
-  const payload = (await response.json().catch(() => null)) as
-    | Record<string, unknown>
-    | null
+  const payload = (await response.json().catch(() => null)) as Record<
+    string,
+    unknown
+  > | null
 
   if (!response.ok) {
     const message =
