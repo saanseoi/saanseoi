@@ -11,6 +11,12 @@
       "migrations_dir": "../../libs/db/migrations"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "R2_RAW",
+      "bucket_name": "ss-raw-prod"
+    }
+  ],
   "minify": true,
   "env": {
     "preview": {
@@ -22,6 +28,12 @@
           "database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
           "migrations_dir": "../../libs/db/migrations"
         }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_RAW",
+          "bucket_name": "ss-raw-preview"
+        }
       ]
     },
     "production": {
@@ -32,6 +44,12 @@
           "database_name": "ss-db-prod",
           "database_id": "658e67b6-f259-4e5d-907e-7e361d2edf3c",
           "migrations_dir": "../../libs/db/migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_RAW",
+          "bucket_name": "ss-raw-prod"
         }
       ]
     }
