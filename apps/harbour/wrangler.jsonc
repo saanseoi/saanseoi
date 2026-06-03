@@ -3,6 +3,10 @@
   "name": "ss-harbour-production",
   "main": "src/index.ts",
   "compatibility_date": "2025-10-21",
+  "vars": {
+    "ATLAS_BASE_URL": "http://localhost:8787",
+    "HARBOUR_BASE_URL": "http://localhost:8788"
+  },
   "d1_databases": [
     {
       "binding": "DB",
@@ -21,6 +25,10 @@
   "env": {
     "preview": {
       "name": "ss-harbour-preview",
+      "vars": {
+        "ATLAS_BASE_URL": "https://ss-atlas-preview.hypehk.workers.dev",
+        "HARBOUR_BASE_URL": "https://ss-harbour-preview.hypehk.workers.dev"
+      },
       "d1_databases": [
         {
           "binding": "DB",
@@ -38,6 +46,10 @@
     },
     "production": {
       "name": "ss-harbour-production",
+      "vars": {
+        "ATLAS_BASE_URL": "https://ss-atlas-production.hypehk.workers.dev",
+        "HARBOUR_BASE_URL": "https://ss-harbour-production.hypehk.workers.dev"
+      },
       "d1_databases": [
         {
           "binding": "DB",
