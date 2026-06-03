@@ -37,6 +37,11 @@ export type ParquetInspection = {
   distinctRegionValues: string[]
 }
 
+export type SchemaFingerprintResolver = (
+  rawObjectKey: string,
+  datasetId: string,
+) => Promise<string | null>
+
 export type UploadPlan = {
   datasetId: string
   regionCode: RegionCode
@@ -68,6 +73,10 @@ export type RegisterUploadOptions = {
   sourceVersion?: string
   dryRun?: boolean
   localRawRoot?: string
+  inspection?: ParquetInspection
+  rawObjectKey?: string
+  metadataPath?: string | null
+  resolveSchemaFingerprint?: SchemaFingerprintResolver
 }
 
 export type PreparedUploadResult = {
@@ -78,6 +87,7 @@ export type PreparedUploadResult = {
 export type RegisterUploadResult = {
   plan: UploadPlan
   inspection: ParquetInspection
+  rawObjectKey: string | null
   stagedFilePath: string | null
   metadataPath: string | null
 }
