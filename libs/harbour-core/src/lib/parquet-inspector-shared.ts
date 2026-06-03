@@ -1,19 +1,20 @@
 import {
-  asyncBufferFromFile,
   parquetMetadataAsync,
   parquetRead,
   parquetSchema,
+  type AsyncBuffer,
 } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 
 import type { ParquetInspection } from '../types'
 
 /**
- * Reads a parquet file, extracts its schema, and collects distinct values for
- * the small set of classification columns used during upload planning.
+ * Reads a parquet buffer, extracts its schema, and collects distinct values
+ * for the small set of classification columns used during upload planning.
  */
-export async function inspectParquet(filePath: string): Promise<ParquetInspection> {
-  const file = await asyncBufferFromFile(filePath)
+export async function inspectParquetFromBuffer(
+  file: AsyncBuffer | ArrayBuffer,
+): Promise<ParquetInspection> {
   const metadata = await parquetMetadataAsync(file)
   const schema = extractSchema(metadata)
   const availableColumns = new Set(schema.map(field => field.name))

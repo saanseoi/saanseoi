@@ -1,7 +1,3 @@
-import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
-import { basename, dirname, join, resolve } from 'node:path'
-
-import { inspectParquet } from '../parquet-inspector'
 import {
   type HarbourReadableDb,
   type HarbourWritableDb,
@@ -21,11 +17,6 @@ import type {
   SupportedType,
   UploadPlan,
 } from '../../types'
-
-const DEFAULT_RAW_ROOT = resolve(
-  dirname(import.meta.dir),
-  '../../../.local/harbour/raw',
-)
 
 const TYPE_ALIASES: Record<string, SupportedType> = {
   address: 'address',
@@ -65,9 +56,6 @@ const REGION_ALIASES: Record<string, RegionCode> = {
   'macau sar': 'mo',
 }
 
-/**
- * Splits a file path into normalized non-empty path segments.
- */
 function splitPathSegments(filePath: string) {
   return filePath
     .split(/[\\/]+/)
@@ -75,16 +63,16 @@ function splitPathSegments(filePath: string) {
     .filter(Boolean)
 }
 
-/**
- * Lowercases and whitespace-normalizes a token before alias matching.
- */
+function fileNameFromPath(filePath: string) {
+  const segments = splitPathSegments(filePath)
+
+  return segments.at(-1) ?? filePath
+}
+
 function normalizeToken(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
-/**
- * Matches a path or file token to a supported dataset type alias.
- */
 function matchTypeCandidate(candidate: string): SupportedType | null {
   const normalized = normalizeToken(candidate)
 
@@ -99,9 +87,6 @@ function matchTypeCandidate(candidate: string): SupportedType | null {
   return null
 }
 
-/**
- * Matches a path or file token to a supported theme alias.
- */
 function matchThemeCandidate(candidate: string): SupportedTheme | null {
   const normalized = normalizeToken(candidate)
 
@@ -118,9 +103,6 @@ function matchThemeCandidate(candidate: string): SupportedTheme | null {
   return matchedType ? TYPE_THEME_MAP[matchedType] : null
 }
 
-/**
- * Extracts a `YYYY-MM` snapshot month from a candidate token.
- */
 function matchSnapshotMonthCandidate(candidate: string) {
   const match = candidate.match(/(20\d{2})-(0[1-9]|1[0-2])(?:-[0-3]\d(?:\.\d+)?)?/)
 
@@ -137,10 +119,6 @@ function matchSnapshotMonthCandidate(candidate: string) {
   return `${fallbackMatch[1]}-${fallbackMatch[2]}`
 }
 
-/**
- * Infers the upstream source version from a dated path segment such as
- * `2025-04-16.0`.
- */
 export function inferSourceVersionFromPath(filePath: string) {
   const pathSegments = splitPathSegments(filePath)
 
@@ -155,9 +133,6 @@ export function inferSourceVersionFromPath(filePath: string) {
   return null
 }
 
-/**
- * Infers the dataset theme from the most specific matching path segment.
- */
 export function inferThemeFromPath(filePath: string): SupportedTheme | null {
   const pathSegments = splitPathSegments(filePath)
 
@@ -178,9 +153,6 @@ export function inferThemeFromPath(filePath: string): SupportedTheme | null {
   return null
 }
 
-/**
- * Infers the dataset type from the most specific matching path segment.
- */
 export function inferTypeFromPath(filePath: string): SupportedType | null {
   const pathSegments = splitPathSegments(filePath)
 
@@ -201,23 +173,14 @@ export function inferTypeFromPath(filePath: string): SupportedType | null {
   return null
 }
 
-/**
- * Infers the dataset theme from the file name alone.
- */
 export function inferThemeFromFilename(filePath: string): SupportedTheme | null {
-  return matchThemeCandidate(basename(filePath))
+  return matchThemeCandidate(fileNameFromPath(filePath))
 }
 
-/**
- * Infers the dataset type from the file name alone.
- */
 export function inferTypeFromFilename(filePath: string): SupportedType | null {
-  return matchTypeCandidate(basename(filePath))
+  return matchTypeCandidate(fileNameFromPath(filePath))
 }
 
-/**
- * Infers the snapshot month from any matching path segment.
- */
 export function inferSnapshotMonthFromPath(filePath: string) {
   const pathSegments = splitPathSegments(filePath)
 
@@ -232,11 +195,8 @@ export function inferSnapshotMonthFromPath(filePath: string) {
   return null
 }
 
-/**
- * Infers the snapshot month from the file name alone.
- */
 export function inferSnapshotMonthFromFilename(filePath: string) {
-  const fileName = basename(filePath)
+  const fileName = fileNameFromPath(filePath)
   const match = matchSnapshotMonthCandidate(fileName)
 
   if (!match) {
@@ -246,9 +206,6 @@ export function inferSnapshotMonthFromFilename(filePath: string) {
   return match
 }
 
-/**
- * Matches a path or file token to a supported region alias.
- */
 function matchRegionCandidate(candidate: string): RegionCode | null {
   const normalized = normalizeToken(candidate)
 
@@ -263,9 +220,6 @@ function matchRegionCandidate(candidate: string): RegionCode | null {
   return null
 }
 
-/**
- * Infers the dataset region from the most specific matching path segment.
- */
 export function inferRegionFromPath(filePath: string): RegionCode | null {
   const pathSegments = splitPathSegments(filePath)
 
@@ -286,16 +240,10 @@ export function inferRegionFromPath(filePath: string): RegionCode | null {
   return null
 }
 
-/**
- * Infers the dataset region from the file name alone.
- */
 export function inferRegionFromFilename(filePath: string): RegionCode | null {
-  return matchRegionCandidate(basename(filePath))
+  return matchRegionCandidate(fileNameFromPath(filePath))
 }
 
-/**
- * Normalizes a theme candidate to a supported Harbour theme.
- */
 function normalizeTheme(candidate?: string | null): SupportedTheme | null {
   if (!candidate) {
     return null
@@ -304,9 +252,6 @@ function normalizeTheme(candidate?: string | null): SupportedTheme | null {
   return THEME_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
-/**
- * Normalizes a type candidate to a supported Harbour dataset type.
- */
 function normalizeType(candidate?: string | null): SupportedType | null {
   if (!candidate) {
     return null
@@ -315,9 +260,6 @@ function normalizeType(candidate?: string | null): SupportedType | null {
   return TYPE_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
-/**
- * Normalizes a region candidate to a supported Harbour region code.
- */
 function normalizeRegion(candidate?: string | null): RegionCode | null {
   if (!candidate) {
     return null
@@ -326,9 +268,6 @@ function normalizeRegion(candidate?: string | null): RegionCode | null {
   return REGION_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
-/**
- * Infers a single supported theme from parquet content when the file is internally consistent.
- */
 function inferThemeFromParquet(inspection: ParquetInspection) {
   const distinctThemes = inspection.distinctThemeValues
     .map(value => normalizeTheme(value))
@@ -343,9 +282,6 @@ function inferThemeFromParquet(inspection: ParquetInspection) {
   return uniqueThemes[0]
 }
 
-/**
- * Infers a single supported type from parquet content when the file is internally consistent.
- */
 function inferTypeFromParquet(inspection: ParquetInspection) {
   const distinctTypes = inspection.distinctTypeValues
     .map(value => normalizeType(value))
@@ -360,10 +296,6 @@ function inferTypeFromParquet(inspection: ParquetInspection) {
   return uniqueTypes[0]
 }
 
-/**
- * Infers a single supported region from parquet content when country/region
- * columns agree.
- */
 function inferRegionFromParquet(inspection: ParquetInspection) {
   const countryRegions = inspection.distinctCountryValues
     .map(value => normalizeRegion(value))
@@ -380,9 +312,6 @@ function inferRegionFromParquet(inspection: ParquetInspection) {
   return uniqueRegions[0]
 }
 
-/**
- * Normalizes a month flag to the canonical `YYYY-MM` form.
- */
 function normalizeSnapshotMonth(candidate?: string | null) {
   if (!candidate) {
     return null
@@ -398,9 +327,6 @@ function normalizeSnapshotMonth(candidate?: string | null) {
   return `${match[1]}-${match[2]}`
 }
 
-/**
- * Produces a stable schema fingerprint used for schema drift checks.
- */
 export function createSchemaFingerprint(inspection: ParquetInspection) {
   return JSON.stringify(
     inspection.schema.map(field => ({
@@ -411,9 +337,6 @@ export function createSchemaFingerprint(inspection: ParquetInspection) {
   )
 }
 
-/**
- * Rejects uploads that are not strictly newer than the latest registered dataset.
- */
 function ensureChronologicalUpload(
   latestDataset: DatasetRecord | null,
   snapshotMonth: string,
@@ -435,29 +358,31 @@ function ensureChronologicalUpload(
   }
 }
 
-/**
- * Compares the incoming parquet schema with the latest staged dataset for the
- * same region/type.
- */
 async function ensureSchemaCompatible(
   latestDataset: DatasetRecord | null,
   nextInspection: ParquetInspection,
+  resolveSchemaFingerprint?: RegisterUploadOptions['resolveSchemaFingerprint'],
 ) {
   if (!latestDataset) {
     return
   }
 
-  if (!latestDataset.rawObjectKey || !existsSync(latestDataset.rawObjectKey)) {
+  const previousFingerprint = resolveSchemaFingerprint
+    ? await resolveSchemaFingerprint(
+        latestDataset.rawObjectKey,
+        latestDataset.datasetId,
+      )
+    : null
+
+  if (!previousFingerprint) {
     throw new Error(
       [
         `Cannot validate schema drift against ${latestDataset.datasetId}.`,
-        `Expected staged raw parquet at ${latestDataset.rawObjectKey}.`,
+        `Expected schema metadata for ${latestDataset.rawObjectKey}.`,
       ].join(' '),
     )
   }
 
-  const previousInspection = await inspectParquet(latestDataset.rawObjectKey)
-  const previousFingerprint = createSchemaFingerprint(previousInspection)
   const nextFingerprint = createSchemaFingerprint(nextInspection)
 
   if (previousFingerprint !== nextFingerprint) {
@@ -556,7 +481,7 @@ function resolveUploadPlan(
       source,
       sourceVersion,
       filePath: options.filePath,
-      fileName: basename(options.filePath),
+      fileName: fileNameFromPath(options.filePath),
       rowCount: resolvedInspection.rowCount,
       schemaFingerprint: createSchemaFingerprint(resolvedInspection),
       inferredFrom: {
@@ -571,29 +496,21 @@ function resolveUploadPlan(
   }
 }
 
-/**
- * Prepares an upload manifest from the local parquet alone. This is the CLI
- * preflight path and intentionally does not talk to Harbour's database.
- */
 export async function prepareUpload(
   options: RegisterUploadOptions,
   inspection?: ParquetInspection,
 ): Promise<PreparedUploadResult> {
-  const resolvedInspection = inspection ?? (await inspectParquet(options.filePath))
+  const resolvedInspection = getRequiredInspection(options, inspection)
 
   return resolveUploadPlan(options, resolvedInspection, null)
 }
 
-/**
- * Resolves upload metadata from flags, file naming conventions, and parquet
- * content, then validates chronology and schema compatibility.
- */
 export async function planUpload(
   db: HarbourReadableDb,
   options: RegisterUploadOptions,
   inspection?: ParquetInspection,
 ) {
-  const resolvedInspection = inspection ?? (await inspectParquet(options.filePath))
+  const resolvedInspection = getRequiredInspection(options, inspection)
   const preparedUpload = resolveUploadPlan(options, resolvedInspection, null)
   const {
     plan: { datasetId, regionCode, snapshotMonth, type },
@@ -605,72 +522,53 @@ export async function planUpload(
   )
 
   ensureChronologicalUpload(latestDataset, snapshotMonth, datasetId)
-  await ensureSchemaCompatible(latestDataset, resolvedInspection)
+  await ensureSchemaCompatible(
+    latestDataset,
+    resolvedInspection,
+    options.resolveSchemaFingerprint,
+  )
 
   return resolveUploadPlan(options, resolvedInspection, supersedesDatasetId)
 }
 
-/**
- * Copies the raw parquet into the local staging area and writes upload metadata.
- */
-function stageRawFile(
-  rawRoot: string,
-  plan: UploadPlan,
-  inspection: ParquetInspection,
-) {
-  const targetDir = join(
-    rawRoot,
+export function createRawObjectKey(plan: UploadPlan) {
+  return [
+    'raw',
     plan.regionCode,
     plan.theme,
     plan.type,
     plan.snapshotMonth,
-  )
-  const stagedFilePath = join(targetDir, plan.fileName)
-  const metadataPath = join(targetDir, 'upload.json')
-
-  mkdirSync(targetDir, { recursive: true })
-  copyFileSync(plan.filePath, stagedFilePath)
-  writeFileSync(
-    metadataPath,
-    JSON.stringify(
-      {
-        datasetId: plan.datasetId,
-        regionCode: plan.regionCode,
-        snapshotMonth: plan.snapshotMonth,
-        theme: plan.theme,
-        type: plan.type,
-        source: plan.source,
-        sourceVersion: plan.sourceVersion,
-        rowCount: inspection.rowCount,
-        schema: inspection.schema,
-      },
-      null,
-      2,
-    ),
-  )
-
-  return { stagedFilePath, metadataPath }
+    plan.sourceVersion,
+    plan.fileName,
+  ].join('/')
 }
 
-/**
- * Registers a parquet upload against the provided Harbour database and records
- * the dataset plus ingest run history. Raw parquet staging remains local-file
- * based for now and is intended for CLI-driven ingestion.
- */
+function getRequiredInspection(
+  options: RegisterUploadOptions,
+  inspection?: ParquetInspection,
+) {
+  const resolvedInspection = inspection ?? options.inspection
+
+  if (!resolvedInspection) {
+    throw new Error(
+      'A parquet inspection is required in Worker-safe upload flows. Use the CLI-local upload service for file-based inspection.',
+    )
+  }
+
+  return resolvedInspection
+}
+
 export async function registerUpload(
   db: HarbourReadableDb & HarbourWritableDb,
   options: RegisterUploadOptions,
 ): Promise<RegisterUploadResult> {
-  if (!existsSync(options.filePath)) {
-    throw new Error(`File not found: ${options.filePath}`)
-  }
-
   const { plan, inspection } = await planUpload(db, options)
 
   if (options.dryRun) {
     return {
       plan,
       inspection,
+      rawObjectKey: null,
       stagedFilePath: null,
       metadataPath: null,
     }
@@ -682,11 +580,19 @@ export async function registerUpload(
     throw new Error(`Dataset already exists: ${plan.datasetId}`)
   }
 
-  const rawRoot = options.localRawRoot ?? DEFAULT_RAW_ROOT
-  const { stagedFilePath, metadataPath } = stageRawFile(rawRoot, plan, inspection)
+  const stagedFilePath = null
+  const metadataPath = options.metadataPath ?? null
+  const rawObjectKey = options.rawObjectKey ?? null
+
+  if (!rawObjectKey) {
+    throw new Error(
+      'A rawObjectKey is required for Worker-safe registration. Use the CLI-local upload service for filesystem staging.',
+    )
+  }
+
   const now = new Date().toISOString()
 
-  await insertDataset(db, plan, stagedFilePath, now)
+  await insertDataset(db, plan, rawObjectKey, now)
 
   await insertIngestRun(
     db,
@@ -710,7 +616,7 @@ export async function registerUpload(
     'stageRawParquet',
     'completed',
     JSON.stringify({
-      rawObjectKey: stagedFilePath,
+      rawObjectKey,
       rowCount: inspection.rowCount,
       schemaFieldCount: inspection.schema.length,
     }),
@@ -721,6 +627,7 @@ export async function registerUpload(
   return {
     plan,
     inspection,
+    rawObjectKey,
     stagedFilePath,
     metadataPath,
   }

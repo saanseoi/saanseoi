@@ -6,17 +6,19 @@ import { join, resolve } from 'node:path'
 import { Database } from 'bun:sqlite'
 
 import {
+  createSchemaFingerprint,
   inferRegionFromPath,
   inferSnapshotMonthFromPath,
+  inferThemeFromFilename,
+  inferThemeFromPath,
   inferTypeFromFilename,
   inferTypeFromPath,
-  inferThemeFromPath,
-  inferThemeFromFilename,
-  planUpload,
-  registerUpload,
 } from './upload'
-import { createLocalHarbourDb } from '../db/local'
+import { planUpload, registerUpload } from './upload-local'
+import { createLocalHarbourDb } from '../../testing/local-db'
+
 import { datasets } from '@repo/db/schema'
+
 const migrationSql = readFileSync(
   resolve(
     import.meta.dir,
@@ -171,28 +173,82 @@ describe('upload', () => {
     expect(planned.plan.type).toBe('division')
   })
 
-  test('plans uploads from overture-style path metadata without explicit flags', async () => {
+  test('registers an already-uploaded remote object without local staging', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
-    const overtureFixturePath = createOvertureStyleFixture(tempDir)
-    const db = initDb(dbPath)
-    const harbourDb = createLocalHarbourDb(db)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
 
-    const planned = await planUpload(harbourDb, {
-      filePath: overtureFixturePath,
+    const result = await registerUpload(db, {
+      filePath: fixtureFile,
+      snapshotMonth: '2026-05',
+      inspection: await planUpload(db, {
+        filePath: fixtureFile,
+        snapshotMonth: '2026-05',
+      }).then(planned => planned.inspection),
+      rawObjectKey: 'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
     })
 
-    db.close()
+    const dataset = sqlite
+      .query('SELECT datasetId, rawObjectKey FROM datasets WHERE datasetId = ?')
+      .get('hk-2026-05-division') as {
+      datasetId: string
+      rawObjectKey: string
+    } | null
 
-    expect(planned.plan.datasetId).toBe('hk-2025-09-division')
-    expect(planned.plan.snapshotMonth).toBe('2025-09')
-    expect(planned.plan.regionCode).toBe('hk')
-    expect(planned.plan.theme).toBe('divisions')
-    expect(planned.plan.type).toBe('division')
-    expect(planned.plan.sourceVersion).toBe('2025-09-24.0')
-    expect(planned.plan.inferredFrom.snapshotMonth).toBe('path')
-    expect(planned.plan.inferredFrom.regionCode).toBe('path')
-    expect(planned.plan.inferredFrom.theme).toBe('path')
-    expect(planned.plan.inferredFrom.type).toBe('path')
+    sqlite.close()
+
+    expect(result.rawObjectKey).toBe(
+      'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
+    )
+    expect(result.stagedFilePath).toBeNull()
+    expect(result.metadataPath).toBeNull()
+    expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
+  })
+
+  test('uses injected schema metadata for remote chronology checks', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const inspection = await planUpload(db, {
+      filePath: fixtureFile,
+      snapshotMonth: '2026-05',
+    }).then(planned => planned.inspection)
+
+    db.insert(datasets)
+      .values({
+        datasetId: 'hk-2026-05-division',
+        regionCode: 'hk',
+        snapshotMonth: '2026-05',
+        theme: 'divisions',
+        type: 'division',
+        source: 'overture',
+        sourceVersion: '2026-05',
+        rawObjectKey: 'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
+        status: 'active',
+        isActive: true,
+        supersedesDatasetId: null,
+        revokedAt: null,
+        revocationReason: null,
+        ingestedAt: '2026-06-02T00:00:00.000Z',
+      })
+      .run()
+
+    await expect(
+      planUpload(db, {
+        filePath: fixtureFile,
+        snapshotMonth: '2026-06',
+        inspection,
+        resolveSchemaFingerprint: async () => createSchemaFingerprint(inspection),
+      }),
+    ).resolves.toMatchObject({
+      plan: {
+        datasetId: 'hk-2026-06-division',
+        supersedesDatasetId: 'hk-2026-05-division',
+      },
+    })
+
+    sqlite.close()
   })
 })

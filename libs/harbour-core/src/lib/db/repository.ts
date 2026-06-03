@@ -11,6 +11,7 @@ export type HarbourReadableDb = {
 export type HarbourWritableDb = {
   insert: (...args: any[]) => any
 }
+
 type LatestDatasetLookup = {
   latestDataset: DatasetRecord | null
   supersedesDatasetId: string | null
