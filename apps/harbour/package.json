@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@repo/db": "workspace:*",
-    "@repo/harbour-core": "workspace:*",
+    "@repo/core": "workspace:*",
     "hono": "^4.10.1"
   }
 }
