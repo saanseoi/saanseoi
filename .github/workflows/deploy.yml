@@ -35,7 +35,7 @@ jobs:
     environment: preview
     steps:
       - name: 'GIT :: Checkout'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 'CHECK :: Changed Workers'
         id: changed-workers
@@ -64,7 +64,7 @@ jobs:
           bun-version: '1.3.14'
 
       - name: 'CACHE :: Restore Dependencies'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache-deps
         with:
           path: node_modules
@@ -117,7 +117,7 @@ jobs:
     environment: production
     steps:
       - name: 'GIT :: Checkout'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 'CHECK :: Changed Workers'
         id: changed-workers
@@ -146,7 +146,7 @@ jobs:
           bun-version: '1.3.14'
 
       - name: 'CACHE :: Restore Dependencies'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: cache-deps
         with:
           path: node_modules
