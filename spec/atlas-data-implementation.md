@@ -477,8 +477,8 @@ Main branch:
 
 ### Current remote migration commands
 
-- preview: `wrangler d1 migrations apply ss-db-preview --env preview`
-- production: `wrangler d1 migrations apply ss-db-prod --env production`
+- preview: `wrangler d1 migrations apply ss-db-preview --remote --env preview`
+- production: `wrangler d1 migrations apply ss-db-prod --remote --env production`
 
 ## What is already done
 
