@@ -6,9 +6,9 @@ import {
   explainDispatch,
   formatField,
   formatSummary,
-} from './libs/display.ts'
-import { buildRegisterOptions, parseArgs, resolveUploadTarget } from './libs/options.ts'
-import { dispatchUpload, resolveHarbourApiUrl } from './libs/upload.ts'
+} from './lib/display.ts'
+import { buildRegisterOptions, parseArgs, resolveUploadTarget } from './lib/options.ts'
+import { dispatchUpload, resolveHarbourApiUrl } from './lib/upload.ts'
 
 function printUsage() {
   console.log(`Usage:
