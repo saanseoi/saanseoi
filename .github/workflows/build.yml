@@ -9,8 +9,18 @@ on:
 
 jobs:
   build:
-    name: 'BUILD :: Places API'
+    name: 'BUILD :: ${{ matrix.app.name }}'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - name: 'Atlas API'
+            path: 'apps/atlas-api'
+            cache_key: 'atlas-api'
+          - name: 'Harbour API'
+            path: 'apps/harbour'
+            cache_key: 'harbour'
     steps:
       - name: 'GIT :: Checkout'
         uses: actions/checkout@v4
@@ -37,13 +47,13 @@ jobs:
         with:
           path: |
             .turbo
-            apps/atlas-api/dist
-          key: ${{ runner.os }}-atlas-api-build-${{ inputs.environment }}-${{ hashFiles('bun.lock', 'turbo.json', 'package.json', 'apps/atlas-api/**', 'libs/**') }}
+            ${{ matrix.app.path }}/dist
+          key: ${{ runner.os }}-${{ matrix.app.cache_key }}-build-${{ inputs.environment }}-${{ hashFiles('bun.lock', 'turbo.json', 'package.json', 'apps/**', 'libs/**') }}
           restore-keys: |
-            ${{ runner.os }}-atlas-api-build-${{ inputs.environment }}-
-            ${{ runner.os }}-atlas-api-build-
+            ${{ runner.os }}-${{ matrix.app.cache_key }}-build-${{ inputs.environment }}-
+            ${{ runner.os }}-${{ matrix.app.cache_key }}-build-
 
       - name: 'BUILD :: Worker Bundle'
         if: steps.cache-build.outputs.cache-hit != 'true'
         run: bun run build:${{ inputs.environment }}
-        working-directory: apps/atlas-api
+        working-directory: ${{ matrix.app.path }}

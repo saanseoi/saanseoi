@@ -8,9 +8,13 @@ This project is a monorepo managed by [Turborepo](https://turbo.build/).
 ```bash
 # Applications
 /apps
-    /atlas-api # HK Atlas (Places API)
+    /atlas-api # Atlas (Places API)
+    /harbour # Harbour (Ingestion)
+    /harbour-cli # Harbour (Upload Tool)
 # Shared Libraries
 /libs
+    /core # Types and logic
+    /db # Schema and config
     /i18n # ParaglideJs
 ```
 

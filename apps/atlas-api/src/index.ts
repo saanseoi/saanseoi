@@ -13,7 +13,7 @@ import {
 } from './db/repositories'
 
 type AppEnv = {
-  Bindings: CloudflareBindings
+  Bindings: Env
   Variables: {
     db: ReturnType<typeof createDb>
   }
