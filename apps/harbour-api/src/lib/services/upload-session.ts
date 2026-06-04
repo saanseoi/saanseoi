@@ -12,7 +12,6 @@ import {
   getDatasetRecordById,
   type HarbourReadableDb,
   type HarbourWritableDb,
-  insertIngestRun,
 } from '@repo/core/db/repository'
 import type {
   DatasetProcessingMessage,
@@ -39,7 +38,11 @@ type HarbourObjectBody = {
 export type HarbourObjectBucket = {
   head(key: string): Promise<HarbourObjectMetadata | null>
   get(key: string): Promise<HarbourObjectBody | null>
-  put(key: string, value: Blob | ArrayBuffer | null, options?: HarbourPutOptions): Promise<unknown>
+  put(
+    key: string,
+    value: Blob | ArrayBuffer | null,
+    options?: HarbourPutOptions,
+  ): Promise<unknown>
 }
 
 export type SignUploadRequest = {
@@ -201,21 +204,6 @@ export async function handleFinalizeUploadRequest(
   }
 
   await queue.send(processingMessage)
-
-  const now = new Date().toISOString()
-  await insertIngestRun(
-    db,
-    finalized.plan.datasetId,
-    'processDataset',
-    'queued',
-    JSON.stringify({
-      queue: 'DATASET_QUEUE',
-      rawObjectKey: finalized.rawObjectKey,
-      type: finalized.plan.type,
-    }),
-    now,
-    now,
-  )
 
   return finalized
 }

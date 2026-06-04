@@ -2,7 +2,11 @@ import { createRawObjectKey, planUpload, registerUpload } from '@repo/core/uploa
 import { inspectParquet } from '@repo/core/parquet-inspector'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
-import type { RegisterUploadResult, SchemaFingerprintResolver } from '@repo/core'
+import type {
+  DatasetProcessingMessage,
+  RegisterUploadResult,
+  SchemaFingerprintResolver,
+} from '@repo/core'
 
 type UploadFormFields = {
   filePath: string
@@ -29,6 +33,10 @@ export type HarbourObjectBucket = {
   head(key: string): Promise<HarbourObjectMetadata | null>
   put(key: string, value: Blob | null, options?: HarbourPutOptions): Promise<unknown>
   delete(key: string): Promise<void>
+}
+
+export type DatasetProcessingQueue = {
+  send(message: DatasetProcessingMessage): Promise<unknown>
 }
 
 function getOptionalText(
@@ -77,6 +85,7 @@ function createR2SchemaFingerprintResolver(
 export async function handleUploadRequest(
   db: HarbourReadableDb & HarbourWritableDb,
   bucket: HarbourObjectBucket,
+  queue: DatasetProcessingQueue,
   formData: FormData,
 ): Promise<RegisterUploadResult> {
   const file = formData.get('file')
@@ -121,12 +130,31 @@ export async function handleUploadRequest(
   })
 
   try {
-    return await registerUpload(db, {
+    const registered = await registerUpload(db, {
       ...uploadFields,
       inspection,
       rawObjectKey,
       resolveSchemaFingerprint,
     })
+
+    if (!registered.rawObjectKey) {
+      throw new Error('registerUpload returned no rawObjectKey for a staged upload.')
+    }
+
+    const processingMessage: DatasetProcessingMessage = {
+      datasetId: registered.plan.datasetId,
+      rawObjectKey: registered.rawObjectKey,
+      regionCode: registered.plan.regionCode,
+      snapshotMonth: registered.plan.snapshotMonth,
+      source: registered.plan.source,
+      sourceVersion: registered.plan.sourceVersion,
+      theme: registered.plan.theme,
+      type: registered.plan.type,
+    }
+
+    await queue.send(processingMessage)
+
+    return registered
   } catch (error) {
     await bucket.delete(rawObjectKey)
     throw error
