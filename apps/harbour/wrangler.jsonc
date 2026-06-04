@@ -2,13 +2,10 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "ss-harbour-production",
   "main": "src/index.ts",
-  "compatibility_date": "2025-10-21",
+  "compatibility_date": "2026-05-01",
+  "compatibility_flags": ["nodejs_compat"],
   "secrets": {
-    "required": [
-      "R2_ACCOUNT_ID",
-      "R2_RAW_ACCESS_KEY_ID",
-      "R2_RAW_SECRET_ACCESS_KEY"
-    ]
+    "required": ["R2_ACCOUNT_ID", "R2_RAW_ACCESS_KEY_ID", "R2_RAW_SECRET_ACCESS_KEY"]
   },
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",

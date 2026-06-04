@@ -2,7 +2,8 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "ss-atlas-production",
   "main": "src/index.ts",
-  "compatibility_date": "2025-10-21",
+  "compatibility_date": "2026-05-01",
+  "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": "public" },
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
@@ -49,9 +50,6 @@
       ]
     }
   }
-  // "compatibility_flags": [
-  //   "nodejs_compat"
-  // ],
   // "vars": {
   //   "MY_VAR": "my-variable"
   // },
