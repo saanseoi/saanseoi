@@ -9,6 +9,7 @@ export type HarbourReadableDb = {
 }
 
 export type HarbourWritableDb = {
+  delete: (...args: any[]) => any
   insert: (...args: any[]) => any
   update: (...args: any[]) => any
 }
@@ -128,6 +129,35 @@ export async function updateDatasetStatus(
   await db.update(datasets).set({ status }).where(eq(datasets.datasetId, datasetId)).run()
 }
 
+export async function activateDataset(db: HarbourWritableDb, datasetId: string) {
+  await db
+    .update(datasets)
+    .set({
+      isActive: true,
+      status: 'active',
+    })
+    .where(eq(datasets.datasetId, datasetId))
+    .run()
+}
+
+export async function revokeDataset(
+  db: HarbourWritableDb,
+  datasetId: string,
+  revocationReason: string,
+  revokedAt: string,
+) {
+  await db
+    .update(datasets)
+    .set({
+      isActive: false,
+      revokedAt,
+      revocationReason,
+      status: 'revoked',
+    })
+    .where(eq(datasets.datasetId, datasetId))
+    .run()
+}
+
 /**
  * Records an ingest run event for the dataset registration workflow.
  */
@@ -139,6 +169,7 @@ export async function insertIngestRun(
   statsJson: string | null,
   startedAt: string,
   finishedAt: string | null,
+  errorJson: string | null = null,
 ) {
   await db
     .insert(ingestRuns)
@@ -148,7 +179,7 @@ export async function insertIngestRun(
       phase,
       status,
       statsJson,
-      errorJson: null,
+      errorJson,
       startedAt,
       finishedAt,
     })
