@@ -12,8 +12,14 @@ import {
   getDatasetRecordById,
   type HarbourReadableDb,
   type HarbourWritableDb,
+  insertIngestRun,
 } from '@repo/core/db/repository'
-import type { ParquetInspection, RegisterUploadResult, SchemaFingerprintResolver } from '@repo/core'
+import type {
+  DatasetProcessingMessage,
+  ParquetInspection,
+  RegisterUploadResult,
+  SchemaFingerprintResolver,
+} from '@repo/core'
 
 type HarbourObjectMetadata = {
   customMetadata?: Record<string, string>
@@ -63,6 +69,10 @@ export type UploadSigningEnv = {
   R2_RAW_SECRET_ACCESS_KEY: string
 }
 
+export type DatasetProcessingQueue = {
+  send(message: DatasetProcessingMessage): Promise<unknown>
+}
+
 const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
 
 export async function handleSignUploadRequest(
@@ -110,6 +120,7 @@ export async function handleSignUploadRequest(
 export async function handleFinalizeUploadRequest(
   db: HarbourReadableDb & HarbourWritableDb,
   bucket: HarbourObjectBucket,
+  queue: DatasetProcessingQueue,
   request: FinalizeUploadRequest,
 ): Promise<RegisterUploadResult> {
   const dataset = await getDatasetRecordById(db, request.datasetId)
@@ -164,7 +175,7 @@ export async function handleFinalizeUploadRequest(
 
   await writeFinalObjectMetadata(bucket, dataset.rawObjectKey, objectBuffer, planned)
 
-  return finalizeUpload(db, {
+  const finalized = await finalizeUpload(db, {
     filePath: fileName,
     originalFileName: dataset.originalFileName,
     regionCode: dataset.regionCode,
@@ -177,6 +188,36 @@ export async function handleFinalizeUploadRequest(
     rawObjectKey: dataset.rawObjectKey,
     resolveSchemaFingerprint,
   })
+
+  const processingMessage: DatasetProcessingMessage = {
+    datasetId: finalized.plan.datasetId,
+    rawObjectKey: finalized.rawObjectKey,
+    regionCode: finalized.plan.regionCode,
+    snapshotMonth: finalized.plan.snapshotMonth,
+    source: finalized.plan.source,
+    sourceVersion: finalized.plan.sourceVersion,
+    theme: finalized.plan.theme,
+    type: finalized.plan.type,
+  }
+
+  await queue.send(processingMessage)
+
+  const now = new Date().toISOString()
+  await insertIngestRun(
+    db,
+    finalized.plan.datasetId,
+    'processDataset',
+    'queued',
+    JSON.stringify({
+      queue: 'DATASET_QUEUE',
+      rawObjectKey: finalized.rawObjectKey,
+      type: finalized.plan.type,
+    }),
+    now,
+    now,
+  )
+
+  return finalized
 }
 
 function createR2SchemaFingerprintResolver(

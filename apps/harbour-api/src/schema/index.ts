@@ -143,3 +143,30 @@ export const FinalizeUploadRequestSchema = z
   .object({})
   .loose()
   .openapi('HarbourFinalizeUploadRequest')
+
+export const ControlStageRequestSchema = z
+  .object({
+    datasetId: DatasetIdSchema,
+    phase: z.string().openapi({
+      examples: ['processDataset', 'extractDivisions', 'extractDivisionsI18n'],
+    }),
+    stats: z.record(z.string(), z.unknown()).optional(),
+    error: z.string().optional(),
+  })
+  .openapi('HarbourControlStageRequest')
+
+export const PublishDatasetRequestSchema = z
+  .object({
+    datasetId: DatasetIdSchema,
+  })
+  .openapi('HarbourPublishDatasetRequest')
+
+export const ControlResponseSchema = z
+  .object({
+    datasetId: DatasetIdSchema,
+    phase: z.string().nullable().openapi({
+      examples: ['extractDivisions', null],
+    }),
+    status: StatusSchema,
+  })
+  .openapi('HarbourControlResponse')

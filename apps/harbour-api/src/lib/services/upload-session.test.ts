@@ -7,7 +7,7 @@ import { Database } from 'bun:sqlite'
 
 import type { ParquetInspection } from '@repo/core'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
-import type { UploadSigningEnv } from './upload-session'
+import type { DatasetProcessingQueue, UploadSigningEnv } from './upload-session'
 
 const migrationSql = await Bun.file(
   resolve(
@@ -117,6 +117,12 @@ const signingEnv: UploadSigningEnv = {
   R2_RAW_BUCKET_NAME: 'ss-raw-preview',
   R2_RAW_SECRET_ACCESS_KEY: 'test-secret-key',
 }
+const queuedMessages: Array<Record<string, string>> = []
+const queue: DatasetProcessingQueue = {
+  async send(message) {
+    queuedMessages.push(message as Record<string, string>)
+  },
+}
 
 function toArrayBuffer(bytes: Uint8Array) {
   return bytes.slice().buffer
@@ -124,6 +130,7 @@ function toArrayBuffer(bytes: Uint8Array) {
 
 afterEach(() => {
   inspectParquetMock.mockClear()
+  queuedMessages.length = 0
 
   while (tempDirs.length > 0) {
     const dir = tempDirs.pop()
@@ -160,7 +167,7 @@ describe('upload session flow', () => {
 
     await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
 
-    const finalizeResult = await handleFinalizeUploadRequest(db, bucket, {
+    const finalizeResult = await handleFinalizeUploadRequest(db, bucket, queue, {
       datasetId: signResult.datasetId,
     })
     const dataset = sqlite
@@ -181,6 +188,18 @@ describe('upload session flow', () => {
     expect(dataset?.status).toBe('staged')
     expect(dataset?.rawObjectKey).toBe(signResult.rawObjectKey)
     expect(dataset?.originalFileName).toBe('Hong Kong division.parquet')
+    expect(queuedMessages).toEqual([
+      {
+        datasetId: 'overture-hk-2026-05-24.0-division',
+        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        regionCode: 'hk',
+        snapshotMonth: '2026-05',
+        source: 'overture',
+        sourceVersion: '2026-05-24.0',
+        theme: 'divisions',
+        type: 'division',
+      },
+    ])
     expect(bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.datasetId).toBe(
       'overture-hk-2026-05-24.0-division',
     )
