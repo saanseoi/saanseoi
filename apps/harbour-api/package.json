@@ -1,5 +1,5 @@
 {
-  "name": "harbour",
+  "name": "harbour-api",
   "type": "module",
   "scripts": {
     "dev": "bash ./scripts/dev.sh",

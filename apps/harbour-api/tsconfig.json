@@ -21,7 +21,7 @@
     "noPropertyAccessFromIndexSignature": false,
     "rootDir": "../../",
     "outDir": "dist",
-    "types": ["bun-types", "@cloudflare/workers-types", "vitest/globals"],
+    "types": ["bun-types", "vitest/globals"],
     "paths": {
       "@/*": ["./src/*"],
       "@repo/core": ["../../libs/core/src/index.ts"],
