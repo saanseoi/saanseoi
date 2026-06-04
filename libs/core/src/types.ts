@@ -91,3 +91,14 @@ export type RegisterUploadResult = {
   inspection: ParquetInspection
   rawObjectKey: string | null
 }
+
+export type DatasetProcessingMessage = {
+  datasetId: string
+  rawObjectKey: string
+  regionCode: RegionCode
+  snapshotMonth: string
+  source: string
+  sourceVersion: string
+  theme: SupportedTheme
+  type: SupportedType
+}
