@@ -3,13 +3,11 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
 wrangler_config="$repo_root/apps/atlas-api/wrangler.jsonc"
-persist_dir="$repo_root/.local/d1/dev"
+sql_file="$(cd "$(dirname "$0")" && pwd)/sql/drop-preview-db.sql"
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 
-mkdir -p "$persist_dir"
-
-bash "$script_dir/run-d1-migrations.sh" ss-db-preview \
+bash "$script_dir/run-d1-execute.sh" ss-db-preview \
   --config "$wrangler_config" \
   --env preview \
-  --local \
-  --persist-to "$persist_dir"
+  --remote \
+  --file "$sql_file"
