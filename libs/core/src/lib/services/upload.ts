@@ -2,7 +2,7 @@ import {
   type HarbourReadableDb,
   type HarbourWritableDb,
   getDatasetById,
-  getLatestDatasetForTypeRegion,
+  getLatestDatasetForRegionSourceType,
   insertDataset,
   insertIngestRun,
   updateDatasetStatus,
@@ -562,7 +562,7 @@ export async function planUpload(
   const {
     plan: { datasetId, regionCode, source, sourceVersion, type },
   } = preparedUpload
-  const { latestDataset, supersedesDatasetId } = await getLatestDatasetForTypeRegion(
+  const { latestDataset, supersedesDatasetId } = await getLatestDatasetForRegionSourceType(
     db,
     regionCode,
     source,

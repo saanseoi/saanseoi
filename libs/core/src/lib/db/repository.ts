@@ -21,12 +21,13 @@ type LatestDatasetLookup = {
 const NON_FINAL_DATASET_STATUSES = ['failed', 'uploading']
 
 /**
- * Returns the most recent non-failed dataset for a region/type pair and the
- * active dataset id that a new upload should supersede, if any.
+ * Returns the most recent non-failed dataset for a region/source/type tuple and
+ * the active dataset id that a new upload should supersede, if any.
  */
-export async function getLatestDatasetForTypeRegion(
+export async function getLatestDatasetForRegionSourceType(
   db: HarbourReadableDb,
   regionCode: RegionCode,
+  source: string,
   type: SupportedType,
 ): Promise<LatestDatasetLookup> {
   const latestDataset =
@@ -36,11 +37,12 @@ export async function getLatestDatasetForTypeRegion(
       .where(
         and(
           eq(datasets.regionCode, regionCode),
+          eq(datasets.source, source),
           eq(datasets.type, type),
           notInArray(datasets.status, NON_FINAL_DATASET_STATUSES),
         ),
       )
-      .orderBy(desc(datasets.snapshotMonth), desc(datasets.ingestedAt))
+      .orderBy(desc(datasets.sourceVersion), desc(datasets.ingestedAt))
       .limit(1)
       .get()) as DatasetRecord | undefined) ?? null
 
@@ -107,6 +109,7 @@ export async function insertDataset(
       source: plan.source,
       sourceVersion: plan.sourceVersion,
       rawObjectKey,
+      originalFileName: plan.originalFileName,
       status,
       isActive: false,
       supersedesDatasetId: plan.supersedesDatasetId,
