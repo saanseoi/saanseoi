@@ -8,7 +8,7 @@ import * as schema from '@repo/db/schema'
 
 const DEFAULT_LOCAL_D1_GLOB = resolve(
   dirname(import.meta.dir),
-  '../../../../.local/d1/dev/v3/d1/miniflare-D1DatabaseObject/*.sqlite',
+  '../../../../apps/harbour-api/.wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite',
 )
 
 export function createLocalHarbourDb(sqlite: SQLiteDatabase) {

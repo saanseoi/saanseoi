@@ -121,7 +121,7 @@ export const uploadRoute = defineOpenAPIRoute<typeof uploadRouteConfig, AppEnv>(
     try {
       const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
       const formData = await c.req.formData()
-      const result = await handleUploadRequest(db, c.env.R2_RAW, formData)
+      const result = await handleUploadRequest(db, c.env.R2_RAW, c.env.DATASET_QUEUE, formData)
 
       return c.json(
         {
