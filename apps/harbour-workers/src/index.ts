@@ -1,0 +1,48 @@
+import { createDb } from '@repo/db'
+import type { DatasetProcessingMessage } from '@repo/core'
+
+import { createHarbourClient } from './lib/harbourClient'
+import { processDatasetMessage } from './lib/services/harbour-worker'
+
+type Env = {
+  DB: D1Database
+  HARBOUR_API_KEY: string
+  HARBOUR_BASE_URL: string
+  R2_RAW: R2Bucket
+}
+
+type ProcessDatasetMessageHandler = typeof processDatasetMessage
+
+export function createQueueHandler(
+  processDataset: ProcessDatasetMessageHandler = processDatasetMessage,
+) {
+  return async (batch: MessageBatch<DatasetProcessingMessage>, env: Env) => {
+    const db = createDb(env.DB)
+    const harbourClient = createHarbourClient({
+      apiKey: env.HARBOUR_API_KEY,
+      baseUrl: env.HARBOUR_BASE_URL,
+    })
+
+    for (const message of batch.messages) {
+      try {
+        await processDataset(harbourClient, db, env.R2_RAW, message.body)
+        message.ack()
+      } catch (error) {
+        console.error('harbour-workers dataset processing failed', {
+          datasetId: message.body.datasetId,
+          cause:
+            error instanceof Error && error.cause instanceof Error
+              ? error.cause.message
+              : undefined,
+          error: error instanceof Error ? error.message : String(error),
+          attempts: message.attempts,
+        })
+        message.retry()
+      }
+    }
+  }
+}
+
+export default {
+  queue: createQueueHandler(),
+}
