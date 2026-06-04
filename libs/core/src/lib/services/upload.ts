@@ -640,13 +640,7 @@ export async function registerUpload(
     plan.datasetId,
     'registerDataset',
     'completed',
-    JSON.stringify({
-      datasetId: plan.datasetId,
-      regionCode: plan.regionCode,
-      sourceVersion: plan.sourceVersion,
-      theme: plan.theme,
-      type: plan.type,
-    }),
+    null,
     now,
     now,
   )
@@ -654,7 +648,7 @@ export async function registerUpload(
   await insertIngestRun(
     db,
     plan.datasetId,
-    'stageRawParquet',
+    'stageDataset',
     'completed',
     JSON.stringify({
       rawObjectKey,
@@ -721,7 +715,7 @@ export async function finalizeUpload(
   await insertIngestRun(
     db,
     plan.datasetId,
-    'stageRawParquet',
+    'stageDataset',
     'completed',
     JSON.stringify({
       rawObjectKey,
