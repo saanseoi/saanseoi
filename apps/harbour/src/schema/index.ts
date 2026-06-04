@@ -21,32 +21,45 @@ export const HealthResponseSchema = z
   })
   .openapi('HarbourHealthResponse')
 
+const DatasetIdSchema = z.string().openapi({
+  description:
+    'Unique identifier for the dataset, consisting of the source, region code, sourceVersion, and type',
+  examples: ['overture-hk-2025-09-24.0-division', 'hkgov-hk-2026-01-20.0-address'],
+})
+
+const RawObjectKeySchema = z.string().nullable().openapi({
+  description:
+    'R2 object key for the uploaded file, constructed as `{region}/{source}/{sourceVersion}/{type}.{extension}`',
+  examples: ['hk/overture/2025-09-24.0/division.parquet', 'hk/hkgov/2026-01-20.0/address.json'],
+})
+
+const StatusSchema = z.string().openapi({
+  description: 'Status of the upload operation',
+  examples: ['completed', 'processing', 'failed'],
+})
+
+const SourceSchema = z.string().openapi({
+  description: 'Upstream data source used in the dataset identity',
+  examples: ['overture', 'hkgov'],
+})
+
 export const UploadResponseSchema = z
   .object({
-    datasetId: z.string().openapi({
-      description:
-        'Unique identifier for the dataset, consisting of the source, region code, sourceVersion, and (theme) type',
-      examples: ['overture-hk-2025-09-24.0-division','hkgov-hk-2026-01-20.0-address'],
-    }),
-    rawObjectKey: z.string().nullable().openapi({
-      description: 'R2 object key for the uploaded file, constructed as `{region}/{source}/{sourceVersion}/{themeType}.{dataType}`',
-      examples: ['hk/overture/2025-09-24.0/division.parquet', 'hk/hkgov/2026-01-20.0/address.json'],
-    }),
+    datasetId: DatasetIdSchema,
+    rawObjectKey: RawObjectKeySchema,
     rowCount: z.number().openapi({
       description: 'Number of rows processed in the upload',
       examples: [1000, 25000],
     }),
-    snapshotMonth: z.string().nullable().openapi({
-      description: 'Snapshot month in YYYY-MM format',
-      examples: ['2025-09', '2026-01'],
+    source: SourceSchema,
+    sourceVersion: z.string().nullable().openapi({
+      description: 'Upstream source release version used in the dataset identity',
+      examples: ['2025-09-24.0', '2026-01-20.0'],
     }),
-    status: z.string().openapi({
-      description: 'Status of the upload operation',
-      examples: ['completed', 'processing', 'failed'],
-    }),
+    status: StatusSchema,
     supersedesDatasetId: z.string().nullable().openapi({
       description: 'Dataset ID that this dataset supersedes (if any)',
-      examples: ['overture-hk-2025-09-24.0-division', null]
+      examples: ['overture-hk-2025-09-24.0-division', null],
     }),
     type: z.string().openapi({
       description: 'Theme type of the dataset (e.g., division, address)',
@@ -62,23 +75,14 @@ export const SignUploadRequestSchema = z
 
 export const SignUploadResponseSchema = z
   .object({
-    datasetId: z.string().openapi({
-      description:
-        'Unique identifier for the dataset, consisting of the source, region code, sourceVersion, and (theme) type',
-      examples: ['overture-hk-2025-09-24.0-division','hkgov-hk-2026-01-20.0-address'],
-    }),
+    datasetId: DatasetIdSchema,
     expiresAt: z.string().openapi({
       description: 'Expiration timestamp for the signed upload URL',
       examples: ['2025-09-30T23:59:59Z', '2026-01-21T00:00:00Z'],
     }),
-    rawObjectKey: z.string().nullable().openapi({
-      description: 'R2 object key for the uploaded file, constructed as `{region}/{source}/{sourceVersion}/{themeType}.{dataType}`',
-      examples: ['hk/overture/2025-09-24.0/division.parquet', 'hk/hkgov/2026-01-20.0/address.json'],
-    }),
-    status: z.string().openapi({
-      description: 'Status of the upload operation',
-      examples: ['completed', 'processing', 'failed'],
-    }),
+    rawObjectKey: RawObjectKeySchema,
+    source: SourceSchema,
+    status: StatusSchema,
     uploadHeaders: z.record(z.string(), z.string()).openapi({
       description: 'HTTP headers to include in the upload request',
       examples: [{ 'Content-Type': 'application/octet-stream' }],
