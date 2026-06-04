@@ -79,6 +79,18 @@ export function buildFinalizeUploadEndpoint(apiBaseUrl: string) {
   return `${apiBaseUrl}/v1/finalizeUpload`
 }
 
+function getAuthHeaders() {
+  const apiKey = process.env.HARBOUR_API_KEY?.trim()
+
+  if (!apiKey) {
+    throw new Error('Missing HARBOUR_API_KEY for authenticated Harbour API requests.')
+  }
+
+  return {
+    'x-api-key': apiKey,
+  }
+}
+
 export async function dispatchUpload(
   args: ParsedArgs,
   target: UploadTarget,
@@ -141,6 +153,7 @@ async function uploadFileViaWorker(
   const response = await fetch(buildDirectUploadEndpoint(apiBaseUrl), {
     method: 'POST',
     body: formData,
+    headers: getAuthHeaders(),
   })
 
   return parseJsonResponse<Record<string, unknown>>(response, 'Harbour upload')
@@ -156,6 +169,7 @@ async function requestSignedUpload(
     method: 'POST',
     headers: {
       'content-type': 'application/json',
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({
       fileName: previewResult.plan.fileName,
@@ -197,6 +211,7 @@ async function finalizeUpload(apiBaseUrl: string, datasetId: string) {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({
       datasetId,
