@@ -1,26 +1,24 @@
-import { Hono } from 'hono'
+import { OpenAPIHono } from '@hono/zod-openapi'
+import { Scalar } from '@scalar/hono-api-reference'
+import { createMarkdownFromOpenApi } from '@scalar/openapi-to-markdown'
 import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 
-import { createDb } from '@repo/db'
-import { handleUploadRequest } from './lib/services/ingest'
-import {
-  handleFinalizeUploadRequest,
-  handleSignUploadRequest,
-} from './lib/services/upload-session'
+import { defaultOpenAPIHook } from './lib/openapi'
+import { metaRoutes } from './routes/v1/meta'
+import { uploadRoutes } from './routes/v1/upload'
+import type { AppEnv } from './types'
 
-type AppEnv = {
-  Bindings: {
-    DB: D1Database
-    R2_ACCOUNT_ID: string
-    R2_RAW: R2Bucket
-    R2_RAW_ACCESS_KEY_ID: string
-    R2_RAW_BUCKET_NAME: string
-    R2_RAW_SECRET_ACCESS_KEY: string
-  }
-}
-
-const app = new Hono<AppEnv>()
+const app = new OpenAPIHono<AppEnv>({
+  defaultHook: defaultOpenAPIHook,
+})
+const openApiConfig = {
+  openapi: '3.1.0',
+  info: {
+    title: 'Harbour API',
+    version: '1',
+  },
+} as const
 
 app.use('*', poweredBy())
 app.use('/v1/*', prettyJSON())
@@ -29,8 +27,9 @@ app.onError((error, c) => {
   console.error(error)
   return c.json(
     {
+      httpStatus: 500,
       error: 'internal_error',
-      message: 'The harbour request failed.',
+      message: 'A typhoon hit the harbour - Request failed.',
     },
     500,
   )
@@ -39,109 +38,35 @@ app.onError((error, c) => {
 app.notFound(c =>
   c.json(
     {
+      httpStatus: 404,
       error: 'not_found',
-      message: 'Route not found.',
+      message: 'Lost at sea - Route not found.',
     },
     404,
   ),
 )
 
-app.get('/', c =>
-  c.json({
-    service: 'harbour',
-    version: 1,
-    routes: ['/v1/meta/health', '/v1/upload', '/v1/signUpload', '/v1/finalizeUpload'],
+app.get('/', c => c.redirect('/openapi', 302))
+
+app.openapiRoutes([...metaRoutes, ...uploadRoutes] as const)
+
+app.doc31('/openapi', openApiConfig)
+app.get(
+  '/docs',
+  Scalar({
+    url: '/openapi',
+    pageTitle: 'Harbour API Reference',
   }),
 )
 
-app.get('/v1/meta/health', async c => {
-  const ping = await c.env.DB.prepare('SELECT 1 AS ok').first<{ ok: number }>()
-  const datasetCount = await c.env.DB.prepare(
-    'SELECT COUNT(*) AS "count" FROM "datasets"',
-  ).first<{ count: number }>()
+const llmsMarkdown = createMarkdownFromOpenApi(
+  JSON.stringify(
+    app.getOpenAPI31Document(openApiConfig, {
+      unionPreferredType: 'oneOf',
+    }),
+  ),
+)
 
-  return c.json({
-    ok: ping?.ok === 1,
-    datasetCount: Number(datasetCount?.count ?? 0),
-  })
-})
-
-app.post('/v1/upload', async c => {
-  try {
-    const db = createDb(c.env.DB)
-    const formData = await c.req.formData()
-    const result = await handleUploadRequest(db, c.env.R2_RAW, formData)
-
-    return c.json({
-      datasetId: result.plan.datasetId,
-      rawObjectKey: result.rawObjectKey,
-      rowCount: result.plan.rowCount,
-      snapshotMonth: result.plan.snapshotMonth,
-      status: 'staged',
-      supersedesDatasetId: result.plan.supersedesDatasetId,
-      type: result.plan.type,
-    })
-  } catch (error) {
-    return c.json(
-      {
-        error: 'upload_failed',
-        message: error instanceof Error ? error.message : String(error),
-      },
-      400,
-    )
-  }
-})
-
-app.post('/v1/signUpload', async c => {
-  try {
-    const db = createDb(c.env.DB)
-    const request = await c.req.json()
-    const result = await handleSignUploadRequest(db, c.env.R2_RAW, c.env, request)
-
-    return c.json({
-      datasetId: result.datasetId,
-      expiresAt: result.expiresAt,
-      rawObjectKey: result.rawObjectKey,
-      status: result.status,
-      uploadHeaders: result.uploadHeaders,
-      uploadMethod: result.uploadMethod,
-      uploadUrl: result.uploadUrl,
-    })
-  } catch (error) {
-    return c.json(
-      {
-        error: 'upload_failed',
-        message: error instanceof Error ? error.message : String(error),
-      },
-      400,
-    )
-  }
-})
-
-app.post('/v1/finalizeUpload', async c => {
-  try {
-    const db = createDb(c.env.DB)
-    const request = await c.req.json()
-    const result = await handleFinalizeUploadRequest(db, c.env.R2_RAW, request)
-
-    return c.json({
-      datasetId: result.plan.datasetId,
-      rawObjectKey: result.rawObjectKey,
-      rowCount: result.plan.rowCount,
-      snapshotMonth: result.plan.snapshotMonth,
-      status: 'staged',
-      supersedesDatasetId: result.plan.supersedesDatasetId,
-      type: result.plan.type,
-    })
-  } catch (error) {
-    return c.json(
-      {
-        error: 'upload_failed',
-        message: error instanceof Error ? error.message : String(error),
-      },
-      400,
-    )
-  }
-})
+app.get('/llms.txt', async c => c.text(await llmsMarkdown))
 
 export default app
