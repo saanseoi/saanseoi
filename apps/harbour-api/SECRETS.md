@@ -1,7 +1,8 @@
 # Harbour R2 upload secrets
 
-Harbour signs direct-to-R2 upload URLs with three secrets:
+Harbour uses one API auth secret plus the R2 signing secrets:
 
+- `HARBOUR_API_KEY`
 - `R2_ACCOUNT_ID`
 - `R2_RAW_ACCESS_KEY_ID`
 - `R2_RAW_SECRET_ACCESS_KEY`
@@ -21,6 +22,7 @@ If preview and dev share the same R2 keypair, use the same values in `.dev.vars`
 Set preview secrets on the preview Worker:
 
 ```bash
+bunx wrangler secret put HARBOUR_API_KEY --config apps/harbour-api/wrangler.jsonc --env preview
 bunx wrangler secret put R2_ACCOUNT_ID --config apps/harbour-api/wrangler.jsonc --env preview
 bunx wrangler secret put R2_RAW_ACCESS_KEY_ID --config apps/harbour-api/wrangler.jsonc --env preview
 bunx wrangler secret put R2_RAW_SECRET_ACCESS_KEY --config apps/harbour-api/wrangler.jsonc --env preview
@@ -29,6 +31,7 @@ bunx wrangler secret put R2_RAW_SECRET_ACCESS_KEY --config apps/harbour-api/wran
 Set production secrets on the production Worker:
 
 ```bash
+bunx wrangler secret put HARBOUR_API_KEY --config apps/harbour-api/wrangler.jsonc --env production
 bunx wrangler secret put R2_ACCOUNT_ID --config apps/harbour-api/wrangler.jsonc --env production
 bunx wrangler secret put R2_RAW_ACCESS_KEY_ID --config apps/harbour-api/wrangler.jsonc --env production
 bunx wrangler secret put R2_RAW_SECRET_ACCESS_KEY --config apps/harbour-api/wrangler.jsonc --env production
