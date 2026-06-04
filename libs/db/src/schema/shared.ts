@@ -11,6 +11,7 @@ export const datasets = sqliteTable(
     source: text('source').notNull(),
     sourceVersion: text('sourceVersion').notNull(),
     rawObjectKey: text('rawObjectKey').notNull(),
+    originalFileName: text('originalFileName').notNull(),
     status: text('status').notNull(),
     isActive: integer('isActive', { mode: 'boolean' }).notNull(),
     supersedesDatasetId: text('supersedesDatasetId'),
@@ -21,7 +22,8 @@ export const datasets = sqliteTable(
   table => ({
     activeLookupIdx: index('datasets_active_lookup_idx').on(
       table.regionCode,
-      table.snapshotMonth,
+      table.source,
+      table.sourceVersion,
       table.type,
       table.isActive,
     ),
