@@ -144,19 +144,18 @@ describe('upload session flow', () => {
 
     const signResult = await handleSignUploadRequest(db, bucket, signingEnv, {
       contentType: 'application/octet-stream',
-      fileName: 'division.parquet',
+      fileName: 'Hong Kong division.parquet',
       fileSize: fixtureBytes.byteLength,
       inspection: fixtureInspection,
       plan: {
         snapshotMonth: '2026-05',
+        sourceVersion: '2026-05-24.0',
       },
       schemaVersionId: 'overture-division-v2025-09-24.0',
     })
 
-    expect(signResult.datasetId).toBe('hk-2026-05-division')
-    expect(signResult.rawObjectKey).toBe(
-      'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
-    )
+    expect(signResult.datasetId).toBe('overture-hk-2026-05-24.0-division')
+    expect(signResult.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
     expect(signResult.uploadUrl).toContain('X-Amz-Algorithm=AWS4-HMAC-SHA256')
 
     await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
@@ -165,21 +164,28 @@ describe('upload session flow', () => {
       datasetId: signResult.datasetId,
     })
     const dataset = sqlite
-      .query('SELECT datasetId, status, rawObjectKey FROM datasets WHERE datasetId = ?')
-      .get('hk-2026-05-division') as {
+      .query(
+        'SELECT datasetId, status, rawObjectKey, originalFileName FROM datasets WHERE datasetId = ?',
+      )
+      .get('overture-hk-2026-05-24.0-division') as {
       datasetId: string
       status: string
       rawObjectKey: string
+      originalFileName: string
     } | null
 
     sqlite.close()
 
-    expect(finalizeResult.plan.datasetId).toBe('hk-2026-05-division')
+    expect(finalizeResult.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
     expect(inspectParquetMock).toHaveBeenCalledTimes(1)
     expect(dataset?.status).toBe('staged')
     expect(dataset?.rawObjectKey).toBe(signResult.rawObjectKey)
+    expect(dataset?.originalFileName).toBe('Hong Kong division.parquet')
     expect(bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.datasetId).toBe(
-      'hk-2026-05-division',
+      'overture-hk-2026-05-24.0-division',
+    )
+    expect(bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.originalFileName).toBe(
+      'Hong Kong division.parquet',
     )
   })
 })
