@@ -4,6 +4,11 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-05-01",
   "compatibility_flags": ["nodejs_compat"],
+  "define": {
+    "__VUE_OPTIONS_API__": "true",
+    "__VUE_PROD_DEVTOOLS__": "false",
+    "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+  },
   "assets": { "directory": "public" },
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
@@ -21,6 +26,11 @@
   "env": {
     "preview": {
       "name": "ss-atlas-preview",
+      "define": {
+        "__VUE_OPTIONS_API__": "true",
+        "__VUE_PROD_DEVTOOLS__": "false",
+        "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+      },
       "vars": {
         "ATLAS_BASE_URL": "https://ss-atlas-preview.hypehk.workers.dev",
         "HARBOUR_BASE_URL": "https://ss-harbour-preview.hypehk.workers.dev"
@@ -36,6 +46,11 @@
     },
     "production": {
       "name": "ss-atlas-production",
+      "define": {
+        "__VUE_OPTIONS_API__": "true",
+        "__VUE_PROD_DEVTOOLS__": "false",
+        "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+      },
       "vars": {
         "ATLAS_BASE_URL": "https://ss-atlas-production.hypehk.workers.dev",
         "HARBOUR_BASE_URL": "https://ss-harbour-production.hypehk.workers.dev"

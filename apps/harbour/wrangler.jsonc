@@ -4,6 +4,11 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-05-01",
   "compatibility_flags": ["nodejs_compat"],
+  "define": {
+    "__VUE_OPTIONS_API__": "true",
+    "__VUE_PROD_DEVTOOLS__": "false",
+    "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+  },
   "secrets": {
     "required": ["R2_ACCOUNT_ID", "R2_RAW_ACCESS_KEY_ID", "R2_RAW_SECRET_ACCESS_KEY"]
   },
@@ -30,6 +35,11 @@
   "env": {
     "preview": {
       "name": "ss-harbour-preview",
+      "define": {
+        "__VUE_OPTIONS_API__": "true",
+        "__VUE_PROD_DEVTOOLS__": "false",
+        "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+      },
       "secrets": {
         "required": [
           "R2_ACCOUNT_ID",
@@ -59,6 +69,11 @@
     },
     "production": {
       "name": "ss-harbour-production",
+      "define": {
+        "__VUE_OPTIONS_API__": "true",
+        "__VUE_PROD_DEVTOOLS__": "false",
+        "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+      },
       "secrets": {
         "required": [
           "R2_ACCOUNT_ID",
