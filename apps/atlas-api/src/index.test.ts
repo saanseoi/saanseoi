@@ -26,21 +26,12 @@ function createMockDb() {
 }
 
 describe('atlas-api', () => {
-  test('GET / returns atlas metadata', async () => {
+  test('GET / redirects to the OpenAPI document', async () => {
     const res = await app.request('http://localhost/')
-    const body = (await res.json()) as {
-      service: string
-      version: number
-      routes: string[]
-    }
 
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(302)
     expect(res.headers.get('x-powered-by')).toBe('Hono')
-    expect(body).toEqual({
-      service: 'atlas-api',
-      version: 1,
-      routes: ['/v1/meta/health', '/v1/meta/datasets', '/v1/:region/places/:id'],
-    })
+    expect(res.headers.get('location')).toBe('/openapi')
   })
 
   test('GET /v1/meta/health checks DB access', async () => {

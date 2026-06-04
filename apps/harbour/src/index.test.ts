@@ -43,21 +43,12 @@ function createMockBucket() {
 }
 
 describe('harbour', () => {
-  test('GET / returns harbour metadata', async () => {
+  test('GET / redirects to the OpenAPI document', async () => {
     const res = await app.request('http://localhost/')
-    const body = (await res.json()) as {
-      service: string
-      version: number
-      routes: string[]
-    }
 
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(302)
     expect(res.headers.get('x-powered-by')).toBe('Hono')
-    expect(body).toEqual({
-      service: 'harbour',
-      version: 1,
-      routes: ['/v1/meta/health', '/v1/upload', '/v1/signUpload', '/v1/finalizeUpload'],
-    })
+    expect(res.headers.get('location')).toBe('/openapi')
   })
 
   test('GET /v1/meta/health checks DB access', async () => {
