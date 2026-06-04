@@ -2,7 +2,7 @@ import { createDb } from '@repo/db'
 import type { DatasetProcessingMessage } from '@repo/core'
 
 import { createHarbourClient } from './lib/harbourClient'
-import { processDatasetMessage } from './lib/services/harbour-worker'
+import { processDatasetMessage } from './lib/worker'
 
 type Env = {
   DB: D1Database
