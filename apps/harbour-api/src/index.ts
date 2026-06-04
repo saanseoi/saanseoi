@@ -4,7 +4,9 @@ import { createMarkdownFromOpenApi } from '@scalar/openapi-to-markdown'
 import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 
+import { requireApiKey } from './lib/auth'
 import { defaultOpenAPIHook } from './lib/openapi'
+import { controlRoutes } from './routes/v1/control'
 import { metaRoutes } from './routes/v1/meta'
 import { uploadRoutes } from './routes/v1/upload'
 import type { AppEnv } from './types'
@@ -22,6 +24,7 @@ const openApiConfig = {
 
 app.use('*', poweredBy())
 app.use('/v1/*', prettyJSON())
+app.use('/v1/*', requireApiKey)
 
 app.onError((error, c) => {
   console.error(error)
@@ -48,7 +51,7 @@ app.notFound(c =>
 
 app.get('/', c => c.redirect('/openapi', 302))
 
-app.openapiRoutes([...metaRoutes, ...uploadRoutes] as const)
+app.openapiRoutes([...metaRoutes, ...uploadRoutes, ...controlRoutes] as const)
 
 app.doc31('/openapi', openApiConfig)
 app.get(
