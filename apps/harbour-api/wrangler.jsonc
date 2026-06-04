@@ -31,6 +31,14 @@
       "bucket_name": "ss-raw-prod"
     }
   ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "DATASET_QUEUE",
+        "queue": "ss-harbour-jobs-prod"
+      }
+    ]
+  },
   "minify": true,
   "env": {
     "preview": {
@@ -65,7 +73,15 @@
           "binding": "R2_RAW",
           "bucket_name": "ss-raw-preview"
         }
-      ]
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "DATASET_QUEUE",
+            "queue": "ss-harbour-jobs-preview"
+          }
+        ]
+      }
     },
     "production": {
       "name": "ss-harbour-production",
@@ -99,7 +115,15 @@
           "binding": "R2_RAW",
           "bucket_name": "ss-raw-prod"
         }
-      ]
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "DATASET_QUEUE",
+            "queue": "ss-harbour-jobs-prod"
+          }
+        ]
+      }
     }
   }
 }
