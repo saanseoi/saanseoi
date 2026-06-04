@@ -125,34 +125,38 @@ describe('upload', () => {
     const result = await registerUpload(db, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
+      sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
-      rawObjectKey: 'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
+      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
     })
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('hk-2026-05-division')
+    expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
     expect(result.plan.type).toBe('division')
-    expect(result.rawObjectKey).toBe(
-      'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
-    )
+    expect(result.plan.originalFileName).toBe('hk-division-2026-05.parquet')
+    expect(result.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
 
     const sqliteCheck = new Database(dbPath)
     const dataset = sqliteCheck
-      .query('SELECT datasetId, status, rawObjectKey FROM datasets WHERE datasetId = ?')
-      .get('hk-2026-05-division') as {
+      .query(
+        'SELECT datasetId, status, rawObjectKey, originalFileName FROM datasets WHERE datasetId = ?',
+      )
+      .get('overture-hk-2026-05-24.0-division') as {
       datasetId: string
       status: string
       rawObjectKey: string
+      originalFileName: string
     } | null
     const ingestRunCount = sqliteCheck
       .query('SELECT COUNT(*) AS count FROM ingestRuns WHERE datasetId = ?')
-      .get('hk-2026-05-division') as { count: number }
+      .get('overture-hk-2026-05-24.0-division') as { count: number }
 
     sqliteCheck.close()
 
     expect(dataset).not.toBeNull()
     expect(dataset?.status).toBe('staged')
     expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
+    expect(dataset?.originalFileName).toBe('hk-division-2026-05.parquet')
     expect(ingestRunCount.count).toBe(2)
   })
 
@@ -165,13 +169,14 @@ describe('upload', () => {
 
     db.insert(datasets)
       .values({
-        datasetId: 'hk-2026-05-division',
+        datasetId: 'overture-hk-2026-05-24.0-division',
         regionCode: 'hk',
         snapshotMonth: '2026-05',
         theme: 'divisions',
         type: 'division',
         source: 'overture',
-        sourceVersion: '2026-05',
+        sourceVersion: '2026-05-24.0',
+        originalFileName: 'division.parquet',
         rawObjectKey: fixtureFile,
         status: 'active',
         isActive: true,
@@ -186,10 +191,11 @@ describe('upload', () => {
       registerUpload(db, {
         filePath: fixtureFile,
         snapshotMonth: '2026-04',
+        sourceVersion: '2026-04-24.0',
         inspection: fixtureInspection,
-        rawObjectKey: 'raw/hk/divisions/division/2026-04/2026-04/division.parquet',
+        rawObjectKey: 'hk/overture/2026-04-24.0/division.parquet',
       }),
-    ).rejects.toThrow('strictly newer monthly uploads')
+    ).rejects.toThrow('strictly newer source versions')
     sqlite.close()
   })
 
@@ -203,13 +209,15 @@ describe('upload', () => {
     const planned = await planUpload(harbourDb, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
+      sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
     })
 
     db.close()
 
-    expect(planned.plan.datasetId).toBe('hk-2026-05-division')
+    expect(planned.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
     expect(planned.plan.type).toBe('division')
+    expect(planned.plan.fileName).toBe('division.parquet')
   })
 
   test('registers an already-uploaded remote object', async () => {
@@ -222,22 +230,21 @@ describe('upload', () => {
     const result = await registerUpload(db, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
+      sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
-      rawObjectKey: 'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
+      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
     })
 
     const dataset = sqlite
       .query('SELECT datasetId, rawObjectKey FROM datasets WHERE datasetId = ?')
-      .get('hk-2026-05-division') as {
+      .get('overture-hk-2026-05-24.0-division') as {
       datasetId: string
       rawObjectKey: string
     } | null
 
     sqlite.close()
 
-    expect(result.rawObjectKey).toBe(
-      'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
-    )
+    expect(result.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
     expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
   })
 
@@ -251,14 +258,15 @@ describe('upload', () => {
 
     db.insert(datasets)
       .values({
-        datasetId: 'hk-2026-05-division',
+        datasetId: 'overture-hk-2026-05-24.0-division',
         regionCode: 'hk',
         snapshotMonth: '2026-05',
         theme: 'divisions',
         type: 'division',
         source: 'overture',
-        sourceVersion: '2026-05',
-        rawObjectKey: 'raw/hk/divisions/division/2026-05/2026-05/division.parquet',
+        sourceVersion: '2026-05-24.0',
+        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        originalFileName: 'division.parquet',
         status: 'active',
         isActive: true,
         supersedesDatasetId: null,
@@ -272,13 +280,60 @@ describe('upload', () => {
       planUpload(db, {
         filePath: fixtureFile,
         snapshotMonth: '2026-06',
+        sourceVersion: '2026-06-24.0',
         inspection,
         resolveSchemaFingerprint: async () => createSchemaFingerprint(inspection),
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'hk-2026-06-division',
-        supersedesDatasetId: 'hk-2026-05-division',
+        datasetId: 'overture-hk-2026-06-24.0-division',
+        supersedesDatasetId: 'overture-hk-2026-05-24.0-division',
+      },
+    })
+
+    sqlite.close()
+  })
+
+  test('keeps chronology checks scoped to the source', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    db.insert(datasets)
+      .values({
+        datasetId: 'overture-hk-2026-05-24.0-division',
+        regionCode: 'hk',
+        snapshotMonth: '2026-05',
+        theme: 'divisions',
+        type: 'division',
+        source: 'overture',
+        sourceVersion: '2026-05-24.0',
+        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        originalFileName: 'division.parquet',
+        status: 'active',
+        isActive: true,
+        supersedesDatasetId: null,
+        revokedAt: null,
+        revocationReason: null,
+        ingestedAt: '2026-06-02T00:00:00.000Z',
+      })
+      .run()
+
+    await expect(
+      planUpload(db, {
+        filePath: fixtureFile,
+        snapshotMonth: '2026-05',
+        source: 'hkgov',
+        sourceVersion: '2026-01-20.0',
+        inspection: fixtureInspection,
+        resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+      }),
+    ).resolves.toMatchObject({
+      plan: {
+        datasetId: 'hkgov-hk-2026-01-20.0-division',
+        supersedesDatasetId: null,
       },
     })
 
