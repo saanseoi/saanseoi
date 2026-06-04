@@ -97,6 +97,7 @@ export async function handleSignUploadRequest(
     datasetId: planned.plan.datasetId,
     expiresAt: new Date(Date.now() + expiresInSeconds * 1000).toISOString(),
     rawObjectKey: planned.rawObjectKey,
+    source: planned.plan.source,
     status: 'uploading',
     uploadHeaders: {
       'content-type': contentType,

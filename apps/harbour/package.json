@@ -14,7 +14,8 @@
     "format": "biome format --write .",
     "test": "bun test",
     "test:watch": "bun test --watch",
-    "test:coverage": "bun test --coverage"
+    "test:coverage": "bun test --coverage",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "devDependencies": {
     "@types/bun": "latest",
