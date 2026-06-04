@@ -50,10 +50,17 @@ jobs:
               - 'libs/config-typescript/**'
               - 'libs/core/**'
               - 'libs/db/**'
-            harbour:
+            harbour-api:
               - 'bun.lock'
               - 'package.json'
-              - 'apps/harbour/**'
+              - 'apps/harbour-api/**'
+              - 'libs/config-typescript/**'
+              - 'libs/core/**'
+              - 'libs/db/**'
+            harbour-workers:
+              - 'bun.lock'
+              - 'package.json'
+              - 'apps/harbour-workers/**'
               - 'libs/config-typescript/**'
               - 'libs/core/**'
               - 'libs/db/**'
@@ -93,8 +100,16 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:preview
-        working-directory: apps/harbour
-        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour == 'true'
+        working-directory: apps/harbour-api
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour-api == 'true'
+
+      - name: 'DEPLOY :: Harbour Workers'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run deploy:preview
+        working-directory: apps/harbour-workers
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour-workers == 'true'
 
   build-production:
     if: github.ref == 'refs/heads/main'
@@ -132,10 +147,17 @@ jobs:
               - 'libs/config-typescript/**'
               - 'libs/core/**'
               - 'libs/db/**'
-            harbour:
+            harbour-api:
               - 'bun.lock'
               - 'package.json'
-              - 'apps/harbour/**'
+              - 'apps/harbour-api/**'
+              - 'libs/config-typescript/**'
+              - 'libs/core/**'
+              - 'libs/db/**'
+            harbour-workers:
+              - 'bun.lock'
+              - 'package.json'
+              - 'apps/harbour-workers/**'
               - 'libs/config-typescript/**'
               - 'libs/core/**'
               - 'libs/db/**'
@@ -175,5 +197,13 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:production
-        working-directory: apps/harbour
-        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour == 'true'
+        working-directory: apps/harbour-api
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour-api == 'true'
+
+      - name: 'DEPLOY :: Harbour Workers'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run deploy:production
+        working-directory: apps/harbour-workers
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour-workers == 'true'
