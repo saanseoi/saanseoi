@@ -5,6 +5,7 @@ import {
   revokeDataset,
   type HarbourReadableDb,
   type HarbourWritableDb,
+  updateLatestOpenIngestRun,
   updateDatasetStatus,
 } from '@repo/core/db/repository'
 
@@ -54,15 +55,26 @@ export async function handleStageCompleted(
   const dataset = await requireDataset(db, request.datasetId)
   const now = new Date().toISOString()
 
-  await insertIngestRun(
+  const updated = await updateLatestOpenIngestRun(
     db,
     dataset.datasetId,
     request.phase,
     'completed',
+    now,
     stringifyOptional(request.stats),
-    now,
-    now,
   )
+
+  if (!updated) {
+    await insertIngestRun(
+      db,
+      dataset.datasetId,
+      request.phase,
+      'completed',
+      stringifyOptional(request.stats),
+      now,
+      now,
+    )
+  }
 
   return {
     datasetId: dataset.datasetId,
@@ -77,20 +89,33 @@ export async function handleStageFailed(
 ) {
   const dataset = await requireDataset(db, request.datasetId)
   const now = new Date().toISOString()
+  const errorJson = stringifyOptional({
+    message: request.error ?? 'Unknown processing error.',
+  })
 
   await updateDatasetStatus(db, dataset.datasetId, 'failed')
-  await insertIngestRun(
+  const updated = await updateLatestOpenIngestRun(
     db,
     dataset.datasetId,
     request.phase,
     'error',
+    now,
     stringifyOptional(request.stats),
-    now,
-    now,
-    stringifyOptional({
-      message: request.error ?? 'Unknown processing error.',
-    }),
+    errorJson,
   )
+
+  if (!updated) {
+    await insertIngestRun(
+      db,
+      dataset.datasetId,
+      request.phase,
+      'error',
+      stringifyOptional(request.stats),
+      now,
+      now,
+      errorJson,
+    )
+  }
 
   return {
     datasetId: dataset.datasetId,
@@ -123,10 +148,7 @@ export async function handlePublishDataset(
   }
 }
 
-async function requireDataset(
-  db: HarbourReadableDb,
-  datasetId: string,
-) {
+async function requireDataset(db: HarbourReadableDb, datasetId: string) {
   const dataset = await getDatasetRecordById(db, datasetId)
 
   if (!dataset) {
