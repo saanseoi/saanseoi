@@ -2,7 +2,7 @@
   "name": "harbour-api",
   "type": "module",
   "scripts": {
-    "dev": "bash ./scripts/dev.sh",
+    "dev": "bash ../../scripts/dev-local-stack.sh",
     "build": "mkdir -p dist && wrangler deploy --dry-run --env production --outdir dist --minify",
     "build:preview": "mkdir -p dist && wrangler deploy --dry-run --env preview --outdir dist --minify",
     "build:production": "mkdir -p dist && wrangler deploy --dry-run --env production --outdir dist --minify",
