@@ -1,7 +1,7 @@
 import type { createDb } from '@repo/db'
 
 export type AppEnv = {
-  Bindings: Env
+  Bindings: CloudflareBindings
   Variables: {
     db: ReturnType<typeof createDb>
   }
