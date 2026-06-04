@@ -20,8 +20,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "ss-db-prod",
-      "database_id": "658e67b6-f259-4e5d-907e-7e361d2edf3c",
+      "database_name": "ss-db-preview",
+      "database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
       "migrations_dir": "../../libs/db/migrations"
     }
   ],

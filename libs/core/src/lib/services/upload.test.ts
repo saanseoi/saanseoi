@@ -339,4 +339,85 @@ describe('upload', () => {
 
     sqlite.close()
   })
+
+  test('ignores failed and uploading datasets when selecting the latest upload baseline', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    db.insert(datasets)
+      .values([
+        {
+          datasetId: 'overture-hk-2026-05-24.0-division',
+          regionCode: 'hk',
+          snapshotMonth: '2026-05',
+          theme: 'divisions',
+          type: 'division',
+          source: 'overture',
+          sourceVersion: '2026-05-24.0',
+          rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+          originalFileName: 'division.parquet',
+          status: 'active',
+          isActive: true,
+          supersedesDatasetId: null,
+          revokedAt: null,
+          revocationReason: null,
+          ingestedAt: '2026-06-02T00:00:00.000Z',
+        },
+        {
+          datasetId: 'overture-hk-2026-06-24.0-division',
+          regionCode: 'hk',
+          snapshotMonth: '2026-06',
+          theme: 'divisions',
+          type: 'division',
+          source: 'overture',
+          sourceVersion: '2026-06-24.0',
+          rawObjectKey: 'hk/overture/2026-06-24.0/division.parquet',
+          originalFileName: 'division.parquet',
+          status: 'uploading',
+          isActive: false,
+          supersedesDatasetId: 'overture-hk-2026-05-24.0-division',
+          revokedAt: null,
+          revocationReason: null,
+          ingestedAt: '2026-06-03T00:00:00.000Z',
+        },
+        {
+          datasetId: 'overture-hk-2026-07-24.0-division',
+          regionCode: 'hk',
+          snapshotMonth: '2026-07',
+          theme: 'divisions',
+          type: 'division',
+          source: 'overture',
+          sourceVersion: '2026-07-24.0',
+          rawObjectKey: 'hk/overture/2026-07-24.0/division.parquet',
+          originalFileName: 'division.parquet',
+          status: 'failed',
+          isActive: false,
+          supersedesDatasetId: null,
+          revokedAt: null,
+          revocationReason: null,
+          ingestedAt: '2026-06-04T00:00:00.000Z',
+        },
+      ])
+      .run()
+
+    await expect(
+      planUpload(db, {
+        filePath: fixtureFile,
+        snapshotMonth: '2026-08',
+        sourceVersion: '2026-08-24.0',
+        inspection: fixtureInspection,
+        resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+      }),
+    ).resolves.toMatchObject({
+      plan: {
+        datasetId: 'overture-hk-2026-08-24.0-division',
+        supersedesDatasetId: 'overture-hk-2026-05-24.0-division',
+      },
+    })
+
+    sqlite.close()
+  })
 })

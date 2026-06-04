@@ -1,4 +1,4 @@
-import { and, desc, eq, notInArray } from 'drizzle-orm'
+import { and, desc, eq, ne } from 'drizzle-orm'
 
 import { datasets, ingestRuns } from '@repo/db/schema'
 
@@ -19,8 +19,6 @@ type LatestDatasetLookup = {
   supersedesDatasetId: string | null
 }
 
-const NON_FINAL_DATASET_STATUSES = ['failed', 'uploading']
-
 /**
  * Returns the most recent non-failed dataset for a region/source/type tuple and
  * the active dataset id that a new upload should supersede, if any.
@@ -40,7 +38,8 @@ export async function getLatestDatasetForRegionSourceType(
           eq(datasets.regionCode, regionCode),
           eq(datasets.source, source),
           eq(datasets.type, type),
-          notInArray(datasets.status, NON_FINAL_DATASET_STATUSES),
+          ne(datasets.status, 'failed'),
+          ne(datasets.status, 'uploading'),
         ),
       )
       .orderBy(desc(datasets.sourceVersion), desc(datasets.ingestedAt))

@@ -9,7 +9,7 @@
     "libs/*"
   ],
   "scripts": {
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --filter=atlas-api --filter=harbour-api",
     "upload": "bun --cwd ./apps/harbour-cli ./src/cli.ts upload",
     "upload:cf:preview": "bun --cwd ./apps/harbour-cli ./src/cli.ts upload --target cf-preview",
     "upload:cf:production": "bun --cwd ./apps/harbour-cli ./src/cli.ts upload --target cf-production",
@@ -56,7 +56,7 @@
     "drizzle-kit": "^1.0.0-rc.4-ca0f029",
     "prettier": "^3.8.3",
     "turbo": "^2.9.16",
-    "wrangler": "^4.97.0"
+    "wrangler": "^4.98.0"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"
