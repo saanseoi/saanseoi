@@ -14,6 +14,7 @@ export type DatasetRecord = {
   source: string
   sourceVersion: string
   rawObjectKey: string
+  originalFileName: string
   status: string
   isActive: boolean
   supersedesDatasetId: string | null
@@ -52,6 +53,7 @@ export type UploadPlan = {
   sourceVersion: string
   filePath: string
   fileName: string
+  originalFileName: string
   rowCount: number
   schemaFingerprint: string
   inferredFrom: {
@@ -59,12 +61,14 @@ export type UploadPlan = {
     type: 'path' | 'parquet' | 'flag'
     regionCode: 'path' | 'parquet' | 'flag'
     snapshotMonth: 'path' | 'flag'
+    sourceVersion: 'flag' | 'path' | 'snapshotMonth'
   }
   supersedesDatasetId: string | null
 }
 
 export type RegisterUploadOptions = {
   filePath: string
+  originalFileName?: string
   regionCode?: string
   snapshotMonth?: string
   theme?: string

@@ -108,6 +108,7 @@ export async function handleUploadRequest(
     customMetadata: {
       datasetId: planned.plan.datasetId,
       fileName: planned.plan.fileName,
+      originalFileName: planned.plan.originalFileName,
       regionCode: planned.plan.regionCode,
       rowCount: String(planned.plan.rowCount),
       schemaFingerprint: planned.plan.schemaFingerprint,

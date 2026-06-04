@@ -135,6 +135,7 @@ export async function handleFinalizeUploadRequest(
     db,
     {
       filePath: fileName,
+      originalFileName: dataset.originalFileName,
       regionCode: dataset.regionCode,
       snapshotMonth: dataset.snapshotMonth,
       source: dataset.source,
@@ -164,6 +165,7 @@ export async function handleFinalizeUploadRequest(
 
   return finalizeUpload(db, {
     filePath: fileName,
+    originalFileName: dataset.originalFileName,
     regionCode: dataset.regionCode,
     snapshotMonth: dataset.snapshotMonth,
     source: dataset.source,
@@ -226,6 +228,7 @@ async function writeFinalObjectMetadata(
     customMetadata: {
       datasetId: planned.plan.datasetId,
       fileName: planned.plan.fileName,
+      originalFileName: planned.plan.originalFileName,
       regionCode: planned.plan.regionCode,
       rowCount: String(planned.plan.rowCount),
       schemaFingerprint: planned.plan.schemaFingerprint,
