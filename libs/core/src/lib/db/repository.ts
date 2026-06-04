@@ -184,3 +184,47 @@ export async function insertIngestRun(
     })
     .run()
 }
+
+export async function updateLatestOpenIngestRun(
+  db: HarbourReadableDb & HarbourWritableDb,
+  datasetId: string,
+  phase: string,
+  status: string,
+  finishedAt: string,
+  statsJson: string | null,
+  errorJson: string | null = null,
+) {
+  const openRun =
+    ((await db
+      .select({
+        runId: ingestRuns.runId,
+      })
+      .from(ingestRuns)
+      .where(
+        and(
+          eq(ingestRuns.datasetId, datasetId),
+          eq(ingestRuns.phase, phase),
+          eq(ingestRuns.status, 'running'),
+        ),
+      )
+      .orderBy(desc(ingestRuns.startedAt), desc(ingestRuns.runId))
+      .limit(1)
+      .get()) as { runId: string } | undefined) ?? null
+
+  if (!openRun) {
+    return false
+  }
+
+  await db
+    .update(ingestRuns)
+    .set({
+      status,
+      statsJson,
+      errorJson,
+      finishedAt,
+    })
+    .where(eq(ingestRuns.runId, openRun.runId))
+    .run()
+
+  return true
+}
