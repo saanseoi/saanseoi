@@ -14,6 +14,47 @@ export const ErrorResponseSchema = z
   })
   .openapi('HarbourErrorResponse')
 
+const ValidationErrorDetailSchema = z
+  .object({
+    code: z.string().openapi({
+      examples: ['invalid_type', 'too_small'],
+    }),
+    message: z.string().openapi({
+      examples: ['Required', 'Expected string, received number'],
+    }),
+    path: z.string().openapi({
+      examples: ['source', 'body.sourceVersion'],
+    }),
+  })
+  .openapi('HarbourValidationErrorDetail')
+
+export const ValidationErrorResponseSchema = z
+  .object({
+    httpStatus: z.literal(422).openapi({
+      examples: [422],
+    }),
+    error: z.literal('validation_error').openapi({
+      examples: ['validation_error'],
+    }),
+    message: z.literal('Request validation failed.').openapi({
+      examples: ['Request validation failed.'],
+    }),
+    details: z.array(ValidationErrorDetailSchema),
+    target: z.enum(['json', 'form', 'query', 'param', 'header', 'cookie']).openapi({
+      examples: ['json', 'query'],
+    }),
+  })
+  .openapi('HarbourValidationErrorResponse')
+
+export const ValidationErrorOpenAPIResponse = {
+  content: {
+    'application/json': {
+      schema: ValidationErrorResponseSchema,
+    },
+  },
+  description: 'Request validation failed.',
+} as const
+
 export const HealthResponseSchema = z
   .object({
     ok: z.boolean(),
