@@ -96,7 +96,8 @@ function normalizeUploadFileName(
   type: SupportedType,
   providedOriginalFileName?: string,
 ) {
-  const originalFileName = providedOriginalFileName?.trim() || fileNameFromPath(filePath)
+  const originalFileName =
+    providedOriginalFileName?.trim() || fileNameFromPath(filePath)
   const { extension } = splitFileNameParts(originalFileName)
 
   return {
@@ -562,12 +563,8 @@ export async function planUpload(
   const {
     plan: { datasetId, regionCode, source, sourceVersion, type },
   } = preparedUpload
-  const { latestDataset, supersedesDatasetId } = await getLatestDatasetForRegionSourceType(
-    db,
-    regionCode,
-    source,
-    type,
-  )
+  const { latestDataset, supersedesDatasetId } =
+    await getLatestDatasetForRegionSourceType(db, regionCode, source, type)
 
   ensureChronologicalUpload(latestDataset, sourceVersion, datasetId)
   await ensureSchemaCompatible(
@@ -580,12 +577,7 @@ export async function planUpload(
 }
 
 export function createRawObjectKey(plan: UploadPlan) {
-  return [
-    plan.regionCode,
-    plan.source,
-    plan.sourceVersion,
-    plan.fileName,
-  ].join('/')
+  return [plan.regionCode, plan.source, plan.sourceVersion, plan.fileName].join('/')
 }
 
 function getRequiredInspection(
@@ -626,9 +618,7 @@ export async function registerUpload(
   const rawObjectKey = options.rawObjectKey ?? null
 
   if (!rawObjectKey) {
-    throw new Error(
-      'A rawObjectKey is required for Worker-safe registration.',
-    )
+    throw new Error('A rawObjectKey is required for Worker-safe registration.')
   }
 
   const now = new Date().toISOString()
