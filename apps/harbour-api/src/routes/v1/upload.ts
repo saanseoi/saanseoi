@@ -192,7 +192,7 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
     try {
       const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
       const request = c.req.valid('json') as FinalizeUploadRequest
-      const result = await handleFinalizeUploadRequest(db, c.env.R2_RAW, request)
+      const result = await handleFinalizeUploadRequest(db, c.env.R2_RAW, c.env.DATASET_QUEUE, request)
 
       return c.json(
         {
