@@ -41,7 +41,8 @@
     "outdated": "turbo run outdated",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "turbo run build && changeset publish"
+    "release": "turbo run build && changeset publish",
+    "cf-typegen": "bun run --workspaces --if-present cf-typegen"
   },
   "dependencies": {
     "@inlang/paraglide-js": "^2.18.2",
