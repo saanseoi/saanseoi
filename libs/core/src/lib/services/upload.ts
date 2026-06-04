@@ -70,6 +70,41 @@ function fileNameFromPath(filePath: string) {
   return segments.at(-1) ?? filePath
 }
 
+function splitFileNameParts(fileName: string) {
+  const trimmed = fileName.trim()
+  const lastDotIndex = trimmed.lastIndexOf('.')
+
+  if (lastDotIndex <= 0 || lastDotIndex === trimmed.length - 1) {
+    return {
+      baseName: trimmed,
+      extension: null,
+    }
+  }
+
+  return {
+    baseName: trimmed.slice(0, lastDotIndex),
+    extension: trimmed.slice(lastDotIndex + 1).toLowerCase(),
+  }
+}
+
+function normalizeSource(candidate?: string | null) {
+  return candidate?.trim().toLowerCase() || 'overture'
+}
+
+function normalizeUploadFileName(
+  filePath: string,
+  type: SupportedType,
+  providedOriginalFileName?: string,
+) {
+  const originalFileName = providedOriginalFileName?.trim() || fileNameFromPath(filePath)
+  const { extension } = splitFileNameParts(originalFileName)
+
+  return {
+    originalFileName,
+    fileName: extension ? `${type}.${extension}` : type,
+  }
+}
+
 function normalizeToken(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
 }
@@ -340,20 +375,20 @@ export function createSchemaFingerprint(inspection: ParquetInspection) {
 
 function ensureChronologicalUpload(
   latestDataset: DatasetRecord | null,
-  snapshotMonth: string,
+  sourceVersion: string,
   datasetId: string,
 ) {
   if (!latestDataset) {
     return
   }
 
-  if (snapshotMonth <= latestDataset.snapshotMonth) {
+  if (sourceVersion <= latestDataset.sourceVersion) {
     throw new Error(
       [
         `Dataset ${datasetId} is not uploadable.\n\n`,
         `Latest registered dataset for this region/type is ${latestDataset.datasetId}.\n`,
-        'Harbour currently only accepts strictly newer monthly uploads.\n',
-        'Same-month corrected releases and backfills are not implemented yet.\n',
+        'Harbour currently only accepts strictly newer source versions per region/source/type.\n',
+        'Corrected releases and backfills must sort after the currently registered sourceVersion.\n',
       ].join(' '),
     )
   }
@@ -465,12 +500,17 @@ function resolveUploadPlan(
     )
   }
 
-  const source = options.source ?? 'overture'
+  const source = normalizeSource(options.source)
   const sourceVersion =
     options.sourceVersion ??
     inferSourceVersionFromPath(options.filePath) ??
     snapshotMonth
-  const datasetId = `${regionCode}-${snapshotMonth}-${type}`
+  const { fileName, originalFileName } = normalizeUploadFileName(
+    options.filePath,
+    type,
+    options.originalFileName,
+  )
+  const datasetId = `${source}-${regionCode}-${sourceVersion}-${type}`
 
   return {
     plan: {
@@ -482,7 +522,8 @@ function resolveUploadPlan(
       source,
       sourceVersion,
       filePath: options.filePath,
-      fileName: fileNameFromPath(options.filePath),
+      fileName,
+      originalFileName,
       rowCount: resolvedInspection.rowCount,
       schemaFingerprint: createSchemaFingerprint(resolvedInspection),
       inferredFrom: {
@@ -490,6 +531,11 @@ function resolveUploadPlan(
         type: typeFromFlag ? 'flag' : typeFromPath ? 'path' : 'parquet',
         regionCode: regionFromFlag ? 'flag' : regionFromPath ? 'path' : 'parquet',
         snapshotMonth: options.snapshotMonth ? 'flag' : 'path',
+        sourceVersion: options.sourceVersion
+          ? 'flag'
+          : inferSourceVersionFromPath(options.filePath)
+            ? 'path'
+            : 'snapshotMonth',
       },
       supersedesDatasetId,
     } satisfies UploadPlan,
@@ -514,15 +560,16 @@ export async function planUpload(
   const resolvedInspection = getRequiredInspection(options, inspection)
   const preparedUpload = resolveUploadPlan(options, resolvedInspection, null)
   const {
-    plan: { datasetId, regionCode, snapshotMonth, type },
+    plan: { datasetId, regionCode, source, sourceVersion, type },
   } = preparedUpload
   const { latestDataset, supersedesDatasetId } = await getLatestDatasetForTypeRegion(
     db,
     regionCode,
+    source,
     type,
   )
 
-  ensureChronologicalUpload(latestDataset, snapshotMonth, datasetId)
+  ensureChronologicalUpload(latestDataset, sourceVersion, datasetId)
   await ensureSchemaCompatible(
     latestDataset,
     resolvedInspection,
@@ -534,11 +581,8 @@ export async function planUpload(
 
 export function createRawObjectKey(plan: UploadPlan) {
   return [
-    'raw',
     plan.regionCode,
-    plan.theme,
-    plan.type,
-    plan.snapshotMonth,
+    plan.source,
     plan.sourceVersion,
     plan.fileName,
   ].join('/')
@@ -599,7 +643,7 @@ export async function registerUpload(
     JSON.stringify({
       datasetId: plan.datasetId,
       regionCode: plan.regionCode,
-      snapshotMonth: plan.snapshotMonth,
+      sourceVersion: plan.sourceVersion,
       theme: plan.theme,
       type: plan.type,
     }),
