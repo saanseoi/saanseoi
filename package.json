@@ -20,6 +20,7 @@
     "db:dump:preview": "bun run --filter @repo/db db:dump:preview",
     "db:dump:production": "bun run --filter @repo/db db:dump:production",
     "db:reset:local": "bun run --filter @repo/db db:reset:local",
+    "db:reset:preview": "bun run --filter @repo/db db:reset:preview",
     "db:migration:generate": "bun run --filter @repo/db db:migration:generate",
     "db:migration:run:local": "bun run --filter @repo/db db:migration:run:local",
     "db:migration:run:preview": "bun run --filter @repo/db db:migration:run:preview",

@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
-target_dir="${1:-$repo_root/.local/d1/dev}"
+script_dir="$(cd "$(dirname "$0")" && pwd)"
 
-rm -rf "$target_dir"
-mkdir -p "$target_dir"
-
-echo "Reset local D1 state at $target_dir"
+bash "$script_dir/drop-local-db.sh" "${1:-}"
+bash "$script_dir/migrate-local-db.sh"
