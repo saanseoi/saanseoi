@@ -19,8 +19,11 @@ jobs:
             path: 'apps/atlas-api'
             cache_key: 'atlas-api'
           - name: 'Harbour API'
-            path: 'apps/harbour'
-            cache_key: 'harbour'
+            path: 'apps/harbour-api'
+            cache_key: 'harbour-api'
+          - name: 'Harbour Workers'
+            path: 'apps/harbour-workers'
+            cache_key: 'harbour-workers'
     steps:
       - name: 'GIT :: Checkout'
         uses: actions/checkout@v5

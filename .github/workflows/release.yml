@@ -67,7 +67,11 @@ jobs:
 
       - name: 'BUILD :: Harbour API'
         run: bun run build:production
-        working-directory: apps/harbour
+        working-directory: apps/harbour-api
+
+      - name: 'BUILD :: Harbour Workers'
+        run: bun run build:production
+        working-directory: apps/harbour-workers
 
       - name: 'RELEASE :: Create Release PR'
         id: changesets
