@@ -449,6 +449,16 @@
       "table": "divisions"
     },
     {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otGeometryJson",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
       "type": "integer",
       "notNull": false,
       "autoincrement": false,
@@ -715,6 +725,16 @@
       "default": null,
       "generated": null,
       "name": "type",
+      "entityType": "columns",
+      "table": "divisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otGeometryJson",
       "entityType": "columns",
       "table": "divisionsVersions"
     },

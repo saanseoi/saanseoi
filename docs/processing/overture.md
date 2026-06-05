@@ -17,8 +17,17 @@ The following are the processing notes on how the overture source data is proces
 ## Divisions
 
 The `division` is normalised into `divisions` and `divisionsI18n` where each `locale` has an entry per `divisionId`.
-- Overture `norms.admin_level` and related admin-level hints are used only to derive the coarse numeric `level`; the raw admin-level token is not stored.
 - Division levels follow the taxonomy in `docs/taxonomy.md`, with Overture subtype/class mapped as: `dependency -> 0`, `region -> 2`, `locality.city -> 1`, `locality.town -> 3`, `locality.village -> 5`, `locality.hamlet -> 6`, `macrohood -> 4`, `neighborhood -> 5`, `microhood -> 6`.
 - A taxonomy-facing lowercase `type` is also stored on `divisions` and `divisionsVersions`: `sar`, `area`, `district`, `town`, `macrohood`, `neighbourhood`, `village`, `microhood`, `hamlet`. `locality.city` maps to `area`, `region` maps to `district`, and Hong Kong area names still map to `area`.
 - Hong Kong area names `Hong Kong Island`, `Kowloon`, and `New Territories` are preserved as level `1` areas even when Overture labels them as `region`.
 - `hierarchies` is stored in both `otHierarchyJson` and `hierarchyJson`. The former retains the hierarchy determined by overture, the latter provides a more explicit hierarchy based on local knowledge.
+- `geometry` is decoded from Overture WKB and stored as GeoJSON text in `otGeometryJson`.
+- `population` is stored as `otPopulation`.
+- The following Overture division fields are dropped:
+  - `admin_level`: dropped because Harbour standardizes on taxonomy-derived `level` and `type` values instead of persisting raw Overture admin-level lineage.
+  - `capital_division_ids`: dropped because the Hong Kong dataset only uses it sparsely and it is not meaningful enough for current SAR-focused use cases.
+  - `capital_of_divisions`: dropped because the Hong Kong dataset only uses it sparsely and it is not meaningful enough for current SAR-focused use cases.
+  - `country`: dropped because Harbour only processes SAR datasets within China, so the value is not useful at the row level.
+  - `norms`: dropped because the field is too undifferentiated in current SAR datasets to justify row-level storage.
+  - `region`: dropped because it is null throughout the Hong Kong division dataset.
+  - `theme` and `type`: dropped at the row level because dataset-level metadata already records them.
