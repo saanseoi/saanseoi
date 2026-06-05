@@ -19,5 +19,6 @@ The following are the processing notes on how the overture source data is proces
 The `division` is normalised into `divisions` and `divisionsI18n` where each `locale` has an entry per `divisionId`.
 - Overture `norms.admin_level` and related admin-level hints are used only to derive the coarse numeric `level`; the raw admin-level token is not stored.
 - Division levels follow the taxonomy in `docs/taxonomy.md`, with Overture subtype/class mapped as: `dependency -> 0`, `region -> 2`, `locality.city -> 1`, `locality.town -> 3`, `locality.village -> 5`, `locality.hamlet -> 6`, `macrohood -> 4`, `neighborhood -> 5`, `microhood -> 6`.
+- A taxonomy-facing lowercase `type` is also stored on `divisions` and `divisionsVersions`: `sar`, `area`, `district`, `town`, `macrohood`, `neighbourhood`, `village`, `microhood`, `hamlet`. `locality.city` maps to `area`, `region` maps to `district`, and Hong Kong area names still map to `area`.
 - Hong Kong area names `Hong Kong Island`, `Kowloon`, and `New Territories` are preserved as level `1` areas even when Overture labels them as `region`.
 - `hierarchies` is stored in both `otHierarchyJson` and `hierarchyJson`. The former retains the hierarchy determined by overture, the latter provides a more explicit hierarchy based on local knowledge.

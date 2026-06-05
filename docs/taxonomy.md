@@ -20,6 +20,8 @@
 
 ### Mapping overture PlaceType to Level
 
+See Overture [docs](https://docs.overturemaps.org/guides/divisions/#subtype-descriptions) for definitions.
+
 First based on `subtype`, then on `class`
 
 - ~~`country`~~ -> 0
