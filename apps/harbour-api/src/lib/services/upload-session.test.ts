@@ -151,7 +151,7 @@ describe('upload session flow', () => {
 
     const signResult = await handleSignUploadRequest(db, bucket, signingEnv, {
       contentType: 'application/octet-stream',
-      fileName: 'Hong Kong division.parquet',
+      fileName: 'overture-hk-division.parquet',
       fileSize: fixtureBytes.byteLength,
       inspection: fixtureInspection,
       plan: {
@@ -187,7 +187,7 @@ describe('upload session flow', () => {
     expect(inspectParquetMock).toHaveBeenCalledTimes(1)
     expect(dataset?.status).toBe('staged')
     expect(dataset?.rawObjectKey).toBe(signResult.rawObjectKey)
-    expect(dataset?.originalFileName).toBe('Hong Kong division.parquet')
+    expect(dataset?.originalFileName).toBe('overture-hk-division.parquet')
     expect(queuedMessages).toEqual([
       {
         datasetId: 'overture-hk-2026-05-24.0-division',
@@ -204,7 +204,7 @@ describe('upload session flow', () => {
       'overture-hk-2026-05-24.0-division',
     )
     expect(bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.originalFileName).toBe(
-      'Hong Kong division.parquet',
+      'overture-hk-division.parquet',
     )
   })
 })
