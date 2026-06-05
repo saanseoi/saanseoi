@@ -8,6 +8,7 @@ import {
   formatSummary,
 } from './lib/display.ts'
 import { buildRegisterOptions, parseArgs, resolveUploadTarget } from './lib/options.ts'
+import { checkOvertureUploadAssumptions } from './lib/overture-assumptions.ts'
 import { validateOvertureSchema } from './lib/schema/overture.ts'
 import { dispatchUpload, resolveHarbourApiUrl } from './lib/upload.ts'
 
@@ -52,11 +53,27 @@ async function main() {
 
   const registerOptions = buildRegisterOptions(invocationCwd, inputFile, args)
   const previewResult = await prepareUpload(registerOptions)
+  let assumptionWarnings: string[] = []
+
+  try {
+    assumptionWarnings = await checkOvertureUploadAssumptions(
+      registerOptions.filePath,
+      previewResult.plan,
+    )
+  } catch (error) {
+    assumptionWarnings = [
+      `Could not run dropped-field assumption checks: ${error instanceof Error ? error.message : String(error)}`,
+    ]
+  }
 
   note(
     formatSummary(previewResult, target).join('\n'),
     dryRun ? 'UPLOAD DRY RUN' : 'UPLOAD PLAN',
   )
+
+  if (assumptionWarnings.length > 0) {
+    note(assumptionWarnings.join('\n'), 'UPLOAD WARNINGS')
+  }
 
   if (dryRun) {
     log.success('Local parquet validation passed.')

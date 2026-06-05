@@ -449,6 +449,16 @@
       "table": "divisions"
     },
     {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otPopulation",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
       "type": "text",
       "notNull": false,
       "autoincrement": false,
@@ -705,6 +715,16 @@
       "default": null,
       "generated": null,
       "name": "type",
+      "entityType": "columns",
+      "table": "divisionsVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otPopulation",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
