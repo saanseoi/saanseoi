@@ -75,6 +75,35 @@ export async function getLatestDatasetForRegionSourceType(
   }
 }
 
+export async function hasDatasetForSnapshotMonthSourceType(
+  db: HarbourReadableDb,
+  regionCode: RegionCode,
+  snapshotMonth: string,
+  source: string,
+  type: SupportedType,
+) {
+  const existing =
+    ((await db
+      .select({
+        datasetId: datasets.datasetId,
+      })
+      .from(datasets)
+      .where(
+        and(
+          eq(datasets.regionCode, regionCode),
+          eq(datasets.snapshotMonth, snapshotMonth),
+          eq(datasets.source, source),
+          eq(datasets.type, type),
+          ne(datasets.status, 'failed'),
+          ne(datasets.status, 'uploading'),
+        ),
+      )
+      .limit(1)
+      .get()) as { datasetId: string } | undefined) ?? null
+
+  return existing
+}
+
 /**
  * Looks up a dataset by id so the service can reject duplicate registrations
  * before staging files and writing ingest metadata.
