@@ -62,6 +62,7 @@ export type UploadPlan = {
     type: 'path' | 'parquet' | 'flag'
     regionCode: 'path' | 'parquet' | 'flag'
     snapshotMonth: 'path' | 'filename' | 'flag'
+    source: 'flag' | 'path' | 'filename'
     sourceVersion: 'flag' | 'path' | 'filename' | 'snapshotMonth'
   }
   supersedesDatasetId: string | null

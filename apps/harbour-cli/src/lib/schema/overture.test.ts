@@ -48,6 +48,7 @@ function makePlan(sourceVersion: string): UploadPlan {
       type: 'path',
       regionCode: 'path',
       snapshotMonth: 'flag',
+      source: 'flag',
       sourceVersion: 'flag',
     },
     supersedesDatasetId: null,

@@ -654,6 +654,11 @@ function resolveUploadPlan(
           : inferSnapshotMonthFromPath(options.filePath)
             ? 'path'
             : 'filename',
+        source: sourceFromFlag
+          ? 'flag'
+          : sourceFromPath
+            ? 'path'
+            : 'filename',
         sourceVersion: options.sourceVersion
           ? 'flag'
           : inferSourceVersionFromPath(options.filePath)
