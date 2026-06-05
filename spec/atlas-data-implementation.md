@@ -100,7 +100,7 @@ Each dataset moves through:
 1. `uploading`
 2. `staged`
 3. `processing`
-4. `active` or `failed`
+4. `current` or `failed`
 5. `revoked` if superseded by a corrected release
 
 `ingestRuns` should track each named stage with:
@@ -133,7 +133,7 @@ All dataset types should share the same baseline behavior:
 - compare against the current row for the same canonical id
 - insert a new version row only when content changed
 - upsert the current-state table
-- close out missing current rows as real deletions when the entity disappears from the new active dataset
+- close out missing current rows as real deletions when the entity disappears from the new current dataset
 - record stage progress in `ingestRuns`
 
 ## Division dataset
@@ -207,7 +207,7 @@ For each address row:
 
 Deletion rule:
 
-- if a previously current canonical address is absent from the new active address dataset, treat it as deleted
+- if a previously current canonical address is absent from the new current address dataset, treat it as deleted
 
 ### `extractI18n`
 
@@ -247,7 +247,7 @@ For each place row:
 
 Deletion rule:
 
-- if a previously current place is absent from the new active dataset, treat it as deleted
+- if a previously current place is absent from the new current dataset, treat it as deleted
 
 ### `extractI18n`
 
@@ -269,9 +269,9 @@ Publishing should be explicit and last.
 
 For any dataset type:
 
-- mark the processed dataset active
+- mark the processed dataset current
 - revoke or deactivate the superseded dataset if this is a replacement
-- ensure only one active lineage exists for the intended region and type
+- ensure only one current lineage exists for the intended region and type
 
 Do not publish partial work.
 

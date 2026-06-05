@@ -187,8 +187,7 @@ describe('upload', () => {
         sourceVersion: '2026-05-24.0',
         originalFileName: 'division.parquet',
         rawObjectKey: fixtureFile,
-        status: 'active',
-        isActive: true,
+        status: 'current',
         supersedesDatasetId: null,
         revokedAt: null,
         revocationReason: null,
@@ -278,7 +277,6 @@ describe('upload', () => {
         rawObjectKey: 'hk/overture/2026-05-24.0/division-old.parquet',
         originalFileName: 'division-old.parquet',
         status: 'failed',
-        isActive: false,
         supersedesDatasetId: null,
         revokedAt: null,
         revocationReason: null,
@@ -298,14 +296,13 @@ describe('upload', () => {
 
     const dataset = sqlite
       .query(
-        'SELECT datasetId, status, rawObjectKey, originalFileName, isActive FROM datasets WHERE datasetId = ?',
+        'SELECT datasetId, status, rawObjectKey, originalFileName FROM datasets WHERE datasetId = ?',
       )
       .get('overture-hk-2026-05-24.0-division') as {
       datasetId: string
       status: string
       rawObjectKey: string
       originalFileName: string
-      isActive: number
     } | null
     const ingestRunCount = sqlite
       .query('SELECT COUNT(*) AS count FROM ingestRuns WHERE datasetId = ?')
@@ -318,7 +315,6 @@ describe('upload', () => {
     expect(dataset?.status).toBe('staged')
     expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
     expect(dataset?.originalFileName).toBe('hk-division-2026-05.parquet')
-    expect(dataset?.isActive).toBe(0)
     expect(ingestRunCount.count).toBe(2)
   })
 
@@ -341,7 +337,6 @@ describe('upload', () => {
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
         originalFileName: 'division.parquet',
         status: 'failed',
-        isActive: false,
         supersedesDatasetId: null,
         revokedAt: null,
         revocationReason: null,
@@ -392,8 +387,7 @@ describe('upload', () => {
         sourceVersion: '2026-05-24.0',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
         originalFileName: 'division.parquet',
-        status: 'active',
-        isActive: true,
+        status: 'current',
         supersedesDatasetId: null,
         revokedAt: null,
         revocationReason: null,
@@ -439,8 +433,7 @@ describe('upload', () => {
         sourceVersion: '2026-01-21.0',
         rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
         originalFileName: 'division.parquet',
-        status: 'active',
-        isActive: true,
+        status: 'current',
         supersedesDatasetId: null,
         revokedAt: null,
         revocationReason: null,
@@ -486,8 +479,7 @@ describe('upload', () => {
         sourceVersion: '2026-01-21.0',
         rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
         originalFileName: 'division.parquet',
-        status: 'active',
-        isActive: true,
+        status: 'current',
         supersedesDatasetId: null,
         revokedAt: null,
         revocationReason: null,
@@ -537,7 +529,6 @@ describe('upload', () => {
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
         originalFileName: 'division.parquet',
         status: 'processing',
-        isActive: false,
         supersedesDatasetId: null,
         revokedAt: null,
         revocationReason: null,
@@ -580,8 +571,7 @@ describe('upload', () => {
         sourceVersion: '2026-05-24.0',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
         originalFileName: 'division.parquet',
-        status: 'active',
-        isActive: true,
+        status: 'current',
         supersedesDatasetId: null,
         revokedAt: null,
         revocationReason: null,
@@ -629,8 +619,7 @@ describe('upload', () => {
           sourceVersion: '2026-05-24.0',
           rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
           originalFileName: 'division.parquet',
-          status: 'active',
-          isActive: true,
+          status: 'current',
           supersedesDatasetId: null,
           revokedAt: null,
           revocationReason: null,
@@ -649,7 +638,6 @@ describe('upload', () => {
           rawObjectKey: 'hk/overture/2026-06-24.0/division.parquet',
           originalFileName: 'division.parquet',
           status: 'uploading',
-          isActive: false,
           supersedesDatasetId: 'overture-hk-2026-05-24.0-division',
           revokedAt: null,
           revocationReason: null,
@@ -668,7 +656,6 @@ describe('upload', () => {
           rawObjectKey: 'hk/overture/2026-07-24.0/division.parquet',
           originalFileName: 'division.parquet',
           status: 'failed',
-          isActive: false,
           supersedesDatasetId: null,
           revokedAt: null,
           revocationReason: null,

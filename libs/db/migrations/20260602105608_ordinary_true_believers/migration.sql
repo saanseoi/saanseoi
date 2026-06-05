@@ -9,7 +9,6 @@ CREATE TABLE `datasets` (
 	`rawObjectKey` text NOT NULL,
 	`originalFileName` text NOT NULL,
 	`status` text NOT NULL,
-	`isActive` integer NOT NULL,
 	`supersedesDatasetId` text,
 	`revokedAt` text,
 	`revocationReason` text,
@@ -476,7 +475,7 @@ CREATE TABLE `placesVersionsI18n` (
 	CONSTRAINT `placesVersionsI18n_pk` PRIMARY KEY(`placeId`, `versionHash`, `locale`)
 );
 --> statement-breakpoint
-CREATE INDEX `datasets_active_lookup_idx` ON `datasets` (`regionCode`,`source`,`sourceVersion`,`type`,`isActive`);--> statement-breakpoint
+CREATE INDEX `datasets_status_lookup_idx` ON `datasets` (`regionCode`,`source`,`type`,`status`,`sourceVersion`);--> statement-breakpoint
 CREATE UNIQUE INDEX `datasets_dataset_id_unique_idx` ON `datasets` (`datasetId`);--> statement-breakpoint
 CREATE UNIQUE INDEX `entityAliases_entityType_aliasValue_unique_idx` ON `entityAliases` (`entityType`,`aliasValue`);--> statement-breakpoint
 CREATE INDEX `entityAliases_canonical_lookup_idx` ON `entityAliases` (`entityType`,`canonicalId`);--> statement-breakpoint

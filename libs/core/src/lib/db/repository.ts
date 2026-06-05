@@ -21,7 +21,7 @@ type LatestDatasetLookup = {
 
 /**
  * Returns the most recent non-failed dataset for a region/source/type tuple and
- * the active dataset id that a new upload should supersede, if any.
+ * the current dataset id that a new upload should supersede, if any.
  */
 export async function getLatestDatasetForRegionSourceType(
   db: HarbourReadableDb,
@@ -45,6 +45,22 @@ export async function getLatestDatasetForRegionSourceType(
       .orderBy(desc(datasets.sourceVersion), desc(datasets.ingestedAt))
       .limit(1)
       .get()) as DatasetRecord | undefined) ?? null
+  const currentDataset =
+    ((await db
+      .select({
+        datasetId: datasets.datasetId,
+      })
+      .from(datasets)
+      .where(
+        and(
+          eq(datasets.regionCode, regionCode),
+          eq(datasets.source, source),
+          eq(datasets.type, type),
+          eq(datasets.status, 'current'),
+        ),
+      )
+      .limit(1)
+      .get()) as { datasetId: string } | undefined) ?? null
 
   if (!latestDataset) {
     return {
@@ -55,7 +71,7 @@ export async function getLatestDatasetForRegionSourceType(
 
   return {
     latestDataset,
-    supersedesDatasetId: latestDataset.isActive ? latestDataset.datasetId : null,
+    supersedesDatasetId: currentDataset?.datasetId ?? null,
   }
 }
 
@@ -116,7 +132,6 @@ export async function insertDataset(
       rawObjectKey,
       originalFileName: plan.originalFileName,
       status,
-      isActive: false,
       supersedesDatasetId: plan.supersedesDatasetId,
       revokedAt: null,
       revocationReason: null,
@@ -146,7 +161,6 @@ export async function resetFailedDataset(
       rawObjectKey,
       originalFileName: plan.originalFileName,
       status,
-      isActive: false,
       supersedesDatasetId: plan.supersedesDatasetId,
       revokedAt: null,
       revocationReason: null,
@@ -172,15 +186,31 @@ export async function updateDatasetStatus(
     .run()
 }
 
-export async function activateDataset(db: HarbourWritableDb, datasetId: string) {
+export async function markDatasetCurrent(db: HarbourWritableDb, datasetId: string) {
   const now = new Date().toISOString()
 
   await db
     .update(datasets)
     .set({
-      isActive: true,
-      status: 'active',
+      status: 'current',
+      revokedAt: null,
+      revocationReason: null,
       updatedAt: now,
+    })
+    .where(eq(datasets.datasetId, datasetId))
+    .run()
+}
+
+export async function markDatasetHistoric(
+  db: HarbourWritableDb,
+  datasetId: string,
+  historicAt: string,
+) {
+  await db
+    .update(datasets)
+    .set({
+      status: 'historic',
+      updatedAt: historicAt,
     })
     .where(eq(datasets.datasetId, datasetId))
     .run()
@@ -195,7 +225,6 @@ export async function revokeDataset(
   await db
     .update(datasets)
     .set({
-      isActive: false,
       revokedAt,
       revocationReason,
       status: 'revoked',
