@@ -16,6 +16,7 @@ DROP TABLE IF EXISTS `address3dI18n`;
 DROP TABLE IF EXISTS `address3dVersions`;
 DROP TABLE IF EXISTS `address3d`;
 DROP TABLE IF EXISTS `address2dVersionsI18n`;
+DROP TABLE IF EXISTS `address2dVersionsDatasets`;
 DROP TABLE IF EXISTS `address2dI18n`;
 DROP TABLE IF EXISTS `address2dVersions`;
 DROP TABLE IF EXISTS `address2d`;

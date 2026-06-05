@@ -44,6 +44,7 @@ tables=(
   "streetsVersions"
   "address2d"
   "address2dVersions"
+  "address2dVersionsDatasets"
   "address2dI18n"
   "address2dVersionsI18n"
   "address3d"
