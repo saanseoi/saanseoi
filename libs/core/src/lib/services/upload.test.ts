@@ -272,6 +272,35 @@ describe('upload', () => {
     db.close()
   })
 
+  test('requires same-month overture addresses before hkgov address upload', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = join(tempDir, 'hkgov-als-address.parquet')
+
+    writeFileSync(fixtureFile, 'fixture')
+    const db = initDb(dbPath)
+    const harbourDb = createLocalHarbourDb(db)
+
+    await expect(
+      planUpload(harbourDb, {
+        filePath: fixtureFile,
+        source: 'hkgov-als',
+        snapshotMonth: '2026-06',
+        sourceVersion: '2026-06-04.324',
+        inspection: {
+          rowCount: 1,
+          schema: fixtureInspection.schema,
+          distinctThemeValues: ['addresses'],
+          distinctTypeValues: ['address'],
+          distinctCountryValues: ['hk'],
+          distinctRegionValues: ['hk'],
+        },
+      }),
+    ).rejects.toThrow('Upload the matching Overture address dataset for the same snapshot month first.')
+
+    db.close()
+  })
+
   test('registers an already-uploaded remote object', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
