@@ -10,6 +10,7 @@ describe('processDatasetMessage', () => {
       insertedVersions: 2,
       localizedRows: 4,
       processedRows: 2,
+      statsRows: 12,
       unchangedRows: 0,
     } satisfies ProcessDatasetResult))
     const stageStarted = mock(async () => undefined)
@@ -55,6 +56,7 @@ describe('processDatasetMessage', () => {
       insertedVersions: 2,
       localizedRows: 4,
       processedRows: 2,
+      statsRows: 12,
       unchangedRows: 0,
     })
     expect(processDivisionDataset).toHaveBeenCalledTimes(1)

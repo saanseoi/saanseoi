@@ -1,6 +1,10 @@
 const SQLITE_BUSY_RETRY_LIMIT = 5
 const SQLITE_BUSY_RETRY_DELAY_MS = 25
 const D1_MAX_SQL_VARIABLES = 99
+const CHINESE_CHARACTER_RE = /\p{Script=Han}/u
+const LATIN_ALPHA_RE = /[A-Za-z]/
+const EN_INFERRED_NAME_RE = /^[A-Za-z0-9\s'".,&()\-\/]+$/
+const LOCALE_TAG_RE = /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i
 
 /**
  * Derives a safe insert batch size from the number of columns per row.
@@ -81,9 +85,71 @@ export function addLocalizedValue(
  * Normalizes locale keys to lowercase and rejects empty values.
  */
 export function normalizeLocale(value?: string | null) {
-  const trimmed = value?.trim().toLowerCase()
+  const trimmed = value?.trim().replaceAll('_', '-').toLowerCase()
 
-  return trimmed ? trimmed : null
+  if (!trimmed || !LOCALE_TAG_RE.test(trimmed)) {
+    return null
+  }
+
+  if (trimmed === 'zh') {
+    return 'zh-hant'
+  }
+
+  return trimmed
+}
+
+export type InferredLocaleValue = {
+  locale: 'en' | 'zh-hans' | 'zh-hant'
+  value: string
+}
+
+/**
+ * Infers locale-bearing name parts from unlabeled source text.
+ */
+export function inferLocale(value: unknown): InferredLocaleValue[] {
+  const normalizedValue = asNonEmptyString(value)
+
+  if (!normalizedValue) {
+    return []
+  }
+
+  const hasChinese = CHINESE_CHARACTER_RE.test(normalizedValue)
+  const hasLatin = LATIN_ALPHA_RE.test(normalizedValue)
+
+  if (hasChinese && !hasLatin) {
+    return [{ locale: 'zh-hans', value: normalizedValue }]
+  }
+
+  if (!hasChinese && EN_INFERRED_NAME_RE.test(normalizedValue)) {
+    return [{ locale: 'en', value: normalizedValue }]
+  }
+
+  if (hasChinese && hasLatin) {
+    const match = normalizedValue.match(/^(\S+)\s+(.+)$/u)
+
+    if (match) {
+      const left = match[1]
+      const right = match[2]
+
+      if (!left || !right) {
+        return []
+      }
+
+      const hasChineseLeft = CHINESE_CHARACTER_RE.test(left)
+      const hasLatinLeft = LATIN_ALPHA_RE.test(left)
+      const hasChineseRight = CHINESE_CHARACTER_RE.test(right)
+      const hasLatinRight = LATIN_ALPHA_RE.test(right)
+
+      if (hasChineseLeft && !hasLatinLeft && !hasChineseRight && hasLatinRight) {
+        return [
+          { locale: 'zh-hant', value: left },
+          { locale: 'en', value: right },
+        ]
+      }
+    }
+  }
+
+  return []
 }
 
 /**
