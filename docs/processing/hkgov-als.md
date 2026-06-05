@@ -19,10 +19,15 @@ The Hong Kong government ALS address export is a first-class source for Harbour 
 ## Preparation
 
 - Command:
-  - `bun --cwd apps/harbour-cli ./src/cli.ts prepare-hkgov-als <source-dir> --out <file> --month YYYY-MM --source-version YYYY-MM-DD.NN [--env dev|preview|production] [--db /path/to/local.sqlite]`
+  - `bun run --cwd apps/harbour-cli prep-hkgov-als <source-dir> [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]`
+  - `bun run --cwd apps/harbour-cli prep-hkgov-als:preview <source-dir> [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]`
+  - `bun run --cwd apps/harbour-cli prep-hkgov-als:production <source-dir> [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]`
 - The command:
   - skips the 3D export for now
   - reads all 2D district GeoJSON files
+  - infers `sourceVersion` from the source path when it contains a `YYYY-MM-DD.NN` segment, otherwise requires `--source-version`
+  - derives `snapshotMonth` directly from `sourceVersion`
+  - writes a temp parquet file named `hkgov-hk-{sourceVersion}-address.parquet` and prints the full path on completion
   - flattens the structured address payload into upload-friendly parquet columns
   - stores both localized premises address objects as JSON payload columns
   - extracts structured localized address elements for `en` and `zh-hant`, including:
@@ -43,11 +48,11 @@ The Hong Kong government ALS address export is a first-class source for Harbour 
 
 ## Environment Mapping
 
-- `--env dev`
+- `prep-hkgov-als`
   - reads from the local preview D1 database state
-- `--env preview`
+- `prep-hkgov-als:preview`
   - reads from the remote preview D1 database
-- `--env production`
+- `prep-hkgov-als:production`
   - reads from the remote production D1 database
 - `--db`
   - overrides the environment-based lookup and reads from the specified SQLite file directly
