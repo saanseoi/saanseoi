@@ -107,21 +107,10 @@ export function formatSummary(result: UploadPreviewResult, target: UploadTarget)
 /**
  * Describe the API dispatch step and the expected downstream behaviour.
  */
-export function explainDispatch(target: UploadTarget, apiBaseUrl: string) {
+export function explainDispatch(target: UploadTarget) {
   const targetDetails = describeTarget(target)
-  const signUploadEndpoint = buildSignUploadEndpoint(apiBaseUrl)
-  const finalizeUploadEndpoint = buildFinalizeUploadEndpoint(apiBaseUrl)
-
   return [
     `CLI target: ${targetDetails.label}`,
-    `Destination: ${targetDetails.destination}`,
-    `POST ${signUploadEndpoint}`,
-    `POST ${finalizeUploadEndpoint}`,
-    'Expected runtime flow:',
-    '1. send the inspected upload plan to Harbour and request a signed R2 upload URL',
-    '2. upload the parquet directly from the CLI to R2 using the signed PUT URL',
-    '3. tell Harbour the object upload is complete so it can validate and stage the dataset',
-    '',
-    'Downstream ingest execution is still deferred after dataset registration.',
+    `Destination: ${targetDetails.destination}`
   ].join('\n')
 }
