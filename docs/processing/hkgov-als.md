@@ -57,13 +57,21 @@ The Hong Kong government ALS address export is a first-class source for Harbour 
 
 - `hkgov-als` is richer than Overture and is intended to supply:
   - localized address text
-  - estate and building names
+  - building and estate names
+  - building number ranges
+  - block and phase details when present
+  - street names and street numbers
   - street number ranges
   - government address identifiers
 - Overture and `hkgov-als` are both retained as sources.
 - The current direction is:
   - Overture supplies broad 2D address coverage and source lineage.
   - `hkgov-als` supplies the richer Hong Kong-specific address structure.
+- There is no stable shared cross-source address key.
+- `address2d` reconciliation should therefore be based on normalized content, starting with:
+  - street number
+  - street name
+  - `districtId`
 
 ## Notes
 

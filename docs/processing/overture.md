@@ -45,4 +45,6 @@ The `division` is normalised into `divisions` and `divisionsI18n` where each `lo
   - `version` -> `otVersion`.
   - `sources` -> `sourcesJson` as `{ "overture": [...] }`, with null and empty source object properties removed.
 - District matching for Overture HK addresses is intended to use the second `address_levels` entry against the English `divisionsI18n.otName` of the level-2 district rows.
+- There is no shared cross-source address key between Overture and `hkgov-als`.
+- Reconciliation for `address2d` should start from normalized street number, street name, and `districtId`.
 - Overture address uploads are still expected to land before any `hkgov-als` enrichment layer is applied.
