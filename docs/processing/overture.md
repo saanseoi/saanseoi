@@ -32,3 +32,17 @@ The `division` is normalised into `divisions` and `divisionsI18n` where each `lo
   - `norms`: dropped because the field is too undifferentiated in current SAR datasets to justify row-level storage.
   - `region`: dropped because it is null throughout the Hong Kong division dataset.
   - `theme` and `type`: dropped at the row level because dataset-level metadata already records them.
+
+## Addresses
+
+- Overture `address` rows remain part of the Harbour address strategy alongside `hkgov-als`.
+- For the first address pass, Overture is intended to contribute:
+  - `id` -> Harbour `address2d.id` using the GERS UID directly.
+  - `geometry` -> GeoJSON point text in `geometryJson`.
+  - `bbox` -> `otBboxJson`.
+  - `street` -> `otStreet`.
+  - `number` -> `otNumber`.
+  - `version` -> `otVersion`.
+  - `sources` -> `sourcesJson` as `{ "overture": [...] }`, with null and empty source object properties removed.
+- District matching for Overture HK addresses is intended to use the second `address_levels` entry against the English `divisionsI18n.otName` of the level-2 district rows.
+- Overture address uploads are still expected to land before any `hkgov-als` enrichment layer is applied.
