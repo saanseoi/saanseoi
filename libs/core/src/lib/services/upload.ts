@@ -2,6 +2,7 @@ import {
   type HarbourReadableDb,
   type HarbourWritableDb,
   getDatasetById,
+  hasDatasetForSnapshotMonthSourceType,
   getLatestDatasetForRegionSourceType,
   insertDataset,
   insertIngestRun,
@@ -501,6 +502,32 @@ async function ensureSchemaCompatible(
   }
 }
 
+async function ensureSourcePrerequisites(
+  db: HarbourReadableDb,
+  plan: Pick<UploadPlan, 'regionCode' | 'snapshotMonth' | 'source' | 'type'>,
+) {
+  if (plan.source !== 'hkgov' || plan.type !== 'address') {
+    return
+  }
+
+  const overtureDataset = await hasDatasetForSnapshotMonthSourceType(
+    db,
+    plan.regionCode,
+    plan.snapshotMonth,
+    'overture',
+    'address',
+  )
+
+  if (!overtureDataset) {
+    throw new Error(
+      [
+        `Cannot upload ${plan.source} ${plan.type} for ${plan.snapshotMonth}.`,
+        'Upload the matching Overture address dataset for the same snapshot month first.',
+      ].join(' '),
+    )
+  }
+}
+
 function resolveUploadPlan(
   options: RegisterUploadOptions,
   resolvedInspection: ParquetInspection,
@@ -653,6 +680,7 @@ export async function planUpload(
   const { latestDataset, supersedesDatasetId } =
     await getLatestDatasetForRegionSourceType(db, regionCode, source, type)
 
+  await ensureSourcePrerequisites(db, preparedUpload.plan)
   ensureChronologicalUpload(latestDataset, sourceVersion, datasetId)
   await ensureSchemaCompatible(
     latestDataset,
