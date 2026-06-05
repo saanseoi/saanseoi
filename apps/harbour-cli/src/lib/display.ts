@@ -33,6 +33,56 @@ export function formatField(
   return `${cyanText(label)}: ${value}${suffix}`
 }
 
+function describeInferredFrom(
+  field: 'regionCode' | 'snapshotMonth' | 'sourceVersion' | 'type',
+  inferredFrom:
+    | 'flag'
+    | 'filename'
+    | 'parquet'
+    | 'path'
+    | 'snapshotMonth'
+    | undefined,
+) {
+  switch (field) {
+    case 'regionCode':
+    case 'type':
+      switch (inferredFrom) {
+        case 'flag':
+          return 'flag'
+        case 'path':
+          return 'path'
+        case 'parquet':
+          return 'parquet'
+        default:
+          return undefined
+      }
+    case 'snapshotMonth':
+      switch (inferredFrom) {
+        case 'flag':
+          return 'flag --month'
+        case 'path':
+          return 'path'
+        case 'filename':
+          return 'filename'
+        default:
+          return undefined
+      }
+    case 'sourceVersion':
+      switch (inferredFrom) {
+        case 'flag':
+          return 'flag --source-version'
+        case 'path':
+          return 'path'
+        case 'filename':
+          return 'filename'
+        case 'snapshotMonth':
+          return 'snapshotMonth fallback'
+        default:
+          return undefined
+      }
+  }
+}
+
 /**
  * Convert an upload target into user-facing labels for prompts and logs.
  */
@@ -77,14 +127,27 @@ export function describeTarget(target: UploadTarget) {
 export function formatPlan(result: UploadPreviewResult) {
   return [
     formatField('datasetId', result.plan.datasetId),
-    formatField('sourceVersion', result.plan.sourceVersion),
-    formatField('region', result.plan.regionCode, result.plan.inferredFrom.regionCode),
+    formatField('source', result.plan.source),
+    formatField(
+      'sourceVersion',
+      result.plan.sourceVersion,
+      describeInferredFrom('sourceVersion', result.plan.inferredFrom.sourceVersion),
+    ),
+    formatField(
+      'region',
+      result.plan.regionCode,
+      describeInferredFrom('regionCode', result.plan.inferredFrom.regionCode),
+    ),
     formatField(
       'snapshotMonth',
       result.plan.snapshotMonth,
-      result.plan.inferredFrom.snapshotMonth,
+      describeInferredFrom('snapshotMonth', result.plan.inferredFrom.snapshotMonth),
     ),
-    formatField('type', result.plan.type, result.plan.inferredFrom.type),
+    formatField(
+      'type',
+      result.plan.type,
+      describeInferredFrom('type', result.plan.inferredFrom.type),
+    ),
     formatField('rows', result.plan.rowCount),
     formatField('supersedes', result.plan.supersedesDatasetId ?? '-'),
   ]
