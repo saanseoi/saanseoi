@@ -132,7 +132,6 @@ async function main() {
     'UPLOAD RESULT',
   )
   log.success('Dataset uploaded and registered in Harbour.')
-  log.message('Downstream ingest execution is not implemented yet.')
   outro('Harbour upload complete')
 }
 
