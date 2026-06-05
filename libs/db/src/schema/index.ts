@@ -1,4 +1,5 @@
 export * from './shared'
+export * from './shared.types'
 export * from './divisions'
 export * from './divisions.types'
 export * from './addresses'
