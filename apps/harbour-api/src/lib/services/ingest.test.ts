@@ -119,7 +119,7 @@ describe('direct upload flow', () => {
     }
     const file = new File(
       [new Uint8Array([0x50, 0x41, 0x52, 0x31])],
-      'division.parquet',
+      'overture-hk-division.parquet',
       {
         type: 'application/octet-stream',
       },
