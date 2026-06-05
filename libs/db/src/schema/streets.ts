@@ -27,20 +27,14 @@ export const streetsVersions = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.id, table.versionHash],
     }),
-    currentLookupIdx: index('streetsVersions_current_lookup_idx').on(
-      table.id,
-      table.isCurrent,
-    ),
-    validityIdx: index('streetsVersions_validity_idx').on(
-      table.validFromMonth,
-      table.validToMonth,
-    ),
-    datasetIdx: index('streetsVersions_datasetId_idx').on(table.datasetId),
-  }),
+    index('streetsVersions_current_lookup_idx').on(table.id, table.isCurrent),
+    index('streetsVersions_validity_idx').on(table.validFromMonth, table.validToMonth),
+    index('streetsVersions_datasetId_idx').on(table.datasetId),
+  ],
 )
 
 export const streetsI18n = sqliteTable(
@@ -59,13 +53,13 @@ export const streetsI18n = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.streetId, table.locale],
     }),
-    localeIdx: index('streetsI18n_locale_idx').on(table.locale),
-    nameIdx: index('streetsI18n_name_idx').on(table.locale, table.name),
-  }),
+    index('streetsI18n_locale_idx').on(table.locale),
+    index('streetsI18n_name_idx').on(table.locale, table.name),
+  ],
 )
 
 export const streetsVersionsI18n = sqliteTable(
@@ -83,13 +77,13 @@ export const streetsVersionsI18n = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.streetId, table.versionHash, table.locale],
     }),
-    localeIdx: index('streetsVersionsI18n_locale_idx').on(table.locale),
-    nameIdx: index('streetsVersionsI18n_name_idx').on(table.locale, table.name),
-  }),
+    index('streetsVersionsI18n_locale_idx').on(table.locale),
+    index('streetsVersionsI18n_name_idx').on(table.locale, table.name),
+  ],
 )
 
 export const streetsAddress = sqliteTable(
@@ -102,10 +96,10 @@ export const streetsAddress = sqliteTable(
       .notNull()
       .references(() => address2d.id),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.streetId, table.addressId],
     }),
-    addressIdx: index('streetsAddress_addressId_idx').on(table.addressId),
-  }),
+    index('streetsAddress_addressId_idx').on(table.addressId),
+  ],
 )

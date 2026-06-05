@@ -23,10 +23,10 @@ export const divisions = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    levelIdx: index('divisions_level_idx').on(table.level),
-    parentIdx: index('divisions_parentDivisionId_idx').on(table.parentDivisionId),
-  }),
+  table => [
+    index('divisions_level_idx').on(table.level),
+    index('divisions_parentDivisionId_idx').on(table.parentDivisionId),
+  ],
 )
 
 export const divisionsVersions = sqliteTable(
@@ -59,22 +59,22 @@ export const divisionsVersions = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.id, table.versionHash],
     }),
-    currentLookupIdx: index('divisionsVersions_current_lookup_idx').on(
+    index('divisionsVersions_current_lookup_idx').on(
       table.regionCode,
       table.id,
       table.isCurrent,
     ),
-    validityIdx: index('divisionsVersions_validity_idx').on(
+    index('divisionsVersions_validity_idx').on(
       table.regionCode,
       table.validFromMonth,
       table.validToMonth,
     ),
-    datasetIdx: index('divisionsVersions_datasetId_idx').on(table.datasetId),
-  }),
+    index('divisionsVersions_datasetId_idx').on(table.datasetId),
+  ],
 )
 
 export const divisionsI18n = sqliteTable(
@@ -93,13 +93,13 @@ export const divisionsI18n = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.divisionId, table.locale],
     }),
-    localeIdx: index('divisionsI18n_locale_idx').on(table.locale),
-    nameIdx: index('divisionsI18n_name_idx').on(table.locale, table.otName),
-  }),
+    index('divisionsI18n_locale_idx').on(table.locale),
+    index('divisionsI18n_name_idx').on(table.locale, table.otName),
+  ],
 )
 
 export const divisionsVersionsI18n = sqliteTable(
@@ -117,11 +117,11 @@ export const divisionsVersionsI18n = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.divisionId, table.versionHash, table.locale],
     }),
-    localeIdx: index('divisionsVersionsI18n_locale_idx').on(table.locale),
-    nameIdx: index('divisionsVersionsI18n_name_idx').on(table.locale, table.otName),
-  }),
+    index('divisionsVersionsI18n_locale_idx').on(table.locale),
+    index('divisionsVersionsI18n_name_idx').on(table.locale, table.otName),
+  ],
 )

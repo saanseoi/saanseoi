@@ -44,18 +44,12 @@ export const places = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    datasetIdx: index('places_datasetId_idx').on(table.datasetId),
-    categoryIdx: index('places_category_idx').on(
-      table.regionCode,
-      table.otBasicCategory,
-    ),
-    taxonomyIdx: index('places_taxonomy_idx').on(
-      table.regionCode,
-      table.otTaxonomyPrimary,
-    ),
-    statusIdx: index('places_status_idx').on(table.regionCode, table.otOperatingStatus),
-  }),
+  table => [
+    index('places_datasetId_idx').on(table.datasetId),
+    index('places_category_idx').on(table.regionCode, table.otBasicCategory),
+    index('places_taxonomy_idx').on(table.regionCode, table.otTaxonomyPrimary),
+    index('places_status_idx').on(table.regionCode, table.otOperatingStatus),
+  ],
 )
 
 export const placesVersions = sqliteTable(
@@ -93,22 +87,22 @@ export const placesVersions = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.id, table.versionHash],
     }),
-    currentLookupIdx: index('placesVersions_current_lookup_idx').on(
+    index('placesVersions_current_lookup_idx').on(
       table.regionCode,
       table.id,
       table.isCurrent,
     ),
-    validityIdx: index('placesVersions_validity_idx').on(
+    index('placesVersions_validity_idx').on(
       table.regionCode,
       table.validFromMonth,
       table.validToMonth,
     ),
-    datasetIdx: index('placesVersions_datasetId_idx').on(table.datasetId),
-  }),
+    index('placesVersions_datasetId_idx').on(table.datasetId),
+  ],
 )
 
 export const placesI18n = sqliteTable(
@@ -128,13 +122,13 @@ export const placesI18n = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.placeId, table.locale],
     }),
-    localeIdx: index('placesI18n_locale_idx').on(table.locale),
-    nameIdx: index('placesI18n_name_idx').on(table.locale, table.otName),
-  }),
+    index('placesI18n_locale_idx').on(table.locale),
+    index('placesI18n_name_idx').on(table.locale, table.otName),
+  ],
 )
 
 export const placesVersionsI18n = sqliteTable(
@@ -153,13 +147,13 @@ export const placesVersionsI18n = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.placeId, table.versionHash, table.locale],
     }),
-    localeIdx: index('placesVersionsI18n_locale_idx').on(table.locale),
-    nameIdx: index('placesVersionsI18n_name_idx').on(table.locale, table.otName),
-  }),
+    index('placesVersionsI18n_locale_idx').on(table.locale),
+    index('placesVersionsI18n_name_idx').on(table.locale, table.otName),
+  ],
 )
 
 export const placesDivision = sqliteTable(
@@ -172,15 +166,12 @@ export const placesDivision = sqliteTable(
       .notNull()
       .references(() => divisions.id),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.placeId, table.divisionId],
     }),
-    divisionIdx: index('placesDivision_divisionId_idx').on(
-      table.divisionId,
-      table.placeId,
-    ),
-  }),
+    index('placesDivision_divisionId_idx').on(table.divisionId, table.placeId),
+  ],
 )
 
 export const placesCells = sqliteTable(
@@ -193,15 +184,15 @@ export const placesCells = sqliteTable(
     h3Level: integer('h3Level').notNull(),
     h3Cell: text('h3Cell').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.regionCode, table.id, table.h3Level, table.h3Cell],
     }),
-    cellIdx: index('placesCells_lookup_idx').on(
+    index('placesCells_lookup_idx').on(
       table.regionCode,
       table.h3Level,
       table.h3Cell,
       table.id,
     ),
-  }),
+  ],
 )
