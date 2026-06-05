@@ -80,6 +80,7 @@ export type RegisterUploadOptions = {
   inspection?: ParquetInspection
   rawObjectKey?: string
   resolveSchemaFingerprint?: SchemaFingerprintResolver
+  allowExistingDatasetStatuses?: string[]
 }
 
 export type PreparedUploadResult = {

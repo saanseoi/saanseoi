@@ -423,6 +423,7 @@ async function ensureSchemaCompatible(
   }
 
   const nextFingerprint = createSchemaFingerprint(nextInspection)
+  const previousSchema = parseSchemaFingerprint(previousFingerprint)
 
   if (previousFingerprint !== nextFingerprint) {
     if (
@@ -436,11 +437,15 @@ async function ensureSchemaCompatible(
       return
     }
 
+    const schemaDiff = describeSchemaDiff(previousSchema, nextInspection.schema)
+
     throw new Error(
       [
         `Schema drift detected against ${latestDataset.datasetId}.`,
+        `Current upload schema has ${nextInspection.schema.length} fields; ${latestDataset.datasetId} recorded ${previousSchema?.length ?? 'an unreadable number of'} fields.`,
+        schemaDiff,
         'Reconcile the schema before uploading this dataset.',
-      ].join(' '),
+      ].join('\n'),
     )
   }
 }
@@ -579,7 +584,10 @@ export async function planUpload(
   const existingDataset = await getDatasetById(db, datasetId)
 
   if (existingDataset) {
-    assertDatasetCanBeReuploaded(existingDataset)
+    assertDatasetCanBeReuploaded(
+      existingDataset,
+      options.allowExistingDatasetStatuses,
+    )
   }
 
   const { latestDataset, supersedesDatasetId } =
@@ -666,6 +674,56 @@ function parseSchemaFingerprint(
   }
 }
 
+function describeSchemaDiff(
+  previousSchema: ParquetInspection['schema'] | null,
+  nextSchema: ParquetInspection['schema'],
+) {
+  if (!previousSchema) {
+    return 'Stored schema metadata could not be parsed, so Harbour cannot explain the field-level drift.'
+  }
+
+  const previousByName = new Map(previousSchema.map(field => [field.name, field]))
+  const nextByName = new Map(nextSchema.map(field => [field.name, field]))
+  const additions = nextSchema
+    .filter(field => !previousByName.has(field.name))
+    .map(field => `added \`${field.name}\` (${field.type}, nullable=${field.nullable})`)
+  const removals = previousSchema
+    .filter(field => !nextByName.has(field.name))
+    .map(field => `removed \`${field.name}\` (${field.type}, nullable=${field.nullable})`)
+  const changes = previousSchema.flatMap(previousField => {
+    const nextField = nextByName.get(previousField.name)
+
+    if (!nextField) {
+      return []
+    }
+
+    const fieldChanges: string[] = []
+
+    if (previousField.type !== nextField.type) {
+      fieldChanges.push(`type ${previousField.type} -> ${nextField.type}`)
+    }
+
+    if (previousField.nullable !== nextField.nullable) {
+      fieldChanges.push(
+        `nullable ${previousField.nullable} -> ${nextField.nullable}`,
+      )
+    }
+
+    if (fieldChanges.length === 0) {
+      return []
+    }
+
+    return [`changed \`${previousField.name}\` (${fieldChanges.join(', ')})`]
+  })
+  const differences = [...additions, ...removals, ...changes]
+
+  if (differences.length === 0) {
+    return 'The schema fingerprint changed, but Harbour could not derive a field-level difference from the stored metadata.'
+  }
+
+  return ['Field-level differences:', ...differences.map(line => `- ${line}`)].join('\n')
+}
+
 function matchesAdminLevelTransition(
   previousSchema: ParquetInspection['schema'],
   nextSchema: ParquetInspection['schema'],
@@ -732,8 +790,12 @@ function getRequiredInspection(
 function assertDatasetCanBeReuploaded(existingDataset: {
   datasetId: string
   status: string
-}) {
+}, allowedExistingStatuses: readonly string[] = []) {
   if (existingDataset.status === 'failed') {
+    return
+  }
+
+  if (allowedExistingStatuses.includes(existingDataset.status)) {
     return
   }
 
@@ -844,7 +906,17 @@ export async function finalizeUpload(
   db: HarbourReadableDb & HarbourWritableDb,
   options: RegisterUploadOptions,
 ) {
-  const { plan, inspection } = await planUpload(db, options)
+  const { plan, inspection } = await planUpload(
+    db,
+    {
+      ...options,
+      allowExistingDatasetStatuses: [
+        ...(options.allowExistingDatasetStatuses ?? []),
+        'uploading',
+      ],
+    },
+    options.inspection,
+  )
   const rawObjectKey = options.rawObjectKey ?? createRawObjectKey(plan)
   const now = new Date().toISOString()
 
