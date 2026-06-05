@@ -13,6 +13,7 @@ import {
   inferThemeFromPath,
   inferTypeFromFilename,
   inferTypeFromPath,
+  requestUpload,
 } from './upload'
 import { planUpload, registerUpload } from './upload-local'
 import { createLocalHarbourDb } from '../../testing/local-db'
@@ -250,6 +251,120 @@ describe('upload', () => {
     expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
   })
 
+  test('allows re-registering a failed dataset id', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    db.insert(datasets)
+      .values({
+        datasetId: 'overture-hk-2026-05-24.0-division',
+        regionCode: 'hk',
+        snapshotMonth: '2026-05',
+        theme: 'divisions',
+        type: 'division',
+        source: 'overture',
+        sourceVersion: '2026-05-24.0',
+        rawObjectKey: 'hk/overture/2026-05-24.0/division-old.parquet',
+        originalFileName: 'division-old.parquet',
+        status: 'failed',
+        isActive: false,
+        supersedesDatasetId: null,
+        revokedAt: null,
+        revocationReason: null,
+        ingestedAt: '2026-06-02T00:00:00.000Z',
+        createdAt: '2026-06-02T00:00:00.000Z',
+        updatedAt: '2026-06-02T00:00:00.000Z',
+      })
+      .run()
+
+    const result = await registerUpload(db, {
+      filePath: fixtureFile,
+      snapshotMonth: '2026-05',
+      sourceVersion: '2026-05-24.0',
+      inspection: fixtureInspection,
+      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+    })
+
+    const dataset = sqlite
+      .query(
+        'SELECT datasetId, status, rawObjectKey, originalFileName, isActive FROM datasets WHERE datasetId = ?',
+      )
+      .get('overture-hk-2026-05-24.0-division') as {
+      datasetId: string
+      status: string
+      rawObjectKey: string
+      originalFileName: string
+      isActive: number
+    } | null
+    const ingestRunCount = sqlite
+      .query('SELECT COUNT(*) AS count FROM ingestRuns WHERE datasetId = ?')
+      .get('overture-hk-2026-05-24.0-division') as { count: number }
+
+    sqlite.close()
+
+    expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
+    expect(dataset).not.toBeNull()
+    expect(dataset?.status).toBe('staged')
+    expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
+    expect(dataset?.originalFileName).toBe('hk-division-2026-05.parquet')
+    expect(dataset?.isActive).toBe(0)
+    expect(ingestRunCount.count).toBe(2)
+  })
+
+  test('allows restarting a failed direct-upload session', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    db.insert(datasets)
+      .values({
+        datasetId: 'overture-hk-2026-05-24.0-division',
+        regionCode: 'hk',
+        snapshotMonth: '2026-05',
+        theme: 'divisions',
+        type: 'division',
+        source: 'overture',
+        sourceVersion: '2026-05-24.0',
+        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        originalFileName: 'division.parquet',
+        status: 'failed',
+        isActive: false,
+        supersedesDatasetId: null,
+        revokedAt: null,
+        revocationReason: null,
+        ingestedAt: '2026-06-02T00:00:00.000Z',
+        createdAt: '2026-06-02T00:00:00.000Z',
+        updatedAt: '2026-06-02T00:00:00.000Z',
+      })
+      .run()
+
+    const result = await requestUpload(db, {
+      filePath: fixtureFile,
+      snapshotMonth: '2026-05',
+      sourceVersion: '2026-05-24.0',
+      inspection: fixtureInspection,
+    })
+
+    const dataset = sqlite
+      .query('SELECT status, rawObjectKey FROM datasets WHERE datasetId = ?')
+      .get('overture-hk-2026-05-24.0-division') as {
+      status: string
+      rawObjectKey: string
+    } | null
+
+    sqlite.close()
+
+    expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
+    expect(result.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
+    expect(dataset?.status).toBe('uploading')
+    expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
+  })
+
   test('uses injected schema metadata for remote chronology checks', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
@@ -294,6 +409,50 @@ describe('upload', () => {
         supersedesDatasetId: 'overture-hk-2026-05-24.0-division',
       },
     })
+
+    sqlite.close()
+  })
+
+  test('rejects re-upload when the dataset already exists in a non-failed state', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    db.insert(datasets)
+      .values({
+        datasetId: 'overture-hk-2026-05-24.0-division',
+        regionCode: 'hk',
+        snapshotMonth: '2026-05',
+        theme: 'divisions',
+        type: 'division',
+        source: 'overture',
+        sourceVersion: '2026-05-24.0',
+        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        originalFileName: 'division.parquet',
+        status: 'processing',
+        isActive: false,
+        supersedesDatasetId: null,
+        revokedAt: null,
+        revocationReason: null,
+        ingestedAt: '2026-06-02T00:00:00.000Z',
+        createdAt: '2026-06-02T00:00:00.000Z',
+        updatedAt: '2026-06-02T00:00:00.000Z',
+      })
+      .run()
+
+    await expect(
+      registerUpload(db, {
+        filePath: fixtureFile,
+        snapshotMonth: '2026-05',
+        sourceVersion: '2026-05-24.0',
+        inspection: fixtureInspection,
+        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+      }),
+    ).rejects.toThrow(
+      'Dataset already exists with status processing: overture-hk-2026-05-24.0-division',
+    )
 
     sqlite.close()
   })

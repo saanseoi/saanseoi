@@ -5,6 +5,7 @@ import {
   getLatestDatasetForRegionSourceType,
   insertDataset,
   insertIngestRun,
+  resetFailedDataset,
   updateDatasetStatus,
 } from '../db/repository'
 import type {
@@ -563,6 +564,12 @@ export async function planUpload(
   const {
     plan: { datasetId, regionCode, source, sourceVersion, type },
   } = preparedUpload
+  const existingDataset = await getDatasetById(db, datasetId)
+
+  if (existingDataset) {
+    assertDatasetCanBeReuploaded(existingDataset)
+  }
+
   const { latestDataset, supersedesDatasetId } =
     await getLatestDatasetForRegionSourceType(db, regionCode, source, type)
 
@@ -595,6 +602,19 @@ function getRequiredInspection(
   return resolvedInspection
 }
 
+function assertDatasetCanBeReuploaded(existingDataset: {
+  datasetId: string
+  status: string
+}) {
+  if (existingDataset.status === 'failed') {
+    return
+  }
+
+  throw new Error(
+    `Dataset already exists with status ${existingDataset.status}: ${existingDataset.datasetId}`,
+  )
+}
+
 export async function registerUpload(
   db: HarbourReadableDb & HarbourWritableDb,
   options: RegisterUploadOptions,
@@ -610,11 +630,6 @@ export async function registerUpload(
   }
 
   const existingDataset = await getDatasetById(db, plan.datasetId)
-
-  if (existingDataset) {
-    throw new Error(`Dataset already exists: ${plan.datasetId}`)
-  }
-
   const rawObjectKey = options.rawObjectKey ?? null
 
   if (!rawObjectKey) {
@@ -623,7 +638,12 @@ export async function registerUpload(
 
   const now = new Date().toISOString()
 
-  await insertDataset(db, plan, rawObjectKey, now)
+  if (existingDataset) {
+    assertDatasetCanBeReuploaded(existingDataset)
+    await resetFailedDataset(db, plan, rawObjectKey, now, 'staged')
+  } else {
+    await insertDataset(db, plan, rawObjectKey, now)
+  }
 
   await insertIngestRun(
     db,
@@ -662,15 +682,15 @@ export async function requestUpload(
 ) {
   const { plan, inspection } = await planUpload(db, options)
   const existingDataset = await getDatasetById(db, plan.datasetId)
-
-  if (existingDataset) {
-    throw new Error(`Dataset already exists: ${plan.datasetId}`)
-  }
-
   const rawObjectKey = createRawObjectKey(plan)
   const now = new Date().toISOString()
 
-  await insertDataset(db, plan, rawObjectKey, now, 'uploading')
+  if (existingDataset) {
+    assertDatasetCanBeReuploaded(existingDataset)
+    await resetFailedDataset(db, plan, rawObjectKey, now, 'uploading')
+  } else {
+    await insertDataset(db, plan, rawObjectKey, now, 'uploading')
+  }
   await insertIngestRun(
     db,
     plan.datasetId,

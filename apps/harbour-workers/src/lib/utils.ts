@@ -14,6 +14,13 @@ export function getMaxRowsPerInsert(columnCount: number) {
 }
 
 /**
+ * Derives a safe batch size for `IN (...)` predicates from the number of bound variables.
+ */
+export function getMaxItemsPerInClause(variableCountPerItem = 1) {
+  return Math.max(1, Math.floor(D1_MAX_SQL_VARIABLES / variableCountPerItem))
+}
+
+/**
  * Splits an array into fixed-size chunks.
  */
 export function chunkArray<T>(items: T[], chunkSize: number) {

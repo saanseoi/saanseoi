@@ -66,7 +66,10 @@ export async function getLatestDatasetForRegionSourceType(
 export async function getDatasetById(db: HarbourReadableDb, datasetId: string) {
   return (
     (await db
-      .select({ datasetId: datasets.datasetId })
+      .select({
+        datasetId: datasets.datasetId,
+        status: datasets.status,
+      })
       .from(datasets)
       .where(eq(datasets.datasetId, datasetId))
       .limit(1)
@@ -121,6 +124,36 @@ export async function insertDataset(
       createdAt: now,
       updatedAt: now,
     })
+    .run()
+}
+
+export async function resetFailedDataset(
+  db: HarbourWritableDb,
+  plan: UploadPlan,
+  rawObjectKey: string,
+  ingestedAt: string,
+  status: string,
+) {
+  await db
+    .update(datasets)
+    .set({
+      regionCode: plan.regionCode,
+      snapshotMonth: plan.snapshotMonth,
+      theme: plan.theme,
+      type: plan.type,
+      source: plan.source,
+      sourceVersion: plan.sourceVersion,
+      rawObjectKey,
+      originalFileName: plan.originalFileName,
+      status,
+      isActive: false,
+      supersedesDatasetId: plan.supersedesDatasetId,
+      revokedAt: null,
+      revocationReason: null,
+      ingestedAt,
+      updatedAt: ingestedAt,
+    })
+    .where(eq(datasets.datasetId, plan.datasetId))
     .run()
 }
 
