@@ -34,6 +34,7 @@ rm -f "$output_file" "$dump_dir/latest.sql"
 tables=(
   "datasets"
   "ingestRuns"
+  "stats"
   "entityAliases"
   "divisions"
   "divisionsVersions"

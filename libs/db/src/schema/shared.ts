@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 export const datasets = sqliteTable(
   'datasets',
@@ -45,6 +45,35 @@ export const ingestRuns = sqliteTable('ingestRuns', {
   startedAt: text('startedAt').notNull(),
   finishedAt: text('finishedAt'),
 })
+
+export const stats = sqliteTable(
+  'stats',
+  {
+    id: text('id').primaryKey(),
+    type: text('type').notNull(),
+    datasetId: text('datasetId')
+      .notNull()
+      .references(() => datasets.datasetId),
+    dimension: text('dimension').notNull(),
+    metric: text('metric').notNull(),
+    metricUnit: text('metricUnit').notNull(),
+    value: real('value').notNull(),
+    groupBy: text('groupBy'),
+    groupValue: text('groupValue'),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
+  },
+  table => ({
+    datasetIdx: index('stats_datasetId_idx').on(table.datasetId),
+    dimensionIdx: index('stats_dimension_idx').on(
+      table.type,
+      table.dimension,
+      table.metric,
+      table.groupBy,
+      table.groupValue,
+    ),
+  }),
+)
 
 export const entityAliases = sqliteTable(
   'entityAliases',
