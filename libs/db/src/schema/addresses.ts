@@ -29,6 +29,8 @@ export const address2d = sqliteTable(
     otBboxJson: text('otBboxJson'),
     otVersion: text('otVersion'),
     sourcesJson: text('sourcesJson'),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     streetIdx: index('address2d_streetId_idx').on(table.streetId),
@@ -68,6 +70,7 @@ export const address2dVersions = sqliteTable(
     otVersion: text('otVersion'),
     sourcesJson: text('sourcesJson'),
     createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({
@@ -107,6 +110,8 @@ export const address2dI18n = sqliteTable(
     streetNumber: text('streetNumber'),
     streetName: text('streetName'),
     intersection: text('intersection'),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({
@@ -136,6 +141,8 @@ export const address2dVersionsI18n = sqliteTable(
     streetNumber: text('streetNumber'),
     streetName: text('streetName'),
     intersection: text('intersection'),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({
@@ -209,6 +216,8 @@ export const address3dI18n = sqliteTable(
     unitType: text('unitType'),
     floorNumber: text('floorNumber'),
     floorType: text('floorType'),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({
@@ -232,6 +241,8 @@ export const address3dVersionsI18n = sqliteTable(
     unitType: text('unitType'),
     floorNumber: text('floorNumber'),
     floorType: text('floorType'),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({

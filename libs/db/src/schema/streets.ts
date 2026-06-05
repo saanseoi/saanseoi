@@ -7,6 +7,8 @@ export const streets = sqliteTable('streets', {
   id: text('id').primaryKey(),
   yearBuiltJson: text('yearBuiltJson'),
   referencesJson: text('referencesJson'),
+  createdAt: text('createdAt').notNull(),
+  updatedAt: text('updatedAt').notNull(),
 })
 
 export const streetsVersions = sqliteTable(
@@ -23,6 +25,7 @@ export const streetsVersions = sqliteTable(
     yearBuiltJson: text('yearBuiltJson'),
     referencesJson: text('referencesJson'),
     createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({
@@ -53,6 +56,8 @@ export const streetsI18n = sqliteTable(
     directionalPrefix: text('directionalPrefix'),
     directionalSuffix: text('directionalSuffix'),
     normalised: text('normalised'),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({
@@ -75,6 +80,8 @@ export const streetsVersionsI18n = sqliteTable(
     directionalPrefix: text('directionalPrefix'),
     directionalSuffix: text('directionalSuffix'),
     normalised: text('normalised'),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({

@@ -18,6 +18,8 @@ export const datasets = sqliteTable(
     revokedAt: text('revokedAt'),
     revocationReason: text('revocationReason'),
     ingestedAt: text('ingestedAt').notNull(),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     activeLookupIdx: index('datasets_active_lookup_idx').on(
@@ -44,6 +46,8 @@ export const ingestRuns = sqliteTable('ingestRuns', {
   errorJson: text('errorJson'),
   startedAt: text('startedAt').notNull(),
   finishedAt: text('finishedAt'),
+  createdAt: text('createdAt').notNull(),
+  updatedAt: text('updatedAt').notNull(),
 })
 
 export const stats = sqliteTable(
@@ -88,6 +92,7 @@ export const entityAliases = sqliteTable(
     validToMonth: text('validToMonth'),
     notes: text('notes'),
     createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     aliasUniqueIdx: uniqueIndex('entityAliases_entityType_aliasValue_unique_idx').on(

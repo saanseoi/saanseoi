@@ -184,6 +184,8 @@ describe('upload', () => {
         revokedAt: null,
         revocationReason: null,
         ingestedAt: '2026-06-02T00:00:00.000Z',
+        createdAt: '2026-06-02T00:00:00.000Z',
+        updatedAt: '2026-06-02T00:00:00.000Z',
       })
       .run()
 
@@ -273,6 +275,8 @@ describe('upload', () => {
         revokedAt: null,
         revocationReason: null,
         ingestedAt: '2026-06-02T00:00:00.000Z',
+        createdAt: '2026-06-02T00:00:00.000Z',
+        updatedAt: '2026-06-02T00:00:00.000Z',
       })
       .run()
 
@@ -318,6 +322,8 @@ describe('upload', () => {
         revokedAt: null,
         revocationReason: null,
         ingestedAt: '2026-06-02T00:00:00.000Z',
+        createdAt: '2026-06-02T00:00:00.000Z',
+        updatedAt: '2026-06-02T00:00:00.000Z',
       })
       .run()
 
@@ -365,6 +371,8 @@ describe('upload', () => {
           revokedAt: null,
           revocationReason: null,
           ingestedAt: '2026-06-02T00:00:00.000Z',
+          createdAt: '2026-06-02T00:00:00.000Z',
+          updatedAt: '2026-06-02T00:00:00.000Z',
         },
         {
           datasetId: 'overture-hk-2026-06-24.0-division',
@@ -382,6 +390,8 @@ describe('upload', () => {
           revokedAt: null,
           revocationReason: null,
           ingestedAt: '2026-06-03T00:00:00.000Z',
+          createdAt: '2026-06-03T00:00:00.000Z',
+          updatedAt: '2026-06-03T00:00:00.000Z',
         },
         {
           datasetId: 'overture-hk-2026-07-24.0-division',
@@ -399,6 +409,8 @@ describe('upload', () => {
           revokedAt: null,
           revocationReason: null,
           ingestedAt: '2026-06-04T00:00:00.000Z',
+          createdAt: '2026-06-04T00:00:00.000Z',
+          updatedAt: '2026-06-04T00:00:00.000Z',
         },
       ])
       .run()

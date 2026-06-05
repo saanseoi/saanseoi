@@ -41,6 +41,8 @@ export const places = sqliteTable(
     sourcesJson: text('sourcesJson'),
     firstSeenMonth: text('firstSeenMonth').notNull(),
     lastSeenMonth: text('lastSeenMonth').notNull(),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     datasetIdx: index('places_datasetId_idx').on(table.datasetId),
@@ -89,6 +91,7 @@ export const placesVersions = sqliteTable(
     otConfidence: real('otConfidence'),
     sourcesJson: text('sourcesJson'),
     createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({
@@ -122,6 +125,8 @@ export const placesI18n = sqliteTable(
     otBrandName: text('otBrandName'),
     otBrandNameVariantJson: text('otBrandNameVariantJson'),
     otBrandNameAlts: text('otBrandNameAlts'),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({
@@ -145,6 +150,8 @@ export const placesVersionsI18n = sqliteTable(
     otBrandName: text('otBrandName'),
     otBrandNameVariantJson: text('otBrandNameVariantJson'),
     otBrandNameAlts: text('otBrandNameAlts'),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({
