@@ -1,11 +1,11 @@
 CREATE TABLE `datasets` (
 	`datasetId` text PRIMARY KEY,
 	`regionCode` text NOT NULL,
+	`source` text NOT NULL,
+	`sourceVersion` text NOT NULL,
 	`snapshotMonth` text NOT NULL,
 	`theme` text NOT NULL,
 	`type` text NOT NULL,
-	`source` text NOT NULL,
-	`sourceVersion` text NOT NULL,
 	`rawObjectKey` text NOT NULL,
 	`originalFileName` text NOT NULL,
 	`status` text NOT NULL,
@@ -13,7 +13,9 @@ CREATE TABLE `datasets` (
 	`supersedesDatasetId` text,
 	`revokedAt` text,
 	`revocationReason` text,
-	`ingestedAt` text NOT NULL
+	`ingestedAt` text NOT NULL,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `entityAliases` (
@@ -26,7 +28,8 @@ CREATE TABLE `entityAliases` (
 	`validFromMonth` text,
 	`validToMonth` text,
 	`notes` text,
-	`createdAt` text NOT NULL
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `ingestRuns` (
@@ -38,6 +41,8 @@ CREATE TABLE `ingestRuns` (
 	`errorJson` text,
 	`startedAt` text NOT NULL,
 	`finishedAt` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `fk_ingestRuns_datasetId_datasets_datasetId_fk` FOREIGN KEY (`datasetId`) REFERENCES `datasets`(`datasetId`)
 );
 --> statement-breakpoint
@@ -71,7 +76,9 @@ CREATE TABLE `divisions` (
 	`parentDivisionId` text,
 	`otCartographyJson` text,
 	`otBboxJson` text,
-	`sourcesJson` text
+	`sourcesJson` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `divisionsI18n` (
@@ -83,6 +90,8 @@ CREATE TABLE `divisionsI18n` (
 	`otNameRulesJson` text,
 	`otLocalType` text,
 	`isLocaleInferred` integer NOT NULL,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `divisionsI18n_pk` PRIMARY KEY(`divisionId`, `locale`),
 	CONSTRAINT `fk_divisionsI18n_divisionId_divisions_id_fk` FOREIGN KEY (`divisionId`) REFERENCES `divisions`(`id`)
 );
@@ -111,6 +120,7 @@ CREATE TABLE `divisionsVersions` (
 	`otBboxJson` text,
 	`sourcesJson` text,
 	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `divisionsVersions_pk` PRIMARY KEY(`id`, `versionHash`),
 	CONSTRAINT `fk_divisionsVersions_datasetId_datasets_datasetId_fk` FOREIGN KEY (`datasetId`) REFERENCES `datasets`(`datasetId`)
 );
@@ -125,6 +135,8 @@ CREATE TABLE `divisionsVersionsI18n` (
 	`otNameRulesJson` text,
 	`otLocalType` text,
 	`isLocaleInferred` integer NOT NULL,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `divisionsVersionsI18n_pk` PRIMARY KEY(`divisionId`, `versionHash`, `locale`)
 );
 --> statement-breakpoint
@@ -145,6 +157,8 @@ CREATE TABLE `address2d` (
 	`otBboxJson` text,
 	`otVersion` text,
 	`sourcesJson` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `fk_address2d_microhoodId_divisions_id_fk` FOREIGN KEY (`microhoodId`) REFERENCES `divisions`(`id`),
 	CONSTRAINT `fk_address2d_neighbourhoodId_divisions_id_fk` FOREIGN KEY (`neighbourhoodId`) REFERENCES `divisions`(`id`),
 	CONSTRAINT `fk_address2d_subDistrictId_divisions_id_fk` FOREIGN KEY (`subDistrictId`) REFERENCES `divisions`(`id`),
@@ -170,6 +184,8 @@ CREATE TABLE `address2dI18n` (
 	`streetNumber` text,
 	`streetName` text,
 	`intersection` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `address2dI18n_pk` PRIMARY KEY(`addressId`, `locale`),
 	CONSTRAINT `fk_address2dI18n_addressId_address2d_id_fk` FOREIGN KEY (`addressId`) REFERENCES `address2d`(`id`)
 );
@@ -197,6 +213,7 @@ CREATE TABLE `address2dVersions` (
 	`otVersion` text,
 	`sourcesJson` text,
 	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `address2dVersions_pk` PRIMARY KEY(`id`, `versionHash`),
 	CONSTRAINT `fk_address2dVersions_datasetId_datasets_datasetId_fk` FOREIGN KEY (`datasetId`) REFERENCES `datasets`(`datasetId`)
 );
@@ -219,6 +236,8 @@ CREATE TABLE `address2dVersionsI18n` (
 	`streetNumber` text,
 	`streetName` text,
 	`intersection` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `address2dVersionsI18n_pk` PRIMARY KEY(`addressId`, `versionHash`, `locale`)
 );
 --> statement-breakpoint
@@ -242,6 +261,8 @@ CREATE TABLE `address3dI18n` (
 	`unitType` text,
 	`floorNumber` text,
 	`floorType` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `address3dI18n_pk` PRIMARY KEY(`address3dId`, `locale`),
 	CONSTRAINT `fk_address3dI18n_address3dId_address3d_id_fk` FOREIGN KEY (`address3dId`) REFERENCES `address3d`(`id`)
 );
@@ -273,13 +294,17 @@ CREATE TABLE `address3dVersionsI18n` (
 	`unitType` text,
 	`floorNumber` text,
 	`floorType` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `address3dVersionsI18n_pk` PRIMARY KEY(`address3dId`, `versionHash`, `locale`)
 );
 --> statement-breakpoint
 CREATE TABLE `streets` (
 	`id` text PRIMARY KEY,
 	`yearBuiltJson` text,
-	`referencesJson` text
+	`referencesJson` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `streetsAddress` (
@@ -299,6 +324,8 @@ CREATE TABLE `streetsI18n` (
 	`directionalPrefix` text,
 	`directionalSuffix` text,
 	`normalised` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `streetsI18n_pk` PRIMARY KEY(`streetId`, `locale`),
 	CONSTRAINT `fk_streetsI18n_streetId_streets_id_fk` FOREIGN KEY (`streetId`) REFERENCES `streets`(`id`)
 );
@@ -313,6 +340,7 @@ CREATE TABLE `streetsVersions` (
 	`yearBuiltJson` text,
 	`referencesJson` text,
 	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `streetsVersions_pk` PRIMARY KEY(`id`, `versionHash`),
 	CONSTRAINT `fk_streetsVersions_datasetId_datasets_datasetId_fk` FOREIGN KEY (`datasetId`) REFERENCES `datasets`(`datasetId`)
 );
@@ -327,6 +355,8 @@ CREATE TABLE `streetsVersionsI18n` (
 	`directionalPrefix` text,
 	`directionalSuffix` text,
 	`normalised` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `streetsVersionsI18n_pk` PRIMARY KEY(`streetId`, `versionHash`, `locale`)
 );
 --> statement-breakpoint
@@ -356,6 +386,8 @@ CREATE TABLE `places` (
 	`sourcesJson` text,
 	`firstSeenMonth` text NOT NULL,
 	`lastSeenMonth` text NOT NULL,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `fk_places_datasetId_datasets_datasetId_fk` FOREIGN KEY (`datasetId`) REFERENCES `datasets`(`datasetId`),
 	CONSTRAINT `fk_places_address2dId_address2d_id_fk` FOREIGN KEY (`address2dId`) REFERENCES `address2d`(`id`),
 	CONSTRAINT `fk_places_address3dId_address3d_id_fk` FOREIGN KEY (`address3dId`) REFERENCES `address3d`(`id`)
@@ -388,6 +420,8 @@ CREATE TABLE `placesI18n` (
 	`otBrandName` text,
 	`otBrandNameVariantJson` text,
 	`otBrandNameAlts` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `placesI18n_pk` PRIMARY KEY(`placeId`, `locale`),
 	CONSTRAINT `fk_placesI18n_placeId_places_id_fk` FOREIGN KEY (`placeId`) REFERENCES `places`(`id`)
 );
@@ -421,6 +455,7 @@ CREATE TABLE `placesVersions` (
 	`otConfidence` real,
 	`sourcesJson` text,
 	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `placesVersions_pk` PRIMARY KEY(`id`, `versionHash`),
 	CONSTRAINT `fk_placesVersions_datasetId_datasets_datasetId_fk` FOREIGN KEY (`datasetId`) REFERENCES `datasets`(`datasetId`)
 );
@@ -436,6 +471,8 @@ CREATE TABLE `placesVersionsI18n` (
 	`otBrandName` text,
 	`otBrandNameVariantJson` text,
 	`otBrandNameAlts` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
 	CONSTRAINT `placesVersionsI18n_pk` PRIMARY KEY(`placeId`, `versionHash`, `locale`)
 );
 --> statement-breakpoint

@@ -53,11 +53,12 @@ describe('control service', () => {
       INSERT INTO datasets (
         datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
         rawObjectKey, originalFileName, status, isActive, supersedesDatasetId, revokedAt,
-        revocationReason, ingestedAt
+        revocationReason, ingestedAt, createdAt, updatedAt
       ) VALUES (
         'overture-hk-2025-09-24.0-division', 'hk', '2025-09', 'divisions', 'division',
         'overture', '2025-09-24.0', 'hk/overture/2025-09-24.0/division.parquet',
-        'division.parquet', 'staged', 0, null, null, null, '2026-06-05T00:00:00.000Z'
+        'division.parquet', 'staged', 0, null, null, null, '2026-06-05T00:00:00.000Z',
+        '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
       );
     `)
 

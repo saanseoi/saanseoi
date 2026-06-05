@@ -21,6 +21,8 @@ export type DatasetRecord = {
   revokedAt: string | null
   revocationReason: string | null
   ingestedAt: string
+  createdAt: string
+  updatedAt: string
 }
 
 export type ParquetSchemaField = {

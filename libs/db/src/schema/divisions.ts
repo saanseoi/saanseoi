@@ -20,6 +20,8 @@ export const divisions = sqliteTable(
     otCartographyJson: text('otCartographyJson'),
     otBboxJson: text('otBboxJson'),
     sourcesJson: text('sourcesJson'),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     levelIdx: index('divisions_level_idx').on(table.level),
@@ -55,6 +57,7 @@ export const divisionsVersions = sqliteTable(
     otBboxJson: text('otBboxJson'),
     sourcesJson: text('sourcesJson'),
     createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({
@@ -87,6 +90,8 @@ export const divisionsI18n = sqliteTable(
     otNameRulesJson: text('otNameRulesJson'),
     otLocalType: text('otLocalType'),
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' }).notNull(),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({
@@ -109,6 +114,8 @@ export const divisionsVersionsI18n = sqliteTable(
     otNameRulesJson: text('otNameRulesJson'),
     otLocalType: text('otLocalType'),
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' }).notNull(),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull(),
   },
   table => ({
     pk: primaryKey({

@@ -98,6 +98,8 @@ export async function insertDataset(
   ingestedAt: string,
   status = 'staged',
 ) {
+  const now = ingestedAt
+
   await db
     .insert(datasets)
     .values({
@@ -116,6 +118,8 @@ export async function insertDataset(
       revokedAt: null,
       revocationReason: null,
       ingestedAt,
+      createdAt: now,
+      updatedAt: now,
     })
     .run()
 }
@@ -125,15 +129,25 @@ export async function updateDatasetStatus(
   datasetId: string,
   status: string,
 ) {
-  await db.update(datasets).set({ status }).where(eq(datasets.datasetId, datasetId)).run()
+  await db
+    .update(datasets)
+    .set({
+      status,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(datasets.datasetId, datasetId))
+    .run()
 }
 
 export async function activateDataset(db: HarbourWritableDb, datasetId: string) {
+  const now = new Date().toISOString()
+
   await db
     .update(datasets)
     .set({
       isActive: true,
       status: 'active',
+      updatedAt: now,
     })
     .where(eq(datasets.datasetId, datasetId))
     .run()
@@ -152,6 +166,7 @@ export async function revokeDataset(
       revokedAt,
       revocationReason,
       status: 'revoked',
+      updatedAt: revokedAt,
     })
     .where(eq(datasets.datasetId, datasetId))
     .run()
@@ -170,6 +185,8 @@ export async function insertIngestRun(
   finishedAt: string | null,
   errorJson: string | null = null,
 ) {
+  const now = startedAt
+
   await db
     .insert(ingestRuns)
     .values({
@@ -181,6 +198,8 @@ export async function insertIngestRun(
       errorJson,
       startedAt,
       finishedAt,
+      createdAt: now,
+      updatedAt: now,
     })
     .run()
 }
@@ -222,6 +241,7 @@ export async function updateLatestOpenIngestRun(
       statsJson,
       errorJson,
       finishedAt,
+      updatedAt: finishedAt,
     })
     .where(eq(ingestRuns.runId, openRun.runId))
     .run()
