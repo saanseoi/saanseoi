@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   chunkArray,
+  getMaxItemsPerInClause,
   getMaxRowsPerInsert,
   inferLocale,
   isRetryableSqliteWriteError,
@@ -35,6 +36,7 @@ describe('utils', () => {
       ),
     ).toBe(true)
     expect(getMaxRowsPerInsert(7)).toBeLessThan(20)
+    expect(getMaxItemsPerInClause()).toBe(99)
     expect(chunkArray([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]])
   })
 
