@@ -7,6 +7,7 @@ import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquet
 import {
   divisions,
   divisionsI18n,
+  stats,
   divisionsVersions,
   divisionsVersionsI18n,
 } from '@repo/db/schema'
@@ -17,6 +18,7 @@ import {
   chunkArray,
   createHash,
   getMaxRowsPerInsert,
+  inferLocale,
   normalizeLocale,
   runWithWriteRetry,
   stableJsonStringify,
@@ -59,8 +61,9 @@ type DivisionI18nRecord = {
   otName: string | null
   otNameVariantJson: string | null
   otNameAlts: string | null
+  otNameRulesJson: string | null
   otLocalType: string | null
-  hierarchyJson: string | null
+  isLocaleInferred: boolean
 }
 
 type CurrentDivisionVersionRow = {
@@ -73,7 +76,22 @@ export type ProcessDatasetResult = {
   insertedVersions: number
   localizedRows: number
   processedRows: number
+  statsRows: number
   unchangedRows: number
+}
+
+type DivisionNameRuleRecord = {
+  value: string
+  variant: string | null
+}
+
+type LocaleStatsGroup = 'en' | 'zh-hant' | 'zh-hans'
+
+type DivisionStatsAccumulator = {
+  altCoverage: Map<LocaleStatsGroup, number>
+  count: Map<LocaleStatsGroup, number>
+  nonInferredCoverage: Map<LocaleStatsGroup, number>
+  total: number
 }
 
 const DIVISION_BATCH_SIZE = 128
@@ -109,6 +127,7 @@ export async function processDivisionDataset(
   let insertedVersions = 0
   let unchangedRows = 0
   let localizedRows = 0
+  const statsAccumulator = createDivisionStatsAccumulator()
 
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE)) {
     for (const row of batch) {
@@ -121,6 +140,7 @@ export async function processDivisionDataset(
       processedRows += 1
       localizedRows += normalized.i18n.length
       seenIds.add(normalized.base.id)
+      updateDivisionStatsAccumulator(statsAccumulator, normalized.i18n)
 
       const current = currentRows.get(normalized.base.id)
 
@@ -160,12 +180,18 @@ export async function processDivisionDataset(
     currentRows,
     seenIds,
   )
+  const statsRows = await replaceDatasetStats(
+    db,
+    message.datasetId,
+    buildDivisionStatsRows(statsAccumulator),
+  )
 
   return {
     deletedRows,
     insertedVersions,
     localizedRows,
     processedRows,
+    statsRows,
     unchangedRows,
   }
 }
@@ -366,11 +392,12 @@ async function insertDivisionVersionRows(
     db,
     i18nRows.map(row => ({
       divisionId: row.divisionId,
-      hierarchyJson: row.hierarchyJson,
+      isLocaleInferred: row.isLocaleInferred,
       locale: row.locale,
       otLocalType: row.otLocalType,
       otName: row.otName,
       otNameAlts: row.otNameAlts,
+      otNameRulesJson: row.otNameRulesJson,
       otNameVariantJson: row.otNameVariantJson,
       versionHash,
     })),
@@ -384,7 +411,7 @@ async function insertDivisionsI18nInChunks(
   db: HarbourWritableDb,
   rows: DivisionI18nRecord[],
 ) {
-  const chunkSize = getMaxRowsPerInsert(7)
+  const chunkSize = getMaxRowsPerInsert(8)
 
   for (const chunk of chunkArray(rows, chunkSize)) {
     await runWithWriteRetry(() => db.insert(divisionsI18n).values(chunk).run())
@@ -402,7 +429,7 @@ async function insertDivisionVersionsI18nInChunks(
     }
   >,
 ) {
-  const chunkSize = getMaxRowsPerInsert(8)
+  const chunkSize = getMaxRowsPerInsert(9)
 
   for (const chunk of chunkArray(rows, chunkSize)) {
     await runWithWriteRetry(() =>
@@ -431,7 +458,7 @@ function normalizeDivisionRow(row: Record<string, unknown>) {
     otSubtype,
     parentDivisionId,
   })
-  const i18n = normalizeDivisionI18n(id, row.names, row.local_type, row.hierarchies)
+  const i18n = normalizeDivisionI18n(id, row.names, row.local_type)
 
   return {
     base: {
@@ -460,40 +487,69 @@ function normalizeDivisionI18n(
   divisionId: string,
   names: unknown,
   localType: unknown,
-  hierarchies: unknown,
 ) {
   const localizedNames = new Map<string, Set<string>>()
+  const localizedRuleEntries = new Map<string, DivisionNameRuleRecord[]>()
+  const localizedInferredFlags = new Map<string, boolean>()
   const localizedTypes = new Map<string, string>()
+  const namesRecord = names && typeof names === 'object' ? (names as Record<string, unknown>) : null
+
+  const addNameValue = (
+    locale: string,
+    value: string,
+    options?: {
+      inferred?: boolean
+      rule?: DivisionNameRuleRecord | null
+    },
+  ) => {
+    addLocalizedValue(localizedNames, locale, value)
+
+    if (options?.rule) {
+      const rules = localizedRuleEntries.get(locale) ?? []
+      rules.push(options.rule)
+      localizedRuleEntries.set(locale, rules)
+    }
+
+    if (options?.inferred) {
+      if (!localizedInferredFlags.has(locale)) {
+        localizedInferredFlags.set(locale, true)
+      }
+      return
+    }
+
+    localizedInferredFlags.set(locale, false)
+  }
 
   collectLocalizedValues(
-    names && typeof names === 'object'
-      ? (names as Record<string, unknown>).common
-      : undefined,
-    localizedNames,
+    namesRecord?.common,
+    addNameValue,
   )
-  collectLocalizedValues(
-    names && typeof names === 'object'
-      ? (names as Record<string, unknown>).rules
-      : undefined,
-    localizedNames,
-  )
-  collectLocalizedScalarValues(localType, localizedTypes)
+  collectLocalizedRuleValues(namesRecord?.rules, addNameValue)
+  collectLocalizedScalarValues(localType, localizedTypes, locale => {
+    localizedInferredFlags.set(locale, false)
+  })
+
+  for (const inferredValue of inferLocale(namesRecord?.primary)) {
+    addNameValue(inferredValue.locale, inferredValue.value, {
+      inferred: true,
+    })
+  }
 
   const locales = new Set<string>([...localizedNames.keys(), ...localizedTypes.keys()])
 
   return [...locales].sort().map(locale => {
     const values = [...(localizedNames.get(locale) ?? [])]
     const [otName, ...alts] = values
+    const otNameRules = dedupeNameRules(localizedRuleEntries.get(locale) ?? [])
 
     return {
       divisionId,
-      hierarchyJson: stableJsonStringify(
-        resolveHierarchyForLocale(hierarchies, locale),
-      ),
+      isLocaleInferred: localizedInferredFlags.get(locale) ?? false,
       locale,
       otLocalType: localizedTypes.get(locale) ?? null,
       otName: otName ?? null,
       otNameAlts: alts.length > 0 ? alts.join('|') : null,
+      otNameRulesJson: otNameRules.length > 0 ? stableJsonStringify(otNameRules) : null,
       otNameVariantJson: values.length > 0 ? stableJsonStringify(values) : null,
     } satisfies DivisionI18nRecord
   })
@@ -504,7 +560,14 @@ function normalizeDivisionI18n(
  */
 function collectLocalizedValues(
   value: unknown,
-  target: Map<string, Set<string>>,
+  appendValue: (
+    locale: string,
+    value: string,
+    options?: {
+      inferred?: boolean
+      rule?: DivisionNameRuleRecord | null
+    },
+  ) => void,
   localeHint?: string | null,
 ) {
   if (value === null || value === undefined) {
@@ -515,14 +578,21 @@ function collectLocalizedValues(
     const normalized = normalizeLocale(localeHint)
 
     if (normalized) {
-      addLocalizedValue(target, normalized, value)
+      appendValue(normalized, value)
+      return
+    }
+
+    for (const inferredValue of inferLocale(value)) {
+      appendValue(inferredValue.locale, inferredValue.value, {
+        inferred: true,
+      })
     }
     return
   }
 
   if (Array.isArray(value)) {
     for (const item of value) {
-      collectLocalizedValues(item, target, localeHint)
+      collectLocalizedValues(item, appendValue, localeHint)
     }
     return
   }
@@ -543,20 +613,24 @@ function collectLocalizedValues(
     asNonEmptyString(record.text)
 
   if (explicitLocale && directValue) {
-    addLocalizedValue(target, explicitLocale, directValue)
+    appendValue(explicitLocale, directValue)
     return
   }
 
   for (const [key, nestedValue] of Object.entries(record)) {
     const nestedLocale = normalizeLocale(key) ?? explicitLocale
-    collectLocalizedValues(nestedValue, target, nestedLocale)
+    collectLocalizedValues(nestedValue, appendValue, nestedLocale)
   }
 }
 
 /**
  * Collects simple locale-to-string mappings such as localized type labels.
  */
-function collectLocalizedScalarValues(value: unknown, target: Map<string, string>) {
+function collectLocalizedScalarValues(
+  value: unknown,
+  target: Map<string, string>,
+  onLocale?: (locale: string) => void,
+) {
   if (!value || typeof value !== 'object') {
     return
   }
@@ -567,24 +641,126 @@ function collectLocalizedScalarValues(value: unknown, target: Map<string, string
 
     if (locale && normalizedValue) {
       target.set(locale, normalizedValue)
+      onLocale?.(locale)
     }
   }
 }
 
 /**
- * Returns the localized hierarchy when present, otherwise the shared payload.
+ * Collects localized rule entries and appends their values to locale name sets.
  */
-function resolveHierarchyForLocale(hierarchies: unknown, locale: string) {
-  if (!hierarchies || typeof hierarchies !== 'object') {
-    return null
+function collectLocalizedRuleValues(
+  value: unknown,
+  appendValue: (
+    locale: string,
+    value: string,
+    options?: {
+      inferred?: boolean
+      rule?: DivisionNameRuleRecord | null
+    },
+  ) => void,
+  localeHint?: string | null,
+) {
+  if (value === null || value === undefined) {
+    return
   }
 
-  if (Array.isArray(hierarchies)) {
-    return hierarchies
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectLocalizedRuleValues(item, appendValue, localeHint)
+    }
+    return
   }
 
-  const record = hierarchies as Record<string, unknown>
-  return record[locale] ?? record
+  if (typeof value === 'string') {
+    const normalizedLocale = normalizeLocale(localeHint)
+
+    if (normalizedLocale) {
+      appendValue(normalizedLocale, value, {
+        rule: {
+          value,
+          variant: null,
+        },
+      })
+      return
+    }
+
+    for (const inferredValue of inferLocale(value)) {
+      appendValue(inferredValue.locale, inferredValue.value, {
+        inferred: true,
+        rule: {
+          value: inferredValue.value,
+          variant: null,
+        },
+      })
+    }
+    return
+  }
+
+  if (typeof value !== 'object') {
+    return
+  }
+
+  const record = value as Record<string, unknown>
+  const explicitLocale =
+    normalizeLocale(asNonEmptyString(record.locale)) ??
+    normalizeLocale(asNonEmptyString(record.language)) ??
+    normalizeLocale(asNonEmptyString(record.lang)) ??
+    normalizeLocale(localeHint)
+  const directValue =
+    asNonEmptyString(record.value) ??
+    asNonEmptyString(record.name) ??
+    asNonEmptyString(record.text)
+  const directVariant = asNonEmptyString(record.variant)
+
+  if (explicitLocale && (directValue || directVariant)) {
+    if (directValue) {
+      appendValue(explicitLocale, directValue, {
+        rule: {
+          value: directValue,
+          variant: directVariant,
+        },
+      })
+    }
+
+    if (directVariant) {
+      appendValue(explicitLocale, directVariant, {
+        rule: {
+          value: directValue ?? directVariant,
+          variant: directVariant,
+        },
+      })
+    }
+    return
+  }
+
+  if (!explicitLocale && (directValue || directVariant)) {
+    const ruleParts = [directValue, directVariant]
+      .filter((part): part is string => Boolean(part))
+      .flatMap(part =>
+        inferLocale(part).map(inferredValue => ({
+          locale: inferredValue.locale,
+          value: inferredValue.value,
+          source: part,
+        })),
+      )
+
+    for (const rulePart of ruleParts) {
+      appendValue(rulePart.locale, rulePart.value, {
+        inferred: true,
+        rule: {
+          value: directValue ?? rulePart.source,
+          variant: directVariant,
+        },
+      })
+    }
+    return
+  }
+
+  for (const [key, nestedValue] of Object.entries(record)) {
+    const nestedLocale = normalizeLocale(key) ?? explicitLocale
+    collectLocalizedRuleValues(nestedValue, appendValue, nestedLocale)
+  }
 }
 
 /**
@@ -630,4 +806,206 @@ function resolveDivisionLevel(input: {
   }
 
   return input.parentDivisionId ? 1 : 0
+}
+
+function dedupeNameRules(rules: DivisionNameRuleRecord[]) {
+  const seen = new Set<string>()
+  const deduped: DivisionNameRuleRecord[] = []
+
+  for (const rule of rules) {
+    const normalizedRule = {
+      value: rule.value.trim(),
+      variant: rule.variant?.trim() ?? null,
+    }
+
+    if (!normalizedRule.value) {
+      continue
+    }
+
+    const key = stableJsonStringify(normalizedRule)
+
+    if (!key || seen.has(key)) {
+      continue
+    }
+
+    seen.add(key)
+    deduped.push(normalizedRule)
+  }
+
+  return deduped
+}
+
+function createDivisionStatsAccumulator(): DivisionStatsAccumulator {
+  return {
+    altCoverage: new Map(),
+    count: new Map(),
+    nonInferredCoverage: new Map(),
+    total: 0,
+  }
+}
+
+function updateDivisionStatsAccumulator(
+  statsAccumulator: DivisionStatsAccumulator,
+  i18nRows: DivisionI18nRecord[],
+) {
+  statsAccumulator.total += 1
+
+  const coverageGroups = new Set<LocaleStatsGroup>()
+  const nonInferredCoverageGroups = new Set<LocaleStatsGroup>()
+  const altCoverageGroups = new Set<LocaleStatsGroup>()
+
+  for (const row of i18nRows) {
+    const group = toStatsLocaleGroup(row.locale)
+
+    if (!group || !row.otName) {
+      continue
+    }
+
+    coverageGroups.add(group)
+
+    if (!row.isLocaleInferred) {
+      nonInferredCoverageGroups.add(group)
+    }
+
+    if (row.otNameAlts) {
+      altCoverageGroups.add(group)
+    }
+  }
+
+  incrementStatsCounts(statsAccumulator.count, coverageGroups)
+  incrementStatsCounts(statsAccumulator.nonInferredCoverage, nonInferredCoverageGroups)
+  incrementStatsCounts(statsAccumulator.altCoverage, altCoverageGroups)
+}
+
+function incrementStatsCounts(
+  target: Map<LocaleStatsGroup, number>,
+  groups: Set<LocaleStatsGroup>,
+) {
+  for (const group of groups) {
+    target.set(group, (target.get(group) ?? 0) + 1)
+  }
+}
+
+function toStatsLocaleGroup(locale: string): LocaleStatsGroup | null {
+  if (locale === 'en') {
+    return 'en'
+  }
+
+  if (['zh', 'zh-hant', 'zh-hk', 'zh-mo', 'zh-tw'].includes(locale)) {
+    return 'zh-hant'
+  }
+
+  if (['zh-hans', 'zh-cn', 'zh-sg'].includes(locale)) {
+    return 'zh-hans'
+  }
+
+  return null
+}
+
+function buildDivisionStatsRows(statsAccumulator: DivisionStatsAccumulator) {
+  const createdAt = new Date().toISOString()
+  const locales: LocaleStatsGroup[] = ['en', 'zh-hant', 'zh-hans']
+
+  return locales.flatMap(locale => {
+    const localeCount = statsAccumulator.count.get(locale) ?? 0
+    const localeNonInferredCount = statsAccumulator.nonInferredCoverage.get(locale) ?? 0
+    const localeAltCount = statsAccumulator.altCoverage.get(locale) ?? 0
+    const total = statsAccumulator.total
+
+    return [
+      {
+        createdAt,
+        dimension: 'locale_count',
+        groupBy: 'locale',
+        groupValue: locale,
+        metric: 'completeness',
+        metricUnit: 'count',
+        type: 'dataset',
+        updatedAt: createdAt,
+        value: localeCount,
+      },
+      {
+        createdAt,
+        dimension: 'locale_coverage',
+        groupBy: 'locale',
+        groupValue: locale,
+        metric: 'completeness',
+        metricUnit: 'percentage',
+        type: 'dataset',
+        updatedAt: createdAt,
+        value: percentage(localeCount, total),
+      },
+      {
+        createdAt,
+        dimension: 'locale_coverage_non_inferred',
+        groupBy: 'locale',
+        groupValue: locale,
+        metric: 'completeness',
+        metricUnit: 'percentage',
+        type: 'dataset',
+        updatedAt: createdAt,
+        value: percentage(localeNonInferredCount, total),
+      },
+      {
+        createdAt,
+        dimension: 'locale_alt_coverage',
+        groupBy: 'locale',
+        groupValue: locale,
+        metric: 'completeness',
+        metricUnit: 'percentage',
+        type: 'dataset',
+        updatedAt: createdAt,
+        value: percentage(localeAltCount, total),
+      },
+    ]
+  })
+}
+
+function percentage(value: number, total: number) {
+  if (total <= 0) {
+    return 0
+  }
+
+  return (value / total) * 100
+}
+
+async function replaceDatasetStats(
+  db: HarbourWritableDb,
+  datasetId: string,
+  rows: Array<{
+    createdAt: string
+    dimension: string
+    groupBy: string | null
+    groupValue: string | null
+    metric: string
+    metricUnit: string
+    type: string
+    updatedAt: string
+    value: number
+  }>,
+) {
+  await runWithWriteRetry(() => db.delete(stats).where(eq(stats.datasetId, datasetId)).run())
+
+  if (rows.length === 0) {
+    return 0
+  }
+
+  const chunkSize = getMaxRowsPerInsert(11)
+
+  for (const chunk of chunkArray(rows, chunkSize)) {
+    await runWithWriteRetry(() =>
+      db
+        .insert(stats)
+        .values(
+          chunk.map(row => ({
+            ...row,
+            datasetId,
+            id: crypto.randomUUID(),
+          })),
+        )
+        .run(),
+    )
+  }
+
+  return rows.length
 }
