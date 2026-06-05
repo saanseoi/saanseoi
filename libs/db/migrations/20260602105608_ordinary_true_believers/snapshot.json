@@ -440,6 +440,16 @@
     },
     {
       "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "type",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
       "notNull": false,
       "autoincrement": false,
       "default": null,
@@ -455,16 +465,6 @@
       "default": null,
       "generated": null,
       "name": "otSubtype",
-      "entityType": "columns",
-      "table": "divisions"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "otAdminLevel",
       "entityType": "columns",
       "table": "divisions"
     },
@@ -700,6 +700,16 @@
     },
     {
       "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "type",
+      "entityType": "columns",
+      "table": "divisionsVersions"
+    },
+    {
+      "type": "text",
       "notNull": false,
       "autoincrement": false,
       "default": null,
@@ -725,16 +735,6 @@
       "default": null,
       "generated": null,
       "name": "otSubtype",
-      "entityType": "columns",
-      "table": "divisionsVersions"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "otAdminLevel",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
