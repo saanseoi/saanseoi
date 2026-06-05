@@ -22,6 +22,9 @@
       "migrations_dir": "../../libs/db/migrations"
     }
   ],
+  "placement": {
+    "region": "gcp:asia-east2"
+  },
   "minify": true,
   "observability": {
     "logs": {
