@@ -160,6 +160,7 @@ export async function handleFinalizeUploadRequest(
       inspection,
       rawObjectKey: dataset.rawObjectKey,
       resolveSchemaFingerprint,
+      allowExistingDatasetStatuses: ['uploading'],
     },
     inspection,
   )

@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path'
 import { Database } from 'bun:sqlite'
 
 import {
+  finalizeUpload,
   createSchemaFingerprint,
   inferRegionFromPath,
   inferSnapshotMonthFromPath,
@@ -368,6 +369,39 @@ describe('upload', () => {
     expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
   })
 
+  test('finalizes an uploading direct-upload session into staged', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    await requestUpload(db, {
+      filePath: fixtureFile,
+      snapshotMonth: '2026-05',
+      sourceVersion: '2026-05-24.0',
+      inspection: fixtureInspection,
+    })
+
+    const result = await finalizeUpload(db, {
+      filePath: fixtureFile,
+      snapshotMonth: '2026-05',
+      sourceVersion: '2026-05-24.0',
+      inspection: fixtureInspection,
+    })
+
+    const dataset = sqlite
+      .query('SELECT status FROM datasets WHERE datasetId = ?')
+      .get('overture-hk-2026-05-24.0-division') as {
+      status: string
+    } | null
+
+    sqlite.close()
+
+    expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
+    expect(dataset?.status).toBe('staged')
+  })
+
   test('uses injected schema metadata for remote chronology checks', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
@@ -503,9 +537,11 @@ describe('upload', () => {
         },
         resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
       }),
-    ).rejects.toThrow(
-      'Schema drift detected against overture-hk-2026-01-21.0-division.',
-    )
+    ).rejects.toThrow(`Schema drift detected against overture-hk-2026-01-21.0-division.
+Current upload schema has 6 fields; overture-hk-2026-01-21.0-division recorded 5 fields.
+Field-level differences:
+- added \`wrong_field\` (int_32, nullable=true)
+Reconcile the schema before uploading this dataset.`)
 
     sqlite.close()
   })
