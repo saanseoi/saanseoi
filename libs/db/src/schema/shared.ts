@@ -13,7 +13,6 @@ export const datasets = sqliteTable(
     rawObjectKey: text('rawObjectKey').notNull(),
     originalFileName: text('originalFileName').notNull(),
     status: text('status').notNull(),
-    isActive: integer('isActive', { mode: 'boolean' }).notNull(),
     supersedesDatasetId: text('supersedesDatasetId'),
     revokedAt: text('revokedAt'),
     revocationReason: text('revocationReason'),
@@ -22,12 +21,12 @@ export const datasets = sqliteTable(
     updatedAt: text('updatedAt').notNull(),
   },
   table => ({
-    activeLookupIdx: index('datasets_active_lookup_idx').on(
+    statusLookupIdx: index('datasets_status_lookup_idx').on(
       table.regionCode,
       table.source,
-      table.sourceVersion,
       table.type,
-      table.isActive,
+      table.status,
+      table.sourceVersion,
     ),
     monthThemeUniqueIdx: uniqueIndex('datasets_dataset_id_unique_idx').on(
       table.datasetId,

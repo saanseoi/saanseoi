@@ -16,7 +16,6 @@ export type DatasetRecord = {
   rawObjectKey: string
   originalFileName: string
   status: string
-  isActive: boolean
   supersedesDatasetId: string | null
   revokedAt: string | null
   revocationReason: string | null

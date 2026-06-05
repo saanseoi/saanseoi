@@ -70,9 +70,12 @@ export const datasetsRoute = defineOpenAPIRoute<typeof datasetsRouteConfig, AppE
       regionCode: query.regionCode,
       snapshotMonth: query.snapshotMonth,
       theme: query.theme,
-      status: query.status,
-      isActive:
-        query.activeOnly === undefined ? undefined : query.activeOnly === 'true',
+      status:
+        query.activeOnly === 'true'
+          ? 'current'
+          : query.activeOnly === 'false'
+            ? undefined
+            : query.status,
       limit: query.limit,
     })
 

@@ -44,7 +44,7 @@ Example:
 
 - `hk-2026-05-places`
 
-Only one dataset may be active for a given `(regionCode, snapshotMonth, theme)`.
+Only one dataset may be current for a given `(regionCode, snapshotMonth, theme)`.
 
 ### Corrected releases
 
@@ -52,10 +52,10 @@ If Overture republishes a corrected file for the same month:
 
 - create a new immutable dataset row
 - set `supersedesDatasetId` to the prior dataset
-- mark the prior dataset as revoked and inactive
+- mark the prior dataset as revoked
 - rebuild or incrementally reconcile current state from the replacement dataset
 
-Public reads only consider active datasets.
+Public reads only consider current datasets.
 
 ### Identity model
 
@@ -146,7 +146,6 @@ Fields:
 - `sourceVersion` text not null
 - `rawObjectKey` text not null
 - `status` text not null
-- `isActive` integer not null
 - `supersedesDatasetId` text null
 - `revokedAt` text null
 - `revocationReason` text null
@@ -156,14 +155,15 @@ Statuses:
 
 - `staged`
 - `processing`
-- `active`
+- `current`
+- `historic`
 - `revoked`
 - `failed`
 
 Constraints:
 
 - `datasetId = {regionCode}-{snapshotMonth}-{theme}`
-- only one active dataset per `(regionCode, snapshotMonth, theme)`
+- only one current dataset per `(regionCode, snapshotMonth, theme)`
 
 ### `ingestRuns`
 
@@ -949,7 +949,7 @@ Relationship enrichment stages may update normalized linked entities independent
 
 This document is focused on the data model, but the following indexes are structurally important:
 
-- `datasets`: unique active dataset lookup by `(regionCode, snapshotMonth, theme, isActive)`
+- `datasets`: status lookup by `(regionCode, source, type, status, sourceVersion)`
 - `placesVersions`: `(regionCode, id, isCurrent)`
 - `divisionsVersions`: `(regionCode, id, isCurrent)`
 - `entityAliases`: unique `(entityType, aliasValue)`

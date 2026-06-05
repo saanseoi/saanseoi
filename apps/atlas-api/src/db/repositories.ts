@@ -3,7 +3,6 @@ type DatasetFilters = {
   snapshotMonth?: string
   theme?: string
   status?: string
-  isActive?: boolean
   limit?: number
 }
 
@@ -53,11 +52,6 @@ export async function listDatasets(binding: D1Database, filters: DatasetFilters 
   if (filters.status) {
     clauses.push('"status" = ?')
     bindings.push(filters.status)
-  }
-
-  if (typeof filters.isActive === 'boolean') {
-    clauses.push('"isActive" = ?')
-    bindings.push(filters.isActive ? 1 : 0)
   }
 
   const sqlText = `

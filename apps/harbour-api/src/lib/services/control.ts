@@ -1,7 +1,8 @@
 import {
-  activateDataset,
   getDatasetRecordById,
   insertIngestRun,
+  markDatasetCurrent,
+  markDatasetHistoric,
   revokeDataset,
   type HarbourReadableDb,
   type HarbourWritableDb,
@@ -129,22 +130,27 @@ export async function handlePublishDataset(
   request: PublishRequest,
 ) {
   const dataset = await requireDataset(db, request.datasetId)
+  const publishedAt = new Date().toISOString()
 
-  await activateDataset(db, dataset.datasetId)
+  await markDatasetCurrent(db, dataset.datasetId)
 
   if (dataset.supersedesDatasetId) {
-    await revokeDataset(
-      db,
-      dataset.supersedesDatasetId,
-      `Superseded by ${dataset.datasetId}.`,
-      new Date().toISOString(),
-    )
+    if (isCorrectedRelease(dataset.supersedesDatasetId, dataset.datasetId)) {
+      await revokeDataset(
+        db,
+        dataset.supersedesDatasetId,
+        `Superseded by corrected release ${dataset.datasetId}.`,
+        publishedAt,
+      )
+    } else {
+      await markDatasetHistoric(db, dataset.supersedesDatasetId, publishedAt)
+    }
   }
 
   return {
     datasetId: dataset.datasetId,
     phase: null,
-    status: 'active',
+    status: 'current',
   }
 }
 
@@ -160,4 +166,20 @@ async function requireDataset(db: HarbourReadableDb, datasetId: string) {
 
 function stringifyOptional(value?: Record<string, unknown>) {
   return value ? JSON.stringify(value) : null
+}
+
+function isCorrectedRelease(previousDatasetId: string, nextDatasetId: string) {
+  const previousSourceVersion = getSourceVersionFromDatasetId(previousDatasetId)
+  const nextSourceVersion = getSourceVersionFromDatasetId(nextDatasetId)
+
+  if (!previousSourceVersion || !nextSourceVersion) {
+    return false
+  }
+
+  return previousSourceVersion.split('.')[0] === nextSourceVersion.split('.')[0]
+}
+
+function getSourceVersionFromDatasetId(datasetId: string) {
+  const match = datasetId.match(/^[^-]+-[^-]+-(.+)-[^-]+$/)
+  return match?.[1] ?? null
 }
