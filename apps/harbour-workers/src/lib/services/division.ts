@@ -1,28 +1,39 @@
-import { and, eq, inArray } from 'drizzle-orm'
-
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
-import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
+import type { DatasetProcessingMessage } from '@repo/core'
+import type { DivisionI18nPayload, DivisionRow } from '@repo/db/schema'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
-  divisions,
-  divisionsI18n,
-  stats,
-  divisionsVersions,
-  divisionsVersionsI18n,
-} from '@repo/db/schema'
+  closeCurrentDivisionVersion,
+  deleteMissingCurrentDivisions,
+  getCurrentDivisionVersionMap,
+  insertDivisionVersionRows,
+  replaceDatasetStats,
+  replaceDivisionCurrentI18n,
+  upsertDivisionCurrentState,
+} from '../db/division'
+import {
+  buildChurnCounts,
+  buildChurnStatsRows,
+  buildLocaleStatsRows,
+  buildQualityCounts,
+  buildQualityStatsRows,
+  createLocaleStatsAccumulator,
+  hasLocaleRegression,
+  hasNameRegression,
+  updateLocaleStatsAccumulator,
+} from './stats'
 import {
   addLocalizedValue,
   asNonEmptyString,
   asString,
-  chunkArray,
   createHash,
-  getMaxRowsPerInsert,
   inferLocale,
   normalizeLocale,
-  runWithWriteRetry,
   stableJsonStringify,
 } from '../utils'
+
+import type { DivisionVersionSnapshot } from '../db/division'
 
 export type HarbourWorkerBucket = {
   head(key: string): Promise<{ size: number } | null>
@@ -39,38 +50,6 @@ export type HarbourWorkerBucket = {
   } | null>
 }
 
-type DivisionBaseRecord = {
-  id: string
-  level: number
-  otVersion: string | null
-  otSubtype: string | null
-  otAdminLevel: string | null
-  otClass: string | null
-  otWikidata: string | null
-  otHierarchyJson: string | null
-  hierarchyJson: string | null
-  parentDivisionId: string | null
-  otCartographyJson: string | null
-  otBboxJson: string | null
-  sourcesJson: string | null
-}
-
-type DivisionI18nRecord = {
-  divisionId: string
-  locale: string
-  otName: string | null
-  otNameVariantJson: string | null
-  otNameAlts: string | null
-  otNameRulesJson: string | null
-  otLocalType: string | null
-  isLocaleInferred: boolean
-}
-
-type CurrentDivisionVersionRow = {
-  id: string
-  versionHash: string
-}
-
 export type ProcessDatasetResult = {
   deletedRows: number
   insertedVersions: number
@@ -85,30 +64,33 @@ type DivisionNameRuleRecord = {
   variant: string | null
 }
 
-type LocaleStatsGroup = 'en' | 'zh-hant' | 'zh-hans'
-
-type DivisionStatsAccumulator = {
-  altCoverage: Map<LocaleStatsGroup, number>
-  count: Map<LocaleStatsGroup, number>
-  nonInferredCoverage: Map<LocaleStatsGroup, number>
-  total: number
-}
-
 const DIVISION_BATCH_SIZE = 128
 const DIVISION_LEVEL_TOKENS = new Map<string, number>([
   ['country', 0],
   ['sar', 0],
-  ['region', 1],
+  ['dependency', 0],
+  ['city', 1],
   ['state', 1],
   ['province', 1],
   ['district', 2],
+  ['region', 2],
   ['subdistrict', 3],
-  ['sub-district', 3],
-  ['sub_district', 3],
   ['borough', 3],
-  ['neighbourhood', 4],
-  ['neighborhood', 4],
-  ['microhood', 5],
+  ['town', 3],
+  ['macrohood', 4],
+  ['neighbourhood', 5],
+  ['neighborhood', 5],
+  ['village', 5],
+  ['microhood', 6],
+  ['hamlet', 6],
+])
+const HONG_KONG_AREA_NAMES = new Set([
+  'hong kong island',
+  '香港島',
+  'kowloon',
+  '九龍',
+  'new territories',
+  '新界',
 ])
 
 /**
@@ -120,33 +102,61 @@ export async function processDivisionDataset(
   message: DatasetProcessingMessage,
 ): Promise<ProcessDatasetResult> {
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
-  const currentRows = await getCurrentDivisionVersionMap(db, message.regionCode)
+  const currentRows = await getCurrentDivisionVersionMap(db, message.regionCode, {
+    buildDivisionBaseHashInput,
+    normalizeDivisionI18nSnapshotRow,
+  })
+  const previousRows = new Map(currentRows)
   const seenIds = new Set<string>()
+  const processedRowsById = new Map<string, DivisionVersionSnapshot>()
 
   let processedRows = 0
   let insertedVersions = 0
   let unchangedRows = 0
   let localizedRows = 0
-  const statsAccumulator = createDivisionStatsAccumulator()
+  const statsAccumulator = createLocaleStatsAccumulator()
 
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE)) {
     for (const row of batch) {
       const normalized = normalizeDivisionRow(row)
-      const versionHash = await createHash({
-        base: normalized.base,
+      const versionHash = await createHash(buildDivisionBaseHashInput(normalized.base))
+      const churnHash = await createHash({
+        base: buildDivisionBaseHashInput(normalized.base),
         i18n: normalized.i18n,
       })
 
       processedRows += 1
       localizedRows += normalized.i18n.length
       seenIds.add(normalized.base.id)
-      updateDivisionStatsAccumulator(statsAccumulator, normalized.i18n)
+      updateLocaleStatsAccumulator(
+        statsAccumulator,
+        normalized.i18n.map(row => ({
+          hasAltName: Boolean(row.otNameAlts),
+          hasName: Boolean(row.otName),
+          isLocaleInferred: row.isLocaleInferred,
+          locale: row.locale,
+        })),
+      )
+      processedRowsById.set(normalized.base.id, {
+        churnHash,
+        geometryJson: normalized.base.otGeometryJson,
+        id: normalized.base.id,
+        localizedRows: normalized.i18n,
+        parentId: normalized.base.parentDivisionId,
+        type: normalized.base.type,
+        versionHash,
+      })
 
       const current = currentRows.get(normalized.base.id)
 
       if (current?.versionHash === versionHash) {
         unchangedRows += 1
-        await replaceDivisionCurrentI18n(db, normalized.base.id, normalized.i18n)
+        await replaceDivisionCurrentI18n(
+          db,
+          normalized.base.id,
+          normalized.i18n,
+          new Date().toISOString(),
+        )
         continue
       }
 
@@ -180,10 +190,17 @@ export async function processDivisionDataset(
     currentRows,
     seenIds,
   )
+  const churnStats = buildChurnStatsRows(buildChurnCounts(previousRows, processedRowsById))
+  const qualityStats = buildQualityStatsRows(
+    buildQualityCounts(previousRows, processedRowsById, {
+      hasLocaleRegression,
+      hasNameRegression,
+    }),
+  )
   const statsRows = await replaceDatasetStats(
     db,
     message.datasetId,
-    buildDivisionStatsRows(statsAccumulator),
+    [...buildLocaleStatsRows(statsAccumulator), ...churnStats, ...qualityStats],
   )
 
   return {
@@ -197,252 +214,11 @@ export async function processDivisionDataset(
 }
 
 /**
- * Returns the active version hash for each current division in a region.
- */
-async function getCurrentDivisionVersionMap(
-  db: HarbourReadableDb,
-  regionCode: RegionCode,
-) {
-  const rows = (await db
-    .select({
-      id: divisionsVersions.id,
-      versionHash: divisionsVersions.versionHash,
-    })
-    .from(divisionsVersions)
-    .where(
-      and(
-        eq(divisionsVersions.regionCode, regionCode),
-        eq(divisionsVersions.isCurrent, true),
-      ),
-    )
-    .all()) as CurrentDivisionVersionRow[]
-
-  return new Map(rows.map(row => [row.id, row]))
-}
-
-/**
- * Marks the current division version as closed for the given snapshot month.
- */
-async function closeCurrentDivisionVersion(
-  db: HarbourWritableDb,
-  regionCode: RegionCode,
-  divisionId: string,
-  snapshotMonth: string,
-) {
-  await runWithWriteRetry(() =>
-    db
-      .update(divisionsVersions)
-      .set({
-        isCurrent: false,
-        validToMonth: snapshotMonth,
-      })
-      .where(
-        and(
-          eq(divisionsVersions.regionCode, regionCode),
-          eq(divisionsVersions.id, divisionId),
-          eq(divisionsVersions.isCurrent, true),
-        ),
-      )
-      .run(),
-  )
-}
-
-/**
- * Closes and removes divisions that disappeared from the latest snapshot.
- */
-async function deleteMissingCurrentDivisions(
-  db: HarbourReadableDb & HarbourWritableDb,
-  regionCode: RegionCode,
-  snapshotMonth: string,
-  currentRows: Map<string, CurrentDivisionVersionRow>,
-  seenIds: Set<string>,
-) {
-  const missingIds = [...currentRows.keys()].filter(id => !seenIds.has(id))
-
-  if (missingIds.length === 0) {
-    return 0
-  }
-
-  await runWithWriteRetry(() =>
-    db
-      .update(divisionsVersions)
-      .set({
-        isCurrent: false,
-        validToMonth: snapshotMonth,
-      })
-      .where(
-        and(
-          eq(divisionsVersions.regionCode, regionCode),
-          eq(divisionsVersions.isCurrent, true),
-          inArray(divisionsVersions.id, missingIds),
-        ),
-      )
-      .run(),
-  )
-
-  await runWithWriteRetry(() =>
-    db.delete(divisionsI18n).where(inArray(divisionsI18n.divisionId, missingIds)).run(),
-  )
-  await runWithWriteRetry(() =>
-    db.delete(divisions).where(inArray(divisions.id, missingIds)).run(),
-  )
-
-  return missingIds.length
-}
-
-/**
- * Upserts the latest non-versioned division state and its localized rows.
- */
-async function upsertDivisionCurrentState(
-  db: HarbourWritableDb,
-  base: DivisionBaseRecord,
-  i18nRows: DivisionI18nRecord[],
-) {
-  await runWithWriteRetry(() =>
-    db
-      .insert(divisions)
-      .values(base)
-      .onConflictDoUpdate({
-        target: divisions.id,
-        set: {
-          hierarchyJson: base.hierarchyJson,
-          level: base.level,
-          otAdminLevel: base.otAdminLevel,
-          otBboxJson: base.otBboxJson,
-          otCartographyJson: base.otCartographyJson,
-          otClass: base.otClass,
-          otHierarchyJson: base.otHierarchyJson,
-          otSubtype: base.otSubtype,
-          otVersion: base.otVersion,
-          otWikidata: base.otWikidata,
-          parentDivisionId: base.parentDivisionId,
-          sourcesJson: base.sourcesJson,
-        },
-      })
-      .run(),
-  )
-
-  await replaceDivisionCurrentI18n(db, base.id, i18nRows)
-}
-
-/**
- * Replaces the localized rows attached to the current division record.
- */
-async function replaceDivisionCurrentI18n(
-  db: HarbourWritableDb,
-  divisionId: string,
-  i18nRows: DivisionI18nRecord[],
-) {
-  await runWithWriteRetry(() =>
-    db.delete(divisionsI18n).where(eq(divisionsI18n.divisionId, divisionId)).run(),
-  )
-
-  if (i18nRows.length === 0) {
-    return
-  }
-
-  await insertDivisionsI18nInChunks(db, i18nRows)
-}
-
-/**
- * Inserts or reactivates a versioned division row plus localized variants.
- */
-async function insertDivisionVersionRows(
-  db: HarbourWritableDb,
-  message: DatasetProcessingMessage,
-  base: DivisionBaseRecord,
-  i18nRows: DivisionI18nRecord[],
-  versionHash: string,
-  now: string,
-) {
-  const otVersionHash = await createHash(base.otVersion ?? '')
-
-  await runWithWriteRetry(() =>
-    db
-      .insert(divisionsVersions)
-      .values({
-        ...base,
-        createdAt: now,
-        datasetId: message.datasetId,
-        isCurrent: true,
-        otVersionHash,
-        regionCode: message.regionCode,
-        validFromMonth: message.snapshotMonth,
-        validToMonth: null,
-        versionHash,
-      })
-      .onConflictDoUpdate({
-        target: [divisionsVersions.id, divisionsVersions.versionHash],
-        set: {
-          createdAt: now,
-          datasetId: message.datasetId,
-          isCurrent: true,
-          validFromMonth: message.snapshotMonth,
-          validToMonth: null,
-        },
-      })
-      .run(),
-  )
-
-  if (i18nRows.length === 0) {
-    return
-  }
-
-  await insertDivisionVersionsI18nInChunks(
-    db,
-    i18nRows.map(row => ({
-      divisionId: row.divisionId,
-      isLocaleInferred: row.isLocaleInferred,
-      locale: row.locale,
-      otLocalType: row.otLocalType,
-      otName: row.otName,
-      otNameAlts: row.otNameAlts,
-      otNameRulesJson: row.otNameRulesJson,
-      otNameVariantJson: row.otNameVariantJson,
-      versionHash,
-    })),
-  )
-}
-
-/**
- * Inserts current division i18n rows in chunks sized for D1 limits.
- */
-async function insertDivisionsI18nInChunks(
-  db: HarbourWritableDb,
-  rows: DivisionI18nRecord[],
-) {
-  const chunkSize = getMaxRowsPerInsert(8)
-
-  for (const chunk of chunkArray(rows, chunkSize)) {
-    await runWithWriteRetry(() => db.insert(divisionsI18n).values(chunk).run())
-  }
-}
-
-/**
- * Inserts versioned division i18n rows in chunks sized for D1 limits.
- */
-async function insertDivisionVersionsI18nInChunks(
-  db: HarbourWritableDb,
-  rows: Array<
-    DivisionI18nRecord & {
-      versionHash: string
-    }
-  >,
-) {
-  const chunkSize = getMaxRowsPerInsert(9)
-
-  for (const chunk of chunkArray(rows, chunkSize)) {
-    await runWithWriteRetry(() =>
-      db.insert(divisionsVersionsI18n).values(chunk).onConflictDoNothing().run(),
-    )
-  }
-}
-
-/**
  * Normalizes a raw parquet row into the base division record plus locale rows.
  */
 function normalizeDivisionRow(row: Record<string, unknown>) {
   const id = asNonEmptyString(row.id)
+  const now = new Date().toISOString()
 
   if (!id) {
     throw new Error('Division row is missing `id`.')
@@ -451,48 +227,93 @@ function normalizeDivisionRow(row: Record<string, unknown>) {
   const parentDivisionId = asNonEmptyString(row.parent_division_id)
   const otSubtype = asNonEmptyString(row.subtype)
   const otClass = asNonEmptyString(row.class)
-  const otAdminLevel = resolveAdminLevel(row)
+  const type = resolveDivisionType({
+    row,
+    otClass,
+    otSubtype,
+    parentDivisionId,
+  })
   const level = resolveDivisionLevel({
-    otAdminLevel,
+    row,
     otClass,
     otSubtype,
     parentDivisionId,
   })
   const i18n = normalizeDivisionI18n(id, row.names, row.local_type)
+  const normalizedHierarchies = normalizeDivisionHierarchies(row.hierarchies)
+  const normalizedGeometry = parseWkbGeometry(row.geometry)
 
   return {
     base: {
-      hierarchyJson: stableJsonStringify(row.hierarchies),
+      createdAt: now,
+      hierarchyJson: stableJsonStringify(normalizedHierarchies),
       id,
       level,
-      otAdminLevel,
+      otGeometryJson: normalizedGeometry ? stableJsonStringify(normalizedGeometry) : null,
+      otPopulation: asNumber(row.population),
+      type,
       otBboxJson: stableJsonStringify(row.bbox),
       otCartographyJson: stableJsonStringify(row.cartography),
       otClass,
-      otHierarchyJson: stableJsonStringify(row.hierarchies),
+      otHierarchyJson: stableJsonStringify(normalizedHierarchies),
       otSubtype,
       otVersion: asString(row.version),
       otWikidata: asNonEmptyString(row.wikidata),
       parentDivisionId,
-      sourcesJson: stableJsonStringify(row.sources),
-    } satisfies DivisionBaseRecord,
+      sourcesJson: stableJsonStringify(normalizeOvertureSources(row.sources)),
+      updatedAt: now,
+    } satisfies DivisionRow,
     i18n,
   }
+}
+
+function buildDivisionBaseHashInput(
+  base: Omit<DivisionRow, 'createdAt' | 'updatedAt'> | DivisionRow,
+) {
+  return {
+    hierarchyJson: base.hierarchyJson,
+    id: base.id,
+    level: base.level,
+    otBboxJson: base.otBboxJson,
+    otCartographyJson: base.otCartographyJson,
+    otClass: base.otClass,
+    otGeometryJson: base.otGeometryJson,
+    otHierarchyJson: base.otHierarchyJson,
+    otPopulation: base.otPopulation,
+    otSubtype: base.otSubtype,
+    otVersion: base.otVersion,
+    otWikidata: base.otWikidata,
+    parentDivisionId: base.parentDivisionId,
+    sourcesJson: base.sourcesJson,
+    type: base.type,
+  } satisfies Omit<DivisionRow, 'createdAt' | 'updatedAt'>
+}
+
+function normalizeDivisionI18nSnapshotRow(row: DivisionI18nPayload) {
+  return {
+    ...row,
+    isLocaleInferred: Boolean(row.isLocaleInferred),
+  } satisfies DivisionI18nPayload
+}
+
+function normalizeOvertureSources(sources: unknown) {
+  if (sources === undefined) {
+    return undefined
+  }
+
+  return { overture: sources }
 }
 
 /**
  * Builds localized division name/type rows from mixed source fields.
  */
-function normalizeDivisionI18n(
-  divisionId: string,
-  names: unknown,
-  localType: unknown,
-) {
+function normalizeDivisionI18n(divisionId: string, names: unknown, localType: unknown) {
   const localizedNames = new Map<string, Set<string>>()
   const localizedRuleEntries = new Map<string, DivisionNameRuleRecord[]>()
   const localizedInferredFlags = new Map<string, boolean>()
   const localizedTypes = new Map<string, string>()
-  const namesRecord = names && typeof names === 'object' ? (names as Record<string, unknown>) : null
+  const namesRecord =
+    names && typeof names === 'object' ? (names as Record<string, unknown>) : null
 
   const addNameValue = (
     locale: string,
@@ -520,10 +341,7 @@ function normalizeDivisionI18n(
     localizedInferredFlags.set(locale, false)
   }
 
-  collectLocalizedValues(
-    namesRecord?.common,
-    addNameValue,
-  )
+  collectLocalizedValues(namesRecord?.common, addNameValue)
   collectLocalizedRuleValues(namesRecord?.rules, addNameValue)
   collectLocalizedScalarValues(localType, localizedTypes, locale => {
     localizedInferredFlags.set(locale, false)
@@ -551,7 +369,7 @@ function normalizeDivisionI18n(
       otNameAlts: alts.length > 0 ? alts.join('|') : null,
       otNameRulesJson: otNameRules.length > 0 ? stableJsonStringify(otNameRules) : null,
       otNameVariantJson: values.length > 0 ? stableJsonStringify(values) : null,
-    } satisfies DivisionI18nRecord
+    } satisfies DivisionI18nPayload
   })
 }
 
@@ -722,34 +540,22 @@ function collectLocalizedRuleValues(
         },
       })
     }
-
-    if (directVariant) {
-      appendValue(explicitLocale, directVariant, {
-        rule: {
-          value: directValue ?? directVariant,
-          variant: directVariant,
-        },
-      })
-    }
     return
   }
 
   if (!explicitLocale && (directValue || directVariant)) {
-    const ruleParts = [directValue, directVariant]
-      .filter((part): part is string => Boolean(part))
-      .flatMap(part =>
-        inferLocale(part).map(inferredValue => ({
+    const inferredValues = directValue
+      ? inferLocale(directValue).map(inferredValue => ({
           locale: inferredValue.locale,
           value: inferredValue.value,
-          source: part,
-        })),
-      )
+        }))
+      : []
 
-    for (const rulePart of ruleParts) {
-      appendValue(rulePart.locale, rulePart.value, {
+    for (const inferredValue of inferredValues) {
+      appendValue(inferredValue.locale, inferredValue.value, {
         inferred: true,
         rule: {
-          value: directValue ?? rulePart.source,
+          value: directValue ?? directVariant ?? inferredValue.value,
           variant: directVariant,
         },
       })
@@ -764,9 +570,171 @@ function collectLocalizedRuleValues(
 }
 
 /**
- * Resolves the source admin-level token from normalized or raw fields.
+ * Unwraps singleton nested list wrappers produced by parquet decoding.
  */
-function resolveAdminLevel(row: Record<string, unknown>) {
+function normalizeDivisionHierarchies(value: unknown) {
+  let normalized = value
+
+  while (
+    Array.isArray(normalized) &&
+    normalized.length === 1 &&
+    Array.isArray(normalized[0])
+  ) {
+    ;[normalized] = normalized
+  }
+
+  return normalized
+}
+
+/**
+ * Maps source hints to a coarse numeric division level.
+ */
+function resolveDivisionLevel(input: {
+  otSubtype: string | null
+  otClass: string | null
+  parentDivisionId: string | null
+  row: Record<string, unknown>
+}) {
+  const normalizedSubtype = normalizeDivisionLevelToken(input.otSubtype)
+  const normalizedClass = normalizeDivisionLevelToken(input.otClass)
+  const normalizedAdminLevel = normalizeDivisionLevelToken(
+    resolveAdminLevelToken(input.row),
+  )
+
+  if (isHongKongArea(input.row)) {
+    return 1
+  }
+
+  if (normalizedSubtype === 'dependency') {
+    return 0
+  }
+
+  if (normalizedSubtype === 'region') {
+    return 2
+  }
+
+  if (normalizedSubtype === 'locality') {
+    if (normalizedClass === 'city') {
+      return 1
+    }
+
+    if (normalizedClass === 'town') {
+      return 3
+    }
+
+    if (normalizedClass === 'village') {
+      return 5
+    }
+
+    if (normalizedClass === 'hamlet') {
+      return 6
+    }
+  }
+
+  const candidates = [normalizedSubtype, normalizedClass, normalizedAdminLevel].filter(
+    Boolean,
+  )
+
+  for (const candidate of candidates) {
+    for (const [token, level] of DIVISION_LEVEL_TOKENS.entries()) {
+      if (candidate.includes(token)) {
+        return level
+      }
+    }
+  }
+
+  return input.parentDivisionId ? 1 : 0
+}
+
+function resolveDivisionType(input: {
+  otSubtype: string | null
+  otClass: string | null
+  parentDivisionId: string | null
+  row: Record<string, unknown>
+}) {
+  const normalizedSubtype = normalizeDivisionLevelToken(input.otSubtype)
+  const normalizedClass = normalizeDivisionLevelToken(input.otClass)
+
+  if (isHongKongArea(input.row)) {
+    return 'area'
+  }
+
+  if (normalizedSubtype === 'dependency') {
+    return 'sar'
+  }
+
+  if (normalizedSubtype === 'region') {
+    return 'district'
+  }
+
+  if (normalizedSubtype === 'locality') {
+    if (normalizedClass === 'city') {
+      return 'area'
+    }
+
+    if (normalizedClass === 'town') {
+      return 'town'
+    }
+
+    if (normalizedClass === 'village') {
+      return 'village'
+    }
+
+    if (normalizedClass === 'hamlet') {
+      return 'hamlet'
+    }
+  }
+
+  if (normalizedSubtype === 'macrohood' || normalizedClass === 'macrohood') {
+    return 'macrohood'
+  }
+
+  if (
+    normalizedSubtype === 'neighborhood' ||
+    normalizedSubtype === 'neighbourhood' ||
+    normalizedClass === 'neighborhood' ||
+    normalizedClass === 'neighbourhood'
+  ) {
+    return 'neighbourhood'
+  }
+
+  if (normalizedSubtype === 'microhood' || normalizedClass === 'microhood') {
+    return 'microhood'
+  }
+
+  const level = resolveDivisionLevel(input)
+
+  if (level === 0) {
+    return 'sar'
+  }
+
+  if (level === 1) {
+    return 'area'
+  }
+
+  if (level === 2) {
+    return 'district'
+  }
+
+  if (level === 3) {
+    return 'town'
+  }
+
+  if (level === 4) {
+    return 'macrohood'
+  }
+
+  if (level === 5) {
+    return 'neighbourhood'
+  }
+
+  return 'microhood'
+}
+
+/**
+ * Reads admin-level-like source hints for level derivation without persisting them.
+ */
+function resolveAdminLevelToken(row: Record<string, unknown>) {
   const norms = row.norms
 
   if (norms && typeof norms === 'object') {
@@ -784,28 +752,59 @@ function resolveAdminLevel(row: Record<string, unknown>) {
   return asNonEmptyString(row.admin_level) ?? asNonEmptyString(row.adminLevel)
 }
 
-/**
- * Maps source hints to a coarse numeric division level.
- */
-function resolveDivisionLevel(input: {
-  otSubtype: string | null
-  otClass: string | null
-  otAdminLevel: string | null
-  parentDivisionId: string | null
-}) {
-  const candidates = [input.otSubtype, input.otClass, input.otAdminLevel]
-    .filter(Boolean)
-    .map(value => value?.toLowerCase() ?? '')
+function normalizeDivisionLevelToken(value: string | null) {
+  return value?.trim().toLowerCase().replaceAll(/[\s-]+/g, '_') ?? ''
+}
 
-  for (const candidate of candidates) {
-    for (const [token, level] of DIVISION_LEVEL_TOKENS.entries()) {
-      if (candidate.includes(token)) {
-        return level
+function isHongKongArea(row: Record<string, unknown>) {
+  const names = row.names
+
+  if (!names || typeof names !== 'object') {
+    return false
+  }
+
+  return collectDivisionNameCandidates(names as Record<string, unknown>).some(name =>
+    HONG_KONG_AREA_NAMES.has(name.toLowerCase()),
+  )
+}
+
+function collectDivisionNameCandidates(names: Record<string, unknown>) {
+  const candidates = new Set<string>()
+
+  const pushValue = (value: unknown) => {
+    if (typeof value === 'string' && value.trim()) {
+      candidates.add(value.trim())
+    }
+  }
+
+  const pushLocalized = (value: unknown) => {
+    if (typeof value === 'string') {
+      pushValue(value)
+      return
+    }
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item && typeof item === 'object') {
+          pushValue((item as Record<string, unknown>).value)
+        } else {
+          pushValue(item)
+        }
+      }
+      return
+    }
+
+    if (value && typeof value === 'object') {
+      for (const localizedValue of Object.values(value as Record<string, unknown>)) {
+        pushValue(localizedValue)
       }
     }
   }
 
-  return input.parentDivisionId ? 1 : 0
+  pushValue(names.primary)
+  pushLocalized(names.common)
+
+  return [...candidates]
 }
 
 function dedupeNameRules(rules: DivisionNameRuleRecord[]) {
@@ -835,177 +834,286 @@ function dedupeNameRules(rules: DivisionNameRuleRecord[]) {
   return deduped
 }
 
-function createDivisionStatsAccumulator(): DivisionStatsAccumulator {
-  return {
-    altCoverage: new Map(),
-    count: new Map(),
-    nonInferredCoverage: new Map(),
-    total: 0,
+function asNumber(value: unknown) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value
   }
-}
 
-function updateDivisionStatsAccumulator(
-  statsAccumulator: DivisionStatsAccumulator,
-  i18nRows: DivisionI18nRecord[],
-) {
-  statsAccumulator.total += 1
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
 
-  const coverageGroups = new Set<LocaleStatsGroup>()
-  const nonInferredCoverageGroups = new Set<LocaleStatsGroup>()
-  const altCoverageGroups = new Set<LocaleStatsGroup>()
-
-  for (const row of i18nRows) {
-    const group = toStatsLocaleGroup(row.locale)
-
-    if (!group || !row.otName) {
-      continue
+    if (!trimmed) {
+      return null
     }
 
-    coverageGroups.add(group)
-
-    if (!row.isLocaleInferred) {
-      nonInferredCoverageGroups.add(group)
-    }
-
-    if (row.otNameAlts) {
-      altCoverageGroups.add(group)
-    }
-  }
-
-  incrementStatsCounts(statsAccumulator.count, coverageGroups)
-  incrementStatsCounts(statsAccumulator.nonInferredCoverage, nonInferredCoverageGroups)
-  incrementStatsCounts(statsAccumulator.altCoverage, altCoverageGroups)
-}
-
-function incrementStatsCounts(
-  target: Map<LocaleStatsGroup, number>,
-  groups: Set<LocaleStatsGroup>,
-) {
-  for (const group of groups) {
-    target.set(group, (target.get(group) ?? 0) + 1)
-  }
-}
-
-function toStatsLocaleGroup(locale: string): LocaleStatsGroup | null {
-  if (locale === 'en') {
-    return 'en'
-  }
-
-  if (['zh', 'zh-hant', 'zh-hk', 'zh-mo', 'zh-tw'].includes(locale)) {
-    return 'zh-hant'
-  }
-
-  if (['zh-hans', 'zh-cn', 'zh-sg'].includes(locale)) {
-    return 'zh-hans'
+    const parsed = Number(trimmed)
+    return Number.isFinite(parsed) ? parsed : null
   }
 
   return null
 }
 
-function buildDivisionStatsRows(statsAccumulator: DivisionStatsAccumulator) {
-  const createdAt = new Date().toISOString()
-  const locales: LocaleStatsGroup[] = ['en', 'zh-hant', 'zh-hans']
+type GeoJsonGeometry =
+  | {
+      type: 'Point'
+      coordinates: number[]
+    }
+  | {
+      type: 'LineString'
+      coordinates: number[][]
+    }
+  | {
+      type: 'Polygon'
+      coordinates: number[][][]
+    }
+  | {
+      type: 'MultiPoint'
+      coordinates: number[][]
+    }
+  | {
+      type: 'MultiLineString'
+      coordinates: number[][][]
+    }
+  | {
+      type: 'MultiPolygon'
+      coordinates: number[][][][]
+    }
+  | {
+      type: 'GeometryCollection'
+      geometries: GeoJsonGeometry[]
+    }
 
-  return locales.flatMap(locale => {
-    const localeCount = statsAccumulator.count.get(locale) ?? 0
-    const localeNonInferredCount = statsAccumulator.nonInferredCoverage.get(locale) ?? 0
-    const localeAltCount = statsAccumulator.altCoverage.get(locale) ?? 0
-    const total = statsAccumulator.total
+function parseWkbGeometry(value: unknown): GeoJsonGeometry | null {
+  const decodedGeometry = asGeoJsonGeometry(value)
 
-    return [
-      {
-        createdAt,
-        dimension: 'locale_count',
-        groupBy: 'locale',
-        groupValue: locale,
-        metric: 'completeness',
-        metricUnit: 'count',
-        type: 'dataset',
-        updatedAt: createdAt,
-        value: localeCount,
-      },
-      {
-        createdAt,
-        dimension: 'locale_coverage',
-        groupBy: 'locale',
-        groupValue: locale,
-        metric: 'completeness',
-        metricUnit: 'percentage',
-        type: 'dataset',
-        updatedAt: createdAt,
-        value: percentage(localeCount, total),
-      },
-      {
-        createdAt,
-        dimension: 'locale_coverage_non_inferred',
-        groupBy: 'locale',
-        groupValue: locale,
-        metric: 'completeness',
-        metricUnit: 'percentage',
-        type: 'dataset',
-        updatedAt: createdAt,
-        value: percentage(localeNonInferredCount, total),
-      },
-      {
-        createdAt,
-        dimension: 'locale_alt_coverage',
-        groupBy: 'locale',
-        groupValue: locale,
-        metric: 'completeness',
-        metricUnit: 'percentage',
-        type: 'dataset',
-        updatedAt: createdAt,
-        value: percentage(localeAltCount, total),
-      },
-    ]
-  })
-}
-
-function percentage(value: number, total: number) {
-  if (total <= 0) {
-    return 0
+  if (decodedGeometry) {
+    return decodedGeometry
   }
 
-  return (value / total) * 100
+  const bytes = toUint8Array(value)
+
+  if (!bytes || bytes.byteLength === 0) {
+    return null
+  }
+
+  const reader = createWkbReader(bytes)
+  return readWkbGeometry(reader)
 }
 
-async function replaceDatasetStats(
-  db: HarbourWritableDb,
-  datasetId: string,
-  rows: Array<{
-    createdAt: string
-    dimension: string
-    groupBy: string | null
-    groupValue: string | null
-    metric: string
-    metricUnit: string
-    type: string
-    updatedAt: string
-    value: number
-  }>,
+function asGeoJsonGeometry(value: unknown): GeoJsonGeometry | null {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+
+  const candidate = value as Record<string, unknown>
+
+  if (typeof candidate.type !== 'string') {
+    return null
+  }
+
+  return value as GeoJsonGeometry
+}
+
+function toUint8Array(value: unknown) {
+  if (value instanceof Uint8Array) {
+    return value
+  }
+
+  if (value instanceof ArrayBuffer) {
+    return new Uint8Array(value)
+  }
+
+  if (ArrayBuffer.isView(value)) {
+    return new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
+  }
+
+  return null
+}
+
+function createWkbReader(bytes: Uint8Array) {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+  let offset = 0
+  let littleEndian = true
+
+  return {
+    readByteOrder() {
+      const byteOrder = view.getUint8(offset)
+      offset += 1
+
+      if (byteOrder !== 0 && byteOrder !== 1) {
+        throw new Error(`Unsupported WKB byte order: ${byteOrder}`)
+      }
+
+      littleEndian = byteOrder === 1
+      return littleEndian
+    },
+    readUint32() {
+      const value = view.getUint32(offset, littleEndian)
+      offset += 4
+      return value >>> 0
+    },
+    readFloat64() {
+      const value = view.getFloat64(offset, littleEndian)
+      offset += 8
+      return value
+    },
+  }
+}
+
+function readWkbGeometry(reader: ReturnType<typeof createWkbReader>): GeoJsonGeometry {
+  reader.readByteOrder()
+
+  const rawType = reader.readUint32()
+  const hasSrid = (rawType & 0x20000000) !== 0
+  const hasZFromBits = (rawType & 0x80000000) !== 0
+  const hasMFromBits = (rawType & 0x40000000) !== 0
+  let baseType = rawType & 0x0fffffff
+
+  let hasZ = hasZFromBits
+  let hasM = hasMFromBits
+
+  if (baseType >= 3000) {
+    hasZ = true
+    hasM = true
+    baseType -= 3000
+  } else if (baseType >= 2000) {
+    hasM = true
+    baseType -= 2000
+  } else if (baseType >= 1000) {
+    hasZ = true
+    baseType -= 1000
+  }
+
+  if (hasSrid) {
+    reader.readUint32()
+  }
+
+  switch (baseType) {
+    case 1:
+      return {
+        type: 'Point',
+        coordinates: readWkbCoordinate(reader, hasZ, hasM),
+      }
+    case 2:
+      return {
+        type: 'LineString',
+        coordinates: readWkbCoordinateArray(reader, hasZ, hasM),
+      }
+    case 3:
+      return {
+        type: 'Polygon',
+        coordinates: readWkbPolygonCoordinates(reader, hasZ, hasM),
+      }
+    case 4:
+      return {
+        type: 'MultiPoint',
+        coordinates: readWkbNestedGeometries(reader, 'Point').map(
+          geometry => geometry.coordinates,
+        ),
+      }
+    case 5:
+      return {
+        type: 'MultiLineString',
+        coordinates: readWkbNestedGeometries(reader, 'LineString').map(
+          geometry => geometry.coordinates,
+        ),
+      }
+    case 6:
+      return {
+        type: 'MultiPolygon',
+        coordinates: readWkbNestedGeometries(reader, 'Polygon').map(
+          geometry => geometry.coordinates,
+        ),
+      }
+    case 7:
+      return {
+        type: 'GeometryCollection',
+        geometries: readWkbCollectionGeometries(reader),
+      }
+    default:
+      throw new Error(`Unsupported WKB geometry type: ${baseType}`)
+  }
+}
+
+function readWkbCoordinate(
+  reader: ReturnType<typeof createWkbReader>,
+  hasZ: boolean,
+  hasM: boolean,
 ) {
-  await runWithWriteRetry(() => db.delete(stats).where(eq(stats.datasetId, datasetId)).run())
+  const x = reader.readFloat64()
+  const y = reader.readFloat64()
+  const coordinates = [x, y]
 
-  if (rows.length === 0) {
-    return 0
+  if (hasZ) {
+    coordinates.push(reader.readFloat64())
   }
 
-  const chunkSize = getMaxRowsPerInsert(11)
-
-  for (const chunk of chunkArray(rows, chunkSize)) {
-    await runWithWriteRetry(() =>
-      db
-        .insert(stats)
-        .values(
-          chunk.map(row => ({
-            ...row,
-            datasetId,
-            id: crypto.randomUUID(),
-          })),
-        )
-        .run(),
-    )
+  if (hasM) {
+    reader.readFloat64()
   }
 
-  return rows.length
+  return coordinates
+}
+
+function readWkbCoordinateArray(
+  reader: ReturnType<typeof createWkbReader>,
+  hasZ: boolean,
+  hasM: boolean,
+) {
+  const count = reader.readUint32()
+  const coordinates: number[][] = []
+
+  for (let index = 0; index < count; index += 1) {
+    coordinates.push(readWkbCoordinate(reader, hasZ, hasM))
+  }
+
+  return coordinates
+}
+
+function readWkbPolygonCoordinates(
+  reader: ReturnType<typeof createWkbReader>,
+  hasZ: boolean,
+  hasM: boolean,
+) {
+  const ringCount = reader.readUint32()
+  const coordinates: number[][][] = []
+
+  for (let index = 0; index < ringCount; index += 1) {
+    coordinates.push(readWkbCoordinateArray(reader, hasZ, hasM))
+  }
+
+  return coordinates
+}
+
+function readWkbNestedGeometries<T extends GeoJsonGeometry['type']>(
+  reader: ReturnType<typeof createWkbReader>,
+  expectedType: T,
+) {
+  const count = reader.readUint32()
+  const geometries: Extract<GeoJsonGeometry, { type: T }>[] = []
+
+  for (let index = 0; index < count; index += 1) {
+    const geometry = readWkbGeometry(reader)
+
+    if (geometry.type !== expectedType) {
+      throw new Error(
+        `Unexpected nested WKB geometry type: expected ${expectedType}, received ${geometry.type}`,
+      )
+    }
+
+    geometries.push(geometry as Extract<GeoJsonGeometry, { type: T }>)
+  }
+
+  return geometries
+}
+
+function readWkbCollectionGeometries(reader: ReturnType<typeof createWkbReader>) {
+  const count = reader.readUint32()
+  const geometries: GeoJsonGeometry[] = []
+
+  for (let index = 0; index < count; index += 1) {
+    geometries.push(readWkbGeometry(reader))
+  }
+
+  return geometries
 }
