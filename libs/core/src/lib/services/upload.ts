@@ -398,6 +398,7 @@ function ensureChronologicalUpload(
 
 async function ensureSchemaCompatible(
   latestDataset: DatasetRecord | null,
+  nextPlan: Pick<UploadPlan, 'source' | 'sourceVersion' | 'type'>,
   nextInspection: ParquetInspection,
   resolveSchemaFingerprint?: RegisterUploadOptions['resolveSchemaFingerprint'],
 ) {
@@ -424,6 +425,17 @@ async function ensureSchemaCompatible(
   const nextFingerprint = createSchemaFingerprint(nextInspection)
 
   if (previousFingerprint !== nextFingerprint) {
+    if (
+      isAllowedKnownSchemaTransition(
+        latestDataset,
+        nextPlan,
+        previousFingerprint,
+        nextInspection,
+      )
+    ) {
+      return
+    }
+
     throw new Error(
       [
         `Schema drift detected against ${latestDataset.datasetId}.`,
@@ -576,6 +588,7 @@ export async function planUpload(
   ensureChronologicalUpload(latestDataset, sourceVersion, datasetId)
   await ensureSchemaCompatible(
     latestDataset,
+    preparedUpload.plan,
     resolvedInspection,
     options.resolveSchemaFingerprint,
   )
@@ -585,6 +598,120 @@ export async function planUpload(
 
 export function createRawObjectKey(plan: UploadPlan) {
   return [plan.regionCode, plan.source, plan.sourceVersion, plan.fileName].join('/')
+}
+
+function isAllowedKnownSchemaTransition(
+  latestDataset: DatasetRecord,
+  nextPlan: Pick<UploadPlan, 'source' | 'sourceVersion' | 'type'>,
+  previousFingerprint: string,
+  nextInspection: ParquetInspection,
+) {
+  if (latestDataset.source !== 'overture' || latestDataset.type !== 'division') {
+    return false
+  }
+
+  if (nextPlan.source !== 'overture' || nextPlan.type !== 'division') {
+    return false
+  }
+
+  if (
+    compareSourceVersion(latestDataset.sourceVersion, '2026-02-18.0') >= 0 ||
+    compareSourceVersion(nextPlan.sourceVersion, '2026-02-18.0') < 0
+  ) {
+    return false
+  }
+
+  const previousSchema = parseSchemaFingerprint(previousFingerprint)
+
+  if (!previousSchema) {
+    return false
+  }
+
+  return matchesAdminLevelTransition(previousSchema, nextInspection.schema)
+}
+
+function parseSchemaFingerprint(
+  fingerprint: string,
+): ParquetInspection['schema'] | null {
+  try {
+    const parsed = JSON.parse(fingerprint)
+
+    if (!Array.isArray(parsed)) {
+      return null
+    }
+
+    const schema = parsed
+      .map(field => {
+        if (
+          typeof field !== 'object' ||
+          field === null ||
+          typeof field.name !== 'string' ||
+          typeof field.type !== 'string' ||
+          typeof field.nullable !== 'boolean'
+        ) {
+          return null
+        }
+
+        return {
+          name: field.name,
+          type: field.type,
+          nullable: field.nullable,
+        }
+      })
+      .filter((field): field is ParquetInspection['schema'][number] => field !== null)
+
+    return schema.length === parsed.length ? schema : null
+  } catch {
+    return null
+  }
+}
+
+function matchesAdminLevelTransition(
+  previousSchema: ParquetInspection['schema'],
+  nextSchema: ParquetInspection['schema'],
+) {
+  if (nextSchema.length !== previousSchema.length + 1) {
+    return false
+  }
+
+  const previousByName = new Map(previousSchema.map(field => [field.name, field]))
+  const nextByName = new Map(nextSchema.map(field => [field.name, field]))
+  const addedFields = nextSchema.filter(field => !previousByName.has(field.name))
+
+  if (
+    addedFields.length !== 1 ||
+    addedFields[0]?.name !== 'admin_level' ||
+    addedFields[0].type !== 'int_32' ||
+    addedFields[0].nullable !== true
+  ) {
+    return false
+  }
+
+  for (const field of previousSchema) {
+    const nextField = nextByName.get(field.name)
+
+    if (
+      !nextField ||
+      nextField.type !== field.type ||
+      nextField.nullable !== field.nullable
+    ) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function compareSourceVersion(left: string, right: string) {
+  const [leftDate = left, leftPatch = '0'] = left.split('.')
+  const [rightDate = right, rightPatch = '0'] = right.split('.')
+  const dateComparison = leftDate.localeCompare(rightDate)
+
+  if (dateComparison !== 0) {
+    return dateComparison
+  }
+
+  return Number(leftPatch) - Number(rightPatch)
 }
 
 function getRequiredInspection(

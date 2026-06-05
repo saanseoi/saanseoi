@@ -43,6 +43,14 @@ const fixtureInspection: ParquetInspection = {
   distinctRegionValues: ['hk'],
 }
 
+const fixtureInspectionWithAdminLevel: ParquetInspection = {
+  ...fixtureInspection,
+  schema: [
+    ...fixtureInspection.schema,
+    { name: 'admin_level', type: 'int_32', nullable: true },
+  ],
+}
+
 function createTempDir() {
   const dir = mkdtempSync(join(tmpdir(), 'harbour-test-'))
   tempDirs.push(dir)
@@ -409,6 +417,103 @@ describe('upload', () => {
         supersedesDatasetId: 'overture-hk-2026-05-24.0-division',
       },
     })
+
+    sqlite.close()
+  })
+
+  test('allows the known overture division admin_level schema transition', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    db.insert(datasets)
+      .values({
+        datasetId: 'overture-hk-2026-01-21.0-division',
+        regionCode: 'hk',
+        snapshotMonth: '2026-01',
+        theme: 'divisions',
+        type: 'division',
+        source: 'overture',
+        sourceVersion: '2026-01-21.0',
+        rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
+        originalFileName: 'division.parquet',
+        status: 'active',
+        isActive: true,
+        supersedesDatasetId: null,
+        revokedAt: null,
+        revocationReason: null,
+        ingestedAt: '2026-06-02T00:00:00.000Z',
+        createdAt: '2026-06-02T00:00:00.000Z',
+        updatedAt: '2026-06-02T00:00:00.000Z',
+      })
+      .run()
+
+    await expect(
+      planUpload(db, {
+        filePath: fixtureFile,
+        snapshotMonth: '2026-02',
+        sourceVersion: '2026-02-18.0',
+        inspection: fixtureInspectionWithAdminLevel,
+        resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+      }),
+    ).resolves.toMatchObject({
+      plan: {
+        datasetId: 'overture-hk-2026-02-18.0-division',
+        supersedesDatasetId: 'overture-hk-2026-01-21.0-division',
+      },
+    })
+
+    sqlite.close()
+  })
+
+  test('still rejects unrelated schema drift', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    db.insert(datasets)
+      .values({
+        datasetId: 'overture-hk-2026-01-21.0-division',
+        regionCode: 'hk',
+        snapshotMonth: '2026-01',
+        theme: 'divisions',
+        type: 'division',
+        source: 'overture',
+        sourceVersion: '2026-01-21.0',
+        rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
+        originalFileName: 'division.parquet',
+        status: 'active',
+        isActive: true,
+        supersedesDatasetId: null,
+        revokedAt: null,
+        revocationReason: null,
+        ingestedAt: '2026-06-02T00:00:00.000Z',
+        createdAt: '2026-06-02T00:00:00.000Z',
+        updatedAt: '2026-06-02T00:00:00.000Z',
+      })
+      .run()
+
+    await expect(
+      planUpload(db, {
+        filePath: fixtureFile,
+        snapshotMonth: '2026-02',
+        sourceVersion: '2026-02-18.0',
+        inspection: {
+          ...fixtureInspection,
+          schema: [
+            ...fixtureInspection.schema,
+            { name: 'wrong_field', type: 'int_32', nullable: true },
+          ],
+        },
+        resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+      }),
+    ).rejects.toThrow(
+      'Schema drift detected against overture-hk-2026-01-21.0-division.',
+    )
 
     sqlite.close()
   })
