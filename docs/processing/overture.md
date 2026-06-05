@@ -23,6 +23,7 @@ The `division` is normalised into `divisions` and `divisionsI18n` where each `lo
 - `hierarchies` is stored in both `otHierarchyJson` and `hierarchyJson`. The former retains the hierarchy determined by overture, the latter provides a more explicit hierarchy based on local knowledge.
 - `geometry` is decoded from Overture WKB and stored as GeoJSON text in `otGeometryJson`.
 - `population` is stored as `otPopulation`.
+- `sources` is stored in `sourcesJson` wrapped as `{ "overture": ... }` so downstream consumers can distinguish Overture lineage from other source-specific payloads.
 - The following Overture division fields are dropped:
   - `admin_level`: dropped because Harbour standardizes on taxonomy-derived `level` and `type` values instead of persisting raw Overture admin-level lineage.
   - `capital_division_ids`: dropped because the Hong Kong dataset only uses it sparsely and it is not meaningful enough for current SAR-focused use cases.
