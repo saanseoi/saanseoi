@@ -23,6 +23,12 @@
     }
   ],
   "minify": true,
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
   "env": {
     "preview": {
       "name": "ss-atlas-preview",
