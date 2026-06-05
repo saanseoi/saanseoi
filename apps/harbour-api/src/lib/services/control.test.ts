@@ -103,14 +103,24 @@ describe('control service', () => {
     sqlite.close()
 
     expect(ingestRuns).toHaveLength(2)
-    expect(ingestRuns[0].phase).toBe('extractDivisions')
-    expect(ingestRuns[0].status).toBe('completed')
-    expect(ingestRuns[0].statsJson).toBe('{"processedRows":1810}')
-    expect(ingestRuns[0].finishedAt).not.toBeNull()
-    expect(ingestRuns[1].phase).toBe('publishDataset')
-    expect(ingestRuns[1].status).toBe('error')
-    expect(ingestRuns[1].errorJson).toBe('{"message":"Network connection lost."}')
-    expect(ingestRuns[1].finishedAt).not.toBeNull()
+    const extractRun = ingestRuns[0]
+    const publishRun = ingestRuns[1]
+
+    expect(extractRun).toBeDefined()
+    expect(publishRun).toBeDefined()
+
+    if (!extractRun || !publishRun) {
+      throw new Error('Expected two ingest runs to be written.')
+    }
+
+    expect(extractRun.phase).toBe('extractDivisions')
+    expect(extractRun.status).toBe('completed')
+    expect(extractRun.statsJson).toBe('{"processedRows":1810}')
+    expect(extractRun.finishedAt).not.toBeNull()
+    expect(publishRun.phase).toBe('publishDataset')
+    expect(publishRun.status).toBe('error')
+    expect(publishRun.errorJson).toBe('{"message":"Network connection lost."}')
+    expect(publishRun.finishedAt).not.toBeNull()
     expect(dataset.status).toBe('failed')
   })
 })
