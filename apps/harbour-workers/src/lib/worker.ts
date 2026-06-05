@@ -2,6 +2,10 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/reposit
 import type { DatasetProcessingMessage } from '@repo/core'
 
 import {
+  processAddressDataset as defaultProcessAddressDataset,
+  type ProcessAddressDatasetResult,
+} from './services/address'
+import {
   processDivisionDataset as defaultProcessDivisionDataset,
   type HarbourWorkerBucket,
   type ProcessDatasetResult,
@@ -36,6 +40,7 @@ export type HarbourClient = {
  * @note Currently only supports division datasets.
  */
 export function createProcessDatasetMessage(
+  processAddressDataset = defaultProcessAddressDataset,
   processDivisionDataset = defaultProcessDivisionDataset,
 ) {
   return async function processDatasetMessage(
@@ -43,34 +48,56 @@ export function createProcessDatasetMessage(
     db: HarbourReadableDb & HarbourWritableDb,
     bucket: HarbourWorkerBucket,
     message: DatasetProcessingMessage,
-  ): Promise<ProcessDatasetResult> {
-    if (message.type !== 'division') {
-      throw new Error(`Unsupported processing type: ${message.type}`)
-    }
+  ): Promise<ProcessDatasetResult | ProcessAddressDatasetResult> {
 
     const activePhases = new Set<string>()
     await harbourClient.stageStarted(message.datasetId, 'processDataset')
     activePhases.add('processDataset')
 
     try {
-      await harbourClient.stageStarted(message.datasetId, 'extractDivisions')
-      activePhases.add('extractDivisions')
-      await harbourClient.stageStarted(message.datasetId, 'extractDivisionsI18n')
-      activePhases.add('extractDivisionsI18n')
+      let result: ProcessDatasetResult | ProcessAddressDatasetResult
 
-      const result = await processDivisionDataset(db, bucket, message)
+      if (message.type === 'division') {
+        await harbourClient.stageStarted(message.datasetId, 'extractDivisions')
+        activePhases.add('extractDivisions')
+        await harbourClient.stageStarted(message.datasetId, 'extractDivisionsI18n')
+        activePhases.add('extractDivisionsI18n')
 
-      await harbourClient.stageCompleted(message.datasetId, 'extractDivisions', {
-        deletedRows: result.deletedRows,
-        insertedVersions: result.insertedVersions,
-        processedRows: result.processedRows,
-        unchangedRows: result.unchangedRows,
-      })
-      activePhases.delete('extractDivisions')
-      await harbourClient.stageCompleted(message.datasetId, 'extractDivisionsI18n', {
-        localizedRows: result.localizedRows,
-      })
-      activePhases.delete('extractDivisionsI18n')
+        result = await processDivisionDataset(db, bucket, message)
+
+        await harbourClient.stageCompleted(message.datasetId, 'extractDivisions', {
+          deletedRows: result.deletedRows,
+          insertedVersions: result.insertedVersions,
+          processedRows: result.processedRows,
+          unchangedRows: result.unchangedRows,
+        })
+        activePhases.delete('extractDivisions')
+        await harbourClient.stageCompleted(message.datasetId, 'extractDivisionsI18n', {
+          localizedRows: result.localizedRows,
+        })
+        activePhases.delete('extractDivisionsI18n')
+      } else if (message.type === 'address') {
+        await harbourClient.stageStarted(message.datasetId, 'extractAddresses')
+        activePhases.add('extractAddresses')
+        await harbourClient.stageStarted(message.datasetId, 'extractAddressesI18n')
+        activePhases.add('extractAddressesI18n')
+
+        result = await processAddressDataset(db, bucket, message)
+
+        await harbourClient.stageCompleted(message.datasetId, 'extractAddresses', {
+          deletedRows: result.deletedRows,
+          insertedVersions: result.insertedVersions,
+          processedRows: result.processedRows,
+          unchangedRows: result.unchangedRows,
+        })
+        activePhases.delete('extractAddresses')
+        await harbourClient.stageCompleted(message.datasetId, 'extractAddressesI18n', {
+          localizedRows: result.localizedRows,
+        })
+        activePhases.delete('extractAddressesI18n')
+      } else {
+        throw new Error(`Unsupported processing type: ${message.type}`)
+      }
 
       await harbourClient.stageStarted(message.datasetId, 'publishDataset')
       activePhases.add('publishDataset')
