@@ -10,6 +10,8 @@ import {
   createSchemaFingerprint,
   inferRegionFromPath,
   inferSnapshotMonthFromPath,
+  inferSourceFromFilename,
+  inferSourceFromPath,
   inferThemeFromFilename,
   inferThemeFromPath,
   inferTypeFromFilename,
@@ -103,6 +105,15 @@ describe('upload', () => {
     expect(inferTypeFromFilename('division.parquet')).toBe('division')
   })
 
+  test('infers source from recognizable filename and path tokens', () => {
+    expect(inferSourceFromFilename('hkgov-als-address.parquet')).toBe('hkgov')
+    expect(inferSourceFromFilename('overture-address.parquet')).toBe('overture')
+    expect(inferSourceFromPath('/tmp/hkgov/2026-05/address.parquet')).toBe('hkgov')
+    expect(inferSourceFromPath('/tmp/overture/2026-05/address.parquet')).toBe(
+      'overture',
+    )
+  })
+
   test('prefers the address filename signal over a broader parent theme folder', () => {
     const filePath =
       '/tmp/data/2025-09-24.0/divisions/中国/Hong Kong SAR/address.parquet'
@@ -135,6 +146,7 @@ describe('upload', () => {
     const result = await registerUpload(db, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
+      source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
       rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
@@ -202,6 +214,7 @@ describe('upload', () => {
       registerUpload(db, {
         filePath: fixtureFile,
         snapshotMonth: '2026-04',
+        source: 'overture',
         sourceVersion: '2026-04-24.0',
         inspection: fixtureInspection,
         rawObjectKey: 'hk/overture/2026-04-24.0/division.parquet',
@@ -220,6 +233,7 @@ describe('upload', () => {
     const planned = await planUpload(harbourDb, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
+      source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
     })
@@ -229,6 +243,33 @@ describe('upload', () => {
     expect(planned.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
     expect(planned.plan.type).toBe('division')
     expect(planned.plan.fileName).toBe('division.parquet')
+  })
+
+  test('requires an explicit source when it cannot be inferred confidently', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = join(tempDir, 'address.parquet')
+
+    writeFileSync(fixtureFile, 'fixture')
+    const db = initDb(dbPath)
+    const harbourDb = createLocalHarbourDb(db)
+
+    await expect(
+      planUpload(harbourDb, {
+        filePath: fixtureFile,
+        snapshotMonth: '2026-06',
+        inspection: {
+          rowCount: 1,
+          schema: fixtureInspection.schema,
+          distinctThemeValues: ['addresses'],
+          distinctTypeValues: ['address'],
+          distinctCountryValues: ['hk'],
+          distinctRegionValues: ['hk'],
+        },
+      }),
+    ).rejects.toThrow('Could not determine source.')
+
+    db.close()
   })
 
   test('registers an already-uploaded remote object', async () => {
@@ -241,6 +282,7 @@ describe('upload', () => {
     const result = await registerUpload(db, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
+      source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
       rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
@@ -290,6 +332,7 @@ describe('upload', () => {
     const result = await registerUpload(db, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
+      source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
       rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
@@ -350,6 +393,7 @@ describe('upload', () => {
     const result = await requestUpload(db, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
+      source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
     })
@@ -379,6 +423,7 @@ describe('upload', () => {
     await requestUpload(db, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
+      source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
     })
@@ -386,6 +431,7 @@ describe('upload', () => {
     const result = await finalizeUpload(db, {
       filePath: fixtureFile,
       snapshotMonth: '2026-05',
+      source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
     })
@@ -435,6 +481,7 @@ describe('upload', () => {
       planUpload(db, {
         filePath: fixtureFile,
         snapshotMonth: '2026-06',
+        source: 'overture',
         sourceVersion: '2026-06-24.0',
         inspection,
         resolveSchemaFingerprint: async () => createSchemaFingerprint(inspection),
@@ -481,6 +528,7 @@ describe('upload', () => {
       planUpload(db, {
         filePath: fixtureFile,
         snapshotMonth: '2026-02',
+        source: 'overture',
         sourceVersion: '2026-02-18.0',
         inspection: fixtureInspectionWithAdminLevel,
         resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
@@ -527,6 +575,7 @@ describe('upload', () => {
       planUpload(db, {
         filePath: fixtureFile,
         snapshotMonth: '2026-02',
+        source: 'overture',
         sourceVersion: '2026-02-18.0',
         inspection: {
           ...fixtureInspection,
@@ -578,6 +627,7 @@ Reconcile the schema before uploading this dataset.`)
       registerUpload(db, {
         filePath: fixtureFile,
         snapshotMonth: '2026-05',
+        source: 'overture',
         sourceVersion: '2026-05-24.0',
         inspection: fixtureInspection,
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
@@ -706,6 +756,7 @@ Reconcile the schema before uploading this dataset.`)
       planUpload(db, {
         filePath: fixtureFile,
         snapshotMonth: '2026-08',
+        source: 'overture',
         sourceVersion: '2026-08-24.0',
         inspection: fixtureInspection,
         resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
