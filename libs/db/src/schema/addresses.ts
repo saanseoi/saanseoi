@@ -32,15 +32,15 @@ export const address2d = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    streetIdx: index('address2d_streetId_idx').on(table.streetId),
-    divisionIdx: index('address2d_division_idx').on(
+  table => [
+    index('address2d_streetId_idx').on(table.streetId),
+    index('address2d_division_idx').on(
       table.microhoodId,
       table.neighbourhoodId,
       table.subDistrictId,
       table.districtId,
     ),
-  }),
+  ],
 )
 
 export const address2dVersions = sqliteTable(
@@ -72,21 +72,18 @@ export const address2dVersions = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.id, table.versionHash],
     }),
-    currentLookupIdx: index('address2dVersions_current_lookup_idx').on(
-      table.id,
-      table.isCurrent,
-    ),
-    validityIdx: index('address2dVersions_validity_idx').on(
+    index('address2dVersions_current_lookup_idx').on(table.id, table.isCurrent),
+    index('address2dVersions_validity_idx').on(
       table.validFromMonth,
       table.validToMonth,
     ),
-    datasetIdx: index('address2dVersions_datasetId_idx').on(table.datasetId),
-    canonicalIdx: index('address2dVersions_canonicalKey_idx').on(table.canonicalKey),
-  }),
+    index('address2dVersions_datasetId_idx').on(table.datasetId),
+    index('address2dVersions_canonicalKey_idx').on(table.canonicalKey),
+  ],
 )
 
 export const address2dI18n = sqliteTable(
@@ -113,12 +110,12 @@ export const address2dI18n = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.addressId, table.locale],
     }),
-    localeIdx: index('address2dI18n_locale_idx').on(table.locale),
-  }),
+    index('address2dI18n_locale_idx').on(table.locale),
+  ],
 )
 
 export const address2dVersionsI18n = sqliteTable(
@@ -144,12 +141,12 @@ export const address2dVersionsI18n = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.addressId, table.versionHash, table.locale],
     }),
-    localeIdx: index('address2dVersionsI18n_locale_idx').on(table.locale),
-  }),
+    index('address2dVersionsI18n_locale_idx').on(table.locale),
+  ],
 )
 
 export const address3d = sqliteTable(
@@ -163,9 +160,7 @@ export const address3d = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    address2dIdx: index('address3d_address2dId_idx').on(table.address2dId),
-  }),
+  table => [index('address3d_address2dId_idx').on(table.address2dId)],
 )
 
 export const address3dVersions = sqliteTable(
@@ -184,21 +179,18 @@ export const address3dVersions = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.id, table.versionHash],
     }),
-    currentLookupIdx: index('address3dVersions_current_lookup_idx').on(
-      table.id,
-      table.isCurrent,
-    ),
-    validityIdx: index('address3dVersions_validity_idx').on(
+    index('address3dVersions_current_lookup_idx').on(table.id, table.isCurrent),
+    index('address3dVersions_validity_idx').on(
       table.validFromMonth,
       table.validToMonth,
     ),
-    datasetIdx: index('address3dVersions_datasetId_idx').on(table.datasetId),
-    address2dIdx: index('address3dVersions_address2dId_idx').on(table.address2dId),
-  }),
+    index('address3dVersions_datasetId_idx').on(table.datasetId),
+    index('address3dVersions_address2dId_idx').on(table.address2dId),
+  ],
 )
 
 export const address3dI18n = sqliteTable(
@@ -219,12 +211,12 @@ export const address3dI18n = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.address3dId, table.locale],
     }),
-    localeIdx: index('address3dI18n_locale_idx').on(table.locale),
-  }),
+    index('address3dI18n_locale_idx').on(table.locale),
+  ],
 )
 
 export const address3dVersionsI18n = sqliteTable(
@@ -244,10 +236,10 @@ export const address3dVersionsI18n = sqliteTable(
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
-  table => ({
-    pk: primaryKey({
+  table => [
+    primaryKey({
       columns: [table.address3dId, table.versionHash, table.locale],
     }),
-    localeIdx: index('address3dVersionsI18n_locale_idx').on(table.locale),
-  }),
+    index('address3dVersionsI18n_locale_idx').on(table.locale),
+  ],
 )

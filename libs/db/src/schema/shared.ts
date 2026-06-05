@@ -5,11 +5,11 @@ export const datasets = sqliteTable(
   {
     datasetId: text('datasetId').primaryKey(),
     regionCode: text('regionCode').notNull(),
+    source: text('source').notNull(),
+    sourceVersion: text('sourceVersion').notNull(),
     snapshotMonth: text('snapshotMonth').notNull(),
     theme: text('theme').notNull(),
     type: text('type').notNull(),
-    source: text('source').notNull(),
-    sourceVersion: text('sourceVersion').notNull(),
     rawObjectKey: text('rawObjectKey').notNull(),
     originalFileName: text('originalFileName').notNull(),
     status: text('status').notNull(),
