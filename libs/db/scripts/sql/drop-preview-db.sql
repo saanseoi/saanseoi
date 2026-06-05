@@ -23,6 +23,7 @@ DROP TABLE IF EXISTS `divisionsVersionsI18n`;
 DROP TABLE IF EXISTS `divisionsI18n`;
 DROP TABLE IF EXISTS `divisionsVersions`;
 DROP TABLE IF EXISTS `divisions`;
+DROP TABLE IF EXISTS `stats`;
 DROP TABLE IF EXISTS `ingestRuns`;
 DROP TABLE IF EXISTS `entityAliases`;
 DROP TABLE IF EXISTS `datasets`;
