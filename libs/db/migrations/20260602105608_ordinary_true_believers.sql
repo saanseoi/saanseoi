@@ -41,6 +41,21 @@ CREATE TABLE `ingestRuns` (
 	CONSTRAINT `fk_ingestRuns_datasetId_datasets_datasetId_fk` FOREIGN KEY (`datasetId`) REFERENCES `datasets`(`datasetId`)
 );
 --> statement-breakpoint
+CREATE TABLE `stats` (
+	`id` text PRIMARY KEY,
+	`type` text NOT NULL,
+	`datasetId` text NOT NULL,
+	`dimension` text NOT NULL,
+	`metric` text NOT NULL,
+	`metricUnit` text NOT NULL,
+	`value` real NOT NULL,
+	`groupBy` text,
+	`groupValue` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
+	CONSTRAINT `fk_stats_datasetId_datasets_datasetId_fk` FOREIGN KEY (`datasetId`) REFERENCES `datasets`(`datasetId`)
+);
+--> statement-breakpoint
 CREATE TABLE `divisions` (
 	`id` text PRIMARY KEY,
 	`level` integer NOT NULL,
@@ -63,8 +78,9 @@ CREATE TABLE `divisionsI18n` (
 	`otName` text,
 	`otNameVariantJson` text,
 	`otNameAlts` text,
+	`otNameRulesJson` text,
 	`otLocalType` text,
-	`hierarchyJson` text,
+	`isLocaleInferred` integer NOT NULL,
 	CONSTRAINT `divisionsI18n_pk` PRIMARY KEY(`divisionId`, `locale`),
 	CONSTRAINT `fk_divisionsI18n_divisionId_divisions_id_fk` FOREIGN KEY (`divisionId`) REFERENCES `divisions`(`id`)
 );
@@ -102,8 +118,9 @@ CREATE TABLE `divisionsVersionsI18n` (
 	`otName` text,
 	`otNameVariantJson` text,
 	`otNameAlts` text,
+	`otNameRulesJson` text,
 	`otLocalType` text,
-	`hierarchyJson` text,
+	`isLocaleInferred` integer NOT NULL,
 	CONSTRAINT `divisionsVersionsI18n_pk` PRIMARY KEY(`divisionId`, `versionHash`, `locale`)
 );
 --> statement-breakpoint
@@ -416,6 +433,8 @@ CREATE INDEX `datasets_active_lookup_idx` ON `datasets` (`regionCode`,`source`,`
 CREATE UNIQUE INDEX `datasets_dataset_id_unique_idx` ON `datasets` (`datasetId`);--> statement-breakpoint
 CREATE UNIQUE INDEX `entityAliases_entityType_aliasValue_unique_idx` ON `entityAliases` (`entityType`,`aliasValue`);--> statement-breakpoint
 CREATE INDEX `entityAliases_canonical_lookup_idx` ON `entityAliases` (`entityType`,`canonicalId`);--> statement-breakpoint
+CREATE INDEX `stats_datasetId_idx` ON `stats` (`datasetId`);--> statement-breakpoint
+CREATE INDEX `stats_dimension_idx` ON `stats` (`type`,`dimension`,`metric`,`groupBy`,`groupValue`);--> statement-breakpoint
 CREATE INDEX `divisions_level_idx` ON `divisions` (`level`);--> statement-breakpoint
 CREATE INDEX `divisions_parentDivisionId_idx` ON `divisions` (`parentDivisionId`);--> statement-breakpoint
 CREATE INDEX `divisionsI18n_locale_idx` ON `divisionsI18n` (`locale`);--> statement-breakpoint
