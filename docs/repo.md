@@ -6,10 +6,26 @@ This repository is a Bun workspace monorepo managed by [Turborepo](https://turbo
 
 ```text
 apps/
-  atlas-api/          Cloudflare Workers app built with Hono
+  atlas-api/           Cloudflare Workers app built with Hono
+  harbour-api/         Cloudflare Workers API for Harbour
+  harbour-cli/         Bun CLI for upload and data-management tasks
+  harbour-workers/     Cloudflare Workers background/ingestion logic
+  .local/              App-local runtime state for development
+data/
+  <release dirs>/      Versioned source-data snapshots used by the repo
+docs/
+  processing/          Processing notes, including Overture-specific docs
 libs/
-  config-typescript/   Shared base tsconfig used by apps
+  config-eslint/       Shared ESLint config package
+  config-typescript/   Shared base tsconfig used by workspace packages
+  core/                Shared application logic and service helpers
+  db/                  Shared Drizzle schema and database scripts
   i18n/                Shared Paraglide/inlang assets and compile step
+.changeset/            Changesets metadata for versioning and releases
+.github/               GitHub Actions workflows and repo automation
+.local/                Root-level local development state
+scripts/               Shared shell scripts used by apps and tooling
+spec/                  Repository-level specs and reference material
 turbo.json             Task graph and cache configuration
 package.json           Root workspace scripts
 biome.json             Repo-wide lint and formatting rules
