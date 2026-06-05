@@ -34,7 +34,7 @@ export function formatField(
 }
 
 function describeInferredFrom(
-  field: 'regionCode' | 'snapshotMonth' | 'sourceVersion' | 'type',
+  field: 'regionCode' | 'snapshotMonth' | 'source' | 'sourceVersion' | 'type',
   inferredFrom:
     | 'flag'
     | 'filename'
@@ -44,6 +44,17 @@ function describeInferredFrom(
     | undefined,
 ) {
   switch (field) {
+    case 'source':
+      switch (inferredFrom) {
+        case 'flag':
+          return 'flag --source'
+        case 'path':
+          return 'path'
+        case 'filename':
+          return 'filename'
+        default:
+          return undefined
+      }
     case 'regionCode':
     case 'type':
       switch (inferredFrom) {
@@ -127,7 +138,11 @@ export function describeTarget(target: UploadTarget) {
 export function formatPlan(result: UploadPreviewResult) {
   return [
     formatField('datasetId', result.plan.datasetId),
-    formatField('source', result.plan.source),
+    formatField(
+      'source',
+      result.plan.source,
+      describeInferredFrom('source', result.plan.inferredFrom.source),
+    ),
     formatField(
       'sourceVersion',
       result.plan.sourceVersion,
