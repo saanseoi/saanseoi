@@ -80,8 +80,9 @@ export const divisionsI18n = sqliteTable(
     otName: text('otName'),
     otNameVariantJson: text('otNameVariantJson'),
     otNameAlts: text('otNameAlts'),
+    otNameRulesJson: text('otNameRulesJson'),
     otLocalType: text('otLocalType'),
-    hierarchyJson: text('hierarchyJson'),
+    isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' }).notNull(),
   },
   table => ({
     pk: primaryKey({
@@ -101,8 +102,9 @@ export const divisionsVersionsI18n = sqliteTable(
     otName: text('otName'),
     otNameVariantJson: text('otNameVariantJson'),
     otNameAlts: text('otNameAlts'),
+    otNameRulesJson: text('otNameRulesJson'),
     otLocalType: text('otLocalType'),
-    hierarchyJson: text('hierarchyJson'),
+    isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' }).notNull(),
   },
   table => ({
     pk: primaryKey({
