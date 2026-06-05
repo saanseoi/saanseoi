@@ -58,6 +58,15 @@ const REGION_ALIASES: Record<string, RegionCode> = {
   'macau sar': 'mo',
 }
 
+const SOURCE_ALIASES: Record<string, string> = {
+  overture: 'overture',
+  'overture-maps': 'overture',
+  hkgov: 'hkgov',
+  'hkgov-als': 'hkgov',
+  als: 'hkgov',
+  'hk-als': 'hkgov',
+}
+
 function splitPathSegments(filePath: string) {
   return filePath
     .split(/[\\/]+/)
@@ -89,7 +98,11 @@ function splitFileNameParts(fileName: string) {
 }
 
 function normalizeSource(candidate?: string | null) {
-  return candidate?.trim().toLowerCase() || 'overture'
+  if (!candidate) {
+    return null
+  }
+
+  return SOURCE_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
 function normalizeUploadFileName(
@@ -109,6 +122,20 @@ function normalizeUploadFileName(
 
 function normalizeToken(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+function matchSourceCandidate(candidate: string) {
+  const normalized = normalizeToken(candidate)
+
+  for (const [token, source] of Object.entries(SOURCE_ALIASES)) {
+    const matcher = new RegExp(`(^|[ ._\\/-])${token}([ ._\\/-]|$)`, 'i')
+
+    if (matcher.test(normalized)) {
+      return source
+    }
+  }
+
+  return null
 }
 
 function matchTypeCandidate(candidate: string): SupportedType | null {
@@ -242,6 +269,30 @@ export function inferSnapshotMonthFromFilename(filePath: string) {
   }
 
   return match
+}
+
+export function inferSourceFromPath(filePath: string) {
+  const pathSegments = splitPathSegments(filePath)
+
+  for (let index = pathSegments.length - 1; index >= 0; index -= 1) {
+    const segment = pathSegments[index]
+
+    if (!segment) {
+      continue
+    }
+
+    const matchedSource = matchSourceCandidate(segment)
+
+    if (matchedSource) {
+      return matchedSource
+    }
+  }
+
+  return null
+}
+
+export function inferSourceFromFilename(filePath: string) {
+  return matchSourceCandidate(fileNameFromPath(filePath))
 }
 
 function matchRegionCandidate(candidate: string): RegionCode | null {
@@ -519,7 +570,16 @@ function resolveUploadPlan(
     )
   }
 
-  const source = normalizeSource(options.source)
+  const sourceFromFlag = normalizeSource(options.source)
+  const sourceFromPath = inferSourceFromPath(options.filePath)
+  const sourceFromFilename = inferSourceFromFilename(options.filePath)
+  const source = sourceFromFlag ?? sourceFromPath ?? sourceFromFilename
+
+  if (!source) {
+    throw new Error(
+      'Could not determine source. Pass `--source overture|hkgov-als` or use a recognizable path/file name.',
+    )
+  }
   const sourceVersion =
     options.sourceVersion ??
     inferSourceVersionFromPath(options.filePath) ??
