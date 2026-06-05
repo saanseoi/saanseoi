@@ -199,6 +199,17 @@ export function inferSourceVersionFromPath(filePath: string) {
   return null
 }
 
+export function inferSourceVersionFromFilename(filePath: string) {
+  const fileName = fileNameFromPath(filePath)
+  const match = fileName.match(/(20\d{2})-(0[1-9]|1[0-2])-[0-3]\d(?:\.\d+)?/)
+
+  if (!match) {
+    return null
+  }
+
+  return match[0]
+}
+
 export function inferThemeFromPath(filePath: string): SupportedTheme | null {
   const pathSegments = splitPathSegments(filePath)
 
@@ -589,7 +600,8 @@ function resolveUploadPlan(
 
   const snapshotMonth =
     normalizeSnapshotMonth(options.snapshotMonth) ??
-    inferSnapshotMonthFromPath(options.filePath)
+    inferSnapshotMonthFromPath(options.filePath) ??
+    inferSnapshotMonthFromFilename(options.filePath)
 
   if (!snapshotMonth) {
     throw new Error(
@@ -610,6 +622,7 @@ function resolveUploadPlan(
   const sourceVersion =
     options.sourceVersion ??
     inferSourceVersionFromPath(options.filePath) ??
+    inferSourceVersionFromFilename(options.filePath) ??
     snapshotMonth
   const { fileName, originalFileName } = normalizeUploadFileName(
     options.filePath,
@@ -636,12 +649,18 @@ function resolveUploadPlan(
         theme: themeFromFlag ? 'flag' : themeFromPath ? 'path' : 'parquet',
         type: typeFromFlag ? 'flag' : typeFromPath ? 'path' : 'parquet',
         regionCode: regionFromFlag ? 'flag' : regionFromPath ? 'path' : 'parquet',
-        snapshotMonth: options.snapshotMonth ? 'flag' : 'path',
+        snapshotMonth: options.snapshotMonth
+          ? 'flag'
+          : inferSnapshotMonthFromPath(options.filePath)
+            ? 'path'
+            : 'filename',
         sourceVersion: options.sourceVersion
           ? 'flag'
           : inferSourceVersionFromPath(options.filePath)
             ? 'path'
-            : 'snapshotMonth',
+            : inferSourceVersionFromFilename(options.filePath)
+              ? 'filename'
+              : 'snapshotMonth',
       },
       supersedesDatasetId,
     } satisfies UploadPlan,

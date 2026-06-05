@@ -61,8 +61,8 @@ export type UploadPlan = {
     theme: 'path' | 'parquet' | 'flag'
     type: 'path' | 'parquet' | 'flag'
     regionCode: 'path' | 'parquet' | 'flag'
-    snapshotMonth: 'path' | 'flag'
-    sourceVersion: 'flag' | 'path' | 'snapshotMonth'
+    snapshotMonth: 'path' | 'filename' | 'flag'
+    sourceVersion: 'flag' | 'path' | 'filename' | 'snapshotMonth'
   }
   supersedesDatasetId: string | null
 }

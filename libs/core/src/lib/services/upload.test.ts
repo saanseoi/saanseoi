@@ -10,6 +10,7 @@ import {
   createSchemaFingerprint,
   inferRegionFromPath,
   inferSnapshotMonthFromPath,
+  inferSourceVersionFromFilename,
   inferSourceFromFilename,
   inferSourceFromPath,
   inferThemeFromFilename,
@@ -18,7 +19,7 @@ import {
   inferTypeFromPath,
   requestUpload,
 } from './upload'
-import { planUpload, registerUpload } from './upload-local'
+import { planUpload, prepareUpload, registerUpload } from './upload-local'
 import { createLocalHarbourDb } from '../../testing/local-db'
 
 import { datasets } from '@repo/db/schema'
@@ -132,6 +133,35 @@ describe('upload', () => {
     expect(inferThemeFromPath(overtureFixturePath)).toBe('divisions')
     expect(inferRegionFromPath(overtureFixturePath)).toBe('hk')
     expect(inferSnapshotMonthFromPath(overtureFixturePath)).toBe('2025-09')
+  })
+
+  test('infers source version and snapshot month from the filename when needed', async () => {
+    const tempDir = createTempDir()
+    const fixtureFile = join(
+      tempDir,
+      'hkgov-hk-2026-06-04.324-address.parquet',
+    )
+
+    writeFileSync(fixtureFile, 'fixture')
+
+    expect(inferSourceVersionFromFilename(fixtureFile)).toBe('2026-06-04.324')
+
+    const planned = await prepareUpload({
+      filePath: fixtureFile,
+      inspection: {
+        rowCount: 1,
+        schema: fixtureInspection.schema,
+        distinctThemeValues: ['addresses'],
+        distinctTypeValues: ['address'],
+        distinctCountryValues: ['hk'],
+        distinctRegionValues: ['hk'],
+      },
+      source: 'hkgov-als',
+    })
+
+    expect(planned.plan.snapshotMonth).toBe('2026-06')
+    expect(planned.plan.sourceVersion).toBe('2026-06-04.324')
+    expect(planned.plan.datasetId).toBe('hkgov-hk-2026-06-04.324-address')
   })
 
   test('registers the first dataset upload against a provided raw object key', async () => {
