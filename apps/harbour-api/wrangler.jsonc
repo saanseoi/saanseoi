@@ -25,6 +25,9 @@
       "migrations_dir": "../../libs/db/migrations"
     }
   ],
+  "placement": {
+    "region": "gcp:asia-east2"
+  },
   "r2_buckets": [
     {
       "binding": "R2_RAW",
