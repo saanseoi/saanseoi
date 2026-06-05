@@ -5,6 +5,7 @@
     "check": "tsc --noEmit",
     "lint": "biome lint .",
     "format": "biome format --write .",
+    "prepare:hkgov-als": "bun ./src/cli.ts prepare-hkgov-als",
     "upload": "bun ./src/cli.ts upload",
     "upload:local": "bun ./src/cli.ts upload --target local",
     "upload:cf:preview": "bun ./src/cli.ts upload --target cf-preview",
@@ -17,6 +18,7 @@
   },
   "dependencies": {
     "@clack/prompts": "^0.11.0",
-    "@repo/core": "workspace:*"
+    "@repo/core": "workspace:*",
+    "hyparquet-writer": "^0.14.0"
   }
 }
