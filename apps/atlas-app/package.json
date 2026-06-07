@@ -21,8 +21,11 @@
     "test:coverage": "bun test --coverage"
   },
   "dependencies": {
+    "@iconify-json/proicons": "^1.2.19",
+    "@iconify/svelte": "^5.2.1",
     "@repo/db": "workspace:*",
-    "better-auth": "~1.4.21"
+    "better-auth": "~1.4.21",
+    "bits-ui": "^2.18.1"
   },
   "devDependencies": {
     "@better-auth/cli": "~1.4.21",
