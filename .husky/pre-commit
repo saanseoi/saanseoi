@@ -1,0 +1,67 @@
+#!/usr/bin/env sh
+
+# Block merge commits so history stays rebase-only.
+if [ -f "$(git rev-parse --git-dir)/MERGE_HEAD" ]; then
+  echo "Merge commits are not allowed. Please use rebase instead."
+  exit 1
+fi
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+
+if [ -z "$STAGED_FILES" ]; then
+  echo "No staged files to check."
+  exit 0
+fi
+
+BIOME_FILES=""
+
+for file in $STAGED_FILES; do
+  case "$file" in
+    *.js|*.jsx|*.ts|*.tsx|*.json|*.jsonc|*.css|*.html|*.svelte)
+      if [ -f "$file" ]; then
+        BIOME_FILES="$BIOME_FILES $file"
+      fi
+      ;;
+  esac
+done
+
+if [ -z "$BIOME_FILES" ]; then
+  echo "No staged files supported by Biome."
+  exit 0
+fi
+
+echo "Running Biome on staged files..."
+
+set +e
+BIOME_OUTPUT=$(bun x biome check --write $BIOME_FILES 2>&1)
+BIOME_STATUS=$?
+set -e
+
+if [ $BIOME_STATUS -ne 0 ]; then
+  if echo "$BIOME_OUTPUT" | grep -q "No files were processed in the specified paths."; then
+    echo "Biome had no matching files to process."
+  else
+    echo "$BIOME_OUTPUT"
+    exit $BIOME_STATUS
+  fi
+fi
+
+MODIFIED_FILES=$(git diff --name-only)
+MODIFIED_STAGED=""
+
+for file in $STAGED_FILES; do
+  if echo "$MODIFIED_FILES" | grep -qF "$file"; then
+    MODIFIED_STAGED="$MODIFIED_STAGED $file"
+  fi
+done
+
+if [ -n "$MODIFIED_STAGED" ]; then
+  echo
+  echo "Biome modified staged files:"
+  echo "$MODIFIED_STAGED" | tr ' ' '\n' | grep -v '^$' | sed 's/^/  - /'
+  echo
+  echo "Review the changes and re-stage them before committing."
+  exit 1
+fi
+
+echo "Pre-commit checks passed."
