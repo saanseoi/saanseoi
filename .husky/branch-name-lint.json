@@ -1,0 +1,19 @@
+{
+  "branchNameLinter": {
+    "prefixes": ["chore", "docs", "feat", "fix", "perf", "refactor", "style", "test"],
+    "suggestions": {
+      "feature": "feat",
+      "bugfix": "fix",
+      "documentation": "docs",
+      "performance": "perf"
+    },
+    "banned": ["wip", "tmp", "temp"],
+    "skip": ["main", "hotfix", "preview"],
+    "disallowed": [],
+    "separator": "/",
+    "msgBranchBanned": "Branches with the name \"%s\" are not allowed.",
+    "msgPrefixNotAllowed": "Branch prefix \"%s\" is not allowed. Use one of: chore, docs, feat, fix, perf, refactor, style, test",
+    "msgPrefixSuggestion": "Instead of \"%s\" try \"%s\".",
+    "msgSeparatorRequired": "Branch \"%s\" must contain a separator \"%s\". Format: {type}/{topic}"
+  }
+}
