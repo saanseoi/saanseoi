@@ -1,5 +1,11 @@
 PRAGMA defer_foreign_keys = true;
 
+DROP TABLE IF EXISTS `placesFts`;
+DROP TABLE IF EXISTS `placesFts_data`;
+DROP TABLE IF EXISTS `placesFts_idx`;
+DROP TABLE IF EXISTS `placesFts_content`;
+DROP TABLE IF EXISTS `placesFts_docsize`;
+DROP TABLE IF EXISTS `placesFts_config`;
 DROP TABLE IF EXISTS `placesVersionsI18n`;
 DROP TABLE IF EXISTS `placesI18n`;
 DROP TABLE IF EXISTS `placesDivision`;
