@@ -1,10 +1,4 @@
-import {
-  index,
-  integer,
-  primaryKey,
-  sqliteTable,
-  text,
-} from 'drizzle-orm/sqlite-core'
+import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import { divisions } from './divisions'
 import { datasets } from './shared'

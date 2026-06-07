@@ -49,7 +49,6 @@ export function createProcessDatasetMessage(
     bucket: HarbourWorkerBucket,
     message: DatasetProcessingMessage,
   ): Promise<ProcessDatasetResult | ProcessAddressDatasetResult> {
-
     const activePhases = new Set<string>()
     await harbourClient.stageStarted(message.datasetId, 'processDataset')
     activePhases.add('processDataset')
@@ -111,12 +110,18 @@ export function createProcessDatasetMessage(
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
 
-      for (const phase of [...activePhases].filter(phase => phase !== 'processDataset')) {
+      for (const phase of [...activePhases].filter(
+        phase => phase !== 'processDataset',
+      )) {
         await harbourClient.stageFailed(message.datasetId, phase, errorMessage)
       }
 
       if (activePhases.has('processDataset')) {
-        await harbourClient.stageFailed(message.datasetId, 'processDataset', errorMessage)
+        await harbourClient.stageFailed(
+          message.datasetId,
+          'processDataset',
+          errorMessage,
+        )
       }
 
       throw error

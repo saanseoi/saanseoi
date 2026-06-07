@@ -176,7 +176,9 @@ export async function closeCurrentAddressVersion(
         validToMonth: snapshotMonth,
         updatedAt: new Date().toISOString(),
       })
-      .where(and(eq(address2dVersions.id, addressId), eq(address2dVersions.isCurrent, true)))
+      .where(
+        and(eq(address2dVersions.id, addressId), eq(address2dVersions.isCurrent, true)),
+      )
       .run(),
   )
 }
@@ -202,7 +204,12 @@ export async function deleteMissingCurrentAddresses(
           validToMonth: snapshotMonth,
           updatedAt: new Date().toISOString(),
         })
-        .where(and(eq(address2dVersions.isCurrent, true), inArray(address2dVersions.id, chunk)))
+        .where(
+          and(
+            eq(address2dVersions.isCurrent, true),
+            inArray(address2dVersions.id, chunk),
+          ),
+        )
         .run(),
     )
     await runWithWriteRetry(() =>
@@ -352,7 +359,9 @@ async function insertAddressI18nInChunks(
 
 async function insertAddressVersionsI18nInChunks(
   db: HarbourWritableDb,
-  rows: Array<AddressI18nPayload & { versionHash: string; createdAt: string; updatedAt: string }>,
+  rows: Array<
+    AddressI18nPayload & { versionHash: string; createdAt: string; updatedAt: string }
+  >,
 ) {
   for (const chunk of chunkArray(rows, getMaxRowsPerInsert(15))) {
     await runWithWriteRetry(() =>

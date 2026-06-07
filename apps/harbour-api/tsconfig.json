@@ -29,6 +29,11 @@
       "drizzle-orm/*": ["../../libs/db/node_modules/drizzle-orm/*"]
     }
   },
-  "include": ["worker-configuration.d.ts", "src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
+  "include": [
+    "worker-configuration.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

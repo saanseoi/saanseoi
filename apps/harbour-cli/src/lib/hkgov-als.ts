@@ -20,7 +20,14 @@ const HARBOUR_API_PERSIST_DIR = resolve(
   '../../../harbour-api/.wrangler/state',
 )
 
-const COUNTRY_NAME_ALIASES = ['CHINA', 'P.R. CHINA', 'PRC', 'CHINA PRC', 'CHINA, PRC', 'THE PEOPLE\'S REPUBLIC OF CHINA'] as const
+const COUNTRY_NAME_ALIASES = [
+  'CHINA',
+  'P.R. CHINA',
+  'PRC',
+  'CHINA PRC',
+  'CHINA, PRC',
+  "THE PEOPLE'S REPUBLIC OF CHINA",
+] as const
 
 const AREA_NAME_ALIASES_EN = new Map<string, string>([
   ['HK', 'HONG KONG ISLAND'],
@@ -198,26 +205,95 @@ export async function prepareHkgovAlsAddressParquet(
     filename: outputFile,
     rowGroupSize: 5000,
     columnData: [
-      stringColumn('id', rows.map(row => row.id), false),
-      stringColumn('theme', rows.map(row => row.theme), false),
-      stringColumn('type', rows.map(row => row.type), false),
-      stringColumn('country', rows.map(row => row.country), false),
-      stringColumn('region', rows.map(row => row.region), false),
-      stringColumn('snapshotMonth', rows.map(row => row.snapshotMonth), false),
-      stringColumn('sourceVersion', rows.map(row => row.sourceVersion), false),
-      stringColumn('sourceFile', rows.map(row => row.sourceFile), false),
-      jsonColumn('geometryJson', rows.map(row => row.geometryJson)),
-      jsonColumn('identifiersJson', rows.map(row => row.identifiersJson)),
-      jsonColumn('sourcesJson', rows.map(row => row.sourcesJson), false),
-      stringColumn('areaId', rows.map(row => row.areaId)),
-      stringColumn('districtId', rows.map(row => row.districtId)),
-      stringColumn('countryId', rows.map(row => row.countryId)),
-      stringColumn('areaNameEn', rows.map(row => row.areaNameEn)),
-      stringColumn('areaNameZhHant', rows.map(row => row.areaNameZhHant)),
-      stringColumn('districtNameEn', rows.map(row => row.districtNameEn)),
-      stringColumn('districtNameZhHant', rows.map(row => row.districtNameZhHant)),
-      stringColumn('geoAddress', rows.map(row => row.geoAddress)),
-      stringColumn('hkgovCsuId', rows.map(row => row.hkgovCsuId)),
+      stringColumn(
+        'id',
+        rows.map(row => row.id),
+        false,
+      ),
+      stringColumn(
+        'theme',
+        rows.map(row => row.theme),
+        false,
+      ),
+      stringColumn(
+        'type',
+        rows.map(row => row.type),
+        false,
+      ),
+      stringColumn(
+        'country',
+        rows.map(row => row.country),
+        false,
+      ),
+      stringColumn(
+        'region',
+        rows.map(row => row.region),
+        false,
+      ),
+      stringColumn(
+        'snapshotMonth',
+        rows.map(row => row.snapshotMonth),
+        false,
+      ),
+      stringColumn(
+        'sourceVersion',
+        rows.map(row => row.sourceVersion),
+        false,
+      ),
+      stringColumn(
+        'sourceFile',
+        rows.map(row => row.sourceFile),
+        false,
+      ),
+      jsonColumn(
+        'geometryJson',
+        rows.map(row => row.geometryJson),
+      ),
+      jsonColumn(
+        'identifiersJson',
+        rows.map(row => row.identifiersJson),
+      ),
+      jsonColumn(
+        'sourcesJson',
+        rows.map(row => row.sourcesJson),
+        false,
+      ),
+      stringColumn(
+        'areaId',
+        rows.map(row => row.areaId),
+      ),
+      stringColumn(
+        'districtId',
+        rows.map(row => row.districtId),
+      ),
+      stringColumn(
+        'countryId',
+        rows.map(row => row.countryId),
+      ),
+      stringColumn(
+        'areaNameEn',
+        rows.map(row => row.areaNameEn),
+      ),
+      stringColumn(
+        'areaNameZhHant',
+        rows.map(row => row.areaNameZhHant),
+      ),
+      stringColumn(
+        'districtNameEn',
+        rows.map(row => row.districtNameEn),
+      ),
+      stringColumn(
+        'districtNameZhHant',
+        rows.map(row => row.districtNameZhHant),
+      ),
+      stringColumn(
+        'geoAddress',
+        rows.map(row => row.geoAddress),
+      ),
+      stringColumn(
+        'hkgovCsuId',
+        rows.map(row => row.hkgovCsuId),
+      ),
       jsonColumn(
         'chiPremisesAddressJson',
         rows.map(row => row.chiPremisesAddressJson),
@@ -230,11 +306,26 @@ export async function prepareHkgovAlsAddressParquet(
         'zhHantFormattedAddress',
         rows.map(row => row.zhHantFormattedAddress),
       ),
-      stringColumn('zhHantRegion', rows.map(row => row.zhHantRegion)),
-      stringColumn('zhHantDistrict', rows.map(row => row.zhHantDistrict)),
-      stringColumn('zhHantEstateName', rows.map(row => row.zhHantEstateName)),
-      stringColumn('zhHantBuildingName', rows.map(row => row.zhHantBuildingName)),
-      stringColumn('zhHantStreetName', rows.map(row => row.zhHantStreetName)),
+      stringColumn(
+        'zhHantRegion',
+        rows.map(row => row.zhHantRegion),
+      ),
+      stringColumn(
+        'zhHantDistrict',
+        rows.map(row => row.zhHantDistrict),
+      ),
+      stringColumn(
+        'zhHantEstateName',
+        rows.map(row => row.zhHantEstateName),
+      ),
+      stringColumn(
+        'zhHantBuildingName',
+        rows.map(row => row.zhHantBuildingName),
+      ),
+      stringColumn(
+        'zhHantStreetName',
+        rows.map(row => row.zhHantStreetName),
+      ),
       stringColumn(
         'zhHantStreetNumberFrom',
         rows.map(row => row.zhHantStreetNumberFrom),
@@ -243,16 +334,46 @@ export async function prepareHkgovAlsAddressParquet(
         'zhHantStreetNumberTo',
         rows.map(row => row.zhHantStreetNumberTo),
       ),
-      stringColumn('enFormattedAddress', rows.map(row => row.enFormattedAddress)),
-      stringColumn('enRegion', rows.map(row => row.enRegion)),
-      stringColumn('enDistrict', rows.map(row => row.enDistrict)),
-      stringColumn('enEstateName', rows.map(row => row.enEstateName)),
-      stringColumn('enBuildingName', rows.map(row => row.enBuildingName)),
-      stringColumn('enStreetName', rows.map(row => row.enStreetName)),
-      stringColumn('enStreetNumberFrom', rows.map(row => row.enStreetNumberFrom)),
-      stringColumn('enStreetNumberTo', rows.map(row => row.enStreetNumberTo)),
-      int32Column('easting', rows.map(row => row.easting)),
-      int32Column('northing', rows.map(row => row.northing)),
+      stringColumn(
+        'enFormattedAddress',
+        rows.map(row => row.enFormattedAddress),
+      ),
+      stringColumn(
+        'enRegion',
+        rows.map(row => row.enRegion),
+      ),
+      stringColumn(
+        'enDistrict',
+        rows.map(row => row.enDistrict),
+      ),
+      stringColumn(
+        'enEstateName',
+        rows.map(row => row.enEstateName),
+      ),
+      stringColumn(
+        'enBuildingName',
+        rows.map(row => row.enBuildingName),
+      ),
+      stringColumn(
+        'enStreetName',
+        rows.map(row => row.enStreetName),
+      ),
+      stringColumn(
+        'enStreetNumberFrom',
+        rows.map(row => row.enStreetNumberFrom),
+      ),
+      stringColumn(
+        'enStreetNumberTo',
+        rows.map(row => row.enStreetNumberTo),
+      ),
+      int32Column(
+        'easting',
+        rows.map(row => row.easting),
+      ),
+      int32Column(
+        'northing',
+        rows.map(row => row.northing),
+      ),
     ],
   })
 

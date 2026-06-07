@@ -122,10 +122,7 @@ export async function getDatasetById(db: HarbourReadableDb, datasetId: string) {
   )
 }
 
-export async function getDatasetRecordById(
-  db: HarbourReadableDb,
-  datasetId: string,
-) {
+export async function getDatasetRecordById(db: HarbourReadableDb, datasetId: string) {
   return (
     ((await db
       .select()

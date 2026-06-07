@@ -50,10 +50,7 @@ describe('evaluateDivisionAssumptions', () => {
           nonNullCount: 7,
         },
         norms: {
-          distinctValues: [
-            '{"driving_side":"left"}',
-            '{"driving_side":"right"}',
-          ],
+          distinctValues: ['{"driving_side":"left"}', '{"driving_side":"right"}'],
           nonNullCount: 2,
         },
       }),

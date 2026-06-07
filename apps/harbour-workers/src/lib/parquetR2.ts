@@ -11,12 +11,9 @@ export type R2RangeReadableBucket = {
         length: number
       }
     },
-  ): Promise<
-    | {
-        arrayBuffer(): Promise<ArrayBuffer>
-      }
-    | null
-  >
+  ): Promise<{
+    arrayBuffer(): Promise<ArrayBuffer>
+  } | null>
 }
 
 export async function createAsyncBufferFromR2(
@@ -48,7 +45,9 @@ export async function createAsyncBufferFromR2(
       })
 
       if (!chunk) {
-        throw new Error(`Could not read R2 range for ${key} (${normalizedStart}-${normalizedEnd}).`)
+        throw new Error(
+          `Could not read R2 range for ${key} (${normalizedStart}-${normalizedEnd}).`,
+        )
       }
 
       return chunk.arrayBuffer()

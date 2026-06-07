@@ -35,13 +35,7 @@ export function formatField(
 
 function describeInferredFrom(
   field: 'regionCode' | 'snapshotMonth' | 'source' | 'sourceVersion' | 'type',
-  inferredFrom:
-    | 'flag'
-    | 'filename'
-    | 'parquet'
-    | 'path'
-    | 'snapshotMonth'
-    | undefined,
+  inferredFrom: 'flag' | 'filename' | 'parquet' | 'path' | 'snapshotMonth' | undefined,
 ) {
   switch (field) {
     case 'source':
@@ -189,6 +183,6 @@ export function explainDispatch(target: UploadTarget) {
   const targetDetails = describeTarget(target)
   return [
     `CLI target: ${targetDetails.label}`,
-    `Destination: ${targetDetails.destination}`
+    `Destination: ${targetDetails.destination}`,
   ].join('\n')
 }

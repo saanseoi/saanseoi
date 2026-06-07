@@ -190,18 +190,20 @@ export async function processDivisionDataset(
     currentRows,
     seenIds,
   )
-  const churnStats = buildChurnStatsRows(buildChurnCounts(previousRows, processedRowsById))
+  const churnStats = buildChurnStatsRows(
+    buildChurnCounts(previousRows, processedRowsById),
+  )
   const qualityStats = buildQualityStatsRows(
     buildQualityCounts(previousRows, processedRowsById, {
       hasLocaleRegression,
       hasNameRegression,
     }),
   )
-  const statsRows = await replaceDatasetStats(
-    db,
-    message.datasetId,
-    [...buildLocaleStatsRows(statsAccumulator), ...churnStats, ...qualityStats],
-  )
+  const statsRows = await replaceDatasetStats(db, message.datasetId, [
+    ...buildLocaleStatsRows(statsAccumulator),
+    ...churnStats,
+    ...qualityStats,
+  ])
 
   return {
     deletedRows,
@@ -249,7 +251,9 @@ function normalizeDivisionRow(row: Record<string, unknown>) {
       hierarchyJson: stableJsonStringify(normalizedHierarchies),
       id,
       level,
-      otGeometryJson: normalizedGeometry ? stableJsonStringify(normalizedGeometry) : null,
+      otGeometryJson: normalizedGeometry
+        ? stableJsonStringify(normalizedGeometry)
+        : null,
       otPopulation: asNumber(row.population),
       type,
       otBboxJson: stableJsonStringify(row.bbox),
@@ -753,7 +757,12 @@ function resolveAdminLevelToken(row: Record<string, unknown>) {
 }
 
 function normalizeDivisionLevelToken(value: string | null) {
-  return value?.trim().toLowerCase().replaceAll(/[\s-]+/g, '_') ?? ''
+  return (
+    value
+      ?.trim()
+      .toLowerCase()
+      .replaceAll(/[\s-]+/g, '_') ?? ''
+  )
 }
 
 function isHongKongArea(row: Record<string, unknown>) {
