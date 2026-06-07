@@ -1,3 +1,14 @@
+CREATE VIRTUAL TABLE IF NOT EXISTS "placesFts" USING fts5(
+  "placeId" UNINDEXED,
+  "locale" UNINDEXED,
+  "nameText",
+  "brandText",
+  "taxonomyText",
+  "addressText",
+  "divisionText",
+  "streetText"
+);
+
 DELETE FROM "placesFts";
 
 INSERT INTO "placesFts" (
