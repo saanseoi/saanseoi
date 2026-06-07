@@ -1,4 +1,9 @@
-import type { divisions, divisionsI18n, divisionsVersions, divisionsVersionsI18n } from './divisions'
+import type {
+  divisions,
+  divisionsI18n,
+  divisionsVersions,
+  divisionsVersionsI18n,
+} from './divisions'
 
 export type DivisionRow = typeof divisions.$inferSelect
 export type NewDivisionRow = typeof divisions.$inferInsert

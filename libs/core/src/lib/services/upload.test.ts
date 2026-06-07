@@ -137,10 +137,7 @@ describe('upload', () => {
 
   test('infers source version and snapshot month from the filename when needed', async () => {
     const tempDir = createTempDir()
-    const fixtureFile = join(
-      tempDir,
-      'hkgov-hk-2026-06-04.324-address.parquet',
-    )
+    const fixtureFile = join(tempDir, 'hkgov-hk-2026-06-04.324-address.parquet')
 
     writeFileSync(fixtureFile, 'fixture')
 
@@ -326,7 +323,9 @@ describe('upload', () => {
           distinctRegionValues: ['hk'],
         },
       }),
-    ).rejects.toThrow('Upload the matching Overture address dataset for the same snapshot month first.')
+    ).rejects.toThrow(
+      'Upload the matching Overture address dataset for the same snapshot month first.',
+    )
 
     db.close()
   })
@@ -590,7 +589,8 @@ describe('upload', () => {
         source: 'overture',
         sourceVersion: '2026-02-18.0',
         inspection: fixtureInspectionWithAdminLevel,
-        resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+        resolveSchemaFingerprint: async () =>
+          createSchemaFingerprint(fixtureInspection),
       }),
     ).resolves.toMatchObject({
       plan: {
@@ -643,7 +643,8 @@ describe('upload', () => {
             { name: 'wrong_field', type: 'int_32', nullable: true },
           ],
         },
-        resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+        resolveSchemaFingerprint: async () =>
+          createSchemaFingerprint(fixtureInspection),
       }),
     ).rejects.toThrow(`Schema drift detected against overture-hk-2026-01-21.0-division.
 Current upload schema has 6 fields; overture-hk-2026-01-21.0-division recorded 5 fields.
@@ -733,7 +734,8 @@ Reconcile the schema before uploading this dataset.`)
         source: 'hkgov',
         sourceVersion: '2026-01-20.0',
         inspection: fixtureInspection,
-        resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+        resolveSchemaFingerprint: async () =>
+          createSchemaFingerprint(fixtureInspection),
       }),
     ).resolves.toMatchObject({
       plan: {
@@ -818,7 +820,8 @@ Reconcile the schema before uploading this dataset.`)
         source: 'overture',
         sourceVersion: '2026-08-24.0',
         inspection: fixtureInspection,
-        resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+        resolveSchemaFingerprint: async () =>
+          createSchemaFingerprint(fixtureInspection),
       }),
     ).resolves.toMatchObject({
       plan: {

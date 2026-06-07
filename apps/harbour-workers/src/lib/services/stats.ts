@@ -206,7 +206,10 @@ export function buildQualityCounts<TLocalizedRow>(
   previousRows: Map<string, StatsSnapshot<TLocalizedRow>>,
   currentRows: Map<string, StatsSnapshot<TLocalizedRow>>,
   options: {
-    hasLocaleRegression: (previous: TLocalizedRow[], current: TLocalizedRow[]) => boolean
+    hasLocaleRegression: (
+      previous: TLocalizedRow[],
+      current: TLocalizedRow[],
+    ) => boolean
     hasNameRegression: (previous: TLocalizedRow[], current: TLocalizedRow[]) => boolean
   },
 ) {
@@ -318,15 +321,14 @@ export function hasLocaleRegression<TLocalizedRow extends { locale: string }>(
 /**
  * Reports whether previously tracked primary or alternate names are missing from the current rows.
  */
-export function hasNameRegression<TLocalizedRow extends {
-  isLocaleInferred: boolean
-  locale: string
-  otName: string | null
-  otNameAlts: string | null
-}>(
-  previousRows: TLocalizedRow[],
-  currentRows: TLocalizedRow[],
-) {
+export function hasNameRegression<
+  TLocalizedRow extends {
+    isLocaleInferred: boolean
+    locale: string
+    otName: string | null
+    otNameAlts: string | null
+  },
+>(previousRows: TLocalizedRow[], currentRows: TLocalizedRow[]) {
   const currentByLocale = new Map(currentRows.map(row => [row.locale, row]))
 
   for (const previous of previousRows) {

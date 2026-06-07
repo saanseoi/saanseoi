@@ -5,14 +5,17 @@ import { createProcessDatasetMessage } from './worker'
 
 describe('processDatasetMessage', () => {
   test('processes division datasets and reports stage state through the control API', async () => {
-    const processDivisionDataset = mock(async () => ({
-      deletedRows: 1,
-      insertedVersions: 2,
-      localizedRows: 4,
-      processedRows: 2,
-      statsRows: 12,
-      unchangedRows: 0,
-    } satisfies ProcessDatasetResult))
+    const processDivisionDataset = mock(
+      async () =>
+        ({
+          deletedRows: 1,
+          insertedVersions: 2,
+          localizedRows: 4,
+          processedRows: 2,
+          statsRows: 12,
+          unchangedRows: 0,
+        }) satisfies ProcessDatasetResult,
+    )
     const stageStarted = mock(async () => undefined)
     const stageCompleted = mock(async () => undefined)
     const stageFailed = mock(async () => undefined)

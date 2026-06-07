@@ -13,12 +13,7 @@ import {
   insertAddressVersionRows,
   upsertAddressCurrentState,
 } from '../db/address'
-import {
-  asNonEmptyString,
-  asString,
-  createHash,
-  stableJsonStringify,
-} from '../utils'
+import { asNonEmptyString, asString, createHash, stableJsonStringify } from '../utils'
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 
 import type { HarbourWorkerBucket } from './division'
@@ -145,13 +140,25 @@ export async function processAddressDataset(
         },
         i18n,
       )
-      await insertAddressVersionRows(db, message, { ...base, createdAt: now, updatedAt: now }, i18n, versionHash, now)
+      await insertAddressVersionRows(
+        db,
+        message,
+        { ...base, createdAt: now, updatedAt: now },
+        i18n,
+        versionHash,
+        now,
+      )
     }
   }
 
   const deletedRows =
     message.source === 'overture'
-      ? await deleteMissingCurrentAddresses(db, message.snapshotMonth, currentRows, seenIds)
+      ? await deleteMissingCurrentAddresses(
+          db,
+          message.snapshotMonth,
+          currentRows,
+          seenIds,
+        )
       : 0
 
   return {
@@ -283,7 +290,8 @@ function normalizeOvertureAddressRow(
 function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
   const sourceId = requireText(row.id, 'Prepared HKGov ALS row is missing `id`.')
   const districtId = asNonEmptyString(row.districtId)
-  const otStreet = asNonEmptyString(row.enStreetName) ?? asNonEmptyString(row.zhHantStreetName)
+  const otStreet =
+    asNonEmptyString(row.enStreetName) ?? asNonEmptyString(row.zhHantStreetName)
   const otNumber = joinRange(row.enStreetNumberFrom, row.enStreetNumberTo)
   const i18n: AddressI18nPayload[] = []
 
@@ -291,7 +299,10 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
     i18n.push({
       addressId: sourceId,
       locale: 'en',
-      formattedAddress: requireText(row.enFormattedAddress, 'Missing en formatted address.'),
+      formattedAddress: requireText(
+        row.enFormattedAddress,
+        'Missing en formatted address.',
+      ),
       buildingName: asNonEmptyString(row.enBuildingName),
       buildingNumberFrom: null,
       buildingNumberTo: null,
@@ -360,7 +371,9 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
   }
 }
 
-function buildAddressBaseHashInput(base: Omit<AddressRow, 'createdAt' | 'updatedAt'> | AddressRow) {
+function buildAddressBaseHashInput(
+  base: Omit<AddressRow, 'createdAt' | 'updatedAt'> | AddressRow,
+) {
   return {
     id: base.id,
     streetId: base.streetId,

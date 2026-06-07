@@ -654,11 +654,7 @@ function resolveUploadPlan(
           : inferSnapshotMonthFromPath(options.filePath)
             ? 'path'
             : 'filename',
-        source: sourceFromFlag
-          ? 'flag'
-          : sourceFromPath
-            ? 'path'
-            : 'filename',
+        source: sourceFromFlag ? 'flag' : sourceFromPath ? 'path' : 'filename',
         sourceVersion: options.sourceVersion
           ? 'flag'
           : inferSourceVersionFromPath(options.filePath)
@@ -695,10 +691,7 @@ export async function planUpload(
   const existingDataset = await getDatasetById(db, datasetId)
 
   if (existingDataset) {
-    assertDatasetCanBeReuploaded(
-      existingDataset,
-      options.allowExistingDatasetStatuses,
-    )
+    assertDatasetCanBeReuploaded(existingDataset, options.allowExistingDatasetStatuses)
   }
 
   const { latestDataset, supersedesDatasetId } =
@@ -801,7 +794,9 @@ function describeSchemaDiff(
     .map(field => `added \`${field.name}\` (${field.type}, nullable=${field.nullable})`)
   const removals = previousSchema
     .filter(field => !nextByName.has(field.name))
-    .map(field => `removed \`${field.name}\` (${field.type}, nullable=${field.nullable})`)
+    .map(
+      field => `removed \`${field.name}\` (${field.type}, nullable=${field.nullable})`,
+    )
   const changes = previousSchema.flatMap(previousField => {
     const nextField = nextByName.get(previousField.name)
 
@@ -816,9 +811,7 @@ function describeSchemaDiff(
     }
 
     if (previousField.nullable !== nextField.nullable) {
-      fieldChanges.push(
-        `nullable ${previousField.nullable} -> ${nextField.nullable}`,
-      )
+      fieldChanges.push(`nullable ${previousField.nullable} -> ${nextField.nullable}`)
     }
 
     if (fieldChanges.length === 0) {
@@ -833,7 +826,9 @@ function describeSchemaDiff(
     return 'The schema fingerprint changed, but Harbour could not derive a field-level difference from the stored metadata.'
   }
 
-  return ['Field-level differences:', ...differences.map(line => `- ${line}`)].join('\n')
+  return ['Field-level differences:', ...differences.map(line => `- ${line}`)].join(
+    '\n',
+  )
 }
 
 function matchesAdminLevelTransition(
@@ -899,10 +894,13 @@ function getRequiredInspection(
   return resolvedInspection
 }
 
-function assertDatasetCanBeReuploaded(existingDataset: {
-  datasetId: string
-  status: string
-}, allowedExistingStatuses: readonly string[] = []) {
+function assertDatasetCanBeReuploaded(
+  existingDataset: {
+    datasetId: string
+    status: string
+  },
+  allowedExistingStatuses: readonly string[] = [],
+) {
   if (existingDataset.status === 'failed') {
     return
   }

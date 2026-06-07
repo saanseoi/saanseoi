@@ -84,9 +84,10 @@ async function summarizeDivisionAssumptionColumns(filePath: string) {
   const columns = DIVISION_ASSUMPTION_COLUMNS.filter(column =>
     availableColumns.has(column),
   )
-  const summaries = new Map<TrackedColumn, { distinct: Set<string>; nonNullCount: number }>(
-    columns.map(column => [column, { distinct: new Set<string>(), nonNullCount: 0 }]),
-  )
+  const summaries = new Map<
+    TrackedColumn,
+    { distinct: Set<string>; nonNullCount: number }
+  >(columns.map(column => [column, { distinct: new Set<string>(), nonNullCount: 0 }]))
 
   if (columns.length === 0) {
     return {}

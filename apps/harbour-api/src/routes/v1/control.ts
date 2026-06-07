@@ -113,7 +113,10 @@ function createControlError(error: unknown) {
   } as const
 }
 
-export const stageStartedRoute = defineOpenAPIRoute<typeof stageStartedRouteConfig, AppEnv>({
+export const stageStartedRoute = defineOpenAPIRoute<
+  typeof stageStartedRouteConfig,
+  AppEnv
+>({
   route: stageStartedRouteConfig,
   handler: async c => {
     try {
@@ -142,7 +145,10 @@ export const stageCompletedRoute = defineOpenAPIRoute<
   },
 })
 
-export const stageFailedRoute = defineOpenAPIRoute<typeof stageFailedRouteConfig, AppEnv>({
+export const stageFailedRoute = defineOpenAPIRoute<
+  typeof stageFailedRouteConfig,
+  AppEnv
+>({
   route: stageFailedRouteConfig,
   handler: async c => {
     try {

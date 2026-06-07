@@ -68,11 +68,17 @@ const DatasetIdSchema = z.string().openapi({
   examples: ['overture-hk-2025-09-24.0-division', 'hkgov-hk-2026-01-20.0-address'],
 })
 
-const RawObjectKeySchema = z.string().nullable().openapi({
-  description:
-    'R2 object key for the uploaded file, constructed as `{region}/{source}/{sourceVersion}/{type}.{extension}`',
-  examples: ['hk/overture/2025-09-24.0/division.parquet', 'hk/hkgov/2026-01-20.0/address.json'],
-})
+const RawObjectKeySchema = z
+  .string()
+  .nullable()
+  .openapi({
+    description:
+      'R2 object key for the uploaded file, constructed as `{region}/{source}/{sourceVersion}/{type}.{extension}`',
+    examples: [
+      'hk/overture/2025-09-24.0/division.parquet',
+      'hk/hkgov/2026-01-20.0/address.json',
+    ],
+  })
 
 const StatusSchema = z.string().openapi({
   description: 'Status of the upload operation',
@@ -93,15 +99,21 @@ export const UploadResponseSchema = z
       examples: [1000, 25000],
     }),
     source: SourceSchema,
-    sourceVersion: z.string().nullable().openapi({
-      description: 'Upstream source release version used in the dataset identity',
-      examples: ['2025-09-24.0', '2026-01-20.0'],
-    }),
+    sourceVersion: z
+      .string()
+      .nullable()
+      .openapi({
+        description: 'Upstream source release version used in the dataset identity',
+        examples: ['2025-09-24.0', '2026-01-20.0'],
+      }),
     status: StatusSchema,
-    supersedesDatasetId: z.string().nullable().openapi({
-      description: 'Dataset ID that this dataset supersedes (if any)',
-      examples: ['overture-hk-2025-09-24.0-division', null],
-    }),
+    supersedesDatasetId: z
+      .string()
+      .nullable()
+      .openapi({
+        description: 'Dataset ID that this dataset supersedes (if any)',
+        examples: ['overture-hk-2025-09-24.0-division', null],
+      }),
     type: z.string().openapi({
       description: 'Theme type of the dataset (e.g., division, address)',
       examples: ['division', 'address', 'place'],
@@ -134,7 +146,9 @@ export const SignUploadResponseSchema = z
     }),
     uploadUrl: z.string().openapi({
       description: 'Pre-signed URL for uploading the file',
-      examples: ['https://r2.example.com/hk/overture/2025-09-24.0/division.parquet?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20250930%2Fus-east-1%2Fr2%2Faws4_request&X-Amz-Date=20250930T123600Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=...'],
+      examples: [
+        'https://r2.example.com/hk/overture/2025-09-24.0/division.parquet?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20250930%2Fus-east-1%2Fr2%2Faws4_request&X-Amz-Date=20250930T123600Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=...',
+      ],
     }),
   })
   .openapi('HarbourSignUploadResponse')
@@ -164,9 +178,12 @@ export const PublishDatasetRequestSchema = z
 export const ControlResponseSchema = z
   .object({
     datasetId: DatasetIdSchema,
-    phase: z.string().nullable().openapi({
-      examples: ['extractDivisions', null],
-    }),
+    phase: z
+      .string()
+      .nullable()
+      .openapi({
+        examples: ['extractDivisions', null],
+      }),
     status: StatusSchema,
   })
   .openapi('HarbourControlResponse')

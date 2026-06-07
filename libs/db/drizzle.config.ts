@@ -17,9 +17,9 @@ const studioTarget =
 
 const remoteDatabaseId = studioTarget
   ? studioTarget === 'preview'
-    ? CLOUDFLARE_DATABASE_ID_PREVIEW ?? ''
-    : CLOUDFLARE_DATABASE_ID_PRODUCTION ?? ''
-  : CLOUDFLARE_DATABASE_ID ?? ''
+    ? (CLOUDFLARE_DATABASE_ID_PREVIEW ?? '')
+    : (CLOUDFLARE_DATABASE_ID_PRODUCTION ?? '')
+  : (CLOUDFLARE_DATABASE_ID ?? '')
 
 export default defineConfig(
   LOCAL_D1_SQLITE_PATH

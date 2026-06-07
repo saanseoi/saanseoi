@@ -264,7 +264,9 @@ function diffSchema(
 
   for (const field of actual) {
     if (!expectedByName.has(field.name)) {
-      differences.push(`unexpected field \`${field.name}\` present as ${renderField(field)}`)
+      differences.push(
+        `unexpected field \`${field.name}\` present as ${renderField(field)}`,
+      )
     }
   }
 

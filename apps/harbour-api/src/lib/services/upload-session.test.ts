@@ -37,10 +37,9 @@ mock.module('@repo/core/parquet-inspector', () => ({
   inspectParquet: inspectParquetMock,
 }))
 
-const {
-  handleFinalizeUploadRequest,
-  handleSignUploadRequest,
-} = await import('./upload-session')
+const { handleFinalizeUploadRequest, handleSignUploadRequest } = await import(
+  './upload-session'
+)
 
 function createTempDir() {
   const dir = mkdtempSync(join(tmpdir(), 'harbour-upload-session-test-'))
@@ -203,8 +202,8 @@ describe('upload session flow', () => {
     expect(bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.datasetId).toBe(
       'overture-hk-2026-05-24.0-division',
     )
-    expect(bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.originalFileName).toBe(
-      'overture-hk-division.parquet',
-    )
+    expect(
+      bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.originalFileName,
+    ).toBe('overture-hk-division.parquet')
   })
 })

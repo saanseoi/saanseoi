@@ -121,7 +121,12 @@ export const uploadRoute = defineOpenAPIRoute<typeof uploadRouteConfig, AppEnv>(
     try {
       const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
       const formData = await c.req.formData()
-      const result = await handleUploadRequest(db, c.env.R2_RAW, c.env.DATASET_QUEUE, formData)
+      const result = await handleUploadRequest(
+        db,
+        c.env.R2_RAW,
+        c.env.DATASET_QUEUE,
+        formData,
+      )
 
       return c.json(
         {
@@ -149,39 +154,41 @@ export const uploadRoute = defineOpenAPIRoute<typeof uploadRouteConfig, AppEnv>(
   },
 })
 
-export const signUploadRoute = defineOpenAPIRoute<typeof signUploadRouteConfig, AppEnv>({
-  route: signUploadRouteConfig,
-  handler: async c => {
-    try {
-      const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
-      const request = c.req.valid('json') as SignUploadRequest
-      const result = await handleSignUploadRequest(db, c.env.R2_RAW, c.env, request)
+export const signUploadRoute = defineOpenAPIRoute<typeof signUploadRouteConfig, AppEnv>(
+  {
+    route: signUploadRouteConfig,
+    handler: async c => {
+      try {
+        const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
+        const request = c.req.valid('json') as SignUploadRequest
+        const result = await handleSignUploadRequest(db, c.env.R2_RAW, c.env, request)
 
-      return c.json(
-        {
-          datasetId: result.datasetId,
-          expiresAt: result.expiresAt,
-          rawObjectKey: result.rawObjectKey,
-          source: result.source,
-          status: result.status,
-          uploadHeaders: result.uploadHeaders,
-          uploadMethod: result.uploadMethod,
-          uploadUrl: result.uploadUrl,
-        },
-        200,
-      )
-    } catch (error) {
-      return c.json(
-        {
-          httpStatus: 400,
-          error: 'upload_failed',
-          message: error instanceof Error ? error.message : String(error),
-        },
-        400,
-      )
-    }
+        return c.json(
+          {
+            datasetId: result.datasetId,
+            expiresAt: result.expiresAt,
+            rawObjectKey: result.rawObjectKey,
+            source: result.source,
+            status: result.status,
+            uploadHeaders: result.uploadHeaders,
+            uploadMethod: result.uploadMethod,
+            uploadUrl: result.uploadUrl,
+          },
+          200,
+        )
+      } catch (error) {
+        return c.json(
+          {
+            httpStatus: 400,
+            error: 'upload_failed',
+            message: error instanceof Error ? error.message : String(error),
+          },
+          400,
+        )
+      }
+    },
   },
-})
+)
 
 export const finalizeUploadRoute = defineOpenAPIRoute<
   typeof finalizeUploadRouteConfig,
@@ -192,7 +199,12 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
     try {
       const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
       const request = c.req.valid('json') as FinalizeUploadRequest
-      const result = await handleFinalizeUploadRequest(db, c.env.R2_RAW, c.env.DATASET_QUEUE, request)
+      const result = await handleFinalizeUploadRequest(
+        db,
+        c.env.R2_RAW,
+        c.env.DATASET_QUEUE,
+        request,
+      )
 
       return c.json(
         {

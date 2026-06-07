@@ -395,7 +395,12 @@ describe('processDivisionDataset', () => {
       { dimension: 'changed_count', groupBy: 'type', groupValue: 'district', value: 0 },
       { dimension: 'count', groupBy: 'type', groupValue: 'district', value: 1 },
       { dimension: 'removed_count', groupBy: 'type', groupValue: 'district', value: 0 },
-      { dimension: 'unchanged_count', groupBy: 'type', groupValue: 'district', value: 0 },
+      {
+        dimension: 'unchanged_count',
+        groupBy: 'type',
+        groupValue: 'district',
+        value: 0,
+      },
     ])
   })
 
@@ -774,7 +779,12 @@ describe('processDivisionDataset', () => {
       { dimension: 'changed_count', groupBy: 'type', groupValue: 'district', value: 2 },
       { dimension: 'count', groupBy: 'type', groupValue: 'district', value: 4 },
       { dimension: 'removed_count', groupBy: 'type', groupValue: 'district', value: 1 },
-      { dimension: 'unchanged_count', groupBy: 'type', groupValue: 'district', value: 1 },
+      {
+        dimension: 'unchanged_count',
+        groupBy: 'type',
+        groupValue: 'district',
+        value: 1,
+      },
     ])
     expect(qualityRows).toEqual([
       { dimension: 'geometry_changed_count', value: 1 },
@@ -855,7 +865,11 @@ describe('processDivisionDataset', () => {
           cartography: null,
           hierarchies: [
             {
-              ids: ['division-new-territories', 'division-tuen-mun-district', 'division-tuen-mun'],
+              ids: [
+                'division-new-territories',
+                'division-tuen-mun-district',
+                'division-tuen-mun',
+              ],
             },
           ],
           sources: [{ dataset: 'overture' }],
@@ -948,7 +962,11 @@ describe('processDivisionDataset', () => {
           cartography: null,
           hierarchies: [
             {
-              ids: ['division-new-territories', 'division-yuen-long', 'division-kam-tsin'],
+              ids: [
+                'division-new-territories',
+                'division-yuen-long',
+                'division-kam-tsin',
+              ],
             },
           ],
           sources: [{ dataset: 'overture' }],

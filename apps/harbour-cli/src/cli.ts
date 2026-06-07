@@ -181,7 +181,9 @@ async function main() {
   if (previewResult.plan.source === 'overture') {
     log.success(`Schema check passed: ${schemaVersionId}`)
   } else {
-    log.message(`Schema check skipped for ${previewResult.plan.source} ${previewResult.plan.type}.`)
+    log.message(
+      `Schema check skipped for ${previewResult.plan.source} ${previewResult.plan.type}.`,
+    )
   }
 
   const uploadResult = await dispatchUpload(
