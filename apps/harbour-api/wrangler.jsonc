@@ -1,0 +1,145 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ss-harbour-local",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "define": {
+    "__VUE_OPTIONS_API__": "true",
+    "__VUE_PROD_DEVTOOLS__": "false",
+    "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+  },
+  "secrets": {
+    "required": [
+      "HARBOUR_API_KEY",
+      "R2_ACCOUNT_ID",
+      "R2_RAW_ACCESS_KEY_ID",
+      "R2_RAW_SECRET_ACCESS_KEY"
+    ]
+  },
+  "vars": {
+    "ATLAS_BASE_URL": "http://localhost:8787",
+    "HARBOUR_BASE_URL": "http://localhost:8788",
+    "R2_RAW_BUCKET_NAME": "ss-raw-preview"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ss-db-preview",
+      "database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
+      "migrations_dir": "../../libs/db/migrations"
+    }
+  ],
+  "placement": {
+    "region": "gcp:asia-east2"
+  },
+  "r2_buckets": [
+    {
+      "binding": "R2_RAW",
+      "bucket_name": "ss-raw-preview"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "DATASET_QUEUE",
+        "queue": "ss-harbour-jobs-preview"
+      }
+    ]
+  },
+  "minify": true,
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
+  "env": {
+    "preview": {
+      "name": "ss-harbour-preview",
+      "define": {
+        "__VUE_OPTIONS_API__": "true",
+        "__VUE_PROD_DEVTOOLS__": "false",
+        "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+      },
+      "secrets": {
+        "required": [
+          "HARBOUR_API_KEY",
+          "R2_ACCOUNT_ID",
+          "R2_RAW_ACCESS_KEY_ID",
+          "R2_RAW_SECRET_ACCESS_KEY"
+        ]
+      },
+      "vars": {
+        "ATLAS_BASE_URL": "https://ss-atlas-preview.hypehk.workers.dev",
+        "HARBOUR_BASE_URL": "https://ss-harbour-preview.hypehk.workers.dev",
+        "R2_RAW_BUCKET_NAME": "ss-raw-preview"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ss-db-preview",
+          "database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_RAW",
+          "bucket_name": "ss-raw-preview"
+        }
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "DATASET_QUEUE",
+            "queue": "ss-harbour-jobs-preview"
+          }
+        ]
+      }
+    },
+    "production": {
+      "name": "ss-harbour-production",
+      "define": {
+        "__VUE_OPTIONS_API__": "true",
+        "__VUE_PROD_DEVTOOLS__": "false",
+        "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+      },
+      "secrets": {
+        "required": [
+          "HARBOUR_API_KEY",
+          "R2_ACCOUNT_ID",
+          "R2_RAW_ACCESS_KEY_ID",
+          "R2_RAW_SECRET_ACCESS_KEY"
+        ]
+      },
+      "vars": {
+        "ATLAS_BASE_URL": "https://ss-atlas-production.hypehk.workers.dev",
+        "HARBOUR_BASE_URL": "https://ss-harbour-production.hypehk.workers.dev",
+        "R2_RAW_BUCKET_NAME": "ss-raw-prod"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ss-db-prod",
+          "database_id": "658e67b6-f259-4e5d-907e-7e361d2edf3c",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_RAW",
+          "bucket_name": "ss-raw-prod"
+        }
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "DATASET_QUEUE",
+            "queue": "ss-harbour-jobs-prod"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ss-harbour-workers-local",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "secrets": {
+    "required": ["HARBOUR_API_KEY"]
+  },
+  "vars": {
+    "HARBOUR_BASE_URL": "http://localhost:8788"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ss-db-preview",
+      "database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
+      "migrations_dir": "../../libs/db/migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2_RAW",
+      "bucket_name": "ss-raw-preview"
+    }
+  ],
+  "queues": {
+    "consumers": [
+      {
+        "queue": "ss-harbour-jobs-preview",
+        "max_batch_size": 1,
+        "max_retries": 3,
+        "retry_delay": 30
+      }
+    ]
+  },
+  "placement": {
+    "region": "gcp:asia-east2"
+  },
+  "minify": true,
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
+  "env": {
+    "preview": {
+      "name": "ss-harbour-workers-preview",
+      "secrets": {
+        "required": ["HARBOUR_API_KEY"]
+      },
+      "vars": {
+        "HARBOUR_BASE_URL": "https://ss-harbour-preview.hypehk.workers.dev"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ss-db-preview",
+          "database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_RAW",
+          "bucket_name": "ss-raw-preview"
+        }
+      ],
+      "queues": {
+        "consumers": [
+          {
+            "queue": "ss-harbour-jobs-preview",
+            "max_batch_size": 1,
+            "max_retries": 3,
+            "retry_delay": 30
+          }
+        ]
+      }
+    },
+    "production": {
+      "name": "ss-harbour-workers-production",
+      "secrets": {
+        "required": ["HARBOUR_API_KEY"]
+      },
+      "vars": {
+        "HARBOUR_BASE_URL": "https://ss-harbour-production.hypehk.workers.dev"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ss-db-prod",
+          "database_id": "658e67b6-f259-4e5d-907e-7e361d2edf3c",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_RAW",
+          "bucket_name": "ss-raw-prod"
+        }
+      ],
+      "queues": {
+        "consumers": [
+          {
+            "queue": "ss-harbour-jobs-prod",
+            "max_batch_size": 1,
+            "max_retries": 3,
+            "retry_delay": 30
+          }
+        ]
+      }
+    }
+  }
+}

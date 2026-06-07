@@ -9,8 +9,29 @@
     "libs/*"
   ],
   "scripts": {
-    "dev": "turbo run dev",
+    "prepare": "husky",
+    "dev": "turbo run dev --filter=harbour-api --filter=atlas-api --filter=atlas-app",
+    "upload": "bun --cwd ./apps/harbour-cli ./src/cli.ts upload",
+    "upload:cf:preview": "bun --cwd ./apps/harbour-cli ./src/cli.ts upload --target cf-preview",
+    "upload:cf:production": "bun --cwd ./apps/harbour-cli ./src/cli.ts upload --target cf-production",
+    "fish:install-completions": "bash ./scripts/install-fish-completions.sh",
+    "db:studio": "bun run --filter @repo/db db:studio",
+    "db:studio:preview": "bun run --filter @repo/db db:studio:preview",
+    "db:studio:production": "bun run --filter @repo/db db:studio:production",
+    "db:dump:preview": "bun run --filter @repo/db db:dump:preview",
+    "db:dump:production": "bun run --filter @repo/db db:dump:production",
+    "db:reset:local": "bun run --filter @repo/db db:reset:local",
+    "db:reset:preview": "bun run --filter @repo/db db:reset:preview",
+    "db:migration:generate": "bun run --filter @repo/db db:migration:generate",
+    "db:migration:run:local": "bun run --filter @repo/db db:migration:run:local",
+    "db:migration:run:preview": "bun run --filter @repo/db db:migration:run:preview",
+    "db:migration:run:production": "bun run --filter @repo/db db:migration:run:production",
+    "db:import:local": "bun run --filter @repo/db db:import:local",
+    "db:rebuild-fts:local": "bun run --filter @repo/db db:rebuild-fts:local",
+    "db:mirror:preview:to:local": "bun run --filter @repo/db db:mirror:preview:to:local",
+    "db:mirror:production:to:local": "bun run --filter @repo/db db:mirror:production:to:local",
     "test": "turbo run test",
+    "test:run": "turbo run test",
     "test:watch": "turbo run test:watch",
     "test:coverage": "turbo run test:coverage",
     "preview": "turbo run preview",
@@ -18,27 +39,34 @@
     "format": "biome format --write .",
     "deploy": "turbo run deploy",
     "lint": "turbo run lint",
+    "lint:branch": "bunx branch-name-lint .husky/branch-name-lint.json",
     "machine-translate": "turbo run machine-translate",
     "outdated": "turbo run outdated",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "turbo run build && changeset publish"
+    "release": "turbo run build && changeset publish",
+    "cf-typegen": "bun run --workspaces --if-present cf-typegen"
   },
   "dependencies": {
-    "@inlang/paraglide-js": "^2.18.1",
-    "bun-types": "^1.3.14"
+    "@inlang/paraglide-js": "^2.18.2",
+    "bun-types": "^1.3.14",
+    "drizzle-orm": "^1.0.0-rc.4-5d5b77c"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
     "@changesets/cli": "^2.31.0",
-    "@cloudflare/workers-types": "^4.20260527.1",
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
     "@types/bun": "latest",
-    "@biomejs/biome": "^2.2.6",
+    "branch-name-lint": "^3.0.1",
+    "drizzle-kit": "^1.0.0-rc.4-ca0f029",
+    "husky": "^9.1.7",
     "prettier": "^3.8.3",
-    "turbo": "^2.9.15",
-    "wrangler": "^4.95.0"
+    "turbo": "^2.9.16",
+    "wrangler": "^4.98.0"
   },
   "peerDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "repository": {
     "type": "git",

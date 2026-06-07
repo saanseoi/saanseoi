@@ -1,0 +1,30 @@
+{
+  "extends": ["../../libs/core/tsconfig.json", "./.svelte-kit/tsconfig.json"],
+  "compilerOptions": {
+    "rootDir": ".",
+    "rewriteRelativeImportExtensions": true,
+    "checkJs": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "types": ["node", "bun-types", "vitest/globals", "./worker-configuration.d.ts"]
+  },
+  "include": [
+    "worker-configuration.d.ts",
+    ".svelte-kit/ambient.d.ts",
+    ".svelte-kit/non-ambient.d.ts",
+    ".svelte-kit/types/**/$types.d.ts",
+    "src/**/*.js",
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.svelte"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".svelte-kit/output/**",
+    ".svelte-kit/cloudflare/**",
+    ".svelte-kit/cloudflare-tmp/**"
+  ]
+}

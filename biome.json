@@ -11,7 +11,7 @@
       "!**/node_modules",
       "!**/dist",
       "!**/.turbo",
-      "!apps/places-api/worker-configuration.d.ts",
+      "!apps/atlas-api/worker-configuration.d.ts",
       "!**/*.d.ts"
     ]
   },
@@ -48,7 +48,7 @@
   },
   "json": {
     "parser": {
-      "allowComments": false,
+      "allowComments": true,
       "allowTrailingCommas": false
     },
     "formatter": {

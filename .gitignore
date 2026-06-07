@@ -20,11 +20,14 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.development.local
 .env.test.local
 .env.production.local
+.env.preview.local
+.env.prod.local
 .env.local
 
 # caches
 .eslintcache
 .cache
+.local/
 *.tsbuildinfo
 
 # IntelliJ based IDEs
@@ -41,4 +44,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Dev Vars
 .dev.vars*
-apps/places-api/.env.local
+apps/atlas-api/.env.local
+
+# Data
+data/
+*.db
+*.sqlite3
+*.sqlite

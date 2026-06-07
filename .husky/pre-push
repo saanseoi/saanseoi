@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+./.husky/check-merge.sh
+bun run lint:branch
+bun run test:run

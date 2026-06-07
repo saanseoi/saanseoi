@@ -35,7 +35,41 @@ jobs:
     environment: preview
     steps:
       - name: 'GIT :: Checkout'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: 'CHECK :: Changed Workers'
+        id: changed-workers
+        uses: dorny/paths-filter@v4
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            atlas-api:
+              - 'bun.lock'
+              - 'package.json'
+              - 'apps/atlas-api/**'
+              - 'libs/config-typescript/**'
+              - 'libs/core/**'
+              - 'libs/db/**'
+            atlas-app:
+              - 'bun.lock'
+              - 'package.json'
+              - 'apps/atlas-app/**'
+              - 'libs/config-typescript/**'
+              - 'libs/db/**'
+            harbour-api:
+              - 'bun.lock'
+              - 'package.json'
+              - 'apps/harbour-api/**'
+              - 'libs/config-typescript/**'
+              - 'libs/core/**'
+              - 'libs/db/**'
+            harbour-workers:
+              - 'bun.lock'
+              - 'package.json'
+              - 'apps/harbour-workers/**'
+              - 'libs/config-typescript/**'
+              - 'libs/core/**'
+              - 'libs/db/**'
 
       - name: 'INSTALL :: Bun'
         uses: oven-sh/setup-bun@v2
@@ -43,7 +77,7 @@ jobs:
           bun-version: '1.3.14'
 
       - name: 'CACHE :: Restore Dependencies'
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         id: cache-deps
         with:
           path: node_modules
@@ -53,12 +87,43 @@ jobs:
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
 
-      - name: 'DEPLOY :: Worker'
+      - name: 'MIGRATE :: D1 Preview'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run db:migration:run:preview
+
+      - name: 'DEPLOY :: Atlas API'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:preview
-        working-directory: apps/places-api
+        working-directory: apps/atlas-api
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.atlas-api == 'true'
+
+      - name: 'DEPLOY :: Atlas App'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run deploy:preview
+        working-directory: apps/atlas-app
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.atlas-app == 'true'
+
+      - name: 'DEPLOY :: Harbour API'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run deploy:preview
+        working-directory: apps/harbour-api
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour-api == 'true'
+
+      - name: 'DEPLOY :: Harbour Workers'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run deploy:preview
+        working-directory: apps/harbour-workers
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour-workers == 'true'
 
   build-production:
     if: github.ref == 'refs/heads/main'
@@ -81,7 +146,41 @@ jobs:
     environment: production
     steps:
       - name: 'GIT :: Checkout'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: 'CHECK :: Changed Workers'
+        id: changed-workers
+        uses: dorny/paths-filter@v4
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            atlas-api:
+              - 'bun.lock'
+              - 'package.json'
+              - 'apps/atlas-api/**'
+              - 'libs/config-typescript/**'
+              - 'libs/core/**'
+              - 'libs/db/**'
+            atlas-app:
+              - 'bun.lock'
+              - 'package.json'
+              - 'apps/atlas-app/**'
+              - 'libs/config-typescript/**'
+              - 'libs/db/**'
+            harbour-api:
+              - 'bun.lock'
+              - 'package.json'
+              - 'apps/harbour-api/**'
+              - 'libs/config-typescript/**'
+              - 'libs/core/**'
+              - 'libs/db/**'
+            harbour-workers:
+              - 'bun.lock'
+              - 'package.json'
+              - 'apps/harbour-workers/**'
+              - 'libs/config-typescript/**'
+              - 'libs/core/**'
+              - 'libs/db/**'
 
       - name: 'INSTALL :: Bun'
         uses: oven-sh/setup-bun@v2
@@ -89,7 +188,7 @@ jobs:
           bun-version: '1.3.14'
 
       - name: 'CACHE :: Restore Dependencies'
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         id: cache-deps
         with:
           path: node_modules
@@ -99,9 +198,40 @@ jobs:
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
 
-      - name: 'DEPLOY :: Worker'
+      - name: 'MIGRATE :: D1 Production'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run db:migration:run:production
+
+      - name: 'DEPLOY :: Atlas API'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: bun run deploy:production
-        working-directory: apps/places-api
+        working-directory: apps/atlas-api
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.atlas-api == 'true'
+
+      - name: 'DEPLOY :: Atlas App'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run deploy:production
+        working-directory: apps/atlas-app
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.atlas-app == 'true'
+
+      - name: 'DEPLOY :: Harbour API'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run deploy:production
+        working-directory: apps/harbour-api
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour-api == 'true'
+
+      - name: 'DEPLOY :: Harbour Workers'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run deploy:production
+        working-directory: apps/harbour-workers
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.harbour-workers == 'true'

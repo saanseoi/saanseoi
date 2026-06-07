@@ -9,11 +9,27 @@ on:
 
 jobs:
   build:
-    name: 'BUILD :: Places API'
+    name: 'BUILD :: ${{ matrix.app.name }}'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - name: 'Atlas API'
+            path: 'apps/atlas-api'
+            cache_key: 'atlas-api'
+          - name: 'Atlas App'
+            path: 'apps/atlas-app'
+            cache_key: 'atlas-app'
+          - name: 'Harbour API'
+            path: 'apps/harbour-api'
+            cache_key: 'harbour-api'
+          - name: 'Harbour Workers'
+            path: 'apps/harbour-workers'
+            cache_key: 'harbour-workers'
     steps:
       - name: 'GIT :: Checkout'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 'INSTALL :: Bun'
         uses: oven-sh/setup-bun@v2
@@ -21,7 +37,7 @@ jobs:
           bun-version: '1.3.14'
 
       - name: 'CACHE :: Restore Dependencies'
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         id: cache-deps
         with:
           path: node_modules
@@ -32,18 +48,18 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: 'CACHE :: Restore Build'
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         id: cache-build
         with:
           path: |
             .turbo
-            apps/places-api/dist
-          key: ${{ runner.os }}-places-api-build-${{ inputs.environment }}-${{ hashFiles('bun.lock', 'turbo.json', 'package.json', 'apps/places-api/**', 'libs/**') }}
+            ${{ matrix.app.path }}/dist
+          key: ${{ runner.os }}-${{ matrix.app.cache_key }}-build-${{ inputs.environment }}-${{ hashFiles('bun.lock', 'turbo.json', 'package.json', 'apps/**', 'libs/**') }}
           restore-keys: |
-            ${{ runner.os }}-places-api-build-${{ inputs.environment }}-
-            ${{ runner.os }}-places-api-build-
+            ${{ runner.os }}-${{ matrix.app.cache_key }}-build-${{ inputs.environment }}-
+            ${{ runner.os }}-${{ matrix.app.cache_key }}-build-
 
       - name: 'BUILD :: Worker Bundle'
         if: steps.cache-build.outputs.cache-hit != 'true'
         run: bun run build:${{ inputs.environment }}
-        working-directory: apps/places-api
+        working-directory: ${{ matrix.app.path }}
