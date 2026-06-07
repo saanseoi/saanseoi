@@ -9,7 +9,7 @@
     "libs/*"
   ],
   "scripts": {
-    "dev": "turbo run dev --filter=atlas-api --filter=harbour-api",
+    "dev": "turbo run dev --filter=harbour-api --filter=atlas-api --filter=atlas-app",
     "upload": "bun --cwd ./apps/harbour-cli ./src/cli.ts upload",
     "upload:cf:preview": "bun --cwd ./apps/harbour-cli ./src/cli.ts upload --target cf-preview",
     "upload:cf:production": "bun --cwd ./apps/harbour-cli ./src/cli.ts upload --target cf-production",
