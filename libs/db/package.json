@@ -1,0 +1,37 @@
+{
+  "name": "@repo/db",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "db:generate": "bash ./scripts/generate-migration.sh",
+    "db:migration:generate": "bash ./scripts/generate-migration.sh",
+    "db:studio": "bash ./scripts/run-drizzle-studio-local.sh",
+    "db:studio:preview": "bash ./scripts/run-drizzle-studio.sh preview",
+    "db:studio:production": "bash ./scripts/run-drizzle-studio.sh production",
+    "db:dump:preview": "bash ./scripts/dump-db.sh preview",
+    "db:dump:production": "bash ./scripts/dump-db.sh production",
+    "db:drop:local": "bash ./scripts/drop-local-db.sh",
+    "db:drop:preview": "bash ./scripts/drop-preview-db.sh",
+    "db:reset:local": "bash ./scripts/reset-local-db.sh",
+    "db:reset:preview": "bash ./scripts/reset-preview-db.sh",
+    "db:migration:run:local": "bash ./scripts/migrate-local-db.sh",
+    "db:migration:run:preview": "bash ./scripts/migrate-preview-db.sh",
+    "db:migration:run:production": "wrangler d1 migrations apply ss-db-prod --remote --config ../../apps/atlas-api/wrangler.jsonc --env production",
+    "db:import:local": "bash ./scripts/import-local-db.sh",
+    "db:rebuild-fts:local": "bash ./scripts/rebuild-places-fts-local.sh",
+    "db:mirror:preview:to:local": "bash ./scripts/mirror-db-to-local.sh preview",
+    "db:mirror:production:to:local": "bash ./scripts/mirror-db-to-local.sh production"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^1.0.0-beta.22"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^1.0.0-beta.22",
+    "typescript": "^6.0.3"
+  }
+}

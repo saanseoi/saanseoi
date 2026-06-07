@@ -1,0 +1,34 @@
+{
+  "name": "@repo/core",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./upload": "./src/lib/services/upload.ts",
+    "./upload-local": "./src/lib/services/upload-local.ts",
+    "./parquet-inspector": "./src/lib/parquet-inspector.ts",
+    "./parquet-inspector-node": "./src/lib/parquet-inspector-node.ts",
+    "./db/repository": "./src/lib/db/repository.ts"
+  },
+  "dependencies": {
+    "@repo/db": "workspace:*",
+    "drizzle-orm": "^1.0.0-rc.4-5d5b77c",
+    "hyparquet": "^1.17.7",
+    "hyparquet-compressors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "bun-types": "^1.3.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

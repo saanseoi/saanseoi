@@ -1,0 +1,99 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ss-atlas-local",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "define": {
+    "__VUE_OPTIONS_API__": "true",
+    "__VUE_PROD_DEVTOOLS__": "false",
+    "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+  },
+  "assets": { "directory": "public" },
+  "vars": {
+    "ATLAS_BASE_URL": "http://localhost:8787",
+    "HARBOUR_BASE_URL": "http://localhost:8788"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ss-db-preview",
+      "database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
+      "migrations_dir": "../../libs/db/migrations"
+    }
+  ],
+  "placement": {
+    "region": "gcp:asia-east2"
+  },
+  "minify": true,
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
+  "env": {
+    "preview": {
+      "name": "ss-atlas-preview",
+      "define": {
+        "__VUE_OPTIONS_API__": "true",
+        "__VUE_PROD_DEVTOOLS__": "false",
+        "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+      },
+      "vars": {
+        "ATLAS_BASE_URL": "https://ss-atlas-preview.hypehk.workers.dev",
+        "HARBOUR_BASE_URL": "https://ss-harbour-preview.hypehk.workers.dev"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ss-db-preview",
+          "database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ]
+    },
+    "production": {
+      "name": "ss-atlas-production",
+      "define": {
+        "__VUE_OPTIONS_API__": "true",
+        "__VUE_PROD_DEVTOOLS__": "false",
+        "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
+      },
+      "vars": {
+        "ATLAS_BASE_URL": "https://ss-atlas-production.hypehk.workers.dev",
+        "HARBOUR_BASE_URL": "https://ss-harbour-production.hypehk.workers.dev"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ss-db-prod",
+          "database_id": "658e67b6-f259-4e5d-907e-7e361d2edf3c",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ]
+    }
+  }
+  // "vars": {
+  //   "MY_VAR": "my-variable"
+  // },
+  // "kv_namespaces": [
+  //   {
+  //     "binding": "MY_KV_NAMESPACE",
+  //     "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  //   }
+  // ],
+  // "r2_buckets": [
+  //   {
+  //     "binding": "MY_BUCKET",
+  //     "bucket_name": "my-bucket"
+  //   }
+  // ],
+  // "ai": {
+  //   "binding": "AI"
+  // },
+  // "observability": {
+  //   "enabled": true,
+  //   "head_sampling_rate": 1
+  // }
+}

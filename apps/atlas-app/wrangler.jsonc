@@ -1,0 +1,73 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ss-atlas-app-local",
+  "compatibility_date": "2026-06-07",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": ".svelte-kit/cloudflare/_worker.js",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".svelte-kit/cloudflare"
+  },
+  "secrets": {
+    "required": ["BETTER_AUTH_SECRET"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ss-db-preview",
+      "database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
+      "preview_database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
+      "migrations_dir": "../../libs/db/migrations"
+    }
+  ],
+  "workers_dev": true,
+  "preview_urls": true,
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
+  "minify": true,
+  "placement": {
+    "region": "gcp:asia-east2"
+  },
+  "env": {
+    "preview": {
+      "name": "ss-atlas-app-preview",
+      "secrets": {
+        "required": ["BETTER_AUTH_SECRET"]
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ss-db-preview",
+          "database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
+          "preview_database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ]
+    },
+    "production": {
+      "name": "ss-atlas-app-production",
+      "secrets": {
+        "required": ["BETTER_AUTH_SECRET"]
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ss-db-prod",
+          "database_id": "658e67b6-f259-4e5d-907e-7e361d2edf3c",
+          "preview_database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
+          "migrations_dir": "../../libs/db/migrations"
+        }
+      ],
+      "routes": [
+        {
+          "pattern": "saanseoi.hk",
+          "custom_domain": true
+        }
+      ]
+    }
+  }
+}

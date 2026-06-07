@@ -19,7 +19,7 @@ jobs:
       has_changesets: ${{ steps.check.outputs.has_changesets }}
     steps:
       - name: 'GIT :: Checkout Repo'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'GIT :: Checkout Repo'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 'INSTALL :: Bun'
         uses: oven-sh/setup-bun@v2
@@ -49,7 +49,7 @@ jobs:
           bun-version: '1.3.14'
 
       - name: 'CACHE :: Restore Dependencies'
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         id: cache-deps
         with:
           path: node_modules
@@ -61,9 +61,17 @@ jobs:
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
 
-      - name: 'BUILD :: Places API'
+      - name: 'BUILD :: Atlas API'
         run: bun run build:production
-        working-directory: apps/places-api
+        working-directory: apps/atlas-api
+
+      - name: 'BUILD :: Harbour API'
+        run: bun run build:production
+        working-directory: apps/harbour-api
+
+      - name: 'BUILD :: Harbour Workers'
+        run: bun run build:production
+        working-directory: apps/harbour-workers
 
       - name: 'RELEASE :: Create Release PR'
         id: changesets
