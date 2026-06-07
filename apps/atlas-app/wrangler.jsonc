@@ -35,6 +35,9 @@
   "env": {
     "preview": {
       "name": "ss-atlas-app-preview",
+      "secrets": {
+        "required": ["BETTER_AUTH_SECRET"]
+      },
       "d1_databases": [
         {
           "binding": "DB",
@@ -47,6 +50,9 @@
     },
     "production": {
       "name": "ss-atlas-app-production",
+      "secrets": {
+        "required": ["BETTER_AUTH_SECRET"]
+      },
       "d1_databases": [
         {
           "binding": "DB",
