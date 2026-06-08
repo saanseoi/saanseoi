@@ -21,6 +21,7 @@
     "test:coverage": "bun test --coverage"
   },
   "dependencies": {
+    "@iconify-json/ion": "^1.2.7",
     "@iconify-json/proicons": "^1.2.19",
     "@iconify/svelte": "^5.2.1",
     "@repo/db": "workspace:*",

@@ -298,6 +298,7 @@
   --spacing-input: 3rem;
   --spacing-input-sm: 2.5rem;
 
+  --breakpoint-mobile: 786px;
   --breakpoint-desktop: 1440px;
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
