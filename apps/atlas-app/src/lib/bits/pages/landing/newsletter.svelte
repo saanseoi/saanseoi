@@ -32,9 +32,7 @@ import { Label } from '$lib/bits/primitives/label'
           value=""
         />
       </div>
-      <Button type="submit" variant="primary">
-        {m.newsletter_submit()}
-      </Button>
+      <Button type="submit" variant="primary"> {m.newsletter_submit()} </Button>
     </form>
 
     <p class="mt-4 font-body text-[0.78rem] leading-normal text-foreground-alt/70">

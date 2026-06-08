@@ -2,7 +2,7 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/reposit
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { AddressI18nPayload, AddressRow } from '@repo/db/schema'
 
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 import { divisions, divisionsI18n } from '@repo/db/schema'
 

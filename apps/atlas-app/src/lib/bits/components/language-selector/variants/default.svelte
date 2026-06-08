@@ -32,9 +32,7 @@ function handleLocaleChange(nextLocale: string) {
 </script>
 
 <div class="flex items-center">
-  <Label class="sr-only" for="language-selector">
-    {m.language_selector_label()}
-  </Label>
+  <Label class="sr-only" for="language-selector"> {m.language_selector_label()} </Label>
 
   <Select.Root
     items={options}
