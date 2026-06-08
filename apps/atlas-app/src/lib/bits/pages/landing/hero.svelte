@@ -7,12 +7,12 @@ import { Button } from '$lib/bits/primitives/button'
 </script>
 
 <section
-  class="mx-auto grid max-w-[var(--spacing-container-max)] gap-12 px-[var(--spacing-margin-mobile)] py-12 md:px-8 md:py-16 xl:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] xl:items-center xl:gap-14 xl:px-[var(--spacing-margin-desktop)] xl:py-20"
+  class="mx-auto grid max-w-(--spacing-container-max) gap-12 px-(--spacing-margin-mobile) py-12 md:px-8 md:py-16 xl:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] xl:items-center xl:gap-14 xl:px-(--spacing-margin-desktop) xl:py-20"
 >
   <div class="space-y-8">
     <div class="space-y-5">
       <span
-        class="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-secondary/25 bg-secondary/8 px-3 py-1 font-body text-[0.76rem] font-[600] uppercase tracking-[0.08em] text-secondary"
+        class="inline-flex items-center gap-2 rounded-(--radius-sm) border border-secondary/25 bg-secondary/8 px-3 py-1 font-body text-[0.76rem] font-semibold uppercase tracking-[0.08em] text-secondary"
       >
         <Icon icon="proicons:globe" class="size-3.5" />
         {m.hero_badge()}
@@ -20,12 +20,12 @@ import { Button } from '$lib/bits/primitives/button'
 
       <div class="space-y-4">
         <h1
-          class="max-w-[11ch] font-display text-[2.9rem] leading-[0.98] font-[800] tracking-[-0.06em] text-primary sm:text-[3.6rem] lg:text-[4.4rem]"
+          class="max-w-[11ch] font-display text-[2.9rem] leading-[0.98] font-extrabold tracking-[-0.06em] text-primary sm:text-[3.6rem] lg:text-[4.4rem]"
         >
           {m.hero_title()}
         </h1>
         <p
-          class="max-w-[36rem] font-body text-[1.04rem] leading-[1.8] text-foreground-alt sm:text-[1.1rem]"
+          class="max-w-xl font-body text-[1.04rem] leading-[1.8] text-foreground-alt sm:text-[1.1rem]"
         >
           {m.hero_description()}
         </p>
