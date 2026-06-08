@@ -2,7 +2,13 @@
   "name": "@repo/i18n",
   "version": "1.0.0",
   "private": true,
-  "main": "index.js",
+  "exports": {
+    ".": "./src/index.ts",
+    "./messages": "./src/paraglide/messages.js",
+    "./messages/*": "./messages/*",
+    "./runtime": "./src/paraglide/runtime.js",
+    "./server": "./src/paraglide/server.js"
+  },
   "license": "MIT",
   "scripts": {
     "build": "paraglide-js compile --project ./project.inlang",
