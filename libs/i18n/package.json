@@ -4,11 +4,11 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts",
-    "./messages": "./src/paraglide/messages.js",
+    "./messages": "./src/messages.ts",
     "./messages/*.json": "./messages/*.json",
     "./messages/*/*.json": "./messages/*/*.json",
-    "./runtime": "./src/paraglide/runtime.js",
-    "./server": "./src/paraglide/server.js"
+    "./runtime": "./src/runtime.ts",
+    "./server": "./src/server.ts"
   },
   "license": "MIT",
   "scripts": {
