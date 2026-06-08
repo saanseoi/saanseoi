@@ -44,7 +44,7 @@ if [ -n "$TAILWIND_FILES" ]; then
   echo "Running Tailwind upgrade..."
 
   set +e
-  TAILWIND_OUTPUT=$(bun x @tailwindcss/upgrade 2>&1)
+  TAILWIND_OUTPUT=$(bun x @tailwindcss/upgrade --force 2>&1)
   TAILWIND_STATUS=$?
   set -e
 
