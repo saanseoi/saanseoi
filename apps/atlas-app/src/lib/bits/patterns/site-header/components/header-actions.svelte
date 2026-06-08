@@ -15,7 +15,7 @@ import MobileMenu from './mobile-menu.svelte'
   </div>
 
   <Button
-    class="hidden min-h-11 rounded-none px-6 text-[1rem] font-[500] tracking-[-0.01em] md:inline-flex"
+    class="hidden min-h-11 rounded-none px-6 text-[1rem] font-medium tracking-[-0.01em] md:inline-flex"
     href="/get-started"
     variant="primary"
   >

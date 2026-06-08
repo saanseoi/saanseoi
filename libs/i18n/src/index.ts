@@ -1,3 +1,3 @@
-export { m } from './paraglide/messages.js'
-export * from './paraglide/runtime.js'
-export * from './paraglide/server.js'
+export { m } from './messages.js'
+export * from './runtime.js'
+export * from './server.js'
