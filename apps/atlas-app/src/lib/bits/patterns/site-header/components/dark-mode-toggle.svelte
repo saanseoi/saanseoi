@@ -42,7 +42,7 @@ onMount(() => {
 <Swap
   aria-label={darkModeEnabled ? 'Switch to light theme' : 'Switch to dark theme'}
   bind:checked={darkModeEnabled}
-  class="hidden size-11 rounded-[var(--radius-default)] border border-border-card/70 bg-muted text-foreground transition-colors hover:bg-background-alt md:inline-grid"
+  class="hidden size-11 rounded-default border border-border-card/70 bg-muted text-foreground transition-colors hover:bg-background-alt md:inline-grid"
   onCheckedChange={handleThemeChange}
 >
   {#snippet off()}

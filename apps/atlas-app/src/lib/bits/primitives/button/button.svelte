@@ -38,7 +38,7 @@ const linkVariantClasses: Record<Variant, string> = {
 
 const sizeClasses: Record<Size, string> = {
   compact: 'min-h-10 px-3 text-[0.92rem]',
-  default: 'min-h-12 px-6 text-[var(--text-label-md)]',
+  default: 'min-h-12 px-6 text-(--text-label-md)',
 }
 
 let {
@@ -54,7 +54,7 @@ let {
 }: Props = $props()
 
 const baseClasses =
-  'focus-override button-focus-ring inline-flex items-center justify-center gap-2 rounded-[var(--radius-default)] font-body font-[600] tracking-[0.01em] transition-colors'
+  'focus-override button-focus-ring inline-flex items-center justify-center gap-2 rounded-default font-body font-semibold tracking-[0.01em] transition-colors'
 
 const anchorClasses = $derived(linkVariantClasses[variant])
 const buttonClasses = $derived(buttonVariantClasses[variant])

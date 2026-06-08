@@ -7,9 +7,7 @@
     >山水</span
   >
   <span class="h-8 w-px bg-border-card"></span>
-  <span
-    class="font-display text-[1.9rem] font-black leading-none tracking-(--tracking-display-md)"
-  >
+  <span class="font-display text-[1.9rem] font-black leading-none tracking-display-md">
     SaanSeoi
   </span>
 </a>

@@ -14,7 +14,7 @@ let mobileMenuOpen = $state(false)
 <Dialog.Root bind:open={mobileMenuOpen}>
   <Dialog.Trigger
     aria-label="Open navigation menu"
-    class="inline-flex size-11 items-center justify-center rounded-[var(--radius-default)] border border-border-card/70 bg-muted text-foreground transition-colors hover:bg-background-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background md:hidden"
+    class="inline-flex size-11 items-center justify-center rounded-default border border-border-card/70 bg-muted text-foreground transition-colors hover:bg-background-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background md:hidden"
   >
     <Icon icon="proicons:menu" class="size-5" />
   </Dialog.Trigger>
@@ -29,12 +29,12 @@ let mobileMenuOpen = $state(false)
       <div class="flex items-start justify-between gap-4">
         <div class="space-y-2">
           <Dialog.Title
-            class="font-display text-[var(--text-headline-md)] font-bold leading-[var(--leading-headline-md)] tracking-[var(--tracking-headline-lg)] text-foreground"
+            class="font-display text-(--text-headline-md) font-bold leading-headline-md tracking-headline-lg text-foreground"
           >
             {m.nav_mobile_title()}
           </Dialog.Title>
           <Dialog.Description
-            class="max-w-[18rem] font-body text-[var(--text-body-md)] leading-[var(--leading-body-md)] text-foreground-alt"
+            class="max-w-[18rem] font-body text-(--text-body-md) leading-(--leading-body-md) text-foreground-alt"
           >
             {m.nav_mobile_description()}
           </Dialog.Description>
@@ -42,7 +42,7 @@ let mobileMenuOpen = $state(false)
 
         <Dialog.Close
           aria-label="Close navigation menu"
-          class="inline-flex size-10 items-center justify-center rounded-[var(--radius-default)] border border-border-card/70 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background-alt"
+          class="inline-flex size-10 items-center justify-center rounded-default border border-border-card/70 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background-alt"
         >
           <Icon icon="proicons:cancel" class="size-5" />
         </Dialog.Close>
@@ -56,7 +56,7 @@ let mobileMenuOpen = $state(false)
       >
         {#each navigationItems as item}
           <a
-            class="flex items-center justify-between py-3 font-body text-[var(--text-body-lg)] font-[500] leading-[var(--leading-body-lg)] text-foreground transition-colors hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background-alt"
+            class="flex items-center justify-between py-3 font-body text-(--text-body-lg) font-medium leading-(--leading-body-lg) text-foreground transition-colors hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background-alt"
             href={item.href}
           >
             <span>{item.label()}</span>

@@ -44,7 +44,7 @@ function handleLocaleChange(nextLocale: string) {
     value={currentLocale}
   >
     <Select.Trigger
-      class="inline-flex size-11 items-center justify-center rounded-[var(--radius-default)] border border-border-card/70 bg-muted text-foreground transition-colors hover:bg-background-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      class="inline-flex size-11 items-center justify-center rounded-default border border-border-card/70 bg-muted text-foreground transition-colors hover:bg-background-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       id="language-selector"
     >
       <Select.Value placeholder={m.language_selector_placeholder()}>
@@ -57,16 +57,16 @@ function handleLocaleChange(nextLocale: string) {
 
     <Select.Portal>
       <Select.Content
-        class="z-50 min-w-[14rem] overflow-hidden rounded-lg border-2 border-foreground/90 bg-background-alt p-1 text-foreground shadow-popover"
+        class="z-50 min-w-56 overflow-hidden rounded-lg border-2 border-foreground/90 bg-background-alt p-1 text-foreground shadow-popover"
         sideOffset={8}
       >
         <Select.Viewport class="flex flex-col gap-1">
           <div
-            class="flex items-center justify-between rounded-[var(--radius-default)] border border-border-card/60 bg-muted px-3 py-2"
+            class="flex items-center justify-between rounded-default border border-border-card/60 bg-muted px-3 py-2"
           >
             <div class="flex min-w-0 flex-col">
               <span
-                class="truncate font-body text-[0.92rem] font-[600] text-foreground"
+                class="truncate font-body text-[0.92rem] font-semibold text-foreground"
               >
                 {currentOption.label}
               </span>
@@ -76,7 +76,7 @@ function handleLocaleChange(nextLocale: string) {
 
           {#each alternateOptions as option}
             <Select.Item
-              class="flex cursor-default items-center justify-between rounded-[var(--radius-default)] px-3 py-2 font-body text-[0.92rem] text-foreground outline-none transition-colors data-[highlighted]:bg-muted data-[highlighted]:text-foreground"
+              class="flex cursor-default items-center justify-between rounded-default px-3 py-2 font-body text-[0.92rem] text-foreground outline-none transition-colors data-highlighted:bg-muted data-highlighted:text-foreground"
               label={option.label}
               value={option.value}
             >
