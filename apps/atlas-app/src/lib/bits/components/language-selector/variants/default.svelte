@@ -6,60 +6,68 @@ import {
   localeOptions,
   m,
   type AppLocale,
-  getLocale,
-  setLocale,
+  getCurrentLocale,
+  updateLocale,
 } from '$lib/bits/internal/i18n'
 import { Label } from '$lib/bits/primitives/label'
 
-let currentLocale = $state(getLocale() as AppLocale)
+type PopoverSide = 'top' | 'right' | 'bottom' | 'left'
+type PopoverAlign = 'start' | 'center' | 'end'
+
+let { side = 'bottom', align = 'center' } = $props<{
+  side?: PopoverSide
+  align?: PopoverAlign
+}>()
+
+const triggerId = $props.id()
 
 const options = localeOptions.map(option => ({
   value: option.value,
   label: option.label(),
 }))
 const fallbackOption = options[0] ?? {
-  value: () => currentLocale,
+  value: 'en',
   label: m.language_selector_placeholder(),
 }
 const currentOption = $derived(
-  options.find(option => option.value === currentLocale) ?? fallbackOption,
+  options.find(option => option.value === getCurrentLocale()) ?? fallbackOption,
 )
 const alternateOptions = $derived(
-  options.filter(option => option.value !== currentLocale),
+  options.filter(option => option.value !== getCurrentLocale()),
 )
 
-// biome-ignore lint: incorrect lint/correctness/noUnusedVariables
 function handleLocaleChange(nextLocale: string) {
-  currentLocale = nextLocale as AppLocale
-  void setLocale(currentLocale)
+  void updateLocale(nextLocale as AppLocale)
 }
 </script>
 
 <div class="flex items-center">
-  <Label class="sr-only" for="language-selector"> {m.language_selector_label()} </Label>
+  <Label class="sr-only" for={triggerId}> {m.language_selector_label()} </Label>
 
   <Select.Root
     items={options}
     name="language"
     onValueChange={handleLocaleChange}
     type="single"
-    value={currentLocale}
+    value={getCurrentLocale()}
   >
     <Select.Trigger
       class="inline-flex size-11 items-center justify-center rounded-default border border-border-card/70 bg-muted text-foreground transition-colors hover:bg-background-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      id="language-selector"
+      id={triggerId}
     >
       <Select.Value placeholder={m.language_selector_placeholder()}>
         {#snippet children()}
           <span class="sr-only">{currentOption.label}</span>
-          <Icon icon="proicons:globe" class="size-4.5 text-secondary" />
+          <Icon icon="ion:language-outline" class="size-4.5 dark:text-secondary" />
         {/snippet}
       </Select.Value>
     </Select.Trigger>
 
     <Select.Portal>
       <Select.Content
-        class="z-50 min-w-56 overflow-hidden rounded-lg border-2 border-foreground/90 bg-background-alt p-1 text-foreground shadow-popover"
+        {align}
+        class="z-50 min-w-56 overflow-hidden rounded-lg border border-border-card/60 bg-background-alt p-1 text-foreground shadow-popover"
+        {side}
         sideOffset={8}
       >
         <Select.Viewport class="flex flex-col gap-1">

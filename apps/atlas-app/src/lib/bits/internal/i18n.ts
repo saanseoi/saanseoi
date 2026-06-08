@@ -3,7 +3,10 @@ import enMessages from '@repo/i18n/messages/en/shared.json'
 import zhHansMessages from '@repo/i18n/messages/zh-Hans/shared.json'
 import zhHantMessages from '@repo/i18n/messages/zh-Hant/shared.json'
 
+import { getCurrentLocale, updateLocale } from './locale-state.svelte'
+
 export { getLocale, locales, setLocale }
+export { getCurrentLocale, updateLocale }
 
 export type AppLocale = (typeof locales)[number]
 type MessageKey = keyof typeof enMessages
@@ -15,7 +18,7 @@ const messages = {
 } satisfies Record<AppLocale, Record<MessageKey, string>>
 
 function resolveMessage(key: MessageKey) {
-  const locale = getLocale() as AppLocale
+  const locale = getCurrentLocale()
   return messages[locale]?.[key] ?? messages.en[key]
 }
 

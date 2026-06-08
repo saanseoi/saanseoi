@@ -9,8 +9,14 @@ import {
   setTheme,
 } from '$lib/bits/internal/theme'
 import { Swap } from '$lib/bits/components/swap'
+import { cn } from '$lib/bits/utilities/helpers/cn'
+
+type Props = {
+  class?: string
+}
 
 let darkModeEnabled = $state(false)
+let { class: className = '' }: Props = $props()
 
 // biome-ignore lint: incorrect lint/correctness/noUnusedVariables
 function handleThemeChange(nextValue: boolean) {
@@ -43,11 +49,14 @@ onMount(() => {
 <Swap
   aria-label={darkModeEnabled ? 'Switch to light theme' : 'Switch to dark theme'}
   bind:checked={darkModeEnabled}
-  class="hidden size-11 rounded-default border border-border-card/70 bg-muted text-foreground transition-colors hover:bg-background-alt md:inline-grid"
+  class={cn(
+    'hidden size-11 rounded-default border border-border-card/70 bg-muted text-foreground transition-colors hover:bg-background-alt mobile:inline-grid',
+    className
+  )}
   onCheckedChange={handleThemeChange}
 >
   {#snippet off()}
-    <Icon icon="proicons:moon" class="size-4.5 text-foreground-alt" />
+    <Icon icon="proicons:moon" class="size-4.5" />
   {/snippet}
 
   {#snippet on()}
