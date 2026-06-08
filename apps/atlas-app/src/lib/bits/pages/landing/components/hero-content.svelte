@@ -1,5 +1,7 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
+import { cubicOut } from 'svelte/easing'
+import { onMount } from 'svelte'
 
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import { Button } from '$lib/bits/primitives/button'
@@ -7,6 +9,57 @@ import { Button } from '$lib/bits/primitives/button'
 const heroTitleWidthClass = $derived(
   getCurrentLocale() === 'en' ? 'max-w-[11ch]' : 'max-w-[12ch]',
 )
+
+const rotatingWordWidthClass = $derived(
+  getCurrentLocale() === 'en' ? 'min-w-[14ch]' : 'min-w-[5ch]',
+)
+
+const titleSpacer = $derived(getCurrentLocale() === 'en' ? ' ' : '')
+
+const rotatingWords = $derived.by(() => [
+  m.hero_rotating_word_urbanist(),
+  m.hero_rotating_word_dreamer(),
+  m.hero_rotating_word_maker(),
+  m.hero_rotating_word_planner(),
+  m.hero_rotating_word_journalist(),
+  m.hero_rotating_word_creative(),
+  m.hero_rotating_word_cartographer(),
+  m.hero_rotating_word_detective(),
+  m.hero_rotating_word_archaeologist(),
+  m.hero_rotating_word_matchmaker(),
+  m.hero_rotating_word_skeptic(),
+  m.hero_rotating_word_gardener(),
+])
+
+let activeWordIndex = $state(0)
+
+const activeWord = $derived(rotatingWords[activeWordIndex] ?? rotatingWords[0] ?? '')
+
+function wordMotion(
+  node: Element,
+  { y = 24, startBlur = 8 }: { y?: number; startBlur?: number } = {},
+) {
+  return {
+    duration: 420,
+    easing: cubicOut,
+    css: (t: number, u: number) =>
+      `transform: translate3d(0, ${u * y}px, 0) scale(${0.96 + t * 0.04}); opacity: ${t}; filter: blur(${u * startBlur}px);`,
+  }
+}
+
+onMount(() => {
+  const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+  if (mediaQuery.matches || rotatingWords.length <= 1) {
+    return
+  }
+
+  const interval = window.setInterval(() => {
+    activeWordIndex = (activeWordIndex + 1) % rotatingWords.length
+  }, 2200)
+
+  return () => window.clearInterval(interval)
+})
 </script>
 
 <div class="relative z-10 py-8 mobile:py-0 md:py-8 lg:py-8 xl:py-20">
@@ -26,7 +79,20 @@ const heroTitleWidthClass = $derived(
           <h1
             class={`${heroTitleWidthClass} font-display text-[2.9rem] leading-[0.98] font-extrabold tracking-[-0.06em] text-primary sm:text-[3.6rem] lg:text-[4.4rem]`}
           >
-            {m.hero_title()}
+            {m.hero_title_prefix()}{titleSpacer}
+            <span
+              class={`relative inline-grid h-[1.1em] overflow-hidden align-baseline ${rotatingWordWidthClass}`}
+            >
+              {#key `${getCurrentLocale()}-${activeWord}`}
+                <span
+                  class="col-start-1 row-start-1 block will-change-transform"
+                  in:wordMotion={{ y: 28 }}
+                  out:wordMotion={{ y: -28 }}
+                >
+                  {activeWord + " "+m.hero_title_suffix()}
+                </span>
+              {/key}
+            </span>
           </h1>
           <p
             class="relative isolate max-w-xl md:max-w-[32ch] lg:max-w-xl  font-body text-[1.04rem] leading-[1.8] text-foreground-alt before:absolute before:inset-[-0.15rem_-0.4rem] before:-z-10 before:rounded-[1.35rem] before:bg-surface/80 before:blur-xl before:backdrop-blur-md before:content-[''] sm:text-[1.1rem]"
