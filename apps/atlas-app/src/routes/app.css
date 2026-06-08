@@ -512,4 +512,51 @@
         rgb(from var(--background-alt) r g b / 0)
       );
   }
+
+  .hero-floating-image {
+    animation: hero-float var(--hero-float-duration, 10s) ease-in-out infinite;
+    animation-delay: var(--hero-float-delay, 0s);
+    transform-origin: 50% 100%;
+    will-change: transform;
+  }
+
+  @keyframes hero-float {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) rotate(0deg) scale(1.35);
+    }
+
+    25% {
+      transform: translate3d(
+          calc(var(--hero-float-drift-x, 0px) * 0.35),
+          calc(var(--hero-float-lift, 6px) * -0.45),
+          0
+        )
+        rotate(calc(var(--hero-float-tilt, 0deg) * 0.35)) scale(1.35);
+    }
+
+    50% {
+      transform: translate3d(
+          var(--hero-float-drift-x, 0px),
+          calc(var(--hero-float-lift, 6px) * -1),
+          0
+        )
+        rotate(var(--hero-float-tilt, 0deg)) scale(1.35);
+    }
+
+    75% {
+      transform: translate3d(
+          calc(var(--hero-float-drift-x, 0px) * -0.45),
+          calc(var(--hero-float-lift, 6px) * -0.55),
+          0
+        )
+        rotate(calc(var(--hero-float-tilt, 0deg) * -0.3)) scale(1.35);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-floating-image {
+      animation: none;
+    }
+  }
 }
