@@ -45,6 +45,7 @@ $effect(() => {
   }
 })
 
+// biome-ignore lint: incorrect lint/correctness/noUnusedVariables
 function handleChange(event: Event) {
   const target = event.currentTarget as HTMLInputElement
   checked = target.checked
@@ -99,6 +100,10 @@ function handleChange(event: Event) {
   opacity: 0;
 }
 
+.swap-active .swap-off {
+  opacity: 0;
+}
+
 .swap :checked ~ .swap-off,
 .swap :indeterminate ~ .swap-off {
   opacity: 0;
@@ -109,10 +114,6 @@ function handleChange(event: Event) {
 .swap-active .swap-on {
   opacity: 1;
   backface-visibility: visible;
-}
-
-.swap-active .swap-off {
-  opacity: 0;
 }
 
 .swap-rotate .swap-on {

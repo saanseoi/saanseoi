@@ -17,7 +17,10 @@ const options = localeOptions.map(option => ({
   value: option.value,
   label: option.label(),
 }))
-const fallbackOption = options[0]!
+const fallbackOption = options[0] ?? {
+  value: () => currentLocale,
+  label: m.language_selector_placeholder(),
+}
 const currentOption = $derived(
   options.find(option => option.value === currentLocale) ?? fallbackOption,
 )
@@ -25,6 +28,7 @@ const alternateOptions = $derived(
   options.filter(option => option.value !== currentLocale),
 )
 
+// biome-ignore lint: incorrect lint/correctness/noUnusedVariables
 function handleLocaleChange(nextLocale: string) {
   currentLocale = nextLocale as AppLocale
   void setLocale(currentLocale)
@@ -78,11 +82,8 @@ function handleLocaleChange(nextLocale: string) {
               label={option.label}
               value={option.value}
             >
-              {#snippet children({ selected })}
+              {#snippet children()}
                 <span>{option.label}</span>
-                {#if selected}
-                  <Icon icon="proicons:checkmark" class="size-4 text-secondary" />
-                {/if}
               {/snippet}
             </Select.Item>
           {/each}

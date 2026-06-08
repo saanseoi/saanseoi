@@ -3,6 +3,18 @@ export type ThemeMode = 'light' | 'dark'
 export const THEME_STORAGE_KEY = 'saanseoi-theme'
 export const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
+function persistThemeCookie(theme: ThemeMode) {
+  if ('cookieStore' in window) {
+    void window.cookieStore.set({
+      name: THEME_STORAGE_KEY,
+      value: theme,
+      path: '/',
+      expires: Date.now() + THEME_COOKIE_MAX_AGE * 1000,
+      sameSite: 'lax',
+    })
+  }
+}
+
 export function initTheme(storageKey: string) {
   const stored = window.localStorage.getItem(storageKey)
   const theme =
@@ -49,7 +61,7 @@ export function applyTheme(theme: ThemeMode) {
 export function setTheme(theme: ThemeMode) {
   if (typeof window !== 'undefined') {
     window.localStorage.setItem(THEME_STORAGE_KEY, theme)
-    document.cookie = `${THEME_STORAGE_KEY}=${theme}; Path=/; Max-Age=${THEME_COOKIE_MAX_AGE}; SameSite=Lax`
+    persistThemeCookie(theme)
   }
 
   applyTheme(theme)

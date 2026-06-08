@@ -12,6 +12,7 @@ import { Swap } from '$lib/bits/components/swap'
 
 let darkModeEnabled = $state(false)
 
+// biome-ignore lint: incorrect lint/correctness/noUnusedVariables
 function handleThemeChange(nextValue: boolean) {
   darkModeEnabled = nextValue
   setTheme(nextValue ? 'dark' : 'light')
