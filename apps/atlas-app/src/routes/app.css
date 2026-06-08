@@ -480,3 +480,36 @@
     @apply hover:text-foreground/80 focus-visible:ring-foreground focus-visible:ring-offset-background inline-flex items-center gap-1 rounded-xs font-medium underline underline-offset-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2;
   }
 }
+
+@layer utilities {
+  .dark-invert-image {
+    .dark & {
+      filter: invert(1) hue-rotate(180deg);
+    }
+  }
+
+  .hero-image-fade-overlay {
+    background-image: linear-gradient(
+      90deg,
+      rgb(from var(--background) r g b / 0.97) 0%,
+      rgb(from var(--background) r g b / 0.94) 32%,
+      rgb(from var(--background) r g b / 0.72) 52%,
+      rgb(from var(--background) r g b / 0.18) 72%,
+      rgb(from var(--background) r g b / 0.08) 100%
+    );
+  }
+
+  .hero-image-tint-overlay {
+    background-image:
+      radial-gradient(
+        circle at 18% 20%,
+        rgb(from var(--secondary) r g b / 0.12),
+        transparent 28%
+      ),
+      linear-gradient(
+        to bottom,
+        rgb(from var(--background-alt) r g b / 0.18),
+        rgb(from var(--background-alt) r g b / 0)
+      );
+  }
+}
