@@ -6,7 +6,7 @@ Atlas App uses Better Auth and requires:
 
 ## Local development
 
-Wrangler loads local secrets from files next to [wrangler.jsonc](/home/io/code/saanseoi/apps/atlas-app/wrangler.jsonc).
+Wrangler loads local secrets from files next to [wrangler.jsonc](apps/atlas-app/wrangler.jsonc).
 
 - `apps/atlas-app/.dev.vars`: default local `wrangler dev`
 - `apps/atlas-app/.dev.vars.preview`: local `wrangler dev --env preview`
