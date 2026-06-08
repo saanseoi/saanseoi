@@ -37,9 +37,7 @@ import { Button } from '$lib/bits/primitives/button'
         {m.hero_cta_primary()}
         <Icon icon="proicons:arrow-right" class="size-4" />
       </Button>
-      <Button href="/community" variant="secondary">
-        {m.hero_cta_secondary()}
-      </Button>
+      <Button href="/community" variant="secondary"> {m.hero_cta_secondary()} </Button>
     </div>
   </div>
 

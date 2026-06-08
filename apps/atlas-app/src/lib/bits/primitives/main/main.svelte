@@ -9,6 +9,4 @@ type Props = {
 let { children, class: className = '' }: Props = $props()
 </script>
 
-<main class={className}>
-  {@render children?.()}
-</main>
+<main class={className}>{@render children?.()}</main>

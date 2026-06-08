@@ -10,9 +10,7 @@ import MobileMenu from './mobile-menu.svelte'
 <div class="flex items-center justify-end gap-3 md:justify-self-end">
   <DarkModeToggle />
 
-  <div class="hidden md:block">
-    <LanguageSelector />
-  </div>
+  <div class="hidden md:block"><LanguageSelector /></div>
 
   <Button
     class="hidden min-h-11 rounded-none px-6 text-body-md font-medium tracking-[-0.01em] md:inline-flex"

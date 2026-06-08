@@ -65,9 +65,7 @@ let mobileMenuOpen = $state(false)
         {/each}
       </nav>
 
-      <Button href="/get-started" variant="primary">
-        {m.nav_get_started()}
-      </Button>
+      <Button href="/get-started" variant="primary"> {m.nav_get_started()} </Button>
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>
