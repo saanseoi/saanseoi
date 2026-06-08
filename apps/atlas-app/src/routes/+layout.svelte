@@ -1,7 +1,8 @@
 <script lang="ts">
 import './app.css'
 import favicon from '$lib/assets/favicon.svg'
-
+import { SiteHeader, SiteFooter } from '$lib/bits'
+import { Page } from '$lib/bits'
 let { children } = $props()
 </script>
 
@@ -14,4 +15,8 @@ let { children } = $props()
     rel="stylesheet"
   >
 </svelte:head>
-{@render children()}
+<Page>
+  <SiteHeader />
+  {@render children()}
+  <SiteFooter />
+</Page>
