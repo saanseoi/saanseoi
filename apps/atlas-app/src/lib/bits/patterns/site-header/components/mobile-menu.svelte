@@ -67,7 +67,7 @@ let mobileMenuOpen = $state(false)
         class="flex items-center justify-between gap-3 border-t border-border-card/60 pt-3"
       >
         <div class="flex flex-row items-center gap-2">
-          <LanguageSelector side="top" align="end" />
+          <LanguageSelector side="right" align="end" />
           <DarkModeToggle class="inline-grid" />
         </div>
         <Button
