@@ -516,14 +516,14 @@
   .hero-floating-image {
     animation: hero-float var(--hero-float-duration, 10s) ease-in-out infinite;
     animation-delay: var(--hero-float-delay, 0s);
-    transform-origin: 50% 100%;
+    transform-origin: 50% 50%;
     will-change: transform;
   }
 
   @keyframes hero-float {
     0%,
     100% {
-      transform: translate3d(0, 0, 0) rotate(0deg) scale(1.35);
+      transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
     }
 
     25% {
@@ -532,7 +532,7 @@
           calc(var(--hero-float-lift, 6px) * -0.45),
           0
         )
-        rotate(calc(var(--hero-float-tilt, 0deg) * 0.35)) scale(1.35);
+        rotate(calc(var(--hero-float-tilt, 0deg) * 0.35)) scale(1);
     }
 
     50% {
@@ -541,7 +541,7 @@
           calc(var(--hero-float-lift, 6px) * -1),
           0
         )
-        rotate(var(--hero-float-tilt, 0deg)) scale(1.35);
+        rotate(var(--hero-float-tilt, 0deg)) scale(1);
     }
 
     75% {
@@ -550,7 +550,7 @@
           calc(var(--hero-float-lift, 6px) * -0.55),
           0
         )
-        rotate(calc(var(--hero-float-tilt, 0deg) * -0.3)) scale(1.35);
+        rotate(calc(var(--hero-float-tilt, 0deg) * -0.3)) scale(1);
     }
   }
 

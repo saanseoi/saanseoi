@@ -10,6 +10,8 @@ const heroTitleWidthClass = $derived(
   getCurrentLocale() === 'en' ? 'max-w-[11ch]' : 'max-w-[12ch]',
 )
 
+const isEnglishTitle = $derived(getCurrentLocale() === 'en')
+
 const rotatingWordWidthClass = $derived(
   getCurrentLocale() === 'en' ? 'min-w-[14ch]' : 'min-w-[5ch]',
 )
@@ -62,9 +64,11 @@ onMount(() => {
 })
 </script>
 
-<div class="relative z-10 py-8 mobile:py-0 md:py-8 lg:py-8 xl:py-20">
+<div
+  class="relative z-10 flex h-147 items-center py-8 mobile:py-0 md:py-8 lg:h-171 lg:py-8 xl:py-20"
+>
   <div
-    class="mx-auto grid max-w-(--spacing-container-max) gap-12 px-(--spacing-margin-mobile) md:px-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] xl:items-center xl:gap-14 xl:px-(--spacing-margin-desktop)"
+    class="mx-auto grid w-full max-w-(--spacing-container-max) gap-12 px-(--spacing-margin-mobile) md:px-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] xl:items-center xl:gap-14 xl:px-(--spacing-margin-desktop)"
   >
     <div class="space-y-8">
       <div class="space-y-5">
@@ -79,23 +83,45 @@ onMount(() => {
           <h1
             class={`${heroTitleWidthClass} font-display text-[2.9rem] leading-[0.98] font-extrabold tracking-[-0.06em] text-primary sm:text-[3.6rem] lg:text-[4.4rem]`}
           >
-            {m.hero_title_prefix()}{titleSpacer}
-            <span
-              class={`relative inline-grid h-[1.1em] overflow-hidden align-baseline ${rotatingWordWidthClass}`}
-            >
-              {#key `${getCurrentLocale()}-${activeWord}`}
+            {#if isEnglishTitle}
+              {m.hero_title_prefix()}{titleSpacer}
+              <span class="inline-flex items-baseline whitespace-nowrap">
                 <span
-                  class="col-start-1 row-start-1 block will-change-transform"
-                  in:wordMotion={{ y: 28 }}
-                  out:wordMotion={{ y: -28 }}
+                  class={`relative inline-grid h-[1.1em] overflow-hidden align-baseline ${rotatingWordWidthClass}`}
                 >
-                  {activeWord + " "+m.hero_title_suffix()}
+                  {#key `${getCurrentLocale()}-${activeWord}`}
+                    <span
+                      class="col-start-1 row-start-1 block will-change-transform"
+                      in:wordMotion={{ y: 28 }}
+                      out:wordMotion={{ y: -28 }}
+                    >
+                      {activeWord + ' ' + m.hero_title_suffix()}
+                    </span>
+                  {/key}
                 </span>
-              {/key}
-            </span>
+              </span>
+            {:else}
+              <span class="block whitespace-nowrap">
+                {m.hero_title_prefix()}
+                <span
+                  class={`relative inline-grid h-[1.1em] overflow-hidden align-baseline ${rotatingWordWidthClass}`}
+                >
+                  {#key `${getCurrentLocale()}-${activeWord}`}
+                    <span
+                      class="col-start-1 row-start-1 block will-change-transform"
+                      in:wordMotion={{ y: 28 }}
+                      out:wordMotion={{ y: -28 }}
+                    >
+                      {activeWord}
+                    </span>
+                  {/key}
+                </span>
+              </span>
+              <span class="block">{m.hero_title_suffix()}</span>
+            {/if}
           </h1>
           <p
-            class="relative isolate max-w-xl md:max-w-[32ch] lg:max-w-xl  font-body text-[1.04rem] leading-[1.8] text-foreground-alt before:absolute before:inset-[-0.15rem_-0.4rem] before:-z-10 before:rounded-[1.35rem] before:bg-surface/80 before:blur-xl before:backdrop-blur-md before:content-[''] sm:text-[1.1rem]"
+            class="relative isolate max-w-xl md:max-w-[33ch] lg:max-w-xl  font-body text-[1.04rem] leading-[1.8] text-foreground-alt before:absolute before:inset-[-0.15rem_-0.4rem] before:-z-10 before:rounded-[1.35rem] before:bg-surface/80 before:blur-xl before:backdrop-blur-md before:content-[''] sm:text-[1.1rem]"
           >
             {m.hero_description()}
           </p>
