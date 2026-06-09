@@ -72,15 +72,15 @@
   "manifesto_title": "SaanSeoi Manifesto",
   "manifesto_subtitle": "A digital commons for Hong Kong",
   "manifesto_1_lead": "Hong Kong is why",
-  "manifesto_1_body": "A dense, ravishing city with deep cultural roots and a pressing need to reinvent itself. Its people have done so before, time and again—turning constraint into character, density into diversity, harbour into home.<b style=\"margin-top:16px; display:inline-block\"><i>SaanSeoi</i></b> is our contribution to that future.",
+  "manifesto_1_body": "A dense, ravishing city with deep cultural roots and a pressing need to reinvent itself. Its people have done so before, time and again—turning constraint into character, density into diversity, harbour into home. <br/><b style=\"margin-top:16px; padding-right:4px;display:inline-block\"><i>SaanSeoi</i></b> is our contribution to that future.",
   "manifesto_2_lead": "Memory is a public good",
   "manifesto_2_body": "Hong Kong changes fast enough to forget itself. The record of what <i>was</i> is inseparable from any account of what <i>is</i>—patterns of change, loss, and renewal only become legible across time. Official datasets have blind spots; community knowledge fills them. We hold both with care, treating the past as essential infrastructure.",
   "manifesto_3_lead": "Maps are never neutral",
   "manifesto_3_body": "Every dataset encodes choices — what to measure, what to name, who to count. Geospatial data is especially loaded: it fixes boundaries, asserts presence, and renders others invisible. We build with that awareness, and stay honest about the trade-offs.",
   "manifesto_4_lead": "Social fabric is the core weave",
-  "manifesto_4_body": "A map of Hong Kong without its people is just geometry. The social fabric that makes this city pulse exists because of the bonds, trust, and restless energy accumulated over generations. Technology that erodes that fabric in the name of efficiency is a regression. We build to strengthen the weave.",
+  "manifesto_4_body": "A map of Hong Kong without its people is just geometry. The social fabric that makes this city pulse exists because of the bonds, trust, and restless energy accumulated over generations. Technology that erodes that fabric in the name of efficiency is a regression. <br><span style=\"margin-top:16px; display:inline-block\"> We build to strengthen the weave.</span>",
   "manifesto_5_lead": "Technology amplifies",
-  "manifesto_5_body": "The tools we adopt shape our attention, our relationships, our sense of place. We choose systems that amplify curiosity, care, and collective capacity. Together they enrich the quality of life in Hong Kong. But no local effort is insulated from the systems it sits inside.",
+  "manifesto_5_body": "The tools we adopt shape our attention, our relationships, our sense of place. We choose systems that amplify <u>curiosity</u>, <u>care</u>, and <u>collective capacity</u>—a trinity to strengthen the weave. But no local effort is insulated from the systems it sits within.",
   "manifesto_6_lead": "Reseed the internet",
   "manifesto_6_body": "The open web was captured by a handful of platforms. Our societies are still reckoning with the harm this concentration caused. This state is not final. We use the digital commons as the staging site for our intervention: to reseed agency with the people the internet was meant for.",
   "manifesto_7_lead": "Civilisation is cumulative",
@@ -96,5 +96,5 @@
   "manifesto_12_lead": "Build with purpose",
   "manifesto_12_body": "Everything we create encodes a choice — what to prioritise, what to preserve, who to serve. We make those choices with the community we build for, and answer to it when we get them wrong. There is no neutral position. The only question is whether the choices are made with care, in public, and in service of the city.",
   "manifesto_13_lead": "Build it now",
-  "manifesto_13_body": "The next few years will determine whether global developments deepen or displace the city we live in. That outcome isn't settled by policy or platforms alone — it's settled by what gets built at street level, by people who know what's at stake. Hong Kong has always made something from constraint.<br><br> We show up, and we build."
+  "manifesto_13_body": "The next few years will determine whether global developments enrich or erase the city we live in. That outcome isn't settled by policy or platforms alone — it's steered by what gets built at street level, by people who know what's at stake. <br><span style=\"margin-top:16px; font-size:1.85rem; display:inline-block\"> So we show up, and we build.</span>"
 }

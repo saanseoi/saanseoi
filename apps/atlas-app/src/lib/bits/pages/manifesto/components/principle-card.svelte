@@ -38,7 +38,7 @@ const toneClass: Record<Tone, string> = {
 </script>
 
 <article
-  class={`manifesto-card relative self-start ${featured ? 'overflow-visible' : 'overflow-hidden'} p-8 ${toneClass[tone]} ${tone === 'plain' ? 'manifesto-plain max-w-5xl' : ''} ${
+  class={`manifesto-card relative self-start ${featured ? 'overflow-visible' : 'overflow-hidden'} p-8 ${toneClass[tone]} ${tone === 'plain' ? 'manifesto-plain' : ''} ${
     align === 'center' ? 'mx-auto max-w-4xl py-10 text-center md:py-14' : ''
   } ${tone === 'highlight' ? 'text-center md:p-12 lg:p-18' : ''} ${featured ? 'md:p-12' : 'md:p-10'}`}
 >
@@ -80,7 +80,7 @@ const toneClass: Record<Tone, string> = {
     {/if}
 
     <h2
-      class={`font-display font-bold ${
+      class={`font-display font-bold ${tone === 'plain' ? 'max-w-[15ch] mx-auto' : ''} ${
         align === 'center'
           ? 'mt-4 text-[2.5rem] leading-[0.97] tracking-tighter text-secondary sm:text-[3.6rem] md:text-[4.4rem]'
           : featured
@@ -96,7 +96,7 @@ const toneClass: Record<Tone, string> = {
     <p
       class={`font-body ${
         align === 'center'
-          ? 'mx-auto mt-8 max-w-3xl text-[1.12rem] leading-[1.8] text-primary italic sm:text-[1.35rem]'
+          ? 'mx-auto mt-8 max-w-4xl text-[1.12rem] leading-[1.8] text-primary italic sm:text-[1.55rem]'
           : tone === 'highlight'
             ? 'mx-auto mt-8 max-w-3xl text-[1.08rem] leading-[1.9] text-foreground-alt sm:text-[1.3rem]'
             : featured
