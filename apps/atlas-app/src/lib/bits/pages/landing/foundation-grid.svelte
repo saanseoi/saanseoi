@@ -23,7 +23,7 @@ const foundationPillars = [
     icon: 'proicons:users',
     title: () => m.foundation_humane_tech_title(),
     description: () => m.foundation_humane_tech_description(),
-    href: '/community',
+    href: '/manifesto',
     cta: () => m.foundation_humane_tech_cta(),
   },
 ] as const
