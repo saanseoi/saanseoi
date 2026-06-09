@@ -6,6 +6,9 @@ on:
       - preview
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     uses: ./.github/workflows/build.yml
