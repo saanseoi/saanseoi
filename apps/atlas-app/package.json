@@ -5,24 +5,30 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && wrangler types --env-interface Env",
-    "build:preview": "vite build && wrangler types --env-interface Env",
-    "build:production": "vite build && wrangler types --env-interface Env",
+    "i18n:build": "bun run --cwd ../.. --filter @repo/i18n build",
+    "build": "bun run i18n:build && vite build && wrangler types --env-interface Env",
+    "build:preview": "bun run i18n:build && vite build && wrangler types --env-interface Env",
+    "build:production": "bun run i18n:build && vite build && wrangler types --env-interface Env",
     "deploy": "bun run build:production && wrangler deploy --env production",
     "deploy:preview": "bun run build:preview && wrangler deploy --env preview",
     "deploy:production": "bun run build:production && wrangler deploy --env production",
     "preview": "wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173",
     "prepare": "svelte-kit sync || echo ''",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "check": "bun run i18n:build && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "bun run i18n:build && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "cf-typegen": "wrangler types --env-interface Env",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage"
   },
   "dependencies": {
+    "@iconify-json/ion": "^1.2.7",
+    "@iconify-json/proicons": "^1.2.19",
+    "@iconify/svelte": "^5.2.1",
     "@repo/db": "workspace:*",
-    "better-auth": "~1.6.14"
+    "@repo/i18n": "workspace:*",
+    "better-auth": "~1.4.21",
+    "bits-ui": "^2.18.1"
   },
   "devDependencies": {
     "@better-auth/cli": "~1.4.21",

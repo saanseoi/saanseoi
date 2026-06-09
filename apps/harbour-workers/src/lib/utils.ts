@@ -3,7 +3,7 @@ const SQLITE_BUSY_RETRY_DELAY_MS = 25
 const D1_MAX_SQL_VARIABLES = 99
 const CHINESE_CHARACTER_RE = /\p{Script=Han}/u
 const LATIN_ALPHA_RE = /[A-Za-z]/
-const EN_INFERRED_NAME_RE = /^[A-Za-z0-9\s'".,&()\-\/]+$/
+const EN_INFERRED_NAME_RE = /^[A-Za-z0-9\s'".,&()\-/]+$/
 const LOCALE_TAG_RE = /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i
 
 /**

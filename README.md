@@ -18,14 +18,20 @@ bun install
 bun run dev
 ```
 
-For more detail on contributing, workflows, and project expectations, see [CONTRIBUTING.md](/home/io/code/saanseoi/CONTRIBUTING.md).
+For more detail on contributing, workflows, and project expectations, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Documentation
 
-- [Repository overview](/home/io/code/saanseoi/docs/repo.md)
-- [Taxonomy](/home/io/code/saanseoi/docs/taxonomy.md)
+- [Repository overview](docs/repo.md)
+- [Taxonomy](docs/taxonomy.md)
 
 ### Data Provenance
 
-- [Overture](/home/io/code/saanseoi/docs/processing/overture.md)
-- [HKGov ALS](/home/io/code/saanseoi/docs/processing/hkgov-als.md)
+- [Overture](docs/processing/overture.md)
+- [HKGov ALS](docs/processing/hkgov-als.md)
+
+### App Docs
+
+#### Atlas (Public Site)
+
+- [Conventions][apps/atlas-app/docs/conventions.md]

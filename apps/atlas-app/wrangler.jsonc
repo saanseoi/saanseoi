@@ -46,6 +46,12 @@
           "preview_database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
           "migrations_dir": "../../libs/db/migrations"
         }
+      ],
+      "routes": [
+        {
+          "pattern": "preview.saanseoi.hk",
+          "custom_domain": true
+        }
       ]
     },
     "production": {
