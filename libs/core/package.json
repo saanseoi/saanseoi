@@ -28,11 +28,9 @@
   "devDependencies": {
     "@types/bun": "latest",
     "bun-types": "^1.3.0",
-<<<<<<< HEAD
     "typescript": "^6.0.3",
-=======
     "typescript": "^5.9.3",
->>>>>>> c9d8c40 (fix: merge)
+    "typescript": "^6.0.3",
     "vitest": "^4.1.8"
   }
 }
