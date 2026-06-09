@@ -18,7 +18,7 @@ const sections = [
   'Hop aboard',
 ] as const
 
-const principles = [
+const principleDefinitions = [
   { number: '01', lead: () => m.manifesto_1_lead(), body: () => m.manifesto_1_body() },
   { number: '02', lead: () => m.manifesto_2_lead(), body: () => m.manifesto_2_body() },
   { number: '03', lead: () => m.manifesto_3_lead(), body: () => m.manifesto_3_body() },
@@ -48,27 +48,27 @@ const principles = [
     lead: () => m.manifesto_13_lead(),
     body: () => m.manifesto_13_body(),
   },
-].map((principle, index) => ({
-  number: principle.number,
-  section: sections[index]!,
-  lead: principle.lead(),
-  body: principle.body(),
-}))
+]
 
-const subtitle =
-  'Thirteen principles to honour the social fabric, memory, and future of our city.'
+const title = $derived(m.manifesto_title())
+const subtitle = $derived(m.manifesto_subtitle())
+const ctaPrimary = $derived(m.hero_cta_primary())
+const ctaSecondary = $derived(m.hero_cta_secondary())
+const principles = $derived.by(() =>
+  principleDefinitions.map((principle, index) => ({
+    number: principle.number,
+    section: sections[index]!,
+    lead: principle.lead(),
+    body: principle.body(),
+  })),
+)
+
 const badge = 'Document Ref: SS-2026-MANIFESTO.01 // 2026-06-15'
 </script>
 
 <svelte:head>
-  <title>A Manifesto for the Digital Commons | {m.saanseoi()}</title>
+  <title>{title} | {m.saanseoi()}</title>
   <meta name="description" content={subtitle}>
 </svelte:head>
 
-<ManifestoPage
-  {principles}
-  {subtitle}
-  {badge}
-  ctaPrimary={m.hero_cta_primary()}
-  ctaSecondary={m.hero_cta_secondary()}
-/>
+<ManifestoPage {principles} {subtitle} {badge} {ctaPrimary} {ctaSecondary} />
