@@ -10,7 +10,7 @@ const resourceLinks = [
   },
   { href: 'https://openaddresses.io', label: () => m.footer_resource_openaddresses() },
   { href: '/community', label: () => m.footer_resource_guidelines() },
-  { href: '/about', label: () => m.footer_resource_mission() },
+  { href: '/manifesto', label: () => m.manifesto_title() },
 ] as const
 
 const networkLinks = [
@@ -50,7 +50,7 @@ const networkLinks = [
       <p
         class="font-body text-[0.83rem] font-bold uppercase tracking-[0.08em] text-foreground"
       >
-        {m.footer_built_for_hk()}
+        {m.designed_in_hk()}
       </p>
     </div>
 
