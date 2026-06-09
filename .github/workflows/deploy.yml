@@ -7,6 +7,9 @@ on:
       - preview
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   TURBO_TELEMETRY_DISABLED: 1
   DO_NOT_TRACK: 1
