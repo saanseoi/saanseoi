@@ -9,7 +9,7 @@ Harbour uses one API auth secret plus the R2 signing secrets:
 
 ## Local development
 
-Wrangler loads local secrets from files next to [wrangler.jsonc](/home/io/code/saanseoi/apps/harbour-api/wrangler.jsonc).
+Wrangler loads local secrets from files next to [wrangler.jsonc](apps/harbour-api/wrangler.jsonc).
 
 - `apps/harbour-api/.dev.vars`: default local `wrangler dev`
 - `apps/harbour-api/.dev.vars.preview`: local `wrangler dev --env preview`

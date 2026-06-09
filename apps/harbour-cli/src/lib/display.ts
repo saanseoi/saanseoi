@@ -1,11 +1,7 @@
 import type { prepareUpload } from '@repo/core/upload-local'
 
 import type { UploadTarget } from './options.ts'
-import {
-  buildFinalizeUploadEndpoint,
-  buildSignUploadEndpoint,
-  resolveHarbourBaseUrl,
-} from './upload.ts'
+import { resolveHarbourBaseUrl } from './upload.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 

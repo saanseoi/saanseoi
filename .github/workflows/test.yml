@@ -52,11 +52,16 @@ jobs:
         with:
           path: |
             .turbo
+            libs/i18n/src/paraglide
             ${{ matrix.app.path }}/dist
           key: ${{ runner.os }}-${{ matrix.app.cache_key }}-build-${{ inputs.environment }}-${{ hashFiles('bun.lock', 'turbo.json', 'package.json', 'apps/**', 'libs/**') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.app.cache_key }}-build-${{ inputs.environment }}-
             ${{ runner.os }}-${{ matrix.app.cache_key }}-build-
+
+      - name: 'BUILD :: Generate i18n artifacts'
+        if: matrix.app.path == 'apps/atlas-app'
+        run: bun run --cwd . --filter @repo/i18n build
 
       - name: 'CHECK :: Types'
         run: bun run check

@@ -16,7 +16,7 @@ The Studio launcher script loads local secrets from env files at the repo root.
 - `.env.preview.local`: preview database ID for `bun run db:studio:preview`
 - `.env.prod.local`: production database ID for `bun run db:studio:production`
 
-Keep these files untracked. They are ignored by [.gitignore](/home/io/code/saanseoi/.gitignore).
+Keep these files untracked. They are ignored by [.gitignore](.gitignore).
 
 Example `.env`:
 
@@ -41,4 +41,4 @@ CLOUDFLARE_DATABASE_ID_PRODUCTION=your-production-database-id
 
 These values are only used for local Drizzle Studio access. They are not Wrangler Worker secrets and do not need `wrangler secret put`.
 
-Cloudflare Workers get D1 bindings from [apps/atlas-api/wrangler.jsonc](/home/io/code/saanseoi/apps/atlas-api/wrangler.jsonc), while Studio uses the local env files above to authenticate directly against the remote D1 HTTP API.
+Cloudflare Workers get D1 bindings from [apps/atlas-api/wrangler.jsonc](apps/atlas-api/wrangler.jsonc), while Studio uses the local env files above to authenticate directly against the remote D1 HTTP API.

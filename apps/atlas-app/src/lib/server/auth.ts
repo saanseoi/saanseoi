@@ -30,4 +30,6 @@ export const createAuth = (
  * This instance is used by the `better-auth` CLI for schema generation ONLY.
  * To access `auth` at runtime, use `event.locals.auth`.
  */
-export const auth = createAuth(null!)
+const cliDatabase = null as unknown as D1Database
+
+export const auth = createAuth(cliDatabase)

@@ -7,6 +7,9 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**"]
     },
+    "@repo/i18n#build": {
+      "outputs": ["src/paraglide/**"]
+    },
     "deploy": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
@@ -15,7 +18,7 @@
       "dependsOn": ["^lint"]
     },
     "check": {
-      "dependsOn": ["^check"]
+      "dependsOn": ["^check", "^build"]
     },
     "dev": {
       "persistent": true,

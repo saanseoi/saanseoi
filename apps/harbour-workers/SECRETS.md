@@ -4,7 +4,7 @@ Harbour Workers need the shared API auth secret used to call Harbour API control
 
 - `HARBOUR_API_KEY`
 
-Wrangler loads local secrets from files next to [wrangler.jsonc](/home/io/code/saanseoi/apps/harbour-workers/wrangler.jsonc).
+Wrangler loads local secrets from files next to [wrangler.jsonc](apps/harbour-workers/wrangler.jsonc).
 
 - `apps/harbour-workers/.dev.vars`
 - `apps/harbour-workers/.dev.vars.preview`
