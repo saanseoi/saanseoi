@@ -65,10 +65,9 @@
     "branch-name-lint": "^3.0.1",
     "drizzle-kit": "^1.0.0-rc.4-ca0f029",
     "husky": "^9.1.7",
-    "prettier": "^3.8.3",
     "tailwindcss-animate": "^1.0.7",
-    "turbo": "^2.9.16",
-    "wrangler": "^4.98.0"
+    "turbo": "^2.9.17",
+    "wrangler": "^4.99.0"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"
