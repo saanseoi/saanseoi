@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && wrangler types --env-interface Env",
-    "build:preview": "vite build && wrangler types --env-interface Env",
-    "build:production": "vite build && wrangler types --env-interface Env",
+    "i18n:build": "bun run --cwd ../.. --filter @repo/i18n build",
+    "build": "bun run i18n:build && vite build && wrangler types --env-interface Env",
+    "build:preview": "bun run i18n:build && vite build && wrangler types --env-interface Env",
+    "build:production": "bun run i18n:build && vite build && wrangler types --env-interface Env",
     "deploy": "bun run build:production && wrangler deploy --env production",
     "deploy:preview": "bun run build:preview && wrangler deploy --env preview",
     "deploy:production": "bun run build:production && wrangler deploy --env production",
