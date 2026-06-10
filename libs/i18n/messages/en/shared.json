@@ -55,7 +55,7 @@
   "newsletter_success_title": "You're subscribed.",
   "newsletter_success_body": "Check your inbox for the confirmation email.",
   "newsletter_error_generic": "Subscription failed. Please try again.",
-  "newsletter_privacy": "We respect your privacy. No tracking. No spam. Just data.",
+  "newsletter_privacy": "We use Substack. Read their <a style=\"text-decoration:underline;\" href=\"https://substack.com/privacy\" target=\"_blank\">privacy policy</a> for details. ",
   "footer_description": "A grassroots initiative dedicated to the documentation and visualization of Hong Kong's urban fabric through open geospatial standards.",
   "designed_in_hk": "With ❤︎ from Hong Kong",
   "footer_resources_heading": "Resources",
