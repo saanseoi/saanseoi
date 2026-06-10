@@ -4,13 +4,12 @@ import Icon from '@iconify/svelte'
 import { m } from '$lib/bits/internal/i18n'
 
 const resourceLinks = [
-  {
-    href: 'https://www.openstreetmap.org',
-    label: () => m.footer_resource_openstreetmap(),
-  },
-  { href: 'https://openaddresses.io', label: () => m.footer_resource_openaddresses() },
-  { href: '/community', label: () => m.footer_resource_guidelines() },
   { href: '/manifesto', label: () => m.manifesto_title() },
+  {
+    href: 'https://portal.csdi.gov.hk/geoportal/#searchPanel',
+    label: () => m.footer_resource_csdi(),
+  },
+  { href: 'https://data.gov.hk/', label: () => m.footer_resource_data_gov() },
 ] as const
 
 const networkLinks = [
