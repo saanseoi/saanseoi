@@ -4,27 +4,30 @@ import Icon from '@iconify/svelte'
 import { m } from '$lib/bits/internal/i18n'
 
 const resourceLinks = [
-  {
-    href: 'https://www.openstreetmap.org',
-    label: () => m.footer_resource_openstreetmap(),
-  },
-  { href: 'https://openaddresses.io', label: () => m.footer_resource_openaddresses() },
-  { href: '/community', label: () => m.footer_resource_guidelines() },
   { href: '/manifesto', label: () => m.manifesto_title() },
+  {
+    href: 'https://portal.csdi.gov.hk/geoportal/#searchPanel',
+    label: () => m.footer_resource_csdi(),
+  },
+  { href: 'https://data.gov.hk/', label: () => m.footer_resource_data_gov() },
 ] as const
 
 const networkLinks = [
   {
-    href: 'https://github.com',
+    href: 'https://github.com/saanseoi',
     label: () => m.footer_network_github(),
-    icon: 'proicons:github-logo',
+    icon: 'proicons:github',
   },
   {
-    href: '/community',
-    label: () => m.footer_network_discord(),
-    icon: 'proicons:chat',
+    href: 'https://instagr.am/saanseoi',
+    label: () => m.footer_network_instagram(),
+    icon: 'proicons:instagram',
   },
-  { href: '/archive', label: () => m.footer_network_contact(), icon: 'proicons:mail' },
+  {
+    href: 'mailto:hi@saanseoi.hk',
+    label: () => m.footer_network_contact(),
+    icon: 'proicons:mail',
+  },
 ] as const
 </script>
 
@@ -97,13 +100,13 @@ const networkLinks = [
   >
     <p>{@html m.footer_copyright()}</p>
     <div class="flex flex-wrap gap-5">
-      <a class="transition-colors hover:text-primary" href="/privacy"
+      <a class="transition-colors hover:text-primary" href="/policy/privacy"
         >{m.footer_privacy()}</a
       >
-      <a class="transition-colors hover:text-primary" href="/terms"
+      <a class="transition-colors hover:text-primary" href="/policy/terms"
         >{m.footer_terms()}</a
       >
-      <a class="transition-colors hover:text-primary" href="/accessibility"
+      <a class="transition-colors hover:text-primary" href="/policy/accessibility"
         >{m.footer_accessibility()}</a
       >
     </div>

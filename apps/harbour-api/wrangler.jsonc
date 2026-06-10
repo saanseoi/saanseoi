@@ -14,7 +14,9 @@
       "HARBOUR_API_KEY",
       "R2_ACCOUNT_ID",
       "R2_RAW_ACCESS_KEY_ID",
-      "R2_RAW_SECRET_ACCESS_KEY"
+      "R2_RAW_SECRET_ACCESS_KEY",
+      "TELEGRAM_BOT_TOKEN",
+      "TELEGRAM_ADMIN_ID"
     ]
   },
   "vars": {
@@ -67,7 +69,9 @@
           "HARBOUR_API_KEY",
           "R2_ACCOUNT_ID",
           "R2_RAW_ACCESS_KEY_ID",
-          "R2_RAW_SECRET_ACCESS_KEY"
+          "R2_RAW_SECRET_ACCESS_KEY",
+          "TELEGRAM_BOT_TOKEN",
+          "TELEGRAM_ADMIN_ID"
         ]
       },
       "vars": {
@@ -110,7 +114,9 @@
           "HARBOUR_API_KEY",
           "R2_ACCOUNT_ID",
           "R2_RAW_ACCESS_KEY_ID",
-          "R2_RAW_SECRET_ACCESS_KEY"
+          "R2_RAW_SECRET_ACCESS_KEY",
+          "TELEGRAM_BOT_TOKEN",
+          "TELEGRAM_ADMIN_ID"
         ]
       },
       "vars": {

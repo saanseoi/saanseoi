@@ -11,7 +11,7 @@
   },
   "assets": { "directory": "public" },
   "secrets": {
-    "required": ["SUBSTACK_SESSION_COOKIE"]
+    "required": ["SUBSTACK_SESSION_COOKIE", "TELEGRAM_BOT_TOKEN", "TELEGRAM_ADMIN_ID"]
   },
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
@@ -40,7 +40,11 @@
     "preview": {
       "name": "ss-atlas-preview",
       "secrets": {
-        "required": ["SUBSTACK_SESSION_COOKIE"]
+        "required": [
+          "SUBSTACK_SESSION_COOKIE",
+          "TELEGRAM_BOT_TOKEN",
+          "TELEGRAM_ADMIN_ID"
+        ]
       },
       "define": {
         "__VUE_OPTIONS_API__": "true",
@@ -70,7 +74,11 @@
     "production": {
       "name": "ss-atlas-production",
       "secrets": {
-        "required": ["SUBSTACK_SESSION_COOKIE"]
+        "required": [
+          "SUBSTACK_SESSION_COOKIE",
+          "TELEGRAM_BOT_TOKEN",
+          "TELEGRAM_ADMIN_ID"
+        ]
       },
       "define": {
         "__VUE_OPTIONS_API__": "true",
