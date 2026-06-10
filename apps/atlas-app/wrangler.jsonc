@@ -8,6 +8,9 @@
     "binding": "ASSETS",
     "directory": ".svelte-kit/cloudflare"
   },
+  "vars": {
+    "PUBLIC_ATLAS_API_BASE_URL": "http://localhost:8787"
+  },
   "secrets": {
     "required": ["BETTER_AUTH_SECRET"]
   },
@@ -35,6 +38,9 @@
   "env": {
     "preview": {
       "name": "ss-atlas-app-preview",
+      "vars": {
+        "PUBLIC_ATLAS_API_BASE_URL": "https://preview.api.saanseoi.hk"
+      },
       "secrets": {
         "required": ["BETTER_AUTH_SECRET"]
       },
@@ -56,6 +62,9 @@
     },
     "production": {
       "name": "ss-atlas-app-production",
+      "vars": {
+        "PUBLIC_ATLAS_API_BASE_URL": "https://api.saanseoi.hk"
+      },
       "secrets": {
         "required": ["BETTER_AUTH_SECRET"]
       },
