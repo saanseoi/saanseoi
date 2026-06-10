@@ -10,6 +10,9 @@
     "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
   },
   "assets": { "directory": "public" },
+  "secrets": {
+    "required": ["SUBSTACK_SESSION_COOKIE"]
+  },
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
     "HARBOUR_BASE_URL": "http://localhost:8788",
@@ -36,6 +39,9 @@
   "env": {
     "preview": {
       "name": "ss-atlas-preview",
+      "secrets": {
+        "required": ["SUBSTACK_SESSION_COOKIE"]
+      },
       "define": {
         "__VUE_OPTIONS_API__": "true",
         "__VUE_PROD_DEVTOOLS__": "false",
@@ -63,6 +69,9 @@
     },
     "production": {
       "name": "ss-atlas-production",
+      "secrets": {
+        "required": ["SUBSTACK_SESSION_COOKIE"]
+      },
       "define": {
         "__VUE_OPTIONS_API__": "true",
         "__VUE_PROD_DEVTOOLS__": "false",
