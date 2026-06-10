@@ -1,13 +1,18 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
 import { listDatasets } from '../../db/repositories'
+import { subscribeToSubstack } from '../../lib/substack'
 import {
   DatasetsQuerySchema,
   DatasetsResponseSchema,
+  ErrorResponseSchema,
   HealthResponseSchema,
+  SubstackSubscribeRequestSchema,
+  SubstackSubscribeResponseSchema,
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import type { AppEnv } from '../../types'
+
 const healthRouteConfig = createRoute({
   method: 'get',
   path: '/v1/meta/health',
@@ -41,6 +46,50 @@ const datasetsRouteConfig = createRoute({
       description: 'List datasets.',
     },
     422: ValidationErrorOpenAPIResponse,
+  },
+})
+
+const substackRouteConfig = createRoute({
+  method: 'post',
+  path: '/v1/meta/substack',
+  hide: true,
+  tags: ['Meta'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: SubstackSubscribeRequestSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: SubstackSubscribeResponseSchema,
+        },
+      },
+      description: 'Subscribe an email address to the configured Substack publication.',
+    },
+    422: ValidationErrorOpenAPIResponse,
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Substack integration is misconfigured.',
+    },
+    502: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Substack rejected the subscription request.',
+    },
   },
 })
 
@@ -88,4 +137,48 @@ export const datasetsRoute = defineOpenAPIRoute<typeof datasetsRouteConfig, AppE
   },
 })
 
-export const metaRoutes = [healthRoute, datasetsRoute] as const
+export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppEnv>({
+  route: substackRouteConfig,
+  handler: async c => {
+    const { email } = c.req.valid('json')
+
+    try {
+      const result = await subscribeToSubstack({
+        email,
+        publication: c.env.SUBSTACK_PUBLICATION,
+        sessionCookie: c.env.SUBSTACK_SESSION_COOKIE,
+      })
+
+      return c.json(result, 200)
+    } catch (error) {
+      if (error instanceof Error) {
+        if (
+          error.message === 'SUBSTACK_PUBLICATION is not configured.' ||
+          error.message === 'SUBSTACK_SESSION_COOKIE is not configured.'
+        ) {
+          return c.json(
+            {
+              httpStatus: 500,
+              error: 'substack_not_configured',
+              message: error.message,
+            },
+            500,
+          )
+        }
+
+        return c.json(
+          {
+            httpStatus: 502,
+            error: 'substack_request_failed',
+            message: error.message,
+          },
+          502,
+        )
+      }
+
+      throw error
+    }
+  },
+})
+
+export const metaRoutes = [healthRoute, datasetsRoute, substackRoute] as const

@@ -76,6 +76,19 @@ export const DatasetsResponseSchema = z
   })
   .openapi('AtlasDatasetsResponse')
 
+export const SubstackSubscribeRequestSchema = z
+  .object({
+    email: z.email(),
+  })
+  .openapi('AtlasSubstackSubscribeRequest')
+
+export const SubstackSubscribeResponseSchema = z
+  .object({
+    ok: z.literal(true),
+    message: z.string(),
+  })
+  .openapi('AtlasSubstackSubscribeResponse')
+
 export const RegionPlaceParamsSchema = z
   .object({
     region: z.string(),

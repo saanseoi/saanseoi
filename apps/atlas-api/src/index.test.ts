@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import app from './index'
+import type { AppBindings } from './types'
 
 function createMockDb() {
   return {
@@ -25,6 +26,18 @@ function createMockDb() {
   } as unknown as D1Database
 }
 
+function createEnv(overrides: Partial<AppBindings> = {}) {
+  return {
+    DB: createMockDb(),
+    ATLAS_BASE_URL: 'http://localhost:8787',
+    HARBOUR_BASE_URL: 'http://localhost:8788',
+    SUBSTACK_PUBLICATION: 'demo-publication',
+    SUBSTACK_SESSION_COOKIE:
+      'substack.sid=s%3ADYiS7mTGqE6SdTN-7rB_hI-FYbXML9sL.Uvo1ovQf1%2BmxoCaSrEeoCkovfDAC3HU2URRfswdJsEQ; _ga_TLW0DF6G5V=GS2.1.s1781075256$o4$g1$t1781075559$j52$l0$h0',
+    ...overrides,
+  } as AppBindings
+}
+
 describe('atlas-api', () => {
   test('GET / redirects to the OpenAPI document', async () => {
     const res = await app.request('http://localhost/')
@@ -35,9 +48,10 @@ describe('atlas-api', () => {
   })
 
   test('GET /v1/meta/health checks DB access', async () => {
-    const res = await app.fetch(new Request('http://localhost/v1/meta/health'), {
-      DB: createMockDb(),
-    })
+    const res = await app.fetch(
+      new Request('http://localhost/v1/meta/health'),
+      createEnv(),
+    )
     const body = (await res.json()) as {
       ok: boolean
       datasetCount: number
@@ -47,6 +61,99 @@ describe('atlas-api', () => {
     expect(body).toEqual({
       ok: true,
       datasetCount: 0,
+    })
+  })
+
+  test('POST /v1/meta/substack forwards the subscription request to Substack', async () => {
+    const originalFetch = globalThis.fetch
+    const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = []
+
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      fetchCalls.push({ input, init })
+
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+        },
+      })
+    }) as typeof fetch
+
+    try {
+      const res = await app.fetch(
+        new Request('http://localhost/v1/meta/substack', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: 'hello@example.com',
+          }),
+        }),
+        createEnv(),
+      )
+
+      const body = (await res.json()) as {
+        ok: boolean
+        message: string
+      }
+
+      expect(res.status).toBe(200)
+      expect(body.ok).toBe(true)
+      expect(fetchCalls).toHaveLength(1)
+      expect(String(fetchCalls[0]?.input)).toBe(
+        'https://demo-publication.substack.com/api/v1/subscriber/add',
+      )
+      expect(fetchCalls[0]?.init?.method).toBe('POST')
+      expect(fetchCalls[0]?.init?.headers).toMatchObject({
+        accept: 'application/json',
+        'cache-control': 'no-cache',
+        'content-type': 'application/json',
+        cookie:
+          'substack.sid=s%3ADYiS7mTGqE6SdTN-7rB_hI-FYbXML9sL.Uvo1ovQf1%2BmxoCaSrEeoCkovfDAC3HU2URRfswdJsEQ',
+        origin: 'https://demo-publication.substack.com',
+        pragma: 'no-cache',
+        referer: 'https://demo-publication.substack.com/publish/subscribers/add',
+      })
+      expect(fetchCalls[0]?.init?.body).toBe(
+        JSON.stringify({
+          email: 'hello@example.com',
+          subscription: false,
+          sendEmail: true,
+        }),
+      )
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  test('POST /v1/meta/substack returns 500 when the session cookie is missing', async () => {
+    const res = await app.fetch(
+      new Request('http://localhost/v1/meta/substack', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: 'hello@example.com',
+        }),
+      }),
+      createEnv({
+        SUBSTACK_SESSION_COOKIE: '',
+      }),
+    )
+
+    const body = (await res.json()) as {
+      httpStatus: number
+      error: string
+      message: string
+    }
+
+    expect(res.status).toBe(500)
+    expect(body).toEqual({
+      httpStatus: 500,
+      error: 'substack_not_configured',
+      message: 'SUBSTACK_SESSION_COOKIE is not configured.',
     })
   })
 })
