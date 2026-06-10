@@ -9,7 +9,7 @@ import type { UploadEnvironment } from './options.ts'
 
 const DEFAULT_LOCAL_D1_GLOB = resolve(
   import.meta.dir,
-  '../../../harbour-api/.wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite',
+  '../../../../.local/d1/dev/v3/d1/miniflare-D1DatabaseObject/*.sqlite',
 )
 const HARBOUR_API_WRANGLER_CONFIG = resolve(
   import.meta.dir,

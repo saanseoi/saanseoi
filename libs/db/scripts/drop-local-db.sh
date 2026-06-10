@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
-persist_dir="${1:-$repo_root/apps/harbour-api/.wrangler/state}"
+persist_dir="${1:-$repo_root/.local/d1/dev}"
 wrangler_config="$repo_root/apps/harbour-api/wrangler.jsonc"
 sql_file="$(cd "$(dirname "$0")" && pwd)/sql/drop-preview-db.sql"
 script_dir="$(cd "$(dirname "$0")" && pwd)"
