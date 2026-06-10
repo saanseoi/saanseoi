@@ -100,13 +100,13 @@ const networkLinks = [
   >
     <p>{@html m.footer_copyright()}</p>
     <div class="flex flex-wrap gap-5">
-      <a class="transition-colors hover:text-primary" href="/privacy"
+      <a class="transition-colors hover:text-primary" href="/policy/privacy"
         >{m.footer_privacy()}</a
       >
-      <a class="transition-colors hover:text-primary" href="/terms"
+      <a class="transition-colors hover:text-primary" href="/policy/terms"
         >{m.footer_terms()}</a
       >
-      <a class="transition-colors hover:text-primary" href="/accessibility"
+      <a class="transition-colors hover:text-primary" href="/policy/accessibility"
         >{m.footer_accessibility()}</a
       >
     </div>
