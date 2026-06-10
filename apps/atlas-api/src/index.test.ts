@@ -3,7 +3,11 @@ import { describe, expect, test } from 'bun:test'
 import app from './index'
 import type { AppBindings } from './types'
 
-function createMockDb() {
+type MockDbOptions = {
+  failOnRun?: (query: string, values: unknown[]) => boolean
+}
+
+function createMockDb(options: MockDbOptions = {}) {
   const operations: Array<{ query: string; values: unknown[] }> = []
 
   return {
@@ -32,6 +36,10 @@ function createMockDb() {
               values: this.values,
             })
 
+            if (options.failOnRun?.(query, this.values)) {
+              throw new Error('Mock DB write failed')
+            }
+
             return {
               success: true,
             }
@@ -49,8 +57,11 @@ function createMockDb() {
   }
 }
 
-function createEnv(overrides: Partial<AppBindings> = {}) {
-  const { db, operations } = createMockDb()
+function createEnv(
+  overrides: Partial<AppBindings> = {},
+  dbOptions: MockDbOptions = {},
+) {
+  const { db, operations } = createMockDb(dbOptions)
 
   return {
     env: {
@@ -165,13 +176,81 @@ describe('atlas-api', () => {
       expect(
         operations.some(
           operation =>
-            operation.query.includes('update "newsletterSubscription"') &&
+            operation.query.includes('insert into "newsletterSubscription"') &&
+            operation.query.includes('on conflict') &&
             operation.values.includes('subscribed') &&
             operation.values.includes('hello@example.com'),
         ),
       ).toBe(true)
     } finally {
       globalThis.fetch = originalFetch
+    }
+  })
+
+  test('POST /v1/meta/substack still returns 200 and notifies Telegram when subscribed persistence fails', async () => {
+    const originalFetch = globalThis.fetch
+    const originalConsoleError = console.error
+    const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = []
+    const consoleErrors: unknown[] = []
+
+    console.error = (...args: unknown[]) => {
+      consoleErrors.push(args)
+    }
+
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      fetchCalls.push({ input, init })
+
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+        },
+      })
+    }) as typeof fetch
+
+    try {
+      const { env } = createEnv(
+        {},
+        {
+          failOnRun: (query, values) =>
+            query.includes('insert into "newsletterSubscription"') &&
+            query.includes('on conflict') &&
+            values.includes('subscribed'),
+        },
+      )
+      const res = await app.fetch(
+        new Request('http://localhost/v1/meta/substack', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: 'hello@example.com',
+          }),
+        }),
+        env,
+      )
+
+      const body = (await res.json()) as {
+        ok: boolean
+      }
+
+      expect(res.status).toBe(200)
+      expect(body.ok).toBe(true)
+      expect(fetchCalls).toHaveLength(2)
+      expect(String(fetchCalls[1]?.input)).toBe(
+        'https://api.telegram.org/bottelegram-token/sendMessage',
+      )
+      expect(
+        consoleErrors.some(
+          entry =>
+            Array.isArray(entry) &&
+            String(entry[0]).includes('Failed to mark newsletter as subscribed'),
+        ),
+      ).toBe(true)
+    } finally {
+      globalThis.fetch = originalFetch
+      console.error = originalConsoleError
     }
   })
 
@@ -226,7 +305,8 @@ describe('atlas-api', () => {
       expect(
         operations.some(
           operation =>
-            operation.query.includes('update "newsletterSubscription"') &&
+            operation.query.includes('insert into "newsletterSubscription"') &&
+            operation.query.includes('on conflict') &&
             operation.values.includes('pending') &&
             operation.values.includes('SUBSTACK_SESSION_COOKIE is not configured.') &&
             operation.values.includes('hello@example.com'),
@@ -295,7 +375,8 @@ describe('atlas-api', () => {
       expect(
         operations.some(
           operation =>
-            operation.query.includes('update "newsletterSubscription"') &&
+            operation.query.includes('insert into "newsletterSubscription"') &&
+            operation.query.includes('on conflict') &&
             operation.values.includes('pending') &&
             operation.values.includes('Too Many Requests') &&
             operation.values.includes('hello@example.com'),
@@ -303,6 +384,88 @@ describe('atlas-api', () => {
       ).toBe(true)
     } finally {
       globalThis.fetch = originalFetch
+    }
+  })
+
+  test('POST /v1/meta/substack still returns 502 and notifies Telegram when failed persistence fails', async () => {
+    const originalFetch = globalThis.fetch
+    const originalConsoleError = console.error
+    const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = []
+    const consoleErrors: unknown[] = []
+
+    console.error = (...args: unknown[]) => {
+      consoleErrors.push(args)
+    }
+
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      fetchCalls.push({ input, init })
+
+      if (String(input).includes('api.telegram.org')) {
+        return new Response(JSON.stringify({ ok: true, result: {} }), {
+          status: 200,
+          headers: {
+            'content-type': 'application/json',
+          },
+        })
+      }
+
+      return new Response(JSON.stringify({ error: 'Too Many Requests' }), {
+        status: 429,
+        headers: {
+          'content-type': 'application/json',
+        },
+      })
+    }) as typeof fetch
+
+    try {
+      const { env } = createEnv(
+        {},
+        {
+          failOnRun: (query, values) =>
+            query.includes('insert into "newsletterSubscription"') &&
+            query.includes('on conflict') &&
+            values.includes('Too Many Requests'),
+        },
+      )
+      const res = await app.fetch(
+        new Request('http://localhost/v1/meta/substack', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: 'hello@example.com',
+          }),
+        }),
+        env,
+      )
+
+      const body = (await res.json()) as {
+        httpStatus: number
+        error: string
+        message: string
+      }
+
+      expect(res.status).toBe(502)
+      expect(body).toEqual({
+        httpStatus: 502,
+        error: 'substack_request_failed',
+        message: 'Too Many Requests',
+      })
+      expect(fetchCalls).toHaveLength(2)
+      expect(String(fetchCalls[1]?.input)).toBe(
+        'https://api.telegram.org/bottelegram-token/sendMessage',
+      )
+      expect(
+        consoleErrors.some(
+          entry =>
+            Array.isArray(entry) &&
+            String(entry[0]).includes('Failed to mark newsletter as failed'),
+        ),
+      ).toBe(true)
+    } finally {
+      globalThis.fetch = originalFetch
+      console.error = originalConsoleError
     }
   })
 })

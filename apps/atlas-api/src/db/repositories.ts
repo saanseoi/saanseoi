@@ -62,14 +62,23 @@ export async function markNewsletterSubscribed(db: Database, email: string) {
   const updatedAt = new Date()
 
   await db
-    .update(newsletterSubscription)
-    .set({
+    .insert(newsletterSubscription)
+    .values({
+      email,
       status: 'subscribed',
       lastError: null,
       subscribedAt: updatedAt,
       updatedAt,
     })
-    .where(eq(newsletterSubscription.email, email))
+    .onConflictDoUpdate({
+      target: newsletterSubscription.email,
+      set: {
+        status: 'subscribed',
+        lastError: null,
+        subscribedAt: updatedAt,
+        updatedAt,
+      },
+    })
 
   await syncUserSubstackStatus(db, email, 'subscribed')
 }
@@ -79,14 +88,25 @@ export async function markNewsletterFailed(
   email: string,
   lastError: string,
 ) {
+  const updatedAt = new Date()
+
   await db
-    .update(newsletterSubscription)
-    .set({
+    .insert(newsletterSubscription)
+    .values({
+      email,
       status: 'pending',
       lastError,
-      updatedAt: new Date(),
+      subscribedAt: null,
+      updatedAt,
     })
-    .where(eq(newsletterSubscription.email, email))
+    .onConflictDoUpdate({
+      target: newsletterSubscription.email,
+      set: {
+        status: 'pending',
+        lastError,
+        updatedAt,
+      },
+    })
 
   await syncUserSubstackStatus(db, email, 'pending')
 }

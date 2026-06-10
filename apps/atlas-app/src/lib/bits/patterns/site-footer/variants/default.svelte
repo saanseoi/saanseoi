@@ -19,7 +19,7 @@ const networkLinks = [
     icon: 'proicons:github',
   },
   {
-    href: 'http://instagr.am/saanseoi',
+    href: 'https://instagr.am/saanseoi',
     label: () => m.footer_network_instagram(),
     icon: 'proicons:instagram',
   },
