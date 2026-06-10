@@ -5,7 +5,7 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 repo_root="$(cd "$script_dir/../../.." && pwd)"
 
 # Keep this aligned with scripts/dev-local-stack.sh and libs/core/src/testing/local-db.ts.
-local_db_glob="$repo_root/apps/harbour-api/.wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite"
+local_db_glob="$repo_root/.local/d1/dev/v3/d1/miniflare-D1DatabaseObject/*.sqlite"
 local_db_path="${LOCAL_D1_SQLITE_PATH:-}"
 
 if [[ -z "$local_db_path" ]]; then

@@ -4,7 +4,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
 dump_file="${1:-$repo_root/.local/d1/dumps/latest.sql}"
 wrangler_config="${2:-$repo_root/apps/harbour-api/wrangler.jsonc}"
-persist_dir="${3:-$repo_root/apps/harbour-api/.wrangler/state}"
+persist_dir="${3:-$repo_root/.local/d1/dev}"
 
 if [[ -z "$dump_file" ]]; then
   echo "Usage: $0 <dump.sql> [wrangler-config] [persist-dir]" >&2
