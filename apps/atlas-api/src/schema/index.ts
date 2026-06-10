@@ -86,6 +86,7 @@ export const SubstackSubscribeResponseSchema = z
   .object({
     ok: z.literal(true),
     message: z.string(),
+    subscriptionState: z.enum(['subscribed', 'pending']),
   })
   .openapi('AtlasSubstackSubscribeResponse')
 

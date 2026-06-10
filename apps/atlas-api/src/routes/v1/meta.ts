@@ -96,14 +96,6 @@ const substackRouteConfig = createRoute({
       },
       description: 'Substack integration is misconfigured.',
     },
-    502: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Substack rejected the subscription request.',
-    },
   },
 })
 
@@ -190,7 +182,13 @@ export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppE
         void notification
       }
 
-      return c.json(result, 200)
+      return c.json(
+        {
+          ...result,
+          subscriptionState: 'subscribed' as const,
+        },
+        200,
+      )
     } catch (error) {
       if (error instanceof Error) {
         await persistNewsletterState(
@@ -234,11 +232,11 @@ export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppE
 
         return c.json(
           {
-            httpStatus: 502,
-            error: 'substack_request_failed',
-            message: error.message,
+            ok: true as const,
+            message: 'Subscription recorded. We will retry delivery with Substack.',
+            subscriptionState: 'pending' as const,
           },
-          502,
+          200,
         )
       }
 

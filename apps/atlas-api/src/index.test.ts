@@ -136,10 +136,15 @@ describe('atlas-api', () => {
       const body = (await res.json()) as {
         ok: boolean
         message: string
+        subscriptionState: 'subscribed' | 'pending'
       }
 
       expect(res.status).toBe(200)
-      expect(body.ok).toBe(true)
+      expect(body).toEqual({
+        ok: true,
+        message: 'Subscription request accepted.',
+        subscriptionState: 'subscribed',
+      })
       expect(fetchCalls).toHaveLength(2)
       expect(String(fetchCalls[0]?.input)).toBe(
         'https://demo-publication.substack.com/api/v1/subscriber/add',
@@ -317,7 +322,7 @@ describe('atlas-api', () => {
     }
   })
 
-  test('POST /v1/meta/substack returns 502 and notifies Telegram when Substack rejects the request', async () => {
+  test('POST /v1/meta/substack returns 200 and notifies Telegram when Substack rejects the request after persistence', async () => {
     const originalFetch = globalThis.fetch
     const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = []
 
@@ -357,16 +362,16 @@ describe('atlas-api', () => {
       )
 
       const body = (await res.json()) as {
-        httpStatus: number
-        error: string
+        ok: boolean
         message: string
+        subscriptionState: 'subscribed' | 'pending'
       }
 
-      expect(res.status).toBe(502)
+      expect(res.status).toBe(200)
       expect(body).toEqual({
-        httpStatus: 502,
-        error: 'substack_request_failed',
-        message: 'Too Many Requests',
+        ok: true,
+        message: 'Subscription recorded. We will retry delivery with Substack.',
+        subscriptionState: 'pending',
       })
       expect(fetchCalls).toHaveLength(2)
       expect(String(fetchCalls[1]?.input)).toBe(
@@ -387,7 +392,7 @@ describe('atlas-api', () => {
     }
   })
 
-  test('POST /v1/meta/substack still returns 502 and notifies Telegram when failed persistence fails', async () => {
+  test('POST /v1/meta/substack still returns 200 and notifies Telegram when failed persistence logging fails', async () => {
     const originalFetch = globalThis.fetch
     const originalConsoleError = console.error
     const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = []
@@ -441,16 +446,16 @@ describe('atlas-api', () => {
       )
 
       const body = (await res.json()) as {
-        httpStatus: number
-        error: string
+        ok: boolean
         message: string
+        subscriptionState: 'subscribed' | 'pending'
       }
 
-      expect(res.status).toBe(502)
+      expect(res.status).toBe(200)
       expect(body).toEqual({
-        httpStatus: 502,
-        error: 'substack_request_failed',
-        message: 'Too Many Requests',
+        ok: true,
+        message: 'Subscription recorded. We will retry delivery with Substack.',
+        subscriptionState: 'pending',
       })
       expect(fetchCalls).toHaveLength(2)
       expect(String(fetchCalls[1]?.input)).toBe(
