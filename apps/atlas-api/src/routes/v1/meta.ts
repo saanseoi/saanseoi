@@ -52,6 +52,7 @@ const datasetsRouteConfig = createRoute({
 const substackRouteConfig = createRoute({
   method: 'post',
   path: '/v1/meta/substack',
+  hide: true,
   tags: ['Meta'],
   request: {
     body: {
