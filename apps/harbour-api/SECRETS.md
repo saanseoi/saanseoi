@@ -1,11 +1,13 @@
 # Harbour R2 upload secrets
 
-Harbour uses one API auth secret plus the R2 signing secrets:
+Harbour uses one API auth secret, the R2 signing secrets, and the shared Telegram bot credentials:
 
 - `HARBOUR_API_KEY`
 - `R2_ACCOUNT_ID`
 - `R2_RAW_ACCESS_KEY_ID`
 - `R2_RAW_SECRET_ACCESS_KEY`
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_ADMIN_ID` (the target admin channel or group chat ID)
 
 ## Local development
 
@@ -26,6 +28,8 @@ bunx wrangler secret put HARBOUR_API_KEY --config apps/harbour-api/wrangler.json
 bunx wrangler secret put R2_ACCOUNT_ID --config apps/harbour-api/wrangler.jsonc --env preview
 bunx wrangler secret put R2_RAW_ACCESS_KEY_ID --config apps/harbour-api/wrangler.jsonc --env preview
 bunx wrangler secret put R2_RAW_SECRET_ACCESS_KEY --config apps/harbour-api/wrangler.jsonc --env preview
+bunx wrangler secret put TELEGRAM_BOT_TOKEN --config apps/harbour-api/wrangler.jsonc --env preview
+bunx wrangler secret put TELEGRAM_ADMIN_ID --config apps/harbour-api/wrangler.jsonc --env preview
 ```
 
 Set production secrets on the production Worker:
@@ -35,6 +39,8 @@ bunx wrangler secret put HARBOUR_API_KEY --config apps/harbour-api/wrangler.json
 bunx wrangler secret put R2_ACCOUNT_ID --config apps/harbour-api/wrangler.jsonc --env production
 bunx wrangler secret put R2_RAW_ACCESS_KEY_ID --config apps/harbour-api/wrangler.jsonc --env production
 bunx wrangler secret put R2_RAW_SECRET_ACCESS_KEY --config apps/harbour-api/wrangler.jsonc --env production
+bunx wrangler secret put TELEGRAM_BOT_TOKEN --config apps/harbour-api/wrangler.jsonc --env production
+bunx wrangler secret put TELEGRAM_ADMIN_ID --config apps/harbour-api/wrangler.jsonc --env production
 ```
 
 For local validation, Wrangler will now warn when these required secrets are missing.
