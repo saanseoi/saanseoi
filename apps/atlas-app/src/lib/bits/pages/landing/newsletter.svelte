@@ -111,7 +111,7 @@ async function handleSubmit(event: SubmitEvent) {
     {/if}
 
     <p class="mt-4 font-body text-[0.78rem] leading-normal text-foreground-alt/70">
-      {m.newsletter_privacy()}
+      {@html m.newsletter_privacy()}
     </p>
   </div>
 </section>

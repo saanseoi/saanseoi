@@ -1,8 +1,10 @@
 # Atlas API Secrets
 
-Atlas API requires the Substack session cookie used for server-side newsletter signups:
+Atlas API requires the Substack session cookie used for server-side newsletter signups, plus Telegram bot credentials for admin failure alerts:
 
 - `SUBSTACK_SESSION_COOKIE`
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_ADMIN_ID` (the target admin channel or group chat ID)
 
 ## Local development
 
@@ -25,12 +27,16 @@ Set the preview secret on the preview Worker:
 
 ```bash
 bunx wrangler secret put SUBSTACK_SESSION_COOKIE --config apps/atlas-api/wrangler.jsonc --env preview
+bunx wrangler secret put TELEGRAM_BOT_TOKEN --config apps/atlas-api/wrangler.jsonc --env preview
+bunx wrangler secret put TELEGRAM_ADMIN_ID --config apps/atlas-api/wrangler.jsonc --env preview
 ```
 
 Set the production secret on the production Worker:
 
 ```bash
 bunx wrangler secret put SUBSTACK_SESSION_COOKIE --config apps/atlas-api/wrangler.jsonc --env production
+bunx wrangler secret put TELEGRAM_BOT_TOKEN --config apps/atlas-api/wrangler.jsonc --env production
+bunx wrangler secret put TELEGRAM_ADMIN_ID --config apps/atlas-api/wrangler.jsonc --env production
 ```
 
 For local validation, Wrangler will warn when this required secret is missing.
