@@ -1,6 +1,10 @@
 import { sql } from 'drizzle-orm'
 import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core'
 
+export const substackStatuses = ['pending', 'subscribed', 'unsubscribed'] as const
+
+export type SubstackStatus = (typeof substackStatuses)[number]
+
 export const user = sqliteTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -9,6 +13,9 @@ export const user = sqliteTable('user', {
     .default(false)
     .notNull(),
   image: text('image'),
+  substack: text('substack', {
+    enum: substackStatuses,
+  }),
   createdAt: integer('created_at', { mode: 'timestamp_ms' })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),
@@ -17,6 +24,28 @@ export const user = sqliteTable('user', {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
 })
+
+export const newsletterSubscription = sqliteTable(
+  'newsletterSubscription',
+  {
+    email: text('email').primaryKey(),
+    status: text('status', {
+      enum: substackStatuses,
+    })
+      .default('pending')
+      .notNull(),
+    lastError: text('last_error'),
+    subscribedAt: integer('subscribed_at', { mode: 'timestamp_ms' }),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  table => [index('newsletterSubscription_status_idx').on(table.status)],
+)
 
 export const session = sqliteTable(
   'session',
