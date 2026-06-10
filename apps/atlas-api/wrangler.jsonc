@@ -10,9 +10,13 @@
     "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
   },
   "assets": { "directory": "public" },
+  "secrets": {
+    "required": ["SUBSTACK_SESSION_COOKIE"]
+  },
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
-    "HARBOUR_BASE_URL": "http://localhost:8788"
+    "HARBOUR_BASE_URL": "http://localhost:8788",
+    "SUBSTACK_PUBLICATION": "saanseoi"
   },
   "d1_databases": [
     {
@@ -35,14 +39,18 @@
   "env": {
     "preview": {
       "name": "ss-atlas-preview",
+      "secrets": {
+        "required": ["SUBSTACK_SESSION_COOKIE"]
+      },
       "define": {
         "__VUE_OPTIONS_API__": "true",
         "__VUE_PROD_DEVTOOLS__": "false",
         "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
       },
       "vars": {
-        "ATLAS_BASE_URL": "https://ss-atlas-preview.hypehk.workers.dev",
-        "HARBOUR_BASE_URL": "https://ss-harbour-preview.hypehk.workers.dev"
+        "ATLAS_BASE_URL": "https://preview.api.saanseoi.hk",
+        "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk",
+        "SUBSTACK_PUBLICATION": "saanseoi"
       },
       "d1_databases": [
         {
@@ -51,18 +59,28 @@
           "database_id": "9e4a6243-a07c-4618-9fe4-3bf3cfeb4c72",
           "migrations_dir": "../../libs/db/migrations"
         }
+      ],
+      "routes": [
+        {
+          "pattern": "preview.api.saanseoi.hk",
+          "custom_domain": true
+        }
       ]
     },
     "production": {
       "name": "ss-atlas-production",
+      "secrets": {
+        "required": ["SUBSTACK_SESSION_COOKIE"]
+      },
       "define": {
         "__VUE_OPTIONS_API__": "true",
         "__VUE_PROD_DEVTOOLS__": "false",
         "__VUE_PROD_HYDRATION_MISMATCH_DETAILS__": "false"
       },
       "vars": {
-        "ATLAS_BASE_URL": "https://ss-atlas-production.hypehk.workers.dev",
-        "HARBOUR_BASE_URL": "https://ss-harbour-production.hypehk.workers.dev"
+        "ATLAS_BASE_URL": "https://api.saanseoi.hk",
+        "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk",
+        "SUBSTACK_PUBLICATION": "saanseoi"
       },
       "d1_databases": [
         {
@@ -70,6 +88,12 @@
           "database_name": "ss-db-prod",
           "database_id": "658e67b6-f259-4e5d-907e-7e361d2edf3c",
           "migrations_dir": "../../libs/db/migrations"
+        }
+      ],
+      "routes": [
+        {
+          "pattern": "api.saanseoi.hk",
+          "custom_domain": true
         }
       ]
     }

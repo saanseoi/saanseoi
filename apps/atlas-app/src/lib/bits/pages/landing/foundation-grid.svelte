@@ -6,21 +6,21 @@ import { Button } from '$lib/bits/primitives/button'
 
 const foundationPillars = [
   {
-    icon: 'proicons:database',
+    icon: 'gravity-ui:abbr-api',
     title: () => m.foundation_public_data_title(),
     description: () => m.foundation_public_data_description(),
     href: '/datasets',
     cta: () => m.foundation_public_data_cta(),
   },
   {
-    icon: 'proicons:apps',
+    icon: 'proicons:treasure-chest',
     title: () => m.foundation_community_apps_title(),
     description: () => m.foundation_community_apps_description(),
     href: '/projects',
     cta: () => m.foundation_community_apps_cta(),
   },
   {
-    icon: 'proicons:users',
+    icon: 'proicons:megaphone',
     title: () => m.foundation_humane_tech_title(),
     description: () => m.foundation_humane_tech_description(),
     href: '/manifesto',
@@ -39,34 +39,34 @@ const foundationPillars = [
       {m.foundation_title()}
     </h2>
     <p class="font-body text-body-md leading-[1.8] text-foreground-alt">
-      {m.foundation_description()}
+      {@html m.foundation_description()}
     </p>
   </div>
 
   <div class="mt-10 grid gap-5 lg:grid-cols-3">
     {#each foundationPillars as pillar}
       <article
-        class="flex h-full flex-col border border-border-card/55 bg-background-alt p-6"
+        class="relative flex h-full flex-col overflow-hidden border border-border-card/55 bg-background-alt p-6"
       >
         <div
-          class="inline-flex size-11 items-center justify-center bg-muted text-foreground"
+          class="pointer-events-none absolute right-4 top-4 text-foreground/5 -rotate-15"
+          aria-hidden="true"
         >
-          <Icon icon={pillar.icon} class="size-5" />
+          <Icon icon={pillar.icon} class="h-45 w-45" />
         </div>
 
-        <div class="mt-8 space-y-4">
+        <div class="relative mt-6 space-y-4">
           <h3
             class="font-display text-[1.55rem] font-bold leading-[1.1] tracking-display-md text-primary"
           >
             {pillar.title()}
           </h3>
           <p class="font-body text-[0.98rem] leading-[1.8] text-foreground-alt">
-            {pillar.description()}
+            {@html pillar.description()}
           </p>
         </div>
-
         <Button
-          class="mt-auto justify-start px-0 pt-8 text-[0.84rem] font-semibold uppercase tracking-[0.07em] text-secondary focus-visible:ring-offset-background-alt"
+          class="mt-auto justify-end px-0 pt-8 text-[0.84rem] font-semibold uppercase tracking-[0.07em] text-secondary focus-visible:ring-offset-background-alt"
           href={pillar.href}
           size="compact"
           variant="text"

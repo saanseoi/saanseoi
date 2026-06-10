@@ -1,6 +1,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { Scalar } from '@scalar/hono-api-reference'
 import { createMarkdownFromOpenApi } from '@scalar/openapi-to-markdown'
+import { cors } from 'hono/cors'
 import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 
@@ -23,6 +24,14 @@ const openApiConfig = {
 
 app.use('*', poweredBy())
 app.use('/v1/*', prettyJSON())
+app.use(
+  '/v1/meta/substack',
+  cors({
+    origin: '*',
+    allowMethods: ['POST', 'OPTIONS'],
+    allowHeaders: ['Content-Type'],
+  }),
+)
 app.use('/v1/*', async (c, next) => {
   c.set('db', createDb(c.env.DB))
   await next()
