@@ -1,7 +1,13 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
-import { listDatasets } from '../../db/repositories'
+import {
+  listDatasets,
+  markNewsletterFailed,
+  markNewsletterPending,
+  markNewsletterSubscribed,
+} from '../../db/repositories'
 import { subscribeToSubstack } from '../../lib/substack'
+import { sendTelegramAdminMessage } from '../../lib/telegram'
 import {
   DatasetsQuerySchema,
   DatasetsResponseSchema,
@@ -141,6 +147,9 @@ export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppE
   route: substackRouteConfig,
   handler: async c => {
     const { email } = c.req.valid('json')
+    const db = c.var.db
+
+    await markNewsletterPending(db, email)
 
     try {
       const result = await subscribeToSubstack({
@@ -149,9 +158,52 @@ export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppE
         sessionCookie: c.env.SUBSTACK_SESSION_COOKIE,
       })
 
+      await markNewsletterSubscribed(db, email)
+      const notification = sendTelegramAdminMessage({
+        botToken: c.env.TELEGRAM_BOT_TOKEN,
+        chatId: c.env.TELEGRAM_ADMIN_ID,
+        text: [
+          'Substack signup succeeded.',
+          `Email: ${email}`,
+          `Publication: ${c.env.SUBSTACK_PUBLICATION}`,
+          `API: ${c.env.ATLAS_BASE_URL}/v1/meta/substack`,
+          `Time: ${new Date().toISOString()}`,
+        ].join('\n'),
+      }).catch(notificationError => {
+        console.error(notificationError)
+      })
+
+      try {
+        c.executionCtx.waitUntil(notification)
+      } catch {
+        void notification
+      }
+
       return c.json(result, 200)
     } catch (error) {
       if (error instanceof Error) {
+        await markNewsletterFailed(db, email, error.message)
+        const notification = sendTelegramAdminMessage({
+          botToken: c.env.TELEGRAM_BOT_TOKEN,
+          chatId: c.env.TELEGRAM_ADMIN_ID,
+          text: [
+            'Substack signup failed.',
+            `Email: ${email}`,
+            `Publication: ${c.env.SUBSTACK_PUBLICATION}`,
+            `Error: ${error.message}`,
+            `API: ${c.env.ATLAS_BASE_URL}/v1/meta/substack`,
+            `Time: ${new Date().toISOString()}`,
+          ].join('\n'),
+        }).catch(notificationError => {
+          console.error(notificationError)
+        })
+
+        try {
+          c.executionCtx.waitUntil(notification)
+        } catch {
+          void notification
+        }
+
         if (
           error.message === 'SUBSTACK_PUBLICATION is not configured.' ||
           error.message === 'SUBSTACK_SESSION_COOKIE is not configured.'
