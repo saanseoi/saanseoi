@@ -5,6 +5,17 @@ import { sveltekit } from '@sveltejs/kit/vite'
 
 export default defineConfig({
   plugins: [tailwindcss(), sveltekit()],
+  server: {
+    watch: {
+      usePolling: true,
+      interval: 1000,
+      ignored: ['!**/src/**/*.{js,ts,jsx,tsx}'],
+    },
+  },
+  optimizeDeps: {
+    exclude: ['@tailwindcss/vite'],
+    force: true,
+  },
   ssr: {
     noExternal: ['bits-ui', 'runed', 'svelte-toolbelt'],
   },
