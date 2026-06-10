@@ -1,23 +1,15 @@
-import { existsSync, globSync } from 'node:fs'
+import { globSync } from 'node:fs'
 import { mkdir, readFile } from 'node:fs/promises'
 import { basename, dirname, resolve } from 'node:path'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { parquetWriteFile } from 'hyparquet-writer'
+import { resolveLocalD1Path } from '@repo/core/testing/local-db'
 
 import type { UploadEnvironment } from './options.ts'
-
-const DEFAULT_LOCAL_D1_GLOB = resolve(
-  import.meta.dir,
-  '../../../../.local/d1/dev/v3/d1/miniflare-D1DatabaseObject/*.sqlite',
-)
 const HARBOUR_API_WRANGLER_CONFIG = resolve(
   import.meta.dir,
   '../../../harbour-api/wrangler.jsonc',
-)
-const HARBOUR_API_PERSIST_DIR = resolve(
-  import.meta.dir,
-  '../../../harbour-api/.wrangler/state',
 )
 
 const COUNTRY_NAME_ALIASES = [
@@ -159,6 +151,18 @@ type PreparedHkgovAlsResult = {
   outputFile: string
   sourceFileCount: number
 }
+
+type DivisionLookupSource =
+  | {
+      dbPath: string
+      kind: 'sqlite'
+    }
+  | {
+      databaseName: string
+      kind: 'wrangler'
+      mode: 'remote'
+      wranglerEnv: 'preview' | 'production'
+    }
 
 export async function prepareHkgovAlsAddressParquet(
   options: PrepareHkgovAlsOptions,
@@ -467,9 +471,11 @@ async function loadDivisionLookupMaps(options: {
   dbPath?: string
   environment: UploadEnvironment
 }): Promise<DivisionLookupMaps> {
-  const rows = options.dbPath
-    ? loadDivisionLookupRowsFromSqlite(options.dbPath)
-    : await loadDivisionLookupRowsFromEnvironment(options.environment)
+  const source = resolveDivisionLookupSource(options)
+  const rows =
+    source.kind === 'sqlite'
+      ? loadDivisionLookupRowsFromSqlite(source.dbPath)
+      : await loadDivisionLookupRowsFromWrangler(source)
 
   return buildDivisionLookupMaps(rows)
 }
@@ -494,26 +500,9 @@ function loadDivisionLookupRowsFromSqlite(explicitDbPath: string) {
   }
 }
 
-async function loadDivisionLookupRowsFromEnvironment(environment: UploadEnvironment) {
-  const target =
-    environment === 'production'
-      ? {
-          databaseName: 'ss-db-prod',
-          mode: 'remote' as const,
-          wranglerEnv: 'production',
-        }
-      : environment === 'preview'
-        ? {
-            databaseName: 'ss-db-preview',
-            mode: 'remote' as const,
-            wranglerEnv: 'preview',
-          }
-        : {
-            databaseName: 'ss-db-preview',
-            mode: 'local' as const,
-            wranglerEnv: 'preview',
-          }
-
+async function loadDivisionLookupRowsFromWrangler(
+  target: Extract<DivisionLookupSource, { kind: 'wrangler' }>,
+) {
   const args = [
     'x',
     'wrangler',
@@ -535,10 +524,6 @@ async function loadDivisionLookupRowsFromEnvironment(environment: UploadEnvironm
     `,
   ]
 
-  if (target.mode === 'local') {
-    args.push('--persist-to', HARBOUR_API_PERSIST_DIR)
-  }
-
   const process = Bun.spawn({
     cmd: ['bun', ...args],
     cwd: resolve(import.meta.dir, '../../..'),
@@ -553,7 +538,7 @@ async function loadDivisionLookupRowsFromEnvironment(environment: UploadEnvironm
 
   if (exitCode !== 0) {
     throw new Error(
-      `Failed to query divisions from ${environment} D1.\n${stderr.trim() || stdout.trim()}`,
+      `Failed to query divisions from ${target.wranglerEnv} D1.\n${stderr.trim() || stdout.trim()}`,
     )
   }
 
@@ -564,10 +549,50 @@ async function loadDivisionLookupRowsFromEnvironment(environment: UploadEnvironm
   const firstResult = payload[0]
 
   if (!firstResult?.success || !Array.isArray(firstResult.results)) {
-    throw new Error(`Unexpected Wrangler D1 response for ${environment} environment.`)
+    throw new Error(
+      `Unexpected Wrangler D1 response for ${target.wranglerEnv} environment.`,
+    )
   }
 
   return firstResult.results
+}
+
+export function resolveDivisionLookupSource(
+  options: {
+    dbPath?: string
+    environment: UploadEnvironment
+  },
+  resolveLocalDbPath: (explicitPath?: string) => string = resolveLocalD1Path,
+): DivisionLookupSource {
+  if (options.dbPath) {
+    return {
+      dbPath: resolveLocalDbPath(options.dbPath),
+      kind: 'sqlite',
+    }
+  }
+
+  if (options.environment === 'dev') {
+    return {
+      dbPath: resolveLocalDbPath(),
+      kind: 'sqlite',
+    }
+  }
+
+  if (options.environment === 'production') {
+    return {
+      databaseName: 'ss-db-prod',
+      kind: 'wrangler',
+      mode: 'remote',
+      wranglerEnv: 'production',
+    }
+  }
+
+  return {
+    databaseName: 'ss-db-preview',
+    kind: 'wrangler',
+    mode: 'remote',
+    wranglerEnv: 'preview',
+  }
 }
 
 type DivisionLookupRow = {
@@ -626,25 +651,6 @@ function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookup
     districtByEn,
     districtByZh,
   }
-}
-
-function resolveLocalD1Path(explicitPath?: string) {
-  if (explicitPath) {
-    return resolve(explicitPath)
-  }
-
-  const matches = globSync(DEFAULT_LOCAL_D1_GLOB).filter(
-    candidate => !candidate.endsWith('/metadata.sqlite') && existsSync(candidate),
-  )
-  const selected = matches.sort()[0]
-
-  if (!selected) {
-    throw new Error(
-      'Could not find a local D1 sqlite file.\n\nRun `bun run db:migration:run:local` first or pass `--db`.',
-    )
-  }
-
-  return selected
 }
 
 function resolveMappedId(map: Map<string, string>, name: string | null) {
