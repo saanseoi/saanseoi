@@ -15,16 +15,20 @@ const resourceLinks = [
 
 const networkLinks = [
   {
-    href: 'https://github.com',
+    href: 'https://github.com/saanseoi',
     label: () => m.footer_network_github(),
-    icon: 'proicons:github-logo',
+    icon: 'proicons:github',
   },
   {
-    href: '/community',
-    label: () => m.footer_network_discord(),
-    icon: 'proicons:chat',
+    href: 'http://instagr.am/saanseoi',
+    label: () => m.footer_network_instagram(),
+    icon: 'proicons:instagram',
   },
-  { href: '/archive', label: () => m.footer_network_contact(), icon: 'proicons:mail' },
+  {
+    href: 'mailto:hi@saanseoi.hk',
+    label: () => m.footer_network_contact(),
+    icon: 'proicons:mail',
+  },
 ] as const
 </script>
 
