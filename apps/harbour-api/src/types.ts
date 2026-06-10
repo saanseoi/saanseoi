@@ -10,5 +10,7 @@ export type AppEnv = {
     R2_RAW_ACCESS_KEY_ID: string
     R2_RAW_BUCKET_NAME: string
     R2_RAW_SECRET_ACCESS_KEY: string
+    TELEGRAM_ADMIN_ID: string
+    TELEGRAM_BOT_TOKEN: string
   }
 }
