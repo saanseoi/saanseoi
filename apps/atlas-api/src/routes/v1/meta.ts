@@ -19,6 +19,14 @@ import {
 } from '../../schema'
 import type { AppEnv } from '../../types'
 
+async function persistNewsletterState(operation: Promise<void>, errorPrefix: string) {
+  try {
+    await operation
+  } catch (error) {
+    console.error(`${errorPrefix}:`, error)
+  }
+}
+
 const healthRouteConfig = createRoute({
   method: 'get',
   path: '/v1/meta/health',
@@ -158,7 +166,10 @@ export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppE
         sessionCookie: c.env.SUBSTACK_SESSION_COOKIE,
       })
 
-      await markNewsletterSubscribed(db, email)
+      await persistNewsletterState(
+        markNewsletterSubscribed(db, email),
+        'Failed to mark newsletter as subscribed',
+      )
       const notification = sendTelegramAdminMessage({
         botToken: c.env.TELEGRAM_BOT_TOKEN,
         chatId: c.env.TELEGRAM_ADMIN_ID,
@@ -182,7 +193,10 @@ export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppE
       return c.json(result, 200)
     } catch (error) {
       if (error instanceof Error) {
-        await markNewsletterFailed(db, email, error.message)
+        await persistNewsletterState(
+          markNewsletterFailed(db, email, error.message),
+          'Failed to mark newsletter as failed',
+        )
         const notification = sendTelegramAdminMessage({
           botToken: c.env.TELEGRAM_BOT_TOKEN,
           chatId: c.env.TELEGRAM_ADMIN_ID,
