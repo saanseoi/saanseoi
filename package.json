@@ -42,6 +42,7 @@
     "db:reset:preview": "bun run --filter @repo/db db:reset:preview",
     "db:migration:generate": "bun run --filter @repo/db db:migration:generate",
     "db:migration:run:local": "bun run --filter @repo/db db:migration:run:local",
+    "db:migration:run:local:meta": "bun run --filter @repo/db db:migration:run:local:meta",
     "db:migration:run:preview": "bun run --filter @repo/db db:migration:run:preview",
     "db:migration:run:production": "bun run --filter @repo/db db:migration:run:production",
     "db:import:local": "bun run --filter @repo/db db:import:local",
@@ -76,7 +77,7 @@
     "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.16",
+    "@biomejs/biome": "^2.5.0",
     "@changesets/cli": "^2.31.0",
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
