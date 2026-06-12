@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
-wrangler_config="$repo_root/apps/atlas-api/wrangler.jsonc"
-sql_file="$(cd "$(dirname "$0")" && pwd)/sql/drop-preview-db.sql"
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+db_family="${1:-legacy}"
+environment="${2:-preview}"
 
-bash "$script_dir/run-d1-execute.sh" ss-db-preview \
+eval "$(bash "$script_dir/lib/resolve-d1-target.sh" "$db_family" "$environment")"
+
+bash "$script_dir/run-d1-execute.sh" "$database_name" \
   --config "$wrangler_config" \
-  --env preview \
+  --env "$wrangler_env" \
   --remote \
-  --file "$sql_file"
+  --file "$drop_sql_file"
