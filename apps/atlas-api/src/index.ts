@@ -5,7 +5,7 @@ import { cors } from 'hono/cors'
 import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 
-import { createDb } from '@repo/db'
+import { createCurrentDb, createMetaDb } from '@repo/db'
 import { defaultOpenAPIHook } from './lib/openapi'
 import { metaRoutes } from './routes/v1/meta'
 import { regionRoutes } from './routes/v1/region'
@@ -33,7 +33,8 @@ app.use(
   }),
 )
 app.use('/v1/*', async (c, next) => {
-  c.set('db', createDb(c.env.DB))
+  c.set('metaDb', createMetaDb(c.env.DB_META))
+  c.set('currentDb', createCurrentDb(c.env.DB_CURRENT))
   await next()
 })
 

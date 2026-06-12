@@ -1,4 +1,4 @@
-import type { createDb, SaanseoiWorkerBindings } from '@repo/db'
+import type { createCurrentDb, createMetaDb, SaanseoiWorkerBindings } from '@repo/db'
 
 export type AppBindings = CloudflareBindings &
   SaanseoiWorkerBindings & {
@@ -10,6 +10,7 @@ export type AppBindings = CloudflareBindings &
 export type AppEnv = {
   Bindings: AppBindings
   Variables: {
-    db: ReturnType<typeof createDb>
+    currentDb: ReturnType<typeof createCurrentDb>
+    metaDb: ReturnType<typeof createMetaDb>
   }
 }

@@ -27,10 +27,10 @@ const handleI18n: Handle = async ({ event, resolve }) =>
   paraglideMiddleware(event.request, () => resolve(event))
 
 const handleBetterAuth: Handle = async ({ event, resolve }) => {
-  if (!event.platform?.env?.DB)
-    throw new Error('D1 binding "DB" not found - are you running with wrangler?')
+  if (!event.platform?.env?.DB_META)
+    throw new Error('D1 binding "DB_META" not found - are you running with wrangler?')
 
-  event.locals.auth = createAuth(event.platform.env.DB, event.url.origin)
+  event.locals.auth = createAuth(event.platform.env.DB_META, event.url.origin)
 
   const { auth } = event.locals
   const session = await auth.api.getSession({ headers: event.request.headers })

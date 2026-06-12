@@ -102,10 +102,12 @@ const substackRouteConfig = createRoute({
 export const healthRoute = defineOpenAPIRoute<typeof healthRouteConfig, AppEnv>({
   route: healthRouteConfig,
   handler: async c => {
-    const ping = await c.env.DB.prepare('SELECT 1 AS ok').first<{ ok: number }>()
-    const datasetCount = await c.env.DB.prepare(
-      'SELECT COUNT(*) AS "count" FROM "datasets"',
-    ).first<{ count: number }>()
+    const ping = await c.var.metaDb.$client
+      .prepare('SELECT 1 AS ok')
+      .first<{ ok: number }>()
+    const datasetCount = await c.var.metaDb.$client
+      .prepare('SELECT COUNT(*) AS "count" FROM "releases"')
+      .first<{ count: number }>()
 
     return c.json(
       {
@@ -121,16 +123,18 @@ export const datasetsRoute = defineOpenAPIRoute<typeof datasetsRouteConfig, AppE
   route: datasetsRouteConfig,
   handler: async c => {
     const query = c.req.valid('query')
-    const rows = await listDatasets(c.var.db, {
+    const rows = await listDatasets(c.var.metaDb, {
       regionCode: query.regionCode,
       snapshotMonth: query.snapshotMonth,
-      theme: query.theme,
+      theme: query.theme as NonNullable<Parameters<typeof listDatasets>[1]>['theme'],
       status:
         query.activeOnly === 'true'
-          ? 'current'
+          ? 'published'
           : query.activeOnly === 'false'
             ? undefined
-            : query.status,
+            : (query.status as NonNullable<
+                Parameters<typeof listDatasets>[1]
+              >['status']),
       limit: query.limit,
     })
 
@@ -147,7 +151,7 @@ export const substackRoute = defineOpenAPIRoute<typeof substackRouteConfig, AppE
   route: substackRouteConfig,
   handler: async c => {
     const { email } = c.req.valid('json')
-    const db = c.var.db
+    const db = c.var.metaDb
 
     await markNewsletterPending(db, email)
 
