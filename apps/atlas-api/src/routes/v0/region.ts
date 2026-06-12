@@ -23,7 +23,7 @@ import {
 import type { AppEnv } from '../../types'
 const placeRouteConfig = createRoute({
   method: 'get',
-  path: '/v1/{region}/places/{id}',
+  path: '/v0/{region}/places/{id}',
   tags: ['Places'],
   request: {
     params: RegionPlaceParamsSchema,
@@ -52,7 +52,7 @@ const placeRouteConfig = createRoute({
 
 const placesByCellRouteConfig = createRoute({
   method: 'get',
-  path: '/v1/{region}/places/by-cell/{h3Level}/{h3Cell}',
+  path: '/v0/{region}/places/by-cell/{h3Level}/{h3Cell}',
   tags: ['Places'],
   request: {
     params: PlacesByCellParamsSchema,
@@ -81,7 +81,7 @@ const placesByCellRouteConfig = createRoute({
 
 const searchRouteConfig = createRoute({
   method: 'get',
-  path: '/v1/{region}/search',
+  path: '/v0/{region}/search',
   tags: ['Places'],
   request: {
     params: SearchParamsSchema,
