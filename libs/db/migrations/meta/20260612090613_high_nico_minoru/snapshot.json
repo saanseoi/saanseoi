@@ -1,0 +1,1943 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "17e56493-ff5f-4dba-b1a3-bc1ac3e579db",
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
+  "ddl": [
+    {
+      "name": "publisherI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "publishers",
+      "entityType": "tables"
+    },
+    {
+      "name": "licenses",
+      "entityType": "tables"
+    },
+    {
+      "name": "datasetI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "datasets",
+      "entityType": "tables"
+    },
+    {
+      "name": "releases",
+      "entityType": "tables"
+    },
+    {
+      "name": "apiEndpointDatasets",
+      "entityType": "tables"
+    },
+    {
+      "name": "apiEndpoints",
+      "entityType": "tables"
+    },
+    {
+      "name": "apiFieldProvenance",
+      "entityType": "tables"
+    },
+    {
+      "name": "apiReleaseSetMembers",
+      "entityType": "tables"
+    },
+    {
+      "name": "apiReleaseSets",
+      "entityType": "tables"
+    },
+    {
+      "name": "apiVersions",
+      "entityType": "tables"
+    },
+    {
+      "name": "dataShards",
+      "entityType": "tables"
+    },
+    {
+      "name": "releaseSetShardAssignments",
+      "entityType": "tables"
+    },
+    {
+      "name": "releaseShardAssignments",
+      "entityType": "tables"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "publisherId",
+      "entityType": "columns",
+      "table": "publisherI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "publisherI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "publisherI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "description",
+      "entityType": "columns",
+      "table": "publisherI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "publisherI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "publisherI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "publishers"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "code",
+      "entityType": "columns",
+      "table": "publishers"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "url",
+      "entityType": "columns",
+      "table": "publishers"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "contactUrl",
+      "entityType": "columns",
+      "table": "publishers"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "contactEmail",
+      "entityType": "columns",
+      "table": "publishers"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "contactPhone",
+      "entityType": "columns",
+      "table": "publishers"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "parentPublisherId",
+      "entityType": "columns",
+      "table": "publishers"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "publishers"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "publishers"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "licenses"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "code",
+      "entityType": "columns",
+      "table": "licenses"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "licenses"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "url",
+      "entityType": "columns",
+      "table": "licenses"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "licenses"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "licenses"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetId",
+      "entityType": "columns",
+      "table": "datasetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "datasetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "datasetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "description",
+      "entityType": "columns",
+      "table": "datasetI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "datasetI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "datasetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "publisherId",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "code",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "regionCode",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseType",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseFrequency",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "theme",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "type",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceUrl",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "licenseId",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "category",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "attribution",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "tagsJson",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "datasets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetId",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "code",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceVersion",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceSchemaVersion",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "publicationDate",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotMonth",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawObjectKey",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "originalFileName",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "status",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "revokedAt",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "revocationReason",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "supersededByReleaseId",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "ingestedAt",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "apiEndpointId",
+      "entityType": "columns",
+      "table": "apiEndpointDatasets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetId",
+      "entityType": "columns",
+      "table": "apiEndpointDatasets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "usageType",
+      "entityType": "columns",
+      "table": "apiEndpointDatasets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "required",
+      "entityType": "columns",
+      "table": "apiEndpointDatasets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "notes",
+      "entityType": "columns",
+      "table": "apiEndpointDatasets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "apiEndpointDatasets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "apiEndpoints"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "apiVersionId",
+      "entityType": "columns",
+      "table": "apiEndpoints"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "method",
+      "entityType": "columns",
+      "table": "apiEndpoints"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "path",
+      "entityType": "columns",
+      "table": "apiEndpoints"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "operationId",
+      "entityType": "columns",
+      "table": "apiEndpoints"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "resourceType",
+      "entityType": "columns",
+      "table": "apiEndpoints"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "apiEndpoints"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "apiEndpoints"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "apiReleaseSetId",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "apiField",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceDatasetId",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceFieldPath",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "resolverCode",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "contributionType",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "priority",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "confidence",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceIdentifierPathsJson",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "apiReleaseSetId",
+      "entityType": "columns",
+      "table": "apiReleaseSetMembers"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetId",
+      "entityType": "columns",
+      "table": "apiReleaseSetMembers"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "apiReleaseSetMembers"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "role",
+      "entityType": "columns",
+      "table": "apiReleaseSetMembers"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "apiReleaseSetMembers"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "apiVersionId",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "code",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "canonicalSchemaVersion",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "canonicalLogicVersion",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "status",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "publishedAt",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFrom",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validTo",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "notes",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "apiVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "code",
+      "entityType": "columns",
+      "table": "apiVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "status",
+      "entityType": "columns",
+      "table": "apiVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "apiVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "apiVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "dataShards"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "kind",
+      "entityType": "columns",
+      "table": "dataShards"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "regionCode",
+      "entityType": "columns",
+      "table": "dataShards"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "year",
+      "entityType": "columns",
+      "table": "dataShards"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "environment",
+      "entityType": "columns",
+      "table": "dataShards"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "databaseName",
+      "entityType": "columns",
+      "table": "dataShards"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "databaseId",
+      "entityType": "columns",
+      "table": "dataShards"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bindingName",
+      "entityType": "columns",
+      "table": "dataShards"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "status",
+      "entityType": "columns",
+      "table": "dataShards"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "dataShards"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "dataShards"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "apiReleaseSetId",
+      "entityType": "columns",
+      "table": "releaseSetShardAssignments"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "dataShardId",
+      "entityType": "columns",
+      "table": "releaseSetShardAssignments"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "releaseSetShardAssignments"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "releaseShardAssignments"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "dataShardId",
+      "entityType": "columns",
+      "table": "releaseShardAssignments"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "releaseShardAssignments"
+    },
+    {
+      "columns": ["publisherId"],
+      "tableTo": "publishers",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_publisherI18n_publisherId_publishers_id_fk",
+      "entityType": "fks",
+      "table": "publisherI18n"
+    },
+    {
+      "columns": ["parentPublisherId"],
+      "tableTo": "publishers",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": true,
+      "name": "publishers_parentPublisherId_publishers_id_fk",
+      "entityType": "fks",
+      "table": "publishers"
+    },
+    {
+      "columns": ["datasetId"],
+      "tableTo": "datasets",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_datasetI18n_datasetId_datasets_id_fk",
+      "entityType": "fks",
+      "table": "datasetI18n"
+    },
+    {
+      "columns": ["publisherId"],
+      "tableTo": "publishers",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "name": "fk_datasets_publisherId_publishers_id_fk",
+      "entityType": "fks",
+      "table": "datasets"
+    },
+    {
+      "columns": ["licenseId"],
+      "tableTo": "licenses",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "name": "fk_datasets_licenseId_licenses_id_fk",
+      "entityType": "fks",
+      "table": "datasets"
+    },
+    {
+      "columns": ["datasetId"],
+      "tableTo": "datasets",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "name": "fk_releases_datasetId_datasets_id_fk",
+      "entityType": "fks",
+      "table": "releases"
+    },
+    {
+      "columns": ["apiEndpointId"],
+      "tableTo": "apiEndpoints",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_apiEndpointDatasets_apiEndpointId_apiEndpoints_id_fk",
+      "entityType": "fks",
+      "table": "apiEndpointDatasets"
+    },
+    {
+      "columns": ["datasetId"],
+      "tableTo": "datasets",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "name": "fk_apiEndpointDatasets_datasetId_datasets_id_fk",
+      "entityType": "fks",
+      "table": "apiEndpointDatasets"
+    },
+    {
+      "columns": ["apiVersionId"],
+      "tableTo": "apiVersions",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "name": "fk_apiEndpoints_apiVersionId_apiVersions_id_fk",
+      "entityType": "fks",
+      "table": "apiEndpoints"
+    },
+    {
+      "columns": ["apiReleaseSetId"],
+      "tableTo": "apiReleaseSets",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_apiFieldProvenance_apiReleaseSetId_apiReleaseSets_id_fk",
+      "entityType": "fks",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "columns": ["sourceDatasetId"],
+      "tableTo": "datasets",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "name": "fk_apiFieldProvenance_sourceDatasetId_datasets_id_fk",
+      "entityType": "fks",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "columns": ["apiReleaseSetId"],
+      "tableTo": "apiReleaseSets",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_apiReleaseSetMembers_apiReleaseSetId_apiReleaseSets_id_fk",
+      "entityType": "fks",
+      "table": "apiReleaseSetMembers"
+    },
+    {
+      "columns": ["datasetId"],
+      "tableTo": "datasets",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "name": "fk_apiReleaseSetMembers_datasetId_datasets_id_fk",
+      "entityType": "fks",
+      "table": "apiReleaseSetMembers"
+    },
+    {
+      "columns": ["releaseId"],
+      "tableTo": "releases",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "name": "fk_apiReleaseSetMembers_releaseId_releases_id_fk",
+      "entityType": "fks",
+      "table": "apiReleaseSetMembers"
+    },
+    {
+      "columns": ["apiVersionId"],
+      "tableTo": "apiVersions",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "name": "fk_apiReleaseSets_apiVersionId_apiVersions_id_fk",
+      "entityType": "fks",
+      "table": "apiReleaseSets"
+    },
+    {
+      "columns": ["apiReleaseSetId"],
+      "tableTo": "apiReleaseSets",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_releaseSetShardAssignments_apiReleaseSetId_apiReleaseSets_id_fk",
+      "entityType": "fks",
+      "table": "releaseSetShardAssignments"
+    },
+    {
+      "columns": ["dataShardId"],
+      "tableTo": "dataShards",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "name": "fk_releaseSetShardAssignments_dataShardId_dataShards_id_fk",
+      "entityType": "fks",
+      "table": "releaseSetShardAssignments"
+    },
+    {
+      "columns": ["releaseId"],
+      "tableTo": "releases",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_releaseShardAssignments_releaseId_releases_id_fk",
+      "entityType": "fks",
+      "table": "releaseShardAssignments"
+    },
+    {
+      "columns": ["dataShardId"],
+      "tableTo": "dataShards",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "nameExplicit": false,
+      "name": "fk_releaseShardAssignments_dataShardId_dataShards_id_fk",
+      "entityType": "fks",
+      "table": "releaseShardAssignments"
+    },
+    {
+      "columns": ["publisherId", "locale"],
+      "nameExplicit": false,
+      "name": "publisherI18n_pk",
+      "entityType": "pks",
+      "table": "publisherI18n"
+    },
+    {
+      "columns": ["datasetId", "locale"],
+      "nameExplicit": false,
+      "name": "datasetI18n_pk",
+      "entityType": "pks",
+      "table": "datasetI18n"
+    },
+    {
+      "columns": ["apiEndpointId", "datasetId"],
+      "nameExplicit": false,
+      "name": "apiEndpointDatasets_pk",
+      "entityType": "pks",
+      "table": "apiEndpointDatasets"
+    },
+    {
+      "columns": ["apiReleaseSetId", "releaseId"],
+      "nameExplicit": false,
+      "name": "apiReleaseSetMembers_pk",
+      "entityType": "pks",
+      "table": "apiReleaseSetMembers"
+    },
+    {
+      "columns": ["apiReleaseSetId", "dataShardId"],
+      "nameExplicit": false,
+      "name": "releaseSetShardAssignments_pk",
+      "entityType": "pks",
+      "table": "releaseSetShardAssignments"
+    },
+    {
+      "columns": ["releaseId", "dataShardId"],
+      "nameExplicit": false,
+      "name": "releaseShardAssignments_pk",
+      "entityType": "pks",
+      "table": "releaseShardAssignments"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "publishers_pk",
+      "table": "publishers",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "licenses_pk",
+      "table": "licenses",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "datasets_pk",
+      "table": "datasets",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "releases_pk",
+      "table": "releases",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "apiEndpoints_pk",
+      "table": "apiEndpoints",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "apiFieldProvenance_pk",
+      "table": "apiFieldProvenance",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "apiReleaseSets_pk",
+      "table": "apiReleaseSets",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "apiVersions_pk",
+      "table": "apiVersions",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "dataShards_pk",
+      "table": "dataShards",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "publisherI18n_locale_idx",
+      "entityType": "indexes",
+      "table": "publisherI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "parentPublisherId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "publishers_parentPublisherId_idx",
+      "entityType": "indexes",
+      "table": "publishers"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "datasetI18n_locale_idx",
+      "entityType": "indexes",
+      "table": "datasetI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "publisherId",
+          "isExpression": false
+        },
+        {
+          "value": "code",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "name": "datasets_publisherId_code_unique_idx",
+      "entityType": "indexes",
+      "table": "datasets"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        },
+        {
+          "value": "theme",
+          "isExpression": false
+        },
+        {
+          "value": "type",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "datasets_region_theme_type_idx",
+      "entityType": "indexes",
+      "table": "datasets"
+    },
+    {
+      "columns": [
+        {
+          "value": "datasetId",
+          "isExpression": false
+        },
+        {
+          "value": "sourceVersion",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "name": "releases_datasetId_sourceVersion_unique_idx",
+      "entityType": "indexes",
+      "table": "releases"
+    },
+    {
+      "columns": [
+        {
+          "value": "status",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "releases_status_idx",
+      "entityType": "indexes",
+      "table": "releases"
+    },
+    {
+      "columns": [
+        {
+          "value": "supersededByReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "releases_supersededByReleaseId_idx",
+      "entityType": "indexes",
+      "table": "releases"
+    },
+    {
+      "columns": [
+        {
+          "value": "apiVersionId",
+          "isExpression": false
+        },
+        {
+          "value": "method",
+          "isExpression": false
+        },
+        {
+          "value": "path",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "name": "apiEndpoints_apiVersion_method_path_unique_idx",
+      "entityType": "indexes",
+      "table": "apiEndpoints"
+    },
+    {
+      "columns": [
+        {
+          "value": "apiReleaseSetId",
+          "isExpression": false
+        },
+        {
+          "value": "apiField",
+          "isExpression": false
+        },
+        {
+          "value": "sourceDatasetId",
+          "isExpression": false
+        },
+        {
+          "value": "sourceFieldPath",
+          "isExpression": false
+        },
+        {
+          "value": "contributionType",
+          "isExpression": false
+        },
+        {
+          "value": "priority",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "name": "apiFieldProvenance_release_field_source_unique_idx",
+      "entityType": "indexes",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "columns": [
+        {
+          "value": "apiReleaseSetId",
+          "isExpression": false
+        },
+        {
+          "value": "apiField",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "apiFieldProvenance_release_field_idx",
+      "entityType": "indexes",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "columns": [
+        {
+          "value": "datasetId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "apiReleaseSetMembers_datasetId_idx",
+      "entityType": "indexes",
+      "table": "apiReleaseSetMembers"
+    },
+    {
+      "columns": [
+        {
+          "value": "apiVersionId",
+          "isExpression": false
+        },
+        {
+          "value": "code",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "name": "apiReleaseSets_apiVersionId_code_unique_idx",
+      "entityType": "indexes",
+      "table": "apiReleaseSets"
+    },
+    {
+      "columns": [
+        {
+          "value": "status",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "apiReleaseSets_status_idx",
+      "entityType": "indexes",
+      "table": "apiReleaseSets"
+    },
+    {
+      "columns": [
+        {
+          "value": "kind",
+          "isExpression": false
+        },
+        {
+          "value": "regionCode",
+          "isExpression": false
+        },
+        {
+          "value": "year",
+          "isExpression": false
+        },
+        {
+          "value": "environment",
+          "isExpression": false
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "origin": "manual",
+      "name": "dataShards_kind_region_year_env_unique_idx",
+      "entityType": "indexes",
+      "table": "dataShards"
+    },
+    {
+      "columns": [
+        {
+          "value": "dataShardId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "releaseSetShardAssignments_dataShardId_idx",
+      "entityType": "indexes",
+      "table": "releaseSetShardAssignments"
+    },
+    {
+      "columns": ["code"],
+      "nameExplicit": false,
+      "name": "publishers_code_unique",
+      "entityType": "uniques",
+      "table": "publishers"
+    },
+    {
+      "columns": ["code"],
+      "nameExplicit": false,
+      "name": "licenses_code_unique",
+      "entityType": "uniques",
+      "table": "licenses"
+    },
+    {
+      "columns": ["code"],
+      "nameExplicit": false,
+      "name": "releases_code_unique",
+      "entityType": "uniques",
+      "table": "releases"
+    },
+    {
+      "columns": ["operationId"],
+      "nameExplicit": false,
+      "name": "apiEndpoints_operationId_unique",
+      "entityType": "uniques",
+      "table": "apiEndpoints"
+    },
+    {
+      "columns": ["code"],
+      "nameExplicit": false,
+      "name": "apiVersions_code_unique",
+      "entityType": "uniques",
+      "table": "apiVersions"
+    },
+    {
+      "columns": ["bindingName"],
+      "nameExplicit": false,
+      "name": "dataShards_bindingName_unique",
+      "entityType": "uniques",
+      "table": "dataShards"
+    }
+  ],
+  "renames": []
+}
