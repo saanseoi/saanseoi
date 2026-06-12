@@ -73,7 +73,10 @@
   },
   "exports": {
     ".": "./src/index.ts",
-    "./schema": "./src/schema/index.ts"
+    "./currentSchema": "./src/schema/current/index.ts",
+    "./historySchema": "./src/schema/history/index.ts",
+    "./metaSchema": "./src/schema/meta/index.ts",
+    "./sourceSchema": "./src/schema/source/index.ts"
   },
   "dependencies": {
     "drizzle-orm": "^1.0.0-beta.22"
