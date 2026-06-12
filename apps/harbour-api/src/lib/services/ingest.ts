@@ -1,6 +1,5 @@
 import { createRawObjectKey, planUpload, registerUpload } from '@repo/core/upload'
 import { inspectParquet } from '@repo/core/parquet-inspector'
-import { getDatasetById } from '@repo/core/db/meta-repository'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
 import type {
@@ -142,18 +141,14 @@ export async function handleUploadRequest(
     if (!registered.rawObjectKey) {
       throw new Error('registerUpload returned no rawObjectKey for a staged upload.')
     }
-    const release = await getDatasetById(db, registered.plan.releaseCode)
-
-    if (!release?.releaseId) {
-      throw new Error(
-        `Release not found after direct upload registration: ${registered.plan.releaseCode}`,
-      )
+    if (!registered.datasetId || !registered.releaseId) {
+      throw new Error('registerUpload returned incomplete release identifiers.')
     }
 
     const processingMessage: DatasetProcessingMessage = {
-      datasetId: release.datasetId,
+      datasetId: registered.datasetId,
       datasetCode: registered.plan.datasetCode,
-      releaseId: release.releaseId,
+      releaseId: registered.releaseId,
       releaseCode: registered.plan.releaseCode,
       rawObjectKey: registered.rawObjectKey,
       regionCode: registered.plan.regionCode,

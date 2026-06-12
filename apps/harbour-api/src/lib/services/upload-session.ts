@@ -62,8 +62,7 @@ export type SignUploadRequest = {
 }
 
 export type FinalizeUploadRequest = {
-  releaseId?: string
-  datasetId?: string
+  releaseId: string
 }
 
 export type UploadSigningEnv = {
@@ -137,16 +136,13 @@ export async function handleFinalizeUploadRequest(
   queue: DatasetProcessingQueue,
   request: FinalizeUploadRequest,
 ): Promise<RegisterUploadResult> {
-  const dataset = await getDatasetRecordByReleaseId(
-    db,
-    request.releaseId ?? request.datasetId ?? '',
-  )
+  const dataset = await getDatasetRecordByReleaseId(db, request.releaseId)
 
   if (!dataset) {
-    throw new Error(`Release not found: ${request.releaseId ?? request.datasetId}`)
+    throw new Error(`Release not found: ${request.releaseId}`)
   }
 
-  if (dataset.status !== 'staged') {
+  if (dataset.status !== 'uploading') {
     throw new Error(
       `Release ${dataset.releaseCode} is not awaiting upload finalization.`,
     )
@@ -176,7 +172,7 @@ export async function handleFinalizeUploadRequest(
       inspection,
       rawObjectKey: dataset.rawObjectKey,
       resolveSchemaFingerprint,
-      allowExistingDatasetStatuses: ['staged'],
+      allowExistingDatasetStatuses: ['uploading'],
     },
     inspection,
   )
@@ -210,7 +206,7 @@ export async function handleFinalizeUploadRequest(
   })
 
   const processingMessage: DatasetProcessingMessage = {
-    datasetId: dataset.datasetId,
+    datasetId: finalized.plan.datasetId,
     datasetCode: finalized.plan.datasetCode,
     releaseId: dataset.releaseId,
     releaseCode: finalized.plan.releaseCode,

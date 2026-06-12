@@ -1,9 +1,6 @@
 import { createMetaDb } from '@repo/db'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
-import {
-  getDatasetById,
-  getDatasetRecordByReleaseId,
-} from '@repo/core/db/meta-repository'
+import { getDatasetRecordByReleaseId } from '@repo/core/db/meta-repository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
 
 import { handleUploadRequest } from '../../lib/services/ingest'
@@ -131,19 +128,17 @@ export const uploadRoute = defineOpenAPIRoute<typeof uploadRouteConfig, AppEnv>(
         c.env.DATASET_QUEUE,
         formData,
       )
-      const release = await getDatasetById(db, result.plan.releaseCode)
-
-      if (!release?.releaseId) {
-        throw new Error(`Release not found after upload: ${result.plan.releaseCode}`)
+      if (!result.datasetId || !result.releaseId) {
+        throw new Error('Upload registration returned incomplete release identifiers.')
       }
 
       return c.json(
         {
-          datasetId: release.datasetId,
+          datasetId: result.datasetId,
           datasetCode: result.plan.datasetCode,
           rawObjectKey: result.rawObjectKey,
           releaseCode: result.plan.releaseCode,
-          releaseId: release.releaseId,
+          releaseId: result.releaseId,
           rowCount: result.plan.rowCount,
           source: result.plan.source,
           sourceVersion: result.plan.sourceVersion,
@@ -219,15 +214,10 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
         c.env.DATASET_QUEUE,
         request,
       )
-      const release = await getDatasetRecordByReleaseId(
-        db,
-        request.releaseId ?? request.datasetId ?? '',
-      )
+      const release = await getDatasetRecordByReleaseId(db, request.releaseId)
 
       if (!release) {
-        throw new Error(
-          `Release not found after finalization: ${request.releaseId ?? request.datasetId}`,
-        )
+        throw new Error(`Release not found after finalization: ${request.releaseId}`)
       }
 
       return c.json(

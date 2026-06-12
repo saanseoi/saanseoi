@@ -66,11 +66,11 @@ describe('control service', () => {
     `)
 
     await handleStageStarted(db, {
-      datasetId: 'overture-hk-2025-09-24.0-division',
+      releaseId: 'overture-hk-2025-09-24.0-division-row',
       phase: 'extractDivisions',
     })
     await handleStageCompleted(db, {
-      datasetId: 'overture-hk-2025-09-24.0-division',
+      releaseId: 'overture-hk-2025-09-24.0-division-row',
       phase: 'extractDivisions',
       stats: {
         processedRows: 1810,
@@ -78,11 +78,11 @@ describe('control service', () => {
     })
 
     await handleStageStarted(db, {
-      datasetId: 'overture-hk-2025-09-24.0-division',
+      releaseId: 'overture-hk-2025-09-24.0-division-row',
       phase: 'publishDataset',
     })
     await handleStageFailed(db, {
-      datasetId: 'overture-hk-2025-09-24.0-division',
+      releaseId: 'overture-hk-2025-09-24.0-division-row',
       phase: 'publishDataset',
       error: 'Network connection lost.',
     })
@@ -155,7 +155,7 @@ describe('control service', () => {
     `)
 
     const result = await handlePublishDataset(db, {
-      datasetId: 'overture-hk-2026-02-18.0-division',
+      releaseId: 'overture-hk-2026-02-18.0-division-row',
     })
 
     const rows = sqlite
@@ -221,7 +221,7 @@ describe('control service', () => {
     `)
 
     const result = await handlePublishDataset(db, {
-      datasetId: 'overture-hk-2026-02-18.1-division',
+      releaseId: 'overture-hk-2026-02-18.1-division-row',
     })
 
     const rows = sqlite
@@ -257,5 +257,64 @@ describe('control service', () => {
       revokedAt: null,
       revocationReason: null,
     })
+  })
+
+  test('marks the superseded dataset historic for same-month releases with different source dates', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-publish-same-month.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    sqlite.exec(`
+      INSERT INTO datasets (
+        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
+        rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
+        revocationReason, ingestedAt, createdAt, updatedAt
+      ) VALUES
+      (
+        'overture-hk-2026-06-17.0-division-row', 'overture-hk-2026-06-17.0-division', 'hk', '2026-06', 'divisions', 'division',
+        'overture', '2026-06-17.0', 'hk/overture/2026-06-17.0/division.parquet',
+        'division.parquet', 'current', null, null, null, '2026-06-05T00:00:00.000Z',
+        '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
+      ),
+      (
+        'overture-hk-2026-06-24.0-division-row', 'overture-hk-2026-06-24.0-division', 'hk', '2026-06', 'divisions', 'division',
+        'overture', '2026-06-24.0', 'hk/overture/2026-06-24.0/division.parquet',
+        'division.parquet', 'staged', 'overture-hk-2026-06-17.0-division', null, null,
+        '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
+      );
+    `)
+
+    await handlePublishDataset(db, {
+      releaseId: 'overture-hk-2026-06-24.0-division-row',
+    })
+
+    const rows = sqlite
+      .query(
+        'SELECT datasetId, status, revokedAt, revocationReason FROM datasets ORDER BY datasetId',
+      )
+      .all() as Array<{
+      datasetId: string
+      status: string
+      revokedAt: string | null
+      revocationReason: string | null
+    }>
+
+    sqlite.close()
+
+    expect(rows).toEqual([
+      {
+        datasetId: 'overture-hk-2026-06-17.0-division',
+        status: 'historic',
+        revokedAt: null,
+        revocationReason: null,
+      },
+      {
+        datasetId: 'overture-hk-2026-06-24.0-division',
+        status: 'current',
+        revokedAt: null,
+        revocationReason: null,
+      },
+    ])
   })
 })
