@@ -79,7 +79,8 @@ CREATE TABLE `releases` (
 	`ingestedAt` integer,
 	`createdAt` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`updatedAt` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	CONSTRAINT `fk_releases_datasetId_datasets_id_fk` FOREIGN KEY (`datasetId`) REFERENCES `datasets`(`id`) ON DELETE RESTRICT
+	CONSTRAINT `fk_releases_datasetId_datasets_id_fk` FOREIGN KEY (`datasetId`) REFERENCES `datasets`(`id`) ON DELETE RESTRICT,
+	CONSTRAINT `releases_supersededByReleaseId_releases_id_fk` FOREIGN KEY (`supersededByReleaseId`) REFERENCES `releases`(`id`) ON DELETE SET NULL
 );
 --> statement-breakpoint
 CREATE TABLE `apiEndpointDatasets` (
@@ -132,7 +133,7 @@ CREATE TABLE `apiReleaseSetMembers` (
 	CONSTRAINT `apiReleaseSetMembers_pk` PRIMARY KEY(`apiReleaseSetId`, `releaseId`),
 	CONSTRAINT `fk_apiReleaseSetMembers_apiReleaseSetId_apiReleaseSets_id_fk` FOREIGN KEY (`apiReleaseSetId`) REFERENCES `apiReleaseSets`(`id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_apiReleaseSetMembers_datasetId_datasets_id_fk` FOREIGN KEY (`datasetId`) REFERENCES `datasets`(`id`) ON DELETE RESTRICT,
-	CONSTRAINT `fk_apiReleaseSetMembers_releaseId_releases_id_fk` FOREIGN KEY (`releaseId`) REFERENCES `releases`(`id`) ON DELETE RESTRICT
+	CONSTRAINT `apiReleaseSetMembers_releaseId_datasetId_releases_id_datasetId_fk` FOREIGN KEY (`releaseId`,`datasetId`) REFERENCES `releases`(`id`,`datasetId`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE TABLE `apiReleaseSets` (
@@ -191,12 +192,114 @@ CREATE TABLE `releaseShardAssignments` (
 	CONSTRAINT `fk_releaseShardAssignments_dataShardId_dataShards_id_fk` FOREIGN KEY (`dataShardId`) REFERENCES `dataShards`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
+CREATE TABLE `entityAliases` (
+	`aliasId` text PRIMARY KEY,
+	`entityType` text NOT NULL,
+	`aliasValue` text NOT NULL,
+	`canonicalId` text NOT NULL,
+	`sourceSystem` text NOT NULL,
+	`isCurrent` integer NOT NULL,
+	`validFromMonth` text,
+	`validToMonth` text,
+	`notes` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `ingestRuns` (
+	`runId` text PRIMARY KEY,
+	`releaseId` text NOT NULL,
+	`phase` text NOT NULL,
+	`status` text NOT NULL,
+	`statsJson` text,
+	`errorJson` text,
+	`startedAt` text NOT NULL,
+	`finishedAt` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
+	CONSTRAINT `fk_ingestRuns_releaseId_releases_id_fk` FOREIGN KEY (`releaseId`) REFERENCES `releases`(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `stats` (
+	`id` text PRIMARY KEY,
+	`type` text NOT NULL,
+	`releaseId` text NOT NULL,
+	`dimension` text NOT NULL,
+	`metric` text NOT NULL,
+	`metricUnit` text NOT NULL,
+	`value` real NOT NULL,
+	`groupBy` text,
+	`groupValue` text,
+	`createdAt` text NOT NULL,
+	`updatedAt` text NOT NULL,
+	CONSTRAINT `fk_stats_releaseId_releases_id_fk` FOREIGN KEY (`releaseId`) REFERENCES `releases`(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `account` (
+	`id` text PRIMARY KEY,
+	`account_id` text NOT NULL,
+	`provider_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`access_token` text,
+	`refresh_token` text,
+	`id_token` text,
+	`access_token_expires_at` integer,
+	`refresh_token_expires_at` integer,
+	`scope` text,
+	`password` text,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer NOT NULL,
+	CONSTRAINT `fk_account_user_id_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+);
+--> statement-breakpoint
+CREATE TABLE `newsletterSubscription` (
+	`email` text PRIMARY KEY,
+	`status` text DEFAULT 'pending' NOT NULL,
+	`last_error` text,
+	`subscribed_at` integer,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `session` (
+	`id` text PRIMARY KEY,
+	`expires_at` integer NOT NULL,
+	`token` text NOT NULL UNIQUE,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer NOT NULL,
+	`ip_address` text,
+	`user_agent` text,
+	`user_id` text NOT NULL,
+	CONSTRAINT `fk_session_user_id_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+);
+--> statement-breakpoint
+CREATE TABLE `user` (
+	`id` text PRIMARY KEY,
+	`name` text NOT NULL,
+	`email` text NOT NULL UNIQUE,
+	`email_verified` integer DEFAULT false NOT NULL,
+	`image` text,
+	`substack` text,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `verification` (
+	`id` text PRIMARY KEY,
+	`identifier` text NOT NULL,
+	`value` text NOT NULL,
+	`expires_at` integer NOT NULL,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
+);
+--> statement-breakpoint
 CREATE INDEX `publisherI18n_locale_idx` ON `publisherI18n` (`locale`);--> statement-breakpoint
 CREATE INDEX `publishers_parentPublisherId_idx` ON `publishers` (`parentPublisherId`);--> statement-breakpoint
 CREATE INDEX `datasetI18n_locale_idx` ON `datasetI18n` (`locale`);--> statement-breakpoint
 CREATE UNIQUE INDEX `datasets_publisherId_code_unique_idx` ON `datasets` (`publisherId`,`code`);--> statement-breakpoint
 CREATE INDEX `datasets_region_theme_type_idx` ON `datasets` (`regionCode`,`theme`,`type`);--> statement-breakpoint
 CREATE UNIQUE INDEX `releases_datasetId_sourceVersion_unique_idx` ON `releases` (`datasetId`,`sourceVersion`);--> statement-breakpoint
+CREATE UNIQUE INDEX `releases_id_datasetId_unique_idx` ON `releases` (`id`,`datasetId`);--> statement-breakpoint
 CREATE INDEX `releases_status_idx` ON `releases` (`status`);--> statement-breakpoint
 CREATE INDEX `releases_supersededByReleaseId_idx` ON `releases` (`supersededByReleaseId`);--> statement-breakpoint
 CREATE UNIQUE INDEX `apiEndpoints_apiVersion_method_path_unique_idx` ON `apiEndpoints` (`apiVersionId`,`method`,`path`);--> statement-breakpoint
@@ -206,4 +309,16 @@ CREATE INDEX `apiReleaseSetMembers_datasetId_idx` ON `apiReleaseSetMembers` (`da
 CREATE UNIQUE INDEX `apiReleaseSets_apiVersionId_code_unique_idx` ON `apiReleaseSets` (`apiVersionId`,`code`);--> statement-breakpoint
 CREATE INDEX `apiReleaseSets_status_idx` ON `apiReleaseSets` (`status`);--> statement-breakpoint
 CREATE UNIQUE INDEX `dataShards_kind_region_year_env_unique_idx` ON `dataShards` (`kind`,`regionCode`,`year`,`environment`);--> statement-breakpoint
-CREATE INDEX `releaseSetShardAssignments_dataShardId_idx` ON `releaseSetShardAssignments` (`dataShardId`);
+CREATE UNIQUE INDEX `dataShards_kind_env_unscoped_unique_idx` ON `dataShards` (`kind`,`environment`) WHERE "dataShards"."regionCode" is null and "dataShards"."year" is null;--> statement-breakpoint
+CREATE UNIQUE INDEX `dataShards_kind_region_env_unique_idx` ON `dataShards` (`kind`,`regionCode`,`environment`) WHERE "dataShards"."regionCode" is not null and "dataShards"."year" is null;--> statement-breakpoint
+CREATE UNIQUE INDEX `dataShards_kind_year_env_unique_idx` ON `dataShards` (`kind`,`year`,`environment`) WHERE "dataShards"."regionCode" is null and "dataShards"."year" is not null;--> statement-breakpoint
+CREATE UNIQUE INDEX `dataShards_kind_region_year_env_scoped_unique_idx` ON `dataShards` (`kind`,`regionCode`,`year`,`environment`) WHERE "dataShards"."regionCode" is not null and "dataShards"."year" is not null;--> statement-breakpoint
+CREATE INDEX `releaseSetShardAssignments_dataShardId_idx` ON `releaseSetShardAssignments` (`dataShardId`);--> statement-breakpoint
+CREATE UNIQUE INDEX `entityAliases_entityType_aliasValue_unique_idx` ON `entityAliases` (`entityType`,`aliasValue`);--> statement-breakpoint
+CREATE INDEX `entityAliases_canonical_lookup_idx` ON `entityAliases` (`entityType`,`canonicalId`);--> statement-breakpoint
+CREATE INDEX `stats_releaseId_idx` ON `stats` (`releaseId`);--> statement-breakpoint
+CREATE INDEX `stats_dimension_idx` ON `stats` (`type`,`dimension`,`metric`,`groupBy`,`groupValue`);--> statement-breakpoint
+CREATE INDEX `account_userId_idx` ON `account` (`user_id`);--> statement-breakpoint
+CREATE INDEX `newsletterSubscription_status_idx` ON `newsletterSubscription` (`status`);--> statement-breakpoint
+CREATE INDEX `session_userId_idx` ON `session` (`user_id`);--> statement-breakpoint
+CREATE INDEX `verification_identifier_idx` ON `verification` (`identifier`);
