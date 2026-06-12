@@ -121,7 +121,7 @@ export const datasetsRoute = defineOpenAPIRoute<typeof datasetsRouteConfig, AppE
   route: datasetsRouteConfig,
   handler: async c => {
     const query = c.req.valid('query')
-    const rows = await listDatasets(c.env.DB, {
+    const rows = await listDatasets(c.var.db, {
       regionCode: query.regionCode,
       snapshotMonth: query.snapshotMonth,
       theme: query.theme,
