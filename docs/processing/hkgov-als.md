@@ -78,6 +78,12 @@ The Hong Kong government ALS address export is a first-class source for Harbour 
   - street name
   - `districtId`
 
+## Source-table retention
+
+- Uploaded ALS rows are retained in `sourceHkgovAlsAddresses2d`, and localized address text is retained in `sourceHkgovAlsAddress2dI18n`.
+- `releaseId` identifies the specific uploaded release, `datasetId` identifies the logical dataset it belongs to, and `sourceRecordId` identifies the row inside that source release.
+- The retained tables keep both extracted structured columns and the original payload JSON so later builders can add more address detail without re-reading the uploaded file.
+
 ## Notes
 
 - The current local prep output is a staging format for upload, not the final published `address2d` row shape.

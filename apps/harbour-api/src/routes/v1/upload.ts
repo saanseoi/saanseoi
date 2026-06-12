@@ -1,5 +1,9 @@
-import { createDb } from '@repo/db'
+import { createMetaDb } from '@repo/db'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
+import {
+  getDatasetById,
+  getDatasetRecordByReleaseId,
+} from '@repo/core/db/meta-repository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
 
 import { handleUploadRequest } from '../../lib/services/ingest'
@@ -119,7 +123,7 @@ export const uploadRoute = defineOpenAPIRoute<typeof uploadRouteConfig, AppEnv>(
   route: uploadRouteConfig,
   handler: async c => {
     try {
-      const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
+      const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
       const formData = await c.req.formData()
       const result = await handleUploadRequest(
         db,
@@ -127,16 +131,23 @@ export const uploadRoute = defineOpenAPIRoute<typeof uploadRouteConfig, AppEnv>(
         c.env.DATASET_QUEUE,
         formData,
       )
+      const release = await getDatasetById(db, result.plan.releaseCode)
+
+      if (!release?.releaseId) {
+        throw new Error(`Release not found after upload: ${result.plan.releaseCode}`)
+      }
 
       return c.json(
         {
-          datasetId: result.plan.datasetId,
+          datasetId: release.datasetId,
+          datasetCode: result.plan.datasetCode,
           rawObjectKey: result.rawObjectKey,
+          releaseCode: result.plan.releaseCode,
+          releaseId: release.releaseId,
           rowCount: result.plan.rowCount,
           source: result.plan.source,
           sourceVersion: result.plan.sourceVersion,
           status: 'staged',
-          supersedesDatasetId: result.plan.supersedesDatasetId,
           type: result.plan.type,
         },
         200,
@@ -159,15 +170,18 @@ export const signUploadRoute = defineOpenAPIRoute<typeof signUploadRouteConfig, 
     route: signUploadRouteConfig,
     handler: async c => {
       try {
-        const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
+        const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
         const request = c.req.valid('json') as SignUploadRequest
         const result = await handleSignUploadRequest(db, c.env.R2_RAW, c.env, request)
 
         return c.json(
           {
             datasetId: result.datasetId,
+            datasetCode: result.datasetCode,
             expiresAt: result.expiresAt,
             rawObjectKey: result.rawObjectKey,
+            releaseCode: result.releaseCode,
+            releaseId: result.releaseId,
             source: result.source,
             status: result.status,
             uploadHeaders: result.uploadHeaders,
@@ -197,7 +211,7 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
   route: finalizeUploadRouteConfig,
   handler: async c => {
     try {
-      const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
+      const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
       const request = c.req.valid('json') as FinalizeUploadRequest
       const result = await handleFinalizeUploadRequest(
         db,
@@ -205,16 +219,28 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
         c.env.DATASET_QUEUE,
         request,
       )
+      const release = await getDatasetRecordByReleaseId(
+        db,
+        request.releaseId ?? request.datasetId ?? '',
+      )
+
+      if (!release) {
+        throw new Error(
+          `Release not found after finalization: ${request.releaseId ?? request.datasetId}`,
+        )
+      }
 
       return c.json(
         {
-          datasetId: result.plan.datasetId,
+          datasetId: release.datasetId,
+          datasetCode: result.plan.datasetCode,
           rawObjectKey: result.rawObjectKey,
+          releaseCode: result.plan.releaseCode,
+          releaseId: release.releaseId,
           rowCount: result.plan.rowCount,
           source: result.plan.source,
           sourceVersion: result.plan.sourceVersion,
           status: 'staged',
-          supersedesDatasetId: result.plan.supersedesDatasetId,
           type: result.plan.type,
         },
         200,

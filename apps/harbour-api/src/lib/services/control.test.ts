@@ -173,6 +173,8 @@ describe('control service', () => {
 
     expect(result).toEqual({
       datasetId: 'overture-hk-2026-02-18.0-division',
+      releaseCode: 'overture-hk-2026-02-18.0-division',
+      releaseId: 'overture-hk-2026-02-18.0-division-row',
       phase: null,
       status: 'current',
     })
@@ -237,6 +239,8 @@ describe('control service', () => {
 
     expect(result).toEqual({
       datasetId: 'overture-hk-2026-02-18.1-division',
+      releaseCode: 'overture-hk-2026-02-18.1-division',
+      releaseId: 'overture-hk-2026-02-18.1-division-row',
       phase: null,
       status: 'current',
     })

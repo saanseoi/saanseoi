@@ -9,7 +9,7 @@ import type { DatasetProcessingMessage } from '@repo/core'
 import { createHarbourClient } from './lib/harbourClient'
 import { processDatasetMessage } from './lib/worker'
 
-type Env = LegacyDbBindings &
+type Env = Partial<LegacyDbBindings> &
   Partial<MultiDbBindings> & {
     HARBOUR_API_KEY: string
     HARBOUR_BASE_URL: string
@@ -22,7 +22,13 @@ export function createQueueHandler(
   processDataset: ProcessDatasetMessageHandler = processDatasetMessage,
 ) {
   return async (batch: MessageBatch<DatasetProcessingMessage>, env: Env) => {
-    const db = createDb(env.DB)
+    const currentBinding = env.DB_CURRENT ?? env.DB
+
+    if (!currentBinding) {
+      throw new Error('Missing DB_CURRENT binding for harbour-workers.')
+    }
+
+    const db = createDb(currentBinding)
     const sourceDb = env.DB_SOURCE_HK_2026
       ? createSourceDb(env.DB_SOURCE_HK_2026)
       : undefined
@@ -38,6 +44,8 @@ export function createQueueHandler(
       } catch (error) {
         console.error('harbour-workers dataset processing failed', {
           datasetId: message.body.datasetId,
+          releaseCode: message.body.releaseCode,
+          releaseId: message.body.releaseId,
           cause:
             error instanceof Error && error.cause instanceof Error
               ? error.cause.message

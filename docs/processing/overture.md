@@ -36,6 +36,8 @@ The `division` is normalised into `divisions` and `divisionsI18n` where each `lo
 ## Addresses
 
 - Overture `address` rows remain part of the Harbour address strategy alongside `hkgov-als`.
+- Overture address rows are retained in `sourceOvertureAddresses2d`, and localized text is retained in `sourceOvertureAddress2dI18n`.
+- `releaseId` points to the exact uploaded release, `datasetId` points to the logical dataset, and `sourceRecordId` points to the row inside that source release.
 - For the first address pass, Overture is intended to contribute:
   - `id` -> Harbour `address2d.id` using the GERS UID directly.
   - `geometry` -> GeoJSON point text in `geometryJson`.
@@ -48,3 +50,13 @@ The `division` is normalised into `divisions` and `divisionsI18n` where each `lo
 - There is no shared cross-source address key between Overture and `hkgov-als`.
 - Reconciliation for `address2d` should start from normalized street number, street name, and `districtId`.
 - Overture address uploads are still expected to land before any `hkgov-als` enrichment layer is applied.
+
+## Source-table retention
+
+- Overture source rows are retained in the `source` database family so later builders can work from normalized source tables instead of reopening raw uploads.
+- The retained tables are `sourceOvertureDivisions`, `sourceOvertureDivisionI18n`, `sourceOvertureAddresses2d`, `sourceOvertureAddress2dI18n`, `sourceOverturePlaces`, and `sourceOverturePlaceI18n`.
+- Each retained row is keyed to a specific upload through `releaseId`, grouped under its logical dataset through `datasetId`, and matched back to the upstream row through `sourceRecordId`.
+- `sourcePayloadHash` is stored so ingestion can cheaply tell whether a source row changed.
+- The address tables only store fields that actually exist in Overture source data. They do not invent Harbour-specific fields such as `buildingName`, `unit`, `floor`, `freeformAddress`, or `formattedAddress`.
+- Localized source text belongs in the i18n tables when we choose to project it, including fields like `locality`, `region`, and `country`.
+- Source content that is not yet promoted into first-class columns remains available in JSON fields such as `rawPropertiesJson`, `sourcesJson`, `hierarchiesJson`, and `taxonomyHierarchyJson`.

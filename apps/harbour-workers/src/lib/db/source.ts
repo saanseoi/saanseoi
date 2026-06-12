@@ -6,10 +6,14 @@ import { sourceSchema, type SourceDatabase } from '@repo/db'
 import { chunkArray, getMaxRowsPerInsert, runWithWriteRetry } from '../utils'
 
 export function buildSourceReleaseId(message: DatasetProcessingMessage) {
-  return message.datasetId
+  return message.releaseId ?? message.datasetId
 }
 
 export function buildSourceDatasetId(message: DatasetProcessingMessage) {
+  if (message.releaseId) {
+    return message.datasetId
+  }
+
   const source = message.source === 'hkgov-als' ? 'hkgov' : message.source
   return `${source}-${message.regionCode}-${message.type}`
 }

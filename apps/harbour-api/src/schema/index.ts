@@ -62,10 +62,30 @@ export const HealthResponseSchema = z
   })
   .openapi('HarbourHealthResponse')
 
-const DatasetIdSchema = z.string().openapi({
-  description:
-    'Unique identifier for the dataset, consisting of the source, region code, sourceVersion, and type',
-  examples: ['overture-hk-2025-09-24.0-division', 'hkgov-hk-2026-01-20.0-address'],
+const DatasetIdSchema = z
+  .string()
+  .uuid()
+  .openapi({
+    description: 'Stable dataset UUID from meta.datasets.',
+    examples: ['960b3f6f-437f-49e3-bd72-44e87d1cd5b9'],
+  })
+
+const DatasetCodeSchema = z.string().openapi({
+  description: 'Stable dataset code within a publisher.',
+  examples: ['hk-division', 'hk-address'],
+})
+
+const ReleaseIdSchema = z
+  .string()
+  .uuid()
+  .openapi({
+    description: 'Release UUID from meta.releases.',
+    examples: ['1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70'],
+  })
+
+const ReleaseCodeSchema = z.string().openapi({
+  description: 'Public release identifier.',
+  examples: ['overture-hk-division-2025-09-24.0', 'hkgov-hk-address-2026-01-20.0'],
 })
 
 const RawObjectKeySchema = z
@@ -93,7 +113,10 @@ const SourceSchema = z.string().openapi({
 export const UploadResponseSchema = z
   .object({
     datasetId: DatasetIdSchema,
+    datasetCode: DatasetCodeSchema,
     rawObjectKey: RawObjectKeySchema,
+    releaseCode: ReleaseCodeSchema,
+    releaseId: ReleaseIdSchema,
     rowCount: z.number().openapi({
       description: 'Number of rows processed in the upload',
       examples: [1000, 25000],
@@ -107,13 +130,6 @@ export const UploadResponseSchema = z
         examples: ['2025-09-24.0', '2026-01-20.0'],
       }),
     status: StatusSchema,
-    supersedesDatasetId: z
-      .string()
-      .nullable()
-      .openapi({
-        description: 'Dataset ID that this dataset supersedes (if any)',
-        examples: ['overture-hk-2025-09-24.0-division', null],
-      }),
     type: z.string().openapi({
       description: 'Theme type of the dataset (e.g., division, address)',
       examples: ['division', 'address', 'place'],
@@ -129,11 +145,14 @@ export const SignUploadRequestSchema = z
 export const SignUploadResponseSchema = z
   .object({
     datasetId: DatasetIdSchema,
+    datasetCode: DatasetCodeSchema,
     expiresAt: z.string().openapi({
       description: 'Expiration timestamp for the signed upload URL',
       examples: ['2025-09-30T23:59:59Z', '2026-01-21T00:00:00Z'],
     }),
     rawObjectKey: RawObjectKeySchema,
+    releaseCode: ReleaseCodeSchema,
+    releaseId: ReleaseIdSchema,
     source: SourceSchema,
     status: StatusSchema,
     uploadHeaders: z.record(z.string(), z.string()).openapi({
@@ -154,13 +173,14 @@ export const SignUploadResponseSchema = z
   .openapi('HarbourSignUploadResponse')
 
 export const FinalizeUploadRequestSchema = z
-  .object({})
-  .loose()
+  .object({
+    releaseId: ReleaseIdSchema,
+  })
   .openapi('HarbourFinalizeUploadRequest')
 
 export const ControlStageRequestSchema = z
   .object({
-    datasetId: DatasetIdSchema,
+    releaseId: ReleaseIdSchema,
     phase: z.string().openapi({
       examples: ['processDataset', 'extractDivisions', 'extractDivisionsI18n'],
     }),
@@ -171,13 +191,14 @@ export const ControlStageRequestSchema = z
 
 export const PublishDatasetRequestSchema = z
   .object({
-    datasetId: DatasetIdSchema,
+    releaseId: ReleaseIdSchema,
   })
   .openapi('HarbourPublishDatasetRequest')
 
 export const ControlResponseSchema = z
   .object({
-    datasetId: DatasetIdSchema,
+    releaseCode: ReleaseCodeSchema,
+    releaseId: ReleaseIdSchema,
     phase: z
       .string()
       .nullable()
