@@ -10,10 +10,21 @@ import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local
 import type { DatasetProcessingQueue, UploadSigningEnv } from './upload-session'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
-const migrationSql = readdirSync(migrationsDir)
-  .filter(fileName => fileName.endsWith('.sql'))
+function collectSqlFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+    const entryPath = join(dir, entry.name)
+
+    if (entry.isDirectory()) {
+      return collectSqlFiles(entryPath)
+    }
+
+    return entry.name.endsWith('.sql') ? [entryPath] : []
+  })
+}
+
+const migrationSql = collectSqlFiles(migrationsDir)
   .sort()
-  .map(fileName => readFileSync(join(migrationsDir, fileName), 'utf8'))
+  .map(filePath => readFileSync(filePath, 'utf8'))
   .join('\n')
 const tempDirs: string[] = []
 const fixtureInspection: ParquetInspection = {
@@ -167,7 +178,7 @@ describe('upload session flow', () => {
     await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
 
     const finalizeResult = await handleFinalizeUploadRequest(db, bucket, queue, {
-      datasetId: signResult.datasetId,
+      releaseId: signResult.releaseId,
     })
     const dataset = sqlite
       .query(
@@ -199,9 +210,12 @@ describe('upload session flow', () => {
         type: 'division',
       },
     ])
-    expect(bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.datasetId).toBe(
-      'overture-hk-2026-05-24.0-division',
-    )
+    expect(
+      bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.datasetCode,
+    ).toBe('hk-division')
+    expect(
+      bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.releaseCode,
+    ).toBe('overture-hk-2026-05-24.0-division')
     expect(
       bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.originalFileName,
     ).toBe('overture-hk-division.parquet')
