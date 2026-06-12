@@ -2,9 +2,14 @@
 
 set -euo pipefail
 
-CHARTDB_DIR="/home/io/.tools/chartdb"
+CHARTDB_DIR="${CHARTDB_DIR:-$HOME/.tools/chartdb}"
 CHARTDB_LOG="/tmp/chartdb-dev.log"
 CHARTDB_PID="/tmp/chartdb-dev.pid"
+
+if [[ ! -d "$CHARTDB_DIR" ]]; then
+  echo "ChartDB directory not found: $CHARTDB_DIR" >&2
+  exit 1
+fi
 
 if command -v wl-copy >/dev/null 2>&1; then
   bun run drizzle-kit export --sql | wl-copy

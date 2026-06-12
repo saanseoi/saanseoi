@@ -58,4 +58,4 @@ cd "$repo_root/libs/db"
 exec env \
   CLOUDFLARE_D1_TARGET="$target" \
   "$remote_database_id_env=${!remote_database_id_target_env}" \
-  bun drizzle-kit studio --config="$config_file"
+  bash "$script_dir/lib/run-drizzle-kit-cli.sh" studio --config="$config_file"

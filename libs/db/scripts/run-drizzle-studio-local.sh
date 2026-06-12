@@ -93,4 +93,6 @@ if [[ -z "$local_db_path" ]]; then
 fi
 
 cd "$repo_root/libs/db"
-exec env "$local_path_env=$local_db_path" bun drizzle-kit studio --config="$config_file"
+exec env \
+  "$local_path_env=$local_db_path" \
+  bash "$script_dir/lib/run-drizzle-kit-cli.sh" studio --config="$config_file"
