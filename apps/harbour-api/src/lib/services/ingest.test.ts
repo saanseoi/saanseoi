@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -7,14 +7,14 @@ import { Database } from 'bun:sqlite'
 
 import type { ParquetInspection } from '@repo/core'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
+import {
+  loadMigrationSql,
+  seedFixtureCatalog,
+} from '../../../../../libs/core/src/testing/meta-fixtures'
 import type { DatasetProcessingQueue } from './ingest'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
-const migrationSql = readdirSync(migrationsDir)
-  .filter(fileName => fileName.endsWith('.sql'))
-  .sort()
-  .map(fileName => readFileSync(join(migrationsDir, fileName), 'utf8'))
-  .join('\n')
+const migrationSql = loadMigrationSql(migrationsDir)
 const tempDirs: string[] = []
 const fixtureInspection: ParquetInspection = {
   rowCount: 3,
@@ -47,6 +47,7 @@ function createTempDir() {
 function initDb(dbPath: string) {
   const db = new Database(dbPath)
   db.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
+  seedFixtureCatalog(db)
   return db
 }
 
@@ -133,7 +134,7 @@ describe('direct upload flow', () => {
     const result = await handleUploadRequest(db, bucket, queue, formData)
     const ingestRuns = sqlite
       .query(
-        'SELECT ir.phase, ir.status FROM ingestRuns ir INNER JOIN datasets d ON d.id = ir.datasetRecordId WHERE d.datasetId = ? ORDER BY ir.startedAt ASC',
+        'SELECT ir.phase, ir.status FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ? ORDER BY ir.startedAt ASC',
       )
       .all('overture-hk-2026-05-24.0-division') as Array<{
       phase: string
@@ -146,7 +147,10 @@ describe('direct upload flow', () => {
     expect(queuedMessages).toEqual([
       {
         datasetId: 'overture-hk-2026-05-24.0-division',
+        datasetCode: 'hk-division',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        releaseCode: 'overture-hk-2026-05-24.0-division',
+        releaseId: result.releaseId,
         regionCode: 'hk',
         snapshotMonth: '2026-05',
         source: 'overture',

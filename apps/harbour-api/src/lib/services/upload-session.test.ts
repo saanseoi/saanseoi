@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -7,25 +7,14 @@ import { Database } from 'bun:sqlite'
 
 import type { ParquetInspection } from '@repo/core'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
+import {
+  loadMigrationSql,
+  seedFixtureCatalog,
+} from '../../../../../libs/core/src/testing/meta-fixtures'
 import type { DatasetProcessingQueue, UploadSigningEnv } from './upload-session'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
-function collectSqlFiles(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
-    const entryPath = join(dir, entry.name)
-
-    if (entry.isDirectory()) {
-      return collectSqlFiles(entryPath)
-    }
-
-    return entry.name.endsWith('.sql') ? [entryPath] : []
-  })
-}
-
-const migrationSql = collectSqlFiles(migrationsDir)
-  .sort()
-  .map(filePath => readFileSync(filePath, 'utf8'))
-  .join('\n')
+const migrationSql = loadMigrationSql(migrationsDir)
 const tempDirs: string[] = []
 const fixtureInspection: ParquetInspection = {
   rowCount: 3,
@@ -61,6 +50,7 @@ function createTempDir() {
 function initDb(dbPath: string) {
   const db = new Database(dbPath)
   db.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
+  seedFixtureCatalog(db)
   return db
 }
 
@@ -182,7 +172,7 @@ describe('upload session flow', () => {
     })
     const dataset = sqlite
       .query(
-        'SELECT datasetId, status, rawObjectKey, originalFileName FROM datasets WHERE datasetId = ?',
+        'SELECT code AS datasetId, status, rawObjectKey, originalFileName FROM releases WHERE code = ?',
       )
       .get('overture-hk-2026-05-24.0-division') as {
       datasetId: string
@@ -201,7 +191,10 @@ describe('upload session flow', () => {
     expect(queuedMessages).toEqual([
       {
         datasetId: 'overture-hk-2026-05-24.0-division',
+        datasetCode: 'hk-division',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        releaseCode: 'overture-hk-2026-05-24.0-division',
+        releaseId: signResult.releaseId,
         regionCode: 'hk',
         snapshotMonth: '2026-05',
         source: 'overture',

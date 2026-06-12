@@ -140,6 +140,98 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       );
+
+    INSERT OR IGNORE INTO dataShards (
+      id,
+      kind,
+      regionCode,
+      year,
+      environment,
+      databaseName,
+      databaseId,
+      bindingName,
+      status,
+      createdAt,
+      updatedAt
+    ) VALUES
+      (
+        'data-shard-current-preview',
+        'current',
+        null,
+        null,
+        'preview',
+        'fixture-current-preview',
+        'fixture-current-preview',
+        'DB_CURRENT',
+        'active',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'data-shard-current-hk-2026-preview',
+        'current',
+        'hk',
+        '2026',
+        'preview',
+        'fixture-current-hk-2026-preview',
+        'fixture-current-hk-2026-preview',
+        'DB_CURRENT_HK_2026_PREVIEW',
+        'active',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'data-shard-history-hk-2026-preview',
+        'history',
+        'hk',
+        '2026',
+        'preview',
+        'fixture-history-hk-2026-preview',
+        'fixture-history-hk-2026-preview',
+        'DB_HISTORY_HK_2026',
+        'active',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'data-shard-current-production',
+        'current',
+        null,
+        null,
+        'production',
+        'fixture-current-production',
+        'fixture-current-production',
+        'DB_CURRENT_PRODUCTION',
+        'active',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'data-shard-current-hk-2026-production',
+        'current',
+        'hk',
+        '2026',
+        'production',
+        'fixture-current-hk-2026-production',
+        'fixture-current-hk-2026-production',
+        'DB_CURRENT_HK_2026_PRODUCTION',
+        'active',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'data-shard-history-hk-2026-production',
+        'history',
+        'hk',
+        '2026',
+        'production',
+        'fixture-history-hk-2026-production',
+        'fixture-history-hk-2026-production',
+        'DB_HISTORY_HK_2026_PRODUCTION',
+        'active',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      );
   `)
 }
 
