@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
-wrangler_config="$repo_root/apps/harbour-api/wrangler.jsonc"
-persist_dir="$repo_root/.local/d1/dev"
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+db_family="${1:-legacy}"
+
+eval "$(bash "$script_dir/lib/resolve-d1-target.sh" "$db_family" local)"
 
 mkdir -p "$persist_dir"
 
-bash "$script_dir/run-d1-migrations.sh" ss-db-preview \
+bash "$script_dir/run-d1-migrations.sh" "$database_name" \
   --config "$wrangler_config" \
-  --env preview \
+  --env "$wrangler_env" \
   --local \
   --persist-to "$persist_dir"
