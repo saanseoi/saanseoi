@@ -14,7 +14,7 @@ case "$db_family" in
     local_path_env="LOCAL_D1_SQLITE_PATH_META"
     remote_database_id_env="CLOUDFLARE_DATABASE_ID_META"
     ;;
-  current|api-current)
+  current)
     config_file="./drizzle.current.config.ts"
     local_path_env="LOCAL_D1_SQLITE_PATH_CURRENT"
     remote_database_id_env="CLOUDFLARE_DATABASE_ID_CURRENT"

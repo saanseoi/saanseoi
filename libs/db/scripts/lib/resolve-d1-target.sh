@@ -21,7 +21,7 @@ case "$db_family" in
   meta)
     binding_name="DB_META"
     ;;
-  current|api-current)
+  current)
     binding_name="DB_CURRENT"
     ;;
   history)
