@@ -55,7 +55,7 @@ CREATE TABLE `datasets` (
 	`licenseId` text,
 	`category` text,
 	`attribution` text,
-	`tagsJson` text,
+	`tags` text,
 	`createdAt` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`updatedAt` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	CONSTRAINT `fk_datasets_publisherId_publishers_id_fk` FOREIGN KEY (`publisherId`) REFERENCES `publishers`(`id`) ON DELETE RESTRICT,
@@ -117,7 +117,7 @@ CREATE TABLE `apiFieldProvenance` (
 	`contributionType` text NOT NULL,
 	`priority` integer DEFAULT 0 NOT NULL,
 	`confidence` real,
-	`sourceIdentifierPathsJson` text,
+	`sourceIdentifierPaths` text,
 	`createdAt` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`updatedAt` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	CONSTRAINT `fk_apiFieldProvenance_apiReleaseSetId_apiReleaseSets_id_fk` FOREIGN KEY (`apiReleaseSetId`) REFERENCES `apiReleaseSets`(`id`) ON DELETE CASCADE,
@@ -202,8 +202,8 @@ CREATE TABLE `entityAliases` (
 	`validFromMonth` text,
 	`validToMonth` text,
 	`notes` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL
+	`createdAt` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updatedAt` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `ingestRuns` (
@@ -211,12 +211,12 @@ CREATE TABLE `ingestRuns` (
 	`releaseId` text NOT NULL,
 	`phase` text NOT NULL,
 	`status` text NOT NULL,
-	`statsJson` text,
-	`errorJson` text,
+	`stats` text,
+	`error` text,
 	`startedAt` text NOT NULL,
 	`finishedAt` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`createdAt` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updatedAt` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	CONSTRAINT `fk_ingestRuns_releaseId_releases_id_fk` FOREIGN KEY (`releaseId`) REFERENCES `releases`(`id`)
 );
 --> statement-breakpoint
@@ -230,8 +230,8 @@ CREATE TABLE `stats` (
 	`value` real NOT NULL,
 	`groupBy` text,
 	`groupValue` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`createdAt` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	`updatedAt` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	CONSTRAINT `fk_stats_releaseId_releases_id_fk` FOREIGN KEY (`releaseId`) REFERENCES `releases`(`id`)
 );
 --> statement-breakpoint

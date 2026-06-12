@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "ae998010-6c05-4709-b79a-21512871ecea",
+  "id": "54b98153-d9d6-4ef2-a278-4dfad11a921b",
   "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
@@ -60,7 +60,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "versionHash",
+      "name": "regionCode",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -70,7 +70,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "regionCode",
+      "name": "versionHash",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -160,7 +160,17 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otGeometryJson",
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "divisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -170,7 +180,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otPopulation",
+      "name": "population",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -180,17 +190,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otVersion",
-      "entityType": "columns",
-      "table": "divisionsVersions"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "otVersionHash",
+      "name": "subtype",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -200,7 +200,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otSubtype",
+      "name": "class",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -210,7 +210,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otClass",
+      "name": "wikidata",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -220,27 +220,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otWikidata",
-      "entityType": "columns",
-      "table": "divisionsVersions"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "otHierarchyJson",
-      "entityType": "columns",
-      "table": "divisionsVersions"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "hierarchyJson",
+      "name": "hierarchy",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -260,7 +240,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otCartographyJson",
+      "name": "cartography",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -270,17 +250,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otBboxJson",
-      "entityType": "columns",
-      "table": "divisionsVersions"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sourcesJson",
+      "name": "sources",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -288,7 +258,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
@@ -298,7 +268,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
@@ -380,7 +350,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otName",
+      "name": "name",
       "entityType": "columns",
       "table": "divisionsVersionsI18n"
     },
@@ -390,7 +360,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otNameVariantJson",
+      "name": "nameVariant",
       "entityType": "columns",
       "table": "divisionsVersionsI18n"
     },
@@ -400,7 +370,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otNameAlts",
+      "name": "nameAlts",
       "entityType": "columns",
       "table": "divisionsVersionsI18n"
     },
@@ -410,7 +380,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otNameRulesJson",
+      "name": "nameRules",
       "entityType": "columns",
       "table": "divisionsVersionsI18n"
     },
@@ -420,7 +390,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otLocalType",
+      "name": "localType",
       "entityType": "columns",
       "table": "divisionsVersionsI18n"
     },
@@ -438,7 +408,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
@@ -448,7 +418,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
@@ -470,7 +440,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "versionHash",
+      "name": "regionCode",
       "entityType": "columns",
       "table": "address2dVersions"
     },
@@ -480,7 +450,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "regionCode",
+      "name": "versionHash",
       "entityType": "columns",
       "table": "address2dVersions"
     },
@@ -650,7 +620,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "geometryJson",
+      "name": "geometry",
       "entityType": "columns",
       "table": "address2dVersions"
     },
@@ -660,7 +630,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "identifiersJson",
+      "name": "bbox",
       "entityType": "columns",
       "table": "address2dVersions"
     },
@@ -670,7 +640,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otStreet",
+      "name": "identifiers",
       "entityType": "columns",
       "table": "address2dVersions"
     },
@@ -680,37 +650,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otNumber",
-      "entityType": "columns",
-      "table": "address2dVersions"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "otBboxJson",
-      "entityType": "columns",
-      "table": "address2dVersions"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "otVersion",
-      "entityType": "columns",
-      "table": "address2dVersions"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sourcesJson",
+      "name": "sources",
       "entityType": "columns",
       "table": "address2dVersions"
     },
@@ -718,7 +658,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
@@ -728,7 +668,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
@@ -928,7 +868,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
@@ -938,7 +878,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
@@ -1040,7 +980,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourcesJson",
+      "name": "sources",
       "entityType": "columns",
       "table": "address3dVersions"
     },
@@ -1048,7 +988,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
@@ -1058,7 +998,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
@@ -1208,7 +1148,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
@@ -1218,7 +1158,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
@@ -1310,7 +1250,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "yearBuiltJson",
+      "name": "yearBuilt",
       "entityType": "columns",
       "table": "streetsVersions"
     },
@@ -1320,7 +1260,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "referencesJson",
+      "name": "references",
       "entityType": "columns",
       "table": "streetsVersions"
     },
@@ -1328,7 +1268,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
@@ -1338,7 +1278,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
@@ -1478,7 +1418,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
@@ -1488,7 +1428,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
@@ -1510,7 +1450,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "versionHash",
+      "name": "regionCode",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1520,7 +1460,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "regionCode",
+      "name": "versionHash",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1605,22 +1545,12 @@
       "table": "placesVersions"
     },
     {
-      "type": "text",
+      "type": "real",
       "notNull": true,
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otVersionHash",
-      "entityType": "columns",
-      "table": "placesVersions"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "otVersion",
+      "name": "lng",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1630,17 +1560,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otLng",
-      "entityType": "columns",
-      "table": "placesVersions"
-    },
-    {
-      "type": "real",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "otLat",
+      "name": "lat",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1650,7 +1570,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otBboxJson",
+      "name": "bbox",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1660,7 +1580,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otOperatingStatus",
+      "name": "operatingStatus",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1670,7 +1590,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otBasicCategory",
+      "name": "basicCategory",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1680,7 +1600,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otTaxonomyPrimary",
+      "name": "taxonomyPrimary",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1690,7 +1610,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otTaxonomyHierarchyJson",
+      "name": "taxonomyHierarchy",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1700,7 +1620,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otTaxonomyAlternatesJson",
+      "name": "taxonomyAlternates",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1710,7 +1630,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otBrandWikidata",
+      "name": "brandWikidata",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1720,7 +1640,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otWebsitesJson",
+      "name": "websites",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1730,7 +1650,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otSocialsJson",
+      "name": "socials",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1740,7 +1660,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otEmailsJson",
+      "name": "emails",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1750,7 +1670,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otPhonesJson",
+      "name": "phones",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1760,7 +1680,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otAddressesJson",
+      "name": "addresses",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1770,7 +1690,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otConfidence",
+      "name": "confidence",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1780,7 +1700,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourcesJson",
+      "name": "sources",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1788,7 +1708,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
@@ -1798,7 +1718,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
@@ -1880,7 +1800,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otName",
+      "name": "name",
       "entityType": "columns",
       "table": "placesVersionsI18n"
     },
@@ -1890,7 +1810,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otNameVariantJson",
+      "name": "nameVariant",
       "entityType": "columns",
       "table": "placesVersionsI18n"
     },
@@ -1900,7 +1820,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otNameAlts",
+      "name": "nameAlts",
       "entityType": "columns",
       "table": "placesVersionsI18n"
     },
@@ -1920,7 +1840,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otBrandName",
+      "name": "brandName",
       "entityType": "columns",
       "table": "placesVersionsI18n"
     },
@@ -1930,7 +1850,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otBrandNameVariantJson",
+      "name": "brandNameVariant",
       "entityType": "columns",
       "table": "placesVersionsI18n"
     },
@@ -1940,7 +1860,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "otBrandNameAlts",
+      "name": "brandNameAlts",
       "entityType": "columns",
       "table": "placesVersionsI18n"
     },
@@ -1948,7 +1868,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
@@ -1958,7 +1878,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
@@ -2135,7 +2055,7 @@
           "isExpression": false
         },
         {
-          "value": "otName",
+          "value": "name",
           "isExpression": false
         }
       ],
@@ -2625,7 +2545,7 @@
           "isExpression": false
         },
         {
-          "value": "otName",
+          "value": "name",
           "isExpression": false
         }
       ],

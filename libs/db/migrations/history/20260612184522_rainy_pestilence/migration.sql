@@ -1,7 +1,7 @@
 CREATE TABLE `divisionsVersions` (
 	`id` text NOT NULL,
-	`versionHash` text NOT NULL,
 	`regionCode` text NOT NULL,
+	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
 	`validFromReleaseSetId` text NOT NULL,
 	`validToReleaseSetId` text,
@@ -10,21 +10,18 @@ CREATE TABLE `divisionsVersions` (
 	`isCurrent` integer NOT NULL,
 	`level` integer NOT NULL,
 	`type` text NOT NULL,
-	`otGeometryJson` text,
-	`otPopulation` integer,
-	`otVersion` text,
-	`otVersionHash` text NOT NULL,
-	`otSubtype` text,
-	`otClass` text,
-	`otWikidata` text,
-	`otHierarchyJson` text,
-	`hierarchyJson` text,
+	`geometry` text,
+	`bbox` text,
+	`population` integer,
+	`subtype` text,
+	`class` text,
+	`wikidata` text,
+	`hierarchy` text,
 	`parentDivisionId` text,
-	`otCartographyJson` text,
-	`otBboxJson` text,
-	`sourcesJson` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`cartography` text,
+	`sources` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `divisionsVersions_pk` PRIMARY KEY(`id`, `versionHash`)
 );
 --> statement-breakpoint
@@ -36,21 +33,21 @@ CREATE TABLE `divisionsVersionsI18n` (
 	`validToReleaseSetId` text,
 	`isCurrent` integer NOT NULL,
 	`locale` text NOT NULL,
-	`otName` text,
-	`otNameVariantJson` text,
-	`otNameAlts` text,
-	`otNameRulesJson` text,
-	`otLocalType` text,
+	`name` text,
+	`nameVariant` text,
+	`nameAlts` text,
+	`nameRules` text,
+	`localType` text,
 	`isLocaleInferred` integer NOT NULL,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `divisionsVersionsI18n_pk` PRIMARY KEY(`divisionId`, `versionHash`, `locale`)
 );
 --> statement-breakpoint
 CREATE TABLE `address2dVersions` (
 	`id` text NOT NULL,
-	`versionHash` text NOT NULL,
 	`regionCode` text NOT NULL,
+	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
 	`validFromReleaseSetId` text NOT NULL,
 	`validToReleaseSetId` text,
@@ -67,15 +64,12 @@ CREATE TABLE `address2dVersions` (
 	`districtId` text,
 	`areaId` text,
 	`countryId` text,
-	`geometryJson` text,
-	`identifiersJson` text,
-	`otStreet` text,
-	`otNumber` text,
-	`otBboxJson` text,
-	`otVersion` text,
-	`sourcesJson` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`geometry` text,
+	`bbox` text,
+	`identifiers` text,
+	`sources` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `address2dVersions_pk` PRIMARY KEY(`id`, `versionHash`)
 );
 --> statement-breakpoint
@@ -99,8 +93,8 @@ CREATE TABLE `address2dVersionsI18n` (
 	`estateName` text,
 	`streetNumber` text,
 	`streetName` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `address2dVersionsI18n_pk` PRIMARY KEY(`addressId`, `versionHash`, `locale`)
 );
 --> statement-breakpoint
@@ -114,9 +108,9 @@ CREATE TABLE `address3dVersions` (
 	`validToMonth` text,
 	`isCurrent` integer NOT NULL,
 	`address2dId` text NOT NULL,
-	`sourcesJson` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`sources` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `address3dVersions_pk` PRIMARY KEY(`id`, `versionHash`)
 );
 --> statement-breakpoint
@@ -135,8 +129,8 @@ CREATE TABLE `address3dVersionsI18n` (
 	`unitType` text,
 	`floorNumber` text,
 	`floorType` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `address3dVersionsI18n_pk` PRIMARY KEY(`address3dId`, `versionHash`, `locale`)
 );
 --> statement-breakpoint
@@ -149,10 +143,10 @@ CREATE TABLE `streetsVersions` (
 	`validFromMonth` text NOT NULL,
 	`validToMonth` text,
 	`isCurrent` integer NOT NULL,
-	`yearBuiltJson` text,
-	`referencesJson` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`yearBuilt` text,
+	`references` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `streetsVersions_pk` PRIMARY KEY(`id`, `versionHash`)
 );
 --> statement-breakpoint
@@ -170,15 +164,15 @@ CREATE TABLE `streetsVersionsI18n` (
 	`directionalPrefix` text,
 	`directionalSuffix` text,
 	`normalised` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `streetsVersionsI18n_pk` PRIMARY KEY(`streetId`, `versionHash`, `locale`)
 );
 --> statement-breakpoint
 CREATE TABLE `placesVersions` (
 	`id` text NOT NULL,
-	`versionHash` text NOT NULL,
 	`regionCode` text NOT NULL,
+	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
 	`validFromReleaseSetId` text NOT NULL,
 	`validToReleaseSetId` text,
@@ -187,26 +181,24 @@ CREATE TABLE `placesVersions` (
 	`isCurrent` integer NOT NULL,
 	`address2dId` text,
 	`address3dId` text,
-	`otVersionHash` text NOT NULL,
-	`otVersion` text NOT NULL,
-	`otLng` real NOT NULL,
-	`otLat` real NOT NULL,
-	`otBboxJson` text,
-	`otOperatingStatus` text,
-	`otBasicCategory` text,
-	`otTaxonomyPrimary` text,
-	`otTaxonomyHierarchyJson` text,
-	`otTaxonomyAlternatesJson` text,
-	`otBrandWikidata` text,
-	`otWebsitesJson` text,
-	`otSocialsJson` text,
-	`otEmailsJson` text,
-	`otPhonesJson` text,
-	`otAddressesJson` text,
-	`otConfidence` real,
-	`sourcesJson` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`lng` real NOT NULL,
+	`lat` real NOT NULL,
+	`bbox` text,
+	`operatingStatus` text,
+	`basicCategory` text,
+	`taxonomyPrimary` text,
+	`taxonomyHierarchy` text,
+	`taxonomyAlternates` text,
+	`brandWikidata` text,
+	`websites` text,
+	`socials` text,
+	`emails` text,
+	`phones` text,
+	`addresses` text,
+	`confidence` real,
+	`sources` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `placesVersions_pk` PRIMARY KEY(`id`, `versionHash`)
 );
 --> statement-breakpoint
@@ -218,15 +210,15 @@ CREATE TABLE `placesVersionsI18n` (
 	`validToReleaseSetId` text,
 	`isCurrent` integer NOT NULL,
 	`locale` text NOT NULL,
-	`otName` text,
-	`otNameVariantJson` text,
-	`otNameAlts` text,
+	`name` text,
+	`nameVariant` text,
+	`nameAlts` text,
 	`isLocaleInferred` integer NOT NULL,
-	`otBrandName` text,
-	`otBrandNameVariantJson` text,
-	`otBrandNameAlts` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`brandName` text,
+	`brandNameVariant` text,
+	`brandNameAlts` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `placesVersionsI18n_pk` PRIMARY KEY(`placeId`, `versionHash`, `locale`)
 );
 --> statement-breakpoint
@@ -235,7 +227,7 @@ CREATE INDEX `divisionsVersions_releaseSet_validity_idx` ON `divisionsVersions` 
 CREATE INDEX `divisionsVersions_validity_idx` ON `divisionsVersions` (`regionCode`,`validFromMonth`,`validToMonth`);--> statement-breakpoint
 CREATE INDEX `divisionsVersions_releaseId_idx` ON `divisionsVersions` (`releaseId`);--> statement-breakpoint
 CREATE INDEX `divisionsVersionsI18n_locale_idx` ON `divisionsVersionsI18n` (`locale`);--> statement-breakpoint
-CREATE INDEX `divisionsVersionsI18n_name_idx` ON `divisionsVersionsI18n` (`locale`,`otName`);--> statement-breakpoint
+CREATE INDEX `divisionsVersionsI18n_name_idx` ON `divisionsVersionsI18n` (`locale`,`name`);--> statement-breakpoint
 CREATE INDEX `divisionsVersionsI18n_current_lookup_idx` ON `divisionsVersionsI18n` (`divisionId`,`locale`,`isCurrent`);--> statement-breakpoint
 CREATE INDEX `address2dVersions_current_lookup_idx` ON `address2dVersions` (`regionCode`,`id`,`isCurrent`);--> statement-breakpoint
 CREATE INDEX `address2dVersions_releaseSet_validity_idx` ON `address2dVersions` (`regionCode`,`validFromReleaseSetId`,`validToReleaseSetId`);--> statement-breakpoint
@@ -262,5 +254,5 @@ CREATE INDEX `placesVersions_releaseSet_validity_idx` ON `placesVersions` (`regi
 CREATE INDEX `placesVersions_validity_idx` ON `placesVersions` (`regionCode`,`validFromMonth`,`validToMonth`);--> statement-breakpoint
 CREATE INDEX `placesVersions_releaseId_idx` ON `placesVersions` (`releaseId`);--> statement-breakpoint
 CREATE INDEX `placesVersionsI18n_locale_idx` ON `placesVersionsI18n` (`locale`);--> statement-breakpoint
-CREATE INDEX `placesVersionsI18n_name_idx` ON `placesVersionsI18n` (`locale`,`otName`);--> statement-breakpoint
+CREATE INDEX `placesVersionsI18n_name_idx` ON `placesVersionsI18n` (`locale`,`name`);--> statement-breakpoint
 CREATE INDEX `placesVersionsI18n_current_lookup_idx` ON `placesVersionsI18n` (`placeId`,`locale`,`isCurrent`);
