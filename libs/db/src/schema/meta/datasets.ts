@@ -17,7 +17,7 @@ import {
   releaseStatuses,
 } from '../../constants/schema'
 import { metaLicenses } from './licenses'
-import { primaryUuid, timestamps } from './_shared'
+import { jsonText, primaryUuid, timestamps } from './_shared'
 import { metaPublishers } from './publishers'
 
 export const metaDatasets = sqliteTable(
@@ -41,7 +41,7 @@ export const metaDatasets = sqliteTable(
     }),
     category: text('category', { enum: datasetCategories }),
     attribution: text('attribution'),
-    tagsJson: text('tagsJson'),
+    tags: jsonText('tags'),
     ...timestamps,
   },
   table => [

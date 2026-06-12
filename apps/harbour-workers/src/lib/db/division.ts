@@ -18,6 +18,7 @@ import type {
 import type { DatasetStatsRow } from '@repo/db/metaSchema'
 import type { CurrentDivisionVersionRow } from '@repo/db/historySchema'
 import { currentSchema, historySchema, metaSchema } from '@repo/db'
+import type { GeoJsonGeometry } from '../geojson'
 
 import {
   chunkArray,
@@ -31,7 +32,7 @@ export type DivisionI18nRecord = NewDivisionI18nRow
 
 export type DivisionVersionSnapshot = {
   churnHash: string
-  geometry: unknown
+  geometry: GeoJsonGeometry | null
   id: string
   localizedRows: DivisionI18nPayload[]
   parentId: string | null
@@ -55,21 +56,19 @@ export async function getCurrentDivisionVersionMap(
   const rows = (await db
     .select({
       id: historySchema.divisionsVersions.id,
+      bbox: historySchema.divisionsVersions.bbox,
+      cartography: historySchema.divisionsVersions.cartography,
+      class: historySchema.divisionsVersions.class,
+      geometry: historySchema.divisionsVersions.geometry,
       hierarchy: historySchema.divisionsVersions.hierarchy,
       level: historySchema.divisionsVersions.level,
-      otBbox: historySchema.divisionsVersions.otBbox,
-      otCartography: historySchema.divisionsVersions.otCartography,
-      otClass: historySchema.divisionsVersions.otClass,
-      otGeometry: historySchema.divisionsVersions.otGeometry,
-      otHierarchy: historySchema.divisionsVersions.otHierarchy,
-      otPopulation: historySchema.divisionsVersions.otPopulation,
-      otSubtype: historySchema.divisionsVersions.otSubtype,
-      otVersion: historySchema.divisionsVersions.otVersion,
-      otWikidata: historySchema.divisionsVersions.otWikidata,
       parentDivisionId: historySchema.divisionsVersions.parentDivisionId,
+      population: historySchema.divisionsVersions.population,
       sources: historySchema.divisionsVersions.sources,
+      subtype: historySchema.divisionsVersions.subtype,
       type: historySchema.divisionsVersions.type,
       versionHash: historySchema.divisionsVersions.versionHash,
+      wikidata: historySchema.divisionsVersions.wikidata,
     })
     .from(historySchema.divisionsVersions)
     .where(
@@ -93,12 +92,12 @@ export async function getCurrentDivisionVersionMap(
       .select({
         divisionId: historySchema.divisionsVersionsI18n.divisionId,
         isLocaleInferred: historySchema.divisionsVersionsI18n.isLocaleInferred,
+        localType: historySchema.divisionsVersionsI18n.localType,
         locale: historySchema.divisionsVersionsI18n.locale,
-        otLocalType: historySchema.divisionsVersionsI18n.otLocalType,
-        otName: historySchema.divisionsVersionsI18n.otName,
-        otNameAlts: historySchema.divisionsVersionsI18n.otNameAlts,
-        otNameRules: historySchema.divisionsVersionsI18n.otNameRules,
-        otNameVariant: historySchema.divisionsVersionsI18n.otNameVariant,
+        name: historySchema.divisionsVersionsI18n.name,
+        nameAlts: historySchema.divisionsVersionsI18n.nameAlts,
+        nameRules: historySchema.divisionsVersionsI18n.nameRules,
+        nameVariant: historySchema.divisionsVersionsI18n.nameVariant,
       })
       .from(historySchema.divisionsVersionsI18n)
       .where(
@@ -133,7 +132,7 @@ export async function getCurrentDivisionVersionMap(
             base: options.buildDivisionBaseHashInput(row),
             i18n: localizedRows,
           }),
-          geometry: row.otGeometry,
+          geometry: row.geometry,
           id: row.id,
           localizedRows: localizedRows,
           parentId: row.parentDivisionId,
@@ -254,21 +253,19 @@ export async function upsertDivisionCurrentState(
       .onConflictDoUpdate({
         target: currentSchema.divisions.id,
         set: {
+          bbox: base.bbox,
+          cartography: base.cartography,
+          class: base.class,
+          geometry: base.geometry,
           hierarchy: base.hierarchy,
           level: base.level,
-          otGeometry: base.otGeometry,
-          otPopulation: base.otPopulation,
+          population: base.population,
           type: base.type,
-          otBbox: base.otBbox,
-          otCartography: base.otCartography,
-          otClass: base.otClass,
-          otHierarchy: base.otHierarchy,
-          otSubtype: base.otSubtype,
-          otVersion: base.otVersion,
-          otWikidata: base.otWikidata,
           parentDivisionId: base.parentDivisionId,
           sources: base.sources,
+          subtype: base.subtype,
           updatedAt: now,
+          wikidata: base.wikidata,
         },
       })
       .run(),
@@ -320,7 +317,6 @@ export async function insertDivisionVersionRows(
   now: string,
   environment: 'preview' | 'production',
 ) {
-  const otVersionHash = await createHash(base.otVersion ?? '')
   const dataset = await getDatasetRecordByReleaseId(
     metaDb,
     message.releaseId ?? message.datasetId,
@@ -369,7 +365,6 @@ export async function insertDivisionVersionRows(
         ...base,
         createdAt: now,
         isCurrent: true,
-        otVersionHash,
         releaseId: dataset.releaseId,
         regionCode: message.regionCode,
         validFromMonth: message.snapshotMonth,
@@ -406,12 +401,12 @@ export async function insertDivisionVersionRows(
     i18nRows.map(row => ({
       divisionId: row.divisionId,
       isLocaleInferred: row.isLocaleInferred,
+      localType: row.localType,
       locale: row.locale,
-      otLocalType: row.otLocalType,
-      otName: row.otName,
-      otNameAlts: row.otNameAlts,
-      otNameRules: row.otNameRules,
-      otNameVariant: row.otNameVariant,
+      name: row.name,
+      nameAlts: row.nameAlts,
+      nameRules: row.nameRules,
+      nameVariant: row.nameVariant,
       releaseId: dataset.releaseId,
       validFromReleaseSetId: releaseSet.id,
       validToReleaseSetId: null,
@@ -447,12 +442,12 @@ async function insertDivisionVersionsI18nInChunks(
   rows: Array<{
     divisionId: string
     isLocaleInferred: boolean
+    localType: string | null
     locale: string
-    otLocalType: string | null
-    otName: string | null
-    otNameAlts: string | null
-    otNameRules: unknown
-    otNameVariant: unknown
+    name: string | null
+    nameAlts: string | null
+    nameRules: unknown
+    nameVariant: unknown
     releaseId: string
     validFromReleaseSetId: string
     validToReleaseSetId: string | null

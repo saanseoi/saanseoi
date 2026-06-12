@@ -1,4 +1,5 @@
 import type { DatasetStatsRow } from '@repo/db/metaSchema'
+import type { GeoJsonGeometry } from '../geojson'
 
 export type StatsLocaleGroup = 'en' | 'zh-hant' | 'zh-hans'
 
@@ -37,7 +38,7 @@ export type StatsSnapshot<TLocalizedRow> = {
   id: string
   localizedRows: TLocalizedRow[]
   parentId: string | null
-  geometry: unknown
+  geometry: GeoJsonGeometry | null
   type: string
 }
 
@@ -331,8 +332,8 @@ export function hasNameRegression<
   TLocalizedRow extends {
     isLocaleInferred: boolean
     locale: string
-    otName: string | null
-    otNameAlts: string | null
+    name: string | null
+    nameAlts: string | null
   },
 >(previousRows: TLocalizedRow[], currentRows: TLocalizedRow[]) {
   const currentByLocale = new Map(currentRows.map(row => [row.locale, row]))
@@ -349,7 +350,7 @@ export function hasNameRegression<
     }
 
     const currentNames = getNameSet(current)
-    const previousPrimaryName = !previous.isLocaleInferred ? previous.otName : null
+    const previousPrimaryName = !previous.isLocaleInferred ? previous.name : null
 
     if (previousPrimaryName && !currentNames.has(previousPrimaryName)) {
       return true
@@ -466,17 +467,17 @@ function getChurnCountsForType(byType: Map<string, ChurnCounts>, type: string) {
 
 function hasTrackedNames(row: {
   isLocaleInferred: boolean
-  otName: string | null
-  otNameAlts: string | null
+  name: string | null
+  nameAlts: string | null
 }) {
-  return Boolean((!row.isLocaleInferred && row.otName) || row.otNameAlts)
+  return Boolean((!row.isLocaleInferred && row.name) || row.nameAlts)
 }
 
-function getNameSet(row: { otName: string | null; otNameAlts: string | null }) {
+function getNameSet(row: { name: string | null; nameAlts: string | null }) {
   const names = new Set<string>()
 
-  if (row.otName) {
-    names.add(row.otName)
+  if (row.name) {
+    names.add(row.name)
   }
 
   for (const altName of getAltNames(row)) {
@@ -486,12 +487,12 @@ function getNameSet(row: { otName: string | null; otNameAlts: string | null }) {
   return names
 }
 
-function getAltNames(row: { otNameAlts: string | null }) {
-  if (!row.otNameAlts) {
+function getAltNames(row: { nameAlts: string | null }) {
+  if (!row.nameAlts) {
     return []
   }
 
-  return row.otNameAlts
+  return row.nameAlts
     .split('|')
     .map(value => value.trim())
     .filter(Boolean)

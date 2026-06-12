@@ -40,7 +40,6 @@ import {
 import {
   addLocalizedValue,
   asNonEmptyString,
-  asString,
   createHash,
   inferLocale,
   normalizeLocale,
@@ -168,15 +167,15 @@ export async function processDivisionDataset(
       updateLocaleStatsAccumulator(
         statsAccumulator,
         normalized.i18n.map(row => ({
-          hasAltName: Boolean(row.otNameAlts),
-          hasName: Boolean(row.otName),
+          hasAltName: Boolean(row.nameAlts),
+          hasName: Boolean(row.name),
           isLocaleInferred: row.isLocaleInferred,
           locale: row.locale,
         })),
       )
       processedRowsById.set(normalized.base.id, {
         churnHash,
-        geometry: normalized.base.otGeometry,
+        geometry: normalized.base.geometry,
         id: normalized.base.id,
         localizedRows: normalized.i18n,
         parentId: normalized.base.parentDivisionId,
@@ -197,17 +196,17 @@ export async function processDivisionDataset(
           regionCode: message.regionCode,
           level: normalized.base.level,
           divisionType: normalized.base.type,
-          subtype: normalized.base.otSubtype,
-          divisionClass: normalized.base.otClass,
-          population: normalized.base.otPopulation,
+          subtype: normalized.base.subtype,
+          divisionClass: normalized.base.class,
+          population: normalized.base.population,
           version: asOptionalInteger(row.version),
-          wikidata: normalized.base.otWikidata,
-          geometryJson: stableJsonStringify(normalized.base.otGeometry),
-          bboxJson: stableJsonStringify(normalized.base.otBbox),
-          hierarchiesJson: stableJsonStringify(normalized.base.otHierarchy),
-          cartographyJson: stableJsonStringify(normalized.base.otCartography),
-          sourcesJson: stableJsonStringify(normalized.base.sources),
-          rawPropertiesJson: stableJsonStringify(row),
+          wikidata: normalized.base.wikidata,
+          geometry: normalized.base.geometry,
+          bbox: normalized.base.bbox,
+          hierarchies: normalized.base.hierarchy,
+          cartography: normalized.base.cartography,
+          sources: normalized.base.sources,
+          rawProperties: row,
         })
 
         sourceI18nRows.push(
@@ -215,15 +214,11 @@ export async function processDivisionDataset(
             releaseId,
             sourceRecordId: normalized.base.id,
             locale: localized.locale,
-            name: localized.otName,
-            nameVariantJson: localized.otNameVariant
-              ? stableJsonStringify(localized.otNameVariant)
-              : null,
-            nameAlts: localized.otNameAlts,
-            nameRulesJson: localized.otNameRules
-              ? stableJsonStringify(localized.otNameRules)
-              : null,
-            localType: localized.otLocalType,
+            name: localized.name,
+            nameVariant: localized.nameVariant,
+            nameAlts: localized.nameAlts,
+            nameRules: localized.nameRules,
+            localType: localized.localType,
             isLocaleInferred: localized.isLocaleInferred,
           })),
         )
@@ -344,23 +339,21 @@ function normalizeDivisionRow(row: Record<string, unknown>) {
 
   return {
     base: {
+      bbox: row.bbox ?? null,
+      cartography: row.cartography ?? null,
+      class: otClass,
       createdAt: now,
+      geometry: normalizedGeometry,
       hierarchy: normalizedHierarchies,
       id,
       level,
-      otGeometry: normalizedGeometry,
-      otPopulation: asNumber(row.population),
+      population: asNumber(row.population),
       type,
-      otBbox: row.bbox ?? null,
-      otCartography: row.cartography ?? null,
-      otClass,
-      otHierarchy: normalizedHierarchies,
-      otSubtype,
-      otVersion: asString(row.version),
-      otWikidata: asNonEmptyString(row.wikidata),
       parentDivisionId,
       sources: normalizeOvertureSources(row.sources),
+      subtype: otSubtype,
       updatedAt: now,
+      wikidata: asNonEmptyString(row.wikidata),
     } satisfies DivisionRow,
     i18n,
   }
@@ -374,21 +367,19 @@ function buildDivisionBaseHashInput(
   base: Omit<DivisionRow, 'createdAt' | 'updatedAt'> | DivisionRow,
 ) {
   return {
+    bbox: base.bbox,
+    cartography: base.cartography,
+    class: base.class,
+    geometry: base.geometry,
     hierarchy: base.hierarchy,
     id: base.id,
     level: base.level,
-    otBbox: base.otBbox,
-    otCartography: base.otCartography,
-    otClass: base.otClass,
-    otGeometry: base.otGeometry,
-    otHierarchy: base.otHierarchy,
-    otPopulation: base.otPopulation,
-    otSubtype: base.otSubtype,
-    otVersion: base.otVersion,
-    otWikidata: base.otWikidata,
     parentDivisionId: base.parentDivisionId,
+    population: base.population,
     sources: base.sources,
+    subtype: base.subtype,
     type: base.type,
+    wikidata: base.wikidata,
   } satisfies Omit<DivisionRow, 'createdAt' | 'updatedAt'>
 }
 
@@ -460,18 +451,18 @@ function normalizeDivisionI18n(divisionId: string, names: unknown, localType: un
 
   return [...locales].sort().map(locale => {
     const values = [...(localizedNames.get(locale) ?? [])]
-    const [otName, ...alts] = values
-    const otNameRules = dedupeNameRules(localizedRuleEntries.get(locale) ?? [])
+    const [name, ...alts] = values
+    const nameRules = dedupeNameRules(localizedRuleEntries.get(locale) ?? [])
 
     return {
       divisionId,
       isLocaleInferred: localizedInferredFlags.get(locale) ?? false,
+      localType: localizedTypes.get(locale) ?? null,
       locale,
-      otLocalType: localizedTypes.get(locale) ?? null,
-      otName: otName ?? null,
-      otNameAlts: alts.length > 0 ? alts.join('|') : null,
-      otNameRules: otNameRules.length > 0 ? otNameRules : null,
-      otNameVariant: values.length > 0 ? values : null,
+      name: name ?? null,
+      nameAlts: alts.length > 0 ? alts.join('|') : null,
+      nameRules: nameRules.length > 0 ? nameRules : null,
+      nameVariant: values.length > 0 ? values : null,
     } satisfies DivisionI18nPayload
   })
 }

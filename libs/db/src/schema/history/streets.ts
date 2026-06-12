@@ -1,20 +1,14 @@
-import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { jsonText, timestamps } from './_shared'
+import { i18nVersioning, jsonText, timestamps, versioning } from './_shared'
 
 export const streetsVersions = sqliteTable(
   'streetsVersions',
   {
     id: text('id').notNull(),
-    versionHash: text('versionHash').notNull(),
-    releaseId: text('releaseId').notNull(),
-    validFromReleaseSetId: text('validFromReleaseSetId').notNull(),
-    validToReleaseSetId: text('validToReleaseSetId'),
-    validFromMonth: text('validFromMonth').notNull(),
-    validToMonth: text('validToMonth'),
-    isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
-    yearBuilt: jsonText('yearBuiltJson'),
-    references: jsonText('referencesJson'),
+    ...versioning,
+    yearBuilt: jsonText('yearBuilt'),
+    references: jsonText('references'),
     ...timestamps,
   },
   table => [
@@ -35,11 +29,7 @@ export const streetsVersionsI18n = sqliteTable(
   'streetsVersionsI18n',
   {
     streetId: text('streetId').notNull(),
-    versionHash: text('versionHash').notNull(),
-    releaseId: text('releaseId').notNull(),
-    validFromReleaseSetId: text('validFromReleaseSetId').notNull(),
-    validToReleaseSetId: text('validToReleaseSetId'),
-    isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
+    ...i18nVersioning,
     locale: text('locale').notNull(),
     name: text('name').notNull(),
     base: text('base'),

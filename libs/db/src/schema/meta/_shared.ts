@@ -6,6 +6,8 @@ export const primaryUuid = (name: string) =>
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID())
 
+export const jsonText = (name: string) => text(name, { mode: 'json' })
+
 export const timestamps = {
   createdAt: integer('createdAt', { mode: 'timestamp_ms' })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)

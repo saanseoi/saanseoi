@@ -7,7 +7,8 @@ export const address2d = sqliteTable(
   'address2d',
   {
     id: text('id').primaryKey(),
-    geometry: jsonText('geometryJson'),
+    geometry: jsonText('geometry'),
+    bbox: jsonText('bbox'),
     countryId: text('countryId').references(() => divisions.id),
     areaId: text('areaId').references(() => divisions.id),
     districtId: text('districtId').references(() => divisions.id),
@@ -18,9 +19,8 @@ export const address2d = sqliteTable(
     hamletId: text('hamletId').references(() => divisions.id),
     microhoodId: text('microhoodId').references(() => divisions.id),
     streetId: text('streetId'),
-    otBbox: jsonText('otBboxJson'),
-    identifiers: jsonText('identifiersJson'),
-    sources: jsonText('sourcesJson'),
+    identifiers: jsonText('identifiers'),
+    sources: jsonText('sources'),
     ...timestamps,
   },
   table => [
@@ -73,7 +73,7 @@ export const address3d = sqliteTable(
     address2dId: text('address2dId')
       .notNull()
       .references(() => address2d.id),
-    sources: jsonText('sourcesJson'),
+    sources: jsonText('sources'),
     ...timestamps,
   },
   table => [index('address3d_address2dId_idx').on(table.address2dId)],

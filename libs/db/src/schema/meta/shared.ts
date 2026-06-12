@@ -9,6 +9,7 @@ import {
 
 import { ingestRunStatuses } from '../../constants/schema'
 import { metaReleases } from './datasets'
+import { jsonText, timestamps } from './_shared'
 
 export const ingestRuns = sqliteTable('ingestRuns', {
   runId: text('runId').primaryKey(),
@@ -17,12 +18,11 @@ export const ingestRuns = sqliteTable('ingestRuns', {
     .references(() => metaReleases.id),
   phase: text('phase').notNull(),
   status: text('status', { enum: ingestRunStatuses }).notNull(),
-  statsJson: text('statsJson'),
-  errorJson: text('errorJson'),
+  stats: jsonText('stats'),
+  error: jsonText('error'),
   startedAt: text('startedAt').notNull(),
   finishedAt: text('finishedAt'),
-  createdAt: text('createdAt').notNull(),
-  updatedAt: text('updatedAt').notNull(),
+  ...timestamps,
 })
 
 export const stats = sqliteTable(
@@ -39,8 +39,7 @@ export const stats = sqliteTable(
     value: real('value').notNull(),
     groupBy: text('groupBy'),
     groupValue: text('groupValue'),
-    createdAt: text('createdAt').notNull(),
-    updatedAt: text('updatedAt').notNull(),
+    ...timestamps,
   },
   table => [
     index('stats_releaseId_idx').on(table.releaseId),
@@ -66,8 +65,7 @@ export const entityAliases = sqliteTable(
     validFromMonth: text('validFromMonth'),
     validToMonth: text('validToMonth'),
     notes: text('notes'),
-    createdAt: text('createdAt').notNull(),
-    updatedAt: text('updatedAt').notNull(),
+    ...timestamps,
   },
   table => [
     uniqueIndex('entityAliases_entityType_aliasValue_unique_idx').on(

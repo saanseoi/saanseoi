@@ -7,7 +7,7 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import { sourceRecordColumns, sourceRecordIndexes } from './_shared'
+import { jsonText, sourceRecordColumns, sourceRecordIndexes } from './_shared'
 
 export const sourceOvertureDivisions = sqliteTable(
   'sourceOvertureDivisions',
@@ -21,12 +21,12 @@ export const sourceOvertureDivisions = sqliteTable(
     population: integer('population'),
     version: integer('version'),
     wikidata: text('wikidata'),
-    geometryJson: text('geometryJson'),
-    bboxJson: text('bboxJson'),
-    hierarchiesJson: text('hierarchiesJson'),
-    cartographyJson: text('cartographyJson'),
-    sourcesJson: text('sourcesJson'),
-    rawPropertiesJson: text('rawPropertiesJson'),
+    geometry: jsonText('geometry'),
+    bbox: jsonText('bbox'),
+    hierarchies: jsonText('hierarchies'),
+    cartography: jsonText('cartography'),
+    sources: jsonText('sources'),
+    rawProperties: jsonText('rawProperties'),
   },
   table => [
     primaryKey({
@@ -46,9 +46,9 @@ export const sourceOvertureDivisionI18n = sqliteTable(
     sourceRecordId: text('sourceRecordId').notNull(),
     locale: text('locale').notNull(),
     name: text('name'),
-    nameVariantJson: text('nameVariantJson'),
+    nameVariant: jsonText('nameVariant'),
     nameAlts: text('nameAlts'),
-    nameRulesJson: text('nameRulesJson'),
+    nameRules: jsonText('nameRules'),
     localType: text('localType'),
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
       .notNull()
@@ -68,12 +68,12 @@ export const sourceOvertureAddresses2d = sqliteTable(
     ...sourceRecordColumns,
     regionCode: text('regionCode').notNull(),
     version: integer('version'),
-    geometryJson: text('geometryJson'),
-    bboxJson: text('bboxJson'),
+    geometry: jsonText('geometry'),
+    bbox: jsonText('bbox'),
     streetName: text('streetName'),
     streetNumber: text('streetNumber'),
-    sourcesJson: text('sourcesJson'),
-    rawPropertiesJson: text('rawPropertiesJson'),
+    sources: jsonText('sources'),
+    rawProperties: jsonText('rawProperties'),
   },
   table => [
     primaryKey({
@@ -117,21 +117,21 @@ export const sourceOverturePlaces = sqliteTable(
     version: integer('version'),
     lng: real('lng'),
     lat: real('lat'),
-    bboxJson: text('bboxJson'),
+    bbox: jsonText('bbox'),
     operatingStatus: text('operatingStatus'),
     basicCategory: text('basicCategory'),
     taxonomyPrimary: text('taxonomyPrimary'),
-    taxonomyHierarchyJson: text('taxonomyHierarchyJson'),
-    taxonomyAlternatesJson: text('taxonomyAlternatesJson'),
+    taxonomyHierarchy: jsonText('taxonomyHierarchy'),
+    taxonomyAlternates: jsonText('taxonomyAlternates'),
     brandWikidata: text('brandWikidata'),
-    websitesJson: text('websitesJson'),
-    socialsJson: text('socialsJson'),
-    emailsJson: text('emailsJson'),
-    phonesJson: text('phonesJson'),
-    addressesJson: text('addressesJson'),
+    websites: jsonText('websites'),
+    socials: jsonText('socials'),
+    emails: jsonText('emails'),
+    phones: jsonText('phones'),
+    addresses: jsonText('addresses'),
     confidence: real('confidence'),
-    sourcesJson: text('sourcesJson'),
-    rawPropertiesJson: text('rawPropertiesJson'),
+    sources: jsonText('sources'),
+    rawProperties: jsonText('rawProperties'),
   },
   table => [
     primaryKey({
@@ -154,10 +154,10 @@ export const sourceOverturePlaceI18n = sqliteTable(
     sourceRecordId: text('sourceRecordId').notNull(),
     locale: text('locale').notNull(),
     name: text('name'),
-    nameVariantJson: text('nameVariantJson'),
+    nameVariant: jsonText('nameVariant'),
     nameAlts: text('nameAlts'),
     brandName: text('brandName'),
-    brandNameVariantJson: text('brandNameVariantJson'),
+    brandNameVariant: jsonText('brandNameVariant'),
     brandNameAlts: text('brandNameAlts'),
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
       .notNull()
