@@ -5,6 +5,7 @@ import {
   text,
   uniqueIndex,
 } from 'drizzle-orm/sqlite-core'
+import { sql } from 'drizzle-orm'
 
 import {
   dataShardEnvironments,
@@ -36,6 +37,18 @@ export const metaDataShards = sqliteTable(
       table.year,
       table.environment,
     ),
+    uniqueIndex('dataShards_kind_env_unscoped_unique_idx')
+      .on(table.kind, table.environment)
+      .where(sql`${table.regionCode} is null and ${table.year} is null`),
+    uniqueIndex('dataShards_kind_region_env_unique_idx')
+      .on(table.kind, table.regionCode, table.environment)
+      .where(sql`${table.regionCode} is not null and ${table.year} is null`),
+    uniqueIndex('dataShards_kind_year_env_unique_idx')
+      .on(table.kind, table.year, table.environment)
+      .where(sql`${table.regionCode} is null and ${table.year} is not null`),
+    uniqueIndex('dataShards_kind_region_year_env_scoped_unique_idx')
+      .on(table.kind, table.regionCode, table.year, table.environment)
+      .where(sql`${table.regionCode} is not null and ${table.year} is not null`),
   ],
 )
 
