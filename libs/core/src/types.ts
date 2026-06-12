@@ -6,6 +6,7 @@ export type SupportedType = (typeof SUPPORTED_TYPES)[number]
 export type RegionCode = 'hk' | 'mo'
 
 export type DatasetRecord = {
+  id: string
   datasetId: string
   regionCode: string
   snapshotMonth: string

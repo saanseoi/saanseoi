@@ -112,6 +112,7 @@ export async function getDatasetById(db: HarbourReadableDb, datasetId: string) {
   return (
     (await db
       .select({
+        id: datasets.id,
         datasetId: datasets.datasetId,
         status: datasets.status,
       })
@@ -148,6 +149,7 @@ export async function insertDataset(
   await db
     .insert(datasets)
     .values({
+      id: crypto.randomUUID(),
       datasetId: plan.datasetId,
       regionCode: plan.regionCode,
       snapshotMonth: plan.snapshotMonth,
@@ -264,7 +266,7 @@ export async function revokeDataset(
  * Records an ingest run event for the dataset registration workflow.
  */
 export async function insertIngestRun(
-  db: HarbourWritableDb,
+  db: HarbourReadableDb & HarbourWritableDb,
   datasetId: string,
   phase: string,
   status: string,
@@ -274,12 +276,17 @@ export async function insertIngestRun(
   errorJson: string | null = null,
 ) {
   const now = startedAt
+  const dataset = await getDatasetRecordById(db, datasetId)
+
+  if (!dataset) {
+    throw new Error(`Dataset not found: ${datasetId}`)
+  }
 
   await db
     .insert(ingestRuns)
     .values({
       runId: crypto.randomUUID(),
-      datasetId,
+      datasetRecordId: dataset.id,
       phase,
       status,
       statsJson,
@@ -301,6 +308,12 @@ export async function updateLatestOpenIngestRun(
   statsJson: string | null,
   errorJson: string | null = null,
 ) {
+  const dataset = await getDatasetRecordById(db, datasetId)
+
+  if (!dataset) {
+    throw new Error(`Dataset not found: ${datasetId}`)
+  }
+
   const openRun =
     ((await db
       .select({
@@ -309,7 +322,7 @@ export async function updateLatestOpenIngestRun(
       .from(ingestRuns)
       .where(
         and(
-          eq(ingestRuns.datasetId, datasetId),
+          eq(ingestRuns.datasetRecordId, dataset.id),
           eq(ingestRuns.phase, phase),
           eq(ingestRuns.status, 'running'),
         ),

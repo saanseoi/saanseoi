@@ -1,7 +1,11 @@
 import { and, eq, inArray } from 'drizzle-orm'
 
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
+import {
+  getDatasetRecordById,
+  type HarbourReadableDb,
+  type HarbourWritableDb,
+} from '@repo/core/db/repository'
 import type {
   CurrentDivisionVersionRow,
   DatasetStatsRow,
@@ -294,7 +298,7 @@ export async function replaceDivisionCurrentI18n(
  * Inserts the versioned division row and its versioned i18n rows for a dataset snapshot.
  */
 export async function insertDivisionVersionRows(
-  db: HarbourWritableDb,
+  db: HarbourReadableDb & HarbourWritableDb,
   message: DatasetProcessingMessage,
   base: DivisionBaseRecord,
   i18nRows: DivisionI18nPayload[],
@@ -302,6 +306,11 @@ export async function insertDivisionVersionRows(
   now: string,
 ) {
   const otVersionHash = await createHash(base.otVersion ?? '')
+  const dataset = await getDatasetRecordById(db, message.datasetId)
+
+  if (!dataset) {
+    throw new Error(`Dataset not found: ${message.datasetId}`)
+  }
 
   await runWithWriteRetry(() =>
     db
@@ -309,7 +318,7 @@ export async function insertDivisionVersionRows(
       .values({
         ...base,
         createdAt: now,
-        datasetId: message.datasetId,
+        datasetRecordId: dataset.id,
         isCurrent: true,
         otVersionHash,
         regionCode: message.regionCode,
@@ -321,7 +330,7 @@ export async function insertDivisionVersionRows(
       .onConflictDoUpdate({
         target: [divisionsVersions.id, divisionsVersions.versionHash],
         set: {
-          datasetId: message.datasetId,
+          datasetRecordId: dataset.id,
           isCurrent: true,
           validFromMonth: message.snapshotMonth,
           validToMonth: null,
@@ -391,12 +400,18 @@ async function insertDivisionVersionsI18nInChunks(
  * Replaces all dataset-level stats rows for a dataset snapshot.
  */
 export async function replaceDatasetStats(
-  db: HarbourWritableDb,
+  db: HarbourReadableDb & HarbourWritableDb,
   datasetId: string,
   rows: DatasetStatsRow[],
 ) {
+  const dataset = await getDatasetRecordById(db, datasetId)
+
+  if (!dataset) {
+    throw new Error(`Dataset not found: ${datasetId}`)
+  }
+
   await runWithWriteRetry(() =>
-    db.delete(stats).where(eq(stats.datasetId, datasetId)).run(),
+    db.delete(stats).where(eq(stats.datasetRecordId, dataset.id)).run(),
   )
 
   if (rows.length === 0) {
@@ -412,7 +427,7 @@ export async function replaceDatasetStats(
         .values(
           chunk.map(row => ({
             ...row,
-            datasetId,
+            datasetRecordId: dataset.id,
             id: crypto.randomUUID(),
           })),
         )

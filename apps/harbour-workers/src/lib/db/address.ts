@@ -1,7 +1,11 @@
 import { and, eq, inArray } from 'drizzle-orm'
 
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
+import {
+  getDatasetRecordById,
+  type HarbourReadableDb,
+  type HarbourWritableDb,
+} from '@repo/core/db/repository'
 import type {
   AddressI18nPayload,
   AddressRow,
@@ -82,7 +86,7 @@ export async function getCurrentAddressVersionMap(
         eq(address2dVersions.versionHash, address2dVersionsDatasets.versionHash),
       ),
     )
-    .innerJoin(datasets, eq(address2dVersionsDatasets.datasetId, datasets.datasetId))
+    .innerJoin(datasets, eq(address2dVersionsDatasets.datasetRecordId, datasets.id))
     .where(
       and(
         eq(address2dVersions.isCurrent, true),
@@ -288,13 +292,19 @@ export async function replaceAddressCurrentI18n(
 }
 
 export async function insertAddressVersionRows(
-  db: HarbourWritableDb,
+  db: HarbourReadableDb & HarbourWritableDb,
   message: DatasetProcessingMessage,
   base: AddressBaseRecord,
   i18nRows: AddressI18nPayload[],
   versionHash: string,
   now: string,
 ) {
+  const dataset = await getDatasetRecordById(db, message.datasetId)
+
+  if (!dataset) {
+    throw new Error(`Dataset not found: ${message.datasetId}`)
+  }
+
   await runWithWriteRetry(() =>
     db
       .insert(address2dVersions)
@@ -325,7 +335,7 @@ export async function insertAddressVersionRows(
       .values({
         addressId: base.id,
         versionHash,
-        datasetId: message.datasetId,
+        datasetRecordId: dataset.id,
         createdAt: now,
         updatedAt: now,
       })

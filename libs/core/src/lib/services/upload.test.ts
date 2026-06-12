@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -25,12 +32,12 @@ import { createLocalHarbourDb } from '../../testing/local-db'
 import { datasets } from '@repo/db/schema'
 import type { ParquetInspection } from '../../types'
 
-const migrationSql = await Bun.file(
-  resolve(
-    import.meta.dir,
-    '../../../../../libs/db/migrations/20260602105608_ordinary_true_believers.sql',
-  ),
-).text()
+const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
+const migrationSql = readdirSync(migrationsDir)
+  .filter(fileName => fileName.endsWith('.sql'))
+  .sort()
+  .map(fileName => readFileSync(join(migrationsDir, fileName), 'utf8'))
+  .join('\n')
 const tempDirs: string[] = []
 const fixtureInspection: ParquetInspection = {
   rowCount: 3,
@@ -197,7 +204,9 @@ describe('upload', () => {
       originalFileName: string
     } | null
     const ingestRunCount = sqliteCheck
-      .query('SELECT COUNT(*) AS count FROM ingestRuns WHERE datasetId = ?')
+      .query(
+        'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN datasets d ON d.id = ir.datasetRecordId WHERE d.datasetId = ?',
+      )
       .get('overture-hk-2026-05-24.0-division') as { count: number }
 
     sqliteCheck.close()
@@ -407,7 +416,9 @@ describe('upload', () => {
       originalFileName: string
     } | null
     const ingestRunCount = sqlite
-      .query('SELECT COUNT(*) AS count FROM ingestRuns WHERE datasetId = ?')
+      .query(
+        'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN datasets d ON d.id = ir.datasetRecordId WHERE d.datasetId = ?',
+      )
       .get('overture-hk-2026-05-24.0-division') as { count: number }
 
     sqlite.close()
