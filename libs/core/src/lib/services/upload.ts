@@ -628,7 +628,7 @@ function resolveUploadPlan(
     options.originalFileName,
   )
   const datasetCode = `${regionCode}-${type}`
-  const releaseCode = `${source}-${datasetCode}-${sourceVersion}`
+  const releaseCode = `${source}-${regionCode}-${sourceVersion}-${type}`
 
   return {
     plan: {
@@ -711,7 +711,13 @@ export async function planUpload(
     options.resolveSchemaFingerprint,
   )
 
-  return resolveUploadPlan(options, resolvedInspection)
+  return {
+    ...preparedUpload,
+    plan: {
+      ...preparedUpload.plan,
+      supersedesDatasetId: latestDataset?.releaseCode ?? null,
+    },
+  }
 }
 
 export function createRawObjectKey(plan: UploadPlan) {
@@ -915,7 +921,7 @@ function assertDatasetCanBeReuploaded(
   }
 
   throw new Error(
-    `Release already exists with status ${existingDataset.status}: ${existingDataset.datasetId}`,
+    `Dataset already exists with status ${existingDataset.status}: ${existingDataset.datasetId}`,
   )
 }
 
