@@ -15,7 +15,7 @@ case "$family" in
     config_file="./drizzle.meta.config.ts"
     migrations_dir="$db_dir/migrations/meta"
     ;;
-  current|api-current)
+  current)
     config_file="./drizzle.current.config.ts"
     migrations_dir="$db_dir/migrations/current"
     ;;
