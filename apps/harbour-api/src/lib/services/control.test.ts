@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -7,12 +7,12 @@ import { Database } from 'bun:sqlite'
 
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
 
-const migrationSql = await Bun.file(
-  resolve(
-    import.meta.dir,
-    '../../../../../libs/db/migrations/20260602105608_ordinary_true_believers.sql',
-  ),
-).text()
+const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
+const migrationSql = readdirSync(migrationsDir)
+  .filter(fileName => fileName.endsWith('.sql'))
+  .sort()
+  .map(fileName => readFileSync(join(migrationsDir, fileName), 'utf8'))
+  .join('\n')
 
 const {
   handlePublishDataset,
@@ -54,11 +54,11 @@ describe('control service', () => {
 
     sqlite.exec(`
       INSERT INTO datasets (
-        datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
+        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
         rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
         revocationReason, ingestedAt, createdAt, updatedAt
       ) VALUES (
-        'overture-hk-2025-09-24.0-division', 'hk', '2025-09', 'divisions', 'division',
+        'overture-hk-2025-09-24.0-division-row', 'overture-hk-2025-09-24.0-division', 'hk', '2025-09', 'divisions', 'division',
         'overture', '2025-09-24.0', 'hk/overture/2025-09-24.0/division.parquet',
         'division.parquet', 'staged', null, null, null, '2026-06-05T00:00:00.000Z',
         '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
@@ -89,7 +89,7 @@ describe('control service', () => {
 
     const ingestRuns = sqlite
       .query(
-        'SELECT phase, status, statsJson, errorJson, finishedAt FROM ingestRuns WHERE datasetId = ? ORDER BY startedAt ASC',
+        'SELECT ir.phase, ir.status, ir.statsJson, ir.errorJson, ir.finishedAt FROM ingestRuns ir INNER JOIN datasets d ON d.id = ir.datasetRecordId WHERE d.datasetId = ? ORDER BY ir.startedAt ASC',
       )
       .all('overture-hk-2025-09-24.0-division') as Array<{
       phase: string
@@ -136,18 +136,18 @@ describe('control service', () => {
 
     sqlite.exec(`
       INSERT INTO datasets (
-        datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
+        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
         rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
         revocationReason, ingestedAt, createdAt, updatedAt
       ) VALUES
       (
-        'overture-hk-2026-01-21.0-division', 'hk', '2026-01', 'divisions', 'division',
+        'overture-hk-2026-01-21.0-division-row', 'overture-hk-2026-01-21.0-division', 'hk', '2026-01', 'divisions', 'division',
         'overture', '2026-01-21.0', 'hk/overture/2026-01-21.0/division.parquet',
         'division.parquet', 'current', null, null, null, '2026-06-05T00:00:00.000Z',
         '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
       ),
       (
-        'overture-hk-2026-02-18.0-division', 'hk', '2026-02', 'divisions', 'division',
+        'overture-hk-2026-02-18.0-division-row', 'overture-hk-2026-02-18.0-division', 'hk', '2026-02', 'divisions', 'division',
         'overture', '2026-02-18.0', 'hk/overture/2026-02-18.0/division.parquet',
         'division.parquet', 'staged', 'overture-hk-2026-01-21.0-division', null, null,
         '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
@@ -160,7 +160,7 @@ describe('control service', () => {
 
     const rows = sqlite
       .query(
-        'SELECT datasetId, status, revokedAt, revocationReason FROM datasets ORDER BY datasetId',
+        "SELECT datasetId, status, revokedAt, revocationReason FROM datasets WHERE datasetId != 'saanseoi-cn-2026-01-01.01-division' ORDER BY datasetId",
       )
       .all() as Array<{
       datasetId: string
@@ -200,18 +200,18 @@ describe('control service', () => {
 
     sqlite.exec(`
       INSERT INTO datasets (
-        datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
+        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
         rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
         revocationReason, ingestedAt, createdAt, updatedAt
       ) VALUES
       (
-        'overture-hk-2026-02-18.0-division', 'hk', '2026-02', 'divisions', 'division',
+        'overture-hk-2026-02-18.0-division-row', 'overture-hk-2026-02-18.0-division', 'hk', '2026-02', 'divisions', 'division',
         'overture', '2026-02-18.0', 'hk/overture/2026-02-18.0/division.parquet',
         'division.parquet', 'current', null, null, null, '2026-06-05T00:00:00.000Z',
         '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
       ),
       (
-        'overture-hk-2026-02-18.1-division', 'hk', '2026-02', 'divisions', 'division',
+        'overture-hk-2026-02-18.1-division-row', 'overture-hk-2026-02-18.1-division', 'hk', '2026-02', 'divisions', 'division',
         'overture', '2026-02-18.1', 'hk/overture/2026-02-18.1/division.parquet',
         'division.parquet', 'staged', 'overture-hk-2026-02-18.0-division', null, null,
         '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
