@@ -1,6 +1,8 @@
 import { sql } from 'drizzle-orm'
 import { index, integer, text } from 'drizzle-orm/sqlite-core'
 
+export const jsonText = (name: string) => text(name, { mode: 'json' })
+
 export const sourceTimestamps = {
   createdAt: integer('createdAt', { mode: 'timestamp_ms' })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)

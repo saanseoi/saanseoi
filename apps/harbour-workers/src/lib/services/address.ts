@@ -29,7 +29,7 @@ import {
   insertSourceOvertureAddresses2d,
   resetSourceReleaseRows,
 } from '../db/source'
-import { asNonEmptyString, createHash, stableJsonStringify } from '../utils'
+import { asNonEmptyString, createHash } from '../utils'
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 
 import type { HarbourWorkerBucket } from './division'
@@ -164,14 +164,14 @@ export async function processAddressDataset(
             sourcePayloadHash,
             regionCode: message.regionCode,
             version: asOptionalInteger(row.version),
-            geometryJson: stableJsonStringify(base.geometry),
-            bboxJson: stableJsonStringify(base.otBbox),
+            geometry: base.geometry,
+            bbox: base.bbox,
             streetName:
               i18n.find(localized => localized.locale === 'en')?.streetName ?? null,
             streetNumber:
               i18n.find(localized => localized.locale === 'en')?.streetNumber ?? null,
-            sourcesJson: stableJsonStringify(base.sources),
-            rawPropertiesJson: stableJsonStringify(row),
+            sources: base.sources,
+            rawProperties: row,
           })
 
           overtureSourceI18nRows.push(
@@ -196,7 +196,7 @@ export async function processAddressDataset(
             csuId: asNonEmptyString(row.hkgovCsuId) ?? asNonEmptyString(row.geoAddress),
             x: asNumber(row.easting),
             y: asNumber(row.northing),
-            geometryJson: asNonEmptyString(row.geometryJson),
+            geometry: parseOptionalJson(row.geometryJson),
             districtCode: null,
             districtName:
               asNonEmptyString(row.enDistrict) ?? asNonEmptyString(row.zhHantDistrict),
@@ -220,7 +220,7 @@ export async function processAddressDataset(
               asNonEmptyString(row.zhHantStreetName),
             villageName: null,
             dataOwner: 'hkgov-als',
-            rawPayloadJson: stableJsonStringify(row),
+            rawPayload: row,
           })
 
           hkgovSourceI18nRows.push(
@@ -348,7 +348,7 @@ async function loadDivisionLookupMaps(db: CurrentDatabase) {
       level: currentSchema.divisions.level,
       type: currentSchema.divisions.type,
       locale: currentSchema.divisionsI18n.locale,
-      otName: currentSchema.divisionsI18n.otName,
+      name: currentSchema.divisionsI18n.name,
     })
     .from(currentSchema.divisions)
     .innerJoin(
@@ -360,7 +360,7 @@ async function loadDivisionLookupMaps(db: CurrentDatabase) {
     id: string
     level: number
     locale: string
-    otName: string | null
+    name: string | null
     type: string
   }>
 
@@ -369,7 +369,7 @@ async function loadDivisionLookupMaps(db: CurrentDatabase) {
   let countryId: string | null = null
 
   for (const row of rows) {
-    const name = normalizeNameToken(row.otName)
+    const name = normalizeNameToken(row.name)
 
     if (!name) {
       continue
@@ -427,7 +427,7 @@ function normalizeOvertureAddressRow(
       countryId: divisionLookup.countryId,
       geometry: parsePointGeometry(row.geometry),
       identifiers: null,
-      otBbox: row.bbox ?? null,
+      bbox: row.bbox ?? null,
       sources: {
         overture: pruneEmptyValues(row.sources),
       },
@@ -527,10 +527,10 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
       districtId,
       areaId: asNonEmptyString(row.areaId),
       countryId: asNonEmptyString(row.countryId),
-      geometry: parseOptionalJson(row.geometryJson),
-      identifiers: parseOptionalJson(row.identifiersJson),
-      otBbox: null,
-      sources: parseOptionalJson(row.sourcesJson),
+      geometry: parseOptionalJson(row.geometry),
+      identifiers: parseOptionalJson(row.identifiers),
+      bbox: null,
+      sources: parseOptionalJson(row.sources),
       createdAt: '',
       updatedAt: '',
     } satisfies Omit<AddressRow, 'id'>,
@@ -555,7 +555,7 @@ function buildAddressBaseHashInput(
     countryId: base.countryId,
     geometry: base.geometry,
     identifiers: base.identifiers,
-    otBbox: base.otBbox,
+    bbox: base.bbox,
     sources: base.sources,
   } satisfies Omit<AddressRow, 'createdAt' | 'updatedAt'>
 }

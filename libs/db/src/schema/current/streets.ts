@@ -5,8 +5,8 @@ import { address2d } from './addresses'
 
 export const streets = sqliteTable('streets', {
   id: text('id').primaryKey(),
-  yearBuilt: jsonText('yearBuiltJson'),
-  references: jsonText('referencesJson'),
+  yearBuilt: jsonText('yearBuilt'),
+  references: jsonText('references'),
   ...timestamps,
 })
 

@@ -19,7 +19,7 @@ import {
   provenanceContributionTypes,
   resolverCodes,
 } from '../../constants/schema'
-import { primaryUuid, timestamps } from './_shared'
+import { jsonText, primaryUuid, timestamps } from './_shared'
 import { metaDatasets, metaReleases } from './datasets'
 
 export const metaApiVersions = sqliteTable('apiVersions', {
@@ -142,7 +142,7 @@ export const metaApiFieldProvenance = sqliteTable(
     }).notNull(),
     priority: integer('priority').notNull().default(0),
     confidence: real('confidence'),
-    sourceIdentifierPathsJson: text('sourceIdentifierPathsJson'),
+    sourceIdentifierPaths: jsonText('sourceIdentifierPaths'),
     ...timestamps,
   },
   table => [

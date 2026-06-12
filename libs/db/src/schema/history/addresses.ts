@@ -1,19 +1,13 @@
 import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { jsonText, timestamps } from './_shared'
+import { i18nVersioning, jsonText, timestamps, versioning } from './_shared'
 
 export const address2dVersions = sqliteTable(
   'address2dVersions',
   {
     id: text('id').notNull(),
-    versionHash: text('versionHash').notNull(),
     regionCode: text('regionCode').notNull(),
-    releaseId: text('releaseId').notNull(),
-    validFromReleaseSetId: text('validFromReleaseSetId').notNull(),
-    validToReleaseSetId: text('validToReleaseSetId'),
-    validFromMonth: text('validFromMonth').notNull(),
-    validToMonth: text('validToMonth'),
-    isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
+    ...versioning,
     streetId: text('streetId'),
     hamletId: text('hamletId'),
     microhoodId: text('microhoodId'),
@@ -24,10 +18,10 @@ export const address2dVersions = sqliteTable(
     districtId: text('districtId'),
     areaId: text('areaId'),
     countryId: text('countryId'),
-    geometry: jsonText('geometryJson'),
-    identifiers: jsonText('identifiersJson'),
-    otBbox: jsonText('otBboxJson'),
-    sources: jsonText('sourcesJson'),
+    geometry: jsonText('geometry'),
+    bbox: jsonText('bbox'),
+    identifiers: jsonText('identifiers'),
+    sources: jsonText('sources'),
     ...timestamps,
   },
   table => [
@@ -57,11 +51,7 @@ export const address2dVersionsI18n = sqliteTable(
   'address2dVersionsI18n',
   {
     addressId: text('addressId').notNull(),
-    versionHash: text('versionHash').notNull(),
-    releaseId: text('releaseId').notNull(),
-    validFromReleaseSetId: text('validFromReleaseSetId').notNull(),
-    validToReleaseSetId: text('validToReleaseSetId'),
-    isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
+    ...i18nVersioning,
     locale: text('locale').notNull(),
     formattedAddress: text('formattedAddress').notNull(),
     buildingName: text('buildingName'),
@@ -94,15 +84,9 @@ export const address3dVersions = sqliteTable(
   'address3dVersions',
   {
     id: text('id').notNull(),
-    versionHash: text('versionHash').notNull(),
-    releaseId: text('releaseId').notNull(),
-    validFromReleaseSetId: text('validFromReleaseSetId').notNull(),
-    validToReleaseSetId: text('validToReleaseSetId'),
-    validFromMonth: text('validFromMonth').notNull(),
-    validToMonth: text('validToMonth'),
-    isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
+    ...versioning,
     address2dId: text('address2dId').notNull(),
-    sources: jsonText('sourcesJson'),
+    sources: jsonText('sources'),
     ...timestamps,
   },
   table => [
@@ -127,11 +111,7 @@ export const address3dVersionsI18n = sqliteTable(
   'address3dVersionsI18n',
   {
     address3dId: text('address3dId').notNull(),
-    versionHash: text('versionHash').notNull(),
-    releaseId: text('releaseId').notNull(),
-    validFromReleaseSetId: text('validFromReleaseSetId').notNull(),
-    validToReleaseSetId: text('validToReleaseSetId'),
-    isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
+    ...i18nVersioning,
     locale: text('locale').notNull(),
     formattedAddressPart: text('formattedAddressPart').notNull(),
     accessHint: text('accessHint'),

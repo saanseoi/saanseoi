@@ -211,8 +211,8 @@ export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup
       level: divisions.level,
       parentDivisionId: divisions.parentDivisionId,
       locale: divisionsI18n.locale,
-      otName: divisionsI18n.otName,
-      otLocalType: divisionsI18n.otLocalType,
+      name: divisionsI18n.name,
+      localType: divisionsI18n.localType,
     })
     .from(placesDivision)
     .innerJoin(divisions, eq(divisions.id, placesDivision.divisionId))
@@ -232,15 +232,13 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
   return db
     .select({
       placeId: places.id,
-      datasetId: places.datasetRecordId,
+      releaseId: places.releaseId,
       regionCode: places.regionCode,
-      otVersion: places.otVersion,
-      otVersionHash: places.otVersionHash,
-      otBasicCategory: places.otBasicCategory,
-      otTaxonomyPrimary: places.otTaxonomyPrimary,
-      otOperatingStatus: places.otOperatingStatus,
-      otLat: places.otLat,
-      otLng: places.otLng,
+      basicCategory: places.basicCategory,
+      taxonomyPrimary: places.taxonomyPrimary,
+      operatingStatus: places.operatingStatus,
+      lat: places.lat,
+      lng: places.lng,
       h3Level: placesCells.h3Level,
       h3Cell: placesCells.h3Cell,
     })
@@ -263,7 +261,7 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
       .select({
         placeId: places.id,
         regionCode: places.regionCode,
-        datasetId: places.datasetRecordId,
+        releaseId: places.releaseId,
         locale: placesFts.locale,
         nameText: placesFts.nameText,
         brandText: placesFts.brandText,

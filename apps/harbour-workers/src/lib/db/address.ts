@@ -67,7 +67,7 @@ export async function getCurrentAddressVersionMap(
       countryId: historySchema.address2dVersions.countryId,
       geometry: historySchema.address2dVersions.geometry,
       identifiers: historySchema.address2dVersions.identifiers,
-      otBbox: historySchema.address2dVersions.otBbox,
+      bbox: historySchema.address2dVersions.bbox,
       sources: historySchema.address2dVersions.sources,
       versionHash: historySchema.address2dVersions.versionHash,
     })
@@ -261,7 +261,7 @@ export async function upsertAddressCurrentState(
           countryId: base.countryId,
           geometry: base.geometry,
           identifiers: base.identifiers,
-          otBbox: base.otBbox,
+          bbox: base.bbox,
           sources: base.sources,
           updatedAt: now,
         },

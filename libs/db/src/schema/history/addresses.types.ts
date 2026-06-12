@@ -26,7 +26,7 @@ export type CurrentAddressVersionRow = Pick<
   | 'countryId'
   | 'geometry'
   | 'identifiers'
-  | 'otBbox'
+  | 'bbox'
   | 'sources'
   | 'versionHash'
 >
