@@ -2,11 +2,11 @@
 
 This document proposes the next database shape for Saanseoi.
 
-It is intentionally a design review artifact only:
+Beyond this design review artifact, we have:
 
-- no migrations yet
-- no runtime code changes yet
-- existing `DB` bindings remain in place for current code
+- new D1 bindings: `DB_META`, `DB_CURRENT`, `DB_HISTORY_HK_2026`, and `DB_SOURCE_HK_2026`
+- migration artifacts are present under `libs/db/migrations/`
+- existing `DB` bindings remain in place for current code compatibility
 
 ## Goals
 
