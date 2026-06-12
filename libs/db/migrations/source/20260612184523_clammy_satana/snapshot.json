@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "be6fb033-7832-402a-8b8d-57a45bc384d1",
+  "id": "27f2f7f1-6bc9-4bb5-acc3-5073aded6604",
   "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
@@ -192,7 +192,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "geometryJson",
+      "name": "geometry",
       "entityType": "columns",
       "table": "sourceOvertureAddresses2d"
     },
@@ -202,7 +202,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "bboxJson",
+      "name": "bbox",
       "entityType": "columns",
       "table": "sourceOvertureAddresses2d"
     },
@@ -232,7 +232,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourcesJson",
+      "name": "sources",
       "entityType": "columns",
       "table": "sourceOvertureAddresses2d"
     },
@@ -242,7 +242,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "rawPropertiesJson",
+      "name": "rawProperties",
       "entityType": "columns",
       "table": "sourceOvertureAddresses2d"
     },
@@ -292,7 +292,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "nameVariantJson",
+      "name": "nameVariant",
       "entityType": "columns",
       "table": "sourceOvertureDivisionI18n"
     },
@@ -312,7 +312,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "nameRulesJson",
+      "name": "nameRules",
       "entityType": "columns",
       "table": "sourceOvertureDivisionI18n"
     },
@@ -482,7 +482,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "geometryJson",
+      "name": "geometry",
       "entityType": "columns",
       "table": "sourceOvertureDivisions"
     },
@@ -492,7 +492,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "bboxJson",
+      "name": "bbox",
       "entityType": "columns",
       "table": "sourceOvertureDivisions"
     },
@@ -502,7 +502,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "hierarchiesJson",
+      "name": "hierarchies",
       "entityType": "columns",
       "table": "sourceOvertureDivisions"
     },
@@ -512,7 +512,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "cartographyJson",
+      "name": "cartography",
       "entityType": "columns",
       "table": "sourceOvertureDivisions"
     },
@@ -522,7 +522,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourcesJson",
+      "name": "sources",
       "entityType": "columns",
       "table": "sourceOvertureDivisions"
     },
@@ -532,7 +532,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "rawPropertiesJson",
+      "name": "rawProperties",
       "entityType": "columns",
       "table": "sourceOvertureDivisions"
     },
@@ -582,7 +582,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "nameVariantJson",
+      "name": "nameVariant",
       "entityType": "columns",
       "table": "sourceOverturePlaceI18n"
     },
@@ -612,7 +612,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "brandNameVariantJson",
+      "name": "brandNameVariant",
       "entityType": "columns",
       "table": "sourceOverturePlaceI18n"
     },
@@ -752,7 +752,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "bboxJson",
+      "name": "bbox",
       "entityType": "columns",
       "table": "sourceOverturePlaces"
     },
@@ -792,7 +792,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "taxonomyHierarchyJson",
+      "name": "taxonomyHierarchy",
       "entityType": "columns",
       "table": "sourceOverturePlaces"
     },
@@ -802,7 +802,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "taxonomyAlternatesJson",
+      "name": "taxonomyAlternates",
       "entityType": "columns",
       "table": "sourceOverturePlaces"
     },
@@ -822,7 +822,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "websitesJson",
+      "name": "websites",
       "entityType": "columns",
       "table": "sourceOverturePlaces"
     },
@@ -832,7 +832,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "socialsJson",
+      "name": "socials",
       "entityType": "columns",
       "table": "sourceOverturePlaces"
     },
@@ -842,7 +842,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "emailsJson",
+      "name": "emails",
       "entityType": "columns",
       "table": "sourceOverturePlaces"
     },
@@ -852,7 +852,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "phonesJson",
+      "name": "phones",
       "entityType": "columns",
       "table": "sourceOverturePlaces"
     },
@@ -862,7 +862,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "addressesJson",
+      "name": "addresses",
       "entityType": "columns",
       "table": "sourceOverturePlaces"
     },
@@ -882,7 +882,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourcesJson",
+      "name": "sources",
       "entityType": "columns",
       "table": "sourceOverturePlaces"
     },
@@ -892,7 +892,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "rawPropertiesJson",
+      "name": "rawProperties",
       "entityType": "columns",
       "table": "sourceOverturePlaces"
     },
@@ -1182,7 +1182,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "geometryJson",
+      "name": "geometry",
       "entityType": "columns",
       "table": "sourceHkgovAlsAddresses2d"
     },
@@ -1332,7 +1332,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "rawPayloadJson",
+      "name": "rawPayload",
       "entityType": "columns",
       "table": "sourceHkgovAlsAddresses2d"
     },

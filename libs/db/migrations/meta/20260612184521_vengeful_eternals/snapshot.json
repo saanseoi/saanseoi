@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "095d48d7-8193-4273-99e2-ff73e1c84f70",
+  "id": "926255c6-d7f0-4dfe-a341-ef3c6910c319",
   "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
@@ -492,7 +492,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "tagsJson",
+      "name": "tags",
       "entityType": "columns",
       "table": "datasets"
     },
@@ -912,7 +912,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceIdentifierPathsJson",
+      "name": "sourceIdentifierPaths",
       "entityType": "columns",
       "table": "apiFieldProvenance"
     },
@@ -1417,20 +1417,20 @@
       "table": "entityAliases"
     },
     {
-      "type": "text",
+      "type": "integer",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
       "table": "entityAliases"
     },
     {
-      "type": "text",
+      "type": "integer",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
@@ -1482,7 +1482,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "statsJson",
+      "name": "stats",
       "entityType": "columns",
       "table": "ingestRuns"
     },
@@ -1492,7 +1492,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "errorJson",
+      "name": "error",
       "entityType": "columns",
       "table": "ingestRuns"
     },
@@ -1517,20 +1517,20 @@
       "table": "ingestRuns"
     },
     {
-      "type": "text",
+      "type": "integer",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
       "table": "ingestRuns"
     },
     {
-      "type": "text",
+      "type": "integer",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
@@ -1627,20 +1627,20 @@
       "table": "stats"
     },
     {
-      "type": "text",
+      "type": "integer",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
       "table": "stats"
     },
     {
-      "type": "text",
+      "type": "integer",
       "notNull": true,
       "autoincrement": false,
-      "default": null,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",

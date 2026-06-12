@@ -2,40 +2,39 @@ CREATE TABLE `divisions` (
 	`id` text PRIMARY KEY,
 	`level` integer NOT NULL,
 	`type` text NOT NULL,
-	`otGeometryJson` text,
-	`otPopulation` integer,
-	`otVersion` text,
-	`otSubtype` text,
-	`otClass` text,
-	`otWikidata` text,
-	`otHierarchyJson` text,
-	`hierarchyJson` text,
+	`geometry` text,
+	`bbox` text,
+	`population` integer,
+	`subtype` text,
+	`class` text,
+	`wikidata` text,
+	`hierarchy` text,
 	`parentDivisionId` text,
-	`otCartographyJson` text,
-	`otBboxJson` text,
-	`sourcesJson` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL
+	`cartography` text,
+	`sources` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `divisionsI18n` (
 	`divisionId` text NOT NULL,
 	`locale` text NOT NULL,
-	`otName` text,
-	`otNameVariantJson` text,
-	`otNameAlts` text,
-	`otNameRulesJson` text,
-	`otLocalType` text,
+	`name` text,
+	`nameVariant` text,
+	`nameAlts` text,
+	`nameRules` text,
+	`localType` text,
 	`isLocaleInferred` integer NOT NULL,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `divisionsI18n_pk` PRIMARY KEY(`divisionId`, `locale`),
 	CONSTRAINT `fk_divisionsI18n_divisionId_divisions_id_fk` FOREIGN KEY (`divisionId`) REFERENCES `divisions`(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `address2d` (
 	`id` text PRIMARY KEY,
-	`geometryJson` text,
+	`geometry` text,
+	`bbox` text,
 	`countryId` text,
 	`areaId` text,
 	`districtId` text,
@@ -46,14 +45,10 @@ CREATE TABLE `address2d` (
 	`hamletId` text,
 	`microhoodId` text,
 	`streetId` text,
-	`otBboxJson` text,
-	`otVersion` text,
-	`otStreet` text,
-	`otNumber` text,
-	`identifiersJson` text,
-	`sourcesJson` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`identifiers` text,
+	`sources` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `fk_address2d_countryId_divisions_id_fk` FOREIGN KEY (`countryId`) REFERENCES `divisions`(`id`),
 	CONSTRAINT `fk_address2d_areaId_divisions_id_fk` FOREIGN KEY (`areaId`) REFERENCES `divisions`(`id`),
 	CONSTRAINT `fk_address2d_districtId_divisions_id_fk` FOREIGN KEY (`districtId`) REFERENCES `divisions`(`id`),
@@ -80,8 +75,8 @@ CREATE TABLE `address2dI18n` (
 	`estateName` text,
 	`streetNumber` text,
 	`streetName` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `address2dI18n_pk` PRIMARY KEY(`addressId`, `locale`),
 	CONSTRAINT `fk_address2dI18n_addressId_address2d_id_fk` FOREIGN KEY (`addressId`) REFERENCES `address2d`(`id`)
 );
@@ -89,9 +84,9 @@ CREATE TABLE `address2dI18n` (
 CREATE TABLE `address3d` (
 	`id` text PRIMARY KEY,
 	`address2dId` text NOT NULL,
-	`sourcesJson` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`sources` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `fk_address3d_address2dId_address2d_id_fk` FOREIGN KEY (`address2dId`) REFERENCES `address2d`(`id`)
 );
 --> statement-breakpoint
@@ -105,18 +100,18 @@ CREATE TABLE `address3dI18n` (
 	`unitType` text,
 	`floorNumber` text,
 	`floorType` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `address3dI18n_pk` PRIMARY KEY(`address3dId`, `locale`),
 	CONSTRAINT `fk_address3dI18n_address3dId_address3d_id_fk` FOREIGN KEY (`address3dId`) REFERENCES `address3d`(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `streets` (
 	`id` text PRIMARY KEY,
-	`yearBuiltJson` text,
-	`referencesJson` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL
+	`yearBuilt` text,
+	`references` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `streetsAddress` (
@@ -136,40 +131,38 @@ CREATE TABLE `streetsI18n` (
 	`directionalPrefix` text,
 	`directionalSuffix` text,
 	`normalised` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `streetsI18n_pk` PRIMARY KEY(`streetId`, `locale`),
 	CONSTRAINT `fk_streetsI18n_streetId_streets_id_fk` FOREIGN KEY (`streetId`) REFERENCES `streets`(`id`)
 );
 --> statement-breakpoint
 CREATE TABLE `places` (
-	`regionCode` text NOT NULL,
-	`datasetRecordId` text NOT NULL,
 	`id` text PRIMARY KEY,
+	`regionCode` text NOT NULL,
+	`releaseId` text NOT NULL,
 	`address2dId` text,
 	`address3dId` text,
-	`otVersionHash` text NOT NULL,
-	`otVersion` text NOT NULL,
-	`otLng` real NOT NULL,
-	`otLat` real NOT NULL,
-	`otBboxJson` text,
-	`otOperatingStatus` text,
-	`otBasicCategory` text,
-	`otTaxonomyPrimary` text,
-	`otTaxonomyHierarchyJson` text,
-	`otTaxonomyAlternatesJson` text,
-	`otBrandWikidata` text,
-	`otWebsitesJson` text,
-	`otSocialsJson` text,
-	`otEmailsJson` text,
-	`otPhonesJson` text,
-	`otAddressesJson` text,
-	`otConfidence` real,
-	`sourcesJson` text,
+	`lng` real NOT NULL,
+	`lat` real NOT NULL,
+	`bbox` text,
+	`operatingStatus` text,
+	`basicCategory` text,
+	`taxonomyPrimary` text,
+	`taxonomyHierarchy` text,
+	`taxonomyAlternates` text,
+	`brandWikidata` text,
+	`websites` text,
+	`socials` text,
+	`emails` text,
+	`phones` text,
+	`addresses` text,
+	`confidence` real,
+	`sources` text,
 	`firstSeenMonth` text NOT NULL,
 	`lastSeenMonth` text NOT NULL,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `fk_places_address2dId_address2d_id_fk` FOREIGN KEY (`address2dId`) REFERENCES `address2d`(`id`),
 	CONSTRAINT `fk_places_address3dId_address3d_id_fk` FOREIGN KEY (`address3dId`) REFERENCES `address3d`(`id`)
 );
@@ -205,15 +198,15 @@ CREATE TABLE `placesFts` (
 CREATE TABLE `placesI18n` (
 	`placeId` text NOT NULL,
 	`locale` text NOT NULL,
-	`otName` text,
-	`otNameVariantJson` text,
-	`otNameAlts` text,
+	`name` text,
+	`nameVariant` text,
+	`nameAlts` text,
 	`isLocaleInferred` integer NOT NULL,
-	`otBrandName` text,
-	`otBrandNameVariantJson` text,
-	`otBrandNameAlts` text,
-	`createdAt` text NOT NULL,
-	`updatedAt` text NOT NULL,
+	`brandName` text,
+	`brandNameVariant` text,
+	`brandNameAlts` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `placesI18n_pk` PRIMARY KEY(`placeId`, `locale`),
 	CONSTRAINT `fk_placesI18n_placeId_places_id_fk` FOREIGN KEY (`placeId`) REFERENCES `places`(`id`)
 );
@@ -221,7 +214,7 @@ CREATE TABLE `placesI18n` (
 CREATE INDEX `divisions_level_idx` ON `divisions` (`level`);--> statement-breakpoint
 CREATE INDEX `divisions_parentDivisionId_idx` ON `divisions` (`parentDivisionId`);--> statement-breakpoint
 CREATE INDEX `divisionsI18n_locale_idx` ON `divisionsI18n` (`locale`);--> statement-breakpoint
-CREATE INDEX `divisionsI18n_name_idx` ON `divisionsI18n` (`locale`,`otName`);--> statement-breakpoint
+CREATE INDEX `divisionsI18n_name_idx` ON `divisionsI18n` (`locale`,`name`);--> statement-breakpoint
 CREATE INDEX `address2d_streetId_idx` ON `address2d` (`streetId`);--> statement-breakpoint
 CREATE INDEX `address2d_division_idx` ON `address2d` (`hamletId`,`microhoodId`,`villageId`,`neighbourhoodId`,`macrohoodId`,`townId`,`districtId`);--> statement-breakpoint
 CREATE INDEX `address2dI18n_locale_idx` ON `address2dI18n` (`locale`);--> statement-breakpoint
@@ -230,11 +223,11 @@ CREATE INDEX `address3dI18n_locale_idx` ON `address3dI18n` (`locale`);--> statem
 CREATE INDEX `streetsAddress_addressId_idx` ON `streetsAddress` (`addressId`);--> statement-breakpoint
 CREATE INDEX `streetsI18n_locale_idx` ON `streetsI18n` (`locale`);--> statement-breakpoint
 CREATE INDEX `streetsI18n_name_idx` ON `streetsI18n` (`locale`,`name`);--> statement-breakpoint
-CREATE INDEX `places_datasetRecordId_idx` ON `places` (`datasetRecordId`);--> statement-breakpoint
-CREATE INDEX `places_category_idx` ON `places` (`regionCode`,`otBasicCategory`);--> statement-breakpoint
-CREATE INDEX `places_taxonomy_idx` ON `places` (`regionCode`,`otTaxonomyPrimary`);--> statement-breakpoint
-CREATE INDEX `places_status_idx` ON `places` (`regionCode`,`otOperatingStatus`);--> statement-breakpoint
+CREATE INDEX `places_releaseId_idx` ON `places` (`releaseId`);--> statement-breakpoint
+CREATE INDEX `places_category_idx` ON `places` (`regionCode`,`basicCategory`);--> statement-breakpoint
+CREATE INDEX `places_taxonomy_idx` ON `places` (`regionCode`,`taxonomyPrimary`);--> statement-breakpoint
+CREATE INDEX `places_status_idx` ON `places` (`regionCode`,`operatingStatus`);--> statement-breakpoint
 CREATE INDEX `placesCells_lookup_idx` ON `placesCells` (`regionCode`,`h3Level`,`h3Cell`,`id`);--> statement-breakpoint
 CREATE INDEX `placesDivision_divisionId_idx` ON `placesDivision` (`divisionId`,`placeId`);--> statement-breakpoint
 CREATE INDEX `placesI18n_locale_idx` ON `placesI18n` (`locale`);--> statement-breakpoint
-CREATE INDEX `placesI18n_name_idx` ON `placesI18n` (`locale`,`otName`);
+CREATE INDEX `placesI18n_name_idx` ON `placesI18n` (`locale`,`name`);
