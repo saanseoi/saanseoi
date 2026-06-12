@@ -86,17 +86,17 @@ export const address2dVersionsDatasets = sqliteTable(
   {
     addressId: text('addressId').notNull(),
     versionHash: text('versionHash').notNull(),
-    datasetId: text('datasetId')
+    datasetRecordId: text('datasetRecordId')
       .notNull()
-      .references(() => datasets.datasetId),
+      .references(() => datasets.id),
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull(),
   },
   table => [
     primaryKey({
-      columns: [table.addressId, table.versionHash, table.datasetId],
+      columns: [table.addressId, table.versionHash, table.datasetRecordId],
     }),
-    index('address2dVersionsDatasets_datasetId_idx').on(table.datasetId),
+    index('address2dVersionsDatasets_datasetRecordId_idx').on(table.datasetRecordId),
     index('address2dVersionsDatasets_version_idx').on(
       table.addressId,
       table.versionHash,
@@ -182,9 +182,9 @@ export const address3dVersions = sqliteTable(
   {
     id: text('id').notNull(),
     versionHash: text('versionHash').notNull(),
-    datasetId: text('datasetId')
+    datasetRecordId: text('datasetRecordId')
       .notNull()
-      .references(() => datasets.datasetId),
+      .references(() => datasets.id),
     validFromMonth: text('validFromMonth').notNull(),
     validToMonth: text('validToMonth'),
     isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
@@ -202,7 +202,7 @@ export const address3dVersions = sqliteTable(
       table.validFromMonth,
       table.validToMonth,
     ),
-    index('address3dVersions_datasetId_idx').on(table.datasetId),
+    index('address3dVersions_datasetRecordId_idx').on(table.datasetRecordId),
     index('address3dVersions_address2dId_idx').on(table.address2dId),
   ],
 )

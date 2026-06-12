@@ -35,9 +35,9 @@ export const divisionsVersions = sqliteTable(
     id: text('id').notNull(),
     versionHash: text('versionHash').notNull(),
     regionCode: text('regionCode').notNull(),
-    datasetId: text('datasetId')
+    datasetRecordId: text('datasetRecordId')
       .notNull()
-      .references(() => datasets.datasetId),
+      .references(() => datasets.id),
     validFromMonth: text('validFromMonth').notNull(),
     validToMonth: text('validToMonth'),
     isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
@@ -73,7 +73,7 @@ export const divisionsVersions = sqliteTable(
       table.validFromMonth,
       table.validToMonth,
     ),
-    index('divisionsVersions_datasetId_idx').on(table.datasetId),
+    index('divisionsVersions_datasetRecordId_idx').on(table.datasetRecordId),
   ],
 )
 
