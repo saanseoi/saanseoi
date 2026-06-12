@@ -33,6 +33,7 @@
     "db:rebuild-fts:local": "bun run --filter @repo/db db:rebuild-fts:local",
     "db:mirror:preview:to:local": "bun run --filter @repo/db db:mirror:preview:to:local",
     "db:mirror:production:to:local": "bun run --filter @repo/db db:mirror:production:to:local",
+    "db:list": "bun x wrangler d1 list",
     "test": "turbo run test",
     "test:run": "turbo run test",
     "test:watch": "turbo run test:watch",
@@ -61,7 +62,7 @@
     "@changesets/cli": "^2.31.0",
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
-    "@iconify/svelte": "^5.2.1",
+    "@iconify/svelte": "^5.2.2",
     "@tailwindcss/upgrade": "^4.3.0",
     "@types/bun": "latest",
     "branch-name-lint": "^3.0.1",
@@ -69,7 +70,7 @@
     "husky": "^9.1.7",
     "tailwindcss-animate": "^1.0.7",
     "turbo": "^2.9.18",
-    "wrangler": "^4.99.0"
+    "wrangler": "^4.100.0"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"
