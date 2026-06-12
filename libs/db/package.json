@@ -66,7 +66,10 @@
     "db:import:local": "bash ./scripts/import-local-db.sh",
     "db:rebuild-fts:local": "bash ./scripts/rebuild-places-fts-local.sh",
     "db:mirror:preview:to:local": "bash ./scripts/mirror-db-to-local.sh preview",
-    "db:mirror:production:to:local": "bash ./scripts/mirror-db-to-local.sh production"
+    "db:mirror:production:to:local": "bash ./scripts/mirror-db-to-local.sh production",
+    "db:seed:meta": "bun ./scripts/seed-meta.ts local",
+    "db:seed:preview:meta": "bun ./scripts/seed-meta.ts preview",
+    "db:seed:production:meta": "bun ./scripts/seed-meta.ts production"
   },
   "exports": {
     ".": "./src/index.ts",
