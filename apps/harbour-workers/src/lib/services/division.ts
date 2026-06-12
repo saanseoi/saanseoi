@@ -8,6 +8,7 @@ import type {
   SourceDatabase,
 } from '@repo/db'
 import type { DivisionI18nPayload, DivisionRow } from '@repo/db/currentSchema'
+import type { GeoJsonGeometry } from '../geojson'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
@@ -951,36 +952,6 @@ function asNumber(value: unknown) {
 
   return null
 }
-
-type GeoJsonGeometry =
-  | {
-      type: 'Point'
-      coordinates: number[]
-    }
-  | {
-      type: 'LineString'
-      coordinates: number[][]
-    }
-  | {
-      type: 'Polygon'
-      coordinates: number[][][]
-    }
-  | {
-      type: 'MultiPoint'
-      coordinates: number[][]
-    }
-  | {
-      type: 'MultiLineString'
-      coordinates: number[][][]
-    }
-  | {
-      type: 'MultiPolygon'
-      coordinates: number[][][][]
-    }
-  | {
-      type: 'GeometryCollection'
-      geometries: GeoJsonGeometry[]
-    }
 
 function parseWkbGeometry(value: unknown): GeoJsonGeometry | null {
   const decodedGeometry = asGeoJsonGeometry(value)
