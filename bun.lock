@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "saantau",
+      "name": "saanseoi",
       "dependencies": {
         "@inlang/paraglide-js": "^2.19.0",
         "bits-ui": "^2.18.1",
