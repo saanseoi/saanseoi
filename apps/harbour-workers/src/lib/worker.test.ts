@@ -35,6 +35,8 @@ describe('processDatasetMessage', () => {
         stageStarted,
       },
       {} as never,
+      {} as never,
+      {} as never,
       {
         async head() {
           return { size: 1 }
@@ -119,6 +121,8 @@ describe('processDatasetMessage', () => {
         stageFailed,
         stageStarted,
       },
+      {} as never,
+      {} as never,
       {} as never,
       {
         async head() {
