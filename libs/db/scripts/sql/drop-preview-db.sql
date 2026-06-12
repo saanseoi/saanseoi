@@ -1,5 +1,28 @@
 PRAGMA defer_foreign_keys = true;
 
+DROP TABLE IF EXISTS `sourceHkgovAlsAddress2dI18n`;
+DROP TABLE IF EXISTS `sourceHkgovAlsAddresses2d`;
+DROP TABLE IF EXISTS `sourceOverturePlaceI18n`;
+DROP TABLE IF EXISTS `sourceOverturePlaces`;
+DROP TABLE IF EXISTS `sourceOvertureDivisionI18n`;
+DROP TABLE IF EXISTS `sourceOvertureDivisions`;
+DROP TABLE IF EXISTS `sourceOvertureAddress2dI18n`;
+DROP TABLE IF EXISTS `sourceOvertureAddresses2d`;
+DROP TABLE IF EXISTS `releaseSetShardAssignments`;
+DROP TABLE IF EXISTS `releaseShardAssignments`;
+DROP TABLE IF EXISTS `dataShards`;
+DROP TABLE IF EXISTS `apiFieldProvenance`;
+DROP TABLE IF EXISTS `apiEndpointDatasets`;
+DROP TABLE IF EXISTS `apiEndpoints`;
+DROP TABLE IF EXISTS `apiReleaseSetMembers`;
+DROP TABLE IF EXISTS `apiReleaseSets`;
+DROP TABLE IF EXISTS `apiVersions`;
+DROP TABLE IF EXISTS `releases`;
+DROP TABLE IF EXISTS `datasetI18n`;
+DROP TABLE IF EXISTS `datasets`;
+DROP TABLE IF EXISTS `licenses`;
+DROP TABLE IF EXISTS `publisherI18n`;
+DROP TABLE IF EXISTS `publishers`;
 DROP TABLE IF EXISTS `placesFts`;
 DROP TABLE IF EXISTS `placesFts_data`;
 DROP TABLE IF EXISTS `placesFts_idx`;

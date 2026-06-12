@@ -60,7 +60,6 @@ const OVERTURE_SCHEMAS: UploadSchemaVersion[] = [
       { name: 'geometry', type: 'type', nullable: true },
       { name: 'bbox', type: 'struct', nullable: true },
       { name: 'country', type: 'utf8', nullable: true },
-      { name: 'postcode', type: 'utf8', nullable: true },
       { name: 'street', type: 'utf8', nullable: true },
       { name: 'number', type: 'utf8', nullable: true },
       { name: 'unit', type: 'utf8', nullable: true },
