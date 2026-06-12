@@ -43,6 +43,16 @@ export const datasetThemes = [
 export const datasetTypes = ['address', 'division', 'place', 'street'] as const
 export const datasetCategories = ['terrain', 'transit', 'places', 'cultural'] as const
 
+export const datasetStatuses = [
+  'uploading',
+  'staged',
+  'processing',
+  'current',
+  'historic',
+  'revoked',
+  'failed',
+] as const
+
 export const releaseStatuses = [
   'staged',
   'processing',
@@ -51,6 +61,8 @@ export const releaseStatuses = [
   'revoked',
   'failed',
 ] as const
+
+export const ingestRunStatuses = ['queued', 'running', 'completed', 'error'] as const
 
 export const apiVersionStatuses = ['draft', 'active', 'deprecated', 'retired'] as const
 
@@ -94,7 +106,9 @@ export type DatasetReleaseFrequency = (typeof datasetReleaseFrequencies)[number]
 export type DatasetTheme = (typeof datasetThemes)[number]
 export type DatasetType = (typeof datasetTypes)[number]
 export type DatasetCategory = (typeof datasetCategories)[number]
+export type DatasetStatus = (typeof datasetStatuses)[number]
 export type ReleaseStatus = (typeof releaseStatuses)[number]
+export type IngestRunStatus = (typeof ingestRunStatuses)[number]
 export type ApiVersionStatus = (typeof apiVersionStatuses)[number]
 export type ApiReleaseSetStatus = (typeof apiReleaseSetStatuses)[number]
 export type ApiReleaseSetMemberRole = (typeof apiReleaseSetMemberRoles)[number]
