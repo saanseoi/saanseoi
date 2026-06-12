@@ -2,25 +2,22 @@ import { and, eq, inArray } from 'drizzle-orm'
 
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
-  getDatasetRecordById,
-  type HarbourReadableDb,
-  type HarbourWritableDb,
-} from '@repo/core/db/repository'
+  getDatasetRecordByReleaseId,
+  resolveReleaseSetForType,
+  resolveShardForKindRegionYear,
+  upsertReleaseSetMember,
+  upsertReleaseSetShardAssignment,
+  upsertReleaseShardAssignment,
+} from '@repo/core/db/meta-repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
 import type {
-  CurrentDivisionVersionRow,
-  DatasetStatsRow,
   DivisionI18nPayload,
   DivisionRow,
   NewDivisionI18nRow,
-} from '@repo/db/schema'
-
-import {
-  divisions,
-  divisionsI18n,
-  divisionsVersions,
-  divisionsVersionsI18n,
-  stats,
-} from '@repo/db/schema'
+} from '@repo/db/currentSchema'
+import type { DatasetStatsRow } from '@repo/db/metaSchema'
+import type { CurrentDivisionVersionRow } from '@repo/db/historySchema'
+import { currentSchema, historySchema, metaSchema } from '@repo/db'
 
 import {
   chunkArray,
@@ -34,7 +31,7 @@ export type DivisionI18nRecord = NewDivisionI18nRow
 
 export type DivisionVersionSnapshot = {
   churnHash: string
-  geometryJson: string | null
+  geometry: unknown
   id: string
   localizedRows: DivisionI18nPayload[]
   parentId: string | null
@@ -57,28 +54,28 @@ export async function getCurrentDivisionVersionMap(
 ) {
   const rows = (await db
     .select({
-      id: divisionsVersions.id,
-      hierarchyJson: divisionsVersions.hierarchyJson,
-      level: divisionsVersions.level,
-      otBboxJson: divisionsVersions.otBboxJson,
-      otCartographyJson: divisionsVersions.otCartographyJson,
-      otClass: divisionsVersions.otClass,
-      otGeometryJson: divisionsVersions.otGeometryJson,
-      otHierarchyJson: divisionsVersions.otHierarchyJson,
-      otPopulation: divisionsVersions.otPopulation,
-      otSubtype: divisionsVersions.otSubtype,
-      otVersion: divisionsVersions.otVersion,
-      otWikidata: divisionsVersions.otWikidata,
-      parentDivisionId: divisionsVersions.parentDivisionId,
-      sourcesJson: divisionsVersions.sourcesJson,
-      type: divisionsVersions.type,
-      versionHash: divisionsVersions.versionHash,
+      id: historySchema.divisionsVersions.id,
+      hierarchy: historySchema.divisionsVersions.hierarchy,
+      level: historySchema.divisionsVersions.level,
+      otBbox: historySchema.divisionsVersions.otBbox,
+      otCartography: historySchema.divisionsVersions.otCartography,
+      otClass: historySchema.divisionsVersions.otClass,
+      otGeometry: historySchema.divisionsVersions.otGeometry,
+      otHierarchy: historySchema.divisionsVersions.otHierarchy,
+      otPopulation: historySchema.divisionsVersions.otPopulation,
+      otSubtype: historySchema.divisionsVersions.otSubtype,
+      otVersion: historySchema.divisionsVersions.otVersion,
+      otWikidata: historySchema.divisionsVersions.otWikidata,
+      parentDivisionId: historySchema.divisionsVersions.parentDivisionId,
+      sources: historySchema.divisionsVersions.sources,
+      type: historySchema.divisionsVersions.type,
+      versionHash: historySchema.divisionsVersions.versionHash,
     })
-    .from(divisionsVersions)
+    .from(historySchema.divisionsVersions)
     .where(
       and(
-        eq(divisionsVersions.regionCode, regionCode),
-        eq(divisionsVersions.isCurrent, true),
+        eq(historySchema.divisionsVersions.regionCode, regionCode),
+        eq(historySchema.divisionsVersions.isCurrent, true),
       ),
     )
     .all()) as CurrentDivisionVersionRow[]
@@ -94,17 +91,22 @@ export async function getCurrentDivisionVersionMap(
   for (const divisionIdChunk of chunkArray(divisionIds, chunkSize)) {
     const chunkRows = (await db
       .select({
-        divisionId: divisionsI18n.divisionId,
-        isLocaleInferred: divisionsI18n.isLocaleInferred,
-        locale: divisionsI18n.locale,
-        otLocalType: divisionsI18n.otLocalType,
-        otName: divisionsI18n.otName,
-        otNameAlts: divisionsI18n.otNameAlts,
-        otNameRulesJson: divisionsI18n.otNameRulesJson,
-        otNameVariantJson: divisionsI18n.otNameVariantJson,
+        divisionId: historySchema.divisionsVersionsI18n.divisionId,
+        isLocaleInferred: historySchema.divisionsVersionsI18n.isLocaleInferred,
+        locale: historySchema.divisionsVersionsI18n.locale,
+        otLocalType: historySchema.divisionsVersionsI18n.otLocalType,
+        otName: historySchema.divisionsVersionsI18n.otName,
+        otNameAlts: historySchema.divisionsVersionsI18n.otNameAlts,
+        otNameRules: historySchema.divisionsVersionsI18n.otNameRules,
+        otNameVariant: historySchema.divisionsVersionsI18n.otNameVariant,
       })
-      .from(divisionsI18n)
-      .where(inArray(divisionsI18n.divisionId, divisionIdChunk))
+      .from(historySchema.divisionsVersionsI18n)
+      .where(
+        and(
+          inArray(historySchema.divisionsVersionsI18n.divisionId, divisionIdChunk),
+          eq(historySchema.divisionsVersionsI18n.isCurrent, true),
+        ),
+      )
       .all()) as DivisionI18nPayload[]
 
     i18nRows.push(...chunkRows)
@@ -131,7 +133,7 @@ export async function getCurrentDivisionVersionMap(
             base: options.buildDivisionBaseHashInput(row),
             i18n: localizedRows,
           }),
-          geometryJson: row.otGeometryJson,
+          geometry: row.otGeometry,
           id: row.id,
           localizedRows: localizedRows,
           parentId: row.parentDivisionId,
@@ -152,23 +154,25 @@ export async function closeCurrentDivisionVersion(
   db: HarbourWritableDb,
   regionCode: RegionCode,
   divisionId: string,
+  releaseSetId: string,
   snapshotMonth: string,
 ) {
   const now = new Date().toISOString()
 
   await runWithWriteRetry(() =>
     db
-      .update(divisionsVersions)
+      .update(historySchema.divisionsVersions)
       .set({
         isCurrent: false,
+        validToReleaseSetId: releaseSetId,
         validToMonth: snapshotMonth,
         updatedAt: now,
       })
       .where(
         and(
-          eq(divisionsVersions.regionCode, regionCode),
-          eq(divisionsVersions.id, divisionId),
-          eq(divisionsVersions.isCurrent, true),
+          eq(historySchema.divisionsVersions.regionCode, regionCode),
+          eq(historySchema.divisionsVersions.id, divisionId),
+          eq(historySchema.divisionsVersions.isCurrent, true),
         ),
       )
       .run(),
@@ -179,8 +183,10 @@ export async function closeCurrentDivisionVersion(
  * Closes and deletes divisions that were previously current but not present in the latest snapshot.
  */
 export async function deleteMissingCurrentDivisions(
-  db: HarbourReadableDb & HarbourWritableDb,
+  currentDb: HarbourReadableDb & HarbourWritableDb,
+  historyDb: HarbourReadableDb & HarbourWritableDb,
   regionCode: RegionCode,
+  releaseSetId: string,
   snapshotMonth: string,
   currentRows: Map<string, DivisionVersionSnapshot>,
   seenIds: Set<string>,
@@ -196,31 +202,35 @@ export async function deleteMissingCurrentDivisions(
 
   for (const missingIdChunk of chunkArray(missingIds, chunkSize)) {
     await runWithWriteRetry(() =>
-      db
-        .update(divisionsVersions)
+      historyDb
+        .update(historySchema.divisionsVersions)
         .set({
           isCurrent: false,
+          validToReleaseSetId: releaseSetId,
           validToMonth: snapshotMonth,
           updatedAt: now,
         })
         .where(
           and(
-            eq(divisionsVersions.regionCode, regionCode),
-            eq(divisionsVersions.isCurrent, true),
-            inArray(divisionsVersions.id, missingIdChunk),
+            eq(historySchema.divisionsVersions.regionCode, regionCode),
+            eq(historySchema.divisionsVersions.isCurrent, true),
+            inArray(historySchema.divisionsVersions.id, missingIdChunk),
           ),
         )
         .run(),
     )
 
     await runWithWriteRetry(() =>
-      db
-        .delete(divisionsI18n)
-        .where(inArray(divisionsI18n.divisionId, missingIdChunk))
+      currentDb
+        .delete(currentSchema.divisionsI18n)
+        .where(inArray(currentSchema.divisionsI18n.divisionId, missingIdChunk))
         .run(),
     )
     await runWithWriteRetry(() =>
-      db.delete(divisions).where(inArray(divisions.id, missingIdChunk)).run(),
+      currentDb
+        .delete(currentSchema.divisions)
+        .where(inArray(currentSchema.divisions.id, missingIdChunk))
+        .run(),
     )
   }
 
@@ -239,25 +249,25 @@ export async function upsertDivisionCurrentState(
 
   await runWithWriteRetry(() =>
     db
-      .insert(divisions)
+      .insert(currentSchema.divisions)
       .values(base)
       .onConflictDoUpdate({
-        target: divisions.id,
+        target: currentSchema.divisions.id,
         set: {
-          hierarchyJson: base.hierarchyJson,
+          hierarchy: base.hierarchy,
           level: base.level,
-          otGeometryJson: base.otGeometryJson,
+          otGeometry: base.otGeometry,
           otPopulation: base.otPopulation,
           type: base.type,
-          otBboxJson: base.otBboxJson,
-          otCartographyJson: base.otCartographyJson,
+          otBbox: base.otBbox,
+          otCartography: base.otCartography,
           otClass: base.otClass,
-          otHierarchyJson: base.otHierarchyJson,
+          otHierarchy: base.otHierarchy,
           otSubtype: base.otSubtype,
           otVersion: base.otVersion,
           otWikidata: base.otWikidata,
           parentDivisionId: base.parentDivisionId,
-          sourcesJson: base.sourcesJson,
+          sources: base.sources,
           updatedAt: now,
         },
       })
@@ -277,7 +287,10 @@ export async function replaceDivisionCurrentI18n(
   now: string,
 ) {
   await runWithWriteRetry(() =>
-    db.delete(divisionsI18n).where(eq(divisionsI18n.divisionId, divisionId)).run(),
+    db
+      .delete(currentSchema.divisionsI18n)
+      .where(eq(currentSchema.divisionsI18n.divisionId, divisionId))
+      .run(),
   )
 
   if (i18nRows.length === 0) {
@@ -298,41 +311,85 @@ export async function replaceDivisionCurrentI18n(
  * Inserts the versioned division row and its versioned i18n rows for a dataset snapshot.
  */
 export async function insertDivisionVersionRows(
-  db: HarbourReadableDb & HarbourWritableDb,
+  metaDb: HarbourReadableDb & HarbourWritableDb,
+  historyDb: HarbourReadableDb & HarbourWritableDb,
   message: DatasetProcessingMessage,
   base: DivisionBaseRecord,
   i18nRows: DivisionI18nPayload[],
   versionHash: string,
   now: string,
+  environment: 'preview' | 'production',
 ) {
   const otVersionHash = await createHash(base.otVersion ?? '')
-  const dataset = await getDatasetRecordById(db, message.datasetId)
+  const dataset = await getDatasetRecordByReleaseId(
+    metaDb,
+    message.releaseId ?? message.datasetId,
+  )
 
   if (!dataset) {
-    throw new Error(`Dataset not found: ${message.datasetId}`)
+    throw new Error(`Release not found: ${message.releaseId ?? message.datasetId}`)
   }
+  const releaseSet = await resolveReleaseSetForType(metaDb, message.type)
+  if (!releaseSet) {
+    throw new Error(`Release set not found for type: ${message.type}`)
+  }
+  const year = message.sourceVersion.slice(0, 4)
+  const currentShard = await resolveShardForKindRegionYear(
+    metaDb,
+    'current',
+    environment,
+  )
+  const historyShard = await resolveShardForKindRegionYear(
+    metaDb,
+    'history',
+    environment,
+    message.regionCode,
+    year,
+  )
+  if (!currentShard || !historyShard) {
+    throw new Error(
+      `Shard mapping not found for ${message.regionCode}/${year} in ${environment}.`,
+    )
+  }
+  await upsertReleaseSetMember(
+    metaDb,
+    releaseSet.id,
+    dataset.datasetId,
+    dataset.releaseId,
+    'primary',
+  )
+  await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
+  await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, currentShard.id)
+  await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, historyShard.id)
 
   await runWithWriteRetry(() =>
-    db
-      .insert(divisionsVersions)
+    historyDb
+      .insert(historySchema.divisionsVersions)
       .values({
         ...base,
         createdAt: now,
-        datasetRecordId: dataset.id,
         isCurrent: true,
         otVersionHash,
+        releaseId: dataset.releaseId,
         regionCode: message.regionCode,
         validFromMonth: message.snapshotMonth,
+        validFromReleaseSetId: releaseSet.id,
+        validToReleaseSetId: null,
         validToMonth: null,
         versionHash,
         updatedAt: now,
       })
       .onConflictDoUpdate({
-        target: [divisionsVersions.id, divisionsVersions.versionHash],
+        target: [
+          historySchema.divisionsVersions.id,
+          historySchema.divisionsVersions.versionHash,
+        ],
         set: {
-          datasetRecordId: dataset.id,
           isCurrent: true,
+          releaseId: dataset.releaseId,
           validFromMonth: message.snapshotMonth,
+          validFromReleaseSetId: releaseSet.id,
+          validToReleaseSetId: null,
           validToMonth: null,
           updatedAt: now,
         },
@@ -345,7 +402,7 @@ export async function insertDivisionVersionRows(
   }
 
   await insertDivisionVersionsI18nInChunks(
-    db,
+    historyDb,
     i18nRows.map(row => ({
       divisionId: row.divisionId,
       isLocaleInferred: row.isLocaleInferred,
@@ -353,8 +410,12 @@ export async function insertDivisionVersionRows(
       otLocalType: row.otLocalType,
       otName: row.otName,
       otNameAlts: row.otNameAlts,
-      otNameRulesJson: row.otNameRulesJson,
-      otNameVariantJson: row.otNameVariantJson,
+      otNameRules: row.otNameRules,
+      otNameVariant: row.otNameVariant,
+      releaseId: dataset.releaseId,
+      validFromReleaseSetId: releaseSet.id,
+      validToReleaseSetId: null,
+      isCurrent: true,
       versionHash,
       createdAt: now,
       updatedAt: now,
@@ -372,7 +433,9 @@ async function insertDivisionsI18nInChunks(
   const chunkSize = getMaxRowsPerInsert(10)
 
   for (const chunk of chunkArray(rows, chunkSize)) {
-    await runWithWriteRetry(() => db.insert(divisionsI18n).values(chunk).run())
+    await runWithWriteRetry(() =>
+      db.insert(currentSchema.divisionsI18n).values(chunk).run(),
+    )
   }
 }
 
@@ -381,17 +444,33 @@ async function insertDivisionsI18nInChunks(
  */
 async function insertDivisionVersionsI18nInChunks(
   db: HarbourWritableDb,
-  rows: Array<
-    NewDivisionI18nRow & {
-      versionHash: string
-    }
-  >,
+  rows: Array<{
+    divisionId: string
+    isLocaleInferred: boolean
+    locale: string
+    otLocalType: string | null
+    otName: string | null
+    otNameAlts: string | null
+    otNameRules: unknown
+    otNameVariant: unknown
+    releaseId: string
+    validFromReleaseSetId: string
+    validToReleaseSetId: string | null
+    isCurrent: boolean
+    versionHash: string
+    createdAt: string
+    updatedAt: string
+  }>,
 ) {
-  const chunkSize = getMaxRowsPerInsert(11)
+  const chunkSize = getMaxRowsPerInsert(14)
 
   for (const chunk of chunkArray(rows, chunkSize)) {
     await runWithWriteRetry(() =>
-      db.insert(divisionsVersionsI18n).values(chunk).onConflictDoNothing().run(),
+      db
+        .insert(historySchema.divisionsVersionsI18n)
+        .values(chunk)
+        .onConflictDoNothing()
+        .run(),
     )
   }
 }
@@ -400,18 +479,21 @@ async function insertDivisionVersionsI18nInChunks(
  * Replaces all dataset-level stats rows for a dataset snapshot.
  */
 export async function replaceDatasetStats(
-  db: HarbourReadableDb & HarbourWritableDb,
-  datasetId: string,
+  metaDb: HarbourReadableDb & HarbourWritableDb,
+  releaseId: string,
   rows: DatasetStatsRow[],
 ) {
-  const dataset = await getDatasetRecordById(db, datasetId)
+  const dataset = await getDatasetRecordByReleaseId(metaDb, releaseId)
 
   if (!dataset) {
-    throw new Error(`Dataset not found: ${datasetId}`)
+    throw new Error(`Release not found: ${releaseId}`)
   }
 
   await runWithWriteRetry(() =>
-    db.delete(stats).where(eq(stats.datasetRecordId, dataset.id)).run(),
+    metaDb
+      .delete(metaSchema.stats)
+      .where(eq(metaSchema.stats.releaseId, dataset.releaseId))
+      .run(),
   )
 
   if (rows.length === 0) {
@@ -422,12 +504,12 @@ export async function replaceDatasetStats(
 
   for (const chunk of chunkArray(rows, chunkSize)) {
     await runWithWriteRetry(() =>
-      db
-        .insert(stats)
+      metaDb
+        .insert(metaSchema.stats)
         .values(
           chunk.map(row => ({
             ...row,
-            datasetRecordId: dataset.id,
+            releaseId: dataset.releaseId,
             id: crypto.randomUUID(),
           })),
         )

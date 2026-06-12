@@ -1,11 +1,17 @@
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
 import type { DatasetProcessingMessage } from '@repo/core'
-import type { sourceSchema, SourceDatabase } from '@repo/db'
-import type { AddressI18nPayload, AddressRow } from '@repo/db/schema'
+import { resolveReleaseSetForType } from '@repo/core/db/meta-repository'
+import type {
+  CurrentDatabase,
+  HistoryDatabase,
+  MetaDatabase,
+  sourceSchema,
+  SourceDatabase,
+} from '@repo/db'
+import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 
 import { eq } from 'drizzle-orm'
 
-import { divisions, divisionsI18n } from '@repo/db/schema'
+import { currentSchema } from '@repo/db'
 
 import {
   closeCurrentAddressVersion,
@@ -23,7 +29,7 @@ import {
   insertSourceOvertureAddresses2d,
   resetSourceReleaseRows,
 } from '../db/source'
-import { asNonEmptyString, asString, createHash, stableJsonStringify } from '../utils'
+import { asNonEmptyString, createHash, stableJsonStringify } from '../utils'
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 
 import type { HarbourWorkerBucket } from './division'
@@ -65,14 +71,23 @@ type PointGeometry = {
 }
 
 export async function processAddressDataset(
-  db: HarbourReadableDb & HarbourWritableDb,
+  metaDb: MetaDatabase,
+  currentDb: CurrentDatabase,
+  historyDb: HistoryDatabase,
   bucket: HarbourWorkerBucket,
   message: DatasetProcessingMessage,
   sourceDb?: SourceDatabase,
 ): Promise<ProcessAddressDatasetResult> {
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
-  const divisionLookup = await loadDivisionLookupMaps(db)
-  const currentRows = await getCurrentAddressVersionMap(db, message.regionCode, {
+  const environment = resolveShardEnvironment()
+  const releaseSet = await resolveReleaseSetForType(metaDb, message.type)
+
+  if (!releaseSet) {
+    throw new Error(`Release set not found for type: ${message.type}`)
+  }
+
+  const divisionLookup = await loadDivisionLookupMaps(currentDb)
+  const currentRows = await getCurrentAddressVersionMap(historyDb, message.regionCode, {
     buildAddressBaseHashInput,
     buildMatchKey,
     normalizeAddressI18nSnapshotRow,
@@ -149,11 +164,13 @@ export async function processAddressDataset(
             sourcePayloadHash,
             regionCode: message.regionCode,
             version: asOptionalInteger(row.version),
-            geometryJson: base.geometry,
-            bboxJson: base.otBboxJson,
-            streetName: base.otStreet,
-            streetNumber: base.otNumber,
-            sourcesJson: base.sourcesJson,
+            geometryJson: stableJsonStringify(base.geometry),
+            bboxJson: stableJsonStringify(base.otBbox),
+            streetName:
+              i18n.find(localized => localized.locale === 'en')?.streetName ?? null,
+            streetNumber:
+              i18n.find(localized => localized.locale === 'en')?.streetNumber ?? null,
+            sourcesJson: stableJsonStringify(base.sources),
             rawPropertiesJson: stableJsonStringify(row),
           })
 
@@ -236,7 +253,8 @@ export async function processAddressDataset(
       if (matchedCurrent?.versionHash === versionHash) {
         unchangedRows += 1
         await insertAddressVersionRows(
-          db,
+          metaDb,
+          historyDb,
           message,
           {
             ...base,
@@ -245,19 +263,25 @@ export async function processAddressDataset(
           i18n,
           versionHash,
           new Date().toISOString(),
+          environment,
         )
         continue
       }
 
       if (matchedCurrent) {
-        await closeCurrentAddressVersion(db, matchedCurrent.id, message.snapshotMonth)
+        await closeCurrentAddressVersion(
+          historyDb,
+          matchedCurrent.id,
+          releaseSet.id,
+          message.snapshotMonth,
+        )
       }
 
       insertedVersions += 1
 
       const now = new Date().toISOString()
       await upsertAddressCurrentState(
-        db,
+        currentDb,
         {
           ...base,
           createdAt: matchedCurrent ? now : now,
@@ -266,12 +290,14 @@ export async function processAddressDataset(
         i18n,
       )
       await insertAddressVersionRows(
-        db,
+        metaDb,
+        historyDb,
         message,
         { ...base, createdAt: now, updatedAt: now },
         i18n,
         versionHash,
         now,
+        environment,
       )
     }
 
@@ -291,7 +317,9 @@ export async function processAddressDataset(
   const deletedRows =
     message.source === 'overture'
       ? await deleteMissingCurrentAddresses(
-          db,
+          currentDb,
+          historyDb,
+          releaseSet.id,
           message.snapshotMonth,
           currentRows,
           seenIds,
@@ -308,18 +336,26 @@ export async function processAddressDataset(
   }
 }
 
-async function loadDivisionLookupMaps(db: HarbourReadableDb) {
+function resolveShardEnvironment(): 'preview' | 'production' {
+  const baseUrl = process.env.HARBOUR_BASE_URL ?? ''
+  return /production/i.test(baseUrl) ? 'production' : 'preview'
+}
+
+async function loadDivisionLookupMaps(db: CurrentDatabase) {
   const rows = (await db
     .select({
-      id: divisions.id,
-      level: divisions.level,
-      type: divisions.type,
-      locale: divisionsI18n.locale,
-      otName: divisionsI18n.otName,
+      id: currentSchema.divisions.id,
+      level: currentSchema.divisions.level,
+      type: currentSchema.divisions.type,
+      locale: currentSchema.divisionsI18n.locale,
+      otName: currentSchema.divisionsI18n.otName,
     })
-    .from(divisions)
-    .innerJoin(divisionsI18n, eq(divisions.id, divisionsI18n.divisionId))
-    .where(eq(divisionsI18n.locale, 'en'))
+    .from(currentSchema.divisions)
+    .innerJoin(
+      currentSchema.divisionsI18n,
+      eq(currentSchema.divisions.id, currentSchema.divisionsI18n.divisionId),
+    )
+    .where(eq(currentSchema.divisionsI18n.locale, 'en'))
     .all()) as Array<{
     id: string
     level: number
@@ -375,8 +411,8 @@ function normalizeOvertureAddressRow(
     sourceId,
     matchKey: buildMatchKey({
       districtId,
-      otNumber,
-      otStreet,
+      streetNumber: otNumber,
+      streetName: otStreet,
     }),
     base: {
       streetId: null,
@@ -389,15 +425,12 @@ function normalizeOvertureAddressRow(
       districtId,
       areaId,
       countryId: divisionLookup.countryId,
-      geometry: stableJsonStringify(parsePointGeometry(row.geometry)),
-      identifiersJson: null,
-      otStreet,
-      otNumber,
-      otBboxJson: stableJsonStringify(row.bbox),
-      otVersion: asString(row.version),
-      sourcesJson: stableJsonStringify({
+      geometry: parsePointGeometry(row.geometry),
+      identifiers: null,
+      otBbox: row.bbox ?? null,
+      sources: {
         overture: pruneEmptyValues(row.sources),
-      }),
+      },
       createdAt: '',
       updatedAt: '',
     } satisfies Omit<AddressRow, 'id'>,
@@ -480,8 +513,8 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
     sourceId,
     matchKey: buildMatchKey({
       districtId,
-      otNumber,
-      otStreet,
+      streetNumber: otNumber,
+      streetName: otStreet,
     }),
     base: {
       streetId: null,
@@ -494,13 +527,10 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
       districtId,
       areaId: asNonEmptyString(row.areaId),
       countryId: asNonEmptyString(row.countryId),
-      geometry: asNonEmptyString(row.geometryJson),
-      identifiersJson: asNonEmptyString(row.identifiersJson),
-      otStreet,
-      otNumber,
-      otBboxJson: null,
-      otVersion: asNonEmptyString(row.sourceVersion),
-      sourcesJson: asNonEmptyString(row.sourcesJson),
+      geometry: parseOptionalJson(row.geometryJson),
+      identifiers: parseOptionalJson(row.identifiersJson),
+      otBbox: null,
+      sources: parseOptionalJson(row.sourcesJson),
       createdAt: '',
       updatedAt: '',
     } satisfies Omit<AddressRow, 'id'>,
@@ -524,12 +554,9 @@ function buildAddressBaseHashInput(
     areaId: base.areaId,
     countryId: base.countryId,
     geometry: base.geometry,
-    identifiersJson: base.identifiersJson,
-    otStreet: base.otStreet,
-    otNumber: base.otNumber,
-    otBboxJson: base.otBboxJson,
-    otVersion: base.otVersion,
-    sourcesJson: base.sourcesJson,
+    identifiers: base.identifiers,
+    otBbox: base.otBbox,
+    sources: base.sources,
   } satisfies Omit<AddressRow, 'createdAt' | 'updatedAt'>
 }
 
@@ -539,12 +566,12 @@ function normalizeAddressI18nSnapshotRow(row: AddressI18nPayload) {
 
 function buildMatchKey(input: {
   districtId: string | null
-  otNumber: string | null
-  otStreet: string | null
+  streetNumber: string | null
+  streetName: string | null
 }) {
   const districtId = asNonEmptyString(input.districtId)
-  const street = normalizeNameToken(input.otStreet)
-  const number = normalizeNameToken(input.otNumber)
+  const street = normalizeNameToken(input.streetName)
+  const number = normalizeNameToken(input.streetNumber)
 
   if (!districtId || !street || !number) {
     return null
@@ -635,6 +662,16 @@ function pruneEmptyValues(value: unknown): unknown {
   }
 
   return value
+}
+
+function parseOptionalJson(value: unknown) {
+  const text = asNonEmptyString(value)
+
+  if (!text) {
+    return null
+  }
+
+  return JSON.parse(text) as unknown
 }
 
 function requireText(value: unknown, message: string) {
