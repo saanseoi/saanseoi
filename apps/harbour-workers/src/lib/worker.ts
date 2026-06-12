@@ -1,6 +1,10 @@
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
 import type { DatasetProcessingMessage } from '@repo/core'
-import type { SourceDatabase } from '@repo/db'
+import type {
+  CurrentDatabase,
+  HistoryDatabase,
+  MetaDatabase,
+  SourceDatabase,
+} from '@repo/db'
 
 import {
   processAddressDataset as defaultProcessAddressDataset,
@@ -46,12 +50,18 @@ export function createProcessDatasetMessage(
 ) {
   return async function processDatasetMessage(
     harbourClient: HarbourClient,
-    db: HarbourReadableDb & HarbourWritableDb,
+    metaDb: MetaDatabase,
+    currentDb: CurrentDatabase,
+    historyDb: HistoryDatabase,
     bucket: HarbourWorkerBucket,
     message: DatasetProcessingMessage,
     sourceDb?: SourceDatabase,
   ): Promise<ProcessDatasetResult | ProcessAddressDatasetResult> {
-    const releaseId = message.releaseId ?? message.datasetId
+    if (!message.releaseId) {
+      throw new Error('Missing releaseId in dataset processing message.')
+    }
+
+    const releaseId = message.releaseId
     const activePhases = new Set<string>()
     await harbourClient.stageStarted(releaseId, 'processDataset')
     activePhases.add('processDataset')
@@ -65,7 +75,14 @@ export function createProcessDatasetMessage(
         await harbourClient.stageStarted(releaseId, 'extractDivisionsI18n')
         activePhases.add('extractDivisionsI18n')
 
-        result = await processDivisionDataset(db, bucket, message, sourceDb)
+        result = await processDivisionDataset(
+          metaDb,
+          currentDb,
+          historyDb,
+          bucket,
+          message,
+          sourceDb,
+        )
 
         await harbourClient.stageCompleted(releaseId, 'extractDivisions', {
           deletedRows: result.deletedRows,
@@ -84,7 +101,14 @@ export function createProcessDatasetMessage(
         await harbourClient.stageStarted(releaseId, 'extractAddressesI18n')
         activePhases.add('extractAddressesI18n')
 
-        result = await processAddressDataset(db, bucket, message, sourceDb)
+        result = await processAddressDataset(
+          metaDb,
+          currentDb,
+          historyDb,
+          bucket,
+          message,
+          sourceDb,
+        )
 
         await harbourClient.stageCompleted(releaseId, 'extractAddresses', {
           deletedRows: result.deletedRows,
