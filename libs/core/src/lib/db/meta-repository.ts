@@ -1,6 +1,6 @@
-import { and, desc, eq, ne } from 'drizzle-orm'
+import { and, desc, eq, isNull, ne, sql } from 'drizzle-orm'
 
-import { ingestRuns, metaSchema } from '@repo/db'
+import { metaSchema } from '@repo/db'
 
 import type { DatasetRecord, RegionCode, SupportedType, UploadPlan } from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './repository'
@@ -9,7 +9,18 @@ type LatestDatasetLookup = {
   latestDataset: DatasetRecord | null
 }
 
-const { metaDatasets, metaPublishers, metaReleases } = metaSchema
+const {
+  ingestRuns,
+  metaApiReleaseSetMembers,
+  metaApiReleaseSets,
+  metaApiVersions,
+  metaDataShards,
+  metaDatasets,
+  metaPublishers,
+  metaReleaseSetShardAssignments,
+  metaReleaseShardAssignments,
+  metaReleases,
+} = metaSchema
 
 const releaseRecordSelection = {
   id: metaReleases.id,
@@ -26,6 +37,7 @@ const releaseRecordSelection = {
   rawObjectKey: metaReleases.rawObjectKey,
   originalFileName: metaReleases.originalFileName,
   status: metaReleases.status,
+  supersedesDatasetId: sql<string | null>`null`,
   supersededByReleaseId: metaReleases.supersededByReleaseId,
   revokedAt: metaReleases.revokedAt,
   revocationReason: metaReleases.revocationReason,
@@ -52,6 +64,7 @@ export async function getLatestDatasetForRegionSourceType(
           eq(metaPublishers.code, source),
           eq(metaDatasets.type, type),
           ne(metaReleases.status, 'failed'),
+          ne(metaReleases.status, 'uploading'),
         ),
       )
       .orderBy(desc(metaReleases.sourceVersion), desc(metaReleases.ingestedAt))
@@ -101,7 +114,8 @@ export async function getDatasetById(db: HarbourReadableDb, releaseCode: string)
   return (
     (await db
       .select({
-        datasetId: metaDatasets.id,
+        datasetId: metaReleases.code,
+        datasetCode: metaDatasets.code,
         releaseId: metaReleases.id,
         releaseCode: metaReleases.code,
         status: metaReleases.status,
@@ -295,39 +309,228 @@ export async function setSupersededByReleaseId(
     .run()
 }
 
+export async function resolveReleaseSetForType(
+  db: HarbourReadableDb,
+  type: SupportedType,
+) {
+  const apiVersionCode =
+    type === 'address'
+      ? 'ss-addresses-v0.1'
+      : type === 'division'
+        ? 'ss-divisions-v0.1'
+        : 'ss-places-v0.1'
+
+  return (
+    (await db
+      .select({
+        id: metaApiReleaseSets.id,
+        code: metaApiReleaseSets.code,
+        status: metaApiReleaseSets.status,
+      })
+      .from(metaApiReleaseSets)
+      .innerJoin(
+        metaApiVersions,
+        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+      )
+      .where(
+        and(
+          eq(metaApiVersions.code, apiVersionCode),
+          ne(metaApiReleaseSets.status, 'archived'),
+        ),
+      )
+      .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
+export async function resolveShardForKindRegionYear(
+  db: HarbourReadableDb,
+  kind: 'current' | 'history',
+  environment: 'preview' | 'production',
+  regionCode?: string,
+  year?: string,
+) {
+  const baseConditions = and(
+    eq(metaDataShards.kind, kind),
+    eq(metaDataShards.environment, environment),
+    eq(metaDataShards.status, 'active'),
+    regionCode
+      ? eq(metaDataShards.regionCode, regionCode)
+      : isNull(metaDataShards.regionCode),
+  )
+
+  const exactMatch =
+    ((await db
+      .select({
+        id: metaDataShards.id,
+        bindingName: metaDataShards.bindingName,
+        databaseName: metaDataShards.databaseName,
+      })
+      .from(metaDataShards)
+      .where(
+        and(
+          baseConditions,
+          year ? eq(metaDataShards.year, year) : isNull(metaDataShards.year),
+        ),
+      )
+      .limit(1)
+      .get()) as
+      | { id: string; bindingName: string; databaseName: string }
+      | undefined) ?? null
+
+  if (exactMatch || !year) {
+    return exactMatch
+  }
+
+  const requestedYear = Number.parseInt(year, 10)
+
+  if (Number.isNaN(requestedYear)) {
+    return null
+  }
+
+  const fallbackRows = await db
+    .select({
+      id: metaDataShards.id,
+      bindingName: metaDataShards.bindingName,
+      databaseName: metaDataShards.databaseName,
+      year: metaDataShards.year,
+    })
+    .from(metaDataShards)
+    .where(and(baseConditions, sql`${metaDataShards.year} is not null`))
+    .all()
+
+  type FallbackShardRow = {
+    id: string
+    bindingName: string
+    databaseName: string
+    year: string | null
+  }
+
+  const rankedRows = fallbackRows
+    .map((row: FallbackShardRow) => ({
+      ...row,
+      numericYear: row.year ? Number.parseInt(row.year, 10) : Number.NaN,
+    }))
+    .filter(
+      (row: FallbackShardRow & { numericYear: number }) =>
+        !Number.isNaN(row.numericYear),
+    )
+    .sort(
+      (
+        left: FallbackShardRow & { numericYear: number },
+        right: FallbackShardRow & { numericYear: number },
+      ) => {
+        const leftDistance = Math.abs(left.numericYear - requestedYear)
+        const rightDistance = Math.abs(right.numericYear - requestedYear)
+
+        if (leftDistance !== rightDistance) {
+          return leftDistance - rightDistance
+        }
+
+        return left.numericYear - right.numericYear
+      },
+    )
+
+  const fallback = rankedRows[0]
+
+  return fallback
+    ? {
+        id: fallback.id,
+        bindingName: fallback.bindingName,
+        databaseName: fallback.databaseName,
+      }
+    : null
+}
+
+export async function upsertReleaseSetMember(
+  db: HarbourWritableDb,
+  releaseSetId: string,
+  datasetId: string,
+  releaseId: string,
+  role: 'primary' | 'enrichment' | 'fallback' | 'lookup',
+) {
+  await db
+    .insert(metaApiReleaseSetMembers)
+    .values({
+      apiReleaseSetId: releaseSetId,
+      datasetId,
+      releaseId,
+      role,
+      createdAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [
+        metaApiReleaseSetMembers.apiReleaseSetId,
+        metaApiReleaseSetMembers.releaseId,
+      ],
+      set: {
+        datasetId,
+        role,
+      },
+    })
+    .run()
+}
+
+export async function upsertReleaseShardAssignment(
+  db: HarbourWritableDb,
+  releaseId: string,
+  dataShardId: string,
+) {
+  await db
+    .insert(metaReleaseShardAssignments)
+    .values({
+      releaseId,
+      dataShardId,
+      createdAt: new Date(),
+    })
+    .onConflictDoNothing()
+    .run()
+}
+
+export async function upsertReleaseSetShardAssignment(
+  db: HarbourWritableDb,
+  releaseSetId: string,
+  dataShardId: string,
+) {
+  await db
+    .insert(metaReleaseSetShardAssignments)
+    .values({
+      apiReleaseSetId: releaseSetId,
+      dataShardId,
+      createdAt: new Date(),
+    })
+    .onConflictDoNothing()
+    .run()
+}
+
 export async function insertIngestRun(
   db: HarbourReadableDb & HarbourWritableDb,
   releaseId: string,
   phase: string,
   status: string,
-  statsJson: string | null,
+  stats: string | null,
   startedAt: string,
   finishedAt: string | null,
-  errorJson: string | null = null,
+  error: string | null = null,
 ) {
-  try {
-    const now = startedAt
+  const now = startedAt
 
-    await db
-      .insert(ingestRuns)
-      .values({
-        runId: crypto.randomUUID(),
-        datasetRecordId: releaseId,
-        phase,
-        status,
-        statsJson,
-        errorJson,
-        startedAt: now,
-        finishedAt,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .run()
-  } catch (error) {
-    if (!isMissingTableError(error, 'ingestRuns')) {
-      throw error
-    }
-  }
+  await db
+    .insert(ingestRuns)
+    .values({
+      runId: crypto.randomUUID(),
+      releaseId,
+      phase,
+      status,
+      stats,
+      error,
+      startedAt: now,
+      finishedAt,
+      createdAt: new Date(now),
+      updatedAt: new Date(now),
+    })
+    .run()
 }
 
 export async function updateLatestOpenIngestRun(
@@ -336,51 +539,43 @@ export async function updateLatestOpenIngestRun(
   phase: string,
   status: string,
   finishedAt: string,
-  statsJson: string | null,
-  errorJson: string | null = null,
+  stats: string | null,
+  error: string | null = null,
 ) {
-  try {
-    const openRun =
-      ((await db
-        .select({
-          runId: ingestRuns.runId,
-        })
-        .from(ingestRuns)
-        .where(
-          and(
-            eq(ingestRuns.datasetRecordId, releaseId),
-            eq(ingestRuns.phase, phase),
-            eq(ingestRuns.status, 'running'),
-          ),
-        )
-        .orderBy(desc(ingestRuns.startedAt), desc(ingestRuns.runId))
-        .limit(1)
-        .get()) as { runId: string } | undefined) ?? null
-
-    if (!openRun) {
-      return false
-    }
-
-    await db
-      .update(ingestRuns)
-      .set({
-        status,
-        statsJson,
-        errorJson,
-        finishedAt,
-        updatedAt: finishedAt,
+  const openRun =
+    ((await db
+      .select({
+        runId: ingestRuns.runId,
       })
-      .where(eq(ingestRuns.runId, openRun.runId))
-      .run()
+      .from(ingestRuns)
+      .where(
+        and(
+          eq(ingestRuns.releaseId, releaseId),
+          eq(ingestRuns.phase, phase),
+          eq(ingestRuns.status, 'running'),
+        ),
+      )
+      .orderBy(desc(ingestRuns.startedAt), desc(ingestRuns.runId))
+      .limit(1)
+      .get()) as { runId: string } | undefined) ?? null
 
-    return true
-  } catch (error) {
-    if (isMissingTableError(error, 'ingestRuns')) {
-      return false
-    }
-
-    throw error
+  if (!openRun) {
+    return false
   }
+
+  await db
+    .update(ingestRuns)
+    .set({
+      status,
+      stats,
+      error,
+      finishedAt,
+      updatedAt: new Date(finishedAt),
+    })
+    .where(eq(ingestRuns.runId, openRun.runId))
+    .run()
+
+  return true
 }
 
 async function requireDatasetDefinition(
@@ -410,11 +605,4 @@ async function requireDatasetDefinition(
   }
 
   return dataset
-}
-
-function isMissingTableError(error: unknown, tableName: string) {
-  return (
-    error instanceof Error &&
-    new RegExp(`no such table: ${tableName}`, 'i').test(error.message)
-  )
 }
