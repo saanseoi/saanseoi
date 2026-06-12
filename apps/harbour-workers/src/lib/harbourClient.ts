@@ -12,6 +12,14 @@ export type HarbourControlApiConfig = {
 
 const CONTROL_REQUEST_RETRY_LIMIT = 3
 const CONTROL_REQUEST_RETRY_DELAY_MS = 150
+const TRANSIENT_CONTROL_RESPONSE_STATUSES = new Set([429, 502, 503, 504])
+
+class RetryableControlError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'RetryableControlError'
+  }
+}
 
 export function createHarbourClient(config: HarbourControlApiConfig) {
   const baseUrl = normalizeBaseUrl(config.baseUrl)
@@ -99,7 +107,16 @@ async function postControl(
         ? body.message
         : `Harbour control request failed with status ${response.status}.`
 
-    throw new Error(message)
+    const error = TRANSIENT_CONTROL_RESPONSE_STATUSES.has(response.status)
+      ? new RetryableControlError(message)
+      : new Error(message)
+
+    if (!isRetryableControlError(error) || attempt >= CONTROL_REQUEST_RETRY_LIMIT) {
+      throw error
+    }
+
+    await sleep(CONTROL_REQUEST_RETRY_DELAY_MS * (attempt + 1))
+    return postControl(baseUrl, apiKey, path, payload, attempt + 1)
   }
 }
 
@@ -108,6 +125,10 @@ function normalizeBaseUrl(value: string) {
 }
 
 function isRetryableControlError(error: unknown) {
+  if (error instanceof RetryableControlError) {
+    return true
+  }
+
   if (!(error instanceof Error)) {
     return false
   }

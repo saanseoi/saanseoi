@@ -69,4 +69,42 @@ describe('createHarbourControlApi', () => {
     await expect(api.publishDataset('dataset-1')).rejects.toThrow('Dataset not found.')
     expect(attempts).toBe(1)
   })
+
+  test('retries transient HTTP failures for control callbacks', async () => {
+    let attempts = 0
+
+    globalThis.fetch = mock(async () => {
+      attempts += 1
+
+      if (attempts === 1) {
+        return new Response(
+          JSON.stringify({
+            message: 'Service temporarily unavailable.',
+          }),
+          {
+            status: 503,
+            headers: {
+              'content-type': 'application/json',
+            },
+          },
+        )
+      }
+
+      return new Response(JSON.stringify({ status: 'ok' }), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+        },
+      })
+    }) as unknown as typeof fetch
+
+    const api = createHarbourClient({
+      apiKey: 'test-key',
+      baseUrl: 'http://localhost:8788',
+    })
+
+    await api.stageStarted('dataset-1', 'extractDivisions')
+
+    expect(attempts).toBe(2)
+  })
 })
