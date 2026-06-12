@@ -928,8 +928,10 @@ export async function registerUpload(
   if (options.dryRun) {
     return {
       plan,
+      datasetId: null,
       inspection,
       rawObjectKey: null,
+      releaseId: null,
     }
   }
 
@@ -979,9 +981,11 @@ export async function registerUpload(
   )
 
   return {
+    datasetId: release.datasetId,
     plan,
     inspection,
     rawObjectKey,
+    releaseId: release.releaseId,
   }
 }
 
@@ -996,9 +1000,9 @@ export async function requestUpload(
 
   if (existingDataset) {
     assertDatasetCanBeReuploaded(existingDataset)
-    await resetFailedDataset(db, plan, rawObjectKey, now, 'staged')
+    await resetFailedDataset(db, plan, rawObjectKey, now, 'uploading')
   } else {
-    await insertDataset(db, plan, rawObjectKey, now, 'staged')
+    await insertDataset(db, plan, rawObjectKey, now, 'uploading')
   }
   const release = await getDatasetById(db, plan.releaseCode)
 
@@ -1022,9 +1026,11 @@ export async function requestUpload(
   )
 
   return {
+    datasetId: release.datasetId,
     plan,
     inspection,
     rawObjectKey,
+    releaseId: release.releaseId,
   }
 }
 
@@ -1038,7 +1044,7 @@ export async function finalizeUpload(
       ...options,
       allowExistingDatasetStatuses: [
         ...(options.allowExistingDatasetStatuses ?? []),
-        'staged',
+        'uploading',
       ],
     },
     options.inspection,
@@ -1067,8 +1073,10 @@ export async function finalizeUpload(
   )
 
   return {
+    datasetId: release.datasetId,
     plan,
     inspection,
     rawObjectKey,
+    releaseId: release.releaseId,
   }
 }

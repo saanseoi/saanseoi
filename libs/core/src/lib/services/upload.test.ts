@@ -29,14 +29,25 @@ import {
 import { planUpload, prepareUpload, registerUpload } from './upload-local'
 import { createLocalHarbourDb } from '../../testing/local-db'
 
-import { datasets } from '@repo/db/schema'
+import { metaReleases } from '@repo/db/metaSchema'
 import type { ParquetInspection } from '../../types'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
-const migrationSql = readdirSync(migrationsDir)
-  .filter(fileName => fileName.endsWith('.sql'))
+function collectSqlFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+    const entryPath = join(dir, entry.name)
+
+    if (entry.isDirectory()) {
+      return collectSqlFiles(entryPath)
+    }
+
+    return entry.name.endsWith('.sql') ? [entryPath] : []
+  })
+}
+
+const migrationSql = collectSqlFiles(migrationsDir)
   .sort()
-  .map(fileName => readFileSync(join(migrationsDir, fileName), 'utf8'))
+  .map(filePath => readFileSync(filePath, 'utf8'))
   .join('\n')
 const tempDirs: string[] = []
 const fixtureInspection: ParquetInspection = {
@@ -225,7 +236,7 @@ describe('upload', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    db.insert(datasets)
+    db.insert(metaReleases as any)
       .values({
         datasetId: 'overture-hk-2026-05-24.0-division',
         regionCode: 'hk',
@@ -375,7 +386,7 @@ describe('upload', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    db.insert(datasets)
+    db.insert(metaReleases as any)
       .values({
         datasetId: 'overture-hk-2026-05-24.0-division',
         regionCode: 'hk',
@@ -438,7 +449,7 @@ describe('upload', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    db.insert(datasets)
+    db.insert(metaReleases as any)
       .values({
         datasetId: 'overture-hk-2026-05-24.0-division',
         regionCode: 'hk',
@@ -525,7 +536,7 @@ describe('upload', () => {
     const db = createLocalHarbourDb(sqlite)
     const inspection = fixtureInspection
 
-    db.insert(datasets)
+    db.insert(metaReleases as any)
       .values({
         datasetId: 'overture-hk-2026-05-24.0-division',
         regionCode: 'hk',
@@ -572,7 +583,7 @@ describe('upload', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    db.insert(datasets)
+    db.insert(metaReleases as any)
       .values({
         datasetId: 'overture-hk-2026-01-21.0-division',
         regionCode: 'hk',
@@ -620,7 +631,7 @@ describe('upload', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    db.insert(datasets)
+    db.insert(metaReleases as any)
       .values({
         datasetId: 'overture-hk-2026-01-21.0-division',
         regionCode: 'hk',
@@ -673,7 +684,7 @@ Reconcile the schema before uploading this dataset.`)
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    db.insert(datasets)
+    db.insert(metaReleases as any)
       .values({
         datasetId: 'overture-hk-2026-05-24.0-division',
         regionCode: 'hk',
