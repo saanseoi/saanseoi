@@ -1,128 +1,64 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "19246cba-3cd1-40ec-8855-9ebd6b884f9d",
+  "id": "7c883d34-79c7-4bdf-b0df-f5aa8c31ddb3",
   "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
-      "name": "publisherI18n",
+      "name": "divisions",
       "entityType": "tables"
     },
     {
-      "name": "publishers",
+      "name": "divisionsI18n",
       "entityType": "tables"
     },
     {
-      "name": "licenses",
+      "name": "address2d",
       "entityType": "tables"
     },
     {
-      "name": "datasetI18n",
+      "name": "address2dI18n",
       "entityType": "tables"
     },
     {
-      "name": "datasets",
+      "name": "address3d",
       "entityType": "tables"
     },
     {
-      "name": "releases",
+      "name": "address3dI18n",
       "entityType": "tables"
     },
     {
-      "name": "apiEndpointDatasets",
+      "name": "streets",
       "entityType": "tables"
     },
     {
-      "name": "apiEndpoints",
+      "name": "streetsAddress",
       "entityType": "tables"
     },
     {
-      "name": "apiFieldProvenance",
+      "name": "streetsI18n",
       "entityType": "tables"
     },
     {
-      "name": "apiReleaseSetMembers",
+      "name": "places",
       "entityType": "tables"
     },
     {
-      "name": "apiReleaseSets",
+      "name": "placesCells",
       "entityType": "tables"
     },
     {
-      "name": "apiVersions",
+      "name": "placesDivision",
       "entityType": "tables"
     },
     {
-      "name": "dataShards",
+      "name": "placesFts",
       "entityType": "tables"
     },
     {
-      "name": "releaseSetShardAssignments",
+      "name": "placesI18n",
       "entityType": "tables"
-    },
-    {
-      "name": "releaseShardAssignments",
-      "entityType": "tables"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "publisherId",
-      "entityType": "columns",
-      "table": "publisherI18n"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "locale",
-      "entityType": "columns",
-      "table": "publisherI18n"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "name",
-      "entityType": "columns",
-      "table": "publisherI18n"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "description",
-      "entityType": "columns",
-      "table": "publisherI18n"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "createdAt",
-      "entityType": "columns",
-      "table": "publisherI18n"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "updatedAt",
-      "entityType": "columns",
-      "table": "publisherI18n"
     },
     {
       "type": "text",
@@ -132,277 +68,17 @@
       "generated": null,
       "name": "id",
       "entityType": "columns",
-      "table": "publishers"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "code",
-      "entityType": "columns",
-      "table": "publishers"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "url",
-      "entityType": "columns",
-      "table": "publishers"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "contactUrl",
-      "entityType": "columns",
-      "table": "publishers"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "contactEmail",
-      "entityType": "columns",
-      "table": "publishers"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "contactPhone",
-      "entityType": "columns",
-      "table": "publishers"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "parentPublisherId",
-      "entityType": "columns",
-      "table": "publishers"
+      "table": "divisions"
     },
     {
       "type": "integer",
       "notNull": true,
       "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "createdAt",
-      "entityType": "columns",
-      "table": "publishers"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "updatedAt",
-      "entityType": "columns",
-      "table": "publishers"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "id",
+      "name": "level",
       "entityType": "columns",
-      "table": "licenses"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "code",
-      "entityType": "columns",
-      "table": "licenses"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "name",
-      "entityType": "columns",
-      "table": "licenses"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "url",
-      "entityType": "columns",
-      "table": "licenses"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "createdAt",
-      "entityType": "columns",
-      "table": "licenses"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "updatedAt",
-      "entityType": "columns",
-      "table": "licenses"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "datasetId",
-      "entityType": "columns",
-      "table": "datasetI18n"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "locale",
-      "entityType": "columns",
-      "table": "datasetI18n"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "name",
-      "entityType": "columns",
-      "table": "datasetI18n"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "description",
-      "entityType": "columns",
-      "table": "datasetI18n"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "createdAt",
-      "entityType": "columns",
-      "table": "datasetI18n"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "updatedAt",
-      "entityType": "columns",
-      "table": "datasetI18n"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "id",
-      "entityType": "columns",
-      "table": "datasets"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "publisherId",
-      "entityType": "columns",
-      "table": "datasets"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "code",
-      "entityType": "columns",
-      "table": "datasets"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "regionCode",
-      "entityType": "columns",
-      "table": "datasets"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "releaseType",
-      "entityType": "columns",
-      "table": "datasets"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "releaseFrequency",
-      "entityType": "columns",
-      "table": "datasets"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "theme",
-      "entityType": "columns",
-      "table": "datasets"
+      "table": "divisions"
     },
     {
       "type": "text",
@@ -412,7 +88,7 @@
       "generated": null,
       "name": "type",
       "entityType": "columns",
-      "table": "datasets"
+      "table": "divisions"
     },
     {
       "type": "text",
@@ -420,69 +96,239 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceUrl",
+      "name": "otGeometryJson",
       "entityType": "columns",
-      "table": "datasets"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "licenseId",
-      "entityType": "columns",
-      "table": "datasets"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "category",
-      "entityType": "columns",
-      "table": "datasets"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "attribution",
-      "entityType": "columns",
-      "table": "datasets"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "tagsJson",
-      "entityType": "columns",
-      "table": "datasets"
+      "table": "divisions"
     },
     {
       "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otPopulation",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otVersion",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otSubtype",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otClass",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otWikidata",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otHierarchyJson",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "hierarchyJson",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "parentDivisionId",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otCartographyJson",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otBboxJson",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourcesJson",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "default": null,
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
-      "table": "datasets"
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "divisionId",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otName",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otNameVariantJson",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otNameAlts",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otNameRulesJson",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otLocalType",
+      "entityType": "columns",
+      "table": "divisionsI18n"
     },
     {
       "type": "integer",
       "notNull": true,
       "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "default": null,
+      "generated": null,
+      "name": "isLocaleInferred",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
-      "table": "datasets"
+      "table": "divisionsI18n"
     },
     {
       "type": "text",
@@ -492,157 +338,197 @@
       "generated": null,
       "name": "id",
       "entityType": "columns",
-      "table": "releases"
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometryJson",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "countryId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "areaId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "townId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "macrohoodId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "villageId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "neighbourhoodId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "hamletId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "microhoodId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otBboxJson",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otVersion",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otStreet",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otNumber",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "identifiersJson",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourcesJson",
+      "entityType": "columns",
+      "table": "address2d"
     },
     {
       "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
-      "generated": null,
-      "name": "datasetId",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "code",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sourceVersion",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sourceSchemaVersion",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "publicationDate",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotMonth",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "rawObjectKey",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "originalFileName",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "status",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "integer",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "revokedAt",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "revocationReason",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "supersededByReleaseId",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "integer",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "ingestedAt",
-      "entityType": "columns",
-      "table": "releases"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
-      "table": "releases"
+      "table": "address2d"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "default": null,
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
-      "table": "releases"
+      "table": "address2d"
     },
     {
       "type": "text",
@@ -650,9 +536,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "apiEndpointId",
+      "name": "addressId",
       "entityType": "columns",
-      "table": "apiEndpointDatasets"
+      "table": "address2dI18n"
     },
     {
       "type": "text",
@@ -660,9 +546,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "datasetId",
+      "name": "locale",
       "entityType": "columns",
-      "table": "apiEndpointDatasets"
+      "table": "address2dI18n"
     },
     {
       "type": "text",
@@ -670,19 +556,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "usageType",
+      "name": "formattedAddress",
       "entityType": "columns",
-      "table": "apiEndpointDatasets"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "false",
-      "generated": null,
-      "name": "required",
-      "entityType": "columns",
-      "table": "apiEndpointDatasets"
+      "table": "address2dI18n"
     },
     {
       "type": "text",
@@ -690,19 +566,129 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "notes",
+      "name": "buildingName",
       "entityType": "columns",
-      "table": "apiEndpointDatasets"
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingNumberFrom",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingNumberTo",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockType",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockNumber",
+      "entityType": "columns",
+      "table": "address2dI18n"
     },
     {
       "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockTypeBeforeNumber",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseName",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseNumber",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "estateName",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetNumber",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetName",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "default": null,
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
-      "table": "apiEndpointDatasets"
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "address2dI18n"
     },
     {
       "type": "text",
@@ -712,7 +698,7 @@
       "generated": null,
       "name": "id",
       "entityType": "columns",
-      "table": "apiEndpoints"
+      "table": "address3d"
     },
     {
       "type": "text",
@@ -720,69 +706,149 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "apiVersionId",
+      "name": "address2dId",
       "entityType": "columns",
-      "table": "apiEndpoints"
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourcesJson",
+      "entityType": "columns",
+      "table": "address3d"
     },
     {
       "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
-      "generated": null,
-      "name": "method",
-      "entityType": "columns",
-      "table": "apiEndpoints"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "path",
-      "entityType": "columns",
-      "table": "apiEndpoints"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "operationId",
-      "entityType": "columns",
-      "table": "apiEndpoints"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "resourceType",
-      "entityType": "columns",
-      "table": "apiEndpoints"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
-      "table": "apiEndpoints"
+      "table": "address3d"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "default": null,
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
-      "table": "apiEndpoints"
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "address3dId",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "formattedAddressPart",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "accessHint",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "unitPortion",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "unitNumber",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "unitType",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "floorNumber",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "floorType",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "address3dI18n"
     },
     {
       "type": "text",
@@ -792,7 +858,27 @@
       "generated": null,
       "name": "id",
       "entityType": "columns",
-      "table": "apiFieldProvenance"
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "yearBuiltJson",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencesJson",
+      "entityType": "columns",
+      "table": "streets"
     },
     {
       "type": "text",
@@ -800,9 +886,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "apiReleaseSetId",
+      "name": "createdAt",
       "entityType": "columns",
-      "table": "apiFieldProvenance"
+      "table": "streets"
     },
     {
       "type": "text",
@@ -810,9 +896,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "apiField",
+      "name": "updatedAt",
       "entityType": "columns",
-      "table": "apiFieldProvenance"
+      "table": "streets"
     },
     {
       "type": "text",
@@ -820,9 +906,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceDatasetId",
+      "name": "streetId",
       "entityType": "columns",
-      "table": "apiFieldProvenance"
+      "table": "streetsAddress"
     },
     {
       "type": "text",
@@ -830,9 +916,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceFieldPath",
+      "name": "addressId",
       "entityType": "columns",
-      "table": "apiFieldProvenance"
+      "table": "streetsAddress"
     },
     {
       "type": "text",
@@ -840,9 +926,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "resolverCode",
+      "name": "streetId",
       "entityType": "columns",
-      "table": "apiFieldProvenance"
+      "table": "streetsI18n"
     },
     {
       "type": "text",
@@ -850,19 +936,299 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "contributionType",
+      "name": "locale",
       "entityType": "columns",
-      "table": "apiFieldProvenance"
+      "table": "streetsI18n"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "0",
+      "default": null,
       "generated": null,
-      "name": "priority",
+      "name": "name",
       "entityType": "columns",
-      "table": "apiFieldProvenance"
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "base",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "designator",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "directionalPrefix",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "directionalSuffix",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "normalised",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "regionCode",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetRecordId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "address2dId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "address3dId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otVersionHash",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otVersion",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "real",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otLng",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "real",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otLat",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otBboxJson",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otOperatingStatus",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otBasicCategory",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otTaxonomyPrimary",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otTaxonomyHierarchyJson",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otTaxonomyAlternatesJson",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otBrandWikidata",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otWebsitesJson",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otSocialsJson",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otEmailsJson",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otPhonesJson",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otAddressesJson",
+      "entityType": "columns",
+      "table": "places"
     },
     {
       "type": "real",
@@ -870,9 +1236,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "confidence",
+      "name": "otConfidence",
       "entityType": "columns",
-      "table": "apiFieldProvenance"
+      "table": "places"
     },
     {
       "type": "text",
@@ -880,279 +1246,129 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceIdentifierPathsJson",
+      "name": "sourcesJson",
       "entityType": "columns",
-      "table": "apiFieldProvenance"
+      "table": "places"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "default": null,
+      "generated": null,
+      "name": "firstSeenMonth",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "lastSeenMonth",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
-      "table": "apiFieldProvenance"
+      "table": "places"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "default": null,
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
-      "table": "apiFieldProvenance"
+      "table": "places"
     },
     {
       "type": "text",
       "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "apiReleaseSetId",
-      "entityType": "columns",
-      "table": "apiReleaseSetMembers"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "datasetId",
-      "entityType": "columns",
-      "table": "apiReleaseSetMembers"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "releaseId",
-      "entityType": "columns",
-      "table": "apiReleaseSetMembers"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "role",
-      "entityType": "columns",
-      "table": "apiReleaseSetMembers"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "createdAt",
-      "entityType": "columns",
-      "table": "apiReleaseSetMembers"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "id",
-      "entityType": "columns",
-      "table": "apiReleaseSets"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "apiVersionId",
-      "entityType": "columns",
-      "table": "apiReleaseSets"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "code",
-      "entityType": "columns",
-      "table": "apiReleaseSets"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "canonicalSchemaVersion",
-      "entityType": "columns",
-      "table": "apiReleaseSets"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "canonicalLogicVersion",
-      "entityType": "columns",
-      "table": "apiReleaseSets"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "status",
-      "entityType": "columns",
-      "table": "apiReleaseSets"
-    },
-    {
-      "type": "integer",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "publishedAt",
-      "entityType": "columns",
-      "table": "apiReleaseSets"
-    },
-    {
-      "type": "integer",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "validFrom",
-      "entityType": "columns",
-      "table": "apiReleaseSets"
-    },
-    {
-      "type": "integer",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "validTo",
-      "entityType": "columns",
-      "table": "apiReleaseSets"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "notes",
-      "entityType": "columns",
-      "table": "apiReleaseSets"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "createdAt",
-      "entityType": "columns",
-      "table": "apiReleaseSets"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "updatedAt",
-      "entityType": "columns",
-      "table": "apiReleaseSets"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "id",
-      "entityType": "columns",
-      "table": "apiVersions"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "code",
-      "entityType": "columns",
-      "table": "apiVersions"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "status",
-      "entityType": "columns",
-      "table": "apiVersions"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "createdAt",
-      "entityType": "columns",
-      "table": "apiVersions"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "updatedAt",
-      "entityType": "columns",
-      "table": "apiVersions"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "id",
-      "entityType": "columns",
-      "table": "dataShards"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "kind",
-      "entityType": "columns",
-      "table": "dataShards"
-    },
-    {
-      "type": "text",
-      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
       "name": "regionCode",
       "entityType": "columns",
-      "table": "dataShards"
+      "table": "placesCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "placesCells"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "h3Level",
+      "entityType": "columns",
+      "table": "placesCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "h3Cell",
+      "entityType": "columns",
+      "table": "placesCells"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "placeId",
+      "entityType": "columns",
+      "table": "placesDivision"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "divisionId",
+      "entityType": "columns",
+      "table": "placesDivision"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "placeId",
+      "entityType": "columns",
+      "table": "placesFts"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "placesFts"
     },
     {
       "type": "text",
@@ -1160,9 +1376,59 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "year",
+      "name": "nameText",
       "entityType": "columns",
-      "table": "dataShards"
+      "table": "placesFts"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandText",
+      "entityType": "columns",
+      "table": "placesFts"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyText",
+      "entityType": "columns",
+      "table": "placesFts"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addressText",
+      "entityType": "columns",
+      "table": "placesFts"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "divisionText",
+      "entityType": "columns",
+      "table": "placesFts"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetText",
+      "entityType": "columns",
+      "table": "placesFts"
     },
     {
       "type": "text",
@@ -1170,9 +1436,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "environment",
+      "name": "placeId",
       "entityType": "columns",
-      "table": "dataShards"
+      "table": "placesI18n"
     },
     {
       "type": "text",
@@ -1180,433 +1446,460 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "databaseName",
+      "name": "locale",
       "entityType": "columns",
-      "table": "dataShards"
+      "table": "placesI18n"
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "databaseId",
+      "name": "otName",
       "entityType": "columns",
-      "table": "dataShards"
+      "table": "placesI18n"
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "bindingName",
+      "name": "otNameVariantJson",
       "entityType": "columns",
-      "table": "dataShards"
+      "table": "placesI18n"
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "status",
+      "name": "otNameAlts",
       "entityType": "columns",
-      "table": "dataShards"
+      "table": "placesI18n"
     },
     {
       "type": "integer",
       "notNull": true,
       "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "default": null,
+      "generated": null,
+      "name": "isLocaleInferred",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otBrandName",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otBrandNameVariantJson",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "otBrandNameAlts",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
-      "table": "dataShards"
+      "table": "placesI18n"
     },
     {
-      "type": "integer",
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "default": null,
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
-      "table": "dataShards"
+      "table": "placesI18n"
     },
     {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "apiReleaseSetId",
-      "entityType": "columns",
-      "table": "releaseSetShardAssignments"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "dataShardId",
-      "entityType": "columns",
-      "table": "releaseSetShardAssignments"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "createdAt",
-      "entityType": "columns",
-      "table": "releaseSetShardAssignments"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "releaseId",
-      "entityType": "columns",
-      "table": "releaseShardAssignments"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "dataShardId",
-      "entityType": "columns",
-      "table": "releaseShardAssignments"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
-      "generated": null,
-      "name": "createdAt",
-      "entityType": "columns",
-      "table": "releaseShardAssignments"
-    },
-    {
-      "columns": ["publisherId"],
-      "tableTo": "publishers",
+      "columns": ["divisionId"],
+      "tableTo": "divisions",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_publisherI18n_publisherId_publishers_id_fk",
+      "name": "fk_divisionsI18n_divisionId_divisions_id_fk",
       "entityType": "fks",
-      "table": "publisherI18n"
+      "table": "divisionsI18n"
     },
     {
-      "columns": ["parentPublisherId"],
-      "tableTo": "publishers",
+      "columns": ["countryId"],
+      "tableTo": "divisions",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
-      "nameExplicit": true,
-      "name": "publishers_parentPublisherId_publishers_id_fk",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_address2d_countryId_divisions_id_fk",
       "entityType": "fks",
-      "table": "publishers"
+      "table": "address2d"
     },
     {
-      "columns": ["datasetId"],
-      "tableTo": "datasets",
+      "columns": ["areaId"],
+      "tableTo": "divisions",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_datasetI18n_datasetId_datasets_id_fk",
+      "name": "fk_address2d_areaId_divisions_id_fk",
       "entityType": "fks",
-      "table": "datasetI18n"
+      "table": "address2d"
     },
     {
-      "columns": ["publisherId"],
-      "tableTo": "publishers",
+      "columns": ["districtId"],
+      "tableTo": "divisions",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_datasets_publisherId_publishers_id_fk",
+      "name": "fk_address2d_districtId_divisions_id_fk",
       "entityType": "fks",
-      "table": "datasets"
+      "table": "address2d"
     },
     {
-      "columns": ["licenseId"],
-      "tableTo": "licenses",
+      "columns": ["townId"],
+      "tableTo": "divisions",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_datasets_licenseId_licenses_id_fk",
+      "name": "fk_address2d_townId_divisions_id_fk",
       "entityType": "fks",
-      "table": "datasets"
+      "table": "address2d"
     },
     {
-      "columns": ["datasetId"],
-      "tableTo": "datasets",
+      "columns": ["macrohoodId"],
+      "tableTo": "divisions",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_releases_datasetId_datasets_id_fk",
+      "name": "fk_address2d_macrohoodId_divisions_id_fk",
       "entityType": "fks",
-      "table": "releases"
+      "table": "address2d"
     },
     {
-      "columns": ["apiEndpointId"],
-      "tableTo": "apiEndpoints",
+      "columns": ["villageId"],
+      "tableTo": "divisions",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_apiEndpointDatasets_apiEndpointId_apiEndpoints_id_fk",
+      "name": "fk_address2d_villageId_divisions_id_fk",
       "entityType": "fks",
-      "table": "apiEndpointDatasets"
+      "table": "address2d"
     },
     {
-      "columns": ["datasetId"],
-      "tableTo": "datasets",
+      "columns": ["neighbourhoodId"],
+      "tableTo": "divisions",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_apiEndpointDatasets_datasetId_datasets_id_fk",
+      "name": "fk_address2d_neighbourhoodId_divisions_id_fk",
       "entityType": "fks",
-      "table": "apiEndpointDatasets"
+      "table": "address2d"
     },
     {
-      "columns": ["apiVersionId"],
-      "tableTo": "apiVersions",
+      "columns": ["hamletId"],
+      "tableTo": "divisions",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_apiEndpoints_apiVersionId_apiVersions_id_fk",
+      "name": "fk_address2d_hamletId_divisions_id_fk",
       "entityType": "fks",
-      "table": "apiEndpoints"
+      "table": "address2d"
     },
     {
-      "columns": ["apiReleaseSetId"],
-      "tableTo": "apiReleaseSets",
+      "columns": ["microhoodId"],
+      "tableTo": "divisions",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_apiFieldProvenance_apiReleaseSetId_apiReleaseSets_id_fk",
+      "name": "fk_address2d_microhoodId_divisions_id_fk",
       "entityType": "fks",
-      "table": "apiFieldProvenance"
+      "table": "address2d"
     },
     {
-      "columns": ["sourceDatasetId"],
-      "tableTo": "datasets",
+      "columns": ["addressId"],
+      "tableTo": "address2d",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_apiFieldProvenance_sourceDatasetId_datasets_id_fk",
+      "name": "fk_address2dI18n_addressId_address2d_id_fk",
       "entityType": "fks",
-      "table": "apiFieldProvenance"
+      "table": "address2dI18n"
     },
     {
-      "columns": ["apiReleaseSetId"],
-      "tableTo": "apiReleaseSets",
+      "columns": ["address2dId"],
+      "tableTo": "address2d",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_apiReleaseSetMembers_apiReleaseSetId_apiReleaseSets_id_fk",
+      "name": "fk_address3d_address2dId_address2d_id_fk",
       "entityType": "fks",
-      "table": "apiReleaseSetMembers"
+      "table": "address3d"
     },
     {
-      "columns": ["datasetId"],
-      "tableTo": "datasets",
+      "columns": ["address3dId"],
+      "tableTo": "address3d",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_apiReleaseSetMembers_datasetId_datasets_id_fk",
+      "name": "fk_address3dI18n_address3dId_address3d_id_fk",
       "entityType": "fks",
-      "table": "apiReleaseSetMembers"
+      "table": "address3dI18n"
     },
     {
-      "columns": ["releaseId"],
-      "tableTo": "releases",
+      "columns": ["streetId"],
+      "tableTo": "streets",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_apiReleaseSetMembers_releaseId_releases_id_fk",
+      "name": "fk_streetsAddress_streetId_streets_id_fk",
       "entityType": "fks",
-      "table": "apiReleaseSetMembers"
+      "table": "streetsAddress"
     },
     {
-      "columns": ["apiVersionId"],
-      "tableTo": "apiVersions",
+      "columns": ["addressId"],
+      "tableTo": "address2d",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_apiReleaseSets_apiVersionId_apiVersions_id_fk",
+      "name": "fk_streetsAddress_addressId_address2d_id_fk",
       "entityType": "fks",
-      "table": "apiReleaseSets"
+      "table": "streetsAddress"
     },
     {
-      "columns": ["apiReleaseSetId"],
-      "tableTo": "apiReleaseSets",
+      "columns": ["streetId"],
+      "tableTo": "streets",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_releaseSetShardAssignments_apiReleaseSetId_apiReleaseSets_id_fk",
+      "name": "fk_streetsI18n_streetId_streets_id_fk",
       "entityType": "fks",
-      "table": "releaseSetShardAssignments"
+      "table": "streetsI18n"
     },
     {
-      "columns": ["dataShardId"],
-      "tableTo": "dataShards",
+      "columns": ["address2dId"],
+      "tableTo": "address2d",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_releaseSetShardAssignments_dataShardId_dataShards_id_fk",
+      "name": "fk_places_address2dId_address2d_id_fk",
       "entityType": "fks",
-      "table": "releaseSetShardAssignments"
+      "table": "places"
     },
     {
-      "columns": ["releaseId"],
-      "tableTo": "releases",
+      "columns": ["address3dId"],
+      "tableTo": "address3d",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_releaseShardAssignments_releaseId_releases_id_fk",
+      "name": "fk_places_address3dId_address3d_id_fk",
       "entityType": "fks",
-      "table": "releaseShardAssignments"
+      "table": "places"
     },
     {
-      "columns": ["dataShardId"],
-      "tableTo": "dataShards",
+      "columns": ["id"],
+      "tableTo": "places",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "RESTRICT",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "fk_releaseShardAssignments_dataShardId_dataShards_id_fk",
+      "name": "fk_placesCells_id_places_id_fk",
       "entityType": "fks",
-      "table": "releaseShardAssignments"
+      "table": "placesCells"
     },
     {
-      "columns": ["publisherId", "locale"],
+      "columns": ["placeId"],
+      "tableTo": "places",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
       "nameExplicit": false,
-      "name": "publisherI18n_pk",
+      "name": "fk_placesDivision_placeId_places_id_fk",
+      "entityType": "fks",
+      "table": "placesDivision"
+    },
+    {
+      "columns": ["divisionId"],
+      "tableTo": "divisions",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_placesDivision_divisionId_divisions_id_fk",
+      "entityType": "fks",
+      "table": "placesDivision"
+    },
+    {
+      "columns": ["placeId"],
+      "tableTo": "places",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_placesI18n_placeId_places_id_fk",
+      "entityType": "fks",
+      "table": "placesI18n"
+    },
+    {
+      "columns": ["divisionId", "locale"],
+      "nameExplicit": false,
+      "name": "divisionsI18n_pk",
       "entityType": "pks",
-      "table": "publisherI18n"
+      "table": "divisionsI18n"
     },
     {
-      "columns": ["datasetId", "locale"],
+      "columns": ["addressId", "locale"],
       "nameExplicit": false,
-      "name": "datasetI18n_pk",
+      "name": "address2dI18n_pk",
       "entityType": "pks",
-      "table": "datasetI18n"
+      "table": "address2dI18n"
     },
     {
-      "columns": ["apiEndpointId", "datasetId"],
+      "columns": ["address3dId", "locale"],
       "nameExplicit": false,
-      "name": "apiEndpointDatasets_pk",
+      "name": "address3dI18n_pk",
       "entityType": "pks",
-      "table": "apiEndpointDatasets"
+      "table": "address3dI18n"
     },
     {
-      "columns": ["apiReleaseSetId", "releaseId"],
+      "columns": ["streetId", "addressId"],
       "nameExplicit": false,
-      "name": "apiReleaseSetMembers_pk",
+      "name": "streetsAddress_pk",
       "entityType": "pks",
-      "table": "apiReleaseSetMembers"
+      "table": "streetsAddress"
     },
     {
-      "columns": ["apiReleaseSetId", "dataShardId"],
+      "columns": ["streetId", "locale"],
       "nameExplicit": false,
-      "name": "releaseSetShardAssignments_pk",
+      "name": "streetsI18n_pk",
       "entityType": "pks",
-      "table": "releaseSetShardAssignments"
+      "table": "streetsI18n"
     },
     {
-      "columns": ["releaseId", "dataShardId"],
+      "columns": ["regionCode", "id", "h3Level", "h3Cell"],
       "nameExplicit": false,
-      "name": "releaseShardAssignments_pk",
+      "name": "placesCells_pk",
       "entityType": "pks",
-      "table": "releaseShardAssignments"
+      "table": "placesCells"
+    },
+    {
+      "columns": ["placeId", "divisionId"],
+      "nameExplicit": false,
+      "name": "placesDivision_pk",
+      "entityType": "pks",
+      "table": "placesDivision"
+    },
+    {
+      "columns": ["placeId", "locale"],
+      "nameExplicit": false,
+      "name": "placesI18n_pk",
+      "entityType": "pks",
+      "table": "placesI18n"
     },
     {
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "publishers_pk",
-      "table": "publishers",
+      "name": "divisions_pk",
+      "table": "divisions",
       "entityType": "pks"
     },
     {
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "licenses_pk",
-      "table": "licenses",
+      "name": "address2d_pk",
+      "table": "address2d",
       "entityType": "pks"
     },
     {
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "datasets_pk",
-      "table": "datasets",
+      "name": "address3d_pk",
+      "table": "address3d",
       "entityType": "pks"
     },
     {
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "releases_pk",
-      "table": "releases",
+      "name": "streets_pk",
+      "table": "streets",
       "entityType": "pks"
     },
     {
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "apiEndpoints_pk",
-      "table": "apiEndpoints",
+      "name": "places_pk",
+      "table": "places",
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "apiFieldProvenance_pk",
-      "table": "apiFieldProvenance",
-      "entityType": "pks"
+      "columns": [
+        {
+          "value": "level",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisions_level_idx",
+      "entityType": "indexes",
+      "table": "divisions"
     },
     {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "apiReleaseSets_pk",
-      "table": "apiReleaseSets",
-      "entityType": "pks"
-    },
-    {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "apiVersions_pk",
-      "table": "apiVersions",
-      "entityType": "pks"
-    },
-    {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "dataShards_pk",
-      "table": "dataShards",
-      "entityType": "pks"
+      "columns": [
+        {
+          "value": "parentDivisionId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisions_parentDivisionId_idx",
+      "entityType": "indexes",
+      "table": "divisions"
     },
     {
       "columns": [
@@ -1618,23 +1911,79 @@
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "publisherI18n_locale_idx",
+      "name": "divisionsI18n_locale_idx",
       "entityType": "indexes",
-      "table": "publisherI18n"
+      "table": "divisionsI18n"
     },
     {
       "columns": [
         {
-          "value": "parentPublisherId",
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "otName",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "publishers_parentPublisherId_idx",
+      "name": "divisionsI18n_name_idx",
       "entityType": "indexes",
-      "table": "publishers"
+      "table": "divisionsI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "streetId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2d_streetId_idx",
+      "entityType": "indexes",
+      "table": "address2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "hamletId",
+          "isExpression": false
+        },
+        {
+          "value": "microhoodId",
+          "isExpression": false
+        },
+        {
+          "value": "villageId",
+          "isExpression": false
+        },
+        {
+          "value": "neighbourhoodId",
+          "isExpression": false
+        },
+        {
+          "value": "macrohoodId",
+          "isExpression": false
+        },
+        {
+          "value": "townId",
+          "isExpression": false
+        },
+        {
+          "value": "districtId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2d_division_idx",
+      "entityType": "indexes",
+      "table": "address2d"
     },
     {
       "columns": [
@@ -1646,27 +1995,97 @@
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "datasetI18n_locale_idx",
+      "name": "address2dI18n_locale_idx",
       "entityType": "indexes",
-      "table": "datasetI18n"
+      "table": "address2dI18n"
     },
     {
       "columns": [
         {
-          "value": "publisherId",
-          "isExpression": false
-        },
-        {
-          "value": "code",
+          "value": "address2dId",
           "isExpression": false
         }
       ],
-      "isUnique": true,
+      "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "datasets_publisherId_code_unique_idx",
+      "name": "address3d_address2dId_idx",
       "entityType": "indexes",
-      "table": "datasets"
+      "table": "address3d"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3dI18n_locale_idx",
+      "entityType": "indexes",
+      "table": "address3dI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "addressId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetsAddress_addressId_idx",
+      "entityType": "indexes",
+      "table": "streetsAddress"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetsI18n_locale_idx",
+      "entityType": "indexes",
+      "table": "streetsI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "name",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetsI18n_name_idx",
+      "entityType": "indexes",
+      "table": "streetsI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "datasetRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "places_datasetRecordId_idx",
+      "entityType": "indexes",
+      "table": "places"
     },
     {
       "columns": [
@@ -1675,268 +2094,128 @@
           "isExpression": false
         },
         {
-          "value": "theme",
-          "isExpression": false
-        },
-        {
-          "value": "type",
+          "value": "otBasicCategory",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "datasets_region_theme_type_idx",
+      "name": "places_category_idx",
       "entityType": "indexes",
-      "table": "datasets"
+      "table": "places"
     },
     {
       "columns": [
-        {
-          "value": "datasetId",
-          "isExpression": false
-        },
-        {
-          "value": "sourceVersion",
-          "isExpression": false
-        }
-      ],
-      "isUnique": true,
-      "where": null,
-      "origin": "manual",
-      "name": "releases_datasetId_sourceVersion_unique_idx",
-      "entityType": "indexes",
-      "table": "releases"
-    },
-    {
-      "columns": [
-        {
-          "value": "status",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "releases_status_idx",
-      "entityType": "indexes",
-      "table": "releases"
-    },
-    {
-      "columns": [
-        {
-          "value": "supersededByReleaseId",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "releases_supersededByReleaseId_idx",
-      "entityType": "indexes",
-      "table": "releases"
-    },
-    {
-      "columns": [
-        {
-          "value": "apiVersionId",
-          "isExpression": false
-        },
-        {
-          "value": "method",
-          "isExpression": false
-        },
-        {
-          "value": "path",
-          "isExpression": false
-        }
-      ],
-      "isUnique": true,
-      "where": null,
-      "origin": "manual",
-      "name": "apiEndpoints_apiVersion_method_path_unique_idx",
-      "entityType": "indexes",
-      "table": "apiEndpoints"
-    },
-    {
-      "columns": [
-        {
-          "value": "apiReleaseSetId",
-          "isExpression": false
-        },
-        {
-          "value": "apiField",
-          "isExpression": false
-        },
-        {
-          "value": "sourceDatasetId",
-          "isExpression": false
-        },
-        {
-          "value": "sourceFieldPath",
-          "isExpression": false
-        },
-        {
-          "value": "contributionType",
-          "isExpression": false
-        },
-        {
-          "value": "priority",
-          "isExpression": false
-        }
-      ],
-      "isUnique": true,
-      "where": null,
-      "origin": "manual",
-      "name": "apiFieldProvenance_release_field_source_unique_idx",
-      "entityType": "indexes",
-      "table": "apiFieldProvenance"
-    },
-    {
-      "columns": [
-        {
-          "value": "apiReleaseSetId",
-          "isExpression": false
-        },
-        {
-          "value": "apiField",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "apiFieldProvenance_release_field_idx",
-      "entityType": "indexes",
-      "table": "apiFieldProvenance"
-    },
-    {
-      "columns": [
-        {
-          "value": "datasetId",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "apiReleaseSetMembers_datasetId_idx",
-      "entityType": "indexes",
-      "table": "apiReleaseSetMembers"
-    },
-    {
-      "columns": [
-        {
-          "value": "apiVersionId",
-          "isExpression": false
-        },
-        {
-          "value": "code",
-          "isExpression": false
-        }
-      ],
-      "isUnique": true,
-      "where": null,
-      "origin": "manual",
-      "name": "apiReleaseSets_apiVersionId_code_unique_idx",
-      "entityType": "indexes",
-      "table": "apiReleaseSets"
-    },
-    {
-      "columns": [
-        {
-          "value": "status",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "apiReleaseSets_status_idx",
-      "entityType": "indexes",
-      "table": "apiReleaseSets"
-    },
-    {
-      "columns": [
-        {
-          "value": "kind",
-          "isExpression": false
-        },
         {
           "value": "regionCode",
           "isExpression": false
         },
         {
-          "value": "year",
-          "isExpression": false
-        },
-        {
-          "value": "environment",
-          "isExpression": false
-        }
-      ],
-      "isUnique": true,
-      "where": null,
-      "origin": "manual",
-      "name": "dataShards_kind_region_year_env_unique_idx",
-      "entityType": "indexes",
-      "table": "dataShards"
-    },
-    {
-      "columns": [
-        {
-          "value": "dataShardId",
+          "value": "otTaxonomyPrimary",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "releaseSetShardAssignments_dataShardId_idx",
+      "name": "places_taxonomy_idx",
       "entityType": "indexes",
-      "table": "releaseSetShardAssignments"
+      "table": "places"
     },
     {
-      "columns": ["code"],
-      "nameExplicit": false,
-      "name": "publishers_code_unique",
-      "entityType": "uniques",
-      "table": "publishers"
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        },
+        {
+          "value": "otOperatingStatus",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "places_status_idx",
+      "entityType": "indexes",
+      "table": "places"
     },
     {
-      "columns": ["code"],
-      "nameExplicit": false,
-      "name": "licenses_code_unique",
-      "entityType": "uniques",
-      "table": "licenses"
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        },
+        {
+          "value": "h3Level",
+          "isExpression": false
+        },
+        {
+          "value": "h3Cell",
+          "isExpression": false
+        },
+        {
+          "value": "id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "placesCells_lookup_idx",
+      "entityType": "indexes",
+      "table": "placesCells"
     },
     {
-      "columns": ["code"],
-      "nameExplicit": false,
-      "name": "releases_code_unique",
-      "entityType": "uniques",
-      "table": "releases"
+      "columns": [
+        {
+          "value": "divisionId",
+          "isExpression": false
+        },
+        {
+          "value": "placeId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "placesDivision_divisionId_idx",
+      "entityType": "indexes",
+      "table": "placesDivision"
     },
     {
-      "columns": ["operationId"],
-      "nameExplicit": false,
-      "name": "apiEndpoints_operationId_unique",
-      "entityType": "uniques",
-      "table": "apiEndpoints"
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "placesI18n_locale_idx",
+      "entityType": "indexes",
+      "table": "placesI18n"
     },
     {
-      "columns": ["code"],
-      "nameExplicit": false,
-      "name": "apiVersions_code_unique",
-      "entityType": "uniques",
-      "table": "apiVersions"
-    },
-    {
-      "columns": ["bindingName"],
-      "nameExplicit": false,
-      "name": "dataShards_bindingName_unique",
-      "entityType": "uniques",
-      "table": "dataShards"
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "otName",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "placesI18n_name_idx",
+      "entityType": "indexes",
+      "table": "placesI18n"
     }
   ],
   "renames": []
