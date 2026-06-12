@@ -1,5 +1,6 @@
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
 import type { DatasetProcessingMessage } from '@repo/core'
+import type { SourceDatabase } from '@repo/db'
 
 import {
   processAddressDataset as defaultProcessAddressDataset,
@@ -48,6 +49,7 @@ export function createProcessDatasetMessage(
     db: HarbourReadableDb & HarbourWritableDb,
     bucket: HarbourWorkerBucket,
     message: DatasetProcessingMessage,
+    sourceDb?: SourceDatabase,
   ): Promise<ProcessDatasetResult | ProcessAddressDatasetResult> {
     const activePhases = new Set<string>()
     await harbourClient.stageStarted(message.datasetId, 'processDataset')
@@ -62,7 +64,7 @@ export function createProcessDatasetMessage(
         await harbourClient.stageStarted(message.datasetId, 'extractDivisionsI18n')
         activePhases.add('extractDivisionsI18n')
 
-        result = await processDivisionDataset(db, bucket, message)
+        result = await processDivisionDataset(db, bucket, message, sourceDb)
 
         await harbourClient.stageCompleted(message.datasetId, 'extractDivisions', {
           deletedRows: result.deletedRows,
@@ -81,7 +83,7 @@ export function createProcessDatasetMessage(
         await harbourClient.stageStarted(message.datasetId, 'extractAddressesI18n')
         activePhases.add('extractAddressesI18n')
 
-        result = await processAddressDataset(db, bucket, message)
+        result = await processAddressDataset(db, bucket, message, sourceDb)
 
         await harbourClient.stageCompleted(message.datasetId, 'extractAddresses', {
           deletedRows: result.deletedRows,

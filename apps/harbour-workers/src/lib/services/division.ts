@@ -1,5 +1,6 @@
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
 import type { DatasetProcessingMessage } from '@repo/core'
+import type { sourceSchema, SourceDatabase } from '@repo/db'
 import type { DivisionI18nPayload, DivisionRow } from '@repo/db/schema'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
@@ -12,6 +13,13 @@ import {
   replaceDivisionCurrentI18n,
   upsertDivisionCurrentState,
 } from '../db/division'
+import {
+  buildSourceDatasetId,
+  buildSourceReleaseId,
+  insertSourceOvertureDivisionI18n,
+  insertSourceOvertureDivisions,
+  resetSourceReleaseRows,
+} from '../db/source'
 import {
   buildChurnCounts,
   buildChurnStatsRows,
@@ -100,6 +108,7 @@ export async function processDivisionDataset(
   db: HarbourReadableDb & HarbourWritableDb,
   bucket: HarbourWorkerBucket,
   message: DatasetProcessingMessage,
+  sourceDb?: SourceDatabase,
 ): Promise<ProcessDatasetResult> {
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
   const currentRows = await getCurrentDivisionVersionMap(db, message.regionCode, {
@@ -116,7 +125,17 @@ export async function processDivisionDataset(
   let localizedRows = 0
   const statsAccumulator = createLocaleStatsAccumulator()
 
+  if (sourceDb && message.source === 'overture') {
+    await resetSourceReleaseRows(sourceDb, message)
+  }
+
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE)) {
+    const sourceRows: Array<typeof sourceSchema.sourceOvertureDivisions.$inferInsert> =
+      []
+    const sourceI18nRows: Array<
+      typeof sourceSchema.sourceOvertureDivisionI18n.$inferInsert
+    > = []
+
     for (const row of batch) {
       const normalized = normalizeDivisionRow(row)
       const versionHash = await createHash(buildDivisionBaseHashInput(normalized.base))
@@ -146,6 +165,47 @@ export async function processDivisionDataset(
         type: normalized.base.type,
         versionHash,
       })
+
+      if (sourceDb && message.source === 'overture') {
+        const releaseId = buildSourceReleaseId(message)
+        const datasetId = buildSourceDatasetId(message)
+        const sourcePayloadHash = await createHash(row)
+
+        sourceRows.push({
+          releaseId,
+          datasetId,
+          sourceRecordId: normalized.base.id,
+          sourcePayloadHash,
+          regionCode: message.regionCode,
+          level: normalized.base.level,
+          divisionType: normalized.base.type,
+          subtype: normalized.base.otSubtype,
+          divisionClass: normalized.base.otClass,
+          population: normalized.base.otPopulation,
+          version: asOptionalInteger(row.version),
+          wikidata: normalized.base.otWikidata,
+          geometryJson: normalized.base.otGeometryJson,
+          bboxJson: normalized.base.otBboxJson,
+          hierarchiesJson: normalized.base.otHierarchyJson,
+          cartographyJson: normalized.base.otCartographyJson,
+          sourcesJson: normalized.base.sourcesJson,
+          rawPropertiesJson: stableJsonStringify(row),
+        })
+
+        sourceI18nRows.push(
+          ...normalized.i18n.map(localized => ({
+            releaseId,
+            sourceRecordId: normalized.base.id,
+            locale: localized.locale,
+            name: localized.otName,
+            nameVariantJson: localized.otNameVariantJson,
+            nameAlts: localized.otNameAlts,
+            nameRulesJson: localized.otNameRulesJson,
+            localType: localized.otLocalType,
+            isLocaleInferred: localized.isLocaleInferred,
+          })),
+        )
+      }
 
       const current = currentRows.get(normalized.base.id)
 
@@ -180,6 +240,11 @@ export async function processDivisionDataset(
         versionHash,
         new Date().toISOString(),
       )
+    }
+
+    if (sourceDb && message.source === 'overture') {
+      await insertSourceOvertureDivisions(sourceDb, sourceRows)
+      await insertSourceOvertureDivisionI18n(sourceDb, sourceI18nRows)
     }
   }
 
@@ -269,6 +334,10 @@ function normalizeDivisionRow(row: Record<string, unknown>) {
     } satisfies DivisionRow,
     i18n,
   }
+}
+
+function asOptionalInteger(value: unknown) {
+  return typeof value === 'number' && Number.isInteger(value) ? value : null
 }
 
 function buildDivisionBaseHashInput(

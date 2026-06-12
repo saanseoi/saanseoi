@@ -1,4 +1,9 @@
-import { createDb, type LegacyDbBindings, type MultiDbBindings } from '@repo/db'
+import {
+  createDb,
+  createSourceDb,
+  type LegacyDbBindings,
+  type MultiDbBindings,
+} from '@repo/db'
 import type { DatasetProcessingMessage } from '@repo/core'
 
 import { createHarbourClient } from './lib/harbourClient'
@@ -18,6 +23,9 @@ export function createQueueHandler(
 ) {
   return async (batch: MessageBatch<DatasetProcessingMessage>, env: Env) => {
     const db = createDb(env.DB)
+    const sourceDb = env.DB_SOURCE_HK_2026
+      ? createSourceDb(env.DB_SOURCE_HK_2026)
+      : undefined
     const harbourClient = createHarbourClient({
       apiKey: env.HARBOUR_API_KEY,
       baseUrl: env.HARBOUR_BASE_URL,
@@ -25,7 +33,7 @@ export function createQueueHandler(
 
     for (const message of batch.messages) {
       try {
-        await processDataset(harbourClient, db, env.R2_RAW, message.body)
+        await processDataset(harbourClient, db, env.R2_RAW, message.body, sourceDb)
         message.ack()
       } catch (error) {
         console.error('harbour-workers dataset processing failed', {
