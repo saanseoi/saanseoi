@@ -99,7 +99,9 @@ export type PreparedUploadResult = {
 export type RegisterUploadResult = {
   plan: UploadPlan
   inspection: ParquetInspection
+  datasetId: string | null
   rawObjectKey: string | null
+  releaseId: string | null
 }
 
 export type DatasetProcessingMessage = {
