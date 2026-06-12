@@ -46,6 +46,8 @@ describe('harbour-workers', () => {
       } as unknown as MessageBatch<DatasetProcessingMessage>,
       {
         DB: {} as D1Database,
+        DB_HISTORY_HK_2026: {} as D1Database,
+        DB_META: {} as D1Database,
         HARBOUR_API_KEY: 'test-key',
         HARBOUR_BASE_URL: 'http://localhost:8788',
         R2_RAW: {} as R2Bucket,

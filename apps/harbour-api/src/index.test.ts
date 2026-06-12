@@ -61,7 +61,7 @@ describe('harbour-api', () => {
 
   test('GET /v1/meta/health checks DB access', async () => {
     const res = await app.fetch(new Request('http://localhost/v1/meta/health'), {
-      DB: createMockDb(),
+      DB_META: createMockDb(),
       DATASET_QUEUE: createMockQueue(),
       HARBOUR_API_KEY: 'test-api-key',
       R2_ACCOUNT_ID: 'test-account',
@@ -92,7 +92,7 @@ describe('harbour-api', () => {
         body: '{}',
       }),
       {
-        DB: createMockDb(),
+        DB_META: createMockDb(),
         DATASET_QUEUE: createMockQueue(),
         HARBOUR_API_KEY: 'test-api-key',
         R2_ACCOUNT_ID: 'test-account',

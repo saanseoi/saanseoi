@@ -1,18 +1,19 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 
+import {
+  insertFixtureRelease,
+  loadMigrationSql,
+  seedFixtureCatalog,
+} from '../../../../../libs/core/src/testing/meta-fixtures'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
-const migrationSql = readdirSync(migrationsDir)
-  .filter(fileName => fileName.endsWith('.sql'))
-  .sort()
-  .map(fileName => readFileSync(join(migrationsDir, fileName), 'utf8'))
-  .join('\n')
+const migrationSql = loadMigrationSql(migrationsDir)
 
 const baseParquetBatches: Array<Array<Record<string, unknown>>> = [
   [
@@ -107,7 +108,53 @@ function createWkbPoint(x: number, y: number) {
 function initDb(dbPath: string) {
   const db = new Database(dbPath)
   db.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
+  seedFixtureCatalog(db)
   return db
+}
+
+function seedDivisionRelease(
+  sqlite: Database,
+  releaseCode: string,
+  snapshotMonth: string,
+  status: string,
+  ingestedAt = '2026-06-04T00:00:00.000Z',
+) {
+  const sourceVersion = releaseCode.split('-').slice(2, -1).join('-')
+
+  return insertFixtureRelease(sqlite, {
+    releaseId: `release-${releaseCode}`,
+    releaseCode,
+    source: 'overture',
+    regionCode: 'hk',
+    snapshotMonth,
+    type: 'division',
+    sourceVersion,
+    rawObjectKey: `hk/overture/${sourceVersion}/division.parquet`,
+    originalFileName: 'division.parquet',
+    status,
+    ingestedAt,
+    createdAt: ingestedAt,
+    updatedAt: ingestedAt,
+  })
+}
+
+function createDivisionMessage(
+  releaseCode: string,
+  snapshotMonth: string,
+  sourceVersion: string,
+) {
+  return {
+    datasetId: releaseCode,
+    releaseCode,
+    releaseId: `release-${releaseCode}`,
+    rawObjectKey: `hk/overture/${sourceVersion}/division.parquet`,
+    regionCode: 'hk',
+    snapshotMonth,
+    source: 'overture',
+    sourceVersion,
+    theme: 'divisions',
+    type: 'division',
+  } as const
 }
 
 afterEach(() => {
@@ -130,55 +177,44 @@ describe('processDivisionDataset', () => {
     const db = createLocalHarbourDb(sqlite)
     const now = '2026-06-04T00:00:00.000Z'
 
-    sqlite.exec(`
-      INSERT INTO datasets (
-        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
-        rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
-        revocationReason, ingestedAt, createdAt, updatedAt
-      ) VALUES (
-        'overture-hk-2026-04-24.0-division-row', 'overture-hk-2026-04-24.0-division', 'hk', '2026-04', 'divisions', 'division',
-        'overture', '2026-04-24.0', 'hk/overture/2026-04-24.0/division.parquet',
-        'division.parquet', 'current', null, null, null, '${now}', '${now}', '${now}'
-      );
-    `)
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-04-24.0-division',
+      '2026-04',
+      'published',
+      now,
+    )
 
     sqlite.exec(`
       INSERT INTO divisions (
-        id, level, type, otVersion, otSubtype, otClass, otWikidata,
-        otHierarchyJson, hierarchyJson, parentDivisionId, otCartographyJson, otBboxJson,
-        sourcesJson, createdAt, updatedAt
+        id, level, type, subtype, class, wikidata,
+        hierarchy, parentDivisionId, cartography, bbox, sources, createdAt, updatedAt
       ) VALUES (
-        'division-obsolete', 1, 'area', '1', 'region', 'region', null, null, null, null,
-        null, null, null, '${now}', '${now}'
+        'division-obsolete', 1, 'area', 'region', 'region', null, null, null, null,
+        null, null, '${now}', '${now}'
       );
     `)
 
     sqlite.exec(`
       INSERT INTO divisionsVersions (
-        id, versionHash, regionCode, datasetRecordId, validFromMonth, validToMonth, isCurrent,
-        level, type, otVersion, otVersionHash, otSubtype, otClass, otWikidata,
-        otHierarchyJson, hierarchyJson, parentDivisionId, otCartographyJson, otBboxJson,
-        sourcesJson, createdAt, updatedAt
+        id, versionHash, regionCode, releaseId, validFromReleaseSetId, validToReleaseSetId,
+        validFromMonth, validToMonth, isCurrent, level, type, subtype, class, wikidata,
+        hierarchy, parentDivisionId, cartography, bbox, sources, createdAt, updatedAt
       ) VALUES (
         'division-obsolete', 'hash-obsolete', 'hk',
-        (SELECT id FROM datasets WHERE datasetId = 'overture-hk-2026-04-24.0-division'),
-        '2026-04', null, 1, 1, 'area', '1', 'ot-hash-obsolete', 'region', 'region', null,
-        null, null, null, null, null, null, '${now}', '${now}'
+        'release-overture-hk-2026-04-24.0-division', 'api-release-set-ss-divisions-v0.1',
+        null, '2026-04', null, 1, 1, 'area', 'region', 'region', null,
+        null, null, null, null, null, '${now}', '${now}'
       );
     `)
 
-    sqlite.exec(`
-      INSERT INTO datasets (
-        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
-        rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
-        revocationReason, ingestedAt, createdAt, updatedAt
-      ) VALUES (
-        'overture-hk-2026-05-24.0-division-row', 'overture-hk-2026-05-24.0-division', 'hk', '2026-05', 'divisions', 'division',
-        'overture', '2026-05-24.0', 'hk/overture/2026-05-24.0/division.parquet',
-        'division.parquet', 'staged', 'overture-hk-2026-04-24.0-division', null, null,
-        '${now}', '${now}', '${now}'
-      );
-    `)
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-05-24.0-division',
+      '2026-05',
+      'staged',
+      now,
+    )
 
     const result = await processDivisionDataset(
       db as never,
@@ -196,21 +232,16 @@ describe('processDivisionDataset', () => {
           }
         },
       },
-      {
-        datasetId: 'overture-hk-2026-05-24.0-division',
-        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
-        regionCode: 'hk',
-        snapshotMonth: '2026-05',
-        source: 'overture',
-        sourceVersion: '2026-05-24.0',
-        theme: 'divisions',
-        type: 'division',
-      },
+      createDivisionMessage(
+        'overture-hk-2026-05-24.0-division',
+        '2026-05',
+        '2026-05-24.0',
+      ),
     )
 
     const divisionsRows = sqlite
       .query(
-        "SELECT id, level, type, otGeometryJson, otPopulation, parentDivisionId, otHierarchyJson, hierarchyJson, sourcesJson FROM divisions WHERE id != 'saanseoi-cn-prc' ORDER BY id",
+        "SELECT id, level, type, geometry AS otGeometryJson, population AS otPopulation, parentDivisionId, hierarchy AS otHierarchyJson, hierarchy AS hierarchyJson, sources AS sourcesJson FROM divisions WHERE id != 'saanseoi-cn-prc' ORDER BY id",
       )
       .all() as Array<{
       id: string
@@ -225,7 +256,7 @@ describe('processDivisionDataset', () => {
     }>
     const i18nRows = sqlite
       .query(
-        "SELECT divisionId, locale, otName, isLocaleInferred FROM divisionsI18n WHERE divisionId != 'saanseoi-cn-prc' ORDER BY divisionId, locale",
+        "SELECT divisionId, locale, name AS otName, isLocaleInferred FROM divisionsI18n WHERE divisionId != 'saanseoi-cn-prc' ORDER BY divisionId, locale",
       )
       .all() as Array<{
       divisionId: string
@@ -235,7 +266,7 @@ describe('processDivisionDataset', () => {
     }>
     const statsRows = sqlite
       .query(
-        "SELECT s.dimension, s.metricUnit, s.groupValue, s.value FROM stats s INNER JOIN datasets d ON d.id = s.datasetRecordId WHERE d.datasetId = 'overture-hk-2026-05-24.0-division' AND s.metric = 'completeness' ORDER BY s.dimension, s.groupValue",
+        "SELECT s.dimension, s.metricUnit, s.groupValue, s.value FROM stats s INNER JOIN releases r ON r.id = s.releaseId WHERE r.code = 'overture-hk-2026-05-24.0-division' AND s.metric = 'completeness' ORDER BY s.dimension, s.groupValue",
       )
       .all() as Array<{
       dimension: string
@@ -245,7 +276,7 @@ describe('processDivisionDataset', () => {
     }>
     const churnStatsRows = sqlite
       .query(
-        "SELECT s.dimension, s.groupBy, s.groupValue, s.value FROM stats s INNER JOIN datasets d ON d.id = s.datasetRecordId WHERE d.datasetId = 'overture-hk-2026-05-24.0-division' AND s.metric = 'churn' ORDER BY s.groupBy, s.groupValue, s.dimension",
+        "SELECT s.dimension, s.groupBy, s.groupValue, s.value FROM stats s INNER JOIN releases r ON r.id = s.releaseId WHERE r.code = 'overture-hk-2026-05-24.0-division' AND s.metric = 'churn' ORDER BY s.groupBy, s.groupValue, s.dimension",
       )
       .all() as Array<{
       dimension: string
@@ -269,7 +300,7 @@ describe('processDivisionDataset', () => {
         id: 'division-central',
         hierarchyJson: '[{"ids":["division-hk-island","division-central"]}]',
         level: 2,
-        otGeometryJson: '{"coordinates":[114.15769,22.28171],"type":"Point"}',
+        otGeometryJson: '{"type":"Point","coordinates":[114.15769,22.28171]}',
         otPopulation: null,
         otHierarchyJson: '[{"ids":["division-hk-island","division-central"]}]',
         parentDivisionId: 'division-hk-island',
@@ -280,7 +311,7 @@ describe('processDivisionDataset', () => {
         id: 'division-hk-island',
         hierarchyJson: '[{"ids":["division-hk-island"]}]',
         level: 1,
-        otGeometryJson: '{"coordinates":[114.158229,22.281884],"type":"Point"}',
+        otGeometryJson: '{"type":"Point","coordinates":[114.158229,22.281884]}',
         otPopulation: 123456,
         otHierarchyJson: '[{"ids":["division-hk-island"]}]',
         parentDivisionId: null,
@@ -443,18 +474,12 @@ describe('processDivisionDataset', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    sqlite.exec(`
-      INSERT INTO datasets (
-        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
-        rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
-        revocationReason, ingestedAt, createdAt, updatedAt
-      ) VALUES (
-        'overture-hk-2026-06-24.0-division-row', 'overture-hk-2026-06-24.0-division', 'hk', '2026-06', 'divisions', 'division',
-        'overture', '2026-06-24.0', 'hk/overture/2026-06-24.0/division.parquet',
-        'division.parquet', 'staged', null, null, null, '2026-06-04T00:00:00.000Z',
-        '2026-06-04T00:00:00.000Z', '2026-06-04T00:00:00.000Z'
-      );
-    `)
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-06-24.0-division',
+      '2026-06',
+      'staged',
+    )
 
     await processDivisionDataset(
       db as never,
@@ -472,16 +497,11 @@ describe('processDivisionDataset', () => {
           }
         },
       },
-      {
-        datasetId: 'overture-hk-2026-06-24.0-division',
-        rawObjectKey: 'hk/overture/2026-06-24.0/division.parquet',
-        regionCode: 'hk',
-        snapshotMonth: '2026-06',
-        source: 'overture',
-        sourceVersion: '2026-06-24.0',
-        theme: 'divisions',
-        type: 'division',
-      },
+      createDivisionMessage(
+        'overture-hk-2026-06-24.0-division',
+        '2026-06',
+        '2026-06-24.0',
+      ),
     )
 
     const localizedRows = sqlite
@@ -595,17 +615,13 @@ describe('processDivisionDataset', () => {
       ],
     ]
 
-    sqlite.exec(`
-      INSERT INTO datasets (
-        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
-        rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
-        revocationReason, ingestedAt, createdAt, updatedAt
-      ) VALUES (
-        'overture-hk-2026-05-24.0-division-row', 'overture-hk-2026-05-24.0-division', 'hk', '2026-05', 'divisions', 'division',
-        'overture', '2026-05-24.0', 'hk/overture/2026-05-24.0/division.parquet',
-        'division.parquet', 'current', null, null, null, '${now}', '${now}', '${now}'
-      );
-    `)
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-05-24.0-division',
+      '2026-05',
+      'published',
+      now,
+    )
 
     await processDivisionDataset(
       db as never,
@@ -623,16 +639,11 @@ describe('processDivisionDataset', () => {
           }
         },
       },
-      {
-        datasetId: 'overture-hk-2026-05-24.0-division',
-        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
-        regionCode: 'hk',
-        snapshotMonth: '2026-05',
-        source: 'overture',
-        sourceVersion: '2026-05-24.0',
-        theme: 'divisions',
-        type: 'division',
-      },
+      createDivisionMessage(
+        'overture-hk-2026-05-24.0-division',
+        '2026-05',
+        '2026-05-24.0',
+      ),
     )
 
     parquetBatches = [
@@ -716,18 +727,13 @@ describe('processDivisionDataset', () => {
       ],
     ]
 
-    sqlite.exec(`
-      INSERT INTO datasets (
-        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
-        rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
-        revocationReason, ingestedAt, createdAt, updatedAt
-      ) VALUES (
-        'overture-hk-2026-06-24.0-division-row', 'overture-hk-2026-06-24.0-division', 'hk', '2026-06', 'divisions', 'division',
-        'overture', '2026-06-24.0', 'hk/overture/2026-06-24.0/division.parquet',
-        'division.parquet', 'staged', 'overture-hk-2026-05-24.0-division', null, null,
-        '${now}', '${now}', '${now}'
-      );
-    `)
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-06-24.0-division',
+      '2026-06',
+      'staged',
+      now,
+    )
 
     const result = await processDivisionDataset(
       db as never,
@@ -745,26 +751,21 @@ describe('processDivisionDataset', () => {
           }
         },
       },
-      {
-        datasetId: 'overture-hk-2026-06-24.0-division',
-        rawObjectKey: 'hk/overture/2026-06-24.0/division.parquet',
-        regionCode: 'hk',
-        snapshotMonth: '2026-06',
-        source: 'overture',
-        sourceVersion: '2026-06-24.0',
-        theme: 'divisions',
-        type: 'division',
-      },
+      createDivisionMessage(
+        'overture-hk-2026-06-24.0-division',
+        '2026-06',
+        '2026-06-24.0',
+      ),
     )
 
     const churnRows = sqlite
       .query(
-        "SELECT s.dimension, s.groupBy, s.groupValue, s.value FROM stats s INNER JOIN datasets d ON d.id = s.datasetRecordId WHERE d.datasetId = 'overture-hk-2026-06-24.0-division' AND s.metric = 'churn' ORDER BY s.groupBy, s.groupValue, s.dimension",
+        "SELECT s.dimension, s.groupBy, s.groupValue, s.value FROM stats s INNER JOIN releases r ON r.id = s.releaseId WHERE r.code = 'overture-hk-2026-06-24.0-division' AND s.metric = 'churn' ORDER BY s.groupBy, s.groupValue, s.dimension",
       )
       .all()
     const qualityRows = sqlite
       .query(
-        "SELECT s.dimension, s.value FROM stats s INNER JOIN datasets d ON d.id = s.datasetRecordId WHERE d.datasetId = 'overture-hk-2026-06-24.0-division' AND s.metric = 'quality' ORDER BY s.dimension",
+        "SELECT s.dimension, s.value FROM stats s INNER JOIN releases r ON r.id = s.releaseId WHERE r.code = 'overture-hk-2026-06-24.0-division' AND s.metric = 'quality' ORDER BY s.dimension",
       )
       .all()
 
@@ -1052,18 +1053,12 @@ describe('processDivisionDataset', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    sqlite.exec(`
-      INSERT INTO datasets (
-        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
-        rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
-        revocationReason, ingestedAt, createdAt, updatedAt
-      ) VALUES (
-        'overture-hk-2026-09-24.0-division-row', 'overture-hk-2026-09-24.0-division', 'hk', '2026-09', 'divisions', 'division',
-        'overture', '2026-09-24.0', 'hk/overture/2026-09-24.0/division.parquet',
-        'division.parquet', 'staged', null, null, null, '2026-06-04T00:00:00.000Z',
-        '2026-06-04T00:00:00.000Z', '2026-06-04T00:00:00.000Z'
-      );
-    `)
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-09-24.0-division',
+      '2026-09',
+      'staged',
+    )
 
     await processDivisionDataset(
       db as never,
@@ -1081,16 +1076,11 @@ describe('processDivisionDataset', () => {
           }
         },
       },
-      {
-        datasetId: 'overture-hk-2026-09-24.0-division',
-        rawObjectKey: 'hk/overture/2026-09-24.0/division.parquet',
-        regionCode: 'hk',
-        snapshotMonth: '2026-09',
-        source: 'overture',
-        sourceVersion: '2026-09-24.0',
-        theme: 'divisions',
-        type: 'division',
-      },
+      createDivisionMessage(
+        'overture-hk-2026-09-24.0-division',
+        '2026-09',
+        '2026-09-24.0',
+      ),
     )
 
     const rows = sqlite
@@ -1146,18 +1136,12 @@ describe('processDivisionDataset', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    sqlite.exec(`
-      INSERT INTO datasets (
-        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
-        rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
-        revocationReason, ingestedAt, createdAt, updatedAt
-      ) VALUES (
-        'overture-hk-2026-08-24.0-division-row', 'overture-hk-2026-08-24.0-division', 'hk', '2026-08', 'divisions', 'division',
-        'overture', '2026-08-24.0', 'hk/overture/2026-08-24.0/division.parquet',
-        'division.parquet', 'staged', null, null, null, '2026-06-04T00:00:00.000Z',
-        '2026-06-04T00:00:00.000Z', '2026-06-04T00:00:00.000Z'
-      );
-    `)
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-08-24.0-division',
+      '2026-08',
+      'staged',
+    )
 
     await processDivisionDataset(
       db as never,
@@ -1175,21 +1159,16 @@ describe('processDivisionDataset', () => {
           }
         },
       },
-      {
-        datasetId: 'overture-hk-2026-08-24.0-division',
-        rawObjectKey: 'hk/overture/2026-08-24.0/division.parquet',
-        regionCode: 'hk',
-        snapshotMonth: '2026-08',
-        source: 'overture',
-        sourceVersion: '2026-08-24.0',
-        theme: 'divisions',
-        type: 'division',
-      },
+      createDivisionMessage(
+        'overture-hk-2026-08-24.0-division',
+        '2026-08',
+        '2026-08-24.0',
+      ),
     )
 
     const row = sqlite
       .query(
-        "SELECT otHierarchyJson, hierarchyJson FROM divisions WHERE id = 'division-wrapped-hierarchy'",
+        "SELECT hierarchy AS otHierarchyJson, hierarchy AS hierarchyJson FROM divisions WHERE id = 'division-wrapped-hierarchy'",
       )
       .get() as {
       otHierarchyJson: string | null
@@ -1274,18 +1253,12 @@ describe('processDivisionDataset', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    sqlite.exec(`
-      INSERT INTO datasets (
-        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
-        rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
-        revocationReason, ingestedAt, createdAt, updatedAt
-      ) VALUES (
-        'overture-hk-2026-07-24.0-division-row', 'overture-hk-2026-07-24.0-division', 'hk', '2026-07', 'divisions', 'division',
-        'overture', '2026-07-24.0', 'hk/overture/2026-07-24.0/division.parquet',
-        'division.parquet', 'staged', null, null, null, '2026-06-04T00:00:00.000Z',
-        '2026-06-04T00:00:00.000Z', '2026-06-04T00:00:00.000Z'
-      );
-    `)
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-07-24.0-division',
+      '2026-07',
+      'staged',
+    )
 
     const result = await processDivisionDataset(
       db as never,
@@ -1303,26 +1276,21 @@ describe('processDivisionDataset', () => {
           }
         },
       },
-      {
-        datasetId: 'overture-hk-2026-07-24.0-division',
-        rawObjectKey: 'hk/overture/2026-07-24.0/division.parquet',
-        regionCode: 'hk',
-        snapshotMonth: '2026-07',
-        source: 'overture',
-        sourceVersion: '2026-07-24.0',
-        theme: 'divisions',
-        type: 'division',
-      },
+      createDivisionMessage(
+        'overture-hk-2026-07-24.0-division',
+        '2026-07',
+        '2026-07-24.0',
+      ),
     )
 
     const i18nRows = sqlite
       .query(
-        "SELECT divisionId, locale, otName, otNameAlts, otNameVariantJson, otNameRulesJson, otLocalType, isLocaleInferred FROM divisionsI18n WHERE divisionId != 'saanseoi-cn-prc' ORDER BY divisionId, locale",
+        "SELECT divisionId, locale, name AS otName, nameAlts AS otNameAlts, nameVariant AS otNameVariantJson, nameRules AS otNameRulesJson, localType AS otLocalType, isLocaleInferred FROM divisionsI18n WHERE divisionId != 'saanseoi-cn-prc' ORDER BY divisionId, locale",
       )
       .all()
     const statsRows = sqlite
       .query(
-        "SELECT s.dimension, s.groupValue, s.value FROM stats s INNER JOIN datasets d ON d.id = s.datasetRecordId WHERE d.datasetId = 'overture-hk-2026-07-24.0-division' AND s.metric = 'completeness' ORDER BY s.dimension, s.groupValue",
+        "SELECT s.dimension, s.groupValue, s.value FROM stats s INNER JOIN releases r ON r.id = s.releaseId WHERE r.code = 'overture-hk-2026-07-24.0-division' AND s.metric = 'completeness' ORDER BY s.dimension, s.groupValue",
       )
       .all()
 
@@ -1479,18 +1447,12 @@ describe('processDivisionDataset', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    sqlite.exec(`
-      INSERT INTO datasets (
-        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
-        rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
-        revocationReason, ingestedAt, createdAt, updatedAt
-      ) VALUES (
-        'overture-hk-2026-07-24.0-division-row', 'overture-hk-2026-07-24.0-division', 'hk', '2026-07', 'divisions', 'division',
-        'overture', '2026-07-24.0', 'hk/overture/2026-07-24.0/division.parquet',
-        'division.parquet', 'staged', null, null, null, '2026-06-04T00:00:00.000Z',
-        '2026-06-04T00:00:00.000Z', '2026-06-04T00:00:00.000Z'
-      );
-    `)
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-07-24.0-division',
+      '2026-07',
+      'staged',
+    )
 
     await processDivisionDataset(
       db as never,
@@ -1508,21 +1470,16 @@ describe('processDivisionDataset', () => {
           }
         },
       },
-      {
-        datasetId: 'overture-hk-2026-07-24.0-division',
-        rawObjectKey: 'hk/overture/2026-07-24.0/division.parquet',
-        regionCode: 'hk',
-        snapshotMonth: '2026-07',
-        source: 'overture',
-        sourceVersion: '2026-07-24.0',
-        theme: 'divisions',
-        type: 'division',
-      },
+      createDivisionMessage(
+        'overture-hk-2026-07-24.0-division',
+        '2026-07',
+        '2026-07-24.0',
+      ),
     )
 
     const i18nRows = sqlite
       .query(
-        "SELECT divisionId, locale, otName, otNameAlts, otNameVariantJson, otNameRulesJson FROM divisionsI18n WHERE divisionId != 'saanseoi-cn-prc' ORDER BY divisionId, locale",
+        "SELECT divisionId, locale, name AS otName, nameAlts AS otNameAlts, nameVariant AS otNameVariantJson, nameRules AS otNameRulesJson FROM divisionsI18n WHERE divisionId != 'saanseoi-cn-prc' ORDER BY divisionId, locale",
       )
       .all()
 
@@ -1561,17 +1518,7 @@ describe('processDivisionDataset', () => {
     const nextDatasetId = 'overture-hk-2026-05-24.0-division'
     const existingDivisionCount = 120
 
-    sqlite.exec(`
-      INSERT INTO datasets (
-        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
-        rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
-        revocationReason, ingestedAt, createdAt, updatedAt
-      ) VALUES (
-        '${previousDatasetId}-row', '${previousDatasetId}', 'hk', '2026-04', 'divisions', 'division',
-        'overture', '2026-04-24.0', 'hk/overture/2026-04-24.0/division.parquet',
-        'division.parquet', 'current', null, null, null, '${now}', '${now}', '${now}'
-      );
-    `)
+    seedDivisionRelease(sqlite, previousDatasetId, '2026-04', 'published', now)
 
     sqlite.exec('BEGIN')
 
@@ -1581,19 +1528,18 @@ describe('processDivisionDataset', () => {
 
       sqlite.exec(`
         INSERT INTO divisions (
-          id, level, type, otVersion, otSubtype, otClass, otWikidata,
-          otHierarchyJson, hierarchyJson, parentDivisionId, otCartographyJson, otBboxJson,
-          sourcesJson, createdAt, updatedAt
+          id, level, type, subtype, class, wikidata,
+          hierarchy, parentDivisionId, cartography, bbox, sources, createdAt, updatedAt
         ) VALUES (
-          '${divisionId}', 1, 'area', '${index}', 'district', 'district', null, null, null,
-          null, null, null, null, '${now}', '${now}'
+          '${divisionId}', 1, 'area', 'district', 'district', null, null, null,
+          null, null, null, '${now}', '${now}'
         );
       `)
 
       sqlite.exec(`
         INSERT INTO divisionsI18n (
-          divisionId, locale, otName, otNameAlts, otNameVariantJson, otNameRulesJson,
-          otLocalType, isLocaleInferred, createdAt, updatedAt
+          divisionId, locale, name, nameAlts, nameVariant, nameRules,
+          localType, isLocaleInferred, createdAt, updatedAt
         ) VALUES (
           '${divisionId}', 'en', 'Existing ${index}', null, '["Existing ${index}"]', null, null, 0,
           '${now}', '${now}'
@@ -1602,33 +1548,21 @@ describe('processDivisionDataset', () => {
 
       sqlite.exec(`
         INSERT INTO divisionsVersions (
-          id, versionHash, regionCode, datasetRecordId, validFromMonth, validToMonth, isCurrent,
-          level, type, otVersion, otVersionHash, otSubtype, otClass, otWikidata,
-          otHierarchyJson, hierarchyJson, parentDivisionId, otCartographyJson, otBboxJson,
-          sourcesJson, createdAt, updatedAt
+          id, versionHash, regionCode, releaseId, validFromReleaseSetId, validToReleaseSetId,
+          validFromMonth, validToMonth, isCurrent, level, type, subtype, class, wikidata,
+          hierarchy, parentDivisionId, cartography, bbox, sources, createdAt, updatedAt
         ) VALUES (
           '${divisionId}', '${versionHash}', 'hk',
-          (SELECT id FROM datasets WHERE datasetId = '${previousDatasetId}'), '2026-04', null, 1,
-          1, 'area', '${index}', 'ot-hash-${index}', 'district', 'district', null,
-          null, null, null, null, null, null, '${now}', '${now}'
+          'release-${previousDatasetId}', 'api-release-set-ss-divisions-v0.1',
+          null, '2026-04', null, 1, 1, 'area', 'district', 'district', null,
+          null, null, null, null, null, '${now}', '${now}'
         );
       `)
     }
 
     sqlite.exec('COMMIT')
 
-    sqlite.exec(`
-      INSERT INTO datasets (
-        id, datasetId, regionCode, snapshotMonth, theme, type, source, sourceVersion,
-        rawObjectKey, originalFileName, status, supersedesDatasetId, revokedAt,
-        revocationReason, ingestedAt, createdAt, updatedAt
-      ) VALUES (
-        '${nextDatasetId}-row', '${nextDatasetId}', 'hk', '2026-05', 'divisions', 'division',
-        'overture', '2026-05-24.0', 'hk/overture/2026-05-24.0/division.parquet',
-        'division.parquet', 'staged', '${previousDatasetId}', null, null,
-        '${now}', '${now}', '${now}'
-      );
-    `)
+    seedDivisionRelease(sqlite, nextDatasetId, '2026-05', 'staged', now)
 
     const result = await processDivisionDataset(
       db as never,
@@ -1646,16 +1580,7 @@ describe('processDivisionDataset', () => {
           }
         },
       },
-      {
-        datasetId: nextDatasetId,
-        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
-        regionCode: 'hk',
-        snapshotMonth: '2026-05',
-        source: 'overture',
-        sourceVersion: '2026-05-24.0',
-        theme: 'divisions',
-        type: 'division',
-      },
+      createDivisionMessage(nextDatasetId, '2026-05', '2026-05-24.0'),
     )
 
     const remainingDivisions = sqlite

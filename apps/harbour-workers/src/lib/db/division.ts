@@ -504,6 +504,10 @@ export async function replaceDatasetStats(
         .values(
           chunk.map(row => ({
             ...row,
+            createdAt:
+              row.createdAt instanceof Date ? row.createdAt : new Date(row.createdAt),
+            updatedAt:
+              row.updatedAt instanceof Date ? row.updatedAt : new Date(row.updatedAt),
             releaseId: dataset.releaseId,
             id: crypto.randomUUID(),
           })),
