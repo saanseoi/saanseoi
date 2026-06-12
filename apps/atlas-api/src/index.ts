@@ -7,8 +7,8 @@ import { prettyJSON } from 'hono/pretty-json'
 
 import { createCurrentDb, createMetaDb } from '@repo/db'
 import { defaultOpenAPIHook } from './lib/openapi'
-import { metaRoutes } from './routes/v1/meta'
-import { regionRoutes } from './routes/v1/region'
+import { metaRoutes } from './routes/v0/meta'
+import { regionRoutes } from './routes/v0/region'
 import type { AppEnv } from './types'
 
 const app = new OpenAPIHono<AppEnv>({
@@ -18,21 +18,21 @@ const openApiConfig = {
   openapi: '3.1.0',
   info: {
     title: 'Atlas API',
-    version: '1',
+    version: '0',
   },
 } as const
 
 app.use('*', poweredBy())
-app.use('/v1/*', prettyJSON())
+app.use('/v0/*', prettyJSON())
 app.use(
-  '/v1/meta/substack',
+  '/v0/meta/substack',
   cors({
     origin: '*',
     allowMethods: ['POST', 'OPTIONS'],
     allowHeaders: ['Content-Type'],
   }),
 )
-app.use('/v1/*', async (c, next) => {
+app.use('/v0/*', async (c, next) => {
   c.set('metaDb', createMetaDb(c.env.DB_META))
   c.set('currentDb', createCurrentDb(c.env.DB_CURRENT))
   await next()

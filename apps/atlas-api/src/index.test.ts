@@ -92,9 +92,9 @@ describe('atlas-api', () => {
     expect(res.headers.get('location')).toBe('/openapi')
   })
 
-  test('GET /v1/meta/health checks DB access', async () => {
+  test('GET /v0/meta/health checks DB access', async () => {
     const { env } = createEnv()
-    const res = await app.fetch(new Request('http://localhost/v1/meta/health'), env)
+    const res = await app.fetch(new Request('http://localhost/v0/meta/health'), env)
     const body = (await res.json()) as {
       ok: boolean
       datasetCount: number
@@ -107,7 +107,7 @@ describe('atlas-api', () => {
     })
   })
 
-  test('POST /v1/meta/substack forwards the subscription request to Substack', async () => {
+  test('POST /v0/meta/substack forwards the subscription request to Substack', async () => {
     const originalFetch = globalThis.fetch
     const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = []
 
@@ -125,7 +125,7 @@ describe('atlas-api', () => {
     try {
       const { env, operations } = createEnv()
       const res = await app.fetch(
-        new Request('http://localhost/v1/meta/substack', {
+        new Request('http://localhost/v0/meta/substack', {
           method: 'POST',
           headers: {
             'content-type': 'application/json',
@@ -196,7 +196,7 @@ describe('atlas-api', () => {
     }
   })
 
-  test('POST /v1/meta/substack still returns 200 and notifies Telegram when subscribed persistence fails', async () => {
+  test('POST /v0/meta/substack still returns 200 and notifies Telegram when subscribed persistence fails', async () => {
     const originalFetch = globalThis.fetch
     const originalConsoleError = console.error
     const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = []
@@ -228,7 +228,7 @@ describe('atlas-api', () => {
         },
       )
       const res = await app.fetch(
-        new Request('http://localhost/v1/meta/substack', {
+        new Request('http://localhost/v0/meta/substack', {
           method: 'POST',
           headers: {
             'content-type': 'application/json',
@@ -263,7 +263,7 @@ describe('atlas-api', () => {
     }
   })
 
-  test('POST /v1/meta/substack returns 500 when the session cookie is missing', async () => {
+  test('POST /v0/meta/substack returns 500 when the session cookie is missing', async () => {
     const originalFetch = globalThis.fetch
     const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = []
 
@@ -283,7 +283,7 @@ describe('atlas-api', () => {
         SUBSTACK_SESSION_COOKIE: '',
       })
       const res = await app.fetch(
-        new Request('http://localhost/v1/meta/substack', {
+        new Request('http://localhost/v0/meta/substack', {
           method: 'POST',
           headers: {
             'content-type': 'application/json',
@@ -326,7 +326,7 @@ describe('atlas-api', () => {
     }
   })
 
-  test('POST /v1/meta/substack returns 200 and notifies Telegram when Substack rejects the request after persistence', async () => {
+  test('POST /v0/meta/substack returns 200 and notifies Telegram when Substack rejects the request after persistence', async () => {
     const originalFetch = globalThis.fetch
     const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = []
 
@@ -353,7 +353,7 @@ describe('atlas-api', () => {
     try {
       const { env, operations } = createEnv()
       const res = await app.fetch(
-        new Request('http://localhost/v1/meta/substack', {
+        new Request('http://localhost/v0/meta/substack', {
           method: 'POST',
           headers: {
             'content-type': 'application/json',
@@ -396,7 +396,7 @@ describe('atlas-api', () => {
     }
   })
 
-  test('POST /v1/meta/substack still returns 200 and notifies Telegram when failed persistence logging fails', async () => {
+  test('POST /v0/meta/substack still returns 200 and notifies Telegram when failed persistence logging fails', async () => {
     const originalFetch = globalThis.fetch
     const originalConsoleError = console.error
     const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = []
@@ -437,7 +437,7 @@ describe('atlas-api', () => {
         },
       )
       const res = await app.fetch(
-        new Request('http://localhost/v1/meta/substack', {
+        new Request('http://localhost/v0/meta/substack', {
           method: 'POST',
           headers: {
             'content-type': 'application/json',
