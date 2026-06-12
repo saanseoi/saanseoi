@@ -2,11 +2,13 @@
 set -euo pipefail
 
 target="${1:-}"
+db_family="${2:-meta}"
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 repo_root="$(cd "$script_dir/../../.." && pwd)"
+eval "$(bash "$script_dir/lib/resolve-db-family-config.sh" "$db_family")"
 
 if [[ "$target" != "preview" && "$target" != "production" ]]; then
-  echo "Usage: $0 <preview|production>" >&2
+  echo "Usage: $0 <preview|production> [meta|current|history|source]" >&2
   exit 1
 fi
 
@@ -27,10 +29,12 @@ case "$target" in
   preview)
     load_env_file "$repo_root/.env.preview"
     load_env_file "$repo_root/.env.preview.local"
+    remote_database_id_target_env="${remote_database_id_env}_PREVIEW"
     ;;
   production)
     load_env_file "$repo_root/.env.prod"
     load_env_file "$repo_root/.env.prod.local"
+    remote_database_id_target_env="${remote_database_id_env}_PRODUCTION"
     ;;
 esac
 
@@ -44,20 +48,14 @@ if [[ -z "${CLOUDFLARE_D1_TOKEN:-}" ]]; then
   exit 1
 fi
 
-case "$target" in
-  preview)
-    if [[ -z "${CLOUDFLARE_DATABASE_ID_PREVIEW:-}" ]]; then
-      echo "Missing CLOUDFLARE_DATABASE_ID_PREVIEW. Define it in $repo_root/.env.preview.local." >&2
-      exit 1
-    fi
-    ;;
-  production)
-    if [[ -z "${CLOUDFLARE_DATABASE_ID_PRODUCTION:-}" ]]; then
-      echo "Missing CLOUDFLARE_DATABASE_ID_PRODUCTION. Define it in $repo_root/.env.prod.local." >&2
-      exit 1
-    fi
-    ;;
-esac
+if [[ -z "${!remote_database_id_target_env:-}" ]]; then
+  echo "Missing $remote_database_id_target_env for the $db_family family." >&2
+  echo "Define it in the matching repo-root env file for $target." >&2
+  exit 1
+fi
 
 cd "$repo_root/libs/db"
-exec env CLOUDFLARE_D1_TARGET="$target" bun drizzle-kit studio --config=./drizzle.config.ts
+exec env \
+  CLOUDFLARE_D1_TARGET="$target" \
+  "$remote_database_id_env=${!remote_database_id_target_env}" \
+  bun drizzle-kit studio --config="$config_file"

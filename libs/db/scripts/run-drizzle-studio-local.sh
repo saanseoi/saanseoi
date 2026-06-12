@@ -1,28 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+db_family="${1:-meta}"
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 repo_root="$(cd "$script_dir/../../.." && pwd)"
+eval "$(bash "$script_dir/lib/resolve-db-family-config.sh" "$db_family")"
 
-# Keep this aligned with scripts/dev-local-stack.sh and libs/core/src/testing/local-db.ts.
-local_db_glob="$repo_root/.local/d1/dev/v3/d1/miniflare-D1DatabaseObject/*.sqlite"
-local_db_path="${LOCAL_D1_SQLITE_PATH:-}"
+load_env_file() {
+  local env_file="$1"
+
+  if [[ -f "$env_file" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$env_file"
+    set +a
+  fi
+}
+
+load_env_file "$repo_root/.env"
+load_env_file "$repo_root/.env.local"
+
+local_db_path="${!local_path_env:-}"
 
 if [[ -z "$local_db_path" ]]; then
-  for candidate in $local_db_glob; do
-    if [[ -f "$candidate" && "$candidate" != *"/metadata.sqlite" ]]; then
-      local_db_path="$candidate"
-      break
-    fi
-  done
-fi
-
-if [[ -z "$local_db_path" ]]; then
-  echo "Could not find a local D1 sqlite file." >&2
+  echo "Missing $local_path_env for the $db_family family." >&2
   echo >&2
-  echo "Run \`bun run db:migration:run:local\` first or set LOCAL_D1_SQLITE_PATH." >&2
+  echo "Set it in your shell or .env.local, then rerun \`bun run --filter @repo/db db:studio:$db_family\`." >&2
   exit 1
 fi
 
 cd "$repo_root/libs/db"
-exec env LOCAL_D1_SQLITE_PATH="$local_db_path" bun drizzle-kit studio --config=./drizzle.config.ts
+exec env "$local_path_env=$local_db_path" bun drizzle-kit studio --config="$config_file"
