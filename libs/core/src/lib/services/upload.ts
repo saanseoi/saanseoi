@@ -1,6 +1,4 @@
 import {
-  type HarbourReadableDb,
-  type HarbourWritableDb,
   getDatasetById,
   hasDatasetForSnapshotMonthSourceType,
   getLatestDatasetForRegionSourceType,
@@ -8,7 +6,8 @@ import {
   insertIngestRun,
   resetFailedDataset,
   updateDatasetStatus,
-} from '../db/repository'
+} from '../db/meta-repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '../db/repository'
 import type {
   DatasetRecord,
   ParquetInspection,
@@ -441,7 +440,7 @@ export function createSchemaFingerprint(inspection: ParquetInspection) {
 function ensureChronologicalUpload(
   latestDataset: DatasetRecord | null,
   sourceVersion: string,
-  datasetId: string,
+  releaseCode: string,
 ) {
   if (!latestDataset) {
     return
@@ -450,8 +449,8 @@ function ensureChronologicalUpload(
   if (sourceVersion <= latestDataset.sourceVersion) {
     throw new Error(
       [
-        `Dataset ${datasetId} is not uploadable.\n\n`,
-        `Latest registered dataset for this region/type is ${latestDataset.datasetId}.\n`,
+        `Release ${releaseCode} is not uploadable.\n\n`,
+        `Latest registered release for this region/type is ${latestDataset.releaseCode}.\n`,
         'Harbour currently only accepts strictly newer source versions per region/source/type.\n',
         'Corrected releases and backfills must sort after the currently registered sourceVersion.\n',
       ].join(' '),
@@ -472,14 +471,14 @@ async function ensureSchemaCompatible(
   const previousFingerprint = resolveSchemaFingerprint
     ? await resolveSchemaFingerprint(
         latestDataset.rawObjectKey,
-        latestDataset.datasetId,
+        latestDataset.releaseCode,
       )
     : null
 
   if (!previousFingerprint) {
     throw new Error(
       [
-        `Cannot validate schema drift against ${latestDataset.datasetId}.`,
+        `Cannot validate schema drift against ${latestDataset.releaseCode}.`,
         `Expected schema metadata for ${latestDataset.rawObjectKey}.`,
       ].join(' '),
     )
@@ -504,8 +503,8 @@ async function ensureSchemaCompatible(
 
     throw new Error(
       [
-        `Schema drift detected against ${latestDataset.datasetId}.`,
-        `Current upload schema has ${nextInspection.schema.length} fields; ${latestDataset.datasetId} recorded ${previousSchema?.length ?? 'an unreadable number of'} fields.`,
+        `Schema drift detected against ${latestDataset.releaseCode}.`,
+        `Current upload schema has ${nextInspection.schema.length} fields; ${latestDataset.releaseCode} recorded ${previousSchema?.length ?? 'an unreadable number of'} fields.`,
         schemaDiff,
         'Reconcile the schema before uploading this dataset.',
       ].join('\n'),
@@ -542,7 +541,6 @@ async function ensureSourcePrerequisites(
 function resolveUploadPlan(
   options: RegisterUploadOptions,
   resolvedInspection: ParquetInspection,
-  supersedesDatasetId: string | null,
 ) {
   const typeFromFlag = normalizeType(options.type)
   const typeFromPath = inferTypeFromPath(options.filePath)
@@ -629,11 +627,14 @@ function resolveUploadPlan(
     type,
     options.originalFileName,
   )
-  const datasetId = `${source}-${regionCode}-${sourceVersion}-${type}`
+  const datasetCode = `${regionCode}-${type}`
+  const releaseCode = `${source}-${datasetCode}-${sourceVersion}`
 
   return {
     plan: {
-      datasetId,
+      datasetId: releaseCode,
+      datasetCode,
+      releaseCode,
       regionCode,
       snapshotMonth,
       theme,
@@ -663,7 +664,7 @@ function resolveUploadPlan(
               ? 'filename'
               : 'snapshotMonth',
       },
-      supersedesDatasetId,
+      supersedesDatasetId: null,
     } satisfies UploadPlan,
     inspection: resolvedInspection,
   }
@@ -675,7 +676,7 @@ export async function prepareUpload(
 ): Promise<PreparedUploadResult> {
   const resolvedInspection = getRequiredInspection(options, inspection)
 
-  return resolveUploadPlan(options, resolvedInspection, null)
+  return resolveUploadPlan(options, resolvedInspection)
 }
 
 export async function planUpload(
@@ -684,21 +685,25 @@ export async function planUpload(
   inspection?: ParquetInspection,
 ) {
   const resolvedInspection = getRequiredInspection(options, inspection)
-  const preparedUpload = resolveUploadPlan(options, resolvedInspection, null)
+  const preparedUpload = resolveUploadPlan(options, resolvedInspection)
   const {
-    plan: { datasetId, regionCode, source, sourceVersion, type },
+    plan: { releaseCode, regionCode, source, sourceVersion, type },
   } = preparedUpload
-  const existingDataset = await getDatasetById(db, datasetId)
+  const existingDataset = await getDatasetById(db, releaseCode)
 
   if (existingDataset) {
     assertDatasetCanBeReuploaded(existingDataset, options.allowExistingDatasetStatuses)
   }
 
-  const { latestDataset, supersedesDatasetId } =
-    await getLatestDatasetForRegionSourceType(db, regionCode, source, type)
+  const { latestDataset } = await getLatestDatasetForRegionSourceType(
+    db,
+    regionCode,
+    source,
+    type,
+  )
 
   await ensureSourcePrerequisites(db, preparedUpload.plan)
-  ensureChronologicalUpload(latestDataset, sourceVersion, datasetId)
+  ensureChronologicalUpload(latestDataset, sourceVersion, releaseCode)
   await ensureSchemaCompatible(
     latestDataset,
     preparedUpload.plan,
@@ -706,7 +711,7 @@ export async function planUpload(
     options.resolveSchemaFingerprint,
   )
 
-  return resolveUploadPlan(options, resolvedInspection, supersedesDatasetId)
+  return resolveUploadPlan(options, resolvedInspection)
 }
 
 export function createRawObjectKey(plan: UploadPlan) {
@@ -910,7 +915,7 @@ function assertDatasetCanBeReuploaded(
   }
 
   throw new Error(
-    `Dataset already exists with status ${existingDataset.status}: ${existingDataset.datasetId}`,
+    `Release already exists with status ${existingDataset.status}: ${existingDataset.datasetId}`,
   )
 }
 
@@ -928,7 +933,7 @@ export async function registerUpload(
     }
   }
 
-  const existingDataset = await getDatasetById(db, plan.datasetId)
+  const existingDataset = await getDatasetById(db, plan.releaseCode)
   const rawObjectKey = options.rawObjectKey ?? null
 
   if (!rawObjectKey) {
@@ -943,10 +948,15 @@ export async function registerUpload(
   } else {
     await insertDataset(db, plan, rawObjectKey, now)
   }
+  const release = await getDatasetById(db, plan.releaseCode)
+
+  if (!release?.releaseId) {
+    throw new Error(`Release not found after registration: ${plan.releaseCode}`)
+  }
 
   await insertIngestRun(
     db,
-    plan.datasetId,
+    release.releaseId,
     'registerDataset',
     'completed',
     null,
@@ -956,7 +966,7 @@ export async function registerUpload(
 
   await insertIngestRun(
     db,
-    plan.datasetId,
+    release.releaseId,
     'stageDataset',
     'completed',
     JSON.stringify({
@@ -980,23 +990,29 @@ export async function requestUpload(
   options: RegisterUploadOptions,
 ) {
   const { plan, inspection } = await planUpload(db, options)
-  const existingDataset = await getDatasetById(db, plan.datasetId)
+  const existingDataset = await getDatasetById(db, plan.releaseCode)
   const rawObjectKey = createRawObjectKey(plan)
   const now = new Date().toISOString()
 
   if (existingDataset) {
     assertDatasetCanBeReuploaded(existingDataset)
-    await resetFailedDataset(db, plan, rawObjectKey, now, 'uploading')
+    await resetFailedDataset(db, plan, rawObjectKey, now, 'staged')
   } else {
-    await insertDataset(db, plan, rawObjectKey, now, 'uploading')
+    await insertDataset(db, plan, rawObjectKey, now, 'staged')
   }
+  const release = await getDatasetById(db, plan.releaseCode)
+
+  if (!release?.releaseId) {
+    throw new Error(`Release not found after upload request: ${plan.releaseCode}`)
+  }
+
   await insertIngestRun(
     db,
-    plan.datasetId,
+    release.releaseId,
     'requestUpload',
     'completed',
     JSON.stringify({
-      datasetId: plan.datasetId,
+      releaseCode: plan.releaseCode,
       rawObjectKey,
       rowCount: inspection.rowCount,
       schemaFingerprint: plan.schemaFingerprint,
@@ -1022,18 +1038,23 @@ export async function finalizeUpload(
       ...options,
       allowExistingDatasetStatuses: [
         ...(options.allowExistingDatasetStatuses ?? []),
-        'uploading',
+        'staged',
       ],
     },
     options.inspection,
   )
   const rawObjectKey = options.rawObjectKey ?? createRawObjectKey(plan)
   const now = new Date().toISOString()
+  const release = await getDatasetById(db, plan.releaseCode)
 
-  await updateDatasetStatus(db, plan.datasetId, 'staged')
+  if (!release?.releaseId) {
+    throw new Error(`Release not found: ${plan.releaseCode}`)
+  }
+
+  await updateDatasetStatus(db, release.releaseId, 'staged')
   await insertIngestRun(
     db,
-    plan.datasetId,
+    release.releaseId,
     'stageDataset',
     'completed',
     JSON.stringify({

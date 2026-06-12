@@ -8,8 +8,11 @@ type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 
 type SignUploadResponse = {
   datasetId: string
+  datasetCode: string
   expiresAt: string
   rawObjectKey: string
+  releaseCode: string
+  releaseId: string
   status: string
   uploadHeaders: Record<string, string>
   uploadMethod: 'PUT'
@@ -128,7 +131,7 @@ export async function dispatchUpload(
 
   await uploadFileToSignedUrl(signResponse, fileBytes)
 
-  return finalizeUpload(apiBaseUrl, signResponse.datasetId)
+  return finalizeUpload(apiBaseUrl, signResponse.releaseId)
 }
 
 async function uploadFileViaWorker(
@@ -206,7 +209,7 @@ async function uploadFileToSignedUrl(
   }
 }
 
-async function finalizeUpload(apiBaseUrl: string, datasetId: string) {
+async function finalizeUpload(apiBaseUrl: string, releaseId: string) {
   const response = await fetch(buildFinalizeUploadEndpoint(apiBaseUrl), {
     method: 'POST',
     headers: {
@@ -214,7 +217,7 @@ async function finalizeUpload(apiBaseUrl: string, datasetId: string) {
       ...getAuthHeaders(),
     },
     body: JSON.stringify({
-      datasetId,
+      releaseId,
     }),
   })
 

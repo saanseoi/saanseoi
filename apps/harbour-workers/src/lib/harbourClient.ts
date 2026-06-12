@@ -1,5 +1,5 @@
 type StagePayload = {
-  datasetId: string
+  releaseId: string
   error?: string
   phase: string
   stats?: Record<string, unknown>
@@ -26,34 +26,34 @@ export function createHarbourClient(config: HarbourControlApiConfig) {
   }
 
   return {
-    publishDataset(datasetId: string) {
+    publishDataset(releaseId: string) {
       return postControl(baseUrl, apiKey, '/v1/control/publishDataset', {
-        datasetId,
+        releaseId,
       })
     },
-    stageCompleted(datasetId: string, phase: string, stats?: Record<string, unknown>) {
+    stageCompleted(releaseId: string, phase: string, stats?: Record<string, unknown>) {
       return postControl(baseUrl, apiKey, '/v1/control/stageCompleted', {
-        datasetId,
+        releaseId,
         phase,
         stats,
       })
     },
     stageFailed(
-      datasetId: string,
+      releaseId: string,
       phase: string,
       error: string,
       stats?: Record<string, unknown>,
     ) {
       return postControl(baseUrl, apiKey, '/v1/control/stageFailed', {
-        datasetId,
+        releaseId,
         error,
         phase,
         stats,
       })
     },
-    stageStarted(datasetId: string, phase: string, stats?: Record<string, unknown>) {
+    stageStarted(releaseId: string, phase: string, stats?: Record<string, unknown>) {
       return postControl(baseUrl, apiKey, '/v1/control/stageStarted', {
-        datasetId,
+        releaseId,
         phase,
         stats,
       })
@@ -65,7 +65,7 @@ async function postControl(
   baseUrl: string,
   apiKey: string,
   path: string,
-  payload: StagePayload | { datasetId: string },
+  payload: StagePayload | { releaseId: string },
   attempt = 0,
 ) {
   let response: Response

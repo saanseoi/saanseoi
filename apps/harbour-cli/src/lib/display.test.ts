@@ -6,7 +6,9 @@ import { formatPlan } from './display.ts'
 
 const previewResult: PreparedUploadResult = {
   plan: {
-    datasetId: 'overture-hk-2025-09-24.0-division',
+    datasetId: 'overture-hk-division-2025-09-24.0',
+    datasetCode: 'hk-division',
+    releaseCode: 'overture-hk-division-2025-09-24.0',
     regionCode: 'hk',
     snapshotMonth: '2025-09',
     theme: 'divisions',
@@ -42,11 +44,11 @@ describe('formatPlan', () => {
   test('includes source before sourceVersion and renders provenance for both', () => {
     const lines = formatPlan(previewResult)
 
-    expect(lines[1]).toContain('source')
-    expect(lines[1]).toContain('overture')
-    expect(lines[1]).toContain('path')
-    expect(lines[2]).toContain('sourceVersion')
-    expect(lines[2]).toContain('2025-09-24.0')
-    expect(lines[2]).toContain('flag --source-version')
+    expect(lines[2]).toContain('source')
+    expect(lines[2]).toContain('overture')
+    expect(lines[2]).toContain('path')
+    expect(lines[3]).toContain('sourceVersion')
+    expect(lines[3]).toContain('2025-09-24.0')
+    expect(lines[3]).toContain('flag --source-version')
   })
 })

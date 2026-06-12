@@ -9,10 +9,10 @@ import {
 import { inspectParquet } from '@repo/core/parquet-inspector'
 
 import {
-  getDatasetRecordById,
-  type HarbourReadableDb,
-  type HarbourWritableDb,
-} from '@repo/core/db/repository'
+  getDatasetById,
+  getDatasetRecordByReleaseId,
+} from '@repo/core/db/meta-repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
 import type {
   DatasetProcessingMessage,
   ParquetInspection,
@@ -62,7 +62,8 @@ export type SignUploadRequest = {
 }
 
 export type FinalizeUploadRequest = {
-  datasetId: string
+  releaseId?: string
+  datasetId?: string
 }
 
 export type UploadSigningEnv = {
@@ -105,10 +106,20 @@ export async function handleSignUploadRequest(
     contentType,
     expiresInSeconds,
   )
+  const release = await getDatasetById(db, planned.plan.releaseCode)
+
+  if (!release?.releaseId) {
+    throw new Error(
+      `Release not found after upload request: ${planned.plan.releaseCode}`,
+    )
+  }
 
   return {
-    datasetId: planned.plan.datasetId,
+    datasetId: release.datasetId,
+    datasetCode: planned.plan.datasetCode,
     expiresAt: new Date(Date.now() + expiresInSeconds * 1000).toISOString(),
+    releaseCode: planned.plan.releaseCode,
+    releaseId: release.releaseId,
     rawObjectKey: planned.rawObjectKey,
     source: planned.plan.source,
     status: 'uploading',
@@ -126,14 +137,19 @@ export async function handleFinalizeUploadRequest(
   queue: DatasetProcessingQueue,
   request: FinalizeUploadRequest,
 ): Promise<RegisterUploadResult> {
-  const dataset = await getDatasetRecordById(db, request.datasetId)
+  const dataset = await getDatasetRecordByReleaseId(
+    db,
+    request.releaseId ?? request.datasetId ?? '',
+  )
 
   if (!dataset) {
-    throw new Error(`Dataset not found: ${request.datasetId}`)
+    throw new Error(`Release not found: ${request.releaseId ?? request.datasetId}`)
   }
 
-  if (dataset.status !== 'uploading') {
-    throw new Error(`Dataset ${request.datasetId} is not awaiting upload finalization.`)
+  if (dataset.status !== 'staged') {
+    throw new Error(
+      `Release ${dataset.releaseCode} is not awaiting upload finalization.`,
+    )
   }
 
   const object = await bucket.get(dataset.rawObjectKey)
@@ -160,20 +176,20 @@ export async function handleFinalizeUploadRequest(
       inspection,
       rawObjectKey: dataset.rawObjectKey,
       resolveSchemaFingerprint,
-      allowExistingDatasetStatuses: ['uploading'],
+      allowExistingDatasetStatuses: ['staged'],
     },
     inspection,
   )
 
-  if (planned.plan.datasetId !== dataset.datasetId) {
+  if (planned.plan.releaseCode !== dataset.releaseCode) {
     throw new Error(
-      `Finalize plan mismatch for ${dataset.datasetId}. Expected ${dataset.datasetId}, got ${planned.plan.datasetId}.`,
+      `Finalize plan mismatch for ${dataset.releaseCode}. Expected ${dataset.releaseCode}, got ${planned.plan.releaseCode}.`,
     )
   }
 
   if (createRawObjectKey(planned.plan) !== dataset.rawObjectKey) {
     throw new Error(
-      `Finalize rawObjectKey mismatch for ${dataset.datasetId}. Expected ${dataset.rawObjectKey}.`,
+      `Finalize rawObjectKey mismatch for ${dataset.releaseCode}. Expected ${dataset.rawObjectKey}.`,
     )
   }
 
@@ -194,7 +210,10 @@ export async function handleFinalizeUploadRequest(
   })
 
   const processingMessage: DatasetProcessingMessage = {
-    datasetId: finalized.plan.datasetId,
+    datasetId: dataset.datasetId,
+    datasetCode: finalized.plan.datasetCode,
+    releaseId: dataset.releaseId,
+    releaseCode: finalized.plan.releaseCode,
     rawObjectKey: finalized.rawObjectKey,
     regionCode: finalized.plan.regionCode,
     snapshotMonth: finalized.plan.snapshotMonth,
@@ -257,9 +276,10 @@ async function writeFinalObjectMetadata(
       contentType: DEFAULT_CONTENT_TYPE,
     },
     customMetadata: {
-      datasetId: planned.plan.datasetId,
+      datasetCode: planned.plan.datasetCode,
       fileName: planned.plan.fileName,
       originalFileName: planned.plan.originalFileName,
+      releaseCode: planned.plan.releaseCode,
       regionCode: planned.plan.regionCode,
       rowCount: String(planned.plan.rowCount),
       schemaFingerprint: planned.plan.schemaFingerprint,

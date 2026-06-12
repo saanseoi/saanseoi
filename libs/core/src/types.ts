@@ -20,6 +20,7 @@ export type DatasetRecord = {
   rawObjectKey: string
   originalFileName: string
   status: string
+  supersedesDatasetId: string | null
   supersededByReleaseId: string | null
   revokedAt: string | null
   revocationReason: string | null
@@ -49,6 +50,7 @@ export type SchemaFingerprintResolver = (
 ) => Promise<string | null>
 
 export type UploadPlan = {
+  datasetId: string
   datasetCode: string
   releaseCode: string
   regionCode: RegionCode
@@ -70,6 +72,7 @@ export type UploadPlan = {
     source: 'flag' | 'path' | 'filename'
     sourceVersion: 'flag' | 'path' | 'filename' | 'snapshotMonth'
   }
+  supersedesDatasetId: string | null
 }
 
 export type RegisterUploadOptions = {
@@ -101,9 +104,9 @@ export type RegisterUploadResult = {
 
 export type DatasetProcessingMessage = {
   datasetId: string
-  datasetCode: string
-  releaseId: string
-  releaseCode: string
+  datasetCode?: string
+  releaseId?: string
+  releaseCode?: string
   rawObjectKey: string
   regionCode: RegionCode
   snapshotMonth: string

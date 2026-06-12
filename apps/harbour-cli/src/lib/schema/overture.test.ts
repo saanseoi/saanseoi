@@ -31,13 +31,15 @@ const BASE_DIVISION_FIELDS = [
 
 function makePlan(sourceVersion: string): UploadPlan {
   return {
+    datasetCode: 'hk-division',
+    releaseCode: `overture-hk-division-${sourceVersion}`,
     regionCode: 'hk',
     theme: 'divisions',
     type: 'division',
     source: 'overture',
     snapshotMonth: '2026-05',
     sourceVersion,
-    datasetId: `overture-hk-${sourceVersion}-division`,
+    datasetId: `overture-hk-division-${sourceVersion}`,
     filePath: '/tmp/division.parquet',
     fileName: 'division.parquet',
     originalFileName: 'division.parquet',

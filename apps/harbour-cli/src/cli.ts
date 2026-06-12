@@ -162,7 +162,7 @@ async function main() {
 
   if (!skipConfirm) {
     const shouldContinue = await confirm({
-      message: `Prepare ${previewResult.plan.datasetId} for ${describeTarget(target).label}?`,
+      message: `Prepare ${previewResult.plan.releaseCode} for ${describeTarget(target).label}?`,
       initialValue: true,
     })
 
@@ -197,16 +197,30 @@ async function main() {
   note(
     [
       formatField(
-        'datasetId',
-        typeof uploadResult?.datasetId === 'string'
-          ? uploadResult.datasetId
-          : previewResult.plan.datasetId,
+        'datasetCode',
+        typeof uploadResult?.datasetCode === 'string'
+          ? uploadResult.datasetCode
+          : previewResult.plan.datasetCode,
+      ),
+      formatField(
+        'releaseCode',
+        typeof uploadResult?.releaseCode === 'string'
+          ? uploadResult.releaseCode
+          : previewResult.plan.releaseCode,
       ),
       formatField(
         'rawObjectKey',
         typeof uploadResult?.rawObjectKey === 'string'
           ? uploadResult.rawObjectKey
           : '-',
+      ),
+      formatField(
+        'releaseId',
+        typeof uploadResult?.releaseId === 'string' ? uploadResult.releaseId : '-',
+      ),
+      formatField(
+        'datasetId',
+        typeof uploadResult?.datasetId === 'string' ? uploadResult.datasetId : '-',
       ),
       formatField(
         'status',

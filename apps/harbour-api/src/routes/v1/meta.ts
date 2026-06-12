@@ -22,8 +22,8 @@ const healthRouteConfig = createRoute({
 export const healthRoute = defineOpenAPIRoute<typeof healthRouteConfig, AppEnv>({
   route: healthRouteConfig,
   handler: async c => {
-    const ping = await c.env.DB.prepare('SELECT 1 AS ok').first<{ ok: number }>()
-    const datasetCount = await c.env.DB.prepare(
+    const ping = await c.env.DB_META.prepare('SELECT 1 AS ok').first<{ ok: number }>()
+    const datasetCount = await c.env.DB_META.prepare(
       'SELECT COUNT(*) AS "count" FROM "datasets"',
     ).first<{ count: number }>()
 
