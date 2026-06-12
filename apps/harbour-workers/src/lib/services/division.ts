@@ -1,7 +1,13 @@
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
 import type { DatasetProcessingMessage } from '@repo/core'
-import type { sourceSchema, SourceDatabase } from '@repo/db'
-import type { DivisionI18nPayload, DivisionRow } from '@repo/db/schema'
+import { resolveReleaseSetForType } from '@repo/core/db/meta-repository'
+import type {
+  CurrentDatabase,
+  HistoryDatabase,
+  MetaDatabase,
+  sourceSchema,
+  SourceDatabase,
+} from '@repo/db'
+import type { DivisionI18nPayload, DivisionRow } from '@repo/db/currentSchema'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
@@ -105,16 +111,28 @@ const HONG_KONG_AREA_NAMES = new Set([
  * Reads the division parquet file and applies current/versioned row updates.
  */
 export async function processDivisionDataset(
-  db: HarbourReadableDb & HarbourWritableDb,
+  metaDb: MetaDatabase,
+  currentDb: CurrentDatabase,
+  historyDb: HistoryDatabase,
   bucket: HarbourWorkerBucket,
   message: DatasetProcessingMessage,
   sourceDb?: SourceDatabase,
 ): Promise<ProcessDatasetResult> {
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
-  const currentRows = await getCurrentDivisionVersionMap(db, message.regionCode, {
-    buildDivisionBaseHashInput,
-    normalizeDivisionI18nSnapshotRow,
-  })
+  const environment = resolveShardEnvironment()
+  const releaseSet = await resolveReleaseSetForType(metaDb, message.type)
+
+  if (!releaseSet) {
+    throw new Error(`Release set not found for type: ${message.type}`)
+  }
+  const currentRows = await getCurrentDivisionVersionMap(
+    historyDb,
+    message.regionCode,
+    {
+      buildDivisionBaseHashInput,
+      normalizeDivisionI18nSnapshotRow,
+    },
+  )
   const previousRows = new Map(currentRows)
   const seenIds = new Set<string>()
   const processedRowsById = new Map<string, DivisionVersionSnapshot>()
@@ -158,7 +176,7 @@ export async function processDivisionDataset(
       )
       processedRowsById.set(normalized.base.id, {
         churnHash,
-        geometryJson: normalized.base.otGeometryJson,
+        geometry: normalized.base.otGeometry,
         id: normalized.base.id,
         localizedRows: normalized.i18n,
         parentId: normalized.base.parentDivisionId,
@@ -184,11 +202,11 @@ export async function processDivisionDataset(
           population: normalized.base.otPopulation,
           version: asOptionalInteger(row.version),
           wikidata: normalized.base.otWikidata,
-          geometryJson: normalized.base.otGeometryJson,
-          bboxJson: normalized.base.otBboxJson,
-          hierarchiesJson: normalized.base.otHierarchyJson,
-          cartographyJson: normalized.base.otCartographyJson,
-          sourcesJson: normalized.base.sourcesJson,
+          geometryJson: stableJsonStringify(normalized.base.otGeometry),
+          bboxJson: stableJsonStringify(normalized.base.otBbox),
+          hierarchiesJson: stableJsonStringify(normalized.base.otHierarchy),
+          cartographyJson: stableJsonStringify(normalized.base.otCartography),
+          sourcesJson: stableJsonStringify(normalized.base.sources),
           rawPropertiesJson: stableJsonStringify(row),
         })
 
@@ -198,9 +216,13 @@ export async function processDivisionDataset(
             sourceRecordId: normalized.base.id,
             locale: localized.locale,
             name: localized.otName,
-            nameVariantJson: localized.otNameVariantJson,
+            nameVariantJson: localized.otNameVariant
+              ? stableJsonStringify(localized.otNameVariant)
+              : null,
             nameAlts: localized.otNameAlts,
-            nameRulesJson: localized.otNameRulesJson,
+            nameRulesJson: localized.otNameRules
+              ? stableJsonStringify(localized.otNameRules)
+              : null,
             localType: localized.otLocalType,
             isLocaleInferred: localized.isLocaleInferred,
           })),
@@ -212,7 +234,7 @@ export async function processDivisionDataset(
       if (current?.versionHash === versionHash) {
         unchangedRows += 1
         await replaceDivisionCurrentI18n(
-          db,
+          currentDb,
           normalized.base.id,
           normalized.i18n,
           new Date().toISOString(),
@@ -222,23 +244,26 @@ export async function processDivisionDataset(
 
       if (current) {
         await closeCurrentDivisionVersion(
-          db,
+          historyDb,
           message.regionCode,
           normalized.base.id,
+          releaseSet.id,
           message.snapshotMonth,
         )
       }
 
       insertedVersions += 1
 
-      await upsertDivisionCurrentState(db, normalized.base, normalized.i18n)
+      await upsertDivisionCurrentState(currentDb, normalized.base, normalized.i18n)
       await insertDivisionVersionRows(
-        db,
+        metaDb,
+        historyDb,
         message,
         normalized.base,
         normalized.i18n,
         versionHash,
         new Date().toISOString(),
+        environment,
       )
     }
 
@@ -249,8 +274,10 @@ export async function processDivisionDataset(
   }
 
   const deletedRows = await deleteMissingCurrentDivisions(
-    db,
+    currentDb,
+    historyDb,
     message.regionCode,
+    releaseSet.id,
     message.snapshotMonth,
     currentRows,
     seenIds,
@@ -264,11 +291,11 @@ export async function processDivisionDataset(
       hasNameRegression,
     }),
   )
-  const statsRows = await replaceDatasetStats(db, message.datasetId, [
-    ...buildLocaleStatsRows(statsAccumulator),
-    ...churnStats,
-    ...qualityStats,
-  ])
+  const statsRows = await replaceDatasetStats(
+    metaDb,
+    message.releaseId ?? message.datasetId,
+    [...buildLocaleStatsRows(statsAccumulator), ...churnStats, ...qualityStats],
+  )
 
   return {
     deletedRows,
@@ -278,6 +305,11 @@ export async function processDivisionDataset(
     statsRows,
     unchangedRows,
   }
+}
+
+function resolveShardEnvironment(): 'preview' | 'production' {
+  const baseUrl = process.env.HARBOUR_BASE_URL ?? ''
+  return /production/i.test(baseUrl) ? 'production' : 'preview'
 }
 
 /**
@@ -313,23 +345,21 @@ function normalizeDivisionRow(row: Record<string, unknown>) {
   return {
     base: {
       createdAt: now,
-      hierarchyJson: stableJsonStringify(normalizedHierarchies),
+      hierarchy: normalizedHierarchies,
       id,
       level,
-      otGeometryJson: normalizedGeometry
-        ? stableJsonStringify(normalizedGeometry)
-        : null,
+      otGeometry: normalizedGeometry,
       otPopulation: asNumber(row.population),
       type,
-      otBboxJson: stableJsonStringify(row.bbox),
-      otCartographyJson: stableJsonStringify(row.cartography),
+      otBbox: row.bbox ?? null,
+      otCartography: row.cartography ?? null,
       otClass,
-      otHierarchyJson: stableJsonStringify(normalizedHierarchies),
+      otHierarchy: normalizedHierarchies,
       otSubtype,
       otVersion: asString(row.version),
       otWikidata: asNonEmptyString(row.wikidata),
       parentDivisionId,
-      sourcesJson: stableJsonStringify(normalizeOvertureSources(row.sources)),
+      sources: normalizeOvertureSources(row.sources),
       updatedAt: now,
     } satisfies DivisionRow,
     i18n,
@@ -344,20 +374,20 @@ function buildDivisionBaseHashInput(
   base: Omit<DivisionRow, 'createdAt' | 'updatedAt'> | DivisionRow,
 ) {
   return {
-    hierarchyJson: base.hierarchyJson,
+    hierarchy: base.hierarchy,
     id: base.id,
     level: base.level,
-    otBboxJson: base.otBboxJson,
-    otCartographyJson: base.otCartographyJson,
+    otBbox: base.otBbox,
+    otCartography: base.otCartography,
     otClass: base.otClass,
-    otGeometryJson: base.otGeometryJson,
-    otHierarchyJson: base.otHierarchyJson,
+    otGeometry: base.otGeometry,
+    otHierarchy: base.otHierarchy,
     otPopulation: base.otPopulation,
     otSubtype: base.otSubtype,
     otVersion: base.otVersion,
     otWikidata: base.otWikidata,
     parentDivisionId: base.parentDivisionId,
-    sourcesJson: base.sourcesJson,
+    sources: base.sources,
     type: base.type,
   } satisfies Omit<DivisionRow, 'createdAt' | 'updatedAt'>
 }
@@ -440,8 +470,8 @@ function normalizeDivisionI18n(divisionId: string, names: unknown, localType: un
       otLocalType: localizedTypes.get(locale) ?? null,
       otName: otName ?? null,
       otNameAlts: alts.length > 0 ? alts.join('|') : null,
-      otNameRulesJson: otNameRules.length > 0 ? stableJsonStringify(otNameRules) : null,
-      otNameVariantJson: values.length > 0 ? stableJsonStringify(values) : null,
+      otNameRules: otNameRules.length > 0 ? otNameRules : null,
+      otNameVariant: values.length > 0 ? values : null,
     } satisfies DivisionI18nPayload
   })
 }

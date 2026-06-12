@@ -1,4 +1,4 @@
-import type { DatasetStatsRow } from '@repo/db/schema'
+import type { DatasetStatsRow } from '@repo/db/metaSchema'
 
 export type StatsLocaleGroup = 'en' | 'zh-hant' | 'zh-hans'
 
@@ -37,7 +37,7 @@ export type StatsSnapshot<TLocalizedRow> = {
   id: string
   localizedRows: TLocalizedRow[]
   parentId: string | null
-  geometryJson: string | null
+  geometry: unknown
   type: string
 }
 
@@ -231,7 +231,7 @@ export function buildQualityCounts<TLocalizedRow>(
       counts.parent_changed_count += 1
     }
 
-    if (previous.geometryJson !== current.geometryJson) {
+    if (JSON.stringify(previous.geometry) !== JSON.stringify(current.geometry)) {
       counts.geometry_changed_count += 1
     }
 
@@ -258,8 +258,14 @@ export function buildChurnStatsRows(churn: {
   const rows = buildChurnMetricRows(churn.totals, createdAt, null)
 
   for (const type of [...churn.byType.keys()].sort()) {
+    const typeCounts = churn.byType.get(type)
+
+    if (!typeCounts) {
+      continue
+    }
+
     rows.push(
-      ...buildChurnMetricRows(churn.byType.get(type)!, createdAt, {
+      ...buildChurnMetricRows(typeCounts, createdAt, {
         groupBy: 'type',
         groupValue: type,
       }),

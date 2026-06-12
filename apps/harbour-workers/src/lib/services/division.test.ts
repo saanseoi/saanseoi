@@ -181,7 +181,9 @@ describe('processDivisionDataset', () => {
     `)
 
     const result = await processDivisionDataset(
-      db,
+      db as never,
+      db as never,
+      db as never,
       {
         async head() {
           return { size: 1 }
@@ -455,7 +457,9 @@ describe('processDivisionDataset', () => {
     `)
 
     await processDivisionDataset(
-      db,
+      db as never,
+      db as never,
+      db as never,
       {
         async head() {
           return { size: 1 }
@@ -604,7 +608,9 @@ describe('processDivisionDataset', () => {
     `)
 
     await processDivisionDataset(
-      db,
+      db as never,
+      db as never,
+      db as never,
       {
         async head() {
           return { size: 1 }
@@ -724,7 +730,9 @@ describe('processDivisionDataset', () => {
     `)
 
     const result = await processDivisionDataset(
-      db,
+      db as never,
+      db as never,
+      db as never,
       {
         async head() {
           return { size: 1 }
@@ -1058,7 +1066,9 @@ describe('processDivisionDataset', () => {
     `)
 
     await processDivisionDataset(
-      db,
+      db as never,
+      db as never,
+      db as never,
       {
         async head() {
           return { size: 1 }
@@ -1150,7 +1160,9 @@ describe('processDivisionDataset', () => {
     `)
 
     await processDivisionDataset(
-      db,
+      db as never,
+      db as never,
+      db as never,
       {
         async head() {
           return { size: 1 }
@@ -1276,7 +1288,9 @@ describe('processDivisionDataset', () => {
     `)
 
     const result = await processDivisionDataset(
-      db,
+      db as never,
+      db as never,
+      db as never,
       {
         async head() {
           return { size: 1 }
@@ -1479,7 +1493,9 @@ describe('processDivisionDataset', () => {
     `)
 
     await processDivisionDataset(
-      db,
+      db as never,
+      db as never,
+      db as never,
       {
         async head() {
           return { size: 1 }
@@ -1615,7 +1631,9 @@ describe('processDivisionDataset', () => {
     `)
 
     const result = await processDivisionDataset(
-      db,
+      db as never,
+      db as never,
+      db as never,
       {
         async head() {
           return { size: 1 }
