@@ -1,9 +1,12 @@
 {
-  "name": "saantau",
+  "name": "saanseoi",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "packageManager": "bun@1.3.0",
+  "bin": {
+    "saanseoi": "./bin/saanseoi"
+  },
   "workspaces": [
     "apps/*",
     "libs/*"
@@ -77,12 +80,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/tijptjik/saantau.git"
+    "url": "https://github.com/saanseoi/saanseoi.git"
   },
   "author": "tijptjik <m@type.hk>",
   "license": "MIT",
-  "homepage": "https://github.com/tijptjik/saantau#readme",
+  "homepage": "https://saanseoi.hk",
   "bugs": {
-    "url": "https://github.com/tijptjik/saantau/issues"
+    "url": "https://github.com/saanseoi/saanseoi/issues"
   }
 }
