@@ -1,6 +1,5 @@
 import { drizzle } from 'drizzle-orm/d1'
 
-import * as schema from './schema'
 import * as currentSchema from './schema/current'
 import * as historySchema from './schema/history'
 import * as metaSchema from './schema/meta'
@@ -14,7 +13,7 @@ const createBoundDb = <TSchema extends Record<string, unknown>>(
     schema: boundSchema,
   })
 
-export const createDb = (binding: D1Database) => createBoundDb(binding, schema)
+export const createDb = (binding: D1Database) => createBoundDb(binding, metaSchema)
 
 export const createMetaDb = (binding: D1Database) => createBoundDb(binding, metaSchema)
 
