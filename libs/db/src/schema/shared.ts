@@ -10,7 +10,10 @@ import {
 export const datasets = sqliteTable(
   'datasets',
   {
-    datasetId: text('datasetId').primaryKey(),
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    datasetId: text('datasetId').notNull(),
     regionCode: text('regionCode').notNull(),
     source: text('source').notNull(),
     sourceVersion: text('sourceVersion').notNull(),
@@ -43,9 +46,9 @@ export const datasets = sqliteTable(
 
 export const ingestRuns = sqliteTable('ingestRuns', {
   runId: text('runId').primaryKey(),
-  datasetId: text('datasetId')
+  datasetRecordId: text('datasetRecordId')
     .notNull()
-    .references(() => datasets.datasetId),
+    .references(() => datasets.id),
   phase: text('phase').notNull(),
   status: text('status').notNull(),
   statsJson: text('statsJson'),
@@ -61,9 +64,9 @@ export const stats = sqliteTable(
   {
     id: text('id').primaryKey(),
     type: text('type').notNull(),
-    datasetId: text('datasetId')
+    datasetRecordId: text('datasetRecordId')
       .notNull()
-      .references(() => datasets.datasetId),
+      .references(() => datasets.id),
     dimension: text('dimension').notNull(),
     metric: text('metric').notNull(),
     metricUnit: text('metricUnit').notNull(),
@@ -74,7 +77,7 @@ export const stats = sqliteTable(
     updatedAt: text('updatedAt').notNull(),
   },
   table => ({
-    datasetIdx: index('stats_datasetId_idx').on(table.datasetId),
+    datasetIdx: index('stats_datasetRecordId_idx').on(table.datasetRecordId),
     dimensionIdx: index('stats_dimension_idx').on(
       table.type,
       table.dimension,

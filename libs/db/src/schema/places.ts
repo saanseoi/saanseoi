@@ -6,6 +6,7 @@ import {
   sqliteTable,
   text,
 } from 'drizzle-orm/sqlite-core'
+import { sql } from 'drizzle-orm'
 
 import { address2d, address3d } from './addresses'
 import { divisions } from './divisions'
@@ -15,9 +16,9 @@ export const places = sqliteTable(
   'places',
   {
     regionCode: text('regionCode').notNull(),
-    datasetId: text('datasetId')
+    datasetRecordId: text('datasetRecordId')
       .notNull()
-      .references(() => datasets.datasetId),
+      .references(() => datasets.id),
     id: text('id').primaryKey(),
     address2dId: text('address2dId').references(() => address2d.id),
     address3dId: text('address3dId').references(() => address3d.id),
@@ -45,7 +46,7 @@ export const places = sqliteTable(
     updatedAt: text('updatedAt').notNull(),
   },
   table => [
-    index('places_datasetId_idx').on(table.datasetId),
+    index('places_datasetRecordId_idx').on(table.datasetRecordId),
     index('places_category_idx').on(table.regionCode, table.otBasicCategory),
     index('places_taxonomy_idx').on(table.regionCode, table.otTaxonomyPrimary),
     index('places_status_idx').on(table.regionCode, table.otOperatingStatus),
@@ -58,9 +59,9 @@ export const placesVersions = sqliteTable(
     id: text('id').notNull(),
     versionHash: text('versionHash').notNull(),
     regionCode: text('regionCode').notNull(),
-    datasetId: text('datasetId')
+    datasetRecordId: text('datasetRecordId')
       .notNull()
-      .references(() => datasets.datasetId),
+      .references(() => datasets.id),
     validFromMonth: text('validFromMonth').notNull(),
     validToMonth: text('validToMonth'),
     isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
@@ -101,7 +102,7 @@ export const placesVersions = sqliteTable(
       table.validFromMonth,
       table.validToMonth,
     ),
-    index('placesVersions_datasetId_idx').on(table.datasetId),
+    index('placesVersions_datasetRecordId_idx').on(table.datasetRecordId),
   ],
 )
 
@@ -196,3 +197,16 @@ export const placesCells = sqliteTable(
     ),
   ],
 )
+
+export const placesFts = sqliteTable('placesFts', {
+  placeId: text('placeId').notNull(),
+  locale: text('locale').notNull(),
+  nameText: text('nameText'),
+  brandText: text('brandText'),
+  taxonomyText: text('taxonomyText'),
+  addressText: text('addressText'),
+  divisionText: text('divisionText'),
+  streetText: text('streetText'),
+})
+
+export const placesFtsMatch = (query: string) => sql`${placesFts} MATCH ${query}`

@@ -16,9 +16,9 @@ export const streetsVersions = sqliteTable(
   {
     id: text('id').notNull(),
     versionHash: text('versionHash').notNull(),
-    datasetId: text('datasetId')
+    datasetRecordId: text('datasetRecordId')
       .notNull()
-      .references(() => datasets.datasetId),
+      .references(() => datasets.id),
     validFromMonth: text('validFromMonth').notNull(),
     validToMonth: text('validToMonth'),
     isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
@@ -33,7 +33,7 @@ export const streetsVersions = sqliteTable(
     }),
     index('streetsVersions_current_lookup_idx').on(table.id, table.isCurrent),
     index('streetsVersions_validity_idx').on(table.validFromMonth, table.validToMonth),
-    index('streetsVersions_datasetId_idx').on(table.datasetId),
+    index('streetsVersions_datasetRecordId_idx').on(table.datasetRecordId),
   ],
 )
 
