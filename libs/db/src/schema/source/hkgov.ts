@@ -1,4 +1,11 @@
-import { index, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import {
+  index,
+  integer,
+  primaryKey,
+  real,
+  sqliteTable,
+  text,
+} from 'drizzle-orm/sqlite-core'
 
 import { sourceRecordColumns, sourceRecordIndexes } from './_shared'
 
@@ -25,7 +32,6 @@ export const sourceHkgovAlsAddresses2d = sqliteTable(
     streetNumber: text('streetNumber'),
     streetName: text('streetName'),
     villageName: text('villageName'),
-    postcode: text('postcode'),
     dataOwner: text('dataOwner'),
     rawPayloadJson: text('rawPayloadJson'),
   },
@@ -57,7 +63,7 @@ export const sourceHkgovAlsAddress2dI18n = sqliteTable(
     buildingNumberTo: text('buildingNumberTo'),
     blockType: text('blockType'),
     blockNumber: text('blockNumber'),
-    blockTypeBeforeNumber: text('blockTypeBeforeNumber'),
+    blockTypeBeforeNumber: integer('blockTypeBeforeNumber', { mode: 'boolean' }),
     phaseName: text('phaseName'),
     phaseNumber: text('phaseNumber'),
     estateName: text('estateName'),
