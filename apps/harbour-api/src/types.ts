@@ -1,9 +1,9 @@
 import type { DatasetProcessingMessage } from '@repo/core'
+import type { SaanseoiWorkerBindings } from '@repo/db'
 
 export type AppEnv = {
-  Bindings: {
+  Bindings: SaanseoiWorkerBindings & {
     DATASET_QUEUE: Queue<DatasetProcessingMessage>
-    DB: D1Database
     HARBOUR_API_KEY: string
     R2_ACCOUNT_ID: string
     R2_RAW: R2Bucket

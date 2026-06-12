@@ -1,15 +1,15 @@
-import { createDb } from '@repo/db'
+import { createDb, type LegacyDbBindings, type MultiDbBindings } from '@repo/db'
 import type { DatasetProcessingMessage } from '@repo/core'
 
 import { createHarbourClient } from './lib/harbourClient'
 import { processDatasetMessage } from './lib/worker'
 
-type Env = {
-  DB: D1Database
-  HARBOUR_API_KEY: string
-  HARBOUR_BASE_URL: string
-  R2_RAW: R2Bucket
-}
+type Env = LegacyDbBindings &
+  Partial<MultiDbBindings> & {
+    HARBOUR_API_KEY: string
+    HARBOUR_BASE_URL: string
+    R2_RAW: R2Bucket
+  }
 
 type ProcessDatasetMessageHandler = typeof processDatasetMessage
 

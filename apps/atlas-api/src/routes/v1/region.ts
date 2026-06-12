@@ -113,8 +113,9 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
   handler: async c => {
     const { region: regionCode, id: placeId } = c.req.valid('param')
     const { locale } = c.req.valid('query')
+    const db = c.var.db
 
-    const place = await getPlaceCurrent(c.env.DB, { regionCode, placeId })
+    const place = await getPlaceCurrent(db, { regionCode, placeId })
 
     if (!place) {
       return c.json(
@@ -128,8 +129,8 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
     }
 
     const [i18n, divisions] = await Promise.all([
-      listPlaceI18n(c.env.DB, { placeId, locale }),
-      listPlaceDivisions(c.env.DB, { placeId, locale }),
+      listPlaceI18n(db, { placeId, locale }),
+      listPlaceDivisions(db, { placeId, locale }),
     ])
 
     return c.json(
@@ -152,6 +153,7 @@ export const placesByCellRoute = defineOpenAPIRoute<
     const params = c.req.valid('param')
     const query = c.req.valid('query')
     const h3Level = Number(params.h3Level)
+    const db = c.var.db
 
     if (!Number.isInteger(h3Level)) {
       return c.json(
@@ -164,7 +166,7 @@ export const placesByCellRoute = defineOpenAPIRoute<
       )
     }
 
-    const places = await listPlacesByH3Cell(c.env.DB, {
+    const places = await listPlacesByH3Cell(db, {
       regionCode: params.region,
       h3Level,
       h3Cell: params.h3Cell,
@@ -185,9 +187,10 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
   handler: async c => {
     const { region } = c.req.valid('param')
     const query = c.req.valid('query')
+    const db = c.var.db
 
     try {
-      const results = await searchPlacesFts(c.env.DB, {
+      const results = await searchPlacesFts(db, {
         regionCode: region,
         locale: query.locale,
         query: query.q,
