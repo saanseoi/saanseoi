@@ -113,7 +113,7 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
   handler: async c => {
     const { region: regionCode, id: placeId } = c.req.valid('param')
     const { locale } = c.req.valid('query')
-    const db = c.var.db
+    const db = c.var.currentDb
 
     const place = await getPlaceCurrent(db, { regionCode, placeId })
 
@@ -153,7 +153,7 @@ export const placesByCellRoute = defineOpenAPIRoute<
     const params = c.req.valid('param')
     const query = c.req.valid('query')
     const h3Level = Number(params.h3Level)
-    const db = c.var.db
+    const db = c.var.currentDb
 
     if (!Number.isInteger(h3Level)) {
       return c.json(
@@ -187,7 +187,7 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
   handler: async c => {
     const { region } = c.req.valid('param')
     const query = c.req.valid('query')
-    const db = c.var.db
+    const db = c.var.currentDb
 
     try {
       const results = await searchPlacesFts(db, {

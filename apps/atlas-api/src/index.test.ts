@@ -66,6 +66,10 @@ function createEnv(
   return {
     env: {
       DB: db,
+      DB_META: db,
+      DB_CURRENT: db,
+      DB_HISTORY_HK_2026: db,
+      DB_SOURCE_HK_2026: db,
       ATLAS_BASE_URL: 'http://localhost:8787',
       HARBOUR_BASE_URL: 'http://localhost:8788',
       SUBSTACK_PUBLICATION: 'demo-publication',

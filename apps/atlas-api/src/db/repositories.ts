@@ -1,27 +1,25 @@
-import type { Database } from '@repo/db'
-import {
-  and,
-  asc,
-  datasets,
-  desc,
+import type { CurrentDatabase, MetaDatabase } from '@repo/db'
+import { and, asc, desc, eq } from '@repo/db'
+import { currentSchema, metaSchema } from '@repo/db'
+
+const {
   divisions,
   divisionsI18n,
-  eq,
-  newsletterSubscription,
   places,
   placesCells,
   placesDivision,
   placesFts,
   placesFtsMatch,
   placesI18n,
-  user,
-} from '@repo/db'
+} = currentSchema
+const { metaDatasets, metaPublishers, metaReleases, newsletterSubscription, user } =
+  metaSchema
 
 type DatasetFilters = {
   regionCode?: string
   snapshotMonth?: string
-  theme?: string
-  status?: string
+  theme?: typeof metaDatasets.$inferSelect.theme
+  status?: typeof metaReleases.$inferSelect.status
   limit?: number
 }
 
@@ -49,7 +47,7 @@ type FtsLookup = {
   limit?: number
 }
 
-export async function markNewsletterPending(db: Database, email: string) {
+export async function markNewsletterPending(db: MetaDatabase, email: string) {
   const updatedAt = new Date()
 
   await db
@@ -74,7 +72,7 @@ export async function markNewsletterPending(db: Database, email: string) {
   await syncUserSubstackStatus(db, email, 'pending')
 }
 
-export async function markNewsletterSubscribed(db: Database, email: string) {
+export async function markNewsletterSubscribed(db: MetaDatabase, email: string) {
   const updatedAt = new Date()
 
   await db
@@ -100,7 +98,7 @@ export async function markNewsletterSubscribed(db: Database, email: string) {
 }
 
 export async function markNewsletterFailed(
-  db: Database,
+  db: MetaDatabase,
   email: string,
   lastError: string,
 ) {
@@ -128,7 +126,7 @@ export async function markNewsletterFailed(
 }
 
 async function syncUserSubstackStatus(
-  db: Database,
+  db: MetaDatabase,
   email: string,
   status: 'pending' | 'subscribed' | 'unsubscribed',
 ) {
@@ -138,26 +136,48 @@ async function syncUserSubstackStatus(
     .where(eq(user.email, email))
 }
 
-export async function listDatasets(db: Database, filters: DatasetFilters = {}) {
+export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {}) {
   const conditions = [
-    filters.regionCode ? eq(datasets.regionCode, filters.regionCode) : undefined,
+    filters.regionCode ? eq(metaDatasets.regionCode, filters.regionCode) : undefined,
     filters.snapshotMonth
-      ? eq(datasets.snapshotMonth, filters.snapshotMonth)
+      ? eq(metaReleases.snapshotMonth, filters.snapshotMonth)
       : undefined,
-    filters.theme ? eq(datasets.theme, filters.theme) : undefined,
-    filters.status ? eq(datasets.status, filters.status) : undefined,
+    filters.theme ? eq(metaDatasets.theme, filters.theme) : undefined,
+    filters.status ? eq(metaReleases.status, filters.status) : undefined,
   ].filter(condition => condition !== undefined)
 
   return db
-    .select()
-    .from(datasets)
+    .select({
+      id: metaReleases.id,
+      datasetId: metaDatasets.id,
+      datasetCode: metaDatasets.code,
+      releaseCode: metaReleases.code,
+      regionCode: metaDatasets.regionCode,
+      snapshotMonth: metaReleases.snapshotMonth,
+      theme: metaDatasets.theme,
+      type: metaDatasets.type,
+      source: metaPublishers.code,
+      sourceVersion: metaReleases.sourceVersion,
+      rawObjectKey: metaReleases.rawObjectKey,
+      originalFileName: metaReleases.originalFileName,
+      status: metaReleases.status,
+      supersededByReleaseId: metaReleases.supersededByReleaseId,
+      revokedAt: metaReleases.revokedAt,
+      revocationReason: metaReleases.revocationReason,
+      ingestedAt: metaReleases.ingestedAt,
+      createdAt: metaReleases.createdAt,
+      updatedAt: metaReleases.updatedAt,
+    })
+    .from(metaReleases)
+    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(datasets.snapshotMonth), desc(datasets.ingestedAt))
+    .orderBy(desc(metaReleases.snapshotMonth), desc(metaReleases.ingestedAt))
     .limit(filters.limit ?? 100)
     .all()
 }
 
-export async function getPlaceCurrent(db: Database, lookup: PlaceLookup) {
+export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) {
   return (
     (await db
       .select()
@@ -170,7 +190,7 @@ export async function getPlaceCurrent(db: Database, lookup: PlaceLookup) {
   )
 }
 
-export async function listPlaceI18n(db: Database, lookup: I18nLookup) {
+export async function listPlaceI18n(db: CurrentDatabase, lookup: I18nLookup) {
   const conditions = [
     eq(placesI18n.placeId, lookup.placeId),
     lookup.locale ? eq(placesI18n.locale, lookup.locale) : undefined,
@@ -184,7 +204,7 @@ export async function listPlaceI18n(db: Database, lookup: I18nLookup) {
     .all()
 }
 
-export async function listPlaceDivisions(db: Database, lookup: I18nLookup) {
+export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup) {
   return db
     .select({
       divisionId: divisions.id,
@@ -208,11 +228,11 @@ export async function listPlaceDivisions(db: Database, lookup: I18nLookup) {
     .all()
 }
 
-export async function listPlacesByH3Cell(db: Database, lookup: H3Lookup) {
+export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) {
   return db
     .select({
       placeId: places.id,
-      datasetId: datasets.datasetId,
+      datasetId: places.datasetRecordId,
       regionCode: places.regionCode,
       otVersion: places.otVersion,
       otVersionHash: places.otVersionHash,
@@ -226,7 +246,6 @@ export async function listPlacesByH3Cell(db: Database, lookup: H3Lookup) {
     })
     .from(placesCells)
     .innerJoin(places, eq(places.id, placesCells.id))
-    .innerJoin(datasets, eq(datasets.id, places.datasetRecordId))
     .where(
       and(
         eq(placesCells.regionCode, lookup.regionCode),
@@ -238,20 +257,19 @@ export async function listPlacesByH3Cell(db: Database, lookup: H3Lookup) {
     .all()
 }
 
-export async function searchPlacesFts(db: Database, lookup: FtsLookup) {
+export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
   try {
     return await db
       .select({
         placeId: places.id,
         regionCode: places.regionCode,
-        datasetId: datasets.datasetId,
+        datasetId: places.datasetRecordId,
         locale: placesFts.locale,
         nameText: placesFts.nameText,
         brandText: placesFts.brandText,
       })
       .from(placesFts)
       .innerJoin(places, eq(places.id, placesFts.placeId))
-      .innerJoin(datasets, eq(datasets.id, places.datasetRecordId))
       .where(
         and(
           eq(places.regionCode, lookup.regionCode),
