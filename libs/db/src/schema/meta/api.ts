@@ -1,4 +1,5 @@
 import {
+  foreignKey,
   index,
   integer,
   primaryKey,
@@ -63,9 +64,7 @@ export const metaApiReleaseSetMembers = sqliteTable(
     datasetId: text('datasetId')
       .notNull()
       .references(() => metaDatasets.id, { onDelete: 'restrict' }),
-    releaseId: text('releaseId')
-      .notNull()
-      .references(() => metaReleases.id, { onDelete: 'restrict' }),
+    releaseId: text('releaseId').notNull(),
     role: text('role', { enum: apiReleaseSetMemberRoles }).notNull(),
     createdAt: timestamps.createdAt,
   },
@@ -73,6 +72,11 @@ export const metaApiReleaseSetMembers = sqliteTable(
     primaryKey({
       columns: [table.apiReleaseSetId, table.releaseId],
     }),
+    foreignKey({
+      columns: [table.releaseId, table.datasetId],
+      foreignColumns: [metaReleases.id, metaReleases.datasetId],
+      name: 'apiReleaseSetMembers_releaseId_datasetId_releases_id_datasetId_fk',
+    }).onDelete('restrict'),
     index('apiReleaseSetMembers_datasetId_idx').on(table.datasetId),
   ],
 )

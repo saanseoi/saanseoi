@@ -1,4 +1,5 @@
 import {
+  foreignKey,
   index,
   integer,
   primaryKey,
@@ -101,6 +102,12 @@ export const metaReleases = sqliteTable(
       table.datasetId,
       table.sourceVersion,
     ),
+    uniqueIndex('releases_id_datasetId_unique_idx').on(table.id, table.datasetId),
+    foreignKey({
+      columns: [table.supersededByReleaseId],
+      foreignColumns: [table.id],
+      name: 'releases_supersededByReleaseId_releases_id_fk',
+    }).onDelete('set null'),
     index('releases_status_idx').on(table.status),
     index('releases_supersededByReleaseId_idx').on(table.supersededByReleaseId),
   ],
