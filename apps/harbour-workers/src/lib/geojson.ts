@@ -15,7 +15,7 @@ export type GeoJsonGeometry =
     }
   | {
       type: 'MultiPolygon'
-      coordinates: GeoJsonPosition[][][]
+      coordinates: GeoJsonPosition[][][][]
     }
   | {
       type: 'GeometryCollection'
