@@ -1,7 +1,7 @@
 import { createRawObjectKey, planUpload, registerUpload } from '@repo/core/upload'
 import { inspectParquet } from '@repo/core/parquet-inspector'
 
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   DatasetProcessingMessage,
   RegisterUploadResult,
@@ -11,6 +11,7 @@ import type {
 type UploadFormFields = {
   filePath: string
   regionCode?: string
+  shardYear?: string
   snapshotMonth?: string
   theme?: string
   type?: string
@@ -65,12 +66,26 @@ function buildUploadFields(fileName: string, formData: FormData): UploadFormFiel
   return {
     filePath: fileName,
     regionCode: getOptionalText(formData, 'regionCode', ['region']),
+    shardYear: getOptionalText(formData, 'shardYear', ['year']),
     snapshotMonth: getOptionalText(formData, 'snapshotMonth', ['month']),
     theme: getOptionalText(formData, 'theme'),
     type: getOptionalText(formData, 'type'),
     source: getOptionalText(formData, 'source'),
     sourceVersion: getOptionalText(formData, 'sourceVersion', ['source-version']),
   }
+}
+
+function resolveShardYear(
+  uploadFields: UploadFormFields,
+  plannedSnapshotMonth: string,
+) {
+  const shardYear = uploadFields.shardYear?.trim()
+
+  if (shardYear) {
+    return shardYear
+  }
+
+  return plannedSnapshotMonth.slice(0, 4)
 }
 
 function createR2SchemaFingerprintResolver(
@@ -115,9 +130,10 @@ export async function handleUploadRequest(
       contentType: file.type || 'application/octet-stream',
     },
     customMetadata: {
-      datasetId: planned.plan.datasetId,
+      datasetCode: planned.plan.datasetCode,
       fileName: planned.plan.fileName,
       originalFileName: planned.plan.originalFileName,
+      releaseCode: planned.plan.releaseCode,
       regionCode: planned.plan.regionCode,
       rowCount: String(planned.plan.rowCount),
       schemaFingerprint: planned.plan.schemaFingerprint,
@@ -140,11 +156,18 @@ export async function handleUploadRequest(
     if (!registered.rawObjectKey) {
       throw new Error('registerUpload returned no rawObjectKey for a staged upload.')
     }
+    if (!registered.datasetId || !registered.releaseId) {
+      throw new Error('registerUpload returned incomplete release identifiers.')
+    }
 
     const processingMessage: DatasetProcessingMessage = {
-      datasetId: registered.plan.datasetId,
+      datasetId: registered.datasetId,
+      datasetCode: registered.plan.datasetCode,
+      releaseId: registered.releaseId,
+      releaseCode: registered.plan.releaseCode,
       rawObjectKey: registered.rawObjectKey,
       regionCode: registered.plan.regionCode,
+      shardYear: resolveShardYear(uploadFields, registered.plan.snapshotMonth),
       snapshotMonth: registered.plan.snapshotMonth,
       source: registered.plan.source,
       sourceVersion: registered.plan.sourceVersion,

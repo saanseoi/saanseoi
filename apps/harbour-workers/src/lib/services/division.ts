@@ -1,6 +1,14 @@
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
 import type { DatasetProcessingMessage } from '@repo/core'
-import type { DivisionI18nPayload, DivisionRow } from '@repo/db/schema'
+import { resolveReleaseSetForType } from '@repo/core/db/meta-repository'
+import type {
+  CurrentDatabase,
+  HistoryDatabase,
+  MetaDatabase,
+  sourceSchema,
+  SourceDatabase,
+} from '@repo/db'
+import type { DivisionI18nPayload, DivisionRow } from '@repo/db/currentSchema'
+import type { GeoJsonGeometry } from '../geojson'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
@@ -12,6 +20,17 @@ import {
   replaceDivisionCurrentI18n,
   upsertDivisionCurrentState,
 } from '../db/division'
+import {
+  buildSourceDatasetId,
+  buildSourceReleaseId,
+  closeSourceOvertureDivisionVersions,
+  deleteMissingCurrentSourceOvertureDivisions,
+  getCurrentSourceOvertureDivisionMap,
+  insertSourceOvertureDivisionI18nVersions,
+  insertSourceOvertureDivisionVersions,
+  replaceSourceOvertureDivisionI18n,
+  upsertSourceOvertureDivisions,
+} from '../db/source'
 import {
   buildChurnCounts,
   buildChurnStatsRows,
@@ -26,7 +45,6 @@ import {
 import {
   addLocalizedValue,
   asNonEmptyString,
-  asString,
   createHash,
   inferLocale,
   normalizeLocale,
@@ -97,15 +115,28 @@ const HONG_KONG_AREA_NAMES = new Set([
  * Reads the division parquet file and applies current/versioned row updates.
  */
 export async function processDivisionDataset(
-  db: HarbourReadableDb & HarbourWritableDb,
+  metaDb: MetaDatabase,
+  currentDb: CurrentDatabase,
+  historyDb: HistoryDatabase,
   bucket: HarbourWorkerBucket,
   message: DatasetProcessingMessage,
+  sourceDb?: SourceDatabase,
 ): Promise<ProcessDatasetResult> {
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
-  const currentRows = await getCurrentDivisionVersionMap(db, message.regionCode, {
-    buildDivisionBaseHashInput,
-    normalizeDivisionI18nSnapshotRow,
-  })
+  const environment = resolveShardEnvironment()
+  const releaseSet = await resolveReleaseSetForType(metaDb, message.type)
+
+  if (!releaseSet) {
+    throw new Error(`Release set not found for type: ${message.type}`)
+  }
+  const currentRows = await getCurrentDivisionVersionMap(
+    historyDb,
+    message.regionCode,
+    {
+      buildDivisionBaseHashInput,
+      normalizeDivisionI18nSnapshotRow,
+    },
+  )
   const previousRows = new Map(currentRows)
   const seenIds = new Set<string>()
   const processedRowsById = new Map<string, DivisionVersionSnapshot>()
@@ -115,8 +146,25 @@ export async function processDivisionDataset(
   let unchangedRows = 0
   let localizedRows = 0
   const statsAccumulator = createLocaleStatsAccumulator()
+  const currentSourceRows =
+    sourceDb && message.source === 'overture'
+      ? await getCurrentSourceOvertureDivisionMap(sourceDb)
+      : null
 
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE)) {
+    const sourceRows: Array<typeof sourceSchema.sourceOvertureDivisions.$inferInsert> =
+      []
+    const sourceI18nRows: Array<
+      typeof sourceSchema.sourceOvertureDivisionI18n.$inferInsert
+    > = []
+    const sourceVersionRows: Array<
+      typeof sourceSchema.sourceOvertureDivisionsVersions.$inferInsert
+    > = []
+    const sourceI18nVersionRows: Array<
+      typeof sourceSchema.sourceOvertureDivisionI18nVersions.$inferInsert
+    > = []
+    const changedSourceIds = new Set<string>()
+
     for (const row of batch) {
       const normalized = normalizeDivisionRow(row)
       const versionHash = await createHash(buildDivisionBaseHashInput(normalized.base))
@@ -131,15 +179,15 @@ export async function processDivisionDataset(
       updateLocaleStatsAccumulator(
         statsAccumulator,
         normalized.i18n.map(row => ({
-          hasAltName: Boolean(row.otNameAlts),
-          hasName: Boolean(row.otName),
+          hasAltName: Boolean(row.nameAlts),
+          hasName: Boolean(row.name),
           isLocaleInferred: row.isLocaleInferred,
           locale: row.locale,
         })),
       )
       processedRowsById.set(normalized.base.id, {
         churnHash,
-        geometryJson: normalized.base.otGeometryJson,
+        geometry: normalized.base.geometry,
         id: normalized.base.id,
         localizedRows: normalized.i18n,
         parentId: normalized.base.parentDivisionId,
@@ -147,12 +195,97 @@ export async function processDivisionDataset(
         versionHash,
       })
 
+      if (sourceDb && message.source === 'overture') {
+        const releaseId = buildSourceReleaseId(message)
+        const datasetId = buildSourceDatasetId(message)
+        const sourcePayloadHash = await createHash(row)
+        const currentSource = currentSourceRows?.get(normalized.base.id) ?? null
+
+        sourceRows.push({
+          releaseId,
+          datasetId,
+          sourceRecordId: normalized.base.id,
+          sourcePayloadHash,
+          regionCode: message.regionCode,
+          level: normalized.base.level,
+          divisionType: normalized.base.type,
+          subtype: normalized.base.subtype,
+          divisionClass: normalized.base.class,
+          population: normalized.base.population,
+          version: asOptionalInteger(row.version),
+          wikidata: normalized.base.wikidata,
+          geometry: normalized.base.geometry,
+          bbox: normalized.base.bbox,
+          hierarchies: normalized.base.hierarchy,
+          cartography: normalized.base.cartography,
+          sources: normalized.base.sources,
+          rawProperties: row,
+        })
+
+        sourceI18nRows.push(
+          ...normalized.i18n.map(localized => ({
+            releaseId,
+            sourceRecordId: normalized.base.id,
+            locale: localized.locale,
+            name: localized.name,
+            nameVariant: localized.nameVariant,
+            nameAlts: localized.nameAlts,
+            nameRules: localized.nameRules,
+            localType: localized.localType,
+            isLocaleInferred: localized.isLocaleInferred,
+          })),
+        )
+
+        if (currentSource?.sourcePayloadHash !== sourcePayloadHash) {
+          changedSourceIds.add(normalized.base.id)
+          sourceVersionRows.push({
+            sourceRecordId: normalized.base.id,
+            versionHash: sourcePayloadHash,
+            releaseId,
+            validFromRelease: message.sourceVersion,
+            validToRelease: null,
+            isCurrent: true,
+            regionCode: message.regionCode,
+            level: normalized.base.level,
+            divisionType: normalized.base.type,
+            subtype: normalized.base.subtype,
+            divisionClass: normalized.base.class,
+            population: normalized.base.population,
+            version: asOptionalInteger(row.version),
+            wikidata: normalized.base.wikidata,
+            geometry: normalized.base.geometry,
+            bbox: normalized.base.bbox,
+            hierarchies: normalized.base.hierarchy,
+            cartography: normalized.base.cartography,
+            sources: normalized.base.sources,
+            rawProperties: row,
+          })
+          sourceI18nVersionRows.push(
+            ...normalized.i18n.map(localized => ({
+              sourceRecordId: normalized.base.id,
+              versionHash: sourcePayloadHash,
+              releaseId,
+              validFromRelease: message.sourceVersion,
+              validToRelease: null,
+              isCurrent: true,
+              locale: localized.locale,
+              name: localized.name,
+              nameVariant: localized.nameVariant,
+              nameAlts: localized.nameAlts,
+              nameRules: localized.nameRules,
+              localType: localized.localType,
+              isLocaleInferred: localized.isLocaleInferred,
+            })),
+          )
+        }
+      }
+
       const current = currentRows.get(normalized.base.id)
 
       if (current?.versionHash === versionHash) {
         unchangedRows += 1
         await replaceDivisionCurrentI18n(
-          db,
+          currentDb,
           normalized.base.id,
           normalized.i18n,
           new Date().toISOString(),
@@ -162,30 +295,60 @@ export async function processDivisionDataset(
 
       if (current) {
         await closeCurrentDivisionVersion(
-          db,
+          historyDb,
           message.regionCode,
           normalized.base.id,
+          releaseSet.id,
           message.snapshotMonth,
         )
       }
 
       insertedVersions += 1
 
-      await upsertDivisionCurrentState(db, normalized.base, normalized.i18n)
+      await upsertDivisionCurrentState(currentDb, normalized.base, normalized.i18n)
       await insertDivisionVersionRows(
-        db,
+        metaDb,
+        historyDb,
         message,
         normalized.base,
         normalized.i18n,
         versionHash,
         new Date().toISOString(),
+        environment,
       )
+    }
+
+    if (sourceDb && message.source === 'overture') {
+      const changedIds = [...changedSourceIds]
+
+      if (changedIds.length > 0) {
+        await closeSourceOvertureDivisionVersions(
+          sourceDb,
+          changedIds,
+          message.sourceVersion,
+        )
+      }
+
+      await upsertSourceOvertureDivisions(sourceDb, sourceRows)
+
+      for (const sourceRecordId of changedIds) {
+        await replaceSourceOvertureDivisionI18n(
+          sourceDb,
+          sourceRecordId,
+          sourceI18nRows.filter(row => row.sourceRecordId === sourceRecordId),
+        )
+      }
+
+      await insertSourceOvertureDivisionVersions(sourceDb, sourceVersionRows)
+      await insertSourceOvertureDivisionI18nVersions(sourceDb, sourceI18nVersionRows)
     }
   }
 
   const deletedRows = await deleteMissingCurrentDivisions(
-    db,
+    currentDb,
+    historyDb,
     message.regionCode,
+    releaseSet.id,
     message.snapshotMonth,
     currentRows,
     seenIds,
@@ -199,11 +362,20 @@ export async function processDivisionDataset(
       hasNameRegression,
     }),
   )
-  const statsRows = await replaceDatasetStats(db, message.datasetId, [
-    ...buildLocaleStatsRows(statsAccumulator),
-    ...churnStats,
-    ...qualityStats,
-  ])
+  const statsRows = await replaceDatasetStats(
+    metaDb,
+    message.releaseId ?? message.datasetId,
+    [...buildLocaleStatsRows(statsAccumulator), ...churnStats, ...qualityStats],
+  )
+
+  if (sourceDb && message.source === 'overture' && currentSourceRows) {
+    await deleteMissingCurrentSourceOvertureDivisions(
+      sourceDb,
+      message.sourceVersion,
+      currentSourceRows,
+      seenIds,
+    )
+  }
 
   return {
     deletedRows,
@@ -213,6 +385,11 @@ export async function processDivisionDataset(
     statsRows,
     unchangedRows,
   }
+}
+
+function resolveShardEnvironment(): 'preview' | 'production' {
+  const baseUrl = process.env.HARBOUR_BASE_URL ?? ''
+  return /production/i.test(baseUrl) ? 'production' : 'preview'
 }
 
 /**
@@ -247,49 +424,47 @@ function normalizeDivisionRow(row: Record<string, unknown>) {
 
   return {
     base: {
+      bbox: row.bbox ?? null,
+      cartography: row.cartography ?? null,
+      class: otClass,
       createdAt: now,
-      hierarchyJson: stableJsonStringify(normalizedHierarchies),
+      geometry: normalizedGeometry,
+      hierarchy: normalizedHierarchies,
       id,
       level,
-      otGeometryJson: normalizedGeometry
-        ? stableJsonStringify(normalizedGeometry)
-        : null,
-      otPopulation: asNumber(row.population),
+      population: asNumber(row.population),
       type,
-      otBboxJson: stableJsonStringify(row.bbox),
-      otCartographyJson: stableJsonStringify(row.cartography),
-      otClass,
-      otHierarchyJson: stableJsonStringify(normalizedHierarchies),
-      otSubtype,
-      otVersion: asString(row.version),
-      otWikidata: asNonEmptyString(row.wikidata),
       parentDivisionId,
-      sourcesJson: stableJsonStringify(normalizeOvertureSources(row.sources)),
+      sources: normalizeOvertureSources(row.sources),
+      subtype: otSubtype,
       updatedAt: now,
+      wikidata: asNonEmptyString(row.wikidata),
     } satisfies DivisionRow,
     i18n,
   }
+}
+
+function asOptionalInteger(value: unknown) {
+  return typeof value === 'number' && Number.isInteger(value) ? value : null
 }
 
 function buildDivisionBaseHashInput(
   base: Omit<DivisionRow, 'createdAt' | 'updatedAt'> | DivisionRow,
 ) {
   return {
-    hierarchyJson: base.hierarchyJson,
+    bbox: base.bbox,
+    cartography: base.cartography,
+    class: base.class,
+    geometry: base.geometry,
+    hierarchy: base.hierarchy,
     id: base.id,
     level: base.level,
-    otBboxJson: base.otBboxJson,
-    otCartographyJson: base.otCartographyJson,
-    otClass: base.otClass,
-    otGeometryJson: base.otGeometryJson,
-    otHierarchyJson: base.otHierarchyJson,
-    otPopulation: base.otPopulation,
-    otSubtype: base.otSubtype,
-    otVersion: base.otVersion,
-    otWikidata: base.otWikidata,
     parentDivisionId: base.parentDivisionId,
-    sourcesJson: base.sourcesJson,
+    population: base.population,
+    sources: base.sources,
+    subtype: base.subtype,
     type: base.type,
+    wikidata: base.wikidata,
   } satisfies Omit<DivisionRow, 'createdAt' | 'updatedAt'>
 }
 
@@ -361,18 +536,18 @@ function normalizeDivisionI18n(divisionId: string, names: unknown, localType: un
 
   return [...locales].sort().map(locale => {
     const values = [...(localizedNames.get(locale) ?? [])]
-    const [otName, ...alts] = values
-    const otNameRules = dedupeNameRules(localizedRuleEntries.get(locale) ?? [])
+    const [name, ...alts] = values
+    const nameRules = dedupeNameRules(localizedRuleEntries.get(locale) ?? [])
 
     return {
       divisionId,
       isLocaleInferred: localizedInferredFlags.get(locale) ?? false,
+      localType: localizedTypes.get(locale) ?? null,
       locale,
-      otLocalType: localizedTypes.get(locale) ?? null,
-      otName: otName ?? null,
-      otNameAlts: alts.length > 0 ? alts.join('|') : null,
-      otNameRulesJson: otNameRules.length > 0 ? stableJsonStringify(otNameRules) : null,
-      otNameVariantJson: values.length > 0 ? stableJsonStringify(values) : null,
+      name: name ?? null,
+      nameAlts: alts.length > 0 ? alts.join('|') : null,
+      nameRules: nameRules.length > 0 ? nameRules : null,
+      nameVariant: values.length > 0 ? values : null,
     } satisfies DivisionI18nPayload
   })
 }
@@ -861,36 +1036,6 @@ function asNumber(value: unknown) {
 
   return null
 }
-
-type GeoJsonGeometry =
-  | {
-      type: 'Point'
-      coordinates: number[]
-    }
-  | {
-      type: 'LineString'
-      coordinates: number[][]
-    }
-  | {
-      type: 'Polygon'
-      coordinates: number[][][]
-    }
-  | {
-      type: 'MultiPoint'
-      coordinates: number[][]
-    }
-  | {
-      type: 'MultiLineString'
-      coordinates: number[][][]
-    }
-  | {
-      type: 'MultiPolygon'
-      coordinates: number[][][][]
-    }
-  | {
-      type: 'GeometryCollection'
-      geometries: GeoJsonGeometry[]
-    }
 
 function parseWkbGeometry(value: unknown): GeoJsonGeometry | null {
   const decodedGeometry = asGeoJsonGeometry(value)

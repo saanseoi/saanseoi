@@ -1,6 +1,7 @@
-import { createDb } from '@repo/db'
+import { createMetaDb } from '@repo/db'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
+import { getDatasetRecordByReleaseId } from '@repo/core/db/meta-repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 import { handleUploadRequest } from '../../lib/services/ingest'
 import {
@@ -119,7 +120,7 @@ export const uploadRoute = defineOpenAPIRoute<typeof uploadRouteConfig, AppEnv>(
   route: uploadRouteConfig,
   handler: async c => {
     try {
-      const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
+      const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
       const formData = await c.req.formData()
       const result = await handleUploadRequest(
         db,
@@ -127,16 +128,21 @@ export const uploadRoute = defineOpenAPIRoute<typeof uploadRouteConfig, AppEnv>(
         c.env.DATASET_QUEUE,
         formData,
       )
+      if (!result.datasetId || !result.releaseId) {
+        throw new Error('Upload registration returned incomplete release identifiers.')
+      }
 
       return c.json(
         {
-          datasetId: result.plan.datasetId,
+          datasetId: result.datasetId,
+          datasetCode: result.plan.datasetCode,
           rawObjectKey: result.rawObjectKey,
+          releaseCode: result.plan.releaseCode,
+          releaseId: result.releaseId,
           rowCount: result.plan.rowCount,
           source: result.plan.source,
           sourceVersion: result.plan.sourceVersion,
           status: 'staged',
-          supersedesDatasetId: result.plan.supersedesDatasetId,
           type: result.plan.type,
         },
         200,
@@ -159,15 +165,18 @@ export const signUploadRoute = defineOpenAPIRoute<typeof signUploadRouteConfig, 
     route: signUploadRouteConfig,
     handler: async c => {
       try {
-        const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
+        const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
         const request = c.req.valid('json') as SignUploadRequest
         const result = await handleSignUploadRequest(db, c.env.R2_RAW, c.env, request)
 
         return c.json(
           {
             datasetId: result.datasetId,
+            datasetCode: result.datasetCode,
             expiresAt: result.expiresAt,
             rawObjectKey: result.rawObjectKey,
+            releaseCode: result.releaseCode,
+            releaseId: result.releaseId,
             source: result.source,
             status: result.status,
             uploadHeaders: result.uploadHeaders,
@@ -197,7 +206,7 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
   route: finalizeUploadRouteConfig,
   handler: async c => {
     try {
-      const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
+      const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
       const request = c.req.valid('json') as FinalizeUploadRequest
       const result = await handleFinalizeUploadRequest(
         db,
@@ -205,16 +214,23 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
         c.env.DATASET_QUEUE,
         request,
       )
+      const release = await getDatasetRecordByReleaseId(db, request.releaseId)
+
+      if (!release) {
+        throw new Error(`Release not found after finalization: ${request.releaseId}`)
+      }
 
       return c.json(
         {
-          datasetId: result.plan.datasetId,
+          datasetId: release.datasetId,
+          datasetCode: result.plan.datasetCode,
           rawObjectKey: result.rawObjectKey,
+          releaseCode: result.plan.releaseCode,
+          releaseId: release.releaseId,
           rowCount: result.plan.rowCount,
           source: result.plan.source,
           sourceVersion: result.plan.sourceVersion,
           status: 'staged',
-          supersedesDatasetId: result.plan.supersedesDatasetId,
           type: result.plan.type,
         },
         200,

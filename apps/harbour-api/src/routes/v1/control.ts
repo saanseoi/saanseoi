@@ -1,6 +1,6 @@
-import { createDb } from '@repo/db'
+import { createMetaDb } from '@repo/db'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 import {
   handlePublishDataset,
@@ -120,7 +120,7 @@ export const stageStartedRoute = defineOpenAPIRoute<
   route: stageStartedRouteConfig,
   handler: async c => {
     try {
-      const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
+      const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
       const request = c.req.valid('json')
       return c.json(await handleStageStarted(db, request), 200)
     } catch (error) {
@@ -136,7 +136,7 @@ export const stageCompletedRoute = defineOpenAPIRoute<
   route: stageCompletedRouteConfig,
   handler: async c => {
     try {
-      const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
+      const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
       const request = c.req.valid('json')
       return c.json(await handleStageCompleted(db, request), 200)
     } catch (error) {
@@ -152,7 +152,7 @@ export const stageFailedRoute = defineOpenAPIRoute<
   route: stageFailedRouteConfig,
   handler: async c => {
     try {
-      const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
+      const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
       const request = c.req.valid('json')
       return c.json(await handleStageFailed(db, request), 200)
     } catch (error) {
@@ -168,7 +168,7 @@ export const publishDatasetRoute = defineOpenAPIRoute<
   route: publishDatasetRouteConfig,
   handler: async c => {
     try {
-      const db = createDb(c.env.DB) as HarbourReadableDb & HarbourWritableDb
+      const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
       const request = c.req.valid('json')
       return c.json(await handlePublishDataset(db, request), 200)
     } catch (error) {

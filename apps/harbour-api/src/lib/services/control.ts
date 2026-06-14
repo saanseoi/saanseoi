@@ -1,40 +1,49 @@
 import {
-  getDatasetRecordById,
+  getCurrentReleaseForDatasetId,
+  getDatasetRecordByReleaseId,
   insertIngestRun,
   markDatasetCurrent,
   markDatasetHistoric,
   revokeDataset,
-  type HarbourReadableDb,
-  type HarbourWritableDb,
+  setSupersededByReleaseId,
   updateLatestOpenIngestRun,
   updateDatasetStatus,
-} from '@repo/core/db/repository'
+} from '@repo/core/db/meta-repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 type StageRequest = {
-  datasetId: string
+  releaseId: string
   error?: string
   phase: string
   stats?: Record<string, unknown>
 }
 
 type PublishRequest = {
+  releaseId: string
+}
+
+type ControlResult = {
   datasetId: string
+  releaseCode: string
+  releaseId: string
+  phase: string | null
+  status: string
 }
 
 export async function handleStageStarted(
   db: HarbourReadableDb & HarbourWritableDb,
   request: StageRequest,
-) {
-  const dataset = await requireDataset(db, request.datasetId)
+): Promise<ControlResult> {
+  const dataset = await requireDataset(db, request.releaseId)
   const now = new Date().toISOString()
 
   if (request.phase === 'processDataset') {
-    await updateDatasetStatus(db, dataset.datasetId, 'processing')
+    await updateDatasetStatus(db, dataset.releaseId, 'processing')
   }
 
   await insertIngestRun(
     db,
-    dataset.datasetId,
+    dataset.releaseId,
     request.phase,
     'running',
     stringifyOptional(request.stats),
@@ -43,7 +52,9 @@ export async function handleStageStarted(
   )
 
   return {
-    datasetId: dataset.datasetId,
+    datasetId: dataset.releaseCode,
+    releaseCode: dataset.releaseCode,
+    releaseId: dataset.releaseId,
     phase: request.phase,
     status: 'running',
   }
@@ -52,13 +63,13 @@ export async function handleStageStarted(
 export async function handleStageCompleted(
   db: HarbourReadableDb & HarbourWritableDb,
   request: StageRequest,
-) {
-  const dataset = await requireDataset(db, request.datasetId)
+): Promise<ControlResult> {
+  const dataset = await requireDataset(db, request.releaseId)
   const now = new Date().toISOString()
 
   const updated = await updateLatestOpenIngestRun(
     db,
-    dataset.datasetId,
+    dataset.releaseId,
     request.phase,
     'completed',
     now,
@@ -68,7 +79,7 @@ export async function handleStageCompleted(
   if (!updated) {
     await insertIngestRun(
       db,
-      dataset.datasetId,
+      dataset.releaseId,
       request.phase,
       'completed',
       stringifyOptional(request.stats),
@@ -78,7 +89,9 @@ export async function handleStageCompleted(
   }
 
   return {
-    datasetId: dataset.datasetId,
+    datasetId: dataset.releaseCode,
+    releaseCode: dataset.releaseCode,
+    releaseId: dataset.releaseId,
     phase: request.phase,
     status: 'completed',
   }
@@ -87,17 +100,17 @@ export async function handleStageCompleted(
 export async function handleStageFailed(
   db: HarbourReadableDb & HarbourWritableDb,
   request: StageRequest,
-) {
-  const dataset = await requireDataset(db, request.datasetId)
+): Promise<ControlResult> {
+  const dataset = await requireDataset(db, request.releaseId)
   const now = new Date().toISOString()
   const errorJson = stringifyOptional({
     message: request.error ?? 'Unknown processing error.',
   })
 
-  await updateDatasetStatus(db, dataset.datasetId, 'failed')
+  await updateDatasetStatus(db, dataset.releaseId, 'failed')
   const updated = await updateLatestOpenIngestRun(
     db,
-    dataset.datasetId,
+    dataset.releaseId,
     request.phase,
     'error',
     now,
@@ -108,7 +121,7 @@ export async function handleStageFailed(
   if (!updated) {
     await insertIngestRun(
       db,
-      dataset.datasetId,
+      dataset.releaseId,
       request.phase,
       'error',
       stringifyOptional(request.stats),
@@ -119,7 +132,9 @@ export async function handleStageFailed(
   }
 
   return {
-    datasetId: dataset.datasetId,
+    datasetId: dataset.releaseCode,
+    releaseCode: dataset.releaseCode,
+    releaseId: dataset.releaseId,
     phase: request.phase,
     status: 'error',
   }
@@ -128,37 +143,46 @@ export async function handleStageFailed(
 export async function handlePublishDataset(
   db: HarbourReadableDb & HarbourWritableDb,
   request: PublishRequest,
-) {
-  const dataset = await requireDataset(db, request.datasetId)
+): Promise<ControlResult> {
+  const dataset = await requireDataset(db, request.releaseId)
   const publishedAt = new Date().toISOString()
+  const currentRelease = await getCurrentReleaseForDatasetId(
+    db,
+    dataset.datasetId,
+    dataset.releaseId,
+  )
 
-  await markDatasetCurrent(db, dataset.datasetId)
+  await markDatasetCurrent(db, dataset.releaseId)
 
-  if (dataset.supersedesDatasetId) {
-    if (isCorrectedRelease(dataset.supersedesDatasetId, dataset.datasetId)) {
+  if (currentRelease) {
+    await setSupersededByReleaseId(db, currentRelease.releaseId, dataset.releaseId)
+
+    if (isCorrectedRelease(currentRelease.sourceVersion, dataset.sourceVersion)) {
       await revokeDataset(
         db,
-        dataset.supersedesDatasetId,
-        `Superseded by corrected release ${dataset.datasetId}.`,
+        currentRelease.releaseId,
+        `Superseded by corrected release ${dataset.releaseCode}.`,
         publishedAt,
       )
     } else {
-      await markDatasetHistoric(db, dataset.supersedesDatasetId, publishedAt)
+      await markDatasetHistoric(db, currentRelease.releaseId, publishedAt)
     }
   }
 
   return {
-    datasetId: dataset.datasetId,
+    datasetId: dataset.releaseCode,
+    releaseCode: dataset.releaseCode,
+    releaseId: dataset.releaseId,
     phase: null,
     status: 'current',
   }
 }
 
-async function requireDataset(db: HarbourReadableDb, datasetId: string) {
-  const dataset = await getDatasetRecordById(db, datasetId)
+async function requireDataset(db: HarbourReadableDb, releaseId: string) {
+  const dataset = await getDatasetRecordByReleaseId(db, releaseId)
 
   if (!dataset) {
-    throw new Error(`Dataset not found: ${datasetId}`)
+    throw new Error(`Release not found: ${releaseId}`)
   }
 
   return dataset
@@ -168,18 +192,13 @@ function stringifyOptional(value?: Record<string, unknown>) {
   return value ? JSON.stringify(value) : null
 }
 
-function isCorrectedRelease(previousDatasetId: string, nextDatasetId: string) {
-  const previousSourceVersion = getSourceVersionFromDatasetId(previousDatasetId)
-  const nextSourceVersion = getSourceVersionFromDatasetId(nextDatasetId)
-
+function isCorrectedRelease(
+  previousSourceVersion?: string,
+  nextSourceVersion?: string,
+) {
   if (!previousSourceVersion || !nextSourceVersion) {
     return false
   }
 
   return previousSourceVersion.split('.')[0] === nextSourceVersion.split('.')[0]
-}
-
-function getSourceVersionFromDatasetId(datasetId: string) {
-  const match = datasetId.match(/^[^-]+-[^-]+-(.+)-[^-]+$/)
-  return match?.[1] ?? null
 }

@@ -5,7 +5,7 @@ import {
   registerUpload as registerWorkerUpload,
 } from './upload'
 
-import type { HarbourReadableDb, HarbourWritableDb } from '../db/repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
 import type { RegisterUploadOptions, RegisterUploadResult } from '../../types'
 
 export * from './upload'

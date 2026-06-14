@@ -1,19 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
-persist_dir="${1:-$repo_root/.local/d1/dev}"
-wrangler_config="$repo_root/apps/harbour-api/wrangler.jsonc"
-sql_file="$(cd "$(dirname "$0")" && pwd)/sql/drop-preview-db.sql"
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+db_family="${1:-legacy}"
+
+eval "$(bash "$script_dir/lib/resolve-d1-target.sh" "$db_family" local)"
 
 mkdir -p "$persist_dir"
 
-bash "$script_dir/run-d1-execute.sh" ss-db-preview \
-  --config "$wrangler_config" \
-  --env preview \
-  --local \
-  --persist-to "$persist_dir" \
-  --file "$sql_file"
+IFS=',' read -r -a binding_names <<< "$bindings_csv"
+IFS=',' read -r -a database_names <<< "$database_names_csv"
 
-echo "Dropped local D1 tables at $persist_dir"
+for i in "${!database_names[@]}"; do
+  printf 'Dropping local tables for %s (%s)\n' "${binding_names[$i]}" "${database_names[$i]}"
+  bash "$script_dir/run-d1-execute.sh" "${database_names[$i]}" \
+    --config "$wrangler_config" \
+    --env "$wrangler_env" \
+    --local \
+    --persist-to "$persist_dir" \
+    --file "$drop_sql_file"
+done
+
+echo "Dropped local $db_family D1 tables at $persist_dir"

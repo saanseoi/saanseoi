@@ -1,13 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
-wrangler_config="$repo_root/apps/atlas-api/wrangler.jsonc"
-sql_file="$(cd "$(dirname "$0")" && pwd)/sql/drop-preview-db.sql"
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+db_family="${1:-legacy}"
+environment="${2:-preview}"
 
-bash "$script_dir/run-d1-execute.sh" ss-db-preview \
-  --config "$wrangler_config" \
-  --env preview \
-  --remote \
-  --file "$sql_file"
+case "$environment" in
+  preview|local)
+    ;;
+  *)
+    echo "drop-preview-db.sh rejects environment '$environment'; only preview-target environments are allowed." >&2
+    exit 1
+    ;;
+esac
+
+eval "$(bash "$script_dir/lib/resolve-d1-target.sh" "$db_family" "$environment")"
+
+IFS=',' read -r -a binding_names <<< "$bindings_csv"
+IFS=',' read -r -a database_names <<< "$database_names_csv"
+
+for i in "${!database_names[@]}"; do
+  printf 'Dropping %s tables for %s (%s)\n' "$wrangler_env" "${binding_names[$i]}" "${database_names[$i]}"
+  bash "$script_dir/run-d1-execute.sh" "${database_names[$i]}" \
+    --config "$wrangler_config" \
+    --env "$wrangler_env" \
+    --remote \
+    --file "$drop_sql_file"
+done
