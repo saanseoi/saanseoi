@@ -21,6 +21,15 @@ export const sourceRecordColumns = {
   ...sourceTimestamps,
 }
 
+export const sourceVersioning = {
+  versionHash: text('versionHash').notNull(),
+  releaseId: text('releaseId').notNull(),
+  validFromRelease: text('validFromRelease').notNull(),
+  validToRelease: text('validToRelease'),
+  isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
+  ...sourceTimestamps,
+}
+
 export const sourceRecordIndexes = <
   TTable extends {
     datasetId: unknown
@@ -34,4 +43,28 @@ export const sourceRecordIndexes = <
   index(`${prefix}_datasetId_idx`).on(table.datasetId as never),
   index(`${prefix}_releaseId_idx`).on(table.releaseId as never),
   index(`${prefix}_sourceRecordId_idx`).on(table.sourceRecordId as never),
+]
+
+export const sourceVersionIndexes = <
+  TTable extends {
+    releaseId: unknown
+    sourceRecordId: unknown
+    validFromRelease: unknown
+    validToRelease: unknown
+    isCurrent: unknown
+  },
+>(
+  table: TTable,
+  prefix: string,
+) => [
+  index(`${prefix}_releaseId_idx`).on(table.releaseId as never),
+  index(`${prefix}_sourceRecordId_idx`).on(table.sourceRecordId as never),
+  index(`${prefix}_current_lookup_idx`).on(
+    table.sourceRecordId as never,
+    table.isCurrent as never,
+  ),
+  index(`${prefix}_release_validity_idx`).on(
+    table.validFromRelease as never,
+    table.validToRelease as never,
+  ),
 ]
