@@ -67,7 +67,9 @@ targets_json="$(bun -e '
 
       return {
         bindingName: entry.binding,
+        databaseId: entry.database_id ?? null,
         databaseName: entry.database_name,
+        previewDatabaseId: entry.preview_database_id ?? null,
       };
     });
 
@@ -83,11 +85,17 @@ bindings_csv="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.std
 database_names_csv="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets.map(target => target.databaseName).join(","));' "$targets_json")"
 target_count="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(String(targets.length));' "$targets_json")"
 binding_name="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets[0].bindingName);' "$targets_json")"
+database_id="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets[0].databaseId ?? "");' "$targets_json")"
 database_name="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets[0].databaseName);' "$targets_json")"
+preview_database_id="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets[0].previewDatabaseId ?? "");' "$targets_json")"
+local_database_id="$(bun -e 'const targets = JSON.parse(process.argv[1]); const target = targets[0]; process.stdout.write(target.previewDatabaseId ?? target.databaseId ?? target.bindingName);' "$targets_json")"
 
 printf 'db_family=%q\n' "$db_family"
 printf 'binding_name=%q\n' "$binding_name"
+printf 'database_id=%q\n' "$database_id"
 printf 'database_name=%q\n' "$database_name"
+printf 'preview_database_id=%q\n' "$preview_database_id"
+printf 'local_database_id=%q\n' "$local_database_id"
 printf 'bindings_csv=%q\n' "$bindings_csv"
 printf 'database_names_csv=%q\n' "$database_names_csv"
 printf 'target_count=%q\n' "$target_count"

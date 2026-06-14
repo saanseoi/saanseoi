@@ -114,6 +114,7 @@ export async function getDatasetById(db: HarbourReadableDb, releaseCode: string)
   return (
     (await db
       .select({
+        source: metaPublishers.code,
         datasetId: metaDatasets.id,
         datasetCode: metaDatasets.code,
         releaseId: metaReleases.id,
@@ -122,6 +123,7 @@ export async function getDatasetById(db: HarbourReadableDb, releaseCode: string)
       })
       .from(metaReleases)
       .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+      .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
       .where(eq(metaReleases.code, releaseCode))
       .limit(1)
       .get()) ?? null
