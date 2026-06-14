@@ -1,7 +1,7 @@
 import { createMetaDb } from '@repo/db'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 import { getDatasetRecordByReleaseId } from '@repo/core/db/meta-repository'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 import { handleUploadRequest } from '../../lib/services/ingest'
 import {

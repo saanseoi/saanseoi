@@ -1,6 +1,6 @@
 import { createMetaDb } from '@repo/db'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 import {
   handlePublishDataset,

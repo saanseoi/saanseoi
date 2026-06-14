@@ -9,7 +9,7 @@ import {
   upsertReleaseSetShardAssignment,
   upsertReleaseShardAssignment,
 } from '@repo/core/db/meta-repository'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   AddressI18nPayload,
   AddressRow,

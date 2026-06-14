@@ -7,7 +7,7 @@ import {
   resetFailedDataset,
   updateDatasetStatus,
 } from '../db/meta-repository'
-import type { HarbourReadableDb, HarbourWritableDb } from '../db/repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
 import type {
   DatasetRecord,
   ParquetInspection,
