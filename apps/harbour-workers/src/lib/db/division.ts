@@ -330,11 +330,14 @@ export async function insertDivisionVersionRows(
     throw new Error(`Release set not found for type: ${message.type}`)
   }
   const year = message.sourceVersion.slice(0, 4)
-  const currentShard = await resolveShardForKindRegionYear(
-    metaDb,
-    'current',
-    environment,
-  )
+  const currentShard =
+    (await resolveShardForKindRegionYear(
+      metaDb,
+      'current',
+      environment,
+      message.regionCode,
+      year,
+    )) ?? (await resolveShardForKindRegionYear(metaDb, 'current', environment))
   const historyShard = await resolveShardForKindRegionYear(
     metaDb,
     'history',
@@ -457,7 +460,7 @@ async function insertDivisionVersionsI18nInChunks(
     updatedAt: string
   }>,
 ) {
-  const chunkSize = getMaxRowsPerInsert(14)
+  const chunkSize = getMaxRowsPerInsert(15)
 
   for (const chunk of chunkArray(rows, chunkSize)) {
     await runWithWriteRetry(() =>
