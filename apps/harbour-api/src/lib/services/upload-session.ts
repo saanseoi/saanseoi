@@ -206,7 +206,7 @@ export async function handleFinalizeUploadRequest(
   })
 
   const processingMessage: DatasetProcessingMessage = {
-    datasetId: finalized.plan.datasetId,
+    datasetId: finalized.datasetId ?? dataset.datasetId,
     datasetCode: finalized.plan.datasetCode,
     releaseId: dataset.releaseId,
     releaseCode: finalized.plan.releaseCode,
