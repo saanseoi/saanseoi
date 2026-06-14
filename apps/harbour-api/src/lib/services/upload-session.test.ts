@@ -162,7 +162,7 @@ describe('upload session flow', () => {
       schemaVersionId: 'overture-division-v2025-09-24.0',
     })
 
-    expect(signResult.datasetId).toBe('dataset-overture-hk-division')
+    expect(signResult.datasetId).toBe('overture-hk-division')
     expect(signResult.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
     expect(signResult.uploadUrl).toContain('X-Amz-Algorithm=AWS4-HMAC-SHA256')
 
@@ -191,7 +191,7 @@ describe('upload session flow', () => {
     expect(dataset?.originalFileName).toBe('overture-hk-division.parquet')
     expect(queuedMessages).toEqual([
       {
-        datasetId: 'dataset-overture-hk-division',
+        datasetId: 'overture-hk-division',
         datasetCode: 'hk-division',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
         releaseCode: 'overture-hk-2026-05-24.0-division',

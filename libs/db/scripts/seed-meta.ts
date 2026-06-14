@@ -28,7 +28,7 @@ function sqlNullable(value: string | undefined) {
 }
 
 function makeId(prefix: string, value: string) {
-  return `${prefix}-${value
+  return `${value
     .toLowerCase()
     .replaceAll(/[^a-z0-9]+/g, '-')
     .replaceAll(/^-+|-+$/g, '')}`
