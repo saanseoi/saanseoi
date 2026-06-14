@@ -23,6 +23,25 @@ function normalizeBaseUrl(value: string) {
   return value.trim().replace(/\/+$/, '')
 }
 
+function resolveShardYear(snapshotMonth: string, sourceVersion: string) {
+  const snapshotYear = snapshotMonth.slice(0, 4)
+  const sourceYear = sourceVersion.slice(0, 4)
+
+  if (!/^\d{4}$/.test(snapshotYear) || !/^\d{4}$/.test(sourceYear)) {
+    throw new Error(
+      `Could not resolve shard year from snapshotMonth=${snapshotMonth} and sourceVersion=${sourceVersion}.`,
+    )
+  }
+
+  if (snapshotYear !== sourceYear) {
+    throw new Error(
+      `Shard year mismatch: snapshotMonth=${snapshotMonth} and sourceVersion=${sourceVersion} point to different years.`,
+    )
+  }
+
+  return snapshotYear
+}
+
 export function resolveHarbourBaseUrl(target: UploadTarget) {
   switch (target.environment) {
     case 'dev':
@@ -139,6 +158,10 @@ async function uploadFileViaWorker(
   registerOptions: CliUploadOptions,
   previewResult: UploadPreviewResult,
 ) {
+  const shardYear = resolveShardYear(
+    previewResult.plan.snapshotMonth,
+    previewResult.plan.sourceVersion,
+  )
   const fileBytes = await readFile(registerOptions.filePath)
   const formData = new FormData()
   const file = new File([fileBytes], previewResult.plan.fileName, {
@@ -147,6 +170,7 @@ async function uploadFileViaWorker(
 
   formData.set('file', file)
   formData.set('regionCode', previewResult.plan.regionCode)
+  formData.set('shardYear', shardYear)
   formData.set('snapshotMonth', previewResult.plan.snapshotMonth)
   formData.set('theme', previewResult.plan.theme)
   formData.set('type', previewResult.plan.type)
@@ -168,6 +192,10 @@ async function requestSignedUpload(
   fileSize: number,
   schemaVersionId: string,
 ) {
+  const shardYear = resolveShardYear(
+    previewResult.plan.snapshotMonth,
+    previewResult.plan.sourceVersion,
+  )
   const response = await fetch(buildSignUploadEndpoint(apiBaseUrl), {
     method: 'POST',
     headers: {
@@ -181,6 +209,7 @@ async function requestSignedUpload(
       inspection: previewResult.inspection,
       plan: {
         regionCode: previewResult.plan.regionCode,
+        shardYear,
         source: previewResult.plan.source,
         sourceVersion: previewResult.plan.sourceVersion,
         snapshotMonth: previewResult.plan.snapshotMonth,

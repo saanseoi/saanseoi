@@ -155,13 +155,14 @@ describe('upload session flow', () => {
       fileSize: fixtureBytes.byteLength,
       inspection: fixtureInspection,
       plan: {
+        shardYear: '2026',
         snapshotMonth: '2026-05',
         sourceVersion: '2026-05-24.0',
       },
       schemaVersionId: 'overture-division-v2025-09-24.0',
     })
 
-    expect(signResult.datasetId).toBe('overture-hk-division')
+    expect(signResult.datasetId).toBe('dataset-overture-hk-division')
     expect(signResult.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
     expect(signResult.uploadUrl).toContain('X-Amz-Algorithm=AWS4-HMAC-SHA256')
 
@@ -190,12 +191,13 @@ describe('upload session flow', () => {
     expect(dataset?.originalFileName).toBe('overture-hk-division.parquet')
     expect(queuedMessages).toEqual([
       {
-        datasetId: 'overture-hk-division',
+        datasetId: 'dataset-overture-hk-division',
         datasetCode: 'hk-division',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
         releaseCode: 'overture-hk-2026-05-24.0-division',
         releaseId: signResult.releaseId,
         regionCode: 'hk',
+        shardYear: '2026',
         snapshotMonth: '2026-05',
         source: 'overture',
         sourceVersion: '2026-05-24.0',

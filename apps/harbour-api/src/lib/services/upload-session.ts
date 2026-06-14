@@ -52,6 +52,7 @@ export type SignUploadRequest = {
   inspection: ParquetInspection
   plan: {
     regionCode?: string
+    shardYear?: string
     snapshotMonth?: string
     source?: string
     sourceVersion?: string
@@ -63,6 +64,20 @@ export type SignUploadRequest = {
 
 export type FinalizeUploadRequest = {
   releaseId: string
+}
+
+function resolveShardYear(plan: {
+  shardYear?: string
+  snapshotMonth?: string
+  sourceVersion?: string
+}) {
+  const shardYear = plan.shardYear?.trim()
+
+  if (shardYear) {
+    return shardYear
+  }
+
+  return (plan.snapshotMonth ?? plan.sourceVersion ?? '').slice(0, 4)
 }
 
 export type UploadSigningEnv = {
@@ -212,6 +227,10 @@ export async function handleFinalizeUploadRequest(
     releaseCode: finalized.plan.releaseCode,
     rawObjectKey: finalized.rawObjectKey,
     regionCode: finalized.plan.regionCode,
+    shardYear: resolveShardYear({
+      snapshotMonth: dataset.snapshotMonth,
+      sourceVersion: dataset.sourceVersion,
+    }),
     snapshotMonth: finalized.plan.snapshotMonth,
     source: finalized.plan.source,
     sourceVersion: finalized.plan.sourceVersion,
