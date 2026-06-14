@@ -36,6 +36,9 @@ describe('utils', () => {
       ),
     ).toBe(true)
     expect(getMaxRowsPerInsert(7)).toBeLessThan(20)
+    expect(getMaxRowsPerInsert(15)).toBe(6)
+    expect(getMaxRowsPerInsert(18)).toBe(5)
+    expect(getMaxRowsPerInsert(25)).toBe(3)
     expect(getMaxItemsPerInClause()).toBe(99)
     expect(chunkArray([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]])
   })

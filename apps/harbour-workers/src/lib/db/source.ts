@@ -78,21 +78,21 @@ export async function insertSourceOvertureDivisions(
   db: SourceDatabase,
   rows: Array<typeof sourceSchema.sourceOvertureDivisions.$inferInsert>,
 ) {
-  await insertInChunks(db, sourceSchema.sourceOvertureDivisions, rows, 15)
+  await insertInChunks(db, sourceSchema.sourceOvertureDivisions, rows, 18)
 }
 
 export async function insertSourceOvertureDivisionI18n(
   db: SourceDatabase,
   rows: Array<typeof sourceSchema.sourceOvertureDivisionI18n.$inferInsert>,
 ) {
-  await insertInChunks(db, sourceSchema.sourceOvertureDivisionI18n, rows, 7)
+  await insertInChunks(db, sourceSchema.sourceOvertureDivisionI18n, rows, 9)
 }
 
 export async function insertSourceOvertureAddresses2d(
   db: SourceDatabase,
   rows: Array<typeof sourceSchema.sourceOvertureAddresses2d.$inferInsert>,
 ) {
-  await insertInChunks(db, sourceSchema.sourceOvertureAddresses2d, rows, 11)
+  await insertInChunks(db, sourceSchema.sourceOvertureAddresses2d, rows, 12)
 }
 
 export async function insertSourceOvertureAddress2dI18n(
@@ -106,14 +106,14 @@ export async function insertSourceHkgovAlsAddresses2d(
   db: SourceDatabase,
   rows: Array<typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert>,
 ) {
-  await insertInChunks(db, sourceSchema.sourceHkgovAlsAddresses2d, rows, 21)
+  await insertInChunks(db, sourceSchema.sourceHkgovAlsAddresses2d, rows, 25)
 }
 
 export async function insertSourceHkgovAlsAddress2dI18n(
   db: SourceDatabase,
   rows: Array<typeof sourceSchema.sourceHkgovAlsAddress2dI18n.$inferInsert>,
 ) {
-  await insertInChunks(db, sourceSchema.sourceHkgovAlsAddress2dI18n, rows, 15)
+  await insertInChunks(db, sourceSchema.sourceHkgovAlsAddress2dI18n, rows, 17)
 }
 
 async function insertInChunks<TTable>(

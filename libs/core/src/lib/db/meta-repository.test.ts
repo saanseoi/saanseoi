@@ -62,4 +62,38 @@ describe('resolveShardForKindRegionYear', () => {
       databaseName: 'ss-history-hk-2026-db-preview',
     })
   })
+
+  test('returns the closest scoped current shard for the requested region and year', async () => {
+    const { sqlite, db } = createShardLookupDb()
+
+    sqlite.exec(`
+      INSERT INTO dataShards (
+        id, kind, regionCode, year, environment, databaseName, databaseId, bindingName, status
+      ) VALUES (
+        'current-hk-2026-preview',
+        'current',
+        'hk',
+        '2026',
+        'preview',
+        'ss-current-hk-2026-db-preview',
+        'db-current-hk-2026-preview',
+        'DB_CURRENT',
+        'active'
+      );
+    `)
+
+    const shard = await resolveShardForKindRegionYear(
+      db as never,
+      'current',
+      'preview',
+      'hk',
+      '2025',
+    )
+
+    expect(shard).toEqual({
+      id: 'current-hk-2026-preview',
+      bindingName: 'DB_CURRENT',
+      databaseName: 'ss-current-hk-2026-db-preview',
+    })
+  })
 })
