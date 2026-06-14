@@ -128,6 +128,7 @@ describe('direct upload flow', () => {
     const formData = new FormData()
 
     formData.set('file', file)
+    formData.set('shardYear', '2026')
     formData.set('snapshotMonth', '2026-05')
     formData.set('sourceVersion', '2026-05-24.0')
 
@@ -146,12 +147,13 @@ describe('direct upload flow', () => {
     expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
     expect(queuedMessages).toEqual([
       {
-        datasetId: 'overture-hk-division',
+        datasetId: 'dataset-overture-hk-division',
         datasetCode: 'hk-division',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
         releaseCode: 'overture-hk-2026-05-24.0-division',
         releaseId: result.releaseId,
         regionCode: 'hk',
+        shardYear: '2026',
         snapshotMonth: '2026-05',
         source: 'overture',
         sourceVersion: '2026-05-24.0',

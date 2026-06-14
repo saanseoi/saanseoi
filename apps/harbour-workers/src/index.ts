@@ -38,10 +38,11 @@ function resolveShardBinding(
   env: Partial<MultiDbBindings>,
   kind: 'HISTORY' | 'SOURCE',
   regionCode: string,
+  shardYear: string | undefined,
   snapshotMonth: string,
 ) {
   const bindingName =
-    `DB_${kind}_${toBindingRegion(regionCode)}_${toBindingYear(snapshotMonth)}` as keyof MultiDbBindings
+    `DB_${kind}_${toBindingRegion(regionCode)}_${shardYear ?? toBindingYear(snapshotMonth)}` as keyof MultiDbBindings
 
   return {
     bindingName,
@@ -77,6 +78,7 @@ export function createQueueHandler(
             env,
             'HISTORY',
             message.body.regionCode,
+            message.body.shardYear,
             message.body.snapshotMonth,
           )
 
@@ -90,6 +92,7 @@ export function createQueueHandler(
           env,
           'SOURCE',
           message.body.regionCode,
+          message.body.shardYear,
           message.body.snapshotMonth,
         )
 

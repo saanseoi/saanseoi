@@ -11,6 +11,7 @@ import type {
 type UploadFormFields = {
   filePath: string
   regionCode?: string
+  shardYear?: string
   snapshotMonth?: string
   theme?: string
   type?: string
@@ -65,12 +66,26 @@ function buildUploadFields(fileName: string, formData: FormData): UploadFormFiel
   return {
     filePath: fileName,
     regionCode: getOptionalText(formData, 'regionCode', ['region']),
+    shardYear: getOptionalText(formData, 'shardYear', ['year']),
     snapshotMonth: getOptionalText(formData, 'snapshotMonth', ['month']),
     theme: getOptionalText(formData, 'theme'),
     type: getOptionalText(formData, 'type'),
     source: getOptionalText(formData, 'source'),
     sourceVersion: getOptionalText(formData, 'sourceVersion', ['source-version']),
   }
+}
+
+function resolveShardYear(
+  uploadFields: UploadFormFields,
+  plannedSnapshotMonth: string,
+) {
+  const shardYear = uploadFields.shardYear?.trim()
+
+  if (shardYear) {
+    return shardYear
+  }
+
+  return plannedSnapshotMonth.slice(0, 4)
 }
 
 function createR2SchemaFingerprintResolver(
@@ -152,6 +167,7 @@ export async function handleUploadRequest(
       releaseCode: registered.plan.releaseCode,
       rawObjectKey: registered.rawObjectKey,
       regionCode: registered.plan.regionCode,
+      shardYear: resolveShardYear(uploadFields, registered.plan.snapshotMonth),
       snapshotMonth: registered.plan.snapshotMonth,
       source: registered.plan.source,
       sourceVersion: registered.plan.sourceVersion,

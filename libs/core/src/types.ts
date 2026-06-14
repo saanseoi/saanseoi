@@ -111,6 +111,7 @@ export type DatasetProcessingMessage = {
   releaseCode?: string
   rawObjectKey: string
   regionCode: RegionCode
+  shardYear?: string
   snapshotMonth: string
   source: string
   sourceVersion: string

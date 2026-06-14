@@ -908,6 +908,8 @@ function getRequiredInspection(
 function assertDatasetCanBeReuploaded(
   existingDataset: {
     datasetId: string
+    source?: string
+    datasetCode?: string
     status: string
   },
   allowedExistingStatuses: readonly string[] = [],
@@ -920,8 +922,13 @@ function assertDatasetCanBeReuploaded(
     return
   }
 
+  const datasetIdentifier =
+    existingDataset.source && existingDataset.datasetCode
+      ? `${existingDataset.source}-${existingDataset.datasetCode}`
+      : (existingDataset.datasetCode ?? existingDataset.datasetId)
+
   throw new Error(
-    `Dataset already exists with status ${existingDataset.status}: ${existingDataset.datasetId}`,
+    `Dataset already exists with status ${existingDataset.status}: ${datasetIdentifier}`,
   )
 }
 
