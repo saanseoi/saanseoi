@@ -132,7 +132,7 @@ export async function getCurrentDivisionVersionMap(
             base: options.buildDivisionBaseHashInput(row),
             i18n: localizedRows,
           }),
-          geometry: row.geometry,
+          geometry: row.geometry as GeoJsonGeometry | null,
           id: row.id,
           localizedRows: localizedRows,
           parentId: row.parentDivisionId,
