@@ -27,6 +27,10 @@ function sqlNullable(value: string | undefined) {
   return value == null ? 'NULL' : sqlString(value)
 }
 
+function sqlTimestampMs(value: string) {
+  return `cast(unixepoch(${sqlString(value)}, 'subsecond') * 1000 as integer)`
+}
+
 const sqlUuid =
   "lower(hex(randomblob(4))) || '-' || " +
   "lower(hex(randomblob(2))) || '-' || " +
@@ -173,7 +177,7 @@ for (const releaseSet of initialApiReleaseSets) {
   statements.push(
     `
 INSERT OR IGNORE INTO apiReleaseSets (
-  id, apiVersionId, code, canonicalSchemaVersion, canonicalLogicVersion, status, notes, createdAt, updatedAt
+  id, apiVersionId, code, canonicalSchemaVersion, canonicalLogicVersion, status, publishedAt, validFrom, notes, createdAt, updatedAt
 ) VALUES (
   ${sqlUuid},
   (SELECT id FROM apiVersions WHERE code = ${sqlString(releaseSet.apiVersionCode)}),
@@ -181,6 +185,8 @@ INSERT OR IGNORE INTO apiReleaseSets (
   ${sqlString(releaseSet.canonicalSchemaVersion)},
   ${sqlString(releaseSet.canonicalLogicVersion)},
   ${sqlString(releaseSet.status)},
+  ${sqlTimestampMs(releaseSet.publishedAt)},
+  ${sqlTimestampMs(releaseSet.validFrom)},
   ${sqlString(releaseSet.notes)},
   ${nowSql},
   ${nowSql}
