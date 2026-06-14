@@ -89,7 +89,7 @@ export async function getCurrentAddressVersionMap(
   const i18nRows: AddressI18nPayload[] = []
   const addressIds = rows.map(row => row.id)
 
-  for (const addressIdChunk of chunkArray(addressIds, getMaxItemsPerInClause())) {
+  for (const addressIdChunk of chunkArray(addressIds, getMaxItemsPerInClause(1, 1))) {
     const chunkRows = (await db
       .select({
         addressId: historySchema.address2dVersionsI18n.addressId,
@@ -200,7 +200,7 @@ export async function deleteMissingCurrentAddresses(
     return 0
   }
 
-  for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause())) {
+  for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause(1, 5))) {
     await runWithWriteRetry(() =>
       historyDb
         .update(historySchema.address2dVersions)

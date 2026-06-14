@@ -23,9 +23,13 @@ import {
 import {
   buildSourceDatasetId,
   buildSourceReleaseId,
-  insertSourceOvertureDivisionI18n,
-  insertSourceOvertureDivisions,
-  resetSourceReleaseRows,
+  closeSourceOvertureDivisionVersions,
+  deleteMissingCurrentSourceOvertureDivisions,
+  getCurrentSourceOvertureDivisionMap,
+  insertSourceOvertureDivisionI18nVersions,
+  insertSourceOvertureDivisionVersions,
+  replaceSourceOvertureDivisionI18n,
+  upsertSourceOvertureDivisions,
 } from '../db/source'
 import {
   buildChurnCounts,
@@ -142,10 +146,10 @@ export async function processDivisionDataset(
   let unchangedRows = 0
   let localizedRows = 0
   const statsAccumulator = createLocaleStatsAccumulator()
-
-  if (sourceDb && message.source === 'overture') {
-    await resetSourceReleaseRows(sourceDb, message)
-  }
+  const currentSourceRows =
+    sourceDb && message.source === 'overture'
+      ? await getCurrentSourceOvertureDivisionMap(sourceDb)
+      : null
 
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE)) {
     const sourceRows: Array<typeof sourceSchema.sourceOvertureDivisions.$inferInsert> =
@@ -153,6 +157,13 @@ export async function processDivisionDataset(
     const sourceI18nRows: Array<
       typeof sourceSchema.sourceOvertureDivisionI18n.$inferInsert
     > = []
+    const sourceVersionRows: Array<
+      typeof sourceSchema.sourceOvertureDivisionsVersions.$inferInsert
+    > = []
+    const sourceI18nVersionRows: Array<
+      typeof sourceSchema.sourceOvertureDivisionI18nVersions.$inferInsert
+    > = []
+    const changedSourceIds = new Set<string>()
 
     for (const row of batch) {
       const normalized = normalizeDivisionRow(row)
@@ -188,6 +199,7 @@ export async function processDivisionDataset(
         const releaseId = buildSourceReleaseId(message)
         const datasetId = buildSourceDatasetId(message)
         const sourcePayloadHash = await createHash(row)
+        const currentSource = currentSourceRows?.get(normalized.base.id) ?? null
 
         sourceRows.push({
           releaseId,
@@ -223,6 +235,49 @@ export async function processDivisionDataset(
             isLocaleInferred: localized.isLocaleInferred,
           })),
         )
+
+        if (currentSource?.sourcePayloadHash !== sourcePayloadHash) {
+          changedSourceIds.add(normalized.base.id)
+          sourceVersionRows.push({
+            sourceRecordId: normalized.base.id,
+            versionHash: sourcePayloadHash,
+            releaseId,
+            validFromRelease: message.sourceVersion,
+            validToRelease: null,
+            isCurrent: true,
+            regionCode: message.regionCode,
+            level: normalized.base.level,
+            divisionType: normalized.base.type,
+            subtype: normalized.base.subtype,
+            divisionClass: normalized.base.class,
+            population: normalized.base.population,
+            version: asOptionalInteger(row.version),
+            wikidata: normalized.base.wikidata,
+            geometry: normalized.base.geometry,
+            bbox: normalized.base.bbox,
+            hierarchies: normalized.base.hierarchy,
+            cartography: normalized.base.cartography,
+            sources: normalized.base.sources,
+            rawProperties: row,
+          })
+          sourceI18nVersionRows.push(
+            ...normalized.i18n.map(localized => ({
+              sourceRecordId: normalized.base.id,
+              versionHash: sourcePayloadHash,
+              releaseId,
+              validFromRelease: message.sourceVersion,
+              validToRelease: null,
+              isCurrent: true,
+              locale: localized.locale,
+              name: localized.name,
+              nameVariant: localized.nameVariant,
+              nameAlts: localized.nameAlts,
+              nameRules: localized.nameRules,
+              localType: localized.localType,
+              isLocaleInferred: localized.isLocaleInferred,
+            })),
+          )
+        }
       }
 
       const current = currentRows.get(normalized.base.id)
@@ -264,8 +319,28 @@ export async function processDivisionDataset(
     }
 
     if (sourceDb && message.source === 'overture') {
-      await insertSourceOvertureDivisions(sourceDb, sourceRows)
-      await insertSourceOvertureDivisionI18n(sourceDb, sourceI18nRows)
+      const changedIds = [...changedSourceIds]
+
+      if (changedIds.length > 0) {
+        await closeSourceOvertureDivisionVersions(
+          sourceDb,
+          changedIds,
+          message.sourceVersion,
+        )
+      }
+
+      await upsertSourceOvertureDivisions(sourceDb, sourceRows)
+
+      for (const sourceRecordId of changedIds) {
+        await replaceSourceOvertureDivisionI18n(
+          sourceDb,
+          sourceRecordId,
+          sourceI18nRows.filter(row => row.sourceRecordId === sourceRecordId),
+        )
+      }
+
+      await insertSourceOvertureDivisionVersions(sourceDb, sourceVersionRows)
+      await insertSourceOvertureDivisionI18nVersions(sourceDb, sourceI18nVersionRows)
     }
   }
 
@@ -292,6 +367,15 @@ export async function processDivisionDataset(
     message.releaseId ?? message.datasetId,
     [...buildLocaleStatsRows(statsAccumulator), ...churnStats, ...qualityStats],
   )
+
+  if (sourceDb && message.source === 'overture' && currentSourceRows) {
+    await deleteMissingCurrentSourceOvertureDivisions(
+      sourceDb,
+      message.sourceVersion,
+      currentSourceRows,
+      seenIds,
+    )
+  }
 
   return {
     deletedRows,

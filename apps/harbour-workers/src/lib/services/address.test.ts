@@ -271,4 +271,115 @@ describe('processAddressDataset', () => {
       },
     ])
   })
+
+  test('chunks large changed source address batches below the D1 variable limit', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'address-large-source-batch.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    seedDivisionLookups(sqlite)
+
+    const firstReleaseRows = Array.from({ length: 96 }, (_, index) => ({
+      id: `ovt-address-${index + 1}`,
+      address_levels: ['Hong Kong', 'Central District'],
+      street: 'Queensway',
+      number: String(index + 1),
+      geometry: {
+        type: 'Point',
+        coordinates: [114.165 + index / 10000, 22.278 + index / 10000],
+      },
+      bbox: {
+        minX: 114.164 + index / 10000,
+        minY: 22.277 + index / 10000,
+        maxX: 114.166 + index / 10000,
+        maxY: 22.279 + index / 10000,
+      },
+      sources: [{ dataset: 'overture', recordId: `ovt-address-${index + 1}` }],
+      version: 1,
+    }))
+
+    parquetBatches = [firstReleaseRows]
+    seedAddressRelease(sqlite, 'overture-hk-2026-05-24.0-address', '2026-05', 'staged')
+
+    await processAddressDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createAddressMessage(
+        'overture-hk-2026-05-24.0-address',
+        '2026-05',
+        '2026-05-24.0',
+      ),
+      db as never,
+    )
+
+    parquetBatches = [
+      firstReleaseRows.map(row => ({
+        ...row,
+        geometry: {
+          type: 'Point',
+          coordinates: [
+            row.geometry.coordinates[0] + 0.001,
+            row.geometry.coordinates[1],
+          ],
+        },
+        version: 2,
+      })),
+    ]
+    seedAddressRelease(sqlite, 'overture-hk-2026-06-24.0-address', '2026-06', 'staged')
+
+    await processAddressDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createAddressMessage(
+        'overture-hk-2026-06-24.0-address',
+        '2026-06',
+        '2026-06-24.0',
+      ),
+      db as never,
+    )
+
+    const versionCounts = sqlite
+      .query(
+        `SELECT
+          sum(CASE WHEN isCurrent = 1 THEN 1 ELSE 0 END) as currentCount,
+          sum(CASE WHEN isCurrent = 0 THEN 1 ELSE 0 END) as closedCount
+        FROM sourceOvertureAddresses2dVersions`,
+      )
+      .get() as {
+      closedCount: number
+      currentCount: number
+    }
+
+    expect(versionCounts).toEqual({
+      currentCount: 96,
+      closedCount: 96,
+    })
+  })
 })

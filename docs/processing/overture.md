@@ -56,8 +56,9 @@ The `division` is normalised into `divisions` and `divisionsI18n` where each `lo
 ## Source-table retention
 
 - Overture source rows are retained in the `source` database family so later builders can work from normalized source tables instead of reopening raw uploads.
-- The retained tables are `sourceOvertureDivisions`, `sourceOvertureDivisionI18n`, `sourceOvertureAddresses2d`, `sourceOvertureAddress2dI18n`, `sourceOverturePlaces`, and `sourceOverturePlaceI18n`.
-- Each retained row is keyed to a specific upload through `releaseId`, grouped under its logical dataset through `datasetId`, and matched back to the upstream row through `sourceRecordId`.
+- The current-state source tables are `sourceOvertureDivisions`, `sourceOvertureDivisionI18n`, `sourceOvertureAddresses2d`, `sourceOvertureAddress2dI18n`, `sourceOverturePlaces`, and `sourceOverturePlaceI18n`.
+- Each current-state row is keyed by `sourceRecordId`. `releaseId` records the latest release that observed that current payload, and `datasetId` still points at the logical dataset.
+- Release-deduped history is stored in parallel `...Versions` and `...I18nVersions` tables. These tables only get a new row when `sourcePayloadHash` changes, and older current version rows are closed by setting `validToRelease`.
 - `sourcePayloadHash` is stored so ingestion can cheaply tell whether a source row changed.
 - The address tables only store fields that actually exist in Overture source data. They do not invent Harbour-specific fields such as `buildingName`, `unit`, `floor`, `freeformAddress`, or `formattedAddress`.
 - Localized source text belongs in the i18n tables when we choose to project it, including fields like `locality`, `region`, and `country`.
