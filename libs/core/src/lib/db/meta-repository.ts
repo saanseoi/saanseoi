@@ -114,7 +114,7 @@ export async function getDatasetById(db: HarbourReadableDb, releaseCode: string)
   return (
     (await db
       .select({
-        datasetId: metaReleases.code,
+        datasetId: metaDatasets.id,
         datasetCode: metaDatasets.code,
         releaseId: metaReleases.id,
         releaseCode: metaReleases.code,

@@ -815,7 +815,7 @@ Reconcile the schema before uploading this dataset.`)
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
       }),
     ).rejects.toThrow(
-      'Dataset already exists with status processing: overture-hk-2026-05-24.0-division',
+      'Dataset already exists with status processing: overture-hk-division',
     )
 
     sqlite.close()
