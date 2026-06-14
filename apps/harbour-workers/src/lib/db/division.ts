@@ -85,7 +85,7 @@ export async function getCurrentDivisionVersionMap(
 
   const i18nRows: DivisionI18nPayload[] = []
   const divisionIds = rows.map(row => row.id)
-  const chunkSize = getMaxItemsPerInClause()
+  const chunkSize = getMaxItemsPerInClause(1, 1)
 
   for (const divisionIdChunk of chunkArray(divisionIds, chunkSize)) {
     const chunkRows = (await db
@@ -197,7 +197,7 @@ export async function deleteMissingCurrentDivisions(
   }
 
   const now = new Date().toISOString()
-  const chunkSize = getMaxItemsPerInClause()
+  const chunkSize = getMaxItemsPerInClause(1, 6)
 
   for (const missingIdChunk of chunkArray(missingIds, chunkSize)) {
     await runWithWriteRetry(() =>

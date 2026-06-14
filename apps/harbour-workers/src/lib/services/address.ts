@@ -23,11 +23,20 @@ import {
 import {
   buildSourceDatasetId,
   buildSourceReleaseId,
-  insertSourceHkgovAlsAddress2dI18n,
-  insertSourceHkgovAlsAddresses2d,
-  insertSourceOvertureAddress2dI18n,
-  insertSourceOvertureAddresses2d,
-  resetSourceReleaseRows,
+  closeSourceHkgovAlsAddress2dVersions,
+  closeSourceOvertureAddress2dVersions,
+  deleteMissingCurrentSourceHkgovAlsAddresses2d,
+  deleteMissingCurrentSourceOvertureAddresses2d,
+  getCurrentSourceHkgovAlsAddress2dMap,
+  getCurrentSourceOvertureAddress2dMap,
+  insertSourceHkgovAlsAddress2dI18nVersions,
+  insertSourceHkgovAlsAddresses2dVersions,
+  insertSourceOvertureAddress2dI18nVersions,
+  insertSourceOvertureAddresses2dVersions,
+  replaceSourceHkgovAlsAddress2dI18n,
+  replaceSourceOvertureAddress2dI18n,
+  upsertSourceHkgovAlsAddresses2d,
+  upsertSourceOvertureAddresses2d,
 } from '../db/source'
 import { asNonEmptyString, createHash } from '../utils'
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
@@ -101,14 +110,16 @@ export async function processAddressDataset(
   }
 
   const seenIds = new Set<string>()
+  const seenSourceIds = new Set<string>()
   let processedRows = 0
   let insertedVersions = 0
   let unchangedRows = 0
   let localizedRows = 0
-
-  if (sourceDb) {
-    await resetSourceReleaseRows(sourceDb, message)
-  }
+  const currentSourceRows = !sourceDb
+    ? null
+    : message.source === 'overture'
+      ? await getCurrentSourceOvertureAddress2dMap(sourceDb)
+      : await getCurrentSourceHkgovAlsAddress2dMap(sourceDb)
 
   for await (const batch of readParquetObjectsInBatches(file, ADDRESS_BATCH_SIZE)) {
     const overtureSourceRows: Array<
@@ -123,6 +134,19 @@ export async function processAddressDataset(
     const hkgovSourceI18nRows: Array<
       typeof sourceSchema.sourceHkgovAlsAddress2dI18n.$inferInsert
     > = []
+    const overtureSourceVersionRows: Array<
+      typeof sourceSchema.sourceOvertureAddresses2dVersions.$inferInsert
+    > = []
+    const overtureSourceI18nVersionRows: Array<
+      typeof sourceSchema.sourceOvertureAddress2dI18nVersions.$inferInsert
+    > = []
+    const hkgovSourceVersionRows: Array<
+      typeof sourceSchema.sourceHkgovAlsAddresses2dVersions.$inferInsert
+    > = []
+    const hkgovSourceI18nVersionRows: Array<
+      typeof sourceSchema.sourceHkgovAlsAddress2dI18nVersions.$inferInsert
+    > = []
+    const changedSourceIds = new Set<string>()
 
     for (const row of batch) {
       const normalized =
@@ -150,11 +174,13 @@ export async function processAddressDataset(
       processedRows += 1
       localizedRows += i18n.length
       seenIds.add(addressId)
+      seenSourceIds.add(normalized.sourceId)
 
       if (sourceDb) {
         const releaseId = buildSourceReleaseId(message)
         const datasetId = buildSourceDatasetId(message)
         const sourcePayloadHash = await createHash(row)
+        const currentSource = currentSourceRows?.get(normalized.sourceId) ?? null
 
         if (message.source === 'overture') {
           overtureSourceRows.push({
@@ -185,6 +211,43 @@ export async function processAddressDataset(
               country: null,
             })),
           )
+
+          if (currentSource?.sourcePayloadHash !== sourcePayloadHash) {
+            changedSourceIds.add(normalized.sourceId)
+            overtureSourceVersionRows.push({
+              sourceRecordId: normalized.sourceId,
+              versionHash: sourcePayloadHash,
+              releaseId,
+              validFromRelease: message.sourceVersion,
+              validToRelease: null,
+              isCurrent: true,
+              regionCode: message.regionCode,
+              version: asOptionalInteger(row.version),
+              geometry: base.geometry,
+              bbox: base.bbox,
+              streetName:
+                i18n.find(localized => localized.locale === 'en')?.streetName ?? null,
+              streetNumber:
+                i18n.find(localized => localized.locale === 'en')?.streetNumber ?? null,
+              sources: base.sources,
+              rawProperties: row,
+            })
+            overtureSourceI18nVersionRows.push(
+              ...i18n.map(localized => ({
+                sourceRecordId: normalized.sourceId,
+                versionHash: sourcePayloadHash,
+                releaseId,
+                validFromRelease: message.sourceVersion,
+                validToRelease: null,
+                isCurrent: true,
+                locale: localized.locale,
+                streetName: localized.streetName,
+                locality: null,
+                region: null,
+                country: null,
+              })),
+            )
+          }
         } else {
           hkgovSourceRows.push({
             releaseId,
@@ -247,6 +310,78 @@ export async function processAddressDataset(
                   : asNonEmptyString(row.enDistrict),
             })),
           )
+
+          if (currentSource?.sourcePayloadHash !== sourcePayloadHash) {
+            changedSourceIds.add(normalized.sourceId)
+            hkgovSourceVersionRows.push({
+              sourceRecordId: normalized.sourceId,
+              versionHash: sourcePayloadHash,
+              releaseId,
+              validFromRelease: message.sourceVersion,
+              validToRelease: null,
+              isCurrent: true,
+              regionCode: message.regionCode,
+              geoAddress: asNonEmptyString(row.geoAddress),
+              csuId:
+                asNonEmptyString(row.hkgovCsuId) ?? asNonEmptyString(row.geoAddress),
+              x: asNumber(row.easting),
+              y: asNumber(row.northing),
+              geometry: parseOptionalJson(row.geometryJson),
+              districtCode: null,
+              districtName:
+                asNonEmptyString(row.enDistrict) ??
+                asNonEmptyString(row.zhHantDistrict),
+              estateName:
+                asNonEmptyString(row.enEstateName) ??
+                asNonEmptyString(row.zhHantEstateName),
+              buildingName:
+                asNonEmptyString(row.enBuildingName) ??
+                asNonEmptyString(row.zhHantBuildingName),
+              blockNumber: null,
+              blockDescriptor: null,
+              phaseName: null,
+              phaseNumber: null,
+              floor: null,
+              unit: null,
+              streetNumber:
+                asNonEmptyString(row.enStreetNumberFrom) ??
+                asNonEmptyString(row.zhHantStreetNumberFrom),
+              streetName:
+                asNonEmptyString(row.enStreetName) ??
+                asNonEmptyString(row.zhHantStreetName),
+              villageName: null,
+              dataOwner: 'hkgov-als',
+              rawPayload: row,
+            })
+            hkgovSourceI18nVersionRows.push(
+              ...i18n.map(localized => ({
+                sourceRecordId: normalized.sourceId,
+                versionHash: sourcePayloadHash,
+                releaseId,
+                validFromRelease: message.sourceVersion,
+                validToRelease: null,
+                isCurrent: true,
+                locale: localized.locale,
+                formattedAddress: localized.formattedAddress,
+                buildingName: localized.buildingName,
+                buildingNumberFrom: localized.buildingNumberFrom,
+                buildingNumberTo: localized.buildingNumberTo,
+                blockType: localized.blockType,
+                blockNumber: localized.blockNumber,
+                blockTypeBeforeNumber: localized.blockTypeBeforeNumber,
+                phaseName: localized.phaseName,
+                phaseNumber: localized.phaseNumber,
+                estateName: localized.estateName,
+                streetNumber: localized.streetNumber,
+                streetName: localized.streetName,
+                villageName: null,
+                districtName:
+                  localized.locale === 'zh-hant'
+                    ? asNonEmptyString(row.zhHantDistrict)
+                    : asNonEmptyString(row.enDistrict),
+              })),
+            )
+          }
         }
       }
 
@@ -305,12 +440,56 @@ export async function processAddressDataset(
       continue
     }
 
+    const changedIds = [...changedSourceIds]
+
     if (message.source === 'overture') {
-      await insertSourceOvertureAddresses2d(sourceDb, overtureSourceRows)
-      await insertSourceOvertureAddress2dI18n(sourceDb, overtureSourceI18nRows)
+      if (changedIds.length > 0) {
+        await closeSourceOvertureAddress2dVersions(
+          sourceDb,
+          changedIds,
+          message.sourceVersion,
+        )
+      }
+
+      await upsertSourceOvertureAddresses2d(sourceDb, overtureSourceRows)
+
+      for (const sourceRecordId of changedIds) {
+        await replaceSourceOvertureAddress2dI18n(
+          sourceDb,
+          sourceRecordId,
+          overtureSourceI18nRows.filter(row => row.sourceRecordId === sourceRecordId),
+        )
+      }
+
+      await insertSourceOvertureAddresses2dVersions(sourceDb, overtureSourceVersionRows)
+      await insertSourceOvertureAddress2dI18nVersions(
+        sourceDb,
+        overtureSourceI18nVersionRows,
+      )
     } else {
-      await insertSourceHkgovAlsAddresses2d(sourceDb, hkgovSourceRows)
-      await insertSourceHkgovAlsAddress2dI18n(sourceDb, hkgovSourceI18nRows)
+      if (changedIds.length > 0) {
+        await closeSourceHkgovAlsAddress2dVersions(
+          sourceDb,
+          changedIds,
+          message.sourceVersion,
+        )
+      }
+
+      await upsertSourceHkgovAlsAddresses2d(sourceDb, hkgovSourceRows)
+
+      for (const sourceRecordId of changedIds) {
+        await replaceSourceHkgovAlsAddress2dI18n(
+          sourceDb,
+          sourceRecordId,
+          hkgovSourceI18nRows.filter(row => row.sourceRecordId === sourceRecordId),
+        )
+      }
+
+      await insertSourceHkgovAlsAddresses2dVersions(sourceDb, hkgovSourceVersionRows)
+      await insertSourceHkgovAlsAddress2dI18nVersions(
+        sourceDb,
+        hkgovSourceI18nVersionRows,
+      )
     }
   }
 
@@ -325,6 +504,24 @@ export async function processAddressDataset(
           seenIds,
         )
       : 0
+
+  if (sourceDb && currentSourceRows) {
+    if (message.source === 'overture') {
+      await deleteMissingCurrentSourceOvertureAddresses2d(
+        sourceDb,
+        message.sourceVersion,
+        currentSourceRows,
+        seenSourceIds,
+      )
+    } else {
+      await deleteMissingCurrentSourceHkgovAlsAddresses2d(
+        sourceDb,
+        message.sourceVersion,
+        currentSourceRows,
+        seenSourceIds,
+      )
+    }
+  }
 
   return {
     deletedRows,

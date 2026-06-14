@@ -170,6 +170,145 @@ afterEach(() => {
 })
 
 describe('processDivisionDataset', () => {
+  test('dedupes source overture division releases into current and version tables', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'division-source.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-05-24.0-division',
+      '2026-05',
+      'staged',
+    )
+
+    await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(
+        'overture-hk-2026-05-24.0-division',
+        '2026-05',
+        '2026-05-24.0',
+      ),
+      db as never,
+    )
+
+    const nextBaseRow = baseParquetBatches[0]?.[0]
+
+    if (!nextBaseRow) {
+      throw new Error('Missing base division fixture row.')
+    }
+
+    parquetBatches = [
+      [
+        {
+          ...nextBaseRow,
+          population: 654321,
+          version: 201,
+        },
+      ],
+    ]
+
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-06-24.0-division',
+      '2026-06',
+      'staged',
+    )
+
+    await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(
+        'overture-hk-2026-06-24.0-division',
+        '2026-06',
+        '2026-06-24.0',
+      ),
+      db as never,
+    )
+
+    const currentRows = sqlite
+      .query(
+        "SELECT sourceRecordId, releaseId, population, version FROM sourceOvertureDivisions WHERE sourceRecordId = 'division-hk-island'",
+      )
+      .all() as Array<{
+      sourceRecordId: string
+      releaseId: string
+      population: number | null
+      version: number | null
+    }>
+
+    const versionRows = sqlite
+      .query(
+        "SELECT sourceRecordId, releaseId, validFromRelease, validToRelease, isCurrent, population, version FROM sourceOvertureDivisionsVersions WHERE sourceRecordId = 'division-hk-island' ORDER BY validFromRelease",
+      )
+      .all() as Array<{
+      sourceRecordId: string
+      releaseId: string
+      validFromRelease: string
+      validToRelease: string | null
+      isCurrent: number
+      population: number | null
+      version: number | null
+    }>
+
+    expect(currentRows).toEqual([
+      {
+        sourceRecordId: 'division-hk-island',
+        releaseId: 'release-overture-hk-2026-06-24.0-division',
+        population: 654321,
+        version: 201,
+      },
+    ])
+    expect(versionRows).toEqual([
+      {
+        sourceRecordId: 'division-hk-island',
+        releaseId: 'release-overture-hk-2026-05-24.0-division',
+        validFromRelease: '2026-05-24.0',
+        validToRelease: '2026-06-24.0',
+        isCurrent: 0,
+        population: 123456,
+        version: 101,
+      },
+      {
+        sourceRecordId: 'division-hk-island',
+        releaseId: 'release-overture-hk-2026-06-24.0-division',
+        validFromRelease: '2026-06-24.0',
+        validToRelease: null,
+        isCurrent: 1,
+        population: 654321,
+        version: 201,
+      },
+    ])
+  })
+
   test('applies division dataset changes to current and versioned tables', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'division.sqlite')
