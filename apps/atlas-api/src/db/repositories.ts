@@ -15,8 +15,10 @@ const {
 const { metaDatasets, metaPublishers, metaReleases, newsletterSubscription, user } =
   metaSchema
 
+type RegionCode = 'hk' | 'mo'
+
 type DatasetFilters = {
-  regionCode?: string
+  regionCode?: RegionCode
   snapshotMonth?: string
   theme?: typeof metaDatasets.$inferSelect.theme
   status?: typeof metaReleases.$inferSelect.status
@@ -24,7 +26,7 @@ type DatasetFilters = {
 }
 
 type PlaceLookup = {
-  regionCode: string
+  regionCode: RegionCode
   placeId: string
 }
 
@@ -34,14 +36,14 @@ type I18nLookup = {
 }
 
 type H3Lookup = {
-  regionCode: string
+  regionCode: RegionCode
   h3Level: number
   h3Cell: string
   limit?: number
 }
 
 type FtsLookup = {
-  regionCode: string
+  regionCode: RegionCode
   locale?: string
   query: string
   limit?: number
