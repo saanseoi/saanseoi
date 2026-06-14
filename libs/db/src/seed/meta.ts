@@ -213,6 +213,8 @@ export const initialApiVersions: InitialApiVersionSeed[] = [
   { code: 'ss-divisions-v0.1', status: 'draft' },
 ] as const
 
+const initialApiReleaseSetTimestamp = new Date().toISOString()
+
 type InitialApiEndpointSeed = {
   apiVersionCode: string
   method: ApiEndpointMethod
@@ -308,6 +310,8 @@ type InitialReleaseSetSeed = {
   canonicalSchemaVersion: string
   canonicalLogicVersion: string
   status: ApiReleaseSetStatus
+  publishedAt: string
+  validFrom: string
   notes: string
 }
 
@@ -318,6 +322,8 @@ export const initialApiReleaseSets: InitialReleaseSetSeed[] = [
     canonicalSchemaVersion: 'canon-address-v1',
     canonicalLogicVersion: 'addr-merge-v1',
     status: 'draft',
+    publishedAt: initialApiReleaseSetTimestamp,
+    validFrom: initialApiReleaseSetTimestamp,
     notes: 'Alpha Release',
   },
   {
@@ -326,6 +332,8 @@ export const initialApiReleaseSets: InitialReleaseSetSeed[] = [
     canonicalSchemaVersion: 'canon-place-v1',
     canonicalLogicVersion: 'place-merge-v1',
     status: 'draft',
+    publishedAt: initialApiReleaseSetTimestamp,
+    validFrom: initialApiReleaseSetTimestamp,
     notes: 'Alpha Release',
   },
   {
@@ -334,6 +342,8 @@ export const initialApiReleaseSets: InitialReleaseSetSeed[] = [
     canonicalSchemaVersion: 'canon-division-v1',
     canonicalLogicVersion: 'division-merge-v1',
     status: 'draft',
+    publishedAt: initialApiReleaseSetTimestamp,
+    validFrom: initialApiReleaseSetTimestamp,
     notes: 'Alpha Release',
   },
 ] as const
