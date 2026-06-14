@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+package_dir="$(cd "$script_dir/.." && pwd)"
+
 CHARTDB_DIR="${CHARTDB_DIR:-$HOME/.tools/chartdb}"
 CHARTDB_LOG="/tmp/chartdb-dev.log"
 CHARTDB_PID="/tmp/chartdb-dev.pid"
@@ -11,18 +14,39 @@ if [[ ! -d "$CHARTDB_DIR" ]]; then
   exit 1
 fi
 
+export_schema_sql() {
+  cd "$package_dir"
+
+  local -a schemas=(
+    "meta:./drizzle.meta.config.ts"
+    "current:./drizzle.current.config.ts"
+    "history:./drizzle.history.config.ts"
+    "source:./drizzle.source.config.ts"
+  )
+
+  local entry
+  for entry in "${schemas[@]}"; do
+    local name="${entry%%:*}"
+    local config_path="${entry#*:}"
+
+    printf -- "-- %s schema\n" "$name"
+    bun run drizzle-kit export --config="$config_path" --sql
+    printf '\n'
+  done
+}
+
 if command -v wl-copy >/dev/null 2>&1; then
-  bun run drizzle-kit export --sql | wl-copy
+  export_schema_sql | wl-copy
 elif command -v xclip >/dev/null 2>&1; then
-  bun run drizzle-kit export --sql | xclip -selection clipboard
+  export_schema_sql | xclip -selection clipboard
 elif command -v xsel >/dev/null 2>&1; then
-  bun run drizzle-kit export --sql | xsel --clipboard --input
+  export_schema_sql | xsel --clipboard --input
 else
   echo "No clipboard utility found. Install wl-copy, xclip, or xsel." >&2
   exit 1
 fi
 
-echo "Schema SQL copied to clipboard."
+echo "Merged schema SQL copied to clipboard."
 
 extract_chartdb_url() {
   if [[ -f "$CHARTDB_LOG" ]]; then
