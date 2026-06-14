@@ -27,15 +27,15 @@
     "@iconify/svelte": "^5.2.2",
     "@repo/db": "workspace:*",
     "@repo/i18n": "workspace:*",
-    "better-auth": "~1.6.17",
+    "better-auth": "~1.6.18",
     "bits-ui": "^2.18.1"
   },
   "devDependencies": {
     "@sveltejs/adapter-cloudflare": "^7.2.8",
-    "@sveltejs/kit": "^2.65.0",
+    "@sveltejs/kit": "^2.65.1",
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@tailwindcss/typography": "^0.5.20",
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/vite": "^4.3.1",
     "@types/node": "^25.9.3",
     "@vitest/browser-playwright": "^4.1.3",
     "drizzle-kit": "^0.31.10",
