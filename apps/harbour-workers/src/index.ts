@@ -20,13 +20,41 @@ type Env = Partial<LegacyDbBindings> &
 
 type ProcessDatasetMessageHandler = typeof processDatasetMessage
 
+function toBindingRegion(regionCode: string) {
+  return regionCode.toUpperCase()
+}
+
+function toBindingYear(snapshotMonth: string) {
+  const [year] = snapshotMonth.split('-')
+
+  if (!year) {
+    throw new Error(`Invalid snapshotMonth for shard resolution: ${snapshotMonth}`)
+  }
+
+  return year
+}
+
+function resolveShardBinding(
+  env: Partial<MultiDbBindings>,
+  kind: 'HISTORY' | 'SOURCE',
+  regionCode: string,
+  snapshotMonth: string,
+) {
+  const bindingName =
+    `DB_${kind}_${toBindingRegion(regionCode)}_${toBindingYear(snapshotMonth)}` as keyof MultiDbBindings
+
+  return {
+    bindingName,
+    binding: env[bindingName],
+  }
+}
+
 export function createQueueHandler(
   processDataset: ProcessDatasetMessageHandler = processDatasetMessage,
 ) {
   return async (batch: MessageBatch<DatasetProcessingMessage>, env: Env) => {
     const currentBinding = env.DB_CURRENT ?? env.DB
     const metaBinding = env.DB_META
-    const historyBinding = env.DB_HISTORY_HK_2026
 
     if (!currentBinding) {
       throw new Error('Missing DB_CURRENT binding for harbour-workers.')
@@ -34,16 +62,9 @@ export function createQueueHandler(
     if (!metaBinding) {
       throw new Error('Missing DB_META binding for harbour-workers.')
     }
-    if (!historyBinding) {
-      throw new Error('Missing DB_HISTORY_HK_2026 binding for harbour-workers.')
-    }
 
     const metaDb = createMetaDb(metaBinding)
     const currentDb = createCurrentDb(currentBinding)
-    const historyDb = createHistoryDb(historyBinding)
-    const sourceDb = env.DB_SOURCE_HK_2026
-      ? createSourceDb(env.DB_SOURCE_HK_2026)
-      : undefined
     const harbourClient = createHarbourClient({
       apiKey: env.HARBOUR_API_KEY,
       baseUrl: env.HARBOUR_BASE_URL,
@@ -51,14 +72,35 @@ export function createQueueHandler(
 
     for (const message of batch.messages) {
       try {
+        const { bindingName: historyBindingName, binding: historyBinding } =
+          resolveShardBinding(
+            env,
+            'HISTORY',
+            message.body.regionCode,
+            message.body.snapshotMonth,
+          )
+
+        if (!historyBinding) {
+          throw new Error(
+            `Missing ${String(historyBindingName)} binding for harbour-workers.`,
+          )
+        }
+
+        const { binding: sourceBinding } = resolveShardBinding(
+          env,
+          'SOURCE',
+          message.body.regionCode,
+          message.body.snapshotMonth,
+        )
+
         await processDataset(
           harbourClient,
           metaDb,
           currentDb,
-          historyDb,
+          createHistoryDb(historyBinding),
           env.R2_RAW,
           message.body,
-          sourceDb,
+          sourceBinding ? createSourceDb(sourceBinding) : undefined,
         )
         message.ack()
       } catch (error) {

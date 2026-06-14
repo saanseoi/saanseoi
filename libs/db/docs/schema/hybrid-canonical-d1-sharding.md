@@ -4,7 +4,7 @@ This document proposes the next database shape for Saanseoi.
 
 Beyond this design review artifact, we have:
 
-- new D1 bindings: `DB_META`, `DB_CURRENT`, `DB_HISTORY_HK_2026`, and `DB_SOURCE_HK_2026`
+- new D1 bindings: `DB_META`, `DB_CURRENT`, `DB_HISTORY_HK_2025`, `DB_HISTORY_HK_2026`, `DB_SOURCE_HK_2025`, and `DB_SOURCE_HK_2026`
 - migration artifacts are present under `libs/db/migrations/`
 - existing `DB` bindings remain in place for current code compatibility
 
@@ -629,8 +629,12 @@ Initial shard set:
 - `ss-meta-db-prod`
 - `ss-current-db-preview`
 - `ss-current-db-prod`
+- `ss-history-hk-2025-db-preview`
+- `ss-history-hk-2025-db-prod`
 - `ss-history-hk-2026-db-preview`
 - `ss-history-hk-2026-db-prod`
+- `ss-source-hk-2025-db-preview`
+- `ss-source-hk-2025-db-prod`
 - `ss-source-hk-2026-db-preview`
 - `ss-source-hk-2026-db-prod`
 
@@ -720,7 +724,9 @@ Recommended D1 binding names:
   - existing legacy monolith binding, retained for now
 - `DB_META`
 - `DB_CURRENT`
+- `DB_HISTORY_HK_2025`
 - `DB_HISTORY_HK_2026`
+- `DB_SOURCE_HK_2025`
 - `DB_SOURCE_HK_2026`
 
 These bindings should exist in both preview and production environments.

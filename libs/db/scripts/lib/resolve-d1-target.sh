@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -lt 1 || $# -gt 2 ]]; then
-  echo "Usage: $0 <legacy|meta|current|history|source> [local|preview|production]" >&2
+  echo "Usage: $0 <legacy|meta|current|history|source|history-hk-2025|history-hk-2026|source-hk-2025|source-hk-2026> [local|preview|production]" >&2
   exit 1
 fi
 
@@ -24,11 +24,17 @@ case "$db_family" in
   current)
     binding_name="DB_CURRENT"
     ;;
-  history)
+  history|history-hk-2026)
     binding_name="DB_HISTORY_HK_2026"
     ;;
-  source)
+  history-hk-2025)
+    binding_name="DB_HISTORY_HK_2025"
+    ;;
+  source|source-hk-2026)
     binding_name="DB_SOURCE_HK_2026"
+    ;;
+  source-hk-2025)
+    binding_name="DB_SOURCE_HK_2025"
     ;;
   *)
     echo "Unsupported database family: $db_family" >&2

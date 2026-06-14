@@ -181,6 +181,19 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
+        'data-shard-history-hk-2025-preview',
+        'history',
+        'hk',
+        '2025',
+        'preview',
+        'fixture-history-hk-2025-preview',
+        'fixture-history-hk-2025-preview',
+        'DB_HISTORY_HK_2025',
+        'active',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
         'data-shard-history-hk-2026-preview',
         'history',
         'hk',
@@ -189,6 +202,19 @@ export function seedFixtureCatalog(db: Database) {
         'fixture-history-hk-2026-preview',
         'fixture-history-hk-2026-preview',
         'DB_HISTORY_HK_2026',
+        'active',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'data-shard-source-hk-2025-preview',
+        'source',
+        'hk',
+        '2025',
+        'preview',
+        'fixture-source-hk-2025-preview',
+        'fixture-source-hk-2025-preview',
+        'DB_SOURCE_HK_2025',
         'active',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
@@ -220,6 +246,19 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
+        'data-shard-history-hk-2025-production',
+        'history',
+        'hk',
+        '2025',
+        'production',
+        'fixture-history-hk-2025-production',
+        'fixture-history-hk-2025-production',
+        'DB_HISTORY_HK_2025_PRODUCTION',
+        'active',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
         'data-shard-history-hk-2026-production',
         'history',
         'hk',
@@ -228,6 +267,19 @@ export function seedFixtureCatalog(db: Database) {
         'fixture-history-hk-2026-production',
         'fixture-history-hk-2026-production',
         'DB_HISTORY_HK_2026_PRODUCTION',
+        'active',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'data-shard-source-hk-2025-production',
+        'source',
+        'hk',
+        '2025',
+        'production',
+        'fixture-source-hk-2025-production',
+        'fixture-source-hk-2025-production',
+        'DB_SOURCE_HK_2025_PRODUCTION',
         'active',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
