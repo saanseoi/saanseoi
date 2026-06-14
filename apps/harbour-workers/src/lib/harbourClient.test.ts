@@ -32,7 +32,7 @@ describe('createHarbourControlApi', () => {
       baseUrl: 'http://localhost:8788',
     })
 
-    await api.stageCompleted('dataset-1', 'extractDivisions', {
+    await api.stageCompleted('1', 'extractDivisions', {
       localizedRows: 42,
     })
 
@@ -66,7 +66,7 @@ describe('createHarbourControlApi', () => {
       baseUrl: 'http://localhost:8788',
     })
 
-    await expect(api.publishDataset('dataset-1')).rejects.toThrow('Dataset not found.')
+    await expect(api.publishDataset('1')).rejects.toThrow('Dataset not found.')
     expect(attempts).toBe(1)
   })
 
@@ -103,7 +103,7 @@ describe('createHarbourControlApi', () => {
       baseUrl: 'http://localhost:8788',
     })
 
-    await api.stageStarted('dataset-1', 'extractDivisions')
+    await api.stageStarted('1', 'extractDivisions')
 
     expect(attempts).toBe(2)
   })

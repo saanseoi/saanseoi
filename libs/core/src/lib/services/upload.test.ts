@@ -115,7 +115,7 @@ function seedFixtureCatalog(db: Database) {
       id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, createdAt, updatedAt
     ) VALUES
       (
-        'dataset-overture-hk-division',
+        'overture-hk-division',
         'publisher-overture',
         'hk-division',
         'hk',
@@ -128,7 +128,7 @@ function seedFixtureCatalog(db: Database) {
         1718236800000
       ),
       (
-        'dataset-overture-hk-address',
+        'overture-hk-address',
         'publisher-overture',
         'hk-address',
         'hk',
@@ -141,7 +141,7 @@ function seedFixtureCatalog(db: Database) {
         1718236800000
       ),
       (
-        'dataset-hkgov-hk-address',
+        'hkgov-hk-address',
         'publisher-hkgov',
         'hk-address',
         'hk',

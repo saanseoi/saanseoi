@@ -34,7 +34,7 @@ export function seedFixtureCatalog(db: Database) {
       id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, createdAt, updatedAt
     ) VALUES
       (
-        'dataset-overture-hk-division',
+        'overture-hk-division',
         'publisher-overture',
         'hk-division',
         'hk',
@@ -47,7 +47,7 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'dataset-overture-hk-address',
+        'overture-hk-address',
         'publisher-overture',
         'hk-address',
         'hk',
@@ -60,7 +60,7 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'dataset-hkgov-hk-address',
+        'hkgov-hk-address',
         'publisher-hkgov',
         'hk-address',
         'hk',

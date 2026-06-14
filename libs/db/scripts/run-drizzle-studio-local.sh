@@ -25,12 +25,14 @@ local_db_path="${!local_path_env:-}"
 
 resolve_miniflare_db_path() {
   local target_family="$1"
-  local persist_dir="$repo_root/.local/d1/dev/v3/d1/miniflare-D1DatabaseObject"
+  local miniflare_d1_dir="$repo_root/.local/d1/dev/v3/d1/miniflare-D1DatabaseObject"
   local local_database_id
 
   eval "$(bash "$script_dir/lib/resolve-d1-target.sh" "$target_family" local)"
 
-  bun -e '
+  local resolved_path
+  resolved_path="$(
+    bun -e '
     const crypto = require("node:crypto");
     const path = require("node:path");
 
@@ -44,7 +46,14 @@ resolve_miniflare_db_path() {
     const objectId = Buffer.concat([nameHmac, hmac]).toString("hex");
 
     process.stdout.write(path.join(persistDir, `${objectId}.sqlite`));
-  ' "$persist_dir" "$local_database_id"
+  ' "$miniflare_d1_dir" "$local_database_id"
+  )"
+
+  if [[ ! -f "$resolved_path" ]]; then
+    return 1
+  fi
+
+  printf '%s\n' "$resolved_path"
 }
 
 if [[ -z "$local_db_path" ]]; then
