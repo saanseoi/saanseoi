@@ -27,12 +27,12 @@ function sqlNullable(value: string | undefined) {
   return value == null ? 'NULL' : sqlString(value)
 }
 
-function makeId(prefix: string, value: string) {
-  return `${value
-    .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/g, '-')
-    .replaceAll(/^-+|-+$/g, '')}`
-}
+const sqlUuid =
+  "lower(hex(randomblob(4))) || '-' || " +
+  "lower(hex(randomblob(2))) || '-' || " +
+  "'4' || substr(lower(hex(randomblob(2))), 2) || '-' || " +
+  "substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || " +
+  'lower(hex(randomblob(6)))'
 
 const nowSql = "cast(unixepoch('subsecond') * 1000 as integer)"
 const databaseName = target === 'production' ? 'ss-meta-db-prod' : 'ss-meta-db-preview'
@@ -45,7 +45,7 @@ for (const publisher of initialPublishers) {
 INSERT OR IGNORE INTO publishers (
   id, code, url, contactUrl, parentPublisherId, createdAt, updatedAt
 ) VALUES (
-  ${sqlString(makeId('publisher', publisher.code))},
+  ${sqlUuid},
   ${sqlString(publisher.code)},
   ${sqlNullable(publisher.url)},
   ${sqlNullable(publisher.contactUrl)},
@@ -82,7 +82,7 @@ for (const license of initialLicenses) {
 INSERT OR IGNORE INTO licenses (
   id, code, name, url, createdAt, updatedAt
 ) VALUES (
-  ${sqlString(makeId('license', license.code))},
+  ${sqlUuid},
   ${sqlString(license.code)},
   ${sqlString(license.name)},
   ${sqlNullable(license.url)},
@@ -98,7 +98,7 @@ for (const dataset of initialDatasets) {
 INSERT OR IGNORE INTO datasets (
   id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, licenseId, attribution, category, createdAt, updatedAt
 ) VALUES (
-  ${sqlString(makeId('dataset', `${dataset.publisherCode}-${dataset.code}`))},
+  ${sqlUuid},
   (SELECT id FROM publishers WHERE code = ${sqlString(dataset.publisherCode)}),
   ${sqlString(dataset.code)},
   ${sqlString(dataset.regionCode)},
@@ -122,7 +122,7 @@ for (const apiVersion of initialApiVersions) {
 INSERT OR IGNORE INTO apiVersions (
   id, code, status, createdAt, updatedAt
 ) VALUES (
-  ${sqlString(makeId('api-version', apiVersion.code))},
+  ${sqlUuid},
   ${sqlString(apiVersion.code)},
   ${sqlString(apiVersion.status)},
   ${nowSql},
@@ -137,7 +137,7 @@ for (const endpoint of initialApiEndpoints) {
 INSERT OR IGNORE INTO apiEndpoints (
   id, apiVersionId, method, path, operationId, resourceType, createdAt, updatedAt
 ) VALUES (
-  ${sqlString(makeId('api-endpoint', endpoint.operationId))},
+  ${sqlUuid},
   (SELECT id FROM apiVersions WHERE code = ${sqlString(endpoint.apiVersionCode)}),
   ${sqlString(endpoint.method)},
   ${sqlString(endpoint.path)},
@@ -175,7 +175,7 @@ for (const releaseSet of initialApiReleaseSets) {
 INSERT OR IGNORE INTO apiReleaseSets (
   id, apiVersionId, code, canonicalSchemaVersion, canonicalLogicVersion, status, notes, createdAt, updatedAt
 ) VALUES (
-  ${sqlString(makeId('api-release-set', releaseSet.code))},
+  ${sqlUuid},
   (SELECT id FROM apiVersions WHERE code = ${sqlString(releaseSet.apiVersionCode)}),
   ${sqlString(releaseSet.code)},
   ${sqlString(releaseSet.canonicalSchemaVersion)},
@@ -194,7 +194,7 @@ for (const shard of initialDataShards) {
 INSERT OR IGNORE INTO dataShards (
   id, kind, regionCode, year, environment, databaseName, databaseId, bindingName, status, createdAt, updatedAt
 ) VALUES (
-  ${sqlString(makeId('data-shard', `${shard.environment}-${shard.bindingName}`))},
+  ${sqlUuid},
   ${sqlString(shard.kind)},
   ${sqlNullable(shard.regionCode)},
   ${sqlNullable(shard.year)},
