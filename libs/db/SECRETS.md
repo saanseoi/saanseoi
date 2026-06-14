@@ -12,7 +12,9 @@ The Studio launcher script loads local secrets from env files at the repo root.
 - `bun run db:studio:meta`
 - `bun run db:studio:current`
 - `bun run db:studio:history`
+- `bun run db:studio:history:2025`
 - `bun run db:studio:source`
+- `bun run db:studio:source:2025`
 - `.env`: shared Cloudflare credentials for all Studio targets
 - `.env.local`: local SQLite paths for each DB family
 - `.env.preview.local`: preview D1 database IDs for each DB family
@@ -37,6 +39,8 @@ LOCAL_D1_SQLITE_PATH_HISTORY_HK_2026=/abs/path/to/history-hk-2026.sqlite
 LOCAL_D1_SQLITE_PATH_SOURCE_HK_2025=/abs/path/to/source-hk-2025.sqlite
 LOCAL_D1_SQLITE_PATH_SOURCE_HK_2026=/abs/path/to/source-hk-2026.sqlite
 ```
+
+`db:studio:history` and `db:studio:source` default to the current calendar year. Use the `:2025` variants when you need the older shard explicitly.
 
 Example `.env.preview.local`:
 

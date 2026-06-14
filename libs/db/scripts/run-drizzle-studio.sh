@@ -3,12 +3,13 @@ set -euo pipefail
 
 target="${1:-}"
 db_family="${2:-meta}"
+requested_year="${3:-}"
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 repo_root="$(cd "$script_dir/../../.." && pwd)"
-eval "$(bash "$script_dir/lib/resolve-db-family-config.sh" "$db_family")"
+eval "$(bash "$script_dir/lib/resolve-db-family-config.sh" "$db_family" "$requested_year")"
 
 if [[ "$target" != "preview" && "$target" != "production" ]]; then
-  echo "Usage: $0 <preview|production> [meta|current|history|source]" >&2
+  echo "Usage: $0 <preview|production> [meta|current|history|source] [year]" >&2
   exit 1
 fi
 
@@ -57,5 +58,6 @@ fi
 cd "$repo_root/libs/db"
 exec env \
   CLOUDFLARE_D1_TARGET="$target" \
+  DRIZZLE_DB_YEAR="$drizzle_db_year" \
   "$remote_database_id_env=${!remote_database_id_target_env}" \
   bash "$script_dir/lib/run-drizzle-kit-cli.sh" studio --config="$config_file"
