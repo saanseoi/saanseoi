@@ -1,7 +1,7 @@
 import { createRawObjectKey, planUpload, registerUpload } from '@repo/core/upload'
 import { inspectParquet } from '@repo/core/parquet-inspector'
 
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   DatasetProcessingMessage,
   RegisterUploadResult,

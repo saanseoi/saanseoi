@@ -3,7 +3,7 @@ import { and, desc, eq, isNull, ne, sql } from 'drizzle-orm'
 import { metaSchema } from '@repo/db'
 
 import type { DatasetRecord, RegionCode, SupportedType, UploadPlan } from '../../types'
-import type { HarbourReadableDb, HarbourWritableDb } from './repository'
+import type { HarbourReadableDb, HarbourWritableDb } from './types'
 
 type LatestDatasetLookup = {
   latestDataset: DatasetRecord | null
