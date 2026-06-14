@@ -168,19 +168,6 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'data-shard-current-hk-2026-preview',
-        'current',
-        'hk',
-        '2026',
-        'preview',
-        'fixture-current-hk-2026-preview',
-        'fixture-current-hk-2026-preview',
-        'DB_CURRENT_HK_2026_PREVIEW',
-        'active',
-        ${FIXTURE_TIMESTAMP_MS},
-        ${FIXTURE_TIMESTAMP_MS}
-      ),
-      (
         'data-shard-history-hk-2025-preview',
         'history',
         'hk',
@@ -228,19 +215,6 @@ export function seedFixtureCatalog(db: Database) {
         'fixture-current-production',
         'fixture-current-production',
         'DB_CURRENT_PRODUCTION',
-        'active',
-        ${FIXTURE_TIMESTAMP_MS},
-        ${FIXTURE_TIMESTAMP_MS}
-      ),
-      (
-        'data-shard-current-hk-2026-production',
-        'current',
-        'hk',
-        '2026',
-        'production',
-        'fixture-current-hk-2026-production',
-        'fixture-current-hk-2026-production',
-        'DB_CURRENT_HK_2026_PRODUCTION',
         'active',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}

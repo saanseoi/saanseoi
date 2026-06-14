@@ -63,20 +63,54 @@ describe('resolveShardForKindRegionYear', () => {
     })
   })
 
-  test('returns the closest scoped current shard for the requested region and year', async () => {
+  test('applies year fallback for source shards', async () => {
     const { sqlite, db } = createShardLookupDb()
 
     sqlite.exec(`
       INSERT INTO dataShards (
         id, kind, regionCode, year, environment, databaseName, databaseId, bindingName, status
       ) VALUES (
-        'current-hk-2026-preview',
-        'current',
+        'source-hk-2026-preview',
+        'source',
         'hk',
         '2026',
         'preview',
-        'ss-current-hk-2026-db-preview',
-        'db-current-hk-2026-preview',
+        'ss-source-hk-2026-db-preview',
+        'db-source-hk-2026-preview',
+        'DB_SOURCE_HK_2026',
+        'active'
+      );
+    `)
+
+    const shard = await resolveShardForKindRegionYear(
+      db as never,
+      'source',
+      'preview',
+      'hk',
+      '2025',
+    )
+
+    expect(shard).toEqual({
+      id: 'source-hk-2026-preview',
+      bindingName: 'DB_SOURCE_HK_2026',
+      databaseName: 'ss-source-hk-2026-db-preview',
+    })
+  })
+
+  test('returns the unscoped current shard even when region and year are provided', async () => {
+    const { sqlite, db } = createShardLookupDb()
+
+    sqlite.exec(`
+      INSERT INTO dataShards (
+        id, kind, regionCode, year, environment, databaseName, databaseId, bindingName, status
+      ) VALUES (
+        'current-preview',
+        'current',
+        null,
+        null,
+        'preview',
+        'ss-current-db-preview',
+        'db-current-preview',
         'DB_CURRENT',
         'active'
       );
@@ -91,9 +125,9 @@ describe('resolveShardForKindRegionYear', () => {
     )
 
     expect(shard).toEqual({
-      id: 'current-hk-2026-preview',
+      id: 'current-preview',
       bindingName: 'DB_CURRENT',
-      databaseName: 'ss-current-hk-2026-db-preview',
+      databaseName: 'ss-current-db-preview',
     })
   })
 })

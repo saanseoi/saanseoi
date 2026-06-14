@@ -373,8 +373,6 @@ export const initialDataShards: InitialDataShardSeed[] = [
     databaseName: 'ss-current-db-preview',
     databaseId: '1e704b3f-4374-42ea-b8b2-faca805d11eb',
     status: 'active',
-    regionCode: 'hk',
-    year: '2026',
   },
   {
     bindingName: 'DB_CURRENT',
@@ -383,8 +381,6 @@ export const initialDataShards: InitialDataShardSeed[] = [
     databaseName: 'ss-current-db-prod',
     databaseId: 'c15bf6b3-32a3-4d05-b7d2-1d2e2643037f',
     status: 'active',
-    regionCode: 'hk',
-    year: '2026',
   },
   {
     bindingName: 'DB_HISTORY_HK_2025',

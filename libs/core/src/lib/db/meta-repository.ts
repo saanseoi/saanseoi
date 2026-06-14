@@ -348,11 +348,36 @@ export async function resolveReleaseSetForType(
 
 export async function resolveShardForKindRegionYear(
   db: HarbourReadableDb,
-  kind: 'current' | 'history',
+  kind: 'current' | 'history' | 'source',
   environment: 'preview' | 'production',
   regionCode?: string,
   year?: string,
 ) {
+  if (kind === 'current') {
+    return (
+      ((await db
+        .select({
+          id: metaDataShards.id,
+          bindingName: metaDataShards.bindingName,
+          databaseName: metaDataShards.databaseName,
+        })
+        .from(metaDataShards)
+        .where(
+          and(
+            eq(metaDataShards.kind, kind),
+            eq(metaDataShards.environment, environment),
+            eq(metaDataShards.status, 'active'),
+            isNull(metaDataShards.regionCode),
+            isNull(metaDataShards.year),
+          ),
+        )
+        .limit(1)
+        .get()) as
+        | { id: string; bindingName: string; databaseName: string }
+        | undefined) ?? null
+    )
+  }
+
   const baseConditions = and(
     eq(metaDataShards.kind, kind),
     eq(metaDataShards.environment, environment),
