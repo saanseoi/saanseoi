@@ -6,7 +6,6 @@ Beyond this design review artifact, we have:
 
 - new D1 bindings: `DB_META`, `DB_CURRENT`, `DB_HISTORY_HK_2025`, `DB_HISTORY_HK_2026`, `DB_SOURCE_HK_2025`, and `DB_SOURCE_HK_2026`
 - migration artifacts are present under `libs/db/migrations/`
-- existing `DB` bindings remain in place for current code compatibility
 
 ## Goals
 
@@ -720,8 +719,6 @@ The following names are now the source of truth for phase 1:
 
 Recommended D1 binding names:
 
-- `DB`
-  - existing legacy monolith binding, retained for now
 - `DB_META`
 - `DB_CURRENT`
 - `DB_HISTORY_HK_2025`

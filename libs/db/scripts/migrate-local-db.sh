@@ -2,7 +2,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
-db_family="${1:-legacy}"
+db_family="${1:-all}"
 
 eval "$(bash "$script_dir/lib/resolve-d1-target.sh" "$db_family" local)"
 

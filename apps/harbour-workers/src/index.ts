@@ -3,7 +3,6 @@ import {
   createHistoryDb,
   createMetaDb,
   createSourceDb,
-  type LegacyDbBindings,
   type MultiDbBindings,
 } from '@repo/db'
 import type { DatasetProcessingMessage } from '@repo/core'
@@ -11,12 +10,11 @@ import type { DatasetProcessingMessage } from '@repo/core'
 import { createHarbourClient } from './lib/harbourClient'
 import { processDatasetMessage } from './lib/worker'
 
-type Env = Partial<LegacyDbBindings> &
-  Partial<MultiDbBindings> & {
-    HARBOUR_API_KEY: string
-    HARBOUR_BASE_URL: string
-    R2_RAW: R2Bucket
-  }
+type Env = Partial<MultiDbBindings> & {
+  HARBOUR_API_KEY: string
+  HARBOUR_BASE_URL: string
+  R2_RAW: R2Bucket
+}
 
 type ProcessDatasetMessageHandler = typeof processDatasetMessage
 
@@ -58,7 +56,7 @@ export function createQueueHandler(
   processDataset: ProcessDatasetMessageHandler = processDatasetMessage,
 ) {
   return async (batch: MessageBatch<DatasetProcessingMessage>, env: Env) => {
-    const currentBinding = env.DB_CURRENT ?? env.DB
+    const currentBinding = env.DB_CURRENT
     const metaBinding = env.DB_META
 
     if (!currentBinding) {

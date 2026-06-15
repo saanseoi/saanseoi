@@ -2,7 +2,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
-db_family="${1:-legacy}"
+db_family="${1:-all}"
 environment="${2:-preview}"
 
 case "$environment" in

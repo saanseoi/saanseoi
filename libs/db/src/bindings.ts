@@ -1,7 +1,3 @@
-export type LegacyDbBindings = {
-  DB: D1Database
-}
-
 type ShardedRegionCode = 'HK'
 type ShardedYear = '2025' | '2026'
 
@@ -19,4 +15,4 @@ export type MultiDbBindings = HistoryShardBindings &
     DB_CURRENT: D1Database
   }
 
-export type SaanseoiWorkerBindings = LegacyDbBindings & MultiDbBindings
+export type SaanseoiWorkerBindings = MultiDbBindings

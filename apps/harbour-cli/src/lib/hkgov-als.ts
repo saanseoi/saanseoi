@@ -582,7 +582,7 @@ export function resolveDivisionLookupSource(
 
   if (options.environment === 'production') {
     return {
-      databaseName: 'ss-db-prod',
+      databaseName: 'ss-current-db-prod',
       kind: 'wrangler',
       mode: 'remote',
       wranglerEnv: 'production',
@@ -590,7 +590,7 @@ export function resolveDivisionLookupSource(
   }
 
   return {
-    databaseName: 'ss-db-preview',
+    databaseName: 'ss-current-db-preview',
     kind: 'wrangler',
     mode: 'remote',
     wranglerEnv: 'preview',
