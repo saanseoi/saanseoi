@@ -265,6 +265,7 @@ type FixtureRelease = {
   source: string
   regionCode: string
   type: string
+  theme?: string
   sourceVersion: string
   snapshotMonth: string
   rawObjectKey: string

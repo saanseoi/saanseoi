@@ -54,6 +54,7 @@ export const datasetStatuses = [
 ] as const
 
 export const releaseStatuses = [
+  'uploading',
   'staged',
   'processing',
   'published',

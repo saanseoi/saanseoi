@@ -20,7 +20,7 @@
     "noPropertyAccessFromIndexSignature": false,
     "outDir": "dist",
     "rootDir": "src",
-    "types": ["bun-types", "vitest/globals"],
+    "types": ["bun-types", "vitest/globals", "@cloudflare/workers-types"],
     "paths": {
       "@/*": ["./src/*"],
       "drizzle-orm": ["../db/node_modules/drizzle-orm"],
