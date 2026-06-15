@@ -82,10 +82,19 @@ function resolveShardYear(
   const shardYear = uploadFields.shardYear?.trim()
 
   if (shardYear) {
+    if (!/^\d{4}$/.test(shardYear)) {
+      throw new Error(`Invalid shardYear: "${shardYear}". Expected YYYY.`)
+    }
     return shardYear
   }
 
-  return plannedSnapshotMonth.slice(0, 4)
+  const derivedYear = plannedSnapshotMonth.slice(0, 4)
+  if (!/^\d{4}$/.test(derivedYear)) {
+    throw new Error(
+      `Could not derive shardYear from snapshotMonth="${plannedSnapshotMonth}".`,
+    )
+  }
+  return derivedYear
 }
 
 function createR2SchemaFingerprintResolver(
