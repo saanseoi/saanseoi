@@ -560,6 +560,75 @@ export async function insertIngestRun(
     .run()
 }
 
+export async function ensureIngestRunStarted(
+  db: HarbourReadableDb & HarbourWritableDb,
+  releaseId: string,
+  phase: string,
+  stats: string | null,
+  startedAt: string,
+) {
+  const now = new Date(startedAt)
+
+  await db
+    .insert(ingestRuns)
+    .values({
+      runId: crypto.randomUUID(),
+      releaseId,
+      phase,
+      status: 'running',
+      stats,
+      error: null,
+      startedAt,
+      finishedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoNothing({
+      target: [ingestRuns.releaseId, ingestRuns.phase],
+    })
+    .run()
+}
+
+export async function upsertIngestRunStatus(
+  db: HarbourReadableDb & HarbourWritableDb,
+  releaseId: string,
+  phase: string,
+  status: string,
+  startedAt: string,
+  finishedAt: string | null,
+  stats: string | null,
+  error: string | null = null,
+) {
+  const startedAtDate = new Date(startedAt)
+  const updatedAt = new Date(finishedAt ?? startedAt)
+
+  await db
+    .insert(ingestRuns)
+    .values({
+      runId: crypto.randomUUID(),
+      releaseId,
+      phase,
+      status,
+      stats,
+      error,
+      startedAt,
+      finishedAt,
+      createdAt: startedAtDate,
+      updatedAt,
+    })
+    .onConflictDoUpdate({
+      target: [ingestRuns.releaseId, ingestRuns.phase],
+      set: {
+        status,
+        stats,
+        error,
+        finishedAt,
+        updatedAt,
+      },
+    })
+    .run()
+}
+
 export async function updateLatestOpenIngestRun(
   db: HarbourReadableDb & HarbourWritableDb,
   releaseId: string,
