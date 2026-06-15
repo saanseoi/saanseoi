@@ -20,10 +20,9 @@ The `division` is normalised into `divisions` and `divisionsI18n` where each `lo
 - Division levels follow the taxonomy in `docs/taxonomy.md`, with Overture subtype/class mapped as: `dependency -> 0`, `region -> 2`, `locality.city -> 1`, `locality.town -> 3`, `locality.village -> 5`, `locality.hamlet -> 6`, `macrohood -> 4`, `neighborhood -> 5`, `microhood -> 6`.
 - A taxonomy-facing lowercase `type` is also stored on `divisions` and `divisionsVersions`: `sar`, `area`, `district`, `town`, `macrohood`, `neighbourhood`, `village`, `microhood`, `hamlet`. `locality.city` maps to `area`, `region` maps to `district`, and Hong Kong area names still map to `area`.
 - Hong Kong area names `Hong Kong Island`, `Kowloon`, and `New Territories` are preserved as level `1` areas even when Overture labels them as `region`.
-- `hierarchies` is stored in both `otHierarchyJson` and `hierarchyJson`. The former retains the hierarchy determined by overture, the latter provides a more explicit hierarchy based on local knowledge.
-- `geometry` is decoded from Overture WKB and stored as GeoJSON text in `otGeometryJson`.
-- `population` is stored as `otPopulation`.
-- `sources` is stored in `sourcesJson` wrapped as `{ "overture": ... }` so downstream consumers can distinguish Overture lineage from other source-specific payloads.
+- `hierarchies` is stored in `hierarchy`, which retains the hierarchy determined by overture.
+- `geometry` is decoded from Overture WKB and stored as GeoJSON text in `geometry`.
+- `sources` is stored sources, wrapped as `{ "overture": ... }` so downstream consumers can distinguish Overture lineage from other source-specific payloads.
 - The following Overture division fields are dropped:
   - `admin_level`: dropped because Harbour standardizes on taxonomy-derived `level` and `type` values instead of persisting raw Overture admin-level lineage.
   - `capital_division_ids`: dropped because the Hong Kong dataset only uses it sparsely and it is not meaningful enough for current SAR-focused use cases.
@@ -40,12 +39,9 @@ The `division` is normalised into `divisions` and `divisionsI18n` where each `lo
 - `releaseId` points to the exact uploaded release, `datasetId` points to the logical dataset, and `sourceRecordId` points to the row inside that source release.
 - For the first address pass, Overture is intended to contribute:
   - `id` -> Harbour `address2d.id` using the GERS UID directly.
-  - `geometry` -> GeoJSON point text in `geometryJson`.
-  - `bbox` -> `otBboxJson`.
-  - `street` -> `otStreet`.
-  - `number` -> `otNumber`.
-  - `version` -> `otVersion`.
-  - `sources` -> `sourcesJson` as `{ "overture": [...] }`, with null and empty source object properties removed.
+  - `geometry` -> GeoJSON point text in `geometry`.
+  - `bbox` -> `bbox`.
+  - `sources` -> `sources` as `{ "overture": [...] }`, with null and empty source object properties removed.
 - The following Overture address fields are dropped:
   - `postcode`: dropped because Hong Kong addresses do not use postal codes in Harbour’s current model or matching flow.
 - District matching for Overture HK addresses is intended to use the second `address_levels` entry against the English `divisionsI18n.otName` of the level-2 district rows.
@@ -62,4 +58,3 @@ The `division` is normalised into `divisions` and `divisionsI18n` where each `lo
 - `sourcePayloadHash` is stored so ingestion can cheaply tell whether a source row changed.
 - The address tables only store fields that actually exist in Overture source data. They do not invent Harbour-specific fields such as `buildingName`, `unit`, `floor`, `freeformAddress`, or `formattedAddress`.
 - Localized source text belongs in the i18n tables when we choose to project it, including fields like `locality`, `region`, and `country`.
-- Source content that is not yet promoted into first-class columns remains available in JSON fields such as `rawPropertiesJson`, `sourcesJson`, `hierarchiesJson`, and `taxonomyHierarchyJson`.

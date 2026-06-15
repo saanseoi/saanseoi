@@ -259,7 +259,7 @@ export async function processAddressDataset(
             csuId: asNonEmptyString(row.hkgovCsuId) ?? asNonEmptyString(row.geoAddress),
             x: asNumber(row.easting),
             y: asNumber(row.northing),
-            geometry: parseOptionalJson(row.geometryJson),
+            geometry: parseOptionalJson(row.geometry),
             districtCode: null,
             districtName:
               asNonEmptyString(row.enDistrict) ?? asNonEmptyString(row.zhHantDistrict),
@@ -326,7 +326,7 @@ export async function processAddressDataset(
                 asNonEmptyString(row.hkgovCsuId) ?? asNonEmptyString(row.geoAddress),
               x: asNumber(row.easting),
               y: asNumber(row.northing),
-              geometry: parseOptionalJson(row.geometryJson),
+              geometry: parseOptionalJson(row.geometry),
               districtCode: null,
               districtName:
                 asNonEmptyString(row.enDistrict) ??

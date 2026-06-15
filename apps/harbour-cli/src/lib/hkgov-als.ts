@@ -112,9 +112,9 @@ type PreparedHkgovAlsRow = {
   snapshotMonth: string
   sourceVersion: string
   sourceFile: string
-  geometryJson: string | null
-  identifiersJson: string | null
-  sourcesJson: string
+  geometry: string | null
+  identifiers: string | null
+  sources: string
   areaId: string | null
   districtId: string | null
   countryId: string | null
@@ -205,7 +205,7 @@ export async function prepareHkgovAlsAddressParquet(
   }
 
   await mkdir(dirname(outputFile), { recursive: true })
-  await parquetWriteFile({
+  parquetWriteFile({
     filename: outputFile,
     rowGroupSize: 5000,
     columnData: [
@@ -250,16 +250,16 @@ export async function prepareHkgovAlsAddressParquet(
         false,
       ),
       jsonColumn(
-        'geometryJson',
-        rows.map(row => row.geometryJson),
+        'geometry',
+        rows.map(row => row.geometry),
       ),
       jsonColumn(
-        'identifiersJson',
-        rows.map(row => row.identifiersJson),
+        'identifiers',
+        rows.map(row => row.identifiers),
       ),
       jsonColumn(
-        'sourcesJson',
-        rows.map(row => row.sourcesJson),
+        'sources',
+        rows.map(row => row.sources),
         false,
       ),
       stringColumn(
@@ -415,7 +415,7 @@ function normalizeHkgovAlsFeature(
   const districtId =
     resolveMappedId(divisionMaps.districtByEn, districtNameEn) ??
     resolveMappedId(divisionMaps.districtByZh, districtNameZhHant)
-  const sourcesJson =
+  const sources =
     stringifyJson({
       hkgovAls: {
         geoAddress,
@@ -434,9 +434,9 @@ function normalizeHkgovAlsFeature(
     snapshotMonth,
     sourceVersion,
     sourceFile,
-    geometryJson: stringifyJson(feature.geometry ?? null),
-    identifiersJson: csuId ? stringifyJson({ hkgovCsuId: csuId }) : null,
-    sourcesJson,
+    geometry: stringifyJson(feature.geometry ?? null),
+    identifiers: csuId ? stringifyJson({ hkgovCsuId: csuId }) : null,
+    sources,
     areaId,
     districtId,
     countryId: divisionMaps.countryId,

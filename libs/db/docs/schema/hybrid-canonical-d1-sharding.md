@@ -388,7 +388,7 @@ They hold the latest active row only and are optimized for live API reads.
 
 - `id`
 - `regionCode`
-- `geometryJson`
+- `geometry`
 - `bboxJson`
 - `countryId`
 - `areaId`
@@ -400,7 +400,7 @@ They hold the latest active row only and are optimized for live API reads.
 - `hamletId`
 - `microhoodId`
 - `streetId`
-- `identifiersJson`
+- `identifiers`
 - `currentVersionId`
 - `createdAt`
 - `updatedAt`
@@ -447,7 +447,7 @@ They store only actual changes with validity windows over release sets.
 - `id`
 - `addressId`
 - `regionCode`
-- `geometryJson`
+- `geometry`
 - `bboxJson`
 - `countryId`
 - `areaId`
@@ -459,7 +459,7 @@ They store only actual changes with validity windows over release sets.
 - `hamletId`
 - `microhoodId`
 - `streetId`
-- `identifiersJson`
+- `identifiers`
 - `validFromReleaseSetId`
 - `validToReleaseSetId`
 - `isCurrent`

@@ -380,18 +380,17 @@ describe('processDivisionDataset', () => {
 
     const divisionsRows = sqlite
       .query(
-        "SELECT id, level, type, geometry AS otGeometryJson, population AS otPopulation, parentDivisionId, hierarchy AS otHierarchyJson, hierarchy AS hierarchyJson, sources AS sourcesJson FROM divisions WHERE id != 'saanseoi-cn-prc' ORDER BY id",
+        "SELECT id, level, type, geometry, population, parentDivisionId, hierarchy, sources FROM divisions WHERE id != 'saanseoi-cn-prc' ORDER BY id",
       )
       .all() as Array<{
       id: string
       level: number
       type: string
-      otGeometryJson: string | null
-      otPopulation: number | null
+      geometry: string | null
+      population: number | null
       parentDivisionId: string | null
-      otHierarchyJson: string | null
-      hierarchyJson: string | null
-      sourcesJson: string | null
+      hierarchy: string | null
+      sources: string | null
     }>
     const i18nRows = sqlite
       .query(
@@ -437,24 +436,22 @@ describe('processDivisionDataset', () => {
     expect(divisionsRows).toEqual([
       {
         id: 'division-central',
-        hierarchyJson: '[{"ids":["division-hk-island","division-central"]}]',
         level: 2,
-        otGeometryJson: '{"type":"Point","coordinates":[114.15769,22.28171]}',
-        otPopulation: null,
-        otHierarchyJson: '[{"ids":["division-hk-island","division-central"]}]',
+        geometry: '{"type":"Point","coordinates":[114.15769,22.28171]}',
+        population: null,
+        hierarchy: '[{"ids":["division-hk-island","division-central"]}]',
         parentDivisionId: 'division-hk-island',
-        sourcesJson: '{"overture":[{"dataset":"overture"}]}',
+        sources: '{"overture":[{"dataset":"overture"}]}',
         type: 'district',
       },
       {
         id: 'division-hk-island',
-        hierarchyJson: '[{"ids":["division-hk-island"]}]',
         level: 1,
-        otGeometryJson: '{"type":"Point","coordinates":[114.158229,22.281884]}',
-        otPopulation: 123456,
-        otHierarchyJson: '[{"ids":["division-hk-island"]}]',
+        geometry: '{"type":"Point","coordinates":[114.158229,22.281884]}',
+        population: 123456,
+        hierarchy: '[{"ids":["division-hk-island"]}]',
         parentDivisionId: null,
-        sourcesJson: '{"overture":[{"dataset":"overture"}]}',
+        sources: '{"overture":[{"dataset":"overture"}]}',
         type: 'area',
       },
     ])
@@ -1306,19 +1303,15 @@ describe('processDivisionDataset', () => {
     )
 
     const row = sqlite
-      .query(
-        "SELECT hierarchy AS otHierarchyJson, hierarchy AS hierarchyJson FROM divisions WHERE id = 'division-wrapped-hierarchy'",
-      )
+      .query("SELECT hierarchy FROM divisions WHERE id = 'division-wrapped-hierarchy'")
       .get() as {
-      otHierarchyJson: string | null
-      hierarchyJson: string | null
+      hierarchy: string | null
     }
 
     sqlite.close()
 
     expect(row).toEqual({
-      otHierarchyJson: '[{"ids":["division-hk-island","division-wrapped-hierarchy"]}]',
-      hierarchyJson: '[{"ids":["division-hk-island","division-wrapped-hierarchy"]}]',
+      hierarchy: '[{"ids":["division-hk-island","division-wrapped-hierarchy"]}]',
     })
   })
 
@@ -1735,6 +1728,11 @@ describe('processDivisionDataset', () => {
         "SELECT count(*) as count FROM divisionsVersions WHERE isCurrent = 1 AND id != 'saanseoi-cn-prc'",
       )
       .get() as { count: number }
+    const currentI18nVersions = sqlite
+      .query(
+        "SELECT count(*) as count FROM divisionsVersionsI18n WHERE isCurrent = 1 AND divisionId != 'saanseoi-cn-prc'",
+      )
+      .get() as { count: number }
 
     sqlite.close()
 
@@ -1746,5 +1744,6 @@ describe('processDivisionDataset', () => {
     expect(remainingDivisions.count).toBe(0)
     expect(remainingI18n.count).toBe(0)
     expect(currentVersions.count).toBe(0)
+    expect(currentI18nVersions.count).toBe(0)
   })
 })
