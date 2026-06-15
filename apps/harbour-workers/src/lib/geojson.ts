@@ -1,4 +1,6 @@
-export type GeoJsonPosition = number[]
+export type GeoJsonPosition =
+  | [longitude: number, latitude: number]
+  | [longitude: number, latitude: number, elevation: number]
 
 export type GeoJsonGeometry =
   | {
@@ -15,7 +17,7 @@ export type GeoJsonGeometry =
     }
   | {
       type: 'MultiPolygon'
-      coordinates: GeoJsonPosition[][][][]
+      coordinates: GeoJsonPosition[][][]
     }
   | {
       type: 'GeometryCollection'
