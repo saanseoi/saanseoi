@@ -41,14 +41,13 @@ function resolveShardBinding(
   shardYear: string | undefined,
   snapshotMonth: string,
 ) {
+  const normalizedShardYear = shardYear?.trim()
+  const resolvedYear =
+    normalizedShardYear && normalizedShardYear.length > 0
+      ? normalizedShardYear
+      : toBindingYear(snapshotMonth)
   const bindingName =
-const normalizedShardYear = shardYear?.trim()
-const resolvedYear =
-  normalizedShardYear && normalizedShardYear.length > 0
-    ? normalizedShardYear
-    : toBindingYear(snapshotMonth)
-const bindingName =
-  `DB_${kind}_${toBindingRegion(regionCode)}_${resolvedYear}` as keyof MultiDbBindings
+    `DB_${kind}_${toBindingRegion(regionCode)}_${resolvedYear}` as keyof MultiDbBindings
   return {
     bindingName,
     binding: env[bindingName],
