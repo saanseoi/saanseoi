@@ -133,6 +133,13 @@ describe('direct upload flow', () => {
     formData.set('sourceVersion', '2026-05-24.0')
 
     const result = await handleUploadRequest(db, bucket, queue, formData)
+
+    if (!result.releaseId) {
+      throw new Error(
+        'Expected non-null releaseId from handleUploadRequest in test setup.',
+      )
+    }
+
     const ingestRuns = sqlite
       .query(
         'SELECT ir.phase, ir.status FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ? ORDER BY ir.startedAt ASC',

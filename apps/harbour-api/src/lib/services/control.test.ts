@@ -131,6 +131,71 @@ describe('control service', () => {
     expect(release.status).toBe('failed')
   })
 
+  test('treats retried stage callbacks as idempotent per release phase', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-control-retries.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const { releaseId } = insertFixtureRelease(sqlite, {
+      releaseId: 'release-overture-hk-2025-09-24.0-address',
+      source: 'overture',
+      regionCode: 'hk',
+      snapshotMonth: '2025-09',
+      type: 'address',
+      sourceVersion: '2025-09-24.0',
+      rawObjectKey: 'hk/overture/2025-09-24.0/address.parquet',
+      originalFileName: 'address.parquet',
+      status: 'staged',
+      ingestedAt: '2026-06-05T00:00:00.000Z',
+      createdAt: '2026-06-05T00:00:00.000Z',
+      updatedAt: '2026-06-05T00:00:00.000Z',
+    })
+
+    await handleStageStarted(db, {
+      releaseId,
+      phase: 'extractAddresses',
+    })
+    await handleStageStarted(db, {
+      releaseId,
+      phase: 'extractAddresses',
+    })
+    await handleStageCompleted(db, {
+      releaseId,
+      phase: 'extractAddresses',
+      stats: {
+        processedRows: 12,
+      },
+    })
+    await handleStageCompleted(db, {
+      releaseId,
+      phase: 'extractAddresses',
+      stats: {
+        processedRows: 12,
+      },
+    })
+
+    const ingestRuns = sqlite
+      .query(
+        'SELECT phase, status, stats, finishedAt FROM ingestRuns WHERE releaseId = ? ORDER BY startedAt ASC',
+      )
+      .all(releaseId) as Array<{
+      finishedAt: string | null
+      phase: string
+      stats: string | null
+      status: string
+    }>
+
+    sqlite.close()
+
+    expect(ingestRuns).toHaveLength(1)
+    expect(ingestRuns[0]).toMatchObject({
+      phase: 'extractAddresses',
+      status: 'completed',
+      stats: '"{\\"processedRows\\":12}"',
+    })
+    expect(ingestRuns[0]?.finishedAt).not.toBeNull()
+  })
+
   test('marks the superseded monthly dataset historic when publishing a new current dataset', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-publish-historic.sqlite')
