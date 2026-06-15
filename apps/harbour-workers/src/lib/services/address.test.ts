@@ -11,6 +11,7 @@ import {
   seedFixtureCatalog,
 } from '../../../../../libs/core/src/testing/meta-fixtures'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
+import { insertSourceOvertureAddress2dI18nVersions } from '../db/source'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
 const migrationSql = loadMigrationSql(migrationsDir)
@@ -381,5 +382,34 @@ describe('processAddressDataset', () => {
       currentCount: 96,
       closedCount: 96,
     })
+  })
+
+  test('chunks overture address i18n version inserts below the D1 variable limit', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'address-i18n-versions.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    const rows = Array.from({ length: 9 }, (_, index) => ({
+      sourceRecordId: `ovt-address-${index + 1}`,
+      versionHash: `hash-${index + 1}`,
+      releaseId: 'release-overture-hk-2026-06-24.0-address',
+      validFromRelease: '2026-06-24.0',
+      validToRelease: null,
+      isCurrent: true,
+      locale: index % 2 === 0 ? 'en' : 'zh-hant',
+      streetName: `Street ${index + 1}`,
+      locality: null,
+      region: null,
+      country: null,
+    }))
+
+    await insertSourceOvertureAddress2dI18nVersions(db as never, rows)
+
+    const insertedCount = sqlite
+      .query('SELECT count(*) as count FROM sourceOvertureAddress2dI18nVersions')
+      .get() as { count: number }
+
+    expect(insertedCount.count).toBe(9)
   })
 })
