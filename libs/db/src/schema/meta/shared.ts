@@ -11,19 +11,25 @@ import { ingestRunStatuses } from '../../constants/schema'
 import { metaReleases } from './datasets'
 import { jsonText, timestamps } from './_shared'
 
-export const ingestRuns = sqliteTable('ingestRuns', {
-  runId: text('runId').primaryKey(),
-  releaseId: text('releaseId')
-    .notNull()
-    .references(() => metaReleases.id),
-  phase: text('phase').notNull(),
-  status: text('status', { enum: ingestRunStatuses }).notNull(),
-  stats: jsonText('stats'),
-  error: jsonText('error'),
-  startedAt: text('startedAt').notNull(),
-  finishedAt: text('finishedAt'),
-  ...timestamps,
-})
+export const ingestRuns = sqliteTable(
+  'ingestRuns',
+  {
+    runId: text('runId').primaryKey(),
+    releaseId: text('releaseId')
+      .notNull()
+      .references(() => metaReleases.id),
+    phase: text('phase').notNull(),
+    status: text('status', { enum: ingestRunStatuses }).notNull(),
+    stats: jsonText('stats'),
+    error: jsonText('error'),
+    startedAt: text('startedAt').notNull(),
+    finishedAt: text('finishedAt'),
+    ...timestamps,
+  },
+  table => [
+    uniqueIndex('ingestRuns_release_phase_unique_idx').on(table.releaseId, table.phase),
+  ],
+)
 
 export const stats = sqliteTable(
   'stats',
