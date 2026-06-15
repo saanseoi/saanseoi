@@ -184,15 +184,15 @@ CREATE TABLE `placesDivision` (
 	CONSTRAINT `fk_placesDivision_divisionId_divisions_id_fk` FOREIGN KEY (`divisionId`) REFERENCES `divisions`(`id`)
 );
 --> statement-breakpoint
-CREATE TABLE `placesFts` (
-	`placeId` text NOT NULL,
-	`locale` text NOT NULL,
-	`nameText` text,
-	`brandText` text,
-	`taxonomyText` text,
-	`addressText` text,
-	`divisionText` text,
-	`streetText` text
+CREATE VIRTUAL TABLE `placesFts` USING fts5(
+	`placeId`,
+	`locale`,
+	`nameText`,
+	`brandText`,
+	`taxonomyText`,
+	`addressText`,
+	`divisionText`,
+	`streetText`
 );
 --> statement-breakpoint
 CREATE TABLE `placesI18n` (
