@@ -38,7 +38,34 @@ async function runBatchWithWriteRetry(
   db: SourceDatabase,
   statements: [SourceBatchItem, ...SourceBatchItem[]],
 ) {
-  return runWithWriteRetry(() => db.batch(statements))
+  return runWithWriteRetry(async () => {
+    if ('batch' in db && typeof db.batch === 'function') {
+      return db.batch(statements)
+    }
+
+    const results = []
+
+    for (const statement of statements) {
+      const runnable = statement as unknown as {
+        execute?: () => Promise<unknown>
+        run?: () => Promise<unknown>
+      }
+
+      if (typeof runnable.run === 'function') {
+        results.push(await runnable.run())
+        continue
+      }
+
+      if (typeof runnable.execute === 'function') {
+        results.push(await runnable.execute())
+        continue
+      }
+
+      throw new Error('Unsupported source batch statement: missing run/execute method.')
+    }
+
+    return results
+  })
 }
 
 export async function getCurrentSourceOvertureDivisionMap(db: SourceDatabase) {
