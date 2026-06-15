@@ -377,15 +377,17 @@ function buildDatasetStatsRow(
     groupValue: string
   },
 ): DatasetStatsRow {
+  const timestampDate = new Date(timestamp)
+
   return {
-    createdAt: timestamp,
+    createdAt: timestampDate,
     dimension,
     groupBy: grouping?.groupBy ?? null,
     groupValue: grouping?.groupValue ?? null,
     metric,
     metricUnit,
     type: 'dataset',
-    updatedAt: timestamp,
+    updatedAt: timestampDate,
     value,
   }
 }

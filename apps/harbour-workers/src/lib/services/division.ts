@@ -8,7 +8,7 @@ import type {
   SourceDatabase,
 } from '@repo/db'
 import type { DivisionI18nPayload, DivisionRow } from '@repo/db/currentSchema'
-import type { GeoJsonGeometry } from '../geojson'
+import type { GeoJsonGeometry, GeoJsonPosition } from '../geojson'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
@@ -1162,21 +1162,22 @@ function readWkbGeometry(reader: ReturnType<typeof createWkbReader>): GeoJsonGeo
       return {
         type: 'MultiPoint',
         coordinates: readWkbNestedGeometries(reader, 'Point').map(
-          geometry => geometry.coordinates,
+          geometry => (geometry as GeoJsonGeometry & { type: 'Point' }).coordinates,
         ),
       }
     case 5:
       return {
         type: 'MultiLineString',
         coordinates: readWkbNestedGeometries(reader, 'LineString').map(
-          geometry => geometry.coordinates,
+          geometry =>
+            (geometry as GeoJsonGeometry & { type: 'LineString' }).coordinates,
         ),
       }
     case 6:
       return {
         type: 'MultiPolygon',
         coordinates: readWkbNestedGeometries(reader, 'Polygon').map(
-          geometry => geometry.coordinates,
+          geometry => (geometry as GeoJsonGeometry & { type: 'Polygon' }).coordinates,
         ),
       }
     case 7:
@@ -1193,13 +1194,13 @@ function readWkbCoordinate(
   reader: ReturnType<typeof createWkbReader>,
   hasZ: boolean,
   hasM: boolean,
-) {
+): GeoJsonPosition {
   const x = reader.readFloat64()
   const y = reader.readFloat64()
-  const coordinates = [x, y]
+  let coordinates: GeoJsonPosition = [x, y]
 
   if (hasZ) {
-    coordinates.push(reader.readFloat64())
+    coordinates = [x, y, reader.readFloat64()]
   }
 
   if (hasM) {
@@ -1215,7 +1216,7 @@ function readWkbCoordinateArray(
   hasM: boolean,
 ) {
   const count = reader.readUint32()
-  const coordinates: number[][] = []
+  const coordinates: GeoJsonPosition[] = []
 
   for (let index = 0; index < count; index += 1) {
     coordinates.push(readWkbCoordinate(reader, hasZ, hasM))
@@ -1230,7 +1231,7 @@ function readWkbPolygonCoordinates(
   hasM: boolean,
 ) {
   const ringCount = reader.readUint32()
-  const coordinates: number[][][] = []
+  const coordinates: GeoJsonPosition[][] = []
 
   for (let index = 0; index < ringCount; index += 1) {
     coordinates.push(readWkbCoordinateArray(reader, hasZ, hasM))
