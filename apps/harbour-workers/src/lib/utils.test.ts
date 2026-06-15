@@ -39,6 +39,7 @@ describe('utils', () => {
     expect(getMaxRowsPerInsert(15)).toBe(6)
     expect(getMaxRowsPerInsert(18)).toBe(5)
     expect(getMaxRowsPerInsert(25)).toBe(3)
+    expect(getMaxRowsPerInsert(11, 3)).toBe(8)
     expect(getMaxItemsPerInClause()).toBe(99)
     expect(getMaxItemsPerInClause(1, 4)).toBe(95)
     expect(getMaxItemsPerInClause(2, 5)).toBe(47)

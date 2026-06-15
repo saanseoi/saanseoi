@@ -295,7 +295,7 @@ export async function insertSourceOvertureAddress2dI18nVersions(
     db,
     sourceSchema.sourceOvertureAddress2dI18nVersions,
     rows,
-    10,
+    11,
     [
       sourceSchema.sourceOvertureAddress2dI18nVersions.sourceRecordId,
       sourceSchema.sourceOvertureAddress2dI18nVersions.versionHash,
@@ -556,7 +556,7 @@ async function replaceCurrentI18nRows<TTable extends { sourceRecordId: unknown }
     return
   }
 
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount))) {
+  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
     await runWithWriteRetry(() =>
       db
         .insert(table as never)
@@ -577,7 +577,7 @@ async function insertVersionRows<TTable>(
     return
   }
 
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount))) {
+  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
     await runWithWriteRetry(() =>
       db
         .insert(table as never)

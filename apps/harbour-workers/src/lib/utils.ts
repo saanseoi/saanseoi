@@ -9,8 +9,11 @@ const LOCALE_TAG_RE = /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i
 /**
  * Derives a safe insert batch size from the number of columns per row.
  */
-export function getMaxRowsPerInsert(columnCount: number) {
-  return Math.max(1, Math.floor(D1_MAX_SQL_VARIABLES / columnCount))
+export function getMaxRowsPerInsert(columnCount: number, fixedVariableCount = 0) {
+  return Math.max(
+    1,
+    Math.floor((D1_MAX_SQL_VARIABLES - fixedVariableCount) / columnCount),
+  )
 }
 
 /**
