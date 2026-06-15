@@ -220,6 +220,7 @@ CREATE TABLE `ingestRuns` (
 	CONSTRAINT `fk_ingestRuns_releaseId_releases_id_fk` FOREIGN KEY (`releaseId`) REFERENCES `releases`(`id`)
 );
 --> statement-breakpoint
+CREATE UNIQUE INDEX `ingestRuns_release_phase_unique_idx` ON `ingestRuns` (`releaseId`,`phase`);--> statement-breakpoint
 CREATE TABLE `stats` (
 	`id` text PRIMARY KEY,
 	`type` text NOT NULL,
