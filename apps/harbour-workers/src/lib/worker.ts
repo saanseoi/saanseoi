@@ -57,11 +57,10 @@ export function createProcessDatasetMessage(
     message: DatasetProcessingMessage,
     sourceDb?: SourceDatabase,
   ): Promise<ProcessDatasetResult | ProcessAddressDatasetResult> {
-    if (!message.releaseId) {
+    const releaseId = message.releaseId ?? message.datasetId
+    if (!releaseId) {
       throw new Error('Missing releaseId in dataset processing message.')
     }
-
-    const releaseId = message.releaseId
     const activePhases = new Set<string>()
     await harbourClient.stageStarted(releaseId, 'processDataset')
     activePhases.add('processDataset')
