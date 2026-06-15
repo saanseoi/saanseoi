@@ -176,6 +176,23 @@ export async function closeCurrentDivisionVersion(
       )
       .run(),
   )
+
+  await runWithWriteRetry(() =>
+    db
+      .update(historySchema.divisionsVersionsI18n)
+      .set({
+        isCurrent: false,
+        validToReleaseSetId: releaseSetId,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(historySchema.divisionsVersionsI18n.divisionId, divisionId),
+          eq(historySchema.divisionsVersionsI18n.isCurrent, true),
+        ),
+      )
+      .run(),
+  )
 }
 
 /**
@@ -214,6 +231,23 @@ export async function deleteMissingCurrentDivisions(
             eq(historySchema.divisionsVersions.regionCode, regionCode),
             eq(historySchema.divisionsVersions.isCurrent, true),
             inArray(historySchema.divisionsVersions.id, missingIdChunk),
+          ),
+        )
+        .run(),
+    )
+
+    await runWithWriteRetry(() =>
+      historyDb
+        .update(historySchema.divisionsVersionsI18n)
+        .set({
+          isCurrent: false,
+          validToReleaseSetId: releaseSetId,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(historySchema.divisionsVersionsI18n.isCurrent, true),
+            inArray(historySchema.divisionsVersionsI18n.divisionId, missingIdChunk),
           ),
         )
         .run(),
