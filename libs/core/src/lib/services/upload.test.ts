@@ -1,17 +1,15 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import {
-  mkdirSync,
-  mkdtempSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 
+import {
+  insertFixtureRelease,
+  loadMigrationSql,
+  seedFixtureCatalog,
+} from '../../testing/meta-fixtures'
 import {
   finalizeUpload,
   createSchemaFingerprint,
@@ -33,22 +31,7 @@ import { metaReleases } from '@repo/db/metaSchema'
 import type { ParquetInspection } from '../../types'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
-function collectSqlFiles(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
-    const entryPath = join(dir, entry.name)
-
-    if (entry.isDirectory()) {
-      return collectSqlFiles(entryPath)
-    }
-
-    return entry.name.endsWith('.sql') ? [entryPath] : []
-  })
-}
-
-const migrationSql = collectSqlFiles(migrationsDir)
-  .sort()
-  .map(filePath => readFileSync(filePath, 'utf8'))
-  .join('\n')
+const migrationSql = loadMigrationSql(migrationsDir)
 const tempDirs: string[] = []
 const fixtureInspection: ParquetInspection = {
   rowCount: 3,
@@ -103,147 +86,6 @@ function initDb(dbPath: string) {
   seedFixtureCatalog(db)
 
   return db
-}
-
-function seedFixtureCatalog(db: Database) {
-  db.exec(`
-    INSERT OR IGNORE INTO publishers (id, code, createdAt, updatedAt) VALUES
-      ('publisher-overture', 'overture', 1718236800000, 1718236800000),
-      ('publisher-hkgov', 'hkgov', 1718236800000, 1718236800000);
-
-    INSERT OR IGNORE INTO datasets (
-      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, createdAt, updatedAt
-    ) VALUES
-      (
-        'overture-hk-division',
-        'publisher-overture',
-        'hk-division',
-        'hk',
-        'static',
-        'monthly',
-        'divisions',
-        'division',
-        'https://docs.overturemaps.org/',
-        1718236800000,
-        1718236800000
-      ),
-      (
-        'overture-hk-address',
-        'publisher-overture',
-        'hk-address',
-        'hk',
-        'static',
-        'monthly',
-        'addresses',
-        'address',
-        'https://docs.overturemaps.org/schema/reference/addresses/address/',
-        1718236800000,
-        1718236800000
-      ),
-      (
-        'hkgov-hk-address',
-        'publisher-hkgov',
-        'hk-address',
-        'hk',
-        'static',
-        'monthly',
-        'addresses',
-        'address',
-        'https://data.gov.hk/en-data/dataset/hk-ogcio-st_div_01-als',
-        1718236800000,
-        1718236800000
-      );
-  `)
-}
-
-function insertFixtureRelease(
-  sqlite: Database,
-  release: {
-    source: string
-    regionCode: string
-    type: string
-    theme: string
-    sourceVersion: string
-    snapshotMonth: string
-    rawObjectKey: string
-    originalFileName: string
-    status: string
-    ingestedAt: string
-    createdAt: string
-    updatedAt: string
-    supersededByReleaseCode?: string | null
-    revokedAt?: string | null
-    revocationReason?: string | null
-  },
-) {
-  const datasetCode = `${release.regionCode}-${release.type}`
-  const releaseCode = `${release.source}-${release.regionCode}-${release.sourceVersion}-${release.type}`
-  const releaseId = `release-${releaseCode}`
-  const supersededByReleaseId = release.supersededByReleaseCode
-    ? `release-${release.supersededByReleaseCode}`
-    : null
-  const publisherCode = release.source === 'hkgov-als' ? 'hkgov' : release.source
-
-  sqlite
-    .query(
-      `
-        INSERT INTO releases (
-          id,
-          datasetId,
-          code,
-          sourceVersion,
-          snapshotMonth,
-          rawObjectKey,
-          originalFileName,
-          status,
-          revokedAt,
-          revocationReason,
-          supersededByReleaseId,
-          ingestedAt,
-          createdAt,
-          updatedAt
-        ) VALUES (
-          ?1,
-          (
-            SELECT d.id
-            FROM datasets d
-            JOIN publishers p ON p.id = d.publisherId
-            WHERE p.code = ?2 AND d.code = ?3
-          ),
-          ?4,
-          ?5,
-          ?6,
-          ?7,
-          ?8,
-          ?9,
-          ?10,
-          ?11,
-          ?12,
-          ?13,
-          ?14,
-          ?15
-        )
-      `,
-    )
-    .run(
-      releaseId,
-      publisherCode,
-      datasetCode,
-      releaseCode,
-      release.sourceVersion,
-      release.snapshotMonth,
-      release.rawObjectKey,
-      release.originalFileName,
-      release.status,
-      release.revokedAt ? new Date(release.revokedAt).getTime() : null,
-      release.revocationReason ?? null,
-      supersededByReleaseId,
-      new Date(release.ingestedAt).getTime(),
-      new Date(release.createdAt).getTime(),
-      new Date(release.updatedAt).getTime(),
-    )
-
-  return releaseCode
 }
 
 afterEach(() => {
