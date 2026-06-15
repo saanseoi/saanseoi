@@ -65,7 +65,6 @@ function createEnv(
 
   return {
     env: {
-      DB: db,
       DB_META: db,
       DB_CURRENT: db,
       DB_HISTORY_HK_2025: db,

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -lt 1 || $# -gt 2 ]]; then
-  echo "Usage: $0 <legacy|meta|current|history|source|history-hk-2025|history-hk-2026|source-hk-2025|source-hk-2026> [local|preview|production]" >&2
+  echo "Usage: $0 <all|meta|current|history|source|history-hk-2025|history-hk-2026|source-hk-2025|source-hk-2026> [local|preview|production]" >&2
   exit 1
 fi
 
@@ -39,7 +39,11 @@ targets_json="$(bun -e '
   const entries = envConfig?.d1_databases ?? config.d1_databases ?? [];
 
   const bindingMatchers = {
-    legacy: binding => binding === "DB",
+    all: binding =>
+      binding === "DB_META" ||
+      binding === "DB_CURRENT" ||
+      /^DB_HISTORY_[A-Z]{2}_\d{4}$/.test(binding) ||
+      /^DB_SOURCE_[A-Z]{2}_\d{4}$/.test(binding),
     meta: binding => binding === "DB_META",
     current: binding => binding === "DB_CURRENT",
     history: binding => /^DB_HISTORY_[A-Z]{2}_\d{4}$/.test(binding),

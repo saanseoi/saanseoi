@@ -46,7 +46,7 @@ describe('harbour-workers', () => {
         retryAll() {},
       } as unknown as MessageBatch<DatasetProcessingMessage>,
       {
-        DB: {} as D1Database,
+        DB_CURRENT: {} as D1Database,
         DB_HISTORY_HK_2025: {} as D1Database,
         DB_META: {} as D1Database,
         DB_SOURCE_HK_2025: {} as D1Database,
