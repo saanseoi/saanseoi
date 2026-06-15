@@ -6,7 +6,11 @@ export type SupportedType = (typeof SUPPORTED_TYPES)[number]
 export type RegionCode = 'hk' | 'mo'
 
 export type DatasetRecord = {
+  id: string
   datasetId: string
+  datasetCode: string
+  releaseId: string
+  releaseCode: string
   regionCode: string
   snapshotMonth: string
   theme: string
@@ -17,6 +21,7 @@ export type DatasetRecord = {
   originalFileName: string
   status: string
   supersedesDatasetId: string | null
+  supersededByReleaseId: string | null
   revokedAt: string | null
   revocationReason: string | null
   ingestedAt: string
@@ -46,6 +51,8 @@ export type SchemaFingerprintResolver = (
 
 export type UploadPlan = {
   datasetId: string
+  datasetCode: string
+  releaseCode: string
   regionCode: RegionCode
   snapshotMonth: string
   theme: SupportedTheme
@@ -92,13 +99,19 @@ export type PreparedUploadResult = {
 export type RegisterUploadResult = {
   plan: UploadPlan
   inspection: ParquetInspection
+  datasetId: string | null
   rawObjectKey: string | null
+  releaseId: string | null
 }
 
 export type DatasetProcessingMessage = {
   datasetId: string
+  datasetCode?: string
+  releaseId?: string
+  releaseCode?: string
   rawObjectKey: string
   regionCode: RegionCode
+  shardYear?: string
   snapshotMonth: string
   source: string
   sourceVersion: string

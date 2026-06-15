@@ -35,14 +35,14 @@ describe('resolveDivisionLookupSource', () => {
 
   test('uses remote Wrangler D1 for preview and production', () => {
     expect(resolveDivisionLookupSource({ environment: 'preview' })).toEqual({
-      databaseName: 'ss-db-preview',
+      databaseName: 'ss-current-db-preview',
       kind: 'wrangler',
       mode: 'remote',
       wranglerEnv: 'preview',
     })
 
     expect(resolveDivisionLookupSource({ environment: 'production' })).toEqual({
-      databaseName: 'ss-db-prod',
+      databaseName: 'ss-current-db-prod',
       kind: 'wrangler',
       mode: 'remote',
       wranglerEnv: 'production',

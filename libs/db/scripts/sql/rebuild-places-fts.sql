@@ -24,18 +24,18 @@ INSERT INTO "placesFts" (
 SELECT
   p."id" AS "placeId",
   pi."locale" AS "locale",
-  TRIM(COALESCE(pi."otName", '') || ' ' || COALESCE(pi."otNameAlts", '')) AS "nameText",
-  TRIM(COALESCE(pi."otBrandName", '') || ' ' || COALESCE(pi."otBrandNameAlts", '')) AS "brandText",
+  TRIM(COALESCE(pi."name", '') || ' ' || COALESCE(pi."nameAlts", '')) AS "nameText",
+  TRIM(COALESCE(pi."brandName", '') || ' ' || COALESCE(pi."brandNameAlts", '')) AS "brandText",
   TRIM(
-    COALESCE(p."otBasicCategory", '') || ' ' ||
-    COALESCE(p."otTaxonomyPrimary", '') || ' ' ||
-    COALESCE(p."otTaxonomyHierarchyJson", '')
+    COALESCE(p."basicCategory", '') || ' ' ||
+    COALESCE(p."taxonomyPrimary", '') || ' ' ||
+    COALESCE(p."taxonomyHierarchy", '')
   ) AS "taxonomyText",
   TRIM(
     COALESCE(a2."formattedAddress", '') || ' ' ||
     COALESCE(a3."formattedAddressPart", '')
   ) AS "addressText",
-  COALESCE(GROUP_CONCAT(DISTINCT di."otName"), '') AS "divisionText",
+  COALESCE(GROUP_CONCAT(DISTINCT di."name"), '') AS "divisionText",
   COALESCE(MAX(si."name"), '') AS "streetText"
 FROM "places" p
 JOIN "placesI18n" pi
@@ -59,12 +59,12 @@ LEFT JOIN "divisionsI18n" di
 GROUP BY
   p."id",
   pi."locale",
-  pi."otName",
-  pi."otNameAlts",
-  pi."otBrandName",
-  pi."otBrandNameAlts",
-  p."otBasicCategory",
-  p."otTaxonomyPrimary",
-  p."otTaxonomyHierarchyJson",
+  pi."name",
+  pi."nameAlts",
+  pi."brandName",
+  pi."brandNameAlts",
+  p."basicCategory",
+  p."taxonomyPrimary",
+  p."taxonomyHierarchy",
   a2."formattedAddress",
   a3."formattedAddressPart";

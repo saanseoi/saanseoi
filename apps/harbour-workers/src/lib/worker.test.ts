@@ -35,6 +35,8 @@ describe('processDatasetMessage', () => {
         stageStarted,
       },
       {} as never,
+      {} as never,
+      {} as never,
       {
         async head() {
           return { size: 1 }
@@ -49,6 +51,8 @@ describe('processDatasetMessage', () => {
       },
       {
         datasetId: 'overture-hk-2026-05-24.0-division',
+        releaseCode: 'overture-hk-2026-05-24.0-division',
+        releaseId: 'release-overture-hk-2026-05-24.0-division',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
         regionCode: 'hk',
         snapshotMonth: '2026-05',
@@ -73,22 +77,24 @@ describe('processDatasetMessage', () => {
         [string, string]
       >,
     ).toEqual([
-      ['overture-hk-2026-05-24.0-division', 'processDataset'],
-      ['overture-hk-2026-05-24.0-division', 'extractDivisions'],
-      ['overture-hk-2026-05-24.0-division', 'extractDivisionsI18n'],
-      ['overture-hk-2026-05-24.0-division', 'publishDataset'],
+      ['release-overture-hk-2026-05-24.0-division', 'processDataset'],
+      ['release-overture-hk-2026-05-24.0-division', 'extractDivisions'],
+      ['release-overture-hk-2026-05-24.0-division', 'extractDivisionsI18n'],
+      ['release-overture-hk-2026-05-24.0-division', 'publishDataset'],
     ])
     expect(
       stageCompleted.mock.calls.map(call => call.slice(0, 2)) as unknown as Array<
         [string, string]
       >,
     ).toEqual([
-      ['overture-hk-2026-05-24.0-division', 'extractDivisions'],
-      ['overture-hk-2026-05-24.0-division', 'extractDivisionsI18n'],
-      ['overture-hk-2026-05-24.0-division', 'publishDataset'],
-      ['overture-hk-2026-05-24.0-division', 'processDataset'],
+      ['release-overture-hk-2026-05-24.0-division', 'extractDivisions'],
+      ['release-overture-hk-2026-05-24.0-division', 'extractDivisionsI18n'],
+      ['release-overture-hk-2026-05-24.0-division', 'publishDataset'],
+      ['release-overture-hk-2026-05-24.0-division', 'processDataset'],
     ])
-    expect(publishDataset).toHaveBeenCalledWith('overture-hk-2026-05-24.0-division')
+    expect(publishDataset).toHaveBeenCalledWith(
+      'release-overture-hk-2026-05-24.0-division',
+    )
     expect(stageFailed).toHaveBeenCalledTimes(0)
   })
 
@@ -120,6 +126,8 @@ describe('processDatasetMessage', () => {
         stageStarted,
       },
       {} as never,
+      {} as never,
+      {} as never,
       {
         async head() {
           return { size: 1 }
@@ -134,6 +142,8 @@ describe('processDatasetMessage', () => {
       },
       {
         datasetId: 'overture-hk-2025-10-22.0-address',
+        releaseCode: 'overture-hk-2025-10-22.0-address',
+        releaseId: 'release-overture-hk-2025-10-22.0-address',
         rawObjectKey: 'hk/overture/2025-10-22.0/address.parquet',
         regionCode: 'hk',
         snapshotMonth: '2025-10',
@@ -157,22 +167,24 @@ describe('processDatasetMessage', () => {
         [string, string]
       >,
     ).toEqual([
-      ['overture-hk-2025-10-22.0-address', 'processDataset'],
-      ['overture-hk-2025-10-22.0-address', 'extractAddresses'],
-      ['overture-hk-2025-10-22.0-address', 'extractAddressesI18n'],
-      ['overture-hk-2025-10-22.0-address', 'publishDataset'],
+      ['release-overture-hk-2025-10-22.0-address', 'processDataset'],
+      ['release-overture-hk-2025-10-22.0-address', 'extractAddresses'],
+      ['release-overture-hk-2025-10-22.0-address', 'extractAddressesI18n'],
+      ['release-overture-hk-2025-10-22.0-address', 'publishDataset'],
     ])
     expect(
       stageCompleted.mock.calls.map(call => call.slice(0, 2)) as unknown as Array<
         [string, string]
       >,
     ).toEqual([
-      ['overture-hk-2025-10-22.0-address', 'extractAddresses'],
-      ['overture-hk-2025-10-22.0-address', 'extractAddressesI18n'],
-      ['overture-hk-2025-10-22.0-address', 'publishDataset'],
-      ['overture-hk-2025-10-22.0-address', 'processDataset'],
+      ['release-overture-hk-2025-10-22.0-address', 'extractAddresses'],
+      ['release-overture-hk-2025-10-22.0-address', 'extractAddressesI18n'],
+      ['release-overture-hk-2025-10-22.0-address', 'publishDataset'],
+      ['release-overture-hk-2025-10-22.0-address', 'processDataset'],
     ])
-    expect(publishDataset).toHaveBeenCalledWith('overture-hk-2025-10-22.0-address')
+    expect(publishDataset).toHaveBeenCalledWith(
+      'release-overture-hk-2025-10-22.0-address',
+    )
     expect(stageFailed).toHaveBeenCalledTimes(0)
   })
 })

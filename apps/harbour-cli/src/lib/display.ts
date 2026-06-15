@@ -127,7 +127,8 @@ export function describeTarget(target: UploadTarget) {
  */
 export function formatPlan(result: UploadPreviewResult) {
   return [
-    formatField('datasetId', result.plan.datasetId),
+    formatField('datasetCode', result.plan.datasetCode),
+    formatField('releaseCode', result.plan.releaseCode),
     formatField(
       'source',
       result.plan.source,
@@ -154,7 +155,6 @@ export function formatPlan(result: UploadPreviewResult) {
       describeInferredFrom('type', result.plan.inferredFrom.type),
     ),
     formatField('rows', result.plan.rowCount),
-    formatField('supersedes', result.plan.supersedesDatasetId ?? '-'),
   ]
 }
 

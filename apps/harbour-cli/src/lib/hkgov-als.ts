@@ -112,9 +112,9 @@ type PreparedHkgovAlsRow = {
   snapshotMonth: string
   sourceVersion: string
   sourceFile: string
-  geometryJson: string | null
-  identifiersJson: string | null
-  sourcesJson: string
+  geometry: string | null
+  identifiers: string | null
+  sources: string
   areaId: string | null
   districtId: string | null
   countryId: string | null
@@ -205,7 +205,7 @@ export async function prepareHkgovAlsAddressParquet(
   }
 
   await mkdir(dirname(outputFile), { recursive: true })
-  await parquetWriteFile({
+  parquetWriteFile({
     filename: outputFile,
     rowGroupSize: 5000,
     columnData: [
@@ -250,16 +250,16 @@ export async function prepareHkgovAlsAddressParquet(
         false,
       ),
       jsonColumn(
-        'geometryJson',
-        rows.map(row => row.geometryJson),
+        'geometry',
+        rows.map(row => row.geometry),
       ),
       jsonColumn(
-        'identifiersJson',
-        rows.map(row => row.identifiersJson),
+        'identifiers',
+        rows.map(row => row.identifiers),
       ),
       jsonColumn(
-        'sourcesJson',
-        rows.map(row => row.sourcesJson),
+        'sources',
+        rows.map(row => row.sources),
         false,
       ),
       stringColumn(
@@ -415,6 +415,15 @@ function normalizeHkgovAlsFeature(
   const districtId =
     resolveMappedId(divisionMaps.districtByEn, districtNameEn) ??
     resolveMappedId(divisionMaps.districtByZh, districtNameZhHant)
+  const sources =
+    stringifyJson({
+      hkgovAls: {
+        geoAddress,
+        hkgovCsuId: csuId,
+        snapshotMonth,
+        sourceFile,
+      },
+    }) ?? '{}'
 
   return {
     id,
@@ -425,16 +434,9 @@ function normalizeHkgovAlsFeature(
     snapshotMonth,
     sourceVersion,
     sourceFile,
-    geometryJson: stringifyJson(feature.geometry ?? null),
-    identifiersJson: csuId ? stringifyJson({ hkgovCsuId: csuId }) : null,
-    sourcesJson: stringifyJson({
-      hkgovAls: {
-        geoAddress,
-        hkgovCsuId: csuId,
-        snapshotMonth,
-        sourceFile,
-      },
-    })!,
+    geometry: stringifyJson(feature.geometry ?? null),
+    identifiers: csuId ? stringifyJson({ hkgovCsuId: csuId }) : null,
+    sources,
     areaId,
     districtId,
     countryId: divisionMaps.countryId,
@@ -488,7 +490,7 @@ function loadDivisionLookupRowsFromSqlite(explicitDbPath: string) {
     return sqlite
       .query(
         `
-          SELECT d.id, d.level, d.type, di.locale, di.otName
+          SELECT d.id, d.level, d.type, di.locale, di.name
           FROM divisions d
           JOIN divisionsI18n di ON di.divisionId = d.id
           WHERE di.locale IN ('en', 'zh-hant')
@@ -517,7 +519,7 @@ async function loadDivisionLookupRowsFromWrangler(
     '--json',
     '--command',
     `
-      SELECT d.id, d.level, d.type, di.locale, di.otName
+      SELECT d.id, d.level, d.type, di.locale, di.name
       FROM divisions d
       JOIN divisionsI18n di ON di.divisionId = d.id
       WHERE di.locale IN ('en', 'zh-hant')
@@ -580,7 +582,7 @@ export function resolveDivisionLookupSource(
 
   if (options.environment === 'production') {
     return {
-      databaseName: 'ss-db-prod',
+      databaseName: 'ss-current-db-prod',
       kind: 'wrangler',
       mode: 'remote',
       wranglerEnv: 'production',
@@ -588,7 +590,7 @@ export function resolveDivisionLookupSource(
   }
 
   return {
-    databaseName: 'ss-db-preview',
+    databaseName: 'ss-current-db-preview',
     kind: 'wrangler',
     mode: 'remote',
     wranglerEnv: 'preview',
@@ -599,7 +601,7 @@ type DivisionLookupRow = {
   id: string
   level: number
   locale: string
-  otName: string | null
+  name: string | null
   type: string
 }
 
@@ -611,32 +613,32 @@ function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookup
   let countryId: string | null = null
 
   for (const row of rows) {
-    if (!row.otName) {
+    if (!row.name) {
       continue
     }
 
     if (row.level === 1 || row.type === 'area') {
       if (row.locale === 'en') {
-        areaByEn.set(normalizeEnKey(row.otName), row.id)
+        areaByEn.set(normalizeEnKey(row.name), row.id)
       }
 
       if (row.locale === 'zh-hant') {
-        areaByZh.set(normalizeZhKey(row.otName), row.id)
+        areaByZh.set(normalizeZhKey(row.name), row.id)
       }
     }
 
     if (row.level === 2 || row.type === 'district') {
       if (row.locale === 'en') {
-        districtByEn.set(normalizeEnKey(row.otName), row.id)
+        districtByEn.set(normalizeEnKey(row.name), row.id)
       }
 
       if (row.locale === 'zh-hant') {
-        districtByZh.set(normalizeZhKey(row.otName), row.id)
+        districtByZh.set(normalizeZhKey(row.name), row.id)
       }
     }
 
     if (row.level === 0 && row.locale === 'en') {
-      const normalized = normalizeEnKey(row.otName)
+      const normalized = normalizeEnKey(row.name)
 
       if (COUNTRY_NAME_ALIASES.some(alias => normalized === normalizeEnKey(alias))) {
         countryId = row.id

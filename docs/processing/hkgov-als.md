@@ -44,7 +44,7 @@ The Hong Kong government ALS address export is a first-class source for Harbour 
     - street number
     - street name
   - resolves `areaId`, `districtId`, and level-0 `countryId` from the divisions database matching the selected environment, then reuses those ids for every row
-  - stores `BuildingCsuInformation.CsuId` or `GeoAddress` in `identifiersJson.hkgovCsuId`
+  - stores `BuildingCsuInformation.CsuId` or `GeoAddress` in `identifiers.hkgovCsuId`
 
 ## Environment Mapping
 
@@ -77,6 +77,12 @@ The Hong Kong government ALS address export is a first-class source for Harbour 
   - street number
   - street name
   - `districtId`
+
+## Source-table retention
+
+- Uploaded ALS rows are retained in `sourceHkgovAlsAddresses2d`, and localized address text is retained in `sourceHkgovAlsAddress2dI18n`.
+- `releaseId` identifies the specific uploaded release, `datasetId` identifies the logical dataset it belongs to, and `sourceRecordId` identifies the row inside that source release.
+- The retained tables keep both extracted structured columns and the original payload JSON so later builders can add more address detail without re-reading the uploaded file.
 
 ## Notes
 

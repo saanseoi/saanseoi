@@ -1,16 +1,32 @@
-import type { Database } from '@repo/db'
-import { eq, newsletterSubscription, user } from '@repo/db'
+import type { CurrentDatabase, MetaDatabase } from '@repo/db'
+import { and, asc, desc, eq } from '@repo/db'
+import { currentSchema, metaSchema } from '@repo/db'
+
+const {
+  divisions,
+  divisionsI18n,
+  places,
+  placesCells,
+  placesDivision,
+  placesFts,
+  placesFtsMatch,
+  placesI18n,
+} = currentSchema
+const { metaDatasets, metaPublishers, metaReleases, newsletterSubscription, user } =
+  metaSchema
+
+type RegionCode = 'hk' | 'mo'
 
 type DatasetFilters = {
-  regionCode?: string
+  regionCode?: RegionCode
   snapshotMonth?: string
-  theme?: string
-  status?: string
+  theme?: typeof metaDatasets.$inferSelect.theme
+  status?: typeof metaReleases.$inferSelect.status
   limit?: number
 }
 
 type PlaceLookup = {
-  regionCode: string
+  regionCode: RegionCode
   placeId: string
 }
 
@@ -20,20 +36,20 @@ type I18nLookup = {
 }
 
 type H3Lookup = {
-  regionCode: string
+  regionCode: RegionCode
   h3Level: number
   h3Cell: string
   limit?: number
 }
 
 type FtsLookup = {
-  regionCode: string
+  regionCode: RegionCode
   locale?: string
   query: string
   limit?: number
 }
 
-export async function markNewsletterPending(db: Database, email: string) {
+export async function markNewsletterPending(db: MetaDatabase, email: string) {
   const updatedAt = new Date()
 
   await db
@@ -58,7 +74,7 @@ export async function markNewsletterPending(db: Database, email: string) {
   await syncUserSubstackStatus(db, email, 'pending')
 }
 
-export async function markNewsletterSubscribed(db: Database, email: string) {
+export async function markNewsletterSubscribed(db: MetaDatabase, email: string) {
   const updatedAt = new Date()
 
   await db
@@ -84,7 +100,7 @@ export async function markNewsletterSubscribed(db: Database, email: string) {
 }
 
 export async function markNewsletterFailed(
-  db: Database,
+  db: MetaDatabase,
   email: string,
   lastError: string,
 ) {
@@ -112,7 +128,7 @@ export async function markNewsletterFailed(
 }
 
 async function syncUserSubstackStatus(
-  db: Database,
+  db: MetaDatabase,
   email: string,
   status: 'pending' | 'subscribed' | 'unsubscribed',
 ) {
@@ -122,178 +138,147 @@ async function syncUserSubstackStatus(
     .where(eq(user.email, email))
 }
 
-export async function listDatasets(binding: D1Database, filters: DatasetFilters = {}) {
-  const clauses = ['1 = 1']
-  const bindings: Array<string | number> = []
+export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {}) {
+  const conditions = [
+    filters.regionCode ? eq(metaDatasets.regionCode, filters.regionCode) : undefined,
+    filters.snapshotMonth
+      ? eq(metaReleases.snapshotMonth, filters.snapshotMonth)
+      : undefined,
+    filters.theme ? eq(metaDatasets.theme, filters.theme) : undefined,
+    filters.status ? eq(metaReleases.status, filters.status) : undefined,
+  ].filter(condition => condition !== undefined)
 
-  if (filters.regionCode) {
-    clauses.push('"regionCode" = ?')
-    bindings.push(filters.regionCode)
-  }
-
-  if (filters.snapshotMonth) {
-    clauses.push('"snapshotMonth" = ?')
-    bindings.push(filters.snapshotMonth)
-  }
-
-  if (filters.theme) {
-    clauses.push('"theme" = ?')
-    bindings.push(filters.theme)
-  }
-
-  if (filters.status) {
-    clauses.push('"status" = ?')
-    bindings.push(filters.status)
-  }
-
-  const sqlText = `
-    SELECT *
-    FROM "datasets"
-    WHERE ${clauses.join(' AND ')}
-    ORDER BY "snapshotMonth" DESC, "ingestedAt" DESC
-    LIMIT ?
-  `
-
-  const result = await binding
-    .prepare(sqlText)
-    .bind(...bindings, filters.limit ?? 100)
+  return db
+    .select({
+      id: metaReleases.id,
+      datasetId: metaDatasets.id,
+      datasetCode: metaDatasets.code,
+      releaseCode: metaReleases.code,
+      regionCode: metaDatasets.regionCode,
+      snapshotMonth: metaReleases.snapshotMonth,
+      theme: metaDatasets.theme,
+      type: metaDatasets.type,
+      source: metaPublishers.code,
+      sourceVersion: metaReleases.sourceVersion,
+      rawObjectKey: metaReleases.rawObjectKey,
+      originalFileName: metaReleases.originalFileName,
+      status: metaReleases.status,
+      supersededByReleaseId: metaReleases.supersededByReleaseId,
+      revokedAt: metaReleases.revokedAt,
+      revocationReason: metaReleases.revocationReason,
+      ingestedAt: metaReleases.ingestedAt,
+      createdAt: metaReleases.createdAt,
+      updatedAt: metaReleases.updatedAt,
+    })
+    .from(metaReleases)
+    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(metaReleases.snapshotMonth), desc(metaReleases.ingestedAt))
+    .limit(filters.limit ?? 100)
     .all()
-
-  return result.results
 }
 
-export async function getPlaceCurrent(binding: D1Database, lookup: PlaceLookup) {
-  return binding
-    .prepare(
-      `
-        SELECT *
-        FROM "places"
-        WHERE "regionCode" = ?
-          AND "id" = ?
-        LIMIT 1
-      `,
-    )
-    .bind(lookup.regionCode, lookup.placeId)
-    .first()
+export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) {
+  return (
+    (await db
+      .select()
+      .from(places)
+      .where(
+        and(eq(places.regionCode, lookup.regionCode), eq(places.id, lookup.placeId)),
+      )
+      .limit(1)
+      .get()) ?? null
+  )
 }
 
-export async function listPlaceI18n(binding: D1Database, lookup: I18nLookup) {
-  const localeSql = lookup.locale ? 'AND "locale" = ?' : ''
-  const bindings = lookup.locale ? [lookup.placeId, lookup.locale] : [lookup.placeId]
-  const result = await binding
-    .prepare(
-      `
-        SELECT *
-        FROM "placesI18n"
-        WHERE "placeId" = ?
-          ${localeSql}
-        ORDER BY "locale"
-      `,
-    )
-    .bind(...bindings)
+export async function listPlaceI18n(db: CurrentDatabase, lookup: I18nLookup) {
+  const conditions = [
+    eq(placesI18n.placeId, lookup.placeId),
+    lookup.locale ? eq(placesI18n.locale, lookup.locale) : undefined,
+  ].filter(condition => condition !== undefined)
+
+  return db
+    .select()
+    .from(placesI18n)
+    .where(and(...conditions))
+    .orderBy(asc(placesI18n.locale))
     .all()
-
-  return result.results
 }
 
-export async function listPlaceDivisions(binding: D1Database, lookup: I18nLookup) {
-  const localeSql = lookup.locale ? 'AND di."locale" = ?' : ''
-  const bindings = lookup.locale ? [lookup.locale, lookup.placeId] : [lookup.placeId]
-  const result = await binding
-    .prepare(
-      `
-        SELECT
-          d."id" AS "divisionId",
-          d."level" AS "level",
-          d."parentDivisionId" AS "parentDivisionId",
-          di."locale" AS "locale",
-          di."otName" AS "otName",
-          di."otLocalType" AS "otLocalType"
-        FROM "placesDivision" pcd
-        INNER JOIN "divisions" d
-          ON d."id" = pcd."divisionId"
-        LEFT JOIN "divisionsI18n" di
-          ON di."divisionId" = d."id"
-          ${localeSql}
-        WHERE pcd."placeId" = ?
-        ORDER BY d."level", di."locale"
-      `,
+export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup) {
+  return db
+    .select({
+      divisionId: divisions.id,
+      level: divisions.level,
+      parentDivisionId: divisions.parentDivisionId,
+      locale: divisionsI18n.locale,
+      name: divisionsI18n.name,
+      localType: divisionsI18n.localType,
+    })
+    .from(placesDivision)
+    .innerJoin(divisions, eq(divisions.id, placesDivision.divisionId))
+    .leftJoin(
+      divisionsI18n,
+      and(
+        eq(divisionsI18n.divisionId, divisions.id),
+        lookup.locale ? eq(divisionsI18n.locale, lookup.locale) : undefined,
+      ),
     )
-    .bind(...bindings)
+    .where(eq(placesDivision.placeId, lookup.placeId))
+    .orderBy(asc(divisions.level), asc(divisionsI18n.locale))
     .all()
-
-  return result.results
 }
 
-export async function listPlacesByH3Cell(binding: D1Database, lookup: H3Lookup) {
-  const result = await binding
-    .prepare(
-      `
-        SELECT
-          p."id" AS "placeId",
-          p."datasetId" AS "datasetId",
-          p."regionCode" AS "regionCode",
-          p."otVersion" AS "otVersion",
-          p."otVersionHash" AS "otVersionHash",
-          p."otBasicCategory" AS "otBasicCategory",
-          p."otTaxonomyPrimary" AS "otTaxonomyPrimary",
-          p."otOperatingStatus" AS "otOperatingStatus",
-          p."otLat" AS "otLat",
-          p."otLng" AS "otLng",
-          c."h3Level" AS "h3Level",
-          c."h3Cell" AS "h3Cell"
-        FROM "placesCells" c
-        INNER JOIN "places" p
-          ON p."id" = c."id"
-        WHERE c."regionCode" = ?
-          AND c."h3Level" = ?
-          AND c."h3Cell" = ?
-        LIMIT ?
-      `,
+export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) {
+  return db
+    .select({
+      placeId: places.id,
+      releaseId: places.releaseId,
+      regionCode: places.regionCode,
+      basicCategory: places.basicCategory,
+      taxonomyPrimary: places.taxonomyPrimary,
+      operatingStatus: places.operatingStatus,
+      lat: places.lat,
+      lng: places.lng,
+      h3Level: placesCells.h3Level,
+      h3Cell: placesCells.h3Cell,
+    })
+    .from(placesCells)
+    .innerJoin(places, eq(places.id, placesCells.id))
+    .where(
+      and(
+        eq(placesCells.regionCode, lookup.regionCode),
+        eq(placesCells.h3Level, lookup.h3Level),
+        eq(placesCells.h3Cell, lookup.h3Cell),
+      ),
     )
-    .bind(lookup.regionCode, lookup.h3Level, lookup.h3Cell, lookup.limit ?? 50)
+    .limit(lookup.limit ?? 50)
     .all()
-
-  return result.results
 }
 
-export async function searchPlacesFts(binding: D1Database, lookup: FtsLookup) {
-  const localeSql = lookup.locale ? 'AND f."locale" = ?' : ''
-  const sqlText = `
-    SELECT
-      p."id" AS "placeId",
-      p."regionCode" AS "regionCode",
-      p."datasetId" AS "datasetId",
-      f."locale" AS "locale",
-      f."nameText" AS "nameText",
-      f."brandText" AS "brandText"
-    FROM "placesFts" f
-    INNER JOIN "places" p
-      ON p."id" = f."placeId"
-    WHERE p."regionCode" = ?
-      ${localeSql}
-      AND "placesFts" MATCH ?
-    LIMIT ?
-  `
-
-  const bindings = lookup.locale
-    ? [lookup.regionCode, lookup.locale, lookup.query, lookup.limit ?? 20]
-    : [lookup.regionCode, lookup.query, lookup.limit ?? 20]
-
+export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
   try {
-    const result = await binding
-      .prepare(sqlText)
-      .bind(...bindings)
-      .all<{
-        placeId: string
-        regionCode: string
-        datasetId: string
-        locale: string
-        nameText: string | null
-        brandText: string | null
-      }>()
-
-    return result.results
+    return await db
+      .select({
+        placeId: places.id,
+        regionCode: places.regionCode,
+        releaseId: places.releaseId,
+        locale: placesFts.locale,
+        nameText: placesFts.nameText,
+        brandText: placesFts.brandText,
+      })
+      .from(placesFts)
+      .innerJoin(places, eq(places.id, placesFts.placeId))
+      .where(
+        and(
+          eq(places.regionCode, lookup.regionCode),
+          lookup.locale ? eq(placesFts.locale, lookup.locale) : undefined,
+          placesFtsMatch(lookup.query),
+        ),
+      )
+      .limit(lookup.limit ?? 20)
+      .all()
   } catch (error) {
     if (error instanceof Error && error.message.includes('no such table: placesFts')) {
       throw new Error(

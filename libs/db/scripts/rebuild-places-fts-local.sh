@@ -8,7 +8,7 @@ sql_file="$(cd "$(dirname "$0")" && pwd)/sql/rebuild-places-fts.sql"
 
 mkdir -p "$persist_dir"
 
-exec bun x wrangler d1 execute ss-db-preview \
+exec bun x wrangler d1 execute ss-current-db-preview \
   --config "$wrangler_config" \
   --env preview \
   --local \

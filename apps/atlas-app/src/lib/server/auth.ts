@@ -3,7 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { sveltekitCookies } from 'better-auth/svelte-kit'
 import { env } from '$env/dynamic/private'
 import { getRequestEvent } from '$app/server'
-import { createDb } from '@repo/db'
+import { createMetaDb } from '@repo/db'
 
 const createAuthConfig = (baseURL: string) =>
   ({
@@ -21,7 +21,7 @@ export const createAuth = (
 ) =>
   betterAuth({
     ...createAuthConfig(baseURL),
-    database: drizzleAdapter(createDb(d1), { provider: 'sqlite' }),
+    database: drizzleAdapter(createMetaDb(d1), { provider: 'sqlite' }),
   })
 
 /**

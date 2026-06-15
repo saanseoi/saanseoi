@@ -1,5 +1,7 @@
 import { z } from '@hono/zod-openapi'
 
+const RegionCode = z.enum(['hk', 'mo'])
+
 export const ErrorResponseSchema = z
   .object({
     httpStatus: z.number().openapi({
@@ -62,7 +64,7 @@ export const HealthResponseSchema = z
 export const DatasetsQuerySchema = z
   .object({
     activeOnly: z.enum(['true', 'false']).optional(),
-    regionCode: z.string().optional(),
+    regionCode: RegionCode.optional(),
     snapshotMonth: z.string().optional(),
     theme: z.string().optional(),
     status: z.string().optional(),
@@ -86,12 +88,13 @@ export const SubstackSubscribeResponseSchema = z
   .object({
     ok: z.literal(true),
     message: z.string(),
+    subscriptionState: z.enum(['subscribed', 'pending']),
   })
   .openapi('AtlasSubstackSubscribeResponse')
 
 export const RegionPlaceParamsSchema = z
   .object({
-    region: z.string(),
+    region: RegionCode,
     id: z.string(),
   })
   .openapi('AtlasRegionPlaceParams')
@@ -112,7 +115,7 @@ export const PlaceResponseSchema = z
 
 export const PlacesByCellParamsSchema = z
   .object({
-    region: z.string(),
+    region: RegionCode,
     h3Level: z.string(),
     h3Cell: z.string(),
   })
@@ -132,7 +135,7 @@ export const PlacesByCellResponseSchema = z
 
 export const SearchParamsSchema = z
   .object({
-    region: z.string(),
+    region: RegionCode,
   })
   .openapi('AtlasSearchParams')
 
