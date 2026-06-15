@@ -28,8 +28,17 @@ export type CurrentSourceRecord = {
   sourceRecordId: string
 }
 
+type SourceBatchItem = Parameters<SourceDatabase['batch']>[0][number]
+
 function excluded(column: string) {
   return sql.raw(`excluded.${column}`)
+}
+
+async function runBatchWithWriteRetry(
+  db: SourceDatabase,
+  statements: [SourceBatchItem, ...SourceBatchItem[]],
+) {
+  return runWithWriteRetry(() => db.batch(statements))
 }
 
 export async function getCurrentSourceOvertureDivisionMap(db: SourceDatabase) {
@@ -445,7 +454,7 @@ async function closeCurrentSourceVersions<
   const now = new Date()
 
   for (const chunk of chunkArray(sourceRecordIds, getMaxItemsPerInClause(1, 4))) {
-    await runWithWriteRetry(() =>
+    await runBatchWithWriteRetry(db, [
       db
         .update(baseVersionsTable as never)
         .set({
@@ -458,11 +467,7 @@ async function closeCurrentSourceVersions<
             eq(baseVersionsTable.isCurrent as never, true),
             inArray(baseVersionsTable.sourceRecordId as never, chunk),
           ),
-        )
-        .run(),
-    )
-
-    await runWithWriteRetry(() =>
+        ),
       db
         .update(i18nVersionsTable as never)
         .set({
@@ -475,9 +480,8 @@ async function closeCurrentSourceVersions<
             eq(i18nVersionsTable.isCurrent as never, true),
             inArray(i18nVersionsTable.sourceRecordId as never, chunk),
           ),
-        )
-        .run(),
-    )
+        ),
+    ])
   }
 }
 
@@ -521,18 +525,14 @@ async function deleteMissingCurrentSourceRows<
   )
 
   for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause())) {
-    await runWithWriteRetry(() =>
+    await runBatchWithWriteRetry(db, [
       db
         .delete(currentI18nTable as never)
-        .where(inArray(currentI18nTable.sourceRecordId as never, chunk))
-        .run(),
-    )
-    await runWithWriteRetry(() =>
+        .where(inArray(currentI18nTable.sourceRecordId as never, chunk)),
       db
         .delete(currentTable as never)
-        .where(inArray(currentTable.sourceRecordId as never, chunk))
-        .run(),
-    )
+        .where(inArray(currentTable.sourceRecordId as never, chunk)),
+    ])
   }
 
   return missingIds.length
@@ -545,25 +545,24 @@ async function replaceCurrentI18nRows<TTable extends { sourceRecordId: unknown }
   rows: Array<TTable extends { $inferInsert: infer TInsert } ? TInsert : never>,
   columnCount: number,
 ) {
-  await runWithWriteRetry(() =>
-    db
-      .delete(table as never)
-      .where(eq(table.sourceRecordId as never, sourceRecordId))
-      .run(),
-  )
-
   if (rows.length === 0) {
+    await runWithWriteRetry(() =>
+      db
+        .delete(table as never)
+        .where(eq(table.sourceRecordId as never, sourceRecordId))
+        .run(),
+    )
     return
   }
 
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
-    await runWithWriteRetry(() =>
-      db
-        .insert(table as never)
-        .values(chunk as never)
-        .run(),
-    )
-  }
+  const statements: [SourceBatchItem, ...SourceBatchItem[]] = [
+    db.delete(table as never).where(eq(table.sourceRecordId as never, sourceRecordId)),
+    ...chunkArray(rows, getMaxRowsPerInsert(columnCount, 3)).map(chunk =>
+      db.insert(table as never).values(chunk as never),
+    ),
+  ]
+
+  await runBatchWithWriteRetry(db, statements)
 }
 
 async function insertVersionRows<TTable>(
