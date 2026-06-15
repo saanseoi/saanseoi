@@ -1,13 +1,13 @@
 import {
+  ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
   getDatasetRecordByReleaseId,
-  insertIngestRun,
   markDatasetCurrent,
   markDatasetHistoric,
   revokeDataset,
   setSupersededByReleaseId,
-  updateLatestOpenIngestRun,
   updateDatasetStatus,
+  upsertIngestRunStatus,
 } from '@repo/core/db/meta-repository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
@@ -41,14 +41,12 @@ export async function handleStageStarted(
     await updateDatasetStatus(db, dataset.releaseId, 'processing')
   }
 
-  await insertIngestRun(
+  await ensureIngestRunStarted(
     db,
     dataset.releaseId,
     request.phase,
-    'running',
     stringifyOptional(request.stats),
     now,
-    null,
   )
 
   return {
@@ -67,26 +65,15 @@ export async function handleStageCompleted(
   const dataset = await requireDataset(db, request.releaseId)
   const now = new Date().toISOString()
 
-  const updated = await updateLatestOpenIngestRun(
+  await upsertIngestRunStatus(
     db,
     dataset.releaseId,
     request.phase,
     'completed',
     now,
+    now,
     stringifyOptional(request.stats),
   )
-
-  if (!updated) {
-    await insertIngestRun(
-      db,
-      dataset.releaseId,
-      request.phase,
-      'completed',
-      stringifyOptional(request.stats),
-      now,
-      now,
-    )
-  }
 
   return {
     datasetId: dataset.releaseCode,
@@ -108,28 +95,16 @@ export async function handleStageFailed(
   })
 
   await updateDatasetStatus(db, dataset.releaseId, 'failed')
-  const updated = await updateLatestOpenIngestRun(
+  await upsertIngestRunStatus(
     db,
     dataset.releaseId,
     request.phase,
     'error',
     now,
+    now,
     stringifyOptional(request.stats),
     errorJson,
   )
-
-  if (!updated) {
-    await insertIngestRun(
-      db,
-      dataset.releaseId,
-      request.phase,
-      'error',
-      stringifyOptional(request.stats),
-      now,
-      now,
-      errorJson,
-    )
-  }
 
   return {
     datasetId: dataset.releaseCode,
