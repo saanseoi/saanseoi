@@ -328,17 +328,20 @@ describe('processAddressDataset', () => {
     )
 
     parquetBatches = [
-      firstReleaseRows.map(row => ({
-        ...row,
-        geometry: {
-          type: 'Point',
-          coordinates: [
-            row.geometry.coordinates[0] + 0.001,
-            row.geometry.coordinates[1],
-          ],
-        },
-        version: 2,
-      })),
+      firstReleaseRows.map(row => {
+        const [lng, lat] = row.geometry.coordinates
+        if (lng === undefined || lat === undefined) {
+          throw new Error(`Missing geometry coordinates for ${row.id}`)
+        }
+        return {
+          ...row,
+          geometry: {
+            type: 'Point',
+            coordinates: [lng + 0.001, lat],
+          },
+          version: 2,
+        }
+      }),
     ]
     seedAddressRelease(sqlite, 'overture-hk-2026-06-24.0-address', '2026-06', 'staged')
 
