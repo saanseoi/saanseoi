@@ -2,6 +2,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+db_family="${1:-all}"
 
-bash "$script_dir/drop-local-db.sh" "${1:-}"
-bash "$script_dir/migrate-local-db.sh"
+bash "$script_dir/drop-local-db.sh" "$db_family"
+bash "$script_dir/migrate-local-db.sh" "$db_family"

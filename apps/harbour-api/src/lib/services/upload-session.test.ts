@@ -7,14 +7,14 @@ import { Database } from 'bun:sqlite'
 
 import type { ParquetInspection } from '@repo/core'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
+import {
+  loadMigrationSql,
+  seedFixtureCatalog,
+} from '../../../../../libs/core/src/testing/meta-fixtures'
 import type { DatasetProcessingQueue, UploadSigningEnv } from './upload-session'
 
-const migrationSql = await Bun.file(
-  resolve(
-    import.meta.dir,
-    '../../../../../libs/db/migrations/20260602105608_ordinary_true_believers.sql',
-  ),
-).text()
+const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
+const migrationSql = loadMigrationSql(migrationsDir)
 const tempDirs: string[] = []
 const fixtureInspection: ParquetInspection = {
   rowCount: 3,
@@ -50,6 +50,7 @@ function createTempDir() {
 function initDb(dbPath: string) {
   const db = new Database(dbPath)
   db.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
+  seedFixtureCatalog(db)
   return db
 }
 
@@ -154,24 +155,25 @@ describe('upload session flow', () => {
       fileSize: fixtureBytes.byteLength,
       inspection: fixtureInspection,
       plan: {
+        shardYear: '2026',
         snapshotMonth: '2026-05',
         sourceVersion: '2026-05-24.0',
       },
       schemaVersionId: 'overture-division-v2025-09-24.0',
     })
 
-    expect(signResult.datasetId).toBe('overture-hk-2026-05-24.0-division')
+    expect(signResult.datasetId).toBe('overture-hk-division')
     expect(signResult.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
     expect(signResult.uploadUrl).toContain('X-Amz-Algorithm=AWS4-HMAC-SHA256')
 
     await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
 
     const finalizeResult = await handleFinalizeUploadRequest(db, bucket, queue, {
-      datasetId: signResult.datasetId,
+      releaseId: signResult.releaseId,
     })
     const dataset = sqlite
       .query(
-        'SELECT datasetId, status, rawObjectKey, originalFileName FROM datasets WHERE datasetId = ?',
+        'SELECT code AS datasetId, status, rawObjectKey, originalFileName FROM releases WHERE code = ?',
       )
       .get('overture-hk-2026-05-24.0-division') as {
       datasetId: string
@@ -189,9 +191,13 @@ describe('upload session flow', () => {
     expect(dataset?.originalFileName).toBe('overture-hk-division.parquet')
     expect(queuedMessages).toEqual([
       {
-        datasetId: 'overture-hk-2026-05-24.0-division',
+        datasetId: 'overture-hk-division',
+        datasetCode: 'hk-division',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        releaseCode: 'overture-hk-2026-05-24.0-division',
+        releaseId: signResult.releaseId,
         regionCode: 'hk',
+        shardYear: '2026',
         snapshotMonth: '2026-05',
         source: 'overture',
         sourceVersion: '2026-05-24.0',
@@ -199,9 +205,12 @@ describe('upload session flow', () => {
         type: 'division',
       },
     ])
-    expect(bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.datasetId).toBe(
-      'overture-hk-2026-05-24.0-division',
-    )
+    expect(
+      bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.datasetCode,
+    ).toBe('hk-division')
+    expect(
+      bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.releaseCode,
+    ).toBe('overture-hk-2026-05-24.0-division')
     expect(
       bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.originalFileName,
     ).toBe('overture-hk-division.parquet')

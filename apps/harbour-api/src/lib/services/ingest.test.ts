@@ -7,14 +7,14 @@ import { Database } from 'bun:sqlite'
 
 import type { ParquetInspection } from '@repo/core'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
+import {
+  loadMigrationSql,
+  seedFixtureCatalog,
+} from '../../../../../libs/core/src/testing/meta-fixtures'
 import type { DatasetProcessingQueue } from './ingest'
 
-const migrationSql = await Bun.file(
-  resolve(
-    import.meta.dir,
-    '../../../../../libs/db/migrations/20260602105608_ordinary_true_believers.sql',
-  ),
-).text()
+const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
+const migrationSql = loadMigrationSql(migrationsDir)
 const tempDirs: string[] = []
 const fixtureInspection: ParquetInspection = {
   rowCount: 3,
@@ -47,6 +47,7 @@ function createTempDir() {
 function initDb(dbPath: string) {
   const db = new Database(dbPath)
   db.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
+  seedFixtureCatalog(db)
   return db
 }
 
@@ -127,13 +128,21 @@ describe('direct upload flow', () => {
     const formData = new FormData()
 
     formData.set('file', file)
+    formData.set('shardYear', '2026')
     formData.set('snapshotMonth', '2026-05')
     formData.set('sourceVersion', '2026-05-24.0')
 
     const result = await handleUploadRequest(db, bucket, queue, formData)
+
+    if (!result.releaseId) {
+      throw new Error(
+        'Expected non-null releaseId from handleUploadRequest in test setup.',
+      )
+    }
+
     const ingestRuns = sqlite
       .query(
-        'SELECT phase, status FROM ingestRuns WHERE datasetId = ? ORDER BY startedAt ASC',
+        'SELECT ir.phase, ir.status FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ? ORDER BY ir.startedAt ASC',
       )
       .all('overture-hk-2026-05-24.0-division') as Array<{
       phase: string
@@ -145,9 +154,13 @@ describe('direct upload flow', () => {
     expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
     expect(queuedMessages).toEqual([
       {
-        datasetId: 'overture-hk-2026-05-24.0-division',
+        datasetId: 'overture-hk-division',
+        datasetCode: 'hk-division',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        releaseCode: 'overture-hk-2026-05-24.0-division',
+        releaseId: result.releaseId,
         regionCode: 'hk',
+        shardYear: '2026',
         snapshotMonth: '2026-05',
         source: 'overture',
         sourceVersion: '2026-05-24.0',

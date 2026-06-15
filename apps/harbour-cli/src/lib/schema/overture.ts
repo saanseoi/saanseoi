@@ -18,6 +18,7 @@ type UploadSchemaVersion = SchemaWindow & {
   source: 'overture'
   type: SupportedType
   fields: UploadSchemaField[]
+  allowedUnexpectedFields?: UploadSchemaField[]
 }
 
 type SchemaValidationResult = {
@@ -60,7 +61,6 @@ const OVERTURE_SCHEMAS: UploadSchemaVersion[] = [
       { name: 'geometry', type: 'type', nullable: true },
       { name: 'bbox', type: 'struct', nullable: true },
       { name: 'country', type: 'utf8', nullable: true },
-      { name: 'postcode', type: 'utf8', nullable: true },
       { name: 'street', type: 'utf8', nullable: true },
       { name: 'number', type: 'utf8', nullable: true },
       { name: 'unit', type: 'utf8', nullable: true },
@@ -71,6 +71,7 @@ const OVERTURE_SCHEMAS: UploadSchemaVersion[] = [
       { name: 'theme', type: 'utf8', nullable: true },
       { name: 'type', type: 'utf8', nullable: true },
     ],
+    allowedUnexpectedFields: [{ name: 'postcode', type: 'utf8', nullable: true }],
   },
   {
     id: 'overture-division-v2025-09-24.0',
@@ -141,7 +142,11 @@ export function validateOvertureSchema(
   inspection: ParquetInspection,
 ): SchemaValidationResult {
   const schema = resolveSchemaVersion(plan)
-  const differences = diffSchema(schema.fields, inspection.schema)
+  const differences = diffSchema(
+    schema.fields,
+    inspection.schema,
+    schema.allowedUnexpectedFields,
+  )
 
   if (differences.length > 0) {
     throw new Error(
@@ -234,10 +239,14 @@ function compareRelease(left: string, right: string) {
 function diffSchema(
   expected: UploadSchemaField[],
   actual: ParquetInspection['schema'],
+  allowedUnexpected: UploadSchemaField[] = [],
 ) {
   const differences: string[] = []
   const actualByName = new Map(actual.map(field => [field.name, field]))
   const expectedByName = new Map(expected.map(field => [field.name, field]))
+  const allowedUnexpectedByName = new Map(
+    allowedUnexpected.map(field => [field.name, field]),
+  )
 
   for (const field of expected) {
     const actualField = actualByName.get(field.name)
@@ -264,6 +273,16 @@ function diffSchema(
 
   for (const field of actual) {
     if (!expectedByName.has(field.name)) {
+      const allowedField = allowedUnexpectedByName.get(field.name)
+
+      if (
+        allowedField &&
+        allowedField.type === field.type &&
+        allowedField.nullable === field.nullable
+      ) {
+        continue
+      }
+
       differences.push(
         `unexpected field \`${field.name}\` present as ${renderField(field)}`,
       )
