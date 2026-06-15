@@ -22,7 +22,7 @@ The `division` is normalised into `divisions` and `divisionsI18n` where each `lo
 - Hong Kong area names `Hong Kong Island`, `Kowloon`, and `New Territories` are preserved as level `1` areas even when Overture labels them as `region`.
 - `hierarchies` is stored in `hierarchy`, which retains the hierarchy determined by overture.
 - `geometry` is decoded from Overture WKB and stored as GeoJSON text in `geometry`.
-- `sources` is stored sources, wrapped as `{ "overture": ... }` so downstream consumers can distinguish Overture lineage from other source-specific payloads.
+- `sources` is stored as `{ "overture": ... }` so downstream consumers can distinguish Overture lineage from other source-specific payloads.
 - The following Overture division fields are dropped:
   - `admin_level`: dropped because Harbour standardizes on taxonomy-derived `level` and `type` values instead of persisting raw Overture admin-level lineage.
   - `capital_division_ids`: dropped because the Hong Kong dataset only uses it sparsely and it is not meaningful enough for current SAR-focused use cases.
@@ -44,7 +44,7 @@ The `division` is normalised into `divisions` and `divisionsI18n` where each `lo
   - `sources` -> `sources` as `{ "overture": [...] }`, with null and empty source object properties removed.
 - The following Overture address fields are dropped:
   - `postcode`: dropped because Hong Kong addresses do not use postal codes in Harbour’s current model or matching flow.
-- District matching for Overture HK addresses is intended to use the second `address_levels` entry against the English `divisionsI18n.otName` of the level-2 district rows.
+- District matching for Overture HK addresses is intended to use the second `address_levels` entry against the English `divisionsI18n.name` of the level-2 district rows.
 - There is no shared cross-source address key between Overture and `hkgov-als`.
 - Reconciliation for `address2d` should start from normalized street number, street name, and `districtId`.
 - Overture address uploads are still expected to land before any `hkgov-als` enrichment layer is applied.
