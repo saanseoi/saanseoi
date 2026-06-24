@@ -19,8 +19,8 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@clack/prompts": "^1.5.1",
+    "@clack/prompts": "^1.6.0",
     "@repo/core": "workspace:*",
-    "hyparquet-writer": "^0.15.6"
+    "hyparquet-writer": "^0.15.7"
   }
 }
