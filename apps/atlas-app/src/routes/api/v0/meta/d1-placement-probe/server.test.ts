@@ -43,7 +43,7 @@ describe('atlas-app d1 placement probe', () => {
           PUBLIC_ATLAS_API_BASE_URL: 'https://api.saanseoi.hk',
         },
       },
-      url: new URL('https://saanseoi.hk/api/d1-placement-probe?iterations=2'),
+      url: new URL('https://saanseoi.hk/api/v0/meta/d1-placement-probe?iterations=2'),
     } as Parameters<typeof GET>[0])
 
     const body = (await response.json()) as {
@@ -95,7 +95,7 @@ describe('atlas-app d1 placement probe', () => {
           PUBLIC_ATLAS_API_BASE_URL: 'https://api.saanseoi.hk',
         },
       },
-      url: new URL('https://saanseoi.hk/api/d1-placement-probe?iterations=0'),
+      url: new URL('https://saanseoi.hk/api/v0/meta/d1-placement-probe?iterations=0'),
     } as Parameters<typeof GET>[0])
 
     expect(response.status).toBe(400)

@@ -95,9 +95,9 @@ describe('harbour-api', () => {
     })
   })
 
-  test('GET /api/d1-placement-probe returns timings for all D1 bindings', async () => {
+  test('GET /api/v1/meta/d1-placement-probe returns timings for all D1 bindings', async () => {
     const res = await app.fetch(
-      new Request('http://localhost/api/d1-placement-probe?iterations=2'),
+      new Request('http://localhost/api/v1/meta/d1-placement-probe?iterations=2'),
       {
         ...createDbBindings(),
         DATASET_QUEUE: createMockQueue(),
