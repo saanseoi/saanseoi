@@ -12,6 +12,7 @@ import {
   formatField,
   formatSummary,
 } from './lib/display.ts'
+import { normalizeCommandArgs } from './lib/commands.ts'
 import { prepareHkgovAlsAddressParquet } from './lib/hkgov-als.ts'
 import {
   buildRegisterOptions,
@@ -25,8 +26,11 @@ import { dispatchUpload } from './lib/upload.ts'
 
 function printUsage() {
   console.log(`  Usage:
-  bun run upload[:cf:environment] <file> [--target local|cf-preview|cf-production] [--remote] [--env dev|preview|production] [--api URL] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
-  bun run prep-hkgov-als[:cf:environment] <source-dir> [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]
+  saanseoi upload[:local|:cf:preview|:cf:production] <file> [--target local|cf-preview|cf-production] [--remote] [--env dev|preview|production] [--api URL] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
+  saanseoi prep-hkgov-als[:preview|:production] <source-dir> [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]
+
+  bun run upload[:cf:environment] <file> ...
+  bun run prep-hkgov-als[:cf:environment] <source-dir> ...
 `)
 }
 
@@ -51,7 +55,7 @@ function resolveHkgovAlsEnvironment(command: string): UploadEnvironment {
 }
 
 async function main() {
-  const args = parseArgs(process.argv)
+  const args = normalizeCommandArgs(parseArgs(process.argv))
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const dryRun = Boolean(args.options['dry-run'])
   const skipConfirm = Boolean(args.options.yes)
