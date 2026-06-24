@@ -1,6 +1,7 @@
 export * from './client'
 export * from './bindings'
 export * from './constants'
+export * from './placement-probe'
 export * from './routing'
 export * from './seed'
 export * as metaSchema from './schema/meta'

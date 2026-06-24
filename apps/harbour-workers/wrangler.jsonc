@@ -71,7 +71,7 @@
     ]
   },
   "placement": {
-    "region": "gcp:asia-east2"
+    "region": "azure:eastasia"
   },
   "minify": true,
   "observability": {
@@ -83,11 +83,14 @@
   "env": {
     "preview": {
       "name": "ss-harbour-workers-preview",
+      "placement": {
+        "region": "azure:eastasia"
+      },
       "secrets": {
         "required": ["HARBOUR_API_KEY"]
       },
       "vars": {
-        "HARBOUR_BASE_URL": "https://ss-harbour-preview.hypehk.workers.dev"
+        "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk"
       },
       "d1_databases": [
         {
@@ -152,11 +155,14 @@
     },
     "production": {
       "name": "ss-harbour-workers-production",
+      "placement": {
+        "region": "azure:eastasia"
+      },
       "secrets": {
         "required": ["HARBOUR_API_KEY"]
       },
       "vars": {
-        "HARBOUR_BASE_URL": "https://ss-harbour-production.hypehk.workers.dev"
+        "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk"
       },
       "d1_databases": [
         {
