@@ -8,6 +8,7 @@ import { requireApiKey } from './lib/auth'
 import { defaultOpenAPIHook } from './lib/openapi'
 import { controlRoutes } from './routes/v1/control'
 import { metaRoutes } from './routes/v1/meta'
+import { probeRoutes } from './routes/probe'
 import { uploadRoutes } from './routes/v1/upload'
 import type { AppEnv } from './types'
 
@@ -51,7 +52,12 @@ app.notFound(c =>
 
 app.get('/', c => c.redirect('/openapi', 302))
 
-app.openapiRoutes([...metaRoutes, ...uploadRoutes, ...controlRoutes] as const)
+app.openapiRoutes([
+  ...metaRoutes,
+  ...uploadRoutes,
+  ...controlRoutes,
+  ...probeRoutes,
+] as const)
 
 app.doc31('/openapi', openApiConfig)
 app.get(

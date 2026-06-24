@@ -79,6 +79,9 @@
   "env": {
     "preview": {
       "name": "ss-atlas-app-preview",
+      "placement": {
+        "region": "azure:eastasia"
+      },
       "vars": {
         "PUBLIC_ATLAS_API_BASE_URL": "https://preview.api.saanseoi.hk"
       },
@@ -144,6 +147,9 @@
     },
     "production": {
       "name": "ss-atlas-app-production",
+      "placement": {
+        "region": "azure:eastasia"
+      },
       "vars": {
         "PUBLIC_ATLAS_API_BASE_URL": "https://api.saanseoi.hk"
       },
