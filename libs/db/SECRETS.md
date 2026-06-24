@@ -17,8 +17,6 @@ The Studio launcher script loads local secrets from env files at the repo root.
 - `bun run db:studio:source:2025`
 - `.env`: shared Cloudflare credentials for all Studio targets
 - `.env.local`: local SQLite paths for each DB family
-- `.env.preview.local`: preview D1 database IDs for each DB family
-- `.env.prod.local`: production D1 database IDs for each DB family
 
 Keep these files untracked. They are ignored by [.gitignore](.gitignore).
 
@@ -42,27 +40,9 @@ LOCAL_D1_SQLITE_PATH_SOURCE_HK_2026=/abs/path/to/source-hk-2026.sqlite
 
 `db:studio:history` and `db:studio:source` default to the current calendar year. Use the `:2025` variants when you need the older shard explicitly.
 
-Example `.env.preview.local`:
-
-```bash
-CLOUDFLARE_DATABASE_ID_META_PREVIEW=655743d2-5dcc-4a94-a12f-62eaf9955a84
-CLOUDFLARE_DATABASE_ID_CURRENT_PREVIEW=1e704b3f-4374-42ea-b8b2-faca805d11eb
-CLOUDFLARE_DATABASE_ID_HISTORY_HK_2025_PREVIEW=bea18422-d1ce-429d-b099-464a33716921
-CLOUDFLARE_DATABASE_ID_HISTORY_HK_2026_PREVIEW=de2e7b41-29dd-4f97-a3eb-8eae47cf7a05
-CLOUDFLARE_DATABASE_ID_SOURCE_HK_2025_PREVIEW=113ea535-e571-4e31-b15a-c18f116e0424
-CLOUDFLARE_DATABASE_ID_SOURCE_HK_2026_PREVIEW=1231e30e-58da-4e70-9342-7b4bb6500dad
-```
-
-Example `.env.prod.local`:
-
-```bash
-CLOUDFLARE_DATABASE_ID_META_PRODUCTION=5cbcd2b2-5418-43e2-97f1-78f30037aaf3
-CLOUDFLARE_DATABASE_ID_CURRENT_PRODUCTION=c15bf6b3-32a3-4d05-b7d2-1d2e2643037f
-CLOUDFLARE_DATABASE_ID_HISTORY_HK_2025_PRODUCTION=c019b2b7-5511-4cee-8732-5bdba2aea264
-CLOUDFLARE_DATABASE_ID_HISTORY_HK_2026_PRODUCTION=b9119da1-813d-4d03-a431-b8e4a540f918
-CLOUDFLARE_DATABASE_ID_SOURCE_HK_2025_PRODUCTION=4dcb7029-51da-482a-a41c-729ecd7b7b12
-CLOUDFLARE_DATABASE_ID_SOURCE_HK_2026_PRODUCTION=c005d6e0-02f7-45f4-9171-1291fc2dc1b5
-```
+Preview and production Studio targets resolve D1 database IDs from
+[apps/harbour-api/wrangler.jsonc](../../apps/harbour-api/wrangler.jsonc), so no
+repo-root env file is needed for remote database IDs.
 
 ## Deployed environments
 
@@ -79,12 +59,12 @@ The newly provisioned remote databases are:
 
 | Role | Preview | Production |
 |------|---------|------------|
-| `meta` | `ss-meta-db-preview` (`655743d2-5dcc-4a94-a12f-62eaf9955a84`) | `ss-meta-db-prod` (`5cbcd2b2-5418-43e2-97f1-78f30037aaf3`) |
-| `current` | `ss-current-db-preview` (`1e704b3f-4374-42ea-b8b2-faca805d11eb`) | `ss-current-db-prod` (`c15bf6b3-32a3-4d05-b7d2-1d2e2643037f`) |
-| `history-hk-2025` | `ss-history-hk-2025-db-preview` (`bea18422-d1ce-429d-b099-464a33716921`) | `ss-history-hk-2025-db-prod` (`c019b2b7-5511-4cee-8732-5bdba2aea264`) |
-| `history-hk-2026` | `ss-history-hk-2026-db-preview` (`de2e7b41-29dd-4f97-a3eb-8eae47cf7a05`) | `ss-history-hk-2026-db-prod` (`b9119da1-813d-4d03-a431-b8e4a540f918`) |
-| `source-hk-2025` | `ss-source-hk-2025-db-preview` (`113ea535-e571-4e31-b15a-c18f116e0424`) | `ss-source-hk-2025-db-prod` (`4dcb7029-51da-482a-a41c-729ecd7b7b12`) |
-| `source-hk-2026` | `ss-source-hk-2026-db-preview` (`1231e30e-58da-4e70-9342-7b4bb6500dad`) | `ss-source-hk-2026-db-prod` (`c005d6e0-02f7-45f4-9171-1291fc2dc1b5`) |
+| `meta` | `ss-meta-db-preview` (`d37ea879-848d-4548-a565-0d86b4bc3d43`) | `ss-meta-db-prod` (`cf03b2ff-b5ee-4265-899f-6916ed8b6c2c`) |
+| `current` | `ss-current-db-preview` (`6d26bf3f-8cf6-4fa6-b80b-25322207dfde`) | `ss-current-db-prod` (`edd3cdf9-1d05-4847-b235-b7fd4189c38d`) |
+| `history-hk-2025` | `ss-history-hk-2025-db-preview` (`9566cfa9-2af6-473c-a74b-c7f7c6a757a9`) | `ss-history-hk-2025-db-prod` (`09c217e2-0e04-4ce5-a197-b4210bcb1dea`) |
+| `history-hk-2026` | `ss-history-hk-2026-db-preview` (`b76baf00-7138-44b0-bd24-e99f3aea4249`) | `ss-history-hk-2026-db-prod` (`f85a2708-a0aa-4549-8c61-e2289d3694cd`) |
+| `source-hk-2025` | `ss-source-hk-2025-db-preview` (`113ea535-e571-4e31-b15a-c18f116e0424`) | `ss-source-hk-2025-db-prod` (`0e5ff999-c928-4e41-a0e1-e5d7c6fc6d20`) |
+| `source-hk-2026` | `ss-source-hk-2026-db-preview` (`014dc342-54c8-4049-8667-cfbf7c92cbec`) | `ss-source-hk-2026-db-prod` (`dca6df89-880b-42f8-92a8-08f4919a582a`) |
 
 These are currently bound in Wrangler as:
 
