@@ -95,6 +95,9 @@
   "env": {
     "preview": {
       "name": "ss-harbour-preview",
+      "placement": {
+        "region": "azure:eastasia"
+      },
       "define": {
         "__VUE_OPTIONS_API__": "true",
         "__VUE_PROD_DEVTOOLS__": "false",
@@ -111,8 +114,8 @@
         ]
       },
       "vars": {
-        "ATLAS_BASE_URL": "https://ss-atlas-preview.hypehk.workers.dev",
-        "HARBOUR_BASE_URL": "https://ss-harbour-preview.hypehk.workers.dev",
+        "ATLAS_BASE_URL": "https://preview.api.saanseoi.hk",
+        "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk",
         "R2_RAW_BUCKET_NAME": "ss-raw-preview"
       },
       "d1_databases": [
@@ -172,10 +175,19 @@
             "queue": "ss-harbour-jobs-preview"
           }
         ]
-      }
+      },
+      "routes": [
+        {
+          "pattern": "preview.harbour.saanseoi.hk",
+          "custom_domain": true
+        }
+      ]
     },
     "production": {
       "name": "ss-harbour-production",
+      "placement": {
+        "region": "azure:eastasia"
+      },
       "define": {
         "__VUE_OPTIONS_API__": "true",
         "__VUE_PROD_DEVTOOLS__": "false",
@@ -192,8 +204,8 @@
         ]
       },
       "vars": {
-        "ATLAS_BASE_URL": "https://ss-atlas-production.hypehk.workers.dev",
-        "HARBOUR_BASE_URL": "https://ss-harbour-production.hypehk.workers.dev",
+        "ATLAS_BASE_URL": "https://api.saanseoi.hk",
+        "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk",
         "R2_RAW_BUCKET_NAME": "ss-raw-prod"
       },
       "d1_databases": [
@@ -253,7 +265,13 @@
             "queue": "ss-harbour-jobs-prod"
           }
         ]
-      }
+      },
+      "routes": [
+        {
+          "pattern": "harbour.saanseoi.hk",
+          "custom_domain": true
+        }
+      ]
     }
   }
 }

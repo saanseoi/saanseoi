@@ -75,6 +75,9 @@
   "env": {
     "preview": {
       "name": "ss-atlas-preview",
+      "placement": {
+        "region": "azure:eastasia"
+      },
       "secrets": {
         "required": [
           "SUBSTACK_SESSION_COOKIE",
@@ -145,6 +148,9 @@
     },
     "production": {
       "name": "ss-atlas-production",
+      "placement": {
+        "region": "azure:eastasia"
+      },
       "secrets": {
         "required": [
           "SUBSTACK_SESSION_COOKIE",
