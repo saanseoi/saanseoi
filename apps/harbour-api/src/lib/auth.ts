@@ -5,7 +5,10 @@ import type { AppEnv } from '../types'
 const API_KEY_HEADER = 'x-api-key'
 
 export const requireApiKey: MiddlewareHandler<AppEnv> = async (c, next) => {
-  if (c.req.path === '/v1/meta/health') {
+  if (
+    c.req.path === '/v1/meta/health' ||
+    c.req.path === '/api/v1/meta/d1-placement-probe'
+  ) {
     return next()
   }
 
