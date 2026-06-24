@@ -69,7 +69,7 @@
     }
   ],
   "placement": {
-    "region": "gcp:asia-east2"
+    "region": "azure:eastasia"
   },
   "r2_buckets": [
     {
