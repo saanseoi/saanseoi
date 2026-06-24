@@ -389,7 +389,7 @@ export async function processDivisionDataset(
 
 function resolveShardEnvironment(): 'preview' | 'production' {
   const baseUrl = process.env.HARBOUR_BASE_URL ?? ''
-  return /production/i.test(baseUrl) ? 'production' : 'preview'
+  return /preview|localhost/i.test(baseUrl) ? 'preview' : 'production'
 }
 
 /**

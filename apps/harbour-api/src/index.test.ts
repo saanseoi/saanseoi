@@ -25,6 +25,19 @@ function createMockDb() {
   } as unknown as D1Database
 }
 
+function createDbBindings() {
+  const db = createMockDb()
+
+  return {
+    DB_CURRENT: db,
+    DB_HISTORY_HK_2025: db,
+    DB_HISTORY_HK_2026: db,
+    DB_META: db,
+    DB_SOURCE_HK_2025: db,
+    DB_SOURCE_HK_2026: db,
+  }
+}
+
 function createMockBucket() {
   return {
     async head() {
@@ -61,7 +74,7 @@ describe('harbour-api', () => {
 
   test('GET /v1/meta/health checks DB access', async () => {
     const res = await app.fetch(new Request('http://localhost/v1/meta/health'), {
-      DB_META: createMockDb(),
+      ...createDbBindings(),
       DATASET_QUEUE: createMockQueue(),
       HARBOUR_API_KEY: 'test-api-key',
       R2_ACCOUNT_ID: 'test-account',
@@ -82,6 +95,41 @@ describe('harbour-api', () => {
     })
   })
 
+  test('GET /api/d1-placement-probe returns timings for all D1 bindings', async () => {
+    const res = await app.fetch(
+      new Request('http://localhost/api/d1-placement-probe?iterations=2'),
+      {
+        ...createDbBindings(),
+        DATASET_QUEUE: createMockQueue(),
+        HARBOUR_API_KEY: 'test-api-key',
+        R2_ACCOUNT_ID: 'test-account',
+        R2_RAW: createMockBucket(),
+        R2_RAW_ACCESS_KEY_ID: 'test-access-key',
+        R2_RAW_BUCKET_NAME: 'ss-raw-preview',
+        R2_RAW_SECRET_ACCESS_KEY: 'test-secret-key',
+        TELEGRAM_ADMIN_ID: '-1001234567890',
+        TELEGRAM_BOT_TOKEN: 'telegram-token',
+      },
+    )
+    const body = (await res.json()) as {
+      bindings: Array<{ binding: string; timingsMs: number[] }>
+      configuredPlacementRegion: string
+      iterations: number
+      ok: boolean
+      totalQueries: number
+      worker: string
+    }
+
+    expect(res.status).toBe(200)
+    expect(body.ok).toBe(true)
+    expect(body.worker).toBe('harbour-api')
+    expect(body.configuredPlacementRegion).toBe('azure:eastasia')
+    expect(body.iterations).toBe(2)
+    expect(body.totalQueries).toBe(12)
+    expect(body.bindings).toHaveLength(6)
+    expect(body.bindings.every(binding => binding.timingsMs.length === 2)).toBe(true)
+  })
+
   test('POST /v1/signUpload requires an API key', async () => {
     const res = await app.fetch(
       new Request('http://localhost/v1/signUpload', {
@@ -92,7 +140,7 @@ describe('harbour-api', () => {
         body: '{}',
       }),
       {
-        DB_META: createMockDb(),
+        ...createDbBindings(),
         DATASET_QUEUE: createMockQueue(),
         HARBOUR_API_KEY: 'test-api-key',
         R2_ACCOUNT_ID: 'test-account',
