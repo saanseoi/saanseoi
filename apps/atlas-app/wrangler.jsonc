@@ -74,7 +74,7 @@
   },
   "minify": true,
   "placement": {
-    "region": "gcp:asia-east2"
+    "region": "azure:eastasia"
   },
   "env": {
     "preview": {
