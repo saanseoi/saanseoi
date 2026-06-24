@@ -25,19 +25,7 @@ load_env_file() {
 }
 
 load_env_file "$repo_root/.env"
-
-case "$target" in
-  preview)
-    load_env_file "$repo_root/.env.preview"
-    load_env_file "$repo_root/.env.preview.local"
-    remote_database_id_target_env="${remote_database_id_env}_PREVIEW"
-    ;;
-  production)
-    load_env_file "$repo_root/.env.prod"
-    load_env_file "$repo_root/.env.prod.local"
-    remote_database_id_target_env="${remote_database_id_env}_PRODUCTION"
-    ;;
-esac
+eval "$(bash "$script_dir/lib/resolve-d1-target.sh" "$d1_target_family" "$target")"
 
 if [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
   echo "Missing CLOUDFLARE_ACCOUNT_ID. Define it in your shell or $repo_root/.env." >&2
@@ -49,9 +37,9 @@ if [[ -z "${CLOUDFLARE_D1_TOKEN:-}" ]]; then
   exit 1
 fi
 
-if [[ -z "${!remote_database_id_target_env:-}" ]]; then
-  echo "Missing $remote_database_id_target_env for the $db_family family." >&2
-  echo "Define it in the matching repo-root env file for $target." >&2
+if [[ -z "${database_id:-}" ]]; then
+  echo "Missing remote database_id for $db_family in the $target Wrangler config." >&2
+  echo "Check $wrangler_config env.$wrangler_env.d1_databases for $binding_name." >&2
   exit 1
 fi
 
@@ -59,5 +47,5 @@ cd "$repo_root/libs/db"
 exec env \
   CLOUDFLARE_D1_TARGET="$target" \
   DRIZZLE_DB_YEAR="$drizzle_db_year" \
-  "$remote_database_id_env=${!remote_database_id_target_env}" \
+  "$remote_database_id_env=$database_id" \
   bash "$script_dir/lib/run-drizzle-kit-cli.sh" studio --config="$config_file"
