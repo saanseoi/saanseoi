@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
@@ -38,6 +38,17 @@ export type DivisionVersionSnapshot = {
   parentId: string | null
   type: string
   versionHash: string
+}
+
+export type DivisionVersionInsertContext = {
+  regionCode: RegionCode
+  releaseId: string
+  releaseSetId: string
+  snapshotMonth: string
+}
+
+function excluded(column: string) {
+  return sql.raw(`excluded.${column}`)
 }
 
 /**
@@ -146,53 +157,119 @@ export async function getCurrentDivisionVersionMap(
   return new Map(snapshots)
 }
 
+export async function prepareDivisionVersionInsertContext(
+  metaDb: HarbourReadableDb & HarbourWritableDb,
+  message: DatasetProcessingMessage,
+  environment: 'preview' | 'production',
+): Promise<DivisionVersionInsertContext> {
+  const dataset = await getDatasetRecordByReleaseId(
+    metaDb,
+    message.releaseId ?? message.datasetId,
+  )
+
+  if (!dataset) {
+    throw new Error(`Release not found: ${message.releaseId ?? message.datasetId}`)
+  }
+
+  const releaseSet = await resolveReleaseSetForType(metaDb, message.type)
+
+  if (!releaseSet) {
+    throw new Error(`Release set not found for type: ${message.type}`)
+  }
+
+  const year = message.sourceVersion.slice(0, 4)
+  const currentShard = await resolveShardForKindRegionYear(
+    metaDb,
+    'current',
+    environment,
+  )
+  const historyShard = await resolveShardForKindRegionYear(
+    metaDb,
+    'history',
+    environment,
+    message.regionCode,
+    year,
+  )
+
+  if (!currentShard || !historyShard) {
+    throw new Error(
+      `Shard mapping not found for ${message.regionCode}/${year} in ${environment}.`,
+    )
+  }
+
+  await upsertReleaseSetMember(
+    metaDb,
+    releaseSet.id,
+    dataset.datasetId,
+    dataset.releaseId,
+    'primary',
+  )
+  await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
+  await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, currentShard.id)
+  await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, historyShard.id)
+
+  return {
+    regionCode: message.regionCode,
+    releaseId: dataset.releaseId,
+    releaseSetId: releaseSet.id,
+    snapshotMonth: message.snapshotMonth,
+  }
+}
+
 /**
- * Marks the current version row for a division as closed at the given snapshot month.
+ * Marks current version rows as closed at the given snapshot month.
  */
-export async function closeCurrentDivisionVersion(
+export async function closeCurrentDivisionVersions(
   db: HarbourWritableDb,
   regionCode: RegionCode,
-  divisionId: string,
+  divisionIds: string[],
   releaseSetId: string,
   snapshotMonth: string,
 ) {
+  if (divisionIds.length === 0) {
+    return
+  }
+
   const now = new Date().toISOString()
+  const chunkSize = getMaxItemsPerInClause(1, 6)
 
-  await runWithWriteRetry(() =>
-    db
-      .update(historySchema.divisionsVersions)
-      .set({
-        isCurrent: false,
-        validToReleaseSetId: releaseSetId,
-        validToMonth: snapshotMonth,
-        updatedAt: now,
-      })
-      .where(
-        and(
-          eq(historySchema.divisionsVersions.regionCode, regionCode),
-          eq(historySchema.divisionsVersions.id, divisionId),
-          eq(historySchema.divisionsVersions.isCurrent, true),
-        ),
-      )
-      .run(),
-  )
+  for (const divisionIdChunk of chunkArray(divisionIds, chunkSize)) {
+    await runWithWriteRetry(() =>
+      db
+        .update(historySchema.divisionsVersions)
+        .set({
+          isCurrent: false,
+          validToReleaseSetId: releaseSetId,
+          validToMonth: snapshotMonth,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(historySchema.divisionsVersions.regionCode, regionCode),
+            eq(historySchema.divisionsVersions.isCurrent, true),
+            inArray(historySchema.divisionsVersions.id, divisionIdChunk),
+          ),
+        )
+        .run(),
+    )
 
-  await runWithWriteRetry(() =>
-    db
-      .update(historySchema.divisionsVersionsI18n)
-      .set({
-        isCurrent: false,
-        validToReleaseSetId: releaseSetId,
-        updatedAt: now,
-      })
-      .where(
-        and(
-          eq(historySchema.divisionsVersionsI18n.divisionId, divisionId),
-          eq(historySchema.divisionsVersionsI18n.isCurrent, true),
-        ),
-      )
-      .run(),
-  )
+    await runWithWriteRetry(() =>
+      db
+        .update(historySchema.divisionsVersionsI18n)
+        .set({
+          isCurrent: false,
+          validToReleaseSetId: releaseSetId,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(historySchema.divisionsVersionsI18n.isCurrent, true),
+            inArray(historySchema.divisionsVersionsI18n.divisionId, divisionIdChunk),
+          ),
+        )
+        .run(),
+    )
+  }
 }
 
 /**
@@ -271,185 +348,180 @@ export async function deleteMissingCurrentDivisions(
 }
 
 /**
- * Upserts the current division row and replaces its current localized name rows.
+ * Upserts current division rows in D1-safe batches.
  */
-export async function upsertDivisionCurrentState(
+export async function upsertDivisionCurrentStates(
   db: HarbourWritableDb,
-  base: DivisionBaseRecord,
-  i18nRows: DivisionI18nPayload[],
+  rows: DivisionBaseRecord[],
 ) {
-  const now = base.updatedAt
+  if (rows.length === 0) {
+    return
+  }
 
-  await runWithWriteRetry(() =>
-    db
-      .insert(currentSchema.divisions)
-      .values(base)
-      .onConflictDoUpdate({
-        target: currentSchema.divisions.id,
-        set: {
-          bbox: base.bbox,
-          cartography: base.cartography,
-          class: base.class,
-          geometry: base.geometry,
-          hierarchy: base.hierarchy,
-          level: base.level,
-          population: base.population,
-          type: base.type,
-          parentDivisionId: base.parentDivisionId,
-          sources: base.sources,
-          subtype: base.subtype,
-          updatedAt: now,
-          wikidata: base.wikidata,
-        },
-      })
-      .run(),
-  )
+  const chunkSize = getMaxRowsPerInsert(15)
 
-  await replaceDivisionCurrentI18n(db, base.id, i18nRows, now)
+  for (const chunk of chunkArray(rows, chunkSize)) {
+    await runWithWriteRetry(() =>
+      db
+        .insert(currentSchema.divisions)
+        .values(chunk)
+        .onConflictDoUpdate({
+          target: currentSchema.divisions.id,
+          set: {
+            bbox: excluded('bbox'),
+            cartography: excluded('cartography'),
+            class: excluded('class'),
+            geometry: excluded('geometry'),
+            hierarchy: excluded('hierarchy'),
+            level: excluded('level'),
+            population: excluded('population'),
+            type: excluded('type'),
+            parentDivisionId: excluded('parentDivisionId'),
+            sources: excluded('sources'),
+            subtype: excluded('subtype'),
+            updatedAt: excluded('updatedAt'),
+            wikidata: excluded('wikidata'),
+          },
+        })
+        .run(),
+    )
+  }
 }
 
 /**
- * Replaces the current i18n rows for a division with a fresh snapshot.
+ * Replaces current i18n rows for one or more divisions with fresh snapshots.
  */
 export async function replaceDivisionCurrentI18n(
   db: HarbourWritableDb,
-  divisionId: string,
-  i18nRows: DivisionI18nPayload[],
-  now: string,
+  divisionIds: string[],
+  rows: NewDivisionI18nRow[],
 ) {
-  await runWithWriteRetry(() =>
-    db
-      .delete(currentSchema.divisionsI18n)
-      .where(eq(currentSchema.divisionsI18n.divisionId, divisionId))
-      .run(),
-  )
-
-  if (i18nRows.length === 0) {
+  if (divisionIds.length === 0) {
     return
   }
 
-  await insertDivisionsI18nInChunks(
-    db,
-    i18nRows.map(row => ({
-      ...row,
-      createdAt: now,
-      updatedAt: now,
-    })),
-  )
+  const deleteChunkSize = getMaxItemsPerInClause()
+
+  for (const divisionIdChunk of chunkArray(divisionIds, deleteChunkSize)) {
+    await runWithWriteRetry(() =>
+      db
+        .delete(currentSchema.divisionsI18n)
+        .where(inArray(currentSchema.divisionsI18n.divisionId, divisionIdChunk))
+        .run(),
+    )
+  }
+
+  if (rows.length > 0) {
+    await insertDivisionsI18nInChunks(db, rows)
+  }
 }
 
 /**
- * Inserts the versioned division row and its versioned i18n rows for a dataset snapshot.
+ * Inserts versioned division rows and i18n rows for a dataset snapshot.
  */
 export async function insertDivisionVersionRows(
-  metaDb: HarbourReadableDb & HarbourWritableDb,
   historyDb: HarbourReadableDb & HarbourWritableDb,
-  message: DatasetProcessingMessage,
-  base: DivisionBaseRecord,
-  i18nRows: DivisionI18nPayload[],
-  versionHash: string,
-  now: string,
-  environment: 'preview' | 'production',
+  context: DivisionVersionInsertContext,
+  baseRows: Array<
+    DivisionBaseRecord & {
+      versionHash: string
+    }
+  >,
+  i18nRows: Array<
+    {
+      divisionId: string
+      isLocaleInferred: boolean
+      localType: string | null
+      locale: string
+      name: string | null
+      nameAlts: string | null
+      nameRules: unknown
+      nameVariant: unknown
+    } & {
+      versionHash: string
+      createdAt: string
+      updatedAt: string
+    }
+  >,
 ) {
-  const dataset = await getDatasetRecordByReleaseId(
-    metaDb,
-    message.releaseId ?? message.datasetId,
-  )
-
-  if (!dataset) {
-    throw new Error(`Release not found: ${message.releaseId ?? message.datasetId}`)
-  }
-  const releaseSet = await resolveReleaseSetForType(metaDb, message.type)
-  if (!releaseSet) {
-    throw new Error(`Release set not found for type: ${message.type}`)
-  }
-  const year = message.sourceVersion.slice(0, 4)
-  const currentShard = await resolveShardForKindRegionYear(
-    metaDb,
-    'current',
-    environment,
-  )
-  const historyShard = await resolveShardForKindRegionYear(
-    metaDb,
-    'history',
-    environment,
-    message.regionCode,
-    year,
-  )
-  if (!currentShard || !historyShard) {
-    throw new Error(
-      `Shard mapping not found for ${message.regionCode}/${year} in ${environment}.`,
-    )
-  }
-  await upsertReleaseSetMember(
-    metaDb,
-    releaseSet.id,
-    dataset.datasetId,
-    dataset.releaseId,
-    'primary',
-  )
-  await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
-  await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, currentShard.id)
-  await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, historyShard.id)
-
-  await runWithWriteRetry(() =>
-    historyDb
-      .insert(historySchema.divisionsVersions)
-      .values({
-        ...base,
-        createdAt: now,
-        isCurrent: true,
-        releaseId: dataset.releaseId,
-        regionCode: message.regionCode,
-        validFromMonth: message.snapshotMonth,
-        validFromReleaseSetId: releaseSet.id,
-        validToReleaseSetId: null,
-        validToMonth: null,
-        versionHash,
-        updatedAt: now,
-      })
-      .onConflictDoUpdate({
-        target: [
-          historySchema.divisionsVersions.id,
-          historySchema.divisionsVersions.versionHash,
-        ],
-        set: {
-          isCurrent: true,
-          releaseId: dataset.releaseId,
-          validFromMonth: message.snapshotMonth,
-          validFromReleaseSetId: releaseSet.id,
-          validToReleaseSetId: null,
-          validToMonth: null,
-          updatedAt: now,
-        },
-      })
-      .run(),
-  )
-
-  if (i18nRows.length === 0) {
+  if (baseRows.length === 0) {
     return
   }
 
-  await insertDivisionVersionsI18nInChunks(
-    historyDb,
-    i18nRows.map(row => ({
-      divisionId: row.divisionId,
-      isLocaleInferred: row.isLocaleInferred,
-      localType: row.localType,
-      locale: row.locale,
-      name: row.name,
-      nameAlts: row.nameAlts,
-      nameRules: row.nameRules,
-      nameVariant: row.nameVariant,
-      releaseId: dataset.releaseId,
-      validFromReleaseSetId: releaseSet.id,
-      validToReleaseSetId: null,
-      isCurrent: true,
-      versionHash,
-      createdAt: now,
-      updatedAt: now,
-    })),
-  )
+  const baseChunkSize = getMaxRowsPerInsert(23)
+
+  for (const chunk of chunkArray(baseRows, baseChunkSize)) {
+    await runWithWriteRetry(() =>
+      historyDb
+        .insert(historySchema.divisionsVersions)
+        .values(
+          chunk.map(row => ({
+            id: row.id,
+            regionCode: context.regionCode,
+            versionHash: row.versionHash,
+            releaseId: context.releaseId,
+            validFromReleaseSetId: context.releaseSetId,
+            validToReleaseSetId: null,
+            validFromMonth: context.snapshotMonth,
+            validToMonth: null,
+            isCurrent: true,
+            level: row.level,
+            type: row.type,
+            geometry: row.geometry,
+            bbox: row.bbox,
+            population: row.population,
+            subtype: row.subtype,
+            class: row.class,
+            wikidata: row.wikidata,
+            hierarchy: row.hierarchy,
+            parentDivisionId: row.parentDivisionId,
+            cartography: row.cartography,
+            sources: row.sources,
+            createdAt: row.createdAt,
+            updatedAt: row.updatedAt,
+          })),
+        )
+        .onConflictDoUpdate({
+          target: [
+            historySchema.divisionsVersions.id,
+            historySchema.divisionsVersions.versionHash,
+          ],
+          set: {
+            isCurrent: true,
+            releaseId: context.releaseId,
+            validFromMonth: context.snapshotMonth,
+            validFromReleaseSetId: context.releaseSetId,
+            validToReleaseSetId: null,
+            validToMonth: null,
+            updatedAt: excluded('updatedAt'),
+          },
+        })
+        .run(),
+    )
+  }
+
+  if (i18nRows.length > 0) {
+    await insertDivisionVersionsI18nInChunks(
+      historyDb,
+      i18nRows.map(row => ({
+        divisionId: row.divisionId,
+        isLocaleInferred: row.isLocaleInferred,
+        localType: row.localType,
+        locale: row.locale,
+        name: row.name,
+        nameAlts: row.nameAlts,
+        nameRules: row.nameRules,
+        nameVariant: row.nameVariant,
+        releaseId: context.releaseId,
+        validFromReleaseSetId: context.releaseSetId,
+        validToReleaseSetId: null,
+        isCurrent: true,
+        versionHash: row.versionHash,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      })),
+    )
+  }
 }
 
 /**
