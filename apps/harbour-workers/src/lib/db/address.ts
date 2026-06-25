@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
@@ -35,6 +35,18 @@ export type AddressVersionSnapshot = {
   localizedRows: AddressI18nPayload[]
   matchKey: string | null
   versionHash: string
+}
+
+export type AddressVersionInsertContext = {
+  regionCode: RegionCode
+  releaseId: string
+  releaseRole: 'primary' | 'enrichment'
+  releaseSetId: string
+  snapshotMonth: string
+}
+
+function excluded(column: string) {
+  return sql.raw(`excluded.${column}`)
 }
 
 export async function getCurrentAddressVersionMap(
@@ -161,29 +173,99 @@ export async function getCurrentAddressVersionMap(
   return new Map(snapshots)
 }
 
-export async function closeCurrentAddressVersion(
+export async function prepareAddressVersionInsertContext(
+  metaDb: HarbourReadableDb & HarbourWritableDb,
+  message: DatasetProcessingMessage,
+  environment: 'preview' | 'production',
+): Promise<AddressVersionInsertContext> {
+  const dataset = await getDatasetRecordByReleaseId(
+    metaDb,
+    message.releaseId ?? message.datasetId,
+  )
+
+  if (!dataset) {
+    throw new Error(`Release not found: ${message.releaseId ?? message.datasetId}`)
+  }
+
+  const releaseSet = await resolveReleaseSetForType(metaDb, message.type)
+
+  if (!releaseSet) {
+    throw new Error(`Release set not found for type: ${message.type}`)
+  }
+
+  const year = message.sourceVersion.slice(0, 4)
+  const currentShard = await resolveShardForKindRegionYear(
+    metaDb,
+    'current',
+    environment,
+  )
+  const historyShard = await resolveShardForKindRegionYear(
+    metaDb,
+    'history',
+    environment,
+    message.regionCode,
+    year,
+  )
+
+  if (!currentShard || !historyShard) {
+    throw new Error(
+      `Shard mapping not found for ${message.regionCode}/${year} in ${environment}.`,
+    )
+  }
+
+  const releaseRole = dataset.source === 'hkgov' ? 'primary' : 'enrichment'
+
+  await upsertReleaseSetMember(
+    metaDb,
+    releaseSet.id,
+    dataset.datasetId,
+    dataset.releaseId,
+    releaseRole,
+  )
+  await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
+  await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, currentShard.id)
+  await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, historyShard.id)
+
+  return {
+    regionCode: message.regionCode,
+    releaseId: dataset.releaseId,
+    releaseRole,
+    releaseSetId: releaseSet.id,
+    snapshotMonth: message.snapshotMonth,
+  }
+}
+
+export async function closeCurrentAddressVersions(
   db: HarbourWritableDb,
-  addressId: string,
+  addressIds: string[],
   releaseSetId: string,
   snapshotMonth: string,
 ) {
-  await runWithWriteRetry(() =>
-    db
-      .update(historySchema.address2dVersions)
-      .set({
-        isCurrent: false,
-        validToReleaseSetId: releaseSetId,
-        validToMonth: snapshotMonth,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(
-        and(
-          eq(historySchema.address2dVersions.id, addressId),
-          eq(historySchema.address2dVersions.isCurrent, true),
-        ),
-      )
-      .run(),
-  )
+  if (addressIds.length === 0) {
+    return
+  }
+
+  const now = new Date().toISOString()
+
+  for (const chunk of chunkArray(addressIds, getMaxItemsPerInClause(1, 5))) {
+    await runWithWriteRetry(() =>
+      db
+        .update(historySchema.address2dVersions)
+        .set({
+          isCurrent: false,
+          validToReleaseSetId: releaseSetId,
+          validToMonth: snapshotMonth,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(historySchema.address2dVersions.isCurrent, true),
+            inArray(historySchema.address2dVersions.id, chunk),
+          ),
+        )
+        .run(),
+    )
+  }
 }
 
 export async function deleteMissingCurrentAddresses(
@@ -235,172 +317,146 @@ export async function deleteMissingCurrentAddresses(
   return missingIds.length
 }
 
-export async function upsertAddressCurrentState(
+export async function upsertAddressCurrentStates(
   db: HarbourWritableDb,
-  base: AddressBaseRecord,
-  i18nRows: AddressI18nPayload[],
+  rows: AddressBaseRecord[],
 ) {
-  const now = base.updatedAt
+  if (rows.length === 0) {
+    return
+  }
 
-  await runWithWriteRetry(() =>
-    db
-      .insert(currentSchema.address2d)
-      .values(base)
-      .onConflictDoUpdate({
-        target: currentSchema.address2d.id,
-        set: {
-          streetId: base.streetId,
-          hamletId: base.hamletId,
-          microhoodId: base.microhoodId,
-          villageId: base.villageId,
-          neighbourhoodId: base.neighbourhoodId,
-          macrohoodId: base.macrohoodId,
-          townId: base.townId,
-          districtId: base.districtId,
-          areaId: base.areaId,
-          countryId: base.countryId,
-          geometry: base.geometry,
-          identifiers: base.identifiers,
-          bbox: base.bbox,
-          sources: base.sources,
-          updatedAt: now,
-        },
-      })
-      .run(),
-  )
-
-  await replaceAddressCurrentI18n(db, base.id, i18nRows, now)
+  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(15))) {
+    await runWithWriteRetry(() =>
+      db
+        .insert(currentSchema.address2d)
+        .values(chunk)
+        .onConflictDoUpdate({
+          target: currentSchema.address2d.id,
+          set: {
+            streetId: excluded('streetId'),
+            hamletId: excluded('hamletId'),
+            microhoodId: excluded('microhoodId'),
+            villageId: excluded('villageId'),
+            neighbourhoodId: excluded('neighbourhoodId'),
+            macrohoodId: excluded('macrohoodId'),
+            townId: excluded('townId'),
+            districtId: excluded('districtId'),
+            areaId: excluded('areaId'),
+            countryId: excluded('countryId'),
+            geometry: excluded('geometry'),
+            identifiers: excluded('identifiers'),
+            bbox: excluded('bbox'),
+            sources: excluded('sources'),
+            updatedAt: excluded('updatedAt'),
+          },
+        })
+        .run(),
+    )
+  }
 }
 
 export async function replaceAddressCurrentI18n(
   db: HarbourWritableDb,
-  addressId: string,
-  i18nRows: AddressI18nPayload[],
-  now: string,
+  addressIds: string[],
+  rows: NewAddressI18nRow[],
 ) {
-  await runWithWriteRetry(() =>
-    db
-      .delete(currentSchema.address2dI18n)
-      .where(eq(currentSchema.address2dI18n.addressId, addressId))
-      .run(),
-  )
-
-  if (i18nRows.length === 0) {
+  if (addressIds.length === 0) {
     return
   }
 
-  await insertAddressI18nInChunks(
-    db,
-    i18nRows.map(row => ({
-      ...row,
-      createdAt: now,
-      updatedAt: now,
-    })),
-  )
+  for (const chunk of chunkArray(addressIds, getMaxItemsPerInClause())) {
+    await runWithWriteRetry(() =>
+      db
+        .delete(currentSchema.address2dI18n)
+        .where(inArray(currentSchema.address2dI18n.addressId, chunk))
+        .run(),
+    )
+  }
+
+  if (rows.length > 0) {
+    await insertAddressI18nInChunks(db, rows)
+  }
 }
 
 export async function insertAddressVersionRows(
-  metaDb: HarbourReadableDb & HarbourWritableDb,
   historyDb: HarbourReadableDb & HarbourWritableDb,
-  message: DatasetProcessingMessage,
-  base: AddressBaseRecord,
-  i18nRows: AddressI18nPayload[],
-  versionHash: string,
-  now: string,
-  environment: 'preview' | 'production',
+  context: AddressVersionInsertContext,
+  baseRows: Array<
+    AddressBaseRecord & {
+      versionHash: string
+    }
+  >,
+  i18nRows: Array<
+    AddressI18nPayload & {
+      releaseId: string
+      validFromReleaseSetId: string
+      validToReleaseSetId: string | null
+      isCurrent: boolean
+      versionHash: string
+      createdAt: string
+      updatedAt: string
+    }
+  >,
 ) {
-  const dataset = await getDatasetRecordByReleaseId(
-    metaDb,
-    message.releaseId ?? message.datasetId,
-  )
-
-  if (!dataset) {
-    throw new Error(`Release not found: ${message.releaseId ?? message.datasetId}`)
-  }
-  const releaseSet = await resolveReleaseSetForType(metaDb, message.type)
-  if (!releaseSet) {
-    throw new Error(`Release set not found for type: ${message.type}`)
-  }
-  const year = message.sourceVersion.slice(0, 4)
-  const currentShard = await resolveShardForKindRegionYear(
-    metaDb,
-    'current',
-    environment,
-  )
-  const historyShard = await resolveShardForKindRegionYear(
-    metaDb,
-    'history',
-    environment,
-    message.regionCode,
-    year,
-  )
-  if (!currentShard || !historyShard) {
-    throw new Error(
-      `Shard mapping not found for ${message.regionCode}/${year} in ${environment}.`,
-    )
-  }
-  await upsertReleaseSetMember(
-    metaDb,
-    releaseSet.id,
-    dataset.datasetId,
-    dataset.releaseId,
-    dataset.source === 'hkgov' ? 'primary' : 'enrichment',
-  )
-  await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
-  await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, currentShard.id)
-  await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, historyShard.id)
-
-  await runWithWriteRetry(() =>
-    historyDb
-      .insert(historySchema.address2dVersions)
-      .values({
-        ...base,
-        createdAt: now,
-        isCurrent: true,
-        regionCode: message.regionCode,
-        releaseId: dataset.releaseId,
-        validFromReleaseSetId: releaseSet.id,
-        validFromMonth: message.snapshotMonth,
-        validToReleaseSetId: null,
-        validToMonth: null,
-        versionHash,
-        updatedAt: now,
-      })
-      .onConflictDoUpdate({
-        target: [
-          historySchema.address2dVersions.id,
-          historySchema.address2dVersions.versionHash,
-        ],
-        set: {
-          isCurrent: true,
-          releaseId: dataset.releaseId,
-          validFromReleaseSetId: releaseSet.id,
-          validFromMonth: message.snapshotMonth,
-          validToReleaseSetId: null,
-          validToMonth: null,
-          updatedAt: now,
-        },
-      })
-      .run(),
-  )
-
-  if (i18nRows.length === 0) {
+  if (baseRows.length === 0) {
     return
   }
 
-  await insertAddressVersionsI18nInChunks(
-    historyDb,
-    i18nRows.map(row => ({
-      ...row,
-      releaseId: dataset.releaseId,
-      validFromReleaseSetId: releaseSet.id,
-      validToReleaseSetId: null,
-      isCurrent: true,
-      versionHash,
-      createdAt: now,
-      updatedAt: now,
-    })),
-  )
+  for (const chunk of chunkArray(baseRows, getMaxRowsPerInsert(20))) {
+    await runWithWriteRetry(() =>
+      historyDb
+        .insert(historySchema.address2dVersions)
+        .values(
+          chunk.map(row => ({
+            id: row.id,
+            regionCode: context.regionCode,
+            versionHash: row.versionHash,
+            releaseId: context.releaseId,
+            validFromReleaseSetId: context.releaseSetId,
+            validToReleaseSetId: null,
+            validFromMonth: context.snapshotMonth,
+            validToMonth: null,
+            isCurrent: true,
+            streetId: row.streetId,
+            hamletId: row.hamletId,
+            microhoodId: row.microhoodId,
+            villageId: row.villageId,
+            neighbourhoodId: row.neighbourhoodId,
+            macrohoodId: row.macrohoodId,
+            townId: row.townId,
+            districtId: row.districtId,
+            areaId: row.areaId,
+            countryId: row.countryId,
+            geometry: row.geometry,
+            bbox: row.bbox,
+            identifiers: row.identifiers,
+            sources: row.sources,
+            createdAt: row.createdAt,
+            updatedAt: row.updatedAt,
+          })),
+        )
+        .onConflictDoUpdate({
+          target: [
+            historySchema.address2dVersions.id,
+            historySchema.address2dVersions.versionHash,
+          ],
+          set: {
+            isCurrent: true,
+            releaseId: context.releaseId,
+            validFromReleaseSetId: context.releaseSetId,
+            validFromMonth: context.snapshotMonth,
+            validToReleaseSetId: null,
+            validToMonth: null,
+            updatedAt: excluded('updatedAt'),
+          },
+        })
+        .run(),
+    )
+  }
+
+  if (i18nRows.length > 0) {
+    await insertAddressVersionsI18nInChunks(historyDb, i18nRows)
+  }
 }
 
 async function insertAddressI18nInChunks(

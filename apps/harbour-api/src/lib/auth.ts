@@ -1,22 +1,30 @@
+import { timingSafeEqual as constantTimeEqual } from 'node:crypto'
 import type { MiddlewareHandler } from 'hono'
 
 import type { AppEnv } from '../types'
 
 const API_KEY_HEADER = 'x-api-key'
+const HEALTH_PATH = '/v1/meta/health'
+const D1_PLACEMENT_PROBE_PATH = '/api/v1/meta/d1-placement-probe'
 
 export const requireApiKey: MiddlewareHandler<AppEnv> = async (c, next) => {
-  if (c.req.path === '/v1/meta/health') {
+  if (c.req.path === HEALTH_PATH) {
     return next()
   }
 
-  const configuredApiKey = c.env.HARBOUR_API_KEY?.trim()
+  const isD1PlacementProbe = c.req.path === D1_PLACEMENT_PROBE_PATH
+  const configuredApiKey = (
+    isD1PlacementProbe ? c.env.D1_PLACEMENT_PROBE_API_KEY : c.env.HARBOUR_API_KEY
+  )?.trim()
 
   if (!configuredApiKey) {
     return c.json(
       {
         httpStatus: 500,
         error: 'auth_misconfigured',
-        message: 'Harbour API authentication is not configured.',
+        message: isD1PlacementProbe
+          ? 'D1 placement probe authentication is not configured.'
+          : 'Harbour API authentication is not configured.',
       },
       500,
     )
@@ -46,5 +54,5 @@ function timingSafeEqual(left: string, right: string) {
     return false
   }
 
-  return crypto.subtle.timingSafeEqual(leftBytes, rightBytes)
+  return constantTimeEqual(leftBytes, rightBytes)
 }

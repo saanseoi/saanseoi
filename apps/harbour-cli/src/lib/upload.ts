@@ -47,9 +47,9 @@ export function resolveHarbourBaseUrl(target: UploadTarget) {
     case 'dev':
       return 'http://localhost:8788'
     case 'preview':
-      return 'https://ss-harbour-preview.hypehk.workers.dev'
+      return 'https://preview.harbour.saanseoi.hk'
     case 'production':
-      return 'https://ss-harbour-production.hypehk.workers.dev'
+      return 'https://harbour.saanseoi.hk'
   }
 }
 

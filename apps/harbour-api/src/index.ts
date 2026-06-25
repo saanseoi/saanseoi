@@ -26,6 +26,8 @@ const openApiConfig = {
 app.use('*', poweredBy())
 app.use('/v1/*', prettyJSON())
 app.use('/v1/*', requireApiKey)
+app.use('/api/v1/*', prettyJSON())
+app.use('/api/v1/*', requireApiKey)
 
 app.onError((error, c) => {
   console.error(error)

@@ -1,7 +1,8 @@
 # Harbour R2 upload secrets
 
-Harbour uses one API auth secret, the R2 signing secrets, and the shared Telegram bot credentials:
+Harbour uses one general API auth secret, one D1 placement probe auth secret, the R2 signing secrets, and the shared Telegram bot credentials:
 
+- `D1_PLACEMENT_PROBE_API_KEY`
 - `HARBOUR_API_KEY`
 - `R2_ACCOUNT_ID`
 - `R2_RAW_ACCESS_KEY_ID`
@@ -25,6 +26,7 @@ Set preview secrets on the preview Worker:
 
 ```bash
 bunx wrangler secret put HARBOUR_API_KEY --config apps/harbour-api/wrangler.jsonc --env preview
+bunx wrangler secret put D1_PLACEMENT_PROBE_API_KEY --config apps/harbour-api/wrangler.jsonc --env preview
 bunx wrangler secret put R2_ACCOUNT_ID --config apps/harbour-api/wrangler.jsonc --env preview
 bunx wrangler secret put R2_RAW_ACCESS_KEY_ID --config apps/harbour-api/wrangler.jsonc --env preview
 bunx wrangler secret put R2_RAW_SECRET_ACCESS_KEY --config apps/harbour-api/wrangler.jsonc --env preview
@@ -36,6 +38,7 @@ Set production secrets on the production Worker:
 
 ```bash
 bunx wrangler secret put HARBOUR_API_KEY --config apps/harbour-api/wrangler.jsonc --env production
+bunx wrangler secret put D1_PLACEMENT_PROBE_API_KEY --config apps/harbour-api/wrangler.jsonc --env production
 bunx wrangler secret put R2_ACCOUNT_ID --config apps/harbour-api/wrangler.jsonc --env production
 bunx wrangler secret put R2_RAW_ACCESS_KEY_ID --config apps/harbour-api/wrangler.jsonc --env production
 bunx wrangler secret put R2_RAW_SECRET_ACCESS_KEY --config apps/harbour-api/wrangler.jsonc --env production

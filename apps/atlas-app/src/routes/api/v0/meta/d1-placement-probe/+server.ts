@@ -1,3 +1,4 @@
+import { timingSafeEqual as constantTimeEqual } from 'node:crypto'
 import { json } from '@sveltejs/kit'
 import {
   parseD1PlacementProbeIterations,
@@ -7,6 +8,7 @@ import {
 import type { RequestHandler } from './$types'
 
 const CONFIGURED_PLACEMENT_REGION = 'azure:eastasia'
+const API_KEY_HEADER = 'x-api-key'
 
 export const GET: RequestHandler = async event => {
   const env = event.platform?.env
@@ -22,6 +24,40 @@ export const GET: RequestHandler = async event => {
           'cache-control': 'no-store',
         },
         status: 500,
+      },
+    )
+  }
+
+  const configuredApiKey = env.D1_PLACEMENT_PROBE_API_KEY?.trim()
+
+  if (!configuredApiKey) {
+    return json(
+      {
+        error: 'auth_misconfigured',
+        message: 'D1 placement probe authentication is not configured.',
+      },
+      {
+        headers: {
+          'cache-control': 'no-store',
+        },
+        status: 500,
+      },
+    )
+  }
+
+  const providedApiKey = event.request.headers.get(API_KEY_HEADER)?.trim()
+
+  if (!providedApiKey || !timingSafeEqual(providedApiKey, configuredApiKey)) {
+    return json(
+      {
+        error: 'unauthorized',
+        message: 'Missing or invalid API key.',
+      },
+      {
+        headers: {
+          'cache-control': 'no-store',
+        },
+        status: 401,
       },
     )
   }
@@ -79,4 +115,15 @@ export const GET: RequestHandler = async event => {
       },
     },
   )
+}
+
+function timingSafeEqual(left: string, right: string) {
+  const leftBytes = new TextEncoder().encode(left)
+  const rightBytes = new TextEncoder().encode(right)
+
+  if (leftBytes.byteLength !== rightBytes.byteLength) {
+    return false
+  }
+
+  return constantTimeEqual(leftBytes, rightBytes)
 }
