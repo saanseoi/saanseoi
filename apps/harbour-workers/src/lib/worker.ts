@@ -61,6 +61,7 @@ export function createProcessDatasetMessage(
     if (!releaseId) {
       throw new Error('Missing releaseId in dataset processing message.')
     }
+    const processStartedAt = Date.now()
     const activePhases = new Set<string>()
     await harbourClient.stageStarted(releaseId, 'processDataset')
     activePhases.add('processDataset')
@@ -69,6 +70,7 @@ export function createProcessDatasetMessage(
       let result: ProcessDatasetResult | ProcessAddressDatasetResult
 
       if (message.type === 'division') {
+        const extractStartedAt = Date.now()
         await harbourClient.stageStarted(releaseId, 'extractDivisions')
         activePhases.add('extractDivisions')
         await harbourClient.stageStarted(releaseId, 'extractDivisionsI18n')
@@ -84,6 +86,7 @@ export function createProcessDatasetMessage(
         )
 
         await harbourClient.stageCompleted(releaseId, 'extractDivisions', {
+          durationMs: Date.now() - extractStartedAt,
           deletedRows: result.deletedRows,
           insertedVersions: result.insertedVersions,
           processedRows: result.processedRows,
@@ -91,10 +94,12 @@ export function createProcessDatasetMessage(
         })
         activePhases.delete('extractDivisions')
         await harbourClient.stageCompleted(releaseId, 'extractDivisionsI18n', {
+          durationMs: Date.now() - extractStartedAt,
           localizedRows: result.localizedRows,
         })
         activePhases.delete('extractDivisionsI18n')
       } else if (message.type === 'address') {
+        const extractStartedAt = Date.now()
         await harbourClient.stageStarted(releaseId, 'extractAddresses')
         activePhases.add('extractAddresses')
         await harbourClient.stageStarted(releaseId, 'extractAddressesI18n')
@@ -110,6 +115,7 @@ export function createProcessDatasetMessage(
         )
 
         await harbourClient.stageCompleted(releaseId, 'extractAddresses', {
+          durationMs: Date.now() - extractStartedAt,
           deletedRows: result.deletedRows,
           insertedVersions: result.insertedVersions,
           processedRows: result.processedRows,
@@ -117,6 +123,7 @@ export function createProcessDatasetMessage(
         })
         activePhases.delete('extractAddresses')
         await harbourClient.stageCompleted(releaseId, 'extractAddressesI18n', {
+          durationMs: Date.now() - extractStartedAt,
           localizedRows: result.localizedRows,
         })
         activePhases.delete('extractAddressesI18n')
@@ -124,17 +131,51 @@ export function createProcessDatasetMessage(
         throw new Error(`Unsupported processing type: ${message.type}`)
       }
 
+      const publishStartedAt = Date.now()
       await harbourClient.stageStarted(releaseId, 'publishDataset')
       activePhases.add('publishDataset')
       await harbourClient.publishDataset(releaseId)
-      await harbourClient.stageCompleted(releaseId, 'publishDataset')
+      await harbourClient.stageCompleted(releaseId, 'publishDataset', {
+        durationMs: Date.now() - publishStartedAt,
+      })
       activePhases.delete('publishDataset')
 
-      await harbourClient.stageCompleted(releaseId, 'processDataset')
+      const durationMs = Date.now() - processStartedAt
+      console.info(
+        JSON.stringify({
+          datasetId: message.datasetId,
+          messageType: message.type,
+          phase: 'processDataset',
+          processedRows: result.processedRows,
+          releaseId,
+          source: message.source,
+          sourceVersion: message.sourceVersion,
+          status: 'completed',
+          durationMs,
+        }),
+      )
+      await harbourClient.stageCompleted(releaseId, 'processDataset', {
+        durationMs,
+      })
       activePhases.delete('processDataset')
       return result
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
+      const durationMs = Date.now() - processStartedAt
+
+      console.error(
+        JSON.stringify({
+          datasetId: message.datasetId,
+          messageType: message.type,
+          phase: 'processDataset',
+          releaseId,
+          source: message.source,
+          sourceVersion: message.sourceVersion,
+          status: 'failed',
+          error: errorMessage,
+          durationMs,
+        }),
+      )
 
       for (const phase of [...activePhases].filter(
         phase => phase !== 'processDataset',

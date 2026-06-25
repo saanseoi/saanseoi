@@ -225,7 +225,21 @@ export async function replaceSourceOvertureDivisionI18n(
   await replaceCurrentI18nRows(
     db,
     sourceSchema.sourceOvertureDivisionI18n,
-    sourceRecordId,
+    [sourceRecordId],
+    rows,
+    8,
+  )
+}
+
+export async function replaceSourceOvertureDivisionI18nRows(
+  db: SourceDatabase,
+  sourceRecordIds: string[],
+  rows: Array<typeof sourceSchema.sourceOvertureDivisionI18n.$inferInsert>,
+) {
+  await replaceCurrentI18nRows(
+    db,
+    sourceSchema.sourceOvertureDivisionI18n,
+    sourceRecordIds,
     rows,
     8,
   )
@@ -301,7 +315,21 @@ export async function replaceSourceOvertureAddress2dI18n(
   await replaceCurrentI18nRows(
     db,
     sourceSchema.sourceOvertureAddress2dI18n,
-    sourceRecordId,
+    [sourceRecordId],
+    rows,
+    5,
+  )
+}
+
+export async function replaceSourceOvertureAddress2dI18nRows(
+  db: SourceDatabase,
+  sourceRecordIds: string[],
+  rows: Array<typeof sourceSchema.sourceOvertureAddress2dI18n.$inferInsert>,
+) {
+  await replaceCurrentI18nRows(
+    db,
+    sourceSchema.sourceOvertureAddress2dI18n,
+    sourceRecordIds,
     rows,
     5,
   )
@@ -396,7 +424,21 @@ export async function replaceSourceHkgovAlsAddress2dI18n(
   await replaceCurrentI18nRows(
     db,
     sourceSchema.sourceHkgovAlsAddress2dI18n,
-    sourceRecordId,
+    [sourceRecordId],
+    rows,
+    15,
+  )
+}
+
+export async function replaceSourceHkgovAlsAddress2dI18nRows(
+  db: SourceDatabase,
+  sourceRecordIds: string[],
+  rows: Array<typeof sourceSchema.sourceHkgovAlsAddress2dI18n.$inferInsert>,
+) {
+  await replaceCurrentI18nRows(
+    db,
+    sourceSchema.sourceHkgovAlsAddress2dI18n,
+    sourceRecordIds,
     rows,
     15,
   )
@@ -568,28 +610,35 @@ async function deleteMissingCurrentSourceRows<
 async function replaceCurrentI18nRows<TTable extends { sourceRecordId: unknown }>(
   db: SourceDatabase,
   table: TTable,
-  sourceRecordId: string,
+  sourceRecordIds: string[],
   rows: Array<TTable extends { $inferInsert: infer TInsert } ? TInsert : never>,
   columnCount: number,
 ) {
-  if (rows.length === 0) {
-    await runWithWriteRetry(() =>
-      db
-        .delete(table as never)
-        .where(eq(table.sourceRecordId as never, sourceRecordId))
-        .run(),
-    )
+  if (sourceRecordIds.length === 0) {
     return
   }
 
-  const statements: [SourceBatchItem, ...SourceBatchItem[]] = [
-    db.delete(table as never).where(eq(table.sourceRecordId as never, sourceRecordId)),
-    ...chunkArray(rows, getMaxRowsPerInsert(columnCount, 3)).map(chunk =>
-      db.insert(table as never).values(chunk as never),
-    ),
-  ]
+  for (const chunk of chunkArray(sourceRecordIds, getMaxItemsPerInClause())) {
+    await runWithWriteRetry(() =>
+      db
+        .delete(table as never)
+        .where(inArray(table.sourceRecordId as never, chunk))
+        .run(),
+    )
+  }
 
-  await runBatchWithWriteRetry(db, statements)
+  if (rows.length === 0) {
+    return
+  }
+
+  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
+    await runWithWriteRetry(() =>
+      db
+        .insert(table as never)
+        .values(chunk as never)
+        .run(),
+    )
+  }
 }
 
 async function insertVersionRows<TTable>(
