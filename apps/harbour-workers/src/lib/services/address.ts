@@ -1,5 +1,4 @@
 import type { DatasetProcessingMessage } from '@repo/core'
-import { resolveReleaseSetForType } from '@repo/core/db/meta-repository'
 import type {
   CurrentDatabase,
   HistoryDatabase,
@@ -7,18 +6,24 @@ import type {
   sourceSchema,
   SourceDatabase,
 } from '@repo/db'
-import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
+import type {
+  AddressI18nPayload,
+  AddressRow,
+  NewAddressI18nRow,
+} from '@repo/db/currentSchema'
 
 import { eq } from 'drizzle-orm'
 
 import { currentSchema } from '@repo/db'
 
 import {
-  closeCurrentAddressVersion,
+  closeCurrentAddressVersions,
   deleteMissingCurrentAddresses,
   getCurrentAddressVersionMap,
   insertAddressVersionRows,
-  upsertAddressCurrentState,
+  prepareAddressVersionInsertContext,
+  replaceAddressCurrentI18n,
+  upsertAddressCurrentStates,
 } from '../db/address'
 import {
   buildSourceDatasetId,
@@ -33,8 +38,8 @@ import {
   insertSourceHkgovAlsAddresses2dVersions,
   insertSourceOvertureAddress2dI18nVersions,
   insertSourceOvertureAddresses2dVersions,
-  replaceSourceHkgovAlsAddress2dI18n,
-  replaceSourceOvertureAddress2dI18n,
+  replaceSourceHkgovAlsAddress2dI18nRows,
+  replaceSourceOvertureAddress2dI18nRows,
   upsertSourceHkgovAlsAddresses2d,
   upsertSourceOvertureAddresses2d,
 } from '../db/source'
@@ -89,11 +94,11 @@ export async function processAddressDataset(
 ): Promise<ProcessAddressDatasetResult> {
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
   const environment = resolveShardEnvironment()
-  const releaseSet = await resolveReleaseSetForType(metaDb, message.type)
-
-  if (!releaseSet) {
-    throw new Error(`Release set not found for type: ${message.type}`)
-  }
+  const versionInsertContext = await prepareAddressVersionInsertContext(
+    metaDb,
+    message,
+    environment,
+  )
 
   const divisionLookup = await loadDivisionLookupMaps(currentDb)
   const currentRows = await getCurrentAddressVersionMap(historyDb, message.regionCode, {
@@ -146,6 +151,26 @@ export async function processAddressDataset(
     const hkgovSourceI18nVersionRows: Array<
       typeof sourceSchema.sourceHkgovAlsAddress2dI18nVersions.$inferInsert
     > = []
+    const changedAddressExistingIds = new Set<string>()
+    const currentAddressRows: AddressRow[] = []
+    const currentAddressI18nRowIds = new Set<string>()
+    const currentAddressI18nRows: NewAddressI18nRow[] = []
+    const changedAddressVersionRows: Array<
+      AddressRow & {
+        versionHash: string
+      }
+    > = []
+    const changedAddressI18nVersionRows: Array<
+      AddressI18nPayload & {
+        releaseId: string
+        validFromReleaseSetId: string
+        validToReleaseSetId: string | null
+        isCurrent: boolean
+        versionHash: string
+        createdAt: string
+        updatedAt: string
+      }
+    > = []
     const changedSourceIds = new Set<string>()
 
     for (const row of batch) {
@@ -175,6 +200,15 @@ export async function processAddressDataset(
       localizedRows += i18n.length
       seenIds.add(addressId)
       seenSourceIds.add(normalized.sourceId)
+      const now = new Date().toISOString()
+      currentAddressI18nRowIds.add(addressId)
+      currentAddressI18nRows.push(
+        ...i18n.map(row => ({
+          ...row,
+          createdAt: now,
+          updatedAt: now,
+        })),
+      )
 
       if (sourceDb) {
         const releaseId = buildSourceReleaseId(message)
@@ -387,54 +421,75 @@ export async function processAddressDataset(
 
       if (matchedCurrent?.versionHash === versionHash) {
         unchangedRows += 1
-        await insertAddressVersionRows(
-          metaDb,
-          historyDb,
-          message,
-          {
-            ...base,
-            updatedAt: new Date().toISOString(),
-          },
-          i18n,
+        changedAddressVersionRows.push({
+          ...base,
+          createdAt: now,
+          updatedAt: now,
           versionHash,
-          new Date().toISOString(),
-          environment,
+        })
+        changedAddressI18nVersionRows.push(
+          ...i18n.map(row => ({
+            ...row,
+            releaseId: versionInsertContext.releaseId,
+            validFromReleaseSetId: versionInsertContext.releaseSetId,
+            validToReleaseSetId: null,
+            isCurrent: true,
+            versionHash,
+            createdAt: now,
+            updatedAt: now,
+          })),
         )
         continue
       }
 
       if (matchedCurrent) {
-        await closeCurrentAddressVersion(
-          historyDb,
-          matchedCurrent.id,
-          releaseSet.id,
-          message.snapshotMonth,
-        )
+        changedAddressExistingIds.add(matchedCurrent.id)
       }
 
       insertedVersions += 1
-
-      const now = new Date().toISOString()
-      await upsertAddressCurrentState(
-        currentDb,
-        {
-          ...base,
-          createdAt: matchedCurrent ? now : now,
-          updatedAt: now,
-        },
-        i18n,
-      )
-      await insertAddressVersionRows(
-        metaDb,
-        historyDb,
-        message,
-        { ...base, createdAt: now, updatedAt: now },
-        i18n,
+      currentAddressRows.push({
+        ...base,
+        createdAt: now,
+        updatedAt: now,
+      })
+      changedAddressVersionRows.push({
+        ...base,
+        createdAt: now,
+        updatedAt: now,
         versionHash,
-        now,
-        environment,
+      })
+      changedAddressI18nVersionRows.push(
+        ...i18n.map(row => ({
+          ...row,
+          releaseId: versionInsertContext.releaseId,
+          validFromReleaseSetId: versionInsertContext.releaseSetId,
+          validToReleaseSetId: null,
+          isCurrent: true,
+          versionHash,
+          createdAt: now,
+          updatedAt: now,
+        })),
       )
     }
+
+    await closeCurrentAddressVersions(
+      historyDb,
+      [...changedAddressExistingIds],
+      versionInsertContext.releaseSetId,
+      message.snapshotMonth,
+    )
+    await upsertAddressCurrentStates(currentDb, currentAddressRows)
+    await replaceAddressCurrentI18n(
+      currentDb,
+      [...currentAddressI18nRowIds],
+      currentAddressI18nRows,
+    )
+    await insertAddressVersionRows(
+      historyDb,
+      versionInsertContext,
+      changedAddressVersionRows,
+      changedAddressI18nVersionRows,
+    )
 
     if (!sourceDb) {
       continue
@@ -452,14 +507,11 @@ export async function processAddressDataset(
       }
 
       await upsertSourceOvertureAddresses2d(sourceDb, overtureSourceRows)
-
-      for (const sourceRecordId of changedIds) {
-        await replaceSourceOvertureAddress2dI18n(
-          sourceDb,
-          sourceRecordId,
-          overtureSourceI18nRows.filter(row => row.sourceRecordId === sourceRecordId),
-        )
-      }
+      await replaceSourceOvertureAddress2dI18nRows(
+        sourceDb,
+        changedIds,
+        overtureSourceI18nRows.filter(row => changedSourceIds.has(row.sourceRecordId)),
+      )
 
       await insertSourceOvertureAddresses2dVersions(sourceDb, overtureSourceVersionRows)
       await insertSourceOvertureAddress2dI18nVersions(
@@ -476,14 +528,11 @@ export async function processAddressDataset(
       }
 
       await upsertSourceHkgovAlsAddresses2d(sourceDb, hkgovSourceRows)
-
-      for (const sourceRecordId of changedIds) {
-        await replaceSourceHkgovAlsAddress2dI18n(
-          sourceDb,
-          sourceRecordId,
-          hkgovSourceI18nRows.filter(row => row.sourceRecordId === sourceRecordId),
-        )
-      }
+      await replaceSourceHkgovAlsAddress2dI18nRows(
+        sourceDb,
+        changedIds,
+        hkgovSourceI18nRows.filter(row => changedSourceIds.has(row.sourceRecordId)),
+      )
 
       await insertSourceHkgovAlsAddresses2dVersions(sourceDb, hkgovSourceVersionRows)
       await insertSourceHkgovAlsAddress2dI18nVersions(
@@ -498,7 +547,7 @@ export async function processAddressDataset(
       ? await deleteMissingCurrentAddresses(
           currentDb,
           historyDb,
-          releaseSet.id,
+          versionInsertContext.releaseSetId,
           message.snapshotMonth,
           currentRows,
           seenIds,

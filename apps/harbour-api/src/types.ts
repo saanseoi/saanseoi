@@ -4,6 +4,7 @@ import type { SaanseoiWorkerBindings } from '@repo/db'
 export type AppEnv = {
   Bindings: SaanseoiWorkerBindings & {
     DATASET_QUEUE: Queue<DatasetProcessingMessage>
+    D1_PLACEMENT_PROBE_API_KEY: string
     HARBOUR_API_KEY: string
     R2_ACCOUNT_ID: string
     R2_RAW: R2Bucket

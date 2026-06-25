@@ -3,6 +3,7 @@
 Atlas App uses Better Auth and requires:
 
 - `BETTER_AUTH_SECRET`
+- `D1_PLACEMENT_PROBE_API_KEY`
 
 ## Local development
 
@@ -18,12 +19,14 @@ Set the preview secret on the preview Worker:
 
 ```bash
 bunx wrangler secret put BETTER_AUTH_SECRET --config apps/atlas-app/wrangler.jsonc --env preview
+bunx wrangler secret put D1_PLACEMENT_PROBE_API_KEY --config apps/atlas-app/wrangler.jsonc --env preview
 ```
 
 Set the production secret on the production Worker:
 
 ```bash
 bunx wrangler secret put BETTER_AUTH_SECRET --config apps/atlas-app/wrangler.jsonc --env production
+bunx wrangler secret put D1_PLACEMENT_PROBE_API_KEY --config apps/atlas-app/wrangler.jsonc --env production
 ```
 
 Use a high-entropy value at least 32 characters long. You can generate one with:

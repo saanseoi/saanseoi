@@ -12,38 +12,38 @@
     "PUBLIC_ATLAS_API_BASE_URL": "http://localhost:8787"
   },
   "secrets": {
-    "required": ["BETTER_AUTH_SECRET"]
+    "required": ["BETTER_AUTH_SECRET", "D1_PLACEMENT_PROBE_API_KEY"]
   },
   "d1_databases": [
     {
       "binding": "DB_META",
       "database_name": "ss-meta-db-preview",
-      "database_id": "655743d2-5dcc-4a94-a12f-62eaf9955a84",
-      "preview_database_id": "655743d2-5dcc-4a94-a12f-62eaf9955a84",
+      "database_id": "d37ea879-848d-4548-a565-0d86b4bc3d43",
+      "preview_database_id": "d37ea879-848d-4548-a565-0d86b4bc3d43",
       "migrations_dir": "../../libs/db/migrations/meta",
       "migrations_pattern": "../../libs/db/migrations/meta/*/migration.sql"
     },
     {
       "binding": "DB_CURRENT",
       "database_name": "ss-current-db-preview",
-      "database_id": "1e704b3f-4374-42ea-b8b2-faca805d11eb",
-      "preview_database_id": "1e704b3f-4374-42ea-b8b2-faca805d11eb",
+      "database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
+      "preview_database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
       "migrations_dir": "../../libs/db/migrations/current",
       "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
     },
     {
       "binding": "DB_HISTORY_HK_2025",
       "database_name": "ss-history-hk-2025-db-preview",
-      "database_id": "bea18422-d1ce-429d-b099-464a33716921",
-      "preview_database_id": "bea18422-d1ce-429d-b099-464a33716921",
+      "database_id": "9566cfa9-2af6-473c-a74b-c7f7c6a757a9",
+      "preview_database_id": "9566cfa9-2af6-473c-a74b-c7f7c6a757a9",
       "migrations_dir": "../../libs/db/migrations/history",
       "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
     },
     {
       "binding": "DB_HISTORY_HK_2026",
       "database_name": "ss-history-hk-2026-db-preview",
-      "database_id": "de2e7b41-29dd-4f97-a3eb-8eae47cf7a05",
-      "preview_database_id": "de2e7b41-29dd-4f97-a3eb-8eae47cf7a05",
+      "database_id": "b76baf00-7138-44b0-bd24-e99f3aea4249",
+      "preview_database_id": "b76baf00-7138-44b0-bd24-e99f3aea4249",
       "migrations_dir": "../../libs/db/migrations/history",
       "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
     },
@@ -58,8 +58,8 @@
     {
       "binding": "DB_SOURCE_HK_2026",
       "database_name": "ss-source-hk-2026-db-preview",
-      "database_id": "1231e30e-58da-4e70-9342-7b4bb6500dad",
-      "preview_database_id": "1231e30e-58da-4e70-9342-7b4bb6500dad",
+      "database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
+      "preview_database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
       "migrations_dir": "../../libs/db/migrations/source",
       "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
     }
@@ -86,38 +86,38 @@
         "PUBLIC_ATLAS_API_BASE_URL": "https://preview.api.saanseoi.hk"
       },
       "secrets": {
-        "required": ["BETTER_AUTH_SECRET"]
+        "required": ["BETTER_AUTH_SECRET", "D1_PLACEMENT_PROBE_API_KEY"]
       },
       "d1_databases": [
         {
           "binding": "DB_META",
           "database_name": "ss-meta-db-preview",
-          "database_id": "655743d2-5dcc-4a94-a12f-62eaf9955a84",
-          "preview_database_id": "655743d2-5dcc-4a94-a12f-62eaf9955a84",
+          "database_id": "d37ea879-848d-4548-a565-0d86b4bc3d43",
+          "preview_database_id": "d37ea879-848d-4548-a565-0d86b4bc3d43",
           "migrations_dir": "../../libs/db/migrations/meta",
           "migrations_pattern": "../../libs/db/migrations/meta/*/migration.sql"
         },
         {
           "binding": "DB_CURRENT",
           "database_name": "ss-current-db-preview",
-          "database_id": "1e704b3f-4374-42ea-b8b2-faca805d11eb",
-          "preview_database_id": "1e704b3f-4374-42ea-b8b2-faca805d11eb",
+          "database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
+          "preview_database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
           "migrations_dir": "../../libs/db/migrations/current",
           "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
         },
         {
           "binding": "DB_HISTORY_HK_2025",
           "database_name": "ss-history-hk-2025-db-preview",
-          "database_id": "bea18422-d1ce-429d-b099-464a33716921",
-          "preview_database_id": "bea18422-d1ce-429d-b099-464a33716921",
+          "database_id": "9566cfa9-2af6-473c-a74b-c7f7c6a757a9",
+          "preview_database_id": "9566cfa9-2af6-473c-a74b-c7f7c6a757a9",
           "migrations_dir": "../../libs/db/migrations/history",
           "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
         },
         {
           "binding": "DB_HISTORY_HK_2026",
           "database_name": "ss-history-hk-2026-db-preview",
-          "database_id": "de2e7b41-29dd-4f97-a3eb-8eae47cf7a05",
-          "preview_database_id": "de2e7b41-29dd-4f97-a3eb-8eae47cf7a05",
+          "database_id": "b76baf00-7138-44b0-bd24-e99f3aea4249",
+          "preview_database_id": "b76baf00-7138-44b0-bd24-e99f3aea4249",
           "migrations_dir": "../../libs/db/migrations/history",
           "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
         },
@@ -132,8 +132,8 @@
         {
           "binding": "DB_SOURCE_HK_2026",
           "database_name": "ss-source-hk-2026-db-preview",
-          "database_id": "1231e30e-58da-4e70-9342-7b4bb6500dad",
-          "preview_database_id": "1231e30e-58da-4e70-9342-7b4bb6500dad",
+          "database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
+          "preview_database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
           "migrations_dir": "../../libs/db/migrations/source",
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
         }
@@ -154,45 +154,45 @@
         "PUBLIC_ATLAS_API_BASE_URL": "https://api.saanseoi.hk"
       },
       "secrets": {
-        "required": ["BETTER_AUTH_SECRET"]
+        "required": ["BETTER_AUTH_SECRET", "D1_PLACEMENT_PROBE_API_KEY"]
       },
       "d1_databases": [
         {
           "binding": "DB_META",
           "database_name": "ss-meta-db-prod",
-          "database_id": "5cbcd2b2-5418-43e2-97f1-78f30037aaf3",
-          "preview_database_id": "655743d2-5dcc-4a94-a12f-62eaf9955a84",
+          "database_id": "cf03b2ff-b5ee-4265-899f-6916ed8b6c2c",
+          "preview_database_id": "d37ea879-848d-4548-a565-0d86b4bc3d43",
           "migrations_dir": "../../libs/db/migrations/meta",
           "migrations_pattern": "../../libs/db/migrations/meta/*/migration.sql"
         },
         {
           "binding": "DB_CURRENT",
           "database_name": "ss-current-db-prod",
-          "database_id": "c15bf6b3-32a3-4d05-b7d2-1d2e2643037f",
-          "preview_database_id": "1e704b3f-4374-42ea-b8b2-faca805d11eb",
+          "database_id": "edd3cdf9-1d05-4847-b235-b7fd4189c38d",
+          "preview_database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
           "migrations_dir": "../../libs/db/migrations/current",
           "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
         },
         {
           "binding": "DB_HISTORY_HK_2025",
           "database_name": "ss-history-hk-2025-db-prod",
-          "database_id": "c019b2b7-5511-4cee-8732-5bdba2aea264",
-          "preview_database_id": "bea18422-d1ce-429d-b099-464a33716921",
+          "database_id": "09c217e2-0e04-4ce5-a197-b4210bcb1dea",
+          "preview_database_id": "9566cfa9-2af6-473c-a74b-c7f7c6a757a9",
           "migrations_dir": "../../libs/db/migrations/history",
           "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
         },
         {
           "binding": "DB_HISTORY_HK_2026",
           "database_name": "ss-history-hk-2026-db-prod",
-          "database_id": "b9119da1-813d-4d03-a431-b8e4a540f918",
-          "preview_database_id": "de2e7b41-29dd-4f97-a3eb-8eae47cf7a05",
+          "database_id": "f85a2708-a0aa-4549-8c61-e2289d3694cd",
+          "preview_database_id": "b76baf00-7138-44b0-bd24-e99f3aea4249",
           "migrations_dir": "../../libs/db/migrations/history",
           "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
         },
         {
           "binding": "DB_SOURCE_HK_2025",
           "database_name": "ss-source-hk-2025-db-prod",
-          "database_id": "4dcb7029-51da-482a-a41c-729ecd7b7b12",
+          "database_id": "0e5ff999-c928-4e41-a0e1-e5d7c6fc6d20",
           "preview_database_id": "113ea535-e571-4e31-b15a-c18f116e0424",
           "migrations_dir": "../../libs/db/migrations/source",
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
@@ -200,8 +200,8 @@
         {
           "binding": "DB_SOURCE_HK_2026",
           "database_name": "ss-source-hk-2026-db-prod",
-          "database_id": "c005d6e0-02f7-45f4-9171-1291fc2dc1b5",
-          "preview_database_id": "1231e30e-58da-4e70-9342-7b4bb6500dad",
+          "database_id": "dca6df89-880b-42f8-92a8-08f4919a582a",
+          "preview_database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
           "migrations_dir": "../../libs/db/migrations/source",
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
         }

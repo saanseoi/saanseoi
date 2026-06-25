@@ -10,6 +10,17 @@ import {
 } from '../src/seed'
 
 const target = process.argv[2] ?? 'local'
+const requiredTables = [
+  'publishers',
+  'publisherI18n',
+  'licenses',
+  'datasets',
+  'apiVersions',
+  'apiEndpoints',
+  'apiEndpointDatasets',
+  'apiReleaseSets',
+  'dataShards',
+] as const
 
 if (!['local', 'preview', 'production'].includes(target)) {
   console.error(`Unsupported seed target: ${target}`)
@@ -40,8 +51,126 @@ const sqlUuid =
 
 const nowSql = "cast(unixepoch('subsecond') * 1000 as integer)"
 const databaseName = target === 'production' ? 'ss-meta-db-prod' : 'ss-meta-db-preview'
+const wranglerConfigPath = new URL(
+  '../../../apps/harbour-api/wrangler.jsonc',
+  scriptDir,
+)
+const persistPath = new URL('../../../.local/d1/dev', scriptDir)
+
+function buildWranglerSeedTargetArgs() {
+  return [
+    '--config',
+    wranglerConfigPath.pathname,
+    '--env',
+    target === 'production' ? 'production' : 'preview',
+    ...(target === 'local'
+      ? ['--local', '--persist-to', persistPath.pathname]
+      : ['--remote']),
+  ]
+}
+
+function parseWranglerExecuteJson(raw: string) {
+  const payload = JSON.parse(raw) as
+    | Array<{
+        results?: Array<Record<string, unknown>>
+        success?: boolean
+        error?: string
+      }>
+    | {
+        results?: Array<Record<string, unknown>>
+        success?: boolean
+        error?: string
+      }
+  const first = Array.isArray(payload) ? payload[0] : payload
+
+  if (first?.error) {
+    const errorText =
+      typeof first.error === 'string' ? first.error : JSON.stringify(first.error)
+    throw new Error(`Wrangler D1 execute failed: ${errorText}`)
+  }
+
+  const result = first as
+    | {
+        results?: Array<Record<string, unknown>>
+        success?: boolean
+      }
+    | undefined
+
+  if (!result || result.success === false) {
+    throw new Error(`Unexpected wrangler d1 execute response: ${raw}`)
+  }
+
+  return Array.isArray(result.results) ? result.results : []
+}
+
+function buildMissingTablesMessage(missingTables: string[]) {
+  const tableList = missingTables.join(', ')
+
+  if (target === 'preview' || target === 'local') {
+    const resetCommand =
+      target === 'preview'
+        ? 'bun run db:reset:preview:meta'
+        : 'bun run --filter @repo/db db:reset:local:meta'
+
+    return [
+      `Meta schema preflight failed for ${target}: missing required tables ${tableList}.`,
+      'This database appears to have stale migration state: Wrangler reported no pending migrations, but the seed expects the current meta schema.',
+      `Reset and reapply the meta schema with \`${resetCommand}\`, then rerun the seed command.`,
+    ].join(' ')
+  }
+
+  return [
+    `Meta schema preflight failed for production: missing required tables ${tableList}.`,
+    'Do not continue seeding production until the migration ledger and live schema are reconciled.',
+  ].join(' ')
+}
+
+function assertMetaSchemaReady() {
+  const query = [
+    'SELECT name',
+    'FROM sqlite_master',
+    "WHERE type = 'table'",
+    `AND name IN (${requiredTables.map(sqlString).join(', ')})`,
+    'ORDER BY name;',
+  ].join(' ')
+  const proc = Bun.spawnSync({
+    cmd: [
+      'bun',
+      'x',
+      'wrangler',
+      'd1',
+      'execute',
+      databaseName,
+      ...buildWranglerSeedTargetArgs(),
+      '--json',
+      '--command',
+      query,
+    ],
+    cwd: new URL('..', scriptDir).pathname,
+    stdout: 'pipe',
+    stderr: 'inherit',
+  })
+
+  if (proc.exitCode !== 0) {
+    process.exit(proc.exitCode ?? 1)
+  }
+
+  const rows = parseWranglerExecuteJson(new TextDecoder().decode(proc.stdout))
+  const existing = new Set(
+    rows
+      .map(row => (typeof row.name === 'string' ? row.name : null))
+      .filter((row): row is string => row !== null),
+  )
+  const missing = requiredTables.filter(table => !existing.has(table))
+
+  if (missing.length > 0) {
+    throw new Error(buildMissingTablesMessage([...missing]))
+  }
+}
 
 const statements: string[] = []
+
+assertMetaSchemaReady()
 
 for (const publisher of initialPublishers) {
   statements.push(
@@ -219,26 +348,27 @@ const sql = ['PRAGMA foreign_keys = ON;', ...statements].join('\n\n')
 
 const proc = Bun.spawnSync({
   cmd: [
-    'bash',
-    new URL('./run-d1-execute.sh', scriptDir).pathname,
+    'bun',
+    'x',
+    'wrangler',
+    'd1',
+    'execute',
     databaseName,
-    '--config',
-    new URL('../../../apps/harbour-api/wrangler.jsonc', scriptDir).pathname,
-    '--env',
-    target === 'production' ? 'production' : 'preview',
-    ...(target === 'local'
-      ? [
-          '--local',
-          '--persist-to',
-          new URL('../../../.local/d1/dev', scriptDir).pathname,
-        ]
-      : []),
+    ...buildWranglerSeedTargetArgs(),
+    '--json',
     '--command',
     sql,
   ],
   cwd: new URL('..', scriptDir).pathname,
-  stdout: 'inherit',
+  stdout: 'pipe',
   stderr: 'inherit',
 })
 
-process.exit(proc.exitCode ?? 1)
+if (proc.exitCode !== 0) {
+  process.exit(proc.exitCode ?? 1)
+}
+
+const resultRows = parseWranglerExecuteJson(new TextDecoder().decode(proc.stdout))
+console.log(`Meta seed succeeded. result_rows=${resultRows.length}`)
+
+process.exit(0)

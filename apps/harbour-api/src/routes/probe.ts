@@ -27,8 +27,7 @@ const D1PlacementProbeQuerySchema = z
 
 const d1PlacementProbeRouteConfig = createRoute({
   method: 'get',
-  path: '/api/d1-placement-probe',
-  hide: true,
+  path: '/api/v1/meta/d1-placement-probe',
   tags: ['Meta'],
   request: {
     query: D1PlacementProbeQuerySchema,

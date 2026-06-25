@@ -37,13 +37,22 @@ describe('atlas-app d1 placement probe', () => {
           DB_CURRENT: db,
           DB_HISTORY_HK_2025: db,
           DB_HISTORY_HK_2026: db,
+          D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
           DB_META: db,
           DB_SOURCE_HK_2025: db,
           DB_SOURCE_HK_2026: db,
           PUBLIC_ATLAS_API_BASE_URL: 'https://api.saanseoi.hk',
         },
       },
-      url: new URL('https://saanseoi.hk/api/d1-placement-probe?iterations=2'),
+      request: new Request(
+        'https://saanseoi.hk/api/v0/meta/d1-placement-probe?iterations=2',
+        {
+          headers: {
+            'x-api-key': 'test-probe-api-key',
+          },
+        },
+      ),
+      url: new URL('https://saanseoi.hk/api/v0/meta/d1-placement-probe?iterations=2'),
     } as Parameters<typeof GET>[0])
 
     const body = (await response.json()) as {
@@ -89,15 +98,56 @@ describe('atlas-app d1 placement probe', () => {
           DB_CURRENT: createMockDb(),
           DB_HISTORY_HK_2025: createMockDb(),
           DB_HISTORY_HK_2026: createMockDb(),
+          D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
           DB_META: createMockDb(),
           DB_SOURCE_HK_2025: createMockDb(),
           DB_SOURCE_HK_2026: createMockDb(),
           PUBLIC_ATLAS_API_BASE_URL: 'https://api.saanseoi.hk',
         },
       },
-      url: new URL('https://saanseoi.hk/api/d1-placement-probe?iterations=0'),
+      request: new Request(
+        'https://saanseoi.hk/api/v0/meta/d1-placement-probe?iterations=0',
+        {
+          headers: {
+            'x-api-key': 'test-probe-api-key',
+          },
+        },
+      ),
+      url: new URL('https://saanseoi.hk/api/v0/meta/d1-placement-probe?iterations=0'),
     } as Parameters<typeof GET>[0])
 
     expect(response.status).toBe(400)
+  })
+
+  test('GET requires the probe API key', async () => {
+    const response = await GET({
+      platform: {
+        caches: {} as CacheStorage,
+        ctx: {
+          exports: {},
+          passThroughOnException() {},
+          props: {},
+          waitUntil() {},
+        } as unknown as ExecutionContext,
+        env: {
+          ASSETS: {} as Fetcher,
+          BETTER_AUTH_SECRET: 'secret',
+          DB_CURRENT: createMockDb(),
+          DB_HISTORY_HK_2025: createMockDb(),
+          DB_HISTORY_HK_2026: createMockDb(),
+          D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
+          DB_META: createMockDb(),
+          DB_SOURCE_HK_2025: createMockDb(),
+          DB_SOURCE_HK_2026: createMockDb(),
+          PUBLIC_ATLAS_API_BASE_URL: 'https://api.saanseoi.hk',
+        },
+      },
+      request: new Request(
+        'https://saanseoi.hk/api/v0/meta/d1-placement-probe?iterations=2',
+      ),
+      url: new URL('https://saanseoi.hk/api/v0/meta/d1-placement-probe?iterations=2'),
+    } as Parameters<typeof GET>[0])
+
+    expect(response.status).toBe(401)
   })
 })

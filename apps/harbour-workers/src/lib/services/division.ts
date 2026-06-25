@@ -1,5 +1,4 @@
 import type { DatasetProcessingMessage } from '@repo/core'
-import { resolveReleaseSetForType } from '@repo/core/db/meta-repository'
 import type {
   CurrentDatabase,
   HistoryDatabase,
@@ -7,18 +6,23 @@ import type {
   sourceSchema,
   SourceDatabase,
 } from '@repo/db'
-import type { DivisionI18nPayload, DivisionRow } from '@repo/db/currentSchema'
+import type {
+  DivisionI18nPayload,
+  DivisionRow,
+  NewDivisionI18nRow,
+} from '@repo/db/currentSchema'
 import type { GeoJsonGeometry, GeoJsonPosition } from '../geojson'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
-  closeCurrentDivisionVersion,
+  closeCurrentDivisionVersions,
   deleteMissingCurrentDivisions,
   getCurrentDivisionVersionMap,
   insertDivisionVersionRows,
+  prepareDivisionVersionInsertContext,
   replaceDatasetStats,
   replaceDivisionCurrentI18n,
-  upsertDivisionCurrentState,
+  upsertDivisionCurrentStates,
 } from '../db/division'
 import {
   buildSourceDatasetId,
@@ -28,7 +32,7 @@ import {
   getCurrentSourceOvertureDivisionMap,
   insertSourceOvertureDivisionI18nVersions,
   insertSourceOvertureDivisionVersions,
-  replaceSourceOvertureDivisionI18n,
+  replaceSourceOvertureDivisionI18nRows,
   upsertSourceOvertureDivisions,
 } from '../db/source'
 import {
@@ -124,11 +128,11 @@ export async function processDivisionDataset(
 ): Promise<ProcessDatasetResult> {
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
   const environment = resolveShardEnvironment()
-  const releaseSet = await resolveReleaseSetForType(metaDb, message.type)
-
-  if (!releaseSet) {
-    throw new Error(`Release set not found for type: ${message.type}`)
-  }
+  const versionInsertContext = await prepareDivisionVersionInsertContext(
+    metaDb,
+    message,
+    environment,
+  )
   const currentRows = await getCurrentDivisionVersionMap(
     historyDb,
     message.regionCode,
@@ -162,6 +166,31 @@ export async function processDivisionDataset(
     > = []
     const sourceI18nVersionRows: Array<
       typeof sourceSchema.sourceOvertureDivisionI18nVersions.$inferInsert
+    > = []
+    const currentDivisionRows: DivisionRow[] = []
+    const currentDivisionI18nRowIds = new Set<string>()
+    const currentDivisionI18nRows: NewDivisionI18nRow[] = []
+    const changedDivisionExistingIds = new Set<string>()
+    const changedDivisionVersionRows: Array<
+      DivisionRow & {
+        versionHash: string
+      }
+    > = []
+    const changedDivisionI18nVersionRows: Array<
+      {
+        divisionId: string
+        isLocaleInferred: boolean
+        localType: string | null
+        locale: string
+        name: string | null
+        nameAlts: string | null
+        nameRules: unknown
+        nameVariant: unknown
+      } & {
+        versionHash: string
+        createdAt: string
+        updatedAt: string
+      }
     > = []
     const changedSourceIds = new Set<string>()
 
@@ -281,42 +310,70 @@ export async function processDivisionDataset(
       }
 
       const current = currentRows.get(normalized.base.id)
+      const currentDivisionI18nNow = normalized.base.updatedAt
+      currentDivisionI18nRowIds.add(normalized.base.id)
+      currentDivisionI18nRows.push(
+        ...normalized.i18n.map(row => ({
+          ...row,
+          createdAt: currentDivisionI18nNow,
+          updatedAt: currentDivisionI18nNow,
+        })),
+      )
 
       if (current?.versionHash === versionHash) {
         unchangedRows += 1
-        await replaceDivisionCurrentI18n(
-          currentDb,
-          normalized.base.id,
-          normalized.i18n,
-          new Date().toISOString(),
-        )
         continue
       }
 
       if (current) {
-        await closeCurrentDivisionVersion(
-          historyDb,
-          message.regionCode,
-          normalized.base.id,
-          releaseSet.id,
-          message.snapshotMonth,
-        )
+        changedDivisionExistingIds.add(normalized.base.id)
       }
 
       insertedVersions += 1
-
-      await upsertDivisionCurrentState(currentDb, normalized.base, normalized.i18n)
-      await insertDivisionVersionRows(
-        metaDb,
-        historyDb,
-        message,
-        normalized.base,
-        normalized.i18n,
+      currentDivisionRows.push(normalized.base)
+      changedDivisionVersionRows.push({
+        ...normalized.base,
         versionHash,
-        new Date().toISOString(),
-        environment,
+      })
+      changedDivisionI18nVersionRows.push(
+        ...normalized.i18n.map(row => ({
+          divisionId: row.divisionId,
+          isLocaleInferred: row.isLocaleInferred,
+          localType: row.localType ?? null,
+          locale: row.locale,
+          name: row.name ?? null,
+          nameAlts: row.nameAlts ?? null,
+          nameRules: row.nameRules,
+          nameVariant: row.nameVariant,
+          versionHash,
+          createdAt: currentDivisionI18nNow,
+          updatedAt: currentDivisionI18nNow,
+        })),
       )
     }
+
+    if (changedDivisionExistingIds.size > 0) {
+      await closeCurrentDivisionVersions(
+        historyDb,
+        message.regionCode,
+        [...changedDivisionExistingIds],
+        versionInsertContext.releaseSetId,
+        message.snapshotMonth,
+      )
+    }
+
+    await upsertDivisionCurrentStates(currentDb, currentDivisionRows)
+    await replaceDivisionCurrentI18n(
+      currentDb,
+      [...currentDivisionI18nRowIds],
+      currentDivisionI18nRows,
+    )
+    await insertDivisionVersionRows(
+      historyDb,
+      versionInsertContext,
+      changedDivisionVersionRows,
+      changedDivisionI18nVersionRows,
+    )
 
     if (sourceDb && message.source === 'overture') {
       const changedIds = [...changedSourceIds]
@@ -331,13 +388,11 @@ export async function processDivisionDataset(
 
       await upsertSourceOvertureDivisions(sourceDb, sourceRows)
 
-      for (const sourceRecordId of changedIds) {
-        await replaceSourceOvertureDivisionI18n(
-          sourceDb,
-          sourceRecordId,
-          sourceI18nRows.filter(row => row.sourceRecordId === sourceRecordId),
-        )
-      }
+      await replaceSourceOvertureDivisionI18nRows(
+        sourceDb,
+        changedIds,
+        sourceI18nRows.filter(row => changedSourceIds.has(row.sourceRecordId)),
+      )
 
       await insertSourceOvertureDivisionVersions(sourceDb, sourceVersionRows)
       await insertSourceOvertureDivisionI18nVersions(sourceDb, sourceI18nVersionRows)
@@ -348,7 +403,7 @@ export async function processDivisionDataset(
     currentDb,
     historyDb,
     message.regionCode,
-    releaseSet.id,
+    versionInsertContext.releaseSetId,
     message.snapshotMonth,
     currentRows,
     seenIds,
