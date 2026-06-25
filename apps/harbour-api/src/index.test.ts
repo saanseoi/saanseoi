@@ -97,10 +97,15 @@ describe('harbour-api', () => {
 
   test('GET /api/v1/meta/d1-placement-probe returns timings for all D1 bindings', async () => {
     const res = await app.fetch(
-      new Request('http://localhost/api/v1/meta/d1-placement-probe?iterations=2'),
+      new Request('http://localhost/api/v1/meta/d1-placement-probe?iterations=2', {
+        headers: {
+          'x-api-key': 'test-probe-api-key',
+        },
+      }),
       {
         ...createDbBindings(),
         DATASET_QUEUE: createMockQueue(),
+        D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
         HARBOUR_API_KEY: 'test-api-key',
         R2_ACCOUNT_ID: 'test-account',
         R2_RAW: createMockBucket(),
@@ -130,6 +135,37 @@ describe('harbour-api', () => {
     expect(body.bindings.every(binding => binding.timingsMs.length === 2)).toBe(true)
   })
 
+  test('GET /api/v1/meta/d1-placement-probe requires the probe API key', async () => {
+    const res = await app.fetch(
+      new Request('http://localhost/api/v1/meta/d1-placement-probe?iterations=2'),
+      {
+        ...createDbBindings(),
+        DATASET_QUEUE: createMockQueue(),
+        D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
+        HARBOUR_API_KEY: 'test-api-key',
+        R2_ACCOUNT_ID: 'test-account',
+        R2_RAW: createMockBucket(),
+        R2_RAW_ACCESS_KEY_ID: 'test-access-key',
+        R2_RAW_BUCKET_NAME: 'ss-raw-preview',
+        R2_RAW_SECRET_ACCESS_KEY: 'test-secret-key',
+        TELEGRAM_ADMIN_ID: '-1001234567890',
+        TELEGRAM_BOT_TOKEN: 'telegram-token',
+      },
+    )
+    const body = (await res.json()) as {
+      httpStatus: number
+      error: string
+      message: string
+    }
+
+    expect(res.status).toBe(401)
+    expect(body).toEqual({
+      error: 'unauthorized',
+      message: 'Missing or invalid API key.',
+      httpStatus: 401,
+    })
+  })
+
   test('POST /v1/signUpload requires an API key', async () => {
     const res = await app.fetch(
       new Request('http://localhost/v1/signUpload', {
@@ -142,6 +178,7 @@ describe('harbour-api', () => {
       {
         ...createDbBindings(),
         DATASET_QUEUE: createMockQueue(),
+        D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
         HARBOUR_API_KEY: 'test-api-key',
         R2_ACCOUNT_ID: 'test-account',
         R2_RAW: createMockBucket(),

@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
-type Environment = 'preview' | 'production'
+type Environment = 'preview'
 type BindingName =
   | 'DB_META'
   | 'DB_CURRENT'
@@ -14,7 +14,6 @@ type BindingName =
   | 'DB_SOURCE_HK_2026'
 
 type Options = {
-  environments: Environment[]
   iterations: number
   location: string
   maxCycles: number
@@ -65,19 +64,18 @@ const probeUrls: Record<Environment, string[]> = {
     'https://preview.saanseoi.hk/api/v0/meta/d1-placement-probe',
     'https://preview.harbour.saanseoi.hk/api/v1/meta/d1-placement-probe',
   ],
-  production: [
-    'https://saanseoi.hk/api/v0/meta/d1-placement-probe',
-    'https://harbour.saanseoi.hk/api/v1/meta/d1-placement-probe',
-  ],
 }
 
+const repoRoot = resolve(import.meta.dir, '..')
+const environment: Environment = 'preview'
 const options = parseArgs(Bun.argv.slice(2))
+const probeApiKey = resolveRequiredEnvValue('D1_PLACEMENT_PROBE_API_KEY')
 const whitelist = loadWhitelist(options.whitelistFile)
 
 console.log(
   [
     'Starting D1 placement convergence.',
-    `environments=${options.environments.join(',')}`,
+    `environment=${environment}`,
     `location=${options.location}`,
     `max_cycles=${options.maxCycles}`,
     `iterations=${options.iterations}`,
@@ -95,44 +93,47 @@ for (let cycle = 1; cycle <= options.maxCycles; cycle += 1) {
 
   let allPassed = true
 
-  for (const environment of options.environments) {
-    const assessments = await assessEnvironment(environment, options, whitelist)
-    const failedBindings = assessments.filter(
-      assessment => !assessment.pass && !assessment.locked,
-    )
+  const assessments = await assessEnvironment(
+    environment,
+    options,
+    whitelist,
+    probeApiKey,
+  )
+  const failedBindings = assessments.filter(
+    assessment => !assessment.pass && !assessment.locked,
+  )
 
-    printEnvironmentSummary(environment, assessments)
+  printEnvironmentSummary(environment, assessments)
 
-    let whitelistChanged = false
+  let whitelistChanged = false
 
-    for (const assessment of assessments) {
-      if (!assessment.locked && assessment.failedReasons.length === 0) {
-        whitelist[whitelistKey(environment, assessment.binding)] = true
-        whitelistChanged = true
-      }
+  for (const assessment of assessments) {
+    if (!assessment.locked && assessment.failedReasons.length === 0) {
+      whitelist[whitelistKey(environment, assessment.binding)] = true
+      whitelistChanged = true
     }
-
-    if (whitelistChanged) {
-      saveWhitelist(options.whitelistFile, whitelist)
-    }
-
-    if (failedBindings.length === 0) {
-      continue
-    }
-
-    allPassed = false
-
-    for (const assessment of failedBindings) {
-      recreateBinding(environment, assessment.binding, options)
-    }
-
-    deployEnvironment(environment)
   }
 
-  if (allPassed) {
-    console.log('\nAll requested bindings satisfy the placement criteria.')
-    process.exit(0)
+  if (whitelistChanged) {
+    saveWhitelist(options.whitelistFile, whitelist)
   }
+
+  if (failedBindings.length === 0) {
+    if (allPassed) {
+      console.log('\nAll requested bindings satisfy the placement criteria.')
+      process.exit(0)
+    }
+
+    continue
+  }
+
+  allPassed = false
+
+  for (const assessment of failedBindings) {
+    recreateBinding(environment, assessment.binding, options)
+  }
+
+  deployEnvironment(environment)
 }
 
 console.error('\nPlacement convergence did not finish before maxCycles was reached.')
@@ -140,7 +141,6 @@ process.exit(1)
 
 function parseArgs(args: string[]): Options {
   const defaults: Options = {
-    environments: ['preview', 'production'],
     iterations: 20,
     location: 'apac',
     maxCycles: 20,
@@ -154,13 +154,6 @@ function parseArgs(args: string[]): Options {
     const arg = args[index]
 
     switch (arg) {
-      case '--env':
-      case '--environment': {
-        const value = expectValue(args, ++index, '--environment')
-        defaults.environments =
-          value === 'all' ? ['preview', 'production'] : [value as Environment]
-        break
-      }
       case '--location':
         defaults.location = expectValue(args, ++index, '--location')
         break
@@ -199,14 +192,6 @@ function parseArgs(args: string[]): Options {
     }
   }
 
-  if (
-    defaults.environments.some(
-      environment => environment !== 'preview' && environment !== 'production',
-    )
-  ) {
-    throw new Error(`Unsupported environment list: ${defaults.environments.join(', ')}`)
-  }
-
   if (!Number.isInteger(defaults.iterations) || defaults.iterations < 1) {
     throw new Error('--iterations must be a positive integer.')
   }
@@ -233,7 +218,6 @@ function printHelpAndExit(code: number): never {
   bun ./scripts/converge-d1-placement.ts [options]
 
 Options:
-  --env <preview|production|all>   Defaults to all.
   --location <hint>                Passed to wrangler d1 create. Defaults to apac.
   --iterations <n>                 Probe iterations per endpoint. Defaults to 20.
   --max-cycles <n>                 Maximum recreate/deploy cycles. Defaults to 20.
@@ -249,9 +233,10 @@ async function assessEnvironment(
   environment: Environment,
   options: Options,
   whitelist: PlacementWhitelist,
+  probeApiKey: string,
 ) {
   const probes = await Promise.all(
-    probeUrls[environment].map(url => fetchProbe(url, options.iterations)),
+    probeUrls[environment].map(url => fetchProbe(url, options.iterations, probeApiKey)),
   )
 
   return allBindings.map(binding =>
@@ -259,8 +244,12 @@ async function assessEnvironment(
   )
 }
 
-async function fetchProbe(url: string, iterations: number) {
-  const response = await fetch(`${url}?iterations=${iterations}`)
+async function fetchProbe(url: string, iterations: number, probeApiKey: string) {
+  const response = await fetch(`${url}?iterations=${iterations}`, {
+    headers: {
+      'x-api-key': probeApiKey,
+    },
+  })
 
   if (!response.ok) {
     throw new Error(
@@ -396,7 +385,7 @@ function deployEnvironment(environment: Environment) {
 function runCommand(label: string, command: string[]) {
   console.log(`${label}: ${command.join(' ')}`)
   execFileSync(command[0]!, command.slice(1), {
-    cwd: import.meta.dir + '/..',
+    cwd: repoRoot,
     stdio: 'inherit',
   })
 }
@@ -416,4 +405,32 @@ function loadWhitelist(path: string) {
 function saveWhitelist(path: string, whitelist: PlacementWhitelist) {
   mkdirSync(dirname(path), { recursive: true })
   writeFileSync(path, `${JSON.stringify(whitelist, null, 2)}\n`)
+}
+
+function resolveRequiredEnvValue(key: string) {
+  const processValue = process.env[key]?.trim()
+
+  if (processValue) {
+    return processValue
+  }
+
+  const envPaths = [resolve(repoRoot, '.env.local'), resolve(repoRoot, '.env')]
+
+  for (const envPath of envPaths) {
+    if (existsSync(envPath)) {
+      const match = readFileSync(envPath, 'utf8')
+        .split(/\r?\n/u)
+        .map(line => line.trim())
+        .find(line => line.startsWith(`${key}=`))
+
+      if (match) {
+        return match
+          .slice(key.length + 1)
+          .replace(/^["']|["']$/g, '')
+          .trim()
+      }
+    }
+  }
+
+  throw new Error(`Missing ${key}. Export it or define it in ${envPaths.join(' or ')}.`)
 }
