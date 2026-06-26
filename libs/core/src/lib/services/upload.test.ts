@@ -27,7 +27,6 @@ import {
 import { planUpload, prepareUpload, registerUpload } from './upload-local'
 import { createLocalHarbourDb } from '../../testing/local-db'
 
-import { metaReleases } from '@repo/db/metaSchema'
 import type { ParquetInspection } from '../../types'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
@@ -54,6 +53,33 @@ const fixtureInspectionWithAdminLevel: ParquetInspection = {
     ...fixtureInspection.schema,
     { name: 'admin_level', type: 'int_32', nullable: true },
   ],
+}
+
+const reorderedFixtureInspection: ParquetInspection = {
+  ...fixtureInspectionWithAdminLevel,
+  schema: reorderSchemaFields(fixtureInspectionWithAdminLevel, [
+    'type',
+    'id',
+    'admin_level',
+    'theme',
+    'region',
+    'country',
+  ]),
+}
+
+function reorderSchemaFields(
+  inspection: ParquetInspection,
+  fieldNames: string[],
+): ParquetInspection['schema'] {
+  return fieldNames.map(fieldName => {
+    const field = inspection.schema.find(candidate => candidate.name === fieldName)
+
+    if (!field) {
+      throw new Error(`Missing fixture schema field: ${fieldName}`)
+    }
+
+    return field
+  })
 }
 
 function createTempDir() {
@@ -572,6 +598,48 @@ describe('upload', () => {
       plan: {
         datasetId: 'overture-hk-2026-02-18.0-division',
         supersedesDatasetId: 'overture-hk-2026-01-21.0-division',
+      },
+    })
+
+    sqlite.close()
+  })
+
+  test('allows schema-compatible uploads when parquet field order changes', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    insertFixtureRelease(sqlite, {
+      source: 'overture',
+      regionCode: 'hk',
+      snapshotMonth: '2026-02',
+      theme: 'divisions',
+      type: 'division',
+      sourceVersion: '2026-02-18.0',
+      rawObjectKey: 'hk/overture/2026-02-18.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'published',
+      ingestedAt: '2026-06-02T00:00:00.000Z',
+      createdAt: '2026-06-02T00:00:00.000Z',
+      updatedAt: '2026-06-02T00:00:00.000Z',
+    })
+
+    await expect(
+      planUpload(db, {
+        filePath: fixtureFile,
+        snapshotMonth: '2026-03',
+        source: 'overture',
+        sourceVersion: '2026-03-18.0',
+        inspection: reorderedFixtureInspection,
+        resolveSchemaFingerprint: async () =>
+          createSchemaFingerprint(fixtureInspectionWithAdminLevel),
+      }),
+    ).resolves.toMatchObject({
+      plan: {
+        datasetId: 'overture-hk-2026-03-18.0-division',
+        supersedesDatasetId: 'overture-hk-2026-02-18.0-division',
       },
     })
 
