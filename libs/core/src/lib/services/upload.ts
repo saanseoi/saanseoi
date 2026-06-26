@@ -536,7 +536,7 @@ async function ensureSchemaCompatible(
       isAllowedKnownSchemaTransition(
         latestDataset,
         nextPlan,
-        previousFingerprint,
+        previousComparableFingerprint,
         nextInspection,
       )
     ) {

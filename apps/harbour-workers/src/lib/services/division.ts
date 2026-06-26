@@ -54,6 +54,7 @@ import {
   normalizeLocale,
   stableJsonStringify,
 } from '../utils'
+import { resolveDataShardEnvironment } from './shared'
 
 import type { DivisionVersionSnapshot } from '../db/division'
 
@@ -127,7 +128,7 @@ export async function processDivisionDataset(
   sourceDb?: SourceDatabase,
 ): Promise<ProcessDatasetResult> {
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
-  const environment = resolveShardEnvironment()
+  const environment = resolveDataShardEnvironment(process.env.DATA_SHARD_ENV)
   const versionInsertContext = await prepareDivisionVersionInsertContext(
     metaDb,
     message,
@@ -440,10 +441,6 @@ export async function processDivisionDataset(
     statsRows,
     unchangedRows,
   }
-}
-
-function resolveShardEnvironment(): 'preview' | 'production' {
-  return process.env.DATA_SHARD_ENV === 'production' ? 'production' : 'preview'
 }
 
 /**
