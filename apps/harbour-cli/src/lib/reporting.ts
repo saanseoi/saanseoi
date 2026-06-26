@@ -103,12 +103,6 @@ function parseLimit(limit: number | undefined) {
   return limit
 }
 
-function buildReportEndpoint(apiBaseUrl: string, path: string, limit: number) {
-  const url = new URL(`${normalizeBaseUrl(apiBaseUrl)}${path}`)
-  url.searchParams.set('limit', String(limit))
-  return url.toString()
-}
-
 async function parseJsonResponse<T>(response: Response, action: string) {
   const payload = (await response.json().catch(() => null)) as Record<
     string,
@@ -125,23 +119,6 @@ async function parseJsonResponse<T>(response: Response, action: string) {
   }
 
   return payload as T
-}
-
-async function fetchReport<T>(
-  args: ParsedArgs,
-  target: UploadTarget,
-  path: string,
-  limit: number | undefined,
-  action: string,
-) {
-  const apiBaseUrl = resolveHarbourApiUrl(args, target)
-  const normalizedLimit = parseLimit(limit)
-  const response = await fetch(buildReportEndpoint(apiBaseUrl, path, normalizedLimit), {
-    headers: getAuthHeaders(),
-    method: 'GET',
-  })
-
-  return parseJsonResponse<T>(response, action)
 }
 
 export async function fetchIngestRunReport(
