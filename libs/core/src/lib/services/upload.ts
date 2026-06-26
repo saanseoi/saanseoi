@@ -428,13 +428,35 @@ function normalizeSnapshotMonth(candidate?: string | null) {
 }
 
 export function createSchemaFingerprint(inspection: ParquetInspection) {
-  return JSON.stringify(
-    inspection.schema.map(field => ({
+  return createSchemaFingerprintFromSchema(inspection.schema)
+}
+
+function createSchemaFingerprintFromSchema(schema: ParquetInspection['schema']) {
+  return JSON.stringify(normalizeSchemaFingerprintFields(schema))
+}
+
+function normalizeSchemaFingerprintFields(schema: ParquetInspection['schema']) {
+  return schema
+    .map(field => ({
       name: field.name,
       type: field.type,
       nullable: field.nullable,
-    })),
-  )
+    }))
+    .sort((left, right) => {
+      const nameComparison = left.name.localeCompare(right.name)
+
+      if (nameComparison !== 0) {
+        return nameComparison
+      }
+
+      const typeComparison = left.type.localeCompare(right.type)
+
+      if (typeComparison !== 0) {
+        return typeComparison
+      }
+
+      return Number(left.nullable) - Number(right.nullable)
+    })
 }
 
 function ensureChronologicalUpload(
@@ -484,10 +506,13 @@ async function ensureSchemaCompatible(
     )
   }
 
-  const nextFingerprint = createSchemaFingerprint(nextInspection)
   const previousSchema = parseSchemaFingerprint(previousFingerprint)
+  const previousComparableFingerprint = previousSchema
+    ? createSchemaFingerprintFromSchema(previousSchema)
+    : previousFingerprint
+  const nextFingerprint = createSchemaFingerprint(nextInspection)
 
-  if (previousFingerprint !== nextFingerprint) {
+  if (previousComparableFingerprint !== nextFingerprint) {
     if (
       isAllowedKnownSchemaTransition(
         latestDataset,
