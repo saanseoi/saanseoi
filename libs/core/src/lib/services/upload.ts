@@ -442,14 +442,33 @@ function normalizeSchemaFingerprintFields(schema: ParquetInspection['schema']) {
       type: field.type,
       nullable: field.nullable,
     }))
+function compareFingerprintValue(left: string, right: string) {
+  if (left < right) {
+    return -1
+  }
+
+  if (left > right) {
+    return 1
+  }
+
+  return 0
+}
+
+function normalizeSchemaFingerprintFields(schema: ParquetInspection['schema']) {
+  return schema
+    .map(field => ({
+      name: field.name,
+      type: field.type,
+      nullable: field.nullable,
+    }))
     .sort((left, right) => {
-      const nameComparison = left.name.localeCompare(right.name)
+      const nameComparison = compareFingerprintValue(left.name, right.name)
 
       if (nameComparison !== 0) {
         return nameComparison
       }
 
-      const typeComparison = left.type.localeCompare(right.type)
+      const typeComparison = compareFingerprintValue(left.type, right.type)
 
       if (typeComparison !== 0) {
         return typeComparison
