@@ -1,10 +1,11 @@
-import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, rm } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 
 import { describe, expect, test } from 'bun:test'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
+import { loadMigrationSql } from '../../../../../libs/core/src/testing/meta-fixtures'
 import { createLocalHarbourDb } from '@repo/core/testing/local-db'
 
 import { resolveDataShardEnvironment } from './shared'
@@ -435,26 +436,8 @@ describe('reporting service', () => {
 async function initSqlite(dbPath: string, migrationsDir: string) {
   const sqlite = new SQLiteDatabase(dbPath)
   sqlite.exec('PRAGMA foreign_keys = ON;')
-  sqlite.exec(await loadMigrationSql(migrationsDir))
+  sqlite.exec(loadMigrationSql(migrationsDir))
   return sqlite
-}
-
-async function loadMigrationSql(dir: string): Promise<string> {
-  const entries = await readdir(dir, { withFileTypes: true })
-  const chunks = await Promise.all(
-    entries.flatMap(entry => {
-      const entryPath = join(dir, entry.name)
-      return entry.isDirectory() ? [loadMigrationSql(entryPath)] : []
-    }),
-  )
-  const files = await Promise.all(
-    entries
-      .filter(entry => entry.isFile() && entry.name.endsWith('.sql'))
-      .sort((left, right) => left.name.localeCompare(right.name))
-      .map(entry => readFile(join(dir, entry.name), 'utf8')),
-  )
-
-  return [...chunks, ...files].join('\n')
 }
 
 function seedMetaCatalog(sqlite: SQLiteDatabase) {
