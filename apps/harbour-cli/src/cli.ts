@@ -9,8 +9,11 @@ import { inferSourceVersionFromPath } from '@repo/core/upload-local'
 import {
   describeTarget,
   explainDispatch,
+  formatIngestionReportTable,
   formatField,
+  formatReleaseReportTable,
   formatSummary,
+  formatStatsReportTable,
 } from './lib/display.ts'
 import { normalizeCommandArgs } from './lib/commands.ts'
 import { prepareHkgovAlsAddressParquet } from './lib/hkgov-als.ts'
@@ -21,6 +24,11 @@ import {
   type UploadEnvironment,
 } from './lib/options.ts'
 import { checkOvertureUploadAssumptions } from './lib/overture-assumptions.ts'
+import {
+  fetchIngestRunReport,
+  fetchReleaseReport,
+  fetchStatsReport,
+} from './lib/reporting.ts'
 import { validateOvertureSchema } from './lib/schema/overture.ts'
 import { dispatchUpload } from './lib/upload.ts'
 
@@ -28,6 +36,9 @@ function printUsage() {
   console.log(`  Usage:
   saanseoi upload[:local|:cf:preview|:cf:production] <file> [--target local|cf-preview|cf-production] [--remote] [--env dev|preview|production] [--api URL] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
   saanseoi prep-hkgov-als[:preview|:production] <source-dir> [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]
+  saanseoi reports:ingestion [--target local|cf-preview|cf-production] [--api URL] [--limit 1-100]
+  saanseoi reports:stats [--target local|cf-preview|cf-production] [--api URL] [--limit 1-100] [--source SOURCE] [--type TYPE]
+  saanseoi reports:releases [--target local|cf-preview|cf-production] [--api URL] [--limit 1-100]
 
   bun run upload[:cf:environment] <file> ...
   bun run prep-hkgov-als[:cf:environment] <source-dir> ...
@@ -105,6 +116,50 @@ async function main() {
       'PREP RESULT',
     )
     outro('ALS parquet preparation complete')
+    return
+  }
+
+  const reportLimit =
+    typeof args.options.limit === 'string'
+      ? Number.parseInt(args.options.limit, 10)
+      : 10
+  const reportSource =
+    typeof args.options.source === 'string' ? args.options.source : undefined
+  const reportType =
+    typeof args.options.type === 'string' ? args.options.type : undefined
+  const hasExplicitLimit = typeof args.options.limit === 'string'
+
+  if (args.command === 'reports:ingestion') {
+    const report = await fetchIngestRunReport(args, target, {
+      limit: hasExplicitLimit ? reportLimit : 100,
+      source: reportSource,
+      type: reportType,
+    })
+    console.log(
+      formatIngestionReportTable(report.rows, {
+        applyDefaultReleaseFilter: !hasExplicitLimit,
+      }),
+    )
+    return
+  }
+
+  if (args.command === 'reports:stats') {
+    const report = await fetchStatsReport(args, target, {
+      limit: hasExplicitLimit ? reportLimit : 1,
+      source: reportSource,
+      type: reportType,
+    })
+    console.log(formatStatsReportTable(report.rows))
+    return
+  }
+
+  if (args.command === 'reports:releases') {
+    const report = await fetchReleaseReport(args, target, {
+      limit: reportLimit,
+      source: reportSource,
+      type: reportType,
+    })
+    console.log(formatReleaseReportTable(report.rows))
     return
   }
 
