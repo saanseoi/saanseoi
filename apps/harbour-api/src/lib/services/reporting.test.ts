@@ -763,10 +763,16 @@ function seedHistoryRows(
 }
 
 function createD1Database(sqlite: SQLiteDatabase, onPrepare?: () => void) {
+  type SqliteStatement = {
+    all: (...values: unknown[]) => unknown[]
+    get: (...values: unknown[]) => unknown
+  }
+
   return {
     prepare(query: string) {
       onPrepare?.()
       let values: unknown[] = []
+      const statement = sqlite.query(query) as unknown as SqliteStatement
 
       return {
         bind(...nextValues: unknown[]) {
@@ -774,10 +780,10 @@ function createD1Database(sqlite: SQLiteDatabase, onPrepare?: () => void) {
           return this
         },
         async all<T>() {
-          return ((sqlite.query(query) as any).all(...values) as T[]) ?? []
+          return (statement.all(...values) as T[]) ?? []
         },
         async first<T>() {
-          return ((sqlite.query(query) as any).get(...values) as T | null) ?? null
+          return (statement.get(...values) as T | null) ?? null
         },
       }
     },
