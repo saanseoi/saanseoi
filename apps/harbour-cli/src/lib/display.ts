@@ -294,9 +294,7 @@ export function formatReleaseReportTable(rows: ReleaseReportRow[]) {
   }
 
   const countHeaders = uniqueHeaders(
-    rows.flatMap(row =>
-      row.rowCounts.map(rowCount => `${rowCount.label}Count`),
-    ),
+    rows.flatMap(row => row.rowCounts.map(rowCount => `${rowCount.label}Count`)),
   )
 
   return formatTable(

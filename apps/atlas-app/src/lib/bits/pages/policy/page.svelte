@@ -63,9 +63,7 @@ let { policy }: Props = $props()
           </a>
         </div>
 
-        <div class="mt-8 max-w-4xl">
-          <PolicyNotice />
-        </div>
+        <div class="mt-8 max-w-4xl"><PolicyNotice /></div>
       </div>
     </div>
   </section>

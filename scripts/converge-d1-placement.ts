@@ -163,17 +163,16 @@ function parseArgs(args: string[]): Options {
       case '--max-cycles':
         defaults.maxCycles = Number(expectValue(args, ++index, '--max-cycles'))
         break
-  if (!Number.isInteger(defaults.maxCycles) || defaults.maxCycles < 1) {
-    throw new Error('--max-cycles must be a positive integer.')
-  }
-
-  if (!Number.isFinite(defaults.thresholdP50Ms) || defaults.thresholdP50Ms < 0) {
-    throw new Error('--threshold-p50-ms must be a non-negative number.')
-  }
-
-  if (!Number.isFinite(defaults.thresholdP95Ms) || defaults.thresholdP95Ms < 0) {
-    throw new Error('--threshold-p95-ms must be a non-negative number.')
-  }
+      case '--threshold-p50-ms':
+        defaults.thresholdP50Ms = Number(
+          expectValue(args, ++index, '--threshold-p50-ms'),
+        )
+        break
+      case '--threshold-p95-ms':
+        defaults.thresholdP95Ms = Number(
+          expectValue(args, ++index, '--threshold-p95-ms'),
+        )
+        break
       case '--require-colo':
         defaults.requireColo = expectValue(args, ++index, '--require-colo')
         break
@@ -198,6 +197,14 @@ function parseArgs(args: string[]): Options {
 
   if (!Number.isInteger(defaults.maxCycles) || defaults.maxCycles < 1) {
     throw new Error('--max-cycles must be a positive integer.')
+  }
+
+  if (!Number.isFinite(defaults.thresholdP50Ms) || defaults.thresholdP50Ms < 0) {
+    throw new Error('--threshold-p50-ms must be a non-negative number.')
+  }
+
+  if (!Number.isFinite(defaults.thresholdP95Ms) || defaults.thresholdP95Ms < 0) {
+    throw new Error('--threshold-p95-ms must be a non-negative number.')
   }
 
   return defaults
@@ -383,8 +390,14 @@ function deployEnvironment(environment: Environment) {
 }
 
 function runCommand(label: string, command: string[]) {
+  const [file, ...args] = command
+
+  if (!file) {
+    throw new Error(`Cannot run ${label}: missing command executable.`)
+  }
+
   console.log(`${label}: ${command.join(' ')}`)
-  execFileSync(command[0]!, command.slice(1), {
+  execFileSync(file, args, {
     cwd: repoRoot,
     stdio: 'inherit',
   })
