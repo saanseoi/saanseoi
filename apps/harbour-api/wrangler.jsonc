@@ -22,6 +22,7 @@
   },
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
+    "DATA_SHARD_ENV": "preview",
     "HARBOUR_BASE_URL": "http://localhost:8788",
     "R2_RAW_BUCKET_NAME": "ss-raw-preview"
   },
@@ -117,6 +118,7 @@
       },
       "vars": {
         "ATLAS_BASE_URL": "https://preview.api.saanseoi.hk",
+        "DATA_SHARD_ENV": "preview",
         "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk",
         "R2_RAW_BUCKET_NAME": "ss-raw-preview"
       },
@@ -208,6 +210,7 @@
       },
       "vars": {
         "ATLAS_BASE_URL": "https://api.saanseoi.hk",
+        "DATA_SHARD_ENV": "production",
         "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk",
         "R2_RAW_BUCKET_NAME": "ss-raw-prod"
       },

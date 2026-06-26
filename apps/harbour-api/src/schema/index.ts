@@ -167,6 +167,10 @@ const SourceSchema = z.string().openapi({
   examples: ['overture', 'hkgov'],
 })
 
+const DatasetTypeQuerySchema = z
+  .enum(['address', 'division', 'place', 'street'])
+  .openapi('HarbourDatasetTypeQuery')
+
 export const UploadResponseSchema = z
   .object({
     datasetId: DatasetIdSchema,
@@ -265,3 +269,108 @@ export const ControlResponseSchema = z
     status: StatusSchema,
   })
   .openapi('HarbourControlResponse')
+
+export const ReportQuerySchema = z
+  .object({
+    limit: z.coerce.number().int().min(1).max(100).default(10),
+    source: SourceSchema.optional(),
+    type: DatasetTypeQuerySchema.optional(),
+  })
+  .openapi('HarbourReportQuery')
+
+export const StatsReportQuerySchema = z
+  .object({
+    limit: z.coerce.number().int().min(1).max(100).default(1),
+    releaseId: ReleaseIdSchema.optional(),
+    source: SourceSchema.optional(),
+    type: DatasetTypeQuerySchema.optional(),
+  })
+  .openapi('HarbourStatsReportQuery')
+
+export const ReportRowCountSchema = z
+  .object({
+    kind: z.enum(['history', 'source']),
+    label: z.string(),
+    rowCount: z.number(),
+    tableName: z.string(),
+  })
+  .openapi('HarbourReportRowCount')
+
+export const IngestRunReportRowSchema = z
+  .object({
+    datasetCode: DatasetCodeSchema,
+    error: z.unknown().nullable(),
+    finishedAt: z.string().nullable(),
+    phase: z.string(),
+    releaseCode: ReleaseCodeSchema,
+    releaseId: ReleaseIdSchema,
+    runId: z.string(),
+    snapshotMonth: z.string().nullable(),
+    source: SourceSchema,
+    startedAt: z.string(),
+    stats: z.unknown().nullable(),
+    status: z.string(),
+    type: z.string(),
+  })
+  .openapi('HarbourIngestRunReportRow')
+
+export const IngestRunReportResponseSchema = z
+  .object({
+    rows: z.array(IngestRunReportRowSchema),
+  })
+  .openapi('HarbourIngestRunReportResponse')
+
+export const StatReportRowSchema = z
+  .object({
+    createdAt: z.string(),
+    datasetCode: DatasetCodeSchema,
+    dimension: z.string(),
+    groupBy: z.string().nullable(),
+    groupValue: z.string().nullable(),
+    id: z.string(),
+    metric: z.string(),
+    metricUnit: z.string(),
+    releaseCode: ReleaseCodeSchema,
+    releaseId: ReleaseIdSchema,
+    source: SourceSchema,
+    type: z.string(),
+    updatedAt: z.string(),
+    value: z.number(),
+  })
+  .openapi('HarbourStatReportRow')
+
+export const StatsReportResponseSchema = z
+  .object({
+    rows: z.array(StatReportRowSchema),
+  })
+  .openapi('HarbourStatsReportResponse')
+
+export const ReleaseReportRowSchema = z
+  .object({
+    createdAt: z.string(),
+    datasetCode: DatasetCodeSchema,
+    datasetId: DatasetIdSchema,
+    ingestedAt: z.string().nullable(),
+    originalFileName: z.string().nullable(),
+    publicationDate: z.string().nullable(),
+    rawObjectKey: RawObjectKeySchema,
+    releaseCode: ReleaseCodeSchema,
+    releaseId: ReleaseIdSchema,
+    revocationReason: z.string().nullable(),
+    revokedAt: z.string().nullable(),
+    rowCounts: z.array(ReportRowCountSchema),
+    snapshotMonth: z.string().nullable(),
+    source: SourceSchema,
+    sourceVersion: z.string(),
+    status: z.string(),
+    supersededByReleaseId: ReleaseIdSchema.nullable(),
+    type: z.string(),
+    updatedAt: z.string(),
+  })
+  .openapi('HarbourReleaseReportRow')
+
+export const ReleaseReportResponseSchema = z
+  .object({
+    rows: z.array(ReleaseReportRowSchema),
+  })
+  .openapi('HarbourReleaseReportResponse')

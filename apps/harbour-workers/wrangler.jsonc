@@ -8,6 +8,7 @@
     "required": ["HARBOUR_API_KEY"]
   },
   "vars": {
+    "DATA_SHARD_ENV": "preview",
     "HARBOUR_BASE_URL": "http://localhost:8788"
   },
   "d1_databases": [
@@ -90,6 +91,7 @@
         "required": ["HARBOUR_API_KEY"]
       },
       "vars": {
+        "DATA_SHARD_ENV": "preview",
         "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk"
       },
       "d1_databases": [
@@ -162,6 +164,7 @@
         "required": ["HARBOUR_API_KEY"]
       },
       "vars": {
+        "DATA_SHARD_ENV": "production",
         "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk"
       },
       "d1_databases": [

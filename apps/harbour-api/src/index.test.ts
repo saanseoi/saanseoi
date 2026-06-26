@@ -75,6 +75,7 @@ describe('harbour-api', () => {
   test('GET /v1/meta/health checks DB access', async () => {
     const res = await app.fetch(new Request('http://localhost/v1/meta/health'), {
       ...createDbBindings(),
+      DATA_SHARD_ENV: 'preview',
       DATASET_QUEUE: createMockQueue(),
       HARBOUR_API_KEY: 'test-api-key',
       R2_ACCOUNT_ID: 'test-account',
@@ -104,6 +105,7 @@ describe('harbour-api', () => {
       }),
       {
         ...createDbBindings(),
+        DATA_SHARD_ENV: 'preview',
         DATASET_QUEUE: createMockQueue(),
         D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
         HARBOUR_API_KEY: 'test-api-key',
@@ -140,6 +142,7 @@ describe('harbour-api', () => {
       new Request('http://localhost/api/v1/meta/d1-placement-probe?iterations=2'),
       {
         ...createDbBindings(),
+        DATA_SHARD_ENV: 'preview',
         DATASET_QUEUE: createMockQueue(),
         D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
         HARBOUR_API_KEY: 'test-api-key',
@@ -177,6 +180,7 @@ describe('harbour-api', () => {
       }),
       {
         ...createDbBindings(),
+        DATA_SHARD_ENV: 'preview',
         DATASET_QUEUE: createMockQueue(),
         D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
         HARBOUR_API_KEY: 'test-api-key',

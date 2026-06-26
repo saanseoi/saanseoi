@@ -583,8 +583,7 @@ export async function processAddressDataset(
 }
 
 function resolveShardEnvironment(): 'preview' | 'production' {
-  const baseUrl = process.env.HARBOUR_BASE_URL ?? ''
-  return /preview|localhost/i.test(baseUrl) ? 'preview' : 'production'
+  return process.env.DATA_SHARD_ENV === 'production' ? 'production' : 'preview'
 }
 
 async function loadDivisionLookupMaps(db: CurrentDatabase) {

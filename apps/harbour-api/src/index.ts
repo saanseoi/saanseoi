@@ -9,6 +9,7 @@ import { defaultOpenAPIHook } from './lib/openapi'
 import { controlRoutes } from './routes/v1/control'
 import { metaRoutes } from './routes/v1/meta'
 import { probeRoutes } from './routes/probe'
+import { reportRoutes } from './routes/v1/reports'
 import { uploadRoutes } from './routes/v1/upload'
 import type { AppEnv } from './types'
 
@@ -58,6 +59,7 @@ app.openapiRoutes([
   ...metaRoutes,
   ...uploadRoutes,
   ...controlRoutes,
+  ...reportRoutes,
   ...probeRoutes,
 ] as const)
 
