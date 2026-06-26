@@ -45,6 +45,7 @@ import {
 } from '../db/source'
 import { asNonEmptyString, createHash } from '../utils'
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
+import { resolveDataShardEnvironment } from './shared'
 
 import type { HarbourWorkerBucket } from './division'
 import type { AddressVersionSnapshot } from '../db/address'
@@ -93,7 +94,7 @@ export async function processAddressDataset(
   sourceDb?: SourceDatabase,
 ): Promise<ProcessAddressDatasetResult> {
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
-  const environment = resolveShardEnvironment()
+  const environment = resolveDataShardEnvironment(process.env.DATA_SHARD_ENV)
   const versionInsertContext = await prepareAddressVersionInsertContext(
     metaDb,
     message,
@@ -580,10 +581,6 @@ export async function processAddressDataset(
     statsRows: 0,
     unchangedRows,
   }
-}
-
-function resolveShardEnvironment(): 'preview' | 'production' {
-  return process.env.DATA_SHARD_ENV === 'production' ? 'production' : 'preview'
 }
 
 async function loadDivisionLookupMaps(db: CurrentDatabase) {
