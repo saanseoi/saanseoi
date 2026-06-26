@@ -673,43 +673,44 @@ function resolveUploadPlan(
   )
   const datasetCode = `${regionCode}-${type}`
   const releaseCode = `${source}-${regionCode}-${sourceVersion}-${type}`
+  const plan: UploadPlan = {
+    datasetId: releaseCode,
+    datasetCode,
+    releaseCode,
+    regionCode,
+    snapshotMonth,
+    theme,
+    type,
+    source,
+    sourceVersion,
+    filePath: options.filePath,
+    fileName,
+    originalFileName,
+    rowCount: resolvedInspection.rowCount,
+    schemaFingerprint: createSchemaFingerprint(resolvedInspection),
+    inferredFrom: {
+      theme: themeFromFlag ? 'flag' : themeFromPath ? 'path' : 'parquet',
+      type: typeFromFlag ? 'flag' : typeFromPath ? 'path' : 'parquet',
+      regionCode: regionFromFlag ? 'flag' : regionFromPath ? 'path' : 'parquet',
+      snapshotMonth: options.snapshotMonth
+        ? 'flag'
+        : inferSnapshotMonthFromPath(options.filePath)
+          ? 'path'
+          : 'filename',
+      source: sourceFromFlag ? 'flag' : sourceFromPath ? 'path' : 'filename',
+      sourceVersion: options.sourceVersion
+        ? 'flag'
+        : inferSourceVersionFromPath(options.filePath)
+          ? 'path'
+          : inferSourceVersionFromFilename(options.filePath)
+            ? 'filename'
+            : 'snapshotMonth',
+    },
+    supersedesDatasetId: null,
+  }
 
   return {
-    plan: {
-      datasetId: releaseCode,
-      datasetCode,
-      releaseCode,
-      regionCode,
-      snapshotMonth,
-      theme,
-      type,
-      source,
-      sourceVersion,
-      filePath: options.filePath,
-      fileName,
-      originalFileName,
-      rowCount: resolvedInspection.rowCount,
-      schemaFingerprint: createSchemaFingerprint(resolvedInspection),
-      inferredFrom: {
-        theme: themeFromFlag ? 'flag' : themeFromPath ? 'path' : 'parquet',
-        type: typeFromFlag ? 'flag' : typeFromPath ? 'path' : 'parquet',
-        regionCode: regionFromFlag ? 'flag' : regionFromPath ? 'path' : 'parquet',
-        snapshotMonth: options.snapshotMonth
-          ? 'flag'
-          : inferSnapshotMonthFromPath(options.filePath)
-            ? 'path'
-            : 'filename',
-        source: sourceFromFlag ? 'flag' : sourceFromPath ? 'path' : 'filename',
-        sourceVersion: options.sourceVersion
-          ? 'flag'
-          : inferSourceVersionFromPath(options.filePath)
-            ? 'path'
-            : inferSourceVersionFromFilename(options.filePath)
-              ? 'filename'
-              : 'snapshotMonth',
-      },
-      supersedesDatasetId: null,
-    } satisfies UploadPlan,
+    plan,
     inspection: resolvedInspection,
   }
 }
