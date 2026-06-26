@@ -9,6 +9,21 @@ type LatestDatasetLookup = {
   latestDataset: DatasetRecord | null
 }
 
+type DatasetIdentityRecord = {
+  source: string
+  datasetId: string
+  datasetCode: string
+  releaseId: string
+  releaseCode: string
+  status: string
+}
+
+export type DataShardRecord = {
+  id: string
+  bindingName: string
+  databaseName: string
+}
+
 const {
   ingestRuns,
   metaApiReleaseSetMembers,
@@ -112,7 +127,7 @@ export async function hasDatasetForSnapshotMonthSourceType(
 
 export async function getDatasetById(db: HarbourReadableDb, releaseCode: string) {
   return (
-    (await db
+    ((await db
       .select({
         source: metaPublishers.code,
         datasetId: metaDatasets.id,
@@ -126,7 +141,7 @@ export async function getDatasetById(db: HarbourReadableDb, releaseCode: string)
       .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
       .where(eq(metaReleases.code, releaseCode))
       .limit(1)
-      .get()) ?? null
+      .get()) as DatasetIdentityRecord | undefined) ?? null
   )
 }
 
@@ -352,7 +367,7 @@ export async function resolveShardForKindRegionYear(
   environment: 'preview' | 'production',
   regionCode?: string,
   year?: string,
-) {
+): Promise<DataShardRecord | null> {
   if (kind === 'current') {
     return (
       ((await db
@@ -372,9 +387,7 @@ export async function resolveShardForKindRegionYear(
           ),
         )
         .limit(1)
-        .get()) as
-        | { id: string; bindingName: string; databaseName: string }
-        | undefined) ?? null
+        .get()) as DataShardRecord | undefined) ?? null
     )
   }
 
@@ -402,9 +415,7 @@ export async function resolveShardForKindRegionYear(
         ),
       )
       .limit(1)
-      .get()) as
-      | { id: string; bindingName: string; databaseName: string }
-      | undefined) ?? null
+      .get()) as DataShardRecord | undefined) ?? null
 
   if (exactMatch || !year) {
     return exactMatch
@@ -416,7 +427,7 @@ export async function resolveShardForKindRegionYear(
     return null
   }
 
-  const fallbackRows = await db
+  const fallbackRows = (await db
     .select({
       id: metaDataShards.id,
       bindingName: metaDataShards.bindingName,
@@ -425,7 +436,7 @@ export async function resolveShardForKindRegionYear(
     })
     .from(metaDataShards)
     .where(and(baseConditions, sql`${metaDataShards.year} is not null`))
-    .all()
+    .all()) as FallbackShardRow[]
 
   type FallbackShardRow = {
     id: string
