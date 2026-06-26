@@ -435,13 +435,6 @@ function createSchemaFingerprintFromSchema(schema: ParquetInspection['schema']) 
   return JSON.stringify(normalizeSchemaFingerprintFields(schema))
 }
 
-function normalizeSchemaFingerprintFields(schema: ParquetInspection['schema']) {
-  return schema
-    .map(field => ({
-      name: field.name,
-      type: field.type,
-      nullable: field.nullable,
-    }))
 function compareFingerprintValue(left: string, right: string) {
   if (left < right) {
     return -1
