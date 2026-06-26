@@ -159,10 +159,8 @@ export async function listIngestRuns(
   const whereClause = buildReportFilterWhereClause(options)
   const rows = (
     whereClause
-      ? await query
-          .where(and(whereClause, inArray(ingestRuns.releaseId, releaseIds)))
-          .all()
-      : await query.where(inArray(ingestRuns.releaseId, releaseIds)).all()
+      ? await query.where(and(whereClause, inArray(metaReleases.id, releaseIds))).all()
+      : await query.where(inArray(metaReleases.id, releaseIds)).all()
   ) as IngestRunReportRow[]
 
   return rows.map(row => ({
@@ -302,17 +300,19 @@ async function listLatestIngestRunReleaseIds(
   const latestCreatedAt = sql<number>`max(${ingestRuns.createdAt})`
   const query = db
     .select({
-      createdAt: latestCreatedAt,
-      releaseCreatedAt: metaReleases.createdAt,
       releaseId: metaReleases.id,
-      startedAt: latestStartedAt,
     })
-    .from(ingestRuns)
-    .innerJoin(metaReleases, eq(ingestRuns.releaseId, metaReleases.id))
+    .from(metaReleases)
+    .innerJoin(ingestRuns, eq(ingestRuns.releaseId, metaReleases.id))
     .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-    .groupBy(metaReleases.id, metaReleases.createdAt)
-    .orderBy(desc(latestStartedAt), desc(latestCreatedAt), desc(metaReleases.createdAt))
+    .groupBy(metaReleases.id, metaReleases.ingestedAt, metaReleases.createdAt)
+    .orderBy(
+      desc(metaReleases.ingestedAt),
+      desc(latestStartedAt),
+      desc(latestCreatedAt),
+      desc(metaReleases.createdAt),
+    )
   const whereClause = buildReportFilterWhereClause(options)
   const rows = (
     whereClause

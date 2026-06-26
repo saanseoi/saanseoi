@@ -335,7 +335,7 @@ describe('reporting service', () => {
           runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
         ) VALUES
           ('run-1a', 'release-1', 'extractAddresses', 'completed', '{"release":1,"run":"a"}', null, '2026-06-26T10:00:00.000Z', '2026-06-26T10:05:00.000Z', 1761434400000, 1761434700000),
-          ('run-1b', 'release-1', 'extractAddresses', 'completed', '{"release":1,"run":"b"}', null, '2026-06-26T09:00:00.000Z', '2026-06-26T09:05:00.000Z', 1761430800000, 1761431100000),
+          ('run-1b', 'release-1', 'normalizeAddresses', 'completed', '{"release":1,"run":"b"}', null, '2026-06-26T09:00:00.000Z', '2026-06-26T09:05:00.000Z', 1761430800000, 1761431100000),
           ('run-2a', 'release-2', 'extractAddresses', 'completed', '{"release":2,"run":"a"}', null, '2026-06-25T10:00:00.000Z', '2026-06-25T10:05:00.000Z', 1761348000000, 1761348300000),
           ('run-3a', 'release-3', 'extractAddresses', 'completed', '{"release":3,"run":"a"}', null, '2026-06-24T10:00:00.000Z', '2026-06-24T10:05:00.000Z', 1761261600000, 1761261900000);
       `)
