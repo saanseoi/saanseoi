@@ -1,6 +1,7 @@
 import { and, desc, eq, metaSchema } from '@repo/db'
 import { inArray, sql } from 'drizzle-orm'
 import { resolveShardForKindRegionYear } from '@repo/core/db/meta-repository'
+import type { DataShardRecord } from '@repo/core/db/meta-repository'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { DatasetType } from '@repo/db'
 
@@ -464,7 +465,10 @@ async function buildHistoryCountTargets(
         .all()) as Array<{ bindingName: string; releaseId: string }>)
     : []
   const assignedHistoryBindingsByReleaseId = new Map(
-    assignedHistoryBindings.map(row => [row.releaseId, row.bindingName]),
+    assignedHistoryBindings.map((row): [string, string] => [
+      row.releaseId,
+      row.bindingName,
+    ]),
   )
   const fallbackShards = await resolveFallbackShardsByRelease(
     db,
@@ -476,7 +480,7 @@ async function buildHistoryCountTargets(
   )
 
   return new Map(
-    releases.map(release => {
+    releases.map((release): [string, CountTarget] => {
       const bindingName =
         assignedHistoryBindingsByReleaseId.get(release.releaseId) ??
         fallbackShards.get(release.releaseId)?.bindingName
@@ -508,7 +512,7 @@ async function buildSourceCountTargets(
   )
 
   return new Map(
-    releases.map(release => {
+    releases.map((release): [string, CountTarget] => {
       const sourceShard = sourceShards.get(release.releaseId)
 
       return [
@@ -531,7 +535,7 @@ async function resolveFallbackShardsByRelease(
   kind: 'history' | 'source',
   environment: 'preview' | 'production',
   releases: ReleaseContext[],
-) {
+): Promise<Map<string, DataShardRecord | null>> {
   const uniqueShardKeys = new Map<string, { regionCode: string; year: string }>()
 
   for (const release of releases) {
@@ -552,21 +556,23 @@ async function resolveFallbackShardsByRelease(
   }
 
   const resolvedShards = await Promise.all(
-    [...uniqueShardKeys.entries()].map(async ([key, value]) => [
-      key,
-      await resolveShardForKindRegionYear(
-        db,
-        kind,
-        environment,
-        value.regionCode,
-        value.year,
-      ),
-    ]),
+    [...uniqueShardKeys.entries()].map(
+      async ([key, value]): Promise<[string, DataShardRecord | null]> => [
+        key,
+        await resolveShardForKindRegionYear(
+          db,
+          kind,
+          environment,
+          value.regionCode,
+          value.year,
+        ),
+      ],
+    ),
   )
-  const shardsByKey = new Map(resolvedShards)
+  const shardsByKey = new Map<string, DataShardRecord | null>(resolvedShards)
 
   return new Map(
-    releases.map(release => {
+    releases.map((release): [string, DataShardRecord | null] => {
       const year = resolveReleaseYear(release)
       const shard = !year
         ? null
