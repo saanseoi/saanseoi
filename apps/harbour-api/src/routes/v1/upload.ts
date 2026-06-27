@@ -296,20 +296,24 @@ export const requeueUploadRoute = defineOpenAPIRoute<
     try {
       const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
       const request = c.req.valid('json') as RequeueUploadRequest
-      const release = await handleRequeueUploadRequest(db, c.env.DATASET_QUEUE, request)
+      const requeued = await handleRequeueUploadRequest(
+        db,
+        c.env.DATASET_QUEUE,
+        request,
+      )
 
       return c.json(
         {
-          datasetId: release.datasetId,
-          datasetCode: release.datasetCode,
-          rawObjectKey: release.rawObjectKey,
-          releaseCode: release.releaseCode,
-          releaseId: release.releaseId,
-          rowCount: 0,
-          source: release.source,
-          sourceVersion: release.sourceVersion,
-          status: release.status,
-          type: release.type,
+          datasetId: requeued.datasetId,
+          datasetCode: requeued.datasetCode,
+          rawObjectKey: requeued.rawObjectKey,
+          releaseCode: requeued.releaseCode,
+          releaseId: requeued.releaseId,
+          rowCount: requeued.rowCount,
+          source: requeued.source,
+          sourceVersion: requeued.sourceVersion,
+          status: requeued.status,
+          type: requeued.type,
         },
         200,
       )
