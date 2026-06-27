@@ -9,7 +9,7 @@ case "$environment" in
   preview|local)
     ;;
   *)
-    echo "drop-preview-db.sh rejects environment '$environment'; only preview-target environments are allowed." >&2
+    echo "drop-remote-db.sh rejects environment '$environment'; only preview-target environments are allowed." >&2
     exit 1
     ;;
 esac
