@@ -157,6 +157,18 @@ function createDivisionMessage(
   } as const
 }
 
+function getApiReleaseSetId(sqlite: Database, code: string) {
+  const row = sqlite
+    .query('SELECT id FROM apiReleaseSets WHERE code = ?1')
+    .get(code) as { id: string } | null
+
+  if (!row) {
+    throw new Error(`Release set not found for ${code}.`)
+  }
+
+  return row.id
+}
+
 afterEach(() => {
   parquetBatches = structuredClone(baseParquetBatches)
 
@@ -206,23 +218,31 @@ describe('processDivisionDataset', () => {
       ),
       db as never,
     )
+    const firstReleaseSetId = getApiReleaseSetId(
+      sqlite,
+      'overture-hk-2026-05-24.0-division',
+    )
 
     const firstDivisionRow = sqlite
-      .query("SELECT updatedAt FROM divisions WHERE id = 'division-hk-island'")
-      .get() as { updatedAt: string }
+      .query(
+        "SELECT updatedAt FROM divisions WHERE apiReleaseSetId = ?1 AND id = 'division-hk-island'",
+      )
+      .get(firstReleaseSetId) as { updatedAt: string }
     const firstChangedDivisionRow = sqlite
-      .query("SELECT updatedAt FROM divisions WHERE id = 'division-central'")
-      .get() as { updatedAt: string }
+      .query(
+        "SELECT updatedAt FROM divisions WHERE apiReleaseSetId = ?1 AND id = 'division-central'",
+      )
+      .get(firstReleaseSetId) as { updatedAt: string }
     const firstDivisionI18nRow = sqlite
       .query(
-        "SELECT updatedAt FROM divisionsI18n WHERE divisionId = 'division-hk-island' AND locale = 'en'",
+        "SELECT updatedAt FROM divisionsI18n WHERE apiReleaseSetId = ?1 AND divisionId = 'division-hk-island' AND locale = 'en'",
       )
-      .get() as { updatedAt: string }
+      .get(firstReleaseSetId) as { updatedAt: string }
     const firstChangedDivisionI18nRow = sqlite
       .query(
-        "SELECT updatedAt FROM divisionsI18n WHERE divisionId = 'division-central' AND locale = 'en'",
+        "SELECT updatedAt FROM divisionsI18n WHERE apiReleaseSetId = ?1 AND divisionId = 'division-central' AND locale = 'en'",
       )
-      .get() as { updatedAt: string }
+      .get(firstReleaseSetId) as { updatedAt: string }
 
     const nextIslandRow = baseParquetBatches[0]?.[0]
     const nextCentralRow = baseParquetBatches[0]?.[1]
@@ -272,6 +292,10 @@ describe('processDivisionDataset', () => {
       ),
       db as never,
     )
+    const secondReleaseSetId = getApiReleaseSetId(
+      sqlite,
+      'overture-hk-2026-06-24.0-division',
+    )
 
     const sourceCurrentRows = sqlite
       .query(
@@ -282,18 +306,36 @@ describe('processDivisionDataset', () => {
       releaseId: string
     }>
     const currentRows = sqlite
-      .query('SELECT id, updatedAt FROM divisions ORDER BY id')
-      .all() as Array<{
+      .query(
+        'SELECT id, updatedAt FROM divisions WHERE apiReleaseSetId = ?1 ORDER BY id',
+      )
+      .all(secondReleaseSetId) as Array<{
       id: string
       updatedAt: string
     }>
     const currentI18nRows = sqlite
       .query(
-        "SELECT divisionId, locale, updatedAt FROM divisionsI18n WHERE locale = 'en' ORDER BY divisionId",
+        "SELECT divisionId, locale, updatedAt FROM divisionsI18n WHERE apiReleaseSetId = ?1 AND locale = 'en' ORDER BY divisionId",
       )
-      .all() as Array<{
+      .all(secondReleaseSetId) as Array<{
       divisionId: string
       locale: string
+      updatedAt: string
+    }>
+    const preservedFirstRows = sqlite
+      .query(
+        "SELECT id, updatedAt FROM divisions WHERE apiReleaseSetId = ?1 AND id IN ('division-central', 'division-hk-island') ORDER BY id",
+      )
+      .all(firstReleaseSetId) as Array<{
+      id: string
+      updatedAt: string
+    }>
+    const preservedFirstI18nRows = sqlite
+      .query(
+        "SELECT divisionId, updatedAt FROM divisionsI18n WHERE apiReleaseSetId = ?1 AND locale = 'en' AND divisionId IN ('division-central', 'division-hk-island') ORDER BY divisionId",
+      )
+      .all(firstReleaseSetId) as Array<{
+      divisionId: string
       updatedAt: string
     }>
     const sourceVersionCounts = sqlite
@@ -323,8 +365,8 @@ describe('processDivisionDataset', () => {
       'division-central',
       'division-hk-island',
     ])
-    expect(currentRows[1]?.updatedAt).toBe(firstDivisionRow.updatedAt)
-    expect(currentI18nRows[1]?.updatedAt).toBe(firstDivisionI18nRow.updatedAt)
+    expect(preservedFirstRows[1]?.updatedAt).toBe(firstDivisionRow.updatedAt)
+    expect(preservedFirstI18nRows[1]?.updatedAt).toBe(firstDivisionI18nRow.updatedAt)
     expect(sourceVersionCounts).toEqual([
       {
         sourceRecordId: 'division-central',
@@ -335,8 +377,8 @@ describe('processDivisionDataset', () => {
         count: 1,
       },
     ])
-    expect(currentRows[0]?.updatedAt).not.toBe(firstChangedDivisionRow.updatedAt)
-    expect(currentI18nRows[0]?.updatedAt).not.toBe(
+    expect(preservedFirstRows[0]?.updatedAt).toBe(firstChangedDivisionRow.updatedAt)
+    expect(preservedFirstI18nRows[0]?.updatedAt).toBe(
       firstChangedDivisionI18nRow.updatedAt,
     )
   })
@@ -597,6 +639,7 @@ describe('processDivisionDataset', () => {
     sqlite.close()
 
     expect(result).toEqual({
+      cleanupReleaseSetIds: [],
       deletedRows: 1,
       insertedVersions: 2,
       localizedRows: 4,
@@ -1078,7 +1121,7 @@ describe('processDivisionDataset', () => {
 
     sqlite.close()
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       deletedRows: 1,
       insertedVersions: 2,
       localizedRows: 4,
@@ -1086,6 +1129,7 @@ describe('processDivisionDataset', () => {
       statsRows: 26,
       unchangedRows: 1,
     })
+    expect(result.cleanupReleaseSetIds).toHaveLength(1)
     expect(churnRows).toEqual([
       { dimension: 'added_count', groupBy: null, groupValue: null, value: 1 },
       { dimension: 'changed_count', groupBy: null, groupValue: null, value: 2 },
@@ -1777,6 +1821,7 @@ describe('processDivisionDataset', () => {
     sqlite.close()
 
     expect(result).toEqual({
+      cleanupReleaseSetIds: [],
       deletedRows: 0,
       insertedVersions: 3,
       localizedRows: 5,

@@ -10,7 +10,6 @@ import { sql } from 'drizzle-orm'
 
 import { jsonText, timestamps } from './_shared'
 import { address2d, address3d } from './addresses'
-import { divisions } from './divisions'
 
 export const places = sqliteTable(
   'places',
@@ -79,9 +78,7 @@ export const placesDivision = sqliteTable(
     placeId: text('placeId')
       .notNull()
       .references(() => places.id),
-    divisionId: text('divisionId')
-      .notNull()
-      .references(() => divisions.id),
+    divisionId: text('divisionId').notNull(),
   },
   table => [
     primaryKey({
