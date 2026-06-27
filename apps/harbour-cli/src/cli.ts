@@ -30,12 +30,14 @@ import {
   finalizeExistingUpload,
   requeueExistingUpload,
 } from './lib/upload.ts'
+import { watchCurrentUpload } from './lib/watch.ts'
 
 function printUsage() {
   console.log(`  Usage:
   saanseoi upload <file> [--target local|cf-preview|cf-production] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
   saanseoi upload:finalize --release <release-id|release-code> [--target local|cf-preview|cf-production] [--yes]
   saanseoi upload:requeue --release <release-id|release-code> [--target local|cf-preview|cf-production] [--yes]
+  saanseoi upload:watch [--target local|cf-preview|cf-production]
   saanseoi prep-hkgov-als <source-dir> [--target local|cf-preview|cf-production] [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]
   saanseoi reports:ingestion [--target local|cf-preview|cf-production] [--limit 1-100]
   saanseoi reports:stats [--target local|cf-preview|cf-production] [--limit 1-100] [--source SOURCE] [--type TYPE]
@@ -238,6 +240,18 @@ async function main() {
     )
     log.success('Release processing re-queued in Harbour.')
     outro('Harbour upload requeue complete')
+    return
+  }
+
+  if (args.command === 'upload:watch') {
+    log.message(explainDispatch(target))
+    const result = await watchCurrentUpload(target)
+
+    if (!result.hadActivity) {
+      log.message('No active Harbour upload processing found.')
+    }
+
+    outro('Harbour upload watch complete')
     return
   }
 
