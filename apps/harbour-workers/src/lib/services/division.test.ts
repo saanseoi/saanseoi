@@ -312,7 +312,7 @@ describe('processDivisionDataset', () => {
       },
       {
         sourceRecordId: 'division-hk-island',
-        releaseId: 'release-overture-hk-2026-05-24.0-division',
+        releaseId: 'release-overture-hk-2026-06-24.0-division',
       },
     ])
     expect(currentRows.map(row => row.id)).toEqual([
