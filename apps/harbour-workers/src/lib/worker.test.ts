@@ -1,7 +1,20 @@
-import { describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 
 import type { ProcessDatasetResult } from './services/division'
 import { createProcessDatasetMessage } from './worker'
+
+const originalConsoleInfo = console.info
+const originalConsoleError = console.error
+
+beforeEach(() => {
+  console.info = mock(() => undefined) as typeof console.info
+  console.error = mock(() => undefined) as typeof console.error
+})
+
+afterEach(() => {
+  console.info = originalConsoleInfo
+  console.error = originalConsoleError
+})
 
 describe('processDatasetMessage', () => {
   test('processes division datasets and reports stage state through the control API', async () => {
