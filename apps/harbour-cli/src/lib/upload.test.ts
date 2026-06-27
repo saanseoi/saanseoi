@@ -1,8 +1,12 @@
 import { isReleaseId } from '@repo/core'
 
 import { afterEach, describe, expect, test } from 'bun:test'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { tmpdir } from 'node:os'
 
 import {
+  dispatchUpload,
   finalizeExistingUpload,
   requeueExistingUpload,
   resolveRelease,
@@ -13,6 +17,11 @@ import type { UploadTarget } from './options.ts'
 const target: UploadTarget = {
   environment: 'production',
   remote: true,
+}
+
+const localTarget: UploadTarget = {
+  environment: 'preview',
+  remote: false,
 }
 
 const releaseRow = {
@@ -39,6 +48,7 @@ const releaseRow = {
 
 const originalFetch = globalThis.fetch
 const originalApiKey = process.env.HARBOUR_API_KEY
+const tempDirs: string[] = []
 
 afterEach(() => {
   globalThis.fetch = originalFetch
@@ -47,6 +57,14 @@ afterEach(() => {
     delete process.env.HARBOUR_API_KEY
   } else {
     process.env.HARBOUR_API_KEY = originalApiKey
+  }
+
+  while (tempDirs.length > 0) {
+    const dir = tempDirs.pop()
+
+    if (dir) {
+      rmSync(dir, { recursive: true, force: true })
+    }
   }
 })
 
@@ -192,5 +210,157 @@ describe('upload release action helpers', () => {
         releaseId: releaseRow.releaseId,
       }),
     )
+  })
+
+  test('recovers a local direct upload from a transient 503 when the release was already staged', async () => {
+    const calls: string[] = []
+    const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
+    const filePath = join(tempDir, 'division.parquet')
+    tempDirs.push(tempDir)
+    writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async input => {
+      const url = String(input)
+      calls.push(url)
+
+      if (url === 'https://preview.harbour.saanseoi.hk/v1/upload') {
+        return new Response('busy', { status: 503 })
+      }
+
+      if (url.startsWith('https://preview.harbour.saanseoi.hk/v1/reports/releases')) {
+        return new Response(
+          JSON.stringify({
+            rows: [{ ...releaseRow, status: 'processing' }],
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`)
+    }) as typeof fetch
+
+    const result = await dispatchUpload(
+      localTarget,
+      {
+        filePath,
+      } as never,
+      {
+        inspection: {
+          rowCount: 1810,
+          schema: [],
+        },
+        plan: {
+          datasetCode: 'hk-division',
+          fileName: 'division.parquet',
+          regionCode: 'hk',
+          releaseCode: releaseRow.releaseCode,
+          snapshotMonth: '2025-09',
+          source: 'overture',
+          sourceVersion: '2025-09-24.0',
+          theme: 'divisions',
+          type: 'division',
+        },
+      } as never,
+      'schema-version-1',
+    )
+
+    expect(result).toMatchObject({
+      datasetCode: releaseRow.datasetCode,
+      datasetId: releaseRow.datasetId,
+      releaseCode: releaseRow.releaseCode,
+      releaseId: releaseRow.releaseId,
+      status: 'processing',
+    })
+    expect(calls[0]).toBe('https://preview.harbour.saanseoi.hk/v1/upload')
+    expect(calls[1]).toContain(
+      '/v1/reports/releases?limit=1&releaseCode=overture-hk-2025-09-24.0-division',
+    )
+  })
+
+  test('polls the release report before retrying a local transient 503', async () => {
+    const calls: string[] = []
+    const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
+    const filePath = join(tempDir, 'division.parquet')
+    tempDirs.push(tempDir)
+    writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
+
+    let reportAttempt = 0
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async input => {
+      const url = String(input)
+      calls.push(url)
+
+      if (url === 'https://preview.harbour.saanseoi.hk/v1/upload') {
+        return new Response('busy', { status: 503 })
+      }
+
+      if (url.startsWith('https://preview.harbour.saanseoi.hk/v1/reports/releases')) {
+        reportAttempt += 1
+
+        return new Response(
+          JSON.stringify({
+            rows: [
+              {
+                ...releaseRow,
+                status: reportAttempt >= 3 ? 'processing' : 'uploading',
+              },
+            ],
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`)
+    }) as typeof fetch
+
+    const result = await dispatchUpload(
+      localTarget,
+      {
+        filePath,
+      } as never,
+      {
+        inspection: {
+          rowCount: 1810,
+          schema: [],
+        },
+        plan: {
+          datasetCode: 'hk-division',
+          fileName: 'division.parquet',
+          regionCode: 'hk',
+          releaseCode: releaseRow.releaseCode,
+          snapshotMonth: '2025-09',
+          source: 'overture',
+          sourceVersion: '2025-09-24.0',
+          theme: 'divisions',
+          type: 'division',
+        },
+      } as never,
+      'schema-version-1',
+    )
+
+    expect(result).toMatchObject({
+      releaseId: releaseRow.releaseId,
+      status: 'processing',
+    })
+    expect(
+      calls.filter(url => url === 'https://preview.harbour.saanseoi.hk/v1/upload'),
+    ).toHaveLength(1)
+    expect(
+      calls.filter(url =>
+        url.startsWith('https://preview.harbour.saanseoi.hk/v1/reports/releases'),
+      ),
+    ).toHaveLength(3)
   })
 })
