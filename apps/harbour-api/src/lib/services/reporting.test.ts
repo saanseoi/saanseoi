@@ -743,8 +743,8 @@ function seedHistoryRows(
     INSERT INTO address2dVersionsI18n (
       addressId, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, isCurrent, locale, formattedAddress, buildingName, buildingNumberFrom, buildingNumberTo, blockType, blockNumber, blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber, streetName, createdAt, updatedAt
     ) VALUES
-      ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', '${snapshotId}', null, 1, 'en', '1 Example Road', null, null, null, null, null, null, null, null, '1', 'Example Road', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z'),
-      ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', '${snapshotId}', null, 1, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, '1', '示例路', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z');
+      ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', '${snapshotId}', null, 1, 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, '1', 'Example Road', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z'),
+      ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', '${snapshotId}', null, 1, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, '1', '示例路', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z');
 
     INSERT INTO address3dVersions (
       id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, validFromMonth, validToMonth, isCurrent, address2dId, sources, createdAt, updatedAt
