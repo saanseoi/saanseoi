@@ -25,6 +25,7 @@ import {
   upsertDivisionCurrentStates,
 } from '../db/division'
 import {
+  advanceSourceOvertureDivisionRelease,
   buildSourceDatasetId,
   buildSourceReleaseId,
   closeSourceOvertureDivisionVersions,
@@ -194,6 +195,7 @@ export async function processDivisionDataset(
       }
     > = []
     const changedSourceIds = new Set<string>()
+    const unchangedSourceIds = new Set<string>()
 
     for (const row of batch) {
       const normalized = normalizeDivisionRow(row)
@@ -306,6 +308,8 @@ export async function processDivisionDataset(
               isLocaleInferred: localized.isLocaleInferred,
             })),
           )
+        } else if (currentSource) {
+          unchangedSourceIds.add(normalized.base.id)
         }
       }
 
@@ -384,6 +388,9 @@ export async function processDivisionDataset(
 
     if (sourceDb && message.source === 'overture') {
       const changedIds = [...changedSourceIds]
+      const unchangedIds = [...unchangedSourceIds]
+      const releaseId = buildSourceReleaseId(message)
+      const datasetId = buildSourceDatasetId(message)
 
       if (changedIds.length > 0) {
         await closeSourceOvertureDivisionVersions(
@@ -394,6 +401,12 @@ export async function processDivisionDataset(
       }
 
       await upsertSourceOvertureDivisions(sourceDb, sourceRows)
+      await advanceSourceOvertureDivisionRelease(
+        sourceDb,
+        unchangedIds,
+        releaseId,
+        datasetId,
+      )
 
       await replaceSourceOvertureDivisionI18nRows(sourceDb, changedIds, sourceI18nRows)
 

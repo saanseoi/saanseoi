@@ -185,6 +185,21 @@ export async function upsertSourceOvertureDivisions(
   await runStatementsInGroupsWithWriteRetry(db, statements)
 }
 
+export async function advanceSourceOvertureDivisionRelease(
+  db: SourceDatabase,
+  sourceRecordIds: string[],
+  releaseId: string,
+  datasetId: string,
+) {
+  await advanceCurrentSourceRelease(
+    db,
+    sourceSchema.sourceOvertureDivisions,
+    sourceRecordIds,
+    releaseId,
+    datasetId,
+  )
+}
+
 export async function replaceSourceOvertureDivisionI18n(
   db: SourceDatabase,
   sourceRecordId: string,
@@ -643,6 +658,43 @@ async function insertVersionRows<TTable>(
             updatedAt: new Date(),
           } as never,
         }),
+    )
+  }
+
+  await runStatementsInGroupsWithWriteRetry(db, statements)
+}
+
+async function advanceCurrentSourceRelease<
+  TTable extends {
+    datasetId: unknown
+    releaseId: unknown
+    sourceRecordId: unknown
+    updatedAt: unknown
+  },
+>(
+  db: SourceDatabase,
+  table: TTable,
+  sourceRecordIds: string[],
+  releaseId: string,
+  datasetId: string,
+) {
+  if (sourceRecordIds.length === 0) {
+    return
+  }
+
+  const now = new Date()
+  const statements = []
+
+  for (const chunk of chunkArray(sourceRecordIds, getMaxItemsPerInClause(1, 3))) {
+    statements.push(
+      db
+        .update(table as never)
+        .set({
+          releaseId,
+          datasetId,
+          updatedAt: now,
+        } as never)
+        .where(inArray(table.sourceRecordId as never, chunk)),
     )
   }
 
