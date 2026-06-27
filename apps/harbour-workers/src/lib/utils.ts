@@ -52,34 +52,36 @@ export async function runStatementBatchWithWriteRetry(
   db: object,
   statements: [unknown, ...unknown[]],
 ) {
-  return runWithWriteRetry(async () => {
-    const batchCapableDb = db as {
-      batch?: (statements: readonly [unknown, ...unknown[]]) => Promise<unknown>
+  const batchCapableDb = db as {
+    batch?: (statements: readonly [unknown, ...unknown[]]) => Promise<unknown>
+  }
+
+  const batch = batchCapableDb.batch
+  if (typeof batch === 'function') {
+    return runWithWriteRetry(() => batch.call(batchCapableDb, statements))
+  }
+
+  const results = []
+
+  for (const statement of statements) {
+    const runnable = statement as BatchRunnable
+
+    const run = runnable.run
+    if (typeof run === 'function') {
+      results.push(await runWithWriteRetry(() => run.call(runnable)))
+      continue
     }
 
-    if (typeof batchCapableDb.batch === 'function') {
-      return batchCapableDb.batch(statements)
+    const execute = runnable.execute
+    if (typeof execute === 'function') {
+      results.push(await runWithWriteRetry(() => execute.call(runnable)))
+      continue
     }
 
-    const results = []
+    throw new Error('Unsupported batch statement: missing run/execute method.')
+  }
 
-    for (const statement of statements) {
-      const runnable = statement as BatchRunnable
-
-      if (typeof runnable.run === 'function') {
-        results.push(await runnable.run())
-        continue
-      }
-
-      if (typeof runnable.execute === 'function') {
-        results.push(await runnable.execute())
-        continue
-      }
-
-      throw new Error('Unsupported batch statement: missing run/execute method.')
-    }
-
-    return results
+  return results
   })
 }
 
