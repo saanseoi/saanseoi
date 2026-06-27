@@ -1,14 +1,18 @@
 import {
+  activateReleaseSet,
+  ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
   getDatasetRecordByReleaseId,
   markDatasetCurrent,
   markDatasetHistoric,
+  resolveReleaseSetForRelease,
   revokeDataset,
   setSupersededByReleaseId,
   updateDatasetStatus,
   upsertIngestRunStatus,
 } from '@repo/core/db/meta-repository'
+import type { SupportedType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 type StageRequest = {
@@ -121,11 +125,17 @@ export async function handlePublishDataset(
 ): Promise<ControlResult> {
   const dataset = await requireDataset(db, request.releaseId)
   const publishedAt = new Date().toISOString()
+  const datasetType = dataset.type as SupportedType
   const currentRelease = await getCurrentReleaseForDatasetId(
     db,
     dataset.datasetId,
     dataset.releaseId,
   )
+  const releaseSet =
+    (await resolveReleaseSetForRelease(db, dataset.releaseId, datasetType)) ??
+    (await ensureDraftReleaseSetForRelease(db, datasetType, dataset.releaseCode))
+
+  await activateReleaseSet(db, releaseSet.id)
 
   await markDatasetCurrent(db, dataset.releaseId)
 

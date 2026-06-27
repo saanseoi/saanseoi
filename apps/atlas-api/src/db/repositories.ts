@@ -35,6 +35,10 @@ type I18nLookup = {
   locale?: string
 }
 
+type PlaceDivisionLookup = I18nLookup & {
+  divisionApiReleaseSetId: string
+}
+
 type H3Lookup = {
   regionCode: RegionCode
   h3Level: number
@@ -206,7 +210,10 @@ export async function listPlaceI18n(db: CurrentDatabase, lookup: I18nLookup) {
     .all()
 }
 
-export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup) {
+export async function listPlaceDivisions(
+  db: CurrentDatabase,
+  lookup: PlaceDivisionLookup,
+) {
   return db
     .select({
       divisionId: divisions.id,
@@ -217,10 +224,17 @@ export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup
       localType: divisionsI18n.localType,
     })
     .from(placesDivision)
-    .innerJoin(divisions, eq(divisions.id, placesDivision.divisionId))
+    .innerJoin(
+      divisions,
+      and(
+        eq(divisions.apiReleaseSetId, lookup.divisionApiReleaseSetId),
+        eq(divisions.id, placesDivision.divisionId),
+      ),
+    )
     .leftJoin(
       divisionsI18n,
       and(
+        eq(divisionsI18n.apiReleaseSetId, divisions.apiReleaseSetId),
         eq(divisionsI18n.divisionId, divisions.id),
         lookup.locale ? eq(divisionsI18n.locale, lookup.locale) : undefined,
       ),

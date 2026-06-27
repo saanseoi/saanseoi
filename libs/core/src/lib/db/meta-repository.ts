@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, ne, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 
 import { metaSchema } from '@repo/db'
 
@@ -23,6 +23,8 @@ export type DataShardRecord = {
   bindingName: string
   databaseName: string
 }
+
+export const LEGACY_DIVISION_CURRENT_RELEASE_SET_ID = 'legacy-current-divisions-v0.1'
 
 const {
   ingestRuns,
@@ -326,16 +328,19 @@ export async function setSupersededByReleaseId(
     .run()
 }
 
+export function getApiVersionCodeForType(type: SupportedType) {
+  return type === 'address'
+    ? 'ss-addresses-v0.1'
+    : type === 'division'
+      ? 'ss-divisions-v0.1'
+      : 'ss-places-v0.1'
+}
+
 export async function resolveReleaseSetForType(
   db: HarbourReadableDb,
   type: SupportedType,
 ) {
-  const apiVersionCode =
-    type === 'address'
-      ? 'ss-addresses-v0.1'
-      : type === 'division'
-        ? 'ss-divisions-v0.1'
-        : 'ss-places-v0.1'
+  const apiVersionCode = getApiVersionCodeForType(type)
 
   return (
     (await db
@@ -359,6 +364,218 @@ export async function resolveReleaseSetForType(
       .limit(1)
       .get()) ?? null
   )
+}
+
+export async function resolveActiveReleaseSetForType(
+  db: HarbourReadableDb,
+  type: SupportedType,
+) {
+  const apiVersionCode = getApiVersionCodeForType(type)
+
+  return (
+    (await db
+      .select({
+        id: metaApiReleaseSets.id,
+        code: metaApiReleaseSets.code,
+        status: metaApiReleaseSets.status,
+      })
+      .from(metaApiReleaseSets)
+      .innerJoin(
+        metaApiVersions,
+        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+      )
+      .where(
+        and(
+          eq(metaApiVersions.code, apiVersionCode),
+          eq(metaApiReleaseSets.status, 'active'),
+        ),
+      )
+      .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
+export async function ensureDraftReleaseSetForRelease(
+  db: HarbourReadableDb & HarbourWritableDb,
+  type: SupportedType,
+  releaseCode: string,
+) {
+  const apiVersionCode = getApiVersionCodeForType(type)
+  const existing = await db
+    .select({
+      id: metaApiReleaseSets.id,
+      code: metaApiReleaseSets.code,
+      status: metaApiReleaseSets.status,
+    })
+    .from(metaApiReleaseSets)
+    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .where(
+      and(
+        eq(metaApiVersions.code, apiVersionCode),
+        eq(metaApiReleaseSets.code, releaseCode),
+      ),
+    )
+    .limit(1)
+    .get()
+
+  if (existing) {
+    return existing
+  }
+
+  const apiVersion = await db
+    .select({
+      id: metaApiVersions.id,
+    })
+    .from(metaApiVersions)
+    .where(eq(metaApiVersions.code, apiVersionCode))
+    .limit(1)
+    .get()
+
+  if (!apiVersion) {
+    throw new Error(`API version not found for type: ${type}`)
+  }
+
+  const latestReleaseSet = await db
+    .select({
+      canonicalLogicVersion: metaApiReleaseSets.canonicalLogicVersion,
+      canonicalSchemaVersion: metaApiReleaseSets.canonicalSchemaVersion,
+    })
+    .from(metaApiReleaseSets)
+    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .where(eq(metaApiVersions.code, apiVersionCode))
+    .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
+    .limit(1)
+    .get()
+  const now = new Date()
+  const releaseSetId = crypto.randomUUID()
+
+  await db
+    .insert(metaApiReleaseSets)
+    .values({
+      id: releaseSetId,
+      apiVersionId: apiVersion.id,
+      code: releaseCode,
+      canonicalSchemaVersion: latestReleaseSet?.canonicalSchemaVersion ?? '1',
+      canonicalLogicVersion: latestReleaseSet?.canonicalLogicVersion ?? '1',
+      status: 'draft',
+      publishedAt: null,
+      validFrom: null,
+      validTo: null,
+      notes: null,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .run()
+
+  return {
+    id: releaseSetId,
+    code: releaseCode,
+    status: 'draft' as const,
+  }
+}
+
+export async function resolveReleaseSetForRelease(
+  db: HarbourReadableDb,
+  releaseId: string,
+  type: SupportedType,
+) {
+  const apiVersionCode = getApiVersionCodeForType(type)
+
+  return (
+    (await db
+      .select({
+        id: metaApiReleaseSets.id,
+        code: metaApiReleaseSets.code,
+        status: metaApiReleaseSets.status,
+      })
+      .from(metaApiReleaseSetMembers)
+      .innerJoin(
+        metaApiReleaseSets,
+        eq(metaApiReleaseSetMembers.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .innerJoin(
+        metaApiVersions,
+        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+      )
+      .where(
+        and(
+          eq(metaApiReleaseSetMembers.releaseId, releaseId),
+          eq(metaApiVersions.code, apiVersionCode),
+        ),
+      )
+      .orderBy(desc(metaApiReleaseSets.createdAt))
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
+export async function activateReleaseSet(
+  db: HarbourReadableDb & HarbourWritableDb,
+  releaseSetId: string,
+) {
+  const releaseSet = await db
+    .select({
+      apiVersionId: metaApiReleaseSets.apiVersionId,
+      id: metaApiReleaseSets.id,
+      status: metaApiReleaseSets.status,
+    })
+    .from(metaApiReleaseSets)
+    .where(eq(metaApiReleaseSets.id, releaseSetId))
+    .limit(1)
+    .get()
+
+  if (!releaseSet) {
+    throw new Error(`Release set not found: ${releaseSetId}`)
+  }
+
+  const now = new Date()
+  const activeReleaseSets = await db
+    .select({
+      id: metaApiReleaseSets.id,
+    })
+    .from(metaApiReleaseSets)
+    .where(
+      and(
+        eq(metaApiReleaseSets.apiVersionId, releaseSet.apiVersionId),
+        eq(metaApiReleaseSets.status, 'active'),
+        ne(metaApiReleaseSets.id, releaseSetId),
+      ),
+    )
+    .all()
+
+  if (activeReleaseSets.length > 0) {
+    await db
+      .update(metaApiReleaseSets)
+      .set({
+        status: 'archived',
+        validTo: now,
+        updatedAt: now,
+      })
+      .where(
+        inArray(
+          metaApiReleaseSets.id,
+          activeReleaseSets.map((activeSet: { id: string }) => activeSet.id),
+        ),
+      )
+      .run()
+  }
+
+  await db
+    .update(metaApiReleaseSets)
+    .set({
+      status: 'active',
+      publishedAt: now,
+      validFrom: now,
+      validTo: null,
+      updatedAt: now,
+    })
+    .where(eq(metaApiReleaseSets.id, releaseSetId))
+    .run()
+
+  return {
+    previousActiveReleaseSetId: activeReleaseSets[0]?.id ?? null,
+  }
 }
 
 export async function resolveShardForKindRegionYear(

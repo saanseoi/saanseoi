@@ -1,11 +1,19 @@
-import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import {
+  foreignKey,
+  index,
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+} from 'drizzle-orm/sqlite-core'
 
 import { jsonText, timestamps } from './_shared'
 
 export const divisions = sqliteTable(
   'divisions',
   {
-    id: text('id').primaryKey(),
+    apiReleaseSetId: text('apiReleaseSetId').notNull(),
+    id: text('id').notNull(),
     level: integer('level').notNull(),
     type: text('type').notNull(),
     geometry: jsonText('geometry'),
@@ -21,6 +29,9 @@ export const divisions = sqliteTable(
     ...timestamps,
   },
   table => [
+    primaryKey({
+      columns: [table.apiReleaseSetId, table.id],
+    }),
     index('divisions_level_idx').on(table.level),
     index('divisions_parentDivisionId_idx').on(table.parentDivisionId),
   ],
@@ -29,9 +40,8 @@ export const divisions = sqliteTable(
 export const divisionsI18n = sqliteTable(
   'divisionsI18n',
   {
-    divisionId: text('divisionId')
-      .notNull()
-      .references(() => divisions.id),
+    apiReleaseSetId: text('apiReleaseSetId').notNull(),
+    divisionId: text('divisionId').notNull(),
     locale: text('locale').notNull(),
     name: text('name'),
     nameVariant: jsonText('nameVariant'),
@@ -43,9 +53,14 @@ export const divisionsI18n = sqliteTable(
   },
   table => [
     primaryKey({
-      columns: [table.divisionId, table.locale],
+      columns: [table.apiReleaseSetId, table.divisionId, table.locale],
     }),
-    index('divisionsI18n_locale_idx').on(table.locale),
-    index('divisionsI18n_name_idx').on(table.locale, table.name),
+    foreignKey({
+      columns: [table.apiReleaseSetId, table.divisionId],
+      foreignColumns: [divisions.apiReleaseSetId, divisions.id],
+      name: 'divisionsI18n_apiReleaseSetId_divisionId_divisions_fk',
+    }).onDelete('cascade'),
+    index('divisionsI18n_locale_idx').on(table.apiReleaseSetId, table.locale),
+    index('divisionsI18n_name_idx').on(table.apiReleaseSetId, table.locale, table.name),
   ],
 )

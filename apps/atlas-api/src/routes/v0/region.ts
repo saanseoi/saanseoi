@@ -1,4 +1,5 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
+import { resolveActiveApiReleaseSet } from '@repo/db'
 
 import {
   getPlaceCurrent,
@@ -21,6 +22,8 @@ import {
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import type { AppEnv } from '../../types'
+
+const LEGACY_DIVISION_CURRENT_RELEASE_SET_ID = 'legacy-current-divisions-v0.1'
 const placeRouteConfig = createRoute({
   method: 'get',
   path: '/v0/{region}/places/{id}',
@@ -128,10 +131,31 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
       )
     }
 
-    const [i18n, divisions] = await Promise.all([
+    const divisionReleaseSet = await resolveActiveApiReleaseSet(
+      c.var.metaDb,
+      'ss-divisions-v0.1',
+    )
+
+    if (!divisionReleaseSet) {
+      throw new Error('Active division release set not found.')
+    }
+
+    const [i18n, divisionRows] = await Promise.all([
       listPlaceI18n(db, { placeId, locale }),
-      listPlaceDivisions(db, { placeId, locale }),
+      listPlaceDivisions(db, {
+        placeId,
+        locale,
+        divisionApiReleaseSetId: divisionReleaseSet.apiReleaseSetId,
+      }),
     ])
+    const divisions =
+      divisionRows.length > 0
+        ? divisionRows
+        : await listPlaceDivisions(db, {
+            placeId,
+            locale,
+            divisionApiReleaseSetId: LEGACY_DIVISION_CURRENT_RELEASE_SET_ID,
+          })
 
     return c.json(
       {

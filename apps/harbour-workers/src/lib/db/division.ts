@@ -2,8 +2,9 @@ import { and, eq, inArray, sql } from 'drizzle-orm'
 
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
+  ensureDraftReleaseSetForRelease,
   getDatasetRecordByReleaseId,
-  resolveReleaseSetForType,
+  resolveActiveReleaseSetForType,
   resolveShardForKindRegionYear,
   upsertReleaseSetMember,
   upsertReleaseSetShardAssignment,
@@ -13,6 +14,7 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   DivisionI18nPayload,
   DivisionRow,
+  NewDivisionRow,
   NewDivisionI18nRow,
 } from '@repo/db/currentSchema'
 import type { DatasetStatsRow } from '@repo/db/metaSchema'
@@ -28,8 +30,14 @@ import {
   runStatementBatchWithWriteRetry,
   runStatementsInGroupsWithWriteRetry,
 } from '../utils'
-export type DivisionBaseRecord = DivisionRow
-export type DivisionI18nRecord = NewDivisionI18nRow
+type CurrentDivisionWriteRow = Omit<NewDivisionRow, 'apiReleaseSetId'>
+type CurrentDivisionI18nWriteRow = Omit<NewDivisionI18nRow, 'apiReleaseSetId'>
+type DivisionHashInput = Omit<
+  DivisionRow,
+  'apiReleaseSetId' | 'createdAt' | 'updatedAt'
+>
+export type DivisionBaseRecord = CurrentDivisionWriteRow
+export type DivisionI18nRecord = CurrentDivisionI18nWriteRow
 
 export type DivisionVersionSnapshot = {
   churnHash: string
@@ -42,6 +50,7 @@ export type DivisionVersionSnapshot = {
 }
 
 export type DivisionVersionInsertContext = {
+  previousActiveReleaseSetId: string | null
   regionCode: RegionCode
   releaseId: string
   releaseSetId: string
@@ -59,9 +68,7 @@ export async function getCurrentDivisionVersionMap(
   db: HarbourReadableDb,
   regionCode: RegionCode,
   options: {
-    buildDivisionBaseHashInput: (
-      base: Omit<DivisionRow, 'createdAt' | 'updatedAt'> | DivisionRow,
-    ) => Omit<DivisionRow, 'createdAt' | 'updatedAt'>
+    buildDivisionBaseHashInput: (base: DivisionHashInput) => DivisionHashInput
     normalizeDivisionI18nSnapshotRow: (row: DivisionI18nPayload) => DivisionI18nPayload
   },
 ) {
@@ -172,11 +179,12 @@ export async function prepareDivisionVersionInsertContext(
     throw new Error(`Release not found: ${message.releaseId ?? message.datasetId}`)
   }
 
-  const releaseSet = await resolveReleaseSetForType(metaDb, message.type)
-
-  if (!releaseSet) {
-    throw new Error(`Release set not found for type: ${message.type}`)
-  }
+  const activeReleaseSet = await resolveActiveReleaseSetForType(metaDb, message.type)
+  const releaseSet = await ensureDraftReleaseSetForRelease(
+    metaDb,
+    message.type,
+    dataset.releaseCode,
+  )
 
   const year = message.sourceVersion.slice(0, 4)
   const currentShard = await resolveShardForKindRegionYear(
@@ -210,6 +218,8 @@ export async function prepareDivisionVersionInsertContext(
   await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, historyShard.id)
 
   return {
+    previousActiveReleaseSetId:
+      activeReleaseSet?.id === releaseSet.id ? null : (activeReleaseSet?.id ?? null),
     regionCode: message.regionCode,
     releaseId: dataset.releaseId,
     releaseSetId: releaseSet.id,
@@ -278,7 +288,6 @@ export async function closeCurrentDivisionVersions(
  * Closes and deletes divisions that were previously current but not present in the latest snapshot.
  */
 export async function deleteMissingCurrentDivisions(
-  currentDb: HarbourReadableDb & HarbourWritableDb,
   historyDb: HarbourReadableDb & HarbourWritableDb,
   regionCode: RegionCode,
   releaseSetId: string,
@@ -295,7 +304,6 @@ export async function deleteMissingCurrentDivisions(
   const now = new Date().toISOString()
   const chunkSize = getMaxItemsPerInClause(1, 6)
   const historyStatements = []
-  const currentStatements = []
 
   for (const missingIdChunk of chunkArray(missingIds, chunkSize)) {
     historyStatements.push(
@@ -331,23 +339,96 @@ export async function deleteMissingCurrentDivisions(
           ),
         ),
     )
-
-    currentStatements.push(
-      currentDb
-        .delete(currentSchema.divisionsI18n)
-        .where(inArray(currentSchema.divisionsI18n.divisionId, missingIdChunk)),
-    )
-    currentStatements.push(
-      currentDb
-        .delete(currentSchema.divisions)
-        .where(inArray(currentSchema.divisions.id, missingIdChunk)),
-    )
   }
 
   await runStatementsInGroupsWithWriteRetry(historyDb, historyStatements)
-  await runStatementsInGroupsWithWriteRetry(currentDb, currentStatements)
 
   return missingIds.length
+}
+
+export async function deleteStaleDivisionCurrentRows(
+  db: HarbourReadableDb & HarbourWritableDb,
+  releaseSetId: string,
+  seenIds: Set<string>,
+) {
+  const stagedRows = (await db
+    .select({
+      id: currentSchema.divisions.id,
+    })
+    .from(currentSchema.divisions)
+    .where(eq(currentSchema.divisions.apiReleaseSetId, releaseSetId))
+    .all()) as Array<{ id: string }>
+
+  const staleIds = stagedRows.map(row => row.id).filter(id => !seenIds.has(id))
+
+  if (staleIds.length === 0) {
+    return 0
+  }
+
+  await deleteDivisionCurrentRowsByIds(db, releaseSetId, staleIds)
+
+  return staleIds.length
+}
+
+export async function listDivisionCurrentReleaseSetIds(db: HarbourReadableDb) {
+  const rows = (await db
+    .select({
+      apiReleaseSetId: currentSchema.divisions.apiReleaseSetId,
+    })
+    .from(currentSchema.divisions)
+    .all()) as Array<{ apiReleaseSetId: string }>
+
+  return [...new Set(rows.map(row => row.apiReleaseSetId))]
+}
+
+export async function deleteDivisionCurrentRowsForReleaseSet(
+  db: HarbourReadableDb & HarbourWritableDb,
+  releaseSetId: string,
+) {
+  const deleteStatements = [
+    db
+      .delete(currentSchema.divisionsI18n)
+      .where(eq(currentSchema.divisionsI18n.apiReleaseSetId, releaseSetId)),
+    db
+      .delete(currentSchema.divisions)
+      .where(eq(currentSchema.divisions.apiReleaseSetId, releaseSetId)),
+  ]
+
+  await runStatementsInGroupsWithWriteRetry(db, deleteStatements)
+}
+
+async function deleteDivisionCurrentRowsByIds(
+  db: HarbourReadableDb & HarbourWritableDb,
+  releaseSetId: string,
+  divisionIds: string[],
+) {
+  const deleteChunkSize = getMaxItemsPerInClause(1, 2)
+  const deleteStatements = []
+
+  for (const divisionIdChunk of chunkArray(divisionIds, deleteChunkSize)) {
+    deleteStatements.push(
+      db
+        .delete(currentSchema.divisionsI18n)
+        .where(
+          and(
+            eq(currentSchema.divisionsI18n.apiReleaseSetId, releaseSetId),
+            inArray(currentSchema.divisionsI18n.divisionId, divisionIdChunk),
+          ),
+        ),
+    )
+    deleteStatements.push(
+      db
+        .delete(currentSchema.divisions)
+        .where(
+          and(
+            eq(currentSchema.divisions.apiReleaseSetId, releaseSetId),
+            inArray(currentSchema.divisions.id, divisionIdChunk),
+          ),
+        ),
+    )
+  }
+
+  await runStatementsInGroupsWithWriteRetry(db, deleteStatements)
 }
 
 /**
@@ -355,7 +436,8 @@ export async function deleteMissingCurrentDivisions(
  */
 export async function upsertDivisionCurrentStates(
   db: HarbourWritableDb,
-  rows: DivisionBaseRecord[],
+  releaseSetId: string,
+  rows: CurrentDivisionWriteRow[],
 ) {
   if (rows.length === 0) {
     return
@@ -368,9 +450,9 @@ export async function upsertDivisionCurrentStates(
     statements.push(
       db
         .insert(currentSchema.divisions)
-        .values(chunk)
+        .values(chunk.map(row => ({ ...row, apiReleaseSetId: releaseSetId })))
         .onConflictDoUpdate({
-          target: currentSchema.divisions.id,
+          target: [currentSchema.divisions.apiReleaseSetId, currentSchema.divisions.id],
           set: {
             bbox: excluded('bbox'),
             cartography: excluded('cartography'),
@@ -398,8 +480,9 @@ export async function upsertDivisionCurrentStates(
  */
 export async function replaceDivisionCurrentI18n(
   db: HarbourWritableDb,
+  releaseSetId: string,
   divisionIds: string[],
-  rows: NewDivisionI18nRow[],
+  rows: CurrentDivisionI18nWriteRow[],
 ) {
   if (divisionIds.length === 0) {
     return
@@ -412,14 +495,25 @@ export async function replaceDivisionCurrentI18n(
     deleteStatements.push(
       db
         .delete(currentSchema.divisionsI18n)
-        .where(inArray(currentSchema.divisionsI18n.divisionId, divisionIdChunk)),
+        .where(
+          and(
+            eq(currentSchema.divisionsI18n.apiReleaseSetId, releaseSetId),
+            inArray(currentSchema.divisionsI18n.divisionId, divisionIdChunk),
+          ),
+        ),
     )
   }
 
   await runStatementsInGroupsWithWriteRetry(db, deleteStatements)
 
   if (rows.length > 0) {
-    await insertDivisionsI18nInChunks(db, rows)
+    await insertDivisionsI18nInChunks(
+      db,
+      rows.map(row => ({
+        ...row,
+        apiReleaseSetId: releaseSetId,
+      })),
+    )
   }
 }
 

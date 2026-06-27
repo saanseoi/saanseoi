@@ -1,7 +1,6 @@
 import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import { jsonText, timestamps } from './_shared'
-import { divisions } from './divisions'
 
 export const address2d = sqliteTable(
   'address2d',
@@ -9,15 +8,15 @@ export const address2d = sqliteTable(
     id: text('id').primaryKey(),
     geometry: jsonText('geometry'),
     bbox: jsonText('bbox'),
-    countryId: text('countryId').references(() => divisions.id),
-    areaId: text('areaId').references(() => divisions.id),
-    districtId: text('districtId').references(() => divisions.id),
-    townId: text('townId').references(() => divisions.id),
-    macrohoodId: text('macrohoodId').references(() => divisions.id),
-    villageId: text('villageId').references(() => divisions.id),
-    neighbourhoodId: text('neighbourhoodId').references(() => divisions.id),
-    hamletId: text('hamletId').references(() => divisions.id),
-    microhoodId: text('microhoodId').references(() => divisions.id),
+    countryId: text('countryId'),
+    areaId: text('areaId'),
+    districtId: text('districtId'),
+    townId: text('townId'),
+    macrohoodId: text('macrohoodId'),
+    villageId: text('villageId'),
+    neighbourhoodId: text('neighbourhoodId'),
+    hamletId: text('hamletId'),
+    microhoodId: text('microhoodId'),
     streetId: text('streetId'),
     identifiers: jsonText('identifiers'),
     sources: jsonText('sources'),

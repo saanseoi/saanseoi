@@ -1,4 +1,8 @@
 import type { DatasetProcessingMessage } from '@repo/core'
+import {
+  LEGACY_DIVISION_CURRENT_RELEASE_SET_ID,
+  resolveActiveReleaseSetForType,
+} from '@repo/core/db/meta-repository'
 import type {
   CurrentDatabase,
   HistoryDatabase,
@@ -12,7 +16,7 @@ import type {
   NewAddressI18nRow,
 } from '@repo/db/currentSchema'
 
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 
 import { currentSchema } from '@repo/db'
 
@@ -101,7 +105,7 @@ export async function processAddressDataset(
     environment,
   )
 
-  const divisionLookup = await loadDivisionLookupMaps(currentDb)
+  const divisionLookup = await loadDivisionLookupMaps(metaDb, currentDb)
   const currentRows = await getCurrentAddressVersionMap(historyDb, message.regionCode, {
     buildAddressBaseHashInput,
     buildMatchKey,
@@ -583,34 +587,27 @@ export async function processAddressDataset(
   }
 }
 
-async function loadDivisionLookupMaps(db: CurrentDatabase) {
-  const rows = (await db
-    .select({
-      id: currentSchema.divisions.id,
-      level: currentSchema.divisions.level,
-      type: currentSchema.divisions.type,
-      locale: currentSchema.divisionsI18n.locale,
-      name: currentSchema.divisionsI18n.name,
-    })
-    .from(currentSchema.divisions)
-    .innerJoin(
-      currentSchema.divisionsI18n,
-      eq(currentSchema.divisions.id, currentSchema.divisionsI18n.divisionId),
-    )
-    .where(eq(currentSchema.divisionsI18n.locale, 'en'))
-    .all()) as Array<{
-    id: string
-    level: number
-    locale: string
-    name: string | null
-    type: string
-  }>
+async function loadDivisionLookupMaps(metaDb: MetaDatabase, db: CurrentDatabase) {
+  const activeDivisionReleaseSet = await resolveActiveReleaseSetForType(
+    metaDb,
+    'division',
+  )
+
+  if (!activeDivisionReleaseSet) {
+    throw new Error('Active division release set not found.')
+  }
+
+  const rows = await loadDivisionLookupRows(db, activeDivisionReleaseSet.id)
+  const resolvedRows =
+    rows.length > 0
+      ? rows
+      : await loadDivisionLookupRows(db, LEGACY_DIVISION_CURRENT_RELEASE_SET_ID)
 
   const areaByEn = new Map<string, string>()
   const districtByEn = new Map<string, string>()
   let countryId: string | null = null
 
-  for (const row of rows) {
+  for (const row of resolvedRows) {
     const name = normalizeNameToken(row.name)
 
     if (!name) {
@@ -635,6 +632,41 @@ async function loadDivisionLookupMaps(db: CurrentDatabase) {
     countryId,
     districtByEn,
   } satisfies DivisionLookupMaps
+}
+
+async function loadDivisionLookupRows(db: CurrentDatabase, apiReleaseSetId: string) {
+  return (await db
+    .select({
+      id: currentSchema.divisions.id,
+      level: currentSchema.divisions.level,
+      type: currentSchema.divisions.type,
+      locale: currentSchema.divisionsI18n.locale,
+      name: currentSchema.divisionsI18n.name,
+    })
+    .from(currentSchema.divisions)
+    .innerJoin(
+      currentSchema.divisionsI18n,
+      and(
+        eq(
+          currentSchema.divisions.apiReleaseSetId,
+          currentSchema.divisionsI18n.apiReleaseSetId,
+        ),
+        eq(currentSchema.divisions.id, currentSchema.divisionsI18n.divisionId),
+      ),
+    )
+    .where(
+      and(
+        eq(currentSchema.divisions.apiReleaseSetId, apiReleaseSetId),
+        eq(currentSchema.divisionsI18n.locale, 'en'),
+      ),
+    )
+    .all()) as Array<{
+    id: string
+    level: number
+    locale: string
+    name: string | null
+    type: string
+  }>
 }
 
 function normalizeOvertureAddressRow(

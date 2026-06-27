@@ -6,6 +6,7 @@ import type {
   SourceDatabase,
 } from '@repo/db'
 
+import { deleteDivisionCurrentRowsForReleaseSet } from './db/division'
 import {
   processAddressDataset as defaultProcessAddressDataset,
   type ProcessAddressDatasetResult,
@@ -135,6 +136,18 @@ export function createProcessDatasetMessage(
       await harbourClient.stageStarted(releaseId, 'publishDataset')
       activePhases.add('publishDataset')
       await harbourClient.publishDataset(releaseId)
+      if (
+        message.type === 'division' &&
+        'cleanupReleaseSetIds' in result &&
+        Array.isArray(result.cleanupReleaseSetIds)
+      ) {
+        for (const cleanupReleaseSetId of result.cleanupReleaseSetIds) {
+          await deleteDivisionCurrentRowsForReleaseSet(
+            currentDb as never,
+            cleanupReleaseSetId,
+          )
+        }
+      }
       await harbourClient.stageCompleted(releaseId, 'publishDataset', {
         durationMs: Date.now() - publishStartedAt,
       })
