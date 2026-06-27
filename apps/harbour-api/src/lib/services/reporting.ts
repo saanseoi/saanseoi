@@ -59,6 +59,8 @@ export type StatReportRow = {
 
 export type ReportFilters = {
   limit?: number
+  releaseCode?: string
+  releaseId?: string
   source?: string
   type?: DatasetType
 }
@@ -402,6 +404,14 @@ async function listLatestStatsReleaseIds(
 
 function buildReportFilterWhereClause(options: ReportFilters) {
   const conditions = []
+
+  if (options.releaseCode) {
+    conditions.push(eq(metaReleases.code, options.releaseCode))
+  }
+
+  if (options.releaseId) {
+    conditions.push(eq(metaReleases.id, options.releaseId))
+  }
 
   if (options.source) {
     conditions.push(eq(metaPublishers.code, options.source))

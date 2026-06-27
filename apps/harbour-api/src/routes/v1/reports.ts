@@ -123,6 +123,8 @@ export const ingestionReportRoute = defineOpenAPIRoute<
         {
           rows: await listIngestRuns(db, {
             limit: query.limit,
+            releaseCode: query.releaseCode,
+            releaseId: query.releaseId,
             source: query.source,
             type: query.type,
           }),
@@ -178,6 +180,8 @@ export const releasesReportRoute = defineOpenAPIRoute<
         {
           rows: await listReleases(db, c.env, environment, {
             limit: query.limit,
+            releaseCode: query.releaseCode,
+            releaseId: query.releaseId,
             source: query.source,
             type: query.type,
           }),
