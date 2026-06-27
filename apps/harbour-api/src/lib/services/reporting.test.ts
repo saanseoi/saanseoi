@@ -358,6 +358,46 @@ describe('reporting service', () => {
     }
   })
 
+  test('filters releases by exact releaseCode and releaseId', async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), 'harbour-reporting-release-filter-'))
+
+    try {
+      const metaSqlite = await initSqlite(
+        join(tempDir, 'meta.sqlite'),
+        resolve(repoRoot, 'libs/db/migrations/meta'),
+      )
+
+      seedMetaCatalog(metaSqlite)
+      seedRelease(metaSqlite)
+      seedRelease(
+        metaSqlite,
+        'release-hkgov-hk-2026-06-25.0-address',
+        'hkgov-hk-2026-06-25.0-address',
+        '2026-06-25.0',
+        1761350400000,
+      )
+
+      const metaDb = createLocalHarbourDb(metaSqlite)
+      const byReleaseCode = await listReleases(metaDb, {}, 'preview', {
+        limit: 10,
+        releaseCode: 'hkgov-hk-2026-06-25.0-address',
+      })
+      const byReleaseId = await listReleases(metaDb, {}, 'preview', {
+        limit: 10,
+        releaseId: 'release-hkgov-hk-2026-06-24.0-address',
+      })
+
+      expect(byReleaseCode).toHaveLength(1)
+      expect(byReleaseCode[0]?.releaseId).toBe('release-hkgov-hk-2026-06-25.0-address')
+      expect(byReleaseId).toHaveLength(1)
+      expect(byReleaseId[0]?.releaseCode).toBe('hkgov-hk-2026-06-24.0-address')
+
+      metaSqlite.close()
+    } finally {
+      await rm(tempDir, { force: true, recursive: true })
+    }
+  })
+
   test('batches release row count queries per shard instead of per release', async () => {
     const tempDir = await mkdtemp(join(tmpdir(), 'harbour-reporting-releases-'))
 

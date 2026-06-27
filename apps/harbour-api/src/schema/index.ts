@@ -273,6 +273,8 @@ export const ControlResponseSchema = z
 export const ReportQuerySchema = z
   .object({
     limit: z.coerce.number().int().min(1).max(100).default(10),
+    releaseCode: ReleaseCodeSchema.optional(),
+    releaseId: ReleaseIdSchema.optional(),
     source: SourceSchema.optional(),
     type: DatasetTypeQuerySchema.optional(),
   })
