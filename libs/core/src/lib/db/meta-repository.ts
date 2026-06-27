@@ -613,13 +613,6 @@ export async function ensureIngestRunStarted(
     return
   }
 
-    return
-  }
-
-  if (existingRun.status === 'running') {
-    return
-  }
-
   await db
     .update(ingestRuns)
     .set({

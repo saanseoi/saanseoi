@@ -82,7 +82,6 @@ export async function runStatementBatchWithWriteRetry(
   }
 
   return results
-  })
 }
 
 /**
