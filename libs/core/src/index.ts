@@ -1,4 +1,6 @@
 export * from './types'
+export * from './urls'
+export * from './releases'
 export * from './lib/parquet-inspector'
 export * from './lib/parquet-inspector-node'
 export * from './lib/parquet-inspector-shared'

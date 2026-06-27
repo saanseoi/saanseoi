@@ -1,3 +1,5 @@
+import { normalizeBaseUrl } from '@repo/core'
+
 type StagePayload = {
   releaseId: string
   error?: string
@@ -118,10 +120,6 @@ async function postControl(
     await sleep(CONTROL_REQUEST_RETRY_DELAY_MS * (attempt + 1))
     return postControl(baseUrl, apiKey, path, payload, attempt + 1)
   }
-}
-
-function normalizeBaseUrl(value: string) {
-  return value.trim().replace(/\/+$/, '')
 }
 
 function isRetryableControlError(error: unknown) {

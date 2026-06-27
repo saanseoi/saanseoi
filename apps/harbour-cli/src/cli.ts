@@ -6,6 +6,7 @@ import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/promp
 
 import { prepareUpload } from '@repo/core/upload-local'
 import { inferSourceVersionFromPath } from '@repo/core/upload-local'
+import { isReleaseId } from '@repo/core'
 import {
   describeTarget,
   explainDispatch,
@@ -15,14 +16,8 @@ import {
   formatSummary,
   formatStatsReportTable,
 } from './lib/display.ts'
-import { normalizeCommandArgs } from './lib/commands.ts'
 import { prepareHkgovAlsAddressParquet } from './lib/hkgov-als.ts'
-import {
-  buildRegisterOptions,
-  parseArgs,
-  resolveUploadTarget,
-  type UploadEnvironment,
-} from './lib/options.ts'
+import { buildRegisterOptions, parseArgs, resolveUploadTarget } from './lib/options.ts'
 import { checkOvertureUploadAssumptions } from './lib/overture-assumptions.ts'
 import {
   fetchIngestRunReport,
@@ -30,18 +25,20 @@ import {
   fetchStatsReport,
 } from './lib/reporting.ts'
 import { validateOvertureSchema } from './lib/schema/overture.ts'
-import { dispatchUpload } from './lib/upload.ts'
+import { dispatchUpload, finalizeExistingUpload } from './lib/upload.ts'
 
 function printUsage() {
   console.log(`  Usage:
-  saanseoi upload[:local|:cf:preview|:cf:production] <file> [--target local|cf-preview|cf-production] [--remote] [--env dev|preview|production] [--api URL] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
-  saanseoi prep-hkgov-als[:preview|:production] <source-dir> [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]
-  saanseoi reports:ingestion [--target local|cf-preview|cf-production] [--api URL] [--limit 1-100]
-  saanseoi reports:stats [--target local|cf-preview|cf-production] [--api URL] [--limit 1-100] [--source SOURCE] [--type TYPE]
-  saanseoi reports:releases [--target local|cf-preview|cf-production] [--api URL] [--limit 1-100]
+  saanseoi upload <file> [--target local|cf-preview|cf-production] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
+  saanseoi upload:finalize --release <release-id|release-code> [--target local|cf-preview|cf-production] [--yes]
+  saanseoi prep-hkgov-als <source-dir> [--target local|cf-preview|cf-production] [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]
+  saanseoi reports:ingestion [--target local|cf-preview|cf-production] [--limit 1-100]
+  saanseoi reports:stats [--target local|cf-preview|cf-production] [--limit 1-100] [--source SOURCE] [--type TYPE]
+  saanseoi reports:releases [--target local|cf-preview|cf-production] [--limit 1-100]
 
-  bun run upload[:cf:environment] <file> ...
-  bun run prep-hkgov-als[:cf:environment] <source-dir> ...
+  bun run upload -- <file> ...
+  bun run upload:finalize -- --release <release-id|release-code> ...
+  bun run prep-hkgov-als -- <source-dir> ...
 `)
 }
 
@@ -51,22 +48,8 @@ async function createHkgovAlsTempOutputFile(sourceVersion: string) {
   return join(tempDir, `hkgov-hk-${sourceVersion}-address.parquet`)
 }
 
-function resolveHkgovAlsEnvironment(command: string): UploadEnvironment {
-  switch (command) {
-    case 'prep-hkgov-als:preview':
-      return 'preview'
-    case 'prep-hkgov-als:production':
-      return 'production'
-    case 'prep-hkgov-als':
-    case 'prepare-hkgov-als':
-      return 'dev'
-    default:
-      throw new Error(`Unsupported harbour command: ${command}`)
-  }
-}
-
 async function main() {
-  const args = normalizeCommandArgs(parseArgs(process.argv))
+  const args = parseArgs(process.argv)
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const dryRun = Boolean(args.options['dry-run'])
   const skipConfirm = Boolean(args.options.yes)
@@ -77,12 +60,7 @@ async function main() {
     return
   }
 
-  if (
-    args.command === 'prepare-hkgov-als' ||
-    args.command === 'prep-hkgov-als' ||
-    args.command === 'prep-hkgov-als:preview' ||
-    args.command === 'prep-hkgov-als:production'
-  ) {
+  if (args.command === 'prepare-hkgov-als' || args.command === 'prep-hkgov-als') {
     const sourceDir = args.positionals[0]
     const sourceVersion =
       typeof args.options['source-version'] === 'string'
@@ -95,12 +73,11 @@ async function main() {
         'Invalid arguments for `prep-hkgov-als`. Pass <source-dir> and include --source-version only when it cannot be inferred from the path.',
       )
     }
-    const environment = resolveHkgovAlsEnvironment(args.command)
     const outputFile = await createHkgovAlsTempOutputFile(sourceVersion)
 
     const result = await prepareHkgovAlsAddressParquet({
       dbPath: typeof args.options.db === 'string' ? args.options.db : undefined,
-      environment,
+      environment: target.environment,
       outputFile,
       snapshotMonth: sourceVersion.slice(0, 7),
       sourceDir,
@@ -130,7 +107,7 @@ async function main() {
   const hasExplicitLimit = typeof args.options.limit === 'string'
 
   if (args.command === 'reports:ingestion') {
-    const report = await fetchIngestRunReport(args, target, {
+    const report = await fetchIngestRunReport(target, {
       limit: hasExplicitLimit ? reportLimit : 100,
       source: reportSource,
       type: reportType,
@@ -144,7 +121,7 @@ async function main() {
   }
 
   if (args.command === 'reports:stats') {
-    const report = await fetchStatsReport(args, target, {
+    const report = await fetchStatsReport(target, {
       limit: hasExplicitLimit ? reportLimit : 1,
       source: reportSource,
       type: reportType,
@@ -154,12 +131,66 @@ async function main() {
   }
 
   if (args.command === 'reports:releases') {
-    const report = await fetchReleaseReport(args, target, {
+    const report = await fetchReleaseReport(target, {
       limit: reportLimit,
+      releaseCode:
+        typeof args.options.release === 'string' && !isReleaseId(args.options.release)
+          ? args.options.release
+          : undefined,
+      releaseId:
+        typeof args.options.release === 'string' && isReleaseId(args.options.release)
+          ? args.options.release
+          : undefined,
       source: reportSource,
       type: reportType,
     })
     console.log(formatReleaseReportTable(report.rows))
+    return
+  }
+
+  if (args.command === 'upload:finalize') {
+    const releaseSpecifier =
+      typeof args.options.release === 'string' ? args.options.release : undefined
+
+    if (!releaseSpecifier) {
+      printUsage()
+      throw new Error(
+        'Missing release identifier. Pass `--release <release-id|release-code>`.',
+      )
+    }
+
+    if (!skipConfirm) {
+      const shouldContinue = await confirm({
+        message: `Finalize ${releaseSpecifier} for ${describeTarget(target).label}?`,
+        initialValue: true,
+      })
+
+      if (isCancel(shouldContinue) || !shouldContinue) {
+        cancel('FINALIZE CANCELLED')
+        process.exit(1)
+      }
+    }
+
+    log.message(explainDispatch(target))
+    const finalized = await finalizeExistingUpload(target, releaseSpecifier)
+
+    note(
+      [
+        formatField('datasetCode', finalized.release.datasetCode),
+        formatField('releaseCode', finalized.release.releaseCode),
+        formatField('releaseId', finalized.release.releaseId),
+        formatField('rawObjectKey', finalized.release.rawObjectKey ?? '-'),
+        formatField(
+          'status',
+          typeof finalized.result?.status === 'string'
+            ? finalized.result.status
+            : 'staged',
+        ),
+      ].join('\n'),
+      'FINALIZE RESULT',
+    )
+    log.success('Upload finalization requested and processing re-queued in Harbour.')
+    outro('Harbour upload finalize complete')
     return
   }
 
@@ -246,7 +277,6 @@ async function main() {
   }
 
   const uploadResult = await dispatchUpload(
-    args,
     target,
     registerOptions,
     previewResult,

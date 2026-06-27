@@ -6,8 +6,8 @@
     "lint": "biome lint .",
     "format": "biome format --write .",
     "prep-hkgov-als": "bun ./src/cli.ts prep-hkgov-als",
-    "prep-hkgov-als:preview": "bun ./src/cli.ts prep-hkgov-als:preview",
-    "prep-hkgov-als:production": "bun ./src/cli.ts prep-hkgov-als:production",
+    "prep-hkgov-als:preview": "bun ./src/cli.ts prep-hkgov-als --target cf-preview",
+    "prep-hkgov-als:production": "bun ./src/cli.ts prep-hkgov-als --target cf-production",
     "reports:ingestion": "bun ./src/cli.ts reports:ingestion",
     "reports:ingestion:local": "bun ./src/cli.ts reports:ingestion --target local",
     "reports:ingestion:cf:preview": "bun ./src/cli.ts reports:ingestion --target cf-preview",
@@ -23,7 +23,11 @@
     "upload": "bun ./src/cli.ts upload",
     "upload:local": "bun ./src/cli.ts upload --target local",
     "upload:cf:preview": "bun ./src/cli.ts upload --target cf-preview",
-    "upload:cf:production": "bun ./src/cli.ts upload --target cf-production"
+    "upload:cf:production": "bun ./src/cli.ts upload --target cf-production",
+    "upload:finalize": "bun ./src/cli.ts upload:finalize",
+    "upload:finalize:local": "bun ./src/cli.ts upload:finalize --target local",
+    "upload:finalize:cf:preview": "bun ./src/cli.ts upload:finalize --target cf-preview",
+    "upload:finalize:cf:production": "bun ./src/cli.ts upload:finalize --target cf-production"
   },
   "devDependencies": {
     "@types/bun": "latest",
