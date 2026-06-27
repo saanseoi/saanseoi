@@ -471,4 +471,115 @@ describe('control service', () => {
       },
     ])
   })
+
+  test('marks older orphaned running ingest runs as failed when a newer release starts processing', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-process-handover.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    insertFixtureRelease(sqlite, {
+      releaseId: 'release-overture-hk-2026-02-18.0-division',
+      source: 'overture',
+      regionCode: 'hk',
+      snapshotMonth: '2026-02',
+      type: 'division',
+      sourceVersion: '2026-02-18.0',
+      rawObjectKey: 'hk/overture/2026-02-18.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'processing',
+      ingestedAt: '2026-06-05T00:01:00.000Z',
+      createdAt: '2026-06-05T00:01:00.000Z',
+      updatedAt: '2026-06-05T00:01:00.000Z',
+    })
+    const { releaseId } = insertFixtureRelease(sqlite, {
+      releaseId: 'release-overture-hk-2026-03-18.0-division',
+      source: 'overture',
+      regionCode: 'hk',
+      snapshotMonth: '2026-03',
+      type: 'division',
+      sourceVersion: '2026-03-18.0',
+      rawObjectKey: 'hk/overture/2026-03-18.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'staged',
+      ingestedAt: '2026-06-05T00:02:00.000Z',
+      createdAt: '2026-06-05T00:02:00.000Z',
+      updatedAt: '2026-06-05T00:02:00.000Z',
+    })
+
+    sqlite.exec(`
+      INSERT INTO ingestRuns (
+        runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+      ) VALUES
+        ('run-process', 'release-overture-hk-2026-02-18.0-division', 'processDataset', 'running', null, null, '2026-06-05T00:01:10.000Z', null, 1762300870000, 1762300870000),
+        ('run-extract', 'release-overture-hk-2026-02-18.0-division', 'extractDivisions', 'running', null, null, '2026-06-05T00:01:11.000Z', null, 1762300871000, 1762300871000);
+    `)
+
+    await handleStageStarted(db, {
+      releaseId,
+      phase: 'processDataset',
+    })
+
+    const ingestRuns = sqlite
+      .query(
+        'SELECT releaseId, phase, status, error, finishedAt FROM ingestRuns WHERE releaseId IN (?, ?) ORDER BY releaseId ASC, phase ASC',
+      )
+      .all(
+        'release-overture-hk-2026-02-18.0-division',
+        'release-overture-hk-2026-03-18.0-division',
+      ) as Array<{
+      error: string | null
+      finishedAt: string | null
+      phase: string
+      releaseId: string
+      status: string
+    }>
+    const releases = sqlite
+      .query('SELECT id, status FROM releases WHERE id IN (?, ?) ORDER BY id ASC')
+      .all(
+        'release-overture-hk-2026-02-18.0-division',
+        'release-overture-hk-2026-03-18.0-division',
+      ) as Array<{
+      id: string
+      status: string
+    }>
+
+    sqlite.close()
+
+    expect(ingestRuns).toEqual([
+      {
+        error:
+          '"{\\"message\\":\\"Superseded by newer release overture-hk-2026-03-18.0-division starting processing before the prior release finished.\\"}"',
+        phase: 'extractDivisions',
+        finishedAt: expect.any(String),
+        releaseId: 'release-overture-hk-2026-02-18.0-division',
+        status: 'error',
+      },
+      {
+        error:
+          '"{\\"message\\":\\"Superseded by newer release overture-hk-2026-03-18.0-division starting processing before the prior release finished.\\"}"',
+        phase: 'processDataset',
+        finishedAt: expect.any(String),
+        releaseId: 'release-overture-hk-2026-02-18.0-division',
+        status: 'error',
+      },
+      {
+        error: null,
+        phase: 'processDataset',
+        finishedAt: null,
+        releaseId: 'release-overture-hk-2026-03-18.0-division',
+        status: 'running',
+      },
+    ])
+    expect(releases).toEqual([
+      {
+        id: 'release-overture-hk-2026-02-18.0-division',
+        status: 'failed',
+      },
+      {
+        id: 'release-overture-hk-2026-03-18.0-division',
+        status: 'processing',
+      },
+    ])
+  })
 })
