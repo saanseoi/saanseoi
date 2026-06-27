@@ -230,43 +230,42 @@ export async function processDivisionDataset(
         const datasetId = buildSourceDatasetId(message)
         const sourcePayloadHash = await createHash(row)
         const currentSource = currentSourceRows?.get(normalized.base.id) ?? null
+        const sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
 
-        sourceRows.push({
-          releaseId,
-          datasetId,
-          sourceRecordId: normalized.base.id,
-          sourcePayloadHash,
-          regionCode: message.regionCode,
-          level: normalized.base.level,
-          divisionType: normalized.base.type,
-          subtype: normalized.base.subtype,
-          divisionClass: normalized.base.class,
-          population: normalized.base.population,
-          version: asOptionalInteger(row.version),
-          wikidata: normalized.base.wikidata,
-          geometry: normalized.base.geometry,
-          bbox: normalized.base.bbox,
-          hierarchies: normalized.base.hierarchy,
-          cartography: normalized.base.cartography,
-          sources: normalized.base.sources,
-          rawProperties: row,
-        })
-
-        sourceI18nRows.push(
-          ...normalized.i18n.map(localized => ({
+        if (sourceChanged) {
+          sourceRows.push({
             releaseId,
+            datasetId,
             sourceRecordId: normalized.base.id,
-            locale: localized.locale,
-            name: localized.name,
-            nameVariant: localized.nameVariant,
-            nameAlts: localized.nameAlts,
-            nameRules: localized.nameRules,
-            localType: localized.localType,
-            isLocaleInferred: localized.isLocaleInferred,
-          })),
-        )
-
-        if (currentSource?.sourcePayloadHash !== sourcePayloadHash) {
+            sourcePayloadHash,
+            regionCode: message.regionCode,
+            level: normalized.base.level,
+            divisionType: normalized.base.type,
+            subtype: normalized.base.subtype,
+            divisionClass: normalized.base.class,
+            population: normalized.base.population,
+            version: asOptionalInteger(row.version),
+            wikidata: normalized.base.wikidata,
+            geometry: normalized.base.geometry,
+            bbox: normalized.base.bbox,
+            hierarchies: normalized.base.hierarchy,
+            cartography: normalized.base.cartography,
+            sources: normalized.base.sources,
+            rawProperties: row,
+          })
+          sourceI18nRows.push(
+            ...normalized.i18n.map(localized => ({
+              releaseId,
+              sourceRecordId: normalized.base.id,
+              locale: localized.locale,
+              name: localized.name,
+              nameVariant: localized.nameVariant,
+              nameAlts: localized.nameAlts,
+              nameRules: localized.nameRules,
+              localType: localized.localType,
+              isLocaleInferred: localized.isLocaleInferred,
+            })),
+          )
           changedSourceIds.add(normalized.base.id)
           sourceVersionRows.push({
             sourceRecordId: normalized.base.id,
@@ -311,6 +310,14 @@ export async function processDivisionDataset(
       }
 
       const current = currentRows.get(normalized.base.id)
+      const currentChanged = current?.churnHash !== churnHash
+      const baseChanged = current?.versionHash !== versionHash
+
+      if (!currentChanged) {
+        unchangedRows += 1
+        continue
+      }
+
       const currentDivisionI18nNow = normalized.base.updatedAt
       currentDivisionI18nRowIds.add(normalized.base.id)
       currentDivisionI18nRows.push(
@@ -321,8 +328,7 @@ export async function processDivisionDataset(
         })),
       )
 
-      if (current?.versionHash === versionHash) {
-        unchangedRows += 1
+      if (!baseChanged) {
         continue
       }
 
@@ -389,11 +395,7 @@ export async function processDivisionDataset(
 
       await upsertSourceOvertureDivisions(sourceDb, sourceRows)
 
-      await replaceSourceOvertureDivisionI18nRows(
-        sourceDb,
-        changedIds,
-        sourceI18nRows.filter(row => changedSourceIds.has(row.sourceRecordId)),
-      )
+      await replaceSourceOvertureDivisionI18nRows(sourceDb, changedIds, sourceI18nRows)
 
       await insertSourceOvertureDivisionVersions(sourceDb, sourceVersionRows)
       await insertSourceOvertureDivisionI18nVersions(sourceDb, sourceI18nVersionRows)

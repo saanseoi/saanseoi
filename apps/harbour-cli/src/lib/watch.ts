@@ -27,6 +27,10 @@ export function findProcessingRelease(rows: ReleaseReportRow[]) {
   return rows.find(row => row.status === 'processing') ?? null
 }
 
+export function isReleaseStillProcessing(rows: ReleaseReportRow[], releaseId: string) {
+  return rows.some(row => row.releaseId === releaseId && row.status === 'processing')
+}
+
 export function getReleaseRowCount(release: ReleaseReportRow, label: string): number {
   return release.rowCounts.find(rowCount => rowCount.label === label)?.rowCount ?? 0
 }
@@ -146,10 +150,12 @@ export async function watchCurrentUpload(
     const matchingRelease = releaseReport.rows.find(
       row => row.releaseId === activeSnapshot.releaseId,
     )
-    const processingRelease = findProcessingRelease(releaseReport.rows)
 
-    if (processingRelease?.releaseId === activeSnapshot.releaseId) {
-      activeSnapshot = await buildReleaseWatchSnapshot(target, processingRelease)
+    if (
+      matchingRelease &&
+      isReleaseStillProcessing(releaseReport.rows, activeSnapshot.releaseId)
+    ) {
+      activeSnapshot = await buildReleaseWatchSnapshot(target, matchingRelease)
       const nextProgress = clampProgressValue(
         activeSnapshot.sourceCount,
         activeSnapshot.rowCount,

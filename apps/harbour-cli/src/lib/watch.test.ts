@@ -5,6 +5,7 @@ import {
   findProcessingRelease,
   getReleaseRowCount,
   getStageDatasetRowCount,
+  isReleaseStillProcessing,
 } from './watch.ts'
 
 const processingRelease: ReleaseReportRow = {
@@ -59,6 +60,23 @@ describe('watch helpers', () => {
   test('reads sourceCount from release row counts', () => {
     expect(getReleaseRowCount(processingRelease, 'source')).toBe(640)
     expect(getReleaseRowCount(processingRelease, 'sourceI18n')).toBe(0)
+  })
+
+  test('keeps watching the current release even when another release is also processing', () => {
+    const newerProcessingRelease: ReleaseReportRow = {
+      ...processingRelease,
+      releaseCode: 'overture-hk-2026-01-21.0-division',
+      releaseId: 'release-2',
+      sourceVersion: '2026-01-21.0',
+      updatedAt: '2026-06-27T08:22:29.000Z',
+    }
+
+    expect(
+      isReleaseStillProcessing(
+        [newerProcessingRelease, processingRelease],
+        processingRelease.releaseId,
+      ),
+    ).toBe(true)
   })
 
   test('extracts the staged parquet rowCount from ingest stats', () => {

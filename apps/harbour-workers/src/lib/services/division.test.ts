@@ -170,6 +170,177 @@ afterEach(() => {
 })
 
 describe('processDivisionDataset', () => {
+  test('does not rewrite unchanged current and source rows in later releases', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'division-unchanged.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-05-24.0-division',
+      '2026-05',
+      'staged',
+    )
+
+    await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(
+        'overture-hk-2026-05-24.0-division',
+        '2026-05',
+        '2026-05-24.0',
+      ),
+      db as never,
+    )
+
+    const firstDivisionRow = sqlite
+      .query("SELECT updatedAt FROM divisions WHERE id = 'division-hk-island'")
+      .get() as { updatedAt: string }
+    const firstChangedDivisionRow = sqlite
+      .query("SELECT updatedAt FROM divisions WHERE id = 'division-central'")
+      .get() as { updatedAt: string }
+    const firstDivisionI18nRow = sqlite
+      .query(
+        "SELECT updatedAt FROM divisionsI18n WHERE divisionId = 'division-hk-island' AND locale = 'en'",
+      )
+      .get() as { updatedAt: string }
+    const firstChangedDivisionI18nRow = sqlite
+      .query(
+        "SELECT updatedAt FROM divisionsI18n WHERE divisionId = 'division-central' AND locale = 'en'",
+      )
+      .get() as { updatedAt: string }
+
+    const nextIslandRow = baseParquetBatches[0]?.[0]
+    const nextCentralRow = baseParquetBatches[0]?.[1]
+
+    if (!nextIslandRow || !nextCentralRow) {
+      throw new Error('Missing division fixture rows.')
+    }
+
+    parquetBatches = [
+      [
+        nextIslandRow,
+        {
+          ...nextCentralRow,
+          population: 42,
+          version: 202,
+        },
+      ],
+    ]
+
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-06-24.0-division',
+      '2026-06',
+      'staged',
+    )
+
+    await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(
+        'overture-hk-2026-06-24.0-division',
+        '2026-06',
+        '2026-06-24.0',
+      ),
+      db as never,
+    )
+
+    const sourceCurrentRows = sqlite
+      .query(
+        'SELECT sourceRecordId, releaseId FROM sourceOvertureDivisions ORDER BY sourceRecordId',
+      )
+      .all() as Array<{
+      sourceRecordId: string
+      releaseId: string
+    }>
+    const currentRows = sqlite
+      .query('SELECT id, updatedAt FROM divisions ORDER BY id')
+      .all() as Array<{
+      id: string
+      updatedAt: string
+    }>
+    const currentI18nRows = sqlite
+      .query(
+        "SELECT divisionId, locale, updatedAt FROM divisionsI18n WHERE locale = 'en' ORDER BY divisionId",
+      )
+      .all() as Array<{
+      divisionId: string
+      locale: string
+      updatedAt: string
+    }>
+    const sourceVersionCounts = sqlite
+      .query(
+        'SELECT sourceRecordId, count(*) AS count FROM sourceOvertureDivisionsVersions GROUP BY sourceRecordId ORDER BY sourceRecordId',
+      )
+      .all() as Array<{
+      sourceRecordId: string
+      count: number
+    }>
+
+    expect(sourceCurrentRows).toEqual([
+      {
+        sourceRecordId: 'division-central',
+        releaseId: 'release-overture-hk-2026-06-24.0-division',
+      },
+      {
+        sourceRecordId: 'division-hk-island',
+        releaseId: 'release-overture-hk-2026-05-24.0-division',
+      },
+    ])
+    expect(currentRows.map(row => row.id)).toEqual([
+      'division-central',
+      'division-hk-island',
+    ])
+    expect(currentI18nRows.map(row => row.divisionId)).toEqual([
+      'division-central',
+      'division-hk-island',
+    ])
+    expect(currentRows[1]?.updatedAt).toBe(firstDivisionRow.updatedAt)
+    expect(currentI18nRows[1]?.updatedAt).toBe(firstDivisionI18nRow.updatedAt)
+    expect(sourceVersionCounts).toEqual([
+      {
+        sourceRecordId: 'division-central',
+        count: 2,
+      },
+      {
+        sourceRecordId: 'division-hk-island',
+        count: 1,
+      },
+    ])
+    expect(currentRows[0]?.updatedAt).not.toBe(firstChangedDivisionRow.updatedAt)
+    expect(currentI18nRows[0]?.updatedAt).not.toBe(
+      firstChangedDivisionI18nRow.updatedAt,
+    )
+  })
+
   test('dedupes source overture division releases into current and version tables', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'division-source.sqlite')
@@ -913,7 +1084,7 @@ describe('processDivisionDataset', () => {
       localizedRows: 4,
       processedRows: 4,
       statsRows: 26,
-      unchangedRows: 2,
+      unchangedRows: 1,
     })
     expect(churnRows).toEqual([
       { dimension: 'added_count', groupBy: null, groupValue: null, value: 1 },
