@@ -25,7 +25,8 @@ import {
   createHash,
   getMaxItemsPerInClause,
   getMaxRowsPerInsert,
-  runWithWriteRetry,
+  runStatementBatchWithWriteRetry,
+  runStatementsInGroupsWithWriteRetry,
 } from '../utils'
 export type DivisionBaseRecord = DivisionRow
 export type DivisionI18nRecord = NewDivisionI18nRow
@@ -232,9 +233,10 @@ export async function closeCurrentDivisionVersions(
 
   const now = new Date().toISOString()
   const chunkSize = getMaxItemsPerInClause(1, 6)
+  const statements = []
 
   for (const divisionIdChunk of chunkArray(divisionIds, chunkSize)) {
-    await runWithWriteRetry(() =>
+    statements.push(
       db
         .update(historySchema.divisionsVersions)
         .set({
@@ -249,11 +251,10 @@ export async function closeCurrentDivisionVersions(
             eq(historySchema.divisionsVersions.isCurrent, true),
             inArray(historySchema.divisionsVersions.id, divisionIdChunk),
           ),
-        )
-        .run(),
+        ),
     )
 
-    await runWithWriteRetry(() =>
+    statements.push(
       db
         .update(historySchema.divisionsVersionsI18n)
         .set({
@@ -266,10 +267,11 @@ export async function closeCurrentDivisionVersions(
             eq(historySchema.divisionsVersionsI18n.isCurrent, true),
             inArray(historySchema.divisionsVersionsI18n.divisionId, divisionIdChunk),
           ),
-        )
-        .run(),
+        ),
     )
   }
+
+  await runStatementsInGroupsWithWriteRetry(db, statements)
 }
 
 /**
@@ -292,9 +294,11 @@ export async function deleteMissingCurrentDivisions(
 
   const now = new Date().toISOString()
   const chunkSize = getMaxItemsPerInClause(1, 6)
+  const historyStatements = []
+  const currentStatements = []
 
   for (const missingIdChunk of chunkArray(missingIds, chunkSize)) {
-    await runWithWriteRetry(() =>
+    historyStatements.push(
       historyDb
         .update(historySchema.divisionsVersions)
         .set({
@@ -309,11 +313,10 @@ export async function deleteMissingCurrentDivisions(
             eq(historySchema.divisionsVersions.isCurrent, true),
             inArray(historySchema.divisionsVersions.id, missingIdChunk),
           ),
-        )
-        .run(),
+        ),
     )
 
-    await runWithWriteRetry(() =>
+    historyStatements.push(
       historyDb
         .update(historySchema.divisionsVersionsI18n)
         .set({
@@ -326,23 +329,23 @@ export async function deleteMissingCurrentDivisions(
             eq(historySchema.divisionsVersionsI18n.isCurrent, true),
             inArray(historySchema.divisionsVersionsI18n.divisionId, missingIdChunk),
           ),
-        )
-        .run(),
+        ),
     )
 
-    await runWithWriteRetry(() =>
+    currentStatements.push(
       currentDb
         .delete(currentSchema.divisionsI18n)
-        .where(inArray(currentSchema.divisionsI18n.divisionId, missingIdChunk))
-        .run(),
+        .where(inArray(currentSchema.divisionsI18n.divisionId, missingIdChunk)),
     )
-    await runWithWriteRetry(() =>
+    currentStatements.push(
       currentDb
         .delete(currentSchema.divisions)
-        .where(inArray(currentSchema.divisions.id, missingIdChunk))
-        .run(),
+        .where(inArray(currentSchema.divisions.id, missingIdChunk)),
     )
   }
+
+  await runStatementsInGroupsWithWriteRetry(historyDb, historyStatements)
+  await runStatementsInGroupsWithWriteRetry(currentDb, currentStatements)
 
   return missingIds.length
 }
@@ -359,9 +362,10 @@ export async function upsertDivisionCurrentStates(
   }
 
   const chunkSize = getMaxRowsPerInsert(15)
+  const statements = []
 
   for (const chunk of chunkArray(rows, chunkSize)) {
-    await runWithWriteRetry(() =>
+    statements.push(
       db
         .insert(currentSchema.divisions)
         .values(chunk)
@@ -382,10 +386,11 @@ export async function upsertDivisionCurrentStates(
             updatedAt: excluded('updatedAt'),
             wikidata: excluded('wikidata'),
           },
-        })
-        .run(),
+        }),
     )
   }
+
+  await runStatementsInGroupsWithWriteRetry(db, statements)
 }
 
 /**
@@ -401,15 +406,17 @@ export async function replaceDivisionCurrentI18n(
   }
 
   const deleteChunkSize = getMaxItemsPerInClause()
+  const deleteStatements = []
 
   for (const divisionIdChunk of chunkArray(divisionIds, deleteChunkSize)) {
-    await runWithWriteRetry(() =>
+    deleteStatements.push(
       db
         .delete(currentSchema.divisionsI18n)
-        .where(inArray(currentSchema.divisionsI18n.divisionId, divisionIdChunk))
-        .run(),
+        .where(inArray(currentSchema.divisionsI18n.divisionId, divisionIdChunk)),
     )
   }
+
+  await runStatementsInGroupsWithWriteRetry(db, deleteStatements)
 
   if (rows.length > 0) {
     await insertDivisionsI18nInChunks(db, rows)
@@ -449,9 +456,10 @@ export async function insertDivisionVersionRows(
   }
 
   const baseChunkSize = getMaxRowsPerInsert(23)
+  const baseStatements = []
 
   for (const chunk of chunkArray(baseRows, baseChunkSize)) {
-    await runWithWriteRetry(() =>
+    baseStatements.push(
       historyDb
         .insert(historySchema.divisionsVersions)
         .values(
@@ -495,10 +503,11 @@ export async function insertDivisionVersionRows(
             validToMonth: null,
             updatedAt: excluded('updatedAt'),
           },
-        })
-        .run(),
+        }),
     )
   }
+
+  await runStatementsInGroupsWithWriteRetry(historyDb, baseStatements)
 
   if (i18nRows.length > 0) {
     await insertDivisionVersionsI18nInChunks(
@@ -532,12 +541,13 @@ async function insertDivisionsI18nInChunks(
   rows: NewDivisionI18nRow[],
 ) {
   const chunkSize = getMaxRowsPerInsert(10)
+  const statements = []
 
   for (const chunk of chunkArray(rows, chunkSize)) {
-    await runWithWriteRetry(() =>
-      db.insert(currentSchema.divisionsI18n).values(chunk).run(),
-    )
+    statements.push(db.insert(currentSchema.divisionsI18n).values(chunk))
   }
+
+  await runStatementsInGroupsWithWriteRetry(db, statements)
 }
 
 /**
@@ -564,16 +574,18 @@ async function insertDivisionVersionsI18nInChunks(
   }>,
 ) {
   const chunkSize = getMaxRowsPerInsert(15)
+  const statements = []
 
   for (const chunk of chunkArray(rows, chunkSize)) {
-    await runWithWriteRetry(() =>
+    statements.push(
       db
         .insert(historySchema.divisionsVersionsI18n)
         .values(chunk)
-        .onConflictDoNothing()
-        .run(),
+        .onConflictDoNothing(),
     )
   }
+
+  await runStatementsInGroupsWithWriteRetry(db, statements)
 }
 
 /**
@@ -590,37 +602,36 @@ export async function replaceDatasetStats(
     throw new Error(`Release not found: ${releaseId}`)
   }
 
-  await runWithWriteRetry(() =>
+  await runStatementBatchWithWriteRetry(metaDb, [
     metaDb
       .delete(metaSchema.stats)
-      .where(eq(metaSchema.stats.releaseId, dataset.releaseId))
-      .run(),
-  )
+      .where(eq(metaSchema.stats.releaseId, dataset.releaseId)),
+  ])
 
   if (rows.length === 0) {
     return 0
   }
 
   const chunkSize = getMaxRowsPerInsert(11)
+  const statements = []
 
   for (const chunk of chunkArray(rows, chunkSize)) {
-    await runWithWriteRetry(() =>
-      metaDb
-        .insert(metaSchema.stats)
-        .values(
-          chunk.map(row => ({
-            ...row,
-            createdAt:
-              row.createdAt instanceof Date ? row.createdAt : new Date(row.createdAt),
-            updatedAt:
-              row.updatedAt instanceof Date ? row.updatedAt : new Date(row.updatedAt),
-            releaseId: dataset.releaseId,
-            id: crypto.randomUUID(),
-          })),
-        )
-        .run(),
+    statements.push(
+      metaDb.insert(metaSchema.stats).values(
+        chunk.map(row => ({
+          ...row,
+          createdAt:
+            row.createdAt instanceof Date ? row.createdAt : new Date(row.createdAt),
+          updatedAt:
+            row.updatedAt instanceof Date ? row.updatedAt : new Date(row.updatedAt),
+          releaseId: dataset.releaseId,
+          id: crypto.randomUUID(),
+        })),
+      ),
     )
   }
+
+  await runStatementsInGroupsWithWriteRetry(metaDb, statements)
 
   return rows.length
 }
