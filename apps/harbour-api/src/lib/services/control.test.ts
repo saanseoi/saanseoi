@@ -196,6 +196,65 @@ describe('control service', () => {
     expect(ingestRuns[0]?.finishedAt).not.toBeNull()
   })
 
+  test('reopens a failed phase as running when processing is retried', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-control-reopen.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const { releaseId } = insertFixtureRelease(sqlite, {
+      releaseId: 'release-overture-hk-2025-09-24.0-division',
+      source: 'overture',
+      regionCode: 'hk',
+      snapshotMonth: '2025-09',
+      type: 'division',
+      sourceVersion: '2025-09-24.0',
+      rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'failed',
+      ingestedAt: '2026-06-05T00:00:00.000Z',
+      createdAt: '2026-06-05T00:00:00.000Z',
+      updatedAt: '2026-06-05T00:00:00.000Z',
+    })
+
+    await handleStageStarted(db, {
+      releaseId,
+      phase: 'processDataset',
+    })
+    await handleStageFailed(db, {
+      releaseId,
+      phase: 'processDataset',
+      error: 'Shard mapping not found.',
+    })
+    await handleStageStarted(db, {
+      releaseId,
+      phase: 'processDataset',
+    })
+
+    const ingestRun = sqlite
+      .query(
+        'SELECT phase, status, error, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+      )
+      .get(releaseId, 'processDataset') as {
+      error: string | null
+      finishedAt: string | null
+      phase: string
+      status: string
+    } | null
+    const release = sqlite
+      .query('SELECT status FROM releases WHERE id = ?')
+      .get(releaseId) as { status: string } | null
+
+    sqlite.close()
+
+    expect(ingestRun).toMatchObject({
+      phase: 'processDataset',
+      status: 'running',
+      error: null,
+      finishedAt: null,
+    })
+    expect(release?.status).toBe('processing')
+  })
+
   test('marks the superseded monthly dataset historic when publishing a new current dataset', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-publish-historic.sqlite')
