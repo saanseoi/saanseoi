@@ -473,3 +473,9 @@ export const initialDataShards: InitialDataShardSeed[] = [
     year: '2026',
   },
 ] as const
+
+export function resolveInitialDataShardsForEnvironment(
+  environment: DataShardEnvironment,
+) {
+  return initialDataShards.filter(shard => shard.environment === environment)
+}
