@@ -534,11 +534,12 @@ describe('upload', () => {
 
     const ingestRuns = sqlite
       .query(
-        'SELECT phase, status, stats, error FROM ingestRuns WHERE releaseId = ? ORDER BY phase ASC',
+        'SELECT phase, status, stats, error, startedAt FROM ingestRuns WHERE releaseId = ? ORDER BY phase ASC',
       )
       .all(releaseId) as Array<{
       error: string | null
       phase: string
+      startedAt: string
       stats: string | null
       status: string
     }>
@@ -550,17 +551,21 @@ describe('upload', () => {
       {
         error: null,
         phase: 'registerDataset',
+        startedAt: expect.any(String),
         stats: null,
         status: 'completed',
       },
       {
         error: null,
         phase: 'stageDataset',
+        startedAt: expect.any(String),
         stats:
           '"{\\"rawObjectKey\\":\\"hk/overture/2026-05-24.0/division.parquet\\",\\"rowCount\\":3,\\"schemaFieldCount\\":5}"',
         status: 'completed',
       },
     ])
+    expect(ingestRuns[0]?.startedAt).not.toBe('2026-06-02T00:00:00.000Z')
+    expect(ingestRuns[1]?.startedAt).not.toBe('2026-06-02T00:00:01.000Z')
   })
 
   test('allows restarting a failed direct-upload session', async () => {
@@ -651,11 +656,12 @@ describe('upload', () => {
 
     const ingestRuns = sqlite
       .query(
-        'SELECT phase, status, stats, error FROM ingestRuns WHERE releaseId = ? ORDER BY phase ASC',
+        'SELECT phase, status, stats, error, startedAt FROM ingestRuns WHERE releaseId = ? ORDER BY phase ASC',
       )
       .all(releaseId) as Array<{
       error: string | null
       phase: string
+      startedAt: string
       stats: string | null
       status: string
     }>
@@ -668,6 +674,7 @@ describe('upload', () => {
       {
         error: null,
         phase: 'requestUpload',
+        startedAt: expect.any(String),
         stats: JSON.stringify(
           JSON.stringify({
             releaseCode: 'overture-hk-2026-05-24.0-division',
@@ -679,6 +686,7 @@ describe('upload', () => {
         status: 'completed',
       },
     ])
+    expect(ingestRuns[0]?.startedAt).not.toBe('2026-06-02T00:00:00.000Z')
   })
 
   test('finalizes an uploading direct-upload session into staged', async () => {

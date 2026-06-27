@@ -333,6 +333,25 @@ export async function processDivisionDataset(
       )
 
       if (!baseChanged) {
+        changedDivisionVersionRows.push({
+          ...normalized.base,
+          versionHash,
+        })
+        changedDivisionI18nVersionRows.push(
+          ...normalized.i18n.map(row => ({
+            divisionId: row.divisionId,
+            isLocaleInferred: row.isLocaleInferred,
+            localType: row.localType ?? null,
+            locale: row.locale,
+            name: row.name ?? null,
+            nameAlts: row.nameAlts ?? null,
+            nameRules: row.nameRules,
+            nameVariant: row.nameVariant,
+            versionHash,
+            createdAt: currentDivisionI18nNow,
+            updatedAt: currentDivisionI18nNow,
+          })),
+        )
         continue
       }
 

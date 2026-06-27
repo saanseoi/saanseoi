@@ -1,5 +1,6 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { and, eq, metaSchema } from '@repo/db'
 import {
   createRawObjectKey,
   finalizeUpload,
@@ -74,6 +75,11 @@ export type FinalizeUploadRequest = {
 
 export type RequeueUploadRequest = {
   releaseId: string
+}
+
+export type RequeueUploadResult = Omit<DatasetRecord, 'status'> & {
+  rowCount: number
+  status: 'queued'
 }
 
 function resolveShardYear(plan: {
@@ -252,7 +258,7 @@ export async function handleRequeueUploadRequest(
   db: HarbourReadableDb & HarbourWritableDb,
   queue: DatasetProcessingQueue,
   request: RequeueUploadRequest,
-) {
+): Promise<RequeueUploadResult> {
   const dataset = await getDatasetRecordByReleaseId(db, request.releaseId)
 
   if (!dataset) {
@@ -297,7 +303,53 @@ export async function handleRequeueUploadRequest(
     throw error
   }
 
-  return dataset
+  return {
+    ...dataset,
+    rowCount: await getStageDatasetRowCount(db, dataset.releaseId),
+    status: 'queued',
+  }
+}
+
+async function getStageDatasetRowCount(
+  db: HarbourReadableDb,
+  releaseId: string,
+): Promise<number> {
+  const row = await db
+    .select({
+      stats: metaSchema.ingestRuns.stats,
+    })
+    .from(metaSchema.ingestRuns)
+    .where(
+      and(
+        eq(metaSchema.ingestRuns.releaseId, releaseId),
+        eq(metaSchema.ingestRuns.phase, 'stageDataset'),
+      ),
+    )
+    .limit(1)
+    .get()
+
+  if (!row?.stats) {
+    return 0
+  }
+
+  const parsedStats =
+    typeof row.stats === 'string' ? parseIngestRunStats(row.stats) : row.stats
+
+  if (!parsedStats || typeof parsedStats !== 'object' || Array.isArray(parsedStats)) {
+    return 0
+  }
+
+  const rowCount = (parsedStats as Record<string, unknown>).rowCount
+
+  return typeof rowCount === 'number' && Number.isFinite(rowCount) ? rowCount : 0
+}
+
+function parseIngestRunStats(value: string) {
+  try {
+    return JSON.parse(value)
+  } catch {
+    return null
+  }
 }
 
 function createR2SchemaFingerprintResolver(

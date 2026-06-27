@@ -1111,6 +1111,183 @@ describe('processDivisionDataset', () => {
     ])
   })
 
+  test('persists i18n-only division changes into history so the next release is unchanged', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'division-i18n-history.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const now = '2026-06-04T00:00:00.000Z'
+
+    parquetBatches = [
+      [
+        {
+          id: 'division-i18n-history',
+          subtype: 'district',
+          class: 'district',
+          version: 101,
+          wikidata: null,
+          parent_division_id: null,
+          bbox: null,
+          cartography: null,
+          hierarchies: [{ ids: ['division-i18n-history'] }],
+          sources: [{ dataset: 'overture' }],
+          names: {
+            common: {
+              en: 'Central',
+            },
+          },
+          local_type: {},
+        },
+      ],
+    ]
+
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-05-24.0-division',
+      '2026-05',
+      'published',
+      now,
+    )
+
+    await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(
+        'overture-hk-2026-05-24.0-division',
+        '2026-05',
+        '2026-05-24.0',
+      ),
+    )
+
+    parquetBatches = [
+      [
+        {
+          id: 'division-i18n-history',
+          subtype: 'district',
+          class: 'district',
+          version: 101,
+          wikidata: null,
+          parent_division_id: null,
+          bbox: null,
+          cartography: null,
+          hierarchies: [{ ids: ['division-i18n-history'] }],
+          sources: [{ dataset: 'overture' }],
+          names: {
+            common: {
+              en: 'Central',
+              'zh-hk': '中環',
+            },
+          },
+          local_type: {},
+        },
+      ],
+    ]
+
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-06-24.0-division',
+      '2026-06',
+      'staged',
+      now,
+    )
+
+    const changedResult = await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(
+        'overture-hk-2026-06-24.0-division',
+        '2026-06',
+        '2026-06-24.0',
+      ),
+    )
+
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-07-24.0-division',
+      '2026-07',
+      'staged',
+      now,
+    )
+
+    const unchangedResult = await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(
+        'overture-hk-2026-07-24.0-division',
+        '2026-07',
+        '2026-07-24.0',
+      ),
+    )
+
+    const currentHistoryI18nRows = sqlite
+      .query(
+        "SELECT releaseId, locale, name FROM divisionsVersionsI18n WHERE divisionId = 'division-i18n-history' AND isCurrent = 1 ORDER BY locale",
+      )
+      .all() as Array<{
+      locale: string
+      name: string | null
+      releaseId: string
+    }>
+
+    sqlite.close()
+
+    expect(changedResult.insertedVersions).toBe(0)
+    expect(changedResult.unchangedRows).toBe(0)
+    expect(unchangedResult.insertedVersions).toBe(0)
+    expect(unchangedResult.unchangedRows).toBe(1)
+    expect(currentHistoryI18nRows).toEqual([
+      {
+        locale: 'en',
+        name: 'Central',
+        releaseId: 'release-overture-hk-2026-06-24.0-division',
+      },
+      {
+        locale: 'zh-hk',
+        name: '中環',
+        releaseId: 'release-overture-hk-2026-06-24.0-division',
+      },
+    ])
+  })
+
   test('maps overture division types to taxonomy levels and preserves Hong Kong areas', async () => {
     parquetBatches = [
       [

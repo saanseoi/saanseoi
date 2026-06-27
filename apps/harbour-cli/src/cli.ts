@@ -39,9 +39,9 @@ function printUsage() {
   saanseoi upload:requeue --release <release-id|release-code> [--target local|cf-preview|cf-production] [--yes]
   saanseoi upload:watch [--target local|cf-preview|cf-production]
   saanseoi prep-hkgov-als <source-dir> [--target local|cf-preview|cf-production] [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]
-  saanseoi reports:ingestion [--target local|cf-preview|cf-production] [--limit 1-100]
+  saanseoi reports:ingestion [--target local|cf-preview|cf-production] [--limit 1-100] [--source SOURCE] [--type TYPE]
   saanseoi reports:stats [--target local|cf-preview|cf-production] [--limit 1-100] [--source SOURCE] [--type TYPE]
-  saanseoi reports:releases [--target local|cf-preview|cf-production] [--limit 1-100]
+  saanseoi reports:releases [--target local|cf-preview|cf-production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
 `)
 }
 

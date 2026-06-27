@@ -657,6 +657,7 @@ export async function upsertIngestRunStatus(
     .onConflictDoUpdate({
       target: [ingestRuns.releaseId, ingestRuns.phase],
       set: {
+        startedAt,
         status,
         stats,
         error,
