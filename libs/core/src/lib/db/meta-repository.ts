@@ -24,6 +24,9 @@ export type DataShardRecord = {
   databaseName: string
 }
 
+const D1_MAX_SQL_VARIABLES = 99
+const HISTORY_VERSION_PROVENANCE_COLUMN_COUNT = 6
+
 const {
   ingestRuns,
   metaApiReleaseSets,
@@ -64,6 +67,20 @@ const releaseRecordSelection = {
   createdAt: metaReleases.createdAt,
   updatedAt: metaReleases.updatedAt,
 } as const
+
+function getMaxInsertRowsPerStatement(columnCount: number) {
+  return Math.max(1, Math.floor(D1_MAX_SQL_VARIABLES / columnCount))
+}
+
+function chunkRows<T>(rows: T[], chunkSize: number) {
+  const chunks: T[][] = []
+
+  for (let index = 0; index < rows.length; index += chunkSize) {
+    chunks.push(rows.slice(index, index + chunkSize))
+  }
+
+  return chunks
+}
 
 export async function getLatestDatasetForRegionSourceType(
   db: HarbourReadableDb,
@@ -1035,16 +1052,22 @@ export async function insertHistoryVersionProvenanceRows(
     return
   }
 
-  await db
-    .insert(metaHistoryVersionProvenance)
-    .values(
-      rows.map(row => ({
-        ...row,
-        createdAt: new Date(),
-      })),
-    )
-    .onConflictDoNothing()
-    .run()
+  const chunkSize = getMaxInsertRowsPerStatement(
+    HISTORY_VERSION_PROVENANCE_COLUMN_COUNT,
+  )
+
+  for (const chunk of chunkRows(rows, chunkSize)) {
+    await db
+      .insert(metaHistoryVersionProvenance)
+      .values(
+        chunk.map(row => ({
+          ...row,
+          createdAt: new Date(),
+        })),
+      )
+      .onConflictDoNothing()
+      .run()
+  }
 }
 
 export async function upsertReleaseShardAssignment(

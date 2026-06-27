@@ -3,7 +3,10 @@ import { describe, expect, test } from 'bun:test'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
 import { createLocalHarbourDb } from '../../testing/local-db'
-import { resolveShardForKindRegionYear } from './meta-repository'
+import {
+  insertHistoryVersionProvenanceRows,
+  resolveShardForKindRegionYear,
+} from './meta-repository'
 
 function createShardLookupDb() {
   const sqlite = new SQLiteDatabase(':memory:')
@@ -129,5 +132,43 @@ describe('resolveShardForKindRegionYear', () => {
       bindingName: 'DB_CURRENT',
       databaseName: 'ss-current-db-preview',
     })
+  })
+})
+
+describe('insertHistoryVersionProvenanceRows', () => {
+  test('chunks provenance inserts to stay under the D1 variable limit', async () => {
+    const batchSizes: number[] = []
+    const db = {
+      insert() {
+        return {
+          values(rows: unknown[]) {
+            batchSizes.push(rows.length)
+
+            return {
+              onConflictDoNothing() {
+                return {
+                  async run() {
+                    return undefined
+                  },
+                }
+              },
+            }
+          },
+        }
+      },
+    }
+
+    await insertHistoryVersionProvenanceRows(
+      db as never,
+      Array.from({ length: 40 }, (_, index) => ({
+        entityId: `entity-${index}`,
+        entityType: 'division' as const,
+        snapshotId: 'snapshot-1',
+        sourceReleaseId: 'release-1',
+        versionHash: `hash-${index}`,
+      })),
+    )
+
+    expect(batchSizes).toEqual([16, 16, 8])
   })
 })
