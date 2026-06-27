@@ -99,7 +99,7 @@ for (const configPath of wranglerConfigPaths) {
 if (options.migrate) {
   runCommand('Applying migrations to the recreated database', [
     'bash',
-    './libs/db/scripts/migrate-preview-db.sh',
+    './libs/db/scripts/migrate-remote-db.sh',
     bindingFamilies[options.binding],
     options.environment,
   ])
