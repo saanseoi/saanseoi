@@ -25,20 +25,21 @@ import {
   fetchStatsReport,
 } from './lib/reporting.ts'
 import { validateOvertureSchema } from './lib/schema/overture.ts'
-import { dispatchUpload, finalizeExistingUpload } from './lib/upload.ts'
+import {
+  dispatchUpload,
+  finalizeExistingUpload,
+  requeueExistingUpload,
+} from './lib/upload.ts'
 
 function printUsage() {
   console.log(`  Usage:
   saanseoi upload <file> [--target local|cf-preview|cf-production] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
   saanseoi upload:finalize --release <release-id|release-code> [--target local|cf-preview|cf-production] [--yes]
+  saanseoi upload:requeue --release <release-id|release-code> [--target local|cf-preview|cf-production] [--yes]
   saanseoi prep-hkgov-als <source-dir> [--target local|cf-preview|cf-production] [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]
   saanseoi reports:ingestion [--target local|cf-preview|cf-production] [--limit 1-100]
   saanseoi reports:stats [--target local|cf-preview|cf-production] [--limit 1-100] [--source SOURCE] [--type TYPE]
   saanseoi reports:releases [--target local|cf-preview|cf-production] [--limit 1-100]
-
-  bun run upload -- <file> ...
-  bun run upload:finalize -- --release <release-id|release-code> ...
-  bun run prep-hkgov-als -- <source-dir> ...
 `)
 }
 
@@ -191,6 +192,52 @@ async function main() {
     )
     log.success('Upload finalization requested and processing re-queued in Harbour.')
     outro('Harbour upload finalize complete')
+    return
+  }
+
+  if (args.command === 'upload:requeue') {
+    const releaseSpecifier =
+      typeof args.options.release === 'string' ? args.options.release : undefined
+
+    if (!releaseSpecifier) {
+      printUsage()
+      throw new Error(
+        'Missing release identifier. Pass `--release <release-id|release-code>`.',
+      )
+    }
+
+    if (!skipConfirm) {
+      const shouldContinue = await confirm({
+        message: `Requeue ${releaseSpecifier} for ${describeTarget(target).label}?`,
+        initialValue: true,
+      })
+
+      if (isCancel(shouldContinue) || !shouldContinue) {
+        cancel('REQUEUE CANCELLED')
+        process.exit(1)
+      }
+    }
+
+    log.message(explainDispatch(target))
+    const requeued = await requeueExistingUpload(target, releaseSpecifier)
+
+    note(
+      [
+        formatField('datasetCode', requeued.release.datasetCode),
+        formatField('releaseCode', requeued.release.releaseCode),
+        formatField('releaseId', requeued.release.releaseId),
+        formatField('rawObjectKey', requeued.release.rawObjectKey ?? '-'),
+        formatField(
+          'status',
+          typeof requeued.result?.status === 'string'
+            ? requeued.result.status
+            : requeued.release.status,
+        ),
+      ].join('\n'),
+      'REQUEUE RESULT',
+    )
+    log.success('Release processing re-queued in Harbour.')
+    outro('Harbour upload requeue complete')
     return
   }
 

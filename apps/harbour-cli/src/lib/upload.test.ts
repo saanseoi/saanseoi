@@ -2,7 +2,11 @@ import { isReleaseId } from '@repo/core'
 
 import { afterEach, describe, expect, test } from 'bun:test'
 
-import { finalizeExistingUpload, resolveFinalizeRelease } from './upload.ts'
+import {
+  finalizeExistingUpload,
+  requeueExistingUpload,
+  resolveRelease,
+} from './upload.ts'
 
 import type { UploadTarget } from './options.ts'
 
@@ -46,7 +50,7 @@ afterEach(() => {
   }
 })
 
-describe('upload finalize helpers', () => {
+describe('upload release action helpers', () => {
   test('detects UUID release identifiers', () => {
     expect(isReleaseId('1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70')).toBe(true)
     expect(isReleaseId('overture-hk-2025-09-24.0-division')).toBe(false)
@@ -122,12 +126,71 @@ describe('upload finalize helpers', () => {
       })
     }) as typeof fetch
 
-    const release = await resolveFinalizeRelease(target, releaseRow.releaseId)
+    const release = await resolveRelease(target, releaseRow.releaseId)
 
     expect(release.releaseCode).toBe(releaseRow.releaseCode)
     expect(calls).toHaveLength(1)
     expect(calls[0]).toContain(
       `/v1/reports/releases?limit=1&releaseId=${releaseRow.releaseId}`,
+    )
+  })
+
+  test('resolves a releaseCode through the releases report and requeues that release', async () => {
+    const calls: Array<{ init?: RequestInit; url: string }> = []
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async (input, init) => {
+      const url = String(input)
+      calls.push({ init, url })
+
+      if (url.startsWith('https://harbour.saanseoi.hk/v1/reports/releases')) {
+        return new Response(
+          JSON.stringify({
+            rows: [{ ...releaseRow, status: 'staged' }],
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      if (url === 'https://harbour.saanseoi.hk/v1/requeueUpload') {
+        return new Response(
+          JSON.stringify({ releaseId: releaseRow.releaseId, status: 'staged' }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`)
+    }) as typeof fetch
+
+    const requeued = await requeueExistingUpload(
+      target,
+      'overture-hk-2025-09-24.0-division',
+    )
+
+    expect(requeued.release.releaseId).toBe(releaseRow.releaseId)
+    expect(requeued.result).toMatchObject({
+      releaseId: releaseRow.releaseId,
+      status: 'staged',
+    })
+    expect(calls).toHaveLength(2)
+    expect(calls[0]?.url).toContain(
+      '/v1/reports/releases?limit=1&releaseCode=overture-hk-2025-09-24.0-division',
+    )
+    expect(calls[1]?.url).toBe('https://harbour.saanseoi.hk/v1/requeueUpload')
+    expect(calls[1]?.init?.body).toBe(
+      JSON.stringify({
+        releaseId: releaseRow.releaseId,
+      }),
     )
   })
 })

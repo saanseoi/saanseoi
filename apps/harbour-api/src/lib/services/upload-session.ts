@@ -13,11 +13,16 @@ import {
   getDatasetRecordByReleaseId,
 } from '@repo/core/db/meta-repository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import { SUPPORTED_THEMES, SUPPORTED_TYPES } from '@repo/core'
 import type {
+  DatasetRecord,
   DatasetProcessingMessage,
   ParquetInspection,
+  RegionCode,
   RegisterUploadResult,
   SchemaFingerprintResolver,
+  SupportedTheme,
+  SupportedType,
 } from '@repo/core'
 
 type HarbourObjectMetadata = {
@@ -63,6 +68,10 @@ export type SignUploadRequest = {
 }
 
 export type FinalizeUploadRequest = {
+  releaseId: string
+}
+
+export type RequeueUploadRequest = {
   releaseId: string
 }
 
@@ -220,27 +229,46 @@ export async function handleFinalizeUploadRequest(
     resolveSchemaFingerprint,
   })
 
-  const processingMessage: DatasetProcessingMessage = {
+  const processingMessage = buildDatasetProcessingMessage({
+    ...dataset,
     datasetId: finalized.datasetId ?? dataset.datasetId,
-    datasetCode: finalized.plan.datasetCode,
-    releaseId: dataset.releaseId,
-    releaseCode: finalized.plan.releaseCode,
     rawObjectKey: finalized.rawObjectKey,
+    releaseCode: finalized.plan.releaseCode,
     regionCode: finalized.plan.regionCode,
-    shardYear: resolveShardYear({
-      snapshotMonth: dataset.snapshotMonth,
-      sourceVersion: dataset.sourceVersion,
-    }),
     snapshotMonth: finalized.plan.snapshotMonth,
     source: finalized.plan.source,
     sourceVersion: finalized.plan.sourceVersion,
     theme: finalized.plan.theme,
     type: finalized.plan.type,
-  }
+  })
 
   await queue.send(processingMessage)
 
   return finalized
+}
+
+export async function handleRequeueUploadRequest(
+  db: HarbourReadableDb & HarbourWritableDb,
+  queue: DatasetProcessingQueue,
+  request: RequeueUploadRequest,
+) {
+  const dataset = await getDatasetRecordByReleaseId(db, request.releaseId)
+
+  if (!dataset) {
+    throw new Error(`Release not found: ${request.releaseId}`)
+  }
+
+  if (!['staged', 'failed'].includes(dataset.status)) {
+    throw new Error(
+      `Release ${dataset.releaseCode} is not requeueable. Current status: ${dataset.status}.`,
+    )
+  }
+
+  const processingMessage = buildDatasetProcessingMessage(dataset)
+
+  await queue.send(processingMessage)
+
+  return dataset
 }
 
 function createR2SchemaFingerprintResolver(
@@ -278,6 +306,65 @@ async function createSignedUploadUrl(
       expiresIn: expiresInSeconds,
     },
   )
+}
+
+function buildDatasetProcessingMessage(
+  dataset: Pick<
+    DatasetRecord,
+    | 'datasetCode'
+    | 'datasetId'
+    | 'rawObjectKey'
+    | 'regionCode'
+    | 'releaseCode'
+    | 'releaseId'
+    | 'snapshotMonth'
+    | 'source'
+    | 'sourceVersion'
+    | 'theme'
+    | 'type'
+  >,
+): DatasetProcessingMessage {
+  return {
+    datasetId: dataset.datasetId,
+    datasetCode: dataset.datasetCode,
+    releaseId: dataset.releaseId,
+    releaseCode: dataset.releaseCode,
+    rawObjectKey: dataset.rawObjectKey,
+    regionCode: requireRegionCode(dataset.regionCode),
+    shardYear: resolveShardYear({
+      snapshotMonth: dataset.snapshotMonth,
+      sourceVersion: dataset.sourceVersion,
+    }),
+    snapshotMonth: dataset.snapshotMonth,
+    source: dataset.source,
+    sourceVersion: dataset.sourceVersion,
+    theme: requireSupportedTheme(dataset.theme),
+    type: requireSupportedType(dataset.type),
+  }
+}
+
+function requireRegionCode(value: string): RegionCode {
+  if (value === 'hk' || value === 'mo') {
+    return value
+  }
+
+  throw new Error(`Unsupported regionCode for dataset processing: ${value}`)
+}
+
+function requireSupportedTheme(value: string): SupportedTheme {
+  if ((SUPPORTED_THEMES as readonly string[]).includes(value)) {
+    return value as SupportedTheme
+  }
+
+  throw new Error(`Unsupported dataset theme for processing: ${value}`)
+}
+
+function requireSupportedType(value: string): SupportedType {
+  if ((SUPPORTED_TYPES as readonly string[]).includes(value)) {
+    return value as SupportedType
+  }
+
+  throw new Error(`Unsupported dataset type for processing: ${value}`)
 }
 
 async function writeFinalObjectMetadata(

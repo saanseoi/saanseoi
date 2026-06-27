@@ -7,12 +7,15 @@ import { handleUploadRequest } from '../../lib/services/ingest'
 import {
   type FinalizeUploadRequest,
   handleFinalizeUploadRequest,
+  handleRequeueUploadRequest,
+  type RequeueUploadRequest,
   type SignUploadRequest,
   handleSignUploadRequest,
 } from '../../lib/services/upload-session'
 import {
   ErrorResponseSchema,
   FinalizeUploadRequestSchema,
+  RequeueUploadRequestSchema,
   SignUploadRequestSchema,
   SignUploadResponseSchema,
   UploadResponseSchema,
@@ -111,6 +114,42 @@ const finalizeUploadRouteConfig = createRoute({
         },
       },
       description: 'Upload finalization failed.',
+    },
+    422: ValidationErrorOpenAPIResponse,
+  },
+})
+
+const requeueUploadRouteConfig = createRoute({
+  method: 'post',
+  path: '/v1/requeueUpload',
+  tags: ['Upload'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: RequeueUploadRequestSchema,
+        },
+      },
+      required: true,
+      description: 'Requeue upload processing request payload.',
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: UploadResponseSchema,
+        },
+      },
+      description: 'Requeue an existing staged upload dataset for processing.',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Upload requeue failed.',
     },
     422: ValidationErrorOpenAPIResponse,
   },
@@ -248,4 +287,48 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
   },
 })
 
-export const uploadRoutes = [uploadRoute, signUploadRoute, finalizeUploadRoute] as const
+export const requeueUploadRoute = defineOpenAPIRoute<
+  typeof requeueUploadRouteConfig,
+  AppEnv
+>({
+  route: requeueUploadRouteConfig,
+  handler: async c => {
+    try {
+      const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
+      const request = c.req.valid('json') as RequeueUploadRequest
+      const release = await handleRequeueUploadRequest(db, c.env.DATASET_QUEUE, request)
+
+      return c.json(
+        {
+          datasetId: release.datasetId,
+          datasetCode: release.datasetCode,
+          rawObjectKey: release.rawObjectKey,
+          releaseCode: release.releaseCode,
+          releaseId: release.releaseId,
+          rowCount: 0,
+          source: release.source,
+          sourceVersion: release.sourceVersion,
+          status: release.status,
+          type: release.type,
+        },
+        200,
+      )
+    } catch (error) {
+      return c.json(
+        {
+          httpStatus: 400,
+          error: 'upload_failed',
+          message: error instanceof Error ? error.message : String(error),
+        },
+        400,
+      )
+    }
+  },
+})
+
+export const uploadRoutes = [
+  uploadRoute,
+  signUploadRoute,
+  finalizeUploadRoute,
+  requeueUploadRoute,
+] as const
