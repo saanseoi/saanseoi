@@ -30,8 +30,8 @@
     "@aws-sdk/s3-request-presigner": "^3.1075.0",
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
-    "@scalar/hono-api-reference": "^0.11.5",
-    "@scalar/openapi-to-markdown": "^0.5.27",
+    "@scalar/hono-api-reference": "^0.11.6",
+    "@scalar/openapi-to-markdown": "^0.5.28",
     "hono": "^4.12.27",
     "zod": "^4.4.3"
   }

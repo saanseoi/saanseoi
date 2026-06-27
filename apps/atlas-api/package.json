@@ -28,8 +28,8 @@
   "dependencies": {
     "@hono/zod-openapi": "^1.4.0",
     "@repo/db": "workspace:*",
-    "@scalar/hono-api-reference": "^0.11.5",
-    "@scalar/openapi-to-markdown": "^0.5.27",
+    "@scalar/hono-api-reference": "^0.11.6",
+    "@scalar/openapi-to-markdown": "^0.5.28",
     "drizzle-orm": "^1.0.0-rc.4-5d5b77c",
     "hono": "^4.12.27",
     "zod": "^4.4.3"
