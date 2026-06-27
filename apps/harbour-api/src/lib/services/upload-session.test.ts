@@ -249,10 +249,26 @@ describe('upload session flow', () => {
     const requeued = await handleRequeueUploadRequest(db, queue, {
       releaseId: signResult.releaseId,
     })
+    const processRun = sqlite
+      .query(
+        'SELECT phase, status, error, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+      )
+      .get(signResult.releaseId, 'processDataset') as {
+      error: string | null
+      finishedAt: string | null
+      phase: string
+      status: string
+    } | null
 
     sqlite.close()
 
     expect(requeued.releaseCode).toBe('overture-hk-2026-05-24.0-division')
+    expect(processRun).toMatchObject({
+      phase: 'processDataset',
+      status: 'queued',
+      error: null,
+      finishedAt: null,
+    })
     expect(inspectParquetMock).toHaveBeenCalledTimes(0)
     expect(queuedMessages).toEqual([
       {

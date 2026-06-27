@@ -579,24 +579,52 @@ export async function ensureIngestRunStarted(
   startedAt: string,
 ) {
   const now = new Date(startedAt)
+  const existingRun =
+    ((await db
+      .select({
+        runId: ingestRuns.runId,
+        status: ingestRuns.status,
+      })
+      .from(ingestRuns)
+      .where(and(eq(ingestRuns.releaseId, releaseId), eq(ingestRuns.phase, phase)))
+      .limit(1)
+      .get()) as { runId: string; status: string } | undefined) ?? null
+
+  if (!existingRun) {
+    await db
+      .insert(ingestRuns)
+      .values({
+        runId: crypto.randomUUID(),
+        releaseId,
+        phase,
+        status: 'running',
+        stats,
+        error: null,
+        startedAt,
+        finishedAt: null,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run()
+
+    return
+  }
+
+  if (existingRun.status === 'running') {
+    return
+  }
 
   await db
-    .insert(ingestRuns)
-    .values({
-      runId: crypto.randomUUID(),
-      releaseId,
-      phase,
+    .update(ingestRuns)
+    .set({
       status: 'running',
       stats,
       error: null,
       startedAt,
       finishedAt: null,
-      createdAt: now,
       updatedAt: now,
     })
-    .onConflictDoNothing({
-      target: [ingestRuns.releaseId, ingestRuns.phase],
-    })
+    .where(eq(ingestRuns.runId, existingRun.runId))
     .run()
 }
 
