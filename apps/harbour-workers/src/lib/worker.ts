@@ -177,14 +177,51 @@ export function createProcessDatasetMessage(
         }),
       )
 
+      const cleanupErrors: unknown[] = []
+
       for (const phase of [...activePhases].filter(
         phase => phase !== 'processDataset',
       )) {
-        await harbourClient.stageFailed(releaseId, phase, errorMessage)
+        try {
+          await harbourClient.stageFailed(releaseId, phase, errorMessage)
+        } catch (cleanupError) {
+          cleanupErrors.push(
+            new Error(
+              `Failed to mark ${phase} as failed for ${releaseId}: ${
+                cleanupError instanceof Error
+                  ? cleanupError.message
+                  : String(cleanupError)
+              }`,
+            ),
+          )
+        }
       }
 
       if (activePhases.has('processDataset')) {
-        await harbourClient.stageFailed(releaseId, 'processDataset', errorMessage)
+        try {
+          await harbourClient.stageFailed(releaseId, 'processDataset', errorMessage)
+        } catch (cleanupError) {
+          cleanupErrors.push(
+            new Error(
+              `Failed to mark processDataset as failed for ${releaseId}: ${
+                cleanupError instanceof Error
+                  ? cleanupError.message
+                  : String(cleanupError)
+              }`,
+            ),
+          )
+        }
+      }
+
+      for (const cleanupError of cleanupErrors) {
+        console.error(cleanupError)
+      }
+
+      if (cleanupErrors.length > 0) {
+        throw new AggregateError(
+          [error, ...cleanupErrors],
+          `Dataset processing failed and cleanup was incomplete for ${releaseId}.`,
+        )
       }
 
       throw error

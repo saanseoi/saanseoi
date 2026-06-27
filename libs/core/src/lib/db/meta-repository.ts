@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
+import { and, desc, eq, isNull, ne, sql } from 'drizzle-orm'
 
 import { metaSchema } from '@repo/db'
 
@@ -711,65 +711,6 @@ export async function updateLatestOpenIngestRun(
     .run()
 
   return true
-}
-
-export async function failOtherRunningIngestRunsForDataset(
-  db: HarbourReadableDb & HarbourWritableDb,
-  datasetId: string,
-  activeReleaseId: string,
-  finishedAt: string,
-  error: string,
-) {
-  const rows = (await db
-    .select({
-      releaseId: metaReleases.id,
-    })
-    .from(metaReleases)
-    .innerJoin(ingestRuns, eq(ingestRuns.releaseId, metaReleases.id))
-    .where(
-      and(
-        eq(metaReleases.datasetId, datasetId),
-        ne(metaReleases.id, activeReleaseId),
-        eq(ingestRuns.status, 'running'),
-      ),
-    )
-    .groupBy(metaReleases.id)
-    .all()) as Array<{ releaseId: string }>
-
-  if (rows.length === 0) {
-    return []
-  }
-
-  const releaseIds = rows.map(row => row.releaseId)
-  const errorJson = JSON.stringify({
-    message: error,
-  })
-
-  await db
-    .update(ingestRuns)
-    .set({
-      status: 'error',
-      error: errorJson,
-      finishedAt,
-      updatedAt: new Date(finishedAt),
-    })
-    .where(
-      and(inArray(ingestRuns.releaseId, releaseIds), eq(ingestRuns.status, 'running')),
-    )
-    .run()
-
-  await db
-    .update(metaReleases)
-    .set({
-      status: 'failed',
-      updatedAt: new Date(finishedAt),
-    })
-    .where(
-      and(inArray(metaReleases.id, releaseIds), eq(metaReleases.status, 'processing')),
-    )
-    .run()
-
-  return releaseIds
 }
 
 async function requireDatasetDefinition(
