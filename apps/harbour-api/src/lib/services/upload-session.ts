@@ -11,6 +11,7 @@ import { inspectParquet } from '@repo/core/parquet-inspector'
 import {
   getDatasetById,
   getDatasetRecordByReleaseId,
+  upsertIngestRunStatus,
 } from '@repo/core/db/meta-repository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { SUPPORTED_THEMES, SUPPORTED_TYPES } from '@repo/core'
@@ -267,6 +268,16 @@ export async function handleRequeueUploadRequest(
   const processingMessage = buildDatasetProcessingMessage(dataset)
 
   await queue.send(processingMessage)
+  await upsertIngestRunStatus(
+    db,
+    dataset.releaseId,
+    'processDataset',
+    'queued',
+    new Date().toISOString(),
+    null,
+    null,
+    null,
+  )
 
   return dataset
 }
