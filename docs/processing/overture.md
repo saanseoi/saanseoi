@@ -23,7 +23,10 @@ The `division` is normalised into `divisions` and `divisionsI18n` where each `lo
 - `hierarchies` is stored in `hierarchy`, which retains the hierarchy determined by overture.
 - `geometry` is decoded from Overture WKB and stored as GeoJSON text in `geometry`.
 - `sources` is stored as `{ "overture": ... }` so downstream consumers can distinguish Overture lineage from other source-specific payloads.
-- Current division rows are staged into `DB_CURRENT` under `divisions.apiReleaseSetId` / `divisionsI18n.apiReleaseSetId` for the incoming API release set. The active API release set is only switched after the staged snapshot is complete, and the previous current snapshot is deleted afterward.
+- Current division rows are staged into `DB_CURRENT` under a family-scoped `snapshotId` on `divisions` and `divisionsI18n`.
+- The uploaded source release is linked to that processing snapshot through `snapshotSources`, and history rows record `sourceReleaseId`, `snapshotId`, `validFromSnapshotId`, and `validToSnapshotId`.
+- API cutover is handled separately through `apiReleaseSetSnapshots` and `apiReleaseSetSources`, so the active API release set only points at a snapshot after the snapshot has been fully staged and published.
+- Older current snapshots are retained until they are no longer referenced by any API release set.
 - The following Overture division fields are dropped:
   - `admin_level`: dropped because Harbour standardizes on taxonomy-derived `level` and `type` values instead of persisting raw Overture admin-level lineage.
   - `capital_division_ids`: dropped because the Hong Kong dataset only uses it sparsely and it is not meaningful enough for current SAR-focused use cases.
