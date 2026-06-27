@@ -37,9 +37,11 @@ mock.module('@repo/core/parquet-inspector', () => ({
   inspectParquet: inspectParquetMock,
 }))
 
-const { handleFinalizeUploadRequest, handleSignUploadRequest } = await import(
-  './upload-session'
-)
+const {
+  handleFinalizeUploadRequest,
+  handleRequeueUploadRequest,
+  handleSignUploadRequest,
+} = await import('./upload-session')
 
 function createTempDir() {
   const dir = mkdtempSync(join(tmpdir(), 'harbour-upload-session-test-'))
@@ -214,5 +216,59 @@ describe('upload session flow', () => {
     expect(
       bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.originalFileName,
     ).toBe('overture-hk-division.parquet')
+  })
+
+  test('requeues an existing staged release without re-finalizing the upload', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-requeue.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const bucket = new FakeR2Bucket()
+
+    const signResult = await handleSignUploadRequest(db, bucket, signingEnv, {
+      contentType: 'application/octet-stream',
+      fileName: 'overture-hk-division.parquet',
+      fileSize: fixtureBytes.byteLength,
+      inspection: fixtureInspection,
+      plan: {
+        shardYear: '2026',
+        snapshotMonth: '2026-05',
+        sourceVersion: '2026-05-24.0',
+      },
+      schemaVersionId: 'overture-division-v2025-09-24.0',
+    })
+
+    await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
+    await handleFinalizeUploadRequest(db, bucket, queue, {
+      releaseId: signResult.releaseId,
+    })
+
+    inspectParquetMock.mockClear()
+    queuedMessages.length = 0
+
+    const requeued = await handleRequeueUploadRequest(db, queue, {
+      releaseId: signResult.releaseId,
+    })
+
+    sqlite.close()
+
+    expect(requeued.releaseCode).toBe('overture-hk-2026-05-24.0-division')
+    expect(inspectParquetMock).toHaveBeenCalledTimes(0)
+    expect(queuedMessages).toEqual([
+      {
+        datasetId: 'overture-hk-division',
+        datasetCode: 'hk-division',
+        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        releaseCode: 'overture-hk-2026-05-24.0-division',
+        releaseId: signResult.releaseId,
+        regionCode: 'hk',
+        shardYear: '2026',
+        snapshotMonth: '2026-05',
+        source: 'overture',
+        sourceVersion: '2026-05-24.0',
+        theme: 'divisions',
+        type: 'division',
+      },
+    ])
   })
 })

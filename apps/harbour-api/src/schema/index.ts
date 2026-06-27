@@ -239,6 +239,12 @@ export const FinalizeUploadRequestSchema = z
   })
   .openapi('HarbourFinalizeUploadRequest')
 
+export const RequeueUploadRequestSchema = z
+  .object({
+    releaseId: ReleaseIdSchema,
+  })
+  .openapi('HarbourRequeueUploadRequest')
+
 export const ControlStageRequestSchema = z
   .object({
     releaseId: ReleaseIdSchema,

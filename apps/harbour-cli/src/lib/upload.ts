@@ -55,6 +55,10 @@ export function buildFinalizeUploadEndpoint(apiBaseUrl: string) {
   return `${apiBaseUrl}/v1/finalizeUpload`
 }
 
+export function buildRequeueUploadEndpoint(apiBaseUrl: string) {
+  return `${apiBaseUrl}/v1/requeueUpload`
+}
+
 export async function dispatchUpload(
   target: UploadTarget,
   registerOptions: CliUploadOptions,
@@ -167,7 +171,23 @@ async function uploadFileToSignedUrl(
 }
 
 async function finalizeUpload(apiBaseUrl: string, releaseId: string) {
-  const response = await fetch(buildFinalizeUploadEndpoint(apiBaseUrl), {
+  return postReleaseAction(
+    buildFinalizeUploadEndpoint(apiBaseUrl),
+    releaseId,
+    'Harbour finalizeUpload',
+  )
+}
+
+async function requeueUpload(apiBaseUrl: string, releaseId: string) {
+  return postReleaseAction(
+    buildRequeueUploadEndpoint(apiBaseUrl),
+    releaseId,
+    'Harbour requeueUpload',
+  )
+}
+
+async function postReleaseAction(endpoint: string, releaseId: string, action: string) {
+  const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -178,13 +198,10 @@ async function finalizeUpload(apiBaseUrl: string, releaseId: string) {
     }),
   })
 
-  return parseJsonResponse<UploadResponse>(response, 'Harbour finalizeUpload')
+  return parseJsonResponse<UploadResponse>(response, action)
 }
 
-export async function resolveFinalizeRelease(
-  target: UploadTarget,
-  releaseSpecifier: string,
-) {
+export async function resolveRelease(target: UploadTarget, releaseSpecifier: string) {
   const trimmedSpecifier = releaseSpecifier.trim()
 
   if (!trimmedSpecifier) {
@@ -212,9 +229,15 @@ export async function finalizeExistingUpload(
   target: UploadTarget,
   releaseSpecifier: string,
 ) {
-  const release = await resolveFinalizeRelease(target, releaseSpecifier)
+  const release = await resolveRelease(target, releaseSpecifier)
 
   if (release.status !== 'uploading') {
+    if (['staged', 'failed'].includes(release.status)) {
+      throw new Error(
+        `Release ${release.releaseCode} is already ${release.status}. Use \`upload:requeue\` to enqueue processing again.`,
+      )
+    }
+
     throw new Error(
       `Release ${release.releaseCode} is not awaiting upload finalization. Current status: ${release.status}.`,
     )
@@ -223,6 +246,27 @@ export async function finalizeExistingUpload(
   const apiBaseUrl = resolveHarbourApiUrl(target)
 
   const result = await finalizeUpload(apiBaseUrl, release.releaseId)
+
+  return {
+    release,
+    result,
+  }
+}
+
+export async function requeueExistingUpload(
+  target: UploadTarget,
+  releaseSpecifier: string,
+) {
+  const release = await resolveRelease(target, releaseSpecifier)
+
+  if (!['staged', 'failed'].includes(release.status)) {
+    throw new Error(
+      `Release ${release.releaseCode} is not requeueable. Current status: ${release.status}.`,
+    )
+  }
+
+  const apiBaseUrl = resolveHarbourApiUrl(target)
+  const result = await requeueUpload(apiBaseUrl, release.releaseId)
 
   return {
     release,
