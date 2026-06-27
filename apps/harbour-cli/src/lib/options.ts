@@ -81,38 +81,10 @@ export function buildRegisterOptions(
 }
 
 /**
- * Resolve the requested Harbour upload target from explicit flags first,
- * then from the environment fallback.
+ * Resolve the requested Harbour upload target from `--target`, falling back to
+ * `HARBOUR_UPLOAD_TARGET` when omitted.
  */
 export function resolveUploadTarget(args: ParsedArgs): UploadTarget {
-  const explicitRemote =
-    typeof args.options.remote === 'boolean' ? args.options.remote : undefined
-  const explicitEnvironment =
-    typeof args.options.env === 'string' ? args.options.env : undefined
-
-  if (explicitRemote !== undefined || explicitEnvironment !== undefined) {
-    const remote = explicitRemote ?? false
-
-    switch (explicitEnvironment) {
-      case undefined:
-        return {
-          remote,
-          environment: remote ? 'preview' : 'dev',
-        }
-      case 'dev':
-      case 'preview':
-      case 'production':
-        return {
-          remote,
-          environment: explicitEnvironment,
-        }
-      default:
-        throw new Error(
-          `Unsupported upload environment: ${explicitEnvironment}. Use dev, preview, or production.`,
-        )
-    }
-  }
-
   const rawTarget =
     typeof args.options.target === 'string'
       ? args.options.target

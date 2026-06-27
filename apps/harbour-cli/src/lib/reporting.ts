@@ -1,5 +1,7 @@
-import type { ParsedArgs, UploadTarget } from './options.ts'
-import { resolveHarbourApiUrl } from './upload.ts'
+import { normalizeBaseUrl } from '@repo/core'
+
+import type { UploadTarget } from './options.ts'
+import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
 
 export type ReportRowCount = {
   kind: 'history' | 'source'
@@ -75,22 +77,6 @@ type ReleaseReportResponse = {
   rows: ReleaseReportRow[]
 }
 
-function normalizeBaseUrl(value: string) {
-  return value.trim().replace(/\/+$/, '')
-}
-
-function getAuthHeaders() {
-  const apiKey = process.env.HARBOUR_API_KEY?.trim()
-
-  if (!apiKey) {
-    throw new Error('Missing HARBOUR_API_KEY for authenticated Harbour API requests.')
-  }
-
-  return {
-    'x-api-key': apiKey,
-  }
-}
-
 function parseLimit(limit: number | undefined) {
   if (limit == null) {
     return 10
@@ -122,19 +108,28 @@ async function parseJsonResponse<T>(response: Response, action: string) {
 }
 
 export async function fetchIngestRunReport(
-  args: ParsedArgs,
   target: UploadTarget,
   options?: {
     limit?: number
+    releaseCode?: string
+    releaseId?: string
     source?: string
     type?: string
   },
 ) {
-  const apiBaseUrl = resolveHarbourApiUrl(args, target)
+  const apiBaseUrl = resolveHarbourApiUrl(target)
   const url = new URL(`${normalizeBaseUrl(apiBaseUrl)}/v1/reports/ingestion`)
 
   if (options?.limit != null) {
     url.searchParams.set('limit', String(parseLimit(options.limit)))
+  }
+
+  if (options?.releaseCode) {
+    url.searchParams.set('releaseCode', options.releaseCode)
+  }
+
+  if (options?.releaseId) {
+    url.searchParams.set('releaseId', options.releaseId)
   }
 
   if (options?.source) {
@@ -157,7 +152,6 @@ export async function fetchIngestRunReport(
 }
 
 export async function fetchStatsReport(
-  args: ParsedArgs,
   target: UploadTarget,
   options?: {
     limit?: number
@@ -166,7 +160,7 @@ export async function fetchStatsReport(
     type?: string
   },
 ) {
-  const apiBaseUrl = resolveHarbourApiUrl(args, target)
+  const apiBaseUrl = resolveHarbourApiUrl(target)
   const url = new URL(`${normalizeBaseUrl(apiBaseUrl)}/v1/reports/stats`)
 
   if (options?.limit != null) {
@@ -194,19 +188,28 @@ export async function fetchStatsReport(
 }
 
 export async function fetchReleaseReport(
-  args: ParsedArgs,
   target: UploadTarget,
   options?: {
     limit?: number
+    releaseCode?: string
+    releaseId?: string
     source?: string
     type?: string
   },
 ) {
-  const apiBaseUrl = resolveHarbourApiUrl(args, target)
+  const apiBaseUrl = resolveHarbourApiUrl(target)
   const url = new URL(`${normalizeBaseUrl(apiBaseUrl)}/v1/reports/releases`)
 
   if (options?.limit != null) {
     url.searchParams.set('limit', String(parseLimit(options.limit)))
+  }
+
+  if (options?.releaseCode) {
+    url.searchParams.set('releaseCode', options.releaseCode)
+  }
+
+  if (options?.releaseId) {
+    url.searchParams.set('releaseId', options.releaseId)
   }
 
   if (options?.source) {
