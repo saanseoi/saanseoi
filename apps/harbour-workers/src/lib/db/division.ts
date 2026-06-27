@@ -28,6 +28,13 @@ import {
   runStatementBatchWithWriteRetry,
   runStatementsInGroupsWithWriteRetry,
 } from '../utils'
+
+const CURRENT_DIVISION_COLUMN_COUNT = 16
+const CURRENT_DIVISION_I18N_COLUMN_COUNT = 11
+const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 24
+const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 16
+const HISTORY_DIVISION_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
+
 type CurrentDivisionWriteRow = Omit<NewDivisionRow, 'snapshotId'>
 type CurrentDivisionI18nWriteRow = Omit<NewDivisionI18nRow, 'snapshotId'>
 type DivisionHashInput = Omit<DivisionRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
@@ -405,7 +412,7 @@ export async function upsertDivisionCurrentStates(
     return
   }
 
-  const chunkSize = getMaxRowsPerInsert(15)
+  const chunkSize = getMaxRowsPerInsert(CURRENT_DIVISION_COLUMN_COUNT)
   const statements = []
 
   for (const chunk of chunkArray(rows, chunkSize)) {
@@ -511,7 +518,10 @@ export async function insertDivisionVersionRows(
     return
   }
 
-  const baseChunkSize = getMaxRowsPerInsert(23)
+  const baseChunkSize = getMaxRowsPerInsert(
+    HISTORY_DIVISION_VERSION_COLUMN_COUNT,
+    HISTORY_DIVISION_VERSION_UPSERT_FIXED_VARIABLE_COUNT,
+  )
   const baseStatements = []
 
   for (const chunk of chunkArray(baseRows, baseChunkSize)) {
@@ -599,7 +609,7 @@ async function insertDivisionsI18nInChunks(
   db: HarbourWritableDb,
   rows: NewDivisionI18nRow[],
 ) {
-  const chunkSize = getMaxRowsPerInsert(10)
+  const chunkSize = getMaxRowsPerInsert(CURRENT_DIVISION_I18N_COLUMN_COUNT)
   const statements = []
 
   for (const chunk of chunkArray(rows, chunkSize)) {
@@ -633,7 +643,7 @@ async function insertDivisionVersionsI18nInChunks(
     updatedAt: string
   }>,
 ) {
-  const chunkSize = getMaxRowsPerInsert(15)
+  const chunkSize = getMaxRowsPerInsert(HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT)
   const statements = []
 
   for (const chunk of chunkArray(rows, chunkSize)) {

@@ -25,6 +25,12 @@ import {
   runWithWriteRetry,
 } from '../utils'
 
+const CURRENT_ADDRESS2D_COLUMN_COUNT = 20
+const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 17
+const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 26
+const HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 22
+const HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
+
 export type AddressBaseRecord = AddressRow
 export type AddressI18nRecord = NewAddressI18nRow
 
@@ -312,7 +318,10 @@ export async function upsertAddressCurrentStates(
     return
   }
 
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(15))) {
+  for (const chunk of chunkArray(
+    rows,
+    getMaxRowsPerInsert(CURRENT_ADDRESS2D_COLUMN_COUNT),
+  )) {
     await runWithWriteRetry(() =>
       db
         .insert(currentSchema.address2d)
@@ -398,7 +407,13 @@ export async function insertAddressVersionRows(
     return
   }
 
-  for (const chunk of chunkArray(baseRows, getMaxRowsPerInsert(20))) {
+  for (const chunk of chunkArray(
+    baseRows,
+    getMaxRowsPerInsert(
+      HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT,
+      HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT,
+    ),
+  )) {
     await runWithWriteRetry(() =>
       historyDb
         .insert(historySchema.address2dVersions)
@@ -461,7 +476,10 @@ async function insertAddressI18nInChunks(
   db: HarbourWritableDb,
   rows: NewAddressI18nRow[],
 ) {
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(14))) {
+  for (const chunk of chunkArray(
+    rows,
+    getMaxRowsPerInsert(CURRENT_ADDRESS2D_I18N_COLUMN_COUNT),
+  )) {
     await runWithWriteRetry(() =>
       db.insert(currentSchema.address2dI18n).values(chunk).run(),
     )
@@ -483,7 +501,10 @@ async function insertAddressVersionsI18nInChunks(
     }
   >,
 ) {
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(19))) {
+  for (const chunk of chunkArray(
+    rows,
+    getMaxRowsPerInsert(HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT),
+  )) {
     await runWithWriteRetry(() =>
       db
         .insert(historySchema.address2dVersionsI18n)

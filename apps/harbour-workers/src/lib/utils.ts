@@ -46,21 +46,16 @@ type BatchRunnable = {
 }
 
 /**
- * Runs a non-empty batch of statements, using native D1 batching when available.
+ * Runs a non-empty list of statements sequentially with write retries.
+ *
+ * D1's variable limit is strict enough that batching multiple parameterized
+ * statements together can still overflow locally even when each statement is
+ * individually safe, so we intentionally avoid `db.batch(...)` here.
  */
 export async function runStatementBatchWithWriteRetry(
   db: object,
   statements: [unknown, ...unknown[]],
 ) {
-  const batchCapableDb = db as {
-    batch?: (statements: readonly [unknown, ...unknown[]]) => Promise<unknown>
-  }
-
-  const batch = batchCapableDb.batch
-  if (typeof batch === 'function') {
-    return runWithWriteRetry(() => batch.call(batchCapableDb, statements))
-  }
-
   const results = []
 
   for (const statement of statements) {

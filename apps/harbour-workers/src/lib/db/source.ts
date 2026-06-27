@@ -11,6 +11,19 @@ import {
   runStatementsInGroupsWithWriteRetry,
 } from '../utils'
 
+const SOURCE_OVERTURE_DIVISION_COLUMN_COUNT = 20
+const SOURCE_OVERTURE_DIVISION_I18N_COLUMN_COUNT = 8
+const SOURCE_OVERTURE_DIVISION_VERSION_COLUMN_COUNT = 22
+const SOURCE_OVERTURE_DIVISION_I18N_VERSION_COLUMN_COUNT = 15
+const SOURCE_OVERTURE_ADDRESS2D_COLUMN_COUNT = 14
+const SOURCE_OVERTURE_ADDRESS2D_I18N_COLUMN_COUNT = 6
+const SOURCE_OVERTURE_ADDRESS2D_VERSION_COLUMN_COUNT = 16
+const SOURCE_OVERTURE_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 13
+const SOURCE_HKGOV_ADDRESS2D_COLUMN_COUNT = 27
+const SOURCE_HKGOV_ADDRESS2D_I18N_COLUMN_COUNT = 16
+const SOURCE_HKGOV_ADDRESS2D_VERSION_COLUMN_COUNT = 29
+const SOURCE_HKGOV_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 23
+
 export function buildSourceReleaseId(message: DatasetProcessingMessage) {
   return message.releaseId ?? message.datasetId
 }
@@ -151,7 +164,10 @@ export async function upsertSourceOvertureDivisions(
 
   const statements = []
 
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(18))) {
+  for (const chunk of chunkArray(
+    rows,
+    getMaxRowsPerInsert(SOURCE_OVERTURE_DIVISION_COLUMN_COUNT),
+  )) {
     statements.push(
       db
         .insert(sourceSchema.sourceOvertureDivisions)
@@ -210,7 +226,7 @@ export async function replaceSourceOvertureDivisionI18n(
     sourceSchema.sourceOvertureDivisionI18n,
     [sourceRecordId],
     rows,
-    8,
+    SOURCE_OVERTURE_DIVISION_I18N_COLUMN_COUNT,
   )
 }
 
@@ -224,7 +240,7 @@ export async function replaceSourceOvertureDivisionI18nRows(
     sourceSchema.sourceOvertureDivisionI18n,
     sourceRecordIds,
     rows,
-    8,
+    SOURCE_OVERTURE_DIVISION_I18N_COLUMN_COUNT,
   )
 }
 
@@ -232,10 +248,16 @@ export async function insertSourceOvertureDivisionVersions(
   db: SourceDatabase,
   rows: Array<typeof sourceSchema.sourceOvertureDivisionsVersions.$inferInsert>,
 ) {
-  await insertVersionRows(db, sourceSchema.sourceOvertureDivisionsVersions, rows, 21, [
-    sourceSchema.sourceOvertureDivisionsVersions.sourceRecordId,
-    sourceSchema.sourceOvertureDivisionsVersions.versionHash,
-  ])
+  await insertVersionRows(
+    db,
+    sourceSchema.sourceOvertureDivisionsVersions,
+    rows,
+    SOURCE_OVERTURE_DIVISION_VERSION_COLUMN_COUNT,
+    [
+      sourceSchema.sourceOvertureDivisionsVersions.sourceRecordId,
+      sourceSchema.sourceOvertureDivisionsVersions.versionHash,
+    ],
+  )
 }
 
 export async function insertSourceOvertureDivisionI18nVersions(
@@ -246,7 +268,7 @@ export async function insertSourceOvertureDivisionI18nVersions(
     db,
     sourceSchema.sourceOvertureDivisionI18nVersions,
     rows,
-    14,
+    SOURCE_OVERTURE_DIVISION_I18N_VERSION_COLUMN_COUNT,
     [
       sourceSchema.sourceOvertureDivisionI18nVersions.sourceRecordId,
       sourceSchema.sourceOvertureDivisionI18nVersions.versionHash,
@@ -265,7 +287,10 @@ export async function upsertSourceOvertureAddresses2d(
 
   const statements = []
 
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(12))) {
+  for (const chunk of chunkArray(
+    rows,
+    getMaxRowsPerInsert(SOURCE_OVERTURE_ADDRESS2D_COLUMN_COUNT),
+  )) {
     statements.push(
       db
         .insert(sourceSchema.sourceOvertureAddresses2d)
@@ -303,7 +328,7 @@ export async function replaceSourceOvertureAddress2dI18n(
     sourceSchema.sourceOvertureAddress2dI18n,
     [sourceRecordId],
     rows,
-    5,
+    SOURCE_OVERTURE_ADDRESS2D_I18N_COLUMN_COUNT,
   )
 }
 
@@ -317,7 +342,7 @@ export async function replaceSourceOvertureAddress2dI18nRows(
     sourceSchema.sourceOvertureAddress2dI18n,
     sourceRecordIds,
     rows,
-    5,
+    SOURCE_OVERTURE_ADDRESS2D_I18N_COLUMN_COUNT,
   )
 }
 
@@ -329,7 +354,7 @@ export async function insertSourceOvertureAddresses2dVersions(
     db,
     sourceSchema.sourceOvertureAddresses2dVersions,
     rows,
-    15,
+    SOURCE_OVERTURE_ADDRESS2D_VERSION_COLUMN_COUNT,
     [
       sourceSchema.sourceOvertureAddresses2dVersions.sourceRecordId,
       sourceSchema.sourceOvertureAddresses2dVersions.versionHash,
@@ -345,7 +370,7 @@ export async function insertSourceOvertureAddress2dI18nVersions(
     db,
     sourceSchema.sourceOvertureAddress2dI18nVersions,
     rows,
-    11,
+    SOURCE_OVERTURE_ADDRESS2D_I18N_VERSION_COLUMN_COUNT,
     [
       sourceSchema.sourceOvertureAddress2dI18nVersions.sourceRecordId,
       sourceSchema.sourceOvertureAddress2dI18nVersions.versionHash,
@@ -364,7 +389,10 @@ export async function upsertSourceHkgovAlsAddresses2d(
 
   const statements = []
 
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(25))) {
+  for (const chunk of chunkArray(
+    rows,
+    getMaxRowsPerInsert(SOURCE_HKGOV_ADDRESS2D_COLUMN_COUNT),
+  )) {
     statements.push(
       db
         .insert(sourceSchema.sourceHkgovAlsAddresses2d)
@@ -415,7 +443,7 @@ export async function replaceSourceHkgovAlsAddress2dI18n(
     sourceSchema.sourceHkgovAlsAddress2dI18n,
     [sourceRecordId],
     rows,
-    15,
+    SOURCE_HKGOV_ADDRESS2D_I18N_COLUMN_COUNT,
   )
 }
 
@@ -429,7 +457,7 @@ export async function replaceSourceHkgovAlsAddress2dI18nRows(
     sourceSchema.sourceHkgovAlsAddress2dI18n,
     sourceRecordIds,
     rows,
-    15,
+    SOURCE_HKGOV_ADDRESS2D_I18N_COLUMN_COUNT,
   )
 }
 
@@ -441,7 +469,7 @@ export async function insertSourceHkgovAlsAddresses2dVersions(
     db,
     sourceSchema.sourceHkgovAlsAddresses2dVersions,
     rows,
-    28,
+    SOURCE_HKGOV_ADDRESS2D_VERSION_COLUMN_COUNT,
     [
       sourceSchema.sourceHkgovAlsAddresses2dVersions.sourceRecordId,
       sourceSchema.sourceHkgovAlsAddresses2dVersions.versionHash,
@@ -457,7 +485,7 @@ export async function insertSourceHkgovAlsAddress2dI18nVersions(
     db,
     sourceSchema.sourceHkgovAlsAddress2dI18nVersions,
     rows,
-    20,
+    SOURCE_HKGOV_ADDRESS2D_I18N_VERSION_COLUMN_COUNT,
     [
       sourceSchema.sourceHkgovAlsAddress2dI18nVersions.sourceRecordId,
       sourceSchema.sourceHkgovAlsAddress2dI18nVersions.versionHash,
