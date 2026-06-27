@@ -28,19 +28,18 @@ type DatasetFilters = {
 type PlaceLookup = {
   regionCode: RegionCode
   placeId: string
+  snapshotId: string
 }
 
 type I18nLookup = {
   placeId: string
+  snapshotId: string
   locale?: string
-}
-
-type PlaceDivisionLookup = I18nLookup & {
-  divisionApiReleaseSetId: string
 }
 
 type H3Lookup = {
   regionCode: RegionCode
+  snapshotId: string
   h3Level: number
   h3Cell: string
   limit?: number
@@ -48,6 +47,7 @@ type H3Lookup = {
 
 type FtsLookup = {
   regionCode: RegionCode
+  snapshotId: string
   locale?: string
   query: string
   limit?: number
@@ -189,7 +189,11 @@ export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) 
       .select()
       .from(places)
       .where(
-        and(eq(places.regionCode, lookup.regionCode), eq(places.id, lookup.placeId)),
+        and(
+          eq(places.snapshotId, lookup.snapshotId),
+          eq(places.regionCode, lookup.regionCode),
+          eq(places.id, lookup.placeId),
+        ),
       )
       .limit(1)
       .get()) ?? null
@@ -198,6 +202,7 @@ export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) 
 
 export async function listPlaceI18n(db: CurrentDatabase, lookup: I18nLookup) {
   const conditions = [
+    eq(placesI18n.snapshotId, lookup.snapshotId),
     eq(placesI18n.placeId, lookup.placeId),
     lookup.locale ? eq(placesI18n.locale, lookup.locale) : undefined,
   ].filter(condition => condition !== undefined)
@@ -210,10 +215,7 @@ export async function listPlaceI18n(db: CurrentDatabase, lookup: I18nLookup) {
     .all()
 }
 
-export async function listPlaceDivisions(
-  db: CurrentDatabase,
-  lookup: PlaceDivisionLookup,
-) {
+export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup) {
   return db
     .select({
       divisionId: divisions.id,
@@ -227,19 +229,24 @@ export async function listPlaceDivisions(
     .innerJoin(
       divisions,
       and(
-        eq(divisions.apiReleaseSetId, lookup.divisionApiReleaseSetId),
+        eq(divisions.snapshotId, placesDivision.divisionSnapshotId),
         eq(divisions.id, placesDivision.divisionId),
       ),
     )
     .leftJoin(
       divisionsI18n,
       and(
-        eq(divisionsI18n.apiReleaseSetId, divisions.apiReleaseSetId),
+        eq(divisionsI18n.snapshotId, divisions.snapshotId),
         eq(divisionsI18n.divisionId, divisions.id),
         lookup.locale ? eq(divisionsI18n.locale, lookup.locale) : undefined,
       ),
     )
-    .where(eq(placesDivision.placeId, lookup.placeId))
+    .where(
+      and(
+        eq(placesDivision.placeSnapshotId, lookup.snapshotId),
+        eq(placesDivision.placeId, lookup.placeId),
+      ),
+    )
     .orderBy(asc(divisions.level), asc(divisionsI18n.locale))
     .all()
 }
@@ -259,9 +266,13 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
       h3Cell: placesCells.h3Cell,
     })
     .from(placesCells)
-    .innerJoin(places, eq(places.id, placesCells.id))
+    .innerJoin(
+      places,
+      and(eq(places.snapshotId, placesCells.snapshotId), eq(places.id, placesCells.id)),
+    )
     .where(
       and(
+        eq(placesCells.snapshotId, lookup.snapshotId),
         eq(placesCells.regionCode, lookup.regionCode),
         eq(placesCells.h3Level, lookup.h3Level),
         eq(placesCells.h3Cell, lookup.h3Cell),
@@ -283,9 +294,16 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
         brandText: placesFts.brandText,
       })
       .from(placesFts)
-      .innerJoin(places, eq(places.id, placesFts.placeId))
+      .innerJoin(
+        places,
+        and(
+          eq(places.snapshotId, placesFts.snapshotId),
+          eq(places.id, placesFts.placeId),
+        ),
+      )
       .where(
         and(
+          eq(placesFts.snapshotId, lookup.snapshotId),
           eq(places.regionCode, lookup.regionCode),
           lookup.locale ? eq(placesFts.locale, lookup.locale) : undefined,
           placesFtsMatch(lookup.query),

@@ -632,9 +632,12 @@ async function collectCountRowsByRelease(plans: ReleaseCountPlan[]) {
 
   for (const [binding, bindingGroups] of queryGroups) {
     for (const group of bindingGroups.values()) {
-      const counts = await countReleaseRowsByReleaseIds(binding, group.spec, [
-        ...group.releaseIds,
-      ])
+      const counts = await countReleaseRowsByReleaseIds(
+        binding,
+        group.kind,
+        group.spec,
+        [...group.releaseIds],
+      )
 
       for (const [releaseId, count] of counts) {
         countsByReleaseSpec.set(
@@ -675,6 +678,7 @@ function buildReportRowCounts(
 
 async function countReleaseRowsByReleaseIds(
   binding: D1Database,
+  kind: 'history' | 'source',
   spec: CountSpec,
   releaseIds: string[],
 ) {
@@ -683,18 +687,19 @@ async function countReleaseRowsByReleaseIds(
   }
 
   const placeholders = releaseIds.map((_, index) => `?${index + 1}`).join(', ')
+  const releaseColumn = kind === 'history' ? 'sourceReleaseId' : 'releaseId'
   const query =
     spec.strategy === 'direct'
-      ? `SELECT "releaseId" AS releaseId, COUNT(*) AS count
+      ? `SELECT "${releaseColumn}" AS releaseId, COUNT(*) AS count
          FROM "${spec.tableName}"
-         WHERE "releaseId" IN (${placeholders})
-         GROUP BY "releaseId"`
-      : `SELECT parent."releaseId" AS releaseId, COUNT(*) AS count
+         WHERE "${releaseColumn}" IN (${placeholders})
+         GROUP BY "${releaseColumn}"`
+      : `SELECT parent."${releaseColumn}" AS releaseId, COUNT(*) AS count
          FROM "${spec.tableName}" child
          INNER JOIN "${spec.parentTableName}" parent
            ON parent."${spec.parentKey}" = child."${spec.relationshipKey}"
-         WHERE parent."releaseId" IN (${placeholders})
-         GROUP BY parent."releaseId"`
+         WHERE parent."${releaseColumn}" IN (${placeholders})
+         GROUP BY parent."${releaseColumn}"`
   const result = await binding
     .prepare(query)
     .bind(...releaseIds)

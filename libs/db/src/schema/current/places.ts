@@ -1,4 +1,5 @@
 import {
+  foreignKey,
   index,
   integer,
   primaryKey,
@@ -10,15 +11,18 @@ import { sql } from 'drizzle-orm'
 
 import { jsonText, timestamps } from './_shared'
 import { address2d, address3d } from './addresses'
+import { divisions } from './divisions'
 
 export const places = sqliteTable(
   'places',
   {
-    id: text('id').primaryKey(),
+    snapshotId: text('snapshotId').notNull(),
+    id: text('id').notNull(),
     regionCode: text('regionCode').notNull(),
     releaseId: text('releaseId').notNull(),
-    address2dId: text('address2dId').references(() => address2d.id),
-    address3dId: text('address3dId').references(() => address3d.id),
+    addressSnapshotId: text('addressSnapshotId'),
+    address2dId: text('address2dId'),
+    address3dId: text('address3dId'),
     lng: real('lng').notNull(),
     lat: real('lat').notNull(),
     bbox: jsonText('bbox'),
@@ -40,6 +44,19 @@ export const places = sqliteTable(
     ...timestamps,
   },
   table => [
+    primaryKey({
+      columns: [table.snapshotId, table.id],
+    }),
+    foreignKey({
+      columns: [table.addressSnapshotId, table.address2dId],
+      foreignColumns: [address2d.snapshotId, address2d.id],
+      name: 'places_addressSnapshotId_address2dId_address2d_fk',
+    }),
+    foreignKey({
+      columns: [table.addressSnapshotId, table.address3dId],
+      foreignColumns: [address3d.snapshotId, address3d.id],
+      name: 'places_addressSnapshotId_address3dId_address3d_fk',
+    }),
     index('places_releaseId_idx').on(table.releaseId),
     index('places_category_idx').on(table.regionCode, table.basicCategory),
     index('places_taxonomy_idx').on(table.regionCode, table.taxonomyPrimary),
@@ -50,9 +67,8 @@ export const places = sqliteTable(
 export const placesI18n = sqliteTable(
   'placesI18n',
   {
-    placeId: text('placeId')
-      .notNull()
-      .references(() => places.id),
+    snapshotId: text('snapshotId').notNull(),
+    placeId: text('placeId').notNull(),
     locale: text('locale').notNull(),
     name: text('name'),
     nameVariant: jsonText('nameVariant'),
@@ -65,8 +81,13 @@ export const placesI18n = sqliteTable(
   },
   table => [
     primaryKey({
-      columns: [table.placeId, table.locale],
+      columns: [table.snapshotId, table.placeId, table.locale],
     }),
+    foreignKey({
+      columns: [table.snapshotId, table.placeId],
+      foreignColumns: [places.snapshotId, places.id],
+      name: 'placesI18n_snapshotId_placeId_places_fk',
+    }).onDelete('cascade'),
     index('placesI18n_locale_idx').on(table.locale),
     index('placesI18n_name_idx').on(table.locale, table.name),
   ],
@@ -75,34 +96,65 @@ export const placesI18n = sqliteTable(
 export const placesDivision = sqliteTable(
   'placesDivision',
   {
-    placeId: text('placeId')
-      .notNull()
-      .references(() => places.id),
+    placeSnapshotId: text('placeSnapshotId').notNull(),
+    placeId: text('placeId').notNull(),
+    divisionSnapshotId: text('divisionSnapshotId').notNull(),
     divisionId: text('divisionId').notNull(),
   },
   table => [
     primaryKey({
-      columns: [table.placeId, table.divisionId],
+      columns: [
+        table.placeSnapshotId,
+        table.placeId,
+        table.divisionSnapshotId,
+        table.divisionId,
+      ],
     }),
-    index('placesDivision_divisionId_idx').on(table.divisionId, table.placeId),
+    foreignKey({
+      columns: [table.placeSnapshotId, table.placeId],
+      foreignColumns: [places.snapshotId, places.id],
+      name: 'placesDivision_placeSnapshotId_placeId_places_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.divisionSnapshotId, table.divisionId],
+      foreignColumns: [divisions.snapshotId, divisions.id],
+      name: 'placesDivision_divisionSnapshotId_divisionId_divisions_fk',
+    }),
+    index('placesDivision_divisionId_idx').on(
+      table.divisionSnapshotId,
+      table.divisionId,
+      table.placeSnapshotId,
+      table.placeId,
+    ),
   ],
 )
 
 export const placesCells = sqliteTable(
   'placesCells',
   {
+    snapshotId: text('snapshotId').notNull(),
     regionCode: text('regionCode').notNull(),
-    id: text('id')
-      .notNull()
-      .references(() => places.id),
+    id: text('id').notNull(),
     h3Level: integer('h3Level').notNull(),
     h3Cell: text('h3Cell').notNull(),
   },
   table => [
     primaryKey({
-      columns: [table.regionCode, table.id, table.h3Level, table.h3Cell],
+      columns: [
+        table.snapshotId,
+        table.regionCode,
+        table.id,
+        table.h3Level,
+        table.h3Cell,
+      ],
     }),
+    foreignKey({
+      columns: [table.snapshotId, table.id],
+      foreignColumns: [places.snapshotId, places.id],
+      name: 'placesCells_snapshotId_id_places_fk',
+    }).onDelete('cascade'),
     index('placesCells_lookup_idx').on(
+      table.snapshotId,
       table.regionCode,
       table.h3Level,
       table.h3Cell,
@@ -120,6 +172,7 @@ export const placesCells = sqliteTable(
  * `placesFts`.
  */
 export const placesFts = sqliteTable('placesFts', {
+  snapshotId: text('snapshotId').notNull(),
   placeId: text('placeId').notNull(),
   locale: text('locale').notNull(),
   nameText: text('nameText'),

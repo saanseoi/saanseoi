@@ -16,12 +16,13 @@ export const streetsVersions = sqliteTable(
       columns: [table.id, table.versionHash],
     }),
     index('streetsVersions_current_lookup_idx').on(table.id, table.isCurrent),
-    index('streetsVersions_releaseSet_validity_idx').on(
-      table.validFromReleaseSetId,
-      table.validToReleaseSetId,
+    index('streetsVersions_snapshot_validity_idx').on(
+      table.validFromSnapshotId,
+      table.validToSnapshotId,
     ),
     index('streetsVersions_validity_idx').on(table.validFromMonth, table.validToMonth),
-    index('streetsVersions_releaseId_idx').on(table.releaseId),
+    index('streetsVersions_sourceReleaseId_idx').on(table.sourceReleaseId),
+    index('streetsVersions_snapshotId_idx').on(table.snapshotId),
   ],
 )
 

@@ -157,13 +157,13 @@ function createDivisionMessage(
   } as const
 }
 
-function getApiReleaseSetId(sqlite: Database, code: string) {
-  const row = sqlite
-    .query('SELECT id FROM apiReleaseSets WHERE code = ?1')
-    .get(code) as { id: string } | null
+function getSnapshotId(sqlite: Database, code: string) {
+  const row = sqlite.query('SELECT id FROM snapshots WHERE code = ?1').get(code) as {
+    id: string
+  } | null
 
   if (!row) {
-    throw new Error(`Release set not found for ${code}.`)
+    throw new Error(`Snapshot not found for ${code}.`)
   }
 
   return row.id
@@ -218,31 +218,28 @@ describe('processDivisionDataset', () => {
       ),
       db as never,
     )
-    const firstReleaseSetId = getApiReleaseSetId(
-      sqlite,
-      'overture-hk-2026-05-24.0-division',
-    )
+    const firstSnapshotId = getSnapshotId(sqlite, 'overture-hk-2026-05-24.0-division')
 
     const firstDivisionRow = sqlite
       .query(
-        "SELECT updatedAt FROM divisions WHERE apiReleaseSetId = ?1 AND id = 'division-hk-island'",
+        "SELECT updatedAt FROM divisions WHERE snapshotId = ?1 AND id = 'division-hk-island'",
       )
-      .get(firstReleaseSetId) as { updatedAt: string }
+      .get(firstSnapshotId) as { updatedAt: string }
     const firstChangedDivisionRow = sqlite
       .query(
-        "SELECT updatedAt FROM divisions WHERE apiReleaseSetId = ?1 AND id = 'division-central'",
+        "SELECT updatedAt FROM divisions WHERE snapshotId = ?1 AND id = 'division-central'",
       )
-      .get(firstReleaseSetId) as { updatedAt: string }
+      .get(firstSnapshotId) as { updatedAt: string }
     const firstDivisionI18nRow = sqlite
       .query(
-        "SELECT updatedAt FROM divisionsI18n WHERE apiReleaseSetId = ?1 AND divisionId = 'division-hk-island' AND locale = 'en'",
+        "SELECT updatedAt FROM divisionsI18n WHERE snapshotId = ?1 AND divisionId = 'division-hk-island' AND locale = 'en'",
       )
-      .get(firstReleaseSetId) as { updatedAt: string }
+      .get(firstSnapshotId) as { updatedAt: string }
     const firstChangedDivisionI18nRow = sqlite
       .query(
-        "SELECT updatedAt FROM divisionsI18n WHERE apiReleaseSetId = ?1 AND divisionId = 'division-central' AND locale = 'en'",
+        "SELECT updatedAt FROM divisionsI18n WHERE snapshotId = ?1 AND divisionId = 'division-central' AND locale = 'en'",
       )
-      .get(firstReleaseSetId) as { updatedAt: string }
+      .get(firstSnapshotId) as { updatedAt: string }
 
     const nextIslandRow = baseParquetBatches[0]?.[0]
     const nextCentralRow = baseParquetBatches[0]?.[1]
@@ -292,10 +289,7 @@ describe('processDivisionDataset', () => {
       ),
       db as never,
     )
-    const secondReleaseSetId = getApiReleaseSetId(
-      sqlite,
-      'overture-hk-2026-06-24.0-division',
-    )
+    const secondSnapshotId = getSnapshotId(sqlite, 'overture-hk-2026-06-24.0-division')
 
     const sourceCurrentRows = sqlite
       .query(
@@ -306,35 +300,33 @@ describe('processDivisionDataset', () => {
       releaseId: string
     }>
     const currentRows = sqlite
-      .query(
-        'SELECT id, updatedAt FROM divisions WHERE apiReleaseSetId = ?1 ORDER BY id',
-      )
-      .all(secondReleaseSetId) as Array<{
+      .query('SELECT id, updatedAt FROM divisions WHERE snapshotId = ?1 ORDER BY id')
+      .all(secondSnapshotId) as Array<{
       id: string
       updatedAt: string
     }>
     const currentI18nRows = sqlite
       .query(
-        "SELECT divisionId, locale, updatedAt FROM divisionsI18n WHERE apiReleaseSetId = ?1 AND locale = 'en' ORDER BY divisionId",
+        "SELECT divisionId, locale, updatedAt FROM divisionsI18n WHERE snapshotId = ?1 AND locale = 'en' ORDER BY divisionId",
       )
-      .all(secondReleaseSetId) as Array<{
+      .all(secondSnapshotId) as Array<{
       divisionId: string
       locale: string
       updatedAt: string
     }>
     const preservedFirstRows = sqlite
       .query(
-        "SELECT id, updatedAt FROM divisions WHERE apiReleaseSetId = ?1 AND id IN ('division-central', 'division-hk-island') ORDER BY id",
+        "SELECT id, updatedAt FROM divisions WHERE snapshotId = ?1 AND id IN ('division-central', 'division-hk-island') ORDER BY id",
       )
-      .all(firstReleaseSetId) as Array<{
+      .all(firstSnapshotId) as Array<{
       id: string
       updatedAt: string
     }>
     const preservedFirstI18nRows = sqlite
       .query(
-        "SELECT divisionId, updatedAt FROM divisionsI18n WHERE apiReleaseSetId = ?1 AND locale = 'en' AND divisionId IN ('division-central', 'division-hk-island') ORDER BY divisionId",
+        "SELECT divisionId, updatedAt FROM divisionsI18n WHERE snapshotId = ?1 AND locale = 'en' AND divisionId IN ('division-central', 'division-hk-island') ORDER BY divisionId",
       )
-      .all(firstReleaseSetId) as Array<{
+      .all(firstSnapshotId) as Array<{
       divisionId: string
       updatedAt: string
     }>
@@ -528,6 +520,7 @@ describe('processDivisionDataset', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const now = '2026-06-04T00:00:00.000Z'
+    const previousSnapshotId = 'snapshot-overture-hk-2026-04-24.0-division'
 
     seedDivisionRelease(
       sqlite,
@@ -539,22 +532,22 @@ describe('processDivisionDataset', () => {
 
     sqlite.exec(`
       INSERT INTO divisions (
-        id, level, type, subtype, class, wikidata,
+        snapshotId, id, level, type, subtype, class, wikidata,
         hierarchy, parentDivisionId, cartography, bbox, sources, createdAt, updatedAt
       ) VALUES (
-        'division-obsolete', 1, 'area', 'region', 'region', null, null, null, null,
+        '${previousSnapshotId}', 'division-obsolete', 1, 'area', 'region', 'region', null, null, null, null,
         null, null, '${now}', '${now}'
       );
     `)
 
     sqlite.exec(`
       INSERT INTO divisionsVersions (
-        id, versionHash, regionCode, releaseId, validFromReleaseSetId, validToReleaseSetId,
+        id, versionHash, regionCode, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
         validFromMonth, validToMonth, isCurrent, level, type, subtype, class, wikidata,
         hierarchy, parentDivisionId, cartography, bbox, sources, createdAt, updatedAt
       ) VALUES (
         'division-obsolete', 'hash-obsolete', 'hk',
-        'release-overture-hk-2026-04-24.0-division', 'api-release-set-ss-divisions-v0.1',
+        'release-overture-hk-2026-04-24.0-division', '${previousSnapshotId}', '${previousSnapshotId}',
         null, '2026-04', null, 1, 1, 'area', 'region', 'region', null,
         null, null, null, null, null, '${now}', '${now}'
       );
@@ -590,12 +583,13 @@ describe('processDivisionDataset', () => {
         '2026-05-24.0',
       ),
     )
+    const currentSnapshotId = getSnapshotId(sqlite, 'overture-hk-2026-05-24.0-division')
 
     const divisionsRows = sqlite
       .query(
-        "SELECT id, level, type, geometry, population, parentDivisionId, hierarchy, sources FROM divisions WHERE id != 'saanseoi-cn-prc' ORDER BY id",
+        "SELECT id, level, type, geometry, population, parentDivisionId, hierarchy, sources FROM divisions WHERE snapshotId = ?1 AND id != 'saanseoi-cn-prc' ORDER BY id",
       )
-      .all() as Array<{
+      .all(currentSnapshotId) as Array<{
       id: string
       level: number
       type: string
@@ -607,9 +601,9 @@ describe('processDivisionDataset', () => {
     }>
     const i18nRows = sqlite
       .query(
-        "SELECT divisionId, locale, name AS otName, isLocaleInferred FROM divisionsI18n WHERE divisionId != 'saanseoi-cn-prc' ORDER BY divisionId, locale",
+        "SELECT divisionId, locale, name AS otName, isLocaleInferred FROM divisionsI18n WHERE snapshotId = ?1 AND divisionId != 'saanseoi-cn-prc' ORDER BY divisionId, locale",
       )
-      .all() as Array<{
+      .all(currentSnapshotId) as Array<{
       divisionId: string
       locale: string
       otName: string | null
@@ -639,7 +633,6 @@ describe('processDivisionDataset', () => {
     sqlite.close()
 
     expect(result).toEqual({
-      cleanupReleaseSetIds: [],
       deletedRows: 1,
       insertedVersions: 2,
       localizedRows: 4,
@@ -1129,7 +1122,6 @@ describe('processDivisionDataset', () => {
       statsRows: 26,
       unchangedRows: 1,
     })
-    expect(result.cleanupReleaseSetIds).toHaveLength(1)
     expect(churnRows).toEqual([
       { dimension: 'added_count', groupBy: null, groupValue: null, value: 1 },
       { dimension: 'changed_count', groupBy: null, groupValue: null, value: 2 },
@@ -1304,7 +1296,7 @@ describe('processDivisionDataset', () => {
 
     const currentHistoryI18nRows = sqlite
       .query(
-        "SELECT releaseId, locale, name FROM divisionsVersionsI18n WHERE divisionId = 'division-i18n-history' AND isCurrent = 1 ORDER BY locale",
+        "SELECT sourceReleaseId AS releaseId, locale, name FROM divisionsVersionsI18n WHERE divisionId = 'division-i18n-history' AND isCurrent = 1 ORDER BY locale",
       )
       .all() as Array<{
       locale: string
@@ -1821,7 +1813,6 @@ describe('processDivisionDataset', () => {
     sqlite.close()
 
     expect(result).toEqual({
-      cleanupReleaseSetIds: [],
       deletedRows: 0,
       insertedVersions: 3,
       localizedRows: 5,
@@ -2042,6 +2033,7 @@ describe('processDivisionDataset', () => {
     const previousDatasetId = 'overture-hk-2026-04-24.0-division'
     const nextDatasetId = 'overture-hk-2026-05-24.0-division'
     const existingDivisionCount = 120
+    const previousSnapshotId = 'snapshot-overture-hk-2026-04-24.0-division'
 
     seedDivisionRelease(sqlite, previousDatasetId, '2026-04', 'published', now)
 
@@ -2053,32 +2045,32 @@ describe('processDivisionDataset', () => {
 
       sqlite.exec(`
         INSERT INTO divisions (
-          id, level, type, subtype, class, wikidata,
+          snapshotId, id, level, type, subtype, class, wikidata,
           hierarchy, parentDivisionId, cartography, bbox, sources, createdAt, updatedAt
         ) VALUES (
-          '${divisionId}', 1, 'area', 'district', 'district', null, null, null,
+          '${previousSnapshotId}', '${divisionId}', 1, 'area', 'district', 'district', null, null, null,
           null, null, null, '${now}', '${now}'
         );
       `)
 
       sqlite.exec(`
         INSERT INTO divisionsI18n (
-          divisionId, locale, name, nameAlts, nameVariant, nameRules,
+          snapshotId, divisionId, locale, name, nameAlts, nameVariant, nameRules,
           localType, isLocaleInferred, createdAt, updatedAt
         ) VALUES (
-          '${divisionId}', 'en', 'Existing ${index}', null, '["Existing ${index}"]', null, null, 0,
+          '${previousSnapshotId}', '${divisionId}', 'en', 'Existing ${index}', null, '["Existing ${index}"]', null, null, 0,
           '${now}', '${now}'
         );
       `)
 
       sqlite.exec(`
         INSERT INTO divisionsVersions (
-          id, versionHash, regionCode, releaseId, validFromReleaseSetId, validToReleaseSetId,
+          id, versionHash, regionCode, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
           validFromMonth, validToMonth, isCurrent, level, type, subtype, class, wikidata,
           hierarchy, parentDivisionId, cartography, bbox, sources, createdAt, updatedAt
         ) VALUES (
           '${divisionId}', '${versionHash}', 'hk',
-          'release-${previousDatasetId}', 'api-release-set-ss-divisions-v0.1',
+          'release-${previousDatasetId}', '${previousSnapshotId}', '${previousSnapshotId}',
           null, '2026-04', null, 1, 1, 'area', 'district', 'district', null,
           null, null, null, null, null, '${now}', '${now}'
         );
@@ -2107,15 +2099,18 @@ describe('processDivisionDataset', () => {
       },
       createDivisionMessage(nextDatasetId, '2026-05', '2026-05-24.0'),
     )
+    const nextSnapshotId = getSnapshotId(sqlite, nextDatasetId)
 
     const remainingDivisions = sqlite
-      .query("SELECT count(*) as count FROM divisions WHERE id != 'saanseoi-cn-prc'")
-      .get() as { count: number }
+      .query(
+        "SELECT count(*) as count FROM divisions WHERE snapshotId = ?1 AND id != 'saanseoi-cn-prc'",
+      )
+      .get(nextSnapshotId) as { count: number }
     const remainingI18n = sqlite
       .query(
-        "SELECT count(*) as count FROM divisionsI18n WHERE divisionId != 'saanseoi-cn-prc'",
+        "SELECT count(*) as count FROM divisionsI18n WHERE snapshotId = ?1 AND divisionId != 'saanseoi-cn-prc'",
       )
-      .get() as { count: number }
+      .get(nextSnapshotId) as { count: number }
     const currentVersions = sqlite
       .query(
         "SELECT count(*) as count FROM divisionsVersions WHERE isCurrent = 1 AND id != 'saanseoi-cn-prc'",

@@ -1,5 +1,5 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
-import { resolveActiveApiReleaseSet } from '@repo/db'
+import { resolveActiveSnapshotForType } from '@repo/core/db/meta-repository'
 
 import {
   getPlaceCurrent,
@@ -22,8 +22,6 @@ import {
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import type { AppEnv } from '../../types'
-
-const LEGACY_DIVISION_CURRENT_RELEASE_SET_ID = 'legacy-current-divisions-v0.1'
 const placeRouteConfig = createRoute({
   method: 'get',
   path: '/v0/{region}/places/{id}',
@@ -48,6 +46,14 @@ const placeRouteConfig = createRoute({
         },
       },
       description: 'Place not found.',
+    },
+    503: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Place snapshot is not ready.',
     },
     422: ValidationErrorOpenAPIResponse,
   },
@@ -77,6 +83,14 @@ const placesByCellRouteConfig = createRoute({
         },
       },
       description: 'Invalid H3 level.',
+    },
+    503: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Place snapshot is not ready.',
     },
     422: ValidationErrorOpenAPIResponse,
   },
@@ -117,8 +131,28 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
     const { region: regionCode, id: placeId } = c.req.valid('param')
     const { locale } = c.req.valid('query')
     const db = c.var.currentDb
+    const activePlaceSnapshot = await resolveActiveSnapshotForType(
+      c.var.metaDb,
+      'place',
+      'place',
+    )
 
-    const place = await getPlaceCurrent(db, { regionCode, placeId })
+    if (!activePlaceSnapshot) {
+      return c.json(
+        {
+          httpStatus: 503,
+          error: 'snapshot_not_ready',
+          message: 'No active place snapshot is published.',
+        },
+        503,
+      )
+    }
+
+    const place = await getPlaceCurrent(db, {
+      regionCode,
+      placeId,
+      snapshotId: activePlaceSnapshot.snapshotId,
+    })
 
     if (!place) {
       return c.json(
@@ -131,31 +165,18 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
       )
     }
 
-    const divisionReleaseSet = await resolveActiveApiReleaseSet(
-      c.var.metaDb,
-      'ss-divisions-v0.1',
-    )
-
-    if (!divisionReleaseSet) {
-      throw new Error('Active division release set not found.')
-    }
-
-    const [i18n, divisionRows] = await Promise.all([
-      listPlaceI18n(db, { placeId, locale }),
+    const [i18n, divisions] = await Promise.all([
+      listPlaceI18n(db, {
+        placeId,
+        snapshotId: activePlaceSnapshot.snapshotId,
+        locale,
+      }),
       listPlaceDivisions(db, {
         placeId,
+        snapshotId: activePlaceSnapshot.snapshotId,
         locale,
-        divisionApiReleaseSetId: divisionReleaseSet.apiReleaseSetId,
       }),
     ])
-    const divisions =
-      divisionRows.length > 0
-        ? divisionRows
-        : await listPlaceDivisions(db, {
-            placeId,
-            locale,
-            divisionApiReleaseSetId: LEGACY_DIVISION_CURRENT_RELEASE_SET_ID,
-          })
 
     return c.json(
       {
@@ -178,6 +199,22 @@ export const placesByCellRoute = defineOpenAPIRoute<
     const query = c.req.valid('query')
     const h3Level = Number(params.h3Level)
     const db = c.var.currentDb
+    const activePlaceSnapshot = await resolveActiveSnapshotForType(
+      c.var.metaDb,
+      'place',
+      'place',
+    )
+
+    if (!activePlaceSnapshot) {
+      return c.json(
+        {
+          httpStatus: 503,
+          error: 'snapshot_not_ready',
+          message: 'No active place snapshot is published.',
+        },
+        503,
+      )
+    }
 
     if (!Number.isInteger(h3Level)) {
       return c.json(
@@ -192,6 +229,7 @@ export const placesByCellRoute = defineOpenAPIRoute<
 
     const places = await listPlacesByH3Cell(db, {
       regionCode: params.region,
+      snapshotId: activePlaceSnapshot.snapshotId,
       h3Level,
       h3Cell: params.h3Cell,
       limit: query.limit,
@@ -212,10 +250,27 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
     const { region } = c.req.valid('param')
     const query = c.req.valid('query')
     const db = c.var.currentDb
+    const activePlaceSnapshot = await resolveActiveSnapshotForType(
+      c.var.metaDb,
+      'place',
+      'place',
+    )
+
+    if (!activePlaceSnapshot) {
+      return c.json(
+        {
+          httpStatus: 503,
+          error: 'snapshot_not_ready',
+          message: 'No active place snapshot is published.',
+        },
+        503,
+      )
+    }
 
     try {
       const results = await searchPlacesFts(db, {
         regionCode: region,
+        snapshotId: activePlaceSnapshot.snapshotId,
         locale: query.locale,
         query: query.q,
         limit: query.limit,

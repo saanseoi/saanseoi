@@ -2,11 +2,10 @@ import { and, eq, inArray, sql } from 'drizzle-orm'
 
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
+  ensureDraftSnapshotForRelease,
   getDatasetRecordByReleaseId,
-  resolveReleaseSetForType,
   resolveShardForKindRegionYear,
-  upsertReleaseSetMember,
-  upsertReleaseSetShardAssignment,
+  upsertSnapshotSource,
   upsertReleaseShardAssignment,
 } from '@repo/core/db/meta-repository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -37,11 +36,16 @@ export type AddressVersionSnapshot = {
   versionHash: string
 }
 
+type AddressHashInput = Omit<
+  AddressRow,
+  'snapshotId' | 'createdAt' | 'updatedAt' | 'divisionSnapshotId' | 'streetSnapshotId'
+>
+
 export type AddressVersionInsertContext = {
   regionCode: RegionCode
   releaseId: string
   releaseRole: 'primary' | 'enrichment'
-  releaseSetId: string
+  snapshotId: string
   snapshotMonth: string
 }
 
@@ -53,9 +57,7 @@ export async function getCurrentAddressVersionMap(
   db: HarbourReadableDb,
   regionCode: RegionCode,
   options: {
-    buildAddressBaseHashInput: (
-      base: Omit<AddressRow, 'createdAt' | 'updatedAt'> | AddressRow,
-    ) => Omit<AddressRow, 'createdAt' | 'updatedAt'>
+    buildAddressBaseHashInput: (base: AddressHashInput) => AddressHashInput
     buildMatchKey: (input: {
       districtId: string | null
       streetNumber: string | null
@@ -187,11 +189,11 @@ export async function prepareAddressVersionInsertContext(
     throw new Error(`Release not found: ${message.releaseId ?? message.datasetId}`)
   }
 
-  const releaseSet = await resolveReleaseSetForType(metaDb, message.type)
-
-  if (!releaseSet) {
-    throw new Error(`Release set not found for type: ${message.type}`)
-  }
+  const snapshot = await ensureDraftSnapshotForRelease(
+    metaDb,
+    'address',
+    dataset.releaseCode,
+  )
 
   const year = message.sourceVersion.slice(0, 4)
   const currentShard = await resolveShardForKindRegionYear(
@@ -215,22 +217,20 @@ export async function prepareAddressVersionInsertContext(
 
   const releaseRole = dataset.source === 'hkgov' ? 'primary' : 'enrichment'
 
-  await upsertReleaseSetMember(
+  await upsertSnapshotSource(
     metaDb,
-    releaseSet.id,
+    snapshot.id,
     dataset.datasetId,
     dataset.releaseId,
     releaseRole,
   )
   await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
-  await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, currentShard.id)
-  await upsertReleaseSetShardAssignment(metaDb, releaseSet.id, historyShard.id)
 
   return {
     regionCode: message.regionCode,
     releaseId: dataset.releaseId,
     releaseRole,
-    releaseSetId: releaseSet.id,
+    snapshotId: snapshot.id,
     snapshotMonth: message.snapshotMonth,
   }
 }
@@ -238,7 +238,7 @@ export async function prepareAddressVersionInsertContext(
 export async function closeCurrentAddressVersions(
   db: HarbourWritableDb,
   addressIds: string[],
-  releaseSetId: string,
+  snapshotId: string,
   snapshotMonth: string,
 ) {
   if (addressIds.length === 0) {
@@ -253,7 +253,7 @@ export async function closeCurrentAddressVersions(
         .update(historySchema.address2dVersions)
         .set({
           isCurrent: false,
-          validToReleaseSetId: releaseSetId,
+          validToSnapshotId: snapshotId,
           validToMonth: snapshotMonth,
           updatedAt: now,
         })
@@ -269,9 +269,8 @@ export async function closeCurrentAddressVersions(
 }
 
 export async function deleteMissingCurrentAddresses(
-  currentDb: HarbourReadableDb & HarbourWritableDb,
   historyDb: HarbourReadableDb & HarbourWritableDb,
-  releaseSetId: string,
+  snapshotId: string,
   snapshotMonth: string,
   currentRows: Map<string, AddressVersionSnapshot>,
   seenIds: Set<string>,
@@ -288,7 +287,7 @@ export async function deleteMissingCurrentAddresses(
         .update(historySchema.address2dVersions)
         .set({
           isCurrent: false,
-          validToReleaseSetId: releaseSetId,
+          validToSnapshotId: snapshotId,
           validToMonth: snapshotMonth,
           updatedAt: new Date().toISOString(),
         })
@@ -298,18 +297,6 @@ export async function deleteMissingCurrentAddresses(
             inArray(historySchema.address2dVersions.id, chunk),
           ),
         )
-        .run(),
-    )
-    await runWithWriteRetry(() =>
-      currentDb
-        .delete(currentSchema.address2dI18n)
-        .where(inArray(currentSchema.address2dI18n.addressId, chunk))
-        .run(),
-    )
-    await runWithWriteRetry(() =>
-      currentDb
-        .delete(currentSchema.address2d)
-        .where(inArray(currentSchema.address2d.id, chunk))
         .run(),
     )
   }
@@ -331,8 +318,10 @@ export async function upsertAddressCurrentStates(
         .insert(currentSchema.address2d)
         .values(chunk)
         .onConflictDoUpdate({
-          target: currentSchema.address2d.id,
+          target: [currentSchema.address2d.snapshotId, currentSchema.address2d.id],
           set: {
+            divisionSnapshotId: excluded('divisionSnapshotId'),
+            streetSnapshotId: excluded('streetSnapshotId'),
             streetId: excluded('streetId'),
             hamletId: excluded('hamletId'),
             microhoodId: excluded('microhoodId'),
@@ -357,6 +346,7 @@ export async function upsertAddressCurrentStates(
 
 export async function replaceAddressCurrentI18n(
   db: HarbourWritableDb,
+  snapshotId: string,
   addressIds: string[],
   rows: NewAddressI18nRow[],
 ) {
@@ -368,7 +358,12 @@ export async function replaceAddressCurrentI18n(
     await runWithWriteRetry(() =>
       db
         .delete(currentSchema.address2dI18n)
-        .where(inArray(currentSchema.address2dI18n.addressId, chunk))
+        .where(
+          and(
+            eq(currentSchema.address2dI18n.snapshotId, snapshotId),
+            inArray(currentSchema.address2dI18n.addressId, chunk),
+          ),
+        )
         .run(),
     )
   }
@@ -388,9 +383,10 @@ export async function insertAddressVersionRows(
   >,
   i18nRows: Array<
     AddressI18nPayload & {
-      releaseId: string
-      validFromReleaseSetId: string
-      validToReleaseSetId: string | null
+      sourceReleaseId: string
+      snapshotId: string
+      validFromSnapshotId: string
+      validToSnapshotId: string | null
       isCurrent: boolean
       versionHash: string
       createdAt: string
@@ -411,9 +407,10 @@ export async function insertAddressVersionRows(
             id: row.id,
             regionCode: context.regionCode,
             versionHash: row.versionHash,
-            releaseId: context.releaseId,
-            validFromReleaseSetId: context.releaseSetId,
-            validToReleaseSetId: null,
+            sourceReleaseId: context.releaseId,
+            snapshotId: context.snapshotId,
+            validFromSnapshotId: context.snapshotId,
+            validToSnapshotId: null,
             validFromMonth: context.snapshotMonth,
             validToMonth: null,
             isCurrent: true,
@@ -442,10 +439,11 @@ export async function insertAddressVersionRows(
           ],
           set: {
             isCurrent: true,
-            releaseId: context.releaseId,
-            validFromReleaseSetId: context.releaseSetId,
+            sourceReleaseId: context.releaseId,
+            snapshotId: context.snapshotId,
+            validFromSnapshotId: context.snapshotId,
             validFromMonth: context.snapshotMonth,
-            validToReleaseSetId: null,
+            validToSnapshotId: null,
             validToMonth: null,
             updatedAt: excluded('updatedAt'),
           },
@@ -474,9 +472,10 @@ async function insertAddressVersionsI18nInChunks(
   db: HarbourWritableDb,
   rows: Array<
     AddressI18nPayload & {
-      releaseId: string
-      validFromReleaseSetId: string
-      validToReleaseSetId: string | null
+      sourceReleaseId: string
+      snapshotId: string
+      validFromSnapshotId: string
+      validToSnapshotId: string | null
       isCurrent: boolean
       versionHash: string
       createdAt: string

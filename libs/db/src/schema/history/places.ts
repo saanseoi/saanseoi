@@ -44,17 +44,18 @@ export const placesVersions = sqliteTable(
       table.id,
       table.isCurrent,
     ),
-    index('placesVersions_releaseSet_validity_idx').on(
+    index('placesVersions_snapshot_validity_idx').on(
       table.regionCode,
-      table.validFromReleaseSetId,
-      table.validToReleaseSetId,
+      table.validFromSnapshotId,
+      table.validToSnapshotId,
     ),
     index('placesVersions_validity_idx').on(
       table.regionCode,
       table.validFromMonth,
       table.validToMonth,
     ),
-    index('placesVersions_releaseId_idx').on(table.releaseId),
+    index('placesVersions_sourceReleaseId_idx').on(table.sourceReleaseId),
+    index('placesVersions_snapshotId_idx').on(table.snapshotId),
   ],
 )
 

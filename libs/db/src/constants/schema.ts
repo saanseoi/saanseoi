@@ -7,7 +7,8 @@ export const jsonApiResourceTypes = [
   'places',
   'place-divisions',
   'street-addresses',
-  'api-release-set-members',
+  'api-release-set-sources',
+  'api-release-set-snapshots',
 ] as const
 
 export const profileNames = ['compact', 'default', 'full', 'map'] as const
@@ -68,11 +69,20 @@ export const ingestRunStatuses = ['queued', 'running', 'completed', 'error'] as 
 export const apiVersionStatuses = ['draft', 'active', 'deprecated', 'retired'] as const
 
 export const apiReleaseSetStatuses = ['draft', 'active', 'archived'] as const
-export const apiReleaseSetMemberRoles = [
+export const snapshotFamilies = ['division', 'address', 'street', 'place'] as const
+export const snapshotStatuses = ['draft', 'published', 'archived'] as const
+export const apiReleaseSetSourceRoles = [
   'primary',
   'enrichment',
   'fallback',
   'lookup',
+] as const
+export const historyVersionEntityTypes = [
+  'division',
+  'address2d',
+  'address3d',
+  'street',
+  'place',
 ] as const
 export const apiEndpointMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const
 export const apiEndpointUsageTypes = [
@@ -112,7 +122,10 @@ export type ReleaseStatus = (typeof releaseStatuses)[number]
 export type IngestRunStatus = (typeof ingestRunStatuses)[number]
 export type ApiVersionStatus = (typeof apiVersionStatuses)[number]
 export type ApiReleaseSetStatus = (typeof apiReleaseSetStatuses)[number]
-export type ApiReleaseSetMemberRole = (typeof apiReleaseSetMemberRoles)[number]
+export type SnapshotFamily = (typeof snapshotFamilies)[number]
+export type SnapshotStatus = (typeof snapshotStatuses)[number]
+export type ApiReleaseSetSourceRole = (typeof apiReleaseSetSourceRoles)[number]
+export type HistoryVersionEntityType = (typeof historyVersionEntityTypes)[number]
 export type ApiEndpointMethod = (typeof apiEndpointMethods)[number]
 export type ApiEndpointUsageType = (typeof apiEndpointUsageTypes)[number]
 export type ProvenanceContributionType = (typeof provenanceContributionTypes)[number]

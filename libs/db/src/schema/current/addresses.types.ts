@@ -5,7 +5,10 @@ export type NewAddressRow = typeof address2d.$inferInsert
 
 export type AddressI18nRow = typeof address2dI18n.$inferSelect
 export type NewAddressI18nRow = typeof address2dI18n.$inferInsert
-export type AddressI18nPayload = Omit<AddressI18nRow, 'createdAt' | 'updatedAt'>
+export type AddressI18nPayload = Omit<
+  AddressI18nRow,
+  'snapshotId' | 'createdAt' | 'updatedAt'
+>
 
 export type Address3dRow = typeof address3d.$inferSelect
 export type NewAddress3dRow = typeof address3d.$inferInsert

@@ -704,19 +704,20 @@ function seedSourceRows(
 function seedHistoryRows(
   sqlite: SQLiteDatabase,
   releaseId = 'release-hkgov-hk-2026-06-24.0-address',
-  releaseSetId = 'release-set-1',
+  snapshotId = 'snapshot-1',
   addressId = 'address-1',
   address3dId = 'address3d-1',
 ) {
   sqlite.exec(`
     INSERT INTO address2dVersions (
-      id, regionCode, versionHash, releaseId, validFromReleaseSetId, validToReleaseSetId, validFromMonth, validToMonth, isCurrent, streetId, hamletId, microhoodId, villageId, neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox, identifiers, sources, createdAt, updatedAt
+      id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, validFromMonth, validToMonth, isCurrent, streetId, hamletId, microhoodId, villageId, neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox, identifiers, sources, createdAt, updatedAt
     ) VALUES (
       '${addressId}',
       'hk',
       'address-2d-version-1',
       '${releaseId}',
-      '${releaseSetId}',
+      '${snapshotId}',
+      '${snapshotId}',
       null,
       '2026-06',
       null,
@@ -740,18 +741,19 @@ function seedHistoryRows(
     );
 
     INSERT INTO address2dVersionsI18n (
-      addressId, versionHash, releaseId, validFromReleaseSetId, validToReleaseSetId, isCurrent, locale, formattedAddress, buildingName, buildingNumberFrom, buildingNumberTo, blockType, blockNumber, blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber, streetName, createdAt, updatedAt
+      addressId, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, isCurrent, locale, formattedAddress, buildingName, buildingNumberFrom, buildingNumberTo, blockType, blockNumber, blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber, streetName, createdAt, updatedAt
     ) VALUES
-      ('${addressId}', 'address-2d-version-1', '${releaseId}', '${releaseSetId}', null, 1, 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, '1', 'Example Road', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z'),
-      ('${addressId}', 'address-2d-version-1', '${releaseId}', '${releaseSetId}', null, 1, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, '1', '示例路', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z');
+      ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', '${snapshotId}', null, 1, 'en', '1 Example Road', null, null, null, null, null, null, null, null, '1', 'Example Road', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z'),
+      ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', '${snapshotId}', null, 1, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, '1', '示例路', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z');
 
     INSERT INTO address3dVersions (
-      id, versionHash, releaseId, validFromReleaseSetId, validToReleaseSetId, validFromMonth, validToMonth, isCurrent, address2dId, sources, createdAt, updatedAt
+      id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, validFromMonth, validToMonth, isCurrent, address2dId, sources, createdAt, updatedAt
     ) VALUES (
       '${address3dId}',
       'address-3d-version-1',
       '${releaseId}',
-      '${releaseSetId}',
+      '${snapshotId}',
+      '${snapshotId}',
       null,
       '2026-06',
       null,
@@ -763,12 +765,13 @@ function seedHistoryRows(
     );
 
     INSERT INTO address3dVersionsI18n (
-      address3dId, versionHash, releaseId, validFromReleaseSetId, validToReleaseSetId, isCurrent, locale, formattedAddressPart, accessHint, unitPortion, unitNumber, unitType, floorNumber, floorType, createdAt, updatedAt
+      address3dId, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, isCurrent, locale, formattedAddressPart, accessHint, unitPortion, unitNumber, unitType, floorNumber, floorType, createdAt, updatedAt
     ) VALUES (
       '${address3dId}',
       'address-3d-version-1',
       '${releaseId}',
-      '${releaseSetId}',
+      '${snapshotId}',
+      '${snapshotId}',
       null,
       1,
       'en',

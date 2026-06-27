@@ -31,17 +31,18 @@ export const divisionsVersions = sqliteTable(
       table.id,
       table.isCurrent,
     ),
-    index('divisionsVersions_releaseSet_validity_idx').on(
+    index('divisionsVersions_snapshot_validity_idx').on(
       table.regionCode,
-      table.validFromReleaseSetId,
-      table.validToReleaseSetId,
+      table.validFromSnapshotId,
+      table.validToSnapshotId,
     ),
     index('divisionsVersions_validity_idx').on(
       table.regionCode,
       table.validFromMonth,
       table.validToMonth,
     ),
-    index('divisionsVersions_releaseId_idx').on(table.releaseId),
+    index('divisionsVersions_sourceReleaseId_idx').on(table.sourceReleaseId),
+    index('divisionsVersions_snapshotId_idx').on(table.snapshotId),
   ],
 )
 

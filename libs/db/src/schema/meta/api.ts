@@ -12,12 +12,15 @@ import {
 import {
   apiEndpointMethods,
   apiEndpointUsageTypes,
-  apiReleaseSetMemberRoles,
+  apiReleaseSetSourceRoles,
   apiReleaseSetStatuses,
   apiVersionStatuses,
   datasetTypes,
+  historyVersionEntityTypes,
   provenanceContributionTypes,
   resolverCodes,
+  snapshotFamilies,
+  snapshotStatuses,
 } from '../../constants/schema'
 import { jsonText, primaryUuid, timestamps } from './_shared'
 import { metaDatasets, metaReleases } from './datasets'
@@ -28,6 +31,52 @@ export const metaApiVersions = sqliteTable('apiVersions', {
   status: text('status', { enum: apiVersionStatuses }).notNull(),
   ...timestamps,
 })
+
+export const metaSnapshots = sqliteTable(
+  'snapshots',
+  {
+    id: primaryUuid('id'),
+    family: text('family', { enum: snapshotFamilies }).notNull(),
+    code: text('code').notNull(),
+    status: text('status', { enum: snapshotStatuses }).notNull(),
+    publishedAt: integer('publishedAt', { mode: 'timestamp_ms' }),
+    validFrom: integer('validFrom', { mode: 'timestamp_ms' }),
+    validTo: integer('validTo', { mode: 'timestamp_ms' }),
+    notes: text('notes'),
+    ...timestamps,
+  },
+  table => [
+    uniqueIndex('snapshots_family_code_unique_idx').on(table.family, table.code),
+    index('snapshots_family_status_idx').on(table.family, table.status),
+  ],
+)
+
+export const metaSnapshotSources = sqliteTable(
+  'snapshotSources',
+  {
+    snapshotId: text('snapshotId')
+      .notNull()
+      .references(() => metaSnapshots.id, { onDelete: 'cascade' }),
+    datasetId: text('datasetId')
+      .notNull()
+      .references(() => metaDatasets.id, { onDelete: 'restrict' }),
+    sourceReleaseId: text('sourceReleaseId').notNull(),
+    role: text('role', { enum: apiReleaseSetSourceRoles }).notNull(),
+    createdAt: timestamps.createdAt,
+  },
+  table => [
+    primaryKey({
+      columns: [table.snapshotId, table.sourceReleaseId],
+    }),
+    foreignKey({
+      columns: [table.sourceReleaseId, table.datasetId],
+      foreignColumns: [metaReleases.id, metaReleases.datasetId],
+      name: 'snapshotSources_sourceReleaseId_datasetId_releases_id_datasetId_fk',
+    }).onDelete('restrict'),
+    index('snapshotSources_datasetId_idx').on(table.datasetId),
+    index('snapshotSources_sourceReleaseId_idx').on(table.sourceReleaseId),
+  ],
+)
 
 export const metaApiReleaseSets = sqliteTable(
   'apiReleaseSets',
@@ -55,8 +104,8 @@ export const metaApiReleaseSets = sqliteTable(
   ],
 )
 
-export const metaApiReleaseSetMembers = sqliteTable(
-  'apiReleaseSetMembers',
+export const metaApiReleaseSetSources = sqliteTable(
+  'apiReleaseSetSources',
   {
     apiReleaseSetId: text('apiReleaseSetId')
       .notNull()
@@ -64,20 +113,40 @@ export const metaApiReleaseSetMembers = sqliteTable(
     datasetId: text('datasetId')
       .notNull()
       .references(() => metaDatasets.id, { onDelete: 'restrict' }),
-    releaseId: text('releaseId').notNull(),
-    role: text('role', { enum: apiReleaseSetMemberRoles }).notNull(),
+    sourceReleaseId: text('sourceReleaseId').notNull(),
+    role: text('role', { enum: apiReleaseSetSourceRoles }).notNull(),
     createdAt: timestamps.createdAt,
   },
   table => [
     primaryKey({
-      columns: [table.apiReleaseSetId, table.releaseId],
+      columns: [table.apiReleaseSetId, table.sourceReleaseId],
     }),
     foreignKey({
-      columns: [table.releaseId, table.datasetId],
+      columns: [table.sourceReleaseId, table.datasetId],
       foreignColumns: [metaReleases.id, metaReleases.datasetId],
-      name: 'apiReleaseSetMembers_releaseId_datasetId_releases_id_datasetId_fk',
+      name: 'apiReleaseSetSources_sourceReleaseId_datasetId_releases_id_datasetId_fk',
     }).onDelete('restrict'),
-    index('apiReleaseSetMembers_datasetId_idx').on(table.datasetId),
+    index('apiReleaseSetSources_datasetId_idx').on(table.datasetId),
+  ],
+)
+
+export const metaApiReleaseSetSnapshots = sqliteTable(
+  'apiReleaseSetSnapshots',
+  {
+    apiReleaseSetId: text('apiReleaseSetId')
+      .notNull()
+      .references(() => metaApiReleaseSets.id, { onDelete: 'cascade' }),
+    snapshotFamily: text('snapshotFamily', { enum: snapshotFamilies }).notNull(),
+    snapshotId: text('snapshotId')
+      .notNull()
+      .references(() => metaSnapshots.id, { onDelete: 'restrict' }),
+    createdAt: timestamps.createdAt,
+  },
+  table => [
+    primaryKey({
+      columns: [table.apiReleaseSetId, table.snapshotFamily],
+    }),
+    index('apiReleaseSetSnapshots_snapshotId_idx').on(table.snapshotId),
   ],
 )
 
@@ -157,6 +226,37 @@ export const metaApiFieldProvenance = sqliteTable(
     index('apiFieldProvenance_release_field_idx').on(
       table.apiReleaseSetId,
       table.apiField,
+    ),
+  ],
+)
+
+export const metaHistoryVersionProvenance = sqliteTable(
+  'historyVersionProvenance',
+  {
+    snapshotId: text('snapshotId')
+      .notNull()
+      .references(() => metaSnapshots.id, { onDelete: 'cascade' }),
+    entityType: text('entityType', { enum: historyVersionEntityTypes }).notNull(),
+    entityId: text('entityId').notNull(),
+    versionHash: text('versionHash').notNull(),
+    sourceReleaseId: text('sourceReleaseId').notNull(),
+    createdAt: timestamps.createdAt,
+  },
+  table => [
+    primaryKey({
+      columns: [
+        table.snapshotId,
+        table.entityType,
+        table.entityId,
+        table.versionHash,
+        table.sourceReleaseId,
+      ],
+    }),
+    index('historyVersionProvenance_sourceReleaseId_idx').on(table.sourceReleaseId),
+    index('historyVersionProvenance_entity_idx').on(
+      table.entityType,
+      table.entityId,
+      table.versionHash,
     ),
   ],
 )

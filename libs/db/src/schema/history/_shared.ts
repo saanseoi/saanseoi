@@ -5,9 +5,10 @@ export const jsonText = (name: string) => text(name, { mode: 'json' })
 
 export const versioning = {
   versionHash: text('versionHash').notNull(),
-  releaseId: text('releaseId').notNull(),
-  validFromReleaseSetId: text('validFromReleaseSetId').notNull(),
-  validToReleaseSetId: text('validToReleaseSetId'),
+  sourceReleaseId: text('sourceReleaseId').notNull(),
+  snapshotId: text('snapshotId').notNull(),
+  validFromSnapshotId: text('validFromSnapshotId').notNull(),
+  validToSnapshotId: text('validToSnapshotId'),
   validFromMonth: text('validFromMonth').notNull(),
   validToMonth: text('validToMonth'),
   isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
@@ -15,9 +16,10 @@ export const versioning = {
 
 export const i18nVersioning = {
   versionHash: text('versionHash').notNull(),
-  releaseId: text('releaseId').notNull(),
-  validFromReleaseSetId: text('validFromReleaseSetId').notNull(),
-  validToReleaseSetId: text('validToReleaseSetId'),
+  sourceReleaseId: text('sourceReleaseId').notNull(),
+  snapshotId: text('snapshotId').notNull(),
+  validFromSnapshotId: text('validFromSnapshotId').notNull(),
+  validToSnapshotId: text('validToSnapshotId'),
   isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
 }
 

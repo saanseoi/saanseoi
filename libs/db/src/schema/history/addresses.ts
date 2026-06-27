@@ -33,17 +33,18 @@ export const address2dVersions = sqliteTable(
       table.id,
       table.isCurrent,
     ),
-    index('address2dVersions_releaseSet_validity_idx').on(
+    index('address2dVersions_snapshot_validity_idx').on(
       table.regionCode,
-      table.validFromReleaseSetId,
-      table.validToReleaseSetId,
+      table.validFromSnapshotId,
+      table.validToSnapshotId,
     ),
     index('address2dVersions_validity_idx').on(
       table.regionCode,
       table.validFromMonth,
       table.validToMonth,
     ),
-    index('address2dVersions_releaseId_idx').on(table.releaseId),
+    index('address2dVersions_sourceReleaseId_idx').on(table.sourceReleaseId),
+    index('address2dVersions_snapshotId_idx').on(table.snapshotId),
   ],
 )
 
@@ -94,15 +95,16 @@ export const address3dVersions = sqliteTable(
       columns: [table.id, table.versionHash],
     }),
     index('address3dVersions_current_lookup_idx').on(table.id, table.isCurrent),
-    index('address3dVersions_releaseSet_validity_idx').on(
-      table.validFromReleaseSetId,
-      table.validToReleaseSetId,
+    index('address3dVersions_snapshot_validity_idx').on(
+      table.validFromSnapshotId,
+      table.validToSnapshotId,
     ),
     index('address3dVersions_validity_idx').on(
       table.validFromMonth,
       table.validToMonth,
     ),
-    index('address3dVersions_releaseId_idx').on(table.releaseId),
+    index('address3dVersions_sourceReleaseId_idx').on(table.sourceReleaseId),
+    index('address3dVersions_snapshotId_idx').on(table.snapshotId),
     index('address3dVersions_address2dId_idx').on(table.address2dId),
   ],
 )

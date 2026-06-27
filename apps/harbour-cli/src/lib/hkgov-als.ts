@@ -51,6 +51,7 @@ type DivisionLookupMaps = {
   countryId: string | null
   districtByEn: Map<string, string>
   districtByZh: Map<string, string>
+  snapshotId: string
 }
 
 type HkgovAlsGeoJson = {
@@ -115,6 +116,7 @@ type PreparedHkgovAlsRow = {
   geometry: string | null
   identifiers: string | null
   sources: string
+  divisionSnapshotId: string
   areaId: string | null
   districtId: string | null
   countryId: string | null
@@ -260,6 +262,11 @@ export async function prepareHkgovAlsAddressParquet(
       jsonColumn(
         'sources',
         rows.map(row => row.sources),
+        false,
+      ),
+      stringColumn(
+        'divisionSnapshotId',
+        rows.map(row => row.divisionSnapshotId),
         false,
       ),
       stringColumn(
@@ -437,6 +444,7 @@ function normalizeHkgovAlsFeature(
     geometry: stringifyJson(feature.geometry ?? null),
     identifiers: csuId ? stringifyJson({ hkgovCsuId: csuId }) : null,
     sources,
+    divisionSnapshotId: divisionMaps.snapshotId,
     areaId,
     districtId,
     countryId: divisionMaps.countryId,
@@ -490,9 +498,18 @@ function loadDivisionLookupRowsFromSqlite(explicitDbPath: string) {
     return sqlite
       .query(
         `
-          SELECT d.id, d.level, d.type, di.locale, di.name
+          WITH latest_snapshot AS (
+            SELECT snapshotId
+            FROM divisions
+            ORDER BY createdAt DESC, snapshotId DESC
+            LIMIT 1
+          )
+          SELECT d.snapshotId, d.id, d.level, d.type, di.locale, di.name
           FROM divisions d
-          JOIN divisionsI18n di ON di.divisionId = d.id
+          JOIN latest_snapshot ls ON ls.snapshotId = d.snapshotId
+          JOIN divisionsI18n di
+            ON di.snapshotId = d.snapshotId
+           AND di.divisionId = d.id
           WHERE di.locale IN ('en', 'zh-hant')
         `,
       )
@@ -519,9 +536,18 @@ async function loadDivisionLookupRowsFromWrangler(
     '--json',
     '--command',
     `
-      SELECT d.id, d.level, d.type, di.locale, di.name
+      WITH latest_snapshot AS (
+        SELECT snapshotId
+        FROM divisions
+        ORDER BY createdAt DESC, snapshotId DESC
+        LIMIT 1
+      )
+      SELECT d.snapshotId, d.id, d.level, d.type, di.locale, di.name
       FROM divisions d
-      JOIN divisionsI18n di ON di.divisionId = d.id
+      JOIN latest_snapshot ls ON ls.snapshotId = d.snapshotId
+      JOIN divisionsI18n di
+        ON di.snapshotId = d.snapshotId
+       AND di.divisionId = d.id
       WHERE di.locale IN ('en', 'zh-hant')
     `,
   ]
@@ -598,6 +624,7 @@ export function resolveDivisionLookupSource(
 }
 
 type DivisionLookupRow = {
+  snapshotId: string
   id: string
   level: number
   locale: string
@@ -611,6 +638,11 @@ function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookup
   const districtByEn = new Map<string, string>()
   const districtByZh = new Map<string, string>()
   let countryId: string | null = null
+  const snapshotId = rows[0]?.snapshotId ?? null
+
+  if (!snapshotId) {
+    throw new Error('No published division snapshot found in current database.')
+  }
 
   for (const row of rows) {
     if (!row.name) {
@@ -652,6 +684,7 @@ function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookup
     countryId,
     districtByEn,
     districtByZh,
+    snapshotId,
   }
 }
 
