@@ -23,6 +23,11 @@ type SignUploadResponse = {
 }
 
 type UploadResponse = Record<string, unknown>
+const TRANSIENT_UPLOAD_RESPONSE_STATUSES = new Set([502, 503, 504])
+const DIRECT_UPLOAD_RETRY_LIMIT = 2
+const DIRECT_UPLOAD_RETRY_DELAY_MS = 250
+const DIRECT_UPLOAD_RECOVERY_POLL_LIMIT = 8
+const DIRECT_UPLOAD_RECOVERY_POLL_DELAY_MS = 500
 
 function resolveShardYear(snapshotMonth: string, sourceVersion: string) {
   const snapshotYear = snapshotMonth.slice(0, 4)
@@ -68,7 +73,7 @@ export async function dispatchUpload(
   const apiBaseUrl = resolveHarbourApiUrl(target)
 
   if (!target.remote) {
-    return uploadFileViaWorker(apiBaseUrl, registerOptions, previewResult)
+    return uploadFileViaWorker(apiBaseUrl, target, registerOptions, previewResult)
   }
 
   const fileBytes = await readFile(registerOptions.filePath)
@@ -87,8 +92,10 @@ export async function dispatchUpload(
 
 async function uploadFileViaWorker(
   apiBaseUrl: string,
+  target: UploadTarget,
   registerOptions: CliUploadOptions,
   previewResult: UploadPreviewResult,
+  attempt = 0,
 ) {
   const shardYear = resolveShardYear(
     previewResult.plan.snapshotMonth,
@@ -109,11 +116,64 @@ async function uploadFileViaWorker(
   formData.set('source', previewResult.plan.source)
   formData.set('sourceVersion', previewResult.plan.sourceVersion)
 
-  const response = await fetch(buildDirectUploadEndpoint(apiBaseUrl), {
-    method: 'POST',
-    body: formData,
-    headers: getAuthHeaders(),
-  })
+  let response: Response
+
+  try {
+    response = await fetch(buildDirectUploadEndpoint(apiBaseUrl), {
+      method: 'POST',
+      body: formData,
+      headers: getAuthHeaders(),
+    })
+  } catch (error) {
+    if (attempt >= DIRECT_UPLOAD_RETRY_LIMIT) {
+      throw error
+    }
+
+    const recovered = await tryRecoverDirectUpload(
+      target,
+      previewResult.plan.releaseCode,
+    )
+
+    if (recovered) {
+      return recovered
+    }
+
+    await sleep(DIRECT_UPLOAD_RETRY_DELAY_MS * (attempt + 1))
+    return uploadFileViaWorker(
+      apiBaseUrl,
+      target,
+      registerOptions,
+      previewResult,
+      attempt + 1,
+    )
+  }
+
+  if (response.ok) {
+    return parseJsonResponse<Record<string, unknown>>(response, 'Harbour upload')
+  }
+
+  if (
+    TRANSIENT_UPLOAD_RESPONSE_STATUSES.has(response.status) &&
+    attempt < DIRECT_UPLOAD_RETRY_LIMIT
+  ) {
+    const recovered = await tryRecoverDirectUpload(
+      target,
+      previewResult.plan.releaseCode,
+    )
+
+    if (recovered) {
+      return recovered
+    }
+
+    await sleep(DIRECT_UPLOAD_RETRY_DELAY_MS * (attempt + 1))
+    return uploadFileViaWorker(
+      apiBaseUrl,
+      target,
+      registerOptions,
+      previewResult,
+      attempt + 1,
+    )
+  }
 
   return parseJsonResponse<Record<string, unknown>>(response, 'Harbour upload')
 }
@@ -199,6 +259,50 @@ async function postReleaseAction(endpoint: string, releaseId: string, action: st
   })
 
   return parseJsonResponse<UploadResponse>(response, action)
+}
+
+async function tryRecoverDirectUpload(
+  target: UploadTarget,
+  releaseCode: string,
+): Promise<UploadResponse | null> {
+  for (let attempt = 0; attempt < DIRECT_UPLOAD_RECOVERY_POLL_LIMIT; attempt += 1) {
+    try {
+      const report = await fetchReleaseReport(target, {
+        limit: 1,
+        releaseCode,
+      })
+      const release = report.rows[0]
+
+      if (
+        release &&
+        ['staged', 'processing', 'published', 'superseded'].includes(release.status)
+      ) {
+        return {
+          datasetCode: release.datasetCode,
+          datasetId: release.datasetId,
+          rawObjectKey: release.rawObjectKey,
+          releaseCode: release.releaseCode,
+          releaseId: release.releaseId,
+          source: release.source,
+          sourceVersion: release.sourceVersion,
+          status: release.status,
+          type: release.type,
+        }
+      }
+    } catch {
+      // Ignore report probe failures and keep polling within the recovery window.
+    }
+
+    if (attempt < DIRECT_UPLOAD_RECOVERY_POLL_LIMIT - 1) {
+      await sleep(DIRECT_UPLOAD_RECOVERY_POLL_DELAY_MS)
+    }
+  }
+
+  return null
+}
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 export async function resolveRelease(target: UploadTarget, releaseSpecifier: string) {
