@@ -267,17 +267,35 @@ export async function handleRequeueUploadRequest(
 
   const processingMessage = buildDatasetProcessingMessage(dataset)
 
-  await queue.send(processingMessage)
+  const queuedAt = new Date().toISOString()
   await upsertIngestRunStatus(
     db,
     dataset.releaseId,
     'processDataset',
     'queued',
-    new Date().toISOString(),
+    queuedAt,
     null,
     null,
     null,
   )
+
+  try {
+    await queue.send(processingMessage)
+  } catch (error) {
+    await upsertIngestRunStatus(
+      db,
+      dataset.releaseId,
+      'processDataset',
+      'error',
+      queuedAt,
+      new Date().toISOString(),
+      null,
+      JSON.stringify({
+        message: error instanceof Error ? error.message : String(error),
+      }),
+    )
+    throw error
+  }
 
   return dataset
 }
