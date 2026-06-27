@@ -581,7 +581,26 @@ async function insertDivisionVersionsI18nInChunks(
       db
         .insert(historySchema.divisionsVersionsI18n)
         .values(chunk)
-        .onConflictDoNothing(),
+        .onConflictDoUpdate({
+          target: [
+            historySchema.divisionsVersionsI18n.divisionId,
+            historySchema.divisionsVersionsI18n.versionHash,
+            historySchema.divisionsVersionsI18n.locale,
+          ],
+          set: {
+            releaseId: excluded('releaseId'),
+            validFromReleaseSetId: excluded('validFromReleaseSetId'),
+            validToReleaseSetId: null,
+            isCurrent: true,
+            name: excluded('name'),
+            nameAlts: excluded('nameAlts'),
+            nameRules: excluded('nameRules'),
+            nameVariant: excluded('nameVariant'),
+            localType: excluded('localType'),
+            isLocaleInferred: excluded('isLocaleInferred'),
+            updatedAt: excluded('updatedAt'),
+          },
+        }),
     )
   }
 

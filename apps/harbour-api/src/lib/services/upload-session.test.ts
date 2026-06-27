@@ -263,6 +263,115 @@ describe('upload session flow', () => {
     sqlite.close()
 
     expect(requeued.releaseCode).toBe('overture-hk-2026-05-24.0-division')
+    expect(requeued.rowCount).toBe(3)
+    expect(requeued.status).toBe('queued')
+    expect(processRun).toMatchObject({
+      phase: 'processDataset',
+      status: 'queued',
+      error: null,
+      finishedAt: null,
+    })
+    expect(inspectParquetMock).toHaveBeenCalledTimes(0)
+    expect(queuedMessages).toEqual([
+      {
+        datasetId: 'overture-hk-division',
+        datasetCode: 'hk-division',
+        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        releaseCode: 'overture-hk-2026-05-24.0-division',
+        releaseId: signResult.releaseId,
+        regionCode: 'hk',
+        shardYear: '2026',
+        snapshotMonth: '2026-05',
+        source: 'overture',
+        sourceVersion: '2026-05-24.0',
+        theme: 'divisions',
+        type: 'division',
+      },
+    ])
+  })
+
+  test('requeues a failed release by reopening the processDataset ingest run', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-requeue-failed.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const bucket = new FakeR2Bucket()
+
+    const signResult = await handleSignUploadRequest(db, bucket, signingEnv, {
+      contentType: 'application/octet-stream',
+      fileName: 'overture-hk-division.parquet',
+      fileSize: fixtureBytes.byteLength,
+      inspection: fixtureInspection,
+      plan: {
+        shardYear: '2026',
+        snapshotMonth: '2026-05',
+        sourceVersion: '2026-05-24.0',
+      },
+      schemaVersionId: 'overture-division-v2025-09-24.0',
+    })
+
+    await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
+    await handleFinalizeUploadRequest(db, bucket, queue, {
+      releaseId: signResult.releaseId,
+    })
+
+    sqlite
+      .query('UPDATE releases SET status = ?, updatedAt = ? WHERE id = ?')
+      .run('failed', '2026-06-24T12:00:00.000Z', signResult.releaseId)
+    sqlite
+      .query(
+        `
+          INSERT INTO ingestRuns (
+            runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(releaseId, phase) DO UPDATE SET
+            status = excluded.status,
+            stats = excluded.stats,
+            error = excluded.error,
+            startedAt = excluded.startedAt,
+            finishedAt = excluded.finishedAt,
+            updatedAt = excluded.updatedAt
+        `,
+      )
+      .run(
+        'process-run-failed',
+        signResult.releaseId,
+        'processDataset',
+        'error',
+        JSON.stringify({
+          processedRows: 1,
+        }),
+        JSON.stringify({
+          message: 'previous failure',
+        }),
+        '2026-06-24T12:00:00.000Z',
+        '2026-06-24T12:05:00.000Z',
+        '2026-06-24T12:00:00.000Z',
+        '2026-06-24T12:05:00.000Z',
+      )
+
+    inspectParquetMock.mockClear()
+    queuedMessages.length = 0
+
+    const requeued = await handleRequeueUploadRequest(db, queue, {
+      releaseId: signResult.releaseId,
+    })
+    const processRun = sqlite
+      .query(
+        'SELECT phase, status, error, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+      )
+      .get(signResult.releaseId, 'processDataset') as {
+      error: string | null
+      finishedAt: string | null
+      phase: string
+      status: string
+    } | null
+
+    sqlite.close()
+
+    expect(requeued.releaseCode).toBe('overture-hk-2026-05-24.0-division')
+    expect(requeued.rowCount).toBe(3)
+    expect(requeued.status).toBe('queued')
     expect(processRun).toMatchObject({
       phase: 'processDataset',
       status: 'queued',
