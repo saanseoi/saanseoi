@@ -187,4 +187,72 @@ describe('processDatasetMessage', () => {
     )
     expect(stageFailed).toHaveBeenCalledTimes(0)
   })
+
+  test('attempts to mark every active phase failed even if one cleanup callback throws', async () => {
+    const processDivisionDataset = mock(async () => {
+      throw new Error('Division processing blew up.')
+    })
+    const stageStarted = mock(async () => undefined)
+    const stageCompleted = mock(async () => undefined)
+    const stageFailed = mock(async (_releaseId: string, phase: string) => {
+      if (phase === 'extractDivisions') {
+        throw new Error('Control API temporarily unavailable.')
+      }
+    })
+    const publishDataset = mock(async () => undefined)
+    const processDatasetMessage = createProcessDatasetMessage(
+      mock(async () => {
+        throw new Error('address processor should not be called')
+      }) as never,
+      processDivisionDataset as never,
+    )
+
+    await expect(
+      processDatasetMessage(
+        {
+          publishDataset,
+          stageCompleted,
+          stageFailed,
+          stageStarted,
+        },
+        {} as never,
+        {} as never,
+        {} as never,
+        {
+          async head() {
+            return { size: 1 }
+          },
+          async get() {
+            return {
+              async arrayBuffer() {
+                return new ArrayBuffer(0)
+              },
+            }
+          },
+        },
+        {
+          datasetId: 'overture-hk-2026-05-24.0-division',
+          releaseCode: 'overture-hk-2026-05-24.0-division',
+          releaseId: 'release-overture-hk-2026-05-24.0-division',
+          rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+          regionCode: 'hk',
+          snapshotMonth: '2026-05',
+          source: 'overture',
+          sourceVersion: '2026-05-24.0',
+          theme: 'divisions',
+          type: 'division',
+        },
+      ),
+    ).rejects.toThrow('cleanup was incomplete')
+
+    expect(
+      stageFailed.mock.calls.map(call => call.slice(0, 2)) as unknown as Array<
+        [string, string]
+      >,
+    ).toEqual([
+      ['release-overture-hk-2026-05-24.0-division', 'extractDivisions'],
+      ['release-overture-hk-2026-05-24.0-division', 'extractDivisionsI18n'],
+      ['release-overture-hk-2026-05-24.0-division', 'processDataset'],
+    ])
+  })
 })

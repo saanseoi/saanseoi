@@ -1,6 +1,5 @@
 import {
   ensureIngestRunStarted,
-  failOtherRunningIngestRunsForDataset,
   getCurrentReleaseForDatasetId,
   getDatasetRecordByReleaseId,
   markDatasetCurrent,
@@ -39,13 +38,6 @@ export async function handleStageStarted(
   const now = new Date().toISOString()
 
   if (request.phase === 'processDataset') {
-    await failOtherRunningIngestRunsForDataset(
-      db,
-      dataset.datasetId,
-      dataset.releaseId,
-      now,
-      `Superseded by newer release ${dataset.releaseCode} starting processing before the prior release finished.`,
-    )
     await updateDatasetStatus(db, dataset.releaseId, 'processing')
   }
 
