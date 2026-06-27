@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "54b98153-d9d6-4ef2-a278-4dfad11a921b",
+  "id": "96439194-f050-4e96-910f-54862343a02f",
   "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
@@ -80,7 +80,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "releaseId",
+      "name": "sourceReleaseId",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -90,7 +90,17 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validFromReleaseSetId",
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "divisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromSnapshotId",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -100,7 +110,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validToReleaseSetId",
+      "name": "validToSnapshotId",
       "entityType": "columns",
       "table": "divisionsVersions"
     },
@@ -300,7 +310,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "releaseId",
+      "name": "sourceReleaseId",
       "entityType": "columns",
       "table": "divisionsVersionsI18n"
     },
@@ -310,7 +320,17 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validFromReleaseSetId",
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "divisionsVersionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromSnapshotId",
       "entityType": "columns",
       "table": "divisionsVersionsI18n"
     },
@@ -320,7 +340,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validToReleaseSetId",
+      "name": "validToSnapshotId",
       "entityType": "columns",
       "table": "divisionsVersionsI18n"
     },
@@ -460,7 +480,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "releaseId",
+      "name": "sourceReleaseId",
       "entityType": "columns",
       "table": "address2dVersions"
     },
@@ -470,7 +490,17 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validFromReleaseSetId",
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromSnapshotId",
       "entityType": "columns",
       "table": "address2dVersions"
     },
@@ -480,7 +510,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validToReleaseSetId",
+      "name": "validToSnapshotId",
       "entityType": "columns",
       "table": "address2dVersions"
     },
@@ -700,7 +730,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "releaseId",
+      "name": "sourceReleaseId",
       "entityType": "columns",
       "table": "address2dVersionsI18n"
     },
@@ -710,7 +740,17 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validFromReleaseSetId",
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address2dVersionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromSnapshotId",
       "entityType": "columns",
       "table": "address2dVersionsI18n"
     },
@@ -720,7 +760,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validToReleaseSetId",
+      "name": "validToSnapshotId",
       "entityType": "columns",
       "table": "address2dVersionsI18n"
     },
@@ -910,7 +950,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "releaseId",
+      "name": "sourceReleaseId",
       "entityType": "columns",
       "table": "address3dVersions"
     },
@@ -920,7 +960,17 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validFromReleaseSetId",
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address3dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromSnapshotId",
       "entityType": "columns",
       "table": "address3dVersions"
     },
@@ -930,7 +980,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validToReleaseSetId",
+      "name": "validToSnapshotId",
       "entityType": "columns",
       "table": "address3dVersions"
     },
@@ -1030,7 +1080,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "releaseId",
+      "name": "sourceReleaseId",
       "entityType": "columns",
       "table": "address3dVersionsI18n"
     },
@@ -1040,7 +1090,17 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validFromReleaseSetId",
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address3dVersionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromSnapshotId",
       "entityType": "columns",
       "table": "address3dVersionsI18n"
     },
@@ -1050,7 +1110,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validToReleaseSetId",
+      "name": "validToSnapshotId",
       "entityType": "columns",
       "table": "address3dVersionsI18n"
     },
@@ -1190,7 +1250,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "releaseId",
+      "name": "sourceReleaseId",
       "entityType": "columns",
       "table": "streetsVersions"
     },
@@ -1200,7 +1260,17 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validFromReleaseSetId",
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streetsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromSnapshotId",
       "entityType": "columns",
       "table": "streetsVersions"
     },
@@ -1210,7 +1280,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validToReleaseSetId",
+      "name": "validToSnapshotId",
       "entityType": "columns",
       "table": "streetsVersions"
     },
@@ -1310,7 +1380,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "releaseId",
+      "name": "sourceReleaseId",
       "entityType": "columns",
       "table": "streetsVersionsI18n"
     },
@@ -1320,7 +1390,17 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validFromReleaseSetId",
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streetsVersionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromSnapshotId",
       "entityType": "columns",
       "table": "streetsVersionsI18n"
     },
@@ -1330,7 +1410,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validToReleaseSetId",
+      "name": "validToSnapshotId",
       "entityType": "columns",
       "table": "streetsVersionsI18n"
     },
@@ -1470,7 +1550,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "releaseId",
+      "name": "sourceReleaseId",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1480,7 +1560,17 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validFromReleaseSetId",
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "placesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromSnapshotId",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1490,7 +1580,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validToReleaseSetId",
+      "name": "validToSnapshotId",
       "entityType": "columns",
       "table": "placesVersions"
     },
@@ -1750,7 +1840,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "releaseId",
+      "name": "sourceReleaseId",
       "entityType": "columns",
       "table": "placesVersionsI18n"
     },
@@ -1760,7 +1850,17 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validFromReleaseSetId",
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "placesVersionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromSnapshotId",
       "entityType": "columns",
       "table": "placesVersionsI18n"
     },
@@ -1770,7 +1870,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validToReleaseSetId",
+      "name": "validToSnapshotId",
       "entityType": "columns",
       "table": "placesVersionsI18n"
     },
@@ -1983,18 +2083,18 @@
           "isExpression": false
         },
         {
-          "value": "validFromReleaseSetId",
+          "value": "validFromSnapshotId",
           "isExpression": false
         },
         {
-          "value": "validToReleaseSetId",
+          "value": "validToSnapshotId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "divisionsVersions_releaseSet_validity_idx",
+      "name": "divisionsVersions_snapshot_validity_idx",
       "entityType": "indexes",
       "table": "divisionsVersions"
     },
@@ -2023,14 +2123,28 @@
     {
       "columns": [
         {
-          "value": "releaseId",
+          "value": "sourceReleaseId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "divisionsVersions_releaseId_idx",
+      "name": "divisionsVersions_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "divisionsVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionsVersions_snapshotId_idx",
       "entityType": "indexes",
       "table": "divisionsVersions"
     },
@@ -2117,18 +2231,18 @@
           "isExpression": false
         },
         {
-          "value": "validFromReleaseSetId",
+          "value": "validFromSnapshotId",
           "isExpression": false
         },
         {
-          "value": "validToReleaseSetId",
+          "value": "validToSnapshotId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "address2dVersions_releaseSet_validity_idx",
+      "name": "address2dVersions_snapshot_validity_idx",
       "entityType": "indexes",
       "table": "address2dVersions"
     },
@@ -2157,14 +2271,28 @@
     {
       "columns": [
         {
-          "value": "releaseId",
+          "value": "sourceReleaseId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "address2dVersions_releaseId_idx",
+      "name": "address2dVersions_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "address2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2dVersions_snapshotId_idx",
       "entityType": "indexes",
       "table": "address2dVersions"
     },
@@ -2225,18 +2353,18 @@
     {
       "columns": [
         {
-          "value": "validFromReleaseSetId",
+          "value": "validFromSnapshotId",
           "isExpression": false
         },
         {
-          "value": "validToReleaseSetId",
+          "value": "validToSnapshotId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "address3dVersions_releaseSet_validity_idx",
+      "name": "address3dVersions_snapshot_validity_idx",
       "entityType": "indexes",
       "table": "address3dVersions"
     },
@@ -2261,14 +2389,28 @@
     {
       "columns": [
         {
-          "value": "releaseId",
+          "value": "sourceReleaseId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "address3dVersions_releaseId_idx",
+      "name": "address3dVersions_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "address3dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3dVersions_snapshotId_idx",
       "entityType": "indexes",
       "table": "address3dVersions"
     },
@@ -2343,18 +2485,18 @@
     {
       "columns": [
         {
-          "value": "validFromReleaseSetId",
+          "value": "validFromSnapshotId",
           "isExpression": false
         },
         {
-          "value": "validToReleaseSetId",
+          "value": "validToSnapshotId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "streetsVersions_releaseSet_validity_idx",
+      "name": "streetsVersions_snapshot_validity_idx",
       "entityType": "indexes",
       "table": "streetsVersions"
     },
@@ -2379,14 +2521,28 @@
     {
       "columns": [
         {
-          "value": "releaseId",
+          "value": "sourceReleaseId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "streetsVersions_releaseId_idx",
+      "name": "streetsVersions_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "streetsVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetsVersions_snapshotId_idx",
       "entityType": "indexes",
       "table": "streetsVersions"
     },
@@ -2473,18 +2629,18 @@
           "isExpression": false
         },
         {
-          "value": "validFromReleaseSetId",
+          "value": "validFromSnapshotId",
           "isExpression": false
         },
         {
-          "value": "validToReleaseSetId",
+          "value": "validToSnapshotId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "placesVersions_releaseSet_validity_idx",
+      "name": "placesVersions_snapshot_validity_idx",
       "entityType": "indexes",
       "table": "placesVersions"
     },
@@ -2513,14 +2669,28 @@
     {
       "columns": [
         {
-          "value": "releaseId",
+          "value": "sourceReleaseId",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "placesVersions_releaseId_idx",
+      "name": "placesVersions_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "placesVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "placesVersions_snapshotId_idx",
       "entityType": "indexes",
       "table": "placesVersions"
     },
