@@ -1,8 +1,11 @@
 import { readFile, stat } from 'node:fs/promises'
 
+import { isReleaseId } from '@repo/core'
 import type { prepareUpload } from '@repo/core/upload-local'
 
-import type { CliUploadOptions, ParsedArgs, UploadTarget } from './options.ts'
+import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
+import { fetchReleaseReport } from './reporting.ts'
+import type { CliUploadOptions, UploadTarget } from './options.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 
@@ -19,9 +22,7 @@ type SignUploadResponse = {
   uploadUrl: string
 }
 
-function normalizeBaseUrl(value: string) {
-  return value.trim().replace(/\/+$/, '')
-}
+type UploadResponse = Record<string, unknown>
 
 function resolveShardYear(snapshotMonth: string, sourceVersion: string) {
   const snapshotYear = snapshotMonth.slice(0, 4)
@@ -42,53 +43,6 @@ function resolveShardYear(snapshotMonth: string, sourceVersion: string) {
   return snapshotYear
 }
 
-export function resolveHarbourBaseUrl(target: UploadTarget) {
-  switch (target.environment) {
-    case 'dev':
-      return 'http://localhost:8788'
-    case 'preview':
-      return 'https://preview.harbour.saanseoi.hk'
-    case 'production':
-      return 'https://harbour.saanseoi.hk'
-  }
-}
-
-export function resolveHarbourApiUrl(args: ParsedArgs, target: UploadTarget) {
-  const explicitUrl =
-    typeof args.options.api === 'string' ? args.options.api.trim() : undefined
-
-  if (explicitUrl) {
-    return normalizeBaseUrl(explicitUrl)
-  }
-
-  const genericBaseUrl =
-    process.env.HARBOUR_BASE_URL?.trim() ?? process.env.HARBOUR_API_URL?.trim()
-
-  switch (target.environment) {
-    case 'dev':
-      return normalizeBaseUrl(
-        process.env.HARBOUR_BASE_URL_DEV?.trim() ??
-          process.env.HARBOUR_API_URL_DEV?.trim() ??
-          genericBaseUrl ??
-          resolveHarbourBaseUrl(target),
-      )
-    case 'preview':
-      return normalizeBaseUrl(
-        process.env.HARBOUR_BASE_URL_PREVIEW?.trim() ??
-          process.env.HARBOUR_API_URL_PREVIEW?.trim() ??
-          genericBaseUrl ??
-          resolveHarbourBaseUrl(target),
-      )
-    case 'production':
-      return normalizeBaseUrl(
-        process.env.HARBOUR_BASE_URL_PRODUCTION?.trim() ??
-          process.env.HARBOUR_API_URL_PRODUCTION?.trim() ??
-          genericBaseUrl ??
-          resolveHarbourBaseUrl(target),
-      )
-  }
-}
-
 export function buildSignUploadEndpoint(apiBaseUrl: string) {
   return `${apiBaseUrl}/v1/signUpload`
 }
@@ -101,39 +55,13 @@ export function buildFinalizeUploadEndpoint(apiBaseUrl: string) {
   return `${apiBaseUrl}/v1/finalizeUpload`
 }
 
-function getAuthHeaders() {
-  const apiKey = process.env.HARBOUR_API_KEY?.trim()
-
-  if (!apiKey) {
-    throw new Error('Missing HARBOUR_API_KEY for authenticated Harbour API requests.')
-  }
-
-  return {
-    'x-api-key': apiKey,
-  }
-}
-
 export async function dispatchUpload(
-  args: ParsedArgs,
   target: UploadTarget,
   registerOptions: CliUploadOptions,
   previewResult: UploadPreviewResult,
   schemaVersionId: string,
 ) {
-  const apiBaseUrl = resolveHarbourApiUrl(args, target)
-
-  if (!apiBaseUrl) {
-    const envSuffix =
-      target.environment === 'preview'
-        ? '_PREVIEW'
-        : target.environment === 'production'
-          ? '_PRODUCTION'
-          : '_DEV'
-
-    throw new Error(
-      `Missing Harbour API URL for ${target.environment}. Pass --api or set HARBOUR_API_URL${envSuffix}.`,
-    )
-  }
+  const apiBaseUrl = resolveHarbourApiUrl(target)
 
   if (!target.remote) {
     return uploadFileViaWorker(apiBaseUrl, registerOptions, previewResult)
@@ -250,7 +178,56 @@ async function finalizeUpload(apiBaseUrl: string, releaseId: string) {
     }),
   })
 
-  return parseJsonResponse<Record<string, unknown>>(response, 'Harbour finalizeUpload')
+  return parseJsonResponse<UploadResponse>(response, 'Harbour finalizeUpload')
+}
+
+export async function resolveFinalizeRelease(
+  target: UploadTarget,
+  releaseSpecifier: string,
+) {
+  const trimmedSpecifier = releaseSpecifier.trim()
+
+  if (!trimmedSpecifier) {
+    throw new Error(
+      'Missing release identifier. Pass `--release <release-id|release-code>`.',
+    )
+  }
+
+  const report = await fetchReleaseReport(target, {
+    limit: 1,
+    ...(isReleaseId(trimmedSpecifier)
+      ? { releaseId: trimmedSpecifier }
+      : { releaseCode: trimmedSpecifier }),
+  })
+  const [release] = report.rows
+
+  if (!release) {
+    throw new Error(`Release not found: ${trimmedSpecifier}`)
+  }
+
+  return release
+}
+
+export async function finalizeExistingUpload(
+  target: UploadTarget,
+  releaseSpecifier: string,
+) {
+  const release = await resolveFinalizeRelease(target, releaseSpecifier)
+
+  if (release.status !== 'uploading') {
+    throw new Error(
+      `Release ${release.releaseCode} is not awaiting upload finalization. Current status: ${release.status}.`,
+    )
+  }
+
+  const apiBaseUrl = resolveHarbourApiUrl(target)
+
+  const result = await finalizeUpload(apiBaseUrl, release.releaseId)
+
+  return {
+    release,
+    result,
+  }
 }
 
 async function parseJsonResponse<T>(response: Response, action: string) {

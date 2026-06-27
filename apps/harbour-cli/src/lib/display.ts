@@ -6,7 +6,7 @@ import type {
   StatReportRow,
 } from './reporting.ts'
 import type { UploadTarget } from './options.ts'
-import { resolveHarbourBaseUrl } from './upload.ts'
+import { resolveHarbourBaseUrl } from './api.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 
@@ -103,7 +103,7 @@ export function describeTarget(target: UploadTarget) {
       case 'preview':
       case 'production':
         throw new Error(
-          `Invalid local upload environment: ${target.environment}. Local uploads must use env=dev.`,
+          `Invalid local upload environment: ${target.environment}. Local uploads must use target=local.`,
         )
     }
   }
