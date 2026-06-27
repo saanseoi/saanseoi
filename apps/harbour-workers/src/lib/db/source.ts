@@ -7,7 +7,8 @@ import {
   chunkArray,
   getMaxItemsPerInClause,
   getMaxRowsPerInsert,
-  runWithWriteRetry,
+  runStatementBatchWithWriteRetry,
+  runStatementsInGroupsWithWriteRetry,
 } from '../utils'
 
 export function buildSourceReleaseId(message: DatasetProcessingMessage) {
@@ -28,44 +29,8 @@ export type CurrentSourceRecord = {
   sourceRecordId: string
 }
 
-type SourceBatchItem = Parameters<SourceDatabase['batch']>[0][number]
-
 function excluded(column: string) {
   return sql.raw(`excluded.${column}`)
-}
-
-async function runBatchWithWriteRetry(
-  db: SourceDatabase,
-  statements: [SourceBatchItem, ...SourceBatchItem[]],
-) {
-  return runWithWriteRetry(async () => {
-    if ('batch' in db && typeof db.batch === 'function') {
-      return db.batch(statements)
-    }
-
-    const results = []
-
-    for (const statement of statements) {
-      const runnable = statement as unknown as {
-        execute?: () => Promise<unknown>
-        run?: () => Promise<unknown>
-      }
-
-      if (typeof runnable.run === 'function') {
-        results.push(await runnable.run())
-        continue
-      }
-
-      if (typeof runnable.execute === 'function') {
-        results.push(await runnable.execute())
-        continue
-      }
-
-      throw new Error('Unsupported source batch statement: missing run/execute method.')
-    }
-
-    return results
-  })
 }
 
 export async function getCurrentSourceOvertureDivisionMap(db: SourceDatabase) {
@@ -184,8 +149,10 @@ export async function upsertSourceOvertureDivisions(
     return
   }
 
+  const statements = []
+
   for (const chunk of chunkArray(rows, getMaxRowsPerInsert(18))) {
-    await runWithWriteRetry(() =>
+    statements.push(
       db
         .insert(sourceSchema.sourceOvertureDivisions)
         .values(chunk)
@@ -211,10 +178,11 @@ export async function upsertSourceOvertureDivisions(
             rawProperties: excluded('rawProperties'),
             updatedAt: new Date(),
           },
-        })
-        .run(),
+        }),
     )
   }
+
+  await runStatementsInGroupsWithWriteRetry(db, statements)
 }
 
 export async function replaceSourceOvertureDivisionI18n(
@@ -280,8 +248,10 @@ export async function upsertSourceOvertureAddresses2d(
     return
   }
 
+  const statements = []
+
   for (const chunk of chunkArray(rows, getMaxRowsPerInsert(12))) {
-    await runWithWriteRetry(() =>
+    statements.push(
       db
         .insert(sourceSchema.sourceOvertureAddresses2d)
         .values(chunk)
@@ -301,10 +271,11 @@ export async function upsertSourceOvertureAddresses2d(
             rawProperties: excluded('rawProperties'),
             updatedAt: new Date(),
           },
-        })
-        .run(),
+        }),
     )
   }
+
+  await runStatementsInGroupsWithWriteRetry(db, statements)
 }
 
 export async function replaceSourceOvertureAddress2dI18n(
@@ -376,8 +347,10 @@ export async function upsertSourceHkgovAlsAddresses2d(
     return
   }
 
+  const statements = []
+
   for (const chunk of chunkArray(rows, getMaxRowsPerInsert(25))) {
-    await runWithWriteRetry(() =>
+    statements.push(
       db
         .insert(sourceSchema.sourceHkgovAlsAddresses2d)
         .values(chunk)
@@ -410,10 +383,11 @@ export async function upsertSourceHkgovAlsAddresses2d(
             rawPayload: excluded('rawPayload'),
             updatedAt: new Date(),
           },
-        })
-        .run(),
+        }),
     )
   }
+
+  await runStatementsInGroupsWithWriteRetry(db, statements)
 }
 
 export async function replaceSourceHkgovAlsAddress2dI18n(
@@ -523,7 +497,7 @@ async function closeCurrentSourceVersions<
   const now = new Date()
 
   for (const chunk of chunkArray(sourceRecordIds, getMaxItemsPerInClause(1, 4))) {
-    await runBatchWithWriteRetry(db, [
+    await runStatementBatchWithWriteRetry(db, [
       db
         .update(baseVersionsTable as never)
         .set({
@@ -594,7 +568,7 @@ async function deleteMissingCurrentSourceRows<
   )
 
   for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause())) {
-    await runBatchWithWriteRetry(db, [
+    await runStatementBatchWithWriteRetry(db, [
       db
         .delete(currentI18nTable as never)
         .where(inArray(currentI18nTable.sourceRecordId as never, chunk)),
@@ -618,27 +592,27 @@ async function replaceCurrentI18nRows<TTable extends { sourceRecordId: unknown }
     return
   }
 
+  const deleteStatements = []
+
   for (const chunk of chunkArray(sourceRecordIds, getMaxItemsPerInClause())) {
-    await runWithWriteRetry(() =>
-      db
-        .delete(table as never)
-        .where(inArray(table.sourceRecordId as never, chunk))
-        .run(),
+    deleteStatements.push(
+      db.delete(table as never).where(inArray(table.sourceRecordId as never, chunk)),
     )
   }
+
+  await runStatementsInGroupsWithWriteRetry(db, deleteStatements)
 
   if (rows.length === 0) {
     return
   }
 
+  const insertStatements = []
+
   for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
-    await runWithWriteRetry(() =>
-      db
-        .insert(table as never)
-        .values(chunk as never)
-        .run(),
-    )
+    insertStatements.push(db.insert(table as never).values(chunk as never))
   }
+
+  await runStatementsInGroupsWithWriteRetry(db, insertStatements)
 }
 
 async function insertVersionRows<TTable>(
@@ -652,8 +626,10 @@ async function insertVersionRows<TTable>(
     return
   }
 
+  const statements = []
+
   for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
-    await runWithWriteRetry(() =>
+    statements.push(
       db
         .insert(table as never)
         .values(chunk as never)
@@ -666,8 +642,9 @@ async function insertVersionRows<TTable>(
             validToRelease: null,
             updatedAt: new Date(),
           } as never,
-        })
-        .run(),
+        }),
     )
   }
+
+  await runStatementsInGroupsWithWriteRetry(db, statements)
 }

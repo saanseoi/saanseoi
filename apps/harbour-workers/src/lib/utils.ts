@@ -1,6 +1,7 @@
 const SQLITE_BUSY_RETRY_LIMIT = 5
 const SQLITE_BUSY_RETRY_DELAY_MS = 25
 const D1_MAX_SQL_VARIABLES = 99
+const D1_WRITE_STATEMENT_BATCH_SIZE = 50
 const CHINESE_CHARACTER_RE = /\p{Script=Han}/u
 const LATIN_ALPHA_RE = /[A-Za-z]/
 const EN_INFERRED_NAME_RE = /^[A-Za-z0-9\s'".,&()\-/]+$/
@@ -37,6 +38,72 @@ export function chunkArray<T>(items: T[], chunkSize: number) {
   }
 
   return chunks
+}
+
+type BatchRunnable = {
+  execute?: () => Promise<unknown>
+  run?: () => Promise<unknown>
+}
+
+/**
+ * Runs a non-empty batch of statements, using native D1 batching when available.
+ */
+export async function runStatementBatchWithWriteRetry(
+  db: object,
+  statements: [unknown, ...unknown[]],
+) {
+  return runWithWriteRetry(async () => {
+    const batchCapableDb = db as {
+      batch?: (statements: readonly [unknown, ...unknown[]]) => Promise<unknown>
+    }
+
+    if (typeof batchCapableDb.batch === 'function') {
+      return batchCapableDb.batch(statements)
+    }
+
+    const results = []
+
+    for (const statement of statements) {
+      const runnable = statement as BatchRunnable
+
+      if (typeof runnable.run === 'function') {
+        results.push(await runnable.run())
+        continue
+      }
+
+      if (typeof runnable.execute === 'function') {
+        results.push(await runnable.execute())
+        continue
+      }
+
+      throw new Error('Unsupported batch statement: missing run/execute method.')
+    }
+
+    return results
+  })
+}
+
+/**
+ * Executes statements in conservative groups to reduce D1 round trips.
+ */
+export async function runStatementsInGroupsWithWriteRetry(
+  db: object,
+  statements: unknown[],
+  groupSize = D1_WRITE_STATEMENT_BATCH_SIZE,
+) {
+  if (statements.length === 0) {
+    return
+  }
+
+  for (const chunk of chunkArray(statements, groupSize)) {
+    const [first, ...rest] = chunk
+
+    if (!first) {
+      continue
+    }
+
+    await runStatementBatchWithWriteRetry(db, [first, ...rest])
+  }
 }
 
 /**
