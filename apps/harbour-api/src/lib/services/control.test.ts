@@ -37,6 +37,58 @@ function initDb(dbPath: string) {
   return db
 }
 
+function seedSnapshot(
+  sqlite: Database,
+  {
+    code,
+    datasetId = 'overture-hk-division',
+    family = 'division',
+    releaseId,
+    snapshotId = `snapshot-${releaseId}`,
+    status = 'draft',
+    timestamp = 1761264000000,
+  }: {
+    code: string
+    datasetId?: string
+    family?: string
+    releaseId: string
+    snapshotId?: string
+    status?: 'draft' | 'published'
+    timestamp?: number
+  },
+) {
+  const publishedAt = status === 'published' ? timestamp : 'null'
+
+  sqlite.exec(`
+    INSERT INTO snapshots (
+      id, family, code, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
+    ) VALUES (
+      '${snapshotId}',
+      '${family}',
+      '${code}',
+      '${status}',
+      ${publishedAt},
+      ${publishedAt},
+      null,
+      null,
+      ${timestamp},
+      ${timestamp}
+    );
+
+    INSERT INTO snapshotSources (
+      snapshotId, datasetId, sourceReleaseId, role, createdAt
+    ) VALUES (
+      '${snapshotId}',
+      '${datasetId}',
+      '${releaseId}',
+      'primary',
+      ${timestamp}
+    );
+  `)
+
+  return snapshotId
+}
+
 afterEach(() => {
   while (tempDirs.length > 0) {
     const dir = tempDirs.pop()
@@ -275,6 +327,12 @@ describe('control service', () => {
       createdAt: '2026-06-05T00:00:00.000Z',
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
+    seedSnapshot(sqlite, {
+      code: 'overture-hk-2026-01-21.0-division',
+      releaseId: 'release-overture-hk-2026-01-21.0-division',
+      status: 'published',
+      timestamp: 1762300800000,
+    })
     insertFixtureRelease(sqlite, {
       releaseId: 'release-overture-hk-2026-02-18.0-division',
       source: 'overture',
@@ -288,6 +346,12 @@ describe('control service', () => {
       ingestedAt: '2026-06-05T00:01:00.000Z',
       createdAt: '2026-06-05T00:01:00.000Z',
       updatedAt: '2026-06-05T00:01:00.000Z',
+    })
+    seedSnapshot(sqlite, {
+      code: 'overture-hk-2026-02-18.0-division',
+      releaseId: 'release-overture-hk-2026-02-18.0-division',
+      status: 'draft',
+      timestamp: 1762300860000,
     })
 
     const result = await handlePublishDataset(db, {
@@ -350,6 +414,12 @@ describe('control service', () => {
       createdAt: '2026-06-05T00:00:00.000Z',
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
+    seedSnapshot(sqlite, {
+      code: 'overture-hk-2026-02-18.0-division',
+      releaseId: 'release-overture-hk-2026-02-18.0-division',
+      status: 'published',
+      timestamp: 1762300800000,
+    })
     insertFixtureRelease(sqlite, {
       releaseId: 'release-overture-hk-2026-02-18.1-division',
       source: 'overture',
@@ -363,6 +433,12 @@ describe('control service', () => {
       ingestedAt: '2026-06-05T00:01:00.000Z',
       createdAt: '2026-06-05T00:01:00.000Z',
       updatedAt: '2026-06-05T00:01:00.000Z',
+    })
+    seedSnapshot(sqlite, {
+      code: 'overture-hk-2026-02-18.1-division',
+      releaseId: 'release-overture-hk-2026-02-18.1-division',
+      status: 'draft',
+      timestamp: 1762300860000,
     })
 
     const result = await handlePublishDataset(db, {
@@ -424,6 +500,12 @@ describe('control service', () => {
       createdAt: '2026-06-05T00:00:00.000Z',
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
+    seedSnapshot(sqlite, {
+      code: 'overture-hk-2026-06-17.0-division',
+      releaseId: 'release-overture-hk-2026-06-17.0-division',
+      status: 'published',
+      timestamp: 1762300800000,
+    })
     insertFixtureRelease(sqlite, {
       releaseId: 'release-overture-hk-2026-06-24.0-division',
       source: 'overture',
@@ -437,6 +519,12 @@ describe('control service', () => {
       ingestedAt: '2026-06-05T00:01:00.000Z',
       createdAt: '2026-06-05T00:01:00.000Z',
       updatedAt: '2026-06-05T00:01:00.000Z',
+    })
+    seedSnapshot(sqlite, {
+      code: 'overture-hk-2026-06-24.0-division',
+      releaseId: 'release-overture-hk-2026-06-24.0-division',
+      status: 'draft',
+      timestamp: 1762300860000,
     })
 
     await handlePublishDataset(db, {
