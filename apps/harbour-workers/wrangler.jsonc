@@ -66,6 +66,7 @@
       {
         "queue": "ss-harbour-jobs-preview",
         "max_batch_size": 1,
+        "max_concurrency": 1,
         "max_retries": 3,
         "retry_delay": 30
       }
@@ -149,6 +150,7 @@
           {
             "queue": "ss-harbour-jobs-preview",
             "max_batch_size": 1,
+            "max_concurrency": 1,
             "max_retries": 3,
             "retry_delay": 30
           }
@@ -222,6 +224,7 @@
           {
             "queue": "ss-harbour-jobs-prod",
             "max_batch_size": 1,
+            "max_concurrency": 1,
             "max_retries": 3,
             "retry_delay": 30
           }
