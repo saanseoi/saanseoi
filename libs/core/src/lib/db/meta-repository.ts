@@ -579,6 +579,25 @@ export async function ensureIngestRunStarted(
   startedAt: string,
 ) {
   const now = new Date(startedAt)
+  await db
+    .insert(ingestRuns)
+    .values({
+      runId: crypto.randomUUID(),
+      releaseId,
+      phase,
+      status: 'running',
+      stats,
+      error: null,
+      startedAt,
+      finishedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoNothing({
+      target: [ingestRuns.releaseId, ingestRuns.phase],
+    })
+    .run()
+
   const existingRun =
     ((await db
       .select({
@@ -590,22 +609,9 @@ export async function ensureIngestRunStarted(
       .limit(1)
       .get()) as { runId: string; status: string } | undefined) ?? null
 
-  if (!existingRun) {
-    await db
-      .insert(ingestRuns)
-      .values({
-        runId: crypto.randomUUID(),
-        releaseId,
-        phase,
-        status: 'running',
-        stats,
-        error: null,
-        startedAt,
-        finishedAt: null,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .run()
+  if (!existingRun || existingRun.status === 'running') {
+    return
+  }
 
     return
   }
