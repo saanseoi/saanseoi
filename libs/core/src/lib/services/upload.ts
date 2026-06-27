@@ -3,9 +3,9 @@ import {
   hasDatasetForSnapshotMonthSourceType,
   getLatestDatasetForRegionSourceType,
   insertDataset,
-  insertIngestRun,
   resetFailedDataset,
   updateDatasetStatus,
+  upsertIngestRunStatus,
 } from '../db/meta-repository'
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
 import type {
@@ -1007,28 +1007,28 @@ export async function registerUpload(
     throw new Error(`Release not found after registration: ${plan.releaseCode}`)
   }
 
-  await insertIngestRun(
+  await upsertIngestRunStatus(
     db,
     release.releaseId,
     'registerDataset',
     'completed',
+    now,
+    now,
     null,
-    now,
-    now,
   )
 
-  await insertIngestRun(
+  await upsertIngestRunStatus(
     db,
     release.releaseId,
     'stageDataset',
     'completed',
+    now,
+    now,
     JSON.stringify({
       rawObjectKey,
       rowCount: inspection.rowCount,
       schemaFieldCount: inspection.schema.length,
     }),
-    now,
-    now,
   )
 
   return {
@@ -1061,19 +1061,19 @@ export async function requestUpload(
     throw new Error(`Release not found after upload request: ${plan.releaseCode}`)
   }
 
-  await insertIngestRun(
+  await upsertIngestRunStatus(
     db,
     release.releaseId,
     'requestUpload',
     'completed',
+    now,
+    now,
     JSON.stringify({
       releaseCode: plan.releaseCode,
       rawObjectKey,
       rowCount: inspection.rowCount,
       schemaFingerprint: plan.schemaFingerprint,
     }),
-    now,
-    now,
   )
 
   return {
@@ -1109,18 +1109,18 @@ export async function finalizeUpload(
   }
 
   await updateDatasetStatus(db, release.releaseId, 'staged')
-  await insertIngestRun(
+  await upsertIngestRunStatus(
     db,
     release.releaseId,
     'stageDataset',
     'completed',
+    now,
+    now,
     JSON.stringify({
       rawObjectKey,
       rowCount: inspection.rowCount,
       schemaFieldCount: inspection.schema.length,
     }),
-    now,
-    now,
   )
 
   return {
