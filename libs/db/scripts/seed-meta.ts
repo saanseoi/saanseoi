@@ -2,11 +2,11 @@ import {
   initialApiEndpoints,
   initialApiReleaseSets,
   initialApiVersions,
-  initialDataShards,
   initialDatasets,
   initialLicenses,
   initialPublisherI18n,
   initialPublishers,
+  resolveInitialDataShardsForEnvironment,
 } from '../src/seed'
 
 const target = process.argv[2] ?? 'local'
@@ -51,6 +51,7 @@ const sqlUuid =
 
 const nowSql = "cast(unixepoch('subsecond') * 1000 as integer)"
 const databaseName = target === 'production' ? 'ss-meta-db-prod' : 'ss-meta-db-preview'
+const dataShardEnvironment = target === 'production' ? 'production' : 'preview'
 const wranglerConfigPath = new URL(
   '../../../apps/harbour-api/wrangler.jsonc',
   scriptDir,
@@ -323,7 +324,7 @@ INSERT OR IGNORE INTO apiReleaseSets (
   )
 }
 
-for (const shard of initialDataShards) {
+for (const shard of resolveInitialDataShardsForEnvironment(dataShardEnvironment)) {
   statements.push(
     `
 INSERT OR IGNORE INTO dataShards (
