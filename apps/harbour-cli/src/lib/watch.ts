@@ -144,17 +144,13 @@ export async function watchCurrentUpload(
   while (true) {
     await sleep(WATCH_POLL_INTERVAL_MS)
 
-    const releaseReport = await fetchReleaseReport(target, {
-      limit: RELEASE_WATCH_LIMIT,
+    const activeReleaseReport = await fetchReleaseReport(target, {
+      limit: 1,
+      releaseId: activeSnapshot.releaseId,
     })
-    const matchingRelease = releaseReport.rows.find(
-      row => row.releaseId === activeSnapshot.releaseId,
-    )
+    const matchingRelease = activeReleaseReport.rows[0]
 
-    if (
-      matchingRelease &&
-      isReleaseStillProcessing(releaseReport.rows, activeSnapshot.releaseId)
-    ) {
+    if (matchingRelease?.status === 'processing') {
       activeSnapshot = await buildReleaseWatchSnapshot(target, matchingRelease)
       const nextProgress = clampProgressValue(
         activeSnapshot.sourceCount,
