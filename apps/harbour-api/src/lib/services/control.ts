@@ -1,15 +1,24 @@
 import {
   activateReleaseSet,
+  deleteApiReleaseSetSnapshotForFamily,
+  deleteApiReleaseSetSourcesForDataset,
   ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
   getDatasetRecordByReleaseId,
+  listApiReleaseSetSnapshots,
+  listApiReleaseSetSources,
   markDatasetCurrent,
   markDatasetHistoric,
+  publishSnapshot,
+  resolveActiveReleaseSetForType,
   resolveReleaseSetForRelease,
+  resolveSnapshotForRelease,
   revokeDataset,
   setSupersededByReleaseId,
   updateDatasetStatus,
+  upsertApiReleaseSetSnapshot,
+  upsertApiReleaseSetSource,
   upsertIngestRunStatus,
 } from '@repo/core/db/meta-repository'
 import type { SupportedType } from '@repo/core'
@@ -134,6 +143,61 @@ export async function handlePublishDataset(
   const releaseSet =
     (await resolveReleaseSetForRelease(db, dataset.releaseId, datasetType)) ??
     (await ensureDraftReleaseSetForRelease(db, datasetType, dataset.releaseCode))
+  const snapshot = await resolveSnapshotForRelease(db, dataset.releaseId, datasetType)
+
+  if (!snapshot) {
+    throw new Error(
+      `Snapshot not found for ${dataset.releaseCode} (${datasetType}/${dataset.releaseId}).`,
+    )
+  }
+
+  const activeReleaseSet = await resolveActiveReleaseSetForType(db, datasetType)
+
+  if (activeReleaseSet && activeReleaseSet.id !== releaseSet.id) {
+    const [activeSnapshots, activeSources] = await Promise.all([
+      listApiReleaseSetSnapshots(db, activeReleaseSet.id),
+      listApiReleaseSetSources(db, activeReleaseSet.id),
+    ])
+
+    for (const activeSnapshot of activeSnapshots) {
+      if (activeSnapshot.snapshotFamily === datasetType) {
+        continue
+      }
+
+      await upsertApiReleaseSetSnapshot(
+        db,
+        releaseSet.id,
+        activeSnapshot.snapshotFamily as typeof datasetType,
+        activeSnapshot.snapshotId,
+      )
+    }
+
+    for (const activeSource of activeSources) {
+      if (activeSource.datasetId === dataset.datasetId) {
+        continue
+      }
+
+      await upsertApiReleaseSetSource(
+        db,
+        releaseSet.id,
+        activeSource.datasetId,
+        activeSource.sourceReleaseId,
+        activeSource.role,
+      )
+    }
+  }
+
+  await publishSnapshot(db, snapshot.id)
+  await deleteApiReleaseSetSnapshotForFamily(db, releaseSet.id, datasetType)
+  await upsertApiReleaseSetSnapshot(db, releaseSet.id, datasetType, snapshot.id)
+  await deleteApiReleaseSetSourcesForDataset(db, releaseSet.id, dataset.datasetId)
+  await upsertApiReleaseSetSource(
+    db,
+    releaseSet.id,
+    dataset.datasetId,
+    dataset.releaseId,
+    'primary',
+  )
 
   await activateReleaseSet(db, releaseSet.id)
 

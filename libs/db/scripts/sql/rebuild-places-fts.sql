@@ -1,4 +1,5 @@
 CREATE VIRTUAL TABLE IF NOT EXISTS "placesFts" USING fts5(
+  "snapshotId" UNINDEXED,
   "placeId" UNINDEXED,
   "locale" UNINDEXED,
   "nameText",
@@ -12,6 +13,7 @@ CREATE VIRTUAL TABLE IF NOT EXISTS "placesFts" USING fts5(
 DELETE FROM "placesFts";
 
 INSERT INTO "placesFts" (
+  "snapshotId",
   "placeId",
   "locale",
   "nameText",
@@ -22,6 +24,7 @@ INSERT INTO "placesFts" (
   "streetText"
 )
 SELECT
+  p."snapshotId" AS "snapshotId",
   p."id" AS "placeId",
   pi."locale" AS "locale",
   TRIM(COALESCE(pi."name", '') || ' ' || COALESCE(pi."nameAlts", '')) AS "nameText",
@@ -41,22 +44,29 @@ FROM "places" p
 JOIN "placesI18n" pi
   ON pi."placeId" = p."id"
 LEFT JOIN "address2dI18n" a2
-  ON a2."addressId" = p."address2dId"
+  ON a2."snapshotId" = p."addressSnapshotId"
+ AND a2."addressId" = p."address2dId"
  AND a2."locale" = pi."locale"
 LEFT JOIN "address3dI18n" a3
-  ON a3."address3dId" = p."address3dId"
+  ON a3."snapshotId" = p."addressSnapshotId"
+ AND a3."address3dId" = p."address3dId"
  AND a3."locale" = pi."locale"
 LEFT JOIN "streetsAddress" sa
-  ON sa."addressId" = p."address2dId"
+  ON sa."addressSnapshotId" = p."addressSnapshotId"
+ AND sa."addressId" = p."address2dId"
 LEFT JOIN "streetsI18n" si
-  ON si."streetId" = sa."streetId"
+  ON si."snapshotId" = sa."streetSnapshotId"
+ AND si."streetId" = sa."streetId"
  AND si."locale" = pi."locale"
 LEFT JOIN "placesDivision" pcd
-  ON pcd."placeId" = p."id"
+  ON pcd."placeSnapshotId" = p."snapshotId"
+ AND pcd."placeId" = p."id"
 LEFT JOIN "divisionsI18n" di
-  ON di."divisionId" = pcd."divisionId"
+  ON di."snapshotId" = pcd."divisionSnapshotId"
+ AND di."divisionId" = pcd."divisionId"
  AND di."locale" = pi."locale"
 GROUP BY
+  p."snapshotId",
   p."id",
   pi."locale",
   pi."name",

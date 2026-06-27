@@ -1,7 +1,7 @@
 import type { DatasetProcessingMessage } from '@repo/core'
 import {
-  LEGACY_DIVISION_CURRENT_RELEASE_SET_ID,
-  resolveActiveReleaseSetForType,
+  insertHistoryVersionProvenanceRows,
+  resolveLatestPublishedSnapshotForFamily,
 } from '@repo/core/db/meta-repository'
 import type {
   CurrentDatabase,
@@ -58,6 +58,7 @@ type DivisionLookupMaps = {
   areaByEn: Map<string, string>
   countryId: string | null
   districtByEn: Map<string, string>
+  snapshotId: string
 }
 
 export type ProcessAddressDatasetResult = {
@@ -167,9 +168,10 @@ export async function processAddressDataset(
     > = []
     const changedAddressI18nVersionRows: Array<
       AddressI18nPayload & {
-        releaseId: string
-        validFromReleaseSetId: string
-        validToReleaseSetId: string | null
+        sourceReleaseId: string
+        snapshotId: string
+        validFromSnapshotId: string
+        validToSnapshotId: string | null
         isCurrent: boolean
         versionHash: string
         createdAt: string
@@ -191,10 +193,12 @@ export async function processAddressDataset(
       const base: AddressRow = {
         ...normalized.base,
         id: addressId,
+        snapshotId: versionInsertContext.snapshotId,
       }
       const i18n = normalized.i18n.map(row => ({
         ...row,
         addressId,
+        snapshotId: versionInsertContext.snapshotId,
       }))
       const versionHash = await createHash({
         base: buildAddressBaseHashInput(base),
@@ -206,10 +210,16 @@ export async function processAddressDataset(
       seenIds.add(addressId)
       seenSourceIds.add(normalized.sourceId)
       const now = new Date().toISOString()
+      currentAddressRows.push({
+        ...base,
+        createdAt: now,
+        updatedAt: now,
+      })
       currentAddressI18nRowIds.add(addressId)
       currentAddressI18nRows.push(
         ...i18n.map(row => ({
           ...row,
+          snapshotId: versionInsertContext.snapshotId,
           createdAt: now,
           updatedAt: now,
         })),
@@ -435,9 +445,10 @@ export async function processAddressDataset(
         changedAddressI18nVersionRows.push(
           ...i18n.map(row => ({
             ...row,
-            releaseId: versionInsertContext.releaseId,
-            validFromReleaseSetId: versionInsertContext.releaseSetId,
-            validToReleaseSetId: null,
+            sourceReleaseId: versionInsertContext.releaseId,
+            snapshotId: versionInsertContext.snapshotId,
+            validFromSnapshotId: versionInsertContext.snapshotId,
+            validToSnapshotId: null,
             isCurrent: true,
             versionHash,
             createdAt: now,
@@ -452,11 +463,6 @@ export async function processAddressDataset(
       }
 
       insertedVersions += 1
-      currentAddressRows.push({
-        ...base,
-        createdAt: now,
-        updatedAt: now,
-      })
       changedAddressVersionRows.push({
         ...base,
         createdAt: now,
@@ -466,9 +472,10 @@ export async function processAddressDataset(
       changedAddressI18nVersionRows.push(
         ...i18n.map(row => ({
           ...row,
-          releaseId: versionInsertContext.releaseId,
-          validFromReleaseSetId: versionInsertContext.releaseSetId,
-          validToReleaseSetId: null,
+          sourceReleaseId: versionInsertContext.releaseId,
+          snapshotId: versionInsertContext.snapshotId,
+          validFromSnapshotId: versionInsertContext.snapshotId,
+          validToSnapshotId: null,
           isCurrent: true,
           versionHash,
           createdAt: now,
@@ -480,12 +487,13 @@ export async function processAddressDataset(
     await closeCurrentAddressVersions(
       historyDb,
       [...changedAddressExistingIds],
-      versionInsertContext.releaseSetId,
+      versionInsertContext.snapshotId,
       message.snapshotMonth,
     )
     await upsertAddressCurrentStates(currentDb, currentAddressRows)
     await replaceAddressCurrentI18n(
       currentDb,
+      versionInsertContext.snapshotId,
       [...currentAddressI18nRowIds],
       currentAddressI18nRows,
     )
@@ -494,6 +502,16 @@ export async function processAddressDataset(
       versionInsertContext,
       changedAddressVersionRows,
       changedAddressI18nVersionRows,
+    )
+    await insertHistoryVersionProvenanceRows(
+      metaDb,
+      changedAddressVersionRows.map(row => ({
+        entityId: row.id,
+        entityType: 'address2d',
+        snapshotId: versionInsertContext.snapshotId,
+        sourceReleaseId: versionInsertContext.releaseId,
+        versionHash: row.versionHash,
+      })),
     )
 
     if (!sourceDb) {
@@ -550,9 +568,8 @@ export async function processAddressDataset(
   const deletedRows =
     message.source === 'overture'
       ? await deleteMissingCurrentAddresses(
-          currentDb,
           historyDb,
-          versionInsertContext.releaseSetId,
+          versionInsertContext.snapshotId,
           message.snapshotMonth,
           currentRows,
           seenIds,
@@ -588,20 +605,16 @@ export async function processAddressDataset(
 }
 
 async function loadDivisionLookupMaps(metaDb: MetaDatabase, db: CurrentDatabase) {
-  const activeDivisionReleaseSet = await resolveActiveReleaseSetForType(
+  const activeDivisionSnapshot = await resolveLatestPublishedSnapshotForFamily(
     metaDb,
     'division',
   )
 
-  if (!activeDivisionReleaseSet) {
-    throw new Error('Active division release set not found.')
+  if (!activeDivisionSnapshot) {
+    throw new Error('Published division snapshot not found.')
   }
 
-  const rows = await loadDivisionLookupRows(db, activeDivisionReleaseSet.id)
-  const resolvedRows =
-    rows.length > 0
-      ? rows
-      : await loadDivisionLookupRows(db, LEGACY_DIVISION_CURRENT_RELEASE_SET_ID)
+  const resolvedRows = await loadDivisionLookupRows(db, activeDivisionSnapshot.id)
 
   const areaByEn = new Map<string, string>()
   const districtByEn = new Map<string, string>()
@@ -631,10 +644,11 @@ async function loadDivisionLookupMaps(metaDb: MetaDatabase, db: CurrentDatabase)
     areaByEn,
     countryId,
     districtByEn,
+    snapshotId: activeDivisionSnapshot.id,
   } satisfies DivisionLookupMaps
 }
 
-async function loadDivisionLookupRows(db: CurrentDatabase, apiReleaseSetId: string) {
+async function loadDivisionLookupRows(db: CurrentDatabase, snapshotId: string) {
   return (await db
     .select({
       id: currentSchema.divisions.id,
@@ -647,16 +661,13 @@ async function loadDivisionLookupRows(db: CurrentDatabase, apiReleaseSetId: stri
     .innerJoin(
       currentSchema.divisionsI18n,
       and(
-        eq(
-          currentSchema.divisions.apiReleaseSetId,
-          currentSchema.divisionsI18n.apiReleaseSetId,
-        ),
+        eq(currentSchema.divisions.snapshotId, currentSchema.divisionsI18n.snapshotId),
         eq(currentSchema.divisions.id, currentSchema.divisionsI18n.divisionId),
       ),
     )
     .where(
       and(
-        eq(currentSchema.divisions.apiReleaseSetId, apiReleaseSetId),
+        eq(currentSchema.divisions.snapshotId, snapshotId),
         eq(currentSchema.divisionsI18n.locale, 'en'),
       ),
     )
@@ -689,6 +700,8 @@ function normalizeOvertureAddressRow(
       streetName: otStreet,
     }),
     base: {
+      divisionSnapshotId: divisionLookup.snapshotId,
+      streetSnapshotId: null,
       streetId: null,
       hamletId: null,
       microhoodId: null,
@@ -707,7 +720,7 @@ function normalizeOvertureAddressRow(
       },
       createdAt: '',
       updatedAt: '',
-    } satisfies Omit<AddressRow, 'id'>,
+    } satisfies Omit<AddressRow, 'id' | 'snapshotId'>,
     i18n: formattedAddress
       ? [
           {
@@ -791,6 +804,11 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
       streetName: otStreet,
     }),
     base: {
+      divisionSnapshotId: requireText(
+        row.divisionSnapshotId,
+        'Prepared HKGov ALS row is missing `divisionSnapshotId`.',
+      ),
+      streetSnapshotId: null,
       streetId: null,
       hamletId: null,
       microhoodId: null,
@@ -807,13 +825,16 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
       sources: parseOptionalJson(row.sources),
       createdAt: '',
       updatedAt: '',
-    } satisfies Omit<AddressRow, 'id'>,
+    } satisfies Omit<AddressRow, 'id' | 'snapshotId'>,
     i18n,
   }
 }
 
 function buildAddressBaseHashInput(
-  base: Omit<AddressRow, 'createdAt' | 'updatedAt'> | AddressRow,
+  base: Omit<
+    AddressRow,
+    'createdAt' | 'updatedAt' | 'snapshotId' | 'divisionSnapshotId' | 'streetSnapshotId'
+  >,
 ) {
   return {
     id: base.id,
@@ -831,7 +852,10 @@ function buildAddressBaseHashInput(
     identifiers: base.identifiers,
     bbox: base.bbox,
     sources: base.sources,
-  } satisfies Omit<AddressRow, 'createdAt' | 'updatedAt'>
+  } satisfies Omit<
+    AddressRow,
+    'createdAt' | 'updatedAt' | 'snapshotId' | 'divisionSnapshotId' | 'streetSnapshotId'
+  >
 }
 
 function normalizeAddressI18nSnapshotRow(row: AddressI18nPayload) {

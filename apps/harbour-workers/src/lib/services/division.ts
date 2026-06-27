@@ -1,4 +1,5 @@
 import type { DatasetProcessingMessage } from '@repo/core'
+import { insertHistoryVersionProvenanceRows } from '@repo/core/db/meta-repository'
 import type {
   CurrentDatabase,
   HistoryDatabase,
@@ -21,7 +22,6 @@ import {
   deleteStaleDivisionCurrentRows,
   getCurrentDivisionVersionMap,
   insertDivisionVersionRows,
-  listDivisionCurrentReleaseSetIds,
   prepareDivisionVersionInsertContext,
   replaceDatasetStats,
   replaceDivisionCurrentI18n,
@@ -78,7 +78,6 @@ export type HarbourWorkerBucket = {
 }
 
 export type ProcessDatasetResult = {
-  cleanupReleaseSetIds?: string[]
   deletedRows: number
   insertedVersions: number
   localizedRows: number
@@ -139,9 +138,6 @@ export async function processDivisionDataset(
     message,
     environment,
   )
-  const cleanupReleaseSetIds = (
-    await listDivisionCurrentReleaseSetIds(currentDb)
-  ).filter(releaseSetId => releaseSetId !== versionInsertContext.releaseSetId)
   const currentRows = await getCurrentDivisionVersionMap(
     historyDb,
     message.regionCode,
@@ -176,13 +172,12 @@ export async function processDivisionDataset(
     const sourceI18nVersionRows: Array<
       typeof sourceSchema.sourceOvertureDivisionI18nVersions.$inferInsert
     > = []
-    const currentDivisionRows: Array<Omit<NewDivisionRow, 'apiReleaseSetId'>> = []
+    const currentDivisionRows: Array<Omit<NewDivisionRow, 'snapshotId'>> = []
     const currentDivisionI18nRowIds = new Set<string>()
-    const currentDivisionI18nRows: Array<Omit<NewDivisionI18nRow, 'apiReleaseSetId'>> =
-      []
+    const currentDivisionI18nRows: Array<Omit<NewDivisionI18nRow, 'snapshotId'>> = []
     const changedDivisionExistingIds = new Set<string>()
     const changedDivisionVersionRows: Array<
-      Omit<NewDivisionRow, 'apiReleaseSetId'> & {
+      Omit<NewDivisionRow, 'snapshotId'> & {
         versionHash: string
       }
     > = []
@@ -196,6 +191,7 @@ export async function processDivisionDataset(
         nameAlts: string | null
         nameRules: unknown
         nameVariant: unknown
+        sourceReleaseId: string
       } & {
         versionHash: string
         createdAt: string
@@ -356,6 +352,7 @@ export async function processDivisionDataset(
             nameAlts: row.nameAlts ?? null,
             nameRules: row.nameRules,
             nameVariant: row.nameVariant,
+            sourceReleaseId: versionInsertContext.releaseId,
             versionHash,
             createdAt: currentDivisionI18nNow,
             updatedAt: currentDivisionI18nNow,
@@ -383,6 +380,7 @@ export async function processDivisionDataset(
           nameAlts: row.nameAlts ?? null,
           nameRules: row.nameRules,
           nameVariant: row.nameVariant,
+          sourceReleaseId: versionInsertContext.releaseId,
           versionHash,
           createdAt: currentDivisionI18nNow,
           updatedAt: currentDivisionI18nNow,
@@ -395,19 +393,19 @@ export async function processDivisionDataset(
         historyDb,
         message.regionCode,
         [...changedDivisionExistingIds],
-        versionInsertContext.releaseSetId,
+        versionInsertContext.snapshotId,
         message.snapshotMonth,
       )
     }
 
     await upsertDivisionCurrentStates(
       currentDb,
-      versionInsertContext.releaseSetId,
+      versionInsertContext.snapshotId,
       currentDivisionRows,
     )
     await replaceDivisionCurrentI18n(
       currentDb,
-      versionInsertContext.releaseSetId,
+      versionInsertContext.snapshotId,
       [...currentDivisionI18nRowIds],
       currentDivisionI18nRows,
     )
@@ -416,6 +414,16 @@ export async function processDivisionDataset(
       versionInsertContext,
       changedDivisionVersionRows,
       changedDivisionI18nVersionRows,
+    )
+    await insertHistoryVersionProvenanceRows(
+      metaDb,
+      changedDivisionVersionRows.map(row => ({
+        entityId: row.id,
+        entityType: 'division',
+        snapshotId: versionInsertContext.snapshotId,
+        sourceReleaseId: versionInsertContext.releaseId,
+        versionHash: row.versionHash,
+      })),
     )
 
     if (sourceDb && message.source === 'overture') {
@@ -450,14 +458,14 @@ export async function processDivisionDataset(
   const deletedRows = await deleteMissingCurrentDivisions(
     historyDb,
     message.regionCode,
-    versionInsertContext.releaseSetId,
+    versionInsertContext.snapshotId,
     message.snapshotMonth,
     currentRows,
     seenIds,
   )
   await deleteStaleDivisionCurrentRows(
     currentDb,
-    versionInsertContext.releaseSetId,
+    versionInsertContext.snapshotId,
     seenIds,
   )
   const churnStats = buildChurnStatsRows(
@@ -485,7 +493,6 @@ export async function processDivisionDataset(
   }
 
   return {
-    cleanupReleaseSetIds,
     deletedRows,
     insertedVersions,
     localizedRows,
@@ -542,7 +549,7 @@ function normalizeDivisionRow(row: Record<string, unknown>) {
       subtype: otSubtype,
       updatedAt: now,
       wikidata: asNonEmptyString(row.wikidata),
-    } satisfies Omit<NewDivisionRow, 'apiReleaseSetId'>,
+    } satisfies Omit<NewDivisionRow, 'snapshotId'>,
     i18n,
   }
 }
@@ -553,8 +560,8 @@ function asOptionalInteger(value: unknown) {
 
 function buildDivisionBaseHashInput(
   base:
-    | Omit<DivisionRow, 'apiReleaseSetId' | 'createdAt' | 'updatedAt'>
-    | Omit<NewDivisionRow, 'apiReleaseSetId'>,
+    | Omit<DivisionRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
+    | Omit<NewDivisionRow, 'snapshotId'>,
 ) {
   return {
     bbox: base.bbox,
@@ -570,7 +577,7 @@ function buildDivisionBaseHashInput(
     subtype: base.subtype ?? null,
     type: base.type,
     wikidata: base.wikidata ?? null,
-  } satisfies Omit<DivisionRow, 'apiReleaseSetId' | 'createdAt' | 'updatedAt'>
+  } satisfies Omit<DivisionRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
 }
 
 function normalizeDivisionI18nSnapshotRow(row: DivisionI18nPayload) {

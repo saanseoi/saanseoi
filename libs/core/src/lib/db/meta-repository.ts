@@ -1,6 +1,4 @@
-import { and, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
-
-import { metaSchema } from '@repo/db'
+import { and, desc, eq, inArray, isNull, ne, sql, metaSchema } from '@repo/db'
 
 import type { DatasetRecord, RegionCode, SupportedType, UploadPlan } from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './types'
@@ -18,25 +16,29 @@ type DatasetIdentityRecord = {
   status: string
 }
 
+export type SnapshotFamily = 'division' | 'address' | 'street' | 'place'
+
 export type DataShardRecord = {
   id: string
   bindingName: string
   databaseName: string
 }
 
-export const LEGACY_DIVISION_CURRENT_RELEASE_SET_ID = 'legacy-current-divisions-v0.1'
-
 const {
   ingestRuns,
-  metaApiReleaseSetMembers,
   metaApiReleaseSets,
+  metaApiReleaseSetSnapshots,
+  metaApiReleaseSetSources,
   metaApiVersions,
   metaDataShards,
   metaDatasets,
+  metaHistoryVersionProvenance,
   metaPublishers,
   metaReleaseSetShardAssignments,
   metaReleaseShardAssignments,
   metaReleases,
+  metaSnapshots,
+  metaSnapshotSources,
 } = metaSchema
 
 const releaseRecordSelection = {
@@ -336,6 +338,125 @@ export function getApiVersionCodeForType(type: SupportedType) {
       : 'ss-places-v0.1'
 }
 
+export async function resolveLatestSnapshotForFamily(
+  db: HarbourReadableDb,
+  family: SnapshotFamily,
+) {
+  return (
+    (await db
+      .select({
+        id: metaSnapshots.id,
+        code: metaSnapshots.code,
+        family: metaSnapshots.family,
+        status: metaSnapshots.status,
+      })
+      .from(metaSnapshots)
+      .where(
+        and(eq(metaSnapshots.family, family), ne(metaSnapshots.status, 'archived')),
+      )
+      .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
+export async function resolveLatestPublishedSnapshotForFamily(
+  db: HarbourReadableDb,
+  family: SnapshotFamily,
+) {
+  return (
+    (await db
+      .select({
+        id: metaSnapshots.id,
+        code: metaSnapshots.code,
+        family: metaSnapshots.family,
+        status: metaSnapshots.status,
+      })
+      .from(metaSnapshots)
+      .where(
+        and(eq(metaSnapshots.family, family), eq(metaSnapshots.status, 'published')),
+      )
+      .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
+export async function ensureDraftSnapshotForRelease(
+  db: HarbourReadableDb & HarbourWritableDb,
+  family: SnapshotFamily,
+  releaseCode: string,
+) {
+  const existing = await db
+    .select({
+      id: metaSnapshots.id,
+      code: metaSnapshots.code,
+      family: metaSnapshots.family,
+      status: metaSnapshots.status,
+    })
+    .from(metaSnapshots)
+    .where(and(eq(metaSnapshots.family, family), eq(metaSnapshots.code, releaseCode)))
+    .limit(1)
+    .get()
+
+  if (existing) {
+    return existing
+  }
+
+  const now = new Date()
+  const snapshotId = crypto.randomUUID()
+
+  await db
+    .insert(metaSnapshots)
+    .values({
+      id: snapshotId,
+      family,
+      code: releaseCode,
+      status: 'draft',
+      publishedAt: null,
+      validFrom: null,
+      validTo: null,
+      notes: null,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .run()
+
+  return {
+    id: snapshotId,
+    code: releaseCode,
+    family,
+    status: 'draft' as const,
+  }
+}
+
+export async function resolveSnapshotForRelease(
+  db: HarbourReadableDb,
+  sourceReleaseId: string,
+  family: SnapshotFamily,
+) {
+  return (
+    (await db
+      .select({
+        id: metaSnapshots.id,
+        code: metaSnapshots.code,
+        family: metaSnapshots.family,
+        status: metaSnapshots.status,
+      })
+      .from(metaSnapshotSources)
+      .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
+      .where(
+        and(
+          eq(metaSnapshotSources.sourceReleaseId, sourceReleaseId),
+          eq(metaSnapshots.family, family),
+        ),
+      )
+      .orderBy(desc(metaSnapshots.createdAt))
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
 export async function resolveReleaseSetForType(
   db: HarbourReadableDb,
   type: SupportedType,
@@ -489,10 +610,10 @@ export async function resolveReleaseSetForRelease(
         code: metaApiReleaseSets.code,
         status: metaApiReleaseSets.status,
       })
-      .from(metaApiReleaseSetMembers)
+      .from(metaApiReleaseSetSources)
       .innerJoin(
         metaApiReleaseSets,
-        eq(metaApiReleaseSetMembers.apiReleaseSetId, metaApiReleaseSets.id),
+        eq(metaApiReleaseSetSources.apiReleaseSetId, metaApiReleaseSets.id),
       )
       .innerJoin(
         metaApiVersions,
@@ -500,7 +621,7 @@ export async function resolveReleaseSetForRelease(
       )
       .where(
         and(
-          eq(metaApiReleaseSetMembers.releaseId, releaseId),
+          eq(metaApiReleaseSetSources.sourceReleaseId, releaseId),
           eq(metaApiVersions.code, apiVersionCode),
         ),
       )
@@ -576,6 +697,38 @@ export async function activateReleaseSet(
   return {
     previousActiveReleaseSetId: activeReleaseSets[0]?.id ?? null,
   }
+}
+
+export async function publishSnapshot(
+  db: HarbourReadableDb & HarbourWritableDb,
+  snapshotId: string,
+) {
+  const snapshot = await db
+    .select({
+      id: metaSnapshots.id,
+    })
+    .from(metaSnapshots)
+    .where(eq(metaSnapshots.id, snapshotId))
+    .limit(1)
+    .get()
+
+  if (!snapshot) {
+    throw new Error(`Snapshot not found: ${snapshotId}`)
+  }
+
+  const now = new Date()
+
+  await db
+    .update(metaSnapshots)
+    .set({
+      status: 'published',
+      publishedAt: now,
+      validFrom: now,
+      validTo: null,
+      updatedAt: now,
+    })
+    .where(eq(metaSnapshots.id, snapshotId))
+    .run()
 }
 
 export async function resolveShardForKindRegionYear(
@@ -698,32 +851,199 @@ export async function resolveShardForKindRegionYear(
     : null
 }
 
-export async function upsertReleaseSetMember(
+export async function upsertSnapshotSource(
   db: HarbourWritableDb,
-  releaseSetId: string,
+  snapshotId: string,
   datasetId: string,
-  releaseId: string,
+  sourceReleaseId: string,
   role: 'primary' | 'enrichment' | 'fallback' | 'lookup',
 ) {
   await db
-    .insert(metaApiReleaseSetMembers)
+    .insert(metaSnapshotSources)
+    .values({
+      snapshotId,
+      datasetId,
+      sourceReleaseId,
+      role,
+      createdAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [metaSnapshotSources.snapshotId, metaSnapshotSources.sourceReleaseId],
+      set: {
+        datasetId,
+        role,
+      },
+    })
+    .run()
+}
+
+export async function upsertApiReleaseSetSource(
+  db: HarbourWritableDb,
+  releaseSetId: string,
+  datasetId: string,
+  sourceReleaseId: string,
+  role: 'primary' | 'enrichment' | 'fallback' | 'lookup',
+) {
+  await db
+    .insert(metaApiReleaseSetSources)
     .values({
       apiReleaseSetId: releaseSetId,
       datasetId,
-      releaseId,
+      sourceReleaseId,
       role,
       createdAt: new Date(),
     })
     .onConflictDoUpdate({
       target: [
-        metaApiReleaseSetMembers.apiReleaseSetId,
-        metaApiReleaseSetMembers.releaseId,
+        metaApiReleaseSetSources.apiReleaseSetId,
+        metaApiReleaseSetSources.sourceReleaseId,
       ],
       set: {
         datasetId,
         role,
       },
     })
+    .run()
+}
+
+export async function upsertApiReleaseSetSnapshot(
+  db: HarbourWritableDb,
+  releaseSetId: string,
+  snapshotFamily: SnapshotFamily,
+  snapshotId: string,
+) {
+  await db
+    .insert(metaApiReleaseSetSnapshots)
+    .values({
+      apiReleaseSetId: releaseSetId,
+      snapshotFamily,
+      snapshotId,
+      createdAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [
+        metaApiReleaseSetSnapshots.apiReleaseSetId,
+        metaApiReleaseSetSnapshots.snapshotFamily,
+      ],
+      set: {
+        snapshotId,
+      },
+    })
+    .run()
+}
+
+export async function deleteApiReleaseSetSourcesForDataset(
+  db: HarbourWritableDb,
+  releaseSetId: string,
+  datasetId: string,
+) {
+  await db
+    .delete(metaApiReleaseSetSources)
+    .where(
+      and(
+        eq(metaApiReleaseSetSources.apiReleaseSetId, releaseSetId),
+        eq(metaApiReleaseSetSources.datasetId, datasetId),
+      ),
+    )
+    .run()
+}
+
+export async function deleteApiReleaseSetSnapshotForFamily(
+  db: HarbourWritableDb,
+  releaseSetId: string,
+  snapshotFamily: SnapshotFamily,
+) {
+  await db
+    .delete(metaApiReleaseSetSnapshots)
+    .where(
+      and(
+        eq(metaApiReleaseSetSnapshots.apiReleaseSetId, releaseSetId),
+        eq(metaApiReleaseSetSnapshots.snapshotFamily, snapshotFamily),
+      ),
+    )
+    .run()
+}
+
+export async function listApiReleaseSetSnapshots(
+  db: HarbourReadableDb,
+  releaseSetId: string,
+) {
+  return db
+    .select({
+      snapshotFamily: metaApiReleaseSetSnapshots.snapshotFamily,
+      snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+    })
+    .from(metaApiReleaseSetSnapshots)
+    .where(eq(metaApiReleaseSetSnapshots.apiReleaseSetId, releaseSetId))
+    .all()
+}
+
+export async function listApiReleaseSetSources(
+  db: HarbourReadableDb,
+  releaseSetId: string,
+) {
+  return db
+    .select({
+      datasetId: metaApiReleaseSetSources.datasetId,
+      sourceReleaseId: metaApiReleaseSetSources.sourceReleaseId,
+      role: metaApiReleaseSetSources.role,
+    })
+    .from(metaApiReleaseSetSources)
+    .where(eq(metaApiReleaseSetSources.apiReleaseSetId, releaseSetId))
+    .all()
+}
+
+export async function resolveActiveSnapshotForType(
+  db: HarbourReadableDb,
+  type: SupportedType,
+  family: SnapshotFamily,
+) {
+  const activeReleaseSet = await resolveActiveReleaseSetForType(db, type)
+
+  if (!activeReleaseSet) {
+    return null
+  }
+
+  return (
+    (await db
+      .select({
+        snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+      })
+      .from(metaApiReleaseSetSnapshots)
+      .where(
+        and(
+          eq(metaApiReleaseSetSnapshots.apiReleaseSetId, activeReleaseSet.id),
+          eq(metaApiReleaseSetSnapshots.snapshotFamily, family),
+        ),
+      )
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
+export async function insertHistoryVersionProvenanceRows(
+  db: HarbourWritableDb,
+  rows: Array<{
+    entityId: string
+    entityType: 'division' | 'address2d' | 'address3d' | 'street' | 'place'
+    snapshotId: string
+    sourceReleaseId: string
+    versionHash: string
+  }>,
+) {
+  if (rows.length === 0) {
+    return
+  }
+
+  await db
+    .insert(metaHistoryVersionProvenance)
+    .values(
+      rows.map(row => ({
+        ...row,
+        createdAt: new Date(),
+      })),
+    )
+    .onConflictDoNothing()
     .run()
 }
 
