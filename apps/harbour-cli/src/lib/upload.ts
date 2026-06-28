@@ -73,6 +73,7 @@ export async function dispatchUpload(
   const apiBaseUrl = resolveHarbourApiUrl(target)
 
   if (!target.remote) {
+    await assertLocalDirectUploadCanProceed(target, previewResult)
     return uploadFileViaWorker(apiBaseUrl, target, registerOptions, previewResult)
   }
 
@@ -299,6 +300,34 @@ async function tryRecoverDirectUpload(
   }
 
   return null
+}
+
+async function assertLocalDirectUploadCanProceed(
+  target: UploadTarget,
+  previewResult: UploadPreviewResult,
+) {
+  try {
+    const report = await fetchReleaseReport(target, {
+      limit: 1,
+      releaseCode: previewResult.plan.releaseCode,
+    })
+    const release = report.rows[0]
+
+    if (!release || release.status === 'failed') {
+      return
+    }
+
+    throw new Error(
+      `Dataset already exists with status ${release.status}: ${previewResult.plan.source}-${previewResult.plan.datasetCode}`,
+    )
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.startsWith('Dataset already exists with status ')
+    ) {
+      throw error
+    }
+  }
 }
 
 function sleep(ms: number) {
