@@ -125,6 +125,29 @@ function normalizeToken(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
+function getDatasetCodeSubType(source: string, type: SupportedType) {
+  return null
+}
+
+function buildDatasetCode(regionCode: RegionCode, source: string, type: SupportedType) {
+  const subType = getDatasetCodeSubType(source, type)
+
+  return `ds-${regionCode}-${source}-${type}${subType ? `-${subType}` : ''}`
+}
+
+function formatDatasetIdentifier(datasetCode?: string, datasetId?: string) {
+  if (datasetCode?.startsWith('ds-')) {
+    const parts = datasetCode.slice(3).split('-')
+    const [regionCode, source, resourceType, ...subTypeParts] = parts
+
+    if (regionCode && source && resourceType) {
+      return [source, regionCode, resourceType, ...subTypeParts].join('-')
+    }
+  }
+
+  return datasetCode ?? datasetId ?? 'unknown-dataset'
+}
+
 function matchSourceCandidate(candidate: string) {
   const normalized = normalizeToken(candidate)
 
@@ -665,7 +688,7 @@ function resolveUploadPlan(
     type,
     options.originalFileName,
   )
-  const datasetCode = `ds-${regionCode}-${source}-${type}.json`
+  const datasetCode = buildDatasetCode(regionCode, source, type)
   const releaseCode = `${source}-${regionCode}-${sourceVersion}-${type}`
   const plan: UploadPlan = {
     datasetId: releaseCode,
@@ -963,9 +986,9 @@ function assertDatasetCanBeReuploaded(
   }
 
   const datasetIdentifier =
-    existingDataset.source && existingDataset.datasetCode
-      ? `${existingDataset.source}-${existingDataset.datasetCode}`
-      : (existingDataset.datasetCode ?? existingDataset.datasetId)
+    existingDataset.datasetCode || existingDataset.datasetId
+      ? formatDatasetIdentifier(existingDataset.datasetCode, existingDataset.datasetId)
+      : existingDataset.source
 
   throw new Error(
     `Dataset already exists with status ${existingDataset.status}: ${datasetIdentifier}`,
