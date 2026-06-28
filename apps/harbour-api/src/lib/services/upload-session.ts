@@ -107,6 +107,10 @@ export type DatasetProcessingQueue = {
   send(message: DatasetProcessingMessage): Promise<unknown>
 }
 
+type UploadSessionDependencies = {
+  inspectParquet?: typeof inspectParquet
+}
+
 const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
 
 export async function handleSignUploadRequest(
@@ -166,7 +170,9 @@ export async function handleFinalizeUploadRequest(
   bucket: HarbourObjectBucket,
   queue: DatasetProcessingQueue,
   request: FinalizeUploadRequest,
+  dependencies: UploadSessionDependencies = {},
 ): Promise<RegisterUploadResult> {
+  const inspectParquetFn = dependencies.inspectParquet ?? inspectParquet
   const dataset = await getDatasetRecordByReleaseId(db, request.releaseId)
 
   if (!dataset) {
@@ -186,7 +192,7 @@ export async function handleFinalizeUploadRequest(
   }
 
   const objectBuffer = await object.arrayBuffer()
-  const inspection = await inspectParquet(objectBuffer)
+  const inspection = await inspectParquetFn(objectBuffer)
   const fileName = fileNameFromRawObjectKey(dataset.rawObjectKey)
   const resolveSchemaFingerprint = createR2SchemaFingerprintResolver(bucket)
   const planned = await planUpload(

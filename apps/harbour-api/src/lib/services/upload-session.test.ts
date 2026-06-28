@@ -11,11 +11,18 @@ import {
   loadMigrationSql,
   seedFixtureCatalog,
 } from '../../../../../libs/core/src/testing/meta-fixtures'
-import type { DatasetProcessingQueue, UploadSigningEnv } from './upload-session'
+import {
+  handleFinalizeUploadRequest,
+  handleRequeueUploadRequest,
+  handleSignUploadRequest,
+  type DatasetProcessingQueue,
+  type UploadSigningEnv,
+} from './upload-session'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
 const migrationSql = loadMigrationSql(migrationsDir)
 const tempDirs: string[] = []
+const sqliteHandles: Database[] = []
 const fixtureInspection: ParquetInspection = {
   rowCount: 3,
   schema: [
@@ -33,16 +40,6 @@ const fixtureInspection: ParquetInspection = {
 const fixtureBytes = new Uint8Array([0x50, 0x41, 0x52, 0x31])
 const inspectParquetMock = mock(async () => fixtureInspection)
 
-mock.module('@repo/core/parquet-inspector', () => ({
-  inspectParquet: inspectParquetMock,
-}))
-
-const {
-  handleFinalizeUploadRequest,
-  handleRequeueUploadRequest,
-  handleSignUploadRequest,
-} = await import('./upload-session')
-
 function createTempDir() {
   const dir = mkdtempSync(join(tmpdir(), 'harbour-upload-session-test-'))
   tempDirs.push(dir)
@@ -53,6 +50,7 @@ function initDb(dbPath: string) {
   const db = new Database(dbPath)
   db.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
   seedFixtureCatalog(db)
+  sqliteHandles.push(db)
   return db
 }
 
@@ -134,6 +132,10 @@ afterEach(() => {
   inspectParquetMock.mockClear()
   queuedMessages.length = 0
 
+  while (sqliteHandles.length > 0) {
+    sqliteHandles.pop()?.close()
+  }
+
   while (tempDirs.length > 0) {
     const dir = tempDirs.pop()
 
@@ -170,9 +172,17 @@ describe('upload session flow', () => {
 
     await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
 
-    const finalizeResult = await handleFinalizeUploadRequest(db, bucket, queue, {
-      releaseId: signResult.releaseId,
-    })
+    const finalizeResult = await handleFinalizeUploadRequest(
+      db,
+      bucket,
+      queue,
+      {
+        releaseId: signResult.releaseId,
+      },
+      {
+        inspectParquet: inspectParquetMock,
+      },
+    )
     const dataset = sqlite
       .query(
         'SELECT code AS datasetId, status, rawObjectKey, originalFileName FROM releases WHERE code = ?',
@@ -183,8 +193,6 @@ describe('upload session flow', () => {
       rawObjectKey: string
       originalFileName: string
     } | null
-
-    sqlite.close()
 
     expect(finalizeResult.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
     expect(inspectParquetMock).toHaveBeenCalledTimes(1)
@@ -239,9 +247,17 @@ describe('upload session flow', () => {
     })
 
     await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
-    await handleFinalizeUploadRequest(db, bucket, queue, {
-      releaseId: signResult.releaseId,
-    })
+    await handleFinalizeUploadRequest(
+      db,
+      bucket,
+      queue,
+      {
+        releaseId: signResult.releaseId,
+      },
+      {
+        inspectParquet: inspectParquetMock,
+      },
+    )
 
     inspectParquetMock.mockClear()
     queuedMessages.length = 0
@@ -259,8 +275,6 @@ describe('upload session flow', () => {
       phase: string
       status: string
     } | null
-
-    sqlite.close()
 
     expect(requeued.releaseCode).toBe('overture-hk-2026-05-24.0-division')
     expect(requeued.rowCount).toBe(3)
@@ -311,9 +325,17 @@ describe('upload session flow', () => {
     })
 
     await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
-    await handleFinalizeUploadRequest(db, bucket, queue, {
-      releaseId: signResult.releaseId,
-    })
+    await handleFinalizeUploadRequest(
+      db,
+      bucket,
+      queue,
+      {
+        releaseId: signResult.releaseId,
+      },
+      {
+        inspectParquet: inspectParquetMock,
+      },
+    )
 
     sqlite
       .query('UPDATE releases SET status = ?, updatedAt = ? WHERE id = ?')
@@ -366,8 +388,6 @@ describe('upload session flow', () => {
       phase: string
       status: string
     } | null
-
-    sqlite.close()
 
     expect(requeued.releaseCode).toBe('overture-hk-2026-05-24.0-division')
     expect(requeued.rowCount).toBe(3)
