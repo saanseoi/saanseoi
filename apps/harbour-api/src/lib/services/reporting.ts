@@ -57,6 +57,11 @@ export type StatReportRow = {
   value: number
 }
 
+type StatQueryRow = Omit<StatReportRow, 'createdAt' | 'updatedAt'> & {
+  createdAt: Date
+  updatedAt: Date
+}
+
 export type ReportFilters = {
   limit?: number
   releaseCode?: string
@@ -102,8 +107,12 @@ type ReleaseContext = {
 }
 
 type ReleaseQueryRow = Omit<ReleaseReportRow, 'rowCounts'> & {
+  createdAt: Date
+  ingestedAt: Date | null
   regionCode: string
+  revokedAt: Date | null
   sourceUrl: string
+  updatedAt: Date
 }
 
 type CountSpec = {
@@ -214,7 +223,7 @@ export async function listStats(
 
   const rows = (await query
     .where(inArray(stats.releaseId, releaseIds))
-    .all()) as StatReportRow[]
+    .all()) as StatQueryRow[]
 
   return rows.map(row => ({
     ...row,

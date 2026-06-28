@@ -1,3 +1,5 @@
+import type { ReleaseStatus } from '@repo/db'
+
 export const SUPPORTED_THEMES = ['addresses', 'divisions', 'places'] as const
 export const SUPPORTED_TYPES = ['address', 'division', 'place'] as const
 
@@ -19,7 +21,7 @@ export type DatasetRecord = {
   sourceVersion: string
   rawObjectKey: string
   originalFileName: string
-  status: string
+  status: ReleaseStatus
   supersedesDatasetId: string | null
   supersededByReleaseId: string | null
   revokedAt: string | null
@@ -88,7 +90,7 @@ export type RegisterUploadOptions = {
   inspection?: ParquetInspection
   rawObjectKey?: string
   resolveSchemaFingerprint?: SchemaFingerprintResolver
-  allowExistingDatasetStatuses?: string[]
+  allowExistingDatasetStatuses?: ReleaseStatus[]
 }
 
 export type PreparedUploadResult = {
