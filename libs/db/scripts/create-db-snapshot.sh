@@ -216,6 +216,12 @@ while IFS=$'\t' read -r binding_name database_name local_database_id database_id
 
   if [[ "$environment" == "local" ]]; then
     sqlite_path="$(bash "$script_dir/lib/resolve-local-d1-sqlite-path.sh" "$local_database_id")"
+
+    if [[ ! -f "$sqlite_path" ]]; then
+      echo "Could not resolve a local SQLite file for D1 database id '$local_database_id'." >&2
+      exit 1
+    fi
+
     mapfile -t applied_migrations < <(list_local_applied_migrations "$sqlite_path" "$migrations_table")
     output_file="$snapshot_dir/${binding_name}.sqlite"
 
