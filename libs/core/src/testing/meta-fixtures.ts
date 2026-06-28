@@ -325,11 +325,16 @@ export function seedFixtureCatalog(db: Database) {
   ensureFixtureCompatibleMetaSchema(db)
 
   db.exec(`
-    INSERT OR IGNORE INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
+    INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
       ('publisher-overture', 'overture', 'vh-publisher-overture-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('publisher-hkgov', 'hkgov', 'vh-publisher-hkgov-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS});
+      ('publisher-hkgov', 'hkgov', 'vh-publisher-hkgov-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
+    ON CONFLICT(id) DO UPDATE SET
+      code = excluded.code,
+      versionHash = excluded.versionHash,
+      updatedAt = excluded.updatedAt
+    WHERE publishers.versionHash <> excluded.versionHash;
 
-    INSERT OR IGNORE INTO datasets (
+    INSERT INTO datasets (
       id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, versionHash, createdAt, updatedAt
     ) VALUES
       (
@@ -373,9 +378,21 @@ export function seedFixtureCatalog(db: Database) {
         'vh-dataset-hkgov-hk-address-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
-      );
+      )
+    ON CONFLICT(id) DO UPDATE SET
+      publisherId = excluded.publisherId,
+      code = excluded.code,
+      regionCode = excluded.regionCode,
+      releaseType = excluded.releaseType,
+      releaseFrequency = excluded.releaseFrequency,
+      theme = excluded.theme,
+      type = excluded.type,
+      sourceUrl = excluded.sourceUrl,
+      versionHash = excluded.versionHash,
+      updatedAt = excluded.updatedAt
+    WHERE datasets.versionHash <> excluded.versionHash;
 
-    INSERT OR IGNORE INTO apiVersions (id, code, familyType, version, status, publishedAt, versionHash, createdAt, updatedAt) VALUES
+    INSERT INTO apiVersions (id, code, familyType, version, status, publishedAt, versionHash, createdAt, updatedAt) VALUES
       (
         'api-version-api-divisions-v0.1',
         'api-divisions-v0.1',
@@ -408,9 +425,18 @@ export function seedFixtureCatalog(db: Database) {
         'vh-api-version-places-v0.1-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
-      );
+      )
+    ON CONFLICT(id) DO UPDATE SET
+      code = excluded.code,
+      familyType = excluded.familyType,
+      version = excluded.version,
+      status = excluded.status,
+      publishedAt = excluded.publishedAt,
+      versionHash = excluded.versionHash,
+      updatedAt = excluded.updatedAt
+    WHERE apiVersions.versionHash <> excluded.versionHash;
 
-    INSERT OR IGNORE INTO apiReleaseSets (
+    INSERT INTO apiReleaseSets (
       id,
       apiVersionId,
       code,
@@ -457,9 +483,19 @@ export function seedFixtureCatalog(db: Database) {
         'vh-api-release-set-place-2026-06-17.0-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
-      );
+      )
+    ON CONFLICT(id) DO UPDATE SET
+      apiVersionId = excluded.apiVersionId,
+      code = excluded.code,
+      schemaVersion = excluded.schemaVersion,
+      rulesetVersion = excluded.rulesetVersion,
+      status = excluded.status,
+      publishedAt = excluded.publishedAt,
+      versionHash = excluded.versionHash,
+      updatedAt = excluded.updatedAt
+    WHERE apiReleaseSets.versionHash <> excluded.versionHash;
 
-    INSERT OR IGNORE INTO dataShards (
+    INSERT INTO dataShards (
       id,
       shardType,
       regionCode,
@@ -584,7 +620,19 @@ export function seedFixtureCatalog(db: Database) {
         'vh-data-shards-hk-source-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
-      );
+      )
+    ON CONFLICT(id) DO UPDATE SET
+      shardType = excluded.shardType,
+      regionCode = excluded.regionCode,
+      year = excluded.year,
+      environment = excluded.environment,
+      databaseName = excluded.databaseName,
+      databaseId = excluded.databaseId,
+      bindingName = excluded.bindingName,
+      status = excluded.status,
+      versionHash = excluded.versionHash,
+      updatedAt = excluded.updatedAt
+    WHERE dataShards.versionHash <> excluded.versionHash;
   `)
 }
 
