@@ -8,6 +8,7 @@ import {
   upsertIngestRunStatus,
 } from '../db/meta-repository'
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
+import type { ReleaseStatus } from '@repo/db'
 import type {
   DatasetRecord,
   ParquetInspection,
@@ -948,9 +949,9 @@ function assertDatasetCanBeReuploaded(
     datasetId: string
     source?: string
     datasetCode?: string
-    status: string
+    status: ReleaseStatus
   },
-  allowedExistingStatuses: readonly string[] = [],
+  allowedExistingStatuses: readonly ReleaseStatus[] = [],
 ) {
   if (existingDataset.status === 'failed') {
     return

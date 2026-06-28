@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, isNull, ne, sql, metaSchema } from '@repo/db'
 
 import type { DatasetRecord, RegionCode, SupportedType, UploadPlan } from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './types'
+import type { IngestRunStatus, ReleaseStatus } from '@repo/db'
 
 type LatestDatasetLookup = {
   latestDataset: DatasetRecord | null
@@ -13,7 +14,7 @@ type DatasetIdentityRecord = {
   datasetCode: string
   releaseId: string
   releaseCode: string
-  status: string
+  status: ReleaseStatus
 }
 
 export type SnapshotFamily = 'division' | 'address' | 'street' | 'place'
@@ -212,7 +213,7 @@ export async function insertDataset(
   plan: UploadPlan,
   rawObjectKey: string,
   ingestedAt: string,
-  status = 'staged',
+  status: ReleaseStatus = 'staged',
 ) {
   const dataset = await requireDatasetDefinition(db, plan)
   const now = new Date(ingestedAt)
@@ -243,7 +244,7 @@ export async function resetFailedDataset(
   plan: UploadPlan,
   rawObjectKey: string,
   ingestedAt: string,
-  status: string,
+  status: ReleaseStatus,
 ) {
   const now = new Date(ingestedAt)
 
@@ -268,7 +269,7 @@ export async function resetFailedDataset(
 export async function updateDatasetStatus(
   db: HarbourWritableDb,
   releaseId: string,
-  status: string,
+  status: ReleaseStatus,
 ) {
   await db
     .update(metaReleases)
@@ -1106,7 +1107,7 @@ export async function insertIngestRun(
   db: HarbourReadableDb & HarbourWritableDb,
   releaseId: string,
   phase: string,
-  status: string,
+  status: IngestRunStatus,
   stats: string | null,
   startedAt: string,
   finishedAt: string | null,
@@ -1191,7 +1192,7 @@ export async function upsertIngestRunStatus(
   db: HarbourReadableDb & HarbourWritableDb,
   releaseId: string,
   phase: string,
-  status: string,
+  status: IngestRunStatus,
   startedAt: string,
   finishedAt: string | null,
   stats: string | null,
@@ -1232,7 +1233,7 @@ export async function updateLatestOpenIngestRun(
   db: HarbourReadableDb & HarbourWritableDb,
   releaseId: string,
   phase: string,
-  status: string,
+  status: IngestRunStatus,
   finishedAt: string,
   stats: string | null,
   error: string | null = null,

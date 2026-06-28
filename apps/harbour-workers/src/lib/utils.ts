@@ -41,8 +41,8 @@ export function chunkArray<T>(items: T[], chunkSize: number) {
 }
 
 type BatchRunnable = {
-  execute?: () => Promise<unknown>
-  run?: () => Promise<unknown>
+  execute?: () => unknown | Promise<unknown>
+  run?: () => unknown | Promise<unknown>
 }
 
 /**
@@ -106,7 +106,7 @@ export async function runStatementsInGroupsWithWriteRetry(
  * Retries transient SQLite write failures with a small linear backoff.
  */
 export async function runWithWriteRetry<T>(
-  operation: () => Promise<T>,
+  operation: () => T | Promise<T>,
   attempt = 0,
 ): Promise<T> {
   try {
