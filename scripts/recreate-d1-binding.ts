@@ -31,6 +31,25 @@ type D1ListEntry = {
   uuid: string
 }
 
+type WranglerD1DatabaseEntry = {
+  binding?: string
+  database_id?: string
+  database_name?: string
+  preview_database_id?: string
+}
+
+type WranglerConfig = {
+  d1_databases?: WranglerD1DatabaseEntry[]
+  env?: Partial<
+    Record<
+      Environment,
+      {
+        d1_databases?: WranglerD1DatabaseEntry[]
+      }
+    >
+  >
+}
+
 const repoRoot = resolve(import.meta.dir, '..')
 const wranglerConfigPaths = [
   resolve(repoRoot, 'apps/atlas-api/wrangler.jsonc'),
@@ -241,10 +260,10 @@ function isEnvironment(value: string): value is Environment {
 
 function resolveDatabaseName(binding: BindingName, environment: Environment) {
   const raw = readFileSync(resolve(repoRoot, 'apps/harbour-api/wrangler.jsonc'), 'utf8')
-  const config = parse(raw) as any
+  const config = parse(raw) as WranglerConfig
   const envConfig = config.env?.[environment]
   const entries = envConfig?.d1_databases ?? []
-  const match = entries.find((entry: any) => entry.binding === binding)
+  const match = entries.find(entry => entry.binding === binding)
 
   if (!match?.database_name) {
     throw new Error(`Could not resolve database_name for ${binding} in ${environment}.`)
@@ -306,11 +325,11 @@ function patchWranglerConfig(
   newDatabaseId: string,
 ) {
   const raw = readFileSync(configPath, 'utf8')
-  const config = parse(raw) as any
+  const config = parse(raw) as WranglerConfig
   let changed = false
 
   const patchEntry = (
-    entry: any,
+    entry: WranglerD1DatabaseEntry,
     mode: 'preview-primary' | 'preview-reference' | 'production-primary',
   ) => {
     if (!entry || entry.binding !== binding) {
@@ -386,8 +405,14 @@ function relativeToRepo(path: string) {
 }
 
 function runCommand(label: string, command: string[]) {
+  const [executable, ...args] = command
+
+  if (!executable) {
+    throw new Error(`Cannot run "${label}" with an empty command.`)
+  }
+
   console.log(`${label}: ${command.join(' ')}`)
-  execFileSync(command[0]!, command.slice(1), {
+  execFileSync(executable, args, {
     cwd: repoRoot,
     stdio: 'inherit',
   })

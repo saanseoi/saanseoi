@@ -37,8 +37,9 @@ let activeWordIndex = $state(0)
 
 const activeWord = $derived(rotatingWords[activeWordIndex] ?? rotatingWords[0] ?? '')
 
+// biome-ignore lint/correctness/noUnusedVariables: used by Svelte transition directives.
 function wordMotion(
-  node: Element,
+  _node: Element,
   { y = 24, startBlur = 8 }: { y?: number; startBlur?: number } = {},
 ) {
   return {
@@ -95,7 +96,7 @@ onMount(() => {
                       in:wordMotion={{ y: 28 }}
                       out:wordMotion={{ y: -28 }}
                     >
-                      {activeWord + ' ' + m.hero_title_suffix()}
+                      {`${activeWord} ${m.hero_title_suffix()}`}
                     </span>
                   {/key}
                 </span>

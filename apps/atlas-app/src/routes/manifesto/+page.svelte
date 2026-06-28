@@ -54,10 +54,11 @@ const title = $derived(m.manifesto_title())
 const subtitle = $derived(m.manifesto_subtitle())
 const ctaPrimary = $derived(m.hero_cta_primary())
 const ctaSecondary = $derived(m.hero_cta_secondary())
+const fallbackSection = sections[sections.length - 1] ?? ''
 const principles = $derived.by(() =>
   principleDefinitions.map((principle, index) => ({
     number: principle.number,
-    section: sections[index]!,
+    section: sections[index] ?? fallbackSection,
     lead: principle.lead(),
     body: principle.body(),
   })),
