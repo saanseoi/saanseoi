@@ -21,6 +21,9 @@ type Props = {
 }
 
 let { principles, subtitle, badge, ctaPrimary, ctaSecondary }: Props = $props()
+const featuredPrinciple = $derived(principles[0])
+const missionPrinciple = $derived(principles[3])
+const closingPrinciple = $derived(principles[12])
 </script>
 
 <Main class="manifesto-shell">
@@ -74,14 +77,16 @@ let { principles, subtitle, badge, ctaPrimary, ctaSecondary }: Props = $props()
     >
       <div class="grid grid-cols-1 gap-6 md:grid-cols-12 md:gap-8">
         <div class="md:col-span-8">
-          <PrincipleCard
-            featured
-            number={principles[0]!.number}
-            section={principles[0]!.section}
-            lead={principles[0]!.lead}
-            body={principles[0]!.body}
-            tone="accent"
-          />
+          {#if featuredPrinciple}
+            <PrincipleCard
+              featured
+              number={featuredPrinciple.number}
+              section={featuredPrinciple.section}
+              lead={featuredPrinciple.lead}
+              body={featuredPrinciple.body}
+              tone="accent"
+            />
+          {/if}
         </div>
 
         <MarkerOrbit />
@@ -99,14 +104,16 @@ let { principles, subtitle, badge, ctaPrimary, ctaSecondary }: Props = $props()
         {/each}
       </div>
 
-      <PrincipleCard
-        align="center"
-        number={principles[3]!.number}
-        section={principles[3]!.section}
-        lead={principles[3]!.lead}
-        body={principles[3]!.body}
-        tone="plain"
-      />
+      {#if missionPrinciple}
+        <PrincipleCard
+          align="center"
+          number={missionPrinciple.number}
+          section={missionPrinciple.section}
+          lead={missionPrinciple.lead}
+          body={missionPrinciple.body}
+          tone="plain"
+        />
+      {/if}
 
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         {#each principles.slice(4, 7) as principle, index}
@@ -144,22 +151,28 @@ let { principles, subtitle, badge, ctaPrimary, ctaSecondary }: Props = $props()
         {/each}
       </div>
 
-      <PrincipleCard
-        number={principles[12]!.number}
-        section={principles[12]!.section}
-        lead={principles[12]!.lead}
-        body={principles[12]!.body}
-        tone="highlight"
-      >
-        <div class="mt-10 flex flex-col justify-center gap-16 sm:flex-row">
-          <Button class="justify-center scale-120" href="/community"
-            >{ctaSecondary}</Button
-          >
-          <Button class="justify-center scale-120" href="/datasets" variant="secondary">
-            {ctaPrimary}
-          </Button>
-        </div>
-      </PrincipleCard>
+      {#if closingPrinciple}
+        <PrincipleCard
+          number={closingPrinciple.number}
+          section={closingPrinciple.section}
+          lead={closingPrinciple.lead}
+          body={closingPrinciple.body}
+          tone="highlight"
+        >
+          <div class="mt-10 flex flex-col justify-center gap-16 sm:flex-row">
+            <Button class="justify-center scale-120" href="/community"
+              >{ctaSecondary}</Button
+            >
+            <Button
+              class="justify-center scale-120"
+              href="/datasets"
+              variant="secondary"
+            >
+              {ctaPrimary}
+            </Button>
+          </div>
+        </PrincipleCard>
+      {/if}
     </div>
   </section>
 </Main>

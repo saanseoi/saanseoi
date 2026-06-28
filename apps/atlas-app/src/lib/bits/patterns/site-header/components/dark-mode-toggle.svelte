@@ -18,7 +18,6 @@ type Props = {
 let darkModeEnabled = $state(false)
 let { class: className = '' }: Props = $props()
 
-// biome-ignore lint: incorrect lint/correctness/noUnusedVariables
 function handleThemeChange(nextValue: boolean) {
   darkModeEnabled = nextValue
   setTheme(nextValue ? 'dark' : 'light')

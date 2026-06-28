@@ -69,7 +69,7 @@ const buttonClasses = $derived(buttonVariantClasses[variant])
       'focus-visible:ring-offset-background',
       className
     )}
-    {href}
+    href={href ?? ''}
     {rel}
     {target}
   >

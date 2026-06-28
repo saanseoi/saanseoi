@@ -36,7 +36,6 @@ const alternateOptions = $derived(
   options.filter(option => option.value !== getCurrentLocale()),
 )
 
-// biome-ignore lint: incorrect lint/correctness/noUnusedVariables
 function handleLocaleChange(nextLocale: string) {
   void updateLocale(nextLocale as AppLocale)
 }

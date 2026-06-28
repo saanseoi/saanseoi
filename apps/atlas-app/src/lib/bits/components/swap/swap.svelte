@@ -45,7 +45,6 @@ $effect(() => {
   }
 })
 
-// biome-ignore lint: incorrect lint/correctness/noUnusedVariables
 function handleChange(event: Event) {
   const target = event.currentTarget as HTMLInputElement
   checked = target.checked

@@ -14,7 +14,6 @@ const endpoint = env.PUBLIC_ATLAS_API_BASE_URL
   ? `${env.PUBLIC_ATLAS_API_BASE_URL}/v1/meta/substack`
   : 'http://localhost:8787/v1/meta/substack'
 
-// biome-ignore lint: incorrect lint/correctness/noUnusedVariables
 async function handleSubmit(event: SubmitEvent) {
   event.preventDefault()
 
