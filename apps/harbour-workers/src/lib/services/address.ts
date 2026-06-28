@@ -4,6 +4,7 @@ import {
   resolveLatestPublishedSnapshotForFamily,
   resolveLatestPublishedSnapshotForFamilyRegion,
 } from '@repo/core/db/meta-repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   CurrentDatabase,
   HistoryDatabase,
@@ -20,6 +21,7 @@ import type {
 import { and, eq } from 'drizzle-orm'
 
 import { currentSchema } from '@repo/db'
+import { historySchema } from '@repo/db'
 
 import {
   alignAddressCurrentDivisionSnapshot,
@@ -55,7 +57,11 @@ import {
 } from '../db/source'
 import { asNonEmptyString, createHash } from '../utils'
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
-import { createOperationTimer, resolveDataShardEnvironment } from './shared'
+import {
+  createOperationTimer,
+  resolveDataShardEnvironment,
+  resolveDebugEnabled,
+} from './shared'
 
 import type { HarbourWorkerBucket } from './division'
 import type { AddressVersionSnapshot } from '../db/address'
@@ -110,36 +116,47 @@ export async function processAddressDataset(
   sourceDb?: SourceDatabase,
   reportProgress?: ReportProgress,
 ): Promise<ProcessAddressDatasetResult> {
-  const timings = createOperationTimer()
+  const debugEnabled = resolveDebugEnabled(process.env.DEBUG)
+  const timings = createOperationTimer(debugEnabled)
+  const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
+  const currentRepoDb = currentDb as unknown as HarbourReadableDb & HarbourWritableDb
+  const historyRepoDb = historyDb as unknown as HarbourReadableDb & HarbourWritableDb
   const file = await timings.measure('loadParquetBufferMs', () =>
     createAsyncBufferFromR2(bucket, message.rawObjectKey),
   )
   const environment = resolveDataShardEnvironment(process.env.DATA_SHARD_ENV)
   const versionInsertContext = await timings.measure(
     'prepareVersionInsertContextMs',
-    () => prepareAddressVersionInsertContext(metaDb, message, environment),
+    () => prepareAddressVersionInsertContext(metaRepoDb, message, environment),
   )
 
   const divisionLookup = await timings.measure('loadDivisionLookupMapsMs', () =>
     loadDivisionLookupMaps(metaDb, currentDb, message.regionCode),
   )
   const currentRows = await timings.measure('loadCurrentVersionMapMs', () =>
-    getCurrentAddressVersionMap(historyDb, message.regionCode, {
+    getCurrentAddressVersionMap(historyRepoDb, message.regionCode, {
       buildAddressBaseHashInput,
       buildMatchKey,
       normalizeAddressI18nSnapshotRow,
     }),
   )
   const previousSnapshot = await resolveLatestSnapshotForFamilyExcludingId(
-    metaDb,
+    metaRepoDb,
     'address',
     versionInsertContext.snapshotId,
   )
 
-  if (previousSnapshot) {
+  if (
+    previousSnapshot &&
+    (await snapshotMatchesAddressRegion(
+      historyDb,
+      previousSnapshot.id,
+      message.regionCode,
+    ))
+  ) {
     await timings.measure('cloneAddressCurrentSnapshotMs', () =>
       cloneAddressCurrentSnapshot(
-        currentDb,
+        currentRepoDb,
         previousSnapshot.id,
         versionInsertContext.snapshotId,
       ),
@@ -147,7 +164,7 @@ export async function processAddressDataset(
   }
   await timings.measure('alignAddressCurrentDivisionSnapshotMs', () =>
     alignAddressCurrentDivisionSnapshot(
-      currentDb,
+      currentRepoDb,
       versionInsertContext.snapshotId,
       divisionLookup.snapshotId,
     ),
@@ -517,18 +534,18 @@ export async function processAddressDataset(
 
     await timings.measure('closeCurrentAddressVersionsMs', () =>
       closeCurrentAddressVersions(
-        historyDb,
+        historyRepoDb,
         [...changedAddressExistingIds],
         versionInsertContext.snapshotId,
         message.snapshotMonth,
       ),
     )
     await timings.measure('upsertAddressCurrentStatesMs', () =>
-      upsertAddressCurrentStates(currentDb, currentAddressRows),
+      upsertAddressCurrentStates(currentRepoDb, currentAddressRows),
     )
     await timings.measure('replaceAddressCurrentI18nMs', () =>
       replaceAddressCurrentI18n(
-        currentDb,
+        currentRepoDb,
         versionInsertContext.snapshotId,
         [...currentAddressI18nRowIds],
         currentAddressI18nRows,
@@ -536,98 +553,99 @@ export async function processAddressDataset(
     )
     await timings.measure('insertAddressVersionRowsMs', () =>
       insertAddressVersionRows(
-        historyDb,
+        historyRepoDb,
         versionInsertContext,
         changedAddressVersionRows,
         changedAddressI18nVersionRows,
       ),
     )
-    if (!sourceDb) {
-      continue
-    }
+    if (sourceDb) {
+      const changedIds = [...changedSourceIds]
+      const unchangedIds = [...unchangedSourceIds]
+      const releaseId = buildSourceReleaseId(message)
+      const datasetId = buildSourceDatasetId(message)
 
-    const changedIds = [...changedSourceIds]
-    const unchangedIds = [...unchangedSourceIds]
-    const releaseId = buildSourceReleaseId(message)
-    const datasetId = buildSourceDatasetId(message)
+      if (message.source === 'overture') {
+        if (changedIds.length > 0) {
+          await timings.measure('closeSourceOvertureAddress2dVersionsMs', () =>
+            closeSourceOvertureAddress2dVersions(
+              sourceDb,
+              changedIds,
+              message.sourceVersion,
+            ),
+          )
+        }
 
-    if (message.source === 'overture') {
-      if (changedIds.length > 0) {
-        await timings.measure('closeSourceOvertureAddress2dVersionsMs', () =>
-          closeSourceOvertureAddress2dVersions(
+        await timings.measure('upsertSourceOvertureAddresses2dMs', () =>
+          upsertSourceOvertureAddresses2d(sourceDb, overtureSourceRows),
+        )
+        await timings.measure('advanceSourceOvertureAddress2dReleaseMs', () =>
+          advanceSourceOvertureAddress2dRelease(
+            sourceDb,
+            unchangedIds,
+            releaseId,
+            datasetId,
+          ),
+        )
+        await timings.measure('replaceSourceOvertureAddress2dI18nRowsMs', () =>
+          replaceSourceOvertureAddress2dI18nRows(
             sourceDb,
             changedIds,
-            message.sourceVersion,
+            overtureSourceI18nRows.filter(row =>
+              changedSourceIds.has(row.sourceRecordId),
+            ),
+          ),
+        )
+
+        await timings.measure('insertSourceOvertureAddresses2dVersionsMs', () =>
+          insertSourceOvertureAddresses2dVersions(sourceDb, overtureSourceVersionRows),
+        )
+        await timings.measure('insertSourceOvertureAddress2dI18nVersionsMs', () =>
+          insertSourceOvertureAddress2dI18nVersions(
+            sourceDb,
+            overtureSourceI18nVersionRows,
+          ),
+        )
+      } else {
+        if (changedIds.length > 0) {
+          await timings.measure('closeSourceHkgovAlsAddress2dVersionsMs', () =>
+            closeSourceHkgovAlsAddress2dVersions(
+              sourceDb,
+              changedIds,
+              message.sourceVersion,
+            ),
+          )
+        }
+
+        await timings.measure('upsertSourceHkgovAlsAddresses2dMs', () =>
+          upsertSourceHkgovAlsAddresses2d(sourceDb, hkgovSourceRows),
+        )
+        await timings.measure('advanceSourceHkgovAlsAddress2dReleaseMs', () =>
+          advanceSourceHkgovAlsAddress2dRelease(
+            sourceDb,
+            unchangedIds,
+            releaseId,
+            datasetId,
+          ),
+        )
+        await timings.measure('replaceSourceHkgovAlsAddress2dI18nRowsMs', () =>
+          replaceSourceHkgovAlsAddress2dI18nRows(
+            sourceDb,
+            changedIds,
+            hkgovSourceI18nRows.filter(row => changedSourceIds.has(row.sourceRecordId)),
+          ),
+        )
+
+        await timings.measure('insertSourceHkgovAlsAddresses2dVersionsMs', () =>
+          insertSourceHkgovAlsAddresses2dVersions(sourceDb, hkgovSourceVersionRows),
+        )
+        await timings.measure('insertSourceHkgovAlsAddress2dI18nVersionsMs', () =>
+          insertSourceHkgovAlsAddress2dI18nVersions(
+            sourceDb,
+            hkgovSourceI18nVersionRows,
           ),
         )
       }
-
-      await timings.measure('upsertSourceOvertureAddresses2dMs', () =>
-        upsertSourceOvertureAddresses2d(sourceDb, overtureSourceRows),
-      )
-      await timings.measure('advanceSourceOvertureAddress2dReleaseMs', () =>
-        advanceSourceOvertureAddress2dRelease(
-          sourceDb,
-          unchangedIds,
-          releaseId,
-          datasetId,
-        ),
-      )
-      await timings.measure('replaceSourceOvertureAddress2dI18nRowsMs', () =>
-        replaceSourceOvertureAddress2dI18nRows(
-          sourceDb,
-          changedIds,
-          overtureSourceI18nRows.filter(row =>
-            changedSourceIds.has(row.sourceRecordId),
-          ),
-        ),
-      )
-
-      await timings.measure('insertSourceOvertureAddresses2dVersionsMs', () =>
-        insertSourceOvertureAddresses2dVersions(sourceDb, overtureSourceVersionRows),
-      )
-      await timings.measure('insertSourceOvertureAddress2dI18nVersionsMs', () =>
-        insertSourceOvertureAddress2dI18nVersions(
-          sourceDb,
-          overtureSourceI18nVersionRows,
-        ),
-      )
-    } else {
-      if (changedIds.length > 0) {
-        await timings.measure('closeSourceHkgovAlsAddress2dVersionsMs', () =>
-          closeSourceHkgovAlsAddress2dVersions(
-            sourceDb,
-            changedIds,
-            message.sourceVersion,
-          ),
-        )
-      }
-
-      await timings.measure('upsertSourceHkgovAlsAddresses2dMs', () =>
-        upsertSourceHkgovAlsAddresses2d(sourceDb, hkgovSourceRows),
-      )
-      await timings.measure('advanceSourceHkgovAlsAddress2dReleaseMs', () =>
-        advanceSourceHkgovAlsAddress2dRelease(
-          sourceDb,
-          unchangedIds,
-          releaseId,
-          datasetId,
-        ),
-      )
-      await timings.measure('replaceSourceHkgovAlsAddress2dI18nRowsMs', () =>
-        replaceSourceHkgovAlsAddress2dI18nRows(
-          sourceDb,
-          changedIds,
-          hkgovSourceI18nRows.filter(row => changedSourceIds.has(row.sourceRecordId)),
-        ),
-      )
-
-      await timings.measure('insertSourceHkgovAlsAddresses2dVersionsMs', () =>
-        insertSourceHkgovAlsAddresses2dVersions(sourceDb, hkgovSourceVersionRows),
-      )
-      await timings.measure('insertSourceHkgovAlsAddress2dI18nVersionsMs', () =>
-        insertSourceHkgovAlsAddress2dI18nVersions(sourceDb, hkgovSourceI18nVersionRows),
-      )
     }
 
     if (reportProgress) {
@@ -638,24 +656,24 @@ export async function processAddressDataset(
     }
   }
 
-  const deletedRows =
+  const { count: deletedRows, missingIds } =
     message.source === 'overture'
       ? await timings.measure('deleteMissingCurrentAddressesMs', () =>
           deleteMissingCurrentAddresses(
-            historyDb,
+            historyRepoDb,
             versionInsertContext.snapshotId,
             message.snapshotMonth,
             currentRows,
             seenIds,
           ),
         )
-      : 0
+      : { count: 0, missingIds: [] as string[] }
   if (message.source === 'overture') {
     await timings.measure('deleteStaleAddressCurrentRowsMs', () =>
       deleteStaleAddressCurrentRows(
-        currentDb,
+        currentRepoDb,
         versionInsertContext.snapshotId,
-        seenIds,
+        missingIds,
       ),
     )
   }
@@ -691,7 +709,7 @@ export async function processAddressDataset(
       snapshotId: versionInsertContext.snapshotId,
       source: message.source,
       sourceVersion: message.sourceVersion,
-      timingsMs: timings.snapshot(),
+      ...(debugEnabled ? { timingsMs: timings.snapshot() } : {}),
       type: message.type,
     }),
   )
@@ -706,19 +724,42 @@ export async function processAddressDataset(
   }
 }
 
+async function snapshotMatchesAddressRegion(
+  historyDb: HistoryDatabase,
+  snapshotId: string,
+  regionCode: DatasetProcessingMessage['regionCode'],
+) {
+  const match = await historyDb
+    .select({
+      snapshotId: historySchema.address2dVersions.snapshotId,
+    })
+    .from(historySchema.address2dVersions)
+    .where(
+      and(
+        eq(historySchema.address2dVersions.snapshotId, snapshotId),
+        eq(historySchema.address2dVersions.regionCode, regionCode),
+      ),
+    )
+    .limit(1)
+    .get()
+
+  return Boolean(match)
+}
+
 async function loadDivisionLookupMaps(
   metaDb: MetaDatabase,
   db: CurrentDatabase,
   regionCode: DatasetProcessingMessage['regionCode'],
 ) {
+  const metaReadDb = metaDb as unknown as HarbourReadableDb
   const activeDivisionSnapshot = await resolveLatestPublishedSnapshotForFamilyRegion(
-    metaDb,
+    metaReadDb,
     'division',
     regionCode,
   )
   const fallbackDivisionSnapshot =
     activeDivisionSnapshot ??
-    (await resolveLatestPublishedSnapshotForFamily(metaDb, 'division'))
+    (await resolveLatestPublishedSnapshotForFamily(metaReadDb, 'division'))
 
   if (!fallbackDivisionSnapshot) {
     throw new Error('Published division snapshot not found.')

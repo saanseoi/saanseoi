@@ -380,7 +380,10 @@ export async function deleteMissingCurrentAddresses(
   const missingIds = [...currentRows.keys()].filter(id => !seenIds.has(id))
 
   if (missingIds.length === 0) {
-    return 0
+    return {
+      count: 0,
+      missingIds,
+    }
   }
 
   const now = new Date().toISOString()
@@ -421,24 +424,17 @@ export async function deleteMissingCurrentAddresses(
     )
   }
 
-  return missingIds.length
+  return {
+    count: missingIds.length,
+    missingIds,
+  }
 }
 
 export async function deleteStaleAddressCurrentRows(
   db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
-  seenIds: Set<string>,
+  staleIds: string[],
 ) {
-  const stagedRows = (await db
-    .select({
-      id: currentSchema.address2d.id,
-    })
-    .from(currentSchema.address2d)
-    .where(eq(currentSchema.address2d.snapshotId, snapshotId))
-    .all()) as Array<{ id: string }>
-
-  const staleIds = stagedRows.map(row => row.id).filter(id => !seenIds.has(id))
-
   if (staleIds.length === 0) {
     return 0
   }
