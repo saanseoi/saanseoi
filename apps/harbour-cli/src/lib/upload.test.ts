@@ -220,6 +220,7 @@ describe('upload release action helpers', () => {
     writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
 
     process.env.HARBOUR_API_KEY = 'test-api-key'
+    let reportAttempt = 0
     globalThis.fetch = (async input => {
       const url = String(input)
       calls.push(url)
@@ -229,9 +230,11 @@ describe('upload release action helpers', () => {
       }
 
       if (url.startsWith('https://preview.harbour.saanseoi.hk/v1/reports/releases')) {
+        reportAttempt += 1
+
         return new Response(
           JSON.stringify({
-            rows: [{ ...releaseRow, status: 'processing' }],
+            rows: reportAttempt === 1 ? [] : [{ ...releaseRow, status: 'processing' }],
           }),
           {
             headers: {
@@ -277,8 +280,11 @@ describe('upload release action helpers', () => {
       releaseId: releaseRow.releaseId,
       status: 'processing',
     })
-    expect(calls[0]).toBe('https://preview.harbour.saanseoi.hk/v1/upload')
-    expect(calls[1]).toContain(
+    expect(calls[0]).toContain(
+      '/v1/reports/releases?limit=1&releaseCode=overture-hk-2025-09-24.0-division',
+    )
+    expect(calls[1]).toBe('https://preview.harbour.saanseoi.hk/v1/upload')
+    expect(calls[2]).toContain(
       '/v1/reports/releases?limit=1&releaseCode=overture-hk-2025-09-24.0-division',
     )
   })
@@ -306,12 +312,15 @@ describe('upload release action helpers', () => {
 
         return new Response(
           JSON.stringify({
-            rows: [
-              {
-                ...releaseRow,
-                status: reportAttempt >= 3 ? 'processing' : 'uploading',
-              },
-            ],
+            rows:
+              reportAttempt === 1
+                ? []
+                : [
+                    {
+                      ...releaseRow,
+                      status: reportAttempt >= 4 ? 'processing' : 'uploading',
+                    },
+                  ],
           }),
           {
             headers: {
@@ -361,6 +370,70 @@ describe('upload release action helpers', () => {
       calls.filter(url =>
         url.startsWith('https://preview.harbour.saanseoi.hk/v1/reports/releases'),
       ),
-    ).toHaveLength(3)
+    ).toHaveLength(4)
+  })
+
+  test('fails immediately for a local direct upload when the release already exists in processing', async () => {
+    const calls: string[] = []
+    const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
+    const filePath = join(tempDir, 'division.parquet')
+    tempDirs.push(tempDir)
+    writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async input => {
+      const url = String(input)
+      calls.push(url)
+
+      if (url.startsWith('https://preview.harbour.saanseoi.hk/v1/reports/releases')) {
+        return new Response(
+          JSON.stringify({
+            rows: [{ ...releaseRow, status: 'processing' }],
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`)
+    }) as typeof fetch
+
+    await expect(
+      dispatchUpload(
+        localTarget,
+        {
+          filePath,
+        } as never,
+        {
+          inspection: {
+            rowCount: 1810,
+            schema: [],
+          },
+          plan: {
+            datasetCode: 'hk-division',
+            fileName: 'division.parquet',
+            regionCode: 'hk',
+            releaseCode: releaseRow.releaseCode,
+            snapshotMonth: '2025-09',
+            source: 'overture',
+            sourceVersion: '2025-09-24.0',
+            theme: 'divisions',
+            type: 'division',
+          },
+        } as never,
+        'schema-version-1',
+      ),
+    ).rejects.toThrow(
+      'Dataset already exists with status processing: overture-hk-division',
+    )
+
+    expect(calls).toHaveLength(1)
+    expect(calls[0]).toContain(
+      '/v1/reports/releases?limit=1&releaseCode=overture-hk-2025-09-24.0-division',
+    )
   })
 })
