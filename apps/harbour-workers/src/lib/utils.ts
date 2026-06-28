@@ -45,17 +45,23 @@ type BatchRunnable = {
   run?: () => unknown | Promise<unknown>
 }
 
+type BatchWritableDb = {
+  batch?: (statements: [unknown, ...unknown[]]) => unknown | Promise<unknown>
+}
+
 /**
- * Runs a non-empty list of statements sequentially with write retries.
- *
- * D1's variable limit is strict enough that batching multiple parameterized
- * statements together can still overflow locally even when each statement is
- * individually safe, so we intentionally avoid `db.batch(...)` here.
+ * Runs a non-empty list of parameter-safe statements with write retries.
  */
 export async function runStatementBatchWithWriteRetry(
-  _db: object,
+  db: object,
   statements: [unknown, ...unknown[]],
 ) {
+  const batchDb = db as BatchWritableDb
+
+  if (typeof batchDb.batch === 'function') {
+    return runWithWriteRetry(() => batchDb.batch?.(statements))
+  }
+
   const results = []
 
   for (const statement of statements) {
