@@ -640,6 +640,7 @@ These items appeared in the older spec but are not implemented as described:
 
 ## Documentation Rule
 
-When Overture source data processing changes, also update:
+When source-data processing changes, also update:
 
-- `docs/processing/overture.md`
+- the relevant `docs/datasets/families/*.md`
+- the relevant `docs/datasets/sources/{source}/*.md`
