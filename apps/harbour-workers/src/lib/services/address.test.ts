@@ -432,4 +432,116 @@ describe('processAddressDataset', () => {
 
     expect(insertedCount.count).toBe(9)
   })
+
+  test('removes stale current address rows when retrying the same release snapshot', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'address-retry-stale-current.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const releaseCode = 'overture-hk-2026-05-24.0-address'
+    const sourceVersion = '2026-05-24.0'
+
+    seedDivisionLookups(sqlite)
+    seedAddressRelease(sqlite, releaseCode, '2026-05', 'staged')
+
+    parquetBatches = [
+      [
+        {
+          id: 'ovt-address-1',
+          address_levels: ['Hong Kong', 'Central District'],
+          street: 'Queensway',
+          number: '10',
+          geometry: {
+            type: 'Point',
+            coordinates: [114.165, 22.278],
+          },
+          bbox: { minX: 114.164, minY: 22.277, maxX: 114.166, maxY: 22.279 },
+          sources: [{ dataset: 'overture', recordId: 'ovt-address-1' }],
+          version: 1,
+        },
+        {
+          id: 'ovt-address-stale',
+          address_levels: ['Hong Kong', 'Central District'],
+          street: 'Queensway',
+          number: '12',
+          geometry: {
+            type: 'Point',
+            coordinates: [114.167, 22.279],
+          },
+          bbox: { minX: 114.166, minY: 22.278, maxX: 114.168, maxY: 22.28 },
+          sources: [{ dataset: 'overture', recordId: 'ovt-address-stale' }],
+          version: 1,
+        },
+      ],
+    ]
+
+    await processAddressDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createAddressMessage(releaseCode, '2026-05', sourceVersion),
+      db as never,
+    )
+
+    parquetBatches = [
+      [
+        {
+          id: 'ovt-address-1',
+          address_levels: ['Hong Kong', 'Central District'],
+          street: 'Queensway',
+          number: '10',
+          geometry: {
+            type: 'Point',
+            coordinates: [114.165, 22.278],
+          },
+          bbox: { minX: 114.164, minY: 22.277, maxX: 114.166, maxY: 22.279 },
+          sources: [{ dataset: 'overture', recordId: 'ovt-address-1' }],
+          version: 1,
+        },
+      ],
+    ]
+
+    const result = await processAddressDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createAddressMessage(releaseCode, '2026-05', sourceVersion),
+      db as never,
+    )
+
+    const currentRows = sqlite
+      .query('SELECT id FROM address2d ORDER BY id')
+      .all() as Array<{ id: string }>
+    const currentI18nRows = sqlite
+      .query('SELECT addressId, locale FROM address2dI18n ORDER BY addressId, locale')
+      .all() as Array<{ addressId: string; locale: string }>
+
+    expect(result.deletedRows).toBe(1)
+    expect(currentRows).toEqual([{ id: 'ovt-address-1' }])
+    expect(currentI18nRows).toEqual([{ addressId: 'ovt-address-1', locale: 'en' }])
+  })
 })

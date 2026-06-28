@@ -42,7 +42,8 @@ SELECT
   COALESCE(MAX(si."name"), '') AS "streetText"
 FROM "places" p
 JOIN "placesI18n" pi
-  ON pi."placeId" = p."id"
+  ON pi."snapshotId" = p."snapshotId"
+ AND pi."placeId" = p."id"
 LEFT JOIN "address2dI18n" a2
   ON a2."snapshotId" = p."addressSnapshotId"
  AND a2."addressId" = p."address2dId"

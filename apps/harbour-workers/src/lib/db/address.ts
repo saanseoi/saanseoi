@@ -310,6 +310,30 @@ export async function deleteMissingCurrentAddresses(
   return missingIds.length
 }
 
+export async function deleteStaleAddressCurrentRows(
+  db: HarbourReadableDb & HarbourWritableDb,
+  snapshotId: string,
+  seenIds: Set<string>,
+) {
+  const stagedRows = (await db
+    .select({
+      id: currentSchema.address2d.id,
+    })
+    .from(currentSchema.address2d)
+    .where(eq(currentSchema.address2d.snapshotId, snapshotId))
+    .all()) as Array<{ id: string }>
+
+  const staleIds = stagedRows.map(row => row.id).filter(id => !seenIds.has(id))
+
+  if (staleIds.length === 0) {
+    return 0
+  }
+
+  await deleteAddressCurrentRowsByIds(db, snapshotId, staleIds)
+
+  return staleIds.length
+}
+
 export async function upsertAddressCurrentStates(
   db: HarbourWritableDb,
   rows: AddressBaseRecord[],
@@ -379,6 +403,37 @@ export async function replaceAddressCurrentI18n(
 
   if (rows.length > 0) {
     await insertAddressI18nInChunks(db, rows)
+  }
+}
+
+async function deleteAddressCurrentRowsByIds(
+  db: HarbourReadableDb & HarbourWritableDb,
+  snapshotId: string,
+  addressIds: string[],
+) {
+  for (const chunk of chunkArray(addressIds, getMaxItemsPerInClause(1, 2))) {
+    await runWithWriteRetry(() =>
+      db
+        .delete(currentSchema.address2dI18n)
+        .where(
+          and(
+            eq(currentSchema.address2dI18n.snapshotId, snapshotId),
+            inArray(currentSchema.address2dI18n.addressId, chunk),
+          ),
+        )
+        .run(),
+    )
+    await runWithWriteRetry(() =>
+      db
+        .delete(currentSchema.address2d)
+        .where(
+          and(
+            eq(currentSchema.address2d.snapshotId, snapshotId),
+            inArray(currentSchema.address2d.id, chunk),
+          ),
+        )
+        .run(),
+    )
   }
 }
 
