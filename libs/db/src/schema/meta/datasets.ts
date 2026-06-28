@@ -42,6 +42,7 @@ export const metaDatasets = sqliteTable(
     category: text('category', { enum: datasetCategories }),
     attribution: text('attribution'),
     tags: jsonText('tags'),
+    versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
   table => [

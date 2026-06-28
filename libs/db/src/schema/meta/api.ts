@@ -11,7 +11,6 @@ import {
 
 import {
   apiEndpointMethods,
-  apiEndpointUsageTypes,
   apiReleaseSetSourceRoles,
   apiReleaseSetStatuses,
   apiVersionStatuses,
@@ -27,7 +26,13 @@ import { metaDatasets, metaReleases } from './datasets'
 export const metaApiVersions = sqliteTable('apiVersions', {
   id: primaryUuid('id'),
   code: text('code').notNull().unique(),
+  resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
+  version: text('version').notNull(),
   status: text('status', { enum: apiVersionStatuses }).notNull(),
+  publishedAt: integer('publishedAt', { mode: 'timestamp_ms' }),
+  deprecatedAt: integer('deprecatedAt', { mode: 'timestamp_ms' }),
+  retiredAt: integer('retiredAt', { mode: 'timestamp_ms' }),
+  versionHash: text('versionHash').notNull(),
   ...timestamps,
 })
 
@@ -85,14 +90,16 @@ export const metaApiReleaseSets = sqliteTable(
     apiVersionId: text('apiVersionId')
       .notNull()
       .references(() => metaApiVersions.id, { onDelete: 'restrict' }),
+    // This is the snapshot-version code shared with the canonical snapshot.
     code: text('code').notNull(),
-    canonicalSchemaVersion: text('canonicalSchemaVersion').notNull(),
-    canonicalLogicVersion: text('canonicalLogicVersion').notNull(),
+    schemaVersion: text('schemaVersion').notNull(),
+    rulesetVersion: text('rulesetVersion').notNull(),
     status: text('status', { enum: apiReleaseSetStatuses }).notNull(),
     publishedAt: integer('publishedAt', { mode: 'timestamp_ms' }),
     validFrom: integer('validFrom', { mode: 'timestamp_ms' }),
     validTo: integer('validTo', { mode: 'timestamp_ms' }),
     notes: text('notes'),
+    versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
   table => [
@@ -110,19 +117,14 @@ export const metaApiReleaseSetSnapshots = sqliteTable(
     apiReleaseSetId: text('apiReleaseSetId')
       .notNull()
       .references(() => metaApiReleaseSets.id, { onDelete: 'cascade' }),
-    snapshotFamily: text('snapshotFamily', { enum: snapshotFamilies }).notNull(),
-    snapshotId: text('snapshotId').notNull(),
-    createdAt: timestamps.createdAt,
+    snapshotId: text('snapshotId')
+      .notNull()
+      .references(() => metaSnapshots.id, { onDelete: 'restrict' }),
   },
   table => [
     primaryKey({
-      columns: [table.apiReleaseSetId, table.snapshotFamily],
+      columns: [table.apiReleaseSetId, table.snapshotId],
     }),
-    foreignKey({
-      columns: [table.snapshotId, table.snapshotFamily],
-      foreignColumns: [metaSnapshots.id, metaSnapshots.family],
-      name: 'apiReleaseSetSnapshots_snapshotId_snapshotFamily_snapshots_id_family_fk',
-    }).onDelete('restrict'),
     index('apiReleaseSetSnapshots_snapshotId_idx').on(table.snapshotId),
   ],
 )
@@ -137,7 +139,7 @@ export const metaApiEndpoints = sqliteTable(
     method: text('method', { enum: apiEndpointMethods }).notNull(),
     path: text('path').notNull(),
     operationId: text('operationId').notNull().unique(),
-    resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
+    versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
   table => [
@@ -146,27 +148,6 @@ export const metaApiEndpoints = sqliteTable(
       table.method,
       table.path,
     ),
-  ],
-)
-
-export const metaApiEndpointDatasets = sqliteTable(
-  'apiEndpointDatasets',
-  {
-    apiEndpointId: text('apiEndpointId')
-      .notNull()
-      .references(() => metaApiEndpoints.id, { onDelete: 'cascade' }),
-    datasetId: text('datasetId')
-      .notNull()
-      .references(() => metaDatasets.id, { onDelete: 'restrict' }),
-    usageType: text('usageType', { enum: apiEndpointUsageTypes }).notNull(),
-    required: integer('required', { mode: 'boolean' }).notNull().default(false),
-    notes: text('notes'),
-    createdAt: timestamps.createdAt,
-  },
-  table => [
-    primaryKey({
-      columns: [table.apiEndpointId, table.datasetId],
-    }),
   ],
 )
 
@@ -189,6 +170,7 @@ export const metaApiFieldProvenance = sqliteTable(
     priority: integer('priority').notNull().default(0),
     confidence: real('confidence'),
     sourceIdentifierPaths: jsonText('sourceIdentifierPaths'),
+    versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
   table => [
