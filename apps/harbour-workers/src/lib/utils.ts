@@ -91,7 +91,9 @@ export async function runStatementsInGroupsWithWriteRetry(
     return
   }
 
-  for (const chunk of chunkArray(statements, groupSize)) {
+  const resolvedGroupSize = groupSize > 0 ? groupSize : D1_WRITE_STATEMENT_BATCH_SIZE
+
+  for (const chunk of chunkArray(statements, resolvedGroupSize)) {
     const [first, ...rest] = chunk
 
     if (!first) {

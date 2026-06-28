@@ -198,6 +198,18 @@ export const placesByCellRoute = defineOpenAPIRoute<
     const params = c.req.valid('param')
     const query = c.req.valid('query')
     const h3Level = Number(params.h3Level)
+
+    if (!Number.isInteger(h3Level)) {
+      return c.json(
+        {
+          httpStatus: 400,
+          error: 'invalid_h3_level',
+          message: 'h3Level must be an integer.',
+        },
+        400,
+      )
+    }
+
     const db = c.var.currentDb
     const activePlaceSnapshot = await resolveActiveSnapshotForType(
       c.var.metaDb,
@@ -213,17 +225,6 @@ export const placesByCellRoute = defineOpenAPIRoute<
           message: 'No active place snapshot is published.',
         },
         503,
-      )
-    }
-
-    if (!Number.isInteger(h3Level)) {
-      return c.json(
-        {
-          httpStatus: 400,
-          error: 'invalid_h3_level',
-          message: 'h3Level must be an integer.',
-        },
-        400,
       )
     }
 

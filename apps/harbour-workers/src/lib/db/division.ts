@@ -457,7 +457,7 @@ export async function replaceDivisionCurrentI18n(
     return
   }
 
-  const deleteChunkSize = getMaxItemsPerInClause()
+  const deleteChunkSize = getMaxItemsPerInClause(1, 1)
   const deleteStatements = []
 
   for (const divisionIdChunk of chunkArray(divisionIds, deleteChunkSize)) {

@@ -44,17 +44,23 @@ const processingRelease: ReleaseReportRow = {
 }
 
 describe('watch helpers', () => {
-  test('selects the first release currently in processing', () => {
+  test('selects the first release that is still active', () => {
     const publishedRelease: ReleaseReportRow = {
       ...processingRelease,
       releaseCode: 'overture-hk-2025-10-22.0-division',
       releaseId: 'release-2',
       status: 'published',
     }
+    const stagedRelease: ReleaseReportRow = {
+      ...processingRelease,
+      releaseCode: 'overture-hk-2025-11-19.0-division',
+      releaseId: 'release-3',
+      status: 'staged',
+    }
 
-    expect(findProcessingRelease([publishedRelease, processingRelease])).toEqual(
-      processingRelease,
-    )
+    expect(
+      findProcessingRelease([publishedRelease, stagedRelease, processingRelease]),
+    ).toEqual(stagedRelease)
   })
 
   test('reads sourceCount from release row counts', () => {
@@ -74,6 +80,15 @@ describe('watch helpers', () => {
     expect(
       isReleaseStillProcessing(
         [newerProcessingRelease, processingRelease],
+        processingRelease.releaseId,
+      ),
+    ).toBe(true)
+  })
+
+  test('treats staged releases as active while waiting for processing to begin', () => {
+    expect(
+      isReleaseStillProcessing(
+        [{ ...processingRelease, status: 'staged' }],
         processingRelease.releaseId,
       ),
     ).toBe(true)

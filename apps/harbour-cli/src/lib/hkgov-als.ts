@@ -481,16 +481,49 @@ async function loadDivisionLookupMaps(options: {
   dbPath?: string
   environment: UploadEnvironment
 }): Promise<DivisionLookupMaps> {
-  const source = resolveDivisionLookupSource(options)
+  const currentSource = resolveDivisionLookupSource(options)
+  const snapshotSource = resolveDivisionSnapshotSource(options)
+  const snapshotId =
+    snapshotSource.kind === 'sqlite'
+      ? loadPublishedDivisionSnapshotIdFromSqlite(snapshotSource.dbPath)
+      : await loadPublishedDivisionSnapshotIdFromWrangler(snapshotSource)
   const rows =
-    source.kind === 'sqlite'
-      ? loadDivisionLookupRowsFromSqlite(source.dbPath)
-      : await loadDivisionLookupRowsFromWrangler(source)
+    currentSource.kind === 'sqlite'
+      ? loadDivisionLookupRowsFromSqlite(currentSource.dbPath, snapshotId)
+      : await loadDivisionLookupRowsFromWrangler(currentSource, snapshotId)
 
   return buildDivisionLookupMaps(rows)
 }
 
-function loadDivisionLookupRowsFromSqlite(explicitDbPath: string) {
+function loadPublishedDivisionSnapshotIdFromSqlite(explicitDbPath: string) {
+  const databasePath = resolveLocalD1Path(explicitDbPath)
+  const sqlite = new SQLiteDatabase(databasePath, { readonly: true })
+
+  try {
+    const row = sqlite
+      .query(
+        `
+          SELECT s.id AS snapshotId
+          FROM snapshots s
+          WHERE s.family = 'division'
+            AND s.status = 'published'
+          ORDER BY s.publishedAt DESC, s.createdAt DESC
+          LIMIT 1
+        `,
+      )
+      .get() as { snapshotId: string } | null
+
+    if (!row?.snapshotId) {
+      throw new Error('No published division snapshot found in meta database.')
+    }
+
+    return row.snapshotId
+  } finally {
+    sqlite.close()
+  }
+}
+
+function loadDivisionLookupRowsFromSqlite(explicitDbPath: string, snapshotId: string) {
   const databasePath = resolveLocalD1Path(explicitDbPath)
   const sqlite = new SQLiteDatabase(databasePath, { readonly: true })
 
@@ -498,22 +531,16 @@ function loadDivisionLookupRowsFromSqlite(explicitDbPath: string) {
     return sqlite
       .query(
         `
-          WITH latest_snapshot AS (
-            SELECT snapshotId
-            FROM divisions
-            ORDER BY createdAt DESC, snapshotId DESC
-            LIMIT 1
-          )
           SELECT d.snapshotId, d.id, d.level, d.type, di.locale, di.name
           FROM divisions d
-          JOIN latest_snapshot ls ON ls.snapshotId = d.snapshotId
           JOIN divisionsI18n di
             ON di.snapshotId = d.snapshotId
            AND di.divisionId = d.id
-          WHERE di.locale IN ('en', 'zh-hant')
+          WHERE d.snapshotId = ?
+            AND di.locale IN ('en', 'zh-hant')
         `,
       )
-      .all() as Array<DivisionLookupRow>
+      .all(snapshotId) as Array<DivisionLookupRow>
   } finally {
     sqlite.close()
   }
@@ -521,6 +548,7 @@ function loadDivisionLookupRowsFromSqlite(explicitDbPath: string) {
 
 async function loadDivisionLookupRowsFromWrangler(
   target: Extract<DivisionLookupSource, { kind: 'wrangler' }>,
+  snapshotId: string,
 ) {
   const args = [
     'x',
@@ -536,19 +564,13 @@ async function loadDivisionLookupRowsFromWrangler(
     '--json',
     '--command',
     `
-      WITH latest_snapshot AS (
-        SELECT snapshotId
-        FROM divisions
-        ORDER BY createdAt DESC, snapshotId DESC
-        LIMIT 1
-      )
       SELECT d.snapshotId, d.id, d.level, d.type, di.locale, di.name
       FROM divisions d
-      JOIN latest_snapshot ls ON ls.snapshotId = d.snapshotId
       JOIN divisionsI18n di
         ON di.snapshotId = d.snapshotId
        AND di.divisionId = d.id
-      WHERE di.locale IN ('en', 'zh-hant')
+      WHERE d.snapshotId = '${snapshotId}'
+        AND di.locale IN ('en', 'zh-hant')
     `,
   ]
 
@@ -583,6 +605,70 @@ async function loadDivisionLookupRowsFromWrangler(
   }
 
   return firstResult.results
+}
+
+async function loadPublishedDivisionSnapshotIdFromWrangler(
+  target: Extract<DivisionLookupSource, { kind: 'wrangler' }>,
+) {
+  const metaDatabaseName =
+    target.wranglerEnv === 'production' ? 'ss-meta-db-prod' : 'ss-meta-db-preview'
+  const args = [
+    'x',
+    'wrangler',
+    'd1',
+    'execute',
+    metaDatabaseName,
+    `--${target.mode}`,
+    '--config',
+    HARBOUR_API_WRANGLER_CONFIG,
+    '--env',
+    target.wranglerEnv,
+    '--json',
+    '--command',
+    `
+      SELECT s.id AS snapshotId
+      FROM snapshots s
+      WHERE s.family = 'division'
+        AND s.status = 'published'
+      ORDER BY s.publishedAt DESC, s.createdAt DESC
+      LIMIT 1
+    `,
+  ]
+
+  const process = Bun.spawn({
+    cmd: ['bun', ...args],
+    cwd: resolve(import.meta.dir, '../../..'),
+    stdout: 'pipe',
+    stderr: 'pipe',
+  })
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(process.stdout).text(),
+    new Response(process.stderr).text(),
+    process.exited,
+  ])
+
+  if (exitCode !== 0) {
+    throw new Error(
+      `Failed to query division snapshot from ${target.wranglerEnv} meta D1.\n${stderr.trim() || stdout.trim()}`,
+    )
+  }
+
+  const payload = JSON.parse(stdout) as Array<{
+    results?: Array<{
+      snapshotId?: string
+    }>
+    success?: boolean
+  }>
+  const firstResult = payload[0]
+  const snapshotId = firstResult?.results?.[0]?.snapshotId
+
+  if (!firstResult?.success || !snapshotId) {
+    throw new Error(
+      `No published division snapshot found in ${target.wranglerEnv} meta D1.`,
+    )
+  }
+
+  return snapshotId
 }
 
 export function resolveDivisionLookupSource(
@@ -621,6 +707,26 @@ export function resolveDivisionLookupSource(
     mode: 'remote',
     wranglerEnv: 'preview',
   }
+}
+
+function resolveDivisionSnapshotSource(options: {
+  dbPath?: string
+  environment: UploadEnvironment
+}) {
+  if (options.dbPath || options.environment === 'dev') {
+    return {
+      dbPath: resolveLocalD1Path(options.dbPath),
+      kind: 'sqlite',
+    } satisfies DivisionLookupSource
+  }
+
+  return {
+    databaseName:
+      options.environment === 'production' ? 'ss-meta-db-prod' : 'ss-meta-db-preview',
+    kind: 'wrangler',
+    mode: 'remote',
+    wranglerEnv: options.environment === 'production' ? 'production' : 'preview',
+  } satisfies DivisionLookupSource
 }
 
 type DivisionLookupRow = {

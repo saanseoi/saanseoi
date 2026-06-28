@@ -321,6 +321,22 @@ export async function processDivisionDataset(
       const currentChanged = current?.churnHash !== churnHash
       const baseChanged = current?.versionHash !== versionHash
       const currentDivisionI18nNow = normalized.base.updatedAt
+      const i18nVersionHash =
+        !baseChanged && currentChanged
+          ? await createHash({
+              baseVersionHash: versionHash,
+              i18n: normalized.i18n.map(row => ({
+                isLocaleInferred: row.isLocaleInferred,
+                localType: row.localType ?? null,
+                locale: row.locale,
+                name: row.name ?? null,
+                nameAlts: row.nameAlts ?? null,
+                nameRules: row.nameRules,
+                nameVariant: row.nameVariant,
+              })),
+              kind: 'division-i18n',
+            })
+          : versionHash
 
       currentDivisionRows.push(normalized.base)
       currentDivisionI18nRowIds.add(normalized.base.id)
@@ -353,7 +369,7 @@ export async function processDivisionDataset(
             nameRules: row.nameRules,
             nameVariant: row.nameVariant,
             sourceReleaseId: versionInsertContext.releaseId,
-            versionHash,
+            versionHash: i18nVersionHash,
             createdAt: currentDivisionI18nNow,
             updatedAt: currentDivisionI18nNow,
           })),

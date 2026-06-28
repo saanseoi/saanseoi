@@ -6,10 +6,10 @@ db_family="${1:-all}"
 environment="${2:-preview}"
 
 case "$environment" in
-  preview|local)
+  production|preview|local)
     ;;
   *)
-    echo "drop-remote-db.sh rejects environment '$environment'; only preview-target environments are allowed." >&2
+    echo "drop-remote-db.sh rejects environment '$environment'; allowed environments are production, preview, and local." >&2
     exit 1
     ;;
 esac

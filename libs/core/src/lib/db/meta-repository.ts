@@ -28,6 +28,18 @@ export type DataShardRecord = {
 const D1_MAX_SQL_VARIABLES = 99
 const HISTORY_VERSION_PROVENANCE_COLUMN_COUNT = 6
 
+type WriteStatement = {
+  run: () => unknown | Promise<unknown>
+}
+
+type AtomicWritableDb = HarbourReadableDb &
+  HarbourWritableDb & {
+    batch?: (statements: [unknown, ...unknown[]]) => Promise<unknown>
+    transaction?: <T>(
+      callback: (tx: HarbourReadableDb & HarbourWritableDb) => T | Promise<T>,
+    ) => T | Promise<T>
+  }
+
 const {
   ingestRuns,
   metaApiReleaseSets,
@@ -81,6 +93,35 @@ function chunkRows<T>(rows: T[], chunkSize: number) {
   }
 
   return chunks
+}
+
+async function runAtomicWriteStatements(
+  db: AtomicWritableDb,
+  buildStatements: (tx: HarbourReadableDb & HarbourWritableDb) => WriteStatement[],
+) {
+  if (typeof db.batch === 'function') {
+    const statements = buildStatements(db)
+
+    if (statements.length === 0) {
+      return
+    }
+
+    await db.batch(statements as [unknown, ...unknown[]])
+    return
+  }
+
+  if (typeof db.transaction === 'function') {
+    await db.transaction(async tx => {
+      for (const statement of buildStatements(tx)) {
+        await statement.run()
+      }
+    })
+    return
+  }
+
+  for (const statement of buildStatements(db)) {
+    await statement.run()
+  }
 }
 
 export async function getLatestDatasetForRegionSourceType(
@@ -393,6 +434,39 @@ export async function resolveLatestPublishedSnapshotForFamily(
       .from(metaSnapshots)
       .where(
         and(eq(metaSnapshots.family, family), eq(metaSnapshots.status, 'published')),
+      )
+      .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
+export async function resolveLatestPublishedSnapshotForFamilyRegion(
+  db: HarbourReadableDb,
+  family: SnapshotFamily,
+  regionCode: RegionCode,
+) {
+  return (
+    (await db
+      .select({
+        id: metaSnapshots.id,
+        code: metaSnapshots.code,
+        family: metaSnapshots.family,
+        status: metaSnapshots.status,
+      })
+      .from(metaSnapshots)
+      .innerJoin(
+        metaSnapshotSources,
+        eq(metaSnapshots.id, metaSnapshotSources.snapshotId),
+      )
+      .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+      .where(
+        and(
+          eq(metaSnapshots.family, family),
+          eq(metaSnapshots.status, 'published'),
+          eq(metaDatasets.regionCode, regionCode),
+          eq(metaSnapshotSources.role, 'primary'),
+        ),
       )
       .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
       .limit(1)
@@ -715,6 +789,262 @@ export async function activateReleaseSet(
   return {
     previousActiveReleaseSetId: activeReleaseSets[0]?.id ?? null,
   }
+}
+
+export async function publishReleaseArtifacts(
+  db: HarbourReadableDb & HarbourWritableDb,
+  args: {
+    carriedSnapshots: Array<{
+      snapshotFamily: SnapshotFamily
+      snapshotId: string
+    }>
+    carriedSources: Array<{
+      datasetId: string
+      role: 'primary' | 'enrichment' | 'fallback' | 'lookup'
+      sourceReleaseId: string
+    }>
+    currentRelease: Pick<DatasetRecord, 'releaseId'> | null
+    currentReleaseIsCorrected: boolean
+    dataset: Pick<DatasetRecord, 'datasetId' | 'releaseCode' | 'releaseId'>
+    publishedAt: string
+    releaseSetId: string
+    snapshotId: string
+    type: SupportedType
+  },
+) {
+  const releaseSet = await db
+    .select({
+      apiVersionId: metaApiReleaseSets.apiVersionId,
+      id: metaApiReleaseSets.id,
+    })
+    .from(metaApiReleaseSets)
+    .where(eq(metaApiReleaseSets.id, args.releaseSetId))
+    .limit(1)
+    .get()
+
+  if (!releaseSet) {
+    throw new Error(`Release set not found: ${args.releaseSetId}`)
+  }
+
+  const snapshot = await db
+    .select({
+      id: metaSnapshots.id,
+    })
+    .from(metaSnapshots)
+    .where(eq(metaSnapshots.id, args.snapshotId))
+    .limit(1)
+    .get()
+
+  if (!snapshot) {
+    throw new Error(`Snapshot not found: ${args.snapshotId}`)
+  }
+
+  const activeReleaseSets = await db
+    .select({
+      id: metaApiReleaseSets.id,
+    })
+    .from(metaApiReleaseSets)
+    .where(
+      and(
+        eq(metaApiReleaseSets.apiVersionId, releaseSet.apiVersionId),
+        eq(metaApiReleaseSets.status, 'active'),
+        ne(metaApiReleaseSets.id, args.releaseSetId),
+      ),
+    )
+    .all()
+
+  const publishedAt = new Date(args.publishedAt)
+
+  await runAtomicWriteStatements(db as AtomicWritableDb, tx => {
+    const statements: WriteStatement[] = [
+      tx
+        .update(metaSnapshots)
+        .set({
+          status: 'published',
+          publishedAt,
+          validFrom: publishedAt,
+          validTo: null,
+          updatedAt: publishedAt,
+        })
+        .where(eq(metaSnapshots.id, args.snapshotId)),
+    ]
+
+    if (activeReleaseSets.length > 0) {
+      statements.push(
+        tx
+          .update(metaApiReleaseSets)
+          .set({
+            status: 'archived',
+            validTo: publishedAt,
+            updatedAt: publishedAt,
+          })
+          .where(
+            inArray(
+              metaApiReleaseSets.id,
+              activeReleaseSets.map((activeSet: { id: string }) => activeSet.id),
+            ),
+          ),
+      )
+    }
+
+    for (const carriedSnapshot of args.carriedSnapshots) {
+      statements.push(
+        tx
+          .insert(metaApiReleaseSetSnapshots)
+          .values({
+            apiReleaseSetId: args.releaseSetId,
+            snapshotFamily: carriedSnapshot.snapshotFamily,
+            snapshotId: carriedSnapshot.snapshotId,
+            createdAt: publishedAt,
+          })
+          .onConflictDoUpdate({
+            target: [
+              metaApiReleaseSetSnapshots.apiReleaseSetId,
+              metaApiReleaseSetSnapshots.snapshotFamily,
+            ],
+            set: {
+              snapshotId: carriedSnapshot.snapshotId,
+            },
+          }),
+      )
+    }
+
+    for (const carriedSource of args.carriedSources) {
+      statements.push(
+        tx
+          .insert(metaApiReleaseSetSources)
+          .values({
+            apiReleaseSetId: args.releaseSetId,
+            datasetId: carriedSource.datasetId,
+            sourceReleaseId: carriedSource.sourceReleaseId,
+            role: carriedSource.role,
+            createdAt: publishedAt,
+          })
+          .onConflictDoUpdate({
+            target: [
+              metaApiReleaseSetSources.apiReleaseSetId,
+              metaApiReleaseSetSources.sourceReleaseId,
+            ],
+            set: {
+              datasetId: carriedSource.datasetId,
+              role: carriedSource.role,
+            },
+          }),
+      )
+    }
+
+    statements.push(
+      tx
+        .delete(metaApiReleaseSetSnapshots)
+        .where(
+          and(
+            eq(metaApiReleaseSetSnapshots.apiReleaseSetId, args.releaseSetId),
+            eq(metaApiReleaseSetSnapshots.snapshotFamily, args.type),
+          ),
+        ),
+      tx
+        .insert(metaApiReleaseSetSnapshots)
+        .values({
+          apiReleaseSetId: args.releaseSetId,
+          snapshotFamily: args.type,
+          snapshotId: args.snapshotId,
+          createdAt: publishedAt,
+        })
+        .onConflictDoUpdate({
+          target: [
+            metaApiReleaseSetSnapshots.apiReleaseSetId,
+            metaApiReleaseSetSnapshots.snapshotFamily,
+          ],
+          set: {
+            snapshotId: args.snapshotId,
+          },
+        }),
+      tx
+        .delete(metaApiReleaseSetSources)
+        .where(
+          and(
+            eq(metaApiReleaseSetSources.apiReleaseSetId, args.releaseSetId),
+            eq(metaApiReleaseSetSources.datasetId, args.dataset.datasetId),
+          ),
+        ),
+      tx
+        .insert(metaApiReleaseSetSources)
+        .values({
+          apiReleaseSetId: args.releaseSetId,
+          datasetId: args.dataset.datasetId,
+          sourceReleaseId: args.dataset.releaseId,
+          role: 'primary',
+          createdAt: publishedAt,
+        })
+        .onConflictDoUpdate({
+          target: [
+            metaApiReleaseSetSources.apiReleaseSetId,
+            metaApiReleaseSetSources.sourceReleaseId,
+          ],
+          set: {
+            datasetId: args.dataset.datasetId,
+            role: 'primary',
+          },
+        }),
+      tx
+        .update(metaApiReleaseSets)
+        .set({
+          status: 'active',
+          publishedAt,
+          validFrom: publishedAt,
+          validTo: null,
+          updatedAt: publishedAt,
+        })
+        .where(eq(metaApiReleaseSets.id, args.releaseSetId)),
+      tx
+        .update(metaReleases)
+        .set({
+          status: 'published',
+          revokedAt: null,
+          revocationReason: null,
+          updatedAt: publishedAt,
+        })
+        .where(eq(metaReleases.id, args.dataset.releaseId)),
+    )
+
+    if (args.currentRelease) {
+      statements.push(
+        tx
+          .update(metaReleases)
+          .set({
+            supersededByReleaseId: args.dataset.releaseId,
+            updatedAt: publishedAt,
+          })
+          .where(eq(metaReleases.id, args.currentRelease.releaseId)),
+      )
+
+      if (args.currentReleaseIsCorrected) {
+        statements.push(
+          tx
+            .update(metaReleases)
+            .set({
+              revokedAt: publishedAt,
+              revocationReason: `Superseded by corrected release ${args.dataset.releaseCode}.`,
+              status: 'revoked',
+              updatedAt: publishedAt,
+            })
+            .where(eq(metaReleases.id, args.currentRelease.releaseId)),
+        )
+      } else {
+        statements.push(
+          tx
+            .update(metaReleases)
+            .set({
+              status: 'superseded',
+              updatedAt: publishedAt,
+            })
+            .where(eq(metaReleases.id, args.currentRelease.releaseId)),
+        )
+      }
+    }
+
+    return statements
+  })
 }
 
 export async function publishSnapshot(
@@ -1171,6 +1501,10 @@ export async function ensureIngestRunStarted(
       .get()) as { runId: string; status: string } | undefined) ?? null
 
   if (!existingRun || existingRun.status === 'running') {
+    return
+  }
+
+  if (existingRun.status !== 'error') {
     return
   }
 

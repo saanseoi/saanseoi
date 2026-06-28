@@ -1,27 +1,19 @@
 import {
-  activateReleaseSet,
-  deleteApiReleaseSetSnapshotForFamily,
-  deleteApiReleaseSetSourcesForDataset,
+  publishReleaseArtifacts,
   ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
   getDatasetRecordByReleaseId,
   listApiReleaseSetSnapshots,
   listApiReleaseSetSources,
-  markDatasetCurrent,
-  markDatasetHistoric,
-  publishSnapshot,
   resolveActiveReleaseSetForType,
   resolveReleaseSetForRelease,
   resolveSnapshotForRelease,
-  revokeDataset,
-  setSupersededByReleaseId,
   updateLatestOpenIngestRun,
   updateDatasetStatus,
-  upsertApiReleaseSetSnapshot,
-  upsertApiReleaseSetSource,
   upsertIngestRunStatus,
 } from '@repo/core/db/meta-repository'
+import type { SnapshotFamily } from '@repo/core/db/meta-repository'
 import type { SupportedType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
@@ -176,6 +168,15 @@ export async function handlePublishDataset(
   }
 
   const activeReleaseSet = await resolveActiveReleaseSetForType(db, datasetType)
+  const carriedSnapshots: Array<{
+    snapshotFamily: SnapshotFamily
+    snapshotId: string
+  }> = []
+  const carriedSources: Array<{
+    datasetId: string
+    role: 'primary' | 'enrichment' | 'fallback' | 'lookup'
+    sourceReleaseId: string
+  }> = []
 
   if (activeReleaseSet && activeReleaseSet.id !== releaseSet.id) {
     const [activeSnapshots, activeSources] = await Promise.all([
@@ -188,12 +189,10 @@ export async function handlePublishDataset(
         continue
       }
 
-      await upsertApiReleaseSetSnapshot(
-        db,
-        releaseSet.id,
-        activeSnapshot.snapshotFamily as typeof datasetType,
-        activeSnapshot.snapshotId,
-      )
+      carriedSnapshots.push({
+        snapshotFamily: activeSnapshot.snapshotFamily as SnapshotFamily,
+        snapshotId: activeSnapshot.snapshotId,
+      })
     }
 
     for (const activeSource of activeSources) {
@@ -201,46 +200,27 @@ export async function handlePublishDataset(
         continue
       }
 
-      await upsertApiReleaseSetSource(
-        db,
-        releaseSet.id,
-        activeSource.datasetId,
-        activeSource.sourceReleaseId,
-        activeSource.role,
-      )
+      carriedSources.push({
+        datasetId: activeSource.datasetId,
+        sourceReleaseId: activeSource.sourceReleaseId,
+        role: activeSource.role,
+      })
     }
   }
 
-  await publishSnapshot(db, snapshot.id)
-  await deleteApiReleaseSetSnapshotForFamily(db, releaseSet.id, datasetType)
-  await upsertApiReleaseSetSnapshot(db, releaseSet.id, datasetType, snapshot.id)
-  await deleteApiReleaseSetSourcesForDataset(db, releaseSet.id, dataset.datasetId)
-  await upsertApiReleaseSetSource(
-    db,
-    releaseSet.id,
-    dataset.datasetId,
-    dataset.releaseId,
-    'primary',
-  )
-
-  await activateReleaseSet(db, releaseSet.id)
-
-  await markDatasetCurrent(db, dataset.releaseId)
-
-  if (currentRelease) {
-    await setSupersededByReleaseId(db, currentRelease.releaseId, dataset.releaseId)
-
-    if (isCorrectedRelease(currentRelease.sourceVersion, dataset.sourceVersion)) {
-      await revokeDataset(
-        db,
-        currentRelease.releaseId,
-        `Superseded by corrected release ${dataset.releaseCode}.`,
-        publishedAt,
-      )
-    } else {
-      await markDatasetHistoric(db, currentRelease.releaseId, publishedAt)
-    }
-  }
+  await publishReleaseArtifacts(db, {
+    carriedSnapshots,
+    carriedSources,
+    currentRelease,
+    currentReleaseIsCorrected: currentRelease
+      ? isCorrectedRelease(currentRelease.sourceVersion, dataset.sourceVersion)
+      : false,
+    dataset,
+    publishedAt,
+    releaseSetId: releaseSet.id,
+    snapshotId: snapshot.id,
+    type: datasetType,
+  })
 
   return {
     datasetId: dataset.releaseCode,

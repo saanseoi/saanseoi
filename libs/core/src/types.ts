@@ -57,6 +57,7 @@ export type UploadPlan = {
   releaseCode: string
   regionCode: RegionCode
   snapshotMonth: string
+  shardYear?: string
   theme: SupportedTheme
   type: SupportedType
   source: string
@@ -86,6 +87,7 @@ export type RegisterUploadOptions = {
   type?: string
   source?: string
   sourceVersion?: string
+  shardYear?: string
   dryRun?: boolean
   inspection?: ParquetInspection
   rawObjectKey?: string

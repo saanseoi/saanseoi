@@ -7,6 +7,7 @@ import {
   inferLocale,
   isRetryableSqliteWriteError,
   normalizeLocale,
+  runStatementsInGroupsWithWriteRetry,
   runWithWriteRetry,
 } from './utils'
 
@@ -93,5 +94,28 @@ describe('utils', () => {
         value: 'Plaza 13/31',
       },
     ])
+  })
+
+  test('falls back to the default batch size when groupSize is not positive', async () => {
+    const executed: number[] = []
+
+    await runStatementsInGroupsWithWriteRetry(
+      {},
+      [
+        {
+          async run() {
+            executed.push(1)
+          },
+        },
+        {
+          async run() {
+            executed.push(2)
+          },
+        },
+      ],
+      0,
+    )
+
+    expect(executed).toEqual([1, 2])
   })
 })

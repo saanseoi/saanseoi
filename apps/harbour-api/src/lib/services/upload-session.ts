@@ -124,6 +124,7 @@ export async function handleSignUploadRequest(
   const planned = await requestUpload(db, {
     filePath: request.fileName,
     regionCode: request.plan.regionCode,
+    shardYear: request.plan.shardYear,
     snapshotMonth: request.plan.snapshotMonth,
     source: request.plan.source,
     sourceVersion: request.plan.sourceVersion,
@@ -195,12 +196,14 @@ export async function handleFinalizeUploadRequest(
   const inspection = await inspectParquetFn(objectBuffer)
   const fileName = fileNameFromRawObjectKey(dataset.rawObjectKey)
   const resolveSchemaFingerprint = createR2SchemaFingerprintResolver(bucket)
+  const shardYear = await getRequestUploadShardYear(db, dataset.releaseId)
   const planned = await planUpload(
     db,
     {
       filePath: fileName,
       originalFileName: dataset.originalFileName,
       regionCode: dataset.regionCode,
+      shardYear,
       snapshotMonth: dataset.snapshotMonth,
       source: dataset.source,
       sourceVersion: dataset.sourceVersion,
@@ -232,6 +235,7 @@ export async function handleFinalizeUploadRequest(
     filePath: fileName,
     originalFileName: dataset.originalFileName,
     regionCode: dataset.regionCode,
+    shardYear,
     snapshotMonth: dataset.snapshotMonth,
     source: dataset.source,
     sourceVersion: dataset.sourceVersion,
@@ -248,6 +252,7 @@ export async function handleFinalizeUploadRequest(
     rawObjectKey: finalized.rawObjectKey,
     releaseCode: finalized.plan.releaseCode,
     regionCode: finalized.plan.regionCode,
+    shardYear: finalized.plan.shardYear,
     snapshotMonth: finalized.plan.snapshotMonth,
     source: finalized.plan.source,
     sourceVersion: finalized.plan.sourceVersion,
@@ -275,6 +280,28 @@ export async function handleRequeueUploadRequest(
     throw new Error(
       `Release ${dataset.releaseCode} is not requeueable. Current status: ${dataset.status}.`,
     )
+  }
+
+  const processRun = await db
+    .select({
+      status: metaSchema.ingestRuns.status,
+    })
+    .from(metaSchema.ingestRuns)
+    .where(
+      and(
+        eq(metaSchema.ingestRuns.releaseId, dataset.releaseId),
+        eq(metaSchema.ingestRuns.phase, 'processDataset'),
+      ),
+    )
+    .limit(1)
+    .get()
+
+  if (processRun?.status === 'queued' || processRun?.status === 'running') {
+    return {
+      ...dataset,
+      rowCount: await getStageDatasetRowCount(db, dataset.releaseId),
+      status: 'queued',
+    }
   }
 
   const processingMessage = buildDatasetProcessingMessage(dataset)
@@ -350,6 +377,40 @@ async function getStageDatasetRowCount(
   return typeof rowCount === 'number' && Number.isFinite(rowCount) ? rowCount : 0
 }
 
+async function getRequestUploadShardYear(
+  db: HarbourReadableDb,
+  releaseId: string,
+): Promise<string | undefined> {
+  const row = await db
+    .select({
+      stats: metaSchema.ingestRuns.stats,
+    })
+    .from(metaSchema.ingestRuns)
+    .where(
+      and(
+        eq(metaSchema.ingestRuns.releaseId, releaseId),
+        eq(metaSchema.ingestRuns.phase, 'requestUpload'),
+      ),
+    )
+    .limit(1)
+    .get()
+
+  if (!row?.stats) {
+    return undefined
+  }
+
+  const parsedStats =
+    typeof row.stats === 'string' ? parseIngestRunStats(row.stats) : row.stats
+
+  if (!parsedStats || typeof parsedStats !== 'object' || Array.isArray(parsedStats)) {
+    return undefined
+  }
+
+  const shardYear = (parsedStats as Record<string, unknown>).shardYear
+
+  return typeof shardYear === 'string' && shardYear.trim() ? shardYear : undefined
+}
+
 function parseIngestRunStats(value: string) {
   try {
     return JSON.parse(value)
@@ -409,7 +470,9 @@ function buildDatasetProcessingMessage(
     | 'sourceVersion'
     | 'theme'
     | 'type'
-  >,
+  > & {
+    shardYear?: string
+  },
 ): DatasetProcessingMessage {
   return {
     datasetId: dataset.datasetId,
@@ -419,6 +482,7 @@ function buildDatasetProcessingMessage(
     rawObjectKey: dataset.rawObjectKey,
     regionCode: requireRegionCode(dataset.regionCode),
     shardYear: resolveShardYear({
+      shardYear: dataset.shardYear,
       snapshotMonth: dataset.snapshotMonth,
       sourceVersion: dataset.sourceVersion,
     }),
