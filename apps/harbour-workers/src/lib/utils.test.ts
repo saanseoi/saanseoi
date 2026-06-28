@@ -7,6 +7,7 @@ import {
   inferLocale,
   isRetryableSqliteWriteError,
   normalizeLocale,
+  runStatementBatchWithWriteRetry,
   runStatementsInGroupsWithWriteRetry,
   runWithWriteRetry,
 } from './utils'
@@ -115,6 +116,42 @@ describe('utils', () => {
       ],
       0,
     )
+
+    expect(executed).toEqual([1, 2])
+  })
+
+  test('uses db.batch for grouped statement execution when available', async () => {
+    const batches: unknown[][] = []
+    const statements = [{ id: 1 }, { id: 2 }, { id: 3 }]
+
+    await runStatementsInGroupsWithWriteRetry(
+      {
+        async batch(batchStatements: [unknown, ...unknown[]]) {
+          batches.push(batchStatements)
+        },
+      },
+      statements,
+      2,
+    )
+
+    expect(batches).toEqual([[statements[0], statements[1]], [statements[2]]])
+  })
+
+  test('falls back to sequential statement execution without db.batch', async () => {
+    const executed: number[] = []
+
+    await runStatementBatchWithWriteRetry({}, [
+      {
+        async run() {
+          executed.push(1)
+        },
+      },
+      {
+        async run() {
+          executed.push(2)
+        },
+      },
+    ])
 
     expect(executed).toEqual([1, 2])
   })
