@@ -16,6 +16,45 @@ export const ErrorResponseSchema = z
   })
   .openapi('AtlasErrorResponse')
 
+export const SearchSnapshotNotReadyErrorResponseSchema = z
+  .object({
+    httpStatus: z.number().openapi({
+      examples: [503],
+    }),
+    error: z.literal('snapshot_not_ready').openapi({
+      examples: ['snapshot_not_ready'],
+    }),
+    message: z.literal('No active place snapshot is published.').openapi({
+      examples: ['No active place snapshot is published.'],
+    }),
+  })
+  .openapi('AtlasSearchSnapshotNotReadyErrorResponse')
+
+export const SearchFtsNotReadyErrorResponseSchema = z
+  .object({
+    httpStatus: z.number().openapi({
+      examples: [503],
+    }),
+    error: z.literal('fts_not_ready').openapi({
+      examples: ['fts_not_ready'],
+    }),
+    message: z
+      .literal('FTS index is not initialized. Rebuild placesFts before using search.')
+      .openapi({
+        examples: [
+          'FTS index is not initialized. Rebuild placesFts before using search.',
+        ],
+      }),
+  })
+  .openapi('AtlasSearchFtsNotReadyErrorResponse')
+
+export const SearchUnavailableErrorResponseSchema = z
+  .union([
+    SearchSnapshotNotReadyErrorResponseSchema,
+    SearchFtsNotReadyErrorResponseSchema,
+  ])
+  .openapi('AtlasSearchUnavailableErrorResponse')
+
 const ValidationErrorDetailSchema = z
   .object({
     code: z.string().openapi({
