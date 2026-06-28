@@ -124,7 +124,7 @@ Current behavior:
 - a new draft address snapshot bulk-clones the latest non-archived snapshot before applying incoming deltas
 - changed rows close prior current versions and insert a new current version
 - unchanged rows are carried forward in the cloned current snapshot without rewriting canonical history rows
-- snapshot-to-release membership is tracked through `snapshotSources`, not per-record provenance writes in the worker hot path
+- snapshot-to-release membership is tracked through `snapshotSources`, not a per-record provenance table in the worker hot path
 
 Deletion is asymmetric:
 

@@ -28,9 +28,4 @@ resolved_path="$(
   ' "$miniflare_d1_dir" "$local_database_id"
 )"
 
-if [[ ! -f "$resolved_path" ]]; then
-  echo "Could not resolve a local SQLite file for D1 database id '$local_database_id'." >&2
-  exit 1
-fi
-
 printf '%s\n' "$resolved_path"

@@ -110,7 +110,7 @@ Current behavior:
 - unchanged source payloads do not create new source version rows; only the current source row metadata is advanced to the latest release
 - missing source rows are removed from current source tables and closed in source history
 
-The worker no longer writes per-record `historyVersionProvenance` rows during division ingestion. Snapshot membership is tracked at the snapshot level through `snapshotSources`.
+The worker no longer writes per-record provenance during division ingestion. Snapshot membership is tracked at the snapshot level through `snapshotSources`.
 
 ## Dataset Stats Produced
 
