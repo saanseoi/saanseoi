@@ -127,6 +127,8 @@ Version tables:
 - `sourceOvertureDivisionsVersions`
 - `sourceOvertureDivisionI18nVersions`
 
+For later releases with unchanged source payloads, the worker advances the current row to the new release without inserting another source version row.
+
 Current retained source fields include:
 
 - `releaseId`

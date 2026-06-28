@@ -18,6 +18,7 @@ There is no second division source in the current pipeline.
 
 - Division uploads are ingested directly from parquet by `apps/harbour-workers/src/lib/services/division.ts`.
 - Processing creates or reuses a family-scoped draft snapshot via `ensureDraftSnapshotForRelease`.
+- If an earlier non-archived division snapshot exists, its current rows are bulk-cloned into the new draft snapshot before the upload delta is applied.
 - The uploaded release is linked to that snapshot through `snapshotSources`.
 - Division releases are recorded as `primary` sources for the division snapshot.
 
@@ -80,7 +81,7 @@ Division processing uses two hashes:
 
 Current behavior:
 
-- unchanged rows are still staged into current snapshot tables
+- unchanged rows are carried forward by snapshot clone rather than being rewritten row-by-row
 - base-field changes create a new canonical version
 - i18n-only changes reuse the same base `versionHash` but still refresh the current snapshot and i18n version state
 - missing rows are closed in history and removed from the staged current snapshot
@@ -106,8 +107,10 @@ Source history tables:
 Current behavior:
 
 - changed source payloads update the current source tables and create new source version rows
-- unchanged source payloads do not create new source version rows, but the current source row can still have its `releaseId` advanced to the latest release
+- unchanged source payloads do not create new source version rows; only the current source row metadata is advanced to the latest release
 - missing source rows are removed from current source tables and closed in source history
+
+The worker no longer writes per-record `historyVersionProvenance` rows during division ingestion. Snapshot membership is tracked at the snapshot level through `snapshotSources`.
 
 ## Dataset Stats Produced
 

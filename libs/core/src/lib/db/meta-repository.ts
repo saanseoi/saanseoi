@@ -419,6 +419,33 @@ export async function resolveLatestSnapshotForFamily(
   )
 }
 
+export async function resolveLatestSnapshotForFamilyExcludingId(
+  db: HarbourReadableDb,
+  family: SnapshotFamily,
+  snapshotId: string,
+) {
+  return (
+    (await db
+      .select({
+        id: metaSnapshots.id,
+        code: metaSnapshots.code,
+        family: metaSnapshots.family,
+        status: metaSnapshots.status,
+      })
+      .from(metaSnapshots)
+      .where(
+        and(
+          eq(metaSnapshots.family, family),
+          ne(metaSnapshots.status, 'archived'),
+          ne(metaSnapshots.id, snapshotId),
+        ),
+      )
+      .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
 export async function resolveLatestPublishedSnapshotForFamily(
   db: HarbourReadableDb,
   family: SnapshotFamily,

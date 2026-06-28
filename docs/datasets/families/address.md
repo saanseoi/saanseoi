@@ -113,6 +113,7 @@ Shared behavior:
 - source version rows are keyed by `sourceRecordId + versionHash`
 - previous current source versions are closed with `validToRelease`
 - source history is separate from canonical address history
+- unchanged source payloads only advance current-row `releaseId`/`datasetId`; they do not create new source version rows
 
 ## Versioning and Deletion
 
@@ -120,9 +121,10 @@ Canonical address history is snapshot-aware but deduped by `(id, versionHash)`.
 
 Current behavior:
 
+- a new draft address snapshot bulk-clones the latest non-archived snapshot before applying incoming deltas
 - changed rows close prior current versions and insert a new current version
-- unchanged rows are upserted back onto the existing `(id, versionHash)` history row rather than creating duplicate history rows
-- provenance rows are written through `historyVersionProvenance`
+- unchanged rows are carried forward in the cloned current snapshot without rewriting canonical history rows
+- snapshot-to-release membership is tracked through `snapshotSources`, not per-record provenance writes in the worker hot path
 
 Deletion is asymmetric:
 

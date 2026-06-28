@@ -109,6 +109,18 @@ function createAddressMessage(
   } as const
 }
 
+function getSnapshotId(sqlite: Database, code: string) {
+  const row = sqlite.query('SELECT id FROM snapshots WHERE code = ?1').get(code) as {
+    id: string
+  } | null
+
+  if (!row) {
+    throw new Error(`Snapshot not found for ${code}.`)
+  }
+
+  return row.id
+}
+
 function seedDivisionLookups(sqlite: Database) {
   const now = '2026-06-04T00:00:00.000Z'
   const timestamp = 1780531200000
@@ -160,6 +172,173 @@ afterEach(() => {
 })
 
 describe('processAddressDataset', () => {
+  test('clones unchanged canonical address rows into later snapshots without rewriting history', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'address-unchanged.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    seedDivisionLookups(sqlite)
+    seedAddressRelease(sqlite, 'overture-hk-2026-05-24.0-address', '2026-05', 'staged')
+
+    const initialResult = await processAddressDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createAddressMessage(
+        'overture-hk-2026-05-24.0-address',
+        '2026-05',
+        '2026-05-24.0',
+      ),
+      db as never,
+    )
+
+    seedAddressRelease(sqlite, 'overture-hk-2026-06-24.0-address', '2026-06', 'staged')
+
+    const unchangedResult = await processAddressDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createAddressMessage(
+        'overture-hk-2026-06-24.0-address',
+        '2026-06',
+        '2026-06-24.0',
+      ),
+      db as never,
+    )
+
+    const secondSnapshotId = getSnapshotId(sqlite, 'overture-hk-2026-06-24.0-address')
+    const currentRows = sqlite
+      .query('SELECT snapshotId, id FROM address2d WHERE snapshotId = ?1 ORDER BY id')
+      .all(secondSnapshotId) as Array<{
+      id: string
+      snapshotId: string
+    }>
+    const currentI18nRows = sqlite
+      .query(
+        'SELECT snapshotId, addressId, locale FROM address2dI18n WHERE snapshotId = ?1 ORDER BY addressId, locale',
+      )
+      .all(secondSnapshotId) as Array<{
+      addressId: string
+      locale: string
+      snapshotId: string
+    }>
+    const canonicalVersionRows = sqlite
+      .query(
+        "SELECT id, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, isCurrent FROM address2dVersions WHERE id = 'ovt-address-1' ORDER BY createdAt",
+      )
+      .all() as Array<{
+      id: string
+      isCurrent: number
+      snapshotId: string
+      sourceReleaseId: string
+      validFromSnapshotId: string
+      validToSnapshotId: string | null
+    }>
+    const canonicalI18nVersionRows = sqlite
+      .query(
+        "SELECT addressId, locale, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, isCurrent FROM address2dVersionsI18n WHERE addressId = 'ovt-address-1' ORDER BY locale",
+      )
+      .all() as Array<{
+      addressId: string
+      isCurrent: number
+      locale: string
+      snapshotId: string
+      sourceReleaseId: string
+      validFromSnapshotId: string
+      validToSnapshotId: string | null
+    }>
+    const currentSourceRows = sqlite
+      .query(
+        "SELECT sourceRecordId, releaseId FROM sourceOvertureAddresses2d WHERE sourceRecordId = 'ovt-address-1'",
+      )
+      .all() as Array<{
+      releaseId: string
+      sourceRecordId: string
+    }>
+    const sourceVersionRows = sqlite
+      .query(
+        "SELECT sourceRecordId, releaseId, validFromRelease, validToRelease, isCurrent FROM sourceOvertureAddresses2dVersions WHERE sourceRecordId = 'ovt-address-1' ORDER BY validFromRelease",
+      )
+      .all() as Array<{
+      isCurrent: number
+      releaseId: string
+      sourceRecordId: string
+      validFromRelease: string
+      validToRelease: string | null
+    }>
+
+    expect(initialResult.insertedVersions).toBe(1)
+    expect(initialResult.unchangedRows).toBe(0)
+    expect(unchangedResult.insertedVersions).toBe(0)
+    expect(unchangedResult.unchangedRows).toBe(1)
+    expect(currentRows).toEqual([{ snapshotId: secondSnapshotId, id: 'ovt-address-1' }])
+    expect(currentI18nRows).toEqual([
+      {
+        snapshotId: secondSnapshotId,
+        addressId: 'ovt-address-1',
+        locale: 'en',
+      },
+    ])
+    expect(canonicalVersionRows).toHaveLength(1)
+    expect(canonicalVersionRows[0]).toMatchObject({
+      id: 'ovt-address-1',
+      isCurrent: 1,
+      sourceReleaseId: 'release-overture-hk-2026-05-24.0-address',
+      validToSnapshotId: null,
+    })
+    expect(canonicalI18nVersionRows).toEqual([
+      {
+        addressId: 'ovt-address-1',
+        locale: 'en',
+        sourceReleaseId: 'release-overture-hk-2026-05-24.0-address',
+        snapshotId: canonicalVersionRows[0]?.snapshotId ?? '',
+        validFromSnapshotId: canonicalVersionRows[0]?.validFromSnapshotId ?? '',
+        validToSnapshotId: null,
+        isCurrent: 1,
+      },
+    ])
+    expect(currentSourceRows).toEqual([
+      {
+        sourceRecordId: 'ovt-address-1',
+        releaseId: 'release-overture-hk-2026-06-24.0-address',
+      },
+    ])
+    expect(sourceVersionRows).toEqual([
+      {
+        sourceRecordId: 'ovt-address-1',
+        releaseId: 'release-overture-hk-2026-05-24.0-address',
+        validFromRelease: '2026-05-24.0',
+        validToRelease: null,
+        isCurrent: 1,
+      },
+    ])
+  })
+
   test('dedupes source overture address releases into current and version tables', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'address.sqlite')
