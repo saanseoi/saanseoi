@@ -1,0 +1,8 @@
+{
+  "versionHash": "vh-ruleset-version-division-merge-v1",
+  "code": "rs-division-merge-v1",
+  "resourceType": "division",
+  "strategy": "merge",
+  "version": "1",
+  "notes": "Initial division merge ruleset."
+}

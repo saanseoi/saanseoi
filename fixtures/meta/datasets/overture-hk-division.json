@@ -1,0 +1,19 @@
+{
+  "versionHash": "vh-dataset-overture-hk-division-v1",
+  "publisherCode": "overture",
+  "code": "ds-hk-overture-division.json",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "monthly",
+  "theme": "divisions",
+  "type": "division",
+  "licenseCode": "ODbL",
+  "attribution": "© OpenStreetMap contributors; Overture Maps Foundation.",
+  "sourceUrl": "https://docs.overturemaps.org/",
+  "category": "places",
+  "i18n": [
+    { "locale": "en", "name": "Hong Kong Overture divisions" },
+    { "locale": "zhHant", "name": "香港 Overture 區劃" },
+    { "locale": "zhHans", "name": "香港 Overture 区划" }
+  ]
+}

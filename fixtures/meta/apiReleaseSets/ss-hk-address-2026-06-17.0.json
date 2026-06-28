@@ -1,0 +1,11 @@
+{
+  "versionHash": "vh-api-release-set-address-2026-06-17.0-v1",
+  "apiVersion": "api-addresses-v0.1",
+  "code": "ss-hk-address-2026-06-17.0",
+  "schemaVersion": "sv-address-v1",
+  "rulesetVersion": "rs-address-merge-v1",
+  "status": "current",
+  "publishedAt": "2026-06-17T00:00:00.000Z",
+  "validFrom": "2026-06-17T00:00:00.000Z",
+  "notes": "Alpha Release"
+}

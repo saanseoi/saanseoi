@@ -1,0 +1,11 @@
+{
+  "versionHash": "vh-api-release-set-place-2026-06-17.0-v1",
+  "apiVersion": "api-places-v0.1",
+  "code": "ss-hk-place-2026-06-17.0",
+  "schemaVersion": "sv-place-v1",
+  "rulesetVersion": "rs-place-merge-v1",
+  "status": "current",
+  "publishedAt": "2026-06-17T00:00:00.000Z",
+  "validFrom": "2026-06-17T00:00:00.000Z",
+  "notes": "Alpha Release"
+}
