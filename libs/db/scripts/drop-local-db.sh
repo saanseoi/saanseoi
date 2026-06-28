@@ -10,9 +10,17 @@ mkdir -p "$persist_dir"
 
 IFS=',' read -r -a binding_names <<< "$bindings_csv"
 IFS=',' read -r -a database_names <<< "$database_names_csv"
+IFS=',' read -r -a drop_types <<< "$drop_types_csv"
 
 for i in "${!database_names[@]}"; do
-  printf 'Dropping local tables for %s (%s)\n' "${binding_names[$i]}" "${database_names[$i]}"
+  drop_sql_file="$sql_dir/drop-${drop_types[$i]}-db.sql"
+
+  if [[ ! -f "$drop_sql_file" ]]; then
+    echo "Missing drop SQL file: $drop_sql_file" >&2
+    exit 1
+  fi
+
+  printf 'Dropping local %s tables for %s (%s)\n' "${drop_types[$i]}" "${binding_names[$i]}" "${database_names[$i]}"
   bash "$script_dir/run-d1-execute.sh" "${database_names[$i]}" \
     --config "$wrangler_config" \
     --env "$wrangler_env" \
