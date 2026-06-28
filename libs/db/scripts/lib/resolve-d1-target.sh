@@ -12,7 +12,7 @@ environment="${2:-preview}"
 repo_root="$(cd "$(dirname "$0")/../../../.." && pwd)"
 wrangler_config="$repo_root/apps/harbour-api/wrangler.jsonc"
 persist_dir="$repo_root/.local/d1/dev"
-drop_sql_file="$(cd "$(dirname "$0")/.." && pwd)/sql/drop-preview-db.sql"
+sql_dir="$(cd "$(dirname "$0")/.." && pwd)/sql"
 
 case "$environment" in
   local|preview)
@@ -69,11 +69,28 @@ targets_json="$(bun -e '
         process.exit(1);
       }
 
+      const dropType =
+        entry.binding === "DB_META"
+          ? "meta"
+          : entry.binding === "DB_CURRENT"
+            ? "current"
+            : /^DB_HISTORY_[A-Z]{2}_\d{4}$/.test(entry.binding)
+              ? "history"
+              : /^DB_SOURCE_[A-Z]{2}_\d{4}$/.test(entry.binding)
+                ? "source"
+                : null;
+
+      if (!dropType) {
+        process.stderr.write(`Could not resolve drop SQL type for binding ${entry.binding}\n`);
+        process.exit(1);
+      }
+
       return {
         bindingName: entry.binding,
         databaseId: entry.database_id ?? null,
         databaseName: entry.database_name,
         previewDatabaseId: entry.preview_database_id ?? null,
+        dropType,
       };
     });
 
@@ -87,12 +104,14 @@ targets_json="$(bun -e '
 
 bindings_csv="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets.map(target => target.bindingName).join(","));' "$targets_json")"
 database_names_csv="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets.map(target => target.databaseName).join(","));' "$targets_json")"
+drop_types_csv="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets.map(target => target.dropType).join(","));' "$targets_json")"
 target_count="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(String(targets.length));' "$targets_json")"
 binding_name="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets[0].bindingName);' "$targets_json")"
 database_id="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets[0].databaseId ?? "");' "$targets_json")"
 database_name="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets[0].databaseName);' "$targets_json")"
 preview_database_id="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets[0].previewDatabaseId ?? "");' "$targets_json")"
 local_database_id="$(bun -e 'const targets = JSON.parse(process.argv[1]); const target = targets[0]; process.stdout.write(target.previewDatabaseId ?? target.databaseId ?? target.bindingName);' "$targets_json")"
+drop_type="$(bun -e 'const targets = JSON.parse(process.argv[1]); process.stdout.write(targets[0].dropType);' "$targets_json")"
 
 printf 'db_family=%q\n' "$db_family"
 printf 'binding_name=%q\n' "$binding_name"
@@ -102,8 +121,10 @@ printf 'preview_database_id=%q\n' "$preview_database_id"
 printf 'local_database_id=%q\n' "$local_database_id"
 printf 'bindings_csv=%q\n' "$bindings_csv"
 printf 'database_names_csv=%q\n' "$database_names_csv"
+printf 'drop_types_csv=%q\n' "$drop_types_csv"
 printf 'target_count=%q\n' "$target_count"
 printf 'wrangler_config=%q\n' "$wrangler_config"
 printf 'wrangler_env=%q\n' "$wrangler_env"
 printf 'persist_dir=%q\n' "$persist_dir"
-printf 'drop_sql_file=%q\n' "$drop_sql_file"
+printf 'sql_dir=%q\n' "$sql_dir"
+printf 'drop_type=%q\n' "$drop_type"
