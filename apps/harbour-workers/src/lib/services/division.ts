@@ -1,5 +1,6 @@
 import type { DatasetProcessingMessage } from '@repo/core'
 import { resolveLatestSnapshotForFamilyExcludingId } from '@repo/core/db/meta-repository'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   CurrentDatabase,
   HistoryDatabase,
@@ -14,6 +15,9 @@ import type {
   NewDivisionI18nRow,
 } from '@repo/db/currentSchema'
 import type { GeoJsonGeometry, GeoJsonPosition } from '../geojson'
+
+import { and, eq } from 'drizzle-orm'
+import { historySchema } from '@repo/db'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
@@ -59,7 +63,11 @@ import {
   normalizeLocale,
   stableJsonStringify,
 } from '../utils'
-import { createOperationTimer, resolveDataShardEnvironment } from './shared'
+import {
+  createOperationTimer,
+  resolveDataShardEnvironment,
+  resolveDebugEnabled,
+} from './shared'
 
 import type { DivisionVersionSnapshot } from '../db/division'
 
@@ -138,32 +146,43 @@ export async function processDivisionDataset(
   sourceDb?: SourceDatabase,
   reportProgress?: ReportProgress,
 ): Promise<ProcessDatasetResult> {
-  const timings = createOperationTimer()
+  const debugEnabled = resolveDebugEnabled(process.env.DEBUG)
+  const timings = createOperationTimer(debugEnabled)
+  const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
+  const currentRepoDb = currentDb as unknown as HarbourReadableDb & HarbourWritableDb
+  const historyRepoDb = historyDb as unknown as HarbourReadableDb & HarbourWritableDb
   const file = await timings.measure('loadParquetBufferMs', () =>
     createAsyncBufferFromR2(bucket, message.rawObjectKey),
   )
   const environment = resolveDataShardEnvironment(process.env.DATA_SHARD_ENV)
   const versionInsertContext = await timings.measure(
     'prepareVersionInsertContextMs',
-    () => prepareDivisionVersionInsertContext(metaDb, message, environment),
+    () => prepareDivisionVersionInsertContext(metaRepoDb, message, environment),
   )
   const currentRows = await timings.measure('loadCurrentVersionMapMs', () =>
-    getCurrentDivisionVersionMap(historyDb, message.regionCode, {
+    getCurrentDivisionVersionMap(historyRepoDb, message.regionCode, {
       buildDivisionBaseHashInput,
       normalizeDivisionI18nSnapshotRow,
     }),
   )
   const previousSnapshot = await resolveLatestSnapshotForFamilyExcludingId(
-    metaDb,
+    metaRepoDb,
     'division',
     versionInsertContext.snapshotId,
   )
   const isInitialCanonicalLoad = !previousSnapshot && currentRows.size === 0
 
-  if (previousSnapshot) {
+  if (
+    previousSnapshot &&
+    (await snapshotMatchesDivisionRegion(
+      historyDb,
+      previousSnapshot.id,
+      message.regionCode,
+    ))
+  ) {
     await timings.measure('cloneDivisionCurrentSnapshotMs', () =>
       cloneDivisionCurrentSnapshot(
-        currentDb,
+        currentRepoDb,
         previousSnapshot.id,
         versionInsertContext.snapshotId,
       ),
@@ -441,7 +460,7 @@ export async function processDivisionDataset(
     if (changedDivisionExistingIds.size > 0) {
       await timings.measure('closeCurrentDivisionVersionsMs', () =>
         closeCurrentDivisionVersions(
-          historyDb,
+          historyRepoDb,
           message.regionCode,
           [...changedDivisionExistingIds],
           versionInsertContext.snapshotId,
@@ -452,7 +471,7 @@ export async function processDivisionDataset(
 
     await timings.measure('upsertDivisionCurrentStatesMs', () =>
       upsertDivisionCurrentStates(
-        currentDb,
+        currentRepoDb,
         versionInsertContext.snapshotId,
         currentDivisionRows,
         {
@@ -462,7 +481,7 @@ export async function processDivisionDataset(
     )
     await timings.measure('replaceDivisionCurrentI18nMs', () =>
       replaceDivisionCurrentI18n(
-        currentDb,
+        currentRepoDb,
         versionInsertContext.snapshotId,
         [...currentDivisionI18nRowIds],
         currentDivisionI18nRows,
@@ -473,7 +492,7 @@ export async function processDivisionDataset(
     )
     await timings.measure('insertDivisionVersionRowsMs', () =>
       insertDivisionVersionRows(
-        historyDb,
+        historyRepoDb,
         versionInsertContext,
         changedDivisionVersionRows,
         changedDivisionI18nVersionRows,
@@ -540,7 +559,7 @@ export async function processDivisionDataset(
 
   const deletedRows = await timings.measure('deleteMissingCurrentDivisionsMs', () =>
     deleteMissingCurrentDivisions(
-      historyDb,
+      historyRepoDb,
       message.regionCode,
       versionInsertContext.snapshotId,
       message.snapshotMonth,
@@ -549,7 +568,11 @@ export async function processDivisionDataset(
     ),
   )
   await timings.measure('deleteStaleDivisionCurrentRowsMs', () =>
-    deleteStaleDivisionCurrentRows(currentDb, versionInsertContext.snapshotId, seenIds),
+    deleteStaleDivisionCurrentRows(
+      currentRepoDb,
+      versionInsertContext.snapshotId,
+      seenIds,
+    ),
   )
   const churnStats = buildChurnStatsRows(
     buildChurnCounts(previousRows, processedRowsById),
@@ -561,7 +584,7 @@ export async function processDivisionDataset(
     }),
   )
   const statsRows = await timings.measure('replaceDatasetStatsMs', () =>
-    replaceDatasetStats(metaDb, message.releaseId ?? message.datasetId, [
+    replaceDatasetStats(metaRepoDb, message.releaseId ?? message.datasetId, [
       ...buildLocaleStatsRows(statsAccumulator),
       ...churnStats,
       ...qualityStats,
@@ -593,7 +616,7 @@ export async function processDivisionDataset(
       sourceChangedRows,
       sourceUnchangedRows,
       sourceVersion: message.sourceVersion,
-      timingsMs: timings.snapshot(),
+      ...(debugEnabled ? { timingsMs: timings.snapshot() } : {}),
       type: message.type,
     }),
   )
@@ -606,6 +629,28 @@ export async function processDivisionDataset(
     statsRows,
     unchangedRows,
   }
+}
+
+async function snapshotMatchesDivisionRegion(
+  historyDb: HistoryDatabase,
+  snapshotId: string,
+  regionCode: DatasetProcessingMessage['regionCode'],
+) {
+  const match = await historyDb
+    .select({
+      snapshotId: historySchema.divisionsVersions.snapshotId,
+    })
+    .from(historySchema.divisionsVersions)
+    .where(
+      and(
+        eq(historySchema.divisionsVersions.snapshotId, snapshotId),
+        eq(historySchema.divisionsVersions.regionCode, regionCode),
+      ),
+    )
+    .limit(1)
+    .get()
+
+  return Boolean(match)
 }
 
 /**

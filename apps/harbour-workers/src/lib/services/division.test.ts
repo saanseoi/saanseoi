@@ -169,6 +169,57 @@ function getSnapshotId(sqlite: Database, code: string) {
   return row.id
 }
 
+function publishSnapshotForRelease(
+  sqlite: Database,
+  releaseCode: string,
+  publishedAt = '2026-06-04T00:00:00.000Z',
+) {
+  const snapshotId = getSnapshotId(sqlite, releaseCode)
+  const release = sqlite
+    .query('SELECT id AS releaseId, datasetId FROM releases WHERE code = ?1')
+    .get(releaseCode) as { datasetId: string; releaseId: string } | null
+
+  if (!release) {
+    throw new Error(`Release not found for ${releaseCode}.`)
+  }
+
+  const publishedAtMs = new Date(publishedAt).getTime()
+
+  sqlite
+    .query(
+      `
+        UPDATE snapshots
+        SET status = 'published',
+            publishedAt = ?1,
+            validFrom = ?1,
+            updatedAt = ?1
+        WHERE id = ?2
+      `,
+    )
+    .run(publishedAtMs, snapshotId)
+  sqlite
+    .query(
+      `
+        INSERT OR IGNORE INTO snapshotSources (
+          snapshotId,
+          datasetId,
+          sourceReleaseId,
+          role,
+          createdAt
+        ) VALUES (
+          ?1,
+          ?2,
+          ?3,
+          'primary',
+          ?4
+        )
+      `,
+    )
+    .run(snapshotId, release.datasetId, release.releaseId, publishedAtMs)
+
+  return snapshotId
+}
+
 afterEach(() => {
   parquetBatches = structuredClone(baseParquetBatches)
 
@@ -218,6 +269,7 @@ describe('processDivisionDataset', () => {
       ),
       db as never,
     )
+    publishSnapshotForRelease(sqlite, 'overture-hk-2026-05-24.0-division')
     const firstSnapshotId = getSnapshotId(sqlite, 'overture-hk-2026-05-24.0-division')
 
     const firstDivisionRow = sqlite
@@ -988,6 +1040,7 @@ describe('processDivisionDataset', () => {
         '2026-05-24.0',
       ),
     )
+    publishSnapshotForRelease(sqlite, 'overture-hk-2026-05-24.0-division', now)
 
     parquetBatches = [
       [
@@ -1207,6 +1260,7 @@ describe('processDivisionDataset', () => {
         '2026-05-24.0',
       ),
     )
+    publishSnapshotForRelease(sqlite, 'overture-hk-2026-05-24.0-division', now)
 
     parquetBatches = [
       [
@@ -1262,6 +1316,7 @@ describe('processDivisionDataset', () => {
         '2026-06-24.0',
       ),
     )
+    publishSnapshotForRelease(sqlite, 'overture-hk-2026-06-24.0-division', now)
 
     seedDivisionRelease(
       sqlite,

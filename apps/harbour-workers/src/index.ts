@@ -19,6 +19,16 @@ type Env = Partial<MultiDbBindings> & {
 
 type ProcessDatasetMessageHandler = typeof processDatasetMessage
 
+type MessageErrorContext = {
+  attempts: number
+  datasetId?: string
+  historyBindingName?: string
+  releaseCode?: string
+  releaseId?: string
+  shardYear?: string
+  sourceBindingName?: string
+}
+
 function toBindingRegion(regionCode: string) {
   return regionCode.toUpperCase()
 }
@@ -50,6 +60,28 @@ function resolveShardBinding(
   return {
     bindingName,
     binding: env[bindingName],
+    resolvedYear,
+  }
+}
+
+function readStringProperty(value: unknown, key: string) {
+  if (!value || typeof value !== 'object') {
+    return undefined
+  }
+
+  const property = (value as Record<string, unknown>)[key]
+
+  return typeof property === 'string' ? property : undefined
+}
+
+function createMessageErrorContext(
+  message: Message<DatasetProcessingMessage>,
+): MessageErrorContext {
+  return {
+    attempts: message.attempts,
+    datasetId: readStringProperty(message.body, 'datasetId'),
+    releaseCode: readStringProperty(message.body, 'releaseCode'),
+    releaseId: readStringProperty(message.body, 'releaseId'),
   }
 }
 
@@ -75,24 +107,30 @@ export function createQueueHandler(
     })
 
     for (const message of batch.messages) {
-      const historyShard = resolveShardBinding(
-        env,
-        'HISTORY',
-        message.body.regionCode,
-        message.body.shardYear,
-        message.body.snapshotMonth,
-      )
-      const sourceShard = resolveShardBinding(
-        env,
-        'SOURCE',
-        message.body.regionCode,
-        message.body.shardYear,
-        message.body.snapshotMonth,
-      )
+      const errorContext = createMessageErrorContext(message)
 
       try {
+        const body = message.body
+        const historyShard = resolveShardBinding(
+          env,
+          'HISTORY',
+          body.regionCode,
+          body.shardYear,
+          body.snapshotMonth,
+        )
+        const sourceShard = resolveShardBinding(
+          env,
+          'SOURCE',
+          body.regionCode,
+          body.shardYear,
+          body.snapshotMonth,
+        )
         const { bindingName: historyBindingName, binding: historyBinding } =
           historyShard
+
+        errorContext.historyBindingName = String(historyBindingName)
+        errorContext.shardYear = historyShard.resolvedYear
+        errorContext.sourceBindingName = String(sourceShard.bindingName)
 
         if (!historyBinding) {
           throw new Error(
@@ -108,25 +146,18 @@ export function createQueueHandler(
           currentDb,
           createHistoryDb(withPrimarySession(historyBinding)),
           env.R2_RAW,
-          message.body,
+          body,
           sourceBinding ? createSourceDb(withPrimarySession(sourceBinding)) : undefined,
         )
         message.ack()
       } catch (error) {
         console.error('harbour-workers dataset processing failed', {
-          datasetId: message.body.datasetId,
-          historyBindingName: String(historyShard.bindingName),
-          releaseCode: message.body.releaseCode,
-          releaseId: message.body.releaseId,
-          shardYear:
-            message.body.shardYear ?? toBindingYear(message.body.snapshotMonth),
-          sourceBindingName: String(sourceShard.bindingName),
+          ...errorContext,
           cause:
             error instanceof Error && error.cause instanceof Error
               ? error.cause.message
               : undefined,
           error: error instanceof Error ? error.message : String(error),
-          attempts: message.attempts,
         })
         message.retry()
       }

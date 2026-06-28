@@ -121,6 +121,57 @@ function getSnapshotId(sqlite: Database, code: string) {
   return row.id
 }
 
+function publishSnapshotForRelease(
+  sqlite: Database,
+  releaseCode: string,
+  publishedAt = '2026-06-04T00:00:00.000Z',
+) {
+  const snapshotId = getSnapshotId(sqlite, releaseCode)
+  const release = sqlite
+    .query('SELECT id AS releaseId, datasetId FROM releases WHERE code = ?1')
+    .get(releaseCode) as { datasetId: string; releaseId: string } | null
+
+  if (!release) {
+    throw new Error(`Release not found for ${releaseCode}.`)
+  }
+
+  const publishedAtMs = new Date(publishedAt).getTime()
+
+  sqlite
+    .query(
+      `
+        UPDATE snapshots
+        SET status = 'published',
+            publishedAt = ?1,
+            validFrom = ?1,
+            updatedAt = ?1
+        WHERE id = ?2
+      `,
+    )
+    .run(publishedAtMs, snapshotId)
+  sqlite
+    .query(
+      `
+        INSERT OR IGNORE INTO snapshotSources (
+          snapshotId,
+          datasetId,
+          sourceReleaseId,
+          role,
+          createdAt
+        ) VALUES (
+          ?1,
+          ?2,
+          ?3,
+          'primary',
+          ?4
+        )
+      `,
+    )
+    .run(snapshotId, release.datasetId, release.releaseId, publishedAtMs)
+
+  return snapshotId
+}
+
 function seedDivisionLookups(sqlite: Database) {
   const now = '2026-06-04T00:00:00.000Z'
   const timestamp = 1780531200000
@@ -204,6 +255,7 @@ describe('processAddressDataset', () => {
       ),
       db as never,
     )
+    publishSnapshotForRelease(sqlite, 'overture-hk-2026-05-24.0-address')
 
     seedAddressRelease(sqlite, 'overture-hk-2026-06-24.0-address', '2026-06', 'staged')
 
@@ -722,5 +774,51 @@ describe('processAddressDataset', () => {
     expect(result.deletedRows).toBe(1)
     expect(currentRows).toEqual([{ id: 'ovt-address-1' }])
     expect(currentI18nRows).toEqual([{ addressId: 'ovt-address-1', locale: 'en' }])
+  })
+
+  test('reports batch progress even when no source database is available', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'address-progress-no-source.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const progress = mock(async () => undefined)
+
+    seedDivisionLookups(sqlite)
+    seedAddressRelease(sqlite, 'overture-hk-2026-05-24.0-address', '2026-05', 'staged')
+
+    await processAddressDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createAddressMessage(
+        'overture-hk-2026-05-24.0-address',
+        '2026-05',
+        '2026-05-24.0',
+      ),
+      undefined,
+      progress,
+    )
+
+    sqlite.close()
+
+    expect(progress).toHaveBeenCalledTimes(1)
+    const [firstProgressCall] = progress.mock.calls as unknown as Array<
+      [{ localizedRows: number; processedRows: number }]
+    >
+    expect(firstProgressCall?.[0]).toMatchObject({
+      processedRows: 1,
+    })
   })
 })

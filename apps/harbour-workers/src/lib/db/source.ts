@@ -13,14 +13,44 @@ import {
 
 const SOURCE_OVERTURE_DIVISION_COLUMN_COUNT = 20
 const SOURCE_OVERTURE_DIVISION_I18N_COLUMN_COUNT = 8
+const SOURCE_OVERTURE_DIVISION_I18N_UPDATABLE_COLUMNS = [
+  'name',
+  'nameVariant',
+  'nameAlts',
+  'nameRules',
+  'localType',
+  'isLocaleInferred',
+] as const
 const SOURCE_OVERTURE_DIVISION_VERSION_COLUMN_COUNT = 22
 const SOURCE_OVERTURE_DIVISION_I18N_VERSION_COLUMN_COUNT = 15
 const SOURCE_OVERTURE_ADDRESS2D_COLUMN_COUNT = 14
 const SOURCE_OVERTURE_ADDRESS2D_I18N_COLUMN_COUNT = 6
+const SOURCE_OVERTURE_ADDRESS2D_I18N_UPDATABLE_COLUMNS = [
+  'streetName',
+  'locality',
+  'region',
+  'country',
+] as const
 const SOURCE_OVERTURE_ADDRESS2D_VERSION_COLUMN_COUNT = 16
 const SOURCE_OVERTURE_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 13
 const SOURCE_HKGOV_ADDRESS2D_COLUMN_COUNT = 27
 const SOURCE_HKGOV_ADDRESS2D_I18N_COLUMN_COUNT = 16
+const SOURCE_HKGOV_ADDRESS2D_I18N_UPDATABLE_COLUMNS = [
+  'formattedAddress',
+  'buildingName',
+  'buildingNumberFrom',
+  'buildingNumberTo',
+  'blockType',
+  'blockNumber',
+  'blockTypeBeforeNumber',
+  'phaseName',
+  'phaseNumber',
+  'estateName',
+  'streetNumber',
+  'streetName',
+  'villageName',
+  'districtName',
+] as const
 const SOURCE_HKGOV_ADDRESS2D_VERSION_COLUMN_COUNT = 29
 const SOURCE_HKGOV_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 23
 
@@ -231,6 +261,7 @@ export async function replaceSourceOvertureDivisionI18n(
     [sourceRecordId],
     rows,
     SOURCE_OVERTURE_DIVISION_I18N_COLUMN_COUNT,
+    SOURCE_OVERTURE_DIVISION_I18N_UPDATABLE_COLUMNS,
   )
 }
 
@@ -248,6 +279,7 @@ export async function replaceSourceOvertureDivisionI18nRows(
     sourceRecordIds,
     rows,
     SOURCE_OVERTURE_DIVISION_I18N_COLUMN_COUNT,
+    SOURCE_OVERTURE_DIVISION_I18N_UPDATABLE_COLUMNS,
     options,
   )
 }
@@ -345,6 +377,7 @@ export async function replaceSourceOvertureAddress2dI18n(
     [sourceRecordId],
     rows,
     SOURCE_OVERTURE_ADDRESS2D_I18N_COLUMN_COUNT,
+    SOURCE_OVERTURE_ADDRESS2D_I18N_UPDATABLE_COLUMNS,
   )
 }
 
@@ -359,6 +392,7 @@ export async function replaceSourceOvertureAddress2dI18nRows(
     sourceRecordIds,
     rows,
     SOURCE_OVERTURE_ADDRESS2D_I18N_COLUMN_COUNT,
+    SOURCE_OVERTURE_ADDRESS2D_I18N_UPDATABLE_COLUMNS,
   )
 }
 
@@ -460,6 +494,7 @@ export async function replaceSourceHkgovAlsAddress2dI18n(
     [sourceRecordId],
     rows,
     SOURCE_HKGOV_ADDRESS2D_I18N_COLUMN_COUNT,
+    SOURCE_HKGOV_ADDRESS2D_I18N_UPDATABLE_COLUMNS,
   )
 }
 
@@ -474,6 +509,7 @@ export async function replaceSourceHkgovAlsAddress2dI18nRows(
     sourceRecordIds,
     rows,
     SOURCE_HKGOV_ADDRESS2D_I18N_COLUMN_COUNT,
+    SOURCE_HKGOV_ADDRESS2D_I18N_UPDATABLE_COLUMNS,
   )
 }
 
@@ -648,6 +684,7 @@ async function syncCurrentI18nRows<
   sourceRecordIds: string[],
   rows: Array<TTable extends { $inferInsert: infer TInsert } ? TInsert : never>,
   columnCount: number,
+  updatableColumns: readonly string[],
   options?: {
     assumeCurrentRowsAbsent?: boolean
   },
@@ -669,9 +706,6 @@ async function syncCurrentI18nRows<
     return
   }
 
-  const updatableColumns = Object.keys(rows[0] as Record<string, unknown>).filter(
-    column => column !== 'sourceRecordId' && column !== 'locale',
-  )
   const upsertStatements = []
 
   for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
