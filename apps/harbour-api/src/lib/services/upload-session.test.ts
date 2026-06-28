@@ -202,7 +202,7 @@ describe('upload session flow', () => {
     expect(queuedMessages).toEqual([
       {
         datasetId: 'overture-hk-division',
-        datasetCode: 'hk-division',
+        datasetCode: 'ds-hk-overture-division',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
         releaseCode: 'overture-hk-2026-05-24.0-division',
         releaseId: signResult.releaseId,
@@ -217,7 +217,7 @@ describe('upload session flow', () => {
     ])
     expect(
       bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.datasetCode,
-    ).toBe('hk-division')
+    ).toBe('ds-hk-overture-division')
     expect(
       bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.releaseCode,
     ).toBe('overture-hk-2026-05-24.0-division')
@@ -331,7 +331,7 @@ describe('upload session flow', () => {
     expect(queuedMessages).toEqual([
       {
         datasetId: 'overture-hk-division',
-        datasetCode: 'hk-division',
+        datasetCode: 'ds-hk-overture-division',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
         releaseCode: 'overture-hk-2026-05-24.0-division',
         releaseId: signResult.releaseId,
@@ -444,7 +444,7 @@ describe('upload session flow', () => {
     expect(queuedMessages).toEqual([
       {
         datasetId: 'overture-hk-division',
-        datasetCode: 'hk-division',
+        datasetCode: 'ds-hk-overture-division',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
         releaseCode: 'overture-hk-2026-05-24.0-division',
         releaseId: signResult.releaseId,
