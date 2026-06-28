@@ -18,6 +18,7 @@ export const metaPublishers = sqliteTable(
     contactEmail: text('contactEmail'),
     contactPhone: text('contactPhone'),
     parentPublisherId: text('parentPublisherId'),
+    versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
   table => [

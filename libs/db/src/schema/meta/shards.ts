@@ -9,8 +9,8 @@ import { sql } from 'drizzle-orm'
 
 import {
   dataShardEnvironments,
-  dataShardKinds,
   dataShardStatuses,
+  dataShardTypes,
 } from '../../constants/schema'
 import { primaryUuid, timestamps } from './_shared'
 import { metaApiReleaseSets } from './api'
@@ -20,7 +20,7 @@ export const metaDataShards = sqliteTable(
   'dataShards',
   {
     id: primaryUuid('id'),
-    kind: text('kind', { enum: dataShardKinds }).notNull(),
+    shardType: text('shardType', { enum: dataShardTypes }).notNull(),
     regionCode: text('regionCode'),
     year: text('year'),
     environment: text('environment', { enum: dataShardEnvironments }).notNull(),
@@ -28,26 +28,27 @@ export const metaDataShards = sqliteTable(
     databaseId: text('databaseId').notNull(),
     bindingName: text('bindingName').notNull().unique(),
     status: text('status', { enum: dataShardStatuses }).notNull(),
+    versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
   table => [
-    uniqueIndex('dataShards_kind_region_year_env_unique_idx').on(
-      table.kind,
+    uniqueIndex('dataShards_shardType_region_year_env_unique_idx').on(
+      table.shardType,
       table.regionCode,
       table.year,
       table.environment,
     ),
-    uniqueIndex('dataShards_kind_env_unscoped_unique_idx')
-      .on(table.kind, table.environment)
+    uniqueIndex('dataShards_shardType_env_unscoped_unique_idx')
+      .on(table.shardType, table.environment)
       .where(sql`${table.regionCode} is null and ${table.year} is null`),
-    uniqueIndex('dataShards_kind_region_env_unique_idx')
-      .on(table.kind, table.regionCode, table.environment)
+    uniqueIndex('dataShards_shardType_region_env_unique_idx')
+      .on(table.shardType, table.regionCode, table.environment)
       .where(sql`${table.regionCode} is not null and ${table.year} is null`),
-    uniqueIndex('dataShards_kind_year_env_unique_idx')
-      .on(table.kind, table.year, table.environment)
+    uniqueIndex('dataShards_shardType_year_env_unique_idx')
+      .on(table.shardType, table.year, table.environment)
       .where(sql`${table.regionCode} is null and ${table.year} is not null`),
-    uniqueIndex('dataShards_kind_region_year_env_scoped_unique_idx')
-      .on(table.kind, table.regionCode, table.year, table.environment)
+    uniqueIndex('dataShards_shardType_region_year_env_scoped_unique_idx')
+      .on(table.shardType, table.regionCode, table.year, table.environment)
       .where(sql`${table.regionCode} is not null and ${table.year} is not null`),
   ],
 )
@@ -61,7 +62,6 @@ export const metaReleaseShardAssignments = sqliteTable(
     dataShardId: text('dataShardId')
       .notNull()
       .references(() => metaDataShards.id, { onDelete: 'restrict' }),
-    createdAt: timestamps.createdAt,
   },
   table => [
     primaryKey({
@@ -79,7 +79,6 @@ export const metaReleaseSetShardAssignments = sqliteTable(
     dataShardId: text('dataShardId')
       .notNull()
       .references(() => metaDataShards.id, { onDelete: 'restrict' }),
-    createdAt: timestamps.createdAt,
   },
   table => [
     primaryKey({
