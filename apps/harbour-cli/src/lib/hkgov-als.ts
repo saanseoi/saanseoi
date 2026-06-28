@@ -1,6 +1,6 @@
 import { globSync } from 'node:fs'
 import { mkdir, readFile } from 'node:fs/promises'
-import { basename, dirname, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { parquetWriteFile } from 'hyparquet-writer'
@@ -709,13 +709,22 @@ export function resolveDivisionLookupSource(
   }
 }
 
-function resolveDivisionSnapshotSource(options: {
-  dbPath?: string
-  environment: UploadEnvironment
-}) {
+function resolveLocalMetaD1Path(explicitPath?: string) {
+  const databasePath = resolveLocalD1Path(explicitPath)
+
+  return join(dirname(databasePath), 'metadata.sqlite')
+}
+
+export function resolveDivisionSnapshotSource(
+  options: {
+    dbPath?: string
+    environment: UploadEnvironment
+  },
+  resolveLocalMetaDbPath: (explicitPath?: string) => string = resolveLocalMetaD1Path,
+) {
   if (options.dbPath || options.environment === 'dev') {
     return {
-      dbPath: resolveLocalD1Path(options.dbPath),
+      dbPath: resolveLocalMetaDbPath(options.dbPath),
       kind: 'sqlite',
     } satisfies DivisionLookupSource
   }
