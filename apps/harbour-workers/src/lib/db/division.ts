@@ -4,7 +4,7 @@ import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
   ensureDraftSnapshotForRelease,
   getDatasetRecordByReleaseId,
-  resolveShardForKindRegionYear,
+  resolveShardForTypeRegionYear,
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
   waitForDatasetRecord,
@@ -190,12 +190,12 @@ export async function prepareDivisionVersionInsertContext(
   )
 
   const year = message.sourceVersion.slice(0, 4)
-  const currentShard = await resolveShardForKindRegionYear(
+  const currentShard = await resolveShardForTypeRegionYear(
     metaDb,
     'current',
     environment,
   )
-  const historyShard = await resolveShardForKindRegionYear(
+  const historyShard = await resolveShardForTypeRegionYear(
     metaDb,
     'history',
     environment,

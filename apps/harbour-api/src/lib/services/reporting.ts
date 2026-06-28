@@ -1,6 +1,6 @@
 import { and, desc, eq, metaSchema } from '@repo/db'
 import { inArray, sql } from 'drizzle-orm'
-import { resolveShardForKindRegionYear } from '@repo/core/db/meta-repository'
+import { resolveShardForTypeRegionYear } from '@repo/core/db/meta-repository'
 import type { DataShardRecord } from '@repo/core/db/meta-repository'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { DatasetType } from '@repo/db'
@@ -476,7 +476,7 @@ async function buildHistoryCountTargets(
         .where(
           and(
             inArray(metaReleaseShardAssignments.releaseId, releaseIds),
-            eq(metaDataShards.kind, 'history'),
+            eq(metaDataShards.shardType, 'history'),
             eq(metaDataShards.environment, environment),
             eq(metaDataShards.status, 'active'),
           ),
@@ -578,7 +578,7 @@ async function resolveFallbackShardsByRelease(
     [...uniqueShardKeys.entries()].map(
       async ([key, value]): Promise<[string, DataShardRecord | null]> => [
         key,
-        await resolveShardForKindRegionYear(
+        await resolveShardForTypeRegionYear(
           db,
           kind,
           environment,

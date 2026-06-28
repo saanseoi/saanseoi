@@ -12,7 +12,7 @@ import {
   upsertIngestRunStatus,
   waitForDatasetRecord,
 } from '@repo/core/db/meta-repository'
-import type { SnapshotFamily } from '@repo/core/db/meta-repository'
+import type { SnapshotResourceType } from '@repo/core/db/meta-repository'
 import type { SupportedType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
@@ -170,7 +170,7 @@ export async function handlePublishDataset(
 
   const activeReleaseSet = await resolveActiveReleaseSetForType(db, datasetType)
   const carriedSnapshots: Array<{
-    snapshotFamily: SnapshotFamily
+    resourceType: SnapshotResourceType
     snapshotId: string
   }> = []
 
@@ -178,12 +178,12 @@ export async function handlePublishDataset(
     const activeSnapshots = await listApiReleaseSetSnapshots(db, activeReleaseSet.id)
 
     for (const activeSnapshot of activeSnapshots) {
-      if (activeSnapshot.snapshotFamily === datasetType) {
+      if (activeSnapshot.snapshotResourceType === datasetType) {
         continue
       }
 
       carriedSnapshots.push({
-        snapshotFamily: activeSnapshot.snapshotFamily as SnapshotFamily,
+        resourceType: activeSnapshot.snapshotResourceType as SnapshotResourceType,
         snapshotId: activeSnapshot.snapshotId,
       })
     }
