@@ -1,8 +1,8 @@
 import type { DatasetProcessingMessage } from '@repo/core'
 import {
-  resolveLatestSnapshotForFamilyExcludingId,
-  resolveLatestPublishedSnapshotForFamily,
-  resolveLatestPublishedSnapshotForFamilyRegion,
+  resolveLatestPublishedSnapshotForResourceType,
+  resolveLatestPublishedSnapshotForResourceTypeRegion,
+  resolveLatestSnapshotForResourceTypeExcludingId,
 } from '@repo/core/db/meta-repository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
@@ -140,7 +140,7 @@ export async function processAddressDataset(
       normalizeAddressI18nSnapshotRow,
     }),
   )
-  const previousSnapshot = await resolveLatestSnapshotForFamilyExcludingId(
+  const previousSnapshot = await resolveLatestSnapshotForResourceTypeExcludingId(
     metaRepoDb,
     'address',
     versionInsertContext.snapshotId,
@@ -752,14 +752,15 @@ async function loadDivisionLookupMaps(
   regionCode: DatasetProcessingMessage['regionCode'],
 ) {
   const metaReadDb = metaDb as unknown as HarbourReadableDb
-  const activeDivisionSnapshot = await resolveLatestPublishedSnapshotForFamilyRegion(
-    metaReadDb,
-    'division',
-    regionCode,
-  )
+  const activeDivisionSnapshot =
+    await resolveLatestPublishedSnapshotForResourceTypeRegion(
+      metaReadDb,
+      'division',
+      regionCode,
+    )
   const fallbackDivisionSnapshot =
     activeDivisionSnapshot ??
-    (await resolveLatestPublishedSnapshotForFamily(metaReadDb, 'division'))
+    (await resolveLatestPublishedSnapshotForResourceType(metaReadDb, 'division'))
 
   if (!fallbackDivisionSnapshot) {
     throw new Error('Published division snapshot not found.')

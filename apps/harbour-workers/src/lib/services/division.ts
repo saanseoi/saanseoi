@@ -1,5 +1,5 @@
 import type { DatasetProcessingMessage } from '@repo/core'
-import { resolveLatestSnapshotForFamilyExcludingId } from '@repo/core/db/meta-repository'
+import { resolveLatestSnapshotForResourceTypeExcludingId } from '@repo/core/db/meta-repository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   CurrentDatabase,
@@ -165,7 +165,7 @@ export async function processDivisionDataset(
       normalizeDivisionI18nSnapshotRow,
     }),
   )
-  const previousSnapshot = await resolveLatestSnapshotForFamilyExcludingId(
+  const previousSnapshot = await resolveLatestSnapshotForResourceTypeExcludingId(
     metaRepoDb,
     'division',
     versionInsertContext.snapshotId,

@@ -3,7 +3,7 @@ import { and, eq, inArray, sql } from 'drizzle-orm'
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
   ensureDraftSnapshotForRelease,
-  resolveShardForKindRegionYear,
+  resolveShardForTypeRegionYear,
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
   waitForDatasetRecord,
@@ -204,12 +204,12 @@ export async function prepareAddressVersionInsertContext(
   )
 
   const year = message.sourceVersion.slice(0, 4)
-  const currentShard = await resolveShardForKindRegionYear(
+  const currentShard = await resolveShardForTypeRegionYear(
     metaDb,
     'current',
     environment,
   )
-  const historyShard = await resolveShardForKindRegionYear(
+  const historyShard = await resolveShardForTypeRegionYear(
     metaDb,
     'history',
     environment,
