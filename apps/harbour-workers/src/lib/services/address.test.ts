@@ -179,7 +179,7 @@ function seedDivisionLookups(sqlite: Database) {
 
   sqlite.exec(`
     INSERT INTO snapshots (
-      id, family, code, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
+      id, resourceType, code, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
     ) VALUES (
       '${snapshotId}',
       'division',

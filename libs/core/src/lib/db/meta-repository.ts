@@ -1,8 +1,20 @@
-import { and, desc, eq, inArray, isNull, ne, sql, metaSchema } from '@repo/db'
+import {
+  and,
+  buildApiVersionCode,
+  buildSnapshotVersionCode,
+  desc,
+  eq,
+  extractReleaseDateFromSourceVersion,
+  inArray,
+  isNull,
+  ne,
+  sql,
+  metaSchema,
+} from '@repo/db'
 
 import type { DatasetRecord, RegionCode, SupportedType, UploadPlan } from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './types'
-import type { IngestRunStatus, ReleaseStatus } from '@repo/db'
+import type { DataShardType, IngestRunStatus, ReleaseStatus } from '@repo/db'
 
 type LatestDatasetLookup = {
   latestDataset: DatasetRecord | null
@@ -17,12 +29,17 @@ type DatasetIdentityRecord = {
   status: ReleaseStatus
 }
 
-export type SnapshotFamily = 'division' | 'address' | 'street' | 'place'
+export type SnapshotResourceType = 'division' | 'address' | 'street' | 'place'
 
 export type DataShardRecord = {
   id: string
   bindingName: string
   databaseName: string
+}
+
+type ReleaseCodeParts = {
+  regionCode: string
+  sourceVersion: string
 }
 
 const RELEASE_LOOKUP_RETRY_LIMIT = 4
@@ -78,6 +95,32 @@ const releaseRecordSelection = {
   createdAt: metaReleases.createdAt,
   updatedAt: metaReleases.updatedAt,
 } as const
+
+function parseReleaseCodeParts(releaseCode: string): ReleaseCodeParts {
+  const match = releaseCode.match(
+    /^[^-]+-([a-z0-9]+)-((?:20\d{2}-\d{2}-\d{2})(?:\.\d+)?)-/i,
+  )
+
+  if (!match) {
+    throw new Error(
+      `Could not derive snapshot-version parts from releaseCode="${releaseCode}".`,
+    )
+  }
+
+  const regionCode = match[1]
+  const sourceVersion = match[2]
+
+  if (!regionCode || !sourceVersion) {
+    throw new Error(
+      `Release code matched unexpectedly without required parts: "${releaseCode}".`,
+    )
+  }
+
+  return {
+    regionCode,
+    sourceVersion,
+  }
+}
 
 async function runAtomicWriteStatements(
   db: AtomicWritableDb,
@@ -462,28 +505,27 @@ export async function setSupersededByReleaseId(
 }
 
 export function getApiVersionCodeForType(type: SupportedType) {
-  return type === 'address'
-    ? 'ss-addresses-v0.1'
-    : type === 'division'
-      ? 'ss-divisions-v0.1'
-      : 'ss-places-v0.1'
+  return buildApiVersionCode(type, '0.1')
 }
 
-export async function resolveLatestSnapshotForFamily(
+export async function resolveLatestSnapshotForResourceType(
   db: HarbourReadableDb,
-  family: SnapshotFamily,
+  resourceType: SnapshotResourceType,
 ) {
   return (
     (await db
       .select({
         id: metaSnapshots.id,
         code: metaSnapshots.code,
-        family: metaSnapshots.family,
+        resourceType: metaSnapshots.resourceType,
         status: metaSnapshots.status,
       })
       .from(metaSnapshots)
       .where(
-        and(eq(metaSnapshots.family, family), ne(metaSnapshots.status, 'archived')),
+        and(
+          eq(metaSnapshots.resourceType, resourceType),
+          ne(metaSnapshots.status, 'archived'),
+        ),
       )
       .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
       .limit(1)
@@ -491,9 +533,9 @@ export async function resolveLatestSnapshotForFamily(
   )
 }
 
-export async function resolveLatestSnapshotForFamilyExcludingId(
+export async function resolveLatestSnapshotForResourceTypeExcludingId(
   db: HarbourReadableDb,
-  family: SnapshotFamily,
+  resourceType: SnapshotResourceType,
   snapshotId: string,
 ) {
   return (
@@ -501,13 +543,13 @@ export async function resolveLatestSnapshotForFamilyExcludingId(
       .select({
         id: metaSnapshots.id,
         code: metaSnapshots.code,
-        family: metaSnapshots.family,
+        resourceType: metaSnapshots.resourceType,
         status: metaSnapshots.status,
       })
       .from(metaSnapshots)
       .where(
         and(
-          eq(metaSnapshots.family, family),
+          eq(metaSnapshots.resourceType, resourceType),
           eq(metaSnapshots.status, 'published'),
           ne(metaSnapshots.id, snapshotId),
         ),
@@ -518,21 +560,24 @@ export async function resolveLatestSnapshotForFamilyExcludingId(
   )
 }
 
-export async function resolveLatestPublishedSnapshotForFamily(
+export async function resolveLatestPublishedSnapshotForResourceType(
   db: HarbourReadableDb,
-  family: SnapshotFamily,
+  resourceType: SnapshotResourceType,
 ) {
   return (
     (await db
       .select({
         id: metaSnapshots.id,
         code: metaSnapshots.code,
-        family: metaSnapshots.family,
+        resourceType: metaSnapshots.resourceType,
         status: metaSnapshots.status,
       })
       .from(metaSnapshots)
       .where(
-        and(eq(metaSnapshots.family, family), eq(metaSnapshots.status, 'published')),
+        and(
+          eq(metaSnapshots.resourceType, resourceType),
+          eq(metaSnapshots.status, 'published'),
+        ),
       )
       .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
       .limit(1)
@@ -540,9 +585,9 @@ export async function resolveLatestPublishedSnapshotForFamily(
   )
 }
 
-export async function resolveLatestPublishedSnapshotForFamilyRegion(
+export async function resolveLatestPublishedSnapshotForResourceTypeRegion(
   db: HarbourReadableDb,
-  family: SnapshotFamily,
+  resourceType: SnapshotResourceType,
   regionCode: RegionCode,
 ) {
   return (
@@ -550,7 +595,7 @@ export async function resolveLatestPublishedSnapshotForFamilyRegion(
       .select({
         id: metaSnapshots.id,
         code: metaSnapshots.code,
-        family: metaSnapshots.family,
+        resourceType: metaSnapshots.resourceType,
         status: metaSnapshots.status,
       })
       .from(metaSnapshots)
@@ -561,7 +606,7 @@ export async function resolveLatestPublishedSnapshotForFamilyRegion(
       .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
       .where(
         and(
-          eq(metaSnapshots.family, family),
+          eq(metaSnapshots.resourceType, resourceType),
           eq(metaSnapshots.status, 'published'),
           eq(metaDatasets.regionCode, regionCode),
           eq(metaSnapshotSources.role, 'primary'),
@@ -575,18 +620,29 @@ export async function resolveLatestPublishedSnapshotForFamilyRegion(
 
 export async function ensureDraftSnapshotForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
-  family: SnapshotFamily,
+  resourceType: SnapshotResourceType,
   releaseCode: string,
 ) {
+  const { regionCode, sourceVersion } = parseReleaseCodeParts(releaseCode)
+  const snapshotCode = buildSnapshotVersionCode(
+    regionCode,
+    resourceType,
+    extractReleaseDateFromSourceVersion(sourceVersion),
+  )
   const existing = await db
     .select({
       id: metaSnapshots.id,
       code: metaSnapshots.code,
-      family: metaSnapshots.family,
+      resourceType: metaSnapshots.resourceType,
       status: metaSnapshots.status,
     })
     .from(metaSnapshots)
-    .where(and(eq(metaSnapshots.family, family), eq(metaSnapshots.code, releaseCode)))
+    .where(
+      and(
+        eq(metaSnapshots.resourceType, resourceType),
+        eq(metaSnapshots.code, snapshotCode),
+      ),
+    )
     .limit(1)
     .get()
 
@@ -601,8 +657,8 @@ export async function ensureDraftSnapshotForRelease(
     .insert(metaSnapshots)
     .values({
       id: snapshotId,
-      family,
-      code: releaseCode,
+      resourceType,
+      code: snapshotCode,
       status: 'draft',
       publishedAt: null,
       validFrom: null,
@@ -615,8 +671,8 @@ export async function ensureDraftSnapshotForRelease(
 
   return {
     id: snapshotId,
-    code: releaseCode,
-    family,
+    code: snapshotCode,
+    resourceType,
     status: 'draft' as const,
   }
 }
@@ -624,14 +680,14 @@ export async function ensureDraftSnapshotForRelease(
 export async function resolveSnapshotForRelease(
   db: HarbourReadableDb,
   sourceReleaseId: string,
-  family: SnapshotFamily,
+  resourceType: SnapshotResourceType,
 ) {
   return (
     (await db
       .select({
         id: metaSnapshots.id,
         code: metaSnapshots.code,
-        family: metaSnapshots.family,
+        resourceType: metaSnapshots.resourceType,
         status: metaSnapshots.status,
       })
       .from(metaSnapshotSources)
@@ -639,7 +695,7 @@ export async function resolveSnapshotForRelease(
       .where(
         and(
           eq(metaSnapshotSources.sourceReleaseId, sourceReleaseId),
-          eq(metaSnapshots.family, family),
+          eq(metaSnapshots.resourceType, resourceType),
         ),
       )
       .orderBy(desc(metaSnapshots.createdAt))
@@ -699,7 +755,7 @@ export async function resolveActiveReleaseSetForType(
       .where(
         and(
           eq(metaApiVersions.code, apiVersionCode),
-          eq(metaApiReleaseSets.status, 'active'),
+          eq(metaApiReleaseSets.status, 'current'),
         ),
       )
       .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
@@ -714,6 +770,12 @@ export async function ensureDraftReleaseSetForRelease(
   releaseCode: string,
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
+  const { regionCode, sourceVersion } = parseReleaseCodeParts(releaseCode)
+  const snapshotVersionCode = buildSnapshotVersionCode(
+    regionCode,
+    type,
+    extractReleaseDateFromSourceVersion(sourceVersion),
+  )
   const existing = await db
     .select({
       id: metaApiReleaseSets.id,
@@ -725,7 +787,7 @@ export async function ensureDraftReleaseSetForRelease(
     .where(
       and(
         eq(metaApiVersions.code, apiVersionCode),
-        eq(metaApiReleaseSets.code, releaseCode),
+        eq(metaApiReleaseSets.code, snapshotVersionCode),
       ),
     )
     .limit(1)
@@ -750,8 +812,8 @@ export async function ensureDraftReleaseSetForRelease(
 
   const latestReleaseSet = await db
     .select({
-      canonicalLogicVersion: metaApiReleaseSets.canonicalLogicVersion,
-      canonicalSchemaVersion: metaApiReleaseSets.canonicalSchemaVersion,
+      rulesetVersion: metaApiReleaseSets.rulesetVersion,
+      schemaVersion: metaApiReleaseSets.schemaVersion,
     })
     .from(metaApiReleaseSets)
     .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
@@ -767,14 +829,15 @@ export async function ensureDraftReleaseSetForRelease(
     .values({
       id: releaseSetId,
       apiVersionId: apiVersion.id,
-      code: releaseCode,
-      canonicalSchemaVersion: latestReleaseSet?.canonicalSchemaVersion ?? '1',
-      canonicalLogicVersion: latestReleaseSet?.canonicalLogicVersion ?? '1',
+      code: snapshotVersionCode,
+      schemaVersion: latestReleaseSet?.schemaVersion ?? `sv-${type}-v1`,
+      rulesetVersion: latestReleaseSet?.rulesetVersion ?? `rs-${type}-merge-v1`,
       status: 'draft',
       publishedAt: null,
       validFrom: null,
       validTo: null,
       notes: null,
+      versionHash: `generated:${snapshotVersionCode}`,
       createdAt: now,
       updatedAt: now,
     })
@@ -782,7 +845,7 @@ export async function ensureDraftReleaseSetForRelease(
 
   return {
     id: releaseSetId,
-    code: releaseCode,
+    code: snapshotVersionCode,
     status: 'draft' as const,
   }
 }
@@ -805,10 +868,7 @@ export async function resolveReleaseSetForRelease(
       .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
       .innerJoin(
         metaApiReleaseSetSnapshots,
-        and(
-          eq(metaApiReleaseSetSnapshots.snapshotId, metaSnapshots.id),
-          eq(metaApiReleaseSetSnapshots.snapshotFamily, metaSnapshots.family),
-        ),
+        eq(metaApiReleaseSetSnapshots.snapshotId, metaSnapshots.id),
       )
       .innerJoin(
         metaApiReleaseSets,
@@ -858,7 +918,7 @@ export async function activateReleaseSet(
     .where(
       and(
         eq(metaApiReleaseSets.apiVersionId, releaseSet.apiVersionId),
-        eq(metaApiReleaseSets.status, 'active'),
+        eq(metaApiReleaseSets.status, 'current'),
         ne(metaApiReleaseSets.id, releaseSetId),
       ),
     )
@@ -884,7 +944,7 @@ export async function activateReleaseSet(
   await db
     .update(metaApiReleaseSets)
     .set({
-      status: 'active',
+      status: 'current',
       publishedAt: now,
       validFrom: now,
       validTo: null,
@@ -902,7 +962,7 @@ export async function publishReleaseArtifacts(
   db: HarbourReadableDb & HarbourWritableDb,
   args: {
     carriedSnapshots: Array<{
-      snapshotFamily: SnapshotFamily
+      resourceType: SnapshotResourceType
       snapshotId: string
     }>
     currentRelease: Pick<DatasetRecord, 'releaseId'> | null
@@ -949,7 +1009,7 @@ export async function publishReleaseArtifacts(
     .where(
       and(
         eq(metaApiReleaseSets.apiVersionId, releaseSet.apiVersionId),
-        eq(metaApiReleaseSets.status, 'active'),
+        eq(metaApiReleaseSets.status, 'current'),
         ne(metaApiReleaseSets.id, args.releaseSetId),
       ),
     )
@@ -989,58 +1049,14 @@ export async function publishReleaseArtifacts(
       )
     }
 
-    for (const carriedSnapshot of args.carriedSnapshots) {
-      statements.push(
-        tx
-          .insert(metaApiReleaseSetSnapshots)
-          .values({
-            apiReleaseSetId: args.releaseSetId,
-            snapshotFamily: carriedSnapshot.snapshotFamily,
-            snapshotId: carriedSnapshot.snapshotId,
-            createdAt: publishedAt,
-          })
-          .onConflictDoUpdate({
-            target: [
-              metaApiReleaseSetSnapshots.apiReleaseSetId,
-              metaApiReleaseSetSnapshots.snapshotFamily,
-            ],
-            set: {
-              snapshotId: carriedSnapshot.snapshotId,
-            },
-          }),
-      )
-    }
-
     statements.push(
       tx
         .delete(metaApiReleaseSetSnapshots)
-        .where(
-          and(
-            eq(metaApiReleaseSetSnapshots.apiReleaseSetId, args.releaseSetId),
-            eq(metaApiReleaseSetSnapshots.snapshotFamily, args.type),
-          ),
-        ),
-      tx
-        .insert(metaApiReleaseSetSnapshots)
-        .values({
-          apiReleaseSetId: args.releaseSetId,
-          snapshotFamily: args.type,
-          snapshotId: args.snapshotId,
-          createdAt: publishedAt,
-        })
-        .onConflictDoUpdate({
-          target: [
-            metaApiReleaseSetSnapshots.apiReleaseSetId,
-            metaApiReleaseSetSnapshots.snapshotFamily,
-          ],
-          set: {
-            snapshotId: args.snapshotId,
-          },
-        }),
+        .where(eq(metaApiReleaseSetSnapshots.apiReleaseSetId, args.releaseSetId)),
       tx
         .update(metaApiReleaseSets)
         .set({
-          status: 'active',
+          status: 'current',
           publishedAt,
           validFrom: publishedAt,
           validTo: null,
@@ -1056,6 +1072,28 @@ export async function publishReleaseArtifacts(
           updatedAt: publishedAt,
         })
         .where(eq(metaReleases.id, args.dataset.releaseId)),
+    )
+
+    for (const carriedSnapshot of args.carriedSnapshots) {
+      statements.push(
+        tx
+          .insert(metaApiReleaseSetSnapshots)
+          .values({
+            apiReleaseSetId: args.releaseSetId,
+            snapshotId: carriedSnapshot.snapshotId,
+          })
+          .onConflictDoNothing(),
+      )
+    }
+
+    statements.push(
+      tx
+        .insert(metaApiReleaseSetSnapshots)
+        .values({
+          apiReleaseSetId: args.releaseSetId,
+          snapshotId: args.snapshotId,
+        })
+        .onConflictDoNothing(),
     )
 
     if (args.currentRelease) {
@@ -1130,14 +1168,14 @@ export async function publishSnapshot(
     .run()
 }
 
-export async function resolveShardForKindRegionYear(
+export async function resolveShardForTypeRegionYear(
   db: HarbourReadableDb,
-  kind: 'current' | 'history' | 'source',
+  shardType: Extract<DataShardType, 'current' | 'history' | 'source'>,
   environment: 'preview' | 'production',
   regionCode?: string,
   year?: string,
 ): Promise<DataShardRecord | null> {
-  if (kind === 'current') {
+  if (shardType === 'current') {
     return (
       ((await db
         .select({
@@ -1148,7 +1186,7 @@ export async function resolveShardForKindRegionYear(
         .from(metaDataShards)
         .where(
           and(
-            eq(metaDataShards.kind, kind),
+            eq(metaDataShards.shardType, shardType),
             eq(metaDataShards.environment, environment),
             eq(metaDataShards.status, 'active'),
             isNull(metaDataShards.regionCode),
@@ -1161,7 +1199,7 @@ export async function resolveShardForKindRegionYear(
   }
 
   const baseConditions = and(
-    eq(metaDataShards.kind, kind),
+    eq(metaDataShards.shardType, shardType),
     eq(metaDataShards.environment, environment),
     eq(metaDataShards.status, 'active'),
     regionCode
@@ -1279,40 +1317,29 @@ export async function upsertSnapshotSource(
 export async function upsertApiReleaseSetSnapshot(
   db: HarbourWritableDb,
   releaseSetId: string,
-  snapshotFamily: SnapshotFamily,
   snapshotId: string,
 ) {
   await db
     .insert(metaApiReleaseSetSnapshots)
     .values({
       apiReleaseSetId: releaseSetId,
-      snapshotFamily,
       snapshotId,
-      createdAt: new Date(),
     })
-    .onConflictDoUpdate({
-      target: [
-        metaApiReleaseSetSnapshots.apiReleaseSetId,
-        metaApiReleaseSetSnapshots.snapshotFamily,
-      ],
-      set: {
-        snapshotId,
-      },
-    })
+    .onConflictDoNothing()
     .run()
 }
 
-export async function deleteApiReleaseSetSnapshotForFamily(
+export async function deleteApiReleaseSetSnapshot(
   db: HarbourWritableDb,
   releaseSetId: string,
-  snapshotFamily: SnapshotFamily,
+  snapshotId: string,
 ) {
   await db
     .delete(metaApiReleaseSetSnapshots)
     .where(
       and(
         eq(metaApiReleaseSetSnapshots.apiReleaseSetId, releaseSetId),
-        eq(metaApiReleaseSetSnapshots.snapshotFamily, snapshotFamily),
+        eq(metaApiReleaseSetSnapshots.snapshotId, snapshotId),
       ),
     )
     .run()
@@ -1324,10 +1351,14 @@ export async function listApiReleaseSetSnapshots(
 ) {
   return db
     .select({
-      snapshotFamily: metaApiReleaseSetSnapshots.snapshotFamily,
+      snapshotResourceType: metaSnapshots.resourceType,
       snapshotId: metaApiReleaseSetSnapshots.snapshotId,
     })
     .from(metaApiReleaseSetSnapshots)
+    .innerJoin(
+      metaSnapshots,
+      eq(metaApiReleaseSetSnapshots.snapshotId, metaSnapshots.id),
+    )
     .where(eq(metaApiReleaseSetSnapshots.apiReleaseSetId, releaseSetId))
     .all()
 }
@@ -1335,7 +1366,7 @@ export async function listApiReleaseSetSnapshots(
 export async function resolveActiveSnapshotForType(
   db: HarbourReadableDb,
   type: SupportedType,
-  family: SnapshotFamily,
+  resourceType: SnapshotResourceType,
 ) {
   const activeReleaseSet = await resolveActiveReleaseSetForType(db, type)
 
@@ -1349,10 +1380,14 @@ export async function resolveActiveSnapshotForType(
         snapshotId: metaApiReleaseSetSnapshots.snapshotId,
       })
       .from(metaApiReleaseSetSnapshots)
+      .innerJoin(
+        metaSnapshots,
+        eq(metaApiReleaseSetSnapshots.snapshotId, metaSnapshots.id),
+      )
       .where(
         and(
           eq(metaApiReleaseSetSnapshots.apiReleaseSetId, activeReleaseSet.id),
-          eq(metaApiReleaseSetSnapshots.snapshotFamily, family),
+          eq(metaSnapshots.resourceType, resourceType),
         ),
       )
       .limit(1)
@@ -1370,7 +1405,6 @@ export async function upsertReleaseShardAssignment(
     .values({
       releaseId,
       dataShardId,
-      createdAt: new Date(),
     })
     .onConflictDoNothing()
     .run()
@@ -1386,7 +1420,6 @@ export async function upsertReleaseSetShardAssignment(
     .values({
       apiReleaseSetId: releaseSetId,
       dataShardId,
-      createdAt: new Date(),
     })
     .onConflictDoNothing()
     .run()

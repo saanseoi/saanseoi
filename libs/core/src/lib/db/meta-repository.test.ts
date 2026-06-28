@@ -5,8 +5,8 @@ import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { createLocalHarbourDb } from '../../testing/local-db'
 import {
   ensureIngestRunStarted,
-  resolveLatestSnapshotForFamilyExcludingId,
-  resolveShardForKindRegionYear,
+  resolveLatestSnapshotForResourceTypeExcludingId,
+  resolveShardForTypeRegionYear,
 } from './meta-repository'
 
 function createShardLookupDb() {
@@ -15,7 +15,7 @@ function createShardLookupDb() {
   sqlite.exec(`
     CREATE TABLE dataShards (
       id TEXT PRIMARY KEY,
-      kind TEXT NOT NULL,
+      shardType TEXT NOT NULL,
       regionCode TEXT,
       year TEXT,
       environment TEXT NOT NULL,
@@ -63,7 +63,7 @@ function createSnapshotLookupDb() {
   sqlite.exec(`
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
-      family TEXT NOT NULL,
+      resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
       status TEXT NOT NULL,
       publishedAt INTEGER,
@@ -83,7 +83,7 @@ describe('resolveShardForKindRegionYear', () => {
 
     sqlite.exec(`
       INSERT INTO dataShards (
-        id, kind, regionCode, year, environment, databaseName, databaseId, bindingName, status
+        id, shardType, regionCode, year, environment, databaseName, databaseId, bindingName, status
       ) VALUES (
         'history-hk-2026-preview',
         'history',
@@ -97,7 +97,7 @@ describe('resolveShardForKindRegionYear', () => {
       );
     `)
 
-    const shard = await resolveShardForKindRegionYear(
+    const shard = await resolveShardForTypeRegionYear(
       db as never,
       'history',
       'preview',
@@ -117,7 +117,7 @@ describe('resolveShardForKindRegionYear', () => {
 
     sqlite.exec(`
       INSERT INTO dataShards (
-        id, kind, regionCode, year, environment, databaseName, databaseId, bindingName, status
+        id, shardType, regionCode, year, environment, databaseName, databaseId, bindingName, status
       ) VALUES (
         'source-hk-2026-preview',
         'source',
@@ -131,7 +131,7 @@ describe('resolveShardForKindRegionYear', () => {
       );
     `)
 
-    const shard = await resolveShardForKindRegionYear(
+    const shard = await resolveShardForTypeRegionYear(
       db as never,
       'source',
       'preview',
@@ -151,7 +151,7 @@ describe('resolveShardForKindRegionYear', () => {
 
     sqlite.exec(`
       INSERT INTO dataShards (
-        id, kind, regionCode, year, environment, databaseName, databaseId, bindingName, status
+        id, shardType, regionCode, year, environment, databaseName, databaseId, bindingName, status
       ) VALUES (
         'current-preview',
         'current',
@@ -165,7 +165,7 @@ describe('resolveShardForKindRegionYear', () => {
       );
     `)
 
-    const shard = await resolveShardForKindRegionYear(
+    const shard = await resolveShardForTypeRegionYear(
       db as never,
       'current',
       'preview',
@@ -232,18 +232,18 @@ describe('ensureIngestRunStarted', () => {
   })
 })
 
-describe('resolveLatestSnapshotForFamilyExcludingId', () => {
+describe('resolveLatestSnapshotForResourceTypeExcludingId', () => {
   test('ignores draft snapshots when selecting a prior baseline', async () => {
     const { sqlite, db } = createSnapshotLookupDb()
 
     sqlite.exec(`
-      INSERT INTO snapshots (id, family, code, status, publishedAt, createdAt) VALUES
+      INSERT INTO snapshots (id, resourceType, code, status, publishedAt, createdAt) VALUES
         ('snapshot-current', 'division', 'current', 'draft', null, 1760003000000),
         ('snapshot-draft-newer', 'division', 'draft-newer', 'draft', null, 1760002000000),
         ('snapshot-published', 'division', 'published', 'published', 1760001000000, 1760001000000);
     `)
 
-    const snapshot = await resolveLatestSnapshotForFamilyExcludingId(
+    const snapshot = await resolveLatestSnapshotForResourceTypeExcludingId(
       db as never,
       'division',
       'snapshot-current',
@@ -251,7 +251,7 @@ describe('resolveLatestSnapshotForFamilyExcludingId', () => {
 
     expect(snapshot).toEqual({
       code: 'published',
-      family: 'division',
+      resourceType: 'division',
       id: 'snapshot-published',
       status: 'published',
     })

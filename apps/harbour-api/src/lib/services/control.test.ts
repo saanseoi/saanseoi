@@ -42,7 +42,7 @@ function seedSnapshot(
   {
     code,
     datasetId = 'overture-hk-division',
-    family = 'division',
+    resourceType = 'division',
     releaseId,
     snapshotId = `snapshot-${releaseId}`,
     status = 'draft',
@@ -50,7 +50,7 @@ function seedSnapshot(
   }: {
     code: string
     datasetId?: string
-    family?: string
+    resourceType?: string
     releaseId: string
     snapshotId?: string
     status?: 'draft' | 'published'
@@ -61,10 +61,10 @@ function seedSnapshot(
 
   sqlite.exec(`
     INSERT INTO snapshots (
-      id, family, code, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
+      id, resourceType, code, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
     ) VALUES (
       '${snapshotId}',
-      '${family}',
+      '${resourceType}',
       '${code}',
       '${status}',
       ${publishedAt},
@@ -486,7 +486,7 @@ describe('control service', () => {
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
     seedSnapshot(sqlite, {
-      code: 'overture-hk-2026-01-21.0-division',
+      code: 'ss-hk-division-2026-01-21.0',
       releaseId: 'release-overture-hk-2026-01-21.0-division',
       status: 'published',
       timestamp: 1762300800000,
@@ -506,7 +506,7 @@ describe('control service', () => {
       updatedAt: '2026-06-05T00:01:00.000Z',
     })
     seedSnapshot(sqlite, {
-      code: 'overture-hk-2026-02-18.0-division',
+      code: 'ss-hk-division-2026-02-18.0',
       releaseId: 'release-overture-hk-2026-02-18.0-division',
       status: 'draft',
       timestamp: 1762300860000,
@@ -573,7 +573,7 @@ describe('control service', () => {
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
     seedSnapshot(sqlite, {
-      code: 'overture-hk-2026-02-18.0-division',
+      code: 'ss-hk-division-2026-02-18.0',
       releaseId: 'release-overture-hk-2026-02-18.0-division',
       status: 'published',
       timestamp: 1762300800000,
@@ -593,7 +593,7 @@ describe('control service', () => {
       updatedAt: '2026-06-05T00:01:00.000Z',
     })
     seedSnapshot(sqlite, {
-      code: 'overture-hk-2026-02-18.1-division',
+      code: 'ss-hk-division-2026-02-18.1',
       releaseId: 'release-overture-hk-2026-02-18.1-division',
       status: 'draft',
       timestamp: 1762300860000,
@@ -659,7 +659,7 @@ describe('control service', () => {
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
     seedSnapshot(sqlite, {
-      code: 'overture-hk-2026-06-17.0-division',
+      code: 'ss-hk-division-2026-06-17.0',
       releaseId: 'release-overture-hk-2026-06-17.0-division',
       status: 'published',
       timestamp: 1762300800000,
@@ -679,7 +679,7 @@ describe('control service', () => {
       updatedAt: '2026-06-05T00:01:00.000Z',
     })
     seedSnapshot(sqlite, {
-      code: 'overture-hk-2026-06-24.0-division',
+      code: 'ss-hk-division-2026-06-24.0',
       releaseId: 'release-overture-hk-2026-06-24.0-division',
       status: 'draft',
       timestamp: 1762300860000,

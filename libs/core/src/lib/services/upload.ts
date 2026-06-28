@@ -665,7 +665,7 @@ function resolveUploadPlan(
     type,
     options.originalFileName,
   )
-  const datasetCode = `${regionCode}-${type}`
+  const datasetCode = `ds-${regionCode}-${source}-${type}.json`
   const releaseCode = `${source}-${regionCode}-${sourceVersion}-${type}`
   const plan: UploadPlan = {
     datasetId: releaseCode,

@@ -505,7 +505,7 @@ function loadPublishedDivisionSnapshotIdFromSqlite(explicitDbPath: string) {
         `
           SELECT s.id AS snapshotId
           FROM snapshots s
-          WHERE s.family = 'division'
+          WHERE s.resourceType = 'division'
             AND s.status = 'published'
           ORDER BY s.publishedAt DESC, s.createdAt DESC
           LIMIT 1
@@ -628,7 +628,7 @@ async function loadPublishedDivisionSnapshotIdFromWrangler(
     `
       SELECT s.id AS snapshotId
       FROM snapshots s
-      WHERE s.family = 'division'
+      WHERE s.resourceType = 'division'
         AND s.status = 'published'
       ORDER BY s.publishedAt DESC, s.createdAt DESC
       LIMIT 1
