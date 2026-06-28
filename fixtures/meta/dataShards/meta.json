@@ -1,0 +1,21 @@
+{
+  "versionHash": "vh-data-shards-meta-v1",
+  "shards": [
+    {
+      "bindingName": "DB_META",
+      "shardType": "meta",
+      "environment": "preview",
+      "databaseName": "ss-meta-db-preview",
+      "databaseId": "d37ea879-848d-4548-a565-0d86b4bc3d43",
+      "status": "active"
+    },
+    {
+      "bindingName": "DB_META",
+      "shardType": "meta",
+      "environment": "production",
+      "databaseName": "ss-meta-db-prod",
+      "databaseId": "cf03b2ff-b5ee-4265-899f-6916ed8b6c2c",
+      "status": "active"
+    }
+  ]
+}

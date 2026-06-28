@@ -1,0 +1,7 @@
+{
+  "versionHash": "vh-schema-version-address-v1",
+  "code": "sv-address-v1",
+  "resourceType": "address",
+  "version": "1",
+  "notes": "Initial canonical address field set."
+}

@@ -1,0 +1,19 @@
+{
+  "versionHash": "vh-dataset-hkgov-hk-address-v1",
+  "publisherCode": "hkgov",
+  "code": "ds-hk-hkgov-address.json",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "monthly",
+  "theme": "addresses",
+  "type": "address",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© HK SAR Government, Digital Policy Office, DATA.GOV.HK",
+  "sourceUrl": "https://data.gov.hk/en-data/dataset/hk-ogcio-st_div_01-als",
+  "category": "places",
+  "i18n": [
+    { "locale": "en", "name": "Hong Kong government ALS addresses" },
+    { "locale": "zhHant", "name": "香港政府 ALS 地址" },
+    { "locale": "zhHans", "name": "香港政府 ALS 地址" }
+  ]
+}

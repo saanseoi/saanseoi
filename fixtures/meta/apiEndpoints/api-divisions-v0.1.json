@@ -1,0 +1,7 @@
+{
+  "apiVersion": "api-divisions-v0.1",
+  "versionHash": "vh-api-endpoints-divisions-v0.1-v1",
+  "endpoints": [
+    { "method": "GET", "path": "/v0/divisions", "operationId": "listDivisionsV0" }
+  ]
+}

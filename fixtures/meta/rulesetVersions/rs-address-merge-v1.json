@@ -1,0 +1,8 @@
+{
+  "versionHash": "vh-ruleset-version-address-merge-v1",
+  "code": "rs-address-merge-v1",
+  "resourceType": "address",
+  "strategy": "merge",
+  "version": "1",
+  "notes": "Initial address merge ruleset."
+}

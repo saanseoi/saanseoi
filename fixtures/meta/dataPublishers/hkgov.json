@@ -1,0 +1,23 @@
+{
+  "versionHash": "vh-publisher-hkgov-v1",
+  "code": "hkgov",
+  "url": "https://data.gov.hk",
+  "contactUrl": "https://data.gov.hk/en/feedback",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "DATA.GOV.HK",
+      "description": "Hong Kong Special Administrative Region Government open data portal."
+    },
+    {
+      "locale": "zhHant",
+      "name": "資料一線通",
+      "description": "香港特別行政區政府開放數據入口網站。"
+    },
+    {
+      "locale": "zhHans",
+      "name": "资料一线通",
+      "description": "香港特别行政区政府开放数据入口网站。"
+    }
+  ]
+}

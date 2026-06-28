@@ -1,0 +1,19 @@
+{
+  "versionHash": "vh-dataset-overture-hk-address-v1",
+  "publisherCode": "overture",
+  "code": "ds-hk-overture-address.json",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "monthly",
+  "theme": "addresses",
+  "type": "address",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© HK SAR Government, Digital Policy Office, DATA.GOV.HK; Overture Maps Foundation.",
+  "sourceUrl": "https://docs.overturemaps.org/schema/reference/addresses/address/",
+  "category": "places",
+  "i18n": [
+    { "locale": "en", "name": "Hong Kong Overture addresses" },
+    { "locale": "zhHant", "name": "香港 Overture 地址" },
+    { "locale": "zhHans", "name": "香港 Overture 地址" }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "versionHash": "vh-publisher-overture-v1",
+  "code": "overture",
+  "url": "https://overturemaps.org",
+  "contactUrl": "https://docs.overturemaps.org/support/",
+  "i18n": [
+    { "locale": "en", "name": "Overture Maps Foundation" },
+    { "locale": "zhHant", "name": "Overture Maps Foundation" },
+    { "locale": "zhHans", "name": "Overture Maps Foundation" }
+  ]
+}

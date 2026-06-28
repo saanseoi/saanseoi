@@ -1,0 +1,7 @@
+{
+  "apiVersion": "api-places-v0.1",
+  "versionHash": "vh-api-endpoints-places-v0.1-v1",
+  "endpoints": [
+    { "method": "GET", "path": "/v0/places", "operationId": "listPlacesV0" }
+  ]
+}

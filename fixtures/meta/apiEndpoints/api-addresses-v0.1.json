@@ -1,0 +1,12 @@
+{
+  "apiVersion": "api-addresses-v0.1",
+  "versionHash": "vh-api-endpoints-addresses-v0.1-v1",
+  "endpoints": [
+    { "method": "GET", "path": "/v0/addresses", "operationId": "listAddressesV0" },
+    {
+      "method": "GET",
+      "path": "/v0.1/addresses/{id}",
+      "operationId": "getAddressByIdV01"
+    }
+  ]
+}

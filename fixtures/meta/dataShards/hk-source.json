@@ -1,0 +1,45 @@
+{
+  "versionHash": "vh-data-shards-hk-source-v1",
+  "shards": [
+    {
+      "bindingName": "DB_SOURCE_HK_2025",
+      "shardType": "source",
+      "environment": "preview",
+      "regionCode": "hk",
+      "year": "2025",
+      "databaseName": "ss-source-hk-2025-db-preview",
+      "databaseId": "113ea535-e571-4e31-b15a-c18f116e0424",
+      "status": "active"
+    },
+    {
+      "bindingName": "DB_SOURCE_HK_2025",
+      "shardType": "source",
+      "environment": "production",
+      "regionCode": "hk",
+      "year": "2025",
+      "databaseName": "ss-source-hk-2025-db-prod",
+      "databaseId": "0e5ff999-c928-4e41-a0e1-e5d7c6fc6d20",
+      "status": "active"
+    },
+    {
+      "bindingName": "DB_SOURCE_HK_2026",
+      "shardType": "source",
+      "environment": "preview",
+      "regionCode": "hk",
+      "year": "2026",
+      "databaseName": "ss-source-hk-2026-db-preview",
+      "databaseId": "014dc342-54c8-4049-8667-cfbf7c92cbec",
+      "status": "active"
+    },
+    {
+      "bindingName": "DB_SOURCE_HK_2026",
+      "shardType": "source",
+      "environment": "production",
+      "regionCode": "hk",
+      "year": "2026",
+      "databaseName": "ss-source-hk-2026-db-prod",
+      "databaseId": "dca6df89-880b-42f8-92a8-08f4919a582a",
+      "status": "active"
+    }
+  ]
+}

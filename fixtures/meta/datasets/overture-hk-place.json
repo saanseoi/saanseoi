@@ -1,0 +1,19 @@
+{
+  "versionHash": "vh-dataset-overture-hk-place-v1",
+  "publisherCode": "overture",
+  "code": "ds-hk-overture-place.json",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "monthly",
+  "theme": "places",
+  "type": "place",
+  "licenseCode": "CDLA-Permissive-2.0",
+  "attribution": "© Meta; Overture Maps Foundation.",
+  "sourceUrl": "https://docs.overturemaps.org/",
+  "category": "places",
+  "i18n": [
+    { "locale": "en", "name": "Hong Kong Overture places" },
+    { "locale": "zhHant", "name": "香港 Overture 地點" },
+    { "locale": "zhHans", "name": "香港 Overture 地点" }
+  ]
+}

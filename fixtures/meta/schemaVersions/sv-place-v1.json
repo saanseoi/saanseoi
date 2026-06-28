@@ -1,0 +1,7 @@
+{
+  "versionHash": "vh-schema-version-place-v1",
+  "code": "sv-place-v1",
+  "resourceType": "place",
+  "version": "1",
+  "notes": "Initial canonical place field set."
+}
