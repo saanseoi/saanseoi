@@ -111,22 +111,39 @@ function createAddressMessage(
 
 function seedDivisionLookups(sqlite: Database) {
   const now = '2026-06-04T00:00:00.000Z'
+  const timestamp = 1780531200000
+  const snapshotId = 'snapshot-published-hk-division'
 
   sqlite.exec(`
+    INSERT INTO snapshots (
+      id, family, code, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
+    ) VALUES (
+      '${snapshotId}',
+      'division',
+      'hk-division-published',
+      'published',
+      ${timestamp},
+      ${timestamp},
+      null,
+      null,
+      ${timestamp},
+      ${timestamp}
+    );
+
     INSERT INTO divisions (
-      id, level, type, subtype, class, wikidata,
+      snapshotId, id, level, type, subtype, class, wikidata,
       hierarchy, parentDivisionId, cartography, bbox, sources, createdAt, updatedAt
     ) VALUES
-      ('country-cn', 0, 'country', 'country', 'country', null, null, null, null, null, null, '${now}', '${now}'),
-      ('area-hk', 1, 'area', 'region', 'region', null, null, 'country-cn', null, null, null, '${now}', '${now}'),
-      ('district-central', 2, 'district', 'district', 'district', null, null, 'area-hk', null, null, null, '${now}', '${now}');
+      ('${snapshotId}', 'country-cn', 0, 'country', 'country', 'country', null, null, null, null, null, null, '${now}', '${now}'),
+      ('${snapshotId}', 'area-hk', 1, 'area', 'region', 'region', null, null, 'country-cn', null, null, null, '${now}', '${now}'),
+      ('${snapshotId}', 'district-central', 2, 'district', 'district', 'district', null, null, 'area-hk', null, null, null, '${now}', '${now}');
 
     INSERT INTO divisionsI18n (
-      divisionId, locale, name, nameVariant, nameAlts, nameRules, localType, isLocaleInferred, createdAt, updatedAt
+      snapshotId, divisionId, locale, name, nameVariant, nameAlts, nameRules, localType, isLocaleInferred, createdAt, updatedAt
     ) VALUES
-      ('country-cn', 'en', 'China', null, null, null, null, 0, '${now}', '${now}'),
-      ('area-hk', 'en', 'Hong Kong', null, null, null, null, 0, '${now}', '${now}'),
-      ('district-central', 'en', 'Central District', null, null, null, null, 0, '${now}', '${now}');
+      ('${snapshotId}', 'country-cn', 'en', 'China', null, null, null, null, 0, '${now}', '${now}'),
+      ('${snapshotId}', 'area-hk', 'en', 'Hong Kong', null, null, null, null, 0, '${now}', '${now}'),
+      ('${snapshotId}', 'district-central', 'en', 'Central District', null, null, null, null, 0, '${now}', '${now}');
   `)
 }
 
