@@ -16,10 +16,10 @@ Part of this model is implemented now:
 - current/history/source/meta shard registries
 - upload and publish flow
 - field-level provenance table
+- fixture-backed meta registry sync on deploy
 
 Part of it is still planned or transitional:
 
-- fixture-driven sync into every meta table on deploy
 - release-set shard assignment population during publish
 - full replacement of `snapshotMonth` with snapshot-version driven identity
 - schemaVersions and rulesetVersions as first-class database tables

@@ -10,7 +10,7 @@ bash "$script_dir/migrate-remote-db.sh" "$db_family" "$environment"
 
 case "$db_family" in
   all|meta)
-    bun "$script_dir/seed-meta.ts" "$environment"
+    bun "$script_dir/sync-meta-registry.ts" "$environment"
     ;;
   current|history|source|history-hk-2025|history-hk-2026|source-hk-2025|source-hk-2026)
     ;;
