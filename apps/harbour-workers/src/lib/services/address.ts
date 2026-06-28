@@ -23,6 +23,7 @@ import { currentSchema } from '@repo/db'
 import {
   closeCurrentAddressVersions,
   deleteMissingCurrentAddresses,
+  deleteStaleAddressCurrentRows,
   getCurrentAddressVersionMap,
   insertAddressVersionRows,
   prepareAddressVersionInsertContext,
@@ -575,6 +576,13 @@ export async function processAddressDataset(
           seenIds,
         )
       : 0
+  if (message.source === 'overture') {
+    await deleteStaleAddressCurrentRows(
+      currentDb,
+      versionInsertContext.snapshotId,
+      seenIds,
+    )
+  }
 
   if (sourceDb && currentSourceRows) {
     if (message.source === 'overture') {
