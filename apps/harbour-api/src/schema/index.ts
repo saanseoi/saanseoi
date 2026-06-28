@@ -129,7 +129,7 @@ const DatasetIdSchema = z
 
 const DatasetCodeSchema = z.string().openapi({
   description: 'Stable dataset code within a publisher.',
-  examples: ['hk-division', 'hk-address'],
+  examples: ['ds-hk-overture-division', 'ds-hk-hkgov-address-2d'],
 })
 
 const ReleaseIdSchema = z
