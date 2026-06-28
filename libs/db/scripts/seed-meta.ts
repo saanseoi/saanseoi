@@ -1,7 +1,7 @@
 import {
   initialApiEndpoints,
-  initialApiReleaseSets,
   initialApiVersions,
+  initialDatasetI18n,
   initialDatasets,
   initialLicenses,
   initialPublisherI18n,
@@ -15,10 +15,9 @@ const requiredTables = [
   'publisherI18n',
   'licenses',
   'datasets',
+  'datasetI18n',
   'apiVersions',
   'apiEndpoints',
-  'apiEndpointDatasets',
-  'apiReleaseSets',
   'dataShards',
 ] as const
 
@@ -177,7 +176,7 @@ for (const publisher of initialPublishers) {
   statements.push(
     `
 INSERT OR IGNORE INTO publishers (
-  id, code, url, contactUrl, parentPublisherId, createdAt, updatedAt
+  id, code, url, contactUrl, parentPublisherId, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlUuid},
   ${sqlString(publisher.code)},
@@ -188,6 +187,7 @@ INSERT OR IGNORE INTO publishers (
       ? `(SELECT id FROM publishers WHERE code = ${sqlString(publisher.parentCode)})`
       : 'NULL'
   },
+  ${sqlString(publisher.versionHash)},
   ${nowSql},
   ${nowSql}
 );`.trim(),
@@ -214,12 +214,13 @@ for (const license of initialLicenses) {
   statements.push(
     `
 INSERT OR IGNORE INTO licenses (
-  id, code, name, url, createdAt, updatedAt
+  id, code, name, url, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlUuid},
   ${sqlString(license.code)},
   ${sqlString(license.name)},
   ${sqlNullable(license.url)},
+  ${sqlString(license.versionHash)},
   ${nowSql},
   ${nowSql}
 );`.trim(),
@@ -230,7 +231,7 @@ for (const dataset of initialDatasets) {
   statements.push(
     `
 INSERT OR IGNORE INTO datasets (
-  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, licenseId, attribution, category, createdAt, updatedAt
+  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, licenseId, attribution, category, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlUuid},
   (SELECT id FROM publishers WHERE code = ${sqlString(dataset.publisherCode)}),
@@ -244,6 +245,28 @@ INSERT OR IGNORE INTO datasets (
   (SELECT id FROM licenses WHERE code = ${sqlString(dataset.licenseCode)}),
   ${sqlNullable(dataset.attribution)},
   ${sqlNullable(dataset.category)},
+  ${sqlString(dataset.versionHash)},
+  ${nowSql},
+  ${nowSql}
+);`.trim(),
+  )
+}
+
+for (const translation of initialDatasetI18n) {
+  statements.push(
+    `
+INSERT OR IGNORE INTO datasetI18n (
+  datasetId, locale, name, description, createdAt, updatedAt
+) VALUES (
+  (
+    SELECT d.id
+    FROM datasets d
+    JOIN publishers p ON p.id = d.publisherId
+    WHERE p.code = ${sqlString(translation.publisherCode)} AND d.code = ${sqlString(translation.datasetCode)}
+  ),
+  ${sqlString(translation.locale)},
+  ${sqlString(translation.name)},
+  ${sqlNullable(translation.description)},
   ${nowSql},
   ${nowSql}
 );`.trim(),
@@ -254,11 +277,17 @@ for (const apiVersion of initialApiVersions) {
   statements.push(
     `
 INSERT OR IGNORE INTO apiVersions (
-  id, code, status, createdAt, updatedAt
+  id, code, familyType, version, status, publishedAt, deprecatedAt, retiredAt, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlUuid},
   ${sqlString(apiVersion.code)},
+  ${sqlString(apiVersion.familyType)},
+  ${sqlString(apiVersion.version)},
   ${sqlString(apiVersion.status)},
+  ${apiVersion.publishedAt ? sqlTimestampMs(apiVersion.publishedAt) : 'NULL'},
+  ${apiVersion.deprecatedAt ? sqlTimestampMs(apiVersion.deprecatedAt) : 'NULL'},
+  ${apiVersion.retiredAt ? sqlTimestampMs(apiVersion.retiredAt) : 'NULL'},
+  ${sqlString(apiVersion.versionHash)},
   ${nowSql},
   ${nowSql}
 );`.trim(),
@@ -269,55 +298,14 @@ for (const endpoint of initialApiEndpoints) {
   statements.push(
     `
 INSERT OR IGNORE INTO apiEndpoints (
-  id, apiVersionId, method, path, operationId, resourceType, createdAt, updatedAt
+  id, apiVersionId, method, path, operationId, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlUuid},
-  (SELECT id FROM apiVersions WHERE code = ${sqlString(endpoint.apiVersionCode)}),
+  (SELECT id FROM apiVersions WHERE code = ${sqlString(endpoint.apiVersion)}),
   ${sqlString(endpoint.method)},
   ${sqlString(endpoint.path)},
   ${sqlString(endpoint.operationId)},
-  ${sqlString(endpoint.resourceType)},
-  ${nowSql},
-  ${nowSql}
-);`.trim(),
-  )
-
-  for (const dataset of endpoint.datasets) {
-    statements.push(
-      `
-INSERT OR IGNORE INTO apiEndpointDatasets (
-  apiEndpointId, datasetId, usageType, required, createdAt
-) VALUES (
-  (SELECT id FROM apiEndpoints WHERE operationId = ${sqlString(endpoint.operationId)}),
-  (
-    SELECT d.id
-    FROM datasets d
-    JOIN publishers p ON p.id = d.publisherId
-    WHERE p.code = ${sqlString(dataset.publisherCode)} AND d.code = ${sqlString(dataset.datasetCode)}
-  ),
-  ${sqlString(dataset.usageType)},
-  ${dataset.required ? '1' : '0'},
-  ${nowSql}
-);`.trim(),
-    )
-  }
-}
-
-for (const releaseSet of initialApiReleaseSets) {
-  statements.push(
-    `
-INSERT OR IGNORE INTO apiReleaseSets (
-  id, apiVersionId, code, canonicalSchemaVersion, canonicalLogicVersion, status, publishedAt, validFrom, notes, createdAt, updatedAt
-) VALUES (
-  ${sqlUuid},
-  (SELECT id FROM apiVersions WHERE code = ${sqlString(releaseSet.apiVersionCode)}),
-  ${sqlString(releaseSet.code)},
-  ${sqlString(releaseSet.canonicalSchemaVersion)},
-  ${sqlString(releaseSet.canonicalLogicVersion)},
-  ${sqlString(releaseSet.status)},
-  ${sqlTimestampMs(releaseSet.publishedAt)},
-  ${sqlTimestampMs(releaseSet.validFrom)},
-  ${sqlString(releaseSet.notes)},
+  ${sqlString(endpoint.versionHash)},
   ${nowSql},
   ${nowSql}
 );`.trim(),
@@ -328,10 +316,10 @@ for (const shard of resolveInitialDataShardsForEnvironment(dataShardEnvironment)
   statements.push(
     `
 INSERT OR IGNORE INTO dataShards (
-  id, kind, regionCode, year, environment, databaseName, databaseId, bindingName, status, createdAt, updatedAt
+  id, shardType, regionCode, year, environment, databaseName, databaseId, bindingName, status, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlUuid},
-  ${sqlString(shard.kind)},
+  ${sqlString(shard.shardType)},
   ${sqlNullable(shard.regionCode)},
   ${sqlNullable(shard.year)},
   ${sqlString(shard.environment)},
@@ -339,6 +327,7 @@ INSERT OR IGNORE INTO dataShards (
   ${sqlString(shard.databaseId)},
   ${sqlString(shard.bindingName)},
   ${sqlString(shard.status)},
+  ${sqlString(shard.versionHash)},
   ${nowSql},
   ${nowSql}
 );`.trim(),

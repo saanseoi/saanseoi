@@ -5,6 +5,303 @@ import type { Database } from 'bun:sqlite'
 
 const FIXTURE_TIMESTAMP_MS = 1718236800000
 
+function resolveFixtureDatasetCode(source: string, regionCode: string, type: string) {
+  const publisherCode = source === 'hkgov-als' ? 'hkgov' : source
+  const subType = publisherCode === 'hkgov' && type === 'address' ? '2d' : null
+
+  return `ds-${regionCode}-${publisherCode}-${type}${subType ? `-${subType}` : ''}`
+}
+
+function hasColumn(db: Database, tableName: string, columnName: string) {
+  const rows = db.query(`PRAGMA table_info(${tableName})`).all() as Array<{
+    name?: string
+  }>
+
+  return rows.some(row => row.name === columnName)
+}
+
+function addColumnIfMissing(
+  db: Database,
+  tableName: string,
+  columnName: string,
+  columnSql: string,
+) {
+  if (hasColumn(db, tableName, columnName)) {
+    return
+  }
+
+  db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnSql};`)
+}
+
+function rebuildTable(
+  db: Database,
+  tableName: string,
+  createTableSql: string,
+  copyRowsSql?: string,
+) {
+  const legacyTableName = `${tableName}__legacy`
+
+  db.exec('PRAGMA foreign_keys = OFF;')
+  db.exec(`DROP TABLE IF EXISTS ${legacyTableName};`)
+  db.exec(`ALTER TABLE ${tableName} RENAME TO ${legacyTableName};`)
+  db.exec(createTableSql)
+  if (copyRowsSql) {
+    db.exec(copyRowsSql.replaceAll('__LEGACY_TABLE__', legacyTableName))
+  }
+  db.exec(`DROP TABLE IF EXISTS ${legacyTableName};`)
+  db.exec('PRAGMA foreign_keys = ON;')
+}
+
+function ensureFixtureCompatibleMetaSchema(db: Database) {
+  let snapshotsRebuilt = false
+  let apiReleaseSetsRebuilt = false
+
+  addColumnIfMissing(
+    db,
+    'publishers',
+    'versionHash',
+    "versionHash TEXT NOT NULL DEFAULT ''",
+  )
+  addColumnIfMissing(
+    db,
+    'datasets',
+    'versionHash',
+    "versionHash TEXT NOT NULL DEFAULT ''",
+  )
+  addColumnIfMissing(
+    db,
+    'apiVersions',
+    'familyType',
+    "familyType TEXT NOT NULL DEFAULT 'divisions'",
+  )
+  addColumnIfMissing(
+    db,
+    'apiVersions',
+    'version',
+    "version TEXT NOT NULL DEFAULT '0.1'",
+  )
+  addColumnIfMissing(db, 'apiVersions', 'publishedAt', 'publishedAt INTEGER')
+  addColumnIfMissing(db, 'apiVersions', 'deprecatedAt', 'deprecatedAt INTEGER')
+  addColumnIfMissing(db, 'apiVersions', 'retiredAt', 'retiredAt INTEGER')
+  addColumnIfMissing(
+    db,
+    'apiVersions',
+    'versionHash',
+    "versionHash TEXT NOT NULL DEFAULT ''",
+  )
+  if (hasColumn(db, 'snapshots', 'family')) {
+    const snapshotResourceTypeExpression = hasColumn(db, 'snapshots', 'resourceType')
+      ? 'COALESCE(resourceType, family)'
+      : 'family'
+
+    rebuildTable(
+      db,
+      'snapshots',
+      `
+        CREATE TABLE snapshots (
+          id TEXT PRIMARY KEY NOT NULL,
+          resourceType TEXT NOT NULL,
+          code TEXT NOT NULL,
+          status TEXT NOT NULL,
+          publishedAt INTEGER,
+          validFrom INTEGER,
+          validTo INTEGER,
+          notes TEXT,
+          createdAt INTEGER NOT NULL,
+          updatedAt INTEGER NOT NULL
+        );
+      `,
+      `
+        INSERT INTO snapshots (
+          id, resourceType, code, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
+        )
+        SELECT
+          id,
+          ${snapshotResourceTypeExpression} AS resourceType,
+          code,
+          status,
+          publishedAt,
+          validFrom,
+          validTo,
+          notes,
+          createdAt,
+          updatedAt
+        FROM __LEGACY_TABLE__;
+      `,
+    )
+    snapshotsRebuilt = true
+  }
+
+  if (snapshotsRebuilt) {
+    rebuildTable(
+      db,
+      'snapshotSources',
+      `
+        CREATE TABLE snapshotSources (
+          snapshotId TEXT NOT NULL,
+          datasetId TEXT NOT NULL,
+          sourceReleaseId TEXT NOT NULL,
+          role TEXT NOT NULL,
+          createdAt INTEGER NOT NULL,
+          PRIMARY KEY (snapshotId, sourceReleaseId),
+          FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE CASCADE,
+          FOREIGN KEY (datasetId) REFERENCES datasets(id) ON DELETE RESTRICT,
+          FOREIGN KEY (sourceReleaseId, datasetId) REFERENCES releases(id, datasetId) ON DELETE RESTRICT
+        );
+      `,
+      `
+        INSERT INTO snapshotSources (
+          snapshotId, datasetId, sourceReleaseId, role, createdAt
+        )
+        SELECT snapshotId, datasetId, sourceReleaseId, role, createdAt
+        FROM __LEGACY_TABLE__;
+      `,
+    )
+  }
+
+  if (
+    hasColumn(db, 'apiReleaseSets', 'canonicalSchemaVersion') ||
+    hasColumn(db, 'apiReleaseSets', 'canonicalLogicVersion')
+  ) {
+    const apiReleaseSetVersionHashExpression = hasColumn(
+      db,
+      'apiReleaseSets',
+      'versionHash',
+    )
+      ? "COALESCE(versionHash, '')"
+      : "''"
+
+    rebuildTable(
+      db,
+      'apiReleaseSets',
+      `
+        CREATE TABLE apiReleaseSets (
+          id TEXT PRIMARY KEY NOT NULL,
+          apiVersionId TEXT NOT NULL,
+          code TEXT NOT NULL,
+          schemaVersion TEXT NOT NULL,
+          rulesetVersion TEXT NOT NULL,
+          status TEXT NOT NULL,
+          publishedAt INTEGER,
+          validFrom INTEGER,
+          validTo INTEGER,
+          notes TEXT,
+          versionHash TEXT NOT NULL,
+          createdAt INTEGER NOT NULL,
+          updatedAt INTEGER NOT NULL,
+          FOREIGN KEY (apiVersionId) REFERENCES apiVersions(id) ON DELETE RESTRICT
+        );
+      `,
+      `
+        INSERT INTO apiReleaseSets (
+          id,
+          apiVersionId,
+          code,
+          schemaVersion,
+          rulesetVersion,
+          status,
+          publishedAt,
+          validFrom,
+          validTo,
+          notes,
+          versionHash,
+          createdAt,
+          updatedAt
+        )
+        SELECT
+          id,
+          apiVersionId,
+          code,
+          canonicalSchemaVersion AS schemaVersion,
+          canonicalLogicVersion AS rulesetVersion,
+          status,
+          publishedAt,
+          validFrom,
+          NULL AS validTo,
+          notes,
+          ${apiReleaseSetVersionHashExpression} AS versionHash,
+          createdAt,
+          updatedAt
+        FROM __LEGACY_TABLE__;
+      `,
+    )
+    apiReleaseSetsRebuilt = true
+  } else {
+    addColumnIfMissing(
+      db,
+      'apiReleaseSets',
+      'schemaVersion',
+      "schemaVersion TEXT NOT NULL DEFAULT ''",
+    )
+    addColumnIfMissing(
+      db,
+      'apiReleaseSets',
+      'rulesetVersion',
+      "rulesetVersion TEXT NOT NULL DEFAULT ''",
+    )
+    addColumnIfMissing(db, 'apiReleaseSets', 'validTo', 'validTo INTEGER')
+    addColumnIfMissing(
+      db,
+      'apiReleaseSets',
+      'versionHash',
+      "versionHash TEXT NOT NULL DEFAULT ''",
+    )
+  }
+
+  if (hasColumn(db, 'apiReleaseSetSnapshots', 'snapshotFamily')) {
+    rebuildTable(
+      db,
+      'apiReleaseSetSnapshots',
+      `
+        CREATE TABLE apiReleaseSetSnapshots (
+          apiReleaseSetId TEXT NOT NULL,
+          snapshotId TEXT NOT NULL,
+          PRIMARY KEY (apiReleaseSetId, snapshotId),
+          FOREIGN KEY (apiReleaseSetId) REFERENCES apiReleaseSets(id) ON DELETE CASCADE,
+          FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT
+        );
+      `,
+      `
+        INSERT OR IGNORE INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId)
+        SELECT apiReleaseSetId, snapshotId
+        FROM __LEGACY_TABLE__;
+      `,
+    )
+  } else if (apiReleaseSetsRebuilt || snapshotsRebuilt) {
+    rebuildTable(
+      db,
+      'apiReleaseSetSnapshots',
+      `
+        CREATE TABLE apiReleaseSetSnapshots (
+          apiReleaseSetId TEXT NOT NULL,
+          snapshotId TEXT NOT NULL,
+          PRIMARY KEY (apiReleaseSetId, snapshotId),
+          FOREIGN KEY (apiReleaseSetId) REFERENCES apiReleaseSets(id) ON DELETE CASCADE,
+          FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT
+        );
+      `,
+      `
+        INSERT OR IGNORE INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId)
+        SELECT apiReleaseSetId, snapshotId
+        FROM __LEGACY_TABLE__;
+      `,
+    )
+  }
+
+  addColumnIfMissing(
+    db,
+    'dataShards',
+    'shardType',
+    "shardType TEXT NOT NULL DEFAULT 'current'",
+  )
+  addColumnIfMissing(
+    db,
+    'dataShards',
+    'versionHash',
+    "versionHash TEXT NOT NULL DEFAULT ''",
+  )
+}
+
 export function collectSqlFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
     const entryPath = join(dir, entry.name)
@@ -25,73 +322,90 @@ export function loadMigrationSql(dir: string) {
 }
 
 export function seedFixtureCatalog(db: Database) {
+  ensureFixtureCompatibleMetaSchema(db)
+
   db.exec(`
-    INSERT OR IGNORE INTO publishers (id, code, createdAt, updatedAt) VALUES
-      ('publisher-overture', 'overture', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('publisher-hkgov', 'hkgov', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS});
+    INSERT OR IGNORE INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
+      ('publisher-overture', 'overture', 'vh-publisher-overture-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('publisher-hkgov', 'hkgov', 'vh-publisher-hkgov-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS});
 
     INSERT OR IGNORE INTO datasets (
-      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, createdAt, updatedAt
+      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, versionHash, createdAt, updatedAt
     ) VALUES
       (
         'overture-hk-division',
         'publisher-overture',
-        'hk-division',
+        'ds-hk-overture-division',
         'hk',
         'static',
         'monthly',
         'divisions',
         'division',
         'https://docs.overturemaps.org/',
+        'vh-dataset-overture-hk-division-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
         'overture-hk-address',
         'publisher-overture',
-        'hk-address',
+        'ds-hk-overture-address',
         'hk',
         'static',
         'monthly',
         'addresses',
         'address',
         'https://docs.overturemaps.org/schema/reference/addresses/address/',
+        'vh-dataset-overture-hk-address-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
         'hkgov-hk-address',
         'publisher-hkgov',
-        'hk-address',
+        'ds-hk-hkgov-address-2d',
         'hk',
         'static',
         'monthly',
         'addresses',
         'address',
         'https://data.gov.hk/en-data/dataset/hk-ogcio-st_div_01-als',
+        'vh-dataset-hkgov-hk-address-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       );
 
-    INSERT OR IGNORE INTO apiVersions (id, code, status, createdAt, updatedAt) VALUES
+    INSERT OR IGNORE INTO apiVersions (id, code, familyType, version, status, publishedAt, versionHash, createdAt, updatedAt) VALUES
       (
-        'api-version-ss-divisions-v0.1',
-        'ss-divisions-v0.1',
-        'draft',
+        'api-version-api-divisions-v0.1',
+        'api-divisions-v0.1',
+        'divisions',
+        '0.1',
+        'current',
+        ${FIXTURE_TIMESTAMP_MS},
+        'vh-api-version-divisions-v0.1-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'api-version-ss-addresses-v0.1',
-        'ss-addresses-v0.1',
-        'draft',
+        'api-version-api-addresses-v0.1',
+        'api-addresses-v0.1',
+        'addresses',
+        '0.1',
+        'current',
+        ${FIXTURE_TIMESTAMP_MS},
+        'vh-api-version-addresses-v0.1-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'api-version-ss-places-v0.1',
-        'ss-places-v0.1',
-        'draft',
+        'api-version-api-places-v0.1',
+        'api-places-v0.1',
+        'places',
+        '0.1',
+        'current',
+        ${FIXTURE_TIMESTAMP_MS},
+        'vh-api-version-places-v0.1-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       );
@@ -100,50 +414,54 @@ export function seedFixtureCatalog(db: Database) {
       id,
       apiVersionId,
       code,
-      canonicalSchemaVersion,
-      canonicalLogicVersion,
+      schemaVersion,
+      rulesetVersion,
       status,
       publishedAt,
+      versionHash,
       createdAt,
       updatedAt
     ) VALUES
       (
-        'api-release-set-ss-divisions-v0.1',
-        'api-version-ss-divisions-v0.1',
-        'ss-divisions-v0.1-initial',
-        '1',
-        '1',
-        'active',
+        'api-release-set-ss-hk-division-2026-06-17.0',
+        'api-version-api-divisions-v0.1',
+        'ss-hk-division-2026-06-17.0',
+        'sv-division-v1',
+        'rs-division-merge-v1',
+        'current',
         ${FIXTURE_TIMESTAMP_MS},
-        ${FIXTURE_TIMESTAMP_MS},
-        ${FIXTURE_TIMESTAMP_MS}
-      ),
-      (
-        'api-release-set-ss-addresses-v0.1',
-        'api-version-ss-addresses-v0.1',
-        'ss-addresses-v0.1-initial',
-        '1',
-        '1',
-        'active',
-        ${FIXTURE_TIMESTAMP_MS},
+        'vh-api-release-set-division-2026-06-17.0-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'api-release-set-ss-places-v0.1',
-        'api-version-ss-places-v0.1',
-        'ss-places-v0.1-initial',
-        '1',
-        '1',
-        'active',
+        'api-release-set-ss-hk-address-2026-06-17.0',
+        'api-version-api-addresses-v0.1',
+        'ss-hk-address-2026-06-17.0',
+        'sv-address-v1',
+        'rs-address-merge-v1',
+        'current',
         ${FIXTURE_TIMESTAMP_MS},
+        'vh-api-release-set-address-2026-06-17.0-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'api-release-set-ss-hk-place-2026-06-17.0',
+        'api-version-api-places-v0.1',
+        'ss-hk-place-2026-06-17.0',
+        'sv-place-v1',
+        'rs-place-merge-v1',
+        'current',
+        ${FIXTURE_TIMESTAMP_MS},
+        'vh-api-release-set-place-2026-06-17.0-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       );
 
     INSERT OR IGNORE INTO dataShards (
       id,
-      kind,
+      shardType,
       regionCode,
       year,
       environment,
@@ -151,6 +469,7 @@ export function seedFixtureCatalog(db: Database) {
       databaseId,
       bindingName,
       status,
+      versionHash,
       createdAt,
       updatedAt
     ) VALUES
@@ -164,6 +483,7 @@ export function seedFixtureCatalog(db: Database) {
         'fixture-current-preview',
         'DB_CURRENT',
         'active',
+        'vh-data-shards-current-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
@@ -177,6 +497,7 @@ export function seedFixtureCatalog(db: Database) {
         'fixture-history-hk-2025-preview',
         'DB_HISTORY_HK_2025',
         'active',
+        'vh-data-shards-hk-history-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
@@ -190,6 +511,7 @@ export function seedFixtureCatalog(db: Database) {
         'fixture-history-hk-2026-preview',
         'DB_HISTORY_HK_2026',
         'active',
+        'vh-data-shards-hk-history-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
@@ -203,6 +525,7 @@ export function seedFixtureCatalog(db: Database) {
         'fixture-source-hk-2025-preview',
         'DB_SOURCE_HK_2025',
         'active',
+        'vh-data-shards-hk-source-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
@@ -216,6 +539,7 @@ export function seedFixtureCatalog(db: Database) {
         'fixture-current-production',
         'DB_CURRENT_PRODUCTION',
         'active',
+        'vh-data-shards-current-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
@@ -229,6 +553,7 @@ export function seedFixtureCatalog(db: Database) {
         'fixture-history-hk-2025-production',
         'DB_HISTORY_HK_2025_PRODUCTION',
         'active',
+        'vh-data-shards-hk-history-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
@@ -242,6 +567,7 @@ export function seedFixtureCatalog(db: Database) {
         'fixture-history-hk-2026-production',
         'DB_HISTORY_HK_2026_PRODUCTION',
         'active',
+        'vh-data-shards-hk-history-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
@@ -255,6 +581,7 @@ export function seedFixtureCatalog(db: Database) {
         'fixture-source-hk-2025-production',
         'DB_SOURCE_HK_2025_PRODUCTION',
         'active',
+        'vh-data-shards-hk-source-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       );
@@ -283,7 +610,11 @@ type FixtureRelease = {
 
 export function insertFixtureRelease(db: Database, release: FixtureRelease) {
   const publisherCode = release.source === 'hkgov-als' ? 'hkgov' : release.source
-  const datasetCode = `${release.regionCode}-${release.type}`
+  const datasetCode = resolveFixtureDatasetCode(
+    release.source,
+    release.regionCode,
+    release.type,
+  )
   const releaseCode =
     release.releaseCode ??
     `${release.source}-${release.regionCode}-${release.sourceVersion}-${release.type}`
