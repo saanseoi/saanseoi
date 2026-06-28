@@ -29,7 +29,7 @@ describe('processDatasetMessage', () => {
           unchangedRows: 0,
         }) satisfies ProcessDatasetResult,
     )
-    const stageStarted = mock(async () => undefined)
+    const stageRunning = mock(async () => undefined)
     const stageCompleted = mock(async () => undefined)
     const stageFailed = mock(async () => undefined)
     const publishDataset = mock(async () => undefined)
@@ -45,7 +45,7 @@ describe('processDatasetMessage', () => {
         publishDataset,
         stageCompleted,
         stageFailed,
-        stageStarted,
+        stageRunning,
       },
       {} as never,
       {} as never,
@@ -86,7 +86,7 @@ describe('processDatasetMessage', () => {
     })
     expect(processDivisionDataset).toHaveBeenCalledTimes(1)
     expect(
-      stageStarted.mock.calls.map(call => call.slice(0, 2)) as unknown as Array<
+      stageRunning.mock.calls.map(call => call.slice(0, 2)) as unknown as Array<
         [string, string]
       >,
     ).toEqual([
@@ -120,7 +120,7 @@ describe('processDatasetMessage', () => {
       statsRows: 0,
       unchangedRows: 0,
     }))
-    const stageStarted = mock(async () => undefined)
+    const stageRunning = mock(async () => undefined)
     const stageCompleted = mock(async () => undefined)
     const stageFailed = mock(async () => undefined)
     const publishDataset = mock(async () => undefined)
@@ -136,7 +136,7 @@ describe('processDatasetMessage', () => {
         publishDataset,
         stageCompleted,
         stageFailed,
-        stageStarted,
+        stageRunning,
       },
       {} as never,
       {} as never,
@@ -176,7 +176,7 @@ describe('processDatasetMessage', () => {
       unchangedRows: 0,
     })
     expect(
-      stageStarted.mock.calls.map(call => call.slice(0, 2)) as unknown as Array<
+      stageRunning.mock.calls.map(call => call.slice(0, 2)) as unknown as Array<
         [string, string]
       >,
     ).toEqual([
@@ -201,7 +201,7 @@ describe('processDatasetMessage', () => {
     expect(stageFailed).toHaveBeenCalledTimes(0)
   })
 
-  test('reports running extract progress back through repeated stageStarted calls', async () => {
+  test('reports running extract progress back through repeated stageRunning calls', async () => {
     const processDivisionDataset = mock(async (...args: unknown[]) => {
       const reportProgress = args[6] as
         | ((stats: { localizedRows: number; processedRows: number }) => Promise<void>)
@@ -221,7 +221,7 @@ describe('processDatasetMessage', () => {
         unchangedRows: 0,
       } satisfies ProcessDatasetResult
     })
-    const stageStarted = mock(async () => undefined)
+    const stageRunning = mock(async () => undefined)
     const stageCompleted = mock(async () => undefined)
     const stageFailed = mock(async () => undefined)
     const publishDataset = mock(async () => undefined)
@@ -237,7 +237,7 @@ describe('processDatasetMessage', () => {
         publishDataset,
         stageCompleted,
         stageFailed,
-        stageStarted,
+        stageRunning,
       },
       {} as never,
       {} as never,
@@ -268,7 +268,7 @@ describe('processDatasetMessage', () => {
       },
     )
 
-    expect(stageStarted).toHaveBeenCalledWith(
+    expect(stageRunning).toHaveBeenCalledWith(
       'release-overture-hk-2026-05-24.0-division',
       'extractDivisions',
       {
@@ -281,7 +281,7 @@ describe('processDatasetMessage', () => {
     const processDivisionDataset = mock(async () => {
       throw new Error('Division processing blew up.')
     })
-    const stageStarted = mock(async () => undefined)
+    const stageRunning = mock(async () => undefined)
     const stageCompleted = mock(async () => undefined)
     const stageFailed = mock(async (_releaseId: string, phase: string) => {
       if (phase === 'extractDivisions') {
@@ -302,7 +302,7 @@ describe('processDatasetMessage', () => {
           publishDataset,
           stageCompleted,
           stageFailed,
-          stageStarted,
+          stageRunning,
         },
         {} as never,
         {} as never,

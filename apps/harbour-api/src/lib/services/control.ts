@@ -36,7 +36,7 @@ type ControlResult = {
   status: string
 }
 
-export async function handleStageStarted(
+export async function handleStageRunning(
   db: HarbourReadableDb & HarbourWritableDb,
   request: StageRequest,
 ): Promise<ControlResult> {

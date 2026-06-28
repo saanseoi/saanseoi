@@ -6,7 +6,7 @@ import {
   handlePublishDataset,
   handleStageCompleted,
   handleStageFailed,
-  handleStageStarted,
+  handleStageRunning,
 } from '../../lib/services/control'
 import {
   ControlResponseSchema,
@@ -37,9 +37,9 @@ const baseResponses = {
   422: ValidationErrorOpenAPIResponse,
 } as const
 
-const stageStartedRouteConfig = createRoute({
+const stageRunningRouteConfig = createRoute({
   method: 'post',
-  path: '/v1/control/stageStarted',
+  path: '/v1/control/stageRunning',
   tags: ['Control'],
   request: {
     body: {
@@ -113,16 +113,16 @@ function createControlError(error: unknown) {
   } as const
 }
 
-export const stageStartedRoute = defineOpenAPIRoute<
-  typeof stageStartedRouteConfig,
+export const stageRunningRoute = defineOpenAPIRoute<
+  typeof stageRunningRouteConfig,
   AppEnv
 >({
-  route: stageStartedRouteConfig,
+  route: stageRunningRouteConfig,
   handler: async c => {
     try {
       const db = createMetaDb(c.env.DB_META) as HarbourReadableDb & HarbourWritableDb
       const request = c.req.valid('json')
-      return c.json(await handleStageStarted(db, request), 200)
+      return c.json(await handleStageRunning(db, request), 200)
     } catch (error) {
       return c.json(createControlError(error), 400)
     }
@@ -178,7 +178,7 @@ export const publishDatasetRoute = defineOpenAPIRoute<
 })
 
 export const controlRoutes = [
-  stageStartedRoute,
+  stageRunningRoute,
   stageCompletedRoute,
   stageFailedRoute,
   publishDatasetRoute,
