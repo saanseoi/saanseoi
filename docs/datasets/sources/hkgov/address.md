@@ -8,7 +8,7 @@ Related family doc:
 
 ## Dataset Role
 
-- Dataset metadata uses `publisherCode: hkgov`, `code: hk-address`.
+- Dataset metadata uses `publisherCode: hkgov`, `code: ds-hk-hkgov-address-2d`.
 - Raw ALS is not ingested directly by the worker.
 - The CLI first transforms ALS GeoJSON into a prepared parquet file in `apps/harbour-cli/src/lib/hkgov-als.ts`.
 - The worker then ingests that prepared parquet in `apps/harbour-workers/src/lib/services/address.ts`.

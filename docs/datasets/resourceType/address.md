@@ -1,6 +1,6 @@
-# Address Family
+# Address ResourceType
 
-This document describes how the address family is currently composed across sources.
+This document describes how the address resourceType is currently composed across sources.
 
 Related source-specific docs:
 
@@ -9,12 +9,12 @@ Related source-specific docs:
 
 ## Scope
 
-The logical `hk-address` dataset exists twice in seeded metadata:
+The address resourceType currently has two seeded source datasets in meta:
 
-- `publisherCode: overture`, `code: hk-address`
-- `publisherCode: hkgov`, `code: hk-address`
+- `publisherCode: overture`, `code: ds-hk-overture-address`
+- `publisherCode: hkgov`, `code: ds-hk-hkgov-address-2d`
 
-Both feed the same canonical address family, but they arrive in different shapes and play different roles in the merge flow.
+Both feed the same canonical address resourceType, but they arrive in different shapes and play different roles in the merge flow.
 
 ## Merge Order
 
@@ -53,7 +53,7 @@ Implications:
 
 ## Canonical Tables
 
-The address family currently writes these canonical current tables:
+The address resourceType currently writes these canonical current tables:
 
 - `address2d`
 - `address2dI18n`
@@ -90,7 +90,7 @@ Because the canonical row is rewritten from the matched source row, a matched HK
 
 ## Source Retention
 
-The family also retains normalized per-source rows in the source database.
+The resourceType also retains normalized per-source rows in the source database.
 
 Current-state source tables:
 
@@ -160,7 +160,7 @@ Implemented Atlas routes are:
 
 ### Live API dependency on address data
 
-The address family is still used by live API behavior indirectly:
+The address resourceType is still used by live API behavior indirectly:
 
 - `places.addressSnapshotId` and `places.address2dId` reference canonical address rows
 - place search FTS joins `address2dI18n` and `address3dI18n` into indexed search text

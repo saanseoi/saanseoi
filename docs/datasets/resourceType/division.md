@@ -1,4 +1,4 @@
-# Division Family
+# Division ResourceType
 
 This document describes how the division family is currently composed and used.
 

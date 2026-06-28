@@ -8,7 +8,7 @@ Related family doc:
 
 ## Dataset Role
 
-- Dataset metadata uses `publisherCode: overture`, `code: hk-address`.
+- Dataset metadata uses `publisherCode: overture`, `code: ds-hk-overture-address`.
 - Uploads are ingested directly from parquet.
 - The worker path is `apps/harbour-workers/src/lib/services/address.ts`.
 - In runtime terms, Overture currently acts as the base address feed for canonical `address2d`.
