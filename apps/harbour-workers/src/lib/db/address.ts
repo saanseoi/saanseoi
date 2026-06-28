@@ -3,10 +3,10 @@ import { and, eq, inArray, sql } from 'drizzle-orm'
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
   ensureDraftSnapshotForRelease,
-  getDatasetRecordByReleaseId,
   resolveShardForKindRegionYear,
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
+  waitForDatasetRecord,
 } from '@repo/core/db/meta-repository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
@@ -186,13 +186,15 @@ export async function prepareAddressVersionInsertContext(
   message: DatasetProcessingMessage,
   environment: 'preview' | 'production',
 ): Promise<AddressVersionInsertContext> {
-  const dataset = await getDatasetRecordByReleaseId(
-    metaDb,
-    message.releaseId ?? message.datasetId,
-  )
+  const dataset = await waitForDatasetRecord(metaDb, {
+    releaseCode: message.releaseCode,
+    releaseId: message.releaseId ?? message.datasetId,
+  })
 
   if (!dataset) {
-    throw new Error(`Release not found: ${message.releaseId ?? message.datasetId}`)
+    throw new Error(
+      `Release not found: ${message.releaseId ?? message.releaseCode ?? message.datasetId}`,
+    )
   }
 
   const snapshot = await ensureDraftSnapshotForRelease(

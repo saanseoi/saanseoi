@@ -247,19 +247,29 @@ export const RequeueUploadRequestSchema = z
 
 export const ControlStageRequestSchema = z
   .object({
-    releaseId: ReleaseIdSchema,
+    releaseCode: ReleaseCodeSchema.optional(),
+    releaseId: ReleaseIdSchema.optional(),
     phase: z.string().openapi({
       examples: ['processDataset', 'extractDivisions', 'extractDivisionsI18n'],
     }),
     stats: z.record(z.string(), z.unknown()).optional(),
     error: z.string().optional(),
   })
+  .refine(
+    value => Boolean(value.releaseId || value.releaseCode),
+    'Either releaseId or releaseCode is required.',
+  )
   .openapi('HarbourControlStageRequest')
 
 export const PublishDatasetRequestSchema = z
   .object({
-    releaseId: ReleaseIdSchema,
+    releaseCode: ReleaseCodeSchema.optional(),
+    releaseId: ReleaseIdSchema.optional(),
   })
+  .refine(
+    value => Boolean(value.releaseId || value.releaseCode),
+    'Either releaseId or releaseCode is required.',
+  )
   .openapi('HarbourPublishDatasetRequest')
 
 export const ControlResponseSchema = z

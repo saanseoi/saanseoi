@@ -3,7 +3,6 @@ import {
   ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
-  getDatasetRecordByReleaseId,
   listApiReleaseSetSnapshots,
   listApiReleaseSetSources,
   resolveActiveReleaseSetForType,
@@ -12,20 +11,23 @@ import {
   updateLatestOpenIngestRun,
   updateDatasetStatus,
   upsertIngestRunStatus,
+  waitForDatasetRecord,
 } from '@repo/core/db/meta-repository'
 import type { SnapshotFamily } from '@repo/core/db/meta-repository'
 import type { SupportedType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 type StageRequest = {
-  releaseId: string
+  releaseCode?: string
+  releaseId?: string
   error?: string
   phase: string
   stats?: Record<string, unknown>
 }
 
 type PublishRequest = {
-  releaseId: string
+  releaseCode?: string
+  releaseId?: string
 }
 
 type ControlResult = {
@@ -40,7 +42,7 @@ export async function handleStageRunning(
   db: HarbourReadableDb & HarbourWritableDb,
   request: StageRequest,
 ): Promise<ControlResult> {
-  const dataset = await requireDataset(db, request.releaseId)
+  const dataset = await requireDataset(db, request)
   const now = new Date().toISOString()
 
   if (request.phase === 'processDataset') {
@@ -68,7 +70,7 @@ export async function handleStageCompleted(
   db: HarbourReadableDb & HarbourWritableDb,
   request: StageRequest,
 ): Promise<ControlResult> {
-  const dataset = await requireDataset(db, request.releaseId)
+  const dataset = await requireDataset(db, request)
   const now = new Date().toISOString()
 
   const updatedExistingRun = await updateLatestOpenIngestRun(
@@ -105,7 +107,7 @@ export async function handleStageFailed(
   db: HarbourReadableDb & HarbourWritableDb,
   request: StageRequest,
 ): Promise<ControlResult> {
-  const dataset = await requireDataset(db, request.releaseId)
+  const dataset = await requireDataset(db, request)
   const now = new Date().toISOString()
   const errorJson = stringifyOptional({
     message: request.error ?? 'Unknown processing error.',
@@ -148,7 +150,7 @@ export async function handlePublishDataset(
   db: HarbourReadableDb & HarbourWritableDb,
   request: PublishRequest,
 ): Promise<ControlResult> {
-  const dataset = await requireDataset(db, request.releaseId)
+  const dataset = await requireDataset(db, request)
   const publishedAt = new Date().toISOString()
   const datasetType = dataset.type as SupportedType
   const currentRelease = await getCurrentReleaseForDatasetId(
@@ -231,11 +233,23 @@ export async function handlePublishDataset(
   }
 }
 
-async function requireDataset(db: HarbourReadableDb, releaseId: string) {
-  const dataset = await getDatasetRecordByReleaseId(db, releaseId)
+async function requireDataset(
+  db: HarbourReadableDb,
+  {
+    releaseCode,
+    releaseId,
+  }: {
+    releaseCode?: string
+    releaseId?: string
+  },
+) {
+  const dataset = await waitForDatasetRecord(db, {
+    releaseCode,
+    releaseId,
+  })
 
   if (!dataset) {
-    throw new Error(`Release not found: ${releaseId}`)
+    throw new Error(`Release not found: ${releaseId ?? releaseCode ?? 'unknown'}`)
   }
 
   return dataset

@@ -358,6 +358,54 @@ describe('control service', () => {
     expect(ingestRuns[0]?.finishedAt).not.toBeNull()
   })
 
+  test('falls back to releaseCode when the queued releaseId no longer resolves', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-control-release-code.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    insertFixtureRelease(sqlite, {
+      releaseId: 'release-overture-hk-2025-09-24.0-division',
+      source: 'overture',
+      regionCode: 'hk',
+      snapshotMonth: '2025-09',
+      type: 'division',
+      sourceVersion: '2025-09-24.0',
+      rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'staged',
+      ingestedAt: '2026-06-05T00:00:00.000Z',
+      createdAt: '2026-06-05T00:00:00.000Z',
+      updatedAt: '2026-06-05T00:00:00.000Z',
+    })
+
+    const result = await handleStageRunning(db, {
+      releaseCode: 'overture-hk-2025-09-24.0-division',
+      releaseId: '62f558b9-6fad-413f-8283-287a90febcac',
+      phase: 'extractDivisions',
+    })
+
+    const ingestRun = sqlite
+      .query('SELECT phase, status FROM ingestRuns WHERE releaseId = ? AND phase = ?')
+      .get('release-overture-hk-2025-09-24.0-division', 'extractDivisions') as {
+      phase: string
+      status: string
+    } | null
+
+    sqlite.close()
+
+    expect(result).toMatchObject({
+      phase: 'extractDivisions',
+      releaseCode: 'overture-hk-2025-09-24.0-division',
+      releaseId: 'release-overture-hk-2025-09-24.0-division',
+      status: 'running',
+    })
+    expect(ingestRun).toEqual({
+      phase: 'extractDivisions',
+      status: 'running',
+    })
+  })
+
   test('reopens a failed phase as running when processing is retried', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-control-reopen.sqlite')

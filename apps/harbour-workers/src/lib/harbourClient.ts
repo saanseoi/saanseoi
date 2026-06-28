@@ -1,7 +1,8 @@
 import { normalizeBaseUrl } from '@repo/core'
 
 type StagePayload = {
-  releaseId: string
+  releaseCode?: string
+  releaseId?: string
   error?: string
   phase: string
   stats?: Record<string, unknown>
@@ -36,13 +37,20 @@ export function createHarbourClient(config: HarbourControlApiConfig) {
   }
 
   return {
-    publishDataset(releaseId: string) {
+    publishDataset(releaseId: string, releaseCode?: string) {
       return postControl(baseUrl, apiKey, '/v1/control/publishDataset', {
+        releaseCode,
         releaseId,
       })
     },
-    stageCompleted(releaseId: string, phase: string, stats?: Record<string, unknown>) {
+    stageCompleted(
+      releaseId: string,
+      phase: string,
+      stats?: Record<string, unknown>,
+      releaseCode?: string,
+    ) {
       return postControl(baseUrl, apiKey, '/v1/control/stageCompleted', {
+        releaseCode,
         releaseId,
         phase,
         stats,
@@ -53,16 +61,24 @@ export function createHarbourClient(config: HarbourControlApiConfig) {
       phase: string,
       error: string,
       stats?: Record<string, unknown>,
+      releaseCode?: string,
     ) {
       return postControl(baseUrl, apiKey, '/v1/control/stageFailed', {
+        releaseCode,
         releaseId,
         error,
         phase,
         stats,
       })
     },
-    stageRunning(releaseId: string, phase: string, stats?: Record<string, unknown>) {
+    stageRunning(
+      releaseId: string,
+      phase: string,
+      stats?: Record<string, unknown>,
+      releaseCode?: string,
+    ) {
       return postControl(baseUrl, apiKey, '/v1/control/stageRunning', {
+        releaseCode,
         releaseId,
         phase,
         stats,
@@ -75,7 +91,7 @@ async function postControl(
   baseUrl: string,
   apiKey: string,
   path: string,
-  payload: StagePayload | { releaseId: string },
+  payload: StagePayload | { releaseCode?: string; releaseId?: string },
   attempt = 0,
 ) {
   let response: Response
