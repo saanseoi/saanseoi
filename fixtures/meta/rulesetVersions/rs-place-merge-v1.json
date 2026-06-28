@@ -1,0 +1,8 @@
+{
+  "versionHash": "vh-ruleset-version-place-merge-v1",
+  "code": "rs-place-merge-v1",
+  "resourceType": "place",
+  "strategy": "merge",
+  "version": "1",
+  "notes": "Initial place merge ruleset."
+}

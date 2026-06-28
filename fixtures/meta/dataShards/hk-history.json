@@ -1,0 +1,45 @@
+{
+  "versionHash": "vh-data-shards-hk-history-v1",
+  "shards": [
+    {
+      "bindingName": "DB_HISTORY_HK_2025",
+      "shardType": "history",
+      "environment": "preview",
+      "regionCode": "hk",
+      "year": "2025",
+      "databaseName": "ss-history-hk-2025-db-preview",
+      "databaseId": "9566cfa9-2af6-473c-a74b-c7f7c6a757a9",
+      "status": "active"
+    },
+    {
+      "bindingName": "DB_HISTORY_HK_2025",
+      "shardType": "history",
+      "environment": "production",
+      "regionCode": "hk",
+      "year": "2025",
+      "databaseName": "ss-history-hk-2025-db-prod",
+      "databaseId": "09c217e2-0e04-4ce5-a197-b4210bcb1dea",
+      "status": "active"
+    },
+    {
+      "bindingName": "DB_HISTORY_HK_2026",
+      "shardType": "history",
+      "environment": "preview",
+      "regionCode": "hk",
+      "year": "2026",
+      "databaseName": "ss-history-hk-2026-db-preview",
+      "databaseId": "b76baf00-7138-44b0-bd24-e99f3aea4249",
+      "status": "active"
+    },
+    {
+      "bindingName": "DB_HISTORY_HK_2026",
+      "shardType": "history",
+      "environment": "production",
+      "regionCode": "hk",
+      "year": "2026",
+      "databaseName": "ss-history-hk-2026-db-prod",
+      "databaseId": "f85a2708-a0aa-4549-8c61-e2289d3694cd",
+      "status": "active"
+    }
+  ]
+}

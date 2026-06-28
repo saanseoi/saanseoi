@@ -1,0 +1,7 @@
+{
+  "versionHash": "vh-schema-version-division-v1",
+  "code": "sv-division-v1",
+  "resourceType": "division",
+  "version": "1",
+  "notes": "Initial canonical division field set."
+}

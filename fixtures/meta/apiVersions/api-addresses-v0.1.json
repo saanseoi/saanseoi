@@ -1,0 +1,10 @@
+{
+  "versionHash": "vh-api-version-addresses-v0.1-v1",
+  "code": "api-addresses-v0.1",
+  "familyType": "addresses",
+  "version": "0.1",
+  "status": "current",
+  "publishedAt": "2026-06-01T00:00:00.000Z",
+  "deprecatedAt": null,
+  "retiredAt": null
+}

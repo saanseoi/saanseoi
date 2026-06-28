@@ -1,0 +1,21 @@
+{
+  "versionHash": "vh-data-shards-current-v1",
+  "shards": [
+    {
+      "bindingName": "DB_CURRENT",
+      "shardType": "current",
+      "environment": "preview",
+      "databaseName": "ss-current-db-preview",
+      "databaseId": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
+      "status": "active"
+    },
+    {
+      "bindingName": "DB_CURRENT",
+      "shardType": "current",
+      "environment": "production",
+      "databaseName": "ss-current-db-prod",
+      "databaseId": "edd3cdf9-1d05-4847-b235-b7fd4189c38d",
+      "status": "active"
+    }
+  ]
+}
