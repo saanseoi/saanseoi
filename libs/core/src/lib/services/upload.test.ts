@@ -562,13 +562,16 @@ describe('upload', () => {
         phase: 'stageDataset',
         runId: 'run-stage-dataset-old',
         startedAt: expect.any(String),
-        stats:
-          '"{\\"rawObjectKey\\":\\"hk/overture/2026-05-24.0/division.parquet\\",\\"rowCount\\":3,\\"schemaFieldCount\\":5}"',
+        stats: JSON.stringify({
+          rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+          rowCount: 3,
+          schemaFieldCount: 5,
+        }),
         status: 'completed',
       },
     ])
-    expect(ingestRuns[0]?.startedAt).not.toBe('2026-06-02T00:00:00.000Z')
-    expect(ingestRuns[1]?.startedAt).not.toBe('2026-06-02T00:00:01.000Z')
+    expect(ingestRuns[0]?.startedAt).toBe('2026-06-02T00:00:00.000Z')
+    expect(ingestRuns[1]?.startedAt).toBe('2026-06-02T00:00:01.000Z')
   })
 
   test('allows restarting a failed direct-upload session', async () => {
@@ -678,19 +681,17 @@ describe('upload', () => {
         error: null,
         phase: 'requestUpload',
         startedAt: expect.any(String),
-        stats: JSON.stringify(
-          JSON.stringify({
-            releaseCode: 'overture-hk-2026-05-24.0-division',
-            rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
-            rowCount: fixtureInspection.rowCount,
-            schemaFingerprint: createSchemaFingerprint(fixtureInspection),
-            shardYear: null,
-          }),
-        ),
+        stats: JSON.stringify({
+          releaseCode: 'overture-hk-2026-05-24.0-division',
+          rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+          rowCount: fixtureInspection.rowCount,
+          schemaFingerprint: createSchemaFingerprint(fixtureInspection),
+          shardYear: null,
+        }),
         status: 'completed',
       },
     ])
-    expect(ingestRuns[0]?.startedAt).not.toBe('2026-06-02T00:00:00.000Z')
+    expect(ingestRuns[0]?.startedAt).toBe('2026-06-02T00:00:00.000Z')
   })
 
   test('allows requestUpload to replace an uploading session when explicitly allowed', async () => {
