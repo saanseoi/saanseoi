@@ -1,6 +1,7 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
 import { HealthResponseSchema } from '../../schema'
+import { withPrimarySession } from '../../lib/d1'
 import type { AppEnv } from '../../types'
 
 const healthRouteConfig = createRoute({
@@ -22,10 +23,11 @@ const healthRouteConfig = createRoute({
 export const healthRoute = defineOpenAPIRoute<typeof healthRouteConfig, AppEnv>({
   route: healthRouteConfig,
   handler: async c => {
-    const ping = await c.env.DB_META.prepare('SELECT 1 AS ok').first<{ ok: number }>()
-    const datasetCount = await c.env.DB_META.prepare(
-      'SELECT COUNT(*) AS "count" FROM "datasets"',
-    ).first<{ count: number }>()
+    const db = withPrimarySession(c.env.DB_META)
+    const ping = await db.prepare('SELECT 1 AS ok').first<{ ok: number }>()
+    const datasetCount = await db
+      .prepare('SELECT COUNT(*) AS "count" FROM "datasets"')
+      .first<{ count: number }>()
 
     return c.json(
       {
