@@ -34,7 +34,7 @@ import { watchCurrentUpload } from './lib/watch.ts'
 
 function printUsage() {
   console.log(`  Usage:
-  saanseoi upload <file> [--target local|cf-preview|cf-production] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--yes]
+  saanseoi upload <file> [--target local|cf-preview|cf-production] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--force] [--yes]
   saanseoi upload:finalize --release <release-id|release-code> [--target local|cf-preview|cf-production] [--yes]
   saanseoi upload:requeue --release <release-id|release-code> [--target local|cf-preview|cf-production] [--yes]
   saanseoi upload:watch [--target local|cf-preview|cf-production]
@@ -55,6 +55,7 @@ async function main() {
   const args = parseArgs(process.argv)
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const dryRun = Boolean(args.options['dry-run'])
+  const forceUpload = Boolean(args.options.force)
   const skipConfirm = Boolean(args.options.yes)
   const target = resolveUploadTarget(args)
 
@@ -350,6 +351,9 @@ async function main() {
     registerOptions,
     previewResult,
     schemaVersionId,
+    {
+      force: forceUpload,
+    },
   )
 
   note(

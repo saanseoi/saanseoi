@@ -56,6 +56,7 @@ export type SignUploadRequest = {
   contentType?: string
   fileName: string
   fileSize: number
+  force?: boolean
   inspection: ParquetInspection
   plan: {
     regionCode?: string
@@ -132,6 +133,7 @@ export async function handleSignUploadRequest(
     type: request.plan.type,
     inspection: request.inspection,
     resolveSchemaFingerprint,
+    allowExistingDatasetStatuses: request.force ? ['uploading'] : undefined,
   })
 
   const expiresInSeconds = 15 * 60

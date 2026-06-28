@@ -212,6 +212,159 @@ describe('upload release action helpers', () => {
     )
   })
 
+  test('passes force through remote signed uploads', async () => {
+    const calls: Array<{ init?: RequestInit; url: string }> = []
+    const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
+    const filePath = join(tempDir, 'division.parquet')
+    tempDirs.push(tempDir)
+    writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async (input, init) => {
+      const url = String(input)
+      calls.push({ init, url })
+
+      if (url === 'https://harbour.saanseoi.hk/v1/signUpload') {
+        return new Response(
+          JSON.stringify({
+            datasetCode: releaseRow.datasetCode,
+            datasetId: releaseRow.datasetId,
+            expiresAt: '2026-06-27T00:15:00.000Z',
+            rawObjectKey: releaseRow.rawObjectKey,
+            releaseCode: releaseRow.releaseCode,
+            releaseId: releaseRow.releaseId,
+            status: 'uploading',
+            uploadHeaders: {
+              'content-type': 'application/octet-stream',
+            },
+            uploadMethod: 'PUT',
+            uploadUrl: 'https://r2.example/upload',
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      if (url === 'https://r2.example/upload') {
+        return new Response(null, { status: 200 })
+      }
+
+      if (url === 'https://harbour.saanseoi.hk/v1/finalizeUpload') {
+        return new Response(
+          JSON.stringify({ releaseId: releaseRow.releaseId, status: 'staged' }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`)
+    }) as typeof fetch
+
+    await dispatchUpload(
+      target,
+      {
+        filePath,
+      } as never,
+      {
+        inspection: {
+          rowCount: 1810,
+          schema: [],
+        },
+        plan: {
+          datasetCode: 'hk-division',
+          fileName: 'division.parquet',
+          regionCode: 'hk',
+          releaseCode: releaseRow.releaseCode,
+          snapshotMonth: '2025-09',
+          source: 'overture',
+          sourceVersion: '2025-09-24.0',
+          theme: 'divisions',
+          type: 'division',
+        },
+      } as never,
+      'schema-version-1',
+      {
+        force: true,
+      },
+    )
+
+    const signBody = JSON.parse(String(calls[0]?.init?.body)) as { force?: boolean }
+
+    expect(calls.map(call => call.url)).toEqual([
+      'https://harbour.saanseoi.hk/v1/signUpload',
+      'https://r2.example/upload',
+      'https://harbour.saanseoi.hk/v1/finalizeUpload',
+    ])
+    expect(signBody.force).toBe(true)
+  })
+
+  test('explains when a forced remote upload is rejected by an old API deployment', async () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
+    const filePath = join(tempDir, 'division.parquet')
+    tempDirs.push(tempDir)
+    writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async input => {
+      const url = String(input)
+
+      if (url === 'https://harbour.saanseoi.hk/v1/signUpload') {
+        return new Response(
+          JSON.stringify({
+            message:
+              'Dataset already exists with status uploading: overture-hk-division',
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 400,
+          },
+        )
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`)
+    }) as typeof fetch
+
+    await expect(
+      dispatchUpload(
+        target,
+        {
+          filePath,
+        } as never,
+        {
+          inspection: {
+            rowCount: 1810,
+            schema: [],
+          },
+          plan: {
+            datasetCode: 'hk-division',
+            fileName: 'division.parquet',
+            regionCode: 'hk',
+            releaseCode: releaseRow.releaseCode,
+            snapshotMonth: '2025-09',
+            source: 'overture',
+            sourceVersion: '2025-09-24.0',
+            theme: 'divisions',
+            type: 'division',
+          },
+        } as never,
+        'schema-version-1',
+        {
+          force: true,
+        },
+      ),
+    ).rejects.toThrow('/v1/signUpload supports forced upload-session replacement')
+  })
+
   test('recovers a local direct upload from a transient 503 when the release was already staged', async () => {
     const calls: string[] = []
     const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
@@ -435,6 +588,92 @@ describe('upload release action helpers', () => {
     expect(calls[0]).toContain(
       '/v1/reports/releases?limit=1&releaseCode=overture-hk-2025-09-24.0-division',
     )
+  })
+
+  test('allows a local direct upload over an uploading release when forced', async () => {
+    const calls: Array<{ body?: RequestInit['body']; url: string }> = []
+    const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
+    const filePath = join(tempDir, 'division.parquet')
+    tempDirs.push(tempDir)
+    writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async (input, init) => {
+      const url = String(input)
+      calls.push({ body: init?.body, url })
+
+      if (url.startsWith('https://preview.harbour.saanseoi.hk/v1/reports/releases')) {
+        return new Response(
+          JSON.stringify({
+            rows: [releaseRow],
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      if (url === 'https://preview.harbour.saanseoi.hk/v1/upload') {
+        return new Response(
+          JSON.stringify({
+            datasetCode: releaseRow.datasetCode,
+            datasetId: releaseRow.datasetId,
+            rawObjectKey: releaseRow.rawObjectKey,
+            releaseCode: releaseRow.releaseCode,
+            releaseId: releaseRow.releaseId,
+            status: 'staged',
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`)
+    }) as typeof fetch
+
+    await dispatchUpload(
+      localTarget,
+      {
+        filePath,
+      } as never,
+      {
+        inspection: {
+          rowCount: 1810,
+          schema: [],
+        },
+        plan: {
+          datasetCode: 'hk-division',
+          fileName: 'division.parquet',
+          regionCode: 'hk',
+          releaseCode: releaseRow.releaseCode,
+          snapshotMonth: '2025-09',
+          source: 'overture',
+          sourceVersion: '2025-09-24.0',
+          theme: 'divisions',
+          type: 'division',
+        },
+      } as never,
+      'schema-version-1',
+      {
+        force: true,
+      },
+    )
+
+    const uploadBody = calls[1]?.body
+
+    expect(uploadBody).toBeInstanceOf(FormData)
+    expect((uploadBody as FormData).get('force')).toBe('true')
+    expect(calls.map(call => call.url)).toEqual([
+      'https://preview.harbour.saanseoi.hk/v1/reports/releases?limit=1&releaseCode=overture-hk-2025-09-24.0-division',
+      'https://preview.harbour.saanseoi.hk/v1/upload',
+    ])
   })
 
   test('fails immediately for a local direct upload when the release preflight probe errors', async () => {
