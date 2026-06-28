@@ -226,6 +226,50 @@ describe('upload session flow', () => {
     ).toBe('overture-hk-division.parquet')
   })
 
+  test('force signing replaces an interrupted uploading session', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-force-sign.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const bucket = new FakeR2Bucket()
+    const request = {
+      contentType: 'application/octet-stream',
+      fileName: 'overture-hk-division.parquet',
+      fileSize: fixtureBytes.byteLength,
+      inspection: fixtureInspection,
+      plan: {
+        shardYear: '2026',
+        snapshotMonth: '2026-05',
+        sourceVersion: '2026-05-24.0',
+      },
+      schemaVersionId: 'overture-division-v2025-09-24.0',
+    }
+
+    const firstSignResult = await handleSignUploadRequest(
+      db,
+      bucket,
+      signingEnv,
+      request,
+    )
+
+    await expect(
+      handleSignUploadRequest(db, bucket, signingEnv, request),
+    ).rejects.toThrow(
+      'Dataset already exists with status uploading: overture-hk-division',
+    )
+
+    const forcedSignResult = await handleSignUploadRequest(db, bucket, signingEnv, {
+      ...request,
+      force: true,
+    })
+
+    sqlite.close()
+
+    expect(forcedSignResult.releaseId).toBe(firstSignResult.releaseId)
+    expect(forcedSignResult.rawObjectKey).toBe(firstSignResult.rawObjectKey)
+    expect(forcedSignResult.status).toBe('uploading')
+  })
+
   test('requeues an existing staged release without re-finalizing the upload', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-requeue.sqlite')

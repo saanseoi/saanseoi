@@ -998,7 +998,7 @@ export async function registerUpload(
   const now = new Date().toISOString()
 
   if (existingDataset) {
-    assertDatasetCanBeReuploaded(existingDataset)
+    assertDatasetCanBeReuploaded(existingDataset, options.allowExistingDatasetStatuses)
     await resetFailedDataset(db, plan, rawObjectKey, now, 'staged')
   } else {
     await insertDataset(db, plan, rawObjectKey, now)
@@ -1052,7 +1052,7 @@ export async function requestUpload(
   const now = new Date().toISOString()
 
   if (existingDataset) {
-    assertDatasetCanBeReuploaded(existingDataset)
+    assertDatasetCanBeReuploaded(existingDataset, options.allowExistingDatasetStatuses)
     await resetFailedDataset(db, plan, rawObjectKey, now, 'uploading')
   } else {
     await insertDataset(db, plan, rawObjectKey, now, 'uploading')

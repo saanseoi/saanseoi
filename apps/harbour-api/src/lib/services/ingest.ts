@@ -10,6 +10,7 @@ import type {
 
 type UploadFormFields = {
   filePath: string
+  force?: boolean
   regionCode?: string
   shardYear?: string
   snapshotMonth?: string
@@ -65,6 +66,7 @@ function getOptionalText(
 function buildUploadFields(fileName: string, formData: FormData): UploadFormFields {
   return {
     filePath: fileName,
+    force: getOptionalBoolean(formData, 'force'),
     regionCode: getOptionalText(formData, 'regionCode', ['region']),
     shardYear: getOptionalText(formData, 'shardYear', ['year']),
     snapshotMonth: getOptionalText(formData, 'snapshotMonth', ['month']),
@@ -73,6 +75,16 @@ function buildUploadFields(fileName: string, formData: FormData): UploadFormFiel
     source: getOptionalText(formData, 'source'),
     sourceVersion: getOptionalText(formData, 'sourceVersion', ['source-version']),
   }
+}
+
+function getOptionalBoolean(formData: FormData, key: string) {
+  const value = formData.get(key)
+
+  if (typeof value !== 'string') {
+    return false
+  }
+
+  return ['1', 'true', 'yes'].includes(value.trim().toLowerCase())
 }
 
 function resolveShardYear(
@@ -129,6 +141,7 @@ export async function handleUploadRequest(
       ...uploadFields,
       inspection,
       resolveSchemaFingerprint,
+      allowExistingDatasetStatuses: uploadFields.force ? ['uploading'] : undefined,
     },
     inspection,
   )
@@ -160,6 +173,7 @@ export async function handleUploadRequest(
       inspection,
       rawObjectKey,
       resolveSchemaFingerprint,
+      allowExistingDatasetStatuses: uploadFields.force ? ['uploading'] : undefined,
     })
 
     if (!registered.rawObjectKey) {

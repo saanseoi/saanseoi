@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path'
 import { Database } from 'bun:sqlite'
 
 import type { ParquetInspection } from '@repo/core'
+import { requestUpload } from '@repo/core/upload'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
 import {
   loadMigrationSql,
@@ -172,5 +173,58 @@ describe('direct upload flow', () => {
       ['registerDataset', 'completed'],
       ['stageDataset', 'completed'],
     ])
+  })
+
+  test('force registers over an interrupted uploading session', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-force-ingest.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const bucket = new FakeR2Bucket()
+    const queuedMessages: Array<Record<string, string>> = []
+    const queue: DatasetProcessingQueue = {
+      async send(message) {
+        queuedMessages.push(message as Record<string, string>)
+      },
+    }
+
+    const interrupted = await requestUpload(db, {
+      filePath: 'overture-hk-division.parquet',
+      shardYear: '2026',
+      snapshotMonth: '2026-05',
+      sourceVersion: '2026-05-24.0',
+      inspection: fixtureInspection,
+    })
+    const file = new File(
+      [new Uint8Array([0x50, 0x41, 0x52, 0x31])],
+      'overture-hk-division.parquet',
+      {
+        type: 'application/octet-stream',
+      },
+    )
+    const formData = new FormData()
+
+    formData.set('file', file)
+    formData.set('force', 'true')
+    formData.set('shardYear', '2026')
+    formData.set('snapshotMonth', '2026-05')
+    formData.set('sourceVersion', '2026-05-24.0')
+
+    const result = await handleUploadRequest(db, bucket, queue, formData)
+    const dataset = sqlite
+      .query('SELECT id, status FROM releases WHERE code = ?')
+      .get('overture-hk-2026-05-24.0-division') as {
+      id: string
+      status: string
+    } | null
+
+    sqlite.close()
+
+    expect(result.releaseId).toBe(interrupted.releaseId)
+    expect(dataset).toEqual({
+      id: interrupted.releaseId,
+      status: 'staged',
+    })
+    expect(queuedMessages).toHaveLength(1)
   })
 })

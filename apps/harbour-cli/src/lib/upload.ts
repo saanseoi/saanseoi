@@ -23,6 +23,9 @@ type SignUploadResponse = {
 }
 
 type UploadResponse = Record<string, unknown>
+type DispatchUploadOptions = {
+  force?: boolean
+}
 const TRANSIENT_UPLOAD_RESPONSE_STATUSES = new Set([502, 503, 504])
 const DIRECT_UPLOAD_RETRY_LIMIT = 2
 const DIRECT_UPLOAD_RETRY_DELAY_MS = 250
@@ -69,12 +72,19 @@ export async function dispatchUpload(
   registerOptions: CliUploadOptions,
   previewResult: UploadPreviewResult,
   schemaVersionId: string,
+  options: DispatchUploadOptions = {},
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(target)
 
   if (!target.remote) {
-    await assertLocalDirectUploadCanProceed(target, previewResult)
-    return uploadFileViaWorker(apiBaseUrl, target, registerOptions, previewResult)
+    await assertLocalDirectUploadCanProceed(target, previewResult, options.force)
+    return uploadFileViaWorker(
+      apiBaseUrl,
+      target,
+      registerOptions,
+      previewResult,
+      options,
+    )
   }
 
   const fileBytes = await readFile(registerOptions.filePath)
@@ -84,6 +94,7 @@ export async function dispatchUpload(
     previewResult,
     fileStats.size,
     schemaVersionId,
+    options,
   )
 
   await uploadFileToSignedUrl(signResponse, fileBytes)
@@ -96,6 +107,7 @@ async function uploadFileViaWorker(
   target: UploadTarget,
   registerOptions: CliUploadOptions,
   previewResult: UploadPreviewResult,
+  options: DispatchUploadOptions,
   attempt = 0,
 ) {
   const shardYear = resolveShardYear(
@@ -116,6 +128,9 @@ async function uploadFileViaWorker(
   formData.set('type', previewResult.plan.type)
   formData.set('source', previewResult.plan.source)
   formData.set('sourceVersion', previewResult.plan.sourceVersion)
+  if (options.force) {
+    formData.set('force', 'true')
+  }
 
   let response: Response
 
@@ -145,6 +160,7 @@ async function uploadFileViaWorker(
       target,
       registerOptions,
       previewResult,
+      options,
       attempt + 1,
     )
   }
@@ -172,6 +188,7 @@ async function uploadFileViaWorker(
       target,
       registerOptions,
       previewResult,
+      options,
       attempt + 1,
     )
   }
@@ -184,6 +201,7 @@ async function requestSignedUpload(
   previewResult: UploadPreviewResult,
   fileSize: number,
   schemaVersionId: string,
+  options: DispatchUploadOptions,
 ) {
   const shardYear = resolveShardYear(
     previewResult.plan.snapshotMonth,
@@ -209,11 +227,16 @@ async function requestSignedUpload(
         theme: previewResult.plan.theme,
         type: previewResult.plan.type,
       },
+      force: Boolean(options.force),
       schemaVersionId,
     }),
   })
 
-  return parseJsonResponse<SignUploadResponse>(response, 'Harbour signUpload')
+  try {
+    return await parseJsonResponse<SignUploadResponse>(response, 'Harbour signUpload')
+  } catch (error) {
+    throw appendForceUploadDeploymentHint(error, options)
+  }
 }
 
 async function uploadFileToSignedUrl(
@@ -305,6 +328,7 @@ async function tryRecoverDirectUpload(
 async function assertLocalDirectUploadCanProceed(
   target: UploadTarget,
   previewResult: UploadPreviewResult,
+  force = false,
 ) {
   try {
     const report = await fetchReleaseReport(target, {
@@ -314,6 +338,10 @@ async function assertLocalDirectUploadCanProceed(
     const release = report.rows[0]
 
     if (!release || release.status === 'failed') {
+      return
+    }
+
+    if (force && release.status === 'uploading') {
       return
     }
 
@@ -425,4 +453,26 @@ async function parseJsonResponse<T>(response: Response, action: string) {
   }
 
   return payload as T
+}
+
+function appendForceUploadDeploymentHint(
+  error: unknown,
+  options: DispatchUploadOptions,
+) {
+  if (
+    options.force &&
+    error instanceof Error &&
+    error.message.startsWith('Dataset already exists with status uploading: ')
+  ) {
+    return new Error(
+      [
+        error.message,
+        '',
+        '`--force` was sent by the CLI, but the Harbour API still rejected the uploading release.',
+        'Deploy harbour-api to this target so /v1/signUpload supports forced upload-session replacement.',
+      ].join('\n'),
+    )
+  }
+
+  return error
 }

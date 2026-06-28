@@ -199,7 +199,16 @@ export const UploadResponseSchema = z
   .openapi('HarbourUploadResponse')
 
 export const SignUploadRequestSchema = z
-  .object({})
+  .object({
+    force: z
+      .boolean()
+      .optional()
+      .openapi({
+        description:
+          'Allow replacing an existing upload session only when the release is still in uploading status.',
+        examples: [true],
+      }),
+  })
   .loose()
   .openapi('HarbourSignUploadRequest')
 

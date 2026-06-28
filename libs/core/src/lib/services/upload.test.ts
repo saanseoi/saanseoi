@@ -693,6 +693,66 @@ describe('upload', () => {
     expect(ingestRuns[0]?.startedAt).not.toBe('2026-06-02T00:00:00.000Z')
   })
 
+  test('allows requestUpload to replace an uploading session when explicitly allowed', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-request-upload-force.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    const { releaseId } = insertFixtureRelease(sqlite, {
+      source: 'overture',
+      regionCode: 'hk',
+      snapshotMonth: '2026-05',
+      theme: 'divisions',
+      type: 'division',
+      sourceVersion: '2026-05-24.0',
+      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+      originalFileName: 'old-division.parquet',
+      status: 'uploading',
+      ingestedAt: '2026-06-02T00:00:00.000Z',
+      createdAt: '2026-06-02T00:00:00.000Z',
+      updatedAt: '2026-06-02T00:00:00.000Z',
+    })
+
+    await expect(
+      requestUpload(db, {
+        filePath: fixtureFile,
+        snapshotMonth: '2026-05',
+        source: 'overture',
+        sourceVersion: '2026-05-24.0',
+        inspection: fixtureInspection,
+      }),
+    ).rejects.toThrow(
+      'Dataset already exists with status uploading: overture-hk-division',
+    )
+
+    const result = await requestUpload(db, {
+      filePath: fixtureFile,
+      snapshotMonth: '2026-05',
+      source: 'overture',
+      sourceVersion: '2026-05-24.0',
+      inspection: fixtureInspection,
+      allowExistingDatasetStatuses: ['uploading'],
+    })
+    const dataset = sqlite
+      .query('SELECT id, status, originalFileName FROM releases WHERE code = ?')
+      .get('overture-hk-2026-05-24.0-division') as {
+      id: string
+      originalFileName: string
+      status: string
+    } | null
+
+    sqlite.close()
+
+    expect(result.releaseId).toBe(releaseId)
+    expect(dataset).toMatchObject({
+      id: releaseId,
+      originalFileName: 'hk-division-2026-05.parquet',
+      status: 'uploading',
+    })
+  })
+
   test('finalizes an uploading direct-upload session into staged', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
