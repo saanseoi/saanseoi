@@ -469,6 +469,9 @@ export async function upsertDivisionCurrentStates(
   db: HarbourWritableDb,
   snapshotId: string,
   rows: CurrentDivisionWriteRow[],
+  options?: {
+    assumeSnapshotEmpty?: boolean
+  },
 ) {
   if (rows.length === 0) {
     return
@@ -478,28 +481,31 @@ export async function upsertDivisionCurrentStates(
   const statements = []
 
   for (const chunk of chunkArray(rows, chunkSize)) {
+    const statement = db
+      .insert(currentSchema.divisions)
+      .values(chunk.map(row => ({ ...row, snapshotId })))
+
     statements.push(
-      db
-        .insert(currentSchema.divisions)
-        .values(chunk.map(row => ({ ...row, snapshotId })))
-        .onConflictDoUpdate({
-          target: [currentSchema.divisions.snapshotId, currentSchema.divisions.id],
-          set: {
-            bbox: excluded('bbox'),
-            cartography: excluded('cartography'),
-            class: excluded('class'),
-            geometry: excluded('geometry'),
-            hierarchy: excluded('hierarchy'),
-            level: excluded('level'),
-            population: excluded('population'),
-            type: excluded('type'),
-            parentDivisionId: excluded('parentDivisionId'),
-            sources: excluded('sources'),
-            subtype: excluded('subtype'),
-            updatedAt: excluded('updatedAt'),
-            wikidata: excluded('wikidata'),
-          },
-        }),
+      options?.assumeSnapshotEmpty
+        ? statement.onConflictDoNothing()
+        : statement.onConflictDoUpdate({
+            target: [currentSchema.divisions.snapshotId, currentSchema.divisions.id],
+            set: {
+              bbox: excluded('bbox'),
+              cartography: excluded('cartography'),
+              class: excluded('class'),
+              geometry: excluded('geometry'),
+              hierarchy: excluded('hierarchy'),
+              level: excluded('level'),
+              population: excluded('population'),
+              type: excluded('type'),
+              parentDivisionId: excluded('parentDivisionId'),
+              sources: excluded('sources'),
+              subtype: excluded('subtype'),
+              updatedAt: excluded('updatedAt'),
+              wikidata: excluded('wikidata'),
+            },
+          }),
     )
   }
 
@@ -514,28 +520,33 @@ export async function replaceDivisionCurrentI18n(
   snapshotId: string,
   divisionIds: string[],
   rows: CurrentDivisionI18nWriteRow[],
+  options?: {
+    assumeSnapshotEmpty?: boolean
+  },
 ) {
   if (divisionIds.length === 0) {
     return
   }
 
-  const deleteChunkSize = getMaxItemsPerInClause(1, 1)
-  const deleteStatements = []
+  if (!options?.assumeSnapshotEmpty) {
+    const deleteChunkSize = getMaxItemsPerInClause(1, 1)
+    const deleteStatements = []
 
-  for (const divisionIdChunk of chunkArray(divisionIds, deleteChunkSize)) {
-    deleteStatements.push(
-      db
-        .delete(currentSchema.divisionsI18n)
-        .where(
-          and(
-            eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
-            inArray(currentSchema.divisionsI18n.divisionId, divisionIdChunk),
+    for (const divisionIdChunk of chunkArray(divisionIds, deleteChunkSize)) {
+      deleteStatements.push(
+        db
+          .delete(currentSchema.divisionsI18n)
+          .where(
+            and(
+              eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
+              inArray(currentSchema.divisionsI18n.divisionId, divisionIdChunk),
+            ),
           ),
-        ),
-    )
-  }
+      )
+    }
 
-  await runStatementsInGroupsWithWriteRetry(db, deleteStatements)
+    await runStatementsInGroupsWithWriteRetry(db, deleteStatements)
+  }
 
   if (rows.length > 0) {
     await insertDivisionsI18nInChunks(
@@ -544,6 +555,7 @@ export async function replaceDivisionCurrentI18n(
         ...row,
         snapshotId,
       })),
+      options,
     )
   }
 }
@@ -575,6 +587,9 @@ export async function insertDivisionVersionRows(
       updatedAt: string
     }
   >,
+  options?: {
+    assumeVersionRowsAbsent?: boolean
+  },
 ) {
   if (baseRows.length === 0) {
     return
@@ -587,53 +602,54 @@ export async function insertDivisionVersionRows(
   const baseStatements = []
 
   for (const chunk of chunkArray(baseRows, baseChunkSize)) {
+    const statement = historyDb.insert(historySchema.divisionsVersions).values(
+      chunk.map(row => ({
+        id: row.id,
+        regionCode: context.regionCode,
+        versionHash: row.versionHash,
+        sourceReleaseId: context.releaseId,
+        snapshotId: context.snapshotId,
+        validFromSnapshotId: context.snapshotId,
+        validToSnapshotId: null,
+        validFromMonth: context.snapshotMonth,
+        validToMonth: null,
+        isCurrent: true,
+        level: row.level,
+        type: row.type,
+        geometry: row.geometry,
+        bbox: row.bbox,
+        population: row.population,
+        subtype: row.subtype,
+        class: row.class,
+        wikidata: row.wikidata,
+        hierarchy: row.hierarchy,
+        parentDivisionId: row.parentDivisionId,
+        cartography: row.cartography,
+        sources: row.sources,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      })),
+    )
+
     baseStatements.push(
-      historyDb
-        .insert(historySchema.divisionsVersions)
-        .values(
-          chunk.map(row => ({
-            id: row.id,
-            regionCode: context.regionCode,
-            versionHash: row.versionHash,
-            sourceReleaseId: context.releaseId,
-            snapshotId: context.snapshotId,
-            validFromSnapshotId: context.snapshotId,
-            validToSnapshotId: null,
-            validFromMonth: context.snapshotMonth,
-            validToMonth: null,
-            isCurrent: true,
-            level: row.level,
-            type: row.type,
-            geometry: row.geometry,
-            bbox: row.bbox,
-            population: row.population,
-            subtype: row.subtype,
-            class: row.class,
-            wikidata: row.wikidata,
-            hierarchy: row.hierarchy,
-            parentDivisionId: row.parentDivisionId,
-            cartography: row.cartography,
-            sources: row.sources,
-            createdAt: row.createdAt,
-            updatedAt: row.updatedAt,
-          })),
-        )
-        .onConflictDoUpdate({
-          target: [
-            historySchema.divisionsVersions.id,
-            historySchema.divisionsVersions.versionHash,
-          ],
-          set: {
-            isCurrent: true,
-            sourceReleaseId: context.releaseId,
-            snapshotId: context.snapshotId,
-            validFromMonth: context.snapshotMonth,
-            validFromSnapshotId: context.snapshotId,
-            validToSnapshotId: null,
-            validToMonth: null,
-            updatedAt: excluded('updatedAt'),
-          },
-        }),
+      options?.assumeVersionRowsAbsent
+        ? statement.onConflictDoNothing()
+        : statement.onConflictDoUpdate({
+            target: [
+              historySchema.divisionsVersions.id,
+              historySchema.divisionsVersions.versionHash,
+            ],
+            set: {
+              isCurrent: true,
+              sourceReleaseId: context.releaseId,
+              snapshotId: context.snapshotId,
+              validFromMonth: context.snapshotMonth,
+              validFromSnapshotId: context.snapshotId,
+              validToSnapshotId: null,
+              validToMonth: null,
+              updatedAt: excluded('updatedAt'),
+            },
+          }),
     )
   }
 
@@ -660,6 +676,7 @@ export async function insertDivisionVersionRows(
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       })),
+      options,
     )
   }
 }
@@ -670,12 +687,18 @@ export async function insertDivisionVersionRows(
 async function insertDivisionsI18nInChunks(
   db: HarbourWritableDb,
   rows: NewDivisionI18nRow[],
+  options?: {
+    assumeSnapshotEmpty?: boolean
+  },
 ) {
   const chunkSize = getMaxRowsPerInsert(CURRENT_DIVISION_I18N_COLUMN_COUNT)
   const statements = []
 
   for (const chunk of chunkArray(rows, chunkSize)) {
-    statements.push(db.insert(currentSchema.divisionsI18n).values(chunk))
+    const statement = db.insert(currentSchema.divisionsI18n).values(chunk)
+    statements.push(
+      options?.assumeSnapshotEmpty ? statement.onConflictDoNothing() : statement,
+    )
   }
 
   await runStatementsInGroupsWithWriteRetry(db, statements)
@@ -704,36 +727,40 @@ async function insertDivisionVersionsI18nInChunks(
     createdAt: string
     updatedAt: string
   }>,
+  options?: {
+    assumeVersionRowsAbsent?: boolean
+  },
 ) {
   const chunkSize = getMaxRowsPerInsert(HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT)
   const statements = []
 
   for (const chunk of chunkArray(rows, chunkSize)) {
+    const statement = db.insert(historySchema.divisionsVersionsI18n).values(chunk)
+
     statements.push(
-      db
-        .insert(historySchema.divisionsVersionsI18n)
-        .values(chunk)
-        .onConflictDoUpdate({
-          target: [
-            historySchema.divisionsVersionsI18n.divisionId,
-            historySchema.divisionsVersionsI18n.versionHash,
-            historySchema.divisionsVersionsI18n.locale,
-          ],
-          set: {
-            sourceReleaseId: excluded('sourceReleaseId'),
-            snapshotId: excluded('snapshotId'),
-            validFromSnapshotId: excluded('validFromSnapshotId'),
-            validToSnapshotId: null,
-            isCurrent: true,
-            name: excluded('name'),
-            nameAlts: excluded('nameAlts'),
-            nameRules: excluded('nameRules'),
-            nameVariant: excluded('nameVariant'),
-            localType: excluded('localType'),
-            isLocaleInferred: excluded('isLocaleInferred'),
-            updatedAt: excluded('updatedAt'),
-          },
-        }),
+      options?.assumeVersionRowsAbsent
+        ? statement.onConflictDoNothing()
+        : statement.onConflictDoUpdate({
+            target: [
+              historySchema.divisionsVersionsI18n.divisionId,
+              historySchema.divisionsVersionsI18n.versionHash,
+              historySchema.divisionsVersionsI18n.locale,
+            ],
+            set: {
+              sourceReleaseId: excluded('sourceReleaseId'),
+              snapshotId: excluded('snapshotId'),
+              validFromSnapshotId: excluded('validFromSnapshotId'),
+              validToSnapshotId: null,
+              isCurrent: true,
+              name: excluded('name'),
+              nameAlts: excluded('nameAlts'),
+              nameRules: excluded('nameRules'),
+              nameVariant: excluded('nameVariant'),
+              localType: excluded('localType'),
+              isLocaleInferred: excluded('isLocaleInferred'),
+              updatedAt: excluded('updatedAt'),
+            },
+          }),
     )
   }
 

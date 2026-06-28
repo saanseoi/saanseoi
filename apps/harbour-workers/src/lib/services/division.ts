@@ -158,6 +158,7 @@ export async function processDivisionDataset(
     'division',
     versionInsertContext.snapshotId,
   )
+  const isInitialCanonicalLoad = !previousSnapshot && currentRows.size === 0
 
   if (previousSnapshot) {
     await timings.measure('cloneDivisionCurrentSnapshotMs', () =>
@@ -174,6 +175,9 @@ export async function processDivisionDataset(
 
   let processedRows = 0
   let insertedVersions = 0
+  let i18nOnlyChangedRows = 0
+  let sourceChangedRows = 0
+  let sourceUnchangedRows = 0
   let unchangedRows = 0
   let localizedRows = 0
   const statsAccumulator = createLocaleStatsAccumulator()
@@ -183,6 +187,9 @@ export async function processDivisionDataset(
           getCurrentSourceOvertureDivisionMap(sourceDb),
         )
       : null
+  const isInitialSourceLoad =
+    Boolean(sourceDb && message.source === 'overture') &&
+    (currentSourceRows?.size ?? 0) === 0
 
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE)) {
     const sourceRows: Array<typeof sourceSchema.sourceOvertureDivisions.$inferInsert> =
@@ -263,6 +270,7 @@ export async function processDivisionDataset(
         const sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
 
         if (sourceChanged) {
+          sourceChangedRows += 1
           sourceRows.push({
             releaseId,
             datasetId,
@@ -337,6 +345,7 @@ export async function processDivisionDataset(
             })),
           )
         } else if (currentSource) {
+          sourceUnchangedRows += 1
           unchangedSourceIds.add(normalized.base.id)
         }
       }
@@ -381,6 +390,7 @@ export async function processDivisionDataset(
       )
 
       if (!baseChanged) {
+        i18nOnlyChangedRows += 1
         changedDivisionVersionRows.push({
           ...normalized.base,
           versionHash,
@@ -445,6 +455,9 @@ export async function processDivisionDataset(
         currentDb,
         versionInsertContext.snapshotId,
         currentDivisionRows,
+        {
+          assumeSnapshotEmpty: isInitialCanonicalLoad,
+        },
       ),
     )
     await timings.measure('replaceDivisionCurrentI18nMs', () =>
@@ -453,6 +466,9 @@ export async function processDivisionDataset(
         versionInsertContext.snapshotId,
         [...currentDivisionI18nRowIds],
         currentDivisionI18nRows,
+        {
+          assumeSnapshotEmpty: isInitialCanonicalLoad,
+        },
       ),
     )
     await timings.measure('insertDivisionVersionRowsMs', () =>
@@ -461,6 +477,9 @@ export async function processDivisionDataset(
         versionInsertContext,
         changedDivisionVersionRows,
         changedDivisionI18nVersionRows,
+        {
+          assumeVersionRowsAbsent: isInitialCanonicalLoad,
+        },
       ),
     )
     if (sourceDb && message.source === 'overture') {
@@ -469,7 +488,7 @@ export async function processDivisionDataset(
       const releaseId = buildSourceReleaseId(message)
       const datasetId = buildSourceDatasetId(message)
 
-      if (changedIds.length > 0) {
+      if (changedIds.length > 0 && !isInitialSourceLoad) {
         await timings.measure('closeSourceOvertureDivisionVersionsMs', () =>
           closeSourceOvertureDivisionVersions(
             sourceDb,
@@ -480,7 +499,9 @@ export async function processDivisionDataset(
       }
 
       await timings.measure('upsertSourceOvertureDivisionsMs', () =>
-        upsertSourceOvertureDivisions(sourceDb, sourceRows),
+        upsertSourceOvertureDivisions(sourceDb, sourceRows, {
+          assumeCurrentRowsAbsent: isInitialSourceLoad,
+        }),
       )
       await timings.measure('advanceSourceOvertureDivisionReleaseMs', () =>
         advanceSourceOvertureDivisionRelease(
@@ -492,14 +513,20 @@ export async function processDivisionDataset(
       )
 
       await timings.measure('replaceSourceOvertureDivisionI18nRowsMs', () =>
-        replaceSourceOvertureDivisionI18nRows(sourceDb, changedIds, sourceI18nRows),
+        replaceSourceOvertureDivisionI18nRows(sourceDb, changedIds, sourceI18nRows, {
+          assumeCurrentRowsAbsent: isInitialSourceLoad,
+        }),
       )
 
       await timings.measure('insertSourceOvertureDivisionVersionsMs', () =>
-        insertSourceOvertureDivisionVersions(sourceDb, sourceVersionRows),
+        insertSourceOvertureDivisionVersions(sourceDb, sourceVersionRows, {
+          assumeVersionRowsAbsent: isInitialSourceLoad,
+        }),
       )
       await timings.measure('insertSourceOvertureDivisionI18nVersionsMs', () =>
-        insertSourceOvertureDivisionI18nVersions(sourceDb, sourceI18nVersionRows),
+        insertSourceOvertureDivisionI18nVersions(sourceDb, sourceI18nVersionRows, {
+          assumeVersionRowsAbsent: isInitialSourceLoad,
+        }),
       )
     }
 
@@ -555,11 +582,16 @@ export async function processDivisionDataset(
   console.info(
     JSON.stringify({
       datasetId: message.datasetId,
+      i18nOnlyChangedRows,
+      insertedVersions,
+      unchangedRows,
       phase: 'processDivisionDataset',
       processedRows,
       releaseId: message.releaseId ?? message.datasetId,
       snapshotId: versionInsertContext.snapshotId,
       source: message.source,
+      sourceChangedRows,
+      sourceUnchangedRows,
       sourceVersion: message.sourceVersion,
       timingsMs: timings.snapshot(),
       type: message.type,
