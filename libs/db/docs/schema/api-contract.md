@@ -220,9 +220,9 @@ An API field may have one or many source mappings within the same API release.
 That means:
 
 - `address.attributes.geometry`
-  - can point to dataset `overture-hk-address`
+  - can point to dataset `ds-hk-overture-address`
 - `address.attributes.i18n.zhHant.formattedAddress`
-  - can point to dataset `hkgov-hk-address`
+  - can point to dataset `ds-hk-hkgov-address-2d`
 - `place.attributes.i18n.en.name`
   - can point to multiple datasets if the field is merged, enriched, or has fallback rules
 

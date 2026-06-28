@@ -10,6 +10,7 @@ import {
 } from 'drizzle-orm/sqlite-core'
 
 import {
+  apiFamilyTypes,
   apiEndpointMethods,
   apiReleaseSetSourceRoles,
   apiReleaseSetStatuses,
@@ -17,7 +18,7 @@ import {
   datasetTypes,
   provenanceContributionTypes,
   resolverCodes,
-  snapshotFamilies,
+  snapshotResourceTypes,
   snapshotStatuses,
 } from '../../constants/schema'
 import { jsonText, primaryUuid, timestamps } from './_shared'
@@ -26,7 +27,7 @@ import { metaDatasets, metaReleases } from './datasets'
 export const metaApiVersions = sqliteTable('apiVersions', {
   id: primaryUuid('id'),
   code: text('code').notNull().unique(),
-  resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
+  familyType: text('familyType', { enum: apiFamilyTypes }).notNull(),
   version: text('version').notNull(),
   status: text('status', { enum: apiVersionStatuses }).notNull(),
   publishedAt: integer('publishedAt', { mode: 'timestamp_ms' }),
@@ -40,7 +41,7 @@ export const metaSnapshots = sqliteTable(
   'snapshots',
   {
     id: primaryUuid('id'),
-    family: text('family', { enum: snapshotFamilies }).notNull(),
+    resourceType: text('resourceType', { enum: snapshotResourceTypes }).notNull(),
     code: text('code').notNull(),
     status: text('status', { enum: snapshotStatuses }).notNull(),
     publishedAt: integer('publishedAt', { mode: 'timestamp_ms' }),
@@ -50,9 +51,15 @@ export const metaSnapshots = sqliteTable(
     ...timestamps,
   },
   table => [
-    uniqueIndex('snapshots_family_code_unique_idx').on(table.family, table.code),
-    uniqueIndex('snapshots_id_family_unique_idx').on(table.id, table.family),
-    index('snapshots_family_status_idx').on(table.family, table.status),
+    uniqueIndex('snapshots_resourceType_code_unique_idx').on(
+      table.resourceType,
+      table.code,
+    ),
+    uniqueIndex('snapshots_id_resourceType_unique_idx').on(
+      table.id,
+      table.resourceType,
+    ),
+    index('snapshots_resourceType_status_idx').on(table.resourceType, table.status),
   ],
 )
 

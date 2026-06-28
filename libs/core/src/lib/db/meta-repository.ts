@@ -1,6 +1,7 @@
 import {
   and,
   buildApiVersionCode,
+  computeVersionHash,
   buildSnapshotVersionCode,
   desc,
   eq,
@@ -823,6 +824,19 @@ export async function ensureDraftReleaseSetForRelease(
     .get()
   const now = new Date()
   const releaseSetId = crypto.randomUUID()
+  const schemaVersion = latestReleaseSet?.schemaVersion ?? `sv-${type}-v1`
+  const rulesetVersion = latestReleaseSet?.rulesetVersion ?? `rs-${type}-merge-v1`
+  const versionHash = computeVersionHash({
+    apiVersion: apiVersionCode,
+    snapshotVersion: snapshotVersionCode,
+    schemaVersion,
+    rulesetVersion,
+    status: 'draft',
+    publishedAt: null,
+    validFrom: null,
+    validTo: null,
+    notes: null,
+  })
 
   await db
     .insert(metaApiReleaseSets)
@@ -830,14 +844,14 @@ export async function ensureDraftReleaseSetForRelease(
       id: releaseSetId,
       apiVersionId: apiVersion.id,
       code: snapshotVersionCode,
-      schemaVersion: latestReleaseSet?.schemaVersion ?? `sv-${type}-v1`,
-      rulesetVersion: latestReleaseSet?.rulesetVersion ?? `rs-${type}-merge-v1`,
+      schemaVersion,
+      rulesetVersion,
       status: 'draft',
       publishedAt: null,
       validFrom: null,
       validTo: null,
       notes: null,
-      versionHash: `generated:${snapshotVersionCode}`,
+      versionHash,
       createdAt: now,
       updatedAt: now,
     })

@@ -1,10 +1,8 @@
-import type { DatasetType } from './constants/schema'
+import { createHash } from 'node:crypto'
+
+import type { SnapshotResourceType } from './constants/schema'
 
 export type ApiFamily = 'addresses' | 'divisions' | 'places' | 'streets'
-export type SnapshotResourceType = Extract<
-  DatasetType,
-  'address' | 'division' | 'street' | 'place'
->
 
 const API_FAMILY_BY_RESOURCE_TYPE: Record<SnapshotResourceType, ApiFamily> = {
   address: 'addresses',
@@ -48,7 +46,15 @@ export function extractReleaseDateFromSourceVersion(sourceVersion: string) {
     )
   }
 
-  return match[1]
+  const releaseDate = match[1]
+
+  if (!releaseDate) {
+    throw new Error(
+      `Source version matched without a release date capture: "${sourceVersion}".`,
+    )
+  }
+
+  return releaseDate
 }
 
 export function buildSnapshotVersionCode(
@@ -64,4 +70,28 @@ export function buildSnapshotVersionCode(
   }
 
   return `ss-${regionCode}-${resourceType}-${releaseDate}.${increment}`
+}
+
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(entry => stableStringify(entry)).join(',')}]`
+  }
+
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([key]) => key !== 'versionHash')
+      .sort(([left], [right]) => left.localeCompare(right))
+
+    return `{${entries
+      .map(
+        ([key, entryValue]) => `${JSON.stringify(key)}:${stableStringify(entryValue)}`,
+      )
+      .join(',')}}`
+  }
+
+  return JSON.stringify(value)
+}
+
+export function computeVersionHash(value: unknown) {
+  return `sha256:${createHash('sha256').update(stableStringify(value)).digest('hex')}`
 }

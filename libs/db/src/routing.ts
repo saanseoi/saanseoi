@@ -6,7 +6,7 @@ import {
   metaDataShards,
   metaReleaseSetShardAssignments,
 } from './schema/meta'
-import type { DataShardEnvironment, DataShardKind } from './constants/schema'
+import type { DataShardEnvironment, DataShardType } from './constants/schema'
 import type { MetaDatabase } from './client'
 
 /**
@@ -23,8 +23,8 @@ export async function resolveActiveApiReleaseSet(
     .select({
       apiReleaseSetId: metaApiReleaseSets.id,
       code: metaApiReleaseSets.code,
-      canonicalSchemaVersion: metaApiReleaseSets.canonicalSchemaVersion,
-      canonicalLogicVersion: metaApiReleaseSets.canonicalLogicVersion,
+      schemaVersion: metaApiReleaseSets.schemaVersion,
+      rulesetVersion: metaApiReleaseSets.rulesetVersion,
       publishedAt: metaApiReleaseSets.publishedAt,
     })
     .from(metaApiReleaseSets)
@@ -32,7 +32,7 @@ export async function resolveActiveApiReleaseSet(
     .where(
       and(
         eq(metaApiVersions.code, apiVersionCode),
-        eq(metaApiReleaseSets.status, 'active'),
+        eq(metaApiReleaseSets.status, 'current'),
       ),
     )
     .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
@@ -51,7 +51,7 @@ export async function resolveActiveApiReleaseSet(
 export async function resolveShardForReleaseSet(
   db: MetaDatabase,
   apiReleaseSetId: string,
-  kind: Extract<DataShardKind, 'history' | 'current'>,
+  shardType: Extract<DataShardType, 'history' | 'current'>,
   environment: DataShardEnvironment,
 ) {
   const rows = await db
@@ -71,7 +71,7 @@ export async function resolveShardForReleaseSet(
     .where(
       and(
         eq(metaReleaseSetShardAssignments.apiReleaseSetId, apiReleaseSetId),
-        eq(metaDataShards.kind, kind),
+        eq(metaDataShards.shardType, shardType),
         eq(metaDataShards.environment, environment),
         eq(metaDataShards.status, 'active'),
       ),
@@ -90,16 +90,16 @@ export async function resolveShardForReleaseSet(
 export async function resolveShardByBindingName(
   db: MetaDatabase,
   bindingName: string,
-  kind?: DataShardKind,
+  shardType?: DataShardType,
 ) {
   const rows = await db
     .select()
     .from(metaDataShards)
     .where(
-      kind
+      shardType
         ? and(
             eq(metaDataShards.bindingName, bindingName),
-            eq(metaDataShards.kind, kind),
+            eq(metaDataShards.shardType, shardType),
           )
         : eq(metaDataShards.bindingName, bindingName),
     )
