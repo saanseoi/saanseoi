@@ -236,6 +236,63 @@ describe('control service', () => {
     expect(completedRun?.finishedAt).not.toBeNull()
   })
 
+  test('updates running phase stats in place when progress is reported again', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-control-progress.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const { releaseId } = insertFixtureRelease(sqlite, {
+      releaseId: 'release-overture-hk-2025-09-24.0-division',
+      source: 'overture',
+      regionCode: 'hk',
+      snapshotMonth: '2025-09',
+      type: 'division',
+      sourceVersion: '2025-09-24.0',
+      rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'staged',
+      ingestedAt: '2026-06-05T00:00:00.000Z',
+      createdAt: '2026-06-05T00:00:00.000Z',
+      updatedAt: '2026-06-05T00:00:00.000Z',
+    })
+
+    await handleStageStarted(db, {
+      releaseId,
+      phase: 'extractDivisions',
+      stats: {
+        processedRows: 64,
+      },
+    })
+    await handleStageStarted(db, {
+      releaseId,
+      phase: 'extractDivisions',
+      stats: {
+        processedRows: 128,
+      },
+    })
+
+    const ingestRuns = sqlite
+      .query(
+        'SELECT phase, status, stats, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+      )
+      .all(releaseId, 'extractDivisions') as Array<{
+      finishedAt: string | null
+      phase: string
+      stats: string | null
+      status: string
+    }>
+
+    sqlite.close()
+
+    expect(ingestRuns).toHaveLength(1)
+    expect(ingestRuns[0]).toEqual({
+      finishedAt: null,
+      phase: 'extractDivisions',
+      stats: '"{\\"processedRows\\":128}"',
+      status: 'running',
+    })
+  })
+
   test('treats retried stage callbacks as idempotent per release phase', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-control-retries.sqlite')
