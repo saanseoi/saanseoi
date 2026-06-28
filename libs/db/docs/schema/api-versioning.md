@@ -1,89 +1,97 @@
 # API Versioning
 
-Saanseoi API versioning uses Semantic Versioning:
+API versions describe the public contract shape and behavior of one API family.
 
-- `{x}.{y}.{z}`
+Code format:
+
+- `api-{family}-v{version}`
+- examples:
+  - `api-divisions-v0.1`
+  - `api-addresses-v0.1`
+  - `api-places-v0.1`
+
+`family` is the contract family, not the storage model:
+
+- `divisions`
+- `addresses`
+- `places`
+
+`version` follows SemVer-like intent, but routing is still simplified.
 
 ## Meaning
 
 - `x`
-  - breaking response contract change
-  - removes fields
-  - renames fields
-  - changes response shape
-  - changes field semantics incompatibly
+  - breaking API contract change
+  - removed fields
+  - renamed fields
+  - incompatible semantic change
 - `y`
-  - additive response contract change only
-  - adds fields
-  - adds optional metadata blocks
-  - adds optional request parameters without breaking existing clients
+  - additive API contract change
+  - new optional fields
+  - new optional relationships
+  - new optional query parameters
 - `z`
-  - logic-only change
-  - no response shape changes
-  - no field removals
-  - no field renames
+  - logic-only change with no contract change
 
 ## Routing
 
-Patch versions are documented but do not appear in routes.
+Patch releases are tracked in metadata and changelogs, but not routed directly.
 
 Users can request:
 
 - `v{x}`
-  - resolves to the latest `x.y.z`
+  - latest `x.y.z`
 - `v{x}.{y}`
-  - resolves to the latest `x.y.z` within that fixed response shape
+  - latest `x.y.z` within that minor line
 
 Examples:
 
+- `/v0/divisions/...`
+- `/v0.1/divisions/...`
 - `/v0/addresses/...`
-  - latest `0.y.z` for addresses
-- `/v0.1/addresses/...`
-  - latest `0.1.z` for addresses
-
-We do not route on `v{x}.{y}.{z}`.
-
-## Initial Policy
-
-We will start with:
-
-- `v0`
-- `v0.1`
-
-The first concrete published version is:
-
-- `0.1.0`
-
-Changelog label:
-
-- `Alpha Release`
 
 ## Scope
 
-API versions are scoped to a contract family, not necessarily to the whole platform.
+API versions are scoped per family.
 
-Examples:
+That allows:
 
-- `ss-addresses-v0.1`
-- `ss-places-v0.1`
-- `ss-divisions-v0.1`
+- divisions to move from `v0.1` to `v0.2`
+- addresses to stay on `v0.1`
+- places to move to `v1`
 
-This allows:
+## Metadata Fields
 
-- addresses to move from `v0.1` to `v0.2`
-- places to remain at `v0.1`
-- divisions to move to `v1`
+`apiVersions` stores:
 
-## Changelog
+- `code`
+- `familyType`
+- `version`
+- `status`
+- `publishedAt`
+- `deprecatedAt`
+- `retiredAt`
 
-Every published API version must document:
+Recommended status flow:
 
-- version number
-- release date
-- whether the change is `x`, `y`, or `z`
-- added fields
-- removed fields
-- renamed fields
-- logic-only changes
+- `draft`
+- `current`
+- `deprecated`
+- `retired`
 
-Patch releases must still be documented even though they do not appear in routes.
+## Relationship To Data Versioning
+
+An API version does not identify the data snapshot it serves.
+
+That separation is deliberate:
+
+- `apiVersion`
+  - contract version
+- `snapshotVersion`
+  - published data snapshot version
+- `schemaVersion`
+  - canonical field-definition version
+- `rulesetVersion`
+  - transformation logic version
+
+See [Data Versioning](./data-versioning.md).
