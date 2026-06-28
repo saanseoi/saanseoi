@@ -14,7 +14,7 @@ apps/
 data/
   <release dirs>/      Versioned source-data snapshots used by the repo
 docs/
-  processing/          Processing notes, including Overture-specific docs
+  datasets/            Dataset family and source documentation
 libs/
   config-eslint/       Shared ESLint config package
   config-typescript/   Shared base tsconfig used by workspace packages

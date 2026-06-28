@@ -27,7 +27,7 @@ Repo-local operating notes for Codex and similar agents.
 
 ## Documentation
 
-- Whenever `overture` source data is processed, document how it is modified in `docs/processing/overture.md`
+- Whenever source-data processing changes, document it in the relevant `docs/datasets/families/*.md` and `docs/datasets/sources/{source}/*.md` files.
 
 ## Migration workflow
 
