@@ -353,6 +353,10 @@ export async function processDivisionDataset(
         continue
       }
 
+      if (current) {
+        changedDivisionExistingIds.add(normalized.base.id)
+      }
+
       if (!baseChanged) {
         changedDivisionVersionRows.push({
           ...normalized.base,
@@ -375,10 +379,6 @@ export async function processDivisionDataset(
           })),
         )
         continue
-      }
-
-      if (current) {
-        changedDivisionExistingIds.add(normalized.base.id)
       }
 
       insertedVersions += 1
