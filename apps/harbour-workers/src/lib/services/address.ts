@@ -1,5 +1,6 @@
 import type { DatasetProcessingMessage } from '@repo/core'
 import {
+  resolveLatestPublishedSnapshotForFamily,
   insertHistoryVersionProvenanceRows,
   resolveLatestPublishedSnapshotForFamilyRegion,
 } from '@repo/core/db/meta-repository'
@@ -626,12 +627,15 @@ async function loadDivisionLookupMaps(
     'division',
     regionCode,
   )
+  const fallbackDivisionSnapshot =
+    activeDivisionSnapshot ??
+    (await resolveLatestPublishedSnapshotForFamily(metaDb, 'division'))
 
-  if (!activeDivisionSnapshot) {
+  if (!fallbackDivisionSnapshot) {
     throw new Error('Published division snapshot not found.')
   }
 
-  const resolvedRows = await loadDivisionLookupRows(db, activeDivisionSnapshot.id)
+  const resolvedRows = await loadDivisionLookupRows(db, fallbackDivisionSnapshot.id)
 
   const areaByEn = new Map<string, string>()
   const districtByEn = new Map<string, string>()
@@ -661,7 +665,7 @@ async function loadDivisionLookupMaps(
     areaByEn,
     countryId,
     districtByEn,
-    snapshotId: activeDivisionSnapshot.id,
+    snapshotId: fallbackDivisionSnapshot.id,
   } satisfies DivisionLookupMaps
 }
 
