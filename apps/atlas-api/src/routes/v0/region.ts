@@ -117,9 +117,26 @@ const searchRouteConfig = createRoute({
       content: {
         'application/json': {
           schema: ErrorResponseSchema,
+          examples: {
+            snapshotNotReady: {
+              value: {
+                httpStatus: 503,
+                error: 'snapshot_not_ready',
+                message: 'No active place snapshot is published.',
+              },
+            },
+            ftsNotReady: {
+              value: {
+                httpStatus: 503,
+                error: 'fts_not_ready',
+                message:
+                  'FTS index is not initialized. Rebuild placesFts before using search.',
+              },
+            },
+          },
         },
       },
-      description: 'FTS index is not ready.',
+      description: 'Place snapshot or FTS index is not ready.',
     },
     422: ValidationErrorOpenAPIResponse,
   },
@@ -132,7 +149,7 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
     const { locale } = c.req.valid('query')
     const db = c.var.currentDb
     const activePlaceSnapshot = await resolveActiveSnapshotForType(
-      c.var.metaDb,
+      c.var.metaDb as never,
       'place',
       'place',
     )
@@ -140,7 +157,7 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
     if (!activePlaceSnapshot) {
       return c.json(
         {
-          httpStatus: 503,
+          httpStatus: 503 as const,
           error: 'snapshot_not_ready',
           message: 'No active place snapshot is published.',
         },
@@ -212,20 +229,19 @@ export const placesByCellRoute = defineOpenAPIRoute<
 
     const db = c.var.currentDb
     const activePlaceSnapshot = await resolveActiveSnapshotForType(
-      c.var.metaDb,
+      c.var.metaDb as never,
       'place',
       'place',
     )
 
     if (!activePlaceSnapshot) {
-      return c.json(
-        {
-          httpStatus: 503,
-          error: 'snapshot_not_ready',
-          message: 'No active place snapshot is published.',
-        },
-        503,
-      )
+      const response = {
+        httpStatus: 503,
+        error: 'snapshot_not_ready',
+        message: 'No active place snapshot is published.',
+      } as const
+
+      return c.json(response, 503)
     }
 
     const places = await listPlacesByH3Cell(db, {
@@ -252,20 +268,19 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
     const query = c.req.valid('query')
     const db = c.var.currentDb
     const activePlaceSnapshot = await resolveActiveSnapshotForType(
-      c.var.metaDb,
+      c.var.metaDb as never,
       'place',
       'place',
     )
 
     if (!activePlaceSnapshot) {
-      return c.json(
-        {
-          httpStatus: 503,
-          error: 'snapshot_not_ready',
-          message: 'No active place snapshot is published.',
-        },
-        503,
-      )
+      const response = {
+        httpStatus: 503,
+        error: 'snapshot_not_ready',
+        message: 'No active place snapshot is published.',
+      } as const
+
+      return c.json(response, 503)
     }
 
     try {
@@ -288,14 +303,14 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
         error instanceof Error &&
         error.message.includes('FTS index is not initialized')
       ) {
-        return c.json(
-          {
-            httpStatus: 503,
-            error: 'fts_not_ready',
-            message: error.message,
-          },
-          503,
-        )
+        const response = {
+          httpStatus: 503,
+          error: 'fts_not_ready',
+          message:
+            'FTS index is not initialized. Rebuild placesFts before using search.',
+        } as const
+
+        return c.json(response, 503)
       }
 
       throw error
