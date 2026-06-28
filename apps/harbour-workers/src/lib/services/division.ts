@@ -58,7 +58,7 @@ import {
   normalizeLocale,
   stableJsonStringify,
 } from '../utils'
-import { resolveDataShardEnvironment } from './shared'
+import { createOperationTimer, resolveDataShardEnvironment } from './shared'
 
 import type { DivisionVersionSnapshot } from '../db/division'
 
@@ -85,6 +85,11 @@ export type ProcessDatasetResult = {
   statsRows: number
   unchangedRows: number
 }
+
+type ReportProgress = (stats: {
+  localizedRows: number
+  processedRows: number
+}) => Promise<void>
 
 type DivisionNameRuleRecord = {
   value: string
@@ -130,21 +135,22 @@ export async function processDivisionDataset(
   bucket: HarbourWorkerBucket,
   message: DatasetProcessingMessage,
   sourceDb?: SourceDatabase,
+  reportProgress?: ReportProgress,
 ): Promise<ProcessDatasetResult> {
-  const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
-  const environment = resolveDataShardEnvironment(process.env.DATA_SHARD_ENV)
-  const versionInsertContext = await prepareDivisionVersionInsertContext(
-    metaDb,
-    message,
-    environment,
+  const timings = createOperationTimer()
+  const file = await timings.measure('loadParquetBufferMs', () =>
+    createAsyncBufferFromR2(bucket, message.rawObjectKey),
   )
-  const currentRows = await getCurrentDivisionVersionMap(
-    historyDb,
-    message.regionCode,
-    {
+  const environment = resolveDataShardEnvironment(process.env.DATA_SHARD_ENV)
+  const versionInsertContext = await timings.measure(
+    'prepareVersionInsertContextMs',
+    () => prepareDivisionVersionInsertContext(metaDb, message, environment),
+  )
+  const currentRows = await timings.measure('loadCurrentVersionMapMs', () =>
+    getCurrentDivisionVersionMap(historyDb, message.regionCode, {
       buildDivisionBaseHashInput,
       normalizeDivisionI18nSnapshotRow,
-    },
+    }),
   )
   const previousRows = new Map(currentRows)
   const seenIds = new Set<string>()
@@ -157,7 +163,9 @@ export async function processDivisionDataset(
   const statsAccumulator = createLocaleStatsAccumulator()
   const currentSourceRows =
     sourceDb && message.source === 'overture'
-      ? await getCurrentSourceOvertureDivisionMap(sourceDb)
+      ? await timings.measure('loadCurrentSourceMapMs', () =>
+          getCurrentSourceOvertureDivisionMap(sourceDb),
+        )
       : null
 
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE)) {
@@ -405,41 +413,51 @@ export async function processDivisionDataset(
     }
 
     if (changedDivisionExistingIds.size > 0) {
-      await closeCurrentDivisionVersions(
-        historyDb,
-        message.regionCode,
-        [...changedDivisionExistingIds],
-        versionInsertContext.snapshotId,
-        message.snapshotMonth,
+      await timings.measure('closeCurrentDivisionVersionsMs', () =>
+        closeCurrentDivisionVersions(
+          historyDb,
+          message.regionCode,
+          [...changedDivisionExistingIds],
+          versionInsertContext.snapshotId,
+          message.snapshotMonth,
+        ),
       )
     }
 
-    await upsertDivisionCurrentStates(
-      currentDb,
-      versionInsertContext.snapshotId,
-      currentDivisionRows,
+    await timings.measure('upsertDivisionCurrentStatesMs', () =>
+      upsertDivisionCurrentStates(
+        currentDb,
+        versionInsertContext.snapshotId,
+        currentDivisionRows,
+      ),
     )
-    await replaceDivisionCurrentI18n(
-      currentDb,
-      versionInsertContext.snapshotId,
-      [...currentDivisionI18nRowIds],
-      currentDivisionI18nRows,
+    await timings.measure('replaceDivisionCurrentI18nMs', () =>
+      replaceDivisionCurrentI18n(
+        currentDb,
+        versionInsertContext.snapshotId,
+        [...currentDivisionI18nRowIds],
+        currentDivisionI18nRows,
+      ),
     )
-    await insertDivisionVersionRows(
-      historyDb,
-      versionInsertContext,
-      changedDivisionVersionRows,
-      changedDivisionI18nVersionRows,
+    await timings.measure('insertDivisionVersionRowsMs', () =>
+      insertDivisionVersionRows(
+        historyDb,
+        versionInsertContext,
+        changedDivisionVersionRows,
+        changedDivisionI18nVersionRows,
+      ),
     )
-    await insertHistoryVersionProvenanceRows(
-      metaDb,
-      changedDivisionVersionRows.map(row => ({
-        entityId: row.id,
-        entityType: 'division',
-        snapshotId: versionInsertContext.snapshotId,
-        sourceReleaseId: versionInsertContext.releaseId,
-        versionHash: row.versionHash,
-      })),
+    await timings.measure('insertHistoryVersionProvenanceRowsMs', () =>
+      insertHistoryVersionProvenanceRows(
+        metaDb,
+        changedDivisionVersionRows.map(row => ({
+          entityId: row.id,
+          entityType: 'division',
+          snapshotId: versionInsertContext.snapshotId,
+          sourceReleaseId: versionInsertContext.releaseId,
+          versionHash: row.versionHash,
+        })),
+      ),
     )
 
     if (sourceDb && message.source === 'overture') {
@@ -449,40 +467,59 @@ export async function processDivisionDataset(
       const datasetId = buildSourceDatasetId(message)
 
       if (changedIds.length > 0) {
-        await closeSourceOvertureDivisionVersions(
-          sourceDb,
-          changedIds,
-          message.sourceVersion,
+        await timings.measure('closeSourceOvertureDivisionVersionsMs', () =>
+          closeSourceOvertureDivisionVersions(
+            sourceDb,
+            changedIds,
+            message.sourceVersion,
+          ),
         )
       }
 
-      await upsertSourceOvertureDivisions(sourceDb, sourceRows)
-      await advanceSourceOvertureDivisionRelease(
-        sourceDb,
-        unchangedIds,
-        releaseId,
-        datasetId,
+      await timings.measure('upsertSourceOvertureDivisionsMs', () =>
+        upsertSourceOvertureDivisions(sourceDb, sourceRows),
+      )
+      await timings.measure('advanceSourceOvertureDivisionReleaseMs', () =>
+        advanceSourceOvertureDivisionRelease(
+          sourceDb,
+          unchangedIds,
+          releaseId,
+          datasetId,
+        ),
       )
 
-      await replaceSourceOvertureDivisionI18nRows(sourceDb, changedIds, sourceI18nRows)
+      await timings.measure('replaceSourceOvertureDivisionI18nRowsMs', () =>
+        replaceSourceOvertureDivisionI18nRows(sourceDb, changedIds, sourceI18nRows),
+      )
 
-      await insertSourceOvertureDivisionVersions(sourceDb, sourceVersionRows)
-      await insertSourceOvertureDivisionI18nVersions(sourceDb, sourceI18nVersionRows)
+      await timings.measure('insertSourceOvertureDivisionVersionsMs', () =>
+        insertSourceOvertureDivisionVersions(sourceDb, sourceVersionRows),
+      )
+      await timings.measure('insertSourceOvertureDivisionI18nVersionsMs', () =>
+        insertSourceOvertureDivisionI18nVersions(sourceDb, sourceI18nVersionRows),
+      )
+    }
+
+    if (reportProgress) {
+      await reportProgress({
+        localizedRows,
+        processedRows,
+      })
     }
   }
 
-  const deletedRows = await deleteMissingCurrentDivisions(
-    historyDb,
-    message.regionCode,
-    versionInsertContext.snapshotId,
-    message.snapshotMonth,
-    currentRows,
-    seenIds,
+  const deletedRows = await timings.measure('deleteMissingCurrentDivisionsMs', () =>
+    deleteMissingCurrentDivisions(
+      historyDb,
+      message.regionCode,
+      versionInsertContext.snapshotId,
+      message.snapshotMonth,
+      currentRows,
+      seenIds,
+    ),
   )
-  await deleteStaleDivisionCurrentRows(
-    currentDb,
-    versionInsertContext.snapshotId,
-    seenIds,
+  await timings.measure('deleteStaleDivisionCurrentRowsMs', () =>
+    deleteStaleDivisionCurrentRows(currentDb, versionInsertContext.snapshotId, seenIds),
   )
   const churnStats = buildChurnStatsRows(
     buildChurnCounts(previousRows, processedRowsById),
@@ -493,20 +530,38 @@ export async function processDivisionDataset(
       hasNameRegression,
     }),
   )
-  const statsRows = await replaceDatasetStats(
-    metaDb,
-    message.releaseId ?? message.datasetId,
-    [...buildLocaleStatsRows(statsAccumulator), ...churnStats, ...qualityStats],
+  const statsRows = await timings.measure('replaceDatasetStatsMs', () =>
+    replaceDatasetStats(metaDb, message.releaseId ?? message.datasetId, [
+      ...buildLocaleStatsRows(statsAccumulator),
+      ...churnStats,
+      ...qualityStats,
+    ]),
   )
 
   if (sourceDb && message.source === 'overture' && currentSourceRows) {
-    await deleteMissingCurrentSourceOvertureDivisions(
-      sourceDb,
-      message.sourceVersion,
-      currentSourceRows,
-      seenIds,
+    await timings.measure('deleteMissingCurrentSourceOvertureDivisionsMs', () =>
+      deleteMissingCurrentSourceOvertureDivisions(
+        sourceDb,
+        message.sourceVersion,
+        currentSourceRows,
+        seenIds,
+      ),
     )
   }
+
+  console.info(
+    JSON.stringify({
+      datasetId: message.datasetId,
+      phase: 'processDivisionDataset',
+      processedRows,
+      releaseId: message.releaseId ?? message.datasetId,
+      snapshotId: versionInsertContext.snapshotId,
+      source: message.source,
+      sourceVersion: message.sourceVersion,
+      timingsMs: timings.snapshot(),
+      type: message.type,
+    }),
+  )
 
   return {
     deletedRows,

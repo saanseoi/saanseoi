@@ -82,6 +82,11 @@ export function createProcessDatasetMessage(
           bucket,
           message,
           sourceDb,
+          async stats => {
+            await harbourClient.stageStarted(releaseId, 'extractDivisions', {
+              processedRows: stats.processedRows,
+            })
+          },
         )
 
         await harbourClient.stageCompleted(releaseId, 'extractDivisions', {
@@ -111,6 +116,11 @@ export function createProcessDatasetMessage(
           bucket,
           message,
           sourceDb,
+          async stats => {
+            await harbourClient.stageStarted(releaseId, 'extractAddresses', {
+              processedRows: stats.processedRows,
+            })
+          },
         )
 
         await harbourClient.stageCompleted(releaseId, 'extractAddresses', {
