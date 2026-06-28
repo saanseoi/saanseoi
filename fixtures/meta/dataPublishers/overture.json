@@ -1,11 +1,20 @@
 {
-  "versionHash": "vh-publisher-overture-v1",
+  "versionHash": "sha256:0cc2e3dcb84b910704169042bb377f2066b07878a6948ac0f036ab81c75feac2",
   "code": "overture",
   "url": "https://overturemaps.org",
   "contactUrl": "https://docs.overturemaps.org/support/",
   "i18n": [
-    { "locale": "en", "name": "Overture Maps Foundation" },
-    { "locale": "zhHant", "name": "Overture Maps Foundation" },
-    { "locale": "zhHans", "name": "Overture Maps Foundation" }
+    {
+      "locale": "en",
+      "name": "Overture Maps Foundation"
+    },
+    {
+      "locale": "zhHant",
+      "name": "Overture Maps Foundation"
+    },
+    {
+      "locale": "zhHans",
+      "name": "Overture Maps Foundation"
+    }
   ]
 }

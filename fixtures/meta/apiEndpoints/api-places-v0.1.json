@@ -1,7 +1,11 @@
 {
+  "versionHash": "sha256:18f54718a828646a6d62aecb0e896072780d2a1002a61a6fb09f47d6777fc834",
   "apiVersion": "api-places-v0.1",
-  "versionHash": "vh-api-endpoints-places-v0.1-v1",
   "endpoints": [
-    { "method": "GET", "path": "/v0/places", "operationId": "listPlacesV0" }
+    {
+      "method": "GET",
+      "path": "/v0/places",
+      "operationId": "listPlacesV0"
+    }
   ]
 }
