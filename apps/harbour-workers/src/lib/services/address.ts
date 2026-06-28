@@ -51,7 +51,7 @@ import {
 } from '../db/source'
 import { asNonEmptyString, createHash } from '../utils'
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
-import { resolveDataShardEnvironment } from './shared'
+import { createOperationTimer, resolveDataShardEnvironment } from './shared'
 
 import type { HarbourWorkerBucket } from './division'
 import type { AddressVersionSnapshot } from '../db/address'
@@ -71,6 +71,11 @@ export type ProcessAddressDatasetResult = {
   statsRows: number
   unchangedRows: number
 }
+
+type ReportProgress = (stats: {
+  localizedRows: number
+  processedRows: number
+}) => Promise<void>
 
 const ADDRESS_BATCH_SIZE = 128
 const CHINA_NAME_ALIASES = new Set([
@@ -99,25 +104,28 @@ export async function processAddressDataset(
   bucket: HarbourWorkerBucket,
   message: DatasetProcessingMessage,
   sourceDb?: SourceDatabase,
+  reportProgress?: ReportProgress,
 ): Promise<ProcessAddressDatasetResult> {
-  const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
+  const timings = createOperationTimer()
+  const file = await timings.measure('loadParquetBufferMs', () =>
+    createAsyncBufferFromR2(bucket, message.rawObjectKey),
+  )
   const environment = resolveDataShardEnvironment(process.env.DATA_SHARD_ENV)
-  const versionInsertContext = await prepareAddressVersionInsertContext(
-    metaDb,
-    message,
-    environment,
+  const versionInsertContext = await timings.measure(
+    'prepareVersionInsertContextMs',
+    () => prepareAddressVersionInsertContext(metaDb, message, environment),
   )
 
-  const divisionLookup = await loadDivisionLookupMaps(
-    metaDb,
-    currentDb,
-    message.regionCode,
+  const divisionLookup = await timings.measure('loadDivisionLookupMapsMs', () =>
+    loadDivisionLookupMaps(metaDb, currentDb, message.regionCode),
   )
-  const currentRows = await getCurrentAddressVersionMap(historyDb, message.regionCode, {
-    buildAddressBaseHashInput,
-    buildMatchKey,
-    normalizeAddressI18nSnapshotRow,
-  })
+  const currentRows = await timings.measure('loadCurrentVersionMapMs', () =>
+    getCurrentAddressVersionMap(historyDb, message.regionCode, {
+      buildAddressBaseHashInput,
+      buildMatchKey,
+      normalizeAddressI18nSnapshotRow,
+    }),
+  )
   const currentRowsByMatchKey = new Map<string, AddressVersionSnapshot>()
 
   for (const snapshot of currentRows.values()) {
@@ -135,8 +143,12 @@ export async function processAddressDataset(
   const currentSourceRows = !sourceDb
     ? null
     : message.source === 'overture'
-      ? await getCurrentSourceOvertureAddress2dMap(sourceDb)
-      : await getCurrentSourceHkgovAlsAddress2dMap(sourceDb)
+      ? await timings.measure('loadCurrentSourceMapMs', () =>
+          getCurrentSourceOvertureAddress2dMap(sourceDb),
+        )
+      : await timings.measure('loadCurrentSourceMapMs', () =>
+          getCurrentSourceHkgovAlsAddress2dMap(sourceDb),
+        )
 
   for await (const batch of readParquetObjectsInBatches(file, ADDRESS_BATCH_SIZE)) {
     const overtureSourceRows: Array<
@@ -490,34 +502,44 @@ export async function processAddressDataset(
       )
     }
 
-    await closeCurrentAddressVersions(
-      historyDb,
-      [...changedAddressExistingIds],
-      versionInsertContext.snapshotId,
-      message.snapshotMonth,
+    await timings.measure('closeCurrentAddressVersionsMs', () =>
+      closeCurrentAddressVersions(
+        historyDb,
+        [...changedAddressExistingIds],
+        versionInsertContext.snapshotId,
+        message.snapshotMonth,
+      ),
     )
-    await upsertAddressCurrentStates(currentDb, currentAddressRows)
-    await replaceAddressCurrentI18n(
-      currentDb,
-      versionInsertContext.snapshotId,
-      [...currentAddressI18nRowIds],
-      currentAddressI18nRows,
+    await timings.measure('upsertAddressCurrentStatesMs', () =>
+      upsertAddressCurrentStates(currentDb, currentAddressRows),
     )
-    await insertAddressVersionRows(
-      historyDb,
-      versionInsertContext,
-      changedAddressVersionRows,
-      changedAddressI18nVersionRows,
+    await timings.measure('replaceAddressCurrentI18nMs', () =>
+      replaceAddressCurrentI18n(
+        currentDb,
+        versionInsertContext.snapshotId,
+        [...currentAddressI18nRowIds],
+        currentAddressI18nRows,
+      ),
     )
-    await insertHistoryVersionProvenanceRows(
-      metaDb,
-      changedAddressVersionRows.map(row => ({
-        entityId: row.id,
-        entityType: 'address2d',
-        snapshotId: versionInsertContext.snapshotId,
-        sourceReleaseId: versionInsertContext.releaseId,
-        versionHash: row.versionHash,
-      })),
+    await timings.measure('insertAddressVersionRowsMs', () =>
+      insertAddressVersionRows(
+        historyDb,
+        versionInsertContext,
+        changedAddressVersionRows,
+        changedAddressI18nVersionRows,
+      ),
+    )
+    await timings.measure('insertHistoryVersionProvenanceRowsMs', () =>
+      insertHistoryVersionProvenanceRows(
+        metaDb,
+        changedAddressVersionRows.map(row => ({
+          entityId: row.id,
+          entityType: 'address2d',
+          snapshotId: versionInsertContext.snapshotId,
+          sourceReleaseId: versionInsertContext.releaseId,
+          versionHash: row.versionHash,
+        })),
+      ),
     )
 
     if (!sourceDb) {
@@ -528,84 +550,132 @@ export async function processAddressDataset(
 
     if (message.source === 'overture') {
       if (changedIds.length > 0) {
-        await closeSourceOvertureAddress2dVersions(
-          sourceDb,
-          changedIds,
-          message.sourceVersion,
+        await timings.measure('closeSourceOvertureAddress2dVersionsMs', () =>
+          closeSourceOvertureAddress2dVersions(
+            sourceDb,
+            changedIds,
+            message.sourceVersion,
+          ),
         )
       }
 
-      await upsertSourceOvertureAddresses2d(sourceDb, overtureSourceRows)
-      await replaceSourceOvertureAddress2dI18nRows(
-        sourceDb,
-        changedIds,
-        overtureSourceI18nRows.filter(row => changedSourceIds.has(row.sourceRecordId)),
+      await timings.measure('upsertSourceOvertureAddresses2dMs', () =>
+        upsertSourceOvertureAddresses2d(sourceDb, overtureSourceRows),
+      )
+      await timings.measure('replaceSourceOvertureAddress2dI18nRowsMs', () =>
+        replaceSourceOvertureAddress2dI18nRows(
+          sourceDb,
+          changedIds,
+          overtureSourceI18nRows.filter(row =>
+            changedSourceIds.has(row.sourceRecordId),
+          ),
+        ),
       )
 
-      await insertSourceOvertureAddresses2dVersions(sourceDb, overtureSourceVersionRows)
-      await insertSourceOvertureAddress2dI18nVersions(
-        sourceDb,
-        overtureSourceI18nVersionRows,
+      await timings.measure('insertSourceOvertureAddresses2dVersionsMs', () =>
+        insertSourceOvertureAddresses2dVersions(sourceDb, overtureSourceVersionRows),
+      )
+      await timings.measure('insertSourceOvertureAddress2dI18nVersionsMs', () =>
+        insertSourceOvertureAddress2dI18nVersions(
+          sourceDb,
+          overtureSourceI18nVersionRows,
+        ),
       )
     } else {
       if (changedIds.length > 0) {
-        await closeSourceHkgovAlsAddress2dVersions(
-          sourceDb,
-          changedIds,
-          message.sourceVersion,
+        await timings.measure('closeSourceHkgovAlsAddress2dVersionsMs', () =>
+          closeSourceHkgovAlsAddress2dVersions(
+            sourceDb,
+            changedIds,
+            message.sourceVersion,
+          ),
         )
       }
 
-      await upsertSourceHkgovAlsAddresses2d(sourceDb, hkgovSourceRows)
-      await replaceSourceHkgovAlsAddress2dI18nRows(
-        sourceDb,
-        changedIds,
-        hkgovSourceI18nRows.filter(row => changedSourceIds.has(row.sourceRecordId)),
+      await timings.measure('upsertSourceHkgovAlsAddresses2dMs', () =>
+        upsertSourceHkgovAlsAddresses2d(sourceDb, hkgovSourceRows),
+      )
+      await timings.measure('replaceSourceHkgovAlsAddress2dI18nRowsMs', () =>
+        replaceSourceHkgovAlsAddress2dI18nRows(
+          sourceDb,
+          changedIds,
+          hkgovSourceI18nRows.filter(row => changedSourceIds.has(row.sourceRecordId)),
+        ),
       )
 
-      await insertSourceHkgovAlsAddresses2dVersions(sourceDb, hkgovSourceVersionRows)
-      await insertSourceHkgovAlsAddress2dI18nVersions(
-        sourceDb,
-        hkgovSourceI18nVersionRows,
+      await timings.measure('insertSourceHkgovAlsAddresses2dVersionsMs', () =>
+        insertSourceHkgovAlsAddresses2dVersions(sourceDb, hkgovSourceVersionRows),
       )
+      await timings.measure('insertSourceHkgovAlsAddress2dI18nVersionsMs', () =>
+        insertSourceHkgovAlsAddress2dI18nVersions(sourceDb, hkgovSourceI18nVersionRows),
+      )
+    }
+
+    if (reportProgress) {
+      await reportProgress({
+        localizedRows,
+        processedRows,
+      })
     }
   }
 
   const deletedRows =
     message.source === 'overture'
-      ? await deleteMissingCurrentAddresses(
-          historyDb,
-          versionInsertContext.snapshotId,
-          message.snapshotMonth,
-          currentRows,
-          seenIds,
+      ? await timings.measure('deleteMissingCurrentAddressesMs', () =>
+          deleteMissingCurrentAddresses(
+            historyDb,
+            versionInsertContext.snapshotId,
+            message.snapshotMonth,
+            currentRows,
+            seenIds,
+          ),
         )
       : 0
   if (message.source === 'overture') {
-    await deleteStaleAddressCurrentRows(
-      currentDb,
-      versionInsertContext.snapshotId,
-      seenIds,
+    await timings.measure('deleteStaleAddressCurrentRowsMs', () =>
+      deleteStaleAddressCurrentRows(
+        currentDb,
+        versionInsertContext.snapshotId,
+        seenIds,
+      ),
     )
   }
 
   if (sourceDb && currentSourceRows) {
     if (message.source === 'overture') {
-      await deleteMissingCurrentSourceOvertureAddresses2d(
-        sourceDb,
-        message.sourceVersion,
-        currentSourceRows,
-        seenSourceIds,
+      await timings.measure('deleteMissingCurrentSourceOvertureAddresses2dMs', () =>
+        deleteMissingCurrentSourceOvertureAddresses2d(
+          sourceDb,
+          message.sourceVersion,
+          currentSourceRows,
+          seenSourceIds,
+        ),
       )
     } else {
-      await deleteMissingCurrentSourceHkgovAlsAddresses2d(
-        sourceDb,
-        message.sourceVersion,
-        currentSourceRows,
-        seenSourceIds,
+      await timings.measure('deleteMissingCurrentSourceHkgovAlsAddresses2dMs', () =>
+        deleteMissingCurrentSourceHkgovAlsAddresses2d(
+          sourceDb,
+          message.sourceVersion,
+          currentSourceRows,
+          seenSourceIds,
+        ),
       )
     }
   }
+
+  console.info(
+    JSON.stringify({
+      datasetId: message.datasetId,
+      phase: 'processAddressDataset',
+      processedRows,
+      releaseId: message.releaseId ?? message.datasetId,
+      snapshotId: versionInsertContext.snapshotId,
+      source: message.source,
+      sourceVersion: message.sourceVersion,
+      timingsMs: timings.snapshot(),
+      type: message.type,
+    }),
+  )
 
   return {
     deletedRows,

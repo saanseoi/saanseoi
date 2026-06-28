@@ -201,6 +201,82 @@ describe('processDatasetMessage', () => {
     expect(stageFailed).toHaveBeenCalledTimes(0)
   })
 
+  test('reports running extract progress back through repeated stageStarted calls', async () => {
+    const processDivisionDataset = mock(async (...args: unknown[]) => {
+      const reportProgress = args[6] as
+        | ((stats: { localizedRows: number; processedRows: number }) => Promise<void>)
+        | undefined
+
+      await reportProgress?.({
+        localizedRows: 2,
+        processedRows: 1,
+      })
+
+      return {
+        deletedRows: 0,
+        insertedVersions: 1,
+        localizedRows: 2,
+        processedRows: 1,
+        statsRows: 0,
+        unchangedRows: 0,
+      } satisfies ProcessDatasetResult
+    })
+    const stageStarted = mock(async () => undefined)
+    const stageCompleted = mock(async () => undefined)
+    const stageFailed = mock(async () => undefined)
+    const publishDataset = mock(async () => undefined)
+    const processDatasetMessage = createProcessDatasetMessage(
+      mock(async () => {
+        throw new Error('address processor should not be called')
+      }) as never,
+      processDivisionDataset as never,
+    )
+
+    await processDatasetMessage(
+      {
+        publishDataset,
+        stageCompleted,
+        stageFailed,
+        stageStarted,
+      },
+      {} as never,
+      {} as never,
+      {} as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      {
+        datasetId: 'overture-hk-2026-05-24.0-division',
+        releaseCode: 'overture-hk-2026-05-24.0-division',
+        releaseId: 'release-overture-hk-2026-05-24.0-division',
+        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        regionCode: 'hk',
+        snapshotMonth: '2026-05',
+        source: 'overture',
+        sourceVersion: '2026-05-24.0',
+        theme: 'divisions',
+        type: 'division',
+      },
+    )
+
+    expect(stageStarted).toHaveBeenCalledWith(
+      'release-overture-hk-2026-05-24.0-division',
+      'extractDivisions',
+      {
+        processedRows: 1,
+      },
+    )
+  })
+
   test('attempts to mark every active phase failed even if one cleanup callback throws', async () => {
     const processDivisionDataset = mock(async () => {
       throw new Error('Division processing blew up.')
