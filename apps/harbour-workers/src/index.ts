@@ -8,6 +8,7 @@ import {
 import type { DatasetProcessingMessage } from '@repo/core'
 
 import { createHarbourClient } from './lib/harbourClient'
+import { withPrimarySession } from './lib/d1'
 import { processDatasetMessage } from './lib/worker'
 
 type Env = Partial<MultiDbBindings> & {
@@ -66,23 +67,32 @@ export function createQueueHandler(
       throw new Error('Missing DB_META binding for harbour-workers.')
     }
 
-    const metaDb = createMetaDb(metaBinding)
-    const currentDb = createCurrentDb(currentBinding)
+    const metaDb = createMetaDb(withPrimarySession(metaBinding))
+    const currentDb = createCurrentDb(withPrimarySession(currentBinding))
     const harbourClient = createHarbourClient({
       apiKey: env.HARBOUR_API_KEY,
       baseUrl: env.HARBOUR_BASE_URL,
     })
 
     for (const message of batch.messages) {
+      const historyShard = resolveShardBinding(
+        env,
+        'HISTORY',
+        message.body.regionCode,
+        message.body.shardYear,
+        message.body.snapshotMonth,
+      )
+      const sourceShard = resolveShardBinding(
+        env,
+        'SOURCE',
+        message.body.regionCode,
+        message.body.shardYear,
+        message.body.snapshotMonth,
+      )
+
       try {
         const { bindingName: historyBindingName, binding: historyBinding } =
-          resolveShardBinding(
-            env,
-            'HISTORY',
-            message.body.regionCode,
-            message.body.shardYear,
-            message.body.snapshotMonth,
-          )
+          historyShard
 
         if (!historyBinding) {
           throw new Error(
@@ -90,29 +100,27 @@ export function createQueueHandler(
           )
         }
 
-        const { binding: sourceBinding } = resolveShardBinding(
-          env,
-          'SOURCE',
-          message.body.regionCode,
-          message.body.shardYear,
-          message.body.snapshotMonth,
-        )
+        const { binding: sourceBinding } = sourceShard
 
         await processDataset(
           harbourClient,
           metaDb,
           currentDb,
-          createHistoryDb(historyBinding),
+          createHistoryDb(withPrimarySession(historyBinding)),
           env.R2_RAW,
           message.body,
-          sourceBinding ? createSourceDb(sourceBinding) : undefined,
+          sourceBinding ? createSourceDb(withPrimarySession(sourceBinding)) : undefined,
         )
         message.ack()
       } catch (error) {
         console.error('harbour-workers dataset processing failed', {
           datasetId: message.body.datasetId,
+          historyBindingName: String(historyShard.bindingName),
           releaseCode: message.body.releaseCode,
           releaseId: message.body.releaseId,
+          shardYear:
+            message.body.shardYear ?? toBindingYear(message.body.snapshotMonth),
+          sourceBindingName: String(sourceShard.bindingName),
           cause:
             error instanceof Error && error.cause instanceof Error
               ? error.cause.message

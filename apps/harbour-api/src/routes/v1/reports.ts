@@ -12,6 +12,7 @@ import {
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import { listIngestRuns, listReleases, listStats } from '../../lib/services/reporting'
+import { withPrimarySession } from '../../lib/d1'
 import { resolveDataShardEnvironment } from '../../lib/services/shared'
 import type { AppEnv } from '../../types'
 
@@ -116,7 +117,7 @@ export const ingestionReportRoute = defineOpenAPIRoute<
     c.header('cache-control', 'no-store')
 
     try {
-      const db = createMetaDb(c.env.DB_META) as HarbourReadableDb
+      const db = createMetaDb(withPrimarySession(c.env.DB_META)) as HarbourReadableDb
       const query = c.req.valid('query')
 
       return c.json(
@@ -143,7 +144,7 @@ export const statsReportRoute = defineOpenAPIRoute<typeof statsRouteConfig, AppE
     c.header('cache-control', 'no-store')
 
     try {
-      const db = createMetaDb(c.env.DB_META) as HarbourReadableDb
+      const db = createMetaDb(withPrimarySession(c.env.DB_META)) as HarbourReadableDb
       const query = c.req.valid('query')
 
       return c.json(
@@ -172,7 +173,7 @@ export const releasesReportRoute = defineOpenAPIRoute<
     c.header('cache-control', 'no-store')
 
     try {
-      const db = createMetaDb(c.env.DB_META) as HarbourReadableDb
+      const db = createMetaDb(withPrimarySession(c.env.DB_META)) as HarbourReadableDb
       const query = c.req.valid('query')
       const environment = resolveDataShardEnvironment(c.env.DATA_SHARD_ENV)
 
