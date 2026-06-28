@@ -16,6 +16,7 @@ import {
   resolveSnapshotForRelease,
   revokeDataset,
   setSupersededByReleaseId,
+  updateLatestOpenIngestRun,
   updateDatasetStatus,
   upsertApiReleaseSetSnapshot,
   upsertApiReleaseSetSource,
@@ -78,15 +79,26 @@ export async function handleStageCompleted(
   const dataset = await requireDataset(db, request.releaseId)
   const now = new Date().toISOString()
 
-  await upsertIngestRunStatus(
+  const updatedExistingRun = await updateLatestOpenIngestRun(
     db,
     dataset.releaseId,
     request.phase,
     'completed',
     now,
-    now,
     stringifyOptional(request.stats),
   )
+
+  if (!updatedExistingRun) {
+    await upsertIngestRunStatus(
+      db,
+      dataset.releaseId,
+      request.phase,
+      'completed',
+      now,
+      now,
+      stringifyOptional(request.stats),
+    )
+  }
 
   return {
     datasetId: dataset.releaseCode,
@@ -108,16 +120,28 @@ export async function handleStageFailed(
   })
 
   await updateDatasetStatus(db, dataset.releaseId, 'failed')
-  await upsertIngestRunStatus(
+  const updatedExistingRun = await updateLatestOpenIngestRun(
     db,
     dataset.releaseId,
     request.phase,
     'error',
     now,
-    now,
     stringifyOptional(request.stats),
     errorJson,
   )
+
+  if (!updatedExistingRun) {
+    await upsertIngestRunStatus(
+      db,
+      dataset.releaseId,
+      request.phase,
+      'error',
+      now,
+      now,
+      stringifyOptional(request.stats),
+      errorJson,
+    )
+  }
 
   return {
     datasetId: dataset.releaseCode,
