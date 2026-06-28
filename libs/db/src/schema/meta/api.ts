@@ -47,6 +47,7 @@ export const metaSnapshots = sqliteTable(
   },
   table => [
     uniqueIndex('snapshots_family_code_unique_idx').on(table.family, table.code),
+    uniqueIndex('snapshots_id_family_unique_idx').on(table.id, table.family),
     index('snapshots_family_status_idx').on(table.family, table.status),
   ],
 )
@@ -137,15 +138,18 @@ export const metaApiReleaseSetSnapshots = sqliteTable(
       .notNull()
       .references(() => metaApiReleaseSets.id, { onDelete: 'cascade' }),
     snapshotFamily: text('snapshotFamily', { enum: snapshotFamilies }).notNull(),
-    snapshotId: text('snapshotId')
-      .notNull()
-      .references(() => metaSnapshots.id, { onDelete: 'restrict' }),
+    snapshotId: text('snapshotId').notNull(),
     createdAt: timestamps.createdAt,
   },
   table => [
     primaryKey({
       columns: [table.apiReleaseSetId, table.snapshotFamily],
     }),
+    foreignKey({
+      columns: [table.snapshotId, table.snapshotFamily],
+      foreignColumns: [metaSnapshots.id, metaSnapshots.family],
+      name: 'apiReleaseSetSnapshots_snapshotId_snapshotFamily_snapshots_id_family_fk',
+    }).onDelete('restrict'),
     index('apiReleaseSetSnapshots_snapshotId_idx').on(table.snapshotId),
   ],
 )
@@ -239,7 +243,9 @@ export const metaHistoryVersionProvenance = sqliteTable(
     entityType: text('entityType', { enum: historyVersionEntityTypes }).notNull(),
     entityId: text('entityId').notNull(),
     versionHash: text('versionHash').notNull(),
-    sourceReleaseId: text('sourceReleaseId').notNull(),
+    sourceReleaseId: text('sourceReleaseId')
+      .notNull()
+      .references(() => metaReleases.id, { onDelete: 'restrict' }),
     createdAt: timestamps.createdAt,
   },
   table => [

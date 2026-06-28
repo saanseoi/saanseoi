@@ -39,7 +39,7 @@ function printUsage() {
   saanseoi upload:requeue --release <release-id|release-code> [--target local|cf-preview|cf-production] [--yes]
   saanseoi upload:watch [--target local|cf-preview|cf-production]
   saanseoi prep-hkgov-als <source-dir> [--target local|cf-preview|cf-production] [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]
-  saanseoi reports:ingestion [--target local|cf-preview|cf-production] [--limit 1-100] [--source SOURCE] [--type TYPE]
+  saanseoi reports:ingestion [--target local|cf-preview|cf-production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
   saanseoi reports:stats [--target local|cf-preview|cf-production] [--limit 1-100] [--source SOURCE] [--type TYPE]
   saanseoi reports:releases [--target local|cf-preview|cf-production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
 `)
@@ -112,6 +112,14 @@ async function main() {
   if (args.command === 'reports:ingestion') {
     const report = await fetchIngestRunReport(target, {
       limit: hasExplicitLimit ? reportLimit : 100,
+      releaseCode:
+        typeof args.options.release === 'string' && !isReleaseId(args.options.release)
+          ? args.options.release
+          : undefined,
+      releaseId:
+        typeof args.options.release === 'string' && isReleaseId(args.options.release)
+          ? args.options.release
+          : undefined,
       source: reportSource,
       type: reportType,
     })

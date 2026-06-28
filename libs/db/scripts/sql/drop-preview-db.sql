@@ -22,6 +22,7 @@ DROP TABLE IF EXISTS `dataShards`;
 DROP TABLE IF EXISTS `apiFieldProvenance`;
 DROP TABLE IF EXISTS `apiEndpointDatasets`;
 DROP TABLE IF EXISTS `apiEndpoints`;
+DROP TABLE IF EXISTS `apiReleaseSetMembers`;
 DROP TABLE IF EXISTS `apiReleaseSetSnapshots`;
 DROP TABLE IF EXISTS `apiReleaseSetSources`;
 DROP TABLE IF EXISTS `apiReleaseSets`;

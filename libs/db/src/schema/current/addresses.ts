@@ -1,4 +1,5 @@
 import {
+  check,
   foreignKey,
   index,
   integer,
@@ -6,6 +7,7 @@ import {
   sqliteTable,
   text,
 } from 'drizzle-orm/sqlite-core'
+import { sql } from 'drizzle-orm'
 
 import { jsonText, timestamps } from './_shared'
 import { divisions } from './divisions'
@@ -88,6 +90,10 @@ export const address2d = sqliteTable(
       foreignColumns: [streets.snapshotId, streets.id],
       name: 'address2d_streetSnapshotId_streetId_streets_fk',
     }),
+    check(
+      'address2d_street_reference_consistency_chk',
+      sql`(${table.streetSnapshotId} IS NULL) = (${table.streetId} IS NULL)`,
+    ),
     index('address2d_streetId_idx').on(table.streetId),
     index('address2d_division_idx').on(
       table.divisionSnapshotId,

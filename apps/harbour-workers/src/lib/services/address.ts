@@ -1,7 +1,7 @@
 import type { DatasetProcessingMessage } from '@repo/core'
 import {
   insertHistoryVersionProvenanceRows,
-  resolveLatestPublishedSnapshotForFamily,
+  resolveLatestPublishedSnapshotForFamilyRegion,
 } from '@repo/core/db/meta-repository'
 import type {
   CurrentDatabase,
@@ -107,7 +107,11 @@ export async function processAddressDataset(
     environment,
   )
 
-  const divisionLookup = await loadDivisionLookupMaps(metaDb, currentDb)
+  const divisionLookup = await loadDivisionLookupMaps(
+    metaDb,
+    currentDb,
+    message.regionCode,
+  )
   const currentRows = await getCurrentAddressVersionMap(historyDb, message.regionCode, {
     buildAddressBaseHashInput,
     buildMatchKey,
@@ -612,10 +616,15 @@ export async function processAddressDataset(
   }
 }
 
-async function loadDivisionLookupMaps(metaDb: MetaDatabase, db: CurrentDatabase) {
-  const activeDivisionSnapshot = await resolveLatestPublishedSnapshotForFamily(
+async function loadDivisionLookupMaps(
+  metaDb: MetaDatabase,
+  db: CurrentDatabase,
+  regionCode: DatasetProcessingMessage['regionCode'],
+) {
+  const activeDivisionSnapshot = await resolveLatestPublishedSnapshotForFamilyRegion(
     metaDb,
     'division',
+    regionCode,
   )
 
   if (!activeDivisionSnapshot) {

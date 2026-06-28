@@ -673,6 +673,7 @@ function resolveUploadPlan(
     releaseCode,
     regionCode,
     snapshotMonth,
+    shardYear: options.shardYear?.trim() || undefined,
     theme,
     type,
     source,
@@ -1074,6 +1075,7 @@ export async function requestUpload(
       rawObjectKey,
       rowCount: inspection.rowCount,
       schemaFingerprint: plan.schemaFingerprint,
+      shardYear: plan.shardYear ?? null,
     }),
   )
 

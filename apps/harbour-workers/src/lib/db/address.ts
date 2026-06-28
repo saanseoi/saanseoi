@@ -287,6 +287,8 @@ export async function deleteMissingCurrentAddresses(
     return 0
   }
 
+  const now = new Date().toISOString()
+
   for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause(1, 5))) {
     await runWithWriteRetry(() =>
       historyDb
@@ -295,12 +297,28 @@ export async function deleteMissingCurrentAddresses(
           isCurrent: false,
           validToSnapshotId: snapshotId,
           validToMonth: snapshotMonth,
-          updatedAt: new Date().toISOString(),
+          updatedAt: now,
         })
         .where(
           and(
             eq(historySchema.address2dVersions.isCurrent, true),
             inArray(historySchema.address2dVersions.id, chunk),
+          ),
+        )
+        .run(),
+    )
+    await runWithWriteRetry(() =>
+      historyDb
+        .update(historySchema.address2dVersionsI18n)
+        .set({
+          isCurrent: false,
+          validToSnapshotId: snapshotId,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(historySchema.address2dVersionsI18n.isCurrent, true),
+            inArray(historySchema.address2dVersionsI18n.addressId, chunk),
           ),
         )
         .run(),
@@ -564,7 +582,33 @@ async function insertAddressVersionsI18nInChunks(
       db
         .insert(historySchema.address2dVersionsI18n)
         .values(chunk)
-        .onConflictDoNothing()
+        .onConflictDoUpdate({
+          target: [
+            historySchema.address2dVersionsI18n.addressId,
+            historySchema.address2dVersionsI18n.versionHash,
+            historySchema.address2dVersionsI18n.locale,
+          ],
+          set: {
+            sourceReleaseId: excluded('sourceReleaseId'),
+            snapshotId: excluded('snapshotId'),
+            validFromSnapshotId: excluded('validFromSnapshotId'),
+            validToSnapshotId: null,
+            isCurrent: true,
+            formattedAddress: excluded('formattedAddress'),
+            buildingName: excluded('buildingName'),
+            buildingNumberFrom: excluded('buildingNumberFrom'),
+            buildingNumberTo: excluded('buildingNumberTo'),
+            blockType: excluded('blockType'),
+            blockNumber: excluded('blockNumber'),
+            blockTypeBeforeNumber: excluded('blockTypeBeforeNumber'),
+            phaseName: excluded('phaseName'),
+            phaseNumber: excluded('phaseNumber'),
+            estateName: excluded('estateName'),
+            streetNumber: excluded('streetNumber'),
+            streetName: excluded('streetName'),
+            updatedAt: excluded('updatedAt'),
+          },
+        })
         .run(),
     )
   }

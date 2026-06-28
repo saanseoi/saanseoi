@@ -436,4 +436,54 @@ describe('upload release action helpers', () => {
       '/v1/reports/releases?limit=1&releaseCode=overture-hk-2025-09-24.0-division',
     )
   })
+
+  test('fails immediately for a local direct upload when the release preflight probe errors', async () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
+    const filePath = join(tempDir, 'division.parquet')
+    tempDirs.push(tempDir)
+    writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async input => {
+      const url = String(input)
+
+      if (url.startsWith('https://preview.harbour.saanseoi.hk/v1/reports/releases')) {
+        return new Response(JSON.stringify({ message: 'backend unavailable' }), {
+          headers: {
+            'content-type': 'application/json',
+          },
+          status: 503,
+        })
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`)
+    }) as typeof fetch
+
+    await expect(
+      dispatchUpload(
+        localTarget,
+        {
+          filePath,
+        } as never,
+        {
+          inspection: {
+            rowCount: 1810,
+            schema: [],
+          },
+          plan: {
+            datasetCode: 'hk-division',
+            fileName: 'division.parquet',
+            regionCode: 'hk',
+            releaseCode: releaseRow.releaseCode,
+            snapshotMonth: '2025-09',
+            source: 'overture',
+            sourceVersion: '2025-09-24.0',
+            theme: 'divisions',
+            type: 'division',
+          },
+        } as never,
+        'schema-version-1',
+      ),
+    ).rejects.toThrow('backend unavailable')
+  })
 })

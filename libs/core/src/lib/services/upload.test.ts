@@ -534,11 +534,12 @@ describe('upload', () => {
 
     const ingestRuns = sqlite
       .query(
-        'SELECT phase, status, stats, error, startedAt FROM ingestRuns WHERE releaseId = ? ORDER BY phase ASC',
+        'SELECT runId, phase, status, stats, error, startedAt FROM ingestRuns WHERE releaseId = ? ORDER BY phase ASC',
       )
       .all(releaseId) as Array<{
       error: string | null
       phase: string
+      runId: string
       startedAt: string
       stats: string | null
       status: string
@@ -551,6 +552,7 @@ describe('upload', () => {
       {
         error: null,
         phase: 'registerDataset',
+        runId: 'run-register-dataset-old',
         startedAt: expect.any(String),
         stats: null,
         status: 'completed',
@@ -558,6 +560,7 @@ describe('upload', () => {
       {
         error: null,
         phase: 'stageDataset',
+        runId: 'run-stage-dataset-old',
         startedAt: expect.any(String),
         stats:
           '"{\\"rawObjectKey\\":\\"hk/overture/2026-05-24.0/division.parquet\\",\\"rowCount\\":3,\\"schemaFieldCount\\":5}"',
@@ -681,6 +684,7 @@ describe('upload', () => {
             rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
             rowCount: fixtureInspection.rowCount,
             schemaFingerprint: createSchemaFingerprint(fixtureInspection),
+            shardYear: null,
           }),
         ),
         status: 'completed',

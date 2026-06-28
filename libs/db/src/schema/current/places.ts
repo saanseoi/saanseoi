@@ -1,4 +1,5 @@
 import {
+  check,
   foreignKey,
   index,
   integer,
@@ -57,6 +58,10 @@ export const places = sqliteTable(
       foreignColumns: [address3d.snapshotId, address3d.id],
       name: 'places_addressSnapshotId_address3dId_address3d_fk',
     }),
+    check(
+      'places_address_snapshot_required_chk',
+      sql`${table.addressSnapshotId} IS NOT NULL OR (${table.address2dId} IS NULL AND ${table.address3dId} IS NULL)`,
+    ),
     index('places_releaseId_idx').on(table.releaseId),
     index('places_category_idx').on(table.regionCode, table.basicCategory),
     index('places_taxonomy_idx').on(table.regionCode, table.taxonomyPrimary),

@@ -23,12 +23,18 @@ type ReleaseWatchSnapshot = {
   sourceCount: number
 }
 
+function isActiveReleaseStatus(status: string) {
+  return status === 'staged' || status === 'processing'
+}
+
 export function findProcessingRelease(rows: ReleaseReportRow[]) {
-  return rows.find(row => row.status === 'processing') ?? null
+  return rows.find(row => isActiveReleaseStatus(row.status)) ?? null
 }
 
 export function isReleaseStillProcessing(rows: ReleaseReportRow[], releaseId: string) {
-  return rows.some(row => row.releaseId === releaseId && row.status === 'processing')
+  return rows.some(
+    row => row.releaseId === releaseId && isActiveReleaseStatus(row.status),
+  )
 }
 
 export function getReleaseRowCount(release: ReleaseReportRow, label: string): number {
@@ -150,7 +156,7 @@ export async function watchCurrentUpload(
     })
     const matchingRelease = activeReleaseReport.rows[0]
 
-    if (matchingRelease?.status === 'processing') {
+    if (matchingRelease && isActiveReleaseStatus(matchingRelease.status)) {
       activeSnapshot = await buildReleaseWatchSnapshot(target, matchingRelease)
       const nextProgress = clampProgressValue(
         activeSnapshot.sourceCount,

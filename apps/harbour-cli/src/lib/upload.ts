@@ -327,6 +327,8 @@ async function assertLocalDirectUploadCanProceed(
     ) {
       throw error
     }
+
+    throw error
   }
 }
 

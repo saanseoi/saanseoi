@@ -159,7 +159,7 @@ describe('upload session flow', () => {
       fileSize: fixtureBytes.byteLength,
       inspection: fixtureInspection,
       plan: {
-        shardYear: '2026',
+        shardYear: '2025',
         snapshotMonth: '2026-05',
         sourceVersion: '2026-05-24.0',
       },
@@ -207,7 +207,7 @@ describe('upload session flow', () => {
         releaseCode: 'overture-hk-2026-05-24.0-division',
         releaseId: signResult.releaseId,
         regionCode: 'hk',
-        shardYear: '2026',
+        shardYear: '2025',
         snapshotMonth: '2026-05',
         source: 'overture',
         sourceVersion: '2026-05-24.0',
@@ -415,5 +415,76 @@ describe('upload session flow', () => {
         type: 'division',
       },
     ])
+  })
+
+  test('does not enqueue a duplicate processDataset message when the release is already queued', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-requeue-queued.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const bucket = new FakeR2Bucket()
+
+    const signResult = await handleSignUploadRequest(db, bucket, signingEnv, {
+      contentType: 'application/octet-stream',
+      fileName: 'overture-hk-division.parquet',
+      fileSize: fixtureBytes.byteLength,
+      inspection: fixtureInspection,
+      plan: {
+        shardYear: '2026',
+        snapshotMonth: '2026-05',
+        sourceVersion: '2026-05-24.0',
+      },
+      schemaVersionId: 'overture-division-v2025-09-24.0',
+    })
+
+    await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
+    await handleFinalizeUploadRequest(
+      db,
+      bucket,
+      queue,
+      {
+        releaseId: signResult.releaseId,
+      },
+      {
+        inspectParquet: inspectParquetMock,
+      },
+    )
+
+    queuedMessages.length = 0
+    sqlite
+      .query(
+        `
+          INSERT INTO ingestRuns (
+            runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(releaseId, phase) DO UPDATE SET
+            status = excluded.status,
+            stats = excluded.stats,
+            error = excluded.error,
+            startedAt = excluded.startedAt,
+            finishedAt = excluded.finishedAt,
+            updatedAt = excluded.updatedAt
+        `,
+      )
+      .run(
+        'process-run-queued',
+        signResult.releaseId,
+        'processDataset',
+        'queued',
+        null,
+        null,
+        '2026-06-24T12:00:00.000Z',
+        null,
+        '2026-06-24T12:00:00.000Z',
+        '2026-06-24T12:00:00.000Z',
+      )
+
+    const requeued = await handleRequeueUploadRequest(db, queue, {
+      releaseId: signResult.releaseId,
+    })
+
+    expect(requeued.status).toBe('queued')
+    expect(requeued.rowCount).toBe(3)
+    expect(queuedMessages).toEqual([])
   })
 })
