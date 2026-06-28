@@ -157,6 +157,9 @@ export async function deleteMissingCurrentSourceHkgovAlsAddresses2d(
 export async function upsertSourceOvertureDivisions(
   db: SourceDatabase,
   rows: Array<typeof sourceSchema.sourceOvertureDivisions.$inferInsert>,
+  options?: {
+    assumeCurrentRowsAbsent?: boolean
+  },
 ) {
   if (rows.length === 0) {
     return
@@ -168,33 +171,34 @@ export async function upsertSourceOvertureDivisions(
     rows,
     getMaxRowsPerInsert(SOURCE_OVERTURE_DIVISION_COLUMN_COUNT),
   )) {
+    const statement = db.insert(sourceSchema.sourceOvertureDivisions).values(chunk)
+
     statements.push(
-      db
-        .insert(sourceSchema.sourceOvertureDivisions)
-        .values(chunk)
-        .onConflictDoUpdate({
-          target: sourceSchema.sourceOvertureDivisions.sourceRecordId,
-          set: {
-            releaseId: excluded('releaseId'),
-            datasetId: excluded('datasetId'),
-            sourcePayloadHash: excluded('sourcePayloadHash'),
-            regionCode: excluded('regionCode'),
-            level: excluded('level'),
-            divisionType: excluded('divisionType'),
-            subtype: excluded('subtype'),
-            divisionClass: excluded('divisionClass'),
-            population: excluded('population'),
-            version: excluded('version'),
-            wikidata: excluded('wikidata'),
-            geometry: excluded('geometry'),
-            bbox: excluded('bbox'),
-            hierarchies: excluded('hierarchies'),
-            cartography: excluded('cartography'),
-            sources: excluded('sources'),
-            rawProperties: excluded('rawProperties'),
-            updatedAt: new Date(),
-          },
-        }),
+      options?.assumeCurrentRowsAbsent
+        ? statement.onConflictDoNothing()
+        : statement.onConflictDoUpdate({
+            target: sourceSchema.sourceOvertureDivisions.sourceRecordId,
+            set: {
+              releaseId: excluded('releaseId'),
+              datasetId: excluded('datasetId'),
+              sourcePayloadHash: excluded('sourcePayloadHash'),
+              regionCode: excluded('regionCode'),
+              level: excluded('level'),
+              divisionType: excluded('divisionType'),
+              subtype: excluded('subtype'),
+              divisionClass: excluded('divisionClass'),
+              population: excluded('population'),
+              version: excluded('version'),
+              wikidata: excluded('wikidata'),
+              geometry: excluded('geometry'),
+              bbox: excluded('bbox'),
+              hierarchies: excluded('hierarchies'),
+              cartography: excluded('cartography'),
+              sources: excluded('sources'),
+              rawProperties: excluded('rawProperties'),
+              updatedAt: new Date(),
+            },
+          }),
     )
   }
 
@@ -234,6 +238,9 @@ export async function replaceSourceOvertureDivisionI18nRows(
   db: SourceDatabase,
   sourceRecordIds: string[],
   rows: Array<typeof sourceSchema.sourceOvertureDivisionI18n.$inferInsert>,
+  options?: {
+    assumeCurrentRowsAbsent?: boolean
+  },
 ) {
   await syncCurrentI18nRows(
     db,
@@ -241,12 +248,16 @@ export async function replaceSourceOvertureDivisionI18nRows(
     sourceRecordIds,
     rows,
     SOURCE_OVERTURE_DIVISION_I18N_COLUMN_COUNT,
+    options,
   )
 }
 
 export async function insertSourceOvertureDivisionVersions(
   db: SourceDatabase,
   rows: Array<typeof sourceSchema.sourceOvertureDivisionsVersions.$inferInsert>,
+  options?: {
+    assumeVersionRowsAbsent?: boolean
+  },
 ) {
   await insertVersionRows(
     db,
@@ -257,12 +268,16 @@ export async function insertSourceOvertureDivisionVersions(
       sourceSchema.sourceOvertureDivisionsVersions.sourceRecordId,
       sourceSchema.sourceOvertureDivisionsVersions.versionHash,
     ],
+    options,
   )
 }
 
 export async function insertSourceOvertureDivisionI18nVersions(
   db: SourceDatabase,
   rows: Array<typeof sourceSchema.sourceOvertureDivisionI18nVersions.$inferInsert>,
+  options?: {
+    assumeVersionRowsAbsent?: boolean
+  },
 ) {
   await insertVersionRows(
     db,
@@ -274,6 +289,7 @@ export async function insertSourceOvertureDivisionI18nVersions(
       sourceSchema.sourceOvertureDivisionI18nVersions.versionHash,
       sourceSchema.sourceOvertureDivisionI18nVersions.locale,
     ],
+    options,
   )
 }
 
@@ -632,6 +648,9 @@ async function syncCurrentI18nRows<
   sourceRecordIds: string[],
   rows: Array<TTable extends { $inferInsert: infer TInsert } ? TInsert : never>,
   columnCount: number,
+  options?: {
+    assumeCurrentRowsAbsent?: boolean
+  },
 ) {
   if (sourceRecordIds.length === 0) {
     return
@@ -670,6 +689,10 @@ async function syncCurrentI18nRows<
   }
 
   await runStatementsInGroupsWithWriteRetry(db, upsertStatements)
+
+  if (options?.assumeCurrentRowsAbsent) {
+    return
+  }
 
   const existingRows: Array<{ locale: string; sourceRecordId: string }> = []
 
@@ -734,6 +757,9 @@ async function insertVersionRows<TTable>(
   rows: Array<TTable extends { $inferInsert: infer TInsert } ? TInsert : never>,
   columnCount: number,
   target: unknown[],
+  options?: {
+    assumeVersionRowsAbsent?: boolean
+  },
 ) {
   if (rows.length === 0) {
     return
@@ -742,20 +768,21 @@ async function insertVersionRows<TTable>(
   const statements = []
 
   for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
+    const statement = db.insert(table as never).values(chunk as never)
+
     statements.push(
-      db
-        .insert(table as never)
-        .values(chunk as never)
-        .onConflictDoUpdate({
-          target: target as never,
-          set: {
-            isCurrent: true,
-            releaseId: excluded('releaseId'),
-            validFromRelease: excluded('validFromRelease'),
-            validToRelease: null,
-            updatedAt: new Date(),
-          } as never,
-        }),
+      options?.assumeVersionRowsAbsent
+        ? statement.onConflictDoNothing()
+        : statement.onConflictDoUpdate({
+            target: target as never,
+            set: {
+              isCurrent: true,
+              releaseId: excluded('releaseId'),
+              validFromRelease: excluded('validFromRelease'),
+              validToRelease: null,
+              updatedAt: new Date(),
+            } as never,
+          }),
     )
   }
 
