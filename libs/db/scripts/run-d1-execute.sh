@@ -6,6 +6,14 @@ if [[ $# -lt 1 ]]; then
   exit 1
 fi
 
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+repo_root="$(cd "$script_dir/../../.." && pwd)"
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$repo_root/.local/wrangler}"
+export WRANGLER_LOG_PATH="${WRANGLER_LOG_PATH:-$repo_root/.local/wrangler/logs}"
+
+mkdir -p "$XDG_CONFIG_HOME"
+mkdir -p "$WRANGLER_LOG_PATH"
+
 tmp_output="$(mktemp)"
 cleanup() {
   rm -f "$tmp_output"
