@@ -133,7 +133,7 @@ describe('reporting service', () => {
         ) VALUES
           (
             'release-1',
-            'dataset-hkgov-hk-address',
+            'hkgov-hk-address',
             'hkgov-hk-2026-06-26.0-address',
             '2026-06-26.0',
             null,
@@ -151,7 +151,7 @@ describe('reporting service', () => {
           ),
           (
             'release-2',
-            'dataset-hkgov-hk-address',
+            'hkgov-hk-address',
             'hkgov-hk-2026-06-25.0-address',
             '2026-06-25.0',
             null,
@@ -169,7 +169,7 @@ describe('reporting service', () => {
           ),
           (
             'release-3',
-            'dataset-hkgov-hk-address',
+            'hkgov-hk-address',
             'hkgov-hk-2026-06-24.0-address',
             '2026-06-24.0',
             null,
@@ -187,7 +187,7 @@ describe('reporting service', () => {
           ),
           (
             'release-4',
-            'dataset-hkgov-hk-address',
+            'hkgov-hk-address',
             'hkgov-hk-2026-06-23.0-address',
             '2026-06-23.0',
             null,
@@ -279,7 +279,7 @@ describe('reporting service', () => {
         ) VALUES
           (
             'release-1',
-            'dataset-hkgov-hk-address',
+            'hkgov-hk-address',
             'hkgov-hk-2026-06-26.0-address',
             '2026-06-26.0',
             null,
@@ -297,7 +297,7 @@ describe('reporting service', () => {
           ),
           (
             'release-2',
-            'dataset-hkgov-hk-address',
+            'hkgov-hk-address',
             'hkgov-hk-2026-06-25.0-address',
             '2026-06-25.0',
             null,
@@ -315,7 +315,7 @@ describe('reporting service', () => {
           ),
           (
             'release-3',
-            'dataset-hkgov-hk-address',
+            'hkgov-hk-address',
             'hkgov-hk-2026-06-24.0-address',
             '2026-06-24.0',
             null,
@@ -429,7 +429,7 @@ describe('reporting service', () => {
       seedSourceRows(
         sourceSqlite,
         'release-hkgov-hk-2026-06-25.0-address',
-        'dataset-hkgov-hk-address',
+        'hkgov-hk-address',
         'source-address-2',
       )
       seedHistoryRows(
@@ -483,16 +483,16 @@ async function initSqlite(dbPath: string, migrationsDir: string) {
 function seedMetaCatalog(sqlite: SQLiteDatabase) {
   sqlite.exec(`
     INSERT INTO publishers (
-      id, code, url, contactUrl, contactEmail, contactPhone, parentPublisherId, createdAt, updatedAt
+      id, code, url, contactUrl, contactEmail, contactPhone, parentPublisherId, versionHash, createdAt, updatedAt
     ) VALUES
-      ('publisher-hkgov', 'hkgov', 'https://data.gov.hk', 'https://data.gov.hk/en/feedback', null, null, null, 1, 1);
+      ('publisher-hkgov', 'hkgov', 'https://data.gov.hk', 'https://data.gov.hk/en/feedback', null, null, null, 'vh-publisher-hkgov-v1', 1, 1);
 
     INSERT INTO datasets (
-      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, licenseId, attribution, category, createdAt, updatedAt
+      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, licenseId, attribution, category, versionHash, createdAt, updatedAt
     ) VALUES (
-      'dataset-hkgov-hk-address',
+      'hkgov-hk-address',
       'publisher-hkgov',
-      'hk-address',
+      'ds-hk-hkgov-address-2d',
       'hk',
       'static',
       'monthly',
@@ -502,12 +502,13 @@ function seedMetaCatalog(sqlite: SQLiteDatabase) {
       null,
       null,
       'places',
+      'vh-dataset-hkgov-hk-address-v1',
       1,
       1
     );
 
     INSERT INTO dataShards (
-      id, kind, regionCode, year, environment, databaseName, databaseId, bindingName, status, createdAt, updatedAt
+      id, shardType, regionCode, year, environment, databaseName, databaseId, bindingName, status, versionHash, createdAt, updatedAt
     ) VALUES
       (
         'shard-history-hk-2026-preview',
@@ -519,6 +520,7 @@ function seedMetaCatalog(sqlite: SQLiteDatabase) {
         'history-preview',
         'DB_HISTORY_HK_2026',
         'active',
+        'vh-data-shard-history-hk-2026-preview-v1',
         1,
         1
       ),
@@ -532,6 +534,7 @@ function seedMetaCatalog(sqlite: SQLiteDatabase) {
         'source-preview',
         'DB_SOURCE_HK_2026',
         'active',
+        'vh-data-shard-source-hk-2026-preview-v1',
         1,
         1
       );
@@ -550,7 +553,7 @@ function seedRelease(
       id, datasetId, code, sourceVersion, sourceSchemaVersion, publicationDate, snapshotMonth, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
     ) VALUES (
       '${releaseId}',
-      'dataset-hkgov-hk-address',
+      'hkgov-hk-address',
       '${releaseCode}',
       '${sourceVersion}',
       null,
@@ -567,10 +570,9 @@ function seedRelease(
       ${timestamp}
     );
 
-    INSERT INTO releaseShardAssignments (releaseId, dataShardId, createdAt) VALUES (
+    INSERT INTO releaseShardAssignments (releaseId, dataShardId) VALUES (
       '${releaseId}',
-      'shard-history-hk-2026-preview',
-      ${timestamp}
+      'shard-history-hk-2026-preview'
     );
   `)
 }
@@ -617,7 +619,7 @@ function seedStat(sqlite: SQLiteDatabase) {
 function seedSourceRows(
   sqlite: SQLiteDatabase,
   releaseId = 'release-hkgov-hk-2026-06-24.0-address',
-  datasetId = 'dataset-hkgov-hk-address',
+  datasetId = 'hkgov-hk-address',
   sourceRecordId = 'source-address-1',
 ) {
   sqlite.exec(`

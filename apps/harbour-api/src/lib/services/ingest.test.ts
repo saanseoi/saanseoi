@@ -156,7 +156,7 @@ describe('direct upload flow', () => {
     expect(queuedMessages).toEqual([
       {
         datasetId: 'overture-hk-division',
-        datasetCode: 'hk-division',
+        datasetCode: 'ds-hk-overture-division',
         rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
         releaseCode: 'overture-hk-2026-05-24.0-division',
         releaseId: result.releaseId,

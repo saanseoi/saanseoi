@@ -110,12 +110,22 @@ function createAddressMessage(
 }
 
 function getSnapshotId(sqlite: Database, code: string) {
-  const row = sqlite.query('SELECT id FROM snapshots WHERE code = ?1').get(code) as {
-    id: string
-  } | null
+  const row = sqlite
+    .query(
+      `
+        SELECT s.id
+        FROM snapshots s
+        INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
+        INNER JOIN releases r ON r.id = ss.sourceReleaseId
+        WHERE r.code = ?1
+        ORDER BY s.createdAt DESC
+        LIMIT 1
+      `,
+    )
+    .get(code) as { id: string } | null
 
   if (!row) {
-    throw new Error(`Snapshot not found for ${code}.`)
+    throw new Error(`Snapshot not found for release ${code}.`)
   }
 
   return row.id
