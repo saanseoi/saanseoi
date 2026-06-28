@@ -1,37 +1,44 @@
 type QueryResultValue<T = unknown> = Promise<T> | T
 type QueryResultRows<T = unknown> = Promise<T[]> | T[]
+type QueryArgs = readonly unknown[]
 
 type ReadQueryBuilder<T = unknown> = {
-  innerJoin: (...args: any[]) => any
-  where: (...args: any[]) => any
-  orderBy: (...args: any[]) => any
-  limit: (...args: any[]) => any
+  innerJoin: (...args: QueryArgs) => ReadQueryBuilder<T>
+  where: (...args: QueryArgs) => ReadQueryBuilder<T>
+  orderBy: (...args: QueryArgs) => ReadQueryBuilder<T>
+  limit: (...args: QueryArgs) => ReadQueryBuilder<T>
   get: () => QueryResultValue<T | undefined>
   all: () => QueryResultRows<T>
 }
 
 type SelectQueryBuilder<T = unknown> = {
-  from: (...args: any[]) => ReadQueryBuilder<T>
+  from: (...args: QueryArgs) => ReadQueryBuilder<T>
+}
+
+type RunnableQueryBuilder<T = unknown> = {
+  run: () => QueryResultValue<T>
 }
 
 type InsertQueryBuilder = {
-  values: (...args: any[]) => any
+  values: (...args: QueryArgs) => RunnableQueryBuilder
 }
 
 type UpdateQueryBuilder = {
-  set: (...args: any[]) => any
+  set: (...args: QueryArgs) => {
+    where: (...args: QueryArgs) => RunnableQueryBuilder
+  }
 }
 
 type DeleteQueryBuilder = {
-  where: (...args: any[]) => any
+  where: (...args: QueryArgs) => RunnableQueryBuilder
 }
 
 export type HarbourReadableDb = {
-  select: <T = unknown>(...args: any[]) => SelectQueryBuilder<T>
+  select: <T = unknown>(...args: QueryArgs) => SelectQueryBuilder<T>
 }
 
 export type HarbourWritableDb = {
-  delete: (...args: any[]) => DeleteQueryBuilder
-  insert: (...args: any[]) => InsertQueryBuilder
-  update: (...args: any[]) => UpdateQueryBuilder
+  delete: (...args: QueryArgs) => DeleteQueryBuilder
+  insert: (...args: QueryArgs) => InsertQueryBuilder
+  update: (...args: QueryArgs) => UpdateQueryBuilder
 }

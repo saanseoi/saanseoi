@@ -53,7 +53,7 @@ type BatchRunnable = {
  * individually safe, so we intentionally avoid `db.batch(...)` here.
  */
 export async function runStatementBatchWithWriteRetry(
-  db: object,
+  _db: object,
   statements: [unknown, ...unknown[]],
 ) {
   const results = []
