@@ -145,7 +145,7 @@ if (options.binding === 'DB_META') {
   console.log(
     [
       'Meta database recreated.',
-      `Run \`bun run db:seed:${options.environment}:meta\` if you want to restore baseline meta seed data.`,
+      `Run \`bun run db:sync:${options.environment}:meta\` if you want to restore baseline meta data.`,
     ].join(' '),
   )
 }
