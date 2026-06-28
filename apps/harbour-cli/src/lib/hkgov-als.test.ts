@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 
-import { resolveDivisionLookupSource } from './hkgov-als.ts'
+import {
+  resolveDivisionLookupSource,
+  resolveDivisionSnapshotSource,
+} from './hkgov-als.ts'
 
 describe('resolveDivisionLookupSource', () => {
   test('uses the shared local D1 sqlite path for dev by default', () => {
@@ -46,6 +49,35 @@ describe('resolveDivisionLookupSource', () => {
       kind: 'wrangler',
       mode: 'remote',
       wranglerEnv: 'production',
+    })
+  })
+})
+
+describe('resolveDivisionSnapshotSource', () => {
+  test('uses the local meta sqlite path for dev by default', () => {
+    const source = resolveDivisionSnapshotSource(
+      { environment: 'dev' },
+      () => '/tmp/.local/d1/dev/metadata.sqlite',
+    )
+
+    expect(source).toEqual({
+      dbPath: '/tmp/.local/d1/dev/metadata.sqlite',
+      kind: 'sqlite',
+    })
+  })
+
+  test('maps explicit local sqlite paths to the colocated meta database', () => {
+    const source = resolveDivisionSnapshotSource(
+      {
+        dbPath: '/tmp/.local/d1/dev/current.sqlite',
+        environment: 'dev',
+      },
+      () => '/tmp/.local/d1/dev/metadata.sqlite',
+    )
+
+    expect(source).toEqual({
+      dbPath: '/tmp/.local/d1/dev/metadata.sqlite',
+      kind: 'sqlite',
     })
   })
 })
