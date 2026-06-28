@@ -53,7 +53,7 @@ export async function handleStageRunning(
     db,
     dataset.releaseId,
     request.phase,
-    stringifyOptional(request.stats),
+    request.stats ?? null,
     now,
   )
 
@@ -79,7 +79,7 @@ export async function handleStageCompleted(
     request.phase,
     'completed',
     now,
-    stringifyOptional(request.stats),
+    request.stats ?? null,
   )
 
   if (!updatedExistingRun) {
@@ -90,7 +90,7 @@ export async function handleStageCompleted(
       'completed',
       now,
       now,
-      stringifyOptional(request.stats),
+      request.stats ?? null,
     )
   }
 
@@ -120,7 +120,7 @@ export async function handleStageFailed(
     request.phase,
     'error',
     now,
-    stringifyOptional(request.stats),
+    request.stats ?? null,
     errorJson,
   )
 
@@ -132,7 +132,7 @@ export async function handleStageFailed(
       'error',
       now,
       now,
-      stringifyOptional(request.stats),
+      request.stats ?? null,
       errorJson,
     )
   }

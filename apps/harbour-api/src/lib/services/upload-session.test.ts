@@ -263,8 +263,6 @@ describe('upload session flow', () => {
       force: true,
     })
 
-    sqlite.close()
-
     expect(forcedSignResult.releaseId).toBe(firstSignResult.releaseId)
     expect(forcedSignResult.rawObjectKey).toBe(firstSignResult.rawObjectKey)
     expect(forcedSignResult.status).toBe('uploading')
