@@ -1,5 +1,5 @@
 {
-  "versionHash": "vh-ruleset-version-address-merge-v1",
+  "versionHash": "sha256:f1ff9be85cf11d725ae69a83b0a12aef30c18a01f7856d3f221b9a640c68b44a",
   "code": "rs-address-merge-v1",
   "resourceType": "address",
   "strategy": "merge",

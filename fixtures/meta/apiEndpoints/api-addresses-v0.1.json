@@ -1,8 +1,12 @@
 {
+  "versionHash": "sha256:ca4cded15c7a88f38546ca0e4997589fce785f3ecfc74ab65de5160c47ba1bfe",
   "apiVersion": "api-addresses-v0.1",
-  "versionHash": "vh-api-endpoints-addresses-v0.1-v1",
   "endpoints": [
-    { "method": "GET", "path": "/v0/addresses", "operationId": "listAddressesV0" },
+    {
+      "method": "GET",
+      "path": "/v0/addresses",
+      "operationId": "listAddressesV0"
+    },
     {
       "method": "GET",
       "path": "/v0.1/addresses/{id}",

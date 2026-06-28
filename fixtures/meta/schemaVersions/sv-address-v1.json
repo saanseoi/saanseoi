@@ -1,5 +1,5 @@
 {
-  "versionHash": "vh-schema-version-address-v1",
+  "versionHash": "sha256:93ec3016b0ea69ab1e5a050da5357413dc6b3849b81930f679444b55149ce0a4",
   "code": "sv-address-v1",
   "resourceType": "address",
   "version": "1",

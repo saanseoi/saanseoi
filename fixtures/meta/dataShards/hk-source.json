@@ -1,5 +1,5 @@
 {
-  "versionHash": "vh-data-shards-hk-source-v1",
+  "versionHash": "sha256:f422ca092f192e9baf077884406c92cb5af2925c6af9e193a1f1d8f420517eae",
   "shards": [
     {
       "bindingName": "DB_SOURCE_HK_2025",

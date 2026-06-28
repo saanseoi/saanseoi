@@ -1,5 +1,5 @@
 {
-  "versionHash": "vh-schema-version-division-v1",
+  "versionHash": "sha256:5386fad6be8a83fdd1b01bf1a40028626e60646b9653c6203bea3b92bd108fd1",
   "code": "sv-division-v1",
   "resourceType": "division",
   "version": "1",

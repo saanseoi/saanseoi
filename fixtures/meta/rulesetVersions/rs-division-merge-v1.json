@@ -1,5 +1,5 @@
 {
-  "versionHash": "vh-ruleset-version-division-merge-v1",
+  "versionHash": "sha256:29c29c90dd71d367613092dea2b22b23c3816f35004cca216ff688ff4415bdf5",
   "code": "rs-division-merge-v1",
   "resourceType": "division",
   "strategy": "merge",

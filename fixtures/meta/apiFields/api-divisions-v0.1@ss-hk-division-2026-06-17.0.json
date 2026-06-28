@@ -1,5 +1,5 @@
 {
-  "versionHash": "vh-api-fields-divisions-v0.1@ss-hk-division-2026-06-17.0-v1",
+  "versionHash": "sha256:dee789582a5c2dd5dc82017fef8d998a6d49a1c03b47f6d0175c8a9298ed69d7",
   "apiVersion": "api-divisions-v0.1",
   "snapshotVersion": "ss-hk-division-2026-06-17.0",
   "schemaVersion": "sv-division-v1",
@@ -7,7 +7,7 @@
   "fields": [
     {
       "apiField": "division.id",
-      "sourceDatasetCode": "ds-hk-overture-division.json",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "id",
       "resolverCode": "direct_copy",
       "contributionType": "primary",
@@ -17,7 +17,7 @@
     },
     {
       "apiField": "division.attributes.divisionType",
-      "sourceDatasetCode": "ds-hk-overture-division.json",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "subtype",
       "resolverCode": "direct_copy",
       "contributionType": "primary",
@@ -27,7 +27,7 @@
     },
     {
       "apiField": "division.attributes.i18n.en.name",
-      "sourceDatasetCode": "ds-hk-overture-division.json",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.primary.en",
       "resolverCode": "direct_copy",
       "contributionType": "primary",
@@ -37,7 +37,7 @@
     },
     {
       "apiField": "division.attributes.i18n.zhHant.name",
-      "sourceDatasetCode": "ds-hk-overture-division.json",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.primary.zh-Hant",
       "resolverCode": "direct_copy",
       "contributionType": "primary",

@@ -1,5 +1,5 @@
 {
-  "versionHash": "vh-ruleset-version-place-merge-v1",
+  "versionHash": "sha256:3e7cf36f4fd8aac0e1dc737909ce3e27856df8a6b41e491ccaed70aaf4e1fd69",
   "code": "rs-place-merge-v1",
   "resourceType": "place",
   "strategy": "merge",
