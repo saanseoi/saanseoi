@@ -1500,7 +1500,20 @@ export async function ensureIngestRunStarted(
       .limit(1)
       .get()) as { runId: string; status: string } | undefined) ?? null
 
-  if (!existingRun || existingRun.status === 'running') {
+  if (!existingRun) {
+    return
+  }
+
+  if (existingRun.status === 'running') {
+    await db
+      .update(ingestRuns)
+      .set({
+        stats,
+        error: null,
+        updatedAt: now,
+      })
+      .where(eq(ingestRuns.runId, existingRun.runId))
+      .run()
     return
   }
 
