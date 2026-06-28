@@ -221,7 +221,7 @@ export async function replaceSourceOvertureDivisionI18n(
   sourceRecordId: string,
   rows: Array<typeof sourceSchema.sourceOvertureDivisionI18n.$inferInsert>,
 ) {
-  await replaceCurrentI18nRows(
+  await syncCurrentI18nRows(
     db,
     sourceSchema.sourceOvertureDivisionI18n,
     [sourceRecordId],
@@ -235,7 +235,7 @@ export async function replaceSourceOvertureDivisionI18nRows(
   sourceRecordIds: string[],
   rows: Array<typeof sourceSchema.sourceOvertureDivisionI18n.$inferInsert>,
 ) {
-  await replaceCurrentI18nRows(
+  await syncCurrentI18nRows(
     db,
     sourceSchema.sourceOvertureDivisionI18n,
     sourceRecordIds,
@@ -323,7 +323,7 @@ export async function replaceSourceOvertureAddress2dI18n(
   sourceRecordId: string,
   rows: Array<typeof sourceSchema.sourceOvertureAddress2dI18n.$inferInsert>,
 ) {
-  await replaceCurrentI18nRows(
+  await syncCurrentI18nRows(
     db,
     sourceSchema.sourceOvertureAddress2dI18n,
     [sourceRecordId],
@@ -337,7 +337,7 @@ export async function replaceSourceOvertureAddress2dI18nRows(
   sourceRecordIds: string[],
   rows: Array<typeof sourceSchema.sourceOvertureAddress2dI18n.$inferInsert>,
 ) {
-  await replaceCurrentI18nRows(
+  await syncCurrentI18nRows(
     db,
     sourceSchema.sourceOvertureAddress2dI18n,
     sourceRecordIds,
@@ -438,7 +438,7 @@ export async function replaceSourceHkgovAlsAddress2dI18n(
   sourceRecordId: string,
   rows: Array<typeof sourceSchema.sourceHkgovAlsAddress2dI18n.$inferInsert>,
 ) {
-  await replaceCurrentI18nRows(
+  await syncCurrentI18nRows(
     db,
     sourceSchema.sourceHkgovAlsAddress2dI18n,
     [sourceRecordId],
@@ -452,7 +452,7 @@ export async function replaceSourceHkgovAlsAddress2dI18nRows(
   sourceRecordIds: string[],
   rows: Array<typeof sourceSchema.sourceHkgovAlsAddress2dI18n.$inferInsert>,
 ) {
-  await replaceCurrentI18nRows(
+  await syncCurrentI18nRows(
     db,
     sourceSchema.sourceHkgovAlsAddress2dI18n,
     sourceRecordIds,
@@ -624,7 +624,9 @@ async function deleteMissingCurrentSourceRows<
   return missingIds.length
 }
 
-async function replaceCurrentI18nRows<TTable extends { sourceRecordId: unknown }>(
+async function syncCurrentI18nRows<
+  TTable extends { sourceRecordId: unknown; locale: unknown },
+>(
   db: SourceDatabase,
   table: TTable,
   sourceRecordIds: string[],
@@ -635,27 +637,95 @@ async function replaceCurrentI18nRows<TTable extends { sourceRecordId: unknown }
     return
   }
 
-  const deleteStatements = []
+  if (rows.length === 0) {
+    const deleteStatements = []
+
+    for (const chunk of chunkArray(sourceRecordIds, getMaxItemsPerInClause())) {
+      deleteStatements.push(
+        db.delete(table as never).where(inArray(table.sourceRecordId as never, chunk)),
+      )
+    }
+
+    await runStatementsInGroupsWithWriteRetry(db, deleteStatements)
+    return
+  }
+
+  const updatableColumns = Object.keys(rows[0] as Record<string, unknown>).filter(
+    column => column !== 'sourceRecordId' && column !== 'locale',
+  )
+  const upsertStatements = []
+
+  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
+    upsertStatements.push(
+      db
+        .insert(table as never)
+        .values(chunk as never)
+        .onConflictDoUpdate({
+          target: [table.sourceRecordId as never, table.locale as never],
+          set: Object.fromEntries(
+            updatableColumns.map(column => [column, excluded(column)]),
+          ) as never,
+        }),
+    )
+  }
+
+  await runStatementsInGroupsWithWriteRetry(db, upsertStatements)
+
+  const existingRows: Array<{ locale: string; sourceRecordId: string }> = []
 
   for (const chunk of chunkArray(sourceRecordIds, getMaxItemsPerInClause())) {
+    const chunkRows = await db
+      .select({
+        locale: table.locale as never,
+        sourceRecordId: table.sourceRecordId as never,
+      })
+      .from(table as never)
+      .where(inArray(table.sourceRecordId as never, chunk))
+      .all()
+
+    existingRows.push(
+      ...(chunkRows as Array<{ locale: string; sourceRecordId: string }>),
+    )
+  }
+
+  const incomingLocalesBySourceRecordId = new Map<string, Set<string>>()
+
+  for (const row of rows as Array<{ locale: string; sourceRecordId: string }>) {
+    const locales =
+      incomingLocalesBySourceRecordId.get(row.sourceRecordId) ?? new Set<string>()
+    locales.add(row.locale)
+    incomingLocalesBySourceRecordId.set(row.sourceRecordId, locales)
+  }
+
+  const staleLocalesBySourceRecordId = new Map<string, Set<string>>()
+
+  for (const row of existingRows) {
+    if (incomingLocalesBySourceRecordId.get(row.sourceRecordId)?.has(row.locale)) {
+      continue
+    }
+
+    const staleLocales =
+      staleLocalesBySourceRecordId.get(row.sourceRecordId) ?? new Set<string>()
+    staleLocales.add(row.locale)
+    staleLocalesBySourceRecordId.set(row.sourceRecordId, staleLocales)
+  }
+
+  const deleteStatements = []
+
+  for (const [sourceRecordId, locales] of staleLocalesBySourceRecordId) {
     deleteStatements.push(
-      db.delete(table as never).where(inArray(table.sourceRecordId as never, chunk)),
+      db
+        .delete(table as never)
+        .where(
+          and(
+            eq(table.sourceRecordId as never, sourceRecordId),
+            inArray(table.locale as never, [...locales]),
+          ),
+        ),
     )
   }
 
   await runStatementsInGroupsWithWriteRetry(db, deleteStatements)
-
-  if (rows.length === 0) {
-    return
-  }
-
-  const insertStatements = []
-
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
-    insertStatements.push(db.insert(table as never).values(chunk as never))
-  }
-
-  await runStatementsInGroupsWithWriteRetry(db, insertStatements)
 }
 
 async function insertVersionRows<TTable>(
@@ -727,4 +797,34 @@ async function advanceCurrentSourceRelease<
   }
 
   await runStatementsInGroupsWithWriteRetry(db, statements)
+}
+
+export async function advanceSourceOvertureAddress2dRelease(
+  db: SourceDatabase,
+  sourceRecordIds: string[],
+  releaseId: string,
+  datasetId: string,
+) {
+  await advanceCurrentSourceRelease(
+    db,
+    sourceSchema.sourceOvertureAddresses2d,
+    sourceRecordIds,
+    releaseId,
+    datasetId,
+  )
+}
+
+export async function advanceSourceHkgovAlsAddress2dRelease(
+  db: SourceDatabase,
+  sourceRecordIds: string[],
+  releaseId: string,
+  datasetId: string,
+) {
+  await advanceCurrentSourceRelease(
+    db,
+    sourceSchema.sourceHkgovAlsAddresses2d,
+    sourceRecordIds,
+    releaseId,
+    datasetId,
+  )
 }

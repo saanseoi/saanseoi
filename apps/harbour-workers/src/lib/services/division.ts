@@ -1,5 +1,5 @@
 import type { DatasetProcessingMessage } from '@repo/core'
-import { insertHistoryVersionProvenanceRows } from '@repo/core/db/meta-repository'
+import { resolveLatestSnapshotForFamilyExcludingId } from '@repo/core/db/meta-repository'
 import type {
   CurrentDatabase,
   HistoryDatabase,
@@ -17,6 +17,7 @@ import type { GeoJsonGeometry, GeoJsonPosition } from '../geojson'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
+  cloneDivisionCurrentSnapshot,
   closeCurrentDivisionVersions,
   deleteMissingCurrentDivisions,
   deleteStaleDivisionCurrentRows,
@@ -152,6 +153,21 @@ export async function processDivisionDataset(
       normalizeDivisionI18nSnapshotRow,
     }),
   )
+  const previousSnapshot = await resolveLatestSnapshotForFamilyExcludingId(
+    metaDb,
+    'division',
+    versionInsertContext.snapshotId,
+  )
+
+  if (previousSnapshot) {
+    await timings.measure('cloneDivisionCurrentSnapshotMs', () =>
+      cloneDivisionCurrentSnapshot(
+        currentDb,
+        previousSnapshot.id,
+        versionInsertContext.snapshotId,
+      ),
+    )
+  }
   const previousRows = new Map(currentRows)
   const seenIds = new Set<string>()
   const processedRowsById = new Map<string, DivisionVersionSnapshot>()
@@ -346,16 +362,6 @@ export async function processDivisionDataset(
             })
           : versionHash
 
-      currentDivisionRows.push(normalized.base)
-      currentDivisionI18nRowIds.add(normalized.base.id)
-      currentDivisionI18nRows.push(
-        ...normalized.i18n.map(row => ({
-          ...row,
-          createdAt: currentDivisionI18nNow,
-          updatedAt: currentDivisionI18nNow,
-        })),
-      )
-
       if (!currentChanged) {
         unchangedRows += 1
         continue
@@ -364,6 +370,15 @@ export async function processDivisionDataset(
       if (current) {
         changedDivisionExistingIds.add(normalized.base.id)
       }
+
+      currentDivisionI18nRowIds.add(normalized.base.id)
+      currentDivisionI18nRows.push(
+        ...normalized.i18n.map(row => ({
+          ...row,
+          createdAt: currentDivisionI18nNow,
+          updatedAt: currentDivisionI18nNow,
+        })),
+      )
 
       if (!baseChanged) {
         changedDivisionVersionRows.push({
@@ -390,6 +405,7 @@ export async function processDivisionDataset(
       }
 
       insertedVersions += 1
+      currentDivisionRows.push(normalized.base)
       changedDivisionVersionRows.push({
         ...normalized.base,
         versionHash,
@@ -447,19 +463,6 @@ export async function processDivisionDataset(
         changedDivisionI18nVersionRows,
       ),
     )
-    await timings.measure('insertHistoryVersionProvenanceRowsMs', () =>
-      insertHistoryVersionProvenanceRows(
-        metaDb,
-        changedDivisionVersionRows.map(row => ({
-          entityId: row.id,
-          entityType: 'division',
-          snapshotId: versionInsertContext.snapshotId,
-          sourceReleaseId: versionInsertContext.releaseId,
-          versionHash: row.versionHash,
-        })),
-      ),
-    )
-
     if (sourceDb && message.source === 'overture') {
       const changedIds = [...changedSourceIds]
       const unchangedIds = [...unchangedSourceIds]

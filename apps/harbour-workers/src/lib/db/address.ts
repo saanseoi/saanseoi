@@ -241,6 +241,100 @@ export async function prepareAddressVersionInsertContext(
   }
 }
 
+export async function cloneAddressCurrentSnapshot(
+  db: HarbourReadableDb & HarbourWritableDb,
+  fromSnapshotId: string,
+  toSnapshotId: string,
+) {
+  if (fromSnapshotId === toSnapshotId) {
+    return
+  }
+
+  const now = new Date().toISOString()
+
+  await runWithWriteRetry(() =>
+    db
+      .insert(currentSchema.address2d)
+      .select(
+        db
+          .select({
+            snapshotId: sql<string>`${toSnapshotId}`,
+            id: currentSchema.address2d.id,
+            geometry: currentSchema.address2d.geometry,
+            bbox: currentSchema.address2d.bbox,
+            divisionSnapshotId: currentSchema.address2d.divisionSnapshotId,
+            countryId: currentSchema.address2d.countryId,
+            areaId: currentSchema.address2d.areaId,
+            districtId: currentSchema.address2d.districtId,
+            townId: currentSchema.address2d.townId,
+            macrohoodId: currentSchema.address2d.macrohoodId,
+            villageId: currentSchema.address2d.villageId,
+            neighbourhoodId: currentSchema.address2d.neighbourhoodId,
+            hamletId: currentSchema.address2d.hamletId,
+            microhoodId: currentSchema.address2d.microhoodId,
+            streetSnapshotId: currentSchema.address2d.streetSnapshotId,
+            streetId: currentSchema.address2d.streetId,
+            identifiers: currentSchema.address2d.identifiers,
+            sources: currentSchema.address2d.sources,
+            createdAt: sql<string>`${now}`,
+            updatedAt: sql<string>`${now}`,
+          })
+          .from(currentSchema.address2d)
+          .where(eq(currentSchema.address2d.snapshotId, fromSnapshotId)),
+      )
+      .onConflictDoNothing()
+      .run(),
+  )
+
+  await runWithWriteRetry(() =>
+    db
+      .insert(currentSchema.address2dI18n)
+      .select(
+        db
+          .select({
+            snapshotId: sql<string>`${toSnapshotId}`,
+            addressId: currentSchema.address2dI18n.addressId,
+            locale: currentSchema.address2dI18n.locale,
+            formattedAddress: currentSchema.address2dI18n.formattedAddress,
+            buildingName: currentSchema.address2dI18n.buildingName,
+            buildingNumberFrom: currentSchema.address2dI18n.buildingNumberFrom,
+            buildingNumberTo: currentSchema.address2dI18n.buildingNumberTo,
+            blockType: currentSchema.address2dI18n.blockType,
+            blockNumber: currentSchema.address2dI18n.blockNumber,
+            blockTypeBeforeNumber: currentSchema.address2dI18n.blockTypeBeforeNumber,
+            phaseName: currentSchema.address2dI18n.phaseName,
+            phaseNumber: currentSchema.address2dI18n.phaseNumber,
+            estateName: currentSchema.address2dI18n.estateName,
+            streetNumber: currentSchema.address2dI18n.streetNumber,
+            streetName: currentSchema.address2dI18n.streetName,
+            createdAt: sql<string>`${now}`,
+            updatedAt: sql<string>`${now}`,
+          })
+          .from(currentSchema.address2dI18n)
+          .where(eq(currentSchema.address2dI18n.snapshotId, fromSnapshotId)),
+      )
+      .onConflictDoNothing()
+      .run(),
+  )
+}
+
+export async function alignAddressCurrentDivisionSnapshot(
+  db: HarbourWritableDb,
+  snapshotId: string,
+  divisionSnapshotId: string,
+) {
+  await runWithWriteRetry(() =>
+    db
+      .update(currentSchema.address2d)
+      .set({
+        divisionSnapshotId,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(currentSchema.address2d.snapshotId, snapshotId))
+      .run(),
+  )
+}
+
 export async function closeCurrentAddressVersions(
   db: HarbourWritableDb,
   addressIds: string[],

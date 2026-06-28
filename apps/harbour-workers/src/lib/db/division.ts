@@ -223,6 +223,68 @@ export async function prepareDivisionVersionInsertContext(
   }
 }
 
+export async function cloneDivisionCurrentSnapshot(
+  db: HarbourReadableDb & HarbourWritableDb,
+  fromSnapshotId: string,
+  toSnapshotId: string,
+) {
+  if (fromSnapshotId === toSnapshotId) {
+    return
+  }
+
+  const now = new Date().toISOString()
+
+  await runStatementBatchWithWriteRetry(db, [
+    db
+      .insert(currentSchema.divisions)
+      .select(
+        db
+          .select({
+            snapshotId: sql<string>`${toSnapshotId}`,
+            id: currentSchema.divisions.id,
+            level: currentSchema.divisions.level,
+            type: currentSchema.divisions.type,
+            geometry: currentSchema.divisions.geometry,
+            bbox: currentSchema.divisions.bbox,
+            population: currentSchema.divisions.population,
+            subtype: currentSchema.divisions.subtype,
+            class: currentSchema.divisions.class,
+            wikidata: currentSchema.divisions.wikidata,
+            hierarchy: currentSchema.divisions.hierarchy,
+            parentDivisionId: currentSchema.divisions.parentDivisionId,
+            cartography: currentSchema.divisions.cartography,
+            sources: currentSchema.divisions.sources,
+            createdAt: sql<string>`${now}`,
+            updatedAt: sql<string>`${now}`,
+          })
+          .from(currentSchema.divisions)
+          .where(eq(currentSchema.divisions.snapshotId, fromSnapshotId)),
+      )
+      .onConflictDoNothing(),
+    db
+      .insert(currentSchema.divisionsI18n)
+      .select(
+        db
+          .select({
+            snapshotId: sql<string>`${toSnapshotId}`,
+            divisionId: currentSchema.divisionsI18n.divisionId,
+            locale: currentSchema.divisionsI18n.locale,
+            name: currentSchema.divisionsI18n.name,
+            nameVariant: currentSchema.divisionsI18n.nameVariant,
+            nameAlts: currentSchema.divisionsI18n.nameAlts,
+            nameRules: currentSchema.divisionsI18n.nameRules,
+            localType: currentSchema.divisionsI18n.localType,
+            isLocaleInferred: currentSchema.divisionsI18n.isLocaleInferred,
+            createdAt: sql<string>`${now}`,
+            updatedAt: sql<string>`${now}`,
+          })
+          .from(currentSchema.divisionsI18n)
+          .where(eq(currentSchema.divisionsI18n.snapshotId, fromSnapshotId)),
+      )
+      .onConflictDoNothing(),
+  ])
+}
+
 /**
  * Marks current version rows as closed at the given snapshot month.
  */
