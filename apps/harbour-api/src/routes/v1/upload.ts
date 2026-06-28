@@ -1,7 +1,5 @@
-import { createMetaDb } from '@repo/db'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 import { getDatasetRecordByReleaseId } from '@repo/core/db/meta-repository'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 import { handleUploadRequest } from '../../lib/services/ingest'
 import {
@@ -22,7 +20,7 @@ import {
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import type { AppEnv } from '../../types'
-import { withPrimarySession } from '../../lib/d1'
+import { createPrimaryMetaRepoDb } from '../../lib/d1'
 
 const uploadRouteConfig = createRoute({
   method: 'post',
@@ -160,8 +158,7 @@ export const uploadRoute = defineOpenAPIRoute<typeof uploadRouteConfig, AppEnv>(
   route: uploadRouteConfig,
   handler: async c => {
     try {
-      const db = createMetaDb(withPrimarySession(c.env.DB_META)) as HarbourReadableDb &
-        HarbourWritableDb
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const formData = await c.req.formData()
       const result = await handleUploadRequest(
         db,
@@ -206,9 +203,7 @@ export const signUploadRoute = defineOpenAPIRoute<typeof signUploadRouteConfig, 
     route: signUploadRouteConfig,
     handler: async c => {
       try {
-        const db = createMetaDb(
-          withPrimarySession(c.env.DB_META),
-        ) as HarbourReadableDb & HarbourWritableDb
+        const db = createPrimaryMetaRepoDb(c.env.DB_META)
         const request = c.req.valid('json') as SignUploadRequest
         const result = await handleSignUploadRequest(db, c.env.R2_RAW, c.env, request)
 
@@ -249,8 +244,7 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
   route: finalizeUploadRouteConfig,
   handler: async c => {
     try {
-      const db = createMetaDb(withPrimarySession(c.env.DB_META)) as HarbourReadableDb &
-        HarbourWritableDb
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json') as FinalizeUploadRequest
       const result = await handleFinalizeUploadRequest(
         db,
@@ -299,8 +293,7 @@ export const requeueUploadRoute = defineOpenAPIRoute<
   route: requeueUploadRouteConfig,
   handler: async c => {
     try {
-      const db = createMetaDb(withPrimarySession(c.env.DB_META)) as HarbourReadableDb &
-        HarbourWritableDb
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json') as RequeueUploadRequest
       const requeued = await handleRequeueUploadRequest(
         db,

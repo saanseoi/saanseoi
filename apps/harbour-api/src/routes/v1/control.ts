@@ -1,6 +1,4 @@
-import { createMetaDb } from '@repo/db'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 import {
   handlePublishDataset,
@@ -8,7 +6,7 @@ import {
   handleStageFailed,
   handleStageRunning,
 } from '../../lib/services/control'
-import { withPrimarySession } from '../../lib/d1'
+import { createPrimaryMetaRepoDb } from '../../lib/d1'
 import {
   ControlResponseSchema,
   ControlStageRequestSchema,
@@ -121,8 +119,7 @@ export const stageRunningRoute = defineOpenAPIRoute<
   route: stageRunningRouteConfig,
   handler: async c => {
     try {
-      const db = createMetaDb(withPrimarySession(c.env.DB_META)) as HarbourReadableDb &
-        HarbourWritableDb
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json')
       return c.json(await handleStageRunning(db, request), 200)
     } catch (error) {
@@ -138,8 +135,7 @@ export const stageCompletedRoute = defineOpenAPIRoute<
   route: stageCompletedRouteConfig,
   handler: async c => {
     try {
-      const db = createMetaDb(withPrimarySession(c.env.DB_META)) as HarbourReadableDb &
-        HarbourWritableDb
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json')
       return c.json(await handleStageCompleted(db, request), 200)
     } catch (error) {
@@ -155,8 +151,7 @@ export const stageFailedRoute = defineOpenAPIRoute<
   route: stageFailedRouteConfig,
   handler: async c => {
     try {
-      const db = createMetaDb(withPrimarySession(c.env.DB_META)) as HarbourReadableDb &
-        HarbourWritableDb
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json')
       return c.json(await handleStageFailed(db, request), 200)
     } catch (error) {
@@ -172,8 +167,7 @@ export const publishDatasetRoute = defineOpenAPIRoute<
   route: publishDatasetRouteConfig,
   handler: async c => {
     try {
-      const db = createMetaDb(withPrimarySession(c.env.DB_META)) as HarbourReadableDb &
-        HarbourWritableDb
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json')
       return c.json(await handlePublishDataset(db, request), 200)
     } catch (error) {
