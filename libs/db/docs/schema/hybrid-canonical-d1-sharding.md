@@ -79,7 +79,8 @@ An API release set is the unit of reproducibility.
 
 It records:
 
-- which dataset releases were selected
+- which canonical snapshots were selected
+- which source releases those snapshots depend on
 - which canonical logic version was applied
 - which canonical schema version was applied
 - which API version it serves
@@ -262,16 +263,30 @@ For now, `apiVersions.code` should encode that scope explicitly.
 Unique:
 - `(apiVersionId, code)`
 
-### `apiReleaseSetMembers`
+### `snapshotSources`
 
-- `apiReleaseSetId`
+- `snapshotId`
 - `datasetId`
-- `releaseId`
+- `sourceReleaseId`
 - `role` (enum: `primary`, `enrichment`, `fallback`, `lookup`)
 - `createdAt`
 
 PK:
-- `(apiReleaseSetId, releaseId)`
+- `(snapshotId, sourceReleaseId)`
+
+This is the snapshot-level source membership table for canonical data.
+
+### `apiReleaseSetSnapshots`
+
+- `apiReleaseSetId`
+- `snapshotFamily`
+- `snapshotId`
+- `createdAt`
+
+PK:
+- `(apiReleaseSetId, snapshotFamily)`
+
+This maps an API release set to the canonical snapshot selected for each family.
 
 ### `apiEndpoints`
 
@@ -575,18 +590,21 @@ Unique:
 
 - `(apiReleaseSetId, apiField, sourceDatasetId, sourceFieldPath, contributionType, priority)`
 
-### Relationship To `apiReleaseSetMembers`
+### Relationship To Release-Set Source Metadata
 
-Use both tables together:
+Use these tables together:
 
-- `apiReleaseSetMembers`
-  - tells us which releases were included in the release set overall
+- `apiReleaseSetSnapshots`
+  - tells us which canonical snapshot each family in the release set resolves to
+- `snapshotSources`
+  - tells us which source releases contributed to a given canonical snapshot
 - `apiFieldProvenance`
   - tells us how each published API field in that release set is sourced, including multi-source and fallback rules
 
 So:
 
-- release-set membership explains the snapshot composition
+- snapshot membership explains the canonical composition
+- source membership explains which upstream releases fed those snapshots
 - field provenance explains the contract-level field derivation
 
 ### User-facing trace model
@@ -594,9 +612,10 @@ So:
 The intended provenance flow is:
 
 1. resolve the API release set used by the response
-2. inspect `apiReleaseSetMembers` to see which source releases were used
-3. inspect `apiFieldProvenance` to see how each API field in that release is defined
-4. inspect the relevant source tables or source artifacts directly if deeper tracing is needed
+2. inspect `apiReleaseSetSnapshots` to see which canonical snapshots were selected
+3. derive source membership through `apiReleaseSetSnapshots -> snapshotSources` to see which source releases were used
+4. inspect `apiFieldProvenance` to see how each API field in that release is defined
+5. inspect the relevant source tables or source artifacts directly if deeper tracing is needed
 
 This gives field-level provenance for the API contract without paying the storage cost of record-level provenance.
 

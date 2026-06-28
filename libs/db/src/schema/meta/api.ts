@@ -16,7 +16,6 @@ import {
   apiReleaseSetStatuses,
   apiVersionStatuses,
   datasetTypes,
-  historyVersionEntityTypes,
   provenanceContributionTypes,
   resolverCodes,
   snapshotFamilies,
@@ -102,32 +101,6 @@ export const metaApiReleaseSets = sqliteTable(
       table.code,
     ),
     index('apiReleaseSets_status_idx').on(table.status),
-  ],
-)
-
-export const metaApiReleaseSetSources = sqliteTable(
-  'apiReleaseSetSources',
-  {
-    apiReleaseSetId: text('apiReleaseSetId')
-      .notNull()
-      .references(() => metaApiReleaseSets.id, { onDelete: 'cascade' }),
-    datasetId: text('datasetId')
-      .notNull()
-      .references(() => metaDatasets.id, { onDelete: 'restrict' }),
-    sourceReleaseId: text('sourceReleaseId').notNull(),
-    role: text('role', { enum: apiReleaseSetSourceRoles }).notNull(),
-    createdAt: timestamps.createdAt,
-  },
-  table => [
-    primaryKey({
-      columns: [table.apiReleaseSetId, table.sourceReleaseId],
-    }),
-    foreignKey({
-      columns: [table.sourceReleaseId, table.datasetId],
-      foreignColumns: [metaReleases.id, metaReleases.datasetId],
-      name: 'apiReleaseSetSources_sourceReleaseId_datasetId_releases_id_datasetId_fk',
-    }).onDelete('restrict'),
-    index('apiReleaseSetSources_datasetId_idx').on(table.datasetId),
   ],
 )
 
@@ -230,39 +203,6 @@ export const metaApiFieldProvenance = sqliteTable(
     index('apiFieldProvenance_release_field_idx').on(
       table.apiReleaseSetId,
       table.apiField,
-    ),
-  ],
-)
-
-export const metaHistoryVersionProvenance = sqliteTable(
-  'historyVersionProvenance',
-  {
-    snapshotId: text('snapshotId')
-      .notNull()
-      .references(() => metaSnapshots.id, { onDelete: 'cascade' }),
-    entityType: text('entityType', { enum: historyVersionEntityTypes }).notNull(),
-    entityId: text('entityId').notNull(),
-    versionHash: text('versionHash').notNull(),
-    sourceReleaseId: text('sourceReleaseId')
-      .notNull()
-      .references(() => metaReleases.id, { onDelete: 'restrict' }),
-    createdAt: timestamps.createdAt,
-  },
-  table => [
-    primaryKey({
-      columns: [
-        table.snapshotId,
-        table.entityType,
-        table.entityId,
-        table.versionHash,
-        table.sourceReleaseId,
-      ],
-    }),
-    index('historyVersionProvenance_sourceReleaseId_idx').on(table.sourceReleaseId),
-    index('historyVersionProvenance_entity_idx').on(
-      table.entityType,
-      table.entityId,
-      table.versionHash,
     ),
   ],
 )

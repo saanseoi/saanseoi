@@ -72,6 +72,32 @@ describe('harbour-api', () => {
     expect(res.headers.get('location')).toBe('/openapi')
   })
 
+  test('GET /openapi documents control selectors as required releaseId or releaseCode', async () => {
+    const res = await app.request('http://localhost/openapi')
+    const document = (await res.json()) as {
+      components: {
+        schemas: Record<string, { anyOf?: unknown; required?: string[] }>
+      }
+    }
+    const controlStageSchema = document.components.schemas.HarbourControlStageRequest
+    const publishDatasetSchema =
+      document.components.schemas.HarbourPublishDatasetRequest
+
+    expect(res.status).toBe(200)
+    if (!controlStageSchema || !publishDatasetSchema) {
+      throw new Error('Missing control request schemas in OpenAPI document')
+    }
+    expect(controlStageSchema.anyOf).toEqual([
+      { required: ['releaseId'] },
+      { required: ['releaseCode'] },
+    ])
+    expect(controlStageSchema.required).toContain('phase')
+    expect(publishDatasetSchema.anyOf).toEqual([
+      { required: ['releaseId'] },
+      { required: ['releaseCode'] },
+    ])
+  })
+
   test('GET /v1/meta/health checks DB access', async () => {
     const res = await app.fetch(new Request('http://localhost/v1/meta/health'), {
       ...createDbBindings(),

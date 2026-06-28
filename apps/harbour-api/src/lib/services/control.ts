@@ -4,7 +4,6 @@ import {
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
   listApiReleaseSetSnapshots,
-  listApiReleaseSetSources,
   resolveActiveReleaseSetForType,
   resolveReleaseSetForRelease,
   resolveSnapshotForRelease,
@@ -174,17 +173,9 @@ export async function handlePublishDataset(
     snapshotFamily: SnapshotFamily
     snapshotId: string
   }> = []
-  const carriedSources: Array<{
-    datasetId: string
-    role: 'primary' | 'enrichment' | 'fallback' | 'lookup'
-    sourceReleaseId: string
-  }> = []
 
   if (activeReleaseSet && activeReleaseSet.id !== releaseSet.id) {
-    const [activeSnapshots, activeSources] = await Promise.all([
-      listApiReleaseSetSnapshots(db, activeReleaseSet.id),
-      listApiReleaseSetSources(db, activeReleaseSet.id),
-    ])
+    const activeSnapshots = await listApiReleaseSetSnapshots(db, activeReleaseSet.id)
 
     for (const activeSnapshot of activeSnapshots) {
       if (activeSnapshot.snapshotFamily === datasetType) {
@@ -196,23 +187,10 @@ export async function handlePublishDataset(
         snapshotId: activeSnapshot.snapshotId,
       })
     }
-
-    for (const activeSource of activeSources) {
-      if (activeSource.datasetId === dataset.datasetId) {
-        continue
-      }
-
-      carriedSources.push({
-        datasetId: activeSource.datasetId,
-        sourceReleaseId: activeSource.sourceReleaseId,
-        role: activeSource.role,
-      })
-    }
   }
 
   await publishReleaseArtifacts(db, {
     carriedSnapshots,
-    carriedSources,
     currentRelease,
     currentReleaseIsCorrected: currentRelease
       ? isCorrectedRelease(currentRelease.sourceVersion, dataset.sourceVersion)
