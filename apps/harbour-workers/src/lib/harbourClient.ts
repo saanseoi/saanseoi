@@ -61,8 +61,8 @@ export function createHarbourClient(config: HarbourControlApiConfig) {
         stats,
       })
     },
-    stageStarted(releaseId: string, phase: string, stats?: Record<string, unknown>) {
-      return postControl(baseUrl, apiKey, '/v1/control/stageStarted', {
+    stageRunning(releaseId: string, phase: string, stats?: Record<string, unknown>) {
+      return postControl(baseUrl, apiKey, '/v1/control/stageRunning', {
         releaseId,
         phase,
         stats,

@@ -19,7 +19,7 @@ const {
   handlePublishDataset,
   handleStageCompleted,
   handleStageFailed,
-  handleStageStarted,
+  handleStageRunning,
 } = await import('./control')
 
 const tempDirs: string[] = []
@@ -120,7 +120,7 @@ describe('control service', () => {
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
 
-    await handleStageStarted(db, {
+    await handleStageRunning(db, {
       releaseId,
       phase: 'extractDivisions',
     })
@@ -132,7 +132,7 @@ describe('control service', () => {
       },
     })
 
-    await handleStageStarted(db, {
+    await handleStageRunning(db, {
       releaseId,
       phase: 'publishDataset',
     })
@@ -203,7 +203,7 @@ describe('control service', () => {
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
 
-    await handleStageStarted(db, {
+    await handleStageRunning(db, {
       releaseId,
       phase: 'extractDivisions',
     })
@@ -256,14 +256,14 @@ describe('control service', () => {
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
 
-    await handleStageStarted(db, {
+    await handleStageRunning(db, {
       releaseId,
       phase: 'extractDivisions',
       stats: {
         processedRows: 64,
       },
     })
-    await handleStageStarted(db, {
+    await handleStageRunning(db, {
       releaseId,
       phase: 'extractDivisions',
       stats: {
@@ -313,11 +313,11 @@ describe('control service', () => {
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
 
-    await handleStageStarted(db, {
+    await handleStageRunning(db, {
       releaseId,
       phase: 'extractAddresses',
     })
-    await handleStageStarted(db, {
+    await handleStageRunning(db, {
       releaseId,
       phase: 'extractAddresses',
     })
@@ -378,7 +378,7 @@ describe('control service', () => {
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
 
-    await handleStageStarted(db, {
+    await handleStageRunning(db, {
       releaseId,
       phase: 'processDataset',
     })
@@ -387,7 +387,7 @@ describe('control service', () => {
       phase: 'processDataset',
       error: 'Shard mapping not found.',
     })
-    await handleStageStarted(db, {
+    await handleStageRunning(db, {
       releaseId,
       phase: 'processDataset',
     })

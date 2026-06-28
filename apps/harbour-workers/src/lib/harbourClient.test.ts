@@ -103,7 +103,7 @@ describe('createHarbourControlApi', () => {
       baseUrl: 'http://localhost:8788',
     })
 
-    await api.stageStarted('1', 'extractDivisions')
+    await api.stageRunning('1', 'extractDivisions')
 
     expect(attempts).toBe(2)
   })
