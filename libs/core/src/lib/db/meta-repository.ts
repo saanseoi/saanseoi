@@ -25,8 +25,6 @@ export type DataShardRecord = {
   databaseName: string
 }
 
-const D1_MAX_SQL_VARIABLES = 99
-const HISTORY_VERSION_PROVENANCE_COLUMN_COUNT = 6
 const RELEASE_LOOKUP_RETRY_LIMIT = 4
 const RELEASE_LOOKUP_RETRY_DELAY_MS = 150
 
@@ -46,11 +44,9 @@ const {
   ingestRuns,
   metaApiReleaseSets,
   metaApiReleaseSetSnapshots,
-  metaApiReleaseSetSources,
   metaApiVersions,
   metaDataShards,
   metaDatasets,
-  metaHistoryVersionProvenance,
   metaPublishers,
   metaReleaseSetShardAssignments,
   metaReleaseShardAssignments,
@@ -82,20 +78,6 @@ const releaseRecordSelection = {
   createdAt: metaReleases.createdAt,
   updatedAt: metaReleases.updatedAt,
 } as const
-
-function getMaxInsertRowsPerStatement(columnCount: number) {
-  return Math.max(1, Math.floor(D1_MAX_SQL_VARIABLES / columnCount))
-}
-
-function chunkRows<T>(rows: T[], chunkSize: number) {
-  const chunks: T[][] = []
-
-  for (let index = 0; index < rows.length; index += chunkSize) {
-    chunks.push(rows.slice(index, index + chunkSize))
-  }
-
-  return chunks
-}
 
 async function runAtomicWriteStatements(
   db: AtomicWritableDb,
@@ -526,7 +508,7 @@ export async function resolveLatestSnapshotForFamilyExcludingId(
       .where(
         and(
           eq(metaSnapshots.family, family),
-          ne(metaSnapshots.status, 'archived'),
+          eq(metaSnapshots.status, 'published'),
           ne(metaSnapshots.id, snapshotId),
         ),
       )
@@ -819,10 +801,18 @@ export async function resolveReleaseSetForRelease(
         code: metaApiReleaseSets.code,
         status: metaApiReleaseSets.status,
       })
-      .from(metaApiReleaseSetSources)
+      .from(metaSnapshotSources)
+      .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
+      .innerJoin(
+        metaApiReleaseSetSnapshots,
+        and(
+          eq(metaApiReleaseSetSnapshots.snapshotId, metaSnapshots.id),
+          eq(metaApiReleaseSetSnapshots.snapshotFamily, metaSnapshots.family),
+        ),
+      )
       .innerJoin(
         metaApiReleaseSets,
-        eq(metaApiReleaseSetSources.apiReleaseSetId, metaApiReleaseSets.id),
+        eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
       )
       .innerJoin(
         metaApiVersions,
@@ -830,7 +820,7 @@ export async function resolveReleaseSetForRelease(
       )
       .where(
         and(
-          eq(metaApiReleaseSetSources.sourceReleaseId, releaseId),
+          eq(metaSnapshotSources.sourceReleaseId, releaseId),
           eq(metaApiVersions.code, apiVersionCode),
         ),
       )
@@ -914,11 +904,6 @@ export async function publishReleaseArtifacts(
     carriedSnapshots: Array<{
       snapshotFamily: SnapshotFamily
       snapshotId: string
-    }>
-    carriedSources: Array<{
-      datasetId: string
-      role: 'primary' | 'enrichment' | 'fallback' | 'lookup'
-      sourceReleaseId: string
     }>
     currentRelease: Pick<DatasetRecord, 'releaseId'> | null
     currentReleaseIsCorrected: boolean
@@ -1026,30 +1011,6 @@ export async function publishReleaseArtifacts(
       )
     }
 
-    for (const carriedSource of args.carriedSources) {
-      statements.push(
-        tx
-          .insert(metaApiReleaseSetSources)
-          .values({
-            apiReleaseSetId: args.releaseSetId,
-            datasetId: carriedSource.datasetId,
-            sourceReleaseId: carriedSource.sourceReleaseId,
-            role: carriedSource.role,
-            createdAt: publishedAt,
-          })
-          .onConflictDoUpdate({
-            target: [
-              metaApiReleaseSetSources.apiReleaseSetId,
-              metaApiReleaseSetSources.sourceReleaseId,
-            ],
-            set: {
-              datasetId: carriedSource.datasetId,
-              role: carriedSource.role,
-            },
-          }),
-      )
-    }
-
     statements.push(
       tx
         .delete(metaApiReleaseSetSnapshots)
@@ -1074,33 +1035,6 @@ export async function publishReleaseArtifacts(
           ],
           set: {
             snapshotId: args.snapshotId,
-          },
-        }),
-      tx
-        .delete(metaApiReleaseSetSources)
-        .where(
-          and(
-            eq(metaApiReleaseSetSources.apiReleaseSetId, args.releaseSetId),
-            eq(metaApiReleaseSetSources.datasetId, args.dataset.datasetId),
-          ),
-        ),
-      tx
-        .insert(metaApiReleaseSetSources)
-        .values({
-          apiReleaseSetId: args.releaseSetId,
-          datasetId: args.dataset.datasetId,
-          sourceReleaseId: args.dataset.releaseId,
-          role: 'primary',
-          createdAt: publishedAt,
-        })
-        .onConflictDoUpdate({
-          target: [
-            metaApiReleaseSetSources.apiReleaseSetId,
-            metaApiReleaseSetSources.sourceReleaseId,
-          ],
-          set: {
-            datasetId: args.dataset.datasetId,
-            role: 'primary',
           },
         }),
       tx
@@ -1342,35 +1276,6 @@ export async function upsertSnapshotSource(
     .run()
 }
 
-export async function upsertApiReleaseSetSource(
-  db: HarbourWritableDb,
-  releaseSetId: string,
-  datasetId: string,
-  sourceReleaseId: string,
-  role: 'primary' | 'enrichment' | 'fallback' | 'lookup',
-) {
-  await db
-    .insert(metaApiReleaseSetSources)
-    .values({
-      apiReleaseSetId: releaseSetId,
-      datasetId,
-      sourceReleaseId,
-      role,
-      createdAt: new Date(),
-    })
-    .onConflictDoUpdate({
-      target: [
-        metaApiReleaseSetSources.apiReleaseSetId,
-        metaApiReleaseSetSources.sourceReleaseId,
-      ],
-      set: {
-        datasetId,
-        role,
-      },
-    })
-    .run()
-}
-
 export async function upsertApiReleaseSetSnapshot(
   db: HarbourWritableDb,
   releaseSetId: string,
@@ -1394,22 +1299,6 @@ export async function upsertApiReleaseSetSnapshot(
         snapshotId,
       },
     })
-    .run()
-}
-
-export async function deleteApiReleaseSetSourcesForDataset(
-  db: HarbourWritableDb,
-  releaseSetId: string,
-  datasetId: string,
-) {
-  await db
-    .delete(metaApiReleaseSetSources)
-    .where(
-      and(
-        eq(metaApiReleaseSetSources.apiReleaseSetId, releaseSetId),
-        eq(metaApiReleaseSetSources.datasetId, datasetId),
-      ),
-    )
     .run()
 }
 
@@ -1443,21 +1332,6 @@ export async function listApiReleaseSetSnapshots(
     .all()
 }
 
-export async function listApiReleaseSetSources(
-  db: HarbourReadableDb,
-  releaseSetId: string,
-) {
-  return db
-    .select({
-      datasetId: metaApiReleaseSetSources.datasetId,
-      sourceReleaseId: metaApiReleaseSetSources.sourceReleaseId,
-      role: metaApiReleaseSetSources.role,
-    })
-    .from(metaApiReleaseSetSources)
-    .where(eq(metaApiReleaseSetSources.apiReleaseSetId, releaseSetId))
-    .all()
-}
-
 export async function resolveActiveSnapshotForType(
   db: HarbourReadableDb,
   type: SupportedType,
@@ -1484,38 +1358,6 @@ export async function resolveActiveSnapshotForType(
       .limit(1)
       .get()) ?? null
   )
-}
-
-export async function insertHistoryVersionProvenanceRows(
-  db: HarbourWritableDb,
-  rows: Array<{
-    entityId: string
-    entityType: 'division' | 'address2d' | 'address3d' | 'street' | 'place'
-    snapshotId: string
-    sourceReleaseId: string
-    versionHash: string
-  }>,
-) {
-  if (rows.length === 0) {
-    return
-  }
-
-  const chunkSize = getMaxInsertRowsPerStatement(
-    HISTORY_VERSION_PROVENANCE_COLUMN_COUNT,
-  )
-
-  for (const chunk of chunkRows(rows, chunkSize)) {
-    await db
-      .insert(metaHistoryVersionProvenance)
-      .values(
-        chunk.map(row => ({
-          ...row,
-          createdAt: new Date(),
-        })),
-      )
-      .onConflictDoNothing()
-      .run()
-  }
 }
 
 export async function upsertReleaseShardAssignment(
@@ -1555,7 +1397,7 @@ export async function insertIngestRun(
   releaseId: string,
   phase: string,
   status: IngestRunStatus,
-  stats: string | null,
+  stats: Record<string, unknown> | string | null,
   startedAt: string,
   finishedAt: string | null,
   error: string | null = null,
@@ -1569,7 +1411,7 @@ export async function insertIngestRun(
       releaseId,
       phase,
       status,
-      stats,
+      stats: normalizeOptionalJsonText(stats),
       error,
       startedAt: now,
       finishedAt,
@@ -1583,7 +1425,7 @@ export async function ensureIngestRunStarted(
   db: HarbourReadableDb & HarbourWritableDb,
   releaseId: string,
   phase: string,
-  stats: string | null,
+  stats: Record<string, unknown> | string | null,
   startedAt: string,
 ) {
   const now = new Date(startedAt)
@@ -1594,7 +1436,7 @@ export async function ensureIngestRunStarted(
       releaseId,
       phase,
       status: 'running',
-      stats,
+      stats: normalizeOptionalJsonText(stats),
       error: null,
       startedAt,
       finishedAt: null,
@@ -1625,7 +1467,7 @@ export async function ensureIngestRunStarted(
     await db
       .update(ingestRuns)
       .set({
-        stats,
+        stats: normalizeOptionalJsonText(stats),
         error: null,
         updatedAt: now,
       })
@@ -1642,7 +1484,7 @@ export async function ensureIngestRunStarted(
     .update(ingestRuns)
     .set({
       status: 'running',
-      stats,
+      stats: normalizeOptionalJsonText(stats),
       error: null,
       startedAt,
       finishedAt: null,
@@ -1659,11 +1501,12 @@ export async function upsertIngestRunStatus(
   status: IngestRunStatus,
   startedAt: string,
   finishedAt: string | null,
-  stats: string | null,
+  stats: Record<string, unknown> | string | null,
   error: string | null = null,
 ) {
   const startedAtDate = new Date(startedAt)
   const updatedAt = new Date(finishedAt ?? startedAt)
+  const normalizedStats = normalizeOptionalJsonText(stats)
 
   await db
     .insert(ingestRuns)
@@ -1672,7 +1515,7 @@ export async function upsertIngestRunStatus(
       releaseId,
       phase,
       status,
-      stats,
+      stats: normalizedStats,
       error,
       startedAt,
       finishedAt,
@@ -1682,9 +1525,8 @@ export async function upsertIngestRunStatus(
     .onConflictDoUpdate({
       target: [ingestRuns.releaseId, ingestRuns.phase],
       set: {
-        startedAt,
         status,
-        stats,
+        stats: normalizedStats,
         error,
         finishedAt,
         updatedAt,
@@ -1699,9 +1541,10 @@ export async function updateLatestOpenIngestRun(
   phase: string,
   status: IngestRunStatus,
   finishedAt: string,
-  stats: string | null,
+  stats: Record<string, unknown> | string | null,
   error: string | null = null,
 ) {
+  const normalizedStats = normalizeOptionalJsonText(stats)
   const openRun =
     ((await db
       .select({
@@ -1727,7 +1570,7 @@ export async function updateLatestOpenIngestRun(
     .update(ingestRuns)
     .set({
       status,
-      stats,
+      stats: normalizedStats,
       error,
       finishedAt,
       updatedAt: new Date(finishedAt),
@@ -1736,6 +1579,20 @@ export async function updateLatestOpenIngestRun(
     .run()
 
   return true
+}
+
+function normalizeOptionalJsonText(
+  value: Record<string, unknown> | string | null,
+): Record<string, unknown> | string | null {
+  if (!value || typeof value !== 'string') {
+    return value
+  }
+
+  try {
+    return JSON.parse(value) as Record<string, unknown>
+  } catch {
+    return value
+  }
 }
 
 async function requireDatasetDefinition(

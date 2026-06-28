@@ -5,7 +5,7 @@ import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { createLocalHarbourDb } from '../../testing/local-db'
 import {
   ensureIngestRunStarted,
-  insertHistoryVersionProvenanceRows,
+  resolveLatestSnapshotForFamilyExcludingId,
   resolveShardForKindRegionYear,
 } from './meta-repository'
 
@@ -48,6 +48,26 @@ function createIngestRunDb() {
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL,
       UNIQUE(releaseId, phase)
+    );
+  `)
+
+  return {
+    sqlite,
+    db: createLocalHarbourDb(sqlite),
+  }
+}
+
+function createSnapshotLookupDb() {
+  const sqlite = new SQLiteDatabase(':memory:')
+
+  sqlite.exec(`
+    CREATE TABLE snapshots (
+      id TEXT PRIMARY KEY,
+      family TEXT NOT NULL,
+      code TEXT NOT NULL,
+      status TEXT NOT NULL,
+      publishedAt INTEGER,
+      createdAt INTEGER NOT NULL
     );
   `)
 
@@ -161,44 +181,6 @@ describe('resolveShardForKindRegionYear', () => {
   })
 })
 
-describe('insertHistoryVersionProvenanceRows', () => {
-  test('chunks provenance inserts to stay under the D1 variable limit', async () => {
-    const batchSizes: number[] = []
-    const db = {
-      insert() {
-        return {
-          values(rows: unknown[]) {
-            batchSizes.push(rows.length)
-
-            return {
-              onConflictDoNothing() {
-                return {
-                  async run() {
-                    return undefined
-                  },
-                }
-              },
-            }
-          },
-        }
-      },
-    }
-
-    await insertHistoryVersionProvenanceRows(
-      db as never,
-      Array.from({ length: 40 }, (_, index) => ({
-        entityId: `entity-${index}`,
-        entityType: 'division' as const,
-        snapshotId: 'snapshot-1',
-        sourceReleaseId: 'release-1',
-        versionHash: `hash-${index}`,
-      })),
-    )
-
-    expect(batchSizes).toEqual([16, 16, 8])
-  })
-})
-
 describe('ensureIngestRunStarted', () => {
   test('does not reopen a completed ingest run', async () => {
     const { sqlite, db } = createIngestRunDb()
@@ -246,6 +228,32 @@ describe('ensureIngestRunStarted', () => {
       startedAt: '2026-06-27T00:00:00.000Z',
       stats: '{"rowCount":1}',
       status: 'completed',
+    })
+  })
+})
+
+describe('resolveLatestSnapshotForFamilyExcludingId', () => {
+  test('ignores draft snapshots when selecting a prior baseline', async () => {
+    const { sqlite, db } = createSnapshotLookupDb()
+
+    sqlite.exec(`
+      INSERT INTO snapshots (id, family, code, status, publishedAt, createdAt) VALUES
+        ('snapshot-current', 'division', 'current', 'draft', null, 1760003000000),
+        ('snapshot-draft-newer', 'division', 'draft-newer', 'draft', null, 1760002000000),
+        ('snapshot-published', 'division', 'published', 'published', 1760001000000, 1760001000000);
+    `)
+
+    const snapshot = await resolveLatestSnapshotForFamilyExcludingId(
+      db as never,
+      'division',
+      'snapshot-current',
+    )
+
+    expect(snapshot).toEqual({
+      code: 'published',
+      family: 'division',
+      id: 'snapshot-published',
+      status: 'published',
     })
   })
 })

@@ -5,6 +5,7 @@ import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
 import * as schema from '@repo/db/metaSchema'
+import type { HarbourReadableDb, HarbourWritableDb } from '../lib/db/types'
 
 const DEFAULT_LOCAL_D1_GLOB = resolve(
   dirname(import.meta.dir),
@@ -12,10 +13,12 @@ const DEFAULT_LOCAL_D1_GLOB = resolve(
 )
 
 export function createLocalHarbourDb(sqlite: SQLiteDatabase) {
-  return drizzle({
+  const db = drizzle({
     client: sqlite,
     schema,
   })
+
+  return db as typeof db & HarbourReadableDb & HarbourWritableDb
 }
 
 export function resolveLocalD1Path(explicitPath?: string) {
