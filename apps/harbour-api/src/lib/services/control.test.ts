@@ -174,7 +174,7 @@ describe('control service', () => {
 
     expect(extractRun.phase).toBe('extractDivisions')
     expect(extractRun.status).toBe('completed')
-    expect(extractRun.stats).toBe('"{\\"processedRows\\":1810}"')
+    expect(extractRun.stats).toBe('{"processedRows":1810}')
     expect(extractRun.finishedAt).not.toBeNull()
     expect(publishRun.phase).toBe('publishDataset')
     expect(publishRun.status).toBe('error')
@@ -288,7 +288,7 @@ describe('control service', () => {
     expect(ingestRuns[0]).toEqual({
       finishedAt: null,
       phase: 'extractDivisions',
-      stats: '"{\\"processedRows\\":128}"',
+      stats: '{"processedRows":128}',
       status: 'running',
     })
   })
@@ -353,7 +353,7 @@ describe('control service', () => {
     expect(ingestRuns[0]).toMatchObject({
       phase: 'extractAddresses',
       status: 'completed',
-      stats: '"{\\"processedRows\\":12}"',
+      stats: '{"processedRows":12}',
     })
     expect(ingestRuns[0]?.finishedAt).not.toBeNull()
   })

@@ -268,7 +268,9 @@ export const ControlStageRequestSchema = z
     value => Boolean(value.releaseId || value.releaseCode),
     'Either releaseId or releaseCode is required.',
   )
-  .openapi('HarbourControlStageRequest')
+  .openapi('HarbourControlStageRequest', {
+    anyOf: [{ required: ['releaseId'] }, { required: ['releaseCode'] }],
+  })
 
 export const PublishDatasetRequestSchema = z
   .object({
@@ -279,7 +281,9 @@ export const PublishDatasetRequestSchema = z
     value => Boolean(value.releaseId || value.releaseCode),
     'Either releaseId or releaseCode is required.',
   )
-  .openapi('HarbourPublishDatasetRequest')
+  .openapi('HarbourPublishDatasetRequest', {
+    anyOf: [{ required: ['releaseId'] }, { required: ['releaseCode'] }],
+  })
 
 export const ControlResponseSchema = z
   .object({
