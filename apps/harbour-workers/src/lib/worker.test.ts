@@ -107,6 +107,7 @@ describe('processDatasetMessage', () => {
     ])
     expect(publishDataset).toHaveBeenCalledWith(
       'release-overture-hk-2026-05-24.0-division',
+      'overture-hk-2026-05-24.0-division',
     )
     expect(stageFailed).toHaveBeenCalledTimes(0)
   })
@@ -197,6 +198,7 @@ describe('processDatasetMessage', () => {
     ])
     expect(publishDataset).toHaveBeenCalledWith(
       'release-overture-hk-2025-10-22.0-address',
+      'overture-hk-2025-10-22.0-address',
     )
     expect(stageFailed).toHaveBeenCalledTimes(0)
   })
@@ -274,6 +276,7 @@ describe('processDatasetMessage', () => {
       {
         processedRows: 1,
       },
+      'overture-hk-2026-05-24.0-division',
     )
   })
 

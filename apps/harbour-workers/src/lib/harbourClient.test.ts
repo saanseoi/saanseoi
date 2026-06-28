@@ -107,4 +107,47 @@ describe('createHarbourControlApi', () => {
 
     expect(attempts).toBe(2)
   })
+
+  test('sends releaseCode alongside releaseId when provided', async () => {
+    let payload: Record<string, unknown> | null = null
+
+    globalThis.fetch = mock(async (_input, init) => {
+      payload = JSON.parse(String(init?.body)) as Record<string, unknown>
+
+      return new Response(JSON.stringify({ status: 'ok' }), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+        },
+      })
+    }) as unknown as typeof fetch
+
+    const api = createHarbourClient({
+      apiKey: 'test-key',
+      baseUrl: 'http://localhost:8788',
+    })
+
+    await api.stageFailed(
+      '62f558b9-6fad-413f-8283-287a90febcac',
+      'processDataset',
+      'Release not found.',
+      undefined,
+      'overture-hk-2025-09-24.0-division',
+    )
+
+    expect(payload).not.toBeNull()
+
+    if (!payload) {
+      throw new Error('Expected control payload to be captured.')
+    }
+
+    const capturedPayload: Record<string, unknown> = payload
+
+    expect(capturedPayload).toEqual({
+      error: 'Release not found.',
+      phase: 'processDataset',
+      releaseCode: 'overture-hk-2025-09-24.0-division',
+      releaseId: '62f558b9-6fad-413f-8283-287a90febcac',
+    })
+  })
 })

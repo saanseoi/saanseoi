@@ -19,22 +19,25 @@ import {
  * Control-plane callbacks used to report worker progress and publish datasets.
  */
 export type HarbourClient = {
-  publishDataset(releaseId: string): Promise<void>
+  publishDataset(releaseId: string, releaseCode?: string): Promise<void>
   stageCompleted(
     releaseId: string,
     phase: string,
     stats?: Record<string, unknown>,
+    releaseCode?: string,
   ): Promise<void>
   stageFailed(
     releaseId: string,
     phase: string,
     error: string,
     stats?: Record<string, unknown>,
+    releaseCode?: string,
   ): Promise<void>
   stageRunning(
     releaseId: string,
     phase: string,
     stats?: Record<string, unknown>,
+    releaseCode?: string,
   ): Promise<void>
 }
 
@@ -57,12 +60,18 @@ export function createProcessDatasetMessage(
     sourceDb?: SourceDatabase,
   ): Promise<ProcessDatasetResult | ProcessAddressDatasetResult> {
     const releaseId = message.releaseId ?? message.datasetId
+    const releaseCode = message.releaseCode
     if (!releaseId) {
       throw new Error('Missing releaseId in dataset processing message.')
     }
     const processStartedAt = Date.now()
     const activePhases = new Set<string>()
-    await harbourClient.stageRunning(releaseId, 'processDataset')
+    await harbourClient.stageRunning(
+      releaseId,
+      'processDataset',
+      undefined,
+      releaseCode,
+    )
     activePhases.add('processDataset')
 
     try {
@@ -70,9 +79,19 @@ export function createProcessDatasetMessage(
 
       if (message.type === 'division') {
         const extractStartedAt = Date.now()
-        await harbourClient.stageRunning(releaseId, 'extractDivisions')
+        await harbourClient.stageRunning(
+          releaseId,
+          'extractDivisions',
+          undefined,
+          releaseCode,
+        )
         activePhases.add('extractDivisions')
-        await harbourClient.stageRunning(releaseId, 'extractDivisionsI18n')
+        await harbourClient.stageRunning(
+          releaseId,
+          'extractDivisionsI18n',
+          undefined,
+          releaseCode,
+        )
         activePhases.add('extractDivisionsI18n')
 
         result = await processDivisionDataset(
@@ -83,30 +102,55 @@ export function createProcessDatasetMessage(
           message,
           sourceDb,
           async stats => {
-            await harbourClient.stageRunning(releaseId, 'extractDivisions', {
-              processedRows: stats.processedRows,
-            })
+            await harbourClient.stageRunning(
+              releaseId,
+              'extractDivisions',
+              {
+                processedRows: stats.processedRows,
+              },
+              releaseCode,
+            )
           },
         )
 
-        await harbourClient.stageCompleted(releaseId, 'extractDivisions', {
-          durationMs: Date.now() - extractStartedAt,
-          deletedRows: result.deletedRows,
-          insertedVersions: result.insertedVersions,
-          processedRows: result.processedRows,
-          unchangedRows: result.unchangedRows,
-        })
+        await harbourClient.stageCompleted(
+          releaseId,
+          'extractDivisions',
+          {
+            durationMs: Date.now() - extractStartedAt,
+            deletedRows: result.deletedRows,
+            insertedVersions: result.insertedVersions,
+            processedRows: result.processedRows,
+            unchangedRows: result.unchangedRows,
+          },
+          releaseCode,
+        )
         activePhases.delete('extractDivisions')
-        await harbourClient.stageCompleted(releaseId, 'extractDivisionsI18n', {
-          durationMs: Date.now() - extractStartedAt,
-          localizedRows: result.localizedRows,
-        })
+        await harbourClient.stageCompleted(
+          releaseId,
+          'extractDivisionsI18n',
+          {
+            durationMs: Date.now() - extractStartedAt,
+            localizedRows: result.localizedRows,
+          },
+          releaseCode,
+        )
         activePhases.delete('extractDivisionsI18n')
       } else if (message.type === 'address') {
         const extractStartedAt = Date.now()
-        await harbourClient.stageRunning(releaseId, 'extractAddresses')
+        await harbourClient.stageRunning(
+          releaseId,
+          'extractAddresses',
+          undefined,
+          releaseCode,
+        )
         activePhases.add('extractAddresses')
-        await harbourClient.stageRunning(releaseId, 'extractAddressesI18n')
+        await harbourClient.stageRunning(
+          releaseId,
+          'extractAddressesI18n',
+          undefined,
+          releaseCode,
+        )
         activePhases.add('extractAddressesI18n')
 
         result = await processAddressDataset(
@@ -117,36 +161,61 @@ export function createProcessDatasetMessage(
           message,
           sourceDb,
           async stats => {
-            await harbourClient.stageRunning(releaseId, 'extractAddresses', {
-              processedRows: stats.processedRows,
-            })
+            await harbourClient.stageRunning(
+              releaseId,
+              'extractAddresses',
+              {
+                processedRows: stats.processedRows,
+              },
+              releaseCode,
+            )
           },
         )
 
-        await harbourClient.stageCompleted(releaseId, 'extractAddresses', {
-          durationMs: Date.now() - extractStartedAt,
-          deletedRows: result.deletedRows,
-          insertedVersions: result.insertedVersions,
-          processedRows: result.processedRows,
-          unchangedRows: result.unchangedRows,
-        })
+        await harbourClient.stageCompleted(
+          releaseId,
+          'extractAddresses',
+          {
+            durationMs: Date.now() - extractStartedAt,
+            deletedRows: result.deletedRows,
+            insertedVersions: result.insertedVersions,
+            processedRows: result.processedRows,
+            unchangedRows: result.unchangedRows,
+          },
+          releaseCode,
+        )
         activePhases.delete('extractAddresses')
-        await harbourClient.stageCompleted(releaseId, 'extractAddressesI18n', {
-          durationMs: Date.now() - extractStartedAt,
-          localizedRows: result.localizedRows,
-        })
+        await harbourClient.stageCompleted(
+          releaseId,
+          'extractAddressesI18n',
+          {
+            durationMs: Date.now() - extractStartedAt,
+            localizedRows: result.localizedRows,
+          },
+          releaseCode,
+        )
         activePhases.delete('extractAddressesI18n')
       } else {
         throw new Error(`Unsupported processing type: ${message.type}`)
       }
 
       const publishStartedAt = Date.now()
-      await harbourClient.stageRunning(releaseId, 'publishDataset')
+      await harbourClient.stageRunning(
+        releaseId,
+        'publishDataset',
+        undefined,
+        releaseCode,
+      )
       activePhases.add('publishDataset')
-      await harbourClient.publishDataset(releaseId)
-      await harbourClient.stageCompleted(releaseId, 'publishDataset', {
-        durationMs: Date.now() - publishStartedAt,
-      })
+      await harbourClient.publishDataset(releaseId, releaseCode)
+      await harbourClient.stageCompleted(
+        releaseId,
+        'publishDataset',
+        {
+          durationMs: Date.now() - publishStartedAt,
+        },
+        releaseCode,
+      )
       activePhases.delete('publishDataset')
 
       const durationMs = Date.now() - processStartedAt
@@ -163,9 +232,14 @@ export function createProcessDatasetMessage(
           durationMs,
         }),
       )
-      await harbourClient.stageCompleted(releaseId, 'processDataset', {
-        durationMs,
-      })
+      await harbourClient.stageCompleted(
+        releaseId,
+        'processDataset',
+        {
+          durationMs,
+        },
+        releaseCode,
+      )
       activePhases.delete('processDataset')
       return result
     } catch (error) {
@@ -192,7 +266,13 @@ export function createProcessDatasetMessage(
         phase => phase !== 'processDataset',
       )) {
         try {
-          await harbourClient.stageFailed(releaseId, phase, errorMessage)
+          await harbourClient.stageFailed(
+            releaseId,
+            phase,
+            errorMessage,
+            undefined,
+            releaseCode,
+          )
         } catch (cleanupError) {
           cleanupErrors.push(
             new Error(
@@ -208,7 +288,13 @@ export function createProcessDatasetMessage(
 
       if (activePhases.has('processDataset')) {
         try {
-          await harbourClient.stageFailed(releaseId, 'processDataset', errorMessage)
+          await harbourClient.stageFailed(
+            releaseId,
+            'processDataset',
+            errorMessage,
+            undefined,
+            releaseCode,
+          )
         } catch (cleanupError) {
           cleanupErrors.push(
             new Error(

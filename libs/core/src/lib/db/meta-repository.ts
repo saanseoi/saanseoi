@@ -27,6 +27,8 @@ export type DataShardRecord = {
 
 const D1_MAX_SQL_VARIABLES = 99
 const HISTORY_VERSION_PROVENANCE_COLUMN_COUNT = 6
+const RELEASE_LOOKUP_RETRY_LIMIT = 4
+const RELEASE_LOOKUP_RETRY_DELAY_MS = 150
 
 type WriteStatement = {
   run: () => unknown | Promise<unknown>
@@ -224,6 +226,90 @@ export async function getDatasetRecordByReleaseId(
   )
 }
 
+export async function getDatasetRecordByReleaseCode(
+  db: HarbourReadableDb,
+  releaseCode: string,
+) {
+  return (
+    ((await db
+      .select(releaseRecordSelection)
+      .from(metaReleases)
+      .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+      .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+      .where(eq(metaReleases.code, releaseCode))
+      .limit(1)
+      .get()) as DatasetRecord | undefined) ?? null
+  )
+}
+
+export async function resolveDatasetRecord(
+  db: HarbourReadableDb,
+  {
+    releaseCode,
+    releaseId,
+  }: {
+    releaseCode?: string | null
+    releaseId?: string | null
+  },
+) {
+  const normalizedReleaseId = releaseId?.trim()
+
+  if (normalizedReleaseId) {
+    const dataset = await getDatasetRecordByReleaseId(db, normalizedReleaseId)
+
+    if (dataset) {
+      return dataset
+    }
+  }
+
+  const normalizedReleaseCode = releaseCode?.trim()
+
+  if (!normalizedReleaseCode) {
+    return null
+  }
+
+  return getDatasetRecordByReleaseCode(db, normalizedReleaseCode)
+}
+
+export async function waitForDatasetRecord(
+  db: HarbourReadableDb,
+  release: {
+    releaseCode?: string | null
+    releaseId?: string | null
+  },
+  {
+    retryDelayMs = RELEASE_LOOKUP_RETRY_DELAY_MS,
+    retryLimit = RELEASE_LOOKUP_RETRY_LIMIT,
+  }: {
+    retryDelayMs?: number
+    retryLimit?: number
+  } = {},
+) {
+  let lastError: unknown = null
+
+  for (let attempt = 0; attempt <= retryLimit; attempt += 1) {
+    try {
+      const dataset = await resolveDatasetRecord(db, release)
+
+      if (dataset) {
+        return dataset
+      }
+    } catch (error) {
+      lastError = error
+    }
+
+    if (attempt < retryLimit) {
+      await sleep(retryDelayMs * (attempt + 1))
+    }
+  }
+
+  if (lastError) {
+    throw lastError
+  }
+
+  return null
+}
+
 export async function getCurrentReleaseForDatasetId(
   db: HarbourReadableDb,
   datasetId: string,
@@ -247,6 +333,10 @@ export async function getCurrentReleaseForDatasetId(
       .limit(1)
       .get()) as DatasetRecord | undefined) ?? null
   )
+}
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 export async function insertDataset(
