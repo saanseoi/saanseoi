@@ -1,5 +1,5 @@
 {
-  "versionHash": "vh-data-shards-current-v1",
+  "versionHash": "sha256:02858ffceb00189889e4620365965e39060649117d73d8c4fb226a65bba168bc",
   "shards": [
     {
       "bindingName": "DB_CURRENT",

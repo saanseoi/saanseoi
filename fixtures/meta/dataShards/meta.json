@@ -1,5 +1,5 @@
 {
-  "versionHash": "vh-data-shards-meta-v1",
+  "versionHash": "sha256:6ce78414e3dbc65b1bdeff5a0848fbfa9c510e0d926f5929a4f6192c48261019",
   "shards": [
     {
       "bindingName": "DB_META",

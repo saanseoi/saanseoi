@@ -1,7 +1,11 @@
 {
+  "versionHash": "sha256:25d4666dbb1e79749985add183db1ce722d3d87ebfa030e7c8af3ba5799ac9e2",
   "apiVersion": "api-divisions-v0.1",
-  "versionHash": "vh-api-endpoints-divisions-v0.1-v1",
   "endpoints": [
-    { "method": "GET", "path": "/v0/divisions", "operationId": "listDivisionsV0" }
+    {
+      "method": "GET",
+      "path": "/v0/divisions",
+      "operationId": "listDivisionsV0"
+    }
   ]
 }
