@@ -66,9 +66,9 @@ export const releaseStatuses = [
 
 export const ingestRunStatuses = ['queued', 'running', 'completed', 'error'] as const
 
-export const apiVersionStatuses = ['draft', 'active', 'deprecated', 'retired'] as const
+export const apiVersionStatuses = ['draft', 'current', 'deprecated', 'retired'] as const
 
-export const apiReleaseSetStatuses = ['draft', 'active', 'archived'] as const
+export const apiReleaseSetStatuses = ['draft', 'current', 'archived'] as const
 export const snapshotFamilies = ['division', 'address', 'street', 'place'] as const
 export const snapshotStatuses = ['draft', 'published', 'archived'] as const
 export const apiReleaseSetSourceRoles = [
@@ -85,13 +85,6 @@ export const historyVersionEntityTypes = [
   'place',
 ] as const
 export const apiEndpointMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const
-export const apiEndpointUsageTypes = [
-  'primary',
-  'filter',
-  'lookup',
-  'enrichment',
-  'join',
-] as const
 export const provenanceContributionTypes = [
   'primary',
   'fallback',
@@ -99,7 +92,7 @@ export const provenanceContributionTypes = [
   'merge-input',
 ] as const
 
-export const dataShardKinds = ['meta', 'current', 'history', 'source'] as const
+export const dataShardTypes = ['meta', 'current', 'history', 'source'] as const
 export const dataShardEnvironments = ['preview', 'production'] as const
 export const dataShardStatuses = [
   'provisioning',
@@ -127,8 +120,7 @@ export type SnapshotStatus = (typeof snapshotStatuses)[number]
 export type ApiReleaseSetSourceRole = (typeof apiReleaseSetSourceRoles)[number]
 export type HistoryVersionEntityType = (typeof historyVersionEntityTypes)[number]
 export type ApiEndpointMethod = (typeof apiEndpointMethods)[number]
-export type ApiEndpointUsageType = (typeof apiEndpointUsageTypes)[number]
 export type ProvenanceContributionType = (typeof provenanceContributionTypes)[number]
-export type DataShardKind = (typeof dataShardKinds)[number]
+export type DataShardType = (typeof dataShardTypes)[number]
 export type DataShardEnvironment = (typeof dataShardEnvironments)[number]
 export type DataShardStatus = (typeof dataShardStatuses)[number]
