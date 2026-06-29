@@ -206,20 +206,20 @@ describe('upload', () => {
     expect(inferTypeFromPath(filePath)).toBe('address')
     expect(inferThemeFromPath(filePath)).toBe('addresses')
     expect(inferRegionFromPath(filePath)).toBe('hk')
-    expect(inferCohortKeyFromPath(filePath)).toBe('2025-09')
+    expect(inferCohortKeyFromPath(filePath)).toBe('2025-09-24.0')
   })
 
-  test('infers theme, region, and month from the full overture-style path', () => {
+  test('infers theme, region, and cohortKey from the full overture-style path', () => {
     const tempDir = createTempDir()
     const overtureFixturePath = createOvertureStyleFixture(tempDir)
 
     expect(inferTypeFromPath(overtureFixturePath)).toBe('division')
     expect(inferThemeFromPath(overtureFixturePath)).toBe('divisions')
     expect(inferRegionFromPath(overtureFixturePath)).toBe('hk')
-    expect(inferCohortKeyFromPath(overtureFixturePath)).toBe('2025-09')
+    expect(inferCohortKeyFromPath(overtureFixturePath)).toBe('2025-09-24.0')
   })
 
-  test('infers source version and snapshot month from the filename when needed', async () => {
+  test('infers source version and cohortKey from the filename when needed', async () => {
     const tempDir = createTempDir()
     const fixtureFile = join(tempDir, 'hkgov-als-hk-2026-06-04.324-address.parquet')
 
@@ -240,7 +240,7 @@ describe('upload', () => {
       source: 'hkgov-als',
     })
 
-    expect(planned.plan.cohortKey).toBe('2026-06')
+    expect(planned.plan.cohortKey).toBe('2026-06-04.324')
     expect(planned.plan.sourceVersion).toBe('2026-06-04.324')
     expect(planned.plan.datasetId).toBe('hkgov-als-hk-2026-06-04.324-address')
     expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-als-address')
@@ -380,7 +380,7 @@ describe('upload', () => {
     db.close()
   })
 
-  test('requires same-month overture addresses before hkgov address upload', async () => {
+  test('requires matching cohortKey overture addresses before hkgov address upload', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
     const fixtureFile = join(tempDir, 'hkgov-als-address.parquet')
@@ -405,7 +405,7 @@ describe('upload', () => {
         },
       }),
     ).rejects.toThrow(
-      'Upload the matching Overture address dataset for the same snapshot month first.',
+      'Upload the matching Overture address dataset for the same cohortKey first.',
     )
 
     db.close()

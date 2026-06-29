@@ -1,0 +1,17 @@
+{
+  "versionHash": "sha256:5fa0decf8b988ebc39b59e2f092fe3ca690e4c7bca13c89428757204ff81f9fe",
+  "apiVersion": "api-divisions-v0.1",
+  "code": "api-divisions-default",
+  "version": 1,
+  "primaryResourceType": "division",
+  "status": "current",
+  "members": [
+    {
+      "resourceType": "division",
+      "role": "primary",
+      "isRequired": true,
+      "selectionMode": "exact_ref",
+      "priority": 0
+    }
+  ]
+}

@@ -34,11 +34,11 @@ import { watchCurrentUpload } from './lib/watch.ts'
 
 function printUsage() {
   console.log(`  Usage:
-  saanseoi upload <file> [--target local|preview|production] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--month YYYY-MM] [--dry-run] [--force] [--yes]
+  saanseoi upload <file> [--target local|preview|production] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--cohort-key VALUE] [--dry-run] [--force] [--yes]
   saanseoi upload:finalize --release <release-id|release-code> [--target local|preview|production] [--yes]
   saanseoi upload:requeue --release <release-id|release-code> [--target local|preview|production] [--yes]
   saanseoi upload:watch [--target local|preview|production]
-  saanseoi prep-hkgov-als <source-dir> [--target local|preview|production] [--source-version YYYY-MM-DD.NN] [--db /path/to/local.sqlite]
+  saanseoi prep-hkgov-als <source-dir> [--target local|preview|production] [--source-version YYYY-MM-DD.NN] [--cohort-key VALUE] [--db /path/to/local.sqlite]
   saanseoi reports:ingestion [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
   saanseoi reports:stats [--target local|preview|production] [--limit 1-100] [--source SOURCE] [--type TYPE]
   saanseoi reports:releases [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
@@ -83,7 +83,10 @@ async function main() {
       dbPath: typeof args.options.db === 'string' ? args.options.db : undefined,
       environment: target.environment,
       outputFile,
-      cohortKey: sourceVersion.slice(0, 7),
+      cohortKey:
+        typeof args.options['cohort-key'] === 'string'
+          ? args.options['cohort-key']
+          : sourceVersion,
       sourceDir,
       sourceVersion,
     })

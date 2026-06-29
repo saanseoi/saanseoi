@@ -34,6 +34,8 @@ export const metaRegistryRequiredTables = [
   'datasets',
   'datasetI18n',
   'apiVersions',
+  'apiComposition',
+  'apiCompositionMembers',
   'apiEndpoints',
   'dataShards',
 ] as const
@@ -118,6 +120,27 @@ type ApiEndpointFileFixture = {
   }>
 }
 
+type ResourceType = 'address' | 'division' | 'place' | 'street'
+
+type ApiCompositionFixture = {
+  versionHash: string
+  apiVersion: string
+  code: string
+  version: number
+  primaryResourceType: ResourceType
+  status: string
+  notes?: string
+  members: Array<{
+    resourceType: ResourceType
+    role: string
+    isRequired: boolean
+    selectionMode: string
+    anchorResourceType?: ResourceType
+    maxLagDays?: number
+    priority: number
+  }>
+}
+
 type DataShardFileFixture = {
   versionHash: string
   shards: Array<{
@@ -166,6 +189,26 @@ type InitialApiEndpointSeed = {
   path: string
   operationId: string
   versionHash: string
+}
+
+type InitialApiCompositionSeed = VersionedFixture<{
+  apiVersion: string
+  code: string
+  version: number
+  primaryResourceType: ResourceType
+  status: string
+  notes?: string
+}>
+
+type InitialApiCompositionMemberSeed = {
+  apiCompositionCode: string
+  resourceType: ResourceType
+  role: string
+  isRequired: boolean
+  selectionMode: string
+  anchorResourceType?: ResourceType
+  maxLagDays?: number
+  priority: number
 }
 
 type InitialDataShardSeed = {
@@ -224,6 +267,7 @@ function sqlTimestampMs(value: string) {
 
 const publisherFixtures = readFixtureDir<PublisherFixture>('dataPublishers')
 const datasetFixtures = readFixtureDir<DatasetFixture>('datasets')
+const apiCompositionFixtures = readFixtureDir<ApiCompositionFixture>('apiCompositions')
 const apiEndpointFixtures = readFixtureDir<ApiEndpointFileFixture>('apiEndpoints')
 const dataShardFixtures = readFixtureDir<DataShardFileFixture>('dataShards')
 
@@ -276,6 +320,31 @@ export const initialDatasetI18n: InitialDatasetI18nSeed[] = datasetFixtures.flat
 )
 
 export const initialApiVersions = readFixtureDir<InitialApiVersionSeed>('apiVersions')
+
+export const initialApiCompositions: InitialApiCompositionSeed[] =
+  apiCompositionFixtures.map(fixture => ({
+    apiVersion: fixture.apiVersion,
+    code: fixture.code,
+    version: fixture.version,
+    primaryResourceType: fixture.primaryResourceType,
+    status: fixture.status,
+    notes: fixture.notes,
+    versionHash: fixture.versionHash,
+  }))
+
+export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
+  apiCompositionFixtures.flatMap(fixture =>
+    fixture.members.map(member => ({
+      apiCompositionCode: fixture.code,
+      resourceType: member.resourceType,
+      role: member.role,
+      isRequired: member.isRequired,
+      selectionMode: member.selectionMode,
+      anchorResourceType: member.anchorResourceType,
+      maxLagDays: member.maxLagDays,
+      priority: member.priority,
+    })),
+  )
 
 export const initialApiEndpoints: InitialApiEndpointSeed[] =
   apiEndpointFixtures.flatMap(fixture =>
@@ -482,6 +551,61 @@ ON CONFLICT(code) DO UPDATE SET
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE apiVersions.versionHash <> excluded.versionHash;`.trim(),
+    )
+  }
+
+  for (const composition of initialApiCompositions) {
+    statements.push(
+      `
+INSERT INTO apiComposition (
+  id, apiVersionId, code, version, primaryResourceType, status, notes, versionHash, createdAt, updatedAt
+) VALUES (
+  ${sqlUuid},
+  (SELECT id FROM apiVersions WHERE code = ${sqlString(composition.apiVersion)}),
+  ${sqlString(composition.code)},
+  ${composition.version},
+  ${sqlString(composition.primaryResourceType)},
+  ${sqlString(composition.status)},
+  ${sqlNullable(composition.notes)},
+  ${sqlString(composition.versionHash)},
+  ${nowSql},
+  ${nowSql}
+)
+ON CONFLICT(code) DO UPDATE SET
+  apiVersionId = excluded.apiVersionId,
+  version = excluded.version,
+  primaryResourceType = excluded.primaryResourceType,
+  status = excluded.status,
+  notes = excluded.notes,
+  versionHash = excluded.versionHash,
+  updatedAt = excluded.updatedAt
+WHERE apiComposition.versionHash <> excluded.versionHash;`.trim(),
+    )
+  }
+
+  for (const member of initialApiCompositionMembers) {
+    statements.push(
+      `
+INSERT INTO apiCompositionMembers (
+  apiCompositionId, resourceType, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+) VALUES (
+  (SELECT id FROM apiComposition WHERE code = ${sqlString(member.apiCompositionCode)}),
+  ${sqlString(member.resourceType)},
+  ${sqlString(member.role)},
+  ${member.isRequired ? 1 : 0},
+  ${sqlString(member.selectionMode)},
+  ${sqlNullable(member.anchorResourceType)},
+  ${member.maxLagDays == null ? 'NULL' : member.maxLagDays},
+  ${member.priority},
+  NULL
+)
+ON CONFLICT(apiCompositionId, resourceType) DO UPDATE SET
+  role = excluded.role,
+  isRequired = excluded.isRequired,
+  selectionMode = excluded.selectionMode,
+  anchorResourceType = excluded.anchorResourceType,
+  maxLagDays = excluded.maxLagDays,
+  priority = excluded.priority;`.trim(),
     )
   }
 

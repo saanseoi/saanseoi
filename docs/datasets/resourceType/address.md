@@ -26,7 +26,7 @@ Both feed the same canonical address resourceType, but they arrive in different 
 
 ### Overture must arrive first
 
-- Upload planning rejects `hkgov-als` address uploads unless the same snapshot month already has an Overture address upload.
+- Upload planning rejects `hkgov-als` address uploads unless the same `cohortKey` already has an Overture address upload.
 - This is enforced in `libs/core/src/lib/services/upload.ts`.
 
 Current practical meaning:
