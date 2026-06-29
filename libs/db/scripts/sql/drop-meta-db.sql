@@ -1,9 +1,15 @@
+PRAGMA foreign_keys = OFF;
 PRAGMA defer_foreign_keys = true;
 
 DROP TABLE IF EXISTS `apiFieldProvenance`;
 DROP TABLE IF EXISTS `apiEndpointDatasets`;
 DROP TABLE IF EXISTS `apiReleaseSetSnapshots`;
 DROP TABLE IF EXISTS `apiReleaseSetSources`;
+DROP TABLE IF EXISTS `apiCompositionMembers`;
+DROP TABLE IF EXISTS `apiComposition`;
+DROP TABLE IF EXISTS `snapshotAssemblySources`;
+DROP TABLE IF EXISTS `snapshotAssemblyRuns`;
+DROP TABLE IF EXISTS `snapshotAssembly`;
 DROP TABLE IF EXISTS `releaseSetShardAssignments`;
 DROP TABLE IF EXISTS `releaseShardAssignments`;
 DROP TABLE IF EXISTS `snapshotSources`;
@@ -28,3 +34,5 @@ DROP TABLE IF EXISTS `account`;
 DROP TABLE IF EXISTS `session`;
 DROP TABLE IF EXISTS `user`;
 DROP TABLE IF EXISTS `d1_migrations`;
+
+PRAGMA foreign_keys = ON;
