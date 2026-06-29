@@ -82,6 +82,7 @@
     "d1:probe": "bash ./scripts/run-d1-placement-probes.sh preview 20",
     "d1:probe:preview": "bash ./scripts/run-d1-placement-probes.sh preview 20",
     "d1:probe:production": "bash ./scripts/run-d1-placement-probes.sh production 20",
+    "rehash:fixture": "bun ./scripts/rehash-fixture.ts",
     "test": "turbo run test",
     "test:run": "turbo run test",
     "test:watch": "turbo run test:watch",
