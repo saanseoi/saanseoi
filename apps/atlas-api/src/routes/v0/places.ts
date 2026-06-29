@@ -7,7 +7,7 @@ import {
   listPlaceI18n,
   listPlacesByH3Cell,
   searchPlacesFts,
-} from '../../db/repositories'
+} from '../../db/places'
 import {
   ErrorResponseSchema,
   PlaceQuerySchema,
