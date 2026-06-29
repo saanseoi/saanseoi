@@ -121,7 +121,7 @@ export function describeTarget(target: UploadTarget) {
       }
     case 'production':
       return {
-        label: 'cf-production',
+        label: 'production',
         destination: 'Cloudflare production environment',
       }
   }
