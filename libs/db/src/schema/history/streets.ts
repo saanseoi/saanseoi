@@ -20,7 +20,10 @@ export const streetsVersions = sqliteTable(
       table.validFromSnapshotId,
       table.validToSnapshotId,
     ),
-    index('streetsVersions_validity_idx').on(table.validFromMonth, table.validToMonth),
+    index('streetsVersions_validity_idx').on(
+      table.validFromCohortKey,
+      table.validToCohortKey,
+    ),
     index('streetsVersions_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('streetsVersions_snapshotId_idx').on(table.snapshotId),
   ],

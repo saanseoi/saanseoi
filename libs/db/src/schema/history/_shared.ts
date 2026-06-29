@@ -9,8 +9,8 @@ export const versioning = {
   snapshotId: text('snapshotId').notNull(),
   validFromSnapshotId: text('validFromSnapshotId').notNull(),
   validToSnapshotId: text('validToSnapshotId'),
-  validFromMonth: text('validFromMonth').notNull(),
-  validToMonth: text('validToMonth'),
+  validFromCohortKey: text('validFromCohortKey').notNull(),
+  validToCohortKey: text('validToCohortKey'),
   isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
 }
 

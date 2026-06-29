@@ -464,7 +464,7 @@ export async function processDivisionDataset(
           message.regionCode,
           [...changedDivisionExistingIds],
           versionInsertContext.snapshotId,
-          message.snapshotMonth,
+          message.cohortKey,
         ),
       )
     }
@@ -562,7 +562,7 @@ export async function processDivisionDataset(
       historyRepoDb,
       message.regionCode,
       versionInsertContext.snapshotId,
-      message.snapshotMonth,
+      message.cohortKey,
       currentRows,
       seenIds,
     ),

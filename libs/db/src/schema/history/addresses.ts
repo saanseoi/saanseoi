@@ -40,8 +40,8 @@ export const address2dVersions = sqliteTable(
     ),
     index('address2dVersions_validity_idx').on(
       table.regionCode,
-      table.validFromMonth,
-      table.validToMonth,
+      table.validFromCohortKey,
+      table.validToCohortKey,
     ),
     index('address2dVersions_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('address2dVersions_snapshotId_idx').on(table.snapshotId),
@@ -100,8 +100,8 @@ export const address3dVersions = sqliteTable(
       table.validToSnapshotId,
     ),
     index('address3dVersions_validity_idx').on(
-      table.validFromMonth,
-      table.validToMonth,
+      table.validFromCohortKey,
+      table.validToCohortKey,
     ),
     index('address3dVersions_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('address3dVersions_snapshotId_idx').on(table.snapshotId),

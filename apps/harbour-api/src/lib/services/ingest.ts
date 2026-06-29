@@ -13,7 +13,7 @@ type UploadFormFields = {
   force?: boolean
   regionCode?: string
   shardYear?: string
-  snapshotMonth?: string
+  cohortKey?: string
   theme?: string
   type?: string
   source?: string
@@ -69,7 +69,7 @@ function buildUploadFields(fileName: string, formData: FormData): UploadFormFiel
     force: getOptionalBoolean(formData, 'force'),
     regionCode: getOptionalText(formData, 'regionCode', ['region']),
     shardYear: getOptionalText(formData, 'shardYear', ['year']),
-    snapshotMonth: getOptionalText(formData, 'snapshotMonth', ['month']),
+    cohortKey: getOptionalText(formData, 'cohortKey', ['month']),
     theme: getOptionalText(formData, 'theme'),
     type: getOptionalText(formData, 'type'),
     source: getOptionalText(formData, 'source'),
@@ -87,10 +87,7 @@ function getOptionalBoolean(formData: FormData, key: string) {
   return ['1', 'true', 'yes'].includes(value.trim().toLowerCase())
 }
 
-function resolveShardYear(
-  uploadFields: UploadFormFields,
-  plannedSnapshotMonth: string,
-) {
+function resolveShardYear(uploadFields: UploadFormFields, plannedCohortKey: string) {
   const shardYear = uploadFields.shardYear?.trim()
 
   if (shardYear) {
@@ -100,11 +97,9 @@ function resolveShardYear(
     return shardYear
   }
 
-  const derivedYear = plannedSnapshotMonth.slice(0, 4)
+  const derivedYear = plannedCohortKey.slice(0, 4)
   if (!/^\d{4}$/.test(derivedYear)) {
-    throw new Error(
-      `Could not derive shardYear from snapshotMonth="${plannedSnapshotMonth}".`,
-    )
+    throw new Error(`Could not derive shardYear from cohortKey="${plannedCohortKey}".`)
   }
   return derivedYear
 }
@@ -159,7 +154,7 @@ export async function handleUploadRequest(
       regionCode: planned.plan.regionCode,
       rowCount: String(planned.plan.rowCount),
       schemaFingerprint: planned.plan.schemaFingerprint,
-      snapshotMonth: planned.plan.snapshotMonth,
+      cohortKey: planned.plan.cohortKey,
       source: planned.plan.source,
       sourceVersion: planned.plan.sourceVersion,
       theme: planned.plan.theme,
@@ -190,8 +185,8 @@ export async function handleUploadRequest(
       releaseCode: registered.plan.releaseCode,
       rawObjectKey: registered.rawObjectKey,
       regionCode: registered.plan.regionCode,
-      shardYear: resolveShardYear(uploadFields, registered.plan.snapshotMonth),
-      snapshotMonth: registered.plan.snapshotMonth,
+      shardYear: resolveShardYear(uploadFields, registered.plan.cohortKey),
+      cohortKey: registered.plan.cohortKey,
       source: registered.plan.source,
       sourceVersion: registered.plan.sourceVersion,
       theme: registered.plan.theme,

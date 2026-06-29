@@ -59,7 +59,7 @@ Uploads create or reuse a logical dataset definition, then stage a new release r
 Relevant release fields are:
 
 - `sourceVersion`
-- `snapshotMonth`
+- `cohortKey`
 - `rawObjectKey`
 - `originalFileName`
 - `status`
@@ -83,8 +83,8 @@ History rows carry validity metadata:
 - `releaseId`
 - `validFromReleaseSetId`
 - `validToReleaseSetId`
-- `validFromMonth`
-- `validToMonth`
+- `validFromCohortKey`
+- `validToCohortKey`
 - `isCurrent`
 
 Localized history tables use the same pattern, except they omit month bounds and keep:
@@ -165,7 +165,7 @@ Fields:
 - `sourceVersion`
 - `sourceSchemaVersion`
 - `publicationDate`
-- `snapshotMonth`
+- `cohortKey`
 - `rawObjectKey`
 - `originalFileName`
 - `status`
@@ -238,8 +238,8 @@ Fields:
 - `canonicalId`
 - `sourceSystem`
 - `isCurrent`
-- `validFromMonth`
-- `validToMonth`
+- `validFromCohortKey`
+- `validToCohortKey`
 - `notes`
 - timestamps
 

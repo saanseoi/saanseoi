@@ -125,7 +125,7 @@ export const datasetsRoute = defineOpenAPIRoute<typeof datasetsRouteConfig, AppE
     const query = c.req.valid('query')
     const rows = await listDatasets(c.var.metaDb, {
       regionCode: query.regionCode,
-      snapshotMonth: query.snapshotMonth,
+      cohortKey: query.cohortKey,
       theme: query.theme as NonNullable<Parameters<typeof listDatasets>[1]>['theme'],
       status:
         query.activeOnly === 'true'

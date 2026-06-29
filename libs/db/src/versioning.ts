@@ -37,6 +37,22 @@ export function buildRulesetVersionCode(
   return `rs-${resourceType}-${strategy}-v${version}`
 }
 
+export function normalizeCohortKey(value: string) {
+  const trimmed = value.trim()
+
+  if (!trimmed) {
+    throw new Error('cohortKey must not be empty.')
+  }
+
+  if (!/^[a-z0-9._-]+$/i.test(trimmed)) {
+    throw new Error(
+      `Invalid cohortKey="${value}". Use letters, numbers, ".", "_" or "-".`,
+    )
+  }
+
+  return trimmed
+}
+
 export function extractReleaseDateFromSourceVersion(sourceVersion: string) {
   const match = sourceVersion.trim().match(/^(20\d{2}-\d{2}-\d{2})/)
 
@@ -60,16 +76,22 @@ export function extractReleaseDateFromSourceVersion(sourceVersion: string) {
 export function buildSnapshotVersionCode(
   regionCode: string,
   resourceType: SnapshotResourceType,
-  releaseDate: string,
-  increment = 0,
+  cohortKey: string,
 ) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(releaseDate)) {
-    throw new Error(
-      `Invalid releaseDate="${releaseDate}" for snapshot version code. Expected YYYY-MM-DD.`,
-    )
+  return `ss-${regionCode}-${resourceType}-${normalizeCohortKey(cohortKey)}`
+}
+
+export function buildDataReleaseSetCode(
+  regionCode: string,
+  apiFamily: ApiFamily,
+  cohortKey: string,
+  sequence = 0,
+) {
+  if (!Number.isInteger(sequence) || sequence < 0) {
+    throw new Error(`Invalid release-set sequence="${sequence}". Expected 0 or more.`)
   }
 
-  return `ss-${regionCode}-${resourceType}-${releaseDate}.${increment}`
+  return `data-${regionCode}-${apiFamily}-${normalizeCohortKey(cohortKey)}-${sequence}`
 }
 
 function isPlainJsonObject(value: object) {
