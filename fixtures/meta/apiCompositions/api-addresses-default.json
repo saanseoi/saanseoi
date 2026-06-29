@@ -12,6 +12,14 @@
       "isRequired": true,
       "selectionMode": "exact_ref",
       "priority": 0
+    },
+    {
+      "resourceType": "division",
+      "role": "supporting",
+      "isRequired": true,
+      "selectionMode": "exact_ref",
+      "anchorResourceType": "address",
+      "priority": 10
     }
   ]
 }
