@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -14,6 +14,7 @@ import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
 const migrationSql = loadMigrationSql(migrationsDir)
+const originalConsoleInfo = console.info
 
 const baseParquetBatches: Array<Array<Record<string, unknown>>> = [
   [
@@ -86,6 +87,14 @@ mock.module('../parquetR2', () => ({
 }))
 
 const { processDivisionDataset } = await import('./division')
+
+beforeAll(() => {
+  console.info = mock(() => undefined) as typeof console.info
+})
+
+afterAll(() => {
+  console.info = originalConsoleInfo
+})
 
 function createTempDir() {
   const dir = mkdtempSync(join(tmpdir(), 'division-test-'))
