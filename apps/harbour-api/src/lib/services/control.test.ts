@@ -41,6 +41,7 @@ function seedSnapshot(
   sqlite: Database,
   {
     code,
+    cohortKey = 'fixture-cohort',
     datasetId = 'overture-hk-division',
     resourceType = 'division',
     releaseId,
@@ -49,6 +50,7 @@ function seedSnapshot(
     timestamp = 1761264000000,
   }: {
     code: string
+    cohortKey?: string
     datasetId?: string
     resourceType?: string
     releaseId: string
@@ -61,11 +63,12 @@ function seedSnapshot(
 
   sqlite.exec(`
     INSERT INTO snapshots (
-      id, resourceType, code, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
+      id, resourceType, code, cohortKey, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
     ) VALUES (
       '${snapshotId}',
       '${resourceType}',
       '${code}',
+      '${cohortKey}',
       '${status}',
       ${publishedAt},
       ${publishedAt},

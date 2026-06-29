@@ -113,6 +113,11 @@ function createPublishReleaseArtifactsDb() {
     CREATE TABLE apiReleaseSetSnapshots (
       apiReleaseSetId TEXT NOT NULL,
       snapshotId TEXT NOT NULL,
+      role TEXT NOT NULL,
+      isRequired INTEGER NOT NULL,
+      selectionMode TEXT NOT NULL,
+      anchorSnapshotId TEXT,
+      createdAt INTEGER NOT NULL,
       PRIMARY KEY (apiReleaseSetId, snapshotId)
     );
   `)
@@ -336,11 +341,20 @@ describe('publishReleaseArtifacts', () => {
         1760000000000
       );
 
-      INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId) VALUES
-        ('release-set-1', 'snapshot-curated');
+      INSERT INTO apiReleaseSetSnapshots (
+        apiReleaseSetId, snapshotId, role, isRequired, selectionMode, anchorSnapshotId, createdAt
+      ) VALUES (
+        'release-set-1',
+        'snapshot-curated',
+        'supporting',
+        1,
+        'carry_forward_optional',
+        null,
+        1760000000000
+      );
     `)
 
-    await publishReleaseArtifacts(db as never, {
+    await publishReleaseArtifacts(db, {
       carriedSnapshots: [],
       currentRelease: null,
       currentReleaseIsCorrected: false,
