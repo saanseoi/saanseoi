@@ -15,7 +15,6 @@ import {
   apiReleaseSetSourceRoles,
   apiReleaseSetStatuses,
   apiVersionStatuses,
-  datasetTypes,
   provenanceContributionTypes,
   resolverCodes,
   snapshotResourceTypes,

@@ -174,12 +174,12 @@ Current limitation:
 
 ## Metadata vs Runtime Role Labels
 
-There is a mismatch between metadata labels and implemented behavior:
+Snapshot-source metadata currently labels:
 
-- `prepareAddressVersionInsertContext` marks HKGov releases as `primary` and Overture releases as `enrichment` for snapshot-source provenance
-- `initialApiEndpoints` also lists Overture as `enrichment` and HKGov as `primary`
+- HKGov ALS as `primary`
+- Overture as `enrichment`
 
-But the implemented flow behaves more like:
+That matches `prepareAddressVersionInsertContext` and the endpoint metadata, but the implemented canonical flow still behaves more like:
 
 - Overture = base address set
 - HKGov ALS = richer reconciliation layer on top of that base

@@ -15,6 +15,8 @@ Related resourceType doc:
 
 In runtime terms, HKGov ALS currently acts as a richer reconciliation and overwrite layer on top of the Overture base set.
 
+For snapshot-source provenance, HKGov ALS releases are currently recorded with role `primary`.
+
 ## Prerequisite
 
 - `hkgov-als` address uploads are rejected unless the same snapshot month already has an Overture address upload.
