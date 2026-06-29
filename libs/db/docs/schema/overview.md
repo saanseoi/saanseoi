@@ -21,7 +21,7 @@ Part of this model is implemented now:
 Part of it is still planned or transitional:
 
 - release-set shard assignment population during publish
-- full replacement of `snapshotMonth` with snapshot-version driven identity
+- full replacement of `snapshotMonth` with `cohortKey`-driven identity
 - schemaVersions and rulesetVersions as first-class database tables
 
 Use the linked documents above as the current source of truth.

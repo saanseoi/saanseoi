@@ -306,7 +306,7 @@ export async function cloneDivisionCurrentSnapshot(
 }
 
 /**
- * Marks current version rows as closed at the given snapshot month.
+ * Marks current version rows as closed at the given cohortKey.
  */
 export async function closeCurrentDivisionVersions(
   db: HarbourWritableDb,

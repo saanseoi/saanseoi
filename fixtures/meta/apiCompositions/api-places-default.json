@@ -1,0 +1,33 @@
+{
+  "versionHash": "sha256:0d211bd3e5ea7d5dc2a643731fd087ba4ff442f66852395957f0cfad1ce53904",
+  "apiVersion": "api-places-v0.1",
+  "code": "api-places-default",
+  "version": 1,
+  "primaryResourceType": "place",
+  "status": "current",
+  "members": [
+    {
+      "resourceType": "place",
+      "role": "primary",
+      "isRequired": true,
+      "selectionMode": "exact_ref",
+      "priority": 0
+    },
+    {
+      "resourceType": "address",
+      "role": "supporting",
+      "isRequired": true,
+      "selectionMode": "exact_ref",
+      "anchorResourceType": "place",
+      "priority": 10
+    },
+    {
+      "resourceType": "division",
+      "role": "supporting",
+      "isRequired": true,
+      "selectionMode": "exact_ref",
+      "anchorResourceType": "place",
+      "priority": 20
+    }
+  ]
+}

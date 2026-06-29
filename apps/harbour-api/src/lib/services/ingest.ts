@@ -69,7 +69,7 @@ function buildUploadFields(fileName: string, formData: FormData): UploadFormFiel
     force: getOptionalBoolean(formData, 'force'),
     regionCode: getOptionalText(formData, 'regionCode', ['region']),
     shardYear: getOptionalText(formData, 'shardYear', ['year']),
-    cohortKey: getOptionalText(formData, 'cohortKey', ['month']),
+    cohortKey: getOptionalText(formData, 'cohortKey'),
     theme: getOptionalText(formData, 'theme'),
     type: getOptionalText(formData, 'type'),
     source: getOptionalText(formData, 'source'),

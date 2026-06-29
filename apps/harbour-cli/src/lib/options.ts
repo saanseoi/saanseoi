@@ -69,7 +69,10 @@ export function buildRegisterOptions(
     theme: typeof args.options.theme === 'string' ? args.options.theme : undefined,
     regionCode:
       typeof args.options.region === 'string' ? args.options.region : undefined,
-    cohortKey: typeof args.options.month === 'string' ? args.options.month : undefined,
+    cohortKey:
+      typeof args.options['cohort-key'] === 'string'
+        ? args.options['cohort-key']
+        : undefined,
     source: typeof args.options.source === 'string' ? args.options.source : undefined,
     sourceVersion:
       typeof args.options['source-version'] === 'string'

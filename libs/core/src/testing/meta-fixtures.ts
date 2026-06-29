@@ -37,16 +37,330 @@ function rebuildTable(
   copyRowsSql?: string,
 ) {
   const legacyTableName = `${tableName}__legacy`
+  const existingIndexes = db.query(`PRAGMA index_list(${tableName})`).all() as Array<{
+    name?: string
+  }>
 
   db.exec('PRAGMA foreign_keys = OFF;')
   db.exec(`DROP TABLE IF EXISTS ${legacyTableName};`)
   db.exec(`ALTER TABLE ${tableName} RENAME TO ${legacyTableName};`)
+  for (const index of existingIndexes) {
+    if (index.name) {
+      db.exec(`DROP INDEX IF EXISTS ${index.name};`)
+    }
+  }
   db.exec(createTableSql)
   if (copyRowsSql) {
     db.exec(copyRowsSql.replaceAll('__LEGACY_TABLE__', legacyTableName))
   }
   db.exec(`DROP TABLE IF EXISTS ${legacyTableName};`)
   db.exec('PRAGMA foreign_keys = ON;')
+}
+
+function ensureHistoryCohortKeyColumns(db: Database, tableName: string) {
+  addColumnIfMissing(
+    db,
+    tableName,
+    'validFromCohortKey',
+    "validFromCohortKey TEXT NOT NULL DEFAULT ''",
+  )
+  addColumnIfMissing(db, tableName, 'validToCohortKey', 'validToCohortKey TEXT')
+
+  if (hasColumn(db, tableName, 'validFromMonth')) {
+    db.exec(`
+      UPDATE ${tableName}
+      SET
+        validFromCohortKey = COALESCE(NULLIF(validFromCohortKey, ''), validFromMonth, ''),
+        validToCohortKey = COALESCE(validToCohortKey, validToMonth)
+      WHERE
+        validFromCohortKey IS NULL
+        OR validFromCohortKey = ''
+        OR validToCohortKey IS NULL;
+    `)
+  }
+}
+
+function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
+  if (!hasColumn(db, tableName, 'validFromMonth')) {
+    ensureHistoryCohortKeyColumns(db, tableName)
+    return
+  }
+
+  switch (tableName) {
+    case 'divisionsVersions':
+      rebuildTable(
+        db,
+        tableName,
+        `
+          CREATE TABLE divisionsVersions (
+            id TEXT NOT NULL,
+            regionCode TEXT NOT NULL,
+            versionHash TEXT NOT NULL,
+            sourceReleaseId TEXT NOT NULL,
+            snapshotId TEXT NOT NULL,
+            validFromSnapshotId TEXT NOT NULL,
+            validToSnapshotId TEXT,
+            validFromCohortKey TEXT NOT NULL,
+            validToCohortKey TEXT,
+            isCurrent INTEGER NOT NULL,
+            level INTEGER NOT NULL,
+            type TEXT NOT NULL,
+            geometry TEXT,
+            bbox TEXT,
+            population INTEGER,
+            subtype TEXT,
+            class TEXT,
+            wikidata TEXT,
+            hierarchy TEXT,
+            parentDivisionId TEXT,
+            cartography TEXT,
+            sources TEXT,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            PRIMARY KEY (id, versionHash)
+          );
+          CREATE INDEX divisionsVersions_current_lookup_idx
+            ON divisionsVersions (regionCode, id, isCurrent);
+          CREATE INDEX divisionsVersions_snapshot_validity_idx
+            ON divisionsVersions (regionCode, validFromSnapshotId, validToSnapshotId);
+          CREATE INDEX divisionsVersions_validity_idx
+            ON divisionsVersions (regionCode, validFromCohortKey, validToCohortKey);
+          CREATE INDEX divisionsVersions_sourceReleaseId_idx
+            ON divisionsVersions (sourceReleaseId);
+          CREATE INDEX divisionsVersions_snapshotId_idx
+            ON divisionsVersions (snapshotId);
+        `,
+        `
+          INSERT INTO divisionsVersions (
+            id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
+            validFromCohortKey, validToCohortKey, isCurrent, level, type, geometry, bbox, population,
+            subtype, class, wikidata, hierarchy, parentDivisionId, cartography, sources, createdAt, updatedAt
+          )
+          SELECT
+            id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
+            validFromMonth, validToMonth, isCurrent, level, type, geometry, bbox, population,
+            subtype, class, wikidata, hierarchy, parentDivisionId, cartography, sources, createdAt, updatedAt
+          FROM __LEGACY_TABLE__;
+        `,
+      )
+      return
+    case 'address2dVersions':
+      rebuildTable(
+        db,
+        tableName,
+        `
+          CREATE TABLE address2dVersions (
+            id TEXT NOT NULL,
+            regionCode TEXT NOT NULL,
+            versionHash TEXT NOT NULL,
+            sourceReleaseId TEXT NOT NULL,
+            snapshotId TEXT NOT NULL,
+            validFromSnapshotId TEXT NOT NULL,
+            validToSnapshotId TEXT,
+            validFromCohortKey TEXT NOT NULL,
+            validToCohortKey TEXT,
+            isCurrent INTEGER NOT NULL,
+            streetId TEXT,
+            hamletId TEXT,
+            microhoodId TEXT,
+            villageId TEXT,
+            neighbourhoodId TEXT,
+            macrohoodId TEXT,
+            townId TEXT,
+            districtId TEXT,
+            areaId TEXT,
+            countryId TEXT,
+            geometry TEXT,
+            bbox TEXT,
+            identifiers TEXT,
+            sources TEXT,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            PRIMARY KEY (id, versionHash)
+          );
+          CREATE INDEX address2dVersions_current_lookup_idx
+            ON address2dVersions (regionCode, id, isCurrent);
+          CREATE INDEX address2dVersions_snapshot_validity_idx
+            ON address2dVersions (regionCode, validFromSnapshotId, validToSnapshotId);
+          CREATE INDEX address2dVersions_validity_idx
+            ON address2dVersions (regionCode, validFromCohortKey, validToCohortKey);
+          CREATE INDEX address2dVersions_sourceReleaseId_idx
+            ON address2dVersions (sourceReleaseId);
+          CREATE INDEX address2dVersions_snapshotId_idx
+            ON address2dVersions (snapshotId);
+        `,
+        `
+          INSERT INTO address2dVersions (
+            id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
+            validFromCohortKey, validToCohortKey, isCurrent, streetId, hamletId, microhoodId, villageId,
+            neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox,
+            identifiers, sources, createdAt, updatedAt
+          )
+          SELECT
+            id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
+            validFromMonth, validToMonth, isCurrent, streetId, hamletId, microhoodId, villageId,
+            neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox,
+            identifiers, sources, createdAt, updatedAt
+          FROM __LEGACY_TABLE__;
+        `,
+      )
+      return
+    case 'address3dVersions':
+      rebuildTable(
+        db,
+        tableName,
+        `
+          CREATE TABLE address3dVersions (
+            id TEXT NOT NULL,
+            versionHash TEXT NOT NULL,
+            sourceReleaseId TEXT NOT NULL,
+            snapshotId TEXT NOT NULL,
+            validFromSnapshotId TEXT NOT NULL,
+            validToSnapshotId TEXT,
+            validFromCohortKey TEXT NOT NULL,
+            validToCohortKey TEXT,
+            isCurrent INTEGER NOT NULL,
+            address2dId TEXT NOT NULL,
+            sources TEXT,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            PRIMARY KEY (id, versionHash)
+          );
+          CREATE INDEX address3dVersions_current_lookup_idx
+            ON address3dVersions (id, isCurrent);
+          CREATE INDEX address3dVersions_snapshot_validity_idx
+            ON address3dVersions (validFromSnapshotId, validToSnapshotId);
+          CREATE INDEX address3dVersions_validity_idx
+            ON address3dVersions (validFromCohortKey, validToCohortKey);
+          CREATE INDEX address3dVersions_sourceReleaseId_idx
+            ON address3dVersions (sourceReleaseId);
+          CREATE INDEX address3dVersions_snapshotId_idx
+            ON address3dVersions (snapshotId);
+          CREATE INDEX address3dVersions_address2dId_idx
+            ON address3dVersions (address2dId);
+        `,
+        `
+          INSERT INTO address3dVersions (
+            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
+            validFromCohortKey, validToCohortKey, isCurrent, address2dId, sources, createdAt, updatedAt
+          )
+          SELECT
+            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
+            validFromMonth, validToMonth, isCurrent, address2dId, sources, createdAt, updatedAt
+          FROM __LEGACY_TABLE__;
+        `,
+      )
+      return
+    case 'streetsVersions':
+      rebuildTable(
+        db,
+        tableName,
+        `
+          CREATE TABLE streetsVersions (
+            id TEXT NOT NULL,
+            versionHash TEXT NOT NULL,
+            sourceReleaseId TEXT NOT NULL,
+            snapshotId TEXT NOT NULL,
+            validFromSnapshotId TEXT NOT NULL,
+            validToSnapshotId TEXT,
+            validFromCohortKey TEXT NOT NULL,
+            validToCohortKey TEXT,
+            isCurrent INTEGER NOT NULL,
+            yearBuilt TEXT,
+            "references" TEXT,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            PRIMARY KEY (id, versionHash)
+          );
+          CREATE INDEX streetsVersions_current_lookup_idx
+            ON streetsVersions (id, isCurrent);
+          CREATE INDEX streetsVersions_snapshot_validity_idx
+            ON streetsVersions (validFromSnapshotId, validToSnapshotId);
+          CREATE INDEX streetsVersions_validity_idx
+            ON streetsVersions (validFromCohortKey, validToCohortKey);
+          CREATE INDEX streetsVersions_sourceReleaseId_idx
+            ON streetsVersions (sourceReleaseId);
+          CREATE INDEX streetsVersions_snapshotId_idx
+            ON streetsVersions (snapshotId);
+        `,
+        `
+          INSERT INTO streetsVersions (
+            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
+            validFromCohortKey, validToCohortKey, isCurrent, yearBuilt, "references", createdAt, updatedAt
+          )
+          SELECT
+            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
+            validFromMonth, validToMonth, isCurrent, yearBuilt, "references", createdAt, updatedAt
+          FROM __LEGACY_TABLE__;
+        `,
+      )
+      return
+    case 'placesVersions':
+      rebuildTable(
+        db,
+        tableName,
+        `
+          CREATE TABLE placesVersions (
+            id TEXT NOT NULL,
+            regionCode TEXT NOT NULL,
+            versionHash TEXT NOT NULL,
+            sourceReleaseId TEXT NOT NULL,
+            snapshotId TEXT NOT NULL,
+            validFromSnapshotId TEXT NOT NULL,
+            validToSnapshotId TEXT,
+            validFromCohortKey TEXT NOT NULL,
+            validToCohortKey TEXT,
+            isCurrent INTEGER NOT NULL,
+            address2dId TEXT,
+            address3dId TEXT,
+            lng REAL NOT NULL,
+            lat REAL NOT NULL,
+            bbox TEXT,
+            operatingStatus TEXT,
+            basicCategory TEXT,
+            taxonomyPrimary TEXT,
+            taxonomyHierarchy TEXT,
+            taxonomyAlternates TEXT,
+            brandWikidata TEXT,
+            websites TEXT,
+            socials TEXT,
+            emails TEXT,
+            phones TEXT,
+            addresses TEXT,
+            confidence REAL,
+            sources TEXT,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            PRIMARY KEY (id, versionHash)
+          );
+          CREATE INDEX placesVersions_current_lookup_idx
+            ON placesVersions (regionCode, id, isCurrent);
+          CREATE INDEX placesVersions_snapshot_validity_idx
+            ON placesVersions (regionCode, validFromSnapshotId, validToSnapshotId);
+          CREATE INDEX placesVersions_validity_idx
+            ON placesVersions (regionCode, validFromCohortKey, validToCohortKey);
+          CREATE INDEX placesVersions_sourceReleaseId_idx
+            ON placesVersions (sourceReleaseId);
+          CREATE INDEX placesVersions_snapshotId_idx
+            ON placesVersions (snapshotId);
+        `,
+        `
+          INSERT INTO placesVersions (
+            id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
+            validFromCohortKey, validToCohortKey, isCurrent, address2dId, address3dId, lng, lat, bbox,
+            operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates,
+            brandWikidata, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
+          )
+          SELECT
+            id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
+            validFromMonth, validToMonth, isCurrent, address2dId, address3dId, lng, lat, bbox,
+            operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates,
+            brandWikidata, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
+          FROM __LEGACY_TABLE__;
+        `,
+      )
+      return
+  }
 }
 
 function ensureFixtureCompatibleMetaSchema(db: Database) {
@@ -429,6 +743,16 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
     'versionHash',
     "versionHash TEXT NOT NULL DEFAULT ''",
   )
+
+  for (const historyTable of [
+    'divisionsVersions',
+    'address2dVersions',
+    'address3dVersions',
+    'streetsVersions',
+    'placesVersions',
+  ]) {
+    rebuildHistoryVersionTableIfNeeded(db, historyTable)
+  }
 }
 
 export function collectSqlFiles(dir: string): string[] {

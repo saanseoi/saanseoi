@@ -1,0 +1,17 @@
+{
+  "versionHash": "sha256:9753f004746d59ecaabf3f90f3f3fd7650071631acce53403d6401fd7a2d0256",
+  "apiVersion": "api-addresses-v0.1",
+  "code": "api-addresses-default",
+  "version": 1,
+  "primaryResourceType": "address",
+  "status": "current",
+  "members": [
+    {
+      "resourceType": "address",
+      "role": "primary",
+      "isRequired": true,
+      "selectionMode": "exact_ref",
+      "priority": 0
+    }
+  ]
+}

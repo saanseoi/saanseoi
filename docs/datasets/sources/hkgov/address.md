@@ -19,7 +19,7 @@ For snapshot-source provenance, HKGov ALS releases are currently recorded with r
 
 ## Prerequisite
 
-- `hkgov-als` address uploads are rejected unless the same snapshot month already has an Overture address upload.
+- `hkgov-als` address uploads are rejected unless the same `cohortKey` already has an Overture address upload.
 - This is enforced in `libs/core/src/lib/services/upload.ts`.
 
 ## Preparation Step
