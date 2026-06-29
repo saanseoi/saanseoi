@@ -706,7 +706,7 @@ describe('processDivisionDataset', () => {
     expect(result).toEqual({
       deletedRows: 1,
       insertedVersions: 2,
-      localizedRows: 4,
+      localizedRows: 6,
       processedRows: 2,
       statsRows: 31,
       unchangedRows: 0,
@@ -747,6 +747,12 @@ describe('processDivisionDataset', () => {
         isLocaleInferred: 0,
       },
       {
+        divisionId: 'division-central',
+        locale: 'zhHant',
+        otName: '中環',
+        isLocaleInferred: 0,
+      },
+      {
         divisionId: 'division-hk-island',
         locale: 'en',
         otName: 'Hong Kong Island',
@@ -755,6 +761,12 @@ describe('processDivisionDataset', () => {
       {
         divisionId: 'division-hk-island',
         locale: 'zh-hk',
+        otName: '香港島',
+        isLocaleInferred: 0,
+      },
+      {
+        divisionId: 'division-hk-island',
+        locale: 'zhHant',
         otName: '香港島',
         isLocaleInferred: 0,
       },
@@ -1395,6 +1407,11 @@ describe('processDivisionDataset', () => {
         name: '中環',
         releaseId: 'release-overture-hk-2026-06-24.0-division',
       },
+      {
+        locale: 'zhHant',
+        name: '中環',
+        releaseId: 'release-overture-hk-2026-06-24.0-division',
+      },
     ])
   })
 
@@ -1889,7 +1906,7 @@ describe('processDivisionDataset', () => {
     expect(result).toEqual({
       deletedRows: 0,
       insertedVersions: 3,
-      localizedRows: 5,
+      localizedRows: 8,
       processedRows: 3,
       statsRows: 26,
       unchangedRows: 0,
@@ -1916,9 +1933,29 @@ describe('processDivisionDataset', () => {
         otNameVariantJson: '["太平山"]',
       },
       {
+        divisionId: 'division-primary-mixed',
+        isLocaleInferred: 1,
+        locale: 'zhHant',
+        otLocalType: null,
+        otName: '太平山',
+        otNameAlts: null,
+        otNameRulesJson: null,
+        otNameVariantJson: '["太平山"]',
+      },
+      {
         divisionId: 'division-primary-zh',
         isLocaleInferred: 1,
         locale: 'zh-hans',
+        otLocalType: null,
+        otName: '沙頭角廣場',
+        otNameAlts: null,
+        otNameRulesJson: null,
+        otNameVariantJson: '["沙頭角廣場"]',
+      },
+      {
+        divisionId: 'division-primary-zh',
+        isLocaleInferred: 1,
+        locale: 'zhHans',
         otLocalType: null,
         otName: '沙頭角廣場',
         otNameAlts: null,
@@ -1940,6 +1977,16 @@ describe('processDivisionDataset', () => {
         divisionId: 'division-rules-zh',
         isLocaleInferred: 0,
         locale: 'zh-hant',
+        otLocalType: null,
+        otName: '山頂',
+        otNameAlts: null,
+        otNameRulesJson: null,
+        otNameVariantJson: '["山頂"]',
+      },
+      {
+        divisionId: 'division-rules-zh',
+        isLocaleInferred: 0,
+        locale: 'zhHant',
         otLocalType: null,
         otName: '山頂',
         otNameAlts: null,
