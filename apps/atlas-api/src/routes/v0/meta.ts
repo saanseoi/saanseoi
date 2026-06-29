@@ -1,11 +1,11 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
+import { listDatasets } from '../../db/meta'
 import {
-  listDatasets,
   markNewsletterFailed,
   markNewsletterPending,
   markNewsletterSubscribed,
-} from '../../db/repositories'
+} from '../../db/newsletter'
 import { subscribeToSubstack } from '../../lib/substack'
 import { sendTelegramAdminMessage } from '../../lib/telegram'
 import {
