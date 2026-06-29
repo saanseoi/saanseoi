@@ -1,9 +1,12 @@
 {
-  "versionHash": "sha256:dee789582a5c2dd5dc82017fef8d998a6d49a1c03b47f6d0175c8a9298ed69d7",
+  "versionHash": "sha256:1cbc1d5bf222195f1462862bc16a9e22693d3dac0aafa0e249e096b5ccfa74c8",
   "apiVersion": "api-divisions-v0.1",
-  "snapshotVersion": "ss-hk-division-2026-06-17.0",
+  "validFromSnapshotVersion": "ss-hk-division-2025-09-24.0",
   "schemaVersion": "sv-division-v1",
   "rulesetVersion": "rs-division-merge-v1",
+  "sourceSchemas": {
+    "ds-hk-overture-division": "1.12.0"
+  },
   "fields": [
     {
       "apiField": "division.id",
