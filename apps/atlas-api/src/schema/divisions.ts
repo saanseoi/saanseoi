@@ -70,7 +70,19 @@ const DivisionDocumentMetaSchema = z
     requestedVersion: z.enum(['v0', 'v0.1']),
     resolvedVersion: z.literal('0.1'),
     profile: ProfileName,
-    locales: z.array(z.string()),
+    locales: z
+      .array(z.union([ApiLocale, z.literal('*')]))
+      .refine(
+        locales =>
+          !locales.includes('*') || (locales.length === 1 && locales[0] === '*'),
+        {
+          message:
+            'locales must be contract locales, or a single "*" when all locales are returned',
+        },
+      )
+      .openapi({
+        examples: [['en', 'zhHant'], ['*']],
+      }),
     filters: z
       .object({
         level: z.number().int().optional(),
