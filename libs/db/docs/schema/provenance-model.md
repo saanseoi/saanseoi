@@ -56,6 +56,17 @@ Stored fields:
 - `confidence`
   - optional human-maintained confidence score for the mapping
 
+Why these fields are stored this way:
+
+- `sourceFieldPath`
+  - provenance must identify which upstream field or hint participates in the mapping, including resolver-driven fields that are not copied directly
+- `resolverCode`
+  - provenance needs to explain whether the contract field is copied, merged, looked up, or derived by a named rule
+- `contributionType`
+  - a resolver name alone is not enough because the same rule can consume inputs with different roles such as `primary`, `fallback`, or `resolver-input`
+- `priority`
+  - precedence is part of the published behavior, so it must be visible in provenance rather than hidden inside implementation code
+
 ## Contribution Types
 
 `contributionType` describes the role played by a provenance row.
