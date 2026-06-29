@@ -129,7 +129,7 @@ describe('reporting service', () => {
       seedMetaCatalog(metaSqlite)
       metaSqlite.exec(`
         INSERT INTO releases (
-          id, datasetId, code, sourceVersion, sourceSchemaVersion, publicationDate, snapshotMonth, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+          id, datasetId, code, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
         ) VALUES
           (
             'release-1',
@@ -275,7 +275,7 @@ describe('reporting service', () => {
       seedMetaCatalog(metaSqlite)
       metaSqlite.exec(`
         INSERT INTO releases (
-          id, datasetId, code, sourceVersion, sourceSchemaVersion, publicationDate, snapshotMonth, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+          id, datasetId, code, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
         ) VALUES
           (
             'release-1',
@@ -552,7 +552,7 @@ function seedRelease(
 ) {
   sqlite.exec(`
     INSERT INTO releases (
-      id, datasetId, code, sourceVersion, sourceSchemaVersion, publicationDate, snapshotMonth, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+      id, datasetId, code, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
     ) VALUES (
       '${releaseId}',
       'hkgov-als-hk-address',
@@ -714,7 +714,7 @@ function seedHistoryRows(
 ) {
   sqlite.exec(`
     INSERT INTO address2dVersions (
-      id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, validFromMonth, validToMonth, isCurrent, streetId, hamletId, microhoodId, villageId, neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox, identifiers, sources, createdAt, updatedAt
+      id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, validFromCohortKey, validToCohortKey, isCurrent, streetId, hamletId, microhoodId, villageId, neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox, identifiers, sources, createdAt, updatedAt
     ) VALUES (
       '${addressId}',
       'hk',
@@ -751,7 +751,7 @@ function seedHistoryRows(
       ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', '${snapshotId}', null, 1, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, '1', '示例路', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z');
 
     INSERT INTO address3dVersions (
-      id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, validFromMonth, validToMonth, isCurrent, address2dId, sources, createdAt, updatedAt
+      id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, validFromCohortKey, validToCohortKey, isCurrent, address2dId, sources, createdAt, updatedAt
     ) VALUES (
       '${address3dId}',
       'address-3d-version-1',

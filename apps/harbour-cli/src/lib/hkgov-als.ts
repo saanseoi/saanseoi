@@ -40,7 +40,7 @@ type PrepareHkgovAlsOptions = {
   dbPath?: string
   environment: UploadEnvironment
   outputFile: string
-  snapshotMonth: string
+  cohortKey: string
   sourceDir: string
   sourceVersion: string
 }
@@ -110,7 +110,7 @@ type PreparedHkgovAlsRow = {
   type: 'address'
   country: 'HK'
   region: 'HK'
-  snapshotMonth: string
+  cohortKey: string
   sourceVersion: string
   sourceFile: string
   geometry: string | null
@@ -194,7 +194,7 @@ export async function prepareHkgovAlsAddressParquet(
         normalizeHkgovAlsFeature(
           feature,
           sourceFile,
-          options.snapshotMonth,
+          options.cohortKey,
           options.sourceVersion,
           divisionMaps,
         ),
@@ -237,8 +237,8 @@ export async function prepareHkgovAlsAddressParquet(
         false,
       ),
       stringColumn(
-        'snapshotMonth',
-        rows.map(row => row.snapshotMonth),
+        'cohortKey',
+        rows.map(row => row.cohortKey),
         false,
       ),
       stringColumn(
@@ -398,7 +398,7 @@ export async function prepareHkgovAlsAddressParquet(
 function normalizeHkgovAlsFeature(
   feature: HkgovAlsFeature,
   sourceFile: string,
-  snapshotMonth: string,
+  cohortKey: string,
   sourceVersion: string,
   divisionMaps: DivisionLookupMaps,
 ): PreparedHkgovAlsRow {
@@ -427,7 +427,7 @@ function normalizeHkgovAlsFeature(
       hkgovAls: {
         geoAddress,
         hkgovCsuId: csuId,
-        snapshotMonth,
+        cohortKey,
         sourceFile,
       },
     }) ?? '{}'
@@ -438,7 +438,7 @@ function normalizeHkgovAlsFeature(
     type: 'address',
     country: 'HK',
     region: 'HK',
-    snapshotMonth,
+    cohortKey,
     sourceVersion,
     sourceFile,
     geometry: stringifyJson(feature.geometry ?? null),

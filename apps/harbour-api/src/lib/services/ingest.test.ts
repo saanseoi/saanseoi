@@ -130,7 +130,7 @@ describe('direct upload flow', () => {
 
     formData.set('file', file)
     formData.set('shardYear', '2026')
-    formData.set('snapshotMonth', '2026-05')
+    formData.set('cohortKey', '2026-05')
     formData.set('sourceVersion', '2026-05-24.0')
 
     const result = await handleUploadRequest(db, bucket, queue, formData)
@@ -162,7 +162,7 @@ describe('direct upload flow', () => {
         releaseId: result.releaseId,
         regionCode: 'hk',
         shardYear: '2026',
-        snapshotMonth: '2026-05',
+        cohortKey: '2026-05',
         source: 'overture',
         sourceVersion: '2026-05-24.0',
         theme: 'divisions',
@@ -191,7 +191,7 @@ describe('direct upload flow', () => {
     const interrupted = await requestUpload(db, {
       filePath: 'overture-hk-division.parquet',
       shardYear: '2026',
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
     })
@@ -207,7 +207,7 @@ describe('direct upload flow', () => {
     formData.set('file', file)
     formData.set('force', 'true')
     formData.set('shardYear', '2026')
-    formData.set('snapshotMonth', '2026-05')
+    formData.set('cohortKey', '2026-05')
     formData.set('sourceVersion', '2026-05-24.0')
 
     const result = await handleUploadRequest(db, bucket, queue, formData)

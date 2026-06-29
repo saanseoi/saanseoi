@@ -537,7 +537,7 @@ export async function processAddressDataset(
         historyRepoDb,
         [...changedAddressExistingIds],
         versionInsertContext.snapshotId,
-        message.snapshotMonth,
+        message.cohortKey,
       ),
     )
     await timings.measure('upsertAddressCurrentStatesMs', () =>
@@ -662,7 +662,7 @@ export async function processAddressDataset(
           deleteMissingCurrentAddresses(
             historyRepoDb,
             versionInsertContext.snapshotId,
-            message.snapshotMonth,
+            message.cohortKey,
             currentRows,
             seenIds,
           ),

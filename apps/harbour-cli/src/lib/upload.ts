@@ -32,19 +32,19 @@ const DIRECT_UPLOAD_RETRY_DELAY_MS = 250
 const DIRECT_UPLOAD_RECOVERY_POLL_LIMIT = 8
 const DIRECT_UPLOAD_RECOVERY_POLL_DELAY_MS = 500
 
-function resolveShardYear(snapshotMonth: string, sourceVersion: string) {
-  const snapshotYear = snapshotMonth.slice(0, 4)
+function resolveShardYear(cohortKey: string, sourceVersion: string) {
+  const snapshotYear = cohortKey.slice(0, 4)
   const sourceYear = sourceVersion.slice(0, 4)
 
   if (!/^\d{4}$/.test(snapshotYear) || !/^\d{4}$/.test(sourceYear)) {
     throw new Error(
-      `Could not resolve shard year from snapshotMonth=${snapshotMonth} and sourceVersion=${sourceVersion}.`,
+      `Could not resolve shard year from cohortKey=${cohortKey} and sourceVersion=${sourceVersion}.`,
     )
   }
 
   if (snapshotYear !== sourceYear) {
     throw new Error(
-      `Shard year mismatch: snapshotMonth=${snapshotMonth} and sourceVersion=${sourceVersion} point to different years.`,
+      `Shard year mismatch: cohortKey=${cohortKey} and sourceVersion=${sourceVersion} point to different years.`,
     )
   }
 
@@ -111,7 +111,7 @@ async function uploadFileViaWorker(
   attempt = 0,
 ) {
   const shardYear = resolveShardYear(
-    previewResult.plan.snapshotMonth,
+    previewResult.plan.cohortKey,
     previewResult.plan.sourceVersion,
   )
   const fileBytes = await readFile(registerOptions.filePath)
@@ -123,7 +123,7 @@ async function uploadFileViaWorker(
   formData.set('file', file)
   formData.set('regionCode', previewResult.plan.regionCode)
   formData.set('shardYear', shardYear)
-  formData.set('snapshotMonth', previewResult.plan.snapshotMonth)
+  formData.set('cohortKey', previewResult.plan.cohortKey)
   formData.set('theme', previewResult.plan.theme)
   formData.set('type', previewResult.plan.type)
   formData.set('source', previewResult.plan.source)
@@ -204,7 +204,7 @@ async function requestSignedUpload(
   options: DispatchUploadOptions,
 ) {
   const shardYear = resolveShardYear(
-    previewResult.plan.snapshotMonth,
+    previewResult.plan.cohortKey,
     previewResult.plan.sourceVersion,
   )
   const response = await fetch(buildSignUploadEndpoint(apiBaseUrl), {
@@ -223,7 +223,7 @@ async function requestSignedUpload(
         shardYear,
         source: previewResult.plan.source,
         sourceVersion: previewResult.plan.sourceVersion,
-        snapshotMonth: previewResult.plan.snapshotMonth,
+        cohortKey: previewResult.plan.cohortKey,
         theme: previewResult.plan.theme,
         type: previewResult.plan.type,
       },

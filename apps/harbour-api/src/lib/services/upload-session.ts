@@ -61,7 +61,7 @@ export type SignUploadRequest = {
   plan: {
     regionCode?: string
     shardYear?: string
-    snapshotMonth?: string
+    cohortKey?: string
     source?: string
     sourceVersion?: string
     theme?: string
@@ -85,7 +85,7 @@ export type RequeueUploadResult = Omit<DatasetRecord, 'status'> & {
 
 function resolveShardYear(plan: {
   shardYear?: string
-  snapshotMonth?: string
+  cohortKey?: string
   sourceVersion?: string
 }) {
   const shardYear = plan.shardYear?.trim()
@@ -94,7 +94,7 @@ function resolveShardYear(plan: {
     return shardYear
   }
 
-  return (plan.snapshotMonth ?? plan.sourceVersion ?? '').slice(0, 4)
+  return (plan.cohortKey ?? plan.sourceVersion ?? '').slice(0, 4)
 }
 
 export type UploadSigningEnv = {
@@ -126,7 +126,7 @@ export async function handleSignUploadRequest(
     filePath: request.fileName,
     regionCode: request.plan.regionCode,
     shardYear: request.plan.shardYear,
-    snapshotMonth: request.plan.snapshotMonth,
+    cohortKey: request.plan.cohortKey,
     source: request.plan.source,
     sourceVersion: request.plan.sourceVersion,
     theme: request.plan.theme,
@@ -206,7 +206,7 @@ export async function handleFinalizeUploadRequest(
       originalFileName: dataset.originalFileName,
       regionCode: dataset.regionCode,
       shardYear,
-      snapshotMonth: dataset.snapshotMonth,
+      cohortKey: dataset.cohortKey,
       source: dataset.source,
       sourceVersion: dataset.sourceVersion,
       theme: dataset.theme,
@@ -238,7 +238,7 @@ export async function handleFinalizeUploadRequest(
     originalFileName: dataset.originalFileName,
     regionCode: dataset.regionCode,
     shardYear,
-    snapshotMonth: dataset.snapshotMonth,
+    cohortKey: dataset.cohortKey,
     source: dataset.source,
     sourceVersion: dataset.sourceVersion,
     theme: dataset.theme,
@@ -255,7 +255,7 @@ export async function handleFinalizeUploadRequest(
     releaseCode: finalized.plan.releaseCode,
     regionCode: finalized.plan.regionCode,
     shardYear: finalized.plan.shardYear,
-    snapshotMonth: finalized.plan.snapshotMonth,
+    cohortKey: finalized.plan.cohortKey,
     source: finalized.plan.source,
     sourceVersion: finalized.plan.sourceVersion,
     theme: finalized.plan.theme,
@@ -467,7 +467,7 @@ function buildDatasetProcessingMessage(
     | 'regionCode'
     | 'releaseCode'
     | 'releaseId'
-    | 'snapshotMonth'
+    | 'cohortKey'
     | 'source'
     | 'sourceVersion'
     | 'theme'
@@ -485,10 +485,10 @@ function buildDatasetProcessingMessage(
     regionCode: requireRegionCode(dataset.regionCode),
     shardYear: resolveShardYear({
       shardYear: dataset.shardYear,
-      snapshotMonth: dataset.snapshotMonth,
+      cohortKey: dataset.cohortKey,
       sourceVersion: dataset.sourceVersion,
     }),
-    snapshotMonth: dataset.snapshotMonth,
+    cohortKey: dataset.cohortKey,
     source: dataset.source,
     sourceVersion: dataset.sourceVersion,
     theme: requireSupportedTheme(dataset.theme),
@@ -538,7 +538,7 @@ async function writeFinalObjectMetadata(
       regionCode: planned.plan.regionCode,
       rowCount: String(planned.plan.rowCount),
       schemaFingerprint: planned.plan.schemaFingerprint,
-      snapshotMonth: planned.plan.snapshotMonth,
+      cohortKey: planned.plan.cohortKey,
       source: planned.plan.source,
       sourceVersion: planned.plan.sourceVersion,
       theme: planned.plan.theme,

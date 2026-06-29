@@ -1,6 +1,6 @@
 import {
   getDatasetById,
-  hasDatasetForSnapshotMonthSourceType,
+  hasDatasetForCohortKeySourceType,
   getLatestDatasetForRegionSourceType,
   insertDataset,
   resetFailedDataset,
@@ -205,20 +205,22 @@ function matchThemeCandidate(candidate: string): SupportedTheme | null {
   return matchedType ? TYPE_THEME_MAP[matchedType] : null
 }
 
-function matchSnapshotMonthCandidate(candidate: string) {
-  const match = candidate.match(/(20\d{2})-(0[1-9]|1[0-2])(?:-[0-3]\d(?:\.\d+)?)?/)
+function matchCohortKeyCandidate(candidate: string) {
+  const sourceVersionMatch = candidate.match(
+    /(20\d{2})-(0[1-9]|1[0-2])-[0-3]\d(?:\.\d+)?/,
+  )
 
-  if (match) {
-    return `${match[1]}-${match[2]}`
+  if (sourceVersionMatch) {
+    return sourceVersionMatch[0]
   }
 
-  const fallbackMatch = candidate.match(/(20\d{2})[-_]?((0[1-9])|(1[0-2]))/)
+  const monthlyMatch = candidate.match(/(20\d{2})-(0[1-9]|1[0-2])/)
 
-  if (!fallbackMatch) {
-    return null
+  if (monthlyMatch) {
+    return monthlyMatch[0]
   }
 
-  return `${fallbackMatch[1]}-${fallbackMatch[2]}`
+  return null
 }
 
 export function inferSourceVersionFromPath(filePath: string) {
@@ -294,11 +296,11 @@ export function inferTypeFromFilename(filePath: string): SupportedType | null {
   return matchTypeCandidate(fileNameFromPath(filePath))
 }
 
-export function inferSnapshotMonthFromPath(filePath: string) {
+export function inferCohortKeyFromPath(filePath: string) {
   const pathSegments = splitPathSegments(filePath)
 
   for (const segment of pathSegments) {
-    const month = matchSnapshotMonthCandidate(segment)
+    const month = matchCohortKeyCandidate(segment)
 
     if (month) {
       return month
@@ -308,9 +310,9 @@ export function inferSnapshotMonthFromPath(filePath: string) {
   return null
 }
 
-export function inferSnapshotMonthFromFilename(filePath: string) {
+export function inferCohortKeyFromFilename(filePath: string) {
   const fileName = fileNameFromPath(filePath)
-  const match = matchSnapshotMonthCandidate(fileName)
+  const match = matchCohortKeyCandidate(fileName)
 
   if (!match) {
     return null
@@ -449,19 +451,17 @@ function inferRegionFromParquet(inspection: ParquetInspection) {
   return uniqueRegions[0]
 }
 
-function normalizeSnapshotMonth(candidate?: string | null) {
+function normalizeCohortKey(candidate?: string | null) {
   if (!candidate) {
     return null
   }
 
   const trimmed = candidate.trim()
-  const match = trimmed.match(/^(20\d{2})[-_]?((0[1-9])|(1[0-2]))$/)
-
-  if (!match) {
+  if (!trimmed) {
     return null
   }
 
-  return `${match[1]}-${match[2]}`
+  return trimmed
 }
 
 export function createSchemaFingerprint(inspection: ParquetInspection) {
@@ -588,16 +588,16 @@ async function ensureSchemaCompatible(
 
 async function ensureSourcePrerequisites(
   db: HarbourReadableDb,
-  plan: Pick<UploadPlan, 'regionCode' | 'snapshotMonth' | 'source' | 'type'>,
+  plan: Pick<UploadPlan, 'regionCode' | 'cohortKey' | 'source' | 'type'>,
 ) {
   if (plan.source !== 'hkgov-als' || plan.type !== 'address') {
     return
   }
 
-  const overtureDataset = await hasDatasetForSnapshotMonthSourceType(
+  const overtureDataset = await hasDatasetForCohortKeySourceType(
     db,
     plan.regionCode,
-    plan.snapshotMonth,
+    plan.cohortKey,
     'overture',
     'address',
   )
@@ -605,8 +605,8 @@ async function ensureSourcePrerequisites(
   if (!overtureDataset) {
     throw new Error(
       [
-        `Cannot upload ${plan.source} ${plan.type} for ${plan.snapshotMonth}.`,
-        'Upload the matching Overture address dataset for the same snapshot month first.',
+        `Cannot upload ${plan.source} ${plan.type} for ${plan.cohortKey}.`,
+        'Upload the matching Overture address dataset for the same cohortKey first.',
       ].join(' '),
     )
   }
@@ -670,17 +670,6 @@ function resolveUploadPlan(
     )
   }
 
-  const snapshotMonth =
-    normalizeSnapshotMonth(options.snapshotMonth) ??
-    inferSnapshotMonthFromPath(options.filePath) ??
-    inferSnapshotMonthFromFilename(options.filePath)
-
-  if (!snapshotMonth) {
-    throw new Error(
-      'Could not determine snapshotMonth. Pass `--month YYYY-MM` or include it in the path.',
-    )
-  }
-
   const sourceFromFlag = normalizeSource(options.source)
   const sourceFromPath = inferSourceFromPath(options.filePath)
   const sourceFromFilename = inferSourceFromFilename(options.filePath)
@@ -694,26 +683,38 @@ function resolveUploadPlan(
   const sourceVersion =
     options.sourceVersion ??
     inferSourceVersionFromPath(options.filePath) ??
-    inferSourceVersionFromFilename(options.filePath) ??
-    snapshotMonth
+    inferSourceVersionFromFilename(options.filePath)
+  const cohortKey =
+    normalizeCohortKey(options.cohortKey) ??
+    inferCohortKeyFromPath(options.filePath) ??
+    inferCohortKeyFromFilename(options.filePath) ??
+    sourceVersion
+
+  if (!cohortKey) {
+    throw new Error(
+      'Could not determine cohortKey. Pass `--cohort-key <value>` or include it in the path.',
+    )
+  }
+
+  const resolvedSourceVersion = sourceVersion ?? cohortKey
   const { fileName, originalFileName } = normalizeUploadFileName(
     options.filePath,
     type,
     options.originalFileName,
   )
   const datasetCode = buildDatasetCode(regionCode, source, type)
-  const releaseCode = `${source}-${regionCode}-${sourceVersion}-${type}`
+  const releaseCode = `${source}-${regionCode}-${resolvedSourceVersion}-${type}`
   const plan: UploadPlan = {
     datasetId: releaseCode,
     datasetCode,
     releaseCode,
     regionCode,
-    snapshotMonth,
+    cohortKey,
     shardYear: options.shardYear?.trim() || undefined,
     theme,
     type,
     source,
-    sourceVersion,
+    sourceVersion: resolvedSourceVersion,
     filePath: options.filePath,
     fileName,
     originalFileName,
@@ -723,11 +724,13 @@ function resolveUploadPlan(
       theme: themeFromFlag ? 'flag' : themeFromPath ? 'path' : 'parquet',
       type: typeFromFlag ? 'flag' : typeFromPath ? 'path' : 'parquet',
       regionCode: regionFromFlag ? 'flag' : regionFromPath ? 'path' : 'parquet',
-      snapshotMonth: options.snapshotMonth
+      cohortKey: options.cohortKey
         ? 'flag'
-        : inferSnapshotMonthFromPath(options.filePath)
+        : inferCohortKeyFromPath(options.filePath)
           ? 'path'
-          : 'filename',
+          : inferCohortKeyFromFilename(options.filePath)
+            ? 'filename'
+            : 'sourceVersion',
       source: sourceFromFlag ? 'flag' : sourceFromPath ? 'path' : 'filename',
       sourceVersion: options.sourceVersion
         ? 'flag'
@@ -735,7 +738,7 @@ function resolveUploadPlan(
           ? 'path'
           : inferSourceVersionFromFilename(options.filePath)
             ? 'filename'
-            : 'snapshotMonth',
+            : 'cohortKey',
     },
     supersedesDatasetId: null,
   }

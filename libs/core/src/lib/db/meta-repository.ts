@@ -80,7 +80,7 @@ const releaseRecordSelection = {
   releaseId: metaReleases.id,
   releaseCode: metaReleases.code,
   regionCode: metaDatasets.regionCode,
-  snapshotMonth: metaReleases.snapshotMonth,
+  cohortKey: metaReleases.cohortKey,
   theme: metaDatasets.theme,
   type: metaDatasets.type,
   source: metaPublishers.code,
@@ -182,10 +182,10 @@ export async function getLatestDatasetForRegionSourceType(
   }
 }
 
-export async function hasDatasetForSnapshotMonthSourceType(
+export async function hasDatasetForCohortKeySourceType(
   db: HarbourReadableDb,
   regionCode: RegionCode,
-  snapshotMonth: string,
+  cohortKey: string,
   source: string,
   type: SupportedType,
 ) {
@@ -202,7 +202,7 @@ export async function hasDatasetForSnapshotMonthSourceType(
       .where(
         and(
           eq(metaDatasets.regionCode, regionCode),
-          eq(metaReleases.snapshotMonth, snapshotMonth),
+          eq(metaReleases.cohortKey, cohortKey),
           eq(metaPublishers.code, source),
           eq(metaDatasets.type, type),
           ne(metaReleases.status, 'failed'),
@@ -382,7 +382,7 @@ export async function insertDataset(
       datasetId: dataset.id,
       code: plan.releaseCode,
       sourceVersion: plan.sourceVersion,
-      snapshotMonth: plan.snapshotMonth,
+      cohortKey: plan.cohortKey,
       rawObjectKey,
       originalFileName: plan.originalFileName,
       status,
@@ -409,7 +409,7 @@ export async function resetFailedDataset(
     .update(metaReleases)
     .set({
       sourceVersion: plan.sourceVersion,
-      snapshotMonth: plan.snapshotMonth,
+      cohortKey: plan.cohortKey,
       rawObjectKey,
       originalFileName: plan.originalFileName,
       status,

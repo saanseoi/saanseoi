@@ -46,7 +46,7 @@ Prep commands:
 Command behavior:
 
 - `sourceVersion` is inferred from the source path when it contains a `YYYY-MM-DD.NN` segment, otherwise `--source-version` is required
-- `snapshotMonth` is derived from `sourceVersion`
+- `cohortKey` is derived from `sourceVersion`
 - a temp parquet file named `hkgov-hk-{sourceVersion}-address.parquet` is written before upload
 
 Environment mapping:

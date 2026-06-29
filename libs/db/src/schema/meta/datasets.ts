@@ -88,7 +88,7 @@ export const metaReleases = sqliteTable(
     sourceVersion: text('sourceVersion').notNull(),
     sourceSchemaVersion: text('sourceSchemaVersion'),
     publicationDate: text('publicationDate'),
-    snapshotMonth: text('snapshotMonth'),
+    cohortKey: text('cohortKey'),
     rawObjectKey: text('rawObjectKey'),
     originalFileName: text('originalFileName'),
     status: text('status', { enum: releaseStatuses }).notNull(),

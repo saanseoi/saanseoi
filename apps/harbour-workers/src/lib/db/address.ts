@@ -52,7 +52,7 @@ export type AddressVersionInsertContext = {
   releaseId: string
   releaseRole: 'primary' | 'enrichment'
   snapshotId: string
-  snapshotMonth: string
+  cohortKey: string
 }
 
 function excluded(column: string) {
@@ -239,7 +239,7 @@ export async function prepareAddressVersionInsertContext(
     releaseId: dataset.releaseId,
     releaseRole,
     snapshotId: snapshot.id,
-    snapshotMonth: message.snapshotMonth,
+    cohortKey: message.cohortKey,
   }
 }
 
@@ -341,7 +341,7 @@ export async function closeCurrentAddressVersions(
   db: HarbourWritableDb,
   addressIds: string[],
   snapshotId: string,
-  snapshotMonth: string,
+  cohortKey: string,
 ) {
   if (addressIds.length === 0) {
     return
@@ -356,7 +356,7 @@ export async function closeCurrentAddressVersions(
         .set({
           isCurrent: false,
           validToSnapshotId: snapshotId,
-          validToMonth: snapshotMonth,
+          validToCohortKey: cohortKey,
           updatedAt: now,
         })
         .where(
@@ -373,7 +373,7 @@ export async function closeCurrentAddressVersions(
 export async function deleteMissingCurrentAddresses(
   historyDb: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
-  snapshotMonth: string,
+  cohortKey: string,
   currentRows: Map<string, AddressVersionSnapshot>,
   seenIds: Set<string>,
 ) {
@@ -395,7 +395,7 @@ export async function deleteMissingCurrentAddresses(
         .set({
           isCurrent: false,
           validToSnapshotId: snapshotId,
-          validToMonth: snapshotMonth,
+          validToCohortKey: cohortKey,
           updatedAt: now,
         })
         .where(
@@ -591,8 +591,8 @@ export async function insertAddressVersionRows(
             snapshotId: context.snapshotId,
             validFromSnapshotId: context.snapshotId,
             validToSnapshotId: null,
-            validFromMonth: context.snapshotMonth,
-            validToMonth: null,
+            validFromCohortKey: context.cohortKey,
+            validToCohortKey: null,
             isCurrent: true,
             streetId: row.streetId,
             hamletId: row.hamletId,
@@ -622,9 +622,9 @@ export async function insertAddressVersionRows(
             sourceReleaseId: context.releaseId,
             snapshotId: context.snapshotId,
             validFromSnapshotId: context.snapshotId,
-            validFromMonth: context.snapshotMonth,
+            validFromCohortKey: context.cohortKey,
             validToSnapshotId: null,
-            validToMonth: null,
+            validToCohortKey: null,
             updatedAt: excluded('updatedAt'),
           },
         })

@@ -42,7 +42,7 @@ const processingRelease: ReleaseReportRow = {
       tableName: 'divisionVersions',
     },
   ],
-  snapshotMonth: '2025-12',
+  cohortKey: '2025-12',
   source: 'overture',
   sourceVersion: '2025-12-17.0',
   status: 'processing',
@@ -154,7 +154,7 @@ describe('watch helpers', () => {
         releaseCode: processingRelease.releaseCode,
         releaseId: processingRelease.releaseId,
         runId: 'run-1',
-        snapshotMonth: '2025-12',
+        cohortKey: '2025-12',
         source: 'overture',
         startedAt: '2026-06-27T07:18:25.000Z',
         stats: {
@@ -180,7 +180,7 @@ describe('watch helpers', () => {
         releaseCode: processingRelease.releaseCode,
         releaseId: processingRelease.releaseId,
         runId: 'run-1',
-        snapshotMonth: '2025-12',
+        cohortKey: '2025-12',
         source: 'overture',
         startedAt: '2026-06-27T07:18:25.000Z',
         stats: {
@@ -197,7 +197,7 @@ describe('watch helpers', () => {
         releaseCode: processingRelease.releaseCode,
         releaseId: processingRelease.releaseId,
         runId: 'run-2',
-        snapshotMonth: '2025-12',
+        cohortKey: '2025-12',
         source: 'overture',
         startedAt: '2026-06-27T07:18:25.000Z',
         stats: {
@@ -326,7 +326,7 @@ describe('watchCurrentUpload', () => {
                 releaseCode: processingBacklogRelease.releaseCode,
                 releaseId: processingBacklogRelease.releaseId,
                 runId: 'run-1',
-                snapshotMonth: '2026-01',
+                cohortKey: '2026-01',
                 source: 'overture',
                 startedAt: '2026-06-27T07:18:25.000Z',
                 stats: {
@@ -343,7 +343,7 @@ describe('watchCurrentUpload', () => {
                 releaseCode: processingBacklogRelease.releaseCode,
                 releaseId: processingBacklogRelease.releaseId,
                 runId: 'run-2',
-                snapshotMonth: '2026-01',
+                cohortKey: '2026-01',
                 source: 'overture',
                 startedAt: '2026-06-27T07:18:25.000Z',
                 stats: {
@@ -367,7 +367,7 @@ describe('watchCurrentUpload', () => {
                 releaseCode: stagedBacklogRelease.releaseCode,
                 releaseId: stagedBacklogRelease.releaseId,
                 runId: 'run-3',
-                snapshotMonth: '2026-02',
+                cohortKey: '2026-02',
                 source: 'overture',
                 startedAt: '2026-06-27T07:18:25.000Z',
                 stats: {
@@ -384,7 +384,7 @@ describe('watchCurrentUpload', () => {
                 releaseCode: stagedBacklogRelease.releaseCode,
                 releaseId: stagedBacklogRelease.releaseId,
                 runId: 'run-4',
-                snapshotMonth: '2026-02',
+                cohortKey: '2026-02',
                 source: 'overture',
                 startedAt: '2026-06-27T07:18:25.000Z',
                 stats: {

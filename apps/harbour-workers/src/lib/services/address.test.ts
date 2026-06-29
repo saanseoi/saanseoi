@@ -68,7 +68,7 @@ function initDb(dbPath: string) {
 function seedAddressRelease(
   sqlite: Database,
   releaseCode: string,
-  snapshotMonth: string,
+  cohortKey: string,
   status: string,
   ingestedAt = '2026-06-04T00:00:00.000Z',
 ) {
@@ -79,7 +79,7 @@ function seedAddressRelease(
     releaseCode,
     source: 'overture',
     regionCode: 'hk',
-    snapshotMonth,
+    cohortKey,
     type: 'address',
     sourceVersion,
     rawObjectKey: `hk/overture/${sourceVersion}/address.parquet`,
@@ -93,7 +93,7 @@ function seedAddressRelease(
 
 function createAddressMessage(
   releaseCode: string,
-  snapshotMonth: string,
+  cohortKey: string,
   sourceVersion: string,
 ) {
   return {
@@ -102,7 +102,7 @@ function createAddressMessage(
     releaseId: `release-${releaseCode}`,
     rawObjectKey: `hk/overture/${sourceVersion}/address.parquet`,
     regionCode: 'hk',
-    snapshotMonth,
+    cohortKey,
     source: 'overture',
     sourceVersion,
     theme: 'addresses',
@@ -112,7 +112,7 @@ function createAddressMessage(
 
 function createHkgovAddressMessage(
   releaseCode: string,
-  snapshotMonth: string,
+  cohortKey: string,
   sourceVersion: string,
 ) {
   return {
@@ -121,7 +121,7 @@ function createHkgovAddressMessage(
     releaseId: `release-${releaseCode}`,
     rawObjectKey: `hk/hkgov-als/${sourceVersion}/address.parquet`,
     regionCode: 'hk',
-    snapshotMonth,
+    cohortKey,
     source: 'hkgov-als',
     sourceVersion,
     theme: 'addresses',
@@ -265,7 +265,7 @@ describe('processAddressDataset', () => {
       releaseCode,
       source: 'hkgov-als',
       regionCode: 'hk',
-      snapshotMonth: '2026-06',
+      cohortKey: '2026-06',
       type: 'address',
       sourceVersion: '2026-06-24.0',
       rawObjectKey: 'hk/hkgov-als/2026-06-24.0/address.parquet',
