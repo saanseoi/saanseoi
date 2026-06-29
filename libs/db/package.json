@@ -90,10 +90,11 @@
     "./sourceSchema": "./src/schema/source/index.ts"
   },
   "dependencies": {
-    "drizzle-orm": "^1.0.0-beta.22"
+    "@types/bun": "^1.3.14",
+    "drizzle-orm": "^1.0.0-rc.4-5d5b77c"
   },
   "devDependencies": {
-    "drizzle-kit": "^1.0.0-beta.22",
+    "drizzle-kit": "^1.0.0-rc.4-ca0f029",
     "typescript": "^6.0.3"
   }
 }
