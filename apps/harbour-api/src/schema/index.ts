@@ -129,7 +129,7 @@ const DatasetIdSchema = z
 
 const DatasetCodeSchema = z.string().openapi({
   description: 'Stable dataset code within a publisher.',
-  examples: ['ds-hk-overture-division', 'ds-hk-hkgov-address-2d'],
+  examples: ['ds-hk-overture-division', 'ds-hk-hkgov-als-address'],
 })
 
 const ReleaseIdSchema = z
@@ -142,7 +142,7 @@ const ReleaseIdSchema = z
 
 const ReleaseCodeSchema = z.string().openapi({
   description: 'Public release identifier.',
-  examples: ['overture-hk-division-2025-09-24.0', 'hkgov-hk-address-2026-01-20.0'],
+  examples: ['overture-hk-division-2025-09-24.0', 'hkgov-als-hk-address-2026-01-20.0'],
 })
 
 const RawObjectKeySchema = z
@@ -153,7 +153,7 @@ const RawObjectKeySchema = z
       'R2 object key for the uploaded file, constructed as `{region}/{source}/{sourceVersion}/{type}.{extension}`',
     examples: [
       'hk/overture/2025-09-24.0/division.parquet',
-      'hk/hkgov/2026-01-20.0/address.json',
+      'hk/hkgov-als/2026-01-20.0/address.json',
     ],
   })
 

@@ -18,6 +18,30 @@ describe('fixture version hashes', () => {
       ),
     ).toBe(true)
   })
+
+  test('loads both v0 and v0.1 aliases for seeded endpoint families', () => {
+    const addressPaths = initialApiEndpoints
+      .filter(endpoint => endpoint.apiVersion === 'api-addresses-v0.1')
+      .map(endpoint => endpoint.path)
+      .sort()
+    const divisionPaths = initialApiEndpoints
+      .filter(endpoint => endpoint.apiVersion === 'api-divisions-v0.1')
+      .map(endpoint => endpoint.path)
+      .sort()
+    const placePaths = initialApiEndpoints
+      .filter(endpoint => endpoint.apiVersion === 'api-places-v0.1')
+      .map(endpoint => endpoint.path)
+      .sort()
+
+    expect(addressPaths).toEqual([
+      '/v0.1/addresses',
+      '/v0.1/addresses/{id}',
+      '/v0/addresses',
+      '/v0/addresses/{id}',
+    ])
+    expect(divisionPaths).toEqual(['/v0.1/divisions', '/v0/divisions'])
+    expect(placePaths).toEqual(['/v0.1/places', '/v0/places'])
+  })
 })
 
 describe('resolveInitialDataShardsForEnvironment', () => {
@@ -57,5 +81,10 @@ describe('buildMetaRegistrySyncStatements', () => {
     expect(statements.every(statement => !statement.includes("'production'"))).toBe(
       true,
     )
+    expect(
+      statements.some(statement =>
+        statement.includes('publishers.parentPublisherId IS NULL'),
+      ),
+    ).toBe(true)
   })
 })

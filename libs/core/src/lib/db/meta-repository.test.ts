@@ -5,6 +5,7 @@ import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { createLocalHarbourDb } from '../../testing/local-db'
 import {
   ensureIngestRunStarted,
+  publishReleaseArtifacts,
   resolveLatestSnapshotForResourceTypeExcludingId,
   resolveShardForTypeRegionYear,
 } from './meta-repository'
@@ -68,6 +69,51 @@ function createSnapshotLookupDb() {
       status TEXT NOT NULL,
       publishedAt INTEGER,
       createdAt INTEGER NOT NULL
+    );
+  `)
+
+  return {
+    sqlite,
+    db: createLocalHarbourDb(sqlite),
+  }
+}
+
+function createPublishReleaseArtifactsDb() {
+  const sqlite = new SQLiteDatabase(':memory:')
+
+  sqlite.exec(`
+    CREATE TABLE snapshots (
+      id TEXT PRIMARY KEY,
+      status TEXT NOT NULL,
+      publishedAt INTEGER,
+      validFrom INTEGER,
+      validTo INTEGER,
+      updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE apiReleaseSets (
+      id TEXT PRIMARY KEY,
+      apiVersionId TEXT NOT NULL,
+      status TEXT NOT NULL,
+      publishedAt INTEGER,
+      validFrom INTEGER,
+      validTo INTEGER,
+      updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE releases (
+      id TEXT PRIMARY KEY,
+      status TEXT NOT NULL,
+      revokedAt INTEGER,
+      revocationReason TEXT,
+      supersededByReleaseId TEXT,
+      updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE apiReleaseSetSnapshots (
+      apiReleaseSetId TEXT NOT NULL,
+      snapshotId TEXT NOT NULL,
+      PRIMARY KEY (apiReleaseSetId, snapshotId)
     );
   `)
 
@@ -255,5 +301,69 @@ describe('resolveLatestSnapshotForResourceTypeExcludingId', () => {
       id: 'snapshot-published',
       status: 'published',
     })
+  })
+})
+
+describe('publishReleaseArtifacts', () => {
+  test('preserves existing release-set snapshot links while adding the published snapshot', async () => {
+    const { sqlite, db } = createPublishReleaseArtifactsDb()
+
+    sqlite.exec(`
+      INSERT INTO snapshots (id, status, publishedAt, validFrom, validTo, updatedAt) VALUES
+        ('snapshot-curated', 'draft', null, null, null, 1760000000000),
+        ('snapshot-new', 'draft', null, null, null, 1760000000000);
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, status, publishedAt, validFrom, validTo, updatedAt
+      ) VALUES (
+        'release-set-1',
+        'api-version-1',
+        'draft',
+        null,
+        null,
+        null,
+        1760000000000
+      );
+
+      INSERT INTO releases (
+        id, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
+      ) VALUES (
+        'release-1',
+        'staged',
+        null,
+        null,
+        null,
+        1760000000000
+      );
+
+      INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId) VALUES
+        ('release-set-1', 'snapshot-curated');
+    `)
+
+    await publishReleaseArtifacts(db as never, {
+      carriedSnapshots: [],
+      currentRelease: null,
+      currentReleaseIsCorrected: false,
+      dataset: {
+        datasetId: 'dataset-1',
+        releaseCode: 'release-code-1',
+        releaseId: 'release-1',
+      },
+      publishedAt: '2026-06-29T00:00:00.000Z',
+      releaseSetId: 'release-set-1',
+      snapshotId: 'snapshot-new',
+      type: 'division',
+    })
+
+    const linkedSnapshotIds = sqlite
+      .query(
+        'SELECT snapshotId FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = ? ORDER BY snapshotId',
+      )
+      .all('release-set-1') as Array<{ snapshotId: string }>
+
+    expect(linkedSnapshotIds).toEqual([
+      { snapshotId: 'snapshot-curated' },
+      { snapshotId: 'snapshot-new' },
+    ])
   })
 })

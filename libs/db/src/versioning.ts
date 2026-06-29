@@ -42,7 +42,7 @@ export function extractReleaseDateFromSourceVersion(sourceVersion: string) {
 
   if (!match) {
     throw new Error(
-      `Could not derive release date from sourceVersion="${sourceVersion}". Expected YYYY-MM-DD.* format.`,
+      `Could not derive release date from sourceVersion="${sourceVersion}". Expected 21st-century YYYY-MM-DD.* format (20xx-...).`,
     )
   }
 
@@ -72,12 +72,27 @@ export function buildSnapshotVersionCode(
   return `ss-${regionCode}-${resourceType}-${releaseDate}.${increment}`
 }
 
+function isPlainJsonObject(value: object) {
+  const prototype = Object.getPrototypeOf(value)
+
+  return prototype === Object.prototype || prototype === null
+}
+
 function stableStringify(value: unknown): string {
   if (Array.isArray(value)) {
     return `[${value.map(entry => stableStringify(entry)).join(',')}]`
   }
 
   if (value && typeof value === 'object') {
+    if (!isPlainJsonObject(value)) {
+      const constructorName =
+        (value as { constructor?: { name?: string } }).constructor?.name ?? 'object'
+
+      throw new Error(
+        `computeVersionHash only accepts plain JSON objects. Received ${constructorName}.`,
+      )
+    }
+
     const entries = Object.entries(value as Record<string, unknown>)
       .filter(([key]) => key !== 'versionHash')
       .sort(([left], [right]) => left.localeCompare(right))
@@ -89,7 +104,15 @@ function stableStringify(value: unknown): string {
       .join(',')}}`
   }
 
-  return JSON.stringify(value)
+  const serialized = JSON.stringify(value)
+
+  if (serialized === undefined) {
+    throw new Error(
+      `computeVersionHash only accepts JSON-serializable values. Received ${String(value)}.`,
+    )
+  }
+
+  return serialized
 }
 
 export function computeVersionHash(value: unknown) {
