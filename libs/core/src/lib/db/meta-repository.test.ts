@@ -82,8 +82,25 @@ function createPublishReleaseArtifactsDb() {
   const sqlite = new SQLiteDatabase(':memory:')
 
   sqlite.exec(`
+    CREATE TABLE publishers (
+      id TEXT PRIMARY KEY,
+      code TEXT NOT NULL
+    );
+
+    CREATE TABLE datasets (
+      id TEXT PRIMARY KEY,
+      publisherId TEXT NOT NULL,
+      code TEXT NOT NULL
+    );
+
+    CREATE TABLE apiVersions (
+      id TEXT PRIMARY KEY,
+      code TEXT NOT NULL
+    );
+
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
       status TEXT NOT NULL,
       publishedAt INTEGER,
       validFrom INTEGER,
@@ -94,6 +111,8 @@ function createPublishReleaseArtifactsDb() {
     CREATE TABLE apiReleaseSets (
       id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
+      schemaVersion TEXT NOT NULL,
+      rulesetVersion TEXT NOT NULL,
       status TEXT NOT NULL,
       publishedAt INTEGER,
       validFrom INTEGER,
@@ -103,11 +122,19 @@ function createPublishReleaseArtifactsDb() {
 
     CREATE TABLE releases (
       id TEXT PRIMARY KEY,
+      sourceVersion TEXT,
+      sourceSchemaVersion TEXT,
       status TEXT NOT NULL,
       revokedAt INTEGER,
       revocationReason TEXT,
       supersededByReleaseId TEXT,
       updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE snapshotSources (
+      snapshotId TEXT NOT NULL,
+      datasetId TEXT NOT NULL,
+      sourceReleaseId TEXT NOT NULL
     );
 
     CREATE TABLE apiReleaseSetSnapshots (
@@ -119,6 +146,22 @@ function createPublishReleaseArtifactsDb() {
       anchorSnapshotId TEXT,
       createdAt INTEGER NOT NULL,
       PRIMARY KEY (apiReleaseSetId, snapshotId)
+    );
+
+    CREATE TABLE apiFieldProvenance (
+      id TEXT PRIMARY KEY,
+      apiReleaseSetId TEXT NOT NULL,
+      apiField TEXT NOT NULL,
+      sourceDatasetId TEXT NOT NULL,
+      sourceFieldPath TEXT NOT NULL,
+      resolverCode TEXT NOT NULL,
+      contributionType TEXT NOT NULL,
+      priority INTEGER NOT NULL,
+      confidence REAL,
+      sourceIdentifierPaths TEXT,
+      versionHash TEXT NOT NULL,
+      createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL
     );
   `)
 
@@ -314,15 +357,25 @@ describe('publishReleaseArtifacts', () => {
     const { sqlite, db } = createPublishReleaseArtifactsDb()
 
     sqlite.exec(`
-      INSERT INTO snapshots (id, status, publishedAt, validFrom, validTo, updatedAt) VALUES
-        ('snapshot-curated', 'draft', null, null, null, 1760000000000),
-        ('snapshot-new', 'draft', null, null, null, 1760000000000);
+      INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
+
+      INSERT INTO datasets (id, publisherId, code) VALUES
+        ('dataset-overture-division', 'publisher-overture', 'ds-hk-overture-division');
+
+      INSERT INTO apiVersions (id, code) VALUES
+        ('api-version-1', 'api-divisions-v0.1');
+
+      INSERT INTO snapshots (id, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
+        ('snapshot-curated', 'ss-hk-division-2026-05-20.0', 'draft', null, null, null, 1760000000000),
+        ('snapshot-new', 'ss-hk-division-2026-06-17.0', 'draft', null, null, null, 1760000000000);
 
       INSERT INTO apiReleaseSets (
-        id, apiVersionId, status, publishedAt, validFrom, validTo, updatedAt
+        id, apiVersionId, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
       ) VALUES (
         'release-set-1',
         'api-version-1',
+        'sv-division-v1',
+        'rs-division-merge-v1',
         'draft',
         null,
         null,
@@ -331,15 +384,21 @@ describe('publishReleaseArtifacts', () => {
       );
 
       INSERT INTO releases (
-        id, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
+        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
       ) VALUES (
         'release-1',
+        '2026-06-17.0',
+        '1.17.0',
         'staged',
         null,
         null,
         null,
         1760000000000
       );
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+        ('snapshot-curated', 'dataset-overture-division', 'release-1'),
+        ('snapshot-new', 'dataset-overture-division', 'release-1');
 
       INSERT INTO apiReleaseSetSnapshots (
         apiReleaseSetId, snapshotId, role, isRequired, selectionMode, anchorSnapshotId, createdAt
@@ -378,6 +437,34 @@ describe('publishReleaseArtifacts', () => {
     expect(linkedSnapshotIds).toEqual([
       { snapshotId: 'snapshot-curated' },
       { snapshotId: 'snapshot-new' },
+    ])
+
+    const provenanceRows = sqlite
+      .query(
+        'SELECT apiField, sourceFieldPath FROM apiFieldProvenance WHERE apiReleaseSetId = ? ORDER BY apiField',
+      )
+      .all('release-set-1') as Array<{
+      apiField: string
+      sourceFieldPath: string
+    }>
+
+    expect(provenanceRows).toEqual([
+      {
+        apiField: 'division.attributes.divisionType',
+        sourceFieldPath: 'subtype',
+      },
+      {
+        apiField: 'division.attributes.i18n.en.name',
+        sourceFieldPath: 'names.primary.en',
+      },
+      {
+        apiField: 'division.attributes.i18n.zhHant.name',
+        sourceFieldPath: 'names.primary.zh-Hant',
+      },
+      {
+        apiField: 'division.id',
+        sourceFieldPath: 'id',
+      },
     ])
   })
 })

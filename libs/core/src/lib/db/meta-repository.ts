@@ -2,8 +2,8 @@ import {
   and,
   buildApiVersionCode,
   buildDataReleaseSetCode,
-  computeVersionHash,
   buildSnapshotVersionCode,
+  computeVersionHash,
   desc,
   eq,
   inArray,
@@ -12,6 +12,7 @@ import {
   sql,
   metaSchema,
 } from '@repo/db'
+import { resolveApiFieldFixture } from '@repo/db/api-field-fixtures'
 
 import type { DatasetRecord, RegionCode, SupportedType, UploadPlan } from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './types'
@@ -40,6 +41,20 @@ export type DataShardRecord = {
 
 const RELEASE_LOOKUP_RETRY_LIMIT = 4
 const RELEASE_LOOKUP_RETRY_DELAY_MS = 150
+const OVERTURE_SOURCE_SCHEMA_RELEASES = [
+  { schema: '1.11.0', version: '2025-07-23.0' },
+  { schema: '1.11.0', version: '2025-08-20.0' },
+  { schema: '1.12.0', version: '2025-09-24.0' },
+  { schema: '1.13.0', version: '2025-10-22.0' },
+  { schema: '1.14.0', version: '2025-11-19.0' },
+  { schema: '1.15.0', version: '2025-12-17.0' },
+  { schema: '1.15.0', version: '2026-01-21.0' },
+  { schema: '1.16.0', version: '2026-02-18.0' },
+  { schema: '1.16.0', version: '2026-03-18.0' },
+  { schema: '1.16.0', version: '2026-04-15.0' },
+  { schema: '1.17.0', version: '2026-05-20.0' },
+  { schema: '1.17.0', version: '2026-06-17.0' },
+] as const
 
 type WriteStatement = {
   run: () => unknown | Promise<unknown>
@@ -53,7 +68,53 @@ type AtomicWritableDb = HarbourReadableDb &
     ) => T | Promise<T>
   }
 
+function compareReleaseVersions(left: string, right: string) {
+  const [leftDate = left, leftPatch = '0'] = left.split('.')
+  const [rightDate = right, rightPatch = '0'] = right.split('.')
+  const dateComparison = leftDate.localeCompare(rightDate)
+
+  if (dateComparison !== 0) {
+    return dateComparison
+  }
+
+  return Number.parseInt(leftPatch, 10) - Number.parseInt(rightPatch, 10)
+}
+
+function resolveSourceSchemaVersion(args: {
+  source: string
+  sourceVersion: string
+  storedSourceSchemaVersion?: string | null
+}) {
+  if (args.storedSourceSchemaVersion?.trim()) {
+    return args.storedSourceSchemaVersion.trim()
+  }
+
+  if (args.source === 'hkgov-als') {
+    return '3.2'
+  }
+
+  if (args.source !== 'overture') {
+    throw new Error(
+      `Could not resolve source schema version for source=${args.source}, sourceVersion=${args.sourceVersion}.`,
+    )
+  }
+
+  const candidates = OVERTURE_SOURCE_SCHEMA_RELEASES.filter(
+    release => compareReleaseVersions(release.version, args.sourceVersion) <= 0,
+  )
+  const match = candidates.at(-1)
+
+  if (!match) {
+    throw new Error(
+      `No Overture source schema mapping found for sourceVersion=${args.sourceVersion}.`,
+    )
+  }
+
+  return match.schema
+}
+
 const {
+  metaApiFieldProvenance,
   metaApiComposition,
   metaApiCompositionMembers,
   ingestRuns,
@@ -347,6 +408,10 @@ export async function insertDataset(
 ) {
   const dataset = await requireDatasetDefinition(db, plan)
   const now = new Date(ingestedAt)
+  const sourceSchemaVersion = resolveSourceSchemaVersion({
+    source: plan.source,
+    sourceVersion: plan.sourceVersion,
+  })
 
   await db
     .insert(metaReleases)
@@ -355,6 +420,8 @@ export async function insertDataset(
       datasetId: dataset.id,
       code: plan.releaseCode,
       sourceVersion: plan.sourceVersion,
+      sourceSchemaVersion,
+      publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
       rawObjectKey,
       originalFileName: plan.originalFileName,
@@ -377,11 +444,17 @@ export async function resetFailedDataset(
   status: ReleaseStatus,
 ) {
   const now = new Date(ingestedAt)
+  const sourceSchemaVersion = resolveSourceSchemaVersion({
+    source: plan.source,
+    sourceVersion: plan.sourceVersion,
+  })
 
   await db
     .update(metaReleases)
     .set({
       sourceVersion: plan.sourceVersion,
+      sourceSchemaVersion,
+      publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
       rawObjectKey,
       originalFileName: plan.originalFileName,
@@ -1119,9 +1192,13 @@ export async function publishReleaseArtifacts(
   const releaseSet = await db
     .select({
       apiVersionId: metaApiReleaseSets.apiVersionId,
+      apiVersion: metaApiVersions.code,
       id: metaApiReleaseSets.id,
+      rulesetVersion: metaApiReleaseSets.rulesetVersion,
+      schemaVersion: metaApiReleaseSets.schemaVersion,
     })
     .from(metaApiReleaseSets)
+    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
     .where(eq(metaApiReleaseSets.id, args.releaseSetId))
     .limit(1)
     .get()
@@ -1133,6 +1210,7 @@ export async function publishReleaseArtifacts(
   const snapshot = await db
     .select({
       id: metaSnapshots.id,
+      code: metaSnapshots.code,
     })
     .from(metaSnapshots)
     .where(eq(metaSnapshots.id, args.snapshotId))
@@ -1206,6 +1284,102 @@ export async function publishReleaseArtifacts(
 
   const publishedAt = new Date(args.publishedAt)
 
+  const releaseSetSnapshotIds = [...releaseSetSnapshots.keys()]
+  const sourceSchemaRows = await db
+    .select({
+      datasetCode: metaDatasets.code,
+      source: metaPublishers.code,
+      sourceSchemaVersion: metaReleases.sourceSchemaVersion,
+      sourceVersion: metaReleases.sourceVersion,
+    })
+    .from(metaSnapshotSources)
+    .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+    .innerJoin(metaReleases, eq(metaSnapshotSources.sourceReleaseId, metaReleases.id))
+    .where(inArray(metaSnapshotSources.snapshotId, releaseSetSnapshotIds))
+    .all()
+
+  const sourceSchemas = new Map<string, string>()
+
+  for (const row of sourceSchemaRows) {
+    const sourceSchemaVersion = resolveSourceSchemaVersion({
+      source: row.source,
+      sourceVersion: row.sourceVersion,
+      storedSourceSchemaVersion: row.sourceSchemaVersion,
+    })
+    const current = sourceSchemas.get(row.datasetCode)
+
+    if (current && current !== sourceSchemaVersion) {
+      throw new Error(
+        `Conflicting source schema versions found for dataset ${row.datasetCode}: ${current} and ${sourceSchemaVersion}.`,
+      )
+    }
+
+    sourceSchemas.set(row.datasetCode, sourceSchemaVersion)
+  }
+
+  const resolvedApiFieldFixture = resolveApiFieldFixture({
+    apiVersion: releaseSet.apiVersion,
+    snapshotVersion: snapshot.code,
+    schemaVersion: releaseSet.schemaVersion,
+    rulesetVersion: releaseSet.rulesetVersion,
+    sourceSchemas: Object.fromEntries(sourceSchemas),
+  })
+
+  if (!resolvedApiFieldFixture) {
+    throw new Error(
+      `No bundled apiFields fixture matched apiVersion=${releaseSet.apiVersion}, snapshotVersion=${snapshot.code}, schemaVersion=${releaseSet.schemaVersion}, rulesetVersion=${releaseSet.rulesetVersion}.`,
+    )
+  }
+
+  const sourceDatasetCodes = [
+    ...new Set(resolvedApiFieldFixture.fields.map(field => field.sourceDatasetCode)),
+  ]
+  const sourceDatasets = await db
+    .select({
+      code: metaDatasets.code,
+      id: metaDatasets.id,
+    })
+    .from(metaDatasets)
+    .where(inArray(metaDatasets.code, sourceDatasetCodes))
+    .all()
+  const sourceDatasetIdsByCode = new Map(
+    sourceDatasets.map(dataset => [dataset.code, dataset.id]),
+  )
+  const apiFieldProvenanceRows = resolvedApiFieldFixture.fields.map(field => {
+    const sourceDatasetId = sourceDatasetIdsByCode.get(field.sourceDatasetCode)
+
+    if (!sourceDatasetId) {
+      throw new Error(`Source dataset not found: ${field.sourceDatasetCode}`)
+    }
+
+    return {
+      apiReleaseSetId: args.releaseSetId,
+      apiField: field.apiField,
+      sourceDatasetId,
+      sourceFieldPath: field.sourceFieldPath,
+      resolverCode: field.resolverCode,
+      contributionType: field.contributionType,
+      priority: field.priority,
+      confidence: field.confidence ?? null,
+      sourceIdentifierPaths: field.sourceIdentifierPaths ?? null,
+      versionHash: computeVersionHash({
+        apiField: field.apiField,
+        apiReleaseSetId: args.releaseSetId,
+        confidence: field.confidence ?? null,
+        contributionType: field.contributionType,
+        fixtureVersionHash: resolvedApiFieldFixture.versionHash,
+        priority: field.priority,
+        resolverCode: field.resolverCode,
+        sourceDatasetCode: field.sourceDatasetCode,
+        sourceFieldPath: field.sourceFieldPath,
+        sourceIdentifierPaths: field.sourceIdentifierPaths ?? null,
+      }),
+      createdAt: publishedAt,
+      updatedAt: publishedAt,
+    }
+  })
+
   await runAtomicWriteStatements(db as AtomicWritableDb, tx => {
     const statements: WriteStatement[] = [
       tx
@@ -1261,6 +1435,9 @@ export async function publishReleaseArtifacts(
           updatedAt: publishedAt,
         })
         .where(eq(metaReleases.id, args.dataset.releaseId)),
+      tx
+        .delete(metaApiFieldProvenance)
+        .where(eq(metaApiFieldProvenance.apiReleaseSetId, args.releaseSetId)),
     )
 
     for (const [snapshotId, snapshotMetadata] of releaseSetSnapshots.entries()) {
@@ -1289,6 +1466,10 @@ export async function publishReleaseArtifacts(
             },
           }),
       )
+    }
+
+    for (const row of apiFieldProvenanceRows) {
+      statements.push(tx.insert(metaApiFieldProvenance).values(row))
     }
 
     if (args.currentRelease) {

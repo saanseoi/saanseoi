@@ -529,6 +529,14 @@ describe('control service', () => {
       revokedAt: number | null
       revocationReason: string | null
     }>
+    const provenanceRows = sqlite
+      .query(
+        'SELECT apiField, sourceFieldPath FROM apiFieldProvenance afp INNER JOIN apiReleaseSets ars ON ars.id = afp.apiReleaseSetId ORDER BY apiField',
+      )
+      .all() as Array<{
+      apiField: string
+      sourceFieldPath: string
+    }>
 
     sqlite.close()
 
@@ -551,6 +559,24 @@ describe('control service', () => {
         status: 'published',
         revokedAt: null,
         revocationReason: null,
+      },
+    ])
+    expect(provenanceRows).toEqual([
+      {
+        apiField: 'division.attributes.divisionType',
+        sourceFieldPath: 'subtype',
+      },
+      {
+        apiField: 'division.attributes.i18n.en.name',
+        sourceFieldPath: 'names.primary.en',
+      },
+      {
+        apiField: 'division.attributes.i18n.zhHant.name',
+        sourceFieldPath: 'names.primary.zh-Hant',
+      },
+      {
+        apiField: 'division.id',
+        sourceFieldPath: 'id',
       },
     ])
   })
