@@ -123,7 +123,7 @@ export function describeTarget(target: UploadTarget) {
       }
     case 'preview':
       return {
-        label: 'cf-preview',
+        label: 'preview',
         destination: 'Cloudflare preview environment',
       }
     case 'production':
