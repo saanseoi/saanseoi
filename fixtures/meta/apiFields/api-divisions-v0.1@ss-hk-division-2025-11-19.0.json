@@ -1,0 +1,52 @@
+{
+  "versionHash": "sha256:f732d9fdcd8067d027414a4a1d2aaa8c9e43b1bb9868f210ad0debdf9056eb49",
+  "apiVersion": "api-divisions-v0.1",
+  "validFromSnapshotVersion": "ss-hk-division-2025-11-19.0",
+  "schemaVersion": "sv-division-v1",
+  "rulesetVersion": "rs-division-merge-v1",
+  "sourceSchemas": {
+    "ds-hk-overture-division": "1.14.0"
+  },
+  "fields": [
+    {
+      "apiField": "division.id",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "id",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "sourceIdentifierPaths": ["id"]
+    },
+    {
+      "apiField": "division.attributes.divisionType",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "subtype",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "sourceIdentifierPaths": ["id"]
+    },
+    {
+      "apiField": "division.attributes.i18n.en.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.primary.en",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "sourceIdentifierPaths": ["id", "names.primary.en"]
+    },
+    {
+      "apiField": "division.attributes.i18n.zhHant.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.primary.zh-Hant",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "sourceIdentifierPaths": ["id", "names.primary.zh-Hant"]
+    }
+  ]
+}
