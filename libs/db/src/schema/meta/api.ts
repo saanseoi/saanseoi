@@ -42,6 +42,7 @@ export const metaSnapshots = sqliteTable(
     id: primaryUuid('id'),
     resourceType: text('resourceType', { enum: snapshotResourceTypes }).notNull(),
     code: text('code').notNull(),
+    cohortKey: text('cohortKey').notNull(),
     status: text('status', { enum: snapshotStatuses }).notNull(),
     publishedAt: integer('publishedAt', { mode: 'timestamp_ms' }),
     validFrom: integer('validFrom', { mode: 'timestamp_ms' }),
@@ -73,6 +74,10 @@ export const metaSnapshotSources = sqliteTable(
       .references(() => metaDatasets.id, { onDelete: 'restrict' }),
     sourceReleaseId: text('sourceReleaseId').notNull(),
     role: text('role', { enum: apiReleaseSetSourceRoles }).notNull(),
+    selectedByRule: text('selectedByRule'),
+    selectionMode: text('selectionMode'),
+    anchorReleaseId: text('anchorReleaseId'),
+    sourceCohortKey: text('sourceCohortKey'),
     createdAt: timestamps.createdAt,
   },
   table => [
@@ -117,6 +122,120 @@ export const metaApiReleaseSets = sqliteTable(
   ],
 )
 
+export const metaSnapshotAssembly = sqliteTable(
+  'snapshotAssembly',
+  {
+    id: primaryUuid('id'),
+    code: text('code').notNull().unique(),
+    resourceType: text('resourceType', { enum: snapshotResourceTypes }).notNull(),
+    version: integer('version').notNull(),
+    status: text('status').notNull(),
+    notes: text('notes'),
+    versionHash: text('versionHash').notNull(),
+    ...timestamps,
+  },
+  table => [
+    index('snapshotAssembly_resourceType_status_idx').on(
+      table.resourceType,
+      table.status,
+    ),
+  ],
+)
+
+export const metaSnapshotAssemblySources = sqliteTable(
+  'snapshotAssemblySources',
+  {
+    snapshotAssemblyId: text('snapshotAssemblyId')
+      .notNull()
+      .references(() => metaSnapshotAssembly.id, { onDelete: 'cascade' }),
+    datasetId: text('datasetId')
+      .notNull()
+      .references(() => metaDatasets.id, { onDelete: 'restrict' }),
+    role: text('role').notNull(),
+    isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
+    selectorType: text('selectorType').notNull(),
+    anchorDatasetId: text('anchorDatasetId').references(() => metaDatasets.id, {
+      onDelete: 'restrict',
+    }),
+    maxLagDays: integer('maxLagDays'),
+    priority: integer('priority').notNull().default(0),
+    configJson: jsonText('configJson'),
+  },
+  table => [
+    primaryKey({
+      columns: [table.snapshotAssemblyId, table.datasetId, table.role],
+    }),
+  ],
+)
+
+export const metaSnapshotAssemblyRuns = sqliteTable(
+  'snapshotAssemblyRuns',
+  {
+    id: primaryUuid('id'),
+    snapshotId: text('snapshotId')
+      .notNull()
+      .references(() => metaSnapshots.id, { onDelete: 'cascade' }),
+    snapshotAssemblyId: text('snapshotAssemblyId')
+      .notNull()
+      .references(() => metaSnapshotAssembly.id, { onDelete: 'restrict' }),
+    anchorReleaseId: text('anchorReleaseId'),
+    anchorCohortKey: text('anchorCohortKey'),
+    status: text('status').notNull(),
+    selectionSummaryJson: jsonText('selectionSummaryJson'),
+    ...timestamps,
+  },
+  table => [index('snapshotAssemblyRuns_snapshotId_idx').on(table.snapshotId)],
+)
+
+export const metaApiComposition = sqliteTable(
+  'apiComposition',
+  {
+    id: primaryUuid('id'),
+    apiVersionId: text('apiVersionId')
+      .notNull()
+      .references(() => metaApiVersions.id, { onDelete: 'cascade' }),
+    code: text('code').notNull().unique(),
+    version: integer('version').notNull(),
+    primaryResourceType: text('primaryResourceType', {
+      enum: snapshotResourceTypes,
+    }).notNull(),
+    status: text('status').notNull(),
+    notes: text('notes'),
+    versionHash: text('versionHash').notNull(),
+    ...timestamps,
+  },
+  table => [
+    uniqueIndex('apiComposition_apiVersionId_version_unique_idx').on(
+      table.apiVersionId,
+      table.version,
+    ),
+  ],
+)
+
+export const metaApiCompositionMembers = sqliteTable(
+  'apiCompositionMembers',
+  {
+    apiCompositionId: text('apiCompositionId')
+      .notNull()
+      .references(() => metaApiComposition.id, { onDelete: 'cascade' }),
+    resourceType: text('resourceType', { enum: snapshotResourceTypes }).notNull(),
+    role: text('role').notNull(),
+    isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
+    selectionMode: text('selectionMode').notNull(),
+    anchorResourceType: text('anchorResourceType', {
+      enum: snapshotResourceTypes,
+    }),
+    maxLagDays: integer('maxLagDays'),
+    priority: integer('priority').notNull().default(0),
+    configJson: jsonText('configJson'),
+  },
+  table => [
+    primaryKey({
+      columns: [table.apiCompositionId, table.resourceType],
+    }),
+  ],
+)
+
 export const metaApiReleaseSetSnapshots = sqliteTable(
   'apiReleaseSetSnapshots',
   {
@@ -126,6 +245,13 @@ export const metaApiReleaseSetSnapshots = sqliteTable(
     snapshotId: text('snapshotId')
       .notNull()
       .references(() => metaSnapshots.id, { onDelete: 'restrict' }),
+    role: text('role').notNull(),
+    isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
+    selectionMode: text('selectionMode').notNull(),
+    anchorSnapshotId: text('anchorSnapshotId').references(() => metaSnapshots.id, {
+      onDelete: 'restrict',
+    }),
+    createdAt: timestamps.createdAt,
   },
   table => [
     primaryKey({
