@@ -4,6 +4,7 @@ import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
   ensureDraftSnapshotForRelease,
   getDatasetRecordByReleaseId,
+  recordSnapshotAssemblyRun,
   resolveShardForTypeRegionYear,
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
@@ -183,11 +184,10 @@ export async function prepareDivisionVersionInsertContext(
     )
   }
 
-  const snapshot = await ensureDraftSnapshotForRelease(
-    metaDb,
-    message.type,
-    dataset.releaseCode,
-  )
+  const snapshot = await ensureDraftSnapshotForRelease(metaDb, message.type, {
+    regionCode: dataset.regionCode,
+    cohortKey: dataset.cohortKey,
+  })
 
   const year = message.sourceVersion.slice(0, 4)
   const currentShard = await resolveShardForTypeRegionYear(
@@ -215,7 +215,24 @@ export async function prepareDivisionVersionInsertContext(
     dataset.datasetId,
     dataset.releaseId,
     'primary',
+    {
+      anchorReleaseId: dataset.releaseId,
+      selectedByRule: 'snapshot-assembly-division-v1',
+      selectionMode: 'exact_ref',
+      sourceCohortKey: dataset.cohortKey,
+    },
   )
+  await recordSnapshotAssemblyRun(metaDb, {
+    snapshotId: snapshot.id,
+    resourceType: message.type,
+    anchorReleaseId: dataset.releaseId,
+    anchorCohortKey: dataset.cohortKey,
+    selectionSummaryJson: {
+      releaseRole: 'primary',
+      sourceReleaseId: dataset.releaseId,
+      sourceVersion: dataset.sourceVersion,
+    },
+  })
   await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
 
   return {

@@ -3,6 +3,7 @@ import { and, eq, inArray, sql } from 'drizzle-orm'
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
   ensureDraftSnapshotForRelease,
+  recordSnapshotAssemblyRun,
   resolveShardForTypeRegionYear,
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
@@ -197,11 +198,10 @@ export async function prepareAddressVersionInsertContext(
     )
   }
 
-  const snapshot = await ensureDraftSnapshotForRelease(
-    metaDb,
-    'address',
-    dataset.releaseCode,
-  )
+  const snapshot = await ensureDraftSnapshotForRelease(metaDb, 'address', {
+    regionCode: dataset.regionCode,
+    cohortKey: dataset.cohortKey,
+  })
 
   const year = message.sourceVersion.slice(0, 4)
   const currentShard = await resolveShardForTypeRegionYear(
@@ -231,7 +231,24 @@ export async function prepareAddressVersionInsertContext(
     dataset.datasetId,
     dataset.releaseId,
     releaseRole,
+    {
+      anchorReleaseId: releaseRole === 'primary' ? dataset.releaseId : null,
+      selectedByRule: 'snapshot-assembly-address-v1',
+      selectionMode: 'exact_ref',
+      sourceCohortKey: dataset.cohortKey,
+    },
   )
+  await recordSnapshotAssemblyRun(metaDb, {
+    snapshotId: snapshot.id,
+    resourceType: 'address',
+    anchorReleaseId: releaseRole === 'primary' ? dataset.releaseId : null,
+    anchorCohortKey: dataset.cohortKey,
+    selectionSummaryJson: {
+      releaseRole,
+      sourceReleaseId: dataset.releaseId,
+      sourceVersion: dataset.sourceVersion,
+    },
+  })
   await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
 
   return {
