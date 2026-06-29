@@ -1362,7 +1362,6 @@ export async function publishReleaseArtifacts(
             contributionType: field.contributionType,
             priority: field.priority,
             confidence: field.confidence ?? null,
-            sourceIdentifierPaths: field.sourceIdentifierPaths ?? null,
             versionHash: computeVersionHash({
               apiField: field.apiField,
               apiReleaseSetId: args.releaseSetId,
@@ -1373,7 +1372,6 @@ export async function publishReleaseArtifacts(
               resolverCode: field.resolverCode,
               sourceDatasetCode: field.sourceDatasetCode,
               sourceFieldPath: field.sourceFieldPath,
-              sourceIdentifierPaths: field.sourceIdentifierPaths ?? null,
             }),
             createdAt: publishedAt,
             updatedAt: publishedAt,

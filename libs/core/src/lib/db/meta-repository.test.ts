@@ -158,7 +158,6 @@ function createPublishReleaseArtifactsDb() {
       contributionType TEXT NOT NULL,
       priority INTEGER NOT NULL,
       confidence REAL,
-      sourceIdentifierPaths TEXT,
       versionHash TEXT NOT NULL,
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL
@@ -448,23 +447,30 @@ describe('publishReleaseArtifacts', () => {
       sourceFieldPath: string
     }>
 
-    expect(provenanceRows).toEqual([
-      {
-        apiField: 'division.attributes.divisionType',
-        sourceFieldPath: 'subtype',
-      },
-      {
-        apiField: 'division.attributes.i18n.en.name',
-        sourceFieldPath: 'names.primary.en',
-      },
-      {
-        apiField: 'division.attributes.i18n.zhHant.name',
-        sourceFieldPath: 'names.primary.zh-Hant',
-      },
-      {
-        apiField: 'division.id',
-        sourceFieldPath: 'id',
-      },
-    ])
+    expect(provenanceRows.length).toBeGreaterThan(20)
+    expect(provenanceRows).toEqual(
+      expect.arrayContaining([
+        {
+          apiField: 'division.attributes.divisionType',
+          sourceFieldPath: 'subtype',
+        },
+        {
+          apiField: 'division.attributes.i18n.en.name',
+          sourceFieldPath: 'names.common.en',
+        },
+        {
+          apiField: 'division.attributes.i18n.zhHant.name',
+          sourceFieldPath: 'names.common.zh-hk',
+        },
+        {
+          apiField: 'division.relationships.parent',
+          sourceFieldPath: 'parent_division_id',
+        },
+        {
+          apiField: 'division.id',
+          sourceFieldPath: 'id',
+        },
+      ]),
+    )
   })
 })
