@@ -102,14 +102,14 @@ export function resolveUploadTarget(args: ParsedArgs): UploadTarget {
         remote: true,
         environment: 'preview',
       }
-    case 'cf-production':
+    case 'production':
       return {
         remote: true,
         environment: 'production',
       }
     default:
       throw new Error(
-        `Unsupported upload target: ${rawTarget}. Use local, cf-preview, or cf-production.`,
+        `Unsupported upload target: ${rawTarget}. Use local, cf-preview, or production.`,
       )
   }
 }
