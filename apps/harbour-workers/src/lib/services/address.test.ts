@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -15,6 +15,7 @@ import { insertSourceOvertureAddress2dI18nVersions } from '../db/source'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
 const migrationSql = loadMigrationSql(migrationsDir)
+const originalConsoleInfo = console.info
 
 const baseParquetBatches: Array<Array<Record<string, unknown>>> = [
   [
@@ -51,6 +52,14 @@ mock.module('../parquetR2', () => ({
 
 const { prepareAddressVersionInsertContext } = await import('../db/address')
 const { processAddressDataset } = await import('./address')
+
+beforeAll(() => {
+  console.info = mock(() => undefined) as typeof console.info
+})
+
+afterAll(() => {
+  console.info = originalConsoleInfo
+})
 
 function createTempDir() {
   const dir = mkdtempSync(join(tmpdir(), 'address-test-'))
