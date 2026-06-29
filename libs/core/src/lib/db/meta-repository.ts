@@ -38,11 +38,6 @@ export type DataShardRecord = {
   databaseName: string
 }
 
-type ReleaseCodeParts = {
-  regionCode: string
-  sourceVersion: string
-}
-
 const RELEASE_LOOKUP_RETRY_LIMIT = 4
 const RELEASE_LOOKUP_RETRY_DELAY_MS = 150
 
@@ -100,32 +95,6 @@ const releaseRecordSelection = {
   createdAt: metaReleases.createdAt,
   updatedAt: metaReleases.updatedAt,
 } as const
-
-function parseReleaseCodeParts(releaseCode: string): ReleaseCodeParts {
-  const match = releaseCode.match(
-    /^.+-([a-z0-9]+)-((?:20\d{2}-\d{2}-\d{2})(?:\.\d+)?)-[^-]+$/i,
-  )
-
-  if (!match) {
-    throw new Error(
-      `Could not derive snapshot-version parts from releaseCode="${releaseCode}".`,
-    )
-  }
-
-  const regionCode = match[1]
-  const sourceVersion = match[2]
-
-  if (!regionCode || !sourceVersion) {
-    throw new Error(
-      `Release code matched unexpectedly without required parts: "${releaseCode}".`,
-    )
-  }
-
-  return {
-    regionCode,
-    sourceVersion,
-  }
-}
 
 async function runAtomicWriteStatements(
   db: AtomicWritableDb,

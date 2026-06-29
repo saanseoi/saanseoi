@@ -36,7 +36,14 @@ export function formatField(
 
 function describeInferredFrom(
   field: 'regionCode' | 'cohortKey' | 'source' | 'sourceVersion' | 'type',
-  inferredFrom: 'flag' | 'filename' | 'parquet' | 'path' | 'cohortKey' | undefined,
+  inferredFrom:
+    | 'flag'
+    | 'filename'
+    | 'parquet'
+    | 'path'
+    | 'cohortKey'
+    | 'sourceVersion'
+    | undefined,
 ) {
   switch (field) {
     case 'source':
@@ -65,7 +72,7 @@ function describeInferredFrom(
     case 'cohortKey':
       switch (inferredFrom) {
         case 'flag':
-          return 'flag --month'
+          return 'flag --cohort-key'
         case 'path':
           return 'path'
         case 'filename':

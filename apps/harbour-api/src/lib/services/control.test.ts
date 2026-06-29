@@ -638,9 +638,9 @@ describe('control service', () => {
     })
   })
 
-  test('marks the superseded dataset historic for same-month releases with different source dates', async () => {
+  test('marks the superseded dataset historic for same-cohort releases with different source dates', async () => {
     const tempDir = createTempDir()
-    const dbPath = join(tempDir, 'harbour-publish-same-month.sqlite')
+    const dbPath = join(tempDir, 'harbour-publish-same-cohort.sqlite')
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
