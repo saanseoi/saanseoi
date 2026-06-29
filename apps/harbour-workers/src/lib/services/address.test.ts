@@ -206,14 +206,33 @@ function seedDivisionLookups(sqlite: Database) {
   const now = '2026-06-04T00:00:00.000Z'
   const timestamp = 1780531200000
   const snapshotId = 'snapshot-published-hk-division'
+  const releaseCode = 'overture-hk-2026-06-04.0-division'
+  const releaseId = `release-${releaseCode}`
+
+  insertFixtureRelease(sqlite, {
+    releaseId,
+    releaseCode,
+    source: 'overture',
+    regionCode: 'hk',
+    cohortKey: '2026-06',
+    type: 'division',
+    sourceVersion: '2026-06-04.0',
+    rawObjectKey: 'hk/overture/2026-06-04.0/division.parquet',
+    originalFileName: 'division.parquet',
+    status: 'published',
+    ingestedAt: now,
+    createdAt: now,
+    updatedAt: now,
+  })
 
   sqlite.exec(`
     INSERT INTO snapshots (
-      id, resourceType, code, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
+      id, resourceType, code, cohortKey, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
     ) VALUES (
       '${snapshotId}',
       'division',
       'hk-division-published',
+      '2026-06',
       'published',
       ${timestamp},
       ${timestamp},
@@ -237,6 +256,16 @@ function seedDivisionLookups(sqlite: Database) {
       ('${snapshotId}', 'country-cn', 'en', 'China', null, null, null, null, 0, '${now}', '${now}'),
       ('${snapshotId}', 'area-hk', 'en', 'Hong Kong', null, null, null, null, 0, '${now}', '${now}'),
       ('${snapshotId}', 'district-central', 'en', 'Central District', null, null, null, null, 0, '${now}', '${now}');
+
+    INSERT INTO snapshotSources (
+      snapshotId, datasetId, sourceReleaseId, role, createdAt
+    ) VALUES (
+      '${snapshotId}',
+      'overture-hk-division',
+      '${releaseId}',
+      'primary',
+      ${timestamp}
+    );
   `)
 }
 
