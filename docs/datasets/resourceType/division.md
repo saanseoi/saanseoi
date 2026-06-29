@@ -72,6 +72,13 @@ Because the division resourceType currently has only one source, canonical compo
 - `localType`
 - `isLocaleInferred`
 
+Locale storage behavior:
+
+- current/history snapshots preserve normalized source locale rows such as `zh-hk` or `zh-hans`
+- they also materialize canonical API locale rows for `en`, `zhHant`, and `zhHans`
+- those canonical rows are preferred by Atlas default profiles
+- the `full` API profile may expose both canonical and non-standard locale keys
+
 ## Change Detection and Versioning
 
 Division processing uses two hashes:
@@ -135,10 +142,12 @@ These are declared in `fixtures/meta/apiEndpoints/api-divisions-v0.1.json` and s
 
 ### Implemented routes today
 
-That standalone division handler is not currently implemented in `apps/atlas-api`.
+Implemented Atlas routes now include:
 
-Implemented Atlas routes are still:
-
+- `/v0/divisions`
+- `/v0/divisions/{id}`
+- `/v0.1/divisions`
+- `/v0.1/divisions/{id}`
 - `/v0/meta/...`
 - `/v0/{region}/places/{id}`
 - `/v0/{region}/places/by-cell/{h3Level}/{h3Cell}`
