@@ -50,6 +50,9 @@ function createMockDb(options: MockDbOptions = {}) {
               success: true,
             }
           },
+          async raw<T>() {
+            return [] as T[]
+          },
         }
       },
     } as unknown as D1Database,
@@ -106,6 +109,56 @@ describe('atlas-api', () => {
       ok: true,
       datasetCount: 0,
     })
+  })
+
+  test('GET /v0/divisions returns snapshot_not_ready when no division release set is published', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
+    const body = (await res.json()) as {
+      httpStatus: number
+      error: string
+      message: string
+    }
+
+    expect(res.status).toBe(503)
+    expect(body).toEqual({
+      httpStatus: 503,
+      error: 'snapshot_not_ready',
+      message: 'No active division snapshot is published.',
+    })
+  })
+
+  test('GET /v0/divisions rejects non-contract locale aliases', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/divisions?locales=zh-hk'),
+      env,
+    )
+    const body = (await res.json()) as {
+      error: string
+      message: string
+      details: Array<{ path: string }>
+      target: string
+    }
+
+    expect(res.status).toBe(422)
+    expect(body.error).toBe('validation_error')
+    expect(body.target).toBe('query')
+    expect(body.details.some(detail => detail.path === 'locales')).toBe(true)
+  })
+
+  test('GET /openapi documents the versioned division endpoints', async () => {
+    const res = await app.request('http://localhost/openapi')
+    const body = (await res.json()) as {
+      paths: Record<string, Record<string, { operationId?: string }>>
+    }
+
+    expect(res.status).toBe(200)
+    expect(body.paths['/v0/divisions']?.get?.operationId).toBe('listDivisionsV0')
+    expect(body.paths['/v0.1/divisions/{id}']?.get?.operationId).toBe(
+      'getDivisionByIdV01',
+    )
+    expect(body.paths['/latest/divisions']).toBeUndefined()
   })
 
   test('POST /v0/meta/substack forwards the subscription request to Substack', async () => {
