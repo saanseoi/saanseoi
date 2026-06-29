@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:0d211bd3e5ea7d5dc2a643731fd087ba4ff442f66852395957f0cfad1ce53904",
+  "versionHash": "sha256:1ef3638e062a6eb1ef500d17bd0b69f814df95c3bd524ddd552370b5555813a9",
   "apiVersion": "api-places-v0.1",
-  "code": "api-places-default",
+  "code": "comp-places",
   "version": 1,
   "primaryResourceType": "place",
   "status": "current",
@@ -26,7 +26,7 @@
       "role": "supporting",
       "isRequired": true,
       "selectionMode": "exact_ref",
-      "anchorResourceType": "place",
+      "anchorResourceType": "address",
       "priority": 20
     }
   ]
