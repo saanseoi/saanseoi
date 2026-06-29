@@ -17,6 +17,8 @@ export const resolverCodes = [
   'direct_copy',
   'join_lookup',
   'lookup_fk',
+  'map_division_level',
+  'map_division_type',
   'derive_bbox_from_geometry',
   'prefer_hkgov_then_overture',
   'prefer_overture_then_hkgov',
@@ -90,6 +92,7 @@ export const provenanceContributionTypes = [
   'primary',
   'fallback',
   'enrichment',
+  'resolver-input',
   'merge-input',
 ] as const
 

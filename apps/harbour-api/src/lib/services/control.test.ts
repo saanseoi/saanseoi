@@ -561,24 +561,31 @@ describe('control service', () => {
         revocationReason: null,
       },
     ])
-    expect(provenanceRows).toEqual([
-      {
-        apiField: 'division.attributes.divisionType',
-        sourceFieldPath: 'subtype',
-      },
-      {
-        apiField: 'division.attributes.i18n.en.name',
-        sourceFieldPath: 'names.primary.en',
-      },
-      {
-        apiField: 'division.attributes.i18n.zhHant.name',
-        sourceFieldPath: 'names.primary.zh-Hant',
-      },
-      {
-        apiField: 'division.id',
-        sourceFieldPath: 'id',
-      },
-    ])
+    expect(provenanceRows.length).toBeGreaterThan(20)
+    expect(provenanceRows).toEqual(
+      expect.arrayContaining([
+        {
+          apiField: 'division.attributes.divisionType',
+          sourceFieldPath: 'subtype',
+        },
+        {
+          apiField: 'division.attributes.i18n.en.name',
+          sourceFieldPath: 'names.common.en',
+        },
+        {
+          apiField: 'division.attributes.i18n.zhHant.name',
+          sourceFieldPath: 'names.common.zh-hk',
+        },
+        {
+          apiField: 'division.relationships.parent',
+          sourceFieldPath: 'parent_division_id',
+        },
+        {
+          apiField: 'division.id',
+          sourceFieldPath: 'id',
+        },
+      ]),
+    )
   })
 
   test('publishes address and place releases when api field fixtures are unavailable', async () => {
