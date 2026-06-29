@@ -139,6 +139,10 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
           datasetId TEXT NOT NULL,
           sourceReleaseId TEXT NOT NULL,
           role TEXT NOT NULL,
+          selectedByRule TEXT,
+          selectionMode TEXT,
+          anchorReleaseId TEXT,
+          sourceCohortKey TEXT,
           createdAt INTEGER NOT NULL,
           PRIMARY KEY (snapshotId, sourceReleaseId),
           FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE CASCADE,
@@ -148,13 +152,24 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       `,
       `
         INSERT INTO snapshotSources (
-          snapshotId, datasetId, sourceReleaseId, role, createdAt
+          snapshotId, datasetId, sourceReleaseId, role, selectedByRule, selectionMode, anchorReleaseId, sourceCohortKey, createdAt
         )
-        SELECT snapshotId, datasetId, sourceReleaseId, role, createdAt
+        SELECT snapshotId, datasetId, sourceReleaseId, role, null, null, null, null, createdAt
         FROM __LEGACY_TABLE__;
       `,
     )
   }
+
+  addColumnIfMissing(db, 'releases', 'cohortKey', "cohortKey TEXT DEFAULT ''")
+  if (hasColumn(db, 'releases', 'snapshotMonth')) {
+    db.exec(`
+      UPDATE releases
+      SET cohortKey = COALESCE(NULLIF(cohortKey, ''), snapshotMonth, sourceVersion)
+      WHERE cohortKey IS NULL OR cohortKey = '';
+    `)
+  }
+
+  addColumnIfMissing(db, 'snapshots', 'cohortKey', "cohortKey TEXT NOT NULL DEFAULT ''")
 
   if (
     hasColumn(db, 'apiReleaseSets', 'canonicalSchemaVersion') ||
@@ -253,14 +268,22 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
         CREATE TABLE apiReleaseSetSnapshots (
           apiReleaseSetId TEXT NOT NULL,
           snapshotId TEXT NOT NULL,
+          role TEXT NOT NULL DEFAULT 'supporting',
+          isRequired INTEGER NOT NULL DEFAULT 1,
+          selectionMode TEXT NOT NULL DEFAULT 'carry_forward_optional',
+          anchorSnapshotId TEXT,
+          createdAt INTEGER NOT NULL DEFAULT ${FIXTURE_TIMESTAMP_MS},
           PRIMARY KEY (apiReleaseSetId, snapshotId),
           FOREIGN KEY (apiReleaseSetId) REFERENCES apiReleaseSets(id) ON DELETE CASCADE,
-          FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT
+          FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT,
+          FOREIGN KEY (anchorSnapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT
         );
       `,
       `
-        INSERT OR IGNORE INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId)
-        SELECT apiReleaseSetId, snapshotId
+        INSERT OR IGNORE INTO apiReleaseSetSnapshots (
+          apiReleaseSetId, snapshotId, role, isRequired, selectionMode, anchorSnapshotId, createdAt
+        )
+        SELECT apiReleaseSetId, snapshotId, 'supporting', 1, 'carry_forward_optional', null, ${FIXTURE_TIMESTAMP_MS}
         FROM __LEGACY_TABLE__;
       `,
     )
@@ -272,18 +295,127 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
         CREATE TABLE apiReleaseSetSnapshots (
           apiReleaseSetId TEXT NOT NULL,
           snapshotId TEXT NOT NULL,
+          role TEXT NOT NULL DEFAULT 'supporting',
+          isRequired INTEGER NOT NULL DEFAULT 1,
+          selectionMode TEXT NOT NULL DEFAULT 'carry_forward_optional',
+          anchorSnapshotId TEXT,
+          createdAt INTEGER NOT NULL DEFAULT ${FIXTURE_TIMESTAMP_MS},
           PRIMARY KEY (apiReleaseSetId, snapshotId),
           FOREIGN KEY (apiReleaseSetId) REFERENCES apiReleaseSets(id) ON DELETE CASCADE,
-          FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT
+          FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT,
+          FOREIGN KEY (anchorSnapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT
         );
       `,
       `
-        INSERT OR IGNORE INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId)
-        SELECT apiReleaseSetId, snapshotId
+        INSERT OR IGNORE INTO apiReleaseSetSnapshots (
+          apiReleaseSetId, snapshotId, role, isRequired, selectionMode, anchorSnapshotId, createdAt
+        )
+        SELECT apiReleaseSetId, snapshotId, 'supporting', 1, 'carry_forward_optional', null, ${FIXTURE_TIMESTAMP_MS}
         FROM __LEGACY_TABLE__;
       `,
     )
+  } else {
+    addColumnIfMissing(
+      db,
+      'apiReleaseSetSnapshots',
+      'role',
+      "role TEXT NOT NULL DEFAULT 'supporting'",
+    )
+    addColumnIfMissing(
+      db,
+      'apiReleaseSetSnapshots',
+      'isRequired',
+      'isRequired INTEGER NOT NULL DEFAULT 1',
+    )
+    addColumnIfMissing(
+      db,
+      'apiReleaseSetSnapshots',
+      'selectionMode',
+      "selectionMode TEXT NOT NULL DEFAULT 'carry_forward_optional'",
+    )
+    addColumnIfMissing(
+      db,
+      'apiReleaseSetSnapshots',
+      'anchorSnapshotId',
+      'anchorSnapshotId TEXT',
+    )
+    addColumnIfMissing(
+      db,
+      'apiReleaseSetSnapshots',
+      'createdAt',
+      `createdAt INTEGER NOT NULL DEFAULT ${FIXTURE_TIMESTAMP_MS}`,
+    )
   }
+
+  addColumnIfMissing(db, 'snapshotSources', 'selectedByRule', 'selectedByRule TEXT')
+  addColumnIfMissing(db, 'snapshotSources', 'selectionMode', 'selectionMode TEXT')
+  addColumnIfMissing(db, 'snapshotSources', 'anchorReleaseId', 'anchorReleaseId TEXT')
+  addColumnIfMissing(db, 'snapshotSources', 'sourceCohortKey', 'sourceCohortKey TEXT')
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS snapshotAssembly (
+      id TEXT PRIMARY KEY NOT NULL,
+      code TEXT NOT NULL UNIQUE,
+      resourceType TEXT NOT NULL,
+      version INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      notes TEXT,
+      versionHash TEXT NOT NULL,
+      createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS snapshotAssemblySources (
+      snapshotAssemblyId TEXT NOT NULL,
+      datasetId TEXT NOT NULL,
+      role TEXT NOT NULL,
+      isRequired INTEGER NOT NULL,
+      selectorType TEXT NOT NULL,
+      anchorDatasetId TEXT,
+      maxLagDays INTEGER,
+      priority INTEGER NOT NULL DEFAULT 0,
+      configJson TEXT,
+      PRIMARY KEY (snapshotAssemblyId, datasetId, role)
+    );
+
+    CREATE TABLE IF NOT EXISTS snapshotAssemblyRuns (
+      id TEXT PRIMARY KEY NOT NULL,
+      snapshotId TEXT NOT NULL,
+      snapshotAssemblyId TEXT NOT NULL,
+      anchorReleaseId TEXT,
+      anchorCohortKey TEXT,
+      status TEXT NOT NULL,
+      selectionSummaryJson TEXT,
+      createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS apiComposition (
+      id TEXT PRIMARY KEY NOT NULL,
+      apiVersionId TEXT NOT NULL,
+      code TEXT NOT NULL UNIQUE,
+      version INTEGER NOT NULL,
+      primaryResourceType TEXT NOT NULL,
+      status TEXT NOT NULL,
+      notes TEXT,
+      versionHash TEXT NOT NULL,
+      createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS apiCompositionMembers (
+      apiCompositionId TEXT NOT NULL,
+      resourceType TEXT NOT NULL,
+      role TEXT NOT NULL,
+      isRequired INTEGER NOT NULL,
+      selectionMode TEXT NOT NULL,
+      anchorResourceType TEXT,
+      maxLagDays INTEGER,
+      priority INTEGER NOT NULL DEFAULT 0,
+      configJson TEXT,
+      PRIMARY KEY (apiCompositionId, resourceType)
+    );
+  `)
 
   addColumnIfMissing(
     db,
@@ -447,9 +579,9 @@ export function seedFixtureCatalog(db: Database) {
       updatedAt
     ) VALUES
       (
-        'api-release-set-ss-hk-division-2026-06-17.0',
+        'api-release-set-data-hk-divisions-2026-06-17.0-0',
         'api-version-api-divisions-v0.1',
-        'ss-hk-division-2026-06-17.0',
+        'data-hk-divisions-2026-06-17.0-0',
         'sv-division-v1',
         'rs-division-merge-v1',
         'current',
@@ -459,9 +591,9 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'api-release-set-ss-hk-address-2026-06-17.0',
+        'api-release-set-data-hk-addresses-2026-06-17.0-0',
         'api-version-api-addresses-v0.1',
-        'ss-hk-address-2026-06-17.0',
+        'data-hk-addresses-2026-06-17.0-0',
         'sv-address-v1',
         'rs-address-merge-v1',
         'current',
@@ -471,9 +603,9 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'api-release-set-ss-hk-place-2026-06-17.0',
+        'api-release-set-data-hk-places-2026-06-17.0-0',
         'api-version-api-places-v0.1',
-        'ss-hk-place-2026-06-17.0',
+        'data-hk-places-2026-06-17.0-0',
         'sv-place-v1',
         'rs-place-merge-v1',
         'current',
@@ -492,6 +624,53 @@ export function seedFixtureCatalog(db: Database) {
       versionHash = excluded.versionHash,
       updatedAt = excluded.updatedAt
     WHERE apiReleaseSets.versionHash <> excluded.versionHash;
+
+    INSERT INTO apiComposition (
+      id, apiVersionId, code, version, primaryResourceType, status, notes, versionHash, createdAt, updatedAt
+    ) VALUES
+      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-default', 1, 'address', 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-composition-divisions-v1', 'api-version-api-divisions-v0.1', 'api-divisions-default', 1, 'division', 'current', null, 'vh-api-composition-divisions-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-composition-places-v1', 'api-version-api-places-v0.1', 'api-places-default', 1, 'place', 'current', null, 'vh-api-composition-places-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
+    ON CONFLICT(id) DO UPDATE SET
+      apiVersionId = excluded.apiVersionId,
+      code = excluded.code,
+      version = excluded.version,
+      primaryResourceType = excluded.primaryResourceType,
+      status = excluded.status,
+      notes = excluded.notes,
+      versionHash = excluded.versionHash,
+      updatedAt = excluded.updatedAt;
+
+    INSERT INTO apiCompositionMembers (
+      apiCompositionId, resourceType, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+    ) VALUES
+      ('api-composition-addresses-v1', 'address', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-divisions-v1', 'division', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-places-v1', 'place', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-places-v1', 'address', 'supporting', 1, 'exact_ref', 'place', null, 10, null),
+      ('api-composition-places-v1', 'division', 'supporting', 1, 'exact_ref', 'place', null, 20, null)
+    ON CONFLICT(apiCompositionId, resourceType) DO UPDATE SET
+      role = excluded.role,
+      isRequired = excluded.isRequired,
+      selectionMode = excluded.selectionMode,
+      anchorResourceType = excluded.anchorResourceType,
+      maxLagDays = excluded.maxLagDays,
+      priority = excluded.priority,
+      configJson = excluded.configJson;
+
+    INSERT INTO snapshotAssembly (
+      id, code, resourceType, version, status, notes, versionHash, createdAt, updatedAt
+    ) VALUES
+      ('snapshot-assembly-address-v1', 'snapshot-assembly-address-v1', 'address', 1, 'current', null, 'vh-snapshot-assembly-address-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('snapshot-assembly-division-v1', 'snapshot-assembly-division-v1', 'division', 1, 'current', null, 'vh-snapshot-assembly-division-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
+    ON CONFLICT(id) DO UPDATE SET
+      code = excluded.code,
+      resourceType = excluded.resourceType,
+      version = excluded.version,
+      status = excluded.status,
+      notes = excluded.notes,
+      versionHash = excluded.versionHash,
+      updatedAt = excluded.updatedAt;
 
     INSERT INTO dataShards (
       id,
