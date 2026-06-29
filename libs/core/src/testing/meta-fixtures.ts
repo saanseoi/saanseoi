@@ -6,10 +6,7 @@ import type { Database } from 'bun:sqlite'
 const FIXTURE_TIMESTAMP_MS = 1718236800000
 
 function resolveFixtureDatasetCode(source: string, regionCode: string, type: string) {
-  const publisherCode = source === 'hkgov-als' ? 'hkgov' : source
-  const subType = publisherCode === 'hkgov' && type === 'address' ? '2d' : null
-
-  return `ds-${regionCode}-${publisherCode}-${type}${subType ? `-${subType}` : ''}`
+  return `ds-${regionCode}-${source}-${type}`
 }
 
 function hasColumn(db: Database, tableName: string, columnName: string) {
@@ -327,7 +324,8 @@ export function seedFixtureCatalog(db: Database) {
   db.exec(`
     INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
       ('publisher-overture', 'overture', 'vh-publisher-overture-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('publisher-hkgov', 'hkgov', 'vh-publisher-hkgov-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
+      ('publisher-hkgov', 'hkgov', 'vh-publisher-hkgov-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('publisher-hkgov-als', 'hkgov-als', 'vh-publisher-hkgov-als-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
       code = excluded.code,
       versionHash = excluded.versionHash,
@@ -366,16 +364,16 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'hkgov-hk-address',
-        'publisher-hkgov',
-        'ds-hk-hkgov-address-2d',
+        'hkgov-als-hk-address',
+        'publisher-hkgov-als',
+        'ds-hk-hkgov-als-address',
         'hk',
         'static',
         'monthly',
         'addresses',
         'address',
         'https://data.gov.hk/en-data/dataset/hk-ogcio-st_div_01-als',
-        'vh-dataset-hkgov-hk-address-v1',
+        'vh-dataset-hkgov-als-hk-address-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       )
@@ -657,7 +655,7 @@ type FixtureRelease = {
 }
 
 export function insertFixtureRelease(db: Database, release: FixtureRelease) {
-  const publisherCode = release.source === 'hkgov-als' ? 'hkgov' : release.source
+  const publisherCode = release.source
   const datasetCode = resolveFixtureDatasetCode(
     release.source,
     release.regionCode,

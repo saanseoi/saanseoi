@@ -12,7 +12,7 @@ Related source-specific docs:
 The address resourceType currently has two seeded source datasets in meta:
 
 - `publisherCode: overture`, `code: ds-hk-overture-address`
-- `publisherCode: hkgov`, `code: ds-hk-hkgov-address-2d`
+- `publisherCode: hkgov-als`, `code: ds-hk-hkgov-als-address`
 
 Both feed the same canonical address resourceType, but they arrive in different shapes and play different roles in the merge flow.
 
@@ -138,14 +138,16 @@ So, in runtime terms:
 
 ## API Support
 
-### Seeded endpoint metadata
+### Registry endpoint metadata
 
-The metadata seed declares two address endpoints for `ss-addresses-v0.1`:
+The fixture-backed registry declares four address endpoint aliases for `api-addresses-v0.1`:
 
 - `GET /v0/addresses`
+- `GET /v0.1/addresses`
+- `GET /v0/addresses/{id}`
 - `GET /v0.1/addresses/{id}`
 
-These are declared in `libs/db/src/seed/meta.ts`.
+These are declared in `fixtures/meta/apiEndpoints/api-addresses-v0.1.json` and synced by `libs/db/src/registry/meta.ts`.
 
 ### Implemented routes today
 

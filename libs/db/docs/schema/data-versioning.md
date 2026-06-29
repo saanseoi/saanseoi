@@ -10,6 +10,12 @@ They should not be collapsed into one identifier.
 
 - format: `api-{family}-v{apiVersion}`
 - example: `api-divisions-v0.1`
+- `{family}` is the `ApiFamily` derived from `resourceType` by `getApiFamilyForResourceType()`
+- current mappings:
+  - `address` -> `addresses`
+  - `division` -> `divisions`
+  - `place` -> `places`
+  - `street` -> `streets`
 - scope: public API contract
 - changes when:
   - response fields change

@@ -1,0 +1,24 @@
+{
+  "versionHash": "sha256:1b3015c86201ac5bb9e428c7139f3d9ae51c6f54207842a50aa6818dedd11b75",
+  "code": "hkgov-als",
+  "url": "https://data.gov.hk",
+  "contactUrl": "https://data.gov.hk/en/feedback",
+  "parentCode": "hkgov",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "DATA.GOV.HK ALS",
+      "description": "Prepared ALS address feed from the Hong Kong Special Administrative Region Government open data portal."
+    },
+    {
+      "locale": "zhHant",
+      "name": "資料一線通 ALS",
+      "description": "來自香港特別行政區政府開放數據入口網站的 ALS 地址整理資料。"
+    },
+    {
+      "locale": "zhHans",
+      "name": "资料一线通 ALS",
+      "description": "来自香港特别行政区政府开放数据入口网站的 ALS 地址整理资料。"
+    }
+  ]
+}

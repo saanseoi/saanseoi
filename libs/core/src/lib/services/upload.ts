@@ -63,10 +63,15 @@ const SOURCE_ALIASES: Record<string, string> = {
   overture: 'overture',
   'overture-maps': 'overture',
   hkgov: 'hkgov',
-  'hkgov-als': 'hkgov',
-  als: 'hkgov',
-  'hk-als': 'hkgov',
+  'hkgov-als': 'hkgov-als',
+  'hkgov als': 'hkgov-als',
+  als: 'hkgov-als',
+  'hk-als': 'hkgov-als',
 }
+
+const SOURCE_MATCHERS = Object.entries(SOURCE_ALIASES).sort(
+  ([leftToken], [rightToken]) => rightToken.length - leftToken.length,
+)
 
 function splitPathSegments(filePath: string) {
   return filePath
@@ -125,7 +130,11 @@ function normalizeToken(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
-function getDatasetCodeSubType(source: string, type: SupportedType) {
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function getDatasetCodeSubType(_source: string, _type: SupportedType) {
   return null
 }
 
@@ -137,10 +146,14 @@ function buildDatasetCode(regionCode: RegionCode, source: string, type: Supporte
 
 function formatDatasetIdentifier(datasetCode?: string, datasetId?: string) {
   if (datasetCode?.startsWith('ds-')) {
-    const parts = datasetCode.slice(3).split('-')
-    const [regionCode, source, resourceType, ...subTypeParts] = parts
+    const match = datasetCode.match(
+      /^ds-([a-z0-9]+)-(.+)-(address|division|place)(?:-(.+))?$/i,
+    )
 
-    if (regionCode && source && resourceType) {
+    if (match) {
+      const [, regionCode, source, resourceType, subType] = match
+      const subTypeParts = subType ? [subType] : []
+
       return [source, regionCode, resourceType, ...subTypeParts].join('-')
     }
   }
@@ -151,8 +164,8 @@ function formatDatasetIdentifier(datasetCode?: string, datasetId?: string) {
 function matchSourceCandidate(candidate: string) {
   const normalized = normalizeToken(candidate)
 
-  for (const [token, source] of Object.entries(SOURCE_ALIASES)) {
-    const matcher = new RegExp(`(^|[ ._\\/-])${token}([ ._\\/-]|$)`, 'i')
+  for (const [token, source] of SOURCE_MATCHERS) {
+    const matcher = new RegExp(`(^|[ ._\\/-])${escapeRegExp(token)}([ ._\\/-]|$)`, 'i')
 
     if (matcher.test(normalized)) {
       return source
@@ -577,7 +590,7 @@ async function ensureSourcePrerequisites(
   db: HarbourReadableDb,
   plan: Pick<UploadPlan, 'regionCode' | 'snapshotMonth' | 'source' | 'type'>,
 ) {
-  if (plan.source !== 'hkgov' || plan.type !== 'address') {
+  if (plan.source !== 'hkgov-als' || plan.type !== 'address') {
     return
   }
 

@@ -47,6 +47,12 @@ const fixtureInspection: ParquetInspection = {
   distinctRegionValues: ['hk'],
 }
 
+const addressFixtureInspection: ParquetInspection = {
+  ...fixtureInspection,
+  distinctThemeValues: ['addresses'],
+  distinctTypeValues: ['address'],
+}
+
 const fixtureInspectionWithAdminLevel: ParquetInspection = {
   ...fixtureInspection,
   schema: [
@@ -100,6 +106,14 @@ function createOvertureStyleFixture(tempDir: string) {
 
 function createFixturePath(tempDir: string) {
   const fixtureFile = join(tempDir, 'hk-division-2026-05.parquet')
+
+  writeFileSync(fixtureFile, 'fixture')
+
+  return fixtureFile
+}
+
+function createAddressFixturePath(tempDir: string) {
+  const fixtureFile = join(tempDir, 'hkgov-als-address.parquet')
 
   writeFileSync(fixtureFile, 'fixture')
 
@@ -177,7 +191,7 @@ describe('upload', () => {
   })
 
   test('infers source from recognizable filename and path tokens', () => {
-    expect(inferSourceFromFilename('hkgov-als-address.parquet')).toBe('hkgov')
+    expect(inferSourceFromFilename('hkgov-als-address.parquet')).toBe('hkgov-als')
     expect(inferSourceFromFilename('overture-address.parquet')).toBe('overture')
     expect(inferSourceFromPath('/tmp/hkgov/2026-05/address.parquet')).toBe('hkgov')
     expect(inferSourceFromPath('/tmp/overture/2026-05/address.parquet')).toBe(
@@ -207,7 +221,7 @@ describe('upload', () => {
 
   test('infers source version and snapshot month from the filename when needed', async () => {
     const tempDir = createTempDir()
-    const fixtureFile = join(tempDir, 'hkgov-hk-2026-06-04.324-address.parquet')
+    const fixtureFile = join(tempDir, 'hkgov-als-hk-2026-06-04.324-address.parquet')
 
     writeFileSync(fixtureFile, 'fixture')
 
@@ -228,7 +242,8 @@ describe('upload', () => {
 
     expect(planned.plan.snapshotMonth).toBe('2026-06')
     expect(planned.plan.sourceVersion).toBe('2026-06-04.324')
-    expect(planned.plan.datasetId).toBe('hkgov-hk-2026-06-04.324-address')
+    expect(planned.plan.datasetId).toBe('hkgov-als-hk-2026-06-04.324-address')
+    expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-als-address')
   })
 
   test('registers the first dataset upload against a provided raw object key', async () => {
@@ -423,6 +438,63 @@ describe('upload', () => {
 
     expect(result.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
     expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
+  })
+
+  test('registers hkgov ALS address uploads', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-hkgov-address.sqlite')
+    const fixtureFile = createAddressFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    insertFixtureRelease(sqlite, {
+      source: 'overture',
+      regionCode: 'hk',
+      snapshotMonth: '2026-06',
+      theme: 'addresses',
+      type: 'address',
+      sourceVersion: '2026-06-24.0',
+      rawObjectKey: 'hk/overture/2026-06-24.0/address.parquet',
+      originalFileName: 'address.parquet',
+      status: 'published',
+      ingestedAt: '2026-06-24T00:00:00.000Z',
+      createdAt: '2026-06-24T00:00:00.000Z',
+      updatedAt: '2026-06-24T00:00:00.000Z',
+    })
+
+    const result = await registerUpload(db, {
+      filePath: fixtureFile,
+      snapshotMonth: '2026-06',
+      source: 'hkgov-als',
+      sourceVersion: '2026-06-04.324',
+      inspection: addressFixtureInspection,
+      rawObjectKey: 'hk/hkgov-als/2026-06-04.324/address.parquet',
+    })
+
+    const release = sqlite
+      .query(
+        `
+          SELECT d.code AS datasetCode, r.code AS releaseCode, r.status AS status
+          FROM releases r
+          JOIN datasets d ON d.id = r.datasetId
+          WHERE r.code = ?
+        `,
+      )
+      .get('hkgov-als-hk-2026-06-04.324-address') as {
+      datasetCode: string
+      releaseCode: string
+      status: string
+    } | null
+
+    sqlite.close()
+
+    expect(result.plan.datasetCode).toBe('ds-hk-hkgov-als-address')
+    expect(result.plan.datasetId).toBe('hkgov-als-hk-2026-06-04.324-address')
+    expect(release).toEqual({
+      datasetCode: 'ds-hk-hkgov-als-address',
+      releaseCode: 'hkgov-als-hk-2026-06-04.324-address',
+      status: 'staged',
+    })
   })
 
   test('allows re-registering a failed dataset id', async () => {
