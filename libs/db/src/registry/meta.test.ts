@@ -39,7 +39,12 @@ describe('fixture version hashes', () => {
       '/v0/addresses',
       '/v0/addresses/{id}',
     ])
-    expect(divisionPaths).toEqual(['/v0.1/divisions', '/v0/divisions'])
+    expect(divisionPaths).toEqual([
+      '/v0.1/divisions',
+      '/v0.1/divisions/{id}',
+      '/v0/divisions',
+      '/v0/divisions/{id}',
+    ])
     expect(placePaths).toEqual(['/v0.1/places', '/v0/places'])
   })
 })

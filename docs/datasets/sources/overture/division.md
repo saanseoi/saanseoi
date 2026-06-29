@@ -23,6 +23,14 @@ Current behavior:
 - underscores are converted to hyphens
 - source locale `zh` is stored as `zh-hant`
 - locale-less text may be inferred and marked with `isLocaleInferred = true`
+- source retention keeps those normalized source-style locale tags
+- canonical current/history division snapshots also add API-facing locale rows for:
+  - `en`
+  - `zhHant`
+  - `zhHans`
+- those canonical rows are filled from preferred source variants when present:
+  - `zhHant` prefers `zh-hk`, then `zh-hant`, then `zh-mo`, then `zh-tw`
+  - `zhHans` prefers `zh-hans`, then `zh-cn`, then `zh-sg`
 
 Inference rules currently implemented:
 
@@ -43,6 +51,13 @@ Stored i18n fields mean:
 - `nameAlts`: pipe-joined alternative values
 - `nameVariant`: JSON array containing `name` followed by alternatives
 - `nameRules`: JSON array of `{ value, variant }` rule records retained from Overture
+
+Current storage boundary:
+
+- source tables keep raw normalized source locales
+- canonical current/history tables keep both:
+  - raw normalized source locales
+  - canonical API locales used by Atlas default responses
 
 ## Type and Level Mapping
 
