@@ -1326,59 +1326,61 @@ export async function publishReleaseArtifacts(
     sourceSchemas: Object.fromEntries(sourceSchemas),
   })
 
-  if (!resolvedApiFieldFixture) {
-    throw new Error(
-      `No bundled apiFields fixture matched apiVersion=${releaseSet.apiVersion}, snapshotVersion=${snapshot.code}, schemaVersion=${releaseSet.schemaVersion}, rulesetVersion=${releaseSet.rulesetVersion}.`,
-    )
-  }
+  // Some API families do not have bundled field provenance fixtures yet.
+  const apiFieldProvenanceRows = resolvedApiFieldFixture
+    ? await (async () => {
+        const sourceDatasetCodes = [
+          ...new Set(
+            resolvedApiFieldFixture.fields.map(field => field.sourceDatasetCode),
+          ),
+        ]
+        const sourceDatasets = await db
+          .select({
+            code: metaDatasets.code,
+            id: metaDatasets.id,
+          })
+          .from(metaDatasets)
+          .where(inArray(metaDatasets.code, sourceDatasetCodes))
+          .all()
+        const sourceDatasetIdsByCode = new Map(
+          sourceDatasets.map(dataset => [dataset.code, dataset.id]),
+        )
 
-  const sourceDatasetCodes = [
-    ...new Set(resolvedApiFieldFixture.fields.map(field => field.sourceDatasetCode)),
-  ]
-  const sourceDatasets = await db
-    .select({
-      code: metaDatasets.code,
-      id: metaDatasets.id,
-    })
-    .from(metaDatasets)
-    .where(inArray(metaDatasets.code, sourceDatasetCodes))
-    .all()
-  const sourceDatasetIdsByCode = new Map(
-    sourceDatasets.map(dataset => [dataset.code, dataset.id]),
-  )
-  const apiFieldProvenanceRows = resolvedApiFieldFixture.fields.map(field => {
-    const sourceDatasetId = sourceDatasetIdsByCode.get(field.sourceDatasetCode)
+        return resolvedApiFieldFixture.fields.map(field => {
+          const sourceDatasetId = sourceDatasetIdsByCode.get(field.sourceDatasetCode)
 
-    if (!sourceDatasetId) {
-      throw new Error(`Source dataset not found: ${field.sourceDatasetCode}`)
-    }
+          if (!sourceDatasetId) {
+            throw new Error(`Source dataset not found: ${field.sourceDatasetCode}`)
+          }
 
-    return {
-      apiReleaseSetId: args.releaseSetId,
-      apiField: field.apiField,
-      sourceDatasetId,
-      sourceFieldPath: field.sourceFieldPath,
-      resolverCode: field.resolverCode,
-      contributionType: field.contributionType,
-      priority: field.priority,
-      confidence: field.confidence ?? null,
-      sourceIdentifierPaths: field.sourceIdentifierPaths ?? null,
-      versionHash: computeVersionHash({
-        apiField: field.apiField,
-        apiReleaseSetId: args.releaseSetId,
-        confidence: field.confidence ?? null,
-        contributionType: field.contributionType,
-        fixtureVersionHash: resolvedApiFieldFixture.versionHash,
-        priority: field.priority,
-        resolverCode: field.resolverCode,
-        sourceDatasetCode: field.sourceDatasetCode,
-        sourceFieldPath: field.sourceFieldPath,
-        sourceIdentifierPaths: field.sourceIdentifierPaths ?? null,
-      }),
-      createdAt: publishedAt,
-      updatedAt: publishedAt,
-    }
-  })
+          return {
+            apiReleaseSetId: args.releaseSetId,
+            apiField: field.apiField,
+            sourceDatasetId,
+            sourceFieldPath: field.sourceFieldPath,
+            resolverCode: field.resolverCode,
+            contributionType: field.contributionType,
+            priority: field.priority,
+            confidence: field.confidence ?? null,
+            sourceIdentifierPaths: field.sourceIdentifierPaths ?? null,
+            versionHash: computeVersionHash({
+              apiField: field.apiField,
+              apiReleaseSetId: args.releaseSetId,
+              confidence: field.confidence ?? null,
+              contributionType: field.contributionType,
+              fixtureVersionHash: resolvedApiFieldFixture.versionHash,
+              priority: field.priority,
+              resolverCode: field.resolverCode,
+              sourceDatasetCode: field.sourceDatasetCode,
+              sourceFieldPath: field.sourceFieldPath,
+              sourceIdentifierPaths: field.sourceIdentifierPaths ?? null,
+            }),
+            createdAt: publishedAt,
+            updatedAt: publishedAt,
+          }
+        })
+      })()
+    : []
 
   await runAtomicWriteStatements(db as AtomicWritableDb, tx => {
     const statements: WriteStatement[] = [
