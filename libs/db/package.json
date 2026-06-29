@@ -83,6 +83,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./api-field-fixtures": "./src/api-field-fixtures.ts",
     "./registry": "./src/registry/index.ts",
     "./currentSchema": "./src/schema/current/index.ts",
     "./historySchema": "./src/schema/history/index.ts",
