@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:71d9afdd58ac2aebc69b09d7faeec5ad27ccb04e5966c9a8d2dea628824d6f9d",
+  "versionHash": "sha256:1b3a1ed36eaec6d36e9d6511de408b9a75ae7cd9166831addbbae19cefe55326",
   "apiVersion": "api-addresses-v0.1",
-  "code": "api-addresses-default",
+  "code": "comp-addresses",
   "version": 1,
   "primaryResourceType": "address",
   "status": "current",
