@@ -15,7 +15,6 @@ export type ApiFieldFixtureField = {
   contributionType: ProvenanceContributionType
   priority: number
   confidence?: number | null
-  sourceIdentifierPaths?: string[]
 }
 
 export type ApiFieldFixture = {

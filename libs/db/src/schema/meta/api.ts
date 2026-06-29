@@ -301,7 +301,6 @@ export const metaApiFieldProvenance = sqliteTable(
     }).notNull(),
     priority: integer('priority').notNull().default(0),
     confidence: real('confidence'),
-    sourceIdentifierPaths: jsonText('sourceIdentifierPaths'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
