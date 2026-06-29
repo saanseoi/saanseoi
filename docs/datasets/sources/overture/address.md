@@ -12,6 +12,7 @@ Related family doc:
 - Uploads are ingested directly from parquet.
 - The worker path is `apps/harbour-workers/src/lib/services/address.ts`.
 - In runtime terms, Overture currently acts as the base address feed for canonical `address2d`.
+- For snapshot-source provenance, Overture releases are currently recorded with role `enrichment`.
 
 ## Source Fields Used
 
