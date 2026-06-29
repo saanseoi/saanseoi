@@ -62,7 +62,6 @@ Key points:
   - stores field-level sourcing for one published API release set
   - `resolverCode` names the actual transformation rule
   - `contributionType` distinguishes direct source rows from `resolver-input` rows
-  - `sourceIdentifierPaths` is debugging metadata, not executable lookup configuration
 
 ## Shard Registry
 
