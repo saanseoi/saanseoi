@@ -49,6 +49,7 @@ mock.module('../parquetR2', () => ({
   }),
 }))
 
+const { prepareAddressVersionInsertContext } = await import('../db/address')
 const { processAddressDataset } = await import('./address')
 
 function createTempDir() {
@@ -103,6 +104,25 @@ function createAddressMessage(
     regionCode: 'hk',
     snapshotMonth,
     source: 'overture',
+    sourceVersion,
+    theme: 'addresses',
+    type: 'address',
+  } as const
+}
+
+function createHkgovAddressMessage(
+  releaseCode: string,
+  snapshotMonth: string,
+  sourceVersion: string,
+) {
+  return {
+    datasetId: releaseCode,
+    releaseCode,
+    releaseId: `release-${releaseCode}`,
+    rawObjectKey: `hk/hkgov-als/${sourceVersion}/address.parquet`,
+    regionCode: 'hk',
+    snapshotMonth,
+    source: 'hkgov-als',
     sourceVersion,
     theme: 'addresses',
     type: 'address',
@@ -233,6 +253,50 @@ afterEach(() => {
 })
 
 describe('processAddressDataset', () => {
+  test('marks hkgov-als address releases as primary snapshot sources', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'address-hkgov-role.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const releaseCode = 'hkgov-als-hk-2026-06-24.0-address'
+
+    insertFixtureRelease(sqlite, {
+      releaseId: `release-${releaseCode}`,
+      releaseCode,
+      source: 'hkgov-als',
+      regionCode: 'hk',
+      snapshotMonth: '2026-06',
+      type: 'address',
+      sourceVersion: '2026-06-24.0',
+      rawObjectKey: 'hk/hkgov-als/2026-06-24.0/address.parquet',
+      originalFileName: 'address.parquet',
+      status: 'staged',
+      ingestedAt: '2026-06-04T00:00:00.000Z',
+      createdAt: '2026-06-04T00:00:00.000Z',
+      updatedAt: '2026-06-04T00:00:00.000Z',
+    })
+
+    const context = await prepareAddressVersionInsertContext(
+      db as never,
+      createHkgovAddressMessage(releaseCode, '2026-06', '2026-06-24.0'),
+      'preview',
+    )
+
+    const snapshotSource = sqlite
+      .query(
+        `
+          SELECT role
+          FROM snapshotSources
+          WHERE snapshotId = ?1 AND sourceReleaseId = ?2
+          LIMIT 1
+        `,
+      )
+      .get(context.snapshotId, `release-${releaseCode}`) as { role: string } | null
+
+    expect(context.releaseRole).toBe('primary')
+    expect(snapshotSource).toEqual({ role: 'primary' })
+  })
+
   test('clones unchanged canonical address rows into later snapshots without rewriting history', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'address-unchanged.sqlite')

@@ -223,7 +223,7 @@ export async function prepareAddressVersionInsertContext(
     )
   }
 
-  const releaseRole = dataset.source === 'hkgov' ? 'primary' : 'enrichment'
+  const releaseRole = dataset.source === 'hkgov-als' ? 'primary' : 'enrichment'
 
   await upsertSnapshotSource(
     metaDb,
