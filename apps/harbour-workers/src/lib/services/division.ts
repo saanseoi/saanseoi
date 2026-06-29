@@ -1,4 +1,5 @@
 import type { DatasetProcessingMessage } from '@repo/core'
+import type { ApiLocale } from '@repo/core'
 import { resolveLatestSnapshotForResourceTypeExcludingId } from '@repo/core/db/meta-repository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
@@ -133,6 +134,11 @@ const HONG_KONG_AREA_NAMES = new Set([
   'new territories',
   '新界',
 ])
+const CANONICAL_DIVISION_API_LOCALE_FALLBACKS: Record<ApiLocale, string[]> = {
+  en: ['en'],
+  zhHant: ['zhHant', 'zh-hk', 'zh-hant', 'zh-mo', 'zh-tw'],
+  zhHans: ['zhHans', 'zh-hans', 'zh-cn', 'zh-sg'],
+}
 
 /**
  * Reads the division parquet file and applies current/versioned row updates.
@@ -253,18 +259,19 @@ export async function processDivisionDataset(
 
     for (const row of batch) {
       const normalized = normalizeDivisionRow(row)
+      const canonicalI18n = buildCanonicalDivisionApiI18n(normalized.i18n)
       const versionHash = await createHash(buildDivisionBaseHashInput(normalized.base))
       const churnHash = await createHash({
         base: buildDivisionBaseHashInput(normalized.base),
-        i18n: normalized.i18n,
+        i18n: canonicalI18n,
       })
 
       processedRows += 1
-      localizedRows += normalized.i18n.length
+      localizedRows += canonicalI18n.length
       seenIds.add(normalized.base.id)
       updateLocaleStatsAccumulator(
         statsAccumulator,
-        normalized.i18n.map(row => ({
+        canonicalI18n.map(row => ({
           hasAltName: Boolean(row.nameAlts),
           hasName: Boolean(row.name),
           isLocaleInferred: row.isLocaleInferred,
@@ -275,7 +282,7 @@ export async function processDivisionDataset(
         churnHash,
         geometry: normalized.base.geometry,
         id: normalized.base.id,
-        localizedRows: normalized.i18n,
+        localizedRows: canonicalI18n,
         parentId: normalized.base.parentDivisionId,
         type: normalized.base.type,
         versionHash,
@@ -377,7 +384,7 @@ export async function processDivisionDataset(
         !baseChanged && currentChanged
           ? await createHash({
               baseVersionHash: versionHash,
-              i18n: normalized.i18n.map(row => ({
+              i18n: canonicalI18n.map(row => ({
                 isLocaleInferred: row.isLocaleInferred,
                 localType: row.localType ?? null,
                 locale: row.locale,
@@ -401,7 +408,7 @@ export async function processDivisionDataset(
 
       currentDivisionI18nRowIds.add(normalized.base.id)
       currentDivisionI18nRows.push(
-        ...normalized.i18n.map(row => ({
+        ...canonicalI18n.map(row => ({
           ...row,
           createdAt: currentDivisionI18nNow,
           updatedAt: currentDivisionI18nNow,
@@ -415,7 +422,7 @@ export async function processDivisionDataset(
           versionHash,
         })
         changedDivisionI18nVersionRows.push(
-          ...normalized.i18n.map(row => ({
+          ...canonicalI18n.map(row => ({
             divisionId: row.divisionId,
             isLocaleInferred: row.isLocaleInferred,
             localType: row.localType ?? null,
@@ -440,7 +447,7 @@ export async function processDivisionDataset(
         versionHash,
       })
       changedDivisionI18nVersionRows.push(
-        ...normalized.i18n.map(row => ({
+        ...canonicalI18n.map(row => ({
           divisionId: row.divisionId,
           isLocaleInferred: row.isLocaleInferred,
           localType: row.localType ?? null,
@@ -736,6 +743,34 @@ function normalizeDivisionI18nSnapshotRow(row: DivisionI18nPayload) {
     ...row,
     isLocaleInferred: Boolean(row.isLocaleInferred),
   } satisfies DivisionI18nPayload
+}
+
+function buildCanonicalDivisionApiI18n(rows: DivisionI18nPayload[]) {
+  const byLocale = new Map(rows.map(row => [row.locale, row] as const))
+  const canonicalRows = [...rows]
+
+  for (const [locale, candidates] of Object.entries(
+    CANONICAL_DIVISION_API_LOCALE_FALLBACKS,
+  ) as Array<[ApiLocale, string[]]>) {
+    if (byLocale.has(locale)) {
+      continue
+    }
+
+    const sourceRow = candidates
+      .map(candidate => byLocale.get(candidate))
+      .find((row): row is DivisionI18nPayload => row !== undefined)
+
+    if (!sourceRow) {
+      continue
+    }
+
+    canonicalRows.push({
+      ...sourceRow,
+      locale,
+    })
+  }
+
+  return canonicalRows.sort((left, right) => left.locale.localeCompare(right.locale))
 }
 
 function normalizeOvertureSources(sources: unknown) {
@@ -1177,20 +1212,6 @@ function resolveDivisionType(input: {
  * Reads admin-level-like source hints for level derivation without persisting them.
  */
 function resolveAdminLevelToken(row: Record<string, unknown>) {
-  const norms = row.norms
-
-  if (norms && typeof norms === 'object') {
-    const record = norms as Record<string, unknown>
-    const direct =
-      asNonEmptyString(record.admin_level) ??
-      asNonEmptyString(record.adminLevel) ??
-      asNonEmptyString(record.level)
-
-    if (direct) {
-      return direct
-    }
-  }
-
   return asNonEmptyString(row.admin_level) ?? asNonEmptyString(row.adminLevel)
 }
 
