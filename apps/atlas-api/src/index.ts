@@ -8,7 +8,8 @@ import { prettyJSON } from 'hono/pretty-json'
 import { createCurrentDb, createMetaDb } from '@repo/db'
 import { defaultOpenAPIHook } from './lib/openapi'
 import { metaRoutes } from './routes/v0/meta'
-import { regionRoutes } from './routes/v0/region'
+import { divisionRoutes } from './routes/v0/divisions'
+import { placeRoutes } from './routes/v0/places'
 import type { AppEnv } from './types'
 
 const app = new OpenAPIHono<AppEnv>({
@@ -23,7 +24,9 @@ const openApiConfig = {
 } as const
 
 app.use('*', poweredBy())
-app.use('/v0/*', prettyJSON())
+for (const path of ['/v0/*', '/v0.1/*'] as const) {
+  app.use(path, prettyJSON())
+}
 app.use(
   '/v0/meta/substack',
   cors({
@@ -32,11 +35,13 @@ app.use(
     allowHeaders: ['Content-Type'],
   }),
 )
-app.use('/v0/*', async (c, next) => {
-  c.set('metaDb', createMetaDb(c.env.DB_META))
-  c.set('currentDb', createCurrentDb(c.env.DB_CURRENT))
-  await next()
-})
+for (const path of ['/v0/*', '/v0.1/*'] as const) {
+  app.use(path, async (c, next) => {
+    c.set('metaDb', createMetaDb(c.env.DB_META))
+    c.set('currentDb', createCurrentDb(c.env.DB_CURRENT))
+    await next()
+  })
+}
 
 app.onError((error, c) => {
   console.error(error)
@@ -61,7 +66,7 @@ app.notFound(c =>
 
 app.get('/', c => c.redirect('/openapi', 302))
 
-app.openapiRoutes([...metaRoutes, ...regionRoutes] as const)
+app.openapiRoutes([...metaRoutes, ...divisionRoutes, ...placeRoutes] as const)
 
 app.doc31('/openapi', openApiConfig)
 app.get(
