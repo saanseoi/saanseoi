@@ -22,6 +22,7 @@ import {
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import type { AppEnv } from '../../types'
+
 const placeRouteConfig = createRoute({
   method: 'get',
   path: '/v0/{region}/places/{id}',
@@ -318,4 +319,4 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
   },
 })
 
-export const regionRoutes = [placeRoute, placesByCellRoute, searchRoute] as const
+export const placeRoutes = [placeRoute, placesByCellRoute, searchRoute] as const
