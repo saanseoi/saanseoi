@@ -222,7 +222,7 @@ That means:
 - `address.attributes.geometry`
   - can point to dataset `ds-hk-overture-address`
 - `address.attributes.i18n.zhHant.formattedAddress`
-  - can point to dataset `ds-hk-hkgov-address-2d`
+  - can point to dataset `ds-hk-hkgov-als-address`
 - `place.attributes.i18n.en.name`
   - can point to multiple datasets if the field is merged, enriched, or has fallback rules
 

@@ -339,7 +339,12 @@ ON CONFLICT(code) DO UPDATE SET
   parentPublisherId = excluded.parentPublisherId,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
-WHERE publishers.versionHash <> excluded.versionHash;`.trim(),
+WHERE
+  publishers.versionHash <> excluded.versionHash
+  OR (
+    publishers.parentPublisherId IS NULL
+    AND excluded.parentPublisherId IS NOT NULL
+  );`.trim(),
     )
   }
 

@@ -1,6 +1,6 @@
 # Division ResourceType
 
-This document describes how the division family is currently composed and used.
+This document describes how the division resourceType is currently composed and used.
 
 Related source-specific docs:
 
@@ -8,16 +8,16 @@ Related source-specific docs:
 
 ## Scope
 
-The logical `hk-division` dataset is currently sourced from Overture only:
+The logical `ds-hk-overture-division` dataset is currently sourced from Overture only:
 
-- `publisherCode: overture`, `code: hk-division`
+- `publisherCode: overture`, `code: ds-hk-overture-division`
 
 There is no second division source in the current pipeline.
 
 ## Ingestion Model
 
 - Division uploads are ingested directly from parquet by `apps/harbour-workers/src/lib/services/division.ts`.
-- Processing creates or reuses a family-scoped draft snapshot via `ensureDraftSnapshotForRelease`.
+- Processing creates or reuses a resourceType-scoped draft snapshot via `ensureDraftSnapshotForRelease`.
 - If an earlier non-archived division snapshot exists, its current rows are bulk-cloned into the new draft snapshot before the upload delta is applied.
 - The uploaded release is linked to that snapshot through `snapshotSources`.
 - Division releases are recorded as `primary` sources for the division snapshot.
@@ -26,7 +26,7 @@ The worker stages current rows into `DB_CURRENT` under a `snapshotId`, while ver
 
 ## Canonical Tables
 
-The division family currently writes these canonical current tables:
+The division resourceType currently writes these canonical current tables:
 
 - `divisions`
 - `divisionsI18n`
@@ -40,7 +40,7 @@ And it writes dataset-level stats rows in meta:
 
 - `stats`
 
-The division family does not itself populate:
+The division resourceType does not itself populate:
 
 - `placesDivision`
 
@@ -48,7 +48,7 @@ That join table belongs to the place pipeline, but it references canonical divis
 
 ## Canonical Field Composition
 
-Because the division family currently has only one source, canonical composition is straightforward:
+Because the division resourceType currently has only one source, canonical composition is straightforward:
 
 - `id`: Overture division `id`
 - `level`: derived from Overture subtype/class/admin hints, not copied raw
@@ -92,7 +92,7 @@ This is stricter than address processing:
 
 ## Source Retention
 
-The family retains normalized Overture source rows in the source database.
+The resourceType retains normalized Overture source rows in the source database.
 
 Current-state source tables:
 
@@ -124,13 +124,14 @@ These are built in `apps/harbour-workers/src/lib/services/stats.ts` and written 
 
 ## API Support
 
-### Seeded endpoint metadata
+### Registry endpoint metadata
 
-The metadata seed declares one division endpoint for `ss-divisions-v0.1`:
+The fixture-backed registry declares two division endpoint aliases for `api-divisions-v0.1`:
 
 - `GET /v0/divisions`
+- `GET /v0.1/divisions`
 
-This is declared in `libs/db/src/seed/meta.ts`.
+These are declared in `fixtures/meta/apiEndpoints/api-divisions-v0.1.json` and synced by `libs/db/src/registry/meta.ts`.
 
 ### Implemented routes today
 
@@ -145,7 +146,7 @@ Implemented Atlas routes are still:
 
 ### Live runtime dependency on division data
 
-Even without a standalone `/divisions` route, the division family is already a live dependency:
+Even without a standalone `/divisions` route, the division resourceType is already a live dependency:
 
 - place detail responses join `placesDivision` to `divisions` and `divisionsI18n`
 - place search FTS uses `divisionsI18n.name` as part of `divisionText`

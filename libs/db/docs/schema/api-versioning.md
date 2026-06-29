@@ -49,6 +49,9 @@ Examples:
 - `/v0/divisions/...`
 - `/v0.1/divisions/...`
 - `/v0/addresses/...`
+- `/v0.1/addresses/...`
+- `/v0/places/...`
+- `/v0.1/places/...`
 
 ## Scope
 

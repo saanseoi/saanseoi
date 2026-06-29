@@ -99,7 +99,7 @@ const releaseRecordSelection = {
 
 function parseReleaseCodeParts(releaseCode: string): ReleaseCodeParts {
   const match = releaseCode.match(
-    /^[^-]+-([a-z0-9]+)-((?:20\d{2}-\d{2}-\d{2})(?:\.\d+)?)-/i,
+    /^.+-([a-z0-9]+)-((?:20\d{2}-\d{2}-\d{2})(?:\.\d+)?)-[^-]+$/i,
   )
 
   if (!match) {
@@ -1029,6 +1029,22 @@ export async function publishReleaseArtifacts(
     )
     .all()
 
+  const existingReleaseSetSnapshots = await db
+    .select({
+      snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+    })
+    .from(metaApiReleaseSetSnapshots)
+    .where(eq(metaApiReleaseSetSnapshots.apiReleaseSetId, args.releaseSetId))
+    .all()
+
+  const releaseSetSnapshotIds = [
+    ...new Set([
+      ...existingReleaseSetSnapshots.map(snapshot => snapshot.snapshotId),
+      ...args.carriedSnapshots.map(snapshot => snapshot.snapshotId),
+      args.snapshotId,
+    ]),
+  ]
+
   const publishedAt = new Date(args.publishedAt)
 
   await runAtomicWriteStatements(db as AtomicWritableDb, tx => {
@@ -1088,27 +1104,17 @@ export async function publishReleaseArtifacts(
         .where(eq(metaReleases.id, args.dataset.releaseId)),
     )
 
-    for (const carriedSnapshot of args.carriedSnapshots) {
+    for (const snapshotId of releaseSetSnapshotIds) {
       statements.push(
         tx
           .insert(metaApiReleaseSetSnapshots)
           .values({
             apiReleaseSetId: args.releaseSetId,
-            snapshotId: carriedSnapshot.snapshotId,
+            snapshotId,
           })
           .onConflictDoNothing(),
       )
     }
-
-    statements.push(
-      tx
-        .insert(metaApiReleaseSetSnapshots)
-        .values({
-          apiReleaseSetId: args.releaseSetId,
-          snapshotId: args.snapshotId,
-        })
-        .onConflictDoNothing(),
-    )
 
     if (args.currentRelease) {
       statements.push(

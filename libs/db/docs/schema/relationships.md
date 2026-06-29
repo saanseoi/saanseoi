@@ -44,7 +44,7 @@
 -> provenance to upstream source releases lives in
 `snapshotSources`
 -> source rows ultimately live in
-`source{type}Db`
+`source{resourceType}Db`
 
 `releases`
 -> routed to physical source/history databases through

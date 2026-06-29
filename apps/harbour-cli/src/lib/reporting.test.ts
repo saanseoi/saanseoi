@@ -65,11 +65,11 @@ describe('filterIngestionRows', () => {
         error: null,
         finishedAt: null,
         phase: 'loadCanonical',
-        releaseCode: 'hkgov-hk-2026-06-24.0-address',
+        releaseCode: 'hkgov-als-hk-2026-06-24.0-address',
         releaseId: 'release-4',
         runId: 'run-4',
         snapshotMonth: '2026-06',
-        source: 'hkgov',
+        source: 'hkgov-als',
         startedAt: '2026-06-24T09:00:00.000Z',
         stats: null,
         status: 'queued',
@@ -80,7 +80,7 @@ describe('filterIngestionRows', () => {
     expect(filterIngestionRows(rows).map(row => row.releaseCode)).toEqual([
       'overture-hk-2026-06-24.0-address',
       'overture-hk-2026-06-23.0-address',
-      'hkgov-hk-2026-06-24.0-address',
+      'hkgov-als-hk-2026-06-24.0-address',
     ])
   })
 })

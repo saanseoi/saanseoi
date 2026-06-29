@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:d8580e83c07dd127cfe65c6503ebafa09ce9542da53bdac0e05ffb41b67f686b",
-  "publisherCode": "hkgov",
-  "code": "ds-hk-hkgov-address-2d",
+  "versionHash": "sha256:b87b4bd334c8cf9ce941fcb55305790e4fc02ae966719920ad7130f747c1dcd9",
+  "publisherCode": "hkgov-als",
+  "code": "ds-hk-hkgov-als-address",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "monthly",
