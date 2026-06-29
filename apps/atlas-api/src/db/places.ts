@@ -1,6 +1,6 @@
-import type { CurrentDatabase, MetaDatabase } from '@repo/db'
-import { and, asc, desc, eq } from '@repo/db'
-import { currentSchema, metaSchema } from '@repo/db'
+import type { CurrentDatabase } from '@repo/db'
+import { and, asc, eq } from '@repo/db'
+import { currentSchema } from '@repo/db'
 
 const {
   divisions,
@@ -12,18 +12,8 @@ const {
   placesFtsMatch,
   placesI18n,
 } = currentSchema
-const { metaDatasets, metaPublishers, metaReleases, newsletterSubscription, user } =
-  metaSchema
 
 type RegionCode = 'hk' | 'mo'
-
-type DatasetFilters = {
-  regionCode?: RegionCode
-  cohortKey?: string
-  theme?: typeof metaDatasets.$inferSelect.theme
-  status?: typeof metaReleases.$inferSelect.status
-  limit?: number
-}
 
 type PlaceLookup = {
   regionCode: RegionCode
@@ -51,134 +41,6 @@ type FtsLookup = {
   locale?: string
   query: string
   limit?: number
-}
-
-export async function markNewsletterPending(db: MetaDatabase, email: string) {
-  const updatedAt = new Date()
-
-  await db
-    .insert(newsletterSubscription)
-    .values({
-      email,
-      status: 'pending',
-      lastError: null,
-      subscribedAt: null,
-      updatedAt,
-    })
-    .onConflictDoUpdate({
-      target: newsletterSubscription.email,
-      set: {
-        status: 'pending',
-        lastError: null,
-        subscribedAt: null,
-        updatedAt,
-      },
-    })
-
-  await syncUserSubstackStatus(db, email, 'pending')
-}
-
-export async function markNewsletterSubscribed(db: MetaDatabase, email: string) {
-  const updatedAt = new Date()
-
-  await db
-    .insert(newsletterSubscription)
-    .values({
-      email,
-      status: 'subscribed',
-      lastError: null,
-      subscribedAt: updatedAt,
-      updatedAt,
-    })
-    .onConflictDoUpdate({
-      target: newsletterSubscription.email,
-      set: {
-        status: 'subscribed',
-        lastError: null,
-        subscribedAt: updatedAt,
-        updatedAt,
-      },
-    })
-
-  await syncUserSubstackStatus(db, email, 'subscribed')
-}
-
-export async function markNewsletterFailed(
-  db: MetaDatabase,
-  email: string,
-  lastError: string,
-) {
-  const updatedAt = new Date()
-
-  await db
-    .insert(newsletterSubscription)
-    .values({
-      email,
-      status: 'pending',
-      lastError,
-      subscribedAt: null,
-      updatedAt,
-    })
-    .onConflictDoUpdate({
-      target: newsletterSubscription.email,
-      set: {
-        status: 'pending',
-        lastError,
-        updatedAt,
-      },
-    })
-
-  await syncUserSubstackStatus(db, email, 'pending')
-}
-
-async function syncUserSubstackStatus(
-  db: MetaDatabase,
-  email: string,
-  status: 'pending' | 'subscribed' | 'unsubscribed',
-) {
-  await db
-    .update(user)
-    .set({ substack: status, updatedAt: new Date() })
-    .where(eq(user.email, email))
-}
-
-export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {}) {
-  const conditions = [
-    filters.regionCode ? eq(metaDatasets.regionCode, filters.regionCode) : undefined,
-    filters.cohortKey ? eq(metaReleases.cohortKey, filters.cohortKey) : undefined,
-    filters.theme ? eq(metaDatasets.theme, filters.theme) : undefined,
-    filters.status ? eq(metaReleases.status, filters.status) : undefined,
-  ].filter(condition => condition !== undefined)
-
-  return db
-    .select({
-      id: metaReleases.id,
-      datasetId: metaDatasets.id,
-      datasetCode: metaDatasets.code,
-      releaseCode: metaReleases.code,
-      regionCode: metaDatasets.regionCode,
-      cohortKey: metaReleases.cohortKey,
-      theme: metaDatasets.theme,
-      type: metaDatasets.type,
-      source: metaPublishers.code,
-      sourceVersion: metaReleases.sourceVersion,
-      rawObjectKey: metaReleases.rawObjectKey,
-      originalFileName: metaReleases.originalFileName,
-      status: metaReleases.status,
-      supersededByReleaseId: metaReleases.supersededByReleaseId,
-      revokedAt: metaReleases.revokedAt,
-      revocationReason: metaReleases.revocationReason,
-      ingestedAt: metaReleases.ingestedAt,
-      createdAt: metaReleases.createdAt,
-      updatedAt: metaReleases.updatedAt,
-    })
-    .from(metaReleases)
-    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
-    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(metaReleases.cohortKey), desc(metaReleases.ingestedAt))
-    .limit(filters.limit ?? 100)
-    .all()
 }
 
 export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) {
