@@ -159,7 +159,7 @@ export async function handlePublishDataset(
   )
   const releaseSet =
     (await resolveReleaseSetForRelease(db, dataset.releaseId, datasetType)) ??
-    (await ensureDraftReleaseSetForRelease(db, datasetType, dataset.releaseCode))
+    (await ensureDraftReleaseSetForRelease(db, datasetType, dataset))
   const snapshot = await resolveSnapshotForRelease(db, dataset.releaseId, datasetType)
 
   if (!snapshot) {

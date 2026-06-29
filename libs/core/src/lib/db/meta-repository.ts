@@ -738,6 +738,76 @@ export async function ensureDraftSnapshotForRelease(
   }
 }
 
+export async function recordSnapshotAssemblyRun(
+  db: HarbourReadableDb & HarbourWritableDb,
+  args: {
+    anchorCohortKey: string
+    anchorReleaseId?: string | null
+    resourceType: SnapshotResourceType
+    selectionSummaryJson?: Record<string, unknown> | null
+    snapshotId: string
+  },
+) {
+  const assembly =
+    (await db
+      .select({
+        id: metaSnapshotAssembly.id,
+        code: metaSnapshotAssembly.code,
+      })
+      .from(metaSnapshotAssembly)
+      .where(
+        and(
+          eq(metaSnapshotAssembly.resourceType, args.resourceType),
+          eq(metaSnapshotAssembly.status, 'current'),
+        ),
+      )
+      .orderBy(desc(metaSnapshotAssembly.version), desc(metaSnapshotAssembly.createdAt))
+      .limit(1)
+      .get()) ?? null
+
+  if (!assembly) {
+    return null
+  }
+
+  const existing =
+    (await db
+      .select({
+        id: metaSnapshotAssemblyRuns.id,
+      })
+      .from(metaSnapshotAssemblyRuns)
+      .where(
+        and(
+          eq(metaSnapshotAssemblyRuns.snapshotId, args.snapshotId),
+          eq(metaSnapshotAssemblyRuns.snapshotAssemblyId, assembly.id),
+        ),
+      )
+      .limit(1)
+      .get()) ?? null
+
+  if (existing) {
+    return assembly
+  }
+
+  const now = new Date()
+
+  await db
+    .insert(metaSnapshotAssemblyRuns)
+    .values({
+      id: crypto.randomUUID(),
+      snapshotId: args.snapshotId,
+      snapshotAssemblyId: assembly.id,
+      anchorReleaseId: args.anchorReleaseId ?? null,
+      anchorCohortKey: args.anchorCohortKey,
+      status: 'selected',
+      selectionSummaryJson: args.selectionSummaryJson ?? null,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .run()
+
+  return assembly
+}
+
 export async function resolveSnapshotForRelease(
   db: HarbourReadableDb,
   sourceReleaseId: string,
