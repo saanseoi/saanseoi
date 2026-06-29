@@ -32,7 +32,7 @@ export type IngestRunReportRow = {
   releaseCode: string
   releaseId: string
   runId: string
-  snapshotMonth: string | null
+  cohortKey: string | null
   source: string
   startedAt: string
   stats: unknown
@@ -87,7 +87,7 @@ export type ReleaseReportRow = {
   revocationReason: string | null
   revokedAt: string | null
   rowCounts: ReportRowCount[]
-  snapshotMonth: string | null
+  cohortKey: string | null
   source: string
   sourceVersion: string
   status: string
@@ -102,7 +102,7 @@ type ReleaseContext = {
   source: string
   sourceUrl: string
   sourceVersion: string
-  snapshotMonth: string | null
+  cohortKey: string | null
   type: string
 }
 
@@ -146,7 +146,7 @@ export async function listIngestRuns(
       releaseCode: metaReleases.code,
       releaseId: metaReleases.id,
       runId: ingestRuns.runId,
-      snapshotMonth: metaReleases.snapshotMonth,
+      cohortKey: metaReleases.cohortKey,
       source: metaPublishers.code,
       startedAt: ingestRuns.startedAt,
       stats: ingestRuns.stats,
@@ -252,7 +252,7 @@ export async function listReleases(
       releaseId: metaReleases.id,
       revocationReason: metaReleases.revocationReason,
       revokedAt: metaReleases.revokedAt,
-      snapshotMonth: metaReleases.snapshotMonth,
+      cohortKey: metaReleases.cohortKey,
       source: metaPublishers.code,
       sourceUrl: metaDatasets.sourceUrl,
       sourceVersion: metaReleases.sourceVersion,
@@ -294,7 +294,7 @@ export async function listReleases(
     revocationReason: row.revocationReason,
     revokedAt: toIsoString(row.revokedAt),
     rowCounts: rowCountsByReleaseId.get(row.releaseId) ?? [],
-    snapshotMonth: row.snapshotMonth,
+    cohortKey: row.cohortKey,
     source: row.source,
     sourceVersion: row.sourceVersion,
     status: row.status,
@@ -972,7 +972,7 @@ function resolveReleaseYear(release: ReleaseContext) {
     return sourceYear
   }
 
-  const snapshotYear = release.snapshotMonth?.slice(0, 4)
+  const snapshotYear = release.cohortKey?.slice(0, 4)
   return snapshotYear && /^\d{4}$/.test(snapshotYear) ? snapshotYear : null
 }
 

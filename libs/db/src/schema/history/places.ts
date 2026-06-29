@@ -51,8 +51,8 @@ export const placesVersions = sqliteTable(
     ),
     index('placesVersions_validity_idx').on(
       table.regionCode,
-      table.validFromMonth,
-      table.validToMonth,
+      table.validFromCohortKey,
+      table.validToCohortKey,
     ),
     index('placesVersions_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('placesVersions_snapshotId_idx').on(table.snapshotId),

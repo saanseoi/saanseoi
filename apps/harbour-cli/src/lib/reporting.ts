@@ -18,7 +18,7 @@ export type IngestRunReportRow = {
   releaseCode: string
   releaseId: string
   runId: string
-  snapshotMonth: string | null
+  cohortKey: string | null
   source: string
   startedAt: string
   stats: unknown
@@ -56,7 +56,7 @@ export type ReleaseReportRow = {
   revocationReason: string | null
   revokedAt: string | null
   rowCounts: ReportRowCount[]
-  snapshotMonth: string | null
+  cohortKey: string | null
   source: string
   sourceVersion: string
   status: string

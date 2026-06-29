@@ -14,7 +14,7 @@ import {
   finalizeUpload,
   createSchemaFingerprint,
   inferRegionFromPath,
-  inferSnapshotMonthFromPath,
+  inferCohortKeyFromPath,
   inferSourceVersionFromFilename,
   inferSourceFromFilename,
   inferSourceFromPath,
@@ -206,7 +206,7 @@ describe('upload', () => {
     expect(inferTypeFromPath(filePath)).toBe('address')
     expect(inferThemeFromPath(filePath)).toBe('addresses')
     expect(inferRegionFromPath(filePath)).toBe('hk')
-    expect(inferSnapshotMonthFromPath(filePath)).toBe('2025-09')
+    expect(inferCohortKeyFromPath(filePath)).toBe('2025-09')
   })
 
   test('infers theme, region, and month from the full overture-style path', () => {
@@ -216,7 +216,7 @@ describe('upload', () => {
     expect(inferTypeFromPath(overtureFixturePath)).toBe('division')
     expect(inferThemeFromPath(overtureFixturePath)).toBe('divisions')
     expect(inferRegionFromPath(overtureFixturePath)).toBe('hk')
-    expect(inferSnapshotMonthFromPath(overtureFixturePath)).toBe('2025-09')
+    expect(inferCohortKeyFromPath(overtureFixturePath)).toBe('2025-09')
   })
 
   test('infers source version and snapshot month from the filename when needed', async () => {
@@ -240,7 +240,7 @@ describe('upload', () => {
       source: 'hkgov-als',
     })
 
-    expect(planned.plan.snapshotMonth).toBe('2026-06')
+    expect(planned.plan.cohortKey).toBe('2026-06')
     expect(planned.plan.sourceVersion).toBe('2026-06-04.324')
     expect(planned.plan.datasetId).toBe('hkgov-als-hk-2026-06-04.324-address')
     expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-als-address')
@@ -257,7 +257,7 @@ describe('upload', () => {
 
     const result = await registerUpload(db, {
       filePath: fixtureFile,
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
@@ -306,7 +306,7 @@ describe('upload', () => {
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-05-24.0',
@@ -321,7 +321,7 @@ describe('upload', () => {
     await expect(
       registerUpload(db, {
         filePath: fixtureFile,
-        snapshotMonth: '2026-04',
+        cohortKey: '2026-04',
         source: 'overture',
         sourceVersion: '2026-04-24.0',
         inspection: fixtureInspection,
@@ -340,7 +340,7 @@ describe('upload', () => {
 
     const planned = await planUpload(harbourDb, {
       filePath: fixtureFile,
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
@@ -365,7 +365,7 @@ describe('upload', () => {
     await expect(
       planUpload(harbourDb, {
         filePath: fixtureFile,
-        snapshotMonth: '2026-06',
+        cohortKey: '2026-06',
         inspection: {
           rowCount: 1,
           schema: fixtureInspection.schema,
@@ -393,7 +393,7 @@ describe('upload', () => {
       planUpload(harbourDb, {
         filePath: fixtureFile,
         source: 'hkgov-als',
-        snapshotMonth: '2026-06',
+        cohortKey: '2026-06',
         sourceVersion: '2026-06-04.324',
         inspection: {
           rowCount: 1,
@@ -420,7 +420,7 @@ describe('upload', () => {
 
     const result = await registerUpload(db, {
       filePath: fixtureFile,
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
@@ -450,7 +450,7 @@ describe('upload', () => {
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-06',
+      cohortKey: '2026-06',
       theme: 'addresses',
       type: 'address',
       sourceVersion: '2026-06-24.0',
@@ -464,7 +464,7 @@ describe('upload', () => {
 
     const result = await registerUpload(db, {
       filePath: fixtureFile,
-      snapshotMonth: '2026-06',
+      cohortKey: '2026-06',
       source: 'hkgov-als',
       sourceVersion: '2026-06-04.324',
       inspection: addressFixtureInspection,
@@ -507,7 +507,7 @@ describe('upload', () => {
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-05-24.0',
@@ -521,7 +521,7 @@ describe('upload', () => {
 
     const result = await registerUpload(db, {
       filePath: fixtureFile,
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
@@ -564,7 +564,7 @@ describe('upload', () => {
     const { releaseId } = insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-05-24.0',
@@ -597,7 +597,7 @@ describe('upload', () => {
 
     const result = await registerUpload(db, {
       filePath: fixtureFile,
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
@@ -656,7 +656,7 @@ describe('upload', () => {
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-05-24.0',
@@ -670,7 +670,7 @@ describe('upload', () => {
 
     const result = await requestUpload(db, {
       filePath: fixtureFile,
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
@@ -701,7 +701,7 @@ describe('upload', () => {
     const { releaseId } = insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-05-24.0',
@@ -726,7 +726,7 @@ describe('upload', () => {
 
     const result = await requestUpload(db, {
       filePath: fixtureFile,
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
@@ -776,7 +776,7 @@ describe('upload', () => {
     const { releaseId } = insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-05-24.0',
@@ -791,7 +791,7 @@ describe('upload', () => {
     await expect(
       requestUpload(db, {
         filePath: fixtureFile,
-        snapshotMonth: '2026-05',
+        cohortKey: '2026-05',
         source: 'overture',
         sourceVersion: '2026-05-24.0',
         inspection: fixtureInspection,
@@ -802,7 +802,7 @@ describe('upload', () => {
 
     const result = await requestUpload(db, {
       filePath: fixtureFile,
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
@@ -835,7 +835,7 @@ describe('upload', () => {
 
     await requestUpload(db, {
       filePath: fixtureFile,
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
@@ -843,7 +843,7 @@ describe('upload', () => {
 
     const result = await finalizeUpload(db, {
       filePath: fixtureFile,
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       source: 'overture',
       sourceVersion: '2026-05-24.0',
       inspection: fixtureInspection,
@@ -872,7 +872,7 @@ describe('upload', () => {
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-05-24.0',
@@ -887,7 +887,7 @@ describe('upload', () => {
     await expect(
       planUpload(db, {
         filePath: fixtureFile,
-        snapshotMonth: '2026-06',
+        cohortKey: '2026-06',
         source: 'overture',
         sourceVersion: '2026-06-24.0',
         inspection,
@@ -913,7 +913,7 @@ describe('upload', () => {
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-01',
+      cohortKey: '2026-01',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-01-21.0',
@@ -928,7 +928,7 @@ describe('upload', () => {
     await expect(
       planUpload(db, {
         filePath: fixtureFile,
-        snapshotMonth: '2026-02',
+        cohortKey: '2026-02',
         source: 'overture',
         sourceVersion: '2026-02-18.0',
         inspection: fixtureInspectionWithAdminLevel,
@@ -955,7 +955,7 @@ describe('upload', () => {
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-02',
+      cohortKey: '2026-02',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-02-18.0',
@@ -970,7 +970,7 @@ describe('upload', () => {
     await expect(
       planUpload(db, {
         filePath: fixtureFile,
-        snapshotMonth: '2026-03',
+        cohortKey: '2026-03',
         source: 'overture',
         sourceVersion: '2026-03-18.0',
         inspection: reorderedFixtureInspection,
@@ -997,7 +997,7 @@ describe('upload', () => {
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-01',
+      cohortKey: '2026-01',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-01-21.0',
@@ -1012,7 +1012,7 @@ describe('upload', () => {
     await expect(
       planUpload(db, {
         filePath: fixtureFile,
-        snapshotMonth: '2026-02',
+        cohortKey: '2026-02',
         source: 'overture',
         sourceVersion: '2026-02-18.0',
         inspection: {
@@ -1044,7 +1044,7 @@ Reconcile the schema before uploading this dataset.`)
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-05-24.0',
@@ -1059,7 +1059,7 @@ Reconcile the schema before uploading this dataset.`)
     await expect(
       registerUpload(db, {
         filePath: fixtureFile,
-        snapshotMonth: '2026-05',
+        cohortKey: '2026-05',
         source: 'overture',
         sourceVersion: '2026-05-24.0',
         inspection: fixtureInspection,
@@ -1082,7 +1082,7 @@ Reconcile the schema before uploading this dataset.`)
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-05-24.0',
@@ -1097,7 +1097,7 @@ Reconcile the schema before uploading this dataset.`)
     await expect(
       planUpload(db, {
         filePath: fixtureFile,
-        snapshotMonth: '2026-05',
+        cohortKey: '2026-05',
         source: 'hkgov',
         sourceVersion: '2026-01-20.0',
         inspection: fixtureInspection,
@@ -1124,7 +1124,7 @@ Reconcile the schema before uploading this dataset.`)
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-05',
+      cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-05-24.0',
@@ -1138,7 +1138,7 @@ Reconcile the schema before uploading this dataset.`)
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-06',
+      cohortKey: '2026-06',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-06-24.0',
@@ -1153,7 +1153,7 @@ Reconcile the schema before uploading this dataset.`)
     insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
-      snapshotMonth: '2026-07',
+      cohortKey: '2026-07',
       theme: 'divisions',
       type: 'division',
       sourceVersion: '2026-07-24.0',
@@ -1168,7 +1168,7 @@ Reconcile the schema before uploading this dataset.`)
     await expect(
       planUpload(db, {
         filePath: fixtureFile,
-        snapshotMonth: '2026-08',
+        cohortKey: '2026-08',
         source: 'overture',
         sourceVersion: '2026-08-24.0',
         inspection: fixtureInspection,

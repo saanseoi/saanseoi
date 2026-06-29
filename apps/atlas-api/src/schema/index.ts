@@ -104,7 +104,7 @@ export const DatasetsQuerySchema = z
   .object({
     activeOnly: z.enum(['true', 'false']).optional(),
     regionCode: RegionCode.optional(),
-    snapshotMonth: z.string().optional(),
+    cohortKey: z.string().optional(),
     theme: z.string().optional(),
     status: z.string().optional(),
     limit: z.coerce.number().int().optional(),

@@ -115,7 +115,7 @@ function initDb(dbPath: string) {
 function seedDivisionRelease(
   sqlite: Database,
   releaseCode: string,
-  snapshotMonth: string,
+  cohortKey: string,
   status: string,
   ingestedAt = '2026-06-04T00:00:00.000Z',
 ) {
@@ -126,7 +126,7 @@ function seedDivisionRelease(
     releaseCode,
     source: 'overture',
     regionCode: 'hk',
-    snapshotMonth,
+    cohortKey,
     type: 'division',
     sourceVersion,
     rawObjectKey: `hk/overture/${sourceVersion}/division.parquet`,
@@ -140,7 +140,7 @@ function seedDivisionRelease(
 
 function createDivisionMessage(
   releaseCode: string,
-  snapshotMonth: string,
+  cohortKey: string,
   sourceVersion: string,
 ) {
   return {
@@ -149,7 +149,7 @@ function createDivisionMessage(
     releaseId: `release-${releaseCode}`,
     rawObjectKey: `hk/overture/${sourceVersion}/division.parquet`,
     regionCode: 'hk',
-    snapshotMonth,
+    cohortKey,
     source: 'overture',
     sourceVersion,
     theme: 'divisions',
@@ -605,7 +605,7 @@ describe('processDivisionDataset', () => {
     sqlite.exec(`
       INSERT INTO divisionsVersions (
         id, versionHash, regionCode, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-        validFromMonth, validToMonth, isCurrent, level, type, subtype, class, wikidata,
+        validFromCohortKey, validToCohortKey, isCurrent, level, type, subtype, class, wikidata,
         hierarchy, parentDivisionId, cartography, bbox, sources, createdAt, updatedAt
       ) VALUES (
         'division-obsolete', 'hash-obsolete', 'hk',
@@ -2131,7 +2131,7 @@ describe('processDivisionDataset', () => {
       sqlite.exec(`
         INSERT INTO divisionsVersions (
           id, versionHash, regionCode, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-          validFromMonth, validToMonth, isCurrent, level, type, subtype, class, wikidata,
+          validFromCohortKey, validToCohortKey, isCurrent, level, type, subtype, class, wikidata,
           hierarchy, parentDivisionId, cartography, bbox, sources, createdAt, updatedAt
         ) VALUES (
           '${divisionId}', '${versionHash}', 'hk',

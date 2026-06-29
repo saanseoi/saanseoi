@@ -19,7 +19,7 @@ type RegionCode = 'hk' | 'mo'
 
 type DatasetFilters = {
   regionCode?: RegionCode
-  snapshotMonth?: string
+  cohortKey?: string
   theme?: typeof metaDatasets.$inferSelect.theme
   status?: typeof metaReleases.$inferSelect.status
   limit?: number
@@ -145,9 +145,7 @@ async function syncUserSubstackStatus(
 export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {}) {
   const conditions = [
     filters.regionCode ? eq(metaDatasets.regionCode, filters.regionCode) : undefined,
-    filters.snapshotMonth
-      ? eq(metaReleases.snapshotMonth, filters.snapshotMonth)
-      : undefined,
+    filters.cohortKey ? eq(metaReleases.cohortKey, filters.cohortKey) : undefined,
     filters.theme ? eq(metaDatasets.theme, filters.theme) : undefined,
     filters.status ? eq(metaReleases.status, filters.status) : undefined,
   ].filter(condition => condition !== undefined)
@@ -159,7 +157,7 @@ export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {
       datasetCode: metaDatasets.code,
       releaseCode: metaReleases.code,
       regionCode: metaDatasets.regionCode,
-      snapshotMonth: metaReleases.snapshotMonth,
+      cohortKey: metaReleases.cohortKey,
       theme: metaDatasets.theme,
       type: metaDatasets.type,
       source: metaPublishers.code,
@@ -178,7 +176,7 @@ export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {
     .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(metaReleases.snapshotMonth), desc(metaReleases.ingestedAt))
+    .orderBy(desc(metaReleases.cohortKey), desc(metaReleases.ingestedAt))
     .limit(filters.limit ?? 100)
     .all()
 }

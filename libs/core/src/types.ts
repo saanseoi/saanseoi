@@ -14,7 +14,7 @@ export type DatasetRecord = {
   releaseId: string
   releaseCode: string
   regionCode: string
-  snapshotMonth: string
+  cohortKey: string
   theme: string
   type: string
   source: string
@@ -56,7 +56,7 @@ export type UploadPlan = {
   datasetCode: string
   releaseCode: string
   regionCode: RegionCode
-  snapshotMonth: string
+  cohortKey: string
   shardYear?: string
   theme: SupportedTheme
   type: SupportedType
@@ -71,9 +71,9 @@ export type UploadPlan = {
     theme: 'path' | 'parquet' | 'flag'
     type: 'path' | 'parquet' | 'flag'
     regionCode: 'path' | 'parquet' | 'flag'
-    snapshotMonth: 'path' | 'filename' | 'flag'
+    cohortKey: 'path' | 'filename' | 'flag' | 'sourceVersion'
     source: 'flag' | 'path' | 'filename'
-    sourceVersion: 'flag' | 'path' | 'filename' | 'snapshotMonth'
+    sourceVersion: 'flag' | 'path' | 'filename' | 'cohortKey'
   }
   supersedesDatasetId: string | null
 }
@@ -82,7 +82,7 @@ export type RegisterUploadOptions = {
   filePath: string
   originalFileName?: string
   regionCode?: string
-  snapshotMonth?: string
+  cohortKey?: string
   theme?: string
   type?: string
   source?: string
@@ -116,7 +116,7 @@ export type DatasetProcessingMessage = {
   rawObjectKey: string
   regionCode: RegionCode
   shardYear?: string
-  snapshotMonth: string
+  cohortKey: string
   source: string
   sourceVersion: string
   theme: SupportedTheme

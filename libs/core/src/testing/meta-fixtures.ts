@@ -640,7 +640,7 @@ type FixtureRelease = {
   type: string
   theme?: string
   sourceVersion: string
-  snapshotMonth: string
+  cohortKey: string
   rawObjectKey: string
   originalFileName: string
   status: string
@@ -676,7 +676,7 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
         datasetId,
         code,
         sourceVersion,
-        snapshotMonth,
+        cohortKey,
         rawObjectKey,
         originalFileName,
         status,
@@ -714,7 +714,7 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
     datasetCode,
     releaseCode,
     release.sourceVersion,
-    release.snapshotMonth,
+    release.cohortKey,
     release.rawObjectKey,
     release.originalFileName,
     release.status,

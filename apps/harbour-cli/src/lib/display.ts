@@ -35,8 +35,8 @@ export function formatField(
 }
 
 function describeInferredFrom(
-  field: 'regionCode' | 'snapshotMonth' | 'source' | 'sourceVersion' | 'type',
-  inferredFrom: 'flag' | 'filename' | 'parquet' | 'path' | 'snapshotMonth' | undefined,
+  field: 'regionCode' | 'cohortKey' | 'source' | 'sourceVersion' | 'type',
+  inferredFrom: 'flag' | 'filename' | 'parquet' | 'path' | 'cohortKey' | undefined,
 ) {
   switch (field) {
     case 'source':
@@ -62,7 +62,7 @@ function describeInferredFrom(
         default:
           return undefined
       }
-    case 'snapshotMonth':
+    case 'cohortKey':
       switch (inferredFrom) {
         case 'flag':
           return 'flag --month'
@@ -81,8 +81,8 @@ function describeInferredFrom(
           return 'path'
         case 'filename':
           return 'filename'
-        case 'snapshotMonth':
-          return 'snapshotMonth fallback'
+        case 'cohortKey':
+          return 'cohortKey fallback'
         default:
           return undefined
       }
@@ -150,9 +150,9 @@ export function formatPlan(result: UploadPreviewResult) {
       describeInferredFrom('regionCode', result.plan.inferredFrom.regionCode),
     ),
     formatField(
-      'snapshotMonth',
-      result.plan.snapshotMonth,
-      describeInferredFrom('snapshotMonth', result.plan.inferredFrom.snapshotMonth),
+      'cohortKey',
+      result.plan.cohortKey,
+      describeInferredFrom('cohortKey', result.plan.inferredFrom.cohortKey),
     ),
     formatField(
       'type',

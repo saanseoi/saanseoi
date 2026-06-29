@@ -168,7 +168,7 @@ function resolveSchemaVersion(plan: UploadPlan): UploadSchemaVersion {
       return false
     }
 
-    if (!matchesMonthWindow(plan.snapshotMonth, schema)) {
+    if (!matchesMonthWindow(plan.cohortKey, schema)) {
       return false
     }
 
@@ -187,12 +187,12 @@ function resolveSchemaVersion(plan: UploadPlan): UploadSchemaVersion {
 
   if (candidates.length === 0) {
     throw new Error(
-      `No accepted Overture schema version matches type=${plan.type}, snapshotMonth=${plan.snapshotMonth}, sourceVersion=${plan.sourceVersion}.`,
+      `No accepted Overture schema version matches type=${plan.type}, cohortKey=${plan.cohortKey}, sourceVersion=${plan.sourceVersion}.`,
     )
   }
 
   throw new Error(
-    `Multiple accepted Overture schema versions matched type=${plan.type}, snapshotMonth=${plan.snapshotMonth}, sourceVersion=${plan.sourceVersion}.`,
+    `Multiple accepted Overture schema versions matched type=${plan.type}, cohortKey=${plan.cohortKey}, sourceVersion=${plan.sourceVersion}.`,
   )
 }
 

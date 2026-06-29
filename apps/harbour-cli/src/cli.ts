@@ -83,7 +83,7 @@ async function main() {
       dbPath: typeof args.options.db === 'string' ? args.options.db : undefined,
       environment: target.environment,
       outputFile,
-      snapshotMonth: sourceVersion.slice(0, 7),
+      cohortKey: sourceVersion.slice(0, 7),
       sourceDir,
       sourceVersion,
     })

@@ -33,11 +33,11 @@ function toBindingRegion(regionCode: string) {
   return regionCode.toUpperCase()
 }
 
-function toBindingYear(snapshotMonth: string) {
-  const [year] = snapshotMonth.split('-')
+function toBindingYear(cohortKey: string) {
+  const [year] = cohortKey.split('-')
 
   if (!year) {
-    throw new Error(`Invalid snapshotMonth for shard resolution: ${snapshotMonth}`)
+    throw new Error(`Invalid cohortKey for shard resolution: ${cohortKey}`)
   }
 
   return year
@@ -48,13 +48,13 @@ function resolveShardBinding(
   kind: 'HISTORY' | 'SOURCE',
   regionCode: string,
   shardYear: string | undefined,
-  snapshotMonth: string,
+  cohortKey: string,
 ) {
   const normalizedShardYear = shardYear?.trim()
   const resolvedYear =
     normalizedShardYear && normalizedShardYear.length > 0
       ? normalizedShardYear
-      : toBindingYear(snapshotMonth)
+      : toBindingYear(cohortKey)
   const bindingName =
     `DB_${kind}_${toBindingRegion(regionCode)}_${resolvedYear}` as keyof MultiDbBindings
   return {
@@ -116,14 +116,14 @@ export function createQueueHandler(
           'HISTORY',
           body.regionCode,
           body.shardYear,
-          body.snapshotMonth,
+          body.cohortKey,
         )
         const sourceShard = resolveShardBinding(
           env,
           'SOURCE',
           body.regionCode,
           body.shardYear,
-          body.snapshotMonth,
+          body.cohortKey,
         )
         const { bindingName: historyBindingName, binding: historyBinding } =
           historyShard

@@ -38,8 +38,8 @@ export const divisionsVersions = sqliteTable(
     ),
     index('divisionsVersions_validity_idx').on(
       table.regionCode,
-      table.validFromMonth,
-      table.validToMonth,
+      table.validFromCohortKey,
+      table.validToCohortKey,
     ),
     index('divisionsVersions_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('divisionsVersions_snapshotId_idx').on(table.snapshotId),

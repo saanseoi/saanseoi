@@ -56,7 +56,7 @@ export type DivisionVersionInsertContext = {
   regionCode: RegionCode
   releaseId: string
   snapshotId: string
-  snapshotMonth: string
+  cohortKey: string
 }
 
 function excluded(column: string) {
@@ -222,7 +222,7 @@ export async function prepareDivisionVersionInsertContext(
     regionCode: message.regionCode,
     releaseId: dataset.releaseId,
     snapshotId: snapshot.id,
-    snapshotMonth: message.snapshotMonth,
+    cohortKey: message.cohortKey,
   }
 }
 
@@ -296,7 +296,7 @@ export async function closeCurrentDivisionVersions(
   regionCode: RegionCode,
   divisionIds: string[],
   snapshotId: string,
-  snapshotMonth: string,
+  cohortKey: string,
 ) {
   if (divisionIds.length === 0) {
     return
@@ -313,7 +313,7 @@ export async function closeCurrentDivisionVersions(
         .set({
           isCurrent: false,
           validToSnapshotId: snapshotId,
-          validToMonth: snapshotMonth,
+          validToCohortKey: cohortKey,
           updatedAt: now,
         })
         .where(
@@ -352,7 +352,7 @@ export async function deleteMissingCurrentDivisions(
   historyDb: HarbourReadableDb & HarbourWritableDb,
   regionCode: RegionCode,
   snapshotId: string,
-  snapshotMonth: string,
+  cohortKey: string,
   currentRows: Map<string, DivisionVersionSnapshot>,
   seenIds: Set<string>,
 ) {
@@ -373,7 +373,7 @@ export async function deleteMissingCurrentDivisions(
         .set({
           isCurrent: false,
           validToSnapshotId: snapshotId,
-          validToMonth: snapshotMonth,
+          validToCohortKey: cohortKey,
           updatedAt: now,
         })
         .where(
@@ -614,8 +614,8 @@ export async function insertDivisionVersionRows(
         snapshotId: context.snapshotId,
         validFromSnapshotId: context.snapshotId,
         validToSnapshotId: null,
-        validFromMonth: context.snapshotMonth,
-        validToMonth: null,
+        validFromCohortKey: context.cohortKey,
+        validToCohortKey: null,
         isCurrent: true,
         level: row.level,
         type: row.type,
@@ -646,10 +646,10 @@ export async function insertDivisionVersionRows(
               isCurrent: true,
               sourceReleaseId: context.releaseId,
               snapshotId: context.snapshotId,
-              validFromMonth: context.snapshotMonth,
+              validFromCohortKey: context.cohortKey,
               validFromSnapshotId: context.snapshotId,
               validToSnapshotId: null,
-              validToMonth: null,
+              validToCohortKey: null,
               updatedAt: excluded('updatedAt'),
             },
           }),
