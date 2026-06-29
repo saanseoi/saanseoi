@@ -1,11 +1,11 @@
 import {
   and,
   buildApiVersionCode,
+  buildDataReleaseSetCode,
   computeVersionHash,
   buildSnapshotVersionCode,
   desc,
   eq,
-  extractReleaseDateFromSourceVersion,
   inArray,
   isNull,
   ne,
@@ -59,6 +59,8 @@ type AtomicWritableDb = HarbourReadableDb &
   }
 
 const {
+  metaApiComposition,
+  metaApiCompositionMembers,
   ingestRuns,
   metaApiReleaseSets,
   metaApiReleaseSetSnapshots,
@@ -69,6 +71,8 @@ const {
   metaReleaseSetShardAssignments,
   metaReleaseShardAssignments,
   metaReleases,
+  metaSnapshotAssembly,
+  metaSnapshotAssemblyRuns,
   metaSnapshots,
   metaSnapshotSources,
 } = metaSchema
@@ -509,6 +513,57 @@ export function getApiVersionCodeForType(type: SupportedType) {
   return buildApiVersionCode(type, '0.1')
 }
 
+async function resolveCurrentApiComposition(
+  db: HarbourReadableDb,
+  apiVersionCode: string,
+) {
+  return (
+    (await db
+      .select({
+        id: metaApiComposition.id,
+        apiVersionId: metaApiComposition.apiVersionId,
+        code: metaApiComposition.code,
+        version: metaApiComposition.version,
+        primaryResourceType: metaApiComposition.primaryResourceType,
+        status: metaApiComposition.status,
+      })
+      .from(metaApiComposition)
+      .innerJoin(
+        metaApiVersions,
+        eq(metaApiComposition.apiVersionId, metaApiVersions.id),
+      )
+      .where(
+        and(
+          eq(metaApiVersions.code, apiVersionCode),
+          eq(metaApiComposition.status, 'current'),
+        ),
+      )
+      .orderBy(desc(metaApiComposition.version), desc(metaApiComposition.createdAt))
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
+export async function listApiCompositionMembers(
+  db: HarbourReadableDb,
+  apiCompositionId: string,
+) {
+  return db
+    .select({
+      resourceType: metaApiCompositionMembers.resourceType,
+      role: metaApiCompositionMembers.role,
+      isRequired: metaApiCompositionMembers.isRequired,
+      selectionMode: metaApiCompositionMembers.selectionMode,
+      anchorResourceType: metaApiCompositionMembers.anchorResourceType,
+      maxLagDays: metaApiCompositionMembers.maxLagDays,
+      priority: metaApiCompositionMembers.priority,
+    })
+    .from(metaApiCompositionMembers)
+    .where(eq(metaApiCompositionMembers.apiCompositionId, apiCompositionId))
+    .orderBy(metaApiCompositionMembers.priority)
+    .all()
+}
+
 export async function resolveLatestSnapshotForResourceType(
   db: HarbourReadableDb,
   resourceType: SnapshotResourceType,
@@ -622,18 +677,21 @@ export async function resolveLatestPublishedSnapshotForResourceTypeRegion(
 export async function ensureDraftSnapshotForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
   resourceType: SnapshotResourceType,
-  releaseCode: string,
+  args: {
+    cohortKey: string
+    regionCode: string
+  },
 ) {
-  const { regionCode, sourceVersion } = parseReleaseCodeParts(releaseCode)
   const snapshotCode = buildSnapshotVersionCode(
-    regionCode,
+    args.regionCode,
     resourceType,
-    extractReleaseDateFromSourceVersion(sourceVersion),
+    args.cohortKey,
   )
   const existing = await db
     .select({
       id: metaSnapshots.id,
       code: metaSnapshots.code,
+      cohortKey: metaSnapshots.cohortKey,
       resourceType: metaSnapshots.resourceType,
       status: metaSnapshots.status,
     })
@@ -660,6 +718,7 @@ export async function ensureDraftSnapshotForRelease(
       id: snapshotId,
       resourceType,
       code: snapshotCode,
+      cohortKey: args.cohortKey,
       status: 'draft',
       publishedAt: null,
       validFrom: null,
@@ -673,6 +732,7 @@ export async function ensureDraftSnapshotForRelease(
   return {
     id: snapshotId,
     code: snapshotCode,
+    cohortKey: args.cohortKey,
     resourceType,
     status: 'draft' as const,
   }
@@ -768,39 +828,13 @@ export async function resolveActiveReleaseSetForType(
 export async function ensureDraftReleaseSetForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
   type: SupportedType,
-  releaseCode: string,
+  release: Pick<DatasetRecord, 'cohortKey' | 'regionCode'>,
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
-  const { regionCode, sourceVersion } = parseReleaseCodeParts(releaseCode)
-  const snapshotVersionCode = buildSnapshotVersionCode(
-    regionCode,
-    type,
-    extractReleaseDateFromSourceVersion(sourceVersion),
-  )
-  const existing = await db
-    .select({
-      id: metaApiReleaseSets.id,
-      code: metaApiReleaseSets.code,
-      status: metaApiReleaseSets.status,
-    })
-    .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
-    .where(
-      and(
-        eq(metaApiVersions.code, apiVersionCode),
-        eq(metaApiReleaseSets.code, snapshotVersionCode),
-      ),
-    )
-    .limit(1)
-    .get()
-
-  if (existing) {
-    return existing
-  }
-
   const apiVersion = await db
     .select({
       id: metaApiVersions.id,
+      familyType: metaApiVersions.familyType,
     })
     .from(metaApiVersions)
     .where(eq(metaApiVersions.code, apiVersionCode))
@@ -809,6 +843,37 @@ export async function ensureDraftReleaseSetForRelease(
 
   if (!apiVersion) {
     throw new Error(`API version not found for type: ${type}`)
+  }
+
+  const composition = await resolveCurrentApiComposition(db, apiVersionCode)
+
+  if (composition?.primaryResourceType && composition.primaryResourceType !== type) {
+    throw new Error(
+      `API composition ${composition.code} expects primary resourceType=${composition.primaryResourceType}, not ${type}.`,
+    )
+  }
+
+  const releaseSetCodePrefix = `data-${release.regionCode}-${apiVersion.familyType}-${release.cohortKey}-`
+  const existing = await db
+    .select({
+      id: metaApiReleaseSets.id,
+      code: metaApiReleaseSets.code,
+      status: metaApiReleaseSets.status,
+    })
+    .from(metaApiReleaseSets)
+    .where(
+      and(
+        eq(metaApiReleaseSets.apiVersionId, apiVersion.id),
+        ne(metaApiReleaseSets.status, 'archived'),
+        sql`${metaApiReleaseSets.code} LIKE ${`${releaseSetCodePrefix}%`}`,
+      ),
+    )
+    .orderBy(desc(metaApiReleaseSets.createdAt))
+    .limit(1)
+    .get()
+
+  if (existing) {
+    return existing
   }
 
   const latestReleaseSet = await db
@@ -822,13 +887,37 @@ export async function ensureDraftReleaseSetForRelease(
     .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
     .limit(1)
     .get()
+  const existingCodes = await db
+    .select({
+      code: metaApiReleaseSets.code,
+    })
+    .from(metaApiReleaseSets)
+    .where(
+      and(
+        eq(metaApiReleaseSets.apiVersionId, apiVersion.id),
+        sql`${metaApiReleaseSets.code} LIKE ${`${releaseSetCodePrefix}%`}`,
+      ),
+    )
+    .all()
   const now = new Date()
   const releaseSetId = crypto.randomUUID()
+  const nextSequence =
+    existingCodes.reduce((maxSequence, row) => {
+      const sequence = Number.parseInt(row.code.slice(releaseSetCodePrefix.length), 10)
+      return Number.isNaN(sequence) ? maxSequence : Math.max(maxSequence, sequence)
+    }, -1) + 1
+  const releaseSetCode = buildDataReleaseSetCode(
+    release.regionCode,
+    apiVersion.familyType,
+    release.cohortKey,
+    nextSequence,
+  )
   const schemaVersion = latestReleaseSet?.schemaVersion ?? `sv-${type}-v1`
   const rulesetVersion = latestReleaseSet?.rulesetVersion ?? `rs-${type}-merge-v1`
   const versionHash = computeVersionHash({
     apiVersion: apiVersionCode,
-    snapshotVersion: snapshotVersionCode,
+    releaseSetCode,
+    cohortKey: release.cohortKey,
     schemaVersion,
     rulesetVersion,
     status: 'draft',
@@ -843,7 +932,7 @@ export async function ensureDraftReleaseSetForRelease(
     .values({
       id: releaseSetId,
       apiVersionId: apiVersion.id,
-      code: snapshotVersionCode,
+      code: releaseSetCode,
       schemaVersion,
       rulesetVersion,
       status: 'draft',
@@ -859,7 +948,7 @@ export async function ensureDraftReleaseSetForRelease(
 
   return {
     id: releaseSetId,
-    code: snapshotVersionCode,
+    code: releaseSetCode,
     status: 'draft' as const,
   }
 }
@@ -1032,18 +1121,49 @@ export async function publishReleaseArtifacts(
   const existingReleaseSetSnapshots = await db
     .select({
       snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+      role: metaApiReleaseSetSnapshots.role,
+      isRequired: metaApiReleaseSetSnapshots.isRequired,
+      selectionMode: metaApiReleaseSetSnapshots.selectionMode,
+      anchorSnapshotId: metaApiReleaseSetSnapshots.anchorSnapshotId,
     })
     .from(metaApiReleaseSetSnapshots)
     .where(eq(metaApiReleaseSetSnapshots.apiReleaseSetId, args.releaseSetId))
     .all()
 
-  const releaseSetSnapshotIds = [
-    ...new Set([
-      ...existingReleaseSetSnapshots.map(snapshot => snapshot.snapshotId),
-      ...args.carriedSnapshots.map(snapshot => snapshot.snapshotId),
-      args.snapshotId,
-    ]),
-  ]
+  const releaseSetSnapshots = new Map<
+    string,
+    {
+      anchorSnapshotId: string | null
+      isRequired: boolean
+      role: string
+      selectionMode: string
+    }
+  >()
+
+  for (const snapshot of existingReleaseSetSnapshots) {
+    releaseSetSnapshots.set(snapshot.snapshotId, {
+      role: snapshot.role,
+      isRequired: Boolean(snapshot.isRequired),
+      selectionMode: snapshot.selectionMode,
+      anchorSnapshotId: snapshot.anchorSnapshotId ?? null,
+    })
+  }
+
+  for (const snapshot of args.carriedSnapshots) {
+    releaseSetSnapshots.set(snapshot.snapshotId, {
+      role: 'supporting',
+      isRequired: true,
+      selectionMode: 'carry_forward_optional',
+      anchorSnapshotId: args.snapshotId,
+    })
+  }
+
+  releaseSetSnapshots.set(args.snapshotId, {
+    role: 'primary',
+    isRequired: true,
+    selectionMode: 'exact_ref',
+    anchorSnapshotId: null,
+  })
 
   const publishedAt = new Date(args.publishedAt)
 
@@ -1104,15 +1224,31 @@ export async function publishReleaseArtifacts(
         .where(eq(metaReleases.id, args.dataset.releaseId)),
     )
 
-    for (const snapshotId of releaseSetSnapshotIds) {
+    for (const [snapshotId, snapshotMetadata] of releaseSetSnapshots.entries()) {
       statements.push(
         tx
           .insert(metaApiReleaseSetSnapshots)
           .values({
             apiReleaseSetId: args.releaseSetId,
             snapshotId,
+            role: snapshotMetadata.role,
+            isRequired: snapshotMetadata.isRequired,
+            selectionMode: snapshotMetadata.selectionMode,
+            anchorSnapshotId: snapshotMetadata.anchorSnapshotId,
+            createdAt: publishedAt,
           })
-          .onConflictDoNothing(),
+          .onConflictDoUpdate({
+            target: [
+              metaApiReleaseSetSnapshots.apiReleaseSetId,
+              metaApiReleaseSetSnapshots.snapshotId,
+            ],
+            set: {
+              role: snapshotMetadata.role,
+              isRequired: snapshotMetadata.isRequired,
+              selectionMode: snapshotMetadata.selectionMode,
+              anchorSnapshotId: snapshotMetadata.anchorSnapshotId,
+            },
+          }),
       )
     }
 
@@ -1314,6 +1450,12 @@ export async function upsertSnapshotSource(
   datasetId: string,
   sourceReleaseId: string,
   role: 'primary' | 'enrichment' | 'fallback' | 'lookup',
+  options: {
+    anchorReleaseId?: string | null
+    selectedByRule?: string | null
+    selectionMode?: string | null
+    sourceCohortKey?: string | null
+  } = {},
 ) {
   await db
     .insert(metaSnapshotSources)
@@ -1322,6 +1464,10 @@ export async function upsertSnapshotSource(
       datasetId,
       sourceReleaseId,
       role,
+      anchorReleaseId: options.anchorReleaseId ?? null,
+      selectedByRule: options.selectedByRule ?? null,
+      selectionMode: options.selectionMode ?? null,
+      sourceCohortKey: options.sourceCohortKey ?? null,
       createdAt: new Date(),
     })
     .onConflictDoUpdate({
@@ -1329,6 +1475,10 @@ export async function upsertSnapshotSource(
       set: {
         datasetId,
         role,
+        anchorReleaseId: options.anchorReleaseId ?? null,
+        selectedByRule: options.selectedByRule ?? null,
+        selectionMode: options.selectionMode ?? null,
+        sourceCohortKey: options.sourceCohortKey ?? null,
       },
     })
     .run()
@@ -1338,14 +1488,36 @@ export async function upsertApiReleaseSetSnapshot(
   db: HarbourWritableDb,
   releaseSetId: string,
   snapshotId: string,
+  options: {
+    anchorSnapshotId?: string | null
+    isRequired?: boolean
+    role?: string
+    selectionMode?: string
+  } = {},
 ) {
   await db
     .insert(metaApiReleaseSetSnapshots)
     .values({
       apiReleaseSetId: releaseSetId,
       snapshotId,
+      role: options.role ?? 'supporting',
+      isRequired: options.isRequired ?? true,
+      selectionMode: options.selectionMode ?? 'carry_forward_optional',
+      anchorSnapshotId: options.anchorSnapshotId ?? null,
+      createdAt: new Date(),
     })
-    .onConflictDoNothing()
+    .onConflictDoUpdate({
+      target: [
+        metaApiReleaseSetSnapshots.apiReleaseSetId,
+        metaApiReleaseSetSnapshots.snapshotId,
+      ],
+      set: {
+        role: options.role ?? 'supporting',
+        isRequired: options.isRequired ?? true,
+        selectionMode: options.selectionMode ?? 'carry_forward_optional',
+        anchorSnapshotId: options.anchorSnapshotId ?? null,
+      },
+    })
     .run()
 }
 
