@@ -581,6 +581,103 @@ describe('control service', () => {
     ])
   })
 
+  test('publishes address and place releases when api field fixtures are unavailable', async () => {
+    for (const datasetType of ['address', 'place'] as const) {
+      const tempDir = createTempDir()
+      const dbPath = join(tempDir, `harbour-publish-${datasetType}-fixture-gap.sqlite`)
+      const sqlite = initDb(dbPath)
+      const db = createLocalHarbourDb(sqlite)
+      const releaseId = `release-overture-hk-2026-06-24.0-${datasetType}`
+      const releaseCode = `overture-hk-2026-06-24.0-${datasetType}`
+      const snapshotId = `snapshot-${releaseId}`
+
+      if (datasetType === 'place') {
+        sqlite.exec(`
+          INSERT OR IGNORE INTO datasets (
+            id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, versionHash, createdAt, updatedAt
+          ) VALUES (
+            'overture-hk-place',
+            'publisher-overture',
+            'ds-hk-overture-place',
+            'hk',
+            'static',
+            'monthly',
+            'places',
+            'place',
+            'https://docs.overturemaps.org/schema/reference/places/place/',
+            'vh-dataset-overture-hk-place-v1',
+            1718236800000,
+            1718236800000
+          );
+        `)
+      }
+
+      insertFixtureRelease(sqlite, {
+        releaseId,
+        source: 'overture',
+        regionCode: 'hk',
+        cohortKey: '2026-06',
+        type: datasetType,
+        sourceVersion: '2026-06-24.0',
+        rawObjectKey: `hk/overture/2026-06-24.0/${datasetType}.parquet`,
+        originalFileName: `${datasetType}.parquet`,
+        status: 'staged',
+        ingestedAt: '2026-06-05T00:01:00.000Z',
+        createdAt: '2026-06-05T00:01:00.000Z',
+        updatedAt: '2026-06-05T00:01:00.000Z',
+      })
+      seedSnapshot(sqlite, {
+        code: `ss-hk-${datasetType}-2026-06-24.0`,
+        datasetId: `overture-hk-${datasetType}`,
+        resourceType: datasetType,
+        releaseId,
+        snapshotId,
+        status: 'draft',
+        timestamp: 1762300860000,
+      })
+
+      const result = await handlePublishDataset(db, {
+        releaseId,
+      })
+
+      const releaseRow = sqlite
+        .query('SELECT status FROM releases WHERE id = ?')
+        .get(releaseId) as { status: string }
+      const snapshotRow = sqlite
+        .query('SELECT status, publishedAt FROM snapshots WHERE id = ?')
+        .get(snapshotId) as {
+        publishedAt: number | null
+        status: string
+      }
+      const provenanceCount = sqlite
+        .query(
+          `
+            SELECT COUNT(*) AS count
+            FROM apiFieldProvenance afp
+            INNER JOIN apiReleaseSetSnapshots arss ON arss.apiReleaseSetId = afp.apiReleaseSetId
+            WHERE arss.snapshotId = ?
+          `,
+        )
+        .get(snapshotId) as { count: number }
+
+      sqlite.close()
+
+      expect(result).toEqual({
+        datasetId: releaseCode,
+        releaseCode,
+        releaseId,
+        phase: null,
+        status: 'current',
+      })
+      expect(releaseRow).toEqual({
+        status: 'published',
+      })
+      expect(snapshotRow.status).toBe('published')
+      expect(snapshotRow.publishedAt).not.toBeNull()
+      expect(provenanceCount.count).toBe(0)
+    }
+  })
+
   test('revokes the superseded dataset only for corrected same-release publishes', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-publish-revoked.sqlite')
