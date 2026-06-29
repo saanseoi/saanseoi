@@ -103,8 +103,18 @@ Relevant fixture groups:
 
 `apiReleaseSets` are created from real uploaded datasets, not seeded from fixtures.
 
-`apiFields/` currently uses snapshot-version codes in the filename:
+`apiFields/` fixture files may still carry a representative snapshot code in the filename:
 
-- `api-divisions-v0.1@ss-hk-division-2026-06-17.0.json`
+- `api-divisions-v0.1@ss-hk-division-2026-05-20.0.json`
 
-That keeps provenance aligned with the exact published data snapshot.
+Applicability is defined by fixture metadata, not only by the filename.
+
+Current selection keys are:
+
+- `apiVersion`
+- `schemaVersion`
+- `rulesetVersion`
+- `sourceSchemas`
+- `validFromSnapshotVersion`
+
+These fixtures are resolved at API release publication time to populate `apiFieldProvenance`.
