@@ -96,6 +96,7 @@ type DivisionLookupMaps = {
 
 export type ProcessAddressDatasetResult = {
   deletedRows: number
+  deferCompletion?: boolean
   insertedVersions: number
   localizedRows: number
   nextMessage?: DatasetProcessingMessage
@@ -141,24 +142,50 @@ export async function processAddressDataset(
   reportProgress?: ReportProgress,
 ): Promise<ProcessAddressDatasetResult> {
   switch (getAddressPipelineStage(message) as string) {
-    case 'normalize':
+    case 'normalize': {
+      const nextMessage = await processAddressChunkPipeline(
+        metaDb,
+        currentDb,
+        bucket,
+        message,
+        historyDb,
+        sourceDb,
+        reportProgress,
+      )
+
+      if (nextMessage.addressStage === 'finalize') {
+        return finalizeAddressDatasetStage(
+          metaDb,
+          currentDb,
+          historyDb,
+          sourceDb,
+          nextMessage,
+        )
+      }
+
+      if (message.preplannedAddressChunks) {
+        return {
+          deferCompletion: true,
+          deletedRows: 0,
+          insertedVersions: 0,
+          localizedRows: 0,
+          processedRows:
+            nextMessage.addressStats?.processedRows ?? nextMessage.rowEnd ?? 0,
+          statsRows: 0,
+          unchangedRows: 0,
+        }
+      }
+
       return {
         deletedRows: 0,
         insertedVersions: 0,
         localizedRows: 0,
-        nextMessage: await processAddressChunkPipeline(
-          metaDb,
-          currentDb,
-          bucket,
-          message,
-          historyDb,
-          sourceDb,
-          reportProgress,
-        ),
+        nextMessage,
         processedRows: 0,
         statsRows: 0,
         unchangedRows: 0,
       }
+    }
     case 'source':
       return {
         deletedRows: 0,

@@ -369,6 +369,73 @@ describe('processDatasetMessage', () => {
     ])
   })
 
+  test('does not publish after a preplanned intermediate address chunk', async () => {
+    const processAddressDataset = mock(async () => ({
+      deferCompletion: true,
+      deletedRows: 0,
+      insertedVersions: 0,
+      localizedRows: 0,
+      processedRows: 2048,
+      statsRows: 0,
+      unchangedRows: 0,
+    }))
+    const stageRunning = mock(async () => undefined)
+    const stageCompleted = mock(async () => undefined)
+    const stageFailed = mock(async () => undefined)
+    const publishDataset = mock(async () => undefined)
+    const processDatasetMessage = createProcessDatasetMessage(
+      processAddressDataset as never,
+      mock(async () => {
+        throw new Error('division processor should not be called')
+      }) as never,
+    )
+
+    const result = await processDatasetMessage(
+      {
+        publishDataset,
+        stageCompleted,
+        stageFailed,
+        stageRunning,
+      },
+      {} as never,
+      {} as never,
+      {} as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      {
+        datasetId: 'overture-hk-2025-10-22.0-address',
+        releaseCode: 'overture-hk-2025-10-22.0-address',
+        releaseId: 'release-overture-hk-2025-10-22.0-address',
+        rawObjectKey: 'hk/overture/2025-10-22.0/address.parquet',
+        regionCode: 'hk',
+        cohortKey: '2025-10',
+        source: 'overture',
+        sourceVersion: '2025-10-22.0',
+        theme: 'addresses',
+        type: 'address',
+        preplannedAddressChunks: true,
+        rowStart: 1024,
+        rowEnd: 2048,
+        totalRows: 4096,
+      },
+    )
+
+    expect(result).toMatchObject({ deferCompletion: true })
+    expect(publishDataset).toHaveBeenCalledTimes(0)
+    expect(stageCompleted).toHaveBeenCalledTimes(0)
+    expect(stageFailed).toHaveBeenCalledTimes(0)
+  })
+
   test('attempts to mark every active phase failed even if one cleanup callback throws', async () => {
     const processDivisionDataset = mock(async () => {
       throw new Error('Division processing blew up.')

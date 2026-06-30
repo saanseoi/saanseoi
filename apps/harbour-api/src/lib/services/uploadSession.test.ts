@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 
-import type { ParquetInspection } from '@repo/core'
+import type { DatasetProcessingMessage, ParquetInspection } from '@repo/core'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
 import {
   loadMigrationSql,
@@ -34,6 +34,27 @@ const fixtureInspection: ParquetInspection = {
   ],
   distinctThemeValues: ['divisions'],
   distinctTypeValues: ['division'],
+  distinctCountryValues: ['hk'],
+  distinctRegionValues: ['hk'],
+}
+const addressFixtureInspection: ParquetInspection = {
+  rowCount: 2050,
+  schema: [
+    { name: 'id', type: 'string', nullable: false },
+    { name: 'theme', type: 'string', nullable: true },
+    { name: 'type', type: 'string', nullable: true },
+    { name: 'country', type: 'string', nullable: true },
+    { name: 'region', type: 'string', nullable: true },
+    { name: 'address_levels', type: 'list', nullable: true },
+    { name: 'street', type: 'string', nullable: true },
+    { name: 'number', type: 'string', nullable: true },
+    { name: 'geometry', type: 'json', nullable: true },
+    { name: 'bbox', type: 'json', nullable: true },
+    { name: 'sources', type: 'json', nullable: true },
+    { name: 'version', type: 'int64', nullable: true },
+  ],
+  distinctThemeValues: ['addresses'],
+  distinctTypeValues: ['address'],
   distinctCountryValues: ['hk'],
   distinctRegionValues: ['hk'],
 }
@@ -226,6 +247,64 @@ describe('upload session flow', () => {
     expect(
       bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.originalFileName,
     ).toBe('overture-hk-division.parquet')
+  })
+
+  test('finalizes address uploads into preplanned row-range jobs', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-address.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const bucket = new FakeR2Bucket()
+    const inspectAddressParquetMock = mock(async () => addressFixtureInspection)
+
+    const signResult = await handleSignUploadRequest(db, bucket, signingEnv, {
+      contentType: 'application/octet-stream',
+      fileName: 'overture-hk-address.parquet',
+      fileSize: fixtureBytes.byteLength,
+      inspection: addressFixtureInspection,
+      plan: {
+        shardYear: '2026',
+        cohortKey: '2026-05',
+        sourceVersion: '2026-05-20.0',
+        type: 'address',
+        theme: 'addresses',
+      },
+      schemaVersionId: 'overture-address-v2025-09-24.0',
+    })
+
+    await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
+    await handleFinalizeUploadRequest(
+      db,
+      bucket,
+      queue,
+      {
+        releaseId: signResult.releaseId,
+      },
+      {
+        inspectParquet: inspectAddressParquetMock,
+      },
+    )
+
+    const addressMessages = queuedMessages as DatasetProcessingMessage[]
+
+    expect(addressMessages).toHaveLength(3)
+    expect(addressMessages.map(message => [message.rowStart, message.rowEnd])).toEqual([
+      [0, 1024],
+      [1024, 2048],
+      [2048, 2050],
+    ])
+    for (const message of addressMessages) {
+      expect(message).toEqual(
+        expect.objectContaining({
+          addressStage: 'normalize',
+          chunkSize: 1024,
+          preplannedAddressChunks: true,
+          processingRunStartedAt: addressMessages[0]?.processingRunStartedAt,
+          totalRows: 2050,
+          type: 'address',
+        }),
+      )
+    }
   })
 
   test('force signing replaces an interrupted uploading session', async () => {

@@ -123,6 +123,7 @@ export type DatasetProcessingMessage = {
   theme: ResourceTheme
   type: ResourceType
   skipSnapshotCleanup?: boolean
+  preplannedAddressChunks?: boolean
   rowStart?: number
   rowEnd?: number
   totalRows?: number

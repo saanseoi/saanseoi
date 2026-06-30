@@ -181,12 +181,15 @@ export function createProcessDatasetMessage(
           },
         )
 
-        if ('nextMessage' in result && result.nextMessage) {
+        if (
+          ('nextMessage' in result && result.nextMessage) ||
+          ('deferCompletion' in result && result.deferCompletion)
+        ) {
           const durationMs = Date.now() - processStartedAt
           const addressStage =
             message.type === 'address' ? getAddressPipelineStage(message) : undefined
           const nextAddressStage =
-            result.nextMessage.type === 'address'
+            result.nextMessage?.type === 'address'
               ? getAddressPipelineStage(result.nextMessage)
               : undefined
           console.info(
@@ -195,12 +198,12 @@ export function createProcessDatasetMessage(
               datasetId: message.datasetId,
               messageType: message.type,
               nextAddressStage,
-              nextRowEnd: result.nextMessage.rowEnd,
-              nextRowStart: result.nextMessage.rowStart,
+              nextRowEnd: result.nextMessage?.rowEnd,
+              nextRowStart: result.nextMessage?.rowStart,
               phase: 'processDataset',
               processedRows:
-                result.nextMessage.addressStats?.processedRows ??
-                result.nextMessage.rowStart ??
+                result.nextMessage?.addressStats?.processedRows ??
+                result.nextMessage?.rowStart ??
                 result.processedRows,
               releaseId,
               source: message.source,
