@@ -916,6 +916,8 @@ export async function resolveActiveReleaseSetForType(
       .select({
         id: metaApiReleaseSets.id,
         code: metaApiReleaseSets.code,
+        schemaVersion: metaApiReleaseSets.schemaVersion,
+        rulesetVersion: metaApiReleaseSets.rulesetVersion,
         status: metaApiReleaseSets.status,
       })
       .from(metaApiReleaseSets)
@@ -1834,8 +1836,15 @@ export async function resolveActiveSnapshotForType(
     (await db
       .select({
         snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+        apiReleaseSet: metaApiReleaseSets.code,
+        schemaVersion: metaApiReleaseSets.schemaVersion,
+        rulesetVersion: metaApiReleaseSets.rulesetVersion,
       })
       .from(metaApiReleaseSetSnapshots)
+      .innerJoin(
+        metaApiReleaseSets,
+        eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
+      )
       .innerJoin(
         metaSnapshots,
         eq(metaApiReleaseSetSnapshots.snapshotId, metaSnapshots.id),
