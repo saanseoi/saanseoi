@@ -207,7 +207,7 @@
       "confidence": 1
     },
     {
-      "apiField": "division.attributes.i18n.zhHant.name",
+      "apiField": "division.attributes.i18n.zh-hant.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.common.zh-hk",
       "resolverCode": "merge_first_non_empty",
@@ -216,7 +216,7 @@
       "confidence": 0.95
     },
     {
-      "apiField": "division.attributes.i18n.zhHant.name",
+      "apiField": "division.attributes.i18n.zh-hant.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.common.zh-hant",
       "resolverCode": "merge_first_non_empty",
@@ -225,7 +225,7 @@
       "confidence": 0.9
     },
     {
-      "apiField": "division.attributes.i18n.zhHant.name",
+      "apiField": "division.attributes.i18n.zh-hant.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.rules[].value",
       "resolverCode": "merge_first_non_empty",
@@ -234,7 +234,7 @@
       "confidence": 0.8
     },
     {
-      "apiField": "division.attributes.i18n.zhHant.name",
+      "apiField": "division.attributes.i18n.zh-hant.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.primary",
       "resolverCode": "merge_first_non_empty",
@@ -243,7 +243,7 @@
       "confidence": 0.7
     },
     {
-      "apiField": "division.attributes.i18n.zhHant.localType",
+      "apiField": "division.attributes.i18n.zh-hant.localType",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "local_type.zh-hk",
       "resolverCode": "merge_first_non_empty",
@@ -252,7 +252,7 @@
       "confidence": 0.95
     },
     {
-      "apiField": "division.attributes.i18n.zhHant.localType",
+      "apiField": "division.attributes.i18n.zh-hant.localType",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "local_type.zh-hant",
       "resolverCode": "merge_first_non_empty",
@@ -261,7 +261,7 @@
       "confidence": 0.9
     },
     {
-      "apiField": "division.attributes.i18n.zhHans.name",
+      "apiField": "division.attributes.i18n.zh-hans.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.common.zh-hans",
       "resolverCode": "merge_first_non_empty",
@@ -270,7 +270,7 @@
       "confidence": 0.95
     },
     {
-      "apiField": "division.attributes.i18n.zhHans.name",
+      "apiField": "division.attributes.i18n.zh-hans.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.common.zh-cn",
       "resolverCode": "merge_first_non_empty",
@@ -279,7 +279,7 @@
       "confidence": 0.9
     },
     {
-      "apiField": "division.attributes.i18n.zhHans.name",
+      "apiField": "division.attributes.i18n.zh-hans.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.rules[].value",
       "resolverCode": "merge_first_non_empty",
@@ -288,7 +288,7 @@
       "confidence": 0.8
     },
     {
-      "apiField": "division.attributes.i18n.zhHans.name",
+      "apiField": "division.attributes.i18n.zh-hans.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.primary",
       "resolverCode": "merge_first_non_empty",
@@ -297,7 +297,7 @@
       "confidence": 0.7
     },
     {
-      "apiField": "division.attributes.i18n.zhHans.localType",
+      "apiField": "division.attributes.i18n.zh-hans.localType",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "local_type.zh-hans",
       "resolverCode": "merge_first_non_empty",
@@ -306,7 +306,7 @@
       "confidence": 0.95
     },
     {
-      "apiField": "division.attributes.i18n.zhHans.localType",
+      "apiField": "division.attributes.i18n.zh-hans.localType",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "local_type.zh-cn",
       "resolverCode": "merge_first_non_empty",

@@ -10,12 +10,12 @@
       "description": "Hong Kong Special Administrative Region Government open data portal."
     },
     {
-      "locale": "zhHant",
+      "locale": "zh-hant",
       "name": "資料一線通",
       "description": "香港特別行政區政府開放數據入口網站。"
     },
     {
-      "locale": "zhHans",
+      "locale": "zh-hans",
       "name": "资料一线通",
       "description": "香港特别行政区政府开放数据入口网站。"
     }

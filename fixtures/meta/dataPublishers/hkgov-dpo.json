@@ -11,12 +11,12 @@
       "description": "Policy bureau responsible for digital policy and government digital services."
     },
     {
-      "locale": "zhHant",
+      "locale": "zh-hant",
       "name": "數字政策辦公室",
       "description": "負責數字政策及政府數字服務的政策部門。"
     },
     {
-      "locale": "zhHans",
+      "locale": "zh-hans",
       "name": "数字政策办公室",
       "description": "负责数字政策及政府数字服务的政策部门。"
     }
