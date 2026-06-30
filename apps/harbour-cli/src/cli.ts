@@ -6,7 +6,8 @@ import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/promp
 
 import { prepareUpload } from '@repo/core/upload-local'
 import { inferSourceVersionFromPath } from '@repo/core/upload-local'
-import { isReleaseId } from '@repo/core'
+import { isReleaseId, ResourceTypes } from '@repo/core'
+import type { ResourceType } from '@repo/core'
 import {
   describeTarget,
   explainDispatch,
@@ -29,15 +30,17 @@ import {
   dispatchUpload,
   finalizeExistingUpload,
   requeueExistingUpload,
+  scheduleSnapshotCleanup,
 } from './lib/upload.ts'
 import { watchCurrentUpload } from './lib/watch.ts'
 
 function printUsage() {
   console.log(`  Usage:
-  saanseoi upload <file> [--target local|preview|production] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--cohort-key VALUE] [--dry-run] [--force] [--yes]
-  saanseoi upload:finalize --release <release-id|release-code> [--target local|preview|production] [--yes]
-  saanseoi upload:requeue --release <release-id|release-code> [--target local|preview|production] [--yes]
+  saanseoi upload <file> [--target local|preview|production] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--cohort-key VALUE] [--dry-run] [--force] [--skip-cleanup] [--yes]
+  saanseoi upload:finalize --release <release-id|release-code> [--target local|preview|production] [--skip-cleanup] [--yes]
+  saanseoi upload:requeue --release <release-id|release-code> [--target local|preview|production] [--skip-cleanup] [--yes]
   saanseoi upload:watch [--target local|preview|production]
+  saanseoi cleanup:snapshots [--target local|preview|production] [--type division|address|street|place] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
   saanseoi prep-hkgov-als <source-dir> [--target local|preview|production] [--source-version YYYY-MM-DD.NN] [--cohort-key VALUE] [--db /path/to/local.sqlite]
   saanseoi reports:ingestion [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
   saanseoi reports:stats [--target local|preview|production] [--limit 1-100] [--source SOURCE] [--type TYPE]
@@ -56,6 +59,7 @@ async function main() {
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const dryRun = Boolean(args.options['dry-run'])
   const forceUpload = Boolean(args.options.force)
+  const skipSnapshotCleanup = Boolean(args.options['skip-cleanup'])
   const skipConfirm = Boolean(args.options.yes)
   const target = resolveUploadTarget(args)
 
@@ -187,7 +191,9 @@ async function main() {
     }
 
     log.message(explainDispatch(target))
-    const finalized = await finalizeExistingUpload(target, releaseSpecifier)
+    const finalized = await finalizeExistingUpload(target, releaseSpecifier, {
+      skipSnapshotCleanup,
+    })
 
     note(
       [
@@ -233,7 +239,9 @@ async function main() {
     }
 
     log.message(explainDispatch(target))
-    const requeued = await requeueExistingUpload(target, releaseSpecifier)
+    const requeued = await requeueExistingUpload(target, releaseSpecifier, {
+      skipSnapshotCleanup,
+    })
 
     note(
       [
@@ -264,6 +272,48 @@ async function main() {
     }
 
     outro('Harbour upload watch complete')
+    return
+  }
+
+  if (args.command === 'cleanup:snapshots') {
+    const resourceType = resolveSnapshotCleanupResourceType(args.options.type)
+    const snapshotIds = resolveSnapshotIds(args.options.snapshot)
+    const delaySeconds = resolveDelaySeconds(args.options['delay-seconds'])
+
+    if (!skipConfirm && !dryRun) {
+      const shouldContinue = await confirm({
+        message: `Schedule current snapshot cleanup for ${describeTarget(target).label}?`,
+        initialValue: true,
+      })
+
+      if (isCancel(shouldContinue) || !shouldContinue) {
+        cancel('SNAPSHOT CLEANUP CANCELLED')
+        process.exit(1)
+      }
+    }
+
+    log.message(explainDispatch(target))
+    const result = await scheduleSnapshotCleanup(target, {
+      delaySeconds,
+      dryRun,
+      resourceType,
+      snapshotIds,
+    })
+
+    note(
+      [
+        formatField('status', result.status),
+        formatField('dryRun', String(result.dryRun)),
+        formatField('candidateCount', String(result.candidateCount)),
+        formatField('delaySeconds', String(result.delaySeconds)),
+        formatField(
+          'snapshotIds',
+          result.snapshotIds.length > 0 ? result.snapshotIds.join(', ') : '-',
+        ),
+      ].join('\n'),
+      'SNAPSHOT CLEANUP',
+    )
+    outro('Harbour snapshot cleanup request complete')
     return
   }
 
@@ -356,6 +406,7 @@ async function main() {
     schemaVersionId,
     {
       force: forceUpload,
+      skipSnapshotCleanup,
     },
   )
 
@@ -396,6 +447,53 @@ async function main() {
   )
   log.success('Dataset uploaded and registered in Harbour.')
   outro('Harbour upload complete')
+}
+
+function resolveSnapshotCleanupResourceType(
+  value: string | boolean | undefined,
+): ResourceType | undefined {
+  if (value === undefined || value === false) {
+    return undefined
+  }
+
+  if ((ResourceTypes as readonly string[]).includes(value)) {
+    return value as ResourceType
+  }
+
+  throw new Error(
+    `Unsupported snapshot cleanup type: ${String(value)}. Use division, address, street, or place.`,
+  )
+}
+
+function resolveSnapshotIds(value: string | boolean | undefined) {
+  if (typeof value !== 'string') {
+    return undefined
+  }
+
+  const snapshotIds = value
+    .split(',')
+    .map(snapshotId => snapshotId.trim())
+    .filter(Boolean)
+
+  return snapshotIds.length > 0 ? snapshotIds : undefined
+}
+
+function resolveDelaySeconds(value: string | boolean | undefined) {
+  if (value === undefined || value === false) {
+    return undefined
+  }
+
+  if (typeof value !== 'string') {
+    throw new Error('Invalid --delay-seconds value.')
+  }
+
+  const delaySeconds = Number.parseInt(value, 10)
+
+  if (!Number.isInteger(delaySeconds) || delaySeconds < 0) {
+    throw new Error('Invalid --delay-seconds value. Expected a non-negative integer.')
+  }
+
+  return delaySeconds
 }
 
 main().catch(error => {
