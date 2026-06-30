@@ -262,6 +262,7 @@ export const FinalizeUploadRequestSchema = z
 
 export const RequeueUploadRequestSchema = z
   .object({
+    force: z.boolean().optional(),
     releaseId: ReleaseIdSchema,
     skipSnapshotCleanup: z.boolean().optional(),
   })

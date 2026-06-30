@@ -80,7 +80,10 @@ import { finalizeAddressDatasetStage } from './addressPipeline/finalizeStage'
 import { writeAddressHistoryChunkStage } from './addressPipeline/historyStage'
 import { normalizeAddressChunkStage } from './addressPipeline/normalizeStage'
 import { writeAddressSourceChunkStage } from './addressPipeline/sourceStage'
-import { getAddressPipelineStage } from './addressPipeline/types'
+import {
+  getAddressPipelineStage,
+  type AddressPipelineMessage,
+} from './addressPipeline/types'
 
 import type { HarbourWorkerBucket } from './division'
 
@@ -143,11 +146,13 @@ export async function processAddressDataset(
         deletedRows: 0,
         insertedVersions: 0,
         localizedRows: 0,
-        nextMessage: await normalizeAddressChunkStage(
+        nextMessage: await processAddressChunkPipeline(
           metaDb,
           currentDb,
           bucket,
           message,
+          historyDb,
+          sourceDb,
           reportProgress,
         ),
         processedRows: 0,
@@ -982,6 +987,37 @@ export async function processAddressDataset(
     statsRows: 0,
     unchangedRows,
   }
+}
+
+async function processAddressChunkPipeline(
+  metaDb: MetaDatabase,
+  currentDb: CurrentDatabase,
+  bucket: HarbourWorkerBucket,
+  message: DatasetProcessingMessage,
+  historyDb: HistoryDatabase,
+  sourceDb: SourceDatabase | undefined,
+  reportProgress?: ReportProgress,
+): Promise<AddressPipelineMessage> {
+  const sourceMessage = await normalizeAddressChunkStage(
+    metaDb,
+    currentDb,
+    bucket,
+    message,
+    reportProgress,
+  )
+  const historyMessage = await writeAddressSourceChunkStage(
+    sourceDb,
+    bucket,
+    sourceMessage,
+  )
+  const currentMessage = await writeAddressHistoryChunkStage(
+    metaDb,
+    historyDb,
+    bucket,
+    historyMessage,
+  )
+
+  return writeAddressCurrentChunkStage(metaDb, currentDb, bucket, currentMessage)
 }
 
 function resolveAddressChunkSize(value: unknown) {

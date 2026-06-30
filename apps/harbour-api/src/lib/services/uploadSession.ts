@@ -78,6 +78,7 @@ export type FinalizeUploadRequest = {
 }
 
 export type RequeueUploadRequest = {
+  force?: boolean
   releaseId: string
   skipSnapshotCleanup?: boolean
 }
@@ -283,7 +284,7 @@ export async function handleRequeueUploadRequest(
     throw new Error(`Release not found: ${request.releaseId}`)
   }
 
-  if (!['staged', 'failed'].includes(dataset.status)) {
+  if (!['staged', 'failed'].includes(dataset.status) && !request.force) {
     throw new Error(
       `Release ${dataset.releaseCode} is not requeueable. Current status: ${dataset.status}.`,
     )
@@ -303,7 +304,10 @@ export async function handleRequeueUploadRequest(
     .limit(1)
     .get()
 
-  if (processRun?.status === 'queued' || processRun?.status === 'running') {
+  if (
+    !request.force &&
+    (processRun?.status === 'queued' || processRun?.status === 'running')
+  ) {
     return {
       ...dataset,
       rowCount: await getStageDatasetRowCount(db, dataset.releaseId),

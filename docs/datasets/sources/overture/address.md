@@ -78,11 +78,13 @@ The worker processes parquet rows in small write batches and reads 2,048-row par
 
 Large address releases are processed as sequential queue chunks. Each queue
 message carries a parquet row range (`rowStart`, `rowEnd`) plus a stable
-`processingRunStartedAt` marker. A successful intermediate chunk enqueues the
-next row range and leaves the release phases running; only the final chunk runs
-missing-row cleanup, publishes the snapshot, and completes `processDataset`.
+`processingRunStartedAt` marker. A successful intermediate chunk enqueues only
+the next row range and leaves the release phases running; only the final chunk
+runs missing-row cleanup, publishes the snapshot, and completes
+`processDataset`.
 
-Each row range is split into dedicated worker stages:
+Each row range is split into dedicated worker stage services that run inside the
+same queue event:
 
 - `normalize`: reads the parquet range, normalizes source rows, computes source payload hashes, and writes a normalized R2 artifact
 - `source`: reads the normalized artifact and writes only source current/source version tables
