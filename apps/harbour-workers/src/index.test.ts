@@ -228,7 +228,9 @@ describe('harbour-workers', () => {
       },
     )
 
-    expect(send).toHaveBeenCalledWith(nextMessage)
+    expect(send).toHaveBeenCalledWith(nextMessage, {
+      delaySeconds: 1,
+    })
     expect(calls).toEqual(['send', 'ack'])
     expect(retry).toHaveBeenCalledTimes(0)
   })
