@@ -21,6 +21,7 @@ import {
   SearchResponseSchema,
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
+import { runWithD1ReadRetry } from '../../lib/d1'
 import type { AppEnv } from '../../types'
 
 const placeRouteConfig = createRoute({
@@ -149,10 +150,8 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
     const { region: regionCode, id: placeId } = c.req.valid('param')
     const { locale } = c.req.valid('query')
     const db = c.var.currentDb
-    const activePlaceSnapshot = await resolveActiveSnapshotForType(
-      c.var.metaDb as never,
-      'place',
-      'place',
+    const activePlaceSnapshot = await runWithD1ReadRetry(() =>
+      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place'),
     )
 
     if (!activePlaceSnapshot) {
@@ -166,11 +165,13 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
       )
     }
 
-    const place = await getPlaceCurrent(db, {
-      regionCode,
-      placeId,
-      snapshotId: activePlaceSnapshot.snapshotId,
-    })
+    const place = await runWithD1ReadRetry(() =>
+      getPlaceCurrent(db, {
+        regionCode,
+        placeId,
+        snapshotId: activePlaceSnapshot.snapshotId,
+      }),
+    )
 
     if (!place) {
       return c.json(
@@ -183,18 +184,20 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
       )
     }
 
-    const [i18n, divisions] = await Promise.all([
-      listPlaceI18n(db, {
-        placeId,
-        snapshotId: activePlaceSnapshot.snapshotId,
-        locale,
-      }),
-      listPlaceDivisions(db, {
-        placeId,
-        snapshotId: activePlaceSnapshot.snapshotId,
-        locale,
-      }),
-    ])
+    const [i18n, divisions] = await runWithD1ReadRetry(() =>
+      Promise.all([
+        listPlaceI18n(db, {
+          placeId,
+          snapshotId: activePlaceSnapshot.snapshotId,
+          locale,
+        }),
+        listPlaceDivisions(db, {
+          placeId,
+          snapshotId: activePlaceSnapshot.snapshotId,
+          locale,
+        }),
+      ]),
+    )
 
     return c.json(
       {
@@ -229,10 +232,8 @@ export const placesByCellRoute = defineOpenAPIRoute<
     }
 
     const db = c.var.currentDb
-    const activePlaceSnapshot = await resolveActiveSnapshotForType(
-      c.var.metaDb as never,
-      'place',
-      'place',
+    const activePlaceSnapshot = await runWithD1ReadRetry(() =>
+      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place'),
     )
 
     if (!activePlaceSnapshot) {
@@ -245,13 +246,15 @@ export const placesByCellRoute = defineOpenAPIRoute<
       return c.json(response, 503)
     }
 
-    const places = await listPlacesByH3Cell(db, {
-      regionCode: params.region,
-      snapshotId: activePlaceSnapshot.snapshotId,
-      h3Level,
-      h3Cell: params.h3Cell,
-      limit: query.limit,
-    })
+    const places = await runWithD1ReadRetry(() =>
+      listPlacesByH3Cell(db, {
+        regionCode: params.region,
+        snapshotId: activePlaceSnapshot.snapshotId,
+        h3Level,
+        h3Cell: params.h3Cell,
+        limit: query.limit,
+      }),
+    )
 
     return c.json(
       {
@@ -268,10 +271,8 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
     const { region } = c.req.valid('param')
     const query = c.req.valid('query')
     const db = c.var.currentDb
-    const activePlaceSnapshot = await resolveActiveSnapshotForType(
-      c.var.metaDb as never,
-      'place',
-      'place',
+    const activePlaceSnapshot = await runWithD1ReadRetry(() =>
+      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place'),
     )
 
     if (!activePlaceSnapshot) {
@@ -285,13 +286,15 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
     }
 
     try {
-      const results = await searchPlacesFts(db, {
-        regionCode: region,
-        snapshotId: activePlaceSnapshot.snapshotId,
-        locale: query.locale,
-        query: query.q,
-        limit: query.limit,
-      })
+      const results = await runWithD1ReadRetry(() =>
+        searchPlacesFts(db, {
+          regionCode: region,
+          snapshotId: activePlaceSnapshot.snapshotId,
+          locale: query.locale,
+          query: query.q,
+          limit: query.limit,
+        }),
+      )
 
       return c.json(
         {
