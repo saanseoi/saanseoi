@@ -41,7 +41,14 @@ export type HarbourObjectBucket = {
 
 export type DatasetProcessingQueue = {
   send(message: HarbourJobMessage, options?: QueueSendOptions): Promise<unknown>
+  sendBatch?(
+    messages: Iterable<MessageSendRequest<HarbourJobMessage>>,
+    options?: QueueSendBatchOptions,
+  ): Promise<unknown>
 }
+
+const ADDRESS_CHUNK_ROW_COUNT = 1024
+const QUEUE_SEND_BATCH_SIZE = 100
 
 function getOptionalText(
   formData: FormData,
@@ -197,11 +204,65 @@ export async function handleUploadRequest(
       ...(uploadFields.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
     }
 
-    await queue.send(processingMessage)
+    await enqueueDatasetProcessingPlan(
+      queue,
+      processingMessage,
+      registered.plan.rowCount,
+    )
 
     return registered
   } catch (error) {
     await bucket.delete(rawObjectKey)
     throw error
   }
+}
+
+async function enqueueDatasetProcessingPlan(
+  queue: DatasetProcessingQueue,
+  message: DatasetProcessingMessage,
+  rowCount: number,
+) {
+  const messages = buildDatasetProcessingPlanMessages(message, rowCount)
+
+  if (queue.sendBatch) {
+    for (let index = 0; index < messages.length; index += QUEUE_SEND_BATCH_SIZE) {
+      await queue.sendBatch(
+        messages.slice(index, index + QUEUE_SEND_BATCH_SIZE).map(body => ({
+          body,
+        })),
+      )
+    }
+    return
+  }
+
+  for (const planMessage of messages) {
+    await queue.send(planMessage)
+  }
+}
+
+function buildDatasetProcessingPlanMessages(
+  message: DatasetProcessingMessage,
+  rowCount: number,
+) {
+  if (message.type !== 'address' || rowCount <= 0) {
+    return [message]
+  }
+
+  const processingRunStartedAt = new Date().toISOString()
+  const messages: DatasetProcessingMessage[] = []
+
+  for (let rowStart = 0; rowStart < rowCount; rowStart += ADDRESS_CHUNK_ROW_COUNT) {
+    messages.push({
+      ...message,
+      addressStage: 'normalize',
+      chunkSize: ADDRESS_CHUNK_ROW_COUNT,
+      preplannedAddressChunks: true,
+      processingRunStartedAt,
+      rowStart,
+      rowEnd: Math.min(rowStart + ADDRESS_CHUNK_ROW_COUNT, rowCount),
+      totalRows: rowCount,
+    })
+  }
+
+  return messages
 }
