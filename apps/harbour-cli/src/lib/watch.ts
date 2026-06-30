@@ -21,7 +21,7 @@ type ReleaseWatchSnapshot = {
   releaseCode: string
   releaseId: string
   rowCount: number | null
-  sourceCount: number
+  processedCount: number
 }
 
 type ProgressBar = ReturnType<typeof progress>
@@ -63,6 +63,19 @@ export function isReleaseStillProcessing(rows: ReleaseReportRow[], releaseId: st
 
 export function getReleaseRowCount(release: ReleaseReportRow, label: string): number {
   return release.rowCounts.find(rowCount => rowCount.label === label)?.rowCount ?? 0
+}
+
+export function getReleaseProcessedRowCount(release: ReleaseReportRow): number {
+  const progressLabels = new Set([
+    'source',
+    'historyVersions',
+    'history2dVersions',
+    'history3dVersions',
+  ])
+
+  return release.rowCounts
+    .filter(rowCount => progressLabels.has(rowCount.label))
+    .reduce((max, rowCount) => Math.max(max, rowCount.rowCount), 0)
 }
 
 export function getStageDatasetRowCount(
@@ -124,10 +137,10 @@ function formatNumber(value: number) {
 
 function formatWatchMessage(snapshot: ReleaseWatchSnapshot) {
   if (snapshot.rowCount == null || snapshot.rowCount <= 0) {
-    return `${snapshot.releaseCode} ${formatNumber(snapshot.sourceCount)} source rows`
+    return `${snapshot.releaseCode} ${formatNumber(snapshot.processedCount)} rows`
   }
 
-  return `${snapshot.releaseCode} ${formatNumber(snapshot.sourceCount)}/${formatNumber(snapshot.rowCount)} source rows`
+  return `${snapshot.releaseCode} ${formatNumber(snapshot.processedCount)}/${formatNumber(snapshot.rowCount)} rows`
 }
 
 function formatCompletedMessage(snapshot: ReleaseWatchSnapshot) {
@@ -160,6 +173,7 @@ async function buildReleaseWatchSnapshot(
     releaseId: release.releaseId,
   })
   const releaseSourceCount = getReleaseRowCount(release, 'source')
+  const releaseProcessedCount = getReleaseProcessedRowCount(release)
   const processedSourceCount =
     getProcessedDatasetRowCount(ingestReport.rows, release.releaseId) ?? 0
 
@@ -167,18 +181,22 @@ async function buildReleaseWatchSnapshot(
     releaseCode: release.releaseCode,
     releaseId: release.releaseId,
     rowCount: getStageDatasetRowCount(ingestReport.rows, release.releaseId),
-    sourceCount: Math.max(releaseSourceCount, processedSourceCount),
+    processedCount: Math.max(
+      releaseSourceCount,
+      releaseProcessedCount,
+      processedSourceCount,
+    ),
   }
 }
 
 function buildFinishedReleaseSnapshot(release: ReleaseReportRow): ReleaseWatchSnapshot {
-  const sourceCount = getReleaseRowCount(release, 'source')
+  const processedCount = getReleaseProcessedRowCount(release)
 
   return {
     releaseCode: release.releaseCode,
     releaseId: release.releaseId,
-    rowCount: sourceCount > 0 ? sourceCount : null,
-    sourceCount,
+    rowCount: processedCount > 0 ? processedCount : null,
+    processedCount,
   }
 }
 
@@ -190,7 +208,7 @@ function startProgressBar(progressBar: ProgressBar, snapshot: ReleaseWatchSnapsh
   let appliedProgress = 0
 
   progressBar.start(formatWatchMessage(snapshot))
-  appliedProgress = clampProgressValue(snapshot.sourceCount, snapshot.rowCount)
+  appliedProgress = clampProgressValue(snapshot.processedCount, snapshot.rowCount)
 
   if (appliedProgress > 0) {
     progressBar.advance(appliedProgress, formatWatchMessage(snapshot))
@@ -311,7 +329,7 @@ export function createWatchCurrentUpload(
 
     let activeSnapshot = await buildReleaseWatchSnapshot(target, initialRelease, deps)
     let progressBar = deps.createProgressBar(
-      Math.max(activeSnapshot.rowCount ?? activeSnapshot.sourceCount, 1),
+      Math.max(activeSnapshot.rowCount ?? activeSnapshot.processedCount, 1),
     )
     let appliedProgress = startProgressBar(progressBar, activeSnapshot)
     trackedReleaseIds.add(activeSnapshot.releaseId)
@@ -339,7 +357,7 @@ export function createWatchCurrentUpload(
       if (matchingRelease && isActiveReleaseStatus(matchingRelease.status)) {
         activeSnapshot = await buildReleaseWatchSnapshot(target, matchingRelease, deps)
         const nextProgress = clampProgressValue(
-          activeSnapshot.sourceCount,
+          activeSnapshot.processedCount,
           activeSnapshot.rowCount,
         )
 
@@ -383,7 +401,7 @@ export function createWatchCurrentUpload(
         deps,
       )
       progressBar = deps.createProgressBar(
-        Math.max(activeSnapshot.rowCount ?? activeSnapshot.sourceCount, 1),
+        Math.max(activeSnapshot.rowCount ?? activeSnapshot.processedCount, 1),
       )
       appliedProgress = startProgressBar(progressBar, activeSnapshot)
       trackedReleaseIds.add(activeSnapshot.releaseId)

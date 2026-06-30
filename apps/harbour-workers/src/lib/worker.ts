@@ -9,6 +9,7 @@ import {
   processAddressDataset as defaultProcessAddressDataset,
   type ProcessAddressDatasetResult,
 } from './services/address'
+import { getAddressPipelineStage } from './services/addressPipeline/types'
 import {
   processDivisionDataset as defaultProcessDivisionDataset,
   type HarbourWorkerBucket,
@@ -182,14 +183,25 @@ export function createProcessDatasetMessage(
 
         if ('nextMessage' in result && result.nextMessage) {
           const durationMs = Date.now() - processStartedAt
+          const addressStage =
+            message.type === 'address' ? getAddressPipelineStage(message) : undefined
+          const nextAddressStage =
+            result.nextMessage.type === 'address'
+              ? getAddressPipelineStage(result.nextMessage)
+              : undefined
           console.info(
             JSON.stringify({
+              addressStage,
               datasetId: message.datasetId,
               messageType: message.type,
+              nextAddressStage,
               nextRowEnd: result.nextMessage.rowEnd,
               nextRowStart: result.nextMessage.rowStart,
               phase: 'processDataset',
-              processedRows: result.processedRows,
+              processedRows:
+                result.nextMessage.addressStats?.processedRows ??
+                result.nextMessage.rowStart ??
+                result.processedRows,
               releaseId,
               source: message.source,
               sourceVersion: message.sourceVersion,

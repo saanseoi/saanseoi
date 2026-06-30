@@ -6,6 +6,7 @@ import {
   createWatchCurrentUpload,
   findProcessingRelease,
   getProcessedDatasetRowCount,
+  getReleaseProcessedRowCount,
   getReleaseRowCount,
   getStageDatasetRowCount,
   isReleaseStillProcessing,
@@ -116,6 +117,34 @@ describe('watch helpers', () => {
   test('reads sourceCount from release row counts', () => {
     expect(getReleaseRowCount(processingRelease, 'source')).toBe(640)
     expect(getReleaseRowCount(processingRelease, 'sourceI18n')).toBe(0)
+  })
+
+  test('reads staged pipeline progress from non-i18n release row counts', () => {
+    expect(
+      getReleaseProcessedRowCount({
+        ...processingRelease,
+        rowCounts: [
+          {
+            kind: 'source',
+            label: 'source',
+            rowCount: 8192,
+            tableName: 'sourceOvertureAddresses2d',
+          },
+          {
+            kind: 'source',
+            label: 'sourceI18n',
+            rowCount: 12000,
+            tableName: 'sourceOvertureAddress2dI18n',
+          },
+          {
+            kind: 'history',
+            label: 'history2dVersions',
+            rowCount: 9216,
+            tableName: 'address2dVersions',
+          },
+        ],
+      }),
+    ).toBe(9216)
   })
 
   test('keeps watching the current release even when another release is also processing', () => {
@@ -469,13 +498,13 @@ describe('watchCurrentUpload', () => {
     expect(progressEvents).toHaveLength(2)
     expect(progressEvents[0]?.max).toBe(1817)
     expect(progressEvents[0]?.messages).toEqual([
-      'start:overture-hk-2026-01-21.0-division 1,664/1,817 source rows',
-      'advance:overture-hk-2026-01-21.0-division 1,664/1,817 source rows',
+      'start:overture-hk-2026-01-21.0-division 1,664/1,817 rows',
+      'advance:overture-hk-2026-01-21.0-division 1,664/1,817 rows',
       'stop:✓ overture-hk-2026-01-21.0-division (1,817)',
     ])
     expect(progressEvents[1]?.messages).toEqual([
-      'start:overture-hk-2026-02-18.0-division 1,665/1,818 source rows',
-      'advance:overture-hk-2026-02-18.0-division 1,665/1,818 source rows',
+      'start:overture-hk-2026-02-18.0-division 1,665/1,818 rows',
+      'advance:overture-hk-2026-02-18.0-division 1,665/1,818 rows',
       'stop:✓ overture-hk-2026-02-18.0-division (1,818)',
     ])
     expect(successMessages).toEqual([])

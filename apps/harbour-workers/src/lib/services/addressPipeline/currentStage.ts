@@ -35,6 +35,18 @@ export async function writeAddressCurrentChunkStage(
     bucket,
     pipelineMessage.resolvedArtifactKey,
   )
+  console.info(
+    JSON.stringify({
+      changedRows: artifact.rows.filter(row => row.changed).length,
+      datasetId: message.datasetId,
+      phase: 'addressCurrentStage',
+      releaseId: message.releaseId ?? message.datasetId,
+      rowEnd: artifact.rowEnd,
+      rowStart: artifact.rowStart,
+      status: 'started',
+      totalRows: artifact.totalRows,
+    }),
+  )
   const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
   const currentRepoDb = currentDb as unknown as HarbourReadableDb & HarbourWritableDb
   const versionInsertContext = await prepareAddressVersionInsertContext(
@@ -98,6 +110,20 @@ export async function writeAddressCurrentChunkStage(
   })
 
   if (artifact.rowEnd < artifact.totalRows) {
+    console.info(
+      JSON.stringify({
+        changedRows: changedRows.length,
+        datasetId: message.datasetId,
+        nextRowEnd: Math.min(artifact.rowEnd + chunkSize, artifact.totalRows),
+        nextRowStart: artifact.rowEnd,
+        phase: 'addressCurrentStage',
+        releaseId: message.releaseId ?? message.datasetId,
+        rowEnd: artifact.rowEnd,
+        rowStart: artifact.rowStart,
+        status: 'completed',
+        totalRows: artifact.totalRows,
+      }),
+    )
     return {
       ...pipelineMessage,
       addressStage: 'normalize',
@@ -112,6 +138,18 @@ export async function writeAddressCurrentChunkStage(
     } satisfies AddressPipelineMessage
   }
 
+  console.info(
+    JSON.stringify({
+      changedRows: changedRows.length,
+      datasetId: message.datasetId,
+      phase: 'addressCurrentStage',
+      releaseId: message.releaseId ?? message.datasetId,
+      rowEnd: artifact.rowEnd,
+      rowStart: artifact.rowStart,
+      status: 'completed',
+      totalRows: artifact.totalRows,
+    }),
+  )
   return {
     ...pipelineMessage,
     addressStage: 'finalize',
