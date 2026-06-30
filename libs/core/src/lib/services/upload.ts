@@ -631,9 +631,10 @@ function resolveUploadPlan(
 ) {
   const directoryPath = directoryPathFromPath(options.filePath)
   const typeFromFlag = normalizeType(options.type)
+  const typeFromFilename = inferTypeFromFilename(options.filePath)
   const typeFromPath = inferTypeFromPath(directoryPath)
   const typeFromParquet = inferTypeFromParquet(resolvedInspection)
-  const type = typeFromFlag ?? typeFromPath ?? typeFromParquet
+  const type = typeFromFlag ?? typeFromFilename ?? typeFromPath ?? typeFromParquet
 
   if (!type) {
     throw new Error(
@@ -642,10 +643,15 @@ function resolveUploadPlan(
   }
 
   const themeFromFlag = normalizeTheme(options.theme)
-  const themeFromPath = inferThemeFromPath(directoryPath) ?? TYPE_THEME_MAP[type]
+  const themeFromFilename = inferThemeFromFilename(options.filePath)
+  const themeFromPath = inferThemeFromPath(directoryPath)
   const themeFromParquet = inferThemeFromParquet(resolvedInspection)
   const theme =
-    themeFromFlag ?? themeFromPath ?? themeFromParquet ?? TYPE_THEME_MAP[type]
+    themeFromFlag ??
+    themeFromFilename ??
+    themeFromPath ??
+    themeFromParquet ??
+    TYPE_THEME_MAP[type]
 
   if (!theme) {
     throw new Error(
@@ -737,8 +743,20 @@ function resolveUploadPlan(
     rowCount: resolvedInspection.rowCount,
     schemaFingerprint: createSchemaFingerprint(resolvedInspection),
     inferredFrom: {
-      theme: themeFromFlag ? 'flag' : themeFromPath ? 'path' : 'parquet',
-      type: typeFromFlag ? 'flag' : typeFromPath ? 'path' : 'parquet',
+      theme: themeFromFlag
+        ? 'flag'
+        : themeFromFilename
+          ? 'filename'
+          : themeFromPath
+            ? 'path'
+            : 'parquet',
+      type: typeFromFlag
+        ? 'flag'
+        : typeFromFilename
+          ? 'filename'
+          : typeFromPath
+            ? 'path'
+            : 'parquet',
       regionCode: regionFromFlag ? 'flag' : regionFromPath ? 'path' : 'parquet',
       cohortKey: options.cohortKey
         ? 'flag'

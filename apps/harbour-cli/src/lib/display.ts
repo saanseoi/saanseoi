@@ -62,6 +62,8 @@ function describeInferredFrom(
       switch (inferredFrom) {
         case 'flag':
           return 'flag'
+        case 'filename':
+          return 'filename'
         case 'path':
           return 'path'
         case 'parquet':
