@@ -13,31 +13,35 @@ import {
 import {
   getDivisionDetail,
   listDivisions,
+  type RequestedDivisionApiVersion,
   type RequestedDivisionVersion,
-  type ResolvedDivisionVersion,
+  type ResolvedDivisionApiVersion,
 } from '../../services/divisions'
 import type { AppEnv } from '../../types'
 
 const ROUTE_VARIANTS = [
   {
-    requestedVersion: 'v0' as const,
-    resolvedVersion: '0.1' as const,
+    requestVersionPath: 'v0' as const,
+    requestedApiVersion: '0.1' as const,
+    resolvedApiVersion: 'api-divisions-v0.1' as const,
     listPath: '/v0/divisions',
     detailPath: '/v0/divisions/{id}',
     listOperationId: 'listDivisionsV0',
     detailOperationId: 'getDivisionByIdV0',
   },
   {
-    requestedVersion: 'v0.1' as const,
-    resolvedVersion: '0.1' as const,
+    requestVersionPath: 'v0.1' as const,
+    requestedApiVersion: '0.1' as const,
+    resolvedApiVersion: 'api-divisions-v0.1' as const,
     listPath: '/v0.1/divisions',
     detailPath: '/v0.1/divisions/{id}',
     listOperationId: 'listDivisionsV01',
     detailOperationId: 'getDivisionByIdV01',
   },
 ] as const satisfies Array<{
-  requestedVersion: RequestedDivisionVersion
-  resolvedVersion: ResolvedDivisionVersion
+  requestVersionPath: RequestedDivisionVersion
+  requestedApiVersion: RequestedDivisionApiVersion
+  resolvedApiVersion: ResolvedDivisionApiVersion
   listPath: string
   detailPath: string
   listOperationId: string
@@ -125,8 +129,9 @@ export const divisionRoutes = [
           currentDb: c.var.currentDb,
           metaDb: c.var.metaDb,
           requestUrl: c.req.url,
-          requestedVersion: routeVariant.requestedVersion,
-          resolvedVersion: routeVariant.resolvedVersion,
+          requestVersionPath: routeVariant.requestVersionPath,
+          requestedApiVersion: routeVariant.requestedApiVersion,
+          resolvedApiVersion: routeVariant.resolvedApiVersion,
           query: c.req.valid('query'),
         })
 
@@ -148,8 +153,9 @@ export const divisionRoutes = [
           currentDb: c.var.currentDb,
           metaDb: c.var.metaDb,
           requestUrl: c.req.url,
-          requestedVersion: routeVariant.requestedVersion,
-          resolvedVersion: routeVariant.resolvedVersion,
+          requestVersionPath: routeVariant.requestVersionPath,
+          requestedApiVersion: routeVariant.requestedApiVersion,
+          resolvedApiVersion: routeVariant.resolvedApiVersion,
           id,
           query: c.req.valid('query'),
         })

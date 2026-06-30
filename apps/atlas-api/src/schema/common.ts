@@ -3,6 +3,7 @@ import { z } from '@hono/zod-openapi'
 export const RegionCode = z.enum(['hk', 'mo'])
 export const ProfileName = z.enum(['compact', 'default', 'full', 'map'])
 export const ApiLocale = z.enum(['en', 'zh-hant', 'zh-hans'])
+export const ApiFamilyName = z.enum(['addresses', 'divisions', 'places', 'streets'])
 
 export const ErrorResponseSchema = z
   .object({
@@ -71,3 +72,49 @@ export const JsonApiLinkMapSchema = z
   })
   .loose()
   .openapi('JsonApiLinkMap')
+
+export const RequestedLocaleCodeSchema = z.string().openapi({
+  examples: ['en', 'zh-hant', 'fr-ca'],
+})
+
+export const RequestedLocalesMetadataSchema = z
+  .array(z.union([RequestedLocaleCodeSchema, z.literal('*')]))
+  .refine(
+    locales => !locales.includes('*') || (locales.length === 1 && locales[0] === '*'),
+    {
+      message:
+        'locales must be locale codes, or a single "*" when all locales are returned',
+    },
+  )
+  .openapi({
+    examples: [['en', 'zh-hant'], ['fr-ca'], ['*']],
+  })
+
+export const ApiVersionMetadataSchema = z
+  .object({
+    requestedApiVersion: z.string().openapi({
+      examples: ['0.1', '2'],
+    }),
+    requestedApiFamily: ApiFamilyName.openapi({
+      examples: ['divisions'],
+    }),
+    resolvedApiVersion: z.string().openapi({
+      examples: ['api-divisions-v0.1'],
+    }),
+    apiReleaseSet: z.string().openapi({
+      examples: ['data-hk-divisions-2026-04-15.0-0'],
+    }),
+    schemaVersion: z
+      .string()
+      .optional()
+      .openapi({
+        examples: ['sv-division-v1'],
+      }),
+    rulesetVersion: z
+      .string()
+      .optional()
+      .openapi({
+        examples: ['rs-division-merge-v1'],
+      }),
+  })
+  .openapi('ApiVersionMetadata')
