@@ -631,7 +631,7 @@ function resolveUploadPlan(
 ) {
   const directoryPath = directoryPathFromPath(options.filePath)
   const typeFromFlag = normalizeType(options.type)
-  const typeFromPath = inferTypeFromPath(options.filePath)
+  const typeFromPath = inferTypeFromPath(directoryPath)
   const typeFromParquet = inferTypeFromParquet(resolvedInspection)
   const type = typeFromFlag ?? typeFromPath ?? typeFromParquet
 
@@ -642,7 +642,7 @@ function resolveUploadPlan(
   }
 
   const themeFromFlag = normalizeTheme(options.theme)
-  const themeFromPath = inferThemeFromPath(options.filePath) ?? TYPE_THEME_MAP[type]
+  const themeFromPath = inferThemeFromPath(directoryPath) ?? TYPE_THEME_MAP[type]
   const themeFromParquet = inferThemeFromParquet(resolvedInspection)
   const theme =
     themeFromFlag ?? themeFromPath ?? themeFromParquet ?? TYPE_THEME_MAP[type]
