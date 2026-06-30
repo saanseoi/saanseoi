@@ -439,8 +439,7 @@ async function main() {
     }).join('\n'),
     'UPLOAD RESULT',
   )
-  log.success('Dataset uploaded and registered in Harbour.')
-  outro('Harbour upload complete')
+  outro('Dataset uploaded and registered in Harbour')
 }
 
 function resolveSnapshotCleanupResourceType(

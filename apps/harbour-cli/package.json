@@ -14,6 +14,8 @@
   "dependencies": {
     "@clack/prompts": "^1.6.0",
     "@repo/core": "workspace:*",
+    "hyparquet": "^1.26.1",
+    "hyparquet-compressors": "^1.1.1",
     "hyparquet-writer": "^0.16.1"
   }
 }

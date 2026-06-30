@@ -5,6 +5,7 @@ import type { ResourceType } from '@repo/core'
 import type { prepareUpload } from '@repo/core/uploadLocal'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
+import { prepareUploadFileForDispatch } from './parquetRepack.ts'
 import { fetchReleaseReport } from './reporting.ts'
 import type { CliUploadOptions, UploadTarget } from './options.ts'
 
@@ -94,39 +95,47 @@ export async function dispatchUpload(
   options: DispatchUploadOptions = {},
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(target)
-
-  if (!target.remote) {
-    await assertLocalDirectUploadCanProceed(target, previewResult, options.force)
-    return uploadFileViaWorker(
-      apiBaseUrl,
-      target,
-      registerOptions,
-      previewResult,
-      options,
-    )
-  }
-
-  const fileBytes = await readFile(registerOptions.filePath)
-  const fileStats = await stat(registerOptions.filePath)
-  const signResponse = await requestSignedUpload(
-    apiBaseUrl,
+  const uploadFile = await prepareUploadFileForDispatch(
+    registerOptions.filePath,
     previewResult,
-    fileStats.size,
-    schemaVersionId,
-    options,
   )
 
-  await uploadFileToSignedUrl(signResponse, fileBytes)
+  try {
+    if (!target.remote) {
+      await assertLocalDirectUploadCanProceed(target, previewResult, options.force)
+      return uploadFileViaWorker(
+        apiBaseUrl,
+        target,
+        uploadFile.filePath,
+        previewResult,
+        options,
+      )
+    }
 
-  return finalizeUpload(apiBaseUrl, signResponse.releaseId, {
-    skipSnapshotCleanup: options.skipSnapshotCleanup,
-  })
+    const fileBytes = await readFile(uploadFile.filePath)
+    const fileStats = await stat(uploadFile.filePath)
+    const signResponse = await requestSignedUpload(
+      apiBaseUrl,
+      previewResult,
+      fileStats.size,
+      schemaVersionId,
+      options,
+    )
+
+    await uploadFileToSignedUrl(signResponse, fileBytes)
+
+    return finalizeUpload(apiBaseUrl, signResponse.releaseId, {
+      skipSnapshotCleanup: options.skipSnapshotCleanup,
+    })
+  } finally {
+    await uploadFile.cleanup()
+  }
 }
 
 async function uploadFileViaWorker(
   apiBaseUrl: string,
   target: UploadTarget,
-  registerOptions: CliUploadOptions,
+  filePath: string,
   previewResult: UploadPreviewResult,
   options: DispatchUploadOptions,
   attempt = 0,
@@ -135,7 +144,7 @@ async function uploadFileViaWorker(
     previewResult.plan.cohortKey,
     previewResult.plan.sourceVersion,
   )
-  const fileBytes = await readFile(registerOptions.filePath)
+  const fileBytes = await readFile(filePath)
   const formData = new FormData()
   const file = new File([fileBytes], previewResult.plan.fileName, {
     type: 'application/octet-stream',
@@ -182,7 +191,7 @@ async function uploadFileViaWorker(
     return uploadFileViaWorker(
       apiBaseUrl,
       target,
-      registerOptions,
+      filePath,
       previewResult,
       options,
       attempt + 1,
@@ -210,7 +219,7 @@ async function uploadFileViaWorker(
     return uploadFileViaWorker(
       apiBaseUrl,
       target,
-      registerOptions,
+      filePath,
       previewResult,
       options,
       attempt + 1,

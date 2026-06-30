@@ -1,4 +1,5 @@
 import { and, eq, gt, inArray, or, sql } from 'drizzle-orm'
+import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
@@ -31,6 +32,11 @@ const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 17
 const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 26
 const HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 22
 const HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
+const SEEN_ADDRESS_ID_INSERT_COLUMN_COUNT = 1
+
+const tempSeenAddressIds = sqliteTable('tempSeenAddressIds', {
+  id: text('id').primaryKey(),
+})
 
 export type AddressBaseRecord = AddressRow
 export type AddressI18nRecord = NewAddressI18nRow
@@ -89,6 +95,14 @@ export type AddressVersionInsertContext = {
 
 function excluded(column: string) {
   return sql.raw(`excluded.${column}`)
+}
+
+type RawSqlWritableDb = {
+  run(statement: unknown): unknown | Promise<unknown>
+}
+
+function runRawSql(db: HarbourWritableDb, statement: unknown) {
+  return runWithWriteRetry(() => (db as unknown as RawSqlWritableDb).run(statement))
 }
 
 function selectCurrentAddressVersionFields() {
@@ -287,6 +301,39 @@ export async function hasCurrentAddressVersions(
     .get()
 
   return Boolean(row)
+}
+
+export async function prepareSeenAddressIdTable(db: HarbourWritableDb) {
+  await runRawSql(db, sql`DROP TABLE IF EXISTS tempSeenAddressIds`)
+  await runRawSql(db, sql`CREATE TEMP TABLE tempSeenAddressIds (id TEXT PRIMARY KEY)`)
+}
+
+export async function insertSeenAddressIds(
+  db: HarbourWritableDb,
+  addressIds: string[],
+) {
+  const uniqueIds = [...new Set(addressIds)]
+
+  if (uniqueIds.length === 0) {
+    return
+  }
+
+  for (const chunk of chunkArray(
+    uniqueIds,
+    getMaxRowsPerInsert(SEEN_ADDRESS_ID_INSERT_COLUMN_COUNT),
+  )) {
+    await runWithWriteRetry(() =>
+      db
+        .insert(tempSeenAddressIds)
+        .values(chunk.map(id => ({ id })))
+        .onConflictDoNothing()
+        .run(),
+    )
+  }
+}
+
+export async function dropSeenAddressIdTable(db: HarbourWritableDb) {
+  await runRawSql(db, sql`DROP TABLE IF EXISTS tempSeenAddressIds`)
 }
 
 async function buildCurrentAddressVersionSnapshotMap(
@@ -687,7 +734,73 @@ export async function deleteMissingCurrentAddressesBySeenIds(
       missingIds.push(...pageMissingIds)
     }
 
-    lastId = rows[rows.length - 1].id
+    const lastRow = rows.at(-1)
+
+    if (!lastRow) {
+      break
+    }
+
+    lastId = lastRow.id
+  }
+
+  return {
+    count: missingIds.length,
+    missingIds,
+  }
+}
+
+export async function deleteMissingCurrentAddressesBySeenTable(
+  historyDb: HarbourReadableDb & HarbourWritableDb,
+  snapshotId: string,
+  cohortKey: string,
+  regionCode: RegionCode,
+) {
+  const missingIds: string[] = []
+  let lastId = ''
+
+  while (true) {
+    const rows = (await historyDb
+      .select({
+        id: historySchema.address2dVersions.id,
+      })
+      .from(historySchema.address2dVersions)
+      .where(
+        and(
+          eq(historySchema.address2dVersions.isCurrent, true),
+          eq(historySchema.address2dVersions.regionCode, regionCode),
+          gt(historySchema.address2dVersions.id, lastId),
+          sql`NOT EXISTS (
+            SELECT 1
+            FROM tempSeenAddressIds seen
+            WHERE seen.id = ${historySchema.address2dVersions.id}
+          )`,
+        ),
+      )
+      .orderBy(historySchema.address2dVersions.id)
+      .limit(500)
+      .all()) as Array<{ id: string }>
+
+    if (rows.length === 0) {
+      break
+    }
+
+    const pageMissingIds = rows.map(row => row.id)
+
+    await closeMissingCurrentAddressRows(
+      historyDb,
+      snapshotId,
+      cohortKey,
+      pageMissingIds,
+    )
+    missingIds.push(...pageMissingIds)
+
+    const lastRow = rows.at(-1)
+
+    if (!lastRow) {
+      break
+    }
+
+    lastId = lastRow.id
   }
 
   return {
