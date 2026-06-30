@@ -2,7 +2,13 @@ import { describe, expect, test } from 'bun:test'
 
 import type { PreparedUploadResult } from '@repo/core'
 
-import { formatPlan } from './display.ts'
+import {
+  formatPlan,
+  formatSchemaCheck,
+  formatSummary,
+  formatUploadResult,
+} from './display.ts'
+import type { UploadTarget } from './options.ts'
 
 const previewResult: PreparedUploadResult = {
   plan: {
@@ -40,15 +46,65 @@ const previewResult: PreparedUploadResult = {
   },
 }
 
+const localTarget: UploadTarget = {
+  remote: false,
+  environment: 'dev',
+}
+
 describe('formatPlan', () => {
-  test('includes source before sourceVersion and renders provenance for both', () => {
+  test('renders the compact upload plan', () => {
     const lines = formatPlan(previewResult)
 
-    expect(lines[2]).toContain('source')
-    expect(lines[2]).toContain('overture')
+    expect(lines).toHaveLength(4)
+    expect(lines[0]).toContain('dataset')
+    expect(lines[0]).toContain('hk-division')
+    expect(lines[1]).toContain('release')
+    expect(lines[1]).toContain('overture')
+    expect(lines[1]).toContain('2025-09-24.0')
+    expect(lines[2]).toContain('cohortKey')
     expect(lines[2]).toContain('path')
-    expect(lines[3]).toContain('sourceVersion')
-    expect(lines[3]).toContain('2025-09-24.0')
-    expect(lines[3]).toContain('flag --source-version')
+    expect(lines[3]).toContain('rows')
+    expect(lines[3]).toContain('1810')
+  })
+})
+
+describe('formatSummary', () => {
+  test('renders target as environment and Harbour API only', () => {
+    const lines = formatSummary(previewResult, localTarget)
+
+    expect(lines[0]).toContain('target')
+    expect(lines[0]).toContain('dev')
+    expect(lines[0]).toContain('http://localhost:8788')
+    expect(lines.join('\n')).not.toContain('sourceVersion')
+    expect(lines.join('\n')).not.toContain('harbourApi')
+  })
+})
+
+describe('formatUploadResult', () => {
+  test('uses the requested field order and sourceSchemaVersion label', () => {
+    const lines = formatUploadResult(previewResult, {
+      datasetCode: 'ds-hk-overture-division',
+      rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
+      releaseId: 'release-123',
+      datasetId: 'dataset-456',
+      sourceSchemaVersion: '1.12.0',
+      status: 'staged',
+    })
+
+    expect(lines[0]).toContain('status')
+    expect(lines[1]).toContain('R2')
+    expect(lines[2]).toContain('dataset')
+    expect(lines[3]).toContain('datasetId')
+    expect(lines[4]).toContain('release')
+    expect(lines[5]).toContain('releaseId')
+    expect(lines[6]).toContain('sourceSchemaVersion')
+  })
+})
+
+describe('formatSchemaCheck', () => {
+  test('renders a compact status line', () => {
+    expect(formatSchemaCheck('passed')).toContain('Schema Check')
+    expect(formatSchemaCheck('failed')).toContain('Schema Check')
+    expect(formatSchemaCheck('skipped')).toContain('Schema Check')
   })
 })
