@@ -21,6 +21,7 @@ import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquet
 import {
   cloneDivisionCurrentSnapshot,
   closeCurrentDivisionVersions,
+  countDivisionCurrentSnapshotI18nRows,
   countDivisionCurrentSnapshotRows,
   deleteMissingCurrentDivisions,
   deleteStaleDivisionCurrentRows,
@@ -181,10 +182,27 @@ export async function processDivisionDataset(
       'countDivisionCurrentSnapshotRowsMs',
       () => countDivisionCurrentSnapshotRows(currentRepoDb, activeSnapshot.id),
     )
+    const activeSnapshotI18nRowCount = await timings.measure(
+      'countDivisionCurrentSnapshotI18nRowsMs',
+      () => countDivisionCurrentSnapshotI18nRows(currentRepoDb, activeSnapshot.id),
+    )
+    const expectedI18nRowCount = [...currentRows.values()].reduce(
+      (total, row) => total + row.localizedRows.length,
+      0,
+    )
 
     if (currentRows.size > 0 && activeSnapshotRowCount !== currentRows.size) {
       throw new Error(
         `Active division snapshot ${activeSnapshot.id} is incomplete in current storage: expected ${currentRows.size} rows, found ${activeSnapshotRowCount}.`,
+      )
+    }
+
+    if (
+      expectedI18nRowCount > 0 &&
+      activeSnapshotI18nRowCount !== expectedI18nRowCount
+    ) {
+      throw new Error(
+        `Active division snapshot ${activeSnapshot.id} is incomplete in current i18n storage: expected ${expectedI18nRowCount} rows, found ${activeSnapshotI18nRowCount}.`,
       )
     }
 

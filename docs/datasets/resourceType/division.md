@@ -155,7 +155,7 @@ Implemented Atlas routes now include:
 
 ### Live runtime dependency on division data
 
-Even without a standalone `/divisions` route, the division resourceType is already a live dependency:
+The standalone Atlas divisions routes are public now, and the division resourceType is also a live dependency elsewhere:
 
 - place detail responses join `placesDivision` to `divisions` and `divisionsI18n`
 - place search FTS uses `divisionsI18n.name` as part of `divisionText`
