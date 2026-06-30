@@ -1,10 +1,10 @@
 import type { ReleaseStatus } from '@repo/db'
 
-export const SUPPORTED_THEMES = ['addresses', 'divisions', 'places'] as const
-export const SUPPORTED_TYPES = ['address', 'division', 'place'] as const
+export const resourceThemes = ['divisions', 'addresses', 'places', 'streets'] as const
+export const resourceTypes = ['division', 'address', 'place', 'street'] as const
 
-export type SupportedTheme = (typeof SUPPORTED_THEMES)[number]
-export type SupportedType = (typeof SUPPORTED_TYPES)[number]
+export type ResourceTheme = (typeof resourceThemes)[number]
+export type ResourceType = (typeof resourceTypes)[number]
 export type RegionCode = 'hk' | 'mo'
 
 export type DatasetRecord = {
@@ -58,8 +58,8 @@ export type UploadPlan = {
   regionCode: RegionCode
   cohortKey: string
   shardYear?: string
-  theme: SupportedTheme
-  type: SupportedType
+  theme: ResourceTheme
+  type: ResourceType
   source: string
   sourceVersion: string
   filePath: string
@@ -109,6 +109,7 @@ export type RegisterUploadResult = {
 }
 
 export type DatasetProcessingMessage = {
+  jobType?: 'processDataset'
   datasetId: string
   datasetCode?: string
   releaseId?: string
@@ -119,6 +120,16 @@ export type DatasetProcessingMessage = {
   cohortKey: string
   source: string
   sourceVersion: string
-  theme: SupportedTheme
-  type: SupportedType
+  theme: ResourceTheme
+  type: ResourceType
+  skipSnapshotCleanup?: boolean
 }
+
+export type SnapshotCleanupMessage = {
+  jobType: 'cleanupCurrentSnapshots'
+  requestedAt: string
+  resourceType?: ResourceType
+  snapshotIds?: string[]
+}
+
+export type HarbourJobMessage = DatasetProcessingMessage | SnapshotCleanupMessage
