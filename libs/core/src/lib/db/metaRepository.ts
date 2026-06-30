@@ -243,24 +243,35 @@ export async function getLatestDatasetForRegionSourceType(
   source: string,
   type: ResourceType,
 ): Promise<LatestDatasetLookup> {
+  const datasetRows = (await db
+    .select(releaseRecordSelection)
+    .from(metaReleases)
+    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+    .where(
+      and(
+        eq(metaDatasets.regionCode, regionCode),
+        eq(metaPublishers.code, source),
+        eq(metaDatasets.type, type),
+        ne(metaReleases.status, 'failed'),
+        ne(metaReleases.status, 'uploading'),
+      ),
+    )
+    .orderBy(desc(metaReleases.ingestedAt))
+    .all()) as unknown as DatasetRecord[]
   const latestDataset =
-    ((await db
-      .select(releaseRecordSelection)
-      .from(metaReleases)
-      .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
-      .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-      .where(
-        and(
-          eq(metaDatasets.regionCode, regionCode),
-          eq(metaPublishers.code, source),
-          eq(metaDatasets.type, type),
-          ne(metaReleases.status, 'failed'),
-          ne(metaReleases.status, 'uploading'),
-        ),
+    datasetRows.slice().sort((left, right) => {
+      const versionComparison = compareReleaseVersions(
+        right.sourceVersion,
+        left.sourceVersion,
       )
-      .orderBy(desc(metaReleases.sourceVersion), desc(metaReleases.ingestedAt))
-      .limit(1)
-      .get()) as DatasetRecord | undefined) ?? null
+
+      if (versionComparison !== 0) {
+        return versionComparison
+      }
+
+      return right.ingestedAt.localeCompare(left.ingestedAt)
+    })[0] ?? null
 
   return {
     latestDataset,
@@ -1844,7 +1855,11 @@ export async function listCurrentSnapshotCleanupCandidates(
     snapshotIds?: string[]
   } = {},
 ) {
-  const snapshotConditions = [ne(metaSnapshots.status, 'archived')]
+  if (options.snapshotIds && options.snapshotIds.length === 0) {
+    return []
+  }
+
+  const snapshotConditions = [eq(metaSnapshots.status, 'published')]
 
   if (options.resourceType) {
     snapshotConditions.push(eq(metaSnapshots.resourceType, options.resourceType))
