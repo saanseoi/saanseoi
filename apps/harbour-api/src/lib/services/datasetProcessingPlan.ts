@@ -8,28 +8,41 @@ export type DatasetProcessingQueue = {
   ): Promise<unknown>
 }
 
+export type DatasetProcessingPlanOptions = {
+  forceSerialAddressEnqueue?: boolean
+  useAddressContinuation?: boolean
+}
+
 export const ADDRESS_PROCESSING_CHUNK_ROW_COUNT = 1024
 
 const QUEUE_SEND_BATCH_SIZE = 100
+const SERIAL_SEND_PROGRESS_INTERVAL = 25
 
 export async function enqueueDatasetProcessingPlan(
   queue: DatasetProcessingQueue,
   message: DatasetProcessingMessage,
   rowCount: number,
+  options: DatasetProcessingPlanOptions = {},
 ) {
-  const messages = buildDatasetProcessingPlanMessages(message, rowCount)
+  const messages = buildDatasetProcessingPlanMessages(message, rowCount, options)
   const summary = summarizeDatasetProcessingPlan(message, messages, rowCount)
+  const useSendBatch =
+    Boolean(queue.sendBatch) &&
+    !options.useAddressContinuation &&
+    !(message.type === 'address' && options.forceSerialAddressEnqueue)
 
   console.info(
     JSON.stringify({
       ...summary,
+      forceSerialAddressEnqueue: Boolean(options.forceSerialAddressEnqueue),
       phase: 'enqueueDatasetProcessingPlan',
       status: 'started',
-      usingSendBatch: Boolean(queue.sendBatch),
+      useAddressContinuation: Boolean(options.useAddressContinuation),
+      usingSendBatch: useSendBatch,
     }),
   )
 
-  if (queue.sendBatch) {
+  if (useSendBatch && queue.sendBatch) {
     for (let index = 0; index < messages.length; index += QUEUE_SEND_BATCH_SIZE) {
       const batchMessages = messages.slice(index, index + QUEUE_SEND_BATCH_SIZE)
 
@@ -60,14 +73,38 @@ export async function enqueueDatasetProcessingPlan(
     return
   }
 
-  for (const planMessage of messages) {
+  for (let index = 0; index < messages.length; index += 1) {
+    const planMessage = messages[index]
+
+    if (!planMessage) {
+      continue
+    }
+
     await queue.send(planMessage)
+
+    if (
+      messages.length > 1 &&
+      ((index + 1) % SERIAL_SEND_PROGRESS_INTERVAL === 0 ||
+        index + 1 === messages.length)
+    ) {
+      console.info(
+        JSON.stringify({
+          ...summary,
+          messageEnd: index + 1,
+          messageStart: Math.max(0, index + 1 - SERIAL_SEND_PROGRESS_INTERVAL),
+          phase: 'enqueueDatasetProcessingPlan',
+          status: 'serialProgress',
+        }),
+      )
+    }
   }
   console.info(
     JSON.stringify({
       ...summary,
+      forceSerialAddressEnqueue: Boolean(options.forceSerialAddressEnqueue),
       phase: 'enqueueDatasetProcessingPlan',
       status: 'completed',
+      useAddressContinuation: Boolean(options.useAddressContinuation),
       usingSendBatch: false,
     }),
   )
@@ -76,12 +113,28 @@ export async function enqueueDatasetProcessingPlan(
 export function buildDatasetProcessingPlanMessages(
   message: DatasetProcessingMessage,
   rowCount: number,
+  options: DatasetProcessingPlanOptions = {},
 ) {
   if (message.type !== 'address' || rowCount <= 0) {
     return [message]
   }
 
   const processingRunStartedAt = new Date().toISOString()
+
+  if (options.useAddressContinuation) {
+    return [
+      {
+        ...message,
+        addressStage: 'normalize',
+        chunkSize: ADDRESS_PROCESSING_CHUNK_ROW_COUNT,
+        processingRunStartedAt,
+        rowStart: 0,
+        rowEnd: Math.min(ADDRESS_PROCESSING_CHUNK_ROW_COUNT, rowCount),
+        totalRows: rowCount,
+      } satisfies DatasetProcessingMessage,
+    ]
+  }
+
   const messages: DatasetProcessingMessage[] = []
 
   for (

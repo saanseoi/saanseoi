@@ -29,9 +29,13 @@ import type {
 } from '@repo/core'
 import {
   enqueueDatasetProcessingPlan,
+  type DatasetProcessingPlanOptions,
   type DatasetProcessingQueue,
 } from './datasetProcessingPlan'
-export type { DatasetProcessingQueue } from './datasetProcessingPlan'
+export type {
+  DatasetProcessingPlanOptions,
+  DatasetProcessingQueue,
+} from './datasetProcessingPlan'
 
 type HarbourObjectMetadata = {
   customMetadata?: Record<string, string>
@@ -115,6 +119,7 @@ export type UploadSigningEnv = {
 }
 
 type UploadSessionDependencies = {
+  processingPlanOptions?: DatasetProcessingPlanOptions
   inspectParquet?: typeof inspectParquet
 }
 
@@ -269,7 +274,12 @@ export async function handleFinalizeUploadRequest(
     ...(request.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
   })
 
-  await enqueueDatasetProcessingPlan(queue, processingMessage, inspection.rowCount)
+  await enqueueDatasetProcessingPlan(
+    queue,
+    processingMessage,
+    inspection.rowCount,
+    dependencies.processingPlanOptions,
+  )
 
   return finalized
 }
@@ -278,6 +288,7 @@ export async function handleRequeueUploadRequest(
   db: HarbourReadableDb & HarbourWritableDb,
   queue: DatasetProcessingQueue,
   request: RequeueUploadRequest,
+  processingPlanOptions: DatasetProcessingPlanOptions = {},
 ): Promise<RequeueUploadResult> {
   const dataset = await getDatasetRecordByReleaseId(db, request.releaseId)
 
@@ -337,7 +348,12 @@ export async function handleRequeueUploadRequest(
   )
 
   try {
-    await enqueueDatasetProcessingPlan(queue, processingMessage, rowCount)
+    await enqueueDatasetProcessingPlan(
+      queue,
+      processingMessage,
+      rowCount,
+      processingPlanOptions,
+    )
     await updateDatasetStatus(db, dataset.releaseId, 'staged')
   } catch (error) {
     await upsertIngestRunStatus(
