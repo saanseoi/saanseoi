@@ -90,10 +90,10 @@ Examples:
       "en": {
         "formattedAddress": "10 Nathan Road"
       },
-      "zhHant": {
+      "zh-hant": {
         "formattedAddress": "彌敦道10號"
       },
-      "zhHans": {
+      "zh-hans": {
         "formattedAddress": "弥敦道10号"
       }
     }
@@ -123,9 +123,11 @@ Recommendation:
 
 Recommended query parameters:
 
-- `?locales=en,zhHant`
+- `?locales=en,zh-hant`
   - limits which locale blocks appear under `attributes.i18n`
-- `?locales=none`
+- `?locales=*`
+  - returns all stored locale blocks
+- `?locales=null`
   - suppresses `attributes.i18n`
 - profile defaults may also imply locale inclusion rules
 
@@ -205,10 +207,10 @@ Examples:
 - `address.attributes.geometry`
 - `address.attributes.streetNumber`
 - `address.attributes.i18n.en.formattedAddress`
-- `address.attributes.i18n.zhHant.formattedAddress`
+- `address.attributes.i18n.zh-hant.formattedAddress`
 - `address.relationships.street`
 - `place.attributes.i18n.en.name`
-- `place.attributes.i18n.zhHans.name`
+- `place.attributes.i18n.zh-hans.name`
 - `place.relationships.place-divisions`
 
 ### Provenance Scope
@@ -221,7 +223,7 @@ That means:
 
 - `address.attributes.geometry`
   - can point to dataset `ds-hk-overture-address`
-- `address.attributes.i18n.zhHant.formattedAddress`
+- `address.attributes.i18n.zh-hant.formattedAddress`
   - can point to dataset `ds-hk-hkgov-als-address`
 - `place.attributes.i18n.en.name`
   - can point to multiple datasets if the field is merged, enriched, or has fallback rules
@@ -250,7 +252,7 @@ Examples:
   - `address.id`
   - `address.attributes.geometry`
   - `address.attributes.i18n.en.formattedAddress`
-  - `address.attributes.i18n.zhHant.formattedAddress`
+  - `address.attributes.i18n.zh-hant.formattedAddress`
   - `address.relationships.street`
 - `full`
   - all contract fields for that resource type

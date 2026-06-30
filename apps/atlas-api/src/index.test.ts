@@ -128,10 +128,10 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/divisions rejects non-contract locale aliases', async () => {
+  test('GET /v0/divisions rejects invalid locale syntax', async () => {
     const { env } = createEnv()
     const res = await app.fetch(
-      new Request('http://localhost/v0/divisions?locales=zh-hk'),
+      new Request('http://localhost/v0/divisions?locales=en,zh-hk-extra-piece'),
       env,
     )
     const body = (await res.json()) as {
@@ -145,6 +145,21 @@ describe('atlas-api', () => {
     expect(body.error).toBe('validation_error')
     expect(body.target).toBe('query')
     expect(body.details.some(detail => detail.path === 'locales')).toBe(true)
+  })
+
+  test('GET /v0/divisions accepts arbitrary valid locale tags and wildcard controls', async () => {
+    const { env } = createEnv()
+
+    for (const locales of ['fr-ca', 'EN,ZH_HANT', '*', 'null']) {
+      const res = await app.fetch(
+        new Request(
+          `http://localhost/v0/divisions?locales=${encodeURIComponent(locales)}`,
+        ),
+        env,
+      )
+
+      expect(res.status).toBe(503)
+    }
   })
 
   test('GET /openapi documents the versioned division endpoints', async () => {

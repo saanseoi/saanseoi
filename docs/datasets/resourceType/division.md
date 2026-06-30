@@ -75,9 +75,10 @@ Because the division resourceType currently has only one source, canonical compo
 Locale storage behavior:
 
 - current/history snapshots preserve normalized source locale rows such as `zh-hk` or `zh-hans`
-- they also materialize canonical API locale rows for `en`, `zhHant`, and `zhHans`
-- those canonical rows are preferred by Atlas default profiles
-- the `full` API profile may expose both canonical and non-standard locale keys
+- they also materialize canonical API locale rows for `en`, `zh-hant`, and `zh-hans`
+- Atlas `compact`, `default`, and `map` responses default to the same locale filter as `en,zh-hant`
+- the Atlas `full` profile defaults to all stored locales, equivalent to `locales=*`
+- an explicit `locales` filter overrides profile defaults and only returns matching locale keys
 
 ## Change Detection and Versioning
 

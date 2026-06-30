@@ -459,7 +459,7 @@ describe('publishReleaseArtifacts', () => {
           sourceFieldPath: 'names.common.en',
         },
         {
-          apiField: 'division.attributes.i18n.zhHant.name',
+          apiField: 'division.attributes.i18n.zh-hant.name',
           sourceFieldPath: 'names.common.zh-hk',
         },
         {
