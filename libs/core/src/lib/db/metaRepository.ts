@@ -87,9 +87,24 @@ async function resolveOvertureSourceSchemaVersionFromCatalog(sourceVersion: stri
     return null
   }
 
+  const timeoutMs = 5_000
+  const timeoutSignal =
+    typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+      ? AbortSignal.timeout(timeoutMs)
+      : null
+  const timeoutController =
+    timeoutSignal === null && typeof AbortController === 'function'
+      ? new AbortController()
+      : null
+  const timeoutId =
+    timeoutController !== null
+      ? setTimeout(() => timeoutController.abort(), timeoutMs)
+      : null
+
   try {
     const response = await fetch(
       `https://stac.overturemaps.org/${sourceVersion}/catalog.json`,
+      { signal: timeoutSignal ?? timeoutController?.signal },
     )
 
     if (!response.ok) {
@@ -109,6 +124,10 @@ async function resolveOvertureSourceSchemaVersionFromCatalog(sourceVersion: stri
     return schemaVersion?.trim() || null
   } catch {
     return null
+  } finally {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId)
+    }
   }
 }
 
