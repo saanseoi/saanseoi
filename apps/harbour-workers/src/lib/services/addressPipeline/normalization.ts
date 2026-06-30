@@ -147,7 +147,7 @@ export function dedupeNormalizedAddressRows(rows: NormalizedAddressRecord[]) {
   ]
 }
 
-export function dedupeAddressI18nRows<T extends AddressI18nPayload>(
+export function dedupeAddressI18nRows<T extends { addressId: string; locale: string }>(
   rows: T[],
   fallbackAddressId?: string,
 ) {
