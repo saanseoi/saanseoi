@@ -54,7 +54,7 @@ export const initialResolverCodes: ResolverCode[] = [
   'normalize_whitespace',
 ]
 
-type Locale = 'en' | 'zhHant' | 'zhHans'
+type Locale = 'en' | 'zh-hant' | 'zh-hans'
 
 type VersionedFixture<T> = T & {
   versionHash: string
