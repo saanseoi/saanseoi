@@ -20,7 +20,6 @@ import { resourceThemes, resourceTypes } from '@repo/core'
 import type {
   DatasetRecord,
   DatasetProcessingMessage,
-  HarbourJobMessage,
   ParquetInspection,
   RegionCode,
   RegisterUploadResult,
@@ -28,6 +27,11 @@ import type {
   ResourceTheme,
   ResourceType,
 } from '@repo/core'
+import {
+  enqueueDatasetProcessingPlan,
+  type DatasetProcessingQueue,
+} from './datasetProcessingPlan'
+export type { DatasetProcessingQueue } from './datasetProcessingPlan'
 
 type HarbourObjectMetadata = {
   customMetadata?: Record<string, string>
@@ -110,21 +114,11 @@ export type UploadSigningEnv = {
   R2_RAW_SECRET_ACCESS_KEY: string
 }
 
-export type DatasetProcessingQueue = {
-  send(message: HarbourJobMessage, options?: QueueSendOptions): Promise<unknown>
-  sendBatch?(
-    messages: Iterable<MessageSendRequest<HarbourJobMessage>>,
-    options?: QueueSendBatchOptions,
-  ): Promise<unknown>
-}
-
 type UploadSessionDependencies = {
   inspectParquet?: typeof inspectParquet
 }
 
 const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
-const ADDRESS_CHUNK_ROW_COUNT = 1024
-const QUEUE_SEND_BATCH_SIZE = 100
 
 export async function handleSignUploadRequest(
   db: HarbourReadableDb & HarbourWritableDb,
@@ -366,56 +360,6 @@ export async function handleRequeueUploadRequest(
     rowCount,
     status: 'queued',
   }
-}
-
-async function enqueueDatasetProcessingPlan(
-  queue: DatasetProcessingQueue,
-  message: DatasetProcessingMessage,
-  rowCount: number,
-) {
-  const messages = buildDatasetProcessingPlanMessages(message, rowCount)
-
-  if (queue.sendBatch) {
-    for (let index = 0; index < messages.length; index += QUEUE_SEND_BATCH_SIZE) {
-      await queue.sendBatch(
-        messages.slice(index, index + QUEUE_SEND_BATCH_SIZE).map(body => ({
-          body,
-        })),
-      )
-    }
-    return
-  }
-
-  for (const planMessage of messages) {
-    await queue.send(planMessage)
-  }
-}
-
-function buildDatasetProcessingPlanMessages(
-  message: DatasetProcessingMessage,
-  rowCount: number,
-) {
-  if (message.type !== 'address' || rowCount <= 0) {
-    return [message]
-  }
-
-  const processingRunStartedAt = new Date().toISOString()
-  const messages: DatasetProcessingMessage[] = []
-
-  for (let rowStart = 0; rowStart < rowCount; rowStart += ADDRESS_CHUNK_ROW_COUNT) {
-    messages.push({
-      ...message,
-      addressStage: 'normalize',
-      chunkSize: ADDRESS_CHUNK_ROW_COUNT,
-      preplannedAddressChunks: true,
-      processingRunStartedAt,
-      rowStart,
-      rowEnd: Math.min(rowStart + ADDRESS_CHUNK_ROW_COUNT, rowCount),
-      totalRows: rowCount,
-    })
-  }
-
-  return messages
 }
 
 async function getStageDatasetRowCount(
