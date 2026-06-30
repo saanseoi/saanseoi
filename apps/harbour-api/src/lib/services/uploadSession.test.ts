@@ -163,13 +163,13 @@ describe('upload session flow', () => {
       plan: {
         shardYear: '2025',
         cohortKey: '2026-05',
-        sourceVersion: '2026-05-24.0',
+        sourceVersion: '2026-05-20.0',
       },
       schemaVersionId: 'overture-division-v2025-09-24.0',
     })
 
     expect(signResult.datasetId).toBe('overture-hk-division')
-    expect(signResult.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
+    expect(signResult.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
     expect(signResult.uploadUrl).toContain('X-Amz-Algorithm=AWS4-HMAC-SHA256')
 
     await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
@@ -189,14 +189,14 @@ describe('upload session flow', () => {
       .query(
         'SELECT code AS datasetId, status, rawObjectKey, originalFileName FROM releases WHERE code = ?',
       )
-      .get('overture-hk-2026-05-24.0-division') as {
+      .get('overture-hk-2026-05-20.0-division') as {
       datasetId: string
       status: string
       rawObjectKey: string
       originalFileName: string
     } | null
 
-    expect(finalizeResult.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
+    expect(finalizeResult.plan.datasetId).toBe('overture-hk-2026-05-20.0-division')
     expect(inspectParquetMock).toHaveBeenCalledTimes(1)
     expect(dataset?.status).toBe('staged')
     expect(dataset?.rawObjectKey).toBe(signResult.rawObjectKey)
@@ -205,14 +205,14 @@ describe('upload session flow', () => {
       {
         datasetId: 'overture-hk-division',
         datasetCode: 'ds-hk-overture-division',
-        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
-        releaseCode: 'overture-hk-2026-05-24.0-division',
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+        releaseCode: 'overture-hk-2026-05-20.0-division',
         releaseId: signResult.releaseId,
         regionCode: 'hk',
         shardYear: '2025',
         cohortKey: '2026-05',
         source: 'overture',
-        sourceVersion: '2026-05-24.0',
+        sourceVersion: '2026-05-20.0',
         theme: 'divisions',
         type: 'division',
       },
@@ -222,7 +222,7 @@ describe('upload session flow', () => {
     ).toBe('ds-hk-overture-division')
     expect(
       bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.releaseCode,
-    ).toBe('overture-hk-2026-05-24.0-division')
+    ).toBe('overture-hk-2026-05-20.0-division')
     expect(
       bucket.objects.get(signResult.rawObjectKey)?.customMetadata?.originalFileName,
     ).toBe('overture-hk-division.parquet')
@@ -242,7 +242,7 @@ describe('upload session flow', () => {
       plan: {
         shardYear: '2026',
         cohortKey: '2026-05',
-        sourceVersion: '2026-05-24.0',
+        sourceVersion: '2026-05-20.0',
       },
       schemaVersionId: 'overture-division-v2025-09-24.0',
     }
@@ -285,7 +285,7 @@ describe('upload session flow', () => {
       plan: {
         shardYear: '2026',
         cohortKey: '2026-05',
-        sourceVersion: '2026-05-24.0',
+        sourceVersion: '2026-05-20.0',
       },
       schemaVersionId: 'overture-division-v2025-09-24.0',
     })
@@ -320,7 +320,7 @@ describe('upload session flow', () => {
       status: string
     } | null
 
-    expect(requeued.releaseCode).toBe('overture-hk-2026-05-24.0-division')
+    expect(requeued.releaseCode).toBe('overture-hk-2026-05-20.0-division')
     expect(requeued.rowCount).toBe(3)
     expect(requeued.status).toBe('queued')
     expect(processRun).toMatchObject({
@@ -334,14 +334,14 @@ describe('upload session flow', () => {
       {
         datasetId: 'overture-hk-division',
         datasetCode: 'ds-hk-overture-division',
-        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
-        releaseCode: 'overture-hk-2026-05-24.0-division',
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+        releaseCode: 'overture-hk-2026-05-20.0-division',
         releaseId: signResult.releaseId,
         regionCode: 'hk',
         shardYear: '2026',
         cohortKey: '2026-05',
         source: 'overture',
-        sourceVersion: '2026-05-24.0',
+        sourceVersion: '2026-05-20.0',
         theme: 'divisions',
         type: 'division',
       },
@@ -363,7 +363,7 @@ describe('upload session flow', () => {
       plan: {
         shardYear: '2026',
         cohortKey: '2026-05',
-        sourceVersion: '2026-05-24.0',
+        sourceVersion: '2026-05-20.0',
       },
       schemaVersionId: 'overture-division-v2025-09-24.0',
     })
@@ -433,7 +433,7 @@ describe('upload session flow', () => {
       status: string
     } | null
 
-    expect(requeued.releaseCode).toBe('overture-hk-2026-05-24.0-division')
+    expect(requeued.releaseCode).toBe('overture-hk-2026-05-20.0-division')
     expect(requeued.rowCount).toBe(3)
     expect(requeued.status).toBe('queued')
     expect(processRun).toMatchObject({
@@ -447,14 +447,14 @@ describe('upload session flow', () => {
       {
         datasetId: 'overture-hk-division',
         datasetCode: 'ds-hk-overture-division',
-        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
-        releaseCode: 'overture-hk-2026-05-24.0-division',
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+        releaseCode: 'overture-hk-2026-05-20.0-division',
         releaseId: signResult.releaseId,
         regionCode: 'hk',
         shardYear: '2026',
         cohortKey: '2026-05',
         source: 'overture',
-        sourceVersion: '2026-05-24.0',
+        sourceVersion: '2026-05-20.0',
         theme: 'divisions',
         type: 'division',
       },
@@ -476,7 +476,7 @@ describe('upload session flow', () => {
       plan: {
         shardYear: '2026',
         cohortKey: '2026-05',
-        sourceVersion: '2026-05-24.0',
+        sourceVersion: '2026-05-20.0',
       },
       schemaVersionId: 'overture-division-v2025-09-24.0',
     })

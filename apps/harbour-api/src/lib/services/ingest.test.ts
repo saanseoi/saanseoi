@@ -131,7 +131,7 @@ describe('direct upload flow', () => {
     formData.set('file', file)
     formData.set('shardYear', '2026')
     formData.set('cohortKey', '2026-05')
-    formData.set('sourceVersion', '2026-05-24.0')
+    formData.set('sourceVersion', '2026-05-20.0')
 
     const result = await handleUploadRequest(db, bucket, queue, formData)
 
@@ -145,26 +145,26 @@ describe('direct upload flow', () => {
       .query(
         'SELECT ir.phase, ir.status FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ? ORDER BY ir.startedAt ASC',
       )
-      .all('overture-hk-2026-05-24.0-division') as Array<{
+      .all('overture-hk-2026-05-20.0-division') as Array<{
       phase: string
       status: string
     }>
 
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
+    expect(result.plan.datasetId).toBe('overture-hk-2026-05-20.0-division')
     expect(queuedMessages).toEqual([
       {
         datasetId: 'overture-hk-division',
         datasetCode: 'ds-hk-overture-division',
-        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
-        releaseCode: 'overture-hk-2026-05-24.0-division',
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+        releaseCode: 'overture-hk-2026-05-20.0-division',
         releaseId: result.releaseId,
         regionCode: 'hk',
         shardYear: '2026',
         cohortKey: '2026-05',
         source: 'overture',
-        sourceVersion: '2026-05-24.0',
+        sourceVersion: '2026-05-20.0',
         theme: 'divisions',
         type: 'division',
       },
@@ -192,7 +192,7 @@ describe('direct upload flow', () => {
       filePath: 'overture-hk-division.parquet',
       shardYear: '2026',
       cohortKey: '2026-05',
-      sourceVersion: '2026-05-24.0',
+      sourceVersion: '2026-05-20.0',
       inspection: fixtureInspection,
     })
     const file = new File(
@@ -208,12 +208,12 @@ describe('direct upload flow', () => {
     formData.set('force', 'true')
     formData.set('shardYear', '2026')
     formData.set('cohortKey', '2026-05')
-    formData.set('sourceVersion', '2026-05-24.0')
+    formData.set('sourceVersion', '2026-05-20.0')
 
     const result = await handleUploadRequest(db, bucket, queue, formData)
     const dataset = sqlite
       .query('SELECT id, status FROM releases WHERE code = ?')
-      .get('overture-hk-2026-05-24.0-division') as {
+      .get('overture-hk-2026-05-20.0-division') as {
       id: string
       status: string
     } | null
