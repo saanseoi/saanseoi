@@ -2265,40 +2265,10 @@ describe('processDivisionDataset', () => {
     const db = createLocalHarbourDb(sqlite)
     const previousDatasetId = 'overture-hk-2026-05-24.0-division'
     const nextDatasetId = 'overture-hk-2026-06-24.0-division'
+    try {
+      seedDivisionRelease(sqlite, previousDatasetId, '2026-05', 'published')
 
-    seedDivisionRelease(sqlite, previousDatasetId, '2026-05', 'published')
-
-    await processDivisionDataset(
-      db as never,
-      db as never,
-      db as never,
-      {
-        async head() {
-          return { size: 1 }
-        },
-        async get() {
-          return {
-            async arrayBuffer() {
-              return new ArrayBuffer(0)
-            },
-          }
-        },
-      },
-      createDivisionMessage(previousDatasetId, '2026-05', '2026-05-24.0'),
-    )
-    publishSnapshotForRelease(sqlite, previousDatasetId)
-
-    const activeSnapshotId = getSnapshotId(sqlite, previousDatasetId)
-
-    sqlite
-      .query('DELETE FROM divisionsI18n WHERE snapshotId = ?1')
-      .run(activeSnapshotId)
-    sqlite.query('DELETE FROM divisions WHERE snapshotId = ?1').run(activeSnapshotId)
-
-    seedDivisionRelease(sqlite, nextDatasetId, '2026-06', 'staged')
-
-    await expect(
-      processDivisionDataset(
+      await processDivisionDataset(
         db as never,
         db as never,
         db as never,
@@ -2314,13 +2284,114 @@ describe('processDivisionDataset', () => {
             }
           },
         },
-        createDivisionMessage(nextDatasetId, '2026-06', '2026-06-24.0'),
-      ),
-    ).rejects.toThrow(
-      `Active division snapshot ${activeSnapshotId} is incomplete in current storage: expected 2 rows, found 0.`,
-    )
+        createDivisionMessage(previousDatasetId, '2026-05', '2026-05-24.0'),
+      )
+      publishSnapshotForRelease(sqlite, previousDatasetId)
 
-    sqlite.close()
+      const activeSnapshotId = getSnapshotId(sqlite, previousDatasetId)
+
+      sqlite
+        .query('DELETE FROM divisionsI18n WHERE snapshotId = ?1')
+        .run(activeSnapshotId)
+      sqlite.query('DELETE FROM divisions WHERE snapshotId = ?1').run(activeSnapshotId)
+
+      seedDivisionRelease(sqlite, nextDatasetId, '2026-06', 'staged')
+
+      await expect(
+        processDivisionDataset(
+          db as never,
+          db as never,
+          db as never,
+          {
+            async head() {
+              return { size: 1 }
+            },
+            async get() {
+              return {
+                async arrayBuffer() {
+                  return new ArrayBuffer(0)
+                },
+              }
+            },
+          },
+          createDivisionMessage(nextDatasetId, '2026-06', '2026-06-24.0'),
+        ),
+      ).rejects.toThrow(
+        `Active division snapshot ${activeSnapshotId} is incomplete in current storage: expected 2 rows, found 0.`,
+      )
+    } finally {
+      sqlite.close()
+    }
+  })
+
+  test('fails when the active division snapshot i18n rows are incomplete in current storage', async () => {
+    parquetBatches = structuredClone(baseParquetBatches)
+
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'division-incomplete-active-snapshot-i18n.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const previousDatasetId = 'overture-hk-2026-05-24.0-division'
+    const nextDatasetId = 'overture-hk-2026-06-24.0-division'
+
+    try {
+      seedDivisionRelease(sqlite, previousDatasetId, '2026-05', 'published')
+
+      await processDivisionDataset(
+        db as never,
+        db as never,
+        db as never,
+        {
+          async head() {
+            return { size: 1 }
+          },
+          async get() {
+            return {
+              async arrayBuffer() {
+                return new ArrayBuffer(0)
+              },
+            }
+          },
+        },
+        createDivisionMessage(previousDatasetId, '2026-05', '2026-05-24.0'),
+      )
+      publishSnapshotForRelease(sqlite, previousDatasetId)
+
+      const activeSnapshotId = getSnapshotId(sqlite, previousDatasetId)
+
+      sqlite
+        .query(
+          "DELETE FROM divisionsI18n WHERE snapshotId = ?1 AND divisionId = 'division-hk-island' AND locale = 'en'",
+        )
+        .run(activeSnapshotId)
+
+      seedDivisionRelease(sqlite, nextDatasetId, '2026-06', 'staged')
+
+      await expect(
+        processDivisionDataset(
+          db as never,
+          db as never,
+          db as never,
+          {
+            async head() {
+              return { size: 1 }
+            },
+            async get() {
+              return {
+                async arrayBuffer() {
+                  return new ArrayBuffer(0)
+                },
+              }
+            },
+          },
+          createDivisionMessage(nextDatasetId, '2026-06', '2026-06-24.0'),
+        ),
+      ).rejects.toThrow(
+        `Active division snapshot ${activeSnapshotId} is incomplete in current i18n storage: expected 6 rows, found 5.`,
+      )
+    } finally {
+      sqlite.close()
+    }
   })
 
   test('recovers when current storage is populated but history has no current division rows', async () => {
