@@ -1,5 +1,3 @@
-export const apiFieldResourceTypes = ['address', 'division', 'street', 'place'] as const
-
 export const jsonApiResourceTypes = [
   'addresses',
   'divisions',
@@ -72,7 +70,6 @@ export const apiVersionStatuses = ['draft', 'current', 'deprecated', 'retired'] 
 
 export const apiReleaseSetStatuses = ['draft', 'current', 'archived'] as const
 export const apiFamilyTypes = ['addresses', 'divisions', 'places', 'streets'] as const
-export const snapshotResourceTypes = ['division', 'address', 'street', 'place'] as const
 export const snapshotStatuses = ['draft', 'published', 'archived'] as const
 export const apiReleaseSetSourceRoles = [
   'primary',
@@ -105,7 +102,6 @@ export const dataShardStatuses = [
   'retired',
 ] as const
 
-export type ApiFieldResourceType = (typeof apiFieldResourceTypes)[number]
 export type JsonApiResourceType = (typeof jsonApiResourceTypes)[number]
 export type ProfileName = (typeof profileNames)[number]
 export type ResolverCode = (typeof resolverCodes)[number]
@@ -120,7 +116,6 @@ export type IngestRunStatus = (typeof ingestRunStatuses)[number]
 export type ApiVersionStatus = (typeof apiVersionStatuses)[number]
 export type ApiReleaseSetStatus = (typeof apiReleaseSetStatuses)[number]
 export type ApiFamilyType = (typeof apiFamilyTypes)[number]
-export type SnapshotResourceType = (typeof snapshotResourceTypes)[number]
 export type SnapshotStatus = (typeof snapshotStatuses)[number]
 export type ApiReleaseSetSourceRole = (typeof apiReleaseSetSourceRoles)[number]
 export type HistoryVersionEntityType = (typeof historyVersionEntityTypes)[number]
