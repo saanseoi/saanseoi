@@ -14,9 +14,13 @@ import {
 import { resolveDataShardEnvironment } from '../shared'
 import type { HarbourWorkerBucket } from '../division'
 import { type PipelineArtifactBucket, readJsonArtifact } from '../pipelineArtifacts'
-import { loadDivisionLookupMaps } from './normalization'
+import { dedupeAddressI18nRows, loadDivisionLookupMaps } from './normalization'
 import { resolveAddressChunkSize } from './normalizeStage'
-import type { AddressPipelineMessage, ResolvedAddressChunkArtifact } from './types'
+import type {
+  AddressPipelineMessage,
+  ResolvedAddressChunkArtifact,
+  ResolvedAddressRecord,
+} from './types'
 import { addAddressPipelineStats } from './types'
 
 export async function writeAddressCurrentChunkStage(
@@ -31,13 +35,25 @@ export async function writeAddressCurrentChunkStage(
     throw new Error('Missing resolved address artifact key for current stage.')
   }
 
+  console.info(
+    JSON.stringify({
+      datasetId: message.datasetId,
+      phase: 'addressCurrentStage',
+      releaseId: message.releaseId ?? message.datasetId,
+      resolvedArtifactKey: pipelineMessage.resolvedArtifactKey,
+      rowEnd: message.rowEnd,
+      rowStart: message.rowStart,
+      status: 'readArtifactStarted',
+    }),
+  )
   const artifact = await readJsonArtifact<ResolvedAddressChunkArtifact>(
     bucket,
     pipelineMessage.resolvedArtifactKey,
   )
+  const artifactRows = dedupeResolvedAddressRows(artifact.rows)
   console.info(
     JSON.stringify({
-      changedRows: artifact.rows.filter(row => row.changed).length,
+      changedRows: artifactRows.filter(row => row.changed).length,
       datasetId: message.datasetId,
       phase: 'addressCurrentStage',
       releaseId: message.releaseId ?? message.datasetId,
@@ -83,7 +99,7 @@ export async function writeAddressCurrentChunkStage(
     )
   }
 
-  const changedRows = artifact.rows.filter(row => row.changed)
+  const changedRows = artifactRows.filter(row => row.changed)
   await upsertAddressCurrentStates(
     currentRepoDb,
     changedRows.map(row => row.base),
@@ -97,7 +113,7 @@ export async function writeAddressCurrentChunkStage(
   await touchAddressCurrentRows(
     currentRepoDb,
     versionInsertContext.snapshotId,
-    artifact.rows.map(row => row.addressId),
+    artifactRows.map(row => row.addressId),
     artifact.processingRunStartedAt,
   )
 
@@ -161,4 +177,18 @@ export async function writeAddressCurrentChunkStage(
     rowEnd: artifact.rowEnd,
     totalRows: artifact.totalRows,
   } satisfies AddressPipelineMessage
+}
+
+function dedupeResolvedAddressRows(rows: ResolvedAddressRecord[]) {
+  return [
+    ...new Map(
+      rows.map(row => [
+        row.addressId,
+        {
+          ...row,
+          i18n: dedupeAddressI18nRows(row.i18n, row.addressId),
+        },
+      ]),
+    ).values(),
+  ]
 }

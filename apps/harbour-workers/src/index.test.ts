@@ -4,13 +4,16 @@ import type { DatasetProcessingMessage } from '@repo/core'
 import { createQueueHandler } from './index'
 
 const originalConsoleError = console.error
+const originalConsoleInfo = console.info
 
 beforeEach(() => {
   console.error = mock(() => undefined) as typeof console.error
+  console.info = mock(() => undefined) as typeof console.info
 })
 
 afterEach(() => {
   console.error = originalConsoleError
+  console.info = originalConsoleInfo
 })
 
 describe('harbour-workers', () => {
