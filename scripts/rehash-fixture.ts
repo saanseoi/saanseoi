@@ -1,5 +1,5 @@
 import { access, readFile, writeFile } from 'node:fs/promises'
-import { basename, relative, resolve } from 'node:path'
+import { basename, isAbsolute, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { computeVersionHash } from '../libs/db/src/versioning'
@@ -34,16 +34,19 @@ async function pathExists(filePath: string) {
 }
 
 async function resolveFixturePath(filePath: string) {
-  const candidatePaths = [
-    resolve(workspaceRoot, filePath),
-    resolve(workspaceRoot, 'fixtures/meta', filePath),
-  ]
+  const pathSegments = filePath.split(/[\\/]+/)
 
-  if (basename(filePath) === filePath) {
+  if (isAbsolute(filePath) || pathSegments.includes('..')) {
+    throw new Error(`Fixture path must stay within fixtures/meta: ${filePath}`)
+  }
+
+  const normalizedInput = filePath.replace(/^fixtures[\\/]meta[\\/]/, '')
+  const metaRoot = resolve(workspaceRoot, 'fixtures/meta')
+  const candidatePaths = [resolve(metaRoot, normalizedInput)]
+
+  if (basename(normalizedInput) === normalizedInput) {
     for (const fixtureGroup of fixtureGroups) {
-      candidatePaths.push(
-        resolve(workspaceRoot, 'fixtures/meta', fixtureGroup, filePath),
-      )
+      candidatePaths.push(resolve(metaRoot, fixtureGroup, normalizedInput))
     }
   }
 
