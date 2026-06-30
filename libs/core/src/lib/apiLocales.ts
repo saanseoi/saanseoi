@@ -106,7 +106,7 @@ export function parseRequestedApiLocales(
   value: string | undefined,
   defaults: RequestedApiLocaleSelection,
 ): RequestedApiLocaleSelection {
-  if (!value) {
+  if (value === undefined) {
     if (defaults.mode === 'all') {
       return {
         mode: 'all',
@@ -125,6 +125,12 @@ export function parseRequestedApiLocales(
       mode: 'requested',
       locales: [...defaults.locales],
     }
+  }
+
+  const validationError = getRequestedApiLocalesValidationError(value)
+
+  if (validationError) {
+    throw new Error(validationError)
   }
 
   const normalized = value.trim().replaceAll('_', '-').toLowerCase()
