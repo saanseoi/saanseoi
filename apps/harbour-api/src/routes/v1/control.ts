@@ -2,6 +2,7 @@ import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
 import {
   handlePublishDataset,
+  handleScheduleSnapshotCleanup,
   handleStageCompleted,
   handleStageFailed,
   handleStageRunning,
@@ -9,6 +10,8 @@ import {
 import { createPrimaryMetaRepoDb } from '../../lib/d1'
 import {
   ControlResponseSchema,
+  CleanupSnapshotsRequestSchema,
+  CleanupSnapshotsResponseSchema,
   ControlStageRequestSchema,
   ErrorResponseSchema,
   PublishDatasetRequestSchema,
@@ -104,6 +107,41 @@ const publishDatasetRouteConfig = createRoute({
   responses: baseResponses,
 })
 
+const cleanupSnapshotsRouteConfig = createRoute({
+  method: 'post',
+  path: '/v1/control/cleanupSnapshots',
+  tags: ['Control'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CleanupSnapshotsRequestSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: CleanupSnapshotsResponseSchema,
+        },
+      },
+      description: 'Snapshot cleanup job scheduled.',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Snapshot cleanup scheduling failed.',
+    },
+    422: ValidationErrorOpenAPIResponse,
+  },
+})
+
 function createControlError(error: unknown) {
   return {
     httpStatus: 400,
@@ -169,7 +207,26 @@ export const publishDatasetRoute = defineOpenAPIRoute<
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json')
-      return c.json(await handlePublishDataset(db, request), 200)
+      return c.json(await handlePublishDataset(db, request, c.env.DATASET_QUEUE), 200)
+    } catch (error) {
+      return c.json(createControlError(error), 400)
+    }
+  },
+})
+
+export const cleanupSnapshotsRoute = defineOpenAPIRoute<
+  typeof cleanupSnapshotsRouteConfig,
+  AppEnv
+>({
+  route: cleanupSnapshotsRouteConfig,
+  handler: async c => {
+    try {
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
+      const request = c.req.valid('json')
+      return c.json(
+        await handleScheduleSnapshotCleanup(db, c.env.DATASET_QUEUE, request),
+        200,
+      )
     } catch (error) {
       return c.json(createControlError(error), 400)
     }
@@ -181,4 +238,5 @@ export const controlRoutes = [
   stageCompletedRoute,
   stageFailedRoute,
   publishDatasetRoute,
+  cleanupSnapshotsRoute,
 ] as const

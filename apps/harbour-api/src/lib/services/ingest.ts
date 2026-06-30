@@ -4,6 +4,7 @@ import { inspectParquet } from '@repo/core/parquet-inspector'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   DatasetProcessingMessage,
+  HarbourJobMessage,
   RegisterUploadResult,
   SchemaFingerprintResolver,
 } from '@repo/core'
@@ -11,6 +12,7 @@ import type {
 type UploadFormFields = {
   filePath: string
   force?: boolean
+  skipSnapshotCleanup?: boolean
   regionCode?: string
   shardYear?: string
   cohortKey?: string
@@ -38,7 +40,7 @@ export type HarbourObjectBucket = {
 }
 
 export type DatasetProcessingQueue = {
-  send(message: DatasetProcessingMessage): Promise<unknown>
+  send(message: HarbourJobMessage, options?: QueueSendOptions): Promise<unknown>
 }
 
 function getOptionalText(
@@ -67,6 +69,7 @@ function buildUploadFields(fileName: string, formData: FormData): UploadFormFiel
   return {
     filePath: fileName,
     force: getOptionalBoolean(formData, 'force'),
+    skipSnapshotCleanup: getOptionalBoolean(formData, 'skipSnapshotCleanup'),
     regionCode: getOptionalText(formData, 'regionCode', ['region']),
     shardYear: getOptionalText(formData, 'shardYear', ['year']),
     cohortKey: getOptionalText(formData, 'cohortKey'),
@@ -191,6 +194,7 @@ export async function handleUploadRequest(
       sourceVersion: registered.plan.sourceVersion,
       theme: registered.plan.theme,
       type: registered.plan.type,
+      ...(uploadFields.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
     }
 
     await queue.send(processingMessage)
