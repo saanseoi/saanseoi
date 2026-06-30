@@ -2,10 +2,12 @@ import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
 
 import {
+  ApiVersionMetadataSchema,
   ApiLocale,
   JsonApiLinkMapSchema,
   JsonApiVersionSchema,
   ProfileName,
+  RequestedLocalesMetadataSchema,
 } from './common'
 
 const DivisionResourceIdentifierSchema = z
@@ -53,10 +55,6 @@ const DivisionRelationshipsSchema = z
   })
   .openapi('DivisionRelationships')
 
-const RequestedLocaleCodeSchema = z.string().openapi({
-  examples: ['en', 'zh-hant', 'fr-ca'],
-})
-
 const RequestedLocalesQuerySchema = z
   .string()
   .superRefine((value, ctx) => {
@@ -86,22 +84,8 @@ const DivisionResourceSchema = z
 
 const DivisionDocumentMetaSchema = z
   .object({
-    requestedVersion: z.enum(['v0', 'v0.1']),
-    resolvedVersion: z.literal('0.1'),
     profile: ProfileName,
-    locales: z
-      .array(z.union([RequestedLocaleCodeSchema, z.literal('*')]))
-      .refine(
-        locales =>
-          !locales.includes('*') || (locales.length === 1 && locales[0] === '*'),
-        {
-          message:
-            'locales must be locale codes, or a single "*" when all locales are returned',
-        },
-      )
-      .openapi({
-        examples: [['en', 'zh-hant'], ['fr-ca'], ['*']],
-      }),
+    locales: RequestedLocalesMetadataSchema,
     filters: z
       .object({
         level: z.number().int().optional(),
@@ -117,6 +101,7 @@ const DivisionDocumentMetaSchema = z
       })
       .optional(),
   })
+  .extend(ApiVersionMetadataSchema.shape)
   .openapi('DivisionDocumentMeta')
 
 export const DivisionsListQuerySchema = z
