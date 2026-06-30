@@ -478,7 +478,11 @@ function resolveSnapshotIds(value: string | boolean | undefined) {
     .map(snapshotId => snapshotId.trim())
     .filter(Boolean)
 
-  return snapshotIds.length > 0 ? snapshotIds : undefined
+  if (snapshotIds.length === 0) {
+    throw new Error('Invalid --snapshot value. Expected one or more snapshot IDs.')
+  }
+
+  return snapshotIds
 }
 
 function resolveDelaySeconds(value: string | boolean | undefined) {
@@ -490,7 +494,11 @@ function resolveDelaySeconds(value: string | boolean | undefined) {
     throw new Error('Invalid --delay-seconds value.')
   }
 
-  const delaySeconds = Number.parseInt(value, 10)
+  if (!/^\d+$/.test(value)) {
+    throw new Error('Invalid --delay-seconds value. Expected a non-negative integer.')
+  }
+
+  const delaySeconds = Number(value)
 
   if (!Number.isInteger(delaySeconds) || delaySeconds < 0) {
     throw new Error('Invalid --delay-seconds value. Expected a non-negative integer.')
