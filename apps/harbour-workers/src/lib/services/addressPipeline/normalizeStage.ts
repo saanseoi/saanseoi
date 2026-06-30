@@ -9,7 +9,11 @@ import {
   type PipelineArtifactBucket,
   writeJsonArtifact,
 } from '../pipelineArtifacts'
-import { loadDivisionLookupMaps, normalizeAddressRowForPipeline } from './normalization'
+import {
+  dedupeAddressI18nRows,
+  loadDivisionLookupMaps,
+  normalizeAddressRowForPipeline,
+} from './normalization'
 import type { AddressPipelineMessage, NormalizedAddressChunkArtifact } from './types'
 
 const ADDRESS_BATCH_SIZE = 128
@@ -70,15 +74,17 @@ export async function normalizeAddressChunkStage(
   })) {
     for (const row of batch) {
       const normalized = normalizeAddressRowForPipeline(row, message, divisionLookup)
+      const i18n = dedupeAddressI18nRows(normalized.i18n, normalized.sourceId)
       const sourcePayloadHash = await createHash(row)
 
       rows.push({
         ...normalized,
+        i18n,
         raw: row,
         sourcePayloadHash,
       })
       processedRows += 1
-      localizedRows += normalized.i18n.length
+      localizedRows += i18n.length
     }
 
     await reportProgress?.({

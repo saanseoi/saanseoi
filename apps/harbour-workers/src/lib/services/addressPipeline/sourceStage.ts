@@ -21,7 +21,7 @@ import {
 } from '../../db/source'
 import type { HarbourWorkerBucket } from '../division'
 import { type PipelineArtifactBucket, readJsonArtifact } from '../pipelineArtifacts'
-import { asOptionalInteger } from './normalization'
+import { asOptionalInteger, dedupeNormalizedAddressRows } from './normalization'
 import type {
   AddressPipelineMessage,
   NormalizedAddressChunkArtifact,
@@ -51,7 +51,7 @@ export async function writeAddressSourceChunkStage(
     } satisfies AddressPipelineMessage
   }
 
-  const uniqueRows = dedupeNormalizedRows(artifact.rows)
+  const uniqueRows = dedupeNormalizedAddressRows(artifact.rows)
   const sourceRecordIds = uniqueRows.map(row => row.sourceId)
   const currentSourceRows =
     message.source === 'overture'
@@ -329,10 +329,6 @@ async function writeHkgovSourceRows(
   await replaceSourceHkgovAlsAddress2dI18nRows(sourceDb, [...changedIds], i18nRows)
   await insertSourceHkgovAlsAddresses2dVersions(sourceDb, versionRows)
   await insertSourceHkgovAlsAddress2dI18nVersions(sourceDb, i18nVersionRows)
-}
-
-function dedupeNormalizedRows(rows: NormalizedAddressRecord[]) {
-  return [...new Map(rows.map(row => [row.sourceId, row])).values()]
 }
 
 function asNumber(value: unknown) {

@@ -24,10 +24,15 @@ type ProcessDatasetMessageHandler = typeof processDatasetMessage
 
 type MessageErrorContext = {
   attempts: number
+  addressStage?: string
+  artifactKey?: string
   datasetId?: string
   historyBindingName?: string
   releaseCode?: string
   releaseId?: string
+  resolvedArtifactKey?: string
+  rowEnd?: number
+  rowStart?: number
   shardYear?: string
   sourceBindingName?: string
 }
@@ -82,10 +87,27 @@ function createMessageErrorContext(
 ): MessageErrorContext {
   return {
     attempts: message.attempts,
+    addressStage: readStringProperty(message.body, 'addressStage'),
+    artifactKey: readStringProperty(message.body, 'artifactKey'),
     datasetId: readStringProperty(message.body, 'datasetId'),
     releaseCode: readStringProperty(message.body, 'releaseCode'),
     releaseId: readStringProperty(message.body, 'releaseId'),
+    resolvedArtifactKey: readStringProperty(message.body, 'resolvedArtifactKey'),
+    rowEnd: readNumberProperty(message.body, 'rowEnd'),
+    rowStart: readNumberProperty(message.body, 'rowStart'),
   }
+}
+
+function readNumberProperty(value: unknown, key: string) {
+  if (!value || typeof value !== 'object') {
+    return undefined
+  }
+
+  const property = (value as Record<string, unknown>)[key]
+
+  return typeof property === 'number' && Number.isFinite(property)
+    ? property
+    : undefined
 }
 
 export function createQueueHandler(
@@ -169,7 +191,29 @@ export function createQueueHandler(
             throw new Error('Missing JOB_QUEUE binding for address chunk chaining.')
           }
 
+          console.info(
+            JSON.stringify({
+              addressStage: readStringProperty(result.nextMessage, 'addressStage'),
+              datasetId: result.nextMessage.datasetId,
+              phase: 'enqueueDatasetChunk',
+              releaseId: result.nextMessage.releaseId ?? result.nextMessage.datasetId,
+              rowEnd: result.nextMessage.rowEnd,
+              rowStart: result.nextMessage.rowStart,
+              status: 'started',
+            }),
+          )
           await env.JOB_QUEUE.send(result.nextMessage)
+          console.info(
+            JSON.stringify({
+              addressStage: readStringProperty(result.nextMessage, 'addressStage'),
+              datasetId: result.nextMessage.datasetId,
+              phase: 'enqueueDatasetChunk',
+              releaseId: result.nextMessage.releaseId ?? result.nextMessage.datasetId,
+              rowEnd: result.nextMessage.rowEnd,
+              rowStart: result.nextMessage.rowStart,
+              status: 'completed',
+            }),
+          )
         }
         message.ack()
       } catch (error) {
