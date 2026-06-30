@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:0e055186792de534d05c524ed1202d13a718639bdcf7ea3cf5eeaa835ac48221",
+  "versionHash": "sha256:093334899997bc39e96aac3c59e5792316280a7d2377905e3581c66c5b12d329",
   "apiVersion": "api-divisions-v0.1",
   "validFromSnapshotVersion": "ss-hk-division-2025-12-17.0",
   "schemaVersion": "sv-division-v1",
@@ -198,15 +198,6 @@
       "confidence": 0.7
     },
     {
-      "apiField": "division.attributes.i18n.en.localType",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "local_type.en",
-      "resolverCode": "direct_copy",
-      "contributionType": "primary",
-      "priority": 0,
-      "confidence": 1
-    },
-    {
       "apiField": "division.attributes.i18n.zh-hant.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.common.zh-hk",
@@ -243,24 +234,6 @@
       "confidence": 0.7
     },
     {
-      "apiField": "division.attributes.i18n.zh-hant.localType",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "local_type.zh-hk",
-      "resolverCode": "merge_first_non_empty",
-      "contributionType": "primary",
-      "priority": 0,
-      "confidence": 0.95
-    },
-    {
-      "apiField": "division.attributes.i18n.zh-hant.localType",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "local_type.zh-hant",
-      "resolverCode": "merge_first_non_empty",
-      "contributionType": "fallback",
-      "priority": 1,
-      "confidence": 0.9
-    },
-    {
       "apiField": "division.attributes.i18n.zh-hans.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.common.zh-hans",
@@ -295,24 +268,6 @@
       "contributionType": "fallback",
       "priority": 3,
       "confidence": 0.7
-    },
-    {
-      "apiField": "division.attributes.i18n.zh-hans.localType",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "local_type.zh-hans",
-      "resolverCode": "merge_first_non_empty",
-      "contributionType": "primary",
-      "priority": 0,
-      "confidence": 0.95
-    },
-    {
-      "apiField": "division.attributes.i18n.zh-hans.localType",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "local_type.zh-cn",
-      "resolverCode": "merge_first_non_empty",
-      "contributionType": "fallback",
-      "priority": 1,
-      "confidence": 0.9
     }
   ]
 }

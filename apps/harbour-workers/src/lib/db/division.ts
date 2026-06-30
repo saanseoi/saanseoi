@@ -32,9 +32,9 @@ import {
 } from '../utils'
 
 const CURRENT_DIVISION_COLUMN_COUNT = 16
-const CURRENT_DIVISION_I18N_COLUMN_COUNT = 11
+const CURRENT_DIVISION_I18N_COLUMN_COUNT = 10
 const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 24
-const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 16
+const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 15
 const HISTORY_DIVISION_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 
 type CurrentDivisionWriteRow = Omit<NewDivisionRow, 'snapshotId'>
@@ -114,7 +114,6 @@ export async function getCurrentDivisionVersionMap(
       .select({
         divisionId: historySchema.divisionsVersionsI18n.divisionId,
         isLocaleInferred: historySchema.divisionsVersionsI18n.isLocaleInferred,
-        localType: historySchema.divisionsVersionsI18n.localType,
         locale: historySchema.divisionsVersionsI18n.locale,
         name: historySchema.divisionsVersionsI18n.name,
         nameAlts: historySchema.divisionsVersionsI18n.nameAlts,
@@ -293,7 +292,6 @@ export async function cloneDivisionCurrentSnapshot(
             nameVariant: currentSchema.divisionsI18n.nameVariant,
             nameAlts: currentSchema.divisionsI18n.nameAlts,
             nameRules: currentSchema.divisionsI18n.nameRules,
-            localType: currentSchema.divisionsI18n.localType,
             isLocaleInferred: currentSchema.divisionsI18n.isLocaleInferred,
             createdAt: sql<string>`${now}`,
             updatedAt: sql<string>`${now}`,
@@ -610,7 +608,6 @@ export async function insertDivisionVersionRows(
     {
       divisionId: string
       isLocaleInferred: boolean
-      localType: string | null
       locale: string
       name: string | null
       nameAlts: string | null
@@ -696,7 +693,6 @@ export async function insertDivisionVersionRows(
       i18nRows.map(row => ({
         divisionId: row.divisionId,
         isLocaleInferred: row.isLocaleInferred,
-        localType: row.localType,
         locale: row.locale,
         name: row.name,
         nameAlts: row.nameAlts,
@@ -747,7 +743,6 @@ async function insertDivisionVersionsI18nInChunks(
   rows: Array<{
     divisionId: string
     isLocaleInferred: boolean
-    localType: string | null
     locale: string
     name: string | null
     nameAlts: string | null
@@ -791,7 +786,6 @@ async function insertDivisionVersionsI18nInChunks(
               nameAlts: excluded('nameAlts'),
               nameRules: excluded('nameRules'),
               nameVariant: excluded('nameVariant'),
-              localType: excluded('localType'),
               isLocaleInferred: excluded('isLocaleInferred'),
               updatedAt: excluded('updatedAt'),
             },

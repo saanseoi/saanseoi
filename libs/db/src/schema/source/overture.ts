@@ -54,7 +54,6 @@ export const sourceOvertureDivisionI18n = sqliteTable(
     nameVariant: jsonText('nameVariant'),
     nameAlts: text('nameAlts'),
     nameRules: jsonText('nameRules'),
-    localType: text('localType'),
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
       .notNull()
       .default(false),
@@ -108,7 +107,6 @@ export const sourceOvertureDivisionI18nVersions = sqliteTable(
     nameVariant: jsonText('nameVariant'),
     nameAlts: text('nameAlts'),
     nameRules: jsonText('nameRules'),
-    localType: text('localType'),
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
       .notNull()
       .default(false),
