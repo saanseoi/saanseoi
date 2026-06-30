@@ -1,7 +1,7 @@
 import { and, desc, eq, metaSchema } from '@repo/db'
 import { inArray, sql } from 'drizzle-orm'
-import { resolveShardForTypeRegionYear } from '@repo/core/db/meta-repository'
-import type { DataShardRecord } from '@repo/core/db/meta-repository'
+import { resolveShardForTypeRegionYear } from '@repo/core/db/metaRepository'
+import type { DataShardRecord } from '@repo/core/db/metaRepository'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { DatasetType } from '@repo/db'
 

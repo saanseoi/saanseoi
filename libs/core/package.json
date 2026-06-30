@@ -14,12 +14,12 @@
   "exports": {
     ".": "./src/index.ts",
     "./upload": "./src/lib/services/upload.ts",
-    "./upload-local": "./src/lib/services/upload-local.ts",
-    "./testing/local-db": "./src/testing/local-db.ts",
-    "./parquet-inspector": "./src/lib/parquet-inspector.ts",
-    "./parquet-inspector-node": "./src/lib/parquet-inspector-node.ts",
+    "./uploadLocal": "./src/lib/services/uploadLocal.ts",
+    "./testing/localDb": "./src/testing/localDb.ts",
+    "./parquetInspector": "./src/lib/parquetInspector.ts",
+    "./parquetInspectorNode": "./src/lib/parquetInspectorNode.ts",
     "./db/types": "./src/lib/db/types.ts",
-    "./db/meta-repository": "./src/lib/db/meta-repository.ts"
+    "./db/metaRepository": "./src/lib/db/metaRepository.ts"
   },
   "dependencies": {
     "@repo/db": "workspace:*",

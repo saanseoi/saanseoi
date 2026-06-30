@@ -2,8 +2,8 @@
 import { Button, Main } from '$lib/bits'
 import topo from '$lib/assets/topo.jpg'
 
-import MarkerOrbit from './components/marker-orbit.svelte'
-import PrincipleCard from './components/principle-card.svelte'
+import MarkerOrbit from './components/markerOrbit.svelte'
+import PrincipleCard from './components/principleCard.svelte'
 
 type ManifestoPrinciple = {
   number: string

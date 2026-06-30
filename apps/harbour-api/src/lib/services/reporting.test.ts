@@ -5,8 +5,8 @@ import { tmpdir } from 'node:os'
 import { describe, expect, test } from 'bun:test'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import { loadMigrationSql } from '../../../../../libs/core/src/testing/meta-fixtures'
-import { createLocalHarbourDb } from '@repo/core/testing/local-db'
+import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures'
+import { createLocalHarbourDb } from '@repo/core/testing/localDb'
 
 import { resolveDataShardEnvironment } from './shared'
 import { listIngestRuns, listReleases, listStats } from './reporting'

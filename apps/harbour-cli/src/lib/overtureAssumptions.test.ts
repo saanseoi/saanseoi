@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { evaluateDivisionAssumptions } from './overture-assumptions.ts'
+import { evaluateDivisionAssumptions } from './overtureAssumptions.ts'
 
 describe('evaluateDivisionAssumptions', () => {
   test('accepts the current Hong Kong-style dropped-field profile', () => {
