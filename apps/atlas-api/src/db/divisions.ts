@@ -25,8 +25,7 @@ export type DivisionRecord = {
     wikidata: string | null
     parentDivisionId: string | null
   }
-  i18n: Record<DivisionLocaleCode, DivisionLocaleValue>
-  missingI18n: boolean
+  i18n: Record<string, DivisionLocaleValue>
 }
 
 type DivisionLookup = {
@@ -64,7 +63,6 @@ type DivisionRow = {
   wikidata: string | null
   parentDivisionId: string | null
   i18n: string
-  i18nCount: number
 }
 
 export type DivisionLocaleSelection = RequestedApiLocaleSelection
@@ -96,24 +94,7 @@ function buildDivisionI18nJsonSelection(localeSelection: DivisionLocaleSelection
   ), '{}')`
 }
 
-function buildDivisionI18nCountSelection(localeSelection: DivisionLocaleSelection) {
-  if (localeSelection.mode === 'none') {
-    return sql<number>`0`
-  }
-
-  const condition = buildDivisionI18nCondition(localeSelection)
-
-  return sql<number>`(
-    select count(*)
-    from ${divisionsI18n}
-    where ${condition}
-  )`
-}
-
-function mapDivisionRow(
-  row: DivisionRow,
-  localeSelection: DivisionLocaleSelection,
-): DivisionRecord {
+function mapDivisionRow(row: DivisionRow): DivisionRecord {
   return {
     division: {
       snapshotId: row.snapshotId,
@@ -129,7 +110,6 @@ function mapDivisionRow(
       parentDivisionId: row.parentDivisionId,
     },
     i18n: JSON.parse(row.i18n) as DivisionRecord['i18n'],
-    missingI18n: localeSelection.mode !== 'none' && row.i18nCount === 0,
   }
 }
 
@@ -167,7 +147,6 @@ export async function listDivisionRecordsCurrent(
   lookup: DivisionListLookup,
 ): Promise<DivisionRecord[]> {
   const i18n = buildDivisionI18nJsonSelection(lookup.localeSelection)
-  const i18nCount = buildDivisionI18nCountSelection(lookup.localeSelection)
   const pagedDivisions = db
     .select({
       id: divisions.id,
@@ -193,7 +172,6 @@ export async function listDivisionRecordsCurrent(
       wikidata: divisions.wikidata,
       parentDivisionId: divisions.parentDivisionId,
       i18n,
-      i18nCount,
     })
     .from(pagedDivisions)
     .innerJoin(
@@ -206,7 +184,7 @@ export async function listDivisionRecordsCurrent(
     .orderBy(asc(divisions.level), asc(divisions.type), asc(divisions.id))
     .all()
 
-  return rows.map(row => mapDivisionRow(row, lookup.localeSelection))
+  return rows.map(row => mapDivisionRow(row))
 }
 
 export async function countDivisionsCurrent(
@@ -234,7 +212,6 @@ export async function listDivisionRecordsCurrentByIds(
   }
 
   const i18n = buildDivisionI18nJsonSelection(lookup.localeSelection)
-  const i18nCount = buildDivisionI18nCountSelection(lookup.localeSelection)
   const rows = await db
     .select({
       snapshotId: divisions.snapshotId,
@@ -249,7 +226,6 @@ export async function listDivisionRecordsCurrentByIds(
       wikidata: divisions.wikidata,
       parentDivisionId: divisions.parentDivisionId,
       i18n,
-      i18nCount,
     })
     .from(divisions)
     .where(
@@ -261,5 +237,5 @@ export async function listDivisionRecordsCurrentByIds(
     .orderBy(asc(divisions.level), asc(divisions.type), asc(divisions.id))
     .all()
 
-  return rows.map(row => mapDivisionRow(row, lookup.localeSelection))
+  return rows.map(row => mapDivisionRow(row))
 }
