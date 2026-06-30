@@ -6,6 +6,7 @@ import {
   handleStageCompleted,
   handleStageFailed,
   handleStageRunning,
+  isTransientControlError,
 } from '../../lib/services/control'
 import { createPrimaryMetaRepoDb } from '../../lib/d1'
 import {
@@ -35,6 +36,14 @@ const baseResponses = {
       },
     },
     description: 'Control operation failed.',
+  },
+  503: {
+    content: {
+      'application/json': {
+        schema: ErrorResponseSchema,
+      },
+    },
+    description: 'Control operation temporarily unavailable.',
   },
   422: ValidationErrorOpenAPIResponse,
 } as const
@@ -138,14 +147,23 @@ const cleanupSnapshotsRouteConfig = createRoute({
       },
       description: 'Snapshot cleanup scheduling failed.',
     },
+    503: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Snapshot cleanup scheduling is temporarily unavailable.',
+    },
     422: ValidationErrorOpenAPIResponse,
   },
 })
 
 function createControlError(error: unknown) {
+  const httpStatus = isTransientControlError(error) ? 503 : 400
   return {
-    httpStatus: 400,
-    error: 'control_failed',
+    httpStatus,
+    error: httpStatus === 503 ? 'control_unavailable' : 'control_failed',
     message: error instanceof Error ? error.message : String(error),
   } as const
 }
@@ -161,7 +179,8 @@ export const stageRunningRoute = defineOpenAPIRoute<
       const request = c.req.valid('json')
       return c.json(await handleStageRunning(db, request), 200)
     } catch (error) {
-      return c.json(createControlError(error), 400)
+      const response = createControlError(error)
+      return c.json(response, response.httpStatus)
     }
   },
 })
@@ -177,7 +196,8 @@ export const stageCompletedRoute = defineOpenAPIRoute<
       const request = c.req.valid('json')
       return c.json(await handleStageCompleted(db, request), 200)
     } catch (error) {
-      return c.json(createControlError(error), 400)
+      const response = createControlError(error)
+      return c.json(response, response.httpStatus)
     }
   },
 })
@@ -193,7 +213,8 @@ export const stageFailedRoute = defineOpenAPIRoute<
       const request = c.req.valid('json')
       return c.json(await handleStageFailed(db, request), 200)
     } catch (error) {
-      return c.json(createControlError(error), 400)
+      const response = createControlError(error)
+      return c.json(response, response.httpStatus)
     }
   },
 })
@@ -209,7 +230,8 @@ export const publishDatasetRoute = defineOpenAPIRoute<
       const request = c.req.valid('json')
       return c.json(await handlePublishDataset(db, request, c.env.DATASET_QUEUE), 200)
     } catch (error) {
-      return c.json(createControlError(error), 400)
+      const response = createControlError(error)
+      return c.json(response, response.httpStatus)
     }
   },
 })
@@ -228,7 +250,8 @@ export const cleanupSnapshotsRoute = defineOpenAPIRoute<
         200,
       )
     } catch (error) {
-      return c.json(createControlError(error), 400)
+      const response = createControlError(error)
+      return c.json(response, response.httpStatus)
     }
   },
 })
