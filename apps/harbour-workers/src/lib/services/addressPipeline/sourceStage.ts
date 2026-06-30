@@ -45,10 +45,9 @@ export async function writeAddressSourceChunkStage(
   )
 
   if (!sourceDb) {
-    return {
-      ...pipelineMessage,
-      addressStage: 'history',
-    } satisfies AddressPipelineMessage
+    throw new Error(
+      `Missing source database binding for address source stage: source=${message.source}, region=${message.regionCode}, shardYear=${message.shardYear ?? 'unset'}, cohortKey=${message.cohortKey}.`,
+    )
   }
 
   const uniqueRows = dedupeNormalizedAddressRows(artifact.rows)

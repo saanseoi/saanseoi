@@ -950,7 +950,7 @@ describe('processAddressDataset', () => {
     expect(currentI18nRows).toEqual([{ addressId: 'ovt-address-1', locale: 'en' }])
   })
 
-  test('reports batch progress even when no source database is available', async () => {
+  test('fails after reporting batch progress when no source database is available', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'address-progress-no-source.sqlite')
     const sqlite = initDb(dbPath)
@@ -960,30 +960,32 @@ describe('processAddressDataset', () => {
     seedDivisionLookups(sqlite)
     seedAddressRelease(sqlite, 'overture-hk-2026-05-24.0-address', '2026-05', 'staged')
 
-    await runAddressPipeline(
-      db as never,
-      db as never,
-      db as never,
-      {
-        async head() {
-          return { size: 1 }
+    await expect(
+      runAddressPipeline(
+        db as never,
+        db as never,
+        db as never,
+        {
+          async head() {
+            return { size: 1 }
+          },
+          async get() {
+            return {
+              async arrayBuffer() {
+                return new ArrayBuffer(0)
+              },
+            }
+          },
         },
-        async get() {
-          return {
-            async arrayBuffer() {
-              return new ArrayBuffer(0)
-            },
-          }
-        },
-      },
-      createAddressMessage(
-        'overture-hk-2026-05-24.0-address',
-        '2026-05',
-        '2026-05-24.0',
+        createAddressMessage(
+          'overture-hk-2026-05-24.0-address',
+          '2026-05',
+          '2026-05-24.0',
+        ),
+        undefined,
+        progress,
       ),
-      undefined,
-      progress,
-    )
+    ).rejects.toThrow('Missing source database binding')
 
     sqlite.close()
 
