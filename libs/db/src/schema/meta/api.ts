@@ -15,13 +15,13 @@ import {
   apiReleaseSetSourceRoles,
   apiReleaseSetStatuses,
   apiVersionStatuses,
+  datasetTypes,
   provenanceContributionTypes,
   resolverCodes,
   snapshotStatuses,
 } from '../../constants/schema'
 import { jsonText, primaryUuid, timestamps } from './_shared'
 import { metaDatasets, metaReleases } from './datasets'
-import { resourceTypes } from '@repo/core'
 
 export const metaApiVersions = sqliteTable('apiVersions', {
   id: primaryUuid('id'),
@@ -40,7 +40,7 @@ export const metaSnapshots = sqliteTable(
   'snapshots',
   {
     id: primaryUuid('id'),
-    resourceType: text('resourceType', { enum: resourceTypes }).notNull(),
+    resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     code: text('code').notNull(),
     cohortKey: text('cohortKey').notNull(),
     status: text('status', { enum: snapshotStatuses }).notNull(),
@@ -127,7 +127,7 @@ export const metaSnapshotAssembly = sqliteTable(
   {
     id: primaryUuid('id'),
     code: text('code').notNull().unique(),
-    resourceType: text('resourceType', { enum: resourceTypes }).notNull(),
+    resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     version: integer('version').notNull(),
     status: text('status').notNull(),
     notes: text('notes'),
@@ -197,7 +197,7 @@ export const metaApiComposition = sqliteTable(
     code: text('code').notNull().unique(),
     version: integer('version').notNull(),
     primaryResourceType: text('primaryResourceType', {
-      enum: resourceTypes,
+      enum: datasetTypes,
     }).notNull(),
     status: text('status').notNull(),
     notes: text('notes'),
@@ -218,12 +218,12 @@ export const metaApiCompositionMembers = sqliteTable(
     apiCompositionId: text('apiCompositionId')
       .notNull()
       .references(() => metaApiComposition.id, { onDelete: 'cascade' }),
-    resourceType: text('resourceType', { enum: resourceTypes }).notNull(),
+    resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     role: text('role').notNull(),
     isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
     selectionMode: text('selectionMode').notNull(),
     anchorResourceType: text('anchorResourceType', {
-      enum: resourceTypes,
+      enum: datasetTypes,
     }),
     maxLagDays: integer('maxLagDays'),
     priority: integer('priority').notNull().default(0),
