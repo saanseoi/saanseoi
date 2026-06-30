@@ -36,6 +36,20 @@ const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01Fixture20260520 as ApiFieldFixture,
 ]
 
+function cloneApiFieldFixtureField(field: ApiFieldFixtureField): ApiFieldFixtureField {
+  return {
+    ...field,
+  }
+}
+
+function cloneApiFieldFixture(fixture: ApiFieldFixture): ApiFieldFixture {
+  return {
+    ...fixture,
+    sourceSchemas: { ...fixture.sourceSchemas },
+    fields: fixture.fields.map(cloneApiFieldFixtureField),
+  }
+}
+
 function compareSnapshotVersions(left: string, right: string) {
   const leftMatch = left.match(
     /^ss-[a-z0-9]+-[a-z0-9-]+-(20\d{2}-\d{2}-\d{2})\.(\d+)$/i,
@@ -83,7 +97,7 @@ function haveEqualSourceSchemas(
 }
 
 export function listApiFieldFixtures() {
-  return apiFieldFixtures
+  return apiFieldFixtures.map(cloneApiFieldFixture)
 }
 
 export function resolveApiFieldFixture(args: {
@@ -112,5 +126,5 @@ export function resolveApiFieldFixture(args: {
       ),
     )
 
-  return candidates[0] ?? null
+  return candidates[0] ? cloneApiFieldFixture(candidates[0]) : null
 }
