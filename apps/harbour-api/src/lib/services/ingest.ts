@@ -9,9 +9,13 @@ import type {
 } from '@repo/core'
 import {
   enqueueDatasetProcessingPlan,
+  type DatasetProcessingPlanOptions,
   type DatasetProcessingQueue,
 } from './datasetProcessingPlan'
-export type { DatasetProcessingQueue } from './datasetProcessingPlan'
+export type {
+  DatasetProcessingPlanOptions,
+  DatasetProcessingQueue,
+} from './datasetProcessingPlan'
 
 type UploadFormFields = {
   filePath: string
@@ -121,6 +125,7 @@ export async function handleUploadRequest(
   bucket: HarbourObjectBucket,
   queue: DatasetProcessingQueue,
   formData: FormData,
+  processingPlanOptions: DatasetProcessingPlanOptions = {},
 ): Promise<RegisterUploadResult> {
   const file = formData.get('file')
 
@@ -201,6 +206,7 @@ export async function handleUploadRequest(
       queue,
       processingMessage,
       registered.plan.rowCount,
+      processingPlanOptions,
     )
 
     return registered

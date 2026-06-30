@@ -20,9 +20,9 @@ type Env = Partial<MultiDbBindings> & {
   R2_RAW: R2Bucket
 }
 
-const ADDRESS_CONTINUATION_DELAY_SECONDS = 1
-
 type ProcessDatasetMessageHandler = typeof processDatasetMessage
+
+const LOCAL_INLINE_ADDRESS_DRAIN_LIMIT = 10_000
 
 type MessageErrorContext = {
   attempts: number
@@ -198,15 +198,68 @@ export function createQueueHandler(
 
         const { binding: sourceBinding } = sourceShard
 
-        const result = await processDataset(
-          harbourClient,
-          metaDb,
-          currentDb,
-          createHistoryDb(withPrimarySession(historyBinding)),
-          env.R2_RAW,
-          body,
-          sourceBinding ? createSourceDb(withPrimarySession(sourceBinding)) : undefined,
-        )
+        const historyDb = createHistoryDb(withPrimarySession(historyBinding))
+        const sourceDb = sourceBinding
+          ? createSourceDb(withPrimarySession(sourceBinding))
+          : undefined
+        let processingBody = body
+        let drainedInlineChunks = 0
+
+        const result = await (async () => {
+          while (true) {
+            const processResult = await processDataset(
+              harbourClient,
+              metaDb,
+              currentDb,
+              historyDb,
+              env.R2_RAW,
+              processingBody,
+              sourceDb,
+            )
+
+            if (!('nextMessage' in processResult && processResult.nextMessage)) {
+              return processResult
+            }
+
+            if (
+              shouldDrainAddressContinuationInline(
+                env,
+                processingBody,
+                processResult.nextMessage,
+              )
+            ) {
+              drainedInlineChunks += 1
+
+              if (drainedInlineChunks > LOCAL_INLINE_ADDRESS_DRAIN_LIMIT) {
+                throw new Error(
+                  `Local inline address drain exceeded ${LOCAL_INLINE_ADDRESS_DRAIN_LIMIT} chunks.`,
+                )
+              }
+
+              console.info(
+                JSON.stringify({
+                  addressStage: readStringProperty(
+                    processResult.nextMessage,
+                    'addressStage',
+                  ),
+                  datasetId: processResult.nextMessage.datasetId,
+                  drainedInlineChunks,
+                  phase: 'localInlineAddressDrain',
+                  releaseId:
+                    processResult.nextMessage.releaseId ??
+                    processResult.nextMessage.datasetId,
+                  rowEnd: processResult.nextMessage.rowEnd,
+                  rowStart: processResult.nextMessage.rowStart,
+                  status: 'continuing',
+                }),
+              )
+              processingBody = processResult.nextMessage
+              continue
+            }
+
+            return processResult
+          }
+        })()
 
         if ('nextMessage' in result && result.nextMessage) {
           if (!env.JOB_QUEUE) {
@@ -222,12 +275,9 @@ export function createQueueHandler(
               rowEnd: result.nextMessage.rowEnd,
               rowStart: result.nextMessage.rowStart,
               status: 'started',
-              delaySeconds: ADDRESS_CONTINUATION_DELAY_SECONDS,
             }),
           )
-          await env.JOB_QUEUE.send(result.nextMessage, {
-            delaySeconds: ADDRESS_CONTINUATION_DELAY_SECONDS,
-          })
+          await env.JOB_QUEUE.send(result.nextMessage)
           console.info(
             JSON.stringify({
               addressStage: readStringProperty(result.nextMessage, 'addressStage'),
@@ -237,7 +287,6 @@ export function createQueueHandler(
               rowEnd: result.nextMessage.rowEnd,
               rowStart: result.nextMessage.rowStart,
               status: 'completed',
-              delaySeconds: ADDRESS_CONTINUATION_DELAY_SECONDS,
             }),
           )
         }
@@ -256,6 +305,7 @@ export function createQueueHandler(
             rowStart: body.rowStart,
             status: 'acked',
             type: body.type,
+            ...(drainedInlineChunks > 0 ? { drainedInlineChunks } : {}),
           }),
         )
       } catch (error) {
@@ -283,6 +333,29 @@ function isDatasetProcessingMessage(
   message: HarbourJobMessage,
 ): message is DatasetProcessingMessage {
   return message.jobType === undefined || message.jobType === 'processDataset'
+}
+
+function shouldDrainAddressContinuationInline(
+  env: Env,
+  currentMessage: DatasetProcessingMessage,
+  nextMessage: DatasetProcessingMessage,
+) {
+  return (
+    isLocalBaseUrl(env.HARBOUR_BASE_URL) &&
+    currentMessage.type === 'address' &&
+    nextMessage.type === 'address' &&
+    !currentMessage.preplannedAddressChunks &&
+    !nextMessage.preplannedAddressChunks
+  )
+}
+
+function isLocalBaseUrl(baseUrl: string) {
+  try {
+    const url = new URL(baseUrl)
+    return url.hostname === 'localhost' || url.hostname === '127.0.0.1'
+  } catch {
+    return false
+  }
 }
 
 export default {

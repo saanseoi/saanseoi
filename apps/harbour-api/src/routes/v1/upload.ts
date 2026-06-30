@@ -165,6 +165,7 @@ export const uploadRoute = defineOpenAPIRoute<typeof uploadRouteConfig, AppEnv>(
         c.env.R2_RAW,
         c.env.DATASET_QUEUE,
         formData,
+        createProcessingPlanOptions(c.env.HARBOUR_BASE_URL),
       )
       if (!result.datasetId || !result.releaseId) {
         throw new Error('Upload registration returned incomplete release identifiers.')
@@ -251,6 +252,9 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
         c.env.R2_RAW,
         c.env.DATASET_QUEUE,
         request,
+        {
+          processingPlanOptions: createProcessingPlanOptions(c.env.HARBOUR_BASE_URL),
+        },
       )
       const release = await getDatasetRecordByReleaseId(db, request.releaseId)
 
@@ -299,6 +303,7 @@ export const requeueUploadRoute = defineOpenAPIRoute<
         db,
         c.env.DATASET_QUEUE,
         request,
+        createProcessingPlanOptions(c.env.HARBOUR_BASE_URL),
       )
 
       return c.json(
@@ -328,6 +333,24 @@ export const requeueUploadRoute = defineOpenAPIRoute<
     }
   },
 })
+
+function createProcessingPlanOptions(baseUrl: string) {
+  const isLocal = isLocalBaseUrl(baseUrl)
+
+  return {
+    forceSerialAddressEnqueue: isLocal,
+    useAddressContinuation: isLocal,
+  }
+}
+
+function isLocalBaseUrl(baseUrl: string) {
+  try {
+    const url = new URL(baseUrl)
+    return url.hostname === 'localhost' || url.hostname === '127.0.0.1'
+  } catch {
+    return false
+  }
+}
 
 export const uploadRoutes = [
   uploadRoute,
