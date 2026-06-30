@@ -59,7 +59,7 @@ type DivisionResourcePayload = {
 }
 
 type DivisionRouteState = {
-  requestVersionPath: RequestedDivisionVersion
+  requestedVersionPath: RequestedDivisionVersion
   requestedApiVersion: RequestedDivisionApiVersion
   requestedApiFamily: 'divisions'
   resolvedApiVersion: ResolvedDivisionApiVersion
@@ -173,7 +173,7 @@ function parseDivisionProfile(value?: string): DivisionProfile {
 }
 
 function buildDivisionRouteState(args: {
-  requestVersionPath: RequestedDivisionVersion
+  requestedVersionPath: RequestedDivisionVersion
   requestedApiVersion: RequestedDivisionApiVersion
   resolvedApiVersion: ResolvedDivisionApiVersion
   profile?: string
@@ -196,7 +196,7 @@ function buildDivisionRouteState(args: {
   )
 
   return {
-    requestVersionPath: args.requestVersionPath,
+    requestedVersionPath: args.requestedVersionPath,
     requestedApiVersion: args.requestedApiVersion,
     requestedApiFamily: 'divisions',
     resolvedApiVersion: args.resolvedApiVersion,
@@ -249,7 +249,7 @@ function createDivisionResource(args: {
       },
     },
     links: {
-      self: `${baseUrl}/${routeState.requestVersionPath}/divisions/${division.id}`,
+      self: `${baseUrl}/${routeState.requestedVersionPath}/divisions/${division.id}`,
     },
   }
 }
@@ -438,13 +438,13 @@ export async function listDivisions(args: {
   currentDb: AppEnv['Variables']['currentDb']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
-  requestVersionPath: RequestedDivisionVersion
+  requestedVersionPath: RequestedDivisionVersion
   requestedApiVersion: RequestedDivisionApiVersion
   resolvedApiVersion: ResolvedDivisionApiVersion
   query: DivisionListQuery
 }): Promise<DivisionListResult> {
   const routeState = buildDivisionRouteState({
-    requestVersionPath: args.requestVersionPath,
+    requestedVersionPath: args.requestedVersionPath,
     requestedApiVersion: args.requestedApiVersion,
     resolvedApiVersion: args.resolvedApiVersion,
     profile: args.query.profile,
@@ -495,7 +495,7 @@ export async function listDivisions(args: {
   logMissingDivisionI18n({
     records: routeState.logMissingI18n ? [...records, ...includedRecords] : [],
     requestUrl: args.requestUrl,
-    requestedVersion: routeState.requestVersionPath,
+    requestedVersion: routeState.requestedVersionPath,
   })
 
   return {
@@ -518,14 +518,14 @@ export async function getDivisionDetail(args: {
   currentDb: AppEnv['Variables']['currentDb']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
-  requestVersionPath: RequestedDivisionVersion
+  requestedVersionPath: RequestedDivisionVersion
   requestedApiVersion: RequestedDivisionApiVersion
   resolvedApiVersion: ResolvedDivisionApiVersion
   id: string
   query: DivisionDetailQuery
 }): Promise<DivisionDetailResult> {
   const routeState = buildDivisionRouteState({
-    requestVersionPath: args.requestVersionPath,
+    requestedVersionPath: args.requestedVersionPath,
     requestedApiVersion: args.requestedApiVersion,
     resolvedApiVersion: args.resolvedApiVersion,
     profile: args.query.profile,
@@ -568,7 +568,7 @@ export async function getDivisionDetail(args: {
   logMissingDivisionI18n({
     records: routeState.logMissingI18n ? [record, ...includedRecords] : [],
     requestUrl: args.requestUrl,
-    requestedVersion: routeState.requestVersionPath,
+    requestedVersion: routeState.requestedVersionPath,
   })
 
   return {
