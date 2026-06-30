@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 
@@ -217,6 +217,27 @@ describe('upload', () => {
     expect(inferThemeFromPath(overtureFixturePath)).toBe('divisions')
     expect(inferRegionFromPath(overtureFixturePath)).toBe('hk')
     expect(inferCohortKeyFromPath(overtureFixturePath)).toBe('2025-09-24.0')
+  })
+
+  test('uses the parent directory, not the filename, for upload type inference', async () => {
+    const tempDir = createTempDir()
+    const filePath = join(
+      tempDir,
+      'data/2025-09-24.0/divisions/中国/Hong Kong SAR/address.parquet',
+    )
+
+    mkdirSync(dirname(filePath), { recursive: true })
+    writeFileSync(filePath, 'fixture')
+
+    const planned = await prepareUpload({
+      filePath,
+      inspection: fixtureInspection,
+      source: 'overture',
+      sourceVersion: '2025-09-24.0',
+    })
+
+    expect(planned.plan.type).toBe('division')
+    expect(planned.plan.theme).toBe('divisions')
   })
 
   test('infers source version and cohortKey from the filename when needed', async () => {
