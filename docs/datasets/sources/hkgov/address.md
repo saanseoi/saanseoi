@@ -96,6 +96,11 @@ message carries a parquet row range (`rowStart`, `rowEnd`) plus a stable
 next row range and leaves the release phases running; only the final chunk runs
 release-level cleanup, publishes the snapshot, and completes `processDataset`.
 
+The worker executes each row range as separate stages: `normalize`, `source`,
+`history`, `current`, and `finalize`. Normalized and resolved chunk artifacts are
+stored in R2 so retries and later stages do not need to re-decode parquet or
+repeat source normalization work.
+
 For current-row cleanup, processed canonical rows are touched with the stable
 run marker and processed source rows are advanced to the current release ID.
 Final cleanup can therefore scan current rows in keyset pages without retaining

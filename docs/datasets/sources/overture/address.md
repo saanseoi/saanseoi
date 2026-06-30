@@ -82,6 +82,14 @@ message carries a parquet row range (`rowStart`, `rowEnd`) plus a stable
 next row range and leaves the release phases running; only the final chunk runs
 missing-row cleanup, publishes the snapshot, and completes `processDataset`.
 
+Each row range is split into dedicated worker stages:
+
+- `normalize`: reads the parquet range, normalizes source rows, computes source payload hashes, and writes a normalized R2 artifact
+- `source`: reads the normalized artifact and writes only source current/source version tables
+- `history`: resolves canonical IDs, writes canonical history/version rows, and writes a resolved R2 artifact
+- `current`: materializes changed canonical current rows and touches all seen current rows with the run marker
+- `finalize`: performs missing-row cleanup and allows publish/completion to continue
+
 ## Canonical Impact
 
 When no existing canonical row is matched:
