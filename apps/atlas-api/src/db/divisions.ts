@@ -1,0 +1,265 @@
+import type { CurrentDatabase } from '@repo/db'
+import { and, asc, eq, inArray, sql } from '@repo/db'
+import { currentSchema } from '@repo/db'
+import type { RequestedApiLocale, RequestedApiLocaleSelection } from '@repo/core'
+
+const { divisions, divisionsI18n } = currentSchema
+
+export type DivisionLocaleValue = {
+  name: string | null
+}
+
+export type DivisionLocaleCode = RequestedApiLocale
+
+export type DivisionRecord = {
+  division: {
+    snapshotId: string
+    id: string
+    level: number
+    type: string
+    geometry: typeof divisions.$inferSelect.geometry
+    bbox: typeof divisions.$inferSelect.bbox
+    population: number | null
+    subtype: string | null
+    class: string | null
+    wikidata: string | null
+    parentDivisionId: string | null
+  }
+  i18n: Record<DivisionLocaleCode, DivisionLocaleValue>
+  missingI18n: boolean
+}
+
+type DivisionLookup = {
+  divisionId: string
+  snapshotId: string
+  localeSelection: DivisionLocaleSelection
+}
+
+type DivisionListLookup = {
+  snapshotId: string
+  limit?: number
+  offset?: number
+  level?: number
+  type?: string
+  parentDivisionId?: string
+  localeSelection: DivisionLocaleSelection
+}
+
+type DivisionIdsLookup = {
+  snapshotId: string
+  divisionIds: string[]
+  localeSelection: DivisionLocaleSelection
+}
+
+type DivisionRow = {
+  snapshotId: string
+  id: string
+  level: number
+  type: string
+  geometry: typeof divisions.$inferSelect.geometry
+  bbox: typeof divisions.$inferSelect.bbox
+  population: number | null
+  subtype: string | null
+  class: string | null
+  wikidata: string | null
+  parentDivisionId: string | null
+  i18n: string
+  i18nCount: number
+}
+
+export type DivisionLocaleSelection = RequestedApiLocaleSelection
+
+function buildDivisionI18nCondition(localeSelection: DivisionLocaleSelection) {
+  return and(
+    eq(divisionsI18n.snapshotId, divisions.snapshotId),
+    eq(divisionsI18n.divisionId, divisions.id),
+    localeSelection.mode === 'requested' && localeSelection.locales.length > 0
+      ? inArray(divisionsI18n.locale, localeSelection.locales)
+      : undefined,
+  )
+}
+
+function buildDivisionI18nJsonSelection(localeSelection: DivisionLocaleSelection) {
+  if (localeSelection.mode === 'none') {
+    return sql<string>`'{}'`
+  }
+
+  const condition = buildDivisionI18nCondition(localeSelection)
+
+  return sql<string>`coalesce((
+    select json_group_object(
+      ${divisionsI18n.locale},
+      json_object('name', ${divisionsI18n.name})
+    )
+    from ${divisionsI18n}
+    where ${condition}
+  ), '{}')`
+}
+
+function buildDivisionI18nCountSelection(localeSelection: DivisionLocaleSelection) {
+  if (localeSelection.mode === 'none') {
+    return sql<number>`0`
+  }
+
+  const condition = buildDivisionI18nCondition(localeSelection)
+
+  return sql<number>`(
+    select count(*)
+    from ${divisionsI18n}
+    where ${condition}
+  )`
+}
+
+function mapDivisionRow(
+  row: DivisionRow,
+  localeSelection: DivisionLocaleSelection,
+): DivisionRecord {
+  return {
+    division: {
+      snapshotId: row.snapshotId,
+      id: row.id,
+      level: row.level,
+      type: row.type,
+      geometry: row.geometry,
+      bbox: row.bbox,
+      population: row.population,
+      subtype: row.subtype,
+      class: row.class,
+      wikidata: row.wikidata,
+      parentDivisionId: row.parentDivisionId,
+    },
+    i18n: JSON.parse(row.i18n) as DivisionRecord['i18n'],
+    missingI18n: localeSelection.mode !== 'none' && row.i18nCount === 0,
+  }
+}
+
+function buildDivisionConditions(
+  lookup: Pick<
+    DivisionListLookup,
+    'snapshotId' | 'level' | 'type' | 'parentDivisionId'
+  >,
+) {
+  return [
+    eq(divisions.snapshotId, lookup.snapshotId),
+    lookup.level !== undefined ? eq(divisions.level, lookup.level) : undefined,
+    lookup.type ? eq(divisions.type, lookup.type) : undefined,
+    lookup.parentDivisionId
+      ? eq(divisions.parentDivisionId, lookup.parentDivisionId)
+      : undefined,
+  ].filter(condition => condition !== undefined)
+}
+
+export async function getDivisionRecordCurrent(
+  db: CurrentDatabase,
+  lookup: DivisionLookup,
+): Promise<DivisionRecord | null> {
+  const records = await listDivisionRecordsCurrentByIds(db, {
+    snapshotId: lookup.snapshotId,
+    divisionIds: [lookup.divisionId],
+    localeSelection: lookup.localeSelection,
+  })
+
+  return records[0] ?? null
+}
+
+export async function listDivisionRecordsCurrent(
+  db: CurrentDatabase,
+  lookup: DivisionListLookup,
+): Promise<DivisionRecord[]> {
+  const i18n = buildDivisionI18nJsonSelection(lookup.localeSelection)
+  const i18nCount = buildDivisionI18nCountSelection(lookup.localeSelection)
+  const pagedDivisions = db
+    .select({
+      id: divisions.id,
+    })
+    .from(divisions)
+    .where(and(...buildDivisionConditions(lookup)))
+    .orderBy(asc(divisions.level), asc(divisions.type), asc(divisions.id))
+    .limit(lookup.limit ?? 25)
+    .offset(lookup.offset ?? 0)
+    .as('pagedDivisions')
+
+  const rows = await db
+    .select({
+      snapshotId: divisions.snapshotId,
+      id: divisions.id,
+      level: divisions.level,
+      type: divisions.type,
+      geometry: divisions.geometry,
+      bbox: divisions.bbox,
+      population: divisions.population,
+      subtype: divisions.subtype,
+      class: divisions.class,
+      wikidata: divisions.wikidata,
+      parentDivisionId: divisions.parentDivisionId,
+      i18n,
+      i18nCount,
+    })
+    .from(pagedDivisions)
+    .innerJoin(
+      divisions,
+      and(
+        eq(divisions.snapshotId, lookup.snapshotId),
+        eq(divisions.id, pagedDivisions.id),
+      ),
+    )
+    .orderBy(asc(divisions.level), asc(divisions.type), asc(divisions.id))
+    .all()
+
+  return rows.map(row => mapDivisionRow(row, lookup.localeSelection))
+}
+
+export async function countDivisionsCurrent(
+  db: CurrentDatabase,
+  lookup: Omit<DivisionListLookup, 'limit' | 'offset' | 'localeSelection'>,
+) {
+  const row = await db
+    .select({
+      count: sql<number>`count(*)`,
+    })
+    .from(divisions)
+    .where(and(...buildDivisionConditions(lookup)))
+    .limit(1)
+    .get()
+
+  return Number(row?.count ?? 0)
+}
+
+export async function listDivisionRecordsCurrentByIds(
+  db: CurrentDatabase,
+  lookup: DivisionIdsLookup,
+): Promise<DivisionRecord[]> {
+  if (lookup.divisionIds.length === 0) {
+    return []
+  }
+
+  const i18n = buildDivisionI18nJsonSelection(lookup.localeSelection)
+  const i18nCount = buildDivisionI18nCountSelection(lookup.localeSelection)
+  const rows = await db
+    .select({
+      snapshotId: divisions.snapshotId,
+      id: divisions.id,
+      level: divisions.level,
+      type: divisions.type,
+      geometry: divisions.geometry,
+      bbox: divisions.bbox,
+      population: divisions.population,
+      subtype: divisions.subtype,
+      class: divisions.class,
+      wikidata: divisions.wikidata,
+      parentDivisionId: divisions.parentDivisionId,
+      i18n,
+      i18nCount,
+    })
+    .from(divisions)
+    .where(
+      and(
+        eq(divisions.snapshotId, lookup.snapshotId),
+        inArray(divisions.id, lookup.divisionIds),
+      ),
+    )
+    .orderBy(asc(divisions.level), asc(divisions.type), asc(divisions.id))
+    .all()
+
+  return rows.map(row => mapDivisionRow(row, lookup.localeSelection))
+}

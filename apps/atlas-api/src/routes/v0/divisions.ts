@@ -21,7 +21,7 @@ import type { AppEnv } from '../../types'
 
 const ROUTE_VARIANTS = [
   {
-    requestVersionPath: 'v0' as const,
+    requestedVersionPath: 'v0' as const,
     requestedApiVersion: '0.1' as const,
     resolvedApiVersion: 'api-divisions-v0.1' as const,
     listPath: '/v0/divisions',
@@ -30,7 +30,7 @@ const ROUTE_VARIANTS = [
     detailOperationId: 'getDivisionByIdV0',
   },
   {
-    requestVersionPath: 'v0.1' as const,
+    requestedVersionPath: 'v0.1' as const,
     requestedApiVersion: '0.1' as const,
     resolvedApiVersion: 'api-divisions-v0.1' as const,
     listPath: '/v0.1/divisions',
@@ -39,7 +39,7 @@ const ROUTE_VARIANTS = [
     detailOperationId: 'getDivisionByIdV01',
   },
 ] as const satisfies Array<{
-  requestVersionPath: RequestedDivisionVersion
+  requestedVersionPath: RequestedDivisionVersion
   requestedApiVersion: RequestedDivisionApiVersion
   resolvedApiVersion: ResolvedDivisionApiVersion
   listPath: string
@@ -129,7 +129,7 @@ export const divisionRoutes = [
           currentDb: c.var.currentDb,
           metaDb: c.var.metaDb,
           requestUrl: c.req.url,
-          requestVersionPath: routeVariant.requestVersionPath,
+          requestedVersionPath: routeVariant.requestedVersionPath,
           requestedApiVersion: routeVariant.requestedApiVersion,
           resolvedApiVersion: routeVariant.resolvedApiVersion,
           query: c.req.valid('query'),
@@ -153,7 +153,7 @@ export const divisionRoutes = [
           currentDb: c.var.currentDb,
           metaDb: c.var.metaDb,
           requestUrl: c.req.url,
-          requestVersionPath: routeVariant.requestVersionPath,
+          requestedVersionPath: routeVariant.requestedVersionPath,
           requestedApiVersion: routeVariant.requestedApiVersion,
           resolvedApiVersion: routeVariant.resolvedApiVersion,
           id,
