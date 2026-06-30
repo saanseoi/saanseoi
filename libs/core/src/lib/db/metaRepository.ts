@@ -12,15 +12,9 @@ import {
   sql,
   metaSchema,
 } from '@repo/db'
-import { resolveApiFieldFixture } from '@repo/db/api-field-fixtures'
+import { resolveApiFieldFixture } from '@repo/db/apiFieldFixtures'
 
-import type {
-  DatasetRecord,
-  RegionCode,
-  ResourceType,
-  SupportedType,
-  UploadPlan,
-} from '../../types'
+import type { DatasetRecord, RegionCode, ResourceType, UploadPlan } from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './types'
 import type { DataShardType, IngestRunStatus, ReleaseStatus } from '@repo/db'
 
@@ -194,7 +188,7 @@ export async function getLatestDatasetForRegionSourceType(
   db: HarbourReadableDb,
   regionCode: RegionCode,
   source: string,
-  type: SupportedType,
+  type: ResourceType,
 ): Promise<LatestDatasetLookup> {
   const latestDataset =
     ((await db
@@ -225,7 +219,7 @@ export async function hasDatasetForCohortKeySourceType(
   regionCode: RegionCode,
   cohortKey: string,
   source: string,
-  type: SupportedType,
+  type: ResourceType,
 ) {
   const existing =
     ((await db
@@ -555,7 +549,7 @@ export async function setSupersededByReleaseId(
     .run()
 }
 
-export function getApiVersionCodeForType(type: SupportedType) {
+export function getApiVersionCodeForType(type: ResourceType) {
   return buildApiVersionCode(type, '0.1')
 }
 
@@ -883,7 +877,7 @@ export async function resolveSnapshotForRelease(
 
 export async function resolveReleaseSetForType(
   db: HarbourReadableDb,
-  type: SupportedType,
+  type: ResourceType,
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
 
@@ -913,7 +907,7 @@ export async function resolveReleaseSetForType(
 
 export async function resolveActiveReleaseSetForType(
   db: HarbourReadableDb,
-  type: SupportedType,
+  type: ResourceType,
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
 
@@ -943,7 +937,7 @@ export async function resolveActiveReleaseSetForType(
 
 export async function ensureDraftReleaseSetForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
-  type: SupportedType,
+  type: ResourceType,
   release: Pick<DatasetRecord, 'cohortKey' | 'regionCode'>,
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
@@ -1190,7 +1184,7 @@ export async function publishReleaseArtifacts(
     publishedAt: string
     releaseSetId: string
     snapshotId: string
-    type: SupportedType
+    type: ResourceType
   },
 ) {
   const releaseSet = await db
@@ -1827,7 +1821,7 @@ export async function listCurrentSnapshotCleanupCandidates(
 
 export async function resolveActiveSnapshotForType(
   db: HarbourReadableDb,
-  type: SupportedType,
+  type: ResourceType,
   resourceType: ResourceType,
 ) {
   const activeReleaseSet = await resolveActiveReleaseSetForType(db, type)

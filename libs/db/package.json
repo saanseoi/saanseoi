@@ -77,13 +77,13 @@
     "db:rebuild-fts:local": "bash ./scripts/rebuild-places-fts-local.sh",
     "db:mirror:preview:to:local": "bash ./scripts/mirror-db-to-local.sh preview",
     "db:mirror:production:to:local": "bash ./scripts/mirror-db-to-local.sh production",
-    "db:sync:meta": "bun ./scripts/sync-meta-registry.ts local",
-    "db:sync:preview:meta": "bun ./scripts/sync-meta-registry.ts preview",
-    "db:sync:production:meta": "bun ./scripts/sync-meta-registry.ts production"
+    "db:sync:meta": "bun ./scripts/syncMetaRegistry.ts local",
+    "db:sync:preview:meta": "bun ./scripts/syncMetaRegistry.ts preview",
+    "db:sync:production:meta": "bun ./scripts/syncMetaRegistry.ts production"
   },
   "exports": {
     ".": "./src/index.ts",
-    "./api-field-fixtures": "./src/api-field-fixtures.ts",
+    "./apiFieldFixtures": "./src/apiFieldFixtures.ts",
     "./registry": "./src/registry/index.ts",
     "./currentSchema": "./src/schema/current/index.ts",
     "./historySchema": "./src/schema/history/index.ts",

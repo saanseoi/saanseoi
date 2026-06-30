@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { listApiFieldFixtures, resolveApiFieldFixture } from './api-field-fixtures'
+import { listApiFieldFixtures, resolveApiFieldFixture } from './apiFieldFixtures'
 
 describe('api field fixtures', () => {
   test('loads bundled fixture definitions', () => {

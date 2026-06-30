@@ -1,4 +1,4 @@
-import { inspectParquetFile } from '../parquet-inspector-node'
+import { inspectParquetFile } from '../parquetInspectorNode'
 import {
   planUpload as planWorkerUpload,
   prepareUpload as prepareWorkerUpload,

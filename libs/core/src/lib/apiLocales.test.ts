@@ -5,7 +5,7 @@ import {
   isApiLocale,
   isValidRequestedApiLocales,
   parseRequestedApiLocales,
-} from './api-locales'
+} from './apiLocales'
 
 describe('api-locales', () => {
   test('accepts only contract API locales', () => {

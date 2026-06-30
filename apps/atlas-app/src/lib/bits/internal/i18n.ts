@@ -3,7 +3,7 @@ import enMessages from '@repo/i18n/messages/en/shared.json'
 import zhHansMessages from '@repo/i18n/messages/zh-Hans/shared.json'
 import zhHantMessages from '@repo/i18n/messages/zh-Hant/shared.json'
 
-import { getCurrentLocale, updateLocale } from './locale-state.svelte'
+import { getCurrentLocale, updateLocale } from './localeState.svelte'
 
 export { getLocale, locales, setLocale }
 export { getCurrentLocale, updateLocale }

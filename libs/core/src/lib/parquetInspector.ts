@@ -1,6 +1,6 @@
 import type { AsyncBuffer } from 'hyparquet'
 
-import { inspectParquetFromBuffer } from './parquet-inspector-shared'
+import { inspectParquetFromBuffer } from './parquetInspectorShared'
 
 type ParquetInput = ArrayBuffer | Uint8Array
 

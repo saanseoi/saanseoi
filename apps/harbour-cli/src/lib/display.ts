@@ -1,4 +1,4 @@
-import type { prepareUpload } from '@repo/core/upload-local'
+import type { prepareUpload } from '@repo/core/uploadLocal'
 
 import type {
   IngestRunReportRow,

@@ -9,7 +9,7 @@ import {
   insertFixtureRelease,
   loadMigrationSql,
   seedFixtureCatalog,
-} from '../../testing/meta-fixtures'
+} from '../../testing/metaFixtures'
 import {
   finalizeUpload,
   createSchemaFingerprint,
@@ -24,8 +24,8 @@ import {
   inferTypeFromPath,
   requestUpload,
 } from './upload'
-import { planUpload, prepareUpload, registerUpload } from './upload-local'
-import { createLocalHarbourDb } from '../../testing/local-db'
+import { planUpload, prepareUpload, registerUpload } from './uploadLocal'
+import { createLocalHarbourDb } from '../../testing/localDb'
 
 import type { ParquetInspection } from '../../types'
 

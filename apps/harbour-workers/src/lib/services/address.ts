@@ -3,7 +3,7 @@ import {
   resolveLatestPublishedSnapshotForResourceType,
   resolveLatestPublishedSnapshotForResourceTypeRegion,
   resolveLatestSnapshotForResourceTypeExcludingId,
-} from '@repo/core/db/meta-repository'
+} from '@repo/core/db/metaRepository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   CurrentDatabase,

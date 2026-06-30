@@ -6,18 +6,18 @@ import { join, resolve } from 'node:path'
 import { Database } from 'bun:sqlite'
 
 import type { ParquetInspection } from '@repo/core'
-import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
+import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
 import {
   loadMigrationSql,
   seedFixtureCatalog,
-} from '../../../../../libs/core/src/testing/meta-fixtures'
+} from '../../../../../libs/core/src/testing/metaFixtures'
 import {
   handleFinalizeUploadRequest,
   handleRequeueUploadRequest,
   handleSignUploadRequest,
   type DatasetProcessingQueue,
   type UploadSigningEnv,
-} from './upload-session'
+} from './uploadSession'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
 const migrationSql = loadMigrationSql(migrationsDir)

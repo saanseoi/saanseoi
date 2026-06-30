@@ -7,11 +7,11 @@ import { Database } from 'bun:sqlite'
 
 import type { ParquetInspection } from '@repo/core'
 import { requestUpload } from '@repo/core/upload'
-import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
+import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
 import {
   loadMigrationSql,
   seedFixtureCatalog,
-} from '../../../../../libs/core/src/testing/meta-fixtures'
+} from '../../../../../libs/core/src/testing/metaFixtures'
 import type { DatasetProcessingQueue } from './ingest'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
@@ -33,7 +33,7 @@ const fixtureInspection: ParquetInspection = {
 }
 const inspectParquetMock = mock(async () => fixtureInspection)
 
-mock.module('@repo/core/parquet-inspector', () => ({
+mock.module('@repo/core/parquetInspector', () => ({
   inspectParquet: inspectParquetMock,
 }))
 

@@ -6,8 +6,8 @@ import { m } from '$lib/bits/internal/i18n'
 import { Button } from '$lib/bits/primitives/button'
 import { LanguageSelector } from '$lib/bits/components/language-selector'
 
-import DarkModeToggle from './dark-mode-toggle.svelte'
-import { navigationItems } from './navigation-items'
+import DarkModeToggle from './darkModeToggle.svelte'
+import { navigationItems } from './navigationItems'
 
 let mobileMenuOpen = $state(false)
 </script>

@@ -9,8 +9,8 @@ import {
   insertFixtureRelease,
   loadMigrationSql,
   seedFixtureCatalog,
-} from '../../../../../libs/core/src/testing/meta-fixtures'
-import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/local-db'
+} from '../../../../../libs/core/src/testing/metaFixtures'
+import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
 const migrationSql = loadMigrationSql(migrationsDir)

@@ -2,13 +2,13 @@ import { describe, expect, test } from 'bun:test'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import { createLocalHarbourDb } from '../../testing/local-db'
+import { createLocalHarbourDb } from '../../testing/localDb'
 import {
   ensureIngestRunStarted,
   publishReleaseArtifacts,
   resolveLatestSnapshotForResourceTypeExcludingId,
   resolveShardForTypeRegionYear,
-} from './meta-repository'
+} from './metaRepository'
 
 function createShardLookupDb() {
   const sqlite = new SQLiteDatabase(':memory:')

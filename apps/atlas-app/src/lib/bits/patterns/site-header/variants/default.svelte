@@ -8,9 +8,9 @@ addCollection(ionicons)
 </script>
 
 <script lang="ts">
-import HeaderActions from '../components/header-actions.svelte'
-import PrimaryNavigation from '../components/primary-navigation.svelte'
-import SiteBrand from '../components/site-brand.svelte'
+import HeaderActions from '../components/headerActions.svelte'
+import PrimaryNavigation from '../components/primaryNavigation.svelte'
+import SiteBrand from '../components/siteBrand.svelte'
 </script>
 
 <header

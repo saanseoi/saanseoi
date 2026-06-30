@@ -1,36 +1,30 @@
 import { createHash } from 'node:crypto'
 
-import type { SnapshotResourceType } from './constants/schema'
+import type { ResourceType } from '@repo/core'
 
 export type ApiFamily = 'addresses' | 'divisions' | 'places' | 'streets'
 
-const API_FAMILY_BY_RESOURCE_TYPE: Record<SnapshotResourceType, ApiFamily> = {
+const API_FAMILY_BY_RESOURCE_TYPE: Record<ResourceType, ApiFamily> = {
   address: 'addresses',
   division: 'divisions',
   place: 'places',
   street: 'streets',
 }
 
-export function getApiFamilyForResourceType(resourceType: SnapshotResourceType) {
+export function getApiFamilyForResourceType(resourceType: ResourceType) {
   return API_FAMILY_BY_RESOURCE_TYPE[resourceType]
 }
 
-export function buildApiVersionCode(
-  resourceType: SnapshotResourceType,
-  version: string,
-) {
+export function buildApiVersionCode(resourceType: ResourceType, version: string) {
   return `api-${getApiFamilyForResourceType(resourceType)}-v${version}`
 }
 
-export function buildSchemaVersionCode(
-  resourceType: SnapshotResourceType,
-  version: string,
-) {
+export function buildSchemaVersionCode(resourceType: ResourceType, version: string) {
   return `sv-${resourceType}-v${version}`
 }
 
 export function buildRulesetVersionCode(
-  resourceType: SnapshotResourceType,
+  resourceType: ResourceType,
   strategy: string,
   version: string,
 ) {
@@ -75,7 +69,7 @@ export function extractReleaseDateFromSourceVersion(sourceVersion: string) {
 
 export function buildSnapshotVersionCode(
   regionCode: string,
-  resourceType: SnapshotResourceType,
+  resourceType: ResourceType,
   cohortKey: string,
 ) {
   return `ss-${regionCode}-${resourceType}-${normalizeCohortKey(cohortKey)}`

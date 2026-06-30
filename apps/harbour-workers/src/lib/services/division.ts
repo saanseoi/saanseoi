@@ -1,6 +1,6 @@
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { ApiLocale } from '@repo/core'
-import { resolveLatestSnapshotForResourceTypeExcludingId } from '@repo/core/db/meta-repository'
+import { resolveLatestSnapshotForResourceTypeExcludingId } from '@repo/core/db/metaRepository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   CurrentDatabase,

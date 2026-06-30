@@ -1,8 +1,8 @@
 <script lang="ts">
 import { Main } from '$lib/bits'
 
-import PolicyDocument from './components/policy-document.svelte'
-import PolicyNotice from './components/policy-notice.svelte'
+import PolicyDocument from './components/policyDocument.svelte'
+import PolicyNotice from './components/policyNotice.svelte'
 
 import type { PolicyDocument as PolicyDocumentType } from './types'
 

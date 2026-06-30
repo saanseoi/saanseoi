@@ -1,5 +1,5 @@
 <script lang="ts">
-import PolicySection from './policy-section.svelte'
+import PolicySection from './policySection.svelte'
 
 import type { PolicySection as PolicySectionType } from '../types'
 
