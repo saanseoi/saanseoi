@@ -26,9 +26,10 @@ import {
   alignAddressCurrentDivisionSnapshot,
   cloneAddressCurrentSnapshot,
   closeCurrentAddressVersions,
-  deleteMissingCurrentAddresses,
+  deleteMissingCurrentAddressesBySeenIds,
   deleteStaleAddressCurrentRows,
-  getCurrentAddressVersionMap,
+  getCurrentAddressVersionLookup,
+  hasCurrentAddressVersions,
   insertAddressVersionRows,
   prepareAddressVersionInsertContext,
   replaceAddressCurrentI18n,
@@ -41,10 +42,12 @@ import {
   buildSourceReleaseId,
   closeSourceHkgovAlsAddress2dVersions,
   closeSourceOvertureAddress2dVersions,
-  deleteMissingCurrentSourceHkgovAlsAddresses2d,
-  deleteMissingCurrentSourceOvertureAddresses2d,
-  getCurrentSourceHkgovAlsAddress2dMap,
-  getCurrentSourceOvertureAddress2dMap,
+  deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenIds,
+  deleteMissingCurrentSourceOvertureAddresses2dBySeenIds,
+  getCurrentSourceHkgovAlsAddress2dRecords,
+  getCurrentSourceOvertureAddress2dRecords,
+  hasCurrentSourceHkgovAlsAddress2dRecords,
+  hasCurrentSourceOvertureAddress2dRecords,
   insertSourceHkgovAlsAddress2dI18nVersions,
   insertSourceHkgovAlsAddresses2dVersions,
   insertSourceOvertureAddress2dI18nVersions,
@@ -63,7 +66,6 @@ import {
 } from './shared'
 
 import type { HarbourWorkerBucket } from './division'
-import type { AddressVersionSnapshot } from '../db/address'
 
 type DivisionLookupMaps = {
   areaByEn: Map<string, string>
@@ -132,13 +134,6 @@ export async function processAddressDataset(
   const divisionLookup = await timings.measure('loadDivisionLookupMapsMs', () =>
     loadDivisionLookupMaps(metaDb, currentDb, message.regionCode),
   )
-  const currentRows = await timings.measure('loadCurrentVersionMapMs', () =>
-    getCurrentAddressVersionMap(historyRepoDb, message.regionCode, {
-      buildAddressBaseHashInput,
-      buildMatchKey,
-      normalizeAddressI18nSnapshotRow,
-    }),
-  )
   const previousSnapshot = await resolveLatestSnapshotForResourceTypeExcludingId(
     metaRepoDb,
     'address',
@@ -161,13 +156,19 @@ export async function processAddressDataset(
       divisionLookup.snapshotId,
     ),
   )
-  const currentRowsByMatchKey = new Map<string, AddressVersionSnapshot>()
-
-  for (const snapshot of currentRows.values()) {
-    if (snapshot.matchKey && !currentRowsByMatchKey.has(snapshot.matchKey)) {
-      currentRowsByMatchKey.set(snapshot.matchKey, snapshot)
-    }
-  }
+  const hasCurrentAddresses = await timings.measure(
+    'checkCurrentAddressVersionsMs',
+    () => hasCurrentAddressVersions(historyRepoDb, message.regionCode),
+  )
+  const hasCurrentSourceRows = !sourceDb
+    ? false
+    : message.source === 'overture'
+      ? await timings.measure('checkCurrentSourceRowsMs', () =>
+          hasCurrentSourceOvertureAddress2dRecords(sourceDb),
+        )
+      : await timings.measure('checkCurrentSourceRowsMs', () =>
+          hasCurrentSourceHkgovAlsAddress2dRecords(sourceDb),
+        )
 
   const seenIds = new Set<string>()
   const seenSourceIds = new Set<string>()
@@ -175,17 +176,57 @@ export async function processAddressDataset(
   let insertedVersions = 0
   let unchangedRows = 0
   let localizedRows = 0
-  const currentSourceRows = !sourceDb
-    ? null
-    : message.source === 'overture'
-      ? await timings.measure('loadCurrentSourceMapMs', () =>
-          getCurrentSourceOvertureAddress2dMap(sourceDb),
-        )
-      : await timings.measure('loadCurrentSourceMapMs', () =>
-          getCurrentSourceHkgovAlsAddress2dMap(sourceDb),
-        )
 
   for await (const batch of readParquetObjectsInBatches(file, ADDRESS_BATCH_SIZE)) {
+    const normalizedBatch = batch.map(row => ({
+      normalized:
+        message.source === 'overture'
+          ? normalizeOvertureAddressRow(row, divisionLookup)
+          : normalizePreparedHkgovAddressRow(row),
+      row,
+    }))
+    const currentAddressLookup = hasCurrentAddresses
+      ? await timings.measure('loadCurrentAddressBatchLookupMs', () =>
+          getCurrentAddressVersionLookup(
+            historyRepoDb,
+            message.regionCode,
+            normalizedBatch.map(({ normalized }) => normalized.sourceId),
+            normalizedBatch.map(({ normalized }) => {
+              const englishI18n = normalized.i18n.find(row => row.locale === 'en')
+
+              return {
+                districtId: normalized.base.districtId,
+                streetNumber: englishI18n?.streetNumber ?? null,
+                streetName: englishI18n?.streetName ?? null,
+              }
+            }),
+            {
+              buildAddressBaseHashInput,
+              buildMatchKey,
+              normalizeAddressI18nSnapshotRow,
+            },
+          ),
+        )
+      : {
+          byId: new Map(),
+          byMatchKey: new Map(),
+        }
+    const currentSourceRows =
+      !sourceDb || !hasCurrentSourceRows
+        ? null
+        : message.source === 'overture'
+          ? await timings.measure('loadCurrentSourceBatchLookupMs', () =>
+              getCurrentSourceOvertureAddress2dRecords(
+                sourceDb,
+                normalizedBatch.map(({ normalized }) => normalized.sourceId),
+              ),
+            )
+          : await timings.measure('loadCurrentSourceBatchLookupMs', () =>
+              getCurrentSourceHkgovAlsAddress2dRecords(
+                sourceDb,
+                normalizedBatch.map(({ normalized }) => normalized.sourceId),
+              ),
+            )
     const overtureSourceRows: Array<
       typeof sourceSchema.sourceOvertureAddresses2d.$inferInsert
     > = []
@@ -234,14 +275,12 @@ export async function processAddressDataset(
     const changedSourceIds = new Set<string>()
     const unchangedSourceIds = new Set<string>()
 
-    for (const row of batch) {
-      const normalized =
-        message.source === 'overture'
-          ? normalizeOvertureAddressRow(row, divisionLookup)
-          : normalizePreparedHkgovAddressRow(row)
+    for (const { normalized, row } of normalizedBatch) {
       const matchedCurrent =
-        currentRows.get(normalized.sourceId) ??
-        (normalized.matchKey ? currentRowsByMatchKey.get(normalized.matchKey) : null) ??
+        currentAddressLookup.byId.get(normalized.sourceId) ??
+        (normalized.matchKey
+          ? currentAddressLookup.byMatchKey.get(normalized.matchKey)
+          : null) ??
         null
       const addressId = matchedCurrent?.id ?? normalized.sourceId
       const base: AddressRow = {
@@ -649,13 +688,13 @@ export async function processAddressDataset(
   }
 
   const { count: deletedRows, missingIds } =
-    message.source === 'overture'
+    message.source === 'overture' && hasCurrentAddresses
       ? await timings.measure('deleteMissingCurrentAddressesMs', () =>
-          deleteMissingCurrentAddresses(
+          deleteMissingCurrentAddressesBySeenIds(
             historyRepoDb,
             versionInsertContext.snapshotId,
             message.cohortKey,
-            currentRows,
+            message.regionCode,
             seenIds,
           ),
         )
@@ -670,22 +709,20 @@ export async function processAddressDataset(
     )
   }
 
-  if (sourceDb && currentSourceRows) {
+  if (sourceDb && hasCurrentSourceRows) {
     if (message.source === 'overture') {
       await timings.measure('deleteMissingCurrentSourceOvertureAddresses2dMs', () =>
-        deleteMissingCurrentSourceOvertureAddresses2d(
+        deleteMissingCurrentSourceOvertureAddresses2dBySeenIds(
           sourceDb,
           message.sourceVersion,
-          currentSourceRows,
           seenSourceIds,
         ),
       )
     } else {
       await timings.measure('deleteMissingCurrentSourceHkgovAlsAddresses2dMs', () =>
-        deleteMissingCurrentSourceHkgovAlsAddresses2d(
+        deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenIds(
           sourceDb,
           message.sourceVersion,
-          currentSourceRows,
           seenSourceIds,
         ),
       )

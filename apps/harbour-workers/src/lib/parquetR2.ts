@@ -1,6 +1,8 @@
 import { parquetMetadataAsync, parquetReadObjects, type AsyncBuffer } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 
+const DEFAULT_PARQUET_READ_ROW_WINDOW_SIZE = 8192
+
 export type R2RangeReadableBucket = {
   head(key: string): Promise<{ size: number } | null>
   get(
@@ -58,19 +60,29 @@ export async function createAsyncBufferFromR2(
 export async function* readParquetObjectsInBatches(
   file: AsyncBuffer,
   batchSize: number,
+  options: {
+    readRowWindowSize?: number
+  } = {},
 ): AsyncGenerator<Record<string, unknown>[]> {
   const metadata = await parquetMetadataAsync(file)
   const rowCount = Number(metadata.num_rows)
+  const readRowWindowSize = Math.max(
+    batchSize,
+    options.readRowWindowSize ?? DEFAULT_PARQUET_READ_ROW_WINDOW_SIZE,
+  )
 
-  for (let rowStart = 0; rowStart < rowCount; rowStart += batchSize) {
-    const rowEnd = Math.min(rowStart + batchSize, rowCount)
+  for (let rowStart = 0; rowStart < rowCount; rowStart += readRowWindowSize) {
+    const rowEnd = Math.min(rowStart + readRowWindowSize, rowCount)
     const rows = await parquetReadObjects({
       file,
+      metadata,
       rowStart,
       rowEnd,
       compressors,
     })
 
-    yield rows
+    for (let batchStart = 0; batchStart < rows.length; batchStart += batchSize) {
+      yield rows.slice(batchStart, batchStart + batchSize)
+    }
   }
 }

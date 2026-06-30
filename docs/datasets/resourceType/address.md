@@ -51,6 +51,12 @@ Implications:
 - HKGov ALS can merge into an Overture-backed canonical row when the street key matches
 - if nothing matches, the incoming source row creates a canonical `address2d` row under its own source ID
 
+Runtime behavior:
+
+- reconciliation is performed per parquet processing batch
+- the worker looks up only the current canonical rows matching incoming source IDs and derived street keys for that batch
+- it does not preload the full region-wide current address history map before row processing
+
 ## Canonical Tables
 
 The address resourceType currently writes these canonical current tables:
@@ -114,6 +120,7 @@ Shared behavior:
 - previous current source versions are closed with `validToRelease`
 - source history is separate from canonical address history
 - unchanged source payloads only advance current-row `releaseId`/`datasetId`; they do not create new source version rows
+- address ingestion looks up current source rows only for source IDs present in the current parquet batch
 
 ## Versioning and Deletion
 
@@ -130,6 +137,7 @@ Deletion is asymmetric:
 
 - Overture uploads can close canonical addresses that disappeared from the latest Overture release
 - HKGov ALS uploads do not delete canonical addresses
+- missing-row cleanup scans current IDs in keyset pages instead of materializing the full current address/source corpus
 
 So, in runtime terms:
 
