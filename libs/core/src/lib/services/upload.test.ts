@@ -269,6 +269,25 @@ describe('upload', () => {
     expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-als-address')
   })
 
+  test('rejects overture uploads for source versions that are not yet marked safe', async () => {
+    const tempDir = createTempDir()
+    const fixtureFile = join(tempDir, 'hk-address-2026-06.parquet')
+
+    writeFileSync(fixtureFile, 'fixture')
+
+    await expect(
+      prepareUpload({
+        filePath: fixtureFile,
+        inspection: addressFixtureInspection,
+        source: 'overture',
+        sourceVersion: '2026-06-24.0',
+        cohortKey: '2026-06',
+      }),
+    ).rejects.toThrow(
+      'Overture sourceVersion 2026-06-24.0 is not marked as a known safe release.',
+    )
+  })
+
   test('registers the first dataset upload against a provided raw object key', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
@@ -912,13 +931,13 @@ describe('upload', () => {
         filePath: fixtureFile,
         cohortKey: '2026-06',
         source: 'overture',
-        sourceVersion: '2026-06-24.0',
+        sourceVersion: '2026-06-17.0',
         inspection,
         resolveSchemaFingerprint: async () => createSchemaFingerprint(inspection),
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'overture-hk-2026-06-24.0-division',
+        datasetId: 'overture-hk-2026-06-17.0-division',
         supersedesDatasetId: 'overture-hk-2026-05-24.0-division',
       },
     })
@@ -1191,16 +1210,16 @@ Reconcile the schema before uploading this dataset.`)
     await expect(
       planUpload(db, {
         filePath: fixtureFile,
-        cohortKey: '2026-08',
+        cohortKey: '2026-06',
         source: 'overture',
-        sourceVersion: '2026-08-24.0',
+        sourceVersion: '2026-06-17.0',
         inspection: fixtureInspection,
         resolveSchemaFingerprint: async () =>
           createSchemaFingerprint(fixtureInspection),
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'overture-hk-2026-08-24.0-division',
+        datasetId: 'overture-hk-2026-06-17.0-division',
         supersedesDatasetId: 'overture-hk-2026-05-24.0-division',
       },
     })
