@@ -6,6 +6,7 @@ import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 
 import { createCurrentDb, createMetaDb } from '@repo/db'
+import { isTransientD1ReadError } from './lib/d1'
 import { defaultOpenAPIHook } from './lib/openapi'
 import { metaRoutes } from './routes/v0/meta'
 import { divisionRoutes } from './routes/v0/divisions'
@@ -45,6 +46,16 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
 
 app.onError((error, c) => {
   console.error(error)
+  if (isTransientD1ReadError(error)) {
+    return c.json(
+      {
+        error: 'service_unavailable',
+        message: 'The atlas API is temporarily unavailable.',
+      },
+      503,
+    )
+  }
+
   return c.json(
     {
       error: 'internal_error',

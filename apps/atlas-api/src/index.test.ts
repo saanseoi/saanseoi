@@ -4,6 +4,9 @@ import app from './index'
 import type { AppBindings } from './types'
 
 type MockDbOptions = {
+  failOnAll?: (query: string, values: unknown[]) => boolean
+  failOnFirst?: (query: string, values: unknown[]) => boolean
+  failOnRaw?: (query: string, values: unknown[]) => boolean
   failOnRun?: (query: string, values: unknown[]) => boolean
 }
 
@@ -20,6 +23,14 @@ function createMockDb(options: MockDbOptions = {}) {
             return this
           },
           async first<T>() {
+            if (options.failOnFirst?.(query, this.values)) {
+              const error = new Error('Failed query: transient read failure')
+              error.cause = new Error(
+                'D1_ERROR: Failed to parse body as JSON, got: Error: internal error; reference = abc123',
+              )
+              throw error
+            }
+
             if (query.includes('SELECT 1 AS ok')) {
               return { ok: 1 } as T
             }
@@ -45,12 +56,24 @@ function createMockDb(options: MockDbOptions = {}) {
             }
           },
           async all<T>() {
+            if (options.failOnAll?.(query, this.values)) {
+              const error = new Error('Failed query: transient read failure')
+              error.cause = new Error('SQLITE_BUSY: database is locked')
+              throw error
+            }
+
             return {
               results: [] as T[],
               success: true,
             }
           },
           async raw<T>() {
+            if (options.failOnRaw?.(query, this.values)) {
+              const error = new Error('Failed query: transient read failure')
+              error.cause = new Error('SQLITE_BUSY: database is locked')
+              throw error
+            }
+
             return [] as T[]
           },
         }
@@ -125,6 +148,28 @@ describe('atlas-api', () => {
       httpStatus: 503,
       error: 'snapshot_not_ready',
       message: 'No active division snapshot is published.',
+    })
+  })
+
+  test('GET /v0/divisions returns 503 when atlas hits a transient D1 read failure', async () => {
+    const { env } = createEnv(
+      {},
+      {
+        failOnAll: () => true,
+        failOnFirst: () => true,
+        failOnRaw: () => true,
+      },
+    )
+    const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
+    const body = (await res.json()) as {
+      error: string
+      message: string
+    }
+
+    expect(res.status).toBe(503)
+    expect(body).toEqual({
+      error: 'service_unavailable',
+      message: 'The atlas API is temporarily unavailable.',
     })
   })
 
