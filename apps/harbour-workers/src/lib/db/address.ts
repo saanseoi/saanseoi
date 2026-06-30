@@ -131,6 +131,16 @@ function normalizeAddressMatchToken(value: string | null) {
   return normalized || null
 }
 
+function normalizeAddressSqlMatchToken(value: string) {
+  return value.replace(/\s+/g, '')
+}
+
+function sqlAddressMatchToken(
+  column: typeof historySchema.address2dVersionsI18n.streetName,
+) {
+  return sql`replace(replace(replace(replace(upper(trim(${column})), ' ', ''), char(9), ''), char(10), ''), char(13), '')`
+}
+
 export async function getCurrentAddressVersionMap(
   db: HarbourReadableDb,
   regionCode: RegionCode,
@@ -215,8 +225,8 @@ export async function getCurrentAddressVersionLookup(
 
     uniqueMatchInputs.set(`${districtId}\0${streetNumber}\0${streetName}`, {
       districtId,
-      streetName,
-      streetNumber,
+      streetName: normalizeAddressSqlMatchToken(streetName),
+      streetNumber: normalizeAddressSqlMatchToken(streetNumber),
     })
   }
 
@@ -228,10 +238,10 @@ export async function getCurrentAddressVersionLookup(
     const predicates = inputChunk.map(input =>
       and(
         eq(historySchema.address2dVersions.districtId, input.districtId),
-        sql`upper(trim(${historySchema.address2dVersionsI18n.streetNumber})) = ${
+        sql`${sqlAddressMatchToken(historySchema.address2dVersionsI18n.streetNumber)} = ${
           input.streetNumber
         }`,
-        sql`upper(trim(${historySchema.address2dVersionsI18n.streetName})) = ${
+        sql`${sqlAddressMatchToken(historySchema.address2dVersionsI18n.streetName)} = ${
           input.streetName
         }`,
       ),

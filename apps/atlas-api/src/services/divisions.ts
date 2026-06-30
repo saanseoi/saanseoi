@@ -281,7 +281,9 @@ function buildDivisionAncestorRelationshipData(
             ? record.id
             : null
 
-    if (!id) {
+    const normalizedId = id?.trim()
+
+    if (!normalizedId) {
       return []
     }
 
@@ -295,7 +297,7 @@ function buildDivisionAncestorRelationshipData(
 
     return {
       type: 'divisions' as const,
-      id,
+      id: normalizedId,
       meta:
         name || rawSubType
           ? {
@@ -319,7 +321,14 @@ function buildDivisionAncestorRelationshipData(
       const ids = (entry as Record<string, unknown>).ids
 
       return Array.isArray(ids)
-        ? ids.filter((value): value is string => typeof value === 'string')
+        ? ids.flatMap(value => {
+            if (typeof value !== 'string') {
+              return []
+            }
+
+            const id = value.trim()
+            return id ? [id] : []
+          })
         : []
     })
     .filter(ids => ids.length > 0)

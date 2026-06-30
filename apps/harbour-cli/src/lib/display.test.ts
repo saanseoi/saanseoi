@@ -81,13 +81,13 @@ describe('formatSummary', () => {
 })
 
 describe('formatUploadResult', () => {
-  test('uses the requested field order and sourceSchemaVersion label', () => {
+  test('uses the requested field order and schemaVersion label', () => {
     const lines = formatUploadResult(previewResult, {
       datasetCode: 'ds-hk-overture-division',
       rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
       releaseId: 'release-123',
       datasetId: 'dataset-456',
-      sourceSchemaVersion: '1.12.0',
+      schemaVersion: '1.12.0',
       status: 'staged',
     })
 
@@ -97,7 +97,7 @@ describe('formatUploadResult', () => {
     expect(lines[3]).toContain('datasetId')
     expect(lines[4]).toContain('release')
     expect(lines[5]).toContain('releaseId')
-    expect(lines[6]).toContain('sourceSchemaVersion')
+    expect(lines[6]).toContain('schemaVersion')
   })
 })
 

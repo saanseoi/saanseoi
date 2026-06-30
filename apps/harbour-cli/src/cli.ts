@@ -434,7 +434,7 @@ async function main() {
         typeof uploadResult?.releaseId === 'string' ? uploadResult.releaseId : '-',
       datasetId:
         typeof uploadResult?.datasetId === 'string' ? uploadResult.datasetId : '-',
-      sourceSchemaVersion,
+      schemaVersion: sourceSchemaVersion,
       status: typeof uploadResult?.status === 'string' ? uploadResult.status : 'staged',
     }).join('\n'),
     'UPLOAD RESULT',
