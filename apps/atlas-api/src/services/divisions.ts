@@ -66,7 +66,6 @@ type DivisionRouteState = {
   resolvedApiVersion: ResolvedDivisionApiVersion
   profile: DivisionProfile
   localeSelection: DivisionLocaleSelection
-  logMissingI18n: boolean
 }
 
 type DivisionFilters = {
@@ -203,7 +202,6 @@ function buildDivisionRouteState(args: {
     resolvedApiVersion: args.resolvedApiVersion,
     profile,
     localeSelection,
-    logMissingI18n: args.locales === undefined,
   } satisfies DivisionRouteState
 }
 
@@ -409,30 +407,6 @@ async function loadIncludedParentRecords(args: {
   })
 }
 
-function logMissingDivisionI18n(args: {
-  records: DivisionRecord[]
-  requestUrl: string
-  requestedVersion: RequestedDivisionVersion
-}) {
-  const divisionIds = [
-    ...new Set(
-      args.records
-        .filter(record => record.missingI18n)
-        .map(record => record.division.id),
-    ),
-  ]
-
-  if (divisionIds.length === 0) {
-    return
-  }
-
-  console.error('Division records missing i18n rows.', {
-    requestUrl: args.requestUrl,
-    requestedVersion: args.requestedVersion,
-    divisionIds,
-  })
-}
-
 export async function listDivisions(args: {
   currentDb: AppEnv['Variables']['currentDb']
   metaDb: AppEnv['Variables']['metaDb']
@@ -494,12 +468,6 @@ export async function listDivisions(args: {
       routeState,
     }),
   )
-
-  logMissingDivisionI18n({
-    records: routeState.logMissingI18n ? [...records, ...includedRecords] : [],
-    requestUrl: args.requestUrl,
-    requestedVersion: routeState.requestedVersionPath,
-  })
 
   return {
     status: 200,
@@ -571,12 +539,6 @@ export async function getDivisionDetail(args: {
       routeState,
     }),
   )
-
-  logMissingDivisionI18n({
-    records: routeState.logMissingI18n ? [record, ...includedRecords] : [],
-    requestUrl: args.requestUrl,
-    requestedVersion: routeState.requestedVersionPath,
-  })
 
   return {
     status: 200,
