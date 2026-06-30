@@ -20,6 +20,8 @@ type Env = Partial<MultiDbBindings> & {
   R2_RAW: R2Bucket
 }
 
+const ADDRESS_CONTINUATION_DELAY_SECONDS = 1
+
 type ProcessDatasetMessageHandler = typeof processDatasetMessage
 
 type MessageErrorContext = {
@@ -200,9 +202,12 @@ export function createQueueHandler(
               rowEnd: result.nextMessage.rowEnd,
               rowStart: result.nextMessage.rowStart,
               status: 'started',
+              delaySeconds: ADDRESS_CONTINUATION_DELAY_SECONDS,
             }),
           )
-          await env.JOB_QUEUE.send(result.nextMessage)
+          await env.JOB_QUEUE.send(result.nextMessage, {
+            delaySeconds: ADDRESS_CONTINUATION_DELAY_SECONDS,
+          })
           console.info(
             JSON.stringify({
               addressStage: readStringProperty(result.nextMessage, 'addressStage'),
@@ -212,6 +217,7 @@ export function createQueueHandler(
               rowEnd: result.nextMessage.rowEnd,
               rowStart: result.nextMessage.rowStart,
               status: 'completed',
+              delaySeconds: ADDRESS_CONTINUATION_DELAY_SECONDS,
             }),
           )
         }

@@ -12,6 +12,7 @@ import { inspectParquet } from '@repo/core/parquetInspector'
 import {
   getDatasetById,
   getDatasetRecordByReleaseId,
+  updateDatasetStatus,
   upsertIngestRunStatus,
 } from '@repo/core/db/metaRepository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -308,6 +309,8 @@ export async function handleRequeueUploadRequest(
     !request.force &&
     (processRun?.status === 'queued' || processRun?.status === 'running')
   ) {
+    await updateDatasetStatus(db, dataset.releaseId, 'staged')
+
     return {
       ...dataset,
       rowCount: await getStageDatasetRowCount(db, dataset.releaseId),
@@ -334,6 +337,7 @@ export async function handleRequeueUploadRequest(
 
   try {
     await queue.send(processingMessage)
+    await updateDatasetStatus(db, dataset.releaseId, 'staged')
   } catch (error) {
     await upsertIngestRunStatus(
       db,

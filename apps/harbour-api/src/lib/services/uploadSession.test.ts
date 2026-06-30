@@ -319,10 +319,14 @@ describe('upload session flow', () => {
       phase: string
       status: string
     } | null
+    const release = sqlite
+      .query('SELECT status FROM releases WHERE id = ?')
+      .get(signResult.releaseId) as { status: string } | null
 
     expect(requeued.releaseCode).toBe('overture-hk-2026-05-20.0-division')
     expect(requeued.rowCount).toBe(3)
     expect(requeued.status).toBe('queued')
+    expect(release?.status).toBe('staged')
     expect(processRun).toMatchObject({
       phase: 'processDataset',
       status: 'queued',
@@ -432,10 +436,14 @@ describe('upload session flow', () => {
       phase: string
       status: string
     } | null
+    const release = sqlite
+      .query('SELECT status FROM releases WHERE id = ?')
+      .get(signResult.releaseId) as { status: string } | null
 
     expect(requeued.releaseCode).toBe('overture-hk-2026-05-20.0-division')
     expect(requeued.rowCount).toBe(3)
     expect(requeued.status).toBe('queued')
+    expect(release?.status).toBe('staged')
     expect(processRun).toMatchObject({
       phase: 'processDataset',
       status: 'queued',
@@ -526,8 +534,12 @@ describe('upload session flow', () => {
     const requeued = await handleRequeueUploadRequest(db, queue, {
       releaseId: signResult.releaseId,
     })
+    const release = sqlite
+      .query('SELECT status FROM releases WHERE id = ?')
+      .get(signResult.releaseId) as { status: string } | null
 
     expect(requeued.status).toBe('queued')
+    expect(release?.status).toBe('staged')
     expect(requeued.rowCount).toBe(3)
     expect(queuedMessages).toEqual([])
   })
@@ -603,8 +615,12 @@ describe('upload session flow', () => {
       force: true,
       releaseId: signResult.releaseId,
     })
+    const release = sqlite
+      .query('SELECT status FROM releases WHERE id = ?')
+      .get(signResult.releaseId) as { status: string } | null
 
     expect(requeued.status).toBe('queued')
+    expect(release?.status).toBe('staged')
     expect(requeued.rowCount).toBe(3)
     expect(queuedMessages).toHaveLength(1)
     expect(queuedMessages[0]).toMatchObject({
