@@ -53,6 +53,8 @@ type CleanupSnapshotsResult = {
   status: 'queued' | 'skipped'
 }
 
+export class ControlRequestError extends Error {}
+
 export type HarbourJobQueue = {
   send(message: HarbourJobMessage, options?: QueueSendOptions): Promise<unknown>
 }
@@ -195,7 +197,7 @@ export async function handlePublishDataset(
     const snapshot = await resolveSnapshotForRelease(db, dataset.releaseId, datasetType)
 
     if (!snapshot) {
-      throw new Error(
+      throw new ControlRequestError(
         `Snapshot not found for ${dataset.releaseCode} (${datasetType}/${dataset.releaseId}).`,
       )
     }
@@ -329,7 +331,9 @@ async function requireDataset(
   })
 
   if (!dataset) {
-    throw new Error(`Release not found: ${releaseId ?? releaseCode ?? 'unknown'}`)
+    throw new ControlRequestError(
+      `Release not found: ${releaseId ?? releaseCode ?? 'unknown'}`,
+    )
   }
 
   return dataset
