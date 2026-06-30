@@ -2,9 +2,12 @@ import { describe, expect, test } from 'bun:test'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
+import divisionFixture20260520 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2026-05-20.0.json'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import {
   ensureIngestRunStarted,
+  getLatestDatasetForRegionSourceType,
+  listCurrentSnapshotCleanupCandidates,
   publishReleaseArtifacts,
   resolveLatestSnapshotForResourceTypeExcludingId,
   resolveShardForTypeRegionYear,
@@ -69,6 +72,77 @@ function createSnapshotLookupDb() {
       status TEXT NOT NULL,
       publishedAt INTEGER,
       createdAt INTEGER NOT NULL
+    );
+  `)
+
+  return {
+    sqlite,
+    db: createLocalHarbourDb(sqlite),
+  }
+}
+
+function createLatestDatasetLookupDb() {
+  const sqlite = new SQLiteDatabase(':memory:')
+
+  sqlite.exec(`
+    CREATE TABLE publishers (
+      id TEXT PRIMARY KEY,
+      code TEXT NOT NULL
+    );
+
+    CREATE TABLE datasets (
+      id TEXT PRIMARY KEY,
+      publisherId TEXT NOT NULL,
+      code TEXT NOT NULL,
+      regionCode TEXT NOT NULL,
+      theme TEXT NOT NULL,
+      type TEXT NOT NULL
+    );
+
+    CREATE TABLE releases (
+      id TEXT PRIMARY KEY,
+      datasetId TEXT NOT NULL,
+      code TEXT NOT NULL,
+      sourceVersion TEXT NOT NULL,
+      cohortKey TEXT NOT NULL,
+      rawObjectKey TEXT NOT NULL,
+      originalFileName TEXT NOT NULL,
+      status TEXT NOT NULL,
+      revokedAt INTEGER,
+      revocationReason TEXT,
+      supersededByReleaseId TEXT,
+      ingestedAt TEXT NOT NULL,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+  `)
+
+  return {
+    sqlite,
+    db: createLocalHarbourDb(sqlite),
+  }
+}
+
+function createCleanupCandidatesDb() {
+  const sqlite = new SQLiteDatabase(':memory:')
+
+  sqlite.exec(`
+    CREATE TABLE snapshots (
+      id TEXT PRIMARY KEY,
+      resourceType TEXT NOT NULL,
+      status TEXT NOT NULL
+    );
+
+    CREATE TABLE apiReleaseSets (
+      id TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
+      status TEXT NOT NULL
+    );
+
+    CREATE TABLE apiReleaseSetSnapshots (
+      apiReleaseSetId TEXT NOT NULL,
+      snapshotId TEXT NOT NULL,
+      PRIMARY KEY (apiReleaseSetId, snapshotId)
     );
   `)
 
@@ -168,6 +242,21 @@ function createPublishReleaseArtifactsDb() {
     sqlite,
     db: createLocalHarbourDb(sqlite),
   }
+}
+
+function sortProvenanceRows(
+  rows: Array<{
+    apiField: string
+    sourceFieldPath: string
+  }>,
+) {
+  return rows
+    .slice()
+    .sort(
+      (left, right) =>
+        left.apiField.localeCompare(right.apiField) ||
+        left.sourceFieldPath.localeCompare(right.sourceFieldPath),
+    )
 }
 
 describe('resolveShardForKindRegionYear', () => {
@@ -351,6 +440,100 @@ describe('resolveLatestSnapshotForResourceTypeExcludingId', () => {
   })
 })
 
+describe('getLatestDatasetForRegionSourceType', () => {
+  test('orders dotted source versions numerically instead of lexicographically', async () => {
+    const { sqlite, db } = createLatestDatasetLookupDb()
+
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
+
+      INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
+        ('dataset-division', 'publisher-overture', 'ds-hk-overture-division', 'hk', 'divisions', 'division');
+
+      INSERT INTO releases (
+        id, datasetId, code, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+      ) VALUES
+        (
+          'release-10',
+          'dataset-division',
+          'overture-hk-2026-06-17.10-division',
+          '2026-06-17.10',
+          '2026-06',
+          'hk/overture/2026-06-17.10/division.parquet',
+          'division.parquet',
+          'published',
+          null,
+          null,
+          null,
+          '2026-06-18T00:00:00.000Z',
+          '2026-06-18T00:00:00.000Z',
+          '2026-06-18T00:00:00.000Z'
+        ),
+        (
+          'release-9',
+          'dataset-division',
+          'overture-hk-2026-06-17.9-division',
+          '2026-06-17.9',
+          '2026-06',
+          'hk/overture/2026-06-17.9/division.parquet',
+          'division.parquet',
+          'published',
+          null,
+          null,
+          null,
+          '2026-06-19T00:00:00.000Z',
+          '2026-06-19T00:00:00.000Z',
+          '2026-06-19T00:00:00.000Z'
+        );
+    `)
+
+    const result = await getLatestDatasetForRegionSourceType(
+      db as never,
+      'hk',
+      'overture',
+      'division',
+    )
+
+    expect(result.latestDataset?.releaseId).toBe('release-10')
+  })
+})
+
+describe('listCurrentSnapshotCleanupCandidates', () => {
+  test('ignores empty snapshot filters and draft snapshots', async () => {
+    const { sqlite, db } = createCleanupCandidatesDb()
+
+    sqlite.exec(`
+      INSERT INTO snapshots (id, resourceType, status) VALUES
+        ('snapshot-draft', 'division', 'draft'),
+        ('snapshot-published-protected', 'division', 'published'),
+        ('snapshot-published-candidate', 'division', 'published');
+
+      INSERT INTO apiReleaseSets (id, code, status) VALUES
+        ('release-set-current', 'ss-hk-division-2026-05-20.0', 'published');
+
+      INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId) VALUES
+        ('release-set-current', 'snapshot-published-protected');
+    `)
+
+    await expect(
+      listCurrentSnapshotCleanupCandidates(db as never, {
+        snapshotIds: [],
+      }),
+    ).resolves.toEqual([])
+
+    await expect(
+      listCurrentSnapshotCleanupCandidates(db as never, {
+        resourceType: 'division',
+      }),
+    ).resolves.toEqual([
+      {
+        snapshotId: 'snapshot-published-candidate',
+        resourceType: 'division',
+      },
+    ])
+  })
+})
+
 describe('publishReleaseArtifacts', () => {
   test('preserves existing release-set snapshot links while adding the published snapshot', async () => {
     const { sqlite, db } = createPublishReleaseArtifactsDb()
@@ -447,30 +630,13 @@ describe('publishReleaseArtifacts', () => {
       sourceFieldPath: string
     }>
 
-    expect(provenanceRows.length).toBeGreaterThan(20)
-    expect(provenanceRows).toEqual(
-      expect.arrayContaining([
-        {
-          apiField: 'division.attributes.divisionType',
-          sourceFieldPath: 'subtype',
-        },
-        {
-          apiField: 'division.attributes.i18n.en.name',
-          sourceFieldPath: 'names.common.en',
-        },
-        {
-          apiField: 'division.attributes.i18n.zh-hant.name',
-          sourceFieldPath: 'names.common.zh-hk',
-        },
-        {
-          apiField: 'division.relationships.parent',
-          sourceFieldPath: 'parent_division_id',
-        },
-        {
-          apiField: 'division.id',
-          sourceFieldPath: 'id',
-        },
-      ]),
+    expect(sortProvenanceRows(provenanceRows)).toEqual(
+      sortProvenanceRows(
+        divisionFixture20260520.fields.map(field => ({
+          apiField: field.apiField,
+          sourceFieldPath: field.sourceFieldPath,
+        })),
+      ),
     )
   })
 
