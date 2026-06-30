@@ -8,6 +8,12 @@ type StagePayload = {
   stats?: Record<string, unknown>
 }
 
+type PublishPayload = {
+  releaseCode?: string
+  releaseId?: string
+  skipSnapshotCleanup?: boolean
+}
+
 export type HarbourControlApiConfig = {
   apiKey: string
   baseUrl: string
@@ -37,10 +43,15 @@ export function createHarbourClient(config: HarbourControlApiConfig) {
   }
 
   return {
-    publishDataset(releaseId: string, releaseCode?: string) {
+    publishDataset(
+      releaseId: string,
+      releaseCode?: string,
+      options: { skipSnapshotCleanup?: boolean } = {},
+    ) {
       return postControl(baseUrl, apiKey, '/v1/control/publishDataset', {
         releaseCode,
         releaseId,
+        ...(options.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
       })
     },
     stageCompleted(
@@ -91,7 +102,7 @@ async function postControl(
   baseUrl: string,
   apiKey: string,
   path: string,
-  payload: StagePayload | { releaseCode?: string; releaseId?: string },
+  payload: StagePayload | PublishPayload,
   attempt = 0,
 ) {
   let response: Response
