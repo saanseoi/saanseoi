@@ -111,8 +111,8 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
     "@changesets/cli": "^2.31.0",
-    "@commitlint/cli": "^21.1.0",
-    "@commitlint/config-conventional": "^21.1.0",
+    "@commitlint/cli": "^21.2.0",
+    "@commitlint/config-conventional": "^21.2.0",
     "@iconify/svelte": "^5.2.2",
     "@tailwindcss/upgrade": "^4.3.2",
     "@types/bun": "latest",
@@ -121,7 +121,7 @@
     "drizzle-kit": "^1.0.0-rc.4-ca0f029",
     "husky": "^9.1.7",
     "tailwindcss-animate": "^1.0.7",
-    "turbo": "^2.10.0",
+    "turbo": "^2.10.1",
     "wrangler": "^4.105.0"
   },
   "peerDependencies": {
