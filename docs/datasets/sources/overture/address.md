@@ -61,6 +61,8 @@ Current non-contributions:
 - `identifiers`
 - building and estate components
 
+The worker processes parquet rows in small write batches, while reading larger parquet windows from R2 to avoid repeatedly decoding the same row group for every write batch.
+
 ## Canonical Impact
 
 When no existing canonical row is matched:
@@ -71,9 +73,12 @@ When a canonical row is matched:
 
 - Overture can update the canonical row’s geometry, bbox, and source payload
 
+Current canonical/source state is queried only for the source IDs and street-key candidates in the active parquet batch. The worker does not preload the full current address or source-address table before processing starts.
+
 Overture is also the only source that currently drives canonical deletion:
 
 - if an address disappears from the latest Overture release, the canonical current version can be closed
+- missing-row cleanup scans current IDs in keyset pages rather than loading every current row into a single map
 
 ## Source Retention Tables
 

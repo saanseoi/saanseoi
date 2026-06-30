@@ -88,6 +88,8 @@ For each prepared ALS row, the worker:
 - creates `en` and/or `zh-hant` i18n rows when formatted addresses exist
 - carries building name, estate name, street name, and street number into canonical i18n rows
 
+The worker processes prepared parquet rows in small write batches, while reading larger parquet windows from R2 to avoid repeatedly decoding the same row group for every write batch.
+
 This means HKGov ALS currently contributes the richer text model:
 
 - `formattedAddress`
@@ -111,6 +113,8 @@ If matched:
 If unmatched:
 
 - HKGov ALS can still create a canonical `address2d` row under its own prepared source ID
+
+Current canonical/source state is queried only for the source IDs and street-key candidates in the active parquet batch. The worker does not preload the full current address or source-address table before ALS processing starts.
 
 HKGov ALS does not currently drive canonical deletion:
 
