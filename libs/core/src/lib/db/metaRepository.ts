@@ -12,7 +12,7 @@ import {
   sql,
   metaSchema,
 } from '@repo/db'
-import { resolveApiFieldFixture } from '@repo/db/apiFieldFixtures'
+import { listApiFieldFixtures, resolveApiFieldFixture } from '@repo/db/apiFieldFixtures'
 
 import type { DatasetRecord, RegionCode, ResourceType, UploadPlan } from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './types'
@@ -78,10 +78,45 @@ function compareReleaseVersions(left: string, right: string) {
   return Number.parseInt(leftPatch, 10) - Number.parseInt(rightPatch, 10)
 }
 
-function resolveSourceSchemaVersion(args: {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+async function resolveOvertureSourceSchemaVersionFromCatalog(sourceVersion: string) {
+  if (typeof fetch !== 'function') {
+    return null
+  }
+
+  try {
+    const response = await fetch(
+      `https://stac.overturemaps.org/${sourceVersion}/catalog.json`,
+    )
+
+    if (!response.ok) {
+      return null
+    }
+
+    const catalog = (await response.json()) as unknown
+    const catalogRecord = isRecord(catalog) ? catalog : null
+    const properties = catalogRecord?.properties
+    const schemaVersion =
+      typeof catalogRecord?.['schema:version'] === 'string'
+        ? catalogRecord['schema:version']
+        : isRecord(properties) && typeof properties['schema:version'] === 'string'
+          ? properties['schema:version']
+          : null
+
+    return schemaVersion?.trim() || null
+  } catch {
+    return null
+  }
+}
+
+async function resolveSourceSchemaVersion(args: {
   source: string
   sourceVersion: string
   storedSourceSchemaVersion?: string | null
+  allowOlderMappedRelease?: boolean
 }) {
   if (args.storedSourceSchemaVersion?.trim()) {
     return args.storedSourceSchemaVersion.trim()
@@ -97,18 +132,36 @@ function resolveSourceSchemaVersion(args: {
     )
   }
 
-  const candidates = OVERTURE_SOURCE_SCHEMA_RELEASES.filter(
-    release => compareReleaseVersions(release.version, args.sourceVersion) <= 0,
+  const exactMatch = OVERTURE_SOURCE_SCHEMA_RELEASES.find(
+    release => compareReleaseVersions(release.version, args.sourceVersion) === 0,
   )
-  const match = candidates.at(-1)
 
-  if (!match) {
-    throw new Error(
-      `No Overture source schema mapping found for sourceVersion=${args.sourceVersion}.`,
-    )
+  if (exactMatch) {
+    return exactMatch.schema
   }
 
-  return match.schema
+  const catalogSchemaVersion = await resolveOvertureSourceSchemaVersionFromCatalog(
+    args.sourceVersion,
+  )
+
+  if (catalogSchemaVersion) {
+    return catalogSchemaVersion
+  }
+
+  if (args.allowOlderMappedRelease) {
+    const candidates = OVERTURE_SOURCE_SCHEMA_RELEASES.filter(
+      release => compareReleaseVersions(release.version, args.sourceVersion) <= 0,
+    )
+    const match = candidates.at(-1)
+
+    if (match) {
+      return match.schema
+    }
+  }
+
+  throw new Error(
+    `No Overture source schema mapping found for sourceVersion=${args.sourceVersion}.`,
+  )
 }
 
 const {
@@ -406,7 +459,7 @@ export async function insertDataset(
 ) {
   const dataset = await requireDatasetDefinition(db, plan)
   const now = new Date(ingestedAt)
-  const sourceSchemaVersion = resolveSourceSchemaVersion({
+  const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
     sourceVersion: plan.sourceVersion,
   })
@@ -442,7 +495,7 @@ export async function resetFailedDataset(
   status: ReleaseStatus,
 ) {
   const now = new Date(ingestedAt)
-  const sourceSchemaVersion = resolveSourceSchemaVersion({
+  const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
     sourceVersion: plan.sourceVersion,
   })
@@ -1302,7 +1355,7 @@ export async function publishReleaseArtifacts(
   const sourceSchemas = new Map<string, string>()
 
   for (const row of sourceSchemaRows) {
-    const sourceSchemaVersion = resolveSourceSchemaVersion({
+    const sourceSchemaVersion = await resolveSourceSchemaVersion({
       source: row.source,
       sourceVersion: row.sourceVersion,
       storedSourceSchemaVersion: row.sourceSchemaVersion,
@@ -1325,6 +1378,15 @@ export async function publishReleaseArtifacts(
     rulesetVersion: releaseSet.rulesetVersion,
     sourceSchemas: Object.fromEntries(sourceSchemas),
   })
+  const hasBundledApiFieldFixtures = listApiFieldFixtures().some(
+    fixture => fixture.apiVersion === releaseSet.apiVersion,
+  )
+
+  if (!resolvedApiFieldFixture && hasBundledApiFieldFixtures) {
+    throw new Error(
+      `API field fixture not found for apiVersion=${releaseSet.apiVersion}, snapshotVersion=${snapshot.code}, schemaVersion=${releaseSet.schemaVersion}, rulesetVersion=${releaseSet.rulesetVersion}.`,
+    )
+  }
 
   // Some API families do not have bundled field provenance fixtures yet.
   const apiFieldProvenanceRows = resolvedApiFieldFixture
