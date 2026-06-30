@@ -88,7 +88,7 @@ For each prepared ALS row, the worker:
 - creates `en` and/or `zh-hant` i18n rows when formatted addresses exist
 - carries building name, estate name, street name, and street number into canonical i18n rows
 
-The worker processes prepared parquet rows in small write batches, while reading larger parquet windows from R2 to avoid repeatedly decoding the same row group for every write batch.
+The worker processes prepared parquet rows in small write batches and reads 2,048-row parquet windows from R2. Source missing-row cleanup stages incoming source IDs in a D1 temporary table instead of retaining the full release ID set in Worker memory.
 
 This means HKGov ALS currently contributes the richer text model:
 

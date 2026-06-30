@@ -26,12 +26,15 @@ import {
   alignAddressCurrentDivisionSnapshot,
   cloneAddressCurrentSnapshot,
   closeCurrentAddressVersions,
-  deleteMissingCurrentAddressesBySeenIds,
+  deleteMissingCurrentAddressesBySeenTable,
   deleteStaleAddressCurrentRows,
+  dropSeenAddressIdTable,
   getCurrentAddressVersionLookup,
   hasCurrentAddressVersions,
+  insertSeenAddressIds,
   insertAddressVersionRows,
   prepareAddressVersionInsertContext,
+  prepareSeenAddressIdTable,
   replaceAddressCurrentI18n,
   upsertAddressCurrentStates,
 } from '../db/address'
@@ -42,16 +45,19 @@ import {
   buildSourceReleaseId,
   closeSourceHkgovAlsAddress2dVersions,
   closeSourceOvertureAddress2dVersions,
-  deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenIds,
-  deleteMissingCurrentSourceOvertureAddresses2dBySeenIds,
+  deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenTable,
+  deleteMissingCurrentSourceOvertureAddresses2dBySeenTable,
+  dropSeenSourceRecordIdTable,
   getCurrentSourceHkgovAlsAddress2dRecords,
   getCurrentSourceOvertureAddress2dRecords,
   hasCurrentSourceHkgovAlsAddress2dRecords,
   hasCurrentSourceOvertureAddress2dRecords,
+  insertSeenSourceRecordIds,
   insertSourceHkgovAlsAddress2dI18nVersions,
   insertSourceHkgovAlsAddresses2dVersions,
   insertSourceOvertureAddress2dI18nVersions,
   insertSourceOvertureAddresses2dVersions,
+  prepareSeenSourceRecordIdTable,
   replaceSourceHkgovAlsAddress2dI18nRows,
   replaceSourceOvertureAddress2dI18nRows,
   upsertSourceHkgovAlsAddresses2d,
@@ -61,6 +67,7 @@ import { asNonEmptyString, createHash } from '../utils'
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
   createOperationTimer,
+  readRuntimeMemoryUsage,
   resolveDataShardEnvironment,
   resolveDebugEnabled,
 } from './shared'
@@ -89,6 +96,7 @@ type ReportProgress = (stats: {
 }) => Promise<void>
 
 const ADDRESS_BATCH_SIZE = 128
+const ADDRESS_PARQUET_READ_ROW_WINDOW_SIZE = 2048
 const CHINA_NAME_ALIASES = new Set([
   'CHINA',
   'P.R. CHINA',
@@ -170,14 +178,63 @@ export async function processAddressDataset(
           hasCurrentSourceHkgovAlsAddress2dRecords(sourceDb),
         )
 
-  const seenIds = new Set<string>()
-  const seenSourceIds = new Set<string>()
+  const useSeenAddressTable = message.source === 'overture' && hasCurrentAddresses
+  const useSeenSourceTable = Boolean(sourceDb && hasCurrentSourceRows)
+
+  if (useSeenAddressTable) {
+    await timings.measure('prepareSeenAddressIdTableMs', () =>
+      prepareSeenAddressIdTable(historyRepoDb),
+    )
+  }
+  if (sourceDb && useSeenSourceTable) {
+    await timings.measure('prepareSeenSourceRecordIdTableMs', () =>
+      prepareSeenSourceRecordIdTable(sourceDb),
+    )
+  }
+
   let processedRows = 0
   let insertedVersions = 0
   let unchangedRows = 0
   let localizedRows = 0
 
-  for await (const batch of readParquetObjectsInBatches(file, ADDRESS_BATCH_SIZE)) {
+  let parquetReadWindowIndex = 0
+
+  for await (const batch of readParquetObjectsInBatches(file, ADDRESS_BATCH_SIZE, {
+    readRowWindowSize: ADDRESS_PARQUET_READ_ROW_WINDOW_SIZE,
+    onMetadata(metadata) {
+      console.info(
+        JSON.stringify({
+          datasetId: message.datasetId,
+          memory: readRuntimeMemoryUsage(),
+          metadata,
+          phase: 'addressParquetReadMetadata',
+          releaseId: message.releaseId ?? message.datasetId,
+          source: message.source,
+          sourceVersion: message.sourceVersion,
+          type: message.type,
+        }),
+      )
+    },
+    onReadWindow(diagnostic) {
+      parquetReadWindowIndex += 1
+      console.info(
+        JSON.stringify({
+          datasetId: message.datasetId,
+          diagnostic: {
+            ...diagnostic,
+            readWindowIndex: parquetReadWindowIndex,
+          },
+          memory: readRuntimeMemoryUsage(),
+          phase: 'addressParquetReadWindow',
+          processedRows,
+          releaseId: message.releaseId ?? message.datasetId,
+          source: message.source,
+          sourceVersion: message.sourceVersion,
+          type: message.type,
+        }),
+      )
+    },
+  })) {
     const normalizedBatch = batch.map(row => ({
       normalized:
         message.source === 'overture'
@@ -274,6 +331,8 @@ export async function processAddressDataset(
     > = []
     const changedSourceIds = new Set<string>()
     const unchangedSourceIds = new Set<string>()
+    const seenAddressIds: string[] = []
+    const seenSourceRecordIds: string[] = []
 
     for (const { normalized, row } of normalizedBatch) {
       const matchedCurrent =
@@ -302,8 +361,8 @@ export async function processAddressDataset(
 
       processedRows += 1
       localizedRows += i18n.length
-      seenIds.add(addressId)
-      seenSourceIds.add(normalized.sourceId)
+      seenAddressIds.push(addressId)
+      seenSourceRecordIds.push(normalized.sourceId)
       const now = new Date().toISOString()
 
       if (sourceDb) {
@@ -563,6 +622,17 @@ export async function processAddressDataset(
       )
     }
 
+    if (useSeenAddressTable) {
+      await timings.measure('insertSeenAddressIdsMs', () =>
+        insertSeenAddressIds(historyRepoDb, seenAddressIds),
+      )
+    }
+    if (sourceDb && useSeenSourceTable) {
+      await timings.measure('insertSeenSourceRecordIdsMs', () =>
+        insertSeenSourceRecordIds(sourceDb, seenSourceRecordIds),
+      )
+    }
+
     await timings.measure('closeCurrentAddressVersionsMs', () =>
       closeCurrentAddressVersions(
         historyRepoDb,
@@ -622,9 +692,7 @@ export async function processAddressDataset(
           replaceSourceOvertureAddress2dI18nRows(
             sourceDb,
             changedIds,
-            overtureSourceI18nRows.filter(row =>
-              changedSourceIds.has(row.sourceRecordId),
-            ),
+            overtureSourceI18nRows,
           ),
         )
 
@@ -663,7 +731,7 @@ export async function processAddressDataset(
           replaceSourceHkgovAlsAddress2dI18nRows(
             sourceDb,
             changedIds,
-            hkgovSourceI18nRows.filter(row => changedSourceIds.has(row.sourceRecordId)),
+            hkgovSourceI18nRows,
           ),
         )
 
@@ -687,18 +755,16 @@ export async function processAddressDataset(
     }
   }
 
-  const { count: deletedRows, missingIds } =
-    message.source === 'overture' && hasCurrentAddresses
-      ? await timings.measure('deleteMissingCurrentAddressesMs', () =>
-          deleteMissingCurrentAddressesBySeenIds(
-            historyRepoDb,
-            versionInsertContext.snapshotId,
-            message.cohortKey,
-            message.regionCode,
-            seenIds,
-          ),
-        )
-      : { count: 0, missingIds: [] as string[] }
+  const { count: deletedRows, missingIds } = useSeenAddressTable
+    ? await timings.measure('deleteMissingCurrentAddressesMs', () =>
+        deleteMissingCurrentAddressesBySeenTable(
+          historyRepoDb,
+          versionInsertContext.snapshotId,
+          message.cohortKey,
+          message.regionCode,
+        ),
+      )
+    : { count: 0, missingIds: [] as string[] }
   if (message.source === 'overture') {
     await timings.measure('deleteStaleAddressCurrentRowsMs', () =>
       deleteStaleAddressCurrentRows(
@@ -709,24 +775,33 @@ export async function processAddressDataset(
     )
   }
 
-  if (sourceDb && hasCurrentSourceRows) {
+  if (sourceDb && useSeenSourceTable) {
     if (message.source === 'overture') {
       await timings.measure('deleteMissingCurrentSourceOvertureAddresses2dMs', () =>
-        deleteMissingCurrentSourceOvertureAddresses2dBySeenIds(
+        deleteMissingCurrentSourceOvertureAddresses2dBySeenTable(
           sourceDb,
           message.sourceVersion,
-          seenSourceIds,
         ),
       )
     } else {
       await timings.measure('deleteMissingCurrentSourceHkgovAlsAddresses2dMs', () =>
-        deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenIds(
+        deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenTable(
           sourceDb,
           message.sourceVersion,
-          seenSourceIds,
         ),
       )
     }
+  }
+
+  if (useSeenAddressTable) {
+    await timings.measure('dropSeenAddressIdTableMs', () =>
+      dropSeenAddressIdTable(historyRepoDb),
+    )
+  }
+  if (sourceDb && useSeenSourceTable) {
+    await timings.measure('dropSeenSourceRecordIdTableMs', () =>
+      dropSeenSourceRecordIdTable(sourceDb),
+    )
   }
 
   console.info(

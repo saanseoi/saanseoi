@@ -33,6 +33,19 @@ Fields not currently projected into canonical address rows include:
 - any building-, phase-, floor-, unit-, or village-level structure
 - other Overture fields outside the subset above
 
+## Upload-Time Parquet Repacking
+
+Overture address parquet files can arrive with very large row groups. The Harbour
+CLI rewrites Overture address uploads before dispatch so the R2 object has 2,048
+row parquet groups while preserving the original schema and row count.
+
+This is an ingestion-runtime optimization:
+
+- the release still registers as `address.parquet`
+- schema inspection and upload planning still use the source file semantics
+- worker reads use 2,048-row windows and parquet offset indexes when available
+- the smaller physical row groups keep Cloudflare Worker decode memory bounded
+
 ## Normalization
 
 For each Overture row, the worker:
@@ -61,7 +74,7 @@ Current non-contributions:
 - `identifiers`
 - building and estate components
 
-The worker processes parquet rows in small write batches, while reading larger parquet windows from R2 to avoid repeatedly decoding the same row group for every write batch.
+The worker processes parquet rows in small write batches and reads 2,048-row parquet windows from R2. Upload-time repacking keeps those read windows aligned with the physical row groups used during worker ingestion.
 
 ## Canonical Impact
 
@@ -78,7 +91,7 @@ Current canonical/source state is queried only for the source IDs and street-key
 Overture is also the only source that currently drives canonical deletion:
 
 - if an address disappears from the latest Overture release, the canonical current version can be closed
-- missing-row cleanup scans current IDs in keyset pages rather than loading every current row into a single map
+- missing-row cleanup scans current IDs in keyset pages against a D1 temporary seen-ID table rather than loading every current row or incoming ID into a single JavaScript map/set
 
 ## Source Retention Tables
 
