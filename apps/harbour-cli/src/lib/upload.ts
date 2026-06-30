@@ -304,7 +304,7 @@ async function finalizeUpload(
 async function requeueUpload(
   apiBaseUrl: string,
   releaseId: string,
-  options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
+  options: Pick<DispatchUploadOptions, 'force' | 'skipSnapshotCleanup'> = {},
 ) {
   return postReleaseAction(
     buildRequeueUploadEndpoint(apiBaseUrl),
@@ -318,7 +318,7 @@ async function postReleaseAction(
   endpoint: string,
   releaseId: string,
   action: string,
-  options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
+  options: Pick<DispatchUploadOptions, 'force' | 'skipSnapshotCleanup'> = {},
 ) {
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -327,6 +327,7 @@ async function postReleaseAction(
       ...getAuthHeaders(),
     },
     body: JSON.stringify({
+      ...(options.force ? { force: true } : {}),
       releaseId,
       ...(options.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
     }),
@@ -470,11 +471,11 @@ export async function finalizeExistingUpload(
 export async function requeueExistingUpload(
   target: UploadTarget,
   releaseSpecifier: string,
-  options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
+  options: Pick<DispatchUploadOptions, 'force' | 'skipSnapshotCleanup'> = {},
 ) {
   const release = await resolveRelease(target, releaseSpecifier)
 
-  if (!['staged', 'failed'].includes(release.status)) {
+  if (!['staged', 'failed'].includes(release.status) && !options.force) {
     throw new Error(
       `Release ${release.releaseCode} is not requeueable. Current status: ${release.status}.`,
     )

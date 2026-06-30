@@ -44,7 +44,7 @@ function printUsage() {
   console.log(`  Usage:
   saanseoi upload <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--dry-run] [--force] [--skip-cleanup] [--yes]
   saanseoi upload:finalize --release <release-id|release-code> [--target local|preview|production] [--skip-cleanup] [--yes]
-  saanseoi upload:requeue --release <release-id|release-code> [--target local|preview|production] [--skip-cleanup] [--yes]
+  saanseoi upload:requeue --release <release-id|release-code> [--target local|preview|production] [--skip-cleanup] [--force] [--yes]
   saanseoi upload:watch [--target local|preview|production]
   saanseoi cleanup:snapshots [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
   saanseoi prep-hkgov-als <source-dir> [--target local|preview|production] [--source-version YYYY-MM-DD.NN] [--cohort-key VALUE] [--db /path/to/local.sqlite]
@@ -244,6 +244,7 @@ async function main() {
     }
 
     const requeued = await requeueExistingUpload(target, releaseSpecifier, {
+      force: Boolean(args.options.force),
       skipSnapshotCleanup,
     })
 

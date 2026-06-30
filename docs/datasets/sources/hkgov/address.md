@@ -92,14 +92,16 @@ The worker processes prepared parquet rows in small write batches and reads 2,04
 
 Large address releases are processed as sequential queue chunks. Each queue
 message carries a parquet row range (`rowStart`, `rowEnd`) plus a stable
-`processingRunStartedAt` marker. A successful intermediate chunk enqueues the
-next row range and leaves the release phases running; only the final chunk runs
-release-level cleanup, publishes the snapshot, and completes `processDataset`.
+`processingRunStartedAt` marker. A successful intermediate chunk enqueues only
+the next row range and leaves the release phases running; only the final chunk
+runs release-level cleanup, publishes the snapshot, and completes
+`processDataset`.
 
-The worker executes each row range as separate stages: `normalize`, `source`,
-`history`, `current`, and `finalize`. Normalized and resolved chunk artifacts are
-stored in R2 so retries and later stages do not need to re-decode parquet or
-repeat source normalization work.
+The worker executes each row range through separate stage services:
+`normalize`, `source`, `history`, `current`, and `finalize`. The row-range
+stages run inside one queue event; only the next row range is queued. Normalized
+and resolved chunk artifacts are stored in R2 so retries and later stages do not
+need to re-decode parquet or repeat source normalization work.
 
 For current-row cleanup, processed canonical rows are touched with the stable
 run marker and processed source rows are advanced to the current release ID.

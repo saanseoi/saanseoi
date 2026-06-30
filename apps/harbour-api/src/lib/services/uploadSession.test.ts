@@ -531,4 +531,85 @@ describe('upload session flow', () => {
     expect(requeued.rowCount).toBe(3)
     expect(queuedMessages).toEqual([])
   })
+
+  test('force requeues a processing release', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-requeue-processing-force.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const bucket = new FakeR2Bucket()
+
+    const signResult = await handleSignUploadRequest(db, bucket, signingEnv, {
+      contentType: 'application/octet-stream',
+      fileName: 'overture-hk-division.parquet',
+      fileSize: fixtureBytes.byteLength,
+      inspection: fixtureInspection,
+      plan: {
+        shardYear: '2026',
+        cohortKey: '2026-05',
+        sourceVersion: '2026-05-20.0',
+      },
+      schemaVersionId: 'overture-division-v2025-09-24.0',
+    })
+
+    await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
+    await handleFinalizeUploadRequest(
+      db,
+      bucket,
+      queue,
+      {
+        releaseId: signResult.releaseId,
+      },
+      {
+        inspectParquet: inspectParquetMock,
+      },
+    )
+
+    queuedMessages.length = 0
+    sqlite
+      .query('UPDATE releases SET status = ?, updatedAt = ? WHERE id = ?')
+      .run('processing', '2026-06-24T12:00:00.000Z', signResult.releaseId)
+    sqlite
+      .query(
+        `
+          INSERT INTO ingestRuns (
+            runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(releaseId, phase) DO UPDATE SET
+            status = excluded.status,
+            stats = excluded.stats,
+            error = excluded.error,
+            startedAt = excluded.startedAt,
+            finishedAt = excluded.finishedAt,
+            updatedAt = excluded.updatedAt
+        `,
+      )
+      .run(
+        'process-run-running',
+        signResult.releaseId,
+        'processDataset',
+        'running',
+        JSON.stringify({
+          processedRows: 7168,
+        }),
+        null,
+        '2026-06-24T12:00:00.000Z',
+        null,
+        '2026-06-24T12:00:00.000Z',
+        '2026-06-24T12:00:00.000Z',
+      )
+
+    const requeued = await handleRequeueUploadRequest(db, queue, {
+      force: true,
+      releaseId: signResult.releaseId,
+    })
+
+    expect(requeued.status).toBe('queued')
+    expect(requeued.rowCount).toBe(3)
+    expect(queuedMessages).toHaveLength(1)
+    expect(queuedMessages[0]).toMatchObject({
+      releaseId: signResult.releaseId,
+      type: 'division',
+    })
+  })
 })
