@@ -36,7 +36,11 @@ export function buildPaginationLinks(args: {
   total: number
 }) {
   const links: Record<string, string> = {
-    self: args.url.toString(),
+    self: buildPaginationLink({
+      url: args.url,
+      limit: args.limit,
+      offset: args.offset,
+    }),
     first: buildPaginationLink({
       url: args.url,
       limit: args.limit,
@@ -97,10 +101,14 @@ export function buildApiVersionMetadata(args: {
   return metadata
 }
 
-export function buildJsonApiListDocument<TResource, TMeta extends object>(args: {
+export function buildJsonApiListDocument<
+  TResource,
+  TMeta extends object,
+  TIncludedResource = TResource,
+>(args: {
   url: URL
   data: TResource[]
-  included?: TResource[]
+  included?: TIncludedResource[]
   limit: number
   offset: number
   total: number
