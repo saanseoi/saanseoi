@@ -172,5 +172,4 @@ Localized source retention stores:
 - `nameVariant`
 - `nameAlts`
 - `nameRules`
-- `localType`
 - `isLocaleInferred`

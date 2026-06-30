@@ -253,7 +253,6 @@ export async function processDivisionDataset(
       {
         divisionId: string
         isLocaleInferred: boolean
-        localType: string | null
         locale: string
         name: string | null
         nameAlts: string | null
@@ -338,7 +337,6 @@ export async function processDivisionDataset(
               nameVariant: localized.nameVariant,
               nameAlts: localized.nameAlts,
               nameRules: localized.nameRules,
-              localType: localized.localType,
               isLocaleInferred: localized.isLocaleInferred,
             })),
           )
@@ -378,7 +376,6 @@ export async function processDivisionDataset(
               nameVariant: localized.nameVariant,
               nameAlts: localized.nameAlts,
               nameRules: localized.nameRules,
-              localType: localized.localType,
               isLocaleInferred: localized.isLocaleInferred,
             })),
           )
@@ -398,7 +395,6 @@ export async function processDivisionDataset(
               baseVersionHash: versionHash,
               i18n: canonicalI18n.map(row => ({
                 isLocaleInferred: row.isLocaleInferred,
-                localType: row.localType ?? null,
                 locale: row.locale,
                 name: row.name ?? null,
                 nameAlts: row.nameAlts ?? null,
@@ -437,7 +433,6 @@ export async function processDivisionDataset(
           ...canonicalI18n.map(row => ({
             divisionId: row.divisionId,
             isLocaleInferred: row.isLocaleInferred,
-            localType: row.localType ?? null,
             locale: row.locale,
             name: row.name ?? null,
             nameAlts: row.nameAlts ?? null,
@@ -462,7 +457,6 @@ export async function processDivisionDataset(
         ...canonicalI18n.map(row => ({
           divisionId: row.divisionId,
           isLocaleInferred: row.isLocaleInferred,
-          localType: row.localType ?? null,
           locale: row.locale,
           name: row.name ?? null,
           nameAlts: row.nameAlts ?? null,
@@ -698,7 +692,7 @@ function normalizeDivisionRow(row: Record<string, unknown>) {
     otSubtype,
     parentDivisionId,
   })
-  const i18n = normalizeDivisionI18n(id, row.names, row.local_type)
+  const i18n = normalizeDivisionI18n(id, row.names)
   const normalizedHierarchies = normalizeDivisionHierarchies(row.hierarchies)
   const normalizedGeometry = parseWkbGeometry(row.geometry)
 
@@ -796,11 +790,10 @@ function normalizeOvertureSources(sources: unknown) {
 /**
  * Builds localized division name/type rows from mixed source fields.
  */
-function normalizeDivisionI18n(divisionId: string, names: unknown, localType: unknown) {
+function normalizeDivisionI18n(divisionId: string, names: unknown) {
   const localizedNames = new Map<string, Set<string>>()
   const localizedRuleEntries = new Map<string, DivisionNameRuleRecord[]>()
   const localizedInferredFlags = new Map<string, boolean>()
-  const localizedTypes = new Map<string, string>()
   const namesRecord =
     names && typeof names === 'object' ? (names as Record<string, unknown>) : null
 
@@ -832,9 +825,6 @@ function normalizeDivisionI18n(divisionId: string, names: unknown, localType: un
 
   collectLocalizedValues(namesRecord?.common, addNameValue)
   collectLocalizedRuleValues(namesRecord?.rules, addNameValue)
-  collectLocalizedScalarValues(localType, localizedTypes, locale => {
-    localizedInferredFlags.set(locale, false)
-  })
 
   for (const inferredValue of inferLocale(namesRecord?.primary)) {
     addNameValue(inferredValue.locale, inferredValue.value, {
@@ -842,7 +832,7 @@ function normalizeDivisionI18n(divisionId: string, names: unknown, localType: un
     })
   }
 
-  const locales = new Set<string>([...localizedNames.keys(), ...localizedTypes.keys()])
+  const locales = new Set<string>(localizedNames.keys())
 
   return [...locales].sort().map(locale => {
     const values = [...(localizedNames.get(locale) ?? [])]
@@ -852,7 +842,6 @@ function normalizeDivisionI18n(divisionId: string, names: unknown, localType: un
     return {
       divisionId,
       isLocaleInferred: localizedInferredFlags.get(locale) ?? false,
-      localType: localizedTypes.get(locale) ?? null,
       locale,
       name: name ?? null,
       nameAlts: alts.length > 0 ? alts.join('|') : null,
@@ -927,29 +916,6 @@ function collectLocalizedValues(
   for (const [key, nestedValue] of Object.entries(record)) {
     const nestedLocale = normalizeLocale(key) ?? explicitLocale
     collectLocalizedValues(nestedValue, appendValue, nestedLocale)
-  }
-}
-
-/**
- * Collects simple locale-to-string mappings such as localized type labels.
- */
-function collectLocalizedScalarValues(
-  value: unknown,
-  target: Map<string, string>,
-  onLocale?: (locale: string) => void,
-) {
-  if (!value || typeof value !== 'object') {
-    return
-  }
-
-  for (const [key, nestedValue] of Object.entries(value as Record<string, unknown>)) {
-    const locale = normalizeLocale(key)
-    const normalizedValue = asNonEmptyString(nestedValue)
-
-    if (locale && normalizedValue) {
-      target.set(locale, normalizedValue)
-      onLocale?.(locale)
-    }
   }
 }
 
