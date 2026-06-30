@@ -24,6 +24,7 @@ import {
   type ApiVersionMetadata,
   type SnapshotNotReadyResponse,
 } from '../lib/api'
+import { runWithD1ReadRetry } from '../lib/d1'
 import type { AppEnv } from '../types'
 
 export type RequestedDivisionVersion = 'v0' | 'v0.1'
@@ -370,10 +371,8 @@ function buildSnapshotNotReadyDivisionResponse(): DivisionSnapshotNotReadyRespon
 async function getActiveDivisionSnapshot(
   metaDb: AppEnv['Variables']['metaDb'],
 ): Promise<ActiveDivisionSnapshot | null> {
-  const activeSnapshot = await resolveActiveSnapshotForType(
-    metaDb as never,
-    'division',
-    'division',
+  const activeSnapshot = await runWithD1ReadRetry(() =>
+    resolveActiveSnapshotForType(metaDb as never, 'division', 'division'),
   )
 
   if (!activeSnapshot) {
@@ -466,31 +465,35 @@ export async function listDivisions(args: {
     divisionType: args.query['filter[divisionType]'],
     parent: args.query['filter[parent]'],
   } satisfies DivisionFilters
-  const [records, total] = await Promise.all([
-    listDivisionRecordsCurrent(args.currentDb, {
-      snapshotId: activeDivisionSnapshot.snapshotId,
-      level: filters.level,
-      type: filters.divisionType,
-      parentDivisionId: filters.parent,
-      limit,
-      offset,
-      localeSelection: routeState.localeSelection,
-    }),
-    countDivisionsCurrent(args.currentDb, {
-      snapshotId: activeDivisionSnapshot.snapshotId,
-      level: filters.level,
-      type: filters.divisionType,
-      parentDivisionId: filters.parent,
-    }),
-  ])
+  const [records, total] = await runWithD1ReadRetry(() =>
+    Promise.all([
+      listDivisionRecordsCurrent(args.currentDb, {
+        snapshotId: activeDivisionSnapshot.snapshotId,
+        level: filters.level,
+        type: filters.divisionType,
+        parentDivisionId: filters.parent,
+        limit,
+        offset,
+        localeSelection: routeState.localeSelection,
+      }),
+      countDivisionsCurrent(args.currentDb, {
+        snapshotId: activeDivisionSnapshot.snapshotId,
+        level: filters.level,
+        type: filters.divisionType,
+        parentDivisionId: filters.parent,
+      }),
+    ]),
+  )
 
-  const includedRecords = await loadIncludedParentRecords({
-    includeParent: args.query.include === 'parent',
-    snapshotId: activeDivisionSnapshot.snapshotId,
-    records,
-    db: args.currentDb,
-    routeState,
-  })
+  const includedRecords = await runWithD1ReadRetry(() =>
+    loadIncludedParentRecords({
+      includeParent: args.query.include === 'parent',
+      snapshotId: activeDivisionSnapshot.snapshotId,
+      records,
+      db: args.currentDb,
+      routeState,
+    }),
+  )
 
   logMissingDivisionI18n({
     records: routeState.logMissingI18n ? [...records, ...includedRecords] : [],
@@ -540,11 +543,13 @@ export async function getDivisionDetail(args: {
     }
   }
 
-  const record = await getDivisionRecordCurrent(args.currentDb, {
-    snapshotId: activeDivisionSnapshot.snapshotId,
-    divisionId: args.id,
-    localeSelection: routeState.localeSelection,
-  })
+  const record = await runWithD1ReadRetry(() =>
+    getDivisionRecordCurrent(args.currentDb, {
+      snapshotId: activeDivisionSnapshot.snapshotId,
+      divisionId: args.id,
+      localeSelection: routeState.localeSelection,
+    }),
+  )
 
   if (!record) {
     return {
@@ -557,13 +562,15 @@ export async function getDivisionDetail(args: {
     }
   }
 
-  const includedRecords = await loadIncludedParentRecords({
-    includeParent: args.query.include === 'parent',
-    snapshotId: activeDivisionSnapshot.snapshotId,
-    records: [record],
-    db: args.currentDb,
-    routeState,
-  })
+  const includedRecords = await runWithD1ReadRetry(() =>
+    loadIncludedParentRecords({
+      includeParent: args.query.include === 'parent',
+      snapshotId: activeDivisionSnapshot.snapshotId,
+      records: [record],
+      db: args.currentDb,
+      routeState,
+    }),
+  )
 
   logMissingDivisionI18n({
     records: routeState.logMissingI18n ? [record, ...includedRecords] : [],
