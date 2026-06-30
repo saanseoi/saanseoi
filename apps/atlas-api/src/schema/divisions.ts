@@ -17,25 +17,55 @@ const DivisionResourceIdentifierSchema = z
   })
   .openapi('DivisionResourceIdentifier')
 
+const DivisionNameRuleSchema = z
+  .object({
+    value: z.string(),
+    variant: z.string().nullable(),
+  })
+  .openapi('DivisionNameRule')
+
 const DivisionI18nAttributesSchema = z
   .object({
     name: z.string().nullable().optional(),
+    nameVariant: z.array(z.string()).nullable().optional(),
+    nameAlts: z.array(z.string()).nullable().optional(),
+    nameRules: z.array(DivisionNameRuleSchema).nullable().optional(),
   })
   .openapi('DivisionI18nAttributes')
+
+const DivisionAncestorResourceIdentifierSchema =
+  DivisionResourceIdentifierSchema.extend({
+    meta: z
+      .object({
+        name: z.string().optional(),
+        subType: z.string().optional(),
+      })
+      .optional(),
+  }).openapi('DivisionAncestorResourceIdentifier')
 
 const DivisionAttributesSchema = z
   .object({
     level: z.number().int(),
-    divisionType: z.string(),
-    subtype: z.string().nullable().optional(),
-    divisionClass: z.string().nullable().optional(),
+    type: z.string(),
+    snapshotId: z.string().optional(),
     geometry: z.object({}).loose().nullable().optional(),
     bbox: z
       .tuple([z.number(), z.number(), z.number(), z.number()])
       .nullable()
       .optional(),
+    cartography: z.object({}).loose().nullable().optional(),
     population: z.number().int().nullable().optional(),
     wikidata: z.string().nullable().optional(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+    sources: z.object({}).loose().nullable().optional(),
+    overture: z
+      .object({
+        subtype: z.string().nullable().optional(),
+        class: z.string().nullable().optional(),
+        hierarchy: z.unknown().optional(),
+      })
+      .optional(),
     i18n: z
       .object({
         en: DivisionI18nAttributesSchema.optional(),
@@ -50,9 +80,9 @@ const DivisionAttributesSchema = z
 
 const DivisionRelationshipsSchema = z
   .object({
-    parent: z
+    ancestors: z
       .object({
-        data: DivisionResourceIdentifierSchema.nullable(),
+        data: z.array(DivisionAncestorResourceIdentifierSchema),
       })
       .optional(),
   })
@@ -111,7 +141,7 @@ export const DivisionsListQuerySchema = z
   .object({
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
-    include: z.literal('parent').optional(),
+    include: z.literal('ancestors').optional(),
     'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
     'page[offset]': z.coerce.number().int().min(0).optional(),
     'filter[level]': z.coerce.number().int().min(0).optional(),
@@ -130,7 +160,7 @@ export const DivisionDetailQuerySchema = z
   .object({
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
-    include: z.literal('parent').optional(),
+    include: z.literal('ancestors').optional(),
   })
   .openapi('DivisionDetailQuery')
 
