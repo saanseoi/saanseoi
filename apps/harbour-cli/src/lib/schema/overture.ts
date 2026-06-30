@@ -1,4 +1,4 @@
-import type { ParquetInspection, SupportedType, UploadPlan } from '@repo/core'
+import type { ParquetInspection, ResourceType, UploadPlan } from '@repo/core'
 
 type SchemaWindow = {
   validFromVersion?: string
@@ -16,7 +16,7 @@ type UploadSchemaField = {
 type UploadSchemaVersion = SchemaWindow & {
   id: string
   source: 'overture'
-  type: SupportedType
+  type: ResourceType
   fields: UploadSchemaField[]
   allowedUnexpectedFields?: UploadSchemaField[]
 }

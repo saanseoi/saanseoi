@@ -1,5 +1,5 @@
 import { z } from '@hono/zod-openapi'
-import { ResourceTypes } from '@repo/core'
+import { resourceTypes } from '@repo/core'
 
 export const ErrorResponseSchema = z
   .object({
@@ -172,7 +172,7 @@ const DatasetTypeQuerySchema = z
   .enum(['address', 'division', 'place', 'street'])
   .openapi('HarbourDatasetTypeQuery')
 
-const ResourceTypeSchema = z.enum(ResourceTypes).openapi('HarbourResourceType')
+const ResourceTypeSchema = z.enum(resourceTypes).openapi('HarbourResourceType')
 
 export const UploadResponseSchema = z
   .object({
