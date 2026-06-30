@@ -69,7 +69,6 @@ Because the division resourceType currently has only one source, canonical compo
 - `nameVariant`
 - `nameAlts`
 - `nameRules`
-- `localType`
 - `isLocaleInferred`
 
 Locale storage behavior:

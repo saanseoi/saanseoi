@@ -83,7 +83,6 @@ export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup
       parentDivisionId: divisions.parentDivisionId,
       locale: divisionsI18n.locale,
       name: divisionsI18n.name,
-      localType: divisionsI18n.localType,
     })
     .from(placesDivision)
     .innerJoin(

@@ -1892,7 +1892,7 @@ describe('processDivisionDataset', () => {
 
     const i18nRows = sqlite
       .query(
-        "SELECT divisionId, locale, name AS otName, nameAlts AS otNameAlts, nameVariant AS otNameVariantJson, nameRules AS otNameRulesJson, localType AS otLocalType, isLocaleInferred FROM divisionsI18n WHERE divisionId != 'saanseoi-cn-prc' ORDER BY divisionId, locale",
+        "SELECT divisionId, locale, name AS otName, nameAlts AS otNameAlts, nameVariant AS otNameVariantJson, nameRules AS otNameRulesJson, isLocaleInferred FROM divisionsI18n WHERE divisionId != 'saanseoi-cn-prc' ORDER BY divisionId, locale",
       )
       .all()
     const statsRows = sqlite
@@ -1914,9 +1914,8 @@ describe('processDivisionDataset', () => {
     expect(i18nRows).toEqual([
       {
         divisionId: 'division-primary-mixed',
-        isLocaleInferred: 0,
+        isLocaleInferred: 1,
         locale: 'en',
-        otLocalType: 'peak',
         otName: 'Victoria Peak',
         otNameAlts: null,
         otNameRulesJson: null,
@@ -1926,7 +1925,6 @@ describe('processDivisionDataset', () => {
         divisionId: 'division-primary-mixed',
         isLocaleInferred: 1,
         locale: 'zh-hant',
-        otLocalType: null,
         otName: '太平山',
         otNameAlts: null,
         otNameRulesJson: null,
@@ -1936,7 +1934,6 @@ describe('processDivisionDataset', () => {
         divisionId: 'division-primary-zh',
         isLocaleInferred: 1,
         locale: 'zh-hans',
-        otLocalType: null,
         otName: '沙頭角廣場',
         otNameAlts: null,
         otNameRulesJson: null,
@@ -1946,7 +1943,6 @@ describe('processDivisionDataset', () => {
         divisionId: 'division-rules-zh',
         isLocaleInferred: 1,
         locale: 'en',
-        otLocalType: null,
         otName: 'Victoria Peak',
         otNameAlts: 'The Peak',
         otNameRulesJson:
@@ -1957,7 +1953,6 @@ describe('processDivisionDataset', () => {
         divisionId: 'division-rules-zh',
         isLocaleInferred: 0,
         locale: 'zh-hant',
-        otLocalType: null,
         otName: '山頂',
         otNameAlts: null,
         otNameRulesJson: null,
@@ -1977,7 +1972,7 @@ describe('processDivisionDataset', () => {
       {
         dimension: 'locale_coverage_non_inferred',
         groupValue: 'en',
-        value: 33.33333333333333,
+        value: 0,
       },
       { dimension: 'locale_coverage_non_inferred', groupValue: 'zh-hans', value: 0 },
       {
@@ -2214,10 +2209,9 @@ describe('processDivisionDataset', () => {
       sqlite.exec(`
         INSERT INTO divisionsI18n (
           snapshotId, divisionId, locale, name, nameAlts, nameVariant, nameRules,
-          localType, isLocaleInferred, createdAt, updatedAt
+          isLocaleInferred, createdAt, updatedAt
         ) VALUES (
-          '${previousSnapshotId}', '${divisionId}', 'en', 'Existing ${index}', null, '["Existing ${index}"]', null, null, 0,
-          '${now}', '${now}'
+          '${previousSnapshotId}', '${divisionId}', 'en', 'Existing ${index}', null, '["Existing ${index}"]', null, 0, '${now}', '${now}'
         );
       `)
 

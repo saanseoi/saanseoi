@@ -1,0 +1,4233 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "b2b00b3d-9715-42cb-9834-3a9a20ca0613",
+  "prevIds": ["d4f5c584-9fa6-4bac-bfe3-a5df516a675b"],
+  "ddl": [
+    {
+      "name": "sourceOvertureAddress2dI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceOvertureAddress2dI18nVersions",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceOvertureAddresses2d",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceOvertureAddresses2dVersions",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceOvertureDivisionI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceOvertureDivisionI18nVersions",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceOvertureDivisions",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceOvertureDivisionsVersions",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceOverturePlaceI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceOverturePlaceI18nVersions",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceOverturePlaces",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceOverturePlacesVersions",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceHkgovAlsAddress2dI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceHkgovAlsAddress2dI18nVersions",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceHkgovAlsAddresses2d",
+      "entityType": "tables"
+    },
+    {
+      "name": "sourceHkgovAlsAddresses2dVersions",
+      "entityType": "tables"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetName",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locality",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "region",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "country",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetName",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locality",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "region",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "country",
+      "entityType": "columns",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetId",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourcePayloadHash",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "regionCode",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetName",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetNumber",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "regionCode",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetName",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetNumber",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameVariant",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameAlts",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameRules",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "isLocaleInferred",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameVariant",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameAlts",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameRules",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "isLocaleInferred",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetId",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourcePayloadHash",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "regionCode",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "level",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "divisionType",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "subtype",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "divisionClass",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "population",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "wikidata",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "hierarchies",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "cartography",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "regionCode",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "level",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "divisionType",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "subtype",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "divisionClass",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "population",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "wikidata",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "hierarchies",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "cartography",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameVariant",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameAlts",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandName",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandNameVariant",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandNameAlts",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "isLocaleInferred",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameVariant",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameAlts",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandName",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandNameVariant",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandNameAlts",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "isLocaleInferred",
+      "entityType": "columns",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetId",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourcePayloadHash",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "regionCode",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addressSourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "lng",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "lat",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "operatingStatus",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "basicCategory",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyPrimary",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyHierarchy",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyAlternates",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandWikidata",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "websites",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "socials",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "emails",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phones",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addresses",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "confidence",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "regionCode",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addressSourceRecordId",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "lng",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "lat",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "operatingStatus",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "basicCategory",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyPrimary",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyHierarchy",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyAlternates",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandWikidata",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "websites",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "socials",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "emails",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phones",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addresses",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "confidence",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "formattedAddress",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingNumberFrom",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingNumberTo",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockType",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockTypeBeforeNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "estateName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "villageName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "formattedAddress",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingNumberFrom",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingNumberTo",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockType",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockTypeBeforeNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "estateName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "villageName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetId",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourcePayloadHash",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "regionCode",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geoAddress",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "csuId",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "x",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "y",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtCode",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "estateName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockDescriptor",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "floor",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "unit",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "villageName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "dataOwner",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawPayload",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "regionCode",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(cast(unixepoch('subsecond') * 1000 as integer))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geoAddress",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "csuId",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "x",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "y",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtCode",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "estateName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockDescriptor",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "floor",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "unit",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetNumber",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "villageName",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "dataOwner",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawPayload",
+      "entityType": "columns",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "columns": ["sourceRecordId", "locale"],
+      "nameExplicit": false,
+      "name": "sourceOvertureAddress2dI18n_pk",
+      "entityType": "pks",
+      "table": "sourceOvertureAddress2dI18n"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash", "locale"],
+      "nameExplicit": false,
+      "name": "sourceOvertureAddress2dI18nVersions_pk",
+      "entityType": "pks",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "columns": ["sourceRecordId"],
+      "nameExplicit": false,
+      "name": "sourceOvertureAddresses2d_pk",
+      "entityType": "pks",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "sourceOvertureAddresses2dVersions_pk",
+      "entityType": "pks",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "columns": ["sourceRecordId", "locale"],
+      "nameExplicit": false,
+      "name": "sourceOvertureDivisionI18n_pk",
+      "entityType": "pks",
+      "table": "sourceOvertureDivisionI18n"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash", "locale"],
+      "nameExplicit": false,
+      "name": "sourceOvertureDivisionI18nVersions_pk",
+      "entityType": "pks",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "columns": ["sourceRecordId"],
+      "nameExplicit": false,
+      "name": "sourceOvertureDivisions_pk",
+      "entityType": "pks",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "sourceOvertureDivisionsVersions_pk",
+      "entityType": "pks",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "columns": ["sourceRecordId", "locale"],
+      "nameExplicit": false,
+      "name": "sourceOverturePlaceI18n_pk",
+      "entityType": "pks",
+      "table": "sourceOverturePlaceI18n"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash", "locale"],
+      "nameExplicit": false,
+      "name": "sourceOverturePlaceI18nVersions_pk",
+      "entityType": "pks",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "columns": ["sourceRecordId"],
+      "nameExplicit": false,
+      "name": "sourceOverturePlaces_pk",
+      "entityType": "pks",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "sourceOverturePlacesVersions_pk",
+      "entityType": "pks",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "columns": ["sourceRecordId", "locale"],
+      "nameExplicit": false,
+      "name": "sourceHkgovAlsAddress2dI18n_pk",
+      "entityType": "pks",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash", "locale"],
+      "nameExplicit": false,
+      "name": "sourceHkgovAlsAddress2dI18nVersions_pk",
+      "entityType": "pks",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "columns": ["sourceRecordId"],
+      "nameExplicit": false,
+      "name": "sourceHkgovAlsAddresses2d_pk",
+      "entityType": "pks",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "columns": ["sourceRecordId", "versionHash"],
+      "nameExplicit": false,
+      "name": "sourceHkgovAlsAddresses2dVersions_pk",
+      "entityType": "pks",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddress2dI18n_locale_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddress2dI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddress2dI18nVersions_releaseId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddress2dI18nVersions_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddress2dI18nVersions_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddress2dI18nVersions_release_validity_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddress2dI18nVersions_locale_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddress2dI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "datasetId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddresses2d_datasetId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddresses2d_releaseId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddresses2d_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddresses2d_regionCode_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        },
+        {
+          "value": "streetName",
+          "isExpression": false
+        },
+        {
+          "value": "streetNumber",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddresses2d_street_lookup_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddresses2dVersions_releaseId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddresses2dVersions_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddresses2dVersions_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddresses2dVersions_release_validity_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddresses2dVersions_regionCode_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        },
+        {
+          "value": "streetName",
+          "isExpression": false
+        },
+        {
+          "value": "streetNumber",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureAddresses2dVersions_street_lookup_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionI18n_locale_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionI18nVersions_releaseId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionI18nVersions_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionI18nVersions_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionI18nVersions_release_validity_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionI18nVersions_locale_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "datasetId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisions_datasetId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisions_releaseId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisions_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisions_regionCode_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "level",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisions_level_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "divisionType",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisions_type_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionsVersions_releaseId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionsVersions_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionsVersions_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionsVersions_release_validity_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionsVersions_regionCode_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "level",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionsVersions_level_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "divisionType",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOvertureDivisionsVersions_type_idx",
+      "entityType": "indexes",
+      "table": "sourceOvertureDivisionsVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaceI18n_locale_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaceI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaceI18nVersions_releaseId_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaceI18nVersions_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaceI18nVersions_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaceI18nVersions_release_validity_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaceI18nVersions_locale_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaceI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "datasetId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaces_datasetId_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaces_releaseId_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaces_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaces_regionCode_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "basicCategory",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaces_basicCategory_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "taxonomyPrimary",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaces_taxonomyPrimary_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "addressSourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlaces_addressSourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlaces"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlacesVersions_releaseId_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlacesVersions_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlacesVersions_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlacesVersions_release_validity_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlacesVersions_regionCode_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "basicCategory",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlacesVersions_basicCategory_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "taxonomyPrimary",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlacesVersions_taxonomyPrimary_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "addressSourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceOverturePlacesVersions_addressSourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceOverturePlacesVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddress2dI18n_locale_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddress2dI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddress2dI18nVersions_releaseId_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddress2dI18nVersions_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddress2dI18nVersions_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddress2dI18nVersions_release_validity_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddress2dI18nVersions_locale_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddress2dI18nVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "datasetId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2d_datasetId_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2d_releaseId_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2d_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2d_regionCode_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "csuId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2d_csuId_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "geoAddress",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2d_geoAddress_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        },
+        {
+          "value": "streetName",
+          "isExpression": false
+        },
+        {
+          "value": "streetNumber",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2d_street_lookup_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2dVersions_releaseId_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2dVersions_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2dVersions_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2dVersions_release_validity_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2dVersions_regionCode_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "csuId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2dVersions_csuId_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "geoAddress",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2dVersions_geoAddress_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    },
+    {
+      "columns": [
+        {
+          "value": "regionCode",
+          "isExpression": false
+        },
+        {
+          "value": "streetName",
+          "isExpression": false
+        },
+        {
+          "value": "streetNumber",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "sourceHkgovAlsAddresses2dVersions_street_lookup_idx",
+      "entityType": "indexes",
+      "table": "sourceHkgovAlsAddresses2dVersions"
+    }
+  ],
+  "renames": []
+}

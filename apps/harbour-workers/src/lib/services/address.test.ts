@@ -260,11 +260,11 @@ function seedDivisionLookups(sqlite: Database) {
       ('${snapshotId}', 'district-central', 2, 'district', 'district', 'district', null, null, 'area-hk', null, null, null, '${now}', '${now}');
 
     INSERT INTO divisionsI18n (
-      snapshotId, divisionId, locale, name, nameVariant, nameAlts, nameRules, localType, isLocaleInferred, createdAt, updatedAt
+      snapshotId, divisionId, locale, name, nameVariant, nameAlts, nameRules, isLocaleInferred, createdAt, updatedAt
     ) VALUES
-      ('${snapshotId}', 'country-cn', 'en', 'China', null, null, null, null, 0, '${now}', '${now}'),
-      ('${snapshotId}', 'area-hk', 'en', 'Hong Kong', null, null, null, null, 0, '${now}', '${now}'),
-      ('${snapshotId}', 'district-central', 'en', 'Central District', null, null, null, null, 0, '${now}', '${now}');
+      ('${snapshotId}', 'country-cn', 'en', 'China', null, null, null, 0, '${now}', '${now}'),
+      ('${snapshotId}', 'area-hk', 'en', 'Hong Kong', null, null, null, 0, '${now}', '${now}'),
+      ('${snapshotId}', 'district-central', 'en', 'Central District', null, null, null, 0, '${now}', '${now}');
 
     INSERT INTO snapshotSources (
       snapshotId, datasetId, sourceReleaseId, role, createdAt

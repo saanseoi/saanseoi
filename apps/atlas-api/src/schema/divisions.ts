@@ -18,7 +18,6 @@ const DivisionResourceIdentifierSchema = z
 const DivisionI18nAttributesSchema = z
   .object({
     name: z.string().nullable().optional(),
-    localType: z.string().nullable().optional(),
   })
   .openapi('DivisionI18nAttributes')
 

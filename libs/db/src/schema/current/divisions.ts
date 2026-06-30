@@ -47,7 +47,6 @@ export const divisionsI18n = sqliteTable(
     nameVariant: jsonText('nameVariant'),
     nameAlts: text('nameAlts'),
     nameRules: jsonText('nameRules'),
-    localType: text('localType'),
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' }).notNull(),
     ...timestamps,
   },
