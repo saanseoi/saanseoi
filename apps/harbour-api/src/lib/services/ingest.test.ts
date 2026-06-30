@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 
-import type { ParquetInspection } from '@repo/core'
+import type { DatasetProcessingMessage, ParquetInspection } from '@repo/core'
 import { requestUpload } from '@repo/core/upload'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
 import {
@@ -28,6 +28,27 @@ const fixtureInspection: ParquetInspection = {
   ],
   distinctThemeValues: ['divisions'],
   distinctTypeValues: ['division'],
+  distinctCountryValues: ['hk'],
+  distinctRegionValues: ['hk'],
+}
+const addressFixtureInspection: ParquetInspection = {
+  rowCount: 2050,
+  schema: [
+    { name: 'id', type: 'string', nullable: false },
+    { name: 'theme', type: 'string', nullable: true },
+    { name: 'type', type: 'string', nullable: true },
+    { name: 'country', type: 'string', nullable: true },
+    { name: 'region', type: 'string', nullable: true },
+    { name: 'address_levels', type: 'list', nullable: true },
+    { name: 'street', type: 'string', nullable: true },
+    { name: 'number', type: 'string', nullable: true },
+    { name: 'geometry', type: 'json', nullable: true },
+    { name: 'bbox', type: 'json', nullable: true },
+    { name: 'sources', type: 'json', nullable: true },
+    { name: 'version', type: 'int64', nullable: true },
+  ],
+  distinctThemeValues: ['addresses'],
+  distinctTypeValues: ['address'],
   distinctCountryValues: ['hk'],
   distinctRegionValues: ['hk'],
 }
@@ -173,6 +194,62 @@ describe('direct upload flow', () => {
       ['registerDataset', 'completed'],
       ['stageDataset', 'completed'],
     ])
+  })
+
+  test('registers address uploads as preplanned row-range jobs', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-address.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const bucket = new FakeR2Bucket()
+    const queuedMessages: DatasetProcessingMessage[] = []
+    const queue: DatasetProcessingQueue = {
+      async send(message) {
+        queuedMessages.push(message as DatasetProcessingMessage)
+      },
+    }
+    const file = new File(
+      [new Uint8Array([0x50, 0x41, 0x52, 0x31])],
+      'overture-hk-address.parquet',
+      {
+        type: 'application/octet-stream',
+      },
+    )
+    const formData = new FormData()
+
+    inspectParquetMock.mockImplementationOnce(async () => addressFixtureInspection)
+    formData.set('file', file)
+    formData.set('shardYear', '2026')
+    formData.set('cohortKey', '2026-05')
+    formData.set('sourceVersion', '2026-05-20.0')
+    formData.set('theme', 'addresses')
+    formData.set('type', 'address')
+
+    const result = await handleUploadRequest(db, bucket, queue, formData)
+
+    sqlite.close()
+
+    expect(result.plan.datasetId).toBe('overture-hk-2026-05-20.0-address')
+    expect(queuedMessages).toHaveLength(3)
+    expect(queuedMessages.map(message => [message.rowStart, message.rowEnd])).toEqual([
+      [0, 1024],
+      [1024, 2048],
+      [2048, 2050],
+    ])
+    expect(
+      new Set(queuedMessages.map(message => message.processingRunStartedAt)).size,
+    ).toBe(1)
+    for (const message of queuedMessages) {
+      expect(message).toEqual(
+        expect.objectContaining({
+          addressStage: 'normalize',
+          chunkSize: 1024,
+          preplannedAddressChunks: true,
+          totalRows: 2050,
+          type: 'address',
+        }),
+      )
+    }
   })
 
   test('force registers over an interrupted uploading session', async () => {

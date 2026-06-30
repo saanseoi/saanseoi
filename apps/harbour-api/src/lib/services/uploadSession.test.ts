@@ -307,6 +307,63 @@ describe('upload session flow', () => {
     }
   })
 
+  test('requeues address uploads as preplanned row-range jobs', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-address-requeue.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const bucket = new FakeR2Bucket()
+    const inspectAddressParquetMock = mock(async () => addressFixtureInspection)
+
+    const signResult = await handleSignUploadRequest(db, bucket, signingEnv, {
+      contentType: 'application/octet-stream',
+      fileName: 'overture-hk-address.parquet',
+      fileSize: fixtureBytes.byteLength,
+      inspection: addressFixtureInspection,
+      plan: {
+        shardYear: '2026',
+        cohortKey: '2026-05',
+        sourceVersion: '2026-05-20.0',
+        type: 'address',
+        theme: 'addresses',
+      },
+      schemaVersionId: 'overture-address-v2025-09-24.0',
+    })
+
+    await bucket.put(signResult.rawObjectKey, toArrayBuffer(fixtureBytes))
+    await handleFinalizeUploadRequest(
+      db,
+      bucket,
+      queue,
+      {
+        releaseId: signResult.releaseId,
+      },
+      {
+        inspectParquet: inspectAddressParquetMock,
+      },
+    )
+
+    queuedMessages.length = 0
+
+    const requeued = await handleRequeueUploadRequest(db, queue, {
+      releaseId: signResult.releaseId,
+    })
+    const addressMessages = queuedMessages as DatasetProcessingMessage[]
+
+    expect(requeued.status).toBe('queued')
+    expect(requeued.rowCount).toBe(2050)
+    expect(addressMessages).toHaveLength(3)
+    expect(addressMessages.map(message => [message.rowStart, message.rowEnd])).toEqual([
+      [0, 1024],
+      [1024, 2048],
+      [2048, 2050],
+    ])
+    expect(
+      new Set(addressMessages.map(message => message.processingRunStartedAt)).size,
+    ).toBe(1)
+    expect(addressMessages.every(message => message.preplannedAddressChunks)).toBe(true)
+  })
+
   test('force signing replaces an interrupted uploading session', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-force-sign.sqlite')

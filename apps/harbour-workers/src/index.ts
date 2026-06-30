@@ -149,6 +149,26 @@ export function createQueueHandler(
           throw new Error('Unsupported harbour job message.')
         }
 
+        console.info(
+          JSON.stringify({
+            addressStage: readStringProperty(body, 'addressStage'),
+            attempts: message.attempts,
+            batchSize: batch.messages.length,
+            datasetId: body.datasetId,
+            messageId: message.id,
+            phase: 'datasetQueueMessage',
+            preplannedAddressChunks: Boolean(body.preplannedAddressChunks),
+            releaseCode: body.releaseCode,
+            releaseId: body.releaseId ?? body.datasetId,
+            rowEnd: body.rowEnd,
+            rowStart: body.rowStart,
+            source: body.source,
+            sourceVersion: body.sourceVersion,
+            status: 'received',
+            type: body.type,
+          }),
+        )
+
         const historyShard = resolveShardBinding(
           env,
           'HISTORY',
@@ -222,6 +242,22 @@ export function createQueueHandler(
           )
         }
         message.ack()
+        console.info(
+          JSON.stringify({
+            addressStage: readStringProperty(body, 'addressStage'),
+            attempts: message.attempts,
+            datasetId: body.datasetId,
+            messageId: message.id,
+            phase: 'datasetQueueMessage',
+            preplannedAddressChunks: Boolean(body.preplannedAddressChunks),
+            releaseCode: body.releaseCode,
+            releaseId: body.releaseId ?? body.datasetId,
+            rowEnd: body.rowEnd,
+            rowStart: body.rowStart,
+            status: 'acked',
+            type: body.type,
+          }),
+        )
       } catch (error) {
         console.error('harbour-workers dataset processing failed', {
           ...errorContext,
