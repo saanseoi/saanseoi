@@ -473,6 +473,7 @@ export async function insertDataset(
   const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
     sourceVersion: plan.sourceVersion,
+    allowOlderMappedRelease: true,
   })
 
   await db
@@ -509,6 +510,7 @@ export async function resetFailedDataset(
   const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
     sourceVersion: plan.sourceVersion,
+    allowOlderMappedRelease: true,
   })
 
   await db
