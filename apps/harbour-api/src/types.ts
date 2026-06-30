@@ -1,9 +1,9 @@
-import type { DatasetProcessingMessage } from '@repo/core'
+import type { HarbourJobMessage } from '@repo/core'
 import type { SaanseoiWorkerBindings } from '@repo/db'
 
 export type AppEnv = {
   Bindings: SaanseoiWorkerBindings & {
-    DATASET_QUEUE: Queue<DatasetProcessingMessage>
+    DATASET_QUEUE: Queue<HarbourJobMessage>
     DATA_SHARD_ENV: 'preview' | 'production'
     D1_PLACEMENT_PROBE_API_KEY: string
     HARBOUR_API_KEY: string

@@ -19,6 +19,7 @@ import { SUPPORTED_THEMES, SUPPORTED_TYPES } from '@repo/core'
 import type {
   DatasetRecord,
   DatasetProcessingMessage,
+  HarbourJobMessage,
   ParquetInspection,
   RegionCode,
   RegisterUploadResult,
@@ -57,6 +58,7 @@ export type SignUploadRequest = {
   fileName: string
   fileSize: number
   force?: boolean
+  skipSnapshotCleanup?: boolean
   inspection: ParquetInspection
   plan: {
     regionCode?: string
@@ -72,10 +74,12 @@ export type SignUploadRequest = {
 
 export type FinalizeUploadRequest = {
   releaseId: string
+  skipSnapshotCleanup?: boolean
 }
 
 export type RequeueUploadRequest = {
   releaseId: string
+  skipSnapshotCleanup?: boolean
 }
 
 export type RequeueUploadResult = Omit<DatasetRecord, 'status'> & {
@@ -105,7 +109,7 @@ export type UploadSigningEnv = {
 }
 
 export type DatasetProcessingQueue = {
-  send(message: DatasetProcessingMessage): Promise<unknown>
+  send(message: HarbourJobMessage, options?: QueueSendOptions): Promise<unknown>
 }
 
 type UploadSessionDependencies = {
@@ -260,6 +264,7 @@ export async function handleFinalizeUploadRequest(
     sourceVersion: finalized.plan.sourceVersion,
     theme: finalized.plan.theme,
     type: finalized.plan.type,
+    ...(request.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
   })
 
   await queue.send(processingMessage)
@@ -306,7 +311,10 @@ export async function handleRequeueUploadRequest(
     }
   }
 
-  const processingMessage = buildDatasetProcessingMessage(dataset)
+  const processingMessage = buildDatasetProcessingMessage({
+    ...dataset,
+    ...(request.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
+  })
 
   const queuedAt = new Date().toISOString()
   await upsertIngestRunStatus(
@@ -474,6 +482,7 @@ function buildDatasetProcessingMessage(
     | 'type'
   > & {
     shardYear?: string
+    skipSnapshotCleanup?: boolean
   },
 ): DatasetProcessingMessage {
   return {
@@ -493,6 +502,7 @@ function buildDatasetProcessingMessage(
     sourceVersion: dataset.sourceVersion,
     theme: requireSupportedTheme(dataset.theme),
     type: requireSupportedType(dataset.type),
+    ...(dataset.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
   }
 }
 

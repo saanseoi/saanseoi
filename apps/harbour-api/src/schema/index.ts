@@ -1,4 +1,5 @@
 import { z } from '@hono/zod-openapi'
+import { ResourceTypes } from '@repo/core'
 
 export const ErrorResponseSchema = z
   .object({
@@ -171,6 +172,8 @@ const DatasetTypeQuerySchema = z
   .enum(['address', 'division', 'place', 'street'])
   .openapi('HarbourDatasetTypeQuery')
 
+const ResourceTypeSchema = z.enum(ResourceTypes).openapi('HarbourResourceType')
+
 export const UploadResponseSchema = z
   .object({
     datasetId: DatasetIdSchema,
@@ -206,6 +209,14 @@ export const SignUploadRequestSchema = z
       .openapi({
         description:
           'Allow replacing an existing upload session only when the release is still in uploading status.',
+        examples: [true],
+      }),
+    skipSnapshotCleanup: z
+      .boolean()
+      .optional()
+      .openapi({
+        description:
+          'Do not enqueue current-snapshot cleanup after this release is published. Intended for backfill batches.',
         examples: [true],
       }),
   })
@@ -245,12 +256,14 @@ export const SignUploadResponseSchema = z
 export const FinalizeUploadRequestSchema = z
   .object({
     releaseId: ReleaseIdSchema,
+    skipSnapshotCleanup: z.boolean().optional(),
   })
   .openapi('HarbourFinalizeUploadRequest')
 
 export const RequeueUploadRequestSchema = z
   .object({
     releaseId: ReleaseIdSchema,
+    skipSnapshotCleanup: z.boolean().optional(),
   })
   .openapi('HarbourRequeueUploadRequest')
 
@@ -276,6 +289,7 @@ export const PublishDatasetRequestSchema = z
   .object({
     releaseCode: ReleaseCodeSchema.optional(),
     releaseId: ReleaseIdSchema.optional(),
+    skipSnapshotCleanup: z.boolean().optional(),
   })
   .refine(
     value => Boolean(value.releaseId || value.releaseCode),
@@ -284,6 +298,25 @@ export const PublishDatasetRequestSchema = z
   .openapi('HarbourPublishDatasetRequest', {
     anyOf: [{ required: ['releaseId'] }, { required: ['releaseCode'] }],
   })
+
+export const CleanupSnapshotsRequestSchema = z
+  .object({
+    delaySeconds: z.number().int().min(0).max(86_400).optional(),
+    dryRun: z.boolean().optional(),
+    resourceType: ResourceTypeSchema.optional(),
+    snapshotIds: z.array(z.string().uuid()).optional(),
+  })
+  .openapi('HarbourCleanupSnapshotsRequest')
+
+export const CleanupSnapshotsResponseSchema = z
+  .object({
+    candidateCount: z.number(),
+    delaySeconds: z.number(),
+    dryRun: z.boolean(),
+    snapshotIds: z.array(z.string()),
+    status: z.enum(['queued', 'skipped']),
+  })
+  .openapi('HarbourCleanupSnapshotsResponse')
 
 export const ControlResponseSchema = z
   .object({
