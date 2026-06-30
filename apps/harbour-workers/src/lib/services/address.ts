@@ -21,7 +21,6 @@ import type {
 import { and, eq } from 'drizzle-orm'
 
 import { currentSchema } from '@repo/db'
-import { historySchema } from '@repo/db'
 
 import {
   alignAddressCurrentDivisionSnapshot,
@@ -146,14 +145,7 @@ export async function processAddressDataset(
     versionInsertContext.snapshotId,
   )
 
-  if (
-    previousSnapshot &&
-    (await snapshotMatchesAddressRegion(
-      historyDb,
-      previousSnapshot.id,
-      message.regionCode,
-    ))
-  ) {
+  if (previousSnapshot) {
     await timings.measure('cloneAddressCurrentSnapshotMs', () =>
       cloneAddressCurrentSnapshot(
         currentRepoDb,
@@ -722,28 +714,6 @@ export async function processAddressDataset(
     statsRows: 0,
     unchangedRows,
   }
-}
-
-async function snapshotMatchesAddressRegion(
-  historyDb: HistoryDatabase,
-  snapshotId: string,
-  regionCode: DatasetProcessingMessage['regionCode'],
-) {
-  const match = await historyDb
-    .select({
-      snapshotId: historySchema.address2dVersions.snapshotId,
-    })
-    .from(historySchema.address2dVersions)
-    .where(
-      and(
-        eq(historySchema.address2dVersions.snapshotId, snapshotId),
-        eq(historySchema.address2dVersions.regionCode, regionCode),
-      ),
-    )
-    .limit(1)
-    .get()
-
-  return Boolean(match)
 }
 
 async function loadDivisionLookupMaps(
