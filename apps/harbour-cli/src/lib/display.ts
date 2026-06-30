@@ -206,7 +206,7 @@ export function formatUploadResult(
     rawObjectKey: string
     releaseId: string
     datasetId: string
-    sourceSchemaVersion: string
+    schemaVersion: string
     status: string
   },
 ) {
@@ -217,7 +217,7 @@ export function formatUploadResult(
     formatField('datasetId', formatMutedValue(summary.datasetId)),
     formatField('release', formatReleaseValue(result)),
     formatField('releaseId', formatMutedValue(summary.releaseId)),
-    formatField('schemaVersion', summary.sourceSchemaVersion),
+    formatField('schemaVersion', summary.schemaVersion),
   ]
 }
 

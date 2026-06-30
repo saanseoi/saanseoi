@@ -116,13 +116,6 @@ export async function assertKnownSafeSourceRelease(args: {
 
   const latestKnownSafeRelease = getLatestKnownSafeOvertureRelease()
 
-  if (
-    latestKnownSafeRelease &&
-    compareReleaseVersions(args.sourceVersion, latestKnownSafeRelease.version) <= 0
-  ) {
-    return
-  }
-
   const resolvedSourceSchemaVersion =
     await resolveOvertureSourceSchemaVersionFromCatalog(args.sourceVersion)
 

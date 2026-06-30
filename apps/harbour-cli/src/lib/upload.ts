@@ -103,7 +103,7 @@ export async function dispatchUpload(
   try {
     if (!target.remote) {
       await assertLocalDirectUploadCanProceed(target, previewResult, options.force)
-      return uploadFileViaWorker(
+      return await uploadFileViaWorker(
         apiBaseUrl,
         target,
         uploadFile.filePath,
