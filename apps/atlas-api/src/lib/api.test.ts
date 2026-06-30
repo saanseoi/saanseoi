@@ -27,7 +27,7 @@ describe('api helpers', () => {
         version: '1.1',
       },
       links: {
-        self: 'http://localhost/v0/divisions?page[limit]=10&page[offset]=10',
+        self: 'http://localhost/v0/divisions?page%5Blimit%5D=10&page%5Boffset%5D=10',
         first: 'http://localhost/v0/divisions?page%5Blimit%5D=10&page%5Boffset%5D=0',
         prev: 'http://localhost/v0/divisions?page%5Blimit%5D=10&page%5Boffset%5D=0',
         next: 'http://localhost/v0/divisions?page%5Blimit%5D=10&page%5Boffset%5D=20',
@@ -86,7 +86,7 @@ describe('api helpers', () => {
         requestedApiVersion: '0.1',
         requestedApiFamily: 'divisions',
         resolvedApiVersion: 'api-divisions-v0.1',
-        apiReleaseSet: 'data-hk-divisions-2026-04-15.0-0',
+        apiReleaseSet: 'data-hk-divisions-2026-04-15.0',
         schemaVersion: 'sv-division-v1',
         rulesetVersion: 'rs-division-merge-v1',
         profile: 'default',
@@ -95,7 +95,7 @@ describe('api helpers', () => {
       requestedApiVersion: '0.1',
       requestedApiFamily: 'divisions',
       resolvedApiVersion: 'api-divisions-v0.1',
-      apiReleaseSet: 'data-hk-divisions-2026-04-15.0-0',
+      apiReleaseSet: 'data-hk-divisions-2026-04-15.0',
     })
 
     expect(
@@ -103,7 +103,7 @@ describe('api helpers', () => {
         requestedApiVersion: '0.1',
         requestedApiFamily: 'divisions',
         resolvedApiVersion: 'api-divisions-v0.1',
-        apiReleaseSet: 'data-hk-divisions-2026-04-15.0-0',
+        apiReleaseSet: 'data-hk-divisions-2026-04-15.0',
         schemaVersion: 'sv-division-v1',
         rulesetVersion: 'rs-division-merge-v1',
         profile: 'full',
@@ -112,7 +112,7 @@ describe('api helpers', () => {
       requestedApiVersion: '0.1',
       requestedApiFamily: 'divisions',
       resolvedApiVersion: 'api-divisions-v0.1',
-      apiReleaseSet: 'data-hk-divisions-2026-04-15.0-0',
+      apiReleaseSet: 'data-hk-divisions-2026-04-15.0',
       schemaVersion: 'sv-division-v1',
       rulesetVersion: 'rs-division-merge-v1',
     })
