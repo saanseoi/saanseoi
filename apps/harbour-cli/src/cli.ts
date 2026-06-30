@@ -6,16 +6,22 @@ import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/promp
 
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
-import { isReleaseId, resourceTypes, resourceThemes } from '@repo/core'
+import {
+  isReleaseId,
+  resolveSourceSchemaVersion,
+  resourceTypes,
+  resourceThemes,
+} from '@repo/core'
 import type { ResourceType } from '@repo/core'
 import {
   describeTarget,
-  explainDispatch,
   formatIngestionReportTable,
   formatField,
   formatReleaseReportTable,
+  formatSchemaCheck,
   formatSummary,
   formatStatsReportTable,
+  formatUploadResult,
 } from './lib/display.ts'
 import { prepareHkgovAlsAddressParquet } from './lib/hkgovAls.ts'
 import { buildRegisterOptions, parseArgs, resolveUploadTarget } from './lib/options.ts'
@@ -190,7 +196,6 @@ async function main() {
       }
     }
 
-    log.message(explainDispatch(target))
     const finalized = await finalizeExistingUpload(target, releaseSpecifier, {
       skipSnapshotCleanup,
     })
@@ -238,7 +243,6 @@ async function main() {
       }
     }
 
-    log.message(explainDispatch(target))
     const requeued = await requeueExistingUpload(target, releaseSpecifier, {
       skipSnapshotCleanup,
     })
@@ -264,7 +268,6 @@ async function main() {
   }
 
   if (args.command === 'upload:watch') {
-    log.message(explainDispatch(target))
     const result = await watchCurrentUpload(target)
 
     if (!result.hadActivity) {
@@ -292,7 +295,6 @@ async function main() {
       }
     }
 
-    log.message(explainDispatch(target))
     const result = await scheduleSnapshotCleanup(target, {
       delaySeconds,
       dryRun,
@@ -340,6 +342,10 @@ async function main() {
 
   const registerOptions = buildRegisterOptions(invocationCwd, inputFile, args)
   const previewResult = await prepareUpload(registerOptions)
+  const sourceSchemaVersion = await resolveSourceSchemaVersion({
+    source: previewResult.plan.source,
+    sourceVersion: previewResult.plan.sourceVersion,
+  })
   let assumptionWarnings: string[] = []
 
   if (previewResult.plan.source === 'overture') {
@@ -385,18 +391,22 @@ async function main() {
     }
   }
 
-  log.message(explainDispatch(target))
-  const schemaVersionId =
-    previewResult.plan.source === 'overture'
-      ? validateOvertureSchema(previewResult.plan, previewResult.inspection).schema.id
-      : `${previewResult.plan.source}-${previewResult.plan.type}-unvalidated`
+  let schemaVersionId: string
 
   if (previewResult.plan.source === 'overture') {
-    log.success(`Schema check passed: ${schemaVersionId}`)
+    try {
+      schemaVersionId = validateOvertureSchema(
+        previewResult.plan,
+        previewResult.inspection,
+      ).schema.id
+      log.message(formatSchemaCheck('passed'))
+    } catch (error) {
+      log.message(formatSchemaCheck('failed'))
+      throw error
+    }
   } else {
-    log.message(
-      `Schema check skipped for ${previewResult.plan.source} ${previewResult.plan.type}.`,
-    )
+    schemaVersionId = `${previewResult.plan.source}-${previewResult.plan.type}-unvalidated`
+    log.message(formatSchemaCheck('skipped'))
   }
 
   const uploadResult = await dispatchUpload(
@@ -411,38 +421,22 @@ async function main() {
   )
 
   note(
-    [
-      formatField(
-        'datasetCode',
+    formatUploadResult(previewResult, {
+      datasetCode:
         typeof uploadResult?.datasetCode === 'string'
           ? uploadResult.datasetCode
           : previewResult.plan.datasetCode,
-      ),
-      formatField(
-        'releaseCode',
-        typeof uploadResult?.releaseCode === 'string'
-          ? uploadResult.releaseCode
-          : previewResult.plan.releaseCode,
-      ),
-      formatField(
-        'rawObjectKey',
+      rawObjectKey:
         typeof uploadResult?.rawObjectKey === 'string'
           ? uploadResult.rawObjectKey
           : '-',
-      ),
-      formatField(
-        'releaseId',
+      releaseId:
         typeof uploadResult?.releaseId === 'string' ? uploadResult.releaseId : '-',
-      ),
-      formatField(
-        'datasetId',
+      datasetId:
         typeof uploadResult?.datasetId === 'string' ? uploadResult.datasetId : '-',
-      ),
-      formatField(
-        'status',
-        typeof uploadResult?.status === 'string' ? uploadResult.status : 'staged',
-      ),
-    ].join('\n'),
+      sourceSchemaVersion,
+      status: typeof uploadResult?.status === 'string' ? uploadResult.status : 'staged',
+    }).join('\n'),
     'UPLOAD RESULT',
   )
   log.success('Dataset uploaded and registered in Harbour.')
