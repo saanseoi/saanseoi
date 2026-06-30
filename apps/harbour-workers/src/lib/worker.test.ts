@@ -347,4 +347,71 @@ describe('processDatasetMessage', () => {
       ['release-overture-hk-2026-05-24.0-division', 'processDataset'],
     ])
   })
+
+  test('marks processDataset failed when the initial running callback throws', async () => {
+    const stageRunning = mock(async (_releaseId: string, phase: string) => {
+      if (phase === 'processDataset') {
+        throw new Error('Control API temporarily unavailable.')
+      }
+    })
+    const stageCompleted = mock(async () => undefined)
+    const stageFailed = mock(async () => undefined)
+    const publishDataset = mock(async () => undefined)
+    const processDatasetMessage = createProcessDatasetMessage(
+      mock(async () => {
+        throw new Error('address processor should not be called')
+      }) as never,
+      mock(async () => {
+        throw new Error('division processor should not be called')
+      }) as never,
+    )
+
+    await expect(
+      processDatasetMessage(
+        {
+          publishDataset,
+          stageCompleted,
+          stageFailed,
+          stageRunning,
+        },
+        {} as never,
+        {} as never,
+        {} as never,
+        {
+          async head() {
+            return { size: 1 }
+          },
+          async get() {
+            return {
+              async arrayBuffer() {
+                return new ArrayBuffer(0)
+              },
+            }
+          },
+        },
+        {
+          datasetId: 'overture-hk-2026-05-24.0-division',
+          releaseCode: 'overture-hk-2026-05-24.0-division',
+          releaseId: 'release-overture-hk-2026-05-24.0-division',
+          rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+          regionCode: 'hk',
+          cohortKey: '2026-05',
+          source: 'overture',
+          sourceVersion: '2026-05-24.0',
+          theme: 'divisions',
+          type: 'division',
+        },
+      ),
+    ).rejects.toThrow('Control API temporarily unavailable.')
+
+    expect(stageFailed).toHaveBeenCalledWith(
+      'release-overture-hk-2026-05-24.0-division',
+      'processDataset',
+      'Control API temporarily unavailable.',
+      undefined,
+      'overture-hk-2026-05-24.0-division',
+    )
+    expect(stageCompleted).toHaveBeenCalledTimes(0)
+    expect(publishDataset).toHaveBeenCalledTimes(0)
+  })
 })
