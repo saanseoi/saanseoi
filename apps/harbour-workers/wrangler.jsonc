@@ -62,6 +62,12 @@
     }
   ],
   "queues": {
+    "producers": [
+      {
+        "binding": "JOB_QUEUE",
+        "queue": "ss-harbour-jobs-preview"
+      }
+    ],
     "consumers": [
       {
         "queue": "ss-harbour-jobs-preview",
@@ -146,6 +152,12 @@
         }
       ],
       "queues": {
+        "producers": [
+          {
+            "binding": "JOB_QUEUE",
+            "queue": "ss-harbour-jobs-preview"
+          }
+        ],
         "consumers": [
           {
             "queue": "ss-harbour-jobs-preview",
@@ -220,6 +232,12 @@
         }
       ],
       "queues": {
+        "producers": [
+          {
+            "binding": "JOB_QUEUE",
+            "queue": "ss-harbour-jobs-prod"
+          }
+        ],
         "consumers": [
           {
             "queue": "ss-harbour-jobs-prod",

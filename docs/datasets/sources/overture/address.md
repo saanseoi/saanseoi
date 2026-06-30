@@ -76,6 +76,12 @@ Current non-contributions:
 
 The worker processes parquet rows in small write batches and reads 2,048-row parquet windows from R2. Upload-time repacking keeps those read windows aligned with the physical row groups used during worker ingestion.
 
+Large address releases are processed as sequential queue chunks. Each queue
+message carries a parquet row range (`rowStart`, `rowEnd`) plus a stable
+`processingRunStartedAt` marker. A successful intermediate chunk enqueues the
+next row range and leaves the release phases running; only the final chunk runs
+missing-row cleanup, publishes the snapshot, and completes `processDataset`.
+
 ## Canonical Impact
 
 When no existing canonical row is matched:
@@ -91,7 +97,8 @@ Current canonical/source state is queried only for the source IDs and street-key
 Overture is also the only source that currently drives canonical deletion:
 
 - if an address disappears from the latest Overture release, the canonical current version can be closed
-- missing-row cleanup scans current IDs in keyset pages against a D1 temporary seen-ID table rather than loading every current row or incoming ID into a single JavaScript map/set
+- missing-row cleanup scans cloned current rows in keyset pages and deletes rows whose `updatedAt` marker was not touched by any chunk in the release
+- source-current cleanup uses the release ID advanced onto changed or unchanged source rows, then deletes current source rows still pointing at an older release
 
 ## Source Retention Tables
 

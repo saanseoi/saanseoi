@@ -56,7 +56,9 @@ Runtime behavior:
 - reconciliation is performed per parquet processing batch
 - the worker looks up only the current canonical rows matching incoming source IDs and derived street keys for that batch
 - it does not preload the full region-wide current address history map before row processing
-- release-wide seen address/source IDs are staged in D1 temporary tables during worker processing instead of retained as full in-memory JavaScript sets
+- large releases are split into sequential queue chunks using parquet row ranges
+- intermediate chunks leave ingest phases running and enqueue the next chunk before acknowledging the current message
+- final cleanup uses a stable current-row `updatedAt` marker and current source-row `releaseId`, so release-wide seen address/source IDs do not need to be retained in Worker memory
 
 ## Canonical Tables
 
@@ -130,10 +132,11 @@ Canonical address history is snapshot-aware but deduped by `(id, versionHash)`.
 Current behavior:
 
 - a new draft address snapshot bulk-clones the latest non-archived snapshot before applying incoming deltas
+- address snapshot cloning and division-snapshot alignment run only on the first row-range chunk
 - changed rows close prior current versions and insert a new current version
-- unchanged rows are carried forward in the cloned current snapshot without rewriting canonical history rows
+- unchanged rows are carried forward in the cloned current snapshot without rewriting canonical history rows, but are touched with the stable run marker so final cleanup knows they were seen
 - snapshot-to-release membership is tracked through `snapshotSources`, not a per-record provenance table in the worker hot path
-- worker missing-row cleanup checks D1 temporary seen-ID tables to find current rows absent from the incoming release
+- worker missing-row cleanup scans current rows in keyset pages and removes rows that were not touched by any release chunk
 
 Deletion is asymmetric:
 

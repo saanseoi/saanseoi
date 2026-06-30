@@ -518,12 +518,11 @@ export async function cloneAddressCurrentSnapshot(
   db: HarbourReadableDb & HarbourWritableDb,
   fromSnapshotId: string,
   toSnapshotId: string,
+  clonedAt = new Date().toISOString(),
 ) {
   if (fromSnapshotId === toSnapshotId) {
     return
   }
-
-  const now = new Date().toISOString()
 
   await runWithWriteRetry(() =>
     db
@@ -549,8 +548,8 @@ export async function cloneAddressCurrentSnapshot(
             streetId: currentSchema.address2d.streetId,
             identifiers: currentSchema.address2d.identifiers,
             sources: currentSchema.address2d.sources,
-            createdAt: sql<string>`${now}`,
-            updatedAt: sql<string>`${now}`,
+            createdAt: sql<string>`${clonedAt}`,
+            updatedAt: sql<string>`${clonedAt}`,
           })
           .from(currentSchema.address2d)
           .where(eq(currentSchema.address2d.snapshotId, fromSnapshotId)),
@@ -580,8 +579,8 @@ export async function cloneAddressCurrentSnapshot(
             estateName: currentSchema.address2dI18n.estateName,
             streetNumber: currentSchema.address2dI18n.streetNumber,
             streetName: currentSchema.address2dI18n.streetName,
-            createdAt: sql<string>`${now}`,
-            updatedAt: sql<string>`${now}`,
+            createdAt: sql<string>`${clonedAt}`,
+            updatedAt: sql<string>`${clonedAt}`,
           })
           .from(currentSchema.address2dI18n)
           .where(eq(currentSchema.address2dI18n.snapshotId, fromSnapshotId)),
@@ -589,6 +588,35 @@ export async function cloneAddressCurrentSnapshot(
       .onConflictDoNothing()
       .run(),
   )
+}
+
+export async function touchAddressCurrentRows(
+  db: HarbourWritableDb,
+  snapshotId: string,
+  addressIds: string[],
+  updatedAt: string,
+) {
+  if (addressIds.length === 0) {
+    return
+  }
+
+  for (const chunk of chunkArray(
+    [...new Set(addressIds)],
+    getMaxItemsPerInClause(1, 2),
+  )) {
+    await runWithWriteRetry(() =>
+      db
+        .update(currentSchema.address2d)
+        .set({ updatedAt })
+        .where(
+          and(
+            eq(currentSchema.address2d.snapshotId, snapshotId),
+            inArray(currentSchema.address2d.id, chunk),
+          ),
+        )
+        .run(),
+    )
+  }
 }
 
 export async function alignAddressCurrentDivisionSnapshot(
@@ -802,6 +830,63 @@ export async function deleteMissingCurrentAddressesBySeenTable(
       cohortKey,
       pageMissingIds,
     )
+    missingIds.push(...pageMissingIds)
+
+    const lastRow = rows.at(-1)
+
+    if (!lastRow) {
+      break
+    }
+
+    lastId = lastRow.id
+  }
+
+  return {
+    count: missingIds.length,
+    missingIds,
+  }
+}
+
+export async function deleteMissingCurrentAddressesByCurrentMarker(
+  historyDb: HarbourReadableDb & HarbourWritableDb,
+  currentDb: HarbourReadableDb & HarbourWritableDb,
+  snapshotId: string,
+  cohortKey: string,
+  touchedAt: string,
+) {
+  const missingIds: string[] = []
+  let lastId = ''
+
+  while (true) {
+    const rows = (await currentDb
+      .select({
+        id: currentSchema.address2d.id,
+      })
+      .from(currentSchema.address2d)
+      .where(
+        and(
+          eq(currentSchema.address2d.snapshotId, snapshotId),
+          gt(currentSchema.address2d.id, lastId),
+          sql`${currentSchema.address2d.updatedAt} <> ${touchedAt}`,
+        ),
+      )
+      .orderBy(currentSchema.address2d.id)
+      .limit(500)
+      .all()) as Array<{ id: string }>
+
+    if (rows.length === 0) {
+      break
+    }
+
+    const pageMissingIds = rows.map(row => row.id)
+
+    await closeMissingCurrentAddressRows(
+      historyDb,
+      snapshotId,
+      cohortKey,
+      pageMissingIds,
+    )
+    await deleteAddressCurrentRowsByIds(currentDb, snapshotId, pageMissingIds)
     missingIds.push(...pageMissingIds)
 
     const lastRow = rows.at(-1)
@@ -1075,12 +1160,43 @@ async function insertAddressI18nInChunks(
   db: HarbourWritableDb,
   rows: NewAddressI18nRow[],
 ) {
+  const uniqueRows = [
+    ...new Map(
+      rows.map(row => [`${row.snapshotId}\0${row.addressId}\0${row.locale}`, row]),
+    ).values(),
+  ]
+
   for (const chunk of chunkArray(
-    rows,
+    uniqueRows,
     getMaxRowsPerInsert(CURRENT_ADDRESS2D_I18N_COLUMN_COUNT),
   )) {
     await runWithWriteRetry(() =>
-      db.insert(currentSchema.address2dI18n).values(chunk).run(),
+      db
+        .insert(currentSchema.address2dI18n)
+        .values(chunk)
+        .onConflictDoUpdate({
+          target: [
+            currentSchema.address2dI18n.snapshotId,
+            currentSchema.address2dI18n.addressId,
+            currentSchema.address2dI18n.locale,
+          ],
+          set: {
+            formattedAddress: excluded('formattedAddress'),
+            buildingName: excluded('buildingName'),
+            buildingNumberFrom: excluded('buildingNumberFrom'),
+            buildingNumberTo: excluded('buildingNumberTo'),
+            blockType: excluded('blockType'),
+            blockNumber: excluded('blockNumber'),
+            blockTypeBeforeNumber: excluded('blockTypeBeforeNumber'),
+            phaseName: excluded('phaseName'),
+            phaseNumber: excluded('phaseNumber'),
+            estateName: excluded('estateName'),
+            streetNumber: excluded('streetNumber'),
+            streetName: excluded('streetName'),
+            updatedAt: excluded('updatedAt'),
+          },
+        })
+        .run(),
     )
   }
 }

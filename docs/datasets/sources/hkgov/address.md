@@ -88,7 +88,18 @@ For each prepared ALS row, the worker:
 - creates `en` and/or `zh-hant` i18n rows when formatted addresses exist
 - carries building name, estate name, street name, and street number into canonical i18n rows
 
-The worker processes prepared parquet rows in small write batches and reads 2,048-row parquet windows from R2. Source missing-row cleanup stages incoming source IDs in a D1 temporary table instead of retaining the full release ID set in Worker memory.
+The worker processes prepared parquet rows in small write batches and reads 2,048-row parquet windows from R2.
+
+Large address releases are processed as sequential queue chunks. Each queue
+message carries a parquet row range (`rowStart`, `rowEnd`) plus a stable
+`processingRunStartedAt` marker. A successful intermediate chunk enqueues the
+next row range and leaves the release phases running; only the final chunk runs
+release-level cleanup, publishes the snapshot, and completes `processDataset`.
+
+For current-row cleanup, processed canonical rows are touched with the stable
+run marker and processed source rows are advanced to the current release ID.
+Final cleanup can therefore scan current rows in keyset pages without retaining
+the full release ID set in Worker memory.
 
 This means HKGov ALS currently contributes the richer text model:
 

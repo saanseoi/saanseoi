@@ -123,6 +123,11 @@ export type DatasetProcessingMessage = {
   theme: ResourceTheme
   type: ResourceType
   skipSnapshotCleanup?: boolean
+  rowStart?: number
+  rowEnd?: number
+  totalRows?: number
+  chunkSize?: number
+  processingRunStartedAt?: string
 }
 
 export type SnapshotCleanupMessage = {

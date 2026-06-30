@@ -275,6 +275,22 @@ export async function deleteMissingCurrentSourceOvertureAddresses2dBySeenTable(
   )
 }
 
+export async function deleteMissingCurrentSourceOvertureAddresses2dByReleaseId(
+  db: SourceDatabase,
+  validToRelease: string,
+  releaseId: string,
+) {
+  return deleteMissingCurrentSourceRowsByReleaseId(
+    db,
+    sourceSchema.sourceOvertureAddresses2d,
+    sourceSchema.sourceOvertureAddress2dI18n,
+    sourceSchema.sourceOvertureAddresses2dVersions,
+    sourceSchema.sourceOvertureAddress2dI18nVersions,
+    validToRelease,
+    releaseId,
+  )
+}
+
 export async function deleteMissingCurrentSourceHkgovAlsAddresses2d(
   db: SourceDatabase,
   validToRelease: string,
@@ -321,6 +337,105 @@ export async function deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenTable(
     sourceSchema.sourceHkgovAlsAddress2dI18nVersions,
     validToRelease,
   )
+}
+
+export async function deleteMissingCurrentSourceHkgovAlsAddresses2dByReleaseId(
+  db: SourceDatabase,
+  validToRelease: string,
+  releaseId: string,
+) {
+  return deleteMissingCurrentSourceRowsByReleaseId(
+    db,
+    sourceSchema.sourceHkgovAlsAddresses2d,
+    sourceSchema.sourceHkgovAlsAddress2dI18n,
+    sourceSchema.sourceHkgovAlsAddresses2dVersions,
+    sourceSchema.sourceHkgovAlsAddress2dI18nVersions,
+    validToRelease,
+    releaseId,
+  )
+}
+
+async function deleteMissingCurrentSourceRowsByReleaseId<
+  TCurrent extends { releaseId: unknown; sourceRecordId: unknown },
+  TCurrentI18n extends { sourceRecordId: unknown },
+  TBaseVersions extends {
+    isCurrent: unknown
+    sourceRecordId: unknown
+    updatedAt: unknown
+    validToRelease: unknown
+  },
+  TI18nVersions extends {
+    isCurrent: unknown
+    sourceRecordId: unknown
+    updatedAt: unknown
+    validToRelease: unknown
+  },
+>(
+  db: SourceDatabase,
+  currentTable: TCurrent,
+  currentI18nTable: TCurrentI18n,
+  baseVersionsTable: TBaseVersions,
+  i18nVersionsTable: TI18nVersions,
+  validToRelease: string,
+  releaseId: string,
+) {
+  let deletedRows = 0
+  let lastSourceRecordId = ''
+
+  while (true) {
+    const rows = (await db
+      .select({
+        sourceRecordId: currentTable.sourceRecordId as never,
+      })
+      .from(currentTable as never)
+      .where(
+        and(
+          gt(currentTable.sourceRecordId as never, lastSourceRecordId),
+          sql`(${currentTable.releaseId as never} IS NULL OR ${
+            currentTable.releaseId as never
+          } <> ${releaseId})`,
+        ),
+      )
+      .orderBy(currentTable.sourceRecordId as never)
+      .limit(500)
+      .all()) as Array<{ sourceRecordId: string }>
+
+    if (rows.length === 0) {
+      break
+    }
+
+    const missingIds = rows.map(row => row.sourceRecordId)
+
+    await closeCurrentSourceVersions(
+      db,
+      baseVersionsTable,
+      i18nVersionsTable,
+      missingIds,
+      validToRelease,
+    )
+
+    for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause())) {
+      await runStatementBatchWithWriteRetry(db, [
+        db
+          .delete(currentI18nTable as never)
+          .where(inArray(currentI18nTable.sourceRecordId as never, chunk)),
+        db
+          .delete(currentTable as never)
+          .where(inArray(currentTable.sourceRecordId as never, chunk)),
+      ])
+    }
+
+    deletedRows += missingIds.length
+    const lastRow = rows.at(-1)
+
+    if (!lastRow) {
+      break
+    }
+
+    lastSourceRecordId = lastRow.sourceRecordId
+  }
+
+  return deletedRows
 }
 
 export async function upsertSourceOvertureDivisions(
@@ -1053,9 +1168,18 @@ async function syncCurrentI18nRows<
     return
   }
 
+  const uniqueRows = [
+    ...new Map(
+      (rows as Array<{ locale: string; sourceRecordId: string }>).map(row => [
+        `${row.sourceRecordId}\0${row.locale}`,
+        row,
+      ]),
+    ).values(),
+  ] as Array<TTable extends { $inferInsert: infer TInsert } ? TInsert : never>
+
   const upsertStatements = []
 
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
+  for (const chunk of chunkArray(uniqueRows, getMaxRowsPerInsert(columnCount, 3))) {
     upsertStatements.push(
       db
         .insert(table as never)
@@ -1094,7 +1218,7 @@ async function syncCurrentI18nRows<
 
   const incomingLocalesBySourceRecordId = new Map<string, Set<string>>()
 
-  for (const row of rows as Array<{ locale: string; sourceRecordId: string }>) {
+  for (const row of uniqueRows as Array<{ locale: string; sourceRecordId: string }>) {
     const locales =
       incomingLocalesBySourceRecordId.get(row.sourceRecordId) ?? new Set<string>()
     locales.add(row.locale)
@@ -1146,9 +1270,24 @@ async function insertVersionRows<TTable>(
     return
   }
 
+  const uniqueRows = [
+    ...new Map(
+      (
+        rows as Array<{
+          locale?: string
+          sourceRecordId: string
+          versionHash: string
+        }>
+      ).map(row => [
+        `${row.sourceRecordId}\0${row.versionHash}\0${row.locale ?? ''}`,
+        row,
+      ]),
+    ).values(),
+  ] as Array<TTable extends { $inferInsert: infer TInsert } ? TInsert : never>
+
   const statements = []
 
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
+  for (const chunk of chunkArray(uniqueRows, getMaxRowsPerInsert(columnCount, 3))) {
     const statement = db.insert(table as never).values(chunk as never)
 
     statements.push(
