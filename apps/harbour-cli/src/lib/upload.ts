@@ -1,6 +1,7 @@
 import { readFile, stat } from 'node:fs/promises'
 
 import { isReleaseId } from '@repo/core'
+import type { ResourceType } from '@repo/core'
 import type { prepareUpload } from '@repo/core/upload-local'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
@@ -23,8 +24,22 @@ type SignUploadResponse = {
 }
 
 type UploadResponse = Record<string, unknown>
+type SnapshotCleanupResponse = {
+  candidateCount: number
+  delaySeconds: number
+  dryRun: boolean
+  snapshotIds: string[]
+  status: 'queued' | 'skipped'
+}
 type DispatchUploadOptions = {
   force?: boolean
+  skipSnapshotCleanup?: boolean
+}
+type ScheduleSnapshotCleanupOptions = {
+  delaySeconds?: number
+  dryRun?: boolean
+  resourceType?: ResourceType
+  snapshotIds?: string[]
 }
 const TRANSIENT_UPLOAD_RESPONSE_STATUSES = new Set([502, 503, 504])
 const DIRECT_UPLOAD_RETRY_LIMIT = 2
@@ -67,6 +82,10 @@ export function buildRequeueUploadEndpoint(apiBaseUrl: string) {
   return `${apiBaseUrl}/v1/requeueUpload`
 }
 
+export function buildCleanupSnapshotsEndpoint(apiBaseUrl: string) {
+  return `${apiBaseUrl}/v1/control/cleanupSnapshots`
+}
+
 export async function dispatchUpload(
   target: UploadTarget,
   registerOptions: CliUploadOptions,
@@ -99,7 +118,9 @@ export async function dispatchUpload(
 
   await uploadFileToSignedUrl(signResponse, fileBytes)
 
-  return finalizeUpload(apiBaseUrl, signResponse.releaseId)
+  return finalizeUpload(apiBaseUrl, signResponse.releaseId, {
+    skipSnapshotCleanup: options.skipSnapshotCleanup,
+  })
 }
 
 async function uploadFileViaWorker(
@@ -130,6 +151,9 @@ async function uploadFileViaWorker(
   formData.set('sourceVersion', previewResult.plan.sourceVersion)
   if (options.force) {
     formData.set('force', 'true')
+  }
+  if (options.skipSnapshotCleanup) {
+    formData.set('skipSnapshotCleanup', 'true')
   }
 
   let response: Response
@@ -228,6 +252,7 @@ async function requestSignedUpload(
         type: previewResult.plan.type,
       },
       force: Boolean(options.force),
+      skipSnapshotCleanup: Boolean(options.skipSnapshotCleanup),
       schemaVersionId,
     }),
   })
@@ -254,23 +279,38 @@ async function uploadFileToSignedUrl(
   }
 }
 
-async function finalizeUpload(apiBaseUrl: string, releaseId: string) {
+async function finalizeUpload(
+  apiBaseUrl: string,
+  releaseId: string,
+  options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
+) {
   return postReleaseAction(
     buildFinalizeUploadEndpoint(apiBaseUrl),
     releaseId,
     'Harbour finalizeUpload',
+    options,
   )
 }
 
-async function requeueUpload(apiBaseUrl: string, releaseId: string) {
+async function requeueUpload(
+  apiBaseUrl: string,
+  releaseId: string,
+  options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
+) {
   return postReleaseAction(
     buildRequeueUploadEndpoint(apiBaseUrl),
     releaseId,
     'Harbour requeueUpload',
+    options,
   )
 }
 
-async function postReleaseAction(endpoint: string, releaseId: string, action: string) {
+async function postReleaseAction(
+  endpoint: string,
+  releaseId: string,
+  action: string,
+  options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
+) {
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
@@ -279,6 +319,7 @@ async function postReleaseAction(endpoint: string, releaseId: string, action: st
     },
     body: JSON.stringify({
       releaseId,
+      ...(options.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
     }),
   })
 
@@ -391,6 +432,7 @@ export async function resolveRelease(target: UploadTarget, releaseSpecifier: str
 export async function finalizeExistingUpload(
   target: UploadTarget,
   releaseSpecifier: string,
+  options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
 ) {
   const release = await resolveRelease(target, releaseSpecifier)
 
@@ -408,7 +450,7 @@ export async function finalizeExistingUpload(
 
   const apiBaseUrl = resolveHarbourApiUrl(target)
 
-  const result = await finalizeUpload(apiBaseUrl, release.releaseId)
+  const result = await finalizeUpload(apiBaseUrl, release.releaseId, options)
 
   return {
     release,
@@ -419,6 +461,7 @@ export async function finalizeExistingUpload(
 export async function requeueExistingUpload(
   target: UploadTarget,
   releaseSpecifier: string,
+  options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
 ) {
   const release = await resolveRelease(target, releaseSpecifier)
 
@@ -429,12 +472,39 @@ export async function requeueExistingUpload(
   }
 
   const apiBaseUrl = resolveHarbourApiUrl(target)
-  const result = await requeueUpload(apiBaseUrl, release.releaseId)
+  const result = await requeueUpload(apiBaseUrl, release.releaseId, options)
 
   return {
     release,
     result,
   }
+}
+
+export async function scheduleSnapshotCleanup(
+  target: UploadTarget,
+  options: ScheduleSnapshotCleanupOptions = {},
+) {
+  const apiBaseUrl = resolveHarbourApiUrl(target)
+  const response = await fetch(buildCleanupSnapshotsEndpoint(apiBaseUrl), {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({
+      ...(options.delaySeconds !== undefined
+        ? { delaySeconds: options.delaySeconds }
+        : {}),
+      ...(options.dryRun ? { dryRun: true } : {}),
+      ...(options.resourceType ? { resourceType: options.resourceType } : {}),
+      ...(options.snapshotIds ? { snapshotIds: options.snapshotIds } : {}),
+    }),
+  })
+
+  return parseJsonResponse<SnapshotCleanupResponse>(
+    response,
+    'Harbour cleanupSnapshots',
+  )
 }
 
 async function parseJsonResponse<T>(response: Response, action: string) {
