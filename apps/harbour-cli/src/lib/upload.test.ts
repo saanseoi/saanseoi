@@ -213,6 +213,57 @@ describe('upload release action helpers', () => {
     )
   })
 
+  test('passes force through requeue requests', async () => {
+    const calls: Array<{ init?: RequestInit; url: string }> = []
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async (input, init) => {
+      const url = String(input)
+      calls.push({ init, url })
+
+      if (url.startsWith('https://harbour.saanseoi.hk/v1/reports/releases')) {
+        return new Response(
+          JSON.stringify({
+            rows: [{ ...releaseRow, status: 'processing' }],
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      if (url === 'https://harbour.saanseoi.hk/v1/requeueUpload') {
+        return new Response(
+          JSON.stringify({ releaseId: releaseRow.releaseId, status: 'queued' }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`)
+    }) as typeof fetch
+
+    await requeueExistingUpload(target, releaseRow.releaseId, {
+      force: true,
+    })
+
+    expect(calls).toHaveLength(2)
+    expect(calls[1]?.url).toBe('https://harbour.saanseoi.hk/v1/requeueUpload')
+    expect(calls[1]?.init?.body).toBe(
+      JSON.stringify({
+        force: true,
+        releaseId: releaseRow.releaseId,
+      }),
+    )
+  })
+
   test('passes force through remote signed uploads', async () => {
     const calls: Array<{ init?: RequestInit; url: string }> = []
     const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))

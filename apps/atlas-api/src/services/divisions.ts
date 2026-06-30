@@ -32,26 +32,42 @@ export type RequestedDivisionApiVersion = '0.1'
 export type ResolvedDivisionApiVersion = 'api-divisions-v0.1'
 export type DivisionProfile = ApiProfileName
 
+type JsonObject = Record<string, unknown>
+
+type DivisionAncestorResourceIdentifier = {
+  type: 'divisions'
+  id: string
+  meta?: {
+    name?: string
+    subType?: string
+  }
+}
+
 type DivisionResourcePayload = {
   type: 'divisions'
   id: string
   attributes: {
     level: number
-    divisionType: string
-    subtype?: string | null
-    divisionClass?: string | null
-    geometry?: Record<string, unknown> | null
+    type: string
+    snapshotId?: string
+    geometry?: JsonObject | null
     bbox?: [number, number, number, number] | null
+    cartography?: JsonObject | null
     population?: number | null
     wikidata?: string | null
+    createdAt?: string
+    updatedAt?: string
+    sources?: JsonObject | null
+    overture?: {
+      subtype?: string | null
+      class?: string | null
+      hierarchy?: unknown
+    }
     i18n?: DivisionRecord['i18n']
   }
   relationships: {
-    parent: {
-      data: {
-        type: 'divisions'
-        id: string
-      } | null
+    ancestors: {
+      data: DivisionAncestorResourceIdentifier[]
     }
   }
   links: {
@@ -126,7 +142,7 @@ type ActiveDivisionSnapshot = {
 export type DivisionListQuery = {
   profile?: string
   locales?: string
-  include?: 'parent'
+  include?: 'ancestors'
   'page[limit]'?: number
   'page[offset]'?: number
   'filter[level]'?: number
@@ -137,7 +153,7 @@ export type DivisionListQuery = {
 export type DivisionDetailQuery = {
   profile?: string
   locales?: string
-  include?: 'parent'
+  include?: 'ancestors'
 }
 
 export type DivisionListResult =
@@ -205,6 +221,134 @@ function buildDivisionRouteState(args: {
   } satisfies DivisionRouteState
 }
 
+function isDefaultDivisionProfile(profile: DivisionProfile) {
+  return profile === 'default' || profile === 'map' || profile === 'full'
+}
+
+function isMapDivisionProfile(profile: DivisionProfile) {
+  return profile === 'map' || profile === 'full'
+}
+
+function projectDivisionI18n(
+  i18n: DivisionRecord['i18n'],
+  profile: DivisionProfile,
+): DivisionRecord['i18n'] | undefined {
+  const projectedEntries = Object.entries(i18n)
+    .map(([locale, value]) => {
+      const projectedValue =
+        profile === 'full'
+          ? {
+              name: value.name,
+              nameVariant: value.nameVariant ?? null,
+              nameAlts: value.nameAlts ?? null,
+              nameRules: value.nameRules ?? null,
+            }
+          : {
+              name: value.name,
+            }
+
+      return [locale, projectedValue] as const
+    })
+    .filter(([, value]) => Object.values(value).some(field => field !== undefined))
+
+  if (projectedEntries.length === 0) {
+    return undefined
+  }
+
+  return Object.fromEntries(projectedEntries)
+}
+
+function buildDivisionAncestorRelationshipData(
+  divisionId: string,
+  hierarchy: unknown,
+): DivisionAncestorResourceIdentifier[] {
+  if (!Array.isArray(hierarchy)) {
+    return []
+  }
+
+  const objectChain = hierarchy.flatMap(entry => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      return []
+    }
+
+    const record = entry as Record<string, unknown>
+    const id =
+      typeof record.division_id === 'string'
+        ? record.division_id
+        : typeof record.divisionId === 'string'
+          ? record.divisionId
+          : typeof record.id === 'string'
+            ? record.id
+            : null
+
+    const normalizedId = id?.trim()
+
+    if (!normalizedId) {
+      return []
+    }
+
+    const name = typeof record.name === 'string' ? record.name : undefined
+    const rawSubType =
+      typeof record.subType === 'string'
+        ? record.subType
+        : typeof record.subtype === 'string'
+          ? record.subtype
+          : null
+
+    return {
+      type: 'divisions' as const,
+      id: normalizedId,
+      meta:
+        name || rawSubType
+          ? {
+              ...(name ? { name } : {}),
+              ...(rawSubType ? { subType: rawSubType } : {}),
+            }
+          : undefined,
+    }
+  })
+
+  if (objectChain.length > 0) {
+    return objectChain.filter(entry => entry.id !== divisionId)
+  }
+
+  const candidateIdChains = hierarchy
+    .map(entry => {
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+        return []
+      }
+
+      const ids = (entry as Record<string, unknown>).ids
+
+      return Array.isArray(ids)
+        ? ids.flatMap(value => {
+            if (typeof value !== 'string') {
+              return []
+            }
+
+            const id = value.trim()
+            return id ? [id] : []
+          })
+        : []
+    })
+    .filter(ids => ids.length > 0)
+
+  if (candidateIdChains.length === 0) {
+    return []
+  }
+
+  const ids = candidateIdChains.reduce((selected, current) =>
+    current.length > selected.length ? current : selected,
+  )
+
+  return ids
+    .filter(id => id !== divisionId)
+    .map(id => ({
+      type: 'divisions' as const,
+      id,
+    }))
+}
+
 function createDivisionResource(args: {
   baseUrl: string
   routeState: DivisionRouteState
@@ -214,23 +358,36 @@ function createDivisionResource(args: {
   const { division, i18n } = record
   const attributes: DivisionResourcePayload['attributes'] = {
     level: division.level,
-    divisionType: division.type,
+    type: division.type,
+  }
+
+  if (isDefaultDivisionProfile(routeState.profile)) {
+    attributes.wikidata = division.wikidata
+    attributes.createdAt = division.createdAt
+    attributes.updatedAt = division.updatedAt
+  }
+
+  if (isMapDivisionProfile(routeState.profile)) {
+    attributes.geometry = (division.geometry as JsonObject | null) ?? null
+    attributes.bbox = (division.bbox as [number, number, number, number] | null) ?? null
+    attributes.cartography = (division.cartography as JsonObject | null) ?? null
   }
 
   if (routeState.profile === 'full') {
-    attributes.subtype = division.subtype
-    attributes.divisionClass = division.class
+    attributes.snapshotId = division.snapshotId
     attributes.population = division.population
-    attributes.wikidata = division.wikidata
+    attributes.sources = (division.sources as JsonObject | null) ?? null
+    attributes.overture = {
+      subtype: division.subtype,
+      class: division.class,
+      hierarchy: division.hierarchy ?? null,
+    }
   }
 
-  if (routeState.profile === 'full' || routeState.profile === 'map') {
-    attributes.geometry = (division.geometry as Record<string, unknown> | null) ?? null
-    attributes.bbox = (division.bbox as [number, number, number, number] | null) ?? null
-  }
+  const projectedI18n = projectDivisionI18n(i18n, routeState.profile)
 
-  if (Object.keys(i18n).length > 0) {
-    attributes.i18n = i18n
+  if (projectedI18n) {
+    attributes.i18n = projectedI18n
   }
 
   return {
@@ -238,13 +395,8 @@ function createDivisionResource(args: {
     id: division.id,
     attributes,
     relationships: {
-      parent: {
-        data: division.parentDivisionId
-          ? {
-              type: 'divisions',
-              id: division.parentDivisionId,
-            }
-          : null,
+      ancestors: {
+        data: buildDivisionAncestorRelationshipData(division.id, division.hierarchy),
       },
     },
     links: {
@@ -380,29 +532,32 @@ async function getActiveDivisionSnapshot(
   return activeSnapshot
 }
 
-async function loadIncludedParentRecords(args: {
-  includeParent: boolean
+async function loadIncludedAncestorRecords(args: {
+  includeAncestors: boolean
   snapshotId: string
   records: DivisionRecord[]
   db: AppEnv['Variables']['currentDb']
   routeState: DivisionRouteState
 }) {
-  if (!args.includeParent) {
+  if (!args.includeAncestors) {
     return []
   }
 
   const primaryIds = new Set(args.records.map(record => record.division.id))
-  const parentIds = [
+  const ancestorIds = [
     ...new Set(
-      args.records
-        .map(record => record.division.parentDivisionId)
-        .filter((parentId): parentId is string => typeof parentId === 'string'),
+      args.records.flatMap(record =>
+        buildDivisionAncestorRelationshipData(
+          record.division.id,
+          record.division.hierarchy,
+        ).map(ancestor => ancestor.id),
+      ),
     ),
   ].filter(id => !primaryIds.has(id))
 
   return listDivisionRecordsCurrentByIds(args.db, {
     snapshotId: args.snapshotId,
-    divisionIds: parentIds,
+    divisionIds: ancestorIds,
     localeSelection: args.routeState.localeSelection,
   })
 }
@@ -460,8 +615,8 @@ export async function listDivisions(args: {
   )
 
   const includedRecords = await runWithD1ReadRetry(() =>
-    loadIncludedParentRecords({
-      includeParent: args.query.include === 'parent',
+    loadIncludedAncestorRecords({
+      includeAncestors: args.query.include === 'ancestors',
       snapshotId: activeDivisionSnapshot.snapshotId,
       records,
       db: args.currentDb,
@@ -531,8 +686,8 @@ export async function getDivisionDetail(args: {
   }
 
   const includedRecords = await runWithD1ReadRetry(() =>
-    loadIncludedParentRecords({
-      includeParent: args.query.include === 'parent',
+    loadIncludedAncestorRecords({
+      includeAncestors: args.query.include === 'ancestors',
       snapshotId: activeDivisionSnapshot.snapshotId,
       records: [record],
       db: args.currentDb,

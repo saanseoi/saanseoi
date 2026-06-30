@@ -4,10 +4,18 @@ import { inspectParquet } from '@repo/core/parquetInspector'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   DatasetProcessingMessage,
-  HarbourJobMessage,
   RegisterUploadResult,
   SchemaFingerprintResolver,
 } from '@repo/core'
+import {
+  enqueueDatasetProcessingPlan,
+  type DatasetProcessingPlanOptions,
+  type DatasetProcessingQueue,
+} from './datasetProcessingPlan'
+export type {
+  DatasetProcessingPlanOptions,
+  DatasetProcessingQueue,
+} from './datasetProcessingPlan'
 
 type UploadFormFields = {
   filePath: string
@@ -37,10 +45,6 @@ export type HarbourObjectBucket = {
   head(key: string): Promise<HarbourObjectMetadata | null>
   put(key: string, value: Blob | null, options?: HarbourPutOptions): Promise<unknown>
   delete(key: string): Promise<void>
-}
-
-export type DatasetProcessingQueue = {
-  send(message: HarbourJobMessage, options?: QueueSendOptions): Promise<unknown>
 }
 
 function getOptionalText(
@@ -121,6 +125,7 @@ export async function handleUploadRequest(
   bucket: HarbourObjectBucket,
   queue: DatasetProcessingQueue,
   formData: FormData,
+  processingPlanOptions: DatasetProcessingPlanOptions = {},
 ): Promise<RegisterUploadResult> {
   const file = formData.get('file')
 
@@ -197,7 +202,12 @@ export async function handleUploadRequest(
       ...(uploadFields.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
     }
 
-    await queue.send(processingMessage)
+    await enqueueDatasetProcessingPlan(
+      queue,
+      processingMessage,
+      registered.plan.rowCount,
+      processingPlanOptions,
+    )
 
     return registered
   } catch (error) {

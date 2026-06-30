@@ -1,4 +1,5 @@
-import { and, eq, inArray, sql } from 'drizzle-orm'
+import { and, eq, gt, inArray, sql } from 'drizzle-orm'
+import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import type { DatasetProcessingMessage } from '@repo/core'
 import { sourceSchema, type SourceDatabase } from '@repo/db'
@@ -9,6 +10,7 @@ import {
   getMaxRowsPerInsert,
   runStatementBatchWithWriteRetry,
   runStatementsInGroupsWithWriteRetry,
+  runWithWriteRetry,
 } from '../utils'
 
 const SOURCE_OVERTURE_DIVISION_COLUMN_COUNT = 20
@@ -52,6 +54,11 @@ const SOURCE_HKGOV_ADDRESS2D_I18N_UPDATABLE_COLUMNS = [
 ] as const
 const SOURCE_HKGOV_ADDRESS2D_VERSION_COLUMN_COUNT = 29
 const SOURCE_HKGOV_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 23
+const SEEN_SOURCE_RECORD_ID_INSERT_COLUMN_COUNT = 1
+
+const tempSeenSourceRecordIds = sqliteTable('tempSeenSourceRecordIds', {
+  sourceRecordId: text('sourceRecordId').primaryKey(),
+})
 
 export function buildSourceReleaseId(message: DatasetProcessingMessage) {
   return message.releaseId ?? message.datasetId
@@ -75,6 +82,14 @@ function excluded(column: string) {
   return sql.raw(`excluded.${column}`)
 }
 
+type RawSqlWritableDb = {
+  run(statement: unknown): unknown | Promise<unknown>
+}
+
+function runRawSql(db: SourceDatabase, statement: unknown) {
+  return runWithWriteRetry(() => (db as unknown as RawSqlWritableDb).run(statement))
+}
+
 export async function getCurrentSourceOvertureDivisionMap(db: SourceDatabase) {
   return loadCurrentSourceRecordMap(db, sourceSchema.sourceOvertureDivisions)
 }
@@ -85,6 +100,71 @@ export async function getCurrentSourceOvertureAddress2dMap(db: SourceDatabase) {
 
 export async function getCurrentSourceHkgovAlsAddress2dMap(db: SourceDatabase) {
   return loadCurrentSourceRecordMap(db, sourceSchema.sourceHkgovAlsAddresses2d)
+}
+
+export async function getCurrentSourceOvertureAddress2dRecords(
+  db: SourceDatabase,
+  sourceRecordIds: string[],
+) {
+  return loadCurrentSourceRecordMapByIds(
+    db,
+    sourceSchema.sourceOvertureAddresses2d,
+    sourceRecordIds,
+  )
+}
+
+export async function getCurrentSourceHkgovAlsAddress2dRecords(
+  db: SourceDatabase,
+  sourceRecordIds: string[],
+) {
+  return loadCurrentSourceRecordMapByIds(
+    db,
+    sourceSchema.sourceHkgovAlsAddresses2d,
+    sourceRecordIds,
+  )
+}
+
+export async function hasCurrentSourceOvertureAddress2dRecords(db: SourceDatabase) {
+  return hasCurrentSourceRecords(db, sourceSchema.sourceOvertureAddresses2d)
+}
+
+export async function hasCurrentSourceHkgovAlsAddress2dRecords(db: SourceDatabase) {
+  return hasCurrentSourceRecords(db, sourceSchema.sourceHkgovAlsAddresses2d)
+}
+
+export async function prepareSeenSourceRecordIdTable(db: SourceDatabase) {
+  await runRawSql(db, sql`DROP TABLE IF EXISTS tempSeenSourceRecordIds`)
+  await runRawSql(
+    db,
+    sql`CREATE TEMP TABLE tempSeenSourceRecordIds (sourceRecordId TEXT PRIMARY KEY)`,
+  )
+}
+
+export async function insertSeenSourceRecordIds(
+  db: SourceDatabase,
+  sourceRecordIds: string[],
+) {
+  const uniqueIds = [...new Set(sourceRecordIds)]
+
+  if (uniqueIds.length === 0) {
+    return
+  }
+
+  for (const chunk of chunkArray(
+    uniqueIds,
+    getMaxRowsPerInsert(SEEN_SOURCE_RECORD_ID_INSERT_COLUMN_COUNT),
+  )) {
+    await runStatementBatchWithWriteRetry(db, [
+      db
+        .insert(tempSeenSourceRecordIds)
+        .values(chunk.map(sourceRecordId => ({ sourceRecordId })))
+        .onConflictDoNothing(),
+    ])
+  }
+}
+
+export async function dropSeenSourceRecordIdTable(db: SourceDatabase) {
+  await runRawSql(db, sql`DROP TABLE IF EXISTS tempSeenSourceRecordIds`)
 }
 
 export async function closeSourceOvertureDivisionVersions(
@@ -165,6 +245,52 @@ export async function deleteMissingCurrentSourceOvertureAddresses2d(
   )
 }
 
+export async function deleteMissingCurrentSourceOvertureAddresses2dBySeenIds(
+  db: SourceDatabase,
+  validToRelease: string,
+  seenIds: Set<string>,
+) {
+  return deleteMissingCurrentSourceRowsBySeenIds(
+    db,
+    sourceSchema.sourceOvertureAddresses2d,
+    sourceSchema.sourceOvertureAddress2dI18n,
+    sourceSchema.sourceOvertureAddresses2dVersions,
+    sourceSchema.sourceOvertureAddress2dI18nVersions,
+    validToRelease,
+    seenIds,
+  )
+}
+
+export async function deleteMissingCurrentSourceOvertureAddresses2dBySeenTable(
+  db: SourceDatabase,
+  validToRelease: string,
+) {
+  return deleteMissingCurrentSourceRowsBySeenTable(
+    db,
+    sourceSchema.sourceOvertureAddresses2d,
+    sourceSchema.sourceOvertureAddress2dI18n,
+    sourceSchema.sourceOvertureAddresses2dVersions,
+    sourceSchema.sourceOvertureAddress2dI18nVersions,
+    validToRelease,
+  )
+}
+
+export async function deleteMissingCurrentSourceOvertureAddresses2dByReleaseId(
+  db: SourceDatabase,
+  validToRelease: string,
+  releaseId: string,
+) {
+  return deleteMissingCurrentSourceRowsByReleaseId(
+    db,
+    sourceSchema.sourceOvertureAddresses2d,
+    sourceSchema.sourceOvertureAddress2dI18n,
+    sourceSchema.sourceOvertureAddresses2dVersions,
+    sourceSchema.sourceOvertureAddress2dI18nVersions,
+    validToRelease,
+    releaseId,
+  )
+}
+
 export async function deleteMissingCurrentSourceHkgovAlsAddresses2d(
   db: SourceDatabase,
   validToRelease: string,
@@ -181,6 +307,135 @@ export async function deleteMissingCurrentSourceHkgovAlsAddresses2d(
     currentRows,
     seenIds,
   )
+}
+
+export async function deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenIds(
+  db: SourceDatabase,
+  validToRelease: string,
+  seenIds: Set<string>,
+) {
+  return deleteMissingCurrentSourceRowsBySeenIds(
+    db,
+    sourceSchema.sourceHkgovAlsAddresses2d,
+    sourceSchema.sourceHkgovAlsAddress2dI18n,
+    sourceSchema.sourceHkgovAlsAddresses2dVersions,
+    sourceSchema.sourceHkgovAlsAddress2dI18nVersions,
+    validToRelease,
+    seenIds,
+  )
+}
+
+export async function deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenTable(
+  db: SourceDatabase,
+  validToRelease: string,
+) {
+  return deleteMissingCurrentSourceRowsBySeenTable(
+    db,
+    sourceSchema.sourceHkgovAlsAddresses2d,
+    sourceSchema.sourceHkgovAlsAddress2dI18n,
+    sourceSchema.sourceHkgovAlsAddresses2dVersions,
+    sourceSchema.sourceHkgovAlsAddress2dI18nVersions,
+    validToRelease,
+  )
+}
+
+export async function deleteMissingCurrentSourceHkgovAlsAddresses2dByReleaseId(
+  db: SourceDatabase,
+  validToRelease: string,
+  releaseId: string,
+) {
+  return deleteMissingCurrentSourceRowsByReleaseId(
+    db,
+    sourceSchema.sourceHkgovAlsAddresses2d,
+    sourceSchema.sourceHkgovAlsAddress2dI18n,
+    sourceSchema.sourceHkgovAlsAddresses2dVersions,
+    sourceSchema.sourceHkgovAlsAddress2dI18nVersions,
+    validToRelease,
+    releaseId,
+  )
+}
+
+async function deleteMissingCurrentSourceRowsByReleaseId<
+  TCurrent extends { releaseId: unknown; sourceRecordId: unknown },
+  TCurrentI18n extends { sourceRecordId: unknown },
+  TBaseVersions extends {
+    isCurrent: unknown
+    sourceRecordId: unknown
+    updatedAt: unknown
+    validToRelease: unknown
+  },
+  TI18nVersions extends {
+    isCurrent: unknown
+    sourceRecordId: unknown
+    updatedAt: unknown
+    validToRelease: unknown
+  },
+>(
+  db: SourceDatabase,
+  currentTable: TCurrent,
+  currentI18nTable: TCurrentI18n,
+  baseVersionsTable: TBaseVersions,
+  i18nVersionsTable: TI18nVersions,
+  validToRelease: string,
+  releaseId: string,
+) {
+  let deletedRows = 0
+  let lastSourceRecordId = ''
+
+  while (true) {
+    const rows = (await db
+      .select({
+        sourceRecordId: currentTable.sourceRecordId as never,
+      })
+      .from(currentTable as never)
+      .where(
+        and(
+          gt(currentTable.sourceRecordId as never, lastSourceRecordId),
+          sql`(${currentTable.releaseId as never} IS NULL OR ${
+            currentTable.releaseId as never
+          } <> ${releaseId})`,
+        ),
+      )
+      .orderBy(currentTable.sourceRecordId as never)
+      .limit(500)
+      .all()) as Array<{ sourceRecordId: string }>
+
+    if (rows.length === 0) {
+      break
+    }
+
+    const missingIds = rows.map(row => row.sourceRecordId)
+
+    await closeCurrentSourceVersions(
+      db,
+      baseVersionsTable,
+      i18nVersionsTable,
+      missingIds,
+      validToRelease,
+    )
+
+    for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause())) {
+      await runStatementBatchWithWriteRetry(db, [
+        db
+          .delete(currentI18nTable as never)
+          .where(inArray(currentI18nTable.sourceRecordId as never, chunk)),
+        db
+          .delete(currentTable as never)
+          .where(inArray(currentTable.sourceRecordId as never, chunk)),
+      ])
+    }
+
+    deletedRows += missingIds.length
+    const lastRow = rows.at(-1)
+
+    if (!lastRow) {
+      break
+    }
+
+    lastSourceRecordId = lastRow.sourceRecordId
+  }
+
+  return deletedRows
 }
 
 export async function upsertSourceOvertureDivisions(
@@ -564,6 +819,49 @@ async function loadCurrentSourceRecordMap<
   )
 }
 
+async function loadCurrentSourceRecordMapByIds<
+  TTable extends { sourceRecordId: unknown; sourcePayloadHash: unknown },
+>(db: SourceDatabase, table: TTable, sourceRecordIds: string[]) {
+  const rows: CurrentSourceRecord[] = []
+
+  for (const chunk of chunkArray(
+    [...new Set(sourceRecordIds)],
+    getMaxItemsPerInClause(),
+  )) {
+    if (chunk.length === 0) {
+      continue
+    }
+
+    rows.push(
+      ...((await db
+        .select({
+          sourcePayloadHash: table.sourcePayloadHash as never,
+          sourceRecordId: table.sourceRecordId as never,
+        })
+        .from(table as never)
+        .where(inArray(table.sourceRecordId as never, chunk))
+        .all()) as CurrentSourceRecord[]),
+    )
+  }
+
+  return new Map(rows.map(row => [row.sourceRecordId, row]))
+}
+
+async function hasCurrentSourceRecords<TTable extends { sourceRecordId: unknown }>(
+  db: SourceDatabase,
+  table: TTable,
+) {
+  const row = await db
+    .select({
+      sourceRecordId: table.sourceRecordId as never,
+    })
+    .from(table as never)
+    .limit(1)
+    .get()
+
+  return Boolean(row)
+}
+
 async function closeCurrentSourceVersions<
   TBaseVersions extends {
     isCurrent: unknown
@@ -675,6 +973,171 @@ async function deleteMissingCurrentSourceRows<
   return missingIds.length
 }
 
+async function deleteMissingCurrentSourceRowsBySeenIds<
+  TCurrent extends { sourceRecordId: unknown },
+  TCurrentI18n extends { sourceRecordId: unknown },
+  TBaseVersions extends {
+    isCurrent: unknown
+    sourceRecordId: unknown
+    updatedAt: unknown
+    validToRelease: unknown
+  },
+  TI18nVersions extends {
+    isCurrent: unknown
+    sourceRecordId: unknown
+    updatedAt: unknown
+    validToRelease: unknown
+  },
+>(
+  db: SourceDatabase,
+  currentTable: TCurrent,
+  currentI18nTable: TCurrentI18n,
+  baseVersionsTable: TBaseVersions,
+  i18nVersionsTable: TI18nVersions,
+  validToRelease: string,
+  seenIds: Set<string>,
+) {
+  let deletedRows = 0
+  let lastSourceRecordId = ''
+
+  while (true) {
+    const rows = (await db
+      .select({
+        sourceRecordId: currentTable.sourceRecordId as never,
+      })
+      .from(currentTable as never)
+      .where(gt(currentTable.sourceRecordId as never, lastSourceRecordId))
+      .orderBy(currentTable.sourceRecordId as never)
+      .limit(500)
+      .all()) as Array<{ sourceRecordId: string }>
+
+    if (rows.length === 0) {
+      break
+    }
+
+    const missingIds = rows
+      .map(row => row.sourceRecordId)
+      .filter(id => !seenIds.has(id))
+
+    if (missingIds.length > 0) {
+      await closeCurrentSourceVersions(
+        db,
+        baseVersionsTable,
+        i18nVersionsTable,
+        missingIds,
+        validToRelease,
+      )
+
+      for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause())) {
+        await runStatementBatchWithWriteRetry(db, [
+          db
+            .delete(currentI18nTable as never)
+            .where(inArray(currentI18nTable.sourceRecordId as never, chunk)),
+          db
+            .delete(currentTable as never)
+            .where(inArray(currentTable.sourceRecordId as never, chunk)),
+        ])
+      }
+
+      deletedRows += missingIds.length
+    }
+
+    const lastRow = rows.at(-1)
+
+    if (!lastRow) {
+      break
+    }
+
+    lastSourceRecordId = lastRow.sourceRecordId
+  }
+
+  return deletedRows
+}
+
+async function deleteMissingCurrentSourceRowsBySeenTable<
+  TCurrent extends { sourceRecordId: unknown },
+  TCurrentI18n extends { sourceRecordId: unknown },
+  TBaseVersions extends {
+    isCurrent: unknown
+    sourceRecordId: unknown
+    updatedAt: unknown
+    validToRelease: unknown
+  },
+  TI18nVersions extends {
+    isCurrent: unknown
+    sourceRecordId: unknown
+    updatedAt: unknown
+    validToRelease: unknown
+  },
+>(
+  db: SourceDatabase,
+  currentTable: TCurrent,
+  currentI18nTable: TCurrentI18n,
+  baseVersionsTable: TBaseVersions,
+  i18nVersionsTable: TI18nVersions,
+  validToRelease: string,
+) {
+  let deletedRows = 0
+  let lastSourceRecordId = ''
+
+  while (true) {
+    const rows = (await db
+      .select({
+        sourceRecordId: currentTable.sourceRecordId as never,
+      })
+      .from(currentTable as never)
+      .where(
+        and(
+          gt(currentTable.sourceRecordId as never, lastSourceRecordId),
+          sql`NOT EXISTS (
+            SELECT 1
+            FROM tempSeenSourceRecordIds seen
+            WHERE seen.sourceRecordId = ${currentTable.sourceRecordId as never}
+          )`,
+        ),
+      )
+      .orderBy(currentTable.sourceRecordId as never)
+      .limit(500)
+      .all()) as Array<{ sourceRecordId: string }>
+
+    if (rows.length === 0) {
+      break
+    }
+
+    const missingIds = rows.map(row => row.sourceRecordId)
+
+    await closeCurrentSourceVersions(
+      db,
+      baseVersionsTable,
+      i18nVersionsTable,
+      missingIds,
+      validToRelease,
+    )
+
+    for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause())) {
+      await runStatementBatchWithWriteRetry(db, [
+        db
+          .delete(currentI18nTable as never)
+          .where(inArray(currentI18nTable.sourceRecordId as never, chunk)),
+        db
+          .delete(currentTable as never)
+          .where(inArray(currentTable.sourceRecordId as never, chunk)),
+      ])
+    }
+
+    deletedRows += missingIds.length
+    const lastRow = rows.at(-1)
+
+    if (!lastRow) {
+      break
+    }
+
+    lastSourceRecordId = lastRow.sourceRecordId
+  }
+
+  return deletedRows
+}
+
 async function syncCurrentI18nRows<
   TTable extends { sourceRecordId: unknown; locale: unknown },
 >(
@@ -705,9 +1168,18 @@ async function syncCurrentI18nRows<
     return
   }
 
+  const uniqueRows = [
+    ...new Map(
+      (rows as Array<{ locale: string; sourceRecordId: string }>).map(row => [
+        `${row.sourceRecordId}\0${row.locale}`,
+        row,
+      ]),
+    ).values(),
+  ] as Array<TTable extends { $inferInsert: infer TInsert } ? TInsert : never>
+
   const upsertStatements = []
 
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
+  for (const chunk of chunkArray(uniqueRows, getMaxRowsPerInsert(columnCount, 3))) {
     upsertStatements.push(
       db
         .insert(table as never)
@@ -746,7 +1218,7 @@ async function syncCurrentI18nRows<
 
   const incomingLocalesBySourceRecordId = new Map<string, Set<string>>()
 
-  for (const row of rows as Array<{ locale: string; sourceRecordId: string }>) {
+  for (const row of uniqueRows as Array<{ locale: string; sourceRecordId: string }>) {
     const locales =
       incomingLocalesBySourceRecordId.get(row.sourceRecordId) ?? new Set<string>()
     locales.add(row.locale)
@@ -798,9 +1270,24 @@ async function insertVersionRows<TTable>(
     return
   }
 
+  const uniqueRows = [
+    ...new Map(
+      (
+        rows as Array<{
+          locale?: string
+          sourceRecordId: string
+          versionHash: string
+        }>
+      ).map(row => [
+        `${row.sourceRecordId}\0${row.versionHash}\0${row.locale ?? ''}`,
+        row,
+      ]),
+    ).values(),
+  ] as Array<TTable extends { $inferInsert: infer TInsert } ? TInsert : never>
+
   const statements = []
 
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(columnCount, 3))) {
+  for (const chunk of chunkArray(uniqueRows, getMaxRowsPerInsert(columnCount, 3))) {
     const statement = db.insert(table as never).values(chunk as never)
 
     statements.push(

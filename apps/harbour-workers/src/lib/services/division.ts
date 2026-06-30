@@ -84,6 +84,15 @@ export type HarbourWorkerBucket = {
   ): Promise<{
     arrayBuffer(): Promise<ArrayBuffer>
   } | null>
+  put?(
+    key: string,
+    value: string | ArrayBuffer,
+    options?: {
+      httpMetadata?: {
+        contentType?: string
+      }
+    },
+  ): Promise<unknown>
 }
 
 export type ProcessDatasetResult = {

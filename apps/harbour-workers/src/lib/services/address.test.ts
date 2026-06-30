@@ -43,15 +43,77 @@ mock.module('../parquetR2', () => ({
     byteLength: 1,
     slice: async () => new ArrayBuffer(0),
   })),
-  readParquetObjectsInBatches: mock(async function* () {
-    for (const batch of parquetBatches) {
-      yield batch
+  readParquetObjectsInBatches: mock(async function* (
+    _file: unknown,
+    batchSize: number,
+    options: {
+      onMetadata?: (metadata: {
+        batchSize: number
+        fileBytes: number
+        readRowWindowSize: number
+        rowCount: number
+        rowGroupCount: number
+        rowGroupRows: number[]
+        useOffsetIndex: boolean
+      }) => void
+      rowEnd?: number
+      rowStart?: number
+      readRowWindowSize?: number
+      useOffsetIndex?: boolean
+    } = {},
+  ) {
+    const rows = parquetBatches.flat()
+    const rowStart = Math.max(0, Math.floor(options.rowStart ?? 0))
+    const rowEnd = Math.min(
+      rows.length,
+      Math.max(rowStart, Math.floor(options.rowEnd ?? rows.length)),
+    )
+
+    options.onMetadata?.({
+      batchSize,
+      fileBytes: 1,
+      readRowWindowSize: options.readRowWindowSize ?? rows.length,
+      rowCount: rows.length,
+      rowGroupCount: parquetBatches.length,
+      rowGroupRows: parquetBatches.map(batch => batch.length),
+      useOffsetIndex: options.useOffsetIndex ?? true,
+    })
+
+    for (let index = rowStart; index < rowEnd; index += batchSize) {
+      yield rows.slice(index, Math.min(index + batchSize, rowEnd))
     }
   }),
 }))
 
 const { prepareAddressVersionInsertContext } = await import('../db/address')
 const { processAddressDataset } = await import('./address')
+
+type ProcessAddressDatasetArgs = Parameters<typeof processAddressDataset>
+
+async function runAddressPipeline(
+  ...args: ProcessAddressDatasetArgs
+): ReturnType<typeof processAddressDataset> {
+  let message = args[4]
+  let result: Awaited<ReturnType<typeof processAddressDataset>>
+
+  do {
+    result = await processAddressDataset(
+      args[0],
+      args[1],
+      args[2],
+      args[3],
+      message,
+      args[5],
+      args[6],
+    )
+
+    if (result.nextMessage) {
+      message = result.nextMessage
+    }
+  } while (result.nextMessage)
+
+  return result
+}
 
 beforeAll(() => {
   console.info = mock(() => undefined) as typeof console.info
@@ -344,7 +406,7 @@ describe('processAddressDataset', () => {
     seedDivisionLookups(sqlite)
     seedAddressRelease(sqlite, 'overture-hk-2026-05-24.0-address', '2026-05', 'staged')
 
-    const initialResult = await processAddressDataset(
+    const initialResult = await runAddressPipeline(
       db as never,
       db as never,
       db as never,
@@ -371,7 +433,7 @@ describe('processAddressDataset', () => {
 
     seedAddressRelease(sqlite, 'overture-hk-2026-06-24.0-address', '2026-06', 'staged')
 
-    const unchangedResult = await processAddressDataset(
+    const unchangedResult = await runAddressPipeline(
       db as never,
       db as never,
       db as never,
@@ -512,7 +574,7 @@ describe('processAddressDataset', () => {
     seedDivisionLookups(sqlite)
     seedAddressRelease(sqlite, 'overture-hk-2026-05-24.0-address', '2026-05', 'staged')
 
-    await processAddressDataset(
+    await runAddressPipeline(
       db as never,
       db as never,
       db as never,
@@ -557,7 +619,7 @@ describe('processAddressDataset', () => {
 
     seedAddressRelease(sqlite, 'overture-hk-2026-06-24.0-address', '2026-06', 'staged')
 
-    await processAddressDataset(
+    await runAddressPipeline(
       db as never,
       db as never,
       db as never,
@@ -663,7 +725,7 @@ describe('processAddressDataset', () => {
     parquetBatches = [firstReleaseRows]
     seedAddressRelease(sqlite, 'overture-hk-2026-05-24.0-address', '2026-05', 'staged')
 
-    await processAddressDataset(
+    await runAddressPipeline(
       db as never,
       db as never,
       db as never,
@@ -705,7 +767,7 @@ describe('processAddressDataset', () => {
     ]
     seedAddressRelease(sqlite, 'overture-hk-2026-06-24.0-address', '2026-06', 'staged')
 
-    await processAddressDataset(
+    await runAddressPipeline(
       db as never,
       db as never,
       db as never,
@@ -818,7 +880,7 @@ describe('processAddressDataset', () => {
       ],
     ]
 
-    await processAddressDataset(
+    await runAddressPipeline(
       db as never,
       db as never,
       db as never,
@@ -856,7 +918,7 @@ describe('processAddressDataset', () => {
       ],
     ]
 
-    const result = await processAddressDataset(
+    const result = await runAddressPipeline(
       db as never,
       db as never,
       db as never,
@@ -888,7 +950,7 @@ describe('processAddressDataset', () => {
     expect(currentI18nRows).toEqual([{ addressId: 'ovt-address-1', locale: 'en' }])
   })
 
-  test('reports batch progress even when no source database is available', async () => {
+  test('fails after reporting batch progress when no source database is available', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'address-progress-no-source.sqlite')
     const sqlite = initDb(dbPath)
@@ -898,30 +960,32 @@ describe('processAddressDataset', () => {
     seedDivisionLookups(sqlite)
     seedAddressRelease(sqlite, 'overture-hk-2026-05-24.0-address', '2026-05', 'staged')
 
-    await processAddressDataset(
-      db as never,
-      db as never,
-      db as never,
-      {
-        async head() {
-          return { size: 1 }
+    await expect(
+      runAddressPipeline(
+        db as never,
+        db as never,
+        db as never,
+        {
+          async head() {
+            return { size: 1 }
+          },
+          async get() {
+            return {
+              async arrayBuffer() {
+                return new ArrayBuffer(0)
+              },
+            }
+          },
         },
-        async get() {
-          return {
-            async arrayBuffer() {
-              return new ArrayBuffer(0)
-            },
-          }
-        },
-      },
-      createAddressMessage(
-        'overture-hk-2026-05-24.0-address',
-        '2026-05',
-        '2026-05-24.0',
+        createAddressMessage(
+          'overture-hk-2026-05-24.0-address',
+          '2026-05',
+          '2026-05-24.0',
+        ),
+        undefined,
+        progress,
       ),
-      undefined,
-      progress,
-    )
+    ).rejects.toThrow('Missing source database binding')
 
     sqlite.close()
 

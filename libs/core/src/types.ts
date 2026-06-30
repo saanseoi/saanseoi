@@ -68,8 +68,8 @@ export type UploadPlan = {
   rowCount: number
   schemaFingerprint: string
   inferredFrom: {
-    theme: 'path' | 'parquet' | 'flag'
-    type: 'path' | 'parquet' | 'flag'
+    theme: 'path' | 'filename' | 'parquet' | 'flag'
+    type: 'path' | 'filename' | 'parquet' | 'flag'
     regionCode: 'path' | 'parquet' | 'flag'
     cohortKey: 'path' | 'filename' | 'flag' | 'sourceVersion'
     source: 'flag' | 'path' | 'filename'
@@ -123,6 +123,22 @@ export type DatasetProcessingMessage = {
   theme: ResourceTheme
   type: ResourceType
   skipSnapshotCleanup?: boolean
+  preplannedAddressChunks?: boolean
+  rowStart?: number
+  rowEnd?: number
+  totalRows?: number
+  chunkSize?: number
+  processingRunStartedAt?: string
+  addressStage?: 'normalize' | 'source' | 'history' | 'current' | 'finalize'
+  artifactKey?: string
+  resolvedArtifactKey?: string
+  addressStats?: {
+    deletedRows: number
+    insertedVersions: number
+    localizedRows: number
+    processedRows: number
+    unchangedRows: number
+  }
 }
 
 export type SnapshotCleanupMessage = {

@@ -1,6 +1,24 @@
 import { parquetMetadataAsync, parquetReadObjects, type AsyncBuffer } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 
+const DEFAULT_PARQUET_READ_ROW_WINDOW_SIZE = 8192
+
+export type ParquetBatchReadMetadata = {
+  batchSize: number
+  fileBytes: number
+  readRowWindowSize: number
+  rowCount: number
+  rowGroupCount: number
+  rowGroupRows: number[]
+  useOffsetIndex: boolean
+}
+
+export type ParquetReadWindowDiagnostic = {
+  rowEnd: number
+  rowStart: number
+  rowsRead: number
+}
+
 export type R2RangeReadableBucket = {
   head(key: string): Promise<{ size: number } | null>
   get(
@@ -58,19 +76,59 @@ export async function createAsyncBufferFromR2(
 export async function* readParquetObjectsInBatches(
   file: AsyncBuffer,
   batchSize: number,
+  options: {
+    columns?: string[]
+    onMetadata?: (metadata: ParquetBatchReadMetadata) => void
+    onReadWindow?: (diagnostic: ParquetReadWindowDiagnostic) => void
+    rowEnd?: number
+    rowStart?: number
+    readRowWindowSize?: number
+    useOffsetIndex?: boolean
+  } = {},
 ): AsyncGenerator<Record<string, unknown>[]> {
   const metadata = await parquetMetadataAsync(file)
   const rowCount = Number(metadata.num_rows)
+  const startRow = Math.max(0, Math.floor(options.rowStart ?? 0))
+  const endRow = Math.min(
+    rowCount,
+    Math.max(startRow, Math.floor(options.rowEnd ?? rowCount)),
+  )
+  const readRowWindowSize = Math.max(
+    batchSize,
+    options.readRowWindowSize ?? DEFAULT_PARQUET_READ_ROW_WINDOW_SIZE,
+  )
+  const useOffsetIndex = options.useOffsetIndex ?? true
 
-  for (let rowStart = 0; rowStart < rowCount; rowStart += batchSize) {
-    const rowEnd = Math.min(rowStart + batchSize, rowCount)
+  options.onMetadata?.({
+    batchSize,
+    fileBytes: file.byteLength,
+    readRowWindowSize,
+    rowCount,
+    rowGroupCount: metadata.row_groups?.length ?? 0,
+    rowGroupRows: metadata.row_groups?.map(rowGroup => Number(rowGroup.num_rows)) ?? [],
+    useOffsetIndex,
+  })
+
+  for (let rowStart = startRow; rowStart < endRow; rowStart += readRowWindowSize) {
+    const rowEnd = Math.min(rowStart + readRowWindowSize, endRow)
     const rows = await parquetReadObjects({
       file,
+      metadata,
+      columns: options.columns,
       rowStart,
       rowEnd,
       compressors,
+      useOffsetIndex,
     })
 
-    yield rows
+    options.onReadWindow?.({
+      rowStart,
+      rowEnd,
+      rowsRead: rows.length,
+    })
+
+    for (let batchStart = 0; batchStart < rows.length; batchStart += batchSize) {
+      yield rows.slice(batchStart, batchStart + batchSize)
+    }
   }
 }

@@ -12,6 +12,7 @@ import { inspectParquet } from '@repo/core/parquetInspector'
 import {
   getDatasetById,
   getDatasetRecordByReleaseId,
+  updateDatasetStatus,
   upsertIngestRunStatus,
 } from '@repo/core/db/metaRepository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -19,7 +20,6 @@ import { resourceThemes, resourceTypes } from '@repo/core'
 import type {
   DatasetRecord,
   DatasetProcessingMessage,
-  HarbourJobMessage,
   ParquetInspection,
   RegionCode,
   RegisterUploadResult,
@@ -27,6 +27,15 @@ import type {
   ResourceTheme,
   ResourceType,
 } from '@repo/core'
+import {
+  enqueueDatasetProcessingPlan,
+  type DatasetProcessingPlanOptions,
+  type DatasetProcessingQueue,
+} from './datasetProcessingPlan'
+export type {
+  DatasetProcessingPlanOptions,
+  DatasetProcessingQueue,
+} from './datasetProcessingPlan'
 
 type HarbourObjectMetadata = {
   customMetadata?: Record<string, string>
@@ -78,6 +87,7 @@ export type FinalizeUploadRequest = {
 }
 
 export type RequeueUploadRequest = {
+  force?: boolean
   releaseId: string
   skipSnapshotCleanup?: boolean
 }
@@ -108,11 +118,8 @@ export type UploadSigningEnv = {
   R2_RAW_SECRET_ACCESS_KEY: string
 }
 
-export type DatasetProcessingQueue = {
-  send(message: HarbourJobMessage, options?: QueueSendOptions): Promise<unknown>
-}
-
 type UploadSessionDependencies = {
+  processingPlanOptions?: DatasetProcessingPlanOptions
   inspectParquet?: typeof inspectParquet
 }
 
@@ -267,7 +274,12 @@ export async function handleFinalizeUploadRequest(
     ...(request.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
   })
 
-  await queue.send(processingMessage)
+  await enqueueDatasetProcessingPlan(
+    queue,
+    processingMessage,
+    inspection.rowCount,
+    dependencies.processingPlanOptions,
+  )
 
   return finalized
 }
@@ -276,6 +288,7 @@ export async function handleRequeueUploadRequest(
   db: HarbourReadableDb & HarbourWritableDb,
   queue: DatasetProcessingQueue,
   request: RequeueUploadRequest,
+  processingPlanOptions: DatasetProcessingPlanOptions = {},
 ): Promise<RequeueUploadResult> {
   const dataset = await getDatasetRecordByReleaseId(db, request.releaseId)
 
@@ -283,7 +296,7 @@ export async function handleRequeueUploadRequest(
     throw new Error(`Release not found: ${request.releaseId}`)
   }
 
-  if (!['staged', 'failed'].includes(dataset.status)) {
+  if (!['staged', 'failed'].includes(dataset.status) && !request.force) {
     throw new Error(
       `Release ${dataset.releaseCode} is not requeueable. Current status: ${dataset.status}.`,
     )
@@ -303,7 +316,12 @@ export async function handleRequeueUploadRequest(
     .limit(1)
     .get()
 
-  if (processRun?.status === 'queued' || processRun?.status === 'running') {
+  if (
+    !request.force &&
+    (processRun?.status === 'queued' || processRun?.status === 'running')
+  ) {
+    await updateDatasetStatus(db, dataset.releaseId, 'staged')
+
     return {
       ...dataset,
       rowCount: await getStageDatasetRowCount(db, dataset.releaseId),
@@ -311,6 +329,7 @@ export async function handleRequeueUploadRequest(
     }
   }
 
+  const rowCount = await getStageDatasetRowCount(db, dataset.releaseId)
   const processingMessage = buildDatasetProcessingMessage({
     ...dataset,
     ...(request.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
@@ -329,7 +348,13 @@ export async function handleRequeueUploadRequest(
   )
 
   try {
-    await queue.send(processingMessage)
+    await enqueueDatasetProcessingPlan(
+      queue,
+      processingMessage,
+      rowCount,
+      processingPlanOptions,
+    )
+    await updateDatasetStatus(db, dataset.releaseId, 'staged')
   } catch (error) {
     await upsertIngestRunStatus(
       db,
@@ -348,7 +373,7 @@ export async function handleRequeueUploadRequest(
 
   return {
     ...dataset,
-    rowCount: await getStageDatasetRowCount(db, dataset.releaseId),
+    rowCount,
     status: 'queued',
   }
 }

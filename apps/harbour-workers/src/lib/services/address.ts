@@ -26,12 +26,18 @@ import {
   alignAddressCurrentDivisionSnapshot,
   cloneAddressCurrentSnapshot,
   closeCurrentAddressVersions,
-  deleteMissingCurrentAddresses,
+  deleteMissingCurrentAddressesByCurrentMarker,
+  deleteMissingCurrentAddressesBySeenTable,
   deleteStaleAddressCurrentRows,
-  getCurrentAddressVersionMap,
+  dropSeenAddressIdTable,
+  getCurrentAddressVersionLookup,
+  hasCurrentAddressVersions,
+  insertSeenAddressIds,
   insertAddressVersionRows,
   prepareAddressVersionInsertContext,
+  prepareSeenAddressIdTable,
   replaceAddressCurrentI18n,
+  touchAddressCurrentRows,
   upsertAddressCurrentStates,
 } from '../db/address'
 import {
@@ -41,14 +47,21 @@ import {
   buildSourceReleaseId,
   closeSourceHkgovAlsAddress2dVersions,
   closeSourceOvertureAddress2dVersions,
-  deleteMissingCurrentSourceHkgovAlsAddresses2d,
-  deleteMissingCurrentSourceOvertureAddresses2d,
-  getCurrentSourceHkgovAlsAddress2dMap,
-  getCurrentSourceOvertureAddress2dMap,
+  deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenTable,
+  deleteMissingCurrentSourceHkgovAlsAddresses2dByReleaseId,
+  deleteMissingCurrentSourceOvertureAddresses2dBySeenTable,
+  deleteMissingCurrentSourceOvertureAddresses2dByReleaseId,
+  dropSeenSourceRecordIdTable,
+  getCurrentSourceHkgovAlsAddress2dRecords,
+  getCurrentSourceOvertureAddress2dRecords,
+  hasCurrentSourceHkgovAlsAddress2dRecords,
+  hasCurrentSourceOvertureAddress2dRecords,
+  insertSeenSourceRecordIds,
   insertSourceHkgovAlsAddress2dI18nVersions,
   insertSourceHkgovAlsAddresses2dVersions,
   insertSourceOvertureAddress2dI18nVersions,
   insertSourceOvertureAddresses2dVersions,
+  prepareSeenSourceRecordIdTable,
   replaceSourceHkgovAlsAddress2dI18nRows,
   replaceSourceOvertureAddress2dI18nRows,
   upsertSourceHkgovAlsAddresses2d,
@@ -58,12 +71,21 @@ import { asNonEmptyString, createHash } from '../utils'
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
   createOperationTimer,
+  readRuntimeMemoryUsage,
   resolveDataShardEnvironment,
   resolveDebugEnabled,
 } from './shared'
+import { writeAddressCurrentChunkStage } from './addressPipeline/currentStage'
+import { finalizeAddressDatasetStage } from './addressPipeline/finalizeStage'
+import { writeAddressHistoryChunkStage } from './addressPipeline/historyStage'
+import { normalizeAddressChunkStage } from './addressPipeline/normalizeStage'
+import { writeAddressSourceChunkStage } from './addressPipeline/sourceStage'
+import {
+  getAddressPipelineStage,
+  type AddressPipelineMessage,
+} from './addressPipeline/types'
 
 import type { HarbourWorkerBucket } from './division'
-import type { AddressVersionSnapshot } from '../db/address'
 
 type DivisionLookupMaps = {
   areaByEn: Map<string, string>
@@ -74,8 +96,10 @@ type DivisionLookupMaps = {
 
 export type ProcessAddressDatasetResult = {
   deletedRows: number
+  deferCompletion?: boolean
   insertedVersions: number
   localizedRows: number
+  nextMessage?: DatasetProcessingMessage
   processedRows: number
   statsRows: number
   unchangedRows: number
@@ -87,6 +111,8 @@ type ReportProgress = (stats: {
 }) => Promise<void>
 
 const ADDRESS_BATCH_SIZE = 128
+const ADDRESS_CHUNK_ROW_COUNT = 1024
+const ADDRESS_PARQUET_READ_ROW_WINDOW_SIZE = 2048
 const CHINA_NAME_ALIASES = new Set([
   'CHINA',
   'P.R. CHINA',
@@ -115,6 +141,101 @@ export async function processAddressDataset(
   sourceDb?: SourceDatabase,
   reportProgress?: ReportProgress,
 ): Promise<ProcessAddressDatasetResult> {
+  switch (getAddressPipelineStage(message) as string) {
+    case 'normalize': {
+      const nextMessage = await processAddressChunkPipeline(
+        metaDb,
+        currentDb,
+        bucket,
+        message,
+        historyDb,
+        sourceDb,
+        reportProgress,
+      )
+
+      if (nextMessage.addressStage === 'finalize') {
+        return finalizeAddressDatasetStage(
+          metaDb,
+          currentDb,
+          historyDb,
+          sourceDb,
+          nextMessage,
+        )
+      }
+
+      if (message.preplannedAddressChunks) {
+        return {
+          deferCompletion: true,
+          deletedRows: 0,
+          insertedVersions: 0,
+          localizedRows: 0,
+          processedRows:
+            nextMessage.addressStats?.processedRows ?? nextMessage.rowEnd ?? 0,
+          statsRows: 0,
+          unchangedRows: 0,
+        }
+      }
+
+      return {
+        deletedRows: 0,
+        insertedVersions: 0,
+        localizedRows: 0,
+        nextMessage,
+        processedRows: 0,
+        statsRows: 0,
+        unchangedRows: 0,
+      }
+    }
+    case 'source':
+      return {
+        deletedRows: 0,
+        insertedVersions: 0,
+        localizedRows: 0,
+        nextMessage: await writeAddressSourceChunkStage(sourceDb, bucket, message),
+        processedRows: 0,
+        statsRows: 0,
+        unchangedRows: 0,
+      }
+    case 'history':
+      return {
+        deletedRows: 0,
+        insertedVersions: 0,
+        localizedRows: 0,
+        nextMessage: await writeAddressHistoryChunkStage(
+          metaDb,
+          historyDb,
+          bucket,
+          message,
+        ),
+        processedRows: 0,
+        statsRows: 0,
+        unchangedRows: 0,
+      }
+    case 'current':
+      return {
+        deletedRows: 0,
+        insertedVersions: 0,
+        localizedRows: 0,
+        nextMessage: await writeAddressCurrentChunkStage(
+          metaDb,
+          currentDb,
+          bucket,
+          message,
+        ),
+        processedRows: 0,
+        statsRows: 0,
+        unchangedRows: 0,
+      }
+    case 'finalize':
+      return finalizeAddressDatasetStage(
+        metaDb,
+        currentDb,
+        historyDb,
+        sourceDb,
+        message,
+      )
+  }
+
   const debugEnabled = resolveDebugEnabled(process.env.DEBUG)
   const timings = createOperationTimer(debugEnabled)
   const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
@@ -123,6 +244,15 @@ export async function processAddressDataset(
   const file = await timings.measure('loadParquetBufferMs', () =>
     createAsyncBufferFromR2(bucket, message.rawObjectKey),
   )
+  const processingRunStartedAt =
+    message.processingRunStartedAt ?? new Date().toISOString()
+  const chunkSize = resolveAddressChunkSize(message.chunkSize)
+  const rowStart = Math.max(0, Math.floor(message.rowStart ?? 0))
+  const requestedRowEnd = Math.max(
+    rowStart,
+    Math.floor(message.rowEnd ?? rowStart + chunkSize),
+  )
+  let totalRows = Math.max(0, Math.floor(message.totalRows ?? 0))
   const environment = resolveDataShardEnvironment(process.env.DATA_SHARD_ENV)
   const versionInsertContext = await timings.measure(
     'prepareVersionInsertContextMs',
@@ -132,60 +262,159 @@ export async function processAddressDataset(
   const divisionLookup = await timings.measure('loadDivisionLookupMapsMs', () =>
     loadDivisionLookupMaps(metaDb, currentDb, message.regionCode),
   )
-  const currentRows = await timings.measure('loadCurrentVersionMapMs', () =>
-    getCurrentAddressVersionMap(historyRepoDb, message.regionCode, {
-      buildAddressBaseHashInput,
-      buildMatchKey,
-      normalizeAddressI18nSnapshotRow,
-    }),
-  )
   const previousSnapshot = await resolveLatestSnapshotForResourceTypeExcludingId(
     metaRepoDb,
     'address',
     versionInsertContext.snapshotId,
   )
 
-  if (previousSnapshot) {
+  if (rowStart === 0 && previousSnapshot) {
     await timings.measure('cloneAddressCurrentSnapshotMs', () =>
       cloneAddressCurrentSnapshot(
         currentRepoDb,
         previousSnapshot.id,
         versionInsertContext.snapshotId,
+        processingRunStartedAt,
       ),
     )
   }
-  await timings.measure('alignAddressCurrentDivisionSnapshotMs', () =>
-    alignAddressCurrentDivisionSnapshot(
-      currentRepoDb,
-      versionInsertContext.snapshotId,
-      divisionLookup.snapshotId,
-    ),
+  if (rowStart === 0) {
+    await timings.measure('alignAddressCurrentDivisionSnapshotMs', () =>
+      alignAddressCurrentDivisionSnapshot(
+        currentRepoDb,
+        versionInsertContext.snapshotId,
+        divisionLookup.snapshotId,
+      ),
+    )
+  }
+  const hasCurrentAddresses = await timings.measure(
+    'checkCurrentAddressVersionsMs',
+    () => hasCurrentAddressVersions(historyRepoDb, message.regionCode),
   )
-  const currentRowsByMatchKey = new Map<string, AddressVersionSnapshot>()
+  const hasCurrentSourceRows = !sourceDb
+    ? false
+    : message.source === 'overture'
+      ? await timings.measure('checkCurrentSourceRowsMs', () =>
+          hasCurrentSourceOvertureAddress2dRecords(sourceDb),
+        )
+      : await timings.measure('checkCurrentSourceRowsMs', () =>
+          hasCurrentSourceHkgovAlsAddress2dRecords(sourceDb),
+        )
 
-  for (const snapshot of currentRows.values()) {
-    if (snapshot.matchKey && !currentRowsByMatchKey.has(snapshot.matchKey)) {
-      currentRowsByMatchKey.set(snapshot.matchKey, snapshot)
-    }
+  const useCurrentMarkerCleanup = true
+  const useSeenAddressTable =
+    message.source === 'overture' && hasCurrentAddresses && !useCurrentMarkerCleanup
+  const useSourceMissingCleanup = Boolean(sourceDb && hasCurrentSourceRows)
+  const useSeenSourceTable = useSourceMissingCleanup && !useCurrentMarkerCleanup
+
+  if (useSeenAddressTable) {
+    await timings.measure('prepareSeenAddressIdTableMs', () =>
+      prepareSeenAddressIdTable(historyRepoDb),
+    )
+  }
+  if (sourceDb && useSeenSourceTable) {
+    await timings.measure('prepareSeenSourceRecordIdTableMs', () =>
+      prepareSeenSourceRecordIdTable(sourceDb),
+    )
   }
 
-  const seenIds = new Set<string>()
-  const seenSourceIds = new Set<string>()
   let processedRows = 0
   let insertedVersions = 0
   let unchangedRows = 0
   let localizedRows = 0
-  const currentSourceRows = !sourceDb
-    ? null
-    : message.source === 'overture'
-      ? await timings.measure('loadCurrentSourceMapMs', () =>
-          getCurrentSourceOvertureAddress2dMap(sourceDb),
-        )
-      : await timings.measure('loadCurrentSourceMapMs', () =>
-          getCurrentSourceHkgovAlsAddress2dMap(sourceDb),
-        )
 
-  for await (const batch of readParquetObjectsInBatches(file, ADDRESS_BATCH_SIZE)) {
+  let parquetReadWindowIndex = 0
+
+  for await (const batch of readParquetObjectsInBatches(file, ADDRESS_BATCH_SIZE, {
+    rowStart,
+    rowEnd: requestedRowEnd,
+    readRowWindowSize: ADDRESS_PARQUET_READ_ROW_WINDOW_SIZE,
+    onMetadata(metadata) {
+      totalRows = metadata.rowCount
+      console.info(
+        JSON.stringify({
+          datasetId: message.datasetId,
+          memory: readRuntimeMemoryUsage(),
+          metadata,
+          phase: 'addressParquetReadMetadata',
+          rowEnd: Math.min(requestedRowEnd, metadata.rowCount),
+          rowStart,
+          releaseId: message.releaseId ?? message.datasetId,
+          source: message.source,
+          sourceVersion: message.sourceVersion,
+          type: message.type,
+        }),
+      )
+    },
+    onReadWindow(diagnostic) {
+      parquetReadWindowIndex += 1
+      console.info(
+        JSON.stringify({
+          datasetId: message.datasetId,
+          diagnostic: {
+            ...diagnostic,
+            readWindowIndex: parquetReadWindowIndex,
+          },
+          memory: readRuntimeMemoryUsage(),
+          phase: 'addressParquetReadWindow',
+          processedRows,
+          releaseId: message.releaseId ?? message.datasetId,
+          source: message.source,
+          sourceVersion: message.sourceVersion,
+          type: message.type,
+        }),
+      )
+    },
+  })) {
+    const normalizedBatch = batch.map(row => ({
+      normalized:
+        message.source === 'overture'
+          ? normalizeOvertureAddressRow(row, divisionLookup)
+          : normalizePreparedHkgovAddressRow(row),
+      row,
+    }))
+    const currentAddressLookup = hasCurrentAddresses
+      ? await timings.measure('loadCurrentAddressBatchLookupMs', () =>
+          getCurrentAddressVersionLookup(
+            historyRepoDb,
+            message.regionCode,
+            normalizedBatch.map(({ normalized }) => normalized.sourceId),
+            normalizedBatch.map(({ normalized }) => {
+              const englishI18n = normalized.i18n.find(row => row.locale === 'en')
+
+              return {
+                districtId: normalized.base.districtId,
+                streetNumber: englishI18n?.streetNumber ?? null,
+                streetName: englishI18n?.streetName ?? null,
+              }
+            }),
+            {
+              buildAddressBaseHashInput,
+              buildMatchKey,
+              normalizeAddressI18nSnapshotRow,
+            },
+          ),
+        )
+      : {
+          byId: new Map(),
+          byMatchKey: new Map(),
+        }
+    const currentSourceRows =
+      !sourceDb || !hasCurrentSourceRows
+        ? null
+        : message.source === 'overture'
+          ? await timings.measure('loadCurrentSourceBatchLookupMs', () =>
+              getCurrentSourceOvertureAddress2dRecords(
+                sourceDb,
+                normalizedBatch.map(({ normalized }) => normalized.sourceId),
+              ),
+            )
+          : await timings.measure('loadCurrentSourceBatchLookupMs', () =>
+              getCurrentSourceHkgovAlsAddress2dRecords(
+                sourceDb,
+                normalizedBatch.map(({ normalized }) => normalized.sourceId),
+              ),
+            )
     const overtureSourceRows: Array<
       typeof sourceSchema.sourceOvertureAddresses2d.$inferInsert
     > = []
@@ -233,15 +462,15 @@ export async function processAddressDataset(
     > = []
     const changedSourceIds = new Set<string>()
     const unchangedSourceIds = new Set<string>()
+    const seenAddressIds: string[] = []
+    const seenSourceRecordIds: string[] = []
 
-    for (const row of batch) {
-      const normalized =
-        message.source === 'overture'
-          ? normalizeOvertureAddressRow(row, divisionLookup)
-          : normalizePreparedHkgovAddressRow(row)
+    for (const { normalized, row } of normalizedBatch) {
       const matchedCurrent =
-        currentRows.get(normalized.sourceId) ??
-        (normalized.matchKey ? currentRowsByMatchKey.get(normalized.matchKey) : null) ??
+        currentAddressLookup.byId.get(normalized.sourceId) ??
+        (normalized.matchKey
+          ? currentAddressLookup.byMatchKey.get(normalized.matchKey)
+          : null) ??
         null
       const addressId = matchedCurrent?.id ?? normalized.sourceId
       const base: AddressRow = {
@@ -263,9 +492,9 @@ export async function processAddressDataset(
 
       processedRows += 1
       localizedRows += i18n.length
-      seenIds.add(addressId)
-      seenSourceIds.add(normalized.sourceId)
-      const now = new Date().toISOString()
+      seenAddressIds.push(addressId)
+      seenSourceRecordIds.push(normalized.sourceId)
+      const now = processingRunStartedAt
 
       if (sourceDb) {
         const releaseId = buildSourceReleaseId(message)
@@ -524,6 +753,27 @@ export async function processAddressDataset(
       )
     }
 
+    if (useSeenAddressTable) {
+      await timings.measure('insertSeenAddressIdsMs', () =>
+        insertSeenAddressIds(historyRepoDb, seenAddressIds),
+      )
+    }
+    if (useCurrentMarkerCleanup) {
+      await timings.measure('touchAddressCurrentRowsMs', () =>
+        touchAddressCurrentRows(
+          currentRepoDb,
+          versionInsertContext.snapshotId,
+          seenAddressIds,
+          processingRunStartedAt,
+        ),
+      )
+    }
+    if (sourceDb && useSeenSourceTable) {
+      await timings.measure('insertSeenSourceRecordIdsMs', () =>
+        insertSeenSourceRecordIds(sourceDb, seenSourceRecordIds),
+      )
+    }
+
     await timings.measure('closeCurrentAddressVersionsMs', () =>
       closeCurrentAddressVersions(
         historyRepoDb,
@@ -583,9 +833,7 @@ export async function processAddressDataset(
           replaceSourceOvertureAddress2dI18nRows(
             sourceDb,
             changedIds,
-            overtureSourceI18nRows.filter(row =>
-              changedSourceIds.has(row.sourceRecordId),
-            ),
+            overtureSourceI18nRows,
           ),
         )
 
@@ -624,7 +872,7 @@ export async function processAddressDataset(
           replaceSourceHkgovAlsAddress2dI18nRows(
             sourceDb,
             changedIds,
-            hkgovSourceI18nRows.filter(row => changedSourceIds.has(row.sourceRecordId)),
+            hkgovSourceI18nRows,
           ),
         )
 
@@ -643,51 +891,100 @@ export async function processAddressDataset(
     if (reportProgress) {
       await reportProgress({
         localizedRows,
-        processedRows,
+        processedRows: rowStart + processedRows,
       })
     }
   }
 
-  const { count: deletedRows, missingIds } =
-    message.source === 'overture'
+  const processedRowEnd = Math.min(requestedRowEnd, totalRows)
+  const nextMessage =
+    processedRowEnd < totalRows
+      ? ({
+          ...message,
+          chunkSize,
+          processingRunStartedAt,
+          rowStart: processedRowEnd,
+          rowEnd: Math.min(processedRowEnd + chunkSize, totalRows),
+          totalRows,
+        } satisfies DatasetProcessingMessage)
+      : undefined
+
+  let deletedRows = 0
+
+  if (!nextMessage) {
+    const cleanupResult = useCurrentMarkerCleanup
       ? await timings.measure('deleteMissingCurrentAddressesMs', () =>
-          deleteMissingCurrentAddresses(
+          deleteMissingCurrentAddressesByCurrentMarker(
             historyRepoDb,
+            currentRepoDb,
             versionInsertContext.snapshotId,
             message.cohortKey,
-            currentRows,
-            seenIds,
+            processingRunStartedAt,
           ),
         )
-      : { count: 0, missingIds: [] as string[] }
-  if (message.source === 'overture') {
-    await timings.measure('deleteStaleAddressCurrentRowsMs', () =>
-      deleteStaleAddressCurrentRows(
-        currentRepoDb,
-        versionInsertContext.snapshotId,
-        missingIds,
-      ),
-    )
-  }
+      : useSeenAddressTable
+        ? await timings.measure('deleteMissingCurrentAddressesMs', () =>
+            deleteMissingCurrentAddressesBySeenTable(
+              historyRepoDb,
+              versionInsertContext.snapshotId,
+              message.cohortKey,
+              message.regionCode,
+            ),
+          )
+        : { count: 0, missingIds: [] as string[] }
 
-  if (sourceDb && currentSourceRows) {
-    if (message.source === 'overture') {
-      await timings.measure('deleteMissingCurrentSourceOvertureAddresses2dMs', () =>
-        deleteMissingCurrentSourceOvertureAddresses2d(
-          sourceDb,
-          message.sourceVersion,
-          currentSourceRows,
-          seenSourceIds,
+    deletedRows = cleanupResult.count
+
+    if (!useCurrentMarkerCleanup && message.source === 'overture') {
+      await timings.measure('deleteStaleAddressCurrentRowsMs', () =>
+        deleteStaleAddressCurrentRows(
+          currentRepoDb,
+          versionInsertContext.snapshotId,
+          cleanupResult.missingIds,
         ),
       )
-    } else {
-      await timings.measure('deleteMissingCurrentSourceHkgovAlsAddresses2dMs', () =>
-        deleteMissingCurrentSourceHkgovAlsAddresses2d(
-          sourceDb,
-          message.sourceVersion,
-          currentSourceRows,
-          seenSourceIds,
-        ),
+    }
+
+    if (sourceDb && useSourceMissingCleanup) {
+      const releaseId = buildSourceReleaseId(message)
+
+      if (message.source === 'overture') {
+        await timings.measure('deleteMissingCurrentSourceOvertureAddresses2dMs', () =>
+          useCurrentMarkerCleanup
+            ? deleteMissingCurrentSourceOvertureAddresses2dByReleaseId(
+                sourceDb,
+                message.sourceVersion,
+                releaseId,
+              )
+            : deleteMissingCurrentSourceOvertureAddresses2dBySeenTable(
+                sourceDb,
+                message.sourceVersion,
+              ),
+        )
+      } else {
+        await timings.measure('deleteMissingCurrentSourceHkgovAlsAddresses2dMs', () =>
+          useCurrentMarkerCleanup
+            ? deleteMissingCurrentSourceHkgovAlsAddresses2dByReleaseId(
+                sourceDb,
+                message.sourceVersion,
+                releaseId,
+              )
+            : deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenTable(
+                sourceDb,
+                message.sourceVersion,
+              ),
+        )
+      }
+    }
+
+    if (useSeenAddressTable) {
+      await timings.measure('dropSeenAddressIdTableMs', () =>
+        dropSeenAddressIdTable(historyRepoDb),
+      )
+    }
+    if (sourceDb && useSeenSourceTable) {
+      await timings.measure('dropSeenSourceRecordIdTableMs', () =>
+        dropSeenSourceRecordIdTable(sourceDb),
       )
     }
   }
@@ -696,7 +993,9 @@ export async function processAddressDataset(
     JSON.stringify({
       datasetId: message.datasetId,
       phase: 'processAddressDataset',
-      processedRows,
+      processedRows: rowStart + processedRows,
+      rowEnd: processedRowEnd,
+      rowStart,
       releaseId: message.releaseId ?? message.datasetId,
       snapshotId: versionInsertContext.snapshotId,
       source: message.source,
@@ -710,10 +1009,48 @@ export async function processAddressDataset(
     deletedRows,
     insertedVersions,
     localizedRows,
-    processedRows,
+    nextMessage,
+    processedRows: rowStart + processedRows,
     statsRows: 0,
     unchangedRows,
   }
+}
+
+async function processAddressChunkPipeline(
+  metaDb: MetaDatabase,
+  currentDb: CurrentDatabase,
+  bucket: HarbourWorkerBucket,
+  message: DatasetProcessingMessage,
+  historyDb: HistoryDatabase,
+  sourceDb: SourceDatabase | undefined,
+  reportProgress?: ReportProgress,
+): Promise<AddressPipelineMessage> {
+  const sourceMessage = await normalizeAddressChunkStage(
+    metaDb,
+    currentDb,
+    bucket,
+    message,
+    reportProgress,
+  )
+  const historyMessage = await writeAddressSourceChunkStage(
+    sourceDb,
+    bucket,
+    sourceMessage,
+  )
+  const currentMessage = await writeAddressHistoryChunkStage(
+    metaDb,
+    historyDb,
+    bucket,
+    historyMessage,
+  )
+
+  return writeAddressCurrentChunkStage(metaDb, currentDb, bucket, currentMessage)
+}
+
+function resolveAddressChunkSize(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? Math.floor(value)
+    : ADDRESS_CHUNK_ROW_COUNT
 }
 
 async function loadDivisionLookupMaps(

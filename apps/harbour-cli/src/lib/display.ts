@@ -14,12 +14,24 @@ function cyanText(label: string) {
   return `\u001B[36m${label}\u001B[39m`
 }
 
+function blueText(text: string) {
+  return `\u001B[34m${text}\u001B[39m`
+}
+
 function deEmphasize(text: string) {
   return `\u001B[90m${text}\u001B[39m`
 }
 
+function greenText(text: string) {
+  return `\u001B[32m${text}\u001B[39m`
+}
+
 function redText(text: string) {
   return `\u001B[31m${text}\u001B[39m`
+}
+
+function yellowText(text: string) {
+  return `\u001B[33m${text}\u001B[39m`
 }
 
 /**
@@ -62,6 +74,8 @@ function describeInferredFrom(
       switch (inferredFrom) {
         case 'flag':
           return 'flag'
+        case 'filename':
+          return 'filename'
         case 'path':
           return 'path'
         case 'parquet':
@@ -93,6 +107,34 @@ function describeInferredFrom(
         default:
           return undefined
       }
+  }
+}
+
+function formatReleaseValue(result: UploadPreviewResult) {
+  return [
+    yellowText(result.plan.source),
+    greenText(result.plan.regionCode),
+    blueText(result.plan.sourceVersion),
+    redText(result.plan.type),
+  ].join('-')
+}
+
+function formatTargetValue(target: UploadTarget) {
+  return `${target.environment} ${deEmphasize(`(${resolveHarbourBaseUrl(target)})`)}`
+}
+
+export function formatMutedValue(value: string) {
+  return deEmphasize(value)
+}
+
+export function formatSchemaCheck(status: 'passed' | 'failed' | 'skipped') {
+  switch (status) {
+    case 'passed':
+      return `${greenText('✓')} Schema Check`
+    case 'failed':
+      return `${redText('✗')} Schema Check`
+    case 'skipped':
+      return `${deEmphasize('•')} Schema Check`
   }
 }
 
@@ -139,32 +181,12 @@ export function describeTarget(target: UploadTarget) {
  */
 export function formatPlan(result: UploadPreviewResult) {
   return [
-    formatField('datasetCode', result.plan.datasetCode),
-    formatField('releaseCode', result.plan.releaseCode),
-    formatField(
-      'source',
-      result.plan.source,
-      describeInferredFrom('source', result.plan.inferredFrom.source),
-    ),
-    formatField(
-      'sourceVersion',
-      result.plan.sourceVersion,
-      describeInferredFrom('sourceVersion', result.plan.inferredFrom.sourceVersion),
-    ),
-    formatField(
-      'region',
-      result.plan.regionCode,
-      describeInferredFrom('regionCode', result.plan.inferredFrom.regionCode),
-    ),
+    formatField('dataset', result.plan.datasetCode),
+    formatField('release', formatReleaseValue(result)),
     formatField(
       'cohortKey',
       result.plan.cohortKey,
       describeInferredFrom('cohortKey', result.plan.inferredFrom.cohortKey),
-    ),
-    formatField(
-      'type',
-      result.plan.type,
-      describeInferredFrom('type', result.plan.inferredFrom.type),
     ),
     formatField('rows', result.plan.rowCount),
   ]
@@ -174,25 +196,29 @@ export function formatPlan(result: UploadPreviewResult) {
  * Render the top-level upload summary shown before confirmation.
  */
 export function formatSummary(result: UploadPreviewResult, target: UploadTarget) {
-  const targetMode = target.remote ? 'cf' : 'local'
-  const harbourBaseUrl = resolveHarbourBaseUrl(target)
-
-  return [
-    formatField('target', `${target.environment} (${redText(targetMode)})`),
-    ...formatPlan(result),
-    formatField('harbourApi', harbourBaseUrl),
-  ]
+  return [formatField('target', formatTargetValue(target)), ...formatPlan(result)]
 }
 
-/**
- * Describe the API dispatch step and the expected downstream behaviour.
- */
-export function explainDispatch(target: UploadTarget) {
-  const targetDetails = describeTarget(target)
+export function formatUploadResult(
+  result: UploadPreviewResult,
+  summary: {
+    datasetCode: string
+    rawObjectKey: string
+    releaseId: string
+    datasetId: string
+    schemaVersion: string
+    status: string
+  },
+) {
   return [
-    `CLI target: ${targetDetails.label}`,
-    `Destination: ${targetDetails.destination}`,
-  ].join('\n')
+    formatField('status', summary.status),
+    formatField('R2', summary.rawObjectKey),
+    formatField('dataset', summary.datasetCode),
+    formatField('datasetId', formatMutedValue(summary.datasetId)),
+    formatField('release', formatReleaseValue(result)),
+    formatField('releaseId', formatMutedValue(summary.releaseId)),
+    formatField('schemaVersion', summary.schemaVersion),
+  ]
 }
 
 type TableCell = string | number

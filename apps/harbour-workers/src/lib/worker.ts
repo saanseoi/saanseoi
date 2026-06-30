@@ -9,6 +9,7 @@ import {
   processAddressDataset as defaultProcessAddressDataset,
   type ProcessAddressDatasetResult,
 } from './services/address'
+import { getAddressPipelineStage } from './services/addressPipeline/types'
 import {
   processDivisionDataset as defaultProcessDivisionDataset,
   type HarbourWorkerBucket,
@@ -47,6 +48,8 @@ export type HarbourClient = {
   ): Promise<void>
 }
 
+export type DatasetProcessingResult = ProcessDatasetResult | ProcessAddressDatasetResult
+
 /**
  * Processes a dataset message end to end, including extraction, publishing,
  * and phase status reporting.
@@ -64,7 +67,7 @@ export function createProcessDatasetMessage(
     bucket: HarbourWorkerBucket,
     message: DatasetProcessingMessage,
     sourceDb?: SourceDatabase,
-  ): Promise<ProcessDatasetResult | ProcessAddressDatasetResult> {
+  ): Promise<DatasetProcessingResult> {
     const releaseId = message.releaseId ?? message.datasetId
     const releaseCode = message.releaseCode
     if (!releaseId) {
@@ -81,7 +84,7 @@ export function createProcessDatasetMessage(
         undefined,
         releaseCode,
       )
-      let result: ProcessDatasetResult | ProcessAddressDatasetResult
+      let result: DatasetProcessingResult
 
       if (message.type === 'division') {
         const extractStartedAt = Date.now()
@@ -177,6 +180,40 @@ export function createProcessDatasetMessage(
             )
           },
         )
+
+        if (
+          ('nextMessage' in result && result.nextMessage) ||
+          ('deferCompletion' in result && result.deferCompletion)
+        ) {
+          const durationMs = Date.now() - processStartedAt
+          const addressStage =
+            message.type === 'address' ? getAddressPipelineStage(message) : undefined
+          const nextAddressStage =
+            result.nextMessage?.type === 'address'
+              ? getAddressPipelineStage(result.nextMessage)
+              : undefined
+          console.info(
+            JSON.stringify({
+              addressStage,
+              datasetId: message.datasetId,
+              messageType: message.type,
+              nextAddressStage,
+              nextRowEnd: result.nextMessage?.rowEnd,
+              nextRowStart: result.nextMessage?.rowStart,
+              phase: 'processDataset',
+              processedRows:
+                result.nextMessage?.addressStats?.processedRows ??
+                result.nextMessage?.rowStart ??
+                result.processedRows,
+              releaseId,
+              source: message.source,
+              sourceVersion: message.sourceVersion,
+              status: 'chunkCompleted',
+              durationMs,
+            }),
+          )
+          return result
+        }
 
         await harbourClient.stageCompleted(
           releaseId,

@@ -88,6 +88,30 @@ For each prepared ALS row, the worker:
 - creates `en` and/or `zh-hant` i18n rows when formatted addresses exist
 - carries building name, estate name, street name, and street number into canonical i18n rows
 
+The worker processes prepared parquet rows in small write batches and reads 2,048-row parquet windows from R2.
+
+Large address releases are processed as sequential queue chunks. Each queue
+message carries one parquet row range (`rowStart`, `rowEnd`) plus a stable
+`processingRunStartedAt` marker. Upload finalization/requeue preplans all row
+ranges and enqueues them up front; intermediate chunks leave the release phases
+running, and only the final chunk runs release-level cleanup, publishes the
+snapshot, and completes `processDataset`.
+
+The row-range plan relies on the harbour-workers queue consumer remaining
+serial (`max_batch_size: 1`, `max_concurrency: 1`), because the first current
+stage initializes the draft current snapshot before later ranges apply deltas.
+
+The worker executes each row range through separate stage services:
+`normalize`, `source`, `history`, `current`, and `finalize`. The row-range
+stages run inside one queue event. Normalized and resolved chunk artifacts are
+stored in R2 so retries and later stages do not need to re-decode parquet or
+repeat source normalization work.
+
+For current-row cleanup, processed canonical rows are touched with the stable
+run marker and processed source rows are advanced to the current release ID.
+Final cleanup can therefore scan current rows in keyset pages without retaining
+the full release ID set in Worker memory.
+
 This means HKGov ALS currently contributes the richer text model:
 
 - `formattedAddress`
@@ -111,6 +135,8 @@ If matched:
 If unmatched:
 
 - HKGov ALS can still create a canonical `address2d` row under its own prepared source ID
+
+Current canonical/source state is queried only for the source IDs and street-key candidates in the active parquet batch. The worker does not preload the full current address or source-address table before ALS processing starts.
 
 HKGov ALS does not currently drive canonical deletion:
 
