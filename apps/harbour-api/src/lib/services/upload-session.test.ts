@@ -120,7 +120,7 @@ const signingEnv: UploadSigningEnv = {
 const queuedMessages: Array<Record<string, string>> = []
 const queue: DatasetProcessingQueue = {
   async send(message) {
-    queuedMessages.push(message as Record<string, string>)
+    queuedMessages.push(message as unknown as Record<string, string>)
   },
 }
 

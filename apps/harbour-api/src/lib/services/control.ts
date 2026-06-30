@@ -3,6 +3,7 @@ import {
   ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
+  listCurrentSnapshotCleanupCandidates,
   listApiReleaseSetSnapshots,
   resolveActiveReleaseSetForType,
   resolveReleaseSetForRelease,
@@ -12,8 +13,7 @@ import {
   upsertIngestRunStatus,
   waitForDatasetRecord,
 } from '@repo/core/db/meta-repository'
-import type { SnapshotResourceType } from '@repo/core/db/meta-repository'
-import type { SupportedType } from '@repo/core'
+import type { HarbourJobMessage, ResourceType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 type StageRequest = {
@@ -27,6 +27,14 @@ type StageRequest = {
 type PublishRequest = {
   releaseCode?: string
   releaseId?: string
+  skipSnapshotCleanup?: boolean
+}
+
+type CleanupSnapshotsRequest = {
+  delaySeconds?: number
+  dryRun?: boolean
+  resourceType?: ResourceType
+  snapshotIds?: string[]
 }
 
 type ControlResult = {
@@ -36,6 +44,20 @@ type ControlResult = {
   phase: string | null
   status: string
 }
+
+type CleanupSnapshotsResult = {
+  candidateCount: number
+  delaySeconds: number
+  dryRun: boolean
+  snapshotIds: string[]
+  status: 'queued' | 'skipped'
+}
+
+export type HarbourJobQueue = {
+  send(message: HarbourJobMessage, options?: QueueSendOptions): Promise<unknown>
+}
+
+const DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS = 30
 
 export async function handleStageRunning(
   db: HarbourReadableDb & HarbourWritableDb,
@@ -148,10 +170,11 @@ export async function handleStageFailed(
 export async function handlePublishDataset(
   db: HarbourReadableDb & HarbourWritableDb,
   request: PublishRequest,
+  cleanupQueue?: HarbourJobQueue,
 ): Promise<ControlResult> {
   const dataset = await requireDataset(db, request)
   const publishedAt = new Date().toISOString()
-  const datasetType = dataset.type as SupportedType
+  const datasetType = dataset.type as ResourceType
   const currentRelease = await getCurrentReleaseForDatasetId(
     db,
     dataset.datasetId,
@@ -170,7 +193,7 @@ export async function handlePublishDataset(
 
   const activeReleaseSet = await resolveActiveReleaseSetForType(db, datasetType)
   const carriedSnapshots: Array<{
-    resourceType: SnapshotResourceType
+    resourceType: ResourceType
     snapshotId: string
   }> = []
 
@@ -183,7 +206,7 @@ export async function handlePublishDataset(
       }
 
       carriedSnapshots.push({
-        resourceType: activeSnapshot.snapshotResourceType as SnapshotResourceType,
+        resourceType: activeSnapshot.snapshotResourceType,
         snapshotId: activeSnapshot.snapshotId,
       })
     }
@@ -202,12 +225,81 @@ export async function handlePublishDataset(
     type: datasetType,
   })
 
+  if (!request.skipSnapshotCleanup && cleanupQueue) {
+    try {
+      await scheduleCurrentSnapshotCleanup(db, cleanupQueue, {
+        delaySeconds: DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS,
+        resourceType: datasetType,
+      })
+    } catch (error) {
+      console.error('Failed to schedule current snapshot cleanup after publish', {
+        error: error instanceof Error ? error.message : String(error),
+        releaseId: dataset.releaseId,
+        type: datasetType,
+      })
+    }
+  }
+
   return {
     datasetId: dataset.releaseCode,
     releaseCode: dataset.releaseCode,
     releaseId: dataset.releaseId,
     phase: null,
     status: 'current',
+  }
+}
+
+export async function handleScheduleSnapshotCleanup(
+  db: HarbourReadableDb,
+  cleanupQueue: HarbourJobQueue,
+  request: CleanupSnapshotsRequest,
+): Promise<CleanupSnapshotsResult> {
+  return scheduleCurrentSnapshotCleanup(db, cleanupQueue, request)
+}
+
+async function scheduleCurrentSnapshotCleanup(
+  db: HarbourReadableDb,
+  cleanupQueue: HarbourJobQueue,
+  request: CleanupSnapshotsRequest,
+): Promise<CleanupSnapshotsResult> {
+  const delaySeconds = Math.max(
+    0,
+    Math.floor(request.delaySeconds ?? DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS),
+  )
+  const candidates = await listCurrentSnapshotCleanupCandidates(db, {
+    resourceType: request.resourceType,
+    snapshotIds: request.snapshotIds,
+  })
+  const snapshotIds = candidates.map(candidate => candidate.snapshotId)
+
+  if (snapshotIds.length === 0 || request.dryRun) {
+    return {
+      candidateCount: snapshotIds.length,
+      delaySeconds,
+      dryRun: Boolean(request.dryRun),
+      snapshotIds,
+      status: 'skipped',
+    }
+  }
+
+  await cleanupQueue.send(
+    {
+      jobType: 'cleanupCurrentSnapshots',
+      requestedAt: new Date().toISOString(),
+      resourceType: request.resourceType,
+      snapshotIds,
+    },
+    {
+      delaySeconds,
+    },
+  )
+
+  return {
+    candidateCount: snapshotIds.length,
+    delaySeconds,
+    dryRun: false,
+    snapshotIds,
+    status: 'queued',
   }
 }
 
