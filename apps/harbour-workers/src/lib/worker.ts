@@ -19,7 +19,13 @@ import {
  * Control-plane callbacks used to report worker progress and publish datasets.
  */
 export type HarbourClient = {
-  publishDataset(releaseId: string, releaseCode?: string): Promise<void>
+  publishDataset(
+    releaseId: string,
+    releaseCode?: string,
+    options?: {
+      skipSnapshotCleanup?: boolean
+    },
+  ): Promise<void>
   stageCompleted(
     releaseId: string,
     phase: string,
@@ -207,7 +213,13 @@ export function createProcessDatasetMessage(
         releaseCode,
       )
       activePhases.add('publishDataset')
-      await harbourClient.publishDataset(releaseId, releaseCode)
+      if (message.skipSnapshotCleanup) {
+        await harbourClient.publishDataset(releaseId, releaseCode, {
+          skipSnapshotCleanup: true,
+        })
+      } else {
+        await harbourClient.publishDataset(releaseId, releaseCode)
+      }
       await harbourClient.stageCompleted(
         releaseId,
         'publishDataset',

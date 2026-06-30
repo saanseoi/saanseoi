@@ -6,7 +6,7 @@ import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/promp
 
 import { prepareUpload } from '@repo/core/upload-local'
 import { inferSourceVersionFromPath } from '@repo/core/upload-local'
-import { isReleaseId, ResourceTypes } from '@repo/core'
+import { isReleaseId, ResourceTypes, SUPPORTED_THEMES } from '@repo/core'
 import type { ResourceType } from '@repo/core'
 import {
   describeTarget,
@@ -36,11 +36,11 @@ import { watchCurrentUpload } from './lib/watch.ts'
 
 function printUsage() {
   console.log(`  Usage:
-  saanseoi upload <file> [--target local|preview|production] [--type place|division|address] [--theme addresses|places|divisions] [--region hk|mo] [--cohort-key VALUE] [--dry-run] [--force] [--skip-cleanup] [--yes]
+  saanseoi upload <file> [--target local|preview|production] [--type ${ResourceTypes.join('|')}] [--theme ${SUPPORTED_THEMES.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--dry-run] [--force] [--skip-cleanup] [--yes]
   saanseoi upload:finalize --release <release-id|release-code> [--target local|preview|production] [--skip-cleanup] [--yes]
   saanseoi upload:requeue --release <release-id|release-code> [--target local|preview|production] [--skip-cleanup] [--yes]
   saanseoi upload:watch [--target local|preview|production]
-  saanseoi cleanup:snapshots [--target local|preview|production] [--type division|address|street|place] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
+  saanseoi cleanup:snapshots [--target local|preview|production] [--type ${ResourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
   saanseoi prep-hkgov-als <source-dir> [--target local|preview|production] [--source-version YYYY-MM-DD.NN] [--cohort-key VALUE] [--db /path/to/local.sqlite]
   saanseoi reports:ingestion [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
   saanseoi reports:stats [--target local|preview|production] [--limit 1-100] [--source SOURCE] [--type TYPE]
@@ -456,7 +456,10 @@ function resolveSnapshotCleanupResourceType(
     return undefined
   }
 
-  if ((ResourceTypes as readonly string[]).includes(value)) {
+  if (
+    typeof value === 'string' &&
+    (ResourceTypes as readonly string[]).includes(value)
+  ) {
     return value as ResourceType
   }
 
