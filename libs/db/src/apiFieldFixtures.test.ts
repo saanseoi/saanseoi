@@ -25,12 +25,29 @@ describe('api field fixtures', () => {
       },
     })
 
-    fixtures[0]!.apiVersion = 'mutated'
-    fixtures[0]!.fields[0]!.apiField = 'mutated'
+    const listedFixture = fixtures.at(0)
+    if (!listedFixture) {
+      throw new Error('Expected at least one API field fixture')
+    }
+    const listedField = listedFixture.fields.at(0)
+    if (!listedField) {
+      throw new Error('Expected listed API field fixture to include fields')
+    }
+
+    listedFixture.apiVersion = 'mutated'
+    listedField.apiField = 'mutated'
 
     expect(fixture).not.toBeNull()
-    fixture!.apiVersion = 'mutated'
-    fixture!.fields[0]!.apiField = 'mutated'
+    if (!fixture) {
+      throw new Error('Expected matching API field fixture')
+    }
+    const resolvedField = fixture.fields.at(0)
+    if (!resolvedField) {
+      throw new Error('Expected resolved API field fixture to include fields')
+    }
+
+    fixture.apiVersion = 'mutated'
+    resolvedField.apiField = 'mutated'
 
     expect(listApiFieldFixtures()[0]?.apiVersion).toBe('api-divisions-v0.1')
     expect(listApiFieldFixtures()[0]?.fields[0]?.apiField).not.toBe('mutated')
