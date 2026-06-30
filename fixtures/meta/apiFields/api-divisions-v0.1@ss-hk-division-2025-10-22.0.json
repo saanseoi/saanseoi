@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:4627771c577432099d0e3af6ab3ef238e9913becb079409d3069db97e0ab4c80",
+  "versionHash": "sha256:01f5a2dfc6e88d6826ddce3cbd44569b6795bbe8abd0b7125e8fd277628a5b53",
   "apiVersion": "api-divisions-v0.1",
   "validFromSnapshotVersion": "ss-hk-division-2025-10-22.0",
   "schemaVersion": "sv-division-v1",
@@ -180,24 +180,6 @@
       "confidence": 0.95
     },
     {
-      "apiField": "division.attributes.i18n.en.name",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "names.rules[].value",
-      "resolverCode": "merge_first_non_empty",
-      "contributionType": "fallback",
-      "priority": 1,
-      "confidence": 0.8
-    },
-    {
-      "apiField": "division.attributes.i18n.en.name",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "names.primary",
-      "resolverCode": "merge_first_non_empty",
-      "contributionType": "fallback",
-      "priority": 2,
-      "confidence": 0.7
-    },
-    {
       "apiField": "division.attributes.i18n.zh-hant.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.common.zh-hk",
@@ -216,24 +198,6 @@
       "confidence": 0.9
     },
     {
-      "apiField": "division.attributes.i18n.zh-hant.name",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "names.rules[].value",
-      "resolverCode": "merge_first_non_empty",
-      "contributionType": "fallback",
-      "priority": 2,
-      "confidence": 0.8
-    },
-    {
-      "apiField": "division.attributes.i18n.zh-hant.name",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "names.primary",
-      "resolverCode": "merge_first_non_empty",
-      "contributionType": "fallback",
-      "priority": 3,
-      "confidence": 0.7
-    },
-    {
       "apiField": "division.attributes.i18n.zh-hans.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.common.zh-hans",
@@ -250,24 +214,6 @@
       "contributionType": "fallback",
       "priority": 1,
       "confidence": 0.9
-    },
-    {
-      "apiField": "division.attributes.i18n.zh-hans.name",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "names.rules[].value",
-      "resolverCode": "merge_first_non_empty",
-      "contributionType": "fallback",
-      "priority": 2,
-      "confidence": 0.8
-    },
-    {
-      "apiField": "division.attributes.i18n.zh-hans.name",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "names.primary",
-      "resolverCode": "merge_first_non_empty",
-      "contributionType": "fallback",
-      "priority": 3,
-      "confidence": 0.7
     }
   ]
 }
