@@ -430,7 +430,7 @@ describe('atlas-api', () => {
           operation =>
             operation.query.includes('insert into "newsletterSubscription"') &&
             operation.query.includes('on conflict') &&
-            operation.values.includes('pending') &&
+            operation.values.includes('failed') &&
             operation.values.includes('SUBSTACK_SESSION_COOKIE is not configured.') &&
             operation.values.includes('hello@example.com'),
         ),
@@ -500,7 +500,7 @@ describe('atlas-api', () => {
           operation =>
             operation.query.includes('insert into "newsletterSubscription"') &&
             operation.query.includes('on conflict') &&
-            operation.values.includes('pending') &&
+            operation.values.includes('failed') &&
             operation.values.includes('Too Many Requests') &&
             operation.values.includes('hello@example.com'),
         ),
