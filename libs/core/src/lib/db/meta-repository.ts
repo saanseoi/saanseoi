@@ -14,7 +14,13 @@ import {
 } from '@repo/db'
 import { resolveApiFieldFixture } from '@repo/db/api-field-fixtures'
 
-import type { DatasetRecord, RegionCode, SupportedType, UploadPlan } from '../../types'
+import type {
+  DatasetRecord,
+  RegionCode,
+  ResourceType,
+  SupportedType,
+  UploadPlan,
+} from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './types'
 import type { DataShardType, IngestRunStatus, ReleaseStatus } from '@repo/db'
 
@@ -30,8 +36,6 @@ type DatasetIdentityRecord = {
   releaseCode: string
   status: ReleaseStatus
 }
-
-export type SnapshotResourceType = 'division' | 'address' | 'street' | 'place'
 
 export type DataShardRecord = {
   id: string
@@ -608,7 +612,7 @@ export async function listApiCompositionMembers(
 
 export async function resolveLatestSnapshotForResourceType(
   db: HarbourReadableDb,
-  resourceType: SnapshotResourceType,
+  resourceType: ResourceType,
 ) {
   return (
     (await db
@@ -633,7 +637,7 @@ export async function resolveLatestSnapshotForResourceType(
 
 export async function resolveLatestSnapshotForResourceTypeExcludingId(
   db: HarbourReadableDb,
-  resourceType: SnapshotResourceType,
+  resourceType: ResourceType,
   snapshotId: string,
 ) {
   return (
@@ -660,7 +664,7 @@ export async function resolveLatestSnapshotForResourceTypeExcludingId(
 
 export async function resolveLatestPublishedSnapshotForResourceType(
   db: HarbourReadableDb,
-  resourceType: SnapshotResourceType,
+  resourceType: ResourceType,
 ) {
   return (
     (await db
@@ -685,7 +689,7 @@ export async function resolveLatestPublishedSnapshotForResourceType(
 
 export async function resolveLatestPublishedSnapshotForResourceTypeRegion(
   db: HarbourReadableDb,
-  resourceType: SnapshotResourceType,
+  resourceType: ResourceType,
   regionCode: RegionCode,
 ) {
   return (
@@ -718,7 +722,7 @@ export async function resolveLatestPublishedSnapshotForResourceTypeRegion(
 
 export async function ensureDraftSnapshotForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
-  resourceType: SnapshotResourceType,
+  resourceType: ResourceType,
   args: {
     cohortKey: string
     regionCode: string
@@ -785,7 +789,7 @@ export async function recordSnapshotAssemblyRun(
   args: {
     anchorCohortKey: string
     anchorReleaseId?: string | null
-    resourceType: SnapshotResourceType
+    resourceType: ResourceType
     selectionSummaryJson?: Record<string, unknown> | null
     snapshotId: string
   },
@@ -853,7 +857,7 @@ export async function recordSnapshotAssemblyRun(
 export async function resolveSnapshotForRelease(
   db: HarbourReadableDb,
   sourceReleaseId: string,
-  resourceType: SnapshotResourceType,
+  resourceType: ResourceType,
 ) {
   return (
     (await db
@@ -1068,7 +1072,7 @@ export async function ensureDraftReleaseSetForRelease(
 export async function resolveReleaseSetForRelease(
   db: HarbourReadableDb,
   releaseId: string,
-  type: SupportedType,
+  type: ResourceType,
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
 
@@ -1177,7 +1181,7 @@ export async function publishReleaseArtifacts(
   db: HarbourReadableDb & HarbourWritableDb,
   args: {
     carriedSnapshots: Array<{
-      resourceType: SnapshotResourceType
+      resourceType: ResourceType
       snapshotId: string
     }>
     currentRelease: Pick<DatasetRecord, 'releaseId'> | null
@@ -1775,10 +1779,56 @@ export async function listApiReleaseSetSnapshots(
     .all()
 }
 
+export async function listCurrentSnapshotCleanupCandidates(
+  db: HarbourReadableDb,
+  options: {
+    resourceType?: ResourceType
+    snapshotIds?: string[]
+  } = {},
+) {
+  const snapshotConditions = [ne(metaSnapshots.status, 'archived')]
+
+  if (options.resourceType) {
+    snapshotConditions.push(eq(metaSnapshots.resourceType, options.resourceType))
+  }
+
+  if (options.snapshotIds && options.snapshotIds.length > 0) {
+    snapshotConditions.push(inArray(metaSnapshots.id, options.snapshotIds))
+  }
+
+  const snapshots = await db
+    .select({
+      snapshotId: metaSnapshots.id,
+      resourceType: metaSnapshots.resourceType,
+    })
+    .from(metaSnapshots)
+    .where(and(...snapshotConditions))
+    .all()
+
+  if (snapshots.length === 0) {
+    return []
+  }
+
+  const protectedRows = await db
+    .select({
+      snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+    })
+    .from(metaApiReleaseSetSnapshots)
+    .innerJoin(
+      metaApiReleaseSets,
+      eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .where(ne(metaApiReleaseSets.status, 'archived'))
+    .all()
+  const protectedSnapshotIds = new Set(protectedRows.map(row => row.snapshotId))
+
+  return snapshots.filter(row => !protectedSnapshotIds.has(row.snapshotId))
+}
+
 export async function resolveActiveSnapshotForType(
   db: HarbourReadableDb,
   type: SupportedType,
-  resourceType: SnapshotResourceType,
+  resourceType: ResourceType,
 ) {
   const activeReleaseSet = await resolveActiveReleaseSetForType(db, type)
 
