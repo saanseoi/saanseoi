@@ -16,7 +16,7 @@ export const DatasetsQuerySchema = z
     cohortKey: z.string().optional(),
     theme: z.string().optional(),
     status: z.string().optional(),
-    limit: z.coerce.number().int().optional(),
+    limit: z.coerce.number().int().min(1).max(100).optional(),
   })
   .openapi('DatasetsQuery')
 

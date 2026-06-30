@@ -102,7 +102,7 @@ export const ApiVersionMetadataSchema = z
       examples: ['api-divisions-v0.1'],
     }),
     apiReleaseSet: z.string().openapi({
-      examples: ['data-hk-divisions-2026-04-15.0-0'],
+      examples: ['data-hk-divisions-2026-04-15.0'],
     }),
     schemaVersion: z
       .string()

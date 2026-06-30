@@ -30,7 +30,10 @@ const DivisionAttributesSchema = z
     subtype: z.string().nullable().optional(),
     divisionClass: z.string().nullable().optional(),
     geometry: z.object({}).loose().nullable().optional(),
-    bbox: z.object({}).loose().nullable().optional(),
+    bbox: z
+      .tuple([z.number(), z.number(), z.number(), z.number()])
+      .nullable()
+      .optional(),
     population: z.number().int().nullable().optional(),
     wikidata: z.string().nullable().optional(),
     i18n: z
