@@ -6,41 +6,48 @@ import {
   resetFailedDataset,
   updateDatasetStatus,
   upsertIngestRunStatus,
-} from '../db/meta-repository'
+} from '../db/metaRepository'
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
 import type { ReleaseStatus } from '@repo/db'
-import type {
-  DatasetRecord,
-  ParquetInspection,
-  PreparedUploadResult,
-  RegisterUploadOptions,
-  RegisterUploadResult,
-  RegionCode,
-  SupportedTheme,
-  SupportedType,
-  UploadPlan,
+import {
+  resourceTypes,
+  resourceThemes,
+  type DatasetRecord,
+  type ParquetInspection,
+  type PreparedUploadResult,
+  type RegisterUploadOptions,
+  type RegisterUploadResult,
+  type RegionCode,
+  type ResourceTheme,
+  type ResourceType,
+  type UploadPlan,
 } from '../../types'
 
-const TYPE_ALIASES: Record<string, SupportedType> = {
+const TYPE_ALIASES: Record<string, ResourceType> = {
   address: 'address',
   addresses: 'address',
   division: 'division',
   divisions: 'division',
+  street: 'street',
+  streets: 'street',
   place: 'place',
   places: 'place',
 }
 
-const TYPE_THEME_MAP: Record<SupportedType, SupportedTheme> = {
+const TYPE_THEME_MAP: Record<ResourceType, ResourceTheme> = {
   address: 'addresses',
   division: 'divisions',
+  street: 'streets',
   place: 'places',
 }
 
-const THEME_ALIASES: Record<string, SupportedTheme> = {
+const THEME_ALIASES: Record<string, ResourceTheme> = {
   address: 'addresses',
   addresses: 'addresses',
   division: 'divisions',
   divisions: 'divisions',
+  street: 'streets',
+  streets: 'streets',
   place: 'places',
   places: 'places',
 }
@@ -86,6 +93,12 @@ function fileNameFromPath(filePath: string) {
   return segments.at(-1) ?? filePath
 }
 
+function directoryPathFromPath(filePath: string) {
+  const segments = splitPathSegments(filePath)
+
+  return segments.slice(0, -1).join('/')
+}
+
 function splitFileNameParts(fileName: string) {
   const trimmed = fileName.trim()
   const lastDotIndex = trimmed.lastIndexOf('.')
@@ -113,7 +126,7 @@ function normalizeSource(candidate?: string | null) {
 
 function normalizeUploadFileName(
   filePath: string,
-  type: SupportedType,
+  type: ResourceType,
   providedOriginalFileName?: string,
 ) {
   const originalFileName =
@@ -134,11 +147,11 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-function getDatasetCodeSubType(_source: string, _type: SupportedType) {
+function getDatasetCodeSubType(_source: string, _type: ResourceType) {
   return null
 }
 
-function buildDatasetCode(regionCode: RegionCode, source: string, type: SupportedType) {
+function buildDatasetCode(regionCode: RegionCode, source: string, type: ResourceType) {
   const subType = getDatasetCodeSubType(source, type)
 
   return `ds-${regionCode}-${source}-${type}${subType ? `-${subType}` : ''}`
@@ -147,7 +160,7 @@ function buildDatasetCode(regionCode: RegionCode, source: string, type: Supporte
 function formatDatasetIdentifier(datasetCode?: string, datasetId?: string) {
   if (datasetCode?.startsWith('ds-')) {
     const match = datasetCode.match(
-      /^ds-([a-z0-9]+)-(.+)-(address|division|place)(?:-(.+))?$/i,
+      /^ds-([a-z0-9]+)-(.+)-(address|division|place|street)(?:-(.+))?$/i,
     )
 
     if (match) {
@@ -175,7 +188,7 @@ function matchSourceCandidate(candidate: string) {
   return null
 }
 
-function matchTypeCandidate(candidate: string): SupportedType | null {
+function matchTypeCandidate(candidate: string): ResourceType | null {
   const normalized = normalizeToken(candidate)
 
   for (const [token, type] of Object.entries(TYPE_ALIASES)) {
@@ -189,7 +202,7 @@ function matchTypeCandidate(candidate: string): SupportedType | null {
   return null
 }
 
-function matchThemeCandidate(candidate: string): SupportedTheme | null {
+function matchThemeCandidate(candidate: string): ResourceTheme | null {
   const normalized = normalizeToken(candidate)
 
   for (const [token, theme] of Object.entries(THEME_ALIASES)) {
@@ -248,7 +261,7 @@ export function inferSourceVersionFromFilename(filePath: string) {
   return match[0]
 }
 
-export function inferThemeFromPath(filePath: string): SupportedTheme | null {
+export function inferThemeFromPath(filePath: string): ResourceTheme | null {
   const pathSegments = splitPathSegments(filePath)
 
   for (let index = pathSegments.length - 1; index >= 0; index -= 1) {
@@ -268,7 +281,7 @@ export function inferThemeFromPath(filePath: string): SupportedTheme | null {
   return null
 }
 
-export function inferTypeFromPath(filePath: string): SupportedType | null {
+export function inferTypeFromPath(filePath: string): ResourceType | null {
   const pathSegments = splitPathSegments(filePath)
 
   for (let index = pathSegments.length - 1; index >= 0; index -= 1) {
@@ -288,11 +301,11 @@ export function inferTypeFromPath(filePath: string): SupportedType | null {
   return null
 }
 
-export function inferThemeFromFilename(filePath: string): SupportedTheme | null {
+export function inferThemeFromFilename(filePath: string): ResourceTheme | null {
   return matchThemeCandidate(fileNameFromPath(filePath))
 }
 
-export function inferTypeFromFilename(filePath: string): SupportedType | null {
+export function inferTypeFromFilename(filePath: string): ResourceType | null {
   return matchTypeCandidate(fileNameFromPath(filePath))
 }
 
@@ -383,7 +396,7 @@ export function inferRegionFromFilename(filePath: string): RegionCode | null {
   return matchRegionCandidate(fileNameFromPath(filePath))
 }
 
-function normalizeTheme(candidate?: string | null): SupportedTheme | null {
+function normalizeTheme(candidate?: string | null): ResourceTheme | null {
   if (!candidate) {
     return null
   }
@@ -391,7 +404,7 @@ function normalizeTheme(candidate?: string | null): SupportedTheme | null {
   return THEME_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
-function normalizeType(candidate?: string | null): SupportedType | null {
+function normalizeType(candidate?: string | null): ResourceType | null {
   if (!candidate) {
     return null
   }
@@ -410,7 +423,7 @@ function normalizeRegion(candidate?: string | null): RegionCode | null {
 function inferThemeFromParquet(inspection: ParquetInspection) {
   const distinctThemes = inspection.distinctThemeValues
     .map(value => normalizeTheme(value))
-    .filter((value): value is SupportedTheme => value !== null)
+    .filter((value): value is ResourceTheme => value !== null)
 
   const uniqueThemes = [...new Set(distinctThemes)]
 
@@ -424,7 +437,7 @@ function inferThemeFromParquet(inspection: ParquetInspection) {
 function inferTypeFromParquet(inspection: ParquetInspection) {
   const distinctTypes = inspection.distinctTypeValues
     .map(value => normalizeType(value))
-    .filter((value): value is SupportedType => value !== null)
+    .filter((value): value is ResourceType => value !== null)
 
   const uniqueTypes = [...new Set(distinctTypes)]
 
@@ -517,7 +530,7 @@ function ensureChronologicalUpload(
     return
   }
 
-  if (sourceVersion <= latestDataset.sourceVersion) {
+  if (compareSourceVersion(sourceVersion, latestDataset.sourceVersion) <= 0) {
     throw new Error(
       [
         `Release ${releaseCode} is not uploadable.\n\n`,
@@ -623,7 +636,7 @@ function resolveUploadPlan(
 
   if (!type) {
     throw new Error(
-      'Could not determine a supported type. Pass `--type place|division|address` or use a recognizable path/file name.',
+      `Could not determine a supported type. Pass \`--type ${resourceTypes.join('|')}\` or use a recognizable path/file name.`,
     )
   }
 
@@ -635,7 +648,7 @@ function resolveUploadPlan(
 
   if (!theme) {
     throw new Error(
-      'Could not determine a supported theme. Pass `--theme addresses|places|divisions` or use a recognizable path/file name.',
+      `Could not determine a supported theme. Pass \`--theme ${resourceThemes.join('|')}\` or use a recognizable path/file name.`,
     )
   }
 
@@ -671,7 +684,7 @@ function resolveUploadPlan(
   }
 
   const sourceFromFlag = normalizeSource(options.source)
-  const sourceFromPath = inferSourceFromPath(options.filePath)
+  const sourceFromPath = inferSourceFromPath(directoryPathFromPath(options.filePath))
   const sourceFromFilename = inferSourceFromFilename(options.filePath)
   const source = sourceFromFlag ?? sourceFromPath ?? sourceFromFilename
 
@@ -680,14 +693,20 @@ function resolveUploadPlan(
       'Could not determine source. Pass `--source overture|hkgov-als` or use a recognizable path/file name.',
     )
   }
+  const sourceVersionFromPath = inferSourceVersionFromPath(
+    directoryPathFromPath(options.filePath),
+  )
+  const sourceVersionFromFilename = inferSourceVersionFromFilename(options.filePath)
   const sourceVersion =
-    options.sourceVersion ??
-    inferSourceVersionFromPath(options.filePath) ??
-    inferSourceVersionFromFilename(options.filePath)
+    options.sourceVersion ?? sourceVersionFromPath ?? sourceVersionFromFilename
+  const cohortKeyFromPath = inferCohortKeyFromPath(
+    directoryPathFromPath(options.filePath),
+  )
+  const cohortKeyFromFilename = inferCohortKeyFromFilename(options.filePath)
   const cohortKey =
     normalizeCohortKey(options.cohortKey) ??
-    inferCohortKeyFromPath(options.filePath) ??
-    inferCohortKeyFromFilename(options.filePath) ??
+    cohortKeyFromPath ??
+    cohortKeyFromFilename ??
     sourceVersion
 
   if (!cohortKey) {
@@ -726,17 +745,17 @@ function resolveUploadPlan(
       regionCode: regionFromFlag ? 'flag' : regionFromPath ? 'path' : 'parquet',
       cohortKey: options.cohortKey
         ? 'flag'
-        : inferCohortKeyFromPath(options.filePath)
+        : cohortKeyFromPath
           ? 'path'
-          : inferCohortKeyFromFilename(options.filePath)
+          : cohortKeyFromFilename
             ? 'filename'
             : 'sourceVersion',
       source: sourceFromFlag ? 'flag' : sourceFromPath ? 'path' : 'filename',
       sourceVersion: options.sourceVersion
         ? 'flag'
-        : inferSourceVersionFromPath(options.filePath)
+        : sourceVersionFromPath
           ? 'path'
-          : inferSourceVersionFromFilename(options.filePath)
+          : sourceVersionFromFilename
             ? 'filename'
             : 'cohortKey',
     },

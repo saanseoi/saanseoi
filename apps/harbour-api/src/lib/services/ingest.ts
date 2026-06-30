@@ -1,5 +1,5 @@
 import { createRawObjectKey, planUpload, registerUpload } from '@repo/core/upload'
-import { inspectParquet } from '@repo/core/parquet-inspector'
+import { inspectParquet } from '@repo/core/parquetInspector'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {

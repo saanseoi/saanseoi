@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   resolveDivisionLookupSource,
   resolveDivisionSnapshotSource,
-} from './hkgov-als.ts'
+} from './hkgovAls.ts'
 
 describe('resolveDivisionLookupSource', () => {
   test('uses the shared local D1 sqlite path for dev by default', () => {

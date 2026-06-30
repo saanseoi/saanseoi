@@ -1,6 +1,6 @@
 <script lang="ts">
-import HeroContent from './components/hero-content.svelte'
-import HeroScene from './components/hero-scene.svelte'
+import HeroContent from './components/heroContent.svelte'
+import HeroScene from './components/heroScene.svelte'
 </script>
 
 <section class="relative overflow-hidden">

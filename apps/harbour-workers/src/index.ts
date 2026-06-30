@@ -11,7 +11,7 @@ import type { HarbourJobMessage, SnapshotCleanupMessage } from '@repo/core'
 import { createHarbourClient } from './lib/harbourClient'
 import { withPrimarySession } from './lib/d1'
 import { processDatasetMessage } from './lib/worker'
-import { cleanupCurrentSnapshots } from './lib/services/snapshot-cleanup'
+import { cleanupCurrentSnapshots } from './lib/services/snapshotCleanup'
 
 type Env = Partial<MultiDbBindings> & {
   HARBOUR_API_KEY: string

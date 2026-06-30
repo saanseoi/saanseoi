@@ -8,7 +8,7 @@ import {
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
   waitForDatasetRecord,
-} from '@repo/core/db/meta-repository'
+} from '@repo/core/db/metaRepository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   AddressI18nPayload,
