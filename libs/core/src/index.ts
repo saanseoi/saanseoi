@@ -1,6 +1,7 @@
 export * from './types'
 export * from './urls'
 export * from './releases'
+export * from './sourceSchemas'
 export * from './lib/apiLocales'
 export * from './lib/parquetInspector'
 export * from './lib/parquetInspectorNode'

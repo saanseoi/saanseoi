@@ -9,6 +9,7 @@ import {
 } from '../db/metaRepository'
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
 import type { ReleaseStatus } from '@repo/db'
+import { assertKnownSafeSourceRelease } from '../../sourceSchemas'
 import {
   resourceTypes,
   resourceThemes,
@@ -788,8 +789,14 @@ export async function prepareUpload(
   inspection?: ParquetInspection,
 ): Promise<PreparedUploadResult> {
   const resolvedInspection = getRequiredInspection(options, inspection)
+  const preparedUpload = resolveUploadPlan(options, resolvedInspection)
 
-  return resolveUploadPlan(options, resolvedInspection)
+  await assertKnownSafeSourceRelease({
+    source: preparedUpload.plan.source,
+    sourceVersion: preparedUpload.plan.sourceVersion,
+  })
+
+  return preparedUpload
 }
 
 export async function planUpload(
@@ -799,6 +806,12 @@ export async function planUpload(
 ) {
   const resolvedInspection = getRequiredInspection(options, inspection)
   const preparedUpload = resolveUploadPlan(options, resolvedInspection)
+
+  await assertKnownSafeSourceRelease({
+    source: preparedUpload.plan.source,
+    sourceVersion: preparedUpload.plan.sourceVersion,
+  })
+
   const {
     plan: { releaseCode, regionCode, source, sourceVersion, type },
   } = preparedUpload
