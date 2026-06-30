@@ -16,6 +16,7 @@ import { cleanupCurrentSnapshots } from './lib/services/snapshotCleanup'
 type Env = Partial<MultiDbBindings> & {
   HARBOUR_API_KEY: string
   HARBOUR_BASE_URL: string
+  JOB_QUEUE?: Queue<HarbourJobMessage>
   R2_RAW: R2Bucket
 }
 
@@ -153,7 +154,7 @@ export function createQueueHandler(
 
         const { binding: sourceBinding } = sourceShard
 
-        await processDataset(
+        const result = await processDataset(
           harbourClient,
           metaDb,
           currentDb,
@@ -162,6 +163,14 @@ export function createQueueHandler(
           body,
           sourceBinding ? createSourceDb(withPrimarySession(sourceBinding)) : undefined,
         )
+
+        if ('nextMessage' in result && result.nextMessage) {
+          if (!env.JOB_QUEUE) {
+            throw new Error('Missing JOB_QUEUE binding for address chunk chaining.')
+          }
+
+          await env.JOB_QUEUE.send(result.nextMessage)
+        }
         message.ack()
       } catch (error) {
         console.error('harbour-workers dataset processing failed', {

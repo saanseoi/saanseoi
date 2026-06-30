@@ -80,12 +80,19 @@ export async function* readParquetObjectsInBatches(
     columns?: string[]
     onMetadata?: (metadata: ParquetBatchReadMetadata) => void
     onReadWindow?: (diagnostic: ParquetReadWindowDiagnostic) => void
+    rowEnd?: number
+    rowStart?: number
     readRowWindowSize?: number
     useOffsetIndex?: boolean
   } = {},
 ): AsyncGenerator<Record<string, unknown>[]> {
   const metadata = await parquetMetadataAsync(file)
   const rowCount = Number(metadata.num_rows)
+  const startRow = Math.max(0, Math.floor(options.rowStart ?? 0))
+  const endRow = Math.min(
+    rowCount,
+    Math.max(startRow, Math.floor(options.rowEnd ?? rowCount)),
+  )
   const readRowWindowSize = Math.max(
     batchSize,
     options.readRowWindowSize ?? DEFAULT_PARQUET_READ_ROW_WINDOW_SIZE,
@@ -102,8 +109,8 @@ export async function* readParquetObjectsInBatches(
     useOffsetIndex,
   })
 
-  for (let rowStart = 0; rowStart < rowCount; rowStart += readRowWindowSize) {
-    const rowEnd = Math.min(rowStart + readRowWindowSize, rowCount)
+  for (let rowStart = startRow; rowStart < endRow; rowStart += readRowWindowSize) {
+    const rowEnd = Math.min(rowStart + readRowWindowSize, endRow)
     const rows = await parquetReadObjects({
       file,
       metadata,

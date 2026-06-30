@@ -47,6 +47,8 @@ export type HarbourClient = {
   ): Promise<void>
 }
 
+export type DatasetProcessingResult = ProcessDatasetResult | ProcessAddressDatasetResult
+
 /**
  * Processes a dataset message end to end, including extraction, publishing,
  * and phase status reporting.
@@ -64,7 +66,7 @@ export function createProcessDatasetMessage(
     bucket: HarbourWorkerBucket,
     message: DatasetProcessingMessage,
     sourceDb?: SourceDatabase,
-  ): Promise<ProcessDatasetResult | ProcessAddressDatasetResult> {
+  ): Promise<DatasetProcessingResult> {
     const releaseId = message.releaseId ?? message.datasetId
     const releaseCode = message.releaseCode
     if (!releaseId) {
@@ -81,7 +83,7 @@ export function createProcessDatasetMessage(
         undefined,
         releaseCode,
       )
-      let result: ProcessDatasetResult | ProcessAddressDatasetResult
+      let result: DatasetProcessingResult
 
       if (message.type === 'division') {
         const extractStartedAt = Date.now()
@@ -177,6 +179,26 @@ export function createProcessDatasetMessage(
             )
           },
         )
+
+        if ('nextMessage' in result && result.nextMessage) {
+          const durationMs = Date.now() - processStartedAt
+          console.info(
+            JSON.stringify({
+              datasetId: message.datasetId,
+              messageType: message.type,
+              nextRowEnd: result.nextMessage.rowEnd,
+              nextRowStart: result.nextMessage.rowStart,
+              phase: 'processDataset',
+              processedRows: result.processedRows,
+              releaseId,
+              source: message.source,
+              sourceVersion: message.sourceVersion,
+              status: 'chunkCompleted',
+              durationMs,
+            }),
+          )
+          return result
+        }
 
         await harbourClient.stageCompleted(
           releaseId,
