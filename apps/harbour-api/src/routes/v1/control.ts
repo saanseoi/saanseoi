@@ -1,6 +1,7 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
 import {
+  ControlRequestError,
   handlePublishDataset,
   handleScheduleSnapshotCleanup,
   handleStageCompleted,
@@ -44,6 +45,14 @@ const baseResponses = {
       },
     },
     description: 'Control operation temporarily unavailable.',
+  },
+  500: {
+    content: {
+      'application/json': {
+        schema: ErrorResponseSchema,
+      },
+    },
+    description: 'Control operation failed unexpectedly.',
   },
   422: ValidationErrorOpenAPIResponse,
 } as const
@@ -155,15 +164,32 @@ const cleanupSnapshotsRouteConfig = createRoute({
       },
       description: 'Snapshot cleanup scheduling is temporarily unavailable.',
     },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Snapshot cleanup scheduling failed unexpectedly.',
+    },
     422: ValidationErrorOpenAPIResponse,
   },
 })
 
 function createControlError(error: unknown) {
-  const httpStatus = isTransientControlError(error) ? 503 : 400
+  const httpStatus = isTransientControlError(error)
+    ? 503
+    : error instanceof ControlRequestError
+      ? 400
+      : 500
   return {
     httpStatus,
-    error: httpStatus === 503 ? 'control_unavailable' : 'control_failed',
+    error:
+      httpStatus === 503
+        ? 'control_unavailable'
+        : httpStatus === 400
+          ? 'control_failed'
+          : 'internal_error',
     message: error instanceof Error ? error.message : String(error),
   } as const
 }
