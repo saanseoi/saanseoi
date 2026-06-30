@@ -117,10 +117,12 @@ const signingEnv: UploadSigningEnv = {
   R2_RAW_BUCKET_NAME: 'ss-raw-preview',
   R2_RAW_SECRET_ACCESS_KEY: 'test-secret-key',
 }
-const queuedMessages: Array<Record<string, string>> = []
+type QueuedMessage = Parameters<DatasetProcessingQueue['send']>[0]
+
+const queuedMessages: QueuedMessage[] = []
 const queue: DatasetProcessingQueue = {
   async send(message) {
-    queuedMessages.push(message as unknown as Record<string, string>)
+    queuedMessages.push(message)
   },
 }
 

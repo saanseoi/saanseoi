@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 
+import divisionFixture20260218 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2026-02-18.0.json'
 import {
   insertFixtureRelease,
   loadMigrationSql,
@@ -29,6 +30,21 @@ function createTempDir() {
   const dir = mkdtempSync(join(tmpdir(), 'harbour-control-test-'))
   tempDirs.push(dir)
   return dir
+}
+
+function sortProvenanceRows(
+  rows: Array<{
+    apiField: string
+    sourceFieldPath: string
+  }>,
+) {
+  return rows
+    .slice()
+    .sort(
+      (left, right) =>
+        left.apiField.localeCompare(right.apiField) ||
+        left.sourceFieldPath.localeCompare(right.sourceFieldPath),
+    )
 }
 
 function initDb(dbPath: string) {
@@ -588,30 +604,13 @@ describe('control service', () => {
         revocationReason: null,
       },
     ])
-    expect(provenanceRows.length).toBeGreaterThan(20)
-    expect(provenanceRows).toEqual(
-      expect.arrayContaining([
-        {
-          apiField: 'division.attributes.divisionType',
-          sourceFieldPath: 'subtype',
-        },
-        {
-          apiField: 'division.attributes.i18n.en.name',
-          sourceFieldPath: 'names.common.en',
-        },
-        {
-          apiField: 'division.attributes.i18n.zh-hant.name',
-          sourceFieldPath: 'names.common.zh-hk',
-        },
-        {
-          apiField: 'division.relationships.parent',
-          sourceFieldPath: 'parent_division_id',
-        },
-        {
-          apiField: 'division.id',
-          sourceFieldPath: 'id',
-        },
-      ]),
+    expect(sortProvenanceRows(provenanceRows)).toEqual(
+      sortProvenanceRows(
+        divisionFixture20260218.fields.map(field => ({
+          apiField: field.apiField,
+          sourceFieldPath: field.sourceFieldPath,
+        })),
+      ),
     )
   })
 
