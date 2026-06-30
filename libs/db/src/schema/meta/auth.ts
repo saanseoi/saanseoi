@@ -1,7 +1,12 @@
 import { sql } from 'drizzle-orm'
 import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-export const substackStatuses = ['pending', 'subscribed', 'unsubscribed'] as const
+export const substackStatuses = [
+  'failed',
+  'pending',
+  'subscribed',
+  'unsubscribed',
+] as const
 
 export type SubstackStatus = (typeof substackStatuses)[number]
 
