@@ -58,113 +58,121 @@ export type HarbourJobQueue = {
 }
 
 const DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS = 30
+const TRANSIENT_CONTROL_RETRY_LIMIT = 4
+const TRANSIENT_CONTROL_RETRY_DELAY_MS = 50
 
 export async function handleStageRunning(
   db: HarbourReadableDb & HarbourWritableDb,
   request: StageRequest,
 ): Promise<ControlResult> {
-  const dataset = await requireDataset(db, request)
-  const now = new Date().toISOString()
+  return runWithTransientControlRetry(async () => {
+    const dataset = await requireDataset(db, request)
+    const now = new Date().toISOString()
 
-  if (request.phase === 'processDataset') {
-    await updateDatasetStatus(db, dataset.releaseId, 'processing')
-  }
+    if (request.phase === 'processDataset') {
+      await updateDatasetStatus(db, dataset.releaseId, 'processing')
+    }
 
-  await ensureIngestRunStarted(
-    db,
-    dataset.releaseId,
-    request.phase,
-    request.stats ?? null,
-    now,
-  )
+    await ensureIngestRunStarted(
+      db,
+      dataset.releaseId,
+      request.phase,
+      request.stats ?? null,
+      now,
+    )
 
-  return {
-    datasetId: dataset.releaseCode,
-    releaseCode: dataset.releaseCode,
-    releaseId: dataset.releaseId,
-    phase: request.phase,
-    status: 'running',
-  }
+    return {
+      datasetId: dataset.releaseCode,
+      releaseCode: dataset.releaseCode,
+      releaseId: dataset.releaseId,
+      phase: request.phase,
+      status: 'running',
+    }
+  })
 }
 
 export async function handleStageCompleted(
   db: HarbourReadableDb & HarbourWritableDb,
   request: StageRequest,
 ): Promise<ControlResult> {
-  const dataset = await requireDataset(db, request)
-  const now = new Date().toISOString()
+  return runWithTransientControlRetry(async () => {
+    const dataset = await requireDataset(db, request)
+    const now = new Date().toISOString()
 
-  const updatedExistingRun = await updateLatestOpenIngestRun(
-    db,
-    dataset.releaseId,
-    request.phase,
-    'completed',
-    now,
-    request.stats ?? null,
-  )
-
-  if (!updatedExistingRun) {
-    await upsertIngestRunStatus(
+    const updatedExistingRun = await updateLatestOpenIngestRun(
       db,
       dataset.releaseId,
       request.phase,
       'completed',
       now,
-      now,
       request.stats ?? null,
     )
-  }
 
-  return {
-    datasetId: dataset.releaseCode,
-    releaseCode: dataset.releaseCode,
-    releaseId: dataset.releaseId,
-    phase: request.phase,
-    status: 'completed',
-  }
+    if (!updatedExistingRun) {
+      await upsertIngestRunStatus(
+        db,
+        dataset.releaseId,
+        request.phase,
+        'completed',
+        now,
+        now,
+        request.stats ?? null,
+      )
+    }
+
+    return {
+      datasetId: dataset.releaseCode,
+      releaseCode: dataset.releaseCode,
+      releaseId: dataset.releaseId,
+      phase: request.phase,
+      status: 'completed',
+    }
+  })
 }
 
 export async function handleStageFailed(
   db: HarbourReadableDb & HarbourWritableDb,
   request: StageRequest,
 ): Promise<ControlResult> {
-  const dataset = await requireDataset(db, request)
-  const now = new Date().toISOString()
-  const errorJson = stringifyOptional({
-    message: request.error ?? 'Unknown processing error.',
-  })
+  return runWithTransientControlRetry(async () => {
+    const dataset = await requireDataset(db, request)
+    const now = new Date().toISOString()
+    const errorJson = stringifyOptional({
+      message: request.error ?? 'Unknown processing error.',
+    })
 
-  await updateDatasetStatus(db, dataset.releaseId, 'failed')
-  const updatedExistingRun = await updateLatestOpenIngestRun(
-    db,
-    dataset.releaseId,
-    request.phase,
-    'error',
-    now,
-    request.stats ?? null,
-    errorJson,
-  )
-
-  if (!updatedExistingRun) {
-    await upsertIngestRunStatus(
+    await updateDatasetStatus(db, dataset.releaseId, 'failed')
+    const updatedExistingRun = await updateLatestOpenIngestRun(
       db,
       dataset.releaseId,
       request.phase,
       'error',
       now,
-      now,
       request.stats ?? null,
       errorJson,
     )
-  }
 
-  return {
-    datasetId: dataset.releaseCode,
-    releaseCode: dataset.releaseCode,
-    releaseId: dataset.releaseId,
-    phase: request.phase,
-    status: 'error',
-  }
+    if (!updatedExistingRun) {
+      await upsertIngestRunStatus(
+        db,
+        dataset.releaseId,
+        request.phase,
+        'error',
+        now,
+        now,
+        request.stats ?? null,
+        errorJson,
+      )
+    }
+
+    return {
+      datasetId: dataset.releaseCode,
+      releaseCode: dataset.releaseCode,
+      releaseId: dataset.releaseId,
+      phase: request.phase,
+      status: 'error',
+    }
+  })
 }
 
 export async function handlePublishDataset(
@@ -172,81 +180,83 @@ export async function handlePublishDataset(
   request: PublishRequest,
   cleanupQueue?: HarbourJobQueue,
 ): Promise<ControlResult> {
-  const dataset = await requireDataset(db, request)
-  const publishedAt = new Date().toISOString()
-  const datasetType = dataset.type as ResourceType
-  const currentRelease = await getCurrentReleaseForDatasetId(
-    db,
-    dataset.datasetId,
-    dataset.releaseId,
-  )
-  const releaseSet =
-    (await resolveReleaseSetForRelease(db, dataset.releaseId, datasetType)) ??
-    (await ensureDraftReleaseSetForRelease(db, datasetType, dataset))
-  const snapshot = await resolveSnapshotForRelease(db, dataset.releaseId, datasetType)
-
-  if (!snapshot) {
-    throw new Error(
-      `Snapshot not found for ${dataset.releaseCode} (${datasetType}/${dataset.releaseId}).`,
+  return runWithTransientControlRetry(async () => {
+    const dataset = await requireDataset(db, request)
+    const publishedAt = new Date().toISOString()
+    const datasetType = dataset.type as ResourceType
+    const currentRelease = await getCurrentReleaseForDatasetId(
+      db,
+      dataset.datasetId,
+      dataset.releaseId,
     )
-  }
+    const releaseSet =
+      (await resolveReleaseSetForRelease(db, dataset.releaseId, datasetType)) ??
+      (await ensureDraftReleaseSetForRelease(db, datasetType, dataset))
+    const snapshot = await resolveSnapshotForRelease(db, dataset.releaseId, datasetType)
 
-  const activeReleaseSet = await resolveActiveReleaseSetForType(db, datasetType)
-  const carriedSnapshots: Array<{
-    resourceType: ResourceType
-    snapshotId: string
-  }> = []
+    if (!snapshot) {
+      throw new Error(
+        `Snapshot not found for ${dataset.releaseCode} (${datasetType}/${dataset.releaseId}).`,
+      )
+    }
 
-  if (activeReleaseSet && activeReleaseSet.id !== releaseSet.id) {
-    const activeSnapshots = await listApiReleaseSetSnapshots(db, activeReleaseSet.id)
+    const activeReleaseSet = await resolveActiveReleaseSetForType(db, datasetType)
+    const carriedSnapshots: Array<{
+      resourceType: ResourceType
+      snapshotId: string
+    }> = []
 
-    for (const activeSnapshot of activeSnapshots) {
-      if (activeSnapshot.snapshotResourceType === datasetType) {
-        continue
+    if (activeReleaseSet && activeReleaseSet.id !== releaseSet.id) {
+      const activeSnapshots = await listApiReleaseSetSnapshots(db, activeReleaseSet.id)
+
+      for (const activeSnapshot of activeSnapshots) {
+        if (activeSnapshot.snapshotResourceType === datasetType) {
+          continue
+        }
+
+        carriedSnapshots.push({
+          resourceType: activeSnapshot.snapshotResourceType,
+          snapshotId: activeSnapshot.snapshotId,
+        })
       }
-
-      carriedSnapshots.push({
-        resourceType: activeSnapshot.snapshotResourceType,
-        snapshotId: activeSnapshot.snapshotId,
-      })
     }
-  }
 
-  await publishReleaseArtifacts(db, {
-    carriedSnapshots,
-    currentRelease,
-    currentReleaseIsCorrected: currentRelease
-      ? isCorrectedRelease(currentRelease.sourceVersion, dataset.sourceVersion)
-      : false,
-    dataset,
-    publishedAt,
-    releaseSetId: releaseSet.id,
-    snapshotId: snapshot.id,
-    type: datasetType,
+    await publishReleaseArtifacts(db, {
+      carriedSnapshots,
+      currentRelease,
+      currentReleaseIsCorrected: currentRelease
+        ? isCorrectedRelease(currentRelease.sourceVersion, dataset.sourceVersion)
+        : false,
+      dataset,
+      publishedAt,
+      releaseSetId: releaseSet.id,
+      snapshotId: snapshot.id,
+      type: datasetType,
+    })
+
+    if (!request.skipSnapshotCleanup && cleanupQueue) {
+      try {
+        await scheduleCurrentSnapshotCleanup(db, cleanupQueue, {
+          delaySeconds: DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS,
+          resourceType: datasetType,
+        })
+      } catch (error) {
+        console.error('Failed to schedule current snapshot cleanup after publish', {
+          error: error instanceof Error ? error.message : String(error),
+          releaseId: dataset.releaseId,
+          type: datasetType,
+        })
+      }
+    }
+
+    return {
+      datasetId: dataset.releaseCode,
+      releaseCode: dataset.releaseCode,
+      releaseId: dataset.releaseId,
+      phase: null,
+      status: 'current',
+    }
   })
-
-  if (!request.skipSnapshotCleanup && cleanupQueue) {
-    try {
-      await scheduleCurrentSnapshotCleanup(db, cleanupQueue, {
-        delaySeconds: DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS,
-        resourceType: datasetType,
-      })
-    } catch (error) {
-      console.error('Failed to schedule current snapshot cleanup after publish', {
-        error: error instanceof Error ? error.message : String(error),
-        releaseId: dataset.releaseId,
-        type: datasetType,
-      })
-    }
-  }
-
-  return {
-    datasetId: dataset.releaseCode,
-    releaseCode: dataset.releaseCode,
-    releaseId: dataset.releaseId,
-    phase: null,
-    status: 'current',
-  }
 }
 
 export async function handleScheduleSnapshotCleanup(
@@ -327,6 +337,48 @@ async function requireDataset(
 
 function stringifyOptional(value?: Record<string, unknown>) {
   return value ? JSON.stringify(value) : null
+}
+
+export function isTransientControlError(error: unknown) {
+  return collectErrorMessages(error).some(message =>
+    /sqlite_busy|database is locked|failed to parse body as json, got: error: internal error|d1_error: .*internal error/i.test(
+      message,
+    ),
+  )
+}
+
+async function runWithTransientControlRetry<T>(
+  operation: () => Promise<T>,
+  attempt = 0,
+): Promise<T> {
+  try {
+    return await operation()
+  } catch (error) {
+    if (!isTransientControlError(error) || attempt >= TRANSIENT_CONTROL_RETRY_LIMIT) {
+      throw error
+    }
+
+    await sleep(TRANSIENT_CONTROL_RETRY_DELAY_MS * (attempt + 1))
+    return runWithTransientControlRetry(operation, attempt + 1)
+  }
+}
+
+function collectErrorMessages(error: unknown) {
+  const messages: string[] = []
+  let current: unknown = error
+  let depth = 0
+
+  while (current instanceof Error && depth < 8) {
+    messages.push(current.message)
+    current = current.cause
+    depth += 1
+  }
+
+  return messages
+}
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 function isCorrectedRelease(

@@ -20,6 +20,7 @@ const {
   handleStageCompleted,
   handleStageFailed,
   handleStageRunning,
+  isTransientControlError,
 } = await import('./control')
 
 const tempDirs: string[] = []
@@ -103,6 +104,19 @@ afterEach(() => {
 })
 
 describe('control service', () => {
+  test('classifies transient D1 lock and internal errors as retryable control failures', () => {
+    const lockedError = new Error('Failed query: select "runId" from "ingestRuns"')
+    lockedError.cause = new Error(
+      'D1_ERROR: Failed to parse body as JSON, got: Error: internal error; reference = abc123',
+    )
+
+    expect(isTransientControlError(new Error('SQLITE_BUSY: database is locked'))).toBe(
+      true,
+    )
+    expect(isTransientControlError(lockedError)).toBe(true)
+    expect(isTransientControlError(new Error('Dataset not found.'))).toBe(false)
+  })
+
   test('updates the running ingest run in place when a phase completes or fails', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-control.sqlite')
@@ -529,11 +543,24 @@ describe('control service', () => {
       revokedAt: number | null
       revocationReason: string | null
     }>
+    const publishedReleaseSet = sqlite
+      .query(
+        `
+          SELECT ars.id AS apiReleaseSetId
+          FROM apiReleaseSetSnapshots arss
+          INNER JOIN apiReleaseSets ars ON ars.id = arss.apiReleaseSetId
+          WHERE arss.snapshotId = ?
+          LIMIT 1
+        `,
+      )
+      .get('snapshot-release-overture-hk-2026-02-18.0-division') as {
+      apiReleaseSetId: string
+    }
     const provenanceRows = sqlite
       .query(
-        'SELECT apiField, sourceFieldPath FROM apiFieldProvenance afp INNER JOIN apiReleaseSets ars ON ars.id = afp.apiReleaseSetId ORDER BY apiField',
+        'SELECT apiField, sourceFieldPath FROM apiFieldProvenance WHERE apiReleaseSetId = ? ORDER BY apiField',
       )
-      .all() as Array<{
+      .all(publishedReleaseSet.apiReleaseSetId) as Array<{
       apiField: string
       sourceFieldPath: string
     }>
@@ -633,6 +660,9 @@ describe('control service', () => {
         createdAt: '2026-06-05T00:01:00.000Z',
         updatedAt: '2026-06-05T00:01:00.000Z',
       })
+      sqlite
+        .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
+        .run('1.17.0', releaseId)
       seedSnapshot(sqlite, {
         code: `ss-hk-${datasetType}-2026-06-24.0`,
         datasetId: `overture-hk-${datasetType}`,
@@ -656,16 +686,32 @@ describe('control service', () => {
         publishedAt: number | null
         status: string
       }
+      const publishedReleaseSet = sqlite
+        .query(
+          `
+            SELECT arss.apiReleaseSetId AS apiReleaseSetId, ss.datasetId AS datasetId
+            FROM apiReleaseSetSnapshots arss
+            INNER JOIN snapshotSources ss ON ss.snapshotId = arss.snapshotId
+            WHERE arss.snapshotId = ? AND ss.role = 'primary'
+            LIMIT 1
+          `,
+        )
+        .get(snapshotId) as {
+        apiReleaseSetId: string
+        datasetId: string
+      }
       const provenanceCount = sqlite
         .query(
           `
             SELECT COUNT(*) AS count
-            FROM apiFieldProvenance afp
-            INNER JOIN apiReleaseSetSnapshots arss ON arss.apiReleaseSetId = afp.apiReleaseSetId
-            WHERE arss.snapshotId = ?
+            FROM apiFieldProvenance
+            WHERE apiReleaseSetId = ?
+              AND sourceDatasetId = ?
           `,
         )
-        .get(snapshotId) as { count: number }
+        .get(publishedReleaseSet.apiReleaseSetId, publishedReleaseSet.datasetId) as {
+        count: number
+      }
 
       sqlite.close()
 
@@ -725,6 +771,9 @@ describe('control service', () => {
       createdAt: '2026-06-05T00:01:00.000Z',
       updatedAt: '2026-06-05T00:01:00.000Z',
     })
+    sqlite
+      .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
+      .run('1.16.0', 'release-overture-hk-2026-02-18.1-division')
     seedSnapshot(sqlite, {
       code: 'ss-hk-division-2026-02-18.1',
       releaseId: 'release-overture-hk-2026-02-18.1-division',
@@ -811,6 +860,9 @@ describe('control service', () => {
       createdAt: '2026-06-05T00:01:00.000Z',
       updatedAt: '2026-06-05T00:01:00.000Z',
     })
+    sqlite
+      .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
+      .run('1.17.0', 'release-overture-hk-2026-06-24.0-division')
     seedSnapshot(sqlite, {
       code: 'ss-hk-division-2026-06-24.0',
       releaseId: 'release-overture-hk-2026-06-24.0-division',
