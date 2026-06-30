@@ -15,6 +15,8 @@ type DatasetFilters = {
 }
 
 export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {}) {
+  const limit =
+    filters.limit === undefined ? 100 : Math.min(100, Math.max(1, filters.limit))
   const conditions = [
     filters.regionCode ? eq(metaDatasets.regionCode, filters.regionCode) : undefined,
     filters.cohortKey ? eq(metaReleases.cohortKey, filters.cohortKey) : undefined,
@@ -49,6 +51,6 @@ export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(desc(metaReleases.cohortKey), desc(metaReleases.ingestedAt))
-    .limit(filters.limit ?? 100)
+    .limit(limit)
     .all()
 }
