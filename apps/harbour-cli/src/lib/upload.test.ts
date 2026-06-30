@@ -10,6 +10,7 @@ import {
   finalizeExistingUpload,
   requeueExistingUpload,
   resolveRelease,
+  scheduleSnapshotCleanup,
 } from './upload.ts'
 
 import type { UploadTarget } from './options.ts'
@@ -297,6 +298,9 @@ describe('upload release action helpers', () => {
     )
 
     const signBody = JSON.parse(String(calls[0]?.init?.body)) as { force?: boolean }
+    const finalizeBody = JSON.parse(String(calls[2]?.init?.body)) as {
+      releaseId?: string
+    }
 
     expect(calls.map(call => call.url)).toEqual([
       'https://harbour.saanseoi.hk/v1/signUpload',
@@ -304,6 +308,150 @@ describe('upload release action helpers', () => {
       'https://harbour.saanseoi.hk/v1/finalizeUpload',
     ])
     expect(signBody.force).toBe(true)
+    expect(finalizeBody).toEqual({
+      releaseId: releaseRow.releaseId,
+    })
+  })
+
+  test('passes skip cleanup through remote signed uploads', async () => {
+    const calls: Array<{ init?: RequestInit; url: string }> = []
+    const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
+    const filePath = join(tempDir, 'division.parquet')
+    tempDirs.push(tempDir)
+    writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async (input, init) => {
+      const url = String(input)
+      calls.push({ init, url })
+
+      if (url === 'https://harbour.saanseoi.hk/v1/signUpload') {
+        return new Response(
+          JSON.stringify({
+            datasetCode: releaseRow.datasetCode,
+            datasetId: releaseRow.datasetId,
+            expiresAt: '2026-06-27T00:15:00.000Z',
+            rawObjectKey: releaseRow.rawObjectKey,
+            releaseCode: releaseRow.releaseCode,
+            releaseId: releaseRow.releaseId,
+            status: 'uploading',
+            uploadHeaders: {
+              'content-type': 'application/octet-stream',
+            },
+            uploadMethod: 'PUT',
+            uploadUrl: 'https://r2.example/upload',
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      if (url === 'https://r2.example/upload') {
+        return new Response(null, { status: 200 })
+      }
+
+      if (url === 'https://harbour.saanseoi.hk/v1/finalizeUpload') {
+        return new Response(
+          JSON.stringify({ releaseId: releaseRow.releaseId, status: 'staged' }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`)
+    }) as typeof fetch
+
+    await dispatchUpload(
+      target,
+      {
+        filePath,
+      } as never,
+      {
+        inspection: {
+          rowCount: 1810,
+          schema: [],
+        },
+        plan: {
+          datasetCode: 'hk-division',
+          fileName: 'division.parquet',
+          regionCode: 'hk',
+          releaseCode: releaseRow.releaseCode,
+          cohortKey: '2025-09',
+          source: 'overture',
+          sourceVersion: '2025-09-24.0',
+          theme: 'divisions',
+          type: 'division',
+        },
+      } as never,
+      'schema-version-1',
+      {
+        skipSnapshotCleanup: true,
+      },
+    )
+
+    const signBody = JSON.parse(String(calls[0]?.init?.body)) as {
+      skipSnapshotCleanup?: boolean
+    }
+    const finalizeBody = JSON.parse(String(calls[2]?.init?.body)) as {
+      skipSnapshotCleanup?: boolean
+    }
+
+    expect(signBody.skipSnapshotCleanup).toBe(true)
+    expect(finalizeBody.skipSnapshotCleanup).toBe(true)
+  })
+
+  test('schedules snapshot cleanup through Harbour control API', async () => {
+    const calls: Array<{ init?: RequestInit; url: string }> = []
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async (input, init) => {
+      const url = String(input)
+      calls.push({ init, url })
+
+      if (url === 'https://harbour.saanseoi.hk/v1/control/cleanupSnapshots') {
+        return new Response(
+          JSON.stringify({
+            candidateCount: 1,
+            delaySeconds: 30,
+            dryRun: false,
+            snapshotIds: ['1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70'],
+            status: 'queued',
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`)
+    }) as typeof fetch
+
+    const result = await scheduleSnapshotCleanup(target, {
+      delaySeconds: 30,
+      resourceType: 'division',
+      snapshotIds: ['1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70'],
+    })
+
+    expect(result.status).toBe('queued')
+    expect(calls).toHaveLength(1)
+    expect(calls[0]?.init?.body).toBe(
+      JSON.stringify({
+        delaySeconds: 30,
+        resourceType: 'division',
+        snapshotIds: ['1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70'],
+      }),
+    )
   })
 
   test('explains when a forced remote upload is rejected by an old API deployment', async () => {
