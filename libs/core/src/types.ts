@@ -68,8 +68,8 @@ export type UploadPlan = {
   rowCount: number
   schemaFingerprint: string
   inferredFrom: {
-    theme: 'path' | 'parquet' | 'flag'
-    type: 'path' | 'parquet' | 'flag'
+    theme: 'path' | 'filename' | 'parquet' | 'flag'
+    type: 'path' | 'filename' | 'parquet' | 'flag'
     regionCode: 'path' | 'parquet' | 'flag'
     cohortKey: 'path' | 'filename' | 'flag' | 'sourceVersion'
     source: 'flag' | 'path' | 'filename'

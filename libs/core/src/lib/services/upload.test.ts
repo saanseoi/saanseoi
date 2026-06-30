@@ -219,7 +219,7 @@ describe('upload', () => {
     expect(inferCohortKeyFromPath(overtureFixturePath)).toBe('2025-09-24.0')
   })
 
-  test('uses the parent directory, not the filename, for upload type inference', async () => {
+  test('prefers the filename over the parent directory for upload type inference', async () => {
     const tempDir = createTempDir()
     const filePath = join(
       tempDir,
@@ -231,13 +231,15 @@ describe('upload', () => {
 
     const planned = await prepareUpload({
       filePath,
-      inspection: fixtureInspection,
+      inspection: addressFixtureInspection,
       source: 'overture',
       sourceVersion: '2025-09-24.0',
     })
 
-    expect(planned.plan.type).toBe('division')
-    expect(planned.plan.theme).toBe('divisions')
+    expect(planned.plan.type).toBe('address')
+    expect(planned.plan.theme).toBe('addresses')
+    expect(planned.plan.inferredFrom.type).toBe('filename')
+    expect(planned.plan.inferredFrom.theme).toBe('filename')
   })
 
   test('infers source version and cohortKey from the filename when needed', async () => {
