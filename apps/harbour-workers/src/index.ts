@@ -6,10 +6,12 @@ import {
   type MultiDbBindings,
 } from '@repo/db'
 import type { DatasetProcessingMessage } from '@repo/core'
+import type { HarbourJobMessage, SnapshotCleanupMessage } from '@repo/core'
 
 import { createHarbourClient } from './lib/harbourClient'
 import { withPrimarySession } from './lib/d1'
 import { processDatasetMessage } from './lib/worker'
+import { cleanupCurrentSnapshots } from './lib/services/snapshot-cleanup'
 
 type Env = Partial<MultiDbBindings> & {
   HARBOUR_API_KEY: string
@@ -75,7 +77,7 @@ function readStringProperty(value: unknown, key: string) {
 }
 
 function createMessageErrorContext(
-  message: Message<DatasetProcessingMessage>,
+  message: Message<HarbourJobMessage>,
 ): MessageErrorContext {
   return {
     attempts: message.attempts,
@@ -88,7 +90,7 @@ function createMessageErrorContext(
 export function createQueueHandler(
   processDataset: ProcessDatasetMessageHandler = processDatasetMessage,
 ) {
-  return async (batch: MessageBatch<DatasetProcessingMessage>, env: Env) => {
+  return async (batch: MessageBatch<HarbourJobMessage>, env: Env) => {
     const currentBinding = env.DB_CURRENT
     const metaBinding = env.DB_META
 
@@ -111,6 +113,17 @@ export function createQueueHandler(
 
       try {
         const body = message.body
+
+        if (isSnapshotCleanupMessage(body)) {
+          await cleanupCurrentSnapshots(metaDb, currentDb, body)
+          message.ack()
+          continue
+        }
+
+        if (!isDatasetProcessingMessage(body)) {
+          throw new Error('Unsupported harbour job message.')
+        }
+
         const historyShard = resolveShardBinding(
           env,
           'HISTORY',
@@ -163,6 +176,18 @@ export function createQueueHandler(
       }
     }
   }
+}
+
+function isSnapshotCleanupMessage(
+  message: HarbourJobMessage,
+): message is SnapshotCleanupMessage {
+  return message.jobType === 'cleanupCurrentSnapshots'
+}
+
+function isDatasetProcessingMessage(
+  message: HarbourJobMessage,
+): message is DatasetProcessingMessage {
+  return message.jobType === undefined || message.jobType === 'processDataset'
 }
 
 export default {
