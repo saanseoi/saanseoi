@@ -158,7 +158,7 @@ if [[ "$environment" == "local" ]]; then
   )
 else
   bash "$script_dir/drop-remote-db.sh" all "$environment"
-  bun "$script_dir/apply-d1-migration-manifest.ts" "$manifest_file" \
+  bun "$script_dir/applyD1MigrationManifest.ts" "$manifest_file" \
     --config "$wrangler_config" \
     --env "$environment" \
     --remote

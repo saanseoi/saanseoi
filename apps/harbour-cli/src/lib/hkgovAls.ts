@@ -4,7 +4,7 @@ import { basename, dirname, join, resolve } from 'node:path'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { parquetWriteFile } from 'hyparquet-writer'
-import { resolveLocalD1Path } from '@repo/core/testing/local-db'
+import { resolveLocalD1Path } from '@repo/core/testing/localDb'
 
 import type { UploadEnvironment } from './options.ts'
 const HARBOUR_API_WRANGLER_CONFIG = resolve(

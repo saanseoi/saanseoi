@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
 
-import type { prepareUpload } from '@repo/core/upload-local'
+import type { prepareUpload } from '@repo/core/uploadLocal'
 
 export type ParsedArgs = {
   command: string | null

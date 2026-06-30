@@ -1,5 +1,5 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
-import { resolveActiveSnapshotForType } from '@repo/core/db/meta-repository'
+import { resolveActiveSnapshotForType } from '@repo/core/db/metaRepository'
 
 import {
   getPlaceCurrent,

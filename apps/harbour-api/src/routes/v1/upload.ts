@@ -1,5 +1,5 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
-import { getDatasetRecordByReleaseId } from '@repo/core/db/meta-repository'
+import { getDatasetRecordByReleaseId } from '@repo/core/db/metaRepository'
 
 import { handleUploadRequest } from '../../lib/services/ingest'
 import {
@@ -9,7 +9,7 @@ import {
   type RequeueUploadRequest,
   type SignUploadRequest,
   handleSignUploadRequest,
-} from '../../lib/services/upload-session'
+} from '../../lib/services/uploadSession'
 import {
   ErrorResponseSchema,
   FinalizeUploadRequestSchema,
