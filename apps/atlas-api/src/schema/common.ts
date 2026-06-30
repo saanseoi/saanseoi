@@ -2,7 +2,7 @@ import { z } from '@hono/zod-openapi'
 
 export const RegionCode = z.enum(['hk', 'mo'])
 export const ProfileName = z.enum(['compact', 'default', 'full', 'map'])
-export const ApiLocale = z.enum(['en', 'zhHant', 'zhHans'])
+export const ApiLocale = z.enum(['en', 'zh-hant', 'zh-hans'])
 
 export const ErrorResponseSchema = z
   .object({

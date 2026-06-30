@@ -35,8 +35,8 @@ const DivisionAttributesSchema = z
     i18n: z
       .object({
         en: DivisionI18nAttributesSchema.optional(),
-        zhHant: DivisionI18nAttributesSchema.optional(),
-        zhHans: DivisionI18nAttributesSchema.optional(),
+        'zh-hant': DivisionI18nAttributesSchema.optional(),
+        'zh-hans': DivisionI18nAttributesSchema.optional(),
       })
       .catchall(DivisionI18nAttributesSchema)
       .partial()
@@ -81,7 +81,7 @@ const DivisionDocumentMetaSchema = z
         },
       )
       .openapi({
-        examples: [['en', 'zhHant'], ['*']],
+        examples: [['en', 'zh-hant'], ['*']],
       }),
     filters: z
       .object({
@@ -107,11 +107,11 @@ export const DivisionsListQuerySchema = z
       .string()
       .refine(isValidRequestedApiLocales, {
         message:
-          'locales must be a comma-separated list of en, zhHant, zhHans, or none',
+          'locales must be a comma-separated list of en, zh-hant, zh-hans, or none',
       })
       .optional()
       .openapi({
-        examples: ['en,zhHant', 'none'],
+        examples: ['en,zh-hant', 'none'],
       }),
     include: z.literal('parent').optional(),
     'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
@@ -135,11 +135,11 @@ export const DivisionDetailQuerySchema = z
       .string()
       .refine(isValidRequestedApiLocales, {
         message:
-          'locales must be a comma-separated list of en, zhHant, zhHans, or none',
+          'locales must be a comma-separated list of en, zh-hant, zh-hans, or none',
       })
       .optional()
       .openapi({
-        examples: ['en,zhHant', 'none'],
+        examples: ['en,zh-hant', 'none'],
       }),
     include: z.literal('parent').optional(),
   })
