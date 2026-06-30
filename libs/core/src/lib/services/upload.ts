@@ -629,6 +629,7 @@ function resolveUploadPlan(
   options: RegisterUploadOptions,
   resolvedInspection: ParquetInspection,
 ) {
+  const directoryPath = directoryPathFromPath(options.filePath)
   const typeFromFlag = normalizeType(options.type)
   const typeFromPath = inferTypeFromPath(options.filePath)
   const typeFromParquet = inferTypeFromParquet(resolvedInspection)
@@ -684,7 +685,7 @@ function resolveUploadPlan(
   }
 
   const sourceFromFlag = normalizeSource(options.source)
-  const sourceFromPath = inferSourceFromPath(directoryPathFromPath(options.filePath))
+  const sourceFromPath = inferSourceFromPath(directoryPath)
   const sourceFromFilename = inferSourceFromFilename(options.filePath)
   const source = sourceFromFlag ?? sourceFromPath ?? sourceFromFilename
 
@@ -693,15 +694,11 @@ function resolveUploadPlan(
       'Could not determine source. Pass `--source overture|hkgov-als` or use a recognizable path/file name.',
     )
   }
-  const sourceVersionFromPath = inferSourceVersionFromPath(
-    directoryPathFromPath(options.filePath),
-  )
+  const sourceVersionFromPath = inferSourceVersionFromPath(directoryPath)
   const sourceVersionFromFilename = inferSourceVersionFromFilename(options.filePath)
   const sourceVersion =
     options.sourceVersion ?? sourceVersionFromPath ?? sourceVersionFromFilename
-  const cohortKeyFromPath = inferCohortKeyFromPath(
-    directoryPathFromPath(options.filePath),
-  )
+  const cohortKeyFromPath = inferCohortKeyFromPath(directoryPath)
   const cohortKeyFromFilename = inferCohortKeyFromFilename(options.filePath)
   const cohortKey =
     normalizeCohortKey(options.cohortKey) ??
