@@ -64,7 +64,7 @@ export async function markNewsletterFailed(
     .insert(newsletterSubscription)
     .values({
       email,
-      status: 'pending',
+      status: 'failed',
       lastError,
       subscribedAt: null,
       updatedAt,
@@ -72,19 +72,20 @@ export async function markNewsletterFailed(
     .onConflictDoUpdate({
       target: newsletterSubscription.email,
       set: {
-        status: 'pending',
+        status: 'failed',
         lastError,
+        subscribedAt: null,
         updatedAt,
       },
     })
 
-  await syncUserSubstackStatus(db, email, 'pending')
+  await syncUserSubstackStatus(db, email, 'failed')
 }
 
 async function syncUserSubstackStatus(
   db: MetaDatabase,
   email: string,
-  status: 'pending' | 'subscribed' | 'unsubscribed',
+  status: 'failed' | 'pending' | 'subscribed' | 'unsubscribed',
 ) {
   await db
     .update(user)
