@@ -128,6 +128,16 @@ export type DatasetProcessingMessage = {
   totalRows?: number
   chunkSize?: number
   processingRunStartedAt?: string
+  addressStage?: 'normalize' | 'source' | 'history' | 'current' | 'finalize'
+  artifactKey?: string
+  resolvedArtifactKey?: string
+  addressStats?: {
+    deletedRows: number
+    insertedVersions: number
+    localizedRows: number
+    processedRows: number
+    unchangedRows: number
+  }
 }
 
 export type SnapshotCleanupMessage = {

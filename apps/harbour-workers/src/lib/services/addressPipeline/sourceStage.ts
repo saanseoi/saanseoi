@@ -213,7 +213,7 @@ async function writeHkgovSourceRows(
     }
 
     changedIds.add(row.sourceId)
-    sourceRows.push({
+    const hkgovSourceRow = {
       releaseId,
       datasetId,
       sourceRecordId: row.sourceId,
@@ -242,7 +242,9 @@ async function writeHkgovSourceRows(
       villageName: null,
       dataOwner: 'hkgov-als',
       rawPayload: row.raw,
-    })
+    } satisfies typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert
+
+    sourceRows.push(hkgovSourceRow)
     i18nRows.push(
       ...row.i18n.map(localized => ({
         releaseId,
@@ -268,17 +270,40 @@ async function writeHkgovSourceRows(
       })),
     )
     versionRows.push({
-      ...sourceRows.at(-1),
+      sourceRecordId: hkgovSourceRow.sourceRecordId,
+      releaseId,
       validFromRelease: message.sourceVersion,
       validToRelease: null,
       isCurrent: true,
       versionHash: row.sourcePayloadHash,
-    } as typeof sourceSchema.sourceHkgovAlsAddresses2dVersions.$inferInsert)
+      regionCode: hkgovSourceRow.regionCode,
+      geoAddress: hkgovSourceRow.geoAddress,
+      csuId: hkgovSourceRow.csuId,
+      x: hkgovSourceRow.x,
+      y: hkgovSourceRow.y,
+      geometry: hkgovSourceRow.geometry,
+      districtCode: hkgovSourceRow.districtCode,
+      districtName: hkgovSourceRow.districtName,
+      estateName: hkgovSourceRow.estateName,
+      buildingName: hkgovSourceRow.buildingName,
+      blockNumber: hkgovSourceRow.blockNumber,
+      blockDescriptor: hkgovSourceRow.blockDescriptor,
+      phaseName: hkgovSourceRow.phaseName,
+      phaseNumber: hkgovSourceRow.phaseNumber,
+      floor: hkgovSourceRow.floor,
+      unit: hkgovSourceRow.unit,
+      streetNumber: hkgovSourceRow.streetNumber,
+      streetName: hkgovSourceRow.streetName,
+      villageName: hkgovSourceRow.villageName,
+      dataOwner: hkgovSourceRow.dataOwner,
+      rawPayload: hkgovSourceRow.rawPayload,
+    })
     i18nVersionRows.push(
       ...i18nRows
         .filter(localized => localized.sourceRecordId === row.sourceId)
         .map(localized => ({
           ...localized,
+          releaseId,
           versionHash: row.sourcePayloadHash,
           validFromRelease: message.sourceVersion,
           validToRelease: null,

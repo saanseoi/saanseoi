@@ -58,6 +58,7 @@ Runtime behavior:
 - it does not preload the full region-wide current address history map before row processing
 - large releases are split into sequential queue chunks using parquet row ranges
 - intermediate chunks leave ingest phases running and enqueue the next chunk before acknowledging the current message
+- each row range runs through separate `normalize`, `source`, `history`, and `current` stages, with R2 artifacts carrying normalized and resolved rows between stages
 - final cleanup uses a stable current-row `updatedAt` marker and current source-row `releaseId`, so release-wide seen address/source IDs do not need to be retained in Worker memory
 
 ## Canonical Tables

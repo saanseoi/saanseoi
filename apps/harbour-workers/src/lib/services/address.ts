@@ -75,6 +75,12 @@ import {
   resolveDataShardEnvironment,
   resolveDebugEnabled,
 } from './shared'
+import { writeAddressCurrentChunkStage } from './addressPipeline/currentStage'
+import { finalizeAddressDatasetStage } from './addressPipeline/finalizeStage'
+import { writeAddressHistoryChunkStage } from './addressPipeline/historyStage'
+import { normalizeAddressChunkStage } from './addressPipeline/normalizeStage'
+import { writeAddressSourceChunkStage } from './addressPipeline/sourceStage'
+import { getAddressPipelineStage } from './addressPipeline/types'
 
 import type { HarbourWorkerBucket } from './division'
 
@@ -131,6 +137,73 @@ export async function processAddressDataset(
   sourceDb?: SourceDatabase,
   reportProgress?: ReportProgress,
 ): Promise<ProcessAddressDatasetResult> {
+  switch (getAddressPipelineStage(message) as string) {
+    case 'normalize':
+      return {
+        deletedRows: 0,
+        insertedVersions: 0,
+        localizedRows: 0,
+        nextMessage: await normalizeAddressChunkStage(
+          metaDb,
+          currentDb,
+          bucket,
+          message,
+          reportProgress,
+        ),
+        processedRows: 0,
+        statsRows: 0,
+        unchangedRows: 0,
+      }
+    case 'source':
+      return {
+        deletedRows: 0,
+        insertedVersions: 0,
+        localizedRows: 0,
+        nextMessage: await writeAddressSourceChunkStage(sourceDb, bucket, message),
+        processedRows: 0,
+        statsRows: 0,
+        unchangedRows: 0,
+      }
+    case 'history':
+      return {
+        deletedRows: 0,
+        insertedVersions: 0,
+        localizedRows: 0,
+        nextMessage: await writeAddressHistoryChunkStage(
+          metaDb,
+          historyDb,
+          bucket,
+          message,
+        ),
+        processedRows: 0,
+        statsRows: 0,
+        unchangedRows: 0,
+      }
+    case 'current':
+      return {
+        deletedRows: 0,
+        insertedVersions: 0,
+        localizedRows: 0,
+        nextMessage: await writeAddressCurrentChunkStage(
+          metaDb,
+          currentDb,
+          bucket,
+          message,
+        ),
+        processedRows: 0,
+        statsRows: 0,
+        unchangedRows: 0,
+      }
+    case 'finalize':
+      return finalizeAddressDatasetStage(
+        metaDb,
+        currentDb,
+        historyDb,
+        sourceDb,
+        message,
+      )
+  }
+
   const debugEnabled = resolveDebugEnabled(process.env.DEBUG)
   const timings = createOperationTimer(debugEnabled)
   const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
