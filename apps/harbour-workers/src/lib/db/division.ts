@@ -305,6 +305,21 @@ export async function cloneDivisionCurrentSnapshot(
   ])
 }
 
+export async function countDivisionCurrentSnapshotRows(
+  db: HarbourReadableDb,
+  snapshotId: string,
+) {
+  const row = await db
+    .select({
+      count: sql<number>`count(*)`,
+    })
+    .from(currentSchema.divisions)
+    .where(eq(currentSchema.divisions.snapshotId, snapshotId))
+    .get()
+
+  return Number(row?.count ?? 0)
+}
+
 /**
  * Marks current version rows as closed at the given cohortKey.
  */
