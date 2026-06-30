@@ -2,7 +2,7 @@ import { readFile, stat } from 'node:fs/promises'
 
 import { isReleaseId } from '@repo/core'
 import type { ResourceType } from '@repo/core'
-import type { prepareUpload } from '@repo/core/upload-local'
+import type { prepareUpload } from '@repo/core/uploadLocal'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
 import { fetchReleaseReport } from './reporting.ts'

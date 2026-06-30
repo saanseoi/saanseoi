@@ -3,7 +3,7 @@ import Icon from '@iconify/svelte'
 
 import { Button } from '$lib/bits/primitives/button'
 
-import { navigationItems } from './navigation-items'
+import { navigationItems } from './navigationItems'
 </script>
 
 <nav

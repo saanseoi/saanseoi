@@ -1,7 +1,7 @@
 export * from './client'
 export * from './bindings'
 export * from './constants'
-export * from './placement-probe'
+export * from './placementProbe'
 export * from './routing'
 export * from './versioning'
 export * as metaSchema from './schema/meta'

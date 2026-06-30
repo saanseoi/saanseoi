@@ -7,15 +7,15 @@ import {
   planUpload,
   requestUpload,
 } from '@repo/core/upload'
-import { inspectParquet } from '@repo/core/parquet-inspector'
+import { inspectParquet } from '@repo/core/parquetInspector'
 
 import {
   getDatasetById,
   getDatasetRecordByReleaseId,
   upsertIngestRunStatus,
-} from '@repo/core/db/meta-repository'
+} from '@repo/core/db/metaRepository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { SUPPORTED_THEMES, SUPPORTED_TYPES } from '@repo/core'
+import { resourceThemes, resourceTypes } from '@repo/core'
 import type {
   DatasetRecord,
   DatasetProcessingMessage,
@@ -24,8 +24,8 @@ import type {
   RegionCode,
   RegisterUploadResult,
   SchemaFingerprintResolver,
-  SupportedTheme,
-  SupportedType,
+  ResourceTheme,
+  ResourceType,
 } from '@repo/core'
 
 type HarbourObjectMetadata = {
@@ -514,17 +514,17 @@ function requireRegionCode(value: string): RegionCode {
   throw new Error(`Unsupported regionCode for dataset processing: ${value}`)
 }
 
-function requireSupportedTheme(value: string): SupportedTheme {
-  if ((SUPPORTED_THEMES as readonly string[]).includes(value)) {
-    return value as SupportedTheme
+function requireSupportedTheme(value: string): ResourceTheme {
+  if ((resourceThemes as readonly string[]).includes(value)) {
+    return value as ResourceTheme
   }
 
   throw new Error(`Unsupported dataset theme for processing: ${value}`)
 }
 
-function requireSupportedType(value: string): SupportedType {
-  if ((SUPPORTED_TYPES as readonly string[]).includes(value)) {
-    return value as SupportedType
+function requireSupportedType(value: string): ResourceType {
+  if ((resourceTypes as readonly string[]).includes(value)) {
+    return value as ResourceType
   }
 
   throw new Error(`Unsupported dataset type for processing: ${value}`)

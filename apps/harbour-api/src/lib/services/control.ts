@@ -12,7 +12,7 @@ import {
   updateDatasetStatus,
   upsertIngestRunStatus,
   waitForDatasetRecord,
-} from '@repo/core/db/meta-repository'
+} from '@repo/core/db/metaRepository'
 import type { HarbourJobMessage, ResourceType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 

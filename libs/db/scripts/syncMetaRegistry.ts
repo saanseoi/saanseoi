@@ -8,7 +8,7 @@ const target = process.argv[2] ?? 'local'
 
 if (!['local', 'preview', 'production'].includes(target)) {
   console.error(`Unsupported sync target: ${target}`)
-  console.error('Usage: bun ./scripts/sync-meta-registry.ts [local|preview|production]')
+  console.error('Usage: bun ./scripts/syncMetaRegistry.ts [local|preview|production]')
   process.exit(1)
 }
 

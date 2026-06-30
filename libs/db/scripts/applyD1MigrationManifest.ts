@@ -48,7 +48,7 @@ function fail(message: string): never {
 function parseArgs(argv: string[]): CliOptions {
   if (argv.length === 0) {
     fail(
-      'Usage: bun ./scripts/apply-d1-migration-manifest.ts <manifest.json> --config <path> --env <preview|production> [--local|--remote] [--persist-to <dir>]',
+      'Usage: bun ./scripts/applyD1MigrationManifest.ts <manifest.json> --config <path> --env <preview|production> [--local|--remote] [--persist-to <dir>]',
     )
   }
 

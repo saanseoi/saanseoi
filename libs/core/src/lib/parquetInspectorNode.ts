@@ -1,6 +1,6 @@
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
-import { inspectParquetFromBuffer } from './parquet-inspector-shared'
+import { inspectParquetFromBuffer } from './parquetInspectorShared'
 
 /**
  * Reads a parquet file from the local filesystem for CLI and test workflows.
