@@ -473,4 +473,241 @@ describe('publishReleaseArtifacts', () => {
       ]),
     )
   })
+
+  test('fails before publishing when a supported api family has no compatible bundled fixture', async () => {
+    const { sqlite, db } = createPublishReleaseArtifactsDb()
+
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
+
+      INSERT INTO datasets (id, publisherId, code) VALUES
+        ('dataset-overture-division', 'publisher-overture', 'ds-hk-overture-division');
+
+      INSERT INTO apiVersions (id, code) VALUES
+        ('api-version-1', 'api-divisions-v0.1');
+
+      INSERT INTO snapshots (id, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
+        ('snapshot-new', 'ss-hk-division-2026-07-15.0', 'draft', null, null, null, 1760000000000);
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
+      ) VALUES (
+        'release-set-1',
+        'api-version-1',
+        'sv-division-v2',
+        'rs-division-merge-v1',
+        'draft',
+        null,
+        null,
+        null,
+        1760000000000
+      );
+
+      INSERT INTO releases (
+        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
+      ) VALUES (
+        'release-1',
+        '2026-07-15.0',
+        '1.17.0',
+        'staged',
+        null,
+        null,
+        null,
+        1760000000000
+      );
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+        ('snapshot-new', 'dataset-overture-division', 'release-1');
+    `)
+
+    await expect(
+      publishReleaseArtifacts(db, {
+        carriedSnapshots: [],
+        currentRelease: null,
+        currentReleaseIsCorrected: false,
+        dataset: {
+          datasetId: 'dataset-1',
+          releaseCode: 'release-code-1',
+          releaseId: 'release-1',
+        },
+        publishedAt: '2026-06-29T00:00:00.000Z',
+        releaseSetId: 'release-set-1',
+        snapshotId: 'snapshot-new',
+        type: 'division',
+      }),
+    ).rejects.toThrow('API field fixture not found')
+
+    const snapshotRow = sqlite
+      .query('SELECT status, publishedAt FROM snapshots WHERE id = ?')
+      .get('snapshot-new') as {
+      publishedAt: number | null
+      status: string
+    }
+    const provenanceCount = sqlite
+      .query(
+        'SELECT COUNT(*) AS count FROM apiFieldProvenance WHERE apiReleaseSetId = ?',
+      )
+      .get('release-set-1') as { count: number }
+
+    expect(snapshotRow).toEqual({
+      publishedAt: null,
+      status: 'draft',
+    })
+    expect(provenanceCount.count).toBe(0)
+  })
+
+  test('rejects unknown future overture releases when schema lookup cannot be resolved', async () => {
+    const { sqlite, db } = createPublishReleaseArtifactsDb()
+    const originalFetch = globalThis.fetch
+
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
+
+      INSERT INTO datasets (id, publisherId, code) VALUES
+        ('dataset-overture-division', 'publisher-overture', 'ds-hk-overture-division');
+
+      INSERT INTO apiVersions (id, code) VALUES
+        ('api-version-1', 'api-divisions-v0.1');
+
+      INSERT INTO snapshots (id, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
+        ('snapshot-new', 'ss-hk-division-2026-06-24.0', 'draft', null, null, null, 1760000000000);
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
+      ) VALUES (
+        'release-set-1',
+        'api-version-1',
+        'sv-division-v1',
+        'rs-division-merge-v1',
+        'draft',
+        null,
+        null,
+        null,
+        1760000000000
+      );
+
+      INSERT INTO releases (
+        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
+      ) VALUES (
+        'release-1',
+        '2026-06-24.0',
+        null,
+        'staged',
+        null,
+        null,
+        null,
+        1760000000000
+      );
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+        ('snapshot-new', 'dataset-overture-division', 'release-1');
+    `)
+
+    globalThis.fetch = (async () =>
+      new Response(null, { status: 404 })) as unknown as typeof fetch
+
+    try {
+      await expect(
+        publishReleaseArtifacts(db, {
+          carriedSnapshots: [],
+          currentRelease: null,
+          currentReleaseIsCorrected: false,
+          dataset: {
+            datasetId: 'dataset-1',
+            releaseCode: 'release-code-1',
+            releaseId: 'release-1',
+          },
+          publishedAt: '2026-06-29T00:00:00.000Z',
+          releaseSetId: 'release-set-1',
+          snapshotId: 'snapshot-new',
+          type: 'division',
+        }),
+      ).rejects.toThrow(
+        'No Overture source schema mapping found for sourceVersion=2026-06-24.0.',
+      )
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  test('uses the overture catalog schema version for unmapped releases when available', async () => {
+    const { sqlite, db } = createPublishReleaseArtifactsDb()
+    const originalFetch = globalThis.fetch
+
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
+
+      INSERT INTO datasets (id, publisherId, code) VALUES
+        ('dataset-overture-division', 'publisher-overture', 'ds-hk-overture-division');
+
+      INSERT INTO apiVersions (id, code) VALUES
+        ('api-version-1', 'api-divisions-v0.1');
+
+      INSERT INTO snapshots (id, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
+        ('snapshot-new', 'ss-hk-division-2026-06-24.0', 'draft', null, null, null, 1760000000000);
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
+      ) VALUES (
+        'release-set-1',
+        'api-version-1',
+        'sv-division-v1',
+        'rs-division-merge-v1',
+        'draft',
+        null,
+        null,
+        null,
+        1760000000000
+      );
+
+      INSERT INTO releases (
+        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
+      ) VALUES (
+        'release-1',
+        '2026-06-24.0',
+        null,
+        'staged',
+        null,
+        null,
+        null,
+        1760000000000
+      );
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+        ('snapshot-new', 'dataset-overture-division', 'release-1');
+    `)
+
+    globalThis.fetch = (async () =>
+      new Response(JSON.stringify({ 'schema:version': '1.17.0' }), {
+        headers: { 'content-type': 'application/json' },
+        status: 200,
+      })) as unknown as typeof fetch
+
+    try {
+      await publishReleaseArtifacts(db, {
+        carriedSnapshots: [],
+        currentRelease: null,
+        currentReleaseIsCorrected: false,
+        dataset: {
+          datasetId: 'dataset-1',
+          releaseCode: 'release-code-1',
+          releaseId: 'release-1',
+        },
+        publishedAt: '2026-06-29T00:00:00.000Z',
+        releaseSetId: 'release-set-1',
+        snapshotId: 'snapshot-new',
+        type: 'division',
+      })
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+
+    const provenanceCount = sqlite
+      .query(
+        'SELECT COUNT(*) AS count FROM apiFieldProvenance WHERE apiReleaseSetId = ?',
+      )
+      .get('release-set-1') as { count: number }
+
+    expect(provenanceCount.count).toBeGreaterThan(20)
+  })
 })
