@@ -17,9 +17,6 @@ import type {
 } from '@repo/db/currentSchema'
 import type { GeoJsonGeometry, GeoJsonPosition } from '../geojson'
 
-import { and, eq } from 'drizzle-orm'
-import { historySchema } from '@repo/db'
-
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
   cloneDivisionCurrentSnapshot,
@@ -179,20 +176,13 @@ export async function processDivisionDataset(
   )
   const isInitialCanonicalLoad = !activeSnapshot && currentRows.size === 0
 
-  if (
-    activeSnapshot &&
-    (await snapshotMatchesDivisionRegion(
-      historyDb,
-      activeSnapshot.id,
-      message.regionCode,
-    ))
-  ) {
+  if (activeSnapshot) {
     const activeSnapshotRowCount = await timings.measure(
       'countDivisionCurrentSnapshotRowsMs',
       () => countDivisionCurrentSnapshotRows(currentRepoDb, activeSnapshot.id),
     )
 
-    if (activeSnapshotRowCount !== currentRows.size) {
+    if (currentRows.size > 0 && activeSnapshotRowCount !== currentRows.size) {
       throw new Error(
         `Active division snapshot ${activeSnapshot.id} is incomplete in current storage: expected ${currentRows.size} rows, found ${activeSnapshotRowCount}.`,
       )
@@ -642,28 +632,6 @@ export async function processDivisionDataset(
     statsRows,
     unchangedRows,
   }
-}
-
-async function snapshotMatchesDivisionRegion(
-  historyDb: HistoryDatabase,
-  snapshotId: string,
-  regionCode: DatasetProcessingMessage['regionCode'],
-) {
-  const match = await historyDb
-    .select({
-      snapshotId: historySchema.divisionsVersions.snapshotId,
-    })
-    .from(historySchema.divisionsVersions)
-    .where(
-      and(
-        eq(historySchema.divisionsVersions.snapshotId, snapshotId),
-        eq(historySchema.divisionsVersions.regionCode, regionCode),
-      ),
-    )
-    .limit(1)
-    .get()
-
-  return Boolean(match)
 }
 
 /**
