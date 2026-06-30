@@ -573,7 +573,7 @@ describe('control service', () => {
           sourceFieldPath: 'names.common.en',
         },
         {
-          apiField: 'division.attributes.i18n.zh-Hant.name',
+          apiField: 'division.attributes.i18n.zh-hant.name',
           sourceFieldPath: 'names.common.zh-hk',
         },
         {
