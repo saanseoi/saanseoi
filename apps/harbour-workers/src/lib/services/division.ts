@@ -1,6 +1,6 @@
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { ApiLocale } from '@repo/core'
-import { resolveLatestSnapshotForResourceTypeExcludingId } from '@repo/core/db/metaRepository'
+import { resolveLatestPublishedSnapshotForResourceTypeRegion } from '@repo/core/db/metaRepository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   CurrentDatabase,
@@ -24,6 +24,7 @@ import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquet
 import {
   cloneDivisionCurrentSnapshot,
   closeCurrentDivisionVersions,
+  countDivisionCurrentSnapshotRows,
   deleteMissingCurrentDivisions,
   deleteStaleDivisionCurrentRows,
   getCurrentDivisionVersionMap,
@@ -136,8 +137,8 @@ const HONG_KONG_AREA_NAMES = new Set([
 ])
 const CANONICAL_DIVISION_API_LOCALE_FALLBACKS: Record<ApiLocale, string[]> = {
   en: ['en'],
-  zhHant: ['zhHant', 'zh-hk', 'zh-hant', 'zh-mo', 'zh-tw'],
-  zhHans: ['zhHans', 'zh-hans', 'zh-cn', 'zh-sg'],
+  'zh-hant': ['zhHant', 'zh-hk', 'zh-hant', 'zh-mo', 'zh-tw'],
+  'zh-hans': ['zhHans', 'zh-hans', 'zh-cn', 'zh-sg'],
 }
 
 /**
@@ -171,25 +172,36 @@ export async function processDivisionDataset(
       normalizeDivisionI18nSnapshotRow,
     }),
   )
-  const previousSnapshot = await resolveLatestSnapshotForResourceTypeExcludingId(
+  const activeSnapshot = await resolveLatestPublishedSnapshotForResourceTypeRegion(
     metaRepoDb,
     'division',
-    versionInsertContext.snapshotId,
+    message.regionCode,
   )
-  const isInitialCanonicalLoad = !previousSnapshot && currentRows.size === 0
+  const isInitialCanonicalLoad = !activeSnapshot && currentRows.size === 0
 
   if (
-    previousSnapshot &&
+    activeSnapshot &&
     (await snapshotMatchesDivisionRegion(
       historyDb,
-      previousSnapshot.id,
+      activeSnapshot.id,
       message.regionCode,
     ))
   ) {
+    const activeSnapshotRowCount = await timings.measure(
+      'countDivisionCurrentSnapshotRowsMs',
+      () => countDivisionCurrentSnapshotRows(currentRepoDb, activeSnapshot.id),
+    )
+
+    if (activeSnapshotRowCount !== currentRows.size) {
+      throw new Error(
+        `Active division snapshot ${activeSnapshot.id} is incomplete in current storage: expected ${currentRows.size} rows, found ${activeSnapshotRowCount}.`,
+      )
+    }
+
     await timings.measure('cloneDivisionCurrentSnapshotMs', () =>
       cloneDivisionCurrentSnapshot(
         currentRepoDb,
-        previousSnapshot.id,
+        activeSnapshot.id,
         versionInsertContext.snapshotId,
       ),
     )

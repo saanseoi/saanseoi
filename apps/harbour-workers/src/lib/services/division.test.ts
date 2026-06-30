@@ -2143,6 +2143,73 @@ describe('processDivisionDataset', () => {
     ])
   })
 
+  test('fails when the active division snapshot is incomplete in current storage', async () => {
+    parquetBatches = structuredClone(baseParquetBatches)
+
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'division-incomplete-active-snapshot.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const previousDatasetId = 'overture-hk-2026-05-24.0-division'
+    const nextDatasetId = 'overture-hk-2026-06-24.0-division'
+
+    seedDivisionRelease(sqlite, previousDatasetId, '2026-05', 'published')
+
+    await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(previousDatasetId, '2026-05', '2026-05-24.0'),
+    )
+    publishSnapshotForRelease(sqlite, previousDatasetId)
+
+    const activeSnapshotId = getSnapshotId(sqlite, previousDatasetId)
+
+    sqlite
+      .query('DELETE FROM divisionsI18n WHERE snapshotId = ?1')
+      .run(activeSnapshotId)
+    sqlite.query('DELETE FROM divisions WHERE snapshotId = ?1').run(activeSnapshotId)
+
+    seedDivisionRelease(sqlite, nextDatasetId, '2026-06', 'staged')
+
+    await expect(
+      processDivisionDataset(
+        db as never,
+        db as never,
+        db as never,
+        {
+          async head() {
+            return { size: 1 }
+          },
+          async get() {
+            return {
+              async arrayBuffer() {
+                return new ArrayBuffer(0)
+              },
+            }
+          },
+        },
+        createDivisionMessage(nextDatasetId, '2026-06', '2026-06-24.0'),
+      ),
+    ).rejects.toThrow(
+      `Active division snapshot ${activeSnapshotId} is incomplete in current storage: expected 2 rows, found 0.`,
+    )
+
+    sqlite.close()
+  })
+
   test('chunks large current-division reads and cleanup for follow-up datasets', async () => {
     parquetBatches = []
 
