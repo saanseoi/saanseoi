@@ -72,15 +72,15 @@ export function createProcessDatasetMessage(
     }
     const processStartedAt = Date.now()
     const activePhases = new Set<string>()
-    await harbourClient.stageRunning(
-      releaseId,
-      'processDataset',
-      undefined,
-      releaseCode,
-    )
-    activePhases.add('processDataset')
 
     try {
+      activePhases.add('processDataset')
+      await harbourClient.stageRunning(
+        releaseId,
+        'processDataset',
+        undefined,
+        releaseCode,
+      )
       let result: ProcessDatasetResult | ProcessAddressDatasetResult
 
       if (message.type === 'division') {
