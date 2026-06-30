@@ -41,7 +41,7 @@ type DivisionResourcePayload = {
     subtype?: string | null
     divisionClass?: string | null
     geometry?: Record<string, unknown> | null
-    bbox?: Record<string, unknown> | null
+    bbox?: [number, number, number, number] | null
     population?: number | null
     wikidata?: string | null
     i18n?: DivisionRecord['i18n']
@@ -189,7 +189,7 @@ function buildDivisionRouteState(args: {
         }
       : {
           mode: 'requested',
-          locales: defaultApiLocalesByProfile.default,
+          locales: defaultApiLocalesByProfile[profile],
         }
   const localeSelection = parseRequestedApiLocales(
     args.locales,
@@ -228,7 +228,7 @@ function createDivisionResource(args: {
 
   if (routeState.profile === 'full' || routeState.profile === 'map') {
     attributes.geometry = (division.geometry as Record<string, unknown> | null) ?? null
-    attributes.bbox = (division.bbox as Record<string, unknown> | null) ?? null
+    attributes.bbox = (division.bbox as [number, number, number, number] | null) ?? null
   }
 
   if (Object.keys(i18n).length > 0) {
