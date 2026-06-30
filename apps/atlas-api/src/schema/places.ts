@@ -72,7 +72,7 @@ export const PlacesByCellParamsSchema = z
 
 export const PlacesByCellQuerySchema = z
   .object({
-    limit: z.coerce.number().int().optional(),
+    limit: z.coerce.number().int().min(1).optional(),
   })
   .openapi('PlacesByCellQuery')
 
@@ -92,7 +92,7 @@ export const SearchQuerySchema = z
   .object({
     q: z.string(),
     locale: z.string().optional(),
-    limit: z.coerce.number().int().optional(),
+    limit: z.coerce.number().int().min(1).optional(),
   })
   .openapi('SearchQuery')
 
