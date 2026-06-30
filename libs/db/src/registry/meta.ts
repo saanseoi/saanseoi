@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
+import type { ResourceType } from '@repo/core'
 import type {
   ApiFamilyType,
   ApiEndpointMethod,
@@ -119,8 +120,6 @@ type ApiEndpointFileFixture = {
     operationId: string
   }>
 }
-
-type ResourceType = 'address' | 'division' | 'place' | 'street'
 
 type ApiCompositionFixture = {
   versionHash: string
