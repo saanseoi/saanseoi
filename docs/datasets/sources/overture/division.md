@@ -26,11 +26,12 @@ Current behavior:
 - source retention keeps those normalized source-style locale tags
 - canonical current/history division snapshots also add API-facing locale rows for:
   - `en`
-  - `zhHant`
-  - `zhHans`
+  - `zh-hant`
+  - `zh-hans`
 - those canonical rows are filled from preferred source variants when present:
-  - `zhHant` prefers `zh-hk`, then `zh-hant`, then `zh-mo`, then `zh-tw`
-  - `zhHans` prefers `zh-hans`, then `zh-cn`, then `zh-sg`
+  - `zh-hant` prefers `zh-hk`, then `zh-hant`, then `zh-mo`, then `zh-tw`
+  - `zh-hans` prefers `zh-hans`, then `zh-cn`, then `zh-sg`
+- Atlas request-time locale filters are matched case-insensitively after lowercasing input
 
 Inference rules currently implemented:
 

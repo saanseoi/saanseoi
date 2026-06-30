@@ -1,5 +1,5 @@
 import { z } from '@hono/zod-openapi'
-import { isValidRequestedApiLocales } from '@repo/core'
+import { getRequestedApiLocalesValidationError } from '@repo/core'
 
 import {
   ApiLocale,
@@ -54,6 +54,26 @@ const DivisionRelationshipsSchema = z
   })
   .openapi('DivisionRelationships')
 
+const RequestedLocaleCodeSchema = z.string().openapi({
+  examples: ['en', 'zh-hant', 'fr-ca'],
+})
+
+const RequestedLocalesQuerySchema = z
+  .string()
+  .superRefine((value, ctx) => {
+    const error = getRequestedApiLocalesValidationError(value)
+
+    if (error) {
+      ctx.addIssue({
+        code: 'custom',
+        message: error,
+      })
+    }
+  })
+  .openapi({
+    examples: ['en,zh-hant', '*', 'null'],
+  })
+
 const DivisionResourceSchema = z
   .object({
     type: z.literal('divisions'),
@@ -71,17 +91,17 @@ const DivisionDocumentMetaSchema = z
     resolvedVersion: z.literal('0.1'),
     profile: ProfileName,
     locales: z
-      .array(z.union([ApiLocale, z.literal('*')]))
+      .array(z.union([RequestedLocaleCodeSchema, z.literal('*')]))
       .refine(
         locales =>
           !locales.includes('*') || (locales.length === 1 && locales[0] === '*'),
         {
           message:
-            'locales must be contract locales, or a single "*" when all locales are returned',
+            'locales must be locale codes, or a single "*" when all locales are returned',
         },
       )
       .openapi({
-        examples: [['en', 'zh-hant'], ['*']],
+        examples: [['en', 'zh-hant'], ['fr-ca'], ['*']],
       }),
     filters: z
       .object({
@@ -103,16 +123,7 @@ const DivisionDocumentMetaSchema = z
 export const DivisionsListQuerySchema = z
   .object({
     profile: ProfileName.optional(),
-    locales: z
-      .string()
-      .refine(isValidRequestedApiLocales, {
-        message:
-          'locales must be a comma-separated list of en, zh-hant, zh-hans, or none',
-      })
-      .optional()
-      .openapi({
-        examples: ['en,zh-hant', 'none'],
-      }),
+    locales: RequestedLocalesQuerySchema.optional(),
     include: z.literal('parent').optional(),
     'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
     'page[offset]': z.coerce.number().int().min(0).optional(),
@@ -131,16 +142,7 @@ export const DivisionDetailParamsSchema = z
 export const DivisionDetailQuerySchema = z
   .object({
     profile: ProfileName.optional(),
-    locales: z
-      .string()
-      .refine(isValidRequestedApiLocales, {
-        message:
-          'locales must be a comma-separated list of en, zh-hant, zh-hans, or none',
-      })
-      .optional()
-      .openapi({
-        examples: ['en,zh-hant', 'none'],
-      }),
+    locales: RequestedLocalesQuerySchema.optional(),
     include: z.literal('parent').optional(),
   })
   .openapi('DivisionDetailQuery')

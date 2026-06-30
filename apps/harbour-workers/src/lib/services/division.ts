@@ -137,8 +137,8 @@ const HONG_KONG_AREA_NAMES = new Set([
 ])
 const CANONICAL_DIVISION_API_LOCALE_FALLBACKS: Record<ApiLocale, string[]> = {
   en: ['en'],
-  'zh-hant': ['zhHant', 'zh-hk', 'zh-hant', 'zh-mo', 'zh-tw'],
-  'zh-hans': ['zhHans', 'zh-hans', 'zh-cn', 'zh-sg'],
+  'zh-hant': ['zh-hk', 'zh-hant', 'zh-mo', 'zh-tw'],
+  'zh-hans': ['zh-hans', 'zh-cn', 'zh-sg'],
 }
 
 /**
