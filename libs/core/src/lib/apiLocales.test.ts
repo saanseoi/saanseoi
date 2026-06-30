@@ -75,4 +75,19 @@ describe('api-locales', () => {
       locales: ['en', 'zh-hant'],
     })
   })
+
+  test('rejects malformed locale query values that fail validation', () => {
+    expect(() =>
+      parseRequestedApiLocales('', {
+        mode: 'requested',
+        locales: defaultApiLocalesByProfile.default,
+      }),
+    ).toThrow()
+    expect(() =>
+      parseRequestedApiLocales('*,en', {
+        mode: 'requested',
+        locales: defaultApiLocalesByProfile.default,
+      }),
+    ).toThrow()
+  })
 })
