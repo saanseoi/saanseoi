@@ -446,6 +446,154 @@ describe('processDivisionDataset', () => {
     )
   })
 
+  test('clones the last published current snapshot before applying later changes', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'division-follow-up-clone.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-05-24.0-division',
+      '2026-05',
+      'staged',
+    )
+
+    await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(
+        'overture-hk-2026-05-24.0-division',
+        '2026-05',
+        '2026-05-24.0',
+      ),
+      db as never,
+    )
+    publishSnapshotForRelease(sqlite, 'overture-hk-2026-05-24.0-division')
+
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-06-24.0-division',
+      '2026-06',
+      'staged',
+    )
+
+    const unchangedResult = await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(
+        'overture-hk-2026-06-24.0-division',
+        '2026-06',
+        '2026-06-24.0',
+      ),
+      db as never,
+    )
+    publishSnapshotForRelease(sqlite, 'overture-hk-2026-06-24.0-division')
+
+    const nextIslandRow = baseParquetBatches[0]?.[0]
+    const nextCentralRow = baseParquetBatches[0]?.[1]
+
+    if (!nextIslandRow || !nextCentralRow) {
+      throw new Error('Missing division fixture rows.')
+    }
+
+    parquetBatches = [
+      [
+        nextIslandRow,
+        {
+          ...nextCentralRow,
+          population: 42,
+          version: 202,
+        },
+      ],
+    ]
+
+    seedDivisionRelease(
+      sqlite,
+      'overture-hk-2026-07-24.0-division',
+      '2026-07',
+      'staged',
+    )
+
+    const changedResult = await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(
+        'overture-hk-2026-07-24.0-division',
+        '2026-07',
+        '2026-07-24.0',
+      ),
+      db as never,
+    )
+
+    const thirdSnapshotId = getSnapshotId(sqlite, 'overture-hk-2026-07-24.0-division')
+    const currentRows = sqlite
+      .query('SELECT id FROM divisions WHERE snapshotId = ?1 ORDER BY id')
+      .all(thirdSnapshotId) as Array<{
+      id: string
+    }>
+    const currentI18nRows = sqlite
+      .query(
+        "SELECT divisionId, locale FROM divisionsI18n WHERE snapshotId = ?1 AND locale = 'en' ORDER BY divisionId",
+      )
+      .all(thirdSnapshotId) as Array<{
+      divisionId: string
+      locale: string
+    }>
+
+    expect(unchangedResult.insertedVersions).toBe(0)
+    expect(unchangedResult.unchangedRows).toBe(2)
+    expect(changedResult.insertedVersions).toBe(1)
+    expect(changedResult.unchangedRows).toBe(1)
+    expect(currentRows).toEqual([
+      { id: 'division-central' },
+      { id: 'division-hk-island' },
+    ])
+    expect(currentI18nRows).toEqual([
+      { divisionId: 'division-central', locale: 'en' },
+      { divisionId: 'division-hk-island', locale: 'en' },
+    ])
+  })
+
   test('dedupes source overture division releases into current and version tables', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'division-source.sqlite')
@@ -2171,6 +2319,81 @@ describe('processDivisionDataset', () => {
     ).rejects.toThrow(
       `Active division snapshot ${activeSnapshotId} is incomplete in current storage: expected 2 rows, found 0.`,
     )
+
+    sqlite.close()
+  })
+
+  test('recovers when current storage is populated but history has no current division rows', async () => {
+    parquetBatches = structuredClone(baseParquetBatches)
+
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'division-missing-history-current.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const previousDatasetId = 'overture-hk-2026-05-24.0-division'
+    const nextDatasetId = 'overture-hk-2026-06-24.0-division'
+
+    seedDivisionRelease(sqlite, previousDatasetId, '2026-05', 'published')
+
+    await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(previousDatasetId, '2026-05', '2026-05-24.0'),
+    )
+    publishSnapshotForRelease(sqlite, previousDatasetId)
+
+    sqlite.query('UPDATE divisionsVersions SET isCurrent = 0').run()
+    sqlite.query('UPDATE divisionsVersionsI18n SET isCurrent = 0').run()
+
+    seedDivisionRelease(sqlite, nextDatasetId, '2026-06', 'staged')
+
+    const result = await processDivisionDataset(
+      db as never,
+      db as never,
+      db as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      createDivisionMessage(nextDatasetId, '2026-06', '2026-06-24.0'),
+    )
+
+    const nextSnapshotId = getSnapshotId(sqlite, nextDatasetId)
+    const currentRows = sqlite
+      .query('SELECT id FROM divisions WHERE snapshotId = ?1 ORDER BY id')
+      .all(nextSnapshotId) as Array<{ id: string }>
+    const currentHistoryRows = sqlite
+      .query('SELECT count(*) as count FROM divisionsVersions WHERE isCurrent = 1')
+      .get() as { count: number }
+
+    expect(result.insertedVersions).toBe(2)
+    expect(result.unchangedRows).toBe(0)
+    expect(currentRows).toEqual([
+      { id: 'division-central' },
+      { id: 'division-hk-island' },
+    ])
+    expect(currentHistoryRows.count).toBe(2)
 
     sqlite.close()
   })
