@@ -9,6 +9,7 @@ import { and, currentSchema, eq } from '@repo/db'
 import type { CurrentDatabase, MetaDatabase } from '@repo/db'
 
 import { asNonEmptyString } from '../../utils'
+import type { NormalizedAddressRecord } from './types'
 
 type DivisionLookupMaps = {
   areaByEn: Map<string, string>
@@ -130,6 +131,34 @@ export function normalizeAddressRowForPipeline(
   return message.source === 'overture'
     ? normalizeOvertureAddressRow(row, divisionLookup)
     : normalizePreparedHkgovAddressRow(row)
+}
+
+export function dedupeNormalizedAddressRows(rows: NormalizedAddressRecord[]) {
+  return [
+    ...new Map(
+      rows.map(row => [
+        row.sourceId,
+        {
+          ...row,
+          i18n: dedupeAddressI18nRows(row.i18n, row.sourceId),
+        },
+      ]),
+    ).values(),
+  ]
+}
+
+export function dedupeAddressI18nRows<T extends AddressI18nPayload>(
+  rows: T[],
+  fallbackAddressId?: string,
+) {
+  return [
+    ...new Map(
+      rows.map(row => [
+        `${row.addressId || fallbackAddressId || ''}\0${row.locale}`,
+        row,
+      ]),
+    ).values(),
+  ]
 }
 
 function normalizeOvertureAddressRow(

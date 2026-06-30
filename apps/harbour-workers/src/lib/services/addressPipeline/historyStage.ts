@@ -21,6 +21,8 @@ import {
   buildAddressBaseHashInput,
   buildAddressI18nHashInput,
   buildMatchKey,
+  dedupeAddressI18nRows,
+  dedupeNormalizedAddressRows,
   normalizeAddressI18nSnapshotRow,
 } from './normalization'
 import type {
@@ -52,9 +54,7 @@ export async function writeAddressHistoryChunkStage(
     message,
     resolveDataShardEnvironment(process.env.DATA_SHARD_ENV),
   )
-  const normalizedRows = [
-    ...new Map(artifact.rows.map(row => [row.sourceId, row])).values(),
-  ]
+  const normalizedRows = dedupeNormalizedAddressRows(artifact.rows)
   const currentAddressLookup = await getCurrentAddressVersionLookup(
     historyRepoDb,
     message.regionCode,
@@ -96,13 +96,16 @@ export async function writeAddressHistoryChunkStage(
       createdAt: now,
       updatedAt: now,
     }
-    const i18n = row.i18n.map(localized => ({
-      ...localized,
+    const i18n = dedupeAddressI18nRows(
+      row.i18n.map(localized => ({
+        ...localized,
+        addressId,
+        snapshotId: versionInsertContext.snapshotId,
+        createdAt: now,
+        updatedAt: now,
+      })),
       addressId,
-      snapshotId: versionInsertContext.snapshotId,
-      createdAt: now,
-      updatedAt: now,
-    }))
+    )
     const versionHash = await createHash({
       base: buildAddressBaseHashInput(base),
       i18n: i18n
