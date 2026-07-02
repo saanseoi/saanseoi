@@ -1,0 +1,21 @@
+export const hkAreas = ['HK', 'KL', 'NT'] as const
+export const hkDistricts = [
+  'CW',
+  'EST',
+  'ILD',
+  'KLC',
+  'KC',
+  'KT',
+  'NTH',
+  'SK',
+  'ST',
+  'SSP',
+  'STH',
+  'TP',
+  'TW',
+  'TM',
+  'WC',
+  'WTS',
+  'YTM',
+  'YL',
+] as const
