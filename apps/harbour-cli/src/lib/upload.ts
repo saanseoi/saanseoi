@@ -34,6 +34,7 @@ type SnapshotCleanupResponse = {
 }
 type DispatchUploadOptions = {
   force?: boolean
+  processingMode?: 'direct' | 'sql'
   skipSnapshotCleanup?: boolean
 }
 type ScheduleSnapshotCleanupOptions = {
@@ -125,6 +126,7 @@ export async function dispatchUpload(
     await uploadFileToSignedUrl(signResponse, fileBytes)
 
     return finalizeUpload(apiBaseUrl, signResponse.releaseId, {
+      processingMode: options.processingMode,
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
   } finally {
@@ -163,6 +165,9 @@ async function uploadFileViaWorker(
   }
   if (options.skipSnapshotCleanup) {
     formData.set('skipSnapshotCleanup', 'true')
+  }
+  if (options.processingMode) {
+    formData.set('processingMode', options.processingMode)
   }
 
   let response: Response
@@ -261,6 +266,7 @@ async function requestSignedUpload(
         type: previewResult.plan.type,
       },
       force: Boolean(options.force),
+      processingMode: options.processingMode,
       skipSnapshotCleanup: Boolean(options.skipSnapshotCleanup),
       schemaVersionId,
     }),
@@ -291,7 +297,7 @@ async function uploadFileToSignedUrl(
 async function finalizeUpload(
   apiBaseUrl: string,
   releaseId: string,
-  options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
+  options: Pick<DispatchUploadOptions, 'processingMode' | 'skipSnapshotCleanup'> = {},
 ) {
   return postReleaseAction(
     buildFinalizeUploadEndpoint(apiBaseUrl),
@@ -304,7 +310,10 @@ async function finalizeUpload(
 async function requeueUpload(
   apiBaseUrl: string,
   releaseId: string,
-  options: Pick<DispatchUploadOptions, 'force' | 'skipSnapshotCleanup'> = {},
+  options: Pick<
+    DispatchUploadOptions,
+    'force' | 'processingMode' | 'skipSnapshotCleanup'
+  > = {},
 ) {
   return postReleaseAction(
     buildRequeueUploadEndpoint(apiBaseUrl),
@@ -318,7 +327,10 @@ async function postReleaseAction(
   endpoint: string,
   releaseId: string,
   action: string,
-  options: Pick<DispatchUploadOptions, 'force' | 'skipSnapshotCleanup'> = {},
+  options: Pick<
+    DispatchUploadOptions,
+    'force' | 'processingMode' | 'skipSnapshotCleanup'
+  > = {},
 ) {
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -329,6 +341,7 @@ async function postReleaseAction(
     body: JSON.stringify({
       ...(options.force ? { force: true } : {}),
       releaseId,
+      ...(options.processingMode ? { processingMode: options.processingMode } : {}),
       ...(options.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
     }),
   })
@@ -442,7 +455,7 @@ export async function resolveRelease(target: UploadTarget, releaseSpecifier: str
 export async function finalizeExistingUpload(
   target: UploadTarget,
   releaseSpecifier: string,
-  options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
+  options: Pick<DispatchUploadOptions, 'processingMode' | 'skipSnapshotCleanup'> = {},
 ) {
   const release = await resolveRelease(target, releaseSpecifier)
 
@@ -471,7 +484,10 @@ export async function finalizeExistingUpload(
 export async function requeueExistingUpload(
   target: UploadTarget,
   releaseSpecifier: string,
-  options: Pick<DispatchUploadOptions, 'force' | 'skipSnapshotCleanup'> = {},
+  options: Pick<
+    DispatchUploadOptions,
+    'force' | 'processingMode' | 'skipSnapshotCleanup'
+  > = {},
 ) {
   const release = await resolveRelease(target, releaseSpecifier)
 

@@ -67,6 +67,7 @@ export type SignUploadRequest = {
   fileName: string
   fileSize: number
   force?: boolean
+  processingMode?: 'direct' | 'sql'
   skipSnapshotCleanup?: boolean
   inspection: ParquetInspection
   plan: {
@@ -83,11 +84,13 @@ export type SignUploadRequest = {
 
 export type FinalizeUploadRequest = {
   releaseId: string
+  processingMode?: 'direct' | 'sql'
   skipSnapshotCleanup?: boolean
 }
 
 export type RequeueUploadRequest = {
   force?: boolean
+  processingMode?: 'direct' | 'sql'
   releaseId: string
   skipSnapshotCleanup?: boolean
 }
@@ -271,6 +274,7 @@ export async function handleFinalizeUploadRequest(
     sourceVersion: finalized.plan.sourceVersion,
     theme: finalized.plan.theme,
     type: finalized.plan.type,
+    ...(request.processingMode ? { processingMode: request.processingMode } : {}),
     ...(request.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
   })
 
@@ -332,6 +336,7 @@ export async function handleRequeueUploadRequest(
   const rowCount = await getStageDatasetRowCount(db, dataset.releaseId)
   const processingMessage = buildDatasetProcessingMessage({
     ...dataset,
+    ...(request.processingMode ? { processingMode: request.processingMode } : {}),
     ...(request.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
   })
 
@@ -508,6 +513,7 @@ function buildDatasetProcessingMessage(
   > & {
     shardYear?: string
     skipSnapshotCleanup?: boolean
+    processingMode?: 'direct' | 'sql'
   },
 ): DatasetProcessingMessage {
   return {
@@ -527,6 +533,7 @@ function buildDatasetProcessingMessage(
     sourceVersion: dataset.sourceVersion,
     theme: requireSupportedTheme(dataset.theme),
     type: requireSupportedType(dataset.type),
+    ...(dataset.processingMode ? { processingMode: dataset.processingMode } : {}),
     ...(dataset.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
   }
 }

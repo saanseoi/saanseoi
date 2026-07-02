@@ -219,6 +219,14 @@ export const SignUploadRequestSchema = z
           'Do not enqueue current-snapshot cleanup after this release is published. Intended for backfill batches.',
         examples: [true],
       }),
+    processingMode: z
+      .enum(['direct', 'sql'])
+      .optional()
+      .openapi({
+        description:
+          'Dataset processing mode. `sql` generates D1 import SQL artifacts instead of applying D1 writes directly.',
+        examples: ['sql'],
+      }),
   })
   .loose()
   .openapi('HarbourSignUploadRequest')
@@ -256,6 +264,7 @@ export const SignUploadResponseSchema = z
 export const FinalizeUploadRequestSchema = z
   .object({
     releaseId: ReleaseIdSchema,
+    processingMode: z.enum(['direct', 'sql']).optional(),
     skipSnapshotCleanup: z.boolean().optional(),
   })
   .openapi('HarbourFinalizeUploadRequest')
@@ -263,6 +272,7 @@ export const FinalizeUploadRequestSchema = z
 export const RequeueUploadRequestSchema = z
   .object({
     force: z.boolean().optional(),
+    processingMode: z.enum(['direct', 'sql']).optional(),
     releaseId: ReleaseIdSchema,
     skipSnapshotCleanup: z.boolean().optional(),
   })
