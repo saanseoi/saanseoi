@@ -1,6 +1,15 @@
 import { sql } from 'drizzle-orm'
 import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
+import { defaultIsoTimestamp, isoTimestamp, toIsoTimestamp } from '../shared'
+
+const betterAuthTimestamp = (name: string) => integer(name, { mode: 'timestamp_ms' })
+
+const defaultBetterAuthTimestamp = (name: string) =>
+  betterAuthTimestamp(name).default(
+    sql`(cast(unixepoch('subsecond') * 1000 as integer))`,
+  )
+
 export const substackStatuses = [
   'failed',
   'pending',
@@ -21,11 +30,8 @@ export const user = sqliteTable('user', {
   substack: text('substack', {
     enum: substackStatuses,
   }),
-  createdAt: integer('created_at', { mode: 'timestamp_ms' })
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-    .notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+  createdAt: defaultBetterAuthTimestamp('created_at').notNull(),
+  updatedAt: defaultBetterAuthTimestamp('updated_at')
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
 })
@@ -40,13 +46,10 @@ export const newsletterSubscription = sqliteTable(
       .default('pending')
       .notNull(),
     lastError: text('last_error'),
-    subscribedAt: integer('subscribed_at', { mode: 'timestamp_ms' }),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .notNull(),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .$onUpdate(() => /* @__PURE__ */ new Date())
+    subscribedAt: isoTimestamp('subscribed_at'),
+    createdAt: defaultIsoTimestamp('created_at').notNull(),
+    updatedAt: defaultIsoTimestamp('updated_at')
+      .$onUpdate(() => /* @__PURE__ */ toIsoTimestamp())
       .notNull(),
   },
   table => [index('newsletterSubscription_status_idx').on(table.status)],
@@ -56,12 +59,10 @@ export const session = sqliteTable(
   'session',
   {
     id: text('id').primaryKey(),
-    expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
+    expiresAt: betterAuthTimestamp('expires_at').notNull(),
     token: text('token').notNull().unique(),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .notNull(),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+    createdAt: defaultBetterAuthTimestamp('created_at').notNull(),
+    updatedAt: betterAuthTimestamp('updated_at')
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
     ipAddress: text('ip_address'),
@@ -85,18 +86,12 @@ export const account = sqliteTable(
     accessToken: text('access_token'),
     refreshToken: text('refresh_token'),
     idToken: text('id_token'),
-    accessTokenExpiresAt: integer('access_token_expires_at', {
-      mode: 'timestamp_ms',
-    }),
-    refreshTokenExpiresAt: integer('refresh_token_expires_at', {
-      mode: 'timestamp_ms',
-    }),
+    accessTokenExpiresAt: betterAuthTimestamp('access_token_expires_at'),
+    refreshTokenExpiresAt: betterAuthTimestamp('refresh_token_expires_at'),
     scope: text('scope'),
     password: text('password'),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .notNull(),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+    createdAt: defaultBetterAuthTimestamp('created_at').notNull(),
+    updatedAt: betterAuthTimestamp('updated_at')
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
@@ -109,12 +104,9 @@ export const verification = sqliteTable(
     id: text('id').primaryKey(),
     identifier: text('identifier').notNull(),
     value: text('value').notNull(),
-    expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .notNull(),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+    expiresAt: betterAuthTimestamp('expires_at').notNull(),
+    createdAt: defaultBetterAuthTimestamp('created_at').notNull(),
+    updatedAt: defaultBetterAuthTimestamp('updated_at')
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },

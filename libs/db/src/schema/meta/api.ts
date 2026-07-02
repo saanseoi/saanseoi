@@ -20,21 +20,59 @@ import {
   resolverCodes,
   snapshotStatuses,
 } from '../../constants/schema'
-import { jsonText, primaryUuid, timestamps } from './_shared'
+import { isoTimestamp, jsonText, primaryUuid, timestamps } from '../shared'
 import { metaDatasets, metaReleases } from './datasets'
 
-export const metaApiVersions = sqliteTable('apiVersions', {
-  id: primaryUuid('id'),
-  code: text('code').notNull().unique(),
-  familyType: text('familyType', { enum: apiFamilyTypes }).notNull(),
-  version: text('version').notNull(),
-  status: text('status', { enum: apiVersionStatuses }).notNull(),
-  publishedAt: integer('publishedAt', { mode: 'timestamp_ms' }),
-  deprecatedAt: integer('deprecatedAt', { mode: 'timestamp_ms' }),
-  retiredAt: integer('retiredAt', { mode: 'timestamp_ms' }),
-  versionHash: text('versionHash').notNull(),
-  ...timestamps,
-})
+type ReferenceAction = 'cascade' | 'restrict'
+
+const apiVersionIdColumn = (onDelete: ReferenceAction) =>
+  text('apiVersionId')
+    .notNull()
+    .references(() => metaApiVersions.id, { onDelete })
+
+const snapshotIdColumn = (onDelete: ReferenceAction) =>
+  text('snapshotId')
+    .notNull()
+    .references(() => metaSnapshots.id, { onDelete })
+
+const datasetIdColumn = () =>
+  text('datasetId')
+    .notNull()
+    .references(() => metaDatasets.id, { onDelete: 'restrict' })
+
+const snapshotAssemblyIdColumn = (onDelete: ReferenceAction) =>
+  text('snapshotAssemblyId')
+    .notNull()
+    .references(() => metaSnapshotAssembly.id, { onDelete })
+
+const apiCompositionIdColumn = () =>
+  text('apiCompositionId')
+    .notNull()
+    .references(() => metaApiComposition.id, { onDelete: 'cascade' })
+
+const apiReleaseSetIdColumn = () =>
+  text('apiReleaseSetId')
+    .notNull()
+    .references(() => metaApiReleaseSets.id, { onDelete: 'cascade' })
+
+export const metaApiVersions = sqliteTable(
+  'apiVersions',
+  {
+    id: primaryUuid('id'),
+    code: text('code').notNull().unique(),
+    familyType: text('familyType', { enum: apiFamilyTypes }).notNull(),
+    version: text('version').notNull(),
+    status: text('status', { enum: apiVersionStatuses }).notNull(),
+    publishedAt: isoTimestamp('publishedAt'),
+    deprecatedAt: isoTimestamp('deprecatedAt'),
+    retiredAt: isoTimestamp('retiredAt'),
+    versionHash: text('versionHash').notNull(),
+    ...timestamps,
+  },
+  table => [
+    index('apiVersions_familyType_status_idx').on(table.familyType, table.status),
+  ],
+)
 
 export const metaSnapshots = sqliteTable(
   'snapshots',
@@ -44,9 +82,9 @@ export const metaSnapshots = sqliteTable(
     code: text('code').notNull(),
     cohortKey: text('cohortKey').notNull(),
     status: text('status', { enum: snapshotStatuses }).notNull(),
-    publishedAt: integer('publishedAt', { mode: 'timestamp_ms' }),
-    validFrom: integer('validFrom', { mode: 'timestamp_ms' }),
-    validTo: integer('validTo', { mode: 'timestamp_ms' }),
+    publishedAt: isoTimestamp('publishedAt'),
+    validFrom: isoTimestamp('validFrom'),
+    validTo: isoTimestamp('validTo'),
     notes: text('notes'),
     ...timestamps,
   },
@@ -66,12 +104,8 @@ export const metaSnapshots = sqliteTable(
 export const metaSnapshotSources = sqliteTable(
   'snapshotSources',
   {
-    snapshotId: text('snapshotId')
-      .notNull()
-      .references(() => metaSnapshots.id, { onDelete: 'cascade' }),
-    datasetId: text('datasetId')
-      .notNull()
-      .references(() => metaDatasets.id, { onDelete: 'restrict' }),
+    snapshotId: snapshotIdColumn('cascade'),
+    datasetId: datasetIdColumn(),
     sourceReleaseId: text('sourceReleaseId').notNull(),
     role: text('role', { enum: apiReleaseSetSourceRoles }).notNull(),
     selectedByRule: text('selectedByRule'),
@@ -98,17 +132,15 @@ export const metaApiReleaseSets = sqliteTable(
   'apiReleaseSets',
   {
     id: primaryUuid('id'),
-    apiVersionId: text('apiVersionId')
-      .notNull()
-      .references(() => metaApiVersions.id, { onDelete: 'restrict' }),
+    apiVersionId: apiVersionIdColumn('restrict'),
     // This is the snapshot-version code shared with the canonical snapshot.
     code: text('code').notNull(),
     schemaVersion: text('schemaVersion').notNull(),
     rulesetVersion: text('rulesetVersion').notNull(),
     status: text('status', { enum: apiReleaseSetStatuses }).notNull(),
-    publishedAt: integer('publishedAt', { mode: 'timestamp_ms' }),
-    validFrom: integer('validFrom', { mode: 'timestamp_ms' }),
-    validTo: integer('validTo', { mode: 'timestamp_ms' }),
+    publishedAt: isoTimestamp('publishedAt'),
+    validFrom: isoTimestamp('validFrom'),
+    validTo: isoTimestamp('validTo'),
     notes: text('notes'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
@@ -145,12 +177,8 @@ export const metaSnapshotAssembly = sqliteTable(
 export const metaSnapshotAssemblySources = sqliteTable(
   'snapshotAssemblySources',
   {
-    snapshotAssemblyId: text('snapshotAssemblyId')
-      .notNull()
-      .references(() => metaSnapshotAssembly.id, { onDelete: 'cascade' }),
-    datasetId: text('datasetId')
-      .notNull()
-      .references(() => metaDatasets.id, { onDelete: 'restrict' }),
+    snapshotAssemblyId: snapshotAssemblyIdColumn('cascade'),
+    datasetId: datasetIdColumn(),
     role: text('role').notNull(),
     isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
     selectorType: text('selectorType').notNull(),
@@ -172,12 +200,8 @@ export const metaSnapshotAssemblyRuns = sqliteTable(
   'snapshotAssemblyRuns',
   {
     id: primaryUuid('id'),
-    snapshotId: text('snapshotId')
-      .notNull()
-      .references(() => metaSnapshots.id, { onDelete: 'cascade' }),
-    snapshotAssemblyId: text('snapshotAssemblyId')
-      .notNull()
-      .references(() => metaSnapshotAssembly.id, { onDelete: 'restrict' }),
+    snapshotId: snapshotIdColumn('cascade'),
+    snapshotAssemblyId: snapshotAssemblyIdColumn('restrict'),
     anchorReleaseId: text('anchorReleaseId'),
     anchorCohortKey: text('anchorCohortKey'),
     status: text('status').notNull(),
@@ -191,9 +215,7 @@ export const metaApiComposition = sqliteTable(
   'apiComposition',
   {
     id: primaryUuid('id'),
-    apiVersionId: text('apiVersionId')
-      .notNull()
-      .references(() => metaApiVersions.id, { onDelete: 'cascade' }),
+    apiVersionId: apiVersionIdColumn('cascade'),
     code: text('code').notNull().unique(),
     version: integer('version').notNull(),
     primaryResourceType: text('primaryResourceType', {
@@ -215,9 +237,7 @@ export const metaApiComposition = sqliteTable(
 export const metaApiCompositionMembers = sqliteTable(
   'apiCompositionMembers',
   {
-    apiCompositionId: text('apiCompositionId')
-      .notNull()
-      .references(() => metaApiComposition.id, { onDelete: 'cascade' }),
+    apiCompositionId: apiCompositionIdColumn(),
     resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     role: text('role').notNull(),
     isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
@@ -239,12 +259,8 @@ export const metaApiCompositionMembers = sqliteTable(
 export const metaApiReleaseSetSnapshots = sqliteTable(
   'apiReleaseSetSnapshots',
   {
-    apiReleaseSetId: text('apiReleaseSetId')
-      .notNull()
-      .references(() => metaApiReleaseSets.id, { onDelete: 'cascade' }),
-    snapshotId: text('snapshotId')
-      .notNull()
-      .references(() => metaSnapshots.id, { onDelete: 'restrict' }),
+    apiReleaseSetId: apiReleaseSetIdColumn(),
+    snapshotId: snapshotIdColumn('restrict'),
     role: text('role').notNull(),
     isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
     selectionMode: text('selectionMode').notNull(),
@@ -265,9 +281,7 @@ export const metaApiEndpoints = sqliteTable(
   'apiEndpoints',
   {
     id: primaryUuid('id'),
-    apiVersionId: text('apiVersionId')
-      .notNull()
-      .references(() => metaApiVersions.id, { onDelete: 'restrict' }),
+    apiVersionId: apiVersionIdColumn('restrict'),
     method: text('method', { enum: apiEndpointMethods }).notNull(),
     path: text('path').notNull(),
     operationId: text('operationId').notNull().unique(),
@@ -287,9 +301,7 @@ export const metaApiFieldProvenance = sqliteTable(
   'apiFieldProvenance',
   {
     id: primaryUuid('id'),
-    apiReleaseSetId: text('apiReleaseSetId')
-      .notNull()
-      .references(() => metaApiReleaseSets.id, { onDelete: 'cascade' }),
+    apiReleaseSetId: apiReleaseSetIdColumn(),
     apiField: text('apiField').notNull(),
     sourceDatasetId: text('sourceDatasetId')
       .notNull()

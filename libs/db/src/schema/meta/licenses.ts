@@ -1,6 +1,6 @@
 import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { primaryUuid, timestamps } from './_shared'
+import { primaryUuid, timestamps } from '../shared'
 
 export const metaLicenses = sqliteTable('licenses', {
   id: primaryUuid('id'),

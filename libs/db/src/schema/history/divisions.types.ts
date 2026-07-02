@@ -1,10 +1,10 @@
-import type { divisionsVersions, divisionsVersionsI18n } from './divisions'
+import type { divisions, divisionsI18n } from './divisions'
 
-export type DivisionVersionRow = typeof divisionsVersions.$inferSelect
-export type NewDivisionVersionRow = typeof divisionsVersions.$inferInsert
+export type DivisionVersionRow = typeof divisions.$inferSelect
+export type NewDivisionVersionRow = typeof divisions.$inferInsert
 
-export type DivisionVersionI18nRow = typeof divisionsVersionsI18n.$inferSelect
-export type NewDivisionVersionI18nRow = typeof divisionsVersionsI18n.$inferInsert
+export type DivisionVersionI18nRow = typeof divisionsI18n.$inferSelect
+export type NewDivisionVersionI18nRow = typeof divisionsI18n.$inferInsert
 
 export type CurrentDivisionVersionRow = Pick<
   DivisionVersionRow,
@@ -13,10 +13,9 @@ export type CurrentDivisionVersionRow = Pick<
   | 'level'
   | 'bbox'
   | 'cartography'
-  | 'class'
   | 'geometry'
   | 'population'
-  | 'subtype'
+  | 'sourceKeys'
   | 'wikidata'
   | 'parentDivisionId'
   | 'sources'

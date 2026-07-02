@@ -6,16 +6,14 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import { jsonText, timestamps } from './_shared'
+import { canonicalStreet, canonicalStreetI18n, timestamps } from '../shared'
 import { address2d } from './addresses'
 
 export const streets = sqliteTable(
   'streets',
   {
     snapshotId: text('snapshotId').notNull(),
-    id: text('id').notNull(),
-    yearBuilt: jsonText('yearBuilt'),
-    references: jsonText('references'),
+    ...canonicalStreet,
     ...timestamps,
   },
   table => [
@@ -29,14 +27,7 @@ export const streetsI18n = sqliteTable(
   'streetsI18n',
   {
     snapshotId: text('snapshotId').notNull(),
-    streetId: text('streetId').notNull(),
-    locale: text('locale').notNull(),
-    name: text('name').notNull(),
-    base: text('base'),
-    designator: text('designator'),
-    directionalPrefix: text('directionalPrefix'),
-    directionalSuffix: text('directionalSuffix'),
-    normalised: text('normalised'),
+    ...canonicalStreetI18n,
     ...timestamps,
   },
   table => [

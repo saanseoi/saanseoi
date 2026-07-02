@@ -6,7 +6,7 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import { primaryUuid, timestamps } from './_shared'
+import { primaryUuid, timestamps } from '../shared'
 
 export const metaPublishers = sqliteTable(
   'publishers',

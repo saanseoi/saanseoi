@@ -1,15 +1,10 @@
-import type {
-  address2dVersions,
-  address2dVersionsI18n,
-  address3dVersions,
-  address3dVersionsI18n,
-} from './addresses'
+import type { address2d, address2dI18n, address3d, address3dI18n } from './addresses'
 
-export type AddressVersionRow = typeof address2dVersions.$inferSelect
-export type NewAddressVersionRow = typeof address2dVersions.$inferInsert
+export type AddressVersionRow = typeof address2d.$inferSelect
+export type NewAddressVersionRow = typeof address2d.$inferInsert
 
-export type AddressVersionI18nRow = typeof address2dVersionsI18n.$inferSelect
-export type NewAddressVersionI18nRow = typeof address2dVersionsI18n.$inferInsert
+export type AddressVersionI18nRow = typeof address2dI18n.$inferSelect
+export type NewAddressVersionI18nRow = typeof address2dI18n.$inferInsert
 
 export type CurrentAddressVersionRow = Pick<
   AddressVersionRow,
@@ -31,7 +26,7 @@ export type CurrentAddressVersionRow = Pick<
   | 'versionHash'
 >
 
-export type Address3dVersionRow = typeof address3dVersions.$inferSelect
-export type NewAddress3dVersionRow = typeof address3dVersions.$inferInsert
-export type Address3dVersionI18nRow = typeof address3dVersionsI18n.$inferSelect
-export type NewAddress3dVersionI18nRow = typeof address3dVersionsI18n.$inferInsert
+export type Address3dVersionRow = typeof address3d.$inferSelect
+export type NewAddress3dVersionRow = typeof address3d.$inferInsert
+export type Address3dVersionI18nRow = typeof address3dI18n.$inferSelect
+export type NewAddress3dVersionI18nRow = typeof address3dI18n.$inferInsert

@@ -9,7 +9,7 @@ import {
 
 import { ingestRunStatuses } from '../../constants/schema'
 import { metaReleases } from './datasets'
-import { jsonText, timestamps } from './_shared'
+import { jsonText, timestamps } from '../shared'
 
 export const ingestRuns = sqliteTable(
   'ingestRuns',

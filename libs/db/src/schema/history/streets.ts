@@ -1,55 +1,42 @@
-import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
-import { i18nVersioning, jsonText, timestamps, versioning } from './_shared'
+import { canonicalStreet, canonicalStreetI18n } from '../shared'
+import { historyI18nVersioning, historyVersioning } from './shared'
 
-export const streetsVersions = sqliteTable(
-  'streetsVersions',
+export const streets = sqliteTable(
+  'streets',
   {
-    id: text('id').notNull(),
-    ...versioning,
-    yearBuilt: jsonText('yearBuilt'),
-    references: jsonText('references'),
-    ...timestamps,
+    ...canonicalStreet,
+    ...historyVersioning,
   },
   table => [
     primaryKey({
       columns: [table.id, table.versionHash],
     }),
-    index('streetsVersions_current_lookup_idx').on(table.id, table.isCurrent),
-    index('streetsVersions_snapshot_validity_idx').on(
+    index('streets_current_lookup_idx').on(table.id, table.isCurrent),
+    index('streets_snapshot_validity_idx').on(
       table.validFromSnapshotId,
       table.validToSnapshotId,
     ),
-    index('streetsVersions_validity_idx').on(
-      table.validFromCohortKey,
-      table.validToCohortKey,
-    ),
-    index('streetsVersions_sourceReleaseId_idx').on(table.sourceReleaseId),
-    index('streetsVersions_snapshotId_idx').on(table.snapshotId),
+    index('streets_validity_idx').on(table.validFromCohortKey, table.validToCohortKey),
+    index('streets_sourceReleaseId_idx').on(table.sourceReleaseId),
+    index('streets_snapshotId_idx').on(table.snapshotId),
   ],
 )
 
-export const streetsVersionsI18n = sqliteTable(
-  'streetsVersionsI18n',
+export const streetsI18n = sqliteTable(
+  'streetsI18n',
   {
-    streetId: text('streetId').notNull(),
-    ...i18nVersioning,
-    locale: text('locale').notNull(),
-    name: text('name').notNull(),
-    base: text('base'),
-    designator: text('designator'),
-    directionalPrefix: text('directionalPrefix'),
-    directionalSuffix: text('directionalSuffix'),
-    normalised: text('normalised'),
-    ...timestamps,
+    ...canonicalStreetI18n,
+    ...historyI18nVersioning,
   },
   table => [
     primaryKey({
       columns: [table.streetId, table.versionHash, table.locale],
     }),
-    index('streetsVersionsI18n_locale_idx').on(table.locale),
-    index('streetsVersionsI18n_name_idx').on(table.locale, table.name),
-    index('streetsVersionsI18n_current_lookup_idx').on(
+    index('streetsI18n_locale_idx').on(table.locale),
+    index('streetsI18n_name_idx').on(table.locale, table.name),
+    index('streetsI18n_current_lookup_idx').on(
       table.streetId,
       table.locale,
       table.isCurrent,

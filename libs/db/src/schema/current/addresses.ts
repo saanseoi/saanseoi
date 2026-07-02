@@ -2,14 +2,19 @@ import {
   check,
   foreignKey,
   index,
-  integer,
   primaryKey,
   sqliteTable,
   text,
 } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
-import { jsonText, timestamps } from './_shared'
+import {
+  canonicalAddress2d,
+  canonicalAddress2dI18n,
+  canonicalAddress3dI18n,
+  jsonText,
+  timestamps,
+} from '../shared'
 import { divisions } from './divisions'
 import { streets } from './streets'
 
@@ -17,23 +22,9 @@ export const address2d = sqliteTable(
   'address2d',
   {
     snapshotId: text('snapshotId').notNull(),
-    id: text('id').notNull(),
-    geometry: jsonText('geometry'),
-    bbox: jsonText('bbox'),
     divisionSnapshotId: text('divisionSnapshotId').notNull(),
-    countryId: text('countryId'),
-    areaId: text('areaId'),
-    districtId: text('districtId'),
-    townId: text('townId'),
-    macrohoodId: text('macrohoodId'),
-    villageId: text('villageId'),
-    neighbourhoodId: text('neighbourhoodId'),
-    hamletId: text('hamletId'),
-    microhoodId: text('microhoodId'),
     streetSnapshotId: text('streetSnapshotId'),
-    streetId: text('streetId'),
-    identifiers: jsonText('identifiers'),
-    sources: jsonText('sources'),
+    ...canonicalAddress2d,
     ...timestamps,
   },
   table => [
@@ -112,20 +103,7 @@ export const address2dI18n = sqliteTable(
   'address2dI18n',
   {
     snapshotId: text('snapshotId').notNull(),
-    addressId: text('addressId').notNull(),
-    locale: text('locale').notNull(),
-    formattedAddress: text('formattedAddress').notNull(),
-    buildingName: text('buildingName'),
-    buildingNumberFrom: text('buildingNumberFrom'),
-    buildingNumberTo: text('buildingNumberTo'),
-    blockType: text('blockType'),
-    blockNumber: text('blockNumber'),
-    blockTypeBeforeNumber: integer('blockTypeBeforeNumber', { mode: 'boolean' }),
-    phaseName: text('phaseName'),
-    phaseNumber: text('phaseNumber'),
-    estateName: text('estateName'),
-    streetNumber: text('streetNumber'),
-    streetName: text('streetName'),
+    ...canonicalAddress2dI18n,
     ...timestamps,
   },
   table => [
@@ -167,15 +145,7 @@ export const address3dI18n = sqliteTable(
   'address3dI18n',
   {
     snapshotId: text('snapshotId').notNull(),
-    address3dId: text('address3dId').notNull(),
-    locale: text('locale').notNull(),
-    formattedAddressPart: text('formattedAddressPart').notNull(),
-    accessHint: text('accessHint'),
-    unitPortion: text('unitPortion'),
-    unitNumber: text('unitNumber'),
-    unitType: text('unitType'),
-    floorNumber: text('floorNumber'),
-    floorType: text('floorType'),
+    ...canonicalAddress3dI18n,
     ...timestamps,
   },
   table => [

@@ -7,46 +7,38 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import {
-  jsonText,
-  sourceRecordColumns,
-  sourceRecordIndexes,
-  sourceVersionIndexes,
-  sourceVersioning,
-} from './_shared'
+import { jsonText, geoBbox, sourceProvenance } from '../shared'
+import { sourceVersionIndexes, sourceVersioning } from './shared'
+import { hkAreas, hkDistricts } from '@repo/core'
 
 export const sourceOvertureDivisions = sqliteTable(
-  'sourceOvertureDivisions',
+  'overtureDivisions',
   {
-    ...sourceRecordColumns,
-    regionCode: text('regionCode').notNull(),
-    level: integer('level'),
-    divisionType: text('divisionType'),
+    sourceRecordId: text('sourceRecordId').notNull(),
+    adminLevel: integer('admin_level'),
     subtype: text('subtype'),
-    divisionClass: text('divisionClass'),
+    class: text('class'),
     population: integer('population'),
-    version: integer('version'),
     wikidata: text('wikidata'),
-    geometry: jsonText('geometry'),
-    bbox: jsonText('bbox'),
     hierarchies: jsonText('hierarchies'),
+    ...geoBbox,
     cartography: jsonText('cartography'),
-    sources: jsonText('sources'),
-    rawProperties: jsonText('rawProperties'),
+    ...sourceProvenance,
+    ...sourceVersioning,
   },
   table => [
     primaryKey({
-      columns: [table.sourceRecordId],
+      columns: [table.sourceRecordId, table.versionHash],
     }),
-    ...sourceRecordIndexes(table, 'sourceOvertureDivisions'),
-    index('sourceOvertureDivisions_regionCode_idx').on(table.regionCode),
-    index('sourceOvertureDivisions_level_idx').on(table.level),
-    index('sourceOvertureDivisions_type_idx').on(table.divisionType),
+    ...sourceVersionIndexes(table, 'overtureDivisions'),
+    index('overtureDivisions_adminLevel_idx').on(table.adminLevel),
+    index('overtureDivisions_subtype_idx').on(table.subtype),
+    index('overtureDivisions_class_idx').on(table.class),
   ],
 )
 
 export const sourceOvertureDivisionI18n = sqliteTable(
-  'sourceOvertureDivisionI18n',
+  'overtureDivisionI18n',
   {
     sourceRecordId: text('sourceRecordId').notNull(),
     locale: text('locale').notNull(),
@@ -57,169 +49,50 @@ export const sourceOvertureDivisionI18n = sqliteTable(
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
       .notNull()
       .default(false),
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId, table.locale],
-    }),
-    index('sourceOvertureDivisionI18n_locale_idx').on(table.locale),
-  ],
-)
-
-export const sourceOvertureDivisionsVersions = sqliteTable(
-  'sourceOvertureDivisionsVersions',
-  {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    regionCode: text('regionCode').notNull(),
     ...sourceVersioning,
-    level: integer('level'),
-    divisionType: text('divisionType'),
-    subtype: text('subtype'),
-    divisionClass: text('divisionClass'),
-    population: integer('population'),
-    version: integer('version'),
-    wikidata: text('wikidata'),
-    geometry: jsonText('geometry'),
-    bbox: jsonText('bbox'),
-    hierarchies: jsonText('hierarchies'),
-    cartography: jsonText('cartography'),
-    sources: jsonText('sources'),
-    rawProperties: jsonText('rawProperties'),
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId, table.versionHash],
-    }),
-    ...sourceVersionIndexes(table, 'sourceOvertureDivisionsVersions'),
-    index('sourceOvertureDivisionsVersions_regionCode_idx').on(table.regionCode),
-    index('sourceOvertureDivisionsVersions_level_idx').on(table.level),
-    index('sourceOvertureDivisionsVersions_type_idx').on(table.divisionType),
-  ],
-)
-
-export const sourceOvertureDivisionI18nVersions = sqliteTable(
-  'sourceOvertureDivisionI18nVersions',
-  {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    ...sourceVersioning,
-    locale: text('locale').notNull(),
-    name: text('name'),
-    nameVariant: jsonText('nameVariant'),
-    nameAlts: text('nameAlts'),
-    nameRules: jsonText('nameRules'),
-    isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
-      .notNull()
-      .default(false),
   },
   table => [
     primaryKey({
       columns: [table.sourceRecordId, table.versionHash, table.locale],
     }),
-    ...sourceVersionIndexes(table, 'sourceOvertureDivisionI18nVersions'),
-    index('sourceOvertureDivisionI18nVersions_locale_idx').on(table.locale),
+    ...sourceVersionIndexes(table, 'overtureDivisionI18n'),
+    index('overtureDivisionI18n_locale_idx').on(table.locale),
   ],
 )
 
 export const sourceOvertureAddresses2d = sqliteTable(
-  'sourceOvertureAddresses2d',
+  'overtureAddresses2d',
   {
-    ...sourceRecordColumns,
-    regionCode: text('regionCode').notNull(),
-    version: integer('version'),
-    geometry: jsonText('geometry'),
-    bbox: jsonText('bbox'),
+    sourceRecordId: text('sourceRecordId').notNull(),
+    area: text('area', { enum: hkAreas }),
+    district: text('district', { enum: hkDistricts }),
+    unit: text('unit'),
     streetName: text('streetName'),
     streetNumber: text('streetNumber'),
-    sources: jsonText('sources'),
-    rawProperties: jsonText('rawProperties'),
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId],
-    }),
-    ...sourceRecordIndexes(table, 'sourceOvertureAddresses2d'),
-    index('sourceOvertureAddresses2d_regionCode_idx').on(table.regionCode),
-    index('sourceOvertureAddresses2d_street_lookup_idx').on(
-      table.regionCode,
-      table.streetName,
-      table.streetNumber,
-    ),
-  ],
-)
-
-export const sourceOvertureAddress2dI18n = sqliteTable(
-  'sourceOvertureAddress2dI18n',
-  {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    locale: text('locale').notNull(),
-    streetName: text('streetName'),
-    locality: text('locality'),
-    region: text('region'),
-    country: text('country'),
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId, table.locale],
-    }),
-    index('sourceOvertureAddress2dI18n_locale_idx').on(table.locale),
-  ],
-)
-
-export const sourceOvertureAddresses2dVersions = sqliteTable(
-  'sourceOvertureAddresses2dVersions',
-  {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    regionCode: text('regionCode').notNull(),
+    ...geoBbox,
+    ...sourceProvenance,
     ...sourceVersioning,
-    version: integer('version'),
-    geometry: jsonText('geometry'),
-    bbox: jsonText('bbox'),
-    streetName: text('streetName'),
-    streetNumber: text('streetNumber'),
-    sources: jsonText('sources'),
-    rawProperties: jsonText('rawProperties'),
   },
   table => [
     primaryKey({
       columns: [table.sourceRecordId, table.versionHash],
     }),
-    ...sourceVersionIndexes(table, 'sourceOvertureAddresses2dVersions'),
-    index('sourceOvertureAddresses2dVersions_regionCode_idx').on(table.regionCode),
-    index('sourceOvertureAddresses2dVersions_street_lookup_idx').on(
-      table.regionCode,
+    ...sourceVersionIndexes(table, 'overtureAddresses2d'),
+    index('overtureAddresses2d_area_idx').on(table.area),
+    index('overtureAddresses2d_district_idx').on(table.district),
+    index('overtureAddresses2d_district_street_lookup_idx').on(
+      table.district,
       table.streetName,
       table.streetNumber,
     ),
-  ],
-)
-
-export const sourceOvertureAddress2dI18nVersions = sqliteTable(
-  'sourceOvertureAddress2dI18nVersions',
-  {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    ...sourceVersioning,
-    locale: text('locale').notNull(),
-    streetName: text('streetName'),
-    locality: text('locality'),
-    region: text('region'),
-    country: text('country'),
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId, table.versionHash, table.locale],
-    }),
-    ...sourceVersionIndexes(table, 'sourceOvertureAddress2dI18nVersions'),
-    index('sourceOvertureAddress2dI18nVersions_locale_idx').on(table.locale),
   ],
 )
 
 export const sourceOverturePlaces = sqliteTable(
-  'sourceOverturePlaces',
+  'overturePlaces',
   {
-    ...sourceRecordColumns,
-    regionCode: text('regionCode').notNull(),
+    sourceRecordId: text('sourceRecordId').notNull(),
     addressSourceRecordId: text('addressSourceRecordId'),
-    version: integer('version'),
     lng: real('lng'),
     lat: real('lat'),
     bbox: jsonText('bbox'),
@@ -235,91 +108,24 @@ export const sourceOverturePlaces = sqliteTable(
     phones: jsonText('phones'),
     addresses: jsonText('addresses'),
     confidence: real('confidence'),
-    sources: jsonText('sources'),
-    rawProperties: jsonText('rawProperties'),
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId],
-    }),
-    ...sourceRecordIndexes(table, 'sourceOverturePlaces'),
-    index('sourceOverturePlaces_regionCode_idx').on(table.regionCode),
-    index('sourceOverturePlaces_basicCategory_idx').on(table.basicCategory),
-    index('sourceOverturePlaces_taxonomyPrimary_idx').on(table.taxonomyPrimary),
-    index('sourceOverturePlaces_addressSourceRecordId_idx').on(
-      table.addressSourceRecordId,
-    ),
-  ],
-)
-
-export const sourceOverturePlaceI18n = sqliteTable(
-  'sourceOverturePlaceI18n',
-  {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    locale: text('locale').notNull(),
-    name: text('name'),
-    nameVariant: jsonText('nameVariant'),
-    nameAlts: text('nameAlts'),
-    brandName: text('brandName'),
-    brandNameVariant: jsonText('brandNameVariant'),
-    brandNameAlts: text('brandNameAlts'),
-    isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
-      .notNull()
-      .default(false),
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId, table.locale],
-    }),
-    index('sourceOverturePlaceI18n_locale_idx').on(table.locale),
-  ],
-)
-
-export const sourceOverturePlacesVersions = sqliteTable(
-  'sourceOverturePlacesVersions',
-  {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    regionCode: text('regionCode').notNull(),
+    ...sourceProvenance,
     ...sourceVersioning,
-    addressSourceRecordId: text('addressSourceRecordId'),
-    version: integer('version'),
-    lng: real('lng'),
-    lat: real('lat'),
-    bbox: jsonText('bbox'),
-    operatingStatus: text('operatingStatus'),
-    basicCategory: text('basicCategory'),
-    taxonomyPrimary: text('taxonomyPrimary'),
-    taxonomyHierarchy: jsonText('taxonomyHierarchy'),
-    taxonomyAlternates: jsonText('taxonomyAlternates'),
-    brandWikidata: text('brandWikidata'),
-    websites: jsonText('websites'),
-    socials: jsonText('socials'),
-    emails: jsonText('emails'),
-    phones: jsonText('phones'),
-    addresses: jsonText('addresses'),
-    confidence: real('confidence'),
-    sources: jsonText('sources'),
-    rawProperties: jsonText('rawProperties'),
   },
   table => [
     primaryKey({
       columns: [table.sourceRecordId, table.versionHash],
     }),
-    ...sourceVersionIndexes(table, 'sourceOverturePlacesVersions'),
-    index('sourceOverturePlacesVersions_regionCode_idx').on(table.regionCode),
-    index('sourceOverturePlacesVersions_basicCategory_idx').on(table.basicCategory),
-    index('sourceOverturePlacesVersions_taxonomyPrimary_idx').on(table.taxonomyPrimary),
-    index('sourceOverturePlacesVersions_addressSourceRecordId_idx').on(
-      table.addressSourceRecordId,
-    ),
+    ...sourceVersionIndexes(table, 'overturePlaces'),
+    index('overturePlaces_basicCategory_idx').on(table.basicCategory),
+    index('overturePlaces_taxonomyPrimary_idx').on(table.taxonomyPrimary),
+    index('overturePlaces_addressSourceRecordId_idx').on(table.addressSourceRecordId),
   ],
 )
 
-export const sourceOverturePlaceI18nVersions = sqliteTable(
-  'sourceOverturePlaceI18nVersions',
+export const sourceOverturePlaceI18n = sqliteTable(
+  'overturePlaceI18n',
   {
     sourceRecordId: text('sourceRecordId').notNull(),
-    ...sourceVersioning,
     locale: text('locale').notNull(),
     name: text('name'),
     nameVariant: jsonText('nameVariant'),
@@ -330,12 +136,13 @@ export const sourceOverturePlaceI18nVersions = sqliteTable(
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
       .notNull()
       .default(false),
+    ...sourceVersioning,
   },
   table => [
     primaryKey({
       columns: [table.sourceRecordId, table.versionHash, table.locale],
     }),
-    ...sourceVersionIndexes(table, 'sourceOverturePlaceI18nVersions'),
-    index('sourceOverturePlaceI18nVersions_locale_idx').on(table.locale),
+    ...sourceVersionIndexes(table, 'overturePlaceI18n'),
+    index('overturePlaceI18n_locale_idx').on(table.locale),
   ],
 )
