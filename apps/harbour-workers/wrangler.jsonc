@@ -8,6 +8,7 @@
     "required": ["HARBOUR_API_KEY"]
   },
   "vars": {
+    "CLOUDFLARE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
     "DATA_SHARD_ENV": "preview",
     "HARBOUR_BASE_URL": "http://localhost:8788"
   },
@@ -95,9 +96,10 @@
         "region": "azure:eastasia"
       },
       "secrets": {
-        "required": ["HARBOUR_API_KEY"]
+        "required": ["HARBOUR_API_KEY", "CLOUDFLARE_D1_TOKEN"]
       },
       "vars": {
+        "CLOUDFLARE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
         "DATA_SHARD_ENV": "preview",
         "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk"
       },
@@ -175,9 +177,10 @@
         "region": "azure:eastasia"
       },
       "secrets": {
-        "required": ["HARBOUR_API_KEY"]
+        "required": ["HARBOUR_API_KEY", "CLOUDFLARE_D1_TOKEN"]
       },
       "vars": {
+        "CLOUDFLARE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
         "DATA_SHARD_ENV": "production",
         "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk"
       },
