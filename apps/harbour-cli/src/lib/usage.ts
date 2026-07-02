@@ -1,0 +1,19 @@
+import { resourceThemes, resourceTypes } from '@repo/core'
+
+export function printUsage() {
+  console.log(`  Usage:
+  saanseoi upload <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--dry-run] [--force] [--skip-cleanup] [--yes]
+  saanseoi upload:sql <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--dry-run] [--force] [--skip-cleanup] [--yes]
+  saanseoi upload:finalize --release <release-id|release-code> [--target local|preview|production] [--skip-cleanup] [--yes]
+  saanseoi upload:requeue --release <release-id|release-code> [--target local|preview|production] [--skip-cleanup] [--force] [--yes]
+  saanseoi upload:watch [--target local|preview|production]
+  saanseoi cleanup:snapshots [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
+  saanseoi cleanup:staging --release <release-id|release-code> [--target local|preview|production] [--delay-seconds 30] [--dry-run] [--yes]
+  saanseoi d1:import-sql <file.sql> --account-id VALUE --database-id VALUE [--api-token VALUE|--api-token-env ENV] [--poll-interval-ms 1000]
+  saanseoi inspect [--stage normalized|resolved|operations] [--resourceType address] [--releaseCode VALUE] [--dbShard source|history|current] [--sample first|last|random] [--persist-to .local/d1/dev] [--out-dir .]
+  saanseoi prep-hkgov-als <source-dir> [--target local|preview|production] [--source-version YYYY-MM-DD.NN] [--cohort-key VALUE] [--db /path/to/local.sqlite]
+  saanseoi reports:ingestion [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
+  saanseoi reports:stats [--target local|preview|production] [--limit 1-100] [--source SOURCE] [--type TYPE]
+  saanseoi reports:releases [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
+`)
+}
