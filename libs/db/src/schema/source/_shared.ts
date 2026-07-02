@@ -14,8 +14,8 @@ export const sourceTimestamps = {
 }
 
 export const sourceRecordColumns = {
-  releaseId: text('releaseId').notNull(),
   datasetId: text('datasetId').notNull(),
+  releaseId: text('releaseId').notNull(),
   sourceRecordId: text('sourceRecordId').notNull(),
   sourcePayloadHash: text('sourcePayloadHash'),
   ...sourceTimestamps,

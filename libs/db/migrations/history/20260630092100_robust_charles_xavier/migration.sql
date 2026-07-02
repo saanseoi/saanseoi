@@ -1,1 +1,0 @@
-ALTER TABLE `divisionsVersionsI18n` DROP COLUMN `localType`;
