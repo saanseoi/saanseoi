@@ -147,6 +147,7 @@ export function createProcessDatasetMessage(
         activePhases.delete('extractDivisionsI18n')
       } else if (message.type === 'address') {
         const extractStartedAt = Date.now()
+        const addressPhase = resolveAddressSqlGenerationPhase(message)
         await harbourClient.stageRunning(
           releaseId,
           'extractAddresses',
@@ -161,6 +162,15 @@ export function createProcessDatasetMessage(
           releaseCode,
         )
         activePhases.add('extractAddressesI18n')
+        if (addressPhase) {
+          await harbourClient.stageRunning(
+            releaseId,
+            addressPhase,
+            buildAddressSqlGenerationPhaseStats(message),
+            releaseCode,
+          )
+          activePhases.add(addressPhase)
+        }
 
         result = await processAddressDataset(
           metaDb,
@@ -185,6 +195,19 @@ export function createProcessDatasetMessage(
           ('nextMessage' in result && result.nextMessage) ||
           ('deferCompletion' in result && result.deferCompletion)
         ) {
+          if (addressPhase) {
+            await harbourClient.stageCompleted(
+              releaseId,
+              addressPhase,
+              buildAddressSqlGenerationPhaseStats(
+                result.nextMessage ?? message,
+                result,
+              ),
+              releaseCode,
+            )
+            activePhases.delete(addressPhase)
+          }
+
           const durationMs = Date.now() - processStartedAt
           const addressStage =
             message.type === 'address' ? getAddressPipelineStage(message) : undefined
@@ -370,6 +393,45 @@ export function createProcessDatasetMessage(
 
       throw error
     }
+  }
+}
+
+function resolveAddressSqlGenerationPhase(message: DatasetProcessingMessage) {
+  if (message.type !== 'address' || message.processingMode !== 'sql') {
+    return null
+  }
+
+  switch (getAddressPipelineStage(message)) {
+    case 'normalize':
+      return 'normalizeAddressSql'
+    case 'sql-source':
+      return 'generateAddressSqlSource'
+    case 'sql-history':
+      return 'generateAddressSqlHistory'
+    case 'sql-current':
+      return 'generateAddressSqlCurrent'
+    case 'sql-finalize':
+      return 'finalizeAddressSqlGeneration'
+    default:
+      return null
+  }
+}
+
+function buildAddressSqlGenerationPhaseStats(
+  message: DatasetProcessingMessage,
+  result?: DatasetProcessingResult,
+) {
+  return {
+    addressStage: getAddressPipelineStage(message),
+    rowEnd: message.rowEnd,
+    rowStart: message.rowStart,
+    sqlArtifactCount:
+      message.addressSqlArtifactKeys?.length ?? result?.statsRows ?? undefined,
+    processedRows:
+      message.addressStats?.processedRows ??
+      result?.processedRows ??
+      message.rowEnd ??
+      undefined,
   }
 }
 

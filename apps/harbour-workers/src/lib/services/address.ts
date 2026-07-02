@@ -81,6 +81,13 @@ import { writeAddressHistoryChunkStage } from './addressPipeline/historyStage'
 import { normalizeAddressChunkStage } from './addressPipeline/normalizeStage'
 import { writeAddressSourceChunkStage } from './addressPipeline/sourceStage'
 import {
+  finalizeAddressSqlDatasetStage,
+  normalizeAddressSqlChunkStage,
+  writeAddressCurrentSqlChunkStage,
+  writeAddressHistorySqlChunkStage,
+  writeAddressSourceSqlChunkStage,
+} from './addressPipeline/sqlStages'
+import {
   getAddressPipelineStage,
   type AddressPipelineMessage,
 } from './addressPipeline/types'
@@ -143,15 +150,24 @@ export async function processAddressDataset(
 ): Promise<ProcessAddressDatasetResult> {
   switch (getAddressPipelineStage(message) as string) {
     case 'normalize': {
-      const nextMessage = await processAddressChunkPipeline(
-        metaDb,
-        currentDb,
-        bucket,
-        message,
-        historyDb,
-        sourceDb,
-        reportProgress,
-      )
+      const nextMessage =
+        message.processingMode === 'sql'
+          ? await normalizeAddressSqlChunkStage(
+              metaDb,
+              currentDb,
+              bucket,
+              message,
+              reportProgress,
+            )
+          : await processAddressChunkPipeline(
+              metaDb,
+              currentDb,
+              bucket,
+              message,
+              historyDb,
+              sourceDb,
+              reportProgress,
+            )
 
       if (nextMessage.addressStage === 'finalize') {
         return finalizeAddressDatasetStage(
@@ -161,6 +177,17 @@ export async function processAddressDataset(
           sourceDb,
           nextMessage,
         )
+      }
+
+      if (nextMessage.addressStage === 'sql-finalize') {
+        return {
+          ...finalizeAddressSqlDatasetStage(nextMessage),
+          nextMessage: {
+            ...nextMessage,
+            addressStage: 'sql-import-source',
+            processingMode: 'sql',
+          },
+        }
       }
 
       if (message.preplannedAddressChunks) {
@@ -226,6 +253,62 @@ export async function processAddressDataset(
         statsRows: 0,
         unchangedRows: 0,
       }
+    case 'sql-source':
+      return {
+        deletedRows: 0,
+        insertedVersions: 0,
+        localizedRows: 0,
+        nextMessage: await writeAddressSourceSqlChunkStage(bucket, message),
+        processedRows: 0,
+        statsRows: 0,
+        unchangedRows: 0,
+      }
+    case 'sql-history':
+      return {
+        deletedRows: 0,
+        insertedVersions: 0,
+        localizedRows: 0,
+        nextMessage: await writeAddressHistorySqlChunkStage(
+          metaDb,
+          historyDb,
+          bucket,
+          message,
+        ),
+        processedRows: 0,
+        statsRows: 0,
+        unchangedRows: 0,
+      }
+    case 'sql-current':
+      return {
+        deletedRows: 0,
+        insertedVersions: 0,
+        localizedRows: 0,
+        nextMessage: await writeAddressCurrentSqlChunkStage(
+          metaDb,
+          currentDb,
+          bucket,
+          message,
+        ),
+        processedRows: 0,
+        statsRows: 0,
+        unchangedRows: 0,
+      }
+    case 'sql-finalize':
+      return {
+        ...finalizeAddressSqlDatasetStage(message),
+        nextMessage: {
+          ...message,
+          addressStage: 'sql-import-source',
+          processingMode: 'sql',
+        },
+      }
+    case 'sql-import-source':
+    case 'sql-import-history':
+    case 'sql-import-current':
+    case 'sql-cleanup-staging':
+      throw new Error(
+        `Address SQL stage ${getAddressPipelineStage(message)} must be handled by the queue SQL import handler.`,
+      )
     case 'finalize':
       return finalizeAddressDatasetStage(
         metaDb,

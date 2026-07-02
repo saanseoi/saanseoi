@@ -12,10 +12,18 @@ import { createHarbourClient } from './lib/harbourClient'
 import { withPrimarySession } from './lib/d1'
 import { processDatasetMessage } from './lib/worker'
 import { cleanupCurrentSnapshots } from './lib/services/snapshotCleanup'
+import {
+  isAddressSqlImportOrCleanupStage,
+  processAddressSqlImportOrCleanupStage,
+} from './lib/services/addressPipeline/sqlImportStages'
 
 type Env = Partial<MultiDbBindings> & {
   HARBOUR_API_KEY: string
   HARBOUR_BASE_URL: string
+  CLOUDFLARE_ACCOUNT_ID?: string
+  CLOUDFLARE_D1_TOKEN?: string
+  D1_IMPORT_POLL_INTERVAL_MS?: string
+  DATA_SHARD_ENV?: string
   JOB_QUEUE?: Queue<HarbourJobMessage>
   R2_RAW: R2Bucket
 }
@@ -202,6 +210,39 @@ export function createQueueHandler(
         const sourceDb = sourceBinding
           ? createSourceDb(withPrimarySession(sourceBinding))
           : undefined
+
+        if (isAddressSqlImportOrCleanupStage(body)) {
+          const nextMessage = await processAddressSqlImportOrCleanupStage(
+            harbourClient,
+            metaDb,
+            env.R2_RAW,
+            body,
+            {
+              accountId: env.CLOUDFLARE_ACCOUNT_ID,
+              apiToken: env.CLOUDFLARE_D1_TOKEN,
+              currentBinding,
+              dataShardEnvironment: env.DATA_SHARD_ENV,
+              historyBinding,
+              isLocal: isLocalBaseUrl(env.HARBOUR_BASE_URL),
+              pollIntervalMs: resolveOptionalPositiveInteger(
+                env.D1_IMPORT_POLL_INTERVAL_MS,
+              ),
+              sourceBinding,
+            },
+          )
+
+          if (nextMessage) {
+            if (!env.JOB_QUEUE) {
+              throw new Error('Missing JOB_QUEUE binding for SQL import chaining.')
+            }
+
+            await env.JOB_QUEUE.send(nextMessage)
+          }
+
+          message.ack()
+          continue
+        }
+
         let processingBody = body
         let drainedInlineChunks = 0
 
@@ -344,6 +385,7 @@ function shouldDrainAddressContinuationInline(
     isLocalBaseUrl(env.HARBOUR_BASE_URL) &&
     currentMessage.type === 'address' &&
     nextMessage.type === 'address' &&
+    !isAddressSqlImportOrCleanupStage(nextMessage) &&
     !currentMessage.preplannedAddressChunks &&
     !nextMessage.preplannedAddressChunks
   )
@@ -356,6 +398,16 @@ function isLocalBaseUrl(baseUrl: string) {
   } catch {
     return false
   }
+}
+
+function resolveOptionalPositiveInteger(value: string | undefined) {
+  if (!value) {
+    return undefined
+  }
+
+  const parsed = Number(value)
+
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined
 }
 
 export default {

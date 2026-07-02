@@ -2,6 +2,8 @@ import type { DatasetProcessingMessage } from '@repo/core'
 
 type ArtifactObjectBody = {
   arrayBuffer(): Promise<ArrayBuffer>
+  etag?: string
+  httpEtag?: string
 }
 
 export type PipelineArtifactBucket = {
@@ -27,7 +29,7 @@ export function buildPipelineArtifactKey(
   rowStart: number,
   rowEnd: number,
 ) {
-  const releaseId = message.releaseId ?? message.datasetId
+  const releaseId = message.releaseCode ?? message.releaseId ?? message.datasetId
   return [
     'processed',
     message.type,
@@ -35,6 +37,16 @@ export function buildPipelineArtifactKey(
     stage,
     `${String(rowStart).padStart(12, '0')}-${String(rowEnd).padStart(12, '0')}.json`,
   ].join('/')
+}
+
+export function buildSqlPipelineArtifactKey(
+  message: DatasetProcessingMessage,
+  target: string,
+  filename: string,
+) {
+  const releaseCode = message.releaseCode ?? message.releaseId ?? message.datasetId
+
+  return ['processed', releaseCode, 'sql', target, filename].join('/')
 }
 
 export async function writeJsonArtifact<T>(
@@ -56,6 +68,24 @@ export async function writeJsonArtifact<T>(
   localArtifacts.set(key, body)
 }
 
+export async function writeTextArtifact(
+  bucket: PipelineArtifactBucket,
+  key: string,
+  value: string,
+  contentType = 'text/plain; charset=utf-8',
+) {
+  if (bucket.put) {
+    await bucket.put(key, value, {
+      httpMetadata: {
+        contentType,
+      },
+    })
+    return
+  }
+
+  localArtifacts.set(key, value)
+}
+
 export async function readJsonArtifact<T>(
   bucket: PipelineArtifactBucket,
   key: string,
@@ -72,6 +102,22 @@ export async function readJsonArtifact<T>(
 
   const buffer = await object.arrayBuffer()
   return JSON.parse(textDecoder.decode(buffer)) as T
+}
+
+export async function readArtifactBytes(bucket: PipelineArtifactBucket, key: string) {
+  const object = await bucket.get(key)
+
+  if (!object) {
+    throw new Error(`Pipeline artifact not found: ${key}`)
+  }
+
+  const buffer = await object.arrayBuffer()
+  const bytes = new Uint8Array(buffer)
+
+  return {
+    bytes,
+    etag: object.httpEtag ?? object.etag,
+  }
 }
 
 export function createLocalArtifactObject(value: unknown): ArtifactObjectBody {

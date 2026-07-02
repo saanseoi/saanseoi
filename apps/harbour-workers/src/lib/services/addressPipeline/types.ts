@@ -11,6 +11,14 @@ export type AddressPipelineStage =
   | 'history'
   | 'current'
   | 'finalize'
+  | 'sql-source'
+  | 'sql-history'
+  | 'sql-current'
+  | 'sql-finalize'
+  | 'sql-import-source'
+  | 'sql-import-history'
+  | 'sql-import-current'
+  | 'sql-cleanup-staging'
 
 export type AddressPipelineStats = {
   deletedRows: number
@@ -24,6 +32,7 @@ export type AddressPipelineMessage = DatasetProcessingMessage & {
   addressStage?: AddressPipelineStage
   artifactKey?: string
   resolvedArtifactKey?: string
+  addressSqlArtifactKeys?: string[]
   addressStats?: AddressPipelineStats
 }
 
