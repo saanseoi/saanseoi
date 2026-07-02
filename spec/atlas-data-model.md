@@ -385,7 +385,7 @@ Fields:
 Notes:
 
 - current `divisions` does not store `regionCode` or `releaseId`
-- those exist in `divisionsVersions`
+- those exist in `divisions`
 
 ### `divisionsI18n`
 
@@ -512,23 +512,23 @@ Primary key:
 
 The following typed history tables exist:
 
-- `placesVersions`
-- `placesVersionsI18n`
-- `divisionsVersions`
-- `divisionsVersionsI18n`
-- `address2dVersions`
-- `address2dVersionsI18n`
-- `address3dVersions`
-- `address3dVersionsI18n`
-- `streetsVersions`
-- `streetsVersionsI18n`
+- `places`
+- `placesI18n`
+- `divisions`
+- `divisionsI18n`
+- `address2d`
+- `address2dI18n`
+- `address3d`
+- `address3dI18n`
+- `streets`
+- `streetsI18n`
 
 Rules reflected in the implementation:
 
 - primary keys are stable ID plus `versionHash`
 - relationship columns point to stable canonical IDs, not to version rows
-- `regionCode` is present on `placesVersions`, `divisionsVersions`, and `address2dVersions`
-- `address3dVersions` and `streetsVersions` do not currently carry `regionCode`
+- `regionCode` is present on `places`, `divisions`, and `address2d`
+- `address3d` and `streets` do not currently carry `regionCode`
 
 ## Implemented Source Schema
 
@@ -594,7 +594,7 @@ Division ingest currently does all of the following:
 - normalizes canonical division rows
 - upserts current `divisions`
 - replaces current `divisionsI18n`
-- inserts `divisionsVersions` and `divisionsVersionsI18n` on change
+- inserts `divisions` and `divisionsI18n` on change
 - closes superseded history versions
 - deletes missing current rows for removed divisions
 - mirrors Overture data into the `source` database when configured
@@ -609,7 +609,7 @@ Address ingest currently does all of the following:
 - resolves division lookups from current divisions
 - upserts current `address2d`
 - replaces current `address2dI18n`
-- inserts `address2dVersions` and `address2dVersionsI18n` on change
+- inserts `address2d` and `address2dI18n` on change
 - closes superseded history versions
 - deletes missing current rows for removed addresses
 - mirrors Overture or HK Gov ALS source rows into the `source` database when configured
