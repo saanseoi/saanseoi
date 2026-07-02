@@ -11,6 +11,7 @@ import {
   ne,
   sql,
   metaSchema,
+  toIsoTimestamp,
 } from '@repo/db'
 import { listApiFieldFixtures, resolveApiFieldFixture } from '@repo/db/apiFieldFixtures'
 import { compareReleaseVersions, resolveSourceSchemaVersion } from '../../sourceSchemas'
@@ -359,7 +360,7 @@ export async function insertDataset(
   status: ReleaseStatus = 'staged',
 ) {
   const dataset = await requireDatasetDefinition(db, plan)
-  const now = new Date(ingestedAt)
+  const now = toIsoTimestamp(ingestedAt)
   const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
     sourceVersion: plan.sourceVersion,
@@ -396,7 +397,7 @@ export async function resetFailedDataset(
   ingestedAt: string,
   status: ReleaseStatus,
 ) {
-  const now = new Date(ingestedAt)
+  const now = toIsoTimestamp(ingestedAt)
   const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
     sourceVersion: plan.sourceVersion,
@@ -432,14 +433,14 @@ export async function updateDatasetStatus(
     .update(metaReleases)
     .set({
       status,
-      updatedAt: new Date(),
+      updatedAt: toIsoTimestamp(),
     })
     .where(eq(metaReleases.id, releaseId))
     .run()
 }
 
 export async function markDatasetCurrent(db: HarbourWritableDb, releaseId: string) {
-  const now = new Date()
+  const now = toIsoTimestamp()
 
   await db
     .update(metaReleases)
@@ -458,7 +459,7 @@ export async function markDatasetHistoric(
   releaseId: string,
   historicAt: string,
 ) {
-  const updatedAt = new Date(historicAt)
+  const updatedAt = toIsoTimestamp(historicAt)
 
   await db
     .update(metaReleases)
@@ -476,15 +477,15 @@ export async function revokeDataset(
   revocationReason: string,
   revokedAt: string,
 ) {
-  const revokedAtDate = new Date(revokedAt)
+  const revokedAtTimestamp = toIsoTimestamp(revokedAt)
 
   await db
     .update(metaReleases)
     .set({
-      revokedAt: revokedAtDate,
+      revokedAt: revokedAtTimestamp,
       revocationReason,
       status: 'revoked',
-      updatedAt: revokedAtDate,
+      updatedAt: revokedAtTimestamp,
     })
     .where(eq(metaReleases.id, releaseId))
     .run()
@@ -499,7 +500,7 @@ export async function setSupersededByReleaseId(
     .update(metaReleases)
     .set({
       supersededByReleaseId,
-      updatedAt: new Date(),
+      updatedAt: toIsoTimestamp(),
     })
     .where(eq(metaReleases.id, releaseId))
     .run()
@@ -670,6 +671,41 @@ export async function resolveLatestPublishedSnapshotForResourceTypeRegion(
   )
 }
 
+export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+  db: HarbourReadableDb,
+  resourceType: ResourceType,
+  regionCode: RegionCode,
+  cohortKey: string,
+) {
+  return (
+    (await db
+      .select({
+        id: metaSnapshots.id,
+        code: metaSnapshots.code,
+        resourceType: metaSnapshots.resourceType,
+        status: metaSnapshots.status,
+      })
+      .from(metaSnapshots)
+      .innerJoin(
+        metaSnapshotSources,
+        eq(metaSnapshots.id, metaSnapshotSources.snapshotId),
+      )
+      .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+      .where(
+        and(
+          eq(metaSnapshots.resourceType, resourceType),
+          eq(metaSnapshots.status, 'published'),
+          eq(metaSnapshots.cohortKey, cohortKey),
+          eq(metaDatasets.regionCode, regionCode),
+          eq(metaSnapshotSources.role, 'primary'),
+        ),
+      )
+      .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
 export async function ensureDraftSnapshotForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
   resourceType: ResourceType,
@@ -705,7 +741,7 @@ export async function ensureDraftSnapshotForRelease(
     return existing
   }
 
-  const now = new Date()
+  const now = toIsoTimestamp()
   const snapshotId = crypto.randomUUID()
 
   await db
@@ -784,7 +820,7 @@ export async function recordSnapshotAssemblyRun(
     return assembly
   }
 
-  const now = new Date()
+  const now = toIsoTimestamp()
 
   await db
     .insert(metaSnapshotAssemblyRuns)
@@ -967,7 +1003,7 @@ export async function ensureDraftReleaseSetForRelease(
       ),
     )
     .all()
-  const now = new Date()
+  const now = toIsoTimestamp()
   const releaseSetId = crypto.randomUUID()
   const nextSequence =
     existingCodes.reduce((maxSequence, row) => {
@@ -1080,7 +1116,7 @@ export async function activateReleaseSet(
     throw new Error(`Release set not found: ${releaseSetId}`)
   }
 
-  const now = new Date()
+  const now = toIsoTimestamp()
   const activeReleaseSets = await db
     .select({
       id: metaApiReleaseSets.id,
@@ -1238,7 +1274,7 @@ export async function publishReleaseArtifacts(
     anchorSnapshotId: null,
   })
 
-  const publishedAt = new Date(args.publishedAt)
+  const publishedAt = toIsoTimestamp(args.publishedAt)
 
   const releaseSetSnapshotIds = [...releaseSetSnapshots.keys()]
   const sourceSchemaRows = await db
@@ -1494,7 +1530,7 @@ export async function publishSnapshot(
     throw new Error(`Snapshot not found: ${snapshotId}`)
   }
 
-  const now = new Date()
+  const now = toIsoTimestamp()
 
   await db
     .update(metaSnapshots)
@@ -1658,7 +1694,7 @@ export async function upsertSnapshotSource(
       selectedByRule: options.selectedByRule ?? null,
       selectionMode: options.selectionMode ?? null,
       sourceCohortKey: options.sourceCohortKey ?? null,
-      createdAt: new Date(),
+      createdAt: toIsoTimestamp(),
     })
     .onConflictDoUpdate({
       target: [metaSnapshotSources.snapshotId, metaSnapshotSources.sourceReleaseId],
@@ -1694,7 +1730,7 @@ export async function upsertApiReleaseSetSnapshot(
       isRequired: options.isRequired ?? true,
       selectionMode: options.selectionMode ?? 'carry_forward_optional',
       anchorSnapshotId: options.anchorSnapshotId ?? null,
-      createdAt: new Date(),
+      createdAt: toIsoTimestamp(),
     })
     .onConflictDoUpdate({
       target: [
@@ -1874,7 +1910,7 @@ export async function insertIngestRun(
   finishedAt: string | null,
   error: string | null = null,
 ) {
-  const now = startedAt
+  const now = toIsoTimestamp(startedAt)
 
   await db
     .insert(ingestRuns)
@@ -1887,8 +1923,8 @@ export async function insertIngestRun(
       error,
       startedAt: now,
       finishedAt,
-      createdAt: new Date(now),
-      updatedAt: new Date(now),
+      createdAt: now,
+      updatedAt: now,
     })
     .run()
 }
@@ -1900,7 +1936,7 @@ export async function ensureIngestRunStarted(
   stats: Record<string, unknown> | string | null,
   startedAt: string,
 ) {
-  const now = new Date(startedAt)
+  const now = toIsoTimestamp(startedAt)
   await db
     .insert(ingestRuns)
     .values({
@@ -1976,8 +2012,8 @@ export async function upsertIngestRunStatus(
   stats: Record<string, unknown> | string | null,
   error: string | null = null,
 ) {
-  const startedAtDate = new Date(startedAt)
-  const updatedAt = new Date(finishedAt ?? startedAt)
+  const createdAt = toIsoTimestamp(startedAt)
+  const updatedAt = toIsoTimestamp(finishedAt ?? startedAt)
   const normalizedStats = normalizeOptionalJsonText(stats)
 
   await db
@@ -1991,7 +2027,7 @@ export async function upsertIngestRunStatus(
       error,
       startedAt,
       finishedAt,
-      createdAt: startedAtDate,
+      createdAt,
       updatedAt,
     })
     .onConflictDoUpdate({
@@ -2045,7 +2081,7 @@ export async function updateLatestOpenIngestRun(
       stats: normalizedStats,
       error,
       finishedAt,
-      updatedAt: new Date(finishedAt),
+      updatedAt: toIsoTimestamp(finishedAt),
     })
     .where(eq(ingestRuns.runId, openRun.runId))
     .run()
