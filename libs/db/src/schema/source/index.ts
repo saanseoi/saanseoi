@@ -1,3 +1,3 @@
-export * from './_shared'
+export * from './shared'
 export * from './overture'
 export * from './hkgov'

@@ -4,13 +4,12 @@ import {
   index,
   integer,
   primaryKey,
-  real,
   sqliteTable,
   text,
 } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
-import { jsonText, timestamps } from './_shared'
+import { canonicalPlace, canonicalPlaceI18n, timestamps } from '../shared'
 import { address2d, address3d } from './addresses'
 import { divisions } from './divisions'
 
@@ -18,30 +17,7 @@ export const places = sqliteTable(
   'places',
   {
     snapshotId: text('snapshotId').notNull(),
-    id: text('id').notNull(),
-    regionCode: text('regionCode').notNull(),
-    releaseId: text('releaseId').notNull(),
-    addressSnapshotId: text('addressSnapshotId'),
-    address2dId: text('address2dId'),
-    address3dId: text('address3dId'),
-    lng: real('lng').notNull(),
-    lat: real('lat').notNull(),
-    bbox: jsonText('bbox'),
-    operatingStatus: text('operatingStatus'),
-    basicCategory: text('basicCategory'),
-    taxonomyPrimary: text('taxonomyPrimary'),
-    taxonomyHierarchy: jsonText('taxonomyHierarchy'),
-    taxonomyAlternates: jsonText('taxonomyAlternates'),
-    brandWikidata: text('brandWikidata'),
-    websites: jsonText('websites'),
-    socials: jsonText('socials'),
-    emails: jsonText('emails'),
-    phones: jsonText('phones'),
-    addresses: jsonText('addresses'),
-    confidence: real('confidence'),
-    sources: jsonText('sources'),
-    firstSeenMonth: text('firstSeenMonth').notNull(),
-    lastSeenMonth: text('lastSeenMonth').notNull(),
+    ...canonicalPlace,
     ...timestamps,
   },
   table => [
@@ -63,9 +39,9 @@ export const places = sqliteTable(
       sql`${table.addressSnapshotId} IS NOT NULL OR (${table.address2dId} IS NULL AND ${table.address3dId} IS NULL)`,
     ),
     index('places_releaseId_idx').on(table.releaseId),
-    index('places_category_idx').on(table.regionCode, table.basicCategory),
-    index('places_taxonomy_idx').on(table.regionCode, table.taxonomyPrimary),
-    index('places_status_idx').on(table.regionCode, table.operatingStatus),
+    index('places_category_idx').on(table.snapshotId, table.basicCategory),
+    index('places_taxonomy_idx').on(table.snapshotId, table.taxonomyPrimary),
+    index('places_status_idx').on(table.snapshotId, table.operatingStatus),
   ],
 )
 
@@ -73,15 +49,7 @@ export const placesI18n = sqliteTable(
   'placesI18n',
   {
     snapshotId: text('snapshotId').notNull(),
-    placeId: text('placeId').notNull(),
-    locale: text('locale').notNull(),
-    name: text('name'),
-    nameVariant: jsonText('nameVariant'),
-    nameAlts: text('nameAlts'),
-    isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' }).notNull(),
-    brandName: text('brandName'),
-    brandNameVariant: jsonText('brandNameVariant'),
-    brandNameAlts: text('brandNameAlts'),
+    ...canonicalPlaceI18n,
     ...timestamps,
   },
   table => [
@@ -138,20 +106,13 @@ export const placesCells = sqliteTable(
   'placesCells',
   {
     snapshotId: text('snapshotId').notNull(),
-    regionCode: text('regionCode').notNull(),
     id: text('id').notNull(),
     h3Level: integer('h3Level').notNull(),
     h3Cell: text('h3Cell').notNull(),
   },
   table => [
     primaryKey({
-      columns: [
-        table.snapshotId,
-        table.regionCode,
-        table.id,
-        table.h3Level,
-        table.h3Cell,
-      ],
+      columns: [table.snapshotId, table.id, table.h3Level, table.h3Cell],
     }),
     foreignKey({
       columns: [table.snapshotId, table.id],
@@ -160,7 +121,6 @@ export const placesCells = sqliteTable(
     }).onDelete('cascade'),
     index('placesCells_lookup_idx').on(
       table.snapshotId,
-      table.regionCode,
       table.h3Level,
       table.h3Cell,
       table.id,

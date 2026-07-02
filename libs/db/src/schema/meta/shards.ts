@@ -12,7 +12,7 @@ import {
   dataShardStatuses,
   dataShardTypes,
 } from '../../constants/schema'
-import { primaryUuid, timestamps } from './_shared'
+import { primaryUuid, timestamps } from '../shared'
 import { metaApiReleaseSets } from './api'
 import { metaReleases } from './datasets'
 

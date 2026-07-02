@@ -1,7 +1,6 @@
 import {
   foreignKey,
   index,
-  integer,
   primaryKey,
   sqliteTable,
   text,
@@ -17,7 +16,7 @@ import {
   releaseStatuses,
 } from '../../constants/schema'
 import { metaLicenses } from './licenses'
-import { jsonText, primaryUuid, timestamps } from './_shared'
+import { isoTimestamp, jsonText, primaryUuid, timestamps } from '../shared'
 import { metaPublishers } from './publishers'
 
 export const metaDatasets = sqliteTable(
@@ -92,10 +91,10 @@ export const metaReleases = sqliteTable(
     rawObjectKey: text('rawObjectKey'),
     originalFileName: text('originalFileName'),
     status: text('status', { enum: releaseStatuses }).notNull(),
-    revokedAt: integer('revokedAt', { mode: 'timestamp_ms' }),
+    revokedAt: isoTimestamp('revokedAt'),
     revocationReason: text('revocationReason'),
     supersededByReleaseId: text('supersededByReleaseId'),
-    ingestedAt: integer('ingestedAt', { mode: 'timestamp_ms' }),
+    ingestedAt: isoTimestamp('ingestedAt'),
     ...timestamps,
   },
   table => [
