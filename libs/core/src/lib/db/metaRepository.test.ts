@@ -290,6 +290,7 @@ describe('resolveShardForKindRegionYear', () => {
     expect(shard).toEqual({
       id: 'history-hk-2026-preview',
       bindingName: 'DB_HISTORY_HK_2026',
+      databaseId: 'db-history-hk-2026-preview',
       databaseName: 'ss-history-hk-2026-db-preview',
     })
   })
@@ -324,6 +325,7 @@ describe('resolveShardForKindRegionYear', () => {
     expect(shard).toEqual({
       id: 'source-hk-2026-preview',
       bindingName: 'DB_SOURCE_HK_2026',
+      databaseId: 'db-source-hk-2026-preview',
       databaseName: 'ss-source-hk-2026-db-preview',
     })
   })
@@ -358,6 +360,7 @@ describe('resolveShardForKindRegionYear', () => {
     expect(shard).toEqual({
       id: 'current-preview',
       bindingName: 'DB_CURRENT',
+      databaseId: 'db-current-preview',
       databaseName: 'ss-current-db-preview',
     })
   })
