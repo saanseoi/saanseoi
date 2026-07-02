@@ -40,9 +40,14 @@ type SqlStageHarbourClient = {
 
 type LocalD1ExecBinding = {
   exec?(sql: string): Promise<unknown>
+  batch?(statements: LocalD1PreparedStatement[]): Promise<unknown>
   prepare?(sql: string): {
     run(): Promise<unknown>
   }
+}
+
+type LocalD1PreparedStatement = {
+  run(): Promise<unknown>
 }
 
 export type AddressSqlImportStageOptions = {
@@ -66,10 +71,13 @@ type ImportStats = {
   bytes: number
   fileCount: number
   importedFiles: string[]
+  statementCount: number
   target: AddressSqlImportTarget
 }
 
 const IMPORT_POLL_INTERVAL_MS = 1000
+const LOCAL_D1_BATCH_STATEMENT_COUNT = 25
+const IMPORT_PROGRESS_INTERVAL_MS = 1000
 
 export function isAddressSqlImportOrCleanupStage(message: DatasetProcessingMessage) {
   return (
@@ -98,30 +106,40 @@ export async function processAddressSqlImportOrCleanupStage(
 
   switch (message.addressStage) {
     case 'sql-import-source':
-      await runReportedPhase(harbourClient, message, 'importAddressSqlSource', () =>
-        importArtifactKeys(
-          metaDb,
-          bucket,
-          message,
-          'source',
-          filterSqlArtifactKeys(message, 'source'),
-          options,
-        ),
+      await runReportedPhase(
+        harbourClient,
+        message,
+        'importAddressSqlSource',
+        progress =>
+          importArtifactKeys(
+            metaDb,
+            bucket,
+            message,
+            'source',
+            filterSqlArtifactKeys(message, 'source'),
+            options,
+            progress,
+          ),
       )
       return {
         ...message,
         addressStage: 'sql-import-history',
       }
     case 'sql-import-history':
-      await runReportedPhase(harbourClient, message, 'importAddressSqlHistory', () =>
-        importArtifactKeys(
-          metaDb,
-          bucket,
-          message,
-          'history',
-          filterSqlArtifactKeys(message, 'history'),
-          options,
-        ),
+      await runReportedPhase(
+        harbourClient,
+        message,
+        'importAddressSqlHistory',
+        progress =>
+          importArtifactKeys(
+            metaDb,
+            bucket,
+            message,
+            'history',
+            filterSqlArtifactKeys(message, 'history'),
+            options,
+            progress,
+          ),
       )
       return {
         ...message,
@@ -136,10 +154,31 @@ export async function processAddressSqlImportOrCleanupStage(
         harbourClient,
         message,
         'importAddressSqlCurrentInit',
-        () => importArtifactKeys(metaDb, bucket, message, 'current', initKeys, options),
+        progress =>
+          importArtifactKeys(
+            metaDb,
+            bucket,
+            message,
+            'current',
+            initKeys,
+            options,
+            progress,
+          ),
       )
-      await runReportedPhase(harbourClient, message, 'importAddressSqlCurrent', () =>
-        importArtifactKeys(metaDb, bucket, message, 'current', deltaKeys, options),
+      await runReportedPhase(
+        harbourClient,
+        message,
+        'importAddressSqlCurrent',
+        progress =>
+          importArtifactKeys(
+            metaDb,
+            bucket,
+            message,
+            'current',
+            deltaKeys,
+            options,
+            progress,
+          ),
       )
 
       return {
@@ -167,16 +206,21 @@ async function runReportedPhase<T extends Record<string, unknown>>(
   harbourClient: SqlStageHarbourClient,
   message: DatasetProcessingMessage,
   phase: string,
-  operation: () => Promise<T>,
+  operation: (
+    reportProgress: (stats: Record<string, unknown>) => Promise<void>,
+  ) => Promise<T>,
 ) {
   const releaseId = message.releaseId ?? message.datasetId
   const releaseCode = message.releaseCode
   const startedAt = Date.now()
+  const reportProgress = async (stats: Record<string, unknown>) => {
+    await harbourClient.stageRunning(releaseId, phase, stats, releaseCode)
+  }
 
   await harbourClient.stageRunning(releaseId, phase, undefined, releaseCode)
 
   try {
-    const stats = await operation()
+    const stats = await operation(reportProgress)
 
     await harbourClient.stageCompleted(
       releaseId,
@@ -212,28 +256,58 @@ async function importArtifactKeys(
   target: AddressSqlImportTarget,
   keys: string[],
   options: AddressSqlImportStageOptions,
+  reportProgress: (stats: Record<string, unknown>) => Promise<void>,
 ): Promise<ImportStats> {
   const targetContext = await resolveImportTarget(metaDb, message, target, options)
   const importedFiles: string[] = []
   let bytes = 0
+  let statementCount = 0
+  let lastProgressAt = 0
+
+  const maybeReportProgress = async (force = false) => {
+    const now = Date.now()
+
+    if (
+      !force &&
+      importedFiles.length < keys.length &&
+      now - lastProgressAt < IMPORT_PROGRESS_INTERVAL_MS
+    ) {
+      return
+    }
+
+    lastProgressAt = now
+    await reportProgress({
+      bytes,
+      processedFiles: importedFiles.length,
+      processedStatements: statementCount,
+      target,
+      totalFiles: keys.length,
+    })
+  }
+
+  await maybeReportProgress(true)
 
   for (const key of keys) {
     const artifact = await readArtifactBytes(bucket, key)
     bytes += artifact.bytes.byteLength
 
     if (options.isLocal) {
-      await execSqlWithBoundD1(targetContext, artifact.bytes)
+      statementCount += await execSqlWithBoundD1(targetContext, artifact.bytes)
     } else {
       await importSqlWithD1RestApi(targetContext, artifact, options)
     }
 
     importedFiles.push(key)
+    await maybeReportProgress()
   }
+
+  await maybeReportProgress(true)
 
   return {
     bytes,
     fileCount: keys.length,
     importedFiles,
+    statementCount,
     target,
   }
 }
@@ -358,9 +432,36 @@ async function execSqlWithBoundD1(target: ImportTargetContext, sqlBytes: Uint8Ar
     throw new Error(`Missing D1 prepare binding for ${target.name} SQL execution.`)
   }
 
-  for (const statement of splitSqlStatements(new TextDecoder().decode(sqlBytes))) {
+  const statements = splitSqlStatements(new TextDecoder().decode(sqlBytes))
+
+  if (target.binding.batch) {
+    for (
+      let index = 0;
+      index < statements.length;
+      index += LOCAL_D1_BATCH_STATEMENT_COUNT
+    ) {
+      await target.binding.batch(
+        statements
+          .slice(index, index + LOCAL_D1_BATCH_STATEMENT_COUNT)
+          .map(statement => target.binding?.prepare?.(statement))
+          .filter(isLocalD1PreparedStatement),
+      )
+    }
+
+    return statements.length
+  }
+
+  for (const statement of statements) {
     await target.binding.prepare(statement).run()
   }
+
+  return statements.length
+}
+
+function isLocalD1PreparedStatement(
+  statement: LocalD1PreparedStatement | undefined,
+): statement is LocalD1PreparedStatement {
+  return Boolean(statement)
 }
 
 export function splitSqlStatements(sql: string) {
