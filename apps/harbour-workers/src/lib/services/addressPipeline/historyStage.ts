@@ -37,6 +37,55 @@ export async function writeAddressHistoryChunkStage(
   bucket: HarbourWorkerBucket & PipelineArtifactBucket,
   message: DatasetProcessingMessage,
 ): Promise<AddressPipelineMessage> {
+  const {
+    changedExistingIds,
+    changedI18nVersionRows,
+    changedVersionRows,
+    artifact,
+    versionInsertContext,
+  } = await buildResolvedAddressChunkArtifact(metaDb, historyDb, bucket, message)
+  const historyRepoDb = historyDb as unknown as HarbourReadableDb & HarbourWritableDb
+
+  if (changedExistingIds.size > 0) {
+    await closeCurrentAddressVersions(
+      historyRepoDb,
+      [...changedExistingIds],
+      versionInsertContext.snapshotId,
+      message.cohortKey,
+    )
+  }
+  await insertAddressVersionRows(
+    historyRepoDb,
+    versionInsertContext,
+    changedVersionRows,
+    changedI18nVersionRows,
+  )
+
+  const resolvedArtifactKey = buildPipelineArtifactKey(
+    message,
+    'resolved',
+    artifact.rowStart,
+    artifact.rowEnd,
+  )
+
+  await writeJsonArtifact<ResolvedAddressChunkArtifact>(bucket, resolvedArtifactKey, {
+    ...artifact,
+    rows: artifact.rows,
+  })
+
+  return {
+    ...(message as AddressPipelineMessage),
+    addressStage: 'current',
+    resolvedArtifactKey,
+  } satisfies AddressPipelineMessage
+}
+
+export async function buildResolvedAddressChunkArtifact(
+  metaDb: MetaDatabase,
+  historyDb: HistoryDatabase,
+  bucket: HarbourWorkerBucket & PipelineArtifactBucket,
+  message: DatasetProcessingMessage,
+) {
   const pipelineMessage = message as AddressPipelineMessage
 
   if (!pipelineMessage.artifactKey) {
@@ -164,44 +213,22 @@ export async function writeAddressHistoryChunkStage(
     ...new Map(resolvedRows.map(row => [row.addressId, row])).values(),
   ]
 
-  if (changedExistingIds.size > 0) {
-    await closeCurrentAddressVersions(
-      historyRepoDb,
-      [...changedExistingIds],
-      versionInsertContext.snapshotId,
-      message.cohortKey,
-    )
-  }
-  await insertAddressVersionRows(
-    historyRepoDb,
-    versionInsertContext,
-    changedVersionRows,
-    changedI18nVersionRows,
-  )
-
-  const resolvedArtifactKey = buildPipelineArtifactKey(
-    message,
-    'resolved',
-    artifact.rowStart,
-    artifact.rowEnd,
-  )
-
-  await writeJsonArtifact<ResolvedAddressChunkArtifact>(bucket, resolvedArtifactKey, {
-    kind: 'address.resolved.v1',
-    insertedVersions,
-    localizedRows,
-    processingRunStartedAt: artifact.processingRunStartedAt,
-    releaseId: artifact.releaseId,
-    rowStart: artifact.rowStart,
-    rowEnd: artifact.rowEnd,
-    rows: uniqueResolvedRows,
-    totalRows: artifact.totalRows,
-    unchangedRows,
-  })
-
   return {
-    ...pipelineMessage,
-    addressStage: 'current',
-    resolvedArtifactKey,
-  } satisfies AddressPipelineMessage
+    changedExistingIds,
+    changedI18nVersionRows,
+    changedVersionRows,
+    versionInsertContext,
+    artifact: {
+      kind: 'address.resolved.v1',
+      insertedVersions,
+      localizedRows,
+      processingRunStartedAt: artifact.processingRunStartedAt,
+      releaseId: artifact.releaseId,
+      rowStart: artifact.rowStart,
+      rowEnd: artifact.rowEnd,
+      rows: uniqueResolvedRows,
+      totalRows: artifact.totalRows,
+      unchangedRows,
+    } satisfies ResolvedAddressChunkArtifact,
+  }
 }
