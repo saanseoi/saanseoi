@@ -4,6 +4,7 @@ import {
   inspectDbShards,
   inspectResourceTypes,
   inspectSampleStrategies,
+  defaultInspectPersistDir,
   listInspectableReleaseCodes,
   normalizeInspectDbShard,
   normalizeInspectResourceType,
@@ -20,7 +21,7 @@ import { getStringOption, type ParsedArgs } from './options.ts'
 export async function resolveInspectOptions(
   args: ParsedArgs,
 ): Promise<InspectArtifactOptions> {
-  const persistDir = getStringOption(args, ['persist-to']) ?? '.local/d1/dev'
+  const persistDir = getStringOption(args, ['persist-to']) ?? defaultInspectPersistDir
   const outDir = getStringOption(args, ['out-dir']) ?? '.'
   const stage =
     resolveProvidedInspectStage(args) ??
