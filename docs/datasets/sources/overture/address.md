@@ -51,9 +51,11 @@ This is an ingestion-runtime optimization:
 For each Overture row, the worker:
 
 - uses Overture `id` as the source ID
-- derives `areaId` from the first `address_levels` entry
-- derives `districtId` from the second `address_levels` entry
+- derives `areaId` from the first `address_levels` entry by normalizing it to the retained source `area` enum and resolving that enum against the same-cohort published division snapshot
+- derives `districtId` from the second `address_levels` entry by normalizing it to the retained source `district` enum and resolving that enum against the same-cohort published division snapshot
 - normalizes Hong Kong area aliases such as `HK`, `KLN`, and `NT`
+- retains source-level `area` and `district` enum codes from the first two `address_levels` entries
+- prepares the division lookup once for the address ingest run and reuses it across pipeline chunks
 - stores point geometry as parsed GeoJSON
 - stores `bbox`
 - stores `sources` as `{ "overture": <pruned row.sources> }`
@@ -75,6 +77,12 @@ Current non-contributions:
 - building and estate components
 
 The worker processes parquet rows in small write batches and reads 2,048-row parquet windows from R2. Upload-time repacking keeps those read windows aligned with the physical row groups used during worker ingestion.
+
+The Overture `2025-09-24.0` Hong Kong SAR address parquet was checked directly:
+all 182,155 rows have exactly two `address_levels` entries. The observed levels
+are the Hong Kong area code (`HK`, `KLN`, or `NT`) followed by one of the 18
+district names; no town, village, neighbourhood, or lower-level address level is
+present in that file.
 
 Large address releases are processed as sequential queue chunks. Each queue
 message carries one parquet row range (`rowStart`, `rowEnd`) plus a stable
@@ -126,40 +134,63 @@ Overture is also the only source that currently drives canonical deletion:
 - missing-row cleanup scans cloned current rows in keyset pages and deletes rows whose `updatedAt` marker was not touched by any chunk in the release
 - source-current cleanup uses the release ID advanced onto changed or unchanged source rows, then deletes current source rows still pointing at an older release
 
-## Source Retention Tables
+## Source Retention
 
-Current-state source tables:
+Source rows are retained in a versioned table. The current source row is the
+row where `isCurrent = 1`; there is no separate non-version current source
+table.
 
-- `sourceOvertureAddresses2d`
-- `sourceOvertureAddress2dI18n`
+- `overtureAddresses2d`
 
-Version tables:
-
-- `sourceOvertureAddresses2dVersions`
-- `sourceOvertureAddress2dI18nVersions`
-
-For later releases with unchanged source payloads, the worker advances the current row to the new release without inserting another source version row.
+For later releases with unchanged source payloads, the worker advances the
+current row to the new release without inserting another source row.
 
 Current retained source fields include:
 
-- `releaseId`
-- `datasetId`
 - `sourceRecordId`
-- `sourcePayloadHash`
-- `regionCode`
+- `versionHash`
+- `releaseId`
+- `validFromRelease`
+- `validToRelease`
+- `isCurrent`
 - `version`
 - `geometry`
 - `bbox`
+- `area`
+- `district`
+- `unit`
 - `streetName`
 - `streetNumber`
 - `sources`
 - `rawProperties`
 
-Localized source retention currently stores:
+Overture address source retention does not use localized source rows; Overture
+does not provide i18n variance for street names in this dataset. `streetName`
+is retained directly on `overtureAddresses2d`.
 
-- `streetName`
-- `locality`
-- `region`
-- `country`
+`area` is nullable and uses these source enum codes:
 
-In the current worker flow, only `streetName` is populated for Overture address i18n rows and the other localized source fields remain `null`.
+- `HK` for Hong Kong
+- `KL` for Kowloon, including `KLN`
+- `NT` for New Territories
+
+`district` is nullable and uses these source enum codes:
+
+- `CW` Central & Western
+- `EST` Eastern
+- `ILD` Islands
+- `KLC` Kowloon City
+- `KC` Kwai Tsing
+- `KT` Kwun Tong
+- `NTH` North
+- `SK` Sai Kung
+- `ST` Sha Tin
+- `SSP` Sham Shui Po
+- `STH` Southern
+- `TP` Tai Po
+- `TW` Tsuen Wan
+- `TM` Tuen Mun
+- `WC` Wan Chai
+- `WTS` Wong Tai Sin
+- `YTM` Yau Tsim Mong
+- `YL` Yuen Long
