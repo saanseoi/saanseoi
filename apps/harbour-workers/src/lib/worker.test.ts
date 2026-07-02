@@ -436,6 +436,232 @@ describe('processDatasetMessage', () => {
     expect(stageFailed).toHaveBeenCalledTimes(0)
   })
 
+  test('keeps chunked address SQL generation phases running with persisted artifact counts', async () => {
+    const nextMessage = {
+      addressSqlArtifactKeys: ['source.sql', 'history.sql', 'current.sql'],
+      addressStats: {
+        deletedRows: 0,
+        insertedVersions: 12,
+        localizedRows: 24,
+        processedRows: 2048,
+        unchangedRows: 4,
+      },
+      addressStage: 'normalize',
+      datasetId: 'overture-hk-2025-10-22.0-address',
+      releaseCode: 'overture-hk-2025-10-22.0-address',
+      releaseId: 'release-overture-hk-2025-10-22.0-address',
+      rawObjectKey: 'hk/overture/2025-10-22.0/address.parquet',
+      regionCode: 'hk',
+      shardYear: '2025',
+      cohortKey: '2025-10',
+      source: 'overture',
+      sourceVersion: '2025-10-22.0',
+      theme: 'addresses',
+      type: 'address',
+      processingMode: 'sql',
+      rowStart: 2048,
+      rowEnd: 3072,
+      totalRows: 4096,
+    } as const
+    const processAddressDataset = mock(async () => ({
+      deletedRows: 0,
+      insertedVersions: 0,
+      localizedRows: 0,
+      nextMessage,
+      processedRows: 0,
+      statsRows: 0,
+      unchangedRows: 0,
+    }))
+    const stageRunning = mock(async () => undefined)
+    const stageCompleted = mock(async () => undefined)
+    const stageFailed = mock(async () => undefined)
+    const publishDataset = mock(async () => undefined)
+    const processDatasetMessage = createProcessDatasetMessage(
+      processAddressDataset as never,
+      mock(async () => {
+        throw new Error('division processor should not be called')
+      }) as never,
+    )
+
+    await processDatasetMessage(
+      {
+        publishDataset,
+        stageCompleted,
+        stageFailed,
+        stageRunning,
+      },
+      {} as never,
+      {} as never,
+      {} as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      {
+        addressSqlArtifactKeys: ['source.sql', 'history.sql'],
+        addressStage: 'sql-current',
+        datasetId: 'overture-hk-2025-10-22.0-address',
+        releaseCode: 'overture-hk-2025-10-22.0-address',
+        releaseId: 'release-overture-hk-2025-10-22.0-address',
+        rawObjectKey: 'hk/overture/2025-10-22.0/address.parquet',
+        regionCode: 'hk',
+        cohortKey: '2025-10',
+        source: 'overture',
+        sourceVersion: '2025-10-22.0',
+        theme: 'addresses',
+        type: 'address',
+        processingMode: 'sql',
+        rowStart: 1024,
+        rowEnd: 2048,
+        totalRows: 4096,
+      },
+    )
+
+    expect(stageRunning).toHaveBeenCalledWith(
+      'release-overture-hk-2025-10-22.0-address',
+      'generateAddressSqlCurrent',
+      {
+        processedRows: 2048,
+        sqlArtifactCount: 3,
+      },
+      'overture-hk-2025-10-22.0-address',
+    )
+    expect(stageCompleted).toHaveBeenCalledTimes(0)
+    expect(stageFailed).toHaveBeenCalledTimes(0)
+    expect(publishDataset).toHaveBeenCalledTimes(0)
+  })
+
+  test('closes address SQL generation phases when generation finalizes', async () => {
+    const processAddressDataset = mock(async () => ({
+      deletedRows: 0,
+      insertedVersions: 12,
+      localizedRows: 24,
+      nextMessage: {
+        addressSqlArtifactKeys: ['source.sql', 'history.sql', 'current.sql'],
+        addressStage: 'sql-import-source',
+        datasetId: 'overture-hk-2025-10-22.0-address',
+        releaseCode: 'overture-hk-2025-10-22.0-address',
+        releaseId: 'release-overture-hk-2025-10-22.0-address',
+        rawObjectKey: 'hk/overture/2025-10-22.0/address.parquet',
+        regionCode: 'hk',
+        cohortKey: '2025-10',
+        source: 'overture',
+        sourceVersion: '2025-10-22.0',
+        theme: 'addresses',
+        type: 'address',
+        processingMode: 'sql',
+        totalRows: 4096,
+      },
+      processedRows: 4096,
+      statsRows: 3,
+      unchangedRows: 4,
+    }))
+    const stageRunning = mock(async () => undefined)
+    const stageCompleted = mock(async () => undefined)
+    const stageFailed = mock(async () => undefined)
+    const publishDataset = mock(async () => undefined)
+    const processDatasetMessage = createProcessDatasetMessage(
+      processAddressDataset as never,
+      mock(async () => {
+        throw new Error('division processor should not be called')
+      }) as never,
+    )
+
+    await processDatasetMessage(
+      {
+        publishDataset,
+        stageCompleted,
+        stageFailed,
+        stageRunning,
+      },
+      {} as never,
+      {} as never,
+      {} as never,
+      {
+        async head() {
+          return { size: 1 }
+        },
+        async get() {
+          return {
+            async arrayBuffer() {
+              return new ArrayBuffer(0)
+            },
+          }
+        },
+      },
+      {
+        addressSqlArtifactKeys: ['source.sql', 'history.sql', 'current.sql'],
+        addressStage: 'sql-finalize',
+        datasetId: 'overture-hk-2025-10-22.0-address',
+        releaseCode: 'overture-hk-2025-10-22.0-address',
+        releaseId: 'release-overture-hk-2025-10-22.0-address',
+        rawObjectKey: 'hk/overture/2025-10-22.0/address.parquet',
+        regionCode: 'hk',
+        cohortKey: '2025-10',
+        source: 'overture',
+        sourceVersion: '2025-10-22.0',
+        theme: 'addresses',
+        type: 'address',
+        processingMode: 'sql',
+        rowStart: 4096,
+        rowEnd: 4096,
+        totalRows: 4096,
+      },
+    )
+
+    const completedCalls = stageCompleted.mock.calls as unknown as Array<
+      [string, string, Record<string, unknown>]
+    >
+
+    expect(completedCalls.map(call => [call[1], call[2]])).toEqual([
+      [
+        'finalizeAddressSqlGeneration',
+        {
+          processedRows: 4096,
+          sqlArtifactCount: 3,
+        },
+      ],
+      [
+        'normalizeAddressSql',
+        {
+          processedRows: 4096,
+          sqlArtifactCount: 3,
+        },
+      ],
+      [
+        'generateAddressSqlSource',
+        {
+          processedRows: 4096,
+          sqlArtifactCount: 3,
+        },
+      ],
+      [
+        'generateAddressSqlHistory',
+        {
+          processedRows: 4096,
+          sqlArtifactCount: 3,
+        },
+      ],
+      [
+        'generateAddressSqlCurrent',
+        {
+          processedRows: 4096,
+          sqlArtifactCount: 3,
+        },
+      ],
+    ])
+    expect(stageFailed).toHaveBeenCalledTimes(0)
+    expect(publishDataset).toHaveBeenCalledTimes(0)
+  })
+
   test('attempts to mark every active phase failed even if one cleanup callback throws', async () => {
     const processDivisionDataset = mock(async () => {
       throw new Error('Division processing blew up.')
