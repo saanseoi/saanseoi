@@ -58,8 +58,8 @@ export type StatReportRow = {
 }
 
 type StatQueryRow = Omit<StatReportRow, 'createdAt' | 'updatedAt'> & {
-  createdAt: Date
-  updatedAt: Date
+  createdAt: Date | string
+  updatedAt: Date | string
 }
 
 export type ReportFilters = {
@@ -107,12 +107,12 @@ type ReleaseContext = {
 }
 
 type ReleaseQueryRow = Omit<ReleaseReportRow, 'rowCounts'> & {
-  createdAt: Date
-  ingestedAt: Date | null
+  createdAt: string
+  ingestedAt: string | null
   regionCode: string
-  revokedAt: Date | null
+  revokedAt: string | null
   sourceUrl: string
-  updatedAt: Date
+  updatedAt: string
 }
 
 type CountSpec = {
@@ -309,7 +309,7 @@ async function listLatestIngestRunReleaseIds(
   options: ReportFilters,
 ) {
   const latestStartedAt = sql<string>`max(${ingestRuns.startedAt})`
-  const latestCreatedAt = sql<number>`max(${ingestRuns.createdAt})`
+  const latestCreatedAt = sql<string>`max(${ingestRuns.createdAt})`
   const query = db
     .select({
       releaseId: metaReleases.id,
@@ -379,8 +379,8 @@ async function listLatestStatsReleaseIds(
   db: HarbourReadableDb,
   options: ReportFilters,
 ) {
-  const latestCreatedAt = sql<number>`max(${stats.createdAt})`
-  const latestUpdatedAt = sql<number>`max(${stats.updatedAt})`
+  const latestCreatedAt = sql<string>`max(${stats.createdAt})`
+  const latestUpdatedAt = sql<string>`max(${stats.updatedAt})`
   const query = db
     .select({
       createdAt: latestCreatedAt,
@@ -772,25 +772,15 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
         {
           label: 'source',
           strategy: 'direct',
-          tableName: 'sourceHkgovAlsAddresses2d',
+          tableName: 'hkgovAlsAddresses2d',
         },
         {
           label: 'sourceI18n',
           parentKey: 'sourceRecordId',
-          parentTableName: 'sourceHkgovAlsAddresses2d',
+          parentTableName: 'hkgovAlsAddresses2d',
           relationshipKey: 'sourceRecordId',
           strategy: 'join',
-          tableName: 'sourceHkgovAlsAddress2dI18n',
-        },
-        {
-          label: 'sourceVersions',
-          strategy: 'direct',
-          tableName: 'sourceHkgovAlsAddresses2dVersions',
-        },
-        {
-          label: 'sourceI18nVersions',
-          strategy: 'direct',
-          tableName: 'sourceHkgovAlsAddress2dI18nVersions',
+          tableName: 'hkgovAlsAddress2dI18n',
         },
       ]
     case 'overture':
@@ -800,25 +790,7 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
             {
               label: 'source',
               strategy: 'direct',
-              tableName: 'sourceOvertureAddresses2d',
-            },
-            {
-              label: 'sourceI18n',
-              parentKey: 'sourceRecordId',
-              parentTableName: 'sourceOvertureAddresses2d',
-              relationshipKey: 'sourceRecordId',
-              strategy: 'join',
-              tableName: 'sourceOvertureAddress2dI18n',
-            },
-            {
-              label: 'sourceVersions',
-              strategy: 'direct',
-              tableName: 'sourceOvertureAddresses2dVersions',
-            },
-            {
-              label: 'sourceI18nVersions',
-              strategy: 'direct',
-              tableName: 'sourceOvertureAddress2dI18nVersions',
+              tableName: 'overtureAddresses2d',
             },
           ]
         case 'division':
@@ -826,25 +798,15 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
             {
               label: 'source',
               strategy: 'direct',
-              tableName: 'sourceOvertureDivisions',
+              tableName: 'overtureDivisions',
             },
             {
               label: 'sourceI18n',
               parentKey: 'sourceRecordId',
-              parentTableName: 'sourceOvertureDivisions',
+              parentTableName: 'overtureDivisions',
               relationshipKey: 'sourceRecordId',
               strategy: 'join',
-              tableName: 'sourceOvertureDivisionI18n',
-            },
-            {
-              label: 'sourceVersions',
-              strategy: 'direct',
-              tableName: 'sourceOvertureDivisionsVersions',
-            },
-            {
-              label: 'sourceI18nVersions',
-              strategy: 'direct',
-              tableName: 'sourceOvertureDivisionI18nVersions',
+              tableName: 'overtureDivisionI18n',
             },
           ]
         case 'place':
@@ -852,25 +814,15 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
             {
               label: 'source',
               strategy: 'direct',
-              tableName: 'sourceOverturePlaces',
+              tableName: 'overturePlaces',
             },
             {
               label: 'sourceI18n',
               parentKey: 'sourceRecordId',
-              parentTableName: 'sourceOverturePlaces',
+              parentTableName: 'overturePlaces',
               relationshipKey: 'sourceRecordId',
               strategy: 'join',
-              tableName: 'sourceOverturePlaceI18n',
-            },
-            {
-              label: 'sourceVersions',
-              strategy: 'direct',
-              tableName: 'sourceOverturePlacesVersions',
-            },
-            {
-              label: 'sourceI18nVersions',
-              strategy: 'direct',
-              tableName: 'sourceOverturePlaceI18nVersions',
+              tableName: 'overturePlaceI18n',
             },
           ]
         default:
@@ -888,22 +840,22 @@ function resolveHistoryCountSpecs(type: string): CountSpec[] {
         {
           label: 'resourceType',
           strategy: 'direct',
-          tableName: 'address2dVersions',
+          tableName: 'address2d',
         },
         {
           label: 'resourceTypeI18n',
           strategy: 'direct',
-          tableName: 'address2dVersionsI18n',
+          tableName: 'address2dI18n',
         },
         {
           label: 'resourceDetail',
           strategy: 'direct',
-          tableName: 'address3dVersions',
+          tableName: 'address3d',
         },
         {
           label: 'resourceDetailI18n',
           strategy: 'direct',
-          tableName: 'address3dVersionsI18n',
+          tableName: 'address3dI18n',
         },
       ]
     case 'division':
@@ -911,12 +863,12 @@ function resolveHistoryCountSpecs(type: string): CountSpec[] {
         {
           label: 'resourceType',
           strategy: 'direct',
-          tableName: 'divisionsVersions',
+          tableName: 'divisions',
         },
         {
           label: 'resourceTypeI18n',
           strategy: 'direct',
-          tableName: 'divisionsVersionsI18n',
+          tableName: 'divisionsI18n',
         },
       ]
     case 'place':
@@ -924,12 +876,12 @@ function resolveHistoryCountSpecs(type: string): CountSpec[] {
         {
           label: 'resourceType',
           strategy: 'direct',
-          tableName: 'placesVersions',
+          tableName: 'places',
         },
         {
           label: 'resourceTypeI18n',
           strategy: 'direct',
-          tableName: 'placesVersionsI18n',
+          tableName: 'placesI18n',
         },
       ]
     case 'street':
@@ -937,12 +889,12 @@ function resolveHistoryCountSpecs(type: string): CountSpec[] {
         {
           label: 'resourceType',
           strategy: 'direct',
-          tableName: 'streetsVersions',
+          tableName: 'streets',
         },
         {
           label: 'resourceTypeI18n',
           strategy: 'direct',
-          tableName: 'streetsVersionsI18n',
+          tableName: 'streetsI18n',
         },
       ]
     default:

@@ -105,13 +105,13 @@ describe('formatReleaseReportTable', () => {
             kind: 'source',
             label: 'source',
             rowCount: 2,
-            tableName: 'sourceOvertureAddresses2d',
+            tableName: 'overtureAddresses2d',
           },
           {
             kind: 'history',
             label: 'resourceType',
             rowCount: 4,
-            tableName: 'address2dVersions',
+            tableName: 'address2d',
           },
         ],
         cohortKey: '2026-06',
@@ -133,7 +133,7 @@ describe('formatReleaseReportTable', () => {
 })
 
 describe('formatIngestionReportTable', () => {
-  test('omits durationMs from expanded stats rows', () => {
+  test('omits non-display ingestion stats from expanded stats rows', () => {
     const rows: IngestRunReportRow[] = [
       {
         datasetCode: 'hk-address',
@@ -147,8 +147,31 @@ describe('formatIngestionReportTable', () => {
         source: 'overture',
         startedAt: '2026-06-24T10:00:00.000Z',
         stats: {
+          addressStage: 'sql-current',
           durationMs: 300000,
           inserted: 12,
+          rowEnd: 2048,
+          rowStart: 1024,
+          sqlArtifactCount: 4,
+        },
+        status: 'completed',
+        type: 'address',
+      },
+      {
+        datasetCode: 'hk-address',
+        error: null,
+        finishedAt: '2026-06-24T10:00:00.000Z',
+        phase: 'stageDataset',
+        releaseCode: 'overture-hk-2026-06-24.0-address',
+        releaseId: 'release-1',
+        runId: 'run-2',
+        cohortKey: '2026-06',
+        source: 'overture',
+        startedAt: '2026-06-24T09:59:00.000Z',
+        stats: {
+          rawObjectKey: 'hk/overture/2026-06-24.0/address.parquet',
+          rowCount: 182155,
+          schemaFieldCount: 14,
         },
         status: 'completed',
         type: 'address',
@@ -158,7 +181,14 @@ describe('formatIngestionReportTable', () => {
     const table = formatIngestionReportTable(rows)
 
     expect(table).toContain('inserted')
+    expect(table).toContain('rowCount')
     expect(table).not.toContain('durationMs')
+    expect(table).not.toContain('addressStage')
+    expect(table).not.toContain('rowEnd')
+    expect(table).not.toContain('rowStart')
+    expect(table).not.toContain('sqlArtifactCount')
+    expect(table).not.toContain('rawObjectKey')
+    expect(table).not.toContain('schemaFieldCount')
   })
 })
 
