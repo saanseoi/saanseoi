@@ -13,7 +13,12 @@ import {
   upsertIngestRunStatus,
   waitForDatasetRecord,
 } from '@repo/core/db/metaRepository'
-import type { HarbourJobMessage, ResourceType } from '@repo/core'
+import type {
+  DatasetProcessingMessage,
+  HarbourJobMessage,
+  ResourceTheme,
+  ResourceType,
+} from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 type StageRequest = {
@@ -37,6 +42,13 @@ type CleanupSnapshotsRequest = {
   snapshotIds?: string[]
 }
 
+type CleanupStagingRequest = {
+  delaySeconds?: number
+  dryRun?: boolean
+  releaseCode?: string
+  releaseId?: string
+}
+
 type ControlResult = {
   datasetId: string
   releaseCode: string
@@ -50,6 +62,14 @@ type CleanupSnapshotsResult = {
   delaySeconds: number
   dryRun: boolean
   snapshotIds: string[]
+  status: 'queued' | 'skipped'
+}
+
+type CleanupStagingResult = {
+  delaySeconds: number
+  dryRun: boolean
+  releaseCode: string
+  releaseId: string
   status: 'queued' | 'skipped'
 }
 
@@ -269,6 +289,52 @@ export async function handleScheduleSnapshotCleanup(
   return scheduleCurrentSnapshotCleanup(db, cleanupQueue, request)
 }
 
+export async function handleScheduleAddressSqlStagingCleanup(
+  db: HarbourReadableDb,
+  cleanupQueue: HarbourJobQueue,
+  request: CleanupStagingRequest,
+): Promise<CleanupStagingResult> {
+  const dataset = await requireDataset(db, request)
+  const delaySeconds = Math.max(
+    0,
+    Math.floor(request.delaySeconds ?? DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS),
+  )
+
+  if (dataset.type !== 'address') {
+    throw new ControlRequestError(
+      `SQL staging cleanup is only supported for address releases. Received: ${dataset.type}.`,
+    )
+  }
+
+  if (!dataset.rawObjectKey) {
+    throw new ControlRequestError(
+      `Release ${dataset.releaseCode} has no rawObjectKey for queue reconstruction.`,
+    )
+  }
+
+  if (request.dryRun) {
+    return {
+      delaySeconds,
+      dryRun: true,
+      releaseCode: dataset.releaseCode,
+      releaseId: dataset.releaseId,
+      status: 'skipped',
+    }
+  }
+
+  await cleanupQueue.send(buildAddressSqlStagingCleanupMessage(dataset), {
+    delaySeconds,
+  })
+
+  return {
+    delaySeconds,
+    dryRun: false,
+    releaseCode: dataset.releaseCode,
+    releaseId: dataset.releaseId,
+    status: 'queued',
+  }
+}
+
 async function scheduleCurrentSnapshotCleanup(
   db: HarbourReadableDb,
   cleanupQueue: HarbourJobQueue,
@@ -313,6 +379,41 @@ async function scheduleCurrentSnapshotCleanup(
     snapshotIds,
     status: 'queued',
   }
+}
+
+function buildAddressSqlStagingCleanupMessage(
+  dataset: Awaited<ReturnType<typeof requireDataset>>,
+): DatasetProcessingMessage {
+  return {
+    jobType: 'processDataset',
+    addressStage: 'sql-cleanup-staging',
+    cohortKey: dataset.cohortKey ?? dataset.sourceVersion,
+    datasetCode: dataset.datasetCode,
+    datasetId: dataset.datasetId,
+    processingMode: 'sql',
+    rawObjectKey: dataset.rawObjectKey ?? '',
+    regionCode: dataset.regionCode as DatasetProcessingMessage['regionCode'],
+    releaseCode: dataset.releaseCode,
+    releaseId: dataset.releaseId,
+    shardYear: resolveReleaseShardYear(dataset.cohortKey, dataset.sourceVersion),
+    source: dataset.source,
+    sourceVersion: dataset.sourceVersion,
+    theme: dataset.theme as ResourceTheme,
+    type: 'address',
+  }
+}
+
+function resolveReleaseShardYear(
+  cohortKey: string | null | undefined,
+  sourceVersion: string,
+) {
+  const cohortYear = cohortKey?.slice(0, 4)
+
+  if (cohortYear && /^\d{4}$/.test(cohortYear)) {
+    return cohortYear
+  }
+
+  return sourceVersion.slice(0, 4)
 }
 
 async function requireDataset(

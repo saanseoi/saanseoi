@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readdirSync } from 'node:fs'
 import { copyFileSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import { Database } from 'bun:sqlite'
 
@@ -51,7 +52,10 @@ type ArtifactCandidate = {
 }
 
 const DEFAULT_OUT_DIR = '.'
-const DEFAULT_PERSIST_DIR = '.local/d1/dev'
+export const defaultInspectPersistDir = fileURLToPath(
+  new URL('../../../../.local/d1/dev', import.meta.url),
+)
+const DEFAULT_PERSIST_DIR = defaultInspectPersistDir
 const TARGET_ORDER = new Map([
   ['source', 0],
   ['history', 1],
@@ -156,7 +160,7 @@ export function inspectLocalArtifact(
   const extension = normalizedOptions.stage === 'operations' ? 'sql' : 'json'
   const outputPath = join(
     normalizedOptions.outDir,
-    [
+    `${[
       timestamp,
       normalizedOptions.releaseCode,
       normalizedOptions.stage,
@@ -164,7 +168,7 @@ export function inspectLocalArtifact(
       normalizedOptions.sample,
     ]
       .filter(Boolean)
-      .join('-') + `.${extension}`,
+      .join('-')}.${extension}`,
   )
   const bucketRoot = join(
     normalizedOptions.persistDir,

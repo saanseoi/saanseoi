@@ -319,6 +319,21 @@ export const CleanupSnapshotsRequestSchema = z
   })
   .openapi('HarbourCleanupSnapshotsRequest')
 
+export const CleanupStagingRequestSchema = z
+  .object({
+    delaySeconds: z.number().int().min(0).max(86_400).optional(),
+    dryRun: z.boolean().optional(),
+    releaseCode: ReleaseCodeSchema.optional(),
+    releaseId: ReleaseIdSchema.optional(),
+  })
+  .refine(
+    value => Boolean(value.releaseId || value.releaseCode),
+    'Either releaseId or releaseCode is required.',
+  )
+  .openapi('HarbourCleanupStagingRequest', {
+    anyOf: [{ required: ['releaseId'] }, { required: ['releaseCode'] }],
+  })
+
 export const CleanupSnapshotsResponseSchema = z
   .object({
     candidateCount: z.number(),
@@ -328,6 +343,16 @@ export const CleanupSnapshotsResponseSchema = z
     status: z.enum(['queued', 'skipped']),
   })
   .openapi('HarbourCleanupSnapshotsResponse')
+
+export const CleanupStagingResponseSchema = z
+  .object({
+    delaySeconds: z.number(),
+    dryRun: z.boolean(),
+    releaseCode: ReleaseCodeSchema,
+    releaseId: ReleaseIdSchema,
+    status: z.enum(['queued', 'skipped']),
+  })
+  .openapi('HarbourCleanupStagingResponse')
 
 export const ControlResponseSchema = z
   .object({

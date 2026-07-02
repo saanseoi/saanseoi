@@ -282,7 +282,10 @@ export async function handleFinalizeUploadRequest(
     queue,
     processingMessage,
     inspection.rowCount,
-    dependencies.processingPlanOptions,
+    resolveProcessingPlanOptionsForMessage(
+      processingMessage,
+      dependencies.processingPlanOptions,
+    ),
   )
 
   return finalized
@@ -357,7 +360,7 @@ export async function handleRequeueUploadRequest(
       queue,
       processingMessage,
       rowCount,
-      processingPlanOptions,
+      resolveProcessingPlanOptionsForMessage(processingMessage, processingPlanOptions),
     )
     await updateDatasetStatus(db, dataset.releaseId, 'staged')
   } catch (error) {
@@ -494,6 +497,21 @@ async function createSignedUploadUrl(
       expiresIn: expiresInSeconds,
     },
   )
+}
+
+function resolveProcessingPlanOptionsForMessage(
+  message: DatasetProcessingMessage,
+  options: DatasetProcessingPlanOptions = {},
+): DatasetProcessingPlanOptions {
+  if (message.type === 'address' && message.processingMode === 'sql') {
+    return {
+      ...options,
+      forceSerialAddressEnqueue: false,
+      useAddressContinuation: true,
+    }
+  }
+
+  return options
 }
 
 function buildDatasetProcessingMessage(
