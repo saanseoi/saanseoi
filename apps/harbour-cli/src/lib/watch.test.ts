@@ -38,7 +38,7 @@ const processingRelease: ReleaseReportRow = {
     },
     {
       kind: 'history',
-      label: 'historyVersions',
+      label: 'resourceType',
       rowCount: 25,
       tableName: 'divisionVersions',
     },
@@ -138,7 +138,7 @@ describe('watch helpers', () => {
           },
           {
             kind: 'history',
-            label: 'history2dVersions',
+            label: 'resourceType',
             rowCount: 9216,
             tableName: 'address2dVersions',
           },
@@ -498,16 +498,145 @@ describe('watchCurrentUpload', () => {
     expect(progressEvents).toHaveLength(2)
     expect(progressEvents[0]?.max).toBe(1817)
     expect(progressEvents[0]?.messages).toEqual([
-      'start:overture-hk-2026-01-21.0-division 1,664/1,817 rows',
-      'advance:overture-hk-2026-01-21.0-division 1,664/1,817 rows',
+      'start:overture-hk-2026-01-21.0-division 1,664/1,817 rows (extractDivisions)',
+      'advance:overture-hk-2026-01-21.0-division 1,664/1,817 rows (extractDivisions)',
       'stop:✓ overture-hk-2026-01-21.0-division (1,817)',
     ])
     expect(progressEvents[1]?.messages).toEqual([
-      'start:overture-hk-2026-02-18.0-division 1,665/1,818 rows',
-      'advance:overture-hk-2026-02-18.0-division 1,665/1,818 rows',
+      'start:overture-hk-2026-02-18.0-division 1,665/1,818 rows (extractDivisions)',
+      'advance:overture-hk-2026-02-18.0-division 1,665/1,818 rows (extractDivisions)',
       'stop:✓ overture-hk-2026-02-18.0-division (1,818)',
     ])
     expect(successMessages).toEqual([])
     expect(failedMessages).toEqual([])
+  })
+
+  test('does not redraw when progress and active phase are unchanged', async () => {
+    const activeRelease = {
+      ...processingRelease,
+      releaseCode: 'overture-hk-2025-09-24.0-address',
+      releaseId: 'release-address',
+      status: 'processing',
+      type: 'address',
+    }
+    const completedRelease = {
+      ...activeRelease,
+      rowCounts: [
+        {
+          kind: 'source' as const,
+          label: 'source',
+          rowCount: 182155,
+          tableName: 'sourceOvertureAddresses2d',
+        },
+      ],
+      status: 'published',
+    }
+    let releaseFetchCount = 0
+    const fetchReleaseReport = mock(async () => {
+      releaseFetchCount += 1
+
+      return {
+        rows: [releaseFetchCount < 4 ? activeRelease : completedRelease],
+      }
+    })
+    const fetchIngestRunReport = mock(async () => ({
+      rows: [
+        {
+          datasetCode: 'hk-address',
+          error: null,
+          finishedAt: '2026-06-27T07:18:25.000Z',
+          phase: 'stageDataset',
+          releaseCode: activeRelease.releaseCode,
+          releaseId: activeRelease.releaseId,
+          runId: 'run-stage',
+          cohortKey: '2025-09',
+          source: 'overture',
+          startedAt: '2026-06-27T07:18:25.000Z',
+          stats: {
+            rowCount: 182155,
+          },
+          status: 'completed',
+          type: 'address',
+        },
+        {
+          datasetCode: 'hk-address',
+          error: null,
+          finishedAt: null,
+          phase: 'generateAddressSqlCurrent',
+          releaseCode: activeRelease.releaseCode,
+          releaseId: activeRelease.releaseId,
+          runId: 'run-current',
+          cohortKey: '2025-09',
+          source: 'overture',
+          startedAt: '2026-06-27T07:18:28.000Z',
+          stats: {
+            processedRows: 2688,
+          },
+          status: 'running',
+          type: 'address',
+        },
+        {
+          datasetCode: 'hk-address',
+          error: null,
+          finishedAt: null,
+          phase: 'extractAddresses',
+          releaseCode: activeRelease.releaseCode,
+          releaseId: activeRelease.releaseId,
+          runId: 'run-extract',
+          cohortKey: '2025-09',
+          source: 'overture',
+          startedAt: '2026-06-27T07:18:26.000Z',
+          stats: {
+            processedRows: 2688,
+          },
+          status: 'running',
+          type: 'address',
+        },
+      ],
+    }))
+    const progressMessages: string[] = []
+    const watchCurrentUpload = createWatchCurrentUpload({
+      createProgressBar() {
+        return {
+          advance(_delta: number, message?: string) {
+            if (message) {
+              progressMessages.push(`advance:${message}`)
+            }
+          },
+          cancel() {},
+          clear() {},
+          error() {},
+          isCancelled: false,
+          message(message?: string) {
+            if (message) {
+              progressMessages.push(`message:${message}`)
+            }
+          },
+          start(message?: string) {
+            if (message) {
+              progressMessages.push(`start:${message}`)
+            }
+          },
+          stop(message?: string) {
+            if (message) {
+              progressMessages.push(`stop:${message}`)
+            }
+          },
+        }
+      },
+      fetchIngestRunReport,
+      fetchReleaseReport,
+      reportFailed() {},
+      reportSuccess() {},
+      sleep: async () => undefined,
+    })
+
+    await watchCurrentUpload(target)
+
+    expect(progressMessages).toEqual([
+      'start:overture-hk-2025-09-24.0-address 2,688/182,155 rows (generateAddressSqlCurrent)',
+      'advance:overture-hk-2025-09-24.0-address 2,688/182,155 rows (generateAddressSqlCurrent)',
+      'stop:✓ overture-hk-2025-09-24.0-address (182,155)',
+    ])
   })
 })

@@ -2,7 +2,17 @@ import { mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/prompts'
+import {
+  autocomplete,
+  cancel,
+  confirm,
+  intro,
+  isCancel,
+  log,
+  note,
+  outro,
+  select,
+} from '@clack/prompts'
 
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
@@ -23,7 +33,23 @@ import {
   formatStatsReportTable,
   formatUploadResult,
 } from './lib/display.ts'
+import { importD1SqlFile } from './lib/d1Import.ts'
 import { prepareHkgovAlsAddressParquet } from './lib/hkgovAls.ts'
+import {
+  inspectDbShards,
+  inspectLocalArtifact,
+  inspectResourceTypes,
+  inspectSampleStrategies,
+  listInspectableReleaseCodes,
+  normalizeInspectDbShard,
+  normalizeInspectResourceType,
+  normalizeInspectSampleStrategy,
+  normalizeInspectStage,
+  type InspectDbShard,
+  type InspectResourceType,
+  type InspectSampleStrategy,
+  type InspectStage,
+} from './lib/inspect.ts'
 import { buildRegisterOptions, parseArgs, resolveUploadTarget } from './lib/options.ts'
 import { checkOvertureUploadAssumptions } from './lib/overtureAssumptions.ts'
 import {
@@ -37,16 +63,21 @@ import {
   finalizeExistingUpload,
   requeueExistingUpload,
   scheduleSnapshotCleanup,
+  scheduleStagingCleanup,
 } from './lib/upload.ts'
 import { watchCurrentUpload } from './lib/watch.ts'
 
 function printUsage() {
   console.log(`  Usage:
   saanseoi upload <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--dry-run] [--force] [--skip-cleanup] [--yes]
+  saanseoi upload:sql <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--dry-run] [--force] [--skip-cleanup] [--yes]
   saanseoi upload:finalize --release <release-id|release-code> [--target local|preview|production] [--skip-cleanup] [--yes]
   saanseoi upload:requeue --release <release-id|release-code> [--target local|preview|production] [--skip-cleanup] [--force] [--yes]
   saanseoi upload:watch [--target local|preview|production]
   saanseoi cleanup:snapshots [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
+  saanseoi cleanup:staging --release <release-id|release-code> [--target local|preview|production] [--delay-seconds 30] [--dry-run] [--yes]
+  saanseoi d1:import-sql <file.sql> --account-id VALUE --database-id VALUE [--api-token VALUE|--api-token-env ENV] [--poll-interval-ms 1000]
+  saanseoi inspect [--stage normalized|resolved|operations] [--resourceType address] [--releaseCode VALUE] [--dbShard source|history|current] [--sample first|last|random] [--persist-to .local/d1/dev] [--out-dir .]
   saanseoi prep-hkgov-als <source-dir> [--target local|preview|production] [--source-version YYYY-MM-DD.NN] [--cohort-key VALUE] [--db /path/to/local.sqlite]
   saanseoi reports:ingestion [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
   saanseoi reports:stats [--target local|preview|production] [--limit 1-100] [--source SOURCE] [--type TYPE]
@@ -110,6 +141,32 @@ async function main() {
       'PREP RESULT',
     )
     outro('ALS parquet preparation complete')
+    return
+  }
+
+  if (args.command === 'inspect') {
+    const inspectOptions = await resolveInspectOptions(args)
+    const result = inspectLocalArtifact(inspectOptions)
+
+    note(
+      [
+        formatField('outputPath', result.outputPath),
+        formatField('stage', result.stage),
+        formatField('resourceType', result.resourceType),
+        formatField('releaseCode', result.releaseCode),
+        ...(result.dbShard ? [formatField('dbShard', result.dbShard)] : []),
+        formatField('sample', result.sample),
+        formatField(
+          'rowRange',
+          result.rowStart == null
+            ? '-'
+            : `${String(result.rowStart)}-${String(result.rowEnd ?? '?')}`,
+        ),
+        formatField('sourceKeys', result.sourceKeys.join(', ')),
+      ].join('\n'),
+      'INSPECT RESULT',
+    )
+    outro('Harbour artifact inspection complete')
     return
   }
 
@@ -279,6 +336,74 @@ async function main() {
     return
   }
 
+  if (args.command === 'd1:import-sql') {
+    const filePath = args.positionals[0]
+    const accountId =
+      typeof args.options['account-id'] === 'string'
+        ? args.options['account-id']
+        : process.env.CLOUDFLARE_ACCOUNT_ID
+    const databaseId =
+      typeof args.options['database-id'] === 'string'
+        ? args.options['database-id']
+        : undefined
+    const apiTokenEnv =
+      typeof args.options['api-token-env'] === 'string'
+        ? args.options['api-token-env']
+        : 'CLOUDFLARE_D1_TOKEN'
+    const apiToken =
+      typeof args.options['api-token'] === 'string'
+        ? args.options['api-token']
+        : process.env[apiTokenEnv]
+    const pollIntervalMs = resolveOptionalPositiveInteger(
+      args.options['poll-interval-ms'],
+      'poll-interval-ms',
+    )
+
+    if (!filePath || !accountId || !databaseId || !apiToken) {
+      printUsage()
+      throw new Error(
+        'Invalid arguments for `d1:import-sql`. Pass <file.sql>, --account-id, --database-id, and --api-token or --api-token-env.',
+      )
+    }
+
+    if (!skipConfirm) {
+      const shouldContinue = await confirm({
+        message: `Import ${filePath} into D1 database ${databaseId}?`,
+        initialValue: false,
+      })
+
+      if (isCancel(shouldContinue) || !shouldContinue) {
+        cancel('D1 IMPORT CANCELLED')
+        process.exit(1)
+      }
+    }
+
+    const result = await importD1SqlFile({
+      accountId,
+      apiToken,
+      databaseId,
+      filePath,
+      pollIntervalMs,
+    })
+
+    note(
+      [
+        formatField('file', filePath),
+        formatField('databaseId', databaseId),
+        formatField('bytes', String(result.bytes)),
+        formatField('etag', result.etag),
+        formatField('uploadedEtag', result.uploadedEtag ?? '-'),
+        formatField('filename', result.filename),
+        formatField('success', String(result.poll.success)),
+        formatField('status', result.poll.status ?? '-'),
+        formatField('error', result.poll.error ?? '-'),
+      ].join('\n'),
+      'D1 IMPORT RESULT',
+    )
+    outro('D1 SQL import complete')
+    return
+  }
+
   if (args.command === 'cleanup:snapshots') {
     const resourceType = resolveSnapshotCleanupResourceType(args.options.type)
     const snapshotIds = resolveSnapshotIds(args.options.snapshot)
@@ -320,7 +445,56 @@ async function main() {
     return
   }
 
-  if (args.command !== 'upload') {
+  if (args.command === 'cleanup:staging') {
+    const releaseSpecifier =
+      typeof args.options.release === 'string' ? args.options.release : undefined
+    const delaySeconds = resolveDelaySeconds(args.options['delay-seconds'])
+
+    if (!releaseSpecifier) {
+      printUsage()
+      throw new Error(
+        'Missing release identifier. Pass `--release <release-id|release-code>`.',
+      )
+    }
+
+    if (!skipConfirm && !dryRun) {
+      const shouldContinue = await confirm({
+        message: `Schedule SQL staging cleanup for ${releaseSpecifier} on ${describeTarget(target).label}?`,
+        initialValue: true,
+      })
+
+      if (isCancel(shouldContinue) || !shouldContinue) {
+        cancel('STAGING CLEANUP CANCELLED')
+        process.exit(1)
+      }
+    }
+
+    const result = await scheduleStagingCleanup(target, {
+      delaySeconds,
+      dryRun,
+      ...(isReleaseId(releaseSpecifier)
+        ? { releaseId: releaseSpecifier }
+        : { releaseCode: releaseSpecifier }),
+    })
+
+    note(
+      [
+        formatField('status', result.status),
+        formatField('dryRun', String(result.dryRun)),
+        formatField('releaseCode', result.releaseCode),
+        formatField('releaseId', result.releaseId),
+        formatField('delaySeconds', String(result.delaySeconds)),
+      ].join('\n'),
+      'STAGING CLEANUP',
+    )
+    outro('Harbour SQL staging cleanup request complete')
+    return
+  }
+
+  const isUploadCommand = args.command === 'upload' || args.command === 'upload:sql'
+  const isSqlUpload = args.command === 'upload:sql'
+
+  if (!isUploadCommand) {
     throw new Error(`Unsupported harbour command: ${args.command}`)
   }
 
@@ -364,7 +538,7 @@ async function main() {
 
   note(
     formatSummary(previewResult, target).join('\n'),
-    dryRun ? 'UPLOAD DRY RUN' : 'UPLOAD PLAN',
+    dryRun ? 'UPLOAD DRY RUN' : isSqlUpload ? 'SQL UPLOAD PLAN' : 'UPLOAD PLAN',
   )
 
   if (assumptionWarnings.length > 0) {
@@ -417,6 +591,7 @@ async function main() {
     schemaVersionId,
     {
       force: forceUpload,
+      processingMode: isSqlUpload ? 'sql' : undefined,
       skipSnapshotCleanup,
     },
   )
@@ -438,9 +613,13 @@ async function main() {
       schemaVersion: sourceSchemaVersion,
       status: typeof uploadResult?.status === 'string' ? uploadResult.status : 'staged',
     }).join('\n'),
-    'UPLOAD RESULT',
+    isSqlUpload ? 'SQL UPLOAD RESULT' : 'UPLOAD RESULT',
   )
-  outro('Dataset uploaded and registered in Harbour')
+  outro(
+    isSqlUpload
+      ? 'Dataset uploaded and SQL generation queued in Harbour'
+      : 'Dataset uploaded and registered in Harbour',
+  )
 }
 
 function resolveSnapshotCleanupResourceType(
@@ -499,6 +678,225 @@ function resolveDelaySeconds(value: string | boolean | undefined) {
   }
 
   return delaySeconds
+}
+
+function resolveOptionalPositiveInteger(
+  value: string | boolean | undefined,
+  name: string,
+) {
+  if (value === undefined || value === false) {
+    return undefined
+  }
+
+  if (typeof value !== 'string' || !/^\d+$/.test(value)) {
+    throw new Error(`Invalid --${name} value. Expected a positive integer.`)
+  }
+
+  const parsed = Number(value)
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`Invalid --${name} value. Expected a positive integer.`)
+  }
+
+  return parsed
+}
+
+async function resolveInspectOptions(args: ReturnType<typeof parseArgs>) {
+  const persistDir = getStringOption(args, ['persist-to']) ?? '.local/d1/dev'
+  const outDir = getStringOption(args, ['out-dir']) ?? '.'
+  const stage =
+    resolveProvidedInspectStage(args) ??
+    (await promptSelect<InspectStage>('Stage', [
+      {
+        label: 'JSON Normalised',
+        value: 'normalized',
+      },
+      {
+        label: 'Resolved JSON',
+        value: 'resolved',
+      },
+      {
+        label: 'Operations SQL',
+        value: 'operations',
+      },
+    ]))
+  const resourceType =
+    resolveProvidedInspectResourceType(args) ??
+    (await promptSelect<InspectResourceType>(
+      'Resource type',
+      inspectResourceTypes.map(value => ({
+        label: value,
+        value,
+      })),
+    ))
+  const releaseCode =
+    getStringOption(args, ['releaseCode', 'release-code', 'release']) ??
+    (await promptReleaseCode({
+      persistDir,
+      resourceType,
+      stage,
+    }))
+  const dbShard =
+    stage === 'operations'
+      ? (resolveProvidedInspectDbShard(args) ??
+        (await promptSelect<InspectDbShard>(
+          'DB family',
+          inspectDbShards.map(value => ({
+            label: value,
+            value,
+          })),
+        )))
+      : undefined
+  const sample =
+    resolveProvidedInspectSampleStrategy(args) ??
+    (await promptSelect<InspectSampleStrategy>(
+      'Sample strategy',
+      inspectSampleStrategies.map(value => ({
+        label: value,
+        value,
+      })),
+    ))
+
+  return {
+    dbShard,
+    outDir,
+    persistDir,
+    releaseCode,
+    resourceType,
+    sample,
+    stage,
+  }
+}
+
+function resolveProvidedInspectStage(args: ReturnType<typeof parseArgs>) {
+  const rawValue = getStringOption(args, ['stage'])
+
+  if (!rawValue) {
+    return null
+  }
+
+  const stage = normalizeInspectStage(rawValue)
+
+  if (!stage) {
+    throw new Error(
+      `Invalid --stage value: ${rawValue}. Use normalized, resolved, or operations.`,
+    )
+  }
+
+  return stage
+}
+
+function resolveProvidedInspectResourceType(args: ReturnType<typeof parseArgs>) {
+  const rawValue = getStringOption(args, ['resourceType', 'resource-type'])
+
+  if (!rawValue) {
+    return null
+  }
+
+  const resourceType = normalizeInspectResourceType(rawValue)
+
+  if (!resourceType) {
+    throw new Error(`Invalid --resourceType value: ${rawValue}. Use address.`)
+  }
+
+  return resourceType
+}
+
+function resolveProvidedInspectDbShard(args: ReturnType<typeof parseArgs>) {
+  const rawValue = getStringOption(args, ['dbShard', 'db-shard'])
+
+  if (!rawValue) {
+    return null
+  }
+
+  const dbShard = normalizeInspectDbShard(rawValue)
+
+  if (!dbShard) {
+    throw new Error(
+      `Invalid --dbShard value: ${rawValue}. Use source, history, or current.`,
+    )
+  }
+
+  return dbShard
+}
+
+function resolveProvidedInspectSampleStrategy(args: ReturnType<typeof parseArgs>) {
+  const rawValue = getStringOption(args, ['sample'])
+
+  if (!rawValue) {
+    return null
+  }
+
+  const sample = normalizeInspectSampleStrategy(rawValue)
+
+  if (!sample) {
+    throw new Error(`Invalid --sample value: ${rawValue}. Use first, last, or random.`)
+  }
+
+  return sample
+}
+
+async function promptReleaseCode(options: {
+  persistDir: string
+  resourceType: InspectResourceType
+  stage: InspectStage
+}) {
+  const releaseCodes = listInspectableReleaseCodes(options)
+
+  if (releaseCodes.length === 0) {
+    throw new Error(
+      `No local ${options.stage} artifacts found for ${options.resourceType}.`,
+    )
+  }
+
+  const value = await autocomplete({
+    initialValue: releaseCodes[0],
+    maxItems: 10,
+    message: 'Release code',
+    options: releaseCodes.map(releaseCode => ({
+      label: releaseCode,
+      value: releaseCode,
+    })),
+  })
+
+  if (isCancel(value)) {
+    cancel('INSPECT CANCELLED')
+    process.exit(1)
+  }
+
+  return value
+}
+
+async function promptSelect<T extends string>(
+  message: string,
+  options: Array<{ label: string; value: T }>,
+) {
+  const value = await select<T>({
+    message,
+    options: options as Parameters<typeof select<T>>[0]['options'],
+  })
+
+  if (isCancel(value)) {
+    cancel('INSPECT CANCELLED')
+    process.exit(1)
+  }
+
+  return value
+}
+
+function getStringOption(
+  args: ReturnType<typeof parseArgs>,
+  keys: string[],
+): string | undefined {
+  for (const key of keys) {
+    const value = args.options[key]
+
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim()
+    }
+  }
+
+  return undefined
 }
 
 main().catch(error => {

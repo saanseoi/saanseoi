@@ -109,7 +109,7 @@ describe('formatReleaseReportTable', () => {
           },
           {
             kind: 'history',
-            label: 'history2dVersions',
+            label: 'resourceType',
             rowCount: 4,
             tableName: 'address2dVersions',
           },
@@ -127,7 +127,7 @@ describe('formatReleaseReportTable', () => {
     const table = formatReleaseReportTable(rows)
 
     expect(table).toContain('sourceCount')
-    expect(table).toContain('history2dVersionsCount')
+    expect(table).toContain('resourceTypeCount')
     expect(table).toContain('  2            4')
   })
 })

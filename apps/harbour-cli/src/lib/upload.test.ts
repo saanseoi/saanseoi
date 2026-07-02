@@ -11,6 +11,7 @@ import {
   requeueExistingUpload,
   resolveRelease,
   scheduleSnapshotCleanup,
+  scheduleStagingCleanup,
 } from './upload.ts'
 
 import type { UploadTarget } from './options.ts'
@@ -501,6 +502,50 @@ describe('upload release action helpers', () => {
         delaySeconds: 30,
         resourceType: 'division',
         snapshotIds: ['1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70'],
+      }),
+    )
+  })
+
+  test('schedules SQL staging cleanup through Harbour control API', async () => {
+    const calls: Array<{ init?: RequestInit; url: string }> = []
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async (input, init) => {
+      const url = String(input)
+      calls.push({ init, url })
+
+      if (url === 'https://harbour.saanseoi.hk/v1/control/cleanupStaging') {
+        return new Response(
+          JSON.stringify({
+            delaySeconds: 30,
+            dryRun: false,
+            releaseCode: 'hkgov-als-hk-2026-06-26.0-address',
+            releaseId: '1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70',
+            status: 'queued',
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+            status: 200,
+          },
+        )
+      }
+
+      throw new Error(`Unexpected fetch URL: ${url}`)
+    }) as typeof fetch
+
+    const result = await scheduleStagingCleanup(target, {
+      delaySeconds: 30,
+      releaseId: '1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70',
+    })
+
+    expect(result.status).toBe('queued')
+    expect(calls).toHaveLength(1)
+    expect(calls[0]?.init?.body).toBe(
+      JSON.stringify({
+        delaySeconds: 30,
+        releaseId: '1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70',
       }),
     )
   })
