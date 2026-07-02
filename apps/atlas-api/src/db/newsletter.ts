@@ -1,10 +1,10 @@
 import type { MetaDatabase } from '@repo/db'
-import { eq, metaSchema } from '@repo/db'
+import { eq, metaSchema, toIsoTimestamp } from '@repo/db'
 
 const { newsletterSubscription, user } = metaSchema
 
 export async function markNewsletterPending(db: MetaDatabase, email: string) {
-  const updatedAt = new Date()
+  const updatedAt = toIsoTimestamp()
 
   await db
     .insert(newsletterSubscription)
@@ -29,7 +29,7 @@ export async function markNewsletterPending(db: MetaDatabase, email: string) {
 }
 
 export async function markNewsletterSubscribed(db: MetaDatabase, email: string) {
-  const updatedAt = new Date()
+  const updatedAt = toIsoTimestamp()
 
   await db
     .insert(newsletterSubscription)
@@ -58,7 +58,7 @@ export async function markNewsletterFailed(
   email: string,
   lastError: string,
 ) {
-  const updatedAt = new Date()
+  const updatedAt = toIsoTimestamp()
 
   await db
     .insert(newsletterSubscription)

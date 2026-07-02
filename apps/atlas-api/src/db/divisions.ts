@@ -18,6 +18,7 @@ export type DivisionLocaleValue = {
 }
 
 export type DivisionLocaleCode = RequestedApiLocale
+export type DivisionSourceKeys = Record<string, Record<string, string | null>>
 
 export type DivisionRecord = {
   division: {
@@ -28,6 +29,7 @@ export type DivisionRecord = {
     geometry: typeof divisions.$inferSelect.geometry
     bbox: typeof divisions.$inferSelect.bbox
     population: number | null
+    sourceKeys: DivisionSourceKeys | null
     subtype: string | null
     class: string | null
     wikidata: string | null
@@ -71,8 +73,7 @@ type DivisionRow = {
   geometry: typeof divisions.$inferSelect.geometry
   bbox: typeof divisions.$inferSelect.bbox
   population: number | null
-  subtype: string | null
-  class: string | null
+  sourceKeys: typeof divisions.$inferSelect.sourceKeys
   wikidata: string | null
   hierarchy: typeof divisions.$inferSelect.hierarchy
   parentDivisionId: string | null
@@ -150,8 +151,26 @@ function mapDivisionLocaleValue(value: unknown): DivisionLocaleValue {
   }
 }
 
+function mapDivisionSourceKeys(value: unknown): DivisionSourceKeys | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null
+  }
+
+  return value as DivisionSourceKeys
+}
+
+function getDivisionSourceKey(
+  sourceKeys: DivisionSourceKeys | null,
+  source: string,
+  key: string,
+) {
+  const value = sourceKeys?.[source]?.[key]
+  return typeof value === 'string' ? value : null
+}
+
 function mapDivisionRow(row: DivisionRow): DivisionRecord {
   const rawI18n = JSON.parse(row.i18n) as Record<string, unknown>
+  const sourceKeys = mapDivisionSourceKeys(row.sourceKeys)
 
   return {
     division: {
@@ -162,8 +181,9 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
       geometry: row.geometry,
       bbox: row.bbox,
       population: row.population,
-      subtype: row.subtype,
-      class: row.class,
+      sourceKeys,
+      subtype: getDivisionSourceKey(sourceKeys, 'overture', 'subtype'),
+      class: getDivisionSourceKey(sourceKeys, 'overture', 'class'),
       wikidata: row.wikidata,
       hierarchy: row.hierarchy,
       parentDivisionId: row.parentDivisionId,
@@ -235,8 +255,7 @@ export async function listDivisionRecordsCurrent(
       geometry: divisions.geometry,
       bbox: divisions.bbox,
       population: divisions.population,
-      subtype: divisions.subtype,
-      class: divisions.class,
+      sourceKeys: divisions.sourceKeys,
       wikidata: divisions.wikidata,
       hierarchy: divisions.hierarchy,
       parentDivisionId: divisions.parentDivisionId,
@@ -294,8 +313,7 @@ export async function listDivisionRecordsCurrentByIds(
       geometry: divisions.geometry,
       bbox: divisions.bbox,
       population: divisions.population,
-      subtype: divisions.subtype,
-      class: divisions.class,
+      sourceKeys: divisions.sourceKeys,
       wikidata: divisions.wikidata,
       hierarchy: divisions.hierarchy,
       parentDivisionId: divisions.parentDivisionId,

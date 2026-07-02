@@ -82,7 +82,7 @@ Current scope:
 
 Operational shape:
 
-- generated source SQL stages normalized rows in `ssAddressImportRows` and `ssAddressImportI18n`
+- generated source SQL stages normalized rows in `stagingOvertureAddresses2d` and `stagingOvertureAddresses2dI18n`
 - generated history/current SQL stages resolved rows in `ssAddressImportResolvedRows` and `ssAddressImportResolvedI18n`
 - apply statements use `UPDATE ... WHERE EXISTS`, `INSERT ... SELECT ... ON CONFLICT`, and release/snapshot markers instead of per-row worker mutations
 - generated `INSERT` statements are byte-limited below D1's individual SQL statement limit; use row-count chunks such as 10,000 only as a planning input, not as the SQL safety boundary
