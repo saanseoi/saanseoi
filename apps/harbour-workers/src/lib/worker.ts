@@ -196,7 +196,13 @@ export function createProcessDatasetMessage(
           ('deferCompletion' in result && result.deferCompletion)
         ) {
           if (addressPhase) {
-            await harbourClient.stageCompleted(
+            const reportAddressPhaseProgress = isAddressSqlGenerationProgressPhase(
+              addressPhase,
+            )
+              ? harbourClient.stageRunning
+              : harbourClient.stageCompleted
+
+            await reportAddressPhaseProgress(
               releaseId,
               addressPhase,
               buildAddressSqlGenerationPhaseStats(
@@ -205,7 +211,20 @@ export function createProcessDatasetMessage(
               ),
               releaseCode,
             )
-            activePhases.delete(addressPhase)
+
+            if (!isAddressSqlGenerationProgressPhase(addressPhase)) {
+              activePhases.delete(addressPhase)
+            }
+
+            if (addressPhase === 'finalizeAddressSqlGeneration') {
+              await completeAddressSqlGenerationProgressPhases(
+                harbourClient,
+                releaseId,
+                releaseCode,
+                message,
+                result,
+              )
+            }
           }
 
           const durationMs = Date.now() - processStartedAt
@@ -421,17 +440,49 @@ function buildAddressSqlGenerationPhaseStats(
   message: DatasetProcessingMessage,
   result?: DatasetProcessingResult,
 ) {
-  return {
-    addressStage: getAddressPipelineStage(message),
-    rowEnd: message.rowEnd,
-    rowStart: message.rowStart,
-    sqlArtifactCount:
-      message.addressSqlArtifactKeys?.length ?? result?.statsRows ?? undefined,
+  const stats: Record<string, unknown> = {
     processedRows:
       message.addressStats?.processedRows ??
       result?.processedRows ??
       message.rowEnd ??
       undefined,
+  }
+
+  const sqlArtifactCount =
+    message.addressSqlArtifactKeys?.length ?? result?.statsRows ?? undefined
+
+  if (sqlArtifactCount != null) {
+    stats.sqlArtifactCount = sqlArtifactCount
+  }
+
+  return stats
+}
+
+function isAddressSqlGenerationProgressPhase(phase: string) {
+  return (
+    phase === 'normalizeAddressSql' ||
+    phase === 'generateAddressSqlSource' ||
+    phase === 'generateAddressSqlHistory' ||
+    phase === 'generateAddressSqlCurrent'
+  )
+}
+
+async function completeAddressSqlGenerationProgressPhases(
+  harbourClient: HarbourClient,
+  releaseId: string,
+  releaseCode: string | undefined,
+  message: DatasetProcessingMessage,
+  result: DatasetProcessingResult,
+) {
+  const stats = buildAddressSqlGenerationPhaseStats(message, result)
+
+  for (const phase of [
+    'normalizeAddressSql',
+    'generateAddressSqlSource',
+    'generateAddressSqlHistory',
+    'generateAddressSqlCurrent',
+  ]) {
+    await harbourClient.stageCompleted(releaseId, phase, stats, releaseCode)
   }
 }
 
