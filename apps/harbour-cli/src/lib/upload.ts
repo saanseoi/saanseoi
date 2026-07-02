@@ -32,6 +32,13 @@ type SnapshotCleanupResponse = {
   snapshotIds: string[]
   status: 'queued' | 'skipped'
 }
+type StagingCleanupResponse = {
+  delaySeconds: number
+  dryRun: boolean
+  releaseCode: string
+  releaseId: string
+  status: 'queued' | 'skipped'
+}
 type DispatchUploadOptions = {
   force?: boolean
   processingMode?: 'direct' | 'sql'
@@ -42,6 +49,12 @@ type ScheduleSnapshotCleanupOptions = {
   dryRun?: boolean
   resourceType?: ResourceType
   snapshotIds?: string[]
+}
+type ScheduleStagingCleanupOptions = {
+  delaySeconds?: number
+  dryRun?: boolean
+  releaseCode?: string
+  releaseId?: string
 }
 const TRANSIENT_UPLOAD_RESPONSE_STATUSES = new Set([502, 503, 504])
 const DIRECT_UPLOAD_RETRY_LIMIT = 2
@@ -86,6 +99,10 @@ export function buildRequeueUploadEndpoint(apiBaseUrl: string) {
 
 export function buildCleanupSnapshotsEndpoint(apiBaseUrl: string) {
   return `${apiBaseUrl}/v1/control/cleanupSnapshots`
+}
+
+export function buildCleanupStagingEndpoint(apiBaseUrl: string) {
+  return `${apiBaseUrl}/v1/control/cleanupStaging`
 }
 
 export async function dispatchUpload(
@@ -531,6 +548,30 @@ export async function scheduleSnapshotCleanup(
     response,
     'Harbour cleanupSnapshots',
   )
+}
+
+export async function scheduleStagingCleanup(
+  target: UploadTarget,
+  options: ScheduleStagingCleanupOptions,
+) {
+  const apiBaseUrl = resolveHarbourApiUrl(target)
+  const response = await fetch(buildCleanupStagingEndpoint(apiBaseUrl), {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({
+      ...(options.delaySeconds !== undefined
+        ? { delaySeconds: options.delaySeconds }
+        : {}),
+      ...(options.dryRun ? { dryRun: true } : {}),
+      ...(options.releaseCode ? { releaseCode: options.releaseCode } : {}),
+      ...(options.releaseId ? { releaseId: options.releaseId } : {}),
+    }),
+  })
+
+  return parseJsonResponse<StagingCleanupResponse>(response, 'Harbour cleanupStaging')
 }
 
 async function parseJsonResponse<T>(response: Response, action: string) {

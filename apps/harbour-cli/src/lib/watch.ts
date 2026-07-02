@@ -18,6 +18,7 @@ export type UploadWatchResult = {
 }
 
 type ReleaseWatchSnapshot = {
+  activePhase: string | null
   releaseCode: string
   releaseId: string
   rowCount: number | null
@@ -66,12 +67,7 @@ export function getReleaseRowCount(release: ReleaseReportRow, label: string): nu
 }
 
 export function getReleaseProcessedRowCount(release: ReleaseReportRow): number {
-  const progressLabels = new Set([
-    'source',
-    'historyVersions',
-    'history2dVersions',
-    'history3dVersions',
-  ])
+  const progressLabels = new Set(['source', 'resourceType', 'resourceDetail'])
 
   return release.rowCounts
     .filter(rowCount => progressLabels.has(rowCount.label))
@@ -136,11 +132,13 @@ function formatNumber(value: number) {
 }
 
 function formatWatchMessage(snapshot: ReleaseWatchSnapshot) {
+  const phase = snapshot.activePhase ? ` ${snapshot.activePhase}` : ''
+
   if (snapshot.rowCount == null || snapshot.rowCount <= 0) {
-    return `${snapshot.releaseCode} ${formatNumber(snapshot.processedCount)} rows`
+    return `${snapshot.releaseCode} ${formatNumber(snapshot.processedCount)} rows${phase}`
   }
 
-  return `${snapshot.releaseCode} ${formatNumber(snapshot.processedCount)}/${formatNumber(snapshot.rowCount)} rows`
+  return `${snapshot.releaseCode} ${formatNumber(snapshot.processedCount)}/${formatNumber(snapshot.rowCount)} rows${phase}`
 }
 
 function formatCompletedMessage(snapshot: ReleaseWatchSnapshot) {
@@ -178,6 +176,7 @@ async function buildReleaseWatchSnapshot(
     getProcessedDatasetRowCount(ingestReport.rows, release.releaseId) ?? 0
 
   return {
+    activePhase: getLatestActivePhase(ingestReport.rows, release.releaseId),
     releaseCode: release.releaseCode,
     releaseId: release.releaseId,
     rowCount: getStageDatasetRowCount(ingestReport.rows, release.releaseId),
@@ -193,11 +192,41 @@ function buildFinishedReleaseSnapshot(release: ReleaseReportRow): ReleaseWatchSn
   const processedCount = getReleaseProcessedRowCount(release)
 
   return {
+    activePhase: null,
     releaseCode: release.releaseCode,
     releaseId: release.releaseId,
     rowCount: processedCount > 0 ? processedCount : null,
     processedCount,
   }
+}
+
+function getLatestActivePhase(rows: IngestRunReportRow[], releaseId: string) {
+  const activeRows = rows.filter(
+    row =>
+      row.releaseId === releaseId &&
+      (row.status === 'queued' || row.status === 'running'),
+  )
+  const activeRow =
+    activeRows.find(row => isDetailedWatchPhase(row.phase)) ??
+    activeRows.find(row => row.phase !== 'processDataset') ??
+    activeRows[0]
+
+  return activeRow ? `(${activeRow.phase})` : null
+}
+
+function isDetailedWatchPhase(phase: string) {
+  return (
+    phase === 'normalizeAddressSql' ||
+    phase === 'generateAddressSqlSource' ||
+    phase === 'generateAddressSqlHistory' ||
+    phase === 'generateAddressSqlCurrent' ||
+    phase === 'finalizeAddressSqlGeneration' ||
+    phase === 'importAddressSqlSource' ||
+    phase === 'importAddressSqlHistory' ||
+    phase === 'importAddressSqlCurrentInit' ||
+    phase === 'importAddressSqlCurrent' ||
+    phase === 'cleanupAddressSqlStaging'
+  )
 }
 
 function sleep(ms: number) {
@@ -332,6 +361,7 @@ export function createWatchCurrentUpload(
       Math.max(activeSnapshot.rowCount ?? activeSnapshot.processedCount, 1),
     )
     let appliedProgress = startProgressBar(progressBar, activeSnapshot)
+    let renderedMessage = formatWatchMessage(activeSnapshot)
     trackedReleaseIds.add(activeSnapshot.releaseId)
 
     while (true) {
@@ -360,14 +390,14 @@ export function createWatchCurrentUpload(
           activeSnapshot.processedCount,
           activeSnapshot.rowCount,
         )
+        const nextMessage = formatWatchMessage(activeSnapshot)
 
         if (nextProgress > appliedProgress) {
-          progressBar.advance(
-            nextProgress - appliedProgress,
-            formatWatchMessage(activeSnapshot),
-          )
-        } else {
-          progressBar.message(formatWatchMessage(activeSnapshot))
+          progressBar.advance(nextProgress - appliedProgress, nextMessage)
+          renderedMessage = nextMessage
+        } else if (nextMessage !== renderedMessage) {
+          progressBar.message(nextMessage)
+          renderedMessage = nextMessage
         }
 
         appliedProgress = nextProgress
@@ -404,6 +434,7 @@ export function createWatchCurrentUpload(
         Math.max(activeSnapshot.rowCount ?? activeSnapshot.processedCount, 1),
       )
       appliedProgress = startProgressBar(progressBar, activeSnapshot)
+      renderedMessage = formatWatchMessage(activeSnapshot)
       trackedReleaseIds.add(activeSnapshot.releaseId)
     }
   }
