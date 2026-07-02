@@ -35,6 +35,7 @@ type DatasetIdentityRecord = {
 export type DataShardRecord = {
   id: string
   bindingName: string
+  databaseId: string
   databaseName: string
 }
 
@@ -1521,6 +1522,7 @@ export async function resolveShardForTypeRegionYear(
         .select({
           id: metaDataShards.id,
           bindingName: metaDataShards.bindingName,
+          databaseId: metaDataShards.databaseId,
           databaseName: metaDataShards.databaseName,
         })
         .from(metaDataShards)
@@ -1552,6 +1554,7 @@ export async function resolveShardForTypeRegionYear(
       .select({
         id: metaDataShards.id,
         bindingName: metaDataShards.bindingName,
+        databaseId: metaDataShards.databaseId,
         databaseName: metaDataShards.databaseName,
       })
       .from(metaDataShards)
@@ -1578,6 +1581,7 @@ export async function resolveShardForTypeRegionYear(
     .select({
       id: metaDataShards.id,
       bindingName: metaDataShards.bindingName,
+      databaseId: metaDataShards.databaseId,
       databaseName: metaDataShards.databaseName,
       year: metaDataShards.year,
     })
@@ -1588,6 +1592,7 @@ export async function resolveShardForTypeRegionYear(
   type FallbackShardRow = {
     id: string
     bindingName: string
+    databaseId: string
     databaseName: string
     year: string | null
   }
@@ -1623,6 +1628,7 @@ export async function resolveShardForTypeRegionYear(
     ? {
         id: fallback.id,
         bindingName: fallback.bindingName,
+        databaseId: fallback.databaseId,
         databaseName: fallback.databaseName,
       }
     : null

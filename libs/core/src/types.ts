@@ -129,9 +129,25 @@ export type DatasetProcessingMessage = {
   totalRows?: number
   chunkSize?: number
   processingRunStartedAt?: string
-  addressStage?: 'normalize' | 'source' | 'history' | 'current' | 'finalize'
+  processingMode?: 'direct' | 'sql'
+  addressStage?:
+    | 'normalize'
+    | 'source'
+    | 'history'
+    | 'current'
+    | 'finalize'
+    | 'sql-source'
+    | 'sql-history'
+    | 'sql-current'
+    | 'sql-finalize'
+    | 'sql-import-source'
+    | 'sql-import-history'
+    | 'sql-import-current'
+    | 'sql-cleanup-staging'
   artifactKey?: string
   resolvedArtifactKey?: string
+  addressSqlArtifactKeys?: string[]
+  addressSqlPublishAfterCleanup?: boolean
   addressStats?: {
     deletedRows: number
     insertedVersions: number
@@ -146,6 +162,12 @@ export type SnapshotCleanupMessage = {
   requestedAt: string
   resourceType?: ResourceType
   snapshotIds?: string[]
+}
+
+export type AddressSqlStagingCleanupMessage = DatasetProcessingMessage & {
+  addressStage: 'sql-cleanup-staging'
+  jobType?: 'processDataset'
+  processingMode: 'sql'
 }
 
 export type HarbourJobMessage = DatasetProcessingMessage | SnapshotCleanupMessage
