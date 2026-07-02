@@ -99,8 +99,8 @@ The current canonical and source-retained subset includes:
 
 - `id`
 - `parent_division_id`
-- `subtype`
-- `class`
+- `subtype`, retained canonically under `sourceKeys.overture.subtype`
+- `class`, retained canonically under `sourceKeys.overture.class`
 - `population`
 - `wikidata`
 - `geometry`
@@ -116,7 +116,6 @@ The current canonical and source-retained subset includes:
 
 Current notable dropped fields:
 
-- `admin_level`
 - `capital_division_ids`
 - `capital_of_divisions`
 - `country`
@@ -128,34 +127,32 @@ Current notable dropped fields:
 Reason in practice:
 
 - Harbour stores derived taxonomy-facing `level` and `type`
+- raw `admin_level` is retained only in source storage, not as a canonical field
 - sparse or low-value source fields are not currently worth persisting
 - dataset-level metadata already carries `theme` and dataset `type`
 
-## Source Retention Tables
+## Source Retention
 
-Current-state source tables:
+Source rows are retained in versioned tables. The current source row is the row
+where `isCurrent = 1`; there are no separate non-version current source tables.
 
-- `sourceOvertureDivisions`
-- `sourceOvertureDivisionI18n`
+- `overtureDivisions`
+- `overtureDivisionI18n`
 
-Version tables:
-
-- `sourceOvertureDivisionsVersions`
-- `sourceOvertureDivisionI18nVersions`
-
-For later releases with unchanged source payloads, the worker advances the current row to the new release without inserting another source version row.
+For later releases with unchanged source payloads, the worker advances the
+current row to the new release without inserting another source row.
 
 Current retained source fields include:
 
-- `releaseId`
-- `datasetId`
 - `sourceRecordId`
-- `sourcePayloadHash`
-- `regionCode`
-- `level`
-- `divisionType`
+- `versionHash`
+- `releaseId`
+- `validFromRelease`
+- `validToRelease`
+- `isCurrent`
+- `admin_level`
 - `subtype`
-- `divisionClass`
+- `class`
 - `population`
 - `version`
 - `wikidata`

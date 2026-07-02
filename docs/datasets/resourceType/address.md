@@ -21,7 +21,7 @@ Both feed the same canonical address resourceType, but they arrive in different 
 ### Division snapshot dependency
 
 - Address processing depends on an already-published division snapshot.
-- Overture address ingestion resolves `countryId`, `areaId`, and `districtId` from the latest published division snapshot.
+- Overture address ingestion resolves `areaId` and `districtId` from source `area`/`district` enums against the same-cohort published division snapshot, falling back to the latest published division snapshot only when an exact cohort snapshot is unavailable.
 - HKGov ALS preparation also resolves those IDs from the latest division snapshot before worker ingestion.
 
 ### Overture must arrive first
@@ -118,8 +118,8 @@ The address resourceType currently writes these canonical current tables:
 
 It also writes these canonical history tables:
 
-- `address2dVersions`
-- `address2dVersionsI18n`
+- `address2d`
+- `address2dI18n`
 
 It does not currently populate:
 
@@ -148,31 +148,23 @@ Because the canonical row is rewritten from the matched source row, a matched HK
 
 ## Source Retention
 
-The resourceType also retains normalized per-source rows in the source database.
+The resourceType also retains normalized per-source rows in versioned source
+database tables. The current source row is the row where `isCurrent = 1`; there
+are no separate non-version current source tables.
 
-Current-state source tables:
-
-- `sourceOvertureAddresses2d`
-- `sourceOvertureAddress2dI18n`
-- `sourceHkgovAlsAddresses2d`
-- `sourceHkgovAlsAddress2dI18n`
-
-Source history tables:
-
-- `sourceOvertureAddresses2dVersions`
-- `sourceOvertureAddress2dI18nVersions`
-- `sourceHkgovAlsAddresses2dVersions`
-- `sourceHkgovAlsAddress2dI18nVersions`
+- `overtureAddresses2d`
+- `hkgovAlsAddresses2d`
+- `hkgovAlsAddress2dI18n`
 
 Shared behavior:
 
-- current tables are keyed by `sourceRecordId`
-- current rows store the latest normalized payload per source record
-- source version rows are keyed by `sourceRecordId + versionHash`
+- source rows are keyed by `sourceRecordId + versionHash`
+- `isCurrent = 1` rows store the latest normalized payload per source record
 - previous current source versions are closed with `validToRelease`
 - source history is separate from canonical address history
-- unchanged source payloads only advance current-row `releaseId`/`datasetId`; they do not create new source version rows
+- unchanged source payloads only advance current-row `releaseId`; they do not create new source rows
 - address ingestion looks up current source rows only for source IDs present in the current parquet batch
+- Overture address source rows keep `streetName`, `area`, `district`, and `unit` directly on the base source table because Overture does not provide street-name i18n variance
 
 ## Versioning and Deletion
 

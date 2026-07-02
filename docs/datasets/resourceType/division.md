@@ -33,8 +33,8 @@ The division resourceType currently writes these canonical current tables:
 
 It also writes these canonical history tables:
 
-- `divisionsVersions`
-- `divisionsVersionsI18n`
+- `divisions`
+- `divisionsI18n`
 
 And it writes dataset-level stats rows in meta:
 
@@ -56,7 +56,8 @@ Because the division resourceType currently has only one source, canonical compo
 - `geometry`: decoded from Overture WKB when needed, otherwise passed through if already GeoJSON
 - `bbox`: copied from source when present
 - `population`: copied when numeric
-- `subtype`, `class`, `wikidata`: retained where present
+- `sourceKeys`: source-specific lookup keys, currently `{ "overture": { "subtype": "...", "class": "..." } }`
+- `wikidata`: retained where present
 - `hierarchy`: normalized from Overture `hierarchies`
 - `parentDivisionId`: copied from `parent_division_id`
 - `cartography`: retained when present
@@ -99,23 +100,18 @@ This is stricter than address processing:
 
 ## Source Retention
 
-The resourceType retains normalized Overture source rows in the source database.
+The resourceType retains normalized Overture source rows in versioned source
+database tables. The current source row is the row where `isCurrent = 1`; there
+are no separate non-version current source tables.
 
-Current-state source tables:
-
-- `sourceOvertureDivisions`
-- `sourceOvertureDivisionI18n`
-
-Source history tables:
-
-- `sourceOvertureDivisionsVersions`
-- `sourceOvertureDivisionI18nVersions`
+- `overtureDivisions`
+- `overtureDivisionI18n`
 
 Current behavior:
 
-- changed source payloads update the current source tables and create new source version rows
-- unchanged source payloads do not create new source version rows; only the current source row metadata is advanced to the latest release
-- missing source rows are removed from current source tables and closed in source history
+- changed source payloads close the previous current source row and insert a new current source row
+- unchanged source payloads do not create new source rows; only the current source row metadata is advanced to the latest release
+- missing source rows are closed by clearing `isCurrent` and setting `validToRelease`
 
 The worker no longer writes per-record provenance during division ingestion. Snapshot membership is tracked at the snapshot level through `snapshotSources`.
 
@@ -159,7 +155,7 @@ The standalone Atlas divisions routes are public now, and the division resourceT
 
 - place detail responses join `placesDivision` to `divisions` and `divisionsI18n`
 - place search FTS uses `divisionsI18n.name` as part of `divisionText`
-- Overture address ingestion resolves `areaId`, `districtId`, and `countryId` from the latest published division snapshot
+- Overture address ingestion resolves `areaId` and `districtId` from source `area`/`district` enums against the same-cohort published division snapshot, falling back to the latest published division snapshot only when an exact cohort snapshot is unavailable
 - HKGov ALS address preparation also resolves division IDs from the current divisions database
 
 So divisions are already part of both serving and downstream canonicalization, even though there is no dedicated public divisions endpoint yet.

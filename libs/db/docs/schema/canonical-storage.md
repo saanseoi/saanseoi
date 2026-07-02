@@ -24,9 +24,9 @@ Purpose:
 
 Examples:
 
-- `divisionsVersions`
-- `address2dVersions`
-- `placesVersions`
+- `divisions`
+- `address2d`
+- `places`
 
 Validity is tracked against release sets, not calendar timestamps.
 

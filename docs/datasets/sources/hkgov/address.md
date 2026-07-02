@@ -114,11 +114,10 @@ the full release ID set in Worker memory.
 
 The staged SQL import builder can emit HKGov ALS source SQL from normalized
 address artifacts. It stages prepared raw payloads and localized rows, computes
-changed source IDs in SQL, closes prior source versions, upserts current source
-rows, replaces changed localized source rows, and inserts source version rows
-with `INSERT ... SELECT ... ON CONFLICT`. Canonical history/current SQL is built
-from resolved artifacts after TypeScript has performed canonical ID resolution
-and `versionHash` generation.
+changed source IDs in SQL, closes prior source rows, and inserts current source
+rows with `INSERT ... SELECT ... ON CONFLICT`. Canonical history/current SQL is
+built from resolved artifacts after TypeScript has performed canonical ID
+resolution and `versionHash` generation.
 
 This means HKGov ALS currently contributes the richer text model:
 
@@ -150,39 +149,44 @@ HKGov ALS does not currently drive canonical deletion:
 
 - missing ALS rows do not close canonical current versions
 
-## Source Retention Tables
+## Source Retention
 
-Current-state source tables:
+Source rows are retained in versioned tables. The current source row is the row
+where `isCurrent = 1`; there are no separate non-version current source tables.
 
-- `sourceHkgovAlsAddresses2d`
-- `sourceHkgovAlsAddress2dI18n`
+- `hkgovAlsAddresses2d`
+- `hkgovAlsAddress2dI18n`
 
-Version tables:
-
-- `sourceHkgovAlsAddresses2dVersions`
-- `sourceHkgovAlsAddress2dI18nVersions`
-
-For later releases with unchanged source payloads, the worker advances the current row to the new release without inserting another source version row.
+For later releases with unchanged source payloads, the worker advances the
+current row to the new release without inserting another source row.
 
 Current retained source fields include:
 
-- `releaseId`
-- `datasetId`
 - `sourceRecordId`
-- `sourcePayloadHash`
-- `regionCode`
-- `geoAddress`
-- `csuId`
-- `x`
-- `y`
+- `versionHash`
+- `releaseId`
+- `validFromRelease`
+- `validToRelease`
+- `isCurrent`
+- `identifiers` JSON with `geoAddress` and `csuId`
+- `easting`
+- `northing`
 - `geometry`
+- `districtCode`
 - `districtName`
 - `estateName`
 - `buildingName`
+- `blockNumber`
+- `blockDescriptor`
+- `phaseName`
+- `phaseNumber`
+- `floor`
+- `unit`
 - `streetNumber`
 - `streetName`
-- `dataOwner`
-- `rawPayload`
+- `villageName`
+- `sources` JSON
+- `rawProperties`
 
 Localized source retention stores:
 
