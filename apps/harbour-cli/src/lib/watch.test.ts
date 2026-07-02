@@ -4,6 +4,7 @@ import type { UploadTarget } from './options.ts'
 import type { IngestRunReportRow, ReleaseReportRow } from './reporting.ts'
 import {
   createWatchCurrentUpload,
+  getActivePhaseProgress,
   findProcessingRelease,
   getProcessedDatasetRowCount,
   getReleaseProcessedRowCount,
@@ -238,6 +239,35 @@ describe('watch helpers', () => {
     ]
 
     expect(getProcessedDatasetRowCount(rows, processingRelease.releaseId)).toBe(512)
+  })
+
+  test('extracts SQL import file progress from active import stats', () => {
+    const rows: IngestRunReportRow[] = [
+      {
+        datasetCode: 'hk-address',
+        error: null,
+        finishedAt: null,
+        phase: 'importAddressSqlSource',
+        releaseCode: processingRelease.releaseCode,
+        releaseId: processingRelease.releaseId,
+        runId: 'run-import',
+        cohortKey: '2025-12',
+        source: 'overture',
+        startedAt: '2026-06-27T07:18:25.000Z',
+        stats: {
+          processedFiles: 43,
+          totalFiles: 178,
+        },
+        status: 'running',
+        type: 'address',
+      },
+    ]
+
+    expect(getActivePhaseProgress(rows, processingRelease.releaseId)).toEqual({
+      processedCount: 43,
+      progressLabel: 'SQL files',
+      rowCount: 178,
+    })
   })
 })
 
