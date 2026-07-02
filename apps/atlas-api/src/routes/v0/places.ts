@@ -167,7 +167,6 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
 
     const place = await runWithD1ReadRetry(() =>
       getPlaceCurrent(db, {
-        regionCode,
         placeId,
         snapshotId: activePlaceSnapshot.snapshotId,
       }),
@@ -248,7 +247,6 @@ export const placesByCellRoute = defineOpenAPIRoute<
 
     const places = await runWithD1ReadRetry(() =>
       listPlacesByH3Cell(db, {
-        regionCode: params.region,
         snapshotId: activePlaceSnapshot.snapshotId,
         h3Level,
         h3Cell: params.h3Cell,
@@ -268,7 +266,7 @@ export const placesByCellRoute = defineOpenAPIRoute<
 export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>({
   route: searchRouteConfig,
   handler: async c => {
-    const { region } = c.req.valid('param')
+    c.req.valid('param')
     const query = c.req.valid('query')
     const db = c.var.currentDb
     const activePlaceSnapshot = await runWithD1ReadRetry(() =>
@@ -288,7 +286,6 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
     try {
       const results = await runWithD1ReadRetry(() =>
         searchPlacesFts(db, {
-          regionCode: region,
           snapshotId: activePlaceSnapshot.snapshotId,
           locale: query.locale,
           query: query.q,

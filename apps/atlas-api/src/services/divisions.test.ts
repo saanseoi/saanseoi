@@ -44,6 +44,12 @@ const baseRecord: DivisionRecord = {
     },
     bbox: [114.22, 22.27, 114.23, 22.28],
     population: 4200,
+    sourceKeys: {
+      overture: {
+        subtype: 'locality',
+        class: 'locality',
+      },
+    },
     subtype: 'locality',
     class: 'locality',
     wikidata: 'Q123456',
@@ -84,6 +90,12 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       geometry: null,
       bbox: null,
       population: null,
+      sourceKeys: {
+        overture: {
+          subtype: 'country',
+          class: 'country',
+        },
+      },
       subtype: 'country',
       class: 'country',
       wikidata: null,
@@ -109,6 +121,12 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       geometry: null,
       bbox: null,
       population: null,
+      sourceKeys: {
+        overture: {
+          subtype: 'dependency',
+          class: 'dependency',
+        },
+      },
       subtype: 'dependency',
       class: 'dependency',
       wikidata: null,
@@ -134,6 +152,12 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       geometry: null,
       bbox: null,
       population: null,
+      sourceKeys: {
+        overture: {
+          subtype: 'region',
+          class: 'region',
+        },
+      },
       subtype: 'region',
       class: 'region',
       wikidata: null,
