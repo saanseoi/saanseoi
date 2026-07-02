@@ -73,4 +73,29 @@ describe('enqueueDatasetProcessingPlan', () => {
     )
     expect(sentMessages[0]?.preplannedAddressChunks).toBeUndefined()
   })
+
+  test('preserves SQL processing mode on preplanned address chunks', async () => {
+    const sentMessages: DatasetProcessingMessage[] = []
+    const send = mock(async message => {
+      sentMessages.push(message as DatasetProcessingMessage)
+    })
+    const queue: DatasetProcessingQueue = {
+      send,
+    }
+
+    await enqueueDatasetProcessingPlan(
+      queue,
+      {
+        ...addressMessage,
+        processingMode: 'sql',
+      },
+      2050,
+    )
+
+    expect(sentMessages).toHaveLength(3)
+    expect(sentMessages.every(message => message.processingMode === 'sql')).toBe(true)
+    expect(sentMessages.every(message => message.addressStage === 'normalize')).toBe(
+      true,
+    )
+  })
 })

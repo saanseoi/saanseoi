@@ -175,6 +175,7 @@ function summarizeDatasetProcessingPlan(
     messageCount: messages.length,
     preplannedAddressChunks:
       message.type === 'address' && messages.some(item => item.preplannedAddressChunks),
+    processingMode: message.processingMode ?? 'direct',
     releaseCode: message.releaseCode,
     releaseId: message.releaseId ?? message.datasetId,
     rowCount,

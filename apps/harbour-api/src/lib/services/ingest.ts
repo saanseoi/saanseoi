@@ -20,6 +20,7 @@ export type {
 type UploadFormFields = {
   filePath: string
   force?: boolean
+  processingMode?: 'direct' | 'sql'
   skipSnapshotCleanup?: boolean
   regionCode?: string
   shardYear?: string
@@ -73,6 +74,7 @@ function buildUploadFields(fileName: string, formData: FormData): UploadFormFiel
   return {
     filePath: fileName,
     force: getOptionalBoolean(formData, 'force'),
+    processingMode: getOptionalProcessingMode(formData),
     skipSnapshotCleanup: getOptionalBoolean(formData, 'skipSnapshotCleanup'),
     regionCode: getOptionalText(formData, 'regionCode', ['region']),
     shardYear: getOptionalText(formData, 'shardYear', ['year']),
@@ -82,6 +84,20 @@ function buildUploadFields(fileName: string, formData: FormData): UploadFormFiel
     source: getOptionalText(formData, 'source'),
     sourceVersion: getOptionalText(formData, 'sourceVersion', ['source-version']),
   }
+}
+
+function getOptionalProcessingMode(formData: FormData) {
+  const value = getOptionalText(formData, 'processingMode')
+
+  if (!value) {
+    return undefined
+  }
+
+  if (value === 'direct' || value === 'sql') {
+    return value
+  }
+
+  throw new Error(`Unsupported processingMode: ${value}`)
 }
 
 function getOptionalBoolean(formData: FormData, key: string) {
@@ -199,6 +215,9 @@ export async function handleUploadRequest(
       sourceVersion: registered.plan.sourceVersion,
       theme: registered.plan.theme,
       type: registered.plan.type,
+      ...(uploadFields.processingMode
+        ? { processingMode: uploadFields.processingMode }
+        : {}),
       ...(uploadFields.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
     }
 
