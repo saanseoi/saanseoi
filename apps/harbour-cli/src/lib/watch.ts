@@ -19,10 +19,17 @@ export type UploadWatchResult = {
 
 type ReleaseWatchSnapshot = {
   activePhase: string | null
+  progressLabel: string
   releaseCode: string
   releaseId: string
   rowCount: number | null
   processedCount: number
+}
+
+type WatchProgress = {
+  processedCount: number
+  progressLabel: string
+  rowCount: number | null
 }
 
 type ProgressBar = ReturnType<typeof progress>
@@ -125,6 +132,31 @@ export function getProcessedDatasetRowCount(
   return maxProcessedRows
 }
 
+export function getActivePhaseProgress(
+  rows: IngestRunReportRow[],
+  releaseId: string,
+): WatchProgress | null {
+  const activeRow = getPreferredActiveRow(rows, releaseId)
+
+  if (!activeRow || !isSqlImportWatchPhase(activeRow.phase)) {
+    return null
+  }
+
+  const stats = normalizeStatsObject(activeRow.stats)
+  const processedFiles = stats ? readFiniteNumber(stats, 'processedFiles') : null
+  const totalFiles = stats ? readFiniteNumber(stats, 'totalFiles') : null
+
+  if (processedFiles == null || totalFiles == null || totalFiles <= 0) {
+    return null
+  }
+
+  return {
+    processedCount: processedFiles,
+    progressLabel: 'SQL files',
+    rowCount: totalFiles,
+  }
+}
+
 function formatNumber(value: number) {
   return new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 3,
@@ -133,12 +165,13 @@ function formatNumber(value: number) {
 
 function formatWatchMessage(snapshot: ReleaseWatchSnapshot) {
   const phase = snapshot.activePhase ? ` ${snapshot.activePhase}` : ''
+  const progressLabel = snapshot.progressLabel
 
   if (snapshot.rowCount == null || snapshot.rowCount <= 0) {
-    return `${snapshot.releaseCode} ${formatNumber(snapshot.processedCount)} rows${phase}`
+    return `${snapshot.releaseCode} ${formatNumber(snapshot.processedCount)} ${progressLabel}${phase}`
   }
 
-  return `${snapshot.releaseCode} ${formatNumber(snapshot.processedCount)}/${formatNumber(snapshot.rowCount)} rows${phase}`
+  return `${snapshot.releaseCode} ${formatNumber(snapshot.processedCount)}/${formatNumber(snapshot.rowCount)} ${progressLabel}${phase}`
 }
 
 function formatCompletedMessage(snapshot: ReleaseWatchSnapshot) {
@@ -174,17 +207,19 @@ async function buildReleaseWatchSnapshot(
   const releaseProcessedCount = getReleaseProcessedRowCount(release)
   const processedSourceCount =
     getProcessedDatasetRowCount(ingestReport.rows, release.releaseId) ?? 0
+  const activeProgress = getActivePhaseProgress(ingestReport.rows, release.releaseId)
 
   return {
     activePhase: getLatestActivePhase(ingestReport.rows, release.releaseId),
+    progressLabel: activeProgress?.progressLabel ?? 'rows',
     releaseCode: release.releaseCode,
     releaseId: release.releaseId,
-    rowCount: getStageDatasetRowCount(ingestReport.rows, release.releaseId),
-    processedCount: Math.max(
-      releaseSourceCount,
-      releaseProcessedCount,
-      processedSourceCount,
-    ),
+    rowCount:
+      activeProgress?.rowCount ??
+      getStageDatasetRowCount(ingestReport.rows, release.releaseId),
+    processedCount:
+      activeProgress?.processedCount ??
+      Math.max(releaseSourceCount, releaseProcessedCount, processedSourceCount),
   }
 }
 
@@ -193,6 +228,7 @@ function buildFinishedReleaseSnapshot(release: ReleaseReportRow): ReleaseWatchSn
 
   return {
     activePhase: null,
+    progressLabel: 'rows',
     releaseCode: release.releaseCode,
     releaseId: release.releaseId,
     rowCount: processedCount > 0 ? processedCount : null,
@@ -201,6 +237,12 @@ function buildFinishedReleaseSnapshot(release: ReleaseReportRow): ReleaseWatchSn
 }
 
 function getLatestActivePhase(rows: IngestRunReportRow[], releaseId: string) {
+  const activeRow = getPreferredActiveRow(rows, releaseId)
+
+  return activeRow ? `(${activeRow.phase})` : null
+}
+
+function getPreferredActiveRow(rows: IngestRunReportRow[], releaseId: string) {
   const activeRows = rows.filter(
     row =>
       row.releaseId === releaseId &&
@@ -211,7 +253,7 @@ function getLatestActivePhase(rows: IngestRunReportRow[], releaseId: string) {
     activeRows.find(row => row.phase !== 'processDataset') ??
     activeRows[0]
 
-  return activeRow ? `(${activeRow.phase})` : null
+  return activeRow ?? null
 }
 
 function isDetailedWatchPhase(phase: string) {
@@ -229,6 +271,27 @@ function isDetailedWatchPhase(phase: string) {
   )
 }
 
+function isSqlImportWatchPhase(phase: string) {
+  return (
+    phase === 'importAddressSqlSource' ||
+    phase === 'importAddressSqlHistory' ||
+    phase === 'importAddressSqlCurrentInit' ||
+    phase === 'importAddressSqlCurrent'
+  )
+}
+
+function normalizeStatsObject(stats: unknown) {
+  return stats && typeof stats === 'object' && !Array.isArray(stats)
+    ? (stats as Record<string, unknown>)
+    : null
+}
+
+function readFiniteNumber(stats: Record<string, unknown>, key: string) {
+  const value = stats[key]
+
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
 function sleep(ms: number) {
   return new Promise<void>(resolve => setTimeout(resolve, ms))
 }
@@ -244,6 +307,10 @@ function startProgressBar(progressBar: ProgressBar, snapshot: ReleaseWatchSnapsh
   }
 
   return appliedProgress
+}
+
+function getProgressScaleKey(snapshot: ReleaseWatchSnapshot) {
+  return `${snapshot.progressLabel}:${snapshot.rowCount ?? 'unbounded'}`
 }
 
 function getActiveReleases(rows: ReleaseReportRow[]) {
@@ -362,6 +429,7 @@ export function createWatchCurrentUpload(
     )
     let appliedProgress = startProgressBar(progressBar, activeSnapshot)
     let renderedMessage = formatWatchMessage(activeSnapshot)
+    let progressScaleKey = getProgressScaleKey(activeSnapshot)
     trackedReleaseIds.add(activeSnapshot.releaseId)
 
     while (true) {
@@ -386,6 +454,19 @@ export function createWatchCurrentUpload(
 
       if (matchingRelease && isActiveReleaseStatus(matchingRelease.status)) {
         activeSnapshot = await buildReleaseWatchSnapshot(target, matchingRelease, deps)
+        const nextProgressScaleKey = getProgressScaleKey(activeSnapshot)
+
+        if (nextProgressScaleKey !== progressScaleKey) {
+          progressBar.clear()
+          progressBar = deps.createProgressBar(
+            Math.max(activeSnapshot.rowCount ?? activeSnapshot.processedCount, 1),
+          )
+          appliedProgress = startProgressBar(progressBar, activeSnapshot)
+          renderedMessage = formatWatchMessage(activeSnapshot)
+          progressScaleKey = nextProgressScaleKey
+          continue
+        }
+
         const nextProgress = clampProgressValue(
           activeSnapshot.processedCount,
           activeSnapshot.rowCount,
@@ -435,6 +516,7 @@ export function createWatchCurrentUpload(
       )
       appliedProgress = startProgressBar(progressBar, activeSnapshot)
       renderedMessage = formatWatchMessage(activeSnapshot)
+      progressScaleKey = getProgressScaleKey(activeSnapshot)
       trackedReleaseIds.add(activeSnapshot.releaseId)
     }
   }
