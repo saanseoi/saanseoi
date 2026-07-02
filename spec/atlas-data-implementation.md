@@ -154,8 +154,8 @@ For each division row:
 - parse a bounded parquet chunk
 - normalize the division payload
 - compute `otVersionHash`
-- compare with the current `divisionsVersions` row for the same `id`
-- insert or update `divisionsVersions`
+- compare with the current `divisions` row for the same `id`
+- insert or update `divisions`
 - upsert `divisions`
 
 Deletion rule:
@@ -172,7 +172,7 @@ After base division extraction completes:
 - notify Harbour that `extractI18n` started
 - resolve localized names from `names.common` and `names.rules`
 - upsert `divisionsI18n`
-- write matching history rows to `divisionsVersionsI18n` when needed
+- write matching history rows to `divisionsI18n` when needed
 - notify Harbour that `extractI18n` completed
 
 ### Division implementation notes
@@ -202,7 +202,7 @@ For each address row:
 - derive the deterministic `canonicalKey`
 - compute version hashes
 - compare against the current address row
-- update `address2dVersions`
+- update `address2d`
 - upsert `address2d`
 
 Deletion rule:
@@ -213,12 +213,12 @@ Deletion rule:
 
 - normalize localized formatted-address fields
 - upsert `address2dI18n`
-- write `address2dVersionsI18n` as needed
+- write `address2dI18n` as needed
 
 ### `reconcileStreets`
 
 - normalize street identity from address payloads
-- add issues to the table if there are addresses with missing streets. Because streets is a managed dataset, we should not upsert `streets` and `streetsVersions`, `streetsI18n` - but only notify the admin of discrepancies. To be specified later.
+- add issues to the table if there are addresses with missing streets. Because streets is a managed dataset, we should not upsert `streets` and `streets`, `streetsI18n` - but only notify the admin of discrepancies. To be specified later.
 - populate `streetsAddress`
 
 ## Place dataset
@@ -242,7 +242,7 @@ For each place row:
 - normalize the source payload
 - compute `otVersionHash`
 - compare with the current row for the same `id`
-- update `placesVersions`
+- update `places`
 - upsert `places`
 
 Deletion rule:
@@ -254,7 +254,7 @@ Deletion rule:
 - resolve localized names from `names.common` and `names.rules`
 - resolve localized brand values from `brand.names.common` and `brand.names.rules`
 - upsert `placesI18n`
-- write `placesVersionsI18n` as needed
+- write `placesI18n` as needed
 
 ### Reconciliation and derived indexes
 
