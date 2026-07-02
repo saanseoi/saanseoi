@@ -225,7 +225,7 @@ export async function handleUploadRequest(
       queue,
       processingMessage,
       registered.plan.rowCount,
-      processingPlanOptions,
+      resolveProcessingPlanOptionsForMessage(processingMessage, processingPlanOptions),
     )
 
     return registered
@@ -233,4 +233,19 @@ export async function handleUploadRequest(
     await bucket.delete(rawObjectKey)
     throw error
   }
+}
+
+function resolveProcessingPlanOptionsForMessage(
+  message: DatasetProcessingMessage,
+  options: DatasetProcessingPlanOptions,
+): DatasetProcessingPlanOptions {
+  if (message.type === 'address' && message.processingMode === 'sql') {
+    return {
+      ...options,
+      forceSerialAddressEnqueue: false,
+      useAddressContinuation: true,
+    }
+  }
+
+  return options
 }

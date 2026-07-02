@@ -886,22 +886,22 @@ function resolveHistoryCountSpecs(type: string): CountSpec[] {
     case 'address':
       return [
         {
-          label: 'history2dVersions',
+          label: 'resourceType',
           strategy: 'direct',
           tableName: 'address2dVersions',
         },
         {
-          label: 'history2dI18nVersions',
+          label: 'resourceTypeI18n',
           strategy: 'direct',
           tableName: 'address2dVersionsI18n',
         },
         {
-          label: 'history3dVersions',
+          label: 'resourceDetail',
           strategy: 'direct',
           tableName: 'address3dVersions',
         },
         {
-          label: 'history3dI18nVersions',
+          label: 'resourceDetailI18n',
           strategy: 'direct',
           tableName: 'address3dVersionsI18n',
         },
@@ -909,12 +909,12 @@ function resolveHistoryCountSpecs(type: string): CountSpec[] {
     case 'division':
       return [
         {
-          label: 'historyVersions',
+          label: 'resourceType',
           strategy: 'direct',
           tableName: 'divisionsVersions',
         },
         {
-          label: 'historyI18nVersions',
+          label: 'resourceTypeI18n',
           strategy: 'direct',
           tableName: 'divisionsVersionsI18n',
         },
@@ -922,12 +922,12 @@ function resolveHistoryCountSpecs(type: string): CountSpec[] {
     case 'place':
       return [
         {
-          label: 'historyVersions',
+          label: 'resourceType',
           strategy: 'direct',
           tableName: 'placesVersions',
         },
         {
-          label: 'historyI18nVersions',
+          label: 'resourceTypeI18n',
           strategy: 'direct',
           tableName: 'placesVersionsI18n',
         },
@@ -935,12 +935,12 @@ function resolveHistoryCountSpecs(type: string): CountSpec[] {
     case 'street':
       return [
         {
-          label: 'historyVersions',
+          label: 'resourceType',
           strategy: 'direct',
           tableName: 'streetsVersions',
         },
         {
-          label: 'historyI18nVersions',
+          label: 'resourceTypeI18n',
           strategy: 'direct',
           tableName: 'streetsVersionsI18n',
         },
