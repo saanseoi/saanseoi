@@ -64,6 +64,51 @@ Runtime behavior:
 - each row range runs through separate `normalize`, `source`, `history`, and `current` service stages inside one queue event, with R2 artifacts carrying normalized and resolved rows between stages
 - final cleanup uses a stable current-row `updatedAt` marker and current source-row `releaseId`, so release-wide seen address/source IDs do not need to be retained in Worker memory
 
+## Staged SQL Import Mode
+
+Address ingestion now has an opt-in SQL import builder in `apps/harbour-workers/src/lib/services/addressPipeline/sqlImport.ts`.
+
+Purpose:
+
+- generate SQL artifacts that can be uploaded through the Cloudflare D1 REST import API
+- avoid D1's bound-parameter limit during bulk writes
+- reduce Worker-to-D1 round trips by replacing small Drizzle insert/update batches with set-based SQL
+
+Current scope:
+
+- normalized chunk artifacts can generate source-database staging and source current/version apply SQL
+- resolved chunk artifacts can generate history-database and current-database staging/apply SQL
+- the existing TypeScript normalization, canonical ID resolution, and `versionHash` generation remain authoritative
+
+Operational shape:
+
+- generated source SQL stages normalized rows in `ssAddressImportRows` and `ssAddressImportI18n`
+- generated history/current SQL stages resolved rows in `ssAddressImportResolvedRows` and `ssAddressImportResolvedI18n`
+- apply statements use `UPDATE ... WHERE EXISTS`, `INSERT ... SELECT ... ON CONFLICT`, and release/snapshot markers instead of per-row worker mutations
+- generated `INSERT` statements are byte-limited below D1's individual SQL statement limit; use row-count chunks such as 10,000 only as a planning input, not as the SQL safety boundary
+- imports remain target-specific because source, history, and current live in separate D1 databases
+
+The D1 REST upload helper is exposed by the CLI:
+
+- `saanseoi d1:import-sql <file.sql> --account-id VALUE --database-id VALUE --api-token-env CLOUDFLARE_D1_TOKEN --yes`
+
+SQL-mode uploads use the same parquet upload path as normal uploads, but enqueue
+address workers with `processingMode: sql`:
+
+- `bun run upload:sql <file>`
+- `bun run upload:sql:preview <file>`
+- `bun run upload:sql:production <file>`
+
+In SQL mode, queue jobs are focused on creating retryable artifacts:
+
+- `normalize` reads the parquet range and writes the normalized JSON artifact
+- `sql-source` writes source-table import SQL
+- `sql-history` resolves canonical IDs, writes the resolved JSON artifact, and writes history-table import SQL
+- `sql-current` writes current-table import SQL, including first-chunk current-snapshot initialization SQL
+- `sql-finalize` reports generated-artifact stats only
+
+The generated SQL artifacts are not automatically imported yet. Preview imports should first validate runtime, lock behavior, import ordering, and statement sizing before queue orchestration switches from SQL generation to REST-import execution.
+
 ## Canonical Tables
 
 The address resourceType currently writes these canonical current tables:
@@ -141,6 +186,19 @@ Current behavior:
 - unchanged rows are carried forward in the cloned current snapshot without rewriting canonical history rows, but are touched with the stable run marker so final cleanup knows they were seen
 - snapshot-to-release membership is tracked through `snapshotSources`, not a per-record provenance table in the worker hot path
 - worker missing-row cleanup scans current rows in keyset pages and removes rows that were not touched by any release chunk
+
+SQL-mode address ingestion keeps TypeScript responsible for parquet reads,
+normalization, canonical ID resolution, and canonical `versionHash` generation.
+Bulk D1 writes are emitted as retryable SQL artifacts under
+`processed/<releaseCode>/sql/<target>/` in `R2_RAW`, where target is `source`,
+`history`, or `current`.
+
+After SQL generation, queue stages import artifacts in database order:
+
+- source shard SQL first
+- history shard SQL second
+- current SQL third, with current snapshot init files before current deltas
+- staging cleanup last, as a separate queue task that deletes SQL staging rows
 
 Deletion is asymmetric:
 

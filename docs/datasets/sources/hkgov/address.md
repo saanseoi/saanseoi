@@ -112,6 +112,14 @@ run marker and processed source rows are advanced to the current release ID.
 Final cleanup can therefore scan current rows in keyset pages without retaining
 the full release ID set in Worker memory.
 
+The staged SQL import builder can emit HKGov ALS source SQL from normalized
+address artifacts. It stages prepared raw payloads and localized rows, computes
+changed source IDs in SQL, closes prior source versions, upserts current source
+rows, replaces changed localized source rows, and inserts source version rows
+with `INSERT ... SELECT ... ON CONFLICT`. Canonical history/current SQL is built
+from resolved artifacts after TypeScript has performed canonical ID resolution
+and `versionHash` generation.
+
 This means HKGov ALS currently contributes the richer text model:
 
 - `formattedAddress`
@@ -191,3 +199,11 @@ Localized source retention stores:
 - `streetNumber`
 - `streetName`
 - `districtName`
+
+## SQL Import Mode
+
+SQL-mode ALS address ingestion writes generated import files to `R2_RAW` under
+`processed/<releaseCode>/sql/<target>/`. The worker still performs parquet
+normalization, canonical matching, and hash computation in TypeScript before
+queueing source, history, current-init/current-delta imports and deferred SQL
+staging cleanup.

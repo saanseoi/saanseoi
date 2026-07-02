@@ -96,6 +96,18 @@ same queue event:
 - `current`: materializes changed canonical current rows and touches all seen current rows with the run marker
 - `finalize`: performs missing-row cleanup and allows publish/completion to continue
 
+The staged SQL import builder can emit Overture source SQL from normalized
+address artifacts. It stages normalized rows and localized rows, computes changed
+source IDs in SQL, closes prior source versions, upserts current source rows,
+replaces changed localized source rows, and inserts source version rows with
+`INSERT ... SELECT ... ON CONFLICT`. Canonical history/current SQL is generated
+from resolved artifacts after TypeScript has resolved canonical IDs and computed
+canonical `versionHash` values.
+
+SQL artifacts are written to `R2_RAW` under
+`processed/<releaseCode>/sql/<target>/`. The import queue applies source SQL
+before history SQL, then current snapshot init SQL before current delta SQL.
+
 ## Canonical Impact
 
 When no existing canonical row is matched:
