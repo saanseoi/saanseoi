@@ -64,6 +64,7 @@ mock.module('../schema/overture.ts', () => ({
 
 mock.module('../upload.ts', () => ({
   dispatchUpload: mock(async () => ({})),
+  getUploadDispatchTimings: mock(() => null),
 }))
 
 const { assertAddressUploadPrerequisites } = await import('./upload.ts')

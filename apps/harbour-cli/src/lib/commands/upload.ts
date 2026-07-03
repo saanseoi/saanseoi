@@ -18,11 +18,12 @@ import {
 } from '../display.ts'
 import { processLocalAddressSqlUpload } from '../addressSql/processLocalAddressSqlUpload.ts'
 import { processLocalDivisionSqlUpload } from '../divisionSql/processLocalDivisionSqlUpload.ts'
+import { formatBytes, formatDurationMs } from '../localPipeline/progressFormatting.ts'
 import { buildRegisterOptions, type ParsedArgs, type UploadTarget } from '../options.ts'
 import { checkOvertureUploadAssumptions } from '../overtureAssumptions.ts'
 import { prepareUploadFileForDispatch } from '../parquetRepack.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
-import { dispatchUpload } from '../upload.ts'
+import { dispatchUpload, getUploadDispatchTimings } from '../upload.ts'
 
 export async function runUploadCommand(
   args: ParsedArgs,
@@ -147,6 +148,11 @@ ${mutedBar}  `)
       'UPLOAD RESULT',
     )
 
+    const uploadTimings = getUploadDispatchTimings(uploadResult)
+    if (uploadTimings) {
+      note(formatUploadTimingSummary(uploadTimings).join('\n'), 'UPLOAD TIMING')
+    }
+
     if (processingStrategy.mode === 'local-address-sql') {
       if (
         previewResult.plan.type !== 'address' ||
@@ -223,6 +229,17 @@ ${mutedBar}  `)
   } finally {
     await preparedUploadFile?.cleanup()
   }
+}
+
+function formatUploadTimingSummary(
+  timings: NonNullable<ReturnType<typeof getUploadDispatchTimings>>,
+) {
+  return [
+    `sign: ${formatDurationMs(timings.signMs) ?? '-'}`,
+    `upload: ${formatDurationMs(timings.uploadMs) ?? '-'} (${formatBytes(timings.fileBytes) ?? '-'})`,
+    `finalize: ${formatDurationMs(timings.finalizeMs) ?? '-'}`,
+    `total: ${formatDurationMs(timings.totalMs) ?? '-'}`,
+  ]
 }
 
 function resolveUploadProcessingStrategy(
