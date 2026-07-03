@@ -115,6 +115,11 @@ rows with `INSERT ... SELECT ... ON CONFLICT`. Canonical history/current SQL is
 built from resolved artifacts after TypeScript has performed canonical ID
 resolution and `versionHash` generation.
 
+The local SQL path also emits and imports a meta SQL artifact for snapshot
+metadata before publish. HKGov ALS address releases are recorded as the primary
+address snapshot source; Overture address releases are recorded as enrichment
+sources that provide universal IDs for the same canonical address resourceType.
+
 This means HKGov ALS currently contributes the richer text model:
 
 - `formattedAddress`

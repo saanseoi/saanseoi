@@ -84,7 +84,7 @@ Operational shape:
 - generated history/current SQL stages resolved rows in `ssAddressImportResolvedRows` and `ssAddressImportResolvedI18n`
 - apply statements use `UPDATE ... WHERE EXISTS`, `INSERT ... SELECT ... ON CONFLICT`, and release/snapshot markers instead of per-row mutations
 - generated `INSERT` statements are byte-limited below D1's individual SQL statement limit; use row-count chunks such as 10,000 only as a planning input, not as the SQL safety boundary
-- imports remain target-specific because source, history, and current live in separate D1 databases
+- imports remain target-specific because source, history, current, and meta live in separate D1 databases
 
 Current operational shape:
 
@@ -110,7 +110,7 @@ and the CLI executes it as phased local work:
 - `sql-source` writes source-table import SQL from normalized artifacts
 - `sql-history` resolves canonical IDs, writes resolved JSON artifacts, and writes history-table import SQL
 - `sql-current` writes current-table import SQL, including first-chunk current-snapshot initialization SQL and one deferred history-apply file for the full run
-- local orchestration runs those generation phases across disjoint chunks with bounded concurrency, then imports source/history/current SQL with per-database concurrency and finishes with publish
+- local orchestration runs those generation phases across disjoint chunks with bounded concurrency, then imports source/history/current/meta SQL with per-database concurrency and finishes with publish
 
 ## Canonical Tables
 

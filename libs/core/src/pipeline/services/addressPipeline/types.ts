@@ -18,6 +18,7 @@ export type AddressPipelineStage =
   | 'sql-import-source'
   | 'sql-import-history'
   | 'sql-import-current'
+  | 'sql-import-meta'
   | 'sql-cleanup-staging'
 
 export type AddressPipelineStats = {

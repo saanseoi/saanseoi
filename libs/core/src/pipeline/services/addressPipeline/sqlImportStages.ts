@@ -58,6 +58,8 @@ export type AddressSqlImportStageOptions = {
   dataShardEnvironment?: string
   historyBinding?: LocalD1ExecBinding
   isLocal: boolean
+  metaBinding?: LocalD1ExecBinding
+  metaDatabaseId?: string | null
   pollIntervalMs?: number
   remoteImportBatchBytes?: number
   sourceBinding?: LocalD1ExecBinding
@@ -99,6 +101,7 @@ export function isAddressSqlImportOrCleanupStage(message: DatasetProcessingMessa
     (message.addressStage === 'sql-import-source' ||
       message.addressStage === 'sql-import-history' ||
       message.addressStage === 'sql-import-current' ||
+      message.addressStage === 'sql-import-meta' ||
       message.addressStage === 'sql-cleanup-staging')
   )
 }
@@ -217,10 +220,31 @@ export async function processAddressSqlImportOrCleanupStage(
 
       return {
         ...message,
-        addressStage: 'sql-cleanup-staging',
+        addressStage: 'sql-import-meta',
         addressSqlPublishAfterCleanup: true,
       }
     }
+    case 'sql-import-meta':
+      await runReportedPhase(
+        harbourClient,
+        message,
+        'importAddressSqlStats',
+        progress =>
+          importArtifactKeys(
+            metaDb,
+            bucket,
+            message,
+            'meta',
+            filterSqlArtifactKeys(message, 'meta'),
+            options,
+            progress,
+          ),
+      )
+
+      return {
+        ...message,
+        addressStage: 'sql-cleanup-staging',
+      }
     case 'sql-cleanup-staging':
       await runReportedPhase(harbourClient, message, 'cleanupAddressSqlStaging', () =>
         cleanupSqlStaging(metaDb, message, options),
@@ -249,6 +273,7 @@ export async function importAddressSqlArtifactsAndPublish(
   const historyKeys = filterSqlArtifactKeys(message, 'history')
   const historyApplyKeys = filterSqlArtifactKeys(message, 'history-apply')
   const currentKeys = filterSqlArtifactKeys(message, 'current')
+  const metaKeys = filterSqlArtifactKeys(message, 'meta')
   const initKeys = currentKeys.filter(isCurrentInitSqlKey)
   const deltaKeys = currentKeys.filter(key => !isCurrentInitSqlKey(key))
 
@@ -331,6 +356,9 @@ export async function importAddressSqlArtifactsAndPublish(
           ),
       )
     })(),
+    runReportedPhase(harbourClient, message, 'importAddressSqlStats', progress =>
+      importArtifactKeys(metaDb, bucket, message, 'meta', metaKeys, options, progress),
+    ),
   ])
 
   await runReportedPhase(harbourClient, message, 'cleanupAddressSqlStaging', () =>
@@ -649,6 +677,15 @@ async function resolveImportTarget(
   const environment = resolveDataShardEnvironment(options.dataShardEnvironment)
   const metaRepoDb = metaDb as unknown as HarbourReadableDb
   const shardTarget = target === 'history-apply' ? 'history' : target
+
+  if (shardTarget === 'meta') {
+    return {
+      binding: options.metaBinding,
+      databaseId: options.metaDatabaseId ?? null,
+      name: target,
+    }
+  }
+
   const shard =
     shardTarget === 'current'
       ? await resolveShardForTypeRegionYear(metaRepoDb, 'current', environment)
@@ -666,7 +703,9 @@ async function resolveImportTarget(
         ? options.sourceBinding
         : target === 'history' || target === 'history-apply'
           ? options.historyBinding
-          : options.currentBinding,
+          : target === 'meta'
+            ? options.metaBinding
+            : options.currentBinding,
     databaseId: shard?.databaseId ?? null,
     name: target,
   }
