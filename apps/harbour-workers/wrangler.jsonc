@@ -4,14 +4,6 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-06-04",
   "compatibility_flags": ["nodejs_compat"],
-  "secrets": {
-    "required": ["HARBOUR_API_KEY"]
-  },
-  "vars": {
-    "CLOUDFLARE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
-    "DATA_SHARD_ENV": "preview",
-    "HARBOUR_BASE_URL": "http://localhost:8788"
-  },
   "d1_databases": [
     {
       "binding": "DB_META",
@@ -26,56 +18,15 @@
       "database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
       "migrations_dir": "../../libs/db/migrations/current",
       "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
-    },
-    {
-      "binding": "DB_HISTORY_HK_2025",
-      "database_name": "ss-history-hk-2025-db-preview",
-      "database_id": "9566cfa9-2af6-473c-a74b-c7f7c6a757a9",
-      "migrations_dir": "../../libs/db/migrations/history",
-      "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
-    },
-    {
-      "binding": "DB_HISTORY_HK_2026",
-      "database_name": "ss-history-hk-2026-db-preview",
-      "database_id": "b76baf00-7138-44b0-bd24-e99f3aea4249",
-      "migrations_dir": "../../libs/db/migrations/history",
-      "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
-    },
-    {
-      "binding": "DB_SOURCE_HK_2025",
-      "database_name": "ss-source-hk-2025-db-preview",
-      "database_id": "113ea535-e571-4e31-b15a-c18f116e0424",
-      "migrations_dir": "../../libs/db/migrations/source",
-      "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
-    },
-    {
-      "binding": "DB_SOURCE_HK_2026",
-      "database_name": "ss-source-hk-2026-db-preview",
-      "database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
-      "migrations_dir": "../../libs/db/migrations/source",
-      "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "R2_RAW",
-      "bucket_name": "ss-raw-preview"
     }
   ],
   "queues": {
-    "producers": [
-      {
-        "binding": "JOB_QUEUE",
-        "queue": "ss-harbour-jobs-preview"
-      }
-    ],
     "consumers": [
       {
         "queue": "ss-harbour-jobs-preview",
         "max_batch_size": 1,
         "max_concurrency": 1,
-        "max_retries": 3,
-        "retry_delay": 30
+        "max_retries": 0
       }
     ]
   },
@@ -95,14 +46,6 @@
       "placement": {
         "region": "azure:eastasia"
       },
-      "secrets": {
-        "required": ["HARBOUR_API_KEY", "CLOUDFLARE_D1_TOKEN"]
-      },
-      "vars": {
-        "CLOUDFLARE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
-        "DATA_SHARD_ENV": "preview",
-        "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk"
-      },
       "d1_databases": [
         {
           "binding": "DB_META",
@@ -117,56 +60,15 @@
           "database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
           "migrations_dir": "../../libs/db/migrations/current",
           "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
-        },
-        {
-          "binding": "DB_HISTORY_HK_2025",
-          "database_name": "ss-history-hk-2025-db-preview",
-          "database_id": "9566cfa9-2af6-473c-a74b-c7f7c6a757a9",
-          "migrations_dir": "../../libs/db/migrations/history",
-          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
-        },
-        {
-          "binding": "DB_HISTORY_HK_2026",
-          "database_name": "ss-history-hk-2026-db-preview",
-          "database_id": "b76baf00-7138-44b0-bd24-e99f3aea4249",
-          "migrations_dir": "../../libs/db/migrations/history",
-          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
-        },
-        {
-          "binding": "DB_SOURCE_HK_2025",
-          "database_name": "ss-source-hk-2025-db-preview",
-          "database_id": "113ea535-e571-4e31-b15a-c18f116e0424",
-          "migrations_dir": "../../libs/db/migrations/source",
-          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
-        },
-        {
-          "binding": "DB_SOURCE_HK_2026",
-          "database_name": "ss-source-hk-2026-db-preview",
-          "database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
-          "migrations_dir": "../../libs/db/migrations/source",
-          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
-        }
-      ],
-      "r2_buckets": [
-        {
-          "binding": "R2_RAW",
-          "bucket_name": "ss-raw-preview"
         }
       ],
       "queues": {
-        "producers": [
-          {
-            "binding": "JOB_QUEUE",
-            "queue": "ss-harbour-jobs-preview"
-          }
-        ],
         "consumers": [
           {
             "queue": "ss-harbour-jobs-preview",
             "max_batch_size": 1,
             "max_concurrency": 1,
-            "max_retries": 3,
-            "retry_delay": 30
+            "max_retries": 0
           }
         ]
       }
@@ -175,14 +77,6 @@
       "name": "ss-harbour-workers-production",
       "placement": {
         "region": "azure:eastasia"
-      },
-      "secrets": {
-        "required": ["HARBOUR_API_KEY", "CLOUDFLARE_D1_TOKEN"]
-      },
-      "vars": {
-        "CLOUDFLARE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
-        "DATA_SHARD_ENV": "production",
-        "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk"
       },
       "d1_databases": [
         {
@@ -198,56 +92,15 @@
           "database_id": "edd3cdf9-1d05-4847-b235-b7fd4189c38d",
           "migrations_dir": "../../libs/db/migrations/current",
           "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
-        },
-        {
-          "binding": "DB_HISTORY_HK_2025",
-          "database_name": "ss-history-hk-2025-db-prod",
-          "database_id": "09c217e2-0e04-4ce5-a197-b4210bcb1dea",
-          "migrations_dir": "../../libs/db/migrations/history",
-          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
-        },
-        {
-          "binding": "DB_HISTORY_HK_2026",
-          "database_name": "ss-history-hk-2026-db-prod",
-          "database_id": "f85a2708-a0aa-4549-8c61-e2289d3694cd",
-          "migrations_dir": "../../libs/db/migrations/history",
-          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
-        },
-        {
-          "binding": "DB_SOURCE_HK_2025",
-          "database_name": "ss-source-hk-2025-db-prod",
-          "database_id": "0e5ff999-c928-4e41-a0e1-e5d7c6fc6d20",
-          "migrations_dir": "../../libs/db/migrations/source",
-          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
-        },
-        {
-          "binding": "DB_SOURCE_HK_2026",
-          "database_name": "ss-source-hk-2026-db-prod",
-          "database_id": "dca6df89-880b-42f8-92a8-08f4919a582a",
-          "migrations_dir": "../../libs/db/migrations/source",
-          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
-        }
-      ],
-      "r2_buckets": [
-        {
-          "binding": "R2_RAW",
-          "bucket_name": "ss-raw-prod"
         }
       ],
       "queues": {
-        "producers": [
-          {
-            "binding": "JOB_QUEUE",
-            "queue": "ss-harbour-jobs-prod"
-          }
-        ],
         "consumers": [
           {
             "queue": "ss-harbour-jobs-prod",
             "max_batch_size": 1,
             "max_concurrency": 1,
-            "max_retries": 3,
-            "retry_delay": 30
+            "max_retries": 0
           }
         ]
       }

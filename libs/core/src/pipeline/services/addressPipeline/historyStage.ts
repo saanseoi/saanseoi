@@ -1,5 +1,5 @@
-import type { DatasetProcessingMessage } from '@repo/core'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import type { DatasetProcessingMessage } from '../../../types'
+import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
 import type { HistoryDatabase, MetaDatabase } from '@repo/db'
 
 import {
@@ -104,32 +104,33 @@ export async function buildResolvedAddressChunkArtifact(
     resolveDataShardEnvironment(process.env.DATA_SHARD_ENV),
   )
   const normalizedRows = dedupeNormalizedAddressRows(artifact.rows)
-  const currentAddressLookup = await getCurrentAddressVersionLookup(
-    historyRepoDb,
-    message.regionCode,
-    normalizedRows.map(row => row.sourceId),
-    normalizedRows.map(row => {
-      const englishI18n = row.i18n.find(localized => localized.locale === 'en')
+  const currentAddressLookup = pipelineMessage.addressCurrentLookupCache
+    ? buildCurrentAddressLookupFromCache(pipelineMessage.addressCurrentLookupCache)
+    : await getCurrentAddressVersionLookup(
+        historyRepoDb,
+        normalizedRows.map(row => row.sourceId),
+        normalizedRows.map(row => {
+          const englishI18n = row.i18n.find(localized => localized.locale === 'en')
 
-      return {
-        districtId: row.base.districtId,
-        streetNumber: englishI18n?.streetNumber ?? null,
-        streetName: englishI18n?.streetName ?? null,
-      }
-    }),
-    {
-      buildAddressBaseHashInput,
-      buildMatchKey,
-      normalizeAddressI18nSnapshotRow,
-    },
-  )
+          return {
+            districtId: row.base.districtId,
+            streetNumber: englishI18n?.streetNumber ?? null,
+            streetName: englishI18n?.streetName ?? null,
+          }
+        }),
+        {
+          buildAddressBaseHashInput,
+          buildMatchKey,
+          normalizeAddressI18nSnapshotRow,
+        },
+      )
   const changedExistingIds = new Set<string>()
   const changedVersionRows: Parameters<typeof insertAddressVersionRows>[2] = []
   const changedI18nVersionRows: Parameters<typeof insertAddressVersionRows>[3] = []
-  const resolvedRows: ResolvedAddressChunkArtifact['rows'] = []
-  let insertedVersions = 0
-  let unchangedRows = 0
-  let localizedRows = 0
+  const resolvedRowsByAddressId = new Map<
+    string,
+    ResolvedAddressChunkArtifact['rows'][number]
+  >()
 
   for (const row of normalizedRows) {
     const matchedCurrent =
@@ -163,55 +164,66 @@ export async function buildResolvedAddressChunkArtifact(
     })
     const changed = matchedCurrent?.versionHash !== versionHash
 
-    localizedRows += i18n.length
-
-    if (!changed) {
-      unchangedRows += 1
-      resolvedRows.push({
-        addressId,
-        base,
-        changed: false,
-        changedExistingId: null,
-        i18n,
-        sourceId: row.sourceId,
-        versionHash,
-      })
-      continue
-    }
-
-    if (matchedCurrent) {
-      changedExistingIds.add(matchedCurrent.id)
-    }
-
-    insertedVersions += 1
-    changedVersionRows.push({
-      ...base,
-      versionHash,
-    })
-    changedI18nVersionRows.push(
-      ...i18n.map(localized => ({
-        ...localized,
-        sourceReleaseId: versionInsertContext.releaseId,
-        validFromSnapshotId: versionInsertContext.snapshotId,
-        validToSnapshotId: null,
-        isCurrent: true,
-        versionHash,
-      })),
-    )
-    resolvedRows.push({
+    resolvedRowsByAddressId.set(addressId, {
       addressId,
       base,
-      changed: true,
-      changedExistingId: matchedCurrent?.id ?? null,
+      changed,
+      changedExistingId: changed ? (matchedCurrent?.id ?? null) : null,
       i18n,
       sourceId: row.sourceId,
       versionHash,
     })
   }
 
-  const uniqueResolvedRows = [
-    ...new Map(resolvedRows.map(row => [row.addressId, row])).values(),
-  ]
+  const resolvedRows = [...resolvedRowsByAddressId.values()]
+  let insertedVersions = 0
+  let unchangedRows = 0
+  let localizedRows = 0
+
+  for (const row of resolvedRows) {
+    localizedRows += row.i18n.length
+
+    if (!row.changed) {
+      unchangedRows += 1
+      continue
+    }
+
+    if (row.changedExistingId) {
+      changedExistingIds.add(row.changedExistingId)
+    }
+
+    insertedVersions += 1
+    changedVersionRows.push({
+      ...row.base,
+      versionHash: row.versionHash,
+    })
+    changedI18nVersionRows.push(
+      ...row.i18n.map(localized => ({
+        addressId: localized.addressId,
+        locale: localized.locale,
+        formattedAddress: localized.formattedAddress,
+        buildingName: localized.buildingName ?? null,
+        buildingNumberFrom: localized.buildingNumberFrom ?? null,
+        buildingNumberTo: localized.buildingNumberTo ?? null,
+        blockType: localized.blockType ?? null,
+        blockNumber: localized.blockNumber ?? null,
+        blockTypeBeforeNumber: localized.blockTypeBeforeNumber ?? null,
+        phaseName: localized.phaseName ?? null,
+        phaseNumber: localized.phaseNumber ?? null,
+        estateName: localized.estateName ?? null,
+        streetNumber: localized.streetNumber ?? null,
+        streetName: localized.streetName ?? null,
+        sourceReleaseId: versionInsertContext.releaseId,
+        snapshotId: localized.snapshotId ?? row.base.snapshotId,
+        validFromSnapshotId: versionInsertContext.snapshotId,
+        validToSnapshotId: null,
+        isCurrent: true,
+        versionHash: row.versionHash,
+        createdAt: localized.createdAt ?? row.base.createdAt,
+        updatedAt: localized.updatedAt ?? row.base.updatedAt,
+      })),
+    )
+  }
 
   return {
     changedExistingIds,
@@ -226,9 +238,18 @@ export async function buildResolvedAddressChunkArtifact(
       releaseId: artifact.releaseId,
       rowStart: artifact.rowStart,
       rowEnd: artifact.rowEnd,
-      rows: uniqueResolvedRows,
+      rows: resolvedRows,
       totalRows: artifact.totalRows,
       unchangedRows,
     } satisfies ResolvedAddressChunkArtifact,
+  }
+}
+
+function buildCurrentAddressLookupFromCache(
+  cache: NonNullable<AddressPipelineMessage['addressCurrentLookupCache']>,
+) {
+  return {
+    byId: cache.byId,
+    byMatchKey: cache.byMatchKey,
   }
 }

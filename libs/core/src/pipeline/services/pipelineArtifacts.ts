@@ -1,4 +1,4 @@
-import type { DatasetProcessingMessage } from '@repo/core'
+import type { DatasetProcessingMessage } from '../../types'
 
 type ArtifactObjectBody = {
   arrayBuffer(): Promise<ArrayBuffer>

@@ -1,8 +1,9 @@
-import type { DatasetProcessingMessage } from '@repo/core'
-import { createD1ImportClient } from '@repo/core/d1ImportApi'
-import { resolveShardForTypeRegionYear } from '@repo/core/db/metaRepository'
-import type { HarbourReadableDb } from '@repo/core/db/types'
+import type { DatasetProcessingMessage } from '../../../types'
+import { createD1ImportClient } from '../../../lib/d1ImportApi'
+import { resolveShardForTypeRegionYear } from '../../../lib/db/metaRepository'
+import type { HarbourReadableDb } from '../../../lib/db/types'
 import type { MetaDatabase } from '@repo/db'
+import { createHash } from 'node:crypto'
 
 import type { PipelineArtifactBucket } from '../pipelineArtifacts'
 import { readArtifactBytes } from '../pipelineArtifacts'
@@ -58,6 +59,7 @@ export type AddressSqlImportStageOptions = {
   historyBinding?: LocalD1ExecBinding
   isLocal: boolean
   pollIntervalMs?: number
+  remoteImportBatchBytes?: number
   sourceBinding?: LocalD1ExecBinding
 }
 
@@ -70,14 +72,25 @@ type ImportTargetContext = {
 type ImportStats = {
   bytes: number
   fileCount: number
-  importedFiles: string[]
   statementCount: number
-  target: AddressSqlImportTarget
+}
+
+type RemoteImportArtifact = {
+  bytes: Uint8Array
+  etag?: string | null
+  key: string
 }
 
 const IMPORT_POLL_INTERVAL_MS = 1000
 const LOCAL_D1_BATCH_STATEMENT_COUNT = 25
 const IMPORT_PROGRESS_INTERVAL_MS = 1000
+const REMOTE_HISTORY_IMPORT_BATCH_BYTES = 16 * 1024 * 1024
+const LEGACY_NORMALIZED_ROWS_TABLE = 'ssAddressImportRows'
+const LEGACY_NORMALIZED_ROWS_COLUMNS = [
+  ['sourceArea', 'TEXT'],
+  ['sourceDistrict', 'TEXT'],
+  ['sourceUnit', 'TEXT'],
+] as const
 
 export function isAddressSqlImportOrCleanupStage(message: DatasetProcessingMessage) {
   return (
@@ -103,6 +116,10 @@ export async function processAddressSqlImportOrCleanupStage(
     undefined,
     message.releaseCode,
   )
+
+  if (isAddressSqlImportStage(message.addressStage)) {
+    await completeAddressSqlGenerationPhases(harbourClient, message)
+  }
 
   switch (message.addressStage) {
     case 'sql-import-source':
@@ -130,8 +147,8 @@ export async function processAddressSqlImportOrCleanupStage(
         harbourClient,
         message,
         'importAddressSqlHistory',
-        progress =>
-          importArtifactKeys(
+        async progress => {
+          const historyStats = await importArtifactKeys(
             metaDb,
             bucket,
             message,
@@ -139,7 +156,24 @@ export async function processAddressSqlImportOrCleanupStage(
             filterSqlArtifactKeys(message, 'history'),
             options,
             progress,
-          ),
+          )
+          const historyApplyStats = await importArtifactKeys(
+            metaDb,
+            bucket,
+            message,
+            'history-apply',
+            filterSqlArtifactKeys(message, 'history-apply'),
+            options,
+            async () => undefined,
+          )
+
+          return {
+            bytes: historyStats.bytes + historyApplyStats.bytes,
+            fileCount: historyStats.fileCount + historyApplyStats.fileCount,
+            statementCount:
+              historyStats.statementCount + historyApplyStats.statementCount,
+          }
+        },
       )
       return {
         ...message,
@@ -200,6 +234,154 @@ export async function processAddressSqlImportOrCleanupStage(
   }
 
   throw new Error(`Unsupported address SQL stage: ${String(message.addressStage)}`)
+}
+
+export async function importAddressSqlArtifactsAndPublish(
+  harbourClient: SqlStageHarbourClient,
+  metaDb: MetaDatabase,
+  bucket: PipelineArtifactBucket,
+  message: DatasetProcessingMessage,
+  options: AddressSqlImportStageOptions,
+) {
+  const releaseId = message.releaseId ?? message.datasetId
+  const releaseCode = message.releaseCode
+  const sourceKeys = filterSqlArtifactKeys(message, 'source')
+  const historyKeys = filterSqlArtifactKeys(message, 'history')
+  const historyApplyKeys = filterSqlArtifactKeys(message, 'history-apply')
+  const currentKeys = filterSqlArtifactKeys(message, 'current')
+  const initKeys = currentKeys.filter(isCurrentInitSqlKey)
+  const deltaKeys = currentKeys.filter(key => !isCurrentInitSqlKey(key))
+
+  await harbourClient.stageRunning(releaseId, 'processDataset', undefined, releaseCode)
+  await completeAddressSqlGenerationPhases(harbourClient, message)
+
+  await Promise.all([
+    runReportedPhase(harbourClient, message, 'importAddressSqlSource', progress =>
+      importArtifactKeys(
+        metaDb,
+        bucket,
+        message,
+        'source',
+        sourceKeys,
+        options,
+        progress,
+      ),
+    ),
+    runReportedPhase(
+      harbourClient,
+      message,
+      'importAddressSqlHistory',
+      async progress => {
+        const historyStats = await importArtifactKeys(
+          metaDb,
+          bucket,
+          message,
+          'history',
+          historyKeys,
+          options,
+          progress,
+        )
+        const historyApplyStats = await importArtifactKeys(
+          metaDb,
+          bucket,
+          message,
+          'history-apply',
+          historyApplyKeys,
+          options,
+          async () => undefined,
+        )
+
+        return {
+          bytes: historyStats.bytes + historyApplyStats.bytes,
+          fileCount: historyStats.fileCount + historyApplyStats.fileCount,
+          statementCount:
+            historyStats.statementCount + historyApplyStats.statementCount,
+        }
+      },
+    ),
+    (async () => {
+      await runReportedPhase(
+        harbourClient,
+        message,
+        'importAddressSqlCurrentInit',
+        progress =>
+          importArtifactKeys(
+            metaDb,
+            bucket,
+            message,
+            'current',
+            initKeys,
+            options,
+            progress,
+          ),
+      )
+      await runReportedPhase(
+        harbourClient,
+        message,
+        'importAddressSqlCurrent',
+        progress =>
+          importArtifactKeys(
+            metaDb,
+            bucket,
+            message,
+            'current',
+            deltaKeys,
+            options,
+            progress,
+          ),
+      )
+    })(),
+  ])
+
+  await runReportedPhase(harbourClient, message, 'cleanupAddressSqlStaging', () =>
+    cleanupSqlStaging(metaDb, message, options),
+  )
+  await publishImportedAddressSqlRelease(harbourClient, message)
+}
+
+async function completeAddressSqlGenerationPhases(
+  harbourClient: SqlStageHarbourClient,
+  message: DatasetProcessingMessage,
+) {
+  const processedRows =
+    message.addressStats?.processedRows ?? message.totalRows ?? message.rowEnd
+
+  if (processedRows == null) {
+    return
+  }
+
+  const stats: Record<string, unknown> = {
+    processedRows,
+  }
+  const sqlArtifactCount = message.addressSqlArtifactKeys?.length
+
+  if (sqlArtifactCount != null) {
+    stats.sqlArtifactCount = sqlArtifactCount
+  }
+
+  for (const phase of [
+    'normalizeAddressSql',
+    'generateAddressSqlSource',
+    'generateAddressSqlHistory',
+    'generateAddressSqlCurrent',
+  ]) {
+    await harbourClient.stageCompleted(
+      message.releaseId ?? message.datasetId,
+      phase,
+      stats,
+      message.releaseCode,
+    )
+  }
+}
+
+function isAddressSqlImportStage(
+  addressStage: DatasetProcessingMessage['addressStage'],
+) {
+  return (
+    addressStage === 'sql-import-source' ||
+    addressStage === 'sql-import-history' ||
+    addressStage === 'sql-import-current'
+  )
 }
 
 async function runReportedPhase<T extends Record<string, unknown>>(
@@ -279,13 +461,56 @@ async function importArtifactKeys(
     await reportProgress({
       bytes,
       processedFiles: importedFiles.length,
-      processedStatements: statementCount,
-      target,
+      statementCount,
       totalFiles: keys.length,
     })
   }
 
   await maybeReportProgress(true)
+
+  if (!options.isLocal && shouldBatchRemoteImport(target, options)) {
+    const pendingArtifacts: RemoteImportArtifact[] = []
+    let pendingBytes = 0
+    const batchBytesLimit =
+      options.remoteImportBatchBytes ?? REMOTE_HISTORY_IMPORT_BATCH_BYTES
+
+    for (const key of keys) {
+      const artifact = await readArtifactBytes(bucket, key)
+      const artifactBytes = artifact.bytes.byteLength
+      bytes += artifactBytes
+
+      if (
+        pendingArtifacts.length > 0 &&
+        pendingBytes + artifactBytes > batchBytesLimit
+      ) {
+        await importRemoteArtifactBatch(targetContext, pendingArtifacts, options)
+        importedFiles.push(...pendingArtifacts.map(item => item.key))
+        pendingArtifacts.length = 0
+        pendingBytes = 0
+        await maybeReportProgress()
+      }
+
+      pendingArtifacts.push({
+        bytes: artifact.bytes,
+        etag: artifact.etag,
+        key,
+      })
+      pendingBytes += artifactBytes
+    }
+
+    if (pendingArtifacts.length > 0) {
+      await importRemoteArtifactBatch(targetContext, pendingArtifacts, options)
+      importedFiles.push(...pendingArtifacts.map(item => item.key))
+    }
+
+    await maybeReportProgress(true)
+
+    return {
+      bytes,
+      fileCount: keys.length,
+      statementCount,
+    }
+  }
 
   for (const key of keys) {
     const artifact = await readArtifactBytes(bucket, key)
@@ -306,10 +531,18 @@ async function importArtifactKeys(
   return {
     bytes,
     fileCount: keys.length,
-    importedFiles,
     statementCount,
-    target,
   }
+}
+
+async function importRemoteArtifactBatch(
+  target: ImportTargetContext,
+  artifacts: RemoteImportArtifact[],
+  options: AddressSqlImportStageOptions,
+) {
+  const combined = combineSqlImportArtifacts(artifacts)
+
+  await importSqlWithD1RestApi(target, combined, options)
 }
 
 async function cleanupSqlStaging(
@@ -328,7 +561,18 @@ async function cleanupSqlStaging(
 
     bytes += sqlBytes.byteLength
 
-    await execSqlWithBoundD1(targetContext, sqlBytes)
+    if (options.isLocal) {
+      await execSqlWithBoundD1(targetContext, sqlBytes)
+    } else {
+      await importSqlWithD1RestApi(
+        targetContext,
+        {
+          bytes: sqlBytes,
+          etag: createHash('md5').update(sqlBytes).digest('hex'),
+        },
+        options,
+      )
+    }
 
     cleanedTargets.push(target)
   }
@@ -404,12 +648,13 @@ async function resolveImportTarget(
 ): Promise<ImportTargetContext> {
   const environment = resolveDataShardEnvironment(options.dataShardEnvironment)
   const metaRepoDb = metaDb as unknown as HarbourReadableDb
+  const shardTarget = target === 'history-apply' ? 'history' : target
   const shard =
-    target === 'current'
+    shardTarget === 'current'
       ? await resolveShardForTypeRegionYear(metaRepoDb, 'current', environment)
       : await resolveShardForTypeRegionYear(
           metaRepoDb,
-          target,
+          shardTarget,
           environment,
           message.regionCode,
           resolveMessageShardYear(message),
@@ -419,7 +664,7 @@ async function resolveImportTarget(
     binding:
       target === 'source'
         ? options.sourceBinding
-        : target === 'history'
+        : target === 'history' || target === 'history-apply'
           ? options.historyBinding
           : options.currentBinding,
     databaseId: shard?.databaseId ?? null,
@@ -432,7 +677,10 @@ async function execSqlWithBoundD1(target: ImportTargetContext, sqlBytes: Uint8Ar
     throw new Error(`Missing D1 prepare binding for ${target.name} SQL execution.`)
   }
 
-  const statements = splitSqlStatements(new TextDecoder().decode(sqlBytes))
+  const sql = new TextDecoder().decode(sqlBytes)
+  await ensureLegacyNormalizedRowsSchema(target, sql)
+
+  const statements = splitSqlStatements(sql)
 
   if (target.binding.batch) {
     for (
@@ -456,6 +704,42 @@ async function execSqlWithBoundD1(target: ImportTargetContext, sqlBytes: Uint8Ar
   }
 
   return statements.length
+}
+
+async function ensureLegacyNormalizedRowsSchema(
+  target: ImportTargetContext,
+  sql: string,
+) {
+  const binding = target.binding
+
+  if (
+    !binding?.prepare ||
+    target.name !== 'source' ||
+    !/\bssAddressImportRows\b/.test(sql) ||
+    !/\bsourceArea\b/.test(sql)
+  ) {
+    return
+  }
+
+  for (const [columnName, columnType] of LEGACY_NORMALIZED_ROWS_COLUMNS) {
+    try {
+      await binding
+        .prepare(
+          `ALTER TABLE ${LEGACY_NORMALIZED_ROWS_TABLE} ADD COLUMN ${columnName} ${columnType};`,
+        )
+        .run()
+    } catch (error) {
+      if (!isIgnorableLegacyNormalizedRowsAlterError(error)) {
+        throw error
+      }
+    }
+  }
+}
+
+function isIgnorableLegacyNormalizedRowsAlterError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error)
+
+  return /duplicate column name|no such table/i.test(message)
 }
 
 function isLocalD1PreparedStatement(
@@ -504,6 +788,37 @@ export function splitSqlStatements(sql: string) {
   return statements
 }
 
+export function combineSqlImportArtifacts(artifacts: RemoteImportArtifact[]) {
+  if (artifacts.length === 0) {
+    throw new Error('Cannot combine an empty SQL artifact batch.')
+  }
+
+  if (artifacts.length === 1) {
+    const artifact = artifacts[0]
+
+    if (!artifact) {
+      throw new Error('Expected a SQL artifact in a single-item batch.')
+    }
+
+    return {
+      bytes: artifact.bytes,
+      etag: artifact.etag ?? createHash('md5').update(artifact.bytes).digest('hex'),
+    }
+  }
+
+  const decoder = new TextDecoder()
+  const encoder = new TextEncoder()
+  const sql = artifacts
+    .map(artifact => decoder.decode(artifact.bytes).trimEnd())
+    .join('\n\n')
+  const bytes = encoder.encode(`${sql}\n`)
+
+  return {
+    bytes,
+    etag: createHash('md5').update(bytes).digest('hex'),
+  }
+}
+
 async function importSqlWithD1RestApi(
   target: ImportTargetContext,
   artifact: {
@@ -542,7 +857,10 @@ function filterSqlArtifactKeys(
 ) {
   const marker = `/sql/${target}/`
 
-  return (message.addressSqlArtifactKeys ?? []).filter(key => key.includes(marker))
+  return sortSqlArtifactKeys(
+    (message.addressSqlArtifactKeys ?? []).filter(key => key.includes(marker)),
+    target,
+  )
 }
 
 function isCurrentInitSqlKey(key: string) {
@@ -569,4 +887,54 @@ function normalizeEtag(etag: string | null | undefined) {
   const normalized = etag?.trim().replaceAll('"', '')
 
   return normalized || null
+}
+
+function shouldBatchRemoteImport(
+  target: AddressSqlImportTarget,
+  options: AddressSqlImportStageOptions,
+) {
+  void target
+  const batchBytes = options.remoteImportBatchBytes ?? REMOTE_HISTORY_IMPORT_BATCH_BYTES
+
+  return batchBytes > 0
+}
+
+function sortSqlArtifactKeys(keys: string[], target: AddressSqlImportTarget) {
+  if (target === 'history-apply') {
+    return [...keys].sort((left, right) => left.localeCompare(right))
+  }
+
+  return [...keys].sort((left, right) => {
+    const leftRowStart = parseSqlArtifactRowStart(left)
+    const rightRowStart = parseSqlArtifactRowStart(right)
+
+    if (
+      leftRowStart != null &&
+      rightRowStart != null &&
+      leftRowStart !== rightRowStart
+    ) {
+      return leftRowStart - rightRowStart
+    }
+
+    if (leftRowStart != null) {
+      return -1
+    }
+
+    if (rightRowStart != null) {
+      return 1
+    }
+
+    return left.localeCompare(right)
+  })
+}
+
+function parseSqlArtifactRowStart(key: string) {
+  const match = key.match(/-(\d+)\.sql$/)
+  const rowStart = match?.[1]
+
+  if (!rowStart) {
+    return null
+  }
+
+  return Number.parseInt(rowStart, 10)
 }

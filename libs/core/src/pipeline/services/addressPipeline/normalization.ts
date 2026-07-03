@@ -1,19 +1,22 @@
-import type { DatasetProcessingMessage } from '@repo/core'
+import type { DatasetProcessingMessage } from '../../../types'
 import {
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolveLatestPublishedSnapshotForResourceType,
   resolveLatestPublishedSnapshotForResourceTypeRegion,
-} from '@repo/core/db/metaRepository'
-import type { HarbourReadableDb } from '@repo/core/db/types'
+} from '../../../lib/db/metaRepository'
+import type { HarbourReadableDb } from '../../../lib/db/types'
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 import { and, currentSchema, eq } from '@repo/db'
 import type { CurrentDatabase, MetaDatabase } from '@repo/db'
 
 import { asNonEmptyString } from '../../utils'
-import type { NormalizedAddressRecord } from './types'
+import type { NormalizedAddressRecord, SerializedAddressDivisionLookup } from './types'
 
 type DivisionLookupMaps = {
+  areaByCode: Map<OvertureSourceAreaCode, string>
   areaByEn: Map<string, string>
   countryId: string | null
+  districtByCode: Map<OvertureSourceDistrictCode, string>
   districtByEn: Map<string, string>
   snapshotId: string
 }
@@ -36,19 +39,90 @@ const AREA_NAME_ALIASES = new Map<string, string>([
   ['KLN', 'KOWLOON'],
   ['NT', 'NEW TERRITORIES'],
 ])
+type OvertureSourceAreaCode = NonNullable<
+  NonNullable<NormalizedAddressRecord['source']['overture']>['area']
+>
+type OvertureSourceDistrictCode = NonNullable<
+  NonNullable<NormalizedAddressRecord['source']['overture']>['district']
+>
+const OVERTURE_SOURCE_AREA_CODES = new Map<string, OvertureSourceAreaCode>([
+  ['HK', 'HK'],
+  ['HONG KONG', 'HK'],
+  ['KL', 'KL'],
+  ['KLN', 'KL'],
+  ['KOWLOON', 'KL'],
+  ['NT', 'NT'],
+  ['NEW TERRITORIES', 'NT'],
+])
+const OVERTURE_SOURCE_DISTRICT_CODES = new Map<string, OvertureSourceDistrictCode>([
+  ['CENTRAL', 'CW'],
+  ['CENTRAL AND WESTERN', 'CW'],
+  ['EASTERN', 'EST'],
+  ['ISLANDS', 'ILD'],
+  ['KOWLOON CITY', 'KLC'],
+  ['KWAI TSING', 'KC'],
+  ['KWUN TONG', 'KT'],
+  ['NORTH', 'NTH'],
+  ['SAI KUNG', 'SK'],
+  ['SHA TIN', 'ST'],
+  ['SHAM SHUI PO', 'SSP'],
+  ['SOUTHERN', 'STH'],
+  ['TAI PO', 'TP'],
+  ['TSUEN WAN', 'TW'],
+  ['TUEN MUN', 'TM'],
+  ['WAN CHAI', 'WC'],
+  ['WONG TAI SIN', 'WTS'],
+  ['YAU TSIM MONG', 'YTM'],
+  ['YUEN LONG', 'YL'],
+])
+const OVERTURE_AREA_CODE_NAMES = new Map<OvertureSourceAreaCode, string[]>([
+  ['HK', ['HONG KONG ISLAND', 'HONG KONG']],
+  ['KL', ['KOWLOON']],
+  ['NT', ['NEW TERRITORIES']],
+])
+const OVERTURE_DISTRICT_CODE_NAMES = new Map<OvertureSourceDistrictCode, string[]>([
+  ['CW', ['CENTRAL AND WESTERN DISTRICT', 'CENTRAL DISTRICT']],
+  ['EST', ['EASTERN DISTRICT']],
+  ['ILD', ['ISLANDS DISTRICT']],
+  ['KLC', ['KOWLOON CITY DISTRICT']],
+  ['KC', ['KWAI TSING DISTRICT']],
+  ['KT', ['KWUN TONG DISTRICT']],
+  ['NTH', ['NORTH DISTRICT']],
+  ['SK', ['SAI KUNG DISTRICT']],
+  ['ST', ['SHA TIN DISTRICT']],
+  ['SSP', ['SHAM SHUI PO DISTRICT']],
+  ['STH', ['SOUTHERN DISTRICT']],
+  ['TP', ['TAI PO DISTRICT']],
+  ['TW', ['TSUEN WAN DISTRICT']],
+  ['TM', ['TUEN MUN DISTRICT']],
+  ['WC', ['WAN CHAI DISTRICT']],
+  ['WTS', ['WONG TAI SIN DISTRICT']],
+  ['YTM', ['YAU TSIM MONG DISTRICT']],
+  ['YL', ['YUEN LONG DISTRICT']],
+])
 
 export async function loadDivisionLookupMaps(
   metaDb: MetaDatabase,
   db: CurrentDatabase,
   regionCode: DatasetProcessingMessage['regionCode'],
+  cohortKey?: string | null,
 ) {
   const metaReadDb = metaDb as unknown as HarbourReadableDb
+  const cohortDivisionSnapshot = cohortKey
+    ? await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+        metaReadDb,
+        'division',
+        regionCode,
+        cohortKey,
+      )
+    : null
   const activeDivisionSnapshot =
-    await resolveLatestPublishedSnapshotForResourceTypeRegion(
+    cohortDivisionSnapshot ??
+    (await resolveLatestPublishedSnapshotForResourceTypeRegion(
       metaReadDb,
       'division',
       regionCode,
-    )
+    ))
   const fallbackDivisionSnapshot =
     activeDivisionSnapshot ??
     (await resolveLatestPublishedSnapshotForResourceType(metaReadDb, 'division'))
@@ -59,23 +133,42 @@ export async function loadDivisionLookupMaps(
 
   const resolvedRows = await loadDivisionLookupRows(db, fallbackDivisionSnapshot.id)
 
+  const areaByCode = new Map<OvertureSourceAreaCode, string>()
   const areaByEn = new Map<string, string>()
+  const districtByCode = new Map<OvertureSourceDistrictCode, string>()
   const districtByEn = new Map<string, string>()
   let countryId: string | null = null
 
   for (const row of resolvedRows) {
-    const name = normalizeNameToken(row.name)
+    const names = collectDivisionLookupNames(row)
+    const [name] = names
 
     if (!name) {
       continue
     }
 
     if (row.level === 1 || row.type === 'area') {
-      areaByEn.set(name, row.id)
+      for (const lookupName of names) {
+        areaByEn.set(lookupName, row.id)
+      }
+
+      const areaCode = resolveAreaCodeFromDivisionNames(names)
+
+      if (areaCode) {
+        areaByCode.set(areaCode, row.id)
+      }
     }
 
     if (row.level === 2 || row.type === 'district') {
-      districtByEn.set(name, row.id)
+      for (const lookupName of names) {
+        districtByEn.set(lookupName, row.id)
+      }
+
+      const districtCode = resolveDistrictCodeFromDivisionNames(names)
+
+      if (districtCode) {
+        districtByCode.set(districtCode, row.id)
+      }
     }
 
     if (row.level === 0 && CHINA_NAME_ALIASES.has(name)) {
@@ -84,11 +177,43 @@ export async function loadDivisionLookupMaps(
   }
 
   return {
+    areaByCode,
     areaByEn,
     countryId,
+    districtByCode,
     districtByEn,
     snapshotId: fallbackDivisionSnapshot.id,
   } satisfies DivisionLookupMaps
+}
+
+export function serializeDivisionLookupMaps(
+  lookup: DivisionLookupMaps,
+): SerializedAddressDivisionLookup {
+  return {
+    areaByCode: Object.fromEntries(lookup.areaByCode),
+    countryId: lookup.countryId,
+    districtByCode: Object.fromEntries(lookup.districtByCode),
+    snapshotId: lookup.snapshotId,
+  }
+}
+
+export function deserializeDivisionLookupMaps(
+  lookup: SerializedAddressDivisionLookup,
+): DivisionLookupMaps {
+  return {
+    areaByCode: new Map(Object.entries(lookup.areaByCode)) as Map<
+      OvertureSourceAreaCode,
+      string
+    >,
+    areaByEn: new Map(),
+    countryId: lookup.countryId,
+    districtByCode: new Map(Object.entries(lookup.districtByCode)) as Map<
+      OvertureSourceDistrictCode,
+      string
+    >,
+    districtByEn: new Map(),
+    snapshotId: lookup.snapshotId,
+  }
 }
 
 async function loadDivisionLookupRows(db: CurrentDatabase, snapshotId: string) {
@@ -99,6 +224,8 @@ async function loadDivisionLookupRows(db: CurrentDatabase, snapshotId: string) {
       type: currentSchema.divisions.type,
       locale: currentSchema.divisionsI18n.locale,
       name: currentSchema.divisionsI18n.name,
+      nameAlts: currentSchema.divisionsI18n.nameAlts,
+      nameVariant: currentSchema.divisionsI18n.nameVariant,
     })
     .from(currentSchema.divisions)
     .innerJoin(
@@ -119,6 +246,8 @@ async function loadDivisionLookupRows(db: CurrentDatabase, snapshotId: string) {
     level: number
     locale: string
     name: string | null
+    nameAlts: string | null
+    nameVariant: unknown
     type: string
   }>
 }
@@ -167,8 +296,14 @@ function normalizeOvertureAddressRow(
 ) {
   const sourceId = requireText(row.id, 'Overture address row is missing `id`.')
   const addressLevels = normalizeAddressLevels(row.address_levels)
-  const areaId = resolveAreaId(addressLevels[0] ?? null, divisionLookup)
-  const districtId = resolveDistrictId(addressLevels[1] ?? null, divisionLookup)
+  const sourceArea = resolveOvertureSourceArea(addressLevels[0] ?? null)
+  const sourceDistrict = resolveOvertureSourceDistrict(addressLevels[1] ?? null)
+  const areaId = resolveAreaId(addressLevels[0] ?? null, sourceArea, divisionLookup)
+  const districtId = resolveDistrictId(
+    addressLevels[1] ?? null,
+    sourceDistrict,
+    divisionLookup,
+  )
   const otStreet = asNonEmptyString(row.street)
   const otNumber = asNonEmptyString(row.number)
   const formattedAddress = formatAddress(otNumber, otStreet)
@@ -220,6 +355,13 @@ function normalizeOvertureAddressRow(
           } satisfies AddressI18nPayload,
         ]
       : [],
+    source: {
+      overture: {
+        area: sourceArea,
+        district: sourceDistrict,
+        unit: null,
+      },
+    },
   }
 }
 
@@ -304,6 +446,7 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
       sources: parseOptionalJson(row.sources),
     } satisfies Omit<AddressRow, 'id' | 'snapshotId' | 'createdAt' | 'updatedAt'>,
     i18n,
+    source: {},
   }
 }
 
@@ -394,7 +537,19 @@ function normalizeAddressLevels(value: unknown) {
     .filter((item): item is string => Boolean(item))
 }
 
-function resolveAreaId(value: string | null, lookup: DivisionLookupMaps) {
+function resolveAreaId(
+  value: string | null,
+  sourceArea: OvertureSourceAreaCode | null,
+  lookup: DivisionLookupMaps,
+) {
+  if (sourceArea) {
+    const byCode = lookup.areaByCode.get(sourceArea)
+
+    if (byCode) {
+      return byCode
+    }
+  }
+
   const normalized = normalizeNameToken(value)
 
   if (!normalized) {
@@ -404,7 +559,19 @@ function resolveAreaId(value: string | null, lookup: DivisionLookupMaps) {
   return lookup.areaByEn.get(AREA_NAME_ALIASES.get(normalized) ?? normalized) ?? null
 }
 
-function resolveDistrictId(value: string | null, lookup: DivisionLookupMaps) {
+function resolveDistrictId(
+  value: string | null,
+  sourceDistrict: OvertureSourceDistrictCode | null,
+  lookup: DivisionLookupMaps,
+) {
+  if (sourceDistrict) {
+    const byCode = lookup.districtByCode.get(sourceDistrict)
+
+    if (byCode) {
+      return byCode
+    }
+  }
+
   const normalized = normalizeNameToken(value)
 
   if (!normalized) {
@@ -412,6 +579,92 @@ function resolveDistrictId(value: string | null, lookup: DivisionLookupMaps) {
   }
 
   return lookup.districtByEn.get(normalized) ?? null
+}
+
+function collectDivisionLookupNames(row: {
+  name: string | null
+  nameAlts: string | null
+  nameVariant: unknown
+}) {
+  const names = new Set<string>()
+  const add = (value: unknown) => {
+    const normalized = normalizeNameToken(value)
+
+    if (normalized) {
+      names.add(normalized)
+    }
+  }
+
+  add(row.name)
+
+  for (const alt of row.nameAlts?.split('|') ?? []) {
+    add(alt)
+  }
+
+  if (Array.isArray(row.nameVariant)) {
+    for (const variant of row.nameVariant) {
+      add(variant)
+    }
+  }
+
+  return [...names]
+}
+
+function resolveAreaCodeFromDivisionNames(names: string[]) {
+  return resolveCodeFromDivisionNames(names, OVERTURE_AREA_CODE_NAMES)
+}
+
+function resolveDistrictCodeFromDivisionNames(names: string[]) {
+  return resolveCodeFromDivisionNames(names, OVERTURE_DISTRICT_CODE_NAMES)
+}
+
+function resolveCodeFromDivisionNames<TCode extends string>(
+  names: string[],
+  codeNames: Map<TCode, string[]>,
+) {
+  for (const [code, candidates] of codeNames) {
+    if (
+      candidates.some(candidate =>
+        names.some(name => name === candidate || name.endsWith(` ${candidate}`)),
+      )
+    ) {
+      return code
+    }
+  }
+
+  return null
+}
+
+function resolveOvertureSourceArea(value: string | null) {
+  const normalized = normalizeNameToken(value)
+
+  if (!normalized) {
+    return null
+  }
+
+  return OVERTURE_SOURCE_AREA_CODES.get(normalized) ?? null
+}
+
+function resolveOvertureSourceDistrict(value: string | null) {
+  const normalized = normalizeDistrictNameToken(value)
+
+  if (!normalized) {
+    return null
+  }
+
+  return OVERTURE_SOURCE_DISTRICT_CODES.get(normalized) ?? null
+}
+
+function normalizeDistrictNameToken(value: unknown) {
+  const normalized = normalizeNameToken(value)?.replaceAll('&', 'AND')
+
+  if (!normalized) {
+    return null
+  }
+
+  return normalized.endsWith(' DISTRICT')
+    ? normalized.slice(0, -' DISTRICT'.length)
+    : normalized
 }
 
 function normalizeNameToken(value: unknown) {

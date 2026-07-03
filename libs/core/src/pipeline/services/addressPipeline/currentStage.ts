@@ -1,6 +1,6 @@
-import type { DatasetProcessingMessage } from '@repo/core'
-import { resolveLatestSnapshotForResourceTypeExcludingId } from '@repo/core/db/metaRepository'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import type { DatasetProcessingMessage } from '../../../types'
+import { resolveLatestSnapshotForResourceTypeExcludingId } from '../../../lib/db/metaRepository'
+import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
 import type { CurrentDatabase, MetaDatabase } from '@repo/db'
 
 import {
@@ -91,6 +91,7 @@ export async function writeAddressCurrentChunkStage(
       metaDb,
       currentDb,
       message.regionCode,
+      message.cohortKey,
     )
     await alignAddressCurrentDivisionSnapshot(
       currentRepoDb,
