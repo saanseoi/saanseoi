@@ -17,6 +17,11 @@ runs the heavy dataset processing on the local machine instead of inside
 Cloudflare Workers.
 
 Harbour still owns release registration and ingest-phase progress recording.
+For `--target local`, the CLI records the upload session directly in the local
+SQLite `DB_META` file instead of posting the parquet through the local Harbour
+Worker. The prepared raw parquet is then copied into the release workspace under
+`.local/harbour-sql/releases/<target>/<releaseCode>/objects/`.
+
 The local CLI runs against local SQLite copies of the target D1 databases, then
 imports generated SQL into the configured target:
 

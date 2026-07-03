@@ -12,6 +12,9 @@ Related docs:
 
 - Dataset metadata uses `publisherCode: overture`, `code: ds-hk-overture-address`.
 - Uploads are ingested from parquet by the local SQL pipeline.
+- For `--target local`, upload registration is written directly to the local
+  SQLite meta DB; the prepared parquet is copied into the `.local/harbour-sql`
+  release workspace instead of being multipart-posted through the local Worker.
 - Shared address pipeline code lives under `libs/core/src/pipeline/services/addressPipeline`.
 - In runtime terms, Overture currently acts as the base address feed for canonical `address2d`.
 - For snapshot-source provenance, Overture releases are currently recorded with role `enrichment`.

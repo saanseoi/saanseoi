@@ -13,6 +13,9 @@ Related docs:
 - Dataset metadata uses `publisherCode: overture`, `code: hk-division`.
 - `saanseoi upload` now processes division parquet locally, generates SQL artifacts, and imports them into D1.
 - The local SQL upload path is `apps/harbour-cli/src/lib/divisionSql/processLocalDivisionSqlUpload.ts`.
+- For `--target local`, upload registration is written directly to the local
+  SQLite meta DB; the parquet is copied into the `.local/harbour-sql` release
+  workspace instead of being multipart-posted through the local Worker.
 - Shared normalization and current/history diff semantics live in `libs/core/src/pipeline/services/division.ts`.
 - Overture is currently the only division source in the pipeline.
 

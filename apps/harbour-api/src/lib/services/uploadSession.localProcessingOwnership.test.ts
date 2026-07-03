@@ -176,6 +176,48 @@ describe('upload session local processing ownership', () => {
       status: 'uploading',
     })
   })
+
+  test('requestUpload stats preserve schema drift validation when object metadata is missing', async () => {
+    const { bucket, db } = initHarness('harbour-signed-upload-schema-fallback.sqlite')
+    const firstSignResult = await handleSignUploadRequest(db, bucket, signingEnv, {
+      contentType: 'application/octet-stream',
+      fileName: 'overture-hk-address.parquet',
+      fileSize: fixtureBytes.byteLength,
+      inspection: fixtureInspection,
+      plan: {
+        shardYear: '2025',
+        cohortKey: '2026-05',
+        sourceVersion: '2026-05-20.0',
+      },
+      schemaVersionId: 'overture-address-v2025-09-24.0',
+    })
+
+    await putSignedUploadObject(bucket, firstSignResult, fixtureBytes.slice().buffer)
+
+    await handleFinalizeUploadRequest(db, bucket, {
+      releaseId: firstSignResult.releaseId,
+    })
+
+    bucket.metadata.set(firstSignResult.rawObjectKey, {})
+
+    await expect(
+      handleSignUploadRequest(db, bucket, signingEnv, {
+        contentType: 'application/octet-stream',
+        fileName: 'overture-hk-address.parquet',
+        fileSize: fixtureBytes.byteLength,
+        inspection: fixtureInspection,
+        plan: {
+          shardYear: '2026',
+          cohortKey: '2026-06',
+          sourceVersion: '2026-06-17.0',
+        },
+        schemaVersionId: 'overture-address-v2025-09-24.0',
+      }),
+    ).resolves.toMatchObject({
+      releaseCode: 'overture-hk-2026-06-17.0-address',
+      status: 'uploading',
+    })
+  })
 })
 
 function initHarness(fileName: string) {
