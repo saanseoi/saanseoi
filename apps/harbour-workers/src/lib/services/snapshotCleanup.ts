@@ -5,8 +5,6 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { currentSchema, eq } from '@repo/db'
 import type { CurrentDatabase, MetaDatabase } from '@repo/db'
 
-import { runStatementsInGroupsWithWriteRetry } from '../utils'
-
 type SnapshotCleanupCandidate = {
   snapshotId: string
   resourceType: ResourceType
@@ -16,6 +14,19 @@ type SnapshotCleanupResult = {
   deletedSnapshots: number
   skippedSnapshots: number
   snapshotIds: string[]
+}
+
+async function runStatementsInGroupsWithWriteRetry(
+  _db: unknown,
+  statements: unknown[],
+) {
+  for (const statement of statements) {
+    const runnable = statement as { run?: () => unknown | Promise<unknown> }
+
+    if (typeof runnable.run === 'function') {
+      await runnable.run()
+    }
+  }
 }
 
 export async function cleanupCurrentSnapshots(

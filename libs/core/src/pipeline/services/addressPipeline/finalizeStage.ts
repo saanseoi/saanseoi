@@ -17,8 +17,16 @@ import {
   deleteMissingCurrentSourceOvertureAddresses2dByReleaseId,
 } from '../../db/source'
 import { resolveDataShardEnvironment } from '../shared'
-import type { ProcessAddressDatasetResult } from '../address'
 import type { AddressPipelineMessage } from './types'
+
+type ProcessAddressDatasetResult = {
+  deletedRows: number
+  insertedVersions: number
+  localizedRows: number
+  processedRows: number
+  statsRows: number
+  unchangedRows: number
+}
 
 export async function finalizeAddressDatasetStage(
   metaDb: MetaDatabase,
