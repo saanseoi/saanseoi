@@ -24,7 +24,12 @@
     "paths": {
       "@/*": ["./src/*"],
       "@repo/core": ["../../libs/core/src/index.ts"],
+      "@repo/core/d1ImportApi": ["../../libs/core/src/lib/d1ImportApi.ts"],
+      "@repo/core/db/*": ["../../libs/core/src/lib/db/*"],
+      "@repo/core/pipeline/*": ["../../libs/core/src/pipeline/*"],
       "@repo/core/uploadLocal": ["../../libs/core/src/lib/services/uploadLocal.ts"],
+      "@repo/db": ["../../libs/db/src/index.ts"],
+      "@repo/db/*": ["../../libs/db/src/*"],
       "drizzle-orm": ["../../libs/db/node_modules/drizzle-orm"],
       "drizzle-orm/*": ["../../libs/db/node_modules/drizzle-orm/*"]
     }

@@ -1,20 +1,19 @@
+import { resolve } from 'node:path'
+
 import { cancel } from '@clack/prompts'
 
-import {
-  runSnapshotCleanupCommand,
-  runStagingCleanupCommand,
-} from './lib/commands/cleanup.ts'
-import { runD1ImportCommand } from './lib/commands/d1Import.ts'
+import { runSnapshotCleanupCommand } from './lib/commands/cleanup.ts'
 import { runHkgovAlsPrepCommand } from './lib/commands/hkgovAls.ts'
 import { runInspectCommand } from './lib/commands/inspect.ts'
-import { runFinalizeCommand, runRequeueCommand } from './lib/commands/releaseActions.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
+import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
-import { runWatchCommand } from './lib/commands/watch.ts'
+import { loadRepoEnvFiles } from './lib/env.ts'
 import { parseArgs, resolveUploadTarget } from './lib/options.ts'
 import { printUsage } from './lib/usage.ts'
 
 async function main() {
+  loadRepoEnvFiles(resolve(import.meta.dir, '../../..'))
   const args = parseArgs(process.argv)
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const dryRun = Boolean(args.options['dry-run'])
@@ -41,44 +40,19 @@ async function main() {
     case 'reports:releases':
       await runReportCommand(args, target)
       return
-    case 'upload:finalize':
-      await runFinalizeCommand(args, target, {
-        printUsage,
-        skipConfirm,
-        skipSnapshotCleanup,
-      })
-      return
-    case 'upload:requeue':
-      await runRequeueCommand(args, target, {
-        printUsage,
-        skipConfirm,
-        skipSnapshotCleanup,
-      })
-      return
-    case 'upload:watch':
-      await runWatchCommand(target)
-      return
-    case 'd1:import-sql':
-      await runD1ImportCommand(args, {
-        printUsage,
-        skipConfirm,
-      })
-      return
     case 'cleanup:snapshots':
       await runSnapshotCleanupCommand(args, target, {
         dryRun,
         skipConfirm,
       })
       return
-    case 'cleanup:staging':
-      await runStagingCleanupCommand(args, target, {
+    case 'rollback:release':
+      await runRollbackReleaseCommand(args, target, {
         dryRun,
         printUsage,
-        skipConfirm,
       })
       return
     case 'upload':
-    case 'upload:sql':
       await runUploadCommand(args, target, {
         dryRun,
         forceUpload,
