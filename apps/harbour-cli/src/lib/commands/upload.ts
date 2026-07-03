@@ -1,4 +1,13 @@
-import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/prompts'
+import {
+  cancel,
+  confirm,
+  intro,
+  isCancel,
+  log,
+  note,
+  outro,
+  spinner,
+} from '@clack/prompts'
 
 import {
   resolveLatestPublishedSnapshotForResourceTypeRegion,
@@ -114,17 +123,27 @@ ${mutedBar}  `)
   )
 
   try {
-    const uploadResult = await dispatchUpload(
-      target,
-      registerOptions,
-      previewResult,
-      schemaVersionId,
-      {
-        force: options.forceUpload,
-        skipSnapshotCleanup: options.skipSnapshotCleanup,
-        uploadFilePath: preparedUploadFile?.filePath,
-      },
-    )
+    const uploadSpinner = spinner()
+    uploadSpinner.start('Uploading')
+
+    let uploadResult: Awaited<ReturnType<typeof dispatchUpload>>
+    try {
+      uploadResult = await dispatchUpload(
+        target,
+        registerOptions,
+        previewResult,
+        schemaVersionId,
+        {
+          force: options.forceUpload,
+          skipSnapshotCleanup: options.skipSnapshotCleanup,
+          uploadFilePath: preparedUploadFile?.filePath,
+        },
+      )
+      uploadSpinner.clear()
+    } catch (error) {
+      uploadSpinner.error('Upload failed')
+      throw error
+    }
 
     note(
       formatUploadResult(previewResult, {
