@@ -88,7 +88,7 @@ export async function handleSignUploadRequest(
   request: SignUploadRequest,
 ) {
   const contentType = request.contentType?.trim() || DEFAULT_CONTENT_TYPE
-  const resolveSchemaFingerprint = createR2SchemaFingerprintResolver(bucket)
+  const resolveSchemaFingerprint = createSchemaFingerprintResolver(db, bucket)
   const planned = await requestUpload(db, {
     filePath: request.fileName,
     regionCode: request.plan.regionCode,
@@ -174,7 +174,7 @@ export async function handleFinalizeUploadRequest(
   }
 
   const fileName = fileNameFromRawObjectKey(dataset.rawObjectKey)
-  const resolveSchemaFingerprint = createR2SchemaFingerprintResolver(bucket)
+  const resolveSchemaFingerprint = createSchemaFingerprintResolver(db, bucket)
   const shardYear =
     typeof requestUploadStats?.shardYear === 'string'
       ? requestUploadStats.shardYear
@@ -247,18 +247,7 @@ async function getRequestUploadStats(
     .limit(1)
     .get()
 
-  if (!row?.stats) {
-    return null
-  }
-
-  const parsedStats =
-    typeof row.stats === 'string' ? parseIngestRunStats(row.stats) : row.stats
-
-  if (!parsedStats || typeof parsedStats !== 'object' || Array.isArray(parsedStats)) {
-    return null
-  }
-
-  return parsedStats as Record<string, unknown>
+  return parseStatsRecord(row?.stats)
 }
 
 function parseIngestRunStats(value: string) {
@@ -269,13 +258,72 @@ function parseIngestRunStats(value: string) {
   }
 }
 
-function createR2SchemaFingerprintResolver(
+function parseStatsRecord(stats: unknown): Record<string, unknown> | null {
+  if (!stats) {
+    return null
+  }
+
+  const parsedStats = typeof stats === 'string' ? parseIngestRunStats(stats) : stats
+
+  if (!parsedStats || typeof parsedStats !== 'object' || Array.isArray(parsedStats)) {
+    return null
+  }
+
+  return parsedStats as Record<string, unknown>
+}
+
+function readSchemaFingerprint(stats: Record<string, unknown> | null) {
+  const schemaFingerprint = stats?.schemaFingerprint
+
+  return typeof schemaFingerprint === 'string' && schemaFingerprint.trim()
+    ? schemaFingerprint
+    : null
+}
+
+function createSchemaFingerprintResolver(
+  db: HarbourReadableDb,
   bucket: HarbourObjectBucket,
 ): SchemaFingerprintResolver {
-  return async rawObjectKey => {
+  return async (rawObjectKey, releaseCode) => {
     const existingObject = await bucket.head(rawObjectKey)
-    return getCustomMetadataValue(existingObject?.customMetadata, 'schemaFingerprint')
+    const objectFingerprint = getCustomMetadataValue(
+      existingObject?.customMetadata,
+      'schemaFingerprint',
+    )
+
+    if (objectFingerprint) {
+      return objectFingerprint
+    }
+
+    return releaseCode
+      ? readSchemaFingerprint(await getRequestUploadStatsByReleaseCode(db, releaseCode))
+      : null
   }
+}
+
+async function getRequestUploadStatsByReleaseCode(
+  db: HarbourReadableDb,
+  releaseCode: string,
+): Promise<Record<string, unknown> | null> {
+  const row = await db
+    .select({
+      stats: metaSchema.ingestRuns.stats,
+    })
+    .from(metaSchema.ingestRuns)
+    .innerJoin(
+      metaSchema.metaReleases,
+      eq(metaSchema.ingestRuns.releaseId, metaSchema.metaReleases.id),
+    )
+    .where(
+      and(
+        eq(metaSchema.metaReleases.code, releaseCode),
+        eq(metaSchema.ingestRuns.phase, 'requestUpload'),
+      ),
+    )
+    .limit(1)
+    .get()
+
+  return parseStatsRecord(row?.stats)
 }
 
 async function createSignedUploadUrl(
