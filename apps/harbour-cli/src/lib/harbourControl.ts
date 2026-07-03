@@ -1,4 +1,5 @@
 import { normalizeBaseUrl } from '@repo/core'
+import { isRetryableSqliteWriteError } from '@repo/core/pipeline/utils'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
 import type { UploadTarget } from './options.ts'
@@ -126,9 +127,11 @@ async function postControl(
         ? body.message
         : `Harbour control request failed with status ${response.status}.`
 
-    const error = TRANSIENT_CONTROL_RESPONSE_STATUSES.has(response.status)
-      ? new RetryableControlError(message)
-      : new Error(message)
+    const error =
+      TRANSIENT_CONTROL_RESPONSE_STATUSES.has(response.status) ||
+      isRetryableSqliteWriteError(new Error(message))
+        ? new RetryableControlError(message)
+        : new Error(message)
 
     if (!isRetryableControlError(error) || attempt >= CONTROL_REQUEST_RETRY_LIMIT) {
       throw error
