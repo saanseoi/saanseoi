@@ -903,22 +903,7 @@ function resolveMirrorTablesForBinding(
   cacheTableProfile?: CacheTableProfile,
 ) {
   if (bindingName === 'DB_META') {
-    return [
-      'publishers',
-      'publisherI18n',
-      'licenses',
-      'datasets',
-      'datasetI18n',
-      'dataShards',
-      'apiVersions',
-      'apiReleaseSets',
-      'releases',
-      'snapshots',
-      'snapshotSources',
-      'snapshotAssembly',
-      'snapshotAssemblySources',
-      'snapshotAssemblyRuns',
-    ]
+    return []
   }
 
   if (bindingName === 'DB_CURRENT') {
@@ -955,13 +940,39 @@ function resolveMirrorTablesForBinding(
   return []
 }
 
+function resolveExpectedTablesForBinding(
+  bindingName: string,
+  cacheTableProfile?: CacheTableProfile,
+) {
+  if (bindingName === 'DB_META') {
+    return [
+      'publishers',
+      'publisherI18n',
+      'licenses',
+      'datasets',
+      'datasetI18n',
+      'dataShards',
+      'apiVersions',
+      'apiReleaseSets',
+      'releases',
+      'snapshots',
+      'snapshotSources',
+      'snapshotAssembly',
+      'snapshotAssemblySources',
+      'snapshotAssemblyRuns',
+    ]
+  }
+
+  return resolveMirrorTablesForBinding(bindingName, cacheTableProfile)
+}
+
 async function resolveMirroredSqlitePath(
   persistRoot: string,
   bindingName: string,
   cacheTableProfile?: CacheTableProfile,
 ): Promise<string> {
   const sqliteDir = resolve(persistRoot, 'v3/d1/miniflare-D1DatabaseObject')
-  const expectedTables = resolveMirrorTablesForBinding(bindingName, cacheTableProfile)
+  const expectedTables = resolveExpectedTablesForBinding(bindingName, cacheTableProfile)
   const entries = existsSync(sqliteDir) ? await readdir(sqliteDir) : []
   const candidatePaths = entries
     .filter(entry => entry.endsWith('.sqlite') && entry !== 'metadata.sqlite')
@@ -1019,7 +1030,7 @@ async function hasExpectedTables(
   bindingName: string,
   cacheTableProfile?: CacheTableProfile,
 ) {
-  const expectedTables = resolveMirrorTablesForBinding(bindingName, cacheTableProfile)
+  const expectedTables = resolveExpectedTablesForBinding(bindingName, cacheTableProfile)
 
   if (expectedTables.length === 0) {
     return true
