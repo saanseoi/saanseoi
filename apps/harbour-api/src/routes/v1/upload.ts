@@ -5,15 +5,12 @@ import { handleUploadRequest } from '../../lib/services/ingest'
 import {
   type FinalizeUploadRequest,
   handleFinalizeUploadRequest,
-  handleRequeueUploadRequest,
-  type RequeueUploadRequest,
   type SignUploadRequest,
   handleSignUploadRequest,
 } from '../../lib/services/uploadSession'
 import {
   ErrorResponseSchema,
   FinalizeUploadRequestSchema,
-  RequeueUploadRequestSchema,
   SignUploadRequestSchema,
   SignUploadResponseSchema,
   UploadResponseSchema,
@@ -118,55 +115,13 @@ const finalizeUploadRouteConfig = createRoute({
   },
 })
 
-const requeueUploadRouteConfig = createRoute({
-  method: 'post',
-  path: '/v1/requeueUpload',
-  tags: ['Upload'],
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: RequeueUploadRequestSchema,
-        },
-      },
-      required: true,
-      description: 'Requeue upload processing request payload.',
-    },
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: UploadResponseSchema,
-        },
-      },
-      description: 'Requeue an existing staged upload dataset for processing.',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Upload requeue failed.',
-    },
-    422: ValidationErrorOpenAPIResponse,
-  },
-})
-
 export const uploadRoute = defineOpenAPIRoute<typeof uploadRouteConfig, AppEnv>({
   route: uploadRouteConfig,
   handler: async c => {
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const formData = await c.req.formData()
-      const result = await handleUploadRequest(
-        db,
-        c.env.R2_RAW,
-        c.env.DATASET_QUEUE,
-        formData,
-        createProcessingPlanOptions(c.env.HARBOUR_BASE_URL),
-      )
+      const result = await handleUploadRequest(db, c.env.R2_RAW, formData)
       if (!result.datasetId || !result.releaseId) {
         throw new Error('Upload registration returned incomplete release identifiers.')
       }
@@ -247,15 +202,7 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json') as FinalizeUploadRequest
-      const result = await handleFinalizeUploadRequest(
-        db,
-        c.env.R2_RAW,
-        c.env.DATASET_QUEUE,
-        request,
-        {
-          processingPlanOptions: createProcessingPlanOptions(c.env.HARBOUR_BASE_URL),
-        },
-      )
+      const result = await handleFinalizeUploadRequest(db, c.env.R2_RAW, request)
       const release = await getDatasetRecordByReleaseId(db, request.releaseId)
 
       if (!release) {
@@ -290,71 +237,4 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
   },
 })
 
-export const requeueUploadRoute = defineOpenAPIRoute<
-  typeof requeueUploadRouteConfig,
-  AppEnv
->({
-  route: requeueUploadRouteConfig,
-  handler: async c => {
-    try {
-      const db = createPrimaryMetaRepoDb(c.env.DB_META)
-      const request = c.req.valid('json') as RequeueUploadRequest
-      const requeued = await handleRequeueUploadRequest(
-        db,
-        c.env.DATASET_QUEUE,
-        request,
-        createProcessingPlanOptions(c.env.HARBOUR_BASE_URL),
-      )
-
-      return c.json(
-        {
-          datasetId: requeued.datasetId,
-          datasetCode: requeued.datasetCode,
-          rawObjectKey: requeued.rawObjectKey,
-          releaseCode: requeued.releaseCode,
-          releaseId: requeued.releaseId,
-          rowCount: requeued.rowCount,
-          source: requeued.source,
-          sourceVersion: requeued.sourceVersion,
-          status: requeued.status,
-          type: requeued.type,
-        },
-        200,
-      )
-    } catch (error) {
-      return c.json(
-        {
-          httpStatus: 400,
-          error: 'upload_failed',
-          message: error instanceof Error ? error.message : String(error),
-        },
-        400,
-      )
-    }
-  },
-})
-
-function createProcessingPlanOptions(baseUrl: string) {
-  const isLocal = isLocalBaseUrl(baseUrl)
-
-  return {
-    forceSerialAddressEnqueue: isLocal,
-    useAddressContinuation: isLocal,
-  }
-}
-
-function isLocalBaseUrl(baseUrl: string) {
-  try {
-    const url = new URL(baseUrl)
-    return url.hostname === 'localhost' || url.hostname === '127.0.0.1'
-  } catch {
-    return false
-  }
-}
-
-export const uploadRoutes = [
-  uploadRoute,
-  signUploadRoute,
-  finalizeUploadRoute,
-  requeueUploadRoute,
-] as const
+export const uploadRoutes = [uploadRoute, signUploadRoute, finalizeUploadRoute] as const

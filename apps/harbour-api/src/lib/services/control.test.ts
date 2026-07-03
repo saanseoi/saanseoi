@@ -14,7 +14,7 @@ import {
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
-const migrationSql = loadMigrationSql(migrationsDir)
+const migrationSql = loadMigrationSql(migrationsDir, ['meta'])
 
 const {
   handlePublishDataset,
@@ -214,6 +214,73 @@ describe('control service', () => {
     expect(publishRun.error).toBe('"{\\"message\\":\\"Network connection lost.\\"}"')
     expect(publishRun.finishedAt).not.toBeNull()
     expect(release.status).toBe('failed')
+  })
+
+  test('reopens completed address SQL generation phases on running progress', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-control-sql-generation.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const { releaseId } = insertFixtureRelease(sqlite, {
+      releaseId: 'release-overture-hk-2025-09-24.0-address',
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2025-09',
+      type: 'address',
+      sourceVersion: '2025-09-24.0',
+      rawObjectKey: 'hk/overture/2025-09-24.0/address.parquet',
+      originalFileName: 'address.parquet',
+      status: 'processing',
+      ingestedAt: '2026-06-05T00:00:00.000Z',
+      createdAt: '2026-06-05T00:00:00.000Z',
+      updatedAt: '2026-06-05T00:00:00.000Z',
+    })
+
+    sqlite.exec(`
+      INSERT INTO ingestRuns (
+        runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+      ) VALUES (
+        'run-generate-current',
+        '${releaseId}',
+        'generateAddressSqlCurrent',
+        'completed',
+        '{"processedRows":1024,"sqlArtifactCount":2}',
+        null,
+        '2026-06-27T00:00:00.000Z',
+        '2026-06-27T00:01:00.000Z',
+        1760000000000,
+        1760000060000
+      );
+    `)
+
+    await handleStageRunning(db, {
+      releaseId,
+      phase: 'generateAddressSqlCurrent',
+      stats: {
+        processedRows: 2048,
+        sqlArtifactCount: 3,
+      },
+    })
+
+    const row = sqlite
+      .query(
+        'SELECT status, stats, startedAt, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+      )
+      .get(releaseId, 'generateAddressSqlCurrent') as {
+      finishedAt: string | null
+      startedAt: string
+      stats: string | null
+      status: string
+    }
+
+    sqlite.close()
+
+    expect(row).toEqual({
+      finishedAt: null,
+      startedAt: '2026-06-27T00:00:00.000Z',
+      stats: '{"processedRows":2048,"sqlArtifactCount":3}',
+      status: 'running',
+    })
   })
 
   test('preserves the original startedAt when a running phase completes', async () => {

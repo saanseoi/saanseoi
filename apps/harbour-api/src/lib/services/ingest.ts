@@ -2,25 +2,10 @@ import { createRawObjectKey, planUpload, registerUpload } from '@repo/core/uploa
 import { inspectParquet } from '@repo/core/parquetInspector'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import type {
-  DatasetProcessingMessage,
-  RegisterUploadResult,
-  SchemaFingerprintResolver,
-} from '@repo/core'
-import {
-  enqueueDatasetProcessingPlan,
-  type DatasetProcessingPlanOptions,
-  type DatasetProcessingQueue,
-} from './datasetProcessingPlan'
-export type {
-  DatasetProcessingPlanOptions,
-  DatasetProcessingQueue,
-} from './datasetProcessingPlan'
-
+import type { RegisterUploadResult, SchemaFingerprintResolver } from '@repo/core'
 type UploadFormFields = {
   filePath: string
   force?: boolean
-  processingMode?: 'direct' | 'sql'
   skipSnapshotCleanup?: boolean
   regionCode?: string
   shardYear?: string
@@ -74,7 +59,6 @@ function buildUploadFields(fileName: string, formData: FormData): UploadFormFiel
   return {
     filePath: fileName,
     force: getOptionalBoolean(formData, 'force'),
-    processingMode: getOptionalProcessingMode(formData),
     skipSnapshotCleanup: getOptionalBoolean(formData, 'skipSnapshotCleanup'),
     regionCode: getOptionalText(formData, 'regionCode', ['region']),
     shardYear: getOptionalText(formData, 'shardYear', ['year']),
@@ -84,20 +68,6 @@ function buildUploadFields(fileName: string, formData: FormData): UploadFormFiel
     source: getOptionalText(formData, 'source'),
     sourceVersion: getOptionalText(formData, 'sourceVersion', ['source-version']),
   }
-}
-
-function getOptionalProcessingMode(formData: FormData) {
-  const value = getOptionalText(formData, 'processingMode')
-
-  if (!value) {
-    return undefined
-  }
-
-  if (value === 'direct' || value === 'sql') {
-    return value
-  }
-
-  throw new Error(`Unsupported processingMode: ${value}`)
 }
 
 function getOptionalBoolean(formData: FormData, key: string) {
@@ -139,9 +109,7 @@ function createR2SchemaFingerprintResolver(
 export async function handleUploadRequest(
   db: HarbourReadableDb & HarbourWritableDb,
   bucket: HarbourObjectBucket,
-  queue: DatasetProcessingQueue,
   formData: FormData,
-  processingPlanOptions: DatasetProcessingPlanOptions = {},
 ): Promise<RegisterUploadResult> {
   const file = formData.get('file')
 
@@ -202,50 +170,9 @@ export async function handleUploadRequest(
       throw new Error('registerUpload returned incomplete release identifiers.')
     }
 
-    const processingMessage: DatasetProcessingMessage = {
-      datasetId: registered.datasetId,
-      datasetCode: registered.plan.datasetCode,
-      releaseId: registered.releaseId,
-      releaseCode: registered.plan.releaseCode,
-      rawObjectKey: registered.rawObjectKey,
-      regionCode: registered.plan.regionCode,
-      shardYear: resolveShardYear(uploadFields, registered.plan.cohortKey),
-      cohortKey: registered.plan.cohortKey,
-      source: registered.plan.source,
-      sourceVersion: registered.plan.sourceVersion,
-      theme: registered.plan.theme,
-      type: registered.plan.type,
-      ...(uploadFields.processingMode
-        ? { processingMode: uploadFields.processingMode }
-        : {}),
-      ...(uploadFields.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
-    }
-
-    await enqueueDatasetProcessingPlan(
-      queue,
-      processingMessage,
-      registered.plan.rowCount,
-      resolveProcessingPlanOptionsForMessage(processingMessage, processingPlanOptions),
-    )
-
     return registered
   } catch (error) {
     await bucket.delete(rawObjectKey)
     throw error
   }
-}
-
-function resolveProcessingPlanOptionsForMessage(
-  message: DatasetProcessingMessage,
-  options: DatasetProcessingPlanOptions,
-): DatasetProcessingPlanOptions {
-  if (message.type === 'address' && message.processingMode === 'sql') {
-    return {
-      ...options,
-      forceSerialAddressEnqueue: false,
-      useAddressContinuation: true,
-    }
-  }
-
-  return options
 }

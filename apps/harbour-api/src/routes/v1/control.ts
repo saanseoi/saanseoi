@@ -3,7 +3,6 @@ import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 import {
   ControlRequestError,
   handlePublishDataset,
-  handleScheduleAddressSqlStagingCleanup,
   handleScheduleSnapshotCleanup,
   handleStageCompleted,
   handleStageFailed,
@@ -15,8 +14,6 @@ import {
   ControlResponseSchema,
   CleanupSnapshotsRequestSchema,
   CleanupSnapshotsResponseSchema,
-  CleanupStagingRequestSchema,
-  CleanupStagingResponseSchema,
   ControlStageRequestSchema,
   ErrorResponseSchema,
   PublishDatasetRequestSchema,
@@ -179,57 +176,6 @@ const cleanupSnapshotsRouteConfig = createRoute({
   },
 })
 
-const cleanupStagingRouteConfig = createRoute({
-  method: 'post',
-  path: '/v1/control/cleanupStaging',
-  tags: ['Control'],
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: CleanupStagingRequestSchema,
-        },
-      },
-      required: true,
-    },
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: CleanupStagingResponseSchema,
-        },
-      },
-      description: 'SQL staging cleanup job scheduled.',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'SQL staging cleanup scheduling failed.',
-    },
-    503: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'SQL staging cleanup scheduling is temporarily unavailable.',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'SQL staging cleanup scheduling failed unexpectedly.',
-    },
-    422: ValidationErrorOpenAPIResponse,
-  },
-})
-
 function createControlError(error: unknown) {
   const httpStatus = isTransientControlError(error)
     ? 503
@@ -336,31 +282,10 @@ export const cleanupSnapshotsRoute = defineOpenAPIRoute<
   },
 })
 
-export const cleanupStagingRoute = defineOpenAPIRoute<
-  typeof cleanupStagingRouteConfig,
-  AppEnv
->({
-  route: cleanupStagingRouteConfig,
-  handler: async c => {
-    try {
-      const db = createPrimaryMetaRepoDb(c.env.DB_META)
-      const request = c.req.valid('json')
-      return c.json(
-        await handleScheduleAddressSqlStagingCleanup(db, c.env.DATASET_QUEUE, request),
-        200,
-      )
-    } catch (error) {
-      const response = createControlError(error)
-      return c.json(response, response.httpStatus)
-    }
-  },
-})
-
 export const controlRoutes = [
   stageRunningRoute,
   stageCompletedRoute,
   stageFailedRoute,
   publishDatasetRoute,
   cleanupSnapshotsRoute,
-  cleanupStagingRoute,
 ] as const
