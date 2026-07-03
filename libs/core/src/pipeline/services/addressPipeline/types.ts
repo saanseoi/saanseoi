@@ -1,4 +1,4 @@
-import type { DatasetProcessingMessage } from '@repo/core'
+import type { DatasetProcessingMessage } from '../../../types'
 import type {
   AddressI18nPayload,
   AddressRow,
@@ -30,10 +30,51 @@ export type AddressPipelineStats = {
 
 export type AddressPipelineMessage = DatasetProcessingMessage & {
   addressStage?: AddressPipelineStage
+  addressCurrentLookupCache?: AddressCurrentLookupCache
+  addressDivisionLookup?: SerializedAddressDivisionLookup
   artifactKey?: string
   resolvedArtifactKey?: string
   addressSqlArtifactKeys?: string[]
   addressStats?: AddressPipelineStats
+}
+
+export type AddressCurrentLookupEntry = {
+  id: string
+  versionHash: string
+}
+
+export type AddressCurrentLookupCache = {
+  byId: Map<string, AddressCurrentLookupEntry>
+  byMatchKey: Map<string, AddressCurrentLookupEntry>
+}
+
+export type SerializedAddressDivisionLookup = {
+  areaByCode: Partial<Record<'HK' | 'KL' | 'NT', string>>
+  countryId: string | null
+  districtByCode: Partial<
+    Record<
+      | 'CW'
+      | 'EST'
+      | 'ILD'
+      | 'KLC'
+      | 'KC'
+      | 'KT'
+      | 'NTH'
+      | 'SK'
+      | 'ST'
+      | 'SSP'
+      | 'STH'
+      | 'TP'
+      | 'TW'
+      | 'TM'
+      | 'WC'
+      | 'WTS'
+      | 'YTM'
+      | 'YL',
+      string
+    >
+  >
+  snapshotId: string
 }
 
 export type NormalizedAddressRecord = {
@@ -41,6 +82,32 @@ export type NormalizedAddressRecord = {
   i18n: AddressI18nPayload[]
   matchKey: string | null
   raw: Record<string, unknown>
+  source: {
+    overture?: {
+      area: 'HK' | 'KL' | 'NT' | null
+      district:
+        | 'CW'
+        | 'EST'
+        | 'ILD'
+        | 'KLC'
+        | 'KC'
+        | 'KT'
+        | 'NTH'
+        | 'SK'
+        | 'ST'
+        | 'SSP'
+        | 'STH'
+        | 'TP'
+        | 'TW'
+        | 'TM'
+        | 'WC'
+        | 'WTS'
+        | 'YTM'
+        | 'YL'
+        | null
+      unit: string | null
+    }
+  }
   sourceId: string
   sourcePayloadHash: string
 }

@@ -1,8 +1,9 @@
-import type { DatasetProcessingMessage } from '@repo/core'
-import { resolveLatestSnapshotForResourceTypeExcludingId } from '@repo/core/db/metaRepository'
-import type { HarbourReadableDb } from '@repo/core/db/types'
+import type { DatasetProcessingMessage } from '../../../types'
+import { resolveLatestSnapshotForResourceTypeExcludingId } from '../../../lib/db/metaRepository'
+import type { HarbourReadableDb } from '../../../lib/db/types'
 import type { CurrentDatabase, HistoryDatabase, MetaDatabase } from '@repo/db'
 
+import { buildAlignAddressCurrentDivisionSnapshotSql } from '../../db/address'
 import type { HarbourWorkerBucket } from '../division'
 import {
   buildPipelineArtifactKey,
@@ -22,11 +23,13 @@ import type {
 } from './types'
 import { addAddressPipelineStats } from './types'
 import {
+  buildAddressHistoryApplySqlImportFile,
   buildAddressResolvedSqlImportFiles,
   buildAddressSqlImportRunId,
   buildAddressSourceSqlImportFiles,
   type AddressSqlImportFile,
 } from './sqlImport'
+import { logStructuredInfo } from '../../logging'
 
 export async function normalizeAddressSqlChunkStage(
   metaDb: MetaDatabase,
@@ -167,6 +170,17 @@ export async function writeAddressCurrentSqlChunkStage(
     processedRows: artifact.rowEnd - artifact.rowStart,
     unchangedRows: artifact.unchangedRows,
   })
+  const historyApplyFile =
+    artifact.rowEnd >= artifact.totalRows && artifact.rows[0]?.base.snapshotId
+      ? buildAddressHistoryApplySqlImportFile(message, {
+          hasChanges: stats.insertedVersions > 0,
+          runId: buildAddressSqlImportRunId(message),
+          snapshotId: artifact.rows[0].base.snapshotId,
+        })
+      : null
+  const historyApplyArtifactKeys = historyApplyFile
+    ? await writeSqlFiles(bucket, message, [historyApplyFile])
+    : []
 
   if (artifact.rowEnd < artifact.totalRows) {
     return {
@@ -196,6 +210,7 @@ export async function writeAddressCurrentSqlChunkStage(
     addressSqlArtifactKeys: [
       ...(pipelineMessage.addressSqlArtifactKeys ?? []),
       ...initArtifactKeys,
+      ...historyApplyArtifactKeys,
       ...artifactKeys,
     ],
     artifactKey: undefined,
@@ -236,18 +251,16 @@ async function writeSqlFiles(
     await writeTextArtifact(bucket, key, file.sql, 'application/sql; charset=utf-8')
     keys.push(key)
 
-    console.info(
-      JSON.stringify({
-        bytes: file.bytes,
-        datasetId: message.datasetId,
-        key,
-        phase: 'addressSqlArtifact',
-        releaseId: message.releaseId ?? message.datasetId,
-        statementCount: file.statementCount,
-        status: 'written',
-        target: file.target,
-      }),
-    )
+    logStructuredInfo({
+      bytes: file.bytes,
+      datasetId: message.datasetId,
+      key,
+      phase: 'addressSqlArtifact',
+      releaseId: message.releaseId ?? message.datasetId,
+      statementCount: file.statementCount,
+      status: 'written',
+      target: file.target,
+    })
   }
 
   return keys
@@ -269,6 +282,7 @@ async function buildCurrentSnapshotInitSqlFile(
     metaDb,
     currentDb,
     message.regionCode,
+    message.cohortKey,
   )
   const snapshotId = sqlLiteral(snapshotIdValue)
   const clonedAt = sqlLiteral(
@@ -315,10 +329,10 @@ ON CONFLICT(snapshotId, addressId, locale) DO NOTHING;`.trim(),
   }
 
   statements.push(
-    `
-UPDATE address2d
-SET divisionSnapshotId = ${sqlLiteral(divisionLookup.snapshotId)}, updatedAt = datetime('now')
-WHERE snapshotId = ${snapshotId};`.trim(),
+    buildAlignAddressCurrentDivisionSnapshotSql(
+      snapshotIdValue,
+      divisionLookup.snapshotId,
+    ),
   )
 
   const sql = `${statements.join('\n\n')}\n`

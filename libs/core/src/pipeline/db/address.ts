@@ -1,7 +1,7 @@
 import { and, eq, gt, inArray, or, sql } from 'drizzle-orm'
 import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
+import type { DatasetProcessingMessage } from '../../types'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssemblyRun,
@@ -9,8 +9,8 @@ import {
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
   waitForDatasetRecord,
-} from '@repo/core/db/metaRepository'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+} from '../../lib/db/metaRepository'
+import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import type {
   AddressI18nPayload,
   AddressRow,
@@ -29,10 +29,21 @@ import {
 
 const CURRENT_ADDRESS2D_COLUMN_COUNT = 20
 const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 17
-const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 26
+const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 25
 const HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 22
 const HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 const SEEN_ADDRESS_ID_INSERT_COLUMN_COUNT = 1
+const ADDRESS_DIVISION_REFERENCE_COLUMNS = [
+  'countryId',
+  'areaId',
+  'districtId',
+  'townId',
+  'macrohoodId',
+  'villageId',
+  'neighbourhoodId',
+  'hamletId',
+  'microhoodId',
+] as const
 
 const tempSeenAddressIds = sqliteTable('tempSeenAddressIds', {
   id: text('id').primaryKey(),
@@ -86,7 +97,6 @@ type CurrentAddressVersionLookupRow = Pick<
 >
 
 export type AddressVersionInsertContext = {
-  regionCode: RegionCode
   releaseId: string
   releaseRole: 'primary' | 'enrichment'
   snapshotId: string
@@ -105,24 +115,55 @@ function runRawSql(db: HarbourWritableDb, statement: unknown) {
   return runWithWriteRetry(() => (db as unknown as RawSqlWritableDb).run(statement))
 }
 
+function sqlLiteral(value: string) {
+  return `'${value.replaceAll("'", "''")}'`
+}
+
+export function buildAlignAddressCurrentDivisionSnapshotSql(
+  snapshotId: string,
+  divisionSnapshotId: string,
+  updatedAtSql = "datetime('now')",
+) {
+  const assignments = ADDRESS_DIVISION_REFERENCE_COLUMNS.map(
+    column => `  ${column} = CASE
+    WHEN ${column} IS NULL THEN NULL
+    WHEN EXISTS (
+      SELECT 1
+      FROM divisions
+      WHERE divisions.snapshotId = ${sqlLiteral(divisionSnapshotId)}
+        AND divisions.id = address2d.${column}
+    ) THEN ${column}
+    ELSE NULL
+  END`,
+  )
+
+  return `
+UPDATE address2d
+SET
+  divisionSnapshotId = ${sqlLiteral(divisionSnapshotId)},
+${assignments.join(',\n')},
+  updatedAt = ${updatedAtSql}
+WHERE snapshotId = ${sqlLiteral(snapshotId)};`.trim()
+}
+
 function selectCurrentAddressVersionFields() {
   return {
-    id: historySchema.address2dVersions.id,
-    streetId: historySchema.address2dVersions.streetId,
-    hamletId: historySchema.address2dVersions.hamletId,
-    microhoodId: historySchema.address2dVersions.microhoodId,
-    villageId: historySchema.address2dVersions.villageId,
-    neighbourhoodId: historySchema.address2dVersions.neighbourhoodId,
-    macrohoodId: historySchema.address2dVersions.macrohoodId,
-    townId: historySchema.address2dVersions.townId,
-    districtId: historySchema.address2dVersions.districtId,
-    areaId: historySchema.address2dVersions.areaId,
-    countryId: historySchema.address2dVersions.countryId,
-    geometry: historySchema.address2dVersions.geometry,
-    identifiers: historySchema.address2dVersions.identifiers,
-    bbox: historySchema.address2dVersions.bbox,
-    sources: historySchema.address2dVersions.sources,
-    versionHash: historySchema.address2dVersions.versionHash,
+    id: historySchema.address2d.id,
+    streetId: historySchema.address2d.streetId,
+    hamletId: historySchema.address2d.hamletId,
+    microhoodId: historySchema.address2d.microhoodId,
+    villageId: historySchema.address2d.villageId,
+    neighbourhoodId: historySchema.address2d.neighbourhoodId,
+    macrohoodId: historySchema.address2d.macrohoodId,
+    townId: historySchema.address2d.townId,
+    districtId: historySchema.address2d.districtId,
+    areaId: historySchema.address2d.areaId,
+    countryId: historySchema.address2d.countryId,
+    geometry: historySchema.address2d.geometry,
+    identifiers: historySchema.address2d.identifiers,
+    bbox: historySchema.address2d.bbox,
+    sources: historySchema.address2d.sources,
+    versionHash: historySchema.address2d.versionHash,
   }
 }
 
@@ -135,15 +176,12 @@ function normalizeAddressSqlMatchToken(value: string) {
   return value.replace(/\s+/g, '')
 }
 
-function sqlAddressMatchToken(
-  column: typeof historySchema.address2dVersionsI18n.streetName,
-) {
+function sqlAddressMatchToken(column: typeof historySchema.address2dI18n.streetName) {
   return sql`replace(replace(replace(replace(upper(trim(${column})), ' ', ''), char(9), ''), char(10), ''), char(13), '')`
 }
 
 export async function getCurrentAddressVersionMap(
   db: HarbourReadableDb,
-  regionCode: RegionCode,
   options: {
     buildAddressBaseHashInput: (base: AddressHashInput) => AddressHashInput
     buildMatchKey: (input: {
@@ -156,13 +194,8 @@ export async function getCurrentAddressVersionMap(
 ) {
   const versionRows = (await db
     .select(selectCurrentAddressVersionFields())
-    .from(historySchema.address2dVersions)
-    .where(
-      and(
-        eq(historySchema.address2dVersions.isCurrent, true),
-        eq(historySchema.address2dVersions.regionCode, regionCode),
-      ),
-    )
+    .from(historySchema.address2d)
+    .where(eq(historySchema.address2d.isCurrent, true))
     .all()) as CurrentAddressVersionLookupRow[]
 
   return buildCurrentAddressVersionSnapshotMap(db, versionRows, options)
@@ -170,7 +203,6 @@ export async function getCurrentAddressVersionMap(
 
 export async function getCurrentAddressVersionLookup(
   db: HarbourReadableDb,
-  regionCode: RegionCode,
   addressIds: string[],
   matchInputs: AddressCurrentMatchInput[],
   options: {
@@ -192,12 +224,11 @@ export async function getCurrentAddressVersionLookup(
     byIdRows.push(
       ...((await db
         .select(selectCurrentAddressVersionFields())
-        .from(historySchema.address2dVersions)
+        .from(historySchema.address2d)
         .where(
           and(
-            eq(historySchema.address2dVersions.isCurrent, true),
-            eq(historySchema.address2dVersions.regionCode, regionCode),
-            inArray(historySchema.address2dVersions.id, idChunk),
+            eq(historySchema.address2d.isCurrent, true),
+            inArray(historySchema.address2d.id, idChunk),
           ),
         )
         .all()) as CurrentAddressVersionLookupRow[]),
@@ -237,11 +268,11 @@ export async function getCurrentAddressVersionLookup(
 
     const predicates = inputChunk.map(input =>
       and(
-        eq(historySchema.address2dVersions.districtId, input.districtId),
-        sql`${sqlAddressMatchToken(historySchema.address2dVersionsI18n.streetNumber)} = ${
+        eq(historySchema.address2d.districtId, input.districtId),
+        sql`${sqlAddressMatchToken(historySchema.address2dI18n.streetNumber)} = ${
           input.streetNumber
         }`,
-        sql`${sqlAddressMatchToken(historySchema.address2dVersionsI18n.streetName)} = ${
+        sql`${sqlAddressMatchToken(historySchema.address2dI18n.streetName)} = ${
           input.streetName
         }`,
       ),
@@ -250,25 +281,16 @@ export async function getCurrentAddressVersionLookup(
     matchRows.push(
       ...((await db
         .select(selectCurrentAddressVersionFields())
-        .from(historySchema.address2dVersions)
+        .from(historySchema.address2d)
         .innerJoin(
-          historySchema.address2dVersionsI18n,
+          historySchema.address2dI18n,
           and(
-            eq(
-              historySchema.address2dVersions.id,
-              historySchema.address2dVersionsI18n.addressId,
-            ),
-            eq(historySchema.address2dVersionsI18n.isCurrent, true),
-            eq(historySchema.address2dVersionsI18n.locale, 'en'),
+            eq(historySchema.address2d.id, historySchema.address2dI18n.addressId),
+            eq(historySchema.address2dI18n.isCurrent, true),
+            eq(historySchema.address2dI18n.locale, 'en'),
           ),
         )
-        .where(
-          and(
-            eq(historySchema.address2dVersions.isCurrent, true),
-            eq(historySchema.address2dVersions.regionCode, regionCode),
-            or(...predicates),
-          ),
-        )
+        .where(and(eq(historySchema.address2d.isCurrent, true), or(...predicates)))
         .all()) as CurrentAddressVersionLookupRow[]),
     )
   }
@@ -292,21 +314,13 @@ export async function getCurrentAddressVersionLookup(
   }
 }
 
-export async function hasCurrentAddressVersions(
-  db: HarbourReadableDb,
-  regionCode: RegionCode,
-) {
+export async function hasCurrentAddressVersions(db: HarbourReadableDb) {
   const row = await db
     .select({
-      id: historySchema.address2dVersions.id,
+      id: historySchema.address2d.id,
     })
-    .from(historySchema.address2dVersions)
-    .where(
-      and(
-        eq(historySchema.address2dVersions.isCurrent, true),
-        eq(historySchema.address2dVersions.regionCode, regionCode),
-      ),
-    )
+    .from(historySchema.address2d)
+    .where(eq(historySchema.address2d.isCurrent, true))
     .limit(1)
     .get()
 
@@ -367,27 +381,26 @@ async function buildCurrentAddressVersionSnapshotMap(
   for (const addressIdChunk of chunkArray(addressIds, getMaxItemsPerInClause(1, 1))) {
     const chunkRows = (await db
       .select({
-        addressId: historySchema.address2dVersionsI18n.addressId,
-        locale: historySchema.address2dVersionsI18n.locale,
-        formattedAddress: historySchema.address2dVersionsI18n.formattedAddress,
-        buildingName: historySchema.address2dVersionsI18n.buildingName,
-        buildingNumberFrom: historySchema.address2dVersionsI18n.buildingNumberFrom,
-        buildingNumberTo: historySchema.address2dVersionsI18n.buildingNumberTo,
-        blockType: historySchema.address2dVersionsI18n.blockType,
-        blockNumber: historySchema.address2dVersionsI18n.blockNumber,
-        blockTypeBeforeNumber:
-          historySchema.address2dVersionsI18n.blockTypeBeforeNumber,
-        phaseName: historySchema.address2dVersionsI18n.phaseName,
-        phaseNumber: historySchema.address2dVersionsI18n.phaseNumber,
-        estateName: historySchema.address2dVersionsI18n.estateName,
-        streetNumber: historySchema.address2dVersionsI18n.streetNumber,
-        streetName: historySchema.address2dVersionsI18n.streetName,
+        addressId: historySchema.address2dI18n.addressId,
+        locale: historySchema.address2dI18n.locale,
+        formattedAddress: historySchema.address2dI18n.formattedAddress,
+        buildingName: historySchema.address2dI18n.buildingName,
+        buildingNumberFrom: historySchema.address2dI18n.buildingNumberFrom,
+        buildingNumberTo: historySchema.address2dI18n.buildingNumberTo,
+        blockType: historySchema.address2dI18n.blockType,
+        blockNumber: historySchema.address2dI18n.blockNumber,
+        blockTypeBeforeNumber: historySchema.address2dI18n.blockTypeBeforeNumber,
+        phaseName: historySchema.address2dI18n.phaseName,
+        phaseNumber: historySchema.address2dI18n.phaseNumber,
+        estateName: historySchema.address2dI18n.estateName,
+        streetNumber: historySchema.address2dI18n.streetNumber,
+        streetName: historySchema.address2dI18n.streetName,
       })
-      .from(historySchema.address2dVersionsI18n)
+      .from(historySchema.address2dI18n)
       .where(
         and(
-          inArray(historySchema.address2dVersionsI18n.addressId, addressIdChunk),
-          eq(historySchema.address2dVersionsI18n.isCurrent, true),
+          inArray(historySchema.address2dI18n.addressId, addressIdChunk),
+          eq(historySchema.address2dI18n.isCurrent, true),
         ),
       )
       .all()) as AddressI18nPayload[]
@@ -441,10 +454,13 @@ export async function prepareAddressVersionInsertContext(
   message: DatasetProcessingMessage,
   environment: 'preview' | 'production',
 ): Promise<AddressVersionInsertContext> {
-  const dataset = await waitForDatasetRecord(metaDb, {
-    releaseCode: message.releaseCode,
-    releaseId: message.releaseId ?? message.datasetId,
-  })
+  const dataset = message.releaseId?.trim()
+    ? await waitForDatasetRecord(metaDb, {
+        releaseId: message.releaseId,
+      })
+    : await waitForDatasetRecord(metaDb, {
+        releaseCode: message.releaseCode,
+      })
 
   if (!dataset) {
     throw new Error(
@@ -506,7 +522,6 @@ export async function prepareAddressVersionInsertContext(
   await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
 
   return {
-    regionCode: message.regionCode,
     releaseId: dataset.releaseId,
     releaseRole,
     snapshotId: snapshot.id,
@@ -531,23 +546,23 @@ export async function cloneAddressCurrentSnapshot(
         db
           .select({
             snapshotId: sql<string>`${toSnapshotId}`,
-            id: currentSchema.address2d.id,
-            geometry: currentSchema.address2d.geometry,
-            bbox: currentSchema.address2d.bbox,
             divisionSnapshotId: currentSchema.address2d.divisionSnapshotId,
-            countryId: currentSchema.address2d.countryId,
-            areaId: currentSchema.address2d.areaId,
-            districtId: currentSchema.address2d.districtId,
-            townId: currentSchema.address2d.townId,
-            macrohoodId: currentSchema.address2d.macrohoodId,
-            villageId: currentSchema.address2d.villageId,
-            neighbourhoodId: currentSchema.address2d.neighbourhoodId,
+            streetSnapshotId: currentSchema.address2d.streetSnapshotId,
+            id: currentSchema.address2d.id,
+            streetId: currentSchema.address2d.streetId,
             hamletId: currentSchema.address2d.hamletId,
             microhoodId: currentSchema.address2d.microhoodId,
-            streetSnapshotId: currentSchema.address2d.streetSnapshotId,
-            streetId: currentSchema.address2d.streetId,
+            villageId: currentSchema.address2d.villageId,
+            neighbourhoodId: currentSchema.address2d.neighbourhoodId,
+            macrohoodId: currentSchema.address2d.macrohoodId,
+            townId: currentSchema.address2d.townId,
+            districtId: currentSchema.address2d.districtId,
+            areaId: currentSchema.address2d.areaId,
+            countryId: currentSchema.address2d.countryId,
             identifiers: currentSchema.address2d.identifiers,
             sources: currentSchema.address2d.sources,
+            geometry: currentSchema.address2d.geometry,
+            bbox: currentSchema.address2d.bbox,
             createdAt: sql<string>`${clonedAt}`,
             updatedAt: sql<string>`${clonedAt}`,
           })
@@ -624,15 +639,15 @@ export async function alignAddressCurrentDivisionSnapshot(
   snapshotId: string,
   divisionSnapshotId: string,
 ) {
-  await runWithWriteRetry(() =>
-    db
-      .update(currentSchema.address2d)
-      .set({
+  await runRawSql(
+    db,
+    sql.raw(
+      buildAlignAddressCurrentDivisionSnapshotSql(
+        snapshotId,
         divisionSnapshotId,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(eq(currentSchema.address2d.snapshotId, snapshotId))
-      .run(),
+        sqlLiteral(new Date().toISOString()),
+      ),
+    ),
   )
 }
 
@@ -651,7 +666,7 @@ export async function closeCurrentAddressVersions(
   for (const chunk of chunkArray(addressIds, getMaxItemsPerInClause(1, 5))) {
     await runWithWriteRetry(() =>
       db
-        .update(historySchema.address2dVersions)
+        .update(historySchema.address2d)
         .set({
           isCurrent: false,
           validToSnapshotId: snapshotId,
@@ -660,8 +675,8 @@ export async function closeCurrentAddressVersions(
         })
         .where(
           and(
-            eq(historySchema.address2dVersions.isCurrent, true),
-            inArray(historySchema.address2dVersions.id, chunk),
+            eq(historySchema.address2d.isCurrent, true),
+            inArray(historySchema.address2d.id, chunk),
           ),
         )
         .run(),
@@ -690,7 +705,7 @@ export async function deleteMissingCurrentAddresses(
   for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause(1, 5))) {
     await runWithWriteRetry(() =>
       historyDb
-        .update(historySchema.address2dVersions)
+        .update(historySchema.address2d)
         .set({
           isCurrent: false,
           validToSnapshotId: snapshotId,
@@ -699,15 +714,15 @@ export async function deleteMissingCurrentAddresses(
         })
         .where(
           and(
-            eq(historySchema.address2dVersions.isCurrent, true),
-            inArray(historySchema.address2dVersions.id, chunk),
+            eq(historySchema.address2d.isCurrent, true),
+            inArray(historySchema.address2d.id, chunk),
           ),
         )
         .run(),
     )
     await runWithWriteRetry(() =>
       historyDb
-        .update(historySchema.address2dVersionsI18n)
+        .update(historySchema.address2dI18n)
         .set({
           isCurrent: false,
           validToSnapshotId: snapshotId,
@@ -715,8 +730,8 @@ export async function deleteMissingCurrentAddresses(
         })
         .where(
           and(
-            eq(historySchema.address2dVersionsI18n.isCurrent, true),
-            inArray(historySchema.address2dVersionsI18n.addressId, chunk),
+            eq(historySchema.address2dI18n.isCurrent, true),
+            inArray(historySchema.address2dI18n.addressId, chunk),
           ),
         )
         .run(),
@@ -733,7 +748,6 @@ export async function deleteMissingCurrentAddressesBySeenIds(
   historyDb: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
   cohortKey: string,
-  regionCode: RegionCode,
   seenIds: Set<string>,
 ) {
   const missingIds: string[] = []
@@ -742,17 +756,16 @@ export async function deleteMissingCurrentAddressesBySeenIds(
   while (true) {
     const rows = (await historyDb
       .select({
-        id: historySchema.address2dVersions.id,
+        id: historySchema.address2d.id,
       })
-      .from(historySchema.address2dVersions)
+      .from(historySchema.address2d)
       .where(
         and(
-          eq(historySchema.address2dVersions.isCurrent, true),
-          eq(historySchema.address2dVersions.regionCode, regionCode),
-          gt(historySchema.address2dVersions.id, lastId),
+          eq(historySchema.address2d.isCurrent, true),
+          gt(historySchema.address2d.id, lastId),
         ),
       )
-      .orderBy(historySchema.address2dVersions.id)
+      .orderBy(historySchema.address2d.id)
       .limit(500)
       .all()) as Array<{ id: string }>
 
@@ -791,7 +804,6 @@ export async function deleteMissingCurrentAddressesBySeenTable(
   historyDb: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
   cohortKey: string,
-  regionCode: RegionCode,
 ) {
   const missingIds: string[] = []
   let lastId = ''
@@ -799,22 +811,21 @@ export async function deleteMissingCurrentAddressesBySeenTable(
   while (true) {
     const rows = (await historyDb
       .select({
-        id: historySchema.address2dVersions.id,
+        id: historySchema.address2d.id,
       })
-      .from(historySchema.address2dVersions)
+      .from(historySchema.address2d)
       .where(
         and(
-          eq(historySchema.address2dVersions.isCurrent, true),
-          eq(historySchema.address2dVersions.regionCode, regionCode),
-          gt(historySchema.address2dVersions.id, lastId),
+          eq(historySchema.address2d.isCurrent, true),
+          gt(historySchema.address2d.id, lastId),
           sql`NOT EXISTS (
             SELECT 1
             FROM tempSeenAddressIds seen
-            WHERE seen.id = ${historySchema.address2dVersions.id}
+            WHERE seen.id = ${historySchema.address2d.id}
           )`,
         ),
       )
-      .orderBy(historySchema.address2dVersions.id)
+      .orderBy(historySchema.address2d.id)
       .limit(500)
       .all()) as Array<{ id: string }>
 
@@ -915,7 +926,7 @@ async function closeMissingCurrentAddressRows(
   for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause(1, 5))) {
     await runWithWriteRetry(() =>
       historyDb
-        .update(historySchema.address2dVersions)
+        .update(historySchema.address2d)
         .set({
           isCurrent: false,
           validToSnapshotId: snapshotId,
@@ -924,15 +935,15 @@ async function closeMissingCurrentAddressRows(
         })
         .where(
           and(
-            eq(historySchema.address2dVersions.isCurrent, true),
-            inArray(historySchema.address2dVersions.id, chunk),
+            eq(historySchema.address2d.isCurrent, true),
+            inArray(historySchema.address2d.id, chunk),
           ),
         )
         .run(),
     )
     await runWithWriteRetry(() =>
       historyDb
-        .update(historySchema.address2dVersionsI18n)
+        .update(historySchema.address2dI18n)
         .set({
           isCurrent: false,
           validToSnapshotId: snapshotId,
@@ -940,8 +951,8 @@ async function closeMissingCurrentAddressRows(
         })
         .where(
           and(
-            eq(historySchema.address2dVersionsI18n.isCurrent, true),
-            inArray(historySchema.address2dVersionsI18n.addressId, chunk),
+            eq(historySchema.address2dI18n.isCurrent, true),
+            inArray(historySchema.address2dI18n.addressId, chunk),
           ),
         )
         .run(),
@@ -1100,11 +1111,10 @@ export async function insertAddressVersionRows(
   )) {
     await runWithWriteRetry(() =>
       historyDb
-        .insert(historySchema.address2dVersions)
+        .insert(historySchema.address2d)
         .values(
           chunk.map(row => ({
             id: row.id,
-            regionCode: context.regionCode,
             versionHash: row.versionHash,
             sourceReleaseId: context.releaseId,
             snapshotId: context.snapshotId,
@@ -1132,10 +1142,7 @@ export async function insertAddressVersionRows(
           })),
         )
         .onConflictDoUpdate({
-          target: [
-            historySchema.address2dVersions.id,
-            historySchema.address2dVersions.versionHash,
-          ],
+          target: [historySchema.address2d.id, historySchema.address2d.versionHash],
           set: {
             isCurrent: true,
             sourceReleaseId: context.releaseId,
@@ -1222,13 +1229,13 @@ async function insertAddressVersionsI18nInChunks(
   )) {
     await runWithWriteRetry(() =>
       db
-        .insert(historySchema.address2dVersionsI18n)
+        .insert(historySchema.address2dI18n)
         .values(chunk)
         .onConflictDoUpdate({
           target: [
-            historySchema.address2dVersionsI18n.addressId,
-            historySchema.address2dVersionsI18n.versionHash,
-            historySchema.address2dVersionsI18n.locale,
+            historySchema.address2dI18n.addressId,
+            historySchema.address2dI18n.versionHash,
+            historySchema.address2dI18n.locale,
           ],
           set: {
             sourceReleaseId: excluded('sourceReleaseId'),

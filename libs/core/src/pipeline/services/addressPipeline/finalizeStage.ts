@@ -1,5 +1,5 @@
-import type { DatasetProcessingMessage } from '@repo/core'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import type { DatasetProcessingMessage } from '../../../types'
+import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
 import type {
   CurrentDatabase,
   HistoryDatabase,

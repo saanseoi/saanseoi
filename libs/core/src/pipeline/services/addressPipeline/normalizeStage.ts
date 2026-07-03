@@ -1,8 +1,9 @@
-import type { DatasetProcessingMessage } from '@repo/core'
+import type { DatasetProcessingMessage } from '../../../types'
 import type { CurrentDatabase, MetaDatabase } from '@repo/db'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../../parquetR2'
 import { createHash } from '../../utils'
+import { logStructuredInfo } from '../../logging'
 import type { HarbourWorkerBucket } from '../division'
 import {
   buildPipelineArtifactKey,
@@ -10,9 +11,11 @@ import {
   writeJsonArtifact,
 } from '../pipelineArtifacts'
 import {
+  deserializeDivisionLookupMaps,
   dedupeAddressI18nRows,
   loadDivisionLookupMaps,
   normalizeAddressRowForPipeline,
+  serializeDivisionLookupMaps,
 } from './normalization'
 import type { AddressPipelineMessage, NormalizedAddressChunkArtifact } from './types'
 
@@ -41,11 +44,17 @@ export async function normalizeAddressChunkStage(
     rowStart,
     Math.floor(message.rowEnd ?? rowStart + chunkSize),
   )
-  const divisionLookup = await loadDivisionLookupMaps(
-    metaDb,
-    currentDb,
-    message.regionCode,
-  )
+  const pipelineMessage = message as AddressPipelineMessage
+  const divisionLookup = pipelineMessage.addressDivisionLookup
+    ? deserializeDivisionLookupMaps(pipelineMessage.addressDivisionLookup)
+    : await loadDivisionLookupMaps(
+        metaDb,
+        currentDb,
+        message.regionCode,
+        message.cohortKey,
+      )
+  const addressDivisionLookup =
+    pipelineMessage.addressDivisionLookup ?? serializeDivisionLookupMaps(divisionLookup)
   const rows: NormalizedAddressChunkArtifact['rows'] = []
   let totalRows = Math.max(0, Math.floor(message.totalRows ?? 0))
   let processedRows = 0
@@ -57,19 +66,17 @@ export async function normalizeAddressChunkStage(
     readRowWindowSize: ADDRESS_PARQUET_READ_ROW_WINDOW_SIZE,
     onMetadata(metadata) {
       totalRows = metadata.rowCount
-      console.info(
-        JSON.stringify({
-          datasetId: message.datasetId,
-          metadata,
-          phase: 'normalizeAddressChunk',
-          rowEnd: Math.min(requestedRowEnd, metadata.rowCount),
-          rowStart,
-          releaseId: message.releaseId ?? message.datasetId,
-          source: message.source,
-          sourceVersion: message.sourceVersion,
-          type: message.type,
-        }),
-      )
+      logStructuredInfo({
+        datasetId: message.datasetId,
+        metadata,
+        phase: 'normalizeAddressChunk',
+        rowEnd: Math.min(requestedRowEnd, metadata.rowCount),
+        rowStart,
+        releaseId: message.releaseId ?? message.datasetId,
+        source: message.source,
+        sourceVersion: message.sourceVersion,
+        type: message.type,
+      })
     },
   })) {
     for (const row of batch) {
@@ -113,6 +120,7 @@ export async function normalizeAddressChunkStage(
   return {
     ...message,
     addressStage: 'source',
+    addressDivisionLookup,
     artifactKey,
     chunkSize,
     processingRunStartedAt,

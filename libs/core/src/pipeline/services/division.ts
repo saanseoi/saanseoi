@@ -1,7 +1,7 @@
-import type { DatasetProcessingMessage } from '@repo/core'
-import type { ApiLocale } from '@repo/core'
-import { resolveLatestPublishedSnapshotForResourceTypeRegion } from '@repo/core/db/metaRepository'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import type { DatasetProcessingMessage } from '../../types'
+import type { ApiLocale } from '../../lib/apiLocales'
+import { resolveLatestPublishedSnapshotForResourceTypeRegion } from '../../lib/db/metaRepository'
+import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import type {
   CurrentDatabase,
   HistoryDatabase,
@@ -23,9 +23,9 @@ import {
   closeCurrentDivisionVersions,
   countDivisionCurrentSnapshotI18nRows,
   countDivisionCurrentSnapshotRows,
-  deleteMissingCurrentDivisions,
   deleteStaleDivisionCurrentRows,
-  getCurrentDivisionVersionMap,
+  getDivisionCurrentSnapshotTraceState,
+  getMergedCurrentDivisionVersionMap,
   insertDivisionVersionRows,
   prepareDivisionVersionInsertContext,
   replaceDatasetStats,
@@ -34,15 +34,11 @@ import {
 } from '../db/division'
 import {
   advanceSourceOvertureDivisionRelease,
-  buildSourceDatasetId,
   buildSourceReleaseId,
   closeSourceOvertureDivisionVersions,
-  deleteMissingCurrentSourceOvertureDivisions,
-  getCurrentSourceOvertureDivisionMap,
+  getMergedCurrentSourceOvertureDivisionMap,
   insertSourceOvertureDivisionI18nVersions,
   insertSourceOvertureDivisionVersions,
-  replaceSourceOvertureDivisionI18nRows,
-  upsertSourceOvertureDivisions,
 } from '../db/source'
 import {
   buildChurnCounts,
@@ -68,6 +64,12 @@ import {
   resolveDataShardEnvironment,
   resolveDebugEnabled,
 } from './shared'
+import {
+  logDivisionTrace,
+  logDivisionTraceGroup,
+  logStructuredInfo,
+  resolveDivisionTraceIds,
+} from '../logging'
 
 import type { DivisionVersionSnapshot } from '../db/division'
 
@@ -115,6 +117,8 @@ type DivisionNameRuleRecord = {
 }
 
 const DIVISION_BATCH_SIZE = 128
+const PRIMARY_HISTORY_OWNER_KEY = 'history-current'
+const PRIMARY_SOURCE_OWNER_KEY = 'source-current'
 const DIVISION_LEVEL_TOKENS = new Map<string, number>([
   ['country', 0],
   ['sar', 0],
@@ -142,6 +146,37 @@ const HONG_KONG_AREA_NAMES = new Set([
   'new territories',
   '新界',
 ])
+
+function collectOwnerShardKeys(
+  ownerShardKeys: string[] | undefined,
+  fallbackKey: string,
+) {
+  return ownerShardKeys && ownerShardKeys.length > 0 ? ownerShardKeys : [fallbackKey]
+}
+
+function groupIdsByOwnerShard<
+  TRow extends {
+    ownerShardKeys?: string[]
+  },
+>(rows: Map<string, TRow>, ids: Iterable<string>, fallbackKey: string) {
+  const idsByOwnerKey = new Map<string, string[]>()
+
+  for (const id of ids) {
+    const row = rows.get(id)
+
+    if (!row) {
+      continue
+    }
+
+    for (const ownerKey of collectOwnerShardKeys(row.ownerShardKeys, fallbackKey)) {
+      const ownerIds = idsByOwnerKey.get(ownerKey) ?? []
+      ownerIds.push(id)
+      idsByOwnerKey.set(ownerKey, ownerIds)
+    }
+  }
+
+  return idsByOwnerKey
+}
 const CANONICAL_DIVISION_API_LOCALE_FALLBACKS: Record<ApiLocale, string[]> = {
   en: ['en'],
   'zh-hant': ['zh-hk', 'zh-hant', 'zh-mo', 'zh-tw'],
@@ -159,6 +194,10 @@ export async function processDivisionDataset(
   message: DatasetProcessingMessage,
   sourceDb?: SourceDatabase,
   reportProgress?: ReportProgress,
+  options: {
+    previousHistoryDbs?: HistoryDatabase[]
+    previousSourceDbs?: SourceDatabase[]
+  } = {},
 ): Promise<ProcessDatasetResult> {
   const debugEnabled = resolveDebugEnabled(process.env.DEBUG)
   const timings = createOperationTimer(debugEnabled)
@@ -173,8 +212,21 @@ export async function processDivisionDataset(
     'prepareVersionInsertContextMs',
     () => prepareDivisionVersionInsertContext(metaRepoDb, message, environment),
   )
+  const traceDivisionIds = resolveDivisionTraceIds()
+  const historyBaselineSources = [
+    ...(options.previousHistoryDbs ?? []).map((db, index) => ({
+      db,
+      key: `history-previous-${index}`,
+      sortOrder: index,
+    })),
+    {
+      db: historyDb,
+      key: 'history-current',
+      sortOrder: options.previousHistoryDbs?.length ?? 0,
+    },
+  ]
   const currentRows = await timings.measure('loadCurrentVersionMapMs', () =>
-    getCurrentDivisionVersionMap(historyRepoDb, message.regionCode, {
+    getMergedCurrentDivisionVersionMap(historyBaselineSources, {
       buildDivisionBaseHashInput,
       normalizeDivisionI18nSnapshotRow,
     }),
@@ -201,6 +253,30 @@ export async function processDivisionDataset(
     )
 
     if (currentRows.size > 0 && activeSnapshotRowCount !== currentRows.size) {
+      const traceState = await getDivisionCurrentSnapshotTraceState(
+        currentRepoDb,
+        activeSnapshot.id,
+        [...traceDivisionIds],
+      )
+
+      for (const divisionId of traceDivisionIds) {
+        const snapshotState = traceState.get(divisionId)
+
+        logDivisionTrace(traceDivisionIds, divisionId, {
+          activeSnapshotCode: activeSnapshot.code,
+          activeSnapshotId: activeSnapshot.id,
+          event: 'activeSnapshotMismatch',
+          historyCurrentExists: currentRows.has(divisionId),
+          historyCurrentLocaleCount:
+            currentRows.get(divisionId)?.localizedRows.length ?? 0,
+          phase: 'processDivisionDataset',
+          releaseId: message.releaseId ?? message.datasetId,
+          snapshotI18nRowCount: snapshotState?.i18nRowCount ?? 0,
+          snapshotRowExists: snapshotState?.isPresent ?? false,
+          sourceVersion: message.sourceVersion,
+        })
+      }
+
       throw new Error(
         `Active division snapshot ${activeSnapshot.id} is incomplete in current storage: expected ${currentRows.size} rows, found ${activeSnapshotRowCount}.`,
       )
@@ -235,27 +311,57 @@ export async function processDivisionDataset(
   let unchangedRows = 0
   let localizedRows = 0
   const statsAccumulator = createLocaleStatsAccumulator()
+  const sourceBaselineSources =
+    sourceDb && message.source === 'overture'
+      ? [
+          ...(options.previousSourceDbs ?? []).map((db, index) => ({
+            db,
+            key: `source-previous-${index}`,
+            sortOrder: index,
+          })),
+          {
+            db: sourceDb,
+            key: 'source-current',
+            sortOrder: options.previousSourceDbs?.length ?? 0,
+          },
+        ]
+      : []
   const currentSourceRows =
     sourceDb && message.source === 'overture'
       ? await timings.measure('loadCurrentSourceMapMs', () =>
-          getCurrentSourceOvertureDivisionMap(sourceDb),
+          getMergedCurrentSourceOvertureDivisionMap(sourceBaselineSources),
         )
       : null
   const isInitialSourceLoad =
     Boolean(sourceDb && message.source === 'overture') &&
     (currentSourceRows?.size ?? 0) === 0
+  const historyDbByOwnerKey = new Map(
+    historyBaselineSources.map(source => [source.key, source.db]),
+  )
+  const sourceDbByOwnerKey = new Map(
+    sourceBaselineSources.map(source => [source.key, source.db]),
+  )
+
+  for (const divisionId of traceDivisionIds) {
+    logDivisionTrace(traceDivisionIds, divisionId, {
+      activeSnapshotCode: activeSnapshot?.code ?? null,
+      activeSnapshotId: activeSnapshot?.id ?? null,
+      event: 'baseline',
+      historyCurrentExists: currentRows.has(divisionId),
+      historyCurrentLocaleCount: currentRows.get(divisionId)?.localizedRows.length ?? 0,
+      phase: 'processDivisionDataset',
+      releaseId: message.releaseId ?? message.datasetId,
+      sourceCurrentExists: currentSourceRows?.has(divisionId) ?? null,
+      sourceVersion: message.sourceVersion,
+    })
+  }
 
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE)) {
-    const sourceRows: Array<typeof sourceSchema.sourceOvertureDivisions.$inferInsert> =
-      []
-    const sourceI18nRows: Array<
-      typeof sourceSchema.sourceOvertureDivisionI18n.$inferInsert
-    > = []
     const sourceVersionRows: Array<
-      typeof sourceSchema.sourceOvertureDivisionsVersions.$inferInsert
+      typeof sourceSchema.sourceOvertureDivisions.$inferInsert
     > = []
     const sourceI18nVersionRows: Array<
-      typeof sourceSchema.sourceOvertureDivisionI18nVersions.$inferInsert
+      typeof sourceSchema.sourceOvertureDivisionI18n.$inferInsert
     > = []
     const currentDivisionRows: Array<Omit<NewDivisionRow, 'snapshotId'>> = []
     const currentDivisionI18nRowIds = new Set<string>()
@@ -315,48 +421,16 @@ export async function processDivisionDataset(
         type: normalized.base.type,
         versionHash,
       })
+      let sourceChanged: boolean | null = null
 
       if (sourceDb && message.source === 'overture') {
         const releaseId = buildSourceReleaseId(message)
-        const datasetId = buildSourceDatasetId(message)
         const sourcePayloadHash = await createHash(row)
         const currentSource = currentSourceRows?.get(normalized.base.id) ?? null
-        const sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
+        sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
 
         if (sourceChanged) {
           sourceChangedRows += 1
-          sourceRows.push({
-            releaseId,
-            datasetId,
-            sourceRecordId: normalized.base.id,
-            sourcePayloadHash,
-            regionCode: message.regionCode,
-            level: normalized.base.level,
-            divisionType: normalized.base.type,
-            subtype: normalized.base.subtype,
-            divisionClass: normalized.base.class,
-            population: normalized.base.population,
-            version: asOptionalInteger(row.version),
-            wikidata: normalized.base.wikidata,
-            geometry: normalized.base.geometry,
-            bbox: normalized.base.bbox,
-            hierarchies: normalized.base.hierarchy,
-            cartography: normalized.base.cartography,
-            sources: normalized.base.sources,
-            rawProperties: row,
-          })
-          sourceI18nRows.push(
-            ...normalized.i18n.map(localized => ({
-              releaseId,
-              sourceRecordId: normalized.base.id,
-              locale: localized.locale,
-              name: localized.name,
-              nameVariant: localized.nameVariant,
-              nameAlts: localized.nameAlts,
-              nameRules: localized.nameRules,
-              isLocaleInferred: localized.isLocaleInferred,
-            })),
-          )
           changedSourceIds.add(normalized.base.id)
           sourceVersionRows.push({
             sourceRecordId: normalized.base.id,
@@ -365,11 +439,9 @@ export async function processDivisionDataset(
             validFromRelease: message.sourceVersion,
             validToRelease: null,
             isCurrent: true,
-            regionCode: message.regionCode,
-            level: normalized.base.level,
-            divisionType: normalized.base.type,
-            subtype: normalized.base.subtype,
-            divisionClass: normalized.base.class,
+            adminLevel: resolveAdminLevelValue(row),
+            subtype: sourceString(row.subtype),
+            class: sourceString(row.class),
             population: normalized.base.population,
             version: asOptionalInteger(row.version),
             wikidata: normalized.base.wikidata,
@@ -421,6 +493,19 @@ export async function processDivisionDataset(
               kind: 'division-i18n',
             })
           : versionHash
+
+      logDivisionTrace(traceDivisionIds, normalized.base.id, {
+        baseChanged,
+        currentChanged,
+        currentExists: Boolean(current),
+        event: 'rowSeen',
+        historyCurrentLocaleCount: current?.localizedRows.length ?? 0,
+        localeCount: canonicalI18n.length,
+        phase: 'processDivisionDataset',
+        sourceChanged,
+        sourceCurrentExists: currentSourceRows?.has(normalized.base.id) ?? null,
+        sourceVersion: message.sourceVersion,
+      })
 
       if (!currentChanged) {
         unchangedRows += 1
@@ -488,15 +573,30 @@ export async function processDivisionDataset(
     }
 
     if (changedDivisionExistingIds.size > 0) {
-      await timings.measure('closeCurrentDivisionVersionsMs', () =>
-        closeCurrentDivisionVersions(
-          historyRepoDb,
-          message.regionCode,
-          [...changedDivisionExistingIds],
-          versionInsertContext.snapshotId,
-          message.cohortKey,
-        ),
+      const changedDivisionIdsByOwner = groupIdsByOwnerShard(
+        currentRows,
+        changedDivisionExistingIds,
+        PRIMARY_HISTORY_OWNER_KEY,
       )
+
+      await timings.measure('closeCurrentDivisionVersionsMs', async () => {
+        for (const [ownerKey, divisionIds] of changedDivisionIdsByOwner) {
+          const ownerDb = historyDbByOwnerKey.get(ownerKey)
+
+          if (!ownerDb) {
+            throw new Error(
+              `History DB owner not found for division rollover: ${ownerKey}`,
+            )
+          }
+
+          await closeCurrentDivisionVersions(
+            ownerDb as unknown as HarbourWritableDb,
+            divisionIds,
+            versionInsertContext.snapshotId,
+            message.cohortKey,
+          )
+        }
+      })
     }
 
     await timings.measure('upsertDivisionCurrentStatesMs', () =>
@@ -535,37 +635,56 @@ export async function processDivisionDataset(
       const changedIds = [...changedSourceIds]
       const unchangedIds = [...unchangedSourceIds]
       const releaseId = buildSourceReleaseId(message)
-      const datasetId = buildSourceDatasetId(message)
 
       if (changedIds.length > 0 && !isInitialSourceLoad) {
-        await timings.measure('closeSourceOvertureDivisionVersionsMs', () =>
-          closeSourceOvertureDivisionVersions(
-            sourceDb,
-            changedIds,
-            message.sourceVersion,
-          ),
+        const changedSourceIdsByOwner = groupIdsByOwnerShard(
+          currentSourceRows ?? new Map(),
+          changedIds,
+          PRIMARY_SOURCE_OWNER_KEY,
         )
+
+        await timings.measure('closeSourceOvertureDivisionVersionsMs', async () => {
+          for (const [ownerKey, sourceRecordIds] of changedSourceIdsByOwner) {
+            const ownerDb = sourceDbByOwnerKey.get(ownerKey)
+
+            if (!ownerDb) {
+              throw new Error(
+                `Source DB owner not found for division rollover: ${ownerKey}`,
+              )
+            }
+
+            await closeSourceOvertureDivisionVersions(
+              ownerDb,
+              sourceRecordIds,
+              message.sourceVersion,
+            )
+          }
+        })
       }
 
-      await timings.measure('upsertSourceOvertureDivisionsMs', () =>
-        upsertSourceOvertureDivisions(sourceDb, sourceRows, {
-          assumeCurrentRowsAbsent: isInitialSourceLoad,
-        }),
-      )
-      await timings.measure('advanceSourceOvertureDivisionReleaseMs', () =>
-        advanceSourceOvertureDivisionRelease(
-          sourceDb,
-          unchangedIds,
-          releaseId,
-          datasetId,
-        ),
+      const unchangedSourceIdsByOwner = groupIdsByOwnerShard(
+        currentSourceRows ?? new Map(),
+        unchangedIds,
+        PRIMARY_SOURCE_OWNER_KEY,
       )
 
-      await timings.measure('replaceSourceOvertureDivisionI18nRowsMs', () =>
-        replaceSourceOvertureDivisionI18nRows(sourceDb, changedIds, sourceI18nRows, {
-          assumeCurrentRowsAbsent: isInitialSourceLoad,
-        }),
-      )
+      await timings.measure('advanceSourceOvertureDivisionReleaseMs', async () => {
+        for (const [ownerKey, sourceRecordIds] of unchangedSourceIdsByOwner) {
+          const ownerDb = sourceDbByOwnerKey.get(ownerKey)
+
+          if (!ownerDb) {
+            throw new Error(
+              `Source DB owner not found for division rollover: ${ownerKey}`,
+            )
+          }
+
+          await advanceSourceOvertureDivisionRelease(
+            ownerDb,
+            sourceRecordIds,
+            releaseId,
+          )
+        }
+      })
 
       await timings.measure('insertSourceOvertureDivisionVersionsMs', () =>
         insertSourceOvertureDivisionVersions(sourceDb, sourceVersionRows, {
@@ -587,15 +706,41 @@ export async function processDivisionDataset(
     }
   }
 
-  const deletedRows = await timings.measure('deleteMissingCurrentDivisionsMs', () =>
-    deleteMissingCurrentDivisions(
-      historyRepoDb,
-      message.regionCode,
-      versionInsertContext.snapshotId,
-      message.cohortKey,
-      currentRows,
-      seenIds,
-    ),
+  const missingCurrentIds = [...currentRows.keys()].filter(id => !seenIds.has(id))
+  logDivisionTraceGroup(traceDivisionIds, missingCurrentIds, {
+    event: 'missingFromDataset',
+    phase: 'processDivisionDataset',
+    releaseId: message.releaseId ?? message.datasetId,
+    snapshotId: versionInsertContext.snapshotId,
+    sourceVersion: message.sourceVersion,
+  })
+  const missingDivisionIdsByOwner = groupIdsByOwnerShard(
+    currentRows,
+    missingCurrentIds,
+    PRIMARY_HISTORY_OWNER_KEY,
+  )
+  const deletedRows = await timings.measure(
+    'deleteMissingCurrentDivisionsMs',
+    async () => {
+      for (const [ownerKey, divisionIds] of missingDivisionIdsByOwner) {
+        const ownerDb = historyDbByOwnerKey.get(ownerKey)
+
+        if (!ownerDb) {
+          throw new Error(
+            `History DB owner not found for division rollover: ${ownerKey}`,
+          )
+        }
+
+        await closeCurrentDivisionVersions(
+          ownerDb as unknown as HarbourWritableDb,
+          divisionIds,
+          versionInsertContext.snapshotId,
+          message.cohortKey,
+        )
+      }
+
+      return missingCurrentIds.length
+    },
   )
   await timings.measure('deleteStaleDivisionCurrentRowsMs', () =>
     deleteStaleDivisionCurrentRows(
@@ -622,34 +767,50 @@ export async function processDivisionDataset(
   )
 
   if (sourceDb && message.source === 'overture' && currentSourceRows) {
-    await timings.measure('deleteMissingCurrentSourceOvertureDivisionsMs', () =>
-      deleteMissingCurrentSourceOvertureDivisions(
-        sourceDb,
-        message.sourceVersion,
-        currentSourceRows,
-        seenIds,
-      ),
+    const missingSourceIds = [...currentSourceRows.keys()].filter(
+      id => !seenIds.has(id),
     )
+    const missingSourceIdsByOwner = groupIdsByOwnerShard(
+      currentSourceRows,
+      missingSourceIds,
+      PRIMARY_SOURCE_OWNER_KEY,
+    )
+
+    await timings.measure('deleteMissingCurrentSourceOvertureDivisionsMs', async () => {
+      for (const [ownerKey, sourceRecordIds] of missingSourceIdsByOwner) {
+        const ownerDb = sourceDbByOwnerKey.get(ownerKey)
+
+        if (!ownerDb) {
+          throw new Error(
+            `Source DB owner not found for division rollover: ${ownerKey}`,
+          )
+        }
+
+        await closeSourceOvertureDivisionVersions(
+          ownerDb,
+          sourceRecordIds,
+          message.sourceVersion,
+        )
+      }
+    })
   }
 
-  console.info(
-    JSON.stringify({
-      datasetId: message.datasetId,
-      i18nOnlyChangedRows,
-      insertedVersions,
-      unchangedRows,
-      phase: 'processDivisionDataset',
-      processedRows,
-      releaseId: message.releaseId ?? message.datasetId,
-      snapshotId: versionInsertContext.snapshotId,
-      source: message.source,
-      sourceChangedRows,
-      sourceUnchangedRows,
-      sourceVersion: message.sourceVersion,
-      ...(debugEnabled ? { timingsMs: timings.snapshot() } : {}),
-      type: message.type,
-    }),
-  )
+  logStructuredInfo({
+    datasetId: message.datasetId,
+    i18nOnlyChangedRows,
+    insertedVersions,
+    unchangedRows,
+    phase: 'processDivisionDataset',
+    processedRows,
+    releaseId: message.releaseId ?? message.datasetId,
+    snapshotId: versionInsertContext.snapshotId,
+    source: message.source,
+    sourceChangedRows,
+    sourceUnchangedRows,
+    sourceVersion: message.sourceVersion,
+    ...(debugEnabled ? { timingsMs: timings.snapshot() } : {}),
+    type: message.type,
+  })
 
   return {
     deletedRows,
@@ -664,7 +825,7 @@ export async function processDivisionDataset(
 /**
  * Normalizes a raw parquet row into the base division record plus locale rows.
  */
-function normalizeDivisionRow(row: Record<string, unknown>) {
+export function normalizeDivisionRow(row: Record<string, unknown>) {
   const id = asNonEmptyString(row.id)
   const now = new Date().toISOString()
 
@@ -695,17 +856,21 @@ function normalizeDivisionRow(row: Record<string, unknown>) {
     base: {
       bbox: row.bbox ?? null,
       cartography: row.cartography ?? null,
-      class: otClass,
       createdAt: now,
       geometry: normalizedGeometry,
       hierarchy: normalizedHierarchies,
       id,
       level,
       population: asNumber(row.population),
+      sourceKeys: {
+        overture: {
+          subtype: otSubtype ?? '',
+          class: otClass ?? '',
+        },
+      },
       type,
       parentDivisionId,
       sources: normalizeOvertureSources(row.sources),
-      subtype: otSubtype,
       updatedAt: now,
       wikidata: asNonEmptyString(row.wikidata),
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
@@ -717,7 +882,7 @@ function asOptionalInteger(value: unknown) {
   return typeof value === 'number' && Number.isInteger(value) ? value : null
 }
 
-function buildDivisionBaseHashInput(
+export function buildDivisionBaseHashInput(
   base:
     | Omit<DivisionRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
     | Omit<NewDivisionRow, 'snapshotId'>,
@@ -725,28 +890,27 @@ function buildDivisionBaseHashInput(
   return {
     bbox: base.bbox,
     cartography: base.cartography,
-    class: base.class ?? null,
     geometry: base.geometry,
     hierarchy: base.hierarchy,
     id: base.id,
     level: base.level,
     parentDivisionId: base.parentDivisionId ?? null,
     population: base.population ?? null,
+    sourceKeys: base.sourceKeys,
     sources: base.sources,
-    subtype: base.subtype ?? null,
     type: base.type,
     wikidata: base.wikidata ?? null,
   } satisfies Omit<DivisionRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
 }
 
-function normalizeDivisionI18nSnapshotRow(row: DivisionI18nPayload) {
+export function normalizeDivisionI18nSnapshotRow(row: DivisionI18nPayload) {
   return {
     ...row,
     isLocaleInferred: Boolean(row.isLocaleInferred),
   } satisfies DivisionI18nPayload
 }
 
-function buildCanonicalDivisionApiI18n(rows: DivisionI18nPayload[]) {
+export function buildCanonicalDivisionApiI18n(rows: DivisionI18nPayload[]) {
   const byLocale = new Map(rows.map(row => [row.locale, row] as const))
   const canonicalRows = [...rows]
 
@@ -1186,6 +1350,14 @@ function resolveDivisionType(input: {
  */
 function resolveAdminLevelToken(row: Record<string, unknown>) {
   return asNonEmptyString(row.admin_level) ?? asNonEmptyString(row.adminLevel)
+}
+
+export function resolveAdminLevelValue(row: Record<string, unknown>) {
+  return asOptionalInteger(row.admin_level) ?? asOptionalInteger(row.adminLevel)
+}
+
+function sourceString(value: unknown) {
+  return typeof value === 'string' ? value : null
 }
 
 function normalizeDivisionLevelToken(value: string | null) {

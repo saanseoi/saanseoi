@@ -1,3 +1,4 @@
+import { toIsoTimestamp } from '@repo/db'
 import type { DatasetStatsRow } from '@repo/db/metaSchema'
 import type { GeoJsonGeometry } from '../geojson'
 
@@ -94,7 +95,7 @@ export function updateLocaleStatsAccumulator(
  * Converts accumulated locale completeness counters into dataset stats rows.
  */
 export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
-  const createdAt = new Date().toISOString()
+  const createdAt = toIsoTimestamp()
   const locales: StatsLocaleGroup[] = ['en', 'zh-hant', 'zh-hans']
 
   return locales.flatMap(locale => {
@@ -255,7 +256,7 @@ export function buildChurnStatsRows(churn: {
   totals: ChurnCounts
   byType: Map<string, ChurnCounts>
 }) {
-  const createdAt = new Date().toISOString()
+  const createdAt = toIsoTimestamp()
   const rows = buildChurnMetricRows(churn.totals, createdAt, null)
 
   for (const type of [...churn.byType.keys()].sort()) {
@@ -280,7 +281,7 @@ export function buildChurnStatsRows(churn: {
  * Converts quality counters into dataset stats rows.
  */
 export function buildQualityStatsRows(counts: QualityCounts) {
-  const createdAt = new Date().toISOString()
+  const createdAt = toIsoTimestamp()
 
   return [
     buildDatasetStatsRow(
@@ -377,17 +378,15 @@ function buildDatasetStatsRow(
     groupValue: string
   },
 ): DatasetStatsRow {
-  const timestampDate = new Date(timestamp)
-
   return {
-    createdAt: timestampDate,
+    createdAt: timestamp,
     dimension,
     groupBy: grouping?.groupBy ?? null,
     groupValue: grouping?.groupValue ?? null,
     metric,
     metricUnit,
     type: 'dataset',
-    updatedAt: timestampDate,
+    updatedAt: timestamp,
     value,
   }
 }

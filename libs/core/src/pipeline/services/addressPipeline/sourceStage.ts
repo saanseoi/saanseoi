@@ -1,10 +1,9 @@
-import type { DatasetProcessingMessage } from '@repo/core'
+import type { DatasetProcessingMessage } from '../../../types'
 import type { sourceSchema, SourceDatabase } from '@repo/db'
 
 import {
   advanceSourceHkgovAlsAddress2dRelease,
   advanceSourceOvertureAddress2dRelease,
-  buildSourceDatasetId,
   buildSourceReleaseId,
   closeSourceHkgovAlsAddress2dVersions,
   closeSourceOvertureAddress2dVersions,
@@ -12,12 +11,7 @@ import {
   getCurrentSourceOvertureAddress2dRecords,
   insertSourceHkgovAlsAddress2dI18nVersions,
   insertSourceHkgovAlsAddresses2dVersions,
-  insertSourceOvertureAddress2dI18nVersions,
   insertSourceOvertureAddresses2dVersions,
-  replaceSourceHkgovAlsAddress2dI18nRows,
-  replaceSourceOvertureAddress2dI18nRows,
-  upsertSourceHkgovAlsAddresses2d,
-  upsertSourceOvertureAddresses2d,
 } from '../../db/source'
 import type { HarbourWorkerBucket } from '../division'
 import { type PipelineArtifactBucket, readJsonArtifact } from '../pipelineArtifacts'
@@ -59,24 +53,16 @@ export async function writeAddressSourceChunkStage(
   const changedIds = new Set<string>()
   const unchangedIds = new Set<string>()
   const releaseId = buildSourceReleaseId(message)
-  const datasetId = buildSourceDatasetId(message)
 
   if (message.source === 'overture') {
-    const sourceRows: Array<
-      typeof sourceSchema.sourceOvertureAddresses2d.$inferInsert
-    > = []
-    const i18nRows: Array<
-      typeof sourceSchema.sourceOvertureAddress2dI18n.$inferInsert
-    > = []
     const versionRows: Array<
-      typeof sourceSchema.sourceOvertureAddresses2dVersions.$inferInsert
-    > = []
-    const i18nVersionRows: Array<
-      typeof sourceSchema.sourceOvertureAddress2dI18nVersions.$inferInsert
+      typeof sourceSchema.sourceOvertureAddresses2d.$inferInsert
     > = []
 
     for (const row of uniqueRows) {
       const currentSource = currentSourceRows.get(row.sourceId) ?? null
+      const en = row.i18n.find(localized => localized.locale === 'en') ?? null
+      const overtureSource = row.source.overture
 
       if (currentSource?.sourcePayloadHash === row.sourcePayloadHash) {
         unchangedIds.add(row.sourceId)
@@ -84,33 +70,6 @@ export async function writeAddressSourceChunkStage(
       }
 
       changedIds.add(row.sourceId)
-      sourceRows.push({
-        releaseId,
-        datasetId,
-        sourceRecordId: row.sourceId,
-        sourcePayloadHash: row.sourcePayloadHash,
-        regionCode: message.regionCode,
-        version: asOptionalInteger(row.raw.version),
-        geometry: row.base.geometry,
-        bbox: row.base.bbox,
-        streetName:
-          row.i18n.find(localized => localized.locale === 'en')?.streetName ?? null,
-        streetNumber:
-          row.i18n.find(localized => localized.locale === 'en')?.streetNumber ?? null,
-        sources: row.base.sources,
-        rawProperties: row.raw,
-      })
-      i18nRows.push(
-        ...row.i18n.map(localized => ({
-          releaseId,
-          sourceRecordId: row.sourceId,
-          locale: localized.locale,
-          streetName: localized.streetName,
-          locality: null,
-          region: null,
-          country: null,
-        })),
-      )
       versionRows.push({
         sourceRecordId: row.sourceId,
         versionHash: row.sourcePayloadHash,
@@ -118,32 +77,17 @@ export async function writeAddressSourceChunkStage(
         validFromRelease: message.sourceVersion,
         validToRelease: null,
         isCurrent: true,
-        regionCode: message.regionCode,
         version: asOptionalInteger(row.raw.version),
         geometry: row.base.geometry,
         bbox: row.base.bbox,
-        streetName:
-          row.i18n.find(localized => localized.locale === 'en')?.streetName ?? null,
-        streetNumber:
-          row.i18n.find(localized => localized.locale === 'en')?.streetNumber ?? null,
+        area: overtureSource?.area ?? null,
+        district: overtureSource?.district ?? null,
+        unit: overtureSource?.unit ?? null,
+        streetName: en?.streetName ?? null,
+        streetNumber: en?.streetNumber ?? null,
         sources: row.base.sources,
         rawProperties: row.raw,
       })
-      i18nVersionRows.push(
-        ...row.i18n.map(localized => ({
-          sourceRecordId: row.sourceId,
-          versionHash: row.sourcePayloadHash,
-          releaseId,
-          validFromRelease: message.sourceVersion,
-          validToRelease: null,
-          isCurrent: true,
-          locale: localized.locale,
-          streetName: localized.streetName,
-          locality: null,
-          region: null,
-          country: null,
-        })),
-      )
     }
 
     if (changedIds.size > 0) {
@@ -153,16 +97,8 @@ export async function writeAddressSourceChunkStage(
         message.sourceVersion,
       )
     }
-    await upsertSourceOvertureAddresses2d(sourceDb, sourceRows)
-    await advanceSourceOvertureAddress2dRelease(
-      sourceDb,
-      [...unchangedIds],
-      releaseId,
-      datasetId,
-    )
-    await replaceSourceOvertureAddress2dI18nRows(sourceDb, [...changedIds], i18nRows)
+    await advanceSourceOvertureAddress2dRelease(sourceDb, [...unchangedIds], releaseId)
     await insertSourceOvertureAddresses2dVersions(sourceDb, versionRows)
-    await insertSourceOvertureAddress2dI18nVersions(sourceDb, i18nVersionRows)
   } else {
     await writeHkgovSourceRows(
       sourceDb,
@@ -170,7 +106,6 @@ export async function writeAddressSourceChunkStage(
       uniqueRows,
       currentSourceRows,
       releaseId,
-      datasetId,
       changedIds,
       unchangedIds,
     )
@@ -188,19 +123,13 @@ async function writeHkgovSourceRows(
   uniqueRows: NormalizedAddressRecord[],
   currentSourceRows: Map<string, { sourcePayloadHash: string | null }>,
   releaseId: string,
-  datasetId: string,
   changedIds: Set<string>,
   unchangedIds: Set<string>,
 ) {
-  const sourceRows: Array<typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert> =
+  const versionRows: Array<typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert> =
     []
-  const i18nRows: Array<typeof sourceSchema.sourceHkgovAlsAddress2dI18n.$inferInsert> =
-    []
-  const versionRows: Array<
-    typeof sourceSchema.sourceHkgovAlsAddresses2dVersions.$inferInsert
-  > = []
   const i18nVersionRows: Array<
-    typeof sourceSchema.sourceHkgovAlsAddress2dI18nVersions.$inferInsert
+    typeof sourceSchema.sourceHkgovAlsAddress2dI18n.$inferInsert
   > = []
 
   for (const row of uniqueRows) {
@@ -213,15 +142,18 @@ async function writeHkgovSourceRows(
 
     changedIds.add(row.sourceId)
     const hkgovSourceRow = {
-      releaseId,
-      datasetId,
       sourceRecordId: row.sourceId,
-      sourcePayloadHash: row.sourcePayloadHash,
-      regionCode: message.regionCode,
-      geoAddress: asString(row.raw.geoAddress),
-      csuId: asString(row.raw.hkgovCsuId) ?? asString(row.raw.geoAddress),
-      x: asNumber(row.raw.easting),
-      y: asNumber(row.raw.northing),
+      versionHash: row.sourcePayloadHash,
+      releaseId,
+      validFromRelease: message.sourceVersion,
+      validToRelease: null,
+      isCurrent: true,
+      identifiers: {
+        geoAddress: asString(row.raw.geoAddress),
+        csuId: asString(row.raw.hkgovCsuId) ?? asString(row.raw.geoAddress),
+      },
+      easting: asNumber(row.raw.easting),
+      northing: asNumber(row.raw.northing),
       geometry: row.base.geometry,
       districtCode: null,
       districtName: asString(row.raw.enDistrict) ?? asString(row.raw.zhHantDistrict),
@@ -239,15 +171,19 @@ async function writeHkgovSourceRows(
         asString(row.raw.zhHantStreetNumberFrom),
       streetName: asString(row.raw.enStreetName) ?? asString(row.raw.zhHantStreetName),
       villageName: null,
-      dataOwner: 'hkgov-als',
-      rawPayload: row.raw,
+      sources: row.base.sources ?? { hkgovAls: [{ dataset: 'hkgov-als' }] },
+      rawProperties: row.raw,
     } satisfies typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert
 
-    sourceRows.push(hkgovSourceRow)
-    i18nRows.push(
+    versionRows.push(hkgovSourceRow)
+    i18nVersionRows.push(
       ...row.i18n.map(localized => ({
         releaseId,
         sourceRecordId: row.sourceId,
+        versionHash: row.sourcePayloadHash,
+        validFromRelease: message.sourceVersion,
+        validToRelease: null,
+        isCurrent: true,
         locale: localized.locale,
         formattedAddress: localized.formattedAddress,
         buildingName: localized.buildingName,
@@ -268,47 +204,6 @@ async function writeHkgovSourceRows(
             : asString(row.raw.enDistrict),
       })),
     )
-    versionRows.push({
-      sourceRecordId: hkgovSourceRow.sourceRecordId,
-      releaseId,
-      validFromRelease: message.sourceVersion,
-      validToRelease: null,
-      isCurrent: true,
-      versionHash: row.sourcePayloadHash,
-      regionCode: hkgovSourceRow.regionCode,
-      geoAddress: hkgovSourceRow.geoAddress,
-      csuId: hkgovSourceRow.csuId,
-      x: hkgovSourceRow.x,
-      y: hkgovSourceRow.y,
-      geometry: hkgovSourceRow.geometry,
-      districtCode: hkgovSourceRow.districtCode,
-      districtName: hkgovSourceRow.districtName,
-      estateName: hkgovSourceRow.estateName,
-      buildingName: hkgovSourceRow.buildingName,
-      blockNumber: hkgovSourceRow.blockNumber,
-      blockDescriptor: hkgovSourceRow.blockDescriptor,
-      phaseName: hkgovSourceRow.phaseName,
-      phaseNumber: hkgovSourceRow.phaseNumber,
-      floor: hkgovSourceRow.floor,
-      unit: hkgovSourceRow.unit,
-      streetNumber: hkgovSourceRow.streetNumber,
-      streetName: hkgovSourceRow.streetName,
-      villageName: hkgovSourceRow.villageName,
-      dataOwner: hkgovSourceRow.dataOwner,
-      rawPayload: hkgovSourceRow.rawPayload,
-    })
-    i18nVersionRows.push(
-      ...i18nRows
-        .filter(localized => localized.sourceRecordId === row.sourceId)
-        .map(localized => ({
-          ...localized,
-          releaseId,
-          versionHash: row.sourcePayloadHash,
-          validFromRelease: message.sourceVersion,
-          validToRelease: null,
-          isCurrent: true,
-        })),
-    )
   }
 
   if (changedIds.size > 0) {
@@ -318,14 +213,7 @@ async function writeHkgovSourceRows(
       message.sourceVersion,
     )
   }
-  await upsertSourceHkgovAlsAddresses2d(sourceDb, sourceRows)
-  await advanceSourceHkgovAlsAddress2dRelease(
-    sourceDb,
-    [...unchangedIds],
-    releaseId,
-    datasetId,
-  )
-  await replaceSourceHkgovAlsAddress2dI18nRows(sourceDb, [...changedIds], i18nRows)
+  await advanceSourceHkgovAlsAddress2dRelease(sourceDb, [...unchangedIds], releaseId)
   await insertSourceHkgovAlsAddresses2dVersions(sourceDb, versionRows)
   await insertSourceHkgovAlsAddress2dI18nVersions(sourceDb, i18nVersionRows)
 }
