@@ -9,7 +9,7 @@ apps/
   atlas-api/           Cloudflare Workers app built with Hono
   harbour-api/         Cloudflare Workers API for Harbour
   harbour-cli/         Bun CLI for upload and data-management tasks
-  harbour-workers/     Cloudflare Workers background/ingestion logic
+  harbour-workers/     Cloudflare Workers snapshot-cleanup queue consumer
   .local/              App-local runtime state for development
 data/
   <release dirs>/      Versioned source-data snapshots used by the repo
