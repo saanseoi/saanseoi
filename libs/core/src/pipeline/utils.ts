@@ -1,5 +1,5 @@
-const SQLITE_BUSY_RETRY_LIMIT = 5
-const SQLITE_BUSY_RETRY_DELAY_MS = 25
+const SQLITE_BUSY_RETRY_LIMIT = 3
+const SQLITE_BUSY_RETRY_DELAY_MS = 250
 const D1_MAX_SQL_VARIABLES = 99
 const D1_WRITE_STATEMENT_BATCH_SIZE = 50
 const CHINESE_CHARACTER_RE = /\p{Script=Han}/u
@@ -111,7 +111,7 @@ export async function runStatementsInGroupsWithWriteRetry(
 }
 
 /**
- * Retries transient SQLite write failures with a small linear backoff.
+ * Retries transient SQLite write failures with bounded exponential backoff.
  */
 export async function runWithWriteRetry<T>(
   operation: () => T | Promise<T>,
@@ -124,7 +124,7 @@ export async function runWithWriteRetry<T>(
       throw error
     }
 
-    await sleep(SQLITE_BUSY_RETRY_DELAY_MS * (attempt + 1))
+    await sleep(SQLITE_BUSY_RETRY_DELAY_MS * 2 ** attempt)
     return runWithWriteRetry(operation, attempt + 1)
   }
 }
