@@ -159,6 +159,29 @@ function resolveRemoteCacheDir(
   return resolve(CACHE_ROOT, target, `${scopeSlug || 'scope'}-${scopeHash}`)
 }
 
+export function buildReleaseUploadDbCacheScopeKey(options: {
+  cacheTableProfile: CacheTableProfile
+  cohortKey: string
+  regionCode: string
+  shardYear: string
+  source: string
+  sourceVersion: string
+  theme: string
+  type: string
+}) {
+  return [
+    'release-upload',
+    options.cacheTableProfile,
+    options.regionCode.trim().toLowerCase(),
+    options.shardYear.trim(),
+    options.source.trim().toLowerCase(),
+    options.sourceVersion.trim(),
+    options.cohortKey.trim(),
+    options.theme.trim().toLowerCase(),
+    options.type.trim().toLowerCase(),
+  ].join(':')
+}
+
 export async function resolveLocalAddressDbContext(
   target: UploadTarget,
   regionCode: string,
@@ -534,12 +557,8 @@ async function ensureRemoteCachePaths(
   const cacheDir = resolveRemoteCacheDir(target, options.remoteCacheScopeKey)
   const manifestPath = join(cacheDir, 'manifest.json')
   const existingManifest = await readManifest(manifestPath)
-  // Scoped caches are immutable snapshots. The scope key changes when callers need
-  // a fresh remote view, so a valid scoped manifest should be reused as-is.
   const shouldRefreshRemoteTables =
-    options.refreshRemoteTables &&
-    !options.refreshRemoteCache &&
-    !options.remoteCacheScopeKey
+    options.refreshRemoteTables && !options.refreshRemoteCache
   const totalUnits = shouldRefreshRemoteTables
     ? countRemoteCacheRefreshWorkUnits(targets, options.cacheTableProfile)
     : countRemoteCacheWorkUnits(targets, options.cacheTableProfile)

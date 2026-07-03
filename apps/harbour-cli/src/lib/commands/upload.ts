@@ -17,7 +17,10 @@ import type { HarbourReadableDb } from '@repo/core/db/types'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 
-import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
+import {
+  buildReleaseUploadDbCacheScopeKey,
+  resolveLocalAddressDbContext,
+} from '../addressSql/localDbCache.ts'
 import {
   describeTarget,
   formatMutedValue,
@@ -311,12 +314,26 @@ export async function assertAddressUploadPrerequisites(
   }
 
   const shardYear = resolveShardYear(plan.cohortKey, plan.sourceVersion)
+  const cacheTableProfile = 'address'
   const dbContext = await resolveLocalAddressDbContext(
     target,
     plan.regionCode,
     shardYear,
     {
+      cacheTableProfile,
       refreshRemoteTables: target.remote,
+      remoteCacheScopeKey: target.remote
+        ? buildReleaseUploadDbCacheScopeKey({
+            cacheTableProfile,
+            cohortKey: plan.cohortKey,
+            regionCode: plan.regionCode,
+            shardYear,
+            source: plan.source,
+            sourceVersion: plan.sourceVersion,
+            theme: plan.theme,
+            type: plan.type,
+          })
+        : undefined,
     },
   )
 

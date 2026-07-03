@@ -42,6 +42,7 @@ import {
   colorTeal,
   formatCompletedPhaseLabel,
   formatDurationMs,
+  formatRetryLabel,
   formatRunningPhaseLabel,
 } from '../localPipeline/progressFormatting.ts'
 import { LocalUploadProgress } from '../localUploadProgress.ts'
@@ -51,6 +52,7 @@ import {
 } from './addressCurrentLookupCache.ts'
 import { LocalPipelineBucket } from './localBucket.ts'
 import {
+  buildReleaseUploadDbCacheScopeKey,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
 } from './localDbCache.ts'
@@ -87,6 +89,7 @@ const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
 )
 const ADDRESS_CHUNK_SIZE = 16_384
 const GENERATION_CONCURRENCY = Math.max(1, Math.min(resolveCpuCount(), 4))
+const LOCAL_SQL_WRITE_RETRY_LIMIT = 8
 const REMOTE_IMPORT_BATCH_BYTES = 64 * 1024 * 1024
 const SQL_STATEMENT_BYTE_TARGET = 99_000
 
@@ -116,6 +119,19 @@ export async function processLocalAddressSqlUpload(
   await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
   const progress = new LocalUploadProgress()
   const resolvedTargetName = resolveTargetName(target)
+  const cacheTableProfile = 'address'
+  const remoteCacheScopeKey = target.remote
+    ? buildReleaseUploadDbCacheScopeKey({
+        cacheTableProfile,
+        cohortKey: previewPlan.cohortKey,
+        regionCode: previewPlan.regionCode,
+        shardYear,
+        source: previewPlan.source,
+        sourceVersion: previewPlan.sourceVersion,
+        theme: previewPlan.theme,
+        type: previewPlan.type,
+      })
+    : undefined
 
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
   const dbCacheStartedAt = Date.now()
@@ -129,12 +145,12 @@ export async function processLocalAddressSqlUpload(
         onProgress(event) {
           updateDbCacheProgress(progress, event)
         },
-        cacheTableProfile: 'address',
+        cacheTableProfile,
         includePreviousShardYears: shouldIncludePreviousShardYears(
           previewPlan.cohortKey,
         ),
         refreshRemoteTables: false,
-        remoteCacheScopeKey: target.remote ? releaseId : undefined,
+        remoteCacheScopeKey,
       },
     )
   } catch (error) {
@@ -153,7 +169,18 @@ export async function processLocalAddressSqlUpload(
       ),
     )
   }
-  const harbourClient = createHarbourControlClient(target) as HarbourClient
+  const harbourClient = createHarbourControlClient(target, {
+    onRetry(event) {
+      progress.message(
+        formatRetryLabel(
+          `control ${event.path.split('/').pop() ?? event.path}`,
+          event.attempt,
+          event.maxRetries,
+          event.delayMs,
+        ),
+      )
+    },
+  }) as HarbourClient
   const initialMessage: DatasetProcessingMessage = {
     datasetId,
     datasetCode: uploadResult.datasetCode,
@@ -181,8 +208,19 @@ export async function processLocalAddressSqlUpload(
       : 'preview',
     historyBinding: dbContext.historyBinding,
     isLocal: !target.remote,
+    localWriteMaxRetries: LOCAL_SQL_WRITE_RETRY_LIMIT,
     metaBinding: dbContext.metaBinding,
     metaDatabaseId: dbContext.state.bindings.DB_META?.databaseId ?? null,
+    onRetry(event) {
+      progress.message(
+        formatRetryLabel(
+          `database lock ${event.target}`,
+          event.attempt,
+          event.maxRetries,
+          event.delayMs,
+        ),
+      )
+    },
     remoteImportBatchBytes: REMOTE_IMPORT_BATCH_BYTES,
     sourceBinding: dbContext.sourceBinding,
   }
