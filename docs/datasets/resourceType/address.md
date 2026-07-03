@@ -96,6 +96,9 @@ Current operational shape:
 - Remote preview/production imports still land in D1 through the Cloudflare D1
   import API, but the SQL is uploaded from the local machine.
 - Local target imports write directly to the local D1 SQLite files.
+- Local SQLite writes and Harbour control calls that fail with transient
+  `SQLITE_BUSY`/`database is locked` errors are retried three times with
+  backoff before the upload is failed.
 
 Release precedence is enforced before processing starts:
 

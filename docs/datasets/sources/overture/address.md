@@ -112,6 +112,8 @@ The local SQL path also writes a meta SQL artifact for the draft address
 snapshot, its `snapshotSources` link, assembly run, and history shard assignment;
 that meta artifact is imported before the release is published so Harbour can
 resolve the snapshot during publish.
+Transient local SQLite lock failures during import or Harbour progress updates
+are retried three times with backoff before the upload is failed.
 Shared import ordering is documented in
 [ResourceType common processing](../../resourceType/common.md).
 
