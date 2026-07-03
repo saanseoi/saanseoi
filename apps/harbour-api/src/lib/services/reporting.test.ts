@@ -647,7 +647,8 @@ function seedSourceRows(
       sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, locale, formattedAddress, buildingName, buildingNumberFrom, buildingNumberTo, blockType, blockNumber, blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber, streetName, villageName, districtName
     ) VALUES
       ('${sourceRecordId}', 'version-hash-1', '${releaseId}', '${releaseId}', null, 1, '2026-06-24T10:40:00.000Z', '2026-06-24T10:40:00.000Z', 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, '1', 'Example Road', null, null),
-      ('${sourceRecordId}', 'version-hash-1', '${releaseId}', '${releaseId}', null, 1, '2026-06-24T10:40:00.000Z', '2026-06-24T10:40:00.000Z', 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, '1', '示例路', null, null);
+      ('${sourceRecordId}', 'version-hash-1', '${releaseId}', '${releaseId}', null, 1, '2026-06-24T10:40:00.000Z', '2026-06-24T10:40:00.000Z', 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, '1', '示例路', null, null),
+      ('${sourceRecordId}', 'version-hash-old', 'release-hkgov-als-hk-2026-06-01.0-address', 'release-hkgov-als-hk-2026-06-01.0-address', '${releaseId}', 0, '2026-06-01T10:40:00.000Z', '2026-06-24T10:40:00.000Z', 'en', 'Old Example Road', null, null, null, null, null, null, null, null, null, '1', 'Old Example Road', null, null);
   `)
 }
 

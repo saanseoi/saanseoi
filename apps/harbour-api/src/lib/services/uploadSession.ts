@@ -104,10 +104,12 @@ export async function handleSignUploadRequest(
   })
 
   const expiresInSeconds = 15 * 60
+  const uploadMetadata = buildUploadObjectMetadata(planned.plan)
   const uploadUrl = await createSignedUploadUrl(
     signingEnv,
     planned.rawObjectKey,
     contentType,
+    uploadMetadata,
     expiresInSeconds,
   )
   const release = await getDatasetById(db, planned.plan.releaseCode)
@@ -116,6 +118,11 @@ export async function handleSignUploadRequest(
     throw new Error(
       `Release not found after upload request: ${planned.plan.releaseCode}`,
     )
+  }
+
+  const uploadHeaders: Record<string, string> = {
+    'content-type': contentType,
+    ...buildUploadMetadataHeaders(uploadMetadata),
   }
 
   return {
@@ -127,9 +134,7 @@ export async function handleSignUploadRequest(
     rawObjectKey: planned.rawObjectKey,
     source: planned.plan.source,
     status: 'uploading',
-    uploadHeaders: {
-      'content-type': contentType,
-    },
+    uploadHeaders,
     uploadMethod: 'PUT' as const,
     uploadUrl,
   }
@@ -269,7 +274,7 @@ function createR2SchemaFingerprintResolver(
 ): SchemaFingerprintResolver {
   return async rawObjectKey => {
     const existingObject = await bucket.head(rawObjectKey)
-    return existingObject?.customMetadata?.schemaFingerprint ?? null
+    return getCustomMetadataValue(existingObject?.customMetadata, 'schemaFingerprint')
   }
 }
 
@@ -277,6 +282,7 @@ async function createSignedUploadUrl(
   env: UploadSigningEnv,
   rawObjectKey: string,
   contentType: string,
+  metadata: Record<string, string>,
   expiresInSeconds: number,
 ) {
   const client = new S3Client({
@@ -294,10 +300,65 @@ async function createSignedUploadUrl(
       Bucket: env.R2_RAW_BUCKET_NAME,
       Key: rawObjectKey,
       ContentType: contentType,
+      Metadata: metadata,
     }),
     {
       expiresIn: expiresInSeconds,
     },
+  )
+}
+
+function buildUploadObjectMetadata(plan: {
+  cohortKey: string
+  datasetCode: string
+  fileName: string
+  originalFileName: string
+  regionCode: string
+  releaseCode: string
+  rowCount: number
+  schemaFingerprint: string
+  source: string
+  sourceVersion: string
+  theme: string
+  type: string
+}) {
+  return {
+    datasetCode: plan.datasetCode,
+    fileName: plan.fileName,
+    originalFileName: plan.originalFileName,
+    releaseCode: plan.releaseCode,
+    regionCode: plan.regionCode,
+    rowCount: String(plan.rowCount),
+    schemaFingerprint: plan.schemaFingerprint,
+    cohortKey: plan.cohortKey,
+    source: plan.source,
+    sourceVersion: plan.sourceVersion,
+    theme: plan.theme,
+    type: plan.type,
+  }
+}
+
+function buildUploadMetadataHeaders(metadata: Record<string, string>) {
+  return Object.fromEntries(
+    Object.entries(metadata).map(([key, value]) => [`x-amz-meta-${key}`, value]),
+  )
+}
+
+function getCustomMetadataValue(
+  metadata: Record<string, string> | undefined,
+  key: string,
+) {
+  if (!metadata) {
+    return null
+  }
+
+  return (
+    metadata[key] ??
+    metadata[key.toLowerCase()] ??
+    Object.entries(metadata).find(
+      ([metadataKey]) => metadataKey.toLowerCase() === key.toLowerCase(),
+    )?.[1] ??
+    null
   )
 }
 

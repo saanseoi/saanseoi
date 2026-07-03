@@ -45,6 +45,7 @@ const signingEnv: UploadSigningEnv = {
 
 class FakeR2Bucket {
   objects = new Map<string, ArrayBuffer | Blob | null>()
+  metadata = new Map<string, Record<string, string>>()
   getCalls = 0
 
   async head(key: string) {
@@ -54,7 +55,7 @@ class FakeR2Bucket {
 
     return {
       key,
-      customMetadata: {},
+      customMetadata: this.metadata.get(key) ?? {},
     }
   }
 
@@ -77,8 +78,13 @@ class FakeR2Bucket {
     }
   }
 
-  async put(key: string, value: ArrayBuffer | Blob | null) {
+  async put(
+    key: string,
+    value: ArrayBuffer | Blob | null,
+    options?: { customMetadata?: Record<string, string> },
+  ) {
     this.objects.set(key, value)
+    this.metadata.set(key, options?.customMetadata ?? {})
     return { key }
   }
 }
@@ -113,7 +119,7 @@ describe('upload session local processing ownership', () => {
       schemaVersionId: 'overture-address-v2025-09-24.0',
     })
 
-    await bucket.put(signResult.rawObjectKey, fixtureBytes.slice().buffer)
+    await putSignedUploadObject(bucket, signResult, fixtureBytes.slice().buffer)
 
     const result = await handleFinalizeUploadRequest(db, bucket, {
       releaseId: signResult.releaseId,
@@ -121,6 +127,54 @@ describe('upload session local processing ownership', () => {
 
     expect(result.releaseId).toBe(signResult.releaseId)
     expect(bucket.getCalls).toBe(0)
+  })
+
+  test('signed upload metadata preserves schema drift validation for the next release', async () => {
+    const { bucket, db } = initHarness('harbour-signed-upload-schema.sqlite')
+    const firstSignResult = await handleSignUploadRequest(db, bucket, signingEnv, {
+      contentType: 'application/octet-stream',
+      fileName: 'overture-hk-address.parquet',
+      fileSize: fixtureBytes.byteLength,
+      inspection: fixtureInspection,
+      plan: {
+        shardYear: '2025',
+        cohortKey: '2026-05',
+        sourceVersion: '2026-05-20.0',
+      },
+      schemaVersionId: 'overture-address-v2025-09-24.0',
+    })
+
+    expect(typeof firstSignResult.uploadHeaders['x-amz-meta-schemaFingerprint']).toBe(
+      'string',
+    )
+    await putSignedUploadObject(
+      bucket,
+      firstSignResult,
+      fixtureBytes.slice().buffer,
+      'lowercase',
+    )
+
+    await handleFinalizeUploadRequest(db, bucket, {
+      releaseId: firstSignResult.releaseId,
+    })
+
+    await expect(
+      handleSignUploadRequest(db, bucket, signingEnv, {
+        contentType: 'application/octet-stream',
+        fileName: 'overture-hk-address.parquet',
+        fileSize: fixtureBytes.byteLength,
+        inspection: fixtureInspection,
+        plan: {
+          shardYear: '2026',
+          cohortKey: '2026-06',
+          sourceVersion: '2026-06-17.0',
+        },
+        schemaVersionId: 'overture-address-v2025-09-24.0',
+      }),
+    ).resolves.toMatchObject({
+      releaseCode: 'overture-hk-2026-06-17.0-address',
+      status: 'uploading',
+    })
   })
 })
 
@@ -139,4 +193,35 @@ function initHarness(fileName: string) {
     bucket,
     db: createLocalHarbourDb(sqlite),
   }
+}
+
+function putSignedUploadObject(
+  bucket: FakeR2Bucket,
+  signResult: { rawObjectKey: string; uploadHeaders: Record<string, string> },
+  value: ArrayBuffer,
+  keyCase: 'preserve' | 'lowercase' = 'preserve',
+) {
+  return bucket.put(signResult.rawObjectKey, value, {
+    customMetadata: signedUploadCustomMetadata(signResult.uploadHeaders, keyCase),
+  })
+}
+
+function signedUploadCustomMetadata(
+  headers: Record<string, string>,
+  keyCase: 'preserve' | 'lowercase',
+) {
+  const metadata: Record<string, string> = {}
+
+  for (const [header, value] of Object.entries(headers)) {
+    const normalizedHeader = header.toLowerCase()
+
+    if (!normalizedHeader.startsWith('x-amz-meta-')) {
+      continue
+    }
+
+    const metadataKey = header.slice('x-amz-meta-'.length)
+    metadata[keyCase === 'lowercase' ? metadataKey.toLowerCase() : metadataKey] = value
+  }
+
+  return metadata
 }
