@@ -1,32 +1,10 @@
 import { describe, expect, mock, test } from 'bun:test'
 
 const cleanupMock = mock(() => undefined)
-const resolveLocalAddressDbContextMock = mock(async (...args: unknown[]) => {
-  const options = args[3] as
-    | {
-        onProgress?: (event: {
-          action: 'check-cache'
-          bindingName: string
-          current: number
-          target: 'preview'
-          total: number
-        }) => void
-      }
-    | undefined
-
-  options?.onProgress?.({
-    action: 'check-cache',
-    bindingName: 'cache',
-    current: 0,
-    target: 'preview',
-    total: 12,
-  })
-
-  return {
-    cleanup: cleanupMock,
-    metaDb: {},
-  }
-})
+const resolveLocalAddressDbContextMock = mock(async () => ({
+  cleanup: cleanupMock,
+  metaDb: {},
+}))
 const resolveCohortSnapshotMock = mock(async () => null)
 const resolveLatestSnapshotMock = mock(async () => ({
   id: 'snapshot-overture-hk-2025-09-24.0-division',
@@ -37,7 +15,6 @@ const resolveLatestSnapshotMock = mock(async () => ({
 const metaRepository = await import('@repo/core/db/metaRepository')
 
 mock.module('../addressSql/localDbCache.ts', () => ({
-  buildReleaseUploadDbCacheScopeKey: mock(() => 'release-upload-cache-scope'),
   resolveLocalAddressDbContext: resolveLocalAddressDbContextMock,
 }))
 
@@ -93,8 +70,10 @@ mock.module('../upload.ts', () => ({
 const { assertAddressUploadPrerequisites } = await import('./upload.ts')
 
 describe('upload command address prerequisites', () => {
-  test('refreshes the remote cache before checking published division snapshots', async () => {
-    const onProgressMock = mock(() => undefined)
+  test('checks remote address prerequisites without refreshing the local D1 cache', async () => {
+    const resolveRemotePublishedDivisionSnapshotMock = mock(async () => ({
+      snapshotId: 'snapshot-overture-hk-2025-09-24.0-division',
+    }))
 
     await assertAddressUploadPrerequisites(
       {
@@ -127,33 +106,25 @@ describe('upload command address prerequisites', () => {
         type: 'address',
       },
       {
-        onProgress: onProgressMock,
+        resolveRemotePublishedDivisionSnapshot:
+          resolveRemotePublishedDivisionSnapshotMock,
       },
     )
 
-    expect(resolveLocalAddressDbContextMock).toHaveBeenCalledWith(
+    expect(resolveRemotePublishedDivisionSnapshotMock).toHaveBeenCalledWith(
       {
         environment: 'preview',
         remote: true,
       },
-      'hk',
-      '2025',
-      {
-        cacheTableProfile: 'address',
-        onProgress: onProgressMock,
-        refreshRemoteTables: true,
-        remoteCacheScopeKey: 'release-upload-cache-scope',
-      },
+      expect.objectContaining({
+        cohortKey: '2025-09-24.0',
+        regionCode: 'hk',
+        type: 'address',
+      }),
     )
-    expect(onProgressMock).toHaveBeenCalledWith({
-      action: 'check-cache',
-      bindingName: 'cache',
-      current: 0,
-      target: 'preview',
-      total: 12,
-    })
-    expect(resolveCohortSnapshotMock).toHaveBeenCalled()
-    expect(resolveLatestSnapshotMock).toHaveBeenCalled()
-    expect(cleanupMock).toHaveBeenCalled()
+    expect(resolveLocalAddressDbContextMock).not.toHaveBeenCalled()
+    expect(resolveCohortSnapshotMock).not.toHaveBeenCalled()
+    expect(resolveLatestSnapshotMock).not.toHaveBeenCalled()
+    expect(cleanupMock).not.toHaveBeenCalled()
   })
 })
