@@ -51,6 +51,7 @@ type CloudflareApiResponse<T> = {
 
 const DEFAULT_POLL_INTERVAL_MS = 1000
 const DEFAULT_BUSY_INIT_RETRY_LIMIT = 300
+const DEFAULT_STORAGE_RESET_RETRY_LIMIT = 3
 
 export function createD1ImportClient(options: D1ImportClientOptions) {
   const fetchImpl = options.fetch ?? fetch
@@ -164,77 +165,90 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
 
     async importSql(options: D1ImportSqlOptions) {
       const pollIntervalMs = options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS
-      let init = await this.init(options.etag)
-      let uploadedEtag: string | null = null
-      let poll: D1ImportPollResult
-      let currentBookmark: string
-      let busyInitAttempts = 0
+      let storageResetAttempts = 0
 
-      while (isBusyImportPollWithoutBookmark(init)) {
-        if (busyInitAttempts >= DEFAULT_BUSY_INIT_RETRY_LIMIT) {
-          throw new Error(
-            `D1 import is still busy after ${DEFAULT_BUSY_INIT_RETRY_LIMIT} retries: ${formatInitState(init)}`,
-          )
-        }
+      restartImport: while (true) {
+        let init = await this.init(options.etag)
+        let uploadedEtag: string | null = null
+        let poll: D1ImportPollResult
+        let currentBookmark: string
+        let busyInitAttempts = 0
 
-        busyInitAttempts += 1
-        await sleep(pollIntervalMs)
-        init = await this.init(options.etag)
-      }
+        while (isBusyImportPollWithoutBookmark(init)) {
+          if (busyInitAttempts >= DEFAULT_BUSY_INIT_RETRY_LIMIT) {
+            throw new Error(
+              `D1 import is still busy after ${DEFAULT_BUSY_INIT_RETRY_LIMIT} retries: ${formatInitState(init)}`,
+            )
+          }
 
-      if (init.uploadUrl && init.filename) {
-        uploadedEtag = await this.upload(init.uploadUrl, options.sql)
-
-        if (uploadedEtag && uploadedEtag !== options.etag) {
-          throw new Error(
-            `D1 import upload ETag mismatch: expected ${options.etag}, received ${uploadedEtag}.`,
-          )
-        }
-
-        const ingest = await this.ingest(init.filename, options.etag)
-        currentBookmark = ingest.atBookmark?.trim() ?? ''
-        poll = ingest
-      } else if (isImportPollResult(init)) {
-        currentBookmark = init.atBookmark ?? ''
-        poll = {
-          atBookmark: init.atBookmark,
-          error: init.error,
-          messages: init.messages,
-          status: init.status,
-          success: init.success ?? false,
-        }
-      } else {
-        throw new Error(
-          'D1 import init response did not include an upload URL or poll status.',
-        )
-      }
-
-      while (
-        !isImportComplete(poll) &&
-        poll.error !== 'Not currently importing anything.'
-      ) {
-        const nextBookmark = poll.atBookmark?.trim() || currentBookmark
-
-        if (isBusyImportPollWithoutBookmark(poll)) {
+          busyInitAttempts += 1
           await sleep(pollIntervalMs)
-          continue
+          init = await this.init(options.etag)
         }
 
-        if (!nextBookmark) {
+        if (init.uploadUrl && init.filename) {
+          uploadedEtag = await this.upload(init.uploadUrl, options.sql)
+
+          if (uploadedEtag && uploadedEtag !== options.etag) {
+            throw new Error(
+              `D1 import upload ETag mismatch: expected ${options.etag}, received ${uploadedEtag}.`,
+            )
+          }
+
+          const ingest = await this.ingest(init.filename, options.etag)
+          currentBookmark = ingest.atBookmark?.trim() ?? ''
+          poll = ingest
+        } else if (isImportPollResult(init)) {
+          currentBookmark = init.atBookmark ?? ''
+          poll = {
+            atBookmark: init.atBookmark,
+            error: init.error,
+            messages: init.messages,
+            status: init.status,
+            success: init.success ?? false,
+          }
+        } else {
           throw new Error(
-            `D1 import poll response did not include a bookmark for an incomplete import: ${formatPollState(poll)}`,
+            'D1 import init response did not include an upload URL or poll status.',
           )
         }
 
-        await sleep(pollIntervalMs)
-        poll = await this.poll(nextBookmark)
-        currentBookmark = poll.atBookmark?.trim() || nextBookmark
-      }
+        while (
+          !isImportComplete(poll) &&
+          poll.error !== 'Not currently importing anything.'
+        ) {
+          const nextBookmark = poll.atBookmark?.trim() || currentBookmark
 
-      return {
-        filename: init.filename ?? null,
-        poll,
-        uploadedEtag,
+          if (isBusyImportPollWithoutBookmark(poll)) {
+            await sleep(pollIntervalMs)
+            continue
+          }
+
+          if (!nextBookmark) {
+            if (
+              isStorageResetImportPollWithoutBookmark(poll) &&
+              storageResetAttempts < DEFAULT_STORAGE_RESET_RETRY_LIMIT
+            ) {
+              storageResetAttempts += 1
+              await sleep(pollIntervalMs)
+              continue restartImport
+            }
+
+            throw new Error(
+              `D1 import poll response did not include a bookmark for an incomplete import: ${formatPollState(poll)}`,
+            )
+          }
+
+          await sleep(pollIntervalMs)
+          poll = await this.poll(nextBookmark)
+          currentBookmark = poll.atBookmark?.trim() || nextBookmark
+        }
+
+        return {
+          filename: init.filename ?? null,
+          poll,
+          uploadedEtag,
+        }
       }
     },
   }
@@ -265,6 +279,18 @@ function isBusyImportPollWithoutBookmark(
     result.success === false &&
     !result.atBookmark?.trim() &&
     /currently processing a long-running import/i.test(result.error ?? '')
+  )
+}
+
+function isStorageResetImportPollWithoutBookmark(
+  result: Pick<D1ImportPollResult, 'atBookmark' | 'error' | 'success'>,
+) {
+  return (
+    result.success === false &&
+    !result.atBookmark?.trim() &&
+    /D1 DB storage operation exceeded timeout which caused object to be reset/i.test(
+      result.error ?? '',
+    )
   )
 }
 
