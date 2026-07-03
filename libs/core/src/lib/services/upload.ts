@@ -1162,6 +1162,7 @@ export async function requestUpload(
       rowCount: inspection.rowCount,
       schemaFingerprint: plan.schemaFingerprint,
       shardYear: plan.shardYear ?? null,
+      inspection,
     }),
   )
 
