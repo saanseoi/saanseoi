@@ -1,5 +1,3 @@
-import { resolve } from 'node:path'
-
 import { cancel } from '@clack/prompts'
 
 import { runSnapshotCleanupCommand } from './lib/commands/cleanup.ts'
@@ -8,12 +6,10 @@ import { runInspectCommand } from './lib/commands/inspect.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
-import { loadRepoEnvFiles } from './lib/env.ts'
 import { parseArgs, resolveUploadTarget } from './lib/options.ts'
 import { printUsage } from './lib/usage.ts'
 
 async function main() {
-  loadRepoEnvFiles(resolve(import.meta.dir, '../../..'))
   const args = parseArgs(process.argv)
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const dryRun = Boolean(args.options['dry-run'])
