@@ -190,6 +190,63 @@ describe('formatIngestionReportTable', () => {
     expect(table).not.toContain('rawObjectKey')
     expect(table).not.toContain('schemaFieldCount')
   })
+
+  test('renders SQL import stats compactly and hides SQL umbrella phases', () => {
+    const rows: IngestRunReportRow[] = [
+      {
+        datasetCode: 'hk-address',
+        error: null,
+        finishedAt: null,
+        phase: 'importAddressSqlSource',
+        releaseCode: 'overture-hk-2026-06-24.0-address',
+        releaseId: 'release-1',
+        runId: 'run-import',
+        cohortKey: '2026-06',
+        source: 'overture',
+        startedAt: '2026-06-24T10:05:00.000Z',
+        stats: {
+          bytes: 220123419,
+          fileCount: 178,
+          importedFiles: ['processed/release/source-1.sql'],
+          processedFiles: 140,
+          processedStatements: 4250,
+          statementCount: 5389,
+          target: 'source',
+          totalFiles: 178,
+        },
+        status: 'running',
+        type: 'address',
+      },
+      {
+        datasetCode: 'hk-address',
+        error: null,
+        finishedAt: null,
+        phase: 'extractAddresses',
+        releaseCode: 'overture-hk-2026-06-24.0-address',
+        releaseId: 'release-1',
+        runId: 'run-extract',
+        cohortKey: '2026-06',
+        source: 'overture',
+        startedAt: '2026-06-24T10:00:00.000Z',
+        stats: null,
+        status: 'running',
+        type: 'address',
+      },
+    ]
+
+    const table = formatIngestionReportTable(rows)
+
+    expect(table).toContain('importAddressSqlSource')
+    expect(table).toContain('209.9 MB')
+    expect(table).toContain('statementCount')
+    expect(table).not.toContain('extractAddresses')
+    expect(table).not.toContain('fileCount')
+    expect(table).not.toContain('importedFiles')
+    expect(table).not.toContain('processedFiles')
+    expect(table).not.toContain('processedStatements')
+    expect(table).not.toContain('target')
+    expect(table).not.toContain('totalFiles')
+  })
 })
 
 describe('formatStatsReportTable', () => {

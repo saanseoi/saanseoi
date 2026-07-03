@@ -1,6 +1,5 @@
 import { readFile, stat } from 'node:fs/promises'
 
-import { isReleaseId } from '@repo/core'
 import type { ResourceType } from '@repo/core'
 import type { prepareUpload } from '@repo/core/uploadLocal'
 
@@ -32,17 +31,10 @@ type SnapshotCleanupResponse = {
   snapshotIds: string[]
   status: 'queued' | 'skipped'
 }
-type StagingCleanupResponse = {
-  delaySeconds: number
-  dryRun: boolean
-  releaseCode: string
-  releaseId: string
-  status: 'queued' | 'skipped'
-}
 type DispatchUploadOptions = {
   force?: boolean
-  processingMode?: 'direct' | 'sql'
   skipSnapshotCleanup?: boolean
+  uploadFilePath?: string
 }
 type ScheduleSnapshotCleanupOptions = {
   delaySeconds?: number
@@ -50,18 +42,6 @@ type ScheduleSnapshotCleanupOptions = {
   resourceType?: ResourceType
   snapshotIds?: string[]
 }
-type ScheduleStagingCleanupOptions = {
-  delaySeconds?: number
-  dryRun?: boolean
-  releaseCode?: string
-  releaseId?: string
-}
-const TRANSIENT_UPLOAD_RESPONSE_STATUSES = new Set([502, 503, 504])
-const DIRECT_UPLOAD_RETRY_LIMIT = 2
-const DIRECT_UPLOAD_RETRY_DELAY_MS = 250
-const DIRECT_UPLOAD_RECOVERY_POLL_LIMIT = 8
-const DIRECT_UPLOAD_RECOVERY_POLL_DELAY_MS = 500
-
 function resolveShardYear(cohortKey: string, sourceVersion: string) {
   const snapshotYear = cohortKey.slice(0, 4)
   const sourceYear = sourceVersion.slice(0, 4)
@@ -93,16 +73,8 @@ export function buildFinalizeUploadEndpoint(apiBaseUrl: string) {
   return `${apiBaseUrl}/v1/finalizeUpload`
 }
 
-export function buildRequeueUploadEndpoint(apiBaseUrl: string) {
-  return `${apiBaseUrl}/v1/requeueUpload`
-}
-
 export function buildCleanupSnapshotsEndpoint(apiBaseUrl: string) {
   return `${apiBaseUrl}/v1/control/cleanupSnapshots`
-}
-
-export function buildCleanupStagingEndpoint(apiBaseUrl: string) {
-  return `${apiBaseUrl}/v1/control/cleanupStaging`
 }
 
 export async function dispatchUpload(
@@ -113,17 +85,18 @@ export async function dispatchUpload(
   options: DispatchUploadOptions = {},
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(target)
-  const uploadFile = await prepareUploadFileForDispatch(
-    registerOptions.filePath,
-    previewResult,
-  )
+  const uploadFile = options.uploadFilePath
+    ? {
+        cleanup: async () => undefined,
+        filePath: options.uploadFilePath,
+      }
+    : await prepareUploadFileForDispatch(registerOptions.filePath, previewResult)
 
   try {
     if (!target.remote) {
       await assertLocalDirectUploadCanProceed(target, previewResult, options.force)
-      return await uploadFileViaWorker(
+      return await uploadFileViaHarbourApi(
         apiBaseUrl,
-        target,
         uploadFile.filePath,
         previewResult,
         options,
@@ -143,7 +116,6 @@ export async function dispatchUpload(
     await uploadFileToSignedUrl(signResponse, fileBytes)
 
     return finalizeUpload(apiBaseUrl, signResponse.releaseId, {
-      processingMode: options.processingMode,
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
   } finally {
@@ -151,13 +123,11 @@ export async function dispatchUpload(
   }
 }
 
-async function uploadFileViaWorker(
+async function uploadFileViaHarbourApi(
   apiBaseUrl: string,
-  target: UploadTarget,
   filePath: string,
   previewResult: UploadPreviewResult,
   options: DispatchUploadOptions,
-  attempt = 0,
 ) {
   const shardYear = resolveShardYear(
     previewResult.plan.cohortKey,
@@ -183,70 +153,12 @@ async function uploadFileViaWorker(
   if (options.skipSnapshotCleanup) {
     formData.set('skipSnapshotCleanup', 'true')
   }
-  if (options.processingMode) {
-    formData.set('processingMode', options.processingMode)
-  }
 
-  let response: Response
-
-  try {
-    response = await fetch(buildDirectUploadEndpoint(apiBaseUrl), {
-      method: 'POST',
-      body: formData,
-      headers: getAuthHeaders(),
-    })
-  } catch (error) {
-    if (attempt >= DIRECT_UPLOAD_RETRY_LIMIT) {
-      throw error
-    }
-
-    const recovered = await tryRecoverDirectUpload(
-      target,
-      previewResult.plan.releaseCode,
-    )
-
-    if (recovered) {
-      return recovered
-    }
-
-    await sleep(DIRECT_UPLOAD_RETRY_DELAY_MS * (attempt + 1))
-    return uploadFileViaWorker(
-      apiBaseUrl,
-      target,
-      filePath,
-      previewResult,
-      options,
-      attempt + 1,
-    )
-  }
-
-  if (response.ok) {
-    return parseJsonResponse<Record<string, unknown>>(response, 'Harbour upload')
-  }
-
-  if (
-    TRANSIENT_UPLOAD_RESPONSE_STATUSES.has(response.status) &&
-    attempt < DIRECT_UPLOAD_RETRY_LIMIT
-  ) {
-    const recovered = await tryRecoverDirectUpload(
-      target,
-      previewResult.plan.releaseCode,
-    )
-
-    if (recovered) {
-      return recovered
-    }
-
-    await sleep(DIRECT_UPLOAD_RETRY_DELAY_MS * (attempt + 1))
-    return uploadFileViaWorker(
-      apiBaseUrl,
-      target,
-      filePath,
-      previewResult,
-      options,
-      attempt + 1,
-    )
-  }
+  const response = await fetch(buildDirectUploadEndpoint(apiBaseUrl), {
+    method: 'POST',
+    body: formData,
+    headers: getAuthHeaders(),
+  })
 
   return parseJsonResponse<Record<string, unknown>>(response, 'Harbour upload')
 }
@@ -283,7 +195,6 @@ async function requestSignedUpload(
         type: previewResult.plan.type,
       },
       force: Boolean(options.force),
-      processingMode: options.processingMode,
       skipSnapshotCleanup: Boolean(options.skipSnapshotCleanup),
       schemaVersionId,
     }),
@@ -314,7 +225,7 @@ async function uploadFileToSignedUrl(
 async function finalizeUpload(
   apiBaseUrl: string,
   releaseId: string,
-  options: Pick<DispatchUploadOptions, 'processingMode' | 'skipSnapshotCleanup'> = {},
+  options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
 ) {
   return postReleaseAction(
     buildFinalizeUploadEndpoint(apiBaseUrl),
@@ -324,30 +235,11 @@ async function finalizeUpload(
   )
 }
 
-async function requeueUpload(
-  apiBaseUrl: string,
-  releaseId: string,
-  options: Pick<
-    DispatchUploadOptions,
-    'force' | 'processingMode' | 'skipSnapshotCleanup'
-  > = {},
-) {
-  return postReleaseAction(
-    buildRequeueUploadEndpoint(apiBaseUrl),
-    releaseId,
-    'Harbour requeueUpload',
-    options,
-  )
-}
-
 async function postReleaseAction(
   endpoint: string,
   releaseId: string,
   action: string,
-  options: Pick<
-    DispatchUploadOptions,
-    'force' | 'processingMode' | 'skipSnapshotCleanup'
-  > = {},
+  options: Pick<DispatchUploadOptions, 'force' | 'skipSnapshotCleanup'> = {},
 ) {
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -358,52 +250,11 @@ async function postReleaseAction(
     body: JSON.stringify({
       ...(options.force ? { force: true } : {}),
       releaseId,
-      ...(options.processingMode ? { processingMode: options.processingMode } : {}),
       ...(options.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
     }),
   })
 
   return parseJsonResponse<UploadResponse>(response, action)
-}
-
-async function tryRecoverDirectUpload(
-  target: UploadTarget,
-  releaseCode: string,
-): Promise<UploadResponse | null> {
-  for (let attempt = 0; attempt < DIRECT_UPLOAD_RECOVERY_POLL_LIMIT; attempt += 1) {
-    try {
-      const report = await fetchReleaseReport(target, {
-        limit: 1,
-        releaseCode,
-      })
-      const release = report.rows[0]
-
-      if (
-        release &&
-        ['staged', 'processing', 'published', 'superseded'].includes(release.status)
-      ) {
-        return {
-          datasetCode: release.datasetCode,
-          datasetId: release.datasetId,
-          rawObjectKey: release.rawObjectKey,
-          releaseCode: release.releaseCode,
-          releaseId: release.releaseId,
-          source: release.source,
-          sourceVersion: release.sourceVersion,
-          status: release.status,
-          type: release.type,
-        }
-      }
-    } catch {
-      // Ignore report probe failures and keep polling within the recovery window.
-    }
-
-    if (attempt < DIRECT_UPLOAD_RECOVERY_POLL_LIMIT - 1) {
-      await sleep(DIRECT_UPLOAD_RECOVERY_POLL_DELAY_MS)
-    }
-  }
-
-  return null
 }
 
 async function assertLocalDirectUploadCanProceed(
@@ -441,88 +292,6 @@ async function assertLocalDirectUploadCanProceed(
   }
 }
 
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-export async function resolveRelease(target: UploadTarget, releaseSpecifier: string) {
-  const trimmedSpecifier = releaseSpecifier.trim()
-
-  if (!trimmedSpecifier) {
-    throw new Error(
-      'Missing release identifier. Pass `--release <release-id|release-code>`.',
-    )
-  }
-
-  const report = await fetchReleaseReport(target, {
-    limit: 1,
-    ...(isReleaseId(trimmedSpecifier)
-      ? { releaseId: trimmedSpecifier }
-      : { releaseCode: trimmedSpecifier }),
-  })
-  const [release] = report.rows
-
-  if (!release) {
-    throw new Error(`Release not found: ${trimmedSpecifier}`)
-  }
-
-  return release
-}
-
-export async function finalizeExistingUpload(
-  target: UploadTarget,
-  releaseSpecifier: string,
-  options: Pick<DispatchUploadOptions, 'processingMode' | 'skipSnapshotCleanup'> = {},
-) {
-  const release = await resolveRelease(target, releaseSpecifier)
-
-  if (release.status !== 'uploading') {
-    if (['staged', 'failed'].includes(release.status)) {
-      throw new Error(
-        `Release ${release.releaseCode} is already ${release.status}. Use \`upload:requeue\` to enqueue processing again.`,
-      )
-    }
-
-    throw new Error(
-      `Release ${release.releaseCode} is not awaiting upload finalization. Current status: ${release.status}.`,
-    )
-  }
-
-  const apiBaseUrl = resolveHarbourApiUrl(target)
-
-  const result = await finalizeUpload(apiBaseUrl, release.releaseId, options)
-
-  return {
-    release,
-    result,
-  }
-}
-
-export async function requeueExistingUpload(
-  target: UploadTarget,
-  releaseSpecifier: string,
-  options: Pick<
-    DispatchUploadOptions,
-    'force' | 'processingMode' | 'skipSnapshotCleanup'
-  > = {},
-) {
-  const release = await resolveRelease(target, releaseSpecifier)
-
-  if (!['staged', 'failed'].includes(release.status) && !options.force) {
-    throw new Error(
-      `Release ${release.releaseCode} is not requeueable. Current status: ${release.status}.`,
-    )
-  }
-
-  const apiBaseUrl = resolveHarbourApiUrl(target)
-  const result = await requeueUpload(apiBaseUrl, release.releaseId, options)
-
-  return {
-    release,
-    result,
-  }
-}
-
 export async function scheduleSnapshotCleanup(
   target: UploadTarget,
   options: ScheduleSnapshotCleanupOptions = {},
@@ -548,30 +317,6 @@ export async function scheduleSnapshotCleanup(
     response,
     'Harbour cleanupSnapshots',
   )
-}
-
-export async function scheduleStagingCleanup(
-  target: UploadTarget,
-  options: ScheduleStagingCleanupOptions,
-) {
-  const apiBaseUrl = resolveHarbourApiUrl(target)
-  const response = await fetch(buildCleanupStagingEndpoint(apiBaseUrl), {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      ...getAuthHeaders(),
-    },
-    body: JSON.stringify({
-      ...(options.delaySeconds !== undefined
-        ? { delaySeconds: options.delaySeconds }
-        : {}),
-      ...(options.dryRun ? { dryRun: true } : {}),
-      ...(options.releaseCode ? { releaseCode: options.releaseCode } : {}),
-      ...(options.releaseId ? { releaseId: options.releaseId } : {}),
-    }),
-  })
-
-  return parseJsonResponse<StagingCleanupResponse>(response, 'Harbour cleanupStaging')
 }
 
 async function parseJsonResponse<T>(response: Response, action: string) {
