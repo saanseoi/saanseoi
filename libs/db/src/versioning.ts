@@ -134,3 +134,46 @@ function stableStringify(value: unknown): string {
 export function computeVersionHash(value: unknown) {
   return `sha256:${createHash('sha256').update(stableStringify(value)).digest('hex')}`
 }
+
+export function buildDeterministicUuidV5(namespace: string, name: string) {
+  const namespaceBytes = parseUuidBytes(namespace)
+  const nameBytes = new TextEncoder().encode(name.trim())
+  const input = new Uint8Array(namespaceBytes.length + nameBytes.length)
+
+  input.set(namespaceBytes)
+  input.set(nameBytes, namespaceBytes.length)
+
+  const hash = createHash('sha1').update(input).digest()
+  const bytes = Uint8Array.from(hash.subarray(0, 16))
+
+  bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x50
+  bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80
+
+  return formatUuidBytes(bytes)
+}
+
+function parseUuidBytes(value: string) {
+  const hex = value.replaceAll('-', '')
+
+  if (!/^[0-9a-f]{32}$/i.test(hex)) {
+    throw new Error(`Invalid UUID namespace: ${value}`)
+  }
+
+  return Uint8Array.from(
+    Array.from({ length: 16 }, (_, index) =>
+      Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16),
+    ),
+  )
+}
+
+function formatUuidBytes(bytes: Uint8Array) {
+  const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('')
+
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    hex.slice(12, 16),
+    hex.slice(16, 20),
+    hex.slice(20, 32),
+  ].join('-')
+}

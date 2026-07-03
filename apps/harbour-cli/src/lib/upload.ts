@@ -266,13 +266,44 @@ async function uploadFileToSignedUrl(
 ) {
   const response = await fetch(signResponse.uploadUrl, {
     method: signResponse.uploadMethod,
-    headers: signResponse.uploadHeaders,
+    headers: filterSignedUploadHeaders(
+      signResponse.uploadUrl,
+      signResponse.uploadHeaders,
+    ),
     body: fileBytes,
   })
 
   if (!response.ok) {
-    throw new Error(`R2 upload failed with status ${response.status}.`)
+    const responseBody = await response.text().catch(() => '')
+    const detail = responseBody.trim()
+
+    throw new Error(
+      detail
+        ? `R2 upload failed with status ${response.status}: ${detail}`
+        : `R2 upload failed with status ${response.status}.`,
+    )
   }
+}
+
+function filterSignedUploadHeaders(uploadUrl: string, headers: Record<string, string>) {
+  const signedHeaders = new URL(uploadUrl).searchParams.get('X-Amz-SignedHeaders')
+
+  if (!signedHeaders) {
+    return headers
+  }
+
+  const allowedHeaders = new Set(
+    signedHeaders
+      .split(';')
+      .map(header => header.trim().toLowerCase())
+      .filter(header => header && header !== 'host'),
+  )
+
+  return Object.fromEntries(
+    Object.entries(headers).filter(([header]) =>
+      allowedHeaders.has(header.toLowerCase()),
+    ),
+  )
 }
 
 async function finalizeUpload(

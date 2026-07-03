@@ -92,4 +92,17 @@ describe('buildMetaRegistrySyncStatements', () => {
       ),
     ).toBe(true)
   })
+
+  test('uses deterministic ids for seeded datasets', () => {
+    const statements = buildMetaRegistrySyncStatements('preview')
+    const datasetStatement = statements.find(statement =>
+      statement.startsWith('INSERT INTO datasets'),
+    )
+
+    expect(datasetStatement).toBeDefined()
+    expect(datasetStatement).not.toContain('randomblob')
+    expect(datasetStatement).toMatch(
+      /VALUES \(\n {2}'[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'/,
+    )
+  })
 })
