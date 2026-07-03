@@ -134,7 +134,7 @@ export async function processLocalAddressSqlUpload(
           previewPlan.cohortKey,
         ),
         refreshRemoteTables: false,
-        remoteCacheScopeKey: target.remote ? releaseCode : undefined,
+        remoteCacheScopeKey: target.remote ? releaseId : undefined,
       },
     )
   } catch (error) {
