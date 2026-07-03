@@ -81,7 +81,7 @@ Current scope:
 Operational shape:
 
 - generated source SQL stages normalized rows in `stagingOvertureAddresses2d` and `stagingOvertureAddresses2dI18n`
-- generated history/current SQL stages resolved rows in `ssAddressImportResolvedRows` and `ssAddressImportResolvedI18n`
+- generated history/current SQL stages resolved rows in `zzAddressImportResolvedRows` and `zzAddressImportResolvedI18n`; current SQL drops them after each current apply, history-apply drops them after history apply, and final cleanup drops them as an idempotent fallback
 - apply statements use `UPDATE ... WHERE EXISTS`, `INSERT ... SELECT ... ON CONFLICT`, and release/snapshot markers instead of per-row mutations
 - generated `INSERT` statements are byte-limited below D1's individual SQL statement limit; use row-count chunks such as 10,000 only as a planning input, not as the SQL safety boundary
 - imports remain target-specific because source, history, current, and meta live in separate D1 databases

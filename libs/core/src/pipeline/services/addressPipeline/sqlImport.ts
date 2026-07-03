@@ -34,6 +34,8 @@ const SQL_TEXT_ENCODER = new TextEncoder()
 const NORMALIZED_ROWS_TABLE = 'stagingOvertureAddresses2d'
 const NORMALIZED_I18N_TABLE = 'stagingOvertureAddresses2dI18n'
 const SOURCE_CHANGED_TABLE = 'stagingOvertureAddresses2dChanged'
+const RESOLVED_ROWS_TABLE = 'zzAddressImportResolvedRows'
+const RESOLVED_I18N_TABLE = 'zzAddressImportResolvedI18n'
 
 const NORMALIZED_ROW_COLUMNS = [
   'runId',
@@ -240,12 +242,12 @@ export function buildAddressResolvedSqlImportFiles(
     buildAddressResolvedStagingSchemaSql(),
     ...(artifact.rowStart === 0
       ? [
-          `DELETE FROM ssAddressImportResolvedRows WHERE runId = ${sqlLiteral(runId)};`,
-          `DELETE FROM ssAddressImportResolvedI18n WHERE runId = ${sqlLiteral(runId)};`,
+          `DELETE FROM zzAddressImportResolvedRows WHERE runId = ${sqlLiteral(runId)};`,
+          `DELETE FROM zzAddressImportResolvedI18n WHERE runId = ${sqlLiteral(runId)};`,
         ]
       : []),
     ...buildInsertStatements(
-      'ssAddressImportResolvedRows',
+      'zzAddressImportResolvedRows',
       RESOLVED_ROW_COLUMNS,
       artifact.rows.map((row, index) => ({
         runId,
@@ -278,7 +280,7 @@ export function buildAddressResolvedSqlImportFiles(
       options.maxStatementBytes,
     ),
     ...buildInsertStatements(
-      'ssAddressImportResolvedI18n',
+      'zzAddressImportResolvedI18n',
       RESOLVED_I18N_COLUMNS,
       artifact.rows.flatMap(row =>
         row.i18n.map(localized => ({
@@ -308,10 +310,10 @@ export function buildAddressResolvedSqlImportFiles(
   ]
   const currentStatements = [
     buildAddressResolvedStagingSchemaSql(),
-    `DELETE FROM ssAddressImportResolvedRows WHERE runId = ${sqlLiteral(runId)};`,
-    `DELETE FROM ssAddressImportResolvedI18n WHERE runId = ${sqlLiteral(runId)};`,
+    `DELETE FROM zzAddressImportResolvedRows WHERE runId = ${sqlLiteral(runId)};`,
+    `DELETE FROM zzAddressImportResolvedI18n WHERE runId = ${sqlLiteral(runId)};`,
     ...buildInsertStatements(
-      'ssAddressImportResolvedRows',
+      'zzAddressImportResolvedRows',
       RESOLVED_ROW_COLUMNS,
       artifact.rows.map((row, index) => ({
         runId,
@@ -347,7 +349,7 @@ export function buildAddressResolvedSqlImportFiles(
       },
     ),
     ...buildInsertStatements(
-      'ssAddressImportResolvedI18n',
+      'zzAddressImportResolvedI18n',
       RESOLVED_I18N_COLUMNS,
       artifact.rows.flatMap(row =>
         row.i18n.map(localized => ({
@@ -386,6 +388,7 @@ export function buildAddressResolvedSqlImportFiles(
     buildSqlImportFile('current', `${runId}-current-${artifact.rowStart}.sql`, [
       ...currentStatements,
       buildAddressCurrentApplySql(runId),
+      buildAddressResolvedStagingDropSql(),
     ]),
   ]
 }
@@ -397,15 +400,15 @@ export function buildAddressHistoryApplySqlImportFile(
     snapshotId: string
   },
 ) {
-  if (!options.hasChanges) {
-    return null
-  }
-
   const runId = options.runId ?? buildAddressSqlImportRunId(message)
+  const statements = options.hasChanges
+    ? [
+        buildAddressHistoryApplySql(message, runId, options.snapshotId),
+        buildAddressResolvedStagingDropSql(),
+      ]
+    : [buildAddressResolvedStagingDropSql()]
 
-  return buildSqlImportFile('history-apply', `${runId}-history-apply.sql`, [
-    buildAddressHistoryApplySql(message, runId, options.snapshotId),
-  ])
+  return buildSqlImportFile('history-apply', `${runId}-history-apply.sql`, statements)
 }
 
 export function buildAddressSqlCleanupFile(
@@ -421,10 +424,7 @@ export function buildAddressSqlCleanupFile(
           `DELETE FROM ${NORMALIZED_I18N_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
           `DELETE FROM ${SOURCE_CHANGED_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
         ]
-      : [
-          `DELETE FROM ssAddressImportResolvedRows WHERE runId = ${sqlLiteral(runId)};`,
-          `DELETE FROM ssAddressImportResolvedI18n WHERE runId = ${sqlLiteral(runId)};`,
-        ]
+      : [buildAddressResolvedStagingDropSql()]
 
   return buildSqlImportFile(target, `${runId}-${target}-cleanup.sql`, statements)
 }
@@ -490,7 +490,7 @@ CREATE TABLE IF NOT EXISTS ${SOURCE_CHANGED_TABLE} (
 
 function buildAddressResolvedStagingSchemaSql() {
   return `
-CREATE TABLE IF NOT EXISTS ssAddressImportResolvedRows (
+CREATE TABLE IF NOT EXISTS zzAddressImportResolvedRows (
   runId TEXT NOT NULL,
   rowNumber INTEGER NOT NULL,
   sourceRecordId TEXT NOT NULL,
@@ -519,10 +519,10 @@ CREATE TABLE IF NOT EXISTS ssAddressImportResolvedRows (
   updatedAt TEXT NOT NULL,
   PRIMARY KEY (runId, addressId)
 );
-CREATE INDEX IF NOT EXISTS ssAddressImportResolvedRows_run_changed_existing_idx ON ssAddressImportResolvedRows (runId, changed, changedExistingId);
-CREATE INDEX IF NOT EXISTS ssAddressImportResolvedRows_run_address_changed_idx ON ssAddressImportResolvedRows (runId, addressId, changed);
-CREATE INDEX IF NOT EXISTS ssAddressImportResolvedRows_run_row_idx ON ssAddressImportResolvedRows (runId, rowNumber);
-CREATE TABLE IF NOT EXISTS ssAddressImportResolvedI18n (
+CREATE INDEX IF NOT EXISTS zzAddressImportResolvedRows_run_changed_existing_idx ON zzAddressImportResolvedRows (runId, changed, changedExistingId);
+CREATE INDEX IF NOT EXISTS zzAddressImportResolvedRows_run_address_changed_idx ON zzAddressImportResolvedRows (runId, addressId, changed);
+CREATE INDEX IF NOT EXISTS zzAddressImportResolvedRows_run_row_idx ON zzAddressImportResolvedRows (runId, rowNumber);
+CREATE TABLE IF NOT EXISTS zzAddressImportResolvedI18n (
   runId TEXT NOT NULL,
   addressId TEXT NOT NULL,
   versionHash TEXT NOT NULL,
@@ -544,7 +544,13 @@ CREATE TABLE IF NOT EXISTS ssAddressImportResolvedI18n (
   updatedAt TEXT NOT NULL,
   PRIMARY KEY (runId, addressId, locale)
 );
-CREATE INDEX IF NOT EXISTS ssAddressImportResolvedI18n_run_address_idx ON ssAddressImportResolvedI18n (runId, addressId);`.trim()
+CREATE INDEX IF NOT EXISTS zzAddressImportResolvedI18n_run_address_idx ON zzAddressImportResolvedI18n (runId, addressId);`.trim()
+}
+
+function buildAddressResolvedStagingDropSql() {
+  return `
+DROP TABLE IF EXISTS ${RESOLVED_I18N_TABLE};
+DROP TABLE IF EXISTS ${RESOLVED_ROWS_TABLE};`.trim()
 }
 
 function buildAddressSourceApplySql(message: DatasetProcessingMessage, runId: string) {
@@ -743,7 +749,7 @@ function buildAddressHistoryApplySql(
   return `
 WITH changedExisting AS (
   SELECT DISTINCT r.changedExistingId AS addressId
-  FROM ssAddressImportResolvedRows r
+  FROM zzAddressImportResolvedRows r
   WHERE r.runId = ${run}
     AND r.changed = 1
     AND r.changedExistingId IS NOT NULL
@@ -758,7 +764,7 @@ WHERE address2d.isCurrent = 1
   AND address2d.id = changedExisting.addressId;
 WITH changedExisting AS (
   SELECT DISTINCT r.changedExistingId AS addressId
-  FROM ssAddressImportResolvedRows r
+  FROM zzAddressImportResolvedRows r
   WHERE r.runId = ${run}
     AND r.changed = 1
     AND r.changedExistingId IS NOT NULL
@@ -781,7 +787,7 @@ SELECT
   NULL, ${cohortKey}, NULL, 1, r.streetId, r.hamletId, r.microhoodId, r.villageId,
   r.neighbourhoodId, r.macrohoodId, r.townId, r.districtId, r.areaId, r.countryId,
   r.geometry, r.bbox, r.identifiers, r.sources, r.createdAt, r.updatedAt
-FROM ssAddressImportResolvedRows r
+FROM zzAddressImportResolvedRows r
 WHERE r.runId = ${run}
   AND r.changed = 1
 ON CONFLICT(id, versionHash) DO UPDATE SET
@@ -806,8 +812,8 @@ SELECT
   i.buildingNumberTo, i.blockType, i.blockNumber, i.blockTypeBeforeNumber,
   i.phaseName, i.phaseNumber, i.estateName, i.streetNumber, i.streetName,
   i.createdAt, i.updatedAt
-FROM ssAddressImportResolvedRows r
-INNER JOIN ssAddressImportResolvedI18n i
+FROM zzAddressImportResolvedRows r
+INNER JOIN zzAddressImportResolvedI18n i
   ON i.runId = r.runId
   AND i.addressId = r.addressId
 WHERE r.runId = ${run}
@@ -847,7 +853,7 @@ SELECT
   r.areaId, r.districtId, r.townId, r.macrohoodId, r.villageId, r.neighbourhoodId,
   r.hamletId, r.microhoodId, r.streetSnapshotId, r.streetId, r.identifiers,
   r.sources, r.createdAt, r.updatedAt
-FROM ssAddressImportResolvedRows r
+FROM zzAddressImportResolvedRows r
 WHERE r.runId = ${run}
   AND r.changed = 1
 ON CONFLICT(snapshotId, id) DO UPDATE SET
@@ -870,7 +876,7 @@ ON CONFLICT(snapshotId, id) DO UPDATE SET
   updatedAt = excluded.updatedAt;
 DELETE FROM address2dI18n
 WHERE EXISTS (
-  SELECT 1 FROM ssAddressImportResolvedRows r
+  SELECT 1 FROM zzAddressImportResolvedRows r
   WHERE r.runId = ${run}
     AND r.changed = 1
     AND r.snapshotId = address2dI18n.snapshotId
@@ -887,10 +893,10 @@ SELECT
   i.buildingNumberFrom, i.buildingNumberTo, i.blockType, i.blockNumber,
   i.blockTypeBeforeNumber, i.phaseName, i.phaseNumber, i.estateName,
   i.streetNumber, i.streetName, i.createdAt, i.updatedAt
-FROM ssAddressImportResolvedI18n i
+FROM zzAddressImportResolvedI18n i
 WHERE i.runId = ${run}
   AND EXISTS (
-    SELECT 1 FROM ssAddressImportResolvedRows r
+    SELECT 1 FROM zzAddressImportResolvedRows r
     WHERE r.runId = i.runId AND r.addressId = i.addressId AND r.changed = 1
   )
 ON CONFLICT(snapshotId, addressId, locale) DO UPDATE SET
@@ -909,13 +915,13 @@ ON CONFLICT(snapshotId, addressId, locale) DO UPDATE SET
   updatedAt = excluded.updatedAt;
 UPDATE address2d
 SET updatedAt = (
-  SELECT r.updatedAt FROM ssAddressImportResolvedRows r
+  SELECT r.updatedAt FROM zzAddressImportResolvedRows r
   WHERE r.runId = ${run}
     AND r.snapshotId = address2d.snapshotId
     AND r.addressId = address2d.id
 )
 WHERE EXISTS (
-  SELECT 1 FROM ssAddressImportResolvedRows r
+  SELECT 1 FROM zzAddressImportResolvedRows r
   WHERE r.runId = ${run}
     AND r.snapshotId = address2d.snapshotId
     AND r.addressId = address2d.id
