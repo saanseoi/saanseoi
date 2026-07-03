@@ -1,8 +1,8 @@
 import { inspectParquetFile } from '../parquetInspectorNode'
 import {
-  planUpload as planWorkerUpload,
-  prepareUpload as prepareWorkerUpload,
-  registerUpload as registerWorkerUpload,
+  planUpload as planUploadWithInspection,
+  prepareUpload as prepareUploadWithInspection,
+  registerUpload as registerUploadWithInspection,
 } from './upload'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
@@ -14,7 +14,7 @@ export async function prepareUpload(options: RegisterUploadOptions) {
   const inspection =
     options.inspection ?? (await inspectRequiredParquetFile(options.filePath))
 
-  return prepareWorkerUpload(
+  return prepareUploadWithInspection(
     {
       ...options,
       inspection,
@@ -30,7 +30,7 @@ export async function planUpload(
   const inspection =
     options.inspection ?? (await inspectRequiredParquetFile(options.filePath))
 
-  return planWorkerUpload(
+  return planUploadWithInspection(
     db,
     {
       ...options,
@@ -53,7 +53,7 @@ export async function registerUpload(
   const inspection =
     options.inspection ?? (await inspectRequiredParquetFile(options.filePath))
 
-  return registerWorkerUpload(db, {
+  return registerUploadWithInspection(db, {
     ...options,
     inspection,
   })

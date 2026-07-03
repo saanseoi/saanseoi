@@ -6,6 +6,7 @@ import divisionFixture20260520 from '../../../../../fixtures/meta/apiFields/api-
 import { createLocalHarbourDb } from '../../testing/localDb'
 import {
   ensureIngestRunStarted,
+  getLatestNewerDatasetRelease,
   getLatestDatasetForRegionSourceType,
   listCurrentSnapshotCleanupCandidates,
   publishReleaseArtifacts,
@@ -235,6 +236,20 @@ function createPublishReleaseArtifactsDb() {
       versionHash TEXT NOT NULL,
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE publishedDataJournal (
+      id TEXT PRIMARY KEY,
+      releaseId TEXT NOT NULL,
+      relatedReleaseId TEXT,
+      snapshotId TEXT,
+      apiReleaseSetId TEXT,
+      action TEXT NOT NULL,
+      statusFrom TEXT,
+      statusTo TEXT,
+      reason TEXT,
+      metadataJson TEXT,
+      createdAt TEXT NOT NULL
     );
   `)
 
@@ -501,6 +516,101 @@ describe('getLatestDatasetForRegionSourceType', () => {
   })
 })
 
+describe('getLatestNewerDatasetRelease', () => {
+  test('returns the highest newer non-failed non-uploading sibling release', async () => {
+    const { sqlite, db } = createLatestDatasetLookupDb()
+
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
+      INSERT INTO datasets (
+        id, publisherId, code, regionCode, theme, type
+      ) VALUES (
+        'dataset-overture-hk-division',
+        'publisher-overture',
+        'ds-hk-overture-division',
+        'hk',
+        'divisions',
+        'division'
+      );
+      INSERT INTO releases (
+        id, datasetId, code, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+      ) VALUES
+      (
+        'release-overture-hk-2025-09-24.0-division',
+        'dataset-overture-hk-division',
+        'overture-hk-2025-09-24.0-division',
+        '2025-09-24.0',
+        '2025-09',
+        'hk/overture/2025-09-24.0/division.parquet',
+        'division.parquet',
+        'staged',
+        null,
+        null,
+        null,
+        '2026-07-02T07:11:23.000Z',
+        '2026-07-02T07:11:23.000Z',
+        '2026-07-02T07:11:23.000Z'
+      ),
+      (
+        'release-overture-hk-2025-10-22.0-division',
+        'dataset-overture-hk-division',
+        'overture-hk-2025-10-22.0-division',
+        '2025-10-22.0',
+        '2025-10',
+        'hk/overture/2025-10-22.0/division.parquet',
+        'division.parquet',
+        'processing',
+        null,
+        null,
+        null,
+        '2026-07-02T07:11:30.000Z',
+        '2026-07-02T07:11:30.000Z',
+        '2026-07-02T07:11:30.000Z'
+      ),
+      (
+        'release-overture-hk-2025-11-19.0-division',
+        'dataset-overture-hk-division',
+        'overture-hk-2025-11-19.0-division',
+        '2025-11-19.0',
+        '2025-11',
+        'hk/overture/2025-11-19.0/division.parquet',
+        'division.parquet',
+        'failed',
+        null,
+        null,
+        null,
+        '2026-07-02T07:11:40.000Z',
+        '2026-07-02T07:11:40.000Z',
+        '2026-07-02T07:11:40.000Z'
+      ),
+      (
+        'release-overture-hk-2025-12-17.0-division',
+        'dataset-overture-hk-division',
+        'overture-hk-2025-12-17.0-division',
+        '2025-12-17.0',
+        '2025-12',
+        'hk/overture/2025-12-17.0/division.parquet',
+        'division.parquet',
+        'uploading',
+        null,
+        null,
+        null,
+        '2026-07-02T07:11:50.000Z',
+        '2026-07-02T07:11:50.000Z',
+        '2026-07-02T07:11:50.000Z'
+      );
+    `)
+
+    const result = await getLatestNewerDatasetRelease(
+      db,
+      'release-overture-hk-2025-09-24.0-division',
+    )
+
+    expect(result?.releaseId).toBe('release-overture-hk-2025-10-22.0-division')
+    sqlite.close()
+  })
+})
+
 describe('listCurrentSnapshotCleanupCandidates', () => {
   test('ignores empty snapshot filters and draft snapshots', async () => {
     const { sqlite, db } = createCleanupCandidatesDb()
@@ -641,6 +751,32 @@ describe('publishReleaseArtifacts', () => {
         })),
       ),
     )
+
+    const journalRows = sqlite
+      .query(
+        'SELECT releaseId, relatedReleaseId, snapshotId, apiReleaseSetId, action, statusFrom, statusTo FROM publishedDataJournal ORDER BY createdAt',
+      )
+      .all() as Array<{
+      action: string
+      apiReleaseSetId: string | null
+      relatedReleaseId: string | null
+      releaseId: string
+      snapshotId: string | null
+      statusFrom: string | null
+      statusTo: string | null
+    }>
+
+    expect(journalRows).toEqual([
+      {
+        releaseId: 'release-1',
+        relatedReleaseId: null,
+        snapshotId: 'snapshot-new',
+        apiReleaseSetId: 'release-set-1',
+        action: 'published',
+        statusFrom: null,
+        statusTo: 'published',
+      },
+    ])
   })
 
   test('fails before publishing when a supported api family has no compatible bundled fixture', async () => {

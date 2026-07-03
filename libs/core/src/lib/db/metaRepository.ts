@@ -63,6 +63,7 @@ const {
   metaApiReleaseSets,
   metaApiReleaseSetSnapshots,
   metaApiVersions,
+  metaPublishedDataJournal,
   metaDataShards,
   metaDatasets,
   metaPublishers,
@@ -167,6 +168,57 @@ export async function getLatestDatasetForRegionSourceType(
   return {
     latestDataset,
   }
+}
+
+export async function getLatestNewerDatasetRelease(
+  db: HarbourReadableDb,
+  releaseId: string,
+) {
+  const release = await getDatasetRecordByReleaseId(db, releaseId)
+
+  if (!release) {
+    return null
+  }
+
+  const datasetRows = (await db
+    .select(releaseRecordSelection)
+    .from(metaReleases)
+    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+    .where(
+      and(
+        eq(metaReleases.datasetId, release.datasetId),
+        ne(metaReleases.id, releaseId),
+        ne(metaReleases.status, 'failed'),
+        ne(metaReleases.status, 'uploading'),
+      ),
+    )
+    .orderBy(desc(metaReleases.ingestedAt))
+    .all()) as unknown as DatasetRecord[]
+  const latestNewerDataset =
+    datasetRows
+      .filter(
+        candidate =>
+          compareReleaseVersions(candidate.sourceVersion, release.sourceVersion) > 0,
+      )
+      .slice()
+      .sort((left, right) => {
+        const versionComparison = compareReleaseVersions(
+          right.sourceVersion,
+          left.sourceVersion,
+        )
+
+        if (versionComparison !== 0) {
+          return versionComparison
+        }
+
+        return (
+          right.ingestedAt.localeCompare(left.ingestedAt) ||
+          right.createdAt.localeCompare(left.createdAt)
+        )
+      })[0] ?? null
+
+  return latestNewerDataset
 }
 
 export async function hasDatasetForCohortKeySourceType(
@@ -1474,7 +1526,43 @@ export async function publishReleaseArtifacts(
     }
 
     if (args.currentRelease) {
+      const replacedReason = args.currentReleaseIsCorrected
+        ? `Superseded by corrected release ${args.dataset.releaseCode}.`
+        : `Replaced by release ${args.dataset.releaseCode}.`
+
       statements.push(
+        tx.insert(metaPublishedDataJournal).values({
+          id: crypto.randomUUID(),
+          releaseId: args.dataset.releaseId,
+          relatedReleaseId: args.currentRelease.releaseId,
+          snapshotId: args.snapshotId,
+          apiReleaseSetId: args.releaseSetId,
+          action: 'published',
+          statusFrom: null,
+          statusTo: 'published',
+          reason: null,
+          metadataJson: {
+            replacedReleaseId: args.currentRelease.releaseId,
+            type: args.type,
+          },
+          createdAt: publishedAt,
+        }),
+        tx.insert(metaPublishedDataJournal).values({
+          id: crypto.randomUUID(),
+          releaseId: args.currentRelease.releaseId,
+          relatedReleaseId: args.dataset.releaseId,
+          snapshotId: args.snapshotId,
+          apiReleaseSetId: args.releaseSetId,
+          action: args.currentReleaseIsCorrected ? 'revoked' : 'replaced',
+          statusFrom: 'published',
+          statusTo: args.currentReleaseIsCorrected ? 'revoked' : 'superseded',
+          reason: replacedReason,
+          metadataJson: {
+            replacementReleaseId: args.dataset.releaseId,
+            type: args.type,
+          },
+          createdAt: publishedAt,
+        }),
         tx
           .update(metaReleases)
           .set({
@@ -1490,7 +1578,7 @@ export async function publishReleaseArtifacts(
             .update(metaReleases)
             .set({
               revokedAt: publishedAt,
-              revocationReason: `Superseded by corrected release ${args.dataset.releaseCode}.`,
+              revocationReason: replacedReason,
               status: 'revoked',
               updatedAt: publishedAt,
             })
@@ -1507,6 +1595,24 @@ export async function publishReleaseArtifacts(
             .where(eq(metaReleases.id, args.currentRelease.releaseId)),
         )
       }
+    } else {
+      statements.push(
+        tx.insert(metaPublishedDataJournal).values({
+          id: crypto.randomUUID(),
+          releaseId: args.dataset.releaseId,
+          relatedReleaseId: null,
+          snapshotId: args.snapshotId,
+          apiReleaseSetId: args.releaseSetId,
+          action: 'published',
+          statusFrom: null,
+          statusTo: 'published',
+          reason: null,
+          metadataJson: {
+            type: args.type,
+          },
+          createdAt: publishedAt,
+        }),
+      )
     }
 
     return statements
