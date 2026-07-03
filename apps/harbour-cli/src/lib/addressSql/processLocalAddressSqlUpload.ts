@@ -169,18 +169,7 @@ export async function processLocalAddressSqlUpload(
       ),
     )
   }
-  const harbourClient = createHarbourControlClient(target, {
-    onRetry(event) {
-      progress.message(
-        formatRetryLabel(
-          `control ${event.path.split('/').pop() ?? event.path}`,
-          event.attempt,
-          event.maxRetries,
-          event.delayMs,
-        ),
-      )
-    },
-  }) as HarbourClient
+  const harbourClient = createHarbourControlClient(target) as HarbourClient
   const initialMessage: DatasetProcessingMessage = {
     datasetId,
     datasetCode: uploadResult.datasetCode,

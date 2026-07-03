@@ -30,8 +30,12 @@ run_migration() {
 }
 
 if [[ "${#database_names[@]}" -eq 1 ]]; then
-  run_migration "${binding_names[0]}" "${database_names[0]}"
-  exit 0
+  status=0
+  if ! run_migration "${binding_names[0]}" "${database_names[0]}"; then
+    printf 'Local migrations failed for %s (%s)\n' "${binding_names[0]}" "${database_names[0]}" >&2
+    status=1
+  fi
+  exit "$status"
 fi
 
 printf 'Applying local migrations for %s databases with up to %s parallel jobs\n' "${#database_names[@]}" "$migration_jobs"
