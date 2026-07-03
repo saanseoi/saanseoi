@@ -36,6 +36,7 @@ import {
   runLocalGenerationPhase,
   writeLocalPipelineState,
 } from '../localPipeline/orchestrator.ts'
+import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import {
   appendPhaseDetails,
   colorRed,
@@ -104,6 +105,7 @@ export async function processLocalAddressSqlUpload(
 ) {
   const releaseId = requireString(uploadResult.releaseId, 'releaseId')
   const releaseCode = requireString(uploadResult.releaseCode, 'releaseCode')
+  const datasetCode = requireString(uploadResult.datasetCode, 'datasetCode')
   const datasetId = requireString(uploadResult.datasetId, 'datasetId')
   const rawObjectKey = requireString(uploadResult.rawObjectKey, 'rawObjectKey')
   const shardYear = resolveShardYear(previewPlan.cohortKey, previewPlan.sourceVersion)
@@ -169,10 +171,20 @@ export async function processLocalAddressSqlUpload(
       ),
     )
   }
+  await syncStagedReleaseIntoLocalMetaCache(
+    dbContext.metaDb,
+    {
+      datasetCode,
+      rawObjectKey,
+      releaseCode,
+      releaseId,
+    },
+    previewPlan,
+  )
   const harbourClient = createHarbourControlClient(target) as HarbourClient
   const initialMessage: DatasetProcessingMessage = {
     datasetId,
-    datasetCode: uploadResult.datasetCode,
+    datasetCode,
     rawObjectKey,
     releaseCode,
     releaseId,

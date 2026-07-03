@@ -60,6 +60,8 @@ export type HarbourJobQueue = {
 }
 
 const DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS = 30
+const PUBLISH_SNAPSHOT_WAIT_LIMIT = 20
+const PUBLISH_SNAPSHOT_WAIT_DELAY_MS = 250
 const TRANSIENT_CONTROL_RETRY_LIMIT = 4
 const TRANSIENT_CONTROL_RETRY_DELAY_MS = 50
 
@@ -206,7 +208,7 @@ export async function handlePublishDataset(
     const releaseSet =
       (await resolveReleaseSetForRelease(db, dataset.releaseId, datasetType)) ??
       (await ensureDraftReleaseSetForRelease(db, datasetType, dataset))
-    const snapshot = await resolveSnapshotForRelease(db, dataset.releaseId, datasetType)
+    const snapshot = await waitForSnapshotForRelease(db, dataset.releaseId, datasetType)
 
     if (!snapshot) {
       throw new ControlRequestError(
@@ -349,6 +351,26 @@ async function requireDataset(
   }
 
   return dataset
+}
+
+async function waitForSnapshotForRelease(
+  db: HarbourReadableDb,
+  releaseId: string,
+  datasetType: ResourceType,
+) {
+  for (let attempt = 0; attempt <= PUBLISH_SNAPSHOT_WAIT_LIMIT; attempt += 1) {
+    const snapshot = await resolveSnapshotForRelease(db, releaseId, datasetType)
+
+    if (snapshot) {
+      return snapshot
+    }
+
+    if (attempt < PUBLISH_SNAPSHOT_WAIT_LIMIT) {
+      await sleep(PUBLISH_SNAPSHOT_WAIT_DELAY_MS)
+    }
+  }
+
+  return null
 }
 
 function stringifyOptional(value?: Record<string, unknown>) {

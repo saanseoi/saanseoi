@@ -19,6 +19,7 @@ import { prepareUpload } from '@repo/core/uploadLocal'
 
 import {
   buildReleaseUploadDbCacheScopeKey,
+  type LocalDbCacheProgressEvent,
   resolveLocalAddressDbContext,
 } from '../addressSql/localDbCache.ts'
 import {
@@ -35,6 +36,11 @@ import { checkOvertureUploadAssumptions } from '../overtureAssumptions.ts'
 import { prepareUploadFileForDispatch } from '../parquetRepack.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
 import { dispatchUpload } from '../upload.ts'
+import {
+  colorRed,
+  colorTeal,
+  formatRunningPhaseLabel,
+} from '../localPipeline/progressFormatting.ts'
 
 export async function runUploadCommand(
   args: ParsedArgs,
@@ -121,7 +127,11 @@ ${mutedBar}  `)
     prerequisiteSpinner.start('Checking address prerequisites')
 
     try {
-      await assertAddressUploadPrerequisites(target, previewResult.plan)
+      await assertAddressUploadPrerequisites(target, previewResult.plan, {
+        onProgress(event) {
+          prerequisiteSpinner.message(formatAddressPrerequisiteProgressLabel(event))
+        },
+      })
       prerequisiteSpinner.stop('Address prerequisites passed')
     } catch (error) {
       prerequisiteSpinner.error('Address prerequisite check failed')
@@ -339,6 +349,9 @@ function resolveShardYear(cohortKey: string, sourceVersion: string) {
 export async function assertAddressUploadPrerequisites(
   target: UploadTarget,
   plan: Awaited<ReturnType<typeof prepareUpload>>['plan'],
+  options: {
+    onProgress?: (event: LocalDbCacheProgressEvent) => Promise<void> | void
+  } = {},
 ) {
   if (plan.type !== 'address' || plan.theme !== 'addresses') {
     return
@@ -365,6 +378,7 @@ export async function assertAddressUploadPrerequisites(
             type: plan.type,
           })
         : undefined,
+      onProgress: options.onProgress,
     },
   )
 
@@ -398,6 +412,36 @@ export async function assertAddressUploadPrerequisites(
       'Upload the division release(s) first, then rerun the address upload.',
     ].join(' '),
   )
+}
+
+function formatAddressPrerequisiteProgressLabel(event: LocalDbCacheProgressEvent) {
+  return formatRunningPhaseLabel(
+    colorTeal('Checking address prerequisites'),
+    colorRed(describeAddressPrerequisiteProgressSubject(event)),
+    Math.min(event.current, event.total),
+    event.total,
+  )
+}
+
+function describeAddressPrerequisiteProgressSubject(event: LocalDbCacheProgressEvent) {
+  switch (event.action) {
+    case 'check-cache':
+      return `${event.target}.manifest`
+    case 'export-binding':
+      return event.tableName
+        ? `${event.bindingName}.${event.tableName}`
+        : `${event.bindingName}.export`
+    case 'reuse-cache':
+      return `${event.target}.reuse`
+    case 'mirror-table':
+      return event.tableName
+        ? `${event.bindingName}.${event.tableName}`
+        : event.bindingName
+    case 'copy-binding':
+      return `${event.bindingName}.sqlite`
+    case 'validate-binding':
+      return `${event.bindingName}.validate`
+  }
 }
 
 async function resolveAssumptionWarnings(

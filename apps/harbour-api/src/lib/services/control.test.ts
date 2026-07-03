@@ -681,6 +681,52 @@ describe('control service', () => {
     )
   })
 
+  test('waits briefly for imported snapshot metadata before publishing', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-publish-delayed-snapshot.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const releaseId = 'release-overture-hk-2026-02-18.0-division'
+
+    insertFixtureRelease(sqlite, {
+      releaseId,
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2026-02',
+      type: 'division',
+      sourceVersion: '2026-02-18.0',
+      rawObjectKey: 'hk/overture/2026-02-18.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'staged',
+      ingestedAt: '2026-06-05T00:01:00.000Z',
+      createdAt: '2026-06-05T00:01:00.000Z',
+      updatedAt: '2026-06-05T00:01:00.000Z',
+    })
+
+    setTimeout(() => {
+      seedSnapshot(sqlite, {
+        code: 'ss-hk-division-2026-02-18.0',
+        releaseId,
+        status: 'draft',
+        timestamp: 1762300860000,
+      })
+    }, 25)
+
+    const result = await handlePublishDataset(db, {
+      releaseId,
+    })
+
+    sqlite.close()
+
+    expect(result).toEqual({
+      datasetId: 'overture-hk-2026-02-18.0-division',
+      releaseCode: 'overture-hk-2026-02-18.0-division',
+      releaseId,
+      phase: null,
+      status: 'current',
+    })
+  })
+
   test('publishes address and place releases when api field fixtures are unavailable', async () => {
     for (const datasetType of ['address', 'place'] as const) {
       const tempDir = createTempDir()
