@@ -7,35 +7,17 @@ import {
   planUpload,
   requestUpload,
 } from '@repo/core/upload'
-import { inspectParquet } from '@repo/core/parquetInspector'
 
 import {
   getDatasetById,
   getDatasetRecordByReleaseId,
-  updateDatasetStatus,
-  upsertIngestRunStatus,
 } from '@repo/core/db/metaRepository'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { resourceThemes, resourceTypes } from '@repo/core'
 import type {
-  DatasetRecord,
-  DatasetProcessingMessage,
   ParquetInspection,
-  RegionCode,
   RegisterUploadResult,
   SchemaFingerprintResolver,
-  ResourceTheme,
-  ResourceType,
 } from '@repo/core'
-import {
-  enqueueDatasetProcessingPlan,
-  type DatasetProcessingPlanOptions,
-  type DatasetProcessingQueue,
-} from './datasetProcessingPlan'
-export type {
-  DatasetProcessingPlanOptions,
-  DatasetProcessingQueue,
-} from './datasetProcessingPlan'
 
 type HarbourObjectMetadata = {
   customMetadata?: Record<string, string>
@@ -67,7 +49,6 @@ export type SignUploadRequest = {
   fileName: string
   fileSize: number
   force?: boolean
-  processingMode?: 'direct' | 'sql'
   skipSnapshotCleanup?: boolean
   inspection: ParquetInspection
   plan: {
@@ -84,34 +65,7 @@ export type SignUploadRequest = {
 
 export type FinalizeUploadRequest = {
   releaseId: string
-  processingMode?: 'direct' | 'sql'
   skipSnapshotCleanup?: boolean
-}
-
-export type RequeueUploadRequest = {
-  force?: boolean
-  processingMode?: 'direct' | 'sql'
-  releaseId: string
-  skipSnapshotCleanup?: boolean
-}
-
-export type RequeueUploadResult = Omit<DatasetRecord, 'status'> & {
-  rowCount: number
-  status: 'queued'
-}
-
-function resolveShardYear(plan: {
-  shardYear?: string
-  cohortKey?: string
-  sourceVersion?: string
-}) {
-  const shardYear = plan.shardYear?.trim()
-
-  if (shardYear) {
-    return shardYear
-  }
-
-  return (plan.cohortKey ?? plan.sourceVersion ?? '').slice(0, 4)
 }
 
 export type UploadSigningEnv = {
@@ -122,8 +76,7 @@ export type UploadSigningEnv = {
 }
 
 type UploadSessionDependencies = {
-  processingPlanOptions?: DatasetProcessingPlanOptions
-  inspectParquet?: typeof inspectParquet
+  verifyUploadedObject?: boolean
 }
 
 const DEFAULT_CONTENT_TYPE = 'application/octet-stream'
@@ -185,11 +138,9 @@ export async function handleSignUploadRequest(
 export async function handleFinalizeUploadRequest(
   db: HarbourReadableDb & HarbourWritableDb,
   bucket: HarbourObjectBucket,
-  queue: DatasetProcessingQueue,
   request: FinalizeUploadRequest,
-  dependencies: UploadSessionDependencies = {},
+  _dependencies: UploadSessionDependencies = {},
 ): Promise<RegisterUploadResult> {
-  const inspectParquetFn = dependencies.inspectParquet ?? inspectParquet
   const dataset = await getDatasetRecordByReleaseId(db, request.releaseId)
 
   if (!dataset) {
@@ -202,17 +153,27 @@ export async function handleFinalizeUploadRequest(
     )
   }
 
-  const object = await bucket.get(dataset.rawObjectKey)
+  const object = await bucket.head(dataset.rawObjectKey)
 
   if (!object) {
     throw new Error(`Uploaded object not found: ${dataset.rawObjectKey}`)
   }
 
-  const objectBuffer = await object.arrayBuffer()
-  const inspection = await inspectParquetFn(objectBuffer)
+  const requestUploadStats = await getRequestUploadStats(db, dataset.releaseId)
+  const inspection = requestUploadStats?.inspection
+
+  if (!isParquetInspection(inspection)) {
+    throw new Error(
+      `Upload inspection not found for release finalization: ${dataset.releaseCode}`,
+    )
+  }
+
   const fileName = fileNameFromRawObjectKey(dataset.rawObjectKey)
   const resolveSchemaFingerprint = createR2SchemaFingerprintResolver(bucket)
-  const shardYear = await getRequestUploadShardYear(db, dataset.releaseId)
+  const shardYear =
+    typeof requestUploadStats?.shardYear === 'string'
+      ? requestUploadStats.shardYear
+      : undefined
   const planned = await planUpload(
     db,
     {
@@ -245,8 +206,6 @@ export async function handleFinalizeUploadRequest(
     )
   }
 
-  await writeFinalObjectMetadata(bucket, dataset.rawObjectKey, objectBuffer, planned)
-
   const finalized = await finalizeUpload(db, {
     filePath: fileName,
     originalFileName: dataset.originalFileName,
@@ -262,168 +221,13 @@ export async function handleFinalizeUploadRequest(
     resolveSchemaFingerprint,
   })
 
-  const processingMessage = buildDatasetProcessingMessage({
-    ...dataset,
-    datasetId: finalized.datasetId ?? dataset.datasetId,
-    rawObjectKey: finalized.rawObjectKey,
-    releaseCode: finalized.plan.releaseCode,
-    regionCode: finalized.plan.regionCode,
-    shardYear: finalized.plan.shardYear,
-    cohortKey: finalized.plan.cohortKey,
-    source: finalized.plan.source,
-    sourceVersion: finalized.plan.sourceVersion,
-    theme: finalized.plan.theme,
-    type: finalized.plan.type,
-    ...(request.processingMode ? { processingMode: request.processingMode } : {}),
-    ...(request.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
-  })
-
-  await enqueueDatasetProcessingPlan(
-    queue,
-    processingMessage,
-    inspection.rowCount,
-    resolveProcessingPlanOptionsForMessage(
-      processingMessage,
-      dependencies.processingPlanOptions,
-    ),
-  )
-
   return finalized
 }
 
-export async function handleRequeueUploadRequest(
-  db: HarbourReadableDb & HarbourWritableDb,
-  queue: DatasetProcessingQueue,
-  request: RequeueUploadRequest,
-  processingPlanOptions: DatasetProcessingPlanOptions = {},
-): Promise<RequeueUploadResult> {
-  const dataset = await getDatasetRecordByReleaseId(db, request.releaseId)
-
-  if (!dataset) {
-    throw new Error(`Release not found: ${request.releaseId}`)
-  }
-
-  if (!['staged', 'failed'].includes(dataset.status) && !request.force) {
-    throw new Error(
-      `Release ${dataset.releaseCode} is not requeueable. Current status: ${dataset.status}.`,
-    )
-  }
-
-  const processRun = await db
-    .select({
-      status: metaSchema.ingestRuns.status,
-    })
-    .from(metaSchema.ingestRuns)
-    .where(
-      and(
-        eq(metaSchema.ingestRuns.releaseId, dataset.releaseId),
-        eq(metaSchema.ingestRuns.phase, 'processDataset'),
-      ),
-    )
-    .limit(1)
-    .get()
-
-  if (
-    !request.force &&
-    (processRun?.status === 'queued' || processRun?.status === 'running')
-  ) {
-    await updateDatasetStatus(db, dataset.releaseId, 'staged')
-
-    return {
-      ...dataset,
-      rowCount: await getStageDatasetRowCount(db, dataset.releaseId),
-      status: 'queued',
-    }
-  }
-
-  const rowCount = await getStageDatasetRowCount(db, dataset.releaseId)
-  const processingMessage = buildDatasetProcessingMessage({
-    ...dataset,
-    ...(request.processingMode ? { processingMode: request.processingMode } : {}),
-    ...(request.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
-  })
-
-  const queuedAt = new Date().toISOString()
-  await upsertIngestRunStatus(
-    db,
-    dataset.releaseId,
-    'processDataset',
-    'queued',
-    queuedAt,
-    null,
-    null,
-    null,
-  )
-
-  try {
-    await enqueueDatasetProcessingPlan(
-      queue,
-      processingMessage,
-      rowCount,
-      resolveProcessingPlanOptionsForMessage(processingMessage, processingPlanOptions),
-    )
-    await updateDatasetStatus(db, dataset.releaseId, 'staged')
-  } catch (error) {
-    await upsertIngestRunStatus(
-      db,
-      dataset.releaseId,
-      'processDataset',
-      'error',
-      queuedAt,
-      new Date().toISOString(),
-      null,
-      JSON.stringify({
-        message: error instanceof Error ? error.message : String(error),
-      }),
-    )
-    throw error
-  }
-
-  return {
-    ...dataset,
-    rowCount,
-    status: 'queued',
-  }
-}
-
-async function getStageDatasetRowCount(
+async function getRequestUploadStats(
   db: HarbourReadableDb,
   releaseId: string,
-): Promise<number> {
-  const row = await db
-    .select({
-      stats: metaSchema.ingestRuns.stats,
-    })
-    .from(metaSchema.ingestRuns)
-    .where(
-      and(
-        eq(metaSchema.ingestRuns.releaseId, releaseId),
-        eq(metaSchema.ingestRuns.phase, 'stageDataset'),
-      ),
-    )
-    .limit(1)
-    .get()
-
-  if (!row?.stats) {
-    return 0
-  }
-
-  const parsedStats =
-    typeof row.stats === 'string' ? parseIngestRunStats(row.stats) : row.stats
-
-  if (!parsedStats || typeof parsedStats !== 'object' || Array.isArray(parsedStats)) {
-    return 0
-  }
-
-  const rowCount = (parsedStats as Record<string, unknown>).rowCount
-
-  return typeof rowCount === 'number' && Number.isFinite(rowCount) ? rowCount : 0
-}
-
-async function getRequestUploadShardYear(
-  db: HarbourReadableDb,
-  releaseId: string,
-): Promise<string | undefined> {
+): Promise<Record<string, unknown> | null> {
   const row = await db
     .select({
       stats: metaSchema.ingestRuns.stats,
@@ -439,19 +243,17 @@ async function getRequestUploadShardYear(
     .get()
 
   if (!row?.stats) {
-    return undefined
+    return null
   }
 
   const parsedStats =
     typeof row.stats === 'string' ? parseIngestRunStats(row.stats) : row.stats
 
   if (!parsedStats || typeof parsedStats !== 'object' || Array.isArray(parsedStats)) {
-    return undefined
+    return null
   }
 
-  const shardYear = (parsedStats as Record<string, unknown>).shardYear
-
-  return typeof shardYear === 'string' && shardYear.trim() ? shardYear : undefined
+  return parsedStats as Record<string, unknown>
 }
 
 function parseIngestRunStats(value: string) {
@@ -499,114 +301,16 @@ async function createSignedUploadUrl(
   )
 }
 
-function resolveProcessingPlanOptionsForMessage(
-  message: DatasetProcessingMessage,
-  options: DatasetProcessingPlanOptions = {},
-): DatasetProcessingPlanOptions {
-  if (message.type === 'address' && message.processingMode === 'sql') {
-    return {
-      ...options,
-      forceSerialAddressEnqueue: false,
-      useAddressContinuation: true,
-    }
-  }
-
-  return options
-}
-
-function buildDatasetProcessingMessage(
-  dataset: Pick<
-    DatasetRecord,
-    | 'datasetCode'
-    | 'datasetId'
-    | 'rawObjectKey'
-    | 'regionCode'
-    | 'releaseCode'
-    | 'releaseId'
-    | 'cohortKey'
-    | 'source'
-    | 'sourceVersion'
-    | 'theme'
-    | 'type'
-  > & {
-    shardYear?: string
-    skipSnapshotCleanup?: boolean
-    processingMode?: 'direct' | 'sql'
-  },
-): DatasetProcessingMessage {
-  return {
-    datasetId: dataset.datasetId,
-    datasetCode: dataset.datasetCode,
-    releaseId: dataset.releaseId,
-    releaseCode: dataset.releaseCode,
-    rawObjectKey: dataset.rawObjectKey,
-    regionCode: requireRegionCode(dataset.regionCode),
-    shardYear: resolveShardYear({
-      shardYear: dataset.shardYear,
-      cohortKey: dataset.cohortKey,
-      sourceVersion: dataset.sourceVersion,
-    }),
-    cohortKey: dataset.cohortKey,
-    source: dataset.source,
-    sourceVersion: dataset.sourceVersion,
-    theme: requireSupportedTheme(dataset.theme),
-    type: requireSupportedType(dataset.type),
-    ...(dataset.processingMode ? { processingMode: dataset.processingMode } : {}),
-    ...(dataset.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
-  }
-}
-
-function requireRegionCode(value: string): RegionCode {
-  if (value === 'hk' || value === 'mo') {
-    return value
-  }
-
-  throw new Error(`Unsupported regionCode for dataset processing: ${value}`)
-}
-
-function requireSupportedTheme(value: string): ResourceTheme {
-  if ((resourceThemes as readonly string[]).includes(value)) {
-    return value as ResourceTheme
-  }
-
-  throw new Error(`Unsupported dataset theme for processing: ${value}`)
-}
-
-function requireSupportedType(value: string): ResourceType {
-  if ((resourceTypes as readonly string[]).includes(value)) {
-    return value as ResourceType
-  }
-
-  throw new Error(`Unsupported dataset type for processing: ${value}`)
-}
-
-async function writeFinalObjectMetadata(
-  bucket: HarbourObjectBucket,
-  rawObjectKey: string,
-  objectBuffer: ArrayBuffer,
-  planned: Awaited<ReturnType<typeof planUpload>>,
-) {
-  await bucket.put(rawObjectKey, objectBuffer, {
-    httpMetadata: {
-      contentType: DEFAULT_CONTENT_TYPE,
-    },
-    customMetadata: {
-      datasetCode: planned.plan.datasetCode,
-      fileName: planned.plan.fileName,
-      originalFileName: planned.plan.originalFileName,
-      releaseCode: planned.plan.releaseCode,
-      regionCode: planned.plan.regionCode,
-      rowCount: String(planned.plan.rowCount),
-      schemaFingerprint: planned.plan.schemaFingerprint,
-      cohortKey: planned.plan.cohortKey,
-      source: planned.plan.source,
-      sourceVersion: planned.plan.sourceVersion,
-      theme: planned.plan.theme,
-      type: planned.plan.type,
-    },
-  })
-}
-
 function fileNameFromRawObjectKey(rawObjectKey: string) {
   return rawObjectKey.split('/').at(-1) ?? rawObjectKey
+}
+
+function isParquetInspection(value: unknown): value is ParquetInspection {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    typeof (value as ParquetInspection).rowCount === 'number' &&
+    Array.isArray((value as ParquetInspection).schema)
+  )
 }

@@ -5,17 +5,16 @@ import { join, resolve } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 
-import type { DatasetProcessingMessage, ParquetInspection } from '@repo/core'
+import type { ParquetInspection } from '@repo/core'
 import { requestUpload } from '@repo/core/upload'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
 import {
   loadMigrationSql,
   seedFixtureCatalog,
 } from '../../../../../libs/core/src/testing/metaFixtures'
-import type { DatasetProcessingQueue } from './ingest'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
-const migrationSql = loadMigrationSql(migrationsDir)
+const migrationSql = loadMigrationSql(migrationsDir, ['meta'])
 const tempDirs: string[] = []
 const fixtureInspection: ParquetInspection = {
   rowCount: 3,
@@ -128,18 +127,12 @@ afterEach(() => {
 })
 
 describe('direct upload flow', () => {
-  test('registers the dataset and queues downstream processing', async () => {
+  test('registers the dataset without queueing downstream processing', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const bucket = new FakeR2Bucket()
-    const queuedMessages: Array<Record<string, string>> = []
-    const queue: DatasetProcessingQueue = {
-      async send(message) {
-        queuedMessages.push(message as unknown as Record<string, string>)
-      },
-    }
     const file = new File(
       [new Uint8Array([0x50, 0x41, 0x52, 0x31])],
       'overture-hk-division.parquet',
@@ -154,7 +147,7 @@ describe('direct upload flow', () => {
     formData.set('cohortKey', '2026-05')
     formData.set('sourceVersion', '2026-05-20.0')
 
-    const result = await handleUploadRequest(db, bucket, queue, formData)
+    const result = await handleUploadRequest(db, bucket, formData)
 
     if (!result.releaseId) {
       throw new Error(
@@ -174,40 +167,18 @@ describe('direct upload flow', () => {
     sqlite.close()
 
     expect(result.plan.datasetId).toBe('overture-hk-2026-05-20.0-division')
-    expect(queuedMessages).toEqual([
-      {
-        datasetId: 'overture-hk-division',
-        datasetCode: 'ds-hk-overture-division',
-        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
-        releaseCode: 'overture-hk-2026-05-20.0-division',
-        releaseId: result.releaseId,
-        regionCode: 'hk',
-        shardYear: '2026',
-        cohortKey: '2026-05',
-        source: 'overture',
-        sourceVersion: '2026-05-20.0',
-        theme: 'divisions',
-        type: 'division',
-      },
-    ])
     expect(ingestRuns.map(run => [run.phase, run.status])).toEqual([
       ['registerDataset', 'completed'],
       ['stageDataset', 'completed'],
     ])
   })
 
-  test('registers address uploads as preplanned row-range jobs', async () => {
+  test('registers address uploads without preplanned row-range jobs', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-address.sqlite')
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const bucket = new FakeR2Bucket()
-    const queuedMessages: DatasetProcessingMessage[] = []
-    const queue: DatasetProcessingQueue = {
-      async send(message) {
-        queuedMessages.push(message as DatasetProcessingMessage)
-      },
-    }
     const file = new File(
       [new Uint8Array([0x50, 0x41, 0x52, 0x31])],
       'overture-hk-address.parquet',
@@ -225,31 +196,11 @@ describe('direct upload flow', () => {
     formData.set('theme', 'addresses')
     formData.set('type', 'address')
 
-    const result = await handleUploadRequest(db, bucket, queue, formData)
+    const result = await handleUploadRequest(db, bucket, formData)
 
     sqlite.close()
 
     expect(result.plan.datasetId).toBe('overture-hk-2026-05-20.0-address')
-    expect(queuedMessages).toHaveLength(3)
-    expect(queuedMessages.map(message => [message.rowStart, message.rowEnd])).toEqual([
-      [0, 1024],
-      [1024, 2048],
-      [2048, 2050],
-    ])
-    expect(
-      new Set(queuedMessages.map(message => message.processingRunStartedAt)).size,
-    ).toBe(1)
-    for (const message of queuedMessages) {
-      expect(message).toEqual(
-        expect.objectContaining({
-          addressStage: 'normalize',
-          chunkSize: 1024,
-          preplannedAddressChunks: true,
-          totalRows: 2050,
-          type: 'address',
-        }),
-      )
-    }
   })
 
   test('force registers over an interrupted uploading session', async () => {
@@ -258,12 +209,6 @@ describe('direct upload flow', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const bucket = new FakeR2Bucket()
-    const queuedMessages: Array<Record<string, string>> = []
-    const queue: DatasetProcessingQueue = {
-      async send(message) {
-        queuedMessages.push(message as unknown as Record<string, string>)
-      },
-    }
 
     const interrupted = await requestUpload(db, {
       filePath: 'overture-hk-division.parquet',
@@ -287,7 +232,7 @@ describe('direct upload flow', () => {
     formData.set('cohortKey', '2026-05')
     formData.set('sourceVersion', '2026-05-20.0')
 
-    const result = await handleUploadRequest(db, bucket, queue, formData)
+    const result = await handleUploadRequest(db, bucket, formData)
     const dataset = sqlite
       .query('SELECT id, status FROM releases WHERE code = ?')
       .get('overture-hk-2026-05-20.0-division') as {
@@ -302,6 +247,5 @@ describe('direct upload flow', () => {
       id: interrupted.releaseId,
       status: 'staged',
     })
-    expect(queuedMessages).toHaveLength(1)
   })
 })
