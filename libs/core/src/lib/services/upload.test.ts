@@ -26,6 +26,7 @@ import {
 } from './upload'
 import { planUpload, prepareUpload, registerUpload } from './uploadLocal'
 import { createLocalHarbourDb } from '../../testing/localDb'
+import { buildDeterministicReleaseId } from '../db/metaRepository'
 
 import type { ParquetInspection } from '../../types'
 
@@ -336,6 +337,37 @@ describe('upload', () => {
     expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
     expect(dataset?.originalFileName).toBe('hk-division-2026-05.parquet')
     expect(ingestRunCount.count).toBe(2)
+  })
+
+  test('uses a deterministic release id for the same release code', async () => {
+    const tempDir = createTempDir()
+    const fixtureFile = createFixturePath(tempDir)
+
+    async function registerFreshUpload() {
+      const dbPath = join(createTempDir(), 'harbour.sqlite')
+
+      initDb(dbPath).close()
+      const sqlite = new Database(dbPath)
+      const db = createLocalHarbourDb(sqlite)
+      const result = await registerUpload(db, {
+        filePath: fixtureFile,
+        cohortKey: '2026-05',
+        source: 'overture',
+        sourceVersion: '2026-05-20.0',
+        inspection: fixtureInspection,
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+      })
+
+      sqlite.close()
+      return result
+    }
+
+    const first = await registerFreshUpload()
+    const second = await registerFreshUpload()
+    const expectedReleaseId = await buildDeterministicReleaseId(first.plan.releaseCode)
+
+    expect(first.releaseId).toBe(expectedReleaseId)
+    expect(second.releaseId).toBe(expectedReleaseId)
   })
 
   test('rejects non-chronological uploads for the same region/type', async () => {
@@ -801,6 +833,7 @@ describe('upload', () => {
           rowCount: fixtureInspection.rowCount,
           schemaFingerprint: createSchemaFingerprint(fixtureInspection),
           shardYear: null,
+          inspection: fixtureInspection,
         }),
         status: 'completed',
       },
