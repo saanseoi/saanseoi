@@ -21,12 +21,66 @@ export type LatestReleaseRollbackSql = {
 export function buildLatestReleaseRollbackSql(
   input: LatestReleaseRollbackInput,
 ): LatestReleaseRollbackSql {
+  const plan = resolveRollbackPlan(input)
+
   return {
-    current: buildCurrentRollbackSql(input),
-    history: buildHistoryRollbackSql(input),
+    current: buildCurrentRollbackSql(input, plan),
+    history: buildHistoryRollbackSql(input, plan),
     meta: buildMetaRollbackSql(input),
-    source: buildSourceRollbackSql(input),
+    source: buildSourceRollbackSql(input, plan),
   }
+}
+
+type RollbackCurrentTable = {
+  table: string
+}
+
+type RollbackHistoryTable = {
+  clearsCohortValidity: boolean
+  table: string
+}
+
+type RollbackPlan = {
+  currentTables: RollbackCurrentTable[]
+  historyTables: RollbackHistoryTable[]
+  sourceTables: string[]
+}
+
+type RollbackResourcePlan = {
+  currentTables: RollbackCurrentTable[]
+  historyTables: RollbackHistoryTable[]
+  sources: Record<string, string[]>
+}
+
+const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
+  division: {
+    currentTables: [{ table: 'divisionsI18n' }, { table: 'divisions' }],
+    historyTables: [
+      { table: 'divisionsI18n', clearsCohortValidity: false },
+      { table: 'divisions', clearsCohortValidity: true },
+    ],
+    sources: {
+      overture: ['overtureDivisionI18n', 'overtureDivisions'],
+    },
+  },
+  address: {
+    currentTables: [
+      { table: 'address3dI18n' },
+      { table: 'address3d' },
+      { table: 'address2dI18n' },
+      { table: 'address2d' },
+    ],
+    historyTables: [
+      { table: 'address3dI18n', clearsCohortValidity: false },
+      { table: 'address3d', clearsCohortValidity: true },
+      { table: 'address2dI18n', clearsCohortValidity: false },
+      { table: 'address2d', clearsCohortValidity: true },
+    ],
+    sources: {
+      overture: ['overtureAddresses2d'],
+      'hkgov-als': ['hkgovAlsAddress2dI18n', 'hkgovAlsAddresses2d'],
+    },
+  },
 }
 
 function buildMetaRollbackSql(input: LatestReleaseRollbackInput) {
@@ -75,54 +129,31 @@ function buildMetaRollbackSql(input: LatestReleaseRollbackInput) {
   return joinStatements(statements)
 }
 
-function buildCurrentRollbackSql(input: LatestReleaseRollbackInput) {
-  if (input.type === 'division') {
-    return joinStatements([
-      `DELETE FROM divisionsI18n WHERE snapshotId = ${literal(input.snapshotId)};`,
-      `DELETE FROM divisions WHERE snapshotId = ${literal(input.snapshotId)};`,
-    ])
-  }
-
-  if (input.type === 'address') {
-    return joinStatements([
-      `DELETE FROM address3dI18n WHERE snapshotId = ${literal(input.snapshotId)};`,
-      `DELETE FROM address3d WHERE snapshotId = ${literal(input.snapshotId)};`,
-      `DELETE FROM address2dI18n WHERE snapshotId = ${literal(input.snapshotId)};`,
-      `DELETE FROM address2d WHERE snapshotId = ${literal(input.snapshotId)};`,
-    ])
-  }
-
-  throw new Error(`Rollback is not implemented for current ${input.type} releases.`)
+function buildCurrentRollbackSql(
+  input: LatestReleaseRollbackInput,
+  plan: RollbackPlan,
+) {
+  return joinStatements(
+    plan.currentTables.map(
+      ({ table }) =>
+        `DELETE FROM ${table} WHERE snapshotId = ${literal(input.snapshotId)};`,
+    ),
+  )
 }
 
-function buildHistoryRollbackSql(input: LatestReleaseRollbackInput) {
+function buildHistoryRollbackSql(
+  input: LatestReleaseRollbackInput,
+  plan: RollbackPlan,
+) {
   const now = sqlExpression("strftime('%Y-%m-%dT%H:%M:%fZ', 'now')")
-  const tables =
-    input.type === 'division'
-      ? [
-          { table: 'divisionsI18n', idColumn: 'divisionId' },
-          { table: 'divisions', idColumn: 'id' },
-        ]
-      : input.type === 'address'
-        ? [
-            { table: 'address3dI18n', idColumn: 'address3dId' },
-            { table: 'address3d', idColumn: 'id' },
-            { table: 'address2dI18n', idColumn: 'addressId' },
-            { table: 'address2d', idColumn: 'id' },
-          ]
-        : []
-
-  if (tables.length === 0) {
-    throw new Error(`Rollback is not implemented for history ${input.type} releases.`)
-  }
 
   return joinStatements(
-    tables.flatMap(({ table }) => [
+    plan.historyTables.flatMap(({ table, clearsCohortValidity }) => [
       [
         `UPDATE ${table}`,
         'SET isCurrent = 1,',
         '  validToSnapshotId = NULL,',
-        ...(table.endsWith('I18n') ? [] : ['  validToCohortKey = NULL,']),
+        ...(clearsCohortValidity ? ['  validToCohortKey = NULL,'] : []),
         `  updatedAt = ${now}`,
         'WHERE isCurrent = 0',
         `  AND validToSnapshotId = ${literal(input.snapshotId)};`,
@@ -132,12 +163,11 @@ function buildHistoryRollbackSql(input: LatestReleaseRollbackInput) {
   )
 }
 
-function buildSourceRollbackSql(input: LatestReleaseRollbackInput) {
+function buildSourceRollbackSql(input: LatestReleaseRollbackInput, plan: RollbackPlan) {
   const now = sqlExpression("strftime('%Y-%m-%dT%H:%M:%fZ', 'now')")
-  const tables = resolveSourceTables(input)
 
   return joinStatements(
-    tables.flatMap(table => [
+    plan.sourceTables.flatMap(table => [
       [
         `UPDATE ${table}`,
         'SET isCurrent = 1,',
@@ -162,17 +192,21 @@ function buildSourceRollbackSql(input: LatestReleaseRollbackInput) {
   )
 }
 
-function resolveSourceTables(input: LatestReleaseRollbackInput) {
-  if (input.source === 'overture' && input.type === 'division') {
-    return ['overtureDivisionI18n', 'overtureDivisions']
+function resolveRollbackPlan(input: LatestReleaseRollbackInput): RollbackPlan {
+  const resourcePlan = rollbackPlans[input.type]
+
+  if (!resourcePlan) {
+    throw new Error(`Rollback is not implemented for ${input.type} releases.`)
   }
 
-  if (input.source === 'overture' && input.type === 'address') {
-    return ['overtureAddresses2d']
-  }
+  const sourceTables = resourcePlan.sources[input.source]
 
-  if (input.source === 'hkgov-als' && input.type === 'address') {
-    return ['hkgovAlsAddress2dI18n', 'hkgovAlsAddresses2d']
+  if (sourceTables) {
+    return {
+      currentTables: resourcePlan.currentTables,
+      historyTables: resourcePlan.historyTables,
+      sourceTables,
+    }
   }
 
   throw new Error(
