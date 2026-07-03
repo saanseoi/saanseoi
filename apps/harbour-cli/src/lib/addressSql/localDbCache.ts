@@ -98,7 +98,6 @@ export type LocalDbCacheProgressEvent = {
     | 'check-cache'
     | 'export-binding'
     | 'reuse-cache'
-    | 'migrate-binding'
     | 'mirror-table'
     | 'copy-binding'
     | 'validate-binding'
@@ -652,17 +651,18 @@ async function refreshRemoteCacheTables(
       )
 
       if (tables.length === 0) {
-        const persistRoot = resolve(workDir, 'persist', targetRecord.bindingName)
-
-        await mkdir(persistRoot, { recursive: true })
         await options.onProgress?.({
-          action: 'migrate-binding',
+          action: 'export-binding',
           bindingName: targetRecord.bindingName,
           current: currentUnit,
           target,
           total: options.totalUnits,
         })
-        await migrateTargetCacheDatabase(targetRecord, target, persistRoot)
+        const dumpPath = resolve(workDir, `${targetRecord.bindingName}.sql`)
+        const refreshedPath = resolve(workDir, `${targetRecord.bindingName}.sqlite`)
+
+        await exportRemoteDatabase(targetRecord, target, dumpPath)
+        await importDatabaseDumpsToSqlite([dumpPath], refreshedPath)
         currentUnit += 1
 
         await options.onProgress?.({
@@ -672,14 +672,8 @@ async function refreshRemoteCacheTables(
           target,
           total: options.totalUnits,
         })
-        const sourcePath = await resolveMirroredSqlitePath(
-          persistRoot,
-          targetRecord.bindingName,
-          options.cacheTableProfile,
-        )
-
-        await checkpointSqliteDatabase(sourcePath)
-        await copyFile(sourcePath, destinationPath)
+        await checkpointSqliteDatabase(refreshedPath)
+        await copyFile(refreshedPath, destinationPath)
         currentUnit += 1
         continue
       }
@@ -1129,25 +1123,6 @@ async function checkpointSqliteDatabase(filePath: string) {
   } finally {
     sqlite.close()
   }
-}
-
-async function migrateTargetCacheDatabase(
-  targetRecord: D1TargetRecord,
-  target: 'preview' | 'production',
-  persistRoot: string,
-) {
-  await runMirrorCommand([
-    'bash',
-    'libs/db/scripts/run-d1-migrations.sh',
-    targetRecord.bindingName,
-    '--config',
-    WRANGLER_CONFIG_PATH,
-    '--env',
-    target,
-    '--local',
-    '--persist-to',
-    persistRoot,
-  ])
 }
 
 async function exportRemoteDatabase(

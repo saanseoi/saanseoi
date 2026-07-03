@@ -238,7 +238,7 @@ export async function processLocalDivisionSqlUpload(
           previewPlan.cohortKey,
         ),
         refreshRemoteTables: false,
-        remoteCacheScopeKey: target.remote ? releaseCode : undefined,
+        remoteCacheScopeKey: target.remote ? releaseId : undefined,
       },
     )
   } catch (error) {
@@ -785,8 +785,6 @@ function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {
         : `${event.bindingName}.export`
     case 'reuse-cache':
       return `${event.target}.reuse`
-    case 'migrate-binding':
-      return `${event.bindingName}.schema`
     case 'mirror-table':
       return event.tableName
         ? `${event.bindingName}.${event.tableName}`

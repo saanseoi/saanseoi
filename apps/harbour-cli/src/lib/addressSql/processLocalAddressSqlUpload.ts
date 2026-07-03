@@ -514,8 +514,6 @@ function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {
         : `${event.bindingName}.export`
     case 'reuse-cache':
       return `${event.target}.reuse`
-    case 'migrate-binding':
-      return `${event.bindingName}.schema`
     case 'mirror-table':
       return event.tableName
         ? `${event.bindingName}.${event.tableName}`
