@@ -1985,7 +1985,55 @@ export async function resolveActiveSnapshotForType(
   db: HarbourReadableDb,
   type: ResourceType,
   resourceType: ResourceType,
+  options: {
+    regionCode?: RegionCode
+  } = {},
 ) {
+  if (options.regionCode) {
+    return (
+      (await db
+        .select({
+          snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+          apiReleaseSet: metaApiReleaseSets.code,
+          schemaVersion: metaApiReleaseSets.schemaVersion,
+          rulesetVersion: metaApiReleaseSets.rulesetVersion,
+        })
+        .from(metaApiReleaseSetSnapshots)
+        .innerJoin(
+          metaApiReleaseSets,
+          eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
+        )
+        .innerJoin(
+          metaApiVersions,
+          eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+        )
+        .innerJoin(
+          metaSnapshots,
+          eq(metaApiReleaseSetSnapshots.snapshotId, metaSnapshots.id),
+        )
+        .innerJoin(
+          metaSnapshotSources,
+          eq(metaSnapshotSources.snapshotId, metaSnapshots.id),
+        )
+        .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+        .where(
+          and(
+            eq(metaApiVersions.code, getApiVersionCodeForType(type)),
+            eq(metaApiReleaseSets.status, 'current'),
+            eq(metaSnapshots.resourceType, resourceType),
+            eq(metaSnapshotSources.role, 'primary'),
+            eq(metaDatasets.regionCode, options.regionCode),
+          ),
+        )
+        .orderBy(
+          desc(metaApiReleaseSets.publishedAt),
+          desc(metaApiReleaseSets.createdAt),
+        )
+        .limit(1)
+        .get()) ?? null
+    )
+  }
+
   const activeReleaseSet = await resolveActiveReleaseSetForType(db, type)
 
   if (!activeReleaseSet) {
