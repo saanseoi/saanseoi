@@ -154,6 +154,36 @@ export const metaApiReleaseSets = sqliteTable(
   ],
 )
 
+export const metaPublishedDataJournal = sqliteTable(
+  'publishedDataJournal',
+  {
+    id: primaryUuid('id'),
+    releaseId: text('releaseId')
+      .notNull()
+      .references(() => metaReleases.id, { onDelete: 'restrict' }),
+    relatedReleaseId: text('relatedReleaseId').references(() => metaReleases.id, {
+      onDelete: 'set null',
+    }),
+    snapshotId: text('snapshotId').references(() => metaSnapshots.id, {
+      onDelete: 'set null',
+    }),
+    apiReleaseSetId: text('apiReleaseSetId').references(() => metaApiReleaseSets.id, {
+      onDelete: 'set null',
+    }),
+    action: text('action').notNull(),
+    statusFrom: text('statusFrom'),
+    statusTo: text('statusTo'),
+    reason: text('reason'),
+    metadataJson: jsonText('metadataJson'),
+    createdAt: timestamps.createdAt,
+  },
+  table => [
+    index('publishedDataJournal_releaseId_idx').on(table.releaseId),
+    index('publishedDataJournal_relatedReleaseId_idx').on(table.relatedReleaseId),
+    index('publishedDataJournal_action_idx').on(table.action),
+  ],
+)
+
 export const metaSnapshotAssembly = sqliteTable(
   'snapshotAssembly',
   {
