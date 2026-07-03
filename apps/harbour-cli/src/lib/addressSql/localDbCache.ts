@@ -134,6 +134,7 @@ const WRANGLER_CONFIG_PATH = resolve(REPO_ROOT, 'apps/harbour-api/wrangler.jsonc
 const LOCAL_D1_PERSIST_ROOT = resolve(REPO_ROOT, '.local/d1/dev')
 const CACHE_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/db-cache')
 const DB_CACHE_MANIFEST_VERSION = 3
+const REMOTE_CACHE_BINDING_CONCURRENCY = 4
 const WRANGLER_CONFIG_HOME = resolve(REPO_ROOT, '.local/wrangler')
 const WRANGLER_LOG_PATH = resolve(WRANGLER_CONFIG_HOME, 'logs')
 
@@ -657,84 +658,88 @@ async function refreshRemoteCacheTables(
   await mkdir(workDir, { recursive: true })
 
   try {
-    for (const targetRecord of targets) {
-      const destinationPath = refreshedFiles[targetRecord.bindingName]
+    await mapWithConcurrency(
+      targets,
+      REMOTE_CACHE_BINDING_CONCURRENCY,
+      async targetRecord => {
+        const destinationPath = refreshedFiles[targetRecord.bindingName]
 
-      if (!destinationPath) {
-        throw new Error(`Cache manifest is missing ${targetRecord.bindingName}.`)
-      }
+        if (!destinationPath) {
+          throw new Error(`Cache manifest is missing ${targetRecord.bindingName}.`)
+        }
 
-      const tables = resolveMirrorTablesForBinding(
-        targetRecord.bindingName,
-        options.cacheTableProfile,
-      )
+        const tables = resolveMirrorTablesForBinding(
+          targetRecord.bindingName,
+          options.cacheTableProfile,
+        )
 
-      if (tables.length === 0) {
-        await options.onProgress?.({
-          action: 'export-binding',
-          bindingName: targetRecord.bindingName,
-          current: currentUnit,
-          target,
-          total: options.totalUnits,
-        })
-        const dumpPath = resolve(workDir, `${targetRecord.bindingName}.sql`)
-        const refreshedPath = resolve(workDir, `${targetRecord.bindingName}.sqlite`)
-
-        await exportRemoteDatabase(targetRecord, target, dumpPath)
-        await importDatabaseDumpsToSqlite([dumpPath], refreshedPath)
-        currentUnit += 1
-
-        await options.onProgress?.({
-          action: 'copy-binding',
-          bindingName: targetRecord.bindingName,
-          current: currentUnit,
-          target,
-          total: options.totalUnits,
-        })
-        await checkpointSqliteDatabase(refreshedPath)
-        await copyFile(refreshedPath, destinationPath)
-        currentUnit += 1
-        continue
-      }
-
-      const tableImports = await buildRemoteTableImports(
-        targetRecord,
-        target,
-        tables,
-        workDir,
-      )
-
-      await replaceCachedTableRows(
-        destinationPath,
-        targetRecord.bindingName,
-        tableImports,
-        async tableImport => {
+        if (tables.length === 0) {
           await options.onProgress?.({
-            action: 'mirror-table',
+            action: 'export-binding',
             bindingName: targetRecord.bindingName,
             current: currentUnit,
-            tableName: tableImport.tableName,
             target,
             total: options.totalUnits,
           })
-          currentUnit += 1
-        },
-      )
+          const dumpPath = resolve(workDir, `${targetRecord.bindingName}.sql`)
+          const refreshedPath = resolve(workDir, `${targetRecord.bindingName}.sqlite`)
 
-      await options.onProgress?.({
-        action: 'validate-binding',
-        bindingName: targetRecord.bindingName,
-        current: currentUnit,
-        target,
-        total: options.totalUnits,
-      })
-      await assertCachedDatabaseHasExpectedTables(
-        destinationPath,
-        targetRecord.bindingName,
-        options.cacheTableProfile,
-      )
-      currentUnit += 1
-    }
+          await exportRemoteDatabase(targetRecord, target, dumpPath)
+          await importDatabaseDumpsToSqlite([dumpPath], refreshedPath)
+          currentUnit += 1
+
+          await options.onProgress?.({
+            action: 'copy-binding',
+            bindingName: targetRecord.bindingName,
+            current: currentUnit,
+            target,
+            total: options.totalUnits,
+          })
+          await checkpointSqliteDatabase(refreshedPath)
+          await copyFile(refreshedPath, destinationPath)
+          currentUnit += 1
+          return
+        }
+
+        const tableImports = await buildRemoteTableImports(
+          targetRecord,
+          target,
+          tables,
+          workDir,
+        )
+
+        await replaceCachedTableRows(
+          destinationPath,
+          targetRecord.bindingName,
+          tableImports,
+          async tableImport => {
+            await options.onProgress?.({
+              action: 'mirror-table',
+              bindingName: targetRecord.bindingName,
+              current: currentUnit,
+              tableName: tableImport.tableName,
+              target,
+              total: options.totalUnits,
+            })
+            currentUnit += 1
+          },
+        )
+
+        await options.onProgress?.({
+          action: 'validate-binding',
+          bindingName: targetRecord.bindingName,
+          current: currentUnit,
+          target,
+          total: options.totalUnits,
+        })
+        await assertCachedDatabaseHasExpectedTables(
+          destinationPath,
+          targetRecord.bindingName,
+          options.cacheTableProfile,
+        )
+        currentUnit += 1
+      },
+    )
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
 
@@ -811,71 +816,75 @@ async function mirrorRemoteTargetToLocal(
   await mkdir(workDir, { recursive: true })
 
   try {
-    for (const targetRecord of targets) {
-      const tables = resolveMirrorTablesForBinding(
-        targetRecord.bindingName,
-        options.cacheTableProfile,
-      )
-      const dumpPaths: string[] = []
+    await mapWithConcurrency(
+      targets,
+      REMOTE_CACHE_BINDING_CONCURRENCY,
+      async targetRecord => {
+        const tables = resolveMirrorTablesForBinding(
+          targetRecord.bindingName,
+          options.cacheTableProfile,
+        )
+        const dumpPaths: string[] = []
 
-      if (tables.length === 0) {
+        if (tables.length === 0) {
+          await options.onProgress?.({
+            action: 'export-binding',
+            bindingName: targetRecord.bindingName,
+            current: currentUnit,
+            target,
+            total: options.totalUnits,
+          })
+          const dumpPath = resolve(workDir, `${targetRecord.bindingName}.sql`)
+          await exportRemoteDatabase(targetRecord, target, dumpPath)
+          dumpPaths.push(dumpPath)
+          currentUnit += 1
+        } else {
+          for (const tableName of tables) {
+            await options.onProgress?.({
+              action: 'export-binding',
+              bindingName: targetRecord.bindingName,
+              current: currentUnit,
+              tableName,
+              target,
+              total: options.totalUnits,
+            })
+            const dumpPath = resolve(
+              workDir,
+              `${targetRecord.bindingName}-${tableName}.sql`,
+            )
+            await exportRemoteTable(targetRecord, target, tableName, dumpPath)
+            dumpPaths.push(dumpPath)
+            currentUnit += 1
+          }
+        }
+
         await options.onProgress?.({
-          action: 'export-binding',
+          action: 'copy-binding',
           bindingName: targetRecord.bindingName,
           current: currentUnit,
           target,
           total: options.totalUnits,
         })
-        const dumpPath = resolve(workDir, `${targetRecord.bindingName}.sql`)
-        await exportRemoteDatabase(targetRecord, target, dumpPath)
-        dumpPaths.push(dumpPath)
+        const destinationPath = resolve(cacheDir, `${targetRecord.bindingName}.sqlite`)
+        await importDatabaseDumpsToSqlite(dumpPaths, destinationPath)
         currentUnit += 1
-      } else {
-        for (const tableName of tables) {
-          await options.onProgress?.({
-            action: 'export-binding',
-            bindingName: targetRecord.bindingName,
-            current: currentUnit,
-            tableName,
-            target,
-            total: options.totalUnits,
-          })
-          const dumpPath = resolve(
-            workDir,
-            `${targetRecord.bindingName}-${tableName}.sql`,
-          )
-          await exportRemoteTable(targetRecord, target, tableName, dumpPath)
-          dumpPaths.push(dumpPath)
-          currentUnit += 1
-        }
-      }
 
-      await options.onProgress?.({
-        action: 'copy-binding',
-        bindingName: targetRecord.bindingName,
-        current: currentUnit,
-        target,
-        total: options.totalUnits,
-      })
-      const destinationPath = resolve(cacheDir, `${targetRecord.bindingName}.sqlite`)
-      await importDatabaseDumpsToSqlite(dumpPaths, destinationPath)
-      currentUnit += 1
-
-      await options.onProgress?.({
-        action: 'validate-binding',
-        bindingName: targetRecord.bindingName,
-        current: currentUnit,
-        target,
-        total: options.totalUnits,
-      })
-      await assertCachedDatabaseHasExpectedTables(
-        destinationPath,
-        targetRecord.bindingName,
-        options.cacheTableProfile,
-      )
-      currentUnit += 1
-      files[targetRecord.bindingName] = destinationPath
-    }
+        await options.onProgress?.({
+          action: 'validate-binding',
+          bindingName: targetRecord.bindingName,
+          current: currentUnit,
+          target,
+          total: options.totalUnits,
+        })
+        await assertCachedDatabaseHasExpectedTables(
+          destinationPath,
+          targetRecord.bindingName,
+          options.cacheTableProfile,
+        )
+        currentUnit += 1
+        files[targetRecord.bindingName] = destinationPath
+      },
+    )
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
 
@@ -924,14 +933,7 @@ function resolveMirrorTablesForBinding(
       return ['divisions', 'divisionsI18n']
     }
 
-    return [
-      'divisions',
-      'divisionsI18n',
-      'streets',
-      'streetsI18n',
-      'address2d',
-      'address2dI18n',
-    ]
+    return ['divisions', 'divisionsI18n', 'address2d', 'address2dI18n']
   }
 
   if (/^DB_HISTORY_[A-Z]{2}_\d{4}$/.test(bindingName)) {
@@ -1301,6 +1303,28 @@ async function runMirrorCommand(command: string[]) {
   if (exitCode !== 0) {
     throw new Error((stderr || stdout || command.join(' ')).trim())
   }
+}
+
+async function mapWithConcurrency<T>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T) => Promise<void>,
+) {
+  const limit = Math.max(1, Math.floor(concurrency))
+  let nextIndex = 0
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (nextIndex < items.length) {
+        const item = items[nextIndex]
+        nextIndex += 1
+
+        if (item !== undefined) {
+          await worker(item)
+        }
+      }
+    }),
+  )
 }
 
 function resolveLocalD1SqlitePath(localDatabaseId: string) {
