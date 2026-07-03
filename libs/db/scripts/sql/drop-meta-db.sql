@@ -27,6 +27,7 @@ DROP TABLE IF EXISTS `datasetI18n`;
 DROP TABLE IF EXISTS `datasets`;
 DROP TABLE IF EXISTS `licenses`;
 DROP TABLE IF EXISTS `publisherI18n`;
+DROP TABLE IF EXISTS `publishedDataJournal`;
 DROP TABLE IF EXISTS `publishers`;
 DROP TABLE IF EXISTS `newsletterSubscription`;
 DROP TABLE IF EXISTS `verification`;
