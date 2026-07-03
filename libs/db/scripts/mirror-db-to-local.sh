@@ -22,10 +22,10 @@ case "$target" in
     ;;
 esac
 
-bun run --cwd "$repo_root" "$dump_script"
+bun run --cwd "$repo_root" "$dump_script" all
 bun run --cwd "$repo_root" db:reset:local
 bun run --cwd "$repo_root" db:migration:run:local
-bun run --cwd "$repo_root" db:import:local
+bash "$repo_root/libs/db/scripts/import-local-db.sh" "$repo_root/.local/d1/dumps/$target" all
 bun run --cwd "$repo_root" db:rebuild-fts:local
 
 echo "Mirrored $target database into local D1 at .local/d1/dev"
