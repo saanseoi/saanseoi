@@ -10,6 +10,7 @@ import {
   getLatestDatasetForRegionSourceType,
   listCurrentSnapshotCleanupCandidates,
   publishReleaseArtifacts,
+  resolveActiveSnapshotForType,
   resolveLatestSnapshotForResourceTypeExcludingId,
   resolveShardForTypeRegionYear,
 } from './metaRepository'
@@ -144,6 +145,64 @@ function createCleanupCandidatesDb() {
       apiReleaseSetId TEXT NOT NULL,
       snapshotId TEXT NOT NULL,
       PRIMARY KEY (apiReleaseSetId, snapshotId)
+    );
+  `)
+
+  return {
+    sqlite,
+    db: createLocalHarbourDb(sqlite),
+  }
+}
+
+function createActiveSnapshotLookupDb() {
+  const sqlite = new SQLiteDatabase(':memory:')
+
+  sqlite.exec(`
+    CREATE TABLE apiVersions (
+      id TEXT PRIMARY KEY,
+      code TEXT NOT NULL
+    );
+
+    CREATE TABLE apiReleaseSets (
+      id TEXT PRIMARY KEY,
+      apiVersionId TEXT NOT NULL,
+      code TEXT NOT NULL,
+      schemaVersion TEXT NOT NULL,
+      rulesetVersion TEXT NOT NULL,
+      status TEXT NOT NULL,
+      publishedAt INTEGER,
+      createdAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE snapshots (
+      id TEXT PRIMARY KEY,
+      resourceType TEXT NOT NULL,
+      code TEXT NOT NULL
+    );
+
+    CREATE TABLE apiReleaseSetSnapshots (
+      apiReleaseSetId TEXT NOT NULL,
+      snapshotId TEXT NOT NULL,
+      PRIMARY KEY (apiReleaseSetId, snapshotId)
+    );
+
+    CREATE TABLE publishers (
+      id TEXT PRIMARY KEY,
+      code TEXT NOT NULL
+    );
+
+    CREATE TABLE datasets (
+      id TEXT PRIMARY KEY,
+      publisherId TEXT NOT NULL,
+      code TEXT NOT NULL,
+      regionCode TEXT NOT NULL
+    );
+
+    CREATE TABLE snapshotSources (
+      snapshotId TEXT NOT NULL,
+      datasetId TEXT NOT NULL,
+      sourceReleaseId TEXT NOT NULL,
+      role TEXT NOT NULL
     );
   `)
 
@@ -644,6 +703,79 @@ describe('listCurrentSnapshotCleanupCandidates', () => {
         resourceType: 'division',
       },
     ])
+  })
+})
+
+describe('resolveActiveSnapshotForType', () => {
+  test('keeps active snapshot resolution scoped to the requested region', async () => {
+    const { sqlite, db } = createActiveSnapshotLookupDb()
+
+    sqlite.exec(`
+      INSERT INTO apiVersions (id, code) VALUES
+        ('api-version-place', 'api-places-v0.1');
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, code, schemaVersion, rulesetVersion, status, publishedAt, createdAt
+      ) VALUES
+        (
+          'release-set-hk',
+          'api-version-place',
+          'rs-hk-place-2026-05',
+          'sv-place-v1',
+          'rs-place-v1',
+          'current',
+          1760000000000,
+          1760000000000
+        ),
+        (
+          'release-set-mo',
+          'api-version-place',
+          'rs-mo-place-2026-05',
+          'sv-place-v1',
+          'rs-place-v1',
+          'current',
+          1760000100000,
+          1760000100000
+        );
+
+      INSERT INTO snapshots (id, resourceType, code) VALUES
+        ('snapshot-hk-place', 'place', 'ss-hk-place-2026-05'),
+        ('snapshot-mo-place', 'place', 'ss-mo-place-2026-05');
+
+      INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId) VALUES
+        ('release-set-hk', 'snapshot-hk-place'),
+        ('release-set-mo', 'snapshot-mo-place');
+
+      INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
+
+      INSERT INTO datasets (id, publisherId, code, regionCode) VALUES
+        ('dataset-hk-place', 'publisher-overture', 'ds-hk-overture-place', 'hk'),
+        ('dataset-mo-place', 'publisher-overture', 'ds-mo-overture-place', 'mo');
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('snapshot-hk-place', 'dataset-hk-place', 'release-hk-place', 'primary'),
+        ('snapshot-mo-place', 'dataset-mo-place', 'release-mo-place', 'primary');
+    `)
+
+    await expect(
+      resolveActiveSnapshotForType(db as never, 'place', 'place', {
+        regionCode: 'hk',
+      }),
+    ).resolves.toMatchObject({
+      snapshotId: 'snapshot-hk-place',
+      apiReleaseSet: 'rs-hk-place-2026-05',
+    })
+
+    await expect(
+      resolveActiveSnapshotForType(db as never, 'place', 'place', {
+        regionCode: 'mo',
+      }),
+    ).resolves.toMatchObject({
+      snapshotId: 'snapshot-mo-place',
+      apiReleaseSet: 'rs-mo-place-2026-05',
+    })
+
+    sqlite.close()
   })
 })
 
