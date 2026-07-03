@@ -1,10 +1,32 @@
 import { describe, expect, mock, test } from 'bun:test'
 
 const cleanupMock = mock(() => undefined)
-const resolveLocalAddressDbContextMock = mock(async () => ({
-  cleanup: cleanupMock,
-  metaDb: {},
-}))
+const resolveLocalAddressDbContextMock = mock(async (...args: unknown[]) => {
+  const options = args[3] as
+    | {
+        onProgress?: (event: {
+          action: 'check-cache'
+          bindingName: string
+          current: number
+          target: 'preview'
+          total: number
+        }) => void
+      }
+    | undefined
+
+  options?.onProgress?.({
+    action: 'check-cache',
+    bindingName: 'cache',
+    current: 0,
+    target: 'preview',
+    total: 12,
+  })
+
+  return {
+    cleanup: cleanupMock,
+    metaDb: {},
+  }
+})
 const resolveCohortSnapshotMock = mock(async () => null)
 const resolveLatestSnapshotMock = mock(async () => ({
   id: 'snapshot-overture-hk-2025-09-24.0-division',
@@ -72,6 +94,8 @@ const { assertAddressUploadPrerequisites } = await import('./upload.ts')
 
 describe('upload command address prerequisites', () => {
   test('refreshes the remote cache before checking published division snapshots', async () => {
+    const onProgressMock = mock(() => undefined)
+
     await assertAddressUploadPrerequisites(
       {
         environment: 'preview',
@@ -102,6 +126,9 @@ describe('upload command address prerequisites', () => {
         theme: 'addresses',
         type: 'address',
       },
+      {
+        onProgress: onProgressMock,
+      },
     )
 
     expect(resolveLocalAddressDbContextMock).toHaveBeenCalledWith(
@@ -113,10 +140,18 @@ describe('upload command address prerequisites', () => {
       '2025',
       {
         cacheTableProfile: 'address',
+        onProgress: onProgressMock,
         refreshRemoteTables: true,
         remoteCacheScopeKey: 'release-upload-cache-scope',
       },
     )
+    expect(onProgressMock).toHaveBeenCalledWith({
+      action: 'check-cache',
+      bindingName: 'cache',
+      current: 0,
+      target: 'preview',
+      total: 12,
+    })
     expect(resolveCohortSnapshotMock).toHaveBeenCalled()
     expect(resolveLatestSnapshotMock).toHaveBeenCalled()
     expect(cleanupMock).toHaveBeenCalled()
