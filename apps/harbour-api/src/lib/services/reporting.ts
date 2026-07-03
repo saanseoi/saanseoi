@@ -120,12 +120,17 @@ type CountSpec = {
   tableName: string
 } & (
   | {
+      additionalJoinKeys?: never
       parentTableName?: never
       parentKey?: never
       relationshipKey?: never
       strategy: 'direct'
     }
   | {
+      additionalJoinKeys?: Array<{
+        parentKey: string
+        relationshipKey: string
+      }>
       parentKey: string
       parentTableName: string
       relationshipKey: string
@@ -697,6 +702,16 @@ async function countReleaseRowsByReleaseIds(
 
   const placeholders = releaseIds.map((_, index) => `?${index + 1}`).join(', ')
   const releaseColumn = kind === 'history' ? 'sourceReleaseId' : 'releaseId'
+  const joinConditions =
+    spec.strategy === 'join'
+      ? [
+          `parent."${spec.parentKey}" = child."${spec.relationshipKey}"`,
+          ...(spec.additionalJoinKeys ?? []).map(
+            joinKey =>
+              `parent."${joinKey.parentKey}" = child."${joinKey.relationshipKey}"`,
+          ),
+        ].join(' AND ')
+      : ''
   const query =
     spec.strategy === 'direct'
       ? `SELECT "${releaseColumn}" AS releaseId, COUNT(*) AS count
@@ -706,7 +721,7 @@ async function countReleaseRowsByReleaseIds(
       : `SELECT parent."${releaseColumn}" AS releaseId, COUNT(*) AS count
          FROM "${spec.tableName}" child
          INNER JOIN "${spec.parentTableName}" parent
-           ON parent."${spec.parentKey}" = child."${spec.relationshipKey}"
+           ON ${joinConditions}
          WHERE parent."${releaseColumn}" IN (${placeholders})
          GROUP BY parent."${releaseColumn}"`
   const result = await binding
@@ -752,6 +767,10 @@ function buildCountSpecKey(spec: CountSpec) {
         spec.parentTableName,
         spec.parentKey,
         spec.relationshipKey,
+        ...(spec.additionalJoinKeys ?? []).flatMap(joinKey => [
+          joinKey.parentKey,
+          joinKey.relationshipKey,
+        ]),
       ].join(':')
 }
 
@@ -779,6 +798,12 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
           parentKey: 'sourceRecordId',
           parentTableName: 'hkgovAlsAddresses2d',
           relationshipKey: 'sourceRecordId',
+          additionalJoinKeys: [
+            {
+              parentKey: 'versionHash',
+              relationshipKey: 'versionHash',
+            },
+          ],
           strategy: 'join',
           tableName: 'hkgovAlsAddress2dI18n',
         },
@@ -805,6 +830,12 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
               parentKey: 'sourceRecordId',
               parentTableName: 'overtureDivisions',
               relationshipKey: 'sourceRecordId',
+              additionalJoinKeys: [
+                {
+                  parentKey: 'versionHash',
+                  relationshipKey: 'versionHash',
+                },
+              ],
               strategy: 'join',
               tableName: 'overtureDivisionI18n',
             },
@@ -821,6 +852,12 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
               parentKey: 'sourceRecordId',
               parentTableName: 'overturePlaces',
               relationshipKey: 'sourceRecordId',
+              additionalJoinKeys: [
+                {
+                  parentKey: 'versionHash',
+                  relationshipKey: 'versionHash',
+                },
+              ],
               strategy: 'join',
               tableName: 'overturePlaceI18n',
             },

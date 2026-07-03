@@ -151,7 +151,9 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
     const { locale } = c.req.valid('query')
     const db = c.var.currentDb
     const activePlaceSnapshot = await runWithD1ReadRetry(() =>
-      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place'),
+      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place', {
+        regionCode,
+      }),
     )
 
     if (!activePlaceSnapshot) {
@@ -232,7 +234,9 @@ export const placesByCellRoute = defineOpenAPIRoute<
 
     const db = c.var.currentDb
     const activePlaceSnapshot = await runWithD1ReadRetry(() =>
-      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place'),
+      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place', {
+        regionCode: params.region,
+      }),
     )
 
     if (!activePlaceSnapshot) {
@@ -266,11 +270,13 @@ export const placesByCellRoute = defineOpenAPIRoute<
 export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>({
   route: searchRouteConfig,
   handler: async c => {
-    c.req.valid('param')
+    const params = c.req.valid('param')
     const query = c.req.valid('query')
     const db = c.var.currentDb
     const activePlaceSnapshot = await runWithD1ReadRetry(() =>
-      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place'),
+      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place', {
+        regionCode: params.region,
+      }),
     )
 
     if (!activePlaceSnapshot) {
