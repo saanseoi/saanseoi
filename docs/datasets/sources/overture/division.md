@@ -2,15 +2,18 @@
 
 This document describes the Overture-specific side of the division pipeline.
 
-Related family doc:
+Related docs:
 
 - [Division family](../../families/division.md)
+- [Division resourceType](../../resourceType/division.md)
+- [ResourceType common processing](../../resourceType/common.md)
 
 ## Dataset Role
 
 - Dataset metadata uses `publisherCode: overture`, `code: hk-division`.
-- Uploads are ingested directly from parquet.
-- The worker path is `apps/harbour-workers/src/lib/services/division.ts`.
+- `saanseoi upload` now processes division parquet locally, generates SQL artifacts, and imports them into D1.
+- The local SQL upload path is `apps/harbour-cli/src/lib/divisionSql/processLocalDivisionSqlUpload.ts`.
+- Shared normalization and current/history diff semantics live in `libs/core/src/pipeline/services/division.ts`.
 - Overture is currently the only division source in the pipeline.
 
 ## Locale and Name Normalization
@@ -39,7 +42,7 @@ Inference rules currently implemented:
 - unlabeled Latin alphanumeric names are inferred as `en`
 - mixed-script values in the form `<Chinese> <Latin>` are split into `zh-hant` and `en`
 
-The worker builds localized name state from:
+The local pipeline builds localized name state from:
 
 - `names.primary`
 - `names.common`
@@ -89,9 +92,21 @@ Fallback behavior:
 Current handling:
 
 - if `geometry` is already GeoJSON-shaped, it is used directly
-- otherwise the worker decodes Overture WKB into GeoJSON
+- otherwise the local uploader decodes Overture WKB into GeoJSON
 - `hierarchies` is normalized into `hierarchy`
 - singleton nested list wrappers produced by parquet decoding are unwrapped
+
+## Local SQL Upload Phases
+
+Division uploads follow the shared local SQL lifecycle documented in
+[ResourceType common processing](../../resourceType/common.md). The
+division-specific generated artifacts are:
+
+- normalize parquet rows into canonical division records and source-retained rows
+- generate `source` SQL for `overtureDivisions` and `overtureDivisionI18n`
+- generate `history` SQL for canonical version tables in the history shard
+- generate `current` SQL, including optional snapshot clone SQL when a published predecessor exists
+- generate `stats` SQL for dataset-level rows in `meta.stats`
 
 ## Source Fields Retained
 
@@ -133,14 +148,13 @@ Reason in practice:
 
 ## Source Retention
 
-Source rows are retained in versioned tables. The current source row is the row
-where `isCurrent = 1`; there are no separate non-version current source tables.
+Overture-specific source rows are retained in:
 
 - `overtureDivisions`
 - `overtureDivisionI18n`
 
-For later releases with unchanged source payloads, the worker advances the
-current row to the new release without inserting another source row.
+Shared source-version behavior is documented in
+[ResourceType common processing](../../resourceType/common.md#source-retention).
 
 Current retained source fields include:
 

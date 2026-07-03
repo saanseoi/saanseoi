@@ -16,13 +16,19 @@ There is no second division source in the current pipeline.
 
 ## Ingestion Model
 
-- Division uploads are ingested directly from parquet by `apps/harbour-workers/src/lib/services/division.ts`.
+- Division uploads run locally from `saanseoi upload`, generate SQL artifacts, and import those artifacts into the target D1 databases.
+- The local division SQL runner is `apps/harbour-cli/src/lib/divisionSql/processLocalDivisionSqlUpload.ts`.
 - Processing creates or reuses a resourceType-scoped draft snapshot via `ensureDraftSnapshotForRelease`.
 - If an earlier non-archived division snapshot exists, its current rows are bulk-cloned into the new draft snapshot before the upload delta is applied.
 - The uploaded release is linked to that snapshot through `snapshotSources`.
 - Division releases are recorded as `primary` sources for the division snapshot.
 
-The worker stages current rows into `DB_CURRENT` under a `snapshotId`, while version history is written to the history shard.
+The local pipeline imports SQL into:
+
+- `DB_SOURCE_*` for source-retained Overture versions
+- `DB_HISTORY_*` for canonical division version history
+- `DB_CURRENT` for the cloned-and-patched current snapshot
+- `DB_META` for dataset-level stats
 
 ## Canonical Tables
 
@@ -98,6 +104,12 @@ This is stricter than address processing:
 
 - divisions always behave as a full-snapshot replacement set
 
+Release precedence is also explicit:
+
+- a `staged` division release only starts when it is the newest non-failed release for its dataset lineage
+- if a newer sibling release is already `staged` or `processing`, the older local upload fails fast instead of waiting
+- if a newer sibling has already reached a terminal non-failed state, the older release is marked `superseded` instead of processing out of order
+
 ## Source Retention
 
 The resourceType retains normalized Overture source rows in versioned source
@@ -113,7 +125,7 @@ Current behavior:
 - unchanged source payloads do not create new source rows; only the current source row metadata is advanced to the latest release
 - missing source rows are closed by clearing `isCurrent` and setting `validToRelease`
 
-The worker no longer writes per-record provenance during division ingestion. Snapshot membership is tracked at the snapshot level through `snapshotSources`.
+The local SQL importer does not write per-record provenance during division ingestion. Snapshot membership is tracked at the snapshot level through `snapshotSources`.
 
 ## Dataset Stats Produced
 
@@ -123,7 +135,15 @@ Division processing also computes dataset-level stats and stores them against th
 - churn stats comparing previous and current snapshots
 - quality/regression stats such as locale or name regression
 
-These are built in `apps/harbour-workers/src/lib/services/stats.ts` and written through `replaceDatasetStats`.
+These are built in `libs/core/src/pipeline/services/stats.ts`, serialized into a dedicated `stats` SQL artifact, and imported into `DB_META`.
+
+## Latest Release Rollback
+
+`saanseoi rollback:release --release <release-id|code>` can generate and import
+rollback SQL for the active latest division release only. The rollback SQL
+removes the latest release's current snapshot rows, deletes source/history rows
+inserted for that release, reopens rows that were closed by that release, resets
+the previous published release metadata, and removes the latest release metadata.
 
 ## API Support
 
