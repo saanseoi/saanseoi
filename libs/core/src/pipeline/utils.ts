@@ -134,10 +134,16 @@ export async function runWithWriteRetry<T>(
   options: WriteRetryOptions | number = {},
 ): Promise<T> {
   const normalizedOptions =
-    typeof options === 'number' ? { attempt: options } : { attempt: 0, ...options }
-  const attempt = normalizedOptions.attempt
-  const maxRetries = normalizedOptions.maxRetries ?? SQLITE_BUSY_RETRY_LIMIT
-  const retryDelayMs = normalizedOptions.retryDelayMs ?? SQLITE_BUSY_RETRY_DELAY_MS
+    typeof options === 'number' ? { attempt: options } : { ...options }
+  const attempt = normalizeRetryNumber(normalizedOptions.attempt, 0)
+  const maxRetries = normalizeRetryNumber(
+    normalizedOptions.maxRetries,
+    SQLITE_BUSY_RETRY_LIMIT,
+  )
+  const retryDelayMs = normalizeRetryNumber(
+    normalizedOptions.retryDelayMs,
+    SQLITE_BUSY_RETRY_DELAY_MS,
+  )
 
   try {
     return await operation()
@@ -157,8 +163,16 @@ export async function runWithWriteRetry<T>(
     return runWithWriteRetry(operation, {
       ...normalizedOptions,
       attempt: attempt + 1,
+      maxRetries,
+      retryDelayMs,
     })
   }
+}
+
+function normalizeRetryNumber(value: unknown, fallback: number) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? Math.floor(value)
+    : fallback
 }
 
 /**
