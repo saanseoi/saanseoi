@@ -94,7 +94,7 @@ const IMPORT_POLL_INTERVAL_MS = 1000
 const LOCAL_D1_BATCH_STATEMENT_COUNT = 25
 const IMPORT_PROGRESS_INTERVAL_MS = 1000
 const REMOTE_HISTORY_IMPORT_BATCH_BYTES = 16 * 1024 * 1024
-const LEGACY_NORMALIZED_ROWS_TABLE = 'ssAddressImportRows'
+const LEGACY_NORMALIZED_ROWS_TABLE = 'zzAddressImportRows'
 const LEGACY_NORMALIZED_ROWS_COLUMNS = [
   ['sourceArea', 'TEXT'],
   ['sourceDistrict', 'TEXT'],
@@ -778,7 +778,7 @@ async function ensureLegacyNormalizedRowsSchema(
   if (
     !prepare ||
     target.name !== 'source' ||
-    !/\bssAddressImportRows\b/.test(sql) ||
+    !/\bzzAddressImportRows\b/.test(sql) ||
     !/\bsourceArea\b/.test(sql)
   ) {
     return
