@@ -44,6 +44,7 @@ DROP TABLE IF EXISTS `placesI18n`;
 DROP TABLE IF EXISTS `placesDivision`;
 DROP TABLE IF EXISTS `placesCells`;
 DROP TABLE IF EXISTS `places`;
+DROP TABLE IF EXISTS `publishedDataJournal`;
 DROP TABLE IF EXISTS `streetsI18n`;
 DROP TABLE IF EXISTS `streetsAddress`;
 DROP TABLE IF EXISTS `streets`;
