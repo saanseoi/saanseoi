@@ -30,7 +30,7 @@ import { createLocalHarbourDb } from '../../testing/localDb'
 import type { ParquetInspection } from '../../types'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
-const migrationSql = loadMigrationSql(migrationsDir)
+const migrationSql = loadMigrationSql(migrationsDir, ['meta'])
 const tempDirs: string[] = []
 const fixtureInspection: ParquetInspection = {
   rowCount: 3,

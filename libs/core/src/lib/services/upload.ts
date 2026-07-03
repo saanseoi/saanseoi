@@ -1024,7 +1024,7 @@ function getRequiredInspection(
 
   if (!resolvedInspection) {
     throw new Error(
-      'A parquet inspection is required in Worker-safe upload flows. Use the CLI-local upload service for file-based inspection.',
+      'A parquet inspection is required for shared upload planning. Use the CLI-local upload service for file-based inspection.',
     )
   }
 
@@ -1078,7 +1078,7 @@ export async function registerUpload(
   const rawObjectKey = options.rawObjectKey ?? null
 
   if (!rawObjectKey) {
-    throw new Error('A rawObjectKey is required for Worker-safe registration.')
+    throw new Error('A rawObjectKey is required for upload registration.')
   }
 
   const now = new Date().toISOString()
