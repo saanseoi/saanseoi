@@ -3,6 +3,7 @@ import {
   buildApiVersionCode,
   buildDataReleaseSetCode,
   buildSnapshotVersionCode,
+  buildDeterministicUuidV5,
   computeVersionHash,
   desc,
   eq,
@@ -423,7 +424,7 @@ export async function insertDataset(
   await db
     .insert(metaReleases)
     .values({
-      id: await buildDeterministicReleaseId(plan.releaseCode),
+      id: buildDeterministicReleaseId(plan.releaseCode),
       datasetId: dataset.id,
       code: plan.releaseCode,
       sourceVersion: plan.sourceVersion,
@@ -443,47 +444,8 @@ export async function insertDataset(
     .run()
 }
 
-export async function buildDeterministicReleaseId(releaseCode: string) {
-  const namespaceBytes = parseUuidBytes(RELEASE_ID_NAMESPACE)
-  const releaseCodeBytes = new TextEncoder().encode(releaseCode.trim())
-  const input = new Uint8Array(namespaceBytes.length + releaseCodeBytes.length)
-
-  input.set(namespaceBytes)
-  input.set(releaseCodeBytes, namespaceBytes.length)
-
-  const hash = new Uint8Array(await crypto.subtle.digest('SHA-1', input))
-  const bytes = hash.slice(0, 16)
-
-  bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x50
-  bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80
-
-  return formatUuidBytes(bytes)
-}
-
-function parseUuidBytes(value: string) {
-  const hex = value.replaceAll('-', '')
-
-  if (!/^[0-9a-f]{32}$/i.test(hex)) {
-    throw new Error(`Invalid UUID namespace: ${value}`)
-  }
-
-  return Uint8Array.from(
-    Array.from({ length: 16 }, (_, index) =>
-      Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16),
-    ),
-  )
-}
-
-function formatUuidBytes(bytes: Uint8Array) {
-  const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('')
-
-  return [
-    hex.slice(0, 8),
-    hex.slice(8, 12),
-    hex.slice(12, 16),
-    hex.slice(16, 20),
-    hex.slice(20, 32),
-  ].join('-')
+export function buildDeterministicReleaseId(releaseCode: string) {
+  return buildDeterministicUuidV5(RELEASE_ID_NAMESPACE, releaseCode)
 }
 
 export async function resetFailedDataset(

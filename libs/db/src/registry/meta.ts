@@ -17,7 +17,7 @@ import type {
   ProfileName,
   ResolverCode,
 } from '../constants/schema'
-import { computeVersionHash } from '../versioning'
+import { buildDeterministicUuidV5, computeVersionHash } from '../versioning'
 
 const fixturesDir = new URL('../../../../fixtures/meta/', import.meta.url)
 const nowSql = "cast(unixepoch('subsecond') * 1000 as integer)"
@@ -27,6 +27,7 @@ const sqlUuid =
   "'4' || substr(lower(hex(randomblob(2))), 2) || '-' || " +
   "substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || " +
   'lower(hex(randomblob(6)))'
+const DATASET_ID_NAMESPACE = '8c8ab30f-3c0f-42c6-bef2-98c3e615f4a6'
 
 export const metaRegistryRequiredTables = [
   'publishers',
@@ -260,6 +261,15 @@ function sqlNullable(value: string | undefined) {
   return value == null ? 'NULL' : sqlString(value)
 }
 
+function sqlDatasetId(publisherCode: string, datasetCode: string) {
+  return sqlString(
+    buildDeterministicUuidV5(
+      DATASET_ID_NAMESPACE,
+      `${publisherCode.trim()}:${datasetCode.trim()}`,
+    ),
+  )
+}
+
 function sqlTimestampMs(value: string) {
   return `cast(unixepoch(${sqlString(value)}, 'subsecond') * 1000 as integer)`
 }
@@ -465,7 +475,7 @@ WHERE licenses.versionHash <> excluded.versionHash;`.trim(),
 INSERT INTO datasets (
   id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, licenseId, attribution, category, versionHash, createdAt, updatedAt
 ) VALUES (
-  ${sqlUuid},
+  ${sqlDatasetId(dataset.publisherCode, dataset.code)},
   (SELECT id FROM publishers WHERE code = ${sqlString(dataset.publisherCode)}),
   ${sqlString(dataset.code)},
   ${sqlString(dataset.regionCode)},
