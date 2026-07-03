@@ -7,7 +7,7 @@ import {
   combineSqlImportArtifacts,
   splitSqlStatements,
 } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
-import { runWithWriteRetry } from '@repo/core/pipeline/utils'
+import { runWithWriteRetry, type WriteRetryEvent } from '@repo/core/pipeline/utils'
 import {
   readArtifactBytes,
   type PipelineArtifactBucket,
@@ -32,8 +32,15 @@ export type SqlImportExecutionOptions = {
   accountId?: string
   apiToken?: string
   isLocal: boolean
+  localWriteMaxRetries?: number
+  onRetry?: (event: SqlImportRetryEvent) => void | Promise<void>
   pollIntervalMs?: number
   remoteImportBatchBytes?: number
+  retryDelayMs?: number
+}
+
+export type SqlImportRetryEvent = WriteRetryEvent & {
+  target: SqlImportTargetContext['name']
 }
 
 type ImportStats = {
@@ -219,7 +226,7 @@ async function executeSqlBytes(
   options: SqlImportExecutionOptions,
 ) {
   if (options.isLocal) {
-    return execSqlWithBoundD1(target, sqlBytes)
+    return execSqlWithBoundD1(target, sqlBytes, options)
   }
 
   await importSqlWithD1RestApi(
@@ -237,6 +244,7 @@ async function executeSqlBytes(
 async function execSqlWithBoundD1(
   target: SqlImportTargetContext,
   sqlBytes: Uint8Array,
+  options: SqlImportExecutionOptions,
 ) {
   if (!target.binding?.prepare) {
     throw new Error(`Missing D1 prepare binding for ${target.name} SQL execution.`)
@@ -251,13 +259,19 @@ async function execSqlWithBoundD1(
       index < statements.length;
       index += LOCAL_D1_BATCH_STATEMENT_COUNT
     ) {
-      await runWithWriteRetry(() =>
-        target.binding?.batch?.(
-          statements
-            .slice(index, index + LOCAL_D1_BATCH_STATEMENT_COUNT)
-            .map(statement => target.binding?.prepare?.(statement))
-            .filter(isLocalD1PreparedStatement),
-        ),
+      await runWithWriteRetry(
+        () =>
+          target.binding?.batch?.(
+            statements
+              .slice(index, index + LOCAL_D1_BATCH_STATEMENT_COUNT)
+              .map(statement => target.binding?.prepare?.(statement))
+              .filter(isLocalD1PreparedStatement),
+          ),
+        {
+          maxRetries: options.localWriteMaxRetries,
+          onRetry: event => options.onRetry?.({ ...event, target: target.name }),
+          retryDelayMs: options.retryDelayMs,
+        },
       )
     }
 
@@ -265,7 +279,11 @@ async function execSqlWithBoundD1(
   }
 
   for (const statement of statements) {
-    await runWithWriteRetry(() => target.binding?.prepare?.(statement).run())
+    await runWithWriteRetry(() => target.binding?.prepare?.(statement).run(), {
+      maxRetries: options.localWriteMaxRetries,
+      onRetry: event => options.onRetry?.({ ...event, target: target.name }),
+      retryDelayMs: options.retryDelayMs,
+    })
   }
 
   return statements.length

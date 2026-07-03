@@ -21,7 +21,11 @@ export type D1ImportInitResult = {
 }
 
 export type D1ImportIngestResult = {
-  atBookmark: string
+  atBookmark?: string
+  error?: string
+  messages?: string[]
+  status?: string
+  success: boolean
 }
 
 export type D1ImportPollResult = {
@@ -116,7 +120,13 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
     },
 
     async ingest(filename: string, etag: string): Promise<D1ImportIngestResult> {
-      const result = await postImport<{ at_bookmark: string }>({
+      const result = await postImport<{
+        at_bookmark?: string
+        error?: string
+        messages?: string[]
+        status?: string
+        success: boolean
+      }>({
         action: 'ingest',
         etag,
         filename,
@@ -124,6 +134,10 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
 
       return {
         atBookmark: result.at_bookmark,
+        error: result.error,
+        messages: result.messages,
+        status: result.status,
+        success: result.success,
       }
     },
 
@@ -178,8 +192,8 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
         }
 
         const ingest = await this.ingest(init.filename, options.etag)
-        currentBookmark = ingest.atBookmark
-        poll = await this.poll(ingest.atBookmark)
+        currentBookmark = ingest.atBookmark?.trim() ?? ''
+        poll = ingest
       } else if (isImportPollResult(init)) {
         currentBookmark = init.atBookmark ?? ''
         poll = {
@@ -195,7 +209,10 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
         )
       }
 
-      while (!poll.success && poll.error !== 'Not currently importing anything.') {
+      while (
+        !isImportComplete(poll) &&
+        poll.error !== 'Not currently importing anything.'
+      ) {
         const nextBookmark = poll.atBookmark?.trim() || currentBookmark
 
         if (isBusyImportPollWithoutBookmark(poll)) {
@@ -221,6 +238,10 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
       }
     },
   }
+}
+
+function isImportComplete(poll: D1ImportPollResult) {
+  return poll.status === 'complete' || (poll.success && !poll.status)
 }
 
 function normalizeUploadUrl(value: string | undefined) {

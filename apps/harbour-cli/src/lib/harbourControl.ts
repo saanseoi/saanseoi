@@ -22,6 +22,18 @@ const CONTROL_REQUEST_RETRY_LIMIT = 3
 const CONTROL_REQUEST_RETRY_DELAY_MS = 150
 const TRANSIENT_CONTROL_RESPONSE_STATUSES = new Set([429, 502, 503, 504])
 
+export type HarbourControlRetryEvent = {
+  attempt: number
+  delayMs: number
+  error: unknown
+  maxRetries: number
+  path: string
+}
+
+type HarbourControlClientOptions = {
+  onRetry?: (event: HarbourControlRetryEvent) => void | Promise<void>
+}
+
 class RetryableControlError extends Error {
   constructor(message: string) {
     super(message)
@@ -29,7 +41,10 @@ class RetryableControlError extends Error {
   }
 }
 
-export function createHarbourControlClient(target: UploadTarget) {
+export function createHarbourControlClient(
+  target: UploadTarget,
+  clientOptions: HarbourControlClientOptions = {},
+) {
   const baseUrl = normalizeBaseUrl(resolveHarbourApiUrl(target))
   const authHeaders = getAuthHeaders()
 
@@ -37,13 +52,19 @@ export function createHarbourControlClient(target: UploadTarget) {
     publishDataset(
       releaseId: string,
       releaseCode?: string,
-      options: { skipSnapshotCleanup?: boolean } = {},
+      publishOptions: { skipSnapshotCleanup?: boolean } = {},
     ) {
-      return postControl(baseUrl, authHeaders, '/v1/control/publishDataset', {
-        releaseCode,
-        releaseId,
-        ...(options.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
-      })
+      return postControl(
+        baseUrl,
+        authHeaders,
+        '/v1/control/publishDataset',
+        {
+          releaseCode,
+          releaseId,
+          ...(publishOptions.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
+        },
+        clientOptions,
+      )
     },
     stageCompleted(
       releaseId: string,
@@ -51,12 +72,18 @@ export function createHarbourControlClient(target: UploadTarget) {
       stats?: Record<string, unknown>,
       releaseCode?: string,
     ) {
-      return postControl(baseUrl, authHeaders, '/v1/control/stageCompleted', {
-        releaseCode,
-        releaseId,
-        phase,
-        stats,
-      })
+      return postControl(
+        baseUrl,
+        authHeaders,
+        '/v1/control/stageCompleted',
+        {
+          releaseCode,
+          releaseId,
+          phase,
+          stats,
+        },
+        clientOptions,
+      )
     },
     stageFailed(
       releaseId: string,
@@ -65,13 +92,19 @@ export function createHarbourControlClient(target: UploadTarget) {
       stats?: Record<string, unknown>,
       releaseCode?: string,
     ) {
-      return postControl(baseUrl, authHeaders, '/v1/control/stageFailed', {
-        releaseCode,
-        releaseId,
-        error,
-        phase,
-        stats,
-      })
+      return postControl(
+        baseUrl,
+        authHeaders,
+        '/v1/control/stageFailed',
+        {
+          releaseCode,
+          releaseId,
+          error,
+          phase,
+          stats,
+        },
+        clientOptions,
+      )
     },
     stageRunning(
       releaseId: string,
@@ -79,12 +112,18 @@ export function createHarbourControlClient(target: UploadTarget) {
       stats?: Record<string, unknown>,
       releaseCode?: string,
     ) {
-      return postControl(baseUrl, authHeaders, '/v1/control/stageRunning', {
-        releaseCode,
-        releaseId,
-        phase,
-        stats,
-      })
+      return postControl(
+        baseUrl,
+        authHeaders,
+        '/v1/control/stageRunning',
+        {
+          releaseCode,
+          releaseId,
+          phase,
+          stats,
+        },
+        clientOptions,
+      )
     },
   }
 }
@@ -94,6 +133,7 @@ async function postControl(
   authHeaders: Record<string, string>,
   path: string,
   payload: StagePayload | PublishPayload,
+  options: HarbourControlClientOptions,
   attempt = 0,
 ) {
   let response: Response
@@ -112,8 +152,16 @@ async function postControl(
       throw error
     }
 
-    await sleep(CONTROL_REQUEST_RETRY_DELAY_MS * (attempt + 1))
-    return postControl(baseUrl, authHeaders, path, payload, attempt + 1)
+    const delayMs = CONTROL_REQUEST_RETRY_DELAY_MS * (attempt + 1)
+    await options.onRetry?.({
+      attempt: attempt + 1,
+      delayMs,
+      error,
+      maxRetries: CONTROL_REQUEST_RETRY_LIMIT,
+      path,
+    })
+    await sleep(delayMs)
+    return postControl(baseUrl, authHeaders, path, payload, options, attempt + 1)
   }
 
   const body = (await response.json().catch(() => null)) as Record<
@@ -137,8 +185,16 @@ async function postControl(
       throw error
     }
 
-    await sleep(CONTROL_REQUEST_RETRY_DELAY_MS * (attempt + 1))
-    return postControl(baseUrl, authHeaders, path, payload, attempt + 1)
+    const delayMs = CONTROL_REQUEST_RETRY_DELAY_MS * (attempt + 1)
+    await options.onRetry?.({
+      attempt: attempt + 1,
+      delayMs,
+      error,
+      maxRetries: CONTROL_REQUEST_RETRY_LIMIT,
+      path,
+    })
+    await sleep(delayMs)
+    return postControl(baseUrl, authHeaders, path, payload, options, attempt + 1)
   }
 }
 

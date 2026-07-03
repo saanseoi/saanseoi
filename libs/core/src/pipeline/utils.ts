@@ -49,17 +49,32 @@ type BatchWritableDb = {
   batch?: (statements: [unknown, ...unknown[]]) => unknown | Promise<unknown>
 }
 
+export type WriteRetryEvent = {
+  attempt: number
+  delayMs: number
+  error: unknown
+  maxRetries: number
+}
+
+export type WriteRetryOptions = {
+  attempt?: number
+  maxRetries?: number
+  onRetry?: (event: WriteRetryEvent) => void | Promise<void>
+  retryDelayMs?: number
+}
+
 /**
  * Runs a non-empty list of parameter-safe statements with write retries.
  */
 export async function runStatementBatchWithWriteRetry(
   db: object,
   statements: [unknown, ...unknown[]],
+  options?: WriteRetryOptions,
 ) {
   const batchDb = db as BatchWritableDb
 
   if (typeof batchDb.batch === 'function') {
-    return runWithWriteRetry(() => batchDb.batch?.(statements))
+    return runWithWriteRetry(() => batchDb.batch?.(statements), options)
   }
 
   const results = []
@@ -69,13 +84,13 @@ export async function runStatementBatchWithWriteRetry(
 
     const run = runnable.run
     if (typeof run === 'function') {
-      results.push(await runWithWriteRetry(() => run.call(runnable)))
+      results.push(await runWithWriteRetry(() => run.call(runnable), options))
       continue
     }
 
     const execute = runnable.execute
     if (typeof execute === 'function') {
-      results.push(await runWithWriteRetry(() => execute.call(runnable)))
+      results.push(await runWithWriteRetry(() => execute.call(runnable), options))
       continue
     }
 
@@ -92,6 +107,7 @@ export async function runStatementsInGroupsWithWriteRetry(
   db: object,
   statements: unknown[],
   groupSize = D1_WRITE_STATEMENT_BATCH_SIZE,
+  options?: WriteRetryOptions,
 ) {
   if (statements.length === 0) {
     return
@@ -106,7 +122,7 @@ export async function runStatementsInGroupsWithWriteRetry(
       continue
     }
 
-    await runStatementBatchWithWriteRetry(db, [first, ...rest])
+    await runStatementBatchWithWriteRetry(db, [first, ...rest], options)
   }
 }
 
@@ -115,17 +131,33 @@ export async function runStatementsInGroupsWithWriteRetry(
  */
 export async function runWithWriteRetry<T>(
   operation: () => T | Promise<T>,
-  attempt = 0,
+  options: WriteRetryOptions | number = {},
 ): Promise<T> {
+  const normalizedOptions =
+    typeof options === 'number' ? { attempt: options } : { attempt: 0, ...options }
+  const attempt = normalizedOptions.attempt
+  const maxRetries = normalizedOptions.maxRetries ?? SQLITE_BUSY_RETRY_LIMIT
+  const retryDelayMs = normalizedOptions.retryDelayMs ?? SQLITE_BUSY_RETRY_DELAY_MS
+
   try {
     return await operation()
   } catch (error) {
-    if (!isRetryableSqliteWriteError(error) || attempt >= SQLITE_BUSY_RETRY_LIMIT) {
+    if (!isRetryableSqliteWriteError(error) || attempt >= maxRetries) {
       throw error
     }
 
-    await sleep(SQLITE_BUSY_RETRY_DELAY_MS * 2 ** attempt)
-    return runWithWriteRetry(operation, attempt + 1)
+    const delayMs = retryDelayMs * 2 ** attempt
+    await normalizedOptions.onRetry?.({
+      attempt: attempt + 1,
+      delayMs,
+      error,
+      maxRetries,
+    })
+    await sleep(delayMs)
+    return runWithWriteRetry(operation, {
+      ...normalizedOptions,
+      attempt: attempt + 1,
+    })
   }
 }
 

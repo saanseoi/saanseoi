@@ -77,6 +77,15 @@ export function formatDurationMs(value: number) {
   return `${minutes}:${String(seconds).padStart(2, '0')}`
 }
 
+export function formatRetryLabel(
+  subject: string,
+  attempt: number,
+  maxRetries: number,
+  delayMs: number,
+) {
+  return `${colorTeal('Retry')} ${colorRed(subject)} ${colorGrey(`(${formatCount(attempt)}/${formatCount(maxRetries)}, wait ${formatDurationMs(delayMs) ?? `${delayMs} ms`})`)}`
+}
+
 export function colorGrey(value: string) {
   return `\u001B[90m${value}\u001B[39m`
 }
