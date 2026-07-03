@@ -15,6 +15,7 @@ const resolveLatestSnapshotMock = mock(async () => ({
 const metaRepository = await import('@repo/core/db/metaRepository')
 
 mock.module('../addressSql/localDbCache.ts', () => ({
+  buildReleaseUploadDbCacheScopeKey: mock(() => 'release-upload-cache-scope'),
   resolveLocalAddressDbContext: resolveLocalAddressDbContextMock,
 }))
 
@@ -111,7 +112,9 @@ describe('upload command address prerequisites', () => {
       'hk',
       '2025',
       {
+        cacheTableProfile: 'address',
         refreshRemoteTables: true,
+        remoteCacheScopeKey: 'release-upload-cache-scope',
       },
     )
     expect(resolveCohortSnapshotMock).toHaveBeenCalled()

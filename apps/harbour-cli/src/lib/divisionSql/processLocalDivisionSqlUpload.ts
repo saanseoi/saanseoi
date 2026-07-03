@@ -85,6 +85,7 @@ import {
   colorTeal,
   formatCompletedPhaseLabel,
   formatDurationMs,
+  formatRetryLabel,
   formatRunningPhaseLabel,
 } from '../localPipeline/progressFormatting.ts'
 import {
@@ -97,6 +98,7 @@ import {
 import { LocalUploadProgress } from '../localUploadProgress.ts'
 import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
 import {
+  buildReleaseUploadDbCacheScopeKey,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
 } from '../addressSql/localDbCache.ts'
@@ -176,6 +178,7 @@ const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
   'apps/harbour-workers/wrangler.jsonc',
 )
 const DIVISION_BATCH_SIZE = 1024
+const LOCAL_SQL_WRITE_RETRY_LIMIT = 8
 const REMOTE_IMPORT_BATCH_BYTES = 64 * 1024 * 1024
 const SQL_STATEMENT_BYTE_TARGET = 99_000
 const PRIMARY_HISTORY_OWNER_KEY = 'history-current'
@@ -220,6 +223,19 @@ export async function processLocalDivisionSqlUpload(
   await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
   const progress = new LocalUploadProgress()
   const resolvedTargetName = resolveTargetName(target)
+  const cacheTableProfile = 'division'
+  const remoteCacheScopeKey = target.remote
+    ? buildReleaseUploadDbCacheScopeKey({
+        cacheTableProfile,
+        cohortKey: previewPlan.cohortKey,
+        regionCode: previewPlan.regionCode,
+        shardYear,
+        source: previewPlan.source,
+        sourceVersion: previewPlan.sourceVersion,
+        theme: previewPlan.theme,
+        type: previewPlan.type,
+      })
+    : undefined
 
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
   const dbCacheStartedAt = Date.now()
@@ -233,12 +249,12 @@ export async function processLocalDivisionSqlUpload(
         onProgress(event) {
           updateDbCacheProgress(progress, event)
         },
-        cacheTableProfile: 'division',
+        cacheTableProfile,
         includePreviousShardYears: shouldIncludePreviousShardYears(
           previewPlan.cohortKey,
         ),
         refreshRemoteTables: false,
-        remoteCacheScopeKey: target.remote ? releaseId : undefined,
+        remoteCacheScopeKey,
       },
     )
   } catch (error) {
@@ -257,7 +273,18 @@ export async function processLocalDivisionSqlUpload(
       ),
     )
   }
-  const harbourClient = createHarbourControlClient(target) as HarbourClient
+  const harbourClient = createHarbourControlClient(target, {
+    onRetry(event) {
+      progress.message(
+        formatRetryLabel(
+          `control ${event.path.split('/').pop() ?? event.path}`,
+          event.attempt,
+          event.maxRetries,
+          event.delayMs,
+        ),
+      )
+    },
+  }) as HarbourClient
   const initialMessage: DatasetProcessingMessage = {
     datasetId,
     datasetCode: uploadResult.datasetCode,
@@ -278,6 +305,17 @@ export async function processLocalDivisionSqlUpload(
     accountId: resolveCloudflareAccountId(target),
     apiToken: resolveCloudflareD1ApiToken(),
     isLocal: !target.remote,
+    localWriteMaxRetries: LOCAL_SQL_WRITE_RETRY_LIMIT,
+    onRetry(event) {
+      progress.message(
+        formatRetryLabel(
+          `database lock ${event.target}`,
+          event.attempt,
+          event.maxRetries,
+          event.delayMs,
+        ),
+      )
+    },
     remoteImportBatchBytes: REMOTE_IMPORT_BATCH_BYTES,
   }
   const environment = resolveImportEnvironment(target)
