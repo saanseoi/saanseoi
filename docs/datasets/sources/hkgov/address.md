@@ -2,16 +2,17 @@
 
 This document describes the HKGov ALS-specific side of the address pipeline.
 
-Related resourceType doc:
+Related docs:
 
 - [Address resourceType](../../resourceType/address.md)
+- [ResourceType common processing](../../resourceType/common.md)
 
 ## Dataset Role
 
 - Dataset metadata uses `publisherCode: hkgov-als`, `code: ds-hk-hkgov-als-address`.
-- Raw ALS is not ingested directly by the worker.
+- Raw ALS is not ingested directly by the canonical pipeline.
 - The CLI first transforms ALS GeoJSON into a prepared parquet file in `apps/harbour-cli/src/lib/hkgov-als.ts`.
-- The worker then ingests that prepared parquet in `apps/harbour-workers/src/lib/services/address.ts`.
+- The local SQL pipeline then ingests that prepared parquet using shared code under `libs/core/src/pipeline/services/addressPipeline`.
 
 In runtime terms, HKGov ALS currently acts as a richer reconciliation and overwrite layer on top of the Overture base set.
 
@@ -35,7 +36,7 @@ The CLI preparation step:
 - serializes `hkgovCsuId` into `identifiers`
 - formats `zhHantFormattedAddress`
 - formats `enFormattedAddress`
-- writes a prepared parquet file for worker ingestion
+- writes a prepared parquet file for local SQL ingestion
 
 Prep commands:
 
@@ -77,9 +78,9 @@ Prepared parquet fields include:
 - `easting`
 - `northing`
 
-## Worker Normalization
+## Local Pipeline Normalization
 
-For each prepared ALS row, the worker:
+For each prepared ALS row, the local pipeline:
 
 - uses prepared `id` as the source ID
 - trusts prepared `divisionSnapshotId`, `countryId`, `areaId`, and `districtId`
@@ -88,29 +89,24 @@ For each prepared ALS row, the worker:
 - creates `en` and/or `zh-hant` i18n rows when formatted addresses exist
 - carries building name, estate name, street name, and street number into canonical i18n rows
 
-The worker processes prepared parquet rows in small write batches and reads 2,048-row parquet windows from R2.
+The local SQL processor reads prepared parquet rows in small write batches and
+reads 2,048-row parquet windows from the CLI-side cached file.
 
-Large address releases are processed as sequential queue chunks. Each queue
-message carries one parquet row range (`rowStart`, `rowEnd`) plus a stable
-`processingRunStartedAt` marker. Upload finalization/requeue preplans all row
-ranges and enqueues them up front; intermediate chunks leave the release phases
-running, and only the final chunk runs release-level cleanup, publishes the
-snapshot, and completes `processDataset`.
+Large address releases are processed as local parquet chunks. Each chunk carries
+one row range (`rowStart`, `rowEnd`) plus a stable `processingRunStartedAt`
+marker. The shared chunking, release-ordering, and local SQL lifecycle are
+documented in [ResourceType common processing](../../resourceType/common.md).
 
-The row-range plan relies on the harbour-workers queue consumer remaining
-serial (`max_batch_size: 1`, `max_concurrency: 1`), because the first current
-stage initializes the draft current snapshot before later ranges apply deltas.
-
-The worker executes each row range through separate stage services:
-`normalize`, `source`, `history`, `current`, and `finalize`. The row-range
-stages run inside one queue event. Normalized and resolved chunk artifacts are
-stored in R2 so retries and later stages do not need to re-decode parquet or
-repeat source normalization work.
+The local processor still executes each row range through separate stage
+services: `normalize`, `source`, `history`, `current`, and `finalize`.
+Normalized and resolved chunk artifacts are stored under
+`.local/harbour-sql/releases/...` so later stages do not need to re-decode
+parquet or repeat source normalization work.
 
 For current-row cleanup, processed canonical rows are touched with the stable
 run marker and processed source rows are advanced to the current release ID.
 Final cleanup can therefore scan current rows in keyset pages without retaining
-the full release ID set in Worker memory.
+the full release ID set in memory.
 
 The staged SQL import builder can emit HKGov ALS source SQL from normalized
 address artifacts. It stages prepared raw payloads and localized rows, computes
@@ -130,7 +126,7 @@ This means HKGov ALS currently contributes the richer text model:
 
 ## Canonical Impact
 
-The worker first tries to match ALS rows onto existing canonical addresses by:
+The local pipeline first tries to match ALS rows onto existing canonical addresses by:
 
 1. canonical ID equals source ID
 2. `districtId::streetName::streetNumber`
@@ -138,12 +134,13 @@ The worker first tries to match ALS rows onto existing canonical addresses by:
 If matched:
 
 - HKGov ALS can overwrite the canonical row contents for that canonical address ID
+- if multiple ALS rows in one chunk reconcile to the same canonical address ID, only the last resolved row is staged into canonical history/current writes for that chunk
 
 If unmatched:
 
 - HKGov ALS can still create a canonical `address2d` row under its own prepared source ID
 
-Current canonical/source state is queried only for the source IDs and street-key candidates in the active parquet batch. The worker does not preload the full current address or source-address table before ALS processing starts.
+Current canonical/source state is queried only for the source IDs and street-key candidates in the active parquet batch. The local pipeline does not preload the full current address or source-address table before ALS processing starts.
 
 HKGov ALS does not currently drive canonical deletion:
 
@@ -151,14 +148,13 @@ HKGov ALS does not currently drive canonical deletion:
 
 ## Source Retention
 
-Source rows are retained in versioned tables. The current source row is the row
-where `isCurrent = 1`; there are no separate non-version current source tables.
+HKGov ALS-specific source rows are retained in:
 
 - `hkgovAlsAddresses2d`
 - `hkgovAlsAddress2dI18n`
 
-For later releases with unchanged source payloads, the worker advances the
-current row to the new release without inserting another source row.
+Shared source-version behavior is documented in
+[ResourceType common processing](../../resourceType/common.md#source-retention).
 
 Current retained source fields include:
 
@@ -206,8 +202,7 @@ Localized source retention stores:
 
 ## SQL Import Mode
 
-SQL-mode ALS address ingestion writes generated import files to `R2_RAW` under
-`processed/<releaseCode>/sql/<target>/`. The worker still performs parquet
-normalization, canonical matching, and hash computation in TypeScript before
-queueing source, history, current-init/current-delta imports and deferred SQL
-staging cleanup.
+ALS address ingestion writes generated import files under the local release
+cache in `.local/harbour-sql/releases/<target>/<releaseCode>/`. The shared local
+SQL upload, import ordering, and rollback behavior are documented in
+[ResourceType common processing](../../resourceType/common.md).

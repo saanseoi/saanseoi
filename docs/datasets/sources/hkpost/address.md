@@ -2,14 +2,15 @@
 
 This document tracks HKPost as a prospective address source.
 
-Related family doc:
+Related docs:
 
 - [Address family](../../families/address.md)
+- [Address resourceType](../../resourceType/address.md)
 
 ## Current Status
 
 - HKPost is not part of the current bulk upload pipeline.
-- There is no worker ingestion path for HKPost data yet.
+- There is no local SQL ingestion path for HKPost data yet.
 
 ## Source
 

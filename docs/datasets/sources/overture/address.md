@@ -2,21 +2,23 @@
 
 This document describes the Overture-specific side of the address pipeline.
 
-Related family doc:
+Related docs:
 
 - [Address family](../../families/address.md)
+- [Address resourceType](../../resourceType/address.md)
+- [ResourceType common processing](../../resourceType/common.md)
 
 ## Dataset Role
 
 - Dataset metadata uses `publisherCode: overture`, `code: ds-hk-overture-address`.
-- Uploads are ingested directly from parquet.
-- The worker path is `apps/harbour-workers/src/lib/services/address.ts`.
+- Uploads are ingested from parquet by the local SQL pipeline.
+- Shared address pipeline code lives under `libs/core/src/pipeline/services/addressPipeline`.
 - In runtime terms, Overture currently acts as the base address feed for canonical `address2d`.
 - For snapshot-source provenance, Overture releases are currently recorded with role `enrichment`.
 
 ## Source Fields Used
 
-The worker currently projects these Overture fields:
+The local pipeline currently projects these Overture fields:
 
 - `id`
 - `address_levels`
@@ -39,16 +41,16 @@ Overture address parquet files can arrive with very large row groups. The Harbou
 CLI rewrites Overture address uploads before dispatch so the R2 object has 2,048
 row parquet groups while preserving the original schema and row count.
 
-This is an ingestion-runtime optimization:
+This is a local ingestion-runtime optimization:
 
 - the release still registers as `address.parquet`
 - schema inspection and upload planning still use the source file semantics
-- worker reads use 2,048-row windows and parquet offset indexes when available
-- the smaller physical row groups keep Cloudflare Worker decode memory bounded
+- local reads use 2,048-row windows and parquet offset indexes when available
+- the smaller physical row groups keep local SQL processing from decoding oversized row groups
 
 ## Normalization
 
-For each Overture row, the worker:
+For each Overture row, the local pipeline:
 
 - uses Overture `id` as the source ID
 - derives `areaId` from the first `address_levels` entry by normalizing it to the retained source `area` enum and resolving that enum against the same-cohort published division snapshot
@@ -76,7 +78,7 @@ Current non-contributions:
 - `identifiers`
 - building and estate components
 
-The worker processes parquet rows in small write batches and reads 2,048-row parquet windows from R2. Upload-time repacking keeps those read windows aligned with the physical row groups used during worker ingestion.
+The local pipeline processes parquet rows in small batches and reads 2,048-row parquet windows from the cached parquet file. Upload-time repacking keeps those read windows aligned with the physical row groups used during ingestion.
 
 The Overture `2025-09-24.0` Hong Kong SAR address parquet was checked directly:
 all 182,155 rows have exactly two `address_levels` entries. The observed levels
@@ -84,23 +86,16 @@ are the Hong Kong area code (`HK`, `KLN`, or `NT`) followed by one of the 18
 district names; no town, village, neighbourhood, or lower-level address level is
 present in that file.
 
-Large address releases are processed as sequential queue chunks. Each queue
-message carries one parquet row range (`rowStart`, `rowEnd`) plus a stable
-`processingRunStartedAt` marker. Upload finalization/requeue preplans all row
-ranges and enqueues them up front; intermediate chunks leave the release phases
-running, and only the final chunk runs missing-row cleanup, publishes the
-snapshot, and completes `processDataset`.
+Large address releases are processed as local parquet chunks. Each chunk carries
+one row range (`rowStart`, `rowEnd`) plus a stable `processingRunStartedAt`
+marker. The shared chunking, release-ordering, and local SQL lifecycle are
+documented in [ResourceType common processing](../../resourceType/common.md).
 
-The row-range plan relies on the harbour-workers queue consumer remaining
-serial (`max_batch_size: 1`, `max_concurrency: 1`), because the first current
-stage initializes the draft current snapshot before later ranges apply deltas.
+Each row range is still split into dedicated local stage services:
 
-Each row range is split into dedicated worker stage services that run inside the
-same queue event:
-
-- `normalize`: reads the parquet range, normalizes source rows, computes source payload hashes, and writes a normalized R2 artifact
+- `normalize`: reads the parquet range, normalizes source rows, computes source payload hashes, and writes a normalized local artifact
 - `source`: reads the normalized artifact and writes only source current/source version tables
-- `history`: resolves canonical IDs, writes canonical history/version rows, and writes a resolved R2 artifact
+- `history`: resolves canonical IDs, writes canonical history/version rows, and writes a resolved local artifact
 - `current`: materializes changed canonical current rows and touches all seen current rows with the run marker
 - `finalize`: performs missing-row cleanup and allows publish/completion to continue
 
@@ -112,9 +107,9 @@ replaces changed localized source rows, and inserts source version rows with
 from resolved artifacts after TypeScript has resolved canonical IDs and computed
 canonical `versionHash` values.
 
-SQL artifacts are written to `R2_RAW` under
-`processed/<releaseCode>/sql/<target>/`. The import queue applies source SQL
-before history SQL, then current snapshot init SQL before current delta SQL.
+SQL artifacts are written under `.local/harbour-sql/releases/<target>/<releaseCode>/`.
+Shared import ordering is documented in
+[ResourceType common processing](../../resourceType/common.md).
 
 ## Canonical Impact
 
@@ -125,8 +120,9 @@ When no existing canonical row is matched:
 When a canonical row is matched:
 
 - Overture can update the canonical row’s geometry, bbox, and source payload
+- if multiple Overture rows in one chunk reconcile to the same canonical address ID, only the last resolved row is staged into canonical history/current writes for that chunk
 
-Current canonical/source state is queried only for the source IDs and street-key candidates in the active parquet batch. The worker does not preload the full current address or source-address table before processing starts.
+Current canonical/source state is queried only for the source IDs and street-key candidates in the active parquet batch. The local pipeline does not preload the full current address or source-address table before processing starts.
 
 Overture is also the only source that currently drives canonical deletion:
 
@@ -136,14 +132,12 @@ Overture is also the only source that currently drives canonical deletion:
 
 ## Source Retention
 
-Source rows are retained in a versioned table. The current source row is the
-row where `isCurrent = 1`; there is no separate non-version current source
-table.
+Overture-specific source rows are retained in:
 
 - `overtureAddresses2d`
 
-For later releases with unchanged source payloads, the worker advances the
-current row to the new release without inserting another source row.
+Shared source-version behavior is documented in
+[ResourceType common processing](../../resourceType/common.md#source-retention).
 
 Current retained source fields include:
 
