@@ -845,7 +845,7 @@ async function assertDivisionCurrentSnapshotComplete(
     })
   }
 
-  if (currentRows.size > 0 && activeSnapshotRowCount !== currentRows.size) {
+  if (currentRows.size > 0 && activeSnapshotRowCount < currentRows.size) {
     for (const divisionId of traceDivisionIds) {
       const snapshotState = traceState.get(divisionId)
 
@@ -863,13 +863,13 @@ async function assertDivisionCurrentSnapshotComplete(
     }
 
     throw new Error(
-      `Active division snapshot ${activeSnapshot.id} is incomplete in current storage: expected ${currentRows.size} rows, found ${activeSnapshotRowCount}.`,
+      `Active division snapshot ${activeSnapshot.id} is incomplete in current storage: expected at least ${currentRows.size} rows, found ${activeSnapshotRowCount}.`,
     )
   }
 
-  if (expectedI18nRowCount > 0 && activeSnapshotI18nRowCount !== expectedI18nRowCount) {
+  if (expectedI18nRowCount > 0 && activeSnapshotI18nRowCount < expectedI18nRowCount) {
     throw new Error(
-      `Active division snapshot ${activeSnapshot.id} is incomplete in current i18n storage: expected ${expectedI18nRowCount} rows, found ${activeSnapshotI18nRowCount}.`,
+      `Active division snapshot ${activeSnapshot.id} is incomplete in current i18n storage: expected at least ${expectedI18nRowCount} rows, found ${activeSnapshotI18nRowCount}.`,
     )
   }
 }
