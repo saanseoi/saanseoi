@@ -269,14 +269,15 @@ export function formatIngestionReportTable(
 ) {
   const filteredRows =
     options?.applyDefaultReleaseFilter === false ? rows : filterIngestionRows(rows)
+  const displayRows = filterDisplayIngestionRows(filteredRows)
 
-  if (filteredRows.length === 0) {
+  if (displayRows.length === 0) {
     return 'No ingest runs found.'
   }
 
   return formatTable(
     ['release', 'phase', 'status', 'startedAt', 'duration', 'stat', 'value', 'error'],
-    expandIngestRunRows(filteredRows),
+    expandIngestRunRows(displayRows),
   )
 }
 
@@ -350,6 +351,21 @@ function formatNumber(value: number) {
   }).format(value)
 }
 
+function formatByteSize(value: number) {
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'] as const
+  let unitIndex = 0
+  let normalizedValue = value
+
+  while (Math.abs(normalizedValue) >= 1024 && unitIndex < units.length - 1) {
+    normalizedValue /= 1024
+    unitIndex += 1
+  }
+
+  return `${new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 1,
+  }).format(normalizedValue)} ${units[unitIndex]}`
+}
+
 function summarizeJsonCell(value: unknown) {
   if (value == null) {
     return '-'
@@ -369,9 +385,7 @@ function uniqueHeaders(values: string[]) {
 
 function expandIngestRunRows(rows: IngestRunReportRow[]): TableCell[][] {
   return rows.flatMap<TableCell[]>(row => {
-    const statsEntries = asRecordEntries(row.stats).filter(
-      ([statKey]) => statKey !== 'durationMs',
-    )
+    const statsEntries = asRecordEntries(row.stats, row.phase)
     const statRows: Array<[string, string]> =
       statsEntries.length > 0 ? statsEntries : [['-', '-']]
     const renderedError = summarizeJsonCell(row.error)
@@ -389,15 +403,92 @@ function expandIngestRunRows(rows: IngestRunReportRow[]): TableCell[][] {
   })
 }
 
-function asRecordEntries(value: unknown): Array<[string, string]> {
+function filterDisplayIngestionRows(rows: IngestRunReportRow[]) {
+  const sqlReleaseIds = new Set(
+    rows.filter(row => isSqlReportPhase(row.phase)).map(row => row.releaseId),
+  )
+
+  if (sqlReleaseIds.size === 0) {
+    return rows
+  }
+
+  return rows.filter(
+    row => !(sqlReleaseIds.has(row.releaseId) && isSqlHiddenUmbrellaPhase(row.phase)),
+  )
+}
+
+function asRecordEntries(value: unknown, phase: string): Array<[string, string]> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return []
   }
 
-  return Object.entries(value).map(([key, entryValue]) => [
-    key,
-    summarizeJsonCell(entryValue),
-  ])
+  return Object.entries(value)
+    .filter(([key]) => shouldDisplayIngestStat(key, phase))
+    .map(([key, entryValue]) => [
+      key,
+      key === 'bytes' && typeof entryValue === 'number'
+        ? formatByteSize(entryValue)
+        : summarizeJsonCell(entryValue),
+    ])
+}
+
+function shouldDisplayIngestStat(key: string, phase: string) {
+  if (
+    key === 'addressStage' ||
+    key === 'durationMs' ||
+    key === 'fileCount' ||
+    key === 'importedFiles' ||
+    key === 'processedFiles' ||
+    key === 'processedStatements' ||
+    key === 'rowEnd' ||
+    key === 'rowStart' ||
+    key === 'sqlArtifactCount' ||
+    key === 'target' ||
+    key === 'totalFiles'
+  ) {
+    return false
+  }
+
+  if (phase === 'stageDataset') {
+    return key !== 'rawObjectKey' && key !== 'schemaFieldCount'
+  }
+
+  return true
+}
+
+function isSqlReportPhase(phase: string) {
+  return (
+    phase === 'normalizeAddressSql' ||
+    phase === 'generateAddressSqlSource' ||
+    phase === 'generateAddressSqlHistory' ||
+    phase === 'generateAddressSqlCurrent' ||
+    phase === 'finalizeAddressSqlGeneration' ||
+    phase === 'importAddressSqlSource' ||
+    phase === 'importAddressSqlHistory' ||
+    phase === 'importAddressSqlCurrentInit' ||
+    phase === 'importAddressSqlCurrent' ||
+    phase === 'cleanupAddressSqlStaging' ||
+    phase === 'normalizeDivisionSql' ||
+    phase === 'generateDivisionSqlSource' ||
+    phase === 'generateDivisionSqlHistory' ||
+    phase === 'generateDivisionSqlCurrent' ||
+    phase === 'generateDivisionSqlStats' ||
+    phase === 'importDivisionSqlSource' ||
+    phase === 'importDivisionSqlHistory' ||
+    phase === 'importDivisionSqlCurrentInit' ||
+    phase === 'importDivisionSqlCurrent' ||
+    phase === 'importDivisionSqlStats'
+  )
+}
+
+function isSqlHiddenUmbrellaPhase(phase: string) {
+  return (
+    phase === 'processDataset' ||
+    phase === 'extractAddresses' ||
+    phase === 'extractAddressesI18n' ||
+    phase === 'extractDivisions' ||
+    phase === 'extractDivisionsI18n'
+  )
 }
 
 function pivotStatsRows(rows: StatReportRow[]) {

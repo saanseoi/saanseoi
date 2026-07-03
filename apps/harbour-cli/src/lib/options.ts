@@ -127,24 +127,3 @@ export function getStringOption(args: ParsedArgs, keys: string[]): string | unde
 
   return undefined
 }
-
-export function resolveOptionalPositiveInteger(
-  value: string | boolean | undefined,
-  name: string,
-) {
-  if (value === undefined || value === false) {
-    return undefined
-  }
-
-  if (typeof value !== 'string' || !/^\d+$/.test(value)) {
-    throw new Error(`Invalid --${name} value. Expected a positive integer.`)
-  }
-
-  const parsed = Number(value)
-
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    throw new Error(`Invalid --${name} value. Expected a positive integer.`)
-  }
-
-  return parsed
-}
