@@ -2,6 +2,7 @@ import type { DatasetProcessingMessage } from '../../../types'
 import { createD1ImportClient } from '../../../lib/d1ImportApi'
 import { resolveShardForTypeRegionYear } from '../../../lib/db/metaRepository'
 import type { HarbourReadableDb } from '../../../lib/db/types'
+import { runWithWriteRetry, type WriteRetryEvent } from '../../utils'
 import type { MetaDatabase } from '@repo/db'
 import { createHash } from 'node:crypto'
 
@@ -58,11 +59,17 @@ export type AddressSqlImportStageOptions = {
   dataShardEnvironment?: string
   historyBinding?: LocalD1ExecBinding
   isLocal: boolean
+  localWriteMaxRetries?: number
   metaBinding?: LocalD1ExecBinding
   metaDatabaseId?: string | null
+  onRetry?: (event: AddressSqlImportRetryEvent) => void | Promise<void>
   pollIntervalMs?: number
   remoteImportBatchBytes?: number
   sourceBinding?: LocalD1ExecBinding
+}
+
+export type AddressSqlImportRetryEvent = WriteRetryEvent & {
+  target: AddressSqlImportTarget
 }
 
 type ImportTargetContext = {
@@ -545,7 +552,7 @@ async function importArtifactKeys(
     bytes += artifact.bytes.byteLength
 
     if (options.isLocal) {
-      statementCount += await execSqlWithBoundD1(targetContext, artifact.bytes)
+      statementCount += await execSqlWithBoundD1(targetContext, artifact.bytes, options)
     } else {
       await importSqlWithD1RestApi(targetContext, artifact, options)
     }
@@ -590,7 +597,7 @@ async function cleanupSqlStaging(
     bytes += sqlBytes.byteLength
 
     if (options.isLocal) {
-      await execSqlWithBoundD1(targetContext, sqlBytes)
+      await execSqlWithBoundD1(targetContext, sqlBytes, options)
     } else {
       await importSqlWithD1RestApi(
         targetContext,
@@ -711,13 +718,17 @@ async function resolveImportTarget(
   }
 }
 
-async function execSqlWithBoundD1(target: ImportTargetContext, sqlBytes: Uint8Array) {
+async function execSqlWithBoundD1(
+  target: ImportTargetContext,
+  sqlBytes: Uint8Array,
+  options: AddressSqlImportStageOptions,
+) {
   if (!target.binding?.prepare) {
     throw new Error(`Missing D1 prepare binding for ${target.name} SQL execution.`)
   }
 
   const sql = new TextDecoder().decode(sqlBytes)
-  await ensureLegacyNormalizedRowsSchema(target, sql)
+  await ensureLegacyNormalizedRowsSchema(target, sql, options)
 
   const statements = splitSqlStatements(sql)
 
@@ -727,11 +738,18 @@ async function execSqlWithBoundD1(target: ImportTargetContext, sqlBytes: Uint8Ar
       index < statements.length;
       index += LOCAL_D1_BATCH_STATEMENT_COUNT
     ) {
-      await target.binding.batch(
-        statements
-          .slice(index, index + LOCAL_D1_BATCH_STATEMENT_COUNT)
-          .map(statement => target.binding?.prepare?.(statement))
-          .filter(isLocalD1PreparedStatement),
+      await runWithWriteRetry(
+        () =>
+          target.binding?.batch?.(
+            statements
+              .slice(index, index + LOCAL_D1_BATCH_STATEMENT_COUNT)
+              .map(statement => target.binding?.prepare?.(statement))
+              .filter(isLocalD1PreparedStatement),
+          ),
+        {
+          maxRetries: options.localWriteMaxRetries,
+          onRetry: event => options.onRetry?.({ ...event, target: target.name }),
+        },
       )
     }
 
@@ -739,7 +757,10 @@ async function execSqlWithBoundD1(target: ImportTargetContext, sqlBytes: Uint8Ar
   }
 
   for (const statement of statements) {
-    await target.binding.prepare(statement).run()
+    await runWithWriteRetry(() => target.binding?.prepare?.(statement).run(), {
+      maxRetries: options.localWriteMaxRetries,
+      onRetry: event => options.onRetry?.({ ...event, target: target.name }),
+    })
   }
 
   return statements.length
@@ -748,11 +769,14 @@ async function execSqlWithBoundD1(target: ImportTargetContext, sqlBytes: Uint8Ar
 async function ensureLegacyNormalizedRowsSchema(
   target: ImportTargetContext,
   sql: string,
+  options: AddressSqlImportStageOptions,
 ) {
   const binding = target.binding
 
+  const prepare = binding?.prepare
+
   if (
-    !binding?.prepare ||
+    !prepare ||
     target.name !== 'source' ||
     !/\bssAddressImportRows\b/.test(sql) ||
     !/\bsourceArea\b/.test(sql)
@@ -762,11 +786,19 @@ async function ensureLegacyNormalizedRowsSchema(
 
   for (const [columnName, columnType] of LEGACY_NORMALIZED_ROWS_COLUMNS) {
     try {
-      await binding
-        .prepare(
-          `ALTER TABLE ${LEGACY_NORMALIZED_ROWS_TABLE} ADD COLUMN ${columnName} ${columnType};`,
-        )
-        .run()
+      await runWithWriteRetry(
+        () =>
+          prepare
+            .call(
+              binding,
+              `ALTER TABLE ${LEGACY_NORMALIZED_ROWS_TABLE} ADD COLUMN ${columnName} ${columnType};`,
+            )
+            .run(),
+        {
+          maxRetries: options.localWriteMaxRetries,
+          onRetry: event => options.onRetry?.({ ...event, target: target.name }),
+        },
+      )
     } catch (error) {
       if (!isIgnorableLegacyNormalizedRowsAlterError(error)) {
         throw error

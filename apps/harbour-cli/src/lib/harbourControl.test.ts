@@ -18,6 +18,7 @@ afterEach(() => {
 describe('harbour control client', () => {
   test('retries database lock responses with backoff', async () => {
     const calls: Array<{ body?: unknown; url: string }> = []
+    const retries: Array<{ attempt: number; delayMs: number; path: string }> = []
 
     process.env.HARBOUR_API_KEY = 'test-api-key'
     globalThis.fetch = (async (input, init) => {
@@ -33,10 +34,21 @@ describe('harbour control client', () => {
       return Response.json({ ok: true })
     }) as typeof fetch
 
-    const client = createHarbourControlClient({
-      environment: 'dev',
-      remote: false,
-    })
+    const client = createHarbourControlClient(
+      {
+        environment: 'dev',
+        remote: false,
+      },
+      {
+        onRetry(event) {
+          retries.push({
+            attempt: event.attempt,
+            delayMs: event.delayMs,
+            path: event.path,
+          })
+        },
+      },
+    )
 
     await client.stageRunning('release-id', 'processDataset')
 
@@ -44,6 +56,13 @@ describe('harbour control client', () => {
     expect(calls.map(call => call.url)).toEqual([
       'http://localhost:8788/v1/control/stageRunning',
       'http://localhost:8788/v1/control/stageRunning',
+    ])
+    expect(retries).toEqual([
+      {
+        attempt: 1,
+        delayMs: 150,
+        path: '/v1/control/stageRunning',
+      },
     ])
   })
 

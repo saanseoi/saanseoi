@@ -98,6 +98,15 @@ export class LocalUploadProgress {
     this.progressBar.message(nextLabel)
   }
 
+  message(label: string) {
+    if (!this.progressBar) {
+      return
+    }
+
+    this.currentLabel = label
+    this.progressBar.message(label)
+  }
+
   complete(message?: string) {
     if (!this.progressBar || !this.currentLabel || !this.state) {
       return

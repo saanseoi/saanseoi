@@ -97,8 +97,10 @@ Current operational shape:
   import API, but the SQL is uploaded from the local machine.
 - Local target imports write directly to the local D1 SQLite files.
 - Local SQLite writes and Harbour control calls that fail with transient
-  `SQLITE_BUSY`/`database is locked` errors are retried three times with
-  backoff before the upload is failed.
+  `SQLITE_BUSY`/`database is locked` errors are retried with backoff before
+  the upload is failed. Local SQL imports retry up to eight times; Harbour
+  control calls retry up to three times. The CLI prints each retry attempt in
+  the active progress UI.
 
 Release precedence is enforced before processing starts:
 

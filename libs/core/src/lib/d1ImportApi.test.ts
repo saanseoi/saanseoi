@@ -133,6 +133,68 @@ describe('createD1ImportClient', () => {
     ).rejects.toThrow('ETag mismatch')
   })
 
+  test('does not poll when ingest completes without a bookmark', async () => {
+    const requests: Array<unknown> = []
+    const fetchImpl: D1ImportFetch = async (input, init) => {
+      const url = String(input)
+      const body =
+        typeof init?.body === 'string' && url !== 'https://upload.example/import.sql'
+          ? JSON.parse(init.body)
+          : undefined
+
+      requests.push(body)
+
+      if (body?.action === 'init') {
+        return Response.json({
+          success: true,
+          result: {
+            filename: 'import.sql',
+            upload_url: 'https://upload.example/import.sql',
+          },
+        })
+      }
+
+      if (url === 'https://upload.example/import.sql') {
+        return new Response(null, {
+          headers: {
+            ETag: '"abc123"',
+          },
+        })
+      }
+
+      if (body?.action === 'ingest') {
+        return Response.json({
+          success: true,
+          result: {
+            status: 'complete',
+            success: true,
+          },
+        })
+      }
+
+      return Response.json({ success: false, errors: [{ message: 'unexpected' }] })
+    }
+
+    const client = createD1ImportClient({
+      accountId: 'account',
+      apiToken: 'token',
+      databaseId: 'database',
+      fetch: fetchImpl,
+    })
+
+    const result = await client.importSql({
+      etag: 'abc123',
+      sql: 'SELECT 1;',
+    })
+
+    expect(result.poll.status).toBe('complete')
+    expect(requests).toEqual([
+      { action: 'init', etag: 'abc123' },
+      undefined,
+      { action: 'ingest', etag: 'abc123', filename: 'import.sql' },
+    ])
+  })
+
   test('skips upload and ingest when init already returns an import bookmark', async () => {
     const requests: Array<{
       body?: unknown
