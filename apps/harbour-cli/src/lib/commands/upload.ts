@@ -117,13 +117,38 @@ ${mutedBar}  `)
   const processingStrategy = resolveUploadProcessingStrategy(previewResult)
 
   if (processingStrategy.mode === 'local-address-sql') {
-    await assertAddressUploadPrerequisites(target, previewResult.plan)
+    const prerequisiteSpinner = spinner()
+    prerequisiteSpinner.start('Checking address prerequisites')
+
+    try {
+      await assertAddressUploadPrerequisites(target, previewResult.plan)
+      prerequisiteSpinner.stop('Address prerequisites passed')
+    } catch (error) {
+      prerequisiteSpinner.error('Address prerequisite check failed')
+      throw error
+    }
   }
 
-  const preparedUploadFile = await prepareUploadFileForDispatch(
-    registerOptions.filePath,
-    previewResult,
-  )
+  const prepareSpinner = spinner()
+  prepareSpinner.start(resolvePrepareUploadFileMessage(previewResult))
+
+  let preparedUploadFile: Awaited<ReturnType<typeof prepareUploadFileForDispatch>>
+
+  try {
+    preparedUploadFile = await prepareUploadFileForDispatch(
+      registerOptions.filePath,
+      previewResult,
+    )
+
+    if (preparedUploadFile?.transformed) {
+      prepareSpinner.stop('Prepared upload file')
+    } else {
+      prepareSpinner.clear()
+    }
+  } catch (error) {
+    prepareSpinner.error('Upload file preparation failed')
+    throw error
+  }
 
   try {
     const uploadSpinner = spinner()
@@ -245,6 +270,12 @@ ${mutedBar}  `)
   } finally {
     await preparedUploadFile?.cleanup()
   }
+}
+
+function resolvePrepareUploadFileMessage(
+  _previewResult: Awaited<ReturnType<typeof prepareUpload>>,
+) {
+  return 'Preparing upload file'
 }
 
 function resolveUploadProcessingStrategy(
@@ -389,20 +420,23 @@ async function resolveAssumptionWarnings(
 function resolveSchemaVersionId(
   previewResult: Awaited<ReturnType<typeof prepareUpload>>,
 ) {
+  const schemaSpinner = spinner()
+  schemaSpinner.start('Schema Check')
+
   if (previewResult.plan.source === 'overture') {
     try {
       const schemaVersionId = validateOvertureSchema(
         previewResult.plan,
         previewResult.inspection,
       ).schema.id
-      log.message(formatSchemaCheck('passed'))
+      schemaSpinner.stop(formatSchemaCheck('passed'))
       return schemaVersionId
     } catch (error) {
-      log.message(formatSchemaCheck('failed'))
+      schemaSpinner.error(formatSchemaCheck('failed'))
       throw error
     }
   }
 
-  log.message(formatSchemaCheck('skipped'))
+  schemaSpinner.stop(formatSchemaCheck('skipped'))
   return `${previewResult.plan.source}-${previewResult.plan.type}-unvalidated`
 }
