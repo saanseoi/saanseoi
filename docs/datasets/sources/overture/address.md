@@ -108,6 +108,10 @@ from resolved artifacts after TypeScript has resolved canonical IDs and computed
 canonical `versionHash` values.
 
 SQL artifacts are written under `.local/harbour-sql/releases/<target>/<releaseCode>/`.
+The local SQL path also writes a meta SQL artifact for the draft address
+snapshot, its `snapshotSources` link, assembly run, and history shard assignment;
+that meta artifact is imported before the release is published so Harbour can
+resolve the snapshot during publish.
 Shared import ordering is documented in
 [ResourceType common processing](../../resourceType/common.md).
 

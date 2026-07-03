@@ -6,7 +6,12 @@ import type {
 } from './types'
 import { buildSourceReleaseId } from '../../db/source'
 
-export type AddressSqlImportTarget = 'source' | 'history' | 'history-apply' | 'current'
+export type AddressSqlImportTarget =
+  | 'source'
+  | 'history'
+  | 'history-apply'
+  | 'current'
+  | 'meta'
 
 export type AddressSqlImportFile = {
   bytes: number

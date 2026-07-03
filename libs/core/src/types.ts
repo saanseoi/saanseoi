@@ -143,6 +143,7 @@ export type DatasetProcessingMessage = {
     | 'sql-import-source'
     | 'sql-import-history'
     | 'sql-import-current'
+    | 'sql-import-meta'
     | 'sql-cleanup-staging'
   artifactKey?: string
   resolvedArtifactKey?: string

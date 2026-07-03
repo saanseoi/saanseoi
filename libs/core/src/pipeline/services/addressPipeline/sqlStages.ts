@@ -1,7 +1,13 @@
 import type { DatasetProcessingMessage } from '../../../types'
 import { resolveLatestSnapshotForResourceTypeExcludingId } from '../../../lib/db/metaRepository'
 import type { HarbourReadableDb } from '../../../lib/db/types'
-import type { CurrentDatabase, HistoryDatabase, MetaDatabase } from '@repo/db'
+import {
+  eq,
+  metaSchema,
+  type CurrentDatabase,
+  type HistoryDatabase,
+  type MetaDatabase,
+} from '@repo/db'
 
 import { buildAlignAddressCurrentDivisionSnapshotSql } from '../../db/address'
 import type { HarbourWorkerBucket } from '../division'
@@ -178,8 +184,15 @@ export async function writeAddressCurrentSqlChunkStage(
           snapshotId: artifact.rows[0].base.snapshotId,
         })
       : null
+  const metaFile =
+    artifact.rowEnd >= artifact.totalRows && artifact.rows[0]?.base.snapshotId
+      ? await buildAddressMetaSqlFile(metaDb, message, artifact.rows[0].base.snapshotId)
+      : null
   const historyApplyArtifactKeys = historyApplyFile
     ? await writeSqlFiles(bucket, message, [historyApplyFile])
+    : []
+  const metaArtifactKeys = metaFile
+    ? await writeSqlFiles(bucket, message, [metaFile])
     : []
 
   if (artifact.rowEnd < artifact.totalRows) {
@@ -212,6 +225,7 @@ export async function writeAddressCurrentSqlChunkStage(
       ...initArtifactKeys,
       ...historyApplyArtifactKeys,
       ...artifactKeys,
+      ...metaArtifactKeys,
     ],
     artifactKey: undefined,
     resolvedArtifactKey: undefined,
@@ -221,6 +235,192 @@ export async function writeAddressCurrentSqlChunkStage(
     rowEnd: artifact.rowEnd,
     totalRows: artifact.totalRows,
   } satisfies AddressPipelineMessage
+}
+
+async function buildAddressMetaSqlFile(
+  metaDb: MetaDatabase,
+  message: DatasetProcessingMessage,
+  snapshotIdValue: string,
+): Promise<AddressSqlImportFile> {
+  const releaseId = message.releaseId ?? message.datasetId
+  const {
+    metaReleaseShardAssignments,
+    metaSnapshotAssemblyRuns,
+    metaSnapshots,
+    metaSnapshotSources,
+  } = metaSchema
+  const snapshotRow = await metaDb
+    .select({
+      id: metaSnapshots.id,
+      resourceType: metaSnapshots.resourceType,
+      code: metaSnapshots.code,
+      cohortKey: metaSnapshots.cohortKey,
+      status: metaSnapshots.status,
+      publishedAt: metaSnapshots.publishedAt,
+      validFrom: metaSnapshots.validFrom,
+      validTo: metaSnapshots.validTo,
+      notes: metaSnapshots.notes,
+      createdAt: metaSnapshots.createdAt,
+      updatedAt: metaSnapshots.updatedAt,
+    })
+    .from(metaSnapshots)
+    .where(eq(metaSnapshots.id, snapshotIdValue))
+    .limit(1)
+    .get()
+
+  if (!snapshotRow) {
+    throw new Error(
+      `Address snapshot metadata missing from local meta cache: ${snapshotIdValue}.`,
+    )
+  }
+
+  const snapshotSourceRows = await metaDb
+    .select({
+      snapshotId: metaSnapshotSources.snapshotId,
+      datasetId: metaSnapshotSources.datasetId,
+      sourceReleaseId: metaSnapshotSources.sourceReleaseId,
+      role: metaSnapshotSources.role,
+      selectedByRule: metaSnapshotSources.selectedByRule,
+      selectionMode: metaSnapshotSources.selectionMode,
+      anchorReleaseId: metaSnapshotSources.anchorReleaseId,
+      sourceCohortKey: metaSnapshotSources.sourceCohortKey,
+      createdAt: metaSnapshotSources.createdAt,
+    })
+    .from(metaSnapshotSources)
+    .where(eq(metaSnapshotSources.snapshotId, snapshotIdValue))
+    .all()
+
+  if (!snapshotSourceRows.some(row => row.sourceReleaseId === releaseId)) {
+    throw new Error(
+      `Address snapshot source metadata missing for release ${releaseId} and snapshot ${snapshotIdValue}.`,
+    )
+  }
+
+  const snapshotAssemblyRunRows = await metaDb
+    .select({
+      id: metaSnapshotAssemblyRuns.id,
+      snapshotId: metaSnapshotAssemblyRuns.snapshotId,
+      snapshotAssemblyId: metaSnapshotAssemblyRuns.snapshotAssemblyId,
+      anchorReleaseId: metaSnapshotAssemblyRuns.anchorReleaseId,
+      anchorCohortKey: metaSnapshotAssemblyRuns.anchorCohortKey,
+      status: metaSnapshotAssemblyRuns.status,
+      selectionSummaryJson: metaSnapshotAssemblyRuns.selectionSummaryJson,
+      createdAt: metaSnapshotAssemblyRuns.createdAt,
+      updatedAt: metaSnapshotAssemblyRuns.updatedAt,
+    })
+    .from(metaSnapshotAssemblyRuns)
+    .where(eq(metaSnapshotAssemblyRuns.snapshotId, snapshotIdValue))
+    .all()
+  const releaseShardAssignmentRows = await metaDb
+    .select({
+      releaseId: metaReleaseShardAssignments.releaseId,
+      dataShardId: metaReleaseShardAssignments.dataShardId,
+    })
+    .from(metaReleaseShardAssignments)
+    .where(eq(metaReleaseShardAssignments.releaseId, releaseId))
+    .all()
+
+  if (releaseShardAssignmentRows.length === 0) {
+    throw new Error(
+      `Address release shard assignment missing from local meta cache: ${releaseId}.`,
+    )
+  }
+
+  const statements = [
+    buildInsertStatement(
+      'snapshots',
+      [
+        'id',
+        'resourceType',
+        'code',
+        'cohortKey',
+        'status',
+        'publishedAt',
+        'validFrom',
+        'validTo',
+        'notes',
+        'createdAt',
+        'updatedAt',
+      ],
+      [snapshotRow],
+      `ON CONFLICT(id) DO UPDATE SET
+  resourceType = excluded.resourceType,
+  code = excluded.code,
+  cohortKey = excluded.cohortKey,
+  status = excluded.status,
+  publishedAt = excluded.publishedAt,
+  validFrom = excluded.validFrom,
+  validTo = excluded.validTo,
+  notes = excluded.notes,
+  createdAt = excluded.createdAt,
+  updatedAt = excluded.updatedAt`,
+    ),
+    buildInsertStatement(
+      'snapshotSources',
+      [
+        'snapshotId',
+        'datasetId',
+        'sourceReleaseId',
+        'role',
+        'selectedByRule',
+        'selectionMode',
+        'anchorReleaseId',
+        'sourceCohortKey',
+        'createdAt',
+      ],
+      snapshotSourceRows,
+      `ON CONFLICT(snapshotId, sourceReleaseId) DO UPDATE SET
+  datasetId = excluded.datasetId,
+  role = excluded.role,
+  selectedByRule = excluded.selectedByRule,
+  selectionMode = excluded.selectionMode,
+  anchorReleaseId = excluded.anchorReleaseId,
+  sourceCohortKey = excluded.sourceCohortKey,
+  createdAt = excluded.createdAt`,
+    ),
+    buildInsertStatement(
+      'snapshotAssemblyRuns',
+      [
+        'id',
+        'snapshotId',
+        'snapshotAssemblyId',
+        'anchorReleaseId',
+        'anchorCohortKey',
+        'status',
+        'selectionSummaryJson',
+        'createdAt',
+        'updatedAt',
+      ],
+      snapshotAssemblyRunRows.map(row => ({
+        ...row,
+        selectionSummaryJson: jsonText(row.selectionSummaryJson),
+      })),
+      `ON CONFLICT(id) DO UPDATE SET
+  snapshotId = excluded.snapshotId,
+  snapshotAssemblyId = excluded.snapshotAssemblyId,
+  anchorReleaseId = excluded.anchorReleaseId,
+  anchorCohortKey = excluded.anchorCohortKey,
+  status = excluded.status,
+  selectionSummaryJson = excluded.selectionSummaryJson,
+  createdAt = excluded.createdAt,
+  updatedAt = excluded.updatedAt`,
+    ),
+    buildInsertStatement(
+      'releaseShardAssignments',
+      ['releaseId', 'dataShardId'],
+      releaseShardAssignmentRows,
+      'ON CONFLICT(releaseId, dataShardId) DO NOTHING',
+    ),
+  ].filter(Boolean)
+  const sql = `${statements.join('\n\n')}\n`
+
+  return {
+    bytes: new TextEncoder().encode(sql).byteLength,
+    filename: `${buildAddressSqlImportRunId(message)}-meta.sql`,
+    sql,
+    statementCount: statements.length,
+    target: 'meta',
+  }
 }
 
 export function finalizeAddressSqlDatasetStage(message: DatasetProcessingMessage) {
@@ -344,6 +544,32 @@ ON CONFLICT(snapshotId, addressId, locale) DO NOTHING;`.trim(),
     statementCount: statements.length,
     target: 'current',
   }
+}
+
+function buildInsertStatement(
+  tableName: string,
+  columns: readonly string[],
+  rows: Record<string, unknown>[],
+  suffix: string,
+) {
+  if (rows.length === 0) {
+    return ''
+  }
+
+  const values = rows
+    .map(row => `(${columns.map(column => sqlLiteral(row[column])).join(', ')})`)
+    .join(', ')
+
+  return `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES ${values}
+${suffix};`
+}
+
+function jsonText(value: unknown): string | null {
+  if (value === null || value === undefined) {
+    return null
+  }
+
+  return JSON.stringify(value)
 }
 
 function sqlLiteral(value: unknown): string {
