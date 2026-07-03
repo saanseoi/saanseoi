@@ -24,6 +24,14 @@ type SignUploadResponse = {
 }
 
 type UploadResponse = Record<string, unknown>
+export type UploadDispatchTimings = {
+  fileBytes: number
+  finalizeMs: number
+  signMs: number
+  totalMs: number
+  uploadMs: number
+}
+const UPLOAD_TIMINGS_KEY = '__uploadTimings'
 type SnapshotCleanupResponse = {
   candidateCount: number
   delaySeconds: number
@@ -84,6 +92,7 @@ export async function dispatchUpload(
   schemaVersionId: string,
   options: DispatchUploadOptions = {},
 ) {
+  const dispatchStartedAt = Date.now()
   const apiBaseUrl = resolveHarbourApiUrl(target)
   const uploadFile = options.uploadFilePath
     ? {
@@ -103,8 +112,8 @@ export async function dispatchUpload(
       )
     }
 
-    const fileBytes = await readFile(uploadFile.filePath)
     const fileStats = await stat(uploadFile.filePath)
+    const signStartedAt = Date.now()
     const signResponse = await requestSignedUpload(
       apiBaseUrl,
       previewResult,
@@ -112,14 +121,58 @@ export async function dispatchUpload(
       schemaVersionId,
       options,
     )
+    const signMs = Date.now() - signStartedAt
 
+    const uploadStartedAt = Date.now()
+    const fileBytes = await readFile(uploadFile.filePath)
     await uploadFileToSignedUrl(signResponse, fileBytes)
+    const uploadMs = Date.now() - uploadStartedAt
 
-    return finalizeUpload(apiBaseUrl, signResponse.releaseId, {
+    const finalizeStartedAt = Date.now()
+    const result = await finalizeUpload(apiBaseUrl, signResponse.releaseId, {
       skipSnapshotCleanup: options.skipSnapshotCleanup,
+    })
+    const finalizeMs = Date.now() - finalizeStartedAt
+
+    return attachUploadTimings(result, {
+      fileBytes: fileStats.size,
+      finalizeMs,
+      signMs,
+      totalMs: Date.now() - dispatchStartedAt,
+      uploadMs,
     })
   } finally {
     await uploadFile.cleanup()
+  }
+}
+
+export function getUploadDispatchTimings(
+  value: Record<string, unknown> | undefined,
+): UploadDispatchTimings | null {
+  const timings = value?.[UPLOAD_TIMINGS_KEY]
+
+  if (typeof timings !== 'object' || timings === null || Array.isArray(timings)) {
+    return null
+  }
+
+  const candidate = timings as UploadDispatchTimings
+
+  return typeof candidate.fileBytes === 'number' &&
+    typeof candidate.finalizeMs === 'number' &&
+    typeof candidate.signMs === 'number' &&
+    typeof candidate.totalMs === 'number' &&
+    typeof candidate.uploadMs === 'number'
+    ? candidate
+    : null
+}
+
+function attachUploadTimings<T extends UploadResponse>(
+  result: T,
+  timings: UploadDispatchTimings,
+) {
+  return {
+    ...result,
+    [UPLOAD_TIMINGS_KEY]: timings,
   }
 }
 

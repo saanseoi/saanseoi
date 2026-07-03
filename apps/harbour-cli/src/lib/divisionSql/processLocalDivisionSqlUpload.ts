@@ -80,9 +80,11 @@ import {
   writeLocalPipelineState,
 } from '../localPipeline/orchestrator.ts'
 import {
+  appendPhaseDetails,
   colorRed,
   colorTeal,
   formatCompletedPhaseLabel,
+  formatDurationMs,
   formatRunningPhaseLabel,
 } from '../localPipeline/progressFormatting.ts'
 import {
@@ -174,6 +176,7 @@ const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
   'apps/harbour-workers/wrangler.jsonc',
 )
 const DIVISION_BATCH_SIZE = 1024
+const REMOTE_IMPORT_BATCH_BYTES = 64 * 1024 * 1024
 const SQL_STATEMENT_BYTE_TARGET = 99_000
 const PRIMARY_HISTORY_OWNER_KEY = 'history-current'
 const PRIMARY_SOURCE_OWNER_KEY = 'source-current'
@@ -219,6 +222,7 @@ export async function processLocalDivisionSqlUpload(
   const resolvedTargetName = resolveTargetName(target)
 
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
+  const dbCacheStartedAt = Date.now()
 
   try {
     dbContext = await resolveLocalAddressDbContext(
@@ -229,6 +233,10 @@ export async function processLocalDivisionSqlUpload(
         onProgress(event) {
           updateDbCacheProgress(progress, event)
         },
+        cacheTableProfile: 'division',
+        includePreviousShardYears: shouldIncludePreviousShardYears(
+          previewPlan.cohortKey,
+        ),
         refreshRemoteTables: false,
         remoteCacheScopeKey: target.remote ? releaseCode : undefined,
       },
@@ -240,7 +248,13 @@ export async function processLocalDivisionSqlUpload(
 
   if (target.remote && progress.hasActivePhase()) {
     progress.complete(
-      formatCompletedPhaseLabel(colorTeal('Clone cache'), colorRed(resolvedTargetName)),
+      appendPhaseDetails(
+        formatCompletedPhaseLabel(
+          colorTeal('Clone cache'),
+          colorRed(resolvedTargetName),
+        ),
+        [formatDurationMs(Date.now() - dbCacheStartedAt)],
+      ),
     )
   }
   const harbourClient = createHarbourControlClient(target) as HarbourClient
@@ -264,6 +278,7 @@ export async function processLocalDivisionSqlUpload(
     accountId: resolveCloudflareAccountId(target),
     apiToken: resolveCloudflareD1ApiToken(),
     isLocal: !target.remote,
+    remoteImportBatchBytes: REMOTE_IMPORT_BATCH_BYTES,
   }
   const environment = resolveImportEnvironment(target)
   const importTargets = await resolveDivisionImportTargets(
@@ -711,6 +726,10 @@ export async function processLocalDivisionSqlUpload(
   }
 }
 
+function shouldIncludePreviousShardYears(cohortKey: string) {
+  return /^\d{4}-01(?:-\d{2})?/.test(cohortKey)
+}
+
 function updateDbCacheProgress(
   progress: LocalUploadProgress,
   event: LocalDbCacheProgressEvent,
@@ -760,6 +779,10 @@ function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {
   switch (event.action) {
     case 'check-cache':
       return `${event.target}.manifest`
+    case 'export-binding':
+      return event.tableName
+        ? `${event.bindingName}.${event.tableName}`
+        : `${event.bindingName}.export`
     case 'reuse-cache':
       return `${event.target}.reuse`
     case 'migrate-binding':

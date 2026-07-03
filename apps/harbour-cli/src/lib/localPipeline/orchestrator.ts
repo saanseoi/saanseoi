@@ -4,6 +4,12 @@ import { dirname, resolve } from 'node:path'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 
 import type { LocalUploadProgress } from '../localUploadProgress.ts'
+import {
+  appendPhaseDetails,
+  formatBytes,
+  formatCount,
+  formatDurationMs,
+} from './progressFormatting.ts'
 
 export type LocalGenerationPhase<TMessage> = {
   completionLabel: string
@@ -58,6 +64,7 @@ export async function runLocalGenerationPhase<TMessage>(
   worker: (message: TMessage) => Promise<TMessage>,
 ) {
   let processedUnits = 0
+  const startedAt = Date.now()
 
   progress.beginPhase(phase.label, {
     current: 0,
@@ -96,7 +103,11 @@ export async function runLocalGenerationPhase<TMessage>(
   progress.update(phase.totalUnits, {
     label: phase.labelForProgress(phase.totalUnits),
   })
-  progress.complete(phase.completionLabel)
+  progress.complete(
+    appendPhaseDetails(phase.completionLabel, [
+      formatDurationMs(Date.now() - startedAt),
+    ]),
+  )
   return results
 }
 
@@ -107,6 +118,7 @@ export async function runLocalStreamingPhase<TResult>(
   operation: (reportProgress: (current: number) => Promise<void>) => Promise<TResult>,
 ) {
   let currentUnits = 0
+  const startedAt = Date.now()
 
   progress.beginPhase(phase.label, {
     current: 0,
@@ -142,7 +154,11 @@ export async function runLocalStreamingPhase<TResult>(
     await reportProgress(phase.totalUnits)
   }
 
-  progress.complete(phase.completionLabel)
+  progress.complete(
+    appendPhaseDetails(phase.completionLabel, [
+      formatDurationMs(Date.now() - startedAt),
+    ]),
+  )
   return result
 }
 
@@ -160,6 +176,9 @@ export function createLocalImportProgressClient(
     0,
   )
   let activeLocalPhase: 'cleanup' | 'import' | 'publish' | null = null
+  let importStartedAt: number | null = null
+  const completedImportDetailsByPhase = new Map<string, string>()
+  const phaseStartedAt = new Map<string, number>()
 
   return {
     ...harbourClient,
@@ -168,8 +187,22 @@ export function createLocalImportProgressClient(
     },
     async stageCompleted(releaseId, phase, stats, releaseCode) {
       const importPhase = importPhasesByName.get(phase)
+      const completedDetails = formatCompletedStatsDetails(
+        stats,
+        phaseStartedAt.get(phase),
+      )
 
       if (importPhase) {
+        const phaseDetails = formatImportPhaseDetails(
+          phase,
+          stats,
+          phaseStartedAt.get(phase),
+        )
+
+        if (phaseDetails) {
+          completedImportDetailsByPhase.set(phase, phaseDetails)
+        }
+
         importProgressByPhase.set(phase, importPhase.totalUnits)
         const totalProgress = sumImportProgress(importProgressByPhase)
 
@@ -179,20 +212,31 @@ export function createLocalImportProgressClient(
         })
 
         if (totalProgress >= totalImportUnits) {
-          progress.complete(importPhase.completedLabel)
+          progress.complete(
+            appendPhaseDetails(importPhase.completedLabel, [
+              formatDurationMs(
+                importStartedAt ? Date.now() - importStartedAt : Number.NaN,
+              ),
+              formatImportBreakdown(config.importPhases, completedImportDetailsByPhase),
+            ]),
+          )
         }
       } else if (phase === config.cleanup.phase) {
         progress.update(config.cleanup.totalUnits, {
           label: config.cleanup.runningLabel(config.cleanup.totalUnits),
           max: config.cleanup.totalUnits,
         })
-        progress.complete(config.cleanup.completedLabel)
+        progress.complete(
+          appendPhaseDetails(config.cleanup.completedLabel, completedDetails),
+        )
       } else if (phase === config.publish.phase) {
         progress.update(config.publish.totalUnits, {
           label: config.publish.runningLabel(config.publish.totalUnits),
           max: config.publish.totalUnits,
         })
-        progress.complete(config.publish.completedLabel)
+        progress.complete(
+          appendPhaseDetails(config.publish.completedLabel, completedDetails),
+        )
       }
 
       return harbourClient.stageCompleted(releaseId, phase, stats, releaseCode)
@@ -203,10 +247,14 @@ export function createLocalImportProgressClient(
     },
     async stageRunning(releaseId, phase, stats, releaseCode) {
       const importPhase = importPhasesByName.get(phase)
+      if (!phaseStartedAt.has(phase)) {
+        phaseStartedAt.set(phase, Date.now())
+      }
 
       if (importPhase) {
         if (activeLocalPhase !== 'import') {
           activeLocalPhase = 'import'
+          importStartedAt = Date.now()
           progress.beginPhase(importPhase.runningLabel(0), {
             current: 0,
             max: totalImportUnits,
@@ -250,6 +298,70 @@ export function createLocalImportProgressClient(
       return harbourClient.stageRunning(releaseId, phase, stats, releaseCode)
     },
   }
+}
+
+function formatCompletedStatsDetails(
+  stats: Record<string, unknown> | undefined,
+  startedAt: number | undefined,
+) {
+  const durationMs =
+    typeof stats?.durationMs === 'number'
+      ? stats.durationMs
+      : startedAt
+        ? Date.now() - startedAt
+        : undefined
+  const bytes = typeof stats?.bytes === 'number' ? formatBytes(stats.bytes) : null
+  const fileCount =
+    typeof stats?.fileCount === 'number'
+      ? `${formatCount(stats.fileCount)} files`
+      : null
+
+  return [formatDurationMs(durationMs ?? Number.NaN), bytes, fileCount]
+}
+
+function formatImportPhaseDetails(
+  phase: string,
+  stats: Record<string, unknown> | undefined,
+  startedAt: number | undefined,
+) {
+  const durationMs =
+    typeof stats?.durationMs === 'number'
+      ? stats.durationMs
+      : startedAt
+        ? Date.now() - startedAt
+        : undefined
+  const details = [
+    formatDurationMs(durationMs ?? Number.NaN),
+    typeof stats?.bytes === 'number' ? formatBytes(stats.bytes) : null,
+    typeof stats?.fileCount === 'number'
+      ? `${formatCount(stats.fileCount)} files`
+      : null,
+  ].filter((detail): detail is string => Boolean(detail))
+
+  if (details.length === 0) {
+    return null
+  }
+
+  return `${formatImportPhaseName(phase)} ${details.join(' ')}`
+}
+
+function formatImportBreakdown(
+  phases: LocalImportProgressPhase[],
+  detailsByPhase: Map<string, string>,
+) {
+  const details = phases
+    .map(phase => detailsByPhase.get(phase.phase))
+    .filter((detail): detail is string => Boolean(detail))
+
+  return details.length > 0 ? details.join('; ') : null
+}
+
+function formatImportPhaseName(phase: string) {
+  return phase
+    .replace(/^import(?:Address|Division)Sql/, '')
+    .replace(/Stats$/, 'meta')
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .toLowerCase()
 }
 
 export async function writeLocalPipelineState(
