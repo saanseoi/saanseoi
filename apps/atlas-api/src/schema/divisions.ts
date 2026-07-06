@@ -33,7 +33,7 @@ const DivisionI18nAttributesSchema = z
   })
   .openapi('DivisionI18nAttributes')
 
-const DivisionAncestorResourceIdentifierSchema =
+const DivisionHierarchyResourceIdentifierSchema =
   DivisionResourceIdentifierSchema.extend({
     meta: z
       .object({
@@ -41,7 +41,7 @@ const DivisionAncestorResourceIdentifierSchema =
         subType: z.string().optional(),
       })
       .optional(),
-  }).openapi('DivisionAncestorResourceIdentifier')
+  }).openapi('DivisionHierarchyResourceIdentifier')
 
 const DivisionAttributesSchema = z
   .object({
@@ -62,7 +62,8 @@ const DivisionAttributesSchema = z
       .object({
         subtype: z.string().nullable().optional(),
         class: z.string().nullable().optional(),
-        hierarchy: z.unknown().optional(),
+        hierarchies: z.unknown().optional(),
+        admin_level: z.number().int().nullable().optional(),
       })
       .optional(),
     i18n: z
@@ -79,9 +80,9 @@ const DivisionAttributesSchema = z
 
 const DivisionRelationshipsSchema = z
   .object({
-    ancestors: z
+    hierarchy: z
       .object({
-        data: z.array(DivisionAncestorResourceIdentifierSchema),
+        data: z.array(DivisionHierarchyResourceIdentifierSchema),
       })
       .optional(),
   })
@@ -140,7 +141,7 @@ export const DivisionsListQuerySchema = z
   .object({
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
-    include: z.literal('ancestors').optional(),
+    include: z.literal('hierarchy').optional(),
     'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
     'page[offset]': z.coerce.number().int().min(0).optional(),
     'filter[level]': z.coerce.number().int().min(0).optional(),
@@ -159,7 +160,7 @@ export const DivisionDetailQuerySchema = z
   .object({
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
-    include: z.literal('ancestors').optional(),
+    include: z.literal('hierarchy').optional(),
   })
   .openapi('DivisionDetailQuery')
 
