@@ -53,7 +53,6 @@ type DivisionResourcePayload = {
     geometry?: JsonObject | null
     bbox?: [number, number, number, number] | null
     cartography?: JsonObject | null
-    population?: number | null
     wikidata?: string | null
     createdAt?: string
     updatedAt?: string
@@ -375,7 +374,6 @@ function createDivisionResource(args: {
 
   if (routeState.profile === 'full') {
     attributes.snapshotId = division.snapshotId
-    attributes.population = division.population
     attributes.sources = (division.sources as JsonObject | null) ?? null
     attributes.overture = {
       subtype: division.subtype,

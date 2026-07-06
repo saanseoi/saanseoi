@@ -31,9 +31,9 @@ import {
   runStatementsInGroupsWithWriteRetry,
 } from '../utils'
 
-const CURRENT_DIVISION_COLUMN_COUNT = 15
+const CURRENT_DIVISION_COLUMN_COUNT = 14
 const CURRENT_DIVISION_I18N_COLUMN_COUNT = 10
-const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 22
+const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 21
 const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 15
 const HISTORY_DIVISION_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 
@@ -136,7 +136,6 @@ export async function getCurrentDivisionVersionMap(
       hierarchy: historySchema.divisions.hierarchy,
       level: historySchema.divisions.level,
       parentDivisionId: historySchema.divisions.parentDivisionId,
-      population: historySchema.divisions.population,
       sourceKeys: historySchema.divisions.sourceKeys,
       sources: historySchema.divisions.sources,
       type: historySchema.divisions.type,
@@ -311,7 +310,6 @@ export async function cloneDivisionCurrentSnapshot(
             id: currentSchema.divisions.id,
             level: currentSchema.divisions.level,
             type: currentSchema.divisions.type,
-            population: currentSchema.divisions.population,
             sourceKeys: currentSchema.divisions.sourceKeys,
             wikidata: currentSchema.divisions.wikidata,
             hierarchy: currentSchema.divisions.hierarchy,
@@ -646,7 +644,6 @@ export async function upsertDivisionCurrentStates(
               geometry: excluded('geometry'),
               hierarchy: excluded('hierarchy'),
               level: excluded('level'),
-              population: excluded('population'),
               sourceKeys: excluded('sourceKeys'),
               type: excluded('type'),
               parentDivisionId: excluded('parentDivisionId'),
@@ -765,7 +762,6 @@ export async function insertDivisionVersionRows(
         type: row.type,
         geometry: row.geometry,
         bbox: row.bbox,
-        population: row.population,
         sourceKeys: row.sourceKeys,
         wikidata: row.wikidata,
         hierarchy: row.hierarchy,

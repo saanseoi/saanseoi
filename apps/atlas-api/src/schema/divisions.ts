@@ -54,7 +54,6 @@ const DivisionAttributesSchema = z
       .nullable()
       .optional(),
     cartography: z.object({}).loose().nullable().optional(),
-    population: z.number().int().nullable().optional(),
     wikidata: z.string().nullable().optional(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),

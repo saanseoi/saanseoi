@@ -28,7 +28,6 @@ export type DivisionRecord = {
     type: string
     geometry: typeof divisions.$inferSelect.geometry
     bbox: typeof divisions.$inferSelect.bbox
-    population: number | null
     sourceKeys: DivisionSourceKeys | null
     subtype: string | null
     class: string | null
@@ -72,7 +71,6 @@ type DivisionRow = {
   type: string
   geometry: typeof divisions.$inferSelect.geometry
   bbox: typeof divisions.$inferSelect.bbox
-  population: number | null
   sourceKeys: typeof divisions.$inferSelect.sourceKeys
   wikidata: string | null
   hierarchy: typeof divisions.$inferSelect.hierarchy
@@ -180,7 +178,6 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
       type: row.type,
       geometry: row.geometry,
       bbox: row.bbox,
-      population: row.population,
       sourceKeys,
       subtype: getDivisionSourceKey(sourceKeys, 'overture', 'subtype'),
       class: getDivisionSourceKey(sourceKeys, 'overture', 'class'),
@@ -254,7 +251,6 @@ export async function listDivisionRecordsCurrent(
       type: divisions.type,
       geometry: divisions.geometry,
       bbox: divisions.bbox,
-      population: divisions.population,
       sourceKeys: divisions.sourceKeys,
       wikidata: divisions.wikidata,
       hierarchy: divisions.hierarchy,
@@ -312,7 +308,6 @@ export async function listDivisionRecordsCurrentByIds(
       type: divisions.type,
       geometry: divisions.geometry,
       bbox: divisions.bbox,
-      population: divisions.population,
       sourceKeys: divisions.sourceKeys,
       wikidata: divisions.wikidata,
       hierarchy: divisions.hierarchy,

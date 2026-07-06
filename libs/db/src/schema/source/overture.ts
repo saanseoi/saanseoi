@@ -18,7 +18,6 @@ export const sourceOvertureDivisions = sqliteTable(
     adminLevel: integer('admin_level'),
     subtype: text('subtype'),
     class: text('class'),
-    population: integer('population'),
     wikidata: text('wikidata'),
     hierarchies: jsonText('hierarchies'),
     ...geoBbox,
