@@ -21,13 +21,13 @@ import { buildDeterministicUuidV5, computeVersionHash } from '../versioning'
 
 const fixturesDir = new URL('../../../../fixtures/meta/', import.meta.url)
 const nowSql = "cast(unixepoch('subsecond') * 1000 as integer)"
-const sqlUuid =
-  "lower(hex(randomblob(4))) || '-' || " +
-  "lower(hex(randomblob(2))) || '-' || " +
-  "'4' || substr(lower(hex(randomblob(2))), 2) || '-' || " +
-  "substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || " +
-  'lower(hex(randomblob(6)))'
+const PUBLISHER_ID_NAMESPACE = '9b7e6c3a-1ef4-5ba5-9b64-36f0b8b41ef1'
+const LICENSE_ID_NAMESPACE = '76409a70-86d3-5277-8ab9-f8482fddad43'
 const DATASET_ID_NAMESPACE = '8c8ab30f-3c0f-42c6-bef2-98c3e615f4a6'
+const API_VERSION_ID_NAMESPACE = 'c289d557-af8a-59ef-a7d0-2861a00fc8bc'
+const API_COMPOSITION_ID_NAMESPACE = 'ba6a345f-d57a-51d8-9256-bcda2275e6d3'
+const API_ENDPOINT_ID_NAMESPACE = 'f27eaf73-6d20-578d-80d7-5e515447aa62'
+const DATA_SHARD_ID_NAMESPACE = 'e7956160-6b36-521f-a0cb-ac3c0769b5c7'
 
 export const metaRegistryRequiredTables = [
   'publishers',
@@ -262,12 +262,14 @@ function sqlNullable(value: string | undefined) {
 }
 
 function sqlDatasetId(publisherCode: string, datasetCode: string) {
-  return sqlString(
-    buildDeterministicUuidV5(
-      DATASET_ID_NAMESPACE,
-      `${publisherCode.trim()}:${datasetCode.trim()}`,
-    ),
+  return sqlDeterministicId(
+    DATASET_ID_NAMESPACE,
+    `${publisherCode.trim()}:${datasetCode.trim()}`,
   )
+}
+
+function sqlDeterministicId(namespace: string, name: string) {
+  return sqlString(buildDeterministicUuidV5(namespace, name.trim()))
 }
 
 function sqlTimestampMs(value: string) {
@@ -398,7 +400,7 @@ export function buildMetaRegistrySyncStatements(
 INSERT INTO publishers (
   id, code, url, contactUrl, parentPublisherId, versionHash, createdAt, updatedAt
 ) VALUES (
-  ${sqlUuid},
+  ${sqlDeterministicId(PUBLISHER_ID_NAMESPACE, publisher.code)},
   ${sqlString(publisher.code)},
   ${sqlNullable(publisher.url)},
   ${sqlNullable(publisher.contactUrl)},
@@ -452,7 +454,7 @@ ON CONFLICT(publisherId, locale) DO UPDATE SET
 INSERT INTO licenses (
   id, code, name, url, versionHash, createdAt, updatedAt
 ) VALUES (
-  ${sqlUuid},
+  ${sqlDeterministicId(LICENSE_ID_NAMESPACE, license.code)},
   ${sqlString(license.code)},
   ${sqlString(license.name)},
   ${sqlNullable(license.url)},
@@ -538,7 +540,7 @@ ON CONFLICT(datasetId, locale) DO UPDATE SET
 INSERT INTO apiVersions (
   id, code, familyType, version, status, publishedAt, deprecatedAt, retiredAt, versionHash, createdAt, updatedAt
 ) VALUES (
-  ${sqlUuid},
+  ${sqlDeterministicId(API_VERSION_ID_NAMESPACE, apiVersion.code)},
   ${sqlString(apiVersion.code)},
   ${sqlString(apiVersion.familyType)},
   ${sqlString(apiVersion.version)},
@@ -569,7 +571,7 @@ WHERE apiVersions.versionHash <> excluded.versionHash;`.trim(),
 INSERT INTO apiComposition (
   id, apiVersionId, code, version, primaryResourceType, status, notes, versionHash, createdAt, updatedAt
 ) VALUES (
-  ${sqlUuid},
+  ${sqlDeterministicId(API_COMPOSITION_ID_NAMESPACE, composition.code)},
   (SELECT id FROM apiVersions WHERE code = ${sqlString(composition.apiVersion)}),
   ${sqlString(composition.code)},
   ${composition.version},
@@ -624,7 +626,7 @@ ON CONFLICT(apiCompositionId, resourceType) DO UPDATE SET
 INSERT INTO apiEndpoints (
   id, apiVersionId, method, path, operationId, versionHash, createdAt, updatedAt
 ) VALUES (
-  ${sqlUuid},
+  ${sqlDeterministicId(API_ENDPOINT_ID_NAMESPACE, endpoint.operationId)},
   (SELECT id FROM apiVersions WHERE code = ${sqlString(endpoint.apiVersion)}),
   ${sqlString(endpoint.method)},
   ${sqlString(endpoint.path)},
@@ -649,7 +651,7 @@ WHERE apiEndpoints.versionHash <> excluded.versionHash;`.trim(),
 INSERT INTO dataShards (
   id, shardType, regionCode, year, environment, databaseName, databaseId, bindingName, status, versionHash, createdAt, updatedAt
 ) VALUES (
-  ${sqlUuid},
+  ${sqlDeterministicId(DATA_SHARD_ID_NAMESPACE, shard.bindingName)},
   ${sqlString(shard.shardType)},
   ${sqlNullable(shard.regionCode)},
   ${sqlNullable(shard.year)},

@@ -93,6 +93,7 @@ describe('formatReleaseReportTable', () => {
         datasetCode: 'hk-address',
         datasetId: 'dataset-1',
         ingestedAt: '2026-06-24T12:00:00.000Z',
+        notes: null,
         originalFileName: 'address.parquet',
         publicationDate: null,
         rawObjectKey: 'hk/overture/2026-06-24.0/address.parquet',

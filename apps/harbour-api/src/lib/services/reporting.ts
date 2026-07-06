@@ -79,6 +79,7 @@ export type ReleaseReportRow = {
   datasetCode: string
   datasetId: string
   ingestedAt: string | null
+  notes: string | null
   originalFileName: string | null
   publicationDate: string | null
   rawObjectKey: string | null
@@ -249,6 +250,7 @@ export async function listReleases(
       datasetCode: metaDatasets.code,
       datasetId: metaDatasets.id,
       ingestedAt: metaReleases.ingestedAt,
+      notes: metaReleases.notes,
       originalFileName: metaReleases.originalFileName,
       publicationDate: metaReleases.publicationDate,
       rawObjectKey: metaReleases.rawObjectKey,
@@ -291,6 +293,7 @@ export async function listReleases(
     datasetCode: row.datasetCode,
     datasetId: row.datasetId,
     ingestedAt: toIsoString(row.ingestedAt),
+    notes: row.notes,
     originalFileName: row.originalFileName,
     publicationDate: row.publicationDate,
     rawObjectKey: row.rawObjectKey,

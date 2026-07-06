@@ -48,6 +48,7 @@ export type ReleaseReportRow = {
   datasetCode: string
   datasetId: string
   ingestedAt: string | null
+  notes: string | null
   originalFileName: string | null
   publicationDate: string | null
   rawObjectKey: string | null

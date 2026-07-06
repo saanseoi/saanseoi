@@ -38,6 +38,7 @@ export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {
       sourceVersion: metaReleases.sourceVersion,
       rawObjectKey: metaReleases.rawObjectKey,
       originalFileName: metaReleases.originalFileName,
+      notes: metaReleases.notes,
       status: metaReleases.status,
       supersededByReleaseId: metaReleases.supersededByReleaseId,
       revokedAt: metaReleases.revokedAt,
