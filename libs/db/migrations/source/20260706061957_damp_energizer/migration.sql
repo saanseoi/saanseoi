@@ -1,0 +1,1 @@
+ALTER TABLE `overtureDivisions` DROP COLUMN `population`;
