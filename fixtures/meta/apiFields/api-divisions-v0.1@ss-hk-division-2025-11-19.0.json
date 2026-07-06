@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:9faf9242653cc89dd26062466d99754ef070b7184037b5efb501cc76502c4564",
+  "versionHash": "sha256:57540eec987f19676134a23b937ff69d792a62097c283d629459907249270d6b",
   "apiVersion": "api-divisions-v0.1",
   "validFromSnapshotVersion": "ss-hk-division-2025-11-19.0",
   "schemaVersion": "sv-division-v1",
@@ -138,15 +138,6 @@
       "apiField": "division.attributes.bbox",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "bbox",
-      "resolverCode": "direct_copy",
-      "contributionType": "primary",
-      "priority": 0,
-      "confidence": 1
-    },
-    {
-      "apiField": "division.attributes.population",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "population",
       "resolverCode": "direct_copy",
       "contributionType": "primary",
       "priority": 0,
