@@ -34,7 +34,7 @@ export type DivisionProfile = ApiProfileName
 
 type JsonObject = Record<string, unknown>
 
-type DivisionAncestorResourceIdentifier = {
+type DivisionHierarchyResourceIdentifier = {
   type: 'divisions'
   id: string
   meta?: {
@@ -60,13 +60,14 @@ type DivisionResourcePayload = {
     overture?: {
       subtype?: string | null
       class?: string | null
-      hierarchy?: unknown
+      hierarchies?: unknown
+      admin_level?: number | null
     }
     i18n?: DivisionRecord['i18n']
   }
   relationships: {
-    ancestors: {
-      data: DivisionAncestorResourceIdentifier[]
+    hierarchy: {
+      data: DivisionHierarchyResourceIdentifier[]
     }
   }
   links: {
@@ -141,7 +142,7 @@ type ActiveDivisionSnapshot = {
 export type DivisionListQuery = {
   profile?: string
   locales?: string
-  include?: 'ancestors'
+  include?: 'hierarchy'
   'page[limit]'?: number
   'page[offset]'?: number
   'filter[level]'?: number
@@ -152,7 +153,7 @@ export type DivisionListQuery = {
 export type DivisionDetailQuery = {
   profile?: string
   locales?: string
-  include?: 'ancestors'
+  include?: 'hierarchy'
 }
 
 export type DivisionListResult =
@@ -257,10 +258,10 @@ function projectDivisionI18n(
   return Object.fromEntries(projectedEntries)
 }
 
-function buildDivisionAncestorRelationshipData(
+function buildDivisionHierarchyRelationshipData(
   divisionId: string,
   hierarchy: unknown,
-): DivisionAncestorResourceIdentifier[] {
+): DivisionHierarchyResourceIdentifier[] {
   if (!Array.isArray(hierarchy)) {
     return []
   }
@@ -286,13 +287,38 @@ function buildDivisionAncestorRelationshipData(
       return []
     }
 
-    const name = typeof record.name === 'string' ? record.name : undefined
+    const normalizedI18n =
+      record.i18n && typeof record.i18n === 'object' && !Array.isArray(record.i18n)
+        ? (record.i18n as Record<string, unknown>)
+        : null
+    const englishI18n =
+      normalizedI18n?.en &&
+      typeof normalizedI18n.en === 'object' &&
+      !Array.isArray(normalizedI18n.en)
+        ? (normalizedI18n.en as Record<string, unknown>)
+        : null
+    const zhHantI18n =
+      normalizedI18n?.['zh-hant'] &&
+      typeof normalizedI18n['zh-hant'] === 'object' &&
+      !Array.isArray(normalizedI18n['zh-hant'])
+        ? (normalizedI18n['zh-hant'] as Record<string, unknown>)
+        : null
+    const name =
+      typeof record.name === 'string'
+        ? record.name
+        : typeof englishI18n?.name === 'string'
+          ? englishI18n.name
+          : typeof zhHantI18n?.name === 'string'
+            ? zhHantI18n.name
+            : undefined
     const rawSubType =
       typeof record.subType === 'string'
         ? record.subType
         : typeof record.subtype === 'string'
           ? record.subtype
-          : null
+          : typeof record.type === 'string'
+            ? record.type
+            : null
 
     return {
       type: 'divisions' as const,
@@ -378,7 +404,10 @@ function createDivisionResource(args: {
     attributes.overture = {
       subtype: division.subtype,
       class: division.class,
-      hierarchy: division.hierarchy ?? null,
+      hierarchies: division.overtureHierarchies ?? null,
+      ...(division.overtureAdminLevel !== null
+        ? { admin_level: division.overtureAdminLevel }
+        : {}),
     }
   }
 
@@ -393,8 +422,8 @@ function createDivisionResource(args: {
     id: division.id,
     attributes,
     relationships: {
-      ancestors: {
-        data: buildDivisionAncestorRelationshipData(division.id, division.hierarchy),
+      hierarchy: {
+        data: buildDivisionHierarchyRelationshipData(division.id, division.hierarchy),
       },
     },
     links: {
@@ -530,32 +559,32 @@ async function getActiveDivisionSnapshot(
   return activeSnapshot
 }
 
-async function loadIncludedAncestorRecords(args: {
-  includeAncestors: boolean
+async function loadIncludedHierarchyRecords(args: {
+  includeHierarchy: boolean
   snapshotId: string
   records: DivisionRecord[]
   db: AppEnv['Variables']['currentDb']
   routeState: DivisionRouteState
 }) {
-  if (!args.includeAncestors) {
+  if (!args.includeHierarchy) {
     return []
   }
 
   const primaryIds = new Set(args.records.map(record => record.division.id))
-  const ancestorIds = [
+  const hierarchyIds = [
     ...new Set(
       args.records.flatMap(record =>
-        buildDivisionAncestorRelationshipData(
+        buildDivisionHierarchyRelationshipData(
           record.division.id,
           record.division.hierarchy,
-        ).map(ancestor => ancestor.id),
+        ).map(hierarchy => hierarchy.id),
       ),
     ),
   ].filter(id => !primaryIds.has(id))
 
   return listDivisionRecordsCurrentByIds(args.db, {
     snapshotId: args.snapshotId,
-    divisionIds: ancestorIds,
+    divisionIds: hierarchyIds,
     localeSelection: args.routeState.localeSelection,
   })
 }
@@ -613,8 +642,8 @@ export async function listDivisions(args: {
   )
 
   const includedRecords = await runWithD1ReadRetry(() =>
-    loadIncludedAncestorRecords({
-      includeAncestors: args.query.include === 'ancestors',
+    loadIncludedHierarchyRecords({
+      includeHierarchy: args.query.include === 'hierarchy',
       snapshotId: activeDivisionSnapshot.snapshotId,
       records,
       db: args.currentDb,
@@ -684,8 +713,8 @@ export async function getDivisionDetail(args: {
   }
 
   const includedRecords = await runWithD1ReadRetry(() =>
-    loadIncludedAncestorRecords({
-      includeAncestors: args.query.include === 'ancestors',
+    loadIncludedHierarchyRecords({
+      includeHierarchy: args.query.include === 'hierarchy',
       snapshotId: activeDivisionSnapshot.snapshotId,
       records: [record],
       db: args.currentDb,

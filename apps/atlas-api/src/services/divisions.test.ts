@@ -32,6 +32,35 @@ const hierarchyWithNames = [
   },
 ]
 
+const normalizedHierarchy = [
+  {
+    division_id: 'division-hk-sar',
+    i18n: {
+      en: {
+        name: 'Hong Kong SAR',
+      },
+      'zh-hant': {
+        name: '香港特別行政區',
+      },
+    },
+    level: 0,
+    type: 'sar',
+  },
+  {
+    division_id: 'division-east',
+    i18n: {
+      en: {
+        name: 'Eastern District',
+      },
+      'zh-hant': {
+        name: '東區',
+      },
+    },
+    level: 2,
+    type: 'district',
+  },
+]
+
 const baseRecord: DivisionRecord = {
   division: {
     snapshotId: activeSnapshot.snapshotId,
@@ -47,12 +76,15 @@ const baseRecord: DivisionRecord = {
       overture: {
         subtype: 'locality',
         class: 'locality',
+        hierarchies: hierarchyWithNames,
       },
     },
     subtype: 'locality',
     class: 'locality',
+    overtureAdminLevel: null,
+    overtureHierarchies: hierarchyWithNames,
     wikidata: 'Q123456',
-    hierarchy: hierarchyWithNames,
+    hierarchy: normalizedHierarchy,
     parentDivisionId: 'division-incorrect-parent',
     cartography: {
       kind: 'label-center',
@@ -92,10 +124,13 @@ const includedRecordsById: Record<string, DivisionRecord> = {
         overture: {
           subtype: 'country',
           class: 'country',
+          admin_level: 1,
         },
       },
       subtype: 'country',
       class: 'country',
+      overtureAdminLevel: 1,
+      overtureHierarchies: undefined,
       wikidata: null,
       hierarchy: [{ ids: ['division-country-cn'] }],
       parentDivisionId: null,
@@ -122,10 +157,13 @@ const includedRecordsById: Record<string, DivisionRecord> = {
         overture: {
           subtype: 'dependency',
           class: 'dependency',
+          admin_level: 1,
         },
       },
       subtype: 'dependency',
       class: 'dependency',
+      overtureAdminLevel: 1,
+      overtureHierarchies: undefined,
       wikidata: null,
       hierarchy: [{ ids: ['division-country-cn', 'division-hk-sar'] }],
       parentDivisionId: 'division-country-cn',
@@ -152,10 +190,13 @@ const includedRecordsById: Record<string, DivisionRecord> = {
         overture: {
           subtype: 'region',
           class: 'region',
+          admin_level: 2,
         },
       },
       subtype: 'region',
       class: 'region',
+      overtureAdminLevel: 2,
+      overtureHierarchies: undefined,
       wikidata: null,
       hierarchy: [{ ids: ['division-country-cn', 'division-hk-sar', 'division-east'] }],
       parentDivisionId: 'division-hk-sar',
@@ -238,8 +279,8 @@ describe('division services', () => {
       expect('divisionType' in resource.attributes).toBe(false)
       expect('parent' in resource.relationships).toBe(false)
       expect(
-        resource.relationships.ancestors.data.map(ancestor => ancestor.id),
-      ).toEqual(['division-country-cn', 'division-hk-sar', 'division-east'])
+        resource.relationships.hierarchy.data.map(hierarchy => hierarchy.id),
+      ).toEqual(['division-hk-sar', 'division-east'])
 
       if (profile === 'compact') {
         expect(resource.attributes).toEqual({
@@ -311,7 +352,7 @@ describe('division services', () => {
           overture: {
             subtype: 'locality',
             class: 'locality',
-            hierarchy: hierarchyWithNames,
+            hierarchies: hierarchyWithNames,
           },
           i18n: {
             en: {
@@ -332,18 +373,18 @@ describe('division services', () => {
     }
   })
 
-  test('getDivisionDetail derives ancestors and included resources from hierarchy', async () => {
+  test('getDivisionDetail derives hierarchy and included resources from canonical hierarchy', async () => {
     const result = await getDivisionDetail({
       currentDb: {} as never,
       metaDb: {} as never,
       requestUrl:
-        'http://localhost/v0.1/divisions/division-a-kung-ngam?include=ancestors&profile=full',
+        'http://localhost/v0.1/divisions/division-a-kung-ngam?include=hierarchy&profile=full',
       requestedVersionPath: 'v0.1',
       requestedApiVersion: '0.1',
       resolvedApiVersion: 'api-divisions-v0.1',
       id: 'division-a-kung-ngam',
       query: {
-        include: 'ancestors',
+        include: 'hierarchy',
         profile: 'full',
       },
     })
@@ -354,36 +395,43 @@ describe('division services', () => {
       return
     }
 
-    expect(result.body.data.relationships.ancestors.data).toEqual([
-      {
-        type: 'divisions',
-        id: 'division-country-cn',
-        meta: {
-          name: '中国',
-          subType: 'country',
-        },
-      },
+    expect(result.body.data.relationships.hierarchy.data).toEqual([
       {
         type: 'divisions',
         id: 'division-hk-sar',
         meta: {
           name: 'Hong Kong SAR',
-          subType: 'dependency',
+          subType: 'sar',
         },
       },
       {
         type: 'divisions',
         id: 'division-east',
         meta: {
-          name: '東區 Eastern District',
-          subType: 'region',
+          name: 'Eastern District',
+          subType: 'district',
         },
       },
     ])
     expect(result.body.included?.map(resource => resource.id)).toEqual([
-      'division-country-cn',
       'division-hk-sar',
       'division-east',
     ])
+    expect(
+      result.body.included?.find(resource => resource.id === 'division-hk-sar')
+        ?.attributes.overture,
+    ).toMatchObject({
+      subtype: 'dependency',
+      class: 'dependency',
+      admin_level: 1,
+    })
+    expect(
+      result.body.included?.find(resource => resource.id === 'division-east')
+        ?.attributes.overture,
+    ).toMatchObject({
+      subtype: 'region',
+      class: 'region',
+      admin_level: 2,
+    })
   })
 })

@@ -18,7 +18,7 @@ export type DivisionLocaleValue = {
 }
 
 export type DivisionLocaleCode = RequestedApiLocale
-export type DivisionSourceKeys = Record<string, Record<string, string | null>>
+export type DivisionSourceKeys = Record<string, Record<string, unknown>>
 
 export type DivisionRecord = {
   division: {
@@ -31,6 +31,8 @@ export type DivisionRecord = {
     sourceKeys: DivisionSourceKeys | null
     subtype: string | null
     class: string | null
+    overtureAdminLevel: number | null
+    overtureHierarchies: unknown
     wikidata: string | null
     hierarchy: typeof divisions.$inferSelect.hierarchy
     parentDivisionId: string | null
@@ -166,6 +168,23 @@ function getDivisionSourceKey(
   return typeof value === 'string' ? value : null
 }
 
+function getDivisionSourceNumber(
+  sourceKeys: DivisionSourceKeys | null,
+  source: string,
+  key: string,
+) {
+  const value = sourceKeys?.[source]?.[key]
+  return typeof value === 'number' ? value : null
+}
+
+function getDivisionSourceValue(
+  sourceKeys: DivisionSourceKeys | null,
+  source: string,
+  key: string,
+) {
+  return sourceKeys?.[source]?.[key]
+}
+
 function mapDivisionRow(row: DivisionRow): DivisionRecord {
   const rawI18n = JSON.parse(row.i18n) as Record<string, unknown>
   const sourceKeys = mapDivisionSourceKeys(row.sourceKeys)
@@ -181,6 +200,16 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
       sourceKeys,
       subtype: getDivisionSourceKey(sourceKeys, 'overture', 'subtype'),
       class: getDivisionSourceKey(sourceKeys, 'overture', 'class'),
+      overtureAdminLevel: getDivisionSourceNumber(
+        sourceKeys,
+        'overture',
+        'admin_level',
+      ),
+      overtureHierarchies: getDivisionSourceValue(
+        sourceKeys,
+        'overture',
+        'hierarchies',
+      ),
       wikidata: row.wikidata,
       hierarchy: row.hierarchy,
       parentDivisionId: row.parentDivisionId,
