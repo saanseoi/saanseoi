@@ -69,6 +69,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
       cohortKey: plan.cohortKey,
       rawObjectKey: release.rawObjectKey,
       originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
+      notes: null,
       status: 'staged',
       revokedAt: null,
       revocationReason: null,

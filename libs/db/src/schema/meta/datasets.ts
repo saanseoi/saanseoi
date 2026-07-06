@@ -90,6 +90,7 @@ export const metaReleases = sqliteTable(
     cohortKey: text('cohortKey'),
     rawObjectKey: text('rawObjectKey'),
     originalFileName: text('originalFileName'),
+    notes: text('notes'),
     status: text('status', { enum: releaseStatuses }).notNull(),
     revokedAt: isoTimestamp('revokedAt'),
     revocationReason: text('revocationReason'),
