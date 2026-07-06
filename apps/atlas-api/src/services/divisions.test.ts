@@ -43,7 +43,6 @@ const baseRecord: DivisionRecord = {
       coordinates: [114.2262, 22.2788],
     },
     bbox: [114.22, 22.27, 114.23, 22.28],
-    population: 4200,
     sourceKeys: {
       overture: {
         subtype: 'locality',
@@ -89,7 +88,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       type: 'country',
       geometry: null,
       bbox: null,
-      population: null,
       sourceKeys: {
         overture: {
           subtype: 'country',
@@ -120,7 +118,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       type: 'sar',
       geometry: null,
       bbox: null,
-      population: null,
       sourceKeys: {
         overture: {
           subtype: 'dependency',
@@ -151,7 +148,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       type: 'district',
       geometry: null,
       bbox: null,
-      population: null,
       sourceKeys: {
         overture: {
           subtype: 'region',
@@ -306,7 +302,6 @@ describe('division services', () => {
           cartography: {
             kind: 'label-center',
           },
-          population: 4200,
           wikidata: 'Q123456',
           createdAt: '2026-06-17T00:00:00.000Z',
           updatedAt: '2026-06-18T00:00:00.000Z',

@@ -442,7 +442,6 @@ export async function processDivisionDataset(
             adminLevel: resolveAdminLevelValue(row),
             subtype: sourceString(row.subtype),
             class: sourceString(row.class),
-            population: normalized.base.population,
             version: asOptionalInteger(row.version),
             wikidata: normalized.base.wikidata,
             geometry: normalized.base.geometry,
@@ -861,7 +860,6 @@ export function normalizeDivisionRow(row: Record<string, unknown>) {
       hierarchy: normalizedHierarchies,
       id,
       level,
-      population: asNumber(row.population),
       sourceKeys: {
         overture: {
           subtype: otSubtype ?? '',
@@ -895,7 +893,6 @@ export function buildDivisionBaseHashInput(
     id: base.id,
     level: base.level,
     parentDivisionId: base.parentDivisionId ?? null,
-    population: base.population ?? null,
     sourceKeys: base.sourceKeys,
     sources: base.sources,
     type: base.type,

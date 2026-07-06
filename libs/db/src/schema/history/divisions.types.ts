@@ -14,7 +14,6 @@ export type CurrentDivisionVersionRow = Pick<
   | 'bbox'
   | 'cartography'
   | 'geometry'
-  | 'population'
   | 'sourceKeys'
   | 'wikidata'
   | 'parentDivisionId'

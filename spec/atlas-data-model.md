@@ -372,7 +372,6 @@ Fields:
 - `type`
 - `geometry`
 - `bbox`
-- `population`
 - `subtype`
 - `class`
 - `wikidata`

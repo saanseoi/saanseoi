@@ -38,7 +38,6 @@ export const canonicalDivision = {
   id: text('id').notNull(),
   level: integer('level').notNull(),
   type: text('type').notNull(),
-  population: integer('population'),
   sourceKeys: jsonText('sourceKeys'),
   wikidata: text('wikidata'),
   hierarchy: jsonText('hierarchy'),
