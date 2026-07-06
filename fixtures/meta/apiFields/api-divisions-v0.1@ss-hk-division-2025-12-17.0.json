@@ -153,15 +153,6 @@
       "confidence": 1
     },
     {
-      "apiField": "division.relationships.parent",
-      "sourceDatasetCode": "ds-hk-overture-division",
-      "sourceFieldPath": "parent_division_id",
-      "resolverCode": "direct_copy",
-      "contributionType": "primary",
-      "priority": 0,
-      "confidence": 1
-    },
-    {
       "apiField": "division.attributes.i18n.en.name",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.common.en",
