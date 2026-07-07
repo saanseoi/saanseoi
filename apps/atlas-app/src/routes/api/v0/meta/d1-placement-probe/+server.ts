@@ -4,7 +4,7 @@ import {
   parseD1PlacementProbeIterations,
   runD1PlacementProbe,
   saanseoiD1BindingNames,
-} from '@repo/db'
+} from '@repo/db/placementProbe'
 import type { RequestHandler } from './$types'
 
 const CONFIGURED_PLACEMENT_REGION = 'azure:eastasia'
