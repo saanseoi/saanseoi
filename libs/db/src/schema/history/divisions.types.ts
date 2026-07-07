@@ -16,7 +16,6 @@ export type CurrentDivisionVersionRow = Pick<
   | 'geometry'
   | 'sourceKeys'
   | 'wikidata'
-  | 'parentDivisionId'
   | 'sources'
   | 'type'
   | 'versionHash'

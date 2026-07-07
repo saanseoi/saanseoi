@@ -41,7 +41,6 @@ export const canonicalDivision = {
   sourceKeys: jsonText('sourceKeys'),
   wikidata: text('wikidata'),
   hierarchy: jsonText('hierarchy'),
-  parentDivisionId: text('parentDivisionId'),
   cartography: jsonText('cartography'),
   sources: jsonText('sources'),
   ...geoBbox,

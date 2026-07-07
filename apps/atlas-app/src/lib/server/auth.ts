@@ -3,7 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { sveltekitCookies } from 'better-auth/svelte-kit'
 import { env } from '$env/dynamic/private'
 import { getRequestEvent } from '$app/server'
-import { createMetaDb } from '@repo/db'
+import { createMetaDb } from '@repo/db/client'
 
 const createAuthConfig = (baseURL: string) =>
   ({

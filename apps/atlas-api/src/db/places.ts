@@ -71,7 +71,6 @@ export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup
     .select({
       divisionId: divisions.id,
       level: divisions.level,
-      parentDivisionId: divisions.parentDivisionId,
       locale: divisionsI18n.locale,
       name: divisionsI18n.name,
     })

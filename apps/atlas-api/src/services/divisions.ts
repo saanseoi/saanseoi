@@ -627,7 +627,7 @@ export async function listDivisions(args: {
         snapshotId: activeDivisionSnapshot.snapshotId,
         level: filters.level,
         type: filters.divisionType,
-        parentDivisionId: filters.parent,
+        parentId: filters.parent,
         limit,
         offset,
         localeSelection: routeState.localeSelection,
@@ -636,7 +636,7 @@ export async function listDivisions(args: {
         snapshotId: activeDivisionSnapshot.snapshotId,
         level: filters.level,
         type: filters.divisionType,
-        parentDivisionId: filters.parent,
+        parentId: filters.parent,
       }),
     ]),
   )
