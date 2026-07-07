@@ -31,9 +31,9 @@ import {
   runStatementsInGroupsWithWriteRetry,
 } from '../utils'
 
-const CURRENT_DIVISION_COLUMN_COUNT = 14
+const CURRENT_DIVISION_COLUMN_COUNT = 13
 const CURRENT_DIVISION_I18N_COLUMN_COUNT = 10
-const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 21
+const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 20
 const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 15
 const HISTORY_DIVISION_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 
@@ -62,6 +62,22 @@ export type DivisionVersionInsertContext = {
 
 function excluded(column: string) {
   return sql.raw(`excluded.${column}`)
+}
+
+function resolveParentDivisionIdFromHierarchy(hierarchy: unknown): string | null {
+  if (!Array.isArray(hierarchy) || hierarchy.length === 0) {
+    return null
+  }
+
+  const parent = hierarchy[hierarchy.length - 1]
+  if (!parent || typeof parent !== 'object') {
+    return null
+  }
+
+  const divisionId = (parent as Record<string, unknown>).division_id
+  return typeof divisionId === 'string' && divisionId.trim().length > 0
+    ? divisionId
+    : null
 }
 
 export async function getMergedCurrentDivisionVersionMap(
@@ -135,7 +151,6 @@ export async function getCurrentDivisionVersionMap(
       geometry: historySchema.divisions.geometry,
       hierarchy: historySchema.divisions.hierarchy,
       level: historySchema.divisions.level,
-      parentDivisionId: historySchema.divisions.parentDivisionId,
       sourceKeys: historySchema.divisions.sourceKeys,
       sources: historySchema.divisions.sources,
       type: historySchema.divisions.type,
@@ -201,7 +216,7 @@ export async function getCurrentDivisionVersionMap(
           geometry: row.geometry as GeoJsonGeometry | null,
           id: row.id,
           localizedRows: localizedRows,
-          parentId: row.parentDivisionId,
+          parentId: resolveParentDivisionIdFromHierarchy(row.hierarchy),
           type: row.type,
           versionHash: row.versionHash,
         } satisfies DivisionVersionSnapshot,
@@ -313,7 +328,6 @@ export async function cloneDivisionCurrentSnapshot(
             sourceKeys: currentSchema.divisions.sourceKeys,
             wikidata: currentSchema.divisions.wikidata,
             hierarchy: currentSchema.divisions.hierarchy,
-            parentDivisionId: currentSchema.divisions.parentDivisionId,
             cartography: currentSchema.divisions.cartography,
             sources: currentSchema.divisions.sources,
             geometry: currentSchema.divisions.geometry,
@@ -646,7 +660,6 @@ export async function upsertDivisionCurrentStates(
               level: excluded('level'),
               sourceKeys: excluded('sourceKeys'),
               type: excluded('type'),
-              parentDivisionId: excluded('parentDivisionId'),
               sources: excluded('sources'),
               updatedAt: excluded('updatedAt'),
               wikidata: excluded('wikidata'),
@@ -765,7 +778,6 @@ export async function insertDivisionVersionRows(
         sourceKeys: row.sourceKeys,
         wikidata: row.wikidata,
         hierarchy: row.hierarchy,
-        parentDivisionId: row.parentDivisionId,
         cartography: row.cartography,
         sources: row.sources,
         createdAt: row.createdAt,

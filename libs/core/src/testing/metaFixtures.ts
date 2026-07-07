@@ -123,7 +123,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             sourceKeys TEXT,
             wikidata TEXT,
             hierarchy TEXT,
-            parentDivisionId TEXT,
             cartography TEXT,
             sources TEXT,
             createdAt TEXT NOT NULL,
@@ -145,13 +144,13 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
           INSERT INTO divisions (
             id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
             validFromCohortKey, validToCohortKey, isCurrent, level, type, geometry, bbox,
-            sourceKeys, wikidata, hierarchy, parentDivisionId, cartography, sources, createdAt, updatedAt
+            sourceKeys, wikidata, hierarchy, cartography, sources, createdAt, updatedAt
           )
           SELECT
             id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
             validFromMonth, validToMonth, isCurrent, level, type, geometry, bbox,
             json_object('overture', json_object('subtype', COALESCE(subtype, ''), 'class', COALESCE(class, ''))),
-            wikidata, hierarchy, parentDivisionId, cartography, sources, createdAt, updatedAt
+            wikidata, hierarchy, cartography, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
         `,
       )

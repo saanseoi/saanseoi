@@ -35,7 +35,6 @@ export type DivisionRecord = {
     overtureHierarchies: unknown
     wikidata: string | null
     hierarchy: typeof divisions.$inferSelect.hierarchy
-    parentDivisionId: string | null
     cartography: typeof divisions.$inferSelect.cartography
     sources: typeof divisions.$inferSelect.sources
     createdAt: string
@@ -56,7 +55,7 @@ type DivisionListLookup = {
   offset?: number
   level?: number
   type?: string
-  parentDivisionId?: string
+  parentId?: string
   localeSelection: DivisionLocaleSelection
 }
 
@@ -76,7 +75,6 @@ type DivisionRow = {
   sourceKeys: typeof divisions.$inferSelect.sourceKeys
   wikidata: string | null
   hierarchy: typeof divisions.$inferSelect.hierarchy
-  parentDivisionId: string | null
   cartography: typeof divisions.$inferSelect.cartography
   sources: typeof divisions.$inferSelect.sources
   createdAt: string
@@ -212,7 +210,6 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
       ),
       wikidata: row.wikidata,
       hierarchy: row.hierarchy,
-      parentDivisionId: row.parentDivisionId,
       cartography: row.cartography,
       sources: row.sources,
       createdAt: row.createdAt,
@@ -228,17 +225,15 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
 }
 
 function buildDivisionConditions(
-  lookup: Pick<
-    DivisionListLookup,
-    'snapshotId' | 'level' | 'type' | 'parentDivisionId'
-  >,
+  lookup: Pick<DivisionListLookup, 'snapshotId' | 'level' | 'type' | 'parentId'>,
 ) {
   return [
     eq(divisions.snapshotId, lookup.snapshotId),
     lookup.level !== undefined ? eq(divisions.level, lookup.level) : undefined,
     lookup.type ? eq(divisions.type, lookup.type) : undefined,
-    lookup.parentDivisionId
-      ? eq(divisions.parentDivisionId, lookup.parentDivisionId)
+    lookup.parentId
+      ? sql`coalesce(json_array_length(${divisions.hierarchy}), 0) > 0
+          and json_extract(${divisions.hierarchy}, printf('$[%d].division_id', json_array_length(${divisions.hierarchy}) - 1)) = ${lookup.parentId}`
       : undefined,
   ].filter(condition => condition !== undefined)
 }
@@ -283,7 +278,6 @@ export async function listDivisionRecordsCurrent(
       sourceKeys: divisions.sourceKeys,
       wikidata: divisions.wikidata,
       hierarchy: divisions.hierarchy,
-      parentDivisionId: divisions.parentDivisionId,
       cartography: divisions.cartography,
       sources: divisions.sources,
       createdAt: divisions.createdAt,
@@ -340,7 +334,6 @@ export async function listDivisionRecordsCurrentByIds(
       sourceKeys: divisions.sourceKeys,
       wikidata: divisions.wikidata,
       hierarchy: divisions.hierarchy,
-      parentDivisionId: divisions.parentDivisionId,
       cartography: divisions.cartography,
       sources: divisions.sources,
       createdAt: divisions.createdAt,
