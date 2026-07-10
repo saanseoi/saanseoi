@@ -21,6 +21,7 @@ export type DatasetRecord = {
   sourceVersion: string
   rawObjectKey: string
   originalFileName: string
+  notes: string | null
   status: ReleaseStatus
   supersedesDatasetId: string | null
   supersededByReleaseId: string | null
