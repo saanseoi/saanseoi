@@ -209,13 +209,16 @@ Statuses:
 
 ### `stats`
 
-Dataset-level metrics produced by ingest.
+Release-, snapshot-, and API-release-set metrics produced by ingest or
+presentation processing.
 
 Fields:
 
 - `id`
 - `type`
 - `releaseId`
+- `snapshotId`
+- `apiReleaseSetId`
 - `dimension`
 - `metric`
 - `metricUnit`
@@ -597,7 +600,7 @@ Division ingest currently does all of the following:
 - closes superseded history versions
 - deletes missing current rows for removed divisions
 - mirrors Overture data into the `source` database when configured
-- computes dataset stats rows
+- computes release stats rows
 
 ### Address Processing
 
