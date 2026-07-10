@@ -1,4 +1,5 @@
 import {
+  check,
   index,
   integer,
   real,
@@ -6,8 +7,10 @@ import {
   text,
   uniqueIndex,
 } from 'drizzle-orm/sqlite-core'
+import { sql } from 'drizzle-orm'
 
 import { ingestRunStatuses } from '../../constants/schema'
+import { metaApiReleaseSets, metaSnapshots } from './api'
 import { metaReleases } from './datasets'
 import { jsonText, timestamps } from '../shared'
 
@@ -36,9 +39,13 @@ export const stats = sqliteTable(
   {
     id: text('id').primaryKey(),
     type: text('type').notNull(),
-    releaseId: text('releaseId')
-      .notNull()
-      .references(() => metaReleases.id),
+    releaseId: text('releaseId').references(() => metaReleases.id),
+    snapshotId: text('snapshotId').references(() => metaSnapshots.id, {
+      onDelete: 'cascade',
+    }),
+    apiReleaseSetId: text('apiReleaseSetId').references(() => metaApiReleaseSets.id, {
+      onDelete: 'cascade',
+    }),
     dimension: text('dimension').notNull(),
     metric: text('metric').notNull(),
     metricUnit: text('metricUnit').notNull(),
@@ -49,12 +56,18 @@ export const stats = sqliteTable(
   },
   table => [
     index('stats_releaseId_idx').on(table.releaseId),
+    index('stats_snapshotId_idx').on(table.snapshotId),
+    index('stats_apiReleaseSetId_idx').on(table.apiReleaseSetId),
     index('stats_dimension_idx').on(
       table.type,
       table.dimension,
       table.metric,
       table.groupBy,
       table.groupValue,
+    ),
+    check(
+      'stats_owner_chk',
+      sql`${table.releaseId} IS NOT NULL OR ${table.snapshotId} IS NOT NULL OR ${table.apiReleaseSetId} IS NOT NULL`,
     ),
   ],
 )

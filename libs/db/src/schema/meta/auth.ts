@@ -19,6 +19,10 @@ export const substackStatuses = [
 
 export type SubstackStatus = (typeof substackStatuses)[number]
 
+export const userRoles = ['user', 'admin'] as const
+
+export type UserRole = (typeof userRoles)[number]
+
 export const user = sqliteTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -27,6 +31,7 @@ export const user = sqliteTable('user', {
     .default(false)
     .notNull(),
   image: text('image'),
+  role: text('role', { enum: userRoles }).default('user').notNull(),
   substack: text('substack', {
     enum: substackStatuses,
   }),
@@ -111,4 +116,30 @@ export const verification = sqliteTable(
       .notNull(),
   },
   table => [index('verification_identifier_idx').on(table.identifier)],
+)
+
+export const apiKey = sqliteTable(
+  'api_key',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    prefix: text('prefix').notNull(),
+    keyDigest: text('key_digest').notNull().unique(),
+    requestsPerMinute: integer('requests_per_minute'),
+    requestsPerDay: integer('requests_per_day'),
+    requestsPerMonth: integer('requests_per_month'),
+    lastUsedAt: betterAuthTimestamp('last_used_at'),
+    revokedAt: betterAuthTimestamp('revoked_at'),
+    createdAt: defaultBetterAuthTimestamp('created_at').notNull(),
+    updatedAt: defaultBetterAuthTimestamp('updated_at')
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  table => [
+    index('api_key_userId_idx').on(table.userId),
+    index('api_key_userId_revokedAt_idx').on(table.userId, table.revokedAt),
+  ],
 )
