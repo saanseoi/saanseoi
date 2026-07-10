@@ -12,8 +12,21 @@
     "PUBLIC_ATLAS_API_BASE_URL": "http://localhost:8787"
   },
   "secrets": {
-    "required": ["BETTER_AUTH_SECRET", "D1_PLACEMENT_PROBE_API_KEY"]
+    "required": [
+      "BETTER_AUTH_SECRET",
+      "D1_PLACEMENT_PROBE_API_KEY",
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET",
+      "GITHUB_CLIENT_ID",
+      "GITHUB_CLIENT_SECRET"
+    ]
   },
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": ["noreply@saanseoi.hk"]
+    }
+  ],
   "d1_databases": [
     {
       "binding": "DB_META",
@@ -86,8 +99,21 @@
         "PUBLIC_ATLAS_API_BASE_URL": "https://preview.api.saanseoi.hk"
       },
       "secrets": {
-        "required": ["BETTER_AUTH_SECRET", "D1_PLACEMENT_PROBE_API_KEY"]
+        "required": [
+          "BETTER_AUTH_SECRET",
+          "D1_PLACEMENT_PROBE_API_KEY",
+          "GOOGLE_CLIENT_ID",
+          "GOOGLE_CLIENT_SECRET",
+          "GITHUB_CLIENT_ID",
+          "GITHUB_CLIENT_SECRET"
+        ]
       },
+      "send_email": [
+        {
+          "name": "EMAIL",
+          "allowed_sender_addresses": ["noreply@saanseoi.hk"]
+        }
+      ],
       "d1_databases": [
         {
           "binding": "DB_META",
@@ -154,8 +180,21 @@
         "PUBLIC_ATLAS_API_BASE_URL": "https://api.saanseoi.hk"
       },
       "secrets": {
-        "required": ["BETTER_AUTH_SECRET", "D1_PLACEMENT_PROBE_API_KEY"]
+        "required": [
+          "BETTER_AUTH_SECRET",
+          "D1_PLACEMENT_PROBE_API_KEY",
+          "GOOGLE_CLIENT_ID",
+          "GOOGLE_CLIENT_SECRET",
+          "GITHUB_CLIENT_ID",
+          "GITHUB_CLIENT_SECRET"
+        ]
       },
+      "send_email": [
+        {
+          "name": "EMAIL",
+          "allowed_sender_addresses": ["noreply@saanseoi.hk"]
+        }
+      ],
       "d1_databases": [
         {
           "binding": "DB_META",
