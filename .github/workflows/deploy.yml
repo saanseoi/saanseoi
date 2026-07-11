@@ -90,6 +90,9 @@ jobs:
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
 
+      - name: 'LINT :: D1 Migrations'
+        run: bun run db:migration:lint
+
       - name: 'MIGRATE :: D1 Preview'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -206,6 +209,9 @@ jobs:
       - name: 'INSTALL :: Dependencies'
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
+
+      - name: 'LINT :: D1 Migrations'
+        run: bun run db:migration:lint
 
       - name: 'MIGRATE :: D1 Production'
         env:
