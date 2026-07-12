@@ -1,6 +1,7 @@
 # Harbour R2 upload secrets
 
-Harbour uses one general API auth secret, one D1 placement probe auth secret, the R2 signing secrets, and the shared Telegram bot credentials:
+Harbour uses one general API auth secret, one D1 placement probe auth secret, the R2
+signing secrets, and the shared Telegram bot credentials:
 
 - `D1_PLACEMENT_PROBE_API_KEY`
 - `HARBOUR_API_KEY`
@@ -12,13 +13,15 @@ Harbour uses one general API auth secret, one D1 placement probe auth secret, th
 
 ## Local development
 
-Wrangler loads local secrets from files next to [wrangler.jsonc](apps/harbour-api/wrangler.jsonc).
+Wrangler loads local secrets from files next to
+[wrangler.jsonc](apps/harbour-api/wrangler.jsonc).
 
 - `apps/harbour-api/.dev.vars`: default local `wrangler dev`
 - `apps/harbour-api/.dev.vars.preview`: local `wrangler dev --env preview`
 - `apps/harbour-api/.dev.vars.production`: local `wrangler dev --env production`
 
-If preview and dev share the same R2 keypair, use the same values in `.dev.vars` and `.dev.vars.preview`.
+If preview and dev share the same R2 keypair, use the same values in `.dev.vars` and
+`.dev.vars.preview`.
 
 ## Deployed environments
 

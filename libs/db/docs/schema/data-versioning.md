@@ -1,6 +1,7 @@
 # Data Versioning
 
-Saanseoi uses separate version namespaces for contract, published data, canonical schema, and transformation logic.
+Saanseoi uses separate version namespaces for contract, published data, canonical
+schema, and transformation logic.
 
 They should not be collapsed into one identifier.
 
@@ -10,7 +11,8 @@ They should not be collapsed into one identifier.
 
 - format: `api-{family}-v{apiVersion}`
 - example: `api-divisions-v0.1`
-- `{family}` is the `ApiFamily` derived from `resourceType` by `getApiFamilyForResourceType()`
+- `{family}` is the `ApiFamily` derived from `resourceType` by
+  `getApiFamilyForResourceType()`
 - current mappings:
   - `address` -> `addresses`
   - `division` -> `divisions`
@@ -88,7 +90,8 @@ Current policy:
 
 ## Fixtures
 
-Fixture directories under `fixtures/meta/` should be treated as version-controlled source of truth.
+Fixture directories under `fixtures/meta/` should be treated as version-controlled
+source of truth.
 
 Relevant fixture groups:
 
@@ -103,7 +106,8 @@ Relevant fixture groups:
 
 `apiReleaseSets` are created from real uploaded datasets, not seeded from fixtures.
 
-`apiFields/` fixture files may still carry a representative snapshot code in the filename:
+`apiFields/` fixture files may still carry a representative snapshot code in the
+filename:
 
 - `api-divisions-v0.1@ss-hk-division-2026-05-20.0.json`
 
@@ -117,4 +121,5 @@ Current selection keys are:
 - `sourceSchemas`
 - `validFromSnapshotVersion`
 
-These fixtures are resolved at API release publication time to populate `apiFieldProvenance`.
+These fixtures are resolved at API release publication time to populate
+`apiFieldProvenance`.

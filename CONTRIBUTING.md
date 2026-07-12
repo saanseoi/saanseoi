@@ -1,6 +1,7 @@
 # Contributing
 
-SaanSeoi is building a digital commons for Hong Kong. Contributions of all kinds are welcome.
+SaanSeoi is building a digital commons for Hong Kong. Contributions of all kinds are
+welcome.
 
 You can help with:
 
@@ -19,4 +20,5 @@ bun install
 bun run dev
 ```
 
-If you are contributing data processing changes, please keep the relevant documentation in `docs/` up to date as part of the same change.
+If you are contributing data processing changes, please keep the relevant documentation
+in `docs/` up to date as part of the same change.

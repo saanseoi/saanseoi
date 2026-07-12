@@ -27,9 +27,12 @@ Repo-local operating notes for Codex and similar agents.
 
 ## Documentation
 
-- Whenever source-data processing changes, document it in the relevant `docs/datasets/families/*.md` and `docs/datasets/sources/{source}/*.md` files.
+- Whenever source-data processing changes, document it in the relevant
+  `docs/datasets/families/*.md` and `docs/datasets/sources/{source}/*.md` files.
 
 ## Migration workflow
 
-- Do not handcraft Drizzle migration snapshots when a schema change requires interactive snapshot generation or rename resolution.
-- In that case, stop and ask the user to run the snapshot-generation command locally and provide the generated migration artifacts for follow-up changes.
+- Do not handcraft Drizzle migration snapshots when a schema change requires interactive
+  snapshot generation or rename resolution.
+- In that case, stop and ask the user to run the snapshot-generation command locally and
+  provide the generated migration artifacts for follow-up changes.

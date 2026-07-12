@@ -4,14 +4,14 @@
 
 We use BitsUI for our components.
 
-| Rule                                                      | Rationale                                              |
-| --------------------------------------------------------- | ------------------------------------------------------ |
-| **Primitives never import components**                    | Prevents circular deps, keeps atomic layer pure        |
-| **Components can import primitives + other components**   | Composition flows upward                               |
-| **Patterns import components, never primitives directly** | Forces consistency through component layer             |
+| Rule                                                      | Rationale                                                            |
+| --------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Primitives never import components**                    | Prevents circular deps, keeps atomic layer pure                      |
+| **Components can import primitives + other components**   | Composition flows upward                                             |
+| **Patterns import components, never primitives directly** | Forces consistency through component layer                           |
 | **Pages group route-specific sections**                   | Keeps route composition reusable without polluting app-wide patterns |
-| **Variants live inside their component**                  | A variant of Combobox is still a Combobox concern      |
-| **`index.ts` is the only public contract**                | Lets you refactor internals without breaking consumers |
+| **Variants live inside their component**                  | A variant of Combobox is still a Combobox concern                    |
+| **`index.ts` is the only public contract**                | Lets you refactor internals without breaking consumers               |
 
 With the following structure:
 
@@ -77,13 +77,16 @@ Note that:
 
 ## Pages
 
-We use `pages/` for route-scoped UI that is larger than a reusable component or pattern, but still worth splitting into named sections.
+We use `pages/` for route-scoped UI that is larger than a reusable component or pattern,
+but still worth splitting into named sections.
 
 Current example:
 
 - `src/routes/+page.svelte` composes the landing page from `bits/pages/landing/*`
-- Each file in `pages/landing/` renders one section: hero, foundation grid, showcase, newsletter
-- These sections can import primitives, components, assets, and internal helpers directly when the composition is specific to that route
+- Each file in `pages/landing/` renders one section: hero, foundation grid, showcase,
+  newsletter
+- These sections can import primitives, components, assets, and internal helpers
+  directly when the composition is specific to that route
 
 Use `pages/` when:
 
@@ -101,4 +104,5 @@ Practical boundary:
 
 - Routes assemble sections from `pages/`
 - `pages/` sections assemble lower-level bits and route-specific content
-- If a `pages/` section becomes reusable across unrelated routes, promote it into `patterns/` or `components/`
+- If a `pages/` section becomes reusable across unrelated routes, promote it into
+  `patterns/` or `components/`

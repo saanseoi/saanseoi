@@ -1,6 +1,7 @@
 # Atlas API Secrets
 
-Atlas API requires the Substack session cookie used for server-side newsletter signups, plus Telegram bot credentials for admin failure alerts:
+Atlas API requires the Substack session cookie used for server-side newsletter signups,
+plus Telegram bot credentials for admin failure alerts:
 
 - `SUBSTACK_SESSION_COOKIE`
 - `TELEGRAM_BOT_TOKEN`
@@ -8,7 +9,8 @@ Atlas API requires the Substack session cookie used for server-side newsletter s
 
 ## Local development
 
-Wrangler loads local secrets from files next to [wrangler.jsonc](apps/atlas-api/wrangler.jsonc).
+Wrangler loads local secrets from files next to
+[wrangler.jsonc](apps/atlas-api/wrangler.jsonc).
 
 - `apps/atlas-api/.dev.vars`: default local `wrangler dev`
 - `apps/atlas-api/.dev.vars.preview`: local `wrangler dev --env preview`
@@ -19,7 +21,8 @@ The value can be either:
 - the raw Substack session token
 - the first `name=value` cookie pair, for example `substack.sid=...`
 
-If you paste a full `Set-Cookie` string, Atlas API will only use the first `name=value` segment.
+If you paste a full `Set-Cookie` string, Atlas API will only use the first `name=value`
+segment.
 
 ## Deployed environments
 

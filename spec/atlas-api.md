@@ -11,7 +11,8 @@ The current planning focus is:
 - incremental ingestion
 - identity and correction handling
 
-The detailed API contract should be revised after the data model and ingestion flow are settled.
+The detailed API contract should be revised after the data model and ingestion flow are
+settled.
 
 ## Current route outline
 
@@ -59,4 +60,5 @@ This API spec depends on the normalized tables and ingest stages described in:
 
 - [atlas-data-model.md](./atlas-data-model.md)
 
-The API contract should be revised after those modeling decisions are implemented or locked.
+The API contract should be revised after those modeling decisions are implemented or
+locked.
