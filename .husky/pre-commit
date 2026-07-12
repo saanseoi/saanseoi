@@ -16,12 +16,21 @@ fi
 
 BIOME_FILES=""
 TAILWIND_FILES=""
+MARKDOWN_FILES=""
 
 for file in $STAGED_FILES; do
   case "$file" in
     *.js|*.jsx|*.ts|*.tsx|*.json|*.jsonc|*.css|*.html|*.svelte)
       if [ -f "$file" ]; then
         BIOME_FILES="$BIOME_FILES $file"
+      fi
+      ;;
+  esac
+
+  case "$file" in
+    *.md)
+      if [ -f "$file" ]; then
+        MARKDOWN_FILES="$MARKDOWN_FILES $file"
       fi
       ;;
   esac
@@ -35,7 +44,7 @@ for file in $STAGED_FILES; do
   esac
 done
 
-if [ -z "$BIOME_FILES" ] && [ -z "$TAILWIND_FILES" ]; then
+if [ -z "$BIOME_FILES" ] && [ -z "$TAILWIND_FILES" ] && [ -z "$MARKDOWN_FILES" ]; then
   echo "No staged files supported by pre-commit checks."
   exit 0
 fi
@@ -72,6 +81,20 @@ if [ -n "$BIOME_FILES" ]; then
   fi
 else
   echo "No staged files supported by Biome."
+fi
+
+if [ -n "$MARKDOWN_FILES" ]; then
+  echo "Running Prettier on staged Markdown files..."
+
+  set +e
+  PRETTIER_OUTPUT=$(bun x prettier --write $MARKDOWN_FILES 2>&1)
+  PRETTIER_STATUS=$?
+  set -e
+
+  if [ $PRETTIER_STATUS -ne 0 ]; then
+    echo "$PRETTIER_OUTPUT"
+    exit $PRETTIER_STATUS
+  fi
 fi
 
 MODIFIED_FILES=$(git diff --name-only)
