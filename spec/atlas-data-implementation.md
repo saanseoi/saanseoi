@@ -52,7 +52,8 @@ Recommended processing contract:
 5. run dataset-specific stages
 6. publish dataset
 
-`finalizeUpload` should stay small and synchronous. The heavy parquet work should happen in a background queue consumer.
+`finalizeUpload` should stay small and synchronous. The heavy parquet work should happen
+in a background queue consumer.
 
 ## Queue and memory rules
 
@@ -91,7 +92,9 @@ The safe approach is:
 - write database changes in batches
 - keep only the working set needed for the current chunk
 
-If the parquet library cannot process incrementally, treat that as a blocker for Worker-native processing. With a 128 MB budget, full in-memory loads are not reliable enough for monthly production ingest.
+If the parquet library cannot process incrementally, treat that as a blocker for
+Worker-native processing. With a 128 MB budget, full in-memory loads are not reliable
+enough for monthly production ingest.
 
 ## Dataset lifecycle
 
@@ -133,7 +136,8 @@ All dataset types should share the same baseline behavior:
 - compare against the current row for the same canonical id
 - insert a new version row only when content changed
 - upsert the current-state table
-- close out missing current rows as real deletions when the entity disappears from the new current dataset
+- close out missing current rows as real deletions when the entity disappears from the
+  new current dataset
 - record stage progress in `ingestRuns`
 
 ## Division dataset
@@ -160,7 +164,8 @@ For each division row:
 
 Deletion rule:
 
-- if a previously current division is missing from the new staged dataset, treat it as deleted
+- if a previously current division is missing from the new staged dataset, treat it as
+  deleted
 - mark the old current version no longer current
 - close its validity window
 
@@ -179,7 +184,8 @@ After base division extraction completes:
 
 - divisions are managed entities
 - later address and place ingest may reference divisions
-- later ingest must not create missing divisions implicitly - missing divisions should be addes to the issue table so they can be investigated by the admin
+- later ingest must not create missing divisions implicitly - missing divisions should
+  be addes to the issue table so they can be investigated by the admin
 
 ## Address dataset
 
@@ -207,7 +213,8 @@ For each address row:
 
 Deletion rule:
 
-- if a previously current canonical address is absent from the new current address dataset, treat it as deleted
+- if a previously current canonical address is absent from the new current address
+  dataset, treat it as deleted
 
 ### `extractI18n`
 
@@ -218,7 +225,9 @@ Deletion rule:
 ### `reconcileStreets`
 
 - normalize street identity from address payloads
-- add issues to the table if there are addresses with missing streets. Because streets is a managed dataset, we should not upsert `streets` and `streets`, `streetsI18n` - but only notify the admin of discrepancies. To be specified later.
+- add issues to the table if there are addresses with missing streets. Because streets
+  is a managed dataset, we should not upsert `streets` and `streets`, `streetsI18n` -
+  but only notify the admin of discrepancies. To be specified later.
 - populate `streetsAddress`
 
 ## Place dataset
@@ -247,7 +256,8 @@ For each place row:
 
 Deletion rule:
 
-- if a previously current place is absent from the new current dataset, treat it as deleted
+- if a previously current place is absent from the new current dataset, treat it as
+  deleted
 
 ### `extractI18n`
 

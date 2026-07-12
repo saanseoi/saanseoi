@@ -40,5 +40,6 @@ Purpose:
 
 ## Planned / Transitional
 
-- `releaseSetShardAssignments` should become the normal route to current/history canonical shards
+- `releaseSetShardAssignments` should become the normal route to current/history
+  canonical shards
 - current reporting still leans more heavily on `releaseShardAssignments`

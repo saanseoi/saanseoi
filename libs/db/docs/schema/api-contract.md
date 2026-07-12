@@ -21,7 +21,8 @@ That means:
 
 ## Join Tables With Data
 
-When join-table data is meaningful in the domain, do not try to force attributes onto JSON:API relationship linkage objects.
+When join-table data is meaningful in the domain, do not try to force attributes onto
+JSON:API relationship linkage objects.
 
 Instead:
 
@@ -44,7 +45,8 @@ Recommended pattern:
 - `/places/{id}?include=place-divisions,place-divisions.division`
   - fetch join resource plus related division
 
-This is less elegant than a relationship-with-attributes model, but it fits JSON:API cleanly and predictably.
+This is less elegant than a relationship-with-attributes model, but it fits JSON:API
+cleanly and predictably.
 
 ## Sparse Fieldsets
 
@@ -58,7 +60,8 @@ Instead, we support:
 
 - `?profile=...`
 
-Profiles are named response presets that act as shorthand for internally defined fieldsets.
+Profiles are named response presets that act as shorthand for internally defined
+fieldsets.
 
 Examples:
 
@@ -108,7 +111,8 @@ Benefits:
 - locale handling is consistent across all resources
 - consumers can turn locale groups on or off by profile
 - provenance can target i18n fields consistently
-- clients do not need to learn suffix/prefix naming conventions like `nameEn`, `nameZhHant`
+- clients do not need to learn suffix/prefix naming conventions like `nameEn`,
+  `nameZhHant`
 
 Tradeoff:
 
@@ -117,7 +121,8 @@ Tradeoff:
 Recommendation:
 
 - use the nested `attributes.i18n.{locale}.{field}` shape
-- accept the extra nesting because the consistency is worth it for a tri-lingual dataset platform
+- accept the extra nesting because the consistency is worth it for a tri-lingual dataset
+  platform
 
 ## Locale Handling
 
@@ -131,7 +136,8 @@ Recommended query parameters:
   - suppresses `attributes.i18n`
 - profile defaults may also imply locale inclusion rules
 
-This `?locales=...` filter should be supported consistently across all API endpoints that expose internationalized fields.
+This `?locales=...` filter should be supported consistently across all API endpoints
+that expose internationalized fields.
 
 ## Relationship Naming
 
@@ -154,7 +160,8 @@ Bad examples:
 
 ## Canonical Resource Type Names
 
-Use singular canonical resource type names everywhere the contract needs a stable identifier vocabulary:
+Use singular canonical resource type names everywhere the contract needs a stable
+identifier vocabulary:
 
 - `address`
 - `division`
@@ -226,9 +233,11 @@ That means:
 - `address.attributes.i18n.zh-hant.formattedAddress`
   - can point to dataset `ds-hk-hkgov-als-address`
 - `place.attributes.i18n.en.name`
-  - can point to multiple datasets if the field is merged, enriched, or has fallback rules
+  - can point to multiple datasets if the field is merged, enriched, or has fallback
+    rules
 
-The provenance describes how the contract field is sourced for that API release, not where each row instance came from.
+The provenance describes how the contract field is sourced for that API release, not
+where each row instance came from.
 
 If a field can be sourced from multiple datasets, provenance should expose:
 

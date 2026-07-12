@@ -19,7 +19,8 @@ bun install
 bun run dev
 ```
 
-For more detail on contributing, workflows, and project expectations, see [CONTRIBUTING.md](CONTRIBUTING.md).
+For more detail on contributing, workflows, and project expectations, see
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Documentation
 

@@ -32,7 +32,8 @@ The repository currently has four storage layers:
 4. `source`
    - source-specific snapshots and version history used during ingest
 
-Raw uploaded parquet files are stored in `R2`. Canonical and operational metadata live in D1.
+Raw uploaded parquet files are stored in `R2`. Canonical and operational metadata live
+in D1.
 
 ## Key Decisions In Code
 
@@ -42,7 +43,8 @@ The implementation does not treat a monthly upload as a `dataset`.
 
 Instead:
 
-- `datasets` are stable logical feeds such as `overture/hk-address` or `overture/hk-division`
+- `datasets` are stable logical feeds such as `overture/hk-address` or
+  `overture/hk-division`
 - `releases` are individual uploaded snapshots for a dataset
 
 Examples from seed data:
@@ -68,7 +70,8 @@ Relevant release fields are:
 - `revocationReason`
 - `ingestedAt`
 
-The active/public state is modeled on `releases.status`, not on a month-scoped dataset row.
+The active/public state is modeled on `releases.status`, not on a month-scoped dataset
+row.
 
 ### Current And History Split
 
@@ -209,8 +212,8 @@ Statuses:
 
 ### `stats`
 
-Release-, snapshot-, and API-release-set metrics produced by ingest or
-presentation processing.
+Release-, snapshot-, and API-release-set metrics produced by ingest or presentation
+processing.
 
 Fields:
 
@@ -261,7 +264,8 @@ The implementation also includes:
 - `apiEndpointDatasets`
 - `apiFieldProvenance`
 
-These tables are part of the operational model. History validity is anchored to `apiReleaseSets`, not directly to raw uploads alone.
+These tables are part of the operational model. History validity is anchored to
+`apiReleaseSets`, not directly to raw uploads alone.
 
 ### Shard Metadata
 
@@ -310,7 +314,8 @@ Notes:
 
 - `releaseId` exists on current `places`
 - `address2dId` and `address3dId` are nullable
-- place ingestion is not implemented yet in `harbour-workers`, but the canonical schema and atlas API queries exist
+- place ingestion is not implemented yet in `harbour-workers`, but the canonical schema
+  and atlas API queries exist
 
 ### `placesI18n`
 
@@ -534,7 +539,8 @@ Rules reflected in the implementation:
 
 ## Implemented Source Schema
 
-The repository also persists source-specific snapshots and source-specific version history in the `source` database.
+The repository also persists source-specific snapshots and source-specific version
+history in the `source` database.
 
 This is where publisher-specific fidelity belongs.
 
@@ -544,7 +550,8 @@ Currently implemented source families include:
 - Overture addresses
 - HK Gov ALS addresses
 
-Those tables are intentionally separate from the canonical `current` and `history` schemas.
+Those tables are intentionally separate from the canonical `current` and `history`
+schemas.
 
 ## Relationship Summary
 
@@ -566,7 +573,8 @@ Implemented relationships are:
 
 ### Upload Registration
 
-`libs/core/src/lib/services/upload.ts` plans the upload, infers metadata, writes the parquet file to `R2`, and registers a release in `meta`.
+`libs/core/src/lib/services/upload.ts` plans the upload, infers metadata, writes the
+parquet file to `R2`, and registers a release in `meta`.
 
 This step creates the initial control-plane record before worker processing starts.
 
@@ -616,16 +624,19 @@ Address ingest currently does all of the following:
 - deletes missing current rows for removed addresses
 - mirrors Overture or HK Gov ALS source rows into the `source` database when configured
 
-Current address ingest is centered on `address2d`. It does not yet run a full canonical `street` or `address3d` derivation pipeline.
+Current address ingest is centered on `address2d`. It does not yet run a full canonical
+`street` or `address3d` derivation pipeline.
 
 ### Publish Behavior
 
-`publishDataset` marks the new release current and updates the previously current release for the same dataset:
+`publishDataset` marks the new release current and updates the previously current
+release for the same dataset:
 
 - corrected release for the same base source version: previous release becomes `revoked`
 - ordinary newer release: previous release becomes `historic`
 
-The correction check is implemented by comparing the `sourceVersion` prefix before the final `.` suffix.
+The correction check is implemented by comparing the `sourceVersion` prefix before the
+final `.` suffix.
 
 ## What Is Not Implemented
 
@@ -636,7 +647,8 @@ These items appeared in the older spec but are not implemented as described:
 - `issues`
 - `streetSegment`
 - `segment`
-- a place worker pipeline with phases such as `extractPlaces`, `reconcileAddress2d`, `deriveAddress3d`, or `refreshFts`
+- a place worker pipeline with phases such as `extractPlaces`, `reconcileAddress2d`,
+  `deriveAddress3d`, or `refreshFts`
 - canonical `ot*`-prefixed columns in serving tables
 - month-scoped uploaded datasets as the primary identity model
 

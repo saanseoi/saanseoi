@@ -59,13 +59,17 @@ Stored fields:
 Why these fields are stored this way:
 
 - `sourceFieldPath`
-  - provenance must identify which upstream field or hint participates in the mapping, including resolver-driven fields that are not copied directly
+  - provenance must identify which upstream field or hint participates in the mapping,
+    including resolver-driven fields that are not copied directly
 - `resolverCode`
-  - provenance needs to explain whether the contract field is copied, merged, looked up, or derived by a named rule
+  - provenance needs to explain whether the contract field is copied, merged, looked up,
+    or derived by a named rule
 - `contributionType`
-  - a resolver name alone is not enough because the same rule can consume inputs with different roles such as `primary`, `fallback`, or `resolver-input`
+  - a resolver name alone is not enough because the same rule can consume inputs with
+    different roles such as `primary`, `fallback`, or `resolver-input`
 - `priority`
-  - precedence is part of the published behavior, so it must be visible in provenance rather than hidden inside implementation code
+  - precedence is part of the published behavior, so it must be visible in provenance
+    rather than hidden inside implementation code
 
 ## Contribution Types
 
@@ -78,12 +82,15 @@ Why these fields are stored this way:
 - `enrichment`
   - adds data beyond the primary source rather than replacing it
 - `merge-input`
-  - one input among several fields that are merged directly into the final API field value
+  - one input among several fields that are merged directly into the final API field
+    value
 - `resolver-input`
-  - one input among several fields consumed by a named resolver that derives a canonical API field
+  - one input among several fields consumed by a named resolver that derives a canonical
+    API field
 
-Use `resolver-input` when the output field is not copied or merged directly from the listed source field.
-Instead, the source field feeds a resolver that performs a rule-based mapping or derivation.
+Use `resolver-input` when the output field is not copied or merged directly from the
+listed source field. Instead, the source field feeds a resolver that performs a
+rule-based mapping or derivation.
 
 Examples:
 
@@ -92,12 +99,14 @@ Examples:
 - `division.attributes.divisionType`
   - `subtype` and `class` are `resolver-input` rows for `map_division_type`
 
-Do not use `merge-input` for those cases because the API field is not produced by "first non-empty wins" merging.
-The resolver examines multiple hints together and emits a canonical output.
+Do not use `merge-input` for those cases because the API field is not produced by "first
+non-empty wins" merging. The resolver examines multiple hints together and emits a
+canonical output.
 
 ## Resolver Codes
 
-`resolverCode` should describe the actual transformation behavior, not just the fixture authoring pattern.
+`resolverCode` should describe the actual transformation behavior, not just the fixture
+authoring pattern.
 
 Examples:
 
