@@ -95,7 +95,9 @@
     "test:coverage": "turbo run test:coverage",
     "preview": "turbo run preview",
     "check": "turbo run check",
-    "format": "biome format --write .",
+    "format": "biome format --write . && bun run format:markdown",
+    "format:markdown": "prettier --write \"**/*.md\"",
+    "format:markdown:check": "prettier --check \"**/*.md\"",
     "deploy": "turbo run deploy --filter=atlas-api --filter=atlas-app --filter=harbour-api --filter=harbour-workers",
     "deploy:preview": "turbo run deploy:preview --filter=atlas-api --filter=atlas-app --filter=harbour-api --filter=harbour-workers",
     "deploy:production": "turbo run deploy:production --filter=atlas-api --filter=atlas-app --filter=harbour-api --filter=harbour-workers",
@@ -127,6 +129,7 @@
     "drizzle-kit": "^1.0.0-rc.4-ca0f029",
     "drizzle-migration-lint": "^0.4.0",
     "husky": "^9.1.7",
+    "prettier": "^3.9.5",
     "tailwindcss-animate": "^1.0.7",
     "turbo": "^2.10.4",
     "wrangler": "^4.110.0"
