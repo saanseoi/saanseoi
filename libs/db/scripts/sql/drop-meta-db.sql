@@ -29,6 +29,8 @@ DROP TABLE IF EXISTS `licenses`;
 DROP TABLE IF EXISTS `publisherI18n`;
 DROP TABLE IF EXISTS `publishedDataJournal`;
 DROP TABLE IF EXISTS `publishers`;
+DROP TABLE IF EXISTS `api_key_usage`;
+DROP TABLE IF EXISTS `api_key`;
 DROP TABLE IF EXISTS `newsletterSubscription`;
 DROP TABLE IF EXISTS `verification`;
 DROP TABLE IF EXISTS `account`;

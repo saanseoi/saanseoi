@@ -55,6 +55,8 @@ DROP TABLE IF EXISTS `address2d`;
 DROP TABLE IF EXISTS `divisionsI18n`;
 DROP TABLE IF EXISTS `divisions`;
 DROP TABLE IF EXISTS `entityAliases`;
+DROP TABLE IF EXISTS `api_key_usage`;
+DROP TABLE IF EXISTS `api_key`;
 DROP TABLE IF EXISTS `newsletterSubscription`;
 DROP TABLE IF EXISTS `verification`;
 DROP TABLE IF EXISTS `account`;
