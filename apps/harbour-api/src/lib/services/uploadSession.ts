@@ -57,6 +57,7 @@ export type SignUploadRequest = {
     cohortKey?: string
     source?: string
     sourceVersion?: string
+    releaseNotesUrl?: string
     theme?: string
     type?: string
   }
@@ -96,6 +97,7 @@ export async function handleSignUploadRequest(
     cohortKey: request.plan.cohortKey,
     source: request.plan.source,
     sourceVersion: request.plan.sourceVersion,
+    releaseNotesUrl: request.plan.releaseNotesUrl,
     theme: request.plan.theme,
     type: request.plan.type,
     inspection: request.inspection,
