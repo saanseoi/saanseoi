@@ -27,7 +27,8 @@ HKPost is a likely future input for:
 
 ## Current Blocker
 
-- the richer HKPost data is exposed through application endpoints rather than a straightforward raw monthly bulk export
+- the richer HKPost data is exposed through application endpoints rather than a
+  straightforward raw monthly bulk export
 
 ## Likely Future Relationship
 
