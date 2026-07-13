@@ -37,11 +37,12 @@
       "name": "atlas-api",
       "dependencies": {
         "@hono/zod-openapi": "^1.4.0",
+        "@repo/core": "workspace:*",
         "@repo/db": "workspace:*",
         "@scalar/hono-api-reference": "^0.11.9",
         "@scalar/openapi-to-markdown": "^0.5.32",
         "drizzle-orm": "^1.0.0-rc.4-5d5b77c",
-        "hono": "^4.12.29",
+        "hono": "^4.12.30",
         "zod": "^4.4.3",
       },
       "devDependencies": {
@@ -59,13 +60,17 @@
       "dependencies": {
         "@humanspeak/svelte-markdown": "^1.7.10",
         "@iconify-json/ion": "^1.2.7",
+        "@iconify-json/material-symbols-light": "^1.2.84",
         "@iconify-json/proicons": "^1.2.19",
         "@iconify/svelte": "^5.2.2",
+        "@repo/core": "workspace:*",
         "@repo/db": "workspace:*",
         "@repo/i18n": "workspace:*",
         "@scalar/api-reference": "^1.62.5",
         "better-auth": "~1.6.18",
         "bits-ui": "^2.18.1",
+        "github-slugger": "^2.0.0",
+        "zod": "^4.4.3",
       },
       "devDependencies": {
         "@sveltejs/adapter-cloudflare": "^7.2.9",
@@ -97,7 +102,7 @@
         "@repo/db": "workspace:*",
         "@scalar/hono-api-reference": "^0.11.9",
         "@scalar/openapi-to-markdown": "^0.5.32",
-        "hono": "^4.12.29",
+        "hono": "^4.12.30",
         "zod": "^4.4.3",
       },
       "devDependencies": {
@@ -483,6 +488,8 @@
     "@humanspeak/svelte-markdown": ["@humanspeak/svelte-markdown@1.7.10", "", { "dependencies": { "@humanspeak/memory-cache": "^1.1.2", "github-slugger": "^2.0.0", "htmlparser2": "^12.0.0", "marked": "^18.0.5" }, "peerDependencies": { "katex": ">=0.16.0", "mermaid": ">=10.0.0", "svelte": "^5.0.0" }, "optionalPeers": ["katex", "mermaid"] }, "sha512-NX4c6BVFOFYtpXw0tNAzIyovv5mRLWkDyfhMI3oM4sNzlI+Re7QK8lP9UqnrjfjGuAvTyE0kKxBbHdoKBRr22A=="],
 
     "@iconify-json/ion": ["@iconify-json/ion@1.2.7", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-ZJNG5kLCbTPr68mdP0jx6Q3lB9AMEQKO2+VvIjuJ2llGFICBLD+cvESn/qGDRIqSfk2D3PrFMf/Qg8WKIUV7cg=="],
+
+    "@iconify-json/material-symbols-light": ["@iconify-json/material-symbols-light@1.2.84", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-/7eMQRrzVuSfSHFJD5MxuBQFqaXPmci/gYe48755FFtYaiO4QQyK4/YVqNRnvL/C3WQrJQwTpuV1RVSPVnWlcg=="],
 
     "@iconify-json/proicons": ["@iconify-json/proicons@1.2.19", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-OPE9a1ZSTlW24dekf5yaP+C+U8a60t1FZF4FVbvroKeMqGly6VG5WdEjnCDbzMePIZEdUhy5ZbdEm1sc+WSHBg=="],
 
@@ -1202,7 +1209,7 @@
 
     "highlight.js": ["highlight.js@11.11.1", "", {}, "sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w=="],
 
-    "hono": ["hono@4.12.29", "", {}, "sha512-1hNiRjawYrLq/4m3DQQjPGFg0VZkk4RjQJDff/excI6Dm9BiL75qxGrd7/c6YOxPdq6AscP3LiXhQ6fKFC1Waw=="],
+    "hono": ["hono@4.12.30", "", {}, "sha512-emn+JoJjrN9YTpRDS5it/UI2SO9BAE37T6I3d963RxcZ81G9A4pr2SZTEiiaiKbzx+NKRg5BZ89fCL7gCJCUog=="],
 
     "hookable": ["hookable@6.1.1", "", {}, "sha512-U9LYDy1CwhMCnprUfeAZWZGByVbhd54hwepegYTK7Pi5NvqEj63ifz5z+xukznehT7i6NIZRu89Ay1AZmRsLEQ=="],
 
