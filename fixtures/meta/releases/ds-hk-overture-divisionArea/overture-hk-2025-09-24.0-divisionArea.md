@@ -15,7 +15,7 @@ cohortKey: "2025-09-24.0"
 
 ## Changelog
 
-- Initial Overture division-area release for Hong Kong.
+Initial 山水 | SaanSeoi release.
 
 ## Compatibility
 

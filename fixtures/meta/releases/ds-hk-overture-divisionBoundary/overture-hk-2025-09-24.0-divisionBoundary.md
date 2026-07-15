@@ -15,7 +15,7 @@ cohortKey: "2025-09-24.0"
 
 ## Changelog
 
-- Initial Overture division-boundary release for Hong Kong.
+Initial 山水 | SaanSeoi release.
 
 ## Compatibility
 
@@ -39,7 +39,8 @@ administrative levels within the SAR.
 
 ### Normalized Fields
 
-- `class` - normalized to canonical `type` (`land` or `maritime`)
+- `class` - normalized to canonical `type` (`land`, `maritime`, or `mixed` when both
+  flags are true)
 - `division_ids[0]` and `division_ids[1]` - normalized to the left/right relationship
 
 ### Compatibility Fields
@@ -79,7 +80,7 @@ both accepted. The release includes stats for source, imported, and rejected row
 
 ### 正規化欄位
 
-- `class` 正規化為 `type`（`land` 或 `maritime`）
+- `class` 正規化為 `type`（`land`、`maritime`；兩個標誌均為真時為 `mixed`）
 
 ### 兼容欄位
 
@@ -115,7 +116,7 @@ both accepted. The release includes stats for source, imported, and rejected row
 
 ### 规范化字段
 
-- `class` 规范化为 `type`（`land` 或 `maritime`）
+- `class` 规范化为 `type`（`land`、`maritime`；两个标志均为真时为 `mixed`）
 
 ### 兼容字段
 
