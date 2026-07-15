@@ -12,7 +12,7 @@ const resolveLatestSnapshotMock = mock(async () => ({
   resourceType: 'division',
   status: 'published',
 }))
-const metaRepository = await import('@repo/core/db/metaRepository')
+const metaRegistry = await import('@repo/core/db/metaRegistry')
 
 mock.module('../addressSql/localDbCache.ts', () => ({
   resolveLocalAddressDbContext: resolveLocalAddressDbContextMock,
@@ -26,8 +26,8 @@ mock.module('../divisionSql/processLocalDivisionSqlUpload.ts', () => ({
   processLocalDivisionSqlUpload: mock(async () => undefined),
 }))
 
-mock.module('@repo/core/db/metaRepository', () => ({
-  ...metaRepository,
+mock.module('@repo/core/db/metaRegistry', () => ({
+  ...metaRegistry,
   resolveLatestPublishedSnapshotForResourceTypeRegion: resolveLatestSnapshotMock,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey: resolveCohortSnapshotMock,
 }))
