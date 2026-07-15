@@ -42,11 +42,11 @@ versioning, raw properties, provenance and source version). Canonical history/cu
 tables use the same ordering and version-management fragments as `division`.
 
 An area row contains an `id`, `divisionId`, `bbox`, canonical geometry, `sourceKeys`,
-source provenance, normalized `type`, and land/territorial flags. A boundary row
-contains an `id`, ordered `leftDivisionId` and `rightDivisionId`, `bbox`, canonical
-geometry, `sourceKeys`, source provenance, normalized `type`, and the same flags.
-Providers may add source-specific keys, but canonical columns must not be silently
-overloaded.
+source provenance, normalized `type` (`land`, `maritime`, or `mixed`), and
+land/territorial flags. A boundary row contains an `id`, ordered `leftDivisionId` and
+`rightDivisionId`, `bbox`, canonical geometry, `sourceKeys`, source provenance,
+normalized `type`, and the same flags. Providers may add source-specific keys, but
+canonical columns must not be silently overloaded.
 
 `sourceKeys` is the compatibility bridge to source versions, classifications and
 external identifiers. Canonical divisions should expose reverse identifiers in their
@@ -71,11 +71,13 @@ Geometry uploads must reference the exact cohort of the anchored division snapsh
 release set is publishable only when all family-required snapshots are present; optional
 provider variants may be added without replacing required members.
 
-Provider identifiers must be resolved through a versioned bridge table/fixture keyed by
-authority, domain, cohort and external identifier. Ambiguous or missing mappings block
-publication. Sparse pre-2025 periods may use explicit `SOURCE_BEFORE` and
-`HISTORY_BEFORE` shard assignments; `CURRENT` contains only the selected latest
-snapshot.
+Provider identifiers must be resolved through a versioned generic `identifierBridges`
+table/fixture keyed by resource type, authority, domain, cohort and external identifier.
+The bridge maps source IDs/codes to a generic `canonicalId`; it does not duplicate
+localized names, which remain source provenance or canonical resource data. Ambiguous or
+missing mappings block publication. Sparse pre-2025 periods may use explicit
+`SOURCE_BEFORE` and `HISTORY_BEFORE` shard assignments; `CURRENT` contains only the
+selected latest snapshot.
 
 ## CSDI catalogue planning registry
 

@@ -39,13 +39,14 @@ Hong Kong clipping artefact.
 
 Source rows preserve the Overture `id` as `sourceRecordId`, `bbox`, decoded geometry,
 `sources`, `version`, `subtype`, `class`, `is_land`, `is_territorial`, and the ordered
-`division_ids`/`division_id` values. `rawProperties` retains dropped fields (`theme`,
-`type`, `country`, `region`, `is_disputed`, and `perspectives`) for auditability.
+`division_ids`/`division_id` values. `rawProperties` retains the complete decoded source
+row, including dropped fields (`theme`, `type`, `country`, `region`, `is_disputed`, and
+`perspectives`) and the original `is_land`/`is_territorial` values for auditability.
 
 Boundary canonical rows normalize `division_ids[0]` and `[1]` to left/right division
 IDs; area rows normalize `division_id`. Both expose `sourceKeys` (`version`, `subtype`,
-`class`), enriched Overture source provenance, `type` (`land` or `maritime`), bbox,
-geometry, and the source land/territorial flags. Boundary rows require exactly two
+`class`), enriched Overture source provenance, `type` (`land`, `maritime`, or `mixed`),
+bbox, geometry, and the source land/territorial flags. Boundary rows require exactly two
 distinct division IDs and null `perspectives`.
 
 | Source field                         | Area treatment                                    | Boundary treatment                                |
@@ -62,16 +63,19 @@ distinct division IDs and null `perspectives`.
 
 The source schema and canonical schema use the same shared source-versioning,
 history-versioning, current-snapshot and `rawProperties` fragments as `division`. Stats
-include accepted counts, land/maritime type, land/territorial combinations, and source
-or canonical change counts. Geographic exclusions and rejected rows remain visible in
-CLI diagnostics rather than persisted release stats.
+include accepted counts, land/maritime/mixed type, land/territorial combinations, and
+source or canonical change counts. Geographic exclusions and rejected rows remain
+visible in CLI diagnostics rather than persisted release stats.
 
 The Hong Kong cut excludes rows with `region = 'CN-GD'`. A null country is valid for
 maritime or international-water boundaries and is retained. Boundary rows must have
 exactly two distinct `division_ids`; `perspectives` must be null. Area and boundary
 source rows retain `rawProperties`, the original source array, Overture version, and
 source-key fields. Canonical rows expose normalized left/right or division references,
-`type` (`land` or `maritime`), geometry, bbox, and land/territorial flags.
+`type` (`land`, `maritime`, or `mixed`), geometry, bbox, and land/territorial flags.
+`mixed` is derived when both source flags are true, including the known upstream
+Overture records where the source class alone would otherwise suggest `land` or
+`maritime`.
 
 Each release writes source, history, current, and release-level ingestion statistics.
 Geometry snapshots are assembled and published only for the exact release cohort of the

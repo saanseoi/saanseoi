@@ -13,6 +13,8 @@ An area associates an accepted provider geometry union (normally Polygon/MultiPo
 with one division. A boundary associates an accepted provider geometry union (normally
 LineString/MultiLineString) with two ordered divisions. The adapter declares the union;
 single geometries must not be rejected merely because a multi geometry is also present.
+Canonical `type` may be `land`, `maritime`, or `mixed`; `mixed` is used when both land
+and territorial coverage flags are true.
 
 The canonical layer normalizes relationship IDs, preserves bbox and transformed
 geometry, records source keys and provenance, and keeps provider flags exactly as

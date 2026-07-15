@@ -12,7 +12,7 @@ This page records the provider-specific profile. The reusable source contract is
 | Publisher           | Home Affairs Department (`hkgov-had`)                                                                                                                |
 | GeoJSON             | `https://portal.csdi.gov.hk/csdi-webpage/file-api?dataset_id=had_rcd_1634523272907_75218&format=geojson&layer_name=DCD`                              |
 | Feature service     | `https://portal.csdi.gov.hk/server/rest/services/common/had_rcd_1634523272907_75218/FeatureServer/0`                                                 |
-| Source release data | July 2025; layer last revised in 2022                                                                                                                |
+| Source release data | Catalogue published July 2025; layer last revised in 2022                                                                                            |
 | Source schema       | `1.2`                                                                                                                                                |
 | Observed features   | 18 Polygon features                                                                                                                                  |
 | Source CRS          | EPSG:2326 (service WKID 102140; latest WKID 2326)                                                                                                    |
@@ -23,10 +23,10 @@ transforms canonical geometry to EPSG:4326 and retains the original CRS and sour
 coordinates in provenance.
 
 `AREA_ID` and `AREA_CODE` are provider identifiers. They are resolved through the
-versioned `divisionIdentifierBridges` fixture/table for the matching cohort and
-administrative domain. Names and lifespan fields remain source provenance and do not
-replace canonical division names. The source release is `hkgov-had-2025-districts` with
-cohort key `2025` and source schema version `1.2`.
+versioned `identifierBridges` fixture/table for resource type `division`, authority
+`hkgov-had`, cohort `2022`, and the administrative domain. Names and lifespan fields
+remain source provenance and do not replace canonical division names. The source release
+is `hkgov-had-hk-2022-district` with cohort key `2022` and source schema version `1.2`.
 
 Preflight rejects null or empty geometry, invalid rings, and self-intersections. It does
 not repair geometry. Feature counts, geometry-type counts, rejected rows, CRS, bridge
@@ -37,9 +37,11 @@ The DCD layer exposes `CSDI_ADMIN_AREA_ID`, `AREA_TYPE`, `AREA_ID`, `AREA_CODE`,
 shape fields). `AREA_ID` and `AREA_CODE` are retained as source provenance and are
 resolved through the reviewed bridge; bilingual names do not overwrite canonical
 division names. The source validity is `BEGIN_LIFESPAN = 20160101` with an open
-`END_LIFESPAN` when supplied, while the requested source cohort is `2025`.
+`END_LIFESPAN` when supplied, while the requested source cohort is `2022`.
 
-The release identity is `hkgov-had-2025-districts`. This is an administrative
+The release identity is `hkgov-had-hk-2022-district`. This is an administrative
 `divisionArea` variant, not a line boundary despite the catalogue title. Overture
 remains the configured default area variant; clients select this source explicitly with
-`include=areas:hkgov-had`.
+`include=areas:hkgov-had`. Canonical HAD district areas use `type = mixed` with both
+`isLand` and `isTerritorial` true because the administrative extent includes land and
+territorial coverage.
