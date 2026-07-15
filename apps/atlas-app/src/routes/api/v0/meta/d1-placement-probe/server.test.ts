@@ -35,10 +35,12 @@ describe('atlas-app d1 placement probe', () => {
           ASSETS: {} as Fetcher,
           BETTER_AUTH_SECRET: 'secret',
           DB_CURRENT: db,
+          DB_HISTORY_HK_BEFORE: db,
           DB_HISTORY_HK_2025: db,
           DB_HISTORY_HK_2026: db,
           D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
           DB_META: db,
+          DB_SOURCE_HK_BEFORE: db,
           DB_SOURCE_HK_2025: db,
           DB_SOURCE_HK_2026: db,
           PUBLIC_ATLAS_API_BASE_URL: 'https://api.saanseoi.hk',
@@ -73,12 +75,12 @@ describe('atlas-app d1 placement probe', () => {
     expect(body.worker).toBe('atlas-app')
     expect(body.configuredPlacementRegion).toBe('azure:eastasia')
     expect(body.iterations).toBe(2)
-    expect(body.totalQueries).toBe(12)
+    expect(body.totalQueries).toBe(16)
     expect(body.request).toMatchObject({
       colo: 'HKG',
       host: 'saanseoi.hk',
     })
-    expect(body.bindings).toHaveLength(6)
+    expect(body.bindings).toHaveLength(8)
     expect(body.bindings.every(binding => binding.timingsMs.length === 2)).toBe(true)
   })
 
@@ -96,10 +98,12 @@ describe('atlas-app d1 placement probe', () => {
           ASSETS: {} as Fetcher,
           BETTER_AUTH_SECRET: 'secret',
           DB_CURRENT: createMockDb(),
+          DB_HISTORY_HK_BEFORE: createMockDb(),
           DB_HISTORY_HK_2025: createMockDb(),
           DB_HISTORY_HK_2026: createMockDb(),
           D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
           DB_META: createMockDb(),
+          DB_SOURCE_HK_BEFORE: createMockDb(),
           DB_SOURCE_HK_2025: createMockDb(),
           DB_SOURCE_HK_2026: createMockDb(),
           PUBLIC_ATLAS_API_BASE_URL: 'https://api.saanseoi.hk',
@@ -133,10 +137,12 @@ describe('atlas-app d1 placement probe', () => {
           ASSETS: {} as Fetcher,
           BETTER_AUTH_SECRET: 'secret',
           DB_CURRENT: createMockDb(),
+          DB_HISTORY_HK_BEFORE: createMockDb(),
           DB_HISTORY_HK_2025: createMockDb(),
           DB_HISTORY_HK_2026: createMockDb(),
           D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
           DB_META: createMockDb(),
+          DB_SOURCE_HK_BEFORE: createMockDb(),
           DB_SOURCE_HK_2025: createMockDb(),
           DB_SOURCE_HK_2026: createMockDb(),
           PUBLIC_ATLAS_API_BASE_URL: 'https://api.saanseoi.hk',
