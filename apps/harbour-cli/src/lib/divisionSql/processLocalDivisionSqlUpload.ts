@@ -5,10 +5,10 @@ import { resolve } from 'node:path'
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
   resolveLatestPublishedSnapshotForResourceTypeRegion,
-  resolveLatestSnapshotForResourceTypeExcludingId,
+  resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId,
   resolveShardForTypeRegionYear,
-} from '@repo/core/db/metaRepository'
-import type { HarbourReadableDb } from '@repo/core/db/types'
+} from '@repo/core/db/metaRegistry'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   eq,
   metaReleaseShardAssignments,
@@ -16,7 +16,7 @@ import {
   metaSnapshotSources,
   metaSnapshots,
 } from '@repo/db'
-import type { DatasetStatsRow } from '@repo/db/metaSchema'
+import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
 import type { MetaDatabase } from '@repo/db'
 import type { DivisionI18nPayload, NewDivisionRow } from '@repo/db/currentSchema'
 
@@ -46,6 +46,7 @@ import {
 import {
   buildCanonicalDivisionApiI18n,
   buildDivisionBaseHashInput,
+  buildDivisionHierarchyLookup,
   normalizeDivisionI18nSnapshotRow,
   normalizeDivisionRow,
   resolveAdminLevelValue,
@@ -79,6 +80,11 @@ import {
   runLocalStreamingPhase,
   writeLocalPipelineState,
 } from '../localPipeline/orchestrator.ts'
+import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
+import {
+  calculateAndStoreApiReleaseSetStats,
+  resolveApiReleaseSetStatsTarget,
+} from '../apiReleaseSetStats.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import {
   appendPhaseDetails,
@@ -99,7 +105,8 @@ import {
 import { LocalUploadProgress } from '../localUploadProgress.ts'
 import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
 import {
-  buildReleaseUploadDbCacheScopeKey,
+  invalidateRemoteDbCache,
+  refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
 } from '../addressSql/localDbCache.ts'
@@ -160,7 +167,7 @@ type DivisionSqlState = {
   snapshotId: string
   sourceChangedRows: number
   sourceUnchangedRows: number
-  statsRows: Omit<DatasetStatsRow, 'id' | 'releaseId'>[]
+  statsRows: ReleaseScopedStatsRow[]
   unchangedRows: number
 }
 
@@ -218,26 +225,34 @@ export async function processLocalDivisionSqlUpload(
     resolveTargetName(target),
     releaseCode,
   )
+  const progress = new LocalUploadProgress()
+  const setupStepCount = 8
+  const setupStartedAt = Date.now()
+
+  if (!target.remote) {
+    progress.beginPhase(formatLocalSetupProgressLabel('workspace', 0, setupStepCount), {
+      current: 0,
+      max: setupStepCount,
+    })
+  }
 
   await mkdir(releaseRoot, { recursive: true })
+  if (!target.remote) {
+    progress.update(1, {
+      label: formatLocalSetupProgressLabel('raw object', 1, setupStepCount),
+    })
+  }
 
   const bucket = new LocalPipelineBucket(releaseRoot)
   await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
-  const progress = new LocalUploadProgress()
+  if (!target.remote) {
+    progress.update(2, {
+      label: formatLocalSetupProgressLabel('local DB', 2, setupStepCount),
+    })
+  }
   const resolvedTargetName = resolveTargetName(target)
-  const cacheTableProfile = 'division'
-  const remoteCacheScopeKey = target.remote
-    ? buildReleaseUploadDbCacheScopeKey({
-        cacheTableProfile,
-        cohortKey: previewPlan.cohortKey,
-        regionCode: previewPlan.regionCode,
-        shardYear,
-        source: previewPlan.source,
-        sourceVersion: previewPlan.sourceVersion,
-        theme: previewPlan.theme,
-        type: previewPlan.type,
-      })
-    : undefined
+  const cacheTableProfile = target.remote ? undefined : 'division'
+  const remoteCacheScopeKey = undefined
 
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
   const dbCacheStartedAt = Date.now()
@@ -252,9 +267,7 @@ export async function processLocalDivisionSqlUpload(
           updateDbCacheProgress(progress, event)
         },
         cacheTableProfile,
-        includePreviousShardYears: shouldIncludePreviousShardYears(
-          previewPlan.cohortKey,
-        ),
+        includePreviousShardYears: true,
         refreshRemoteTables: false,
         remoteCacheScopeKey,
       },
@@ -275,6 +288,11 @@ export async function processLocalDivisionSqlUpload(
       ),
     )
   }
+  if (!target.remote) {
+    progress.update(3, {
+      label: formatLocalSetupProgressLabel('release metadata', 3, setupStepCount),
+    })
+  }
   await syncStagedReleaseIntoLocalMetaCache(
     dbContext.metaDb,
     {
@@ -285,7 +303,31 @@ export async function processLocalDivisionSqlUpload(
     },
     previewPlan,
   )
-  const harbourClient = createHarbourControlClient(target) as HarbourClient
+  if (!target.remote) {
+    progress.update(4, {
+      label: formatLocalSetupProgressLabel('import targets', 4, setupStepCount),
+    })
+  }
+  const remoteHarbourClient = createHarbourControlClient(target) as HarbourClient
+  const harbourClient = target.remote
+    ? remoteHarbourClient
+    : createLocalControlClient(
+        dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+        {
+          maxRetries: LOCAL_SQL_WRITE_RETRY_LIMIT,
+          onRetry(event) {
+            progress.message(
+              formatRetryLabel(
+                `database lock ${event.target}`,
+                event.attempt,
+                event.maxRetries,
+                event.delayMs,
+              ),
+            )
+          },
+          publishClient: remoteHarbourClient,
+        },
+      )
   const initialMessage: DatasetProcessingMessage = {
     datasetId,
     datasetCode,
@@ -326,9 +368,17 @@ export async function processLocalDivisionSqlUpload(
     initialMessage,
     environment,
   )
+  if (!target.remote) {
+    progress.update(5, {
+      label: formatLocalSetupProgressLabel('pipeline state', 5, setupStepCount),
+    })
+  }
 
   assertRemoteDivisionImportPrerequisites(target, importTargets, importOptions)
   const processingRunStartedAt = new Date().toISOString()
+  let shouldRefreshRemoteMetaCache = false
+  let postPublishCacheError: Error | null = null
+  let publishResult: Awaited<ReturnType<HarbourClient['publishDataset']>> | null = null
 
   await writeLocalPipelineState(releaseRoot, {
     divisionBatchSize: DIVISION_BATCH_SIZE,
@@ -341,6 +391,11 @@ export async function processLocalDivisionSqlUpload(
     target: resolvedTargetName,
     workingDbCacheDir: dbContext.state.dbCacheDir,
   })
+  if (!target.remote) {
+    progress.update(6, {
+      label: formatLocalSetupProgressLabel('running state', 6, setupStepCount),
+    })
+  }
 
   try {
     await harbourClient.stageRunning(
@@ -361,12 +416,22 @@ export async function processLocalDivisionSqlUpload(
       undefined,
       releaseCode,
     )
+    if (!target.remote) {
+      progress.update(7, {
+        label: formatLocalSetupProgressLabel('snapshot context', 7, setupStepCount),
+      })
+    }
 
     const versionInsertContext = await prepareDivisionVersionInsertContext(
       dbContext.metaDb as never,
       initialMessage,
       environment,
     )
+    if (!target.remote) {
+      progress.update(8, {
+        label: formatLocalSetupProgressLabel('current state', 8, setupStepCount),
+      })
+    }
     const currentRows = await getMergedCurrentDivisionVersionMap(
       dbContext.historyTargets.map((target, index) => ({
         db: target.db as never,
@@ -395,6 +460,18 @@ export async function processLocalDivisionSqlUpload(
       currentRows,
       previewPlan.regionCode,
     )
+    if (!target.remote) {
+      progress.complete(
+        appendPhaseDetails(
+          formatCompletedPhaseLabel(
+            colorTeal('Prepare'),
+            colorRed('local'),
+            setupStepCount,
+          ),
+          [formatDurationMs(Date.now() - setupStartedAt)],
+        ),
+      )
+    }
 
     const divisionState = await runLocalStreamingPhase(
       progress,
@@ -500,6 +577,7 @@ export async function processLocalDivisionSqlUpload(
 
     const currentInitFile = await buildDivisionCurrentInitSqlFile(
       dbContext.metaDb,
+      previewPlan.regionCode,
       divisionState.snapshotId,
       initialMessage.processingRunStartedAt ?? processingRunStartedAt,
     )
@@ -730,15 +808,46 @@ export async function processLocalDivisionSqlUpload(
       releaseCode,
       'publishDataset',
       async () => {
-        await importProgressClient.publishDataset(releaseId, releaseCode, {
-          skipSnapshotCleanup: options.skipSnapshotCleanup,
-        })
+        publishResult = await importProgressClient.publishDataset(
+          releaseId,
+          releaseCode,
+          {
+            skipSnapshotCleanup: options.skipSnapshotCleanup,
+          },
+        )
 
         return {
           stepCount: 1,
         }
       },
     )
+    if (target.remote) {
+      try {
+        shouldRefreshRemoteMetaCache = await replayDivisionSqlIntoRemoteCache(
+          target,
+          dbContext,
+          bucket,
+          importTargets,
+          manifest,
+          extraSourceSqlOperations,
+          extraHistorySqlOperations,
+          importOptions,
+        )
+      } catch (error) {
+        postPublishCacheError = normalizeError(error)
+      }
+    }
+    await calculateAndStoreApiReleaseSetStats({
+      currentDb: dbContext.currentDb as unknown as HarbourReadableDb,
+      family: 'division',
+      harbourClient,
+      importOptions,
+      metaDb: dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+      progress,
+      releaseCode,
+      releaseId,
+      target: resolveApiReleaseSetStatsTarget(publishResult),
+    })
     await harbourClient.stageCompleted(
       releaseId,
       'processDataset',
@@ -762,11 +871,115 @@ export async function processLocalDivisionSqlUpload(
     throw error
   } finally {
     dbContext.cleanup()
+    if (shouldRefreshRemoteMetaCache && target.remote) {
+      try {
+        await refreshRemoteMetaCacheAfterReplay(
+          target.environment === 'production' ? 'production' : 'preview',
+          dbContext.state.dbCacheDir,
+        )
+      } catch (error) {
+        postPublishCacheError = normalizeError(error)
+      }
+    }
+  }
+
+  if (postPublishCacheError) {
+    throw postPublishCacheError
   }
 }
 
-function shouldIncludePreviousShardYears(cohortKey: string) {
-  return /^\d{4}-01(?:-\d{2})?/.test(cohortKey)
+async function replayDivisionSqlIntoRemoteCache(
+  target: UploadTarget,
+  dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  bucket: LocalPipelineBucket,
+  importTargets: Awaited<ReturnType<typeof resolveDivisionImportTargets>>,
+  manifest: DivisionSqlArtifactManifest,
+  extraSourceSqlOperations: ExtraSqlImportOperation[],
+  extraHistorySqlOperations: ExtraSqlImportOperation[],
+  importOptions: SqlImportExecutionOptions,
+) {
+  const targetName = target.environment === 'production' ? 'production' : 'preview'
+  const cacheImportOptions: SqlImportExecutionOptions = {
+    ...importOptions,
+    accountId: undefined,
+    apiToken: undefined,
+    isLocal: true,
+  }
+
+  try {
+    await Promise.all([
+      importSqlArtifactKeys(
+        bucket,
+        importTargets.source,
+        [manifest.sourceKey],
+        cacheImportOptions,
+        async () => undefined,
+      ).then(async () => {
+        for (const operation of extraSourceSqlOperations) {
+          await executeSqlText(operation.target, operation.sql, cacheImportOptions)
+        }
+      }),
+      importSqlArtifactKeys(
+        bucket,
+        importTargets.history,
+        [manifest.historyKey],
+        cacheImportOptions,
+        async () => undefined,
+      ).then(async () => {
+        for (const operation of extraHistorySqlOperations) {
+          await executeSqlText(operation.target, operation.sql, cacheImportOptions)
+        }
+      }),
+      (async () => {
+        if (manifest.currentInitKey) {
+          await importSqlArtifactKeys(
+            bucket,
+            importTargets.current,
+            [manifest.currentInitKey],
+            cacheImportOptions,
+            async () => undefined,
+          )
+        }
+
+        await importSqlArtifactKeys(
+          bucket,
+          importTargets.current,
+          [manifest.currentKey],
+          cacheImportOptions,
+          async () => undefined,
+        )
+      })(),
+    ])
+
+    return true
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error)
+
+    await invalidateRemoteDbCache(targetName, dbContext.state.dbCacheDir, reason)
+    throw new Error(
+      `Remote upload succeeded, but updating the ${targetName} local cache failed. The cache was invalidated and future uploads will stop until it is rebuilt explicitly. ${reason}`,
+    )
+  }
+}
+
+async function refreshRemoteMetaCacheAfterReplay(
+  targetName: 'preview' | 'production',
+  cacheDir: string,
+) {
+  try {
+    await refreshRemoteMetaCache(targetName, cacheDir)
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error)
+
+    await invalidateRemoteDbCache(targetName, cacheDir, reason)
+    throw new Error(
+      `Remote upload succeeded, but refreshing the ${targetName} local meta cache failed. The cache was invalidated and future uploads will stop until it is rebuilt explicitly. ${reason}`,
+    )
+  }
+}
+
+function normalizeError(error: unknown) {
+  return error instanceof Error ? error : new Error(String(error))
 }
 
 function updateDbCacheProgress(
@@ -794,13 +1007,25 @@ function updateDbCacheProgress(
 
   if (event.action === 'reuse-cache') {
     progress.complete(
-      formatCompletedPhaseLabel(
-        colorTeal('Clone cache'),
-        colorRed(event.target),
-        event.total,
+      appendPhaseDetails(
+        formatCompletedPhaseLabel(colorTeal('Cache'), colorRed('hit'), 0),
+        ['0 ms'],
       ),
     )
   }
+}
+
+function formatLocalSetupProgressLabel(
+  subject: string,
+  current: number,
+  total: number,
+) {
+  return formatRunningPhaseLabel(
+    colorTeal('Prepare'),
+    colorRed(subject),
+    current,
+    total,
+  )
 }
 
 function formatDbCacheProgressLabel(event: LocalDbCacheProgressEvent) {
@@ -815,19 +1040,23 @@ function formatDbCacheProgressLabel(event: LocalDbCacheProgressEvent) {
 }
 
 function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {
+  const tableName = event.tableName
+    ? event.filter
+      ? `${event.tableName}:${event.filter}`
+      : event.tableName
+    : null
+
   switch (event.action) {
     case 'check-cache':
       return `${event.target}.manifest`
     case 'export-binding':
-      return event.tableName
-        ? `${event.bindingName}.${event.tableName}`
+      return tableName
+        ? `${event.bindingName}.${tableName}`
         : `${event.bindingName}.export`
     case 'reuse-cache':
       return `${event.target}.reuse`
     case 'mirror-table':
-      return event.tableName
-        ? `${event.bindingName}.${event.tableName}`
-        : event.bindingName
+      return tableName ? `${event.bindingName}.${tableName}` : event.bindingName
     case 'copy-binding':
       return `${event.bindingName}.sqlite`
     case 'validate-binding':
@@ -927,6 +1156,7 @@ async function buildDivisionSqlState(
   const seenIds = new Set<string>()
   const isInitialSourceLoad = currentSourceRows.size === 0
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
+  const hierarchyLookup = await buildDivisionHierarchyLookup(file)
 
   let processedRows = 0
   let insertedVersions = 0
@@ -950,7 +1180,7 @@ async function buildDivisionSqlState(
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE)) {
     for (const row of batch) {
       const raw = row as Record<string, unknown>
-      const normalized = normalizeDivisionRow(raw)
+      const normalized = normalizeDivisionRow(raw, { hierarchyLookup })
       const canonicalI18n = buildCanonicalDivisionApiI18n(normalized.i18n)
       const versionHash = await createHash(buildDivisionBaseHashInput(normalized.base))
       const churnHash = await createHash({
@@ -996,7 +1226,7 @@ async function buildDivisionSqlState(
         geometry: normalized.base.geometry,
         id: normalized.base.id,
         localizedRows: canonicalI18n,
-        parentId: normalized.base.parentDivisionId,
+        parentId: resolveParentDivisionIdFromHierarchy(normalized.base.hierarchy),
         type: normalized.base.type,
         versionHash,
       })
@@ -1106,7 +1336,6 @@ async function buildDivisionSourceSqlFile(
           admin_level: resolveAdminLevelValue(record.raw),
           subtype: sourceString(record.raw.subtype),
           class: sourceString(record.raw.class),
-          population: record.base.population,
           wikidata: record.base.wikidata,
           hierarchies: jsonText(record.raw.hierarchies),
           geometry: jsonText(record.base.geometry),
@@ -1184,7 +1413,6 @@ async function buildDivisionSourceSqlFile(
         'admin_level',
         'subtype',
         'class',
-        'population',
         'wikidata',
         'hierarchies',
         'geometry',
@@ -1281,11 +1509,9 @@ async function buildDivisionHistorySqlFile(
         isCurrent: true,
         level: record.base.level,
         type: record.base.type,
-        population: record.base.population,
         sourceKeys: jsonText(record.base.sourceKeys),
         wikidata: record.base.wikidata,
         hierarchy: jsonText(record.base.hierarchy),
-        parentDivisionId: record.base.parentDivisionId,
         cartography: jsonText(record.base.cartography),
         sources: jsonText(record.base.sources),
         geometry: jsonText(record.base.geometry),
@@ -1354,11 +1580,9 @@ async function buildDivisionHistorySqlFile(
         'isCurrent',
         'level',
         'type',
-        'population',
         'sourceKeys',
         'wikidata',
         'hierarchy',
-        'parentDivisionId',
         'cartography',
         'sources',
         'geometry',
@@ -1427,26 +1651,29 @@ ON CONFLICT(divisionId, versionHash, locale) DO UPDATE SET
 
 async function buildDivisionCurrentInitSqlFile(
   metaDb: MetaDatabase,
+  regionCode: RegionCode,
   snapshotId: string,
   clonedAt: string,
 ) {
-  const previousSnapshot = await resolveLatestSnapshotForResourceTypeExcludingId(
-    metaDb as unknown as HarbourReadableDb,
-    'division',
-    snapshotId,
-  )
+  const previousSnapshot =
+    await resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId(
+      metaDb as unknown as HarbourReadableDb,
+      'division',
+      regionCode,
+      snapshotId,
+    )
   const statements: string[] = []
 
   if (previousSnapshot && previousSnapshot.id !== snapshotId) {
     statements.push(
       `
 INSERT INTO divisions (
-  snapshotId, id, level, type, population, sourceKeys, wikidata, hierarchy,
-  parentDivisionId, cartography, sources, geometry, bbox, createdAt, updatedAt
+  snapshotId, id, level, type, sourceKeys, wikidata, hierarchy,
+  cartography, sources, geometry, bbox, createdAt, updatedAt
 )
 SELECT
-  ${sqlLiteral(snapshotId)}, id, level, type, population, sourceKeys, wikidata, hierarchy,
-  parentDivisionId, cartography, sources, geometry, bbox, ${sqlLiteral(clonedAt)}, ${sqlLiteral(clonedAt)}
+  ${sqlLiteral(snapshotId)}, id, level, type, sourceKeys, wikidata, hierarchy,
+  cartography, sources, geometry, bbox, ${sqlLiteral(clonedAt)}, ${sqlLiteral(clonedAt)}
 FROM divisions
 WHERE snapshotId = ${sqlLiteral(previousSnapshot.id)}
 ON CONFLICT(snapshotId, id) DO NOTHING;`.trim(),
@@ -1495,11 +1722,9 @@ async function buildDivisionCurrentSqlFile(
           id: record.id,
           level: record.base.level,
           type: record.base.type,
-          population: record.base.population,
           sourceKeys: jsonText(record.base.sourceKeys),
           wikidata: record.base.wikidata,
           hierarchy: jsonText(record.base.hierarchy),
-          parentDivisionId: record.base.parentDivisionId,
           cartography: jsonText(record.base.cartography),
           sources: jsonText(record.base.sources),
           geometry: jsonText(record.base.geometry),
@@ -1535,11 +1760,9 @@ async function buildDivisionCurrentSqlFile(
         'id',
         'level',
         'type',
-        'population',
         'sourceKeys',
         'wikidata',
         'hierarchy',
-        'parentDivisionId',
         'cartography',
         'sources',
         'geometry',
@@ -1553,11 +1776,9 @@ async function buildDivisionCurrentSqlFile(
 ON CONFLICT(snapshotId, id) DO UPDATE SET
   level = excluded.level,
   type = excluded.type,
-  population = excluded.population,
   sourceKeys = excluded.sourceKeys,
   wikidata = excluded.wikidata,
   hierarchy = excluded.hierarchy,
-  parentDivisionId = excluded.parentDivisionId,
   cartography = excluded.cartography,
   sources = excluded.sources,
   geometry = excluded.geometry,
@@ -2647,6 +2868,22 @@ function sqlLiteral(value: SqlValue) {
 
 function jsonText(value: unknown): string | null {
   return value === null || value === undefined ? null : JSON.stringify(value)
+}
+
+function resolveParentDivisionIdFromHierarchy(hierarchy: unknown): string | null {
+  if (!Array.isArray(hierarchy) || hierarchy.length === 0) {
+    return null
+  }
+
+  const parent = hierarchy[hierarchy.length - 1]
+  if (!parent || typeof parent !== 'object') {
+    return null
+  }
+
+  const divisionId = (parent as Record<string, unknown>).division_id
+  return typeof divisionId === 'string' && divisionId.trim().length > 0
+    ? divisionId
+    : null
 }
 
 function asOptionalInteger(value: unknown) {
