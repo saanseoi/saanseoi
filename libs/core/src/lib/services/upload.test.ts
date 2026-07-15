@@ -270,6 +270,32 @@ describe('upload', () => {
     expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-dpo-address')
   })
 
+  test('uses the registered HAD district dataset and release identities', async () => {
+    const tempDir = createTempDir()
+    const fixtureFile = join(tempDir, 'hkgov-had-hk-2022-divisionArea.parquet')
+
+    writeFileSync(fixtureFile, 'fixture')
+
+    const planned = await prepareUpload({
+      filePath: fixtureFile,
+      cohortKey: '2022',
+      inspection: {
+        rowCount: 18,
+        schema: fixtureInspection.schema,
+        distinctThemeValues: ['divisions'],
+        distinctTypeValues: ['divisionArea'],
+        distinctCountryValues: ['hk'],
+        distinctRegionValues: ['hk'],
+      },
+      source: 'hkgov-had',
+      sourceVersion: '2022',
+      type: 'divisionArea',
+    })
+
+    expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-had-district')
+    expect(planned.plan.releaseCode).toBe('hkgov-had-hk-2022-district')
+  })
+
   test('rejects overture uploads for source versions that are not yet marked safe', async () => {
     const tempDir = createTempDir()
     const fixtureFile = join(tempDir, 'hk-address-2026-06.parquet')

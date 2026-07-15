@@ -162,13 +162,36 @@ function escapeRegExp(value: string) {
 }
 
 function getDatasetCodeSubType(_source: string, _type: ResourceType) {
+  if (_source === 'hkgov-had' && _type === 'divisionArea') {
+    return 'district'
+  }
+
   return null
 }
 
 function buildDatasetCode(regionCode: RegionCode, source: string, type: ResourceType) {
   const subType = getDatasetCodeSubType(source, type)
 
+  if (source === 'hkgov-had' && type === 'divisionArea' && subType === 'district') {
+    return `ds-${regionCode}-${source}-${subType}`
+  }
+
   return `ds-${regionCode}-${source}-${type}${subType ? `-${subType}` : ''}`
+}
+
+function buildReleaseCode(
+  regionCode: RegionCode,
+  source: string,
+  sourceVersion: string,
+  type: ResourceType,
+) {
+  const subType = getDatasetCodeSubType(source, type)
+
+  return `${source}-${regionCode}-${sourceVersion}-${
+    source === 'hkgov-had' && type === 'divisionArea' && subType === 'district'
+      ? subType
+      : type
+  }`
 }
 
 function formatDatasetIdentifier(datasetCode?: string, datasetId?: string) {
@@ -739,7 +762,7 @@ function resolveUploadPlan(
     options.originalFileName,
   )
   const datasetCode = buildDatasetCode(regionCode, source, type)
-  const releaseCode = `${source}-${regionCode}-${resolvedSourceVersion}-${type}`
+  const releaseCode = buildReleaseCode(regionCode, source, resolvedSourceVersion, type)
   const plan: UploadPlan = {
     datasetId: releaseCode,
     datasetCode,
