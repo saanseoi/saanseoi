@@ -6,7 +6,7 @@ import {
   resetFailedDataset,
   updateDatasetStatus,
   upsertIngestRunStatus,
-} from '../db/metaRepository'
+} from '../db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
 import type { ReleaseStatus } from '@repo/db'
 import { assertKnownSafeSourceRelease } from '../../sourceSchemas'

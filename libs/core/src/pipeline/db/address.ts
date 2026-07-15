@@ -9,7 +9,7 @@ import {
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
   waitForDatasetRecord,
-} from '../../lib/db/metaRepository'
+} from '../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import type {
   AddressI18nPayload,
