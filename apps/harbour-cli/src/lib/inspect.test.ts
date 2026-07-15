@@ -16,13 +16,13 @@ describe('inspectLocalArtifact', () => {
         {
           blobId: 'normalized-first',
           body: '{"rowStart":0}',
-          key: 'processed/address/hkgov-als-hk-2026-06-26.0-address/normalized/000000000000-000000001024.json',
+          key: 'processed/address/hkgov-dpo-hk-2026-06-26.0-address/normalized/000000000000-000000001024.json',
           uploaded: 1,
         },
         {
           blobId: 'normalized-last',
           body: '{"rowStart":1024}',
-          key: 'processed/address/hkgov-als-hk-2026-06-26.0-address/normalized/000000001024-000000002048.json',
+          key: 'processed/address/hkgov-dpo-hk-2026-06-26.0-address/normalized/000000001024-000000002048.json',
           uploaded: 2,
         },
       ])
@@ -30,7 +30,7 @@ describe('inspectLocalArtifact', () => {
       const result = inspectLocalArtifact({
         outDir,
         persistDir,
-        releaseCode: 'hkgov-als-hk-2026-06-26.0-address',
+        releaseCode: 'hkgov-dpo-hk-2026-06-26.0-address',
         resourceType: 'address',
         sample: 'last',
         stage: 'normalized',
@@ -52,13 +52,13 @@ describe('inspectLocalArtifact', () => {
         {
           blobId: 'current-init',
           body: 'INIT;',
-          key: 'processed/hkgov-als-hk-2026-06-26.0-address/sql/current/address-hkgov-current-init.sql',
+          key: 'processed/hkgov-dpo-hk-2026-06-26.0-address/sql/current/address-hkgov-current-init.sql',
           uploaded: 1,
         },
         {
           blobId: 'current-0',
           body: 'DELTA;',
-          key: 'processed/hkgov-als-hk-2026-06-26.0-address/sql/current/address-hkgov-current-0.sql',
+          key: 'processed/hkgov-dpo-hk-2026-06-26.0-address/sql/current/address-hkgov-current-0.sql',
           uploaded: 2,
         },
       ])
@@ -73,14 +73,14 @@ describe('inspectLocalArtifact', () => {
         dbShard: 'current',
         outDir,
         persistDir,
-        releaseCode: 'hkgov-als-hk-2026-06-26.0-address',
+        releaseCode: 'hkgov-dpo-hk-2026-06-26.0-address',
         resourceType: 'address',
         sample: 'first',
         stage: 'operations',
       })
       const body = await Bun.file(result.outputPath).text()
 
-      expect(releaseCodes).toEqual(['hkgov-als-hk-2026-06-26.0-address'])
+      expect(releaseCodes).toEqual(['hkgov-dpo-hk-2026-06-26.0-address'])
       expect(result.sourceKeys).toHaveLength(2)
       expect(body).toContain('INIT;')
       expect(body).toContain('DELTA;')

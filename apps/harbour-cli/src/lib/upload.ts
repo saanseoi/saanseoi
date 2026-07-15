@@ -1,11 +1,18 @@
 import { readFile, stat } from 'node:fs/promises'
 
 import type { ResourceType } from '@repo/core'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import {
+  finalizeUpload as coreFinalizeLocalUpload,
+  requestUpload as coreRequestLocalUpload,
+} from '@repo/core/upload'
+import { and, eq, metaSchema } from '@repo/db'
+import type { ReleaseStatus } from '@repo/db'
 import type { prepareUpload } from '@repo/core/uploadLocal'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
+import { resolveLocalAddressDbContext } from './addressSql/localDbCache.ts'
 import { prepareUploadFileForDispatch } from './parquetRepack.ts'
-import { fetchReleaseReport } from './reporting.ts'
 import type { CliUploadOptions, UploadTarget } from './options.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
@@ -23,7 +30,13 @@ type SignUploadResponse = {
   uploadUrl: string
 }
 
-type UploadResponse = Record<string, unknown>
+type UploadResponse = Record<string, unknown> & {
+  datasetCode?: string
+  datasetId?: string
+  rawObjectKey?: string
+  releaseCode?: string
+  releaseId?: string
+}
 export type UploadDispatchTimings = {
   fileBytes: number
   finalizeMs: number
@@ -41,6 +54,9 @@ type SnapshotCleanupResponse = {
 }
 type DispatchUploadOptions = {
   force?: boolean
+  finalizeLocalUpload?: typeof coreFinalizeLocalUpload
+  requestLocalUpload?: typeof coreRequestLocalUpload
+  resolveLocalDbContext?: typeof resolveLocalAddressDbContext
   skipSnapshotCleanup?: boolean
   uploadFilePath?: string
 }
@@ -103,13 +119,7 @@ export async function dispatchUpload(
 
   try {
     if (!target.remote) {
-      await assertLocalDirectUploadCanProceed(target, previewResult, options.force)
-      return await uploadFileViaHarbourApi(
-        apiBaseUrl,
-        uploadFile.filePath,
-        previewResult,
-        options,
-      )
+      return await registerLocalUpload(target, registerOptions, previewResult, options)
     }
 
     const fileStats = await stat(uploadFile.filePath)
@@ -129,7 +139,7 @@ export async function dispatchUpload(
     const uploadMs = Date.now() - uploadStartedAt
 
     const finalizeStartedAt = Date.now()
-    const result = await finalizeUpload(apiBaseUrl, signResponse.releaseId, {
+    const result = await finalizeRemoteUpload(apiBaseUrl, signResponse.releaseId, {
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
     const finalizeMs = Date.now() - finalizeStartedAt
@@ -176,9 +186,9 @@ function attachUploadTimings<T extends UploadResponse>(
   }
 }
 
-async function uploadFileViaHarbourApi(
-  apiBaseUrl: string,
-  filePath: string,
+async function registerLocalUpload(
+  target: UploadTarget,
+  registerOptions: CliUploadOptions,
   previewResult: UploadPreviewResult,
   options: DispatchUploadOptions,
 ) {
@@ -186,34 +196,120 @@ async function uploadFileViaHarbourApi(
     previewResult.plan.cohortKey,
     previewResult.plan.sourceVersion,
   )
-  const fileBytes = await readFile(filePath)
-  const formData = new FormData()
-  const file = new File([fileBytes], previewResult.plan.fileName, {
-    type: 'application/octet-stream',
-  })
 
-  formData.set('file', file)
-  formData.set('regionCode', previewResult.plan.regionCode)
-  formData.set('shardYear', shardYear)
-  formData.set('cohortKey', previewResult.plan.cohortKey)
-  formData.set('theme', previewResult.plan.theme)
-  formData.set('type', previewResult.plan.type)
-  formData.set('source', previewResult.plan.source)
-  formData.set('sourceVersion', previewResult.plan.sourceVersion)
-  if (options.force) {
-    formData.set('force', 'true')
+  const resolveLocalDbContext =
+    options.resolveLocalDbContext ?? resolveLocalAddressDbContext
+  const dbContext = await resolveLocalDbContext(
+    target,
+    previewResult.plan.regionCode,
+    shardYear,
+    {
+      cacheTableProfile:
+        previewResult.plan.type === 'division'
+          ? 'division'
+          : previewResult.plan.type === 'divisionArea' ||
+              previewResult.plan.type === 'divisionBoundary'
+            ? 'divisionGeometry'
+            : 'address',
+    },
+  )
+
+  try {
+    const metaDb = dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
+    const resolveSchemaFingerprint = createLocalSchemaFingerprintResolver(metaDb)
+    const allowExistingDatasetStatuses: ReleaseStatus[] | undefined = options.force
+      ? ['uploading']
+      : undefined
+    const uploadOptions = {
+      ...registerOptions,
+      filePath: previewResult.plan.fileName,
+      originalFileName: previewResult.plan.originalFileName,
+      regionCode: previewResult.plan.regionCode,
+      shardYear,
+      cohortKey: previewResult.plan.cohortKey,
+      source: previewResult.plan.source,
+      sourceVersion: previewResult.plan.sourceVersion,
+      releaseNotesUrl: previewResult.plan.releaseNotesUrl,
+      theme: previewResult.plan.theme,
+      type: previewResult.plan.type,
+      inspection: previewResult.inspection,
+      resolveSchemaFingerprint,
+      allowExistingDatasetStatuses,
+    }
+    const requestLocalUpload = options.requestLocalUpload ?? coreRequestLocalUpload
+    const finalizeLocalUpload = options.finalizeLocalUpload ?? coreFinalizeLocalUpload
+    const requested = await requestLocalUpload(metaDb, uploadOptions)
+    const finalized = await finalizeLocalUpload(metaDb, {
+      ...uploadOptions,
+      rawObjectKey: requested.rawObjectKey,
+    })
+
+    return {
+      datasetId: finalized.datasetId,
+      datasetCode: finalized.plan.datasetCode,
+      rawObjectKey: finalized.rawObjectKey,
+      releaseCode: finalized.plan.releaseCode,
+      releaseId: finalized.releaseId,
+      rowCount: finalized.plan.rowCount,
+      source: finalized.plan.source,
+      sourceVersion: finalized.plan.sourceVersion,
+      status: 'staged',
+      type: finalized.plan.type,
+    }
+  } finally {
+    dbContext.cleanup()
   }
-  if (options.skipSnapshotCleanup) {
-    formData.set('skipSnapshotCleanup', 'true')
+}
+
+function createLocalSchemaFingerprintResolver(db: HarbourReadableDb) {
+  return async (_rawObjectKey: string, releaseCode?: string) => {
+    if (!releaseCode) {
+      return null
+    }
+
+    const row = await db
+      .select({
+        stats: metaSchema.ingestRuns.stats,
+      })
+      .from(metaSchema.ingestRuns)
+      .innerJoin(
+        metaSchema.metaReleases,
+        eq(metaSchema.ingestRuns.releaseId, metaSchema.metaReleases.id),
+      )
+      .where(
+        and(
+          eq(metaSchema.metaReleases.code, releaseCode),
+          eq(metaSchema.ingestRuns.phase, 'requestUpload'),
+        ),
+      )
+      .limit(1)
+      .get()
+
+    return readSchemaFingerprint(row?.stats)
+  }
+}
+
+function readSchemaFingerprint(stats: unknown) {
+  const parsed = typeof stats === 'string' ? parseStatsJson(stats) : stats
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return null
   }
 
-  const response = await fetch(buildDirectUploadEndpoint(apiBaseUrl), {
-    method: 'POST',
-    body: formData,
-    headers: getAuthHeaders(),
-  })
+  const schemaFingerprint = (parsed as { schemaFingerprint?: unknown })
+    .schemaFingerprint
 
-  return parseJsonResponse<Record<string, unknown>>(response, 'Harbour upload')
+  return typeof schemaFingerprint === 'string' && schemaFingerprint.trim()
+    ? schemaFingerprint
+    : null
+}
+
+function parseStatsJson(stats: string) {
+  try {
+    return JSON.parse(stats) as unknown
+  } catch {
+    return null
+  }
 }
 
 async function requestSignedUpload(
@@ -243,6 +339,7 @@ async function requestSignedUpload(
         shardYear,
         source: previewResult.plan.source,
         sourceVersion: previewResult.plan.sourceVersion,
+        releaseNotesUrl: previewResult.plan.releaseNotesUrl,
         cohortKey: previewResult.plan.cohortKey,
         theme: previewResult.plan.theme,
         type: previewResult.plan.type,
@@ -306,7 +403,7 @@ function filterSignedUploadHeaders(uploadUrl: string, headers: Record<string, st
   )
 }
 
-async function finalizeUpload(
+async function finalizeRemoteUpload(
   apiBaseUrl: string,
   releaseId: string,
   options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
@@ -339,41 +436,6 @@ async function postReleaseAction(
   })
 
   return parseJsonResponse<UploadResponse>(response, action)
-}
-
-async function assertLocalDirectUploadCanProceed(
-  target: UploadTarget,
-  previewResult: UploadPreviewResult,
-  force = false,
-) {
-  try {
-    const report = await fetchReleaseReport(target, {
-      limit: 1,
-      releaseCode: previewResult.plan.releaseCode,
-    })
-    const release = report.rows[0]
-
-    if (!release || release.status === 'failed') {
-      return
-    }
-
-    if (force && release.status === 'uploading') {
-      return
-    }
-
-    throw new Error(
-      `Dataset already exists with status ${release.status}: ${previewResult.plan.source}-${previewResult.plan.datasetCode}`,
-    )
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message.startsWith('Dataset already exists with status ')
-    ) {
-      throw error
-    }
-
-    throw error
-  }
 }
 
 export async function scheduleSnapshotCleanup(

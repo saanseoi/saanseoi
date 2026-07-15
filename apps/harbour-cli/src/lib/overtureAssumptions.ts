@@ -4,7 +4,7 @@ import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
 import type { UploadPlan } from '@repo/core'
 
-type TrackedColumn = 'country' | 'theme' | 'type' | 'region' | 'norms'
+type TrackedColumn = 'country' | 'theme' | 'type' | 'region' | 'norms' | 'perspectives'
 
 type ColumnSummary = {
   distinctValues: string[]
@@ -19,21 +19,28 @@ const DIVISION_ASSUMPTION_COLUMNS: TrackedColumn[] = [
   'type',
   'region',
   'norms',
+  'perspectives',
 ]
 
 export async function checkOvertureUploadAssumptions(
   filePath: string,
   plan: UploadPlan,
 ) {
-  if (plan.source !== 'overture' || plan.type !== 'division') {
+  if (
+    plan.source !== 'overture' ||
+    !['division', 'divisionArea', 'divisionBoundary'].includes(plan.type)
+  ) {
     return []
   }
 
   const summary = await summarizeDivisionAssumptionColumns(filePath)
-  return evaluateDivisionAssumptions(summary)
+  return evaluateDivisionAssumptions(summary, plan.type)
 }
 
-export function evaluateDivisionAssumptions(summary: DivisionAssumptionSummary) {
+export function evaluateDivisionAssumptions(
+  summary: DivisionAssumptionSummary,
+  resourceType: UploadPlan['type'] = 'division',
+) {
   const warnings: string[] = []
 
   const country = summary.country
@@ -69,6 +76,15 @@ export function evaluateDivisionAssumptions(summary: DivisionAssumptionSummary) 
     warnings.push(
       `Dropped field \`norms\` is no longer effectively uniform; found ${norms.distinctValues.length} distinct non-null values.`,
     )
+  }
+
+  if (resourceType === 'divisionBoundary') {
+    const perspectives = summary.perspectives
+    if (perspectives && perspectives.nonNullCount > 0) {
+      warnings.push(
+        `Dropped field \`perspectives\` is not empty; found ${perspectives.nonNullCount} non-null rows.`,
+      )
+    }
   }
 
   return warnings
