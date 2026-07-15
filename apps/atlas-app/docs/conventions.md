@@ -4,6 +4,9 @@
 
 We use BitsUI for our components.
 
+For component layering, namespaced composition, and local hierarchy naming, see
+[Component Architecture](./components.md).
+
 | Rule                                                      | Rationale                                                            |
 | --------------------------------------------------------- | -------------------------------------------------------------------- |
 | **Primitives never import components**                    | Prevents circular deps, keeps atomic layer pure                      |
