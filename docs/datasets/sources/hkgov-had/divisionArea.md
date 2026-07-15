@@ -5,27 +5,26 @@ This page records the provider-specific profile. The reusable source contract is
 
 ## Catalogue and service
 
-| Property            | Value                                                                                                                                                |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Catalogue           | [District Boundary](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218)                                             |
-| Specification       | [Functional Area FSDT 1.2](https://static.csdi.gov.hk/csdi-webpage/download/common/f9f4daf727620fe453d5c551e7ce63523df27fc618862b5a35979fe309b79003) |
-| Publisher           | Home Affairs Department (`hkgov-had`)                                                                                                                |
-| GeoJSON             | `https://portal.csdi.gov.hk/csdi-webpage/file-api?dataset_id=had_rcd_1634523272907_75218&format=geojson&layer_name=DCD`                              |
-| Feature service     | `https://portal.csdi.gov.hk/server/rest/services/common/had_rcd_1634523272907_75218/FeatureServer/0`                                                 |
-| Source release data | Catalogue published July 2025; layer last revised in 2022                                                                                            |
-| Source schema       | `1.2`                                                                                                                                                |
-| Observed features   | 18 Polygon features                                                                                                                                  |
-| Source CRS          | EPSG:2326 (service WKID 102140; latest WKID 2326)                                                                                                    |
+| Property               | Value                                                                                                                                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalogue              | [District Boundary](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218)                                             |
+| Specification          | [Functional Area FSDT 1.2](https://static.csdi.gov.hk/csdi-webpage/download/common/f9f4daf727620fe453d5c551e7ce63523df27fc618862b5a35979fe309b79003) |
+| Publisher              | Home Affairs Department (`hkgov-had`)                                                                                                                |
+| GeoJSON                | `https://portal.csdi.gov.hk/csdi-webpage/file-api?dataset_id=had_rcd_1634523272907_75218&format=geojson&layer_name=DCD`                              |
+| Feature service        | `https://portal.csdi.gov.hk/server/rest/services/common/had_rcd_1634523272907_75218/FeatureServer/0`                                                 |
+| Source release data    | Catalogue published July 2025; layer last revised in 2022                                                                                            |
+| Source schema          | `1.2`                                                                                                                                                |
+| Observed features      | 18 Polygon features                                                                                                                                  |
+| Downloaded GeoJSON CRS | EPSG:4326 (GeoJSON has no `crs` member; its coordinates are longitude/latitude)                                                                      |
 
 The `hkgov-had` District Boundary service is downloaded as GeoJSON from the CSDI
-catalogue. Its 18 Polygon features use EPSG:2326 (Hong Kong 1980 Grid); ingestion
-transforms canonical geometry to EPSG:4326 and retains the original CRS and source
-coordinates in provenance.
-
-`AREA_ID` and `AREA_CODE` are provider identifiers. They are resolved through the
-versioned `identifierBridges` fixture/table for resource type `division`, authority
-`hkgov-had`, cohort `2022`, and the administrative domain. The source release is
-`hkgov-had-hk-2022-district` with cohort key `2022` and source schema version `1.2`.
+catalogue. Its 18 Polygon features use WGS84 longitude/latitude coordinates. Ingestion
+keeps that canonical EPSG:4326 geometry unchanged and retains the original source
+feature, and coordinates in provenance. `AREA_ID` and `AREA_CODE` are provider
+identifiers. They are resolved through the versioned `identifierBridges` fixture/table
+for resource type `division`, authority `hkgov-had`, cohort `2022`, and the
+administrative domain. The source release is `hkgov-had-hk-2022-district` with cohort
+key `2022` and source schema version `1.2`.
 
 The compatibility layer exposes these source fields under `hkgov`, with database
 capitalization, in both source columns and canonical geometry `sourceKeys`:
@@ -38,11 +37,10 @@ capitalization, in both source columns and canonical geometry `sourceKeys`:
 | `AREA_ID`            | `hkgov.areaId`          |
 | `AREA_CODE`          | `hkgov.areaCode`        |
 
-The normalized `divisionArea` fields are the transformed EPSG:4326 polygon,
-`divisionId`, `type = mixed`, and `isLand`/`isTerritorial = true`. `NAME_TC`, `NAME_EN`,
-`DATA_OWNER`, `BEGIN_LIFESPAN`, `END_LIFESPAN`, `SHAPE_Length`, and `SHAPE_Area` are
-dropped from projected fields; the complete input remains in `rawProperties` for
-auditability.
+The normalized `divisionArea` fields are the retained EPSG:4326 polygon, `divisionId`,
+`type = mixed`, and `isLand`/`isTerritorial = true`. `NAME_TC`, `NAME_EN`, `DATA_OWNER`,
+`BEGIN_LIFESPAN`, `END_LIFESPAN`, `SHAPE_Length`, and `SHAPE_Area` are dropped from
+projected fields; the complete input remains in `rawProperties` for auditability.
 
 Preflight rejects null or empty geometry, invalid rings, and self-intersections. It does
 not repair geometry. Feature counts, geometry-type counts, rejected rows, CRS, bridge
