@@ -19,6 +19,11 @@ It also reflects the currently implemented ingest flow in:
 - `apps/harbour-workers/src/lib/services/division.ts`
 - `apps/harbour-workers/src/lib/services/address.ts`
 
+Geometry companions and provider variants follow the source-neutral contract in
+[`divisions-geometry.md`](./divisions-geometry.md). Source-specific catalogue facts,
+quality exceptions, and identifier bridges are documented under
+`docs/datasets/sources/<provider>/` rather than embedded in this model overview.
+
 ## Current Scope
 
 The repository currently has four storage layers:
