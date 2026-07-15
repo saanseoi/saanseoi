@@ -1,6 +1,7 @@
 export * from './components/language-selector'
 export * from './components/swap'
 export * from './pages/docs'
+export * from './pages/sources'
 export * from './internal/i18n'
 export * from './patterns/site-footer'
 export * from './patterns/site-header'
