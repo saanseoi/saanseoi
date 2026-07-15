@@ -1,21 +1,33 @@
 # Division areas and boundaries
 
-The `divisionArea` and `divisionBoundary` resource types are geometry companions to the
-`division` API family. They are required members of an exact-cohort divisions API
-release set and are stored in separate source, history, and current tables.
+`divisionArea` and `divisionBoundary` are geometry companions to the `division` API
+family. They are logical resource types with provider-specific variants; each provider
+assertion has its own source snapshot and canonical history/current rows. Geometry is
+never merged implicitly across providers.
 
-The primary `division` snapshot must be published first for a cohort. Areas and
-boundaries may then be uploaded in either order; each geometry upload is rejected unless
-the exact-cohort division snapshot is available. Publishing either geometry dataset
-without its counterpart leaves the API release set as a draft. The release set becomes
-current when the division, area, and boundary snapshots for the cohort are all present.
+The normative contract is in
+[`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md). Provider facts and
+quality decisions belong under [`docs/datasets/sources`](../sources/).
 
-Areas associate a Polygon or MultiPolygon with one division. Boundaries associate a
-LineString or MultiLineString with two divisions (`leftDivisionId` and
-`rightDivisionId`). The API keeps these sparse relationships opt-in: clients request
-`include=areas` or `include=boundaries` when they need geometry companions.
+An area associates an accepted provider geometry union (normally Polygon/MultiPolygon)
+with one division. A boundary associates an accepted provider geometry union (normally
+LineString/MultiLineString) with two ordered divisions. The adapter declares the union;
+single geometries must not be rejected merely because a multi geometry is also present.
 
-Both geometry types retain Overture's land and territorial flags, including conflicting
-upstream values. Boundary `perspectives` values are a blocking preflight error because
-that field is intentionally dropped from the model. `CN-GD` rows are excluded while
-null-country maritime boundaries are retained.
+The canonical layer normalizes relationship IDs, preserves bbox and transformed
+geometry, records source keys and provenance, and keeps provider flags exactly as
+received. Source-specific fields remain available through `rawProperties` and the source
+tables. External identifiers are resolved through reviewed bridge fixtures when they do
+not equal canonical IDs.
+
+Geometry uploads are anchored to the exact cohort of the primary division snapshot.
+Family-required snapshots determine publication; optional variants can be added after
+the required set is complete. The current Divisions family policy configures Overture
+area and boundary snapshots as required/default members; this is a family policy, not an
+intrinsic property of every future provider.
+
+Geometry relationships are sparse and opt-in. Clients request plural paths such as
+`include=areas` or `include=boundaries`; a qualified path (`areas:<provider>` or
+`boundaries:<provider>`) selects a named variant. Unknown or unavailable variants are
+errors rather than silent fallback. See
+[`spec/atlas-api.md`](../../../spec/atlas-api.md) for response semantics.

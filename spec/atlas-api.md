@@ -62,3 +62,24 @@ This API spec depends on the normalized tables and ingest stages described in:
 
 The API contract should be revised after those modeling decisions are implemented or
 locked.
+
+## Divisions geometry relationships
+
+The Divisions family exposes sparse geometry through plural, opt-in relationships:
+
+- `include=areas`
+- `include=boundaries`
+- `include=areas:<provider>`
+- `include=boundaries:<provider>`
+
+An unqualified relationship resolves the provider configured as the API composition
+default. A qualified relationship resolves only the named provider variant for the
+requested exact cohort. Unknown, unavailable, or incompatible variants return a clear
+4xx response; they do not fall back to another provider. The selected provider and
+source release are included in resource provenance/metadata.
+
+List and detail profiles omit geometry unless requested. Included geometry resources use
+the `division-areas` and `division-boundaries` resource types, retain relationship
+identifiers on the primary division, and are deduplicated across a collection response.
+The geometry field contract, cohort rules, source bridges, and provider registration
+requirements are defined in [`divisions-geometry.md`](./divisions-geometry.md).

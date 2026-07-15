@@ -1,0 +1,45 @@
+# Home Affairs Department District Boundary area ingestion
+
+This page records the provider-specific profile. The reusable source contract is in
+[`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md).
+
+## Catalogue and service
+
+| Property            | Value                                                                                                                                                |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalogue           | [District Boundary](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218)                                             |
+| Specification       | [Functional Area FSDT 1.2](https://static.csdi.gov.hk/csdi-webpage/download/common/f9f4daf727620fe453d5c551e7ce63523df27fc618862b5a35979fe309b79003) |
+| Publisher           | Home Affairs Department (`hkgov-had`)                                                                                                                |
+| GeoJSON             | `https://portal.csdi.gov.hk/csdi-webpage/file-api?dataset_id=had_rcd_1634523272907_75218&format=geojson&layer_name=DCD`                              |
+| Feature service     | `https://portal.csdi.gov.hk/server/rest/services/common/had_rcd_1634523272907_75218/FeatureServer/0`                                                 |
+| Source release data | July 2025; layer last revised in 2022                                                                                                                |
+| Source schema       | `1.2`                                                                                                                                                |
+| Observed features   | 18 Polygon features                                                                                                                                  |
+| Source CRS          | EPSG:2326 (service WKID 102140; latest WKID 2326)                                                                                                    |
+
+The `hkgov-had` District Boundary service is downloaded as GeoJSON from the CSDI
+catalogue. Its 18 Polygon features use EPSG:2326 (Hong Kong 1980 Grid); ingestion
+transforms canonical geometry to EPSG:4326 and retains the original CRS and source
+coordinates in provenance.
+
+`AREA_ID` and `AREA_CODE` are provider identifiers. They are resolved through the
+versioned `divisionIdentifierBridges` fixture/table for the matching cohort and
+administrative domain. Names and lifespan fields remain source provenance and do not
+replace canonical division names. The source release is `hkgov-had-2025-districts` with
+cohort key `2025` and source schema version `1.2`.
+
+Preflight rejects null or empty geometry, invalid rings, and self-intersections. It does
+not repair geometry. Feature counts, geometry-type counts, rejected rows, CRS, bridge
+resolution, and source validity fields are recorded as ingestion statistics.
+
+The DCD layer exposes `CSDI_ADMIN_AREA_ID`, `AREA_TYPE`, `AREA_ID`, `AREA_CODE`,
+`NAME_TC`, `NAME_EN`, `DATA_OWNER`, `BEGIN_LIFESPAN`, and `END_LIFESPAN` (plus service
+shape fields). `AREA_ID` and `AREA_CODE` are retained as source provenance and are
+resolved through the reviewed bridge; bilingual names do not overwrite canonical
+division names. The source validity is `BEGIN_LIFESPAN = 20160101` with an open
+`END_LIFESPAN` when supplied, while the requested source cohort is `2025`.
+
+The release identity is `hkgov-had-2025-districts`. This is an administrative
+`divisionArea` variant, not a line boundary despite the catalogue title. Overture
+remains the configured default area variant; clients select this source explicitly with
+`include=areas:hkgov-had`.
