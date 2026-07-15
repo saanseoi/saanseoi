@@ -46,6 +46,17 @@ export const canonicalDivision = {
   ...geoBbox,
 }
 
+export const canonicalDivisionGeometry = {
+  id: text('id').notNull(),
+  bbox: jsonText('bbox'),
+  geometry: jsonText('geometry'),
+  sourceKeys: jsonText('sourceKeys'),
+  sources: jsonText('sources'),
+  type: text('type').notNull(),
+  isLand: integer('isLand', { mode: 'boolean' }),
+  isTerritorial: integer('isTerritorial', { mode: 'boolean' }),
+}
+
 export const canonicalDivisionI18n = {
   divisionId: text('divisionId').notNull(),
   locale: text('locale').notNull(),

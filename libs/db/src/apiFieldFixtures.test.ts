@@ -10,6 +10,8 @@ describe('api field fixtures', () => {
     expect(fixtures[0]?.apiVersion).toBe('api-divisions-v0.1')
     expect(fixtures[0]?.sourceSchemas).toEqual({
       'ds-hk-overture-division': '1.12.0',
+      'ds-hk-overture-divisionArea': '1.12.0',
+      'ds-hk-overture-divisionBoundary': '1.12.0',
     })
   })
 

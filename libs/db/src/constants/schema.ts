@@ -1,6 +1,8 @@
 export const jsonApiResourceTypes = [
   'addresses',
   'divisions',
+  'division-areas',
+  'division-boundaries',
   'streets',
   'places',
   'place-divisions',
@@ -41,7 +43,14 @@ export const datasetThemes = [
   'transport',
   'places',
 ] as const
-export const datasetTypes = ['address', 'division', 'place', 'street'] as const
+export const datasetTypes = [
+  'address',
+  'division',
+  'divisionArea',
+  'divisionBoundary',
+  'place',
+  'street',
+] as const
 export const datasetCategories = ['terrain', 'transit', 'places', 'cultural'] as const
 
 export const datasetStatuses = [
@@ -73,12 +82,15 @@ export const apiFamilyTypes = ['addresses', 'divisions', 'places', 'streets'] as
 export const snapshotStatuses = ['draft', 'published', 'archived'] as const
 export const apiReleaseSetSourceRoles = [
   'primary',
+  'geometry',
   'enrichment',
   'fallback',
   'lookup',
 ] as const
 export const historyVersionEntityTypes = [
   'division',
+  'divisionArea',
+  'divisionBoundary',
   'address2d',
   'address3d',
   'street',
