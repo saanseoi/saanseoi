@@ -40,7 +40,7 @@
       "database_name": "ss-history-hk-before-db-preview",
       "migrations_dir": "../../libs/db/migrations/history",
       "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
-      "database_id": "595cc7e3-845f-4f27-8949-ec507bfd5218"
+      "database_id": "aa2d7228-c2dd-413b-8b23-d3e92f2b5b9a"
     },
     {
       "binding": "DB_HISTORY_HK_2025",
@@ -68,7 +68,7 @@
       "database_name": "ss-source-hk-before-db-preview",
       "migrations_dir": "../../libs/db/migrations/source",
       "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql",
-      "database_id": "176a12ac-026c-45a7-bc1d-fda672b3f8b5"
+      "database_id": "6265ab9d-f70d-4893-bc24-91d0bce8642e"
     },
     {
       "binding": "DB_SOURCE_HK_2026",
@@ -131,7 +131,7 @@
           "database_name": "ss-history-hk-before-db-preview",
           "migrations_dir": "../../libs/db/migrations/history",
           "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
-          "database_id": "595cc7e3-845f-4f27-8949-ec507bfd5218"
+          "database_id": "aa2d7228-c2dd-413b-8b23-d3e92f2b5b9a"
         },
         {
           "binding": "DB_HISTORY_HK_2025",
@@ -159,7 +159,7 @@
           "database_name": "ss-source-hk-before-db-preview",
           "migrations_dir": "../../libs/db/migrations/source",
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql",
-          "database_id": "176a12ac-026c-45a7-bc1d-fda672b3f8b5"
+          "database_id": "6265ab9d-f70d-4893-bc24-91d0bce8642e"
         },
         {
           "binding": "DB_SOURCE_HK_2026",
@@ -217,7 +217,8 @@
           "binding": "DB_HISTORY_HK_BEFORE",
           "database_name": "ss-history-hk-before-db-prod",
           "migrations_dir": "../../libs/db/migrations/history",
-          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+          "database_id": "94f74b90-42c5-4c2d-98da-f0eae188d836"
         },
         {
           "binding": "DB_HISTORY_HK_2025",
@@ -244,7 +245,8 @@
           "binding": "DB_SOURCE_HK_BEFORE",
           "database_name": "ss-source-hk-before-db-prod",
           "migrations_dir": "../../libs/db/migrations/source",
-          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
+          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql",
+          "database_id": "45ab08a6-bacc-41ea-9c35-55c3d825de4a"
         },
         {
           "binding": "DB_SOURCE_HK_2026",
