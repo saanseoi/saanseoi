@@ -49,16 +49,16 @@ onMount(() => {
   aria-label={darkModeEnabled ? 'Switch to light theme' : 'Switch to dark theme'}
   bind:checked={darkModeEnabled}
   class={cn(
-    'hidden size-11 rounded-default border border-border-card/70 bg-muted text-foreground transition-colors hover:bg-background-alt mobile:inline-grid',
+    'hidden size-11 rounded-default border border-border-card/70 bg-muted text-foreground transition-colors hover:bg-background-alt md:inline-grid',
     className
   )}
   onCheckedChange={handleThemeChange}
 >
   {#snippet off()}
-    <Icon icon="proicons:moon" class="size-4.5" />
+    <Icon icon="proicons:moon" class="size-5" />
   {/snippet}
 
   {#snippet on()}
-    <Icon icon="proicons:brightness" class="size-4.5 text-secondary" />
+    <Icon icon="proicons:brightness" class="size-5 text-secondary" />
   {/snippet}
 </Swap>

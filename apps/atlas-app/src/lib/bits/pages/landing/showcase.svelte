@@ -23,7 +23,7 @@ const showcaseTiles = [
 </script>
 
 <section
-  class="mx-auto max-w-(--spacing-container-max) px-(--spacing-margin-mobile) py-6 md:px-8 md:py-10 xl:px-(--spacing-margin-desktop)"
+  class="mx-auto max-w-(--spacing-container-max) px-(--spacing-margin-md) py-6 md:px-8 md:py-10 xl:px-(--spacing-margin-xl)"
 >
   <div class="grid gap-3 lg:grid-cols-[minmax(0,2.2fr)_minmax(18rem,1fr)]">
     <article
