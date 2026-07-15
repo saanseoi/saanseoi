@@ -291,14 +291,24 @@ function normalizeHkgovHadInputRow(
       `HAD district area ${areaId || '<unknown>'} has no reviewed administrative identifier bridge.`,
     )
   }
+  const sources = normalizeJsonArray(row.sources)
   return {
     ...row,
     id: typeof row.id === 'string' && row.id.trim() ? row.id : `HAD:${areaId}`,
     division_id: divisionId,
-    sources:
-      Array.isArray(row.sources) && row.sources.length > 0
-        ? row.sources
-        : [{ dataset: 'hkgov-had', areaId }],
+    sources: sources?.length ? sources : [{ dataset: 'hkgov-had', areaId }],
+  }
+}
+
+function normalizeJsonArray(value: unknown): unknown[] | null {
+  if (Array.isArray(value)) return value
+  if (typeof value !== 'string') return null
+
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed : null
+  } catch {
+    return null
   }
 }
 
@@ -327,26 +337,75 @@ async function assertDivisionReferences(
     .where(eq(currentSchema.divisions.snapshotId, divisionSnapshot.id))
     .all()
   const knownIds = new Set(divisionRows.map(row => row.id))
-  const references = rows.flatMap(row => {
-    const canonical = row.canonical as {
-      divisionId?: string
-      leftDivisionId?: string
-      rightDivisionId?: string
-    }
-    return type === 'divisionArea'
-      ? canonical.divisionId
-        ? [canonical.divisionId]
-        : []
-      : [canonical.leftDivisionId, canonical.rightDivisionId].filter(
-          (id): id is string => Boolean(id),
-        )
+  const missingReferences = rows.flatMap(row => {
+    const missingIds = divisionReferenceIds(type, row).filter(id => !knownIds.has(id))
+    return missingIds.length > 0
+      ? [
+          {
+            missingIds: [...new Set(missingIds)],
+            record: row.source.rawProperties,
+          },
+        ]
+      : []
   })
-  const missing = [...new Set(references.filter(id => !knownIds.has(id)))]
-  if (missing.length > 0) {
+  const missingIds = [
+    ...new Set(missingReferences.flatMap(reference => reference.missingIds)),
+  ]
+  if (missingIds.length > 0) {
     throw new Error(
-      `Division geometry references ${missing.length} division IDs absent from the ${cohortKey} division snapshot.`,
+      [
+        `Division geometry references ${missingIds.length} division IDs absent from the ${cohortKey} division snapshot.`,
+        ...formatMissingDivisionReferenceRecords(missingReferences),
+      ].join('\n'),
     )
   }
+}
+
+function divisionReferenceIds(
+  type: GeometryUploadPlan['type'],
+  row: NonNullable<NormalizedGeometry>,
+) {
+  const canonical = row.canonical as {
+    divisionId?: string
+    leftDivisionId?: string
+    rightDivisionId?: string
+  }
+  return type === 'divisionArea'
+    ? canonical.divisionId
+      ? [canonical.divisionId]
+      : []
+    : [canonical.leftDivisionId, canonical.rightDivisionId].filter((id): id is string =>
+        Boolean(id),
+      )
+}
+
+export function formatMissingDivisionReferenceRecords(
+  references: Array<{ missingIds: string[]; record: unknown }>,
+) {
+  const examples = references.slice(0, 3)
+  const label = examples.length === 1 ? 'Affected record:' : 'Affected records:'
+  const records = examples.map((reference, index) =>
+    [
+      examples.length > 1
+        ? `Record ${index + 1} (missing division IDs: ${reference.missingIds.join(', ')}):`
+        : `Missing division IDs: ${reference.missingIds.join(', ')}`,
+      JSON.stringify(reference.record, bigintJsonReplacer, 2),
+    ].join('\n'),
+  )
+  const remaining = references.length - examples.length
+
+  return [
+    '',
+    label,
+    ...records,
+    ...(remaining > 0
+      ? [`... and ${remaining} more affected record${remaining === 1 ? '' : 's'}.`]
+      : []),
+  ]
+}
+
+function bigintJsonReplacer(_key: string, value: unknown) {
+  return typeof value === 'bigint' ? value.toString() : value
 }
 
 async function writeGeometryRows(
