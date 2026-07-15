@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:cc7faa07dad380b86671bb73c1358d611d67f5f7895553bf02626771ec584f09",
+  "versionHash": "sha256:932e62380e36d0a2d73ad60bf01e771a3f5cb29bb7a5fddc426dfcbd6fd0df38",
   "publisherCode": "overture",
   "code": "ds-hk-overture-address",
   "regionCode": "hk",
@@ -14,15 +14,18 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "Hong Kong Overture addresses"
+      "name": "Hong Kong Overture addresses",
+      "description": "An `address` is a feature type that represents a physical place through a series of attributes: street number, street name, unit, address_levels, postalcode and/or country. They also have a Point geometry, which provides an approximate location of the position most commonly associated with the feature."
     },
     {
       "locale": "zh-hant",
-      "name": "香港 Overture 地址"
+      "name": "香港 Overture 地址",
+      "description": "「address」是一種要素類型，透過一系列屬性表示實體地點：門牌號碼、街道名稱、單位、address_levels、郵遞區號及／或國家。它們也具有 Point 幾何，提供與該要素最常見相關位置的大約位置。"
     },
     {
       "locale": "zh-hans",
-      "name": "香港 Overture 地址"
+      "name": "香港 Overture 地址",
+      "description": "「address」是一种要素类型，通过一系列属性表示实体地点：门牌号码、街道名称、单元、address_levels、邮政编码及／或国家。它们也具有 Point 几何，提供与该要素最常关联位置的大致位置。"
     }
   ]
 }
