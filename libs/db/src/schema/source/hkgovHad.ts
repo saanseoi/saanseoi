@@ -1,4 +1,4 @@
-import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import { geoBbox, jsonText, sourceProvenance } from '../shared'
 import { sourceVersionIndexes, sourceVersioning } from './shared'
@@ -8,6 +8,9 @@ export const sourceHkgovHadDivisionAreas = sqliteTable(
   'hkgovHadDivisionAreas',
   {
     sourceRecordId: text('sourceRecordId').notNull(),
+    objectId: integer('objectId'),
+    cdsiAdminAreaId: integer('cdsiAdminAreaId'),
+    areaType: text('areaType'),
     areaId: text('areaId'),
     divisionId: text('divisionId'),
     areaCode: text('areaCode'),
