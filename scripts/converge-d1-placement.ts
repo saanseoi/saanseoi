@@ -52,7 +52,7 @@ type BindingAssessment = {
   worstP95Ms: number
 }
 
-type PlacementWhitelist = Partial<Record<`${Environment}:${BindingName}`, true>>
+type PlacementWhitelist = Partial<Record<`${Target}:${BindingName}`, true>>
 
 const allBindings: BindingName[] = [
   'DB_META',
@@ -168,6 +168,8 @@ function parseArgs(args: string[]): Options {
 
     switch (arg) {
       case '--target':
+      case '--env':
+      case '--environment':
         defaults.target = expectTarget(expectValue(args, ++index, arg), arg)
         break
       case '--location':
@@ -276,7 +278,8 @@ function printHelpAndExit(code: number): never {
   bun ./scripts/converge-d1-placement.ts [options]
 
 Options:
-  --env <environment>             Environment to converge: preview or production. Defaults to preview.
+  --target <target>                Target to converge: preview or production. Defaults to preview.
+                                   --env and --environment are accepted aliases.
   --location <hint>                Passed to wrangler d1 create. Defaults to apac.
   --bindings <csv>                 Only converge these bindings; omitted means all bindings.
                                    Example: DB_HISTORY_HK_BEFORE,DB_SOURCE_HK_BEFORE.
