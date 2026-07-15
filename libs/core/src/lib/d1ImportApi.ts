@@ -8,6 +8,8 @@ export type D1ImportClientOptions = {
   apiToken: string
   databaseId: string
   fetch?: D1ImportFetch
+  uploadRetryDelayMs?: number
+  uploadRetryLimit?: number
 }
 
 export type D1ImportInitResult = {
@@ -52,10 +54,20 @@ type CloudflareApiResponse<T> = {
 const DEFAULT_POLL_INTERVAL_MS = 1000
 const DEFAULT_BUSY_INIT_RETRY_LIMIT = 300
 const DEFAULT_STORAGE_RESET_RETRY_LIMIT = 3
+const DEFAULT_UPLOAD_RETRY_LIMIT = 5
+const DEFAULT_UPLOAD_RETRY_DELAY_MS = 1000
 
 export function createD1ImportClient(options: D1ImportClientOptions) {
   const fetchImpl = options.fetch ?? fetch
   const endpoint = `https://api.cloudflare.com/client/v4/accounts/${options.accountId}/d1/database/${options.databaseId}/import`
+  const uploadRetryDelayMs = normalizeRetryNumber(
+    options.uploadRetryDelayMs,
+    DEFAULT_UPLOAD_RETRY_DELAY_MS,
+  )
+  const uploadRetryLimit = normalizeRetryNumber(
+    options.uploadRetryLimit,
+    DEFAULT_UPLOAD_RETRY_LIMIT,
+  )
   const headers = {
     Authorization: `Bearer ${options.apiToken}`,
     'Content-Type': 'application/json',
@@ -108,16 +120,43 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
     },
 
     async upload(uploadUrl: string, sql: string | ArrayBuffer | Uint8Array) {
-      const response = await fetchImpl(uploadUrl, {
-        method: 'PUT',
-        body: sql,
-      })
+      let lastError: unknown = null
 
-      if (!response.ok) {
-        throw new Error(`D1 import upload failed: ${response.statusText}`)
+      for (let attempt = 0; attempt <= uploadRetryLimit; attempt += 1) {
+        try {
+          const response = await fetchImpl(uploadUrl, {
+            method: 'PUT',
+            body: sql,
+          })
+
+          if (response.ok) {
+            return response.headers.get('ETag')?.replaceAll('"', '') ?? null
+          }
+
+          if (
+            !isRetryableUploadStatus(response.status) ||
+            attempt >= uploadRetryLimit
+          ) {
+            throw new Error(
+              `D1 import upload failed: ${formatUploadResponse(response)}`,
+            )
+          }
+
+          lastError = new Error(
+            `D1 import upload failed: ${formatUploadResponse(response)}`,
+          )
+        } catch (error) {
+          lastError = error
+
+          if (!isRetryableUploadError(error) || attempt >= uploadRetryLimit) {
+            throw error
+          }
+        }
+
+        await sleep(uploadRetryDelayMs * 2 ** attempt)
       }
 
-      return response.headers.get('ETag')?.replaceAll('"', '') ?? null
+      throw lastError instanceof Error ? lastError : new Error(String(lastError))
     },
 
     async ingest(filename: string, etag: string): Promise<D1ImportIngestResult> {
@@ -217,23 +256,23 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
           !isImportComplete(poll) &&
           poll.error !== 'Not currently importing anything.'
         ) {
-          const nextBookmark = poll.atBookmark?.trim() || currentBookmark
-
           if (isBusyImportPollWithoutBookmark(poll)) {
             await sleep(pollIntervalMs)
             continue
           }
 
-          if (!nextBookmark) {
-            if (
-              isStorageResetImportPollWithoutBookmark(poll) &&
-              storageResetAttempts < DEFAULT_STORAGE_RESET_RETRY_LIMIT
-            ) {
-              storageResetAttempts += 1
-              await sleep(pollIntervalMs)
-              continue restartImport
-            }
+          if (
+            isStorageResetImportPollWithoutBookmark(poll) &&
+            storageResetAttempts < DEFAULT_STORAGE_RESET_RETRY_LIMIT
+          ) {
+            storageResetAttempts += 1
+            await sleep(pollIntervalMs)
+            continue restartImport
+          }
 
+          const nextBookmark = poll.atBookmark?.trim() || currentBookmark
+
+          if (!nextBookmark) {
             throw new Error(
               `D1 import poll response did not include a bookmark for an incomplete import: ${formatPollState(poll)}`,
             )
@@ -256,6 +295,38 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
 
 function isImportComplete(poll: D1ImportPollResult) {
   return poll.status === 'complete' || (poll.success && !poll.status)
+}
+
+function isRetryableUploadStatus(status: number) {
+  return (
+    status === 408 ||
+    status === 409 ||
+    status === 425 ||
+    status === 429 ||
+    status >= 500
+  )
+}
+
+function isRetryableUploadError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false
+  }
+
+  return /network|fetch|timeout|timed out|connection|ECONNRESET|EAI_AGAIN|Bad Gateway|Service Unavailable|Gateway Timeout/i.test(
+    error.message,
+  )
+}
+
+function formatUploadResponse(response: Response) {
+  const statusText = response.statusText.trim()
+
+  return statusText ? `${response.status} ${statusText}` : String(response.status)
+}
+
+function normalizeRetryNumber(value: number | undefined, fallback: number) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? Math.floor(value)
+    : fallback
 }
 
 function normalizeUploadUrl(value: string | undefined) {
@@ -285,13 +356,27 @@ function isBusyImportPollWithoutBookmark(
 function isStorageResetImportPollWithoutBookmark(
   result: Pick<D1ImportPollResult, 'atBookmark' | 'error' | 'success'>,
 ) {
+  const error = result.error ?? ''
+
   return (
     result.success === false &&
     !result.atBookmark?.trim() &&
-    /D1 DB storage operation exceeded timeout which caused object to be reset/i.test(
-      result.error ?? '',
-    )
+    (/D1 DB storage operation exceeded timeout which caused object to be reset/i.test(
+      error,
+    ) ||
+      /D1_RESET_DO/i.test(error) ||
+      parsesAsD1ResetMarker(error))
   )
+}
+
+function parsesAsD1ResetMarker(value: string) {
+  try {
+    const parsed = JSON.parse(value) as { D1_RESET_DO?: unknown }
+
+    return parsed.D1_RESET_DO === true
+  } catch {
+    return false
+  }
 }
 
 function sleep(ms: number) {

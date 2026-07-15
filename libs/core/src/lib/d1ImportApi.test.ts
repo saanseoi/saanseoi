@@ -123,6 +123,7 @@ describe('createD1ImportClient', () => {
       apiToken: 'token',
       databaseId: 'database',
       fetch: fetchImpl,
+      uploadRetryDelayMs: 0,
     })
 
     await expect(
@@ -131,6 +132,72 @@ describe('createD1ImportClient', () => {
         sql: 'SELECT 1;',
       }),
     ).rejects.toThrow('ETag mismatch')
+  })
+
+  test('retries transient upload failures', async () => {
+    let uploadAttempts = 0
+    const fetchImpl: D1ImportFetch = async (input, init) => {
+      const url = String(input)
+      const body =
+        typeof init?.body === 'string' && url !== 'https://upload.example/import.sql'
+          ? JSON.parse(init.body)
+          : undefined
+
+      if (body?.action === 'init') {
+        return Response.json({
+          success: true,
+          result: {
+            filename: 'import.sql',
+            upload_url: 'https://upload.example/import.sql',
+          },
+        })
+      }
+
+      if (url === 'https://upload.example/import.sql') {
+        uploadAttempts += 1
+
+        if (uploadAttempts === 1) {
+          return new Response('bad gateway', {
+            status: 502,
+            statusText: 'Bad Gateway',
+          })
+        }
+
+        return new Response(null, {
+          headers: {
+            ETag: '"abc123"',
+          },
+        })
+      }
+
+      if (body?.action === 'ingest') {
+        return Response.json({
+          success: true,
+          result: {
+            status: 'complete',
+            success: true,
+          },
+        })
+      }
+
+      return Response.json({ success: false, errors: [{ message: 'unexpected' }] })
+    }
+
+    const client = createD1ImportClient({
+      accountId: 'account',
+      apiToken: 'token',
+      databaseId: 'database',
+      fetch: fetchImpl,
+      uploadRetryDelayMs: 0,
+    })
+
+    const result = await client.importSql({
+      etag: 'abc123',
+      sql: 'SELECT 1;',
+    })
+
+    expect(result.uploadedEtag).toBe('abc123')
+    expect(uploadAttempts).toBe(2)
   })
 
   test('does not poll when ingest completes without a bookmark', async () => {
@@ -517,6 +584,100 @@ describe('createD1ImportClient', () => {
       { action: 'init', etag: 'abc123' },
       undefined,
       { action: 'ingest', etag: 'abc123', filename: 'import.sql' },
+      { action: 'init', etag: 'abc123' },
+      undefined,
+      { action: 'ingest', etag: 'abc123', filename: 'import.sql' },
+      { action: 'poll', current_bookmark: 'bookmark-1' },
+    ])
+  })
+
+  test('restarts the import when poll returns a D1 reset marker without a bookmark', async () => {
+    const requests: Array<unknown> = []
+    let pollAttempts = 0
+    const fetchImpl: D1ImportFetch = async (input, init) => {
+      const url = String(input)
+      const body =
+        typeof init?.body === 'string' && url !== 'https://upload.example/import.sql'
+          ? JSON.parse(init.body)
+          : undefined
+
+      requests.push(body)
+
+      if (body?.action === 'init') {
+        return Response.json({
+          success: true,
+          result: {
+            filename: 'import.sql',
+            upload_url: 'https://upload.example/import.sql',
+          },
+        })
+      }
+
+      if (url === 'https://upload.example/import.sql') {
+        return new Response(null, {
+          headers: {
+            ETag: '"abc123"',
+          },
+        })
+      }
+
+      if (body?.action === 'ingest') {
+        return Response.json({
+          success: true,
+          result: {
+            at_bookmark: 'bookmark-1',
+            success: false,
+          },
+        })
+      }
+
+      if (body?.action === 'poll') {
+        pollAttempts += 1
+
+        if (pollAttempts === 1) {
+          return Response.json({
+            success: true,
+            result: {
+              error: '{"D1_RESET_DO":true}',
+              messages: [],
+              status: null,
+              success: false,
+            },
+          })
+        }
+
+        return Response.json({
+          success: true,
+          result: {
+            status: 'complete',
+            success: true,
+          },
+        })
+      }
+
+      return Response.json({ success: false, errors: [{ message: 'unexpected' }] })
+    }
+
+    const client = createD1ImportClient({
+      accountId: 'account',
+      apiToken: 'token',
+      databaseId: 'database',
+      fetch: fetchImpl,
+    })
+
+    const result = await client.importSql({
+      etag: 'abc123',
+      pollIntervalMs: 0,
+      sql: 'SELECT 1;',
+    })
+
+    expect(result.uploadedEtag).toBe('abc123')
+    expect(result.poll.success).toBe(true)
+    expect(requests).toEqual([
+      { action: 'init', etag: 'abc123' },
+      undefined,
+      { action: 'ingest', etag: 'abc123', filename: 'import.sql' },
+      { action: 'poll', current_bookmark: 'bookmark-1' },
       { action: 'init', etag: 'abc123' },
       undefined,
       { action: 'ingest', etag: 'abc123', filename: 'import.sql' },

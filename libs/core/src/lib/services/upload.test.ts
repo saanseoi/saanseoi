@@ -114,7 +114,7 @@ function createFixturePath(tempDir: string) {
 }
 
 function createAddressFixturePath(tempDir: string) {
-  const fixtureFile = join(tempDir, 'hkgov-als-address.parquet')
+  const fixtureFile = join(tempDir, 'hkgov-dpo-address.parquet')
 
   writeFileSync(fixtureFile, 'fixture')
 
@@ -192,7 +192,7 @@ describe('upload', () => {
   })
 
   test('infers source from recognizable filename and path tokens', () => {
-    expect(inferSourceFromFilename('hkgov-als-address.parquet')).toBe('hkgov-als')
+    expect(inferSourceFromFilename('hkgov-dpo-address.parquet')).toBe('hkgov-dpo')
     expect(inferSourceFromFilename('overture-address.parquet')).toBe('overture')
     expect(inferSourceFromPath('/tmp/hkgov/2026-05/address.parquet')).toBe('hkgov')
     expect(inferSourceFromPath('/tmp/overture/2026-05/address.parquet')).toBe(
@@ -245,7 +245,7 @@ describe('upload', () => {
 
   test('infers source version and cohortKey from the filename when needed', async () => {
     const tempDir = createTempDir()
-    const fixtureFile = join(tempDir, 'hkgov-als-hk-2026-06-04.324-address.parquet')
+    const fixtureFile = join(tempDir, 'hkgov-dpo-hk-2026-06-04.324-address.parquet')
 
     writeFileSync(fixtureFile, 'fixture')
 
@@ -261,13 +261,13 @@ describe('upload', () => {
         distinctCountryValues: ['hk'],
         distinctRegionValues: ['hk'],
       },
-      source: 'hkgov-als',
+      source: 'hkgov-dpo',
     })
 
     expect(planned.plan.cohortKey).toBe('2026-06-04.324')
     expect(planned.plan.sourceVersion).toBe('2026-06-04.324')
-    expect(planned.plan.datasetId).toBe('hkgov-als-hk-2026-06-04.324-address')
-    expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-als-address')
+    expect(planned.plan.datasetId).toBe('hkgov-dpo-hk-2026-06-04.324-address')
+    expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-dpo-address')
   })
 
   test('rejects overture uploads for source versions that are not yet marked safe', async () => {
@@ -457,7 +457,7 @@ describe('upload', () => {
   test('requires matching cohortKey overture addresses before hkgov address upload', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
-    const fixtureFile = join(tempDir, 'hkgov-als-address.parquet')
+    const fixtureFile = join(tempDir, 'hkgov-dpo-address.parquet')
 
     writeFileSync(fixtureFile, 'fixture')
     const db = initDb(dbPath)
@@ -466,7 +466,7 @@ describe('upload', () => {
     await expect(
       planUpload(harbourDb, {
         filePath: fixtureFile,
-        source: 'hkgov-als',
+        source: 'hkgov-dpo',
         cohortKey: '2026-06',
         sourceVersion: '2026-06-04.324',
         inspection: {
@@ -539,10 +539,10 @@ describe('upload', () => {
     const result = await registerUpload(db, {
       filePath: fixtureFile,
       cohortKey: '2026-06',
-      source: 'hkgov-als',
+      source: 'hkgov-dpo',
       sourceVersion: '2026-06-04.324',
       inspection: addressFixtureInspection,
-      rawObjectKey: 'hk/hkgov-als/2026-06-04.324/address.parquet',
+      rawObjectKey: 'hk/hkgov-dpo/2026-06-04.324/address.parquet',
     })
 
     const release = sqlite
@@ -554,7 +554,7 @@ describe('upload', () => {
           WHERE r.code = ?
         `,
       )
-      .get('hkgov-als-hk-2026-06-04.324-address') as {
+      .get('hkgov-dpo-hk-2026-06-04.324-address') as {
       datasetCode: string
       releaseCode: string
       status: string
@@ -562,11 +562,11 @@ describe('upload', () => {
 
     sqlite.close()
 
-    expect(result.plan.datasetCode).toBe('ds-hk-hkgov-als-address')
-    expect(result.plan.datasetId).toBe('hkgov-als-hk-2026-06-04.324-address')
+    expect(result.plan.datasetCode).toBe('ds-hk-hkgov-dpo-address')
+    expect(result.plan.datasetId).toBe('hkgov-dpo-hk-2026-06-04.324-address')
     expect(release).toEqual({
-      datasetCode: 'ds-hk-hkgov-als-address',
-      releaseCode: 'hkgov-als-hk-2026-06-04.324-address',
+      datasetCode: 'ds-hk-hkgov-dpo-address',
+      releaseCode: 'hkgov-dpo-hk-2026-06-04.324-address',
       status: 'staged',
     })
   })
