@@ -2,8 +2,10 @@
 
 The Divisions API family combines canonical divisions with geometry companions. Geometry
 variants are source-specific assertions and are not merged. The family currently
-requires exact-cohort Overture area and boundary snapshots for publication; additional
-providers are additive and may be selected explicitly.
+requires exact-cohort Overture area and boundary snapshots for publication. Additional
+geometry providers are additive: the release set selects each provider's newest
+published snapshot at or before its cohort, so a long-lived authoritative geometry can
+accompany a newer canonical division release without selecting future data.
 
 The reusable resource contract and variant rules are documented in
 [`divisionGeometry`](../resourceType/divisionGeometry.md) and
