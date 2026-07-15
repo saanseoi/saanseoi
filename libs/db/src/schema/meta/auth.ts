@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import { defaultIsoTimestamp, isoTimestamp, toIsoTimestamp } from '../shared'
 
@@ -141,5 +141,25 @@ export const apiKey = sqliteTable(
   table => [
     index('api_key_userId_idx').on(table.userId),
     index('api_key_userId_revokedAt_idx').on(table.userId, table.revokedAt),
+  ],
+)
+
+export const apiKeyUsageWindows = ['minute', 'day', 'month'] as const
+
+export type ApiKeyUsageWindow = (typeof apiKeyUsageWindows)[number]
+
+export const apiKeyUsage = sqliteTable(
+  'api_key_usage',
+  {
+    apiKeyId: text('api_key_id')
+      .notNull()
+      .references(() => apiKey.id, { onDelete: 'cascade' }),
+    window: text('window', { enum: apiKeyUsageWindows }).notNull(),
+    windowStartedAt: betterAuthTimestamp('window_started_at').notNull(),
+    requestCount: integer('request_count').default(0).notNull(),
+    softLimitNotifiedAt: betterAuthTimestamp('soft_limit_notified_at'),
+  },
+  table => [
+    primaryKey({ columns: [table.apiKeyId, table.window, table.windowStartedAt] }),
   ],
 )
