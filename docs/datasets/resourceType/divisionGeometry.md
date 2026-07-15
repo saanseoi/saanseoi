@@ -22,11 +22,16 @@ received. Source-specific fields remain available through `rawProperties` and th
 tables. External identifiers are resolved through reviewed bridge fixtures when they do
 not equal canonical IDs.
 
-Geometry uploads are anchored to the exact cohort of the primary division snapshot.
-Family-required snapshots determine publication; optional variants can be added after
-the required set is complete. The current Divisions family policy configures Overture
-area and boundary snapshots as required/default members; this is a family policy, not an
-intrinsic property of every future provider.
+Overture geometry uploads are anchored to the exact cohort of the primary division
+snapshot. Independently versioned provider variants, such as the Home Affairs Department
+district areas, are bridged directly to canonical division identifiers and can be
+published without an exact-cohort division snapshot. When a Divisions API release set is
+composed, it selects the newest published geometry snapshot at or before the release-set
+cohort for each provider dataset; this keeps an older valid variant available without
+allowing future geometry into the set. Family-required snapshots determine publication;
+optional variants can be added after the required set is complete. The current Divisions
+family policy configures Overture area and boundary snapshots as required/default
+members; this is a family policy, not an intrinsic property of every future provider.
 
 Geometry relationships are sparse and opt-in. Clients request plural paths such as
 `include=areas` or `include=boundaries`; a qualified path (`areas:<provider>` or

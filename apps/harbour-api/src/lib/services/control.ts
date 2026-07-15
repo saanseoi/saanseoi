@@ -8,6 +8,7 @@ import {
   listApiReleaseSetSnapshots,
   resolveActiveReleaseSetForType,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
+  resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
   resolveReleaseSetForRelease,
   resolveSnapshotForRelease,
   updateLatestOpenIngestRun,
@@ -249,23 +250,36 @@ export async function handlePublishDataset(
     for (const member of compositionMembers) {
       if (member.resourceType === datasetType) continue
 
-      const supportingSnapshot =
-        await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-          db,
-          member.resourceType,
-          dataset.regionCode as RegionCode,
-          dataset.cohortKey,
-        )
+      const supportingSnapshots =
+        member.selectionMode === 'latest_at_or_before_cohort_per_dataset'
+          ? await resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
+              db,
+              member.resourceType,
+              dataset.regionCode as RegionCode,
+              dataset.cohortKey,
+            )
+          : await (async () => {
+              const snapshot =
+                await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+                  db,
+                  member.resourceType,
+                  dataset.regionCode as RegionCode,
+                  dataset.cohortKey,
+                )
+              return snapshot ? [snapshot] : []
+            })()
 
-      if (!supportingSnapshot) {
+      if (supportingSnapshots.length === 0) {
         if (member.isRequired) missingRequiredMember = true
         continue
       }
 
-      carriedSnapshots.push({
-        resourceType: member.resourceType,
-        snapshotId: supportingSnapshot.id,
-      })
+      for (const supportingSnapshot of supportingSnapshots) {
+        carriedSnapshots.push({
+          resourceType: member.resourceType,
+          snapshotId: supportingSnapshot.id,
+        })
+      }
     }
 
     await publishReleaseArtifacts(db, {

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:d6dfc0f64d35c598b14fa2980b269e125606e8aae570a3d01e52a87d5fff854b",
+  "versionHash": "sha256:3057fa0712e1d0de0c8624e2e3491645d965dfebc9427c0c129e79fdaf075076",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions",
   "version": 1,
@@ -17,7 +17,7 @@
       "resourceType": "divisionArea",
       "role": "geometry",
       "isRequired": true,
-      "selectionMode": "exact_ref",
+      "selectionMode": "latest_at_or_before_cohort_per_dataset",
       "anchorResourceType": "division",
       "priority": 10
     },

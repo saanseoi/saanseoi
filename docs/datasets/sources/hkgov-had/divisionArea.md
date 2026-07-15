@@ -58,3 +58,9 @@ remains the configured default area variant; clients select this source explicit
 `include=areas:hkgov-had`. Canonical HAD district areas use `type = mixed` with both
 `isLand` and `isTerritorial` true because the administrative extent includes land and
 territorial coverage.
+
+The HAD release is independently versioned and is not blocked on a same-cohort canonical
+division release. When composing a later Divisions API release set, the registry selects
+the latest published HAD geometry cohort at or before that set's cohort. Thus the 2022
+district-area snapshot is eligible for a `2025-09-24.0` release set until a newer HAD
+snapshot is published.

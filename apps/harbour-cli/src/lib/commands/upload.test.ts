@@ -68,8 +68,11 @@ mock.module('../upload.ts', () => ({
   getUploadDispatchTimings: mock(() => null),
 }))
 
-const { assertAddressUploadPrerequisites, formatDivisionApiReleaseSetReadiness } =
-  await import('./upload.ts')
+const {
+  assertAddressUploadPrerequisites,
+  assertDivisionGeometryUploadPrerequisites,
+  formatDivisionApiReleaseSetReadiness,
+} = await import('./upload.ts')
 
 describe('upload command address prerequisites', () => {
   test('checks remote address prerequisites without refreshing the local D1 cache', async () => {
@@ -159,9 +162,33 @@ describe('division API release set readiness display', () => {
         '  \u001B[33m○\u001B[39m divisionArea      unavailable',
         '  \u001B[33m○\u001B[39m divisionBoundary  unavailable',
         '',
-        'Out of Cohort',
+        'At or Before Cohort',
         '  \u001B[32m✓\u001B[39m hkgov-had-hk-2022-district  available',
       ].join('\n'),
     )
+  })
+})
+
+describe('Home Affairs Department geometry prerequisites', () => {
+  test('does not require an exact-cohort division snapshot for an independently bridged area variant', async () => {
+    const resolveRemotePublishedDivisionSnapshotMock = mock(async () => null)
+
+    await assertDivisionGeometryUploadPrerequisites(
+      {
+        environment: 'preview',
+        remote: true,
+      },
+      {
+        source: 'hkgov-had',
+        theme: 'divisions',
+        type: 'divisionArea',
+      } as never,
+      {
+        resolveRemotePublishedDivisionSnapshot:
+          resolveRemotePublishedDivisionSnapshotMock,
+      },
+    )
+
+    expect(resolveRemotePublishedDivisionSnapshotMock).not.toHaveBeenCalled()
   })
 })
