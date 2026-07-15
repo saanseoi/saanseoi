@@ -9,7 +9,7 @@ const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const CACHE_PATH = resolve(REPO_ROOT, '.local/harbour/release-note-cache.json')
 
 type ReleaseNoteCache = {
-  version: 1
+  version: 2
   entries: Record<string, string>
 }
 
@@ -39,18 +39,14 @@ const overtureReleaseNotesThemes = [
 const builtInEntries = Object.fromEntries(
   overtureVersions.flatMap(sourceVersion =>
     overtureReleaseNotesThemes.map(({ type, theme }) => [
-      cacheKey({ source: 'overture', regionCode: 'hk', type, sourceVersion }),
+      cacheKey(`overture-hk-${sourceVersion}-${type}`),
       `${overtureReleaseNotesUrl(sourceVersion)}#${theme}`,
     ]),
   ),
 )
 
-function cacheKey(
-  input: Pick<UploadPlan, 'source' | 'regionCode' | 'type' | 'sourceVersion'>,
-) {
-  return [input.source, input.regionCode, input.type, input.sourceVersion]
-    .map(value => value.trim().toLowerCase())
-    .join(':')
+function cacheKey(releaseCode: string) {
+  return releaseCode.trim().toLowerCase()
 }
 
 function overtureReleaseNotesUrl(sourceVersion: string) {
@@ -70,16 +66,41 @@ function isHttpUrl(value: string) {
 async function readCache(): Promise<ReleaseNoteCache> {
   const raw = await readFile(CACHE_PATH, 'utf8').catch(() => null)
 
-  if (!raw) return { version: 1, entries: {} }
+  if (!raw) return { version: 2, entries: {} }
 
   try {
     const parsed = JSON.parse(raw) as Partial<ReleaseNoteCache>
-    return parsed.version === 1 && parsed.entries
-      ? { version: 1, entries: parsed.entries }
-      : { version: 1, entries: {} }
+    if (parsed.version === 2 && parsed.entries) {
+      return { version: 2, entries: parsed.entries }
+    }
+
+    if (parsed.version === 1 && parsed.entries) {
+      const cache = { version: 2 as const, entries: migrateV1Entries(parsed.entries) }
+      await writeCache(cache)
+      return cache
+    }
+
+    return { version: 2, entries: {} }
   } catch {
-    return { version: 1, entries: {} }
+    return { version: 2, entries: {} }
   }
+}
+
+function migrateV1Entries(entries: Record<string, string>) {
+  return Object.fromEntries(
+    Object.entries(entries).flatMap(([legacyKey, url]) => {
+      const [source, regionCode, type, sourceVersion, ...rest] = legacyKey.split(':')
+      if (!source || !regionCode || !type || !sourceVersion || rest.length > 0) {
+        return []
+      }
+
+      const releaseType =
+        source === 'hkgov-had' && type === 'divisionarea' ? 'district' : type
+      return [
+        [cacheKey(`${source}-${regionCode}-${sourceVersion}-${releaseType}`), url],
+      ]
+    }),
+  )
 }
 
 async function writeCache(cache: ReleaseNoteCache) {
@@ -91,7 +112,7 @@ export async function resolveReleaseNotesUrl(
   plan: UploadPlan,
   options: { explicitUrl?: string; skipPrompt: boolean },
 ) {
-  const key = cacheKey(plan)
+  const key = cacheKey(plan.releaseCode)
   const explicitUrl = options.explicitUrl?.trim()
 
   if (explicitUrl) {

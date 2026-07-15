@@ -46,35 +46,55 @@ export function evaluateDivisionAssumptions(
   const country = summary.country
   if (country && country.distinctValues.length !== 1) {
     warnings.push(
-      `Dropped field \`country\` is no longer single-valued; found ${country.distinctValues.length} distinct non-null values.`,
+      formatAssumptionWarning(
+        'country',
+        'single-valued',
+        `${country.distinctValues.length} distinct non-null values`,
+      ),
     )
   }
 
   const theme = summary.theme
   if (theme && theme.distinctValues.length !== 1) {
     warnings.push(
-      `Dropped field \`theme\` is no longer single-valued; found ${theme.distinctValues.length} distinct non-null values.`,
+      formatAssumptionWarning(
+        'theme',
+        'single-valued',
+        `${theme.distinctValues.length} distinct non-null values`,
+      ),
     )
   }
 
   const type = summary.type
   if (type && type.distinctValues.length !== 1) {
     warnings.push(
-      `Dropped field \`type\` is no longer single-valued; found ${type.distinctValues.length} distinct non-null values.`,
+      formatAssumptionWarning(
+        'type',
+        'single-valued',
+        `${type.distinctValues.length} distinct non-null values`,
+      ),
     )
   }
 
   const region = summary.region
   if (region && region.nonNullCount > 0) {
     warnings.push(
-      `Dropped field \`region\` is no longer all null; found ${region.nonNullCount} non-null rows.`,
+      formatAssumptionWarning(
+        'region',
+        'all null',
+        `${region.nonNullCount} non-null rows`,
+      ),
     )
   }
 
   const norms = summary.norms
   if (norms && norms.distinctValues.length > 1) {
     warnings.push(
-      `Dropped field \`norms\` is no longer effectively uniform; found ${norms.distinctValues.length} distinct non-null values.`,
+      formatAssumptionWarning(
+        'norms',
+        'effectively uniform',
+        `${norms.distinctValues.length} distinct non-null values`,
+      ),
     )
   }
 
@@ -82,12 +102,40 @@ export function evaluateDivisionAssumptions(
     const perspectives = summary.perspectives
     if (perspectives && perspectives.nonNullCount > 0) {
       warnings.push(
-        `Dropped field \`perspectives\` is not empty; found ${perspectives.nonNullCount} non-null rows.`,
+        formatAssumptionWarning(
+          'perspectives',
+          'empty',
+          `${perspectives.nonNullCount} non-null rows`,
+        ),
       )
     }
   }
 
   return warnings
+}
+
+function formatAssumptionWarning(
+  field: TrackedColumn,
+  expected: string,
+  actual: string,
+) {
+  return `${yellowText('⚠')} Dropped field ${cyanText(`\`${field}\``)} should be ${greenText(expected)}; found ${redText(actual)}.`
+}
+
+function cyanText(value: string) {
+  return `\u001B[36m${value}\u001B[39m`
+}
+
+function greenText(value: string) {
+  return `\u001B[32m${value}\u001B[39m`
+}
+
+function redText(value: string) {
+  return `\u001B[31m${value}\u001B[39m`
+}
+
+function yellowText(value: string) {
+  return `\u001B[33m${value}\u001B[39m`
 }
 
 async function summarizeDivisionAssumptionColumns(filePath: string) {
