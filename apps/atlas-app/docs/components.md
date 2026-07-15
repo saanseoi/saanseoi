@@ -86,6 +86,18 @@ Use meaningful child names instead of generic names such as `section.svelte`:
   consumers outside that folder should use the section entry file or the namespace
   deliberately.
 
+## Release Statistics
+
+`pages/docs/components/releaseStats/` owns the reusable Stats-tab presentation for
+source releases. Consumers pass the selected release's `stats` rows and the active
+locale through its `ReleaseStats.Root` namespace entry; route pages should not interpret
+or render individual statistic dimensions themselves.
+
+The component presents the standard churn, completeness, and quality dimensions when
+they are available. It also renders all other persisted dimensions generically, grouped
+by `groupBy`, so a release remains inspectable while a processor introduces a new stats
+shape.
+
 ## Styling
 
 - Prefer inline utility classes for local styling.
