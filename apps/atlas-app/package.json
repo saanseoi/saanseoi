@@ -22,19 +22,24 @@
     "test:coverage": "bun test --coverage"
   },
   "dependencies": {
-    "@humanspeak/svelte-markdown": "^1.7.10",
+    "@humanspeak/svelte-markdown": "^1.8.4",
     "@iconify-json/ion": "^1.2.7",
+    "@iconify-json/material-symbols-light": "^1.2.85",
     "@iconify-json/proicons": "^1.2.19",
     "@iconify/svelte": "^5.2.2",
+    "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/i18n": "workspace:*",
-    "@scalar/api-reference": "^1.62.5",
+    "@scalar/api-reference": "^1.62.6",
     "better-auth": "~1.6.18",
-    "bits-ui": "^2.18.1"
+    "bits-ui": "^2.18.1",
+    "diff": "^9.0.0",
+    "github-slugger": "^2.0.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@sveltejs/adapter-cloudflare": "^7.2.9",
-    "@sveltejs/kit": "^2.69.2",
+    "@sveltejs/kit": "^2.69.3",
     "@sveltejs/vite-plugin-svelte": "^7.2.0",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.2",
@@ -42,13 +47,13 @@
     "@vitest/browser-playwright": "^4.1.10",
     "drizzle-kit": "^0.31.10",
     "playwright": "^1.61.1",
-    "svelte": "^5.56.4",
+    "svelte": "^5.56.5",
     "svelte-check": "^4.7.2",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.2",
     "vite": "^8.1.4",
     "vitest": "^4.1.10",
     "vitest-browser-svelte": "^3.0.0",
-    "wrangler": "^4.110.0"
+    "wrangler": "^4.111.0"
   }
 }
