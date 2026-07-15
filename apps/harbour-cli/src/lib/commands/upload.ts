@@ -13,7 +13,7 @@ import { resolve } from 'node:path'
 import {
   resolveLatestPublishedSnapshotForResourceTypeRegion,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
-} from '@repo/core/db/metaRepository'
+} from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
@@ -28,9 +28,11 @@ import {
 } from '../display.ts'
 import { processLocalAddressSqlUpload } from '../addressSql/processLocalAddressSqlUpload.ts'
 import { processLocalDivisionSqlUpload } from '../divisionSql/processLocalDivisionSqlUpload.ts'
+import { processLocalDivisionGeometrySqlUpload } from '../divisionSql/processLocalDivisionGeometrySqlUpload.ts'
 import { buildRegisterOptions, type ParsedArgs, type UploadTarget } from '../options.ts'
 import { checkOvertureUploadAssumptions } from '../overtureAssumptions.ts'
 import { prepareUploadFileForDispatch } from '../parquetRepack.ts'
+import { resolveReleaseNotesUrl } from '../releaseNotes.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
 import { dispatchUpload } from '../upload.ts'
 
@@ -77,7 +79,7 @@ ${mutedBar}               山水 UPLOADER
 ${mutedBar}  `)
 
   const registerOptions = buildRegisterOptions(options.invocationCwd, inputFile, args)
-  const previewResult = await prepareUpload(registerOptions)
+  let previewResult = await prepareUpload(registerOptions)
   const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: previewResult.plan.source,
     sourceVersion: previewResult.plan.sourceVersion,
@@ -105,6 +107,14 @@ ${mutedBar}  `)
     return
   }
 
+  const releaseNotesUrl = await resolveReleaseNotesUrl(previewResult.plan, {
+    explicitUrl: registerOptions.releaseNotesUrl,
+    skipPrompt: options.skipConfirm,
+  })
+  registerOptions.releaseNotesUrl = releaseNotesUrl
+  registerOptions.inspection = previewResult.inspection
+  previewResult = await prepareUpload(registerOptions)
+
   if (!options.skipConfirm) {
     const shouldContinue = await confirm({
       message: `Prepare ${previewResult.plan.releaseCode} for ${describeTarget(target).label}?`,
@@ -120,12 +130,19 @@ ${mutedBar}  `)
   const schemaVersionId = resolveSchemaVersionId(previewResult)
   const processingStrategy = resolveUploadProcessingStrategy(previewResult)
 
-  if (processingStrategy.mode === 'local-address-sql') {
+  if (
+    processingStrategy.mode === 'local-address-sql' ||
+    processingStrategy.mode === 'local-division-geometry-sql'
+  ) {
     const prerequisiteSpinner = spinner()
     prerequisiteSpinner.start('Prerequisites')
 
     try {
-      await assertAddressUploadPrerequisites(target, previewResult.plan)
+      if (processingStrategy.mode === 'local-address-sql') {
+        await assertAddressUploadPrerequisites(target, previewResult.plan)
+      } else {
+        await assertDivisionGeometryUploadPrerequisites(target, previewResult.plan)
+      }
       prerequisiteSpinner.stop(`${greenText('✓')} Prerequisites`)
     } catch (error) {
       prerequisiteSpinner.error('Prerequisites')
@@ -264,6 +281,54 @@ ${mutedBar}  `)
         },
       )
 
+      const releaseSetReadiness = await resolveDivisionApiReleaseSetReadiness(
+        target,
+        previewResult.plan,
+      )
+      note(releaseSetReadiness.message, 'API RELEASE SET')
+      outro(formatSuccessfulReleaseMessage(commandStartedAt))
+      return
+    }
+
+    if (processingStrategy.mode === 'local-division-geometry-sql') {
+      if (
+        (previewResult.plan.type !== 'divisionArea' &&
+          previewResult.plan.type !== 'divisionBoundary') ||
+        previewResult.plan.theme !== 'divisions' ||
+        (previewResult.plan.source !== 'overture' &&
+          previewResult.plan.source !== 'hkgov-had')
+      ) {
+        throw new Error(
+          'Local division geometry SQL processing requires an Overture or Home Affairs Department divisionArea or divisionBoundary dataset.',
+        )
+      }
+
+      if (!preparedUploadFile) {
+        throw new Error('Expected a prepared upload file for local SQL processing.')
+      }
+
+      await processLocalDivisionGeometrySqlUpload(
+        target,
+        {
+          cohortKey: previewResult.plan.cohortKey,
+          regionCode: previewResult.plan.regionCode,
+          releaseCode: previewResult.plan.releaseCode,
+          rowCount: previewResult.plan.rowCount,
+          source: previewResult.plan.source,
+          sourceVersion: previewResult.plan.sourceVersion,
+          theme: 'divisions',
+          type: previewResult.plan.type,
+        },
+        uploadResult,
+        preparedUploadFile,
+        { skipSnapshotCleanup: options.skipSnapshotCleanup },
+      )
+
+      const releaseSetReadiness = await resolveDivisionApiReleaseSetReadiness(
+        target,
+        previewResult.plan,
+      )
+      note(releaseSetReadiness.message, 'API RELEASE SET')
       outro(formatSuccessfulReleaseMessage(commandStartedAt))
       return
     }
@@ -301,6 +366,18 @@ function resolveUploadProcessingStrategy(
   ) {
     return {
       mode: 'local-division-sql' as const,
+    }
+  }
+
+  if (
+    (previewResult.plan.type === 'divisionArea' ||
+      previewResult.plan.type === 'divisionBoundary') &&
+    previewResult.plan.theme === 'divisions' &&
+    (previewResult.plan.source === 'overture' ||
+      previewResult.plan.source === 'hkgov-had')
+  ) {
+    return {
+      mode: 'local-division-geometry-sql' as const,
     }
   }
 
@@ -417,6 +494,197 @@ export async function assertAddressUploadPrerequisites(
   )
 }
 
+type DivisionGeometryPlan = Awaited<ReturnType<typeof prepareUpload>>['plan']
+
+type DivisionReleaseSetReadiness = {
+  areaAvailable: boolean
+  boundaryAvailable: boolean
+  divisionAvailable: boolean
+  message: string
+  ready: boolean
+}
+
+export async function assertDivisionGeometryUploadPrerequisites(
+  target: UploadTarget,
+  plan: DivisionGeometryPlan,
+  options: {
+    resolveRemotePublishedDivisionSnapshot?: (
+      target: UploadTarget,
+      plan: DivisionGeometryPlan,
+    ) => Promise<unknown>
+  } = {},
+) {
+  if (
+    (plan.type !== 'divisionArea' && plan.type !== 'divisionBoundary') ||
+    plan.theme !== 'divisions'
+  ) {
+    return
+  }
+
+  const snapshot = target.remote
+    ? await (
+        options.resolveRemotePublishedDivisionSnapshot ??
+        resolveRemotePublishedSnapshotForGeometryPlan
+      )(target, plan)
+    : await resolveLocalPublishedDivisionSnapshotForGeometryPlan(target, plan)
+
+  if (snapshot) return
+
+  throw new Error(
+    [
+      `${plan.type} uploads require a published division snapshot for region ${plan.regionCode.toUpperCase()}.`,
+      `No published division snapshot was found for cohort ${plan.cohortKey}.`,
+      'Upload the division release first, then rerun this upload.',
+    ].join(' '),
+  )
+}
+
+export async function resolveDivisionApiReleaseSetReadiness(
+  target: UploadTarget,
+  plan: DivisionGeometryPlan,
+): Promise<DivisionReleaseSetReadiness> {
+  const snapshots = target.remote
+    ? await resolveRemoteDivisionReleaseSetSnapshots(target, plan)
+    : await resolveLocalDivisionReleaseSetSnapshots(target, plan)
+  const divisionAvailable = snapshots.division
+  const areaAvailable = snapshots.divisionArea
+  const boundaryAvailable = snapshots.divisionBoundary
+  const ready = divisionAvailable && areaAvailable && boundaryAvailable
+
+  if (plan.type === 'division') {
+    return {
+      areaAvailable,
+      boundaryAvailable,
+      divisionAvailable,
+      ready,
+      message: ready
+        ? `All required snapshots for ${plan.regionCode.toUpperCase()}/${plan.cohortKey} are available. The API ReleaseSet is current.`
+        : `API ReleaseSet requirements for ${plan.regionCode.toUpperCase()}/${plan.cohortKey}: divisionArea and divisionBoundary are required.${areaAvailable ? '' : ' divisionArea is not available.'}${boundaryAvailable ? '' : ' divisionBoundary is not available.'}`,
+    }
+  }
+
+  const counterpart = plan.type === 'divisionArea' ? 'divisionBoundary' : 'divisionArea'
+  return {
+    areaAvailable,
+    boundaryAvailable,
+    divisionAvailable,
+    ready,
+    message: ready
+      ? `All required snapshots for ${plan.regionCode.toUpperCase()}/${plan.cohortKey} are available. API ReleaseSet requirements are met; the new API ReleaseSet is current.`
+      : `${counterpart} is still required for an API ReleaseSet for ${plan.regionCode.toUpperCase()}/${plan.cohortKey}.`,
+  }
+}
+
+async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
+  target: UploadTarget,
+  plan: DivisionGeometryPlan,
+) {
+  const shardYear = resolveShardYear(plan.cohortKey, plan.sourceVersion)
+  const dbContext = await resolveLocalAddressDbContext(
+    target,
+    plan.regionCode,
+    shardYear,
+    { cacheTableProfile: 'division' },
+  )
+  try {
+    return await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+      dbContext.metaDb as unknown as HarbourReadableDb,
+      'division',
+      plan.regionCode,
+      plan.cohortKey,
+    )
+  } finally {
+    dbContext.cleanup()
+  }
+}
+
+async function resolveRemotePublishedSnapshotForGeometryPlan(
+  target: UploadTarget,
+  plan: DivisionGeometryPlan,
+) {
+  const rows = await runRemoteSnapshotQuery(
+    target,
+    `
+    SELECT s.resourceType, s.id AS snapshotId
+    FROM snapshots s
+    INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
+    INNER JOIN datasets d ON d.id = ss.datasetId
+    WHERE s.resourceType = 'division'
+      AND s.status = 'published'
+      AND d.regionCode = ${sqlLiteral(plan.regionCode)}
+      AND s.cohortKey = ${sqlLiteral(plan.cohortKey)}
+      AND ss.role = 'primary'
+    LIMIT 1
+  `,
+  )
+  return rows[0] ?? null
+}
+
+async function resolveLocalDivisionReleaseSetSnapshots(
+  target: UploadTarget,
+  plan: DivisionGeometryPlan,
+) {
+  const shardYear = resolveShardYear(plan.cohortKey, plan.sourceVersion)
+  const dbContext = await resolveLocalAddressDbContext(
+    target,
+    plan.regionCode,
+    shardYear,
+    { cacheTableProfile: 'division' },
+  )
+  try {
+    const db = dbContext.metaDb as unknown as HarbourReadableDb
+    const resourceTypes = ['division', 'divisionArea', 'divisionBoundary'] as const
+    const entries = await Promise.all(
+      resourceTypes.map(
+        async resourceType =>
+          [
+            resourceType,
+            Boolean(
+              await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+                db,
+                resourceType,
+                plan.regionCode,
+                plan.cohortKey,
+              ),
+            ),
+          ] as const,
+      ),
+    )
+    return Object.fromEntries(entries) as Record<
+      (typeof resourceTypes)[number],
+      boolean
+    >
+  } finally {
+    dbContext.cleanup()
+  }
+}
+
+async function resolveRemoteDivisionReleaseSetSnapshots(
+  target: UploadTarget,
+  plan: DivisionGeometryPlan,
+) {
+  const resourceTypes = ['division', 'divisionArea', 'divisionBoundary'] as const
+  const values = resourceTypes.map(sqlLiteral).join(', ')
+  const rows = await runRemoteSnapshotQuery(
+    target,
+    `
+    SELECT s.resourceType, s.id AS snapshotId
+    FROM snapshots s
+    INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
+    INNER JOIN datasets d ON d.id = ss.datasetId
+    WHERE s.resourceType IN (${values})
+      AND s.status = 'published'
+      AND d.regionCode = ${sqlLiteral(plan.regionCode)}
+      AND s.cohortKey = ${sqlLiteral(plan.cohortKey)}
+      AND ss.role = 'primary'
+  `,
+  )
+  const present = new Set(rows.map(row => row.resourceType))
+  return Object.fromEntries(
+    resourceTypes.map(resourceType => [resourceType, present.has(resourceType)]),
+  ) as Record<(typeof resourceTypes)[number], boolean>
+}
+
 async function resolveRemotePublishedDivisionSnapshotForAddressPlan(
   target: UploadTarget,
   plan: Awaited<ReturnType<typeof prepareUpload>>['plan'],
@@ -497,6 +765,55 @@ function sqlLiteral(value: string | number | boolean | null | undefined) {
   }
 
   return `'${value.replaceAll("'", "''")}'`
+}
+
+async function runRemoteSnapshotQuery(
+  target: UploadTarget,
+  sql: string,
+): Promise<Array<{ resourceType: string; snapshotId: string }>> {
+  const environment = target.environment === 'production' ? 'production' : 'preview'
+  const databaseName =
+    environment === 'production' ? 'ss-meta-db-prod' : 'ss-meta-db-preview'
+  const process = Bun.spawn({
+    cmd: [
+      'bun',
+      'x',
+      'wrangler',
+      'd1',
+      'execute',
+      databaseName,
+      '--remote',
+      '--config',
+      HARBOUR_API_WRANGLER_CONFIG,
+      '--env',
+      environment,
+      '--json',
+      '--command',
+      sql,
+    ],
+    cwd: REPO_ROOT,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  })
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(process.stdout).text(),
+    new Response(process.stderr).text(),
+    process.exited,
+  ])
+  if (exitCode !== 0) {
+    throw new Error(
+      `Failed to query published snapshots from ${environment} meta D1.\n${stderr.trim() || stdout.trim()}`,
+    )
+  }
+  const payload = JSON.parse(stdout) as Array<{
+    results?: Array<{ resourceType?: string; snapshotId?: string }>
+    success?: boolean
+  }>
+  const rows = payload[0]?.success ? (payload[0].results ?? []) : []
+  return rows.filter(
+    (row): row is { resourceType: string; snapshotId: string } =>
+      typeof row.resourceType === 'string' && typeof row.snapshotId === 'string',
+  )
 }
 
 async function resolveAssumptionWarnings(

@@ -1,6 +1,6 @@
 import { isReleaseId } from '@repo/core'
 
-import { afterEach, describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
@@ -543,33 +543,11 @@ describe('upload helpers', () => {
   })
 
   test('fails immediately for a local direct upload when the release already exists in processing', async () => {
-    const calls: string[] = []
     const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
     const filePath = join(tempDir, 'division.parquet')
+    const cleanup = mock(() => undefined)
     tempDirs.push(tempDir)
     writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
-
-    process.env.HARBOUR_API_KEY = 'test-api-key'
-    globalThis.fetch = (async input => {
-      const url = String(input)
-      calls.push(url)
-
-      if (url.startsWith('https://preview.harbour.saanseoi.hk/v1/reports/releases')) {
-        return new Response(
-          JSON.stringify({
-            rows: [{ ...releaseRow, status: 'processing' }],
-          }),
-          {
-            headers: {
-              'content-type': 'application/json',
-            },
-            status: 200,
-          },
-        )
-      }
-
-      throw new Error(`Unexpected fetch URL: ${url}`)
-    }) as typeof fetch
 
     await expect(
       dispatchUpload(
@@ -595,66 +573,57 @@ describe('upload helpers', () => {
           },
         } as never,
         'schema-version-1',
+        {
+          requestLocalUpload: mock(async () => {
+            throw new Error(
+              'Dataset already exists with status processing: overture-hk-division',
+            )
+          }) as never,
+          resolveLocalDbContext: mock(async () => ({
+            cleanup,
+            metaDb: {},
+          })) as never,
+        },
       ),
     ).rejects.toThrow(
       'Dataset already exists with status processing: overture-hk-division',
     )
 
-    expect(calls).toHaveLength(1)
-    expect(calls[0]).toContain(
-      '/v1/reports/releases?limit=1&releaseCode=overture-hk-2025-09-24.0-division',
-    )
+    expect(cleanup).toHaveBeenCalled()
   })
 
   test('allows a local direct upload over an uploading release when forced', async () => {
-    const calls: Array<{ body?: RequestInit['body']; url: string }> = []
     const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
     const filePath = join(tempDir, 'division.parquet')
+    const cleanup = mock(() => undefined)
+    const requestLocalUpload = mock(async (_db, options) => {
+      expect(options.allowExistingDatasetStatuses).toEqual(['uploading'])
+      return {
+        datasetId: releaseRow.datasetId,
+        inspection: options.inspection,
+        plan: options,
+        rawObjectKey: releaseRow.rawObjectKey,
+        releaseId: releaseRow.releaseId,
+      }
+    })
+    const finalizeLocalUpload = mock(async (_db, options) => ({
+      datasetId: releaseRow.datasetId,
+      inspection: options.inspection,
+      plan: {
+        datasetCode: releaseRow.datasetCode,
+        releaseCode: releaseRow.releaseCode,
+        rowCount: 1810,
+        source: 'overture',
+        sourceVersion: '2025-09-24.0',
+        type: 'division',
+      },
+      rawObjectKey: releaseRow.rawObjectKey,
+      releaseId: releaseRow.releaseId,
+    }))
     tempDirs.push(tempDir)
     writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
 
-    process.env.HARBOUR_API_KEY = 'test-api-key'
-    globalThis.fetch = (async (input, init) => {
-      const url = String(input)
-      calls.push({ body: init?.body, url })
-
-      if (url.startsWith('https://preview.harbour.saanseoi.hk/v1/reports/releases')) {
-        return new Response(
-          JSON.stringify({
-            rows: [releaseRow],
-          }),
-          {
-            headers: {
-              'content-type': 'application/json',
-            },
-            status: 200,
-          },
-        )
-      }
-
-      if (url === 'https://preview.harbour.saanseoi.hk/v1/upload') {
-        return new Response(
-          JSON.stringify({
-            datasetCode: releaseRow.datasetCode,
-            datasetId: releaseRow.datasetId,
-            rawObjectKey: releaseRow.rawObjectKey,
-            releaseCode: releaseRow.releaseCode,
-            releaseId: releaseRow.releaseId,
-            status: 'staged',
-          }),
-          {
-            headers: {
-              'content-type': 'application/json',
-            },
-            status: 200,
-          },
-        )
-      }
-
-      throw new Error(`Unexpected fetch URL: ${url}`)
-    }) as typeof fetch
-
-    await dispatchUpload(
+    const result = await dispatchUpload(
       localTarget,
       {
         filePath,
@@ -678,67 +647,38 @@ describe('upload helpers', () => {
       } as never,
       'schema-version-1',
       {
+        finalizeLocalUpload: finalizeLocalUpload as never,
         force: true,
+        requestLocalUpload: requestLocalUpload as never,
+        resolveLocalDbContext: mock(async () => ({
+          cleanup,
+          metaDb: {},
+        })) as never,
       },
     )
 
-    const uploadBody = calls[1]?.body
-
-    expect(uploadBody).toBeInstanceOf(FormData)
-    expect((uploadBody as FormData).get('force')).toBe('true')
-    expect(calls.map(call => call.url)).toEqual([
-      'https://preview.harbour.saanseoi.hk/v1/reports/releases?limit=1&releaseCode=overture-hk-2025-09-24.0-division',
-      'https://preview.harbour.saanseoi.hk/v1/upload',
-    ])
+    expect(result.releaseId).toBe(releaseRow.releaseId)
+    expect(result.status).toBe('staged')
+    expect(requestLocalUpload).toHaveBeenCalled()
+    expect(finalizeLocalUpload).toHaveBeenCalled()
+    expect(cleanup).toHaveBeenCalled()
   })
 
   test('does not send processingMode through local direct uploads', async () => {
-    const calls: Array<{ body?: RequestInit['body']; url: string }> = []
     const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
     const filePath = join(tempDir, 'division.parquet')
+    const requestLocalUpload = mock(async (_db, options) => {
+      expect(options.processingMode).toBeUndefined()
+      return {
+        datasetId: releaseRow.datasetId,
+        inspection: options.inspection,
+        plan: options,
+        rawObjectKey: releaseRow.rawObjectKey,
+        releaseId: releaseRow.releaseId,
+      }
+    })
     tempDirs.push(tempDir)
     writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
-
-    process.env.HARBOUR_API_KEY = 'test-api-key'
-    globalThis.fetch = (async (input, init) => {
-      const url = String(input)
-      calls.push({ body: init?.body, url })
-
-      if (url.startsWith('https://preview.harbour.saanseoi.hk/v1/reports/releases')) {
-        return new Response(
-          JSON.stringify({
-            rows: [],
-          }),
-          {
-            headers: {
-              'content-type': 'application/json',
-            },
-            status: 200,
-          },
-        )
-      }
-
-      if (url === 'https://preview.harbour.saanseoi.hk/v1/upload') {
-        return new Response(
-          JSON.stringify({
-            datasetCode: releaseRow.datasetCode,
-            datasetId: releaseRow.datasetId,
-            rawObjectKey: releaseRow.rawObjectKey,
-            releaseCode: releaseRow.releaseCode,
-            releaseId: releaseRow.releaseId,
-            status: 'staged',
-          }),
-          {
-            headers: {
-              'content-type': 'application/json',
-            },
-            status: 200,
-          },
-        )
-      }
-
-      throw new Error(`Unexpected fetch URL: ${url}`)
-    }) as typeof fetch
 
     await dispatchUpload(
       localTarget,
@@ -763,62 +703,29 @@ describe('upload helpers', () => {
         },
       } as never,
       'schema-version-1',
-      {},
-    )
-
-    const uploadBody = calls[1]?.body
-
-    expect(uploadBody).toBeInstanceOf(FormData)
-    expect((uploadBody as FormData).get('processingMode')).toBeNull()
-  })
-
-  test('fails immediately for a local direct upload when the release preflight probe errors', async () => {
-    const tempDir = mkdtempSync(join(tmpdir(), 'harbour-cli-upload-test-'))
-    const filePath = join(tempDir, 'division.parquet')
-    tempDirs.push(tempDir)
-    writeFileSync(filePath, new Uint8Array([0x50, 0x41, 0x52, 0x31]))
-
-    process.env.HARBOUR_API_KEY = 'test-api-key'
-    globalThis.fetch = (async input => {
-      const url = String(input)
-
-      if (url.startsWith('https://preview.harbour.saanseoi.hk/v1/reports/releases')) {
-        return new Response(JSON.stringify({ message: 'backend unavailable' }), {
-          headers: {
-            'content-type': 'application/json',
-          },
-          status: 503,
-        })
-      }
-
-      throw new Error(`Unexpected fetch URL: ${url}`)
-    }) as typeof fetch
-
-    await expect(
-      dispatchUpload(
-        localTarget,
-        {
-          filePath,
-        } as never,
-        {
-          inspection: {
-            rowCount: 1810,
-            schema: [],
-          },
+      {
+        finalizeLocalUpload: mock(async (_db, options) => ({
+          datasetId: releaseRow.datasetId,
+          inspection: options.inspection,
           plan: {
-            datasetCode: 'hk-division',
-            fileName: 'division.parquet',
-            regionCode: 'hk',
+            datasetCode: releaseRow.datasetCode,
             releaseCode: releaseRow.releaseCode,
-            cohortKey: '2025-09',
+            rowCount: 1810,
             source: 'overture',
             sourceVersion: '2025-09-24.0',
-            theme: 'divisions',
             type: 'division',
           },
-        } as never,
-        'schema-version-1',
-      ),
-    ).rejects.toThrow('backend unavailable')
+          rawObjectKey: releaseRow.rawObjectKey,
+          releaseId: releaseRow.releaseId,
+        })) as never,
+        requestLocalUpload: requestLocalUpload as never,
+        resolveLocalDbContext: mock(async () => ({
+          cleanup: mock(() => undefined),
+          metaDb: {},
+        })) as never,
+      },
+    )
+
+    expect(requestLocalUpload).toHaveBeenCalled()
   })
 })

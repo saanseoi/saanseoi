@@ -1,4 +1,5 @@
 import { normalizeBaseUrl } from '@repo/core'
+import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
 import type { UploadTarget } from './options.ts'
@@ -27,33 +28,38 @@ export function createHarbourControlClient(target: UploadTarget) {
       releaseCode?: string,
       publishOptions: { skipSnapshotCleanup?: boolean } = {},
     ) {
-      return postControl(baseUrl, authHeaders, '/v1/control/publishDataset', {
-        releaseCode,
-        releaseId,
-        ...(publishOptions.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
-      })
+      return postControl<PublishDatasetResult>(
+        baseUrl,
+        authHeaders,
+        '/v1/control/publishDataset',
+        {
+          releaseCode,
+          releaseId,
+          ...(publishOptions.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
+        },
+      )
     },
-    stageCompleted(
+    async stageCompleted(
       releaseId: string,
       phase: string,
       stats?: Record<string, unknown>,
       releaseCode?: string,
     ) {
-      return postControl(baseUrl, authHeaders, '/v1/control/stageCompleted', {
+      await postControl(baseUrl, authHeaders, '/v1/control/stageCompleted', {
         releaseCode,
         releaseId,
         phase,
         stats,
       })
     },
-    stageFailed(
+    async stageFailed(
       releaseId: string,
       phase: string,
       error: string,
       stats?: Record<string, unknown>,
       releaseCode?: string,
     ) {
-      return postControl(baseUrl, authHeaders, '/v1/control/stageFailed', {
+      await postControl(baseUrl, authHeaders, '/v1/control/stageFailed', {
         releaseCode,
         releaseId,
         error,
@@ -61,13 +67,13 @@ export function createHarbourControlClient(target: UploadTarget) {
         stats,
       })
     },
-    stageRunning(
+    async stageRunning(
       releaseId: string,
       phase: string,
       stats?: Record<string, unknown>,
       releaseCode?: string,
     ) {
-      return postControl(baseUrl, authHeaders, '/v1/control/stageRunning', {
+      await postControl(baseUrl, authHeaders, '/v1/control/stageRunning', {
         releaseCode,
         releaseId,
         phase,
@@ -77,12 +83,12 @@ export function createHarbourControlClient(target: UploadTarget) {
   }
 }
 
-async function postControl(
+async function postControl<TResponse = Record<string, unknown>>(
   baseUrl: string,
   authHeaders: Record<string, string>,
   path: string,
   payload: StagePayload | PublishPayload,
-) {
+): Promise<TResponse | null> {
   let response: Response
 
   response = await fetch(`${baseUrl}${path}`, {
@@ -107,4 +113,6 @@ async function postControl(
 
     throw new Error(message)
   }
+
+  return body as TResponse | null
 }
