@@ -5,7 +5,7 @@ import { cancel, isCancel, text } from '@clack/prompts'
 
 import type { UploadPlan } from '@repo/core'
 
-const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
+const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 const CACHE_PATH = resolve(REPO_ROOT, '.local/harbour/release-note-cache.json')
 
 type ReleaseNoteCache = {

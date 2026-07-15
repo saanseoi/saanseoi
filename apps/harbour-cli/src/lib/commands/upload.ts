@@ -94,7 +94,6 @@ ${mutedBar}  `)
     if (hkgovHadPreparation) {
       sourcePreparationCleanup = hkgovHadPreparation.cleanup
       Object.assign(registerOptions, {
-        cohortKey: registerOptions.cohortKey ?? hkgovHadPreparation.cohortKey,
         filePath: hkgovHadPreparation.filePath,
         originalFileName: hkgovHadPreparation.originalFileName,
         regionCode: registerOptions.regionCode ?? hkgovHadPreparation.regionCode,

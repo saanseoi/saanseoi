@@ -91,6 +91,8 @@ function describeInferredFrom(
           return 'path'
         case 'filename':
           return 'filename'
+        case 'sourceVersion':
+          return 'sourceVersion fallback'
         default:
           return undefined
       }
@@ -113,7 +115,7 @@ function describeInferredFrom(
 function formatReleaseValue(result: UploadPreviewResult) {
   const releaseKind =
     result.plan.source === 'hkgov-had' && result.plan.type === 'divisionArea'
-      ? 'divisionArea::district'
+      ? 'district'
       : result.plan.type
 
   return [
