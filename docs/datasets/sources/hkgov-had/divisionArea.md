@@ -24,20 +24,35 @@ coordinates in provenance.
 
 `AREA_ID` and `AREA_CODE` are provider identifiers. They are resolved through the
 versioned `identifierBridges` fixture/table for resource type `division`, authority
-`hkgov-had`, cohort `2022`, and the administrative domain. Names and lifespan fields
-remain source provenance and do not replace canonical division names. The source release
-is `hkgov-had-hk-2022-district` with cohort key `2022` and source schema version `1.2`.
+`hkgov-had`, cohort `2022`, and the administrative domain. The source release is
+`hkgov-had-hk-2022-district` with cohort key `2022` and source schema version `1.2`.
+
+The compatibility layer exposes these source fields under `hkgov`, with database
+capitalization, in both source columns and canonical geometry `sourceKeys`:
+
+| Source field         | Compatibility field     |
+| -------------------- | ----------------------- |
+| `OBJECTID`           | `hkgov.objectId`        |
+| `CSDI_ADMIN_AREA_ID` | `hkgov.cdsiAdminAreaId` |
+| `AREA_TYPE`          | `hkgov.areaType`        |
+| `AREA_ID`            | `hkgov.areaId`          |
+| `AREA_CODE`          | `hkgov.areaCode`        |
+
+The normalized `divisionArea` fields are the transformed EPSG:4326 polygon,
+`divisionId`, `type = mixed`, and `isLand`/`isTerritorial = true`. `NAME_TC`, `NAME_EN`,
+`DATA_OWNER`, `BEGIN_LIFESPAN`, `END_LIFESPAN`, `SHAPE_Length`, and `SHAPE_Area` are
+dropped from projected fields; the complete input remains in `rawProperties` for
+auditability.
 
 Preflight rejects null or empty geometry, invalid rings, and self-intersections. It does
 not repair geometry. Feature counts, geometry-type counts, rejected rows, CRS, bridge
 resolution, and source validity fields are recorded as ingestion statistics.
 
-The DCD layer exposes `CSDI_ADMIN_AREA_ID`, `AREA_TYPE`, `AREA_ID`, `AREA_CODE`,
-`NAME_TC`, `NAME_EN`, `DATA_OWNER`, `BEGIN_LIFESPAN`, and `END_LIFESPAN` (plus service
-shape fields). `AREA_ID` and `AREA_CODE` are retained as source provenance and are
-resolved through the reviewed bridge; bilingual names do not overwrite canonical
-division names. The source validity is `BEGIN_LIFESPAN = 20160101` with an open
-`END_LIFESPAN` when supplied, while the requested source cohort is `2022`.
+The DCD layer also exposes `NAME_TC`, `NAME_EN`, `DATA_OWNER`, `BEGIN_LIFESPAN`,
+`END_LIFESPAN`, `SHAPE_Length`, and `SHAPE_Area`; these are intentionally not projected
+because they are redundant, publisher metadata, or calculated values. The source
+validity is `BEGIN_LIFESPAN = 20160101` with an open `END_LIFESPAN` when supplied, while
+the requested source cohort is `2022`.
 
 The release identity is `hkgov-had-hk-2022-district`. This is an administrative
 `divisionArea` variant, not a line boundary despite the catalogue title. Overture
