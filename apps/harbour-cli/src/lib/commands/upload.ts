@@ -8,7 +8,9 @@ import {
   outro,
   spinner,
 } from '@clack/prompts'
-import { resolve } from 'node:path'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 
 import {
   resolveLatestPublishedSnapshotForResourceTypeRegion,
@@ -17,8 +19,11 @@ import {
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
+import { metaSchema } from '@repo/db'
+import { and, desc, eq, inArray } from 'drizzle-orm'
 
 import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
+import { prepareHkgovHadDistrictUpload } from '../hkgovHad.ts'
 import {
   describeTarget,
   formatMutedValue,
@@ -78,273 +83,334 @@ ${mutedBar}
 ${mutedBar}               山水 UPLOADER
 ${mutedBar}  `)
 
-  const registerOptions = buildRegisterOptions(options.invocationCwd, inputFile, args)
-  let previewResult = await prepareUpload(registerOptions)
-  const sourceSchemaVersion = await resolveSourceSchemaVersion({
-    source: previewResult.plan.source,
-    sourceVersion: previewResult.plan.sourceVersion,
-  })
-  const assumptionWarnings = await resolveAssumptionWarnings(
-    registerOptions.filePath,
-    previewResult,
-  )
-
-  note(
-    formatSummary(previewResult, target).join('\n'),
-    options.dryRun ? 'UPLOAD DRY RUN' : 'UPLOAD PLAN',
-  )
-
-  if (assumptionWarnings.length > 0) {
-    note(assumptionWarnings.join('\n'), 'UPLOAD WARNINGS')
-  }
-
-  if (options.dryRun) {
-    log.success('Local parquet validation passed.')
-    log.message(
-      'No object upload, API call, queue enqueue, or database mutation was attempted.',
-    )
-    outro('Harbour upload complete')
-    return
-  }
-
-  const releaseNotesUrl = await resolveReleaseNotesUrl(previewResult.plan, {
-    explicitUrl: registerOptions.releaseNotesUrl,
-    skipPrompt: options.skipConfirm,
-  })
-  registerOptions.releaseNotesUrl = releaseNotesUrl
-  registerOptions.inspection = previewResult.inspection
-  previewResult = await prepareUpload(registerOptions)
-
-  if (!options.skipConfirm) {
-    const shouldContinue = await confirm({
-      message: `Prepare ${previewResult.plan.releaseCode} for ${describeTarget(target).label}?`,
-      initialValue: true,
-    })
-
-    if (isCancel(shouldContinue) || !shouldContinue) {
-      cancel('UPLOAD CANCELLED')
-      process.exit(1)
-    }
-  }
-
-  const schemaVersionId = resolveSchemaVersionId(previewResult)
-  const processingStrategy = resolveUploadProcessingStrategy(previewResult)
-
-  if (
-    processingStrategy.mode === 'local-address-sql' ||
-    processingStrategy.mode === 'local-division-geometry-sql'
-  ) {
-    const prerequisiteSpinner = spinner()
-    prerequisiteSpinner.start('Prerequisites')
-
-    try {
-      if (processingStrategy.mode === 'local-address-sql') {
-        await assertAddressUploadPrerequisites(target, previewResult.plan)
-      } else {
-        await assertDivisionGeometryUploadPrerequisites(target, previewResult.plan)
-      }
-      prerequisiteSpinner.stop(`${greenText('✓')} Prerequisites`)
-    } catch (error) {
-      prerequisiteSpinner.error('Prerequisites')
-      throw error
-    }
-  }
-
-  const prepareSpinner = spinner()
-  prepareSpinner.start(resolvePrepareUploadFileMessage(previewResult))
-
-  let preparedUploadFile: Awaited<ReturnType<typeof prepareUploadFileForDispatch>>
-
+  let sourcePreparationCleanup: (() => Promise<void>) | undefined
   try {
-    preparedUploadFile = await prepareUploadFileForDispatch(
+    const registerOptions = buildRegisterOptions(options.invocationCwd, inputFile, args)
+    const hkgovHadPreparation = await prepareHkgovHadGeoJsonUpload(
+      registerOptions.filePath,
+      registerOptions.source,
+      registerOptions.sourceVersion,
+    )
+    if (hkgovHadPreparation) {
+      sourcePreparationCleanup = hkgovHadPreparation.cleanup
+      Object.assign(registerOptions, {
+        cohortKey: registerOptions.cohortKey ?? hkgovHadPreparation.cohortKey,
+        filePath: hkgovHadPreparation.filePath,
+        originalFileName: hkgovHadPreparation.originalFileName,
+        regionCode: registerOptions.regionCode ?? hkgovHadPreparation.regionCode,
+        source: registerOptions.source ?? hkgovHadPreparation.source,
+        sourceVersion:
+          registerOptions.sourceVersion ?? hkgovHadPreparation.sourceVersion,
+        theme: registerOptions.theme ?? hkgovHadPreparation.theme,
+        type: registerOptions.type ?? hkgovHadPreparation.type,
+      })
+      log.message('Prepared Home Affairs Department District Boundary GeoJSON.')
+    }
+    let previewResult = await prepareUpload(registerOptions)
+    const sourceSchemaVersion = await resolveSourceSchemaVersion({
+      source: previewResult.plan.source,
+      sourceVersion: previewResult.plan.sourceVersion,
+    })
+    const assumptionWarnings = await resolveAssumptionWarnings(
       registerOptions.filePath,
       previewResult,
     )
 
-    if (preparedUploadFile?.transformed) {
-      prepareSpinner.stop('Prepared upload file')
-    } else {
-      prepareSpinner.clear()
+    note(
+      formatSummary(previewResult, target).join('\n'),
+      options.dryRun ? 'UPLOAD DRY RUN' : 'UPLOAD PLAN',
+    )
+
+    if (assumptionWarnings.length > 0) {
+      note(assumptionWarnings.join('\n'), 'UPLOAD WARNINGS')
     }
-  } catch (error) {
-    prepareSpinner.error('Upload file preparation failed')
-    throw error
-  }
 
-  try {
-    const uploadSpinner = spinner()
-    uploadSpinner.start('Uploading')
-
-    let uploadResult: Awaited<ReturnType<typeof dispatchUpload>>
-    try {
-      uploadResult = await dispatchUpload(
-        target,
-        registerOptions,
-        previewResult,
-        schemaVersionId,
-        {
-          force: options.forceUpload,
-          skipSnapshotCleanup: options.skipSnapshotCleanup,
-          uploadFilePath: preparedUploadFile?.filePath,
-        },
+    if (options.dryRun) {
+      log.success('Local parquet validation passed.')
+      log.message(
+        'No object upload, API call, queue enqueue, or database mutation was attempted.',
       )
-      uploadSpinner.clear()
+      outro('Harbour upload complete')
+      return
+    }
+
+    const releaseNotesUrl = await resolveReleaseNotesUrl(previewResult.plan, {
+      explicitUrl: registerOptions.releaseNotesUrl,
+      skipPrompt: options.skipConfirm,
+    })
+    registerOptions.releaseNotesUrl = releaseNotesUrl
+    registerOptions.inspection = previewResult.inspection
+    previewResult = await prepareUpload(registerOptions)
+
+    if (!options.skipConfirm) {
+      const shouldContinue = await confirm({
+        message: `Prepare ${previewResult.plan.releaseCode} for ${describeTarget(target).label}?`,
+        initialValue: true,
+      })
+
+      if (isCancel(shouldContinue) || !shouldContinue) {
+        cancel('UPLOAD CANCELLED')
+        process.exit(1)
+      }
+    }
+
+    const schemaVersionId = resolveSchemaVersionId(previewResult)
+    const processingStrategy = resolveUploadProcessingStrategy(previewResult)
+
+    if (
+      processingStrategy.mode === 'local-address-sql' ||
+      processingStrategy.mode === 'local-division-geometry-sql'
+    ) {
+      const prerequisiteSpinner = spinner()
+      prerequisiteSpinner.start('Prerequisites')
+
+      try {
+        if (processingStrategy.mode === 'local-address-sql') {
+          await assertAddressUploadPrerequisites(target, previewResult.plan)
+        } else {
+          await assertDivisionGeometryUploadPrerequisites(target, previewResult.plan)
+        }
+        prerequisiteSpinner.stop(`${greenText('✓')} Prerequisites`)
+      } catch (error) {
+        prerequisiteSpinner.error('Prerequisites')
+        throw error
+      }
+    }
+
+    const prepareSpinner = spinner()
+    prepareSpinner.start(resolvePrepareUploadFileMessage(previewResult))
+
+    let preparedUploadFile: Awaited<ReturnType<typeof prepareUploadFileForDispatch>>
+
+    try {
+      preparedUploadFile = await prepareUploadFileForDispatch(
+        registerOptions.filePath,
+        previewResult,
+      )
+
+      if (preparedUploadFile?.transformed) {
+        prepareSpinner.stop('Prepared upload file')
+      } else {
+        prepareSpinner.clear()
+      }
     } catch (error) {
-      uploadSpinner.error('Upload failed')
+      prepareSpinner.error('Upload file preparation failed')
       throw error
     }
 
-    note(
-      formatUploadResult(previewResult, {
-        datasetCode:
-          typeof uploadResult?.datasetCode === 'string'
-            ? uploadResult.datasetCode
-            : previewResult.plan.datasetCode,
-        rawObjectKey:
-          typeof uploadResult?.rawObjectKey === 'string'
-            ? uploadResult.rawObjectKey
-            : '-',
-        releaseId:
-          typeof uploadResult?.releaseId === 'string' ? uploadResult.releaseId : '-',
-        datasetId:
-          typeof uploadResult?.datasetId === 'string' ? uploadResult.datasetId : '-',
-        schemaVersion: sourceSchemaVersion,
-        status:
-          typeof uploadResult?.status === 'string' ? uploadResult.status : 'staged',
-      }).join('\n'),
-      'UPLOAD RESULT',
-    )
+    try {
+      const uploadSpinner = spinner()
+      uploadSpinner.start('Uploading')
 
-    if (processingStrategy.mode === 'local-address-sql') {
-      if (
-        previewResult.plan.type !== 'address' ||
-        previewResult.plan.theme !== 'addresses'
-      ) {
-        throw new Error('Local address SQL processing requires an address dataset.')
-      }
-
-      if (!preparedUploadFile) {
-        throw new Error('Expected a prepared upload file for local SQL processing.')
-      }
-
-      await processLocalAddressSqlUpload(
-        target,
-        {
-          cohortKey: previewResult.plan.cohortKey,
-          regionCode: previewResult.plan.regionCode,
-          releaseCode: previewResult.plan.releaseCode,
-          rowCount: previewResult.plan.rowCount,
-          source: previewResult.plan.source,
-          sourceVersion: previewResult.plan.sourceVersion,
-          theme: previewResult.plan.theme,
-          type: previewResult.plan.type,
-        },
-        uploadResult,
-        preparedUploadFile,
-        {
-          skipSnapshotCleanup: options.skipSnapshotCleanup,
-        },
-      )
-
-      outro(formatSuccessfulReleaseMessage(commandStartedAt))
-      return
-    }
-
-    if (processingStrategy.mode === 'local-division-sql') {
-      if (
-        previewResult.plan.type !== 'division' ||
-        previewResult.plan.theme !== 'divisions'
-      ) {
-        throw new Error('Local division SQL processing requires a division dataset.')
-      }
-
-      if (!preparedUploadFile) {
-        throw new Error('Expected a prepared upload file for local SQL processing.')
-      }
-
-      await processLocalDivisionSqlUpload(
-        target,
-        {
-          cohortKey: previewResult.plan.cohortKey,
-          regionCode: previewResult.plan.regionCode,
-          releaseCode: previewResult.plan.releaseCode,
-          rowCount: previewResult.plan.rowCount,
-          source: previewResult.plan.source as 'overture',
-          sourceVersion: previewResult.plan.sourceVersion,
-          theme: previewResult.plan.theme,
-          type: previewResult.plan.type,
-        },
-        uploadResult,
-        preparedUploadFile,
-        {
-          skipSnapshotCleanup: options.skipSnapshotCleanup,
-        },
-      )
-
-      const releaseSetReadiness = await resolveDivisionApiReleaseSetReadiness(
-        target,
-        previewResult.plan,
-      )
-      note(
-        formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
-        'API RELEASE SET',
-      )
-      outro(formatSuccessfulReleaseMessage(commandStartedAt))
-      return
-    }
-
-    if (processingStrategy.mode === 'local-division-geometry-sql') {
-      if (
-        (previewResult.plan.type !== 'divisionArea' &&
-          previewResult.plan.type !== 'divisionBoundary') ||
-        previewResult.plan.theme !== 'divisions' ||
-        (previewResult.plan.source !== 'overture' &&
-          previewResult.plan.source !== 'hkgov-had')
-      ) {
-        throw new Error(
-          'Local division geometry SQL processing requires an Overture or Home Affairs Department divisionArea or divisionBoundary dataset.',
+      let uploadResult: Awaited<ReturnType<typeof dispatchUpload>>
+      try {
+        uploadResult = await dispatchUpload(
+          target,
+          registerOptions,
+          previewResult,
+          schemaVersionId,
+          {
+            force: options.forceUpload,
+            skipSnapshotCleanup: options.skipSnapshotCleanup,
+            uploadFilePath: preparedUploadFile?.filePath,
+          },
         )
+        uploadSpinner.clear()
+      } catch (error) {
+        uploadSpinner.error('Upload failed')
+        throw error
       }
 
-      if (!preparedUploadFile) {
-        throw new Error('Expected a prepared upload file for local SQL processing.')
-      }
-
-      await processLocalDivisionGeometrySqlUpload(
-        target,
-        {
-          cohortKey: previewResult.plan.cohortKey,
-          regionCode: previewResult.plan.regionCode,
-          releaseCode: previewResult.plan.releaseCode,
-          rowCount: previewResult.plan.rowCount,
-          source: previewResult.plan.source,
-          sourceVersion: previewResult.plan.sourceVersion,
-          theme: 'divisions',
-          type: previewResult.plan.type,
-        },
-        uploadResult,
-        preparedUploadFile,
-        { skipSnapshotCleanup: options.skipSnapshotCleanup },
-      )
-
-      const releaseSetReadiness = await resolveDivisionApiReleaseSetReadiness(
-        target,
-        previewResult.plan,
-      )
       note(
-        formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
-        'API RELEASE SET',
+        formatUploadResult(previewResult, {
+          datasetCode:
+            typeof uploadResult?.datasetCode === 'string'
+              ? uploadResult.datasetCode
+              : previewResult.plan.datasetCode,
+          rawObjectKey:
+            typeof uploadResult?.rawObjectKey === 'string'
+              ? uploadResult.rawObjectKey
+              : '-',
+          releaseId:
+            typeof uploadResult?.releaseId === 'string' ? uploadResult.releaseId : '-',
+          datasetId:
+            typeof uploadResult?.datasetId === 'string' ? uploadResult.datasetId : '-',
+          schemaVersion: sourceSchemaVersion,
+          status:
+            typeof uploadResult?.status === 'string' ? uploadResult.status : 'staged',
+        }).join('\n'),
+        'UPLOAD RESULT',
       )
-      outro(formatSuccessfulReleaseMessage(commandStartedAt))
-      return
-    }
 
-    throw new Error(
-      `No local SQL upload processor is available for ${previewResult.plan.source}/${previewResult.plan.type}.`,
-    )
+      if (processingStrategy.mode === 'local-address-sql') {
+        if (
+          previewResult.plan.type !== 'address' ||
+          previewResult.plan.theme !== 'addresses'
+        ) {
+          throw new Error('Local address SQL processing requires an address dataset.')
+        }
+
+        if (!preparedUploadFile) {
+          throw new Error('Expected a prepared upload file for local SQL processing.')
+        }
+
+        await processLocalAddressSqlUpload(
+          target,
+          {
+            cohortKey: previewResult.plan.cohortKey,
+            regionCode: previewResult.plan.regionCode,
+            releaseCode: previewResult.plan.releaseCode,
+            rowCount: previewResult.plan.rowCount,
+            source: previewResult.plan.source,
+            sourceVersion: previewResult.plan.sourceVersion,
+            theme: previewResult.plan.theme,
+            type: previewResult.plan.type,
+          },
+          uploadResult,
+          preparedUploadFile,
+          {
+            skipSnapshotCleanup: options.skipSnapshotCleanup,
+          },
+        )
+
+        outro(formatSuccessfulReleaseMessage(commandStartedAt))
+        return
+      }
+
+      if (processingStrategy.mode === 'local-division-sql') {
+        if (
+          previewResult.plan.type !== 'division' ||
+          previewResult.plan.theme !== 'divisions'
+        ) {
+          throw new Error('Local division SQL processing requires a division dataset.')
+        }
+
+        if (!preparedUploadFile) {
+          throw new Error('Expected a prepared upload file for local SQL processing.')
+        }
+
+        await processLocalDivisionSqlUpload(
+          target,
+          {
+            cohortKey: previewResult.plan.cohortKey,
+            regionCode: previewResult.plan.regionCode,
+            releaseCode: previewResult.plan.releaseCode,
+            rowCount: previewResult.plan.rowCount,
+            source: previewResult.plan.source as 'overture',
+            sourceVersion: previewResult.plan.sourceVersion,
+            theme: previewResult.plan.theme,
+            type: previewResult.plan.type,
+          },
+          uploadResult,
+          preparedUploadFile,
+          {
+            skipSnapshotCleanup: options.skipSnapshotCleanup,
+          },
+        )
+
+        const releaseSetReadiness = await resolveDivisionApiReleaseSetReadiness(
+          target,
+          previewResult.plan,
+        )
+        note(
+          formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
+          'API RELEASE SET',
+        )
+        outro(formatSuccessfulReleaseMessage(commandStartedAt))
+        return
+      }
+
+      if (processingStrategy.mode === 'local-division-geometry-sql') {
+        if (
+          (previewResult.plan.type !== 'divisionArea' &&
+            previewResult.plan.type !== 'divisionBoundary') ||
+          previewResult.plan.theme !== 'divisions' ||
+          (previewResult.plan.source !== 'overture' &&
+            previewResult.plan.source !== 'hkgov-had')
+        ) {
+          throw new Error(
+            'Local division geometry SQL processing requires an Overture or Home Affairs Department divisionArea or divisionBoundary dataset.',
+          )
+        }
+
+        if (!preparedUploadFile) {
+          throw new Error('Expected a prepared upload file for local SQL processing.')
+        }
+
+        await processLocalDivisionGeometrySqlUpload(
+          target,
+          {
+            cohortKey: previewResult.plan.cohortKey,
+            regionCode: previewResult.plan.regionCode,
+            releaseCode: previewResult.plan.releaseCode,
+            rowCount: previewResult.plan.rowCount,
+            source: previewResult.plan.source,
+            sourceVersion: previewResult.plan.sourceVersion,
+            theme: 'divisions',
+            type: previewResult.plan.type,
+          },
+          uploadResult,
+          preparedUploadFile,
+          { skipSnapshotCleanup: options.skipSnapshotCleanup },
+        )
+
+        const releaseSetReadiness = await resolveDivisionApiReleaseSetReadiness(
+          target,
+          previewResult.plan,
+        )
+        note(
+          formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
+          'API RELEASE SET',
+        )
+        outro(formatSuccessfulReleaseMessage(commandStartedAt))
+        return
+      }
+
+      throw new Error(
+        `No local SQL upload processor is available for ${previewResult.plan.source}/${previewResult.plan.type}.`,
+      )
+    } finally {
+      await preparedUploadFile?.cleanup()
+    }
   } finally {
-    await preparedUploadFile?.cleanup()
+    await sourcePreparationCleanup?.()
   }
+}
+
+async function prepareHkgovHadGeoJsonUpload(
+  filePath: string,
+  source: string | undefined,
+  sourceVersion: string | undefined,
+) {
+  if (!isHkgovHadGeoJson(filePath, source)) {
+    return null
+  }
+
+  const tempDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-had-'))
+  try {
+    const prepared = await prepareHkgovHadDistrictUpload(
+      filePath,
+      tempDir,
+      sourceVersion ?? '2022',
+    )
+    return {
+      ...prepared,
+      cleanup: async () => {
+        await prepared.cleanup()
+        await rm(tempDir, { force: true, recursive: true })
+      },
+    }
+  } catch (error) {
+    await rm(tempDir, { force: true, recursive: true })
+    throw error
+  }
+}
+
+function isHkgovHadGeoJson(filePath: string, source: string | undefined) {
+  return (
+    filePath.toLowerCase().endsWith('.geojson') &&
+    (source === 'hkgov-had' || /(^|[._/\\-])hkgov-had([._/\\-]|$)/i.test(filePath))
+  )
 }
 
 function resolvePrepareUploadFileMessage(
@@ -506,9 +572,19 @@ export async function assertAddressUploadPrerequisites(
 
 type DivisionGeometryPlan = Awaited<ReturnType<typeof prepareUpload>>['plan']
 
+const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS = [
+  'ds-hk-hkgov-had-district',
+] as const
+
+type CohortIndependentReleaseReadiness = {
+  datasetCode: string
+  releaseCode: string | null
+}
+
 type DivisionReleaseSetReadiness = {
   areaAvailable: boolean
   boundaryAvailable: boolean
+  cohortIndependentReleases: CohortIndependentReleaseReadiness[]
   divisionAvailable: boolean
   ready: boolean
 }
@@ -559,19 +635,14 @@ export async function resolveDivisionApiReleaseSetReadiness(
   const areaAvailable = snapshots.divisionArea
   const boundaryAvailable = snapshots.divisionBoundary
   const ready = divisionAvailable && areaAvailable && boundaryAvailable
-
-  if (plan.type === 'division') {
-    return {
-      areaAvailable,
-      boundaryAvailable,
-      divisionAvailable,
-      ready,
-    }
-  }
+  const cohortIndependentReleases = target.remote
+    ? await resolveRemoteCohortIndependentDivisionReleases(target, plan)
+    : await resolveLocalCohortIndependentDivisionReleases(target, plan)
 
   return {
     areaAvailable,
     boundaryAvailable,
+    cohortIndependentReleases,
     divisionAvailable,
     ready,
   }
@@ -587,12 +658,26 @@ export function formatDivisionApiReleaseSetReadiness(
     ['divisionBoundary', readiness.boundaryAvailable],
   ] as const
   const width = Math.max(...rows.map(([dataset]) => dataset.length))
+  const cohortIndependentRows: Array<[release: string, available: boolean]> =
+    readiness.cohortIndependentReleases.map(release => [
+      release.releaseCode ?? release.datasetCode,
+      release.releaseCode !== null,
+    ])
+  const cohortIndependentWidth = Math.max(
+    ...cohortIndependentRows.map(([release]) => release.length),
+  )
 
   return [
     `${plan.regionCode.toUpperCase()} / ${plan.cohortKey}`,
     ...rows.map(
       ([dataset, available]) =>
         `  ${available ? greenText('✓') : yellowText('○')} ${dataset.padEnd(width)}  ${available ? 'available' : 'unavailable'}`,
+    ),
+    '',
+    'Out of Cohort',
+    ...cohortIndependentRows.map(
+      ([release, available]) =>
+        `  ${available ? greenText('✓') : yellowText('○')} ${release.padEnd(cohortIndependentWidth)}  ${available ? 'available' : 'unavailable'}`,
     ),
   ].join('\n')
 }
@@ -707,6 +792,95 @@ async function resolveRemoteDivisionReleaseSetSnapshots(
   ) as Record<(typeof resourceTypes)[number], boolean>
 }
 
+async function resolveLocalCohortIndependentDivisionReleases(
+  target: UploadTarget,
+  plan: DivisionGeometryPlan,
+): Promise<CohortIndependentReleaseReadiness[]> {
+  const shardYear = resolveShardYear(plan.cohortKey, plan.sourceVersion)
+  const dbContext = await resolveLocalAddressDbContext(
+    target,
+    plan.regionCode,
+    shardYear,
+    { cacheTableProfile: 'division' },
+  )
+
+  try {
+    const rows = await (dbContext.metaDb as unknown as HarbourReadableDb)
+      .select({
+        datasetCode: metaSchema.metaDatasets.code,
+        releaseCode: metaSchema.metaReleases.code,
+      })
+      .from(metaSchema.metaReleases)
+      .innerJoin(
+        metaSchema.metaDatasets,
+        eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      )
+      .where(
+        and(
+          eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
+          inArray(
+            metaSchema.metaDatasets.code,
+            COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS,
+          ),
+          eq(metaSchema.metaReleases.status, 'published'),
+        ),
+      )
+      .orderBy(
+        desc(metaSchema.metaReleases.ingestedAt),
+        desc(metaSchema.metaReleases.createdAt),
+      )
+      .all()
+
+    return resolveCohortIndependentReleaseReadiness(rows)
+  } finally {
+    dbContext.cleanup()
+  }
+}
+
+async function resolveRemoteCohortIndependentDivisionReleases(
+  target: UploadTarget,
+  plan: DivisionGeometryPlan,
+): Promise<CohortIndependentReleaseReadiness[]> {
+  const datasetCodes =
+    COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS.map(sqlLiteral).join(', ')
+  const rows = await runRemoteMetaQuery(
+    target,
+    `
+    SELECT d.code AS datasetCode, r.code AS releaseCode
+    FROM releases r
+    INNER JOIN datasets d ON d.id = r.datasetId
+    WHERE d.code IN (${datasetCodes})
+      AND d.regionCode = ${sqlLiteral(plan.regionCode)}
+      AND r.status = 'published'
+    ORDER BY r.ingestedAt DESC, r.createdAt DESC
+  `,
+  )
+
+  return resolveCohortIndependentReleaseReadiness(
+    rows.flatMap(row =>
+      typeof row.datasetCode === 'string' && typeof row.releaseCode === 'string'
+        ? [{ datasetCode: row.datasetCode, releaseCode: row.releaseCode }]
+        : [],
+    ),
+  )
+}
+
+function resolveCohortIndependentReleaseReadiness(
+  releases: Array<{ datasetCode: string; releaseCode: string }>,
+): CohortIndependentReleaseReadiness[] {
+  const latestReleaseByDataset = new Map<string, string>()
+  for (const release of releases) {
+    if (!latestReleaseByDataset.has(release.datasetCode)) {
+      latestReleaseByDataset.set(release.datasetCode, release.releaseCode)
+    }
+  }
+
+  return COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS.map(datasetCode => ({
+    datasetCode,
+    releaseCode: latestReleaseByDataset.get(datasetCode) ?? null,
+  }))
+}
+
 async function resolveRemotePublishedDivisionSnapshotForAddressPlan(
   target: UploadTarget,
   plan: Awaited<ReturnType<typeof prepareUpload>>['plan'],
@@ -793,6 +967,17 @@ async function runRemoteSnapshotQuery(
   target: UploadTarget,
   sql: string,
 ): Promise<Array<{ resourceType: string; snapshotId: string }>> {
+  const rows = await runRemoteMetaQuery(target, sql)
+  return rows.filter(
+    (row): row is { resourceType: string; snapshotId: string } =>
+      typeof row.resourceType === 'string' && typeof row.snapshotId === 'string',
+  )
+}
+
+async function runRemoteMetaQuery(
+  target: UploadTarget,
+  sql: string,
+): Promise<Array<Record<string, unknown>>> {
   const environment = target.environment === 'production' ? 'production' : 'preview'
   const databaseName =
     environment === 'production' ? 'ss-meta-db-prod' : 'ss-meta-db-preview'
@@ -828,14 +1013,10 @@ async function runRemoteSnapshotQuery(
     )
   }
   const payload = JSON.parse(stdout) as Array<{
-    results?: Array<{ resourceType?: string; snapshotId?: string }>
+    results?: Array<Record<string, unknown>>
     success?: boolean
   }>
-  const rows = payload[0]?.success ? (payload[0].results ?? []) : []
-  return rows.filter(
-    (row): row is { resourceType: string; snapshotId: string } =>
-      typeof row.resourceType === 'string' && typeof row.snapshotId === 'string',
-  )
+  return payload[0]?.success ? (payload[0].results ?? []) : []
 }
 
 async function resolveAssumptionWarnings(

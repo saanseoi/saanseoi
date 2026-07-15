@@ -142,6 +142,12 @@ describe('division API release set readiness display', () => {
         {
           areaAvailable: false,
           boundaryAvailable: false,
+          cohortIndependentReleases: [
+            {
+              datasetCode: 'ds-hk-hkgov-had-district',
+              releaseCode: 'hkgov-had-hk-2022-district',
+            },
+          ],
           divisionAvailable: true,
           ready: false,
         },
@@ -152,6 +158,9 @@ describe('division API release set readiness display', () => {
         '  \u001B[32m✓\u001B[39m division          available',
         '  \u001B[33m○\u001B[39m divisionArea      unavailable',
         '  \u001B[33m○\u001B[39m divisionBoundary  unavailable',
+        '',
+        'Out of Cohort',
+        '  \u001B[32m✓\u001B[39m hkgov-had-hk-2022-district  available',
       ].join('\n'),
     )
   })

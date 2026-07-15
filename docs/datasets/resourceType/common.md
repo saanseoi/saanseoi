@@ -24,11 +24,12 @@ prepared raw parquet is then copied into the release workspace under
 ## Upstream Release Notes
 
 Every uploaded release records its upstream release-notes URL in `DB_META.releases`. The
-CLI keys its local cache by publisher/source, region, resource type, and source version.
-Pass `--release-notes-url URL` to set or replace a value; otherwise the CLI uses the
-cached value and prompts only when that key is unknown. Known Overture releases are
-built in with theme-specific anchors (`#addresses`, `#divisions`, and `#places`) so the
-public source registry links directly to the relevant upstream section.
+CLI keys its local cache by the generated release code. Existing version-1 entries are
+migrated when first read. Pass `--release-notes-url URL` to set or replace a value;
+otherwise the CLI uses the cached value and prompts only when that key is unknown. Known
+Overture releases are built in with theme-specific anchors (`#addresses`, `#divisions`,
+and `#places`) so the public source registry links directly to the relevant upstream
+section.
 
 The local CLI runs against local SQLite copies of the target D1 databases, then imports
 generated SQL into the configured target:
