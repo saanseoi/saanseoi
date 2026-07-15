@@ -3,17 +3,19 @@ import {
   ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
+  listCurrentApiCompositionMembersForType,
   listCurrentSnapshotCleanupCandidates,
   listApiReleaseSetSnapshots,
   resolveActiveReleaseSetForType,
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolveReleaseSetForRelease,
   resolveSnapshotForRelease,
   updateLatestOpenIngestRun,
   updateDatasetStatus,
   upsertIngestRunStatus,
   waitForDatasetRecord,
-} from '@repo/core/db/metaRepository'
-import type { HarbourJobMessage, ResourceType } from '@repo/core'
+} from '@repo/core/db/metaRegistry'
+import type { HarbourJobMessage, RegionCode, ResourceType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 type StageRequest = {
@@ -38,10 +40,12 @@ type CleanupSnapshotsRequest = {
 }
 
 type ControlResult = {
+  apiReleaseSetId?: string
   datasetId: string
   releaseCode: string
   releaseId: string
   phase: string | null
+  snapshotId?: string
   status: string
 }
 
@@ -221,6 +225,7 @@ export async function handlePublishDataset(
       resourceType: ResourceType
       snapshotId: string
     }> = []
+    let missingRequiredMember = false
 
     if (activeReleaseSet && activeReleaseSet.id !== releaseSet.id) {
       const activeSnapshots = await listApiReleaseSetSnapshots(db, activeReleaseSet.id)
@@ -237,6 +242,32 @@ export async function handlePublishDataset(
       }
     }
 
+    const compositionMembers = await listCurrentApiCompositionMembersForType(
+      db,
+      datasetType,
+    )
+    for (const member of compositionMembers) {
+      if (member.resourceType === datasetType) continue
+
+      const supportingSnapshot =
+        await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+          db,
+          member.resourceType,
+          dataset.regionCode as RegionCode,
+          dataset.cohortKey,
+        )
+
+      if (!supportingSnapshot) {
+        if (member.isRequired) missingRequiredMember = true
+        continue
+      }
+
+      carriedSnapshots.push({
+        resourceType: member.resourceType,
+        snapshotId: supportingSnapshot.id,
+      })
+    }
+
     await publishReleaseArtifacts(db, {
       carriedSnapshots,
       currentRelease,
@@ -248,6 +279,7 @@ export async function handlePublishDataset(
       releaseSetId: releaseSet.id,
       snapshotId: snapshot.id,
       type: datasetType,
+      deferApiReleaseSet: missingRequiredMember,
     })
 
     if (!request.skipSnapshotCleanup && cleanupQueue) {
@@ -266,10 +298,12 @@ export async function handlePublishDataset(
     }
 
     return {
+      apiReleaseSetId: releaseSet.id,
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
       releaseId: dataset.releaseId,
       phase: null,
+      snapshotId: snapshot.id,
       status: 'current',
     }
   })

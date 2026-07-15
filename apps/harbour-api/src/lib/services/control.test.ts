@@ -650,11 +650,13 @@ describe('control service', () => {
 
     sqlite.close()
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
+      apiReleaseSetId: publishedReleaseSet.apiReleaseSetId,
       datasetId: 'overture-hk-2026-02-18.0-division',
       releaseCode: 'overture-hk-2026-02-18.0-division',
       releaseId: 'release-overture-hk-2026-02-18.0-division',
       phase: null,
+      snapshotId: 'snapshot-release-overture-hk-2026-02-18.0-division',
       status: 'current',
     })
     expect(rows).toEqual([
@@ -718,11 +720,13 @@ describe('control service', () => {
 
     sqlite.close()
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
+      apiReleaseSetId: expect.any(String),
       datasetId: 'overture-hk-2026-02-18.0-division',
       releaseCode: 'overture-hk-2026-02-18.0-division',
       releaseId,
       phase: null,
+      snapshotId: 'snapshot-release-overture-hk-2026-02-18.0-division',
       status: 'current',
     })
   })
@@ -785,6 +789,52 @@ describe('control service', () => {
         timestamp: 1762300860000,
       })
 
+      if (datasetType === 'address') {
+        const divisionReleaseId = 'release-overture-hk-2026-06-17.0-division'
+        insertFixtureRelease(sqlite, {
+          releaseId: divisionReleaseId,
+          source: 'overture',
+          regionCode: 'hk',
+          cohortKey: '2026-06',
+          type: 'division',
+          sourceVersion: '2026-06-17.0',
+          rawObjectKey: 'hk/overture/2026-06-17.0/division.parquet',
+          originalFileName: 'division.parquet',
+          status: 'published',
+          ingestedAt: '2026-06-05T00:01:00.000Z',
+          createdAt: '2026-06-05T00:01:00.000Z',
+          updatedAt: '2026-06-05T00:01:00.000Z',
+        })
+        const divisionDataset = sqlite
+          .query('SELECT datasetId FROM releases WHERE id = ?')
+          .get(divisionReleaseId) as { datasetId: string }
+        seedSnapshot(sqlite, {
+          code: 'ss-hk-division-2026-06-17.0',
+          cohortKey: '2026-06',
+          datasetId: divisionDataset.datasetId,
+          releaseId: divisionReleaseId,
+          status: 'published',
+          timestamp: 1762300800000,
+        })
+        const {
+          listCurrentApiCompositionMembersForType,
+          resolvePublishedSnapshotForResourceTypeRegionCohortKey,
+        } = await import('@repo/core/db/metaRegistry')
+        expect(
+          await listCurrentApiCompositionMembersForType(db, 'address'),
+        ).toContainEqual(
+          expect.objectContaining({ resourceType: 'division', role: 'supporting' }),
+        )
+        expect(
+          await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+            db,
+            'division',
+            'hk',
+            '2026-06',
+          ),
+        ).toMatchObject({ code: 'ss-hk-division-2026-06-17.0' })
+      }
+
       const result = await handlePublishDataset(db, {
         releaseId,
       })
@@ -824,14 +874,31 @@ describe('control service', () => {
         .get(publishedReleaseSet.apiReleaseSetId, publishedReleaseSet.datasetId) as {
         count: number
       }
+      const supportingSnapshots = sqlite
+        .query(
+          `
+            SELECT s.code, arss.role
+            FROM apiReleaseSetSnapshots arss
+            INNER JOIN snapshots s ON s.id = arss.snapshotId
+            WHERE arss.apiReleaseSetId = ?
+              AND arss.role = 'supporting'
+            ORDER BY s.code
+          `,
+        )
+        .all(publishedReleaseSet.apiReleaseSetId) as Array<{
+        code: string
+        role: string
+      }>
 
       sqlite.close()
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
+        apiReleaseSetId: publishedReleaseSet.apiReleaseSetId,
         datasetId: releaseCode,
         releaseCode,
         releaseId,
         phase: null,
+        snapshotId: `snapshot-${releaseId}`,
         status: 'current',
       })
       expect(releaseRow).toEqual({
@@ -840,6 +907,11 @@ describe('control service', () => {
       expect(snapshotRow.status).toBe('published')
       expect(snapshotRow.publishedAt).not.toBeNull()
       expect(provenanceCount.count).toBe(0)
+      expect(supportingSnapshots).toEqual(
+        datasetType === 'address'
+          ? [{ code: 'ss-hk-division-2026-06-17.0', role: 'supporting' }]
+          : [],
+      )
     }
   })
 
@@ -910,11 +982,13 @@ describe('control service', () => {
 
     sqlite.close()
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
+      apiReleaseSetId: expect.any(String),
       datasetId: 'overture-hk-2026-02-18.1-division',
       releaseCode: 'overture-hk-2026-02-18.1-division',
       releaseId: 'release-overture-hk-2026-02-18.1-division',
       phase: null,
+      snapshotId: 'snapshot-release-overture-hk-2026-02-18.1-division',
       status: 'current',
     })
     expect(rows[0]).toMatchObject({
