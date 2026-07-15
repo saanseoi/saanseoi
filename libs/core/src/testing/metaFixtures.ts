@@ -801,7 +801,7 @@ export function seedFixtureCatalog(db: Database) {
     INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
       ('publisher-overture', 'overture', 'vh-publisher-overture-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('publisher-hkgov', 'hkgov', 'vh-publisher-hkgov-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('publisher-hkgov-als', 'hkgov-als', 'vh-publisher-hkgov-als-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
+      ('publisher-hkgov-dpo', 'hkgov-dpo', 'vh-publisher-hkgov-dpo-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
       code = excluded.code,
       versionHash = excluded.versionHash,
@@ -840,16 +840,16 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'hkgov-als-hk-address',
-        'publisher-hkgov-als',
-        'ds-hk-hkgov-als-address',
+        'hkgov-dpo-hk-address',
+        'publisher-hkgov-dpo',
+        'ds-hk-hkgov-dpo-address',
         'hk',
         'static',
         'monthly',
         'addresses',
         'address',
         'https://data.gov.hk/en-data/dataset/hk-ogcio-st_div_01-als',
-        'vh-dataset-hkgov-als-hk-address-v1',
+        'vh-dataset-hkgov-dpo-hk-address-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       )
@@ -989,6 +989,7 @@ export function seedFixtureCatalog(db: Database) {
       apiCompositionId, resourceType, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
     ) VALUES
       ('api-composition-addresses-v1', 'address', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-addresses-v1', 'division', 'supporting', 1, 'exact_ref', 'address', null, 10, null),
       ('api-composition-divisions-v1', 'division', 'primary', 1, 'exact_ref', null, null, 0, null),
       ('api-composition-places-v1', 'place', 'primary', 1, 'exact_ref', null, null, 0, null),
       ('api-composition-places-v1', 'address', 'supporting', 1, 'exact_ref', 'place', null, 10, null),
