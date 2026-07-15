@@ -4,15 +4,19 @@ export type PolicySection = {
   bullets?: string[]
 }
 
-export type PolicyDocument = {
+export type PolicyLocale = {
   title: string
-  chineseTitle: string
+  intro: string[]
+  sections: PolicySection[]
+}
+
+export type PolicyDocument = {
   version: string
   effectiveDate: string
   contactEmail: string
   standard?: string
-  englishIntro: string[]
-  chineseIntro: string[]
-  englishSections: PolicySection[]
-  chineseSections: PolicySection[]
+  i18n: {
+    en: PolicyLocale
+    'zh-hant': PolicyLocale
+  }
 }
