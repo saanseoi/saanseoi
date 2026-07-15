@@ -3,6 +3,7 @@ import {
   ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
+  listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey,
   listCurrentApiCompositionMembersForType,
   listCurrentSnapshotCleanupCandidates,
   listApiReleaseSetSnapshots,
@@ -42,6 +43,7 @@ type CleanupSnapshotsRequest = {
 
 type ControlResult = {
   apiReleaseSetId?: string
+  apiReleaseSetCode?: string
   datasetId: string
   releaseCode: string
   releaseId: string
@@ -212,18 +214,27 @@ export async function handlePublishDataset(
       dataset.releaseId,
     )
     const activeReleaseSet = await resolveActiveReleaseSetForType(db, datasetType)
-    const releaseSetCohortKey =
+    const existingReleaseSet = await resolveReleaseSetForRelease(
+      db,
+      dataset.releaseId,
+      datasetType,
+    )
+    const draftReleaseSets =
       datasetVariant === 'hkgov-had'
-        ? (parseReleaseSetCohortKey(activeReleaseSet?.code) ?? dataset.cohortKey)
-        : dataset.cohortKey
-    const releaseSet =
-      (await resolveReleaseSetForRelease(db, dataset.releaseId, datasetType)) ??
-      (await ensureDraftReleaseSetForRelease(
-        db,
-        datasetType,
-        { ...dataset, cohortKey: releaseSetCohortKey },
-        { forceNew: releaseSetCohortKey !== dataset.cohortKey },
-      ))
+        ? await listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
+            db,
+            datasetType,
+            dataset.regionCode as RegionCode,
+            dataset.cohortKey,
+          )
+        : []
+    const releaseSets =
+      draftReleaseSets.length > 0
+        ? draftReleaseSets
+        : [
+            existingReleaseSet ??
+              (await ensureDraftReleaseSetForRelease(db, datasetType, dataset)),
+          ]
     const snapshot = await waitForSnapshotForRelease(db, dataset.releaseId, datasetType)
 
     if (!snapshot) {
@@ -232,89 +243,71 @@ export async function handlePublishDataset(
       )
     }
 
-    const carriedSnapshots: Array<{
-      resourceType: ResourceType
-      snapshotId: string
-      variant?: string
-    }> = []
-
-    if (activeReleaseSet && activeReleaseSet.id !== releaseSet.id) {
-      const activeSnapshots = await listApiReleaseSetSnapshots(db, activeReleaseSet.id)
-
-      for (const activeSnapshot of activeSnapshots) {
-        if (
-          activeSnapshot.snapshotResourceType === datasetType &&
-          activeSnapshot.variant === datasetVariant
-        ) {
-          continue
-        }
-
-        carriedSnapshots.push({
-          resourceType: activeSnapshot.snapshotResourceType,
-          snapshotId: activeSnapshot.snapshotId,
-          variant: activeSnapshot.variant,
-        })
-      }
-    }
-
     const compositionMembers = await listCurrentApiCompositionMembersForType(
       db,
       datasetType,
     )
-    const requiredResourceTypes = new Set<ResourceType>(
-      compositionMembers
-        .filter(member => member.isRequired)
-        .map(member => member.resourceType),
-    )
-    const satisfiedRequiredResourceTypes = new Set<ResourceType>()
-
-    for (const member of compositionMembers) {
-      if (member.resourceType === datasetType && member.variant === datasetVariant) {
-        if (member.isRequired) {
-          satisfiedRequiredResourceTypes.add(member.resourceType)
-        }
-        continue
-      }
-
-      const supportingSnapshots = await resolveSupportingSnapshotsForMember(
+    for (const [index, releaseSet] of releaseSets.entries()) {
+      const releaseSetCohortKey =
+        parseReleaseSetCohortKey(releaseSet.code) ?? dataset.cohortKey
+      const carriedSnapshots = await resolveCarriedSnapshots(
         db,
-        member,
-        dataset.regionCode as RegionCode,
-        releaseSetCohortKey,
+        activeReleaseSet?.id === releaseSet.id ? null : activeReleaseSet,
+        datasetType,
+        datasetVariant,
       )
+      const requiredMembers = new Set(
+        compositionMembers
+          .filter(member => member.isRequired)
+          .map(member => releaseSetMemberKey(member.resourceType, member.variant)),
+      )
+      const satisfiedRequiredMembers = new Set<string>()
 
-      if (supportingSnapshots.length === 0) {
-        continue
+      for (const member of compositionMembers) {
+        const memberKey = releaseSetMemberKey(member.resourceType, member.variant)
+        if (member.resourceType === datasetType && member.variant === datasetVariant) {
+          if (member.isRequired) satisfiedRequiredMembers.add(memberKey)
+          continue
+        }
+
+        const supportingSnapshots = await resolveSupportingSnapshotsForMember(
+          db,
+          member,
+          dataset.regionCode as RegionCode,
+          releaseSetCohortKey,
+        )
+
+        if (supportingSnapshots.length === 0) continue
+        if (member.isRequired) satisfiedRequiredMembers.add(memberKey)
+
+        for (const supportingSnapshot of supportingSnapshots) {
+          carriedSnapshots.push({
+            resourceType: member.resourceType,
+            snapshotId: supportingSnapshot.id,
+            variant: member.variant,
+          })
+        }
       }
 
-      if (member.isRequired) {
-        satisfiedRequiredResourceTypes.add(member.resourceType)
-      }
-
-      for (const supportingSnapshot of supportingSnapshots) {
-        carriedSnapshots.push({
-          resourceType: member.resourceType,
-          snapshotId: supportingSnapshot.id,
-          variant: member.variant,
-        })
-      }
+      const releaseSetIsComplete = [...requiredMembers].every(memberKey =>
+        satisfiedRequiredMembers.has(memberKey),
+      )
+      await publishReleaseArtifacts(db, {
+        carriedSnapshots,
+        currentRelease,
+        currentReleaseIsCorrected: currentRelease
+          ? isCorrectedRelease(currentRelease.sourceVersion, dataset.sourceVersion)
+          : false,
+        dataset,
+        publishedAt,
+        releaseSetId: releaseSet.id,
+        snapshotId: snapshot.id,
+        type: datasetType,
+        // Several drafts may use the same cohort-independent geometry. Keep
+        // older sets draft and activate only the newest complete candidate.
+        deferApiReleaseSet: !releaseSetIsComplete || index > 0,
+      })
     }
-
-    await publishReleaseArtifacts(db, {
-      carriedSnapshots,
-      currentRelease,
-      currentReleaseIsCorrected: currentRelease
-        ? isCorrectedRelease(currentRelease.sourceVersion, dataset.sourceVersion)
-        : false,
-      dataset,
-      publishedAt,
-      releaseSetId: releaseSet.id,
-      snapshotId: snapshot.id,
-      type: datasetType,
-      deferApiReleaseSet: [...requiredResourceTypes].some(
-        resourceType => !satisfiedRequiredResourceTypes.has(resourceType),
-      ),
-    })
 
     if (!request.skipSnapshotCleanup && cleanupQueue) {
       try {
@@ -332,7 +325,8 @@ export async function handlePublishDataset(
     }
 
     return {
-      apiReleaseSetId: releaseSet.id,
+      apiReleaseSetId: releaseSets[0]?.id,
+      apiReleaseSetCode: releaseSets[0]?.code,
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
       releaseId: dataset.releaseId,
@@ -341,6 +335,33 @@ export async function handlePublishDataset(
       status: 'current',
     }
   })
+}
+
+function releaseSetMemberKey(resourceType: ResourceType, variant: string) {
+  return `${resourceType}:${variant}`
+}
+
+async function resolveCarriedSnapshots(
+  db: HarbourReadableDb,
+  activeReleaseSet: Awaited<ReturnType<typeof resolveActiveReleaseSetForType>>,
+  datasetType: ResourceType,
+  datasetVariant: string,
+) {
+  if (!activeReleaseSet) return []
+
+  const activeSnapshots = await listApiReleaseSetSnapshots(db, activeReleaseSet.id)
+  return activeSnapshots.flatMap(activeSnapshot =>
+    activeSnapshot.snapshotResourceType === datasetType &&
+    activeSnapshot.variant === datasetVariant
+      ? []
+      : [
+          {
+            resourceType: activeSnapshot.snapshotResourceType,
+            snapshotId: activeSnapshot.snapshotId,
+            variant: activeSnapshot.variant,
+          },
+        ],
+  )
 }
 
 async function resolveSupportingSnapshotsForMember(

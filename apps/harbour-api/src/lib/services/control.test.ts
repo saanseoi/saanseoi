@@ -915,6 +915,187 @@ describe('control service', () => {
     }
   })
 
+  test('uses a cohort-independent HAD area to complete the compatible draft division release set', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-publish-had-draft-release-set.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const cohortKey = '2025-09-24.0'
+    const releaseSetId = 'd092ef65-1ae3-4a3d-beb2-19f20e8f5904'
+
+    sqlite.exec(`
+      DELETE FROM apiCompositionMembers
+      WHERE apiCompositionId = 'api-composition-divisions-v1';
+
+      INSERT INTO apiCompositionMembers (
+        apiCompositionId, resourceType, variant, role, isRequired,
+        selectionMode, anchorResourceType, maxLagDays, priority, configJson
+      ) VALUES
+        ('api-composition-divisions-v1', 'division', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
+        ('api-composition-divisions-v1', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', 'division', null, 10, null),
+        ('api-composition-divisions-v1', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', 'division', null, 11, null),
+        ('api-composition-divisions-v1', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', 'division', null, 20, null);
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, code, schemaVersion, rulesetVersion, status,
+        publishedAt, validFrom, validTo, notes, versionHash, createdAt, updatedAt
+      ) VALUES (
+        '${releaseSetId}',
+        'api-version-api-divisions-v0.1',
+        'data-hk-divisions-${cohortKey}-0',
+        'sv-division-v1',
+        'rs-division-merge-v1',
+        'draft',
+        null, null, null, null,
+        'vh-had-draft-release-set',
+        1761264000001,
+        1761264000001
+      );
+
+      INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
+        ('publisher-hkgov-had', 'hkgov-had', 'vh-publisher-hkgov-had', 1761264000001, 1761264000001);
+
+      INSERT INTO datasets (
+        id, publisherId, code, regionCode, releaseType, releaseFrequency,
+        theme, type, sourceUrl, versionHash, createdAt, updatedAt
+      ) VALUES
+        ('overture-hk-divisionArea', 'publisher-overture', 'ds-hk-overture-divisionArea', 'hk', 'static', 'monthly', 'divisions', 'divisionArea', 'https://docs.overturemaps.org/', 'vh-overture-area', 1761264000001, 1761264000001),
+        ('overture-hk-divisionBoundary', 'publisher-overture', 'ds-hk-overture-divisionBoundary', 'hk', 'static', 'monthly', 'divisions', 'divisionBoundary', 'https://docs.overturemaps.org/', 'vh-overture-boundary', 1761264000001, 1761264000001),
+        ('hkgov-had-hk-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-district', 'hk', 'static', 'as-needed', 'divisions', 'divisionArea', 'https://data.gov.hk/', 'vh-had-district', 1761264000001, 1761264000001);
+    `)
+
+    const division = insertFixtureRelease(sqlite, {
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey,
+      type: 'division',
+      sourceVersion: '2025-09-24.0',
+      rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'published',
+      ingestedAt: '2026-06-05T00:00:00.000Z',
+      createdAt: '2026-06-05T00:00:00.000Z',
+      updatedAt: '2026-06-05T00:00:00.000Z',
+    })
+    const overtureArea = insertFixtureRelease(sqlite, {
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey,
+      type: 'divisionArea',
+      sourceVersion: '2025-09-24.0',
+      rawObjectKey: 'hk/overture/2025-09-24.0/divisionArea.parquet',
+      originalFileName: 'divisionArea.parquet',
+      status: 'published',
+      ingestedAt: '2026-06-05T00:00:00.000Z',
+      createdAt: '2026-06-05T00:00:00.000Z',
+      updatedAt: '2026-06-05T00:00:00.000Z',
+    })
+    const boundary = insertFixtureRelease(sqlite, {
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey,
+      type: 'divisionBoundary',
+      sourceVersion: '2025-09-24.0',
+      rawObjectKey: 'hk/overture/2025-09-24.0/divisionBoundary.parquet',
+      originalFileName: 'divisionBoundary.parquet',
+      status: 'published',
+      ingestedAt: '2026-06-05T00:00:00.000Z',
+      createdAt: '2026-06-05T00:00:00.000Z',
+      updatedAt: '2026-06-05T00:00:00.000Z',
+    })
+    const hadArea = {
+      releaseCode: 'hkgov-had-hk-2022-district',
+      releaseId: 'release-hkgov-had-hk-2022-district',
+    }
+    sqlite.exec(`
+      INSERT INTO releases (
+        id, datasetId, code, sourceVersion, cohortKey, rawObjectKey,
+        originalFileName, status, ingestedAt, createdAt, updatedAt
+      ) VALUES (
+        '${hadArea.releaseId}',
+        'hkgov-had-hk-district',
+        '${hadArea.releaseCode}',
+        '2022', '2022', 'hk/hkgov-had/2022/divisionArea.geojson',
+        'divisionArea.geojson', 'staged',
+        '2026-06-05T00:01:00.000Z',
+        '2026-06-05T00:01:00.000Z',
+        '2026-06-05T00:01:00.000Z'
+      );
+    `)
+
+    sqlite.exec(`
+      UPDATE releases SET sourceSchemaVersion = '1.12.0'
+      WHERE id IN ('${division.releaseId}', '${overtureArea.releaseId}', '${boundary.releaseId}');
+      UPDATE releases SET sourceSchemaVersion = '1.2'
+      WHERE id = '${hadArea.releaseId}';
+    `)
+
+    seedSnapshot(sqlite, {
+      code: 'ss-hk-division-2025-09-24.0',
+      cohortKey,
+      releaseId: division.releaseId,
+      status: 'published',
+    })
+    seedSnapshot(sqlite, {
+      code: 'ss-hk-divisionArea-2025-09-24.0',
+      cohortKey,
+      datasetId: 'overture-hk-divisionArea',
+      resourceType: 'divisionArea',
+      releaseId: overtureArea.releaseId,
+      status: 'published',
+    })
+    seedSnapshot(sqlite, {
+      code: 'ss-hk-divisionBoundary-2025-09-24.0',
+      cohortKey,
+      datasetId: 'overture-hk-divisionBoundary',
+      resourceType: 'divisionBoundary',
+      releaseId: boundary.releaseId,
+      status: 'published',
+    })
+    const hadSnapshotId = seedSnapshot(sqlite, {
+      code: 'ss-hk-divisionArea-2022',
+      cohortKey: '2022',
+      datasetId: 'hkgov-had-hk-district',
+      resourceType: 'divisionArea',
+      releaseId: hadArea.releaseId,
+    })
+
+    const result = await handlePublishDataset(db, { releaseId: hadArea.releaseId })
+    const publishedSet = sqlite
+      .query('SELECT status FROM apiReleaseSets WHERE id = ?')
+      .get(releaseSetId) as { status: string }
+    const members = sqlite
+      .query(
+        `
+          SELECT s.code, arss.variant
+          FROM apiReleaseSetSnapshots arss
+          INNER JOIN snapshots s ON s.id = arss.snapshotId
+          WHERE arss.apiReleaseSetId = ?
+          ORDER BY arss.variant, s.code
+        `,
+      )
+      .all(releaseSetId) as Array<{ code: string; variant: string }>
+    const hadRelease = sqlite
+      .query('SELECT status FROM releases WHERE id = ?')
+      .get(hadArea.releaseId) as { status: string }
+    const hadSnapshot = sqlite
+      .query('SELECT status FROM snapshots WHERE id = ?')
+      .get(hadSnapshotId) as { status: string }
+
+    sqlite.close()
+
+    expect(result.apiReleaseSetId).toBe(releaseSetId)
+    expect(publishedSet.status).toBe('current')
+    expect(hadRelease.status).toBe('published')
+    expect(hadSnapshot.status).toBe('published')
+    expect(members).toEqual([
+      { code: 'ss-hk-division-2025-09-24.0', variant: 'default' },
+      { code: 'ss-hk-divisionArea-2022', variant: 'hkgov-had' },
+      { code: 'ss-hk-divisionArea-2025-09-24.0', variant: 'overture' },
+      { code: 'ss-hk-divisionBoundary-2025-09-24.0', variant: 'overture' },
+    ])
+  })
+
   test('revokes the superseded dataset only for corrected same-release publishes', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-publish-revoked.sqlite')
