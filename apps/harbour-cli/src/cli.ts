@@ -1,6 +1,7 @@
 import { cancel } from '@clack/prompts'
 
 import { runSnapshotCleanupCommand } from './lib/commands/cleanup.ts'
+import { runDocsNewCommand, runDocsPublishCommand } from './lib/commands/docs.ts'
 import { runHkgovAlsPrepCommand } from './lib/commands/hkgovAls.ts'
 import { runInspectCommand } from './lib/commands/inspect.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
@@ -24,8 +25,8 @@ async function main() {
   }
 
   switch (args.command) {
-    case 'prepare-hkgov-als':
-    case 'prep-hkgov-als':
+    case 'prepare-hkgov-dpo':
+    case 'prep-hkgov-dpo':
       await runHkgovAlsPrepCommand(args, target, printUsage)
       return
     case 'inspect':
@@ -41,6 +42,12 @@ async function main() {
         dryRun,
         skipConfirm,
       })
+      return
+    case 'docs:new':
+      await runDocsNewCommand(args, target)
+      return
+    case 'docs:publish':
+      await runDocsPublishCommand(args, target)
       return
     case 'rollback:release':
       await runRollbackReleaseCommand(args, target, {

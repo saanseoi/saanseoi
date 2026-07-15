@@ -78,6 +78,10 @@ export function buildRegisterOptions(
       typeof args.options['source-version'] === 'string'
         ? args.options['source-version']
         : undefined,
+    releaseNotesUrl:
+      typeof args.options['release-notes-url'] === 'string'
+        ? args.options['release-notes-url']
+        : undefined,
     dryRun: Boolean(args.options['dry-run']),
   }
 }
