@@ -83,3 +83,14 @@ primary division snapshot. The CLI preflight enforces that division-first order,
 area and boundary uploads can be performed in either order. If one geometry snapshot is
 missing, the dataset itself is still published and the cohort's API release set remains
 draft until the counterpart arrives.
+
+## Scoped parent fixture
+
+Hong Kong's scoped division extract omits the Overture PRC country record
+`fb68fc73-3ac6-41c9-a692-22fcf20cb5be`, although both the Hong Kong division hierarchy
+and the international land boundary reference it. Each Overture Hong Kong division
+snapshot therefore adds the reviewed
+`fixtures/divisions/overture/hk-prc-country-anchor.json` row. The fixture supplies only
+the level-0 country identity and localized names; it deliberately has no country
+geometry. It is ingested with every cohort so geometry and address references resolve
+within the exact same division snapshot.

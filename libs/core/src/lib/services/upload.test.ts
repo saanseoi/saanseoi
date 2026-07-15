@@ -270,7 +270,7 @@ describe('upload', () => {
     expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-dpo-address')
   })
 
-  test('uses the registered HAD district dataset and release identities', async () => {
+  test('uses the source version as the cohort for a prepared HAD district upload', async () => {
     const tempDir = createTempDir()
     const fixtureFile = join(tempDir, 'hkgov-had-hk-2022-divisionArea.parquet')
 
@@ -278,7 +278,6 @@ describe('upload', () => {
 
     const planned = await prepareUpload({
       filePath: fixtureFile,
-      cohortKey: '2022',
       inspection: {
         rowCount: 18,
         schema: fixtureInspection.schema,
@@ -294,6 +293,8 @@ describe('upload', () => {
 
     expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-had-district')
     expect(planned.plan.releaseCode).toBe('hkgov-had-hk-2022-district')
+    expect(planned.plan.cohortKey).toBe('2022')
+    expect(planned.plan.inferredFrom.cohortKey).toBe('sourceVersion')
   })
 
   test('rejects overture uploads for source versions that are not yet marked safe', async () => {
