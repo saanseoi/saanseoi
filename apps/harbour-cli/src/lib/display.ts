@@ -111,11 +111,16 @@ function describeInferredFrom(
 }
 
 function formatReleaseValue(result: UploadPreviewResult) {
+  const releaseKind =
+    result.plan.source === 'hkgov-had' && result.plan.type === 'divisionArea'
+      ? 'divisionArea::district'
+      : result.plan.type
+
   return [
     yellowText(result.plan.source),
     greenText(result.plan.regionCode),
     blueText(result.plan.sourceVersion),
-    redText(result.plan.type),
+    redText(releaseKind),
   ].join('-')
 }
 

@@ -55,11 +55,11 @@ describe('evaluateDivisionAssumptions', () => {
         },
       }),
     ).toEqual([
-      'Dropped field `country` is no longer single-valued; found 2 distinct non-null values.',
-      'Dropped field `theme` is no longer single-valued; found 2 distinct non-null values.',
-      'Dropped field `type` is no longer single-valued; found 2 distinct non-null values.',
-      'Dropped field `region` is no longer all null; found 7 non-null rows.',
-      'Dropped field `norms` is no longer effectively uniform; found 2 distinct non-null values.',
+      '\u001B[33m⚠\u001B[39m Dropped field \u001B[36m`country`\u001B[39m should be \u001B[32msingle-valued\u001B[39m; found \u001B[31m2 distinct non-null values\u001B[39m.',
+      '\u001B[33m⚠\u001B[39m Dropped field \u001B[36m`theme`\u001B[39m should be \u001B[32msingle-valued\u001B[39m; found \u001B[31m2 distinct non-null values\u001B[39m.',
+      '\u001B[33m⚠\u001B[39m Dropped field \u001B[36m`type`\u001B[39m should be \u001B[32msingle-valued\u001B[39m; found \u001B[31m2 distinct non-null values\u001B[39m.',
+      '\u001B[33m⚠\u001B[39m Dropped field \u001B[36m`region`\u001B[39m should be \u001B[32mall null\u001B[39m; found \u001B[31m7 non-null rows\u001B[39m.',
+      '\u001B[33m⚠\u001B[39m Dropped field \u001B[36m`norms`\u001B[39m should be \u001B[32meffectively uniform\u001B[39m; found \u001B[31m2 distinct non-null values\u001B[39m.',
     ])
   })
 })

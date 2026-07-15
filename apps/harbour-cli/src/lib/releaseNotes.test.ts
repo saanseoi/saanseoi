@@ -48,4 +48,13 @@ describe('Overture release notes', () => {
       'https://docs.overturemaps.org/blog/2025/09/24/release-notes/#divisions',
     ])
   })
+
+  test('uses the release code as the cache key', async () => {
+    const plan = buildOvertureDivisionPlan('division')
+    plan.sourceVersion = '2025-09-25.0'
+
+    await expect(resolveReleaseNotesUrl(plan, { skipPrompt: true })).resolves.toBe(
+      'https://docs.overturemaps.org/blog/2025/09/24/release-notes/#divisions',
+    )
+  })
 })
