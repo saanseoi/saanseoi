@@ -1,21 +1,21 @@
 ---
-createdAt: "2026-07-06T14:53:53.553Z"
-updatedAt: "2026-07-06T19:01:36.542Z"
+createdAt: "2026-07-14T05:23:06.178Z"
+updatedAt: "2026-07-14T05:23:06.178Z"
 dataset: "ds-hk-overture-division"
-release: "overture-hk-2025-09-24.0-division"
+release: "overture-hk-2026-04-15.0-division"
 regionCode: "hk"
 source: "overture"
-sourceVersion: "2025-09-24.0"
-sourceSchemaVersion: "1.12.0"
+sourceVersion: "2026-04-15.0"
+sourceSchemaVersion: "1.16.0"
 type: "division"
-cohortKey: "2025-09-24.0"
+cohortKey: "2026-04-15.0"
 ---
 
 # EN
 
 ## Changelog
 
-Initial 山水 | SaanSeoi release.
+- <orange>Upstream</orange> No changes
 
 ## Compatibility
 
@@ -75,6 +75,7 @@ inputs into mappings that are more appropriate for the local context.
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) maps
   to the canonical <black>type</black> and <black>level</black>, with the original
   hierarchy retained under <black>overture.hierarchies</black>
+- `admin_level` - retained under <black>overture.admin_level</black>
 - `version` - [FeatureVersion](/docs#models/FeatureVersion), retained under
   <black>overture.version</black>
 
@@ -144,7 +145,7 @@ village        199
 
 ## 更新紀錄
 
-山水 | SaanSeoi 初始版本。
+- <orange>上游</orange> 沒有變更
 
 ## 兼容性
 
@@ -199,6 +200,7 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) 映射至
   [canonical <black>type</black> 和 <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)，原始 hierarchy 則保留於
   <black>overture.hierarchies</black>
+- `admin_level` - 保留於 <black>overture.admin_level</black>
 - `version` - [FeatureVersion](/docs#models/FeatureVersion)，保留於
   <black>overture.version</black>
 
@@ -265,7 +267,7 @@ village        199
 
 ## 更新记录
 
-山水 | SaanSeoi 初始版本。
+- <orange>上游</orange> 没有变更
 
 ## 兼容性
 
@@ -320,6 +322,7 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) 映射至
   [canonical <black>type</black> 和 <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)，原始 hierarchy 则保留于
   <black>overture.hierarchies</black>
+- `admin_level` - 保留于 <black>overture.admin_level</black>
 - `version` - [FeatureVersion](/docs#models/FeatureVersion)，保留于
   <black>overture.version</black>
 

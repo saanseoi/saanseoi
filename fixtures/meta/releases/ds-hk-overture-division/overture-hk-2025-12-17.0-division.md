@@ -1,21 +1,22 @@
 ---
-createdAt: "2026-07-06T14:53:53.553Z"
-updatedAt: "2026-07-06T19:01:36.542Z"
+createdAt: "2026-07-13T17:10:17.229Z"
+updatedAt: "2026-07-13T17:10:17.229Z"
 dataset: "ds-hk-overture-division"
-release: "overture-hk-2025-09-24.0-division"
+release: "overture-hk-2025-12-17.0-division"
 regionCode: "hk"
 source: "overture"
-sourceVersion: "2025-09-24.0"
-sourceSchemaVersion: "1.12.0"
+sourceVersion: "2025-12-17.0"
+sourceSchemaVersion: "1.15.0"
 type: "division"
-cohortKey: "2025-09-24.0"
+cohortKey: "2025-12-17.0"
 ---
 
 # EN
 
 ## Changelog
 
-Initial 山水 | SaanSeoi release.
+- <orange>Upstream</orange> Refreshed OSM data
+- <orange>Upstream</orange> Made minor, incremental updates to the data
 
 ## Compatibility
 
@@ -144,7 +145,8 @@ village        199
 
 ## 更新紀錄
 
-山水 | SaanSeoi 初始版本。
+- <orange>上游</orange> 更新 OSM 資料
+- <orange>上游</orange> 對資料作出輕微、逐步的更新
 
 ## 兼容性
 
@@ -265,7 +267,8 @@ village        199
 
 ## 更新记录
 
-山水 | SaanSeoi 初始版本。
+- <orange>上游</orange> 更新 OSM 数据
+- <orange>上游</orange> 对数据进行了轻微、渐进式更新
 
 ## 兼容性
 
