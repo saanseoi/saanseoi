@@ -18,6 +18,12 @@ export type LatestReleaseRollbackSql = {
   source: string
 }
 
+export type LatestReleaseRollbackPlan = {
+  currentTables: readonly string[]
+  historyTables: readonly string[]
+  sourceTables: readonly string[]
+}
+
 export function buildLatestReleaseRollbackSql(
   input: LatestReleaseRollbackInput,
 ): LatestReleaseRollbackSql {
@@ -28,6 +34,18 @@ export function buildLatestReleaseRollbackSql(
     history: buildHistoryRollbackSql(input, plan),
     meta: buildMetaRollbackSql(input),
     source: buildSourceRollbackSql(input, plan),
+  }
+}
+
+export function describeLatestReleaseRollbackPlan(
+  input: Pick<LatestReleaseRollbackInput, 'source' | 'type'>,
+): LatestReleaseRollbackPlan {
+  const plan = resolveRollbackPlan(input)
+
+  return {
+    currentTables: plan.currentTables.map(table => table.table),
+    historyTables: plan.historyTables.map(table => table.table),
+    sourceTables: plan.sourceTables,
   }
 }
 
@@ -63,6 +81,16 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
       overture: ['overtureDivisionI18n', 'overtureDivisions'],
     },
   },
+  divisionArea: {
+    currentTables: [{ table: 'divisionAreas' }],
+    historyTables: [{ table: 'divisionAreas', clearsCohortValidity: true }],
+    sources: { overture: ['overtureDivisionAreas'] },
+  },
+  divisionBoundary: {
+    currentTables: [{ table: 'divisionBoundaries' }],
+    historyTables: [{ table: 'divisionBoundaries', clearsCohortValidity: true }],
+    sources: { overture: ['overtureDivisionBoundaries'] },
+  },
   address: {
     currentTables: [
       { table: 'address3dI18n' },
@@ -78,7 +106,7 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
     ],
     sources: {
       overture: ['overtureAddresses2d'],
-      'hkgov-als': ['hkgovAlsAddress2dI18n', 'hkgovAlsAddresses2d'],
+      'hkgov-dpo': ['hkgovAlsAddress2dI18n', 'hkgovAlsAddresses2d'],
     },
   },
 }
@@ -89,7 +117,7 @@ function buildMetaRollbackSql(input: LatestReleaseRollbackInput) {
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM publishedDataJournal WHERE releaseId = ${literal(input.releaseId)} OR relatedReleaseId = ${literal(input.releaseId)};`,
-    `DELETE FROM stats WHERE releaseId = ${literal(input.releaseId)};`,
+    `DELETE FROM stats WHERE releaseId = ${literal(input.releaseId)} OR snapshotId = ${literal(input.snapshotId)};`,
     `DELETE FROM ingestRuns WHERE releaseId = ${literal(input.releaseId)};`,
     `DELETE FROM releaseShardAssignments WHERE releaseId = ${literal(input.releaseId)};`,
     `DELETE FROM snapshotAssemblyRuns WHERE snapshotId = ${literal(input.snapshotId)};`,
@@ -192,7 +220,9 @@ function buildSourceRollbackSql(input: LatestReleaseRollbackInput, plan: Rollbac
   )
 }
 
-function resolveRollbackPlan(input: LatestReleaseRollbackInput): RollbackPlan {
+function resolveRollbackPlan(
+  input: Pick<LatestReleaseRollbackInput, 'source' | 'type'>,
+): RollbackPlan {
   const resourcePlan = rollbackPlans[input.type]
 
   if (!resourcePlan) {

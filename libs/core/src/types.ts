@@ -1,7 +1,14 @@
 import type { ReleaseStatus } from '@repo/db'
 
 export const resourceThemes = ['divisions', 'addresses', 'places', 'streets'] as const
-export const resourceTypes = ['division', 'address', 'place', 'street'] as const
+export const resourceTypes = [
+  'division',
+  'divisionArea',
+  'divisionBoundary',
+  'address',
+  'place',
+  'street',
+] as const
 
 export type ResourceTheme = (typeof resourceThemes)[number]
 export type ResourceType = (typeof resourceTypes)[number]
@@ -21,6 +28,7 @@ export type DatasetRecord = {
   sourceVersion: string
   rawObjectKey: string
   originalFileName: string
+  releaseNotesUrl: string | null
   notes: string | null
   status: ReleaseStatus
   supersedesDatasetId: string | null
@@ -66,6 +74,7 @@ export type UploadPlan = {
   filePath: string
   fileName: string
   originalFileName: string
+  releaseNotesUrl?: string
   rowCount: number
   schemaFingerprint: string
   inferredFrom: {
@@ -88,6 +97,7 @@ export type RegisterUploadOptions = {
   type?: string
   source?: string
   sourceVersion?: string
+  releaseNotesUrl?: string
   shardYear?: string
   dryRun?: boolean
   inspection?: ParquetInspection

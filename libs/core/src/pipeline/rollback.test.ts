@@ -48,7 +48,7 @@ describe('latest release rollback SQL', () => {
       previousReleaseId: null,
       releaseId: 'address-release-new',
       snapshotId: 'address-snapshot-new',
-      source: 'hkgov-als',
+      source: 'hkgov-dpo',
       sourceVersion: '2026-06-25.0',
       type: 'address',
     })

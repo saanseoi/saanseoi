@@ -1,3 +1,13 @@
+export type PublishDatasetResult = {
+  apiReleaseSetId?: string
+  datasetId?: string
+  phase: string | null
+  releaseCode: string
+  releaseId: string
+  snapshotId?: string
+  status: string
+}
+
 /**
  * Control-plane callbacks used to report pipeline progress and publish datasets.
  */
@@ -8,7 +18,7 @@ export type HarbourClient = {
     options?: {
       skipSnapshotCleanup?: boolean
     },
-  ): Promise<void>
+  ): Promise<PublishDatasetResult | void>
   stageCompleted(
     releaseId: string,
     phase: string,

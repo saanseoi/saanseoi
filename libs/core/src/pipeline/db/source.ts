@@ -33,7 +33,7 @@ export function buildSourceDatasetId(message: DatasetProcessingMessage) {
     return message.datasetId
   }
 
-  const source = message.source === 'hkgov-als' ? 'hkgov' : message.source
+  const source = message.source === 'hkgov-dpo' ? 'hkgov' : message.source
   return `${source}-${message.regionCode}-${message.type}`
 }
 

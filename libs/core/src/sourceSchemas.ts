@@ -138,7 +138,7 @@ export async function resolveSourceSchemaVersion(args: ResolveSourceSchemaVersio
     return args.storedSourceSchemaVersion.trim()
   }
 
-  if (args.source === 'hkgov-als') {
+  if (args.source === 'hkgov-dpo') {
     return '3.2'
   }
 
