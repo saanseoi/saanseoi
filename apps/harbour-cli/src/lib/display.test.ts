@@ -66,6 +66,23 @@ describe('formatPlan', () => {
     expect(lines[3]).toContain('rows')
     expect(lines[3]).toContain('1810')
   })
+
+  test('labels a cohort inherited from the source version without claiming a flag', () => {
+    const lines = formatPlan({
+      ...previewResult,
+      plan: {
+        ...previewResult.plan,
+        cohortKey: '2022',
+        inferredFrom: {
+          ...previewResult.plan.inferredFrom,
+          cohortKey: 'sourceVersion',
+        },
+      },
+    })
+
+    expect(lines[2]).toContain('sourceVersion fallback')
+    expect(lines[2]).not.toContain('flag --cohort-key')
+  })
 })
 
 describe('formatSummary', () => {
