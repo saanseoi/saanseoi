@@ -30,6 +30,37 @@ Examples:
 - one region-scoped `history` and `source` `BEFORE` shard per environment for cohorts
   before 2025
 
+## D1 Placement Convergence
+
+Cloudflare's D1 `--location apac` value is only a broad placement hint. APAC contains
+multiple possible D1 locations, and the control-plane `running_in_region: APAC` result
+does not identify which APAC location was selected. For the Hong Kong shards, placement
+is therefore inferred from round-trip timings measured by the deployed Atlas and Harbour
+probe Workers. The convergence thresholds are the placement acceptance criteria; they
+are not merely performance alerts.
+
+`scripts/converge-d1-placement.ts` recreates a binding that fails those timing criteria,
+redeploys the Workers, and probes again until the selected bindings pass. Use
+`--bindings` as an explicit allowlist: unselected databases are neither probed nor
+recreated. A passing binding is recorded in `.local/d1-placement-whitelist.json` and is
+skipped on subsequent cycles. The allowlist and pass-once whitelist are separate: the
+former selects what may be changed, while the latter records what has already passed.
+
+For the preview Hong Kong `BEFORE` shards, the convergence command is:
+
+```bash
+bun run d1:converge -- \
+  --target preview \
+  --bindings DB_HISTORY_HK_BEFORE,DB_SOURCE_HK_BEFORE \
+  --location apac
+```
+
+The same command with `--target production` converges the production pair. A transient
+HTTP 500 immediately after a replacement can mean the new D1 binding is still becoming
+available; wait for the deployment/database to settle and rerun the probe before
+starting another destructive cycle. `--require-colo` constrains the request's Worker
+colo and is not a substitute for the D1 timing test.
+
 ## Assignment Tables
 
 `releaseShardAssignments`
