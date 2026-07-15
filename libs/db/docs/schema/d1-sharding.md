@@ -27,6 +27,8 @@ Examples:
 - one global `current` shard per environment
 - region/year `history` shards
 - region/year `source` shards
+- one region-scoped `history` and `source` `BEFORE` shard per environment for cohorts
+  before 2025
 
 ## Assignment Tables
 

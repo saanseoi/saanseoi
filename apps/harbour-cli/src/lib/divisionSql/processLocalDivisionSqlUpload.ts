@@ -2508,7 +2508,8 @@ function buildHistoryOwnerKey(
   shardYear: string,
   bindingName: string,
 ) {
-  return bindingName === `DB_HISTORY_${regionCode.toUpperCase()}_${shardYear}`
+  return bindingName ===
+    `DB_HISTORY_${regionCode.toUpperCase()}_${resolveShardScope(shardYear)}`
     ? PRIMARY_HISTORY_OWNER_KEY
     : `history-${bindingName.slice(bindingName.lastIndexOf('_') + 1)}`
 }
@@ -2518,9 +2519,16 @@ function buildSourceOwnerKey(
   shardYear: string,
   bindingName: string,
 ) {
-  return bindingName === `DB_SOURCE_${regionCode.toUpperCase()}_${shardYear}`
+  return bindingName ===
+    `DB_SOURCE_${regionCode.toUpperCase()}_${resolveShardScope(shardYear)}`
     ? PRIMARY_SOURCE_OWNER_KEY
     : `source-${bindingName.slice(bindingName.lastIndexOf('_') + 1)}`
+}
+
+function resolveShardScope(shardYear: string) {
+  const year = Number.parseInt(shardYear, 10)
+
+  return Number.isInteger(year) && year < 2025 ? 'BEFORE' : shardYear
 }
 
 function buildDivisionSqlRunId(message: DatasetProcessingMessage) {

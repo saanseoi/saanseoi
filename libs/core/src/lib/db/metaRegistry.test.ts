@@ -498,6 +498,53 @@ function sortProvenanceRows(
 }
 
 describe('resolveShardForKindRegionYear', () => {
+  test('routes pre-2025 history requests to the region-scoped before shard', async () => {
+    const { sqlite, db } = createShardLookupDb()
+
+    sqlite.exec(`
+      INSERT INTO dataShards (
+        id, shardType, regionCode, year, environment, databaseName, databaseId, bindingName, status
+      ) VALUES
+        (
+          'history-hk-before-preview',
+          'history',
+          'hk',
+          null,
+          'preview',
+          'ss-history-hk-before-db-preview',
+          'db-history-hk-before-preview',
+          'DB_HISTORY_HK_BEFORE',
+          'active'
+        ),
+        (
+          'history-hk-2025-preview',
+          'history',
+          'hk',
+          '2025',
+          'preview',
+          'ss-history-hk-2025-db-preview',
+          'db-history-hk-2025-preview',
+          'DB_HISTORY_HK_2025',
+          'active'
+        );
+    `)
+
+    const shard = await resolveShardForTypeRegionYear(
+      db as never,
+      'history',
+      'preview',
+      'hk',
+      '2001',
+    )
+
+    expect(shard).toEqual({
+      id: 'history-hk-before-preview',
+      bindingName: 'DB_HISTORY_HK_BEFORE',
+      databaseId: 'db-history-hk-before-preview',
+      databaseName: 'ss-history-hk-before-db-preview',
+    })
+  })
+
   test('returns the closest active shard when an exact year mapping is unavailable', async () => {
     const { sqlite, db } = createShardLookupDb()
 

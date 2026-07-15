@@ -6,8 +6,10 @@ export const MAX_D1_PLACEMENT_PROBE_ITERATIONS = 100
 export const saanseoiD1BindingNames = [
   'DB_META',
   'DB_CURRENT',
+  'DB_HISTORY_HK_BEFORE',
   'DB_HISTORY_HK_2025',
   'DB_HISTORY_HK_2026',
+  'DB_SOURCE_HK_BEFORE',
   'DB_SOURCE_HK_2025',
   'DB_SOURCE_HK_2026',
 ] as const

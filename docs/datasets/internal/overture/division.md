@@ -53,4 +53,6 @@ Division parquet uploads are treated as complete source snapshots. A later relea
 closes current source/history rows that are missing from the new parquet by clearing
 `isCurrent` and setting `validToRelease` or `validToSnapshotId`. The local SQL division
 path loads previous-year source and history shards for every division upload so a 2026
-full snapshot can also close stale current rows still owned by the 2025 shard.
+full snapshot can also close stale current rows still owned by the 2025 shard. For
+cohorts before 2025, the same continuity baseline is loaded from the region-scoped
+`DB_SOURCE_HK_BEFORE` and `DB_HISTORY_HK_BEFORE` shards.

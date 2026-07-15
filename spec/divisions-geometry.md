@@ -77,7 +77,9 @@ The bridge maps source IDs/codes to a generic `canonicalId`; it does not duplica
 localized names, which remain source provenance or canonical resource data. Ambiguous or
 missing mappings block publication. Sparse pre-2025 periods may use explicit
 `SOURCE_BEFORE` and `HISTORY_BEFORE` shard assignments; `CURRENT` contains only the
-selected latest snapshot.
+selected latest snapshot. For Hong Kong, these assignments are region-scoped through
+`DB_SOURCE_HK_BEFORE` and `DB_HISTORY_HK_BEFORE`; their shard metadata uses `regionCode`
+`hk` and no numeric `year`.
 
 ## CSDI catalogue planning registry
 
@@ -111,9 +113,10 @@ the same CSDI portal.
 
 For sparse periods before 2025, route source and history records to explicit
 `SOURCE_BEFORE` and `HISTORY_BEFORE` shards while `CURRENT` retains only the selected
-latest snapshot. Bridge fixtures remain keyed by authority, domain, cohort and external
-identifier; ambiguous mappings block publication. Canonical divisions may expose reverse
-keys such as `{ "HAD:AREA_ID": "A", "HAD:AREA_CODE": "CW" }`.
+latest snapshot. For Hong Kong, use `DB_SOURCE_HK_BEFORE` and `DB_HISTORY_HK_BEFORE`.
+Bridge fixtures remain keyed by authority, domain, cohort and external identifier;
+ambiguous mappings block publication. Canonical divisions may expose reverse keys such
+as `{ "HAD:AREA_ID": "A", "HAD:AREA_CODE": "CW" }`.
 
 ## Ingestion and observability
 

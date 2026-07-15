@@ -8,8 +8,10 @@ type Environment = 'preview'
 type BindingName =
   | 'DB_META'
   | 'DB_CURRENT'
+  | 'DB_HISTORY_HK_BEFORE'
   | 'DB_HISTORY_HK_2025'
   | 'DB_HISTORY_HK_2026'
+  | 'DB_SOURCE_HK_BEFORE'
   | 'DB_SOURCE_HK_2025'
   | 'DB_SOURCE_HK_2026'
 
@@ -53,8 +55,10 @@ type PlacementWhitelist = Partial<Record<`${Environment}:${BindingName}`, true>>
 const allBindings: BindingName[] = [
   'DB_META',
   'DB_CURRENT',
+  'DB_HISTORY_HK_BEFORE',
   'DB_HISTORY_HK_2025',
   'DB_HISTORY_HK_2026',
+  'DB_SOURCE_HK_BEFORE',
   'DB_SOURCE_HK_2025',
   'DB_SOURCE_HK_2026',
 ]

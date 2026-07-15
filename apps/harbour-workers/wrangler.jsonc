@@ -18,6 +18,18 @@
       "database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
       "migrations_dir": "../../libs/db/migrations/current",
       "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
+    },
+    {
+      "binding": "DB_HISTORY_HK_BEFORE",
+      "database_name": "ss-history-hk-before-db-preview",
+      "migrations_dir": "../../libs/db/migrations/history",
+      "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
+    },
+    {
+      "binding": "DB_SOURCE_HK_BEFORE",
+      "database_name": "ss-source-hk-before-db-preview",
+      "migrations_dir": "../../libs/db/migrations/source",
+      "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
     }
   ],
   "queues": {
@@ -60,6 +72,18 @@
           "database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
           "migrations_dir": "../../libs/db/migrations/current",
           "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
+        },
+        {
+          "binding": "DB_HISTORY_HK_BEFORE",
+          "database_name": "ss-history-hk-before-db-preview",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
+        },
+        {
+          "binding": "DB_SOURCE_HK_BEFORE",
+          "database_name": "ss-source-hk-before-db-preview",
+          "migrations_dir": "../../libs/db/migrations/source",
+          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
         }
       ],
       "queues": {
@@ -92,6 +116,18 @@
           "database_id": "edd3cdf9-1d05-4847-b235-b7fd4189c38d",
           "migrations_dir": "../../libs/db/migrations/current",
           "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
+        },
+        {
+          "binding": "DB_HISTORY_HK_BEFORE",
+          "database_name": "ss-history-hk-before-db-prod",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
+        },
+        {
+          "binding": "DB_SOURCE_HK_BEFORE",
+          "database_name": "ss-source-hk-before-db-prod",
+          "migrations_dir": "../../libs/db/migrations/source",
+          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
         }
       ],
       "queues": {

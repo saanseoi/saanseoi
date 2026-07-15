@@ -1046,6 +1046,20 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
+        'data-shard-history-hk-before-preview',
+        'history',
+        'hk',
+        null,
+        'preview',
+        'fixture-history-hk-before-preview',
+        'fixture-history-hk-before-preview',
+        'DB_HISTORY_HK_BEFORE',
+        'active',
+        'vh-data-shards-hk-history-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
         'data-shard-history-hk-2025-preview',
         'history',
         'hk',
@@ -1088,6 +1102,20 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
+        'data-shard-source-hk-before-preview',
+        'source',
+        'hk',
+        null,
+        'preview',
+        'fixture-source-hk-before-preview',
+        'fixture-source-hk-before-preview',
+        'DB_SOURCE_HK_BEFORE',
+        'active',
+        'vh-data-shards-hk-source-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
         'data-shard-current-production',
         'current',
         null,
@@ -1098,6 +1126,20 @@ export function seedFixtureCatalog(db: Database) {
         'DB_CURRENT_PRODUCTION',
         'active',
         'vh-data-shards-current-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'data-shard-history-hk-before-production',
+        'history',
+        'hk',
+        null,
+        'production',
+        'fixture-history-hk-before-production',
+        'fixture-history-hk-before-production',
+        'DB_HISTORY_HK_BEFORE_PRODUCTION',
+        'active',
+        'vh-data-shards-hk-history-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
@@ -1138,6 +1180,20 @@ export function seedFixtureCatalog(db: Database) {
         'fixture-source-hk-2025-production',
         'fixture-source-hk-2025-production',
         'DB_SOURCE_HK_2025_PRODUCTION',
+        'active',
+        'vh-data-shards-hk-source-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'data-shard-source-hk-before-production',
+        'source',
+        'hk',
+        null,
+        'production',
+        'fixture-source-hk-before-production',
+        'fixture-source-hk-before-production',
+        'DB_SOURCE_HK_BEFORE_PRODUCTION',
         'active',
         'vh-data-shards-hk-source-v1',
         ${FIXTURE_TIMESTAMP_MS},
