@@ -1,5 +1,8 @@
 import { toIsoTimestamp } from '@repo/db'
-import type { DatasetStatsRow } from '@repo/db/metaSchema'
+import type {
+  ApiReleaseSetScopedStatsRow,
+  ReleaseScopedStatsRow,
+} from '@repo/db/metaSchema'
 import type { GeoJsonGeometry } from '../geojson'
 
 export type StatsLocaleGroup = 'en' | 'zh-hant' | 'zh-hans'
@@ -25,6 +28,41 @@ export type QualityCounts = {
   locale_regression_count: number
   name_regression_count: number
   parent_changed_count: number
+}
+
+export type AddressApiReleaseSetStatsInput = {
+  address2dCount: number
+  address2dI18nCount: number
+  address3dCount: number
+  address3dI18nCount: number
+  divisionLinkedCount: number
+  streetLinkedCount: number
+  missingDivisionCount: number
+  missingStreetCount: number
+  localeStats?: LocaleStatsAccumulator
+  churn?: {
+    address2d?: ChurnCounts
+    address3d?: ChurnCounts
+    totals: ChurnCounts
+  }
+  quality?: Pick<
+    QualityCounts,
+    'geometry_changed_count' | 'locale_regression_count' | 'name_regression_count'
+  >
+}
+
+export type DivisionApiReleaseSetStatsInput = {
+  divisionCount: number
+  divisionI18nCount: number
+  byDivisionType?: Map<string, number> | Record<string, number>
+  byLevel?: Map<string, number> | Record<string, number>
+  localeStats?: LocaleStatsAccumulator
+  churn?: {
+    byDivisionType?: Map<string, ChurnCounts> | Record<string, ChurnCounts>
+    byLevel?: Map<string, ChurnCounts> | Record<string, ChurnCounts>
+    totals: ChurnCounts
+  }
+  quality?: QualityCounts
 }
 
 export type LocalizedStatsRow = {
@@ -92,7 +130,7 @@ export function updateLocaleStatsAccumulator(
 }
 
 /**
- * Converts accumulated locale completeness counters into dataset stats rows.
+ * Converts accumulated locale completeness counters into release stats rows.
  */
 export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
   const createdAt = toIsoTimestamp()
@@ -105,7 +143,7 @@ export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
     const total = statsAccumulator.total
 
     return [
-      buildDatasetStatsRow(
+      buildReleaseStatsRow(
         'locale_count',
         'completeness',
         'count',
@@ -116,7 +154,7 @@ export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
           groupValue: locale,
         },
       ),
-      buildDatasetStatsRow(
+      buildReleaseStatsRow(
         'locale_coverage',
         'completeness',
         'percentage',
@@ -127,7 +165,7 @@ export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
           groupValue: locale,
         },
       ),
-      buildDatasetStatsRow(
+      buildReleaseStatsRow(
         'locale_coverage_non_inferred',
         'completeness',
         'percentage',
@@ -138,7 +176,7 @@ export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
           groupValue: locale,
         },
       ),
-      buildDatasetStatsRow(
+      buildReleaseStatsRow(
         'locale_alt_coverage',
         'completeness',
         'percentage',
@@ -250,7 +288,7 @@ export function buildQualityCounts<TLocalizedRow>(
 }
 
 /**
- * Converts churn counts into dataset stats rows for totals and per-type breakdowns.
+ * Converts churn counts into release stats rows for totals and per-type breakdowns.
  */
 export function buildChurnStatsRows(churn: {
   totals: ChurnCounts
@@ -278,34 +316,34 @@ export function buildChurnStatsRows(churn: {
 }
 
 /**
- * Converts quality counters into dataset stats rows.
+ * Converts quality counters into release stats rows.
  */
 export function buildQualityStatsRows(counts: QualityCounts) {
   const createdAt = toIsoTimestamp()
 
   return [
-    buildDatasetStatsRow(
+    buildReleaseStatsRow(
       'parent_changed_count',
       'quality',
       'count',
       counts.parent_changed_count,
       createdAt,
     ),
-    buildDatasetStatsRow(
+    buildReleaseStatsRow(
       'locale_regression_count',
       'quality',
       'count',
       counts.locale_regression_count,
       createdAt,
     ),
-    buildDatasetStatsRow(
+    buildReleaseStatsRow(
       'name_regression_count',
       'quality',
       'count',
       counts.name_regression_count,
       createdAt,
     ),
-    buildDatasetStatsRow(
+    buildReleaseStatsRow(
       'geometry_changed_count',
       'quality',
       'count',
@@ -313,6 +351,255 @@ export function buildQualityStatsRows(counts: QualityCounts) {
       createdAt,
     ),
   ]
+}
+
+export function buildAddressApiReleaseSetStatsRows(
+  input: AddressApiReleaseSetStatsInput,
+) {
+  const createdAt = toIsoTimestamp()
+  const rows: ApiReleaseSetScopedStatsRow[] = [
+    buildApiReleaseSetStatsRow(
+      'records',
+      'count',
+      'count',
+      input.address2dCount,
+      createdAt,
+    ),
+    buildApiReleaseSetStatsRow(
+      'records',
+      'count',
+      'count',
+      input.address2dCount,
+      createdAt,
+      {
+        groupBy: 'table',
+        groupValue: 'address2d',
+      },
+    ),
+    buildApiReleaseSetStatsRow(
+      'records',
+      'count',
+      'count',
+      input.address3dCount,
+      createdAt,
+      {
+        groupBy: 'table',
+        groupValue: 'address3d',
+      },
+    ),
+    buildApiReleaseSetStatsRow(
+      'localized_records',
+      'count',
+      'count',
+      input.address2dI18nCount,
+      createdAt,
+      {
+        groupBy: 'table',
+        groupValue: 'address2dI18n',
+      },
+    ),
+    buildApiReleaseSetStatsRow(
+      'localized_records',
+      'count',
+      'count',
+      input.address3dI18nCount,
+      createdAt,
+      {
+        groupBy: 'table',
+        groupValue: 'address3dI18n',
+      },
+    ),
+    buildApiReleaseSetStatsRow(
+      'detail_records',
+      'count',
+      'count',
+      input.address3dCount,
+      createdAt,
+      {
+        groupBy: 'table',
+        groupValue: 'address3d',
+      },
+    ),
+    buildApiReleaseSetStatsRow(
+      'localized_detail_records',
+      'count',
+      'count',
+      input.address3dI18nCount,
+      createdAt,
+      {
+        groupBy: 'table',
+        groupValue: 'address3dI18n',
+      },
+    ),
+    buildApiReleaseSetStatsRow(
+      'division_linked_count',
+      'quality',
+      'count',
+      input.divisionLinkedCount,
+      createdAt,
+    ),
+    buildApiReleaseSetStatsRow(
+      'street_linked_count',
+      'quality',
+      'count',
+      input.streetLinkedCount,
+      createdAt,
+    ),
+    buildApiReleaseSetStatsRow(
+      'missing_division_count',
+      'quality',
+      'count',
+      input.missingDivisionCount,
+      createdAt,
+    ),
+    buildApiReleaseSetStatsRow(
+      'missing_street_count',
+      'quality',
+      'count',
+      input.missingStreetCount,
+      createdAt,
+    ),
+  ]
+
+  if (input.localeStats) {
+    rows.push(...buildApiReleaseSetLocaleStatsRows(input.localeStats, createdAt))
+  }
+
+  if (input.churn) {
+    rows.push(...buildApiReleaseSetChurnMetricRows(input.churn.totals, createdAt, null))
+    rows.push(
+      ...buildOptionalGroupedChurnRows(input.churn.address2d, createdAt, {
+        groupBy: 'table',
+        groupValue: 'address2d',
+      }),
+      ...buildOptionalGroupedChurnRows(input.churn.address3d, createdAt, {
+        groupBy: 'table',
+        groupValue: 'address3d',
+      }),
+    )
+  }
+
+  if (input.quality) {
+    rows.push(
+      buildApiReleaseSetStatsRow(
+        'locale_regression_count',
+        'quality',
+        'count',
+        input.quality.locale_regression_count,
+        createdAt,
+      ),
+      buildApiReleaseSetStatsRow(
+        'name_regression_count',
+        'quality',
+        'count',
+        input.quality.name_regression_count,
+        createdAt,
+      ),
+      buildApiReleaseSetStatsRow(
+        'geometry_changed_count',
+        'quality',
+        'count',
+        input.quality.geometry_changed_count,
+        createdAt,
+      ),
+    )
+  }
+
+  return rows
+}
+
+export function buildDivisionApiReleaseSetStatsRows(
+  input: DivisionApiReleaseSetStatsInput,
+) {
+  const createdAt = toIsoTimestamp()
+  const rows: ApiReleaseSetScopedStatsRow[] = [
+    buildApiReleaseSetStatsRow(
+      'records',
+      'count',
+      'count',
+      input.divisionCount,
+      createdAt,
+    ),
+    buildApiReleaseSetStatsRow(
+      'records',
+      'count',
+      'count',
+      input.divisionCount,
+      createdAt,
+      {
+        groupBy: 'table',
+        groupValue: 'divisions',
+      },
+    ),
+    buildApiReleaseSetStatsRow(
+      'localized_records',
+      'count',
+      'count',
+      input.divisionI18nCount,
+      createdAt,
+      {
+        groupBy: 'table',
+        groupValue: 'divisionsI18n',
+      },
+    ),
+  ]
+
+  rows.push(
+    ...buildGroupedCountRows(
+      input.byDivisionType,
+      'records',
+      createdAt,
+      'divisionType',
+    ),
+    ...buildGroupedCountRows(input.byLevel, 'records', createdAt, 'level'),
+  )
+
+  if (input.localeStats) {
+    rows.push(...buildApiReleaseSetLocaleStatsRows(input.localeStats, createdAt))
+  }
+
+  if (input.churn) {
+    rows.push(...buildApiReleaseSetChurnMetricRows(input.churn.totals, createdAt, null))
+    rows.push(
+      ...buildGroupedChurnRows(input.churn.byDivisionType, createdAt, 'divisionType'),
+      ...buildGroupedChurnRows(input.churn.byLevel, createdAt, 'level'),
+    )
+  }
+
+  if (input.quality) {
+    rows.push(
+      buildApiReleaseSetStatsRow(
+        'parent_changed_count',
+        'quality',
+        'count',
+        input.quality.parent_changed_count,
+        createdAt,
+      ),
+      buildApiReleaseSetStatsRow(
+        'locale_regression_count',
+        'quality',
+        'count',
+        input.quality.locale_regression_count,
+        createdAt,
+      ),
+      buildApiReleaseSetStatsRow(
+        'name_regression_count',
+        'quality',
+        'count',
+        input.quality.name_regression_count,
+        createdAt,
+      ),
+      buildApiReleaseSetStatsRow(
+        'geometry_changed_count',
+        'quality',
+        'count',
+        input.quality.geometry_changed_count,
+        createdAt,
+      ),
+    )
+  }
+
+  return rows
 }
 
 /**
@@ -367,7 +654,7 @@ export function hasNameRegression<
   return false
 }
 
-function buildDatasetStatsRow(
+function buildReleaseStatsRow(
   dimension: string,
   metric: string,
   metricUnit: string,
@@ -377,7 +664,52 @@ function buildDatasetStatsRow(
     groupBy: string
     groupValue: string
   },
-): DatasetStatsRow {
+): ReleaseScopedStatsRow {
+  return buildStatsRow(
+    'release',
+    dimension,
+    metric,
+    metricUnit,
+    value,
+    timestamp,
+    grouping,
+  )
+}
+
+function buildApiReleaseSetStatsRow(
+  dimension: string,
+  metric: string,
+  metricUnit: string,
+  value: number,
+  timestamp: string,
+  grouping?: {
+    groupBy: string
+    groupValue: string
+  },
+): ApiReleaseSetScopedStatsRow {
+  return buildStatsRow(
+    'apiReleaseSet',
+    dimension,
+    metric,
+    metricUnit,
+    value,
+    timestamp,
+    grouping,
+  )
+}
+
+function buildStatsRow(
+  type: 'apiReleaseSet' | 'release',
+  dimension: string,
+  metric: string,
+  metricUnit: string,
+  value: number,
+  timestamp: string,
+  grouping?: {
+    groupBy: string
+    groupValue: string
+  },
+) {
   return {
     createdAt: timestamp,
     dimension,
@@ -385,10 +717,143 @@ function buildDatasetStatsRow(
     groupValue: grouping?.groupValue ?? null,
     metric,
     metricUnit,
-    type: 'dataset',
+    type,
     updatedAt: timestamp,
     value,
   }
+}
+
+function buildApiReleaseSetLocaleStatsRows(
+  statsAccumulator: LocaleStatsAccumulator,
+  createdAt: string,
+) {
+  const locales: StatsLocaleGroup[] = ['en', 'zh-hant', 'zh-hans']
+
+  return locales.flatMap(locale => {
+    const localeCount = statsAccumulator.count.get(locale) ?? 0
+    const localeNonInferredCount = statsAccumulator.nonInferredCoverage.get(locale) ?? 0
+    const localeAltCount = statsAccumulator.altCoverage.get(locale) ?? 0
+    const total = statsAccumulator.total
+
+    return [
+      buildApiReleaseSetStatsRow(
+        'locale_count',
+        'completeness',
+        'count',
+        localeCount,
+        createdAt,
+        {
+          groupBy: 'locale',
+          groupValue: locale,
+        },
+      ),
+      buildApiReleaseSetStatsRow(
+        'locale_coverage',
+        'completeness',
+        'percentage',
+        percentage(localeCount, total),
+        createdAt,
+        {
+          groupBy: 'locale',
+          groupValue: locale,
+        },
+      ),
+      buildApiReleaseSetStatsRow(
+        'locale_coverage_non_inferred',
+        'completeness',
+        'percentage',
+        percentage(localeNonInferredCount, total),
+        createdAt,
+        {
+          groupBy: 'locale',
+          groupValue: locale,
+        },
+      ),
+      buildApiReleaseSetStatsRow(
+        'locale_alt_coverage',
+        'completeness',
+        'percentage',
+        percentage(localeAltCount, total),
+        createdAt,
+        {
+          groupBy: 'locale',
+          groupValue: locale,
+        },
+      ),
+    ]
+  })
+}
+
+function buildGroupedCountRows(
+  counts: Map<string, number> | Record<string, number> | undefined,
+  dimension: string,
+  createdAt: string,
+  groupBy: string,
+) {
+  return mapEntries(counts).map(([groupValue, value]) =>
+    buildApiReleaseSetStatsRow(dimension, 'count', 'count', value, createdAt, {
+      groupBy,
+      groupValue,
+    }),
+  )
+}
+
+function buildGroupedChurnRows(
+  counts: Map<string, ChurnCounts> | Record<string, ChurnCounts> | undefined,
+  createdAt: string,
+  groupBy: string,
+) {
+  return mapEntries(counts).flatMap(([groupValue, churnCounts]) =>
+    buildApiReleaseSetChurnMetricRows(churnCounts, createdAt, {
+      groupBy,
+      groupValue,
+    }),
+  )
+}
+
+function buildOptionalGroupedChurnRows(
+  counts: ChurnCounts | undefined,
+  createdAt: string,
+  grouping: {
+    groupBy: string
+    groupValue: string
+  },
+) {
+  if (!counts) {
+    return []
+  }
+
+  return buildApiReleaseSetChurnMetricRows(counts, createdAt, grouping)
+}
+
+function buildApiReleaseSetChurnMetricRows(
+  counts: ChurnCounts,
+  timestamp: string,
+  grouping: {
+    groupBy: string
+    groupValue: string
+  } | null,
+) {
+  return churnMetricNames.map(dimension =>
+    buildApiReleaseSetStatsRow(
+      dimension,
+      'churn',
+      'count',
+      counts[dimension],
+      timestamp,
+      grouping ?? undefined,
+    ),
+  )
+}
+
+function mapEntries<T>(values: Map<string, T> | Record<string, T> | undefined) {
+  if (!values) {
+    return []
+  }
+
+  return values instanceof Map
+    ? [...values.entries()].sort(([left], [right]) => left.localeCompare(right))
+    : Object.entries(values).sort(([left], [right]) => left.localeCompare(right))
 }
 
 function incrementStatsCounts(
@@ -424,16 +889,8 @@ function buildChurnMetricRows(
     groupValue: string
   } | null,
 ) {
-  const metrics: ChurnMetricName[] = [
-    'count',
-    'unchanged_count',
-    'changed_count',
-    'added_count',
-    'removed_count',
-  ]
-
-  return metrics.map(dimension =>
-    buildDatasetStatsRow(
+  return churnMetricNames.map(dimension =>
+    buildReleaseStatsRow(
       dimension,
       'churn',
       'count',
@@ -443,6 +900,14 @@ function buildChurnMetricRows(
     ),
   )
 }
+
+const churnMetricNames: ChurnMetricName[] = [
+  'count',
+  'unchanged_count',
+  'changed_count',
+  'added_count',
+  'removed_count',
+]
 
 function createEmptyChurnCounts(): ChurnCounts {
   return {
