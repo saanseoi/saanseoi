@@ -25,6 +25,16 @@ import {
 } from '../../types'
 
 const TYPE_ALIASES: Record<string, ResourceType> = {
+  divisionarea: 'divisionArea',
+  'division-area': 'divisionArea',
+  division_area: 'divisionArea',
+  area: 'divisionArea',
+  areas: 'divisionArea',
+  divisionboundary: 'divisionBoundary',
+  'division-boundary': 'divisionBoundary',
+  division_boundary: 'divisionBoundary',
+  boundary: 'divisionBoundary',
+  boundaries: 'divisionBoundary',
   address: 'address',
   addresses: 'address',
   division: 'division',
@@ -38,6 +48,8 @@ const TYPE_ALIASES: Record<string, ResourceType> = {
 const TYPE_THEME_MAP: Record<ResourceType, ResourceTheme> = {
   address: 'addresses',
   division: 'divisions',
+  divisionArea: 'divisions',
+  divisionBoundary: 'divisions',
   street: 'streets',
   place: 'places',
 }
@@ -71,10 +83,10 @@ const SOURCE_ALIASES: Record<string, string> = {
   overture: 'overture',
   'overture-maps': 'overture',
   hkgov: 'hkgov',
-  'hkgov-als': 'hkgov-als',
-  'hkgov als': 'hkgov-als',
-  als: 'hkgov-als',
-  'hk-als': 'hkgov-als',
+  'hkgov-dpo': 'hkgov-dpo',
+  'hkgov als': 'hkgov-dpo',
+  als: 'hkgov-dpo',
+  'hk-als': 'hkgov-dpo',
 }
 
 const SOURCE_MATCHERS = Object.entries(SOURCE_ALIASES).sort(
@@ -161,7 +173,7 @@ function buildDatasetCode(regionCode: RegionCode, source: string, type: Resource
 function formatDatasetIdentifier(datasetCode?: string, datasetId?: string) {
   if (datasetCode?.startsWith('ds-')) {
     const match = datasetCode.match(
-      /^ds-([a-z0-9]+)-(.+)-(address|division|place|street)(?:-(.+))?$/i,
+      /^ds-([a-z0-9]+)-(.+)-(divisionArea|divisionBoundary|address|division|place|street)(?:-(.+))?$/i,
     )
 
     if (match) {
@@ -604,7 +616,7 @@ async function ensureSourcePrerequisites(
   db: HarbourReadableDb,
   plan: Pick<UploadPlan, 'regionCode' | 'cohortKey' | 'source' | 'type'>,
 ) {
-  if (plan.source !== 'hkgov-als' || plan.type !== 'address') {
+  if (plan.source !== 'hkgov-dpo' || plan.type !== 'address') {
     return
   }
 
@@ -698,7 +710,7 @@ function resolveUploadPlan(
 
   if (!source) {
     throw new Error(
-      'Could not determine source. Pass `--source overture|hkgov-als` or use a recognizable path/file name.',
+      'Could not determine source. Pass `--source overture|hkgov-dpo` or use a recognizable path/file name.',
     )
   }
   const sourceVersionFromPath = inferSourceVersionFromPath(directoryPath)
@@ -741,6 +753,7 @@ function resolveUploadPlan(
     filePath: options.filePath,
     fileName,
     originalFileName,
+    releaseNotesUrl: options.releaseNotesUrl?.trim() || undefined,
     rowCount: resolvedInspection.rowCount,
     schemaFingerprint: createSchemaFingerprint(resolvedInspection),
     inferredFrom: {
