@@ -40,7 +40,14 @@ export async function cleanupCurrentSnapshots(
   const snapshotIds: string[] = []
   let skippedSnapshots = 0
 
-  for (const resourceType of ['place', 'address', 'street', 'division'] as const) {
+  for (const resourceType of [
+    'place',
+    'address',
+    'street',
+    'division',
+    'divisionArea',
+    'divisionBoundary',
+  ] as const) {
     for (const candidate of candidates.filter(
       candidate => candidate.resourceType === resourceType,
     )) {
@@ -98,6 +105,16 @@ async function cleanupSnapshotByResourceType(
         return false
       }
       await deleteDivisionSnapshot(db, candidate.snapshotId)
+      return true
+    case 'divisionArea':
+      await db
+        .delete(currentSchema.divisionAreas)
+        .where(eq(currentSchema.divisionAreas.snapshotId, candidate.snapshotId))
+      return true
+    case 'divisionBoundary':
+      await db
+        .delete(currentSchema.divisionBoundaries)
+        .where(eq(currentSchema.divisionBoundaries.snapshotId, candidate.snapshotId))
       return true
   }
 }
