@@ -11,6 +11,8 @@ export { getCurrentLocale, updateLocale }
 export type AppLocale = (typeof locales)[number]
 type MessageKey = keyof typeof enMessages
 
+export type { MessageKey }
+
 export function selectLocalizedRow<T extends { locale: string }>(
   rows: readonly T[] | null | undefined,
   locale: AppLocale,
@@ -30,7 +32,10 @@ const messages = {
 } satisfies Record<AppLocale, Record<MessageKey, string>>
 
 function resolveMessage(key: MessageKey) {
-  const locale = getCurrentLocale()
+  return getLocalizedMessage(key, getCurrentLocale())
+}
+
+export function getLocalizedMessage(key: MessageKey, locale: AppLocale) {
   return messages[locale]?.[key] ?? messages.en[key]
 }
 
