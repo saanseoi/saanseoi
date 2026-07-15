@@ -1085,6 +1085,7 @@ describe('control service', () => {
     sqlite.close()
 
     expect(result.apiReleaseSetId).toBe(releaseSetId)
+    expect(result.apiReleaseSetStatus).toBe('current')
     expect(publishedSet.status).toBe('current')
     expect(hadRelease.status).toBe('published')
     expect(hadSnapshot.status).toBe('published')

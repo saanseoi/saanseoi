@@ -72,6 +72,7 @@ const {
   assertAddressUploadPrerequisites,
   assertDivisionGeometryUploadPrerequisites,
   formatDivisionApiReleaseSetReadiness,
+  rainbowWaveText,
 } = await import('./upload.ts')
 
 describe('upload command address prerequisites', () => {
@@ -135,6 +136,12 @@ describe('upload command address prerequisites', () => {
 })
 
 describe('division API release set readiness display', () => {
+  test('renders a release set code as a rainbow wave', () => {
+    expect(rainbowWaveText('set')).toBe(
+      '\u001B[38;5;196ms\u001B[38;5;202me\u001B[38;5;226mt\u001B[39m',
+    )
+  })
+
   test('treats an eligible provider area release as satisfying the area requirement', () => {
     expect(
       formatDivisionApiReleaseSetReadiness(
@@ -197,7 +204,7 @@ describe('division API release set readiness display', () => {
         '  \u001B[32m✓\u001B[39m divisionBoundary  available',
         '',
         'At or Before Cohort',
-        '  \u001B[33m○\u001B[39m hkgov-had-hk-2022-district  self',
+        '  \u001B[32m✓\u001B[39m hkgov-had-hk-2022-district  self',
       ].join('\n'),
     )
   })
