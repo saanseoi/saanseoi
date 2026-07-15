@@ -12,8 +12,21 @@ describe('api field fixtures', () => {
       'ds-hk-overture-division': '1.12.0',
       'ds-hk-overture-divisionArea': '1.12.0',
       'ds-hk-overture-divisionBoundary': '1.12.0',
-      'ds-hk-hkgov-had-district': '1.2',
     })
+
+    expect(
+      resolveApiFieldFixture({
+        apiVersion: 'api-divisions-v0.1',
+        snapshotVersion: 'ss-hk-division-2025-09-24.0',
+        schemaVersion: 'sv-division-v1',
+        rulesetVersion: 'rs-division-merge-v1',
+        sourceSchemas: {
+          'ds-hk-overture-division': '1.12.0',
+          'ds-hk-overture-divisionArea': '1.12.0',
+          'ds-hk-overture-divisionBoundary': '1.12.0',
+        },
+      })?.validFromSnapshotVersion,
+    ).toBe('ss-hk-division-2025-09-24.0')
   })
 
   test('returns defensive copies from the fixture registry', () => {

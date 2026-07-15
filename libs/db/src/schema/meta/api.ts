@@ -269,6 +269,7 @@ export const metaApiCompositionMembers = sqliteTable(
   {
     apiCompositionId: apiCompositionIdColumn(),
     resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
+    variant: text('variant').notNull().default('default'),
     role: text('role').notNull(),
     isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
     selectionMode: text('selectionMode').notNull(),
@@ -281,7 +282,7 @@ export const metaApiCompositionMembers = sqliteTable(
   },
   table => [
     primaryKey({
-      columns: [table.apiCompositionId, table.resourceType],
+      columns: [table.apiCompositionId, table.resourceType, table.variant],
     }),
   ],
 )
@@ -291,6 +292,7 @@ export const metaApiReleaseSetSnapshots = sqliteTable(
   {
     apiReleaseSetId: apiReleaseSetIdColumn(),
     snapshotId: snapshotIdColumn('restrict'),
+    variant: text('variant').notNull().default('default'),
     role: text('role').notNull(),
     isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
     selectionMode: text('selectionMode').notNull(),
@@ -301,7 +303,7 @@ export const metaApiReleaseSetSnapshots = sqliteTable(
   },
   table => [
     primaryKey({
-      columns: [table.apiReleaseSetId, table.snapshotId],
+      columns: [table.apiReleaseSetId, table.snapshotId, table.variant],
     }),
     index('apiReleaseSetSnapshots_snapshotId_idx').on(table.snapshotId),
   ],
@@ -333,6 +335,7 @@ export const metaApiFieldProvenance = sqliteTable(
     id: primaryUuid('id'),
     apiReleaseSetId: apiReleaseSetIdColumn(),
     apiField: text('apiField').notNull(),
+    variant: text('variant'),
     sourceDatasetId: text('sourceDatasetId')
       .notNull()
       .references(() => metaDatasets.id, { onDelete: 'restrict' }),
@@ -350,6 +353,7 @@ export const metaApiFieldProvenance = sqliteTable(
     uniqueIndex('apiFieldProvenance_release_field_source_unique_idx').on(
       table.apiReleaseSetId,
       table.apiField,
+      table.variant,
       table.sourceDatasetId,
       table.sourceFieldPath,
       table.contributionType,

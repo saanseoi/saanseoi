@@ -9,6 +9,8 @@ import type { ProvenanceContributionType, ResolverCode } from './constants/schem
 
 export type ApiFieldFixtureField = {
   apiField: string
+  /** Geometry-source selector; omitted for fields independent of a variant. */
+  variant?: string | null
   sourceDatasetCode: string
   sourceFieldPath: string
   resolverCode: ResolverCode

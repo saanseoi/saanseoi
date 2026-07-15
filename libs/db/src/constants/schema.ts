@@ -19,6 +19,7 @@ export const resolverCodes = [
   'lookup_fk',
   'map_division_level',
   'map_division_type',
+  'derive_variant_from_source',
   'derive_bbox_from_geometry',
   'prefer_hkgov_then_overture',
   'prefer_overture_then_hkgov',

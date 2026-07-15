@@ -133,6 +133,7 @@ type ApiCompositionFixture = {
   notes?: string
   members: Array<{
     resourceType: ResourceType
+    variant?: string
     role: string
     isRequired: boolean
     selectionMode: string
@@ -204,6 +205,7 @@ type InitialApiCompositionSeed = VersionedFixture<{
 type InitialApiCompositionMemberSeed = {
   apiCompositionCode: string
   resourceType: ResourceType
+  variant: string
   role: string
   isRequired: boolean
   selectionMode: string
@@ -364,6 +366,7 @@ export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
     fixture.members.map(member => ({
       apiCompositionCode: fixture.code,
       resourceType: member.resourceType,
+      variant: member.variant ?? 'default',
       role: member.role,
       isRequired: member.isRequired,
       selectionMode: member.selectionMode,
@@ -661,10 +664,11 @@ WHERE apiComposition.versionHash <> excluded.versionHash;`.trim(),
     statements.push(
       `
 INSERT INTO apiCompositionMembers (
-  apiCompositionId, resourceType, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+  apiCompositionId, resourceType, variant, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
 ) VALUES (
   (SELECT id FROM apiComposition WHERE code = ${sqlString(member.apiCompositionCode)}),
   ${sqlString(member.resourceType)},
+  ${sqlString(member.variant)},
   ${sqlString(member.role)},
   ${member.isRequired ? 1 : 0},
   ${sqlString(member.selectionMode)},
@@ -673,7 +677,7 @@ INSERT INTO apiCompositionMembers (
   ${member.priority},
   NULL
 )
-ON CONFLICT(apiCompositionId, resourceType) DO UPDATE SET
+ON CONFLICT(apiCompositionId, resourceType, variant) DO UPDATE SET
   role = excluded.role,
   isRequired = excluded.isRequired,
   selectionMode = excluded.selectionMode,
