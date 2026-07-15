@@ -31,6 +31,30 @@ sterile "tech" whites.
 - **Muted Stone:** A neutral gray used for secondary meta-data and decorative rules to
   maintain a low-noise environment.
 
+### Semantic Data Palette
+
+The Digital Commons data extension uses explicit semantic colors for marks, rules, and
+small status surfaces. Large cards remain on the neutral data surfaces so the charts
+stay quiet and architectural.
+
+- **Success** `#10b981` — additions, healthy coverage, and positive movement.
+- **Warning** `#f59e0b` — changed records and points of attention.
+- **Error** `#ef4444` — removals and regressions.
+- **Alert** `#dc2626` — quality issues requiring attention.
+- **Neutral** `#6c7a71` — unchanged records and supporting rules.
+- **Track** `#dde4dd` — the quiet background behind data bars.
+
+Data surfaces use `#f4fbf4` as the base, `#eef6ee` for low containers, `#e8f0e9` for
+containers, `#e3eae3` for high containers, `#dde4dd` for the highest container,
+`#ffffff` for the lowest surface, and `#bbcabf` for outline variants. The corresponding
+dark semantic foregrounds are Success `#34d399`, Warning `#fbbf24`, Error `#f87171`, and
+Alert `#f87171`; dark data surfaces use deeper neutral containers.
+
+Bar charts use solid fills without borders. Stacked bars use a 1px `Ink` divider between
+segments in light mode and an Eggshell divider in dark mode. Keep semantic colors on
+marks, rules, and compact status surfaces; use the neutral surface tokens for large
+cards.
+
 ## Typography
 
 Typography is the primary vehicle for the brand’s "Urbanist" identity. We use a pairing
