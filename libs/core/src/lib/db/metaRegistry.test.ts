@@ -271,6 +271,7 @@ function createLatestDatasetLookupDb() {
       cohortKey TEXT NOT NULL,
       rawObjectKey TEXT NOT NULL,
       originalFileName TEXT NOT NULL,
+      releaseNotesUrl TEXT,
       notes TEXT,
       status TEXT NOT NULL,
       revokedAt INTEGER,
@@ -421,6 +422,7 @@ function createPublishReleaseArtifactsDb() {
       id TEXT PRIMARY KEY,
       sourceVersion TEXT,
       sourceSchemaVersion TEXT,
+      releaseNotesUrl TEXT,
       notes TEXT,
       status TEXT NOT NULL,
       revokedAt INTEGER,
@@ -1415,7 +1417,7 @@ describe('publishReleaseArtifacts', () => {
           type: 'division',
         }),
       ).rejects.toThrow(
-        'No Overture source schema mapping found for sourceVersion=2026-06-24.0.',
+        'No overture source schema mapping found for sourceVersion=2026-06-24.0.',
       )
     } finally {
       globalThis.fetch = originalFetch
