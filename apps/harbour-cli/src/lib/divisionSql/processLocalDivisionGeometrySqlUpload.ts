@@ -416,7 +416,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       },
       releaseCode,
     )
-    await client.publishDataset(releaseId, releaseCode, {
+    const publishResult = await client.publishDataset(releaseId, releaseCode, {
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
     progress.complete(
@@ -427,7 +427,11 @@ export async function processLocalDivisionGeometrySqlUpload(
         Date.now() - publishStartedAt,
       ),
     )
-    return { snapshotId: snapshot.id, importedRows: normalized.length }
+    return {
+      snapshotId: snapshot.id,
+      importedRows: normalized.length,
+      publishResult,
+    }
   } catch (error) {
     progress.fail(error instanceof Error ? error.message : String(error))
     const failureClient =

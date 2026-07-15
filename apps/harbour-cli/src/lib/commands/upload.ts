@@ -338,7 +338,7 @@ ${mutedBar}  `)
           throw new Error('Expected a prepared upload file for local SQL processing.')
         }
 
-        await processLocalDivisionGeometrySqlUpload(
+        const processingResult = await processLocalDivisionGeometrySqlUpload(
           target,
           {
             cohortKey: previewResult.plan.cohortKey,
@@ -360,10 +360,19 @@ ${mutedBar}  `)
 
         const releaseSetReadiness = await resolveDivisionApiReleaseSetReadiness(
           target,
-          previewResult.plan,
+          withReleaseSetCohort(
+            previewResult.plan,
+            processingResult.publishResult?.apiReleaseSetCode,
+          ),
         )
         note(
-          formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
+          formatDivisionApiReleaseSetReadiness(
+            withReleaseSetCohort(
+              previewResult.plan,
+              processingResult.publishResult?.apiReleaseSetCode,
+            ),
+            releaseSetReadiness,
+          ),
           'API RELEASE SET',
         )
         outro(formatSuccessfulReleaseMessage(commandStartedAt))
@@ -647,7 +656,9 @@ export async function resolveDivisionApiReleaseSetReadiness(
 }
 
 export function formatDivisionApiReleaseSetReadiness(
-  plan: Pick<DivisionGeometryPlan, 'cohortKey' | 'regionCode'>,
+  plan: Pick<DivisionGeometryPlan, 'cohortKey' | 'regionCode'> & {
+    releaseCode?: string
+  },
   readiness: DivisionReleaseSetReadiness,
 ) {
   const rows = [
@@ -656,11 +667,13 @@ export function formatDivisionApiReleaseSetReadiness(
     ['divisionBoundary', readiness.boundaryAvailable],
   ] as const
   const width = Math.max(...rows.map(([dataset]) => dataset.length))
-  const cohortIndependentRows: Array<[release: string, available: boolean]> =
-    readiness.cohortIndependentReleases.map(release => [
-      release.releaseCode ?? release.datasetCode,
-      release.releaseCode !== null,
-    ])
+  const cohortIndependentRows: Array<
+    [release: string, available: boolean, self: boolean]
+  > = readiness.cohortIndependentReleases.map(release => [
+    release.releaseCode ?? release.datasetCode,
+    release.releaseCode !== null,
+    release.releaseCode === plan.releaseCode,
+  ])
   const cohortIndependentWidth = Math.max(
     ...cohortIndependentRows.map(([release]) => release.length),
   )
@@ -674,10 +687,22 @@ export function formatDivisionApiReleaseSetReadiness(
     '',
     'At or Before Cohort',
     ...cohortIndependentRows.map(
-      ([release, available]) =>
-        `  ${available ? greenText('✓') : yellowText('○')} ${release.padEnd(cohortIndependentWidth)}  ${available ? 'available' : 'unavailable'}`,
+      ([release, available, self]) =>
+        `  ${self ? yellowText('○') : available ? greenText('✓') : yellowText('○')} ${release.padEnd(cohortIndependentWidth)}  ${self ? 'self' : available ? 'available' : 'unavailable'}`,
     ),
   ].join('\n')
+}
+
+function withReleaseSetCohort(
+  plan: DivisionGeometryPlan,
+  releaseSetCode: string | undefined,
+): DivisionGeometryPlan {
+  const cohortKey = parseDivisionReleaseSetCohortKey(releaseSetCode)
+  return cohortKey ? { ...plan, cohortKey } : plan
+}
+
+function parseDivisionReleaseSetCohortKey(releaseSetCode: string | undefined) {
+  return releaseSetCode?.match(/^data-[a-z0-9]+-divisions-(.+)-\d+$/i)?.[1]
 }
 
 async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(

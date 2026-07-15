@@ -167,6 +167,40 @@ describe('division API release set readiness display', () => {
       ].join('\n'),
     )
   })
+
+  test('reports the selected release-set cohort and identifies the uploaded provider release as self', () => {
+    expect(
+      formatDivisionApiReleaseSetReadiness(
+        {
+          cohortKey: '2025-09-24.0',
+          regionCode: 'hk',
+          releaseCode: 'hkgov-had-hk-2022-district',
+        },
+        {
+          areaAvailable: true,
+          boundaryAvailable: true,
+          cohortIndependentReleases: [
+            {
+              datasetCode: 'ds-hk-hkgov-had-district',
+              releaseCode: 'hkgov-had-hk-2022-district',
+            },
+          ],
+          divisionAvailable: true,
+          ready: true,
+        },
+      ),
+    ).toBe(
+      [
+        'HK / 2025-09-24.0',
+        '  \u001B[32m✓\u001B[39m division          available',
+        '  \u001B[32m✓\u001B[39m divisionArea      available',
+        '  \u001B[32m✓\u001B[39m divisionBoundary  available',
+        '',
+        'At or Before Cohort',
+        '  \u001B[33m○\u001B[39m hkgov-had-hk-2022-district  self',
+      ].join('\n'),
+    )
+  })
 })
 
 describe('Home Affairs Department geometry prerequisites', () => {

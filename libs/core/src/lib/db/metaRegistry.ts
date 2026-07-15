@@ -1815,6 +1815,69 @@ export async function resolveActiveReleaseSetForType(
   )
 }
 
+/**
+ * Finds draft API release sets that can consume a cohort-independent source
+ * snapshot. The source cohort must be at or before the release-set cohort.
+ *
+ * This is used for provider variants such as the HAD district geometry: one
+ * source release can complete several pending division API release sets.
+ */
+export async function listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
+  db: HarbourReadableDb,
+  type: ResourceType,
+  regionCode: RegionCode,
+  cohortKey: string,
+) {
+  const apiVersionCode = getApiVersionCodeForType(type)
+  const apiVersion = await db
+    .select({
+      familyType: metaApiVersions.familyType,
+      id: metaApiVersions.id,
+    })
+    .from(metaApiVersions)
+    .where(eq(metaApiVersions.code, apiVersionCode))
+    .limit(1)
+    .get()
+
+  if (!apiVersion) return []
+
+  const codePrefix = `data-${regionCode}-${apiVersion.familyType}-`
+  const rows = await db
+    .select({
+      code: metaApiReleaseSets.code,
+      id: metaApiReleaseSets.id,
+    })
+    .from(metaApiReleaseSets)
+    .where(
+      and(
+        eq(metaApiReleaseSets.apiVersionId, apiVersion.id),
+        eq(metaApiReleaseSets.status, 'draft'),
+        sql`${metaApiReleaseSets.code} LIKE ${`${codePrefix}%`}`,
+      ),
+    )
+    .orderBy(desc(metaApiReleaseSets.createdAt))
+    .all()
+
+  return rows
+    .flatMap(row => {
+      const match = row.code.match(new RegExp(`^${escapeRegExp(codePrefix)}(.+)-\\d+$`))
+      const releaseSetCohortKey = match?.[1]
+
+      return releaseSetCohortKey && releaseSetCohortKey >= cohortKey
+        ? [{ ...row, cohortKey: releaseSetCohortKey }]
+        : []
+    })
+    .sort(
+      (left, right) =>
+        right.cohortKey.localeCompare(left.cohortKey) ||
+        right.code.localeCompare(left.code),
+    )
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 export async function ensureDraftReleaseSetForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
   type: ResourceType,
