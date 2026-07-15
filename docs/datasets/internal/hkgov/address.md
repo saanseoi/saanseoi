@@ -9,10 +9,10 @@ Related docs:
 
 ## Dataset Role
 
-- Dataset metadata uses `publisherCode: hkgov-als`, `code: ds-hk-hkgov-als-address`.
+- Dataset metadata uses `publisherCode: hkgov-dpo`, `code: ds-hk-hkgov-dpo-address`.
 - Raw ALS is not ingested directly by the canonical pipeline.
 - The CLI first transforms ALS GeoJSON into a prepared parquet file in
-  `apps/harbour-cli/src/lib/hkgov-als.ts`.
+  `apps/harbour-cli/src/lib/hkgov-dpo.ts`.
 - The local SQL pipeline then ingests that prepared parquet using shared code under
   `libs/core/src/pipeline/services/addressPipeline`.
 - The upload records an upstream release-notes URL, using the shared local cache or an
@@ -27,7 +27,7 @@ For snapshot-source provenance, HKGov ALS releases are currently recorded with r
 
 ## Prerequisite
 
-- `hkgov-als` address uploads are rejected unless the same `cohortKey` already has an
+- `hkgov-dpo` address uploads are rejected unless the same `cohortKey` already has an
   Overture address upload.
 - This is enforced in `libs/core/src/lib/services/upload.ts`.
 
@@ -49,9 +49,9 @@ The CLI preparation step:
 
 Prep commands:
 
-- `bun run --cwd apps/harbour-cli prep-hkgov-als <source-dir>`
-- `bun run --cwd apps/harbour-cli prep-hkgov-als:preview <source-dir>`
-- `bun run --cwd apps/harbour-cli prep-hkgov-als:production <source-dir>`
+- `bun run --cwd apps/harbour-cli prep-hkgov-dpo <source-dir>`
+- `bun run --cwd apps/harbour-cli prep-hkgov-dpo:preview <source-dir>`
+- `bun run --cwd apps/harbour-cli prep-hkgov-dpo:production <source-dir>`
 
 Command behavior:
 
@@ -63,9 +63,9 @@ Command behavior:
 
 Environment mapping:
 
-- `prep-hkgov-als` reads from the local preview D1 database state
-- `prep-hkgov-als:preview` reads from the remote preview D1 database
-- `prep-hkgov-als:production` reads from the remote production D1 database
+- `prep-hkgov-dpo` reads from the local preview D1 database state
+- `prep-hkgov-dpo:preview` reads from the remote preview D1 database
+- `prep-hkgov-dpo:production` reads from the remote production D1 database
 - `--db` overrides environment-based lookup and reads from a specified SQLite file
   directly
 
