@@ -23,14 +23,14 @@
     "drizzle-kit": "^0.31.10",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10",
-    "wrangler": "^4.110.0"
+    "wrangler": "^4.111.0"
   },
   "dependencies": {
-    "@hono/zod-openapi": "^1.4.0",
+    "@hono/zod-openapi": "^1.5.1",
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
     "@scalar/hono-api-reference": "^0.11.9",
-    "@scalar/openapi-to-markdown": "^0.5.32",
+    "@scalar/openapi-to-markdown": "^0.5.33",
     "drizzle-orm": "^1.0.0-rc.4-5d5b77c",
     "hono": "^4.12.30",
     "zod": "^4.4.3"
