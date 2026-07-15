@@ -1,3 +1,4 @@
 export * from './shared'
 export * from './overture'
+export * from './overture.types'
 export * from './hkgov'

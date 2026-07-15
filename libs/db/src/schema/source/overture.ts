@@ -36,6 +36,46 @@ export const sourceOvertureDivisions = sqliteTable(
   ],
 )
 
+const sourceOvertureDivisionGeometryBase = {
+  sourceRecordId: text('sourceRecordId').notNull(),
+  subtype: text('subtype'),
+  class: text('class'),
+  isLand: integer('isLand', { mode: 'boolean' }),
+  isTerritorial: integer('isTerritorial', { mode: 'boolean' }),
+  ...geoBbox,
+  ...sourceProvenance,
+  ...sourceVersioning,
+}
+
+export const sourceOvertureDivisionAreas = sqliteTable(
+  'overtureDivisionAreas',
+  {
+    ...sourceOvertureDivisionGeometryBase,
+    divisionId: text('division_id'),
+  },
+  table => [
+    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    ...sourceVersionIndexes(table, 'overtureDivisionAreas'),
+    index('overtureDivisionAreas_divisionId_idx').on(table.divisionId),
+    index('overtureDivisionAreas_subtype_idx').on(table.subtype),
+    index('overtureDivisionAreas_class_idx').on(table.class),
+  ],
+)
+
+export const sourceOvertureDivisionBoundaries = sqliteTable(
+  'overtureDivisionBoundaries',
+  {
+    ...sourceOvertureDivisionGeometryBase,
+    divisionIds: jsonText('division_ids'),
+  },
+  table => [
+    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    ...sourceVersionIndexes(table, 'overtureDivisionBoundaries'),
+    index('overtureDivisionBoundaries_subtype_idx').on(table.subtype),
+    index('overtureDivisionBoundaries_class_idx').on(table.class),
+  ],
+)
+
 export const sourceOvertureDivisionI18n = sqliteTable(
   'overtureDivisionI18n',
   {

@@ -7,6 +7,8 @@ export type ApiFamily = 'addresses' | 'divisions' | 'places' | 'streets'
 const API_FAMILY_BY_RESOURCE_TYPE: Record<ResourceType, ApiFamily> = {
   address: 'addresses',
   division: 'divisions',
+  divisionArea: 'divisions',
+  divisionBoundary: 'divisions',
   place: 'places',
   street: 'streets',
 }

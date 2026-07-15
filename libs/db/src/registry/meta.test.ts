@@ -93,15 +93,23 @@ describe('buildMetaRegistrySyncStatements', () => {
     ).toBe(true)
   })
 
-  test('uses deterministic ids for seeded datasets', () => {
+  test('uses deterministic ids for seeded registry rows', () => {
     const statements = buildMetaRegistrySyncStatements('preview')
     const datasetStatement = statements.find(statement =>
       statement.startsWith('INSERT INTO datasets'),
     )
+    const apiVersionStatement = statements.find(statement =>
+      statement.startsWith('INSERT INTO apiVersions'),
+    )
 
     expect(datasetStatement).toBeDefined()
+    expect(apiVersionStatement).toBeDefined()
+    expect(statements.every(statement => !statement.includes('randomblob'))).toBe(true)
     expect(datasetStatement).not.toContain('randomblob')
     expect(datasetStatement).toMatch(
+      /VALUES \(\n {2}'[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'/,
+    )
+    expect(apiVersionStatement).toMatch(
       /VALUES \(\n {2}'[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'/,
     )
   })
