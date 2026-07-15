@@ -16,6 +16,7 @@ import type {
   NewDivisionI18nRow,
 } from '@repo/db/currentSchema'
 import type { GeoJsonGeometry, GeoJsonPosition } from '../geojson'
+import type { AsyncBuffer } from 'hyparquet'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
@@ -28,10 +29,10 @@ import {
   getMergedCurrentDivisionVersionMap,
   insertDivisionVersionRows,
   prepareDivisionVersionInsertContext,
-  replaceDatasetStats,
   replaceDivisionCurrentI18n,
   upsertDivisionCurrentStates,
 } from '../db/division'
+import { replaceDatasetStats } from '../db/stats'
 import {
   advanceSourceOvertureDivisionRelease,
   buildSourceReleaseId,
@@ -116,7 +117,39 @@ type DivisionNameRuleRecord = {
   variant: string | null
 }
 
+type DivisionHierarchyI18n = {
+  en?: {
+    name: string
+  }
+  'zh-hant'?: {
+    name: string
+  }
+}
+
+type DivisionHierarchyLookupEntry = {
+  i18n: DivisionHierarchyI18n
+  level: number
+  type: string
+}
+
+export type DivisionHierarchyLookup = ReadonlyMap<string, DivisionHierarchyLookupEntry>
+
+type DivisionNormalizeOptions = {
+  hierarchyLookup?: DivisionHierarchyLookup
+}
+
 const DIVISION_BATCH_SIZE = 128
+const OVERTURE_HK_DIVISION_PREFLIGHT_COLUMNS = [
+  'id',
+  'theme',
+  'type',
+  'country',
+  'region',
+  'perspectives',
+  'norms',
+  'names',
+  'hierarchies',
+]
 const PRIMARY_HISTORY_OWNER_KEY = 'history-current'
 const PRIMARY_SOURCE_OWNER_KEY = 'source-current'
 const DIVISION_LEVEL_TOKENS = new Map<string, number>([
@@ -207,6 +240,15 @@ export async function processDivisionDataset(
   const file = await timings.measure('loadParquetBufferMs', () =>
     createAsyncBufferFromR2(bucket, message.rawObjectKey),
   )
+  if (
+    message.source === 'overture' &&
+    message.type === 'division' &&
+    message.regionCode === 'hk'
+  ) {
+    await timings.measure('validateDroppedDivisionSourceFieldsMs', () =>
+      assertOvertureHongKongDivisionSourceAssumptions(file),
+    )
+  }
   const environment = resolveDataShardEnvironment(process.env.DATA_SHARD_ENV)
   const versionInsertContext = await timings.measure(
     'prepareVersionInsertContextMs',
@@ -356,6 +398,10 @@ export async function processDivisionDataset(
     })
   }
 
+  const hierarchyLookup = await timings.measure('buildHierarchyLookupMs', () =>
+    buildDivisionHierarchyLookup(file),
+  )
+
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE)) {
     const sourceVersionRows: Array<
       typeof sourceSchema.sourceOvertureDivisions.$inferInsert
@@ -392,7 +438,7 @@ export async function processDivisionDataset(
     const unchangedSourceIds = new Set<string>()
 
     for (const row of batch) {
-      const normalized = normalizeDivisionRow(row)
+      const normalized = normalizeDivisionRow(row, { hierarchyLookup })
       const canonicalI18n = buildCanonicalDivisionApiI18n(normalized.i18n)
       const versionHash = await createHash(buildDivisionBaseHashInput(normalized.base))
       const churnHash = await createHash({
@@ -417,7 +463,7 @@ export async function processDivisionDataset(
         geometry: normalized.base.geometry,
         id: normalized.base.id,
         localizedRows: canonicalI18n,
-        parentId: normalized.base.parentDivisionId,
+        parentId: resolveParentDivisionIdFromHierarchy(normalized.base.hierarchy),
         type: normalized.base.type,
         versionHash,
       })
@@ -446,7 +492,7 @@ export async function processDivisionDataset(
             wikidata: normalized.base.wikidata,
             geometry: normalized.base.geometry,
             bbox: normalized.base.bbox,
-            hierarchies: normalized.base.hierarchy,
+            hierarchies: row.hierarchies,
             cartography: normalized.base.cartography,
             sources: normalized.base.sources,
             rawProperties: row,
@@ -822,9 +868,181 @@ export async function processDivisionDataset(
 }
 
 /**
+ * Guards the low-value Overture source fields that the HK division pipeline drops.
+ */
+export async function assertOvertureHongKongDivisionSourceAssumptions(
+  file: AsyncBuffer,
+) {
+  const rows: Record<string, unknown>[] = []
+
+  for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE, {
+    columns: OVERTURE_HK_DIVISION_PREFLIGHT_COLUMNS,
+  })) {
+    rows.push(...batch)
+  }
+
+  const violations = collectOvertureHongKongDivisionSourceAssumptionViolations(rows)
+
+  if (violations.length > 0) {
+    throw new Error(
+      [
+        'Overture Hong Kong division parquet no longer matches dropped-field assumptions.',
+        ...violations.map(violation => `- ${violation}`),
+      ].join('\n'),
+    )
+  }
+}
+
+export function collectOvertureHongKongDivisionSourceAssumptionViolations(
+  rows: Array<Record<string, unknown>>,
+) {
+  const violations: string[] = []
+  let nonNullNormRows = 0
+
+  const addViolation = (message: string) => {
+    if (violations.length < 20) {
+      violations.push(message)
+    }
+  }
+
+  rows.forEach((row, index) => {
+    const rowNumber = index + 1
+    const rowId = asNonEmptyString(row.id)
+    const rowLabel = `row ${rowNumber}${rowId ? ` (${rowId})` : ''}`
+
+    if (row.theme !== 'divisions') {
+      addViolation(
+        `${rowLabel}: expected theme=divisions, got ${formatSourceValue(row.theme)}`,
+      )
+    }
+
+    if (row.type !== 'division') {
+      addViolation(
+        `${rowLabel}: expected type=division, got ${formatSourceValue(row.type)}`,
+      )
+    }
+
+    if (row.country !== 'HK') {
+      addViolation(
+        `${rowLabel}: expected country=HK, got ${formatSourceValue(row.country)}`,
+      )
+    }
+
+    if (!isEmptySourceValue(row.region)) {
+      addViolation(
+        `${rowLabel}: expected empty region, got ${formatSourceValue(row.region)}`,
+      )
+    }
+
+    if (!isEmptySourceValue(row.perspectives)) {
+      addViolation(
+        `${rowLabel}: expected empty perspectives, got ${formatSourceValue(row.perspectives)}`,
+      )
+    }
+
+    const hierarchyCount = getTopLevelHierarchyCount(row.hierarchies)
+
+    if (hierarchyCount > 1) {
+      addViolation(
+        `${rowLabel}: expected at most one hierarchies entry, got ${hierarchyCount}`,
+      )
+    }
+
+    if (!isEmptySourceValue(row.norms)) {
+      nonNullNormRows += 1
+
+      if (!isExpectedHongKongDivisionNorms(row.norms)) {
+        addViolation(
+          `${rowLabel}: expected norms={driving_side:left}, got ${formatSourceValue(row.norms)}`,
+        )
+      }
+    }
+
+    for (const rule of getDivisionNameRules(row.names)) {
+      for (const field of ['perspectives', 'between', 'side'] as const) {
+        if (!isEmptySourceValue(rule[field])) {
+          addViolation(
+            `${rowLabel}: expected empty names.rules[].${field}, got ${formatSourceValue(rule[field])}`,
+          )
+        }
+      }
+    }
+  })
+
+  if (nonNullNormRows !== 1) {
+    addViolation(
+      `expected exactly one non-empty norms row with {driving_side:left}, found ${nonNullNormRows}`,
+    )
+  }
+
+  return violations
+}
+
+function getTopLevelHierarchyCount(value: unknown) {
+  return Array.isArray(value) ? value.length : 0
+}
+
+function getDivisionNameRules(names: unknown) {
+  if (!names || typeof names !== 'object') {
+    return []
+  }
+
+  const rules = (names as Record<string, unknown>).rules
+
+  if (!Array.isArray(rules)) {
+    return []
+  }
+
+  return rules.filter(
+    (rule): rule is Record<string, unknown> =>
+      Boolean(rule) && typeof rule === 'object' && !Array.isArray(rule),
+  )
+}
+
+function isExpectedHongKongDivisionNorms(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false
+  }
+
+  const record = value as Record<string, unknown>
+  const nonEmptyEntries = Object.entries(record).filter(
+    ([, nestedValue]) => !isEmptySourceValue(nestedValue),
+  )
+
+  return nonEmptyEntries.length === 1 && record.driving_side === 'left'
+}
+
+function isEmptySourceValue(value: unknown): boolean {
+  if (value === null || value === undefined) {
+    return true
+  }
+
+  if (typeof value === 'string') {
+    return value.trim().length === 0
+  }
+
+  if (Array.isArray(value)) {
+    return value.length === 0 || value.every(isEmptySourceValue)
+  }
+
+  if (typeof value === 'object') {
+    return Object.values(value as Record<string, unknown>).every(isEmptySourceValue)
+  }
+
+  return false
+}
+
+function formatSourceValue(value: unknown) {
+  return stableJsonStringify(value) ?? String(value)
+}
+
+/**
  * Normalizes a raw parquet row into the base division record plus locale rows.
  */
-export function normalizeDivisionRow(row: Record<string, unknown>) {
+export function normalizeDivisionRow(
+  row: Record<string, unknown>,
+  options: DivisionNormalizeOptions = {},
+) {
   const id = asNonEmptyString(row.id)
   const now = new Date().toISOString()
 
@@ -835,6 +1053,7 @@ export function normalizeDivisionRow(row: Record<string, unknown>) {
   const parentDivisionId = asNonEmptyString(row.parent_division_id)
   const otSubtype = asNonEmptyString(row.subtype)
   const otClass = asNonEmptyString(row.class)
+  const sourceFeatureVersion = asOptionalFeatureVersion(row.version)
   const type = resolveDivisionType({
     row,
     otClass,
@@ -848,7 +1067,11 @@ export function normalizeDivisionRow(row: Record<string, unknown>) {
     parentDivisionId,
   })
   const i18n = normalizeDivisionI18n(id, row.names)
-  const normalizedHierarchies = normalizeDivisionHierarchies(row.hierarchies)
+  const normalizedHierarchies = normalizeDivisionHierarchies(
+    row.hierarchies,
+    id,
+    options.hierarchyLookup,
+  )
   const normalizedGeometry = parseWkbGeometry(row.geometry)
 
   return {
@@ -864,10 +1087,12 @@ export function normalizeDivisionRow(row: Record<string, unknown>) {
         overture: {
           subtype: otSubtype ?? '',
           class: otClass ?? '',
+          hierarchies: row.hierarchies ?? null,
+          ...(sourceFeatureVersion !== null ? { version: sourceFeatureVersion } : {}),
+          ...buildOvertureCompatibilitySourceKeys(level),
         },
       },
       type,
-      parentDivisionId,
       sources: normalizeOvertureSources(row.sources),
       updatedAt: now,
       wikidata: asNonEmptyString(row.wikidata),
@@ -878,6 +1103,12 @@ export function normalizeDivisionRow(row: Record<string, unknown>) {
 
 function asOptionalInteger(value: unknown) {
   return typeof value === 'number' && Number.isInteger(value) ? value : null
+}
+
+function asOptionalFeatureVersion(value: unknown) {
+  const version = asOptionalInteger(value)
+
+  return version !== null && version >= 0 && version <= 2_147_483_647 ? version : null
 }
 
 export function buildDivisionBaseHashInput(
@@ -892,12 +1123,27 @@ export function buildDivisionBaseHashInput(
     hierarchy: base.hierarchy,
     id: base.id,
     level: base.level,
-    parentDivisionId: base.parentDivisionId ?? null,
     sourceKeys: base.sourceKeys,
     sources: base.sources,
     type: base.type,
     wikidata: base.wikidata ?? null,
   } satisfies Omit<DivisionRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
+}
+
+function resolveParentDivisionIdFromHierarchy(hierarchy: unknown): string | null {
+  if (!Array.isArray(hierarchy) || hierarchy.length === 0) {
+    return null
+  }
+
+  const parent = hierarchy[hierarchy.length - 1]
+  if (!parent || typeof parent !== 'object') {
+    return null
+  }
+
+  const divisionId = (parent as Record<string, unknown>).division_id
+  return typeof divisionId === 'string' && divisionId.trim().length > 0
+    ? divisionId
+    : null
 }
 
 export function normalizeDivisionI18nSnapshotRow(row: DivisionI18nPayload) {
@@ -936,7 +1182,7 @@ export function buildCanonicalDivisionApiI18n(rows: DivisionI18nPayload[]) {
 }
 
 function normalizeOvertureSources(sources: unknown) {
-  if (sources === undefined) {
+  if (!Array.isArray(sources) || sources.length === 0) {
     return undefined
   }
 
@@ -1183,7 +1429,61 @@ function collectLocalizedRuleValues(
 /**
  * Unwraps singleton nested list wrappers produced by parquet decoding.
  */
-function normalizeDivisionHierarchies(value: unknown) {
+export async function buildDivisionHierarchyLookup(file: AsyncBuffer) {
+  const lookup = new Map<string, DivisionHierarchyLookupEntry>()
+
+  for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE, {
+    columns: ['id', 'subtype', 'class', 'parent_division_id', 'names'],
+  })) {
+    for (const row of batch) {
+      const id = asNonEmptyString(row.id)
+
+      if (!id) {
+        continue
+      }
+
+      const otSubtype = asNonEmptyString(row.subtype)
+      const otClass = asNonEmptyString(row.class)
+      const parentDivisionId = asNonEmptyString(row.parent_division_id)
+      const canonicalI18n = buildCanonicalDivisionApiI18n(
+        normalizeDivisionI18n(id, row.names),
+      )
+      const i18n = Object.fromEntries(
+        canonicalI18n
+          .filter(
+            (localized): localized is DivisionI18nPayload & { name: string } =>
+              (localized.locale === 'en' || localized.locale === 'zh-hant') &&
+              Boolean(localized.name),
+          )
+          .map(localized => [localized.locale, { name: localized.name }]),
+      ) as DivisionHierarchyI18n
+
+      lookup.set(id, {
+        i18n,
+        level: resolveDivisionLevel({
+          row,
+          otClass,
+          otSubtype,
+          parentDivisionId,
+        }),
+        type: resolveDivisionType({
+          row,
+          otClass,
+          otSubtype,
+          parentDivisionId,
+        }),
+      })
+    }
+  }
+
+  return lookup
+}
+
+function normalizeDivisionHierarchies(
+  value: unknown,
+  divisionId: string,
+  lookup: DivisionHierarchyLookup | undefined,
+) {
   let normalized = value
 
   while (
@@ -1194,7 +1494,129 @@ function normalizeDivisionHierarchies(value: unknown) {
     ;[normalized] = normalized
   }
 
-  return normalized
+  if (!Array.isArray(normalized)) {
+    return normalized
+  }
+
+  return normalized.flatMap(entry => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      return []
+    }
+
+    const record = entry as Record<string, unknown>
+    const hierarchyDivisionId = asNonEmptyString(record.division_id)
+
+    if (!hierarchyDivisionId || hierarchyDivisionId === divisionId) {
+      return []
+    }
+
+    const rawSubtype = asNonEmptyString(record.subtype)
+    const subtype = normalizeDivisionLevelToken(rawSubtype)
+
+    if (subtype === 'country') {
+      return []
+    }
+
+    const lookupEntry = lookup?.get(hierarchyDivisionId)
+
+    if (subtype === 'locality' && !lookupEntry) {
+      throw new Error(
+        `Cannot normalize hierarchy locality entry ${hierarchyDivisionId} for division ${divisionId}.`,
+      )
+    }
+
+    return [
+      {
+        division_id: hierarchyDivisionId,
+        i18n:
+          lookupEntry?.i18n ??
+          buildHierarchyI18nFromName(hierarchyDivisionId, record.name),
+        level: lookupEntry?.level ?? resolveHierarchyDivisionLevel(rawSubtype),
+        type: lookupEntry?.type ?? resolveHierarchyDivisionType(rawSubtype),
+      },
+    ]
+  })
+}
+
+function buildHierarchyI18nFromName(divisionId: string, name: unknown) {
+  const inferred = inferLocale(name).filter(
+    (value): value is { locale: 'en' | 'zh-hant'; value: string } =>
+      value.locale === 'en' || value.locale === 'zh-hant',
+  )
+
+  if (inferred.length === 0) {
+    throw new Error(
+      `Could not resolve hierarchy i18n for division ${divisionId}; hierarchy division row was not available and hierarchy name did not infer en/zh-hant.`,
+    )
+  }
+
+  return Object.fromEntries(
+    inferred.map(value => [value.locale, { name: value.value }]),
+  ) as DivisionHierarchyI18n
+}
+
+function resolveHierarchyDivisionLevel(rawSubtype: string | null) {
+  const subtype = normalizeDivisionLevelToken(rawSubtype)
+
+  if (subtype === 'dependency') {
+    return 0
+  }
+
+  if (subtype === 'region') {
+    return 2
+  }
+
+  if (subtype === 'macrohood') {
+    return 4
+  }
+
+  if (subtype === 'neighborhood' || subtype === 'neighbourhood') {
+    return 5
+  }
+
+  if (subtype === 'microhood') {
+    return 6
+  }
+
+  if (subtype === 'locality') {
+    throw new Error(
+      'Cannot normalize hierarchy subtype `locality` without a class value.',
+    )
+  }
+
+  throw new Error(`Unsupported hierarchy subtype: ${rawSubtype ?? 'null'}.`)
+}
+
+function resolveHierarchyDivisionType(rawSubtype: string | null) {
+  const subtype = normalizeDivisionLevelToken(rawSubtype)
+
+  if (subtype === 'dependency') {
+    return 'sar'
+  }
+
+  if (subtype === 'region') {
+    return 'district'
+  }
+
+  if (subtype === 'macrohood') {
+    return 'macrohood'
+  }
+
+  if (subtype === 'neighborhood' || subtype === 'neighbourhood') {
+    return 'neighbourhood'
+  }
+
+  if (subtype === 'microhood') {
+    return 'microhood'
+  }
+
+  if (subtype === 'locality') {
+    throw new Error(
+      'Cannot normalize hierarchy subtype `locality` without a class value.',
+    )
+  }
+
+  throw new Error(`Unsupported hierarchy subtype: ${rawSubtype ?? 'null'}.`)
 }
 
 /**
@@ -1353,6 +1775,22 @@ export function resolveAdminLevelValue(row: Record<string, unknown>) {
   return asOptionalInteger(row.admin_level) ?? asOptionalInteger(row.adminLevel)
 }
 
+function buildOvertureCompatibilitySourceKeys(level: number) {
+  if (level === 0) {
+    return {
+      admin_level: 1,
+    }
+  }
+
+  if (level === 2) {
+    return {
+      admin_level: 2,
+    }
+  }
+
+  return {}
+}
+
 function sourceString(value: unknown) {
   return typeof value === 'string' ? value : null
 }
@@ -1444,26 +1882,7 @@ function dedupeNameRules(rules: DivisionNameRuleRecord[]) {
   return deduped
 }
 
-function asNumber(value: unknown) {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value
-  }
-
-  if (typeof value === 'string') {
-    const trimmed = value.trim()
-
-    if (!trimmed) {
-      return null
-    }
-
-    const parsed = Number(trimmed)
-    return Number.isFinite(parsed) ? parsed : null
-  }
-
-  return null
-}
-
-function parseWkbGeometry(value: unknown): GeoJsonGeometry | null {
+export function parseWkbGeometry(value: unknown): GeoJsonGeometry | null {
   const decodedGeometry = asGeoJsonGeometry(value)
 
   if (decodedGeometry) {
@@ -1480,7 +1899,7 @@ function parseWkbGeometry(value: unknown): GeoJsonGeometry | null {
   return readWkbGeometry(reader)
 }
 
-function asGeoJsonGeometry(value: unknown): GeoJsonGeometry | null {
+export function asGeoJsonGeometry(value: unknown): GeoJsonGeometry | null {
   if (!value || typeof value !== 'object') {
     return null
   }

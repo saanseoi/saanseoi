@@ -171,7 +171,7 @@ async function writeHkgovSourceRows(
         asString(row.raw.zhHantStreetNumberFrom),
       streetName: asString(row.raw.enStreetName) ?? asString(row.raw.zhHantStreetName),
       villageName: null,
-      sources: row.base.sources ?? { hkgovAls: [{ dataset: 'hkgov-als' }] },
+      sources: row.base.sources ?? { hkgovAls: [{ dataset: 'hkgov-dpo' }] },
       rawProperties: row.raw,
     } satisfies typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert
 

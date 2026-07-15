@@ -1,4 +1,5 @@
 import type { DatasetProcessingMessage } from '../../../types'
+import type { PublishDatasetResult } from '../../harbourClient'
 import { createD1ImportClient } from '../../../lib/d1ImportApi'
 import { resolveShardForTypeRegionYear } from '../../../lib/db/metaRepository'
 import type { HarbourReadableDb } from '../../../lib/db/types'
@@ -18,7 +19,7 @@ type SqlStageHarbourClient = {
     options?: {
       skipSnapshotCleanup?: boolean
     },
-  ): Promise<void>
+  ): Promise<PublishDatasetResult | void>
   stageCompleted(
     releaseId: string,
     phase: string,
@@ -273,7 +274,7 @@ export async function importAddressSqlArtifactsAndPublish(
   bucket: PipelineArtifactBucket,
   message: DatasetProcessingMessage,
   options: AddressSqlImportStageOptions,
-) {
+): Promise<PublishDatasetResult | void> {
   const releaseId = message.releaseId ?? message.datasetId
   const releaseCode = message.releaseCode
   const sourceKeys = filterSqlArtifactKeys(message, 'source')
@@ -371,7 +372,108 @@ export async function importAddressSqlArtifactsAndPublish(
   await runReportedPhase(harbourClient, message, 'cleanupAddressSqlStaging', () =>
     cleanupSqlStaging(metaDb, message, options),
   )
-  await publishImportedAddressSqlRelease(harbourClient, message)
+  return publishImportedAddressSqlRelease(harbourClient, message)
+}
+
+export async function importAddressSqlDataArtifacts(
+  harbourClient: SqlStageHarbourClient,
+  metaDb: MetaDatabase,
+  bucket: PipelineArtifactBucket,
+  message: DatasetProcessingMessage,
+  options: AddressSqlImportStageOptions,
+) {
+  const releaseId = message.releaseId ?? message.datasetId
+  const releaseCode = message.releaseCode
+  const sourceKeys = filterSqlArtifactKeys(message, 'source')
+  const historyKeys = filterSqlArtifactKeys(message, 'history')
+  const historyApplyKeys = filterSqlArtifactKeys(message, 'history-apply')
+  const currentKeys = filterSqlArtifactKeys(message, 'current')
+  const initKeys = currentKeys.filter(isCurrentInitSqlKey)
+  const deltaKeys = currentKeys.filter(key => !isCurrentInitSqlKey(key))
+
+  await harbourClient.stageRunning(releaseId, 'processDataset', undefined, releaseCode)
+
+  await Promise.all([
+    runReportedPhase(harbourClient, message, 'cacheAddressSqlSource', progress =>
+      importArtifactKeys(
+        metaDb,
+        bucket,
+        message,
+        'source',
+        sourceKeys,
+        options,
+        progress,
+      ),
+    ),
+    runReportedPhase(
+      harbourClient,
+      message,
+      'cacheAddressSqlHistory',
+      async progress => {
+        const historyStats = await importArtifactKeys(
+          metaDb,
+          bucket,
+          message,
+          'history',
+          historyKeys,
+          options,
+          progress,
+        )
+        const historyApplyStats = await importArtifactKeys(
+          metaDb,
+          bucket,
+          message,
+          'history-apply',
+          historyApplyKeys,
+          options,
+          async () => undefined,
+        )
+
+        return {
+          bytes: historyStats.bytes + historyApplyStats.bytes,
+          fileCount: historyStats.fileCount + historyApplyStats.fileCount,
+          statementCount:
+            historyStats.statementCount + historyApplyStats.statementCount,
+        }
+      },
+    ),
+    (async () => {
+      await runReportedPhase(
+        harbourClient,
+        message,
+        'cacheAddressSqlCurrentInit',
+        progress =>
+          importArtifactKeys(
+            metaDb,
+            bucket,
+            message,
+            'current',
+            initKeys,
+            options,
+            progress,
+          ),
+      )
+      await runReportedPhase(
+        harbourClient,
+        message,
+        'cacheAddressSqlCurrent',
+        progress =>
+          importArtifactKeys(
+            metaDb,
+            bucket,
+            message,
+            'current',
+            deltaKeys,
+            options,
+            progress,
+          ),
+      )
+    })(),
+  ])
+
+  await runReportedPhase(harbourClient, message, 'cacheAddressSqlCleanup', () =>
+    cleanupSqlStaging(metaDb, message, options),
+  )
 }
 
 async function completeAddressSqlGenerationPhases(
@@ -622,7 +724,7 @@ async function cleanupSqlStaging(
 async function publishImportedAddressSqlRelease(
   harbourClient: SqlStageHarbourClient,
   message: DatasetProcessingMessage,
-) {
+): Promise<PublishDatasetResult | void> {
   const releaseId = message.releaseId ?? message.datasetId
   const releaseCode = message.releaseCode
   const extractDurationStats = {
@@ -654,7 +756,7 @@ async function publishImportedAddressSqlRelease(
 
   const publishStartedAt = Date.now()
   await harbourClient.stageRunning(releaseId, 'publishDataset', undefined, releaseCode)
-  await harbourClient.publishDataset(releaseId, releaseCode, {
+  const publishResult = await harbourClient.publishDataset(releaseId, releaseCode, {
     skipSnapshotCleanup: message.skipSnapshotCleanup,
   })
   await harbourClient.stageCompleted(
@@ -673,6 +775,8 @@ async function publishImportedAddressSqlRelease(
     },
     releaseCode,
   )
+
+  return publishResult
 }
 
 async function resolveImportTarget(

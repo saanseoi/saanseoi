@@ -688,7 +688,7 @@ SELECT
   COALESCE(${jsonTextValue('r.rawProperties', 'enStreetNumberFrom')}, ${jsonTextValue('r.rawProperties', 'zhHantStreetNumberFrom')}),
   COALESCE(${jsonTextValue('r.rawProperties', 'enStreetName')}, ${jsonTextValue('r.rawProperties', 'zhHantStreetName')}),
   NULL,
-  COALESCE(r.sources, json_object('hkgovAls', json_array(json_object('dataset', 'hkgov-als')))),
+  COALESCE(r.sources, json_object('hkgovAls', json_array(json_object('dataset', 'hkgov-dpo')))),
   r.rawProperties
 FROM ${NORMALIZED_ROWS_TABLE} r
 WHERE r.runId = ${run}

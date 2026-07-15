@@ -3,7 +3,6 @@ import { and, eq, inArray, sql } from 'drizzle-orm'
 import type { DatasetProcessingMessage } from '../../types'
 import {
   ensureDraftSnapshotForRelease,
-  getDatasetRecordByReleaseId,
   recordSnapshotAssemblyRun,
   resolveShardForTypeRegionYear,
   upsertSnapshotSource,
@@ -17,9 +16,8 @@ import type {
   NewDivisionRow,
   NewDivisionI18nRow,
 } from '@repo/db/currentSchema'
-import type { DatasetStatsRow } from '@repo/db/metaSchema'
 import type { CurrentDivisionVersionRow } from '@repo/db/historySchema'
-import { currentSchema, historySchema, metaSchema } from '@repo/db'
+import { currentSchema, historySchema } from '@repo/db'
 import type { GeoJsonGeometry } from '../geojson'
 
 import {
@@ -913,48 +911,4 @@ async function insertDivisionVersionsI18nInChunks(
   }
 
   await runStatementsInGroupsWithWriteRetry(db, statements)
-}
-
-/**
- * Replaces all dataset-level stats rows for a dataset snapshot.
- */
-export async function replaceDatasetStats(
-  metaDb: HarbourReadableDb & HarbourWritableDb,
-  releaseId: string,
-  rows: DatasetStatsRow[],
-) {
-  const dataset = await getDatasetRecordByReleaseId(metaDb, releaseId)
-
-  if (!dataset) {
-    throw new Error(`Release not found: ${releaseId}`)
-  }
-
-  await runStatementBatchWithWriteRetry(metaDb, [
-    metaDb
-      .delete(metaSchema.stats)
-      .where(eq(metaSchema.stats.releaseId, dataset.releaseId)),
-  ])
-
-  if (rows.length === 0) {
-    return 0
-  }
-
-  const chunkSize = getMaxRowsPerInsert(11)
-  const statements = []
-
-  for (const chunk of chunkArray(rows, chunkSize)) {
-    statements.push(
-      metaDb.insert(metaSchema.stats).values(
-        chunk.map(row => ({
-          ...row,
-          releaseId: dataset.releaseId,
-          id: crypto.randomUUID(),
-        })),
-      ),
-    )
-  }
-
-  await runStatementsInGroupsWithWriteRetry(metaDb, statements)
-
-  return rows.length
 }
