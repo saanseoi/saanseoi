@@ -237,6 +237,8 @@ mock.module('../db/divisions', () => ({
         .map(id => includedRecordsById[id])
         .filter((record): record is DivisionRecord => Boolean(record)),
   ),
+  listDivisionAreasCurrentByDivisionIds: mock(async () => []),
+  listDivisionBoundariesCurrentByDivisionIds: mock(async () => []),
 }))
 
 mock.module('../lib/d1', () => ({
