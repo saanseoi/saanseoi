@@ -36,6 +36,7 @@ export const geoBbox = {
 
 export const canonicalDivision = {
   id: text('id').notNull(),
+  identifiers: jsonText('identifiers'),
   level: integer('level').notNull(),
   type: text('type').notNull(),
   sourceKeys: jsonText('sourceKeys'),
@@ -48,6 +49,7 @@ export const canonicalDivision = {
 
 export const canonicalDivisionGeometry = {
   id: text('id').notNull(),
+  variant: text('variant').notNull().default('overture'),
   bbox: jsonText('bbox'),
   geometry: jsonText('geometry'),
   sourceKeys: jsonText('sourceKeys'),
