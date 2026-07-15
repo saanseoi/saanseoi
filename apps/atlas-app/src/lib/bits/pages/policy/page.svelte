@@ -16,7 +16,7 @@ let { policy }: Props = $props()
 <Main class="policy-shell">
   <section class="policy-hero">
     <div
-      class="mx-auto max-w-(--spacing-container-max) px-(--spacing-margin-mobile) py-16 md:px-8 md:py-20 xl:px-(--spacing-margin-desktop)"
+      class="mx-auto max-w-(--spacing-container-max) px-(--spacing-margin-md) py-16 md:px-8 md:py-20 xl:px-(--spacing-margin-xl)"
     >
       <div class="max-w-5xl">
         <div
@@ -70,7 +70,7 @@ let { policy }: Props = $props()
 
   <section class="relative">
     <div
-      class="mx-auto grid max-w-(--spacing-container-max) gap-8 px-(--spacing-margin-mobile) pb-18 md:px-8 lg:gap-10 xl:px-(--spacing-margin-desktop)"
+      class="mx-auto grid max-w-(--spacing-container-max) gap-8 px-(--spacing-margin-md) pb-18 md:px-8 lg:gap-10 xl:px-(--spacing-margin-xl)"
     >
       <PolicyDocument
         badge="English"
