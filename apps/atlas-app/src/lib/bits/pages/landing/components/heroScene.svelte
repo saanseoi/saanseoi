@@ -24,21 +24,27 @@ onMount(() => {
 </script>
 
 <div class="pointer-events-none absolute inset-0">
-  <img alt="" class="dark-invert-image h-full w-full object-cover" src={heroBackground}>
+  <img
+    alt=""
+    class="hero-background dark-invert-image h-full w-full object-cover opacity-0 animate-[hero-background-reveal_900ms_ease-out_80ms_forwards] motion-reduce:animate-none motion-reduce:opacity-100"
+    src={heroBackground}
+  >
   <div class="hero-image-fade-overlay absolute inset-0"></div>
 
-  <div class="absolute inset-0">
+  <div class="hero-foreground-layer absolute inset-0 max-md:overflow-hidden">
     <div
       class="mx-auto grid h-full w-full grid-cols-1 @container [@container(min-width:860px)]:grid-cols-2"
     >
       <div aria-hidden="true" class="hidden [@container(min-width:860px)]:block"></div>
       <div
-        class="mx-auto flex h-full w-full max-w-(--spacing-container-max) items-center justify-end px-(--spacing-margin-mobile) xl:px-(--spacing-margin-desktop)"
+        class="mx-auto flex h-full w-full max-w-(--spacing-container-max) items-center justify-end px-(--spacing-margin-md) xl:px-(--spacing-margin-xl)"
       >
-        <div class="hidden mobile:block md:h-184 w-auto -mt-8 -mr-22">
+        <div
+          class="hero-foreground-frame absolute top-1/2 left-[40vw] h-[calc((100svh-var(--hero-header-height))*0.95)] max-h-[calc(100%-2rem)] w-max -translate-y-1/2 overflow-visible opacity-0 [--hero-header-height:4.5rem] animate-[hero-foreground-reveal_760ms_cubic-bezier(0.2,0.7,0.2,1)_220ms_forwards] motion-reduce:animate-none motion-reduce:opacity-100"
+        >
           <img
             alt={m.hero_visual_alt()}
-            class="hero-floating-image dark-invert-image h-full w-auto max-w-none object-contain object-right"
+            class="hero-floating-image dark-invert-image h-full w-auto max-w-none origin-[100%_50%] object-contain object-left max-md:opacity-0"
             src={heroForeground}
             style={floatStyle}
           >
@@ -48,3 +54,22 @@ onMount(() => {
   </div>
   <div class="hero-image-tint-overlay absolute inset-0"></div>
 </div>
+
+<style>
+@keyframes hero-background-reveal {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hero-foreground-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-50% + 0.85rem));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+}
+</style>
