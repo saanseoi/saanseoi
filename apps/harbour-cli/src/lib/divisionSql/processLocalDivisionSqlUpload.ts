@@ -39,10 +39,7 @@ import {
   logDivisionTraceGroup,
   resolveDivisionTraceIds,
 } from '@repo/core/pipeline/logging'
-import {
-  createAsyncBufferFromR2,
-  readParquetObjectsInBatches,
-} from '@repo/core/pipeline/parquetR2'
+import { createAsyncBufferFromR2 } from '@repo/core/pipeline/parquetR2'
 import {
   buildCanonicalDivisionApiI18n,
   buildDivisionBaseHashInput,
@@ -51,6 +48,7 @@ import {
   normalizeDivisionRow,
   resolveAdminLevelValue,
 } from '@repo/core/pipeline/services/division'
+import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisionFixtures'
 import {
   buildChurnCounts,
   buildChurnStatsRows,
@@ -1177,7 +1175,11 @@ async function buildDivisionSqlState(
     })
   }
 
-  for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE)) {
+  for await (const { isSupplemental, rows: batch } of readDivisionRowsWithFixtures(
+    file,
+    message,
+    DIVISION_BATCH_SIZE,
+  )) {
     for (const row of batch) {
       const raw = row as Record<string, unknown>
       const normalized = normalizeDivisionRow(raw, { hierarchyLookup })
@@ -1271,7 +1273,9 @@ async function buildDivisionSqlState(
       })
     }
 
-    await reportProgress(processedRows)
+    if (!isSupplemental) {
+      await reportProgress(processedRows)
+    }
   }
 
   logDivisionTraceGroup(
