@@ -44,6 +44,7 @@ export const datasetThemes = [
   'divisions',
   'transport',
   'places',
+  'streets',
 ] as const
 export const datasetTypes = [
   'address',
