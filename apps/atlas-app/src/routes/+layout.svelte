@@ -3,7 +3,7 @@ import './app.css'
 import favicon from '$lib/assets/favicon.svg'
 import { SiteHeader, SiteFooter } from '$lib/bits'
 import { Page } from '$lib/bits'
-let { children } = $props()
+let { children, data } = $props()
 </script>
 
 <svelte:head>
@@ -16,7 +16,7 @@ let { children } = $props()
   >
 </svelte:head>
 <Page>
-  <SiteHeader />
+  <SiteHeader user={data.user} />
   {@render children()}
   <SiteFooter />
 </Page>
