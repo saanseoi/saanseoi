@@ -80,7 +80,7 @@ export async function processLocalDivisionGeometrySqlUpload(
   previewPlan: GeometryUploadPlan,
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
-  options: { skipSnapshotCleanup?: boolean } = {},
+  options: { skipSnapshotCleanup?: boolean; validateGeometry?: boolean } = {},
 ) {
   const releaseId = requireString(uploadResult.releaseId, 'releaseId')
   const releaseCode = requireString(uploadResult.releaseCode, 'releaseCode')
@@ -294,8 +294,12 @@ export async function processLocalDivisionGeometrySqlUpload(
               : row
           const value =
             previewPlan.type === 'divisionArea'
-              ? normalizeDivisionAreaGeometryRow(sourceRow, previewPlan.source)
-              : normalizeDivisionBoundaryGeometryRow(sourceRow, previewPlan.source)
+              ? normalizeDivisionAreaGeometryRow(sourceRow, previewPlan.source, {
+                  validateGeometry: options.validateGeometry,
+                })
+              : normalizeDivisionBoundaryGeometryRow(sourceRow, previewPlan.source, {
+                  validateGeometry: options.validateGeometry,
+                })
           if (value) normalized.push(value as NonNullable<NormalizedGeometry>)
         } catch (error) {
           rejectedRows += 1

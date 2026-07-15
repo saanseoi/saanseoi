@@ -17,6 +17,7 @@ async function main() {
   const forceUpload = Boolean(args.options.force)
   const skipSnapshotCleanup = Boolean(args.options['skip-cleanup'])
   const skipConfirm = Boolean(args.options.yes)
+  const validateGeometry = Boolean(args.options['validate-geometry'])
   const target = resolveUploadTarget(args)
 
   if (!args.command || args.command === '--help' || args.options.help) {
@@ -63,6 +64,7 @@ async function main() {
         printUsage,
         skipConfirm,
         skipSnapshotCleanup,
+        validateGeometry,
       })
       return
     default:

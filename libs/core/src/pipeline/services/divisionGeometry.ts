@@ -10,6 +10,10 @@ import { asNonEmptyString, createHash, stableJsonStringify } from '../utils'
 
 export type DivisionGeometryKind = 'divisionArea' | 'divisionBoundary'
 
+export type GeometryNormalizationOptions = {
+  validateGeometry?: boolean
+}
+
 type GeometryBase = {
   bbox: unknown
   geometry: GeoJsonGeometry
@@ -53,6 +57,7 @@ export type NormalizedDivisionBoundary = {
 export function normalizeDivisionAreaGeometryRow(
   row: Record<string, unknown>,
   source = 'overture',
+  options: GeometryNormalizationOptions = {},
 ): NormalizedDivisionArea | null {
   if (row.region === 'CN-GD') {
     return null
@@ -63,7 +68,12 @@ export function normalizeDivisionAreaGeometryRow(
     throw new Error('Division area row requires a non-empty `id`.')
   }
   const divisionId = asNonEmptyString(row.division_id)
-  const geometry = requireGeometry(row.geometry, ['Polygon', 'MultiPolygon'], id)
+  const geometry = requireGeometry(
+    row.geometry,
+    ['Polygon', 'MultiPolygon'],
+    id,
+    options.validateGeometry,
+  )
   const isLand = source === 'hkgov-had' ? true : asOptionalBoolean(row.is_land)
   const isTerritorial =
     source === 'hkgov-had' ? true : asOptionalBoolean(row.is_territorial)
@@ -111,6 +121,7 @@ export function normalizeDivisionAreaGeometryRow(
 export function normalizeDivisionBoundaryGeometryRow(
   row: Record<string, unknown>,
   source = 'overture',
+  options: GeometryNormalizationOptions = {},
 ): NormalizedDivisionBoundary | null {
   if (row.region === 'CN-GD') {
     return null
@@ -121,7 +132,12 @@ export function normalizeDivisionBoundaryGeometryRow(
     throw new Error('Division boundary row requires a non-empty `id`.')
   }
   const divisionIds = normalizeDivisionIds(row.division_ids, id)
-  const geometry = requireGeometry(row.geometry, ['LineString', 'MultiLineString'], id)
+  const geometry = requireGeometry(
+    row.geometry,
+    ['LineString', 'MultiLineString'],
+    id,
+    options.validateGeometry,
+  )
   const isLand = asOptionalBoolean(row.is_land)
   const isTerritorial = asOptionalBoolean(row.is_territorial)
   const type = resolveGeometryType(row.class, id, { isLand, isTerritorial })
@@ -253,6 +269,7 @@ function requireGeometry(
   value: unknown,
   acceptedTypes: GeoJsonGeometry['type'][],
   id: string | null,
+  validateGeometry = false,
 ) {
   const geometry = parseWkbGeometry(value)
   if (!geometry || !acceptedTypes.includes(geometry.type)) {
@@ -261,7 +278,9 @@ function requireGeometry(
     )
   }
 
-  assertValidGeometry(geometry, id)
+  if (validateGeometry) {
+    assertValidGeometry(geometry, id)
+  }
 
   return geometry
 }
