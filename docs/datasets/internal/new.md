@@ -329,5 +329,10 @@ the repository migration policy.
   `sourceKeys: { version, subtype, class }`.
 - API release sets use only exact same-cohort Division, DivisionArea and
   DivisionBoundary snapshots.
+- Upload order is Division first; Area and Boundary may follow in either order. Geometry
+  uploads fail preflight without the exact-cohort Division snapshot. Dataset snapshots
+  publish independently, while the API ReleaseSet remains draft until all three required
+  snapshots are present; the CLI reports the missing counterpart or readiness at the end
+  of each upload.
 - Retain upstream `is_land = true` / `is_territorial = true` area values exactly; do not
   reject or repair them during ingestion.

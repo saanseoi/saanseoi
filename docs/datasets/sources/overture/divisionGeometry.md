@@ -14,4 +14,7 @@ source-key fields. Canonical rows expose normalized left/right or division refer
 
 Each release writes source, history, current, and release-level ingestion statistics.
 Geometry snapshots are assembled and published only for the exact release cohort of the
-primary division snapshot.
+primary division snapshot. The CLI preflight enforces that division-first order, while
+area and boundary uploads can be performed in either order. If one geometry snapshot is
+missing, the dataset itself is still published and the cohort's API release set remains
+draft until the counterpart arrives.
