@@ -9,6 +9,7 @@ export type NewDivisionVersionI18nRow = typeof divisionsI18n.$inferInsert
 export type CurrentDivisionVersionRow = Pick<
   DivisionVersionRow,
   | 'id'
+  | 'identifiers'
   | 'hierarchy'
   | 'level'
   | 'bbox'
