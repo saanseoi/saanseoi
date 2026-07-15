@@ -68,9 +68,11 @@ onMount(() => {
   class="hero-content relative z-10 flex h-full min-h-147 items-center py-8 md:py-8 lg:min-h-171 lg:py-8 xl:py-20"
 >
   <div
-    class="hero-content-grid mx-auto grid w-full min-w-0 max-w-(--spacing-container-max) gap-12 px-(--spacing-margin-md) md:px-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] xl:items-center xl:gap-14 xl:px-(--spacing-margin-xl) min-[640px]:max-[767px]:justify-items-center"
+    class="hero-content-grid mx-auto grid w-full min-w-0 max-w-(--spacing-container-max) gap-12 px-(--spacing-margin-md) md:px-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] xl:items-center xl:gap-14 xl:px-(--spacing-margin-xl) min-[640px]:max-[767px]:justify-items-center min-[924px]:max-[1279px]:grid-cols-[minmax(0,1fr)_minmax(18rem,0.85fr)] min-[924px]:max-[1279px]:items-center min-[924px]:max-[1279px]:gap-8"
   >
-    <div class="hero-content-main min-w-0 min-[640px]:max-[767px]:w-[min(29rem,100%)]">
+    <div
+      class="hero-content-main min-w-0 min-[640px]:max-[767px]:w-[min(29rem,100%)] min-[924px]:max-[1279px]:w-[min(28rem,100%)] min-[924px]:max-[1279px]:justify-self-start min-[924px]:max-[1279px]:ms-[clamp(3rem,7vw,7rem)] min-[924px]:max-[1279px]:text-left"
+    >
       <div class="space-y-5">
         <span
           class="hero-eyebrow inline-flex items-center gap-2 rounded-(--radius-sm) border border-secondary/25 bg-secondary/8 px-3 py-1 font-body text-[0.76rem] font-semibold uppercase tracking-[0.08em] text-secondary max-[785px]:bg-surface"
@@ -81,7 +83,7 @@ onMount(() => {
 
         <div class="space-y-4">
           <h1
-            class={`hero-title ${heroTitleWidthClass} font-display text-[2.9rem] leading-[0.98] font-extrabold tracking-[-0.06em] text-primary sm:text-[3.6rem] lg:text-[4.4rem] max-[785px]:[-webkit-text-stroke:0.65px_rgb(0_0_0/0.62)] max-[785px]:[paint-order:stroke_fill]`}
+            class={`hero-title ${heroTitleWidthClass} font-display text-[2.9rem] leading-[0.98] font-extrabold tracking-[-0.06em] text-primary sm:text-[3.6rem] lg:text-[4.4rem] max-[785px]:[-webkit-text-stroke:0.65px_rgb(0_0_0/0.62)] max-[785px]:[paint-order:stroke_fill] min-[924px]:max-[1279px]:text-[3.75rem]`}
           >
             {#if isEnglishTitle}
               {m.hero_title_prefix()}{titleSpacer}
@@ -125,7 +127,7 @@ onMount(() => {
 
       <div class="hero-actions mt-8 max-[785px]:mt-4">
         <p
-          class="max-w-xl md:max-w-[33ch] lg:max-w-[43ch] min-[640px]:max-[767px]:max-w-none"
+          class="max-w-xl md:max-w-[33ch] lg:max-w-[43ch] min-[640px]:max-[767px]:max-w-none min-[924px]:max-[1279px]:mx-0"
         >
           <span
             class="box-decoration-clone bg-surface/90 px-1 py-0.5 font-body text-[1.04rem] leading-[1.8] text-foreground-alt sm:text-[1.1rem]"
@@ -134,7 +136,7 @@ onMount(() => {
           </span>
         </p>
         <div
-          class="hero-cta-group mt-4 flex w-full max-w-xl flex-col gap-3 sm:flex-row min-[640px]:max-[767px]:w-full min-[640px]:max-[767px]:justify-center"
+          class="hero-cta-group mt-4 flex w-full max-w-xl flex-col gap-3 sm:flex-row min-[640px]:max-[767px]:w-full min-[640px]:max-[767px]:justify-center min-[924px]:max-[1279px]:justify-start"
         >
           <Button
             class="w-full sm:w-auto sm:shrink-0 min-[640px]:max-[767px]:flex-[0_0_auto] min-[640px]:max-[767px]:whitespace-nowrap"

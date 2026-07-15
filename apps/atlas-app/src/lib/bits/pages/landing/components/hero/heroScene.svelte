@@ -40,7 +40,7 @@ onMount(() => {
         class="mx-auto flex h-full w-full max-w-(--spacing-container-max) items-center justify-end px-(--spacing-margin-md) xl:px-(--spacing-margin-xl)"
       >
         <div
-          class="hero-foreground-frame absolute top-1/2 left-[40vw] h-[calc((100svh-var(--hero-header-height))*0.95)] max-h-[calc(100%-2rem)] w-max -translate-y-1/2 overflow-visible opacity-0 [--hero-header-height:4.5rem] animate-[hero-foreground-reveal_760ms_cubic-bezier(0.2,0.7,0.2,1)_220ms_forwards] motion-reduce:animate-none motion-reduce:opacity-100"
+          class="hero-foreground-frame absolute inset-y-0 left-[40vw] my-auto h-[calc((100svh-var(--hero-header-height))*0.95)] max-h-[calc(100%-2rem)] w-max overflow-visible opacity-0 [--hero-header-height:4.5rem] animate-[hero-foreground-reveal_760ms_cubic-bezier(0.2,0.7,0.2,1)_220ms_forwards] motion-reduce:animate-none motion-reduce:opacity-100"
         >
           <img
             alt={m.hero_visual_alt()}
@@ -56,20 +56,20 @@ onMount(() => {
 </div>
 
 <style>
-@keyframes hero-background-reveal {
+@keyframes -global-hero-background-reveal {
   to {
     opacity: 1;
   }
 }
 
-@keyframes hero-foreground-reveal {
+@keyframes -global-hero-foreground-reveal {
   from {
     opacity: 0;
-    transform: translateY(calc(-50% + 0.85rem));
+    transform: translateY(0.85rem);
   }
   to {
     opacity: 1;
-    transform: translateY(-50%);
+    transform: translateY(0);
   }
 }
 </style>
