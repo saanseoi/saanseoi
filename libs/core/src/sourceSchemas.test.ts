@@ -16,6 +16,24 @@ describe('sourceSchemas', () => {
     ).resolves.toBe('1.12.0')
   })
 
+  test('resolves the mapped HAD source schema version by source release', async () => {
+    await expect(
+      resolveSourceSchemaVersion({
+        source: 'hkgov-had',
+        sourceVersion: '2022',
+      }),
+    ).resolves.toBe('1.2')
+  })
+
+  test('rejects an unmapped HAD source release', async () => {
+    await expect(
+      resolveSourceSchemaVersion({
+        source: 'hkgov-had',
+        sourceVersion: '2026',
+      }),
+    ).rejects.toThrow('No hkgov-had source schema mapping found')
+  })
+
   test('rejects unknown newer Overture releases as not known safe', async () => {
     const latestKnownSafe = getLatestKnownSafeOvertureRelease()
 

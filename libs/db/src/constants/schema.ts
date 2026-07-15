@@ -35,6 +35,7 @@ export const datasetReleaseFrequencies = [
   'half-yearly',
   'yearly',
   'ad-hoc',
+  'as-needed',
 ] as const
 export const datasetThemes = [
   'addresses',

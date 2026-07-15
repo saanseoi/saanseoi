@@ -40,7 +40,7 @@ export const metaRegistryRequiredTables = [
   'apiCompositionMembers',
   'apiEndpoints',
   'dataShards',
-  'divisionIdentifierBridges',
+  'identifierBridges',
 ] as const
 
 export const initialProfiles: ProfileName[] = ['compact', 'default', 'full', 'map']
@@ -282,7 +282,8 @@ const datasetFixtures = readFixtureDir<DatasetFixture>('datasets')
 const apiCompositionFixtures = readFixtureDir<ApiCompositionFixture>('apiCompositions')
 const apiEndpointFixtures = readFixtureDir<ApiEndpointFileFixture>('apiEndpoints')
 const dataShardFixtures = readFixtureDir<DataShardFileFixture>('dataShards')
-const divisionIdentifierBridgeFixtures = readFixtureDir<{
+const identifierBridgeFixtures = readFixtureDir<{
+  resourceType: ResourceType
   sourceDatasetCode: string
   sourceReleaseCode: string
   cohortKey: string
@@ -293,9 +294,9 @@ const divisionIdentifierBridgeFixtures = readFixtureDir<{
   mappings: Array<{
     externalId: string
     externalCode?: string
-    canonicalDivisionId: string
+    canonicalId: string
   }>
-}>('divisionIdentifierBridges')
+}>('identifierBridges')
 
 export const initialPublishers: InitialPublisherSeed[] = publisherFixtures.map(
   fixture => ({
@@ -398,19 +399,19 @@ export const initialDataShards: InitialDataShardSeed[] = dataShardFixtures.flatM
     })),
 )
 
-export const initialDivisionIdentifierBridges =
-  divisionIdentifierBridgeFixtures.flatMap(fixture =>
-    fixture.mappings.map(mapping => ({
-      ...mapping,
-      sourceDatasetCode: fixture.sourceDatasetCode,
-      sourceReleaseCode: fixture.sourceReleaseCode,
-      cohortKey: fixture.cohortKey,
-      domain: fixture.domain,
-      authority: fixture.authority,
-      mappingMethod: fixture.mappingMethod,
-      reviewStatus: fixture.reviewStatus,
-    })),
-  )
+export const initialIdentifierBridges = identifierBridgeFixtures.flatMap(fixture =>
+  fixture.mappings.map(mapping => ({
+    ...mapping,
+    resourceType: fixture.resourceType,
+    sourceDatasetCode: fixture.sourceDatasetCode,
+    sourceReleaseCode: fixture.sourceReleaseCode,
+    cohortKey: fixture.cohortKey,
+    domain: fixture.domain,
+    authority: fixture.authority,
+    mappingMethod: fixture.mappingMethod,
+    reviewStatus: fixture.reviewStatus,
+  })),
+)
 
 export function resolveInitialDataShardsForEnvironment(
   environment: DataShardEnvironment,
@@ -500,20 +501,21 @@ WHERE licenses.versionHash <> excluded.versionHash;`.trim(),
     )
   }
 
-  for (const bridge of initialDivisionIdentifierBridges) {
+  for (const bridge of initialIdentifierBridges) {
     statements.push(
       `
-INSERT INTO divisionIdentifierBridges (
-  cohortKey, domain, authority, externalId, externalCode,
-  canonicalDivisionId, sourceDatasetCode, sourceReleaseCode,
+INSERT INTO identifierBridges (
+  resourceType, cohortKey, domain, authority, externalId, externalCode,
+  canonicalId, sourceDatasetCode, sourceReleaseCode,
   mappingMethod, reviewStatus, createdAt, updatedAt
 ) VALUES (
+  ${sqlString(bridge.resourceType)},
   ${sqlString(bridge.cohortKey)},
   ${sqlString(bridge.domain)},
   ${sqlString(bridge.authority)},
   ${sqlString(bridge.externalId)},
   ${sqlNullable(bridge.externalCode)},
-  ${sqlString(bridge.canonicalDivisionId)},
+  ${sqlString(bridge.canonicalId)},
   ${sqlString(bridge.sourceDatasetCode)},
   ${sqlString(bridge.sourceReleaseCode)},
   ${sqlString(bridge.mappingMethod)},
@@ -521,9 +523,9 @@ INSERT INTO divisionIdentifierBridges (
   ${nowSql},
   ${nowSql}
 )
-ON CONFLICT(cohortKey, domain, authority, externalId) DO UPDATE SET
+ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SET
   externalCode = excluded.externalCode,
-  canonicalDivisionId = excluded.canonicalDivisionId,
+  canonicalId = excluded.canonicalId,
   sourceDatasetCode = excluded.sourceDatasetCode,
   sourceReleaseCode = excluded.sourceReleaseCode,
   mappingMethod = excluded.mappingMethod,
