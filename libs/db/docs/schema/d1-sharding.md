@@ -45,6 +45,8 @@ redeploys the Workers, and probes again until the selected bindings pass. Use
 recreated. A passing binding is recorded in `.local/d1-placement-whitelist.json` and is
 skipped on subsequent cycles. The allowlist and pass-once whitelist are separate: the
 former selects what may be changed, while the latter records what has already passed.
+After each replacement deployment, transient probe 5xx responses are retried with a
+bounded backoff so D1 binding propagation does not abort the next cycle prematurely.
 
 For the preview Hong Kong `BEFORE` shards, the convergence command is:
 
@@ -55,11 +57,9 @@ bun run d1:converge -- \
   --location apac
 ```
 
-The same command with `--target production` converges the production pair. A transient
-HTTP 500 immediately after a replacement can mean the new D1 binding is still becoming
-available; wait for the deployment/database to settle and rerun the probe before
-starting another destructive cycle. `--require-colo` constrains the request's Worker
-colo and is not a substitute for the D1 timing test.
+The same command with `--target production` converges the production pair.
+`--require-colo` constrains the request's Worker colo and is not a substitute for the D1
+timing test.
 
 ## Assignment Tables
 
