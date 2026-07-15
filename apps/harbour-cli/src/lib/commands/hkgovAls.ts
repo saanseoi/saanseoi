@@ -24,7 +24,7 @@ export async function runHkgovAlsPrepCommand(
   if (!sourceDir || !sourceVersion) {
     printUsage()
     throw new Error(
-      'Invalid arguments for `prep-hkgov-als`. Pass <source-dir> and include --source-version only when it cannot be inferred from the path.',
+      'Invalid arguments for `prep-hkgov-dpo`. Pass <source-dir> and include --source-version only when it cannot be inferred from the path.',
     )
   }
   const outputFile = await createHkgovAlsTempOutputFile(sourceVersion)
@@ -53,7 +53,7 @@ export async function runHkgovAlsPrepCommand(
 }
 
 async function createHkgovAlsTempOutputFile(sourceVersion: string) {
-  const tempDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-als-'))
+  const tempDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-dpo-'))
 
   return join(tempDir, `hkgov-hk-${sourceVersion}-address.parquet`)
 }
