@@ -4,6 +4,13 @@ import app from './index'
 import type { AppBindings } from './types'
 
 type MockDbOptions = {
+  apiKey?: {
+    id?: string
+    revokedAt?: number | null
+    requestsPerMinute?: number | null
+    userRole?: 'user' | 'admin'
+  } | null
+  usageRequestCount?: number
   failOnAll?: (query: string, values: unknown[]) => boolean
   failOnFirst?: (query: string, values: unknown[]) => boolean
   failOnRaw?: (query: string, values: unknown[]) => boolean
@@ -39,6 +46,29 @@ function createMockDb(options: MockDbOptions = {}) {
               return { count: 0 } as T
             }
 
+            if (query.includes('FROM api_key')) {
+              if (options.apiKey === null) return null as T
+
+              return {
+                id: options.apiKey?.id ?? 'api-key-1',
+                name: 'Test key',
+                userId: 'user-1',
+                userEmail: 'test@example.com',
+                userRole: options.apiKey?.userRole ?? 'user',
+                revokedAt: options.apiKey?.revokedAt ?? null,
+                requestsPerMinute: options.apiKey?.requestsPerMinute ?? null,
+                requestsPerDay: null,
+                requestsPerMonth: null,
+              } as T
+            }
+
+            if (query.includes('INSERT INTO api_key_usage')) {
+              return {
+                requestCount: options.usageRequestCount ?? 1,
+                softLimitNotifiedAt: options.usageRequestCount ? Date.now() : null,
+              } as T
+            }
+
             return null as T
           },
           async run() {
@@ -53,6 +83,7 @@ function createMockDb(options: MockDbOptions = {}) {
 
             return {
               success: true,
+              meta: { changes: 1 },
             }
           },
           async all<T>() {
@@ -81,6 +112,14 @@ function createMockDb(options: MockDbOptions = {}) {
     } as unknown as D1Database,
     operations,
   }
+}
+
+const testApiKey = `SS-${'a'.repeat(43)}`
+
+function apiRequest(input: RequestInfo | URL, init?: RequestInit) {
+  const request = new Request(input, init)
+  request.headers.set('x-api-key', testApiKey)
+  return request
 }
 
 function createEnv(
@@ -121,7 +160,7 @@ describe('atlas-api', () => {
 
   test('GET /v0/meta/health checks DB access', async () => {
     const { env } = createEnv()
-    const res = await app.fetch(new Request('http://localhost/v0/meta/health'), env)
+    const res = await app.fetch(apiRequest('http://localhost/v0/meta/health'), env)
     const body = (await res.json()) as {
       ok: boolean
       datasetCount: number
@@ -134,9 +173,106 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/divisions returns snapshot_not_ready when no division release set is published', async () => {
+  test('GET /v0/divisions rejects an absent API key', async () => {
     const { env } = createEnv()
     const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
+
+    expect(res.status).toBe(401)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'invalid_api_key',
+      message: 'A valid API key is required.',
+    })
+  })
+
+  test('GET /v0/divisions rejects a malformed API key', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/divisions', {
+        headers: { 'x-api-key': 'not-an-api-key' },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(401)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'invalid_api_key',
+      message: 'A valid API key is required.',
+    })
+  })
+
+  test('GET /v0/divisions rejects an unknown API key', async () => {
+    const { env } = createEnv({}, { apiKey: null })
+    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+
+    expect(res.status).toBe(401)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'invalid_api_key',
+      message: 'A valid API key is required.',
+    })
+  })
+
+  test('GET /v0/divisions rejects a revoked API key', async () => {
+    const { env } = createEnv({}, { apiKey: { revokedAt: Date.now() } })
+    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+
+    expect(res.status).toBe(403)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'revoked_api_key',
+      message: 'This API key has been revoked.',
+    })
+  })
+
+  test('GET /v0/divisions rate-limits a key after 25% over its minute soft limit', async () => {
+    const { env } = createEnv({}, { usageRequestCount: 151 })
+    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+
+    expect(res.status).toBe(429)
+    expect(Number(res.headers.get('Retry-After'))).toBeGreaterThan(0)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'rate_limit_exceeded',
+      message: 'This API key has exceeded its current usage limit.',
+    })
+  })
+
+  test('GET /v0/api registry endpoints do not require an API key', async () => {
+    const { env } = createEnv()
+
+    for (const path of [
+      '/v0/api/releases',
+      '/v0/api/apis',
+      '/v0/api/sources',
+      '/v0/api/sourcePublishers',
+    ]) {
+      const res = await app.fetch(new Request(`http://localhost${path}`), env)
+
+      expect(res.status).toBe(200)
+      expect((await res.json()) as unknown).toEqual({ data: [] })
+    }
+  })
+
+  test('OPTIONS /v0/meta/substack allows cross-origin JSON subscriptions', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/meta/substack', {
+        method: 'OPTIONS',
+        headers: {
+          origin: 'http://localhost:5173',
+          'access-control-request-method': 'POST',
+          'access-control-request-headers': 'content-type',
+        },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(204)
+    expect(res.headers.get('access-control-allow-origin')).toBe('*')
+    expect(res.headers.get('access-control-allow-methods')).toContain('POST')
+    expect(res.headers.get('access-control-allow-headers')).toContain('Content-Type')
+  })
+
+  test('GET /v0/divisions returns snapshot_not_ready when no division release set is published', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
     const body = (await res.json()) as {
       httpStatus: number
       error: string
@@ -160,7 +296,7 @@ describe('atlas-api', () => {
         failOnRaw: () => true,
       },
     )
-    const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
+    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
     const body = (await res.json()) as {
       error: string
       message: string
@@ -176,7 +312,7 @@ describe('atlas-api', () => {
   test('GET /v0/divisions rejects invalid locale syntax', async () => {
     const { env } = createEnv()
     const res = await app.fetch(
-      new Request('http://localhost/v0/divisions?locales=en,zh-hk-extra-piece'),
+      apiRequest('http://localhost/v0/divisions?locales=en,zh-hk-extra-piece'),
       env,
     )
     const body = (await res.json()) as {
@@ -197,7 +333,7 @@ describe('atlas-api', () => {
 
     for (const locales of ['fr-ca', 'EN,ZH_HANT', '*', 'null']) {
       const res = await app.fetch(
-        new Request(
+        apiRequest(
           `http://localhost/v0/divisions?locales=${encodeURIComponent(locales)}`,
         ),
         env,
@@ -208,9 +344,17 @@ describe('atlas-api', () => {
   })
 
   test('GET /openapi documents the versioned division endpoints', async () => {
-    const res = await app.request('http://localhost/openapi')
+    const { env } = createEnv()
+    const res = await app.fetch(new Request('http://localhost/openapi'), env)
     const body = (await res.json()) as {
       paths: Record<string, Record<string, { operationId?: string }>>
+      servers: Array<{ url: string }>
+      components?: {
+        schemas?: Record<
+          string,
+          { pattern?: string; required?: string[]; minimum?: number; maximum?: number }
+        >
+      }
     }
 
     expect(res.status).toBe(200)
@@ -218,7 +362,20 @@ describe('atlas-api', () => {
     expect(body.paths['/v0.1/divisions/{id}']?.get?.operationId).toBe(
       'getDivisionByIdV01',
     )
+    expect(body.components?.schemas?.DivisionRelationships?.required).toContain(
+      'hierarchy',
+    )
+    expect(body.components?.schemas?.Id?.pattern).toBe('^\\S+$')
+    expect(body.components?.schemas).toHaveProperty('OverturePlaceType')
+    expect(body.components?.schemas).toHaveProperty('OvertureDivisionClass')
+    expect(body.components?.schemas).toHaveProperty('FeatureVersion')
+    expect(body.components?.schemas).toHaveProperty('OvertureSourceItem')
+    expect(body.components?.schemas).toHaveProperty('OtherSourceTypeItem')
+    expect(body.components?.schemas).toHaveProperty('Sources')
+    expect(body.components?.schemas?.FeatureVersion?.minimum).toBe(0)
+    expect(body.components?.schemas?.FeatureVersion?.maximum).toBe(2_147_483_647)
     expect(body.paths['/latest/divisions']).toBeUndefined()
+    expect(body.servers).toEqual([{ url: 'http://localhost:8787' }])
   })
 
   test('POST /v0/meta/substack forwards the subscription request to Substack', async () => {

@@ -130,12 +130,11 @@ export function buildJsonApiListDocument<
   }
 }
 
-export function buildJsonApiDetailDocument<TResource, TMeta extends object>(args: {
-  url: URL
-  data: TResource
-  included?: TResource[]
-  meta: TMeta
-}) {
+export function buildJsonApiDetailDocument<
+  TResource,
+  TMeta extends object,
+  TIncludedResource = TResource,
+>(args: { url: URL; data: TResource; included?: TIncludedResource[]; meta: TMeta }) {
   return {
     jsonapi: {
       version: '1.1' as const,

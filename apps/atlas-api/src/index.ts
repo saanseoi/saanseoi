@@ -6,11 +6,13 @@ import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 
 import { createCurrentDb, createMetaDb } from '@repo/db'
+import { authenticateApiKey } from './lib/api-key-auth'
 import { isTransientD1ReadError } from './lib/d1'
 import { defaultOpenAPIHook } from './lib/openapi'
 import { metaRoutes } from './routes/v0/meta'
 import { divisionRoutes } from './routes/v0/divisions'
 import { placeRoutes } from './routes/v0/places'
+import { registryRoutes } from './routes/v0/registry'
 import type { AppEnv } from './types'
 
 const app = new OpenAPIHono<AppEnv>({
@@ -42,6 +44,49 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
     c.set('currentDb', createCurrentDb(c.env.DB_CURRENT))
     await next()
   })
+}
+for (const path of ['/v0/*', '/v0.1/*'] as const) {
+  app.use(path, async (c, next) => {
+    if (isPublicMetadataPath(c.req.path)) return next()
+
+    const authentication = await authenticateApiKey({
+      d1: c.env.DB_META,
+      rawKey: c.req.header('x-api-key') ?? null,
+      telegram: {
+        botToken: c.env.TELEGRAM_BOT_TOKEN,
+        chatId: c.env.TELEGRAM_ADMIN_ID,
+      },
+      notify: promise => {
+        const backgroundTask = promise.catch(console.error)
+        try {
+          c.executionCtx.waitUntil(backgroundTask)
+        } catch {
+          // Hono's in-process request helper has no execution context. Workers always do.
+          void backgroundTask
+        }
+      },
+    })
+
+    if (!authentication.ok) {
+      if (authentication.retryAfterSeconds) {
+        c.header('Retry-After', String(authentication.retryAfterSeconds))
+      }
+      return c.json(
+        {
+          error: authentication.error,
+          message: authentication.message,
+        },
+        authentication.status,
+      )
+    }
+
+    c.set('apiKey', authentication.apiKey)
+    return next()
+  })
+}
+
+function isPublicMetadataPath(path: string) {
+  return path.startsWith('/v0/meta/') || path.startsWith('/v0/api/')
 }
 
 app.onError((error, c) => {
@@ -77,9 +122,21 @@ app.notFound(c =>
 
 app.get('/', c => c.redirect('/openapi', 302))
 
-app.openapiRoutes([...metaRoutes, ...divisionRoutes, ...placeRoutes] as const)
+app.openapiRoutes([
+  ...metaRoutes,
+  ...registryRoutes,
+  ...divisionRoutes,
+  ...placeRoutes,
+] as const)
 
-app.doc31('/openapi', openApiConfig)
+app.get('/openapi', c =>
+  c.json(
+    app.getOpenAPI31Document({
+      ...openApiConfig,
+      servers: [{ url: c.env.ATLAS_BASE_URL }],
+    }),
+  ),
+)
 app.get(
   '/docs',
   Scalar({

@@ -1,4 +1,5 @@
 import type { createCurrentDb, createMetaDb, SaanseoiWorkerBindings } from '@repo/db'
+import type { AuthenticatedApiKey } from './lib/api-key-auth'
 
 export type AppBindings = CloudflareBindings &
   SaanseoiWorkerBindings & {
@@ -12,5 +13,6 @@ export type AppEnv = {
   Variables: {
     currentDb: ReturnType<typeof createCurrentDb>
     metaDb: ReturnType<typeof createMetaDb>
+    apiKey: AuthenticatedApiKey
   }
 }
