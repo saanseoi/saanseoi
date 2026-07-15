@@ -19,6 +19,37 @@ const polygon = {
 }
 
 describe('division geometry normalization', () => {
+  test('only performs expensive topology validation when requested', () => {
+    const selfIntersectingPolygon = {
+      type: 'Polygon' as const,
+      coordinates: [
+        [
+          [0, 0],
+          [4, 0],
+          [0, 4],
+          [4, 4],
+          [3, 5],
+          [0, 0],
+        ],
+      ],
+    }
+    const row = {
+      class: 'land',
+      division_id: 'division-1',
+      geometry: selfIntersectingPolygon,
+      id: 'area-1',
+      is_land: true,
+      is_territorial: false,
+    }
+
+    expect(normalizeDivisionAreaGeometryRow(row)).not.toBeNull()
+    expect(() =>
+      normalizeDivisionAreaGeometryRow(row, 'overture', {
+        validateGeometry: true,
+      }),
+    ).toThrow('contains a self-intersecting ring')
+  })
+
   test('derives mixed Overture type from both land and territorial flags', () => {
     const normalized = normalizeDivisionAreaGeometryRow({
       bbox: [0, 0, 1, 1],

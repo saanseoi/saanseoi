@@ -5,6 +5,11 @@ Overture `division_area` and `division_boundary` parquet files are ingested as t
 documented geometry unions: Polygon and MultiPolygon for areas, LineString and
 MultiLineString for boundaries.
 
+Geometry uploads perform structural checks by default (supported geometry type, required
+IDs, and division references). Full topology validation, including self-intersection and
+degenerate-ring detection, is opt-in with `--validate-geometry`. This avoids quadratic
+edge-pair checks on detailed Overture polygons during ordinary ingestion.
+
 The source-neutral contract is in
 [`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md). This page records
 the Hong Kong release profile and Overture-specific decisions.

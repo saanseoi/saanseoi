@@ -58,6 +58,7 @@ export async function runUploadCommand(
     printUsage: () => void
     skipConfirm: boolean
     skipSnapshotCleanup: boolean
+    validateGeometry: boolean
   },
 ) {
   const inputFile = args.positionals[0]
@@ -351,7 +352,10 @@ ${mutedBar}  `)
           },
           uploadResult,
           preparedUploadFile,
-          { skipSnapshotCleanup: options.skipSnapshotCleanup },
+          {
+            skipSnapshotCleanup: options.skipSnapshotCleanup,
+            validateGeometry: options.validateGeometry,
+          },
         )
 
         const releaseSetReadiness = await resolveDivisionApiReleaseSetReadiness(
