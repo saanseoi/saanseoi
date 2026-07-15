@@ -65,7 +65,7 @@ const allBindings: BindingName[] = [
   'DB_SOURCE_HK_2026',
 ]
 
-const probeUrls: Record<Environment, string[]> = {
+const probeUrls: Record<Target, string[]> = {
   preview: [
     'https://preview.saanseoi.hk/api/v0/meta/d1-placement-probe',
     'https://preview.harbour.saanseoi.hk/api/v1/meta/d1-placement-probe',
@@ -81,6 +81,8 @@ const options = parseArgs(Bun.argv.slice(2))
 const environment = options.target
 const probeApiKey = resolveRequiredEnvValue('D1_PLACEMENT_PROBE_API_KEY')
 const whitelist = loadWhitelist(options.whitelistFile)
+const MAX_PROBE_ATTEMPTS = 6
+const PROBE_RETRY_DELAY_MS = 10_000
 
 console.log(
   [
@@ -294,7 +296,7 @@ Options:
 }
 
 async function assessEnvironment(
-  environment: Environment,
+  environment: Target,
   options: Options,
   whitelist: PlacementWhitelist,
   probeApiKey: string,
@@ -309,19 +311,54 @@ async function assessEnvironment(
 }
 
 async function fetchProbe(url: string, iterations: number, probeApiKey: string) {
-  const response = await fetch(`${url}?iterations=${iterations}`, {
-    headers: {
-      'x-api-key': probeApiKey,
-    },
-  })
+  let lastError: Error | null = null
 
-  if (!response.ok) {
-    throw new Error(
-      `Probe request failed for ${url}: ${response.status} ${response.statusText}`,
-    )
+  for (let attempt = 1; attempt <= MAX_PROBE_ATTEMPTS; attempt += 1) {
+    let response: Response | null = null
+
+    try {
+      response = await fetch(`${url}?iterations=${iterations}`, {
+        headers: {
+          'x-api-key': probeApiKey,
+        },
+      })
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+    }
+
+    if (response?.ok) {
+      return (await response.json()) as ProbeResponse
+    }
+
+    if (response) {
+      const responseBody = (await response.text()).trim()
+      lastError = new Error(
+        [
+          `Probe request failed for ${url}: ${response.status} ${response.statusText}`,
+          responseBody ? `body=${responseBody.slice(0, 500)}` : null,
+        ]
+          .filter(Boolean)
+          .join(' '),
+      )
+
+      if (response.status < 500 || response.status > 599) {
+        throw lastError
+      }
+    }
+
+    if (attempt < MAX_PROBE_ATTEMPTS) {
+      console.warn(
+        `Probe attempt ${attempt}/${MAX_PROBE_ATTEMPTS} failed for ${url}; retrying in ${PROBE_RETRY_DELAY_MS / 1000}s. ${lastError?.message ?? 'unknown error'}`,
+      )
+      await sleep(PROBE_RETRY_DELAY_MS)
+    }
   }
 
-  return (await response.json()) as ProbeResponse
+  throw lastError ?? new Error(`Probe request failed for ${url}.`)
+}
+
+function sleep(milliseconds: number) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
 
 function assessBinding(
@@ -329,7 +366,7 @@ function assessBinding(
   probes: ProbeResponse[],
   options: Options,
   whitelist: PlacementWhitelist,
-  environment: Environment,
+  environment: Target,
 ): BindingAssessment {
   const matchingBindings = probes.map(probe => {
     const match = probe.bindings.find(entry => entry.binding === binding)
@@ -394,7 +431,7 @@ function assessBinding(
 }
 
 function printEnvironmentSummary(
-  environment: Environment,
+  environment: Target,
   assessments: BindingAssessment[],
 ) {
   console.log(`\n${environment.toUpperCase()}`)
@@ -417,11 +454,7 @@ function printEnvironmentSummary(
   }
 }
 
-function recreateBinding(
-  environment: Environment,
-  binding: BindingName,
-  options: Options,
-) {
+function recreateBinding(environment: Target, binding: BindingName, options: Options) {
   const command = [
     'bun',
     'run',
@@ -438,7 +471,7 @@ function recreateBinding(
   runCommand(`Recreating ${environment} ${binding}`, command)
 }
 
-function deployEnvironment(environment: Environment) {
+function deployEnvironment(environment: Target) {
   runCommand(`Deploying ${environment} workers`, [
     'bun',
     'run',
@@ -460,7 +493,7 @@ function runCommand(label: string, command: string[]) {
   })
 }
 
-function whitelistKey(environment: Environment, binding: BindingName) {
+function whitelistKey(environment: Target, binding: BindingName) {
   return `${environment}:${binding}` as const
 }
 
