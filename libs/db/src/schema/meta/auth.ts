@@ -23,6 +23,10 @@ export const userRoles = ['user', 'admin'] as const
 
 export type UserRole = (typeof userRoles)[number]
 
+export const userLocales = ['en', 'zh-Hant', 'zh-Hans'] as const
+
+export type UserLocale = (typeof userLocales)[number]
+
 export const user = sqliteTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -31,6 +35,7 @@ export const user = sqliteTable('user', {
     .default(false)
     .notNull(),
   image: text('image'),
+  locale: text('locale', { enum: userLocales }),
   role: text('role', { enum: userRoles }).default('user').notNull(),
   substack: text('substack', {
     enum: substackStatuses,
