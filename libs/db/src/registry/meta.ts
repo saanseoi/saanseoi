@@ -93,7 +93,7 @@ type DatasetFixture = {
   type: DatasetType
   licenseCode: string
   attribution?: string
-  sourceUrl: string
+  sourceUrl?: string
   category?: DatasetCategory
   i18n: Array<{
     locale: Locale
@@ -551,7 +551,7 @@ INSERT INTO datasets (
   ${sqlString(dataset.releaseFrequency)},
   ${sqlString(dataset.theme)},
   ${sqlString(dataset.type)},
-  ${sqlString(dataset.sourceUrl)},
+  ${sqlNullable(dataset.sourceUrl)},
   (SELECT id FROM licenses WHERE code = ${sqlString(dataset.licenseCode)}),
   ${sqlNullable(dataset.attribution)},
   ${sqlNullable(dataset.category)},

@@ -1,0 +1,23 @@
+{
+  "versionHash": "sha256:5655d7edf3304340f7272bc942dde871d4579ac8c0ad96612083ff690c409a8a",
+  "code": "dpang",
+  "url": "https://dianapang.net/",
+  "contact": "mailto:hello@dianapang.net",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Diana Pang",
+      "description": "Independent researcher and collector of Hong Kong street-name data."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "Diana Pang",
+      "description": "香港街道名稱資料的獨立研究者及收藏者。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "Diana Pang",
+      "description": "香港街道名称资料的独立研究者及收藏者。"
+    }
+  ]
+}

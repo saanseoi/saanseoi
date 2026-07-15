@@ -1,0 +1,31 @@
+{
+  "versionHash": "sha256:e4319674938f08807e44a27ce56c33d7dbc58461e54e693bd1dd578b1a7a3216",
+  "publisherCode": "hkgov-landsd",
+  "code": "ds-hk-landsd-street",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "as-needed",
+  "theme": "streets",
+  "type": "street",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Lands Department.",
+  "sourceUrl": "https://www.landsd.gov.hk/en/resources/mapping-and-survey.html",
+  "category": "places",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Lands Department Street Names",
+      "description": "A planned source dataset of official Hong Kong street names."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "地政總署街道名稱",
+      "description": "計劃採用的香港官方街道名稱來源資料集。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "地政总署街道名称",
+      "description": "计划采用的香港官方街道名称来源数据集。"
+    }
+  ]
+}
