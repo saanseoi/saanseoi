@@ -16,6 +16,7 @@ type BindingName =
   | 'DB_SOURCE_HK_2026'
 
 type Options = {
+  bindings: BindingName[]
   iterations: number
   location: string
   maxCycles: number
@@ -83,6 +84,7 @@ console.log(
     `location=${options.location}`,
     `max_cycles=${options.maxCycles}`,
     `iterations=${options.iterations}`,
+    `bindings=${options.bindings.join(',')}`,
     `threshold_p50_ms=${options.thresholdP50Ms}`,
     `threshold_p95_ms=${options.thresholdP95Ms}`,
     `whitelist_file=${options.whitelistFile}`,
@@ -145,6 +147,7 @@ process.exit(1)
 
 function parseArgs(args: string[]): Options {
   const defaults: Options = {
+    bindings: allBindings,
     iterations: 20,
     location: 'apac',
     maxCycles: 20,
@@ -160,6 +163,10 @@ function parseArgs(args: string[]): Options {
     switch (arg) {
       case '--location':
         defaults.location = expectValue(args, ++index, '--location')
+        break
+      case '--bindings':
+      case '--binding':
+        defaults.bindings = parseBindingList(expectValue(args, ++index, arg), arg)
         break
       case '--iterations':
         defaults.iterations = Number(expectValue(args, ++index, '--iterations'))
@@ -214,6 +221,29 @@ function parseArgs(args: string[]): Options {
   return defaults
 }
 
+function parseBindingList(value: string, flag: string): BindingName[] {
+  const bindings = value
+    .split(',')
+    .map(binding => binding.trim())
+    .filter(Boolean)
+
+  if (bindings.length === 0) {
+    throw new Error(`${flag} must include at least one binding.`)
+  }
+
+  const unknownBindings = bindings.filter(
+    (binding): binding is string => !allBindings.includes(binding as BindingName),
+  )
+
+  if (unknownBindings.length > 0) {
+    throw new Error(
+      `${flag} contains unsupported binding(s): ${unknownBindings.join(', ')}. Supported bindings: ${allBindings.join(', ')}.`,
+    )
+  }
+
+  return [...new Set(bindings)] as BindingName[]
+}
+
 function expectValue(args: string[], index: number, flag: string) {
   const value = args[index]
 
@@ -230,6 +260,8 @@ function printHelpAndExit(code: number): never {
 
 Options:
   --location <hint>                Passed to wrangler d1 create. Defaults to apac.
+  --bindings <csv>                 Only converge these bindings; omitted means all bindings.
+                                   Example: DB_HISTORY_HK_BEFORE,DB_SOURCE_HK_BEFORE.
   --iterations <n>                 Probe iterations per endpoint. Defaults to 20.
   --max-cycles <n>                 Maximum recreate/deploy cycles. Defaults to 20.
   --threshold-p50-ms <n>           Pass threshold for the worst p50 across both probes. Defaults to 15.
@@ -250,7 +282,7 @@ async function assessEnvironment(
     probeUrls[environment].map(url => fetchProbe(url, options.iterations, probeApiKey)),
   )
 
-  return allBindings.map(binding =>
+  return options.bindings.map(binding =>
     assessBinding(binding, probes, options, whitelist, environment),
   )
 }
