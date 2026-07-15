@@ -670,6 +670,38 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
     )
   }
 
+  if (
+    hasTable(db, 'apiCompositionMembers') &&
+    !hasColumn(db, 'apiCompositionMembers', 'variant')
+  ) {
+    rebuildTable(
+      db,
+      'apiCompositionMembers',
+      `
+        CREATE TABLE apiCompositionMembers (
+          apiCompositionId TEXT NOT NULL,
+          resourceType TEXT NOT NULL,
+          variant TEXT NOT NULL DEFAULT 'default',
+          role TEXT NOT NULL,
+          isRequired INTEGER NOT NULL,
+          selectionMode TEXT NOT NULL,
+          anchorResourceType TEXT,
+          maxLagDays INTEGER,
+          priority INTEGER NOT NULL DEFAULT 0,
+          configJson TEXT,
+          PRIMARY KEY (apiCompositionId, resourceType, variant)
+        );
+      `,
+      `
+        INSERT INTO apiCompositionMembers (
+          apiCompositionId, resourceType, variant, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+        )
+        SELECT apiCompositionId, resourceType, 'default', role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+        FROM __LEGACY_TABLE__;
+      `,
+    )
+  }
+
   addColumnIfMissing(db, 'snapshotSources', 'selectedByRule', 'selectedByRule TEXT')
   addColumnIfMissing(db, 'snapshotSources', 'selectionMode', 'selectionMode TEXT')
   addColumnIfMissing(db, 'snapshotSources', 'anchorReleaseId', 'anchorReleaseId TEXT')
@@ -729,6 +761,7 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
     CREATE TABLE IF NOT EXISTS apiCompositionMembers (
       apiCompositionId TEXT NOT NULL,
       resourceType TEXT NOT NULL,
+      variant TEXT NOT NULL DEFAULT 'default',
       role TEXT NOT NULL,
       isRequired INTEGER NOT NULL,
       selectionMode TEXT NOT NULL,
@@ -736,7 +769,7 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       maxLagDays INTEGER,
       priority INTEGER NOT NULL DEFAULT 0,
       configJson TEXT,
-      PRIMARY KEY (apiCompositionId, resourceType)
+      PRIMARY KEY (apiCompositionId, resourceType, variant)
     );
   `)
 
@@ -986,15 +1019,15 @@ export function seedFixtureCatalog(db: Database) {
       updatedAt = excluded.updatedAt;
 
     INSERT INTO apiCompositionMembers (
-      apiCompositionId, resourceType, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+      apiCompositionId, resourceType, variant, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
     ) VALUES
-      ('api-composition-addresses-v1', 'address', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-addresses-v1', 'division', 'supporting', 1, 'exact_ref', 'address', null, 10, null),
-      ('api-composition-divisions-v1', 'division', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-places-v1', 'place', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-places-v1', 'address', 'supporting', 1, 'exact_ref', 'place', null, 10, null),
-      ('api-composition-places-v1', 'division', 'supporting', 1, 'exact_ref', 'place', null, 20, null)
-    ON CONFLICT(apiCompositionId, resourceType) DO UPDATE SET
+      ('api-composition-addresses-v1', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-addresses-v1', 'division', 'default', 'supporting', 1, 'exact_ref', 'address', null, 10, null),
+      ('api-composition-divisions-v1', 'division', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-places-v1', 'place', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-places-v1', 'address', 'default', 'supporting', 1, 'exact_ref', 'place', null, 10, null),
+      ('api-composition-places-v1', 'division', 'default', 'supporting', 1, 'exact_ref', 'place', null, 20, null)
+    ON CONFLICT(apiCompositionId, resourceType, variant) DO UPDATE SET
       role = excluded.role,
       isRequired = excluded.isRequired,
       selectionMode = excluded.selectionMode,

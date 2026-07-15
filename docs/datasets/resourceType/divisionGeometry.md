@@ -28,10 +28,12 @@ district areas, are bridged directly to canonical division identifiers and can b
 published without an exact-cohort division snapshot. When a Divisions API release set is
 composed, it selects the newest published geometry snapshot at or before the release-set
 cohort for each provider dataset; this keeps an older valid variant available without
-allowing future geometry into the set. Family-required snapshots determine publication;
-optional variants can be added after the required set is complete. The current Divisions
-family policy configures Overture area and boundary snapshots as required/default
-members; this is a family policy, not an intrinsic property of every future provider.
+allowing future geometry into the set. Required variants are alternatives within their
+logical resource type: a release set needs at least one eligible required source
+snapshot for `divisionArea`, rather than every configured area provider. It still needs
+each required resource type (`division`, `divisionArea`, and `divisionBoundary`). The
+current Divisions policy accepts either exact-cohort Overture areas or the latest
+eligible HAD area, while its boundary requirement remains exact-cohort Overture.
 
 Geometry relationships are sparse and opt-in. Clients request plural paths such as
 `include=areas` or `include=boundaries`; a qualified path (`areas:<provider>` or

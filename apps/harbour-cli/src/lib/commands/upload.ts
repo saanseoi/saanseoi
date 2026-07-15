@@ -20,7 +20,7 @@ import type { HarbourReadableDb } from '@repo/core/db/types'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { metaSchema } from '@repo/db'
-import { and, desc, eq, inArray } from 'drizzle-orm'
+import { and, desc, eq, inArray, lte } from 'drizzle-orm'
 
 import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
 import { prepareHkgovHadDistrictUpload } from '../hkgovHad.ts'
@@ -40,6 +40,7 @@ import { prepareUploadFileForDispatch } from '../parquetRepack.ts'
 import { resolveReleaseNotesUrl } from '../releaseNotes.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
 import { dispatchUpload } from '../upload.ts'
+import { formatDurationMs } from '../localPipeline/progressFormatting.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const HARBOUR_API_WRANGLER_CONFIG = resolve(
@@ -458,20 +459,8 @@ function resolveUploadProcessingStrategy(
 }
 
 function formatSuccessfulReleaseMessage(startedAt: number) {
-  return `✔ ${blueText('Release successful')} ${formatMutedValue(`(${formatElapsedDuration(Date.now() - startedAt)})`)}`
-}
-
-function formatElapsedDuration(durationMs: number) {
-  const totalSeconds = Math.max(0, Math.round(durationMs / 1000))
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-
-  if (hours > 0) {
-    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} hr`
-  }
-
-  return `${minutes}:${String(seconds).padStart(2, '0')} min`
+  const elapsed = formatDurationMs(Date.now() - startedAt) ?? '0 ms'
+  return `✔ ${blueText('Release successful')} ${formatMutedValue(`(${elapsed})`)}`
 }
 
 function blueText(value: string) {
@@ -605,6 +594,10 @@ export async function assertDivisionGeometryUploadPrerequisites(
     return
   }
 
+  // HAD district areas are bridged directly to canonical division identifiers.
+  // They are selected as a geometry variant when a later release set is cut.
+  if (plan.source === 'hkgov-had') return
+
   const snapshot = target.remote
     ? await (
         options.resolveRemotePublishedDivisionSnapshot ??
@@ -630,13 +623,15 @@ export async function resolveDivisionApiReleaseSetReadiness(
   const snapshots = target.remote
     ? await resolveRemoteDivisionReleaseSetSnapshots(target, plan)
     : await resolveLocalDivisionReleaseSetSnapshots(target, plan)
-  const divisionAvailable = snapshots.division
-  const areaAvailable = snapshots.divisionArea
-  const boundaryAvailable = snapshots.divisionBoundary
-  const ready = divisionAvailable && areaAvailable && boundaryAvailable
   const cohortIndependentReleases = target.remote
     ? await resolveRemoteCohortIndependentDivisionReleases(target, plan)
     : await resolveLocalCohortIndependentDivisionReleases(target, plan)
+  const divisionAvailable = snapshots.division
+  const areaAvailable =
+    snapshots.divisionArea ||
+    cohortIndependentReleases.some(release => release.releaseCode !== null)
+  const boundaryAvailable = snapshots.divisionBoundary
+  const ready = divisionAvailable && areaAvailable && boundaryAvailable
 
   return {
     areaAvailable,
@@ -673,7 +668,7 @@ export function formatDivisionApiReleaseSetReadiness(
         `  ${available ? greenText('✓') : yellowText('○')} ${dataset.padEnd(width)}  ${available ? 'available' : 'unavailable'}`,
     ),
     '',
-    'Out of Cohort',
+    'At or Before Cohort',
     ...cohortIndependentRows.map(
       ([release, available]) =>
         `  ${available ? greenText('✓') : yellowText('○')} ${release.padEnd(cohortIndependentWidth)}  ${available ? 'available' : 'unavailable'}`,
@@ -822,9 +817,11 @@ async function resolveLocalCohortIndependentDivisionReleases(
             COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS,
           ),
           eq(metaSchema.metaReleases.status, 'published'),
+          lte(metaSchema.metaReleases.cohortKey, plan.cohortKey),
         ),
       )
       .orderBy(
+        desc(metaSchema.metaReleases.cohortKey),
         desc(metaSchema.metaReleases.ingestedAt),
         desc(metaSchema.metaReleases.createdAt),
       )
@@ -851,7 +848,8 @@ async function resolveRemoteCohortIndependentDivisionReleases(
     WHERE d.code IN (${datasetCodes})
       AND d.regionCode = ${sqlLiteral(plan.regionCode)}
       AND r.status = 'published'
-    ORDER BY r.ingestedAt DESC, r.createdAt DESC
+      AND r.cohortKey <= ${sqlLiteral(plan.cohortKey)}
+    ORDER BY r.cohortKey DESC, r.ingestedAt DESC, r.createdAt DESC
   `,
   )
 

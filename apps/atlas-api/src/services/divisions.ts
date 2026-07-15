@@ -597,13 +597,18 @@ function buildSnapshotNotReadyDivisionResponse(): DivisionSnapshotNotReadyRespon
 
 async function getActiveDivisionSnapshot(
   metaDb: AppEnv['Variables']['metaDb'],
+  variants: { area: string; boundary: string },
 ): Promise<ActiveDivisionSnapshot | null> {
   const [activeSnapshot, areaSnapshot, boundarySnapshot] = await runWithD1ReadRetry(
     () =>
       Promise.all([
         resolveActiveSnapshotForType(metaDb as never, 'division', 'division'),
-        resolveActiveSnapshotForType(metaDb as never, 'division', 'divisionArea'),
-        resolveActiveSnapshotForType(metaDb as never, 'division', 'divisionBoundary'),
+        resolveActiveSnapshotForType(metaDb as never, 'division', 'divisionArea', {
+          variant: variants.area,
+        }),
+        resolveActiveSnapshotForType(metaDb as never, 'division', 'divisionBoundary', {
+          variant: variants.boundary,
+        }),
       ]),
   )
 
@@ -750,7 +755,11 @@ export async function listDivisions(args: {
   })
   const limit = args.query['page[limit]'] ?? 25
   const offset = args.query['page[offset]'] ?? 0
-  const activeDivisionSnapshot = await getActiveDivisionSnapshot(args.metaDb)
+  const geometryVariants = requestedGeometryVariants(args.query.include)
+  const activeDivisionSnapshot = await getActiveDivisionSnapshot(
+    args.metaDb,
+    geometryVariants,
+  )
 
   if (!activeDivisionSnapshot) {
     return {
@@ -798,7 +807,7 @@ export async function listDivisions(args: {
       currentDb: args.currentDb,
       snapshot: activeDivisionSnapshot,
       divisionIds: records.map(record => record.division.id),
-      variants: requestedGeometryVariants(args.query.include),
+      variants: geometryVariants,
     }),
   )
   const includes = requestedIncludes(args.query.include)
@@ -864,7 +873,11 @@ export async function getDivisionDetail(args: {
     profile: args.query.profile,
     locales: args.query.locales,
   })
-  const activeDivisionSnapshot = await getActiveDivisionSnapshot(args.metaDb)
+  const geometryVariants = requestedGeometryVariants(args.query.include)
+  const activeDivisionSnapshot = await getActiveDivisionSnapshot(
+    args.metaDb,
+    geometryVariants,
+  )
 
   if (!activeDivisionSnapshot) {
     return {
@@ -906,7 +919,7 @@ export async function getDivisionDetail(args: {
       currentDb: args.currentDb,
       snapshot: activeDivisionSnapshot,
       divisionIds: [record.division.id],
-      variants: requestedGeometryVariants(args.query.include),
+      variants: geometryVariants,
     }),
   )
   const includes = requestedIncludes(args.query.include)

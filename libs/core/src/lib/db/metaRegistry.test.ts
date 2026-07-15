@@ -218,8 +218,14 @@ function createRegionalSnapshotLookupDb() {
   const sqlite = new SQLiteDatabase(':memory:')
 
   sqlite.exec(`
+    CREATE TABLE publishers (
+      id TEXT PRIMARY KEY,
+      code TEXT NOT NULL
+    );
+
     CREATE TABLE datasets (
       id TEXT PRIMARY KEY,
+      publisherId TEXT,
       regionCode TEXT NOT NULL
     );
 
@@ -441,18 +447,20 @@ function createPublishReleaseArtifactsDb() {
     CREATE TABLE apiReleaseSetSnapshots (
       apiReleaseSetId TEXT NOT NULL,
       snapshotId TEXT NOT NULL,
+      variant TEXT NOT NULL DEFAULT 'default',
       role TEXT NOT NULL,
       isRequired INTEGER NOT NULL,
       selectionMode TEXT NOT NULL,
       anchorSnapshotId TEXT,
       createdAt INTEGER NOT NULL,
-      PRIMARY KEY (apiReleaseSetId, snapshotId)
+      PRIMARY KEY (apiReleaseSetId, snapshotId, variant)
     );
 
     CREATE TABLE apiFieldProvenance (
       id TEXT PRIMARY KEY,
       apiReleaseSetId TEXT NOT NULL,
       apiField TEXT NOT NULL,
+      variant TEXT,
       sourceDatasetId TEXT NOT NULL,
       sourceFieldPath TEXT NOT NULL,
       resolverCode TEXT NOT NULL,
@@ -1144,9 +1152,13 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
     sqlite.exec(`
       ALTER TABLE snapshots ADD COLUMN cohortKey TEXT;
 
-      INSERT INTO datasets (id, regionCode) VALUES
-        ('dataset-overture-area', 'hk'),
-        ('dataset-had-area', 'hk');
+      INSERT INTO publishers (id, code) VALUES
+        ('publisher-overture', 'overture'),
+        ('publisher-had', 'hkgov-had');
+
+      INSERT INTO datasets (id, publisherId, regionCode) VALUES
+        ('dataset-overture-area', 'publisher-overture', 'hk'),
+        ('dataset-had-area', 'publisher-had', 'hk');
 
       INSERT INTO snapshots (
         id, resourceType, code, cohortKey, status, publishedAt, createdAt
@@ -1169,6 +1181,7 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
         'divisionArea',
         'hk',
         '2025-09-24.0',
+        {},
       ),
     ).resolves.toEqual([
       {
@@ -1178,6 +1191,24 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
         resourceType: 'divisionArea',
         status: 'published',
       },
+      {
+        id: 'had-area-2022',
+        code: 'ss-hk-divisionArea-2022',
+        cohortKey: '2022',
+        resourceType: 'divisionArea',
+        status: 'published',
+      },
+    ])
+
+    await expect(
+      resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
+        db as never,
+        'divisionArea',
+        'hk',
+        '2025-09-24.0',
+        { publisherCode: 'hkgov-had' },
+      ),
+    ).resolves.toEqual([
       {
         id: 'had-area-2022',
         code: 'ss-hk-divisionArea-2022',
@@ -1260,6 +1291,7 @@ describe('publishReleaseArtifacts', () => {
         datasetId: 'dataset-1',
         releaseCode: 'release-code-1',
         releaseId: 'release-1',
+        source: 'overture',
       },
       publishedAt: '2026-06-29T00:00:00.000Z',
       releaseSetId: 'release-set-1',
@@ -1378,6 +1410,7 @@ describe('publishReleaseArtifacts', () => {
           datasetId: 'dataset-1',
           releaseCode: 'release-code-1',
           releaseId: 'release-1',
+          source: 'overture',
         },
         publishedAt: '2026-06-29T00:00:00.000Z',
         releaseSetId: 'release-set-1',
@@ -1465,6 +1498,7 @@ describe('publishReleaseArtifacts', () => {
             datasetId: 'dataset-1',
             releaseCode: 'release-code-1',
             releaseId: 'release-1',
+            source: 'overture',
           },
           publishedAt: '2026-06-29T00:00:00.000Z',
           releaseSetId: 'release-set-1',
@@ -1541,6 +1575,7 @@ describe('publishReleaseArtifacts', () => {
           datasetId: 'dataset-1',
           releaseCode: 'release-code-1',
           releaseId: 'release-1',
+          source: 'overture',
         },
         publishedAt: '2026-06-29T00:00:00.000Z',
         releaseSetId: 'release-set-1',
