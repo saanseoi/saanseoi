@@ -4,6 +4,15 @@ import { onMount } from 'svelte'
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import { coastlinePaths, ferryPaths } from '../../harbourMapData'
 import type { HarbourPath } from '../../harbourMapData'
+import FoundationSectionBaseMap from './foundationSectionBaseMap.svelte'
+import FoundationSectionBlock from './foundationSectionBlock.svelte'
+import FoundationSectionBlockWrapper from './foundationSectionBlockWrapper.svelte'
+import type { FoundationSectionLabel } from './foundationSectionBlock.svelte'
+import FoundationSectionCoastlines from './foundationSectionCoastlines.svelte'
+import FoundationSectionMotionPaths from './foundationSectionMotionPaths.svelte'
+import FoundationSectionNoise from './foundationSectionNoise.svelte'
+import FoundationSectionTitle from './foundationSectionTitle.svelte'
+import FoundationSectionVessels from './foundationSectionVessels.svelte'
 
 const foundationLabels = [
   {
@@ -14,8 +23,8 @@ const foundationLabels = [
     description: () => m.foundation_humane_tech_description(),
     href: '/manifesto',
     cta: () => m.foundation_humane_tech_cta(),
-    x: 34,
-    y: 21,
+    x: 33,
+    y: 14,
     align: 'left',
   },
   {
@@ -26,8 +35,8 @@ const foundationLabels = [
     description: () => m.foundation_public_data_description(),
     href: '/data',
     cta: () => m.foundation_public_data_cta(),
-    x: 78,
-    y: 32,
+    x: 83,
+    y: 27,
     align: 'right',
   },
   {
@@ -39,10 +48,10 @@ const foundationLabels = [
     href: '/projects',
     cta: () => m.foundation_community_apps_cta(),
     x: 30,
-    y: 78,
+    y: 63,
     align: 'left',
   },
-] as const
+] as const satisfies readonly FoundationSectionLabel[]
 
 const visibleFerryRouteNames = [
   '香港水上的士 Hong Kong Water Taxi',
@@ -56,8 +65,6 @@ const visibleFerryRouteNames = [
 ] as const
 
 const harbourFerryPaths: readonly HarbourPath[] = ferryPaths
-const isRightAligned = (align: 'left' | 'right') => align === 'right'
-
 const visibleVesselRoutes = visibleFerryRouteNames.flatMap((name, index) => {
   const route = harbourFerryPaths.find(path => path.name === name)
 
@@ -118,164 +125,32 @@ onMount(() => {
 })
 </script>
 
-<div
-  bind:this={foundationSection}
-  class="foundation-section"
-  class:foundation-section-visible={isFoundationVisible}
->
-  <div class="foundation-map">
-    <svg
-      class="foundation-harbour-map"
-      viewBox="281 50 630 399"
-      preserveAspectRatio="xMidYMid slice"
-      role="img"
-      aria-labelledby="foundation-map-title"
-    >
-      <title id="foundation-map-title">{m.foundation_title()}</title>
-      <defs>
-        <filter id="harbour-glow" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="1.1" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-        <clipPath id="foundation-map-clip">
-          <rect width="1200" height="760" />
-        </clipPath>
-      </defs>
+<div bind:this={foundationSection} class="isolate">
+  <FoundationSectionBaseMap>
+    {#snippet map()}
+      <FoundationSectionNoise />
+      <FoundationSectionCoastlines paths={coastlinePaths} />
+      <FoundationSectionMotionPaths
+        visibleRoutes={visibleVesselRoutes}
+        orangeRoutes={orangeVesselRoutes}
+      />
+      <FoundationSectionVessels
+        isActive={isFoundationActive}
+        {starFerryFleet}
+        {orangeVesselFleet}
+      />
+    {/snippet}
 
-      <rect class="map-bg" width="1200" height="760" />
-      <g class="map-noise" aria-hidden="true">
-        {#each Array.from({ length: 112 }) as _, index}
-          <circle
-            cx={(index * 97) % 1200}
-            cy={(index * 53) % 760}
-            r={index % 7 === 0 ? 1.2 : 0.65}
-          />
-        {/each}
-      </g>
+    <FoundationSectionTitle />
 
-      <g class="coastlines" filter="url(#harbour-glow)">
-        {#each coastlinePaths as path}
-          <path d={path.d} />
-        {/each}
-      </g>
-
-      <g class="motion-paths" clip-path="url(#foundation-map-clip)" aria-hidden="true">
-        {#each visibleVesselRoutes as route}
-          <path id={route.id} d={route.d} />
-        {/each}
-        {#each orangeVesselRoutes as route}
-          <path id={route.id} d={route.d} />
-        {/each}
-      </g>
-
-      <g class="vessels" clip-path="url(#foundation-map-clip)" aria-hidden="true">
-        {#each starFerryFleet as vessel}
-          {#if vessel.route}
-            <g class="vessel star-ferry-vessel">
-              {#if isFoundationActive}
-                <animateMotion
-                  dur={`${vessel.duration}s`}
-                  begin={`-${vessel.offset}s`}
-                  repeatCount="indefinite"
-                  rotate="auto"
-                >
-                  <mpath href={`#${vessel.route.id}`} />
-                </animateMotion>
-              {/if}
-              <g transform={`scale(${vessel.scale})`}>
-                <ellipse class="star-ferry-hull" cx="0" cy="0" rx="14" ry="4.8" />
-                <ellipse class="star-ferry-top" cx="1.4" cy="0" rx="8.8" ry="2.6" />
-              </g>
-            </g>
-          {/if}
-        {/each}
-
-        {#each orangeVesselFleet as vessel}
-          {#if vessel.route}
-            <g class={`vessel vessel-${vessel.tone}`}>
-              {#if isFoundationActive}
-                <animateMotion
-                  dur={`${vessel.duration}s`}
-                  begin={`-${vessel.offset}s`}
-                  repeatCount="indefinite"
-                  rotate="auto"
-                >
-                  <mpath href={`#${vessel.route.id}`} />
-                </animateMotion>
-              {/if}
-              <g transform={`scale(${vessel.scale})`}>
-                <path class="vessel-hull" d="M -9 -4.2 L 10 0 L -9 4.2 Z" />
-              </g>
-            </g>
-          {/if}
-        {/each}
-      </g>
-    </svg>
-
-    <div class="foundation-center">
-      <p class="foundation-eyebrow">What we offer</p>
-      <h2>
-        {#if getCurrentLocale() === 'en'}
-          <span>Foundation for a Smarter,</span>
-          <span>Accessible City</span>
-        {:else}
-          {m.foundation_title()}
-        {/if}
-      </h2>
-    </div>
-
-    <div class="foundation-labels">
+    <FoundationSectionBlockWrapper>
       {#each foundationLabels as label}
-        {#if label.tone === 'projects'}
-          <div
-            class={`foundation-label foundation-label-${label.tone}`}
-            style={`--label-x: ${label.x}%; --label-y: ${label.y}%`}
-            class:foundation-label-right={isRightAligned(label.align)}
-          >
-            <span class="foundation-label-number">{label.number}</span>
-            <div
-              class="foundation-label-eyebrow"
-              class:foundation-label-eyebrow-cjk={usesCjkEyebrows}
-            >
-              <span class="foundation-label-eyebrow-number">{label.number}</span>
-              <span class="foundation-label-eyebrow-divider">//</span>
-              <span>{label.eyebrow()}</span>
-            </div>
-            <h3>{label.title()}</h3>
-            <p><span>{@html label.description()}</span></p>
-            <small>{m.foundation_community_apps_coming_soon()}</small>
-          </div>
-        {:else}
-          <a
-            class={`foundation-label foundation-label-${label.tone}`}
-            href={label.href}
-            style={`--label-x: ${label.x}%; --label-y: ${label.y}%`}
-            class:foundation-label-right={isRightAligned(label.align)}
-          >
-            <span class="foundation-label-number">{label.number}</span>
-            <div
-              class="foundation-label-eyebrow"
-              class:foundation-label-eyebrow-cjk={usesCjkEyebrows}
-            >
-              {#if label.tone === 'data'}
-                <span>{label.eyebrow()}</span>
-                <span class="foundation-label-eyebrow-divider">//</span>
-                <span class="foundation-label-eyebrow-data-number">{label.number}</span>
-              {:else}
-                <span class="foundation-label-eyebrow-number">{label.number}</span>
-                <span class="foundation-label-eyebrow-divider">//</span>
-                <span>{label.eyebrow()}</span>
-              {/if}
-            </div>
-            <h3>{label.title()}</h3>
-            <p><span>{@html label.description()}</span></p>
-            <small>{label.cta()} ↗</small>
-          </a>
-        {/if}
+        <FoundationSectionBlock
+          {label}
+          isVisible={isFoundationVisible}
+          {usesCjkEyebrows}
+        />
       {/each}
-    </div>
-  </div>
+    </FoundationSectionBlockWrapper>
+  </FoundationSectionBaseMap>
 </div>
