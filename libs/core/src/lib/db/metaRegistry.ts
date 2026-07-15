@@ -1307,6 +1307,7 @@ export async function listApiCompositionMembers(
   return db
     .select({
       resourceType: metaApiCompositionMembers.resourceType,
+      variant: metaApiCompositionMembers.variant,
       role: metaApiCompositionMembers.role,
       isRequired: metaApiCompositionMembers.isRequired,
       selectionMode: metaApiCompositionMembers.selectionMode,
@@ -1526,6 +1527,59 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
       .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
       .limit(1)
       .get()) ?? null
+  )
+}
+
+/**
+ * Resolves the newest published snapshot at or before a release-set cohort for
+ * each primary source dataset. Provider variants therefore stay independent.
+ */
+export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
+  db: HarbourReadableDb,
+  resourceType: ResourceType,
+  regionCode: RegionCode,
+  cohortKey: string,
+) {
+  const candidates = await db
+    .select({
+      id: metaSnapshots.id,
+      code: metaSnapshots.code,
+      cohortKey: metaSnapshots.cohortKey,
+      resourceType: metaSnapshots.resourceType,
+      status: metaSnapshots.status,
+      datasetId: metaDatasets.id,
+    })
+    .from(metaSnapshots)
+    .innerJoin(
+      metaSnapshotSources,
+      eq(metaSnapshots.id, metaSnapshotSources.snapshotId),
+    )
+    .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+    .where(
+      and(
+        eq(metaSnapshots.resourceType, resourceType),
+        eq(metaSnapshots.status, 'published'),
+        sql`${metaSnapshots.cohortKey} <= ${cohortKey}`,
+        eq(metaDatasets.regionCode, regionCode),
+        eq(metaSnapshotSources.role, 'primary'),
+      ),
+    )
+    .orderBy(
+      desc(metaSnapshots.cohortKey),
+      desc(metaSnapshots.publishedAt),
+      desc(metaSnapshots.createdAt),
+    )
+    .all()
+
+  const latestSnapshotByDataset = new Map<string, (typeof candidates)[number]>()
+  for (const candidate of candidates) {
+    if (!latestSnapshotByDataset.has(candidate.datasetId)) {
+      latestSnapshotByDataset.set(candidate.datasetId, candidate)
+    }
+  }
+
+  return [...latestSnapshotByDataset.values()].map(
+    ({ datasetId: _datasetId, ...snapshot }) => snapshot,
   )
 }
 
@@ -2672,6 +2726,7 @@ export async function upsertApiReleaseSetSnapshot(
     isRequired?: boolean
     role?: string
     selectionMode?: string
+    variant?: string
   } = {},
 ) {
   await db
@@ -2679,6 +2734,7 @@ export async function upsertApiReleaseSetSnapshot(
     .values({
       apiReleaseSetId: releaseSetId,
       snapshotId,
+      variant: options.variant ?? 'default',
       role: options.role ?? 'supporting',
       isRequired: options.isRequired ?? true,
       selectionMode: options.selectionMode ?? 'carry_forward_optional',
@@ -2689,8 +2745,10 @@ export async function upsertApiReleaseSetSnapshot(
       target: [
         metaApiReleaseSetSnapshots.apiReleaseSetId,
         metaApiReleaseSetSnapshots.snapshotId,
+        metaApiReleaseSetSnapshots.variant,
       ],
       set: {
+        variant: options.variant ?? 'default',
         role: options.role ?? 'supporting',
         isRequired: options.isRequired ?? true,
         selectionMode: options.selectionMode ?? 'carry_forward_optional',
@@ -2724,6 +2782,7 @@ export async function listApiReleaseSetSnapshots(
     .select({
       snapshotResourceType: metaSnapshots.resourceType,
       snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+      variant: metaApiReleaseSetSnapshots.variant,
     })
     .from(metaApiReleaseSetSnapshots)
     .innerJoin(

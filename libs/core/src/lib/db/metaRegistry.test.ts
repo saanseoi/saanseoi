@@ -16,6 +16,7 @@ import {
   resolveActiveSnapshotForType,
   resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId,
   resolveLatestSnapshotForResourceTypeExcludingId,
+  resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
   resolveShardForTypeRegionYear,
 } from './metaRegistry'
 
@@ -1131,6 +1132,60 @@ describe('resolveActiveSnapshotForType', () => {
       snapshotId: 'snapshot-mo-place',
       apiReleaseSet: 'rs-mo-place-2026-05',
     })
+
+    sqlite.close()
+  })
+})
+
+describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', () => {
+  test("selects each provider's newest published geometry snapshot without selecting future cohorts", async () => {
+    const { sqlite, db } = createRegionalSnapshotLookupDb()
+
+    sqlite.exec(`
+      ALTER TABLE snapshots ADD COLUMN cohortKey TEXT;
+
+      INSERT INTO datasets (id, regionCode) VALUES
+        ('dataset-overture-area', 'hk'),
+        ('dataset-had-area', 'hk');
+
+      INSERT INTO snapshots (
+        id, resourceType, code, cohortKey, status, publishedAt, createdAt
+      ) VALUES
+        ('overture-area-older', 'divisionArea', 'ss-hk-divisionArea-2025-08-20.0', '2025-08-20.0', 'published', 1755648000000, 1755648000000),
+        ('overture-area-current', 'divisionArea', 'ss-hk-divisionArea-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000),
+        ('had-area-2022', 'divisionArea', 'ss-hk-divisionArea-2022', '2022', 'published', 1654041600000, 1654041600000),
+        ('had-area-future', 'divisionArea', 'ss-hk-divisionArea-2026', '2026', 'published', 1767225600000, 1767225600000);
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('overture-area-older', 'dataset-overture-area', 'release-overture-area-older', 'primary'),
+        ('overture-area-current', 'dataset-overture-area', 'release-overture-area-current', 'primary'),
+        ('had-area-2022', 'dataset-had-area', 'release-had-area-2022', 'primary'),
+        ('had-area-future', 'dataset-had-area', 'release-had-area-future', 'primary');
+    `)
+
+    await expect(
+      resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
+        db as never,
+        'divisionArea',
+        'hk',
+        '2025-09-24.0',
+      ),
+    ).resolves.toEqual([
+      {
+        id: 'overture-area-current',
+        code: 'ss-hk-divisionArea-2025-09-24.0',
+        cohortKey: '2025-09-24.0',
+        resourceType: 'divisionArea',
+        status: 'published',
+      },
+      {
+        id: 'had-area-2022',
+        code: 'ss-hk-divisionArea-2022',
+        cohortKey: '2022',
+        resourceType: 'divisionArea',
+        status: 'published',
+      },
+    ])
 
     sqlite.close()
   })
