@@ -28,11 +28,19 @@ const overtureVersions = [
   '2026-06-17.0',
 ] as const
 
+const overtureReleaseNotesThemes = [
+  { type: 'address', theme: 'addresses' },
+  { type: 'division', theme: 'divisions' },
+  { type: 'divisionArea', theme: 'divisions' },
+  { type: 'divisionBoundary', theme: 'divisions' },
+  { type: 'place', theme: 'places' },
+] as const
+
 const builtInEntries = Object.fromEntries(
   overtureVersions.flatMap(sourceVersion =>
-    (['address', 'division', 'place'] as const).map(type => [
+    overtureReleaseNotesThemes.map(({ type, theme }) => [
       cacheKey({ source: 'overture', regionCode: 'hk', type, sourceVersion }),
-      `${overtureReleaseNotesUrl(sourceVersion)}#${type === 'address' ? 'addresses' : `${type}s`}`,
+      `${overtureReleaseNotesUrl(sourceVersion)}#${theme}`,
     ]),
   ),
 )
