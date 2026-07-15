@@ -37,6 +37,10 @@ district codes, and boundary coordinates. Each area is associated with a canonic
 division through the version-controlled <black>hkgov-had</black> identifier bridge;
 source identifiers are never treated as Overture UUIDs.
 
+### Directly Retained Fields
+
+- `geometry` - retained as canonical <black>EPSG:4326</black> GeoJSON
+
 ### Compatibility Fields
 
 These source fields are not directly exposed as <black>divisionArea</black> attributes.
@@ -51,8 +55,6 @@ database capitalization:
 
 ### Normalized Fields
 
-- `geometry` - transformed from <black>EPSG:2326</black> to canonical
-  <black>EPSG:4326</black> GeoJSON
 - `AREA_CODE` - as <black>divisionId</black>, through the <black>hkgov-had</black>
   identifier mapping
 
@@ -99,6 +101,10 @@ SaanSeoi 首次發佈，內容以已知最早的香港民政事務總署地區�
 地區範圍是民政事務總署發佈的行政多邊形，涵蓋香港十八區，並提供中英文名稱、地區編碼及界線座標。每個範圍透過版本控制的
 <black>hkgov-had</black> 識別碼橋接表關聯至標準區劃；來源識別碼不會當作 Overture UUID。
 
+### 直接保留欄位
+
+- `geometry` - 保留為標準 <black>EPSG:4326</black> GeoJSON
+
 ### 兼容性欄位
 
 以下來源欄位不會直接作為 <black>divisionArea</black> 屬性公開，而會透過
@@ -112,7 +118,6 @@ SaanSeoi 首次發佈，內容以已知最早的香港民政事務總署地區�
 
 ### 標準化欄位
 
-- `geometry` - 由 <black>EPSG:2326</black> 轉換為標準 <black>EPSG:4326</black> GeoJSON
 - `AREA_CODE` - 透過 <black>hkgov-had</black> 識別碼映射作為 <black>divisionId</black>
 
 我們亦將所有記錄的 <black>type</black> 視為
@@ -157,6 +162,10 @@ SaanSeoi 首次發佈，內容以已知最早的香港民政事務總署地區�
 地区范围是民政事务总署发布的行政多边形，涵盖香港十八区，并提供中英文名称、地区编码及界线座标。每个范围通过版本控制的
 <black>hkgov-had</black> 识别码桥接表关联至标准区划；来源识别码不会当作 Overture UUID。
 
+### 直接保留字段
+
+- `geometry` - 保留为标准 <black>EPSG:4326</black> GeoJSON
+
 ### 兼容性字段
 
 以下源字段不会直接作为 <black>divisionArea</black> 属性公开，而会通过
@@ -170,7 +179,6 @@ SaanSeoi 首次發佈，內容以已知最早的香港民政事務總署地區�
 
 ### 标准化字段
 
-- `geometry` - 由 <black>EPSG:2326</black> 转换为标准 <black>EPSG:4326</black> GeoJSON
 - `AREA_CODE` - 通过 <black>hkgov-had</black> 识别码映射作为 <black>divisionId</black>
 
 我们也将所有记录的 <black>type</black> 视为
