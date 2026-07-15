@@ -1,5 +1,5 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
-import { getDatasetRecordByReleaseId } from '@repo/core/db/metaRepository'
+import { getDatasetRecordByReleaseId } from '@repo/core/db/metaRegistry'
 
 import { handleUploadRequest } from '../../lib/services/ingest'
 import {

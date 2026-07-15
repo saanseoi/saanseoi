@@ -130,7 +130,7 @@ const DatasetIdSchema = z
 
 const DatasetCodeSchema = z.string().openapi({
   description: 'Stable dataset code within a publisher.',
-  examples: ['ds-hk-overture-division', 'ds-hk-hkgov-als-address'],
+  examples: ['ds-hk-overture-division', 'ds-hk-hkgov-dpo-address'],
 })
 
 const ReleaseIdSchema = z
@@ -143,7 +143,7 @@ const ReleaseIdSchema = z
 
 const ReleaseCodeSchema = z.string().openapi({
   description: 'Public release identifier.',
-  examples: ['overture-hk-division-2025-09-24.0', 'hkgov-als-hk-address-2026-01-20.0'],
+  examples: ['overture-hk-division-2025-09-24.0', 'hkgov-dpo-hk-address-2026-01-20.0'],
 })
 
 const RawObjectKeySchema = z
@@ -154,7 +154,7 @@ const RawObjectKeySchema = z
       'R2 object key for the uploaded file, constructed as `{region}/{source}/{sourceVersion}/{type}.{extension}`',
     examples: [
       'hk/overture/2025-09-24.0/division.parquet',
-      'hk/hkgov-als/2026-01-20.0/address.json',
+      'hk/hkgov-dpo/2026-01-20.0/address.json',
     ],
   })
 
@@ -169,7 +169,7 @@ const SourceSchema = z.string().openapi({
 })
 
 const DatasetTypeQuerySchema = z
-  .enum(['address', 'division', 'place', 'street'])
+  .enum(['address', 'division', 'divisionArea', 'divisionBoundary', 'place', 'street'])
   .openapi('HarbourDatasetTypeQuery')
 
 const ResourceTypeSchema = z.enum(resourceTypes).openapi('HarbourResourceType')
@@ -313,6 +313,7 @@ export const CleanupSnapshotsResponseSchema = z
 
 export const ControlResponseSchema = z
   .object({
+    apiReleaseSetId: z.string().uuid().optional(),
     releaseCode: ReleaseCodeSchema,
     releaseId: ReleaseIdSchema,
     phase: z
@@ -321,6 +322,7 @@ export const ControlResponseSchema = z
       .openapi({
         examples: ['extractDivisions', null],
       }),
+    snapshotId: z.string().uuid().optional(),
     status: StatusSchema,
   })
   .openapi('HarbourControlResponse')
