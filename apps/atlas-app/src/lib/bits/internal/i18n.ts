@@ -11,6 +11,18 @@ export { getCurrentLocale, updateLocale }
 export type AppLocale = (typeof locales)[number]
 type MessageKey = keyof typeof enMessages
 
+export function selectLocalizedRow<T extends { locale: string }>(
+  rows: readonly T[] | null | undefined,
+  locale: AppLocale,
+) {
+  const registryLocale = locale.toLowerCase()
+
+  return (
+    rows?.find(row => row.locale.toLowerCase() === registryLocale) ??
+    rows?.find(row => row.locale.toLowerCase() === 'en')
+  )
+}
+
 const messages = {
   en: enMessages,
   'zh-Hant': zhHantMessages,

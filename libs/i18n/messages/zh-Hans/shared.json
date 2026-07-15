@@ -202,5 +202,10 @@
   "source_release_sections": "发布说明章节",
   "source_no_published_notes": "此来源尚未有已发布的发布说明。",
   "source_contributions": "贡献",
-  "source_publisher_website": "发布者网站"
+  "source_publisher_website": "发布者网站",
+  "auth_reset_subject": "重置你的 Saanseoi 密码",
+  "auth_reset_text": "使用此链接重置你的 Saanseoi 密码：{url}",
+  "auth_verify_subject": "验证你的 Saanseoi 电子邮件地址",
+  "auth_verify_text": "使用此链接验证你的 Saanseoi 电子邮件地址：{url}",
+  "auth_email_continue": "安全地继续"
 }

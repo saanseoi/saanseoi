@@ -202,5 +202,10 @@
   "source_release_sections": "版本說明章節",
   "source_no_published_notes": "此來源尚未有已發布的版本說明。",
   "source_contributions": "貢獻",
-  "source_publisher_website": "發布者網站"
+  "source_publisher_website": "發布者網站",
+  "auth_reset_subject": "重設你的 Saanseoi 密碼",
+  "auth_reset_text": "使用此連結重設你的 Saanseoi 密碼：{url}",
+  "auth_verify_subject": "驗證你的 Saanseoi 電郵地址",
+  "auth_verify_text": "使用此連結驗證你的 Saanseoi 電郵地址：{url}",
+  "auth_email_continue": "安全地繼續"
 }

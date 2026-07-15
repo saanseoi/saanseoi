@@ -201,5 +201,10 @@
   "source_release_sections": "Release note sections",
   "source_no_published_notes": "This source has no published release notes yet.",
   "source_contributions": "Contributions",
-  "source_publisher_website": "Publisher website"
+  "source_publisher_website": "Publisher website",
+  "auth_reset_subject": "Reset your Saanseoi password",
+  "auth_reset_text": "Use this link to reset your Saanseoi password: {url}",
+  "auth_verify_subject": "Verify your Saanseoi email address",
+  "auth_verify_text": "Use this link to verify your Saanseoi email address: {url}",
+  "auth_email_continue": "Continue securely"
 }
