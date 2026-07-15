@@ -1,4 +1,4 @@
-import type { DatasetProcessingMessage, RegionCode, ResourceType } from '@repo/core'
+import type { RegionCode, ResourceType } from '@repo/core'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssemblyRun,
@@ -31,7 +31,19 @@ import { createHarbourControlClient } from '../harbourControl.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
-import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
+import {
+  resolveLocalAddressDbContext,
+  type LocalDbCacheProgressEvent,
+} from '../addressSql/localDbCache.ts'
+import { LocalUploadProgress } from '../localUploadProgress.ts'
+import {
+  appendPhaseDetails,
+  colorRed,
+  colorTeal,
+  formatCompletedPhaseLabel,
+  formatDurationMs,
+  formatRunningPhaseLabel,
+} from '../localPipeline/progressFormatting.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -77,28 +89,70 @@ export async function processLocalDivisionGeometrySqlUpload(
   const datasetId = requireString(uploadResult.datasetId, 'datasetId')
   const shardYear = previewPlan.sourceVersion.slice(0, 4)
   const releaseRoot = `${LOCAL_RELEASE_ROOT}/${target.remote ? 'remote' : 'local'}/${releaseCode}`
+  const progress = new LocalUploadProgress()
+  const setupStartedAt = Date.now()
+  progress.beginPhase(formatGeometryProgressLabel('Prepare', 'workspace'), {
+    current: 0,
+    max: null,
+  })
   const bucket = new LocalPipelineBucket(releaseRoot)
   await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
 
-  const dbContext = await resolveLocalAddressDbContext(
-    target,
-    previewPlan.regionCode,
-    shardYear,
-    {
-      cacheTableProfile: target.remote ? undefined : 'divisionGeometry',
-      includePreviousShardYears: true,
-      refreshRemoteTables: false,
-    },
-  )
+  let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
+  const dbCacheStartedAt = Date.now()
+
+  try {
+    dbContext = await resolveLocalAddressDbContext(
+      target,
+      previewPlan.regionCode,
+      shardYear,
+      {
+        onProgress(event) {
+          updateDbCacheProgress(progress, event)
+        },
+        cacheTableProfile: target.remote ? undefined : 'divisionGeometry',
+        includePreviousShardYears: true,
+        refreshRemoteTables: false,
+      },
+    )
+  } catch (error) {
+    progress.fail(error instanceof Error ? error.message : String(error))
+    throw error
+  }
+
+  if (progress.hasActivePhase()) {
+    progress.complete(
+      appendPhaseDetails(
+        formatCompletedPhaseLabel(
+          colorTeal(target.remote ? 'Clone cache' : 'Prepare'),
+          colorRed(target.remote ? 'local copy' : 'local database'),
+        ),
+        [
+          formatDurationMs(
+            Date.now() - (target.remote ? dbCacheStartedAt : setupStartedAt),
+          ),
+        ],
+      ),
+    )
+  }
   let controlClient: HarbourClient | null = null
 
   try {
+    progress.beginPhase(formatGeometryProgressLabel('Prepare', 'release metadata'), {
+      current: 0,
+      max: null,
+    })
     await syncStagedReleaseIntoLocalMetaCache(
       dbContext.metaDb,
       { datasetCode, rawObjectKey, releaseCode, releaseId },
       previewPlan,
     )
 
+    progress.complete(formatGeometryCompletedLabel('Prepare', 'release metadata'))
+    progress.beginPhase(formatGeometryProgressLabel('Prepare', 'processing state'), {
+      current: 0,
+      max: null,
+    })
     const remoteClient = createHarbourControlClient(target) as HarbourClient
     const client = target.remote
       ? remoteClient
@@ -107,23 +161,6 @@ export async function processLocalDivisionGeometrySqlUpload(
           { publishClient: remoteClient },
         )
     controlClient = client
-    const message: DatasetProcessingMessage = {
-      datasetId,
-      datasetCode,
-      rawObjectKey,
-      releaseCode,
-      releaseId,
-      regionCode: previewPlan.regionCode,
-      shardYear,
-      cohortKey: previewPlan.cohortKey,
-      source: previewPlan.source,
-      sourceVersion: previewPlan.sourceVersion,
-      theme: previewPlan.theme,
-      type: previewPlan.type,
-      processingMode: 'sql',
-      ...(options.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
-    }
-
     await client.stageRunning(
       releaseId,
       'processDataset',
@@ -134,6 +171,11 @@ export async function processLocalDivisionGeometrySqlUpload(
       releaseCode,
     )
 
+    progress.complete(formatGeometryCompletedLabel('Prepare', 'processing state'))
+    progress.beginPhase(formatGeometryProgressLabel('Assemble', 'snapshot'), {
+      current: 0,
+      max: null,
+    })
     const metaDb = dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
     const snapshot = await ensureDraftSnapshotForRelease(metaDb, previewPlan.type, {
       regionCode: previewPlan.regionCode,
@@ -178,9 +220,21 @@ export async function processLocalDivisionGeometrySqlUpload(
       await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
     }
 
+    progress.complete(formatGeometryCompletedLabel('Assemble', 'snapshot'))
+    progress.beginPhase(
+      formatGeometryProgressLabel(
+        'Normalize',
+        `${previewPlan.type} records`,
+        0,
+        previewPlan.rowCount,
+      ),
+      { current: 0, max: previewPlan.rowCount },
+    )
+
     const file = await createAsyncBufferFromR2(bucket, rawObjectKey)
     const normalized: Array<NonNullable<NormalizedGeometry>> = []
     let rejectedRows = 0
+    let processedRows = 0
     const hadBridge =
       previewPlan.source === 'hkgov-had'
         ? new Map(
@@ -223,8 +277,31 @@ export async function processLocalDivisionGeometrySqlUpload(
           throw error
         }
       }
+      processedRows += batch.length
+      progress.update(processedRows, {
+        label: formatGeometryProgressLabel(
+          'Normalize',
+          `${previewPlan.type} records`,
+          processedRows,
+          previewPlan.rowCount,
+        ),
+      })
     }
 
+    progress.complete(
+      formatGeometryCompletedLabel(
+        'Normalize',
+        `${previewPlan.type} records`,
+        normalized.length,
+      ),
+    )
+    progress.beginPhase(
+      formatGeometryProgressLabel('Validate', 'division references'),
+      {
+        current: 0,
+        max: null,
+      },
+    )
     await assertDivisionReferences(
       dbContext.currentDb,
       metaDb,
@@ -234,19 +311,49 @@ export async function processLocalDivisionGeometrySqlUpload(
       normalized,
     )
 
-    await writeGeometryRows(dbContext, previewPlan.type, normalized, {
-      source: previewPlan.source,
-      releaseId,
-      releaseCode,
-      snapshotId: snapshot.id,
-      cohortKey: previewPlan.cohortKey,
-    })
+    progress.complete(formatGeometryCompletedLabel('Validate', 'division references'))
+    progress.beginPhase(
+      formatGeometryProgressLabel('Write', `${previewPlan.type} rows`),
+      {
+        current: 0,
+        max: null,
+      },
+    )
+    await writeGeometryRows(
+      dbContext,
+      previewPlan.type,
+      normalized,
+      {
+        source: previewPlan.source,
+        releaseId,
+        releaseCode,
+        snapshotId: snapshot.id,
+        cohortKey: previewPlan.cohortKey,
+      },
+      label => progress.message(formatGeometryProgressLabel('Write', label)),
+    )
 
+    progress.complete(
+      formatGeometryCompletedLabel(
+        'Write',
+        `${previewPlan.type} rows`,
+        normalized.length,
+      ),
+    )
+    progress.beginPhase(formatGeometryProgressLabel('Finalize', 'dataset statistics'), {
+      current: 0,
+      max: null,
+    })
     await replaceDatasetStats(
       metaDb,
       releaseId,
       buildGeometryStats(previewPlan.type, normalized, previewPlan.source),
     )
+    progress.complete(formatGeometryCompletedLabel('Finalize', 'dataset statistics'))
+    progress.beginPhase(formatGeometryProgressLabel('Publish', 'dataset'), {
+      current: 0,
+      max: null,
+    })
     await client.stageCompleted(
       releaseId,
       'processDataset',
@@ -261,8 +368,10 @@ export async function processLocalDivisionGeometrySqlUpload(
     await client.publishDataset(releaseId, releaseCode, {
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
+    progress.complete(formatGeometryCompletedLabel('Publish', 'dataset'))
     return { snapshotId: snapshot.id, importedRows: normalized.length }
   } catch (error) {
+    progress.fail(error instanceof Error ? error.message : String(error))
     const failureClient =
       controlClient ?? (createHarbourControlClient(target) as HarbourClient)
     await failureClient
@@ -431,6 +540,7 @@ async function writeGeometryRows(
     snapshotId: string
     cohortKey: string
   },
+  onProgress?: (label: string) => void,
 ) {
   const now = toIsoTimestamp()
   const currentTable =
@@ -448,6 +558,7 @@ async function writeGeometryRows(
         : sourceSchema.sourceOvertureDivisionAreas
       : sourceSchema.sourceOvertureDivisionBoundaries
 
+  onProgress?.('clear current rows')
   await context.currentDb
     .delete(currentTable)
     .where(
@@ -459,6 +570,7 @@ async function writeGeometryRows(
     .run()
   const historyHashes = new Map<string, string>()
   const sourceHashes = new Map<string, string>()
+  onProgress?.('hash geometry rows')
   for (const row of rows) {
     historyHashes.set(row.canonical.id, await hashDivisionGeometryRow(row.canonical))
     sourceHashes.set(
@@ -466,6 +578,7 @@ async function writeGeometryRows(
       await hashDivisionGeometrySourceRow(row.source),
     )
   }
+  onProgress?.('close history rows')
   await closeChangedRows(
     context.historyDb,
     historyTable,
@@ -477,6 +590,7 @@ async function writeGeometryRows(
       validToCohortKey: version.cohortKey,
     },
   )
+  onProgress?.('close source rows')
   await closeChangedRows(
     context.sourceDb,
     sourceTable,
@@ -485,6 +599,7 @@ async function writeGeometryRows(
     { isCurrent: false, validToRelease: version.releaseCode },
   )
 
+  onProgress?.('build write batches')
   const currentRows = rows.map(row => ({
     ...row.canonical,
     snapshotId: version.snapshotId,
@@ -538,6 +653,7 @@ async function writeGeometryRows(
     })),
   )
 
+  onProgress?.('write current rows')
   for (const chunk of chunkRows(currentRows)) {
     await context.currentDb
       .insert(currentTable)
@@ -545,6 +661,7 @@ async function writeGeometryRows(
       .run()
   }
   if (historyRows.length) {
+    onProgress?.('write history rows')
     for (const chunk of chunkRows(historyRows)) {
       await context.historyDb
         .insert(historyTable)
@@ -566,6 +683,7 @@ async function writeGeometryRows(
     }
   }
   if (sourceRows.length) {
+    onProgress?.('write source rows')
     for (const chunk of chunkRows(sourceRows)) {
       await context.sourceDb
         .insert(sourceTable)
@@ -582,6 +700,67 @@ async function writeGeometryRows(
         })
         .run()
     }
+  }
+}
+
+function updateDbCacheProgress(
+  progress: LocalUploadProgress,
+  event: LocalDbCacheProgressEvent,
+) {
+  if (event.target !== 'preview' && event.target !== 'production') {
+    return
+  }
+
+  const current = Math.min(event.current, event.total)
+  const label = formatGeometryProgressLabel(
+    'Clone cache',
+    describeDbCacheSubject(event),
+    current,
+    event.total,
+  )
+
+  if (!progress.hasActivePhase()) {
+    progress.beginPhase(label, { current, max: event.total })
+  } else {
+    progress.update(current, { label, max: event.total })
+  }
+}
+
+function formatGeometryProgressLabel(
+  action: string,
+  subject: string,
+  current?: number,
+  total?: number,
+) {
+  return formatRunningPhaseLabel(colorTeal(action), colorRed(subject), current, total)
+}
+
+function formatGeometryCompletedLabel(action: string, subject: string, count?: number) {
+  return formatCompletedPhaseLabel(colorTeal(action), colorRed(subject), count)
+}
+
+function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {
+  const tableName = event.tableName
+    ? event.filter
+      ? `${event.tableName}:${event.filter}`
+      : event.tableName
+    : null
+
+  switch (event.action) {
+    case 'check-cache':
+      return `${event.target}.manifest`
+    case 'export-binding':
+      return tableName
+        ? `${event.bindingName}.${tableName}`
+        : `${event.bindingName}.export`
+    case 'reuse-cache':
+      return `${event.target}.reuse`
+    case 'mirror-table':
+      return tableName ? `${event.bindingName}.${tableName}` : event.bindingName
+    case 'copy-binding':
+      return `${event.bindingName}.sqlite`
+    case 'validate-binding':
+      return `${event.bindingName}.validate`
   }
 }
 
