@@ -9,7 +9,7 @@ import {
 
 import { jsonText, geoBbox, sourceProvenance } from '../shared'
 import { sourceVersionIndexes, sourceVersioning } from './shared'
-import { hkAreas, hkDistricts } from '@repo/core'
+import { hkAreas, hkDistricts } from '@repo/core/codes'
 
 export const sourceOvertureDivisions = sqliteTable(
   'overtureDivisions',

@@ -13,6 +13,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./codes": "./src/codes.ts",
     "./upload": "./src/lib/services/upload.ts",
     "./uploadLocal": "./src/lib/services/uploadLocal.ts",
     "./d1ImportApi": "./src/lib/d1ImportApi.ts",
