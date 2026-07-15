@@ -1,6 +1,6 @@
 import type { SnapshotCleanupMessage } from '@repo/core'
 import type { ResourceType } from '@repo/core'
-import { listCurrentSnapshotCleanupCandidates } from '@repo/core/db/metaRepository'
+import { listCurrentSnapshotCleanupCandidates } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { currentSchema, eq } from '@repo/db'
 import type { CurrentDatabase, MetaDatabase } from '@repo/db'

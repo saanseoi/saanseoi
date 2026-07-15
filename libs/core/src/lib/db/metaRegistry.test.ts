@@ -5,15 +5,19 @@ import { Database as SQLiteDatabase } from 'bun:sqlite'
 import divisionFixture20260520 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2026-05-20.0.json'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import {
+  ensureDraftReleaseSetForRelease,
+  ensureDraftSnapshotForRelease,
   ensureIngestRunStarted,
   getLatestNewerDatasetRelease,
   getLatestDatasetForRegionSourceType,
   listCurrentSnapshotCleanupCandidates,
   publishReleaseArtifacts,
+  recordSnapshotAssemblyRun,
   resolveActiveSnapshotForType,
+  resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId,
   resolveLatestSnapshotForResourceTypeExcludingId,
   resolveShardForTypeRegionYear,
-} from './metaRepository'
+} from './metaRegistry'
 
 function createShardLookupDb() {
   const sqlite = new SQLiteDatabase(':memory:')
@@ -83,6 +87,164 @@ function createSnapshotLookupDb() {
   }
 }
 
+function createDraftSnapshotDb() {
+  const sqlite = new SQLiteDatabase(':memory:')
+
+  sqlite.exec(`
+    CREATE TABLE snapshots (
+      id TEXT PRIMARY KEY,
+      resourceType TEXT NOT NULL,
+      code TEXT NOT NULL,
+      cohortKey TEXT NOT NULL,
+      status TEXT NOT NULL,
+      publishedAt TEXT,
+      validFrom TEXT,
+      validTo TEXT,
+      notes TEXT,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+  `)
+
+  return {
+    sqlite,
+    db: createLocalHarbourDb(sqlite),
+  }
+}
+
+function createDraftReleaseSetDb() {
+  const sqlite = new SQLiteDatabase(':memory:')
+
+  sqlite.exec(`
+    CREATE TABLE apiVersions (
+      id TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
+      familyType TEXT NOT NULL
+    );
+
+    CREATE TABLE apiComposition (
+      id TEXT PRIMARY KEY,
+      apiVersionId TEXT NOT NULL,
+      code TEXT NOT NULL,
+      version INTEGER NOT NULL,
+      primaryResourceType TEXT NOT NULL,
+      status TEXT NOT NULL,
+      createdAt TEXT NOT NULL
+    );
+
+    CREATE TABLE apiReleaseSets (
+      id TEXT PRIMARY KEY,
+      apiVersionId TEXT NOT NULL,
+      code TEXT NOT NULL,
+      schemaVersion TEXT NOT NULL,
+      rulesetVersion TEXT NOT NULL,
+      status TEXT NOT NULL,
+      publishedAt TEXT,
+      validFrom TEXT,
+      validTo TEXT,
+      notes TEXT,
+      versionHash TEXT NOT NULL,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+
+    INSERT INTO apiVersions (id, code, familyType) VALUES
+      ('api-version-division', 'api-divisions-v0.1', 'division');
+
+    INSERT INTO apiComposition (
+      id, apiVersionId, code, version, primaryResourceType, status, createdAt
+    ) VALUES (
+      'api-composition-division',
+      'api-version-division',
+      'api-divisions-default',
+      1,
+      'division',
+      'current',
+      '2026-07-03T00:00:00.000Z'
+    );
+  `)
+
+  return {
+    sqlite,
+    db: createLocalHarbourDb(sqlite),
+  }
+}
+
+function createSnapshotAssemblyRunDb() {
+  const sqlite = new SQLiteDatabase(':memory:')
+
+  sqlite.exec(`
+    CREATE TABLE snapshotAssembly (
+      id TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
+      resourceType TEXT NOT NULL,
+      version INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      createdAt TEXT NOT NULL
+    );
+
+    CREATE TABLE snapshotAssemblyRuns (
+      id TEXT PRIMARY KEY,
+      snapshotId TEXT NOT NULL,
+      snapshotAssemblyId TEXT NOT NULL,
+      anchorReleaseId TEXT,
+      anchorCohortKey TEXT NOT NULL,
+      status TEXT NOT NULL,
+      selectionSummaryJson TEXT,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+
+    INSERT INTO snapshotAssembly (
+      id, code, resourceType, version, status, createdAt
+    ) VALUES (
+      'snapshot-assembly-division-v1',
+      'snapshot-assembly-division-v1',
+      'division',
+      1,
+      'current',
+      '2026-07-03T00:00:00.000Z'
+    );
+  `)
+
+  return {
+    sqlite,
+    db: createLocalHarbourDb(sqlite),
+  }
+}
+
+function createRegionalSnapshotLookupDb() {
+  const sqlite = new SQLiteDatabase(':memory:')
+
+  sqlite.exec(`
+    CREATE TABLE datasets (
+      id TEXT PRIMARY KEY,
+      regionCode TEXT NOT NULL
+    );
+
+    CREATE TABLE snapshots (
+      id TEXT PRIMARY KEY,
+      resourceType TEXT NOT NULL,
+      code TEXT NOT NULL,
+      status TEXT NOT NULL,
+      publishedAt INTEGER,
+      createdAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE snapshotSources (
+      snapshotId TEXT NOT NULL,
+      datasetId TEXT NOT NULL,
+      sourceReleaseId TEXT NOT NULL,
+      role TEXT NOT NULL
+    );
+  `)
+
+  return {
+    sqlite,
+    db: createLocalHarbourDb(sqlite),
+  }
+}
+
 function createLatestDatasetLookupDb() {
   const sqlite = new SQLiteDatabase(':memory:')
 
@@ -109,6 +271,7 @@ function createLatestDatasetLookupDb() {
       cohortKey TEXT NOT NULL,
       rawObjectKey TEXT NOT NULL,
       originalFileName TEXT NOT NULL,
+      notes TEXT,
       status TEXT NOT NULL,
       revokedAt INTEGER,
       revocationReason TEXT,
@@ -258,6 +421,7 @@ function createPublishReleaseArtifactsDb() {
       id TEXT PRIMARY KEY,
       sourceVersion TEXT,
       sourceSchemaVersion TEXT,
+      notes TEXT,
       status TEXT NOT NULL,
       revokedAt INTEGER,
       revocationReason TEXT,
@@ -512,6 +676,150 @@ describe('resolveLatestSnapshotForResourceTypeExcludingId', () => {
       code: 'published',
       resourceType: 'division',
       id: 'snapshot-published',
+      status: 'published',
+    })
+  })
+})
+
+describe('ensureDraftSnapshotForRelease', () => {
+  test('creates deterministic snapshot ids from the snapshot code', async () => {
+    const first = createDraftSnapshotDb()
+    const second = createDraftSnapshotDb()
+
+    const firstSnapshot = await ensureDraftSnapshotForRelease(
+      first.db as never,
+      'division',
+      {
+        cohortKey: '2025-09-24.0',
+        regionCode: 'hk',
+      },
+    )
+    const secondSnapshot = await ensureDraftSnapshotForRelease(
+      second.db as never,
+      'division',
+      {
+        cohortKey: '2025-09-24.0',
+        regionCode: 'hk',
+      },
+    )
+
+    expect(firstSnapshot).toMatchObject({
+      id: secondSnapshot.id,
+      code: 'ss-hk-division-2025-09-24.0',
+    })
+    expect(firstSnapshot.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    )
+
+    first.sqlite.close()
+    second.sqlite.close()
+  })
+})
+
+describe('ensureDraftReleaseSetForRelease', () => {
+  test('creates deterministic release set ids from the release set code', async () => {
+    const first = createDraftReleaseSetDb()
+    const second = createDraftReleaseSetDb()
+
+    const firstReleaseSet = await ensureDraftReleaseSetForRelease(
+      first.db as never,
+      'division',
+      {
+        cohortKey: '2025-09-24.0',
+        regionCode: 'hk',
+      },
+    )
+    const secondReleaseSet = await ensureDraftReleaseSetForRelease(
+      second.db as never,
+      'division',
+      {
+        cohortKey: '2025-09-24.0',
+        regionCode: 'hk',
+      },
+    )
+
+    expect(firstReleaseSet).toMatchObject({
+      id: secondReleaseSet.id,
+      code: 'data-hk-division-2025-09-24.0-0',
+    })
+    expect(firstReleaseSet.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    )
+
+    first.sqlite.close()
+    second.sqlite.close()
+  })
+})
+
+describe('recordSnapshotAssemblyRun', () => {
+  test('creates deterministic run ids from snapshot and assembly ids', async () => {
+    const first = createSnapshotAssemblyRunDb()
+    const second = createSnapshotAssemblyRunDb()
+
+    await recordSnapshotAssemblyRun(first.db as never, {
+      anchorCohortKey: '2025-09-24.0',
+      anchorReleaseId: 'release-division',
+      resourceType: 'division',
+      snapshotId: 'snapshot-division',
+    })
+    await recordSnapshotAssemblyRun(second.db as never, {
+      anchorCohortKey: '2025-09-24.0',
+      anchorReleaseId: 'release-division',
+      resourceType: 'division',
+      snapshotId: 'snapshot-division',
+    })
+
+    const firstRun = first.sqlite
+      .query('SELECT id FROM snapshotAssemblyRuns LIMIT 1')
+      .get() as { id: string }
+    const secondRun = second.sqlite
+      .query('SELECT id FROM snapshotAssemblyRuns LIMIT 1')
+      .get() as { id: string }
+
+    expect(firstRun.id).toBe(secondRun.id)
+    expect(firstRun.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    )
+
+    first.sqlite.close()
+    second.sqlite.close()
+  })
+})
+
+describe('resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId', () => {
+  test('selects the previous published snapshot for the same region', async () => {
+    const { sqlite, db } = createRegionalSnapshotLookupDb()
+
+    sqlite.exec(`
+      INSERT INTO datasets (id, regionCode) VALUES
+        ('dataset-hk', 'hk'),
+        ('dataset-mo', 'mo');
+
+      INSERT INTO snapshots (id, resourceType, code, status, publishedAt, createdAt) VALUES
+        ('snapshot-hk-draft', 'division', 'hk-draft', 'draft', null, 1760005000000),
+        ('snapshot-hk-old', 'division', 'hk-old', 'published', 1760001000000, 1760001000000),
+        ('snapshot-hk-new', 'division', 'hk-new', 'published', 1760002000000, 1760002000000),
+        ('snapshot-mo-newer', 'division', 'mo-newer', 'published', 1760004000000, 1760004000000);
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('snapshot-hk-draft', 'dataset-hk', 'release-hk-draft', 'primary'),
+        ('snapshot-hk-old', 'dataset-hk', 'release-hk-old', 'primary'),
+        ('snapshot-hk-new', 'dataset-hk', 'release-hk-new', 'primary'),
+        ('snapshot-mo-newer', 'dataset-mo', 'release-mo-newer', 'primary');
+    `)
+
+    const snapshot =
+      await resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId(
+        db as never,
+        'division',
+        'hk',
+        'snapshot-hk-draft',
+      )
+
+    expect(snapshot).toEqual({
+      code: 'hk-new',
+      resourceType: 'division',
+      id: 'snapshot-hk-new',
       status: 'published',
     })
   })

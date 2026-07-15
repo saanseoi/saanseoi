@@ -1,6 +1,6 @@
 import type { DatasetProcessingMessage } from '../../types'
 import type { ApiLocale } from '../../lib/apiLocales'
-import { resolveLatestPublishedSnapshotForResourceTypeRegion } from '../../lib/db/metaRepository'
+import { resolveLatestPublishedSnapshotForResourceTypeRegion } from '../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import type {
   CurrentDatabase,

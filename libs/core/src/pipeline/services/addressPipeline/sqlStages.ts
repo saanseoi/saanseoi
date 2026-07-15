@@ -1,5 +1,5 @@
 import type { DatasetProcessingMessage } from '../../../types'
-import { resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId } from '../../../lib/db/metaRepository'
+import { resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId } from '../../../lib/db/metaRegistry'
 import type { HarbourReadableDb } from '../../../lib/db/types'
 import {
   eq,

@@ -1,7 +1,7 @@
 import type { DatasetProcessingMessage } from '../../../types'
 import type { PublishDatasetResult } from '../../harbourClient'
 import { createD1ImportClient } from '../../../lib/d1ImportApi'
-import { resolveShardForTypeRegionYear } from '../../../lib/db/metaRepository'
+import { resolveShardForTypeRegionYear } from '../../../lib/db/metaRegistry'
 import type { HarbourReadableDb } from '../../../lib/db/types'
 import { runWithWriteRetry, type WriteRetryEvent } from '../../utils'
 import type { MetaDatabase } from '@repo/db'

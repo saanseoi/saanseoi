@@ -3,7 +3,7 @@ import {
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolveLatestPublishedSnapshotForResourceType,
   resolveLatestPublishedSnapshotForResourceTypeRegion,
-} from '../../../lib/db/metaRepository'
+} from '../../../lib/db/metaRegistry'
 import type { HarbourReadableDb } from '../../../lib/db/types'
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 import { and, currentSchema, eq } from '@repo/db'

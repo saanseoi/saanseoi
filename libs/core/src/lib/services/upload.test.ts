@@ -26,7 +26,7 @@ import {
 } from './upload'
 import { planUpload, prepareUpload, registerUpload } from './uploadLocal'
 import { createLocalHarbourDb } from '../../testing/localDb'
-import { buildDeterministicReleaseId } from '../db/metaRepository'
+import { buildDeterministicReleaseId } from '../db/metaRegistry'
 
 import type { ParquetInspection } from '../../types'
 

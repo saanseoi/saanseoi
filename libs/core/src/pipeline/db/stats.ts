@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
-import { getDatasetRecordByReleaseId } from '../../lib/db/metaRepository'
+import { getDatasetRecordByReleaseId } from '../../lib/db/metaRegistry'
 import { metaSchema } from '@repo/db'
 import type {
   ApiReleaseSetScopedStatsRow,
