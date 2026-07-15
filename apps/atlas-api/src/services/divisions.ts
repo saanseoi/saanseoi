@@ -4,13 +4,17 @@ import {
   type ApiProfileName,
   type RequestedApiLocaleSelection,
 } from '@repo/core'
-import { resolveActiveSnapshotForType } from '@repo/core/db/metaRepository'
+import { resolveActiveSnapshotForType } from '@repo/core/db/metaRegistry'
 
 import {
   countDivisionsCurrent,
   getDivisionRecordCurrent,
   listDivisionRecordsCurrent,
   listDivisionRecordsCurrentByIds,
+  listDivisionAreasCurrentByDivisionIds,
+  listDivisionBoundariesCurrentByDivisionIds,
+  type DivisionAreaRecord,
+  type DivisionBoundaryRecord,
   type DivisionLocaleSelection,
   type DivisionRecord,
 } from '../db/divisions'
@@ -26,6 +30,7 @@ import {
 } from '../lib/api'
 import { runWithD1ReadRetry } from '../lib/d1'
 import type { AppEnv } from '../types'
+import type { SourcesPayload } from '../schema'
 
 export type RequestedDivisionVersion = 'v0' | 'v0.1'
 export type RequestedDivisionApiVersion = '0.1'
@@ -56,10 +61,13 @@ type DivisionResourcePayload = {
     wikidata?: string | null
     createdAt?: string
     updatedAt?: string
-    sources?: JsonObject | null
+    sources?: SourcesPayload | null
+    identifiers?: unknown
+    variant?: string
     overture?: {
       subtype?: string | null
       class?: string | null
+      version?: number | null
       hierarchies?: unknown
       admin_level?: number | null
     }
@@ -69,11 +77,33 @@ type DivisionResourcePayload = {
     hierarchy: {
       data: DivisionHierarchyResourceIdentifier[]
     }
+    areas?: { data: Array<{ type: 'division-areas'; id: string }> }
+    boundaries?: { data: Array<{ type: 'division-boundaries'; id: string }> }
   }
   links: {
     self: string
   }
 }
+
+type DivisionGeometryResourcePayload = {
+  type: 'division-areas' | 'division-boundaries'
+  id: string
+  attributes: {
+    divisionId?: string
+    leftDivisionId?: string
+    rightDivisionId?: string
+    geometry: JsonObject | null
+    bbox: [number, number, number, number] | null
+    type: string
+    isLand: boolean | null
+    isTerritorial: boolean | null
+    sources?: SourcesPayload | null
+    overture?: unknown
+    variant?: string
+  }
+}
+
+type IncludedResourcePayload = DivisionResourcePayload | DivisionGeometryResourcePayload
 
 type DivisionRouteState = {
   requestedVersionPath: RequestedDivisionVersion
@@ -96,7 +126,7 @@ type DivisionListDocument = {
   }
   links: Record<string, string>
   data: DivisionResourcePayload[]
-  included?: DivisionResourcePayload[]
+  included?: IncludedResourcePayload[]
   meta: ApiVersionMetadata & {
     profile: DivisionProfile
     locales: ApiDocumentLocales
@@ -117,7 +147,7 @@ type DivisionDetailDocument = {
     self: string
   }
   data: DivisionResourcePayload
-  included?: DivisionResourcePayload[]
+  included?: IncludedResourcePayload[]
   meta: ApiVersionMetadata & {
     profile: DivisionProfile
     locales: ApiDocumentLocales
@@ -137,12 +167,14 @@ type ActiveDivisionSnapshot = {
   apiReleaseSet: string
   schemaVersion: string
   rulesetVersion: string
+  areaSnapshotId: string | null
+  boundarySnapshotId: string | null
 }
 
 export type DivisionListQuery = {
   profile?: string
   locales?: string
-  include?: 'hierarchy'
+  include?: string
   'page[limit]'?: number
   'page[offset]'?: number
   'filter[level]'?: number
@@ -153,7 +185,7 @@ export type DivisionListQuery = {
 export type DivisionDetailQuery = {
   profile?: string
   locales?: string
-  include?: 'hierarchy'
+  include?: string
 }
 
 export type DivisionListResult =
@@ -378,6 +410,8 @@ function createDivisionResource(args: {
   baseUrl: string
   routeState: DivisionRouteState
   record: DivisionRecord
+  areas?: DivisionAreaRecord[]
+  boundaries?: DivisionBoundaryRecord[]
 }): DivisionResourcePayload {
   const { baseUrl, routeState, record } = args
   const { division, i18n } = record
@@ -400,11 +434,15 @@ function createDivisionResource(args: {
 
   if (routeState.profile === 'full') {
     attributes.snapshotId = division.snapshotId
-    attributes.sources = (division.sources as JsonObject | null) ?? null
+    attributes.sources = (division.sources as SourcesPayload | null) ?? null
+    attributes.identifiers = division.identifiers
     attributes.overture = {
       subtype: division.subtype,
       class: division.class,
       hierarchies: division.overtureHierarchies ?? null,
+      ...(division.overtureFeatureVersion !== null
+        ? { version: division.overtureFeatureVersion }
+        : {}),
       ...(division.overtureAdminLevel !== null
         ? { admin_level: division.overtureAdminLevel }
         : {}),
@@ -425,6 +463,26 @@ function createDivisionResource(args: {
       hierarchy: {
         data: buildDivisionHierarchyRelationshipData(division.id, division.hierarchy),
       },
+      ...(args.areas
+        ? {
+            areas: {
+              data: args.areas.map(area => ({
+                type: 'division-areas' as const,
+                id: area.id,
+              })),
+            },
+          }
+        : {}),
+      ...(args.boundaries
+        ? {
+            boundaries: {
+              data: args.boundaries.map(boundary => ({
+                type: 'division-boundaries' as const,
+                id: boundary.id,
+              })),
+            },
+          }
+        : {}),
     },
     links: {
       self: `${baseUrl}/${routeState.requestedVersionPath}/divisions/${division.id}`,
@@ -437,7 +495,9 @@ function buildListDocument(args: {
   routeState: DivisionRouteState
   activeSnapshot: ActiveDivisionSnapshot
   records: DivisionRecord[]
-  includedRecords: DivisionRecord[]
+  includedRecords: IncludedResourcePayload[]
+  areasByDivision: Map<string, DivisionAreaRecord[]>
+  boundariesByDivision: Map<string, DivisionBoundaryRecord[]>
   limit: number
   offset: number
   total: number
@@ -448,23 +508,17 @@ function buildListDocument(args: {
       baseUrl: args.url.origin,
       routeState: args.routeState,
       record,
+      areas: args.areasByDivision.get(record.division.id),
+      boundaries: args.boundariesByDivision.get(record.division.id),
     }),
   )
 
-  const included =
-    args.includedRecords.length > 0
-      ? args.includedRecords.map(record =>
-          createDivisionResource({
-            baseUrl: args.url.origin,
-            routeState: args.routeState,
-            record,
-          }),
-        )
-      : undefined
+  const included = args.includedRecords.length > 0 ? args.includedRecords : undefined
 
   return buildJsonApiListDocument<
     DivisionResourcePayload,
-    DivisionListDocument['meta']
+    DivisionListDocument['meta'],
+    IncludedResourcePayload
   >({
     url: args.url,
     limit: args.limit,
@@ -499,28 +553,24 @@ function buildDetailDocument(args: {
   routeState: DivisionRouteState
   activeSnapshot: ActiveDivisionSnapshot
   record: DivisionRecord
-  includedRecords: DivisionRecord[]
+  includedRecords: IncludedResourcePayload[]
+  areasByDivision: Map<string, DivisionAreaRecord[]>
+  boundariesByDivision: Map<string, DivisionBoundaryRecord[]>
 }): DivisionDetailDocument {
   const data = createDivisionResource({
     baseUrl: args.url.origin,
     routeState: args.routeState,
     record: args.record,
+    areas: args.areasByDivision.get(args.record.division.id),
+    boundaries: args.boundariesByDivision.get(args.record.division.id),
   })
 
-  const included =
-    args.includedRecords.length > 0
-      ? args.includedRecords.map(record =>
-          createDivisionResource({
-            baseUrl: args.url.origin,
-            routeState: args.routeState,
-            record,
-          }),
-        )
-      : undefined
+  const included = args.includedRecords.length > 0 ? args.includedRecords : undefined
 
   return buildJsonApiDetailDocument<
     DivisionResourcePayload,
-    DivisionDetailDocument['meta']
+    DivisionDetailDocument['meta'],
+    IncludedResourcePayload
   >({
     url: args.url,
     data,
@@ -548,15 +598,108 @@ function buildSnapshotNotReadyDivisionResponse(): DivisionSnapshotNotReadyRespon
 async function getActiveDivisionSnapshot(
   metaDb: AppEnv['Variables']['metaDb'],
 ): Promise<ActiveDivisionSnapshot | null> {
-  const activeSnapshot = await runWithD1ReadRetry(() =>
-    resolveActiveSnapshotForType(metaDb as never, 'division', 'division'),
+  const [activeSnapshot, areaSnapshot, boundarySnapshot] = await runWithD1ReadRetry(
+    () =>
+      Promise.all([
+        resolveActiveSnapshotForType(metaDb as never, 'division', 'division'),
+        resolveActiveSnapshotForType(metaDb as never, 'division', 'divisionArea'),
+        resolveActiveSnapshotForType(metaDb as never, 'division', 'divisionBoundary'),
+      ]),
   )
 
   if (!activeSnapshot) {
     return null
   }
 
-  return activeSnapshot
+  return {
+    ...activeSnapshot,
+    areaSnapshotId: areaSnapshot?.snapshotId ?? null,
+    boundarySnapshotId: boundarySnapshot?.snapshotId ?? null,
+  }
+}
+
+function requestedIncludes(value: string | undefined) {
+  return new Set(
+    (value ?? '')
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean),
+  )
+}
+
+function requestedGeometryVariants(value: string | undefined) {
+  const includes = requestedIncludes(value)
+  const area = [...includes].find(item => item.startsWith('areas:'))
+  const boundary = [...includes].find(item => item.startsWith('boundaries:'))
+  return {
+    area: area?.slice('areas:'.length) || 'overture',
+    boundary: boundary?.slice('boundaries:'.length) || 'overture',
+  }
+}
+
+async function loadDivisionGeometry(args: {
+  currentDb: AppEnv['Variables']['currentDb']
+  snapshot: ActiveDivisionSnapshot
+  divisionIds: string[]
+  variants?: { area: string; boundary: string }
+}) {
+  const [areas, boundaries] = await Promise.all([
+    args.snapshot.areaSnapshotId
+      ? listDivisionAreasCurrentByDivisionIds(args.currentDb, {
+          snapshotId: args.snapshot.areaSnapshotId,
+          divisionIds: args.divisionIds,
+          variant: args.variants?.area ?? 'overture',
+        })
+      : [],
+    args.snapshot.boundarySnapshotId
+      ? listDivisionBoundariesCurrentByDivisionIds(args.currentDb, {
+          snapshotId: args.snapshot.boundarySnapshotId,
+          divisionIds: args.divisionIds,
+          variant: args.variants?.boundary ?? 'overture',
+        })
+      : [],
+  ])
+  const areasByDivision = new Map<string, DivisionAreaRecord[]>()
+  const boundariesByDivision = new Map<string, DivisionBoundaryRecord[]>()
+  for (const area of areas)
+    areasByDivision.set(area.divisionId, [
+      ...(areasByDivision.get(area.divisionId) ?? []),
+      area,
+    ])
+  for (const boundary of boundaries) {
+    for (const id of [boundary.leftDivisionId, boundary.rightDivisionId]) {
+      boundariesByDivision.set(id, [...(boundariesByDivision.get(id) ?? []), boundary])
+    }
+  }
+  return { areas, boundaries, areasByDivision, boundariesByDivision }
+}
+
+function createDivisionGeometryResource(args: {
+  record: DivisionAreaRecord | DivisionBoundaryRecord
+  kind: 'area' | 'boundary'
+}): DivisionGeometryResourcePayload {
+  const { record } = args
+  const isArea = args.kind === 'area'
+  return {
+    type: isArea ? 'division-areas' : 'division-boundaries',
+    id: record.id,
+    attributes: {
+      ...(isArea
+        ? { divisionId: (record as DivisionAreaRecord).divisionId }
+        : {
+            leftDivisionId: (record as DivisionBoundaryRecord).leftDivisionId,
+            rightDivisionId: (record as DivisionBoundaryRecord).rightDivisionId,
+          }),
+      geometry: (record.geometry as JsonObject | null) ?? null,
+      bbox: (record.bbox as [number, number, number, number] | null) ?? null,
+      type: record.type,
+      isLand: record.isLand,
+      isTerritorial: record.isTerritorial,
+      sources: (record.sources as SourcesPayload | null) ?? null,
+      overture: record.sourceKeys,
+      variant: record.variant,
+    },
+  }
 }
 
 async function loadIncludedHierarchyRecords(args: {
@@ -650,6 +793,32 @@ export async function listDivisions(args: {
       routeState,
     }),
   )
+  const geometry = await runWithD1ReadRetry(() =>
+    loadDivisionGeometry({
+      currentDb: args.currentDb,
+      snapshot: activeDivisionSnapshot,
+      divisionIds: records.map(record => record.division.id),
+      variants: requestedGeometryVariants(args.query.include),
+    }),
+  )
+  const includes = requestedIncludes(args.query.include)
+  const includeAreas =
+    includes.has('areas') || [...includes].some(item => item.startsWith('areas:'))
+  const includeBoundaries =
+    includes.has('boundaries') ||
+    [...includes].some(item => item.startsWith('boundaries:'))
+  const includedGeometry: IncludedResourcePayload[] = [
+    ...(includeAreas
+      ? geometry.areas.map(record =>
+          createDivisionGeometryResource({ record, kind: 'area' }),
+        )
+      : []),
+    ...(includeBoundaries
+      ? geometry.boundaries.map(record =>
+          createDivisionGeometryResource({ record, kind: 'boundary' }),
+        )
+      : []),
+  ]
 
   return {
     status: 200,
@@ -658,7 +827,18 @@ export async function listDivisions(args: {
       routeState,
       activeSnapshot: activeDivisionSnapshot,
       records,
-      includedRecords,
+      includedRecords: [
+        ...includedRecords.map(record =>
+          createDivisionResource({
+            baseUrl: new URL(args.requestUrl).origin,
+            routeState,
+            record,
+          }),
+        ),
+        ...includedGeometry,
+      ],
+      areasByDivision: geometry.areasByDivision,
+      boundariesByDivision: geometry.boundariesByDivision,
       limit,
       offset,
       total,
@@ -721,6 +901,32 @@ export async function getDivisionDetail(args: {
       routeState,
     }),
   )
+  const geometry = await runWithD1ReadRetry(() =>
+    loadDivisionGeometry({
+      currentDb: args.currentDb,
+      snapshot: activeDivisionSnapshot,
+      divisionIds: [record.division.id],
+      variants: requestedGeometryVariants(args.query.include),
+    }),
+  )
+  const includes = requestedIncludes(args.query.include)
+  const includeAreas =
+    includes.has('areas') || [...includes].some(item => item.startsWith('areas:'))
+  const includeBoundaries =
+    includes.has('boundaries') ||
+    [...includes].some(item => item.startsWith('boundaries:'))
+  const includedGeometry: IncludedResourcePayload[] = [
+    ...(includeAreas
+      ? geometry.areas.map(item =>
+          createDivisionGeometryResource({ record: item, kind: 'area' }),
+        )
+      : []),
+    ...(includeBoundaries
+      ? geometry.boundaries.map(item =>
+          createDivisionGeometryResource({ record: item, kind: 'boundary' }),
+        )
+      : []),
+  ]
 
   return {
     status: 200,
@@ -729,7 +935,18 @@ export async function getDivisionDetail(args: {
       routeState,
       activeSnapshot: activeDivisionSnapshot,
       record,
-      includedRecords,
+      includedRecords: [
+        ...includedRecords.map(item =>
+          createDivisionResource({
+            baseUrl: new URL(args.requestUrl).origin,
+            routeState,
+            record: item,
+          }),
+        ),
+        ...includedGeometry,
+      ],
+      areasByDivision: geometry.areasByDivision,
+      boundariesByDivision: geometry.boundariesByDivision,
     }),
   }
 }

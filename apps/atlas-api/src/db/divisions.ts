@@ -3,7 +3,7 @@ import { and, asc, eq, inArray, sql } from '@repo/db'
 import { currentSchema } from '@repo/db'
 import type { RequestedApiLocale, RequestedApiLocaleSelection } from '@repo/core'
 
-const { divisions, divisionsI18n } = currentSchema
+const { divisions, divisionsI18n, divisionAreas, divisionBoundaries } = currentSchema
 
 export type DivisionNameRule = {
   value: string
@@ -29,8 +29,10 @@ export type DivisionRecord = {
     geometry: typeof divisions.$inferSelect.geometry
     bbox: typeof divisions.$inferSelect.bbox
     sourceKeys: DivisionSourceKeys | null
+    identifiers?: typeof divisions.$inferSelect.identifiers
     subtype: string | null
     class: string | null
+    overtureFeatureVersion: number | null
     overtureAdminLevel: number | null
     overtureHierarchies: unknown
     wikidata: string | null
@@ -73,6 +75,7 @@ type DivisionRow = {
   geometry: typeof divisions.$inferSelect.geometry
   bbox: typeof divisions.$inferSelect.bbox
   sourceKeys: typeof divisions.$inferSelect.sourceKeys
+  identifiers: typeof divisions.$inferSelect.identifiers
   wikidata: string | null
   hierarchy: typeof divisions.$inferSelect.hierarchy
   cartography: typeof divisions.$inferSelect.cartography
@@ -83,6 +86,119 @@ type DivisionRow = {
 }
 
 export type DivisionLocaleSelection = RequestedApiLocaleSelection
+
+export type DivisionAreaRecord = {
+  id: string
+  variant: string
+  divisionId: string
+  bbox: typeof divisionAreas.$inferSelect.bbox
+  geometry: typeof divisionAreas.$inferSelect.geometry
+  sourceKeys: typeof divisionAreas.$inferSelect.sourceKeys
+  sources: typeof divisionAreas.$inferSelect.sources
+  type: string
+  isLand: boolean | null
+  isTerritorial: boolean | null
+}
+
+export type DivisionBoundaryRecord = {
+  id: string
+  variant: string
+  leftDivisionId: string
+  rightDivisionId: string
+  bbox: typeof divisionBoundaries.$inferSelect.bbox
+  geometry: typeof divisionBoundaries.$inferSelect.geometry
+  sourceKeys: typeof divisionBoundaries.$inferSelect.sourceKeys
+  sources: typeof divisionBoundaries.$inferSelect.sources
+  type: string
+  isLand: boolean | null
+  isTerritorial: boolean | null
+}
+
+export async function listDivisionAreasCurrentByDivisionIds(
+  db: CurrentDatabase,
+  lookup: { snapshotId: string; divisionIds: string[]; variant?: string },
+) {
+  if (lookup.divisionIds.length === 0) return []
+  return (await db
+    .select({
+      id: divisionAreas.id,
+      variant: divisionAreas.variant,
+      divisionId: divisionAreas.divisionId,
+      bbox: divisionAreas.bbox,
+      geometry: divisionAreas.geometry,
+      sourceKeys: divisionAreas.sourceKeys,
+      sources: divisionAreas.sources,
+      type: divisionAreas.type,
+      isLand: divisionAreas.isLand,
+      isTerritorial: divisionAreas.isTerritorial,
+    })
+    .from(divisionAreas)
+    .where(
+      and(
+        eq(divisionAreas.snapshotId, lookup.snapshotId),
+        inArray(divisionAreas.divisionId, lookup.divisionIds),
+        ...(lookup.variant ? [eq(divisionAreas.variant, lookup.variant)] : []),
+      ),
+    )
+    .all()) as DivisionAreaRecord[]
+}
+
+export async function listDivisionBoundariesCurrentByDivisionIds(
+  db: CurrentDatabase,
+  lookup: { snapshotId: string; divisionIds: string[]; variant?: string },
+) {
+  if (lookup.divisionIds.length === 0) return []
+  const left = await db
+    .select({
+      id: divisionBoundaries.id,
+      variant: divisionBoundaries.variant,
+      leftDivisionId: divisionBoundaries.leftDivisionId,
+      rightDivisionId: divisionBoundaries.rightDivisionId,
+      bbox: divisionBoundaries.bbox,
+      geometry: divisionBoundaries.geometry,
+      sourceKeys: divisionBoundaries.sourceKeys,
+      sources: divisionBoundaries.sources,
+      type: divisionBoundaries.type,
+      isLand: divisionBoundaries.isLand,
+      isTerritorial: divisionBoundaries.isTerritorial,
+    })
+    .from(divisionBoundaries)
+    .where(
+      and(
+        eq(divisionBoundaries.snapshotId, lookup.snapshotId),
+        inArray(divisionBoundaries.leftDivisionId, lookup.divisionIds),
+        ...(lookup.variant ? [eq(divisionBoundaries.variant, lookup.variant)] : []),
+      ),
+    )
+    .all()
+  const right = await db
+    .select({
+      id: divisionBoundaries.id,
+      variant: divisionBoundaries.variant,
+      leftDivisionId: divisionBoundaries.leftDivisionId,
+      rightDivisionId: divisionBoundaries.rightDivisionId,
+      bbox: divisionBoundaries.bbox,
+      geometry: divisionBoundaries.geometry,
+      sourceKeys: divisionBoundaries.sourceKeys,
+      sources: divisionBoundaries.sources,
+      type: divisionBoundaries.type,
+      isLand: divisionBoundaries.isLand,
+      isTerritorial: divisionBoundaries.isTerritorial,
+    })
+    .from(divisionBoundaries)
+    .where(
+      and(
+        eq(divisionBoundaries.snapshotId, lookup.snapshotId),
+        inArray(divisionBoundaries.rightDivisionId, lookup.divisionIds),
+        ...(lookup.variant ? [eq(divisionBoundaries.variant, lookup.variant)] : []),
+      ),
+    )
+    .all()
+  return [
+    ...left,
+    ...right.filter(item => !left.some(existing => existing.id === item.id)),
+  ] as DivisionBoundaryRecord[]
+}
 
 function buildDivisionI18nCondition(localeSelection: DivisionLocaleSelection) {
   return and(
@@ -196,8 +312,14 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
       geometry: row.geometry,
       bbox: row.bbox,
       sourceKeys,
+      identifiers: row.identifiers,
       subtype: getDivisionSourceKey(sourceKeys, 'overture', 'subtype'),
       class: getDivisionSourceKey(sourceKeys, 'overture', 'class'),
+      overtureFeatureVersion: getDivisionSourceNumber(
+        sourceKeys,
+        'overture',
+        'version',
+      ),
       overtureAdminLevel: getDivisionSourceNumber(
         sourceKeys,
         'overture',
@@ -276,6 +398,7 @@ export async function listDivisionRecordsCurrent(
       geometry: divisions.geometry,
       bbox: divisions.bbox,
       sourceKeys: divisions.sourceKeys,
+      identifiers: divisions.identifiers,
       wikidata: divisions.wikidata,
       hierarchy: divisions.hierarchy,
       cartography: divisions.cartography,
@@ -332,6 +455,7 @@ export async function listDivisionRecordsCurrentByIds(
       geometry: divisions.geometry,
       bbox: divisions.bbox,
       sourceKeys: divisions.sourceKeys,
+      identifiers: divisions.identifiers,
       wikidata: divisions.wikidata,
       hierarchy: divisions.hierarchy,
       cartography: divisions.cartography,

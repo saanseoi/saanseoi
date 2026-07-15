@@ -4,18 +4,27 @@ import { getRequestedApiLocalesValidationError } from '@repo/core'
 import {
   ApiVersionMetadataSchema,
   ApiLocale,
+  BBoxSchema,
+  CartographicHintsSchema,
+  FeatureVersionSchema,
+  GeometrySchema,
+  IdSchema,
   JsonApiLinkMapSchema,
   JsonApiVersionSchema,
+  OvertureDivisionClassSchema,
+  OverturePlaceTypeSchema,
   ProfileName,
   RequestedLocalesMetadataSchema,
+  SourcesSchema,
+  WikidataIdSchema,
 } from './common'
 
 const DivisionResourceIdentifierSchema = z
   .object({
     type: z.literal('divisions'),
-    id: z.string(),
+    id: IdSchema,
   })
-  .openapi('DivisionResourceIdentifier')
+  .openapi('DivisionIdentifier')
 
 const DivisionNameRuleSchema = z
   .object({
@@ -33,6 +42,10 @@ const DivisionI18nAttributesSchema = z
   })
   .openapi('DivisionI18nAttributes')
 
+const DivisionI18nSchema = z
+  .record(z.string(), DivisionI18nAttributesSchema)
+  .openapi('DivisionI18n')
+
 const DivisionHierarchyResourceIdentifierSchema =
   DivisionResourceIdentifierSchema.extend({
     meta: z
@@ -41,52 +54,80 @@ const DivisionHierarchyResourceIdentifierSchema =
         subType: z.string().optional(),
       })
       .optional(),
-  }).openapi('DivisionHierarchyResourceIdentifier')
+  }).openapi('DivisionHierarchyIdentifier')
+
+const DivisionHierarchyRelationshipSchema = z
+  .object({
+    data: z.array(DivisionHierarchyResourceIdentifierSchema).openapi({
+      description:
+        'Canonical ancestor divisions for this resource. The relationship is returned even when included resources are not requested.',
+    }),
+  })
+  .openapi('DivisionHierarchy')
 
 const DivisionAttributesSchema = z
   .object({
     level: z.number().int(),
     type: z.string(),
     snapshotId: z.string().optional(),
-    geometry: z.object({}).loose().nullable().optional(),
-    bbox: z
-      .tuple([z.number(), z.number(), z.number(), z.number()])
-      .nullable()
-      .optional(),
-    cartography: z.object({}).loose().nullable().optional(),
-    wikidata: z.string().nullable().optional(),
+    geometry: z.union([GeometrySchema, z.null()]).optional(),
+    bbox: z.union([BBoxSchema, z.null()]).optional(),
+    cartography: z.union([CartographicHintsSchema, z.null()]).optional(),
+    wikidata: z.union([WikidataIdSchema, z.null()]).optional(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),
-    sources: z.object({}).loose().nullable().optional(),
+    sources: z.union([SourcesSchema, z.null()]).optional(),
+    identifiers: z.unknown().optional(),
     overture: z
       .object({
-        subtype: z.string().nullable().optional(),
-        class: z.string().nullable().optional(),
+        subtype: z.union([OverturePlaceTypeSchema, z.null()]).optional(),
+        class: z.union([OvertureDivisionClassSchema, z.null()]).optional(),
+        version: z.union([FeatureVersionSchema, z.null()]).optional(),
         hierarchies: z.unknown().optional(),
         admin_level: z.number().int().nullable().optional(),
       })
       .optional(),
-    i18n: z
-      .object({
-        en: DivisionI18nAttributesSchema.optional(),
-        'zh-hant': DivisionI18nAttributesSchema.optional(),
-        'zh-hans': DivisionI18nAttributesSchema.optional(),
-      })
-      .catchall(DivisionI18nAttributesSchema)
-      .partial()
-      .optional(),
+    i18n: DivisionI18nSchema.optional(),
   })
   .openapi('DivisionAttributes')
 
 const DivisionRelationshipsSchema = z
   .object({
-    hierarchy: z
+    hierarchy: DivisionHierarchyRelationshipSchema,
+    areas: z
       .object({
-        data: z.array(DivisionHierarchyResourceIdentifierSchema),
+        data: z.array(z.object({ type: z.literal('division-areas'), id: IdSchema })),
+      })
+      .optional(),
+    boundaries: z
+      .object({
+        data: z.array(
+          z.object({ type: z.literal('division-boundaries'), id: IdSchema }),
+        ),
       })
       .optional(),
   })
   .openapi('DivisionRelationships')
+
+const DivisionGeometryResourceSchema = z
+  .object({
+    type: z.union([z.literal('division-areas'), z.literal('division-boundaries')]),
+    id: IdSchema,
+    attributes: z.object({
+      divisionId: IdSchema.optional(),
+      leftDivisionId: IdSchema.optional(),
+      rightDivisionId: IdSchema.optional(),
+      geometry: z.union([GeometrySchema, z.null()]),
+      bbox: z.union([BBoxSchema, z.null()]),
+      type: z.string(),
+      isLand: z.boolean().nullable(),
+      isTerritorial: z.boolean().nullable(),
+      variant: z.string().optional(),
+      sources: z.union([SourcesSchema, z.null()]).optional(),
+      overture: z.unknown().optional(),
+    }),
+  })
+  .openapi('DivisionGeometry')
 
 const RequestedLocalesQuerySchema = z
   .string()
@@ -107,13 +148,13 @@ const RequestedLocalesQuerySchema = z
 const DivisionResourceSchema = z
   .object({
     type: z.literal('divisions'),
-    id: z.string(),
+    id: IdSchema,
     attributes: DivisionAttributesSchema,
     relationships: DivisionRelationshipsSchema,
     links: JsonApiLinkMapSchema.optional(),
     meta: z.object({}).loose().optional(),
   })
-  .openapi('DivisionResource')
+  .openapi('Division')
 
 const DivisionDocumentMetaSchema = z
   .object({
@@ -141,7 +182,14 @@ export const DivisionsListQuerySchema = z
   .object({
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
-    include: z.literal('hierarchy').optional(),
+    include: z
+      .string()
+      .regex(/^(hierarchy|areas|boundaries)(,(hierarchy|areas|boundaries))*$/)
+      .optional()
+      .openapi({
+        description:
+          'Include canonical ancestor division resources in the top-level included array. The relationships.hierarchy identifiers are always returned.',
+      }),
     'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
     'page[offset]': z.coerce.number().int().min(0).optional(),
     'filter[level]': z.coerce.number().int().min(0).optional(),
@@ -152,7 +200,7 @@ export const DivisionsListQuerySchema = z
 
 export const DivisionDetailParamsSchema = z
   .object({
-    id: z.string(),
+    id: IdSchema,
   })
   .openapi('DivisionDetailParams')
 
@@ -160,7 +208,14 @@ export const DivisionDetailQuerySchema = z
   .object({
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
-    include: z.literal('hierarchy').optional(),
+    include: z
+      .string()
+      .regex(/^(hierarchy|areas|boundaries)(,(hierarchy|areas|boundaries))*$/)
+      .optional()
+      .openapi({
+        description:
+          'Include canonical ancestor division resources in the top-level included array. The relationships.hierarchy identifiers are always returned.',
+      }),
   })
   .openapi('DivisionDetailQuery')
 
@@ -169,7 +224,13 @@ export const DivisionsListResponseSchema = z
     jsonapi: JsonApiVersionSchema,
     links: JsonApiLinkMapSchema,
     data: z.array(DivisionResourceSchema),
-    included: z.array(DivisionResourceSchema).optional(),
+    included: z
+      .array(z.union([DivisionResourceSchema, DivisionGeometryResourceSchema]))
+      .optional()
+      .openapi({
+        description:
+          'Related division and geometry resources, returned when requested through include.',
+      }),
     meta: DivisionDocumentMetaSchema,
   })
   .openapi('DivisionsListResponse')
@@ -179,7 +240,13 @@ export const DivisionDetailResponseSchema = z
     jsonapi: JsonApiVersionSchema,
     links: JsonApiLinkMapSchema,
     data: DivisionResourceSchema,
-    included: z.array(DivisionResourceSchema).optional(),
+    included: z
+      .array(z.union([DivisionResourceSchema, DivisionGeometryResourceSchema]))
+      .optional()
+      .openapi({
+        description:
+          'Related division and geometry resources, returned when requested through include.',
+      }),
     meta: DivisionDocumentMetaSchema,
   })
   .openapi('DivisionDetailResponse')
