@@ -34,8 +34,10 @@ LOCAL_D1_SQLITE_PATH_META=/abs/path/to/meta.sqlite
 LOCAL_D1_SQLITE_PATH_CURRENT=/abs/path/to/current.sqlite
 LOCAL_D1_SQLITE_PATH_HISTORY_HK_2025=/abs/path/to/history-hk-2025.sqlite
 LOCAL_D1_SQLITE_PATH_HISTORY_HK_2026=/abs/path/to/history-hk-2026.sqlite
+LOCAL_D1_SQLITE_PATH_HISTORY_HK_BEFORE=/abs/path/to/history-hk-before.sqlite
 LOCAL_D1_SQLITE_PATH_SOURCE_HK_2025=/abs/path/to/source-hk-2025.sqlite
 LOCAL_D1_SQLITE_PATH_SOURCE_HK_2026=/abs/path/to/source-hk-2026.sqlite
+LOCAL_D1_SQLITE_PATH_SOURCE_HK_BEFORE=/abs/path/to/source-hk-before.sqlite
 ```
 
 `db:studio:history` and `db:studio:source` default to the current calendar year. Use the
@@ -76,5 +78,7 @@ These are currently bound in Wrangler as:
 - `DB_CURRENT`
 - `DB_HISTORY_HK_2025`
 - `DB_HISTORY_HK_2026`
+- `DB_HISTORY_HK_BEFORE`
 - `DB_SOURCE_HK_2025`
 - `DB_SOURCE_HK_2026`
+- `DB_SOURCE_HK_BEFORE`

@@ -531,23 +531,53 @@ async function buildSourceCountTargets(
   environment: 'preview' | 'production',
   releases: ReleaseContext[],
 ) {
-  const sourceShards = await resolveFallbackShardsByRelease(
+  const releaseIds = releases.map(release => release.releaseId)
+  const assignedSourceBindings = releaseIds.length
+    ? ((await db
+        .select({
+          bindingName: metaDataShards.bindingName,
+          releaseId: metaReleaseShardAssignments.releaseId,
+        })
+        .from(metaReleaseShardAssignments)
+        .innerJoin(
+          metaDataShards,
+          eq(metaReleaseShardAssignments.dataShardId, metaDataShards.id),
+        )
+        .where(
+          and(
+            inArray(metaReleaseShardAssignments.releaseId, releaseIds),
+            eq(metaDataShards.shardType, 'source'),
+            eq(metaDataShards.environment, environment),
+            eq(metaDataShards.status, 'active'),
+          ),
+        )
+        .all()) as Array<{ bindingName: string; releaseId: string }>)
+    : []
+  const assignedSourceBindingsByReleaseId = new Map(
+    assignedSourceBindings.map((row): [string, string] => [
+      row.releaseId,
+      row.bindingName,
+    ]),
+  )
+  const fallbackSourceShards = await resolveFallbackShardsByRelease(
     db,
     'source',
     environment,
-    releases,
+    releases.filter(release => {
+      return !assignedSourceBindingsByReleaseId.has(release.releaseId)
+    }),
   )
 
   return new Map(
     releases.map((release): [string, CountTarget] => {
-      const sourceShard = sourceShards.get(release.releaseId)
+      const bindingName =
+        assignedSourceBindingsByReleaseId.get(release.releaseId) ??
+        fallbackSourceShards.get(release.releaseId)?.bindingName
 
       return [
         release.releaseId,
         {
-          binding: sourceShard
-            ? resolveD1Binding(bindings, sourceShard.bindingName)
-            : undefined,
+          binding: bindingName ? resolveD1Binding(bindings, bindingName) : undefined,
           kind: 'source',
           releaseId: release.releaseId,
           specs: resolveSourceCountSpecs(release),

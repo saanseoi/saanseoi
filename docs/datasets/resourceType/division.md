@@ -34,6 +34,10 @@ The local pipeline imports SQL into:
 - `DB_CURRENT` for the cloned-and-patched current snapshot
 - `DB_META` for release- and API-release-set stats
 
+Pre-2025 division cohorts use the region-scoped `DB_SOURCE_HK_BEFORE` and
+`DB_HISTORY_HK_BEFORE` bindings. Their metadata rows retain `shardType` as `source` or
+`history`, set `regionCode` to `hk`, and leave `year` null.
+
 For remote preview/production runs, the local D1 cache profile mirrors only the meta
 database plus division current/history tables and Overture division source tables needed
 by the release. The cache is scoped by target, source version, cohort, region, and

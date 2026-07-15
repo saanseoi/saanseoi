@@ -479,15 +479,24 @@ export async function prepareAddressVersionInsertContext(
     'current',
     environment,
   )
-  const historyShard = await resolveShardForTypeRegionYear(
-    metaDb,
-    'history',
-    environment,
-    message.regionCode,
-    year,
-  )
+  const [historyShard, sourceShard] = await Promise.all([
+    resolveShardForTypeRegionYear(
+      metaDb,
+      'history',
+      environment,
+      message.regionCode,
+      year,
+    ),
+    resolveShardForTypeRegionYear(
+      metaDb,
+      'source',
+      environment,
+      message.regionCode,
+      year,
+    ),
+  ])
 
-  if (!currentShard || !historyShard) {
+  if (!currentShard || !historyShard || !sourceShard) {
     throw new Error(
       `Shard mapping not found for ${message.regionCode}/${year} in ${environment}.`,
     )
@@ -520,6 +529,7 @@ export async function prepareAddressVersionInsertContext(
     },
   })
   await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
+  await upsertReleaseShardAssignment(metaDb, dataset.releaseId, sourceShard.id)
 
   return {
     releaseId: dataset.releaseId,

@@ -285,6 +285,10 @@ After SQL generation, local orchestration imports artifacts in database order:
 - history shard SQL second, with one deferred `history-apply` import after all history
   staging files
 - current SQL third, with current snapshot init files before current deltas
+
+Address cohorts before 2025 use the region-scoped `DB_SOURCE_HK_BEFORE` and
+`DB_HISTORY_HK_BEFORE` bindings rather than the 2025 year shard.
+
 - publish last, after all SQL artifacts import successfully
 
 Deletion is asymmetric:

@@ -30,9 +30,11 @@ function createDbBindings() {
 
   return {
     DB_CURRENT: db,
+    DB_HISTORY_HK_BEFORE: db,
     DB_HISTORY_HK_2025: db,
     DB_HISTORY_HK_2026: db,
     DB_META: db,
+    DB_SOURCE_HK_BEFORE: db,
     DB_SOURCE_HK_2025: db,
     DB_SOURCE_HK_2026: db,
   }
@@ -158,8 +160,8 @@ describe('harbour-api', () => {
     expect(body.worker).toBe('harbour-api')
     expect(body.configuredPlacementRegion).toBe('azure:eastasia')
     expect(body.iterations).toBe(2)
-    expect(body.totalQueries).toBe(12)
-    expect(body.bindings).toHaveLength(6)
+    expect(body.totalQueries).toBe(16)
+    expect(body.bindings).toHaveLength(8)
     expect(body.bindings.every(binding => binding.timingsMs.length === 2)).toBe(true)
   })
 

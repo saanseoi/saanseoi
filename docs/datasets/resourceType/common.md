@@ -125,6 +125,10 @@ At year rollover, uploads may need both the new year's source/history shards and
 source/history shards for continuity checks. The cache resolver reuses any locally valid
 cached shard files from earlier years and mirrors only missing or invalid bindings, so a
 new year should not force a full re-download of all previous-year shard databases.
+Datasets with a cohort before 2025 use the region-scoped `DB_SOURCE_<REGION>_BEFORE` and
+`DB_HISTORY_<REGION>_BEFORE` shards. These are yearless metadata assignments and must
+not fall back to the 2025 shard. Year-rollover cache preparation also includes the
+`BEFORE` shard when previous shard continuity is requested.
 
 The uploaded release is linked to the snapshot through `snapshotSources`.
 Snapshot-to-release membership is tracked at the snapshot level rather than by writing

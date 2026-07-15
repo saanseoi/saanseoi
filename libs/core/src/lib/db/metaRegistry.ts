@@ -699,6 +699,7 @@ export type DataShardRecord = {
 
 const RELEASE_LOOKUP_RETRY_LIMIT = 4
 const RELEASE_LOOKUP_RETRY_DELAY_MS = 150
+export const BEFORE_SHARD_CUTOFF_YEAR = 2025
 const RELEASE_ID_NAMESPACE = '9b90fd4f-96d3-48b9-9b88-cc101b3667f7'
 const SNAPSHOT_ID_NAMESPACE = '1a3f3f48-3176-5b4f-9b27-10d5b70fb8d5'
 const API_RELEASE_SET_ID_NAMESPACE = 'd14f33c4-4fe8-5a9f-929f-2886d4e69c54'
@@ -2523,6 +2524,11 @@ export async function resolveShardForTypeRegionYear(
     )
   }
 
+  const requestedYear = year ? Number.parseInt(year, 10) : Number.NaN
+  const isBeforeShard =
+    year !== undefined &&
+    /^\d{4}$/.test(year) &&
+    requestedYear < BEFORE_SHARD_CUTOFF_YEAR
   const baseConditions = and(
     eq(metaDataShards.shardType, shardType),
     eq(metaDataShards.environment, environment),
@@ -2544,17 +2550,17 @@ export async function resolveShardForTypeRegionYear(
       .where(
         and(
           baseConditions,
-          year ? eq(metaDataShards.year, year) : isNull(metaDataShards.year),
+          isBeforeShard || !year
+            ? isNull(metaDataShards.year)
+            : eq(metaDataShards.year, year),
         ),
       )
       .limit(1)
       .get()) as DataShardRecord | undefined) ?? null
 
-  if (exactMatch || !year) {
+  if (exactMatch || !year || isBeforeShard) {
     return exactMatch
   }
-
-  const requestedYear = Number.parseInt(year, 10)
 
   if (Number.isNaN(requestedYear)) {
     return null
