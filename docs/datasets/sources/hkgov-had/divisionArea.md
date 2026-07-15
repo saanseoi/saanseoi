@@ -63,4 +63,5 @@ The HAD release is independently versioned and is not blocked on a same-cohort c
 division release. When composing a later Divisions API release set, the registry selects
 the latest published HAD geometry cohort at or before that set's cohort. Thus the 2022
 district-area snapshot is eligible for a `2025-09-24.0` release set until a newer HAD
-snapshot is published.
+snapshot is published. It satisfies that set's `divisionArea` requirement when no
+exact-cohort Overture area snapshot is available.

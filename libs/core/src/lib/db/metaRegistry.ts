@@ -1113,6 +1113,7 @@ export function buildDeterministicSnapshotAssemblyRunId(
 export function buildDeterministicApiFieldProvenanceId(args: {
   apiReleaseSetId: string
   apiField: string
+  variant?: string | null
   contributionType: string
   priority: number
   sourceDatasetId: string
@@ -1123,6 +1124,7 @@ export function buildDeterministicApiFieldProvenanceId(args: {
     [
       args.apiReleaseSetId,
       args.apiField,
+      args.variant ?? 'default',
       args.sourceDatasetId,
       args.sourceFieldPath,
       args.contributionType,
@@ -1539,6 +1541,7 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
   resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
+  options: { publisherCode?: string } = {},
 ) {
   const candidates = await db
     .select({
@@ -1555,6 +1558,7 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
       eq(metaSnapshots.id, metaSnapshotSources.snapshotId),
     )
     .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .where(
       and(
         eq(metaSnapshots.resourceType, resourceType),
@@ -1562,6 +1566,9 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
         sql`${metaSnapshots.cohortKey} <= ${cohortKey}`,
         eq(metaDatasets.regionCode, regionCode),
         eq(metaSnapshotSources.role, 'primary'),
+        options.publisherCode
+          ? eq(metaPublishers.code, options.publisherCode)
+          : undefined,
       ),
     )
     .orderBy(
@@ -1812,6 +1819,7 @@ export async function ensureDraftReleaseSetForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
   type: ResourceType,
   release: Pick<DatasetRecord, 'cohortKey' | 'regionCode'>,
+  options: { forceNew?: boolean } = {},
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
   const apiVersion = await db
@@ -1858,7 +1866,9 @@ export async function ensureDraftReleaseSetForRelease(
     .where(
       and(
         eq(metaApiReleaseSets.apiVersionId, apiVersion.id),
-        ne(metaApiReleaseSets.status, 'archived'),
+        options.forceNew
+          ? eq(metaApiReleaseSets.status, 'draft')
+          : ne(metaApiReleaseSets.status, 'archived'),
         sql`${metaApiReleaseSets.code} LIKE ${`${releaseSetCodePrefix}%`}`,
       ),
     )
@@ -2063,10 +2073,13 @@ export async function publishReleaseArtifacts(
     carriedSnapshots: Array<{
       resourceType: ResourceType
       snapshotId: string
+      variant?: string
     }>
     currentRelease: Pick<DatasetRecord, 'releaseId'> | null
     currentReleaseIsCorrected: boolean
-    dataset: Pick<DatasetRecord, 'datasetId' | 'releaseCode' | 'releaseId'>
+    dataset: Pick<DatasetRecord, 'datasetId' | 'releaseCode' | 'releaseId'> & {
+      source?: string
+    }
     publishedAt: string
     releaseSetId: string
     snapshotId: string
@@ -2124,6 +2137,7 @@ export async function publishReleaseArtifacts(
   const existingReleaseSetSnapshots = await db
     .select({
       snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+      variant: metaApiReleaseSetSnapshots.variant,
       role: metaApiReleaseSetSnapshots.role,
       isRequired: metaApiReleaseSetSnapshots.isRequired,
       selectionMode: metaApiReleaseSetSnapshots.selectionMode,
@@ -2140,8 +2154,9 @@ export async function publishReleaseArtifacts(
   const compositionMembers = composition
     ? await listApiCompositionMembersSafely(db, composition.id)
     : []
+  const datasetVariant = resolveDatasetVariant(args.type, args.dataset.source)
   const datasetMember = compositionMembers.find(
-    member => member.resourceType === args.type,
+    member => member.resourceType === args.type && member.variant === datasetVariant,
   )
   const anchorSnapshotId = compositionMembers.find(
     member => member.resourceType === datasetMember?.anchorResourceType,
@@ -2158,23 +2173,27 @@ export async function publishReleaseArtifacts(
       isRequired: boolean
       role: string
       selectionMode: string
+      variant: string
     }
   >()
 
   for (const snapshot of existingReleaseSetSnapshots) {
-    releaseSetSnapshots.set(snapshot.snapshotId, {
+    releaseSetSnapshots.set(`${snapshot.snapshotId}:${snapshot.variant}`, {
       role: snapshot.role,
       isRequired: Boolean(snapshot.isRequired),
       selectionMode: snapshot.selectionMode,
       anchorSnapshotId: snapshot.anchorSnapshotId ?? null,
+      variant: snapshot.variant,
     })
   }
 
   for (const snapshot of args.carriedSnapshots) {
     const member = compositionMembers.find(
-      candidate => candidate.resourceType === snapshot.resourceType,
+      candidate =>
+        candidate.resourceType === snapshot.resourceType &&
+        candidate.variant === (snapshot.variant ?? 'default'),
     )
-    releaseSetSnapshots.set(snapshot.snapshotId, {
+    releaseSetSnapshots.set(`${snapshot.snapshotId}:${snapshot.variant ?? 'default'}`, {
       role: member?.role ?? 'supporting',
       isRequired: member?.isRequired ?? true,
       selectionMode: member?.selectionMode ?? 'carry_forward_optional',
@@ -2183,23 +2202,32 @@ export async function publishReleaseArtifacts(
           ? args.snapshotId
           : anchorSnapshotId
         : null,
+      variant: snapshot.variant ?? 'default',
     })
   }
 
-  releaseSetSnapshots.set(args.snapshotId, {
+  releaseSetSnapshots.set(`${args.snapshotId}:${datasetVariant}`, {
     role: datasetMember?.role ?? 'primary',
     isRequired: datasetMember?.isRequired ?? true,
     selectionMode: datasetMember?.selectionMode ?? 'exact_ref',
     anchorSnapshotId: datasetMember?.anchorResourceType ? anchorSnapshotId : null,
+    variant: datasetVariant,
   })
 
   const publishedAt = toIsoTimestamp(args.publishedAt)
   const deferApiReleaseSet = args.deferApiReleaseSet === true
 
-  const releaseSetSnapshotIds = [...releaseSetSnapshots.keys()]
-  const primarySnapshotId = [...releaseSetSnapshots.entries()].find(
+  const releaseSetSnapshotIds = [
+    ...new Set(
+      [...releaseSetSnapshots.keys()].map(key => key.slice(0, key.lastIndexOf(':'))),
+    ),
+  ]
+  const primarySnapshotKey = [...releaseSetSnapshots.entries()].find(
     ([, metadata]) => metadata.role === 'primary',
   )?.[0]
+  const primarySnapshotId = primarySnapshotKey
+    ? primarySnapshotKey.slice(0, primarySnapshotKey.lastIndexOf(':'))
+    : null
   const primarySnapshot = primarySnapshotId
     ? await db
         .select({ code: metaSnapshots.code })
@@ -2291,6 +2319,7 @@ export async function publishReleaseArtifacts(
             id: buildDeterministicApiFieldProvenanceId({
               apiReleaseSetId: args.releaseSetId,
               apiField: field.apiField,
+              variant: field.variant,
               sourceDatasetId,
               sourceFieldPath: field.sourceFieldPath,
               contributionType: field.contributionType,
@@ -2298,6 +2327,7 @@ export async function publishReleaseArtifacts(
             }),
             apiReleaseSetId: args.releaseSetId,
             apiField: field.apiField,
+            variant: field.variant ?? null,
             sourceDatasetId,
             sourceFieldPath: field.sourceFieldPath,
             resolverCode: field.resolverCode,
@@ -2307,6 +2337,7 @@ export async function publishReleaseArtifacts(
             versionHash: computeVersionHash({
               apiField: field.apiField,
               apiReleaseSetId: args.releaseSetId,
+              variant: field.variant ?? null,
               confidence: field.confidence ?? null,
               contributionType: field.contributionType,
               fixtureVersionHash: resolvedApiFieldFixture.versionHash,
@@ -2387,13 +2418,15 @@ export async function publishReleaseArtifacts(
       )
     }
 
-    for (const [snapshotId, snapshotMetadata] of releaseSetSnapshots.entries()) {
+    for (const [snapshotKey, snapshotMetadata] of releaseSetSnapshots.entries()) {
+      const snapshotId = snapshotKey.slice(0, snapshotKey.lastIndexOf(':'))
       statements.push(
         tx
           .insert(metaApiReleaseSetSnapshots)
           .values({
             apiReleaseSetId: args.releaseSetId,
             snapshotId,
+            variant: snapshotMetadata.variant,
             role: snapshotMetadata.role,
             isRequired: snapshotMetadata.isRequired,
             selectionMode: snapshotMetadata.selectionMode,
@@ -2404,6 +2437,7 @@ export async function publishReleaseArtifacts(
             target: [
               metaApiReleaseSetSnapshots.apiReleaseSetId,
               metaApiReleaseSetSnapshots.snapshotId,
+              metaApiReleaseSetSnapshots.variant,
             ],
             set: {
               role: snapshotMetadata.role,
@@ -2677,6 +2711,12 @@ export async function resolveShardForTypeRegionYear(
     : null
 }
 
+function resolveDatasetVariant(type: ResourceType, source?: string) {
+  return type === 'divisionArea' || type === 'divisionBoundary'
+    ? (source ?? 'overture')
+    : 'default'
+}
+
 export async function upsertSnapshotSource(
   db: HarbourWritableDb,
   snapshotId: string,
@@ -2849,6 +2889,7 @@ export async function resolveActiveSnapshotForType(
   resourceType: ResourceType,
   options: {
     regionCode?: RegionCode
+    variant?: string
   } = {},
 ) {
   if (options.regionCode) {
@@ -2883,6 +2924,9 @@ export async function resolveActiveSnapshotForType(
             eq(metaApiVersions.code, getApiVersionCodeForType(type)),
             eq(metaApiReleaseSets.status, 'current'),
             eq(metaSnapshots.resourceType, resourceType),
+            options.variant
+              ? eq(metaApiReleaseSetSnapshots.variant, options.variant)
+              : undefined,
             eq(metaSnapshotSources.role, 'primary'),
             eq(metaDatasets.regionCode, options.regionCode),
           ),
@@ -2923,6 +2967,9 @@ export async function resolveActiveSnapshotForType(
         and(
           eq(metaApiReleaseSetSnapshots.apiReleaseSetId, activeReleaseSet.id),
           eq(metaSnapshots.resourceType, resourceType),
+          options.variant
+            ? eq(metaApiReleaseSetSnapshots.variant, options.variant)
+            : undefined,
         ),
       )
       .limit(1)

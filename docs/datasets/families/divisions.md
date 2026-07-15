@@ -2,10 +2,12 @@
 
 The Divisions API family combines canonical divisions with geometry companions. Geometry
 variants are source-specific assertions and are not merged. The family currently
-requires exact-cohort Overture area and boundary snapshots for publication. Additional
-geometry providers are additive: the release set selects each provider's newest
-published snapshot at or before its cohort, so a long-lived authoritative geometry can
-accompany a newer canonical division release without selecting future data.
+requires a snapshot for each resource type: canonical `division`, `divisionArea`, and
+`divisionBoundary`. Required variants of one resource type are alternatives, so at least
+one eligible area source is sufficient. An area may be the exact-cohort Overture
+snapshot or the latest published HAD snapshot at or before the set cohort; the boundary
+requirement currently remains exact-cohort Overture. This lets long-lived authoritative
+HAD geometry accompany a newer canonical division release without selecting future data.
 
 The reusable resource contract and variant rules are documented in
 [`divisionGeometry`](../resourceType/divisionGeometry.md) and

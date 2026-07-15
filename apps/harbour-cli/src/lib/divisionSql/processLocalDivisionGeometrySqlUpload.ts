@@ -138,6 +138,7 @@ export async function processLocalDivisionGeometrySqlUpload(
   let controlClient: HarbourClient | null = null
 
   try {
+    const releaseMetadataStartedAt = Date.now()
     progress.beginPhase(formatGeometryProgressLabel('Prepare', 'release metadata'), {
       current: 0,
       max: null,
@@ -148,7 +149,15 @@ export async function processLocalDivisionGeometrySqlUpload(
       previewPlan,
     )
 
-    progress.complete(formatGeometryCompletedLabel('Prepare', 'release metadata'))
+    progress.complete(
+      formatGeometryCompletedLabel(
+        'Prepare',
+        'release metadata',
+        undefined,
+        Date.now() - releaseMetadataStartedAt,
+      ),
+    )
+    const processingStateStartedAt = Date.now()
     progress.beginPhase(formatGeometryProgressLabel('Prepare', 'processing state'), {
       current: 0,
       max: null,
@@ -171,7 +180,15 @@ export async function processLocalDivisionGeometrySqlUpload(
       releaseCode,
     )
 
-    progress.complete(formatGeometryCompletedLabel('Prepare', 'processing state'))
+    progress.complete(
+      formatGeometryCompletedLabel(
+        'Prepare',
+        'processing state',
+        undefined,
+        Date.now() - processingStateStartedAt,
+      ),
+    )
+    const snapshotStartedAt = Date.now()
     progress.beginPhase(formatGeometryProgressLabel('Assemble', 'snapshot'), {
       current: 0,
       max: null,
@@ -220,7 +237,15 @@ export async function processLocalDivisionGeometrySqlUpload(
       await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
     }
 
-    progress.complete(formatGeometryCompletedLabel('Assemble', 'snapshot'))
+    progress.complete(
+      formatGeometryCompletedLabel(
+        'Assemble',
+        'snapshot',
+        undefined,
+        Date.now() - snapshotStartedAt,
+      ),
+    )
+    const normalizationStartedAt = Date.now()
     progress.beginPhase(
       formatGeometryProgressLabel(
         'Normalize',
@@ -293,8 +318,10 @@ export async function processLocalDivisionGeometrySqlUpload(
         'Normalize',
         `${previewPlan.type} records`,
         normalized.length,
+        Date.now() - normalizationStartedAt,
       ),
     )
+    const validationStartedAt = Date.now()
     progress.beginPhase(
       formatGeometryProgressLabel('Validate', 'division references'),
       {
@@ -302,16 +329,26 @@ export async function processLocalDivisionGeometrySqlUpload(
         max: null,
       },
     )
-    await assertDivisionReferences(
-      dbContext.currentDb,
-      metaDb,
-      previewPlan.regionCode,
-      previewPlan.cohortKey,
-      previewPlan.type,
-      normalized,
-    )
+    if (previewPlan.source !== 'hkgov-had') {
+      await assertDivisionReferences(
+        dbContext.currentDb,
+        metaDb,
+        previewPlan.regionCode,
+        previewPlan.cohortKey,
+        previewPlan.type,
+        normalized,
+      )
+    }
 
-    progress.complete(formatGeometryCompletedLabel('Validate', 'division references'))
+    progress.complete(
+      formatGeometryCompletedLabel(
+        'Validate',
+        'division references',
+        undefined,
+        Date.now() - validationStartedAt,
+      ),
+    )
+    const writeStartedAt = Date.now()
     progress.beginPhase(
       formatGeometryProgressLabel('Write', `${previewPlan.type} rows`),
       {
@@ -338,8 +375,10 @@ export async function processLocalDivisionGeometrySqlUpload(
         'Write',
         `${previewPlan.type} rows`,
         normalized.length,
+        Date.now() - writeStartedAt,
       ),
     )
+    const statsStartedAt = Date.now()
     progress.beginPhase(formatGeometryProgressLabel('Finalize', 'dataset statistics'), {
       current: 0,
       max: null,
@@ -349,7 +388,15 @@ export async function processLocalDivisionGeometrySqlUpload(
       releaseId,
       buildGeometryStats(previewPlan.type, normalized, previewPlan.source),
     )
-    progress.complete(formatGeometryCompletedLabel('Finalize', 'dataset statistics'))
+    progress.complete(
+      formatGeometryCompletedLabel(
+        'Finalize',
+        'dataset statistics',
+        undefined,
+        Date.now() - statsStartedAt,
+      ),
+    )
+    const publishStartedAt = Date.now()
     progress.beginPhase(formatGeometryProgressLabel('Publish', 'dataset'), {
       current: 0,
       max: null,
@@ -368,7 +415,14 @@ export async function processLocalDivisionGeometrySqlUpload(
     await client.publishDataset(releaseId, releaseCode, {
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
-    progress.complete(formatGeometryCompletedLabel('Publish', 'dataset'))
+    progress.complete(
+      formatGeometryCompletedLabel(
+        'Publish',
+        'dataset',
+        undefined,
+        Date.now() - publishStartedAt,
+      ),
+    )
     return { snapshotId: snapshot.id, importedRows: normalized.length }
   } catch (error) {
     progress.fail(error instanceof Error ? error.message : String(error))
@@ -735,8 +789,16 @@ function formatGeometryProgressLabel(
   return formatRunningPhaseLabel(colorTeal(action), colorRed(subject), current, total)
 }
 
-function formatGeometryCompletedLabel(action: string, subject: string, count?: number) {
-  return formatCompletedPhaseLabel(colorTeal(action), colorRed(subject), count)
+function formatGeometryCompletedLabel(
+  action: string,
+  subject: string,
+  count?: number,
+  durationMs?: number,
+) {
+  return appendPhaseDetails(
+    formatCompletedPhaseLabel(colorTeal(action), colorRed(subject), count),
+    [formatDurationMs(durationMs ?? Number.NaN)],
+  )
 }
 
 function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {

@@ -12,6 +12,7 @@ describe('api field fixtures', () => {
       'ds-hk-overture-division': '1.12.0',
       'ds-hk-overture-divisionArea': '1.12.0',
       'ds-hk-overture-divisionBoundary': '1.12.0',
+      'ds-hk-hkgov-had-district': '1.2',
     })
 
     expect(
@@ -24,6 +25,7 @@ describe('api field fixtures', () => {
           'ds-hk-overture-division': '1.12.0',
           'ds-hk-overture-divisionArea': '1.12.0',
           'ds-hk-overture-divisionBoundary': '1.12.0',
+          'ds-hk-hkgov-had-district': '1.2',
         },
       })?.validFromSnapshotVersion,
     ).toBe('ss-hk-division-2025-09-24.0')

@@ -135,7 +135,7 @@ describe('upload command address prerequisites', () => {
 })
 
 describe('division API release set readiness display', () => {
-  test('lists every required dataset and its availability', () => {
+  test('treats an eligible provider area release as satisfying the area requirement', () => {
     expect(
       formatDivisionApiReleaseSetReadiness(
         {
@@ -143,7 +143,7 @@ describe('division API release set readiness display', () => {
           regionCode: 'hk',
         },
         {
-          areaAvailable: false,
+          areaAvailable: true,
           boundaryAvailable: false,
           cohortIndependentReleases: [
             {
@@ -159,7 +159,7 @@ describe('division API release set readiness display', () => {
       [
         'HK / 2025-09-24.0',
         '  \u001B[32m✓\u001B[39m division          available',
-        '  \u001B[33m○\u001B[39m divisionArea      unavailable',
+        '  \u001B[32m✓\u001B[39m divisionArea      available',
         '  \u001B[33m○\u001B[39m divisionBoundary  unavailable',
         '',
         'At or Before Cohort',

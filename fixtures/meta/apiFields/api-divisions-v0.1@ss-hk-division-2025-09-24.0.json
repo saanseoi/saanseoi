@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:eb509564acbd271893f3d03883f78d22bccfa2d0f52a951dfd428fe0d886a470",
+  "versionHash": "sha256:17b2707637d8d955703afc5295aecccbb4a2b06dfd7b77556c6effdedf5bf4ae",
   "apiVersion": "api-divisions-v0.1",
   "validFromSnapshotVersion": "ss-hk-division-2025-09-24.0",
   "schemaVersion": "sv-division-v1",
@@ -264,15 +264,6 @@
       "confidence": 1
     },
     {
-      "apiField": "divisionArea.attributes.variant",
-      "sourceDatasetCode": "ds-hk-hkgov-had-district",
-      "sourceFieldPath": "variant",
-      "resolverCode": "direct_copy",
-      "contributionType": "primary",
-      "priority": 0,
-      "confidence": 1
-    },
-    {
       "apiField": "divisionArea.attributes.bbox",
       "sourceDatasetCode": "ds-hk-overture-divisionArea",
       "sourceFieldPath": "bbox",
@@ -340,6 +331,26 @@
       "sourceDatasetCode": "ds-hk-overture-divisionArea",
       "sourceFieldPath": "class",
       "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.variant",
+      "variant": "overture",
+      "sourceDatasetCode": "ds-hk-overture-divisionArea",
+      "sourceFieldPath": "source",
+      "resolverCode": "derive_variant_from_source",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.variant",
+      "variant": "hkgov-had",
+      "sourceDatasetCode": "ds-hk-hkgov-had-district",
+      "sourceFieldPath": "source",
+      "resolverCode": "derive_variant_from_source",
       "contributionType": "primary",
       "priority": 0,
       "confidence": 1

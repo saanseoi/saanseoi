@@ -205,14 +205,25 @@ export async function handlePublishDataset(
     const dataset = await requireDataset(db, request)
     const publishedAt = new Date().toISOString()
     const datasetType = dataset.type as ResourceType
+    const datasetVariant = resolveDatasetVariant(datasetType, dataset.source)
     const currentRelease = await getCurrentReleaseForDatasetId(
       db,
       dataset.datasetId,
       dataset.releaseId,
     )
+    const activeReleaseSet = await resolveActiveReleaseSetForType(db, datasetType)
+    const releaseSetCohortKey =
+      datasetVariant === 'hkgov-had'
+        ? (parseReleaseSetCohortKey(activeReleaseSet?.code) ?? dataset.cohortKey)
+        : dataset.cohortKey
     const releaseSet =
       (await resolveReleaseSetForRelease(db, dataset.releaseId, datasetType)) ??
-      (await ensureDraftReleaseSetForRelease(db, datasetType, dataset))
+      (await ensureDraftReleaseSetForRelease(
+        db,
+        datasetType,
+        { ...dataset, cohortKey: releaseSetCohortKey },
+        { forceNew: releaseSetCohortKey !== dataset.cohortKey },
+      ))
     const snapshot = await waitForSnapshotForRelease(db, dataset.releaseId, datasetType)
 
     if (!snapshot) {
@@ -221,24 +232,27 @@ export async function handlePublishDataset(
       )
     }
 
-    const activeReleaseSet = await resolveActiveReleaseSetForType(db, datasetType)
     const carriedSnapshots: Array<{
       resourceType: ResourceType
       snapshotId: string
+      variant?: string
     }> = []
-    let missingRequiredMember = false
 
     if (activeReleaseSet && activeReleaseSet.id !== releaseSet.id) {
       const activeSnapshots = await listApiReleaseSetSnapshots(db, activeReleaseSet.id)
 
       for (const activeSnapshot of activeSnapshots) {
-        if (activeSnapshot.snapshotResourceType === datasetType) {
+        if (
+          activeSnapshot.snapshotResourceType === datasetType &&
+          activeSnapshot.variant === datasetVariant
+        ) {
           continue
         }
 
         carriedSnapshots.push({
           resourceType: activeSnapshot.snapshotResourceType,
           snapshotId: activeSnapshot.snapshotId,
+          variant: activeSnapshot.variant,
         })
       }
     }
@@ -247,37 +261,41 @@ export async function handlePublishDataset(
       db,
       datasetType,
     )
-    for (const member of compositionMembers) {
-      if (member.resourceType === datasetType) continue
+    const requiredResourceTypes = new Set<ResourceType>(
+      compositionMembers
+        .filter(member => member.isRequired)
+        .map(member => member.resourceType),
+    )
+    const satisfiedRequiredResourceTypes = new Set<ResourceType>()
 
-      const supportingSnapshots =
-        member.selectionMode === 'latest_at_or_before_cohort_per_dataset'
-          ? await resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
-              db,
-              member.resourceType,
-              dataset.regionCode as RegionCode,
-              dataset.cohortKey,
-            )
-          : await (async () => {
-              const snapshot =
-                await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-                  db,
-                  member.resourceType,
-                  dataset.regionCode as RegionCode,
-                  dataset.cohortKey,
-                )
-              return snapshot ? [snapshot] : []
-            })()
+    for (const member of compositionMembers) {
+      if (member.resourceType === datasetType && member.variant === datasetVariant) {
+        if (member.isRequired) {
+          satisfiedRequiredResourceTypes.add(member.resourceType)
+        }
+        continue
+      }
+
+      const supportingSnapshots = await resolveSupportingSnapshotsForMember(
+        db,
+        member,
+        dataset.regionCode as RegionCode,
+        releaseSetCohortKey,
+      )
 
       if (supportingSnapshots.length === 0) {
-        if (member.isRequired) missingRequiredMember = true
         continue
+      }
+
+      if (member.isRequired) {
+        satisfiedRequiredResourceTypes.add(member.resourceType)
       }
 
       for (const supportingSnapshot of supportingSnapshots) {
         carriedSnapshots.push({
           resourceType: member.resourceType,
           snapshotId: supportingSnapshot.id,
+          variant: member.variant,
         })
       }
     }
@@ -293,7 +311,9 @@ export async function handlePublishDataset(
       releaseSetId: releaseSet.id,
       snapshotId: snapshot.id,
       type: datasetType,
-      deferApiReleaseSet: missingRequiredMember,
+      deferApiReleaseSet: [...requiredResourceTypes].some(
+        resourceType => !satisfiedRequiredResourceTypes.has(resourceType),
+      ),
     })
 
     if (!request.skipSnapshotCleanup && cleanupQueue) {
@@ -321,6 +341,44 @@ export async function handlePublishDataset(
       status: 'current',
     }
   })
+}
+
+async function resolveSupportingSnapshotsForMember(
+  db: HarbourReadableDb,
+  member: Awaited<ReturnType<typeof listCurrentApiCompositionMembersForType>>[number],
+  regionCode: RegionCode,
+  cohortKey: string,
+) {
+  if (member.variant !== 'default') {
+    const snapshots =
+      await resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
+        db,
+        member.resourceType,
+        regionCode,
+        cohortKey,
+        { publisherCode: member.variant },
+      )
+
+    return member.selectionMode === 'latest_at_or_before_cohort_per_dataset'
+      ? snapshots
+      : snapshots.filter(snapshot => snapshot.cohortKey === cohortKey)
+  }
+
+  const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+    db,
+    member.resourceType,
+    regionCode,
+    cohortKey,
+  )
+  return snapshot ? [snapshot] : []
+}
+
+function resolveDatasetVariant(type: ResourceType, source: string) {
+  return type === 'divisionArea' || type === 'divisionBoundary' ? source : 'default'
+}
+
+function parseReleaseSetCohortKey(releaseSetCode?: string) {
+  return releaseSetCode?.match(/^data-[a-z0-9]+-divisions-(.+)-\d+$/i)?.[1] ?? null
 }
 
 export async function handleScheduleSnapshotCleanup(
