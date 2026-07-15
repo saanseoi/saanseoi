@@ -389,7 +389,7 @@ export function formatMissingDivisionReferenceRecords(
       examples.length > 1
         ? `Record ${index + 1} (missing division IDs: ${reference.missingIds.join(', ')}):`
         : `Missing division IDs: ${reference.missingIds.join(', ')}`,
-      JSON.stringify(reference.record, bigintJsonReplacer, 2),
+      formatDiagnosticRecord(reference.record),
     ].join('\n'),
   )
   const remaining = references.length - examples.length
@@ -405,7 +405,19 @@ export function formatMissingDivisionReferenceRecords(
 }
 
 function bigintJsonReplacer(_key: string, value: unknown) {
-  return typeof value === 'bigint' ? value.toString() : value
+  if (typeof value === 'bigint') {
+    return value.toString()
+  }
+
+  if (Array.isArray(value) && value.length > 3) {
+    return [...value.slice(0, 3), `... ${value.length - 3} more`]
+  }
+
+  return value
+}
+
+function formatDiagnosticRecord(record: unknown) {
+  return JSON.stringify(record, bigintJsonReplacer, 2)
 }
 
 async function writeGeometryRows(

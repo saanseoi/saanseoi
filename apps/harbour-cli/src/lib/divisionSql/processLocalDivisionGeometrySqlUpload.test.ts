@@ -32,4 +32,28 @@ describe('formatMissingDivisionReferenceRecords', () => {
       '... and 1 more affected record.',
     ])
   })
+
+  test('limits every diagnostic array to three values', () => {
+    expect(
+      formatMissingDivisionReferenceRecords([
+        {
+          missingIds: ['division-1'],
+          record: {
+            coordinates: [
+              [114.1, 22.1],
+              [114.2, 22.2],
+              [114.3, 22.3],
+              [114.4, 22.4],
+              [114.5, 22.5],
+            ],
+            tags: ['one', 'two', 'three', 'four'],
+          },
+        },
+      ]),
+    ).toEqual([
+      '',
+      'Affected record:',
+      'Missing division IDs: division-1\n{\n  "coordinates": [\n    [\n      114.1,\n      22.1\n    ],\n    [\n      114.2,\n      22.2\n    ],\n    [\n      114.3,\n      22.3\n    ],\n    "... 2 more"\n  ],\n  "tags": [\n    "one",\n    "two",\n    "three",\n    "... 1 more"\n  ]\n}',
+    ])
+  })
 })
