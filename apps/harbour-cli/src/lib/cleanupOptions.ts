@@ -16,7 +16,7 @@ export function resolveSnapshotCleanupResourceType(
   }
 
   throw new Error(
-    `Unsupported snapshot cleanup type: ${String(value)}. Use division, address, street, or place.`,
+    `Unsupported snapshot cleanup type: ${String(value)}. Use division, divisionArea, divisionBoundary, address, street, or place.`,
   )
 }
 
