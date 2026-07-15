@@ -1,2 +1,5 @@
 export { default as Root } from './foundationSectionRoot.svelte'
 export { default as Map } from './foundationSectionMap.svelte'
+export { default as BlockWrapper } from './foundationSectionBlockWrapper.svelte'
+export { default as OrangeVessel } from './foundationSectionOrangeVessel.svelte'
+export { default as StarFerry } from './foundationSectionStarFerry.svelte'
