@@ -5,6 +5,7 @@ import {
   type DivisionHierarchyLookup,
   normalizeDivisionRow,
 } from './division'
+import { getSupplementalDivisionFixtureRows } from './divisionFixtures'
 
 const hierarchyLookup: DivisionHierarchyLookup = new Map([
   [
@@ -179,6 +180,45 @@ describe('collectOvertureHongKongDivisionSourceAssumptionViolations', () => {
         },
       ]),
     ).toEqual(['row 1 (district): expected at most one hierarchies entry, got 2'])
+  })
+})
+
+describe('getSupplementalDivisionFixtureRows', () => {
+  test('adds the PRC country anchor to Overture Hong Kong division snapshots', () => {
+    const [fixture] = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      type: 'division',
+      regionCode: 'hk',
+    })
+
+    expect(fixture).toEqual(
+      expect.objectContaining({
+        id: 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be',
+        subtype: 'country',
+        geometry: null,
+      }),
+    )
+    expect(normalizeDivisionRow(fixture ?? {})).toMatchObject({
+      base: {
+        id: 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be',
+        level: 0,
+        geometry: null,
+      },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'China' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '中國' }),
+      ]),
+    })
+  })
+
+  test('does not add the anchor to unrelated snapshots', () => {
+    expect(
+      getSupplementalDivisionFixtureRows({
+        source: 'overture',
+        type: 'divisionBoundary',
+        regionCode: 'hk',
+      }),
+    ).toEqual([])
   })
 })
 

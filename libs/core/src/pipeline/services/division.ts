@@ -71,6 +71,7 @@ import {
   logStructuredInfo,
   resolveDivisionTraceIds,
 } from '../logging'
+import { readDivisionRowsWithFixtures } from './divisionFixtures'
 
 import type { DivisionVersionSnapshot } from '../db/division'
 
@@ -402,7 +403,11 @@ export async function processDivisionDataset(
     buildDivisionHierarchyLookup(file),
   )
 
-  for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE)) {
+  for await (const { isSupplemental, rows: batch } of readDivisionRowsWithFixtures(
+    file,
+    message,
+    DIVISION_BATCH_SIZE,
+  )) {
     const sourceVersionRows: Array<
       typeof sourceSchema.sourceOvertureDivisions.$inferInsert
     > = []
@@ -743,7 +748,7 @@ export async function processDivisionDataset(
       )
     }
 
-    if (reportProgress) {
+    if (reportProgress && !isSupplemental) {
       await reportProgress({
         localizedRows,
         processedRows,

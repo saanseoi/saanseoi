@@ -1,0 +1,32 @@
+{
+  "id": "fb68fc73-3ac6-41c9-a692-22fcf20cb5be",
+  "subtype": "country",
+  "country": null,
+  "region": null,
+  "geometry": null,
+  "bbox": null,
+  "hierarchies": [],
+  "names": {
+    "common": [
+      { "language": "en", "value": "China" },
+      { "language": "zh-Hant", "value": "中國" },
+      { "language": "zh-Hans", "value": "中国" }
+    ],
+    "primary": "China"
+  },
+  "sources": [
+    {
+      "property": "hierarchies[].division_id",
+      "dataset": "Overture Maps Foundation",
+      "license": "ODbL-1.0",
+      "record_id": "fb68fc73-3ac6-41c9-a692-22fcf20cb5be"
+    }
+  ],
+  "fixture": {
+    "code": "overture-hk-prc-country-anchor",
+    "version": 1,
+    "mappingMethod": "reviewed-hierarchy-reference",
+    "reviewStatus": "reviewed",
+    "purpose": "Retain the country reference required by Hong Kong division boundaries when the scoped Overture division extract omits the country row."
+  }
+}
