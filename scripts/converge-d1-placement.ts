@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
-type Environment = 'preview'
+type Target = 'preview' | 'production'
 type BindingName =
   | 'DB_META'
   | 'DB_CURRENT'
@@ -17,6 +17,7 @@ type BindingName =
 
 type Options = {
   bindings: BindingName[]
+  target: Target
   iterations: number
   location: string
   maxCycles: number
@@ -69,11 +70,15 @@ const probeUrls: Record<Environment, string[]> = {
     'https://preview.saanseoi.hk/api/v0/meta/d1-placement-probe',
     'https://preview.harbour.saanseoi.hk/api/v1/meta/d1-placement-probe',
   ],
+  production: [
+    'https://saanseoi.hk/api/v0/meta/d1-placement-probe',
+    'https://harbour.saanseoi.hk/api/v1/meta/d1-placement-probe',
+  ],
 }
 
 const repoRoot = resolve(import.meta.dir, '..')
-const environment: Environment = 'preview'
 const options = parseArgs(Bun.argv.slice(2))
+const environment = options.target
 const probeApiKey = resolveRequiredEnvValue('D1_PLACEMENT_PROBE_API_KEY')
 const whitelist = loadWhitelist(options.whitelistFile)
 
@@ -148,6 +153,7 @@ process.exit(1)
 function parseArgs(args: string[]): Options {
   const defaults: Options = {
     bindings: allBindings,
+    target: 'preview',
     iterations: 20,
     location: 'apac',
     maxCycles: 20,
@@ -161,6 +167,9 @@ function parseArgs(args: string[]): Options {
     const arg = args[index]
 
     switch (arg) {
+      case '--target':
+        defaults.target = expectTarget(expectValue(args, ++index, arg), arg)
+        break
       case '--location':
         defaults.location = expectValue(args, ++index, '--location')
         break
@@ -244,6 +253,14 @@ function parseBindingList(value: string, flag: string): BindingName[] {
   return [...new Set(bindings)] as BindingName[]
 }
 
+function expectTarget(value: string, flag: string): Target {
+  if (value === 'preview' || value === 'production') {
+    return value
+  }
+
+  throw new Error(`${flag} must be preview or production.`)
+}
+
 function expectValue(args: string[], index: number, flag: string) {
   const value = args[index]
 
@@ -259,6 +276,7 @@ function printHelpAndExit(code: number): never {
   bun ./scripts/converge-d1-placement.ts [options]
 
 Options:
+  --env <environment>             Environment to converge: preview or production. Defaults to preview.
   --location <hint>                Passed to wrangler d1 create. Defaults to apac.
   --bindings <csv>                 Only converge these bindings; omitted means all bindings.
                                    Example: DB_HISTORY_HK_BEFORE,DB_SOURCE_HK_BEFORE.
