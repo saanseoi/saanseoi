@@ -1,6 +1,7 @@
 export type PublishDatasetResult = {
   apiReleaseSetId?: string
   apiReleaseSetCode?: string
+  apiReleaseSetStatus?: 'current' | 'draft'
   datasetId?: string
   phase: string | null
   releaseCode: string

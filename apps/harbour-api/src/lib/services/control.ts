@@ -44,6 +44,7 @@ type CleanupSnapshotsRequest = {
 type ControlResult = {
   apiReleaseSetId?: string
   apiReleaseSetCode?: string
+  apiReleaseSetStatus?: 'current' | 'draft'
   datasetId: string
   releaseCode: string
   releaseId: string
@@ -247,6 +248,7 @@ export async function handlePublishDataset(
       db,
       datasetType,
     )
+    let selectedReleaseSetStatus: 'current' | 'draft' = 'draft'
     for (const [index, releaseSet] of releaseSets.entries()) {
       const releaseSetCohortKey =
         parseReleaseSetCohortKey(releaseSet.code) ?? dataset.cohortKey
@@ -292,6 +294,10 @@ export async function handlePublishDataset(
       const releaseSetIsComplete = [...requiredMembers].every(memberKey =>
         satisfiedRequiredMembers.has(memberKey),
       )
+      const shouldPublishReleaseSet = releaseSetIsComplete && index === 0
+      if (index === 0 && shouldPublishReleaseSet) {
+        selectedReleaseSetStatus = 'current'
+      }
       await publishReleaseArtifacts(db, {
         carriedSnapshots,
         currentRelease,
@@ -305,7 +311,7 @@ export async function handlePublishDataset(
         type: datasetType,
         // Several drafts may use the same cohort-independent geometry. Keep
         // older sets draft and activate only the newest complete candidate.
-        deferApiReleaseSet: !releaseSetIsComplete || index > 0,
+        deferApiReleaseSet: !shouldPublishReleaseSet,
       })
     }
 
@@ -327,6 +333,7 @@ export async function handlePublishDataset(
     return {
       apiReleaseSetId: releaseSets[0]?.id,
       apiReleaseSetCode: releaseSets[0]?.code,
+      apiReleaseSetStatus: selectedReleaseSetStatus,
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
       releaseId: dataset.releaseId,

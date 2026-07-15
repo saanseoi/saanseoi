@@ -317,6 +317,7 @@ ${mutedBar}  `)
           formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
           'API RELEASE SET',
         )
+        logApiReleaseSetPublication(processingResult.publishResult)
         outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -688,9 +689,42 @@ export function formatDivisionApiReleaseSetReadiness(
     'At or Before Cohort',
     ...cohortIndependentRows.map(
       ([release, available, self]) =>
-        `  ${self ? yellowText('○') : available ? greenText('✓') : yellowText('○')} ${release.padEnd(cohortIndependentWidth)}  ${self ? 'self' : available ? 'available' : 'unavailable'}`,
+        `  ${available ? greenText('✓') : yellowText('○')} ${release.padEnd(cohortIndependentWidth)}  ${self ? 'self' : available ? 'available' : 'unavailable'}`,
     ),
   ].join('\n')
+}
+
+function logApiReleaseSetPublication(
+  result:
+    | {
+        apiReleaseSetCode?: string
+        apiReleaseSetStatus?: 'current' | 'draft'
+      }
+    | null
+    | undefined,
+) {
+  if (!result?.apiReleaseSetCode) return
+
+  if (result.apiReleaseSetStatus === 'current') {
+    log.success(
+      `Published API release set ${rainbowWaveText(result.apiReleaseSetCode)}.`,
+    )
+    return
+  }
+
+  log.message(
+    `API release set ${result.apiReleaseSetCode} remains draft; required release members are still unavailable.`,
+  )
+}
+
+export function rainbowWaveText(value: string) {
+  const colors = [196, 202, 226, 46, 51, 21, 201]
+  return [...value]
+    .map(
+      (character, index) => `\u001B[38;5;${colors[index % colors.length]}m${character}`,
+    )
+    .join('')
+    .concat('\u001B[39m')
 }
 
 function withReleaseSetCohort(

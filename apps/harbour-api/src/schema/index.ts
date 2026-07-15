@@ -317,6 +317,7 @@ export const ControlResponseSchema = z
   .object({
     apiReleaseSetId: z.string().uuid().optional(),
     apiReleaseSetCode: z.string().optional(),
+    apiReleaseSetStatus: z.enum(['current', 'draft']).optional(),
     releaseCode: ReleaseCodeSchema,
     releaseId: ReleaseIdSchema,
     phase: z
