@@ -1282,6 +1282,23 @@ async function resolveCurrentApiComposition(
   )
 }
 
+async function resolveCurrentApiCompositionSafely(
+  db: HarbourReadableDb,
+  apiVersionCode: string,
+) {
+  try {
+    return await resolveCurrentApiComposition(db, apiVersionCode)
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      /no such table: apiComposition/i.test(error.message)
+    ) {
+      return null
+    }
+    throw error
+  }
+}
+
 export async function listApiCompositionMembers(
   db: HarbourReadableDb,
   apiCompositionId: string,
@@ -1300,6 +1317,23 @@ export async function listApiCompositionMembers(
     .where(eq(metaApiCompositionMembers.apiCompositionId, apiCompositionId))
     .orderBy(metaApiCompositionMembers.priority)
     .all()
+}
+
+async function listApiCompositionMembersSafely(
+  db: HarbourReadableDb,
+  apiCompositionId: string,
+) {
+  try {
+    return await listApiCompositionMembers(db, apiCompositionId)
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      /no such table: apiCompositionMembers/i.test(error.message)
+    ) {
+      return []
+    }
+    throw error
+  }
 }
 
 export async function listCurrentApiCompositionMembersForType(
@@ -1739,9 +1773,20 @@ export async function ensureDraftReleaseSetForRelease(
     throw new Error(`API version not found for type: ${type}`)
   }
 
-  const composition = await resolveCurrentApiComposition(db, apiVersionCode)
+  const composition = await resolveCurrentApiCompositionSafely(db, apiVersionCode)
 
-  if (composition?.primaryResourceType && composition.primaryResourceType !== type) {
+  const compositionMembers = composition
+    ? await listApiCompositionMembersSafely(db, composition.id)
+    : []
+  const isCompositionMember = compositionMembers.some(
+    member => member.resourceType === type,
+  )
+
+  if (
+    composition?.primaryResourceType &&
+    composition.primaryResourceType !== type &&
+    !isCompositionMember
+  ) {
     throw new Error(
       `API composition ${composition.code} expects primary resourceType=${composition.primaryResourceType}, not ${type}.`,
     )
@@ -1971,6 +2016,8 @@ export async function publishReleaseArtifacts(
     releaseSetId: string
     snapshotId: string
     type: ResourceType
+    /** Publish the dataset snapshot, but leave the API release set as draft. */
+    deferApiReleaseSet?: boolean
   },
 ) {
   const releaseSet = await db
@@ -2031,6 +2078,24 @@ export async function publishReleaseArtifacts(
     .where(eq(metaApiReleaseSetSnapshots.apiReleaseSetId, args.releaseSetId))
     .all()
 
+  const composition = await resolveCurrentApiCompositionSafely(
+    db,
+    releaseSet.apiVersion,
+  )
+  const compositionMembers = composition
+    ? await listApiCompositionMembersSafely(db, composition.id)
+    : []
+  const datasetMember = compositionMembers.find(
+    member => member.resourceType === args.type,
+  )
+  const anchorSnapshotId = compositionMembers.find(
+    member => member.resourceType === datasetMember?.anchorResourceType,
+  )
+    ? (args.carriedSnapshots.find(
+        carried => carried.resourceType === datasetMember?.anchorResourceType,
+      )?.snapshotId ?? null)
+    : null
+
   const releaseSetSnapshots = new Map<
     string,
     {
@@ -2051,24 +2116,43 @@ export async function publishReleaseArtifacts(
   }
 
   for (const snapshot of args.carriedSnapshots) {
+    const member = compositionMembers.find(
+      candidate => candidate.resourceType === snapshot.resourceType,
+    )
     releaseSetSnapshots.set(snapshot.snapshotId, {
-      role: 'supporting',
-      isRequired: true,
-      selectionMode: 'carry_forward_optional',
-      anchorSnapshotId: args.snapshotId,
+      role: member?.role ?? 'supporting',
+      isRequired: member?.isRequired ?? true,
+      selectionMode: member?.selectionMode ?? 'carry_forward_optional',
+      anchorSnapshotId: member?.anchorResourceType
+        ? member.anchorResourceType === datasetMember?.resourceType
+          ? args.snapshotId
+          : anchorSnapshotId
+        : null,
     })
   }
 
   releaseSetSnapshots.set(args.snapshotId, {
-    role: 'primary',
-    isRequired: true,
-    selectionMode: 'exact_ref',
-    anchorSnapshotId: null,
+    role: datasetMember?.role ?? 'primary',
+    isRequired: datasetMember?.isRequired ?? true,
+    selectionMode: datasetMember?.selectionMode ?? 'exact_ref',
+    anchorSnapshotId: datasetMember?.anchorResourceType ? anchorSnapshotId : null,
   })
 
   const publishedAt = toIsoTimestamp(args.publishedAt)
+  const deferApiReleaseSet = args.deferApiReleaseSet === true
 
   const releaseSetSnapshotIds = [...releaseSetSnapshots.keys()]
+  const primarySnapshotId = [...releaseSetSnapshots.entries()].find(
+    ([, metadata]) => metadata.role === 'primary',
+  )?.[0]
+  const primarySnapshot = primarySnapshotId
+    ? await db
+        .select({ code: metaSnapshots.code })
+        .from(metaSnapshots)
+        .where(eq(metaSnapshots.id, primarySnapshotId))
+        .limit(1)
+        .get()
+    : null
   const sourceSchemaRows = await db
     .select({
       datasetCode: metaDatasets.code,
@@ -2102,20 +2186,22 @@ export async function publishReleaseArtifacts(
     sourceSchemas.set(row.datasetCode, sourceSchemaVersion)
   }
 
-  const resolvedApiFieldFixture = resolveApiFieldFixture({
-    apiVersion: releaseSet.apiVersion,
-    snapshotVersion: snapshot.code,
-    schemaVersion: releaseSet.schemaVersion,
-    rulesetVersion: releaseSet.rulesetVersion,
-    sourceSchemas: Object.fromEntries(sourceSchemas),
-  })
+  const resolvedApiFieldFixture = deferApiReleaseSet
+    ? null
+    : resolveApiFieldFixture({
+        apiVersion: releaseSet.apiVersion,
+        snapshotVersion: primarySnapshot?.code ?? snapshot.code,
+        schemaVersion: releaseSet.schemaVersion,
+        rulesetVersion: releaseSet.rulesetVersion,
+        sourceSchemas: Object.fromEntries(sourceSchemas),
+      })
   const hasBundledApiFieldFixtures = listApiFieldFixtures().some(
     fixture => fixture.apiVersion === releaseSet.apiVersion,
   )
 
-  if (!resolvedApiFieldFixture && hasBundledApiFieldFixtures) {
+  if (!deferApiReleaseSet && !resolvedApiFieldFixture && hasBundledApiFieldFixtures) {
     throw new Error(
-      `API field fixture not found for apiVersion=${releaseSet.apiVersion}, snapshotVersion=${snapshot.code}, schemaVersion=${releaseSet.schemaVersion}, rulesetVersion=${releaseSet.rulesetVersion}.`,
+      `API field fixture not found for apiVersion=${releaseSet.apiVersion}, snapshotVersion=${primarySnapshot?.code ?? snapshot.code}, schemaVersion=${releaseSet.schemaVersion}, rulesetVersion=${releaseSet.rulesetVersion}.`,
     )
   }
 
@@ -2195,7 +2281,7 @@ export async function publishReleaseArtifacts(
         .where(eq(metaSnapshots.id, args.snapshotId)),
     ]
 
-    if (activeReleaseSets.length > 0) {
+    if (!deferApiReleaseSet && activeReleaseSets.length > 0) {
       statements.push(
         tx
           .update(metaApiReleaseSets)
@@ -2218,16 +2304,6 @@ export async function publishReleaseArtifacts(
         .delete(metaApiReleaseSetSnapshots)
         .where(eq(metaApiReleaseSetSnapshots.apiReleaseSetId, args.releaseSetId)),
       tx
-        .update(metaApiReleaseSets)
-        .set({
-          status: 'current',
-          publishedAt,
-          validFrom: publishedAt,
-          validTo: null,
-          updatedAt: publishedAt,
-        })
-        .where(eq(metaApiReleaseSets.id, args.releaseSetId)),
-      tx
         .update(metaReleases)
         .set({
           status: 'published',
@@ -2236,10 +2312,25 @@ export async function publishReleaseArtifacts(
           updatedAt: publishedAt,
         })
         .where(eq(metaReleases.id, args.dataset.releaseId)),
-      tx
-        .delete(metaApiFieldProvenance)
-        .where(eq(metaApiFieldProvenance.apiReleaseSetId, args.releaseSetId)),
     )
+
+    if (!deferApiReleaseSet) {
+      statements.push(
+        tx
+          .update(metaApiReleaseSets)
+          .set({
+            status: 'current',
+            publishedAt,
+            validFrom: publishedAt,
+            validTo: null,
+            updatedAt: publishedAt,
+          })
+          .where(eq(metaApiReleaseSets.id, args.releaseSetId)),
+        tx
+          .delete(metaApiFieldProvenance)
+          .where(eq(metaApiFieldProvenance.apiReleaseSetId, args.releaseSetId)),
+      )
+    }
 
     for (const [snapshotId, snapshotMetadata] of releaseSetSnapshots.entries()) {
       statements.push(
@@ -2269,8 +2360,10 @@ export async function publishReleaseArtifacts(
       )
     }
 
-    for (const row of apiFieldProvenanceRows) {
-      statements.push(tx.insert(metaApiFieldProvenance).values(row))
+    if (!deferApiReleaseSet) {
+      for (const row of apiFieldProvenanceRows) {
+        statements.push(tx.insert(metaApiFieldProvenance).values(row))
+      }
     }
 
     if (args.currentRelease) {
