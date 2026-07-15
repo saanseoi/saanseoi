@@ -52,6 +52,7 @@ mock.module('../overtureAssumptions.ts', () => ({
 
 mock.module('../options.ts', () => ({
   buildRegisterOptions: mock(() => ({})),
+  getStringOption: mock(() => undefined),
 }))
 
 mock.module('../parquetRepack.ts', () => ({
@@ -67,7 +68,8 @@ mock.module('../upload.ts', () => ({
   getUploadDispatchTimings: mock(() => null),
 }))
 
-const { assertAddressUploadPrerequisites } = await import('./upload.ts')
+const { assertAddressUploadPrerequisites, formatDivisionApiReleaseSetReadiness } =
+  await import('./upload.ts')
 
 describe('upload command address prerequisites', () => {
   test('checks remote address prerequisites without refreshing the local D1 cache', async () => {
@@ -126,5 +128,31 @@ describe('upload command address prerequisites', () => {
     expect(resolveCohortSnapshotMock).not.toHaveBeenCalled()
     expect(resolveLatestSnapshotMock).not.toHaveBeenCalled()
     expect(cleanupMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('division API release set readiness display', () => {
+  test('lists every required dataset and its availability', () => {
+    expect(
+      formatDivisionApiReleaseSetReadiness(
+        {
+          cohortKey: '2025-09-24.0',
+          regionCode: 'hk',
+        },
+        {
+          areaAvailable: false,
+          boundaryAvailable: false,
+          divisionAvailable: true,
+          ready: false,
+        },
+      ),
+    ).toBe(
+      [
+        'HK / 2025-09-24.0',
+        '  \u001B[32m✓\u001B[39m division          available',
+        '  \u001B[33m○\u001B[39m divisionArea      unavailable',
+        '  \u001B[33m○\u001B[39m divisionBoundary  unavailable',
+      ].join('\n'),
+    )
   })
 })

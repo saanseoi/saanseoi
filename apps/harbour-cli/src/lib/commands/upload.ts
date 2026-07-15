@@ -285,7 +285,10 @@ ${mutedBar}  `)
         target,
         previewResult.plan,
       )
-      note(releaseSetReadiness.message, 'API RELEASE SET')
+      note(
+        formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
+        'API RELEASE SET',
+      )
       outro(formatSuccessfulReleaseMessage(commandStartedAt))
       return
     }
@@ -328,7 +331,10 @@ ${mutedBar}  `)
         target,
         previewResult.plan,
       )
-      note(releaseSetReadiness.message, 'API RELEASE SET')
+      note(
+        formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
+        'API RELEASE SET',
+      )
       outro(formatSuccessfulReleaseMessage(commandStartedAt))
       return
     }
@@ -409,6 +415,10 @@ function blueText(value: string) {
 
 function greenText(value: string) {
   return `\u001B[32m${value}\u001B[39m`
+}
+
+function yellowText(value: string) {
+  return `\u001B[33m${value}\u001B[39m`
 }
 
 function resolveShardYear(cohortKey: string, sourceVersion: string) {
@@ -500,7 +510,6 @@ type DivisionReleaseSetReadiness = {
   areaAvailable: boolean
   boundaryAvailable: boolean
   divisionAvailable: boolean
-  message: string
   ready: boolean
 }
 
@@ -557,22 +566,35 @@ export async function resolveDivisionApiReleaseSetReadiness(
       boundaryAvailable,
       divisionAvailable,
       ready,
-      message: ready
-        ? `All required snapshots for ${plan.regionCode.toUpperCase()}/${plan.cohortKey} are available. The API ReleaseSet is current.`
-        : `API ReleaseSet requirements for ${plan.regionCode.toUpperCase()}/${plan.cohortKey}: divisionArea and divisionBoundary are required.${areaAvailable ? '' : ' divisionArea is not available.'}${boundaryAvailable ? '' : ' divisionBoundary is not available.'}`,
     }
   }
 
-  const counterpart = plan.type === 'divisionArea' ? 'divisionBoundary' : 'divisionArea'
   return {
     areaAvailable,
     boundaryAvailable,
     divisionAvailable,
     ready,
-    message: ready
-      ? `All required snapshots for ${plan.regionCode.toUpperCase()}/${plan.cohortKey} are available. API ReleaseSet requirements are met; the new API ReleaseSet is current.`
-      : `${counterpart} is still required for an API ReleaseSet for ${plan.regionCode.toUpperCase()}/${plan.cohortKey}.`,
   }
+}
+
+export function formatDivisionApiReleaseSetReadiness(
+  plan: Pick<DivisionGeometryPlan, 'cohortKey' | 'regionCode'>,
+  readiness: DivisionReleaseSetReadiness,
+) {
+  const rows = [
+    ['division', readiness.divisionAvailable],
+    ['divisionArea', readiness.areaAvailable],
+    ['divisionBoundary', readiness.boundaryAvailable],
+  ] as const
+  const width = Math.max(...rows.map(([dataset]) => dataset.length))
+
+  return [
+    `${plan.regionCode.toUpperCase()} / ${plan.cohortKey}`,
+    ...rows.map(
+      ([dataset, available]) =>
+        `  ${available ? greenText('✓') : yellowText('○')} ${dataset.padEnd(width)}  ${available ? 'available' : 'unavailable'}`,
+    ),
+  ].join('\n')
 }
 
 async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
