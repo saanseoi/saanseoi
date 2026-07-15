@@ -20,6 +20,8 @@ DROP TABLE IF EXISTS `address2dI18n`;
 DROP TABLE IF EXISTS `address2d`;
 DROP TABLE IF EXISTS `divisionsI18n`;
 DROP TABLE IF EXISTS `divisions`;
+DROP TABLE IF EXISTS `divisionBoundaries`;
+DROP TABLE IF EXISTS `divisionAreas`;
 DROP TABLE IF EXISTS `d1_migrations`;
 
 PRAGMA foreign_keys = ON;
