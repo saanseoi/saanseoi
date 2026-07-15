@@ -76,11 +76,13 @@ const baseRecord: DivisionRecord = {
       overture: {
         subtype: 'locality',
         class: 'locality',
+        version: 7,
         hierarchies: hierarchyWithNames,
       },
     },
     subtype: 'locality',
     class: 'locality',
+    overtureFeatureVersion: 7,
     overtureAdminLevel: null,
     overtureHierarchies: hierarchyWithNames,
     wikidata: 'Q123456',
@@ -89,7 +91,13 @@ const baseRecord: DivisionRecord = {
       kind: 'label-center',
     },
     sources: {
-      overture: [{ dataset: 'overture', recordId: 'ovt-division-a-kung-ngam' }],
+      overture: [
+        {
+          property: '/properties/id',
+          dataset: 'overture',
+          record_id: 'ovt-division-a-kung-ngam',
+        },
+      ],
     },
     createdAt: '2026-06-17T00:00:00.000Z',
     updatedAt: '2026-06-18T00:00:00.000Z',
@@ -128,6 +136,7 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       },
       subtype: 'country',
       class: 'country',
+      overtureFeatureVersion: null,
       overtureAdminLevel: 1,
       overtureHierarchies: undefined,
       wikidata: null,
@@ -160,6 +169,7 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       },
       subtype: 'dependency',
       class: 'dependency',
+      overtureFeatureVersion: null,
       overtureAdminLevel: 1,
       overtureHierarchies: undefined,
       wikidata: null,
@@ -192,6 +202,7 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       },
       subtype: 'region',
       class: 'region',
+      overtureFeatureVersion: null,
       overtureAdminLevel: 2,
       overtureHierarchies: undefined,
       wikidata: null,
@@ -212,7 +223,7 @@ const includedRecordsById: Record<string, DivisionRecord> = {
 let listRecords: DivisionRecord[] = [baseRecord]
 let detailRecord: DivisionRecord | null = baseRecord
 
-mock.module('@repo/core/db/metaRepository', () => ({
+mock.module('@repo/core/db/metaRegistry', () => ({
   resolveActiveSnapshotForType: mock(async () => activeSnapshot),
 }))
 
@@ -343,11 +354,18 @@ describe('division services', () => {
           createdAt: '2026-06-17T00:00:00.000Z',
           updatedAt: '2026-06-18T00:00:00.000Z',
           sources: {
-            overture: [{ dataset: 'overture', recordId: 'ovt-division-a-kung-ngam' }],
+            overture: [
+              {
+                property: '/properties/id',
+                dataset: 'overture',
+                record_id: 'ovt-division-a-kung-ngam',
+              },
+            ],
           },
           overture: {
             subtype: 'locality',
             class: 'locality',
+            version: 7,
             hierarchies: hierarchyWithNames,
           },
           i18n: {
