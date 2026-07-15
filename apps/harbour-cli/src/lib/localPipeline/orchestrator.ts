@@ -9,6 +9,9 @@ import {
   formatBytes,
   formatCount,
   formatDurationMs,
+  formatRunningPhaseLabel,
+  colorRed,
+  colorTeal,
 } from './progressFormatting.ts'
 
 export type LocalGenerationPhase<TMessage> = {
@@ -54,6 +57,14 @@ export type LocalImportProgressConfig = {
     totalUnits: number
   }
 }
+
+const PRE_IMPORT_PHASES = [
+  'processDataset',
+  'normalizeAddressSql',
+  'generateAddressSqlSource',
+  'generateAddressSqlHistory',
+  'generateAddressSqlCurrent',
+] as const
 
 export async function runLocalGenerationPhase<TMessage>(
   progress: LocalUploadProgress,
@@ -176,6 +187,7 @@ export function createLocalImportProgressClient(
     0,
   )
   let activeLocalPhase: 'cleanup' | 'import' | 'publish' | null = null
+  let preImportProgress = 0
   let importStartedAt: number | null = null
   const completedImportDetailsByPhase = new Map<string, string>()
   const phaseStartedAt = new Map<string, number>()
@@ -237,6 +249,15 @@ export function createLocalImportProgressClient(
         progress.complete(
           appendPhaseDetails(config.publish.completedLabel, completedDetails),
         )
+      } else if (activeLocalPhase === null && isPreImportPhase(phase)) {
+        preImportProgress = Math.max(
+          preImportProgress,
+          resolvePreImportPhaseProgress(phase),
+        )
+        progress.update(preImportProgress, {
+          label: formatPreImportProgressLabel(phase, preImportProgress),
+          max: PRE_IMPORT_PHASES.length,
+        })
       }
 
       return harbourClient.stageCompleted(releaseId, phase, stats, releaseCode)
@@ -277,6 +298,18 @@ export function createLocalImportProgressClient(
           label: importPhase.runningLabel(totalProgress),
           max: totalImportUnits,
         })
+      } else if (activeLocalPhase === null && isPreImportPhase(phase)) {
+        if (!progress.hasActivePhase()) {
+          progress.beginPhase(formatPreImportProgressLabel(phase, preImportProgress), {
+            current: preImportProgress,
+            max: PRE_IMPORT_PHASES.length,
+          })
+        } else {
+          progress.update(preImportProgress, {
+            label: formatPreImportProgressLabel(phase, preImportProgress),
+            max: PRE_IMPORT_PHASES.length,
+          })
+        }
       } else if (phase === config.cleanup.phase) {
         if (activeLocalPhase !== 'cleanup') {
           activeLocalPhase = 'cleanup'
@@ -403,4 +436,40 @@ export async function mapWithConcurrency<TInput, TOutput>(
 
 function sumImportProgress(importProgressByPhase: Map<string, number>) {
   return [...importProgressByPhase.values()].reduce((sum, value) => sum + value, 0)
+}
+
+function isPreImportPhase(phase: string) {
+  return PRE_IMPORT_PHASES.includes(phase as (typeof PRE_IMPORT_PHASES)[number])
+}
+
+function resolvePreImportPhaseProgress(phase: string) {
+  const index = PRE_IMPORT_PHASES.indexOf(phase as (typeof PRE_IMPORT_PHASES)[number])
+
+  return index < 0 ? 0 : index + 1
+}
+
+function formatPreImportProgressLabel(phase: string, current: number) {
+  return formatRunningPhaseLabel(
+    colorTeal('Prepare'),
+    colorRed(describePreImportPhase(phase)),
+    current,
+    PRE_IMPORT_PHASES.length,
+  )
+}
+
+function describePreImportPhase(phase: string) {
+  switch (phase) {
+    case 'processDataset':
+      return 'dataset state'
+    case 'normalizeAddressSql':
+      return 'normalized rows'
+    case 'generateAddressSqlSource':
+      return 'source SQL state'
+    case 'generateAddressSqlHistory':
+      return 'history SQL state'
+    case 'generateAddressSqlCurrent':
+      return 'current SQL state'
+    default:
+      return 'SQL import state'
+  }
 }
