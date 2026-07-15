@@ -2,16 +2,17 @@ import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import { jsonText, timestamps } from '../shared'
 
-/** Provider identifiers mapped to canonical division IDs for a cohort/domain. */
-export const metaDivisionIdentifierBridges = sqliteTable(
-  'divisionIdentifierBridges',
+/** Source identifiers mapped to canonical resource IDs for a cohort/domain. */
+export const metaIdentifierBridges = sqliteTable(
+  'identifierBridges',
   {
+    resourceType: text('resourceType').notNull(),
     cohortKey: text('cohortKey').notNull(),
     domain: text('domain').notNull(),
     authority: text('authority').notNull(),
     externalId: text('externalId').notNull(),
     externalCode: text('externalCode'),
-    canonicalDivisionId: text('canonicalDivisionId').notNull(),
+    canonicalId: text('canonicalId').notNull(),
     sourceDatasetCode: text('sourceDatasetCode').notNull(),
     sourceReleaseCode: text('sourceReleaseCode').notNull(),
     mappingMethod: text('mappingMethod').notNull(),
@@ -21,13 +22,15 @@ export const metaDivisionIdentifierBridges = sqliteTable(
   },
   table => [
     primaryKey({
-      columns: [table.cohortKey, table.domain, table.authority, table.externalId],
+      columns: [
+        table.resourceType,
+        table.cohortKey,
+        table.domain,
+        table.authority,
+        table.externalId,
+      ],
     }),
-    index('divisionIdentifierBridges_canonicalDivisionId_idx').on(
-      table.canonicalDivisionId,
-    ),
-    index('divisionIdentifierBridges_sourceReleaseCode_idx').on(
-      table.sourceReleaseCode,
-    ),
+    index('identifierBridges_canonicalId_idx').on(table.canonicalId),
+    index('identifierBridges_sourceReleaseCode_idx').on(table.sourceReleaseCode),
   ],
 )

@@ -83,6 +83,7 @@ const SOURCE_ALIASES: Record<string, string> = {
   overture: 'overture',
   'overture-maps': 'overture',
   hkgov: 'hkgov',
+  'hkgov-had': 'hkgov-had',
   'hkgov-dpo': 'hkgov-dpo',
   'hkgov als': 'hkgov-dpo',
   als: 'hkgov-dpo',

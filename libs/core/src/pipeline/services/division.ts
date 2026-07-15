@@ -1082,6 +1082,7 @@ export function normalizeDivisionRow(
       geometry: normalizedGeometry,
       hierarchy: normalizedHierarchies,
       id,
+      identifiers: row.identifiers ?? null,
       level,
       sourceKeys: {
         overture: {
@@ -1122,6 +1123,7 @@ export function buildDivisionBaseHashInput(
     geometry: base.geometry,
     hierarchy: base.hierarchy,
     id: base.id,
+    identifiers: base.identifiers ?? null,
     level: base.level,
     sourceKeys: base.sourceKeys,
     sources: base.sources,

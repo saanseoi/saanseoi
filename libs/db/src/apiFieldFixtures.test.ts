@@ -12,7 +12,7 @@ describe('api field fixtures', () => {
       'ds-hk-overture-division': '1.12.0',
       'ds-hk-overture-divisionArea': '1.12.0',
       'ds-hk-overture-divisionBoundary': '1.12.0',
-      'ds-hk-hkgov-had-divisionArea': '1.2',
+      'ds-hk-hkgov-had-district': '1.2',
     })
   })
 

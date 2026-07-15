@@ -1,17 +1,26 @@
-const OVERTURE_SOURCE_SCHEMA_RELEASES = [
-  { schema: '1.11.0', version: '2025-07-23.0' },
-  { schema: '1.11.0', version: '2025-08-20.0' },
-  { schema: '1.12.0', version: '2025-09-24.0' },
-  { schema: '1.13.0', version: '2025-10-22.0' },
-  { schema: '1.14.0', version: '2025-11-19.0' },
-  { schema: '1.15.0', version: '2025-12-17.0' },
-  { schema: '1.15.0', version: '2026-01-21.0' },
-  { schema: '1.16.0', version: '2026-02-18.0' },
-  { schema: '1.16.0', version: '2026-03-18.0' },
-  { schema: '1.16.0', version: '2026-04-15.0' },
-  { schema: '1.17.0', version: '2026-05-20.0' },
-  { schema: '1.17.0', version: '2026-06-17.0' },
+const SOURCE_SCHEMA_RELEASES = [
+  { source: 'overture', schema: '1.11.0', version: '2025-07-23.0' },
+  { source: 'overture', schema: '1.11.0', version: '2025-08-20.0' },
+  { source: 'overture', schema: '1.12.0', version: '2025-09-24.0' },
+  { source: 'overture', schema: '1.13.0', version: '2025-10-22.0' },
+  { source: 'overture', schema: '1.14.0', version: '2025-11-19.0' },
+  { source: 'overture', schema: '1.15.0', version: '2025-12-17.0' },
+  { source: 'overture', schema: '1.15.0', version: '2026-01-21.0' },
+  { source: 'overture', schema: '1.16.0', version: '2026-02-18.0' },
+  { source: 'overture', schema: '1.16.0', version: '2026-03-18.0' },
+  { source: 'overture', schema: '1.16.0', version: '2026-04-15.0' },
+  { source: 'overture', schema: '1.17.0', version: '2026-05-20.0' },
+  { source: 'overture', schema: '1.17.0', version: '2026-06-17.0' },
+  { source: 'hkgov-had', schema: '1.2', version: '2022' },
 ] as const
+
+const OVERTURE_SOURCE_SCHEMA_RELEASES = SOURCE_SCHEMA_RELEASES.filter(
+  release => release.source === 'overture',
+).map(({ schema, version }) => ({ schema, version }))
+
+const SOURCE_SCHEMA_DEFAULTS: Record<string, string> = {
+  'hkgov-dpo': '3.2',
+}
 
 type ResolveSourceSchemaVersionArgs = {
   source: string
@@ -138,22 +147,25 @@ export async function resolveSourceSchemaVersion(args: ResolveSourceSchemaVersio
     return args.storedSourceSchemaVersion.trim()
   }
 
-  if (args.source === 'hkgov-dpo') {
-    return '3.2'
+  const defaultSchemaVersion = SOURCE_SCHEMA_DEFAULTS[args.source]
+  if (defaultSchemaVersion) {
+    return defaultSchemaVersion
   }
 
-  if (args.source !== 'overture') {
-    throw new Error(
-      `Could not resolve source schema version for source=${args.source}, sourceVersion=${args.sourceVersion}.`,
-    )
-  }
-
-  const exactMatch = OVERTURE_SOURCE_SCHEMA_RELEASES.find(
-    release => compareReleaseVersions(release.version, args.sourceVersion) === 0,
+  const exactMatch = SOURCE_SCHEMA_RELEASES.find(
+    release =>
+      release.source === args.source &&
+      compareReleaseVersions(release.version, args.sourceVersion) === 0,
   )
 
   if (exactMatch) {
     return exactMatch.schema
+  }
+
+  if (args.source !== 'overture') {
+    throw new Error(
+      `No ${args.source} source schema mapping found for sourceVersion=${args.sourceVersion}.`,
+    )
   }
 
   const catalogSchemaVersion = await resolveOvertureSourceSchemaVersionFromCatalog(
@@ -176,6 +188,6 @@ export async function resolveSourceSchemaVersion(args: ResolveSourceSchemaVersio
   }
 
   throw new Error(
-    `No Overture source schema mapping found for sourceVersion=${args.sourceVersion}.`,
+    `No ${args.source} source schema mapping found for sourceVersion=${args.sourceVersion}.`,
   )
 }

@@ -1,14 +1,10 @@
 import type { NewDivisionAreaRow, NewDivisionBoundaryRow } from '@repo/db/currentSchema'
 import type {
-  NewDivisionAreaVersionRow,
-  NewDivisionBoundaryVersionRow,
-} from '@repo/db/historySchema'
-import type {
   NewSourceDivisionAreaRow,
   NewSourceDivisionBoundaryRow,
 } from '@repo/db/sourceSchema'
 
-import type { GeoJsonGeometry } from '../geojson'
+import type { GeoJsonGeometry, GeoJsonPosition } from '../geojson'
 import { parseWkbGeometry } from './division'
 import { asNonEmptyString, createHash, stableJsonStringify } from '../utils'
 
@@ -20,9 +16,10 @@ type GeometryBase = {
   id: string
   isLand: boolean | null
   isTerritorial: boolean | null
-  sourceKeys: { overture: Record<string, unknown> }
-  sources: { overture: unknown } | undefined
-  type: 'land' | 'maritime'
+  sourceKeys: Record<string, Record<string, unknown>>
+  sources: Record<string, unknown> | undefined
+  type: 'land' | 'maritime' | 'mixed'
+  variant: string
 }
 
 export type NormalizedDivisionArea = {
@@ -55,6 +52,7 @@ export type NormalizedDivisionBoundary = {
 
 export function normalizeDivisionAreaGeometryRow(
   row: Record<string, unknown>,
+  source = 'overture',
 ): NormalizedDivisionArea | null {
   if (row.region === 'CN-GD') {
     return null
@@ -66,31 +64,27 @@ export function normalizeDivisionAreaGeometryRow(
   }
   const divisionId = asNonEmptyString(row.division_id)
   const geometry = requireGeometry(row.geometry, ['Polygon', 'MultiPolygon'], id)
-  const type = resolveGeometryType(row.class, id)
+  const isLand = source === 'hkgov-had' ? true : asOptionalBoolean(row.is_land)
+  const isTerritorial =
+    source === 'hkgov-had' ? true : asOptionalBoolean(row.is_territorial)
+  const type = resolveGeometryType(row.class, id, { isLand, isTerritorial })
 
   if (!divisionId) {
     throw new Error('Division area row requires non-empty `id` and `division_id`.')
   }
 
-  const sourceKeys = buildSourceKeys(row)
-  const sources = normalizeSources(row.sources)
-  const rawProperties = {
-    country: row.country ?? null,
-    region: row.region ?? null,
-    names: row.names ?? null,
-    admin_level: row.admin_level ?? null,
-    theme: row.theme ?? null,
-    type: row.type ?? null,
-  }
+  const sourceKeys = buildSourceKeys(row, source)
+  const sources = normalizeSources(row.sources, source)
   const base: GeometryBase = {
     bbox: row.bbox ?? null,
     geometry,
     id,
-    isLand: asOptionalBoolean(row.is_land),
-    isTerritorial: asOptionalBoolean(row.is_territorial),
+    isLand,
+    isTerritorial,
     sourceKeys,
     sources,
     type,
+    variant: source,
   }
 
   return {
@@ -104,7 +98,7 @@ export function normalizeDivisionAreaGeometryRow(
       geometry,
       isLand: base.isLand,
       isTerritorial: base.isTerritorial,
-      rawProperties,
+      rawProperties: { ...row },
       sources: Array.isArray(row.sources) ? row.sources : null,
       sourceRecordId: id,
       subtype: asNonEmptyString(row.subtype),
@@ -116,6 +110,7 @@ export function normalizeDivisionAreaGeometryRow(
 
 export function normalizeDivisionBoundaryGeometryRow(
   row: Record<string, unknown>,
+  source = 'overture',
 ): NormalizedDivisionBoundary | null {
   if (row.region === 'CN-GD') {
     return null
@@ -127,32 +122,26 @@ export function normalizeDivisionBoundaryGeometryRow(
   }
   const divisionIds = normalizeDivisionIds(row.division_ids, id)
   const geometry = requireGeometry(row.geometry, ['LineString', 'MultiLineString'], id)
-  const type = resolveGeometryType(row.class, id)
+  const isLand = asOptionalBoolean(row.is_land)
+  const isTerritorial = asOptionalBoolean(row.is_territorial)
+  const type = resolveGeometryType(row.class, id, { isLand, isTerritorial })
 
   if (row.perspectives !== null && row.perspectives !== undefined) {
     throw new Error(`Division boundary ${id} contains dropped perspectives data.`)
   }
 
-  const sourceKeys = buildSourceKeys(row)
-  const sources = normalizeSources(row.sources)
-  const rawProperties = {
-    country: row.country ?? null,
-    region: row.region ?? null,
-    admin_level: row.admin_level ?? null,
-    theme: row.theme ?? null,
-    type: row.type ?? null,
-    is_disputed: row.is_disputed ?? null,
-    perspectives: row.perspectives ?? null,
-  }
+  const sourceKeys = buildSourceKeys(row, source)
+  const sources = normalizeSources(row.sources, source)
   const base: GeometryBase = {
     bbox: row.bbox ?? null,
     geometry,
     id,
-    isLand: asOptionalBoolean(row.is_land),
-    isTerritorial: asOptionalBoolean(row.is_territorial),
+    isLand,
+    isTerritorial,
     sourceKeys,
     sources,
     type,
+    variant: source,
   }
 
   return {
@@ -167,7 +156,7 @@ export function normalizeDivisionBoundaryGeometryRow(
       geometry,
       isLand: base.isLand,
       isTerritorial: base.isTerritorial,
-      rawProperties,
+      rawProperties: { ...row },
       sources: Array.isArray(row.sources) ? row.sources : null,
       sourceRecordId: id,
       subtype: asNonEmptyString(row.subtype),
@@ -200,7 +189,22 @@ export function hashDivisionGeometrySourceRow(
   return createHash(stableJsonStringify(row))
 }
 
-function buildSourceKeys(row: Record<string, unknown>) {
+function buildSourceKeys(
+  row: Record<string, unknown>,
+  source: string,
+): Record<string, Record<string, unknown>> {
+  if (source === 'hkgov-had') {
+    return {
+      hkgov: {
+        objectId: asOptionalInteger(row.object_id),
+        cdsiAdminAreaId: asOptionalInteger(row.csdi_admin_area_id),
+        areaType: asNonEmptyString(row.area_type),
+        areaId: asNonEmptyString(row.area_id),
+        areaCode: asNonEmptyString(row.area_code),
+      },
+    }
+  }
+
   return {
     overture: {
       version: asOptionalInteger(row.version),
@@ -210,11 +214,21 @@ function buildSourceKeys(row: Record<string, unknown>) {
   }
 }
 
-function normalizeSources(value: unknown) {
-  return Array.isArray(value) && value.length > 0 ? { overture: value } : undefined
+function normalizeSources(value: unknown, source: string) {
+  return Array.isArray(value) && value.length > 0
+    ? { [source === 'hkgov-had' ? 'hkgovHad' : 'overture']: value }
+    : undefined
 }
 
-function resolveGeometryType(value: unknown, id: string): 'land' | 'maritime' {
+function resolveGeometryType(
+  value: unknown,
+  id: string,
+  flags: { isLand: boolean | null; isTerritorial: boolean | null },
+): 'land' | 'maritime' | 'mixed' {
+  if (flags.isLand === true && flags.isTerritorial === true) {
+    return 'mixed'
+  }
+
   if (value === 'land' || value === 'maritime') {
     return value
   }
@@ -247,7 +261,100 @@ function requireGeometry(
     )
   }
 
+  assertValidGeometry(geometry, id)
+
   return geometry
+}
+
+function assertValidGeometry(geometry: GeoJsonGeometry, id: string | null) {
+  if (geometry.type === 'LineString' || geometry.type === 'MultiLineString') {
+    const lines: GeoJsonPosition[][] =
+      geometry.type === 'LineString'
+        ? [geometry.coordinates]
+        : (geometry as { coordinates: GeoJsonPosition[][] }).coordinates
+    for (const line of lines) {
+      if (line.length < 2 || line.some(position => !position.every(Number.isFinite))) {
+        throw new Error(
+          `Division geometry ${id ?? '<unknown>'} contains an empty or invalid line.`,
+        )
+      }
+    }
+    return
+  }
+
+  const polygons: GeoJsonPosition[][][] =
+    geometry.type === 'Polygon'
+      ? [geometry.coordinates]
+      : (geometry as { coordinates: GeoJsonPosition[][][] }).coordinates
+  for (const polygon of polygons) {
+    if (polygon.length === 0) {
+      throw new Error(
+        `Division geometry ${id ?? '<unknown>'} contains an empty polygon.`,
+      )
+    }
+    for (const ring of polygon) {
+      if (ring.length < 4 || !samePosition(ring[0], ring.at(-1))) {
+        throw new Error(
+          `Division geometry ${id ?? '<unknown>'} contains an invalid ring.`,
+        )
+      }
+      if (
+        ring.some(position => !position.every(Number.isFinite)) ||
+        ringArea(ring) === 0
+      ) {
+        throw new Error(
+          `Division geometry ${id ?? '<unknown>'} contains a degenerate ring.`,
+        )
+      }
+      for (let first = 0; first < ring.length - 1; first += 1) {
+        for (let second = first + 1; second < ring.length - 1; second += 1) {
+          if (second <= first + 1 || (first === 0 && second === ring.length - 2))
+            continue
+          const firstStart = ring[first]
+          const firstEnd = ring[first + 1]
+          const secondStart = ring[second]
+          const secondEnd = ring[second + 1]
+          if (!firstStart || !firstEnd || !secondStart || !secondEnd) continue
+          if (segmentsIntersect(firstStart, firstEnd, secondStart, secondEnd)) {
+            throw new Error(
+              `Division geometry ${id ?? '<unknown>'} contains a self-intersecting ring.`,
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+function samePosition(
+  left: GeoJsonPosition | undefined,
+  right: GeoJsonPosition | undefined,
+) {
+  return Boolean(left && right && left[0] === right[0] && left[1] === right[1])
+}
+
+function ringArea(ring: GeoJsonPosition[]) {
+  let area = 0
+  for (let index = 0; index < ring.length - 1; index += 1) {
+    area += (ring[index]?.[0] ?? 0) * (ring[index + 1]?.[1] ?? 0)
+    area -= (ring[index + 1]?.[0] ?? 0) * (ring[index]?.[1] ?? 0)
+  }
+  return Math.abs(area / 2)
+}
+
+function segmentsIntersect(
+  a: GeoJsonPosition,
+  b: GeoJsonPosition,
+  c: GeoJsonPosition,
+  d: GeoJsonPosition,
+) {
+  const orientation = (p: GeoJsonPosition, q: GeoJsonPosition, r: GeoJsonPosition) =>
+    (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
+  const abC = orientation(a, b, c)
+  const abD = orientation(a, b, d)
+  const cdA = orientation(c, d, a)
+  const cdB = orientation(c, d, b)
+  return abC > 0 !== abD > 0 && cdA > 0 !== cdB > 0
 }
 
 function asOptionalBoolean(value: unknown) {
