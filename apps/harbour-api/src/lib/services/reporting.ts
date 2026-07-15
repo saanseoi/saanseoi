@@ -1,7 +1,7 @@
 import { and, desc, eq, metaSchema } from '@repo/db'
 import { inArray, sql } from 'drizzle-orm'
-import { resolveShardForTypeRegionYear } from '@repo/core/db/metaRepository'
-import type { DataShardRecord } from '@repo/core/db/metaRepository'
+import { resolveShardForTypeRegionYear } from '@repo/core/db/metaRegistry'
+import type { DataShardRecord } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { DatasetType } from '@repo/db'
 
@@ -789,7 +789,7 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
   const sourceFamily = resolveSourceFamily(release)
 
   switch (sourceFamily) {
-    case 'hkgov-als':
+    case 'hkgov-dpo':
       return [
         {
           label: 'source',
@@ -950,8 +950,8 @@ function resolveSourceFamily(release: ReleaseContext) {
     return 'overture'
   }
 
-  if (normalizedSource === 'hkgov' && normalizedSourceUrl.includes('als')) {
-    return 'hkgov-als'
+  if (normalizedSource === 'hkgov' && normalizedSourceUrl.includes('dpo')) {
+    return 'hkgov-dpo'
   }
 
   return normalizedSource

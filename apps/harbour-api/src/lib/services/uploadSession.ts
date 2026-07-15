@@ -8,10 +8,7 @@ import {
   requestUpload,
 } from '@repo/core/upload'
 
-import {
-  getDatasetById,
-  getDatasetRecordByReleaseId,
-} from '@repo/core/db/metaRepository'
+import { getDatasetById, getDatasetRecordByReleaseId } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
   ParquetInspection,

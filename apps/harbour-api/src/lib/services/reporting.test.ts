@@ -121,8 +121,8 @@ describe('reporting service', () => {
         ) VALUES
           (
             'release-1',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-26.0-address',
+            'hkgov-dpo-hk-address',
+            'hkgov-dpo-hk-2026-06-26.0-address',
             '2026-06-26.0',
             null,
             null,
@@ -139,8 +139,8 @@ describe('reporting service', () => {
           ),
           (
             'release-2',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-25.0-address',
+            'hkgov-dpo-hk-address',
+            'hkgov-dpo-hk-2026-06-25.0-address',
             '2026-06-25.0',
             null,
             null,
@@ -157,8 +157,8 @@ describe('reporting service', () => {
           ),
           (
             'release-3',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-24.0-address',
+            'hkgov-dpo-hk-address',
+            'hkgov-dpo-hk-2026-06-24.0-address',
             '2026-06-24.0',
             null,
             null,
@@ -175,8 +175,8 @@ describe('reporting service', () => {
           ),
           (
             'release-4',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-23.0-address',
+            'hkgov-dpo-hk-address',
+            'hkgov-dpo-hk-2026-06-23.0-address',
             '2026-06-23.0',
             null,
             null,
@@ -240,9 +240,9 @@ describe('reporting service', () => {
       const rows = await listStats(metaDb, { limit: 3 })
 
       expect([...new Set(rows.map(row => row.releaseCode))]).toEqual([
-        'hkgov-als-hk-2026-06-25.0-address',
-        'hkgov-als-hk-2026-06-24.0-address',
-        'hkgov-als-hk-2026-06-23.0-address',
+        'hkgov-dpo-hk-2026-06-25.0-address',
+        'hkgov-dpo-hk-2026-06-24.0-address',
+        'hkgov-dpo-hk-2026-06-23.0-address',
       ])
 
       metaSqlite.close()
@@ -267,8 +267,8 @@ describe('reporting service', () => {
         ) VALUES
           (
             'release-1',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-26.0-address',
+            'hkgov-dpo-hk-address',
+            'hkgov-dpo-hk-2026-06-26.0-address',
             '2026-06-26.0',
             null,
             null,
@@ -285,8 +285,8 @@ describe('reporting service', () => {
           ),
           (
             'release-2',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-25.0-address',
+            'hkgov-dpo-hk-address',
+            'hkgov-dpo-hk-2026-06-25.0-address',
             '2026-06-25.0',
             null,
             null,
@@ -303,8 +303,8 @@ describe('reporting service', () => {
           ),
           (
             'release-3',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-24.0-address',
+            'hkgov-dpo-hk-address',
+            'hkgov-dpo-hk-2026-06-24.0-address',
             '2026-06-24.0',
             null,
             null,
@@ -359,8 +359,8 @@ describe('reporting service', () => {
       seedRelease(metaSqlite)
       seedRelease(
         metaSqlite,
-        'release-hkgov-als-hk-2026-06-25.0-address',
-        'hkgov-als-hk-2026-06-25.0-address',
+        'release-hkgov-dpo-hk-2026-06-25.0-address',
+        'hkgov-dpo-hk-2026-06-25.0-address',
         '2026-06-25.0',
         1761350400000,
       )
@@ -368,19 +368,19 @@ describe('reporting service', () => {
       const metaDb = createLocalHarbourDb(metaSqlite)
       const byReleaseCode = await listReleases(metaDb, {}, 'preview', {
         limit: 10,
-        releaseCode: 'hkgov-als-hk-2026-06-25.0-address',
+        releaseCode: 'hkgov-dpo-hk-2026-06-25.0-address',
       })
       const byReleaseId = await listReleases(metaDb, {}, 'preview', {
         limit: 10,
-        releaseId: 'release-hkgov-als-hk-2026-06-24.0-address',
+        releaseId: 'release-hkgov-dpo-hk-2026-06-24.0-address',
       })
 
       expect(byReleaseCode).toHaveLength(1)
       expect(byReleaseCode[0]?.releaseId).toBe(
-        'release-hkgov-als-hk-2026-06-25.0-address',
+        'release-hkgov-dpo-hk-2026-06-25.0-address',
       )
       expect(byReleaseId).toHaveLength(1)
-      expect(byReleaseId[0]?.releaseCode).toBe('hkgov-als-hk-2026-06-24.0-address')
+      expect(byReleaseId[0]?.releaseCode).toBe('hkgov-dpo-hk-2026-06-24.0-address')
 
       metaSqlite.close()
     } finally {
@@ -411,19 +411,19 @@ describe('reporting service', () => {
       seedHistoryRows(historySqlite)
       seedRelease(
         metaSqlite,
-        'release-hkgov-als-hk-2026-06-25.0-address',
-        'hkgov-als-hk-2026-06-25.0-address',
+        'release-hkgov-dpo-hk-2026-06-25.0-address',
+        'hkgov-dpo-hk-2026-06-25.0-address',
         '2026-06-25.0',
         1761350400000,
       )
       seedSourceRows(
         sourceSqlite,
-        'release-hkgov-als-hk-2026-06-25.0-address',
+        'release-hkgov-dpo-hk-2026-06-25.0-address',
         'source-address-2',
       )
       seedHistoryRows(
         historySqlite,
-        'release-hkgov-als-hk-2026-06-25.0-address',
+        'release-hkgov-dpo-hk-2026-06-25.0-address',
         'release-set-2',
         'address-2',
         'address3d-2',
@@ -449,8 +449,8 @@ describe('reporting service', () => {
       expect(queryCounts.source).toBe(2)
       expect(queryCounts.history).toBe(4)
       expect(releases.map(release => release.releaseId)).toEqual([
-        'release-hkgov-als-hk-2026-06-25.0-address',
-        'release-hkgov-als-hk-2026-06-24.0-address',
+        'release-hkgov-dpo-hk-2026-06-25.0-address',
+        'release-hkgov-dpo-hk-2026-06-24.0-address',
       ])
 
       metaSqlite.close()
@@ -474,14 +474,14 @@ function seedMetaCatalog(sqlite: SQLiteDatabase) {
     INSERT INTO publishers (
       id, code, url, contactUrl, contactEmail, contactPhone, parentPublisherId, versionHash, createdAt, updatedAt
     ) VALUES
-      ('publisher-hkgov-als', 'hkgov-als', 'https://data.gov.hk', 'https://data.gov.hk/en/feedback', null, null, null, 'vh-publisher-hkgov-als-v1', 1, 1);
+      ('publisher-hkgov-dpo', 'hkgov-dpo', 'https://data.gov.hk', 'https://data.gov.hk/en/feedback', null, null, null, 'vh-publisher-hkgov-dpo-v1', 1, 1);
 
     INSERT INTO datasets (
       id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, licenseId, attribution, category, versionHash, createdAt, updatedAt
     ) VALUES (
-      'hkgov-als-hk-address',
-      'publisher-hkgov-als',
-      'ds-hk-hkgov-als-address',
+      'hkgov-dpo-hk-address',
+      'publisher-hkgov-dpo',
+      'ds-hk-hkgov-dpo-address',
       'hk',
       'static',
       'monthly',
@@ -491,7 +491,7 @@ function seedMetaCatalog(sqlite: SQLiteDatabase) {
       null,
       null,
       'places',
-      'vh-dataset-hkgov-als-hk-address-v1',
+      'vh-dataset-hkgov-dpo-hk-address-v1',
       1,
       1
     );
@@ -532,8 +532,8 @@ function seedMetaCatalog(sqlite: SQLiteDatabase) {
 
 function seedRelease(
   sqlite: SQLiteDatabase,
-  releaseId = 'release-hkgov-als-hk-2026-06-24.0-address',
-  releaseCode = 'hkgov-als-hk-2026-06-24.0-address',
+  releaseId = 'release-hkgov-dpo-hk-2026-06-24.0-address',
+  releaseCode = 'hkgov-dpo-hk-2026-06-24.0-address',
   sourceVersion = '2026-06-24.0',
   timestamp = 1761264000000,
 ) {
@@ -542,13 +542,13 @@ function seedRelease(
       id, datasetId, code, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
     ) VALUES (
       '${releaseId}',
-      'hkgov-als-hk-address',
+      'hkgov-dpo-hk-address',
       '${releaseCode}',
       '${sourceVersion}',
       null,
       null,
       '2026-06',
-      'hk/hkgov-als/${sourceVersion}/address.parquet',
+      'hk/hkgov-dpo/${sourceVersion}/address.parquet',
       'address.parquet',
       'published',
       null,
@@ -571,8 +571,8 @@ function seedIngestRun(sqlite: SQLiteDatabase) {
     INSERT INTO ingestRuns (
       runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
     ) VALUES (
-      'run-hkgov-als-hk-2026-06-24.0-address',
-      'release-hkgov-als-hk-2026-06-24.0-address',
+      'run-hkgov-dpo-hk-2026-06-24.0-address',
+      'release-hkgov-dpo-hk-2026-06-24.0-address',
       'extractAddresses',
       'completed',
       '{"inserted":1}',
@@ -590,9 +590,9 @@ function seedStat(sqlite: SQLiteDatabase) {
     INSERT INTO stats (
       id, type, releaseId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt
     ) VALUES (
-      'stat-hkgov-als-hk-2026-06-24.0-address-rows',
+      'stat-hkgov-dpo-hk-2026-06-24.0-address-rows',
       'address',
-      'release-hkgov-als-hk-2026-06-24.0-address',
+      'release-hkgov-dpo-hk-2026-06-24.0-address',
       'ingest',
       'rows',
       'count',
@@ -607,7 +607,7 @@ function seedStat(sqlite: SQLiteDatabase) {
 
 function seedSourceRows(
   sqlite: SQLiteDatabase,
-  releaseId = 'release-hkgov-als-hk-2026-06-24.0-address',
+  releaseId = 'release-hkgov-dpo-hk-2026-06-24.0-address',
   sourceRecordId = 'source-address-1',
 ) {
   sqlite.exec(`
@@ -639,7 +639,7 @@ function seedSourceRows(
       '1',
       'Example Road',
       null,
-      '{"hkgovAls":[{"dataset":"hkgov-als"}]}',
+      '{"hkgovAls":[{"dataset":"hkgov-dpo"}]}',
       null
     );
 
@@ -648,13 +648,13 @@ function seedSourceRows(
     ) VALUES
       ('${sourceRecordId}', 'version-hash-1', '${releaseId}', '${releaseId}', null, 1, '2026-06-24T10:40:00.000Z', '2026-06-24T10:40:00.000Z', 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, '1', 'Example Road', null, null),
       ('${sourceRecordId}', 'version-hash-1', '${releaseId}', '${releaseId}', null, 1, '2026-06-24T10:40:00.000Z', '2026-06-24T10:40:00.000Z', 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, '1', '示例路', null, null),
-      ('${sourceRecordId}', 'version-hash-old', 'release-hkgov-als-hk-2026-06-01.0-address', 'release-hkgov-als-hk-2026-06-01.0-address', '${releaseId}', 0, '2026-06-01T10:40:00.000Z', '2026-06-24T10:40:00.000Z', 'en', 'Old Example Road', null, null, null, null, null, null, null, null, null, '1', 'Old Example Road', null, null);
+      ('${sourceRecordId}', 'version-hash-old', 'release-hkgov-dpo-hk-2026-06-01.0-address', 'release-hkgov-dpo-hk-2026-06-01.0-address', '${releaseId}', 0, '2026-06-01T10:40:00.000Z', '2026-06-24T10:40:00.000Z', 'en', 'Old Example Road', null, null, null, null, null, null, null, null, null, '1', 'Old Example Road', null, null);
   `)
 }
 
 function seedHistoryRows(
   sqlite: SQLiteDatabase,
-  releaseId = 'release-hkgov-als-hk-2026-06-24.0-address',
+  releaseId = 'release-hkgov-dpo-hk-2026-06-24.0-address',
   snapshotId = 'snapshot-1',
   addressId = 'address-1',
   address3dId = 'address3d-1',
