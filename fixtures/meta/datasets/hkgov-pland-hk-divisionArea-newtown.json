@@ -1,0 +1,31 @@
+{
+  "versionHash": "sha256:dfa3f993eab3254b9dee31dd84ab728f46d608b068040d9f482ac00d06e97704",
+  "publisherCode": "hkgov-pland",
+  "code": "ds-hk-hkgov-pland-divisionArea-newtown",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "census",
+  "theme": "divisions",
+  "type": "divisionArea",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Planning Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865",
+  "category": "boundaries",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "New Town Boundaries (Hong Kong)",
+      "description": "Optional Planning Department New Town geometry assertions, mapped through a reviewed geographic identifier bridge."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "新市鎮範圍（香港）",
+      "description": "透過經審核地理識別碼橋接的規劃署新市鎮可選幾何主張。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "新市镇范围（香港）",
+      "description": "通过经审核地理标识符桥接的规划署新市镇可选几何主张。"
+    }
+  ]
+}
