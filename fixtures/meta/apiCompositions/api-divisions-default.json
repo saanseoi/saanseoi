@@ -1,62 +1,90 @@
 {
-  "versionHash": "sha256:3d766633823e9afe906d01bdd1bca207c2d9efb4135da3dfd7b081ad31f27e0a",
+  "versionHash": "sha256:3a70b40b1a99122c57dd1878469cce0722d41be5e801fcfdfde52240af9b1e69",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions",
   "version": 1,
   "primaryResourceType": "division",
   "status": "current",
-  "members": [
+  "domains": [
     {
-      "resourceType": "division",
-      "role": "primary",
-      "isRequired": true,
-      "selectionMode": "exact_ref",
-      "priority": 0
+      "code": "overture",
+      "isDefault": true,
+      "members": [
+        {
+          "resourceType": "division",
+          "variant": "overture",
+          "role": "primary",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 0
+        },
+        {
+          "resourceType": "divisionArea",
+          "variant": "overture",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 10
+        },
+        {
+          "resourceType": "divisionArea",
+          "variant": "hkgov-had",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
+          "priority": 11
+        },
+        {
+          "resourceType": "divisionBoundary",
+          "variant": "overture",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 20
+        }
+      ]
     },
     {
-      "resourceType": "divisionArea",
-      "variant": "overture",
-      "role": "geometry",
-      "isRequired": true,
-      "selectionMode": "exact_ref",
-      "anchorResourceType": "division",
-      "priority": 10
+      "code": "hkgov-pland-pu",
+      "members": [
+        {
+          "resourceType": "division",
+          "variant": "hkgov-pland-pu",
+          "role": "primary",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 0
+        },
+        {
+          "resourceType": "divisionArea",
+          "variant": "hkgov-pland-pu",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 10
+        }
+      ]
     },
     {
-      "resourceType": "divisionArea",
-      "variant": "hkgov-had",
-      "role": "geometry",
-      "isRequired": true,
-      "selectionMode": "latest_at_or_before_cohort_per_dataset",
-      "anchorResourceType": "division",
-      "priority": 11
-    },
-    {
-      "resourceType": "divisionArea",
-      "variant": "hkgov-pland-pu",
-      "role": "geometry",
-      "isRequired": false,
-      "selectionMode": "exact_ref",
-      "anchorResourceType": "division",
-      "priority": 12
-    },
-    {
-      "resourceType": "divisionArea",
-      "variant": "hkgov-pland-newtown",
-      "role": "geometry",
-      "isRequired": false,
-      "selectionMode": "latest_at_or_before_cohort_per_dataset",
-      "anchorResourceType": "division",
-      "priority": 13
-    },
-    {
-      "resourceType": "divisionBoundary",
-      "variant": "overture",
-      "role": "geometry",
-      "isRequired": true,
-      "selectionMode": "exact_ref",
-      "anchorResourceType": "division",
-      "priority": 20
+      "code": "hkgov-pland-newtown",
+      "members": [
+        {
+          "resourceType": "division",
+          "variant": "hkgov-pland-newtown",
+          "role": "primary",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 0
+        },
+        {
+          "resourceType": "divisionArea",
+          "variant": "hkgov-pland-newtown",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 10
+        }
+      ]
     }
   ]
 }
