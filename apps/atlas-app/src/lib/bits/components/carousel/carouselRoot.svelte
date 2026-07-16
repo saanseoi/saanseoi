@@ -4,18 +4,26 @@ import { onMount } from 'svelte'
 import type { Snippet } from 'svelte'
 import { cn } from '$lib/bits/utilities/helpers/cn'
 type NavigationState = { canMoveBackward: boolean; canMoveForward: boolean }
+type DragState = { cardId: string | null }
 type Props = {
   children?: Snippet
   class?: string
   onnavigationchange?: (state: NavigationState) => void
+  ondragstatechange?: (state: DragState) => void
 }
-let { children, class: className = '', onnavigationchange }: Props = $props()
+let {
+  children,
+  class: className = '',
+  onnavigationchange,
+  ondragstatechange,
+}: Props = $props()
 let viewport = $state<HTMLElement>()
 let pointerId = $state<number | null>(null)
 let startX = $state(0)
 let startScrollLeft = $state(0)
 let hasDragged = $state(false)
 let shouldSuppressClick = $state(false)
+let pendingCardId = $state<string | null>(null)
 
 const updateNavigation = () => {
   if (!viewport) return
@@ -40,12 +48,20 @@ const handlePointerDown = (event: PointerEvent) => {
   startX = event.clientX
   startScrollLeft = viewport?.scrollLeft ?? 0
   hasDragged = false
+  const card =
+    event.target instanceof Element
+      ? event.target.closest<HTMLElement>('[data-carousel-card]')
+      : null
+  pendingCardId = card?.dataset.carouselCard ?? null
   ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
 }
 const handlePointerMove = (event: PointerEvent) => {
   if (event.pointerId !== pointerId || !viewport) return
   const offset = event.clientX - startX
-  if (Math.abs(offset) > 6) hasDragged = true
+  if (Math.abs(offset) > 6 && !hasDragged) {
+    hasDragged = true
+    ondragstatechange?.({ cardId: pendingCardId })
+  }
   if (!hasDragged) return
   event.preventDefault()
   viewport.scrollLeft = startScrollLeft - offset
@@ -59,6 +75,8 @@ const endPointerInteraction = (event: PointerEvent) => {
   }
   hasDragged = false
   pointerId = null
+  pendingCardId = null
+  ondragstatechange?.({ cardId: null })
 }
 
 const suppressDraggedClick = (node: HTMLElement) => {
