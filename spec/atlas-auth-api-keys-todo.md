@@ -14,7 +14,7 @@ implementation.
   and display last-used time.
 - Generated meta migration `20260710183402_material_zodiak` for `user.role` and
   `api_key`.
-- API-key management endpoints in Atlas App: `GET`, `POST`, and `DELETE /api/api-keys`.
+- API-key management in Atlas App through Svelte remote functions.
 - Fair-use policy at `/policy/fair-use`.
 - API-key enforcement in Atlas API, including SHA-256 key lookup, revoked-key rejection,
   sampled `last_used_at` updates, usage recording, and fair-use rate limiting.
