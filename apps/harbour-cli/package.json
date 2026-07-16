@@ -17,6 +17,7 @@
     "@repo/db": "workspace:*",
     "hyparquet": "^1.26.2",
     "hyparquet-compressors": "^1.1.1",
-    "hyparquet-writer": "^0.16.1"
+    "hyparquet-writer": "^0.16.1",
+    "jsts": "2.12.1"
   }
 }
