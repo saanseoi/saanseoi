@@ -756,9 +756,7 @@ function logApiReleaseSetPublication(
   if (releaseSetCode && result?.apiReleaseSetStatus === 'current') {
     log.success(`Published API release set ${rainbowWaveText(releaseSetCode)}.`)
   } else if (releaseSetCode) {
-    log.warn(
-      `${redText('DRAFT')} ${blueText(releaseSetCode)}\n\nRequired source releases unavailable`,
-    )
+    log.warn(`${redText('DRAFT')} ${blueText(releaseSetCode)}`)
   }
 }
 
