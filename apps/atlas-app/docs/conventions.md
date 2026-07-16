@@ -49,9 +49,15 @@ lib/bits/
 ├── pages/               # Route-specific sections/compositions used by Svelte pages
 │   ├── landing/
 │   │   ├── hero.svelte
-│   │   ├── foundation-grid.svelte
-│   │   ├── showcase.svelte
-│   │   └── newsletter.svelte
+│   │   ├── foundationSection.svelte
+│   │   ├── featureSection.svelte
+│   │   ├── pipelineSection.svelte
+│   │   ├── communitySection.svelte
+│   │   └── components/
+│   │       └── featureSection/
+│   │           ├── featureSectionRoot.svelte
+│   │           ├── featureSectionContent.svelte
+│   │           └── index.ts
 │   └── ...
 │
 ├── utilities/           # Helpers that aren't components
@@ -86,8 +92,9 @@ but still worth splitting into named sections.
 Current example:
 
 - `src/routes/+page.svelte` composes the landing page from `bits/pages/landing/*`
-- Each file in `pages/landing/` renders one section: hero, foundation grid, showcase,
-  newsletter
+- Each file in `pages/landing/` is a small section composition such as hero,
+  foundationSection, featureSection, pipelineSection, or communitySection. Its local
+  component hierarchy lives in `pages/landing/components/{sectionName}/`.
 - These sections can import primitives, components, assets, and internal helpers
   directly when the composition is specific to that route
 

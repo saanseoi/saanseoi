@@ -1,2 +1,7 @@
 export { default as Root } from './featureSectionRoot.svelte'
 export { default as Content } from './featureSectionContent.svelte'
+export { default as Header } from './featureSectionHeader.svelte'
+export { default as Deck } from './featureSectionDeck.svelte'
+export { default as Card } from './featureSectionCard.svelte'
+export { default as CardAnimation } from './featureSectionCardAnimation.svelte'
+export { default as CardBody } from './featureSectionCardBody.svelte'
