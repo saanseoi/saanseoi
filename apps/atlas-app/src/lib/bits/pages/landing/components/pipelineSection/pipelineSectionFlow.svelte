@@ -6,9 +6,10 @@ import PipelineSectionArrow from './pipelineSectionArrow.svelte'
 import PipelineSectionArtefactsApi from './pipelineSectionArtefactsApi.svelte'
 import PipelineSectionArtefactsBundle from './pipelineSectionArtefactsBundle.svelte'
 import PipelineSectionArtefactsRaw from './pipelineSectionArtefactsRaw.svelte'
+import PipelineSectionAnnotation from './pipelineSectionAnnotation.svelte'
 import PipelineSectionBlock from './pipelineSectionBlock.svelte'
 import PipelineSectionBlockWrapper from './pipelineSectionBlockWrapper.svelte'
-import PipelineSectionContainer from './pipelineSectionContainer.svelte'
+import PipelineSectionContent from './pipelineSectionContent.svelte'
 import PipelineSectionHeader from './pipelineSectionHeader.svelte'
 
 let pipelineSection = $state<HTMLElement>()
@@ -43,8 +44,9 @@ onMount(() => {
 </script>
 
 <div bind:this={pipelineSection}>
-  <PipelineSectionContainer isActive={isPipelineActive} isRevealed={isPipelineRevealed}>
+  <PipelineSectionContent isActive={isPipelineActive} isRevealed={isPipelineRevealed}>
     <PipelineSectionHeader />
+    <PipelineSectionAnnotation />
     <div
       class="pipeline relative isolate mt-[clamp(1rem,4svh,3rem)] py-[clamp(2rem,6svh,4rem)]"
     >
@@ -154,5 +156,5 @@ onMount(() => {
         </PipelineSectionBlock>
       </PipelineSectionBlockWrapper>
     </div>
-  </PipelineSectionContainer>
+  </PipelineSectionContent>
 </div>

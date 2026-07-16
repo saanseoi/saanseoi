@@ -11,7 +11,7 @@ let { children, isActive, isRevealed }: Props = $props()
   class="landing-pipeline overflow-clip scroll-mt-18"
 >
   <div
-    class="pipeline-panel mx-auto flex min-h-[max(42.75rem,calc(100svh-4.5rem))] w-full max-w-(--spacing-container-max) flex-col justify-start px-6 pb-16 pt-[calc(clamp(2.25rem,5svh,3.5rem)+24px)] md:px-8 md:pb-20 md:pt-[calc(clamp(2.75rem,5.5svh,4rem)+24px)]"
+    class="pipeline-panel relative mx-auto flex min-h-[max(42.75rem,calc(100svh-var(--landing-header-height,4.5rem)))] w-full max-w-(--spacing-container-max) flex-col justify-start px-6 pb-16 pt-[calc(clamp(2.25rem,5svh,3.5rem)+24px)] md:px-8 md:pb-20 md:pt-[calc(clamp(2.75rem,5.5svh,4rem)+24px)] lg:pt-[calc(clamp(2.75rem,5.5svh,4rem)+4.5rem+24px)]"
   >
     {@render children?.()}
   </div>

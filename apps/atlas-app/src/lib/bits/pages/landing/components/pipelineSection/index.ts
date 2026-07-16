@@ -1,6 +1,6 @@
 export { default as Root } from './pipelineSectionRoot.svelte'
 export { default as Flow } from './pipelineSectionFlow.svelte'
-export { default as Container } from './pipelineSectionContainer.svelte'
+export { default as Content } from './pipelineSectionContent.svelte'
 export { default as Header } from './pipelineSectionHeader.svelte'
 export { default as BlockWrapper } from './pipelineSectionBlockWrapper.svelte'
 export { default as Block } from './pipelineSectionBlock.svelte'

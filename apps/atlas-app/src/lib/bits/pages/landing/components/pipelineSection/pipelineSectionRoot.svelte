@@ -50,19 +50,7 @@ let { children, class: className = '' }: Props = $props()
   }
   .landing-pipeline {
     overflow: clip;
-    scroll-margin-top: 4.5rem;
-  }
-
-  .pipeline-panel {
-    --landing-header-height: 4.5rem;
-    display: flex;
-    width: 100%;
-    max-width: var(--spacing-container-max);
-    min-height: max(42.75rem, calc(100svh - var(--landing-header-height)));
-    flex-direction: column;
-    justify-content: flex-start;
-    margin-inline: auto;
-    padding: calc(clamp(2.25rem, 5svh, 3.5rem) + 24px) 1.5rem 4rem;
+    scroll-margin-top: var(--landing-header-height, 4.5rem);
   }
 
   .landing-section-header {
@@ -339,8 +327,8 @@ let { children, class: className = '' }: Props = $props()
   }
 
   .artifact-api-target {
-    top: -2.7rem;
     right: 1.4rem;
+    bottom: 3.8rem;
     width: 1.5rem;
     height: 1.5rem;
     border: 1px solid currentColor;
@@ -357,22 +345,22 @@ let { children, class: className = '' }: Props = $props()
   }
 
   .artifact-api-latency {
-    top: 0.6rem;
+    bottom: 0.6rem;
     left: 3.9rem;
     white-space: nowrap;
     animation-delay: -4s;
   }
 
   .artifact-api-coord {
+    top: 0.6rem;
     right: 3rem;
-    bottom: 3rem;
     text-align: right;
     animation-delay: -6s;
   }
 
   .artifact-api-status {
+    top: 3rem;
     right: 1.6rem;
-    bottom: 1rem;
     padding: 0.12rem 0.45rem;
     background: color-mix(in srgb, var(--secondary) 12%, transparent);
     animation-delay: -1s;
@@ -582,10 +570,6 @@ let { children, class: className = '' }: Props = $props()
   }
 
   @media (min-width: 768px) {
-    .pipeline-panel {
-      padding: calc(clamp(2.75rem, 5.5svh, 4rem) + 24px) 2rem 5rem;
-    }
-
     .pipeline {
       margin-block: auto;
     }
