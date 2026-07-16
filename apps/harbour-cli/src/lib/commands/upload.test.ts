@@ -59,10 +59,6 @@ mock.module('../parquetRepack.ts', () => ({
   prepareUploadFileForDispatch: mock(async () => null),
 }))
 
-mock.module('../schema/overture.ts', () => ({
-  validateOvertureSchema: mock(() => ({ schema: { id: 'schema-version' } })),
-}))
-
 mock.module('../upload.ts', () => ({
   dispatchUpload: mock(async () => ({})),
   getUploadDispatchTimings: mock(() => null),
