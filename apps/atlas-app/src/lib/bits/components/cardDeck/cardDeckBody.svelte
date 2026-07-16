@@ -1,10 +1,26 @@
 <script lang="ts">
-import type { Snippet } from 'svelte'
-
 import { cn } from '$lib/bits/utilities/helpers/cn'
 
-type Props = { children?: Snippet; class?: string }
-let { children, class: className = '' }: Props = $props()
+type Props = {
+  title: string
+  body?: string
+  class?: string
+  titleClass?: string
+  bodyClass?: string
+}
+
+let {
+  title,
+  body,
+  class: className = '',
+  titleClass = '',
+  bodyClass = '',
+}: Props = $props()
 </script>
 
-<span class={cn(className)}> {@render children?.()} </span>
+<span class={cn(className)}>
+  <span class={cn(titleClass)}>{title}</span>
+  {#if body}
+    <span class={cn(bodyClass)}>{body}</span>
+  {/if}
+</span>
