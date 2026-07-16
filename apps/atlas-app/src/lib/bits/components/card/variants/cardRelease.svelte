@@ -15,8 +15,16 @@ type Props = {
   displayDate: string
   displayCode: string
   records: string | null
+  isDragging?: boolean
 }
-let { release, index, displayDate, displayCode, records }: Props = $props()
+let {
+  release,
+  index,
+  displayDate,
+  displayCode,
+  records,
+  isDragging = false,
+}: Props = $props()
 let theme = $derived(getApiFamilyTheme(release.apiFamily))
 let accent = $derived(theme?.colorway.primary ?? 'var(--secondary)')
 let secondary = $derived(theme?.colorway.secondary ?? 'var(--accent)')
@@ -26,12 +34,13 @@ let cardStyle = $derived(
 )
 </script>
 <a
-  class="group relative grid min-h-69 w-80 shrink-0 isolate overflow-hidden rounded-lg p-5 text-(--release-ink) shadow-[0_1rem_2.5rem_rgb(0_0_0/0.14)] transition-shadow duration-220 before:absolute before:inset-0 before:z-0 before:bg-[radial-gradient(circle_at_45%_42%,color-mix(in_srgb,var(--release-accent)_74%,#fff_26%)_0,transparent_52%),linear-gradient(135deg,color-mix(in_srgb,var(--release-accent)_86%,#000_14%),color-mix(in_srgb,var(--release-accent)_58%,var(--release-secondary)_42%))] before:content-[''] after:absolute after:-right-12 after:-bottom-18 after:z-1 after:size-48 after:rotate-18 after:border after:border-current after:opacity-[0.18] after:content-[''] hover:shadow-[0_1.25rem_3rem_rgb(0_0_0/0.2)] focus-visible:outline-none focus-visible:shadow-[0_1.25rem_3rem_rgb(0_0_0/0.2)]"
+  class={`group relative grid min-h-69 w-80 shrink-0 isolate overflow-hidden rounded-lg p-5 text-(--release-ink) shadow-[0_1rem_2.5rem_rgb(0_0_0/0.14)] transition-shadow duration-220 before:absolute before:inset-0 before:z-0 before:bg-[radial-gradient(circle_at_45%_42%,color-mix(in_srgb,var(--release-accent)_74%,#fff_26%)_0,transparent_52%),linear-gradient(135deg,color-mix(in_srgb,var(--release-accent)_86%,#000_14%),color-mix(in_srgb,var(--release-accent)_58%,var(--release-secondary)_42%))] before:content-[''] after:absolute after:-right-12 after:-bottom-18 after:z-1 after:size-48 after:rotate-18 after:border after:border-current after:opacity-[0.18] after:content-[''] hover:shadow-[0_1.25rem_3rem_rgb(0_0_0/0.2)] focus-visible:outline-none focus-visible:shadow-[0_1.25rem_3rem_rgb(0_0_0/0.2)] ${isDragging ? 'shadow-[0_1.25rem_3rem_rgb(0_0_0/0.2)]' : ''}`}
+  data-carousel-card={release.code}
   style={cardStyle}
   href={`/apis/${release.apiFamily}/${release.code}`}
 >
   <span
-    class="absolute inset-[-10%] z-1 bg-(image:--release-topo-image) bg-no-repeat bg-position-[var(--release-topo-x)_var(--release-topo-y)] bg-size-[70rem_auto] opacity-[0.26] mix-blend-screen filter-[saturate(.96)_contrast(1.06)] transform-[scale(var(--release-topo-scale-x),var(--release-topo-scale-y))] transition-[opacity,background-size] duration-220 group-hover:bg-size-[76rem_auto] group-hover:opacity-[0.34] group-focus-visible:bg-size-[76rem_auto] group-focus-visible:opacity-[0.34]"
+    class={`absolute inset-[-10%] z-1 bg-(image:--release-topo-image) bg-no-repeat bg-position-[var(--release-topo-x)_var(--release-topo-y)] bg-size-[70rem_auto] opacity-[0.26] mix-blend-screen filter-[saturate(.96)_contrast(1.06)] transform-[scale(var(--release-topo-scale-x),var(--release-topo-scale-y))] transition-[opacity,background-size] duration-220 group-hover:bg-size-[76rem_auto] group-hover:opacity-[0.34] group-focus-visible:bg-size-[76rem_auto] group-focus-visible:opacity-[0.34] ${isDragging ? 'bg-size-[76rem_auto] opacity-[0.34]' : ''}`}
     aria-hidden="true"
   ></span>
   <span class="relative z-2 flex items-start justify-between gap-4"
@@ -71,7 +80,7 @@ let cardStyle = $derived(
     >{m.data_view_release()}
     <Icon
       icon="proicons:arrow-right"
-      class="size-4 transition group-hover:translate-x-1"
+      class={`size-4 transition group-hover:translate-x-1 ${isDragging ? 'translate-x-1' : ''}`}
     /></span
   >
 </a>

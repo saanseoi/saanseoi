@@ -1,5 +1,6 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
+import { onMount } from 'svelte'
 
 import * as CardDeck from '$lib/bits/components/cardDeck'
 import { ReleaseCarousel } from '$lib/bits/components/carousel'
@@ -37,6 +38,7 @@ let apiSwipeState = $state({
 })
 let suppressApiClick = false
 let isApiMobileStack = $state<boolean | null>(null)
+let isApiDeckVisible = $state(false)
 let releaseCarousel = $state<{ scrollByPage: (direction: -1 | 1) => void }>()
 let releaseCarouselNavigation = $state({
   canMoveBackward: false,
@@ -47,6 +49,12 @@ const apiFamilyOrder = ['divisions', 'addresses', 'places', 'streets'] as const
 const atlasDocsUrl = '/docs'
 const pendingApiFamilies = new Set(['places', 'streets'])
 const registryBackground = `linear-gradient(color-mix(in srgb, var(--background) 88%, transparent), color-mix(in srgb, var(--background) 88%, transparent)), url("data:image/svg+xml,%3Csvg width='120' height='96' viewBox='0 0 120 96' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 18c24 0 36 10 60 10s36-10 60-10M0 42c24 0 36 10 60 10s36-10 60-10M0 66c24 0 36 10 60 10s36-10 60-10M0 90c24 0 36 10 60 10s36-10 60-10' fill='none' stroke='%238e9192' stroke-width='0.7' opacity='0.14'/%3E%3C/svg%3E")`
+
+onMount(() => {
+  window.requestAnimationFrame(() => {
+    isApiDeckVisible = true
+  })
+})
 
 const rotateApiToBack = () => {
   const frontApiIndex = apiDeckOrder[0]
@@ -336,92 +344,96 @@ const apiCardClass = (apiIndex: 0 | 1 | 2 | 3, orderIndex: number) => {
     >
       {#each apiDeckOrder as apiIndex, orderIndex (apiIndex)}
         {@const api = apiDirectoryItem(apiIndex)}
-        <CardDeck.Card
-          as="article"
-          class={apiCardClass(apiIndex, orderIndex)}
-          style={`--api-accent: ${api.theme.colorway.primary}; --api-card-foreground: ${api.familyType === 'streets' ? api.theme.colorway.ink : '#fffaf0'}; --api-image-scale: ${api.familyType === 'streets' ? 1.25 : api.familyType === 'places' ? 1.05 : 1}; --swipe-x: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaX : 0}px; --swipe-y: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaY : 0}px; --swipe-rotate: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaX * 0.035 : 0}deg;`}
-          onclickcapture={handleApiClickCapture}
-          onpointerdown={(event: PointerEvent) => handleApiPointerDown(event, apiIndex, orderIndex)}
-          onpointermove={handleApiPointerMove}
-          onpointerup={handleApiPointerEnd}
-          onpointercancel={handleApiPointerEnd}
-          onclick={() => handleApiClick(apiIndex)}
-        >
-          {#if apiIndex !== 2}
-            <CardDeck.Visual
-              class={`absolute size-[1.1rem] border-current opacity-[0.42] ${apiIndex === 0 ? 'top-[-0.45rem] left-[-0.45rem] border-t border-l' : 'right-[-0.45rem] bottom-[-0.45rem] border-r border-b'}`}
-            />
-          {/if}
-          <CardDeck.Visual
-            class="relative mb-4 block aspect-square w-full shrink-0 overflow-hidden rounded-[0.65rem] bg-[color-mix(in_srgb,var(--api-card-foreground)_15%,transparent)]"
+        {#if isApiDeckVisible}
+          <CardDeck.Card
+            intro={{ y: 18, duration: 360, delay: orderIndex * 70 }}
+            as="article"
+            class={apiCardClass(apiIndex, orderIndex)}
+            style={`--api-accent: ${api.theme.colorway.primary}; --api-card-foreground: ${api.familyType === 'streets' ? api.theme.colorway.ink : '#fffaf0'}; --api-image-scale: ${api.familyType === 'streets' ? 1.25 : api.familyType === 'places' ? 1.05 : 1}; --swipe-x: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaX : 0}px; --swipe-y: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaY : 0}px; --swipe-rotate: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaX * 0.035 : 0}deg;`}
+            onclickcapture={handleApiClickCapture}
+            onpointerdown={(event: PointerEvent) => handleApiPointerDown(event, apiIndex, orderIndex)}
+            onpointermove={handleApiPointerMove}
+            onpointerup={handleApiPointerEnd}
+            onpointercancel={handleApiPointerEnd}
+            onclick={() => handleApiClick(apiIndex)}
           >
-            <img
-              class="pointer-events-none block size-full object-fill transform-[scale(var(--api-image-scale))] origin-center"
-              src={api.theme.image}
-              alt=""
-              draggable="false"
+            {#if apiIndex !== 2}
+              <CardDeck.Visual
+                class={`absolute size-[1.1rem] border-current opacity-[0.42] ${apiIndex === 0 ? 'top-[-0.45rem] left-[-0.45rem] border-t border-l' : 'right-[-0.45rem] bottom-[-0.45rem] border-r border-b'}`}
+              />
+            {/if}
+            <CardDeck.Visual
+              class="relative mb-4 block aspect-square w-full shrink-0 overflow-hidden rounded-[0.65rem] bg-[color-mix(in_srgb,var(--api-card-foreground)_15%,transparent)]"
             >
-          </CardDeck.Visual>
-          <span class="relative z-2 block">
-            <span class="flex flex-wrap items-start justify-between gap-3"
-              ><span
-                class="block font-body text-caption font-semibold uppercase tracking-[0.16em] opacity-78"
-                >{api.isPending ? m.data_planned_api() : m.data_public_api()}</span
+              <img
+                class="pointer-events-none block size-full object-fill transform-[scale(var(--api-image-scale))] origin-center"
+                src={api.theme.image}
+                alt=""
+                draggable="false"
               >
-              {#if api.isPending}
-                <span
-                  class="shrink-0 rounded-full border border-[color-mix(in_srgb,var(--api-card-foreground)_34%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_15%,transparent)] px-2 py-1 font-body text-[0.7rem] leading-none font-extrabold uppercase"
-                  >{m.data_coming_soon()}</span
+            </CardDeck.Visual>
+            <span class="relative z-2 block">
+              <span class="flex flex-wrap items-start justify-between gap-3"
+                ><span
+                  class="block font-body text-caption font-semibold uppercase tracking-[0.16em] opacity-78"
+                  >{api.isPending ? m.data_planned_api() : m.data_public_api()}</span
                 >
-              {/if}</span
-            >
-            <span
-              class="mt-3 block font-display text-headline-lg-md font-bold leading-[1.02]"
-              >{api.theme.name}</span
-            >
-            <span class="mt-5 flex flex-wrap items-center gap-2 font-body text-label-md"
-              ><a
-                class="inline-flex items-center gap-[0.28rem] rounded-full border border-[color-mix(in_srgb,var(--api-card-foreground)_34%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_13%,transparent)] px-3 py-1.5 font-bold no-underline transition-colors hover:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] hover:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] focus-visible:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:outline-none"
-                href={`/apis/${api.familyType}`}
-                onclick={event => event.stopPropagation()}
-                >{m.data_releases()}</a
-              ><a
-                class="inline-flex items-center gap-[0.28rem] rounded-full border border-[color-mix(in_srgb,var(--api-card-foreground)_34%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_13%,transparent)] px-3 py-1.5 font-bold no-underline transition-colors hover:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] hover:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] focus-visible:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:outline-none"
-                href={docsUrlForFamily(api.familyType)}
-                target="_blank"
-                rel="noreferrer"
-                onclick={event => event.stopPropagation()}
-                >{m.data_docs()}
-                <Icon icon="proicons:arrow-up-right" class="size-4" /></a
-              ></span
-            >
-            <span
-              class={`block max-h-0 overflow-hidden opacity-0 pointer-events-none transition-[max-height,margin-top,opacity] duration-450 ${activeApiIndex === apiIndex || (apiSwipeState.dragMode === 'desktop' && apiSwipeState.hasMoved && apiSwipeState.draggedApiIndex === apiIndex) ? 'mt-4 max-h-32 opacity-100 pointer-events-auto' : ''}`}
-              ><dl class="grid gap-2 font-body text-caption">
-                <div class="flex items-baseline justify-between gap-4">
-                  <dt class="font-semibold uppercase opacity-72">
-                    {m.data_api_version()}
-                  </dt>
-                  <dd
-                    class="rounded-[0.35rem] border border-[color-mix(in_srgb,var(--api-card-foreground)_28%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_14%,transparent)] px-2 py-0.5 font-mono text-[0.76rem] font-extrabold"
+                {#if api.isPending}
+                  <span
+                    class="shrink-0 rounded-full border border-[color-mix(in_srgb,var(--api-card-foreground)_34%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_15%,transparent)] px-2 py-1 font-body text-[0.7rem] leading-none font-extrabold uppercase"
+                    >{m.data_coming_soon()}</span
                   >
-                    v{api.version}
-                  </dd>
-                </div>
-                <div class="flex items-baseline justify-between gap-4">
-                  <dt class="font-semibold uppercase opacity-72">
-                    {m.data_latest_release()}
-                  </dt>
-                  <dd
-                    class="rounded-[0.35rem] border border-[color-mix(in_srgb,var(--api-card-foreground)_28%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_14%,transparent)] px-2 py-0.5 font-mono text-[0.76rem] font-extrabold"
-                  >
-                    {releaseDisplayCode(api.latestRelease?.code, api.familyType)}
-                  </dd>
-                </div>
-              </dl></span
-            >
-          </span>
-        </CardDeck.Card>
+                {/if}</span
+              >
+              <span
+                class="mt-3 block font-display text-headline-lg-md font-bold leading-[1.02]"
+                >{api.theme.name}</span
+              >
+              <span
+                class="mt-5 flex flex-wrap items-center gap-2 font-body text-label-md"
+                ><a
+                  class="inline-flex items-center gap-[0.28rem] rounded-full border border-[color-mix(in_srgb,var(--api-card-foreground)_34%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_13%,transparent)] px-3 py-1.5 font-bold no-underline transition-colors hover:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] hover:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] focus-visible:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:outline-none"
+                  href={`/apis/${api.familyType}`}
+                  onclick={event => event.stopPropagation()}
+                  >{m.data_releases()}</a
+                ><a
+                  class="inline-flex items-center gap-[0.28rem] rounded-full border border-[color-mix(in_srgb,var(--api-card-foreground)_34%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_13%,transparent)] px-3 py-1.5 font-bold no-underline transition-colors hover:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] hover:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] focus-visible:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:outline-none"
+                  href={docsUrlForFamily(api.familyType)}
+                  target="_blank"
+                  rel="noreferrer"
+                  onclick={event => event.stopPropagation()}
+                  >{m.data_docs()}
+                  <Icon icon="proicons:arrow-up-right" class="size-4" /></a
+                ></span
+              >
+              <span
+                class={`block max-h-0 overflow-hidden opacity-0 pointer-events-none transition-[max-height,margin-top,opacity] duration-450 ${activeApiIndex === apiIndex || (apiSwipeState.dragMode === 'desktop' && apiSwipeState.hasMoved && apiSwipeState.draggedApiIndex === apiIndex) ? 'mt-4 max-h-32 opacity-100 pointer-events-auto' : ''}`}
+                ><dl class="grid gap-2 font-body text-caption">
+                  <div class="flex items-baseline justify-between gap-4">
+                    <dt class="font-semibold uppercase opacity-72">
+                      {m.data_api_version()}
+                    </dt>
+                    <dd
+                      class="rounded-[0.35rem] border border-[color-mix(in_srgb,var(--api-card-foreground)_28%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_14%,transparent)] px-2 py-0.5 font-mono text-[0.76rem] font-extrabold"
+                    >
+                      v{api.version}
+                    </dd>
+                  </div>
+                  <div class="flex items-baseline justify-between gap-4">
+                    <dt class="font-semibold uppercase opacity-72">
+                      {m.data_latest_release()}
+                    </dt>
+                    <dd
+                      class="rounded-[0.35rem] border border-[color-mix(in_srgb,var(--api-card-foreground)_28%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_14%,transparent)] px-2 py-0.5 font-mono text-[0.76rem] font-extrabold"
+                    >
+                      {releaseDisplayCode(api.latestRelease?.code, api.familyType)}
+                    </dd>
+                  </div>
+                </dl></span
+              >
+            </span>
+          </CardDeck.Card>
+        {/if}
       {/each}
     </CardDeck.Root>
   </PageSection>
