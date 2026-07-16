@@ -5,9 +5,12 @@ import { m } from '$lib/bits/internal/i18n'
 
 type PrincipleIndex = 0 | 1 | 2 | 3
 type DragMode = 'desktop' | 'mobile' | null
-type Props = { isRevealed: boolean }
+type Props = {
+  isRevealed: boolean
+  onActivePrincipleChange: (isActive: boolean) => void
+}
 
-let { isRevealed }: Props = $props()
+let { isRevealed, onActivePrincipleChange }: Props = $props()
 
 let activePrincipleIndex = $state<PrincipleIndex | null>(null)
 let principleDeckOrder = $state<PrincipleIndex[]>([0, 1, 2, 3])
@@ -27,6 +30,10 @@ let swipeState = $state({
   draggedPrincipleIndex: null as PrincipleIndex | null,
 })
 let suppressPrincipleClick = false
+
+$effect(() => {
+  onActivePrincipleChange(activePrincipleIndex !== null)
+})
 
 const principles = [
   {
