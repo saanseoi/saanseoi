@@ -103,6 +103,7 @@ export type LocalDbCacheProgressEvent = {
     | 'validate-binding'
   bindingName: string
   current: number
+  filter?: string
   tableName?: string
   target: 'preview' | 'production'
   total: number
@@ -127,7 +128,7 @@ type RemoteTableImport = {
   sqlPath: string
   tableName: string
 }
-type CacheTableProfile = 'address' | 'division'
+type CacheTableProfile = 'address' | 'division' | 'divisionGeometry'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const WRANGLER_CONFIG_PATH = resolve(REPO_ROOT, 'apps/harbour-api/wrangler.jsonc')
@@ -193,6 +194,7 @@ export async function resolveLocalAddressDbContext(
     includePreviousShardYears?: boolean
     refreshRemoteCache?: boolean
     refreshRemoteTables?: boolean
+    requireExistingRemoteCache?: boolean
     remoteCacheScopeKey?: string
   } = {},
 ): Promise<LocalAddressDbContext> {
@@ -349,6 +351,41 @@ export async function resolveLocalAddressDbContext(
       target: targetName,
     },
   }
+}
+
+/**
+ * Remove an unusable mirrored remote-D1 cache after a post-upload replay
+ * failure. The next upload will make a fresh, explicit mirror rather than
+ * trusting partial local state.
+ */
+export async function invalidateRemoteDbCache(
+  target: 'preview' | 'production',
+  cacheDir: string,
+  _reason: string,
+) {
+  if (!cacheDir.startsWith(resolveRemoteCacheDir(target))) {
+    throw new Error(`Refusing to invalidate cache outside the ${target} cache root.`)
+  }
+  await rm(cacheDir, { force: true, recursive: true })
+}
+
+/** Refresh just the mirrored metadata database after a remote release replay. */
+export async function refreshRemoteMetaCache(
+  target: 'preview' | 'production',
+  cacheDir: string,
+) {
+  const manifest = await readManifest(join(cacheDir, 'manifest.json'))
+  const metaTarget = (await resolveD1Targets(target)).find(
+    targetRecord => targetRecord.bindingName === 'DB_META',
+  )
+  if (!metaTarget) {
+    throw new Error(`Could not resolve DB_META for ${target}.`)
+  }
+  await ensureRemoteCachePaths(target, [metaTarget], {
+    cacheTableProfile: manifest?.cacheTableProfile,
+    refreshRemoteTables: true,
+    remoteCacheScopeKey: manifest?.cacheScopeKey,
+  })
 }
 
 function createLocalExecBinding(sqlite: SQLiteDatabase): LocalD1ExecBinding {
@@ -933,6 +970,10 @@ function resolveMirrorTablesForBinding(
       return ['divisions', 'divisionsI18n']
     }
 
+    if (cacheTableProfile === 'divisionGeometry') {
+      return ['divisions', 'divisionAreas', 'divisionBoundaries']
+    }
+
     return ['divisions', 'divisionsI18n', 'address2d', 'address2dI18n']
   }
 
@@ -941,12 +982,32 @@ function resolveMirrorTablesForBinding(
       return ['divisions', 'divisionsI18n']
     }
 
+    if (cacheTableProfile === 'divisionGeometry') {
+      return ['divisionAreas', 'divisionBoundaries']
+    }
+
     return ['divisions', 'divisionsI18n', 'address2d', 'address2dI18n']
   }
 
   if (/^DB_SOURCE_[A-Z]{2}_\d{4}$/.test(bindingName)) {
     if (cacheTableProfile === 'division') {
-      return ['overtureDivisions']
+      return [
+        'overtureDivisions',
+        'hkgovPlandDivisions',
+        'hkgovPlandDivisionI18n',
+        'hkgovPlandPlanningCells',
+      ]
+    }
+
+    if (cacheTableProfile === 'divisionGeometry') {
+      return [
+        'overtureDivisionAreas',
+        'overtureDivisionBoundaries',
+        'hkgovHadDivisionAreas',
+        'hkgovPlandDivisionAreas',
+        'hkgovPlandNewTownDivisionAreas',
+        'hkgovPlandNewTownDivisionAreaI18n',
+      ]
     }
 
     return ['overtureDivisions', 'overtureAddresses2d', 'hkgovAlsAddresses2d']
@@ -975,6 +1036,7 @@ function resolveExpectedTablesForBinding(
       'snapshotAssembly',
       'snapshotAssemblySources',
       'snapshotAssemblyRuns',
+      'identifierBridges',
     ]
   }
 

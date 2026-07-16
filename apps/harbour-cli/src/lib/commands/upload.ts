@@ -33,6 +33,7 @@ import {
 } from '../display.ts'
 import { processLocalAddressSqlUpload } from '../addressSql/processLocalAddressSqlUpload.ts'
 import { processLocalDivisionSqlUpload } from '../divisionSql/processLocalDivisionSqlUpload.ts'
+import { processLocalHkgovPlandDivisionSqlUpload } from '../divisionSql/processLocalHkgovPlandDivisionSqlUpload.ts'
 import { processLocalDivisionGeometrySqlUpload } from '../divisionSql/processLocalDivisionGeometrySqlUpload.ts'
 import { buildRegisterOptions, type ParsedArgs, type UploadTarget } from '../options.ts'
 import { checkOvertureUploadAssumptions } from '../overtureAssumptions.ts'
@@ -317,7 +318,44 @@ ${mutedBar}  `)
           formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
           'API RELEASE SET',
         )
-        logApiReleaseSetPublication(processingResult.publishResult)
+        outro(formatSuccessfulReleaseMessage(commandStartedAt))
+        return
+      }
+
+      if (processingStrategy.mode === 'local-hkgov-pland-division-sql') {
+        if (!preparedUploadFile) {
+          throw new Error('Expected a prepared upload file for local SQL processing.')
+        }
+        const processingResult = await processLocalHkgovPlandDivisionSqlUpload(
+          target,
+          {
+            cohortKey: previewResult.plan.cohortKey,
+            regionCode: previewResult.plan.regionCode,
+            releaseCode: previewResult.plan.releaseCode,
+            rowCount: previewResult.plan.rowCount,
+            source: previewResult.plan.source as
+              | 'hkgov-pland-pu'
+              | 'hkgov-pland-newtown',
+            sourceVersion: previewResult.plan.sourceVersion,
+            theme: 'divisions',
+            type: 'division',
+          },
+          uploadResult,
+          preparedUploadFile,
+          { skipSnapshotCleanup: options.skipSnapshotCleanup },
+        )
+        const releaseSetReadiness = await resolveDivisionApiReleaseSetReadiness(
+          target,
+          withReleaseSetCohort(
+            previewResult.plan,
+            processingResult.publishResult?.apiReleaseSetCode,
+          ),
+        )
+        note(
+          formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
+          'API RELEASE SET',
+        )
+        logApiReleaseSetPublication(processingResult.publishResult ?? undefined)
         outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -328,10 +366,12 @@ ${mutedBar}  `)
             previewResult.plan.type !== 'divisionBoundary') ||
           previewResult.plan.theme !== 'divisions' ||
           (previewResult.plan.source !== 'overture' &&
-            previewResult.plan.source !== 'hkgov-had')
+            previewResult.plan.source !== 'hkgov-had' &&
+            previewResult.plan.source !== 'hkgov-pland-pu' &&
+            previewResult.plan.source !== 'hkgov-pland-newtown')
         ) {
           throw new Error(
-            'Local division geometry SQL processing requires an Overture or Home Affairs Department divisionArea or divisionBoundary dataset.',
+            'Local division geometry SQL processing requires an Overture, Home Affairs Department, Planning Unit, or New Town divisionArea or divisionBoundary dataset.',
           )
         }
 
@@ -449,6 +489,15 @@ function resolveUploadProcessingStrategy(
   if (
     previewResult.plan.type === 'division' &&
     previewResult.plan.theme === 'divisions' &&
+    (previewResult.plan.source === 'hkgov-pland-pu' ||
+      previewResult.plan.source === 'hkgov-pland-newtown')
+  ) {
+    return { mode: 'local-hkgov-pland-division-sql' as const }
+  }
+
+  if (
+    previewResult.plan.type === 'division' &&
+    previewResult.plan.theme === 'divisions' &&
     previewResult.plan.source === 'overture'
   ) {
     return {
@@ -461,7 +510,9 @@ function resolveUploadProcessingStrategy(
       previewResult.plan.type === 'divisionBoundary') &&
     previewResult.plan.theme === 'divisions' &&
     (previewResult.plan.source === 'overture' ||
-      previewResult.plan.source === 'hkgov-had')
+      previewResult.plan.source === 'hkgov-had' ||
+      previewResult.plan.source === 'hkgov-pland-pu' ||
+      previewResult.plan.source === 'hkgov-pland-newtown')
   ) {
     return {
       mode: 'local-division-geometry-sql' as const,
@@ -609,8 +660,7 @@ export async function assertDivisionGeometryUploadPrerequisites(
     return
   }
 
-  // HAD district areas are bridged directly to canonical division identifiers.
-  // They are selected as a geometry variant when a later release set is cut.
+  // HAD district areas are independently bridged to canonical divisions.
   if (plan.source === 'hkgov-had') return
 
   const snapshot = target.remote

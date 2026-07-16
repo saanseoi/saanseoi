@@ -123,6 +123,17 @@ type ApiEndpointFileFixture = {
   }>
 }
 
+type ApiCompositionMemberFixture = {
+  resourceType: ResourceType
+  variant?: string
+  role: string
+  isRequired: boolean
+  cohortMatchingMode: string
+  anchorResourceType?: ResourceType
+  maxLagDays?: number
+  priority: number
+}
+
 type ApiCompositionFixture = {
   versionHash: string
   apiVersion: string
@@ -131,15 +142,11 @@ type ApiCompositionFixture = {
   primaryResourceType: ResourceType
   status: string
   notes?: string
-  members: Array<{
-    resourceType: ResourceType
-    variant?: string
-    role: string
-    isRequired: boolean
-    selectionMode: string
-    anchorResourceType?: ResourceType
-    maxLagDays?: number
-    priority: number
+  members?: ApiCompositionMemberFixture[]
+  domains?: Array<{
+    code: string
+    isDefault?: boolean
+    members: ApiCompositionMemberFixture[]
   }>
 }
 
@@ -198,17 +205,19 @@ type InitialApiCompositionSeed = VersionedFixture<{
   code: string
   version: number
   primaryResourceType: ResourceType
+  defaultDomainCode?: string
   status: string
   notes?: string
 }>
 
 type InitialApiCompositionMemberSeed = {
   apiCompositionCode: string
+  domainCode: string
   resourceType: ResourceType
   variant: string
   role: string
   isRequired: boolean
-  selectionMode: string
+  cohortMatchingMode: string
   anchorResourceType?: ResourceType
   maxLagDays?: number
   priority: number
@@ -356,6 +365,7 @@ export const initialApiCompositions: InitialApiCompositionSeed[] =
     code: fixture.code,
     version: fixture.version,
     primaryResourceType: fixture.primaryResourceType,
+    defaultDomainCode: fixture.domains?.find(domain => domain.isDefault)?.code,
     status: fixture.status,
     notes: fixture.notes,
     versionHash: fixture.versionHash,
@@ -363,13 +373,19 @@ export const initialApiCompositions: InitialApiCompositionSeed[] =
 
 export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
   apiCompositionFixtures.flatMap(fixture =>
-    fixture.members.map(member => ({
+    (fixture.domains
+      ? fixture.domains.flatMap(domain =>
+          domain.members.map(member => ({ domainCode: domain.code, member })),
+        )
+      : (fixture.members ?? []).map(member => ({ domainCode: 'default', member }))
+    ).map(({ domainCode, member }) => ({
       apiCompositionCode: fixture.code,
+      domainCode,
       resourceType: member.resourceType,
       variant: member.variant ?? 'default',
       role: member.role,
       isRequired: member.isRequired,
-      selectionMode: member.selectionMode,
+      cohortMatchingMode: member.cohortMatchingMode,
       anchorResourceType: member.anchorResourceType,
       maxLagDays: member.maxLagDays,
       priority: member.priority,
@@ -635,13 +651,14 @@ WHERE apiVersions.versionHash <> excluded.versionHash;`.trim(),
     statements.push(
       `
 INSERT INTO apiComposition (
-  id, apiVersionId, code, version, primaryResourceType, status, notes, versionHash, createdAt, updatedAt
+  id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, notes, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDeterministicId(API_COMPOSITION_ID_NAMESPACE, composition.code)},
   (SELECT id FROM apiVersions WHERE code = ${sqlString(composition.apiVersion)}),
   ${sqlString(composition.code)},
   ${composition.version},
   ${sqlString(composition.primaryResourceType)},
+  ${sqlNullable(composition.defaultDomainCode)},
   ${sqlString(composition.status)},
   ${sqlNullable(composition.notes)},
   ${sqlString(composition.versionHash)},
@@ -652,6 +669,7 @@ ON CONFLICT(code) DO UPDATE SET
   apiVersionId = excluded.apiVersionId,
   version = excluded.version,
   primaryResourceType = excluded.primaryResourceType,
+  defaultDomainCode = excluded.defaultDomainCode,
   status = excluded.status,
   notes = excluded.notes,
   versionHash = excluded.versionHash,
@@ -664,23 +682,24 @@ WHERE apiComposition.versionHash <> excluded.versionHash;`.trim(),
     statements.push(
       `
 INSERT INTO apiCompositionMembers (
-  apiCompositionId, resourceType, variant, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+  apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority, configJson
 ) VALUES (
   (SELECT id FROM apiComposition WHERE code = ${sqlString(member.apiCompositionCode)}),
+  ${sqlString(member.domainCode)},
   ${sqlString(member.resourceType)},
   ${sqlString(member.variant)},
   ${sqlString(member.role)},
   ${member.isRequired ? 1 : 0},
-  ${sqlString(member.selectionMode)},
+  ${sqlString(member.cohortMatchingMode)},
   ${sqlNullable(member.anchorResourceType)},
   ${member.maxLagDays == null ? 'NULL' : member.maxLagDays},
   ${member.priority},
   NULL
 )
-ON CONFLICT(apiCompositionId, resourceType, variant) DO UPDATE SET
+ON CONFLICT(apiCompositionId, domainCode, resourceType, variant) DO UPDATE SET
   role = excluded.role,
   isRequired = excluded.isRequired,
-  selectionMode = excluded.selectionMode,
+  cohortMatchingMode = excluded.cohortMatchingMode,
   anchorResourceType = excluded.anchorResourceType,
   maxLagDays = excluded.maxLagDays,
   priority = excluded.priority;`.trim(),

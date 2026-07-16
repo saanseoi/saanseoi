@@ -928,21 +928,22 @@ describe('control service', () => {
       WHERE apiCompositionId = 'api-composition-divisions-v1';
 
       INSERT INTO apiCompositionMembers (
-        apiCompositionId, resourceType, variant, role, isRequired,
-        selectionMode, anchorResourceType, maxLagDays, priority, configJson
+        apiCompositionId, domainCode, resourceType, variant, role, isRequired,
+        cohortMatchingMode, anchorResourceType, maxLagDays, priority, configJson
       ) VALUES
-        ('api-composition-divisions-v1', 'division', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
-        ('api-composition-divisions-v1', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', 'division', null, 10, null),
-        ('api-composition-divisions-v1', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', 'division', null, 11, null),
-        ('api-composition-divisions-v1', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', 'division', null, 20, null);
+        ('api-composition-divisions-v1', 'overture', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0, null),
+        ('api-composition-divisions-v1', 'overture', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, null, 10, null),
+        ('api-composition-divisions-v1', 'overture', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 11, null),
+        ('api-composition-divisions-v1', 'overture', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20, null);
 
       INSERT INTO apiReleaseSets (
-        id, apiVersionId, code, schemaVersion, rulesetVersion, status,
+        id, apiVersionId, code, domainCode, schemaVersion, rulesetVersion, status,
         publishedAt, validFrom, validTo, notes, versionHash, createdAt, updatedAt
       ) VALUES (
         '${releaseSetId}',
         'api-version-api-divisions-v0.1',
         'data-hk-divisions-${cohortKey}-0',
+        'overture',
         'sv-division-v1',
         'rs-division-merge-v1',
         'draft',
@@ -1097,21 +1098,21 @@ describe('control service', () => {
     expect(members).toEqual([
       {
         anchorCode: null,
-        code: 'ss-hk-division-2025-09-24.0',
-        variant: 'default',
-      },
-      {
-        anchorCode: 'ss-hk-division-2025-09-24.0',
         code: 'ss-hk-divisionArea-2022',
         variant: 'hkgov-had',
       },
       {
-        anchorCode: 'ss-hk-division-2025-09-24.0',
+        anchorCode: null,
+        code: 'ss-hk-division-2025-09-24.0',
+        variant: 'overture',
+      },
+      {
+        anchorCode: null,
         code: 'ss-hk-divisionArea-2025-09-24.0',
         variant: 'overture',
       },
       {
-        anchorCode: 'ss-hk-division-2025-09-24.0',
+        anchorCode: null,
         code: 'ss-hk-divisionBoundary-2025-09-24.0',
         variant: 'overture',
       },

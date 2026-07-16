@@ -74,9 +74,18 @@ export function normalizeDivisionAreaGeometryRow(
     id,
     options.validateGeometry,
   )
-  const isLand = source === 'hkgov-had' ? true : asOptionalBoolean(row.is_land)
+  const isLand =
+    source === 'hkgov-had' ||
+    source === 'hkgov-pland-pu' ||
+    source === 'hkgov-pland-newtown'
+      ? true
+      : asOptionalBoolean(row.is_land)
   const isTerritorial =
-    source === 'hkgov-had' ? true : asOptionalBoolean(row.is_territorial)
+    source === 'hkgov-had' ||
+    source === 'hkgov-pland-pu' ||
+    source === 'hkgov-pland-newtown'
+      ? true
+      : asOptionalBoolean(row.is_territorial)
   const type = resolveGeometryType(row.class, id, { isLand, isTerritorial })
 
   if (!divisionId) {
@@ -221,6 +230,27 @@ function buildSourceKeys(
     }
   }
 
+  if (source === 'hkgov-pland-pu') {
+    return {
+      hkgovPland: {
+        planningLevel: asNonEmptyString(row.planning_level),
+        ppu: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:PPU')),
+        spu: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:SPU')),
+        tpu: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:TPU')),
+        subunit: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:SUBUNIT')),
+      },
+    }
+  }
+
+  if (source === 'hkgov-pland-newtown') {
+    return {
+      hkgovPlandNewTown: {
+        id: asNonEmptyString(row.newtown_id),
+        name: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:NEWTOWN')),
+      },
+    }
+  }
+
   return {
     overture: {
       version: asOptionalInteger(row.version),
@@ -232,8 +262,21 @@ function buildSourceKeys(
 
 function normalizeSources(value: unknown, source: string) {
   return Array.isArray(value) && value.length > 0
-    ? { [source === 'hkgov-had' ? 'hkgovHad' : 'overture']: value }
+    ? {
+        [source === 'hkgov-had'
+          ? 'hkgovHad'
+          : source === 'hkgov-pland-pu'
+            ? 'hkgovPland'
+            : source === 'hkgov-pland-newtown'
+              ? 'hkgovPlandNewTown'
+              : 'overture']: value,
+      }
     : undefined
+}
+
+function readIdentifier(value: unknown, key: string) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  return (value as Record<string, unknown>)[key]
 }
 
 function resolveGeometryType(

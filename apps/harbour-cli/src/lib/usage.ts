@@ -9,6 +9,9 @@ export function printUsage() {
   saanseoi rollback:release --release <latest-release-id|release-code> [--target local|preview|production] [--region hk|mo] [--shard-year YYYY] [--dry-run]
   saanseoi inspect [--stage normalized|resolved|operations] [--resourceType address] [--releaseCode VALUE] [--dbShard source|history|current] [--sample first|last|random] [--persist-to .local/d1/dev] [--out-dir .]
   saanseoi prep-hkgov-dpo <source-dir> [--target local|preview|production] [--source-version YYYY-MM-DD.NN] [--cohort-key VALUE] [--db /path/to/local.sqlite]
+  saanseoi prep-hkgov-pland <GeoJSON> [--kind tpu|newtown] [--source-version YYYY] [--out-dir PATH]
+  saanseoi backfill:hkgov-pland-pu --target local|preview|production
+  saanseoi backfill:hkgov-pland-newtown --target local|preview|production
   saanseoi reports:ingestion [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
   saanseoi reports:stats [--target local|preview|production] [--limit 1-100] [--source SOURCE] [--type TYPE]
   saanseoi reports:releases [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]

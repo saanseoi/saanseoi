@@ -582,6 +582,12 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       "versionHash TEXT NOT NULL DEFAULT ''",
     )
   }
+  addColumnIfMissing(
+    db,
+    'apiReleaseSets',
+    'domainCode',
+    "domainCode TEXT NOT NULL DEFAULT 'default'",
+  )
 
   if (hasColumn(db, 'apiReleaseSetSnapshots', 'snapshotFamily')) {
     rebuildTable(
@@ -659,6 +665,12 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
     addColumnIfMissing(
       db,
       'apiReleaseSetSnapshots',
+      'cohortMatchingMode',
+      "cohortMatchingMode TEXT NOT NULL DEFAULT 'carry_forward_optional'",
+    )
+    addColumnIfMissing(
+      db,
+      'apiReleaseSetSnapshots',
       'anchorSnapshotId',
       'anchorSnapshotId TEXT',
     )
@@ -701,6 +713,24 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       `,
     )
   }
+  addColumnIfMissing(
+    db,
+    'apiCompositionMembers',
+    'domainCode',
+    "domainCode TEXT NOT NULL DEFAULT 'default'",
+  )
+  addColumnIfMissing(
+    db,
+    'apiCompositionMembers',
+    'cohortMatchingMode',
+    "cohortMatchingMode TEXT NOT NULL DEFAULT 'exact_ref'",
+  )
+  addColumnIfMissing(
+    db,
+    'apiComposition',
+    'defaultDomainCode',
+    'defaultDomainCode TEXT',
+  )
 
   addColumnIfMissing(db, 'snapshotSources', 'selectedByRule', 'selectedByRule TEXT')
   addColumnIfMissing(db, 'snapshotSources', 'selectionMode', 'selectionMode TEXT')
@@ -751,6 +781,7 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       code TEXT NOT NULL UNIQUE,
       version INTEGER NOT NULL,
       primaryResourceType TEXT NOT NULL,
+      defaultDomainCode TEXT,
       status TEXT NOT NULL,
       notes TEXT,
       versionHash TEXT NOT NULL,
@@ -760,16 +791,17 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
 
     CREATE TABLE IF NOT EXISTS apiCompositionMembers (
       apiCompositionId TEXT NOT NULL,
+      domainCode TEXT NOT NULL DEFAULT 'default',
       resourceType TEXT NOT NULL,
       variant TEXT NOT NULL DEFAULT 'default',
       role TEXT NOT NULL,
       isRequired INTEGER NOT NULL,
-      selectionMode TEXT NOT NULL,
+      cohortMatchingMode TEXT NOT NULL,
       anchorResourceType TEXT,
       maxLagDays INTEGER,
       priority INTEGER NOT NULL DEFAULT 0,
       configJson TEXT,
-      PRIMARY KEY (apiCompositionId, resourceType, variant)
+      PRIMARY KEY (apiCompositionId, domainCode, resourceType, variant)
     );
   `)
 
@@ -947,6 +979,7 @@ export function seedFixtureCatalog(db: Database) {
       id,
       apiVersionId,
       code,
+      domainCode,
       schemaVersion,
       rulesetVersion,
       status,
@@ -959,6 +992,7 @@ export function seedFixtureCatalog(db: Database) {
         'api-release-set-data-hk-divisions-2026-06-17.0-0',
         'api-version-api-divisions-v0.1',
         'data-hk-divisions-2026-06-17.0-0',
+        'overture',
         'sv-division-v1',
         'rs-division-merge-v1',
         'current',
@@ -971,6 +1005,7 @@ export function seedFixtureCatalog(db: Database) {
         'api-release-set-data-hk-addresses-2026-06-17.0-0',
         'api-version-api-addresses-v0.1',
         'data-hk-addresses-2026-06-17.0-0',
+        'default',
         'sv-address-v1',
         'rs-address-merge-v1',
         'current',
@@ -983,6 +1018,7 @@ export function seedFixtureCatalog(db: Database) {
         'api-release-set-data-hk-places-2026-06-17.0-0',
         'api-version-api-places-v0.1',
         'data-hk-places-2026-06-17.0-0',
+        'default',
         'sv-place-v1',
         'rs-place-merge-v1',
         'current',
@@ -994,6 +1030,7 @@ export function seedFixtureCatalog(db: Database) {
     ON CONFLICT(id) DO UPDATE SET
       apiVersionId = excluded.apiVersionId,
       code = excluded.code,
+      domainCode = excluded.domainCode,
       schemaVersion = excluded.schemaVersion,
       rulesetVersion = excluded.rulesetVersion,
       status = excluded.status,
@@ -1003,11 +1040,11 @@ export function seedFixtureCatalog(db: Database) {
     WHERE apiReleaseSets.versionHash <> excluded.versionHash;
 
     INSERT INTO apiComposition (
-      id, apiVersionId, code, version, primaryResourceType, status, notes, versionHash, createdAt, updatedAt
+      id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, notes, versionHash, createdAt, updatedAt
     ) VALUES
-      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-default', 1, 'address', 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('api-composition-divisions-v1', 'api-version-api-divisions-v0.1', 'api-divisions-default', 1, 'division', 'current', null, 'vh-api-composition-divisions-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('api-composition-places-v1', 'api-version-api-places-v0.1', 'api-places-default', 1, 'place', 'current', null, 'vh-api-composition-places-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
+      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-default', 1, 'address', null, 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-composition-divisions-v1', 'api-version-api-divisions-v0.1', 'api-divisions-default', 1, 'division', 'overture', 'current', null, 'vh-api-composition-divisions-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-composition-places-v1', 'api-version-api-places-v0.1', 'api-places-default', 1, 'place', null, 'current', null, 'vh-api-composition-places-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
       apiVersionId = excluded.apiVersionId,
       code = excluded.code,
@@ -1019,18 +1056,18 @@ export function seedFixtureCatalog(db: Database) {
       updatedAt = excluded.updatedAt;
 
     INSERT INTO apiCompositionMembers (
-      apiCompositionId, resourceType, variant, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+      apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority, configJson
     ) VALUES
-      ('api-composition-addresses-v1', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-addresses-v1', 'division', 'default', 'supporting', 1, 'exact_ref', 'address', null, 10, null),
-      ('api-composition-divisions-v1', 'division', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-places-v1', 'place', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-places-v1', 'address', 'default', 'supporting', 1, 'exact_ref', 'place', null, 10, null),
-      ('api-composition-places-v1', 'division', 'default', 'supporting', 1, 'exact_ref', 'place', null, 20, null)
-    ON CONFLICT(apiCompositionId, resourceType, variant) DO UPDATE SET
+      ('api-composition-addresses-v1', 'default', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-addresses-v1', 'default', 'division', 'default', 'supporting', 1, 'exact_ref', 'address', null, 10, null),
+      ('api-composition-divisions-v1', 'overture', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-places-v1', 'default', 'place', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-places-v1', 'default', 'address', 'default', 'supporting', 1, 'exact_ref', 'place', null, 10, null),
+      ('api-composition-places-v1', 'default', 'division', 'default', 'supporting', 1, 'exact_ref', 'place', null, 20, null)
+    ON CONFLICT(apiCompositionId, domainCode, resourceType, variant) DO UPDATE SET
       role = excluded.role,
       isRequired = excluded.isRequired,
-      selectionMode = excluded.selectionMode,
+      cohortMatchingMode = excluded.cohortMatchingMode,
       anchorResourceType = excluded.anchorResourceType,
       maxLagDays = excluded.maxLagDays,
       priority = excluded.priority,

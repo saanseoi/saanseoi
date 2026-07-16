@@ -74,6 +74,14 @@ const divisionListRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
         },
         description: 'Division snapshot is not ready.',
       },
+      409: {
+        content: {
+          'application/json': {
+            schema: ErrorResponseSchema,
+          },
+        },
+        description: 'Requested geometry variant is unavailable.',
+      },
       422: ValidationErrorOpenAPIResponse,
     },
   }),
@@ -105,6 +113,14 @@ const divisionDetailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
           },
         },
         description: 'Division not found.',
+      },
+      409: {
+        content: {
+          'application/json': {
+            schema: ErrorResponseSchema,
+          },
+        },
+        description: 'Requested geometry variant is unavailable.',
       },
       503: {
         content: {
@@ -139,6 +155,10 @@ export const divisionRoutes = [
           return c.json(result.body, 503)
         }
 
+        if (result.status === 409) {
+          return c.json(result.body, 409)
+        }
+
         return c.json(result.body, 200)
       },
     }),
@@ -162,6 +182,10 @@ export const divisionRoutes = [
 
         if (result.status === 503) {
           return c.json(result.body, 503)
+        }
+
+        if (result.status === 409) {
+          return c.json(result.body, 409)
         }
 
         if (result.status === 404) {

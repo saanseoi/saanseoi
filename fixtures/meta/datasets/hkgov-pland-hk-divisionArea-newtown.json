@@ -1,0 +1,31 @@
+{
+  "versionHash": "sha256:050970c77a480e64c6aa7f50b0eb99faf8fb698462815a7a6ec757775bb40db8",
+  "publisherCode": "hkgov-pland",
+  "code": "ds-hk-hkgov-pland-divisionArea-newtown",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "census",
+  "theme": "divisions",
+  "type": "divisionArea",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Planning Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865",
+  "category": "boundaries",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "New Town Boundaries (Hong Kong)",
+      "description": "Boundary data for Hong Kong's new towns, published by the Planning Department."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "新市鎮範圍（香港）",
+      "description": "由規劃署發布的香港新市鎮範圍資料。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "新市镇范围（香港）",
+      "description": "由规划署发布的香港新市镇范围资料。"
+    }
+  ]
+}

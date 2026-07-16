@@ -1,0 +1,31 @@
+{
+  "versionHash": "sha256:064688827094ef5af10a2a71b756040bd17fcb1b3096ebe379279661b20d4da3",
+  "publisherCode": "hkgov-pland",
+  "code": "ds-hk-hkgov-pland-divisionArea-pu",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "census",
+  "theme": "divisions",
+  "type": "divisionArea",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Planning Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050",
+  "category": "boundaries",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Tertiary Planning Unit Areas (Hong Kong)",
+      "description": "Optional Planning Department geometry assertions for PPU, SPU, TPU, and planning-subunit divisions."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "第三級規劃單位範圍（香港）",
+      "description": "PPU、SPU、TPU及規劃分區的可選規劃署幾何主張。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "第三级规划单位范围（香港）",
+      "description": "PPU、SPU、TPU及规划分区的可选规划署几何主张。"
+    }
+  ]
+}

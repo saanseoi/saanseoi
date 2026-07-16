@@ -3,6 +3,8 @@ import { cancel } from '@clack/prompts'
 import { runSnapshotCleanupCommand } from './lib/commands/cleanup.ts'
 import { runDocsNewCommand, runDocsPublishCommand } from './lib/commands/docs.ts'
 import { runHkgovAlsPrepCommand } from './lib/commands/hkgovAls.ts'
+import { runHkgovPlandBackfillCommand } from './lib/commands/backfillHkgovPland.ts'
+import { runHkgovPlandPrepCommand } from './lib/commands/hkgovPland.ts'
 import { runInspectCommand } from './lib/commands/inspect.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
@@ -29,6 +31,16 @@ async function main() {
     case 'prepare-hkgov-dpo':
     case 'prep-hkgov-dpo':
       await runHkgovAlsPrepCommand(args, target, printUsage)
+      return
+    case 'prepare-hkgov-pland':
+    case 'prep-hkgov-pland':
+      await runHkgovPlandPrepCommand(args, printUsage)
+      return
+    case 'backfill:hkgov-pland-pu':
+      await runHkgovPlandBackfillCommand(args, target, 'pu', printUsage)
+      return
+    case 'backfill:hkgov-pland-newtown':
+      await runHkgovPlandBackfillCommand(args, target, 'newtown', printUsage)
       return
     case 'inspect':
       await runInspectCommand(args)

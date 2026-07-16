@@ -25,6 +25,21 @@ describe('sourceSchemas', () => {
     ).resolves.toBe('1.2')
   })
 
+  test('resolves observed Planning Department TPU and New Town profiles', async () => {
+    await expect(
+      resolveSourceSchemaVersion({
+        source: 'hkgov-pland-pu',
+        sourceVersion: '2021',
+      }),
+    ).resolves.toBe('2.0')
+    await expect(
+      resolveSourceSchemaVersion({
+        source: 'hkgov-pland-newtown',
+        sourceVersion: '2021',
+      }),
+    ).resolves.toBe('1.0')
+  })
+
   test('rejects an unmapped HAD source release', async () => {
     await expect(
       resolveSourceSchemaVersion({
