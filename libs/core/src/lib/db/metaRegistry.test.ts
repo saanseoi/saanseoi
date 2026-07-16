@@ -405,6 +405,7 @@ function createPublishReleaseArtifactsDb() {
 
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
+      resourceType TEXT NOT NULL DEFAULT 'division',
       code TEXT NOT NULL,
       status TEXT NOT NULL,
       publishedAt INTEGER,
@@ -1223,7 +1224,7 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
 })
 
 describe('publishReleaseArtifacts', () => {
-  test('preserves existing release-set snapshot links while adding the published snapshot', async () => {
+  test('replaces an existing release-set snapshot for the same resource type and variant', async () => {
     const { sqlite, db } = createPublishReleaseArtifactsDb()
 
     sqlite.exec(`
@@ -1305,10 +1306,7 @@ describe('publishReleaseArtifacts', () => {
       )
       .all('release-set-1') as Array<{ snapshotId: string }>
 
-    expect(linkedSnapshotIds).toEqual([
-      { snapshotId: 'snapshot-curated' },
-      { snapshotId: 'snapshot-new' },
-    ])
+    expect(linkedSnapshotIds).toEqual([{ snapshotId: 'snapshot-new' }])
 
     const provenanceRows = sqlite
       .query(

@@ -16,6 +16,7 @@ Home Affairs Department profiles are kept in the provider source folders:
 
 - [`Overture geometry`](../sources/overture/divisionGeometry.md)
 - [`Home Affairs Department area`](../sources/hkgov-had/divisionArea.md)
+- [`Overture historical reconstructions`](../sources/overture/historicalReconstruction.md)
 
 Functional domains are explicit (`administrative`, `planning`, `electoral`, and
 `geographic`). A division may have secondary domain memberships, while hierarchy edges

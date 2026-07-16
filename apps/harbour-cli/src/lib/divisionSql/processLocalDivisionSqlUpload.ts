@@ -884,6 +884,8 @@ export async function processLocalDivisionSqlUpload(
   if (postPublishCacheError) {
     throw postPublishCacheError
   }
+
+  return { publishResult }
 }
 
 async function replayDivisionSqlIntoRemoteCache(

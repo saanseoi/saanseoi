@@ -175,13 +175,12 @@ describe('division API release set readiness display', () => {
     )
   })
 
-  test('reports the selected release-set cohort and identifies the uploaded provider release as self', () => {
+  test('reports the selected release-set cohort and provider release as available', () => {
     expect(
       formatDivisionApiReleaseSetReadiness(
         {
           cohortKey: '2025-09-24.0',
           regionCode: 'hk',
-          releaseCode: 'hkgov-had-hk-2022-district',
         },
         {
           areaAvailable: true,
@@ -204,7 +203,7 @@ describe('division API release set readiness display', () => {
         '  \u001B[32m✓\u001B[39m divisionBoundary  available',
         '',
         'At or Before Cohort',
-        '  \u001B[32m✓\u001B[39m hkgov-had-hk-2022-district  self',
+        '  \u001B[32m✓\u001B[39m hkgov-had-hk-2022-district  available',
       ].join('\n'),
     )
   })

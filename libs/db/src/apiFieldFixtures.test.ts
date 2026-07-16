@@ -31,6 +31,37 @@ describe('api field fixtures', () => {
     ).toBe('ss-hk-division-2025-09-24.0')
   })
 
+  test('forward-fills every division fixture with the baseline API fields', () => {
+    const [baseline, ...fixtures] = listApiFieldFixtures()
+
+    if (!baseline) {
+      throw new Error('Expected a baseline API field fixture')
+    }
+
+    const fieldKey = (field: (typeof baseline.fields)[number]) =>
+      JSON.stringify([
+        field.apiField,
+        field.variant ?? null,
+        field.sourceDatasetCode,
+        field.sourceFieldPath,
+        field.resolverCode,
+        field.contributionType,
+      ])
+    const baselineFieldKeys = baseline.fields.map(fieldKey)
+    const baselineSourceSchemaKeys = Object.keys(baseline.sourceSchemas).sort()
+
+    for (const fixture of fixtures) {
+      expect(Object.keys(fixture.sourceSchemas).sort()).toEqual(
+        baselineSourceSchemaKeys,
+      )
+
+      const fixtureFieldKeys = new Set(fixture.fields.map(fieldKey))
+      for (const baselineFieldKey of baselineFieldKeys) {
+        expect(fixtureFieldKeys.has(baselineFieldKey)).toBe(true)
+      }
+    }
+  })
+
   test('returns defensive copies from the fixture registry', () => {
     const fixtures = listApiFieldFixtures()
     const fixture = resolveApiFieldFixture({
@@ -40,6 +71,9 @@ describe('api field fixtures', () => {
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
         'ds-hk-overture-division': '1.17.0',
+        'ds-hk-overture-divisionArea': '1.17.0',
+        'ds-hk-overture-divisionBoundary': '1.17.0',
+        'ds-hk-hkgov-had-district': '1.2',
       },
     })
 
@@ -77,6 +111,9 @@ describe('api field fixtures', () => {
         rulesetVersion: 'rs-division-merge-v1',
         sourceSchemas: {
           'ds-hk-overture-division': '1.17.0',
+          'ds-hk-overture-divisionArea': '1.17.0',
+          'ds-hk-overture-divisionBoundary': '1.17.0',
+          'ds-hk-hkgov-had-district': '1.2',
         },
       })?.fields[0]?.apiField,
     ).not.toBe('mutated')
@@ -90,6 +127,9 @@ describe('api field fixtures', () => {
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
         'ds-hk-overture-division': '1.17.0',
+        'ds-hk-overture-divisionArea': '1.17.0',
+        'ds-hk-overture-divisionBoundary': '1.17.0',
+        'ds-hk-hkgov-had-district': '1.2',
       },
     })
 
@@ -104,6 +144,9 @@ describe('api field fixtures', () => {
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
         'ds-hk-overture-division': '1.18.0',
+        'ds-hk-overture-divisionArea': '1.17.0',
+        'ds-hk-overture-divisionBoundary': '1.17.0',
+        'ds-hk-hkgov-had-district': '1.2',
       },
     })
 

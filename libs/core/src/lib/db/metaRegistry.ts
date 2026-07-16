@@ -2200,6 +2200,7 @@ export async function publishReleaseArtifacts(
   const existingReleaseSetSnapshots = await db
     .select({
       snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+      resourceType: metaSnapshots.resourceType,
       variant: metaApiReleaseSetSnapshots.variant,
       role: metaApiReleaseSetSnapshots.role,
       isRequired: metaApiReleaseSetSnapshots.isRequired,
@@ -2207,6 +2208,10 @@ export async function publishReleaseArtifacts(
       anchorSnapshotId: metaApiReleaseSetSnapshots.anchorSnapshotId,
     })
     .from(metaApiReleaseSetSnapshots)
+    .innerJoin(
+      metaSnapshots,
+      eq(metaApiReleaseSetSnapshots.snapshotId, metaSnapshots.id),
+    )
     .where(eq(metaApiReleaseSetSnapshots.apiReleaseSetId, args.releaseSetId))
     .all()
 
@@ -2221,14 +2226,6 @@ export async function publishReleaseArtifacts(
   const datasetMember = compositionMembers.find(
     member => member.resourceType === args.type && member.variant === datasetVariant,
   )
-  const anchorSnapshotId = compositionMembers.find(
-    member => member.resourceType === datasetMember?.anchorResourceType,
-  )
-    ? (args.carriedSnapshots.find(
-        carried => carried.resourceType === datasetMember?.anchorResourceType,
-      )?.snapshotId ?? null)
-    : null
-
   const releaseSetSnapshots = new Map<
     string,
     {
@@ -2236,18 +2233,23 @@ export async function publishReleaseArtifacts(
       isRequired: boolean
       role: string
       selectionMode: string
+      snapshotId: string
       variant: string
     }
   >()
 
   for (const snapshot of existingReleaseSetSnapshots) {
-    releaseSetSnapshots.set(`${snapshot.snapshotId}:${snapshot.variant}`, {
-      role: snapshot.role,
-      isRequired: Boolean(snapshot.isRequired),
-      selectionMode: snapshot.selectionMode,
-      anchorSnapshotId: snapshot.anchorSnapshotId ?? null,
-      variant: snapshot.variant,
-    })
+    releaseSetSnapshots.set(
+      buildReleaseSetSnapshotMemberKey(snapshot.resourceType, snapshot.variant),
+      {
+        role: snapshot.role,
+        isRequired: Boolean(snapshot.isRequired),
+        selectionMode: snapshot.selectionMode,
+        anchorSnapshotId: snapshot.anchorSnapshotId ?? null,
+        snapshotId: snapshot.snapshotId,
+        variant: snapshot.variant,
+      },
+    )
   }
 
   for (const snapshot of args.carriedSnapshots) {
@@ -2256,41 +2258,61 @@ export async function publishReleaseArtifacts(
         candidate.resourceType === snapshot.resourceType &&
         candidate.variant === (snapshot.variant ?? 'default'),
     )
-    releaseSetSnapshots.set(`${snapshot.snapshotId}:${snapshot.variant ?? 'default'}`, {
-      role: member?.role ?? 'supporting',
-      isRequired: member?.isRequired ?? true,
-      selectionMode: member?.selectionMode ?? 'carry_forward_optional',
-      anchorSnapshotId: member?.anchorResourceType
-        ? member.anchorResourceType === datasetMember?.resourceType
-          ? args.snapshotId
-          : anchorSnapshotId
-        : null,
-      variant: snapshot.variant ?? 'default',
-    })
+    releaseSetSnapshots.set(
+      buildReleaseSetSnapshotMemberKey(
+        snapshot.resourceType,
+        snapshot.variant ?? 'default',
+      ),
+      {
+        role: member?.role ?? 'supporting',
+        isRequired: member?.isRequired ?? true,
+        selectionMode: member?.selectionMode ?? 'carry_forward_optional',
+        anchorSnapshotId: null,
+        snapshotId: snapshot.snapshotId,
+        variant: snapshot.variant ?? 'default',
+      },
+    )
   }
 
-  releaseSetSnapshots.set(`${args.snapshotId}:${datasetVariant}`, {
+  releaseSetSnapshots.set(buildReleaseSetSnapshotMemberKey(args.type, datasetVariant), {
     role: datasetMember?.role ?? 'primary',
     isRequired: datasetMember?.isRequired ?? true,
     selectionMode: datasetMember?.selectionMode ?? 'exact_ref',
-    anchorSnapshotId: datasetMember?.anchorResourceType ? anchorSnapshotId : null,
+    anchorSnapshotId: null,
+    snapshotId: args.snapshotId,
     variant: datasetVariant,
   })
+
+  for (const member of compositionMembers) {
+    if (!member.anchorResourceType) continue
+
+    const memberSnapshot = releaseSetSnapshots.get(
+      buildReleaseSetSnapshotMemberKey(member.resourceType, member.variant),
+    )
+    const anchorMember = compositionMembers.find(
+      candidate => candidate.resourceType === member.anchorResourceType,
+    )
+
+    if (!memberSnapshot || !anchorMember) continue
+
+    memberSnapshot.anchorSnapshotId =
+      releaseSetSnapshots.get(
+        buildReleaseSetSnapshotMemberKey(
+          anchorMember.resourceType,
+          anchorMember.variant,
+        ),
+      )?.snapshotId ?? null
+  }
 
   const publishedAt = toIsoTimestamp(args.publishedAt)
   const deferApiReleaseSet = args.deferApiReleaseSet === true
 
   const releaseSetSnapshotIds = [
-    ...new Set(
-      [...releaseSetSnapshots.keys()].map(key => key.slice(0, key.lastIndexOf(':'))),
-    ),
+    ...new Set([...releaseSetSnapshots.values()].map(snapshot => snapshot.snapshotId)),
   ]
-  const primarySnapshotKey = [...releaseSetSnapshots.entries()].find(
-    ([, metadata]) => metadata.role === 'primary',
-  )?.[0]
-  const primarySnapshotId = primarySnapshotKey
-    ? primarySnapshotKey.slice(0, primarySnapshotKey.lastIndexOf(':'))
-    : null
+  const primarySnapshotId =
+    [...releaseSetSnapshots.values()].find(snapshot => snapshot.role === 'primary')
+      ?.snapshotId ?? null
   const primarySnapshot = primarySnapshotId
     ? await db
         .select({ code: metaSnapshots.code })
@@ -2481,14 +2503,13 @@ export async function publishReleaseArtifacts(
       )
     }
 
-    for (const [snapshotKey, snapshotMetadata] of releaseSetSnapshots.entries()) {
-      const snapshotId = snapshotKey.slice(0, snapshotKey.lastIndexOf(':'))
+    for (const snapshotMetadata of releaseSetSnapshots.values()) {
       statements.push(
         tx
           .insert(metaApiReleaseSetSnapshots)
           .values({
             apiReleaseSetId: args.releaseSetId,
-            snapshotId,
+            snapshotId: snapshotMetadata.snapshotId,
             variant: snapshotMetadata.variant,
             role: snapshotMetadata.role,
             isRequired: snapshotMetadata.isRequired,
@@ -2778,6 +2799,10 @@ function resolveDatasetVariant(type: ResourceType, source?: string) {
   return type === 'divisionArea' || type === 'divisionBoundary'
     ? (source ?? 'overture')
     : 'default'
+}
+
+function buildReleaseSetSnapshotMemberKey(resourceType: string, variant: string) {
+  return `${resourceType}:${variant}`
 }
 
 export async function upsertSnapshotSource(
