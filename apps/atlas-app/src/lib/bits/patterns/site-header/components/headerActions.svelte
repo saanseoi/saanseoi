@@ -1,5 +1,6 @@
 <script lang="ts">
 import { m } from '$lib/bits/internal/i18n'
+import { signOut } from '$lib/auth.remote'
 import { CtaButton } from '$lib/bits/primitives/button'
 import { LanguageSelector } from '$lib/bits/components/language-selector'
 import Icon from '@iconify/svelte'
@@ -66,14 +67,13 @@ const initials = $derived(
               ><Icon icon="proicons:settings" class="size-4" />Account settings</a
             >
             <div class="my-1 border-t border-border-card"></div>
-            <form action="/logout" method="POST">
-              <button
-                class="flex w-full items-center gap-2 px-3 py-2 font-body text-sm text-foreground outline-none hover:bg-surface-container-low focus:bg-surface-container-low"
-                type="submit"
-              >
-                <Icon icon="proicons:sign-out" class="size-4" />Sign out
-              </button>
-            </form>
+            <button
+              class="flex w-full items-center gap-2 px-3 py-2 font-body text-sm text-foreground outline-none hover:bg-surface-container-low focus:bg-surface-container-low"
+              onclick={() => signOut()}
+              type="button"
+            >
+              <Icon icon="proicons:sign-out" class="size-4" />Sign out
+            </button>
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
