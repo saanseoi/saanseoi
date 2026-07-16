@@ -17,6 +17,7 @@
     "./upload": "./src/lib/services/upload.ts",
     "./uploadLocal": "./src/lib/services/uploadLocal.ts",
     "./d1ImportApi": "./src/lib/d1ImportApi.ts",
+    "./apiLocales": "./src/lib/apiLocales.ts",
     "./pipeline/*": "./src/pipeline/*",
     "./testing/localDb": "./src/testing/localDb.ts",
     "./parquetInspector": "./src/lib/parquetInspector.ts",

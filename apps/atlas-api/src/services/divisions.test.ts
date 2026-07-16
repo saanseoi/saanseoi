@@ -261,10 +261,10 @@ describe('division services', () => {
   })
 
   test('rejects a registered but unavailable provider area variant', async () => {
-    resolveActiveSnapshotForTypeMock.mockImplementation(
-      async (_db: unknown, resourceType: string) =>
-        resourceType === 'division' ? activeSnapshot : null,
-    )
+    resolveActiveSnapshotForTypeMock
+      .mockResolvedValueOnce(activeSnapshot)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
 
     const result = await listDivisions({
       currentDb: {} as never,
