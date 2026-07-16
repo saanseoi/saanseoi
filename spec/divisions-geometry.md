@@ -89,27 +89,35 @@ as a cross-provider registry: the publisher is significant and must determine th
 dataset code, bridge authority, release identity and source documentation. All observed
 layers use Polygon/MultiPolygon geometry in EPSG:2326.
 
-| Publisher     | Domain    | Period    | Catalogue code                  | Layer           | Features |
-| ------------- | --------- | --------- | ------------------------------- | --------------- | -------: |
-| `hkgov-pland` | planning  | 2001      | `pland_rcd_1636535158118_80594` | `TPUSBVC_2001`  |    4,636 |
-| `hkgov-pland` | planning  | 2006      | `pland_rcd_1636535383021_30595` | `TPUSBVC_2006`  |    4,800 |
-| `hkgov-pland` | planning  | 2011      | `pland_rcd_1634025118087_40967` | `TPUSBVC_2011`  |    4,815 |
-| `hkgov-pland` | planning  | 2016      | `pland_rcd_1634281887222_15002` | `TPUSBVC_2016`  |    4,863 |
-| `hkgov-pland` | planning  | 2021      | `pland_rcd_1637289585582_55577` | `TPU`           |      292 |
-| `hkgov-eac`   | electoral | 2007      | `reo_rcd_1634529766624_18578`   | `DCCA2007`      |      405 |
-| `hkgov-eac`   | electoral | 2011      | `reo_rcd_1632903014420_3162`    | `DCCA2011`      |      412 |
-| `hkgov-eac`   | electoral | 2015      | `reo_rcd_1632902778771_91842`   | `DCCA2015`      |      431 |
-| `hkgov-eac`   | electoral | 2023      | `reo_rcd_1634528082461_24797`   | `DCGC_2023`     |       44 |
-| `hkgov-had`   | electoral | 2019–2022 | `had_rcd_1699500451584_93029`   | `RRE2019_Final` |      697 |
-| `hkgov-had`   | electoral | 2023–2026 | `had_rcd_1634522917609_57950`   | `Village_2023`  |      697 |
-| `hkgov-had`   | electoral | 2027–2030 | `had_rcd_1698201058480_40217`   | `Village_2027`  |      697 |
+| Publisher     | Domain     | Period    | Catalogue code                  | Layer           | Features |
+| ------------- | ---------- | --------- | ------------------------------- | --------------- | -------: |
+| `hkgov-pland` | planning   | 2001      | `pland_rcd_1636535158118_80594` | `TPUSBVC_2001`  |    4,636 |
+| `hkgov-pland` | planning   | 2006      | `pland_rcd_1636535383021_30595` | `TPUSBVC_2006`  |    4,800 |
+| `hkgov-pland` | planning   | 2011      | `pland_rcd_1634025118087_40967` | `TPUSBVC_2011`  |    4,815 |
+| `hkgov-pland` | planning   | 2016      | `pland_rcd_1634281887222_15002` | `TPUSBVC_2016`  |    4,863 |
+| `hkgov-pland` | planning   | 2021      | `pland_rcd_1634022783366_65050` | `TPUSU_2021`    |    4,916 |
+| `hkgov-pland` | geographic | 2006      | `pland_rcd_1636535014241_1352`  | `NewTown_2006`  |       12 |
+| `hkgov-pland` | geographic | 2011      | `pland_rcd_1634024777903_55269` | `NewTown_2011`  |       12 |
+| `hkgov-pland` | geographic | 2016      | `pland_rcd_1634281414408_50485` | `NewTown_2016`  |       12 |
+| `hkgov-pland` | geographic | 2021      | `pland_rcd_1634023103904_16865` | `NewTown_2021`  |       13 |
+| `hkgov-eac`   | electoral  | 2007      | `reo_rcd_1634529766624_18578`   | `DCCA2007`      |      405 |
+| `hkgov-eac`   | electoral  | 2011      | `reo_rcd_1632903014420_3162`    | `DCCA2011`      |      412 |
+| `hkgov-eac`   | electoral  | 2015      | `reo_rcd_1632902778771_91842`   | `DCCA2015`      |      431 |
+| `hkgov-eac`   | electoral  | 2023      | `reo_rcd_1634528082461_24797`   | `DCGC_2023`     |       44 |
+| `hkgov-had`   | electoral  | 2019–2022 | `had_rcd_1699500451584_93029`   | `RRE2019_Final` |      697 |
+| `hkgov-had`   | electoral  | 2023–2026 | `had_rcd_1634522917609_57950`   | `Village_2023`  |      697 |
+| `hkgov-had`   | electoral  | 2027–2030 | `had_rcd_1698201058480_40217`   | `Village_2027`  |      697 |
 
 Use source release identifiers `hkgov-had-{year}-divisionArea-rre`,
-`hkgov-pland-{year}-divisionArea-pu`, and `hkgov-eac-{year}-divisionArea-dcgc` for these
-future periods. The year token is the data period, not the catalogue metadata revision
-date. Each provider must have its own source profile and bridge authority; these
-catalogue rows must not be attributed to `hkgov-had` merely because they are hosted by
-the same CSDI portal.
+`hkgov-pland-{year}-division-pu`, `hkgov-pland-{year}-divisionArea-pu`,
+`hkgov-pland-{year}-divisionArea-newtown`, and `hkgov-eac-{year}-divisionArea-dcgc` for
+these future periods. The year token is the data period, not the catalogue metadata
+revision date. Planning Unit data creates planning-domain canonical divisions at its
+four published levels (PPU, SPU, TPU and subunit); it must never be matched to
+Overture's geographic divisions. New Town areas are geographic-provider variants and
+require a reviewed identifier bridge to existing canonical divisions before publication.
+Each provider/profile must have its own bridge authority; these catalogue rows must not
+be attributed to `hkgov-had` merely because they are hosted by the same CSDI portal.
 
 For sparse periods before 2025, route source and history records to explicit
 `SOURCE_BEFORE` and `HISTORY_BEFORE` shards while `CURRENT` retains only the selected
