@@ -25,6 +25,13 @@ Repo-local operating notes for Codex and similar agents.
 - Worker build/deploy tooling: `wrangler`
 - Prefer `rg`/`rg --files` for search
 
+## Component and styling conventions
+
+- Keep distinct visual elements in dedicated components rather than embedding them in a
+  parent.
+- Prefer inline Tailwind utility classes over component-local style blocks; use scoped
+  CSS only when utilities cannot express the needed styling.
+
 ## Documentation
 
 - Whenever source-data processing changes, document it in the relevant
