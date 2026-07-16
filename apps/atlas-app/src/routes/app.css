@@ -634,7 +634,8 @@
       );
   }
 
-  .hero-floating-image {
+  .hero-floating-image,
+  .annotation-floating {
     animation: hero-float var(--hero-float-duration, 10s) ease-in-out infinite;
     animation-delay: var(--hero-float-delay, 0s);
     transform-origin: 50% 50%;
@@ -676,7 +677,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .hero-floating-image {
+    .hero-floating-image,
+    .annotation-floating {
       animation: none;
     }
   }
