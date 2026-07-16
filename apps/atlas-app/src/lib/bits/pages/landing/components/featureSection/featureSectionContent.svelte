@@ -26,8 +26,6 @@ onMount(() => {
 
 <div
   bind:this={featureSectionElement}
-  class:landing-feature-section-content-active={isFeatureSectionActive}
-  class:landing-feature-section-content-revealed={isFeatureSectionRevealed}
   class={`landing-feature-section-content ${
     isFeatureSectionActive
       ? ''

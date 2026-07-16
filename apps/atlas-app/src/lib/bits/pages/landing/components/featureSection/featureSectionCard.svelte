@@ -1,8 +1,7 @@
 <script lang="ts">
 import { cn } from '$lib/bits/utilities/helpers/cn'
-import * as CardDeck from '$lib/bits/components/cardDeck'
+import * as Card from '$lib/bits/components/cardDeck'
 import FeatureSectionCardAnimation from './featureSectionCardAnimation.svelte'
-import FeatureSectionCardBody from './featureSectionCardBody.svelte'
 import type { FeatureSectionPrinciple } from './featureSectionTypes'
 
 type Props = {
@@ -15,7 +14,6 @@ type Props = {
   swipeX: number
   swipeY: number
   swipeRotate: number
-  throwDirection: number
   onpointerdown: (event: PointerEvent) => void
   onpointermove: (event: PointerEvent) => void
   onpointerup: (event: PointerEvent) => void
@@ -32,7 +30,6 @@ let {
   swipeX,
   swipeY,
   swipeRotate,
-  throwDirection,
   onpointerdown,
   onpointermove,
   onpointerup,
@@ -47,15 +44,15 @@ const positions = [
 ] as const
 
 const tones = {
-  paper: 'bg-[#e9f7ef] border-secondary/42 text-primary dark:bg-[#101816]',
-  dark: 'bg-[#fff0e6] text-primary dark:bg-[#242321] dark:hover:border-tertiary dark:hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--tertiary)_54%,transparent),var(--shadow-mini)]',
+  paper: 'border-secondary/42 bg-[#e9f7ef] text-primary dark:bg-[#101816]',
+  dark: 'bg-[#fff0e6] text-primary dark:bg-[#242321]',
 } as const
 </script>
 
-<CardDeck.Card
+<Card.Card
   as="button"
   class={cn(
-    `principle-card principle-stack-position-${orderIndex} absolute top-28 z-1 flex h-88 w-[min(18rem,26vw)] cursor-grab flex-col justify-between overflow-hidden rounded-2xl border border-outline-variant/84 p-[1.35rem] text-left shadow-[0_.7rem_1.6rem_rgb(24_25_25/0.1),var(--shadow-mini)] transition-[top,left,width,transform,border-color,height,opacity,box-shadow] duration-500 hover:border-secondary/45 focus-visible:border-secondary/45 focus-visible:outline-none active:cursor-grabbing dark:border-outline-variant/70 dark:shadow-mini`,
+    `principle-card principle-stack-position-${orderIndex} absolute top-28 z-1 flex h-88 w-[min(18rem,26vw)] cursor-grab flex-col justify-between overflow-hidden rounded-2xl border border-outline-variant/84 p-[1.35rem] text-left shadow-[0_.7rem_1.6rem_rgb(24_25_25/0.1),var(--shadow-mini)] transition-[top,left,width,transform,border-color,height,opacity,box-shadow] duration-500 focus-visible:outline-none active:cursor-grabbing dark:border-outline-variant/70 dark:shadow-mini`,
     positions[principleIndex],
     tones[principle.tone],
     isActive && 'principle-card-active',
@@ -64,31 +61,44 @@ const tones = {
   )}
   type="button"
   aria-pressed={isActive}
-  style={`--swipe-x: ${swipeX}px; --swipe-y: ${swipeY}px; --swipe-rotate: ${swipeRotate}deg; --throw-direction: ${throwDirection};`}
+  data-tone={principle.tone}
+  style={`--swipe-x: ${swipeX}px; --swipe-y: ${swipeY}px; --swipe-rotate: ${swipeRotate}deg;`}
   {onpointerdown}
   {onpointermove}
   {onpointerup}
   onpointercancel={onpointerup}
   {onclick}
 >
-  {#if principleIndex !== 2}
-    <span
-      class={cn(
-        'absolute size-[1.1rem] border-secondary opacity-55',
-        principleIndex === 0
-          ? 'left-[-0.45rem] top-[-0.45rem] border-l border-t'
-          : 'bottom-[-0.45rem] right-[-0.45rem] border-b border-r',
-      )}
-      aria-hidden="true"
-    ></span>
-  {/if}
-  <CardDeck.Visual>
+  <Card.Visual>
     <FeatureSectionCardAnimation animation={principle.animation} />
-  </CardDeck.Visual>
-  <span class="relative z-2 px-[.4rem]">
-    <span class="block pt-4 font-display text-[1.55rem] font-bold leading-[1.02]">
-      {principle.title()}
-    </span>
-    <FeatureSectionCardBody body={principle.body()} tone={principle.tone} {isActive} />
-  </span>
-</CardDeck.Card>
+  </Card.Visual>
+  <Card.Body
+    title={principle.title()}
+    body={principle.body()}
+    class="relative z-2 px-[.4rem]"
+    titleClass="block pt-4 font-display text-[1.55rem] font-bold leading-[1.02]"
+    bodyClass={cn(
+      'principle-card-body mt-4 block max-h-0 pointer-events-none opacity-0 transition-[max-height,opacity] duration-450',
+      isActive && 'max-h-none pointer-events-auto opacity-100',
+      principle.tone === 'paper' ? 'text-[#444748] dark:text-foreground-alt' : 'text-foreground-alt',
+    )}
+  />
+</Card.Card>
+
+<style>
+.principle-card:hover,
+.principle-card:focus-visible {
+  border-color: color-mix(in srgb, var(--secondary) 45%, var(--outline-variant));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--secondary) 54%, transparent),
+    var(--shadow-mini);
+}
+
+.principle-card[data-tone="dark"]:hover,
+.principle-card[data-tone="dark"]:focus-visible {
+  border-color: color-mix(in srgb, var(--tertiary) 72%, var(--outline-variant));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--tertiary) 54%, transparent),
+    var(--shadow-mini);
+}
+</style>

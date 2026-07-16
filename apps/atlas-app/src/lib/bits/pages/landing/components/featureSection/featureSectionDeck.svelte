@@ -23,7 +23,6 @@ let swipeState = $state({
   isDragging: false,
   isThrowing: false,
   dragMode: null as DragMode,
-  throwDirection: 1,
   throwingPrincipleIndex: null as PrincipleIndex | null,
   draggedPrincipleIndex: null as PrincipleIndex | null,
 })
@@ -67,7 +66,6 @@ const resetSwipeState = () => {
     isDragging: false,
     isThrowing: false,
     dragMode: null,
-    throwDirection: 1,
     throwingPrincipleIndex: null,
     draggedPrincipleIndex: null,
   }
@@ -143,7 +141,6 @@ const handlePointerEnd = (event: PointerEvent) => {
       pointerId: null,
       isDragging: false,
       isThrowing: true,
-      throwDirection: swipeState.deltaX >= 0 ? 1 : -1,
       throwingPrincipleIndex: principleDeckOrder[0] ?? null,
     }
     throwTimeout = window.setTimeout(() => {
@@ -214,7 +211,6 @@ const handleViewportResize = () => {
       swipeX={swipeState.draggedPrincipleIndex === principleIndex ? swipeState.deltaX : 0}
       swipeY={swipeState.draggedPrincipleIndex === principleIndex ? swipeState.deltaY : 0}
       swipeRotate={swipeState.draggedPrincipleIndex === principleIndex ? swipeState.deltaX * .035 : 0}
-      throwDirection={swipeState.throwDirection}
       onpointerdown={event => handlePointerDown(event, principleIndex, orderIndex)}
       onpointermove={handlePointerMove}
       onpointerup={handlePointerEnd}
