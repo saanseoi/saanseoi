@@ -26,12 +26,12 @@
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.5.1",
-    "@aws-sdk/client-s3": "^3.1087.0",
-    "@aws-sdk/s3-request-presigner": "^3.1087.0",
+    "@aws-sdk/client-s3": "^3.1088.0",
+    "@aws-sdk/s3-request-presigner": "^3.1088.0",
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
-    "@scalar/hono-api-reference": "^0.11.9",
-    "@scalar/openapi-to-markdown": "^0.5.33",
+    "@scalar/hono-api-reference": "^0.11.10",
+    "@scalar/openapi-to-markdown": "^0.5.34",
     "hono": "^4.12.30",
     "zod": "^4.4.3"
   }
