@@ -11,6 +11,8 @@ three Divisions types only. `division`, `division_area`, and `division_boundary`
 reconstructed under the `division.intersects.clipSmart` contract; no non-Divisions files
 were generated.
 
-The clipping runner preserves the original nested GeoParquet schema with PyArrow and
-uses Shapely for the exact intersection. It runs in the pinned GDAL-based Docker image
-defined in `docker/overture-reconstruction/Dockerfile`.
+The clipping runner preserves the original nested GeoParquet schema with PyArrow, adds
+the Overture `theme` and `type` fields required for upload planning, and uses Shapely
+for the exact intersection. Point-based `division` records are retained when they
+intersect the frame; only polygon areas and line boundaries are clipped. It runs in the
+pinned GDAL-based Docker image defined in `docker/overture-reconstruction/Dockerfile`.

@@ -36,7 +36,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument(
         "--feature-type",
-        choices=("division_area", "division_boundary"),
+        choices=("division", "division_area", "division_boundary"),
         action="append",
     )
     return parser.parse_args()
@@ -163,9 +163,14 @@ def write_extract(
                         geometry = from_wkb(row["geometry"])
                         if not geometry.intersects(frame):
                             continue
-                        clipped = dimensions(
-                            geometry.intersection(frame),
-                            "polygon" if feature_type == "division_area" else "line",
+                        expected_dimension = {
+                            "division_area": "polygon",
+                            "division_boundary": "line",
+                        }.get(feature_type)
+                        clipped = (
+                            dimensions(geometry.intersection(frame), expected_dimension)
+                            if expected_dimension
+                            else geometry
                         )
                         if clipped is None or clipped.is_empty:
                             continue
@@ -208,6 +213,7 @@ def main() -> None:
         for name, wkb in json.loads(args.frames.read_text()).items()
     }
     source_urls = {
+        "division": [urls[0]],
         "division_area": urls[2:6],
         "division_boundary": [urls[1]],
     }
