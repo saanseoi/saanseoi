@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:6905df40873610fdc132e383f5dc96ccb6b88d0a907ad1670e53749d730c4852",
+  "versionHash": "sha256:3d766633823e9afe906d01bdd1bca207c2d9efb4135da3dfd7b081ad31f27e0a",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions",
   "version": 1,
@@ -33,7 +33,7 @@
     },
     {
       "resourceType": "divisionArea",
-      "variant": "hkgov-pland",
+      "variant": "hkgov-pland-pu",
       "role": "geometry",
       "isRequired": false,
       "selectionMode": "exact_ref",

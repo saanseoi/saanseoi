@@ -19,9 +19,11 @@ longitude/latitude and is ingested as the API canonical CRS.
 | 2021   | `pland_rcd_1634022783366_65050` | `TPUSU_2021`   |        4,916 |        292 |
 
 The publisher is the Planning Department (`hkgov-pland`), not the CSDI host. The source
-licence is the Hong Kong Government open-data licence. Releases use schema profile `1.0`
-and source release codes `hkgov-pland-{year}-division-pu` and
-`hkgov-pland-{year}-divisionArea-pu`.
+licence is the Hong Kong Government open-data licence. `sourceSchemaVersion` is our
+observed artifact-shape profile, not an upstream CSDI version: `1.0` covers the
+2001–2016 `PPU`/`SPU`/`TPU`/`SB_VC` columns, while `2.0` covers the 2021 replacement of
+`SB_VC` with `Subunit`. Releases use provider variant `hkgov-pland-pu` and source
+release codes `hkgov-pland-{year}-division-pu` and `hkgov-pland-{year}-divisionArea-pu`.
 
 ## Identity and hierarchy
 
@@ -44,9 +46,9 @@ canonical geometry and child-area unions. Each repaired record is identified in
 `repairedSourceFeatureIds` and `wasGeometryRepaired`; all other invalid geometry is
 rejected.
 
-The source has no localized names. Canonical English, Traditional Chinese and Simplified
-Chinese labels are explicitly inferred from published hierarchy codes and marked as
-inferred.
+The source has no published names—only hierarchy codes. The adapter exposes those codes
+in `identifiers` and does not manufacture canonical `divisionI18n` rows or retain a
+source I18n table.
 
 ## New Town boundaries
 
@@ -69,3 +71,7 @@ fixture maps every one of those IDs to an existing geographic canonical division
 never creates a New Town canonical division or guesses a match from names or geometry.
 This makes the variant selectable as `areas:hkgov-pland-newtown` after a bridge-backed
 release is published.
+
+Its `sourceSchemaVersion` `1.0` is likewise an observed artifact profile for the stable
+`NewTown_en`, `NewTown_Tc`, and `NewTown_Sc` fields, rather than a version declared by
+the catalogue.
