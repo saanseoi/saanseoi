@@ -1,6 +1,12 @@
 PRAGMA foreign_keys = OFF;
 PRAGMA defer_foreign_keys = true;
 
+DROP TABLE IF EXISTS `hkgovPlandNewTownDivisionAreaI18n`;
+DROP TABLE IF EXISTS `hkgovPlandNewTownDivisionAreas`;
+DROP TABLE IF EXISTS `hkgovPlandDivisionI18n`;
+DROP TABLE IF EXISTS `hkgovPlandDivisionAreas`;
+DROP TABLE IF EXISTS `hkgovPlandDivisions`;
+DROP TABLE IF EXISTS `hkgovPlandPlanningCells`;
 DROP TABLE IF EXISTS `hkgovAlsAddress2dI18n`;
 DROP TABLE IF EXISTS `hkgovAlsAddresses2d`;
 DROP TABLE IF EXISTS `hkgovHadDivisionAreas`;
