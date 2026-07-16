@@ -4,7 +4,7 @@ import type { Snippet } from 'svelte'
 import { cn } from '$lib/bits/utilities/helpers/cn'
 
 type Props = {
-  as?: 'button' | 'div'
+  as?: 'a' | 'article' | 'button' | 'div'
   children?: Snippet
   class?: string
   [attribute: string]: unknown
