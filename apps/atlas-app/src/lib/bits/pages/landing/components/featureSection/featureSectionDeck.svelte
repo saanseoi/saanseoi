@@ -12,6 +12,7 @@ let { isRevealed }: Props = $props()
 let activePrincipleIndex = $state<PrincipleIndex | null>(null)
 let principleDeckOrder = $state<PrincipleIndex[]>([0, 1, 2, 3])
 let isMobileStack = $state<boolean | null>(null)
+let throwTimeout: number | undefined
 let swipeState = $state({
   pointerId: null as number | null,
   startX: 0,
@@ -84,7 +85,14 @@ const handlePointerDown = (
   orderIndex: number,
 ) => {
   const isDesktop = window.innerWidth > 900
-  if (!isDesktop && orderIndex !== 0) return
+  const isIncomingMobileCard = !isDesktop && swipeState.isThrowing && orderIndex === 1
+  if (!isDesktop && orderIndex !== 0 && !isIncomingMobileCard) return
+
+  if (isIncomingMobileCard) {
+    if (throwTimeout !== undefined) window.clearTimeout(throwTimeout)
+    throwTimeout = undefined
+    rotatePrincipleToBack()
+  }
   ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
   swipeState = {
     ...swipeState,
@@ -138,9 +146,10 @@ const handlePointerEnd = (event: PointerEvent) => {
       throwDirection: swipeState.deltaX >= 0 ? 1 : -1,
       throwingPrincipleIndex: principleDeckOrder[0] ?? null,
     }
-    window.setTimeout(() => {
+    throwTimeout = window.setTimeout(() => {
       rotatePrincipleToBack()
       resetSwipeState()
+      throwTimeout = undefined
     }, 420)
     return
   }
