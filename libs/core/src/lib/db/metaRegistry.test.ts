@@ -490,6 +490,11 @@ function createPublishReleaseArtifactsDb() {
       metadataJson TEXT,
       createdAt TEXT NOT NULL
     );
+
+    INSERT INTO datasets (id, publisherId, code) VALUES
+      ('dataset-overture-division-area', 'publisher-overture', 'ds-hk-overture-divisionArea'),
+      ('dataset-overture-division-boundary', 'publisher-overture', 'ds-hk-overture-divisionBoundary'),
+      ('dataset-hkgov-had-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-district');
   `)
 
   return {
@@ -1276,10 +1281,11 @@ describe('publishReleaseArtifacts', () => {
         ('snapshot-new', 'dataset-overture-division', 'release-1');
 
       INSERT INTO apiReleaseSetSnapshots (
-        apiReleaseSetId, snapshotId, role, isRequired, cohortMatchingMode, anchorSnapshotId, createdAt
+        apiReleaseSetId, snapshotId, variant, role, isRequired, cohortMatchingMode, anchorSnapshotId, createdAt
       ) VALUES (
         'release-set-1',
         'snapshot-curated',
+        'overture',
         'supporting',
         1,
         'carry_forward_optional',

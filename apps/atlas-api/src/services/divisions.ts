@@ -3,7 +3,7 @@ import {
   parseRequestedApiLocales,
   type ApiProfileName,
   type RequestedApiLocaleSelection,
-} from '@repo/core'
+} from '@repo/core/apiLocales'
 import { resolveActiveSnapshotForType } from '@repo/core/db/metaRegistry'
 
 import {

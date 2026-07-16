@@ -98,6 +98,20 @@ function haveEqualSourceSchemas(
   )
 }
 
+function haveCompatibleSourceSchemas(
+  fixtureSchemas: Record<string, string>,
+  sourceSchemas: Record<string, string>,
+) {
+  const sourceSchemaEntries = Object.entries(sourceSchemas)
+
+  return (
+    sourceSchemaEntries.length > 0 &&
+    sourceSchemaEntries.every(
+      ([datasetCode, schemaVersion]) => fixtureSchemas[datasetCode] === schemaVersion,
+    )
+  )
+}
+
 export function listApiFieldFixtures() {
   return apiFieldFixtures.map(cloneApiFieldFixture)
 }
@@ -115,7 +129,8 @@ export function resolveApiFieldFixture(args: {
         fixture.apiVersion === args.apiVersion &&
         fixture.schemaVersion === args.schemaVersion &&
         fixture.rulesetVersion === args.rulesetVersion &&
-        haveEqualSourceSchemas(fixture.sourceSchemas, args.sourceSchemas) &&
+        (haveEqualSourceSchemas(fixture.sourceSchemas, args.sourceSchemas) ||
+          haveCompatibleSourceSchemas(fixture.sourceSchemas, args.sourceSchemas)) &&
         compareSnapshotVersions(
           fixture.validFromSnapshotVersion,
           args.snapshotVersion,
