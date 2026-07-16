@@ -24,20 +24,28 @@ export type SourceFlowLane = {
   ink: string
   image: string
   inputs: SourceFlowInput[]
+  primaryInputCount?: number
 }
 
 let { lanes }: { lanes: SourceFlowLane[] } = $props()
+let expandedLaneIds = $state<string[]>([])
+
+const isExpanded = (lane: SourceFlowLane) => expandedLaneIds.includes(lane.id)
+
+const visibleInputs = (lane: SourceFlowLane) =>
+  isExpanded(lane)
+    ? lane.inputs
+    : lane.inputs.slice(0, lane.primaryInputCount ?? lane.inputs.length)
+
+const toggleExpanded = (laneId: string) => {
+  expandedLaneIds = expandedLaneIds.includes(laneId)
+    ? expandedLaneIds.filter(id => id !== laneId)
+    : [...expandedLaneIds, laneId]
+}
 
 const connectorPath = (inputCount: number, inputIndex: number) => {
   const outputY = 50
-  const inputYByCount = {
-    1: [50],
-    2: [32, 68],
-    3: [22, 50, 78],
-  } as const
-  const inputY =
-    inputYByCount[Math.min(Math.max(inputCount, 1), 3) as 1 | 2 | 3][inputIndex] ??
-    outputY
+  const inputY = inputCount <= 1 ? outputY : ((inputIndex + 0.5) / inputCount) * 100
 
   return `M 4 ${inputY} C 34 ${inputY}, 42 ${outputY}, 72 ${outputY} S 114 ${outputY}, 146 ${outputY}`
 }
@@ -47,9 +55,10 @@ const stackedFlowPoints = (inputCount: number) => {
     1: { inputY: [34], outputY: 76 },
     2: { inputY: [18, 56], outputY: 86 },
     3: { inputY: [13, 39, 65], outputY: 90 },
+    4: { inputY: [10, 29, 48, 67], outputY: 92 },
   } as const
 
-  return pointsByCount[Math.min(Math.max(inputCount, 1), 3) as 1 | 2 | 3]
+  return pointsByCount[Math.min(Math.max(inputCount, 1), 4) as 1 | 2 | 3 | 4]
 }
 
 const stackedInputPath = (inputCount: number, inputIndex: number) => {
@@ -76,11 +85,11 @@ const stackedArrowPath = (inputCount: number) => {
   {#each lanes as lane, laneIndex (lane.id)}
     <section
       class="source-flow-lane"
-      style={`--flow-accent: ${lane.accent}; --flow-secondary: ${lane.secondary}; --flow-connector: ${lane.id === 'addresses' ? lane.secondary : lane.accent}; --flow-ink: ${lane.ink}; --flow-index: ${laneIndex};`}
+      style={`--flow-accent: ${lane.accent}; --flow-secondary: ${lane.secondary}; --flow-connector: ${lane.id === 'addresses' ? lane.secondary : lane.accent}; --flow-ink: ${lane.ink}; --flow-index: ${laneIndex}; --visible-source-count: ${visibleInputs(lane).length};`}
       aria-labelledby={`source-flow-${lane.id}`}
     >
       <div class="source-flow-inputs">
-        {#each lane.inputs.slice(0, 3) as input (input.id)}
+        {#each visibleInputs(lane) as input (input.id)}
           <svelte:element
             this={input.href ? 'a' : 'div'}
             class="source-flow-input group"
@@ -119,6 +128,18 @@ const stackedArrowPath = (inputCount: number) => {
             {/if}
           </svelte:element>
         {/each}
+        {#if lane.inputs.length > (lane.primaryInputCount ?? lane.inputs.length)}
+          <button
+            class="source-flow-more"
+            type="button"
+            aria-expanded={isExpanded(lane)}
+            onclick={() => toggleExpanded(lane.id)}
+          >
+            {isExpanded(lane)
+              ? 'Show fewer'
+              : `… ${lane.inputs.length - (lane.primaryInputCount ?? lane.inputs.length)} more`}
+          </button>
+        {/if}
       </div>
 
       <svg
@@ -139,10 +160,10 @@ const stackedArrowPath = (inputCount: number) => {
             <path d="M 0 1 L 7 4 L 0 7 Z" fill="var(--flow-accent)"></path>
           </marker>
         </defs>
-        {#each lane.inputs.slice(0, 3) as input, inputIndex (input.id)}
+        {#each visibleInputs(lane) as input, inputIndex (input.id)}
           <path
             class="source-flow-path"
-            d={connectorPath(Math.min(lane.inputs.length, 3), inputIndex)}
+            d={connectorPath(visibleInputs(lane).length, inputIndex)}
             marker-end={`url(#source-flow-arrow-${lane.id})`}
           ></path>
         {/each}
@@ -154,19 +175,19 @@ const stackedArrowPath = (inputCount: number) => {
         preserveAspectRatio="none"
         aria-hidden="true"
       >
-        {#each lane.inputs.slice(0, 3) as input, inputIndex (input.id)}
+        {#each visibleInputs(lane) as input, inputIndex (input.id)}
           <path
             class="source-flow-stacked-input"
-            d={stackedInputPath(Math.min(lane.inputs.length, 3), inputIndex)}
+            d={stackedInputPath(visibleInputs(lane).length, inputIndex)}
           ></path>
         {/each}
         <path
           class="source-flow-stacked-trunk"
-          d={stackedTrunkPath(Math.min(lane.inputs.length, 3))}
+          d={stackedTrunkPath(visibleInputs(lane).length)}
         ></path>
         <path
           class="source-flow-stacked-arrow"
-          d={stackedArrowPath(Math.min(lane.inputs.length, 3))}
+          d={stackedArrowPath(visibleInputs(lane).length)}
         ></path>
       </svg>
 
@@ -209,6 +230,26 @@ const stackedArrowPath = (inputCount: number) => {
 .source-flow-inputs {
   display: grid;
   gap: 0.75rem;
+}
+
+.source-flow-more {
+  justify-self: start;
+  border: 1px dashed color-mix(in srgb, var(--flow-accent) 55%, var(--outline-variant));
+  border-radius: 0.35rem;
+  background: color-mix(in srgb, var(--flow-accent) 8%, var(--surface-container-low));
+  padding: 0.45rem 0.65rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 750;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.source-flow-more:hover,
+.source-flow-more:focus-visible {
+  border-style: solid;
+  border-color: var(--flow-accent);
+  outline: none;
 }
 
 .source-flow-input,
@@ -393,7 +434,7 @@ const stackedArrowPath = (inputCount: number) => {
 
 .source-flow-connectors {
   width: 100%;
-  height: 8rem;
+  height: max(8rem, calc(var(--visible-source-count) * 6.4rem));
   overflow: visible;
 }
 
