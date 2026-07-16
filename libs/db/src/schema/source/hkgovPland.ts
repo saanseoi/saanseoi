@@ -34,7 +34,7 @@ export const sourceHkgovPlandPlanningCells = sqliteTable(
   ],
 )
 
-/** Derived source assertions for the PPU/SPU/TPU/subunit canonical divisions. */
+/** Derived source assertions for Planning Department canonical planning divisions. */
 export const sourceHkgovPlandDivisions = sqliteTable(
   'hkgovPlandDivisions',
   {
@@ -47,6 +47,10 @@ export const sourceHkgovPlandDivisions = sqliteTable(
     newTownId: text('newTownId'),
     sourceCellIds: jsonText('sourceCellIds').notNull(),
     sourceCrs: text('sourceCrs').notNull(),
+    wasGeometryRepaired: integer('wasGeometryRepaired', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    canonicalGeometry: jsonText('canonicalGeometry'),
     ...geoBbox,
     ...sourceProvenance,
     ...sourceVersioning,
@@ -111,6 +115,10 @@ export const sourceHkgovPlandNewTownDivisionAreas = sqliteTable(
     divisionId: text('divisionId').notNull(),
     newTownId: text('newTownId').notNull(),
     sourceCrs: text('sourceCrs').notNull(),
+    wasGeometryRepaired: integer('wasGeometryRepaired', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    canonicalGeometry: jsonText('canonicalGeometry'),
     ...geoBbox,
     ...sourceProvenance,
     ...sourceVersioning,
