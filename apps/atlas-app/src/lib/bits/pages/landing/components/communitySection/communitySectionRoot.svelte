@@ -24,11 +24,6 @@ let { children, class: className = '' }: Props = $props()
     animation-play-state: paused;
   }
 
-  .landing-newsletter {
-    overflow: visible;
-    scroll-margin-top: 5.5rem;
-  }
-
   .newsletter-panel {
     /* Keep this at 4s while iterating; set it to 12s for the production cadence. */
     --newsletter-orange-cycle: 30s;
@@ -48,54 +43,6 @@ let { children, class: className = '' }: Props = $props()
     --newsletter-orange-floor-alignment: 4rem;
     --newsletter-orange-start-end-alignment: 0.5rem;
     --newsletter-orange-start-end-x-alignment: 0.75rem;
-    position: relative;
-    display: grid;
-    width: 100%;
-    max-width: var(--spacing-container-max);
-    grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.82fr);
-    gap: clamp(2rem, 6vw, 6rem);
-    align-items: center;
-    justify-content: flex-start;
-    margin-inline: auto;
-    padding: clamp(4.68rem, 10.08vw, 8.64rem) 1.5rem;
-    isolation: isolate;
-  }
-
-  .landing-section-header {
-    position: relative;
-    z-index: 1;
-    display: block;
-    gap: 1.5rem;
-    padding-bottom: 0;
-  }
-
-  .landing-section-header h2 {
-    max-width: 15ch;
-    font-family: var(--font-display);
-    font-size: clamp(2.25rem, 4.05vw, 4.2rem);
-    font-weight: 800;
-    line-height: 0.92;
-    color: var(--primary);
-  }
-
-  .landing-section-header p {
-    max-width: 52rem;
-    margin-top: 1rem;
-    font-family: var(--font-body);
-    font-size: clamp(1rem, 1.4vw, 1.14rem);
-    line-height: 1.8;
-    color: var(--foreground-alt);
-  }
-
-  .newsletter-content {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0;
-    align-items: center;
-    min-height: 12.5rem;
-    isolation: isolate;
   }
 
   .newsletter-signal {
@@ -331,127 +278,6 @@ let { children, class: className = '' }: Props = $props()
     background: color-mix(in srgb, var(--secondary) 78%, transparent);
     animation: newsletter-packet-fragment-derez 300ms ease-out var(--fragment-delay)
       both;
-  }
-
-  .newsletter-card {
-    position: relative;
-    width: 100%;
-    margin-left: 0;
-    border: 1px solid color-mix(in srgb, var(--outline-variant) 86%, transparent);
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--surface-container-lowest) 86%, transparent),
-      color-mix(in srgb, var(--surface) 96%, transparent)
-    );
-    box-shadow: 0 1.2rem 3.2rem rgb(0 0 0 / 0.11);
-    grid-area: 1 / 1;
-  }
-
-  .newsletter-card::before {
-    position: absolute;
-    top: -1px;
-    right: 1.25rem;
-    left: 1.25rem;
-    height: 1px;
-    content: "";
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in srgb, var(--secondary) 70%, transparent),
-      color-mix(in srgb, var(--tertiary) 55%, transparent),
-      transparent
-    );
-  }
-
-  .newsletter-form {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.75rem;
-    align-items: end;
-    padding: clamp(1rem, 2.8vw, 1.35rem);
-  }
-
-  .newsletter-field {
-    min-width: 0;
-  }
-
-  :global(.newsletter-input) {
-    min-height: 3.55rem;
-    border: 1px solid color-mix(in srgb, var(--foreground-alt) 24%, transparent);
-    background: color-mix(in srgb, var(--surface) 72%, transparent);
-    padding-inline: 1rem;
-    color: var(--primary);
-  }
-
-  :global(.newsletter-input:focus) {
-    border-color: var(--secondary);
-  }
-
-  :global(.newsletter-submit) {
-    min-height: 3.55rem;
-    min-width: 9.5rem;
-    box-shadow: 0 0.8rem 1.8rem rgb(0 0 0 / 0.14);
-  }
-
-  .newsletter-success {
-    padding: clamp(1.25rem, 3vw, 1.75rem);
-  }
-
-  .newsletter-success + .newsletter-privacy {
-    top: calc(50% + 5rem);
-  }
-
-  .newsletter-success-title {
-    font-family: var(--font-display);
-    font-size: clamp(1.5rem, 2.4vw, 2.15rem);
-    font-weight: 800;
-    line-height: 1;
-    color: var(--primary);
-  }
-
-  .newsletter-success-body {
-    margin-top: 0.75rem;
-    font-family: var(--font-body);
-    font-size: 1rem;
-    line-height: 1.7;
-    color: var(--foreground-alt);
-  }
-
-  .newsletter-error {
-    position: absolute;
-    top: calc(50% + 3.75rem);
-    right: 0;
-    left: 0;
-    width: 100%;
-    margin-top: 0.85rem;
-    margin-left: 0;
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-    color: #9f3221;
-  }
-
-  .newsletter-privacy {
-    position: absolute;
-    top: calc(50% + 3.75rem);
-    right: 0;
-    left: 0;
-    text-align: center;
-    width: 100%;
-    margin-top: 0;
-    margin-left: 0;
-    font-family: var(--font-body);
-    font-size: 0.78rem;
-    line-height: 1.55;
-    color: color-mix(in srgb, var(--foreground-alt) 70%, transparent);
-  }
-
-  .newsletter-error + .newsletter-privacy {
-    top: calc(50% + 5.55rem);
-  }
-
-  .newsletter-privacy :global(a) {
-    text-decoration: underline;
-    text-underline-offset: 0.18em;
   }
 
   /* Increase contrast and make the signal respond when the newsletter is explored in light mode. */
@@ -2078,44 +1904,13 @@ let { children, class: className = '' }: Props = $props()
       --newsletter-orange-y-shift-43: clamp(0.246rem, 0.493vw, 0.431rem);
       --newsletter-orange-y-shift-30: clamp(0.704rem, 1.408vw, 1.232rem);
       --newsletter-orange-y-shift-11: clamp(1.373rem, 2.746vw, 2.402rem);
-      padding: clamp(5.76rem, 11.52vw, 10.08rem) 2rem;
     }
   }
 
   @media (max-width: 900px) {
-    .newsletter-panel {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-
-    .newsletter-content {
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-    }
-
-    .newsletter-card {
-      width: 100%;
-    }
-
     .newsletter-creature,
     .newsletter-orange-platform {
       display: none;
-    }
-
-    .newsletter-error,
-    .newsletter-privacy,
-    .newsletter-error + .newsletter-privacy {
-      position: static;
-      margin-top: 0.8rem;
-    }
-
-    .newsletter-form {
-      grid-template-columns: 1fr;
-    }
-
-    :global(.newsletter-submit) {
-      width: 100%;
     }
   }
 
