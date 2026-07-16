@@ -47,7 +47,7 @@ let cardStyle = $derived(
   ></span>
   {#if isDraft}
     <span
-      class="pointer-events-none absolute inset-0 z-3 rounded-lg bg-[conic-gradient(from_210deg_at_50%_50%,#fb7185,#facc15,#4ade80,#22d3ee,#818cf8,#e879f9,#fb7185)] p-px mask-exclude [mask:linear-gradient(#000_0_0)_content-box,linear-gradient(#000_0_0)]"
+      class="pointer-events-none absolute inset-0 z-3 rounded-lg bg-[conic-gradient(from_210deg_at_50%_50%,#fb7185,#facc15,#4ade80,#22d3ee,#818cf8,#e879f9,#fb7185)] p-px [mask:linear-gradient(#000_0_0)_content-box,linear-gradient(#000_0_0)] mask-exclude [-webkit-mask-composite:xor]"
       aria-hidden="true"
     ></span>
   {/if}
