@@ -30,8 +30,8 @@ release codes `hkgov-pland-{year}-division-pu` and `hkgov-pland-{year}-divisionA
 Every source cell has one PPU, SPU, TPU and subunit code. It becomes a planning
 division, with PPU → SPU → TPU → subunit hierarchy edges carrying domain `planning`. The
 provider codes are retained in `identifiers` as `PLAND:PPU`, `PLAND:SPU`, `PLAND:TPU`,
-and `PLAND:SUBUNIT`; their canonical IDs are provider-scoped because they do not have
-Overture GERS identities.
+and `PLAND:SUBUNIT`. Canonical IDs are deterministic UUIDv5 values derived from the
+provider-scoped Planning Department identity and never reuse an Overture GERS ID.
 
 PPU, SPU and TPU areas are deterministic unions of their child cells. The raw cell
 feature and its original geometry remain in `hkgovPlandPlanningCells`.
@@ -71,6 +71,11 @@ fixture maps every one of those IDs to an existing geographic canonical division
 never creates a New Town canonical division or guesses a match from names or geometry.
 This makes the variant selectable as `areas:hkgov-pland-newtown` after a bridge-backed
 release is published.
+
+The trilingual labels are retained verbatim in the versioned
+`hkgovPlandNewTownDivisionAreaI18n` source table. They describe the provider's geometry
+assertion, not canonical division names, so they do not create or replace canonical
+`divisionI18n` rows.
 
 Its `sourceSchemaVersion` `1.0` is likewise an observed artifact profile for the stable
 `NewTown_en`, `NewTown_Tc`, and `NewTown_Sc` fields, rather than a version declared by
