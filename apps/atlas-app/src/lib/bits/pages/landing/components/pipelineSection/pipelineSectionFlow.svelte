@@ -1,8 +1,15 @@
 <script lang="ts">
-import Icon from '@iconify/svelte'
 import { onMount } from 'svelte'
 
 import { m } from '$lib/bits/internal/i18n'
+import PipelineSectionArrow from './pipelineSectionArrow.svelte'
+import PipelineSectionArtefactsApi from './pipelineSectionArtefactsApi.svelte'
+import PipelineSectionArtefactsBundle from './pipelineSectionArtefactsBundle.svelte'
+import PipelineSectionArtefactsRaw from './pipelineSectionArtefactsRaw.svelte'
+import PipelineSectionBlock from './pipelineSectionBlock.svelte'
+import PipelineSectionBlockWrapper from './pipelineSectionBlockWrapper.svelte'
+import PipelineSectionContainer from './pipelineSectionContainer.svelte'
+import PipelineSectionHeader from './pipelineSectionHeader.svelte'
 
 let pipelineSection = $state<HTMLElement>()
 let isPipelineActive = $state(false)
@@ -11,19 +18,15 @@ let isPipelineWide = $state(false)
 
 onMount(() => {
   if (!pipelineSection) return
-
-  const pipelineWidthQuery = window.matchMedia('(min-width: 768px)')
-  const updatePipelineWidth = () => {
-    isPipelineWide = pipelineWidthQuery.matches
+  const query = window.matchMedia('(min-width: 768px)')
+  const update = () => {
+    isPipelineWide = query.matches
   }
-
-  updatePipelineWidth()
-  pipelineWidthQuery.addEventListener('change', updatePipelineWidth)
-
+  update()
+  query.addEventListener('change', update)
   const observer = new IntersectionObserver(
     ([entry]) => {
       if (!entry) return
-
       isPipelineActive =
         entry.isIntersecting &&
         !window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -31,31 +34,20 @@ onMount(() => {
     },
     { rootMargin: '20% 0px', threshold: 0.01 },
   )
-
   observer.observe(pipelineSection)
-
   return () => {
     observer.disconnect()
-    pipelineWidthQuery.removeEventListener('change', updatePipelineWidth)
+    query.removeEventListener('change', update)
   }
 })
 </script>
 
-<div
-  bind:this={pipelineSection}
-  class="landing-pipeline"
-  class:landing-pipeline-active={isPipelineActive}
-  class:landing-pipeline-revealed={isPipelineRevealed}
->
-  <div class="pipeline-panel">
-    <div class="landing-section-header">
-      <div>
-        <h2>{m.pipeline_title()}</h2>
-        <p>{m.pipeline_description()}</p>
-      </div>
-    </div>
-
-    <div class="pipeline">
+<div bind:this={pipelineSection}>
+  <PipelineSectionContainer isActive={isPipelineActive} isRevealed={isPipelineRevealed}>
+    <PipelineSectionHeader />
+    <div
+      class="pipeline relative isolate mt-[clamp(1rem,4svh,3rem)] py-[clamp(2rem,6svh,4rem)]"
+    >
       <div class="pipeline-wave-field" aria-hidden="true"></div>
       {#if isPipelineWide}
         <svg
@@ -117,113 +109,50 @@ onMount(() => {
           </circle>
         </svg>
       {/if}
-
-      <div class="pipeline-stages">
-        <a class="pipeline-stage pipeline-stage-source relative py-8" href="/sources">
-          <div class="pipeline-artifacts" aria-hidden="true">
-            <span class="artifact artifact-raw artifact-raw-coord">
-              {m.pipeline_source_artifact_coordinates()}
-            </span>
-            <span class="artifact artifact-raw artifact-raw-ref"
-              >{m.pipeline_source_artifact_reference_system()}</span
-            >
-            <span class="artifact artifact-raw artifact-raw-meter">
-              {m.pipeline_source_artifact_measurements()}
-            </span>
-          </div>
-          <span
-            class="pipeline-number pipeline-number-source text-(--pipeline-source)"
-            aria-hidden="true"
-          >
-            01
-          </span>
-          <p
-            class="mt-5 font-body text-label-md font-semibold uppercase tracking-[0.18em] text-(--pipeline-source)"
-          >
-            {m.pipeline_sources_eyebrow()}
-          </p>
-          <h2 class="mt-1 font-display text-headline-md font-bold text-primary">
-            {m.pipeline_sources_title()}
-          </h2>
-          <p class="mt-2 max-w-xs font-body text-body-md leading-6 text-foreground-alt">
-            {m.pipeline_sources_description()}
-          </p>
-        </a>
-        <div
-          class="pipeline-arrow hidden items-center px-2 text-3xl font-bold text-foreground-alt"
-          aria-hidden="true"
+      <PipelineSectionBlockWrapper>
+        <PipelineSectionBlock
+          tone="source"
+          href="/sources"
+          number="01"
+          eyebrow={m.pipeline_sources_eyebrow()}
+          title={m.pipeline_sources_title()}
+          description={m.pipeline_sources_description()}
         >
-          <Icon icon="proicons:arrow-right" class="size-8" />
-        </div>
-        <a
-          class="pipeline-stage pipeline-stage-release relative py-8"
+          <PipelineSectionArtefactsRaw
+            coordinates={m.pipeline_source_artifact_coordinates()}
+            referenceSystem={m.pipeline_source_artifact_reference_system()}
+            measurements={m.pipeline_source_artifact_measurements()}
+          />
+        </PipelineSectionBlock>
+        <PipelineSectionArrow />
+        <PipelineSectionBlock
+          tone="release"
           href="/data#releases"
+          number="02"
+          eyebrow={m.pipeline_releases_eyebrow()}
+          title={m.pipeline_releases_title()}
+          description={m.pipeline_releases_description()}
         >
-          <div class="pipeline-artifacts" aria-hidden="true">
-            <span class="artifact artifact-release artifact-release-square"></span>
-            <span class="artifact artifact-release artifact-release-circle"></span>
-            <span class="artifact artifact-release artifact-release-label">
-              {m.pipeline_releases_artifact_azimuth()}
-            </span>
-            <span class="artifact artifact-release artifact-release-grid"></span>
-            <span class="artifact artifact-release artifact-release-bars"></span>
-          </div>
-          <span
-            class="pipeline-number pipeline-number-release text-tertiary"
-            aria-hidden="true"
-          >
-            02
-          </span>
-          <p
-            class="mt-5 font-body text-label-md font-semibold uppercase tracking-[0.18em] text-tertiary"
-          >
-            {m.pipeline_releases_eyebrow()}
-          </p>
-          <h2 class="mt-1 font-display text-headline-md font-bold text-primary">
-            {m.pipeline_releases_title()}
-          </h2>
-          <p class="mt-2 max-w-xs font-body text-body-md leading-6 text-foreground-alt">
-            {m.pipeline_releases_description()}
-          </p>
-        </a>
-        <div
-          class="pipeline-arrow hidden items-center px-2 text-3xl font-bold text-foreground-alt"
-          aria-hidden="true"
+          <PipelineSectionArtefactsBundle
+            azimuth={m.pipeline_releases_artifact_azimuth()}
+          />
+        </PipelineSectionBlock>
+        <PipelineSectionArrow />
+        <PipelineSectionBlock
+          tone="api"
+          href="/data#apis"
+          number="03"
+          eyebrow={m.pipeline_apis_eyebrow()}
+          title={m.pipeline_apis_title()}
+          description={m.pipeline_apis_description()}
         >
-          <Icon icon="proicons:arrow-right" class="size-8" />
-        </div>
-        <a class="pipeline-stage pipeline-stage-api relative py-8" href="/data#apis">
-          <div class="pipeline-artifacts" aria-hidden="true">
-            <span class="artifact artifact-api artifact-api-target"></span>
-            <span class="artifact artifact-api artifact-api-latency">
-              {m.pipeline_apis_artifact_latency()}
-            </span>
-            <span class="artifact artifact-api artifact-api-coord">
-              {@html m.pipeline_apis_artifact_coordinates()}
-            </span>
-            <span class="artifact artifact-api artifact-api-status"
-              >{m.pipeline_apis_artifact_status()}</span
-            >
-          </div>
-          <span
-            class="pipeline-number pipeline-number-api text-secondary"
-            aria-hidden="true"
-          >
-            03
-          </span>
-          <p
-            class="mt-5 font-body text-label-md font-semibold uppercase tracking-[0.18em] text-secondary"
-          >
-            {m.pipeline_apis_eyebrow()}
-          </p>
-          <h2 class="mt-1 font-display text-headline-md font-bold text-primary">
-            {m.pipeline_apis_title()}
-          </h2>
-          <p class="mt-2 max-w-xs font-body text-body-md leading-6 text-foreground-alt">
-            {m.pipeline_apis_description()}
-          </p>
-        </a>
-      </div>
+          <PipelineSectionArtefactsApi
+            latency={m.pipeline_apis_artifact_latency()}
+            coordinates={m.pipeline_apis_artifact_coordinates()}
+            status={m.pipeline_apis_artifact_status()}
+          />
+        </PipelineSectionBlock>
+      </PipelineSectionBlockWrapper>
     </div>
-  </div>
+  </PipelineSectionContainer>
 </div>
