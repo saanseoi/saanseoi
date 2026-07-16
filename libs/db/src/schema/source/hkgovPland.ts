@@ -40,10 +40,11 @@ export const sourceHkgovPlandDivisions = sqliteTable(
   {
     sourceRecordId: text('sourceRecordId').notNull(),
     planningLevel: text('planningLevel').notNull(),
-    ppuCode: text('ppuCode').notNull(),
+    ppuCode: text('ppuCode'),
     spuCode: text('spuCode'),
     tpuCode: text('tpuCode'),
     subunitCode: text('subunitCode'),
+    newTownId: text('newTownId'),
     sourceCellIds: jsonText('sourceCellIds').notNull(),
     sourceCrs: text('sourceCrs').notNull(),
     ...geoBbox,
@@ -55,6 +56,28 @@ export const sourceHkgovPlandDivisions = sqliteTable(
     ...sourceVersionIndexes(table, 'hkgovPlandDivisions'),
     index('hkgovPlandDivisions_planningLevel_idx').on(table.planningLevel),
     index('hkgovPlandDivisions_tpuCode_idx').on(table.tpuCode),
+    index('hkgovPlandDivisions_newTownId_idx').on(table.newTownId),
+  ],
+)
+
+/** Source labels for Planning Department canonical planning divisions. */
+export const sourceHkgovPlandDivisionI18n = sqliteTable(
+  'hkgovPlandDivisionI18n',
+  {
+    sourceRecordId: text('sourceRecordId').notNull(),
+    locale: text('locale').notNull(),
+    name: text('name').notNull(),
+    isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    ...sourceVersioning,
+  },
+  table => [
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.locale],
+    }),
+    ...sourceVersionIndexes(table, 'hkgovPlandDivisionI18n'),
+    index('hkgovPlandDivisionI18n_locale_idx').on(table.locale),
   ],
 )
 
@@ -80,7 +103,7 @@ export const sourceHkgovPlandDivisionAreas = sqliteTable(
   ],
 )
 
-/** Raw New Town provider assertions, bridged to geographic canonical divisions. */
+/** Raw New Town provider assertions for cohort-scoped planning divisions. */
 export const sourceHkgovPlandNewTownDivisionAreas = sqliteTable(
   'hkgovPlandNewTownDivisionAreas',
   {

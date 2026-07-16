@@ -184,7 +184,9 @@ export const DivisionsListQuerySchema = z
     locales: RequestedLocalesQuerySchema.optional(),
     include: z
       .string()
-      .regex(/^(hierarchy|areas|boundaries)(,(hierarchy|areas|boundaries))*$/)
+      .regex(
+        /^(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-newtown))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-newtown))?|boundaries(?::overture)?))*$/,
+      )
       .optional()
       .openapi({
         description:
@@ -210,7 +212,9 @@ export const DivisionDetailQuerySchema = z
     locales: RequestedLocalesQuerySchema.optional(),
     include: z
       .string()
-      .regex(/^(hierarchy|areas|boundaries)(,(hierarchy|areas|boundaries))*$/)
+      .regex(
+        /^(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-newtown))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-newtown))?|boundaries(?::overture)?))*$/,
+      )
       .optional()
       .openapi({
         description:
