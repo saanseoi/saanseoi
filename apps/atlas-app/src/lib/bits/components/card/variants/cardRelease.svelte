@@ -29,6 +29,8 @@ let theme = $derived(getApiFamilyTheme(release.apiFamily))
 let accent = $derived(theme?.colorway.primary ?? 'var(--secondary)')
 let secondary = $derived(theme?.colorway.secondary ?? 'var(--accent)')
 let ink = $derived(release.apiFamily === 'streets' ? '#111717' : '#fffaf0')
+let isCurrent = $derived(release.status.toLowerCase() === 'current')
+let isDraft = $derived(release.status.toLowerCase() === 'draft')
 let cardStyle = $derived(
   `--release-accent: ${accent}; --release-secondary: ${secondary}; --release-ink: ${ink}; --release-topo-image: url('${topoImage}'); --release-topo-x: ${(index % 4) * 25}%; --release-topo-y: ${(Math.floor(index / 4) % 4) * 25}%; --release-topo-scale-x: ${index % 2 === 0 ? 1 : -1}; --release-topo-scale-y: ${index % 3 === 0 ? -1 : 1}; background: var(--release-accent);`,
 )
@@ -43,6 +45,12 @@ let cardStyle = $derived(
     class={`absolute inset-[-10%] z-1 bg-(image:--release-topo-image) bg-no-repeat bg-position-[var(--release-topo-x)_var(--release-topo-y)] bg-size-[70rem_auto] opacity-[0.26] mix-blend-screen filter-[saturate(.96)_contrast(1.06)] transform-[scale(var(--release-topo-scale-x),var(--release-topo-scale-y))] transition-[opacity,background-size] duration-220 group-hover:bg-size-[76rem_auto] group-hover:opacity-[0.34] group-focus-visible:bg-size-[76rem_auto] group-focus-visible:opacity-[0.34] ${isDragging ? 'bg-size-[76rem_auto] opacity-[0.34]' : ''}`}
     aria-hidden="true"
   ></span>
+  {#if isDraft}
+    <span
+      class="pointer-events-none absolute inset-0 z-3 rounded-lg bg-[conic-gradient(from_210deg_at_50%_50%,#fb7185,#facc15,#4ade80,#22d3ee,#818cf8,#e879f9,#fb7185)] p-px mask-exclude [mask:linear-gradient(#000_0_0)_content-box,linear-gradient(#000_0_0)]"
+      aria-hidden="true"
+    ></span>
+  {/if}
   <span class="relative z-2 flex items-start justify-between gap-4"
     ><span
       ><span
@@ -52,8 +60,13 @@ let cardStyle = $derived(
         >{theme?.name ?? release.apiFamily}</span
       ></span
     ><span
-      class="rounded border border-current/24 bg-white/12 px-2 py-1 font-body text-caption font-semibold backdrop-blur"
-      >{release.status}</span
+      class={`rounded border px-2 py-1 font-body text-caption font-semibold backdrop-blur ${isCurrent ? 'border-2 border-[#5fe39a] bg-[#0e3d2a]/64 text-[#f0fff7]' : 'border-current/24 bg-white/12'}`}
+      >{#if isCurrent}
+        <span
+          class="mr-1.5 inline-block size-1.5 rounded-full bg-[#a7f3d0] align-middle"
+        ></span>
+      {/if}
+      {release.status}</span
     ></span
   >
   <span class="relative z-2 mt-8 block font-mono text-[1.8rem] font-bold leading-[1.02]"
