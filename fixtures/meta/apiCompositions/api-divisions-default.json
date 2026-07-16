@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:efcd49966a564ae142ec08073f774369b4850dc244db62f8aa09627f39f120a6",
+  "versionHash": "sha256:6905df40873610fdc132e383f5dc96ccb6b88d0a907ad1670e53749d730c4852",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions",
   "version": 1,
@@ -30,6 +30,24 @@
       "selectionMode": "latest_at_or_before_cohort_per_dataset",
       "anchorResourceType": "division",
       "priority": 11
+    },
+    {
+      "resourceType": "divisionArea",
+      "variant": "hkgov-pland",
+      "role": "geometry",
+      "isRequired": false,
+      "selectionMode": "exact_ref",
+      "anchorResourceType": "division",
+      "priority": 12
+    },
+    {
+      "resourceType": "divisionArea",
+      "variant": "hkgov-pland-newtown",
+      "role": "geometry",
+      "isRequired": false,
+      "selectionMode": "latest_at_or_before_cohort_per_dataset",
+      "anchorResourceType": "division",
+      "priority": 13
     },
     {
       "resourceType": "divisionBoundary",
