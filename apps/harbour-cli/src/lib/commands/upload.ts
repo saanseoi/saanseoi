@@ -290,7 +290,7 @@ ${mutedBar}  `)
           throw new Error('Expected a prepared upload file for local SQL processing.')
         }
 
-        await processLocalDivisionSqlUpload(
+        const processingResult = await processLocalDivisionSqlUpload(
           target,
           {
             cohortKey: previewResult.plan.cohortKey,
@@ -376,6 +376,7 @@ ${mutedBar}  `)
           ),
           'API RELEASE SET',
         )
+        logApiReleaseSetPublication(processingResult.publishResult)
         outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -657,9 +658,7 @@ export async function resolveDivisionApiReleaseSetReadiness(
 }
 
 export function formatDivisionApiReleaseSetReadiness(
-  plan: Pick<DivisionGeometryPlan, 'cohortKey' | 'regionCode'> & {
-    releaseCode?: string
-  },
+  plan: Pick<DivisionGeometryPlan, 'cohortKey' | 'regionCode'>,
   readiness: DivisionReleaseSetReadiness,
 ) {
   const rows = [
@@ -668,13 +667,11 @@ export function formatDivisionApiReleaseSetReadiness(
     ['divisionBoundary', readiness.boundaryAvailable],
   ] as const
   const width = Math.max(...rows.map(([dataset]) => dataset.length))
-  const cohortIndependentRows: Array<
-    [release: string, available: boolean, self: boolean]
-  > = readiness.cohortIndependentReleases.map(release => [
-    release.releaseCode ?? release.datasetCode,
-    release.releaseCode !== null,
-    release.releaseCode === plan.releaseCode,
-  ])
+  const cohortIndependentRows: Array<[release: string, available: boolean]> =
+    readiness.cohortIndependentReleases.map(release => [
+      release.releaseCode ?? release.datasetCode,
+      release.releaseCode !== null,
+    ])
   const cohortIndependentWidth = Math.max(
     ...cohortIndependentRows.map(([release]) => release.length),
   )
@@ -688,8 +685,8 @@ export function formatDivisionApiReleaseSetReadiness(
     '',
     'At or Before Cohort',
     ...cohortIndependentRows.map(
-      ([release, available, self]) =>
-        `  ${available ? greenText('✓') : yellowText('○')} ${release.padEnd(cohortIndependentWidth)}  ${self ? 'self' : available ? 'available' : 'unavailable'}`,
+      ([release, available]) =>
+        `  ${available ? greenText('✓') : yellowText('○')} ${release.padEnd(cohortIndependentWidth)}  ${available ? 'available' : 'unavailable'}`,
     ),
   ].join('\n')
 }
@@ -700,21 +697,19 @@ function logApiReleaseSetPublication(
         apiReleaseSetCode?: string
         apiReleaseSetStatus?: 'current' | 'draft'
       }
+    | void
     | null
     | undefined,
 ) {
-  if (!result?.apiReleaseSetCode) return
+  const releaseSetCode = result?.apiReleaseSetCode
 
-  if (result.apiReleaseSetStatus === 'current') {
-    log.success(
-      `Published API release set ${rainbowWaveText(result.apiReleaseSetCode)}.`,
+  if (releaseSetCode && result?.apiReleaseSetStatus === 'current') {
+    log.success(`Published API release set ${rainbowWaveText(releaseSetCode)}.`)
+  } else if (releaseSetCode) {
+    log.warn(
+      `${redText('DRAFT')} ${blueText(releaseSetCode)}\n\nRequired source releases unavailable`,
     )
-    return
   }
-
-  log.message(
-    `API release set ${result.apiReleaseSetCode} remains draft; required release members are still unavailable.`,
-  )
 }
 
 export function rainbowWaveText(value: string) {
@@ -725,6 +720,10 @@ export function rainbowWaveText(value: string) {
     )
     .join('')
     .concat('\u001B[39m')
+}
+
+function redText(value: string) {
+  return `\u001B[31m${value}\u001B[39m`
 }
 
 function withReleaseSetCohort(

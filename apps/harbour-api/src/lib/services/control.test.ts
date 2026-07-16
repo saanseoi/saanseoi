@@ -1067,14 +1067,19 @@ describe('control service', () => {
     const members = sqlite
       .query(
         `
-          SELECT s.code, arss.variant
+          SELECT s.code, arss.variant, anchor.code AS anchorCode
           FROM apiReleaseSetSnapshots arss
           INNER JOIN snapshots s ON s.id = arss.snapshotId
+          LEFT JOIN snapshots anchor ON anchor.id = arss.anchorSnapshotId
           WHERE arss.apiReleaseSetId = ?
           ORDER BY arss.variant, s.code
         `,
       )
-      .all(releaseSetId) as Array<{ code: string; variant: string }>
+      .all(releaseSetId) as Array<{
+      anchorCode: string | null
+      code: string
+      variant: string
+    }>
     const hadRelease = sqlite
       .query('SELECT status FROM releases WHERE id = ?')
       .get(hadArea.releaseId) as { status: string }
@@ -1090,10 +1095,26 @@ describe('control service', () => {
     expect(hadRelease.status).toBe('published')
     expect(hadSnapshot.status).toBe('published')
     expect(members).toEqual([
-      { code: 'ss-hk-division-2025-09-24.0', variant: 'default' },
-      { code: 'ss-hk-divisionArea-2022', variant: 'hkgov-had' },
-      { code: 'ss-hk-divisionArea-2025-09-24.0', variant: 'overture' },
-      { code: 'ss-hk-divisionBoundary-2025-09-24.0', variant: 'overture' },
+      {
+        anchorCode: null,
+        code: 'ss-hk-division-2025-09-24.0',
+        variant: 'default',
+      },
+      {
+        anchorCode: 'ss-hk-division-2025-09-24.0',
+        code: 'ss-hk-divisionArea-2022',
+        variant: 'hkgov-had',
+      },
+      {
+        anchorCode: 'ss-hk-division-2025-09-24.0',
+        code: 'ss-hk-divisionArea-2025-09-24.0',
+        variant: 'overture',
+      },
+      {
+        anchorCode: 'ss-hk-division-2025-09-24.0',
+        code: 'ss-hk-divisionBoundary-2025-09-24.0',
+        variant: 'overture',
+      },
     ])
   })
 
