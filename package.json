@@ -120,11 +120,11 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.4",
-    "@changesets/cli": "^2.31.0",
+    "@changesets/cli": "^2.31.1",
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
     "@iconify/svelte": "^5.2.2",
-    "@tailwindcss/upgrade": "^4.3.2",
+    "@tailwindcss/upgrade": "^4.3.3",
     "@types/bun": "latest",
     "branch-name-lint": "^3.0.1",
     "comment-json": "^5.0.0",
