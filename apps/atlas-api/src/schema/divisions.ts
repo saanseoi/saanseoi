@@ -158,6 +158,7 @@ const DivisionResourceSchema = z
 
 const DivisionDocumentMetaSchema = z
   .object({
+    domain: z.string(),
     profile: ProfileName,
     locales: RequestedLocalesMetadataSchema,
     filters: z
@@ -180,6 +181,12 @@ const DivisionDocumentMetaSchema = z
 
 export const DivisionsListQuerySchema = z
   .object({
+    domain: z
+      .enum(['overture', 'hkgov-pland-pu', 'hkgov-pland-newtown'])
+      .optional()
+      .openapi({
+        description: 'Division domain to query. Defaults to the Overture domain.',
+      }),
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
     include: z
@@ -208,6 +215,12 @@ export const DivisionDetailParamsSchema = z
 
 export const DivisionDetailQuerySchema = z
   .object({
+    domain: z
+      .enum(['overture', 'hkgov-pland-pu', 'hkgov-pland-newtown'])
+      .optional()
+      .openapi({
+        description: 'Division domain to query. Defaults to the Overture domain.',
+      }),
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
     include: z
