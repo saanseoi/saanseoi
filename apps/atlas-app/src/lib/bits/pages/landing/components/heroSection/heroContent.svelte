@@ -125,7 +125,7 @@ onMount(() => {
         </div>
       </div>
 
-      <div class="hero-actions mt-8 max-[785px]:mt-4">
+      <div class="hero-actions mt-1">
         <p
           class="max-w-xl md:max-w-[33ch] lg:max-w-[43ch] min-[640px]:max-[767px]:max-w-none min-[924px]:max-[1279px]:mx-0"
         >

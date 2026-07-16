@@ -6,7 +6,7 @@ import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
   class="absolute top-[52%] left-1/2 z-5 w-[min(70rem,calc(100%-3rem))] -translate-x-1/2 -translate-y-1/2 text-center max-[785px]:top-60 max-[785px]:w-[min(32rem,calc(100%-1rem))]"
 >
   <p
-    class="font-body text-[0.76rem] font-black uppercase tracking-[0.14em] text-secondary min-[768px]:hidden"
+    class="font-[Caveat] text-headline-lg font-black uppercase tracking-[0.14em] text-secondary"
   >
     {m.foundation_eyebrow()}
   </p>

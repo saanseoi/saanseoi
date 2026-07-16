@@ -15,7 +15,7 @@ let { children, map, class: className = '' }: Props = $props()
 
 <div
   class={cn(
-    'relative h-[max(clamp(38rem,56vw,47rem),calc(100svh-var(--landing-header-height)))] min-h-[clamp(38rem,56vw,47rem)] overflow-hidden bg-[#feffeb] [--foundation-map-background:#feffeb] [--foundation-map-land:#feffeb] [--landing-header-height:4.5rem] dark:bg-surface dark:[--foundation-map-background:var(--surface)] dark:[--foundation-map-land:color-mix(in_srgb,var(--surface)_97%,white)] max-[785px]:h-auto max-[785px]:min-h-0',
+    'relative h-[max(clamp(38rem,56vw,47rem),calc(100svh-var(--landing-header-height,4.5rem)))] min-h-[clamp(38rem,56vw,47rem)] overflow-hidden bg-[#feffeb] [--foundation-map-background:#feffeb] [--foundation-map-land:#feffeb] dark:bg-surface dark:[--foundation-map-background:var(--surface)] dark:[--foundation-map-land:color-mix(in_srgb,var(--surface)_97%,white)] max-[785px]:h-auto max-[785px]:min-h-0',
     className,
   )}
 >
