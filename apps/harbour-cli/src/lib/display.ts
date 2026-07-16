@@ -113,6 +113,13 @@ function describeInferredFrom(
 }
 
 function formatReleaseValue(result: UploadPreviewResult) {
+  if (
+    result.plan.source === 'hkgov-pland-pu' ||
+    result.plan.source === 'hkgov-pland-newtown'
+  ) {
+    return yellowText(result.plan.releaseCode)
+  }
+
   const releaseKind =
     result.plan.source === 'hkgov-had' && result.plan.type === 'divisionArea'
       ? 'district'
