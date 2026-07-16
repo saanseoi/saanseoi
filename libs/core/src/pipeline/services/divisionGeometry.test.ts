@@ -104,6 +104,27 @@ describe('division geometry normalization', () => {
     )
   })
 
+  test('keeps a New Town area attached to its cohort-scoped planning division', () => {
+    const normalized = normalizeDivisionAreaGeometryRow(
+      {
+        division_id: 'b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2',
+        geometry: polygon,
+        id: 'PLAND:NEWTOWN:b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2',
+        identifiers: { 'PLAND:NEWTOWN': 'tseung-kwan-o' },
+        newtown_id: 'tseung-kwan-o',
+        sources: [{ dataset: 'hkgov-pland-newtown' }],
+      },
+      'hkgov-pland-newtown',
+    )
+    if (!normalized) throw new Error('Expected a New Town area row.')
+
+    expect(normalized.canonical.divisionId).toBe('b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2')
+    expect(normalized.canonical.variant).toBe('hkgov-pland-newtown')
+    expect(normalized.canonical.sourceKeys).toEqual({
+      hkgovPlandNewTown: { id: 'tseung-kwan-o', name: 'tseung-kwan-o' },
+    })
+  })
+
   test('retains the complete Overture boundary source row in rawProperties', () => {
     const normalized = normalizeDivisionBoundaryGeometryRow({
       class: 'maritime',
