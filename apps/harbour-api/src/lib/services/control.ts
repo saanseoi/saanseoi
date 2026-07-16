@@ -209,16 +209,30 @@ export async function handlePublishDataset(
     const publishedAt = new Date().toISOString()
     const datasetType = dataset.type as ResourceType
     const datasetVariant = resolveDatasetVariant(datasetType, dataset.source)
+    const compositionMembers = await listCurrentApiCompositionMembersForType(
+      db,
+      datasetType,
+    )
+    const datasetMember = compositionMembers.find(
+      member =>
+        member.resourceType === datasetType && member.variant === datasetVariant,
+    )
+    const domainCode = datasetMember?.domainCode ?? 'default'
     const currentRelease = await getCurrentReleaseForDatasetId(
       db,
       dataset.datasetId,
       dataset.releaseId,
     )
-    const activeReleaseSet = await resolveActiveReleaseSetForType(db, datasetType)
+    const activeReleaseSet = await resolveActiveReleaseSetForType(
+      db,
+      datasetType,
+      domainCode,
+    )
     const existingReleaseSet = await resolveReleaseSetForRelease(
       db,
       dataset.releaseId,
       datasetType,
+      domainCode,
     )
     const draftReleaseSets =
       datasetVariant === 'hkgov-had'
@@ -234,7 +248,9 @@ export async function handlePublishDataset(
         ? draftReleaseSets
         : [
             existingReleaseSet ??
-              (await ensureDraftReleaseSetForRelease(db, datasetType, dataset)),
+              (await ensureDraftReleaseSetForRelease(db, datasetType, dataset, {
+                domainCode,
+              })),
           ]
     const snapshot = await waitForSnapshotForRelease(db, dataset.releaseId, datasetType)
 
@@ -244,9 +260,8 @@ export async function handlePublishDataset(
       )
     }
 
-    const compositionMembers = await listCurrentApiCompositionMembersForType(
-      db,
-      datasetType,
+    const domainMembers = compositionMembers.filter(
+      member => member.domainCode === domainCode,
     )
     let selectedReleaseSetStatus: 'current' | 'draft' = 'draft'
     for (const [index, releaseSet] of releaseSets.entries()) {
@@ -259,13 +274,13 @@ export async function handlePublishDataset(
         datasetVariant,
       )
       const requiredMembers = new Set(
-        compositionMembers
+        domainMembers
           .filter(member => member.isRequired)
           .map(member => releaseSetMemberKey(member.resourceType, member.variant)),
       )
       const satisfiedRequiredMembers = new Set<string>()
 
-      for (const member of compositionMembers) {
+      for (const member of domainMembers) {
         const memberKey = releaseSetMemberKey(member.resourceType, member.variant)
         if (member.resourceType === datasetType && member.variant === datasetVariant) {
           if (member.isRequired) satisfiedRequiredMembers.add(memberKey)
@@ -387,7 +402,7 @@ async function resolveSupportingSnapshotsForMember(
         { publisherCode: member.variant },
       )
 
-    return member.selectionMode === 'latest_at_or_before_cohort_per_dataset'
+    return member.cohortMatchingMode === 'latest_at_or_before_cohort_per_dataset'
       ? snapshots
       : snapshots.filter(snapshot => snapshot.cohortKey === cohortKey)
   }
@@ -402,11 +417,17 @@ async function resolveSupportingSnapshotsForMember(
 }
 
 function resolveDatasetVariant(type: ResourceType, source: string) {
-  return type === 'divisionArea' || type === 'divisionBoundary' ? source : 'default'
+  return type === 'division' || type === 'divisionArea' || type === 'divisionBoundary'
+    ? source
+    : 'default'
 }
 
 function parseReleaseSetCohortKey(releaseSetCode?: string) {
-  return releaseSetCode?.match(/^data-[a-z0-9]+-divisions-(.+)-\d+$/i)?.[1] ?? null
+  return (
+    releaseSetCode?.match(
+      /^data-[a-z0-9]+-divisions-(.+)-\d+(?:--[a-z0-9-]+)?$/i,
+    )?.[1] ?? null
+  )
 }
 
 export async function handleScheduleSnapshotCleanup(
