@@ -128,6 +128,7 @@ type DivisionListDocument = {
   data: DivisionResourcePayload[]
   included?: IncludedResourcePayload[]
   meta: ApiVersionMetadata & {
+    domain: string
     profile: DivisionProfile
     locales: ApiDocumentLocales
     filters: DivisionFilters
@@ -149,6 +150,7 @@ type DivisionDetailDocument = {
   data: DivisionResourcePayload
   included?: IncludedResourcePayload[]
   meta: ApiVersionMetadata & {
+    domain: string
     profile: DivisionProfile
     locales: ApiDocumentLocales
   }
@@ -162,9 +164,16 @@ type NotFoundResponse = {
   message: string
 }
 
+type VariantUnavailableResponse = {
+  httpStatus: 409
+  error: 'variant_unavailable'
+  message: string
+}
+
 type ActiveDivisionSnapshot = {
   snapshotId: string
   apiReleaseSet: string
+  domainCode: string
   schemaVersion: string
   rulesetVersion: string
   areaSnapshotId: string | null
@@ -172,6 +181,7 @@ type ActiveDivisionSnapshot = {
 }
 
 export type DivisionListQuery = {
+  domain?: string
   profile?: string
   locales?: string
   include?: string
@@ -183,6 +193,7 @@ export type DivisionListQuery = {
 }
 
 export type DivisionDetailQuery = {
+  domain?: string
   profile?: string
   locales?: string
   include?: string
@@ -197,6 +208,10 @@ export type DivisionListResult =
       status: 503
       body: DivisionSnapshotNotReadyResponse
     }
+  | {
+      status: 409
+      body: VariantUnavailableResponse
+    }
 
 export type DivisionDetailResult =
   | {
@@ -210,6 +225,10 @@ export type DivisionDetailResult =
   | {
       status: 503
       body: DivisionSnapshotNotReadyResponse
+    }
+  | {
+      status: 409
+      body: VariantUnavailableResponse
     }
 
 function parseDivisionProfile(value?: string): DivisionProfile {
@@ -535,6 +554,7 @@ function buildListDocument(args: {
         profile: args.routeState.profile,
       }),
       profile: args.routeState.profile,
+      domain: args.activeSnapshot.domainCode,
       locales: resolveApiMetaLocales(args.routeState.localeSelection),
       filters: args.filters,
       page: {
@@ -586,6 +606,7 @@ function buildDetailDocument(args: {
         profile: args.routeState.profile,
       }),
       profile: args.routeState.profile,
+      domain: args.activeSnapshot.domainCode,
       locales: resolveApiMetaLocales(args.routeState.localeSelection),
     },
   })
@@ -597,16 +618,21 @@ function buildSnapshotNotReadyDivisionResponse(): DivisionSnapshotNotReadyRespon
 
 async function getActiveDivisionSnapshot(
   metaDb: AppEnv['Variables']['metaDb'],
-  variants: { area: string; boundary: string },
+  domainCode: string,
+  variants: { area?: string; boundary?: string },
 ): Promise<ActiveDivisionSnapshot | null> {
   const [activeSnapshot, areaSnapshot, boundarySnapshot] = await runWithD1ReadRetry(
     () =>
       Promise.all([
-        resolveActiveSnapshotForType(metaDb as never, 'division', 'division'),
+        resolveActiveSnapshotForType(metaDb as never, 'division', 'division', {
+          domainCode,
+        }),
         resolveActiveSnapshotForType(metaDb as never, 'division', 'divisionArea', {
+          domainCode,
           variant: variants.area,
         }),
         resolveActiveSnapshotForType(metaDb as never, 'division', 'divisionBoundary', {
+          domainCode,
           variant: variants.boundary,
         }),
       ]),
@@ -632,13 +658,39 @@ function requestedIncludes(value: string | undefined) {
   )
 }
 
-function requestedGeometryVariants(value: string | undefined) {
+function requestedGeometryVariants(value: string | undefined, domainCode: string) {
   const includes = requestedIncludes(value)
   const area = [...includes].find(item => item.startsWith('areas:'))
   const boundary = [...includes].find(item => item.startsWith('boundaries:'))
   return {
-    area: area?.slice('areas:'.length) || 'overture',
-    boundary: boundary?.slice('boundaries:'.length) || 'overture',
+    area:
+      area?.slice('areas:'.length) ||
+      (domainCode === 'overture' ? 'overture' : undefined),
+    boundary:
+      boundary?.slice('boundaries:'.length) ||
+      (domainCode === 'overture' ? 'overture' : undefined),
+  }
+}
+
+function requestedGeometryKinds(value: string | undefined) {
+  const includes = requestedIncludes(value)
+  return {
+    area:
+      includes.has('areas') || [...includes].some(item => item.startsWith('areas:')),
+    boundary:
+      includes.has('boundaries') ||
+      [...includes].some(item => item.startsWith('boundaries:')),
+  }
+}
+
+function buildVariantUnavailableResponse(args: {
+  kind: 'areas' | 'boundaries'
+  variant: string
+}): VariantUnavailableResponse {
+  return {
+    httpStatus: 409,
+    error: 'variant_unavailable',
+    message: `The requested ${args.kind}:${args.variant} variant is not available in the active division release set.`,
   }
 }
 
@@ -646,21 +698,21 @@ async function loadDivisionGeometry(args: {
   currentDb: AppEnv['Variables']['currentDb']
   snapshot: ActiveDivisionSnapshot
   divisionIds: string[]
-  variants?: { area: string; boundary: string }
+  variants?: { area?: string; boundary?: string }
 }) {
   const [areas, boundaries] = await Promise.all([
     args.snapshot.areaSnapshotId
       ? listDivisionAreasCurrentByDivisionIds(args.currentDb, {
           snapshotId: args.snapshot.areaSnapshotId,
           divisionIds: args.divisionIds,
-          variant: args.variants?.area ?? 'overture',
+          variant: args.variants?.area,
         })
       : [],
     args.snapshot.boundarySnapshotId
       ? listDivisionBoundariesCurrentByDivisionIds(args.currentDb, {
           snapshotId: args.snapshot.boundarySnapshotId,
           divisionIds: args.divisionIds,
-          variant: args.variants?.boundary ?? 'overture',
+          variant: args.variants?.boundary,
         })
       : [],
   ])
@@ -755,9 +807,12 @@ export async function listDivisions(args: {
   })
   const limit = args.query['page[limit]'] ?? 25
   const offset = args.query['page[offset]'] ?? 0
-  const geometryVariants = requestedGeometryVariants(args.query.include)
+  const domainCode = args.query.domain ?? 'overture'
+  const geometryVariants = requestedGeometryVariants(args.query.include, domainCode)
+  const requestedGeometry = requestedGeometryKinds(args.query.include)
   const activeDivisionSnapshot = await getActiveDivisionSnapshot(
     args.metaDb,
+    domainCode,
     geometryVariants,
   )
 
@@ -765,6 +820,24 @@ export async function listDivisions(args: {
     return {
       status: 503,
       body: buildSnapshotNotReadyDivisionResponse(),
+    }
+  }
+  if (requestedGeometry.area && !activeDivisionSnapshot.areaSnapshotId) {
+    return {
+      status: 409,
+      body: buildVariantUnavailableResponse({
+        kind: 'areas',
+        variant: geometryVariants.area ?? domainCode,
+      }),
+    }
+  }
+  if (requestedGeometry.boundary && !activeDivisionSnapshot.boundarySnapshotId) {
+    return {
+      status: 409,
+      body: buildVariantUnavailableResponse({
+        kind: 'boundaries',
+        variant: geometryVariants.boundary ?? domainCode,
+      }),
     }
   }
 
@@ -873,9 +946,12 @@ export async function getDivisionDetail(args: {
     profile: args.query.profile,
     locales: args.query.locales,
   })
-  const geometryVariants = requestedGeometryVariants(args.query.include)
+  const domainCode = args.query.domain ?? 'overture'
+  const geometryVariants = requestedGeometryVariants(args.query.include, domainCode)
+  const requestedGeometry = requestedGeometryKinds(args.query.include)
   const activeDivisionSnapshot = await getActiveDivisionSnapshot(
     args.metaDb,
+    domainCode,
     geometryVariants,
   )
 
@@ -883,6 +959,24 @@ export async function getDivisionDetail(args: {
     return {
       status: 503,
       body: buildSnapshotNotReadyDivisionResponse(),
+    }
+  }
+  if (requestedGeometry.area && !activeDivisionSnapshot.areaSnapshotId) {
+    return {
+      status: 409,
+      body: buildVariantUnavailableResponse({
+        kind: 'areas',
+        variant: geometryVariants.area ?? domainCode,
+      }),
+    }
+  }
+  if (requestedGeometry.boundary && !activeDivisionSnapshot.boundarySnapshotId) {
+    return {
+      status: 409,
+      body: buildVariantUnavailableResponse({
+        kind: 'boundaries',
+        variant: geometryVariants.boundary ?? domainCode,
+      }),
     }
   }
 
