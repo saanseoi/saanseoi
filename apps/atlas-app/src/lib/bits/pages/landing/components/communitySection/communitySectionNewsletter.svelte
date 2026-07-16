@@ -1,15 +1,14 @@
 <script lang="ts">
 import { onMount } from 'svelte'
-import { env } from '$env/dynamic/public'
-import { m } from '$lib/bits/internal/i18n'
-import { Button } from '$lib/bits/primitives/button'
-import { Input } from '$lib/bits/primitives/input'
-import { Label } from '$lib/bits/primitives/label'
-
-let email = $state('')
-let isSubmitting = $state(false)
-let isSubscribed = $state(false)
-let errorMessage = $state('')
+import CommunitySectionEcosystem from './communitySectionEcosystem.svelte'
+import CommunitySectionHeader from './communitySectionHeader.svelte'
+import CommunitySectionSubstack from './communitySectionSubstack.svelte'
+import type {
+  ActiveDataPacket,
+  GreenCreatureState,
+  Obstacle,
+  OrangeHop,
+} from './communitySectionTypes'
 
 const hongKongDataPacketThemes = [
   'HKG:ROUTES/MTR',
@@ -56,59 +55,6 @@ const hongKongDataPacketThemes = [
 
 const packetCollectionEnabled = true
 
-type OrangeHop = {
-  progress: number
-  direction: 1 | -1
-  corridor: 'upper' | 'lower'
-}
-
-type ActiveDataPacket = {
-  id: number
-  label: (typeof hongKongDataPacketThemes)[number]
-  originX: number
-  originY: number
-  eighthX: number
-  eighthY: number
-  quarterX: number
-  quarterY: number
-  threeEighthX: number
-  threeEighthY: number
-  midpointX: number
-  midpointY: number
-  fiveEighthX: number
-  fiveEighthY: number
-  targetX: number
-  targetY: number
-  threeQuarterX: number
-  threeQuarterY: number
-  sevenEighthX: number
-  sevenEighthY: number
-  duration: number
-  rotation: number
-  settled: boolean
-  consumed: boolean
-  fragments: Array<{ delay: number; x: number; y: number }>
-}
-
-type GreenCreatureState = {
-  id: number
-  x: number
-  y: number
-  rotation: number
-  duration: number
-  size: number
-  glowing: boolean
-  horizontalDirection: 1 | -1
-  usedVerticalRoute: boolean
-}
-
-type Obstacle = {
-  left: number
-  top: number
-  right: number
-  bottom: number
-}
-
 const orangeHopSchedule: OrangeHop[] = [
   { progress: 0.025, direction: 1, corridor: 'upper' },
   { progress: 0.11, direction: 1, corridor: 'upper' },
@@ -127,10 +73,10 @@ const orangeHopSchedule: OrangeHop[] = [
 ]
 
 let newsletterPanel: HTMLDivElement
-let newsletterSignal: HTMLDivElement
-let newsletterHeader: HTMLDivElement
-let newsletterContent: HTMLDivElement
-let orangeCreature: HTMLSpanElement
+let newsletterSignal = $state<HTMLDivElement>(undefined as never)
+let newsletterHeader = $state<HTMLElement>(undefined as never)
+let newsletterContent = $state<HTMLElement>(undefined as never)
+let orangeCreature = $state<HTMLSpanElement>(undefined as never)
 let isNewsletterActive = $state(false)
 let activeDataPackets = $state<ActiveDataPacket[]>([])
 let greenCreatureStates = $state<GreenCreatureState[]>([])
@@ -715,153 +661,57 @@ onMount(() => {
     stopCollectors()
   }
 })
-
-const endpoint = env.PUBLIC_ATLAS_API_BASE_URL
-  ? `${env.PUBLIC_ATLAS_API_BASE_URL}/v0/meta/substack`
-  : 'http://localhost:8787/v0/meta/substack'
-
-async function handleSubmit(event: SubmitEvent) {
-  event.preventDefault()
-
-  if (isSubmitting || isSubscribed) {
-    return
-  }
-
-  errorMessage = ''
-  isSubmitting = true
-
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-      }),
-    })
-
-    const payload = (await response.json().catch(() => null)) as {
-      message?: string
-    } | null
-
-    if (!response.ok) {
-      throw new Error(payload?.message || m.newsletter_error_generic())
-    }
-
-    isSubscribed = true
-    email = ''
-  } catch (error) {
-    errorMessage = error instanceof Error ? error.message : m.newsletter_error_generic()
-  } finally {
-    isSubmitting = false
-  }
-}
 </script>
 
-<div class="landing-newsletter">
+<div class="landing-newsletter overflow-visible scroll-mt-22">
   <div
     class="newsletter-panel"
     class:newsletter-panel-active={isNewsletterActive}
     bind:this={newsletterPanel}
   >
-    <div class="newsletter-signal" aria-hidden="true" bind:this={newsletterSignal}>
-      <span class="newsletter-orange-route">
-        <span class="newsletter-orange-platform newsletter-orange-platform-first"
-          >水</span
-        >
-        <span class="newsletter-orange-platform newsletter-orange-platform-second"
-          >山</span
-        >
-        <span
-          class="newsletter-creature newsletter-creature-orange"
-          bind:this={orangeCreature}
-        ></span>
-      </span>
-      {#each greenCreatureStates as collector, collectorIndex (collector.id)}
-        <span
-          class={`newsletter-creature newsletter-creature-collector newsletter-creature-collector-${String.fromCharCode(97 + collectorIndex)}`}
-          class:newsletter-creature-collector-glowing={collector.glowing}
-          bind:this={collectorElements[collector.id]}
-          style={`width: ${collector.size}px; transform: translate(${collector.x}px, ${collector.y}px) rotate(${collector.rotation}deg); --collector-duration: ${collector.duration}ms;`}
-        ></span>
-      {/each}
-      {#each activeDataPackets as packet (packet.id)}
-        <span
-          class="newsletter-packet"
-          class:newsletter-packet-derezzing={packet.consumed}
-          bind:this={packetElements[packet.id]}
-          onanimationend={() => markDataPacketSettled(packet.id)}
-          style={`--packet-origin-x: ${packet.originX}%; --packet-origin-y: ${packet.originY}%; --packet-eighth-x: ${packet.eighthX}%; --packet-eighth-y: ${packet.eighthY}%; --packet-quarter-x: ${packet.quarterX}%; --packet-quarter-y: ${packet.quarterY}%; --packet-three-eighth-x: ${packet.threeEighthX}%; --packet-three-eighth-y: ${packet.threeEighthY}%; --packet-midpoint-x: ${packet.midpointX}%; --packet-midpoint-y: ${packet.midpointY}%; --packet-five-eighth-x: ${packet.fiveEighthX}%; --packet-five-eighth-y: ${packet.fiveEighthY}%; --packet-three-quarter-x: ${packet.threeQuarterX}%; --packet-three-quarter-y: ${packet.threeQuarterY}%; --packet-seven-eighth-x: ${packet.sevenEighthX}%; --packet-seven-eighth-y: ${packet.sevenEighthY}%; --packet-target-x: ${packet.targetX}%; --packet-target-y: ${packet.targetY}%; --packet-duration: ${packet.duration}ms; --packet-rotation: ${packet.rotation}deg;`}
-          >{packet.label}
-          {#if packet.consumed}
-            <span class="newsletter-packet-fragments" aria-hidden="true">
-              {#each packet.fragments as fragment}
-                <span
-                  class="newsletter-packet-fragment"
-                  style={`--fragment-delay: ${fragment.delay}ms; --fragment-x: ${fragment.x}; --fragment-y: ${fragment.y};`}
-                ></span>
-              {/each}
-            </span>
-          {/if}
-        </span>
-      {/each}
-    </div>
-
-    <div class="landing-section-header" bind:this={newsletterHeader}>
-      <div>
-        <h2>{m.newsletter_title()}</h2>
-        <p>{m.newsletter_description()}</p>
-      </div>
-    </div>
-
-    <div class="newsletter-content" bind:this={newsletterContent}>
-      {#if isSubscribed}
-        <div class="newsletter-card newsletter-success" role="status">
-          <p class="newsletter-success-title">
-            {m.newsletter_success_title()}
-          </p>
-          <p class="newsletter-success-body">
-            {m.newsletter_success_body()}
-          </p>
-        </div>
-      {:else}
-        <form class="newsletter-card newsletter-form" onsubmit={handleSubmit}>
-          <div class="newsletter-field">
-            <Label class="sr-only" for="newsletter-email">
-              {m.newsletter_email_label()}
-            </Label>
-            <Input
-              class="newsletter-input"
-              id="newsletter-email"
-              name="email"
-              placeholder={m.newsletter_email_placeholder()}
-              type="email"
-              bind:value={email}
-              disabled={isSubmitting}
-              required
-            />
-          </div>
-          <Button
-            class="newsletter-submit"
-            type="submit"
-            variant="primary"
-            disabled={isSubmitting}
-          >
-            {m.newsletter_submit()}
-          </Button>
-        </form>
-
-        {#if errorMessage}
-          <p class="newsletter-error">
-            {errorMessage}
-          </p>
-        {/if}
-      {/if}
-
-      <p class="newsletter-privacy">
-        {@html m.newsletter_privacy()}
-      </p>
-    </div>
+    <CommunitySectionEcosystem
+      packets={activeDataPackets}
+      collectors={greenCreatureStates}
+      {packetElements}
+      {collectorElements}
+      bind:signal={newsletterSignal}
+      bind:orangeCreature
+      onpacketsettled={markDataPacketSettled}
+    />
+    <CommunitySectionHeader bind:element={newsletterHeader} />
+    <CommunitySectionSubstack bind:element={newsletterContent} />
   </div>
 </div>
+
+<style>
+.newsletter-panel {
+  position: relative;
+  display: grid;
+  width: 100%;
+  max-width: var(--spacing-container-max);
+  grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.82fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: center;
+  justify-content: flex-start;
+  margin-inline: auto;
+  padding: clamp(4.68rem, 10.08vw, 8.64rem) 1.5rem;
+  isolation: isolate;
+}
+
+:global(.newsletter-panel .newsletter-orange-route) {
+  translate: 0 -1rem;
+}
+
+@media (min-width: 768px) {
+  .newsletter-panel {
+    padding: clamp(5.76rem, 11.52vw, 10.08rem) 2rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .newsletter-panel {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+</style>

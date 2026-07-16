@@ -60,7 +60,6 @@ const tones = {
     isThrowingAway && 'principle-card-throwing-away',
   )}
   type="button"
-  aria-pressed={isActive}
   data-tone={principle.tone}
   style={`--swipe-x: ${swipeX}px; --swipe-y: ${swipeY}px; --swipe-rotate: ${swipeRotate}deg;`}
   {onpointerdown}
@@ -86,16 +85,16 @@ const tones = {
 </Card.Card>
 
 <style>
-.principle-card:hover,
-.principle-card:focus-visible {
+:global(.principle-card:hover),
+:global(.principle-card:focus-visible) {
   border-color: color-mix(in srgb, var(--secondary) 45%, var(--outline-variant));
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--secondary) 54%, transparent),
     var(--shadow-mini);
 }
 
-.principle-card[data-tone="dark"]:hover,
-.principle-card[data-tone="dark"]:focus-visible {
+:global(.principle-card[data-tone="dark"]:hover),
+:global(.principle-card[data-tone="dark"]:focus-visible) {
   border-color: color-mix(in srgb, var(--tertiary) 72%, var(--outline-variant));
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--tertiary) 54%, transparent),
