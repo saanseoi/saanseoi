@@ -1,12 +1,14 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 
+import FeatureSectionAnnotation from './featureSectionAnnotation.svelte'
 import FeatureSectionDeck from './featureSectionDeck.svelte'
 import FeatureSectionHeader from './featureSectionHeader.svelte'
 
 let featureSectionElement = $state<HTMLElement>()
 let isFeatureSectionActive = $state(false)
 let isFeatureSectionRevealed = $state(false)
+let isFeatureSectionCardActive = $state(false)
 
 onMount(() => {
   if (!featureSectionElement) return
@@ -33,9 +35,13 @@ onMount(() => {
   }`}
 >
   <div
-    class="feature-section-panel mx-auto flex min-h-[max(42.75rem,calc(100svh-4.5rem))] w-full max-w-(--spacing-container-max) flex-col justify-start px-6 pb-16 pt-[calc(clamp(2.25rem,5svh,3.5rem)+24px)] md:px-8 md:pb-20 md:pt-[calc(clamp(2.75rem,5.5svh,4rem)+24px)]"
+    class="feature-section-panel relative mx-auto flex min-h-[max(42.75rem,calc(100svh-var(--landing-header-height,4.5rem)))] w-full max-w-(--spacing-container-max) flex-col justify-start px-6 pb-16 pt-[calc(clamp(2.25rem,5svh,3.5rem)+24px)] md:px-8 md:pb-20 md:pt-[calc(clamp(2.75rem,5.5svh,4rem)+24px)] lg:pt-[calc(clamp(2.75rem,5.5svh,4rem)+4.5rem+24px)]"
   >
     <FeatureSectionHeader isRevealed={isFeatureSectionRevealed} />
-    <FeatureSectionDeck isRevealed={isFeatureSectionRevealed} />
+    <FeatureSectionAnnotation isCardActive={isFeatureSectionCardActive} />
+    <FeatureSectionDeck
+      isRevealed={isFeatureSectionRevealed}
+      onActivePrincipleChange={isActive => (isFeatureSectionCardActive = isActive)}
+    />
   </div>
 </div>
