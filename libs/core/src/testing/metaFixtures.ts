@@ -866,6 +866,7 @@ export function seedFixtureCatalog(db: Database) {
     INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
       ('publisher-overture', 'overture', 'vh-publisher-overture-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('publisher-hkgov', 'hkgov', 'vh-publisher-hkgov-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('publisher-hkgov-had', 'hkgov-had', 'vh-publisher-hkgov-had-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('publisher-hkgov-dpo', 'hkgov-dpo', 'vh-publisher-hkgov-dpo-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
       code = excluded.code,
@@ -901,6 +902,48 @@ export function seedFixtureCatalog(db: Database) {
         'address',
         'https://docs.overturemaps.org/schema/reference/addresses/address/',
         'vh-dataset-overture-hk-address-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'overture-hk-divisionArea',
+        'publisher-overture',
+        'ds-hk-overture-divisionArea',
+        'hk',
+        'static',
+        'monthly',
+        'divisions',
+        'divisionArea',
+        'https://docs.overturemaps.org/',
+        'vh-dataset-overture-hk-division-area-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'overture-hk-divisionBoundary',
+        'publisher-overture',
+        'ds-hk-overture-divisionBoundary',
+        'hk',
+        'static',
+        'monthly',
+        'divisions',
+        'divisionBoundary',
+        'https://docs.overturemaps.org/',
+        'vh-dataset-overture-hk-division-boundary-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'hkgov-had-hk-district',
+        'publisher-hkgov-had',
+        'ds-hk-hkgov-had-district',
+        'hk',
+        'static',
+        'as-needed',
+        'divisions',
+        'divisionArea',
+        'https://data.gov.hk/',
+        'vh-dataset-hkgov-had-hk-district-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
