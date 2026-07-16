@@ -1866,7 +1866,9 @@ export async function listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
 
   return rows
     .flatMap(row => {
-      const match = row.code.match(new RegExp(`^${escapeRegExp(codePrefix)}(.+)-\\d+$`))
+      const match = row.code.match(
+        new RegExp(`^${escapeRegExp(codePrefix)}(.+)-\\d+(?:--[a-z0-9-]+)?$`, 'i'),
+      )
       const releaseSetCohortKey = match?.[1]
 
       return releaseSetCohortKey && releaseSetCohortKey >= cohortKey
@@ -2984,6 +2986,7 @@ export async function resolveActiveSnapshotForType(
         .select({
           snapshotId: metaApiReleaseSetSnapshots.snapshotId,
           apiReleaseSet: metaApiReleaseSets.code,
+          domainCode: metaApiReleaseSets.domainCode,
           schemaVersion: metaApiReleaseSets.schemaVersion,
           rulesetVersion: metaApiReleaseSets.rulesetVersion,
         })
@@ -3042,6 +3045,7 @@ export async function resolveActiveSnapshotForType(
       .select({
         snapshotId: metaApiReleaseSetSnapshots.snapshotId,
         apiReleaseSet: metaApiReleaseSets.code,
+        domainCode: metaApiReleaseSets.domainCode,
         schemaVersion: metaApiReleaseSets.schemaVersion,
         rulesetVersion: metaApiReleaseSets.rulesetVersion,
       })
