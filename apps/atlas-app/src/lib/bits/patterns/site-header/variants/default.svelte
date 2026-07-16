@@ -10,6 +10,8 @@ addCollection(materialSymbolsLight)
 </script>
 
 <script lang="ts">
+import { page } from '$app/state'
+
 import HeaderActions from '../components/headerActions.svelte'
 import PrimaryNavigation from '../components/primaryNavigation.svelte'
 import SiteBrand from '../components/siteBrand.svelte'
@@ -22,6 +24,7 @@ type User = {
 
 let { user = null }: { user?: User | null } = $props()
 let mobileHeaderVisible = $state(true)
+let isLandingPage = $derived(page.url.pathname === '/')
 
 $effect(() => {
   if (typeof window === 'undefined') return
@@ -114,7 +117,11 @@ $effect(() => {
 </script>
 
 <header
-  class="sticky top-0 z-60 isolate h-18 border-b border-border-card/55 bg-background text-foreground transition-transform duration-300 lg:translate-y-0"
+  class="top-0 z-60 isolate h-18 border-b border-border-card/55 bg-background text-foreground transition-transform duration-300 lg:translate-y-0"
+  class:dark={isLandingPage}
+  class:fixed={isLandingPage}
+  class:inset-x-0={isLandingPage}
+  class:sticky={!isLandingPage}
   class:translate-y-0={mobileHeaderVisible}
   class:-translate-y-full={!mobileHeaderVisible}
 >
