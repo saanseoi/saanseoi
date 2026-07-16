@@ -1,7 +1,8 @@
 <script lang="ts">
 import { Button, Main } from '$lib/bits'
 import { authClient } from '$lib/auth-client'
-import { getCurrentLocale } from '$lib/bits/internal/i18n'
+import { signOut } from '$lib/auth.remote'
+import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import Icon from '@iconify/svelte'
 import { Dialog } from 'bits-ui'
 
@@ -81,39 +82,38 @@ const changePassword = async () => {
 
 const providerDetails = (providerId: string) =>
   providerId === 'credential'
-    ? { label: 'Email and password', icon: 'ion:mail-outline' }
+    ? { label: m.account_email_password(), icon: 'ion:mail-outline' }
     : (providers.find(provider => provider.id === providerId) ?? {
         label: providerId,
         icon: 'ion:lock-closed-outline',
       })
 </script>
 
-<svelte:head><title>Account | Saanseoi</title></svelte:head>
+<svelte:head><title>{m.account_title()} | Saanseoi</title></svelte:head>
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"
   ><p
     class="font-body text-label-md font-semibold uppercase tracking-[0.12em] text-secondary"
   >
-    Developer account
+    {m.api_keys_developer_account()}
   </p>
   <h1
     class="mt-3 font-display text-headline-lg font-bold text-primary md:text-display-md"
   >
-    Account settings
+    {m.account_settings()}
   </h1>
   <p class="mt-3 font-body text-body-lg text-foreground-alt">{data.user.email}</p>
   <div class="mt-8 flex gap-3">
-    <Button href="/api-keys" variant="primary">Manage API keys</Button>
-    <form action="/logout" method="POST">
-      <Button type="submit" variant="secondary">Sign out</Button>
-    </form>
+    <Button href="/api-keys" variant="primary">{m.account_manage_api_keys()}</Button>
+    <Button onclick={() => signOut()} variant="secondary"
+      >{m.account_sign_out()}</Button
+    >
   </div>
   <section class="mt-14 max-w-3xl">
     <h2 class="font-display text-headline-sm font-bold text-primary">
-      Sign-in methods
+      {m.account_sign_in_methods()}
     </h2>
     <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
-      Link a second method before removing one. Your final sign-in method cannot be
-      removed.
+      {m.account_methods_description()}
     </p>
     {#if error}
       <p class="mt-4 font-body text-body-sm text-destructive">{error}</p>
@@ -133,7 +133,7 @@ const providerDetails = (providerId: string) =>
             <div>
               <p class="font-body font-semibold text-foreground">{provider.label}</p>
               <p class="mt-1 font-body text-sm text-foreground-alt">
-                Connected sign-in method
+                {m.account_connected_method()}
               </p>
             </div>
           </div>
@@ -143,7 +143,7 @@ const providerDetails = (providerId: string) =>
                 onclick={() => { passwordDialogMode = 'change'; passwordDialogOpen = true }}
                 size="compact"
                 variant="secondary"
-                >Change password</Button
+                >{m.account_change_password()}</Button
               >
             {/if}
             <Button
@@ -151,7 +151,7 @@ const providerDetails = (providerId: string) =>
               disabled={unlinkingAccountId !== null}
               size="compact"
               variant="secondary"
-              >{unlinkingAccountId === account.id ? 'Removing…' : 'Remove'}</Button
+              >{unlinkingAccountId === account.id ? m.account_removing() : m.account_remove()}</Button
             >
           </div>
         </article>
@@ -167,14 +167,16 @@ const providerDetails = (providerId: string) =>
               </div>
               <div>
                 <p class="font-body font-semibold text-foreground">{provider.label}</p>
-                <p class="mt-1 font-body text-sm text-foreground-alt">Not connected</p>
+                <p class="mt-1 font-body text-sm text-foreground-alt">
+                  {m.account_not_connected()}
+                </p>
               </div>
             </div>
             <Button
               onclick={() => link(provider.id as 'google' | 'github')}
               size="compact"
               variant="primary"
-              >Connect</Button
+              >{m.account_connect()}</Button
             >
           </article>
         {/if}
@@ -188,15 +190,19 @@ const providerDetails = (providerId: string) =>
               <Icon icon="ion:mail-outline" class="size-5" />
             </div>
             <div>
-              <p class="font-body font-semibold text-foreground">Email and password</p>
-              <p class="mt-1 font-body text-sm text-foreground-alt">Not connected</p>
+              <p class="font-body font-semibold text-foreground">
+                {m.account_email_password()}
+              </p>
+              <p class="mt-1 font-body text-sm text-foreground-alt">
+                {m.account_not_connected()}
+              </p>
             </div>
           </div>
           <Button
             onclick={() => { passwordDialogMode = 'add'; passwordDialogOpen = true }}
             size="compact"
             variant="primary"
-            >Add password</Button
+            >{m.account_add_password()}</Button
           >
         </article>
       {/if}
@@ -210,10 +216,10 @@ const providerDetails = (providerId: string) =>
     <Dialog.Content
       class="fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 border border-border-card bg-background-alt p-6 shadow-popover focus:outline-none"
       ><Dialog.Title class="font-display text-headline-sm font-bold text-primary"
-        >{passwordDialogMode === 'add' ? 'Add email and password' : 'Change password'}</Dialog.Title
+        >{passwordDialogMode === 'add' ? m.account_add_email_password() : m.account_change_password()}</Dialog.Title
       ><Dialog.Description
         class="mt-3 font-body text-body-md leading-7 text-foreground-alt"
-        >{passwordDialogMode === 'add' ? 'Use your existing verified email address with a new password.' : 'Confirm your current password, then choose a new one.'}</Dialog.Description
+        >{passwordDialogMode === 'add' ? m.account_add_password_description() : m.account_change_password_description()}</Dialog.Description
       >
       <form
         class="mt-6"
@@ -221,7 +227,8 @@ const providerDetails = (providerId: string) =>
       >
         {#if passwordDialogMode === 'change'}
           <label class="font-body text-sm font-semibold text-foreground"
-            >Current password<input
+            >{m.account_current_password()}
+            <input
               bind:value={currentPassword}
               class="mt-2 min-h-11 w-full border border-border-input bg-background-alt px-3 font-body font-normal"
               required
@@ -230,7 +237,7 @@ const providerDetails = (providerId: string) =>
           >
         {/if}
         <label class="font-body text-sm font-semibold text-foreground"
-          >{passwordDialogMode === 'add' ? 'New password' : 'New password'}
+          >{m.account_new_password()}
           <input
             bind:value={password}
             class="mt-2 min-h-11 w-full border border-border-input bg-background-alt px-3 font-body font-normal"
@@ -244,9 +251,9 @@ const providerDetails = (providerId: string) =>
         {/if}
         <div class="mt-6 flex justify-end gap-3">
           <Button onclick={() => (passwordDialogOpen = false)} variant="secondary"
-            >Cancel</Button
+            >{m.common_cancel()}</Button
           ><Button type="submit" variant="primary"
-            >{passwordDialogMode === 'add' ? 'Add password' : 'Change password'}</Button
+            >{passwordDialogMode === 'add' ? m.account_add_password() : m.account_change_password()}</Button
           >
         </div>
       </form></Dialog.Content
