@@ -26,6 +26,8 @@ let { label, isVisible, usesCjkEyebrows }: Props = $props()
 const blockClass = $derived(
   cn(
     'foundation-section-block absolute block w-[min(18.5rem,23vw)] -translate-x-1/2 -translate-y-1/2 text-primary no-underline transition-[opacity,translate,filter] duration-620 [transition-timing-function:cubic-bezier(0.2,0.7,0.2,1)] min-[786px]:w-[min(22rem,32vw)] max-[785px]:static max-[785px]:min-h-48 max-[785px]:w-full max-[785px]:translate-x-0 max-[785px]:translate-y-0 max-[785px]:py-[1.05rem] max-[785px]:pr-0 max-[785px]:pl-[calc(var(--mobile-marker-size)+1rem)] max-[785px]:text-left',
+    label.tone !== 'projects' &&
+      'group cursor-pointer min-[786px]:hover:-translate-y-1 min-[786px]:hover:drop-shadow-[0_0.65rem_1rem_rgb(0_0_0/0.12)] focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-6 focus-visible:outline-(--label-accent)',
     label.tone === 'data' &&
       'max-[785px]:pr-[calc(var(--mobile-marker-size)+0.5rem)] max-[785px]:pl-0',
     isVisible ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0',
@@ -81,7 +83,7 @@ const blockStyle = $derived(
   </p>
   <small
     class={cn(
-      'mt-[0.65rem] block w-fit bg-[color-mix(in_srgb,var(--foundation-map-background)_92%,transparent)] px-[0.3rem] pt-[0.12rem] pb-[0.16rem] font-body text-[0.82rem] font-extrabold uppercase tracking-[0.08em] text-on-tertiary-container max-[785px]:mt-[0.95rem] max-[785px]:bg-transparent max-[785px]:p-0 dark:bg-[#131311db]',
+      'mt-[0.65rem] block w-fit bg-[color-mix(in_srgb,var(--foundation-map-background)_92%,transparent)] px-[0.3rem] pt-[0.12rem] pb-[0.16rem] font-body text-[0.82rem] font-extrabold uppercase tracking-[0.08em] text-on-tertiary-container transition-colors duration-200 max-[785px]:mt-[0.95rem] max-[785px]:bg-transparent max-[785px]:p-0 dark:bg-[#131311db] group-hover:text-(--label-accent) group-focus-visible:text-(--label-accent)',
       label.align === 'right' && 'ml-auto',
     )}
   >
