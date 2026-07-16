@@ -1,7 +1,7 @@
 <script lang="ts">
-import * as CommunitySection from './components/communitySection'
+import * as Community from './components/communitySection'
 </script>
 
-<CommunitySection.Root>
-  <CommunitySection.Newsletter />
-</CommunitySection.Root>
+<Community.Root>
+  <Community.Newsletter />
+</Community.Root>

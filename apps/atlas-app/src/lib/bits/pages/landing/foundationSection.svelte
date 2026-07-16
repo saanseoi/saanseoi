@@ -1,7 +1,7 @@
 <script lang="ts">
-import * as FoundationSection from './components/foundationSection'
+import * as Foundation from './components/foundationSection'
 </script>
 
-<FoundationSection.Root>
-  <FoundationSection.Map />
-</FoundationSection.Root>
+<Foundation.Root>
+  <Foundation.Map />
+</Foundation.Root>

@@ -1,7 +1,7 @@
 <script lang="ts">
-import * as FeatureSection from './components/featureSection'
+import * as Feature from './components/featureSection'
 </script>
 
-<FeatureSection.Root>
-  <FeatureSection.Content />
-</FeatureSection.Root>
+<Feature.Root>
+  <Feature.Content />
+</Feature.Root>

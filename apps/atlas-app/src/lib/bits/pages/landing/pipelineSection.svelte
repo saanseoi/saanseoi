@@ -1,7 +1,7 @@
 <script lang="ts">
-import * as PipelineSection from './components/pipelineSection'
+import * as Pipeline from './components/pipelineSection'
 </script>
 
-<PipelineSection.Root>
-  <PipelineSection.Flow />
-</PipelineSection.Root>
+<Pipeline.Root>
+  <Pipeline.Flow />
+</Pipeline.Root>
