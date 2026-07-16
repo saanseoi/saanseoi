@@ -162,6 +162,7 @@ export async function listRegistryReleases(db: MetaDatabase, limit?: number) {
       apiFamily: metaApiVersions.familyType,
       apiVersion: metaApiVersions.code,
       code: metaApiReleaseSets.code,
+      domainCode: metaApiReleaseSets.domainCode,
       schemaVersion: metaApiReleaseSets.schemaVersion,
       rulesetVersion: metaApiReleaseSets.rulesetVersion,
       status: metaApiReleaseSets.status,
@@ -188,7 +189,7 @@ export async function listRegistryReleases(db: MetaDatabase, limit?: number) {
           snapshotId: metaApiReleaseSetSnapshots.snapshotId,
           role: metaApiReleaseSetSnapshots.role,
           isRequired: metaApiReleaseSetSnapshots.isRequired,
-          selectionMode: metaApiReleaseSetSnapshots.selectionMode,
+          cohortMatchingMode: metaApiReleaseSetSnapshots.cohortMatchingMode,
           anchorSnapshotId: metaApiReleaseSetSnapshots.anchorSnapshotId,
           createdAt: metaApiReleaseSetSnapshots.createdAt,
           snapshot: {
@@ -1266,6 +1267,7 @@ async function resolveCurrentApiComposition(
         code: metaApiComposition.code,
         version: metaApiComposition.version,
         primaryResourceType: metaApiComposition.primaryResourceType,
+        defaultDomainCode: metaApiComposition.defaultDomainCode,
         status: metaApiComposition.status,
       })
       .from(metaApiComposition)
@@ -1309,10 +1311,11 @@ export async function listApiCompositionMembers(
   return db
     .select({
       resourceType: metaApiCompositionMembers.resourceType,
+      domainCode: metaApiCompositionMembers.domainCode,
       variant: metaApiCompositionMembers.variant,
       role: metaApiCompositionMembers.role,
       isRequired: metaApiCompositionMembers.isRequired,
-      selectionMode: metaApiCompositionMembers.selectionMode,
+      cohortMatchingMode: metaApiCompositionMembers.cohortMatchingMode,
       anchorResourceType: metaApiCompositionMembers.anchorResourceType,
       maxLagDays: metaApiCompositionMembers.maxLagDays,
       priority: metaApiCompositionMembers.priority,
@@ -1786,6 +1789,7 @@ export async function resolveReleaseSetForType(
 export async function resolveActiveReleaseSetForType(
   db: HarbourReadableDb,
   type: ResourceType,
+  domainCode = 'default',
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
 
@@ -1794,6 +1798,7 @@ export async function resolveActiveReleaseSetForType(
       .select({
         id: metaApiReleaseSets.id,
         code: metaApiReleaseSets.code,
+        domainCode: metaApiReleaseSets.domainCode,
         schemaVersion: metaApiReleaseSets.schemaVersion,
         rulesetVersion: metaApiReleaseSets.rulesetVersion,
         status: metaApiReleaseSets.status,
@@ -1807,6 +1812,7 @@ export async function resolveActiveReleaseSetForType(
         and(
           eq(metaApiVersions.code, apiVersionCode),
           eq(metaApiReleaseSets.status, 'current'),
+          eq(metaApiReleaseSets.domainCode, domainCode),
         ),
       )
       .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
@@ -1882,7 +1888,7 @@ export async function ensureDraftReleaseSetForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
   type: ResourceType,
   release: Pick<DatasetRecord, 'cohortKey' | 'regionCode'>,
-  options: { forceNew?: boolean } = {},
+  options: { domainCode?: string; forceNew?: boolean } = {},
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
   const apiVersion = await db
@@ -1904,8 +1910,9 @@ export async function ensureDraftReleaseSetForRelease(
   const compositionMembers = composition
     ? await listApiCompositionMembersSafely(db, composition.id)
     : []
+  const domainCode = options.domainCode ?? 'default'
   const isCompositionMember = compositionMembers.some(
-    member => member.resourceType === type,
+    member => member.domainCode === domainCode && member.resourceType === type,
   )
 
   if (
@@ -1929,6 +1936,7 @@ export async function ensureDraftReleaseSetForRelease(
     .where(
       and(
         eq(metaApiReleaseSets.apiVersionId, apiVersion.id),
+        eq(metaApiReleaseSets.domainCode, domainCode),
         options.forceNew
           ? eq(metaApiReleaseSets.status, 'draft')
           : ne(metaApiReleaseSets.status, 'archived'),
@@ -1962,6 +1970,7 @@ export async function ensureDraftReleaseSetForRelease(
     .where(
       and(
         eq(metaApiReleaseSets.apiVersionId, apiVersion.id),
+        eq(metaApiReleaseSets.domainCode, domainCode),
         sql`${metaApiReleaseSets.code} LIKE ${`${releaseSetCodePrefix}%`}`,
       ),
     )
@@ -1971,12 +1980,12 @@ export async function ensureDraftReleaseSetForRelease(
       const sequence = Number.parseInt(row.code.slice(releaseSetCodePrefix.length), 10)
       return Number.isNaN(sequence) ? maxSequence : Math.max(maxSequence, sequence)
     }, -1) + 1
-  const releaseSetCode = buildDataReleaseSetCode(
+  const releaseSetCode = `${buildDataReleaseSetCode(
     release.regionCode,
     apiVersion.familyType,
     release.cohortKey,
     nextSequence,
-  )
+  )}--${domainCode}`
   const now = toIsoTimestamp()
   const releaseSetId = buildDeterministicApiReleaseSetId(releaseSetCode)
   const schemaVersion = latestReleaseSet?.schemaVersion ?? `sv-${type}-v1`
@@ -1984,6 +1993,7 @@ export async function ensureDraftReleaseSetForRelease(
   const versionHash = computeVersionHash({
     apiVersion: apiVersionCode,
     releaseSetCode,
+    domainCode,
     cohortKey: release.cohortKey,
     schemaVersion,
     rulesetVersion,
@@ -2000,6 +2010,7 @@ export async function ensureDraftReleaseSetForRelease(
       id: releaseSetId,
       apiVersionId: apiVersion.id,
       code: releaseSetCode,
+      domainCode,
       schemaVersion,
       rulesetVersion,
       status: 'draft',
@@ -2024,6 +2035,7 @@ export async function resolveReleaseSetForRelease(
   db: HarbourReadableDb,
   releaseId: string,
   type: ResourceType,
+  domainCode = 'default',
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
 
@@ -2032,6 +2044,7 @@ export async function resolveReleaseSetForRelease(
       .select({
         id: metaApiReleaseSets.id,
         code: metaApiReleaseSets.code,
+        domainCode: metaApiReleaseSets.domainCode,
         schemaVersion: metaApiReleaseSets.schemaVersion,
         rulesetVersion: metaApiReleaseSets.rulesetVersion,
         status: metaApiReleaseSets.status,
@@ -2054,6 +2067,7 @@ export async function resolveReleaseSetForRelease(
         and(
           eq(metaSnapshotSources.sourceReleaseId, releaseId),
           eq(metaApiVersions.code, apiVersionCode),
+          eq(metaApiReleaseSets.domainCode, domainCode),
         ),
       )
       .orderBy(desc(metaApiReleaseSets.createdAt))
@@ -2155,6 +2169,7 @@ export async function publishReleaseArtifacts(
     .select({
       apiVersionId: metaApiReleaseSets.apiVersionId,
       apiVersion: metaApiVersions.code,
+      domainCode: metaApiReleaseSets.domainCode,
       id: metaApiReleaseSets.id,
       rulesetVersion: metaApiReleaseSets.rulesetVersion,
       schemaVersion: metaApiReleaseSets.schemaVersion,
@@ -2191,6 +2206,7 @@ export async function publishReleaseArtifacts(
     .where(
       and(
         eq(metaApiReleaseSets.apiVersionId, releaseSet.apiVersionId),
+        eq(metaApiReleaseSets.domainCode, releaseSet.domainCode),
         eq(metaApiReleaseSets.status, 'current'),
         ne(metaApiReleaseSets.id, args.releaseSetId),
       ),
@@ -2203,7 +2219,7 @@ export async function publishReleaseArtifacts(
       variant: metaApiReleaseSetSnapshots.variant,
       role: metaApiReleaseSetSnapshots.role,
       isRequired: metaApiReleaseSetSnapshots.isRequired,
-      selectionMode: metaApiReleaseSetSnapshots.selectionMode,
+      cohortMatchingMode: metaApiReleaseSetSnapshots.cohortMatchingMode,
       anchorSnapshotId: metaApiReleaseSetSnapshots.anchorSnapshotId,
     })
     .from(metaApiReleaseSetSnapshots)
@@ -2219,10 +2235,15 @@ export async function publishReleaseArtifacts(
     : []
   const datasetVariant = resolveDatasetVariant(args.type, args.dataset.source)
   const datasetMember = compositionMembers.find(
-    member => member.resourceType === args.type && member.variant === datasetVariant,
+    member =>
+      member.domainCode === releaseSet.domainCode &&
+      member.resourceType === args.type &&
+      member.variant === datasetVariant,
   )
   const anchorSnapshotId = compositionMembers.find(
-    member => member.resourceType === datasetMember?.anchorResourceType,
+    member =>
+      member.domainCode === releaseSet.domainCode &&
+      member.resourceType === datasetMember?.anchorResourceType,
   )
     ? (args.carriedSnapshots.find(
         carried => carried.resourceType === datasetMember?.anchorResourceType,
@@ -2235,7 +2256,7 @@ export async function publishReleaseArtifacts(
       anchorSnapshotId: string | null
       isRequired: boolean
       role: string
-      selectionMode: string
+      cohortMatchingMode: string
       variant: string
     }
   >()
@@ -2244,7 +2265,7 @@ export async function publishReleaseArtifacts(
     releaseSetSnapshots.set(`${snapshot.snapshotId}:${snapshot.variant}`, {
       role: snapshot.role,
       isRequired: Boolean(snapshot.isRequired),
-      selectionMode: snapshot.selectionMode,
+      cohortMatchingMode: snapshot.cohortMatchingMode,
       anchorSnapshotId: snapshot.anchorSnapshotId ?? null,
       variant: snapshot.variant,
     })
@@ -2253,13 +2274,14 @@ export async function publishReleaseArtifacts(
   for (const snapshot of args.carriedSnapshots) {
     const member = compositionMembers.find(
       candidate =>
+        candidate.domainCode === releaseSet.domainCode &&
         candidate.resourceType === snapshot.resourceType &&
         candidate.variant === (snapshot.variant ?? 'default'),
     )
     releaseSetSnapshots.set(`${snapshot.snapshotId}:${snapshot.variant ?? 'default'}`, {
       role: member?.role ?? 'supporting',
       isRequired: member?.isRequired ?? true,
-      selectionMode: member?.selectionMode ?? 'carry_forward_optional',
+      cohortMatchingMode: member?.cohortMatchingMode ?? 'carry_forward_optional',
       anchorSnapshotId: member?.anchorResourceType
         ? member.anchorResourceType === datasetMember?.resourceType
           ? args.snapshotId
@@ -2272,7 +2294,7 @@ export async function publishReleaseArtifacts(
   releaseSetSnapshots.set(`${args.snapshotId}:${datasetVariant}`, {
     role: datasetMember?.role ?? 'primary',
     isRequired: datasetMember?.isRequired ?? true,
-    selectionMode: datasetMember?.selectionMode ?? 'exact_ref',
+    cohortMatchingMode: datasetMember?.cohortMatchingMode ?? 'exact_ref',
     anchorSnapshotId: datasetMember?.anchorResourceType ? anchorSnapshotId : null,
     variant: datasetVariant,
   })
@@ -2492,7 +2514,7 @@ export async function publishReleaseArtifacts(
             variant: snapshotMetadata.variant,
             role: snapshotMetadata.role,
             isRequired: snapshotMetadata.isRequired,
-            selectionMode: snapshotMetadata.selectionMode,
+            cohortMatchingMode: snapshotMetadata.cohortMatchingMode,
             anchorSnapshotId: snapshotMetadata.anchorSnapshotId,
             createdAt: publishedAt,
           })
@@ -2505,7 +2527,7 @@ export async function publishReleaseArtifacts(
             set: {
               role: snapshotMetadata.role,
               isRequired: snapshotMetadata.isRequired,
-              selectionMode: snapshotMetadata.selectionMode,
+              cohortMatchingMode: snapshotMetadata.cohortMatchingMode,
               anchorSnapshotId: snapshotMetadata.anchorSnapshotId,
             },
           }),
@@ -2775,7 +2797,7 @@ export async function resolveShardForTypeRegionYear(
 }
 
 function resolveDatasetVariant(type: ResourceType, source?: string) {
-  return type === 'divisionArea' || type === 'divisionBoundary'
+  return type === 'division' || type === 'divisionArea' || type === 'divisionBoundary'
     ? (source ?? 'overture')
     : 'default'
 }
@@ -2828,7 +2850,7 @@ export async function upsertApiReleaseSetSnapshot(
     anchorSnapshotId?: string | null
     isRequired?: boolean
     role?: string
-    selectionMode?: string
+    cohortMatchingMode?: string
     variant?: string
   } = {},
 ) {
@@ -2840,7 +2862,7 @@ export async function upsertApiReleaseSetSnapshot(
       variant: options.variant ?? 'default',
       role: options.role ?? 'supporting',
       isRequired: options.isRequired ?? true,
-      selectionMode: options.selectionMode ?? 'carry_forward_optional',
+      cohortMatchingMode: options.cohortMatchingMode ?? 'carry_forward_optional',
       anchorSnapshotId: options.anchorSnapshotId ?? null,
       createdAt: toIsoTimestamp(),
     })
@@ -2854,7 +2876,7 @@ export async function upsertApiReleaseSetSnapshot(
         variant: options.variant ?? 'default',
         role: options.role ?? 'supporting',
         isRequired: options.isRequired ?? true,
-        selectionMode: options.selectionMode ?? 'carry_forward_optional',
+        cohortMatchingMode: options.cohortMatchingMode ?? 'carry_forward_optional',
         anchorSnapshotId: options.anchorSnapshotId ?? null,
       },
     })
@@ -2951,6 +2973,7 @@ export async function resolveActiveSnapshotForType(
   type: ResourceType,
   resourceType: ResourceType,
   options: {
+    domainCode?: string
     regionCode?: RegionCode
     variant?: string
   } = {},
@@ -2986,6 +3009,7 @@ export async function resolveActiveSnapshotForType(
           and(
             eq(metaApiVersions.code, getApiVersionCodeForType(type)),
             eq(metaApiReleaseSets.status, 'current'),
+            eq(metaApiReleaseSets.domainCode, options.domainCode ?? 'default'),
             eq(metaSnapshots.resourceType, resourceType),
             options.variant
               ? eq(metaApiReleaseSetSnapshots.variant, options.variant)
@@ -3003,7 +3027,11 @@ export async function resolveActiveSnapshotForType(
     )
   }
 
-  const activeReleaseSet = await resolveActiveReleaseSetForType(db, type)
+  const activeReleaseSet = await resolveActiveReleaseSetForType(
+    db,
+    type,
+    options.domainCode ?? 'default',
+  )
 
   if (!activeReleaseSet) {
     return null
