@@ -1,0 +1,23 @@
+{
+  "versionHash": "sha256:74e829f3b90eaa961bb2baa765bfaf36315c1ddf4a8b54d4196eccec740eb549",
+  "code": "hkgov-pland",
+  "url": "https://www.pland.gov.hk/",
+  "contactUrl": "https://www.pland.gov.hk/pland_en/contact_us/index.html",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Planning Department",
+      "description": "Planning Department for the Hong Kong SAR Government"
+    },
+    {
+      "locale": "zh-hant",
+      "name": "規劃署",
+      "description": "香港特別行政區政府規劃署。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "规划署",
+      "description": "香港特别行政区政府规划署。"
+    }
+  ]
+}
