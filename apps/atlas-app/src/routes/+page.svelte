@@ -1,23 +1,23 @@
 <script lang="ts">
 import { Main, Divider } from '$lib/bits'
 
-import LandingHero from '$lib/bits/pages/landing/hero.svelte'
-import LandingCommunitySection from '$lib/bits/pages/landing/communitySection.svelte'
-import LandingFeatureSection from '$lib/bits/pages/landing/featureSection.svelte'
-import LandingFoundationSection from '$lib/bits/pages/landing/foundationSection.svelte'
-import LandingPipelineSection from '$lib/bits/pages/landing/pipelineSection.svelte'
+import HeroSection from '$lib/bits/pages/landing/heroSection.svelte'
+import CommunitySection from '$lib/bits/pages/landing/communitySection.svelte'
+import FeatureSection from '$lib/bits/pages/landing/featureSection.svelte'
+import FoundationSection from '$lib/bits/pages/landing/foundationSection.svelte'
+import PipelineSection from '$lib/bits/pages/landing/pipelineSection.svelte'
 // import LandingShowcase from '$lib/bits/pages/landing/showcase.svelte'
 </script>
 
 <Main>
-  <LandingHero />
+  <HeroSection />
   <Divider />
-  <LandingFoundationSection />
+  <FoundationSection />
   <Divider />
-  <LandingFeatureSection />
+  <FeatureSection />
   <Divider />
-  <LandingPipelineSection />
+  <PipelineSection />
   <Divider />
-  <LandingCommunitySection />
+  <CommunitySection />
   <Divider />
 </Main>

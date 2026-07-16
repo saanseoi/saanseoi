@@ -1,5 +1,5 @@
 <script lang="ts">
-import * as Hero from './components/hero'
+import * as Hero from './components/heroSection'
 </script>
 
 <Hero.Root>
