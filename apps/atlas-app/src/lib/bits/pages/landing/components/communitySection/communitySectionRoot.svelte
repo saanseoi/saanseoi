@@ -11,7 +11,12 @@ type Props = {
 let { children, class: className = '' }: Props = $props()
 </script>
 
-<section class={cn('landing-community-section', className)}>
+<section
+  class={cn(
+    'landing-community-section min-h-[calc(100svh-var(--landing-header-height,4.5rem))]',
+    className,
+  )}
+>
   {@render children?.()}
 </section>
 
