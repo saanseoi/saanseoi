@@ -10,13 +10,13 @@ The CSDI file API publishes the following polygonal GeoJSON artifacts. Their und
 ArcGIS services advertise EPSG:2326; the CSDI GeoJSON delivery is EPSG:4326
 longitude/latitude and is ingested as the API canonical CRS.
 
-| Cohort | Catalogue code                  | Layer          | Source cells | TPU values |
-| ------ | ------------------------------- | -------------- | -----------: | ---------: |
-| 2001   | `pland_rcd_1636535158118_80594` | `TPUSBVC_2001` |        4,636 |        282 |
-| 2006   | `pland_rcd_1636535383021_30595` | `TPUSBVC_2006` |        4,800 |        287 |
-| 2011   | `pland_rcd_1634025118087_40967` | `TPUSBVC_2011` |        4,815 |        289 |
-| 2016   | `pland_rcd_1634281887222_15002` | `TPUSBVC_2016` |        4,863 |        291 |
-| 2021   | `pland_rcd_1634022783366_65050` | `TPUSU_2021`   |        4,916 |        292 |
+| Cohort | Catalogue code                                                                                                           | Layer          | Source cells | TPU values |
+| ------ | ------------------------------------------------------------------------------------------------------------------------ | -------------- | -----------: | ---------: |
+| 2001   | [`pland_rcd_1636535158118_80594`](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535158118_80594) | `TPUSBVC_2001` |        4,636 |        282 |
+| 2006   | [`pland_rcd_1636535383021_30595`](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535383021_30595) | `TPUSBVC_2006` |        4,800 |        287 |
+| 2011   | [`pland_rcd_1634025118087_40967`](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634025118087_40967) | `TPUSBVC_2011` |        4,815 |        289 |
+| 2016   | [`pland_rcd_1634281887222_15002`](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634281887222_15002) | `TPUSBVC_2016` |        4,863 |        291 |
+| 2021   | [`pland_rcd_1634022783366_65050`](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050) | `TPUSU_2021`   |        4,916 |        292 |
 
 The publisher is the Planning Department (`hkgov-pland`), not the CSDI host. The source
 licence is the Hong Kong Government open-data licence. `sourceSchemaVersion` is our
@@ -46,37 +46,62 @@ canonical geometry and child-area unions. Each repaired record is identified in
 `repairedSourceFeatureIds` and `wasGeometryRepaired`; all other invalid geometry is
 rejected.
 
-The source has no published names—only hierarchy codes. The adapter exposes those codes
-in `identifiers` and does not manufacture canonical `divisionI18n` rows or retain a
-source I18n table.
+The TPU/subunit source has no published names—only hierarchy codes. The adapter exposes
+those codes in `identifiers` and does not manufacture labels for TPU/subunit canonical
+divisions. The source I18n table exists for the separately named New Town planning
+divisions below; TPU/subunit uploads write no rows to it.
 
 ## New Town boundaries
 
-New Towns are a separate geographic provider variant, not planning divisions. They use
-source profile/bridge authority `hkgov-pland-newtown`, while retaining the Planning
-Department as publisher. The CSDI GeoJSON files are also EPSG:4326 deliveries of
-EPSG:2326 catalogue services.
+New Towns are a separate Planning Department planning-domain resource and provider
+variant, not geographic/Overture divisions. They use source profile authority
+`hkgov-pland-newtown`, while retaining the Planning Department as publisher. The CSDI
+GeoJSON files are also EPSG:4326 deliveries of EPSG:2326 catalogue services.
 
-| Cohort | Catalogue code                  | Layer          | Features |
-| ------ | ------------------------------- | -------------- | -------: |
-| 2006   | `pland_rcd_1636535014241_1352`  | `NewTown_2006` |       12 |
-| 2011   | `pland_rcd_1634024777903_55269` | `NewTown_2011` |       12 |
-| 2016   | `pland_rcd_1634281414408_50485` | `NewTown_2016` |       12 |
-| 2021   | `pland_rcd_1634023103904_16865` | `NewTown_2021` |       13 |
+| Cohort | Catalogue code                                                                                                           | Layer          | Features |
+| ------ | ------------------------------------------------------------------------------------------------------------------------ | -------------- | -------: |
+| 2006   | [`pland_rcd_1636535014241_1352`](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535014241_1352)   | `NewTown_2006` |       12 |
+| 2011   | [`pland_rcd_1634024777903_55269`](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634024777903_55269) | `NewTown_2011` |       12 |
+| 2016   | [`pland_rcd_1634281414408_50485`](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634281414408_50485) | `NewTown_2016` |       12 |
+| 2021   | [`pland_rcd_1634023103904_16865`](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865) | `NewTown_2021` |       13 |
 
 The layers publish only English, Traditional Chinese and Simplified Chinese names—no
-stable feature code. The adapter derives a normalized English-name external identifier
-within each cohort. It loads only when the corresponding reviewed `identifierBridges`
-fixture maps every one of those IDs to an existing geographic canonical division. It
-never creates a New Town canonical division or guesses a match from names or geometry.
-This makes the variant selectable as `areas:hkgov-pland-newtown` after a bridge-backed
-release is published.
+stable feature code. The adapter derives a normalized English-name identifier within
+each cohort and creates a deterministic UUIDv5 canonical division from that cohort-
+scoped Planning Department identity. A 2006, 2011, 2016, or 2021 New Town therefore
+coexists with (and neither replaces nor is a geometry variant of) an Overture geographic
+town. Renames and splits are intentionally separate cohort assertions, so no cross-
+cohort or Overture bridge is inferred. This makes the geometry selectable as
+`areas:hkgov-pland-newtown` for the corresponding planning division release.
 
-The trilingual labels are retained verbatim in the versioned
-`hkgovPlandNewTownDivisionAreaI18n` source table. They describe the provider's geometry
-assertion, not canonical division names, so they do not create or replace canonical
-`divisionI18n` rows.
+The trilingual labels are retained verbatim in the versioned `hkgovPlandDivisionI18n`
+source table and normalized into the associated canonical planning division's
+`divisionI18n` rows. The geometry assertion additionally retains those source labels in
+`hkgovPlandNewTownDivisionAreaI18n`.
+
+The downloaded New Town artifacts contain known invalid rings: Tseung Kwan O in 2006,
+2011 and 2016; Tuen Mun and Tai Po in 2006; and Tung Chung in 2021. The reviewed
+`buffer(0)` policy repairs only those invalid topology cases for canonical geometry. The
+source layer retains the publisher feature and original geometry unchanged, records
+`wasGeometryRepaired`, and stores the repaired canonical geometry separately. The CLI
+can also export a separately labelled `-repaired.geojson` diagnostic copy without
+altering the publisher file.
 
 Its `sourceSchemaVersion` `1.0` is likewise an observed artifact profile for the stable
 `NewTown_en`, `NewTown_Tc`, and `NewTown_Sc` fields, rather than a version declared by
 the catalogue.
+
+## Backfill commands
+
+The CLI owns the checked-in cohort list, artifact paths and catalogue provenance URLs.
+It prepares each local GeoJSON artifact in a temporary directory, uploads the canonical
+division release first, then its exact-cohort area variant, and removes the temporary
+Parquet files afterwards.
+
+```sh
+saanseoi backfill:hkgov-pland-pu --target preview
+saanseoi backfill:hkgov-pland-newtown --target preview
+```
+
+The commands accept no data-path, source-version or confirmation options; use `local`,
+`preview`, or `production` as the target.
