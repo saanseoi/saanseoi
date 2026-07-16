@@ -175,7 +175,10 @@ function getDatasetCodeSubType(_source: string, _type: ResourceType) {
     return 'pu'
   }
 
-  if (_source === 'hkgov-pland-newtown' && _type === 'divisionArea') {
+  if (
+    _source === 'hkgov-pland-newtown' &&
+    (_type === 'division' || _type === 'divisionArea')
+  ) {
     return 'newtown'
   }
 
