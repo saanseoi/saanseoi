@@ -1,0 +1,31 @@
+{
+  "versionHash": "sha256:3b51622cac01c71f7200d4ea3c385af6197eb0ba1d3da447236ed1e5fb989c17",
+  "publisherCode": "hkgov-pland",
+  "code": "ds-hk-hkgov-pland-division-pu",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "census",
+  "theme": "divisions",
+  "type": "division",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Planning Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050",
+  "category": "boundaries",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Tertiary Planning Units and Subunits (Hong Kong)",
+      "description": "Planning divisions derived from the Planning Department's published TPU and subunit boundary cells."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "第三級規劃單位及分區（香港）",
+      "description": "由規劃署公布的第三級規劃單位及分區界線格網衍生的規劃區劃。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "第三级规划单位及分区（香港）",
+      "description": "由规划署公布的第三级规划单位及分区边界格网衍生的规划区划。"
+    }
+  ]
+}

@@ -791,6 +791,18 @@ function resolveSourceTable(tableName: string) {
       return sourceSchema.sourceOvertureDivisionI18n
     case 'overtureDivisions':
       return sourceSchema.sourceOvertureDivisions
+    case 'hkgovPlandPlanningCells':
+      return sourceSchema.sourceHkgovPlandPlanningCells
+    case 'hkgovPlandDivisions':
+      return sourceSchema.sourceHkgovPlandDivisions
+    case 'hkgovPlandDivisionI18n':
+      return sourceSchema.sourceHkgovPlandDivisionI18n
+    case 'hkgovPlandDivisionAreas':
+      return sourceSchema.sourceHkgovPlandDivisionAreas
+    case 'hkgovPlandNewTownDivisionAreas':
+      return sourceSchema.sourceHkgovPlandNewTownDivisionAreas
+    case 'hkgovPlandNewTownDivisionAreaI18n':
+      return sourceSchema.sourceHkgovPlandNewTownDivisionAreaI18n
     default:
       throw new Error(`Unsupported rollback source table: ${tableName}`)
   }

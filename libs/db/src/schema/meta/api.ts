@@ -135,6 +135,7 @@ export const metaApiReleaseSets = sqliteTable(
     apiVersionId: apiVersionIdColumn('restrict'),
     // This is the snapshot-version code shared with the canonical snapshot.
     code: text('code').notNull(),
+    domainCode: text('domainCode').notNull().default('default'),
     schemaVersion: text('schemaVersion').notNull(),
     rulesetVersion: text('rulesetVersion').notNull(),
     status: text('status', { enum: apiReleaseSetStatuses }).notNull(),
@@ -251,6 +252,7 @@ export const metaApiComposition = sqliteTable(
     primaryResourceType: text('primaryResourceType', {
       enum: datasetTypes,
     }).notNull(),
+    defaultDomainCode: text('defaultDomainCode'),
     status: text('status').notNull(),
     notes: text('notes'),
     versionHash: text('versionHash').notNull(),
@@ -268,11 +270,12 @@ export const metaApiCompositionMembers = sqliteTable(
   'apiCompositionMembers',
   {
     apiCompositionId: apiCompositionIdColumn(),
+    domainCode: text('domainCode').notNull().default('default'),
     resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     variant: text('variant').notNull().default('default'),
     role: text('role').notNull(),
     isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
-    selectionMode: text('selectionMode').notNull(),
+    cohortMatchingMode: text('cohortMatchingMode').notNull(),
     anchorResourceType: text('anchorResourceType', {
       enum: datasetTypes,
     }),
@@ -282,7 +285,12 @@ export const metaApiCompositionMembers = sqliteTable(
   },
   table => [
     primaryKey({
-      columns: [table.apiCompositionId, table.resourceType, table.variant],
+      columns: [
+        table.apiCompositionId,
+        table.domainCode,
+        table.resourceType,
+        table.variant,
+      ],
     }),
   ],
 )
@@ -295,7 +303,7 @@ export const metaApiReleaseSetSnapshots = sqliteTable(
     variant: text('variant').notNull().default('default'),
     role: text('role').notNull(),
     isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
-    selectionMode: text('selectionMode').notNull(),
+    cohortMatchingMode: text('cohortMatchingMode').notNull(),
     anchorSnapshotId: text('anchorSnapshotId').references(() => metaSnapshots.id, {
       onDelete: 'restrict',
     }),

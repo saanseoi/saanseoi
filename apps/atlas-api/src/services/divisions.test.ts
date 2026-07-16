@@ -222,9 +222,13 @@ const includedRecordsById: Record<string, DivisionRecord> = {
 
 let listRecords: DivisionRecord[] = [baseRecord]
 let detailRecord: DivisionRecord | null = baseRecord
+const resolveActiveSnapshotForTypeMock = mock(
+  async (_db: unknown, _resourceType: string): Promise<typeof activeSnapshot | null> =>
+    activeSnapshot,
+)
 
 mock.module('@repo/core/db/metaRegistry', () => ({
-  resolveActiveSnapshotForType: mock(async () => activeSnapshot),
+  resolveActiveSnapshotForType: resolveActiveSnapshotForTypeMock,
 }))
 
 mock.module('../db/divisions', () => ({
@@ -251,6 +255,36 @@ describe('division services', () => {
   beforeEach(() => {
     listRecords = [baseRecord]
     detailRecord = baseRecord
+    resolveActiveSnapshotForTypeMock.mockImplementation(
+      async (_db: unknown, _resourceType: string) => activeSnapshot,
+    )
+  })
+
+  test('rejects a registered but unavailable provider area variant', async () => {
+    resolveActiveSnapshotForTypeMock.mockImplementation(
+      async (_db: unknown, resourceType: string) =>
+        resourceType === 'division' ? activeSnapshot : null,
+    )
+
+    const result = await listDivisions({
+      currentDb: {} as never,
+      metaDb: {} as never,
+      requestUrl: 'http://localhost/v0/divisions?include=areas:hkgov-pland-newtown',
+      requestedVersionPath: 'v0',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      query: { include: 'areas:hkgov-pland-newtown' },
+    })
+
+    expect(result).toEqual({
+      status: 409,
+      body: {
+        httpStatus: 409,
+        error: 'variant_unavailable',
+        message:
+          'The requested areas:hkgov-pland-newtown variant is not available in the active division release set.',
+      },
+    })
   })
 
   test('listDivisions shapes division attributes by profile', async () => {

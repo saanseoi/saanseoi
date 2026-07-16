@@ -69,12 +69,12 @@ async function readCache(): Promise<ReleaseNoteCache> {
   if (!raw) return { version: 2, entries: {} }
 
   try {
-    const parsed = JSON.parse(raw) as Partial<ReleaseNoteCache>
-    if (parsed.version === 2 && parsed.entries) {
+    const parsed = JSON.parse(raw) as { entries?: unknown; version?: number }
+    if (parsed.version === 2 && isReleaseNoteEntries(parsed.entries)) {
       return { version: 2, entries: parsed.entries }
     }
 
-    if (parsed.version === 1 && parsed.entries) {
+    if (parsed.version === 1 && isReleaseNoteEntries(parsed.entries)) {
       const cache = { version: 2 as const, entries: migrateV1Entries(parsed.entries) }
       await writeCache(cache)
       return cache
@@ -84,6 +84,15 @@ async function readCache(): Promise<ReleaseNoteCache> {
   } catch {
     return { version: 2, entries: {} }
   }
+}
+
+function isReleaseNoteEntries(value: unknown): value is Record<string, string> {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Object.values(value).every(entry => typeof entry === 'string')
+  )
 }
 
 function migrateV1Entries(entries: Record<string, string>) {

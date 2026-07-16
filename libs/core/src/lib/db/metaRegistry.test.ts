@@ -129,6 +129,7 @@ function createDraftReleaseSetDb() {
       code TEXT NOT NULL,
       version INTEGER NOT NULL,
       primaryResourceType TEXT NOT NULL,
+      defaultDomainCode TEXT,
       status TEXT NOT NULL,
       createdAt TEXT NOT NULL
     );
@@ -137,6 +138,7 @@ function createDraftReleaseSetDb() {
       id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       code TEXT NOT NULL,
+      domainCode TEXT NOT NULL DEFAULT 'default',
       schemaVersion TEXT NOT NULL,
       rulesetVersion TEXT NOT NULL,
       status TEXT NOT NULL,
@@ -338,6 +340,7 @@ function createActiveSnapshotLookupDb() {
       id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       code TEXT NOT NULL,
+      domainCode TEXT NOT NULL DEFAULT 'default',
       schemaVersion TEXT NOT NULL,
       rulesetVersion TEXT NOT NULL,
       status TEXT NOT NULL,
@@ -417,6 +420,7 @@ function createPublishReleaseArtifactsDb() {
     CREATE TABLE apiReleaseSets (
       id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
+      domainCode TEXT NOT NULL DEFAULT 'default',
       schemaVersion TEXT NOT NULL,
       rulesetVersion TEXT NOT NULL,
       status TEXT NOT NULL,
@@ -451,7 +455,7 @@ function createPublishReleaseArtifactsDb() {
       variant TEXT NOT NULL DEFAULT 'default',
       role TEXT NOT NULL,
       isRequired INTEGER NOT NULL,
-      selectionMode TEXT NOT NULL,
+      cohortMatchingMode TEXT NOT NULL,
       anchorSnapshotId TEXT,
       createdAt INTEGER NOT NULL,
       PRIMARY KEY (apiReleaseSetId, snapshotId, variant)
@@ -799,7 +803,7 @@ describe('ensureDraftReleaseSetForRelease', () => {
 
     expect(firstReleaseSet).toMatchObject({
       id: secondReleaseSet.id,
-      code: 'data-hk-division-2025-09-24.0-0',
+      code: 'data-hk-division-2025-09-24.0-0--default',
     })
     expect(firstReleaseSet.id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
@@ -1272,7 +1276,7 @@ describe('publishReleaseArtifacts', () => {
         ('snapshot-new', 'dataset-overture-division', 'release-1');
 
       INSERT INTO apiReleaseSetSnapshots (
-        apiReleaseSetId, snapshotId, role, isRequired, selectionMode, anchorSnapshotId, createdAt
+        apiReleaseSetId, snapshotId, role, isRequired, cohortMatchingMode, anchorSnapshotId, createdAt
       ) VALUES (
         'release-set-1',
         'snapshot-curated',
