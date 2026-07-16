@@ -16,6 +16,12 @@ Home Affairs Department profiles are kept in the provider source folders:
 
 - [`Overture geometry`](../sources/overture/divisionGeometry.md)
 - [`Home Affairs Department area`](../sources/hkgov-had/divisionArea.md)
+- [`Planning Department TPU and subunit areas`](../sources/hkgov-pland/divisionArea.md)
+
+Planning Department TPU/subunit areas and New Town areas are optional variants. The
+former accompany Planning Department canonical planning divisions at the exact cohort;
+the latter are independently bridge-backed geographic variants selected at or before the
+API-release cohort. Neither changes the Overture/HAD default selection.
 
 Functional domains are explicit (`administrative`, `planning`, `electoral`, and
 `geographic`). A division may have secondary domain memberships, while hierarchy edges
