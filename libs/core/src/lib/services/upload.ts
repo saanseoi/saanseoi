@@ -84,6 +84,8 @@ const SOURCE_ALIASES: Record<string, string> = {
   'overture-maps': 'overture',
   hkgov: 'hkgov',
   'hkgov-had': 'hkgov-had',
+  'hkgov-pland-pu': 'hkgov-pland-pu',
+  'hkgov-pland-newtown': 'hkgov-pland-newtown',
   'hkgov-dpo': 'hkgov-dpo',
   'hkgov als': 'hkgov-dpo',
   als: 'hkgov-dpo',
@@ -166,6 +168,17 @@ function getDatasetCodeSubType(_source: string, _type: ResourceType) {
     return 'district'
   }
 
+  if (
+    _source === 'hkgov-pland-pu' &&
+    (_type === 'division' || _type === 'divisionArea')
+  ) {
+    return 'pu'
+  }
+
+  if (_source === 'hkgov-pland-newtown' && _type === 'divisionArea') {
+    return 'newtown'
+  }
+
   return null
 }
 
@@ -174,6 +187,14 @@ function buildDatasetCode(regionCode: RegionCode, source: string, type: Resource
 
   if (source === 'hkgov-had' && type === 'divisionArea' && subType === 'district') {
     return `ds-${regionCode}-${source}-${subType}`
+  }
+
+  if (source === 'hkgov-pland-pu' && subType === 'pu') {
+    return `ds-${regionCode}-hkgov-pland-${type}-${subType}`
+  }
+
+  if (source === 'hkgov-pland-newtown' && subType === 'newtown') {
+    return `ds-${regionCode}-hkgov-pland-${type}-${subType}`
   }
 
   return `ds-${regionCode}-${source}-${type}${subType ? `-${subType}` : ''}`
@@ -186,6 +207,14 @@ function buildReleaseCode(
   type: ResourceType,
 ) {
   const subType = getDatasetCodeSubType(source, type)
+
+  if (source === 'hkgov-pland-pu' && subType === 'pu') {
+    return `hkgov-pland-${sourceVersion}-${type}-${subType}`
+  }
+
+  if (source === 'hkgov-pland-newtown' && subType === 'newtown') {
+    return `hkgov-pland-${sourceVersion}-${type}-${subType}`
+  }
 
   return `${source}-${regionCode}-${sourceVersion}-${
     source === 'hkgov-had' && type === 'divisionArea' && subType === 'district'
