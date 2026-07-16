@@ -582,6 +582,12 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       "versionHash TEXT NOT NULL DEFAULT ''",
     )
   }
+  addColumnIfMissing(
+    db,
+    'apiReleaseSets',
+    'domainCode',
+    "domainCode TEXT NOT NULL DEFAULT 'default'",
+  )
 
   if (hasColumn(db, 'apiReleaseSetSnapshots', 'snapshotFamily')) {
     rebuildTable(
@@ -659,6 +665,12 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
     addColumnIfMissing(
       db,
       'apiReleaseSetSnapshots',
+      'cohortMatchingMode',
+      "cohortMatchingMode TEXT NOT NULL DEFAULT 'carry_forward_optional'",
+    )
+    addColumnIfMissing(
+      db,
+      'apiReleaseSetSnapshots',
       'anchorSnapshotId',
       'anchorSnapshotId TEXT',
     )
@@ -701,6 +713,24 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       `,
     )
   }
+  addColumnIfMissing(
+    db,
+    'apiCompositionMembers',
+    'domainCode',
+    "domainCode TEXT NOT NULL DEFAULT 'default'",
+  )
+  addColumnIfMissing(
+    db,
+    'apiCompositionMembers',
+    'cohortMatchingMode',
+    "cohortMatchingMode TEXT NOT NULL DEFAULT 'exact_ref'",
+  )
+  addColumnIfMissing(
+    db,
+    'apiComposition',
+    'defaultDomainCode',
+    'defaultDomainCode TEXT',
+  )
 
   addColumnIfMissing(db, 'snapshotSources', 'selectedByRule', 'selectedByRule TEXT')
   addColumnIfMissing(db, 'snapshotSources', 'selectionMode', 'selectionMode TEXT')
@@ -949,6 +979,7 @@ export function seedFixtureCatalog(db: Database) {
       id,
       apiVersionId,
       code,
+      domainCode,
       schemaVersion,
       rulesetVersion,
       status,
@@ -961,6 +992,7 @@ export function seedFixtureCatalog(db: Database) {
         'api-release-set-data-hk-divisions-2026-06-17.0-0',
         'api-version-api-divisions-v0.1',
         'data-hk-divisions-2026-06-17.0-0',
+        'overture',
         'sv-division-v1',
         'rs-division-merge-v1',
         'current',
@@ -973,6 +1005,7 @@ export function seedFixtureCatalog(db: Database) {
         'api-release-set-data-hk-addresses-2026-06-17.0-0',
         'api-version-api-addresses-v0.1',
         'data-hk-addresses-2026-06-17.0-0',
+        'default',
         'sv-address-v1',
         'rs-address-merge-v1',
         'current',
@@ -985,6 +1018,7 @@ export function seedFixtureCatalog(db: Database) {
         'api-release-set-data-hk-places-2026-06-17.0-0',
         'api-version-api-places-v0.1',
         'data-hk-places-2026-06-17.0-0',
+        'default',
         'sv-place-v1',
         'rs-place-merge-v1',
         'current',
@@ -996,6 +1030,7 @@ export function seedFixtureCatalog(db: Database) {
     ON CONFLICT(id) DO UPDATE SET
       apiVersionId = excluded.apiVersionId,
       code = excluded.code,
+      domainCode = excluded.domainCode,
       schemaVersion = excluded.schemaVersion,
       rulesetVersion = excluded.rulesetVersion,
       status = excluded.status,
