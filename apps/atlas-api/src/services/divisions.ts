@@ -4,7 +4,7 @@ import {
   type ApiProfileName,
   type RequestedApiLocaleSelection,
 } from '@repo/core/apiLocales'
-import { resolveActiveSnapshotForType } from '@repo/core/db/metaRegistry'
+import { resolveApiReleaseSetSnapshotsForRequest } from '@repo/core/db/metaRegistry'
 
 import {
   countDivisionsCurrent,
@@ -128,6 +128,9 @@ type DivisionListDocument = {
   data: DivisionResourcePayload[]
   included?: IncludedResourcePayload[]
   meta: ApiVersionMetadata & {
+    apiCatalogRevision: string
+    catalogPublishedAt: string
+    cohort: string
     domain: string
     profile: DivisionProfile
     locales: ApiDocumentLocales
@@ -145,11 +148,15 @@ type DivisionDetailDocument = {
     version: '1.1'
   }
   links: {
+    permalink?: string
     self: string
   }
   data: DivisionResourcePayload
   included?: IncludedResourcePayload[]
   meta: ApiVersionMetadata & {
+    apiCatalogRevision: string
+    catalogPublishedAt: string
+    cohort: string
     domain: string
     profile: DivisionProfile
     locales: ApiDocumentLocales
@@ -173,7 +180,11 @@ type VariantUnavailableResponse = {
 type ActiveDivisionSnapshot = {
   snapshotId: string
   apiReleaseSet: string
+  apiCatalogRevision: string
+  catalogPublishedAt: string
+  cohortKey: string
   domainCode: string
+  effectiveFrom: string | null
   schemaVersion: string
   rulesetVersion: string
   areaSnapshotId: string | null
@@ -181,7 +192,12 @@ type ActiveDivisionSnapshot = {
 }
 
 export type DivisionListQuery = {
+  catalogRevision?: string
+  cohort?: string
   domain?: string
+  effectiveAt?: string
+  knownAt?: string
+  releaseSet?: string
   profile?: string
   locales?: string
   include?: string
@@ -193,7 +209,12 @@ export type DivisionListQuery = {
 }
 
 export type DivisionDetailQuery = {
+  catalogRevision?: string
+  cohort?: string
   domain?: string
+  effectiveAt?: string
+  knownAt?: string
+  releaseSet?: string
   profile?: string
   locales?: string
   include?: string
@@ -554,6 +575,9 @@ function buildListDocument(args: {
         profile: args.routeState.profile,
       }),
       profile: args.routeState.profile,
+      apiCatalogRevision: args.activeSnapshot.apiCatalogRevision,
+      catalogPublishedAt: args.activeSnapshot.catalogPublishedAt,
+      cohort: args.activeSnapshot.cohortKey,
       domain: args.activeSnapshot.domainCode,
       locales: resolveApiMetaLocales(args.routeState.localeSelection),
       filters: args.filters,
@@ -565,6 +589,13 @@ function buildListDocument(args: {
     },
     data,
     included,
+    permalink: buildDivisionPermalink({
+      url: args.url,
+      routeState: args.routeState,
+      activeSnapshot: args.activeSnapshot,
+      limit: args.limit,
+      offset: args.offset,
+    }),
   })
 }
 
@@ -606,10 +637,78 @@ function buildDetailDocument(args: {
         profile: args.routeState.profile,
       }),
       profile: args.routeState.profile,
+      apiCatalogRevision: args.activeSnapshot.apiCatalogRevision,
+      catalogPublishedAt: args.activeSnapshot.catalogPublishedAt,
+      cohort: args.activeSnapshot.cohortKey,
       domain: args.activeSnapshot.domainCode,
       locales: resolveApiMetaLocales(args.routeState.localeSelection),
     },
+    permalink: buildDivisionPermalink({
+      url: args.url,
+      routeState: args.routeState,
+      activeSnapshot: args.activeSnapshot,
+    }),
   })
+}
+
+function buildDivisionPermalink(args: {
+  activeSnapshot: ActiveDivisionSnapshot
+  limit?: number
+  offset?: number
+  routeState: DivisionRouteState
+  url: URL
+}) {
+  const permalink = new URL(args.url)
+  const exactVersionPath = args.routeState.resolvedApiVersion.replace(
+    /^api-divisions-/,
+    '',
+  )
+  permalink.pathname = permalink.pathname.replace(
+    /^\/v0(?:\.1)?\//,
+    `/${exactVersionPath}/`,
+  )
+  permalink.searchParams.delete('effectiveAt')
+  permalink.searchParams.set('catalogRevision', args.activeSnapshot.apiCatalogRevision)
+  permalink.searchParams.set('knownAt', args.activeSnapshot.catalogPublishedAt)
+  permalink.searchParams.set('releaseSet', args.activeSnapshot.apiReleaseSet)
+  permalink.searchParams.set('cohort', args.activeSnapshot.cohortKey)
+  permalink.searchParams.set('domain', args.activeSnapshot.domainCode)
+  permalink.searchParams.set('profile', args.routeState.profile)
+  permalink.searchParams.set(
+    'locales',
+    args.routeState.localeSelection.mode === 'all'
+      ? '*'
+      : args.routeState.localeSelection.locales.join(','),
+  )
+
+  const includes = requestedIncludes(permalink.searchParams.get('include') ?? undefined)
+  const normalizedIncludes = [...includes].map(include => {
+    if (include === 'areas') {
+      return `areas:${
+        requestedGeometryVariants('areas', args.activeSnapshot.domainCode).area ??
+        args.activeSnapshot.domainCode
+      }`
+    }
+    if (include === 'boundaries') {
+      return `boundaries:${
+        requestedGeometryVariants('boundaries', args.activeSnapshot.domainCode)
+          .boundary ?? args.activeSnapshot.domainCode
+      }`
+    }
+    return include
+  })
+  permalink.searchParams.set(
+    'include',
+    normalizedIncludes.length > 0 ? normalizedIncludes.join(',') : 'none',
+  )
+  if (args.limit !== undefined) {
+    permalink.searchParams.set('page[limit]', String(args.limit))
+  }
+  if (args.offset !== undefined) {
+    permalink.searchParams.set('page[offset]', String(args.offset))
+  }
+  permalink.searchParams.sort()
+  return permalink.toString()
 }
 
 function buildSnapshotNotReadyDivisionResponse(): DivisionSnapshotNotReadyResponse {
@@ -620,30 +719,53 @@ async function getActiveDivisionSnapshot(
   metaDb: AppEnv['Variables']['metaDb'],
   domainCode: string,
   variants: { area?: string; boundary?: string },
+  selectors: Pick<
+    DivisionListQuery,
+    'catalogRevision' | 'cohort' | 'effectiveAt' | 'knownAt' | 'releaseSet'
+  >,
 ): Promise<ActiveDivisionSnapshot | null> {
-  const [activeSnapshot, areaSnapshot, boundarySnapshot] = await runWithD1ReadRetry(
-    () =>
-      Promise.all([
-        resolveActiveSnapshotForType(metaDb as never, 'division', 'division', {
-          domainCode,
-        }),
-        resolveActiveSnapshotForType(metaDb as never, 'division', 'divisionArea', {
-          domainCode,
-          variant: variants.area,
-        }),
-        resolveActiveSnapshotForType(metaDb as never, 'division', 'divisionBoundary', {
-          domainCode,
-          variant: variants.boundary,
-        }),
-      ]),
+  const selection = await runWithD1ReadRetry(() =>
+    resolveApiReleaseSetSnapshotsForRequest(metaDb as never, 'division', {
+      catalogRevision: selectors.catalogRevision,
+      cohortKey: selectors.cohort,
+      domainCode,
+      effectiveAt: selectors.effectiveAt,
+      knownAt: selectors.knownAt,
+      regionCode: 'hk',
+      releaseSet: selectors.releaseSet,
+    }),
   )
 
-  if (!activeSnapshot) {
+  if (!selection) {
     return null
   }
 
+  const primarySnapshot = selection.snapshots.find(
+    snapshot =>
+      snapshot.snapshotResourceType === 'division' && snapshot.role === 'primary',
+  )
+  if (!primarySnapshot) return null
+  const areaSnapshot = selection.snapshots.find(
+    snapshot =>
+      snapshot.snapshotResourceType === 'divisionArea' &&
+      (!variants.area || snapshot.variant === variants.area),
+  )
+  const boundarySnapshot = selection.snapshots.find(
+    snapshot =>
+      snapshot.snapshotResourceType === 'divisionBoundary' &&
+      (!variants.boundary || snapshot.variant === variants.boundary),
+  )
+
   return {
-    ...activeSnapshot,
+    snapshotId: primarySnapshot.snapshotId,
+    apiReleaseSet: selection.releaseSet.code,
+    apiCatalogRevision: selection.releaseSet.apiCatalogRevision,
+    catalogPublishedAt: selection.releaseSet.catalogPublishedAt,
+    cohortKey: selection.releaseSet.cohortKey,
+    domainCode: selection.releaseSet.domainCode,
+    effectiveFrom: selection.releaseSet.effectiveFrom,
+    schemaVersion: selection.releaseSet.schemaVersion,
+    rulesetVersion: selection.releaseSet.rulesetVersion,
     areaSnapshotId: areaSnapshot?.snapshotId ?? null,
     boundarySnapshotId: boundarySnapshot?.snapshotId ?? null,
   }
@@ -654,7 +776,7 @@ function requestedIncludes(value: string | undefined) {
     (value ?? '')
       .split(',')
       .map(item => item.trim())
-      .filter(Boolean),
+      .filter(item => Boolean(item) && item !== 'none'),
   )
 }
 
@@ -814,6 +936,7 @@ export async function listDivisions(args: {
     args.metaDb,
     domainCode,
     geometryVariants,
+    args.query,
   )
 
   if (!activeDivisionSnapshot) {
@@ -953,6 +1076,7 @@ export async function getDivisionDetail(args: {
     args.metaDb,
     domainCode,
     geometryVariants,
+    args.query,
   )
 
   if (!activeDivisionSnapshot) {

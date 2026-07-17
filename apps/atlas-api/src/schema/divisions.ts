@@ -158,6 +158,9 @@ const DivisionResourceSchema = z
 
 const DivisionDocumentMetaSchema = z
   .object({
+    apiCatalogRevision: z.string(),
+    catalogPublishedAt: z.string(),
+    cohort: z.string(),
     domain: z.string(),
     profile: ProfileName,
     locales: RequestedLocalesMetadataSchema,
@@ -181,18 +184,33 @@ const DivisionDocumentMetaSchema = z
 
 export const DivisionsListQuerySchema = z
   .object({
+    catalogRevision: z.string().min(1).optional().openapi({
+      description: 'Immutable family-and-region API catalog checkpoint.',
+    }),
+    cohort: z.string().min(1).optional().openapi({
+      description: 'Exact effective cohort to select within the chosen catalog.',
+    }),
     domain: z
-      .enum(['overture', 'hkgov-pland-pu', 'hkgov-pland-newtown'])
+      .enum(['overture', 'hkgov-pland-pu', 'hkgov-pland-new-town'])
       .optional()
       .openapi({
         description: 'Division domain to query. Defaults to the Overture domain.',
       }),
+    effectiveAt: z.iso.datetime().optional().openapi({
+      description: 'Select the domain release effective at this instant.',
+    }),
+    knownAt: z.iso.datetime().optional().openapi({
+      description: 'Resolve the newest catalog checkpoint known at this instant.',
+    }),
+    releaseSet: z.string().min(1).optional().openapi({
+      description: 'Exact immutable domain release within the chosen catalog.',
+    }),
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
     include: z
       .string()
       .regex(
-        /^(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-newtown))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-newtown))?|boundaries(?::overture)?))*$/,
+        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
       )
       .optional()
       .openapi({
@@ -215,18 +233,33 @@ export const DivisionDetailParamsSchema = z
 
 export const DivisionDetailQuerySchema = z
   .object({
+    catalogRevision: z.string().min(1).optional().openapi({
+      description: 'Immutable family-and-region API catalog checkpoint.',
+    }),
+    cohort: z.string().min(1).optional().openapi({
+      description: 'Exact effective cohort to select within the chosen catalog.',
+    }),
     domain: z
-      .enum(['overture', 'hkgov-pland-pu', 'hkgov-pland-newtown'])
+      .enum(['overture', 'hkgov-pland-pu', 'hkgov-pland-new-town'])
       .optional()
       .openapi({
         description: 'Division domain to query. Defaults to the Overture domain.',
       }),
+    effectiveAt: z.iso.datetime().optional().openapi({
+      description: 'Select the domain release effective at this instant.',
+    }),
+    knownAt: z.iso.datetime().optional().openapi({
+      description: 'Resolve the newest catalog checkpoint known at this instant.',
+    }),
+    releaseSet: z.string().min(1).optional().openapi({
+      description: 'Exact immutable domain release within the chosen catalog.',
+    }),
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
     include: z
       .string()
       .regex(
-        /^(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-newtown))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-newtown))?|boundaries(?::overture)?))*$/,
+        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
       )
       .optional()
       .openapi({

@@ -4,9 +4,38 @@ import type { DivisionRecord } from '../db/divisions'
 
 const activeSnapshot = {
   snapshotId: 'snapshot-hk-division',
-  apiReleaseSet: 'data-hk-divisions-2026-06-17.0',
+  apiReleaseSet: 'data-hk-divisions-2026-06-17.0-0--overture',
+  apiCatalogRevision: 'catalog-hk-divisions-v0.1-2026-06-29.0',
+  catalogPublishedAt: '2026-06-29T00:00:00.000Z',
+  cohortKey: '2026-06-17.0',
+  domainCode: 'overture',
+  effectiveFrom: '2026-06-17T00:00:00.000Z',
   schemaVersion: 'sv-division-v1',
   rulesetVersion: 'rs-division-merge-v1',
+}
+
+const resolvedReleaseSet = {
+  releaseSet: {
+    id: 'release-set-hk-division',
+    code: activeSnapshot.apiReleaseSet,
+    cohortKey: activeSnapshot.cohortKey,
+    domainCode: activeSnapshot.domainCode,
+    effectiveFrom: activeSnapshot.effectiveFrom,
+    effectiveTo: null,
+    revision: 0,
+    schemaVersion: activeSnapshot.schemaVersion,
+    rulesetVersion: activeSnapshot.rulesetVersion,
+    apiCatalogRevision: activeSnapshot.apiCatalogRevision,
+    catalogPublishedAt: activeSnapshot.catalogPublishedAt,
+  },
+  snapshots: [
+    {
+      snapshotResourceType: 'division',
+      snapshotId: activeSnapshot.snapshotId,
+      role: 'primary',
+      variant: 'overture',
+    },
+  ],
 }
 
 const hierarchyWithNames = [
@@ -222,13 +251,12 @@ const includedRecordsById: Record<string, DivisionRecord> = {
 
 let listRecords: DivisionRecord[] = [baseRecord]
 let detailRecord: DivisionRecord | null = baseRecord
-const resolveActiveSnapshotForTypeMock = mock(
-  async (_db: unknown, _resourceType: string): Promise<typeof activeSnapshot | null> =>
-    activeSnapshot,
+const resolveApiReleaseSetSnapshotsForRequestMock = mock(
+  async (): Promise<typeof resolvedReleaseSet | null> => resolvedReleaseSet,
 )
 
 mock.module('@repo/core/db/metaRegistry', () => ({
-  resolveActiveSnapshotForType: resolveActiveSnapshotForTypeMock,
+  resolveApiReleaseSetSnapshotsForRequest: resolveApiReleaseSetSnapshotsForRequestMock,
 }))
 
 mock.module('../db/divisions', () => ({
@@ -255,25 +283,20 @@ describe('division services', () => {
   beforeEach(() => {
     listRecords = [baseRecord]
     detailRecord = baseRecord
-    resolveActiveSnapshotForTypeMock.mockImplementation(
-      async (_db: unknown, _resourceType: string) => activeSnapshot,
+    resolveApiReleaseSetSnapshotsForRequestMock.mockImplementation(
+      async () => resolvedReleaseSet,
     )
   })
 
   test('rejects a registered but unavailable provider area variant', async () => {
-    resolveActiveSnapshotForTypeMock
-      .mockResolvedValueOnce(activeSnapshot)
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(null)
-
     const result = await listDivisions({
       currentDb: {} as never,
       metaDb: {} as never,
-      requestUrl: 'http://localhost/v0/divisions?include=areas:hkgov-pland-newtown',
+      requestUrl: 'http://localhost/v0/divisions?include=areas:hkgov-pland-new-town',
       requestedVersionPath: 'v0',
       requestedApiVersion: '0.1',
       resolvedApiVersion: 'api-divisions-v0.1',
-      query: { include: 'areas:hkgov-pland-newtown' },
+      query: { include: 'areas:hkgov-pland-new-town' },
     })
 
     expect(result).toEqual({
@@ -282,7 +305,7 @@ describe('division services', () => {
         httpStatus: 409,
         error: 'variant_unavailable',
         message:
-          'The requested areas:hkgov-pland-newtown variant is not available in the active division release set.',
+          'The requested areas:hkgov-pland-new-town variant is not available in the active division release set.',
       },
     })
   })
@@ -308,6 +331,20 @@ describe('division services', () => {
       if (result.status !== 200) {
         continue
       }
+
+      const permalinkValue = result.body.links.permalink
+      if (!permalinkValue) throw new Error('Expected a fully qualified permalink.')
+      const permalink = new URL(permalinkValue)
+      expect(permalink.pathname).toBe('/v0.1/divisions')
+      expect(Object.fromEntries(permalink.searchParams)).toMatchObject({
+        catalogRevision: activeSnapshot.apiCatalogRevision,
+        cohort: activeSnapshot.cohortKey,
+        domain: activeSnapshot.domainCode,
+        include: 'none',
+        knownAt: activeSnapshot.catalogPublishedAt,
+        profile,
+        releaseSet: activeSnapshot.apiReleaseSet,
+      })
 
       const resource = result.body.data[0]
 
