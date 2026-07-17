@@ -96,7 +96,7 @@ export async function prepareHkgovHadDistrictUpload(
 
   const filePath = join(
     resolve(outputDir),
-    `${HKGOV_HAD_SOURCE}-hk-${sourceVersion}-divisionArea.parquet`,
+    `${HKGOV_HAD_SOURCE}-hk-${sourceVersion}-division-area.parquet`,
   )
   parquetWriteFile({
     filename: filePath,

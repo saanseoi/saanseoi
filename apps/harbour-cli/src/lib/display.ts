@@ -115,7 +115,7 @@ function describeInferredFrom(
 function formatReleaseValue(result: UploadPreviewResult) {
   if (
     result.plan.source === 'hkgov-pland-pu' ||
-    result.plan.source === 'hkgov-pland-newtown'
+    result.plan.source === 'hkgov-pland-new-town'
   ) {
     return yellowText(result.plan.releaseCode)
   }

@@ -172,7 +172,7 @@ describe('upload session local processing ownership', () => {
         schemaVersionId: 'overture-address-v2025-09-24.0',
       }),
     ).resolves.toMatchObject({
-      releaseCode: 'overture-hk-2026-06-17.0-address',
+      releaseCode: 'dr-hk-overture-address-2026-06-17.0',
       status: 'uploading',
     })
   })
@@ -214,7 +214,7 @@ describe('upload session local processing ownership', () => {
         schemaVersionId: 'overture-address-v2025-09-24.0',
       }),
     ).resolves.toMatchObject({
-      releaseCode: 'overture-hk-2026-06-17.0-address',
+      releaseCode: 'dr-hk-overture-address-2026-06-17.0',
       status: 'uploading',
     })
   })

@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path'
 
 import { cancel, isCancel, text } from '@clack/prompts'
 
-import type { UploadPlan } from '@repo/core'
+import { buildDatasetReleaseCode, type UploadPlan } from '@repo/core'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 const CACHE_PATH = resolve(REPO_ROOT, '.local/harbour/release-note-cache.json')
@@ -39,7 +39,7 @@ const overtureReleaseNotesThemes = [
 const builtInEntries = Object.fromEntries(
   overtureVersions.flatMap(sourceVersion =>
     overtureReleaseNotesThemes.map(({ type, theme }) => [
-      cacheKey(`overture-hk-${sourceVersion}-${type}`),
+      cacheKey(buildDatasetReleaseCode('hk', 'overture', sourceVersion, type)),
       `${overtureReleaseNotesUrl(sourceVersion)}#${theme}`,
     ]),
   ),

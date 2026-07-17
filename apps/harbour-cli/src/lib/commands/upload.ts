@@ -20,7 +20,7 @@ import type { HarbourReadableDb } from '@repo/core/db/types'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { metaSchema } from '@repo/db'
-import { and, desc, eq, inArray, like, lte } from 'drizzle-orm'
+import { and, desc, eq, inArray, lte } from 'drizzle-orm'
 
 import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
 import { prepareHkgovHadDistrictUpload } from '../hkgovHad.ts'
@@ -336,7 +336,7 @@ ${mutedBar}  `)
             rowCount: previewResult.plan.rowCount,
             source: previewResult.plan.source as
               | 'hkgov-pland-pu'
-              | 'hkgov-pland-newtown',
+              | 'hkgov-pland-new-town',
             sourceVersion: previewResult.plan.sourceVersion,
             theme: 'divisions',
             type: 'division',
@@ -369,7 +369,7 @@ ${mutedBar}  `)
           (previewResult.plan.source !== 'overture' &&
             previewResult.plan.source !== 'hkgov-had' &&
             previewResult.plan.source !== 'hkgov-pland-pu' &&
-            previewResult.plan.source !== 'hkgov-pland-newtown')
+            previewResult.plan.source !== 'hkgov-pland-new-town')
         ) {
           throw new Error(
             'Local division geometry SQL processing requires an Overture, Home Affairs Department, Planning Unit, or New Town divisionArea or divisionBoundary dataset.',
@@ -491,7 +491,7 @@ function resolveUploadProcessingStrategy(
     previewResult.plan.type === 'division' &&
     previewResult.plan.theme === 'divisions' &&
     (previewResult.plan.source === 'hkgov-pland-pu' ||
-      previewResult.plan.source === 'hkgov-pland-newtown')
+      previewResult.plan.source === 'hkgov-pland-new-town')
   ) {
     return { mode: 'local-hkgov-pland-division-sql' as const }
   }
@@ -513,7 +513,7 @@ function resolveUploadProcessingStrategy(
     (previewResult.plan.source === 'overture' ||
       previewResult.plan.source === 'hkgov-had' ||
       previewResult.plan.source === 'hkgov-pland-pu' ||
-      previewResult.plan.source === 'hkgov-pland-newtown')
+      previewResult.plan.source === 'hkgov-pland-new-town')
   ) {
     return {
       mode: 'local-division-geometry-sql' as const,
@@ -628,7 +628,7 @@ export async function assertAddressUploadPrerequisites(
 type DivisionGeometryPlan = Awaited<ReturnType<typeof prepareUpload>>['plan']
 
 const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS = [
-  'ds-hk-hkgov-had-district',
+  'ds-hk-hkgov-had-division-area-district',
 ] as const
 
 type CohortIndependentReleaseReadiness = {
@@ -781,7 +781,7 @@ function logApiReleaseSetPublication(
 }
 
 function resolveDivisionDomainCode(source: DivisionGeometryPlan['source'] | undefined) {
-  return source === 'hkgov-pland-pu' || source === 'hkgov-pland-newtown'
+  return source === 'hkgov-pland-pu' || source === 'hkgov-pland-new-town'
     ? source
     : 'overture'
 }
@@ -835,6 +835,13 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
         })
         .from(metaSchema.metaSnapshots)
         .innerJoin(
+          metaSchema.metaSnapshotLineages,
+          eq(
+            metaSchema.metaSnapshots.snapshotLineageId,
+            metaSchema.metaSnapshotLineages.id,
+          ),
+        )
+        .innerJoin(
           metaSchema.metaSnapshotSources,
           eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
         )
@@ -848,8 +855,11 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
+            eq(
+              metaSchema.metaSnapshotLineages.variant,
+              resolveDivisionDomainCode(plan.source),
+            ),
             eq(metaSchema.metaSnapshotSources.role, 'primary'),
-            like(metaSchema.metaDatasets.code, divisionDomainDatasetPattern(plan)),
           ),
         )
         .limit(1)
@@ -869,12 +879,13 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
     `
     SELECT s.resourceType, s.id AS snapshotId
     FROM snapshots s
+    INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
     INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
     INNER JOIN datasets d ON d.id = ss.datasetId
     WHERE s.resourceType = 'division'
       AND s.status = 'published'
       AND d.regionCode = ${sqlLiteral(plan.regionCode)}
-      AND d.code LIKE ${sqlLiteral(divisionDomainDatasetPattern(plan))}
+      AND sl.variant = ${sqlLiteral(resolveDivisionDomainCode(plan.source))}
       AND s.cohortKey = ${sqlLiteral(plan.cohortKey)}
       AND ss.role = 'primary'
     LIMIT 1
@@ -897,7 +908,6 @@ async function resolveLocalDivisionReleaseSetSnapshots(
   try {
     const db = dbContext.metaDb as unknown as HarbourReadableDb
     const resourceTypes = ['division', 'divisionArea', 'divisionBoundary'] as const
-    const datasetPattern = divisionDomainDatasetPattern(plan)
     const entries = await Promise.all(
       resourceTypes.map(
         async resourceType =>
@@ -907,6 +917,13 @@ async function resolveLocalDivisionReleaseSetSnapshots(
               await db
                 .select({ id: metaSchema.metaSnapshots.id })
                 .from(metaSchema.metaSnapshots)
+                .innerJoin(
+                  metaSchema.metaSnapshotLineages,
+                  eq(
+                    metaSchema.metaSnapshots.snapshotLineageId,
+                    metaSchema.metaSnapshotLineages.id,
+                  ),
+                )
                 .innerJoin(
                   metaSchema.metaSnapshotSources,
                   eq(
@@ -927,8 +944,11 @@ async function resolveLocalDivisionReleaseSetSnapshots(
                     eq(metaSchema.metaSnapshots.status, 'published'),
                     eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
                     eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
+                    eq(
+                      metaSchema.metaSnapshotLineages.variant,
+                      resolveDivisionDomainCode(plan.source),
+                    ),
                     eq(metaSchema.metaSnapshotSources.role, 'primary'),
-                    like(metaSchema.metaDatasets.code, datasetPattern),
                   ),
                 )
                 .limit(1)
@@ -952,18 +972,18 @@ async function resolveRemoteDivisionReleaseSetSnapshots(
 ) {
   const resourceTypes = ['division', 'divisionArea', 'divisionBoundary'] as const
   const values = resourceTypes.map(sqlLiteral).join(', ')
-  const datasetPattern = divisionDomainDatasetPattern(plan)
   const rows = await runRemoteSnapshotQuery(
     target,
     `
     SELECT s.resourceType, s.id AS snapshotId
     FROM snapshots s
+    INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
     INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
     INNER JOIN datasets d ON d.id = ss.datasetId
     WHERE s.resourceType IN (${values})
       AND s.status = 'published'
       AND d.regionCode = ${sqlLiteral(plan.regionCode)}
-      AND d.code LIKE ${sqlLiteral(datasetPattern)}
+      AND sl.variant = ${sqlLiteral(resolveDivisionDomainCode(plan.source))}
       AND s.cohortKey = ${sqlLiteral(plan.cohortKey)}
       AND ss.role = 'primary'
   `,
@@ -972,13 +992,6 @@ async function resolveRemoteDivisionReleaseSetSnapshots(
   return Object.fromEntries(
     resourceTypes.map(resourceType => [resourceType, present.has(resourceType)]),
   ) as Record<(typeof resourceTypes)[number], boolean>
-}
-
-function divisionDomainDatasetPattern(plan: DivisionGeometryPlan) {
-  const domainCode = resolveDivisionDomainCode(plan.source)
-  return domainCode === 'overture'
-    ? `ds-${plan.regionCode}-overture-%`
-    : `%-${domainCode === 'hkgov-pland-pu' ? 'pu' : 'newtown'}`
 }
 
 async function resolveLocalCohortIndependentDivisionReleases(

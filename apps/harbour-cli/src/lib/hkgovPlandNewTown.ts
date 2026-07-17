@@ -341,7 +341,7 @@ function writeDivisionAreaParquet(
       ),
       jsonColumn(
         'sources',
-        rows.map(row => [{ dataset: 'hkgov-pland-newtown', newTownId: row.id }]),
+        rows.map(row => [{ dataset: 'hkgov-pland-new-town', newTownId: row.id }]),
         false,
       ),
       jsonColumn(
@@ -379,7 +379,7 @@ function writeDivisionAreaParquet(
 function canonicalDivisionId(row: NewTownRow, sourceVersion: string) {
   return buildDeterministicUuidV5(
     CANONICAL_DIVISION_ID_NAMESPACE,
-    `hkgov-pland-newtown:hk:planning:${sourceVersion}:${row.id}`,
+    `hkgov-pland-new-town:hk:planning:${sourceVersion}:${row.id}`,
   )
 }
 

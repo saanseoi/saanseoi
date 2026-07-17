@@ -31,15 +31,15 @@ const BASE_DIVISION_FIELDS = [
 
 function makePlan(sourceVersion: string): UploadPlan {
   return {
-    datasetCode: 'hk-division',
-    releaseCode: `overture-hk-division-${sourceVersion}`,
+    datasetCode: 'ds-hk-overture-division',
+    releaseCode: `overture-hk-${sourceVersion}-division`,
     regionCode: 'hk',
     theme: 'divisions',
     type: 'division',
     source: 'overture',
     cohortKey: '2026-05',
     sourceVersion,
-    datasetId: `overture-hk-division-${sourceVersion}`,
+    datasetId: `overture-hk-${sourceVersion}-division`,
     filePath: '/tmp/division.parquet',
     fileName: 'division.parquet',
     originalFileName: 'division.parquet',
@@ -59,15 +59,15 @@ function makePlan(sourceVersion: string): UploadPlan {
 
 function makeAddressPlan(sourceVersion: string): UploadPlan {
   return {
-    datasetCode: 'hk-address',
-    releaseCode: `overture-hk-address-${sourceVersion}`,
+    datasetCode: 'ds-hk-overture-address',
+    releaseCode: `overture-hk-${sourceVersion}-address`,
     regionCode: 'hk',
     theme: 'addresses',
     type: 'address',
     source: 'overture',
     cohortKey: '2026-05',
     sourceVersion,
-    datasetId: `overture-hk-address-${sourceVersion}`,
+    datasetId: `overture-hk-${sourceVersion}-address`,
     filePath: '/tmp/address.parquet',
     fileName: 'address.parquet',
     originalFileName: 'address.parquet',

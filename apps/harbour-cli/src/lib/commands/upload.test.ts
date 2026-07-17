@@ -7,7 +7,7 @@ const resolveLocalAddressDbContextMock = mock(async () => ({
 }))
 const resolveCohortSnapshotMock = mock(async () => null)
 const resolveLatestSnapshotMock = mock(async () => ({
-  id: 'snapshot-overture-hk-2025-09-24.0-division',
+  id: 'snapshot-dr-hk-overture-division-2025-09-24.0',
   code: 'ss-hk-division-2025-09-24.0',
   resourceType: 'division',
   status: 'published',
@@ -75,7 +75,7 @@ const {
 describe('upload command address prerequisites', () => {
   test('checks remote address prerequisites without refreshing the local D1 cache', async () => {
     const resolveRemotePublishedDivisionSnapshotMock = mock(async () => ({
-      snapshotId: 'snapshot-overture-hk-2025-09-24.0-division',
+      snapshotId: 'snapshot-dr-hk-overture-division-2025-09-24.0',
     }))
 
     await assertAddressUploadPrerequisites(
@@ -99,7 +99,7 @@ describe('upload command address prerequisites', () => {
         },
         originalFileName: 'address.parquet',
         regionCode: 'hk',
-        releaseCode: 'overture-hk-2025-09-24.0-address',
+        releaseCode: 'dr-hk-overture-address-2025-09-24.0',
         rowCount: 182_155,
         schemaFingerprint: 'schema-fingerprint',
         source: 'overture',
@@ -157,8 +157,8 @@ describe('division API release set readiness display', () => {
           boundaryAvailable: false,
           cohortIndependentReleases: [
             {
-              datasetCode: 'ds-hk-hkgov-had-district',
-              releaseCode: 'hkgov-had-hk-2022-district',
+              datasetCode: 'ds-hk-hkgov-had-division-area-district',
+              releaseCode: 'dr-hk-hkgov-had-division-area-district-2022',
             },
           ],
           divisionAvailable: true,
@@ -173,7 +173,7 @@ describe('division API release set readiness display', () => {
         '  \u001B[33m○\u001B[39m divisionBoundary  unavailable',
         '',
         'At or Before Cohort',
-        '  \u001B[32m✓\u001B[39m hkgov-had-hk-2022-district  available',
+        '  \u001B[32m✓\u001B[39m dr-hk-hkgov-had-division-area-district-2022  available',
       ].join('\n'),
     )
   })
@@ -190,8 +190,8 @@ describe('division API release set readiness display', () => {
           boundaryAvailable: true,
           cohortIndependentReleases: [
             {
-              datasetCode: 'ds-hk-hkgov-had-district',
-              releaseCode: 'hkgov-had-hk-2022-district',
+              datasetCode: 'ds-hk-hkgov-had-division-area-district',
+              releaseCode: 'dr-hk-hkgov-had-division-area-district-2022',
             },
           ],
           divisionAvailable: true,
@@ -206,7 +206,7 @@ describe('division API release set readiness display', () => {
         '  \u001B[32m✓\u001B[39m divisionBoundary  available',
         '',
         'At or Before Cohort',
-        '  \u001B[32m✓\u001B[39m hkgov-had-hk-2022-district  available',
+        '  \u001B[32m✓\u001B[39m dr-hk-hkgov-had-division-area-district-2022  available',
       ].join('\n'),
     )
   })

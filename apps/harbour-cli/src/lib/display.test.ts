@@ -12,9 +12,9 @@ import type { UploadTarget } from './options.ts'
 
 const previewResult: PreparedUploadResult = {
   plan: {
-    datasetId: 'overture-hk-division-2025-09-24.0',
-    datasetCode: 'hk-division',
-    releaseCode: 'overture-hk-division-2025-09-24.0',
+    datasetId: 'dr-hk-overture-division-2025-09-24.0',
+    datasetCode: 'ds-hk-overture-division',
+    releaseCode: 'dr-hk-overture-division-2025-09-24.0',
     regionCode: 'hk',
     cohortKey: '2025-09',
     theme: 'divisions',
@@ -57,7 +57,7 @@ describe('formatPlan', () => {
 
     expect(lines).toHaveLength(4)
     expect(lines[0]).toContain('dataset')
-    expect(lines[0]).toContain('hk-division')
+    expect(lines[0]).toContain('ds-hk-overture-division')
     expect(lines[1]).toContain('release')
     expect(lines[1]).toContain('overture')
     expect(lines[1]).toContain('2025-09-24.0')
