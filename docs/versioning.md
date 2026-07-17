@@ -257,9 +257,14 @@ scoped by:
 Example conceptual lineage codes:
 
 ```text
-sl-hk-division-ds-hk-overture-division
-sl-hk-division-ds-hk-hkgov-pland-division-pu
+sl-ds-hk-overture-division
+sl-ds-hk-hkgov-pland-division-pu
 ```
+
+The code is `sl-{primaryDatasetCode}`. The dataset code already carries source, region,
+and resource scope, so the lineage code does not repeat them. The separate lineage row
+stores `regionCode`, `resourceType`, `variant`, `primaryDatasetId`, and `identityMode`
+as queryable fields rather than asking consumers to parse the code.
 
 Identity modes are:
 
@@ -271,6 +276,29 @@ Identity modes are:
 Changing the primary dataset normally creates a new lineage. It MUST create a new
 lineage if the identity namespace or cross-cohort identity guarantee changes.
 
+#### How snapshot lineages are used
+
+A lineage is an internal assembly and history boundary; it is not an API domain or a
+public request selector.
+
+1. On ingest, Harbour finds the lineage by its unique `primaryDatasetId`, or creates it
+   deterministically from `sl-{primaryDatasetCode}`.
+2. Every snapshot stores `snapshotLineageId` and a cohort-local `revision`.
+3. The unique `(snapshotLineageId, cohortKey, revision)` tuple prevents two different
+   assemblies from claiming the same position in the stream.
+4. When the same dataset and cohort are assembled again after publication, Harbour finds
+   the highest revision in that lineage and creates the next one.
+5. `identityMode` tells history readers whether identifiers may be compared between
+   cohorts (`persistent`) or only within a cohort (`cohort_scoped`).
+6. An API release set selects exact snapshot IDs from one or more lineages. A catalogue
+   selects the release set; neither layer copies the lineage's entity data.
+
+For a newly created lineage, the lineage code seeds its deterministic UUID. Snapshots
+reference that UUID, not the human-readable code. During the v0 transition, ingestion
+may normalize an existing redundant code while retaining its UUID so existing snapshot
+foreign keys remain valid. Once a stable API publishes a lineage, both its code and UUID
+must be treated as immutable; a genuinely different identity stream gets a new lineage.
+
 ### Snapshot
 
 A snapshot is an assembled resource state for one `(lineage, cohort, revision)`.
@@ -280,7 +308,7 @@ Examples:
 ```text
 ss-hk-division-2025-10-22.0
 ss-hk-division-2025-10-22.0-r1
-ss-hk-division-ds-hk-hkgov-pland-division-pu-2006
+ss-hk-division-hkgov-pland-pu-2006
 ```
 
 Revision zero omits the `-r0` suffix. `-r1` means the same lineage and cohort were
