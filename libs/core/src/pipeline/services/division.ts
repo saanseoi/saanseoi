@@ -26,6 +26,7 @@ import {
   countDivisionCurrentSnapshotRows,
   deleteStaleDivisionCurrentRows,
   getDivisionCurrentSnapshotTraceState,
+  getDivisionVersionMapForSnapshot,
   getMergedCurrentDivisionVersionMap,
   insertDivisionVersionRows,
   prepareDivisionVersionInsertContext,
@@ -269,10 +270,14 @@ export async function processDivisionDataset(
     },
   ]
   const currentRows = await timings.measure('loadCurrentVersionMapMs', () =>
-    getMergedCurrentDivisionVersionMap(historyBaselineSources, {
-      buildDivisionBaseHashInput,
-      normalizeDivisionI18nSnapshotRow,
-    }),
+    versionInsertContext.parentSnapshotId
+      ? getDivisionVersionMapForSnapshot(
+          currentRepoDb,
+          versionInsertContext.parentSnapshotId,
+          { buildDivisionBaseHashInput, normalizeDivisionI18nSnapshotRow },
+          historyBaselineSources.map(source => source.key),
+        )
+      : Promise.resolve(new Map<string, DivisionVersionSnapshot>()),
   )
   const activeSnapshot = await resolveLatestPublishedSnapshotForResourceTypeRegion(
     metaRepoDb,
@@ -281,24 +286,31 @@ export async function processDivisionDataset(
   )
   const isInitialCanonicalLoad = !activeSnapshot && currentRows.size === 0
 
-  if (activeSnapshot) {
+  const parentSnapshotId = versionInsertContext.parentSnapshotId
+  if (parentSnapshotId) {
     const activeSnapshotRowCount = await timings.measure(
       'countDivisionCurrentSnapshotRowsMs',
-      () => countDivisionCurrentSnapshotRows(currentRepoDb, activeSnapshot.id),
+      () => countDivisionCurrentSnapshotRows(currentRepoDb, parentSnapshotId),
     )
     const activeSnapshotI18nRowCount = await timings.measure(
       'countDivisionCurrentSnapshotI18nRowsMs',
-      () => countDivisionCurrentSnapshotI18nRows(currentRepoDb, activeSnapshot.id),
+      () => countDivisionCurrentSnapshotI18nRows(currentRepoDb, parentSnapshotId),
     )
     const expectedI18nRowCount = [...currentRows.values()].reduce(
       (total, row) => total + row.localizedRows.length,
       0,
     )
 
+    if (activeSnapshotRowCount === 0) {
+      throw new Error(
+        `Parent division snapshot ${parentSnapshotId} is not materialised in current storage; refusing to branch from another snapshot.`,
+      )
+    }
+
     if (currentRows.size > 0 && activeSnapshotRowCount !== currentRows.size) {
       const traceState = await getDivisionCurrentSnapshotTraceState(
         currentRepoDb,
-        activeSnapshot.id,
+        parentSnapshotId,
         [...traceDivisionIds],
       )
 
@@ -306,8 +318,8 @@ export async function processDivisionDataset(
         const snapshotState = traceState.get(divisionId)
 
         logDivisionTrace(traceDivisionIds, divisionId, {
-          activeSnapshotCode: activeSnapshot.code,
-          activeSnapshotId: activeSnapshot.id,
+          activeSnapshotCode: activeSnapshot?.code ?? parentSnapshotId,
+          activeSnapshotId: parentSnapshotId,
           event: 'activeSnapshotMismatch',
           historyCurrentExists: currentRows.has(divisionId),
           historyCurrentLocaleCount:
@@ -321,7 +333,7 @@ export async function processDivisionDataset(
       }
 
       throw new Error(
-        `Active division snapshot ${activeSnapshot.id} is incomplete in current storage: expected ${currentRows.size} rows, found ${activeSnapshotRowCount}.`,
+        `Parent division snapshot ${parentSnapshotId} is incomplete in current storage: expected ${currentRows.size} rows, found ${activeSnapshotRowCount}.`,
       )
     }
 
@@ -330,14 +342,14 @@ export async function processDivisionDataset(
       activeSnapshotI18nRowCount !== expectedI18nRowCount
     ) {
       throw new Error(
-        `Active division snapshot ${activeSnapshot.id} is incomplete in current i18n storage: expected ${expectedI18nRowCount} rows, found ${activeSnapshotI18nRowCount}.`,
+        `Parent division snapshot ${parentSnapshotId} is incomplete in current i18n storage: expected ${expectedI18nRowCount} rows, found ${activeSnapshotI18nRowCount}.`,
       )
     }
 
     await timings.measure('cloneDivisionCurrentSnapshotMs', () =>
       cloneDivisionCurrentSnapshot(
         currentRepoDb,
-        activeSnapshot.id,
+        parentSnapshotId,
         versionInsertContext.snapshotId,
       ),
     )
@@ -640,10 +652,11 @@ export async function processDivisionDataset(
           }
 
           await closeCurrentDivisionVersions(
-            ownerDb as unknown as HarbourWritableDb,
+            ownerDb as unknown as HarbourReadableDb & HarbourWritableDb,
             divisionIds,
             versionInsertContext.snapshotId,
             message.cohortKey,
+            versionInsertContext.releaseId,
           )
         }
       })
@@ -782,10 +795,11 @@ export async function processDivisionDataset(
         }
 
         await closeCurrentDivisionVersions(
-          ownerDb as unknown as HarbourWritableDb,
+          ownerDb as unknown as HarbourReadableDb & HarbourWritableDb,
           divisionIds,
           versionInsertContext.snapshotId,
           message.cohortKey,
+          versionInsertContext.releaseId,
         )
       }
 

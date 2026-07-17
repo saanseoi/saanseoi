@@ -6,6 +6,19 @@ import prcCountryAnchor from '../../../../../fixtures/divisions/overture/hk-prc-
 
 type DivisionFixtureRow = Record<string, unknown>
 
+/**
+ * Divisions retained only so scoped records can refer to a parent outside the
+ * published region. They are identities, not an invitation to ingest that
+ * parent's geometry.
+ */
+export const REFERENT_ONLY_DIVISION_IDS = new Set([
+  'fb68fc73-3ac6-41c9-a692-22fcf20cb5be', // People's Republic of China
+])
+
+export function isReferentOnlyDivisionId(id: string | null | undefined): boolean {
+  return id !== null && id !== undefined && REFERENT_ONLY_DIVISION_IDS.has(id)
+}
+
 type DivisionRowBatch = {
   isSupplemental: boolean
   rows: DivisionFixtureRow[]
