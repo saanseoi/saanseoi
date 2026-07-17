@@ -13,6 +13,7 @@ import {
   listCurrentSnapshotCleanupCandidates,
   publishReleaseArtifacts,
   recordSnapshotAssemblyRun,
+  resolveApiReleaseSetForRequest,
   resolveActiveSnapshotForType,
   resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId,
   resolveLatestSnapshotForResourceTypeExcludingId,
@@ -92,11 +93,27 @@ function createDraftSnapshotDb() {
   const sqlite = new SQLiteDatabase(':memory:')
 
   sqlite.exec(`
+    CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT NOT NULL UNIQUE,
+      regionCode TEXT NOT NULL,
+      resourceType TEXT NOT NULL,
+      variant TEXT NOT NULL,
+      identityMode TEXT NOT NULL,
+      primaryDatasetId TEXT UNIQUE,
+      versionHash TEXT NOT NULL,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
+      snapshotLineageId TEXT,
+      parentSnapshotId TEXT,
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
       cohortKey TEXT NOT NULL,
+      revision INTEGER NOT NULL DEFAULT 0,
       status TEXT NOT NULL,
       publishedAt TEXT,
       validFrom TEXT,
@@ -104,6 +121,12 @@ function createDraftSnapshotDb() {
       notes TEXT,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
+    );
+
+    CREATE TABLE snapshotSources (
+      snapshotId TEXT NOT NULL,
+      datasetId TEXT NOT NULL,
+      sourceReleaseId TEXT NOT NULL
     );
   `)
 
@@ -137,8 +160,15 @@ function createDraftReleaseSetDb() {
     CREATE TABLE apiReleaseSets (
       id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
+      apiCompositionId TEXT,
       code TEXT NOT NULL,
+      regionCode TEXT,
       domainCode TEXT NOT NULL DEFAULT 'default',
+      cohortKey TEXT,
+      revision INTEGER NOT NULL DEFAULT 0,
+      effectiveFrom TEXT,
+      effectiveTo TEXT,
+      supersedesApiReleaseSetId TEXT,
       schemaVersion TEXT NOT NULL,
       rulesetVersion TEXT NOT NULL,
       status TEXT NOT NULL,
@@ -333,7 +363,9 @@ function createActiveSnapshotLookupDb() {
   sqlite.exec(`
     CREATE TABLE apiVersions (
       id TEXT PRIMARY KEY,
-      code TEXT NOT NULL
+      code TEXT NOT NULL,
+      familyType TEXT NOT NULL DEFAULT 'divisions',
+      version TEXT NOT NULL DEFAULT '0.1'
     );
 
     CREATE TABLE apiReleaseSets (
@@ -403,13 +435,18 @@ function createPublishReleaseArtifactsDb() {
 
     CREATE TABLE apiVersions (
       id TEXT PRIMARY KEY,
-      code TEXT NOT NULL
+      code TEXT NOT NULL,
+      familyType TEXT NOT NULL DEFAULT 'divisions',
+      version TEXT NOT NULL DEFAULT '0.1'
     );
 
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
+      snapshotLineageId TEXT,
       resourceType TEXT NOT NULL DEFAULT 'division',
       code TEXT NOT NULL,
+      cohortKey TEXT NOT NULL DEFAULT '2026-05-20.0',
+      revision INTEGER NOT NULL DEFAULT 0,
       status TEXT NOT NULL,
       publishedAt INTEGER,
       validFrom INTEGER,
@@ -420,7 +457,15 @@ function createPublishReleaseArtifactsDb() {
     CREATE TABLE apiReleaseSets (
       id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
-      domainCode TEXT NOT NULL DEFAULT 'default',
+      apiCompositionId TEXT,
+      code TEXT NOT NULL DEFAULT 'data-hk-divisions-2026-05-20.0-0--overture',
+      regionCode TEXT DEFAULT 'hk',
+      domainCode TEXT NOT NULL DEFAULT 'overture',
+      cohortKey TEXT DEFAULT '2026-05-20.0',
+      revision INTEGER NOT NULL DEFAULT 0,
+      effectiveFrom INTEGER,
+      effectiveTo INTEGER,
+      supersedesApiReleaseSetId TEXT,
       schemaVersion TEXT NOT NULL,
       rulesetVersion TEXT NOT NULL,
       status TEXT NOT NULL,
@@ -428,6 +473,31 @@ function createPublishReleaseArtifactsDb() {
       validFrom INTEGER,
       validTo INTEGER,
       updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE apiCatalogRevisions (
+      id TEXT PRIMARY KEY,
+      apiVersionId TEXT NOT NULL,
+      code TEXT NOT NULL UNIQUE,
+      regionCode TEXT NOT NULL,
+      publicationDate TEXT NOT NULL,
+      revision INTEGER NOT NULL,
+      defaultDomainCode TEXT,
+      status TEXT NOT NULL,
+      publishedAt INTEGER NOT NULL,
+      versionHash TEXT NOT NULL,
+      createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE apiCatalogRevisionReleaseSets (
+      apiCatalogRevisionId TEXT NOT NULL,
+      apiReleaseSetId TEXT NOT NULL,
+      domainCode TEXT NOT NULL,
+      cohortKey TEXT NOT NULL,
+      isDefault INTEGER NOT NULL DEFAULT 0,
+      createdAt INTEGER NOT NULL,
+      PRIMARY KEY (apiCatalogRevisionId, domainCode, cohortKey)
     );
 
     CREATE TABLE releases (
@@ -492,15 +562,39 @@ function createPublishReleaseArtifactsDb() {
     );
 
     INSERT INTO datasets (id, publisherId, code) VALUES
-      ('dataset-overture-division-area', 'publisher-overture', 'ds-hk-overture-divisionArea'),
-      ('dataset-overture-division-boundary', 'publisher-overture', 'ds-hk-overture-divisionBoundary'),
-      ('dataset-hkgov-had-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-district');
+      ('dataset-overture-division-area', 'publisher-overture', 'ds-hk-overture-division-area'),
+      ('dataset-overture-division-boundary', 'publisher-overture', 'ds-hk-overture-division-boundary'),
+      ('dataset-hkgov-had-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district');
   `)
 
   return {
     sqlite,
     db: createLocalHarbourDb(sqlite),
   }
+}
+
+function seedCompleteOvertureFixtureSources(
+  sqlite: SQLiteDatabase,
+  snapshotId: string,
+) {
+  sqlite.exec(`
+    INSERT OR IGNORE INTO publishers (id, code) VALUES
+      ('publisher-overture', 'overture'),
+      ('publisher-hkgov-had', 'hkgov-had');
+
+    INSERT OR IGNORE INTO releases (
+      id, sourceVersion, sourceSchemaVersion, status, revokedAt,
+      revocationReason, supersededByReleaseId, updatedAt
+    ) VALUES
+      ('release-supporting-area', '2026-06-17.0', '1.17.0', 'published', null, null, null, 1760000000000),
+      ('release-supporting-boundary', '2026-06-17.0', '1.17.0', 'published', null, null, null, 1760000000000),
+      ('release-supporting-had', '2022', '1.2', 'published', null, null, null, 1760000000000);
+
+    INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+      ('${snapshotId}', 'dataset-overture-division-area', 'release-supporting-area'),
+      ('${snapshotId}', 'dataset-overture-division-boundary', 'release-supporting-boundary'),
+      ('${snapshotId}', 'dataset-hkgov-had-district', 'release-supporting-had');
+  `)
 }
 
 function sortProvenanceRows(
@@ -759,7 +853,11 @@ describe('ensureDraftSnapshotForRelease', () => {
       'division',
       {
         cohortKey: '2025-09-24.0',
+        datasetCode: 'ds-hk-overture-division',
+        datasetId: 'dataset-overture-division',
         regionCode: 'hk',
+        sourceReleaseId: 'release-2025-09-24',
+        variant: 'overture',
       },
     )
     const secondSnapshot = await ensureDraftSnapshotForRelease(
@@ -767,7 +865,11 @@ describe('ensureDraftSnapshotForRelease', () => {
       'division',
       {
         cohortKey: '2025-09-24.0',
+        datasetCode: 'ds-hk-overture-division',
+        datasetId: 'dataset-overture-division',
         regionCode: 'hk',
+        sourceReleaseId: 'release-2025-09-24',
+        variant: 'overture',
       },
     )
 
@@ -778,9 +880,148 @@ describe('ensureDraftSnapshotForRelease', () => {
     expect(firstSnapshot.id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
     )
+    expect(
+      first.sqlite
+        .query('SELECT code FROM snapshotLineages WHERE primaryDatasetId = ?')
+        .get('dataset-overture-division'),
+    ).toEqual({ code: 'sl-ds-hk-overture-division' })
 
     first.sqlite.close()
     second.sqlite.close()
+  })
+
+  test('uses a concise variant segment for non-default snapshot codes', async () => {
+    const { db, sqlite } = createDraftSnapshotDb()
+
+    const snapshot = await ensureDraftSnapshotForRelease(db as never, 'division', {
+      cohortKey: '2006',
+      datasetCode: 'ds-hk-hkgov-pland-division-pu',
+      datasetId: 'dataset-pland-division-pu',
+      regionCode: 'hk',
+      sourceReleaseId: 'release-pland-division-pu-2006',
+      variant: 'hkgov-pland-pu',
+    })
+
+    expect(snapshot.code).toBe('ss-hk-division-hkgov-pland-pu-2006')
+    expect(
+      sqlite
+        .query('SELECT code FROM snapshotLineages WHERE primaryDatasetId = ?')
+        .get('dataset-pland-division-pu'),
+    ).toEqual({ code: 'sl-ds-hk-hkgov-pland-division-pu' })
+
+    sqlite.close()
+  })
+
+  test('parents revisions and later cohorts to the exact published lineage state', async () => {
+    const { db, sqlite } = createDraftSnapshotDb()
+    const args = {
+      cohortKey: '2025-09-24.0',
+      datasetCode: 'ds-hk-overture-division',
+      datasetId: 'dataset-overture-division',
+      regionCode: 'hk',
+      sourceReleaseId: 'release-2025-09-24',
+      variant: 'overture',
+    }
+    const revisionZero = await ensureDraftSnapshotForRelease(
+      db as never,
+      'division',
+      args,
+    )
+    sqlite
+      .query("UPDATE snapshots SET status = 'published' WHERE id = ?")
+      .run(revisionZero.id)
+
+    const revisionOne = await ensureDraftSnapshotForRelease(db as never, 'division', {
+      ...args,
+      sourceReleaseId: 'release-2025-09-24-correction',
+    })
+    expect(revisionOne).toMatchObject({
+      code: 'ss-hk-division-2025-09-24.0-r1',
+      parentSnapshotId: revisionZero.id,
+    })
+    sqlite
+      .query("UPDATE snapshots SET status = 'published' WHERE id = ?")
+      .run(revisionOne.id)
+
+    const later = await ensureDraftSnapshotForRelease(db as never, 'division', {
+      ...args,
+      cohortKey: '2025-10-22.0',
+      sourceReleaseId: 'release-2025-10-22',
+    })
+    expect(later.parentSnapshotId).toBe(revisionOne.id)
+
+    sqlite.close()
+  })
+
+  test('does not parent a new cohort in a cohort-scoped lineage', async () => {
+    const { db, sqlite } = createDraftSnapshotDb()
+    const args = {
+      cohortKey: '2006',
+      datasetCode: 'ds-hk-hkgov-pland-division-new-town',
+      datasetId: 'dataset-pland-new-town',
+      identityMode: 'cohort_scoped' as const,
+      regionCode: 'hk',
+      sourceReleaseId: 'release-2006',
+      variant: 'hkgov-pland-new-town',
+    }
+    const first = await ensureDraftSnapshotForRelease(db as never, 'division', args)
+    sqlite.query("UPDATE snapshots SET status = 'published' WHERE id = ?").run(first.id)
+
+    const later = await ensureDraftSnapshotForRelease(db as never, 'division', {
+      ...args,
+      cohortKey: '2021',
+      sourceReleaseId: 'release-2021',
+    })
+    expect(later.parentSnapshotId).toBeNull()
+    sqlite.close()
+  })
+
+  test('normalizes a v0 lineage code while retaining its referenced id', async () => {
+    const { db, sqlite } = createDraftSnapshotDb()
+    sqlite
+      .query(
+        `INSERT INTO snapshotLineages (
+          id, code, regionCode, resourceType, variant, identityMode,
+          primaryDatasetId, versionHash, createdAt, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        'legacy-lineage-id',
+        'sl-hk-division-ds-hk-overture-division',
+        'hk',
+        'division',
+        'overture',
+        'persistent',
+        'dataset-overture-division',
+        'legacy-version-hash',
+        '2026-01-01T00:00:00.000Z',
+        '2026-01-01T00:00:00.000Z',
+      )
+
+    const snapshot = await ensureDraftSnapshotForRelease(db as never, 'division', {
+      cohortKey: '2026-06-17.0',
+      datasetCode: 'ds-hk-overture-division',
+      datasetId: 'dataset-overture-division',
+      regionCode: 'hk',
+      sourceReleaseId: 'release-overture-division-2026-06-17',
+      variant: 'overture',
+    })
+
+    expect(
+      sqlite
+        .query('SELECT id, code FROM snapshotLineages WHERE primaryDatasetId = ?')
+        .get('dataset-overture-division'),
+    ).toEqual({
+      id: 'legacy-lineage-id',
+      code: 'sl-ds-hk-overture-division',
+    })
+    expect(
+      sqlite
+        .query('SELECT snapshotLineageId FROM snapshots WHERE id = ?')
+        .get(snapshot.id),
+    ).toEqual({ snapshotLineageId: 'legacy-lineage-id' })
+
+    sqlite.close()
   })
 })
 
@@ -816,6 +1057,41 @@ describe('ensureDraftReleaseSetForRelease', () => {
 
     first.sqlite.close()
     second.sqlite.close()
+  })
+
+  test('creates the next immutable revision when an existing cohort is enriched', async () => {
+    const { sqlite, db } = createDraftReleaseSetDb()
+    const release = { cohortKey: '2025-09-24.0', regionCode: 'hk' as const }
+    const first = await ensureDraftReleaseSetForRelease(
+      db as never,
+      'division',
+      release,
+    )
+    sqlite
+      .query(
+        `UPDATE apiReleaseSets
+         SET status = 'current', publishedAt = '2026-07-01T00:00:00.000Z'
+         WHERE id = ?`,
+      )
+      .run(first.id)
+
+    const enriched = await ensureDraftReleaseSetForRelease(
+      db as never,
+      'division',
+      release,
+    )
+    const row = sqlite
+      .query(
+        'SELECT revision, supersedesApiReleaseSetId FROM apiReleaseSets WHERE id = ?',
+      )
+      .get(enriched.id)
+
+    expect(enriched.code).toBe('data-hk-division-2025-09-24.0-1--default')
+    expect(row).toEqual({
+      revision: 1,
+      supersedesApiReleaseSetId: first.id,
+    })
+    sqlite.close()
   })
 })
 
@@ -909,7 +1185,7 @@ describe('getLatestDatasetForRegionSourceType', () => {
         (
           'release-10',
           'dataset-division',
-          'overture-hk-2026-06-17.10-division',
+          'dr-hk-overture-division-2026-06-17.10',
           '2026-06-17.10',
           '2026-06',
           'hk/overture/2026-06-17.10/division.parquet',
@@ -925,7 +1201,7 @@ describe('getLatestDatasetForRegionSourceType', () => {
         (
           'release-9',
           'dataset-division',
-          'overture-hk-2026-06-17.9-division',
+          'dr-hk-overture-division-2026-06-17.9',
           '2026-06-17.9',
           '2026-06',
           'hk/overture/2026-06-17.9/division.parquet',
@@ -971,9 +1247,9 @@ describe('getLatestNewerDatasetRelease', () => {
         id, datasetId, code, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
       ) VALUES
       (
-        'release-overture-hk-2025-09-24.0-division',
+        'release-dr-hk-overture-division-2025-09-24.0',
         'dataset-overture-hk-division',
-        'overture-hk-2025-09-24.0-division',
+        'dr-hk-overture-division-2025-09-24.0',
         '2025-09-24.0',
         '2025-09',
         'hk/overture/2025-09-24.0/division.parquet',
@@ -987,9 +1263,9 @@ describe('getLatestNewerDatasetRelease', () => {
         '2026-07-02T07:11:23.000Z'
       ),
       (
-        'release-overture-hk-2025-10-22.0-division',
+        'release-dr-hk-overture-division-2025-10-22.0',
         'dataset-overture-hk-division',
-        'overture-hk-2025-10-22.0-division',
+        'dr-hk-overture-division-2025-10-22.0',
         '2025-10-22.0',
         '2025-10',
         'hk/overture/2025-10-22.0/division.parquet',
@@ -1003,9 +1279,9 @@ describe('getLatestNewerDatasetRelease', () => {
         '2026-07-02T07:11:30.000Z'
       ),
       (
-        'release-overture-hk-2025-11-19.0-division',
+        'release-dr-hk-overture-division-2025-11-19.0',
         'dataset-overture-hk-division',
-        'overture-hk-2025-11-19.0-division',
+        'dr-hk-overture-division-2025-11-19.0',
         '2025-11-19.0',
         '2025-11',
         'hk/overture/2025-11-19.0/division.parquet',
@@ -1019,9 +1295,9 @@ describe('getLatestNewerDatasetRelease', () => {
         '2026-07-02T07:11:40.000Z'
       ),
       (
-        'release-overture-hk-2025-12-17.0-division',
+        'release-dr-hk-overture-division-2025-12-17.0',
         'dataset-overture-hk-division',
-        'overture-hk-2025-12-17.0-division',
+        'dr-hk-overture-division-2025-12-17.0',
         '2025-12-17.0',
         '2025-12',
         'hk/overture/2025-12-17.0/division.parquet',
@@ -1038,10 +1314,10 @@ describe('getLatestNewerDatasetRelease', () => {
 
     const result = await getLatestNewerDatasetRelease(
       db,
-      'release-overture-hk-2025-09-24.0-division',
+      'release-dr-hk-overture-division-2025-09-24.0',
     )
 
-    expect(result?.releaseId).toBe('release-overture-hk-2025-10-22.0-division')
+    expect(result?.releaseId).toBe('release-dr-hk-overture-division-2025-10-22.0')
     sqlite.close()
   })
 })
@@ -1173,10 +1449,10 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
       INSERT INTO snapshots (
         id, resourceType, code, cohortKey, status, publishedAt, createdAt
       ) VALUES
-        ('overture-area-older', 'divisionArea', 'ss-hk-divisionArea-2025-08-20.0', '2025-08-20.0', 'published', 1755648000000, 1755648000000),
-        ('overture-area-current', 'divisionArea', 'ss-hk-divisionArea-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000),
-        ('had-area-2022', 'divisionArea', 'ss-hk-divisionArea-2022', '2022', 'published', 1654041600000, 1654041600000),
-        ('had-area-future', 'divisionArea', 'ss-hk-divisionArea-2026', '2026', 'published', 1767225600000, 1767225600000);
+        ('overture-area-older', 'divisionArea', 'ss-hk-division-area-2025-08-20.0', '2025-08-20.0', 'published', 1755648000000, 1755648000000),
+        ('overture-area-current', 'divisionArea', 'ss-hk-division-area-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000),
+        ('had-area-2022', 'divisionArea', 'ss-hk-division-area-2022', '2022', 'published', 1654041600000, 1654041600000),
+        ('had-area-future', 'divisionArea', 'ss-hk-division-area-2026', '2026', 'published', 1767225600000, 1767225600000);
 
       INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
         ('overture-area-older', 'dataset-overture-area', 'release-overture-area-older', 'primary'),
@@ -1196,14 +1472,14 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
     ).resolves.toEqual([
       {
         id: 'overture-area-current',
-        code: 'ss-hk-divisionArea-2025-09-24.0',
+        code: 'ss-hk-division-area-2025-09-24.0',
         cohortKey: '2025-09-24.0',
         resourceType: 'divisionArea',
         status: 'published',
       },
       {
         id: 'had-area-2022',
-        code: 'ss-hk-divisionArea-2022',
+        code: 'ss-hk-division-area-2022',
         cohortKey: '2022',
         resourceType: 'divisionArea',
         status: 'published',
@@ -1221,7 +1497,7 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
     ).resolves.toEqual([
       {
         id: 'had-area-2022',
-        code: 'ss-hk-divisionArea-2022',
+        code: 'ss-hk-division-area-2022',
         cohortKey: '2022',
         resourceType: 'divisionArea',
         status: 'published',
@@ -1293,8 +1569,9 @@ describe('publishReleaseArtifacts', () => {
         1760000000000
       );
     `)
+    seedCompleteOvertureFixtureSources(sqlite, 'snapshot-new')
 
-    await publishReleaseArtifacts(db, {
+    const catalogRevision = await publishReleaseArtifacts(db, {
       carriedSnapshots: [],
       currentRelease: null,
       currentReleaseIsCorrected: false,
@@ -1309,6 +1586,46 @@ describe('publishReleaseArtifacts', () => {
       snapshotId: 'snapshot-new',
       type: 'division',
     })
+
+    expect(catalogRevision).toMatchObject({
+      code: 'catalog-hk-divisions-v0.1-2026-06-29.0',
+      publicationDate: '2026-06-29',
+      revision: 0,
+    })
+    if (!catalogRevision) throw new Error('Expected a published catalog revision.')
+    expect(
+      sqlite
+        .query(
+          `SELECT domainCode, cohortKey, isDefault
+           FROM apiCatalogRevisionReleaseSets
+           WHERE apiCatalogRevisionId = ?`,
+        )
+        .all(catalogRevision.id),
+    ).toEqual([
+      {
+        domainCode: 'overture',
+        cohortKey: '2026-05-20.0',
+        isDefault: 1,
+      },
+    ])
+    await expect(
+      resolveApiReleaseSetForRequest(db, 'division', {
+        domainCode: 'overture',
+        knownAt: '2026-06-29T00:00:00.000Z',
+        regionCode: 'hk',
+      }),
+    ).resolves.toMatchObject({
+      apiCatalogRevision: catalogRevision.code,
+      code: 'data-hk-divisions-2026-05-20.0-0--overture',
+      cohortKey: '2026-05-20.0',
+    })
+    await expect(
+      resolveApiReleaseSetForRequest(db, 'division', {
+        domainCode: 'overture',
+        knownAt: '2026-06-28T23:59:59.999Z',
+        regionCode: 'hk',
+      }),
+    ).resolves.toBeNull()
 
     const linkedSnapshotIds = sqlite
       .query(
@@ -1573,6 +1890,8 @@ describe('publishReleaseArtifacts', () => {
         headers: { 'content-type': 'application/json' },
         status: 200,
       })) as unknown as typeof fetch
+
+    seedCompleteOvertureFixtureSources(sqlite, 'snapshot-new')
 
     try {
       await publishReleaseArtifacts(db, {
