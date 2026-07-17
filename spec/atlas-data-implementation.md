@@ -72,7 +72,7 @@ Suggested queue message shape:
 
 ```json
 {
-  "datasetId": "overture-hk-2026-05-24.0-division",
+  "datasetId": "dr-hk-overture-division-2026-05-24.0",
   "type": "division",
   "regionCode": "hk",
   "source": "overture",

@@ -58,7 +58,7 @@ Instead:
 Examples from seed data:
 
 - dataset code: `hk-address`
-- release code: `overture-hk-address-2026-05-24.0`
+- release code: `dr-hk-overture-address-2026-05-24.0`
 
 This is the most important difference from the earlier spec.
 
