@@ -4,6 +4,20 @@ import type { ResourceType } from '@repo/core'
 
 export type ApiFamily = 'addresses' | 'divisions' | 'places' | 'streets'
 
+function normalizeCodeSlug(value: string) {
+  const normalized = value
+    .trim()
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/[_\s]+/g, '-')
+    .toLowerCase()
+
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)) {
+    throw new Error(`Invalid code slug="${value}".`)
+  }
+
+  return normalized
+}
+
 const API_FAMILY_BY_RESOURCE_TYPE: Record<ResourceType, ApiFamily> = {
   address: 'addresses',
   division: 'divisions',
@@ -22,7 +36,7 @@ export function buildApiVersionCode(resourceType: ResourceType, version: string)
 }
 
 export function buildSchemaVersionCode(resourceType: ResourceType, version: string) {
-  return `sv-${resourceType}-v${version}`
+  return `sv-${normalizeCodeSlug(resourceType)}-v${version}`
 }
 
 export function buildRulesetVersionCode(
@@ -30,7 +44,7 @@ export function buildRulesetVersionCode(
   strategy: string,
   version: string,
 ) {
-  return `rs-${resourceType}-${strategy}-v${version}`
+  return `rs-${normalizeCodeSlug(resourceType)}-${normalizeCodeSlug(strategy)}-v${version}`
 }
 
 export function normalizeCohortKey(value: string) {
@@ -73,8 +87,26 @@ export function buildSnapshotVersionCode(
   regionCode: string,
   resourceType: ResourceType,
   cohortKey: string,
+  variant = 'default',
+  revision = 0,
 ) {
-  return `ss-${regionCode}-${resourceType}-${normalizeCohortKey(cohortKey)}`
+  if (!Number.isInteger(revision) || revision < 0) {
+    throw new Error(`Invalid snapshot revision="${revision}". Expected 0 or more.`)
+  }
+
+  const normalizedVariant = normalizeCodeSlug(variant)
+  const variantSegment =
+    normalizedVariant === 'default' || normalizedVariant === 'overture'
+      ? ''
+      : `-${normalizedVariant}`
+  const revisionSegment = revision === 0 ? '' : `-r${revision}`
+
+  return `ss-${normalizeCodeSlug(regionCode)}-${normalizeCodeSlug(resourceType)}${variantSegment}-${normalizeCohortKey(cohortKey)}${revisionSegment}`
+}
+
+export function buildSnapshotLineageCode(datasetCode: string) {
+  // Dataset codes already include source, region, and resource scope.
+  return `sl-${normalizeCodeSlug(datasetCode)}`
 }
 
 export function buildDataReleaseSetCode(
@@ -88,6 +120,41 @@ export function buildDataReleaseSetCode(
   }
 
   return `data-${regionCode}-${apiFamily}-${normalizeCohortKey(cohortKey)}-${sequence}`
+}
+
+export function buildApiCatalogRevisionCode(
+  regionCode: string,
+  apiFamily: ApiFamily,
+  apiVersion: string,
+  publicationDate: string,
+  revision = 0,
+) {
+  if (!Number.isInteger(revision) || revision < 0) {
+    throw new Error(`Invalid catalog revision="${revision}". Expected 0 or more.`)
+  }
+
+  const normalizedDate = publicationDate.trim()
+  if (!/^20\d{2}-\d{2}-\d{2}$/.test(normalizedDate)) {
+    throw new Error(
+      `Invalid catalog publicationDate="${publicationDate}". Expected YYYY-MM-DD.`,
+    )
+  }
+
+  return `catalog-${regionCode}-${apiFamily}-v${normalizeCohortKey(apiVersion)}-${normalizedDate}.${revision}`
+}
+
+export function cohortKeyEffectiveFrom(cohortKey: string) {
+  const normalized = normalizeCohortKey(cohortKey)
+  const date = normalized.match(/^(20\d{2}-\d{2}-\d{2})/)?.[1]
+  if (date) return `${date}T00:00:00.000Z`
+
+  const month = normalized.match(/^(20\d{2}-\d{2})(?:$|[._-])/)?.[1]
+  if (month) return `${month}-01T00:00:00.000Z`
+
+  const year = normalized.match(/^(20\d{2})(?:$|[._-])/)?.[1]
+  if (year) return `${year}-01-01T00:00:00.000Z`
+
+  return null
 }
 
 function isPlainJsonObject(value: object) {

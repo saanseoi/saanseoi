@@ -1,6 +1,31 @@
 import { describe, expect, test } from 'bun:test'
 
-import { buildDeterministicUuidV5, computeVersionHash } from './versioning'
+import {
+  buildDeterministicUuidV5,
+  buildSnapshotLineageCode,
+  buildSnapshotVersionCode,
+  computeVersionHash,
+} from './versioning'
+
+describe('snapshot identifiers', () => {
+  test('anchors a lineage code to its primary dataset without repeating scope', () => {
+    expect(buildSnapshotLineageCode('ds-hk-overture-division')).toBe(
+      'sl-ds-hk-overture-division',
+    )
+  })
+
+  test('uses the source variant rather than a full dataset code in snapshot codes', () => {
+    expect(buildSnapshotVersionCode('hk', 'division', '2006', 'hkgov-pland-pu')).toBe(
+      'ss-hk-division-hkgov-pland-pu-2006',
+    )
+  })
+
+  test('normalizes resource and variant segments in snapshot codes', () => {
+    expect(
+      buildSnapshotVersionCode('hk', 'divisionArea', '2006', 'hkgov-pland-new-town'),
+    ).toBe('ss-hk-division-area-hkgov-pland-new-town-2006')
+  })
+})
 
 describe('computeVersionHash', () => {
   test('ignores versionHash fields when hashing plain JSON objects', () => {

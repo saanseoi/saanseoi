@@ -22,6 +22,8 @@ export type ApiFieldFixtureField = {
 export type ApiFieldFixture = {
   versionHash: string
   apiVersion: string
+  /** Domain this mapping applies to. Legacy fixtures are overture mappings. */
+  domainCode?: string
   validFromSnapshotVersion: string
   schemaVersion: string
   rulesetVersion: string
@@ -98,7 +100,7 @@ function haveEqualSourceSchemas(
   )
 }
 
-function haveCompatibleSourceSchemas(
+function haveLegacyCompatibleSourceSchemas(
   fixtureSchemas: Record<string, string>,
   sourceSchemas: Record<string, string>,
 ) {
@@ -118,6 +120,7 @@ export function listApiFieldFixtures() {
 
 export function resolveApiFieldFixture(args: {
   apiVersion: string
+  domainCode?: string
   snapshotVersion: string
   schemaVersion: string
   rulesetVersion: string
@@ -127,10 +130,15 @@ export function resolveApiFieldFixture(args: {
     .filter(
       fixture =>
         fixture.apiVersion === args.apiVersion &&
+        (fixture.domainCode ?? 'overture') === (args.domainCode ?? 'overture') &&
         fixture.schemaVersion === args.schemaVersion &&
         fixture.rulesetVersion === args.rulesetVersion &&
         (haveEqualSourceSchemas(fixture.sourceSchemas, args.sourceSchemas) ||
-          haveCompatibleSourceSchemas(fixture.sourceSchemas, args.sourceSchemas)) &&
+          (fixture.domainCode === undefined &&
+            haveLegacyCompatibleSourceSchemas(
+              fixture.sourceSchemas,
+              args.sourceSchemas,
+            ))) &&
         compareSnapshotVersions(
           fixture.validFromSnapshotVersion,
           args.snapshotVersion,

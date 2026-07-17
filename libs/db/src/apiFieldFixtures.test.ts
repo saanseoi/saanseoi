@@ -10,9 +10,9 @@ describe('api field fixtures', () => {
     expect(fixtures[0]?.apiVersion).toBe('api-divisions-v0.1')
     expect(fixtures[0]?.sourceSchemas).toEqual({
       'ds-hk-overture-division': '1.12.0',
-      'ds-hk-overture-divisionArea': '1.12.0',
-      'ds-hk-overture-divisionBoundary': '1.12.0',
-      'ds-hk-hkgov-had-district': '1.2',
+      'ds-hk-overture-division-area': '1.12.0',
+      'ds-hk-overture-division-boundary': '1.12.0',
+      'ds-hk-hkgov-had-division-area-district': '1.2',
     })
 
     expect(
@@ -23,9 +23,9 @@ describe('api field fixtures', () => {
         rulesetVersion: 'rs-division-merge-v1',
         sourceSchemas: {
           'ds-hk-overture-division': '1.12.0',
-          'ds-hk-overture-divisionArea': '1.12.0',
-          'ds-hk-overture-divisionBoundary': '1.12.0',
-          'ds-hk-hkgov-had-district': '1.2',
+          'ds-hk-overture-division-area': '1.12.0',
+          'ds-hk-overture-division-boundary': '1.12.0',
+          'ds-hk-hkgov-had-division-area-district': '1.2',
         },
       })?.validFromSnapshotVersion,
     ).toBe('ss-hk-division-2025-09-24.0')
@@ -71,9 +71,9 @@ describe('api field fixtures', () => {
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
         'ds-hk-overture-division': '1.17.0',
-        'ds-hk-overture-divisionArea': '1.17.0',
-        'ds-hk-overture-divisionBoundary': '1.17.0',
-        'ds-hk-hkgov-had-district': '1.2',
+        'ds-hk-overture-division-area': '1.17.0',
+        'ds-hk-overture-division-boundary': '1.17.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
       },
     })
 
@@ -111,9 +111,9 @@ describe('api field fixtures', () => {
         rulesetVersion: 'rs-division-merge-v1',
         sourceSchemas: {
           'ds-hk-overture-division': '1.17.0',
-          'ds-hk-overture-divisionArea': '1.17.0',
-          'ds-hk-overture-divisionBoundary': '1.17.0',
-          'ds-hk-hkgov-had-district': '1.2',
+          'ds-hk-overture-division-area': '1.17.0',
+          'ds-hk-overture-division-boundary': '1.17.0',
+          'ds-hk-hkgov-had-division-area-district': '1.2',
         },
       })?.fields[0]?.apiField,
     ).not.toBe('mutated')
@@ -127,9 +127,9 @@ describe('api field fixtures', () => {
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
         'ds-hk-overture-division': '1.17.0',
-        'ds-hk-overture-divisionArea': '1.17.0',
-        'ds-hk-overture-divisionBoundary': '1.17.0',
-        'ds-hk-hkgov-had-district': '1.2',
+        'ds-hk-overture-division-area': '1.17.0',
+        'ds-hk-overture-division-boundary': '1.17.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
       },
     })
 
@@ -144,9 +144,9 @@ describe('api field fixtures', () => {
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
         'ds-hk-overture-division': '1.18.0',
-        'ds-hk-overture-divisionArea': '1.17.0',
-        'ds-hk-overture-divisionBoundary': '1.17.0',
-        'ds-hk-hkgov-had-district': '1.2',
+        'ds-hk-overture-division-area': '1.17.0',
+        'ds-hk-overture-division-boundary': '1.17.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
       },
     })
 
