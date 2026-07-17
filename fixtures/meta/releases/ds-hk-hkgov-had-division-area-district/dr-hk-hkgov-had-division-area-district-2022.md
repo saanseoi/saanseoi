@@ -1,8 +1,8 @@
 ---
 createdAt: "2026-07-15T00:00:00.000Z"
-updatedAt: "2026-07-15T00:00:00.000Z"
+updatedAt: "2026-07-18T00:00:00.000Z"
 dataset: "ds-hk-hkgov-had-division-area-district"
-release: "hkgov-had-hk-2022-division-area-district"
+release: "dr-hk-hkgov-had-division-area-district-2022"
 regionCode: "hk"
 source: "hkgov-had"
 sourceVersion: "2022"
@@ -17,6 +17,9 @@ cohortKey: "2022"
 
 Initial 山水 | SaanSeoi release, based on the oldest known _Home Affairs Department_
 District Boundary area release for Hong Kong.
+
+The source follows the
+[Functional Area FSDT 1.2 specification](https://static.csdi.gov.hk/csdi-webpage/download/common/f9f4daf727620fe453d5c551e7ce63523df27fc618862b5a35979fe309b79003).
 
 ## Geometry
 
@@ -87,6 +90,9 @@ auditability:
 
 SaanSeoi 首次發佈，內容以已知最早的香港民政事務總署地區界線範圍資料發佈為基礎。
 
+來源遵循
+[功能區域 FSDT 1.2 規格](https://static.csdi.gov.hk/csdi-webpage/download/common/f9f4daf727620fe453d5c551e7ce63523df27fc618862b5a35979fe309b79003)。
+
 ## 幾何
 
 預檢會拒絕空值、空幾何、自相交及其他無效的多邊形環。不會進行幾何修復。
@@ -147,6 +153,9 @@ SaanSeoi 首次發佈，內容以已知最早的香港民政事務總署地區�
 ## 更新记录
 
 首次发布 SaanSeoi，内容以已知最早的香港民政事务总署地区界线范围资料发布为基础。
+
+来源遵循
+[功能区域 FSDT 1.2 规范](https://static.csdi.gov.hk/csdi-webpage/download/common/f9f4daf727620fe453d5c551e7ce63523df27fc618862b5a35979fe309b79003)。
 
 ## 几何
 

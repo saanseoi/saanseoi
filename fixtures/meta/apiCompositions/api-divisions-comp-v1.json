@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:991f3f3f7a18e28d1572c25997c995146f48b9aff4c84f06ccdc9ac32fa80882",
+  "versionHash": "sha256:e8d744fa97764f764c10835d53c5534b04a60304c17a17951b3f907183b73627",
   "apiVersion": "api-divisions-v0.1",
-  "code": "comp-divisions",
+  "code": "comp-divisions-v1",
   "version": 1,
   "primaryResourceType": "division",
   "status": "current",

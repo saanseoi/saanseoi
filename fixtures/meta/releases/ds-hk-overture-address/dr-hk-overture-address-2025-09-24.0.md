@@ -1,8 +1,8 @@
 ---
 createdAt: "2026-07-06T14:53:59.654Z"
-updatedAt: "2026-07-06T19:27:16.581Z"
+updatedAt: "2026-07-17T00:00:00.000Z"
 dataset: "ds-hk-overture-address"
-release: "overture-hk-2025-09-24.0-address"
+release: "dr-hk-overture-address-2025-09-24.0"
 regionCode: "hk"
 source: "overture"
 sourceVersion: "2025-09-24.0"

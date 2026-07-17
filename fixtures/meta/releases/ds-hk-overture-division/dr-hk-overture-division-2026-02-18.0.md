@@ -1,21 +1,29 @@
 ---
-createdAt: "2026-07-14T05:28:18.043Z"
-updatedAt: "2026-07-14T05:28:18.043Z"
+createdAt: "2026-07-14T05:04:52.993Z"
+updatedAt: "2026-07-17T00:00:00.000Z"
 dataset: "ds-hk-overture-division"
-release: "overture-hk-2026-06-17.0-division"
+release: "dr-hk-overture-division-2026-02-18.0"
 regionCode: "hk"
 source: "overture"
-sourceVersion: "2026-06-17.0"
-sourceSchemaVersion: "1.17.0"
+sourceVersion: "2026-02-18.0"
+sourceSchemaVersion: "1.16.0"
 type: "division"
-cohortKey: "2026-06-17.0"
+cohortKey: "2026-02-18.0"
 ---
 
 # EN
 
 ## Changelog
 
-- <orange>Upstream</orange> OSM Cut-Off Date: 2026-06-06
+- <orange>Upstream</orange> Refreshed OSM data
+- <orange>Upstream</orange> Added new admin_level property to better represent a
+  division's position in its country's administrative hierarchy, i.e. lower numbers
+  correspond to higher level administrative units (0, 1, and 2).
+  - In Hong Kong, only the SAR itself and the 18 districts are part of the
+    administrative hierarchy, so Saanseoi <black>Division</black> will only provide this
+    as a compatability value under <black>overture.admin_level</black> when available.
+  - Values are backfilled to be available from the first <black>Division</black>
+    release.
 
 ## Compatibility
 
@@ -145,7 +153,13 @@ village        199
 
 ## 更新紀錄
 
-- <orange>上游</orange> OSM 截止日期：2026-06-06
+- <orange>上游</orange> 更新 OSM 資料
+- <orange>上游</orange> 新增 `admin_level`
+  屬性，以更準確地表示一個 division 在其所屬國家行政層級中的位置，即數值越小代表層級越高的行政單位（0、1 和 2）。
+  - 在香港，只有香港特別行政區本身及 18 個地區屬於行政層級，因此 Saanseoi
+    <black>Division</black> 僅會在有值時，將其作為 <black>overture.admin_level</black>
+    下的兼容性值提供。
+  - 相關數值已回填，確保自第一個 <black>Division</black> 發布版本起即可使用。
 
 ## 兼容性
 
@@ -267,7 +281,13 @@ village        199
 
 ## 更新记录
 
-- <orange>上游</orange> OSM 截止日期：2026-06-06
+- <orange>上游</orange> 更新 OSM 数据
+- <orange>上游</orange> 新增 `admin_level`
+  属性，以更准确地表示一个 division 在其所属国家行政层级中的位置，即数值越小代表层级越高的行政单位（0、1 和 2）。
+  - 在香港，只有香港特别行政区本身和 18 个区属于行政层级，因此 Saanseoi
+    <black>Division</black> 仅会在有值时，将其作为 <black>overture.admin_level</black>
+    下的兼容性值提供。
+  - 相关数值已回填，确保自第一个 <black>Division</black> 发布版本起即可使用。
 
 ## 兼容性
 

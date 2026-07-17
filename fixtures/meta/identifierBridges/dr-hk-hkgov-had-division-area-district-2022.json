@@ -1,8 +1,8 @@
 {
-  "versionHash": "sha256:dac8559ea777f144bedcc41e5a098d93f79a7b22b9da2a320f3458fec67fff69",
+  "versionHash": "sha256:9e3128f143e65a703499406d74342bd15565c7c49372f96f4aacb2c71f171e06",
   "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
   "resourceType": "division",
-  "sourceReleaseCode": "hkgov-had-hk-2022-division-area-district",
+  "sourceReleaseCode": "dr-hk-hkgov-had-division-area-district-2022",
   "cohortKey": "2022",
   "domain": "administrative",
   "authority": "hkgov-had",

@@ -26,12 +26,10 @@ They should not be collapsed into one identifier.
 
 `snapshotVersion`
 
-- format: `ss-{region}-{resourceType}-{releaseDate}.{increment}`
+- format: `ss-{region}-{resource-slug}[-{variant}]-{cohort}[-r{revision}]`
 - example: `ss-hk-division-2026-06-17.0`
 - scope: published snapshot of one canonical resource type
-- stored as:
-  - `snapshots.code`
-  - `apiReleaseSets.code`
+- stored as `snapshots.code`
 - changes when:
   - a new upstream snapshot is published
   - a corrected release replaces a previously published snapshot for the same date
@@ -39,7 +37,7 @@ They should not be collapsed into one identifier.
 
 `schemaVersion`
 
-- format: `sv-{resourceType}-v{version}`
+- format: `sv-{resource-slug}-v{version}`
 - example: `sv-division-v1`
 - scope: canonical field-definition set for one resource type
 - changes when:
@@ -53,7 +51,7 @@ They should not be collapsed into one identifier.
 
 `rulesetVersion`
 
-- format: `rs-{resourceType}-{strategy}-v{version}`
+- format: `rs-{resource-slug}-{strategy}-v{version}`
 - example: `rs-division-merge-v1`
 - scope: transformation and merge logic for one resource type and strategy
 - changes when:
@@ -66,6 +64,10 @@ They should not be collapsed into one identifier.
 
 ## Naming Notes
 
+Saanseoi-owned code segments use lowercase kebab-case. Programmatic resource types are
+converted before being embedded in a code, for example `divisionArea` becomes
+`division-area`. Codes are not parsed to recover registry metadata.
+
 `snapshotVersion` is intentionally not tied to a source code.
 
 The published snapshot is the canonical product artifact, not a raw-source artifact.
@@ -73,7 +75,8 @@ The published snapshot is the canonical product artifact, not a raw-source artif
 For Hong Kong phase 1:
 
 - `region` = `hk`
-- `resourceType` = `division`, `address`, `street`, `place`
+- `resource-slug` = `division`, `division-area`, `division-boundary`, `address`,
+  `street`, `place`
 - `releaseDate` = `YYYY-MM-DD`
 - `increment` starts at `0`
 
@@ -123,3 +126,13 @@ Current selection keys are:
 
 These fixtures are resolved at API release publication time to populate
 `apiFieldProvenance`.
+
+## Historical membership
+
+Canonical history tables retain content versions keyed by entity identity and semantic
+`versionHash`. They do not use snapshot or cohort validity ranges. Exact membership is
+defined by the meta `snapshots.parentSnapshotId` graph and the history-shard
+`snapshotVersionChanges` journal. Each journal row is an upsert of an exact content hash
+or a deletion tombstone relative to the parent snapshot. Meta `snapshotShardAssignments`
+locates every snapshot delta; replay follows those recorded assignments across year
+shards rather than deriving placement from a cohort string.
