@@ -1,12 +1,14 @@
 import { and, eq, inArray, sql } from 'drizzle-orm'
 
 import type { DatasetProcessingMessage } from '../../types'
+import { datasetVariantForSource, identityModeForSource } from '../../codes'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssemblyRun,
   resolveShardForTypeRegionYear,
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
+  upsertSnapshotShardAssignment,
   waitForDatasetRecord,
 } from '../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
@@ -28,11 +30,12 @@ import {
   runStatementBatchWithWriteRetry,
   runStatementsInGroupsWithWriteRetry,
 } from '../utils'
+import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
 
 const CURRENT_DIVISION_COLUMN_COUNT = 13
 const CURRENT_DIVISION_I18N_COLUMN_COUNT = 10
-const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 20
-const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 15
+const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 16
+const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 13
 const HISTORY_DIVISION_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 
 type CurrentDivisionWriteRow = Omit<NewDivisionRow, 'snapshotId'>
@@ -56,6 +59,8 @@ export type DivisionVersionInsertContext = {
   releaseId: string
   snapshotId: string
   cohortKey: string
+  parentSnapshotId: string | null
+  snapshotLineageId: string
 }
 
 function excluded(column: string) {
@@ -226,6 +231,81 @@ export async function getCurrentDivisionVersionMap(
   return new Map(snapshots)
 }
 
+/** Loads the exact materialised parent branch from current storage. */
+export async function getDivisionVersionMapForSnapshot(
+  db: HarbourReadableDb,
+  snapshotId: string,
+  options: {
+    buildDivisionBaseHashInput: (base: DivisionHashInput) => DivisionHashInput
+    normalizeDivisionI18nSnapshotRow: (row: DivisionI18nPayload) => DivisionI18nPayload
+  },
+  ownerShardKeys: string[] = [],
+) {
+  const rows = (await db
+    .select({
+      id: currentSchema.divisions.id,
+      bbox: currentSchema.divisions.bbox,
+      cartography: currentSchema.divisions.cartography,
+      geometry: currentSchema.divisions.geometry,
+      hierarchy: currentSchema.divisions.hierarchy,
+      identifiers: currentSchema.divisions.identifiers,
+      level: currentSchema.divisions.level,
+      sourceKeys: currentSchema.divisions.sourceKeys,
+      sources: currentSchema.divisions.sources,
+      type: currentSchema.divisions.type,
+      wikidata: currentSchema.divisions.wikidata,
+    })
+    .from(currentSchema.divisions)
+    .where(eq(currentSchema.divisions.snapshotId, snapshotId))
+    .all()) as Array<Omit<CurrentDivisionVersionRow, 'versionHash'>>
+
+  const i18nRows = (await db
+    .select({
+      divisionId: currentSchema.divisionsI18n.divisionId,
+      isLocaleInferred: currentSchema.divisionsI18n.isLocaleInferred,
+      locale: currentSchema.divisionsI18n.locale,
+      name: currentSchema.divisionsI18n.name,
+      nameAlts: currentSchema.divisionsI18n.nameAlts,
+      nameRules: currentSchema.divisionsI18n.nameRules,
+      nameVariant: currentSchema.divisionsI18n.nameVariant,
+    })
+    .from(currentSchema.divisionsI18n)
+    .where(eq(currentSchema.divisionsI18n.snapshotId, snapshotId))
+    .all()) as DivisionI18nPayload[]
+  const i18nById = new Map<string, DivisionI18nPayload[]>()
+  for (const row of i18nRows) {
+    const localized = i18nById.get(row.divisionId) ?? []
+    localized.push(row)
+    i18nById.set(row.divisionId, localized)
+  }
+
+  return new Map(
+    await Promise.all(
+      rows.map(async row => {
+        const localizedRows = (i18nById.get(row.id) ?? [])
+          .map(options.normalizeDivisionI18nSnapshotRow)
+          .sort((a, b) => a.locale.localeCompare(b.locale))
+        return [
+          row.id,
+          {
+            churnHash: await createHash({
+              base: options.buildDivisionBaseHashInput(row),
+              i18n: localizedRows,
+            }),
+            geometry: row.geometry as GeoJsonGeometry | null,
+            id: row.id,
+            localizedRows,
+            ownerShardKeys,
+            parentId: resolveParentDivisionIdFromHierarchy(row.hierarchy),
+            type: row.type,
+            versionHash: await createHash(options.buildDivisionBaseHashInput(row)),
+          } satisfies DivisionVersionSnapshot,
+        ] as const
+      }),
+    ),
+  )
+}
+
 export async function prepareDivisionVersionInsertContext(
   metaDb: HarbourReadableDb & HarbourWritableDb,
   message: DatasetProcessingMessage,
@@ -248,6 +328,11 @@ export async function prepareDivisionVersionInsertContext(
   const snapshot = await ensureDraftSnapshotForRelease(metaDb, message.type, {
     regionCode: dataset.regionCode,
     cohortKey: dataset.cohortKey,
+    datasetCode: dataset.datasetCode,
+    datasetId: dataset.datasetId,
+    sourceReleaseId: dataset.releaseId,
+    variant: datasetVariantForSource(message.type, dataset.source),
+    identityMode: identityModeForSource(dataset.source),
   })
 
   const year = message.sourceVersion.slice(0, 4)
@@ -305,11 +390,14 @@ export async function prepareDivisionVersionInsertContext(
   })
   await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
   await upsertReleaseShardAssignment(metaDb, dataset.releaseId, sourceShard.id)
+  await upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id)
 
   return {
     releaseId: dataset.releaseId,
     snapshotId: snapshot.id,
     cohortKey: message.cohortKey,
+    parentSnapshotId: snapshot.parentSnapshotId,
+    snapshotLineageId: snapshot.snapshotLineageId,
   }
 }
 
@@ -465,10 +553,11 @@ export async function getDivisionCurrentSnapshotTraceState(
  * Marks current version rows as closed at the given cohortKey.
  */
 export async function closeCurrentDivisionVersions(
-  db: HarbourWritableDb,
+  db: HarbourReadableDb & HarbourWritableDb,
   divisionIds: string[],
   snapshotId: string,
   cohortKey: string,
+  sourceReleaseId?: string,
 ) {
   if (divisionIds.length === 0) {
     return
@@ -477,15 +566,29 @@ export async function closeCurrentDivisionVersions(
   const now = new Date().toISOString()
   const chunkSize = getMaxItemsPerInClause(1, 6)
   const statements = []
+  const currentI18nRows: Array<{ divisionId: string; locale: string }> = []
 
   for (const divisionIdChunk of chunkArray(divisionIds, chunkSize)) {
+    currentI18nRows.push(
+      ...(await db
+        .select({
+          divisionId: historySchema.divisionsI18n.divisionId,
+          locale: historySchema.divisionsI18n.locale,
+        })
+        .from(historySchema.divisionsI18n)
+        .where(
+          and(
+            eq(historySchema.divisionsI18n.isCurrent, true),
+            inArray(historySchema.divisionsI18n.divisionId, divisionIdChunk),
+          ),
+        )
+        .all()),
+    )
     statements.push(
       db
         .update(historySchema.divisions)
         .set({
           isCurrent: false,
-          validToSnapshotId: snapshotId,
-          validToCohortKey: cohortKey,
           updatedAt: now,
         })
         .where(
@@ -501,7 +604,6 @@ export async function closeCurrentDivisionVersions(
         .update(historySchema.divisionsI18n)
         .set({
           isCurrent: false,
-          validToSnapshotId: snapshotId,
           updatedAt: now,
         })
         .where(
@@ -514,6 +616,23 @@ export async function closeCurrentDivisionVersions(
   }
 
   await runStatementsInGroupsWithWriteRetry(db, statements)
+  await recordSnapshotVersionChanges(db, {
+    snapshotId,
+    sourceReleaseId,
+    recordType: 'division',
+    operation: 'delete',
+    changes: divisionIds.map(recordId => ({ recordId })),
+  })
+  await recordSnapshotVersionChanges(db, {
+    snapshotId,
+    sourceReleaseId,
+    recordType: 'divisionI18n',
+    operation: 'delete',
+    changes: currentI18nRows.map(row => ({
+      recordId: row.divisionId,
+      locale: row.locale,
+    })),
+  })
 }
 
 /**
@@ -542,8 +661,6 @@ export async function deleteMissingCurrentDivisions(
         .update(historySchema.divisions)
         .set({
           isCurrent: false,
-          validToSnapshotId: snapshotId,
-          validToCohortKey: cohortKey,
           updatedAt: now,
         })
         .where(
@@ -559,7 +676,6 @@ export async function deleteMissingCurrentDivisions(
         .update(historySchema.divisionsI18n)
         .set({
           isCurrent: false,
-          validToSnapshotId: snapshotId,
           updatedAt: now,
         })
         .where(
@@ -572,6 +688,12 @@ export async function deleteMissingCurrentDivisions(
   }
 
   await runStatementsInGroupsWithWriteRetry(historyDb, historyStatements)
+  await recordSnapshotVersionChanges(historyDb, {
+    snapshotId,
+    recordType: 'division',
+    operation: 'delete',
+    changes: missingIds.map(recordId => ({ recordId })),
+  })
 
   return missingIds.length
 }
@@ -777,10 +899,6 @@ export async function insertDivisionVersionRows(
         versionHash: row.versionHash,
         sourceReleaseId: context.releaseId,
         snapshotId: context.snapshotId,
-        validFromSnapshotId: context.snapshotId,
-        validToSnapshotId: null,
-        validFromCohortKey: context.cohortKey,
-        validToCohortKey: null,
         isCurrent: true,
         level: row.level,
         type: row.type,
@@ -806,10 +924,6 @@ export async function insertDivisionVersionRows(
               isCurrent: true,
               sourceReleaseId: context.releaseId,
               snapshotId: context.snapshotId,
-              validFromCohortKey: context.cohortKey,
-              validFromSnapshotId: context.snapshotId,
-              validToSnapshotId: null,
-              validToCohortKey: null,
               updatedAt: excluded('updatedAt'),
             },
           }),
@@ -817,6 +931,16 @@ export async function insertDivisionVersionRows(
   }
 
   await runStatementsInGroupsWithWriteRetry(historyDb, baseStatements)
+  await recordSnapshotVersionChanges(historyDb, {
+    snapshotId: context.snapshotId,
+    sourceReleaseId: context.releaseId,
+    recordType: 'division',
+    operation: 'upsert',
+    changes: baseRows.map(row => ({
+      recordId: row.id,
+      versionHash: row.versionHash,
+    })),
+  })
 
   if (i18nRows.length > 0) {
     await insertDivisionVersionsI18nInChunks(
@@ -831,8 +955,6 @@ export async function insertDivisionVersionRows(
         nameVariant: row.nameVariant,
         sourceReleaseId: context.releaseId,
         snapshotId: context.snapshotId,
-        validFromSnapshotId: context.snapshotId,
-        validToSnapshotId: null,
         isCurrent: true,
         versionHash: row.versionHash,
         createdAt: row.createdAt,
@@ -840,6 +962,17 @@ export async function insertDivisionVersionRows(
       })),
       options,
     )
+    await recordSnapshotVersionChanges(historyDb, {
+      snapshotId: context.snapshotId,
+      sourceReleaseId: context.releaseId,
+      recordType: 'divisionI18n',
+      operation: 'upsert',
+      changes: i18nRows.map(row => ({
+        recordId: row.divisionId,
+        locale: row.locale,
+        versionHash: row.versionHash,
+      })),
+    })
   }
 }
 
@@ -881,8 +1014,6 @@ async function insertDivisionVersionsI18nInChunks(
     nameVariant: unknown
     sourceReleaseId: string
     snapshotId: string
-    validFromSnapshotId: string
-    validToSnapshotId: string | null
     isCurrent: boolean
     versionHash: string
     createdAt: string
@@ -910,8 +1041,6 @@ async function insertDivisionVersionsI18nInChunks(
             set: {
               sourceReleaseId: excluded('sourceReleaseId'),
               snapshotId: excluded('snapshotId'),
-              validFromSnapshotId: excluded('validFromSnapshotId'),
-              validToSnapshotId: null,
               isCurrent: true,
               name: excluded('name'),
               nameAlts: excluded('nameAlts'),
