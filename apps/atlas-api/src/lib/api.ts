@@ -113,17 +113,21 @@ export function buildJsonApiListDocument<
   offset: number
   total: number
   meta: TMeta
+  permalink?: string
 }) {
+  const links = buildPaginationLinks({
+    url: args.url,
+    limit: args.limit,
+    offset: args.offset,
+    total: args.total,
+  })
+  if (args.permalink) links.permalink = args.permalink
+
   return {
     jsonapi: {
       version: '1.1' as const,
     },
-    links: buildPaginationLinks({
-      url: args.url,
-      limit: args.limit,
-      offset: args.offset,
-      total: args.total,
-    }),
+    links,
     data: args.data,
     ...(args.included && args.included.length > 0 ? { included: args.included } : {}),
     meta: args.meta,
@@ -134,13 +138,20 @@ export function buildJsonApiDetailDocument<
   TResource,
   TMeta extends object,
   TIncludedResource = TResource,
->(args: { url: URL; data: TResource; included?: TIncludedResource[]; meta: TMeta }) {
+>(args: {
+  url: URL
+  data: TResource
+  included?: TIncludedResource[]
+  meta: TMeta
+  permalink?: string
+}) {
   return {
     jsonapi: {
       version: '1.1' as const,
     },
     links: {
       self: args.url.toString(),
+      ...(args.permalink ? { permalink: args.permalink } : {}),
     },
     data: args.data,
     ...(args.included && args.included.length > 0 ? { included: args.included } : {}),
