@@ -7,6 +7,8 @@ import { prepareHkgovPlandNewTownParquet } from '../hkgovPlandNewTown.ts'
 import type { ParsedArgs, UploadTarget } from '../options.ts'
 import { runUploadCommand } from './upload.ts'
 
+const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
+
 type BackfillKind = 'newtown' | 'pu'
 
 type BackfillRelease = {
@@ -85,7 +87,7 @@ export async function runHkgovPlandBackfillCommand(
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const releases = kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES
   const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-newtown'
-  const artifactRoot = resolve(invocationCwd, 'data/hkgov/pland')
+  const artifactRoot = resolve(REPO_ROOT, 'data/hkgov/pland')
   const outputDir = await mkdtemp(join(tmpdir(), `harbour-${source}-backfill-`))
 
   try {
