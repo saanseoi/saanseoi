@@ -1,7 +1,7 @@
 {
   "versionHash": "sha256:eacbe9108ca6efa7f6f1153ecf0e7119e05f4ca53966e94e55bfcf89369839dd",
   "publisherCode": "overture",
-  "code": "ds-hk-overture-divisionBoundary",
+  "code": "ds-hk-overture-division-boundary",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "monthly",

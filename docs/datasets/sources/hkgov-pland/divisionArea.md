@@ -23,7 +23,8 @@ licence is the Hong Kong Government open-data licence. `sourceSchemaVersion` is 
 observed artifact-shape profile, not an upstream CSDI version: `1.0` covers the
 2001–2016 `PPU`/`SPU`/`TPU`/`SB_VC` columns, while `2.0` covers the 2021 replacement of
 `SB_VC` with `Subunit`. Releases use provider variant `hkgov-pland-pu` and source
-release codes `hkgov-pland-{year}-division-pu` and `hkgov-pland-{year}-divisionArea-pu`.
+release codes `hkgov-pland-hk-{year}-division-pu` and
+`hkgov-pland-hk-{year}-division-area-pu`.
 
 ## Identity and hierarchy
 
@@ -55,7 +56,7 @@ divisions below; TPU/subunit uploads write no rows to it.
 
 New Towns are a separate Planning Department planning-domain resource and provider
 variant, not geographic/Overture divisions. They use source profile authority
-`hkgov-pland-newtown`, while retaining the Planning Department as publisher. The CSDI
+`hkgov-pland-new-town`, while retaining the Planning Department as publisher. The CSDI
 GeoJSON files are also EPSG:4326 deliveries of EPSG:2326 catalogue services.
 
 | Cohort | Catalogue code                                                                                                           | Layer          | Features |
@@ -72,7 +73,7 @@ scoped Planning Department identity. A 2006, 2011, 2016, or 2021 New Town theref
 coexists with (and neither replaces nor is a geometry variant of) an Overture geographic
 town. Renames and splits are intentionally separate cohort assertions, so no cross-
 cohort or Overture bridge is inferred. This makes the geometry selectable as
-`areas:hkgov-pland-newtown` for the corresponding planning division release.
+`areas:hkgov-pland-new-town` for the corresponding planning division release.
 
 The trilingual labels are retained verbatim in the versioned `hkgovPlandDivisionI18n`
 source table and normalized into the associated canonical planning division's
@@ -100,7 +101,7 @@ Parquet files afterwards.
 
 ```sh
 saanseoi backfill:hkgov-pland-pu --target preview
-saanseoi backfill:hkgov-pland-newtown --target preview
+saanseoi backfill:hkgov-pland-new-town --target preview
 ```
 
 The commands accept no data-path, source-version or confirmation options; use `local`,

@@ -66,11 +66,11 @@
       ]
     },
     {
-      "code": "hkgov-pland-newtown",
+      "code": "hkgov-pland-new-town",
       "members": [
         {
           "resourceType": "division",
-          "variant": "hkgov-pland-newtown",
+          "variant": "hkgov-pland-new-town",
           "role": "primary",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
@@ -78,7 +78,7 @@
         },
         {
           "resourceType": "divisionArea",
-          "variant": "hkgov-pland-newtown",
+          "variant": "hkgov-pland-new-town",
           "role": "geometry",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",

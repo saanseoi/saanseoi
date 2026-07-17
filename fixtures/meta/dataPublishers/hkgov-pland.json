@@ -1,6 +1,7 @@
 {
   "versionHash": "sha256:28172b880d5513ed183399c7bdeb705266164507d7c085f60271dd40dfbfc9e2",
   "code": "hkgov-pland",
+  "parentCode": "hkgov",
   "url": "https://www.pland.gov.hk/",
   "contactUrl": "https://www.pland.gov.hk/pland_en/contact_us/index.html",
   "i18n": [

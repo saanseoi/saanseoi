@@ -131,8 +131,8 @@ Examples:
 
 ```text
 ds-hk-overture-division
-ds-hk-overture-divisionArea
-ds-hk-hkgov-had-district
+ds-hk-overture-division-area
+ds-hk-hkgov-had-division-area-district
 ds-hk-hkgov-pland-division-pu
 ```
 
@@ -162,8 +162,8 @@ Example release codes:
 
 ```text
 overture-hk-2025-10-22.0-division
-hkgov-had-hk-2022-district
-hkgov-pland-2006-division-pu
+hkgov-had-hk-2022-division-area-district
+hkgov-pland-hk-2006-division-pu
 ```
 
 `sourceVersion` belongs to the source release namespace. Its form is provider-specific:
