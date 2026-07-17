@@ -16,7 +16,7 @@ import {
   type RequestedDivisionApiVersion,
   type RequestedDivisionVersion,
   type ResolvedDivisionApiVersion,
-} from '../../services/divisions'
+} from '../../handlers/divisions/v0'
 import type { AppEnv } from '../../types'
 
 const ROUTE_VARIANTS = [
