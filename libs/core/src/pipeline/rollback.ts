@@ -54,7 +54,6 @@ type RollbackCurrentTable = {
 }
 
 type RollbackHistoryTable = {
-  clearsCohortValidity: boolean
   table: string
 }
 
@@ -73,22 +72,19 @@ type RollbackResourcePlan = {
 const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
   division: {
     currentTables: [{ table: 'divisionsI18n' }, { table: 'divisions' }],
-    historyTables: [
-      { table: 'divisionsI18n', clearsCohortValidity: false },
-      { table: 'divisions', clearsCohortValidity: true },
-    ],
+    historyTables: [{ table: 'divisionsI18n' }, { table: 'divisions' }],
     sources: {
       overture: ['overtureDivisionI18n', 'overtureDivisions'],
     },
   },
   divisionArea: {
     currentTables: [{ table: 'divisionAreas' }],
-    historyTables: [{ table: 'divisionAreas', clearsCohortValidity: true }],
+    historyTables: [{ table: 'divisionAreas' }],
     sources: { overture: ['overtureDivisionAreas'] },
   },
   divisionBoundary: {
     currentTables: [{ table: 'divisionBoundaries' }],
-    historyTables: [{ table: 'divisionBoundaries', clearsCohortValidity: true }],
+    historyTables: [{ table: 'divisionBoundaries' }],
     sources: { overture: ['overtureDivisionBoundaries'] },
   },
   address: {
@@ -99,10 +95,10 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
       { table: 'address2d' },
     ],
     historyTables: [
-      { table: 'address3dI18n', clearsCohortValidity: false },
-      { table: 'address3d', clearsCohortValidity: true },
-      { table: 'address2dI18n', clearsCohortValidity: false },
-      { table: 'address2d', clearsCohortValidity: true },
+      { table: 'address3dI18n' },
+      { table: 'address3d' },
+      { table: 'address2dI18n' },
+      { table: 'address2d' },
     ],
     sources: {
       overture: ['overtureAddresses2d'],
@@ -173,22 +169,13 @@ function buildHistoryRollbackSql(
   input: LatestReleaseRollbackInput,
   plan: RollbackPlan,
 ) {
-  const now = sqlExpression("strftime('%Y-%m-%dT%H:%M:%fZ', 'now')")
-
-  return joinStatements(
-    plan.historyTables.flatMap(({ table, clearsCohortValidity }) => [
-      [
-        `UPDATE ${table}`,
-        'SET isCurrent = 1,',
-        '  validToSnapshotId = NULL,',
-        ...(clearsCohortValidity ? ['  validToCohortKey = NULL,'] : []),
-        `  updatedAt = ${now}`,
-        'WHERE isCurrent = 0',
-        `  AND validToSnapshotId = ${literal(input.snapshotId)};`,
-      ].join('\n'),
-      `DELETE FROM ${table} WHERE sourceReleaseId = ${literal(input.releaseId)} AND snapshotId = ${literal(input.snapshotId)};`,
-    ]),
-  )
+  return joinStatements([
+    `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${literal(input.snapshotId)};`,
+    ...plan.historyTables.map(
+      ({ table }) =>
+        `UPDATE ${table} SET isCurrent = 0 WHERE snapshotId = ${literal(input.snapshotId)};`,
+    ),
+  ])
 }
 
 function buildSourceRollbackSql(input: LatestReleaseRollbackInput, plan: RollbackPlan) {
