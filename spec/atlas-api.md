@@ -59,6 +59,7 @@ Deprecated `categories` should not be part of the public contract.
 This API spec depends on the normalized tables and ingest stages described in:
 
 - [atlas-data-model.md](./atlas-data-model.md)
+- [the normative versioning and replay reference](../docs/versioning.md)
 
 The API contract should be revised after those modeling decisions are implemented or
 locked.
@@ -83,3 +84,37 @@ the `division-areas` and `division-boundaries` resource types, retain relationsh
 identifiers on the primary division, and are deduplicated across a collection response.
 The geometry field contract, cohort rules, source bridges, and provider registration
 requirements are defined in [`divisions-geometry.md`](./divisions-geometry.md).
+
+## Divisions publication and time selection
+
+The v0 Divisions routes expose the publication model while remaining explicitly
+unstable. They run inside the existing Atlas Worker through a dedicated v0 handler
+module. A future stable contract minor must retain its own execution path whenever a
+change could alter observable data, defaults, ordering, or response shape; this does not
+require a separate Worker deployment.
+
+Selection parameters are:
+
+- `domain`: selects one non-mixing domain; default `overture`
+- `cohort`: selects an exact effective cohort in the chosen catalog
+- `effectiveAt`: selects the newest domain release effective at that instant
+- `knownAt`: selects the newest family-and-region catalog published by that instant
+- `catalogRevision`: selects an exact immutable publication checkpoint
+- `releaseSet`: selects an exact immutable domain release inside that checkpoint
+
+`effectiveAt` answers “with the catalog I selected, what data applies to this time?”.
+`knownAt` answers “what publication did the API know at this time?”. Combining them is
+the bitemporal time-machine query. A later backfill can therefore improve a 2022 domain
+release in a later catalog without changing what an earlier `knownAt` query resolves.
+
+Successful JSON:API documents expose the resolved catalog, catalog publication time,
+domain, and cohort in `meta`. Their top-level `links.permalink` fully qualifies all
+defaults, including the catalog revision, exact release set, domain, profile, locales,
+includes, and pagination. Replay guarantees the same data and JSON:API shape/order for
+that fully qualified request, not byte-identical serialization.
+
+Selectors and variants remain closed request-schema enums. Adding a new domain or
+variant is recorded as a backward-compatible API contract minor revision. Adding or
+backfilling another snapshot under an already supported selector changes only the
+immutable domain release and catalog revision; it does not bump the data schema or API
+contract by itself.

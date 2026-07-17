@@ -105,3 +105,10 @@ saanseoi backfill:hkgov-pland-newtown --target preview
 
 The commands accept no data-path, source-version or confirmation options; use `local`,
 `preview`, or `production` as the target.
+
+## Publication lineage
+
+Planning Unit and New Town data publish as independent division domains. Historical
+cohorts do not require a matching Overture release. Planning Units use persistent
+identity; New Town identity is cohort-scoped. Enriching an already published historical
+cohort creates the next immutable domain-release revision and a new catalog checkpoint.
