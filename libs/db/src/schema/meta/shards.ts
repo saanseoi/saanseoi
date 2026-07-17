@@ -13,7 +13,7 @@ import {
   dataShardTypes,
 } from '../../constants/schema'
 import { primaryUuid, timestamps } from '../shared'
-import { metaApiReleaseSets } from './api'
+import { metaApiReleaseSets, metaSnapshots } from './api'
 import { metaReleases } from './datasets'
 
 export const metaDataShards = sqliteTable(
@@ -67,6 +67,23 @@ export const metaReleaseShardAssignments = sqliteTable(
     primaryKey({
       columns: [table.releaseId, table.dataShardId],
     }),
+  ],
+)
+
+/** Locates the immutable journal delta for a snapshot. */
+export const metaSnapshotShardAssignments = sqliteTable(
+  'snapshotShardAssignments',
+  {
+    snapshotId: text('snapshotId')
+      .notNull()
+      .references(() => metaSnapshots.id, { onDelete: 'cascade' }),
+    dataShardId: text('dataShardId')
+      .notNull()
+      .references(() => metaDataShards.id, { onDelete: 'restrict' }),
+  },
+  table => [
+    primaryKey({ columns: [table.snapshotId, table.dataShardId] }),
+    index('snapshotShardAssignments_dataShardId_idx').on(table.dataShardId),
   ],
 )
 

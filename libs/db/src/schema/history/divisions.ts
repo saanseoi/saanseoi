@@ -14,14 +14,6 @@ export const divisions = sqliteTable(
       columns: [table.id, table.versionHash],
     }),
     index('divisions_current_lookup_idx').on(table.id, table.isCurrent),
-    index('divisions_snapshot_validity_idx').on(
-      table.validFromSnapshotId,
-      table.validToSnapshotId,
-    ),
-    index('divisions_validity_idx').on(
-      table.validFromCohortKey,
-      table.validToCohortKey,
-    ),
     index('divisions_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('divisions_snapshotId_idx').on(table.snapshotId),
   ],

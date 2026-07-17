@@ -19,14 +19,6 @@ export const address2d = sqliteTable(
       columns: [table.id, table.versionHash],
     }),
     index('address2d_current_lookup_idx').on(table.id, table.isCurrent),
-    index('address2d_snapshot_validity_idx').on(
-      table.validFromSnapshotId,
-      table.validToSnapshotId,
-    ),
-    index('address2d_validity_idx').on(
-      table.validFromCohortKey,
-      table.validToCohortKey,
-    ),
     index('address2d_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('address2d_snapshotId_idx').on(table.snapshotId),
   ],
@@ -64,14 +56,6 @@ export const address3d = sqliteTable(
       columns: [table.id, table.versionHash],
     }),
     index('address3d_current_lookup_idx').on(table.id, table.isCurrent),
-    index('address3d_snapshot_validity_idx').on(
-      table.validFromSnapshotId,
-      table.validToSnapshotId,
-    ),
-    index('address3d_validity_idx').on(
-      table.validFromCohortKey,
-      table.validToCohortKey,
-    ),
     index('address3d_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('address3d_snapshotId_idx').on(table.snapshotId),
     index('address3d_address2dId_idx').on(table.address2dId),

@@ -81,8 +81,6 @@ export const entityAliases = sqliteTable(
     canonicalId: text('canonicalId').notNull(),
     sourceSystem: text('sourceSystem').notNull(),
     isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
-    validFromCohortKey: text('validFromCohortKey'),
-    validToCohortKey: text('validToCohortKey'),
     notes: text('notes'),
     ...timestamps,
   },

@@ -14,11 +14,6 @@ export const streets = sqliteTable(
       columns: [table.id, table.versionHash],
     }),
     index('streets_current_lookup_idx').on(table.id, table.isCurrent),
-    index('streets_snapshot_validity_idx').on(
-      table.validFromSnapshotId,
-      table.validToSnapshotId,
-    ),
-    index('streets_validity_idx').on(table.validFromCohortKey, table.validToCohortKey),
     index('streets_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('streets_snapshotId_idx').on(table.snapshotId),
   ],
