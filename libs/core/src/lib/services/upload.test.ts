@@ -245,7 +245,7 @@ describe('upload', () => {
 
   test('infers source version and cohortKey from the filename when needed', async () => {
     const tempDir = createTempDir()
-    const fixtureFile = join(tempDir, 'hkgov-dpo-hk-2026-06-04.324-address.parquet')
+    const fixtureFile = join(tempDir, 'dr-hk-hkgov-dpo-address-2026-06-04.324.parquet')
 
     writeFileSync(fixtureFile, 'fixture')
 
@@ -266,7 +266,7 @@ describe('upload', () => {
 
     expect(planned.plan.cohortKey).toBe('2026-06-04.324')
     expect(planned.plan.sourceVersion).toBe('2026-06-04.324')
-    expect(planned.plan.datasetId).toBe('hkgov-dpo-hk-2026-06-04.324-address')
+    expect(planned.plan.datasetId).toBe('dr-hk-hkgov-dpo-address-2026-06-04.324')
     expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-dpo-address')
   })
 
@@ -291,8 +291,8 @@ describe('upload', () => {
       type: 'divisionArea',
     })
 
-    expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-had-district')
-    expect(planned.plan.releaseCode).toBe('hkgov-had-hk-2022-district')
+    expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-had-division-area-district')
+    expect(planned.plan.releaseCode).toBe('dr-hk-hkgov-had-division-area-district-2022')
     expect(planned.plan.cohortKey).toBe('2022')
     expect(planned.plan.inferredFrom.cohortKey).toBe('sourceVersion')
   })
@@ -335,7 +335,7 @@ describe('upload', () => {
     })
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-20.0-division')
+    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(result.plan.type).toBe('division')
     expect(result.plan.originalFileName).toBe('hk-division-2026-05.parquet')
     expect(result.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
@@ -345,7 +345,7 @@ describe('upload', () => {
       .query(
         'SELECT code AS datasetId, status, rawObjectKey, originalFileName FROM releases WHERE code = ?',
       )
-      .get('overture-hk-2026-05-20.0-division') as {
+      .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
       status: string
       rawObjectKey: string
@@ -355,7 +355,7 @@ describe('upload', () => {
       .query(
         'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ?',
       )
-      .get('overture-hk-2026-05-20.0-division') as { count: number }
+      .get('dr-hk-overture-division-2026-05-20.0') as { count: number }
 
     sqliteCheck.close()
 
@@ -449,7 +449,7 @@ describe('upload', () => {
 
     db.close()
 
-    expect(planned.plan.datasetId).toBe('overture-hk-2026-05-20.0-division')
+    expect(planned.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(planned.plan.type).toBe('division')
     expect(planned.plan.fileName).toBe('division.parquet')
   })
@@ -530,7 +530,7 @@ describe('upload', () => {
 
     const dataset = sqlite
       .query('SELECT code AS datasetId, rawObjectKey FROM releases WHERE code = ?')
-      .get('overture-hk-2026-05-20.0-division') as {
+      .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
       rawObjectKey: string
     } | null
@@ -581,7 +581,7 @@ describe('upload', () => {
           WHERE r.code = ?
         `,
       )
-      .get('hkgov-dpo-hk-2026-06-04.324-address') as {
+      .get('dr-hk-hkgov-dpo-address-2026-06-04.324') as {
       datasetCode: string
       releaseCode: string
       status: string
@@ -590,10 +590,10 @@ describe('upload', () => {
     sqlite.close()
 
     expect(result.plan.datasetCode).toBe('ds-hk-hkgov-dpo-address')
-    expect(result.plan.datasetId).toBe('hkgov-dpo-hk-2026-06-04.324-address')
+    expect(result.plan.datasetId).toBe('dr-hk-hkgov-dpo-address-2026-06-04.324')
     expect(release).toEqual({
       datasetCode: 'ds-hk-hkgov-dpo-address',
-      releaseCode: 'hkgov-dpo-hk-2026-06-04.324-address',
+      releaseCode: 'dr-hk-hkgov-dpo-address-2026-06-04.324',
       status: 'staged',
     })
   })
@@ -633,7 +633,7 @@ describe('upload', () => {
       .query(
         'SELECT code AS datasetId, status, rawObjectKey, originalFileName FROM releases WHERE code = ?',
       )
-      .get('overture-hk-2026-05-20.0-division') as {
+      .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
       status: string
       rawObjectKey: string
@@ -643,11 +643,11 @@ describe('upload', () => {
       .query(
         'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ?',
       )
-      .get('overture-hk-2026-05-20.0-division') as { count: number }
+      .get('dr-hk-overture-division-2026-05-20.0') as { count: number }
 
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-20.0-division')
+    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(dataset).not.toBeNull()
     expect(dataset?.status).toBe('staged')
     expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
@@ -720,7 +720,7 @@ describe('upload', () => {
 
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-20.0-division')
+    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(ingestRuns).toEqual([
       {
         error: null,
@@ -779,14 +779,14 @@ describe('upload', () => {
 
     const dataset = sqlite
       .query('SELECT status, rawObjectKey FROM releases WHERE code = ?')
-      .get('overture-hk-2026-05-20.0-division') as {
+      .get('dr-hk-overture-division-2026-05-20.0') as {
       status: string
       rawObjectKey: string
     } | null
 
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-20.0-division')
+    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(result.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
     expect(dataset?.status).toBe('uploading')
     expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
@@ -819,7 +819,7 @@ describe('upload', () => {
       phase: 'requestUpload',
       status: 'error',
       stats:
-        '"{\\"releaseCode\\":\\"overture-hk-2026-05-20.0-division\\",\\"rawObjectKey\\":\\"hk/overture/2026-05-20.0/division.parquet\\",\\"rowCount\\":1,\\"schemaFingerprint\\":\\"old\\"}"',
+        '"{\\"releaseCode\\":\\"dr-hk-overture-division-2026-05-20.0\\",\\"rawObjectKey\\":\\"hk/overture/2026-05-20.0/division.parquet\\",\\"rowCount\\":1,\\"schemaFingerprint\\":\\"old\\"}"',
       error: '"{\\"message\\":\\"old failure\\"}"',
       startedAt: '2026-06-02T00:00:00.000Z',
       finishedAt: '2026-06-02T00:00:00.000Z',
@@ -847,7 +847,7 @@ describe('upload', () => {
 
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-20.0-division')
+    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(result.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
     expect(ingestRuns).toEqual([
       {
@@ -855,7 +855,7 @@ describe('upload', () => {
         phase: 'requestUpload',
         startedAt: expect.any(String),
         stats: JSON.stringify({
-          releaseCode: 'overture-hk-2026-05-20.0-division',
+          releaseCode: 'dr-hk-overture-division-2026-05-20.0',
           rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
           rowCount: fixtureInspection.rowCount,
           schemaFingerprint: createSchemaFingerprint(fixtureInspection),
@@ -899,7 +899,7 @@ describe('upload', () => {
         inspection: fixtureInspection,
       }),
     ).rejects.toThrow(
-      'Dataset already exists with status uploading: overture-hk-division',
+      'Dataset already exists with status uploading: ds-hk-overture-division',
     )
 
     const result = await requestUpload(db, {
@@ -912,7 +912,7 @@ describe('upload', () => {
     })
     const dataset = sqlite
       .query('SELECT id, status, originalFileName FROM releases WHERE code = ?')
-      .get('overture-hk-2026-05-20.0-division') as {
+      .get('dr-hk-overture-division-2026-05-20.0') as {
       id: string
       originalFileName: string
       status: string
@@ -953,13 +953,13 @@ describe('upload', () => {
 
     const dataset = sqlite
       .query('SELECT status FROM releases WHERE code = ?')
-      .get('overture-hk-2026-05-20.0-division') as {
+      .get('dr-hk-overture-division-2026-05-20.0') as {
       status: string
     } | null
 
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-20.0-division')
+    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(dataset?.status).toBe('staged')
   })
 
@@ -997,8 +997,8 @@ describe('upload', () => {
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'overture-hk-2026-06-17.0-division',
-        supersedesDatasetId: 'overture-hk-2026-05-20.0-division',
+        datasetId: 'dr-hk-overture-division-2026-06-17.0',
+        supersedesDatasetId: 'dr-hk-overture-division-2026-05-20.0',
       },
     })
 
@@ -1039,8 +1039,8 @@ describe('upload', () => {
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'overture-hk-2026-02-18.0-division',
-        supersedesDatasetId: 'overture-hk-2026-01-21.0-division',
+        datasetId: 'dr-hk-overture-division-2026-02-18.0',
+        supersedesDatasetId: 'dr-hk-overture-division-2026-01-21.0',
       },
     })
 
@@ -1081,8 +1081,8 @@ describe('upload', () => {
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'overture-hk-2026-03-18.0-division',
-        supersedesDatasetId: 'overture-hk-2026-02-18.0-division',
+        datasetId: 'dr-hk-overture-division-2026-03-18.0',
+        supersedesDatasetId: 'dr-hk-overture-division-2026-02-18.0',
       },
     })
 
@@ -1127,8 +1127,8 @@ describe('upload', () => {
         resolveSchemaFingerprint: async () =>
           createSchemaFingerprint(fixtureInspection),
       }),
-    ).rejects.toThrow(`Schema drift detected against overture-hk-2026-01-21.0-division.
-Current upload schema has 6 fields; overture-hk-2026-01-21.0-division recorded 5 fields.
+    ).rejects.toThrow(`Schema drift detected against dr-hk-overture-division-2026-01-21.0.
+Current upload schema has 6 fields; dr-hk-overture-division-2026-01-21.0 recorded 5 fields.
 Field-level differences:
 - added \`wrong_field\` (int_32, nullable=true)
 Reconcile the schema before uploading this dataset.`)
@@ -1168,7 +1168,7 @@ Reconcile the schema before uploading this dataset.`)
         rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       }),
     ).rejects.toThrow(
-      'Dataset already exists with status processing: overture-hk-division',
+      'Dataset already exists with status processing: ds-hk-overture-division',
     )
 
     sqlite.close()
@@ -1208,7 +1208,7 @@ Reconcile the schema before uploading this dataset.`)
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'hkgov-hk-2026-01-20.0-division',
+        datasetId: 'dr-hk-hkgov-division-2026-01-20.0',
         supersedesDatasetId: null,
       },
     })
@@ -1250,7 +1250,7 @@ Reconcile the schema before uploading this dataset.`)
       ingestedAt: '2026-06-03T00:00:00.000Z',
       createdAt: '2026-06-03T00:00:00.000Z',
       updatedAt: '2026-06-03T00:00:00.000Z',
-      supersededByReleaseCode: 'overture-hk-2026-05-20.0-division',
+      supersededByReleaseCode: 'dr-hk-overture-division-2026-05-20.0',
     })
     insertFixtureRelease(sqlite, {
       source: 'overture',
@@ -1279,8 +1279,8 @@ Reconcile the schema before uploading this dataset.`)
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'overture-hk-2026-06-17.0-division',
-        supersedesDatasetId: 'overture-hk-2026-05-20.0-division',
+        datasetId: 'dr-hk-overture-division-2026-06-17.0',
+        supersedesDatasetId: 'dr-hk-overture-division-2026-05-20.0',
       },
     })
 

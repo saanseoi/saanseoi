@@ -1,6 +1,5 @@
 import {
   getDatasetById,
-  hasDatasetForCohortKeySourceType,
   getLatestDatasetForRegionSourceType,
   insertDataset,
   resetFailedDataset,
@@ -10,6 +9,11 @@ import {
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
 import type { ReleaseStatus } from '@repo/db'
 import { assertKnownSafeSourceRelease } from '../../sourceSchemas'
+import {
+  buildDatasetCode,
+  buildDatasetReleaseCode,
+  resourceTypeCodeSlug,
+} from '../../codes'
 import {
   resourceTypes,
   resourceThemes,
@@ -85,7 +89,7 @@ const SOURCE_ALIASES: Record<string, string> = {
   hkgov: 'hkgov',
   'hkgov-had': 'hkgov-had',
   'hkgov-pland-pu': 'hkgov-pland-pu',
-  'hkgov-pland-newtown': 'hkgov-pland-newtown',
+  'hkgov-pland-new-town': 'hkgov-pland-new-town',
   'hkgov-dpo': 'hkgov-dpo',
   'hkgov als': 'hkgov-dpo',
   als: 'hkgov-dpo',
@@ -148,10 +152,11 @@ function normalizeUploadFileName(
   const originalFileName =
     providedOriginalFileName?.trim() || fileNameFromPath(filePath)
   const { extension } = splitFileNameParts(originalFileName)
+  const resourceSlug = resourceTypeCodeSlug(type)
 
   return {
     originalFileName,
-    fileName: extension ? `${type}.${extension}` : type,
+    fileName: extension ? `${resourceSlug}.${extension}` : resourceSlug,
   }
 }
 
@@ -163,83 +168,7 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-function getDatasetCodeSubType(_source: string, _type: ResourceType) {
-  if (_source === 'hkgov-had' && _type === 'divisionArea') {
-    return 'district'
-  }
-
-  if (
-    _source === 'hkgov-pland-pu' &&
-    (_type === 'division' || _type === 'divisionArea')
-  ) {
-    return 'pu'
-  }
-
-  if (
-    _source === 'hkgov-pland-newtown' &&
-    (_type === 'division' || _type === 'divisionArea')
-  ) {
-    return 'newtown'
-  }
-
-  return null
-}
-
-function buildDatasetCode(regionCode: RegionCode, source: string, type: ResourceType) {
-  const subType = getDatasetCodeSubType(source, type)
-
-  if (source === 'hkgov-had' && type === 'divisionArea' && subType === 'district') {
-    return `ds-${regionCode}-${source}-${subType}`
-  }
-
-  if (source === 'hkgov-pland-pu' && subType === 'pu') {
-    return `ds-${regionCode}-hkgov-pland-${type}-${subType}`
-  }
-
-  if (source === 'hkgov-pland-newtown' && subType === 'newtown') {
-    return `ds-${regionCode}-hkgov-pland-${type}-${subType}`
-  }
-
-  return `ds-${regionCode}-${source}-${type}${subType ? `-${subType}` : ''}`
-}
-
-function buildReleaseCode(
-  regionCode: RegionCode,
-  source: string,
-  sourceVersion: string,
-  type: ResourceType,
-) {
-  const subType = getDatasetCodeSubType(source, type)
-
-  if (source === 'hkgov-pland-pu' && subType === 'pu') {
-    return `hkgov-pland-${sourceVersion}-${type}-${subType}`
-  }
-
-  if (source === 'hkgov-pland-newtown' && subType === 'newtown') {
-    return `hkgov-pland-${sourceVersion}-${type}-${subType}`
-  }
-
-  return `${source}-${regionCode}-${sourceVersion}-${
-    source === 'hkgov-had' && type === 'divisionArea' && subType === 'district'
-      ? subType
-      : type
-  }`
-}
-
 function formatDatasetIdentifier(datasetCode?: string, datasetId?: string) {
-  if (datasetCode?.startsWith('ds-')) {
-    const match = datasetCode.match(
-      /^ds-([a-z0-9]+)-(.+)-(divisionArea|divisionBoundary|address|division|place|street)(?:-(.+))?$/i,
-    )
-
-    if (match) {
-      const [, regionCode, source, resourceType, subType] = match
-      const subTypeParts = subType ? [subType] : []
-
-      return [source, regionCode, resourceType, ...subTypeParts].join('-')
-    }
-  }
-
   return datasetCode ?? datasetId ?? 'unknown-dataset'
 }
 
@@ -672,26 +601,11 @@ async function ensureSourcePrerequisites(
   db: HarbourReadableDb,
   plan: Pick<UploadPlan, 'regionCode' | 'cohortKey' | 'source' | 'type'>,
 ) {
-  if (plan.source !== 'hkgov-dpo' || plan.type !== 'address') {
-    return
-  }
-
-  const overtureDataset = await hasDatasetForCohortKeySourceType(
-    db,
-    plan.regionCode,
-    plan.cohortKey,
-    'overture',
-    'address',
-  )
-
-  if (!overtureDataset) {
-    throw new Error(
-      [
-        `Cannot upload ${plan.source} ${plan.type} for ${plan.cohortKey}.`,
-        'Upload the matching Overture address dataset for the same cohortKey first.',
-      ].join(' '),
-    )
-  }
+  // HKGov ALS can establish pre-GERS address cohorts from a reviewed future
+  // identity bridge. Overture is therefore preferred, but not a hard source
+  // prerequisite; the exact-cohort division snapshot remains mandatory.
+  void db
+  void plan
 }
 
 function resolveUploadPlan(
@@ -794,7 +708,12 @@ function resolveUploadPlan(
     options.originalFileName,
   )
   const datasetCode = buildDatasetCode(regionCode, source, type)
-  const releaseCode = buildReleaseCode(regionCode, source, resolvedSourceVersion, type)
+  const releaseCode = buildDatasetReleaseCode(
+    regionCode,
+    source,
+    resolvedSourceVersion,
+    type,
+  )
   const plan: UploadPlan = {
     datasetId: releaseCode,
     datasetCode,
