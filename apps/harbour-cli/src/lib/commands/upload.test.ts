@@ -68,6 +68,7 @@ const {
   assertAddressUploadPrerequisites,
   assertDivisionGeometryUploadPrerequisites,
   formatDivisionApiReleaseSetReadiness,
+  parseDivisionReleaseSetCohortKey,
   rainbowWaveText,
 } = await import('./upload.ts')
 
@@ -132,6 +133,12 @@ describe('upload command address prerequisites', () => {
 })
 
 describe('division API release set readiness display', () => {
+  test('resolves the cohort from a variant API release-set code', () => {
+    expect(
+      parseDivisionReleaseSetCohortKey('data-hk-divisions-2025-09-24.0-0--overture'),
+    ).toBe('2025-09-24.0')
+  })
+
   test('renders a release set code as a rainbow wave', () => {
     expect(rainbowWaveText('set')).toBe(
       '\u001B[38;5;196ms\u001B[38;5;202me\u001B[38;5;226mt\u001B[39m',
@@ -160,7 +167,7 @@ describe('division API release set readiness display', () => {
       ),
     ).toBe(
       [
-        'HK / 2025-09-24.0',
+        'HK / overture / 2025-09-24.0',
         '  \u001B[32m✓\u001B[39m division          available',
         '  \u001B[32m✓\u001B[39m divisionArea      available',
         '  \u001B[33m○\u001B[39m divisionBoundary  unavailable',
@@ -193,13 +200,38 @@ describe('division API release set readiness display', () => {
       ),
     ).toBe(
       [
-        'HK / 2025-09-24.0',
+        'HK / overture / 2025-09-24.0',
         '  \u001B[32m✓\u001B[39m division          available',
         '  \u001B[32m✓\u001B[39m divisionArea      available',
         '  \u001B[32m✓\u001B[39m divisionBoundary  available',
         '',
         'At or Before Cohort',
         '  \u001B[32m✓\u001B[39m hkgov-had-hk-2022-district  available',
+      ].join('\n'),
+    )
+  })
+
+  test('reports planning domains independently from Overture requirements', () => {
+    expect(
+      formatDivisionApiReleaseSetReadiness(
+        {
+          cohortKey: '2006',
+          regionCode: 'hk',
+          source: 'hkgov-pland-pu',
+        },
+        {
+          areaAvailable: true,
+          boundaryAvailable: false,
+          cohortIndependentReleases: [],
+          divisionAvailable: true,
+          ready: true,
+        },
+      ),
+    ).toBe(
+      [
+        'HK / hkgov-pland-pu / 2006',
+        '  \u001B[32m✓\u001B[39m division      available',
+        '  \u001B[32m✓\u001B[39m divisionArea  available',
       ].join('\n'),
     )
   })

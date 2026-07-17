@@ -20,7 +20,7 @@ import type { HarbourReadableDb } from '@repo/core/db/types'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { metaSchema } from '@repo/db'
-import { and, desc, eq, inArray, lte } from 'drizzle-orm'
+import { and, desc, eq, inArray, like, lte } from 'drizzle-orm'
 
 import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
 import { prepareHkgovHadDistrictUpload } from '../hkgovHad.ts'
@@ -316,8 +316,9 @@ ${mutedBar}  `)
         )
         note(
           formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
-          'API RELEASE SET',
+          'API DOMAIN RELEASE',
         )
+        logApiReleaseSetPublication(processingResult.publishResult)
         outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -353,7 +354,7 @@ ${mutedBar}  `)
         )
         note(
           formatDivisionApiReleaseSetReadiness(previewResult.plan, releaseSetReadiness),
-          'API RELEASE SET',
+          'API DOMAIN RELEASE',
         )
         logApiReleaseSetPublication(processingResult.publishResult ?? undefined)
         outro(formatSuccessfulReleaseMessage(commandStartedAt))
@@ -414,7 +415,7 @@ ${mutedBar}  `)
             ),
             releaseSetReadiness,
           ),
-          'API RELEASE SET',
+          'API DOMAIN RELEASE',
         )
         logApiReleaseSetPublication(processingResult.publishResult)
         outro(formatSuccessfulReleaseMessage(commandStartedAt))
@@ -688,15 +689,22 @@ export async function resolveDivisionApiReleaseSetReadiness(
   const snapshots = target.remote
     ? await resolveRemoteDivisionReleaseSetSnapshots(target, plan)
     : await resolveLocalDivisionReleaseSetSnapshots(target, plan)
-  const cohortIndependentReleases = target.remote
-    ? await resolveRemoteCohortIndependentDivisionReleases(target, plan)
-    : await resolveLocalCohortIndependentDivisionReleases(target, plan)
+  const domainCode = resolveDivisionDomainCode(plan.source)
+  const cohortIndependentReleases =
+    domainCode === 'overture'
+      ? target.remote
+        ? await resolveRemoteCohortIndependentDivisionReleases(target, plan)
+        : await resolveLocalCohortIndependentDivisionReleases(target, plan)
+      : []
   const divisionAvailable = snapshots.division
   const areaAvailable =
     snapshots.divisionArea ||
     cohortIndependentReleases.some(release => release.releaseCode !== null)
   const boundaryAvailable = snapshots.divisionBoundary
-  const ready = divisionAvailable && areaAvailable && boundaryAvailable
+  const ready =
+    domainCode === 'overture'
+      ? divisionAvailable && areaAvailable && boundaryAvailable
+      : divisionAvailable && areaAvailable
 
   return {
     areaAvailable,
@@ -708,13 +716,16 @@ export async function resolveDivisionApiReleaseSetReadiness(
 }
 
 export function formatDivisionApiReleaseSetReadiness(
-  plan: Pick<DivisionGeometryPlan, 'cohortKey' | 'regionCode'>,
+  plan: Pick<DivisionGeometryPlan, 'cohortKey' | 'regionCode'> &
+    Partial<Pick<DivisionGeometryPlan, 'source'>>,
   readiness: DivisionReleaseSetReadiness,
 ) {
   const rows = [
     ['division', readiness.divisionAvailable],
     ['divisionArea', readiness.areaAvailable],
-    ['divisionBoundary', readiness.boundaryAvailable],
+    ...(resolveDivisionDomainCode(plan.source) === 'overture'
+      ? ([['divisionBoundary', readiness.boundaryAvailable]] as const)
+      : []),
   ] as const
   const width = Math.max(...rows.map(([dataset]) => dataset.length))
   const cohortIndependentRows: Array<[release: string, available: boolean]> =
@@ -723,27 +734,33 @@ export function formatDivisionApiReleaseSetReadiness(
       release.releaseCode !== null,
     ])
   const cohortIndependentWidth = Math.max(
+    0,
     ...cohortIndependentRows.map(([release]) => release.length),
   )
 
   return [
-    `${plan.regionCode.toUpperCase()} / ${plan.cohortKey}`,
+    `${plan.regionCode.toUpperCase()} / ${resolveDivisionDomainCode(plan.source)} / ${plan.cohortKey}`,
     ...rows.map(
       ([dataset, available]) =>
         `  ${available ? greenText('✓') : yellowText('○')} ${dataset.padEnd(width)}  ${available ? 'available' : 'unavailable'}`,
     ),
-    '',
-    'At or Before Cohort',
-    ...cohortIndependentRows.map(
-      ([release, available]) =>
-        `  ${available ? greenText('✓') : yellowText('○')} ${release.padEnd(cohortIndependentWidth)}  ${available ? 'available' : 'unavailable'}`,
-    ),
+    ...(cohortIndependentRows.length > 0
+      ? [
+          '',
+          'At or Before Cohort',
+          ...cohortIndependentRows.map(
+            ([release, available]) =>
+              `  ${available ? greenText('✓') : yellowText('○')} ${release.padEnd(cohortIndependentWidth)}  ${available ? 'available' : 'unavailable'}`,
+          ),
+        ]
+      : []),
   ].join('\n')
 }
 
 function logApiReleaseSetPublication(
   result:
     | {
+        apiCatalogRevisionCode?: string
         apiReleaseSetCode?: string
         apiReleaseSetStatus?: 'current' | 'draft'
       }
@@ -754,10 +771,19 @@ function logApiReleaseSetPublication(
   const releaseSetCode = result?.apiReleaseSetCode
 
   if (releaseSetCode && result?.apiReleaseSetStatus === 'current') {
-    log.success(`Published API release set ${rainbowWaveText(releaseSetCode)}.`)
+    log.success(`Published API domain release ${rainbowWaveText(releaseSetCode)}.`)
+    if (result.apiCatalogRevisionCode) {
+      log.info(`Catalog revision ${blueText(result.apiCatalogRevisionCode)}`)
+    }
   } else if (releaseSetCode) {
     log.warn(`${redText('DRAFT')} ${blueText(releaseSetCode)}`)
   }
+}
+
+function resolveDivisionDomainCode(source: DivisionGeometryPlan['source'] | undefined) {
+  return source === 'hkgov-pland-pu' || source === 'hkgov-pland-newtown'
+    ? source
+    : 'overture'
 }
 
 export function rainbowWaveText(value: string) {
@@ -782,8 +808,10 @@ function withReleaseSetCohort(
   return cohortKey ? { ...plan, cohortKey } : plan
 }
 
-function parseDivisionReleaseSetCohortKey(releaseSetCode: string | undefined) {
-  return releaseSetCode?.match(/^data-[a-z0-9]+-divisions-(.+)-\d+$/i)?.[1]
+export function parseDivisionReleaseSetCohortKey(releaseSetCode: string | undefined) {
+  return releaseSetCode?.match(
+    /^data-[a-z0-9]+-divisions-(.+)-\d+(?:--[a-z0-9-]+)?$/i,
+  )?.[1]
 }
 
 async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
@@ -798,11 +826,34 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
     { cacheTableProfile: 'division' },
   )
   try {
-    return await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-      dbContext.metaDb as unknown as HarbourReadableDb,
-      'division',
-      plan.regionCode,
-      plan.cohortKey,
+    const db = dbContext.metaDb as unknown as HarbourReadableDb
+    return (
+      (await db
+        .select({
+          code: metaSchema.metaSnapshots.code,
+          id: metaSchema.metaSnapshots.id,
+        })
+        .from(metaSchema.metaSnapshots)
+        .innerJoin(
+          metaSchema.metaSnapshotSources,
+          eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
+        )
+        .innerJoin(
+          metaSchema.metaDatasets,
+          eq(metaSchema.metaSnapshotSources.datasetId, metaSchema.metaDatasets.id),
+        )
+        .where(
+          and(
+            eq(metaSchema.metaSnapshots.resourceType, 'division'),
+            eq(metaSchema.metaSnapshots.status, 'published'),
+            eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
+            eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
+            eq(metaSchema.metaSnapshotSources.role, 'primary'),
+            like(metaSchema.metaDatasets.code, divisionDomainDatasetPattern(plan)),
+          ),
+        )
+        .limit(1)
+        .get()) ?? null
     )
   } finally {
     dbContext.cleanup()
@@ -823,6 +874,7 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
     WHERE s.resourceType = 'division'
       AND s.status = 'published'
       AND d.regionCode = ${sqlLiteral(plan.regionCode)}
+      AND d.code LIKE ${sqlLiteral(divisionDomainDatasetPattern(plan))}
       AND s.cohortKey = ${sqlLiteral(plan.cohortKey)}
       AND ss.role = 'primary'
     LIMIT 1
@@ -845,18 +897,42 @@ async function resolveLocalDivisionReleaseSetSnapshots(
   try {
     const db = dbContext.metaDb as unknown as HarbourReadableDb
     const resourceTypes = ['division', 'divisionArea', 'divisionBoundary'] as const
+    const datasetPattern = divisionDomainDatasetPattern(plan)
     const entries = await Promise.all(
       resourceTypes.map(
         async resourceType =>
           [
             resourceType,
             Boolean(
-              await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-                db,
-                resourceType,
-                plan.regionCode,
-                plan.cohortKey,
-              ),
+              await db
+                .select({ id: metaSchema.metaSnapshots.id })
+                .from(metaSchema.metaSnapshots)
+                .innerJoin(
+                  metaSchema.metaSnapshotSources,
+                  eq(
+                    metaSchema.metaSnapshots.id,
+                    metaSchema.metaSnapshotSources.snapshotId,
+                  ),
+                )
+                .innerJoin(
+                  metaSchema.metaDatasets,
+                  eq(
+                    metaSchema.metaSnapshotSources.datasetId,
+                    metaSchema.metaDatasets.id,
+                  ),
+                )
+                .where(
+                  and(
+                    eq(metaSchema.metaSnapshots.resourceType, resourceType),
+                    eq(metaSchema.metaSnapshots.status, 'published'),
+                    eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
+                    eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
+                    eq(metaSchema.metaSnapshotSources.role, 'primary'),
+                    like(metaSchema.metaDatasets.code, datasetPattern),
+                  ),
+                )
+                .limit(1)
+                .get(),
             ),
           ] as const,
       ),
@@ -876,6 +952,7 @@ async function resolveRemoteDivisionReleaseSetSnapshots(
 ) {
   const resourceTypes = ['division', 'divisionArea', 'divisionBoundary'] as const
   const values = resourceTypes.map(sqlLiteral).join(', ')
+  const datasetPattern = divisionDomainDatasetPattern(plan)
   const rows = await runRemoteSnapshotQuery(
     target,
     `
@@ -886,6 +963,7 @@ async function resolveRemoteDivisionReleaseSetSnapshots(
     WHERE s.resourceType IN (${values})
       AND s.status = 'published'
       AND d.regionCode = ${sqlLiteral(plan.regionCode)}
+      AND d.code LIKE ${sqlLiteral(datasetPattern)}
       AND s.cohortKey = ${sqlLiteral(plan.cohortKey)}
       AND ss.role = 'primary'
   `,
@@ -894,6 +972,13 @@ async function resolveRemoteDivisionReleaseSetSnapshots(
   return Object.fromEntries(
     resourceTypes.map(resourceType => [resourceType, present.has(resourceType)]),
   ) as Record<(typeof resourceTypes)[number], boolean>
+}
+
+function divisionDomainDatasetPattern(plan: DivisionGeometryPlan) {
+  const domainCode = resolveDivisionDomainCode(plan.source)
+  return domainCode === 'overture'
+    ? `ds-${plan.regionCode}-overture-%`
+    : `%-${domainCode === 'hkgov-pland-pu' ? 'pu' : 'newtown'}`
 }
 
 async function resolveLocalCohortIndependentDivisionReleases(
