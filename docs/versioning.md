@@ -63,6 +63,7 @@ flowchart TD
   SourceRows[Source row versions<br/>versionHash + release validity]
   Lineage[Snapshot lineage<br/>resource + variant + identity mode]
   Snapshot[Snapshot<br/>cohort + lineage revision]
+  Changes[Snapshot version changes<br/>parent-relative upserts + tombstones]
   Schema[Schema version<br/>canonical/API data shape]
   Ruleset[Ruleset version<br/>normalisation and merge behaviour]
   Composition[API composition version<br/>domains, members, roles, defaults]
@@ -80,6 +81,8 @@ flowchart TD
   Dataset --> Lineage
   Release --> Snapshot
   Lineage --> Snapshot
+  Snapshot --> Changes
+  SourceRows --> Changes
   ApiVersion --> Composition
   ApiVersion --> Schema
   ApiVersion --> Endpoint
@@ -100,19 +103,52 @@ flowchart TD
 The hierarchy is not a single number that increments from bottom to top. Each layer
 answers a different question:
 
-| Layer                  | Question answered                                                       |
-| ---------------------- | ----------------------------------------------------------------------- |
-| Dataset release        | Which publisher delivery did we ingest?                                 |
-| Source row version     | Did the source record's content change?                                 |
-| Snapshot               | Which assembled resource state applies to this cohort?                  |
-| Schema version         | What data fields and types exist?                                       |
-| Ruleset version        | How were source values selected, normalised, and merged?                |
-| API composition        | Which domains, variants, roles, and cohort rules are supported?         |
-| API release set        | Exactly which snapshots form this domain at this cohort?                |
-| API catalogue revision | Which domain releases were known at this publication time?              |
-| API version            | What request and response contract, defaults, and handler are promised? |
+| Layer                   | Question answered                                                       |
+| ----------------------- | ----------------------------------------------------------------------- |
+| Dataset release         | Which publisher delivery did we ingest?                                 |
+| Source row version      | Did the source record's content change?                                 |
+| Snapshot                | Which assembled resource state applies to this lineage/cohort/revision? |
+| Snapshot change journal | Which content versions differ from this snapshot's exact parent?        |
+| Schema version          | What data fields and types exist?                                       |
+| Ruleset version         | How were source values selected, normalised, and merged?                |
+| API composition         | Which domains, variants, roles, and cohort rules are supported?         |
+| API release set         | Exactly which snapshots form this domain at this cohort?                |
+| API catalogue revision  | Which domain releases were known at this publication time?              |
+| API version             | What request and response contract, defaults, and handler are promised? |
 
 ## Concepts and identifiers
+
+### Code grammar
+
+Saanseoi-owned codes MUST use lowercase ASCII kebab-case. CamelCase remains valid for
+programmatic schema enums and JSON field names, but those values are converted when
+embedded in a code:
+
+```text
+divisionArea      -> division-area
+divisionBoundary  -> division-boundary
+```
+
+Publisher, region, resource, product, domain, and variant are stored as structured
+fields. Code strings are human-readable identifiers, not a substitute for those fields,
+and application logic MUST NOT recover metadata by splitting, prefix matching, or suffix
+matching a code.
+
+Dataset and source-release codes use these grammars:
+
+```text
+ds-{region}-{publisherCode}-{resourceSlug}[-{productSlug}]
+dr-{region}-{publisherCode}-{resourceSlug}[-{productSlug}]-{sourceVersion}
+```
+
+`dr` means dataset release. Keeping the prefix, region, publisher, resource, and product
+segments in the same order as dataset codes makes the two namespaces visually
+consistent; the provider-owned source version is appended because it versions that
+dataset. The publisher segment is the exact registered publisher code.
+`ds-hk-hkgov-had-...` is not redundant: `hk` is the dataset's geographic coverage, while
+`hkgov-had` is the globally identified publisher. Externally governed identifiers, such
+as SPDX licence IDs and upstream source versions, retain their authoritative spelling
+and casing.
 
 ### Publisher
 
@@ -161,9 +197,9 @@ A release is one ingested delivery of a dataset. It records:
 Example release codes:
 
 ```text
-overture-hk-2025-10-22.0-division
-hkgov-had-hk-2022-division-area-district
-hkgov-pland-hk-2006-division-pu
+dr-hk-overture-division-2025-10-22.0
+dr-hk-hkgov-had-division-area-district-2022
+dr-hk-hkgov-pland-division-pu-2006
 ```
 
 `sourceVersion` belongs to the source release namespace. Its form is provider-specific:
@@ -293,11 +329,9 @@ public request selector.
 6. An API release set selects exact snapshot IDs from one or more lineages. A catalogue
    selects the release set; neither layer copies the lineage's entity data.
 
-For a newly created lineage, the lineage code seeds its deterministic UUID. Snapshots
-reference that UUID, not the human-readable code. During the v0 transition, ingestion
-may normalize an existing redundant code while retaining its UUID so existing snapshot
-foreign keys remain valid. Once a stable API publishes a lineage, both its code and UUID
-must be treated as immutable; a genuinely different identity stream gets a new lineage.
+The lineage code seeds its deterministic UUID. Snapshots reference that UUID, not the
+human-readable code. Once a stable API publishes a lineage, both its code and UUID must
+be treated as immutable; a genuinely different identity stream gets a new lineage.
 
 ### Snapshot
 
@@ -327,20 +361,70 @@ creates the next snapshot revision. Adding a supplementary dataset with its own 
 may create that lineage's revision zero while still causing the enclosing API release
 set to advance to its next revision.
 
-### Canonical history version
+Every snapshot also records `parentSnapshotId`:
 
-Canonical and source entity histories are change-only journals. A canonical history row
-records:
+- revision zero in a persistent-identity lineage uses the newest published earlier
+  cohort in that lineage, if one exists;
+- revision zero in a cohort-scoped lineage is a root, so ephemeral identities never leak
+  between cohorts;
+- revision `rN` uses `r(N-1)` for the same cohort;
+- a lineage root has no parent.
 
-- entity identity
-- semantic `versionHash`
-- source release
-- snapshot that introduced the version
-- `validFromSnapshotId` and `validToSnapshotId`
-- effective cohort bounds where applicable
+This is a directed acyclic graph, not a validity range. A late 2006 backfill can branch
+from the state before 2006 without pretending that it precedes already published 2022 or
+2025 snapshots. Those later snapshots change only if they are explicitly rebuilt.
 
-These rows allow an old snapshot to be reconstructed without retaining another complete
-copy of every unchanged entity.
+### Canonical content versions and snapshot change journal
+
+Canonical history remains split into two compact layers. Existing version tables such as
+`divisions`, `divisionsI18n`, `address2d`, and `divisionAreas` are retained as the
+deduplicated **content store**. Their logical version key is the entity key plus
+semantic `versionHash`; unchanged content is stored once and can be referenced by many
+snapshots.
+
+Those tables no longer contain `validFromSnapshotId`, `validToSnapshotId`,
+`validFromCohortKey`, or `validToCohortKey`. A pair of range endpoints assumes one total
+ordering and cannot say whether a same-cohort revision, late backfill, or later branch
+contains a row. `snapshotId` and `isCurrent` remain only as mutable ingestion/cache
+metadata. They MUST NOT be used as replay authority.
+
+Snapshot membership is recorded in `snapshotVersionChanges`:
+
+| Column            | Meaning                                                      |
+| ----------------- | ------------------------------------------------------------ |
+| `snapshotId`      | Snapshot whose parent-relative change is recorded            |
+| `recordType`      | Content table kind, for example `division` or `divisionI18n` |
+| `recordId`        | Stable entity identifier                                     |
+| `locale`          | Locale for translated rows; empty string for non-i18n rows   |
+| `operation`       | `upsert` or `delete`                                         |
+| `versionHash`     | Exact content version for an upsert; null for a tombstone    |
+| `sourceReleaseId` | Release responsible for the change                           |
+
+Its primary key is `(snapshotId, recordType, recordId, locale)`. A retry replaces the
+same draft change; publication makes the snapshot and its journal immutable.
+
+To reconstruct a snapshot, walk `parentSnapshotId` from the requested snapshot to the
+lineage root, then apply each snapshot's changes root-to-leaf. An upsert selects the
+matching content-version row; a delete removes the key. Implementations may resolve the
+same result more efficiently by walking leaf-to-root and taking the first change for
+each key. Because the parent graph is stored in meta while content and changes may be
+year-sharded, the resolver MUST follow recorded shard assignments rather than assuming
+the parent lives in the same database.
+
+`snapshotShardAssignments` records those locations explicitly. Ingestion writes the
+history assignment with the draft snapshot; legacy assignments are backfilled from
+source-release placement. The shared resolver validates the parent graph, applies each
+assigned journal delta root-to-leaf, and retains the owning shard for every live content
+hash. A missing binding is an error, never permission to use globally current rows.
+
+Deleting a base record also removes its dependent i18n records from the reconstructed
+state. When a base record remains but a locale disappears, the writer records an
+explicit locale tombstone.
+
+Before producing a child delta, an ingestion writer MUST compare against the exact
+materialised parent snapshot, not whichever rows happen to have `isCurrent=1`. This is
+what makes out-of-order backfills and revisions safe. `isCurrent` may be refreshed after
+publication for operational convenience without changing replay.
 
 ### Schema version
 
@@ -594,9 +678,10 @@ For an ordinary upload, Harbour performs the following logical steps:
 
 1. Resolve or create the stable dataset.
 2. Register the immutable dataset release and its source version/schema.
-3. Ingest source rows, retaining new history rows only where `versionHash` changed.
+3. Ingest source rows, retaining new content rows only where `versionHash` changed.
 4. Resolve or create the dataset's snapshot lineage.
-5. Assemble a draft snapshot for the effective cohort.
+5. Resolve the snapshot's exact parent, materialise that state, and journal only the
+   parent-relative upserts and tombstones needed for the draft snapshot.
 6. Select exact, at-or-before, fallback, or other supporting snapshots according to the
    current composition.
 7. Reuse a compatible draft domain release or create the next revision for that
@@ -663,7 +748,13 @@ The server resolves a request in this order:
    - the domain's `isDefault` release.
 6. Select the immutable snapshot members and requested variants from that release.
 7. Apply the pinned schema, domain ruleset, field provenance, and API handler.
-8. Read current rows or reconstruct historical rows from change-only history.
+8. Read a materialised current snapshot or reconstruct the selected snapshot from its
+   parent graph, change journal, and deduplicated content versions.
+
+Request-time reconstruction is read-only. It MUST NOT populate `CURRENT`. `CURRENT` is
+the publication-managed hot store for current API defaults, not a historical response
+cache. Rebuilding a missing current default is an explicit repair or promotion workflow,
+never a side effect of a historical API request.
 
 An exact selector never silently falls back to another domain, variant, cohort, release,
 or catalogue.
@@ -781,6 +872,55 @@ of these policies explicitly:
 Each republished cohort gets its own domain-release revision. A catalogue revision may
 publish several such replacements together when publication is transactional.
 
+The full-backfill workflow for a composition change is therefore:
+
+1. Publish the new immutable composition fixture.
+2. Enumerate domain releases referenced by the target catalogue and group them by
+   `(region, domain, cohort)`.
+3. Resolve the old release's anchor and supporting snapshots under the new composition.
+4. For every satisfiable cohort, publish the next domain-release revision pointing to
+   the new composition. Reuse exact snapshots where their content still qualifies;
+   create a new snapshot revision only when assembly itself changes.
+5. Report unsatisfied required members as blocked cohorts. Do not silently weaken the
+   composition.
+6. Publish one catalogue revision replacing the selected historical members and carrying
+   all other entries forward.
+
+This is explicit promotion, not a cascade update. Earlier domain releases and catalogue
+revisions keep their original composition and remain replayable.
+
+## Version fixture commands
+
+The CLI provides an intentionally conservative fixture-first scaffold:
+
+```text
+saanseoi version:bump
+saanseoi version:publish --target=local
+saanseoi version:promote --target=local
+saanseoi version:status
+saanseoi version:doctor
+```
+
+- `version:bump` selects an API version, composition, schema, or ruleset fixture; copies
+  it to the next code/version; recomputes `versionHash`; marks it as a draft where that
+  fixture type has lifecycle state; and opens it in Zed (or `--editor`). It creates a
+  proposal, not a publication.
+- `version:publish` selects a fixture and runs the idempotent meta-registry fixture sync
+  for the target. The current sync reconciles the complete registry, so the selection is
+  an operator checkpoint rather than a claim that unrelated fixtures are ignored.
+- `version:promote` never mutates a publication. It creates an auditable promotion plan
+  under `.local/version-promotions/`. For a composition it explicitly asks for new
+  domain-release revisions across chosen cohorts and a new catalogue revision. Until a
+  promotion kind has a safe deterministic implementation, this plan is the prompt to
+  hand to an implementation agent.
+- `version:status` inventories version fixtures. `version:doctor` verifies hashes and
+  composition-to-API references.
+
+Useful next automation is `version:diff` (semantic predecessor diff and impact matrix),
+`version:plan` (read-only affected cohort/release enumeration), and `version:audit`
+(compare fixtures, each target registry, handler availability, and replay material).
+They should be added before making `version:promote` perform writes automatically.
+
 ## Change-impact matrix
 
 Legend:
@@ -851,14 +991,16 @@ We retain:
 - raw source releases in object storage according to retention policy
 - immutable source-release metadata
 - change-only source and canonical entity versions keyed by `versionHash`
+- parent links and compact `snapshotVersionChanges` deltas/tombstones
 - compact snapshot source manifests
 - compact domain-release snapshot manifests
 - compact catalogue membership manifests
 - versioned schemas, rulesets, provenance, endpoint metadata, and handler code
 
-The current store may retain only snapshots needed by the latest defaults. Historical
-serving reconstructs older states from change-only history. Cleanup MUST NOT remove the
-last material required to honour a supported stable permalink.
+The current store always retains fully materialised snapshots used by the latest API
+defaults, providing the normal single-database hot path. Historical serving reconstructs
+non-current states from change-only history. Cleanup MUST NOT remove a current default
+or the last history material required to honour a supported stable permalink.
 
 Catalogue manifests can grow with the number of domain/cohort publications, but they
 contain identifiers and metadata rather than copied entity data. If manifest size later
@@ -961,10 +1103,21 @@ Before publishing a stable API version:
 
 ## v0 implementation boundary
 
-This document defines the target stable-version policy. The v0 platform already has
-domain-scoped release sets, snapshot lineages, catalogue revisions, bitemporal API
-selectors, permalinks, and a version-specific route boundary, but v0 deliberately offers
-no durability guarantee.
+This document defines the target stable-version policy. The v0 platform has the control
+plane foundations—domain-scoped release sets, snapshot lineages and parent links,
+catalogue revisions, a snapshot change journal, and a version-specific route boundary—
+but v0 deliberately offers no external durability guarantee. The cross-shard resolver
+and recorded snapshot placement now exist, and division ingestion materialises its exact
+parent. Remaining resource writers and Atlas readers must adopt that shared resolver
+before v0 can make a family-wide replay promise.
+
+The former `divisionAreas` migration exception is closed. The oversized rows were an
+ingestion bug: they attached PRC land and maritime geometry to an identity-only parent
+fixture. Cleanup removes those canonical, source, current, and journal records before
+the last physical validity columns are removed. Geometry normalization now rejects all
+areas attached to a referent-only division before decoding or writing geometry.
+Boundaries may still reference that division because a border does not materialise the
+referent's area.
 
 One known transitional restriction is that the current Harbour uploader requires a new
 source version to sort after the latest registered version for the same feed. That check
