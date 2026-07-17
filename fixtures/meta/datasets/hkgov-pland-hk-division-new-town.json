@@ -1,7 +1,7 @@
 {
   "versionHash": "sha256:7ef39192af290af4476102951c018975e7543cdfc2cb6a76f2f31d632916c847",
   "publisherCode": "hkgov-pland",
-  "code": "ds-hk-hkgov-pland-division-newtown",
+  "code": "ds-hk-hkgov-pland-division-new-town",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",

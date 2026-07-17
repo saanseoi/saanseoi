@@ -1,7 +1,7 @@
 {
   "versionHash": "sha256:a083497a13342fccf472dee33b089dd6f57ef2d9cc25529bc604792737f0f046",
   "publisherCode": "hkgov-had",
-  "code": "ds-hk-hkgov-had-district",
+  "code": "ds-hk-hkgov-had-division-area-district",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "as-needed",

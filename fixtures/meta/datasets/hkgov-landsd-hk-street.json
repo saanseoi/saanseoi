@@ -1,7 +1,7 @@
 {
   "versionHash": "sha256:e4319674938f08807e44a27ce56c33d7dbc58461e54e693bd1dd578b1a7a3216",
   "publisherCode": "hkgov-landsd",
-  "code": "ds-hk-landsd-street",
+  "code": "ds-hk-hkgov-landsd-street",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "as-needed",

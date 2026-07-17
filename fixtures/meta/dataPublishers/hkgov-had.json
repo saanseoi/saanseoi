@@ -1,6 +1,7 @@
 {
   "versionHash": "sha256:6b9d2d632c300f9b292d24dd0d7854a53a603a3fc420990be1165dc97b646938",
   "code": "hkgov-had",
+  "parentCode": "hkgov",
   "url": "https://www.had.gov.hk/en/index.htm",
   "contactUrl": "https://www.had.gov.hk/en/contact_us/",
   "i18n": [

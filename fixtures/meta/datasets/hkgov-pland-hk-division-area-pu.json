@@ -1,7 +1,7 @@
 {
   "versionHash": "sha256:064688827094ef5af10a2a71b756040bd17fcb1b3096ebe379279661b20d4da3",
   "publisherCode": "hkgov-pland",
-  "code": "ds-hk-hkgov-pland-divisionArea-pu",
+  "code": "ds-hk-hkgov-pland-division-area-pu",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",

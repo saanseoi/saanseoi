@@ -1,8 +1,8 @@
 ---
 createdAt: "2026-07-15T00:00:00.000Z"
 updatedAt: "2026-07-15T00:00:00.000Z"
-dataset: "ds-hk-hkgov-had-district"
-release: "hkgov-had-hk-2022-district"
+dataset: "ds-hk-hkgov-had-division-area-district"
+release: "hkgov-had-hk-2022-division-area-district"
 regionCode: "hk"
 source: "hkgov-had"
 sourceVersion: "2022"

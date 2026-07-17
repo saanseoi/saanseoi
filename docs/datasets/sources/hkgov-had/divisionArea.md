@@ -23,8 +23,8 @@ keeps that canonical EPSG:4326 geometry unchanged and retains the original sourc
 feature, and coordinates in provenance. `AREA_ID` and `AREA_CODE` are provider
 identifiers. They are resolved through the versioned `identifierBridges` fixture/table
 for resource type `division`, authority `hkgov-had`, cohort `2022`, and the
-administrative domain. The source release is `hkgov-had-hk-2022-district` with cohort
-key `2022` and source schema version `1.2`.
+administrative domain. The source release is `hkgov-had-hk-2022-division-area-district`
+with cohort key `2022` and source schema version `1.2`.
 
 The compatibility layer exposes these source fields under `hkgov`, with database
 capitalization, in both source columns and canonical geometry `sourceKeys`:
@@ -52,12 +52,12 @@ because they are redundant, publisher metadata, or calculated values. The source
 validity is `BEGIN_LIFESPAN = 20160101` with an open `END_LIFESPAN` when supplied, while
 the requested source cohort is `2022`.
 
-The release identity is `hkgov-had-hk-2022-district`. This is an administrative
-`divisionArea` variant, not a line boundary despite the catalogue title. Overture
-remains the configured default area variant; clients select this source explicitly with
-`include=areas:hkgov-had`. Canonical HAD district areas use `type = mixed` with both
-`isLand` and `isTerritorial` true because the administrative extent includes land and
-territorial coverage.
+The release identity is `hkgov-had-hk-2022-division-area-district`. This is an
+administrative `divisionArea` variant, not a line boundary despite the catalogue title.
+Overture remains the configured default area variant; clients select this source
+explicitly with `include=areas:hkgov-had`. Canonical HAD district areas use
+`type = mixed` with both `isLand` and `isTerritorial` true because the administrative
+extent includes land and territorial coverage.
 
 The HAD release is independently versioned and is not blocked on a same-cohort canonical
 division release. When composing a later Divisions API release set, the registry selects
