@@ -1,0 +1,52 @@
+import { describe, expect, test } from 'bun:test'
+
+import {
+  buildDatasetCode,
+  buildDatasetReleaseCode,
+  datasetVariantForSource,
+  resourceTypeCodeSlug,
+} from './codes'
+
+describe('registry code construction', () => {
+  test('converts camelCase resource enums to lowercase kebab-case slugs', () => {
+    expect(resourceTypeCodeSlug('divisionArea')).toBe('division-area')
+    expect(resourceTypeCodeSlug('divisionBoundary')).toBe('division-boundary')
+  })
+
+  test('uses exact publisher, region, resource, and product segments', () => {
+    expect(buildDatasetCode('hk', 'hkgov-had', 'divisionArea')).toBe(
+      'ds-hk-hkgov-had-division-area-district',
+    )
+    expect(buildDatasetCode('hk', 'hkgov-pland-pu', 'division')).toBe(
+      'ds-hk-hkgov-pland-division-pu',
+    )
+    expect(buildDatasetCode('hk', 'hkgov-pland-new-town', 'divisionArea')).toBe(
+      'ds-hk-hkgov-pland-division-area-new-town',
+    )
+  })
+
+  test('uses the same ordered segments for release codes', () => {
+    expect(buildDatasetReleaseCode('hk', 'hkgov-had', '2022', 'divisionArea')).toBe(
+      'dr-hk-hkgov-had-division-area-district-2022',
+    )
+    expect(buildDatasetReleaseCode('hk', 'hkgov-pland-pu', '2006', 'division')).toBe(
+      'dr-hk-hkgov-pland-division-pu-2006',
+    )
+  })
+
+  test('derives variants from structured source metadata', () => {
+    expect(datasetVariantForSource('division', 'hkgov-pland-new-town')).toBe(
+      'hkgov-pland-new-town',
+    )
+    expect(datasetVariantForSource('address', 'hkgov-dpo')).toBe('default')
+  })
+
+  test('rejects non-canonical owned code segments', () => {
+    expect(() => buildDatasetCode('HK', 'overture', 'division')).toThrow(
+      'Invalid region code slug="HK".',
+    )
+    expect(() => buildDatasetCode('hk', 'hkgovHad', 'divisionArea')).toThrow(
+      'Invalid publisher code slug="hkgovHad".',
+    )
+  })
+})
