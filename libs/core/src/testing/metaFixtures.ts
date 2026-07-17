@@ -3,11 +3,14 @@ import { join } from 'node:path'
 
 import type { Database } from 'bun:sqlite'
 
-const FIXTURE_TIMESTAMP_MS = 1718236800000
+import {
+  buildDatasetCode,
+  buildDatasetReleaseCode,
+  publisherCodeForSource,
+} from '../codes'
+import type { ResourceType } from '../types'
 
-function resolveFixtureDatasetCode(source: string, regionCode: string, type: string) {
-  return `ds-${regionCode}-${source}-${type}`
-}
+const FIXTURE_TIMESTAMP_MS = 1718236800000
 
 function hasColumn(db: Database, tableName: string, columnName: string) {
   const rows = db.query(`PRAGMA table_info(${tableName})`).all() as Array<{
@@ -67,36 +70,12 @@ function rebuildTable(
   db.exec('PRAGMA foreign_keys = ON;')
 }
 
-function ensureHistoryCohortKeyColumns(db: Database, tableName: string) {
-  addColumnIfMissing(
-    db,
-    tableName,
-    'validFromCohortKey',
-    "validFromCohortKey TEXT NOT NULL DEFAULT ''",
-  )
-  addColumnIfMissing(db, tableName, 'validToCohortKey', 'validToCohortKey TEXT')
-
-  if (hasColumn(db, tableName, 'validFromMonth')) {
-    db.exec(`
-      UPDATE ${tableName}
-      SET
-        validFromCohortKey = COALESCE(NULLIF(validFromCohortKey, ''), validFromMonth, ''),
-        validToCohortKey = COALESCE(validToCohortKey, validToMonth)
-      WHERE
-        validFromCohortKey IS NULL
-        OR validFromCohortKey = ''
-        OR validToCohortKey IS NULL;
-    `)
-  }
-}
-
 function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
   if (!hasTable(db, tableName)) {
     return
   }
 
   if (!hasColumn(db, tableName, 'validFromMonth')) {
-    ensureHistoryCohortKeyColumns(db, tableName)
     return
   }
 
@@ -111,10 +90,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             versionHash TEXT NOT NULL,
             sourceReleaseId TEXT NOT NULL,
             snapshotId TEXT NOT NULL,
-            validFromSnapshotId TEXT NOT NULL,
-            validToSnapshotId TEXT,
-            validFromCohortKey TEXT NOT NULL,
-            validToCohortKey TEXT,
             isCurrent INTEGER NOT NULL,
             level INTEGER NOT NULL,
             type TEXT NOT NULL,
@@ -131,10 +106,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
           );
           CREATE INDEX divisions_current_lookup_idx
             ON divisions (id, isCurrent);
-          CREATE INDEX divisions_snapshot_validity_idx
-            ON divisions (validFromSnapshotId, validToSnapshotId);
-          CREATE INDEX divisions_validity_idx
-            ON divisions (validFromCohortKey, validToCohortKey);
           CREATE INDEX divisions_sourceReleaseId_idx
             ON divisions (sourceReleaseId);
           CREATE INDEX divisions_snapshotId_idx
@@ -142,13 +113,11 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
         `,
         `
           INSERT INTO divisions (
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromCohortKey, validToCohortKey, isCurrent, level, type, geometry, bbox,
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, level, type, geometry, bbox,
             sourceKeys, wikidata, hierarchy, cartography, sources, createdAt, updatedAt
           )
           SELECT
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromMonth, validToMonth, isCurrent, level, type, geometry, bbox,
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, level, type, geometry, bbox,
             json_object('overture', json_object('subtype', COALESCE(subtype, ''), 'class', COALESCE(class, ''))),
             wikidata, hierarchy, cartography, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
@@ -165,10 +134,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             versionHash TEXT NOT NULL,
             sourceReleaseId TEXT NOT NULL,
             snapshotId TEXT NOT NULL,
-            validFromSnapshotId TEXT NOT NULL,
-            validToSnapshotId TEXT,
-            validFromCohortKey TEXT NOT NULL,
-            validToCohortKey TEXT,
             isCurrent INTEGER NOT NULL,
             streetId TEXT,
             hamletId TEXT,
@@ -190,10 +155,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
           );
           CREATE INDEX address2d_current_lookup_idx
             ON address2d (id, isCurrent);
-          CREATE INDEX address2d_snapshot_validity_idx
-            ON address2d (validFromSnapshotId, validToSnapshotId);
-          CREATE INDEX address2d_validity_idx
-            ON address2d (validFromCohortKey, validToCohortKey);
           CREATE INDEX address2d_sourceReleaseId_idx
             ON address2d (sourceReleaseId);
           CREATE INDEX address2d_snapshotId_idx
@@ -201,14 +162,12 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
         `,
         `
           INSERT INTO address2d (
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromCohortKey, validToCohortKey, isCurrent, streetId, hamletId, microhoodId, villageId,
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId, hamletId, microhoodId, villageId,
             neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox,
             identifiers, sources, createdAt, updatedAt
           )
           SELECT
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromMonth, validToMonth, isCurrent, streetId, hamletId, microhoodId, villageId,
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId, hamletId, microhoodId, villageId,
             neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox,
             identifiers, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
@@ -225,10 +184,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             versionHash TEXT NOT NULL,
             sourceReleaseId TEXT NOT NULL,
             snapshotId TEXT NOT NULL,
-            validFromSnapshotId TEXT NOT NULL,
-            validToSnapshotId TEXT,
-            validFromCohortKey TEXT NOT NULL,
-            validToCohortKey TEXT,
             isCurrent INTEGER NOT NULL,
             address2dId TEXT NOT NULL,
             sources TEXT,
@@ -238,10 +193,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
           );
           CREATE INDEX address3d_current_lookup_idx
             ON address3d (id, isCurrent);
-          CREATE INDEX address3d_snapshot_validity_idx
-            ON address3d (validFromSnapshotId, validToSnapshotId);
-          CREATE INDEX address3d_validity_idx
-            ON address3d (validFromCohortKey, validToCohortKey);
           CREATE INDEX address3d_sourceReleaseId_idx
             ON address3d (sourceReleaseId);
           CREATE INDEX address3d_snapshotId_idx
@@ -251,12 +202,10 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
         `,
         `
           INSERT INTO address3d (
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromCohortKey, validToCohortKey, isCurrent, address2dId, sources, createdAt, updatedAt
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, sources, createdAt, updatedAt
           )
           SELECT
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromMonth, validToMonth, isCurrent, address2dId, sources, createdAt, updatedAt
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
         `,
       )
@@ -271,10 +220,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             versionHash TEXT NOT NULL,
             sourceReleaseId TEXT NOT NULL,
             snapshotId TEXT NOT NULL,
-            validFromSnapshotId TEXT NOT NULL,
-            validToSnapshotId TEXT,
-            validFromCohortKey TEXT NOT NULL,
-            validToCohortKey TEXT,
             isCurrent INTEGER NOT NULL,
             yearBuilt TEXT,
             "references" TEXT,
@@ -284,10 +229,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
           );
           CREATE INDEX streets_current_lookup_idx
             ON streets (id, isCurrent);
-          CREATE INDEX streets_snapshot_validity_idx
-            ON streets (validFromSnapshotId, validToSnapshotId);
-          CREATE INDEX streets_validity_idx
-            ON streets (validFromCohortKey, validToCohortKey);
           CREATE INDEX streets_sourceReleaseId_idx
             ON streets (sourceReleaseId);
           CREATE INDEX streets_snapshotId_idx
@@ -295,12 +236,10 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
         `,
         `
           INSERT INTO streets (
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromCohortKey, validToCohortKey, isCurrent, yearBuilt, "references", createdAt, updatedAt
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, yearBuilt, "references", createdAt, updatedAt
           )
           SELECT
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromMonth, validToMonth, isCurrent, yearBuilt, "references", createdAt, updatedAt
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, yearBuilt, "references", createdAt, updatedAt
           FROM __LEGACY_TABLE__;
         `,
       )
@@ -315,10 +254,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             versionHash TEXT NOT NULL,
             sourceReleaseId TEXT NOT NULL,
             snapshotId TEXT NOT NULL,
-            validFromSnapshotId TEXT NOT NULL,
-            validToSnapshotId TEXT,
-            validFromCohortKey TEXT NOT NULL,
-            validToCohortKey TEXT,
             isCurrent INTEGER NOT NULL,
             address2dId TEXT,
             address3dId TEXT,
@@ -344,10 +279,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
           );
           CREATE INDEX places_current_lookup_idx
             ON places (id, isCurrent);
-          CREATE INDEX places_snapshot_validity_idx
-            ON places (validFromSnapshotId, validToSnapshotId);
-          CREATE INDEX places_validity_idx
-            ON places (validFromCohortKey, validToCohortKey);
           CREATE INDEX places_sourceReleaseId_idx
             ON places (sourceReleaseId);
           CREATE INDEX places_snapshotId_idx
@@ -355,14 +286,12 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
         `,
         `
           INSERT INTO places (
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromCohortKey, validToCohortKey, isCurrent, address2dId, address3dId, lng, lat, bbox,
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, address3dId, lng, lat, bbox,
             operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates,
             brandWikidata, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
           )
           SELECT
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromMonth, validToMonth, isCurrent, address2dId, address3dId, lng, lat, bbox,
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, address3dId, lng, lat, bbox,
             operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates,
             brandWikidata, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
@@ -493,6 +422,7 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
   }
 
   addColumnIfMissing(db, 'snapshots', 'cohortKey', "cohortKey TEXT NOT NULL DEFAULT ''")
+  addColumnIfMissing(db, 'snapshots', 'parentSnapshotId', 'parentSnapshotId TEXT')
 
   if (
     hasColumn(db, 'apiReleaseSets', 'canonicalSchemaVersion') ||
@@ -908,7 +838,7 @@ export function seedFixtureCatalog(db: Database) {
       (
         'overture-hk-divisionArea',
         'publisher-overture',
-        'ds-hk-overture-divisionArea',
+        'ds-hk-overture-division-area',
         'hk',
         'static',
         'monthly',
@@ -922,7 +852,7 @@ export function seedFixtureCatalog(db: Database) {
       (
         'overture-hk-divisionBoundary',
         'publisher-overture',
-        'ds-hk-overture-divisionBoundary',
+        'ds-hk-overture-division-boundary',
         'hk',
         'static',
         'monthly',
@@ -936,7 +866,7 @@ export function seedFixtureCatalog(db: Database) {
       (
         'hkgov-had-hk-district',
         'publisher-hkgov-had',
-        'ds-hk-hkgov-had-district',
+        'ds-hk-hkgov-had-division-area-district',
         'hk',
         'static',
         'as-needed',
@@ -1330,7 +1260,7 @@ export function seedFixtureCatalog(db: Database) {
 type FixtureRelease = {
   source: string
   regionCode: string
-  type: string
+  type: ResourceType
   theme?: string
   sourceVersion: string
   cohortKey: string
@@ -1348,15 +1278,16 @@ type FixtureRelease = {
 }
 
 export function insertFixtureRelease(db: Database, release: FixtureRelease) {
-  const publisherCode = release.source
-  const datasetCode = resolveFixtureDatasetCode(
-    release.source,
-    release.regionCode,
-    release.type,
-  )
+  const publisherCode = publisherCodeForSource(release.source)
+  const datasetCode = buildDatasetCode(release.regionCode, release.source, release.type)
   const releaseCode =
     release.releaseCode ??
-    `${release.source}-${release.regionCode}-${release.sourceVersion}-${release.type}`
+    buildDatasetReleaseCode(
+      release.regionCode,
+      release.source,
+      release.sourceVersion,
+      release.type,
+    )
   const releaseId = release.releaseId ?? `release-${releaseCode}`
   const supersededByReleaseId = release.supersededByReleaseCode
     ? `release-${release.supersededByReleaseCode}`

@@ -17,10 +17,10 @@ const SOURCE_SCHEMA_RELEASES = [
   { source: 'hkgov-pland-pu', schema: '1.0', version: '2011' },
   { source: 'hkgov-pland-pu', schema: '1.0', version: '2016' },
   { source: 'hkgov-pland-pu', schema: '2.0', version: '2021' },
-  { source: 'hkgov-pland-newtown', schema: '1.0', version: '2006' },
-  { source: 'hkgov-pland-newtown', schema: '1.0', version: '2011' },
-  { source: 'hkgov-pland-newtown', schema: '1.0', version: '2016' },
-  { source: 'hkgov-pland-newtown', schema: '1.0', version: '2021' },
+  { source: 'hkgov-pland-new-town', schema: '1.0', version: '2006' },
+  { source: 'hkgov-pland-new-town', schema: '1.0', version: '2011' },
+  { source: 'hkgov-pland-new-town', schema: '1.0', version: '2016' },
+  { source: 'hkgov-pland-new-town', schema: '1.0', version: '2021' },
 ] as const
 
 const OVERTURE_SOURCE_SCHEMA_RELEASES = SOURCE_SCHEMA_RELEASES.filter(
