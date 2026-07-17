@@ -5,7 +5,6 @@ import { resolve } from 'node:path'
 import type { DatasetProcessingMessage, RegionCode } from '@repo/core'
 import {
   resolveLatestPublishedSnapshotForResourceTypeRegion,
-  resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId,
   resolveShardForTypeRegionYear,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -32,6 +31,7 @@ import {
   countDivisionCurrentSnapshotRows,
   getDivisionCurrentSnapshotTraceState,
   getMergedCurrentDivisionVersionMap,
+  getDivisionVersionMapForSnapshot,
   prepareDivisionVersionInsertContext,
 } from '@repo/core/pipeline/db/division'
 import {
@@ -430,21 +430,24 @@ export async function processLocalDivisionSqlUpload(
         label: formatLocalSetupProgressLabel('current state', 8, setupStepCount),
       })
     }
-    const currentRows = await getMergedCurrentDivisionVersionMap(
-      dbContext.historyTargets.map((target, index) => ({
-        db: target.db as never,
-        key: buildHistoryOwnerKey(
-          previewPlan.regionCode,
-          shardYear,
-          target.bindingName,
-        ),
-        sortOrder: index,
-      })),
-      {
-        buildDivisionBaseHashInput,
-        normalizeDivisionI18nSnapshotRow,
-      },
-    )
+    const currentRows = versionInsertContext.parentSnapshotId
+      ? await getDivisionVersionMapForSnapshot(
+          dbContext.currentDb as never,
+          versionInsertContext.parentSnapshotId,
+          {
+            buildDivisionBaseHashInput,
+            normalizeDivisionI18nSnapshotRow,
+          },
+          dbContext.historyTargets.map((target, index) =>
+            buildHistoryOwnerKey(previewPlan.regionCode, shardYear, target.bindingName),
+          ),
+        )
+      : new Map<string, DivisionVersionSnapshot>()
+    if (versionInsertContext.parentSnapshotId && currentRows.size === 0) {
+      throw new Error(
+        `Parent division snapshot ${versionInsertContext.parentSnapshotId} is not materialised in current storage; refusing to branch from another snapshot.`,
+      )
+    }
     const currentSourceRows = await getMergedCurrentSourceOvertureDivisionMap(
       dbContext.sourceTargets.map((target, index) => ({
         db: target.db as never,
@@ -574,8 +577,7 @@ export async function processLocalDivisionSqlUpload(
     )
 
     const currentInitFile = await buildDivisionCurrentInitSqlFile(
-      dbContext.metaDb,
-      previewPlan.regionCode,
+      versionInsertContext.parentSnapshotId,
       divisionState.snapshotId,
       initialMessage.processingRunStartedAt ?? processingRunStartedAt,
     )
@@ -1508,10 +1510,6 @@ async function buildDivisionHistorySqlFile(
         versionHash: record.versionHash,
         sourceReleaseId: message.releaseId ?? message.datasetId,
         snapshotId: state.snapshotId,
-        validFromSnapshotId: state.snapshotId,
-        validToSnapshotId: null,
-        validFromCohortKey: message.cohortKey,
-        validToCohortKey: null,
         isCurrent: true,
         level: record.base.level,
         type: record.base.type,
@@ -1531,8 +1529,6 @@ async function buildDivisionHistorySqlFile(
           versionHash: record.baseChanged ? record.versionHash : record.i18nVersionHash,
           sourceReleaseId: message.releaseId ?? message.datasetId,
           snapshotId: state.snapshotId,
-          validFromSnapshotId: state.snapshotId,
-          validToSnapshotId: null,
           isCurrent: true,
           locale: localized.locale,
           name: localized.name ?? null,
@@ -1560,18 +1556,8 @@ async function buildDivisionHistorySqlFile(
     ) ?? []
   const now = new Date().toISOString()
   const statements = [
-    ...buildCloseHistoryVersionStatements(
-      changedExistingIdsInPrimary,
-      state.snapshotId,
-      message.cohortKey,
-      now,
-    ),
-    ...buildCloseHistoryVersionStatements(
-      missingIdsInPrimary,
-      state.snapshotId,
-      message.cohortKey,
-      now,
-    ),
+    ...buildCloseHistoryVersionStatements(changedExistingIdsInPrimary, now),
+    ...buildCloseHistoryVersionStatements(missingIdsInPrimary, now),
     ...buildInsertStatements(
       'divisions',
       [
@@ -1579,10 +1565,6 @@ async function buildDivisionHistorySqlFile(
         'versionHash',
         'sourceReleaseId',
         'snapshotId',
-        'validFromSnapshotId',
-        'validToSnapshotId',
-        'validFromCohortKey',
-        'validToCohortKey',
         'isCurrent',
         'level',
         'type',
@@ -1603,10 +1585,6 @@ ON CONFLICT(id, versionHash) DO UPDATE SET
   isCurrent = 1,
   sourceReleaseId = excluded.sourceReleaseId,
   snapshotId = excluded.snapshotId,
-  validFromSnapshotId = excluded.validFromSnapshotId,
-  validFromCohortKey = excluded.validFromCohortKey,
-  validToSnapshotId = NULL,
-  validToCohortKey = NULL,
   updatedAt = excluded.updatedAt`.trim(),
       },
     ),
@@ -1617,8 +1595,6 @@ ON CONFLICT(id, versionHash) DO UPDATE SET
         'versionHash',
         'sourceReleaseId',
         'snapshotId',
-        'validFromSnapshotId',
-        'validToSnapshotId',
         'isCurrent',
         'locale',
         'name',
@@ -1635,14 +1611,69 @@ ON CONFLICT(id, versionHash) DO UPDATE SET
 ON CONFLICT(divisionId, versionHash, locale) DO UPDATE SET
   sourceReleaseId = excluded.sourceReleaseId,
   snapshotId = excluded.snapshotId,
-  validFromSnapshotId = excluded.validFromSnapshotId,
-  validToSnapshotId = NULL,
   isCurrent = 1,
   name = excluded.name,
   nameVariant = excluded.nameVariant,
   nameAlts = excluded.nameAlts,
   nameRules = excluded.nameRules,
   isLocaleInferred = excluded.isLocaleInferred,
+  updatedAt = excluded.updatedAt`.trim(),
+      },
+    ),
+    ...buildInsertStatements(
+      'snapshotVersionChanges',
+      [
+        'snapshotId',
+        'recordType',
+        'recordId',
+        'locale',
+        'versionHash',
+        'operation',
+        'sourceReleaseId',
+        'createdAt',
+        'updatedAt',
+      ],
+      [
+        ...baseRows.map(row => ({
+          snapshotId: state.snapshotId,
+          recordType: 'division',
+          recordId: row.id,
+          locale: '',
+          versionHash: row.versionHash,
+          operation: 'upsert',
+          sourceReleaseId: message.releaseId ?? message.datasetId,
+          createdAt: now,
+          updatedAt: now,
+        })),
+        ...i18nRows.map(row => ({
+          snapshotId: state.snapshotId,
+          recordType: 'divisionI18n',
+          recordId: row.divisionId,
+          locale: row.locale,
+          versionHash: row.versionHash,
+          operation: 'upsert',
+          sourceReleaseId: message.releaseId ?? message.datasetId,
+          createdAt: now,
+          updatedAt: now,
+        })),
+        ...missingIds.map(recordId => ({
+          snapshotId: state.snapshotId,
+          recordType: 'division',
+          recordId,
+          locale: '',
+          versionHash: null,
+          operation: 'delete',
+          sourceReleaseId: message.releaseId ?? message.datasetId,
+          createdAt: now,
+          updatedAt: now,
+        })),
+      ],
+      {
+        suffix: `
+ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
+  versionHash = excluded.versionHash,
+  operation = excluded.operation,
+  sourceReleaseId = excluded.sourceReleaseId,
   updatedAt = excluded.updatedAt`.trim(),
       },
     ),
@@ -1656,21 +1687,13 @@ ON CONFLICT(divisionId, versionHash, locale) DO UPDATE SET
 }
 
 async function buildDivisionCurrentInitSqlFile(
-  metaDb: MetaDatabase,
-  regionCode: RegionCode,
+  parentSnapshotId: string | null,
   snapshotId: string,
   clonedAt: string,
 ) {
-  const previousSnapshot =
-    await resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId(
-      metaDb as unknown as HarbourReadableDb,
-      'division',
-      regionCode,
-      snapshotId,
-    )
   const statements: string[] = []
 
-  if (previousSnapshot && previousSnapshot.id !== snapshotId) {
+  if (parentSnapshotId && parentSnapshotId !== snapshotId) {
     statements.push(
       `
 INSERT INTO divisions (
@@ -1681,7 +1704,7 @@ SELECT
   ${sqlLiteral(snapshotId)}, id, level, type, sourceKeys, wikidata, hierarchy,
   cartography, sources, geometry, bbox, ${sqlLiteral(clonedAt)}, ${sqlLiteral(clonedAt)}
 FROM divisions
-WHERE snapshotId = ${sqlLiteral(previousSnapshot.id)}
+WHERE snapshotId = ${sqlLiteral(parentSnapshotId)}
 ON CONFLICT(snapshotId, id) DO NOTHING;`.trim(),
     )
     statements.push(
@@ -1694,7 +1717,7 @@ SELECT
   ${sqlLiteral(snapshotId)}, divisionId, locale, name, nameVariant, nameAlts, nameRules,
   isLocaleInferred, ${sqlLiteral(clonedAt)}, ${sqlLiteral(clonedAt)}
 FROM divisionsI18n
-WHERE snapshotId = ${sqlLiteral(previousSnapshot.id)}
+WHERE snapshotId = ${sqlLiteral(parentSnapshotId)}
 ON CONFLICT(snapshotId, divisionId, locale) DO NOTHING;`.trim(),
     )
   }
@@ -2093,18 +2116,8 @@ function buildExtraHistorySqlOperations(
     }
 
     const statements = [
-      ...buildCloseHistoryVersionStatements(
-        changedIdsByOwner.get(ownerKey) ?? [],
-        state.snapshotId,
-        message.cohortKey,
-        now,
-      ),
-      ...buildCloseHistoryVersionStatements(
-        missingIdsByOwner.get(ownerKey) ?? [],
-        state.snapshotId,
-        message.cohortKey,
-        now,
-      ),
+      ...buildCloseHistoryVersionStatements(changedIdsByOwner.get(ownerKey) ?? [], now),
+      ...buildCloseHistoryVersionStatements(missingIdsByOwner.get(ownerKey) ?? [], now),
     ]
 
     if (statements.length === 0) {
@@ -2594,12 +2607,7 @@ WHERE isCurrent = 1
   })
 }
 
-function buildCloseHistoryVersionStatements(
-  divisionIds: string[],
-  snapshotId: string,
-  cohortKey: string,
-  now: string,
-) {
+function buildCloseHistoryVersionStatements(divisionIds: string[], now: string) {
   return chunkArray(divisionIds, getMaxItemsPerInClause(1, 6)).flatMap(chunk => {
     if (chunk.length === 0) {
       return []
@@ -2611,15 +2619,12 @@ function buildCloseHistoryVersionStatements(
       `
 UPDATE divisions
 SET isCurrent = 0,
-  validToSnapshotId = ${sqlLiteral(snapshotId)},
-  validToCohortKey = ${sqlLiteral(cohortKey)},
   updatedAt = ${sqlLiteral(now)}
 WHERE isCurrent = 1
   AND id IN (${values});`.trim(),
       `
 UPDATE divisionsI18n
 SET isCurrent = 0,
-  validToSnapshotId = ${sqlLiteral(snapshotId)},
   updatedAt = ${sqlLiteral(now)}
 WHERE isCurrent = 1
   AND divisionId IN (${values});`.trim(),

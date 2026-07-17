@@ -6,11 +6,13 @@ import {
   recordSnapshotAssemblyRun,
   resolveShardForTypeRegionYear,
   upsertReleaseShardAssignment,
+  upsertSnapshotShardAssignment,
   upsertSnapshotSource,
   waitForDatasetRecord,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
+import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVersionChanges'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import {
   createAsyncBufferFromR2,
@@ -45,7 +47,7 @@ export type HkgovPlandDivisionUploadPlan = {
   regionCode: RegionCode
   releaseCode: string
   rowCount: number
-  source: 'hkgov-pland-pu' | 'hkgov-pland-newtown'
+  source: 'hkgov-pland-pu' | 'hkgov-pland-new-town'
   sourceVersion: string
   theme: 'divisions'
   type: 'division'
@@ -131,12 +133,18 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       releaseCode,
     )
 
-    const snapshot = await ensureDraftSnapshotForRelease(metaDb, 'division', {
-      regionCode: previewPlan.regionCode,
-      cohortKey: previewPlan.cohortKey,
-    })
     const dataset = await waitForDatasetRecord(metaDb, { releaseId })
     if (!dataset) throw new Error(`Release not found: ${releaseId}`)
+    const snapshot = await ensureDraftSnapshotForRelease(metaDb, 'division', {
+      cohortKey: previewPlan.cohortKey,
+      datasetCode,
+      datasetId: dataset.datasetId,
+      identityMode:
+        previewPlan.source === 'hkgov-pland-new-town' ? 'cohort_scoped' : 'persistent',
+      regionCode: previewPlan.regionCode,
+      sourceReleaseId: dataset.releaseId,
+      variant: previewPlan.source,
+    })
     await upsertSnapshotSource(
       metaDb,
       snapshot.id,
@@ -185,6 +193,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     await Promise.all([
       upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id),
       upsertReleaseShardAssignment(metaDb, dataset.releaseId, sourceShard.id),
+      upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id),
     ])
 
     const records = await readPreparedDivisions(bucket, rawObjectKey)
@@ -199,7 +208,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       .where(
         and(
           eq(sourceSchema.sourceHkgovPlandDivisions.isCurrent, true),
-          previewPlan.source === 'hkgov-pland-newtown'
+          previewPlan.source === 'hkgov-pland-new-town'
             ? eq(sourceSchema.sourceHkgovPlandDivisions.planningLevel, 'newtown')
             : ne(sourceSchema.sourceHkgovPlandDivisions.planningLevel, 'newtown'),
         ),
@@ -209,7 +218,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     // close the current TPU-cell assertions merely because their source is
     // processed through the same canonical-division path.
     const currentCellRows =
-      previewPlan.source === 'hkgov-pland-newtown'
+      previewPlan.source === 'hkgov-pland-new-town'
         ? []
         : await context.sourceDb
             .select({
@@ -589,10 +598,6 @@ async function insertHistoryRows(
           sourceReleaseId: releaseId,
           snapshotId,
           isCurrent: true,
-          validFromSnapshotId: snapshotId,
-          validToSnapshotId: null,
-          validFromCohortKey: cohortKey,
-          validToCohortKey: null,
           createdAt: now,
           updatedAt: now,
         })),
@@ -603,13 +608,21 @@ async function insertHistoryRows(
           isCurrent: true,
           snapshotId,
           sourceReleaseId: releaseId,
-          validToSnapshotId: null,
-          validToCohortKey: null,
           updatedAt: now,
         },
       })
       .run()
   }
+  await recordSnapshotVersionChanges(db, {
+    snapshotId,
+    sourceReleaseId: releaseId,
+    recordType: 'division',
+    operation: 'upsert',
+    changes: records.map(record => ({
+      recordId: record.base.id,
+      versionHash: record.versionHash,
+    })),
+  })
 }
 
 async function insertHistoryI18nRows(
@@ -633,10 +646,6 @@ async function insertHistoryI18nRows(
       sourceReleaseId: releaseId,
       snapshotId,
       isCurrent: true,
-      validFromSnapshotId: snapshotId,
-      validToSnapshotId: null,
-      validFromCohortKey: cohortKey,
-      validToCohortKey: null,
       createdAt: now,
       updatedAt: now,
     })),
@@ -655,13 +664,22 @@ async function insertHistoryI18nRows(
           isCurrent: true,
           snapshotId,
           sourceReleaseId: releaseId,
-          validToSnapshotId: null,
-          validToCohortKey: null,
           updatedAt: now,
         },
       })
       .run()
   }
+  await recordSnapshotVersionChanges(db, {
+    snapshotId,
+    sourceReleaseId: releaseId,
+    recordType: 'divisionI18n',
+    operation: 'upsert',
+    changes: rows.map(row => ({
+      recordId: row.divisionId,
+      locale: row.locale,
+      versionHash: row.versionHash,
+    })),
+  })
 }
 
 async function insertSourceRows(
@@ -830,8 +848,6 @@ async function closeHistoryRows(
         .update(historySchema.divisions)
         .set({
           isCurrent: false,
-          validToSnapshotId: snapshotId,
-          validToCohortKey: cohortKey,
           updatedAt: now,
         })
         .where(
@@ -843,7 +859,7 @@ async function closeHistoryRows(
         .run(),
       db
         .update(historySchema.divisionsI18n)
-        .set({ isCurrent: false, validToSnapshotId: snapshotId, updatedAt: now })
+        .set({ isCurrent: false, updatedAt: now })
         .where(
           and(
             eq(historySchema.divisionsI18n.isCurrent, true),
@@ -853,6 +869,12 @@ async function closeHistoryRows(
         .run(),
     ])
   }
+  await recordSnapshotVersionChanges(db, {
+    snapshotId,
+    recordType: 'division',
+    operation: 'delete',
+    changes: [...new Set(ids)].map(recordId => ({ recordId })),
+  })
 }
 
 async function closeSourceRows(

@@ -9,6 +9,13 @@ import { runInspectCommand } from './lib/commands/inspect.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
+import {
+  runVersionBumpCommand,
+  runVersionDoctorCommand,
+  runVersionPromoteCommand,
+  runVersionPublishCommand,
+  runVersionStatusCommand,
+} from './lib/commands/version.ts'
 import { parseArgs, resolveUploadTarget } from './lib/options.ts'
 import { printUsage } from './lib/usage.ts'
 
@@ -39,8 +46,8 @@ async function main() {
     case 'backfill:hkgov-pland-pu':
       await runHkgovPlandBackfillCommand(args, target, 'pu', printUsage)
       return
-    case 'backfill:hkgov-pland-newtown':
-      await runHkgovPlandBackfillCommand(args, target, 'newtown', printUsage)
+    case 'backfill:hkgov-pland-new-town':
+      await runHkgovPlandBackfillCommand(args, target, 'new-town', printUsage)
       return
     case 'inspect':
       await runInspectCommand(args)
@@ -67,6 +74,21 @@ async function main() {
         dryRun,
         printUsage,
       })
+      return
+    case 'version:bump':
+      await runVersionBumpCommand(args)
+      return
+    case 'version:publish':
+      await runVersionPublishCommand(args, target)
+      return
+    case 'version:promote':
+      await runVersionPromoteCommand(args, target)
+      return
+    case 'version:status':
+      await runVersionStatusCommand()
+      return
+    case 'version:doctor':
+      await runVersionDoctorCommand()
       return
     case 'upload':
       await runUploadCommand(args, target, {
