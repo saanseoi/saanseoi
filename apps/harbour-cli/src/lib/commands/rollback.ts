@@ -547,9 +547,15 @@ async function countHistoryRollbackRows(
 ) {
   let total = 0
 
+  total += await countRows(
+    db,
+    historySchema.snapshotVersionChanges,
+    eq(historySchema.snapshotVersionChanges.snapshotId, input.snapshotId),
+  )
+
   for (const tableName of input.tables.historyTables) {
     const table = resolveHistoryTable(tableName)
-    const deletedRows = await countRows(
+    const cacheRows = await countRows(
       db,
       table,
       and(
@@ -557,13 +563,7 @@ async function countHistoryRollbackRows(
         eq(table.snapshotId, input.snapshotId),
       ),
     )
-    const reopenedRows = await countRows(
-      db,
-      table,
-      and(eq(table.isCurrent, false), eq(table.validToSnapshotId, input.snapshotId)),
-    )
-
-    total += deletedRows + reopenedRows
+    total += cacheRows
   }
 
   return total
