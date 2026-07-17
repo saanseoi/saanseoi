@@ -23,8 +23,9 @@ licence is the Hong Kong Government open-data licence. `sourceSchemaVersion` is 
 observed artifact-shape profile, not an upstream CSDI version: `1.0` covers the
 2001–2016 `PPU`/`SPU`/`TPU`/`SB_VC` columns, while `2.0` covers the 2021 replacement of
 `SB_VC` with `Subunit`. Releases use provider variant `hkgov-pland-pu` and source
-release codes `hkgov-pland-hk-{year}-division-pu` and
-`hkgov-pland-hk-{year}-division-area-pu`.
+release codes `dr-hk-hkgov-pland-division-pu-{year}` and
+`dr-hk-hkgov-pland-division-area-pu-{year}`. The corresponding dataset codes are
+`ds-hk-hkgov-pland-division-pu` and `ds-hk-hkgov-pland-division-area-pu`.
 
 ## Identity and hierarchy
 
@@ -57,7 +58,9 @@ divisions below; TPU/subunit uploads write no rows to it.
 New Towns are a separate Planning Department planning-domain resource and provider
 variant, not geographic/Overture divisions. They use source profile authority
 `hkgov-pland-new-town`, while retaining the Planning Department as publisher. The CSDI
-GeoJSON files are also EPSG:4326 deliveries of EPSG:2326 catalogue services.
+GeoJSON files are also EPSG:4326 deliveries of EPSG:2326 catalogue services. Its
+datasets use `ds-hk-hkgov-pland-division-new-town` and
+`ds-hk-hkgov-pland-division-area-new-town`.
 
 | Cohort | Catalogue code                                                                                                           | Layer          | Features |
 | ------ | ------------------------------------------------------------------------------------------------------------------------ | -------------- | -------: |
