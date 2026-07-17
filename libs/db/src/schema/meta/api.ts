@@ -55,6 +55,11 @@ const apiReleaseSetIdColumn = () =>
     .notNull()
     .references(() => metaApiReleaseSets.id, { onDelete: 'cascade' })
 
+const apiCatalogRevisionIdColumn = () =>
+  text('apiCatalogRevisionId')
+    .notNull()
+    .references(() => metaApiCatalogRevisions.id, { onDelete: 'cascade' })
+
 export const metaApiVersions = sqliteTable(
   'apiVersions',
   {
@@ -74,13 +79,48 @@ export const metaApiVersions = sqliteTable(
   ],
 )
 
+export const metaSnapshotLineages = sqliteTable(
+  'snapshotLineages',
+  {
+    id: primaryUuid('id'),
+    code: text('code').notNull().unique(),
+    regionCode: text('regionCode').notNull(),
+    resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
+    variant: text('variant').notNull().default('default'),
+    identityMode: text('identityMode', {
+      enum: ['persistent', 'cohort_scoped'],
+    }).notNull(),
+    primaryDatasetId: text('primaryDatasetId').references(() => metaDatasets.id, {
+      onDelete: 'restrict',
+    }),
+    versionHash: text('versionHash').notNull(),
+    ...timestamps,
+  },
+  table => [
+    uniqueIndex('snapshotLineages_primaryDataset_unique_idx').on(
+      table.primaryDatasetId,
+    ),
+    index('snapshotLineages_region_resource_variant_idx').on(
+      table.regionCode,
+      table.resourceType,
+      table.variant,
+    ),
+  ],
+)
+
 export const metaSnapshots = sqliteTable(
   'snapshots',
   {
     id: primaryUuid('id'),
+    snapshotLineageId: text('snapshotLineageId').references(
+      () => metaSnapshotLineages.id,
+      { onDelete: 'restrict' },
+    ),
+    parentSnapshotId: text('parentSnapshotId'),
     resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     code: text('code').notNull(),
     cohortKey: text('cohortKey').notNull(),
+    revision: integer('revision').notNull().default(0),
     status: text('status', { enum: snapshotStatuses }).notNull(),
     publishedAt: isoTimestamp('publishedAt'),
     validFrom: isoTimestamp('validFrom'),
@@ -98,6 +138,12 @@ export const metaSnapshots = sqliteTable(
       table.resourceType,
     ),
     index('snapshots_resourceType_status_idx').on(table.resourceType, table.status),
+    uniqueIndex('snapshots_lineage_cohort_revision_unique_idx').on(
+      table.snapshotLineageId,
+      table.cohortKey,
+      table.revision,
+    ),
+    index('snapshots_parentSnapshotId_idx').on(table.parentSnapshotId),
   ],
 )
 
@@ -133,9 +179,19 @@ export const metaApiReleaseSets = sqliteTable(
   {
     id: primaryUuid('id'),
     apiVersionId: apiVersionIdColumn('restrict'),
-    // This is the snapshot-version code shared with the canonical snapshot.
+    apiCompositionId: text('apiCompositionId').references(() => metaApiComposition.id, {
+      onDelete: 'restrict',
+    }),
+    // Immutable domain/cohort composition code; its trailing sequence is the
+    // composition revision for this effective cohort.
     code: text('code').notNull(),
+    regionCode: text('regionCode'),
     domainCode: text('domainCode').notNull().default('default'),
+    cohortKey: text('cohortKey'),
+    revision: integer('revision').notNull().default(0),
+    effectiveFrom: isoTimestamp('effectiveFrom'),
+    effectiveTo: isoTimestamp('effectiveTo'),
+    supersedesApiReleaseSetId: text('supersedesApiReleaseSetId'),
     schemaVersion: text('schemaVersion').notNull(),
     rulesetVersion: text('rulesetVersion').notNull(),
     status: text('status', { enum: apiReleaseSetStatuses }).notNull(),
@@ -152,6 +208,43 @@ export const metaApiReleaseSets = sqliteTable(
       table.code,
     ),
     index('apiReleaseSets_status_idx').on(table.status),
+    uniqueIndex('apiReleaseSets_domain_cohort_revision_unique_idx').on(
+      table.apiVersionId,
+      table.regionCode,
+      table.domainCode,
+      table.cohortKey,
+      table.revision,
+    ),
+  ],
+)
+
+export const metaApiCatalogRevisions = sqliteTable(
+  'apiCatalogRevisions',
+  {
+    id: primaryUuid('id'),
+    apiVersionId: apiVersionIdColumn('restrict'),
+    code: text('code').notNull().unique(),
+    regionCode: text('regionCode').notNull(),
+    publicationDate: text('publicationDate').notNull(),
+    revision: integer('revision').notNull(),
+    defaultDomainCode: text('defaultDomainCode'),
+    status: text('status', { enum: apiReleaseSetStatuses }).notNull(),
+    publishedAt: isoTimestamp('publishedAt').notNull(),
+    versionHash: text('versionHash').notNull(),
+    ...timestamps,
+  },
+  table => [
+    uniqueIndex('apiCatalogRevisions_scope_publication_revision_unique_idx').on(
+      table.apiVersionId,
+      table.regionCode,
+      table.publicationDate,
+      table.revision,
+    ),
+    index('apiCatalogRevisions_scope_published_idx').on(
+      table.apiVersionId,
+      table.regionCode,
+      table.publishedAt,
+    ),
   ],
 )
 
@@ -314,6 +407,28 @@ export const metaApiReleaseSetSnapshots = sqliteTable(
       columns: [table.apiReleaseSetId, table.snapshotId, table.variant],
     }),
     index('apiReleaseSetSnapshots_snapshotId_idx').on(table.snapshotId),
+  ],
+)
+
+export const metaApiCatalogRevisionReleaseSets = sqliteTable(
+  'apiCatalogRevisionReleaseSets',
+  {
+    apiCatalogRevisionId: apiCatalogRevisionIdColumn(),
+    apiReleaseSetId: apiReleaseSetIdColumn(),
+    domainCode: text('domainCode').notNull(),
+    cohortKey: text('cohortKey').notNull(),
+    isDefault: integer('isDefault', { mode: 'boolean' }).notNull().default(false),
+    createdAt: timestamps.createdAt,
+  },
+  table => [
+    primaryKey({
+      columns: [table.apiCatalogRevisionId, table.domainCode, table.cohortKey],
+    }),
+    uniqueIndex('apiCatalogRevisionReleaseSets_release_unique_idx').on(
+      table.apiCatalogRevisionId,
+      table.apiReleaseSetId,
+    ),
+    index('apiCatalogRevisionReleaseSets_release_idx').on(table.apiReleaseSetId),
   ],
 )
 

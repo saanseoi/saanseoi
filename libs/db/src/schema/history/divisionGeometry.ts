@@ -14,14 +14,6 @@ export const divisionAreas = sqliteTable(
     primaryKey({ columns: [table.id, table.versionHash] }),
     index('divisionAreas_current_lookup_idx').on(table.id, table.isCurrent),
     index('divisionAreas_divisionId_idx').on(table.divisionId, table.isCurrent),
-    index('divisionAreas_snapshot_validity_idx').on(
-      table.validFromSnapshotId,
-      table.validToSnapshotId,
-    ),
-    index('divisionAreas_validity_idx').on(
-      table.validFromCohortKey,
-      table.validToCohortKey,
-    ),
     index('divisionAreas_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('divisionAreas_snapshotId_idx').on(table.snapshotId),
   ],
@@ -45,14 +37,6 @@ export const divisionBoundaries = sqliteTable(
     index('divisionBoundaries_rightDivisionId_idx').on(
       table.rightDivisionId,
       table.isCurrent,
-    ),
-    index('divisionBoundaries_snapshot_validity_idx').on(
-      table.validFromSnapshotId,
-      table.validToSnapshotId,
-    ),
-    index('divisionBoundaries_validity_idx').on(
-      table.validFromCohortKey,
-      table.validToCohortKey,
     ),
     index('divisionBoundaries_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('divisionBoundaries_snapshotId_idx').on(table.snapshotId),
