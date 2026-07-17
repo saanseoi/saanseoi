@@ -7,6 +7,7 @@ import type {
 import type { GeoJsonGeometry, GeoJsonPosition } from '../geojson'
 import { parseWkbGeometry } from './division'
 import { asNonEmptyString, createHash, stableJsonStringify } from '../utils'
+import { isReferentOnlyDivisionId } from './divisionFixtures'
 
 export type DivisionGeometryKind = 'divisionArea' | 'divisionBoundary'
 
@@ -68,6 +69,9 @@ export function normalizeDivisionAreaGeometryRow(
     throw new Error('Division area row requires a non-empty `id`.')
   }
   const divisionId = asNonEmptyString(row.division_id)
+  if (isReferentOnlyDivisionId(divisionId)) {
+    return null
+  }
   const geometry = requireGeometry(
     row.geometry,
     ['Polygon', 'MultiPolygon'],
@@ -77,13 +81,13 @@ export function normalizeDivisionAreaGeometryRow(
   const isLand =
     source === 'hkgov-had' ||
     source === 'hkgov-pland-pu' ||
-    source === 'hkgov-pland-newtown'
+    source === 'hkgov-pland-new-town'
       ? true
       : asOptionalBoolean(row.is_land)
   const isTerritorial =
     source === 'hkgov-had' ||
     source === 'hkgov-pland-pu' ||
-    source === 'hkgov-pland-newtown'
+    source === 'hkgov-pland-new-town'
       ? true
       : asOptionalBoolean(row.is_territorial)
   const type = resolveGeometryType(row.class, id, { isLand, isTerritorial })
@@ -242,7 +246,7 @@ function buildSourceKeys(
     }
   }
 
-  if (source === 'hkgov-pland-newtown') {
+  if (source === 'hkgov-pland-new-town') {
     return {
       hkgovPlandNewTown: {
         id: asNonEmptyString(row.newtown_id),
@@ -267,7 +271,7 @@ function normalizeSources(value: unknown, source: string) {
           ? 'hkgovHad'
           : source === 'hkgov-pland-pu'
             ? 'hkgovPland'
-            : source === 'hkgov-pland-newtown'
+            : source === 'hkgov-pland-new-town'
               ? 'hkgovPlandNewTown'
               : 'overture']: value,
       }

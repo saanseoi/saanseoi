@@ -19,6 +19,49 @@ const polygon = {
 }
 
 describe('division geometry normalization', () => {
+  test('excludes Guangdong rows from HK area and boundary extracts', () => {
+    expect(
+      normalizeDivisionAreaGeometryRow({
+        division_id: 'guangdong',
+        id: 'guangdong-area',
+        region: 'CN-GD',
+      }),
+    ).toBeNull()
+    expect(
+      normalizeDivisionBoundaryGeometryRow({
+        division_ids: ['guangdong-1', 'guangdong-2'],
+        id: 'guangdong-boundary',
+        region: 'CN-GD',
+      }),
+    ).toBeNull()
+  })
+
+  test('rejects PRC areas but retains boundaries that reference the PRC anchor', () => {
+    const prcId = 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be'
+    expect(
+      normalizeDivisionAreaGeometryRow({
+        division_id: prcId,
+        geometry: polygon,
+        id: 'prc-area',
+      }),
+    ).toBeNull()
+    const boundary = normalizeDivisionBoundaryGeometryRow({
+      class: 'land',
+      division_ids: [prcId, 'hk'],
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [0, 0],
+          [1, 1],
+        ],
+      },
+      id: 'prc-boundary',
+      is_land: true,
+    })
+    expect(boundary?.canonical.leftDivisionId).toBe(prcId)
+    expect(boundary?.canonical.rightDivisionId).toBe('hk')
+  })
+
   test('only performs expensive topology validation when requested', () => {
     const selfIntersectingPolygon = {
       type: 'Polygon' as const,
@@ -112,14 +155,14 @@ describe('division geometry normalization', () => {
         id: 'PLAND:NEWTOWN:b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2',
         identifiers: { 'PLAND:NEWTOWN': 'tseung-kwan-o' },
         newtown_id: 'tseung-kwan-o',
-        sources: [{ dataset: 'hkgov-pland-newtown' }],
+        sources: [{ dataset: 'hkgov-pland-new-town' }],
       },
-      'hkgov-pland-newtown',
+      'hkgov-pland-new-town',
     )
     if (!normalized) throw new Error('Expected a New Town area row.')
 
     expect(normalized.canonical.divisionId).toBe('b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2')
-    expect(normalized.canonical.variant).toBe('hkgov-pland-newtown')
+    expect(normalized.canonical.variant).toBe('hkgov-pland-new-town')
     expect(normalized.canonical.sourceKeys).toEqual({
       hkgovPlandNewTown: { id: 'tseung-kwan-o', name: 'tseung-kwan-o' },
     })
