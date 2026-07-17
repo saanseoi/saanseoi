@@ -52,3 +52,9 @@ SaanSeoi 使用 Overture 的 `address_levels`
 在已检查的 `2025-09-24.0`
 香港特别行政区文件中，182,155 行数据每一行都恰好有两个层级：一个区域（`HK`、`KLN` 或
 `NT`），后接 18 个地区名称之一。该文件没有城镇、村庄、邻里或更低层级的地址数据。
+
+## Snapshot lineage
+
+Overture address snapshots belong to a persistent dataset lineage. Monthly cohorts and
+same-cohort backfill revisions therefore remain separately addressable without copying
+unchanged canonical versions or conflating address identity with a publication date.

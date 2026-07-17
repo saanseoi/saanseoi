@@ -65,3 +65,10 @@ the latest published HAD geometry cohort at or before that set's cohort. Thus th
 district-area snapshot is eligible for a `2025-09-24.0` release set until a newer HAD
 snapshot is published. It satisfies that set's `divisionArea` requirement when no
 exact-cohort Overture area snapshot is available.
+
+## Publication lineage
+
+HAD district areas form a persistent geometry lineage. They may enrich an immutable
+Overture domain release using the configured at-or-before cohort rule. A later HAD
+backfill creates a new Overture domain-release revision and catalog checkpoint rather
+than mutating the earlier publication.

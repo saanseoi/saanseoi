@@ -22,7 +22,10 @@ It also reflects the currently implemented ingest flow in:
 Geometry companions and provider variants follow the source-neutral contract in
 [`divisions-geometry.md`](./divisions-geometry.md). Source-specific catalogue facts,
 quality exceptions, and identifier bridges are documented under
-`docs/datasets/sources/<provider>/` rather than embedded in this model overview.
+`docs/datasets/sources/<provider>/` rather than embedded in this model overview. The
+cross-layer rules for dataset releases, snapshots, domain releases, catalogue revisions,
+API contracts, and replay are normative in
+[`docs/versioning.md`](../docs/versioning.md).
 
 ## Current Scope
 
@@ -260,17 +263,56 @@ Constraint:
 
 ### API Release Metadata
 
-The implementation also includes:
+The implemented publication model separates contract, effective data, and catalog
+knowledge:
 
 - `apiVersions`
+- `apiComposition` and `apiCompositionMembers`
 - `apiReleaseSets`
-- `apiReleaseSetMembers`
+- `apiReleaseSetSnapshots`
+- `apiCatalogRevisions`
+- `apiCatalogRevisionReleaseSets`
+- `snapshotLineages`
 - `apiEndpoints`
 - `apiEndpointDatasets`
 - `apiFieldProvenance`
 
-These tables are part of the operational model. History validity is anchored to
-`apiReleaseSets`, not directly to raw uploads alone.
+An `apiReleaseSet` is an immutable release of one domain and one effective cohort. Its
+trailing sequence is a composition revision, not an API contract patch. For example,
+adding a newly available secondary snapshot to cohort `2022` creates
+`data-hk-divisions-2022-1--hkgov-pland-pu`; it does not mutate `...-0`. Earlier catalog
+revisions continue to name `...-0`, while a new catalog revision can name `...-1`. The
+legacy `status=current` value now means published/addressable; it no longer means that
+only one release set in the whole API family may have that status.
+
+An `apiCatalogRevision` is an immutable family-and-region publication checkpoint. Its
+date and trailing revision describe when that exact set of domain releases became known,
+for example `catalog-hk-divisions-v0.1-2026-07-17.0`. It may contain monthly Overture
+releases alongside much older planning-domain releases without pretending that those
+domains share a cohort.
+
+A `snapshotLineage` identifies the stable logical stream to which snapshot revisions
+belong. `identityMode=persistent` means entity identity may be compared across cohorts;
+`identityMode=cohort_scoped` means identity is meaningful only within that cohort.
+Snapshots are revisioned independently inside `(lineage, cohort)`, so a backfill can add
+a new physical snapshot without rewriting the earlier one.
+
+These tables form the journal used for bitemporal resolution:
+
+- effective time selects a domain release by its cohort/effective date
+- knowledge time selects the newest catalog revision published at or before that time
+- an exact catalog plus exact release-set code is a publication permalink
+
+History validity remains anchored to immutable `apiReleaseSets`, not directly to raw
+uploads alone. Old canonical row versions remain change-only; catalog revisions and
+release-set membership rows do not copy entity data.
+
+API field provenance is resolved per domain release using the API version, domain,
+schema, domain ruleset, and source-dataset/schema signature. New fixtures must declare
+`domainCode` and require an exact signature. The historical fixtures without a domain
+retain their subset-compatible behavior for v0 migration only. Their
+`validFromSnapshotVersion` field is an ordering key, not a model for future backfill
+inheritance.
 
 ### Shard Metadata
 
@@ -565,7 +607,9 @@ Implemented relationships are:
 - one publisher has many datasets
 - one dataset has many releases
 - one release has many ingest runs
-- one API release set has many selected release members
+- one snapshot lineage has many cohort/revision snapshots
+- one immutable API domain release has many selected snapshots
+- one API catalog revision has many domain/cohort releases
 - one canonical entity has one current row and many version rows over time
 - one canonical entity has many localized rows
 - one place may reference zero or one `address2d`
@@ -642,6 +686,12 @@ release for the same dataset:
 
 The correction check is implemented by comparing the `sourceVersion` prefix before the
 final `.` suffix.
+
+Publishing a complete domain release also appends an immutable API catalog revision.
+Published domain releases are never archived merely because a later domain or cohort is
+published. Current-store cleanup protects the default releases named by the latest
+catalog; older response data is reconstructed from change-only history when historical
+serving is enabled for that handler version.
 
 ## What Is Not Implemented
 

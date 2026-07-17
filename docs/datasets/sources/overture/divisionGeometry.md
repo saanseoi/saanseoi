@@ -99,3 +99,10 @@ snapshot therefore adds the reviewed
 the level-0 country identity and localized names; it deliberately has no country
 geometry. It is ingested with every cohort so geometry and address references resolve
 within the exact same division snapshot.
+
+## Publication lineage
+
+Overture division, area, and boundary snapshots belong to persistent snapshot lineages.
+A complete monthly Overture composition is published as an immutable `overture` domain
+release. HAD area geometry may be selected at or before the Overture cohort, but
+planning domains are published separately and are never mixed into this release.
