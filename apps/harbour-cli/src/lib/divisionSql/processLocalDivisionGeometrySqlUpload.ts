@@ -5,11 +5,13 @@ import {
   resolveShardForTypeRegionYear,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   upsertReleaseShardAssignment,
+  upsertSnapshotShardAssignment,
   upsertSnapshotSource,
   waitForDatasetRecord,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
+import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVersionChanges'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import {
   createAsyncBufferFromR2,
@@ -58,7 +60,7 @@ type GeometryUploadPlan = {
   regionCode: RegionCode
   releaseCode: string
   rowCount: number
-  source: 'overture' | 'hkgov-had' | 'hkgov-pland-pu' | 'hkgov-pland-newtown'
+  source: 'overture' | 'hkgov-had' | 'hkgov-pland-pu' | 'hkgov-pland-new-town'
   sourceVersion: string
   theme: 'divisions'
   type: 'divisionArea' | 'divisionBoundary'
@@ -193,14 +195,18 @@ export async function processLocalDivisionGeometrySqlUpload(
       max: null,
     })
     const metaDb = dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
-    const snapshot = await ensureDraftSnapshotForRelease(metaDb, previewPlan.type, {
-      regionCode: previewPlan.regionCode,
-      cohortKey: previewPlan.cohortKey,
-    })
     const dataset = await waitForDatasetRecord(metaDb, { releaseId })
     if (!dataset) {
       throw new Error(`Release not found: ${releaseId}`)
     }
+    const snapshot = await ensureDraftSnapshotForRelease(metaDb, previewPlan.type, {
+      cohortKey: previewPlan.cohortKey,
+      datasetCode,
+      datasetId: dataset.datasetId,
+      regionCode: previewPlan.regionCode,
+      sourceReleaseId: dataset.releaseId,
+      variant: previewPlan.source,
+    })
     await upsertSnapshotSource(
       metaDb,
       snapshot.id,
@@ -234,6 +240,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     )
     if (historyShard) {
       await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
+      await upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id)
     }
 
     progress.complete(
@@ -290,7 +297,7 @@ export async function processLocalDivisionGeometrySqlUpload(
           const sourceRow =
             previewPlan.source === 'hkgov-had'
               ? normalizeHkgovHadInputRow(row, providerBridge)
-              : previewPlan.source === 'hkgov-pland-newtown'
+              : previewPlan.source === 'hkgov-pland-new-town'
                 ? normalizeHkgovPlandNewTownInputRow(row)
                 : row
           const value =
@@ -490,7 +497,7 @@ function normalizeHkgovPlandNewTownInputRow(row: Record<string, unknown>) {
     division_id: divisionId,
     sources: sources?.length
       ? sources
-      : [{ dataset: 'hkgov-pland-newtown', newTownId }],
+      : [{ dataset: 'hkgov-pland-new-town', newTownId }],
   }
 }
 
@@ -642,7 +649,7 @@ async function writeGeometryRows(
         ? sourceSchema.sourceHkgovHadDivisionAreas
         : version.source === 'hkgov-pland-pu'
           ? sourceSchema.sourceHkgovPlandDivisionAreas
-          : version.source === 'hkgov-pland-newtown'
+          : version.source === 'hkgov-pland-new-town'
             ? sourceSchema.sourceHkgovPlandNewTownDivisionAreas
             : sourceSchema.sourceOvertureDivisionAreas
       : sourceSchema.sourceOvertureDivisionBoundaries
@@ -668,15 +675,23 @@ async function writeGeometryRows(
     )
   }
   onProgress?.('close history rows')
-  await closeChangedRows(
+  const closedHistoryRows = await closeChangedRows(
     context.historyDb,
     historyTable,
     historyTable.id,
     historyHashes,
     {
       isCurrent: false,
-      validToSnapshotId: version.snapshotId,
-      validToCohortKey: version.cohortKey,
+    },
+  )
+  await recordSnapshotVersionChanges(
+    context.historyDb as unknown as HarbourWritableDb,
+    {
+      snapshotId: version.snapshotId,
+      sourceReleaseId: version.releaseId,
+      recordType: type,
+      operation: 'delete',
+      changes: closedHistoryRows.map(row => ({ recordId: row.id })),
     },
   )
   onProgress?.('close source rows')
@@ -687,7 +702,7 @@ async function writeGeometryRows(
     sourceHashes,
     { isCurrent: false, validToRelease: version.releaseCode },
   )
-  if (version.source === 'hkgov-pland-newtown') {
+  if (version.source === 'hkgov-pland-new-town') {
     await closeNewTownSourceI18nRows(
       context.sourceDb as unknown as HarbourReadableDb & HarbourWritableDb,
       sourceHashes,
@@ -709,10 +724,6 @@ async function writeGeometryRows(
       sourceReleaseId: version.releaseId,
       snapshotId: version.snapshotId,
       isCurrent: true,
-      validFromSnapshotId: version.snapshotId,
-      validToSnapshotId: null,
-      validFromCohortKey: version.cohortKey,
-      validToCohortKey: null,
       createdAt: now,
       updatedAt: now,
     })),
@@ -751,7 +762,7 @@ async function writeGeometryRows(
               sourceCrs: (row.source.rawProperties as Record<string, unknown>)
                 ?.source_crs,
             }
-          : version.source === 'hkgov-pland-newtown'
+          : version.source === 'hkgov-pland-new-town'
             ? {
                 divisionId: requirePlanningDivisionId(row),
                 newTownId: (row.source.rawProperties as Record<string, unknown>)
@@ -803,15 +814,24 @@ async function writeGeometryRows(
             sourceReleaseId: version.releaseId,
             snapshotId: version.snapshotId,
             isCurrent: true,
-            validFromSnapshotId: version.snapshotId,
-            validToSnapshotId: null,
-            validFromCohortKey: version.cohortKey,
-            validToCohortKey: null,
             updatedAt: now,
           },
         })
         .run()
     }
+    await recordSnapshotVersionChanges(
+      context.historyDb as unknown as HarbourWritableDb,
+      {
+        snapshotId: version.snapshotId,
+        sourceReleaseId: version.releaseId,
+        recordType: type,
+        operation: 'upsert',
+        changes: historyRows.map(row => ({
+          recordId: row.id,
+          versionHash: row.versionHash,
+        })),
+      },
+    )
   }
   if (sourceRows.length) {
     onProgress?.('write source rows')
@@ -832,7 +852,7 @@ async function writeGeometryRows(
         .run()
     }
   }
-  if (version.source === 'hkgov-pland-newtown') {
+  if (version.source === 'hkgov-pland-new-town') {
     await writeNewTownSourceI18nRows(
       context.sourceDb as unknown as HarbourWritableDb,
       rows,
@@ -1046,10 +1066,13 @@ async function closeChangedRows(
     .from(table)
     .where(eq(table.isCurrent, true))
     .all()
+  const closedRows = []
   for (const row of existing) {
     if (currentHashes.get(row.id) === row.versionHash) continue
     await db.update(table).set(values).where(eq(idColumn, row.id)).run()
+    closedRows.push(row)
   }
+  return closedRows
 }
 
 function statRow(
