@@ -4,11 +4,13 @@ import { availableParallelism, cpus } from 'node:os'
 import { resolve } from 'node:path'
 
 import type { DatasetProcessingMessage } from '@repo/core'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 import { hasCurrentAddressVersions } from '@repo/core/pipeline/db/address'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { buildAddressSqlImportRunId } from '@repo/core/pipeline/services/addressPipeline/sqlImport'
 import {
+  importAddressSqlDataArtifacts,
   importAddressSqlArtifactsAndPublish,
   type AddressSqlImportStageOptions,
 } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
@@ -36,6 +38,11 @@ import {
   runLocalGenerationPhase,
   writeLocalPipelineState,
 } from '../localPipeline/orchestrator.ts'
+import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
+import {
+  calculateAndStoreApiReleaseSetStats,
+  resolveApiReleaseSetStatsTarget,
+} from '../apiReleaseSetStats.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import {
   appendPhaseDetails,
@@ -53,7 +60,8 @@ import {
 } from './addressCurrentLookupCache.ts'
 import { LocalPipelineBucket } from './localBucket.ts'
 import {
-  buildReleaseUploadDbCacheScopeKey,
+  invalidateRemoteDbCache,
+  refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
 } from './localDbCache.ts'
@@ -121,19 +129,8 @@ export async function processLocalAddressSqlUpload(
   await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
   const progress = new LocalUploadProgress()
   const resolvedTargetName = resolveTargetName(target)
-  const cacheTableProfile = 'address'
-  const remoteCacheScopeKey = target.remote
-    ? buildReleaseUploadDbCacheScopeKey({
-        cacheTableProfile,
-        cohortKey: previewPlan.cohortKey,
-        regionCode: previewPlan.regionCode,
-        shardYear,
-        source: previewPlan.source,
-        sourceVersion: previewPlan.sourceVersion,
-        theme: previewPlan.theme,
-        type: previewPlan.type,
-      })
-    : undefined
+  const cacheTableProfile = target.remote ? undefined : 'address'
+  const remoteCacheScopeKey = undefined
 
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
   const dbCacheStartedAt = Date.now()
@@ -181,7 +178,26 @@ export async function processLocalAddressSqlUpload(
     },
     previewPlan,
   )
-  const harbourClient = createHarbourControlClient(target) as HarbourClient
+  const remoteHarbourClient = createHarbourControlClient(target) as HarbourClient
+  const harbourClient = target.remote
+    ? remoteHarbourClient
+    : createLocalControlClient(
+        dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+        {
+          maxRetries: LOCAL_SQL_WRITE_RETRY_LIMIT,
+          onRetry(event) {
+            progress.message(
+              formatRetryLabel(
+                `database lock ${event.target}`,
+                event.attempt,
+                event.maxRetries,
+                event.delayMs,
+              ),
+            )
+          },
+          publishClient: remoteHarbourClient,
+        },
+      )
   const initialMessage: DatasetProcessingMessage = {
     datasetId,
     datasetCode,
@@ -228,6 +244,8 @@ export async function processLocalAddressSqlUpload(
 
   assertRemoteAddressImportPrerequisites(target, dbContext, importOptions)
   const processingRunStartedAt = new Date().toISOString()
+  let shouldRefreshRemoteMetaCache = false
+  let postPublishCacheError: Error | null = null
 
   await writeLocalPipelineState(releaseRoot, {
     addressChunkSize: ADDRESS_CHUNK_SIZE,
@@ -466,13 +484,37 @@ export async function processLocalAddressSqlUpload(
       buildAddressImportProgressConfig(finalMessage.addressSqlArtifactKeys ?? []),
     )
 
-    await importAddressSqlArtifactsAndPublish(
+    const publishResult = await importAddressSqlArtifactsAndPublish(
       importProgressClient,
       dbContext.metaDb,
       bucket,
       finalMessage,
       importOptions,
     )
+    if (target.remote) {
+      try {
+        shouldRefreshRemoteMetaCache = await replayAddressSqlIntoRemoteCache(
+          target,
+          dbContext,
+          bucket,
+          finalMessage,
+          importOptions,
+        )
+      } catch (error) {
+        postPublishCacheError = normalizeError(error)
+      }
+    }
+    await calculateAndStoreApiReleaseSetStats({
+      currentDb: dbContext.currentDb as unknown as HarbourReadableDb,
+      family: 'address',
+      harbourClient,
+      importOptions,
+      metaDb: dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+      progress,
+      releaseCode,
+      releaseId,
+      target: resolveApiReleaseSetStatsTarget(publishResult),
+    })
     await writeAddressCurrentLookupCache(
       resolvedTargetName,
       previewPlan.regionCode,
@@ -491,7 +533,84 @@ export async function processLocalAddressSqlUpload(
     throw error
   } finally {
     dbContext.cleanup()
+    if (shouldRefreshRemoteMetaCache && target.remote) {
+      try {
+        await refreshRemoteMetaCacheAfterReplay(
+          target.environment === 'production' ? 'production' : 'preview',
+          dbContext.state.dbCacheDir,
+        )
+      } catch (error) {
+        postPublishCacheError = normalizeError(error)
+      }
+    }
   }
+
+  if (postPublishCacheError) {
+    throw postPublishCacheError
+  }
+}
+
+async function replayAddressSqlIntoRemoteCache(
+  target: UploadTarget,
+  dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  bucket: LocalPipelineBucket,
+  message: DatasetProcessingMessage,
+  importOptions: AddressSqlImportStageOptions,
+) {
+  const targetName = target.environment === 'production' ? 'production' : 'preview'
+  const cacheImportOptions: AddressSqlImportStageOptions = {
+    ...importOptions,
+    accountId: undefined,
+    apiToken: undefined,
+    isLocal: true,
+  }
+
+  try {
+    await importAddressSqlDataArtifacts(
+      createNoopHarbourClient(),
+      dbContext.metaDb,
+      bucket,
+      message,
+      cacheImportOptions,
+    )
+    return true
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error)
+
+    await invalidateRemoteDbCache(targetName, dbContext.state.dbCacheDir, reason)
+    throw new Error(
+      `Remote upload succeeded, but updating the ${targetName} local cache failed. The cache was invalidated and future uploads will stop until it is rebuilt explicitly. ${reason}`,
+    )
+  }
+}
+
+async function refreshRemoteMetaCacheAfterReplay(
+  targetName: 'preview' | 'production',
+  cacheDir: string,
+) {
+  try {
+    await refreshRemoteMetaCache(targetName, cacheDir)
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error)
+
+    await invalidateRemoteDbCache(targetName, cacheDir, reason)
+    throw new Error(
+      `Remote upload succeeded, but refreshing the ${targetName} local meta cache failed. The cache was invalidated and future uploads will stop until it is rebuilt explicitly. ${reason}`,
+    )
+  }
+}
+
+function createNoopHarbourClient(): HarbourClient {
+  return {
+    async publishDataset() {},
+    async stageCompleted() {},
+    async stageFailed() {},
+    async stageRunning() {},
+  }
+}
+
+function normalizeError(error: unknown) {
+  return error instanceof Error ? error : new Error(String(error))
 }
 
 function shouldIncludePreviousShardYears(cohortKey: string) {
@@ -523,10 +642,9 @@ function updateDbCacheProgress(
 
   if (event.action === 'reuse-cache') {
     progress.complete(
-      formatCompletedPhaseLabel(
-        colorTeal('Clone cache'),
-        colorRed(event.target),
-        event.total,
+      appendPhaseDetails(
+        formatCompletedPhaseLabel(colorTeal('Cache'), colorRed('hit'), 0),
+        ['0 ms'],
       ),
     )
   }
@@ -544,19 +662,23 @@ function formatDbCacheProgressLabel(event: LocalDbCacheProgressEvent) {
 }
 
 function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {
+  const tableName = event.tableName
+    ? event.filter
+      ? `${event.tableName}:${event.filter}`
+      : event.tableName
+    : null
+
   switch (event.action) {
     case 'check-cache':
       return `${event.target}.manifest`
     case 'export-binding':
-      return event.tableName
-        ? `${event.bindingName}.${event.tableName}`
+      return tableName
+        ? `${event.bindingName}.${tableName}`
         : `${event.bindingName}.export`
     case 'reuse-cache':
       return `${event.target}.reuse`
     case 'mirror-table':
-      return event.tableName
-        ? `${event.bindingName}.${event.tableName}`
-        : event.bindingName
+      return tableName ? `${event.bindingName}.${tableName}` : event.bindingName
     case 'copy-binding':
       return `${event.bindingName}.sqlite`
     case 'validate-binding':

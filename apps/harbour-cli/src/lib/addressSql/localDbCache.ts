@@ -1,13 +1,5 @@
 import { createHmac, createHash } from 'node:crypto'
-import {
-  mkdir,
-  readFile,
-  writeFile,
-  copyFile,
-  stat,
-  rm,
-  readdir,
-} from 'node:fs/promises'
+import { mkdir, readFile, writeFile, copyFile, stat, rm } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 
@@ -125,8 +117,13 @@ type InternalLocalShardTarget<TDb> = {
 
 type RemoteTableImport = {
   hasRows: boolean
+  pruneOperation?: CachePruneOperation | null
   sqlPath: string
   tableName: string
+}
+type CachePruneOperation = {
+  tableName: string
+  whereSql: string
 }
 type CacheTableProfile = 'address' | 'division' | 'divisionGeometry'
 
@@ -134,10 +131,28 @@ const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const WRANGLER_CONFIG_PATH = resolve(REPO_ROOT, 'apps/harbour-api/wrangler.jsonc')
 const LOCAL_D1_PERSIST_ROOT = resolve(REPO_ROOT, '.local/d1/dev')
 const CACHE_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/db-cache')
-const DB_CACHE_MANIFEST_VERSION = 3
+const SQLITE_CACHE_WORKER_PATH = resolve(import.meta.dir, 'sqliteCacheWorker.ts')
+const DB_CACHE_MANIFEST_VERSION = 5
 const REMOTE_CACHE_BINDING_CONCURRENCY = 4
 const WRANGLER_CONFIG_HOME = resolve(REPO_ROOT, '.local/wrangler')
 const WRANGLER_LOG_PATH = resolve(WRANGLER_CONFIG_HOME, 'logs')
+const DB_CACHE_PROGRESS_HEARTBEAT_MS = 1000
+const BEFORE_SHARD_CUTOFF_YEAR = 2025
+const LOCAL_SQLITE_OPEN_RETRY_LIMIT = 8
+const LOCAL_SQLITE_OPEN_RETRY_DELAY_MS = 250
+const VERSION_TABLES_WITH_CURRENT_ROWS = new Set([
+  'address2d',
+  'address2dI18n',
+  'divisions',
+  'divisionsI18n',
+  'hkgovAlsAddresses2d',
+  'hkgovAlsAddress2dI18n',
+  'overtureAddresses2d',
+  'overtureDivisions',
+  'overtureDivisionAreas',
+  'overtureDivisionBoundaries',
+  'overtureDivisionI18n',
+])
 
 function resolveRemoteCacheDir(
   target: 'preview' | 'production',
@@ -192,9 +207,9 @@ export async function resolveLocalAddressDbContext(
     onProgress?: (event: LocalDbCacheProgressEvent) => Promise<void> | void
     cacheTableProfile?: CacheTableProfile
     includePreviousShardYears?: boolean
+    requireExistingRemoteCache?: boolean
     refreshRemoteCache?: boolean
     refreshRemoteTables?: boolean
-    requireExistingRemoteCache?: boolean
     remoteCacheScopeKey?: string
   } = {},
 ): Promise<LocalAddressDbContext> {
@@ -202,8 +217,16 @@ export async function resolveLocalAddressDbContext(
   const targetRecords = await resolveD1Targets(targetName)
   const regionCodeToken = regionCode.trim().toUpperCase()
   const shardYearNumber = Number.parseInt(shardYear, 10)
-  const historyBindingName = `DB_HISTORY_${regionCodeToken}_${shardYear}`
-  const sourceBindingName = `DB_SOURCE_${regionCodeToken}_${shardYear}`
+  const historyBindingName = resolveShardBindingName(
+    'history',
+    regionCodeToken,
+    shardYear,
+  )
+  const sourceBindingName = resolveShardBindingName(
+    'source',
+    regionCodeToken,
+    shardYear,
+  )
   const requiredBindingNames = [
     'DB_META',
     'DB_CURRENT',
@@ -221,6 +244,13 @@ export async function resolveLocalAddressDbContext(
 
     if (!options.includePreviousShardYears) {
       return false
+    }
+
+    if (
+      targetRecord.bindingName === `DB_HISTORY_${regionCodeToken}_BEFORE` ||
+      targetRecord.bindingName === `DB_SOURCE_${regionCodeToken}_BEFORE`
+    ) {
+      return true
     }
 
     const historyYear = parseBindingYear(
@@ -256,36 +286,38 @@ export async function resolveLocalAddressDbContext(
   const currentPath = requirePath(dbPaths.DB_CURRENT, 'DB_CURRENT')
   const historyPath = requirePath(dbPaths[historyBindingName], historyBindingName)
   const sourcePath = requirePath(dbPaths[sourceBindingName], sourceBindingName)
-  const meta = openSqliteDb(
+  const meta = (await openSqliteDb(
     metaPath,
     metaSchema,
-  ) as unknown as OpenSqliteDb<MetaDatabase>
-  const current = openSqliteDb(
+    'DB_META',
+  )) as unknown as OpenSqliteDb<MetaDatabase>
+  const current = (await openSqliteDb(
     currentPath,
     currentSchema,
-  ) as unknown as OpenSqliteDb<CurrentDatabase>
-  const history = openSqliteDb(
+    'DB_CURRENT',
+  )) as unknown as OpenSqliteDb<CurrentDatabase>
+  const history = (await openSqliteDb(
     historyPath,
     historySchema,
-  ) as unknown as OpenSqliteDb<HistoryDatabase>
-  const source = openSqliteDb(
+    historyBindingName,
+  )) as unknown as OpenSqliteDb<HistoryDatabase>
+  const source = (await openSqliteDb(
     sourcePath,
     sourceSchema,
-  ) as unknown as OpenSqliteDb<SourceDatabase>
-  const internalHistoryTargets = buildHistoryTargets(
+    sourceBindingName,
+  )) as unknown as OpenSqliteDb<SourceDatabase>
+  const internalHistoryTargets = await buildHistoryTargets(
     requiredTargetRecordsByBindingName,
     dbPaths,
     regionCodeToken,
     shardYear,
-    targetName,
     history,
   )
-  const internalSourceTargets = buildSourceTargets(
+  const internalSourceTargets = await buildSourceTargets(
     requiredTargetRecordsByBindingName,
     dbPaths,
     regionCodeToken,
     shardYear,
-    targetName,
     source,
   )
   const historyTargets = internalHistoryTargets.map(target => ({
@@ -322,18 +354,14 @@ export async function resolveLocalAddressDbContext(
       current.sqlite.close()
       meta.sqlite.close()
     },
-    currentBinding:
-      targetName === 'local' ? createLocalExecBinding(current.sqlite) : undefined,
+    currentBinding: createLocalExecBinding(current.sqlite),
     currentDb: current.db,
-    historyBinding:
-      targetName === 'local' ? createLocalExecBinding(history.sqlite) : undefined,
+    historyBinding: createLocalExecBinding(history.sqlite),
     historyDb: history.db,
     historyTargets,
-    metaBinding:
-      targetName === 'local' ? createLocalExecBinding(meta.sqlite) : undefined,
+    metaBinding: createLocalExecBinding(meta.sqlite),
     metaDb: meta.db,
-    sourceBinding:
-      targetName === 'local' ? createLocalExecBinding(source.sqlite) : undefined,
+    sourceBinding: createLocalExecBinding(source.sqlite),
     sourceDb: source.db,
     sourceTargets,
     state: {
@@ -351,41 +379,6 @@ export async function resolveLocalAddressDbContext(
       target: targetName,
     },
   }
-}
-
-/**
- * Remove an unusable mirrored remote-D1 cache after a post-upload replay
- * failure. The next upload will make a fresh, explicit mirror rather than
- * trusting partial local state.
- */
-export async function invalidateRemoteDbCache(
-  target: 'preview' | 'production',
-  cacheDir: string,
-  _reason: string,
-) {
-  if (!cacheDir.startsWith(resolveRemoteCacheDir(target))) {
-    throw new Error(`Refusing to invalidate cache outside the ${target} cache root.`)
-  }
-  await rm(cacheDir, { force: true, recursive: true })
-}
-
-/** Refresh just the mirrored metadata database after a remote release replay. */
-export async function refreshRemoteMetaCache(
-  target: 'preview' | 'production',
-  cacheDir: string,
-) {
-  const manifest = await readManifest(join(cacheDir, 'manifest.json'))
-  const metaTarget = (await resolveD1Targets(target)).find(
-    targetRecord => targetRecord.bindingName === 'DB_META',
-  )
-  if (!metaTarget) {
-    throw new Error(`Could not resolve DB_META for ${target}.`)
-  }
-  await ensureRemoteCachePaths(target, [metaTarget], {
-    cacheTableProfile: manifest?.cacheTableProfile,
-    refreshRemoteTables: true,
-    remoteCacheScopeKey: manifest?.cacheScopeKey,
-  })
 }
 
 function createLocalExecBinding(sqlite: SQLiteDatabase): LocalD1ExecBinding {
@@ -418,19 +411,56 @@ function createLocalExecBinding(sqlite: SQLiteDatabase): LocalD1ExecBinding {
 function openSqliteDb<TSchema extends Record<string, unknown>>(
   filePath: string,
   schema: TSchema,
+  bindingName: string,
 ) {
-  const sqlite = new SQLiteDatabase(filePath)
-  sqlite.exec('PRAGMA foreign_keys = ON;')
+  return openSqliteDbWithRetry(filePath, schema, bindingName)
+}
 
-  const db = drizzle({
-    client: sqlite,
-    schema,
-  })
+async function openSqliteDbWithRetry<TSchema extends Record<string, unknown>>(
+  filePath: string,
+  schema: TSchema,
+  bindingName: string,
+) {
+  let lastError: unknown
 
-  return {
-    db,
-    sqlite,
+  for (let attempt = 1; attempt <= LOCAL_SQLITE_OPEN_RETRY_LIMIT; attempt += 1) {
+    try {
+      const sqlite = new SQLiteDatabase(filePath)
+
+      try {
+        sqlite.exec('PRAGMA foreign_keys = ON;')
+      } catch (error) {
+        sqlite.close()
+        throw error
+      }
+
+      return {
+        db: drizzle({
+          client: sqlite,
+          schema,
+        }),
+        sqlite,
+      }
+    } catch (error) {
+      lastError = error
+
+      if (
+        !isUnableToOpenSqliteDatabase(error) ||
+        attempt === LOCAL_SQLITE_OPEN_RETRY_LIMIT
+      ) {
+        const reason = error instanceof Error ? error.message : String(error)
+        throw new Error(
+          `Could not open local D1 binding ${bindingName} at ${filePath}: ${reason}`,
+        )
+      }
+
+      await new Promise<void>(resolve => {
+        setTimeout(resolve, LOCAL_SQLITE_OPEN_RETRY_DELAY_MS * attempt)
+      })
+    }
   }
+
+  throw lastError
 }
 
 function resolveTargetName(target: UploadTarget): 'local' | 'preview' | 'production' {
@@ -451,12 +481,34 @@ function parseBindingYear(bindingName: string, prefix: string) {
   return /^\d{4}$/.test(year) ? Number.parseInt(year, 10) : null
 }
 
-function buildHistoryTargets(
+function resolveShardBindingName(
+  kind: 'history' | 'source',
+  regionCodeToken: string,
+  shardYear: string,
+) {
+  const parsedYear = Number.parseInt(shardYear, 10)
+  const prefix = kind === 'history' ? 'DB_HISTORY' : 'DB_SOURCE'
+
+  return Number.isInteger(parsedYear) && parsedYear < BEFORE_SHARD_CUTOFF_YEAR
+    ? `${prefix}_${regionCodeToken}_BEFORE`
+    : `${prefix}_${regionCodeToken}_${shardYear}`
+}
+
+function parseBindingScope(bindingName: string, prefix: string) {
+  if (bindingName === `${prefix}BEFORE`) {
+    return { kind: 'before' as const, year: 0 }
+  }
+
+  const year = parseBindingYear(bindingName, prefix)
+
+  return year === null ? null : { kind: 'year' as const, year }
+}
+
+async function buildHistoryTargets(
   targetRecordsByBindingName: Map<string, D1TargetRecord>,
   dbPaths: Record<string, string>,
   regionCodeToken: string,
   shardYear: string,
-  targetName: 'local' | 'preview' | 'production',
   primary: OpenSqliteDb<HistoryDatabase>,
 ) {
   return buildShardTargets(
@@ -464,18 +516,16 @@ function buildHistoryTargets(
     dbPaths,
     `DB_HISTORY_${regionCodeToken}_`,
     shardYear,
-    targetName,
     historySchema,
     primary,
   )
 }
 
-function buildSourceTargets(
+async function buildSourceTargets(
   targetRecordsByBindingName: Map<string, D1TargetRecord>,
   dbPaths: Record<string, string>,
   regionCodeToken: string,
   shardYear: string,
-  targetName: 'local' | 'preview' | 'production',
   primary: OpenSqliteDb<SourceDatabase>,
 ) {
   return buildShardTargets(
@@ -483,50 +533,116 @@ function buildSourceTargets(
     dbPaths,
     `DB_SOURCE_${regionCodeToken}_`,
     shardYear,
-    targetName,
     sourceSchema,
     primary,
   )
 }
 
-function buildShardTargets<TSchema extends Record<string, unknown>, TDb>(
+async function buildShardTargets<TSchema extends Record<string, unknown>, TDb>(
   targetRecordsByBindingName: Map<string, D1TargetRecord>,
   dbPaths: Record<string, string>,
   bindingPrefix: string,
   shardYear: string,
-  targetName: 'local' | 'preview' | 'production',
   schema: TSchema,
   primary: OpenSqliteDb<TDb>,
 ) {
   const targets: InternalLocalShardTarget<TDb>[] = []
 
   for (const targetRecord of targetRecordsByBindingName.values()) {
-    const year = parseBindingYear(targetRecord.bindingName, bindingPrefix)
+    const scope = parseBindingScope(targetRecord.bindingName, bindingPrefix)
 
-    if (year === null || year > Number.parseInt(shardYear, 10)) {
+    if (scope === null || scope.year > Number.parseInt(shardYear, 10)) {
       continue
     }
 
     const openDb =
-      targetRecord.bindingName === `${bindingPrefix}${shardYear}`
+      targetRecord.bindingName ===
+      `${bindingPrefix}${
+        Number.parseInt(shardYear, 10) < BEFORE_SHARD_CUTOFF_YEAR ? 'BEFORE' : shardYear
+      }`
         ? primary
-        : (openSqliteDb(
+        : ((await openSqliteDbWithRetry(
             requirePath(dbPaths[targetRecord.bindingName], targetRecord.bindingName),
             schema,
-          ) as OpenSqliteDb<TDb>)
+            targetRecord.bindingName,
+          )) as OpenSqliteDb<TDb>)
 
     targets.push({
-      binding:
-        targetName === 'local' ? createLocalExecBinding(openDb.sqlite) : undefined,
+      binding: createLocalExecBinding(openDb.sqlite),
       bindingName: targetRecord.bindingName,
       databaseId: targetRecord.databaseId,
       databaseName: targetRecord.databaseName,
       openDb,
-      year: String(year),
+      year: scope.kind === 'before' ? 'BEFORE' : String(scope.year),
     })
   }
 
-  return targets.sort((left, right) => left.year.localeCompare(right.year))
+  return targets.sort((left, right) => {
+    if (left.year === 'BEFORE') return -1
+    if (right.year === 'BEFORE') return 1
+    return left.year.localeCompare(right.year)
+  })
+}
+
+function isUnableToOpenSqliteDatabase(error: unknown) {
+  return (
+    error instanceof Error &&
+    error.message.toLowerCase().includes('unable to open database file')
+  )
+}
+
+export async function refreshRemoteMetaCache(
+  target: 'preview' | 'production',
+  cacheDir: string,
+) {
+  const targetRecord = (await resolveD1Targets(target)).find(
+    record => record.bindingName === 'DB_META',
+  )
+
+  if (!targetRecord) {
+    throw new Error(`Could not resolve DB_META for ${target}.`)
+  }
+
+  const workDir = resolve(CACHE_ROOT, `.refresh-meta-${target}`)
+  const dumpPath = resolve(workDir, 'DB_META.sql')
+  const destinationPath = resolve(cacheDir, 'DB_META.sqlite')
+
+  await rm(workDir, { force: true, recursive: true }).catch(() => undefined)
+  await mkdir(workDir, { recursive: true })
+
+  try {
+    await exportRemoteDatabase(targetRecord, target, dumpPath)
+    await importDatabaseDumpsToSqlite([dumpPath], destinationPath)
+    await assertCachedDatabaseHasExpectedTables(destinationPath, 'DB_META')
+  } finally {
+    await rm(workDir, { force: true, recursive: true }).catch(() => undefined)
+  }
+}
+
+export async function invalidateRemoteDbCache(
+  target: 'preview' | 'production',
+  cacheDir: string,
+  reason?: string,
+) {
+  if (!cacheDir.startsWith(resolveRemoteCacheDir(target))) {
+    throw new Error(`Refusing to invalidate cache outside the ${target} cache root.`)
+  }
+
+  const manifestPath = join(cacheDir, 'manifest.json')
+
+  await rm(manifestPath, { force: true }).catch(() => undefined)
+  await writeFile(
+    join(cacheDir, 'invalidated.json'),
+    JSON.stringify(
+      {
+        invalidatedAt: new Date().toISOString(),
+        reason: reason ?? null,
+        target,
+      },
+      null,
+      2,
+    ),
+  ).catch(() => undefined)
 }
 
 async function resolveD1Targets(target: 'local' | 'preview' | 'production') {
@@ -567,8 +683,8 @@ function isD1TargetEntry(entry: Record<string, unknown>): entry is {
     typeof entry.database_name === 'string' &&
     (entry.binding === 'DB_META' ||
       entry.binding === 'DB_CURRENT' ||
-      /^DB_HISTORY_[A-Z]{2}_\d{4}$/.test(entry.binding) ||
-      /^DB_SOURCE_[A-Z]{2}_\d{4}$/.test(entry.binding))
+      /^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(entry.binding) ||
+      /^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(entry.binding))
   )
 }
 
@@ -586,6 +702,7 @@ async function ensureRemoteCachePaths(
   targets: D1TargetRecord[],
   options: {
     onProgress?: (event: LocalDbCacheProgressEvent) => Promise<void> | void
+    requireExistingRemoteCache?: boolean
     refreshRemoteCache?: boolean
     refreshRemoteTables?: boolean
     remoteCacheScopeKey?: string
@@ -594,12 +711,26 @@ async function ensureRemoteCachePaths(
 ) {
   const cacheDir = resolveRemoteCacheDir(target, options.remoteCacheScopeKey)
   const manifestPath = join(cacheDir, 'manifest.json')
+  const invalidatedManifestPath = join(cacheDir, 'invalidated.json')
+  const invalidatedManifest = await readInvalidatedManifest(invalidatedManifestPath)
   const existingManifest = await readManifest(manifestPath)
   const shouldRefreshRemoteTables =
     options.refreshRemoteTables && !options.refreshRemoteCache
   const totalUnits = shouldRefreshRemoteTables
     ? countRemoteCacheRefreshWorkUnits(targets, options.cacheTableProfile)
     : countRemoteCacheWorkUnits(targets, options.cacheTableProfile)
+
+  if (invalidatedManifest && !options.refreshRemoteCache) {
+    throw new Error(
+      [
+        `The persistent ${target} D1 cache was invalidated at ${invalidatedManifest.invalidatedAt}.`,
+        invalidatedManifest.reason
+          ? `Reason: ${invalidatedManifest.reason}`
+          : 'Reason: local cache update failed after a previous remote upload.',
+        'Refusing to clone remote D1 silently. Remove .local/harbour-sql/db-cache to force a rebuild.',
+      ].join(' '),
+    )
+  }
 
   await options.onProgress?.({
     action: 'check-cache',
@@ -656,11 +787,47 @@ async function ensureRemoteCachePaths(
     return existingManifest.files
   }
 
-  const files = await mirrorRemoteTargetToLocal(target, targets, cacheDir, {
-    cacheTableProfile: options.cacheTableProfile,
-    onProgress: options.onProgress,
-    totalUnits,
-  })
+  if (options.requireExistingRemoteCache) {
+    throw new Error(
+      [
+        `No complete reusable ${target} D1 cache was found at ${cacheDir}.`,
+        'Rollback uses the local mirror as its planning surface and will not clone remote D1 automatically.',
+        `Refresh the mirror first, for example: bun run db:mirror:${target}:to:local`,
+      ].join(' '),
+    )
+  }
+
+  const reusableFiles =
+    options.refreshRemoteCache || !existingManifest
+      ? {}
+      : await resolveReusableCachedFiles(
+          cacheDir,
+          existingManifest.files,
+          targets,
+          options.cacheTableProfile,
+        )
+  const targetsToMirror = targets.filter(
+    targetRecord => !reusableFiles[targetRecord.bindingName],
+  )
+  const mirroredFiles =
+    targetsToMirror.length > 0
+      ? await mirrorRemoteTargetToLocal(target, targetsToMirror, cacheDir, {
+          cacheTableProfile: options.cacheTableProfile,
+          onProgress: options.onProgress,
+          preserveCacheDir: Object.keys(reusableFiles).length > 0,
+          totalUnits,
+        })
+      : {}
+  const files = {
+    ...reusableFiles,
+    ...mirroredFiles,
+  }
+
+  if (!(await doCachedFilesExist(files, targets, options.cacheTableProfile))) {
+    throw new Error(
+      `Failed to prepare a complete ${target} D1 database cache. Remove .local/harbour-sql/db-cache and retry.`,
+    )
+  }
 
   const manifest: DbCacheManifest = {
     cacheVersion: DB_CACHE_MANIFEST_VERSION,
@@ -672,7 +839,37 @@ async function ensureRemoteCachePaths(
   }
 
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2))
+  await rm(invalidatedManifestPath, { force: true }).catch(() => undefined)
   return files
+}
+
+async function resolveReusableCachedFiles(
+  cacheDir: string,
+  files: Record<string, string>,
+  targets: D1TargetRecord[],
+  cacheTableProfile?: CacheTableProfile,
+) {
+  const reusableFiles: Record<string, string> = {}
+
+  for (const target of targets) {
+    const candidatePaths = [
+      files[target.bindingName],
+      resolve(cacheDir, `${target.bindingName}.sqlite`),
+    ].filter(isNonEmptyString)
+
+    for (const filePath of candidatePaths) {
+      if (await isValidCachedFile(filePath, target.bindingName, cacheTableProfile)) {
+        reusableFiles[target.bindingName] = filePath
+        break
+      }
+    }
+  }
+
+  return reusableFiles
+}
+
+function isNonEmptyString(value: string | undefined): value is string {
+  return typeof value === 'string' && value.trim().length > 0
 }
 
 async function refreshRemoteCacheTables(
@@ -721,8 +918,28 @@ async function refreshRemoteCacheTables(
           const dumpPath = resolve(workDir, `${targetRecord.bindingName}.sql`)
           const refreshedPath = resolve(workDir, `${targetRecord.bindingName}.sqlite`)
 
-          await exportRemoteDatabase(targetRecord, target, dumpPath)
-          await importDatabaseDumpsToSqlite([dumpPath], refreshedPath)
+          await runWithProgressHeartbeat(
+            options.onProgress,
+            {
+              action: 'export-binding',
+              bindingName: targetRecord.bindingName,
+              current: currentUnit,
+              target,
+              total: options.totalUnits,
+            },
+            () => exportRemoteDatabase(targetRecord, target, dumpPath),
+          )
+          await runWithProgressHeartbeat(
+            options.onProgress,
+            {
+              action: 'copy-binding',
+              bindingName: targetRecord.bindingName,
+              current: currentUnit,
+              target,
+              total: options.totalUnits,
+            },
+            () => importDatabaseDumpsToSqlite([dumpPath], refreshedPath),
+          )
           currentUnit += 1
 
           await options.onProgress?.({
@@ -744,6 +961,7 @@ async function refreshRemoteCacheTables(
           tables,
           workDir,
         )
+        const busyTableName = tableImports.at(-1)?.tableName
 
         await replaceCachedTableRows(
           destinationPath,
@@ -754,12 +972,25 @@ async function refreshRemoteCacheTables(
               action: 'mirror-table',
               bindingName: targetRecord.bindingName,
               current: currentUnit,
+              ...(tableImport.pruneOperation ? { filter: 'current rows' } : {}),
               tableName: tableImport.tableName,
               target,
               total: options.totalUnits,
             })
             currentUnit += 1
           },
+          () =>
+            options.onProgress?.({
+              action: 'mirror-table',
+              bindingName: targetRecord.bindingName,
+              current: currentUnit,
+              target,
+              total: options.totalUnits,
+              ...(tableImports.some(tableImport => tableImport.pruneOperation)
+                ? { filter: 'current rows' }
+                : {}),
+              ...(busyTableName ? { tableName: busyTableName } : {}),
+            }),
         )
 
         await options.onProgress?.({
@@ -769,10 +1000,21 @@ async function refreshRemoteCacheTables(
           target,
           total: options.totalUnits,
         })
-        await assertCachedDatabaseHasExpectedTables(
-          destinationPath,
-          targetRecord.bindingName,
-          options.cacheTableProfile,
+        await runWithProgressHeartbeat(
+          options.onProgress,
+          {
+            action: 'validate-binding',
+            bindingName: targetRecord.bindingName,
+            current: currentUnit,
+            target,
+            total: options.totalUnits,
+          },
+          () =>
+            assertCachedDatabaseHasExpectedTables(
+              destinationPath,
+              targetRecord.bindingName,
+              options.cacheTableProfile,
+            ),
         )
         currentUnit += 1
       },
@@ -803,6 +1045,32 @@ async function readManifest(manifestPath: string) {
   }
 }
 
+async function readInvalidatedManifest(manifestPath: string) {
+  try {
+    const raw = await readFile(manifestPath, 'utf8')
+    const parsed = JSON.parse(raw) as {
+      invalidatedAt?: unknown
+      reason?: unknown
+      target?: unknown
+    }
+
+    return {
+      invalidatedAt:
+        typeof parsed.invalidatedAt === 'string'
+          ? parsed.invalidatedAt
+          : 'unknown time',
+      reason: typeof parsed.reason === 'string' ? parsed.reason : null,
+      target: typeof parsed.target === 'string' ? parsed.target : null,
+    }
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return null
+    }
+
+    throw error
+  }
+}
+
 async function doCachedFilesExist(
   files: Record<string, string>,
   targets: D1TargetRecord[],
@@ -815,22 +1083,30 @@ async function doCachedFilesExist(
   }
 
   for (const [bindingName, filePath] of Object.entries(files)) {
-    if (!existsSync(filePath)) {
-      return false
-    }
-
-    const fileStat = await stat(filePath)
-
-    if (fileStat.size <= 0) {
-      return false
-    }
-
-    if (!(await hasExpectedTables(filePath, bindingName, cacheTableProfile))) {
+    if (!(await isValidCachedFile(filePath, bindingName, cacheTableProfile))) {
       return false
     }
   }
 
   return true
+}
+
+async function isValidCachedFile(
+  filePath: string,
+  bindingName: string,
+  cacheTableProfile?: CacheTableProfile,
+) {
+  if (!existsSync(filePath)) {
+    return false
+  }
+
+  const fileStat = await stat(filePath)
+
+  if (fileStat.size <= 0) {
+    return false
+  }
+
+  return hasExpectedTables(filePath, bindingName, cacheTableProfile)
 }
 
 async function mirrorRemoteTargetToLocal(
@@ -840,6 +1116,7 @@ async function mirrorRemoteTargetToLocal(
   options: {
     onProgress?: (event: LocalDbCacheProgressEvent) => Promise<void> | void
     cacheTableProfile?: CacheTableProfile
+    preserveCacheDir?: boolean
     totalUnits: number
   },
 ) {
@@ -847,7 +1124,9 @@ async function mirrorRemoteTargetToLocal(
   const files: Record<string, string> = {}
   let currentUnit = 0
 
-  await rm(cacheDir, { force: true, recursive: true }).catch(() => undefined)
+  if (!options.preserveCacheDir) {
+    await rm(cacheDir, { force: true, recursive: true }).catch(() => undefined)
+  }
   await rm(workDir, { force: true, recursive: true }).catch(() => undefined)
   await mkdir(cacheDir, { recursive: true })
   await mkdir(workDir, { recursive: true })
@@ -862,6 +1141,7 @@ async function mirrorRemoteTargetToLocal(
           options.cacheTableProfile,
         )
         const dumpPaths: string[] = []
+        const pruneOperations: CachePruneOperation[] = []
 
         if (tables.length === 0) {
           await options.onProgress?.({
@@ -872,25 +1152,47 @@ async function mirrorRemoteTargetToLocal(
             total: options.totalUnits,
           })
           const dumpPath = resolve(workDir, `${targetRecord.bindingName}.sql`)
-          await exportRemoteDatabase(targetRecord, target, dumpPath)
+          await runWithProgressHeartbeat(
+            options.onProgress,
+            {
+              action: 'export-binding',
+              bindingName: targetRecord.bindingName,
+              current: currentUnit,
+              target,
+              total: options.totalUnits,
+            },
+            () => exportRemoteDatabase(targetRecord, target, dumpPath),
+          )
           dumpPaths.push(dumpPath)
           currentUnit += 1
         } else {
           for (const tableName of tables) {
-            await options.onProgress?.({
+            const exportEvent: LocalDbCacheProgressEvent = {
               action: 'export-binding',
               bindingName: targetRecord.bindingName,
               current: currentUnit,
               tableName,
               target,
               total: options.totalUnits,
-            })
+            }
+
+            await options.onProgress?.(exportEvent)
             const dumpPath = resolve(
               workDir,
               `${targetRecord.bindingName}-${tableName}.sql`,
             )
-            await exportRemoteTable(targetRecord, target, tableName, dumpPath)
+            await runWithProgressHeartbeat(options.onProgress, exportEvent, () =>
+              exportRemoteTable(targetRecord, target, tableName, dumpPath),
+            )
             dumpPaths.push(dumpPath)
+            const pruneOperation = resolveCachePruneOperation(
+              targetRecord.bindingName,
+              tableName,
+            )
+
+            if (pruneOperation) {
+              pruneOperations.push(pruneOperation)
+            }
             currentUnit += 1
           }
         }
@@ -903,7 +1205,18 @@ async function mirrorRemoteTargetToLocal(
           total: options.totalUnits,
         })
         const destinationPath = resolve(cacheDir, `${targetRecord.bindingName}.sqlite`)
-        await importDatabaseDumpsToSqlite(dumpPaths, destinationPath)
+        await runWithProgressHeartbeat(
+          options.onProgress,
+          {
+            action: 'copy-binding',
+            bindingName: targetRecord.bindingName,
+            current: currentUnit,
+            target,
+            total: options.totalUnits,
+          },
+          () =>
+            importDatabaseDumpsToSqlite(dumpPaths, destinationPath, pruneOperations),
+        )
         currentUnit += 1
 
         await options.onProgress?.({
@@ -913,10 +1226,21 @@ async function mirrorRemoteTargetToLocal(
           target,
           total: options.totalUnits,
         })
-        await assertCachedDatabaseHasExpectedTables(
-          destinationPath,
-          targetRecord.bindingName,
-          options.cacheTableProfile,
+        await runWithProgressHeartbeat(
+          options.onProgress,
+          {
+            action: 'validate-binding',
+            bindingName: targetRecord.bindingName,
+            current: currentUnit,
+            target,
+            total: options.totalUnits,
+          },
+          () =>
+            assertCachedDatabaseHasExpectedTables(
+              destinationPath,
+              targetRecord.bindingName,
+              options.cacheTableProfile,
+            ),
         )
         currentUnit += 1
         files[targetRecord.bindingName] = destinationPath
@@ -974,10 +1298,17 @@ function resolveMirrorTablesForBinding(
       return ['divisions', 'divisionAreas', 'divisionBoundaries']
     }
 
-    return ['divisions', 'divisionsI18n', 'address2d', 'address2dI18n']
+    return [
+      'divisions',
+      'divisionsI18n',
+      'streets',
+      'streetsI18n',
+      'address2d',
+      'address2dI18n',
+    ]
   }
 
-  if (/^DB_HISTORY_[A-Z]{2}_\d{4}$/.test(bindingName)) {
+  if (/^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
     if (cacheTableProfile === 'division') {
       return ['divisions', 'divisionsI18n']
     }
@@ -989,10 +1320,11 @@ function resolveMirrorTablesForBinding(
     return ['divisions', 'divisionsI18n', 'address2d', 'address2dI18n']
   }
 
-  if (/^DB_SOURCE_[A-Z]{2}_\d{4}$/.test(bindingName)) {
+  if (/^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
     if (cacheTableProfile === 'division') {
       return [
         'overtureDivisions',
+        'overtureDivisionI18n',
         'hkgovPlandDivisions',
         'hkgovPlandDivisionI18n',
         'hkgovPlandPlanningCells',
@@ -1001,6 +1333,7 @@ function resolveMirrorTablesForBinding(
 
     if (cacheTableProfile === 'divisionGeometry') {
       return [
+        'overtureDivisions',
         'overtureDivisionAreas',
         'overtureDivisionBoundaries',
         'hkgovHadDivisionAreas',
@@ -1010,7 +1343,13 @@ function resolveMirrorTablesForBinding(
       ]
     }
 
-    return ['overtureDivisions', 'overtureAddresses2d', 'hkgovAlsAddresses2d']
+    return [
+      'overtureDivisions',
+      'overtureDivisionI18n',
+      'overtureAddresses2d',
+      'hkgovAlsAddresses2d',
+      'hkgovAlsAddress2dI18n',
+    ]
   }
 
   return []
@@ -1041,65 +1380,6 @@ function resolveExpectedTablesForBinding(
   }
 
   return resolveMirrorTablesForBinding(bindingName, cacheTableProfile)
-}
-
-async function resolveMirroredSqlitePath(
-  persistRoot: string,
-  bindingName: string,
-  cacheTableProfile?: CacheTableProfile,
-): Promise<string> {
-  const sqliteDir = resolve(persistRoot, 'v3/d1/miniflare-D1DatabaseObject')
-  const expectedTables = resolveExpectedTablesForBinding(bindingName, cacheTableProfile)
-  const entries = existsSync(sqliteDir) ? await readdir(sqliteDir) : []
-  const candidatePaths = entries
-    .filter(entry => entry.endsWith('.sqlite') && entry !== 'metadata.sqlite')
-    .map(entry => resolve(sqliteDir, entry))
-
-  if (candidatePaths.length === 0) {
-    throw new Error(
-      `Could not locate a mirrored SQLite file for ${bindingName} in ${sqliteDir}.`,
-    )
-  }
-
-  if (expectedTables.length === 0) {
-    if (candidatePaths.length === 1) {
-      const [candidatePath] = candidatePaths
-
-      if (candidatePath) {
-        return candidatePath
-      }
-    }
-
-    throw new Error(
-      `Found multiple mirrored SQLite files for ${bindingName} in ${sqliteDir}, but no table signature is available to disambiguate them.`,
-    )
-  }
-
-  const matchingPaths: string[] = []
-
-  for (const candidatePath of candidatePaths) {
-    if (await hasExpectedTables(candidatePath, bindingName, cacheTableProfile)) {
-      matchingPaths.push(candidatePath)
-    }
-  }
-
-  if (matchingPaths.length === 1) {
-    const [matchingPath] = matchingPaths
-
-    if (matchingPath) {
-      return matchingPath
-    }
-  }
-
-  if (matchingPaths.length === 0) {
-    throw new Error(
-      `Could not locate a mirrored SQLite file with the expected tables for ${bindingName} in ${sqliteDir}.`,
-    )
-  }
-
-  throw new Error(
-    `Found multiple mirrored SQLite files with the expected tables for ${bindingName} in ${sqliteDir}.`,
-  )
 }
 
 async function hasExpectedTables(
@@ -1150,62 +1430,27 @@ async function replaceCachedTableRows(
   bindingName: string,
   tableImports: RemoteTableImport[],
   onTable?: (tableImport: RemoteTableImport) => Promise<void> | void,
+  onBusy?: () => Promise<void> | void,
 ) {
-  const sqlite = new SQLiteDatabase(filePath)
-
-  try {
-    sqlite.exec('PRAGMA foreign_keys = OFF;')
-    sqlite.exec('BEGIN;')
-
-    for (const tableImport of [...tableImports].reverse()) {
-      sqlite.exec(`DELETE FROM ${quoteSqlIdentifier(tableImport.tableName)};`)
-    }
-
-    for (const tableImport of tableImports) {
-      await onTable?.(tableImport)
-
-      if (!tableImport.hasRows) {
-        continue
-      }
-
-      const importSql = await readFile(tableImport.sqlPath, 'utf8')
-
-      if (importSql.trim().length > 0) {
-        sqlite.exec(importSql)
-      }
-    }
-
-    sqlite.exec('COMMIT;')
-    sqlite.exec('PRAGMA foreign_keys = ON;')
-  } catch (error) {
-    try {
-      sqlite.exec('ROLLBACK;')
-    } catch {
-      // The failing statement may have aborted before BEGIN completed.
-    }
-
-    const errorMessage = error instanceof Error ? error.message : String(error)
-
-    throw new Error(`Failed to refresh cached rows for ${bindingName}: ${errorMessage}`)
-  } finally {
-    sqlite.close()
+  for (const tableImport of tableImports) {
+    await onTable?.(tableImport)
   }
 
-  await checkpointSqliteDatabase(filePath)
-}
-
-function quoteSqlIdentifier(value: string) {
-  return `"${value.replaceAll('"', '""')}"`
+  await runWithHeartbeat(onBusy, () =>
+    runSqliteCacheWorker({
+      bindingName,
+      filePath,
+      tableImports,
+      type: 'replace-table-rows',
+    }),
+  )
 }
 
 async function checkpointSqliteDatabase(filePath: string) {
-  const sqlite = new SQLiteDatabase(filePath)
-
-  try {
-    sqlite.exec('PRAGMA wal_checkpoint(TRUNCATE);')
-  } finally {
-    sqlite.close()
-  }
+  await runSqliteCacheWorker({
+    filePath,
+    type: 'checkpoint',
+  })
 }
 
 async function exportRemoteDatabase(
@@ -1251,32 +1496,14 @@ async function exportRemoteTable(
 async function importDatabaseDumpsToSqlite(
   dumpPaths: string[],
   destinationPath: string,
+  pruneOperations: CachePruneOperation[] = [],
 ) {
-  await rm(destinationPath, { force: true }).catch(() => undefined)
-
-  const sqlite = new SQLiteDatabase(destinationPath)
-  let failed = false
-
-  try {
-    sqlite.exec('PRAGMA foreign_keys = OFF;')
-    for (const dumpPath of dumpPaths) {
-      const dumpSql = await readFile(dumpPath, 'utf8')
-
-      if (dumpSql.trim().length > 0) {
-        sqlite.exec(dumpSql)
-      }
-    }
-    sqlite.exec('PRAGMA foreign_keys = ON;')
-    sqlite.exec('PRAGMA wal_checkpoint(TRUNCATE);')
-  } catch (error) {
-    failed = true
-    throw error
-  } finally {
-    sqlite.close()
-    if (failed) {
-      await rm(destinationPath, { force: true }).catch(() => undefined)
-    }
-  }
+  await runSqliteCacheWorker({
+    destinationPath,
+    dumpPaths,
+    pruneOperations,
+    type: 'import-dumps',
+  })
 }
 
 async function buildRemoteTableImports(
@@ -1309,6 +1536,10 @@ async function buildRemoteTableImports(
 
     const tableDump = await readFile(tableDumpPath, 'utf8')
     const importSql = stripExportTableDefinition(tableDump)
+    const pruneOperation = resolveCachePruneOperation(
+      targetRecord.bindingName,
+      tableName,
+    )
     const sqlPath = resolve(
       workDir,
       `${targetRecord.bindingName}-${tableName}-import.sql`,
@@ -1321,6 +1552,7 @@ async function buildRemoteTableImports(
     )
     imports.push({
       hasRows,
+      pruneOperation,
       sqlPath,
       tableName,
     })
@@ -1340,6 +1572,103 @@ function stripExportTableDefinition(rawSql: string) {
   }
 
   return withoutPragmas.replace(/^CREATE TABLE[\s\S]*?\);\s*/m, '').trim()
+}
+
+type SqliteCacheWorkerPayload =
+  | {
+      destinationPath: string
+      dumpPaths: string[]
+      pruneOperations?: CachePruneOperation[]
+      type: 'import-dumps'
+    }
+  | {
+      bindingName: string
+      filePath: string
+      tableImports: RemoteTableImport[]
+      type: 'replace-table-rows'
+    }
+  | {
+      filePath: string
+      type: 'checkpoint'
+    }
+
+function resolveCachePruneOperation(
+  bindingName: string,
+  tableName: string,
+): CachePruneOperation | null {
+  if (
+    !/^DB_(?:HISTORY|SOURCE)_[A-Z]{2}_\d{4}$/.test(bindingName) ||
+    !VERSION_TABLES_WITH_CURRENT_ROWS.has(tableName)
+  ) {
+    return null
+  }
+
+  return {
+    tableName,
+    whereSql: '"isCurrent" <> 1',
+  }
+}
+
+async function runWithProgressHeartbeat<T>(
+  onProgress: ((event: LocalDbCacheProgressEvent) => Promise<void> | void) | undefined,
+  event: LocalDbCacheProgressEvent,
+  work: () => Promise<T>,
+) {
+  return runWithHeartbeat(() => onProgress?.(event), work)
+}
+
+async function runWithHeartbeat<T>(
+  onHeartbeat: (() => Promise<void> | void) | undefined,
+  work: () => Promise<T>,
+) {
+  let running = true
+  const heartbeat = setInterval(() => {
+    if (!running) {
+      return
+    }
+
+    void onHeartbeat?.()
+  }, DB_CACHE_PROGRESS_HEARTBEAT_MS)
+
+  try {
+    await onHeartbeat?.()
+    return await work()
+  } finally {
+    running = false
+    clearInterval(heartbeat)
+  }
+}
+
+async function runSqliteCacheWorker(payload: SqliteCacheWorkerPayload) {
+  await mkdir(CACHE_ROOT, { recursive: true })
+  const payloadPath = resolve(
+    CACHE_ROOT,
+    `.sqlite-worker-${process.pid}-${Date.now()}-${Math.random()
+      .toString(16)
+      .slice(2)}.json`,
+  )
+
+  await writeFile(payloadPath, JSON.stringify(payload))
+
+  try {
+    const proc = Bun.spawn([process.execPath, SQLITE_CACHE_WORKER_PATH, payloadPath], {
+      cwd: REPO_ROOT,
+      env: process.env,
+      stderr: 'pipe',
+      stdout: 'pipe',
+    })
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ])
+
+    if (exitCode !== 0) {
+      throw new Error((stderr || stdout || 'SQLite cache worker failed.').trim())
+    }
+  } finally {
+    await rm(payloadPath, { force: true }).catch(() => undefined)
+  }
 }
 
 async function runMirrorCommand(command: string[]) {
