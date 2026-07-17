@@ -108,10 +108,11 @@ layers use Polygon/MultiPolygon geometry in EPSG:2326.
 | `hkgov-had`   | electoral | 2023–2026 | `had_rcd_1634522917609_57950`   | `Village_2023`  |      697 |
 | `hkgov-had`   | electoral | 2027–2030 | `had_rcd_1698201058480_40217`   | `Village_2027`  |      697 |
 
-Use source release identifiers `hkgov-had-{year}-divisionArea-rre`,
-`hkgov-pland-{year}-division-pu`, `hkgov-pland-{year}-divisionArea-pu`,
-`hkgov-pland-{year}-division-newtown`, `hkgov-pland-{year}-divisionArea-newtown`, and
-`hkgov-eac-{year}-divisionArea-dcgc` for these future periods. The year token is the
+Use source release identifiers `dr-hk-hkgov-had-division-area-rre-{year}`,
+`dr-hk-hkgov-pland-division-pu-{year}`, `dr-hk-hkgov-pland-division-area-pu-{year}`,
+`dr-hk-hkgov-pland-division-new-town-{year}`,
+`dr-hk-hkgov-pland-division-area-new-town-{year}`, and
+`hkgov-eac-hk-{year}-division-area-dcgc` for these future periods. The year token is the
 data period, not the catalogue metadata revision date. Planning Unit data creates
 planning-domain canonical divisions at its four published levels (PPU, SPU, TPU and
 subunit); it must never be matched to Overture's geographic divisions. New Town data
