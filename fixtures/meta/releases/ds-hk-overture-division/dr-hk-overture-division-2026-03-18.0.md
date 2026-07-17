@@ -1,21 +1,21 @@
 ---
-createdAt: "2026-07-06T14:53:53.553Z"
-updatedAt: "2026-07-06T19:01:36.542Z"
+createdAt: "2026-07-14T05:19:28.642Z"
+updatedAt: "2026-07-17T00:00:00.000Z"
 dataset: "ds-hk-overture-division"
-release: "overture-hk-2025-09-24.0-division"
+release: "dr-hk-overture-division-2026-03-18.0"
 regionCode: "hk"
 source: "overture"
-sourceVersion: "2025-09-24.0"
-sourceSchemaVersion: "1.12.0"
+sourceVersion: "2026-03-18.0"
+sourceSchemaVersion: "1.16.0"
 type: "division"
-cohortKey: "2025-09-24.0"
+cohortKey: "2026-03-18.0"
 ---
 
 # EN
 
 ## Changelog
 
-Initial 山水 | SaanSeoi release.
+- <orange>Upstream</orange> Made minor, incremental updates to the data
 
 ## Compatibility
 
@@ -75,6 +75,7 @@ inputs into mappings that are more appropriate for the local context.
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) maps
   to the canonical <black>type</black> and <black>level</black>, with the original
   hierarchy retained under <black>overture.hierarchies</black>
+- `admin_level` - retained under <black>overture.admin_level</black>
 - `version` - [FeatureVersion](/docs#models/FeatureVersion), retained under
   <black>overture.version</black>
 
@@ -144,7 +145,13 @@ village        199
 
 ## 更新紀錄
 
-山水 | SaanSeoi 初始版本。
+- <orange>上游</orange> 更新 OSM 資料
+- <orange>上游</orange> 新增 `admin_level`
+  屬性，以更準確地表示一個 division 在其所屬國家行政層級中的位置，即數值越小代表層級越高的行政單位（0、1 和 2）。
+  - 在香港，只有香港特別行政區本身及 18 個地區屬於行政層級，因此 Saanseoi
+    <black>Division</black> 僅會在有值時，將其作為 <black>overture.admin_level</black>
+    下的兼容性值提供。
+  - 相關數值已回填，確保自第一個 <black>Division</black> 發布版本起即可使用。
 
 ## 兼容性
 
@@ -199,6 +206,7 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) 映射至
   [canonical <black>type</black> 和 <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)，原始 hierarchy 則保留於
   <black>overture.hierarchies</black>
+- `admin_level` - 保留於 <black>overture.admin_level</black>
 - `version` - [FeatureVersion](/docs#models/FeatureVersion)，保留於
   <black>overture.version</black>
 
@@ -265,7 +273,7 @@ village        199
 
 ## 更新记录
 
-山水 | SaanSeoi 初始版本。
+- <orange>上游</orange> 对数据进行了轻微、渐进式更新
 
 ## 兼容性
 
@@ -320,6 +328,7 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) 映射至
   [canonical <black>type</black> 和 <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)，原始 hierarchy 则保留于
   <black>overture.hierarchies</black>
+- `admin_level` - 保留于 <black>overture.admin_level</black>
 - `version` - [FeatureVersion](/docs#models/FeatureVersion)，保留于
   <black>overture.version</black>
 

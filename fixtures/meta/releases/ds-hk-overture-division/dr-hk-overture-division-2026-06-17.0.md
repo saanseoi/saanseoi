@@ -1,21 +1,21 @@
 ---
-createdAt: "2026-07-14T05:25:09.371Z"
-updatedAt: "2026-07-14T05:25:09.371Z"
+createdAt: "2026-07-14T05:28:18.043Z"
+updatedAt: "2026-07-17T00:00:00.000Z"
 dataset: "ds-hk-overture-division"
-release: "overture-hk-2026-05-20.0-division"
+release: "dr-hk-overture-division-2026-06-17.0"
 regionCode: "hk"
 source: "overture"
-sourceVersion: "2026-05-20.0"
+sourceVersion: "2026-06-17.0"
 sourceSchemaVersion: "1.17.0"
 type: "division"
-cohortKey: "2026-05-20.0"
+cohortKey: "2026-06-17.0"
 ---
 
 # EN
 
 ## Changelog
 
-- <orange>Upstream</orange> No changes, re-promoted the data from the March release
+- <orange>Upstream</orange> OSM Cut-Off Date: 2026-06-06
 
 ## Compatibility
 
@@ -145,7 +145,7 @@ village        199
 
 ## 更新紀錄
 
-- <orange>上游</orange> 沒有變更，重新發布三月版本的資料
+- <orange>上游</orange> OSM 截止日期：2026-06-06
 
 ## 兼容性
 
@@ -267,7 +267,7 @@ village        199
 
 ## 更新记录
 
-- <orange>上游</orange> 没有变更，重新发布三月版本的数据
+- <orange>上游</orange> OSM 截止日期：2026-06-06
 
 ## 兼容性
 

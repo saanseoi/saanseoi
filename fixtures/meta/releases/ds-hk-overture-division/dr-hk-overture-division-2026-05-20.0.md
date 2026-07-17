@@ -1,22 +1,21 @@
 ---
-createdAt: "2026-07-14T05:04:22.737Z"
-updatedAt: "2026-07-14T05:04:22.737Z"
+createdAt: "2026-07-14T05:25:09.371Z"
+updatedAt: "2026-07-17T00:00:00.000Z"
 dataset: "ds-hk-overture-division"
-release: "overture-hk-2026-01-21.0-division"
+release: "dr-hk-overture-division-2026-05-20.0"
 regionCode: "hk"
 source: "overture"
-sourceVersion: "2026-01-21.0"
-sourceSchemaVersion: "1.15.0"
+sourceVersion: "2026-05-20.0"
+sourceSchemaVersion: "1.17.0"
 type: "division"
-cohortKey: "2026-01-21.0"
+cohortKey: "2026-05-20.0"
 ---
 
 # EN
 
 ## Changelog
 
-- <orange>Upstream</orange> Refreshed OSM data
-- <orange>Upstream</orange> Made minor, incremental updates to the data
+- <orange>Upstream</orange> No changes, re-promoted the data from the March release
 
 ## Compatibility
 
@@ -76,6 +75,7 @@ inputs into mappings that are more appropriate for the local context.
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) maps
   to the canonical <black>type</black> and <black>level</black>, with the original
   hierarchy retained under <black>overture.hierarchies</black>
+- `admin_level` - retained under <black>overture.admin_level</black>
 - `version` - [FeatureVersion](/docs#models/FeatureVersion), retained under
   <black>overture.version</black>
 
@@ -145,8 +145,7 @@ village        199
 
 ## 更新紀錄
 
-- <orange>上游</orange> 更新 OSM 資料
-- <orange>上游</orange> 對資料作出輕微、逐步的更新
+- <orange>上游</orange> 沒有變更，重新發布三月版本的資料
 
 ## 兼容性
 
@@ -201,6 +200,7 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) 映射至
   [canonical <black>type</black> 和 <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)，原始 hierarchy 則保留於
   <black>overture.hierarchies</black>
+- `admin_level` - 保留於 <black>overture.admin_level</black>
 - `version` - [FeatureVersion](/docs#models/FeatureVersion)，保留於
   <black>overture.version</black>
 
@@ -267,8 +267,7 @@ village        199
 
 ## 更新记录
 
-- <orange>上游</orange> 更新 OSM 数据
-- <orange>上游</orange> 对数据进行了轻微、渐进式更新
+- <orange>上游</orange> 没有变更，重新发布三月版本的数据
 
 ## 兼容性
 
@@ -323,6 +322,7 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) 映射至
   [canonical <black>type</black> 和 <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)，原始 hierarchy 则保留于
   <black>overture.hierarchies</black>
+- `admin_level` - 保留于 <black>overture.admin_level</black>
 - `version` - [FeatureVersion](/docs#models/FeatureVersion)，保留于
   <black>overture.version</black>
 

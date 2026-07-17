@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:c60bd630207bd45b12049398a4ec31ffb94e46a5dae1a54a15d2131ee250114d",
+  "versionHash": "sha256:2b27b1c802f760cbeef3947b1631249d3a1d01dd10165ee937eee000547d1136",
   "apiVersion": "api-places-v0.1",
-  "code": "comp-places",
+  "code": "comp-places-v1",
   "version": 1,
   "primaryResourceType": "place",
   "status": "current",
