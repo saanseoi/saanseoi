@@ -27,7 +27,7 @@ describe('harbour-workers', () => {
             attempts: 1,
             body: {
               jobType: 'processDataset',
-              datasetId: 'overture-hk-2025-05-24.0-division',
+              datasetId: 'dr-hk-overture-division-2025-05-24.0',
               rawObjectKey: 'hk/overture/2025-05-24.0/division.parquet',
               regionCode: 'hk',
               shardYear: '2025',

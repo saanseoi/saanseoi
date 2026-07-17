@@ -21,13 +21,13 @@ const localTarget: UploadTarget = {
 
 const releaseRow = {
   createdAt: '2026-06-27T00:00:00.000Z',
-  datasetCode: 'hk-division',
+  datasetCode: 'ds-hk-overture-division',
   datasetId: '960b3f6f-437f-49e3-bd72-44e87d1cd5b9',
   ingestedAt: '2026-06-27T00:00:00.000Z',
   originalFileName: 'division.parquet',
   publicationDate: null,
   rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
-  releaseCode: 'overture-hk-2025-09-24.0-division',
+  releaseCode: 'dr-hk-overture-division-2025-09-24.0',
   releaseId: '1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70',
   revocationReason: null,
   revokedAt: null,
@@ -66,7 +66,7 @@ afterEach(() => {
 describe('upload helpers', () => {
   test('detects UUID release identifiers', () => {
     expect(isReleaseId('1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70')).toBe(true)
-    expect(isReleaseId('overture-hk-2025-09-24.0-division')).toBe(false)
+    expect(isReleaseId('dr-hk-overture-division-2025-09-24.0')).toBe(false)
   })
 
   test('passes force through remote signed uploads', async () => {
@@ -138,7 +138,7 @@ describe('upload helpers', () => {
           schema: [],
         },
         plan: {
-          datasetCode: 'hk-division',
+          datasetCode: 'ds-hk-overture-division',
           fileName: 'division.parquet',
           regionCode: 'hk',
           releaseCode: releaseRow.releaseCode,
@@ -241,7 +241,7 @@ describe('upload helpers', () => {
           schema: [],
         },
         plan: {
-          datasetCode: 'hk-division',
+          datasetCode: 'ds-hk-overture-division',
           fileName: 'division.parquet',
           regionCode: 'hk',
           releaseCode: releaseRow.releaseCode,
@@ -323,7 +323,7 @@ describe('upload helpers', () => {
             schema: [],
           },
           plan: {
-            datasetCode: 'hk-division',
+            datasetCode: 'ds-hk-overture-division',
             fileName: 'division.parquet',
             regionCode: 'hk',
             releaseCode: releaseRow.releaseCode,
@@ -408,7 +408,7 @@ describe('upload helpers', () => {
           schema: [],
         },
         plan: {
-          datasetCode: 'hk-division',
+          datasetCode: 'ds-hk-overture-division',
           fileName: 'division.parquet',
           regionCode: 'hk',
           releaseCode: releaseRow.releaseCode,
@@ -523,7 +523,7 @@ describe('upload helpers', () => {
             schema: [],
           },
           plan: {
-            datasetCode: 'hk-division',
+            datasetCode: 'ds-hk-overture-division',
             fileName: 'division.parquet',
             regionCode: 'hk',
             releaseCode: releaseRow.releaseCode,
@@ -561,7 +561,7 @@ describe('upload helpers', () => {
             schema: [],
           },
           plan: {
-            datasetCode: 'hk-division',
+            datasetCode: 'ds-hk-overture-division',
             fileName: 'division.parquet',
             regionCode: 'hk',
             releaseCode: releaseRow.releaseCode,
@@ -634,7 +634,7 @@ describe('upload helpers', () => {
           schema: [],
         },
         plan: {
-          datasetCode: 'hk-division',
+          datasetCode: 'ds-hk-overture-division',
           fileName: 'division.parquet',
           regionCode: 'hk',
           releaseCode: releaseRow.releaseCode,
@@ -691,7 +691,7 @@ describe('upload helpers', () => {
           schema: [],
         },
         plan: {
-          datasetCode: 'hk-division',
+          datasetCode: 'ds-hk-overture-division',
           fileName: 'division.parquet',
           regionCode: 'hk',
           releaseCode: releaseRow.releaseCode,

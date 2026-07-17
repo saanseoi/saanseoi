@@ -34,17 +34,27 @@ export async function checkOvertureUploadAssumptions(
   }
 
   const summary = await summarizeDivisionAssumptionColumns(filePath)
-  return evaluateDivisionAssumptions(summary, plan.type)
+  return evaluateDivisionAssumptions(summary, plan.type, plan.regionCode)
 }
 
 export function evaluateDivisionAssumptions(
   summary: DivisionAssumptionSummary,
   resourceType: UploadPlan['type'] = 'division',
+  regionCode: UploadPlan['regionCode'] = 'hk',
 ) {
   const warnings: string[] = []
+  const isHkDivisionGeometry =
+    regionCode === 'hk' &&
+    (resourceType === 'divisionArea' || resourceType === 'divisionBoundary')
 
   const country = summary.country
-  if (country && country.distinctValues.length !== 1) {
+  const expectedGeometryCountries = new Set(['"CN"', '"HK"'])
+  if (
+    country &&
+    (isHkDivisionGeometry
+      ? country.distinctValues.some(value => !expectedGeometryCountries.has(value))
+      : country.distinctValues.length !== 1)
+  ) {
     warnings.push(
       formatAssumptionWarning(
         'country',
@@ -77,7 +87,13 @@ export function evaluateDivisionAssumptions(
   }
 
   const region = summary.region
-  if (region && region.nonNullCount > 0) {
+  const expectedGeometryRegions = new Set(['"CN-GD"'])
+  if (
+    region &&
+    (isHkDivisionGeometry
+      ? region.distinctValues.some(value => !expectedGeometryRegions.has(value))
+      : region.nonNullCount > 0)
+  ) {
     warnings.push(
       formatAssumptionWarning(
         'region',

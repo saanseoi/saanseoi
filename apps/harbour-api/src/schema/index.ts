@@ -145,7 +145,10 @@ const ReleaseIdSchema = z
 
 const ReleaseCodeSchema = z.string().openapi({
   description: 'Public release identifier.',
-  examples: ['overture-hk-division-2025-09-24.0', 'hkgov-dpo-hk-address-2026-01-20.0'],
+  examples: [
+    'dr-hk-overture-division-2025-09-24.0',
+    'dr-hk-hkgov-dpo-address-2026-01-20.0',
+  ],
 })
 
 const RawObjectKeySchema = z
@@ -153,7 +156,7 @@ const RawObjectKeySchema = z
   .nullable()
   .openapi({
     description:
-      'R2 object key for the uploaded file, constructed as `{region}/{source}/{sourceVersion}/{type}.{extension}`',
+      'R2 object key for the uploaded file, constructed as `{region}/{source}/{sourceVersion}/{resource-slug}.{extension}`',
     examples: [
       'hk/overture/2025-09-24.0/division.parquet',
       'hk/hkgov-dpo/2026-01-20.0/address.json',
@@ -315,6 +318,8 @@ export const CleanupSnapshotsResponseSchema = z
 
 export const ControlResponseSchema = z
   .object({
+    apiCatalogRevisionCode: z.string().optional(),
+    apiCatalogRevisionId: z.string().uuid().optional(),
     apiReleaseSetId: z.string().uuid().optional(),
     apiReleaseSetCode: z.string().optional(),
     apiReleaseSetStatus: z.enum(['current', 'draft']).optional(),

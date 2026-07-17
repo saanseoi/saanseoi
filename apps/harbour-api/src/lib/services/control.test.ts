@@ -139,7 +139,7 @@ describe('control service', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const { releaseId } = insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2025-09-24.0-division',
+      releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2025-09',
@@ -179,7 +179,7 @@ describe('control service', () => {
       .query(
         'SELECT ir.phase, ir.status, ir.stats, ir.error, ir.finishedAt FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ? ORDER BY ir.startedAt ASC',
       )
-      .all('overture-hk-2025-09-24.0-division') as Array<{
+      .all('dr-hk-overture-division-2025-09-24.0') as Array<{
       phase: string
       status: string
       stats: string | null
@@ -188,7 +188,7 @@ describe('control service', () => {
     }>
     const release = sqlite
       .query('SELECT status FROM releases WHERE code = ?')
-      .get('overture-hk-2025-09-24.0-division') as {
+      .get('dr-hk-overture-division-2025-09-24.0') as {
       status: string
     }
 
@@ -222,7 +222,7 @@ describe('control service', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const { releaseId } = insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2025-09-24.0-address',
+      releaseId: 'release-dr-hk-overture-address-2025-09-24.0',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2025-09',
@@ -289,7 +289,7 @@ describe('control service', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const { releaseId } = insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2025-09-24.0-division',
+      releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2025-09',
@@ -342,7 +342,7 @@ describe('control service', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const { releaseId } = insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2025-09-24.0-division',
+      releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2025-09',
@@ -399,7 +399,7 @@ describe('control service', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const { releaseId } = insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2025-09-24.0-address',
+      releaseId: 'release-dr-hk-overture-address-2025-09-24.0',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2025-09',
@@ -465,7 +465,7 @@ describe('control service', () => {
     const db = createLocalHarbourDb(sqlite)
 
     insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2025-09-24.0-division',
+      releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2025-09',
@@ -480,14 +480,14 @@ describe('control service', () => {
     })
 
     const result = await handleStageRunning(db, {
-      releaseCode: 'overture-hk-2025-09-24.0-division',
+      releaseCode: 'dr-hk-overture-division-2025-09-24.0',
       releaseId: '62f558b9-6fad-413f-8283-287a90febcac',
       phase: 'extractDivisions',
     })
 
     const ingestRun = sqlite
       .query('SELECT phase, status FROM ingestRuns WHERE releaseId = ? AND phase = ?')
-      .get('release-overture-hk-2025-09-24.0-division', 'extractDivisions') as {
+      .get('release-dr-hk-overture-division-2025-09-24.0', 'extractDivisions') as {
       phase: string
       status: string
     } | null
@@ -496,8 +496,8 @@ describe('control service', () => {
 
     expect(result).toMatchObject({
       phase: 'extractDivisions',
-      releaseCode: 'overture-hk-2025-09-24.0-division',
-      releaseId: 'release-overture-hk-2025-09-24.0-division',
+      releaseCode: 'dr-hk-overture-division-2025-09-24.0',
+      releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
       status: 'running',
     })
     expect(ingestRun).toEqual({
@@ -512,7 +512,7 @@ describe('control service', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const { releaseId } = insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2025-09-24.0-division',
+      releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2025-09',
@@ -572,7 +572,7 @@ describe('control service', () => {
     const db = createLocalHarbourDb(sqlite)
 
     insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2026-01-21.0-division',
+      releaseId: 'release-dr-hk-overture-division-2026-01-21.0',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2026-01',
@@ -587,12 +587,12 @@ describe('control service', () => {
     })
     seedSnapshot(sqlite, {
       code: 'ss-hk-division-2026-01-21.0',
-      releaseId: 'release-overture-hk-2026-01-21.0-division',
+      releaseId: 'release-dr-hk-overture-division-2026-01-21.0',
       status: 'published',
       timestamp: 1762300800000,
     })
     insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2026-02-18.0-division',
+      releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2026-02',
@@ -607,13 +607,13 @@ describe('control service', () => {
     })
     seedSnapshot(sqlite, {
       code: 'ss-hk-division-2026-02-18.0',
-      releaseId: 'release-overture-hk-2026-02-18.0-division',
+      releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
       status: 'draft',
       timestamp: 1762300860000,
     })
 
     const result = await handlePublishDataset(db, {
-      releaseId: 'release-overture-hk-2026-02-18.0-division',
+      releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
     })
 
     const rows = sqlite
@@ -636,7 +636,7 @@ describe('control service', () => {
           LIMIT 1
         `,
       )
-      .get('snapshot-release-overture-hk-2026-02-18.0-division') as {
+      .get('snapshot-release-dr-hk-overture-division-2026-02-18.0') as {
       apiReleaseSetId: string
     }
     const provenanceRows = sqlite
@@ -652,22 +652,22 @@ describe('control service', () => {
 
     expect(result).toMatchObject({
       apiReleaseSetId: publishedReleaseSet.apiReleaseSetId,
-      datasetId: 'overture-hk-2026-02-18.0-division',
-      releaseCode: 'overture-hk-2026-02-18.0-division',
-      releaseId: 'release-overture-hk-2026-02-18.0-division',
+      datasetId: 'dr-hk-overture-division-2026-02-18.0',
+      releaseCode: 'dr-hk-overture-division-2026-02-18.0',
+      releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
       phase: null,
-      snapshotId: 'snapshot-release-overture-hk-2026-02-18.0-division',
+      snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.0',
       status: 'current',
     })
     expect(rows).toEqual([
       {
-        datasetId: 'overture-hk-2026-01-21.0-division',
+        datasetId: 'dr-hk-overture-division-2026-01-21.0',
         status: 'superseded',
         revokedAt: null,
         revocationReason: null,
       },
       {
-        datasetId: 'overture-hk-2026-02-18.0-division',
+        datasetId: 'dr-hk-overture-division-2026-02-18.0',
         status: 'published',
         revokedAt: null,
         revocationReason: null,
@@ -688,7 +688,7 @@ describe('control service', () => {
     const dbPath = join(tempDir, 'harbour-publish-delayed-snapshot.sqlite')
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
-    const releaseId = 'release-overture-hk-2026-02-18.0-division'
+    const releaseId = 'release-dr-hk-overture-division-2026-02-18.0'
 
     insertFixtureRelease(sqlite, {
       releaseId,
@@ -722,11 +722,11 @@ describe('control service', () => {
 
     expect(result).toMatchObject({
       apiReleaseSetId: expect.any(String),
-      datasetId: 'overture-hk-2026-02-18.0-division',
-      releaseCode: 'overture-hk-2026-02-18.0-division',
+      datasetId: 'dr-hk-overture-division-2026-02-18.0',
+      releaseCode: 'dr-hk-overture-division-2026-02-18.0',
       releaseId,
       phase: null,
-      snapshotId: 'snapshot-release-overture-hk-2026-02-18.0-division',
+      snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.0',
       status: 'current',
     })
   })
@@ -737,8 +737,8 @@ describe('control service', () => {
       const dbPath = join(tempDir, `harbour-publish-${datasetType}-fixture-gap.sqlite`)
       const sqlite = initDb(dbPath)
       const db = createLocalHarbourDb(sqlite)
-      const releaseId = `release-overture-hk-2026-06-24.0-${datasetType}`
-      const releaseCode = `overture-hk-2026-06-24.0-${datasetType}`
+      const releaseCode = `dr-hk-overture-${datasetType}-2026-06-24.0`
+      const releaseId = `release-${releaseCode}`
       const snapshotId = `snapshot-${releaseId}`
 
       if (datasetType === 'place') {
@@ -790,7 +790,7 @@ describe('control service', () => {
       })
 
       if (datasetType === 'address') {
-        const divisionReleaseId = 'release-overture-hk-2026-06-17.0-division'
+        const divisionReleaseId = 'release-dr-hk-overture-division-2026-06-17.0'
         insertFixtureRelease(sqlite, {
           releaseId: divisionReleaseId,
           source: 'overture',
@@ -937,13 +937,18 @@ describe('control service', () => {
         ('api-composition-divisions-v1', 'overture', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20, null);
 
       INSERT INTO apiReleaseSets (
-        id, apiVersionId, code, domainCode, schemaVersion, rulesetVersion, status,
+        id, apiVersionId, apiCompositionId, code, regionCode, domainCode,
+        cohortKey, revision, schemaVersion, rulesetVersion, status,
         publishedAt, validFrom, validTo, notes, versionHash, createdAt, updatedAt
       ) VALUES (
         '${releaseSetId}',
         'api-version-api-divisions-v0.1',
+        'api-composition-divisions-v1',
         'data-hk-divisions-${cohortKey}-0',
+        'hk',
         'overture',
+        '${cohortKey}',
+        0,
         'sv-division-v1',
         'rs-division-merge-v1',
         'draft',
@@ -960,9 +965,9 @@ describe('control service', () => {
         id, publisherId, code, regionCode, releaseType, releaseFrequency,
         theme, type, sourceUrl, versionHash, createdAt, updatedAt
       ) VALUES
-        ('overture-hk-divisionArea', 'publisher-overture', 'ds-hk-overture-divisionArea', 'hk', 'static', 'monthly', 'divisions', 'divisionArea', 'https://docs.overturemaps.org/', 'vh-overture-area', 1761264000001, 1761264000001),
-        ('overture-hk-divisionBoundary', 'publisher-overture', 'ds-hk-overture-divisionBoundary', 'hk', 'static', 'monthly', 'divisions', 'divisionBoundary', 'https://docs.overturemaps.org/', 'vh-overture-boundary', 1761264000001, 1761264000001),
-        ('hkgov-had-hk-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-district', 'hk', 'static', 'as-needed', 'divisions', 'divisionArea', 'https://data.gov.hk/', 'vh-had-district', 1761264000001, 1761264000001);
+        ('overture-hk-divisionArea', 'publisher-overture', 'ds-hk-overture-division-area', 'hk', 'static', 'monthly', 'divisions', 'divisionArea', 'https://docs.overturemaps.org/', 'vh-overture-area', 1761264000001, 1761264000001),
+        ('overture-hk-divisionBoundary', 'publisher-overture', 'ds-hk-overture-division-boundary', 'hk', 'static', 'monthly', 'divisions', 'divisionBoundary', 'https://docs.overturemaps.org/', 'vh-overture-boundary', 1761264000001, 1761264000001),
+        ('hkgov-had-hk-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district', 'hk', 'static', 'as-needed', 'divisions', 'divisionArea', 'https://data.gov.hk/', 'vh-had-district', 1761264000001, 1761264000001);
     `)
 
     const division = insertFixtureRelease(sqlite, {
@@ -984,8 +989,8 @@ describe('control service', () => {
       cohortKey,
       type: 'divisionArea',
       sourceVersion: '2025-09-24.0',
-      rawObjectKey: 'hk/overture/2025-09-24.0/divisionArea.parquet',
-      originalFileName: 'divisionArea.parquet',
+      rawObjectKey: 'hk/overture/2025-09-24.0/division-area.parquet',
+      originalFileName: 'division-area.parquet',
       status: 'published',
       ingestedAt: '2026-06-05T00:00:00.000Z',
       createdAt: '2026-06-05T00:00:00.000Z',
@@ -997,16 +1002,16 @@ describe('control service', () => {
       cohortKey,
       type: 'divisionBoundary',
       sourceVersion: '2025-09-24.0',
-      rawObjectKey: 'hk/overture/2025-09-24.0/divisionBoundary.parquet',
-      originalFileName: 'divisionBoundary.parquet',
+      rawObjectKey: 'hk/overture/2025-09-24.0/division-boundary.parquet',
+      originalFileName: 'division-boundary.parquet',
       status: 'published',
       ingestedAt: '2026-06-05T00:00:00.000Z',
       createdAt: '2026-06-05T00:00:00.000Z',
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
     const hadArea = {
-      releaseCode: 'hkgov-had-hk-2022-district',
-      releaseId: 'release-hkgov-had-hk-2022-district',
+      releaseCode: 'dr-hk-hkgov-had-division-area-district-2022',
+      releaseId: 'release-dr-hk-hkgov-had-division-area-district-2022',
     }
     sqlite.exec(`
       INSERT INTO releases (
@@ -1016,8 +1021,8 @@ describe('control service', () => {
         '${hadArea.releaseId}',
         'hkgov-had-hk-district',
         '${hadArea.releaseCode}',
-        '2022', '2022', 'hk/hkgov-had/2022/divisionArea.geojson',
-        'divisionArea.geojson', 'staged',
+        '2022', '2022', 'hk/hkgov-had/2022/division-area.geojson',
+        'division-area.geojson', 'staged',
         '2026-06-05T00:01:00.000Z',
         '2026-06-05T00:01:00.000Z',
         '2026-06-05T00:01:00.000Z'
@@ -1038,7 +1043,7 @@ describe('control service', () => {
       status: 'published',
     })
     seedSnapshot(sqlite, {
-      code: 'ss-hk-divisionArea-2025-09-24.0',
+      code: 'ss-hk-division-area-2025-09-24.0',
       cohortKey,
       datasetId: 'overture-hk-divisionArea',
       resourceType: 'divisionArea',
@@ -1046,7 +1051,7 @@ describe('control service', () => {
       status: 'published',
     })
     seedSnapshot(sqlite, {
-      code: 'ss-hk-divisionBoundary-2025-09-24.0',
+      code: 'ss-hk-division-boundary-2025-09-24.0',
       cohortKey,
       datasetId: 'overture-hk-divisionBoundary',
       resourceType: 'divisionBoundary',
@@ -1054,7 +1059,7 @@ describe('control service', () => {
       status: 'published',
     })
     const hadSnapshotId = seedSnapshot(sqlite, {
-      code: 'ss-hk-divisionArea-2022',
+      code: 'ss-hk-division-area-2022',
       cohortKey: '2022',
       datasetId: 'hkgov-had-hk-district',
       resourceType: 'divisionArea',
@@ -1098,7 +1103,7 @@ describe('control service', () => {
     expect(members).toEqual([
       {
         anchorCode: null,
-        code: 'ss-hk-divisionArea-2022',
+        code: 'ss-hk-division-area-2022',
         variant: 'hkgov-had',
       },
       {
@@ -1108,12 +1113,12 @@ describe('control service', () => {
       },
       {
         anchorCode: null,
-        code: 'ss-hk-divisionArea-2025-09-24.0',
+        code: 'ss-hk-division-area-2025-09-24.0',
         variant: 'overture',
       },
       {
         anchorCode: null,
-        code: 'ss-hk-divisionBoundary-2025-09-24.0',
+        code: 'ss-hk-division-boundary-2025-09-24.0',
         variant: 'overture',
       },
     ])
@@ -1126,7 +1131,7 @@ describe('control service', () => {
     const db = createLocalHarbourDb(sqlite)
 
     insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2026-02-18.0-division',
+      releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2026-02',
@@ -1141,12 +1146,12 @@ describe('control service', () => {
     })
     seedSnapshot(sqlite, {
       code: 'ss-hk-division-2026-02-18.0',
-      releaseId: 'release-overture-hk-2026-02-18.0-division',
+      releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
       status: 'published',
       timestamp: 1762300800000,
     })
     insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2026-02-18.1-division',
+      releaseId: 'release-dr-hk-overture-division-2026-02-18.1',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2026-02',
@@ -1161,16 +1166,16 @@ describe('control service', () => {
     })
     sqlite
       .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
-      .run('1.16.0', 'release-overture-hk-2026-02-18.1-division')
+      .run('1.16.0', 'release-dr-hk-overture-division-2026-02-18.1')
     seedSnapshot(sqlite, {
       code: 'ss-hk-division-2026-02-18.1',
-      releaseId: 'release-overture-hk-2026-02-18.1-division',
+      releaseId: 'release-dr-hk-overture-division-2026-02-18.1',
       status: 'draft',
       timestamp: 1762300860000,
     })
 
     const result = await handlePublishDataset(db, {
-      releaseId: 'release-overture-hk-2026-02-18.1-division',
+      releaseId: 'release-dr-hk-overture-division-2026-02-18.1',
     })
 
     const rows = sqlite
@@ -1188,22 +1193,22 @@ describe('control service', () => {
 
     expect(result).toMatchObject({
       apiReleaseSetId: expect.any(String),
-      datasetId: 'overture-hk-2026-02-18.1-division',
-      releaseCode: 'overture-hk-2026-02-18.1-division',
-      releaseId: 'release-overture-hk-2026-02-18.1-division',
+      datasetId: 'dr-hk-overture-division-2026-02-18.1',
+      releaseCode: 'dr-hk-overture-division-2026-02-18.1',
+      releaseId: 'release-dr-hk-overture-division-2026-02-18.1',
       phase: null,
-      snapshotId: 'snapshot-release-overture-hk-2026-02-18.1-division',
+      snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.1',
       status: 'current',
     })
     expect(rows[0]).toMatchObject({
-      datasetId: 'overture-hk-2026-02-18.0-division',
+      datasetId: 'dr-hk-overture-division-2026-02-18.0',
       status: 'revoked',
       revocationReason:
-        'Superseded by corrected release overture-hk-2026-02-18.1-division.',
+        'Superseded by corrected release dr-hk-overture-division-2026-02-18.1.',
     })
     expect(rows[0]?.revokedAt).not.toBeNull()
     expect(rows[1]).toEqual({
-      datasetId: 'overture-hk-2026-02-18.1-division',
+      datasetId: 'dr-hk-overture-division-2026-02-18.1',
       status: 'published',
       revokedAt: null,
       revocationReason: null,
@@ -1217,7 +1222,7 @@ describe('control service', () => {
     const db = createLocalHarbourDb(sqlite)
 
     insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2026-06-17.0-division',
+      releaseId: 'release-dr-hk-overture-division-2026-06-17.0',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2026-06',
@@ -1232,12 +1237,12 @@ describe('control service', () => {
     })
     seedSnapshot(sqlite, {
       code: 'ss-hk-division-2026-06-17.0',
-      releaseId: 'release-overture-hk-2026-06-17.0-division',
+      releaseId: 'release-dr-hk-overture-division-2026-06-17.0',
       status: 'published',
       timestamp: 1762300800000,
     })
     insertFixtureRelease(sqlite, {
-      releaseId: 'release-overture-hk-2026-06-24.0-division',
+      releaseId: 'release-dr-hk-overture-division-2026-06-24.0',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2026-06',
@@ -1252,16 +1257,16 @@ describe('control service', () => {
     })
     sqlite
       .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
-      .run('1.17.0', 'release-overture-hk-2026-06-24.0-division')
+      .run('1.17.0', 'release-dr-hk-overture-division-2026-06-24.0')
     seedSnapshot(sqlite, {
       code: 'ss-hk-division-2026-06-24.0',
-      releaseId: 'release-overture-hk-2026-06-24.0-division',
+      releaseId: 'release-dr-hk-overture-division-2026-06-24.0',
       status: 'draft',
       timestamp: 1762300860000,
     })
 
     await handlePublishDataset(db, {
-      releaseId: 'release-overture-hk-2026-06-24.0-division',
+      releaseId: 'release-dr-hk-overture-division-2026-06-24.0',
     })
 
     const rows = sqlite
@@ -1279,13 +1284,13 @@ describe('control service', () => {
 
     expect(rows).toEqual([
       {
-        datasetId: 'overture-hk-2026-06-17.0-division',
+        datasetId: 'dr-hk-overture-division-2026-06-17.0',
         status: 'superseded',
         revokedAt: null,
         revocationReason: null,
       },
       {
-        datasetId: 'overture-hk-2026-06-24.0-division',
+        datasetId: 'dr-hk-overture-division-2026-06-24.0',
         status: 'published',
         revokedAt: null,
         revocationReason: null,

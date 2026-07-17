@@ -159,14 +159,14 @@ describe('direct upload flow', () => {
       .query(
         'SELECT ir.phase, ir.status FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ? ORDER BY ir.startedAt ASC',
       )
-      .all('overture-hk-2026-05-20.0-division') as Array<{
+      .all('dr-hk-overture-division-2026-05-20.0') as Array<{
       phase: string
       status: string
     }>
 
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-20.0-division')
+    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(ingestRuns.map(run => [run.phase, run.status])).toEqual([
       ['registerDataset', 'completed'],
       ['stageDataset', 'completed'],
@@ -200,7 +200,7 @@ describe('direct upload flow', () => {
 
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-20.0-address')
+    expect(result.plan.datasetId).toBe('dr-hk-overture-address-2026-05-20.0')
   })
 
   test('force registers over an interrupted uploading session', async () => {
@@ -235,7 +235,7 @@ describe('direct upload flow', () => {
     const result = await handleUploadRequest(db, bucket, formData)
     const dataset = sqlite
       .query('SELECT id, status FROM releases WHERE code = ?')
-      .get('overture-hk-2026-05-20.0-division') as {
+      .get('dr-hk-overture-division-2026-05-20.0') as {
       id: string
       status: string
     } | null

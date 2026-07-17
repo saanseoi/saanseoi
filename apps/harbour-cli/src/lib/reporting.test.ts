@@ -16,11 +16,11 @@ describe('filterIngestionRows', () => {
   test('keeps all ongoing releases plus the latest finished release', () => {
     const rows: IngestRunReportRow[] = [
       {
-        datasetCode: 'hk-address',
+        datasetCode: 'ds-hk-overture-address',
         error: null,
         finishedAt: null,
         phase: 'extractAddresses',
-        releaseCode: 'overture-hk-2026-06-24.0-address',
+        releaseCode: 'dr-hk-overture-address-2026-06-24.0',
         releaseId: 'release-1',
         runId: 'run-1',
         cohortKey: '2026-06',
@@ -31,11 +31,11 @@ describe('filterIngestionRows', () => {
         type: 'address',
       },
       {
-        datasetCode: 'hk-address',
+        datasetCode: 'ds-hk-hkgov-dpo-address',
         error: null,
         finishedAt: '2026-06-23T11:00:00.000Z',
         phase: 'extractAddresses',
-        releaseCode: 'overture-hk-2026-06-23.0-address',
+        releaseCode: 'dr-hk-overture-address-2026-06-23.0',
         releaseId: 'release-2',
         runId: 'run-2',
         cohortKey: '2026-06',
@@ -46,11 +46,11 @@ describe('filterIngestionRows', () => {
         type: 'address',
       },
       {
-        datasetCode: 'hk-address',
+        datasetCode: 'ds-hk-overture-address',
         error: null,
         finishedAt: '2026-06-22T11:00:00.000Z',
         phase: 'extractAddresses',
-        releaseCode: 'overture-hk-2026-06-22.0-address',
+        releaseCode: 'dr-hk-overture-address-2026-06-22.0',
         releaseId: 'release-3',
         runId: 'run-3',
         cohortKey: '2026-06',
@@ -61,11 +61,11 @@ describe('filterIngestionRows', () => {
         type: 'address',
       },
       {
-        datasetCode: 'hk-address',
+        datasetCode: 'ds-hk-hkgov-dpo-address',
         error: null,
         finishedAt: null,
         phase: 'loadCanonical',
-        releaseCode: 'hkgov-dpo-hk-2026-06-24.0-address',
+        releaseCode: 'dr-hk-hkgov-dpo-address-2026-06-24.0',
         releaseId: 'release-4',
         runId: 'run-4',
         cohortKey: '2026-06',
@@ -78,9 +78,9 @@ describe('filterIngestionRows', () => {
     ]
 
     expect(filterIngestionRows(rows).map(row => row.releaseCode)).toEqual([
-      'overture-hk-2026-06-24.0-address',
-      'overture-hk-2026-06-23.0-address',
-      'hkgov-dpo-hk-2026-06-24.0-address',
+      'dr-hk-overture-address-2026-06-24.0',
+      'dr-hk-overture-address-2026-06-23.0',
+      'dr-hk-hkgov-dpo-address-2026-06-24.0',
     ])
   })
 })
@@ -90,14 +90,14 @@ describe('formatReleaseReportTable', () => {
     const rows: ReleaseReportRow[] = [
       {
         createdAt: '2026-06-24T12:00:00.000Z',
-        datasetCode: 'hk-address',
+        datasetCode: 'ds-hk-overture-address',
         datasetId: 'dataset-1',
         ingestedAt: '2026-06-24T12:00:00.000Z',
         notes: null,
         originalFileName: 'address.parquet',
         publicationDate: null,
         rawObjectKey: 'hk/overture/2026-06-24.0/address.parquet',
-        releaseCode: 'overture-hk-2026-06-24.0-address',
+        releaseCode: 'dr-hk-overture-address-2026-06-24.0',
         releaseId: 'release-1',
         revocationReason: null,
         revokedAt: null,
@@ -137,11 +137,11 @@ describe('formatIngestionReportTable', () => {
   test('omits non-display ingestion stats from expanded stats rows', () => {
     const rows: IngestRunReportRow[] = [
       {
-        datasetCode: 'hk-address',
+        datasetCode: 'ds-hk-overture-address',
         error: null,
         finishedAt: '2026-06-24T10:05:00.000Z',
         phase: 'extractAddresses',
-        releaseCode: 'overture-hk-2026-06-24.0-address',
+        releaseCode: 'dr-hk-overture-address-2026-06-24.0',
         releaseId: 'release-1',
         runId: 'run-1',
         cohortKey: '2026-06',
@@ -159,11 +159,11 @@ describe('formatIngestionReportTable', () => {
         type: 'address',
       },
       {
-        datasetCode: 'hk-address',
+        datasetCode: 'ds-hk-overture-address',
         error: null,
         finishedAt: '2026-06-24T10:00:00.000Z',
         phase: 'stageDataset',
-        releaseCode: 'overture-hk-2026-06-24.0-address',
+        releaseCode: 'dr-hk-overture-address-2026-06-24.0',
         releaseId: 'release-1',
         runId: 'run-2',
         cohortKey: '2026-06',
@@ -195,11 +195,11 @@ describe('formatIngestionReportTable', () => {
   test('renders SQL import stats compactly and hides SQL umbrella phases', () => {
     const rows: IngestRunReportRow[] = [
       {
-        datasetCode: 'hk-address',
+        datasetCode: 'ds-hk-overture-address',
         error: null,
         finishedAt: null,
         phase: 'importAddressSqlSource',
-        releaseCode: 'overture-hk-2026-06-24.0-address',
+        releaseCode: 'dr-hk-overture-address-2026-06-24.0',
         releaseId: 'release-1',
         runId: 'run-import',
         cohortKey: '2026-06',
@@ -219,11 +219,11 @@ describe('formatIngestionReportTable', () => {
         type: 'address',
       },
       {
-        datasetCode: 'hk-address',
+        datasetCode: 'ds-hk-overture-address',
         error: null,
         finishedAt: null,
         phase: 'extractAddresses',
-        releaseCode: 'overture-hk-2026-06-24.0-address',
+        releaseCode: 'dr-hk-overture-address-2026-06-24.0',
         releaseId: 'release-1',
         runId: 'run-extract',
         cohortKey: '2026-06',
@@ -255,14 +255,14 @@ describe('formatStatsReportTable', () => {
     const rows: StatReportRow[] = [
       {
         createdAt: '2026-06-24T12:00:00.000Z',
-        datasetCode: 'hk-division',
+        datasetCode: 'ds-hk-overture-division',
         dimension: 'locale_count',
         groupBy: null,
         groupValue: null,
         id: '1',
         metric: 'completeness',
         metricUnit: 'count',
-        releaseCode: 'overture-hk-2026-06-24.0-division',
+        releaseCode: 'dr-hk-overture-division-2026-06-24.0',
         releaseId: 'release-1',
         source: 'overture',
         type: 'division',
@@ -271,14 +271,14 @@ describe('formatStatsReportTable', () => {
       },
       {
         createdAt: '2026-06-24T12:00:00.000Z',
-        datasetCode: 'hk-division',
+        datasetCode: 'ds-hk-overture-division',
         dimension: 'locale_coverage',
         groupBy: null,
         groupValue: null,
         id: '2',
         metric: 'completeness',
         metricUnit: 'percentage',
-        releaseCode: 'overture-hk-2026-06-24.0-division',
+        releaseCode: 'dr-hk-overture-division-2026-06-24.0',
         releaseId: 'release-1',
         source: 'overture',
         type: 'division',
@@ -287,14 +287,14 @@ describe('formatStatsReportTable', () => {
       },
       {
         createdAt: '2026-06-24T12:00:00.000Z',
-        datasetCode: 'hk-division',
+        datasetCode: 'ds-hk-overture-division',
         dimension: 'count',
         groupBy: 'type',
         groupValue: 'district',
         id: '3',
         metric: 'churn',
         metricUnit: 'count',
-        releaseCode: 'overture-hk-2026-06-24.0-division',
+        releaseCode: 'dr-hk-overture-division-2026-06-24.0',
         releaseId: 'release-1',
         source: 'overture',
         type: 'division',
@@ -303,14 +303,14 @@ describe('formatStatsReportTable', () => {
       },
       {
         createdAt: '2026-06-24T12:00:00.000Z',
-        datasetCode: 'hk-division',
+        datasetCode: 'ds-hk-overture-division',
         dimension: 'name_regression_count',
         groupBy: null,
         groupValue: null,
         id: '4',
         metric: 'quality',
         metricUnit: 'count',
-        releaseCode: 'overture-hk-2026-06-24.0-division',
+        releaseCode: 'dr-hk-overture-division-2026-06-24.0',
         releaseId: 'release-1',
         source: 'overture',
         type: 'division',
@@ -319,14 +319,14 @@ describe('formatStatsReportTable', () => {
       },
       {
         createdAt: '2026-06-23T12:00:00.000Z',
-        datasetCode: 'hk-division',
+        datasetCode: 'ds-hk-overture-division',
         dimension: 'count',
         groupBy: 'type',
         groupValue: 'district',
         id: '5',
         metric: 'churn',
         metricUnit: 'count',
-        releaseCode: 'overture-hk-2026-06-23.0-division',
+        releaseCode: 'dr-hk-overture-division-2026-06-23.0',
         releaseId: 'release-2',
         source: 'overture',
         type: 'division',
@@ -337,8 +337,8 @@ describe('formatStatsReportTable', () => {
 
     const table = formatStatsReportTable(rows)
 
-    expect(table).toContain('release: overture-hk-2026-06-24.0-division')
-    expect(table).toContain('release: overture-hk-2026-06-23.0-division')
+    expect(table).toContain('release: dr-hk-overture-division-2026-06-24.0')
+    expect(table).toContain('release: dr-hk-overture-division-2026-06-23.0')
     expect(table).toContain('\n\ncompleteness\n')
     expect(table).toContain('\n\nchurn\n')
     expect(table).toContain('\n\nquality\n')

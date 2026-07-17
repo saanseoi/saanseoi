@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import type { UploadPlan } from '@repo/core'
+import { buildDatasetCode, buildDatasetReleaseCode, type UploadPlan } from '@repo/core'
 
 import { resolveReleaseNotesUrl } from './releaseNotes.ts'
 
@@ -9,7 +9,7 @@ function buildOvertureDivisionPlan(
 ) {
   return {
     cohortKey: '2025-09-24.0',
-    datasetCode: `ds-hk-overture-${type}`,
+    datasetCode: buildDatasetCode('hk', 'overture', type),
     datasetId: `dataset-overture-${type}`,
     fileName: `${type}.parquet`,
     filePath: `/tmp/${type}.parquet`,
@@ -23,7 +23,7 @@ function buildOvertureDivisionPlan(
     },
     originalFileName: `${type}.parquet`,
     regionCode: 'hk',
-    releaseCode: `overture-hk-2025-09-24.0-${type}`,
+    releaseCode: buildDatasetReleaseCode('hk', 'overture', '2025-09-24.0', type),
     rowCount: 1,
     schemaFingerprint: 'schema-fingerprint',
     source: 'overture',

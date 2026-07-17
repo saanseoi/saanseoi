@@ -9,7 +9,7 @@ import { runUploadCommand } from './upload.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 
-type BackfillKind = 'newtown' | 'pu'
+type BackfillKind = 'new-town' | 'pu'
 
 type BackfillRelease = {
   catalogueUrl: string
@@ -86,7 +86,7 @@ export async function runHkgovPlandBackfillCommand(
   assertBackfillArguments(args, printUsage)
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const releases = kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES
-  const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-newtown'
+  const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
   const artifactRoot = resolve(REPO_ROOT, 'data/hkgov/pland')
   const outputDir = await mkdtemp(join(tmpdir(), `harbour-${source}-backfill-`))
 
@@ -99,7 +99,7 @@ export async function runHkgovPlandBackfillCommand(
       )
       const divisionAreaFile = join(
         outputDir,
-        `${source}-hk-${release.year}-divisionArea.parquet`,
+        `${source}-hk-${release.year}-division-area.parquet`,
       )
       if (kind === 'pu') {
         await Promise.all([

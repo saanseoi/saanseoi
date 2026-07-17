@@ -7,7 +7,7 @@ import {
   listCurrentApiCompositionMembersForType,
   listCurrentSnapshotCleanupCandidates,
   listApiReleaseSetSnapshots,
-  resolveActiveReleaseSetForType,
+  resolveLatestReleaseSetForTypeDomainCohort,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
   resolveReleaseSetForRelease,
@@ -17,7 +17,12 @@ import {
   upsertIngestRunStatus,
   waitForDatasetRecord,
 } from '@repo/core/db/metaRegistry'
-import type { HarbourJobMessage, RegionCode, ResourceType } from '@repo/core'
+import {
+  datasetVariantForSource,
+  type HarbourJobMessage,
+  type RegionCode,
+  type ResourceType,
+} from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 type StageRequest = {
@@ -42,6 +47,8 @@ type CleanupSnapshotsRequest = {
 }
 
 type ControlResult = {
+  apiCatalogRevisionCode?: string
+  apiCatalogRevisionId?: string
   apiReleaseSetId?: string
   apiReleaseSetCode?: string
   apiReleaseSetStatus?: 'current' | 'draft'
@@ -208,7 +215,7 @@ export async function handlePublishDataset(
     const dataset = await requireDataset(db, request)
     const publishedAt = new Date().toISOString()
     const datasetType = dataset.type as ResourceType
-    const datasetVariant = resolveDatasetVariant(datasetType, dataset.source)
+    const datasetVariant = datasetVariantForSource(datasetType, dataset.source)
     const compositionMembers = await listCurrentApiCompositionMembersForType(
       db,
       datasetType,
@@ -222,11 +229,6 @@ export async function handlePublishDataset(
       db,
       dataset.datasetId,
       dataset.releaseId,
-    )
-    const activeReleaseSet = await resolveActiveReleaseSetForType(
-      db,
-      datasetType,
-      domainCode,
     )
     const existingReleaseSet = await resolveReleaseSetForRelease(
       db,
@@ -263,13 +265,23 @@ export async function handlePublishDataset(
     const domainMembers = compositionMembers.filter(
       member => member.domainCode === domainCode,
     )
+    let selectedApiCatalogRevision: Awaited<
+      ReturnType<typeof publishReleaseArtifacts>
+    > | null = null
     let selectedReleaseSetStatus: 'current' | 'draft' = 'draft'
     for (const [index, releaseSet] of releaseSets.entries()) {
       const releaseSetCohortKey =
         parseReleaseSetCohortKey(releaseSet.code) ?? dataset.cohortKey
+      const previousReleaseSet = await resolveLatestReleaseSetForTypeDomainCohort(
+        db,
+        datasetType,
+        domainCode,
+        dataset.regionCode as RegionCode,
+        releaseSetCohortKey,
+      )
       const carriedSnapshots = await resolveCarriedSnapshots(
         db,
-        activeReleaseSet?.id === releaseSet.id ? null : activeReleaseSet,
+        previousReleaseSet?.id === releaseSet.id ? null : previousReleaseSet,
         datasetType,
         datasetVariant,
       )
@@ -313,7 +325,7 @@ export async function handlePublishDataset(
       if (index === 0 && shouldPublishReleaseSet) {
         selectedReleaseSetStatus = 'current'
       }
-      await publishReleaseArtifacts(db, {
+      const apiCatalogRevision = await publishReleaseArtifacts(db, {
         carriedSnapshots,
         currentRelease,
         currentReleaseIsCorrected: currentRelease
@@ -328,6 +340,9 @@ export async function handlePublishDataset(
         // older sets draft and activate only the newest complete candidate.
         deferApiReleaseSet: !shouldPublishReleaseSet,
       })
+      if (shouldPublishReleaseSet) {
+        selectedApiCatalogRevision = apiCatalogRevision
+      }
     }
 
     if (!request.skipSnapshotCleanup && cleanupQueue) {
@@ -346,6 +361,8 @@ export async function handlePublishDataset(
     }
 
     return {
+      apiCatalogRevisionCode: selectedApiCatalogRevision?.code,
+      apiCatalogRevisionId: selectedApiCatalogRevision?.id,
       apiReleaseSetId: releaseSets[0]?.id,
       apiReleaseSetCode: releaseSets[0]?.code,
       apiReleaseSetStatus: selectedReleaseSetStatus,
@@ -365,7 +382,9 @@ function releaseSetMemberKey(resourceType: ResourceType, variant: string) {
 
 async function resolveCarriedSnapshots(
   db: HarbourReadableDb,
-  activeReleaseSet: Awaited<ReturnType<typeof resolveActiveReleaseSetForType>>,
+  activeReleaseSet: Awaited<
+    ReturnType<typeof resolveLatestReleaseSetForTypeDomainCohort>
+  >,
   datasetType: ResourceType,
   datasetVariant: string,
 ) {
@@ -414,12 +433,6 @@ async function resolveSupportingSnapshotsForMember(
     cohortKey,
   )
   return snapshot ? [snapshot] : []
-}
-
-function resolveDatasetVariant(type: ResourceType, source: string) {
-  return type === 'division' || type === 'divisionArea' || type === 'divisionBoundary'
-    ? source
-    : 'default'
 }
 
 function parseReleaseSetCohortKey(releaseSetCode?: string) {

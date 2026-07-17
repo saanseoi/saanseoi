@@ -18,7 +18,7 @@ export async function runHkgovPlandPrepCommand(
     typeof args.options['source-version'] === 'string'
       ? args.options['source-version']
       : inferSourceVersion(inputFile ?? '')
-  const kind = args.options.kind === 'newtown' ? 'newtown' : 'tpu'
+  const kind = args.options.kind === 'new-town' ? 'new-town' : 'tpu'
 
   if (!inputFile || !sourceVersion) {
     printUsage()
@@ -34,14 +34,14 @@ export async function runHkgovPlandPrepCommand(
     : await mkdtemp(join(tmpdir(), 'harbour-hkgov-pland-'))
   if (requestedOutputDir) await mkdir(outputDir, { recursive: true })
   const sourceFile = resolve(inputFile)
-  if (kind === 'newtown') {
+  if (kind === 'new-town') {
     const divisionOutput = join(
       outputDir,
-      `hkgov-pland-newtown-hk-${sourceVersion}-division.parquet`,
+      `hkgov-pland-new-town-hk-${sourceVersion}-division.parquet`,
     )
     const divisionAreaOutput = join(
       outputDir,
-      `hkgov-pland-newtown-hk-${sourceVersion}-divisionArea.parquet`,
+      `hkgov-pland-new-town-hk-${sourceVersion}-division-area.parquet`,
     )
     const [division, divisionArea] = await Promise.all([
       prepareHkgovPlandNewTownParquet({
@@ -76,7 +76,7 @@ export async function runHkgovPlandPrepCommand(
   )
   const divisionAreaOutput = join(
     outputDir,
-    `hkgov-pland-pu-hk-${sourceVersion}-divisionArea.parquet`,
+    `hkgov-pland-pu-hk-${sourceVersion}-division-area.parquet`,
   )
   const [division, divisionArea] = await Promise.all([
     prepareHkgovPlandTpuParquet({
