@@ -22,7 +22,10 @@ describe('latest release rollback SQL', () => {
       "DELETE FROM divisions WHERE snapshotId = 'snapshot-new';",
     )
     expect(sql.history).toContain(
-      "validToSnapshotId = 'snapshot-new';\n\nDELETE FROM divisions WHERE sourceReleaseId = 'release-new-''quoted''' AND snapshotId = 'snapshot-new';",
+      "DELETE FROM snapshotVersionChanges WHERE snapshotId = 'snapshot-new';",
+    )
+    expect(sql.history).toContain(
+      "UPDATE divisions SET isCurrent = 0 WHERE snapshotId = 'snapshot-new';",
     )
     expect(sql.source).toContain(
       'UPDATE overtureDivisions\nSET isCurrent = 1,\n  validToRelease = NULL,',
@@ -60,11 +63,12 @@ describe('latest release rollback SQL', () => {
       "DELETE FROM address2d WHERE snapshotId = 'address-snapshot-new';",
     )
     expect(sql.history).toContain(
-      'UPDATE address2d\nSET isCurrent = 1,\n  validToSnapshotId = NULL,\n  validToCohortKey = NULL,',
+      "DELETE FROM snapshotVersionChanges WHERE snapshotId = 'address-snapshot-new';",
     )
     expect(sql.history).toContain(
-      "DELETE FROM address2d WHERE sourceReleaseId = 'address-release-new' AND snapshotId = 'address-snapshot-new';",
+      "UPDATE address2d SET isCurrent = 0 WHERE snapshotId = 'address-snapshot-new';",
     )
+    expect(sql.history).not.toContain('DELETE FROM address2d WHERE')
     expect(sql.source).toContain(
       'UPDATE hkgovAlsAddresses2d\nSET isCurrent = 1,\n  validToRelease = NULL,',
     )

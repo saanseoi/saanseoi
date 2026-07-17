@@ -1,4 +1,6 @@
 export type PublishDatasetResult = {
+  apiCatalogRevisionCode?: string
+  apiCatalogRevisionId?: string
   apiReleaseSetId?: string
   apiReleaseSetCode?: string
   apiReleaseSetStatus?: 'current' | 'draft'
