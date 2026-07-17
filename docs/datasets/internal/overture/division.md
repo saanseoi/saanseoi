@@ -50,9 +50,10 @@ Shared source-version behavior is documented in
 [ResourceType common processing](../../resourceType/common.md#source-retention).
 
 Division parquet uploads are treated as complete source snapshots. A later release
-closes current source/history rows that are missing from the new parquet by clearing
-`isCurrent` and setting `validToRelease` or `validToSnapshotId`. The local SQL division
-path loads previous-year source and history shards for every division upload so a 2026
-full snapshot can also close stale current rows still owned by the 2025 shard. For
-cohorts before 2025, the same continuity baseline is loaded from the region-scoped
-`DB_SOURCE_HK_BEFORE` and `DB_HISTORY_HK_BEFORE` shards.
+closes source rows that are missing from the new parquet with `validToRelease`.
+Canonical history clears the mutable `isCurrent` cache flag and writes a deletion
+tombstone to `snapshotVersionChanges`; snapshot/cohort validity ranges are not used. The
+local SQL division path loads previous-year source and history shards for every division
+upload so a 2026 full snapshot can also close stale current rows still owned by the 2025
+shard. For cohorts before 2025, the same continuity baseline is loaded from the
+region-scoped `DB_SOURCE_HK_BEFORE` and `DB_HISTORY_HK_BEFORE` shards.

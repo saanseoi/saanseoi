@@ -107,9 +107,11 @@ After SQL generation, local orchestration imports artifacts in database order:
 ## Snapshots
 
 Processing creates or reuses a resourceType-scoped draft snapshot via
-`ensureDraftSnapshotForRelease`. If an earlier published snapshot exists for the same
-resourceType and region, its current rows can be bulk-cloned into the new draft snapshot
-before the upload delta is applied.
+`ensureDraftSnapshotForRelease`. Persistent lineages record the previous cohort as the
+revision-zero parent; cohort-scoped lineages start each cohort at a root. Same-cohort
+revisions point to the previous revision. Writers may bulk-clone only that exact
+`parentSnapshotId`; a missing materialisation is an error and must never fall back to
+the latest published snapshot.
 
 For remote preview/production SQL uploads, the CLI mirrors the target D1 tables into a
 persistent per-target local cache under `.local/harbour-sql/db-cache`. Source/history

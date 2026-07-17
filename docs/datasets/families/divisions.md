@@ -9,6 +9,12 @@ snapshot or the latest published HAD snapshot at or before the set cohort; the b
 requirement currently remains exact-cohort Overture. This lets long-lived authoritative
 HAD geometry accompany a newer canonical division release without selecting future data.
 
+Registry codes use lowercase kebab-case even though programmatic resource-type enums use
+camelCase. For example, `divisionArea` is encoded as `division-area` and
+`divisionBoundary` as `division-boundary`. Dataset and release metadata supply
+publisher, resource type, product, and variant directly; publication code must not infer
+them by parsing an identifier.
+
 The reusable resource contract and variant rules are documented in
 [`divisionGeometry`](../resourceType/divisionGeometry.md) and
 [`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md). The Overture and

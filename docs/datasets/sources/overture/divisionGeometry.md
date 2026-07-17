@@ -5,6 +5,12 @@ Overture `division_area` and `division_boundary` parquet files are ingested as t
 documented geometry unions: Polygon and MultiPolygon for areas, LineString and
 MultiLineString for boundaries.
 
+The registry dataset codes are `ds-hk-overture-division-area` and
+`ds-hk-overture-division-boundary`. Release codes use
+`dr-hk-overture-division-area-{sourceVersion}` and
+`dr-hk-overture-division-boundary-{sourceVersion}`; camelCase remains confined to the
+programmatic resource-type enum.
+
 Geometry uploads perform structural checks by default (supported geometry type, required
 IDs, and division references). Full topology validation, including self-intersection and
 degenerate-ring detection, is opt-in with `--validate-geometry`. This avoids quadratic
@@ -25,8 +31,13 @@ The input contained 181 area rows and 67 boundary rows. The Hong Kong cut retain
 areas and 66 boundaries, excluding 39 and 1 `region = 'CN-GD'` rows respectively. The
 filter is `region <> 'CN-GD' OR region IS NULL`; null-country, null-region boundary rows
 represent maritime/international waters and are retained. A future non-HK, non-null
-country or non-null, non-`CN-GD` region must fail preflight unless the explicit
+country or non-null, non-`CN-GD` region must surface in preflight unless the explicit
 allowlist is extended.
+
+The dropped-field preflight treats `country = 'CN'` and `region = 'CN-GD'` as the
+allowlisted signature of these early scoped-extract spillover rows for division
+geometry. Normalization still drops the rows before division-reference validation and
+storage. Other non-HK country or region values continue to produce a preflight warning.
 
 After the cut, boundaries contain 53 `LineString` and 13 `MultiLineString` records;
 areas contain 133 `Polygon` and 9 `MultiPolygon` records. Single and multi geometries
@@ -98,7 +109,10 @@ snapshot therefore adds the reviewed
 `fixtures/divisions/overture/hk-prc-country-anchor.json` row. The fixture supplies only
 the level-0 country identity and localized names; it deliberately has no country
 geometry. It is ingested with every cohort so geometry and address references resolve
-within the exact same division snapshot.
+within the exact same division snapshot. The anchor is registered as referent-only, so
+areas belonging to it are rejected before geometry decoding. Boundaries between Hong
+Kong and the PRC remain valid: they may reference the anchor without storing the PRC's
+area geometry.
 
 ## Publication lineage
 
