@@ -1,25 +1,33 @@
 {
-  "versionHash": "sha256:fcd355df9c99abb9f5352673cc1e8acac35856ef1b6d87ba97dfb0bf3efc7ae5",
+  "versionHash": "sha256:4b8d50400fb864db572eb021697672f091a4c74adbce4207e96278ea1394c470",
   "apiVersion": "api-addresses-v0.1",
   "code": "comp-addresses-v1",
   "version": 1,
   "primaryResourceType": "address",
   "status": "current",
-  "members": [
+  "domains": [
     {
-      "resourceType": "address",
-      "role": "primary",
-      "isRequired": true,
-      "cohortMatchingMode": "exact_ref",
-      "priority": 0
-    },
-    {
-      "resourceType": "division",
-      "role": "supporting",
-      "isRequired": true,
-      "cohortMatchingMode": "exact_ref",
-      "anchorResourceType": "address",
-      "priority": 10
+      "code": "overture",
+      "isDefault": true,
+      "members": [
+        {
+          "resourceType": "address",
+          "variant": "default",
+          "role": "primary",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 0
+        },
+        {
+          "resourceType": "division",
+          "variant": "overture",
+          "role": "supporting",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "anchorResourceType": "address",
+          "priority": 10
+        }
+      ]
     }
   ]
 }

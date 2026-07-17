@@ -1,33 +1,42 @@
 {
-  "versionHash": "sha256:2b27b1c802f760cbeef3947b1631249d3a1d01dd10165ee937eee000547d1136",
+  "versionHash": "sha256:f90b3f7d1688936387d4ce23694a0065e8f46ac35caca7bf38076a401c39d5d7",
   "apiVersion": "api-places-v0.1",
   "code": "comp-places-v1",
   "version": 1,
   "primaryResourceType": "place",
   "status": "current",
-  "members": [
+  "domains": [
     {
-      "resourceType": "place",
-      "role": "primary",
-      "isRequired": true,
-      "cohortMatchingMode": "exact_ref",
-      "priority": 0
-    },
-    {
-      "resourceType": "address",
-      "role": "supporting",
-      "isRequired": true,
-      "cohortMatchingMode": "exact_ref",
-      "anchorResourceType": "place",
-      "priority": 10
-    },
-    {
-      "resourceType": "division",
-      "role": "supporting",
-      "isRequired": true,
-      "cohortMatchingMode": "exact_ref",
-      "anchorResourceType": "address",
-      "priority": 20
+      "code": "overture",
+      "isDefault": true,
+      "members": [
+        {
+          "resourceType": "place",
+          "variant": "default",
+          "role": "primary",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 0
+        },
+        {
+          "resourceType": "address",
+          "variant": "default",
+          "role": "supporting",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "anchorResourceType": "place",
+          "priority": 10
+        },
+        {
+          "resourceType": "division",
+          "variant": "overture",
+          "role": "supporting",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "anchorResourceType": "address",
+          "priority": 20
+        }
+      ]
     }
   ]
 }
