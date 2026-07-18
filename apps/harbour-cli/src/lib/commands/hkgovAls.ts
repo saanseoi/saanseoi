@@ -23,6 +23,11 @@ import {
   type HkgovAlsPrecedenceVariantDecisions,
 } from '../hkgovAlsVariants.ts'
 import {
+  classifyHkgovAlsBlockHouseTowerManualReview,
+  parseHkgovAlsManualRetainIdReview,
+  type HkgovAlsManualReviewClassification,
+} from '../hkgovAlsManualReview.ts'
+import {
   prepareHkgovAlsAddressParquet,
   type HkgovAlsPrecedenceVariantCandidate,
 } from '../hkgovAls.ts'
@@ -35,6 +40,12 @@ const DEFAULT_HISTORY_FILE = '.local/hkgov-dpo/als-identity-history.json'
 const DEFAULT_DECISIONS_FILE = '.local/hkgov-dpo/als-identity-decisions.json'
 const DEFAULT_PRECEDENCE_VARIANT_DECISIONS_FILE =
   '.local/hkgov-dpo/als-precedence-variant-decisions.json'
+const DEFAULT_BLOCK_HOUSE_TOWER_REVIEW_FILE =
+  '.local/hkgov-dpo/identity-drift/block-house-tower-review.md'
+const DEFAULT_BLOCK_HOUSE_TOWER_RETAIN_ID_FILE =
+  '.local/hkgov-dpo/identity-drift/block-house-tower-review-retain-id.md'
+const DEFAULT_BLOCK_HOUSE_TOWER_VALIDATION_FILE =
+  '.local/hkgov-dpo/identity-drift/block-house-tower-review-validation.md'
 const INVOCATION_CWD = resolve(
   process.env.SAANSEOI_INVOCATION_CWD ?? process.env.INIT_CWD ?? process.cwd(),
 )
@@ -181,7 +192,7 @@ export async function runHkgovAlsLocalIngestCommand(
       `No ALS release directories found in ${resolve(sourceRoot)} on or after ${firstSourceVersion}.`,
     )
   }
-  const review = await reviewHkgovAlsIngest({
+  let review = await reviewHkgovAlsIngest({
     args,
     cohortKey,
     decisions,
@@ -190,6 +201,63 @@ export async function runHkgovAlsLocalIngestCommand(
     sourceDirs,
     target,
   })
+  const blockHouseTowerReviewFile = resolveInvocationPath(
+    stringOption(args, 'block-house-tower-review-file') ??
+      DEFAULT_BLOCK_HOUSE_TOWER_REVIEW_FILE,
+  )
+  const manualRetainIdFile = resolveInvocationPath(
+    stringOption(args, 'block-house-tower-retain-id-file') ??
+      DEFAULT_BLOCK_HOUSE_TOWER_RETAIN_ID_FILE,
+  )
+  const manualValidationFile = resolveInvocationPath(
+    stringOption(args, 'block-house-tower-validation-file') ??
+      DEFAULT_BLOCK_HOUSE_TOWER_VALIDATION_FILE,
+  )
+  const manualClassification = await classifyManualBlockHouseTowerReview(
+    manualRetainIdFile,
+    review.blockHouseTowerDriftCandidates,
+  )
+  const rawManualClassification = manualClassification
+    ? await classifyRawManualBlockHouseTowerReview({
+        args,
+        cohortKey,
+        decisions,
+        history,
+        precedenceVariantDecisions,
+        sourceDirs,
+        target,
+        manualRetainIdFile,
+      })
+    : null
+  if (manualClassification) {
+    const nextDecisions = mergeManualBlockHouseTowerDecisions(
+      decisions,
+      manualClassification,
+    )
+    await writeBlockHouseTowerManualValidation(
+      manualValidationFile,
+      manualRetainIdFile,
+      manualClassification,
+      rawManualClassification,
+    )
+    if (nextDecisions.decisions.length !== decisions.decisions.length) {
+      decisions = nextDecisions
+      await writeJson(decisionsFile, decisions)
+      review = await reviewHkgovAlsIngest({
+        args,
+        cohortKey,
+        decisions,
+        history,
+        precedenceVariantDecisions,
+        sourceDirs,
+        target,
+      })
+    }
+  }
+  await writeBlockHouseTowerReview(
+    blockHouseTowerReviewFile,
+    review.blockHouseTowerDriftCandidates,
+  )
   note(
     [
       formatField('releases', String(sourceDirs.length)),
@@ -198,6 +266,28 @@ export async function runHkgovAlsLocalIngestCommand(
         String(review.precedenceVariantCandidates),
       ),
       formatField('identityDriftChoicesRequired', String(review.driftCandidates)),
+      formatField(
+        'blockHouseTowerDriftChoicesRequired',
+        String(review.blockHouseTowerDriftCandidates.length),
+      ),
+      formatField('blockHouseTowerReview', blockHouseTowerReviewFile),
+      ...(manualClassification
+        ? [
+            formatField('blockHouseTowerManualValidation', manualValidationFile),
+            formatField(
+              'manualRetainIdDecisionsApplied',
+              String(manualClassification.retainId.length),
+            ),
+            formatField(
+              'manualNewIdDecisionsApplied',
+              String(manualClassification.newId.length),
+            ),
+            formatField(
+              'unmatchedManualRetainEntries',
+              String(manualClassification.unmatchedRetainEntries.length),
+            ),
+          ]
+        : []),
     ].join('\n'),
     'ALS REVIEW REQUIRED BEFORE INGESTION',
   )
@@ -205,6 +295,13 @@ export async function runHkgovAlsLocalIngestCommand(
   for (const sourceDir of sourceDirs) {
     const sourceVersion = inferAlsSourceVersionFromPath(sourceDir)
     if (!sourceVersion) continue
+    if (history.entries.some(entry => entry.sourceVersion === sourceVersion)) {
+      note(
+        `A successful earlier local ingestion recorded this source version; skipping it.`,
+        `ALREADY INGESTED — ${sourceVersion}`,
+      )
+      continue
+    }
     const outputFile = resolveInvocationPath(
       '.local/hkgov-dpo/prepared',
       `hkgov-hk-${sourceVersion}-address.parquet`,
@@ -254,8 +351,11 @@ export async function runHkgovAlsLocalIngestCommand(
           `ALS identity drift requires review. Wrote ${reportFile}; add decisions and run again.`,
         )
       }
-      decisions = await promptForDriftDecisions(decisions, result.driftCandidates)
-      await writeJson(decisionsFile, decisions)
+      decisions = await promptForDriftDecisions(
+        decisions,
+        result.driftCandidates,
+        nextDecisions => writeJson(decisionsFile, nextDecisions),
+      )
       result = await prepareHkgovAlsRelease({
         args,
         cohortKey,
@@ -325,6 +425,7 @@ async function prepareHkgovAlsRelease(args: {
   sourceDir: string
   sourceVersion: string
   target: UploadTarget
+  postProcessPremiseStructure?: boolean
   writeOutput?: boolean
 }) {
   const explicitDbPath = stringOption(args.args, 'db')
@@ -351,6 +452,7 @@ async function prepareHkgovAlsRelease(args: {
       cohortKey: args.cohortKey,
       sourceDir: args.sourceDir,
       sourceVersion: args.sourceVersion,
+      postProcessPremiseStructure: args.postProcessPremiseStructure,
       writeOutput: args.writeOutput,
     })
   } finally {
@@ -364,12 +466,17 @@ async function reviewHkgovAlsIngest(args: {
   decisions: HkgovAlsIdentityDecisions
   history: HkgovAlsIdentityHistory
   precedenceVariantDecisions: HkgovAlsPrecedenceVariantDecisions
+  postProcessPremiseStructure?: boolean
   sourceDirs: string[]
   target: UploadTarget
 }) {
   let history = args.history
   const precedenceVariantCandidates = new Set<string>()
   const driftCandidates = new Set<string>()
+  const blockHouseTowerDriftCandidates = new Map<
+    string,
+    HkgovAlsIdentityDriftCandidate
+  >()
   for (const sourceDir of args.sourceDirs) {
     const sourceVersion = inferAlsSourceVersionFromPath(sourceDir)
     if (!sourceVersion) continue
@@ -383,22 +490,199 @@ async function reviewHkgovAlsIngest(args: {
       sourceDir,
       sourceVersion,
       target: args.target,
+      postProcessPremiseStructure: args.postProcessPremiseStructure,
       writeOutput: false,
     })
     for (const candidate of result.precedenceVariantCandidates) {
       precedenceVariantCandidates.add(candidate.identityKey)
     }
     for (const candidate of result.driftCandidates) {
-      driftCandidates.add(
-        `${candidate.previous.identityKey}\u0000${candidate.current.identityKey}`,
-      )
+      const key = `${candidate.previous.identityKey}\u0000${candidate.current.identityKey}`
+      driftCandidates.add(key)
+      if (hasBlockHouseTowerChange(candidate)) {
+        blockHouseTowerDriftCandidates.set(key, candidate)
+      }
     }
     history = mergeHkgovAlsIdentityHistory(history, result.identityRecords)
   }
   return {
+    blockHouseTowerDriftCandidates: [...blockHouseTowerDriftCandidates.values()].sort(
+      (left, right) =>
+        left.current.sourceVersion.localeCompare(right.current.sourceVersion) ||
+        left.current.identityKey.localeCompare(right.current.identityKey),
+    ),
     driftCandidates: driftCandidates.size,
+    driftCandidatesDetailed: [...blockHouseTowerDriftCandidates.values()],
     precedenceVariantCandidates: precedenceVariantCandidates.size,
   }
+}
+
+async function classifyManualBlockHouseTowerReview(
+  filePath: string,
+  candidates: HkgovAlsIdentityDriftCandidate[],
+) {
+  try {
+    return classifyHkgovAlsBlockHouseTowerManualReview(
+      candidates,
+      parseHkgovAlsManualRetainIdReview(await readFile(filePath, 'utf8')),
+    )
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null
+    throw error
+  }
+}
+
+async function classifyRawManualBlockHouseTowerReview(args: {
+  args: ParsedArgs
+  cohortKey: string
+  decisions: HkgovAlsIdentityDecisions
+  history: HkgovAlsIdentityHistory
+  manualRetainIdFile: string
+  precedenceVariantDecisions: HkgovAlsPrecedenceVariantDecisions
+  sourceDirs: string[]
+  target: UploadTarget
+}) {
+  const rawReview = await reviewHkgovAlsIngest({
+    ...args,
+    postProcessPremiseStructure: false,
+  })
+  return classifyManualBlockHouseTowerReview(
+    args.manualRetainIdFile,
+    rawReview.blockHouseTowerDriftCandidates,
+  )
+}
+
+function mergeManualBlockHouseTowerDecisions(
+  decisions: HkgovAlsIdentityDecisions,
+  classification: HkgovAlsManualReviewClassification,
+): HkgovAlsIdentityDecisions {
+  const next = new Map(
+    decisions.decisions.map(decision => [
+      `${decision.previousIdentityKey}\u0000${decision.currentIdentityKey}`,
+      decision,
+    ]),
+  )
+  for (const [resolution, candidates] of [
+    ['keep-existing-id', classification.retainId],
+    ['new-id', classification.newId],
+  ] as const) {
+    for (const candidate of candidates) {
+      const key = `${candidate.previous.identityKey}\u0000${candidate.current.identityKey}`
+      next.set(key, {
+        currentIdentityKey: candidate.current.identityKey,
+        previousIdentityKey: candidate.previous.identityKey,
+        resolution,
+      })
+    }
+  }
+  return {
+    authority: 'hkgov-dpo',
+    decisions: [...next.values()].sort((left, right) =>
+      `${left.previousIdentityKey}\u0000${left.currentIdentityKey}`.localeCompare(
+        `${right.previousIdentityKey}\u0000${right.currentIdentityKey}`,
+      ),
+    ),
+    version: 1,
+  }
+}
+
+async function writeBlockHouseTowerManualValidation(
+  filePath: string,
+  manualFilePath: string,
+  classification: HkgovAlsManualReviewClassification,
+  rawClassification: HkgovAlsManualReviewClassification | null,
+) {
+  const markdown = [
+    '# ALS block / house / tower manual-review validation',
+    '',
+    `Retain-ID source: \`${manualFilePath}\`.`,
+    '',
+    '## Raw ALS review (before structural post-processing)',
+    '',
+    `- Retain existing ID: ${rawClassification?.retainId.length ?? 0}`,
+    `- Generate new ID: ${rawClassification?.newId.length ?? 0}`,
+    `- Retain-file entries not found: ${rawClassification?.unmatchedRetainEntries.length ?? 0}`,
+    '',
+    '## Cleaned ALS review (after structural post-processing)',
+    '',
+    `- Still requires a retained ID: ${classification.retainId.length}`,
+    `- Still requires a new ID: ${classification.newId.length}`,
+    `- Retain-file entries no longer unresolved: ${classification.unmatchedRetainEntries.length}`,
+    '',
+    '## Raw retain-file entries needing inspection',
+    '',
+    ...(rawClassification?.unmatchedRetainEntries.length
+      ? rawClassification.unmatchedRetainEntries.map(
+          entry => `- ${entry.release}: ${entry.identifierPairs.join(', ')}`,
+        )
+      : ['None.']),
+    '',
+  ].join('\n')
+  await mkdir(dirname(filePath), { recursive: true })
+  await writeFile(filePath, markdown)
+}
+
+function hasBlockHouseTowerChange(candidate: HkgovAlsIdentityDriftCandidate) {
+  if (
+    ['blockDescriptor', 'blockNumber'].some(
+      key => candidate.previous.summary[key] !== candidate.current.summary[key],
+    )
+  ) {
+    return true
+  }
+  return [
+    candidate.previous.summary.buildingName,
+    candidate.current.summary.buildingName,
+  ]
+    .filter((value): value is string => value != null)
+    .some(value => /\b(?:BLOCK|HOUSE|TOWER)\b/i.test(value))
+}
+
+async function writeBlockHouseTowerReview(
+  filePath: string,
+  candidates: HkgovAlsIdentityDriftCandidate[],
+) {
+  const rows = candidates.map(candidate => [
+    candidate.current.sourceVersion,
+    formatIdentitySummary(candidate.previous.summary),
+    formatIdentitySummary(candidate.current.summary),
+    formatBuildingComponentChanges(candidate),
+  ])
+  const header = [
+    'Release',
+    'Old address',
+    'New address',
+    'Block / house / tower change',
+  ]
+  const markdown = [
+    '# Unresolved ALS block / house / tower changes',
+    '',
+    `Generated from ${candidates.length} unresolved ALS-to-ALS drift candidates. ` +
+      'Existing identity decisions are excluded.',
+    '',
+    `| ${header.join(' | ')} |`,
+    `| ${header.map(() => '---').join(' | ')} |`,
+    ...rows.map(row => `| ${row.map(markdownTableCell).join(' | ')} |`),
+    '',
+  ].join('\n')
+  await mkdir(dirname(filePath), { recursive: true })
+  await writeFile(filePath, markdown)
+}
+
+function formatBuildingComponentChanges(candidate: HkgovAlsIdentityDriftCandidate) {
+  return ['blockDescriptor', 'blockNumber', 'buildingName']
+    .filter(key => candidate.previous.summary[key] !== candidate.current.summary[key])
+    .map(
+      key =>
+        `${formatIdentityFieldName(key)}: ${formatIdentityFieldValue(
+          candidate.previous.summary[key],
+        )} → ${formatIdentityFieldValue(candidate.current.summary[key])}`,
+    )
+    .join('; ')
+}
+
+function markdownTableCell(value: string) {
+  return value.replaceAll('|', '\\|').replaceAll('\n', '<br>')
 }
 
 async function promptForPrecedenceVariantDecisions(
@@ -442,6 +726,7 @@ async function promptForPrecedenceVariantDecisions(
 async function promptForDriftDecisions(
   decisions: HkgovAlsIdentityDecisions,
   candidates: HkgovAlsIdentityDriftCandidate[],
+  persist: (decisions: HkgovAlsIdentityDecisions) => Promise<void> = async () => {},
 ) {
   const next = [...decisions.decisions]
   for (const candidate of candidates) {
@@ -466,6 +751,7 @@ async function promptForDriftDecisions(
       previousIdentityKey: candidate.previous.identityKey,
       resolution: answer,
     })
+    await persist({ authority: 'hkgov-dpo', decisions: next, version: 1 })
   }
   return { authority: 'hkgov-dpo' as const, decisions: next, version: 1 as const }
 }
@@ -473,7 +759,40 @@ async function promptForDriftDecisions(
 function formatDriftPrompt(candidate: HkgovAlsIdentityDriftCandidate) {
   const before = formatIdentitySummary(candidate.previous.summary)
   const after = formatIdentitySummary(candidate.current.summary)
-  return `Likely ALS premise drift\nold: ${before}\nnew: ${after}`
+  const differences = Object.entries(candidate.current.summary)
+    .filter(([key, value]) => candidate.previous.summary[key] !== value)
+    .map(
+      ([key, value]) =>
+        `${formatIdentityFieldName(key)}: ${formatIdentityFieldValue(
+          candidate.previous.summary[key],
+        )} → ${formatIdentityFieldValue(value)}`,
+    )
+  return [
+    'Likely ALS premise drift',
+    `old: ${before}`,
+    `new: ${after}`,
+    'Changed fields:',
+    ...differences.map(difference => `- ${difference}`),
+  ].join('\n')
+}
+
+function formatIdentityFieldName(key: string) {
+  return (
+    {
+      blockDescriptor: 'Block descriptor',
+      blockNumber: 'Block number',
+      buildingName: 'Building name',
+      estateName: 'Estate name',
+      phaseName: 'Phase name',
+      phaseNumber: 'Phase number',
+      unitDescriptor: 'Unit descriptor',
+      unitNumber: 'Unit number',
+    }[key] ?? key
+  )
+}
+
+function formatIdentityFieldValue(value: string | null | undefined) {
+  return value == null ? '—' : value
 }
 
 function formatIdentitySummary(summary: Record<string, string | null>) {
