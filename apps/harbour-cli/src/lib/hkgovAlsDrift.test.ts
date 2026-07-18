@@ -24,6 +24,53 @@ const renamed: HkgovAlsIdentityRecord = {
   summary: { buildingName: 'NEW BUILDING', routeName: 'EXAMPLE ROAD' },
 }
 
+const withdrawnBuildingName: HkgovAlsIdentityRecord = {
+  ...previous,
+  id: 'ss-new',
+  identityKey: 'building-name-removed',
+  sourceVersion: '2025-02-25.1050',
+  summary: { buildingName: null, routeName: 'EXAMPLE ROAD' },
+}
+
+const movedToEstateName: HkgovAlsIdentityRecord = {
+  ...previous,
+  id: 'ss-new',
+  identityKey: 'building-name-moved-to-estate',
+  sourceVersion: '2025-02-25.1050',
+  summary: {
+    buildingName: null,
+    estateName: 'OLD BUILDING',
+    routeName: 'EXAMPLE ROAD',
+  },
+}
+
+const qualifiedBlock: HkgovAlsIdentityRecord = {
+  ...previous,
+  id: 'ss-qualified-block',
+  identityKey: 'qualified-block',
+  summary: {
+    blockDescriptor: 'BLK',
+    blockNumber: '7',
+    buildingName: null,
+    estateName: 'KELLETT VIEW TOWN HOUSES',
+    routeName: 'EXAMPLE ROAD',
+  },
+}
+
+const unqualifiedPremise: HkgovAlsIdentityRecord = {
+  ...qualifiedBlock,
+  id: 'ss-unqualified',
+  identityKey: 'unqualified-premise',
+  sourceVersion: '2025-02-25.1050',
+  summary: {
+    blockDescriptor: null,
+    blockNumber: null,
+    buildingName: 'KELLETT VIEW TOWN HOUSE',
+    estateName: null,
+    routeName: 'EXAMPLE ROAD',
+  },
+}
+
 describe('HKGov ALS identity drift', () => {
   test('requires a decision when a premise name changes on one continuity anchor', () => {
     const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
@@ -57,6 +104,54 @@ describe('HKGov ALS identity drift', () => {
 
     expect(result.candidates).toEqual([])
     expect(result.resolvedIds.get(renamed.identityKey)).toBe(previous.id)
+  })
+
+  test('automatically keeps the ID when ALS only withdraws a building name', () => {
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      previous,
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [withdrawnBuildingName],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.get(withdrawnBuildingName.identityKey)).toBe(previous.id)
+    expect(result.resolvedMatchMethods.get(withdrawnBuildingName.identityKey)).toBe(
+      'als-building-name-withdrawal',
+    )
+  })
+
+  test('automatically keeps the ID when ALS moves a name from building to estate', () => {
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      previous,
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [movedToEstateName],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.get(movedToEstateName.identityKey)).toBe(previous.id)
+    expect(result.resolvedMatchMethods.get(movedToEstateName.identityKey)).toBe(
+      'als-building-estate-reassignment',
+    )
+  })
+
+  test('automatically creates a new ID when a structured block is gained or lost', () => {
+    const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+      qualifiedBlock,
+    ])
+    const result = resolveHkgovAlsIdentityDrift(
+      [unqualifiedPremise],
+      history,
+      emptyHkgovAlsIdentityDecisions(),
+    )
+
+    expect(result.candidates).toEqual([])
+    expect(result.resolvedIds.has(unqualifiedPremise.identityKey)).toBe(false)
   })
 
   test('does not infer continuity when several historic premises share an anchor', () => {
