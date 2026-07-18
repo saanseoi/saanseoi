@@ -76,22 +76,16 @@ historic candidates does not automatically link records.
 
 ## Commands
 
-The local database must first contain the matching Hong Kong division snapshot:
-
-```bash
-bun run --cwd apps/harbour-cli src/cli.ts upload data/division.parquet \
-  --target local --source overture --source-version 2025-10-22.0 \
-  --type division --theme divisions --region hk --cohort-key 2025-10-22.0 \
-  --release-notes-url https://docs.overturemaps.org/blog/2025/10/22/release-notes/#divisions \
-  --yes
-```
+The local database must first contain a published Hong Kong division snapshot in its
+current tables. This is a division dependency, not an Overture-address dependency. After
+the normal local reset, use the current published `2025-12-17.0` division cohort.
 
 Prepare one release (no database mutation):
 
 ```bash
-bun run --cwd apps/harbour-cli prep-hkgov-dpo \
+bin/saanseoi prep-hkgov-dpo \
   data/hkgov/dpo/ALS/20260710-1054-ALS-GeoJSON \
-  --target local --cohort-key 2025-10-22.0 \
+  --target local --cohort-key 2025-12-17.0 \
   --identity-history .local/hkgov-dpo/als-identity-history.json \
   --identity-decisions .local/hkgov-dpo/als-identity-decisions.json \
   --identity-drift-report .local/hkgov-dpo/identity-drift/2026-07-10.1054.json
@@ -100,9 +94,13 @@ bun run --cwd apps/harbour-cli prep-hkgov-dpo \
 Ingest all ALS release directories in chronological order into local D1:
 
 ```bash
-bun run --cwd apps/harbour-cli ingest-hkgov-dpo-local \
-  data/hkgov/dpo/ALS --target local --cohort-key 2025-10-22.0
+bin/saanseoi ingest-hkgov-dpo-local \
+  data/hkgov/dpo/ALS --target local --cohort-key 2025-12-17.0
 ```
+
+The command defaults to ALS releases from the cohort year onward (January 2025 here), so
+pre-2025 directories are excluded. Use `--from-source-version YYYY-MM-DD.NNNN` to choose
+a later start.
 
 Use `--dry-run` to validate each prepared parquet and its upload plan without database
 mutation. Use `--yes` only after reviewing any generated drift reports. The command
