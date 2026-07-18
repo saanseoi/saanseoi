@@ -13,8 +13,8 @@ export function printUsage() {
   saanseoi version:status
   saanseoi version:doctor
   saanseoi inspect [--stage normalized|resolved|operations] [--resourceType address] [--releaseCode VALUE] [--dbShard source|history|current] [--sample first|last|random] [--persist-to .local/d1/dev] [--out-dir .]
-  saanseoi prep-hkgov-dpo <source-dir> [--target local|preview|production] --cohort-key DIVISION_COHORT [--source-version YYYY-MM-DD.NN] [--identity-history FILE] [--identity-decisions FILE] [--precedence-variant-decisions FILE] [--identity-drift-report FILE] [--db /path/to/local.sqlite]
-  saanseoi ingest-hkgov-dpo-local <ALS-source-root> --target local --cohort-key DIVISION_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--precedence-variant-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes]
+  saanseoi prep-hkgov-dpo <source-dir> [--target local|preview|production] --cohort-key DIVISION_COHORT [--source-version YYYY-MM-DD.NN] [--identity-history FILE] [--identity-decisions FILE] [--identity-drift-report FILE] [--db /path/to/local.sqlite]
+  saanseoi ingest-hkgov-dpo-local <ALS-source-root> --target local --cohort-key DIVISION_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--block-house-tower-review-file FILE] [--release-notes-url URL] [--dry-run] [--yes]
   saanseoi prep-hkgov-pland <GeoJSON> [--kind tpu|new-town] [--source-version YYYY] [--out-dir PATH]
   saanseoi backfill:hkgov-pland-pu --target local|preview|production
   saanseoi backfill:hkgov-pland-new-town --target local|preview|production

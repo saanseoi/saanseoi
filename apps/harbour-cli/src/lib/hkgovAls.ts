@@ -31,6 +31,7 @@ import {
   emptyHkgovAlsPrecedenceVariantDecisions,
   type HkgovAlsPrecedenceVariantDecisions,
 } from './hkgovAlsVariants.ts'
+import { normalizeHkgovAlsPremiseStructure } from './hkgovAlsPremiseNormalization.ts'
 const HARBOUR_API_WRANGLER_CONFIG = resolve(
   import.meta.dir,
   '../../../harbour-api/wrangler.jsonc',
@@ -72,6 +73,7 @@ type PrepareHkgovAlsOptions = {
   cohortKey: string
   sourceDir: string
   sourceVersion: string
+  postProcessPremiseStructure?: boolean
   writeOutput?: boolean
 }
 
@@ -236,6 +238,8 @@ type PreparedHkgovAlsRow = {
   zhHantDistrict: string | null
   zhHantEstateName: string | null
   zhHantBuildingName: string | null
+  zhHantBlockDescriptor: string | null
+  zhHantBlockNumber: string | null
   zhHantStreetName: string | null
   zhHantStreetNumberFrom: string | null
   zhHantStreetNumberTo: string | null
@@ -244,6 +248,8 @@ type PreparedHkgovAlsRow = {
   enDistrict: string | null
   enEstateName: string | null
   enBuildingName: string | null
+  enBlockDescriptor: string | null
+  enBlockNumber: string | null
   enStreetName: string | null
   enStreetNumberFrom: string | null
   enStreetNumberTo: string | null
@@ -257,6 +263,7 @@ type PreparedHkgovAlsResult = {
   featureCount: number
   identityConsolidatedFeatureCount: number
   identityEquivalentFeatureGroups: HkgovAlsSourceDuplicateGroup[]
+  resolvedIdConsolidatedFeatureCount: number
   precedenceVariantCandidates: HkgovAlsPrecedenceVariantCandidate[]
   identityRecords: HkgovAlsIdentityRecord[]
   outputFile: string
@@ -333,6 +340,7 @@ export async function prepareHkgovAlsAddressParquet(
       options.cohortKey,
       options.sourceVersion,
       divisionMaps,
+      options.postProcessPremiseStructure !== false,
     ),
   )
   const {
@@ -365,7 +373,6 @@ export async function prepareHkgovAlsAddressParquet(
     row.identityAlias = buildHkgovAlsProvisionalId(row.identityKey)
     row.identityMatchMethod = 'als-drift-decision'
   }
-  assertUniquePreparedRowIds(rows)
   const resolvedIdentityRecords = rows.map(row => ({
     continuityKey: row.identityContinuityKey,
     id: row.id,
@@ -373,6 +380,9 @@ export async function prepareHkgovAlsAddressParquet(
     sourceVersion: row.sourceVersion,
     summary: row.identitySummary,
   }))
+  const resolvedIdDistinctRows = consolidateRowsSharingResolvedId(rows)
+  rows.splice(0, rows.length, ...resolvedIdDistinctRows)
+  assertUniquePreparedRowIds(rows)
 
   await mkdir(dirname(outputFile), { recursive: true })
   if (options.writeOutput !== false)
@@ -540,6 +550,14 @@ export async function prepareHkgovAlsAddressParquet(
           rows.map(row => row.zhHantBuildingName),
         ),
         stringColumn(
+          'zhHantBlockDescriptor',
+          rows.map(row => row.zhHantBlockDescriptor),
+        ),
+        stringColumn(
+          'zhHantBlockNumber',
+          rows.map(row => row.zhHantBlockNumber),
+        ),
+        stringColumn(
           'zhHantStreetName',
           rows.map(row => row.zhHantStreetName),
         ),
@@ -572,6 +590,14 @@ export async function prepareHkgovAlsAddressParquet(
           rows.map(row => row.enBuildingName),
         ),
         stringColumn(
+          'enBlockDescriptor',
+          rows.map(row => row.enBlockDescriptor),
+        ),
+        stringColumn(
+          'enBlockNumber',
+          rows.map(row => row.enBlockNumber),
+        ),
+        stringColumn(
           'enStreetName',
           rows.map(row => row.enStreetName),
         ),
@@ -601,12 +627,52 @@ export async function prepareHkgovAlsAddressParquet(
     identityConsolidatedFeatureCount:
       uniqueSourceFeatures.length - identityDistinctRows.length,
     identityEquivalentFeatureGroups,
+    resolvedIdConsolidatedFeatureCount:
+      identityDistinctRows.length - resolvedIdDistinctRows.length,
     precedenceVariantCandidates,
     identityRecords: resolvedIdentityRecords,
     outputFile,
     sourceDuplicateFeatureGroups,
     sourceFileCount: inputFiles.length,
   }
+}
+
+/**
+ * A reviewed ALS drift decision can make two source variants in the *same*
+ * release resolve to one canonical premise. Keep a single service record, favouring
+ * the representation that carries the most structured premise detail. The full
+ * official source JSON remains in the release input/history.
+ */
+function consolidateRowsSharingResolvedId(rows: PreparedHkgovAlsRow[]) {
+  const byId = new Map<string, PreparedHkgovAlsRow[]>()
+  for (const row of rows) {
+    const group = byId.get(row.id) ?? []
+    group.push(row)
+    byId.set(row.id, group)
+  }
+  const selected: PreparedHkgovAlsRow[] = []
+  for (const group of byId.values()) {
+    const first = [...group].sort((left, right) => {
+      const scoreDifference =
+        preparedPremiseSpecificity(right) - preparedPremiseSpecificity(left)
+      if (scoreDifference !== 0) return scoreDifference
+      return (
+        left.sourceFile.localeCompare(right.sourceFile) ||
+        left.sourceFeatureIndexOneBased - right.sourceFeatureIndexOneBased
+      )
+    })[0]
+    if (first) selected.push(first)
+  }
+  return selected
+}
+
+function preparedPremiseSpecificity(row: PreparedHkgovAlsRow) {
+  return (
+    ((row.enBuildingName ?? row.zhHantBuildingName) ? 8 : 0) +
+    ((row.enBlockNumber ?? row.zhHantBlockNumber) ? 4 : 0) +
+    ((row.enBlockDescriptor ?? row.zhHantBlockDescriptor) ? 2 : 0) +
+    ((row.enEstateName ?? row.zhHantEstateName) ? 1 : 0)
+  )
 }
 
 export function dedupeHkgovAlsSourceFeatures(sourceFeatures: HkgovAlsSourceFeature[]) {
@@ -725,29 +791,36 @@ export function consolidateEquivalentHkgovAlsPremises(
     }))
   const precedenceVariantCandidates: HkgovAlsPrecedenceVariantCandidate[] = []
   for (const equivalentRows of equivalentGroups) {
+    const firstRow = equivalentRows[0]
+    if (!firstRow) continue
     if (equivalentRows.length === 1) {
-      selectedRows.push(equivalentRows[0]!)
+      selectedRows.push(firstRow)
       continue
     }
     const indicators = new Set(
       equivalentRows.map(row => row.blockDescriptorPrecedenceIndicator),
     )
     const hasMissingAndPresentIndicator = indicators.has(null) && indicators.size > 1
-    const decision = decisionByIdentity.get(equivalentRows[0]!.identityKey)
-    const selectedRow = decision
-      ? equivalentRows.find(
-          row =>
-            row.blockDescriptorPrecedenceIndicator ===
-            decision.blockDescriptorPrecedenceIndicator,
-        )
+    const indicatorPresentRow = hasMissingAndPresentIndicator
+      ? equivalentRows.find(row => row.blockDescriptorPrecedenceIndicator != null)
       : undefined
-    if (hasMissingAndPresentIndicator && !selectedRow) {
+    const decision = decisionByIdentity.get(firstRow.identityKey)
+    const selectedRow =
+      indicatorPresentRow ??
+      (decision
+        ? equivalentRows.find(
+            row =>
+              row.blockDescriptorPrecedenceIndicator ===
+              decision.blockDescriptorPrecedenceIndicator,
+          )
+        : undefined)
+    if (hasMissingAndPresentIndicator && !indicatorPresentRow) {
       precedenceVariantCandidates.push({
         address:
-          equivalentRows[0]?.enFormattedAddress ??
-          equivalentRows[0]?.zhHantFormattedAddress ??
+          firstRow.enFormattedAddress ??
+          firstRow.zhHantFormattedAddress ??
           'Unformatted ALS address',
-        identityKey: equivalentRows[0]!.identityKey,
+        identityKey: firstRow.identityKey,
         variants: equivalentRows.map(row => ({
           blockDescriptorPrecedenceIndicator: row.blockDescriptorPrecedenceIndicator,
           featureIndexOneBased: row.sourceFeatureIndexOneBased,
@@ -755,7 +828,7 @@ export function consolidateEquivalentHkgovAlsPremises(
         })),
       })
     }
-    selectedRows.push(selectedRow ?? equivalentRows[0]!)
+    selectedRows.push(selectedRow ?? firstRow)
   }
 
   return { duplicateGroups, precedenceVariantCandidates, rows: selectedRows }
@@ -770,7 +843,10 @@ function assertUniquePreparedRowIds(rows: PreparedHkgovAlsRow[]) {
       continue
     }
     throw new Error(
-      `ALS premise identity collision between ${first.sourceFile} and ${row.sourceFile}. ` +
+      `ALS premise identity collision between ${first.sourceFile} #${first.sourceFeatureIndexOneBased} ` +
+        `and ${row.sourceFile} #${row.sourceFeatureIndexOneBased}. ` +
+        `First: ${JSON.stringify(first.identitySummary)}. ` +
+        `Second: ${JSON.stringify(row.identitySummary)}. ` +
         'The source rows are not exact duplicates; expand the premise identity before ingestion.',
     )
   }
@@ -783,11 +859,50 @@ function normalizeHkgovAlsFeature(
   cohortKey: string,
   sourceVersion: string,
   divisionMaps: DivisionLookupMaps,
+  postProcessPremiseStructure: boolean,
 ): PreparedHkgovAlsRow {
   const properties = feature.properties ?? {}
   const premises = properties.Address?.PremisesAddress ?? {}
-  const zh = premises.ChiPremisesAddress ?? {}
-  const en = premises.EngPremisesAddress ?? {}
+  const rawZh = premises.ChiPremisesAddress ?? {}
+  const rawEn = premises.EngPremisesAddress ?? {}
+  const rawEnStructure = {
+    blockDescriptor: asOptionalString(rawEn.EngBlock?.BlockDescriptor),
+    blockNumber: asOptionalString(rawEn.EngBlock?.BlockNo),
+    buildingName: asOptionalString(rawEn.BuildingName),
+    estateName: asOptionalString(rawEn.EngEstate?.EstateName),
+  }
+  const rawZhStructure = {
+    blockDescriptor: asOptionalString(rawZh.ChiBlock?.BlockDescriptor),
+    blockNumber: asOptionalString(rawZh.ChiBlock?.BlockNo),
+    buildingName: asOptionalString(rawZh.BuildingName),
+    estateName: asOptionalString(rawZh.ChiEstate?.EstateName),
+  }
+  const enStructure = postProcessPremiseStructure
+    ? normalizeHkgovAlsPremiseStructure(rawEnStructure)
+    : { ...rawEnStructure, normalization: 'none' as const }
+  const zhStructure = postProcessPremiseStructure
+    ? normalizeHkgovAlsPremiseStructure(rawZhStructure)
+    : { ...rawZhStructure, normalization: 'none' as const }
+  const en: HkgovLocalizedPremisesAddress = {
+    ...rawEn,
+    BuildingName: enStructure.buildingName,
+    EngBlock: {
+      ...rawEn.EngBlock,
+      BlockDescriptor: enStructure.blockDescriptor,
+      BlockNo: enStructure.blockNumber,
+    },
+    EngEstate: { ...rawEn.EngEstate, EstateName: enStructure.estateName },
+  }
+  const zh: HkgovLocalizedPremisesAddress = {
+    ...rawZh,
+    BuildingName: zhStructure.buildingName,
+    ChiBlock: {
+      ...rawZh.ChiBlock,
+      BlockDescriptor: zhStructure.blockDescriptor,
+      BlockNo: zhStructure.blockNumber,
+    },
+    ChiEstate: { ...rawZh.ChiEstate, EstateName: zhStructure.estateName },
+  }
   const zhStreet = zh.ChiStreet ?? {}
   const enStreet = en.EngStreet ?? {}
   const zhVillage = zh.ChiVillage ?? {}
@@ -888,6 +1003,10 @@ function normalizeHkgovAlsFeature(
         hkgovCsuId: csuId,
         cohortKey,
         sourceFile,
+        premiseNormalization: {
+          en: enStructure.normalization,
+          zhHant: zhStructure.normalization,
+        },
       },
     }) ?? '{}'
 
@@ -925,13 +1044,17 @@ function normalizeHkgovAlsFeature(
     identityNumberTo,
     identityRouteNames: JSON.stringify(identityRouteNames),
     identitySummary: premiseIdentity.summary,
-    chiPremisesAddressJson: stringifyJson(zh),
-    engPremisesAddressJson: stringifyJson(en),
+    // Preserve the official representation verbatim; canonical component fields
+    // below carry the narrowly-scoped post-processing used by the service.
+    chiPremisesAddressJson: stringifyJson(rawZh),
+    engPremisesAddressJson: stringifyJson(rawEn),
     zhHantFormattedAddress: formatZhPremisesAddress(zh),
     zhHantRegion: asOptionalString(zh.Region),
     zhHantDistrict: districtNameZhHant,
     zhHantEstateName: asOptionalString(zh.ChiEstate?.EstateName),
     zhHantBuildingName: asOptionalString(zh.BuildingName),
+    zhHantBlockDescriptor: asOptionalString(zh.ChiBlock?.BlockDescriptor),
+    zhHantBlockNumber: asOptionalString(zh.ChiBlock?.BlockNo),
     zhHantStreetName: asOptionalString(zhStreet.StreetName),
     zhHantStreetNumberFrom: asOptionalString(zhStreet.BuildingNoFrom),
     zhHantStreetNumberTo: asOptionalString(zhStreet.BuildingNoTo),
@@ -940,6 +1063,8 @@ function normalizeHkgovAlsFeature(
     enDistrict: districtNameEn,
     enEstateName: asOptionalString(en.EngEstate?.EstateName),
     enBuildingName: asOptionalString(en.BuildingName),
+    enBlockDescriptor: asOptionalString(en.EngBlock?.BlockDescriptor),
+    enBlockNumber: asOptionalString(en.EngBlock?.BlockNo),
     enStreetName: asOptionalString(enStreet.StreetName),
     enStreetNumberFrom: asOptionalString(enStreet.BuildingNoFrom),
     enStreetNumberTo: asOptionalString(enStreet.BuildingNoTo),
@@ -1380,8 +1505,13 @@ function resolveAreaNameZh(value: unknown) {
 
 function formatZhPremisesAddress(address: HkgovLocalizedPremisesAddress) {
   const street = address.ChiStreet ?? {}
+  const block = address.ChiBlock ?? {}
   const parts = [
     asOptionalString(address.BuildingName),
+    compactAddress(
+      [asOptionalString(block.BlockDescriptor), asOptionalString(block.BlockNo)],
+      '',
+    ),
     asOptionalString(address.ChiEstate?.EstateName),
     joinStreetNumberRange(street.BuildingNoFrom, street.BuildingNoTo, ''),
     asOptionalString(street.StreetName),
@@ -1394,6 +1524,7 @@ function formatZhPremisesAddress(address: HkgovLocalizedPremisesAddress) {
 
 function formatEnPremisesAddress(address: HkgovLocalizedPremisesAddress) {
   const street = address.EngStreet ?? {}
+  const block = address.EngBlock ?? {}
   const streetLine = compactAddress(
     [
       joinStreetNumberRange(street.BuildingNoFrom, street.BuildingNoTo, '-'),
@@ -1403,6 +1534,10 @@ function formatEnPremisesAddress(address: HkgovLocalizedPremisesAddress) {
   )
   const parts = [
     asOptionalString(address.BuildingName),
+    compactAddress(
+      [asOptionalString(block.BlockDescriptor), asOptionalString(block.BlockNo)],
+      ' ',
+    ),
     asOptionalString(address.EngEstate?.EstateName),
     streetLine,
     asOptionalString(address.EngDistrict),

@@ -31,9 +31,11 @@ No coordinate-, `GeoAddress`-, street-, or number-based collapsing is performed.
 rows at the same point can represent distinct ALS premises, such as blocks, towers,
 facilities, or named buildings, and must remain separate address records. The only
 additional consolidation is a representation variant whose complete granular premise
-identity is identical (for example, an omitted versus empty `EngBlock`, or a changed
-block-descriptor precedence flag). These are printed as **Equivalent ALS premise
-variants consolidated**, separately from exact feature duplicates.
+identity is identical. If the variants differ because
+`EngBlock.BlockDescriptorPrecedenceIndicator` is missing in one source feature and
+present in another, the importer deterministically retains the feature with the
+indicator present. Other same-premise representation variants are printed separately
+from exact feature duplicates.
 
 ## Stable ALS premise ID
 
@@ -58,6 +60,12 @@ is never treated as a unique premise by itself.
 For historical ingestion, the command persists an ignored local identity history at
 `.local/hkgov-dpo/als-identity-history.json` and human decisions at
 `.local/hkgov-dpo/als-identity-decisions.json`.
+
+Before its first prompt, historical ingestion performs a local, no-write preflight and
+prints the total precedence-variant and identity-drift choices required across every
+selected release. It also writes a batch Markdown review of unresolved changes involving
+a block, house, or tower to
+`.local/hkgov-dpo/identity-drift/block-house-tower-review.md`.
 
 When a new row has the same unambiguous continuity anchor (CSU/GeoAddress, district,
 route, number/range, and rounded point) but a different premise identity, it is a
@@ -100,7 +108,11 @@ bin/saanseoi ingest-hkgov-dpo-local \
 
 The command defaults to ALS releases from the cohort year onward (January 2025 here), so
 pre-2025 directories are excluded. Use `--from-source-version YYYY-MM-DD.NNNN` to choose
-a later start.
+a later start, or `--block-house-tower-review-file FILE` for a different batch-review
+location.
+
+It resumes safely after a successful local release: source versions already present in
+the persisted ALS identity history are skipped rather than uploaded again.
 
 Use `--dry-run` to validate each prepared parquet and its upload plan without database
 mutation. Use `--yes` only after reviewing any generated drift reports. The command

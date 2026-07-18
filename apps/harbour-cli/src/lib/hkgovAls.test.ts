@@ -102,7 +102,7 @@ describe('consolidateEquivalentHkgovAlsPremises', () => {
     ])
   })
 
-  test('requires a persisted choice for a missing precedence indicator', () => {
+  test('prefers a present precedence indicator over an absent one', () => {
     const missingIndicator = {
       blockDescriptorPrecedenceIndicator: null,
       enFormattedAddress: 'EXAMPLE BUILDING, 1 EXAMPLE STREET',
@@ -117,27 +117,12 @@ describe('consolidateEquivalentHkgovAlsPremises', () => {
       sourceFeatureIndexOneBased: 9,
     }
 
-    const unresolved = consolidateEquivalentHkgovAlsPremises([
+    const result = consolidateEquivalentHkgovAlsPremises([
       missingIndicator,
       presentIndicator,
     ])
-    expect(unresolved.precedenceVariantCandidates).toHaveLength(1)
-
-    const resolved = consolidateEquivalentHkgovAlsPremises(
-      [missingIndicator, presentIndicator],
-      {
-        authority: 'hkgov-dpo',
-        decisions: [
-          {
-            blockDescriptorPrecedenceIndicator: 'Y',
-            identityKey: 'same-complete-premise',
-          },
-        ],
-        version: 1,
-      },
-    )
-    expect(resolved.precedenceVariantCandidates).toEqual([])
-    expect(resolved.rows).toEqual([presentIndicator])
+    expect(result.precedenceVariantCandidates).toEqual([])
+    expect(result.rows).toEqual([presentIndicator])
   })
 })
 

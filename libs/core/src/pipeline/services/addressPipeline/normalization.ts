@@ -58,9 +58,12 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
       buildingName: asNonEmptyString(row.enBuildingName),
       buildingNumberFrom: null,
       buildingNumberTo: null,
-      blockType: null,
-      blockNumber: null,
-      blockTypeBeforeNumber: null,
+      blockType: asNonEmptyString(row.enBlockDescriptor),
+      blockNumber: asNonEmptyString(row.enBlockNumber),
+      blockTypeBeforeNumber:
+        asNonEmptyString(row.enBlockDescriptor) && asNonEmptyString(row.enBlockNumber)
+          ? true
+          : null,
       phaseName: null,
       phaseNumber: null,
       estateName: asNonEmptyString(row.enEstateName),
@@ -80,9 +83,13 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
       buildingName: asNonEmptyString(row.zhHantBuildingName),
       buildingNumberFrom: null,
       buildingNumberTo: null,
-      blockType: null,
-      blockNumber: null,
-      blockTypeBeforeNumber: null,
+      blockType: asNonEmptyString(row.zhHantBlockDescriptor),
+      blockNumber: asNonEmptyString(row.zhHantBlockNumber),
+      blockTypeBeforeNumber:
+        asNonEmptyString(row.zhHantBlockDescriptor) &&
+        asNonEmptyString(row.zhHantBlockNumber)
+          ? true
+          : null,
       phaseName: null,
       phaseNumber: null,
       estateName: asNonEmptyString(row.zhHantEstateName),
