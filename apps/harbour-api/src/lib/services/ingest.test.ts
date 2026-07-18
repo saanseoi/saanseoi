@@ -181,7 +181,7 @@ describe('direct upload flow', () => {
     const bucket = new FakeR2Bucket()
     const file = new File(
       [new Uint8Array([0x50, 0x41, 0x52, 0x31])],
-      'overture-hk-address.parquet',
+      'hkgov-dpo-hk-address.parquet',
       {
         type: 'application/octet-stream',
       },
@@ -200,7 +200,7 @@ describe('direct upload flow', () => {
 
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('dr-hk-overture-address-2026-05-20.0')
+    expect(result.plan.datasetId).toBe('dr-hk-hkgov-dpo-address-2026-05-20.0')
   })
 
   test('force registers over an interrupted uploading session', async () => {

@@ -13,7 +13,7 @@ import {
 import { resolveDataShardEnvironment } from '../shared'
 import type { HarbourWorkerBucket } from '../division'
 import { type PipelineArtifactBucket, readJsonArtifact } from '../pipelineArtifacts'
-import { dedupeAddressI18nRows, loadDivisionLookupMaps } from './normalization'
+import { dedupeAddressI18nRows } from './normalization'
 import { resolveAddressChunkSize } from './normalizeStage'
 import type {
   AddressPipelineMessage,
@@ -80,17 +80,14 @@ export async function writeAddressCurrentChunkStage(
       )
     }
 
-    const divisionLookup = await loadDivisionLookupMaps(
-      metaDb,
-      currentDb,
-      message.regionCode,
-      message.cohortKey,
-    )
-    await alignAddressCurrentDivisionSnapshot(
-      currentRepoDb,
-      versionInsertContext.snapshotId,
-      divisionLookup.snapshotId,
-    )
+    const divisionSnapshotId = artifactRows[0]?.base.divisionSnapshotId
+    if (divisionSnapshotId) {
+      await alignAddressCurrentDivisionSnapshot(
+        currentRepoDb,
+        versionInsertContext.snapshotId,
+        divisionSnapshotId,
+      )
+    }
   }
 
   const changedRows = artifactRows.filter(row => row.changed)

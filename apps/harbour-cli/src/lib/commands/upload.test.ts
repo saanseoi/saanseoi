@@ -85,8 +85,8 @@ describe('upload command address prerequisites', () => {
       },
       {
         cohortKey: '2025-09-24.0',
-        datasetCode: 'ds-hk-overture-address',
-        datasetId: 'dataset-overture-hk-address',
+        datasetCode: 'ds-hk-hkgov-dpo-address',
+        datasetId: 'dataset-hkgov-dpo-hk-address',
         filePath: '/tmp/address.parquet',
         fileName: 'address.parquet',
         inferredFrom: {
@@ -99,10 +99,10 @@ describe('upload command address prerequisites', () => {
         },
         originalFileName: 'address.parquet',
         regionCode: 'hk',
-        releaseCode: 'dr-hk-overture-address-2025-09-24.0',
+        releaseCode: 'dr-hk-hkgov-dpo-address-2025-09-24.0',
         rowCount: 182_155,
         schemaFingerprint: 'schema-fingerprint',
-        source: 'overture',
+        source: 'hkgov-dpo',
         sourceVersion: '2025-09-24.0',
         supersedesDatasetId: null,
         theme: 'addresses',

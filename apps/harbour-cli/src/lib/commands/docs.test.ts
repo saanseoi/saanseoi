@@ -30,7 +30,7 @@ Locale \`{{LOCALE}}\`
 
   test('can render a carried-forward fixture with target row frontmatter', () => {
     const fixture = parseMarkdownFixture(`---
-release: "dr-hk-overture-address-2025-09-24.0"
+release: "dr-hk-hkgov-dpo-address-2025-09-24.0"
 sourceSchemaVersion: "1.12.0"
 ---
 Release \`{{release}}\`
@@ -39,10 +39,10 @@ Schema \`{{sourceSchemaVersion}}\`
 
     expect(
       renderMarkdownFixtureBody(fixture, {
-        release: 'dr-hk-overture-address-2026-01-01.0',
+        release: 'dr-hk-hkgov-dpo-address-2026-01-01.0',
         sourceSchemaVersion: '1.15.0',
       }),
-    ).toBe(`Release \`dr-hk-overture-address-2026-01-01.0\`
+    ).toBe(`Release \`dr-hk-hkgov-dpo-address-2026-01-01.0\`
 Schema \`1.15.0\`
 `)
   })

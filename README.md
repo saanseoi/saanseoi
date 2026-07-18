@@ -31,7 +31,6 @@ For more detail on contributing, workflows, and project expectations, see
 
 - [Address family](docs/datasets/families/address.md)
 - [Division family](docs/datasets/families/division.md)
-- [Overture address](docs/datasets/sources/overture/address.md)
 - [Overture division](docs/datasets/sources/overture/division.md)
 - [HKGov ALS address](docs/datasets/sources/hkgov/address.md)
 - [HKPost address](docs/datasets/sources/hkpost/address.md)

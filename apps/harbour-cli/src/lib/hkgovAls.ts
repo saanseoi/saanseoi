@@ -1,9 +1,9 @@
 import { globSync } from 'node:fs'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
-import { and, desc, eq, or } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { parquetWriteFile } from 'hyparquet-writer'
 import { resolveLocalD1Path } from '@repo/core/testing/localDb'
 import {
@@ -15,16 +15,18 @@ import {
 
 import type { UploadEnvironment } from './options.ts'
 import {
-  bridgeMapFromFile,
-  buildHkgovAlsIdentityKey,
+  buildHkgovAlsPremiseIdentity,
   buildHkgovAlsProvisionalId,
-  mergePersistedHkgovAlsAliases,
-  resolveHkgovAlsIdentities,
-  type HkgovAlsIdentityBridge,
-  type HkgovAlsIdentityInput,
-  type HkgovAlsIdentityMatchStats,
-  type OvertureAddressIdentityRow,
 } from './hkgovAlsIdentity.ts'
+import {
+  emptyHkgovAlsIdentityDecisions,
+  emptyHkgovAlsIdentityHistory,
+  resolveHkgovAlsIdentityDrift,
+  type HkgovAlsIdentityDecisions,
+  type HkgovAlsIdentityDriftCandidate,
+  type HkgovAlsIdentityHistory,
+  type HkgovAlsIdentityRecord,
+} from './hkgovAlsDrift.ts'
 const HARBOUR_API_WRANGLER_CONFIG = resolve(
   import.meta.dir,
   '../../../harbour-api/wrangler.jsonc',
@@ -55,14 +57,12 @@ const AREA_NAME_ALIASES_ZH = new Map<string, string>([
 ])
 
 type PrepareHkgovAlsOptions = {
-  bridgeOutputFile?: string
   dbPath?: string
   environment: UploadEnvironment
-  identityBridgeFile?: string
-  matchReportFile?: string
   currentDb?: CurrentDatabase
+  identityDecisions?: HkgovAlsIdentityDecisions
+  identityHistory?: HkgovAlsIdentityHistory
   metaDb?: MetaDatabase
-  overtureRelease?: string
   outputFile: string
   cohortKey: string
   sourceDir: string
@@ -124,11 +124,27 @@ type HkgovLocalizedPremisesAddress = {
   ChiDistrict?: string | null
   EngDistrict?: string | null
   BuildingName?: string | null
+  ChiBlock?: {
+    BlockDescriptor?: string | null
+    BlockNo?: string | number | null
+  } | null
+  EngBlock?: {
+    BlockDescriptor?: string | null
+    BlockNo?: string | number | null
+  } | null
   ChiEstate?: {
     EstateName?: string | null
   } | null
   EngEstate?: {
     EstateName?: string | null
+  } | null
+  ChiPhase?: {
+    PhaseName?: string | null
+    PhaseNo?: string | number | null
+  } | null
+  EngPhase?: {
+    PhaseName?: string | null
+    PhaseNo?: string | number | null
   } | null
   ChiStreet?: {
     BuildingNoFrom?: string | number | null
@@ -152,6 +168,14 @@ type HkgovLocalizedPremisesAddress = {
     LocationName?: string | null
     VillageName?: string | null
   } | null
+  ChiUnit?: {
+    UnitDescriptor?: string | null
+    UnitNo?: string | number | null
+  } | null
+  EngUnit?: {
+    UnitDescriptor?: string | null
+    UnitNo?: string | number | null
+  } | null
 }
 
 type PreparedHkgovAlsRow = {
@@ -164,6 +188,7 @@ type PreparedHkgovAlsRow = {
   cohortKey: string
   sourceVersion: string
   sourceFile: string
+  sourceFeatureIndexOneBased: number
   geometry: string | null
   identifiers: string | null
   sources: string
@@ -179,11 +204,13 @@ type PreparedHkgovAlsRow = {
   hkgovCsuId: string | null
   identityAlias: string | null
   identityBuildingId: string
+  identityContinuityKey: string
   identityKey: string
   identityMatchMethod: string
   identityNumberFrom: string | null
   identityNumberTo: string | null
   identityRouteNames: string
+  identitySummary: Record<string, string | null>
   chiPremisesAddressJson: string | null
   engPremisesAddressJson: string | null
   zhHantFormattedAddress: string | null
@@ -207,12 +234,12 @@ type PreparedHkgovAlsRow = {
 }
 
 type PreparedHkgovAlsResult = {
-  bridgeOutputFile: string | null
   deduplicatedFeatureCount: number
+  driftCandidates: HkgovAlsIdentityDriftCandidate[]
   featureCount: number
   identityConsolidatedFeatureCount: number
-  identityStats: HkgovAlsIdentityMatchStats
-  matchReportFile: string | null
+  identityEquivalentFeatureGroups: HkgovAlsSourceDuplicateGroup[]
+  identityRecords: HkgovAlsIdentityRecord[]
   outputFile: string
   sourceDuplicateFeatureGroups: HkgovAlsSourceDuplicateGroup[]
   sourceFileCount: number
@@ -277,164 +304,46 @@ export async function prepareHkgovAlsAddressParquet(
     normalizeHkgovAlsFeature(
       sourceFeature.feature,
       sourceFeature.sourceFile,
+      sourceFeature.featureIndexOneBased,
       options.cohortKey,
       options.sourceVersion,
       divisionMaps,
     ),
   )
-  const deduplicatedRows = dedupePreparedHkgovAlsRows(rows)
-  rows.splice(0, rows.length, ...deduplicatedRows)
-
-  const bridge = options.identityBridgeFile
-    ? (JSON.parse(
-        await readFile(options.identityBridgeFile, 'utf8'),
-      ) as HkgovAlsIdentityBridge)
-    : null
-  let bridgeMappings = bridge ? bridgeMapFromFile(bridge) : new Map<string, string>()
-  if (options.metaDb) {
-    const persistedAliases = await options.metaDb
-      .select({
-        aliasValue: metaSchema.entityAliases.aliasValue,
-        canonicalId: metaSchema.entityAliases.canonicalId,
-      })
-      .from(metaSchema.entityAliases)
-      .where(
-        and(
-          eq(metaSchema.entityAliases.entityType, 'address'),
-          eq(metaSchema.entityAliases.sourceSystem, 'hkgov-dpo'),
-          eq(metaSchema.entityAliases.isCurrent, true),
-        ),
-      )
-      .all()
-    bridgeMappings = mergePersistedHkgovAlsAliases(
-      rows.map(row => identityInputFromPreparedRow(row)),
-      bridgeMappings,
-      persistedAliases,
-    )
-  }
-  const overtureRows = options.overtureRelease
-    ? await loadOvertureAddressIdentityRows(options, options.overtureRelease)
-    : []
   const {
-    diagnostics,
-    resolutions,
-    stats: identityStats,
-  } = resolveHkgovAlsIdentities(
-    rows.map(row => identityInputFromPreparedRow(row)),
-    overtureRows,
-    bridgeMappings,
+    duplicateGroups: identityEquivalentFeatureGroups,
+    rows: identityDistinctRows,
+  } = consolidateEquivalentHkgovAlsPremises(rows)
+  rows.splice(0, rows.length, ...identityDistinctRows)
+  assertUniquePreparedRowIds(rows)
+  const identityRecords = rows.map(row => ({
+    continuityKey: row.identityContinuityKey,
+    id: row.id,
+    identityKey: row.identityKey,
+    sourceVersion: row.sourceVersion,
+    summary: row.identitySummary,
+  }))
+  const drift = resolveHkgovAlsIdentityDrift(
+    identityRecords,
+    options.identityHistory ?? emptyHkgovAlsIdentityHistory(),
+    options.identityDecisions ?? emptyHkgovAlsIdentityDecisions(),
   )
-
-  resolutions.forEach((resolution, index) => {
-    const row = rows[index]
-    if (!row) return
-    row.canonicalId = resolution.canonicalId
-    row.identityAlias = resolution.identityAlias
-    row.identityKey = resolution.identityKey
-    row.identityMatchMethod = resolution.matchMethod
-  })
-
-  const matchReportFile = options.matchReportFile
-    ? resolve(options.matchReportFile)
-    : null
-  if (matchReportFile) {
-    const records = diagnostics.map(diagnostic => {
-      const row = rows[diagnostic.inputIndex]
-      if (!row) {
-        throw new Error(
-          `ALS diagnostic references missing prepared row ${diagnostic.inputIndex}.`,
-        )
-      }
-      return {
-        als: {
-          buildingIdentity: row.identityBuildingId,
-          coordinates: parsePointGeometry(row.geometry),
-          districtId: row.districtId,
-          districtNameEn: row.districtNameEn,
-          districtNameZhHant: row.districtNameZhHant,
-          formattedAddressEn: row.enFormattedAddress,
-          formattedAddressZhHant: row.zhHantFormattedAddress,
-          numberFrom: row.identityNumberFrom,
-          numberTo: row.identityNumberTo,
-          provisionalId: diagnostic.provisionalId,
-          routeNames: JSON.parse(row.identityRouteNames) as string[],
-          sourceFile: row.sourceFile,
-        },
-        candidateCount: diagnostic.candidateCount,
-        candidates: diagnostic.candidates,
-        candidatesTruncated: diagnostic.candidatesTruncated,
-        conflictingAlsIdentityKeys: diagnostic.conflictingAlsIdentityKeys,
-        identityKey: diagnostic.identityKey,
-        reasons: diagnostic.reasons,
-      }
-    })
-    const noMatches = records.filter(
-      (_, index) => diagnostics[index]?.kind === 'no-match',
-    )
-    const nearMatches = records.filter(
-      (_, index) => diagnostics[index]?.kind === 'near-match',
-    )
-
-    await mkdir(dirname(matchReportFile), { recursive: true })
-    await writeFile(
-      matchReportFile,
-      `${JSON.stringify(
-        {
-          authority: 'hkgov-dpo',
-          cohortKey: options.cohortKey,
-          generatedAt: new Date().toISOString(),
-          noMatches,
-          nearMatches,
-          overtureRelease: options.overtureRelease ?? null,
-          sourceVersion: options.sourceVersion,
-          summary: {
-            matched:
-              identityStats.matchedByAddressCoordinate +
-              identityStats.matchedByAddress +
-              identityStats.bridged,
-            nearMatchCount: nearMatches.length,
-            noMatchCount: noMatches.length,
-            provisional: identityStats.provisional,
-          },
-          version: 1,
-        },
-        null,
-        2,
-      )}\n`,
-    )
+  for (const row of rows) {
+    const existingId = drift.resolvedIds.get(row.identityKey)
+    if (!existingId) continue
+    row.id = existingId
+    row.canonicalId = existingId
+    row.identityAlias = buildHkgovAlsProvisionalId(row.identityKey)
+    row.identityMatchMethod = 'als-drift-decision'
   }
-
-  const bridgeOutputFile = options.bridgeOutputFile
-    ? resolve(options.bridgeOutputFile)
-    : null
-  if (bridgeOutputFile) {
-    const mappings = resolutions.flatMap(resolution =>
-      resolution.canonicalId === resolution.provisionalId
-        ? []
-        : [
-            {
-              canonicalId: resolution.canonicalId,
-              identityKey: resolution.identityKey,
-              matchMethod: resolution.matchMethod,
-            },
-          ],
-    )
-    await mkdir(dirname(bridgeOutputFile), { recursive: true })
-    await writeFile(
-      bridgeOutputFile,
-      `${JSON.stringify(
-        {
-          authority: 'hkgov-dpo',
-          generatedAt: new Date().toISOString(),
-          mappings,
-          overtureRelease: options.overtureRelease ?? bridge?.overtureRelease ?? null,
-          version: 1,
-        } satisfies HkgovAlsIdentityBridge,
-        null,
-        2,
-      )}\n`,
-    )
-  }
+  assertUniquePreparedRowIds(rows)
+  const resolvedIdentityRecords = rows.map(row => ({
+    continuityKey: row.identityContinuityKey,
+    id: row.id,
+    identityKey: row.identityKey,
+    sourceVersion: row.sourceVersion,
+    summary: row.identitySummary,
+  }))
 
   await mkdir(dirname(outputFile), { recursive: true })
   parquetWriteFile({
@@ -656,12 +565,13 @@ export async function prepareHkgovAlsAddressParquet(
   })
 
   return {
-    bridgeOutputFile,
     deduplicatedFeatureCount: sourceFeatureCount - uniqueSourceFeatures.length,
+    driftCandidates: drift.candidates,
     featureCount: sourceFeatureCount,
-    identityConsolidatedFeatureCount: uniqueSourceFeatures.length - rows.length,
-    identityStats,
-    matchReportFile,
+    identityConsolidatedFeatureCount:
+      uniqueSourceFeatures.length - identityDistinctRows.length,
+    identityEquivalentFeatureGroups,
+    identityRecords: resolvedIdentityRecords,
     outputFile,
     sourceDuplicateFeatureGroups,
     sourceFileCount: inputFiles.length,
@@ -750,38 +660,57 @@ function formatSourceFeatureAddress(feature: HkgovAlsFeature | undefined) {
   )
 }
 
-function dedupePreparedHkgovAlsRows(rows: PreparedHkgovAlsRow[]) {
-  const byIdentity = new Map<string, PreparedHkgovAlsRow>()
+/**
+ * Handles non-byte-identical ALS source variants that nevertheless describe exactly
+ * the same fully specified premise. This is deliberately narrower than a spatial or
+ * street-address dedupe: every component in the stable premise identity must match.
+ */
+export function consolidateEquivalentHkgovAlsPremises(rows: PreparedHkgovAlsRow[]) {
+  const firstByIdentity = new Map<string, PreparedHkgovAlsRow>()
+  const rowsByIdentity = new Map<string, PreparedHkgovAlsRow[]>()
   for (const row of rows) {
-    const existing = byIdentity.get(row.identityKey)
-    if (!existing || comparePreparedRowRichness(row, existing) > 0) {
-      byIdentity.set(row.identityKey, row)
+    if (!firstByIdentity.has(row.identityKey)) {
+      firstByIdentity.set(row.identityKey, row)
     }
+    const equivalentRows = rowsByIdentity.get(row.identityKey) ?? []
+    equivalentRows.push(row)
+    rowsByIdentity.set(row.identityKey, equivalentRows)
   }
-  return [...byIdentity.values()]
+  const duplicateGroups = [...rowsByIdentity.values()]
+    .filter(equivalentRows => equivalentRows.length > 1)
+    .map(equivalentRows => ({
+      address:
+        equivalentRows[0]?.enFormattedAddress ??
+        equivalentRows[0]?.zhHantFormattedAddress ??
+        'Unformatted ALS address',
+      occurrences: equivalentRows.map(row => ({
+        featureIndexOneBased: row.sourceFeatureIndexOneBased,
+        sourceFile: row.sourceFile,
+      })),
+    }))
+
+  return { duplicateGroups, rows: [...firstByIdentity.values()] }
 }
 
-function comparePreparedRowRichness(
-  left: PreparedHkgovAlsRow,
-  right: PreparedHkgovAlsRow,
-) {
-  const score = (row: PreparedHkgovAlsRow) =>
-    [
-      row.enBuildingName,
-      row.zhHantBuildingName,
-      row.enEstateName,
-      row.zhHantEstateName,
-      row.enFormattedAddress,
-      row.zhHantFormattedAddress,
-    ].reduce((total, value) => total + (value?.length ?? 0), 0)
-  const difference = score(left) - score(right)
-  if (difference !== 0) return difference
-  return JSON.stringify(left).localeCompare(JSON.stringify(right))
+function assertUniquePreparedRowIds(rows: PreparedHkgovAlsRow[]) {
+  const firstById = new Map<string, PreparedHkgovAlsRow>()
+  for (const row of rows) {
+    const first = firstById.get(row.id)
+    if (!first) {
+      firstById.set(row.id, row)
+      continue
+    }
+    throw new Error(
+      `ALS premise identity collision between ${first.sourceFile} and ${row.sourceFile}. ` +
+        'The source rows are not exact duplicates; expand the premise identity before ingestion.',
+    )
+  }
 }
 
 function normalizeHkgovAlsFeature(
   feature: HkgovAlsFeature,
   sourceFile: string,
+  sourceFeatureIndexOneBased: number,
   cohortKey: string,
   sourceVersion: string,
   divisionMaps: DivisionLookupMaps,
@@ -795,9 +724,8 @@ function normalizeHkgovAlsFeature(
   const zhVillage = zh.ChiVillage ?? {}
   const enVillage = en.EngVillage ?? {}
   const geoAddress = asOptionalString(premises.GeoAddress)
-  const csuId =
-    asOptionalString(premises.BuildingCsuInformation?.CsuId) ?? geoAddress ?? null
-  const identityBuildingId = geoAddress ?? csuId
+  const csuId = asOptionalString(premises.BuildingCsuInformation?.CsuId)
+  const identityBuildingId = csuId ?? geoAddress
   if (!identityBuildingId) {
     throw new Error(`ALS feature in ${sourceFile} is missing GeoAddress and CsuId.`)
   }
@@ -833,16 +761,54 @@ function normalizeHkgovAlsFeature(
     feature.geometry?.type === 'Point' && Array.isArray(feature.geometry.coordinates)
       ? feature.geometry.coordinates
       : null
-  const identityKey = buildHkgovAlsIdentityKey({
-    buildingIdentity: identityBuildingId,
-    districtId,
+  const routeKind =
+    enStreet.StreetName || zhStreet.StreetName
+      ? 'street'
+      : enVillage.VillageName ||
+          enVillage.LocationName ||
+          zhVillage.VillageName ||
+          zhVillage.LocationName
+        ? 'village'
+        : 'unknown'
+  const routeName =
+    asOptionalString(enStreet.StreetName) ??
+    asOptionalString(enVillage.VillageName) ??
+    asOptionalString(enVillage.LocationName) ??
+    asOptionalString(zhStreet.StreetName) ??
+    asOptionalString(zhVillage.VillageName) ??
+    asOptionalString(zhVillage.LocationName)
+  const premiseIdentity = buildHkgovAlsPremiseIdentity({
+    blockDescriptor:
+      asOptionalString(en.EngBlock?.BlockDescriptor) ??
+      asOptionalString(zh.ChiBlock?.BlockDescriptor),
+    blockNumber:
+      asOptionalString(en.EngBlock?.BlockNo) ?? asOptionalString(zh.ChiBlock?.BlockNo),
+    buildingName:
+      asOptionalString(en.BuildingName) ?? asOptionalString(zh.BuildingName),
+    csuId,
+    districtName: districtNameEn ?? districtNameZhHant,
+    estateName:
+      asOptionalString(en.EngEstate?.EstateName) ??
+      asOptionalString(zh.ChiEstate?.EstateName),
+    geoAddress,
     latitude: coordinates?.[1] ?? null,
     longitude: coordinates?.[0] ?? null,
     numberFrom: identityNumberFrom,
     numberTo: identityNumberTo,
-    routeNames: identityRouteNames,
+    phaseName:
+      asOptionalString(en.EngPhase?.PhaseName) ??
+      asOptionalString(zh.ChiPhase?.PhaseName),
+    phaseNumber:
+      asOptionalString(en.EngPhase?.PhaseNo) ?? asOptionalString(zh.ChiPhase?.PhaseNo),
+    routeKind,
+    routeName,
+    unitDescriptor:
+      asOptionalString(en.EngUnit?.UnitDescriptor) ??
+      asOptionalString(zh.ChiUnit?.UnitDescriptor),
+    unitNumber:
+      asOptionalString(en.EngUnit?.UnitNo) ?? asOptionalString(zh.ChiUnit?.UnitNo),
   })
-  const provisionalId = buildHkgovAlsProvisionalId(identityKey)
+  const provisionalId = buildHkgovAlsProvisionalId(premiseIdentity.identityKey)
   const sources =
     stringifyJson({
       hkgovAls: {
@@ -863,6 +829,7 @@ function normalizeHkgovAlsFeature(
     cohortKey,
     sourceVersion,
     sourceFile,
+    sourceFeatureIndexOneBased,
     geometry: stringifyJson(feature.geometry ?? null),
     identifiers: csuId ? stringifyJson({ hkgovCsuId: csuId }) : null,
     sources,
@@ -878,11 +845,13 @@ function normalizeHkgovAlsFeature(
     hkgovCsuId: csuId,
     identityAlias: null,
     identityBuildingId,
-    identityKey,
-    identityMatchMethod: 'provisional',
+    identityContinuityKey: premiseIdentity.continuityKey,
+    identityKey: premiseIdentity.identityKey,
+    identityMatchMethod: 'als-premise',
     identityNumberFrom,
     identityNumberTo,
     identityRouteNames: JSON.stringify(identityRouteNames),
+    identitySummary: premiseIdentity.summary,
     chiPremisesAddressJson: stringifyJson(zh),
     engPremisesAddressJson: stringifyJson(en),
     zhHantFormattedAddress: formatZhPremisesAddress(zh),
@@ -904,319 +873,6 @@ function normalizeHkgovAlsFeature(
     easting: asOptionalInteger(properties.Easting),
     northing: asOptionalInteger(properties.Northing),
   }
-}
-
-function identityInputFromPreparedRow(row: PreparedHkgovAlsRow): HkgovAlsIdentityInput {
-  const geometry = row.geometry
-    ? (JSON.parse(row.geometry) as { coordinates?: [number, number]; type?: string })
-    : null
-  const routeNames = JSON.parse(row.identityRouteNames) as string[]
-
-  return {
-    buildingIdentity: row.identityBuildingId,
-    districtId: row.districtId,
-    latitude: geometry?.type === 'Point' ? (geometry.coordinates?.[1] ?? null) : null,
-    longitude: geometry?.type === 'Point' ? (geometry.coordinates?.[0] ?? null) : null,
-    numberFrom: row.identityNumberFrom,
-    numberTo: row.identityNumberTo,
-    routeNames,
-  }
-}
-
-async function loadOvertureAddressIdentityRows(
-  options: Pick<
-    PrepareHkgovAlsOptions,
-    'currentDb' | 'dbPath' | 'environment' | 'metaDb'
-  >,
-  overtureRelease: string,
-): Promise<OvertureAddressIdentityRow[]> {
-  if (options.currentDb && options.metaDb) {
-    const snapshotId = await loadOvertureAddressSnapshotIdFromDb(
-      options.metaDb,
-      overtureRelease,
-    )
-    return loadOvertureAddressRowsFromDb(options.currentDb, snapshotId)
-  }
-
-  const currentSource = resolveDivisionLookupSource(options)
-  const metaSource = resolveDivisionSnapshotSource(options)
-  const snapshotId =
-    metaSource.kind === 'sqlite'
-      ? loadOvertureAddressSnapshotIdFromSqlite(metaSource.dbPath, overtureRelease)
-      : await loadOvertureAddressSnapshotIdFromWrangler(metaSource, overtureRelease)
-  const rows =
-    currentSource.kind === 'sqlite'
-      ? loadOvertureAddressRowsFromSqlite(currentSource.dbPath, snapshotId)
-      : await loadOvertureAddressRowsFromWrangler(currentSource, snapshotId)
-
-  return rows.map(row => {
-    const geometry = parsePointGeometry(row.geometry)
-    return {
-      canonicalId: row.canonicalId,
-      districtId: row.districtId,
-      latitude: geometry?.[1] ?? null,
-      longitude: geometry?.[0] ?? null,
-      streetName: row.streetName,
-      streetNumber: row.streetNumber,
-    }
-  })
-}
-
-async function loadOvertureAddressSnapshotIdFromDb(
-  metaDb: MetaDatabase,
-  overtureRelease: string,
-) {
-  const row = await metaDb
-    .select({ snapshotId: metaSchema.metaSnapshots.id })
-    .from(metaSchema.metaSnapshots)
-    .innerJoin(
-      metaSchema.metaSnapshotSources,
-      eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
-    )
-    .innerJoin(
-      metaSchema.metaReleases,
-      eq(metaSchema.metaSnapshotSources.sourceReleaseId, metaSchema.metaReleases.id),
-    )
-    .innerJoin(
-      metaSchema.metaDatasets,
-      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
-    )
-    .innerJoin(
-      metaSchema.metaPublishers,
-      eq(metaSchema.metaDatasets.publisherId, metaSchema.metaPublishers.id),
-    )
-    .where(
-      and(
-        eq(metaSchema.metaSnapshots.resourceType, 'address'),
-        eq(metaSchema.metaSnapshots.status, 'published'),
-        eq(metaSchema.metaPublishers.code, 'overture'),
-        or(
-          eq(metaSchema.metaReleases.code, overtureRelease),
-          eq(metaSchema.metaReleases.cohortKey, overtureRelease),
-        ),
-      ),
-    )
-    .orderBy(desc(metaSchema.metaSnapshots.revision))
-    .limit(1)
-    .get()
-  if (!row?.snapshotId) {
-    throw new Error(
-      `Published Overture address snapshot not found: ${overtureRelease}.`,
-    )
-  }
-  return row.snapshotId
-}
-
-async function loadOvertureAddressRowsFromDb(
-  currentDb: CurrentDatabase,
-  snapshotId: string,
-): Promise<OvertureAddressIdentityRow[]> {
-  const rows = await currentDb
-    .select({
-      canonicalId: currentSchema.address2d.id,
-      districtId: currentSchema.address2d.districtId,
-      geometry: currentSchema.address2d.geometry,
-      streetName: currentSchema.address2dI18n.streetName,
-      streetNumber: currentSchema.address2dI18n.streetNumber,
-    })
-    .from(currentSchema.address2d)
-    .leftJoin(
-      currentSchema.address2dI18n,
-      and(
-        eq(currentSchema.address2dI18n.snapshotId, currentSchema.address2d.snapshotId),
-        eq(currentSchema.address2dI18n.addressId, currentSchema.address2d.id),
-        eq(currentSchema.address2dI18n.locale, 'en'),
-      ),
-    )
-    .where(eq(currentSchema.address2d.snapshotId, snapshotId))
-    .all()
-
-  return rows.map(row => {
-    const geometry = parsePointGeometry(row.geometry)
-    return {
-      canonicalId: row.canonicalId,
-      districtId: row.districtId,
-      latitude: geometry?.[1] ?? null,
-      longitude: geometry?.[0] ?? null,
-      streetName: row.streetName,
-      streetNumber: row.streetNumber,
-    }
-  })
-}
-
-type OvertureAddressLookupRow = {
-  canonicalId: string
-  districtId: string | null
-  geometry: string | Record<string, unknown> | null
-  streetName: string | null
-  streetNumber: string | null
-}
-
-function loadOvertureAddressSnapshotIdFromSqlite(
-  explicitDbPath: string,
-  overtureRelease: string,
-) {
-  const sqlite = new SQLiteDatabase(resolveLocalD1Path(explicitDbPath), {
-    readonly: true,
-  })
-  try {
-    const row = sqlite
-      .query(
-        `
-          SELECT s.id AS snapshotId
-          FROM snapshots s
-          INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
-          INNER JOIN releases r ON r.id = ss.sourceReleaseId
-          INNER JOIN datasets d ON d.id = r.datasetId
-          INNER JOIN publishers p ON p.id = d.publisherId
-          WHERE s.resourceType = 'address'
-            AND s.status = 'published'
-            AND p.code = 'overture'
-            AND (r.code = ? OR r.cohortKey = ?)
-          ORDER BY CASE WHEN r.code = ? THEN 0 ELSE 1 END, s.revision DESC
-          LIMIT 1
-        `,
-      )
-      .get(overtureRelease, overtureRelease, overtureRelease) as {
-      snapshotId?: string
-    } | null
-
-    if (!row?.snapshotId) {
-      throw new Error(
-        `Published Overture address snapshot not found: ${overtureRelease}.`,
-      )
-    }
-    return row.snapshotId
-  } finally {
-    sqlite.close()
-  }
-}
-
-function loadOvertureAddressRowsFromSqlite(explicitDbPath: string, snapshotId: string) {
-  const sqlite = new SQLiteDatabase(resolveLocalD1Path(explicitDbPath), {
-    readonly: true,
-  })
-  try {
-    return sqlite
-      .query(
-        `
-          SELECT a.id AS canonicalId, a.districtId, a.geometry,
-            i.streetName, i.streetNumber
-          FROM address2d a
-          LEFT JOIN address2dI18n i
-            ON i.snapshotId = a.snapshotId
-           AND i.addressId = a.id
-           AND i.locale = 'en'
-          WHERE a.snapshotId = ?
-        `,
-      )
-      .all(snapshotId) as OvertureAddressLookupRow[]
-  } finally {
-    sqlite.close()
-  }
-}
-
-async function loadOvertureAddressSnapshotIdFromWrangler(
-  target: Extract<DivisionLookupSource, { kind: 'wrangler' }>,
-  overtureRelease: string,
-) {
-  const release = sqlLiteral(overtureRelease)
-  const rows = await runWranglerD1Query<{ snapshotId?: string }>(
-    target,
-    `
-      SELECT s.id AS snapshotId
-      FROM snapshots s
-      INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
-      INNER JOIN releases r ON r.id = ss.sourceReleaseId
-      INNER JOIN datasets d ON d.id = r.datasetId
-      INNER JOIN publishers p ON p.id = d.publisherId
-      WHERE s.resourceType = 'address'
-        AND s.status = 'published'
-        AND p.code = 'overture'
-        AND (r.code = ${release} OR r.cohortKey = ${release})
-      ORDER BY CASE WHEN r.code = ${release} THEN 0 ELSE 1 END, s.revision DESC
-      LIMIT 1
-    `,
-  )
-  const snapshotId = rows[0]?.snapshotId
-  if (!snapshotId) {
-    throw new Error(
-      `Published Overture address snapshot not found: ${overtureRelease}.`,
-    )
-  }
-  return snapshotId
-}
-
-async function loadOvertureAddressRowsFromWrangler(
-  target: Extract<DivisionLookupSource, { kind: 'wrangler' }>,
-  snapshotId: string,
-) {
-  return runWranglerD1Query<OvertureAddressLookupRow>(
-    target,
-    `
-      SELECT a.id AS canonicalId, a.districtId, a.geometry,
-        i.streetName, i.streetNumber
-      FROM address2d a
-      LEFT JOIN address2dI18n i
-        ON i.snapshotId = a.snapshotId
-       AND i.addressId = a.id
-       AND i.locale = 'en'
-      WHERE a.snapshotId = ${sqlLiteral(snapshotId)}
-    `,
-  )
-}
-
-async function runWranglerD1Query<TRow>(
-  target: Extract<DivisionLookupSource, { kind: 'wrangler' }>,
-  command: string,
-): Promise<TRow[]> {
-  const process = Bun.spawn({
-    cmd: [
-      'bun',
-      'x',
-      'wrangler',
-      'd1',
-      'execute',
-      target.databaseName,
-      `--${target.mode}`,
-      '--config',
-      HARBOUR_API_WRANGLER_CONFIG,
-      '--env',
-      target.wranglerEnv,
-      '--json',
-      '--command',
-      command,
-    ],
-    cwd: resolve(import.meta.dir, '../../..'),
-    stdout: 'pipe',
-    stderr: 'pipe',
-  })
-  const [stdout, stderr, exitCode] = await Promise.all([
-    new Response(process.stdout).text(),
-    new Response(process.stderr).text(),
-    process.exited,
-  ])
-  if (exitCode !== 0) {
-    throw new Error(
-      `Failed to query ${target.databaseName}.\n${stderr.trim() || stdout.trim()}`,
-    )
-  }
-  const payload = JSON.parse(stdout) as Array<{ results?: TRow[]; success?: boolean }>
-  const first = payload[0]
-  if (!first?.success || !Array.isArray(first.results)) {
-    throw new Error(`Unexpected Wrangler D1 response for ${target.databaseName}.`)
-  }
-  return first.results
-}
-
-function parsePointGeometry(value: unknown) {
-  const geometry =
-    typeof value === 'string'
-      ? (JSON.parse(value) as { coordinates?: [number, number]; type?: string })
-      : (value as { coordinates?: [number, number]; type?: string } | null)
-  return geometry?.type === 'Point' && Array.isArray(geometry.coordinates)
-    ? geometry.coordinates
-    : null
 }
 
 function sqlLiteral(value: string) {

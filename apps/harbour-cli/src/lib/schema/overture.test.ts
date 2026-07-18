@@ -57,34 +57,6 @@ function makePlan(sourceVersion: string): UploadPlan {
   }
 }
 
-function makeAddressPlan(sourceVersion: string): UploadPlan {
-  return {
-    datasetCode: 'ds-hk-overture-address',
-    releaseCode: `overture-hk-${sourceVersion}-address`,
-    regionCode: 'hk',
-    theme: 'addresses',
-    type: 'address',
-    source: 'overture',
-    cohortKey: '2026-05',
-    sourceVersion,
-    datasetId: `overture-hk-${sourceVersion}-address`,
-    filePath: '/tmp/address.parquet',
-    fileName: 'address.parquet',
-    originalFileName: 'address.parquet',
-    rowCount: 1,
-    schemaFingerprint: 'test-fingerprint',
-    inferredFrom: {
-      theme: 'path',
-      type: 'path',
-      regionCode: 'path',
-      cohortKey: 'flag',
-      source: 'flag',
-      sourceVersion: 'flag',
-    },
-    supersedesDatasetId: null,
-  }
-}
-
 function makeInspection(schema: ParquetInspection['schema']): ParquetInspection {
   return {
     rowCount: 1,
@@ -105,7 +77,6 @@ describe('validateOvertureSchema', () => {
 
     expect(result.schema.id).toBe('overture-division-v2025-09-24.0')
   })
-
   test('accepts admin_level for division uploads from 2026-02-18.0 onward', () => {
     const result = validateOvertureSchema(
       makePlan('2026-02-18.0'),
@@ -117,29 +88,5 @@ describe('validateOvertureSchema', () => {
     )
 
     expect(result.schema.id).toBe('overture-division-v2026-02-18.0')
-  })
-
-  test('accepts nullable postcode on overture address uploads', () => {
-    const result = validateOvertureSchema(
-      makeAddressPlan('2026-05-20.0'),
-      makeInspection([
-        { name: 'id', type: 'utf8', nullable: true },
-        { name: 'geometry', type: 'type', nullable: true },
-        { name: 'bbox', type: 'struct', nullable: true },
-        { name: 'country', type: 'utf8', nullable: true },
-        { name: 'street', type: 'utf8', nullable: true },
-        { name: 'number', type: 'utf8', nullable: true },
-        { name: 'unit', type: 'utf8', nullable: true },
-        { name: 'address_levels', type: 'list', nullable: true },
-        { name: 'postal_city', type: 'utf8', nullable: true },
-        { name: 'postcode', type: 'utf8', nullable: true },
-        { name: 'version', type: 'int_32', nullable: true },
-        { name: 'sources', type: 'list', nullable: true },
-        { name: 'theme', type: 'utf8', nullable: true },
-        { name: 'type', type: 'utf8', nullable: true },
-      ]),
-    )
-
-    expect(result.schema.id).toBe('overture-address-v2025-09-24.0')
   })
 })

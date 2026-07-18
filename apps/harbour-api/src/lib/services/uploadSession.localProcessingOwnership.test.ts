@@ -108,7 +108,7 @@ describe('upload session local processing ownership', () => {
     const { bucket, db } = initHarness('harbour-local-sql-finalize.sqlite')
     const signResult = await handleSignUploadRequest(db, bucket, signingEnv, {
       contentType: 'application/octet-stream',
-      fileName: 'overture-hk-address.parquet',
+      fileName: 'hkgov-dpo-hk-address.parquet',
       fileSize: fixtureBytes.byteLength,
       inspection: fixtureInspection,
       plan: {
@@ -116,7 +116,7 @@ describe('upload session local processing ownership', () => {
         cohortKey: '2026-05',
         sourceVersion: '2026-05-20.0',
       },
-      schemaVersionId: 'overture-address-v2025-09-24.0',
+      schemaVersionId: 'hkgov-dpo-address-unvalidated',
     })
 
     await putSignedUploadObject(bucket, signResult, fixtureBytes.slice().buffer)
@@ -133,7 +133,7 @@ describe('upload session local processing ownership', () => {
     const { bucket, db } = initHarness('harbour-signed-upload-schema.sqlite')
     const firstSignResult = await handleSignUploadRequest(db, bucket, signingEnv, {
       contentType: 'application/octet-stream',
-      fileName: 'overture-hk-address.parquet',
+      fileName: 'hkgov-dpo-hk-address.parquet',
       fileSize: fixtureBytes.byteLength,
       inspection: fixtureInspection,
       plan: {
@@ -141,7 +141,7 @@ describe('upload session local processing ownership', () => {
         cohortKey: '2026-05',
         sourceVersion: '2026-05-20.0',
       },
-      schemaVersionId: 'overture-address-v2025-09-24.0',
+      schemaVersionId: 'hkgov-dpo-address-unvalidated',
     })
 
     expect(typeof firstSignResult.uploadHeaders['x-amz-meta-schemaFingerprint']).toBe(
@@ -161,7 +161,7 @@ describe('upload session local processing ownership', () => {
     await expect(
       handleSignUploadRequest(db, bucket, signingEnv, {
         contentType: 'application/octet-stream',
-        fileName: 'overture-hk-address.parquet',
+        fileName: 'hkgov-dpo-hk-address.parquet',
         fileSize: fixtureBytes.byteLength,
         inspection: fixtureInspection,
         plan: {
@@ -169,10 +169,10 @@ describe('upload session local processing ownership', () => {
           cohortKey: '2026-06',
           sourceVersion: '2026-06-17.0',
         },
-        schemaVersionId: 'overture-address-v2025-09-24.0',
+        schemaVersionId: 'hkgov-dpo-address-unvalidated',
       }),
     ).resolves.toMatchObject({
-      releaseCode: 'dr-hk-overture-address-2026-06-17.0',
+      releaseCode: 'dr-hk-hkgov-dpo-address-2026-06-17.0',
       status: 'uploading',
     })
   })
@@ -181,7 +181,7 @@ describe('upload session local processing ownership', () => {
     const { bucket, db } = initHarness('harbour-signed-upload-schema-fallback.sqlite')
     const firstSignResult = await handleSignUploadRequest(db, bucket, signingEnv, {
       contentType: 'application/octet-stream',
-      fileName: 'overture-hk-address.parquet',
+      fileName: 'hkgov-dpo-hk-address.parquet',
       fileSize: fixtureBytes.byteLength,
       inspection: fixtureInspection,
       plan: {
@@ -189,7 +189,7 @@ describe('upload session local processing ownership', () => {
         cohortKey: '2026-05',
         sourceVersion: '2026-05-20.0',
       },
-      schemaVersionId: 'overture-address-v2025-09-24.0',
+      schemaVersionId: 'hkgov-dpo-address-unvalidated',
     })
 
     await putSignedUploadObject(bucket, firstSignResult, fixtureBytes.slice().buffer)
@@ -203,7 +203,7 @@ describe('upload session local processing ownership', () => {
     await expect(
       handleSignUploadRequest(db, bucket, signingEnv, {
         contentType: 'application/octet-stream',
-        fileName: 'overture-hk-address.parquet',
+        fileName: 'hkgov-dpo-hk-address.parquet',
         fileSize: fixtureBytes.byteLength,
         inspection: fixtureInspection,
         plan: {
@@ -211,10 +211,10 @@ describe('upload session local processing ownership', () => {
           cohortKey: '2026-06',
           sourceVersion: '2026-06-17.0',
         },
-        schemaVersionId: 'overture-address-v2025-09-24.0',
+        schemaVersionId: 'hkgov-dpo-address-unvalidated',
       }),
     ).resolves.toMatchObject({
-      releaseCode: 'dr-hk-overture-address-2026-06-17.0',
+      releaseCode: 'dr-hk-hkgov-dpo-address-2026-06-17.0',
       status: 'uploading',
     })
   })

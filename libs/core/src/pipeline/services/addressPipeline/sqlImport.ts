@@ -32,9 +32,9 @@ type SqlValue = boolean | number | string | null | undefined
 
 const DEFAULT_MAX_STATEMENT_BYTES = 99_000
 const SQL_TEXT_ENCODER = new TextEncoder()
-const NORMALIZED_ROWS_TABLE = 'stagingOvertureAddresses2d'
-const NORMALIZED_I18N_TABLE = 'stagingOvertureAddresses2dI18n'
-const SOURCE_CHANGED_TABLE = 'stagingOvertureAddresses2dChanged'
+const NORMALIZED_ROWS_TABLE = 'stagingAddresses2d'
+const NORMALIZED_I18N_TABLE = 'stagingAddresses2dI18n'
+const SOURCE_CHANGED_TABLE = 'stagingAddresses2dChanged'
 const RESOLVED_ROWS_TABLE = 'zzAddressImportResolvedRows'
 const RESOLVED_I18N_TABLE = 'zzAddressImportResolvedI18n'
 const ADDRESS_ALIAS_ID_NAMESPACE = 'dd44d1a8-4b17-58a1-b1db-8dc8a40f180a'
@@ -47,9 +47,6 @@ const NORMALIZED_ROW_COLUMNS = [
   'sourceRecordId',
   'matchKey',
   'sourcePayloadHash',
-  'sourceArea',
-  'sourceDistrict',
-  'sourceUnit',
   'divisionSnapshotId',
   'streetSnapshotId',
   'streetId',
@@ -175,9 +172,6 @@ export function buildAddressSourceSqlImportFiles(
         sourceRecordId: row.sourceId,
         matchKey: row.matchKey,
         sourcePayloadHash: row.sourcePayloadHash,
-        sourceArea: row.source.overture?.area,
-        sourceDistrict: row.source.overture?.district,
-        sourceUnit: row.source.overture?.unit,
         divisionSnapshotId: row.base.divisionSnapshotId,
         streetSnapshotId: row.base.streetSnapshotId,
         streetId: row.base.streetId,
@@ -495,9 +489,6 @@ CREATE TABLE IF NOT EXISTS ${NORMALIZED_ROWS_TABLE} (
   sourceRecordId TEXT NOT NULL,
   matchKey TEXT,
   sourcePayloadHash TEXT,
-  sourceArea TEXT,
-  sourceDistrict TEXT,
-  sourceUnit TEXT,
   divisionSnapshotId TEXT,
   streetSnapshotId TEXT,
   streetId TEXT,
@@ -610,64 +601,7 @@ DROP TABLE IF EXISTS ${RESOLVED_ROWS_TABLE};`.trim()
 }
 
 function buildAddressSourceApplySql(message: DatasetProcessingMessage, runId: string) {
-  return message.source === 'overture'
-    ? buildOvertureSourceApplySql(message, runId)
-    : buildHkgovSourceApplySql(message, runId)
-}
-
-function buildOvertureSourceApplySql(message: DatasetProcessingMessage, runId: string) {
-  const releaseId = sqlLiteral(buildSourceReleaseId(message))
-  const sourceVersion = sqlLiteral(message.sourceVersion)
-  const run = sqlLiteral(runId)
-
-  return `
-DELETE FROM ${SOURCE_CHANGED_TABLE} WHERE runId = ${run};
-INSERT OR IGNORE INTO ${SOURCE_CHANGED_TABLE} (runId, sourceRecordId)
-SELECT r.runId, r.sourceRecordId
-FROM ${NORMALIZED_ROWS_TABLE} r
-LEFT JOIN overtureAddresses2d current
-  ON current.sourceRecordId = r.sourceRecordId
-  AND current.isCurrent = 1
-WHERE r.runId = ${run}
-  AND (current.sourceRecordId IS NULL OR COALESCE(current.versionHash, '') <> COALESCE(r.sourcePayloadHash, ''));
-UPDATE overtureAddresses2d
-SET releaseId = ${releaseId}, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-WHERE isCurrent = 1
-  AND EXISTS (
-    SELECT 1
-    FROM ${NORMALIZED_ROWS_TABLE} r
-    WHERE r.runId = ${run}
-      AND r.sourceRecordId = overtureAddresses2d.sourceRecordId
-      AND COALESCE(r.sourcePayloadHash, '') = COALESCE(overtureAddresses2d.versionHash, '')
-  );
-UPDATE overtureAddresses2d
-SET isCurrent = 0, validToRelease = ${sourceVersion}, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-WHERE isCurrent = 1
-  AND EXISTS (
-    SELECT 1 FROM ${SOURCE_CHANGED_TABLE} changed
-    WHERE changed.runId = ${run}
-      AND changed.sourceRecordId = overtureAddresses2d.sourceRecordId
-  );
-INSERT INTO overtureAddresses2d (
-  sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent,
-  version, geometry, bbox, area, district, unit, streetName, streetNumber, sources, rawProperties
-)
-SELECT
-  r.sourceRecordId, r.sourcePayloadHash, ${releaseId}, ${sourceVersion}, NULL, 1,
-  CAST(json_extract(r.rawProperties, '$.version') AS INTEGER),
-  r.geometry, r.bbox, r.sourceArea, r.sourceDistrict, r.sourceUnit,
-  (SELECT i.streetName FROM ${NORMALIZED_I18N_TABLE} i WHERE i.runId = r.runId AND i.sourceRecordId = r.sourceRecordId AND i.locale = 'en'),
-  (SELECT i.streetNumber FROM ${NORMALIZED_I18N_TABLE} i WHERE i.runId = r.runId AND i.sourceRecordId = r.sourceRecordId AND i.locale = 'en'),
-  r.sources, r.rawProperties
-FROM ${NORMALIZED_ROWS_TABLE} r
-WHERE r.runId = ${run}
-  AND EXISTS (SELECT 1 FROM ${SOURCE_CHANGED_TABLE} changed WHERE changed.runId = r.runId AND changed.sourceRecordId = r.sourceRecordId)
-ON CONFLICT(sourceRecordId, versionHash) DO UPDATE SET
-  releaseId = excluded.releaseId,
-  validFromRelease = excluded.validFromRelease,
-  validToRelease = NULL,
-  isCurrent = 1,
-  updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now');`.trim()
+  return buildHkgovSourceApplySql(message, runId)
 }
 
 function buildHkgovSourceApplySql(message: DatasetProcessingMessage, runId: string) {

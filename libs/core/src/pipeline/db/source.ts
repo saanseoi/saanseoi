@@ -15,7 +15,6 @@ import {
 
 const SOURCE_OVERTURE_DIVISION_VERSION_COLUMN_COUNT = 19
 const SOURCE_OVERTURE_DIVISION_I18N_VERSION_COLUMN_COUNT = 14
-const SOURCE_OVERTURE_ADDRESS2D_VERSION_COLUMN_COUNT = 18
 const SOURCE_HKGOV_ADDRESS2D_VERSION_COLUMN_COUNT = 28
 const SOURCE_HKGOV_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 23
 const SEEN_SOURCE_RECORD_ID_INSERT_COLUMN_COUNT = 1
@@ -106,23 +105,8 @@ export async function getMergedCurrentSourceOvertureDivisionMap(
   )
 }
 
-export async function getCurrentSourceOvertureAddress2dMap(db: SourceDatabase) {
-  return loadCurrentSourceRecordMap(db, sourceSchema.sourceOvertureAddresses2d)
-}
-
 export async function getCurrentSourceHkgovAlsAddress2dMap(db: SourceDatabase) {
   return loadCurrentSourceRecordMap(db, sourceSchema.sourceHkgovAlsAddresses2d)
-}
-
-export async function getCurrentSourceOvertureAddress2dRecords(
-  db: SourceDatabase,
-  sourceRecordIds: string[],
-) {
-  return loadCurrentSourceRecordMapByIds(
-    db,
-    sourceSchema.sourceOvertureAddresses2d,
-    sourceRecordIds,
-  )
 }
 
 export async function getCurrentSourceHkgovAlsAddress2dRecords(
@@ -134,10 +118,6 @@ export async function getCurrentSourceHkgovAlsAddress2dRecords(
     sourceSchema.sourceHkgovAlsAddresses2d,
     sourceRecordIds,
   )
-}
-
-export async function hasCurrentSourceOvertureAddress2dRecords(db: SourceDatabase) {
-  return hasCurrentSourceRecords(db, sourceSchema.sourceOvertureAddresses2d)
 }
 
 export async function hasCurrentSourceHkgovAlsAddress2dRecords(db: SourceDatabase) {
@@ -193,19 +173,6 @@ export async function closeSourceOvertureDivisionVersions(
   )
 }
 
-export async function closeSourceOvertureAddress2dVersions(
-  db: SourceDatabase,
-  sourceRecordIds: string[],
-  validToRelease: string,
-) {
-  await closeCurrentSourceVersions(
-    db,
-    sourceSchema.sourceOvertureAddresses2d,
-    sourceRecordIds,
-    validToRelease,
-  )
-}
-
 export async function closeSourceHkgovAlsAddress2dVersions(
   db: SourceDatabase,
   sourceRecordIds: string[],
@@ -233,58 +200,6 @@ export async function deleteMissingCurrentSourceOvertureDivisions(
     currentRows,
     seenIds,
     sourceSchema.sourceOvertureDivisionI18n,
-  )
-}
-
-export async function deleteMissingCurrentSourceOvertureAddresses2d(
-  db: SourceDatabase,
-  validToRelease: string,
-  currentRows: Map<string, CurrentSourceRecord>,
-  seenIds: Set<string>,
-) {
-  return deleteMissingCurrentSourceRows(
-    db,
-    sourceSchema.sourceOvertureAddresses2d,
-    validToRelease,
-    currentRows,
-    seenIds,
-  )
-}
-
-export async function deleteMissingCurrentSourceOvertureAddresses2dBySeenIds(
-  db: SourceDatabase,
-  validToRelease: string,
-  seenIds: Set<string>,
-) {
-  return deleteMissingCurrentSourceRowsBySeenIds(
-    db,
-    sourceSchema.sourceOvertureAddresses2d,
-    validToRelease,
-    seenIds,
-  )
-}
-
-export async function deleteMissingCurrentSourceOvertureAddresses2dBySeenTable(
-  db: SourceDatabase,
-  validToRelease: string,
-) {
-  return deleteMissingCurrentSourceRowsBySeenTable(
-    db,
-    sourceSchema.sourceOvertureAddresses2d,
-    validToRelease,
-  )
-}
-
-export async function deleteMissingCurrentSourceOvertureAddresses2dByReleaseId(
-  db: SourceDatabase,
-  validToRelease: string,
-  releaseId: string,
-) {
-  return deleteMissingCurrentSourceRowsByReleaseId(
-    db,
-    sourceSchema.sourceOvertureAddresses2d,
-    validToRelease,
-    releaseId,
   )
 }
 
@@ -465,22 +380,6 @@ export async function insertSourceOvertureDivisionI18nVersions(
       sourceSchema.sourceOvertureDivisionI18n.locale,
     ],
     options,
-  )
-}
-
-export async function insertSourceOvertureAddresses2dVersions(
-  db: SourceDatabase,
-  rows: Array<typeof sourceSchema.sourceOvertureAddresses2d.$inferInsert>,
-) {
-  await insertVersionRows(
-    db,
-    sourceSchema.sourceOvertureAddresses2d,
-    rows,
-    SOURCE_OVERTURE_ADDRESS2D_VERSION_COLUMN_COUNT,
-    [
-      sourceSchema.sourceOvertureAddresses2d.sourceRecordId,
-      sourceSchema.sourceOvertureAddresses2d.versionHash,
-    ],
   )
 }
 
@@ -923,19 +822,6 @@ async function advanceCurrentSourceRelease<
   }
 
   await runStatementsInGroupsWithWriteRetry(db, statements)
-}
-
-export async function advanceSourceOvertureAddress2dRelease(
-  db: SourceDatabase,
-  sourceRecordIds: string[],
-  releaseId: string,
-) {
-  await advanceCurrentSourceRelease(
-    db,
-    sourceSchema.sourceOvertureAddresses2d,
-    sourceRecordIds,
-    releaseId,
-  )
 }
 
 export async function advanceSourceHkgovAlsAddress2dRelease(

@@ -101,7 +101,6 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
       { table: 'address2d' },
     ],
     sources: {
-      overture: ['overtureAddresses2d'],
       'hkgov-dpo': ['hkgovAlsAddress2dI18n', 'hkgovAlsAddresses2d'],
     },
   },
