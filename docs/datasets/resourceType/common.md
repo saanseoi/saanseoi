@@ -27,9 +27,8 @@ Every uploaded release records its upstream release-notes URL in `DB_META.releas
 CLI keys its local cache by the generated release code. Existing version-1 entries are
 migrated when first read. Pass `--release-notes-url URL` to set or replace a value;
 otherwise the CLI uses the cached value and prompts only when that key is unknown. Known
-Overture releases are built in with theme-specific anchors (`#addresses`, `#divisions`,
-and `#places`) so the public source registry links directly to the relevant upstream
-section.
+Overture releases are built in with theme-specific anchors (`#divisions` and `#places`)
+so the public source registry links directly to the relevant upstream section.
 
 The local CLI runs against local SQLite copies of the target D1 databases, then imports
 generated SQL into the configured target:

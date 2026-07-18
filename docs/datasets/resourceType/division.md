@@ -232,10 +232,6 @@ also a live dependency elsewhere:
 
 - place detail responses join `placesDivision` to `divisions` and `divisionsI18n`
 - place search FTS uses `divisionsI18n.name` as part of `divisionText`
-- Overture address ingestion resolves `areaId` and `districtId` from source
-  `area`/`district` enums against the same-cohort published division snapshot, falling
-  back to the latest published division snapshot only when an exact cohort snapshot is
-  unavailable
 - HKGov ALS address preparation also resolves division IDs from the current divisions
   database
 

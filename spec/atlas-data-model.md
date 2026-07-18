@@ -51,14 +51,14 @@ The implementation does not treat a monthly upload as a `dataset`.
 
 Instead:
 
-- `datasets` are stable logical feeds such as `overture/hk-address` or
+- `datasets` are stable logical feeds such as `hkgov-dpo/hk-address` or
   `overture/hk-division`
 - `releases` are individual uploaded snapshots for a dataset
 
 Examples from seed data:
 
 - dataset code: `hk-address`
-- release code: `dr-hk-overture-address-2026-05-24.0`
+- release code: `dr-hk-hkgov-dpo-address-2026-05-24.0`
 
 This is the most important difference from the earlier spec.
 
@@ -594,7 +594,6 @@ This is where publisher-specific fidelity belongs.
 Currently implemented source families include:
 
 - Overture divisions
-- Overture addresses
 - HK Gov ALS addresses
 
 Those tables are intentionally separate from the canonical `current` and `history`

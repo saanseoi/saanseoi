@@ -32,7 +32,6 @@ export type AddressPipelineStats = {
 export type AddressPipelineMessage = DatasetProcessingMessage & {
   addressStage?: AddressPipelineStage
   addressCurrentLookupCache?: AddressCurrentLookupCache
-  addressDivisionLookup?: SerializedAddressDivisionLookup
   artifactKey?: string
   resolvedArtifactKey?: string
   addressSqlArtifactKeys?: string[]
@@ -49,67 +48,12 @@ export type AddressCurrentLookupCache = {
   byMatchKey: Map<string, AddressCurrentLookupEntry>
 }
 
-export type SerializedAddressDivisionLookup = {
-  areaByCode: Partial<Record<'HK' | 'KL' | 'NT', string>>
-  countryId: string | null
-  districtByCode: Partial<
-    Record<
-      | 'CW'
-      | 'EST'
-      | 'ILD'
-      | 'KLC'
-      | 'KC'
-      | 'KT'
-      | 'NTH'
-      | 'SK'
-      | 'ST'
-      | 'SSP'
-      | 'STH'
-      | 'TP'
-      | 'TW'
-      | 'TM'
-      | 'WC'
-      | 'WTS'
-      | 'YTM'
-      | 'YL',
-      string
-    >
-  >
-  snapshotId: string
-}
-
 export type NormalizedAddressRecord = {
   canonicalId: string
   base: Omit<AddressRow, 'id' | 'snapshotId' | 'createdAt' | 'updatedAt'>
   i18n: AddressI18nPayload[]
   matchKey: string | null
   raw: Record<string, unknown>
-  source: {
-    overture?: {
-      area: 'HK' | 'KL' | 'NT' | null
-      district:
-        | 'CW'
-        | 'EST'
-        | 'ILD'
-        | 'KLC'
-        | 'KC'
-        | 'KT'
-        | 'NTH'
-        | 'SK'
-        | 'ST'
-        | 'SSP'
-        | 'STH'
-        | 'TP'
-        | 'TW'
-        | 'TM'
-        | 'WC'
-        | 'WTS'
-        | 'YTM'
-        | 'YL'
-        | null
-      unit: string | null
-    }
-  }
   sourceId: string
   sourcePayloadHash: string
 }

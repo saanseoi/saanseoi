@@ -38,4 +38,4 @@ If adopted, HKPost would most likely sit closer to:
 - 3D enrichment
 - formatting normalization
 
-than to the current 2D base-address snapshot flow used by Overture and HKGov ALS.
+than to the current 2D base-address snapshot flow used by HKGov ALS.

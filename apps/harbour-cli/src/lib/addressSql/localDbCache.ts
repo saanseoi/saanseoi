@@ -147,7 +147,6 @@ const VERSION_TABLES_WITH_CURRENT_ROWS = new Set([
   'divisionsI18n',
   'hkgovAlsAddresses2d',
   'hkgovAlsAddress2dI18n',
-  'overtureAddresses2d',
   'overtureDivisions',
   'overtureDivisionAreas',
   'overtureDivisionBoundaries',
@@ -1346,7 +1345,6 @@ function resolveMirrorTablesForBinding(
     return [
       'overtureDivisions',
       'overtureDivisionI18n',
-      'overtureAddresses2d',
       'hkgovAlsAddresses2d',
       'hkgovAlsAddress2dI18n',
     ]

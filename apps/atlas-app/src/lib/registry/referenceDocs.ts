@@ -1,5 +1,4 @@
 import overtureLocalisation from '../../../../../docs/datasets/sources/overture/localisation.md?raw'
-import overtureAddressDivisionNormalization from '../../../../../docs/datasets/sources/overture/addressDivisions.md?raw'
 import overtureDivisionHierarchy from '../../../../../docs/datasets/sources/overture/divisionHierarchy.md?raw'
 import overtureDivisionTypeLevelMapping from '../../../../../docs/datasets/sources/overture/divisionType.md?raw'
 
@@ -43,11 +42,6 @@ const markdownReferences = {
     title: 'division hierarchy normalization',
     displayTitleKey: 'reference_division_hierarchy_normalization',
     source: overtureDivisionHierarchy,
-  },
-  'overture-address-division-normalization': {
-    title: 'address division normalization',
-    displayTitleKey: 'reference_address_division_normalization',
-    source: overtureAddressDivisionNormalization,
   },
 } satisfies Record<string, MarkdownReferenceSource>
 

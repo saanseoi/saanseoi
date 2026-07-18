@@ -87,7 +87,7 @@ Current policy:
 - divisions
   - use the Overture release date
 - addresses
-  - use the Overture address release that the canonical address snapshot is based on
+  - use the HKGov ALS address release that produced the canonical address snapshot
 - places
   - use the Overture release date
 

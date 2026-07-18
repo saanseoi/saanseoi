@@ -1,6 +1,7 @@
 import type { DatasetProcessingMessage } from '../../../types'
 import type { HarbourReadableDb } from '../../../lib/db/types'
 import {
+  and,
   eq,
   metaSchema,
   type CurrentDatabase,
@@ -20,7 +21,6 @@ import {
 } from '../pipelineArtifacts'
 import { normalizeAddressChunkStage, resolveAddressChunkSize } from './normalizeStage'
 import { buildResolvedAddressChunkArtifact } from './historyStage'
-import { loadDivisionLookupMaps } from './normalization'
 import type {
   AddressPipelineMessage,
   NormalizedAddressChunkArtifact,
@@ -467,7 +467,7 @@ async function writeSqlFiles(
 
 async function buildCurrentSnapshotInitSqlFile(
   metaDb: MetaDatabase,
-  currentDb: CurrentDatabase,
+  _currentDb: CurrentDatabase,
   message: DatasetProcessingMessage,
   snapshotIdValue: string,
 ): Promise<AddressSqlImportFile> {
@@ -478,12 +478,32 @@ async function buildCurrentSnapshotInitSqlFile(
     .where(eq(metaSchema.metaSnapshots.id, snapshotIdValue))
     .limit(1)
     .get()
-  const divisionLookup = await loadDivisionLookupMaps(
-    metaDb,
-    currentDb,
-    message.regionCode,
-    message.cohortKey,
-  )
+  const divisionSnapshot = await metaDb
+    .select({ id: metaSchema.metaSnapshots.id })
+    .from(metaSchema.metaSnapshots)
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
+    .where(
+      and(
+        eq(metaSchema.metaSnapshots.resourceType, 'division'),
+        eq(metaSchema.metaSnapshots.cohortKey, message.cohortKey),
+        eq(metaSchema.metaSnapshots.status, 'published'),
+        eq(metaSchema.metaSnapshotLineages.regionCode, message.regionCode),
+        eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
+      ),
+    )
+    .limit(1)
+    .get()
+  if (!divisionSnapshot) {
+    throw new Error(
+      `Published division snapshot not found for ${message.regionCode}/${message.cohortKey}.`,
+    )
+  }
   const snapshotId = sqlLiteral(snapshotIdValue)
   const clonedAt = sqlLiteral(
     message.processingRunStartedAt ?? new Date().toISOString(),
@@ -529,10 +549,7 @@ ON CONFLICT(snapshotId, addressId, locale) DO NOTHING;`.trim(),
   }
 
   statements.push(
-    buildAlignAddressCurrentDivisionSnapshotSql(
-      snapshotIdValue,
-      divisionLookup.snapshotId,
-    ),
+    buildAlignAddressCurrentDivisionSnapshotSql(snapshotIdValue, divisionSnapshot.id),
   )
 
   const sql = `${statements.join('\n\n')}\n`

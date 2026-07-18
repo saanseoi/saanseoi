@@ -18,7 +18,7 @@ import type {
   NewAddressI18nRow,
 } from '@repo/db/currentSchema'
 import type { CurrentAddressVersionRow } from '@repo/db/historySchema'
-import { currentSchema, historySchema, metaSchema } from '@repo/db'
+import { currentSchema, historySchema } from '@repo/db'
 
 import {
   chunkArray,
@@ -527,29 +527,6 @@ export async function prepareAddressVersionInsertContext(
       sourceCohortKey: dataset.cohortKey,
     },
   )
-  if (dataset.source === 'hkgov-dpo') {
-    const overtureRelease = await resolveOvertureAddressReleaseForCohort(
-      metaDb,
-      dataset.regionCode,
-      dataset.cohortKey,
-    )
-
-    if (overtureRelease) {
-      await upsertSnapshotSource(
-        metaDb,
-        snapshot.id,
-        overtureRelease.datasetId,
-        overtureRelease.releaseId,
-        'enrichment',
-        {
-          anchorReleaseId: null,
-          selectedByRule: 'snapshot-assembly-address-v1',
-          selectionMode: 'exact_ref',
-          sourceCohortKey: overtureRelease.cohortKey,
-        },
-      )
-    }
-  }
   await recordSnapshotAssemblyRun(metaDb, {
     snapshotId: snapshot.id,
     resourceType: 'address',
@@ -576,7 +553,7 @@ export async function prepareAddressVersionInsertContext(
 }
 
 async function resolveAddressLineageDataset(
-  metaDb: HarbourReadableDb,
+  _metaDb: HarbourReadableDb,
   dataset: {
     datasetCode: string
     datasetId: string
@@ -584,74 +561,10 @@ async function resolveAddressLineageDataset(
     source: string
   },
 ) {
-  if (dataset.source === 'overture') {
-    return {
-      datasetCode: dataset.datasetCode,
-      datasetId: dataset.datasetId,
-    }
+  return {
+    datasetCode: dataset.datasetCode,
+    datasetId: dataset.datasetId,
   }
-
-  const row = await metaDb
-    .select({
-      datasetCode: metaSchema.metaDatasets.code,
-      datasetId: metaSchema.metaDatasets.id,
-    })
-    .from(metaSchema.metaDatasets)
-    .innerJoin(
-      metaSchema.metaPublishers,
-      eq(metaSchema.metaDatasets.publisherId, metaSchema.metaPublishers.id),
-    )
-    .where(
-      and(
-        eq(metaSchema.metaDatasets.regionCode, dataset.regionCode),
-        eq(metaSchema.metaDatasets.type, 'address'),
-        eq(metaSchema.metaPublishers.code, 'overture'),
-      ),
-    )
-    .limit(1)
-    .get()
-
-  if (!row) {
-    throw new Error(
-      `Overture address dataset definition not found for region ${dataset.regionCode}.`,
-    )
-  }
-
-  return row
-}
-
-async function resolveOvertureAddressReleaseForCohort(
-  metaDb: HarbourReadableDb,
-  regionCode: string,
-  cohortKey: string,
-) {
-  return (
-    (await metaDb
-      .select({
-        cohortKey: metaSchema.metaReleases.cohortKey,
-        datasetId: metaSchema.metaDatasets.id,
-        releaseId: metaSchema.metaReleases.id,
-      })
-      .from(metaSchema.metaReleases)
-      .innerJoin(
-        metaSchema.metaDatasets,
-        eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
-      )
-      .innerJoin(
-        metaSchema.metaPublishers,
-        eq(metaSchema.metaDatasets.publisherId, metaSchema.metaPublishers.id),
-      )
-      .where(
-        and(
-          eq(metaSchema.metaDatasets.regionCode, regionCode),
-          eq(metaSchema.metaDatasets.type, 'address'),
-          eq(metaSchema.metaPublishers.code, 'overture'),
-          eq(metaSchema.metaReleases.cohortKey, cohortKey),
-        ),
-      )
-      .limit(1)
-      .get()) ?? null
-  )
 }
 
 export async function cloneAddressCurrentSnapshot(

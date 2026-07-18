@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:4b8d50400fb864db572eb021697672f091a4c74adbce4207e96278ea1394c470",
+  "versionHash": "sha256:03f3183a825e149591c813087ebf2801201b1451f01f2476bc7e38a3db813b08",
   "apiVersion": "api-addresses-v0.1",
   "code": "comp-addresses-v1",
   "version": 1,
@@ -7,7 +7,7 @@
   "status": "current",
   "domains": [
     {
-      "code": "overture",
+      "code": "hkgov-dpo",
       "isDefault": true,
       "members": [
         {

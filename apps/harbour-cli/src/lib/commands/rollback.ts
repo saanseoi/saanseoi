@@ -785,8 +785,6 @@ function resolveSourceTable(tableName: string) {
       return sourceSchema.sourceHkgovAlsAddress2dI18n
     case 'hkgovAlsAddresses2d':
       return sourceSchema.sourceHkgovAlsAddresses2d
-    case 'overtureAddresses2d':
-      return sourceSchema.sourceOvertureAddresses2d
     case 'overtureDivisionI18n':
       return sourceSchema.sourceOvertureDivisionI18n
     case 'overtureDivisions':

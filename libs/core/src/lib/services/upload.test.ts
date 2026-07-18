@@ -193,9 +193,9 @@ describe('upload', () => {
 
   test('infers source from recognizable filename and path tokens', () => {
     expect(inferSourceFromFilename('hkgov-dpo-address.parquet')).toBe('hkgov-dpo')
-    expect(inferSourceFromFilename('overture-address.parquet')).toBe('overture')
+    expect(inferSourceFromFilename('overture-division.parquet')).toBe('overture')
     expect(inferSourceFromPath('/tmp/hkgov/2026-05/address.parquet')).toBe('hkgov')
-    expect(inferSourceFromPath('/tmp/overture/2026-05/address.parquet')).toBe(
+    expect(inferSourceFromPath('/tmp/overture/2026-05/division.parquet')).toBe(
       'overture',
     )
   })
@@ -481,7 +481,7 @@ describe('upload', () => {
     db.close()
   })
 
-  test('allows bridged pre-GERS hkgov address cohorts without an overture release', async () => {
+  test('allows hkgov address cohorts without another address release', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
     const fixtureFile = join(tempDir, 'hkgov-dpo-address.parquet')
@@ -546,21 +546,6 @@ describe('upload', () => {
     const fixtureFile = createAddressFixturePath(tempDir)
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
-
-    insertFixtureRelease(sqlite, {
-      source: 'overture',
-      regionCode: 'hk',
-      cohortKey: '2026-06',
-      theme: 'addresses',
-      type: 'address',
-      sourceVersion: '2026-06-24.0',
-      rawObjectKey: 'hk/overture/2026-06-24.0/address.parquet',
-      originalFileName: 'address.parquet',
-      status: 'published',
-      ingestedAt: '2026-06-24T00:00:00.000Z',
-      createdAt: '2026-06-24T00:00:00.000Z',
-      updatedAt: '2026-06-24T00:00:00.000Z',
-    })
 
     const result = await registerUpload(db, {
       filePath: fixtureFile,

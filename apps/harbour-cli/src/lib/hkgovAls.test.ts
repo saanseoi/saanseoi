@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  consolidateEquivalentHkgovAlsPremises,
   dedupeHkgovAlsSourceFeatures,
   resolveDivisionLookupSource,
   resolveDivisionSnapshotSource,
@@ -62,6 +63,40 @@ describe('dedupeHkgovAlsSourceFeatures', () => {
         occurrences: [
           { featureIndexOneBased: 4, sourceFile: 'first.geojson' },
           { featureIndexOneBased: 9, sourceFile: 'second.geojson' },
+        ],
+      },
+    ])
+  })
+})
+
+describe('consolidateEquivalentHkgovAlsPremises', () => {
+  test('only consolidates rows with the same complete premise identity', () => {
+    const first = {
+      enFormattedAddress: 'BLOCK D, EXAMPLE BUILDING, 1 EXAMPLE STREET',
+      identityKey: 'same-complete-premise',
+      sourceFeatureIndexOneBased: 4,
+      sourceFile: 'eastern.geojson',
+      zhHantFormattedAddress: null,
+    } as Parameters<typeof consolidateEquivalentHkgovAlsPremises>[0][number]
+    const equivalent = {
+      ...first,
+      sourceFeatureIndexOneBased: 9,
+    }
+    const distinct = {
+      ...first,
+      identityKey: 'different-block',
+      sourceFeatureIndexOneBased: 12,
+    }
+
+    const result = consolidateEquivalentHkgovAlsPremises([first, equivalent, distinct])
+
+    expect(result.rows).toEqual([first, distinct])
+    expect(result.duplicateGroups).toEqual([
+      {
+        address: 'BLOCK D, EXAMPLE BUILDING, 1 EXAMPLE STREET',
+        occurrences: [
+          { featureIndexOneBased: 4, sourceFile: 'eastern.geojson' },
+          { featureIndexOneBased: 9, sourceFile: 'eastern.geojson' },
         ],
       },
     ])

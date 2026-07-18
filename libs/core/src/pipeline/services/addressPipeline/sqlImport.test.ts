@@ -12,16 +12,16 @@ import type { ResolvedAddressChunkArtifact } from './types'
 import type { NormalizedAddressChunkArtifact } from './types'
 
 const message = {
-  cohortKey: '2025-09-24.0',
-  datasetCode: 'ds-hk-overture-address',
+  cohortKey: '2025-09',
+  datasetCode: 'ds-hk-hkgov-dpo-address',
   datasetId: 'dataset-address',
-  rawObjectKey: 'hk/overture/2025-09-24.0/address.parquet',
+  rawObjectKey: 'hk/hkgov-dpo/2025-09/address.parquet',
   regionCode: 'hk',
-  releaseCode: 'dr-hk-overture-address-2025-09-24.0',
+  releaseCode: 'dr-hk-hkgov-dpo-address-2025-09.0',
   releaseId: 'release-address',
   shardYear: '2025',
-  source: 'overture',
-  sourceVersion: '2025-09-24.0',
+  source: 'hkgov-dpo',
+  sourceVersion: '2025-09.0',
   theme: 'addresses',
   type: 'address',
 } satisfies DatasetProcessingMessage
@@ -110,7 +110,7 @@ describe('HKGov ALS identity alias SQL', () => {
           raw: {
             canonicalId: '04bb2336-9590-449b-b6dd-57e22a0462f1',
             identityAlias: 'ss-aaaaaaaa-aaaa-5aaa-8aaa-aaaaaaaaaaaa',
-            identityMatchMethod: 'overture-address-coordinate',
+            identityMatchMethod: 'hkgov-als',
           },
           source: {},
           sourceId: 'ss-aaaaaaaa-aaaa-5aaa-8aaa-aaaaaaaaaaaa',

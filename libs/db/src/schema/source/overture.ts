@@ -9,7 +9,6 @@ import {
 
 import { jsonText, geoBbox, sourceProvenance } from '../shared'
 import { sourceVersionIndexes, sourceVersioning } from './shared'
-import { hkAreas, hkDistricts } from '@repo/core/codes'
 
 export const sourceOvertureDivisions = sqliteTable(
   'overtureDivisions',
@@ -99,39 +98,10 @@ export const sourceOvertureDivisionI18n = sqliteTable(
   ],
 )
 
-export const sourceOvertureAddresses2d = sqliteTable(
-  'overtureAddresses2d',
-  {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    area: text('area', { enum: hkAreas }),
-    district: text('district', { enum: hkDistricts }),
-    streetName: text('streetName'),
-    streetNumber: text('streetNumber'),
-    unit: text('unit'),
-    ...geoBbox,
-    ...sourceProvenance,
-    ...sourceVersioning,
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId, table.versionHash],
-    }),
-    ...sourceVersionIndexes(table, 'overtureAddresses2d'),
-    index('overtureAddresses2d_area_idx').on(table.area),
-    index('overtureAddresses2d_district_idx').on(table.district),
-    index('overtureAddresses2d_district_street_lookup_idx').on(
-      table.district,
-      table.streetName,
-      table.streetNumber,
-    ),
-  ],
-)
-
 export const sourceOverturePlaces = sqliteTable(
   'overturePlaces',
   {
     sourceRecordId: text('sourceRecordId').notNull(),
-    addressSourceRecordId: text('addressSourceRecordId'),
     lng: real('lng'),
     lat: real('lat'),
     bbox: jsonText('bbox'),
@@ -157,7 +127,6 @@ export const sourceOverturePlaces = sqliteTable(
     ...sourceVersionIndexes(table, 'overturePlaces'),
     index('overturePlaces_basicCategory_idx').on(table.basicCategory),
     index('overturePlaces_taxonomyPrimary_idx').on(table.taxonomyPrimary),
-    index('overturePlaces_addressSourceRecordId_idx').on(table.addressSourceRecordId),
   ],
 )
 

@@ -3,19 +3,15 @@ import type { sourceSchema, SourceDatabase } from '@repo/db'
 
 import {
   advanceSourceHkgovAlsAddress2dRelease,
-  advanceSourceOvertureAddress2dRelease,
   buildSourceReleaseId,
   closeSourceHkgovAlsAddress2dVersions,
-  closeSourceOvertureAddress2dVersions,
   getCurrentSourceHkgovAlsAddress2dRecords,
-  getCurrentSourceOvertureAddress2dRecords,
   insertSourceHkgovAlsAddress2dI18nVersions,
   insertSourceHkgovAlsAddresses2dVersions,
-  insertSourceOvertureAddresses2dVersions,
 } from '../../db/source'
 import type { HarbourWorkerBucket } from '../division'
 import { type PipelineArtifactBucket, readJsonArtifact } from '../pipelineArtifacts'
-import { asOptionalInteger, dedupeNormalizedAddressRows } from './normalization'
+import { dedupeNormalizedAddressRows } from './normalization'
 import type {
   AddressPipelineMessage,
   NormalizedAddressChunkArtifact,
@@ -46,70 +42,23 @@ export async function writeAddressSourceChunkStage(
 
   const uniqueRows = dedupeNormalizedAddressRows(artifact.rows)
   const sourceRecordIds = uniqueRows.map(row => row.sourceId)
-  const currentSourceRows =
-    message.source === 'overture'
-      ? await getCurrentSourceOvertureAddress2dRecords(sourceDb, sourceRecordIds)
-      : await getCurrentSourceHkgovAlsAddress2dRecords(sourceDb, sourceRecordIds)
+  const currentSourceRows = await getCurrentSourceHkgovAlsAddress2dRecords(
+    sourceDb,
+    sourceRecordIds,
+  )
   const changedIds = new Set<string>()
   const unchangedIds = new Set<string>()
   const releaseId = buildSourceReleaseId(message)
 
-  if (message.source === 'overture') {
-    const versionRows: Array<
-      typeof sourceSchema.sourceOvertureAddresses2d.$inferInsert
-    > = []
-
-    for (const row of uniqueRows) {
-      const currentSource = currentSourceRows.get(row.sourceId) ?? null
-      const en = row.i18n.find(localized => localized.locale === 'en') ?? null
-      const overtureSource = row.source.overture
-
-      if (currentSource?.sourcePayloadHash === row.sourcePayloadHash) {
-        unchangedIds.add(row.sourceId)
-        continue
-      }
-
-      changedIds.add(row.sourceId)
-      versionRows.push({
-        sourceRecordId: row.sourceId,
-        versionHash: row.sourcePayloadHash,
-        releaseId,
-        validFromRelease: message.sourceVersion,
-        validToRelease: null,
-        isCurrent: true,
-        version: asOptionalInteger(row.raw.version),
-        geometry: row.base.geometry,
-        bbox: row.base.bbox,
-        area: overtureSource?.area ?? null,
-        district: overtureSource?.district ?? null,
-        unit: overtureSource?.unit ?? null,
-        streetName: en?.streetName ?? null,
-        streetNumber: en?.streetNumber ?? null,
-        sources: row.base.sources,
-        rawProperties: row.raw,
-      })
-    }
-
-    if (changedIds.size > 0) {
-      await closeSourceOvertureAddress2dVersions(
-        sourceDb,
-        [...changedIds],
-        message.sourceVersion,
-      )
-    }
-    await advanceSourceOvertureAddress2dRelease(sourceDb, [...unchangedIds], releaseId)
-    await insertSourceOvertureAddresses2dVersions(sourceDb, versionRows)
-  } else {
-    await writeHkgovSourceRows(
-      sourceDb,
-      message,
-      uniqueRows,
-      currentSourceRows,
-      releaseId,
-      changedIds,
-      unchangedIds,
-    )
-  }
+  await writeHkgovSourceRows(
+    sourceDb,
+    message,
+    uniqueRows,
+    currentSourceRows,
+    releaseId,
+    changedIds,
+    unchangedIds,
+  )
 
   return {
     ...pipelineMessage,

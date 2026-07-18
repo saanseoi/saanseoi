@@ -25,10 +25,6 @@ import {
   EMPTY_ADDRESS_PIPELINE_STATS,
   type AddressPipelineMessage,
 } from '@repo/core/pipeline/services/addressPipeline/types'
-import {
-  loadDivisionLookupMaps,
-  serializeDivisionLookupMaps,
-} from '@repo/core/pipeline/services/addressPipeline/normalization'
 
 import type { PreparedUploadFile } from '../parquetRepack.ts'
 import type { UploadTarget } from '../options.ts'
@@ -281,14 +277,6 @@ export async function processLocalAddressSqlUpload(
       releaseCode,
     )
 
-    const serializedDivisionLookup = serializeDivisionLookupMaps(
-      await loadDivisionLookupMaps(
-        dbContext.metaDb,
-        dbContext.currentDb,
-        previewPlan.regionCode,
-        previewPlan.cohortKey,
-      ),
-    )
     const addressCurrentLookupCache = (await hasCurrentAddressVersions(
       dbContext.historyDb as never,
     ))
@@ -302,7 +290,6 @@ export async function processLocalAddressSqlUpload(
         ({
           addressCurrentLookupCache: addressCurrentLookupCache ?? undefined,
           ...initialMessage,
-          addressDivisionLookup: serializedDivisionLookup,
           addressStage: 'normalize',
           chunkSize: ADDRESS_CHUNK_SIZE,
           processingRunStartedAt,
@@ -473,7 +460,6 @@ export async function processLocalAddressSqlUpload(
 
     const finalMessage = buildFinalImportMessage(
       initialMessage,
-      serializedDivisionLookup,
       processingRunStartedAt,
       currentMessages,
       previewPlan.rowCount,
@@ -688,7 +674,6 @@ function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {
 
 function buildFinalImportMessage(
   initialMessage: DatasetProcessingMessage,
-  serializedDivisionLookup: AddressPipelineMessage['addressDivisionLookup'],
   processingRunStartedAt: string,
   messages: AddressPipelineMessage[],
   totalRows: number,
@@ -707,7 +692,6 @@ function buildFinalImportMessage(
 
   return {
     ...initialMessage,
-    addressDivisionLookup: serializedDivisionLookup,
     addressSqlArtifactKeys,
     addressStage: 'sql-import-source',
     addressStats,

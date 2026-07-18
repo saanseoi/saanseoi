@@ -222,13 +222,13 @@ describe('control service', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const { releaseId } = insertFixtureRelease(sqlite, {
-      releaseId: 'release-dr-hk-overture-address-2025-09-24.0',
-      source: 'overture',
+      releaseId: 'release-dr-hk-hkgov-dpo-address-2025-09.0',
+      source: 'hkgov-dpo',
       regionCode: 'hk',
       cohortKey: '2025-09',
       type: 'address',
-      sourceVersion: '2025-09-24.0',
-      rawObjectKey: 'hk/overture/2025-09-24.0/address.parquet',
+      sourceVersion: '2025-09.0',
+      rawObjectKey: 'hk/hkgov-dpo/2025-09.0/address.parquet',
       originalFileName: 'address.parquet',
       status: 'processing',
       ingestedAt: '2026-06-05T00:00:00.000Z',
@@ -399,13 +399,13 @@ describe('control service', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
     const { releaseId } = insertFixtureRelease(sqlite, {
-      releaseId: 'release-dr-hk-overture-address-2025-09-24.0',
-      source: 'overture',
+      releaseId: 'release-dr-hk-hkgov-dpo-address-2025-09.0',
+      source: 'hkgov-dpo',
       regionCode: 'hk',
       cohortKey: '2025-09',
       type: 'address',
-      sourceVersion: '2025-09-24.0',
-      rawObjectKey: 'hk/overture/2025-09-24.0/address.parquet',
+      sourceVersion: '2025-09.0',
+      rawObjectKey: 'hk/hkgov-dpo/2025-09.0/address.parquet',
       originalFileName: 'address.parquet',
       status: 'staged',
       ingestedAt: '2026-06-05T00:00:00.000Z',
@@ -737,7 +737,10 @@ describe('control service', () => {
       const dbPath = join(tempDir, `harbour-publish-${datasetType}-fixture-gap.sqlite`)
       const sqlite = initDb(dbPath)
       const db = createLocalHarbourDb(sqlite)
-      const releaseCode = `dr-hk-overture-${datasetType}-2026-06-24.0`
+      const source = datasetType === 'address' ? 'hkgov-dpo' : 'overture'
+      const datasetId =
+        datasetType === 'address' ? 'hkgov-dpo-hk-address' : 'overture-hk-place'
+      const releaseCode = `dr-hk-${source}-${datasetType}-2026-06-24.0`
       const releaseId = `release-${releaseCode}`
       const snapshotId = `snapshot-${releaseId}`
 
@@ -764,12 +767,12 @@ describe('control service', () => {
 
       insertFixtureRelease(sqlite, {
         releaseId,
-        source: 'overture',
+        source,
         regionCode: 'hk',
         cohortKey: '2026-06',
         type: datasetType,
         sourceVersion: '2026-06-24.0',
-        rawObjectKey: `hk/overture/2026-06-24.0/${datasetType}.parquet`,
+        rawObjectKey: `hk/${source}/2026-06-24.0/${datasetType}.parquet`,
         originalFileName: `${datasetType}.parquet`,
         status: 'staged',
         ingestedAt: '2026-06-05T00:01:00.000Z',
@@ -781,7 +784,7 @@ describe('control service', () => {
         .run('1.17.0', releaseId)
       seedSnapshot(sqlite, {
         code: `ss-hk-${datasetType}-2026-06-24.0`,
-        datasetId: `overture-hk-${datasetType}`,
+        datasetId,
         resourceType: datasetType,
         releaseId,
         snapshotId,
@@ -816,23 +819,18 @@ describe('control service', () => {
           status: 'published',
           timestamp: 1762300800000,
         })
-        const {
-          listCurrentApiCompositionMembersForType,
-          resolvePublishedSnapshotForResourceTypeRegionCohortKey,
-        } = await import('@repo/core/db/metaRegistry')
+        const { listCurrentApiCompositionMembersForType } = await import(
+          '@repo/core/db/metaRegistry'
+        )
         expect(
           await listCurrentApiCompositionMembersForType(db, 'address'),
         ).toContainEqual(
-          expect.objectContaining({ resourceType: 'division', role: 'supporting' }),
+          expect.objectContaining({
+            resourceType: 'division',
+            role: 'supporting',
+            variant: 'overture',
+          }),
         )
-        expect(
-          await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-            db,
-            'division',
-            'hk',
-            '2026-06',
-          ),
-        ).toMatchObject({ code: 'ss-hk-division-2026-06-17.0' })
       }
 
       const result = await handlePublishDataset(db, {

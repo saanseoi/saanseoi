@@ -14,7 +14,6 @@ import {
 import {
   buildSourceReleaseId,
   deleteMissingCurrentSourceHkgovAlsAddresses2dByReleaseId,
-  deleteMissingCurrentSourceOvertureAddresses2dByReleaseId,
 } from '../../db/source'
 import { resolveDataShardEnvironment } from '../shared'
 import type { AddressPipelineMessage } from './types'
@@ -60,20 +59,11 @@ export async function finalizeAddressDatasetStage(
 
   if (sourceDb) {
     const releaseId = buildSourceReleaseId(message)
-
-    if (message.source === 'overture') {
-      await deleteMissingCurrentSourceOvertureAddresses2dByReleaseId(
-        sourceDb,
-        message.sourceVersion,
-        releaseId,
-      )
-    } else {
-      await deleteMissingCurrentSourceHkgovAlsAddresses2dByReleaseId(
-        sourceDb,
-        message.sourceVersion,
-        releaseId,
-      )
-    }
+    await deleteMissingCurrentSourceHkgovAlsAddresses2dByReleaseId(
+      sourceDb,
+      message.sourceVersion,
+      releaseId,
+    )
   }
 
   return {

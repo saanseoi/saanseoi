@@ -843,14 +843,6 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
       ]
     case 'overture':
       switch (release.type) {
-        case 'address':
-          return [
-            {
-              label: 'source',
-              strategy: 'direct',
-              tableName: 'overtureAddresses2d',
-            },
-          ]
         case 'division':
           return [
             {
