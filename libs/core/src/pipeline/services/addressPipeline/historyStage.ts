@@ -1,5 +1,6 @@
 import type { DatasetProcessingMessage } from '../../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
+import { resolveLatestPublishedSnapshotForLineage } from '../../../lib/db/metaRegistry'
 import type { HistoryDatabase, MetaDatabase } from '@repo/db'
 
 import {
@@ -52,6 +53,7 @@ export async function writeAddressHistoryChunkStage(
       [...changedExistingIds],
       versionInsertContext.snapshotId,
       message.cohortKey,
+      versionInsertContext.releaseId,
     )
   }
   await insertAddressVersionRows(
@@ -103,12 +105,24 @@ export async function buildResolvedAddressChunkArtifact(
     message,
     resolveDataShardEnvironment(process.env.DATA_SHARD_ENV),
   )
+  const activeSnapshot = await resolveLatestPublishedSnapshotForLineage(
+    metaRepoDb,
+    versionInsertContext.snapshotLineageId,
+  )
+  if (
+    versionInsertContext.parentSnapshotId &&
+    activeSnapshot?.id !== versionInsertContext.parentSnapshotId
+  ) {
+    throw new Error(
+      `Address snapshot ${versionInsertContext.snapshotId} branches from ${versionInsertContext.parentSnapshotId}, but the v0 address diff reader can only materialise active parent ${activeSnapshot?.id ?? 'none'}.`,
+    )
+  }
   const normalizedRows = dedupeNormalizedAddressRows(artifact.rows)
   const currentAddressLookup = pipelineMessage.addressCurrentLookupCache
     ? buildCurrentAddressLookupFromCache(pipelineMessage.addressCurrentLookupCache)
     : await getCurrentAddressVersionLookup(
         historyRepoDb,
-        normalizedRows.map(row => row.sourceId),
+        normalizedRows.map(row => row.canonicalId),
         normalizedRows.map(row => {
           const englishI18n = row.i18n.find(localized => localized.locale === 'en')
 
@@ -134,10 +148,10 @@ export async function buildResolvedAddressChunkArtifact(
 
   for (const row of normalizedRows) {
     const matchedCurrent =
-      currentAddressLookup.byId.get(row.sourceId) ??
+      currentAddressLookup.byId.get(row.canonicalId) ??
       (row.matchKey ? currentAddressLookup.byMatchKey.get(row.matchKey) : null) ??
       null
-    const addressId = matchedCurrent?.id ?? row.sourceId
+    const addressId = matchedCurrent?.id ?? row.canonicalId
     const now = artifact.processingRunStartedAt
     const base = {
       ...row.base,
@@ -215,8 +229,6 @@ export async function buildResolvedAddressChunkArtifact(
         streetName: localized.streetName ?? null,
         sourceReleaseId: versionInsertContext.releaseId,
         snapshotId: localized.snapshotId ?? row.base.snapshotId,
-        validFromSnapshotId: versionInsertContext.snapshotId,
-        validToSnapshotId: null,
         isCurrent: true,
         versionHash: row.versionHash,
         createdAt: localized.createdAt ?? row.base.createdAt,

@@ -309,6 +309,7 @@ function normalizeOvertureAddressRow(
   const formattedAddress = formatAddress(otNumber, otStreet)
 
   return {
+    canonicalId: sourceId,
     sourceId,
     matchKey: buildMatchKey({
       districtId,
@@ -367,6 +368,10 @@ function normalizeOvertureAddressRow(
 
 function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
   const sourceId = requireText(row.id, 'Prepared HKGov ALS row is missing `id`.')
+  const canonicalId = requireText(
+    row.canonicalId ?? row.id,
+    'Prepared HKGov ALS row is missing `canonicalId`.',
+  )
   const districtId = asNonEmptyString(row.districtId)
   const otStreet =
     asNonEmptyString(row.enStreetName) ?? asNonEmptyString(row.zhHantStreetName)
@@ -418,6 +423,7 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
   }
 
   return {
+    canonicalId,
     sourceId,
     matchKey: buildMatchKey({
       districtId,

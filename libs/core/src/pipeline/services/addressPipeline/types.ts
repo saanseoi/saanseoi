@@ -79,6 +79,7 @@ export type SerializedAddressDivisionLookup = {
 }
 
 export type NormalizedAddressRecord = {
+  canonicalId: string
   base: Omit<AddressRow, 'id' | 'snapshotId' | 'createdAt' | 'updatedAt'>
   i18n: AddressI18nPayload[]
   matchKey: string | null

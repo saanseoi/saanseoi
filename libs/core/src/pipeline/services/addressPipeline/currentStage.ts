@@ -1,5 +1,4 @@
 import type { DatasetProcessingMessage } from '../../../types'
-import { resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId } from '../../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
 import type { CurrentDatabase, MetaDatabase } from '@repo/db'
 
@@ -72,18 +71,10 @@ export async function writeAddressCurrentChunkStage(
   )
 
   if (artifact.rowStart === 0) {
-    const previousSnapshot =
-      await resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId(
-        metaRepoDb,
-        'address',
-        message.regionCode,
-        versionInsertContext.snapshotId,
-      )
-
-    if (previousSnapshot) {
+    if (versionInsertContext.parentSnapshotId) {
       await cloneAddressCurrentSnapshot(
         currentRepoDb,
-        previousSnapshot.id,
+        versionInsertContext.parentSnapshotId,
         versionInsertContext.snapshotId,
         artifact.processingRunStartedAt,
       )
