@@ -17,7 +17,15 @@ import {
   type HkgovAlsIdentityDriftCandidate,
   type HkgovAlsIdentityHistory,
 } from '../hkgovAlsDrift.ts'
-import { prepareHkgovAlsAddressParquet } from '../hkgovAls.ts'
+import {
+  emptyHkgovAlsPrecedenceVariantDecisions,
+  parseHkgovAlsPrecedenceVariantDecisions,
+  type HkgovAlsPrecedenceVariantDecisions,
+} from '../hkgovAlsVariants.ts'
+import {
+  prepareHkgovAlsAddressParquet,
+  type HkgovAlsPrecedenceVariantCandidate,
+} from '../hkgovAls.ts'
 import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
 import { runUploadCommand } from './upload.ts'
 import type { ParsedArgs, UploadTarget } from '../options.ts'
@@ -25,6 +33,11 @@ import type { ParsedArgs, UploadTarget } from '../options.ts'
 const HKGOV_ALS_CATALOGUE_URL = 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als'
 const DEFAULT_HISTORY_FILE = '.local/hkgov-dpo/als-identity-history.json'
 const DEFAULT_DECISIONS_FILE = '.local/hkgov-dpo/als-identity-decisions.json'
+const DEFAULT_PRECEDENCE_VARIANT_DECISIONS_FILE =
+  '.local/hkgov-dpo/als-precedence-variant-decisions.json'
+const INVOCATION_CWD = resolve(
+  process.env.SAANSEOI_INVOCATION_CWD ?? process.env.INIT_CWD ?? process.cwd(),
+)
 
 export async function runHkgovAlsPrepCommand(
   args: ParsedArgs,
@@ -32,6 +45,8 @@ export async function runHkgovAlsPrepCommand(
   printUsage: () => void,
 ) {
   const sourceDir = args.positionals[0]
+    ? resolveInvocationPath(args.positionals[0])
+    : undefined
   const sourceVersion = resolveAlsSourceVersion(args, sourceDir)
   const cohortKey = stringOption(args, 'cohort-key')
 
@@ -44,15 +59,24 @@ export async function runHkgovAlsPrepCommand(
   const outputFile = await createHkgovAlsTempOutputFile(sourceVersion)
   const historyFile = stringOption(args, 'identity-history')
   const decisionsFile = stringOption(args, 'identity-decisions')
+  const precedenceVariantDecisionsFile = stringOption(
+    args,
+    'precedence-variant-decisions',
+  )
   const result = await prepareHkgovAlsRelease({
     args,
     cohortKey,
     decisions: decisionsFile
-      ? await readDecisions(resolve(decisionsFile))
+      ? await readDecisions(resolveInvocationPath(decisionsFile))
       : emptyHkgovAlsIdentityDecisions(),
     history: historyFile
-      ? await readHistory(resolve(historyFile))
+      ? await readHistory(resolveInvocationPath(historyFile))
       : emptyHkgovAlsIdentityHistory(),
+    precedenceVariantDecisions: precedenceVariantDecisionsFile
+      ? await readPrecedenceVariantDecisions(
+          resolveInvocationPath(precedenceVariantDecisionsFile),
+        )
+      : emptyHkgovAlsPrecedenceVariantDecisions(),
     outputFile,
     sourceDir,
     sourceVersion,
@@ -90,8 +114,12 @@ export async function runHkgovAlsPrepCommand(
         String(result.identityConsolidatedFeatureCount),
       ),
       formatField('identityDriftCandidates', String(result.driftCandidates.length)),
+      formatField(
+        'precedenceVariantChoicesRequired',
+        String(result.precedenceVariantCandidates.length),
+      ),
       ...(driftReportFile && result.driftCandidates.length > 0
-        ? [formatField('identityDriftReport', resolve(driftReportFile))]
+        ? [formatField('identityDriftReport', resolveInvocationPath(driftReportFile))]
         : []),
     ].join('\n'),
     'PREP RESULT',
@@ -99,6 +127,11 @@ export async function runHkgovAlsPrepCommand(
   if (result.driftCandidates.length > 0) {
     throw new Error(
       'ALS identity drift needs an explicit decision before this release can be ingested.',
+    )
+  }
+  if (result.precedenceVariantCandidates.length > 0) {
+    throw new Error(
+      'ALS source variants with a missing BlockDescriptorPrecedenceIndicator need an explicit decision before this release can be ingested.',
     )
   }
 }
@@ -113,6 +146,8 @@ export async function runHkgovAlsLocalIngestCommand(
     throw new Error('`ingest-hkgov-dpo-local` only supports --target local.')
   }
   const sourceRoot = args.positionals[0]
+    ? resolveInvocationPath(args.positionals[0])
+    : undefined
   const cohortKey = stringOption(args, 'cohort-key')
   if (!sourceRoot || !cohortKey) {
     printUsage()
@@ -120,23 +155,57 @@ export async function runHkgovAlsLocalIngestCommand(
       'Pass <ALS-source-root> and --cohort-key to `ingest-hkgov-dpo-local`.',
     )
   }
-  const historyFile = resolve(
+  const historyFile = resolveInvocationPath(
     stringOption(args, 'identity-history') ?? DEFAULT_HISTORY_FILE,
   )
-  const decisionsFile = resolve(
+  const decisionsFile = resolveInvocationPath(
     stringOption(args, 'identity-decisions') ?? DEFAULT_DECISIONS_FILE,
+  )
+  const precedenceVariantDecisionsFile = resolveInvocationPath(
+    stringOption(args, 'precedence-variant-decisions') ??
+      DEFAULT_PRECEDENCE_VARIANT_DECISIONS_FILE,
   )
   let history = await readHistory(historyFile)
   let decisions = await readDecisions(decisionsFile)
-  const sourceDirs = await listAlsReleaseDirectories(sourceRoot)
+  let precedenceVariantDecisions = await readPrecedenceVariantDecisions(
+    precedenceVariantDecisionsFile,
+  )
+  const firstSourceVersion =
+    stringOption(args, 'from-source-version') ?? `${cohortKey.slice(0, 4)}-01-01.0000`
+  const sourceDirs = (await listAlsReleaseDirectories(sourceRoot)).filter(sourceDir => {
+    const sourceVersion = inferAlsSourceVersionFromPath(sourceDir)
+    return sourceVersion !== null && sourceVersion >= firstSourceVersion
+  })
   if (sourceDirs.length === 0) {
-    throw new Error(`No ALS release directories found in ${resolve(sourceRoot)}.`)
+    throw new Error(
+      `No ALS release directories found in ${resolve(sourceRoot)} on or after ${firstSourceVersion}.`,
+    )
   }
+  const review = await reviewHkgovAlsIngest({
+    args,
+    cohortKey,
+    decisions,
+    history,
+    precedenceVariantDecisions,
+    sourceDirs,
+    target,
+  })
+  note(
+    [
+      formatField('releases', String(sourceDirs.length)),
+      formatField(
+        'precedenceVariantChoicesRequired',
+        String(review.precedenceVariantCandidates),
+      ),
+      formatField('identityDriftChoicesRequired', String(review.driftCandidates)),
+    ].join('\n'),
+    'ALS REVIEW REQUIRED BEFORE INGESTION',
+  )
 
   for (const sourceDir of sourceDirs) {
     const sourceVersion = inferAlsSourceVersionFromPath(sourceDir)
     if (!sourceVersion) continue
-    const outputFile = resolve(
+    const outputFile = resolveInvocationPath(
       '.local/hkgov-dpo/prepared',
       `hkgov-hk-${sourceVersion}-address.parquet`,
     )
@@ -145,13 +214,37 @@ export async function runHkgovAlsLocalIngestCommand(
       cohortKey,
       decisions,
       history,
+      precedenceVariantDecisions,
       outputFile,
       sourceDir,
       sourceVersion,
       target,
     })
+    if (result.precedenceVariantCandidates.length > 0) {
+      if (args.options.yes) {
+        throw new Error(
+          `ALS precedence-variant choices require review. Run without --yes; decisions are retained in ${precedenceVariantDecisionsFile}.`,
+        )
+      }
+      precedenceVariantDecisions = await promptForPrecedenceVariantDecisions(
+        precedenceVariantDecisions,
+        result.precedenceVariantCandidates,
+      )
+      await writeJson(precedenceVariantDecisionsFile, precedenceVariantDecisions)
+      result = await prepareHkgovAlsRelease({
+        args,
+        cohortKey,
+        decisions,
+        history,
+        precedenceVariantDecisions,
+        outputFile,
+        sourceDir,
+        sourceVersion,
+        target,
+      })
+    }
     if (result.driftCandidates.length > 0) {
-      const reportFile = resolve(
+      const reportFile = resolveInvocationPath(
         '.local/hkgov-dpo/identity-drift',
         `${sourceVersion}.json`,
       )
@@ -168,6 +261,7 @@ export async function runHkgovAlsLocalIngestCommand(
         cohortKey,
         decisions,
         history,
+        precedenceVariantDecisions,
         outputFile,
         sourceDir,
         sourceVersion,
@@ -207,7 +301,7 @@ export async function runHkgovAlsLocalIngestCommand(
       {
         dryRun: Boolean(args.options['dry-run']),
         forceUpload: Boolean(args.options.force),
-        invocationCwd: process.cwd(),
+        invocationCwd: INVOCATION_CWD,
         printUsage,
         skipConfirm: true,
         skipSnapshotCleanup: Boolean(args.options['skip-cleanup']),
@@ -226,10 +320,12 @@ async function prepareHkgovAlsRelease(args: {
   cohortKey: string
   decisions?: HkgovAlsIdentityDecisions
   history?: HkgovAlsIdentityHistory
+  precedenceVariantDecisions?: HkgovAlsPrecedenceVariantDecisions
   outputFile: string
   sourceDir: string
   sourceVersion: string
   target: UploadTarget
+  writeOutput?: boolean
 }) {
   const explicitDbPath = stringOption(args.args, 'db')
   const dbContext = explicitDbPath
@@ -249,14 +345,97 @@ async function prepareHkgovAlsRelease(args: {
       environment: args.target.environment,
       identityDecisions: args.decisions,
       identityHistory: args.history,
+      precedenceVariantDecisions: args.precedenceVariantDecisions,
       metaDb: dbContext?.metaDb,
       outputFile: args.outputFile,
       cohortKey: args.cohortKey,
       sourceDir: args.sourceDir,
       sourceVersion: args.sourceVersion,
+      writeOutput: args.writeOutput,
     })
   } finally {
     await dbContext?.cleanup()
+  }
+}
+
+async function reviewHkgovAlsIngest(args: {
+  args: ParsedArgs
+  cohortKey: string
+  decisions: HkgovAlsIdentityDecisions
+  history: HkgovAlsIdentityHistory
+  precedenceVariantDecisions: HkgovAlsPrecedenceVariantDecisions
+  sourceDirs: string[]
+  target: UploadTarget
+}) {
+  let history = args.history
+  const precedenceVariantCandidates = new Set<string>()
+  const driftCandidates = new Set<string>()
+  for (const sourceDir of args.sourceDirs) {
+    const sourceVersion = inferAlsSourceVersionFromPath(sourceDir)
+    if (!sourceVersion) continue
+    const result = await prepareHkgovAlsRelease({
+      args: args.args,
+      cohortKey: args.cohortKey,
+      decisions: args.decisions,
+      history,
+      outputFile: join(tmpdir(), `hkgov-als-review-${sourceVersion}.parquet`),
+      precedenceVariantDecisions: args.precedenceVariantDecisions,
+      sourceDir,
+      sourceVersion,
+      target: args.target,
+      writeOutput: false,
+    })
+    for (const candidate of result.precedenceVariantCandidates) {
+      precedenceVariantCandidates.add(candidate.identityKey)
+    }
+    for (const candidate of result.driftCandidates) {
+      driftCandidates.add(
+        `${candidate.previous.identityKey}\u0000${candidate.current.identityKey}`,
+      )
+    }
+    history = mergeHkgovAlsIdentityHistory(history, result.identityRecords)
+  }
+  return {
+    driftCandidates: driftCandidates.size,
+    precedenceVariantCandidates: precedenceVariantCandidates.size,
+  }
+}
+
+async function promptForPrecedenceVariantDecisions(
+  decisions: HkgovAlsPrecedenceVariantDecisions,
+  candidates: HkgovAlsPrecedenceVariantCandidate[],
+) {
+  const next = new Map(
+    decisions.decisions.map(decision => [decision.identityKey, decision]),
+  )
+  for (const candidate of candidates) {
+    const answer = await select({
+      message:
+        `Same ALS premise, conflicting source variants\n${candidate.address}\n` +
+        'Choose which BlockDescriptorPrecedenceIndicator representation to retain.',
+      options: candidate.variants.map((variant, index) => ({
+        hint: `${variant.sourceFile} #${variant.featureIndexOneBased}`,
+        label:
+          variant.blockDescriptorPrecedenceIndicator == null
+            ? 'Indicator absent'
+            : `Indicator: ${variant.blockDescriptorPrecedenceIndicator}`,
+        value: String(index),
+      })),
+    })
+    if (isCancel(answer)) throw new Error('ALS precedence-variant review cancelled.')
+    const selected = candidate.variants[Number(answer)]
+    if (!selected) throw new Error('Invalid ALS precedence-variant selection.')
+    next.set(candidate.identityKey, {
+      blockDescriptorPrecedenceIndicator: selected.blockDescriptorPrecedenceIndicator,
+      identityKey: candidate.identityKey,
+    })
+  }
+  return {
+    authority: 'hkgov-dpo' as const,
+    decisions: [...next.values()].sort((left, right) =>
+      left.identityKey.localeCompare(right.identityKey),
+    ),
+    version: 1 as const,
   }
 }
 
@@ -340,6 +519,10 @@ function stringOption(args: ParsedArgs, key: string) {
   return typeof value === 'string' ? value : undefined
 }
 
+function resolveInvocationPath(...segments: string[]) {
+  return resolve(INVOCATION_CWD, ...segments)
+}
+
 async function readHistory(filePath: string) {
   try {
     return parseHkgovAlsIdentityHistory(JSON.parse(await readFile(filePath, 'utf8')))
@@ -362,12 +545,25 @@ async function readDecisions(filePath: string) {
   }
 }
 
+async function readPrecedenceVariantDecisions(filePath: string) {
+  try {
+    return parseHkgovAlsPrecedenceVariantDecisions(
+      JSON.parse(await readFile(filePath, 'utf8')),
+    )
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return emptyHkgovAlsPrecedenceVariantDecisions()
+    }
+    throw error
+  }
+}
+
 async function writeDriftReport(
   filePath: string,
   sourceVersion: string,
   candidates: HkgovAlsIdentityDriftCandidate[],
 ) {
-  await writeJson(resolve(filePath), {
+  await writeJson(resolveInvocationPath(filePath), {
     authority: 'hkgov-dpo',
     candidates,
     generatedAt: new Date().toISOString(),
