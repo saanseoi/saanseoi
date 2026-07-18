@@ -27,6 +27,10 @@ import {
   type HkgovAlsIdentityHistory,
   type HkgovAlsIdentityRecord,
 } from './hkgovAlsDrift.ts'
+import {
+  emptyHkgovAlsPrecedenceVariantDecisions,
+  type HkgovAlsPrecedenceVariantDecisions,
+} from './hkgovAlsVariants.ts'
 const HARBOUR_API_WRANGLER_CONFIG = resolve(
   import.meta.dir,
   '../../../harbour-api/wrangler.jsonc',
@@ -62,11 +66,13 @@ type PrepareHkgovAlsOptions = {
   currentDb?: CurrentDatabase
   identityDecisions?: HkgovAlsIdentityDecisions
   identityHistory?: HkgovAlsIdentityHistory
+  precedenceVariantDecisions?: HkgovAlsPrecedenceVariantDecisions
   metaDb?: MetaDatabase
   outputFile: string
   cohortKey: string
   sourceDir: string
   sourceVersion: string
+  writeOutput?: boolean
 }
 
 type DivisionLookupMaps = {
@@ -104,6 +110,16 @@ export type HkgovAlsSourceDuplicateGroup = {
   }>
 }
 
+export type HkgovAlsPrecedenceVariantCandidate = {
+  address: string
+  identityKey: string
+  variants: Array<{
+    blockDescriptorPrecedenceIndicator: string | null
+    featureIndexOneBased: number
+    sourceFile: string
+  }>
+}
+
 export type HkgovAlsSourceFeature = {
   feature: HkgovAlsFeature
   featureIndexOneBased: number
@@ -130,6 +146,7 @@ type HkgovLocalizedPremisesAddress = {
   } | null
   EngBlock?: {
     BlockDescriptor?: string | null
+    BlockDescriptorPrecedenceIndicator?: string | null
     BlockNo?: string | number | null
   } | null
   ChiEstate?: {
@@ -207,6 +224,7 @@ type PreparedHkgovAlsRow = {
   identityContinuityKey: string
   identityKey: string
   identityMatchMethod: string
+  blockDescriptorPrecedenceIndicator: string | null
   identityNumberFrom: string | null
   identityNumberTo: string | null
   identityRouteNames: string
@@ -239,6 +257,7 @@ type PreparedHkgovAlsResult = {
   featureCount: number
   identityConsolidatedFeatureCount: number
   identityEquivalentFeatureGroups: HkgovAlsSourceDuplicateGroup[]
+  precedenceVariantCandidates: HkgovAlsPrecedenceVariantCandidate[]
   identityRecords: HkgovAlsIdentityRecord[]
   outputFile: string
   sourceDuplicateFeatureGroups: HkgovAlsSourceDuplicateGroup[]
@@ -262,7 +281,13 @@ export async function prepareHkgovAlsAddressParquet(
 ): Promise<PreparedHkgovAlsResult> {
   const sourceDir = resolve(options.sourceDir)
   const outputFile = resolve(options.outputFile)
+  // The release bundles a separate public-rental-housing 3-D file alongside the
+  // 2-D district files. Its flat-level records are a different address product and
+  // must not be folded into this 2-D ALS premise feed.
   const inputFiles = globSync(resolve(sourceDir, '*.geojson'))
+    .filter(inputFile =>
+      /^als_addresses_\(.+_district\)\.geojson$/i.test(basename(inputFile)),
+    )
     .filter(filePath => !basename(filePath).startsWith('als_addresses_3d_'))
     .sort()
 
@@ -313,7 +338,11 @@ export async function prepareHkgovAlsAddressParquet(
   const {
     duplicateGroups: identityEquivalentFeatureGroups,
     rows: identityDistinctRows,
-  } = consolidateEquivalentHkgovAlsPremises(rows)
+    precedenceVariantCandidates,
+  } = consolidateEquivalentHkgovAlsPremises(
+    rows,
+    options.precedenceVariantDecisions ?? emptyHkgovAlsPrecedenceVariantDecisions(),
+  )
   rows.splice(0, rows.length, ...identityDistinctRows)
   assertUniquePreparedRowIds(rows)
   const identityRecords = rows.map(row => ({
@@ -346,223 +375,224 @@ export async function prepareHkgovAlsAddressParquet(
   }))
 
   await mkdir(dirname(outputFile), { recursive: true })
-  parquetWriteFile({
-    filename: outputFile,
-    rowGroupSize: 5000,
-    columnData: [
-      stringColumn(
-        'id',
-        rows.map(row => row.id),
-        false,
-      ),
-      stringColumn(
-        'canonicalId',
-        rows.map(row => row.canonicalId),
-        false,
-      ),
-      stringColumn(
-        'theme',
-        rows.map(row => row.theme),
-        false,
-      ),
-      stringColumn(
-        'type',
-        rows.map(row => row.type),
-        false,
-      ),
-      stringColumn(
-        'country',
-        rows.map(row => row.country),
-        false,
-      ),
-      stringColumn(
-        'region',
-        rows.map(row => row.region),
-        false,
-      ),
-      stringColumn(
-        'cohortKey',
-        rows.map(row => row.cohortKey),
-        false,
-      ),
-      stringColumn(
-        'sourceVersion',
-        rows.map(row => row.sourceVersion),
-        false,
-      ),
-      stringColumn(
-        'sourceFile',
-        rows.map(row => row.sourceFile),
-        false,
-      ),
-      jsonColumn(
-        'geometry',
-        rows.map(row => row.geometry),
-      ),
-      jsonColumn(
-        'identifiers',
-        rows.map(row => row.identifiers),
-      ),
-      jsonColumn(
-        'sources',
-        rows.map(row => row.sources),
-        false,
-      ),
-      stringColumn(
-        'divisionSnapshotId',
-        rows.map(row => row.divisionSnapshotId),
-        false,
-      ),
-      stringColumn(
-        'areaId',
-        rows.map(row => row.areaId),
-      ),
-      stringColumn(
-        'districtId',
-        rows.map(row => row.districtId),
-      ),
-      stringColumn(
-        'countryId',
-        rows.map(row => row.countryId),
-      ),
-      stringColumn(
-        'areaNameEn',
-        rows.map(row => row.areaNameEn),
-      ),
-      stringColumn(
-        'areaNameZhHant',
-        rows.map(row => row.areaNameZhHant),
-      ),
-      stringColumn(
-        'districtNameEn',
-        rows.map(row => row.districtNameEn),
-      ),
-      stringColumn(
-        'districtNameZhHant',
-        rows.map(row => row.districtNameZhHant),
-      ),
-      stringColumn(
-        'geoAddress',
-        rows.map(row => row.geoAddress),
-      ),
-      stringColumn(
-        'hkgovCsuId',
-        rows.map(row => row.hkgovCsuId),
-      ),
-      stringColumn(
-        'identityAlias',
-        rows.map(row => row.identityAlias),
-      ),
-      stringColumn(
-        'identityBuildingId',
-        rows.map(row => row.identityBuildingId),
-        false,
-      ),
-      stringColumn(
-        'identityKey',
-        rows.map(row => row.identityKey),
-        false,
-      ),
-      stringColumn(
-        'identityMatchMethod',
-        rows.map(row => row.identityMatchMethod),
-        false,
-      ),
-      stringColumn(
-        'identityNumberFrom',
-        rows.map(row => row.identityNumberFrom),
-      ),
-      stringColumn(
-        'identityNumberTo',
-        rows.map(row => row.identityNumberTo),
-      ),
-      jsonColumn(
-        'identityRouteNames',
-        rows.map(row => row.identityRouteNames),
-        false,
-      ),
-      jsonColumn(
-        'chiPremisesAddressJson',
-        rows.map(row => row.chiPremisesAddressJson),
-      ),
-      jsonColumn(
-        'engPremisesAddressJson',
-        rows.map(row => row.engPremisesAddressJson),
-      ),
-      stringColumn(
-        'zhHantFormattedAddress',
-        rows.map(row => row.zhHantFormattedAddress),
-      ),
-      stringColumn(
-        'zhHantRegion',
-        rows.map(row => row.zhHantRegion),
-      ),
-      stringColumn(
-        'zhHantDistrict',
-        rows.map(row => row.zhHantDistrict),
-      ),
-      stringColumn(
-        'zhHantEstateName',
-        rows.map(row => row.zhHantEstateName),
-      ),
-      stringColumn(
-        'zhHantBuildingName',
-        rows.map(row => row.zhHantBuildingName),
-      ),
-      stringColumn(
-        'zhHantStreetName',
-        rows.map(row => row.zhHantStreetName),
-      ),
-      stringColumn(
-        'zhHantStreetNumberFrom',
-        rows.map(row => row.zhHantStreetNumberFrom),
-      ),
-      stringColumn(
-        'zhHantStreetNumberTo',
-        rows.map(row => row.zhHantStreetNumberTo),
-      ),
-      stringColumn(
-        'enFormattedAddress',
-        rows.map(row => row.enFormattedAddress),
-      ),
-      stringColumn(
-        'enRegion',
-        rows.map(row => row.enRegion),
-      ),
-      stringColumn(
-        'enDistrict',
-        rows.map(row => row.enDistrict),
-      ),
-      stringColumn(
-        'enEstateName',
-        rows.map(row => row.enEstateName),
-      ),
-      stringColumn(
-        'enBuildingName',
-        rows.map(row => row.enBuildingName),
-      ),
-      stringColumn(
-        'enStreetName',
-        rows.map(row => row.enStreetName),
-      ),
-      stringColumn(
-        'enStreetNumberFrom',
-        rows.map(row => row.enStreetNumberFrom),
-      ),
-      stringColumn(
-        'enStreetNumberTo',
-        rows.map(row => row.enStreetNumberTo),
-      ),
-      int32Column(
-        'easting',
-        rows.map(row => row.easting),
-      ),
-      int32Column(
-        'northing',
-        rows.map(row => row.northing),
-      ),
-    ],
-  })
+  if (options.writeOutput !== false)
+    parquetWriteFile({
+      filename: outputFile,
+      rowGroupSize: 5000,
+      columnData: [
+        stringColumn(
+          'id',
+          rows.map(row => row.id),
+          false,
+        ),
+        stringColumn(
+          'canonicalId',
+          rows.map(row => row.canonicalId),
+          false,
+        ),
+        stringColumn(
+          'theme',
+          rows.map(row => row.theme),
+          false,
+        ),
+        stringColumn(
+          'type',
+          rows.map(row => row.type),
+          false,
+        ),
+        stringColumn(
+          'country',
+          rows.map(row => row.country),
+          false,
+        ),
+        stringColumn(
+          'region',
+          rows.map(row => row.region),
+          false,
+        ),
+        stringColumn(
+          'cohortKey',
+          rows.map(row => row.cohortKey),
+          false,
+        ),
+        stringColumn(
+          'sourceVersion',
+          rows.map(row => row.sourceVersion),
+          false,
+        ),
+        stringColumn(
+          'sourceFile',
+          rows.map(row => row.sourceFile),
+          false,
+        ),
+        jsonColumn(
+          'geometry',
+          rows.map(row => row.geometry),
+        ),
+        jsonColumn(
+          'identifiers',
+          rows.map(row => row.identifiers),
+        ),
+        jsonColumn(
+          'sources',
+          rows.map(row => row.sources),
+          false,
+        ),
+        stringColumn(
+          'divisionSnapshotId',
+          rows.map(row => row.divisionSnapshotId),
+          false,
+        ),
+        stringColumn(
+          'areaId',
+          rows.map(row => row.areaId),
+        ),
+        stringColumn(
+          'districtId',
+          rows.map(row => row.districtId),
+        ),
+        stringColumn(
+          'countryId',
+          rows.map(row => row.countryId),
+        ),
+        stringColumn(
+          'areaNameEn',
+          rows.map(row => row.areaNameEn),
+        ),
+        stringColumn(
+          'areaNameZhHant',
+          rows.map(row => row.areaNameZhHant),
+        ),
+        stringColumn(
+          'districtNameEn',
+          rows.map(row => row.districtNameEn),
+        ),
+        stringColumn(
+          'districtNameZhHant',
+          rows.map(row => row.districtNameZhHant),
+        ),
+        stringColumn(
+          'geoAddress',
+          rows.map(row => row.geoAddress),
+        ),
+        stringColumn(
+          'hkgovCsuId',
+          rows.map(row => row.hkgovCsuId),
+        ),
+        stringColumn(
+          'identityAlias',
+          rows.map(row => row.identityAlias),
+        ),
+        stringColumn(
+          'identityBuildingId',
+          rows.map(row => row.identityBuildingId),
+          false,
+        ),
+        stringColumn(
+          'identityKey',
+          rows.map(row => row.identityKey),
+          false,
+        ),
+        stringColumn(
+          'identityMatchMethod',
+          rows.map(row => row.identityMatchMethod),
+          false,
+        ),
+        stringColumn(
+          'identityNumberFrom',
+          rows.map(row => row.identityNumberFrom),
+        ),
+        stringColumn(
+          'identityNumberTo',
+          rows.map(row => row.identityNumberTo),
+        ),
+        jsonColumn(
+          'identityRouteNames',
+          rows.map(row => row.identityRouteNames),
+          false,
+        ),
+        jsonColumn(
+          'chiPremisesAddressJson',
+          rows.map(row => row.chiPremisesAddressJson),
+        ),
+        jsonColumn(
+          'engPremisesAddressJson',
+          rows.map(row => row.engPremisesAddressJson),
+        ),
+        stringColumn(
+          'zhHantFormattedAddress',
+          rows.map(row => row.zhHantFormattedAddress),
+        ),
+        stringColumn(
+          'zhHantRegion',
+          rows.map(row => row.zhHantRegion),
+        ),
+        stringColumn(
+          'zhHantDistrict',
+          rows.map(row => row.zhHantDistrict),
+        ),
+        stringColumn(
+          'zhHantEstateName',
+          rows.map(row => row.zhHantEstateName),
+        ),
+        stringColumn(
+          'zhHantBuildingName',
+          rows.map(row => row.zhHantBuildingName),
+        ),
+        stringColumn(
+          'zhHantStreetName',
+          rows.map(row => row.zhHantStreetName),
+        ),
+        stringColumn(
+          'zhHantStreetNumberFrom',
+          rows.map(row => row.zhHantStreetNumberFrom),
+        ),
+        stringColumn(
+          'zhHantStreetNumberTo',
+          rows.map(row => row.zhHantStreetNumberTo),
+        ),
+        stringColumn(
+          'enFormattedAddress',
+          rows.map(row => row.enFormattedAddress),
+        ),
+        stringColumn(
+          'enRegion',
+          rows.map(row => row.enRegion),
+        ),
+        stringColumn(
+          'enDistrict',
+          rows.map(row => row.enDistrict),
+        ),
+        stringColumn(
+          'enEstateName',
+          rows.map(row => row.enEstateName),
+        ),
+        stringColumn(
+          'enBuildingName',
+          rows.map(row => row.enBuildingName),
+        ),
+        stringColumn(
+          'enStreetName',
+          rows.map(row => row.enStreetName),
+        ),
+        stringColumn(
+          'enStreetNumberFrom',
+          rows.map(row => row.enStreetNumberFrom),
+        ),
+        stringColumn(
+          'enStreetNumberTo',
+          rows.map(row => row.enStreetNumberTo),
+        ),
+        int32Column(
+          'easting',
+          rows.map(row => row.easting),
+        ),
+        int32Column(
+          'northing',
+          rows.map(row => row.northing),
+        ),
+      ],
+    })
 
   return {
     deduplicatedFeatureCount: sourceFeatureCount - uniqueSourceFeatures.length,
@@ -571,6 +601,7 @@ export async function prepareHkgovAlsAddressParquet(
     identityConsolidatedFeatureCount:
       uniqueSourceFeatures.length - identityDistinctRows.length,
     identityEquivalentFeatureGroups,
+    precedenceVariantCandidates,
     identityRecords: resolvedIdentityRecords,
     outputFile,
     sourceDuplicateFeatureGroups,
@@ -665,18 +696,22 @@ function formatSourceFeatureAddress(feature: HkgovAlsFeature | undefined) {
  * the same fully specified premise. This is deliberately narrower than a spatial or
  * street-address dedupe: every component in the stable premise identity must match.
  */
-export function consolidateEquivalentHkgovAlsPremises(rows: PreparedHkgovAlsRow[]) {
-  const firstByIdentity = new Map<string, PreparedHkgovAlsRow>()
+export function consolidateEquivalentHkgovAlsPremises(
+  rows: PreparedHkgovAlsRow[],
+  decisions = emptyHkgovAlsPrecedenceVariantDecisions(),
+) {
+  const decisionByIdentity = new Map(
+    decisions.decisions.map(decision => [decision.identityKey, decision]),
+  )
+  const selectedRows: PreparedHkgovAlsRow[] = []
   const rowsByIdentity = new Map<string, PreparedHkgovAlsRow[]>()
   for (const row of rows) {
-    if (!firstByIdentity.has(row.identityKey)) {
-      firstByIdentity.set(row.identityKey, row)
-    }
     const equivalentRows = rowsByIdentity.get(row.identityKey) ?? []
     equivalentRows.push(row)
     rowsByIdentity.set(row.identityKey, equivalentRows)
   }
-  const duplicateGroups = [...rowsByIdentity.values()]
+  const equivalentGroups = [...rowsByIdentity.values()]
+  const duplicateGroups = equivalentGroups
     .filter(equivalentRows => equivalentRows.length > 1)
     .map(equivalentRows => ({
       address:
@@ -688,8 +723,42 @@ export function consolidateEquivalentHkgovAlsPremises(rows: PreparedHkgovAlsRow[
         sourceFile: row.sourceFile,
       })),
     }))
+  const precedenceVariantCandidates: HkgovAlsPrecedenceVariantCandidate[] = []
+  for (const equivalentRows of equivalentGroups) {
+    if (equivalentRows.length === 1) {
+      selectedRows.push(equivalentRows[0]!)
+      continue
+    }
+    const indicators = new Set(
+      equivalentRows.map(row => row.blockDescriptorPrecedenceIndicator),
+    )
+    const hasMissingAndPresentIndicator = indicators.has(null) && indicators.size > 1
+    const decision = decisionByIdentity.get(equivalentRows[0]!.identityKey)
+    const selectedRow = decision
+      ? equivalentRows.find(
+          row =>
+            row.blockDescriptorPrecedenceIndicator ===
+            decision.blockDescriptorPrecedenceIndicator,
+        )
+      : undefined
+    if (hasMissingAndPresentIndicator && !selectedRow) {
+      precedenceVariantCandidates.push({
+        address:
+          equivalentRows[0]?.enFormattedAddress ??
+          equivalentRows[0]?.zhHantFormattedAddress ??
+          'Unformatted ALS address',
+        identityKey: equivalentRows[0]!.identityKey,
+        variants: equivalentRows.map(row => ({
+          blockDescriptorPrecedenceIndicator: row.blockDescriptorPrecedenceIndicator,
+          featureIndexOneBased: row.sourceFeatureIndexOneBased,
+          sourceFile: row.sourceFile,
+        })),
+      })
+    }
+    selectedRows.push(selectedRow ?? equivalentRows[0]!)
+  }
 
-  return { duplicateGroups, rows: [...firstByIdentity.values()] }
+  return { duplicateGroups, precedenceVariantCandidates, rows: selectedRows }
 }
 
 function assertUniquePreparedRowIds(rows: PreparedHkgovAlsRow[]) {
@@ -723,6 +792,9 @@ function normalizeHkgovAlsFeature(
   const enStreet = en.EngStreet ?? {}
   const zhVillage = zh.ChiVillage ?? {}
   const enVillage = en.EngVillage ?? {}
+  const blockDescriptorPrecedenceIndicator = asOptionalString(
+    en.EngBlock?.BlockDescriptorPrecedenceIndicator,
+  )
   const geoAddress = asOptionalString(premises.GeoAddress)
   const csuId = asOptionalString(premises.BuildingCsuInformation?.CsuId)
   const identityBuildingId = csuId ?? geoAddress
@@ -848,6 +920,7 @@ function normalizeHkgovAlsFeature(
     identityContinuityKey: premiseIdentity.continuityKey,
     identityKey: premiseIdentity.identityKey,
     identityMatchMethod: 'als-premise',
+    blockDescriptorPrecedenceIndicator,
     identityNumberFrom,
     identityNumberTo,
     identityRouteNames: JSON.stringify(identityRouteNames),
