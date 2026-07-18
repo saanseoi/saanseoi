@@ -12,10 +12,6 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
-import {
-  resolveLatestPublishedSnapshotForResourceTypeRegion,
-  resolvePublishedSnapshotForResourceTypeRegionCohortKey,
-} from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
@@ -595,21 +591,29 @@ export async function assertAddressUploadPrerequisites(
 
   try {
     const metaReadDb = dbContext.metaDb as unknown as HarbourReadableDb
-    const cohortSnapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-      metaReadDb,
-      'division',
-      plan.regionCode,
-      plan.cohortKey,
-    )
-    const regionSnapshot =
-      cohortSnapshot ??
-      (await resolveLatestPublishedSnapshotForResourceTypeRegion(
-        metaReadDb,
-        'division',
-        plan.regionCode,
-      ))
+    const cohortSnapshot = await metaReadDb
+      .select({ id: metaSchema.metaSnapshots.id })
+      .from(metaSchema.metaSnapshots)
+      .innerJoin(
+        metaSchema.metaSnapshotLineages,
+        eq(
+          metaSchema.metaSnapshots.snapshotLineageId,
+          metaSchema.metaSnapshotLineages.id,
+        ),
+      )
+      .where(
+        and(
+          eq(metaSchema.metaSnapshots.resourceType, 'division'),
+          eq(metaSchema.metaSnapshots.status, 'published'),
+          eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
+          eq(metaSchema.metaSnapshotLineages.regionCode, plan.regionCode),
+          eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
+        ),
+      )
+      .limit(1)
+      .get()
 
-    if (regionSnapshot) {
+    if (cohortSnapshot) {
       return
     }
   } finally {
@@ -1096,16 +1100,15 @@ async function resolveRemotePublishedDivisionSnapshotForAddressPlan(
   const sql = `
     SELECT s.id AS snapshotId
     FROM snapshots s
+    INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
     INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
     INNER JOIN datasets d ON d.id = ss.datasetId
     WHERE s.resourceType = 'division'
       AND s.status = 'published'
+      AND s.cohortKey = ${sqlLiteral(plan.cohortKey)}
       AND d.regionCode = ${sqlLiteral(plan.regionCode)}
+      AND sl.variant = 'overture'
       AND ss.role = 'primary'
-    ORDER BY
-      CASE WHEN s.cohortKey = ${sqlLiteral(plan.cohortKey)} THEN 0 ELSE 1 END,
-      s.publishedAt DESC,
-      s.createdAt DESC
     LIMIT 1
   `
   const process = Bun.spawn({

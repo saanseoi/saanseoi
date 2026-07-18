@@ -481,7 +481,7 @@ describe('upload', () => {
     db.close()
   })
 
-  test('requires matching cohortKey overture addresses before hkgov address upload', async () => {
+  test('allows bridged pre-GERS hkgov address cohorts without an overture release', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
     const fixtureFile = join(tempDir, 'hkgov-dpo-address.parquet')
@@ -490,24 +490,23 @@ describe('upload', () => {
     const db = initDb(dbPath)
     const harbourDb = createLocalHarbourDb(db)
 
-    await expect(
-      planUpload(harbourDb, {
-        filePath: fixtureFile,
-        source: 'hkgov-dpo',
-        cohortKey: '2026-06',
-        sourceVersion: '2026-06-04.324',
-        inspection: {
-          rowCount: 1,
-          schema: fixtureInspection.schema,
-          distinctThemeValues: ['addresses'],
-          distinctTypeValues: ['address'],
-          distinctCountryValues: ['hk'],
-          distinctRegionValues: ['hk'],
-        },
-      }),
-    ).rejects.toThrow(
-      'Upload the matching Overture address dataset for the same cohortKey first.',
-    )
+    const result = await planUpload(harbourDb, {
+      filePath: fixtureFile,
+      source: 'hkgov-dpo',
+      cohortKey: '2026-06',
+      sourceVersion: '2026-06-04.324',
+      inspection: {
+        rowCount: 1,
+        schema: fixtureInspection.schema,
+        distinctThemeValues: ['addresses'],
+        distinctTypeValues: ['address'],
+        distinctCountryValues: ['hk'],
+        distinctRegionValues: ['hk'],
+      },
+    })
+
+    expect(result.plan.source).toBe('hkgov-dpo')
+    expect(result.plan.cohortKey).toBe('2026-06')
 
     db.close()
   })

@@ -4,7 +4,6 @@ This document describes the Overture-specific side of the address pipeline.
 
 Related docs:
 
-- [Address family](../../families/address.md)
 - [Address resourceType](../../resourceType/address.md)
 - [ResourceType common processing](../../resourceType/common.md)
 
@@ -22,11 +21,15 @@ Address uploads use a local staged SQL workflow:
 - import the generated SQL, clean up temporary staging tables, and publish the release
 
 The meta SQL creates the draft snapshot, its `snapshotSources` link, assembly run, and
-history-shard assignment before publish. Current snapshot initialization clones the
-latest published address snapshot for the same region, then aligns the cloned rows to
-the resolved division snapshot for the address cohort. Transient local SQLite lock
-failures during import or Harbour progress updates are retried three times with backoff
-before the upload fails.
+history-shard assignment before publish. The default address lineage is owned by the
+Overture address dataset and is shared by later HKGov-enriched revisions. Current
+snapshot initialization clones the draft snapshot's exact `parentSnapshotId`; history
+materialization likewise checks the latest published snapshot in that lineage. It does
+not select a parent through whichever address source happens to be primary. This keeps
+monthly Overture releases and same-cohort HKGov revisions on one unambiguous branch. The
+cloned rows are then aligned to the exact Overture division snapshot for the address
+cohort. Transient local SQLite lock failures during import or Harbour progress updates
+are retried three times with backoff before the upload fails.
 
 The shared non-SQL stage handlers are not the local CLI upload path. Shared import and
 release-ordering details are documented in

@@ -1,5 +1,4 @@
 import type { DatasetProcessingMessage } from '../../../types'
-import { resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId } from '../../../lib/db/metaRegistry'
 import type { HarbourReadableDb } from '../../../lib/db/types'
 import {
   eq,
@@ -473,13 +472,12 @@ async function buildCurrentSnapshotInitSqlFile(
   snapshotIdValue: string,
 ): Promise<AddressSqlImportFile> {
   const metaRepoDb = metaDb as unknown as HarbourReadableDb
-  const previousSnapshot =
-    await resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId(
-      metaRepoDb,
-      'address',
-      message.regionCode,
-      snapshotIdValue,
-    )
+  const previousSnapshot = await metaRepoDb
+    .select({ id: metaSchema.metaSnapshots.parentSnapshotId })
+    .from(metaSchema.metaSnapshots)
+    .where(eq(metaSchema.metaSnapshots.id, snapshotIdValue))
+    .limit(1)
+    .get()
   const divisionLookup = await loadDivisionLookupMaps(
     metaDb,
     currentDb,

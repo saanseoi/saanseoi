@@ -1,4 +1,5 @@
 import type { DatasetProcessingMessage } from '../../../types'
+import { buildDeterministicUuidV5 } from '@repo/db'
 
 import type {
   NormalizedAddressChunkArtifact,
@@ -36,6 +37,7 @@ const NORMALIZED_I18N_TABLE = 'stagingOvertureAddresses2dI18n'
 const SOURCE_CHANGED_TABLE = 'stagingOvertureAddresses2dChanged'
 const RESOLVED_ROWS_TABLE = 'zzAddressImportResolvedRows'
 const RESOLVED_I18N_TABLE = 'zzAddressImportResolvedI18n'
+const ADDRESS_ALIAS_ID_NAMESPACE = 'dd44d1a8-4b17-58a1-b1db-8dc8a40f180a'
 
 const NORMALIZED_ROW_COLUMNS = [
   'runId',
@@ -223,13 +225,67 @@ export function buildAddressSourceSqlImportFiles(
     buildAddressSourceApplySql(message, runId),
   ]
 
-  return [
+  const files = [
     buildSqlImportFile(
       'source',
       `${runId}-source-${artifact.rowStart}.sql`,
       statements,
     ),
   ]
+
+  if (message.source === 'hkgov-dpo') {
+    const aliasRows = artifact.rows.flatMap(row => {
+      const aliasValue = asNonEmptyString(row.raw.identityAlias)
+      const canonicalId = asNonEmptyString(row.raw.canonicalId)
+      if (!aliasValue || !canonicalId || aliasValue === canonicalId) return []
+      const now = artifact.processingRunStartedAt
+
+      return [
+        {
+          aliasId: buildDeterministicUuidV5(
+            ADDRESS_ALIAS_ID_NAMESPACE,
+            `address:${aliasValue}`,
+          ),
+          entityType: 'address',
+          aliasValue,
+          canonicalId,
+          sourceSystem: 'hkgov-dpo',
+          isCurrent: true,
+          notes: `ALS identity promoted by ${asNonEmptyString(row.raw.identityMatchMethod) ?? 'bridge'}.`,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ]
+    })
+
+    if (aliasRows.length > 0) {
+      files.push(
+        buildSqlImportFile(
+          'meta',
+          `${runId}-identity-alias-${artifact.rowStart}.sql`,
+          buildInsertStatements(
+            'entityAliases',
+            [
+              'aliasId',
+              'entityType',
+              'aliasValue',
+              'canonicalId',
+              'sourceSystem',
+              'isCurrent',
+              'notes',
+              'createdAt',
+              'updatedAt',
+            ],
+            aliasRows,
+            options.maxStatementBytes,
+            { mode: 'ignore' },
+          ),
+        ),
+      )
+    }
+  }
+
+  return files
 }
 
 export function buildAddressResolvedSqlImportFiles(
@@ -743,7 +799,6 @@ function buildAddressHistoryApplySql(
 ) {
   const run = sqlLiteral(runId)
   const releaseId = sqlLiteral(message.releaseId ?? message.datasetId)
-  const cohortKey = sqlLiteral(message.cohortKey)
   const snapshot = sqlLiteral(snapshotId)
 
   return `
@@ -756,8 +811,6 @@ WITH changedExisting AS (
 )
 UPDATE address2d
 SET isCurrent = 0,
-  validToSnapshotId = ${snapshot},
-  validToCohortKey = ${cohortKey},
   updatedAt = datetime('now')
 FROM changedExisting
 WHERE address2d.isCurrent = 1
@@ -771,20 +824,18 @@ WITH changedExisting AS (
 )
 UPDATE address2dI18n
 SET isCurrent = 0,
-  validToSnapshotId = ${snapshot},
   updatedAt = datetime('now')
 FROM changedExisting
 WHERE address2dI18n.isCurrent = 1
   AND address2dI18n.addressId = changedExisting.addressId;
 INSERT INTO address2d (
-  id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId,
-  validToSnapshotId, validFromCohortKey, validToCohortKey, isCurrent, streetId,
+  id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId,
   hamletId, microhoodId, villageId, neighbourhoodId, macrohoodId, townId,
   districtId, areaId, countryId, geometry, bbox, identifiers, sources, createdAt, updatedAt
 )
 SELECT
-  r.addressId, r.versionHash, ${releaseId}, r.snapshotId, r.snapshotId,
-  NULL, ${cohortKey}, NULL, 1, r.streetId, r.hamletId, r.microhoodId, r.villageId,
+  r.addressId, r.versionHash, ${releaseId}, r.snapshotId,
+  1, r.streetId, r.hamletId, r.microhoodId, r.villageId,
   r.neighbourhoodId, r.macrohoodId, r.townId, r.districtId, r.areaId, r.countryId,
   r.geometry, r.bbox, r.identifiers, r.sources, r.createdAt, r.updatedAt
 FROM zzAddressImportResolvedRows r
@@ -794,20 +845,16 @@ ON CONFLICT(id, versionHash) DO UPDATE SET
   isCurrent = 1,
   sourceReleaseId = excluded.sourceReleaseId,
   snapshotId = excluded.snapshotId,
-  validFromSnapshotId = excluded.validFromSnapshotId,
-  validFromCohortKey = excluded.validFromCohortKey,
-  validToSnapshotId = NULL,
-  validToCohortKey = NULL,
   updatedAt = excluded.updatedAt;
 INSERT INTO address2dI18n (
-  addressId, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId,
-  validToSnapshotId, isCurrent, locale, formattedAddress, buildingName,
+  addressId, versionHash, sourceReleaseId, snapshotId,
+  isCurrent, locale, formattedAddress, buildingName,
   buildingNumberFrom, buildingNumberTo, blockType, blockNumber,
   blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber,
   streetName, createdAt, updatedAt
 )
 SELECT
-  i.addressId, i.versionHash, ${releaseId}, i.snapshotId, i.snapshotId, NULL, 1,
+  i.addressId, i.versionHash, ${releaseId}, i.snapshotId, 1,
   i.locale, i.formattedAddress, i.buildingName, i.buildingNumberFrom,
   i.buildingNumberTo, i.blockType, i.blockNumber, i.blockTypeBeforeNumber,
   i.phaseName, i.phaseNumber, i.estateName, i.streetNumber, i.streetName,
@@ -821,8 +868,6 @@ WHERE r.runId = ${run}
 ON CONFLICT(addressId, versionHash, locale) DO UPDATE SET
   sourceReleaseId = excluded.sourceReleaseId,
   snapshotId = excluded.snapshotId,
-  validFromSnapshotId = excluded.validFromSnapshotId,
-  validToSnapshotId = NULL,
   isCurrent = 1,
   formattedAddress = excluded.formattedAddress,
   buildingName = excluded.buildingName,
@@ -836,6 +881,38 @@ ON CONFLICT(addressId, versionHash, locale) DO UPDATE SET
   estateName = excluded.estateName,
   streetNumber = excluded.streetNumber,
   streetName = excluded.streetName,
+  updatedAt = excluded.updatedAt;
+INSERT INTO snapshotVersionChanges (
+  snapshotId, recordType, recordId, locale, versionHash, operation,
+  sourceReleaseId, createdAt, updatedAt
+)
+SELECT
+  ${snapshot}, 'address2d', r.addressId, '', r.versionHash, 'upsert',
+  ${releaseId}, datetime('now'), datetime('now')
+FROM zzAddressImportResolvedRows r
+WHERE r.runId = ${run}
+  AND r.changed = 1
+ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
+  versionHash = excluded.versionHash,
+  operation = 'upsert',
+  sourceReleaseId = excluded.sourceReleaseId,
+  updatedAt = excluded.updatedAt;
+INSERT INTO snapshotVersionChanges (
+  snapshotId, recordType, recordId, locale, versionHash, operation,
+  sourceReleaseId, createdAt, updatedAt
+)
+SELECT
+  ${snapshot}, 'address2dI18n', i.addressId, i.locale, i.versionHash, 'upsert',
+  ${releaseId}, datetime('now'), datetime('now')
+FROM zzAddressImportResolvedRows r
+INNER JOIN zzAddressImportResolvedI18n i
+  ON i.runId = r.runId AND i.addressId = r.addressId
+WHERE r.runId = ${run}
+  AND r.changed = 1
+ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
+  versionHash = excluded.versionHash,
+  operation = 'upsert',
+  sourceReleaseId = excluded.sourceReleaseId,
   updatedAt = excluded.updatedAt;`.trim()
 }
 
@@ -934,7 +1011,7 @@ function buildInsertStatements(
   rows: SqlInsertRow[],
   maxStatementBytes = DEFAULT_MAX_STATEMENT_BYTES,
   options: {
-    mode?: 'insert' | 'replace'
+    mode?: 'ignore' | 'insert' | 'replace'
   } = {},
 ) {
   if (rows.length === 0) {
@@ -947,7 +1024,9 @@ function buildInsertStatements(
   const verb =
     mode === 'insert'
       ? `INSERT INTO ${tableName}`
-      : `INSERT OR REPLACE INTO ${tableName}`
+      : mode === 'ignore'
+        ? `INSERT OR IGNORE INTO ${tableName}`
+        : `INSERT OR REPLACE INTO ${tableName}`
   let currentPrefix = `${verb} (${columns.join(', ')}) VALUES `
 
   for (const row of rows) {
@@ -1015,4 +1094,8 @@ function jsonText(value: unknown): string | null {
 
 function jsonTextValue(jsonColumn: string, key: string) {
   return `NULLIF(TRIM(CAST(json_extract(${jsonColumn}, '$.${key}') AS TEXT)), '')`
+}
+
+function asNonEmptyString(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null
 }

@@ -5,8 +5,8 @@ sources.
 
 Related source-specific docs:
 
-- [Overture address](../sources/overture/address.md)
-- [HKGov ALS address](../sources/hkgov/address.md)
+- [Overture address](../internal/overture/address.md)
+- [HKGov ALS address](../internal/hkgov/address.md)
 
 ## Scope
 
@@ -23,21 +23,23 @@ and play different roles in the merge flow.
 ### Division snapshot dependency
 
 - Address processing depends on an already-published division snapshot.
-- Overture address ingestion resolves `areaId` and `districtId` from source
-  `area`/`district` enums against the same-cohort published division snapshot, falling
-  back to the latest published division snapshot only when an exact cohort snapshot is
-  unavailable.
-- HKGov ALS preparation also resolves those IDs from the latest division snapshot before
-  local SQL ingestion.
-- Publishing an address API release set includes the same-region, same-cohort division
-  snapshot as a required `supporting` snapshot when that snapshot exists. This preserves
-  the source-release-to-API release relationship alongside the primary address snapshot.
+- Address ingestion and HKGov ALS preparation both require the same-region, same-cohort
+  published Overture division lineage (`variant: overture`).
+- The address API composition selects that division snapshot as a required supporting
+  member with `cohortMatchingMode: exact_ref`.
+- The canonical address cohort is therefore the Overture cohort even when the ALS source
+  acquisition happened on a different day.
 
-### Overture must arrive first
+### Address lineage and source pairing
 
-- Upload planning rejects `hkgov-dpo` address uploads unless the same `cohortKey`
-  already has an Overture address upload.
-- This is enforced in `libs/core/src/lib/services/upload.ts`.
+- The Overture address dataset owns the canonical default address snapshot lineage.
+- An Overture upload normally creates the cohort's base revision; a paired ALS upload
+  creates a later enriched revision on that same lineage.
+- ALS-to-Overture pairing is explicit through the prepared file's Overture cohort, not
+  through the ALS source date.
+- Pre-GERS ALS history can be loaded without a same-cohort Overture address release by
+  applying a bridge generated from a later release. The exact-cohort Overture division
+  snapshot is still required.
 
 Current practical meaning:
 
@@ -47,22 +49,27 @@ Current practical meaning:
 
 ## Reconciliation
 
-The local pipeline tries to match each incoming source row to an existing canonical
-address in this order:
+Overture rows use their GERS UUID directly. HKGov ALS preparation resolves each stable
+ALS physical identity to a canonical ID in this order:
 
-1. direct match on canonical `id == sourceId`
-2. fallback match on a derived street key
+1. normalize a range or slash-form address to its first number for matching, while
+   retaining the complete range in the stable ALS identity
+2. unique district + street number + coordinate match
+3. unique district + street number match
+4. confirmed mapping from an identity bridge
+5. deterministic provisional `ss-<uuid-v5>`
 
 The derived match key is:
 
 - `districtId::normalizedStreetName::normalizedStreetNumber`
 
-Implications:
+The ALS source ID is always its deterministic `ss-` identity. A matched row carries a
+separate GERS `canonicalId`; an unmatched row uses the `ss-` value for both. Confident
+matches persist the `ss-` value in `entityAliases`, so later promotion does not rewrite
+historical snapshots. Ambiguities stay provisional and are retested on later releases.
 
-- there is no explicit cross-source address mapping table
-- HKGov ALS can merge into an Overture-backed canonical row when the street key matches
-- if nothing matches, the incoming source row creates a canonical `address2d` row under
-  its own source ID
+The runtime derived street key remains as a compatibility fallback for older prepared
+files. New prepared ALS files supply `canonicalId` explicitly.
 
 Runtime behavior:
 
@@ -188,7 +195,8 @@ It does not currently populate:
 
 `address2d` is source-dependent:
 
-- `id`: existing canonical ID if matched, otherwise the incoming source ID
+- `id`: Overture/GERS UUID when confidently matched, otherwise the deterministic ALS
+  `ss-<uuid-v5>` identity
 - `divisionSnapshotId`: latest published division snapshot for Overture rows, prepared
   ALS division snapshot for HKGov rows
 - `districtId`, `areaId`, `countryId`: resolved from division lookups

@@ -8,6 +8,7 @@ import {
   resolveShardForTypeRegionYear,
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
+  upsertSnapshotShardAssignment,
   waitForDatasetRecord,
 } from '../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
@@ -17,7 +18,7 @@ import type {
   NewAddressI18nRow,
 } from '@repo/db/currentSchema'
 import type { CurrentAddressVersionRow } from '@repo/db/historySchema'
-import { currentSchema, historySchema } from '@repo/db'
+import { currentSchema, historySchema, metaSchema } from '@repo/db'
 
 import {
   chunkArray,
@@ -26,11 +27,12 @@ import {
   getMaxRowsPerInsert,
   runWithWriteRetry,
 } from '../utils'
+import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
 
 const CURRENT_ADDRESS2D_COLUMN_COUNT = 20
 const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 17
-const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 25
-const HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 22
+const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 21
+const HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 20
 const HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 const SEEN_ADDRESS_ID_INSERT_COLUMN_COUNT = 1
 const ADDRESS_DIVISION_REFERENCE_COLUMNS = [
@@ -101,6 +103,8 @@ export type AddressVersionInsertContext = {
   releaseRole: 'primary' | 'enrichment'
   snapshotId: string
   cohortKey: string
+  parentSnapshotId: string | null
+  snapshotLineageId: string
 }
 
 function excluded(column: string) {
@@ -468,12 +472,18 @@ export async function prepareAddressVersionInsertContext(
     )
   }
 
+  const lineageDataset = await resolveAddressLineageDataset(metaDb, dataset)
   const snapshot = await ensureDraftSnapshotForRelease(metaDb, 'address', {
     regionCode: dataset.regionCode,
     cohortKey: dataset.cohortKey,
+    datasetCode: lineageDataset.datasetCode,
+    datasetId: lineageDataset.datasetId,
+    sourceReleaseId: dataset.releaseId,
+    variant: 'default',
   })
 
-  const year = message.sourceVersion.slice(0, 4)
+  const historyYear = message.cohortKey.slice(0, 4)
+  const sourceYear = message.sourceVersion.slice(0, 4)
   const currentShard = await resolveShardForTypeRegionYear(
     metaDb,
     'current',
@@ -485,20 +495,20 @@ export async function prepareAddressVersionInsertContext(
       'history',
       environment,
       message.regionCode,
-      year,
+      historyYear,
     ),
     resolveShardForTypeRegionYear(
       metaDb,
       'source',
       environment,
       message.regionCode,
-      year,
+      sourceYear,
     ),
   ])
 
   if (!currentShard || !historyShard || !sourceShard) {
     throw new Error(
-      `Shard mapping not found for ${message.regionCode}/${year} in ${environment}.`,
+      `Shard mapping not found for ${message.regionCode}/history:${historyYear}/source:${sourceYear} in ${environment}.`,
     )
   }
 
@@ -517,6 +527,29 @@ export async function prepareAddressVersionInsertContext(
       sourceCohortKey: dataset.cohortKey,
     },
   )
+  if (dataset.source === 'hkgov-dpo') {
+    const overtureRelease = await resolveOvertureAddressReleaseForCohort(
+      metaDb,
+      dataset.regionCode,
+      dataset.cohortKey,
+    )
+
+    if (overtureRelease) {
+      await upsertSnapshotSource(
+        metaDb,
+        snapshot.id,
+        overtureRelease.datasetId,
+        overtureRelease.releaseId,
+        'enrichment',
+        {
+          anchorReleaseId: null,
+          selectedByRule: 'snapshot-assembly-address-v1',
+          selectionMode: 'exact_ref',
+          sourceCohortKey: overtureRelease.cohortKey,
+        },
+      )
+    }
+  }
   await recordSnapshotAssemblyRun(metaDb, {
     snapshotId: snapshot.id,
     resourceType: 'address',
@@ -530,13 +563,95 @@ export async function prepareAddressVersionInsertContext(
   })
   await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
   await upsertReleaseShardAssignment(metaDb, dataset.releaseId, sourceShard.id)
+  await upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id)
 
   return {
     releaseId: dataset.releaseId,
     releaseRole,
     snapshotId: snapshot.id,
     cohortKey: message.cohortKey,
+    parentSnapshotId: snapshot.parentSnapshotId,
+    snapshotLineageId: snapshot.snapshotLineageId,
   }
+}
+
+async function resolveAddressLineageDataset(
+  metaDb: HarbourReadableDb,
+  dataset: {
+    datasetCode: string
+    datasetId: string
+    regionCode: string
+    source: string
+  },
+) {
+  if (dataset.source === 'overture') {
+    return {
+      datasetCode: dataset.datasetCode,
+      datasetId: dataset.datasetId,
+    }
+  }
+
+  const row = await metaDb
+    .select({
+      datasetCode: metaSchema.metaDatasets.code,
+      datasetId: metaSchema.metaDatasets.id,
+    })
+    .from(metaSchema.metaDatasets)
+    .innerJoin(
+      metaSchema.metaPublishers,
+      eq(metaSchema.metaDatasets.publisherId, metaSchema.metaPublishers.id),
+    )
+    .where(
+      and(
+        eq(metaSchema.metaDatasets.regionCode, dataset.regionCode),
+        eq(metaSchema.metaDatasets.type, 'address'),
+        eq(metaSchema.metaPublishers.code, 'overture'),
+      ),
+    )
+    .limit(1)
+    .get()
+
+  if (!row) {
+    throw new Error(
+      `Overture address dataset definition not found for region ${dataset.regionCode}.`,
+    )
+  }
+
+  return row
+}
+
+async function resolveOvertureAddressReleaseForCohort(
+  metaDb: HarbourReadableDb,
+  regionCode: string,
+  cohortKey: string,
+) {
+  return (
+    (await metaDb
+      .select({
+        cohortKey: metaSchema.metaReleases.cohortKey,
+        datasetId: metaSchema.metaDatasets.id,
+        releaseId: metaSchema.metaReleases.id,
+      })
+      .from(metaSchema.metaReleases)
+      .innerJoin(
+        metaSchema.metaDatasets,
+        eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      )
+      .innerJoin(
+        metaSchema.metaPublishers,
+        eq(metaSchema.metaDatasets.publisherId, metaSchema.metaPublishers.id),
+      )
+      .where(
+        and(
+          eq(metaSchema.metaDatasets.regionCode, regionCode),
+          eq(metaSchema.metaDatasets.type, 'address'),
+          eq(metaSchema.metaPublishers.code, 'overture'),
+          eq(metaSchema.metaReleases.cohortKey, cohortKey),
+        ),
+      )
+      .limit(1)
+      .get()) ?? null
+  )
 }
 
 export async function cloneAddressCurrentSnapshot(
@@ -662,25 +777,40 @@ export async function alignAddressCurrentDivisionSnapshot(
 }
 
 export async function closeCurrentAddressVersions(
-  db: HarbourWritableDb,
+  db: HarbourReadableDb & HarbourWritableDb,
   addressIds: string[],
   snapshotId: string,
-  cohortKey: string,
+  _cohortKey: string,
+  sourceReleaseId?: string,
 ) {
   if (addressIds.length === 0) {
     return
   }
 
   const now = new Date().toISOString()
+  const currentI18nRows: Array<{ addressId: string; locale: string }> = []
 
   for (const chunk of chunkArray(addressIds, getMaxItemsPerInClause(1, 5))) {
+    currentI18nRows.push(
+      ...(await db
+        .select({
+          addressId: historySchema.address2dI18n.addressId,
+          locale: historySchema.address2dI18n.locale,
+        })
+        .from(historySchema.address2dI18n)
+        .where(
+          and(
+            eq(historySchema.address2dI18n.isCurrent, true),
+            inArray(historySchema.address2dI18n.addressId, chunk),
+          ),
+        )
+        .all()),
+    )
     await runWithWriteRetry(() =>
       db
         .update(historySchema.address2d)
         .set({
           isCurrent: false,
-          validToSnapshotId: snapshotId,
-          validToCohortKey: cohortKey,
           updatedAt: now,
         })
         .where(
@@ -691,13 +821,43 @@ export async function closeCurrentAddressVersions(
         )
         .run(),
     )
+    await runWithWriteRetry(() =>
+      db
+        .update(historySchema.address2dI18n)
+        .set({ isCurrent: false, updatedAt: now })
+        .where(
+          and(
+            eq(historySchema.address2dI18n.isCurrent, true),
+            inArray(historySchema.address2dI18n.addressId, chunk),
+          ),
+        )
+        .run(),
+    )
   }
+
+  await recordSnapshotVersionChanges(db, {
+    snapshotId,
+    sourceReleaseId,
+    recordType: 'address2d',
+    operation: 'delete',
+    changes: addressIds.map(recordId => ({ recordId })),
+  })
+  await recordSnapshotVersionChanges(db, {
+    snapshotId,
+    sourceReleaseId,
+    recordType: 'address2dI18n',
+    operation: 'delete',
+    changes: currentI18nRows.map(row => ({
+      recordId: row.addressId,
+      locale: row.locale,
+    })),
+  })
 }
 
 export async function deleteMissingCurrentAddresses(
   historyDb: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
-  cohortKey: string,
+  _cohortKey: string,
   currentRows: Map<string, AddressVersionSnapshot>,
   seenIds: Set<string>,
 ) {
@@ -718,8 +878,6 @@ export async function deleteMissingCurrentAddresses(
         .update(historySchema.address2d)
         .set({
           isCurrent: false,
-          validToSnapshotId: snapshotId,
-          validToCohortKey: cohortKey,
           updatedAt: now,
         })
         .where(
@@ -735,7 +893,6 @@ export async function deleteMissingCurrentAddresses(
         .update(historySchema.address2dI18n)
         .set({
           isCurrent: false,
-          validToSnapshotId: snapshotId,
           updatedAt: now,
         })
         .where(
@@ -747,6 +904,13 @@ export async function deleteMissingCurrentAddresses(
         .run(),
     )
   }
+
+  await recordSnapshotVersionChanges(historyDb, {
+    snapshotId,
+    recordType: 'address2d',
+    operation: 'delete',
+    changes: missingIds.map(recordId => ({ recordId })),
+  })
 
   return {
     count: missingIds.length,
@@ -928,7 +1092,7 @@ export async function deleteMissingCurrentAddressesByCurrentMarker(
 async function closeMissingCurrentAddressRows(
   historyDb: HarbourWritableDb,
   snapshotId: string,
-  cohortKey: string,
+  _cohortKey: string,
   missingIds: string[],
 ) {
   const now = new Date().toISOString()
@@ -939,8 +1103,6 @@ async function closeMissingCurrentAddressRows(
         .update(historySchema.address2d)
         .set({
           isCurrent: false,
-          validToSnapshotId: snapshotId,
-          validToCohortKey: cohortKey,
           updatedAt: now,
         })
         .where(
@@ -956,7 +1118,6 @@ async function closeMissingCurrentAddressRows(
         .update(historySchema.address2dI18n)
         .set({
           isCurrent: false,
-          validToSnapshotId: snapshotId,
           updatedAt: now,
         })
         .where(
@@ -968,6 +1129,13 @@ async function closeMissingCurrentAddressRows(
         .run(),
     )
   }
+
+  await recordSnapshotVersionChanges(historyDb, {
+    snapshotId,
+    recordType: 'address2d',
+    operation: 'delete',
+    changes: missingIds.map(recordId => ({ recordId })),
+  })
 }
 
 export async function deleteStaleAddressCurrentRows(
@@ -1099,8 +1267,6 @@ export async function insertAddressVersionRows(
     AddressI18nPayload & {
       sourceReleaseId: string
       snapshotId: string
-      validFromSnapshotId: string
-      validToSnapshotId: string | null
       isCurrent: boolean
       versionHash: string
       createdAt: string
@@ -1128,10 +1294,6 @@ export async function insertAddressVersionRows(
             versionHash: row.versionHash,
             sourceReleaseId: context.releaseId,
             snapshotId: context.snapshotId,
-            validFromSnapshotId: context.snapshotId,
-            validToSnapshotId: null,
-            validFromCohortKey: context.cohortKey,
-            validToCohortKey: null,
             isCurrent: true,
             streetId: row.streetId,
             hamletId: row.hamletId,
@@ -1157,10 +1319,6 @@ export async function insertAddressVersionRows(
             isCurrent: true,
             sourceReleaseId: context.releaseId,
             snapshotId: context.snapshotId,
-            validFromSnapshotId: context.snapshotId,
-            validFromCohortKey: context.cohortKey,
-            validToSnapshotId: null,
-            validToCohortKey: null,
             updatedAt: excluded('updatedAt'),
           },
         })
@@ -1168,8 +1326,30 @@ export async function insertAddressVersionRows(
     )
   }
 
+  await recordSnapshotVersionChanges(historyDb, {
+    snapshotId: context.snapshotId,
+    sourceReleaseId: context.releaseId,
+    recordType: 'address2d',
+    operation: 'upsert',
+    changes: baseRows.map(row => ({
+      recordId: row.id,
+      versionHash: row.versionHash,
+    })),
+  })
+
   if (i18nRows.length > 0) {
     await insertAddressVersionsI18nInChunks(historyDb, i18nRows)
+    await recordSnapshotVersionChanges(historyDb, {
+      snapshotId: context.snapshotId,
+      sourceReleaseId: context.releaseId,
+      recordType: 'address2dI18n',
+      operation: 'upsert',
+      changes: i18nRows.map(row => ({
+        recordId: row.addressId,
+        locale: row.locale,
+        versionHash: row.versionHash,
+      })),
+    })
   }
 }
 
@@ -1224,8 +1404,6 @@ async function insertAddressVersionsI18nInChunks(
     AddressI18nPayload & {
       sourceReleaseId: string
       snapshotId: string
-      validFromSnapshotId: string
-      validToSnapshotId: string | null
       isCurrent: boolean
       versionHash: string
       createdAt: string
@@ -1250,8 +1428,6 @@ async function insertAddressVersionsI18nInChunks(
           set: {
             sourceReleaseId: excluded('sourceReleaseId'),
             snapshotId: excluded('snapshotId'),
-            validFromSnapshotId: excluded('validFromSnapshotId'),
-            validToSnapshotId: null,
             isCurrent: true,
             formattedAddress: excluded('formattedAddress'),
             buildingName: excluded('buildingName'),

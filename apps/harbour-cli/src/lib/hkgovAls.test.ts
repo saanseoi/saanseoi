@@ -1,9 +1,72 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  dedupeHkgovAlsSourceFeatures,
   resolveDivisionLookupSource,
   resolveDivisionSnapshotSource,
 } from './hkgovAls.ts'
+
+describe('dedupeHkgovAlsSourceFeatures', () => {
+  const feature = {
+    geometry: { coordinates: [114.1, 22.3] as [number, number], type: 'Point' },
+    properties: {
+      Address: {
+        PremisesAddress: {
+          EngPremisesAddress: {
+            BuildingName: 'EXAMPLE BUILDING',
+            EngDistrict: 'EXAMPLE DISTRICT',
+            EngStreet: { BuildingNoFrom: '1', StreetName: 'EXAMPLE STREET' },
+            Region: 'HK',
+          },
+        },
+      },
+    },
+  }
+
+  test('removes only identical source features and records every occurrence', () => {
+    const result = dedupeHkgovAlsSourceFeatures([
+      {
+        feature,
+        featureIndexOneBased: 4,
+        sourceFile: 'first.geojson',
+      },
+      {
+        feature: structuredClone(feature),
+        featureIndexOneBased: 9,
+        sourceFile: 'second.geojson',
+      },
+      {
+        feature: {
+          ...feature,
+          properties: {
+            ...feature.properties,
+            Address: {
+              PremisesAddress: {
+                EngPremisesAddress: {
+                  ...feature.properties.Address.PremisesAddress.EngPremisesAddress,
+                  BuildingName: 'DISTINCT BUILDING',
+                },
+              },
+            },
+          },
+        },
+        featureIndexOneBased: 12,
+        sourceFile: 'second.geojson',
+      },
+    ])
+
+    expect(result.features).toHaveLength(2)
+    expect(result.duplicateGroups).toEqual([
+      {
+        address: 'EXAMPLE BUILDING, 1 EXAMPLE STREET, EXAMPLE DISTRICT, HK',
+        occurrences: [
+          { featureIndexOneBased: 4, sourceFile: 'first.geojson' },
+          { featureIndexOneBased: 9, sourceFile: 'second.geojson' },
+        ],
+      },
+    ])
+  })
+})
 
 describe('resolveDivisionLookupSource', () => {
   test('uses the shared local D1 sqlite path for dev by default', () => {
