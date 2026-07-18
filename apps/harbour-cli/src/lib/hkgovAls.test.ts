@@ -101,6 +101,44 @@ describe('consolidateEquivalentHkgovAlsPremises', () => {
       },
     ])
   })
+
+  test('requires a persisted choice for a missing precedence indicator', () => {
+    const missingIndicator = {
+      blockDescriptorPrecedenceIndicator: null,
+      enFormattedAddress: 'EXAMPLE BUILDING, 1 EXAMPLE STREET',
+      identityKey: 'same-complete-premise',
+      sourceFeatureIndexOneBased: 4,
+      sourceFile: 'eastern.geojson',
+      zhHantFormattedAddress: null,
+    } as Parameters<typeof consolidateEquivalentHkgovAlsPremises>[0][number]
+    const presentIndicator = {
+      ...missingIndicator,
+      blockDescriptorPrecedenceIndicator: 'Y',
+      sourceFeatureIndexOneBased: 9,
+    }
+
+    const unresolved = consolidateEquivalentHkgovAlsPremises([
+      missingIndicator,
+      presentIndicator,
+    ])
+    expect(unresolved.precedenceVariantCandidates).toHaveLength(1)
+
+    const resolved = consolidateEquivalentHkgovAlsPremises(
+      [missingIndicator, presentIndicator],
+      {
+        authority: 'hkgov-dpo',
+        decisions: [
+          {
+            blockDescriptorPrecedenceIndicator: 'Y',
+            identityKey: 'same-complete-premise',
+          },
+        ],
+        version: 1,
+      },
+    )
+    expect(resolved.precedenceVariantCandidates).toEqual([])
+    expect(resolved.rows).toEqual([presentIndicator])
+  })
 })
 
 describe('resolveDivisionLookupSource', () => {
