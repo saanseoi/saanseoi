@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "bun run --cwd ../.. --filter @repo/db db:migration:run:local:meta && vite dev",
+    "dev": "bun run --cwd ../.. --filter @repo/db db:migration:run:local:meta && bun run i18n:build && vite dev",
     "i18n:build": "bun run --cwd ../.. --filter @repo/i18n build",
     "build": "bun run i18n:build && vite build && wrangler types --env-interface Env",
     "build:preview": "bun run i18n:build && vite build && wrangler types --env-interface Env",
