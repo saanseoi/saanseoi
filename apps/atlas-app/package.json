@@ -35,6 +35,8 @@
     "bits-ui": "^2.18.1",
     "diff": "^9.0.0",
     "github-slugger": "^2.0.0",
+    "maplibre-gl": "^5.24.0",
+    "svelte-maplibre-gl": "^2.1.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
