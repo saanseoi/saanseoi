@@ -85,6 +85,15 @@ identifiers on the primary division, and are deduplicated across a collection re
 The geometry field contract, cohort rules, source bridges, and provider registration
 requirements are defined in [`divisions-geometry.md`](./divisions-geometry.md).
 
+## Proposed division statistics relationship
+
+Operational release `stats` are ingestion observability and remain separate from
+published demographic, housing and other subject-matter observations. The latter should
+be a versioned `division-statistics` API family, with a bounded `include=stats`
+convenience relationship on division resources. Its data model, C&SD source inventory,
+cohort rules, endpoint shape and implementation TODO are specified in
+[`division-statistics.md`](./division-statistics.md).
+
 ## Divisions publication and time selection
 
 The v0 Divisions routes expose the publication model while remaining explicitly
