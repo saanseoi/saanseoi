@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import { getDatasetRecordByReleaseId } from '../../lib/db/metaRegistry'
@@ -31,7 +31,12 @@ export async function replaceDatasetStats(
   await runStatementBatchWithWriteRetry(metaDb, [
     metaDb
       .delete(metaSchema.stats)
-      .where(eq(metaSchema.stats.releaseId, dataset.releaseId)),
+      .where(
+        and(
+          eq(metaSchema.stats.releaseId, dataset.releaseId),
+          eq(metaSchema.stats.type, 'release'),
+        ),
+      ),
   ])
 
   if (rows.length === 0) {

@@ -43,6 +43,22 @@ export type StatReportRow = {
   value: number
 }
 
+export type ProcessingActionReportRow = {
+  action: string
+  affectedRecordCount: number
+  createdAt: string
+  datasetCode: string
+  evidence: unknown
+  id: string
+  mode: 'automatic' | 'manual'
+  releaseCode: string
+  releaseId: string
+  source: string
+  summary: string
+  type: string
+  updatedAt: string
+}
+
 export type ReleaseReportRow = {
   createdAt: string
   datasetCode: string
@@ -72,6 +88,10 @@ type IngestRunReportResponse = {
 
 type StatsReportResponse = {
   rows: StatReportRow[]
+}
+
+type ProcessingActionReportResponse = {
+  rows: ProcessingActionReportRow[]
 }
 
 type ReleaseReportResponse = {
@@ -186,6 +206,36 @@ export async function fetchStatsReport(
   })
 
   return parseJsonResponse<StatsReportResponse>(response, 'Harbour stats report')
+}
+
+export async function fetchProcessingActionReport(
+  target: UploadTarget,
+  options?: {
+    limit?: number
+    releaseCode?: string
+    releaseId?: string
+    source?: string
+    type?: string
+  },
+) {
+  const apiBaseUrl = resolveHarbourApiUrl(target)
+  const url = new URL(`${normalizeBaseUrl(apiBaseUrl)}/v1/reports/processing-actions`)
+
+  if (options?.limit != null)
+    url.searchParams.set('limit', String(parseLimit(options.limit)))
+  if (options?.releaseCode) url.searchParams.set('releaseCode', options.releaseCode)
+  if (options?.releaseId) url.searchParams.set('releaseId', options.releaseId)
+  if (options?.source) url.searchParams.set('source', options.source)
+  if (options?.type) url.searchParams.set('type', options.type)
+
+  const response = await fetch(url.toString(), {
+    headers: getAuthHeaders(),
+    method: 'GET',
+  })
+  return parseJsonResponse<ProcessingActionReportResponse>(
+    response,
+    'Harbour processing-actions report',
+  )
 }
 
 export async function fetchReleaseReport(

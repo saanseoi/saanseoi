@@ -3,13 +3,19 @@ import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 import {
   ErrorResponseSchema,
   IngestRunReportResponseSchema,
+  ProcessingActionReportResponseSchema,
   ReleaseReportResponseSchema,
   ReportQuerySchema,
   StatsReportQuerySchema,
   StatsReportResponseSchema,
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
-import { listIngestRuns, listReleases, listStats } from '../../lib/services/reporting'
+import {
+  listIngestRuns,
+  listProcessingActions,
+  listReleases,
+  listStats,
+} from '../../lib/services/reporting'
 import { createPrimaryMetaRepoDb } from '../../lib/d1'
 import { resolveDataShardEnvironment } from '../../lib/services/shared'
 import type { AppEnv } from '../../types'
@@ -92,6 +98,26 @@ const releasesRouteConfig = createRoute({
           schema: ErrorResponseSchema,
         },
       },
+      description: 'Report query failed.',
+    },
+    422: ValidationErrorOpenAPIResponse,
+  },
+})
+
+const processingActionsRouteConfig = createRoute({
+  method: 'get',
+  path: '/v1/reports/processing-actions',
+  tags: ['Reports'],
+  request: { query: ReportQuerySchema },
+  responses: {
+    200: {
+      content: {
+        'application/json': { schema: ProcessingActionReportResponseSchema },
+      },
+      description: 'Auditable automatic and manual processing actions by release.',
+    },
+    400: {
+      content: { 'application/json': { schema: ErrorResponseSchema } },
       description: 'Report query failed.',
     },
     422: ValidationErrorOpenAPIResponse,
@@ -193,8 +219,37 @@ export const releasesReportRoute = defineOpenAPIRoute<
   },
 })
 
+export const processingActionsReportRoute = defineOpenAPIRoute<
+  typeof processingActionsRouteConfig,
+  AppEnv
+>({
+  route: processingActionsRouteConfig,
+  handler: async c => {
+    c.header('cache-control', 'no-store')
+    try {
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
+      const query = c.req.valid('query')
+      return c.json(
+        {
+          rows: await listProcessingActions(db, {
+            limit: query.limit,
+            releaseCode: query.releaseCode,
+            releaseId: query.releaseId,
+            source: query.source,
+            type: query.type,
+          }),
+        },
+        200,
+      )
+    } catch (error) {
+      return c.json(createReportError(error), 400)
+    }
+  },
+})
+
 export const reportRoutes = [
   ingestionReportRoute,
   statsReportRoute,
   releasesReportRoute,
+  processingActionsReportRoute,
 ] as const

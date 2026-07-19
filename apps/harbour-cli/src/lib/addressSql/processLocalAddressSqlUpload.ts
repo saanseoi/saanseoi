@@ -8,6 +8,10 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 import { hasCurrentAddressVersions } from '@repo/core/pipeline/db/address'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
+import {
+  replaceReleaseProcessingActions,
+  type ReleaseProcessingAction,
+} from '@repo/core/pipeline/db/processingActions'
 import { buildAddressSqlImportRunId } from '@repo/core/pipeline/services/addressPipeline/sqlImport'
 import {
   importAddressSqlDataArtifacts,
@@ -104,6 +108,7 @@ export async function processLocalAddressSqlUpload(
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
   options: {
+    processingActions?: ReleaseProcessingAction[]
     skipSnapshotCleanup?: boolean
   } = {},
 ) {
@@ -258,6 +263,11 @@ export async function processLocalAddressSqlUpload(
   })
 
   try {
+    await replaceReleaseProcessingActions(
+      dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+      releaseId,
+      options.processingActions ?? [],
+    )
     await harbourClient.stageRunning(
       releaseId,
       'processDataset',

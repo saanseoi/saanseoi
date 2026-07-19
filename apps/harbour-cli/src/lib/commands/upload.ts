@@ -13,6 +13,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { metaSchema } from '@repo/db'
@@ -53,6 +54,7 @@ export async function runUploadCommand(
     forceUpload: boolean
     invocationCwd: string
     printUsage: () => void
+    processingActions?: ReleaseProcessingAction[]
     skipConfirm: boolean
     skipSnapshotCleanup: boolean
     validateGeometry: boolean
@@ -267,6 +269,7 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
           {
+            processingActions: options.processingActions,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
           },
         )

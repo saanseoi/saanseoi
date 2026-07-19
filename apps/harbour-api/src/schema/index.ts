@@ -413,6 +413,30 @@ export const StatsReportResponseSchema = z
   })
   .openapi('HarbourStatsReportResponse')
 
+export const ProcessingActionReportRowSchema = z
+  .object({
+    action: z.string(),
+    affectedRecordCount: z.number().int().nonnegative(),
+    createdAt: z.string(),
+    datasetCode: DatasetCodeSchema,
+    evidence: z.unknown(),
+    id: z.string(),
+    mode: z.enum(['automatic', 'manual']),
+    releaseCode: ReleaseCodeSchema,
+    releaseId: ReleaseIdSchema,
+    source: SourceSchema,
+    summary: z.string(),
+    type: z.string(),
+    updatedAt: z.string(),
+  })
+  .openapi('HarbourProcessingActionReportRow')
+
+export const ProcessingActionReportResponseSchema = z
+  .object({
+    rows: z.array(ProcessingActionReportRowSchema),
+  })
+  .openapi('HarbourProcessingActionReportResponse')
+
 export const ReleaseReportRowSchema = z
   .object({
     createdAt: z.string(),

@@ -12,6 +12,7 @@ const {
   metaPublishers,
   metaReleaseShardAssignments,
   metaReleases,
+  releaseProcessingActions,
   stats,
 } = metaSchema
 
@@ -57,7 +58,31 @@ export type StatReportRow = {
   value: number
 }
 
+export type ProcessingActionReportRow = {
+  action: string
+  affectedRecordCount: number
+  createdAt: string
+  datasetCode: string
+  evidence: unknown
+  id: string
+  mode: 'automatic' | 'manual'
+  releaseCode: string
+  releaseId: string
+  source: string
+  summary: string
+  type: string
+  updatedAt: string
+}
+
 type StatQueryRow = Omit<StatReportRow, 'createdAt' | 'updatedAt'> & {
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
+type ProcessingActionQueryRow = Omit<
+  ProcessingActionReportRow,
+  'createdAt' | 'updatedAt'
+> & {
   createdAt: Date | string
   updatedAt: Date | string
 }
@@ -234,6 +259,60 @@ export async function listStats(
   return rows.map(row => ({
     ...row,
     createdAt: toIsoString(row.createdAt) ?? '',
+    updatedAt: toIsoString(row.updatedAt) ?? '',
+  }))
+}
+
+export async function listProcessingActions(
+  db: HarbourReadableDb,
+  options: ReportFilters,
+): Promise<ProcessingActionReportRow[]> {
+  const query = db
+    .select({
+      action: releaseProcessingActions.action,
+      affectedRecordCount: releaseProcessingActions.affectedRecordCount,
+      createdAt: releaseProcessingActions.createdAt,
+      datasetCode: metaDatasets.code,
+      evidence: releaseProcessingActions.evidence,
+      id: releaseProcessingActions.id,
+      mode: releaseProcessingActions.mode,
+      releaseCode: metaReleases.code,
+      releaseId: metaReleases.id,
+      source: metaPublishers.code,
+      summary: releaseProcessingActions.summary,
+      type: metaDatasets.type,
+      updatedAt: releaseProcessingActions.updatedAt,
+    })
+    .from(releaseProcessingActions)
+    .innerJoin(metaReleases, eq(releaseProcessingActions.releaseId, metaReleases.id))
+    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+    .orderBy(
+      desc(releaseProcessingActions.createdAt),
+      desc(releaseProcessingActions.id),
+    )
+  const releaseIds = options.releaseId
+    ? [options.releaseId]
+    : await listLatestStatsReleaseIds(db, {
+        limit: options.limit ?? 1,
+        source: options.source,
+        type: options.type,
+      })
+
+  if (releaseIds.length === 0) return []
+
+  const whereClause = buildReportFilterWhereClause(options)
+  const rows = (
+    whereClause
+      ? await query.where(and(whereClause, inArray(metaReleases.id, releaseIds))).all()
+      : await query.where(inArray(metaReleases.id, releaseIds)).all()
+  ) as ProcessingActionQueryRow[]
+
+  return rows.map(row => ({
+    ...row,
+    createdAt: toIsoString(row.createdAt) ?? '',
+    evidence: normalizeJsonField(row.evidence),
+    mode: row.mode === 'manual' ? 'manual' : 'automatic',
     updatedAt: toIsoString(row.updatedAt) ?? '',
   }))
 }
