@@ -27,6 +27,7 @@ import {
   type HkgovAlsIdentityHistory,
   type HkgovAlsIdentityRecord,
 } from './hkgovAlsDrift.ts'
+import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import {
   normalizeHkgovAlsPremiseStructure,
   preferHkgovAlsEnglishCanonicalValue,
@@ -104,6 +105,8 @@ type HkgovAlsFeature = {
 
 export type HkgovAlsSourceDuplicateGroup = {
   address: string
+  canonicalRecord?: Record<string, unknown>
+  ignoredRecords?: Array<Record<string, unknown>>
   occurrences: Array<{
     featureIndexOneBased: number
     sourceFile: string
@@ -232,6 +235,7 @@ type PreparedHkgovAlsRow = {
   zhHantStreetName: string | null
   zhHantStreetNumberFrom: string | null
   zhHantStreetNumberTo: string | null
+  zhHantVillageName: string | null
   enFormattedAddress: string | null
   enRegion: string | null
   enDistrict: string | null
@@ -242,6 +246,7 @@ type PreparedHkgovAlsRow = {
   enStreetName: string | null
   enStreetNumberFrom: string | null
   enStreetNumberTo: string | null
+  enVillageName: string | null
   easting: number | null
   northing: number | null
 }
@@ -257,6 +262,7 @@ type PreparedHkgovAlsResult = {
   resolvedIdConsolidatedFeatureCount: number
   identityRecords: HkgovAlsIdentityRecord[]
   outputFile: string
+  processingActions: ReleaseProcessingAction[]
   sourceDuplicateFeatureGroups: HkgovAlsSourceDuplicateGroup[]
   sourceFileCount: number
 }
@@ -562,6 +568,10 @@ export async function prepareHkgovAlsAddressParquet(
           rows.map(row => row.zhHantStreetNumberTo),
         ),
         stringColumn(
+          'zhHantVillageName',
+          rows.map(row => row.zhHantVillageName),
+        ),
+        stringColumn(
           'enFormattedAddress',
           rows.map(row => row.enFormattedAddress),
         ),
@@ -601,6 +611,10 @@ export async function prepareHkgovAlsAddressParquet(
           'enStreetNumberTo',
           rows.map(row => row.enStreetNumberTo),
         ),
+        stringColumn(
+          'enVillageName',
+          rows.map(row => row.enVillageName),
+        ),
         int32Column(
           'easting',
           rows.map(row => row.easting),
@@ -626,6 +640,13 @@ export async function prepareHkgovAlsAddressParquet(
       numberRangeDistinctRows.length - resolvedIdDistinctRows.length,
     identityRecords: resolvedIdentityRecords,
     outputFile,
+    processingActions: buildHkgovAlsProcessingActions({
+      decisions: options.identityDecisions ?? emptyHkgovAlsIdentityDecisions(),
+      identityEquivalentFeatureGroups,
+      numberRangeSingletonFeatureGroups,
+      resolvedRows: rows,
+      sourceDuplicateFeatureGroups,
+    }),
     sourceDuplicateFeatureGroups,
     sourceFileCount: inputFiles.length,
   }
@@ -713,6 +734,10 @@ export function consolidateHkgovAlsSingletonNumberRangeVariants(
         occurrences[0]?.enFormattedAddress ??
         occurrences[0]?.zhHantFormattedAddress ??
         'Unformatted ALS address',
+      canonicalRecord: occurrences[0]
+        ? summarizeHkgovAlsProcessingRow(occurrences[0])
+        : undefined,
+      ignoredRecords: occurrences.slice(1).map(summarizeHkgovAlsProcessingRow),
       occurrences: occurrences.map(row => ({
         featureIndexOneBased: row.sourceFeatureIndexOneBased,
         sourceFile: row.sourceFile,
@@ -749,6 +774,149 @@ function hkgovAlsRangeHasSingletonEndpoint(
 
 function normalizeHkgovAlsNumber(value: string | null) {
   return value?.normalize('NFKC').trim().toUpperCase() || null
+}
+
+function buildHkgovAlsProcessingActions(input: {
+  decisions: HkgovAlsIdentityDecisions
+  identityEquivalentFeatureGroups: HkgovAlsSourceDuplicateGroup[]
+  numberRangeSingletonFeatureGroups: HkgovAlsSourceDuplicateGroup[]
+  resolvedRows: PreparedHkgovAlsRow[]
+  sourceDuplicateFeatureGroups: HkgovAlsSourceDuplicateGroup[]
+}): ReleaseProcessingAction[] {
+  const rowsBySourceLocation = new Map(
+    input.resolvedRows.map(row => [
+      `${row.sourceFile}\u0000${row.sourceFeatureIndexOneBased}`,
+      row,
+    ]),
+  )
+  const actionsForGroups = (
+    action: string,
+    summary: string,
+    groups: HkgovAlsSourceDuplicateGroup[],
+  ): ReleaseProcessingAction[] =>
+    groups.flatMap(group => {
+      const affectedRecordCount = Math.max(0, group.occurrences.length - 1)
+      if (affectedRecordCount === 0) return []
+
+      return [
+        {
+          action,
+          affectedRecordCount,
+          evidence: (() => {
+            const canonicalRow = group.occurrences
+              .map(occurrence =>
+                rowsBySourceLocation.get(
+                  `${occurrence.sourceFile}\u0000${occurrence.featureIndexOneBased}`,
+                ),
+              )
+              .find((row): row is PreparedHkgovAlsRow => row != null)
+            return {
+              address: group.address,
+              canonicalRecord:
+                group.canonicalRecord ??
+                (canonicalRow ? summarizeHkgovAlsProcessingRow(canonicalRow) : null),
+              ignoredRecords: group.ignoredRecords ?? group.occurrences.slice(1),
+            }
+          })(),
+          mode: 'automatic' as const,
+          summary,
+        },
+      ]
+    })
+
+  const actions = [
+    ...actionsForGroups(
+      'als_exact_source_duplicate_removed',
+      'Removed byte-identical ALS GeoJSON feature duplicates.',
+      input.sourceDuplicateFeatureGroups,
+    ),
+    ...actionsForGroups(
+      'als_equivalent_premise_variant_consolidated',
+      'Consolidated ALS variants with the same complete premise identity.',
+      input.identityEquivalentFeatureGroups,
+    ),
+    ...actionsForGroups(
+      'als_number_range_singleton_variant_consolidated',
+      'Retained a number-range premise and removed a matching singleton endpoint.',
+      input.numberRangeSingletonFeatureGroups,
+    ),
+  ]
+
+  const decisionByCurrentIdentityKey = new Map(
+    input.decisions.decisions.map(decision => [decision.currentIdentityKey, decision]),
+  )
+  const manualRows = input.resolvedRows.filter(
+    row => row.identityMatchMethod === 'als-drift-decision',
+  )
+  if (manualRows.length > 0) {
+    actions.push(
+      ...manualRows.map(row => ({
+        action: 'als_identity_drift_decision',
+        affectedRecordCount: 1,
+        evidence: {
+          canonicalRecord: summarizeHkgovAlsProcessingRow(row),
+          decision: decisionByCurrentIdentityKey.get(row.identityKey) ?? null,
+        },
+        mode: 'manual' as const,
+        summary: 'Applied a reviewed ALS premise-identity continuity decision.',
+      })),
+    )
+  }
+
+  for (const [matchMethod, action, summary] of [
+    [
+      'als-building-name-withdrawal',
+      'als_building_name_withdrawal_matched',
+      'Retained an ALS ID after a building-name withdrawal.',
+    ],
+    [
+      'als-building-estate-reassignment',
+      'als_building_estate_reassignment_matched',
+      'Retained an ALS ID after an identical name moved between building and estate.',
+    ],
+  ] as const) {
+    const matchedRows = input.resolvedRows.filter(
+      row => row.identityMatchMethod === matchMethod,
+    )
+    if (matchedRows.length === 0) continue
+    actions.push(
+      ...matchedRows.map(row => ({
+        action,
+        affectedRecordCount: 1,
+        evidence: summarizeHkgovAlsProcessingRow(row),
+        mode: 'automatic' as const,
+        summary,
+      })),
+    )
+  }
+
+  return actions
+}
+
+function summarizeHkgovAlsProcessingRow(row: PreparedHkgovAlsRow) {
+  return {
+    canonicalId: row.canonicalId,
+    formattedAddress: {
+      en: row.enFormattedAddress,
+      zhHant: row.zhHantFormattedAddress,
+    },
+    identity: row.identitySummary,
+    identityKey: row.identityKey,
+    identityMatchMethod: row.identityMatchMethod,
+    sourcePremises: {
+      en: parseHkgovAlsSourceJson(row.engPremisesAddressJson),
+      zhHant: parseHkgovAlsSourceJson(row.chiPremisesAddressJson),
+    },
+    source: {
+      featureIndexOneBased: row.sourceFeatureIndexOneBased,
+      file: row.sourceFile,
+    },
+  }
+}
+
+function parseHkgovAlsSourceJson(value: string | null) {
+  if (!value) return null
+  return JSON.parse(value) as Record<string, unknown>
 }
 
 export function dedupeHkgovAlsSourceFeatures(sourceFeatures: HkgovAlsSourceFeature[]) {
@@ -847,18 +1015,7 @@ export function consolidateEquivalentHkgovAlsPremises(rows: PreparedHkgovAlsRow[
     rowsByIdentity.set(row.identityKey, equivalentRows)
   }
   const equivalentGroups = [...rowsByIdentity.values()]
-  const duplicateGroups = equivalentGroups
-    .filter(equivalentRows => equivalentRows.length > 1)
-    .map(equivalentRows => ({
-      address:
-        equivalentRows[0]?.enFormattedAddress ??
-        equivalentRows[0]?.zhHantFormattedAddress ??
-        'Unformatted ALS address',
-      occurrences: equivalentRows.map(row => ({
-        featureIndexOneBased: row.sourceFeatureIndexOneBased,
-        sourceFile: row.sourceFile,
-      })),
-    }))
+  const duplicateGroups: HkgovAlsSourceDuplicateGroup[] = []
   for (const equivalentRows of equivalentGroups) {
     const firstRow = equivalentRows[0]
     if (!firstRow) continue
@@ -879,6 +1036,22 @@ export function consolidateEquivalentHkgovAlsPremises(rows: PreparedHkgovAlsRow[
         : undefined)
     const selectedRow = indicatorPresentRow ?? firstRow
     selectedRows.push(selectedRow ?? firstRow)
+    if (equivalentRows.length > 1) {
+      duplicateGroups.push({
+        address:
+          selectedRow.enFormattedAddress ??
+          selectedRow.zhHantFormattedAddress ??
+          'Unformatted ALS address',
+        canonicalRecord: summarizeHkgovAlsProcessingRow(selectedRow),
+        ignoredRecords: equivalentRows
+          .filter(row => row !== selectedRow)
+          .map(summarizeHkgovAlsProcessingRow),
+        occurrences: equivalentRows.map(row => ({
+          featureIndexOneBased: row.sourceFeatureIndexOneBased,
+          sourceFile: row.sourceFile,
+        })),
+      })
+    }
   }
 
   return { duplicateGroups, rows: selectedRows }
@@ -1112,6 +1285,9 @@ function normalizeHkgovAlsFeature(
     zhHantStreetName: asOptionalString(zhStreet.StreetName),
     zhHantStreetNumberFrom: asOptionalString(zhStreet.BuildingNoFrom),
     zhHantStreetNumberTo: asOptionalString(zhStreet.BuildingNoTo),
+    zhHantVillageName:
+      asOptionalString(zhVillage.VillageName) ??
+      asOptionalString(zhVillage.LocationName),
     enFormattedAddress: formatEnPremisesAddress(en),
     enRegion: asOptionalString(en.Region),
     enDistrict: districtNameEn,
@@ -1122,6 +1298,9 @@ function normalizeHkgovAlsFeature(
     enStreetName: asOptionalString(enStreet.StreetName),
     enStreetNumberFrom: asOptionalString(enStreet.BuildingNoFrom),
     enStreetNumberTo: asOptionalString(enStreet.BuildingNoTo),
+    enVillageName:
+      asOptionalString(enVillage.VillageName) ??
+      asOptionalString(enVillage.LocationName),
     easting: asOptionalInteger(properties.Easting),
     northing: asOptionalInteger(properties.Northing),
   }

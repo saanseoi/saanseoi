@@ -7,6 +7,7 @@ import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 import { hasCurrentAddressVersions } from '@repo/core/pipeline/db/address'
+import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import {
   replaceReleaseProcessingActions,
@@ -20,6 +21,7 @@ import {
 } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
 import {
   normalizeAddressSqlChunkStage,
+  writeAddressReleaseMetaSqlFile,
   writeAddressCurrentSqlChunkStage,
   writeAddressHistorySqlChunkStage,
   writeAddressSourceSqlChunkStage,
@@ -29,6 +31,7 @@ import {
   EMPTY_ADDRESS_PIPELINE_STATS,
   type AddressPipelineMessage,
 } from '@repo/core/pipeline/services/addressPipeline/types'
+import { buildAddressReleaseStatsRows } from '@repo/core/pipeline/services/stats'
 
 import type { PreparedUploadFile } from '../parquetRepack.ts'
 import type { UploadTarget } from '../options.ts'
@@ -474,17 +477,33 @@ export async function processLocalAddressSqlUpload(
       currentMessages,
       previewPlan.rowCount,
     )
+    const addressStats = addAddressPipelineStats(
+      EMPTY_ADDRESS_PIPELINE_STATS,
+      finalMessage.addressStats ?? {},
+    )
+    await replaceDatasetStats(
+      dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+      releaseId,
+      buildAddressReleaseStatsRows(addressStats),
+    )
+    const finalMessageWithMeta = await writeAddressReleaseMetaSqlFile(
+      dbContext.metaDb,
+      bucket,
+      finalMessage,
+    )
     const importProgressClient = createLocalImportProgressClient(
       harbourClient,
       progress,
-      buildAddressImportProgressConfig(finalMessage.addressSqlArtifactKeys ?? []),
+      buildAddressImportProgressConfig(
+        finalMessageWithMeta.addressSqlArtifactKeys ?? [],
+      ),
     )
 
     const publishResult = await importAddressSqlArtifactsAndPublish(
       importProgressClient,
       dbContext.metaDb,
       bucket,
-      finalMessage,
+      finalMessageWithMeta,
       importOptions,
     )
     if (target.remote) {
@@ -493,7 +512,7 @@ export async function processLocalAddressSqlUpload(
           target,
           dbContext,
           bucket,
-          finalMessage,
+          finalMessageWithMeta,
           importOptions,
         )
       } catch (error) {
