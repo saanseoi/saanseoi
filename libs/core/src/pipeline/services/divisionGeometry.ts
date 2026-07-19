@@ -13,6 +13,7 @@ export type DivisionGeometryKind = 'divisionArea' | 'divisionBoundary'
 
 export type GeometryNormalizationOptions = {
   validateGeometry?: boolean
+  variant?: string
 }
 
 type GeometryBase = {
@@ -80,12 +81,14 @@ export function normalizeDivisionAreaGeometryRow(
   )
   const isLand =
     source === 'hkgov-had' ||
+    source === 'hkgov-censtatd' ||
     source === 'hkgov-pland-pu' ||
     source === 'hkgov-pland-new-town'
       ? true
       : asOptionalBoolean(row.is_land)
   const isTerritorial =
     source === 'hkgov-had' ||
+    source === 'hkgov-censtatd' ||
     source === 'hkgov-pland-pu' ||
     source === 'hkgov-pland-new-town'
       ? true
@@ -107,7 +110,7 @@ export function normalizeDivisionAreaGeometryRow(
     sourceKeys,
     sources,
     type,
-    variant: source,
+    variant: options.variant ?? source,
   }
 
   return {
@@ -170,7 +173,7 @@ export function normalizeDivisionBoundaryGeometryRow(
     sourceKeys,
     sources,
     type,
-    variant: source,
+    variant: options.variant ?? source,
   }
 
   return {
@@ -246,6 +249,15 @@ function buildSourceKeys(
     }
   }
 
+  if (source === 'hkgov-censtatd') {
+    return {
+      hkgovCenstatd: {
+        class: asNonEmptyString(row.district_class),
+        code: asOptionalInteger(row.district_code),
+      },
+    }
+  }
+
   if (source === 'hkgov-pland-new-town') {
     return {
       hkgovPlandNewTown: {
@@ -269,11 +281,13 @@ function normalizeSources(value: unknown, source: string) {
     ? {
         [source === 'hkgov-had'
           ? 'hkgovHad'
-          : source === 'hkgov-pland-pu'
-            ? 'hkgovPland'
-            : source === 'hkgov-pland-new-town'
-              ? 'hkgovPlandNewTown'
-              : 'overture']: value,
+          : source === 'hkgov-censtatd'
+            ? 'hkgovCenstatd'
+            : source === 'hkgov-pland-pu'
+              ? 'hkgovPland'
+              : source === 'hkgov-pland-new-town'
+                ? 'hkgovPlandNewTown'
+                : 'overture']: value,
       }
     : undefined
 }

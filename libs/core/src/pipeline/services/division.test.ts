@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  buildCanonicalDivisionApiI18n,
+  buildOvertureDivisionLocaleProcessingActions,
   collectOvertureHongKongDivisionSourceAssumptionViolations,
   type DivisionHierarchyLookup,
   normalizeDivisionRow,
@@ -202,6 +204,7 @@ describe('getSupplementalDivisionFixtureRows', () => {
       base: {
         id: 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be',
         level: 0,
+        type: 'country',
         geometry: null,
       },
       i18n: expect.arrayContaining([
@@ -424,5 +427,80 @@ describe('normalizeDivisionRow hierarchy', () => {
         { hierarchyLookup },
       ),
     ).toThrow('Cannot normalize hierarchy locality entry division-locality')
+  })
+})
+
+describe('buildOvertureDivisionLocaleProcessingActions', () => {
+  test('keeps per-division evidence for inferred and fallback locales', () => {
+    const rawNames = {
+      common: {
+        zh_HK: '香港',
+      },
+      primary: 'Example',
+    }
+    const normalized = normalizeDivisionRow({
+      id: 'division-audit',
+      subtype: 'locality',
+      class: 'city',
+      names: rawNames,
+    })
+    const actions = buildOvertureDivisionLocaleProcessingActions({
+      canonicalI18n: buildCanonicalDivisionApiI18n(normalized.i18n),
+      division: normalized.base,
+      rawNames,
+      sourceI18n: normalized.i18n,
+    })
+
+    expect(actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          action: 'overture_division_locale_inferred',
+          affectedRecordCount: 1,
+          evidence: expect.objectContaining({
+            canonicalDivision: expect.objectContaining({ id: 'division-audit' }),
+            inferredI18n: expect.arrayContaining([
+              expect.objectContaining({ locale: 'en', name: 'Example' }),
+            ]),
+            sourceNames: rawNames,
+          }),
+        }),
+        expect.objectContaining({
+          action: 'overture_division_api_locale_fallback_added',
+          affectedRecordCount: 1,
+          evidence: expect.objectContaining({
+            fallbackI18n: expect.arrayContaining([
+              expect.objectContaining({
+                locale: 'zh-hant',
+                sourceLocale: 'zh-hk',
+              }),
+            ]),
+          }),
+        }),
+      ]),
+    )
+  })
+
+  test('does not write an audit action for direct canonical locales', () => {
+    const normalized = normalizeDivisionRow({
+      id: 'division-direct-locale',
+      subtype: 'locality',
+      class: 'city',
+      names: {
+        common: {
+          en: 'Example',
+          'zh-hans': '例子',
+          'zh-hant': '例子',
+        },
+      },
+    })
+
+    expect(
+      buildOvertureDivisionLocaleProcessingActions({
+        canonicalI18n: buildCanonicalDivisionApiI18n(normalized.i18n),
+        division: normalized.base,
+        rawNames: null,
+        sourceI18n: normalized.i18n,
+      }),
+    ).toEqual([])
   })
 })

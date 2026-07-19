@@ -147,6 +147,42 @@ describe('division geometry normalization', () => {
     )
   })
 
+  test('keeps C&SD district metadata and the derived display provenance distinct', () => {
+    const normalized = normalizeDivisionAreaGeometryRow(
+      {
+        census_year: '2021',
+        derivation: {
+          method: 'topology-preserving-simplification',
+          toleranceMetres: 10,
+        },
+        district_class: 'A',
+        district_code: 11,
+        division_id: 'division-1',
+        geometry: polygon,
+        id: 'CENSTATD:simplified:2021:A',
+        sources: [
+          { dataset: 'hkgov-censtatd', transform: 'simplified', districtClass: 'A' },
+        ],
+      },
+      'hkgov-censtatd',
+      { variant: 'hkgov-censtatd:simplified' },
+    )
+    if (!normalized) throw new Error('Expected a C&SD display area row.')
+
+    expect(normalized.canonical.variant).toBe('hkgov-censtatd:simplified')
+    expect(normalized.canonical.sourceKeys).toEqual({
+      hkgovCenstatd: {
+        class: 'A',
+        code: 11,
+      },
+    })
+    expect(normalized.canonical.sources).toEqual({
+      hkgovCenstatd: [
+        { dataset: 'hkgov-censtatd', transform: 'simplified', districtClass: 'A' },
+      ],
+    })
+  })
+
   test('keeps a New Town area attached to its cohort-scoped planning division', () => {
     const normalized = normalizeDivisionAreaGeometryRow(
       {
