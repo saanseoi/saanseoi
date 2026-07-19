@@ -6,7 +6,7 @@ import {
   listRegistryReleases,
   listRegistrySources,
 } from '@repo/core/db/metaRegistry'
-import { createMetaDb } from '@repo/db'
+import { createCurrentDb, createMetaDb, currentSchema, desc, inArray } from '@repo/db'
 import { error, redirect } from '@sveltejs/kit'
 import { getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
@@ -29,6 +29,13 @@ function getMetaDb() {
   const binding = event.platform?.env.DB_META
   if (!binding) throw new Error('D1 binding "DB_META" not found.')
   return createMetaDb(binding)
+}
+
+function getCurrentDb() {
+  const event = getRequestEvent()
+  const binding = event.platform?.env.DB_CURRENT
+  if (!binding) throw new Error('D1 binding "DB_CURRENT" not found.')
+  return createCurrentDb(binding)
 }
 
 export const getSourcesPageData = query(
@@ -57,6 +64,40 @@ export const getSourceDatasetPageData = query(registryCodeSchema, async datasetC
   )) as RegistrySource | null
   if (!source) error(404, 'Source dataset not found.')
   return source
+})
+
+/**
+ * Prefer C&SD's `simplified` transformation. HAD remains a temporary fallback
+ * for deployments whose current database has not yet received that variant.
+ */
+export const getDistrictCoverageMapData = query(async () => {
+  const { divisionAreas } = currentSchema
+  const rows = await getCurrentDb()
+    .select({
+      divisionId: divisionAreas.divisionId,
+      geometry: divisionAreas.geometry,
+      sourceKeys: divisionAreas.sourceKeys,
+      updatedAt: divisionAreas.updatedAt,
+      variant: divisionAreas.variant,
+    })
+    .from(divisionAreas)
+    .where(inArray(divisionAreas.variant, ['hkgov-censtatd:simplified', 'hkgov-had']))
+    .orderBy(desc(divisionAreas.updatedAt))
+    .all()
+
+  const latestByDistrict = new Map<string, (typeof rows)[number]>()
+  for (const row of rows) {
+    const existing = latestByDistrict.get(row.divisionId)
+    if (
+      !existing ||
+      (row.variant === 'hkgov-censtatd:simplified' &&
+        existing.variant !== 'hkgov-censtatd:simplified')
+    ) {
+      latestByDistrict.set(row.divisionId, row)
+    }
+  }
+
+  return [...latestByDistrict.values()]
 })
 
 export const getPublisherPageData = query(registryCodeSchema, async publisherCode => {
