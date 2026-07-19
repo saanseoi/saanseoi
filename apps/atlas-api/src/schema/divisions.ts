@@ -210,12 +210,20 @@ export const DivisionsListQuerySchema = z
     include: z
       .string()
       .regex(
-        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
+        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
       )
       .optional()
       .openapi({
         description:
           'Include canonical ancestor division resources in the top-level included array. The relationships.hierarchy identifiers are always returned.',
+      }),
+    transform: z
+      .string()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+      .optional()
+      .openapi({
+        description:
+          'Select a named geometry transformation. `simplified` applies to `areas:hkgov-censtatd` and returns the C&SD 2021 land-clipped display geometry.',
       }),
     'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
     'page[offset]': z.coerce.number().int().min(0).optional(),
@@ -259,12 +267,20 @@ export const DivisionDetailQuerySchema = z
     include: z
       .string()
       .regex(
-        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
+        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
       )
       .optional()
       .openapi({
         description:
           'Include canonical ancestor division resources in the top-level included array. The relationships.hierarchy identifiers are always returned.',
+      }),
+    transform: z
+      .string()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+      .optional()
+      .openapi({
+        description:
+          'Select a named geometry transformation. `simplified` applies to `areas:hkgov-censtatd` and returns the C&SD 2021 land-clipped display geometry.',
       }),
   })
   .openapi('DivisionDetailQuery')

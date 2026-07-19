@@ -201,6 +201,7 @@ export type DivisionListQuery = {
   profile?: string
   locales?: string
   include?: string
+  transform?: string
   'page[limit]'?: number
   'page[offset]'?: number
   'filter[level]'?: number
@@ -218,6 +219,7 @@ export type DivisionDetailQuery = {
   profile?: string
   locales?: string
   include?: string
+  transform?: string
 }
 
 export type DivisionListResult =
@@ -780,14 +782,21 @@ function requestedIncludes(value: string | undefined) {
   )
 }
 
-function requestedGeometryVariants(value: string | undefined, domainCode: string) {
+function requestedGeometryVariants(
+  value: string | undefined,
+  domainCode: string,
+  transform?: string,
+) {
   const includes = requestedIncludes(value)
   const area = [...includes].find(item => item.startsWith('areas:'))
   const boundary = [...includes].find(item => item.startsWith('boundaries:'))
+  const areaVariant =
+    area?.slice('areas:'.length) || (domainCode === 'overture' ? 'overture' : undefined)
   return {
     area:
-      area?.slice('areas:'.length) ||
-      (domainCode === 'overture' ? 'overture' : undefined),
+      transform && areaVariant === 'hkgov-censtatd'
+        ? `hkgov-censtatd:${transform}`
+        : areaVariant,
     boundary:
       boundary?.slice('boundaries:'.length) ||
       (domainCode === 'overture' ? 'overture' : undefined),
@@ -930,7 +939,11 @@ export async function listDivisions(args: {
   const limit = args.query['page[limit]'] ?? 25
   const offset = args.query['page[offset]'] ?? 0
   const domainCode = args.query.domain ?? 'overture'
-  const geometryVariants = requestedGeometryVariants(args.query.include, domainCode)
+  const geometryVariants = requestedGeometryVariants(
+    args.query.include,
+    domainCode,
+    args.query.transform,
+  )
   const requestedGeometry = requestedGeometryKinds(args.query.include)
   const activeDivisionSnapshot = await getActiveDivisionSnapshot(
     args.metaDb,
@@ -1070,7 +1083,11 @@ export async function getDivisionDetail(args: {
     locales: args.query.locales,
   })
   const domainCode = args.query.domain ?? 'overture'
-  const geometryVariants = requestedGeometryVariants(args.query.include, domainCode)
+  const geometryVariants = requestedGeometryVariants(
+    args.query.include,
+    domainCode,
+    args.query.transform,
+  )
   const requestedGeometry = requestedGeometryKinds(args.query.include)
   const activeDivisionSnapshot = await getActiveDivisionSnapshot(
     args.metaDb,
