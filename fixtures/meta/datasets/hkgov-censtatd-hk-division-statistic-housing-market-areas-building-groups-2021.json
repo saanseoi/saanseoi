@@ -1,0 +1,20 @@
+{
+  "versionHash": "sha256:c58c925b00a68f2891ea46ebf7fb91f9d33198deec81592a3a8d3a64be4c4013",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "as-needed",
+  "theme": "stats",
+  "type": "divisionStatistic",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "2021 Census: Housing Market Areas and Building Groups",
+      "description": "Planned C&SD source for 2021 Census statistics and geography for housing market areas and building groups."
+    }
+  ]
+}

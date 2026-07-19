@@ -1,0 +1,20 @@
+{
+  "versionHash": "sha256:88a3e6528feb87050c2b07a8beed1aace924c870c7eed3d6c0e14d009ab74878",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "yearly",
+  "theme": "stats",
+  "type": "divisionStatistic",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Land Area, Mid-year Population and Density by District Council District",
+      "description": "Planned C&SD source for District Council district land area, mid-year population and density."
+    }
+  ]
+}

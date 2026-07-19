@@ -1,0 +1,20 @@
+{
+  "versionHash": "sha256:b2fa510886c57e498a11786a12b2f382d490da4e70d51ccb1df8b74698d3114b",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "as-needed",
+  "theme": "stats",
+  "type": "divisionStatistic",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "2021 Census: Major Housing Estates",
+      "description": "Planned C&SD source for 2021 Census statistics and boundaries for 540 major housing estates."
+    }
+  ]
+}
