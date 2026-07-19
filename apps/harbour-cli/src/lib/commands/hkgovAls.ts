@@ -78,6 +78,12 @@ export async function runHkgovAlsPrepCommand(
       'EQUIVALENT ALS PREMISE VARIANTS CONSOLIDATED',
     )
   }
+  if (result.numberRangeSingletonFeatureGroups.length > 0) {
+    note(
+      formatSourceDuplicateTable(result.numberRangeSingletonFeatureGroups),
+      'NUMBER-RANGE/SINGLETON PREMISE VARIANTS CONSOLIDATED',
+    )
+  }
   const driftReportFile = stringOption(args, 'identity-drift-report')
   if (result.driftCandidates.length > 0 && driftReportFile) {
     await writeDriftReport(driftReportFile, sourceVersion, result.driftCandidates)
@@ -95,6 +101,10 @@ export async function runHkgovAlsPrepCommand(
       formatField(
         'equivalentPremiseVariantsConsolidated',
         String(result.identityConsolidatedFeatureCount),
+      ),
+      formatField(
+        'numberRangeSingletonVariantsConsolidated',
+        String(result.numberRangeSingletonConsolidatedFeatureCount),
       ),
       formatField('identityDriftCandidates', String(result.driftCandidates.length)),
       ...(driftReportFile && result.driftCandidates.length > 0
@@ -236,6 +246,12 @@ export async function runHkgovAlsLocalIngestCommand(
       note(
         formatSourceDuplicateTable(result.identityEquivalentFeatureGroups),
         `EQUIVALENT ALS PREMISE VARIANTS CONSOLIDATED — ${sourceVersion}`,
+      )
+    }
+    if (result.numberRangeSingletonFeatureGroups.length > 0) {
+      note(
+        formatSourceDuplicateTable(result.numberRangeSingletonFeatureGroups),
+        `NUMBER-RANGE/SINGLETON PREMISE VARIANTS CONSOLIDATED — ${sourceVersion}`,
       )
     }
     await runUploadCommand(
@@ -381,9 +397,14 @@ async function promptForDriftDecisions(
   persist: (decisions: HkgovAlsIdentityDecisions) => Promise<void> = async () => {},
 ) {
   const next = [...decisions.decisions]
+  note(
+    `Review ${candidates.length} premise ${candidates.length === 1 ? 'change' : 'changes'} and choose whether each should retain its existing ID.`,
+    'LIKELY ALS PREMISE DRIFT',
+  )
   for (const candidate of candidates) {
     const answer = await select({
       message: formatDriftPrompt(candidate),
+      showInstructions: false,
       options: [
         {
           label: 'Keep existing ID',
@@ -417,15 +438,10 @@ function formatDriftPrompt(candidate: HkgovAlsIdentityDriftCandidate) {
       ([key, value]) =>
         `${formatIdentityFieldName(key)}: ${formatIdentityFieldValue(
           candidate.previous.summary[key],
-        )} → ${formatIdentityFieldValue(value)}`,
+          key,
+        )} ⟶ ${formatIdentityFieldValue(value, key)}`,
     )
-  return [
-    'Likely ALS premise drift',
-    `old: ${before}`,
-    `new: ${after}`,
-    'Changed fields:',
-    ...differences.map(difference => `- ${difference}`),
-  ].join('\n')
+  return [`old: ${before}`, `new: ${after}`, '', ...differences, ''].join('\n')
 }
 
 function formatIdentityFieldName(key: string) {
@@ -443,27 +459,44 @@ function formatIdentityFieldName(key: string) {
   )
 }
 
-function formatIdentityFieldValue(value: string | null | undefined) {
-  return value == null ? '—' : value
+function formatIdentityFieldValue(value: string | null | undefined, field: string) {
+  return colorAddressElement(value == null ? '—' : value, field)
 }
 
 function formatIdentitySummary(summary: Record<string, string | null>) {
-  return [
-    summary.buildingName,
-    summary.blockDescriptor,
-    summary.blockNumber,
-    summary.estateName,
-    summary.phaseName,
-    summary.phaseNumber,
-    summary.numberFrom,
-    summary.numberTo,
-    summary.routeName,
-    summary.districtName,
-    summary.csuId,
-    summary.geoAddress,
-  ]
-    .filter((value): value is string => Boolean(value))
+  return IDENTITY_SUMMARY_FIELDS.map(field => {
+    const value = summary[field]
+    return value ? colorAddressElement(value, field) : null
+  })
+    .filter((value): value is string => value != null)
     .join(' · ')
+}
+
+const IDENTITY_SUMMARY_FIELDS = [
+  'buildingName',
+  'blockDescriptor',
+  'blockNumber',
+  'estateName',
+  'phaseName',
+  'phaseNumber',
+  'numberFrom',
+  'numberTo',
+  'routeName',
+  'districtName',
+  'csuId',
+  'geoAddress',
+] as const
+
+// Keep each premise component the same colour in the old and new summaries so
+// a reviewer can scan for additions, removals, and moved values at a glance.
+const ADDRESS_ELEMENT_COLOURS = [196, 202, 220, 46, 48, 51, 39, 69, 93, 129, 201, 213]
+
+function colorAddressElement(value: string, field: string) {
+  const index = IDENTITY_SUMMARY_FIELDS.indexOf(
+    field as (typeof IDENTITY_SUMMARY_FIELDS)[number],
+  )
+  if (index < 0) return value
+  return `\u001B[38;5;${ADDRESS_ELEMENT_COLOURS[index]}m${value}\u001B[39m`
 }
 
 async function listAlsReleaseDirectories(sourceRoot: string) {

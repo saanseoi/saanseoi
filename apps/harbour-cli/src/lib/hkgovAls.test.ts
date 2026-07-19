@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  consolidateHkgovAlsSingletonNumberRangeVariants,
   consolidateEquivalentHkgovAlsPremises,
   dedupeHkgovAlsSourceFeatures,
   resolveDivisionLookupSource,
@@ -140,6 +141,56 @@ describe('consolidateEquivalentHkgovAlsPremises', () => {
     }
 
     expect(consolidateEquivalentHkgovAlsPremises([no, yes]).rows).toEqual([yes])
+  })
+})
+
+describe('consolidateHkgovAlsSingletonNumberRangeVariants', () => {
+  const range = {
+    enFormattedAddress: 'TOI SHAN ASSOCIATION PRIMARY SCHOOL, 14-16 SHEK PAI TAU ROAD',
+    geoAddress: '1521029168T20050430',
+    geometry: '{"type":"Point","coordinates":[113.97237,22.40161]}',
+    identityNumberFrom: '14',
+    identityNumberTo: '16',
+    numberlessIdentityKey: 'same-premise-without-number',
+    sourceFeatureIndexOneBased: 2,
+    sourceFile: 'tuen-mun.geojson',
+    zhHantFormattedAddress: null,
+  } as Parameters<typeof consolidateHkgovAlsSingletonNumberRangeVariants>[0][number]
+
+  test('keeps a range and removes an identical-premise singleton at its endpoint', () => {
+    const singleton = {
+      ...range,
+      enFormattedAddress: 'TOI SHAN ASSOCIATION PRIMARY SCHOOL, 16 SHEK PAI TAU ROAD',
+      identityNumberFrom: '16',
+      identityNumberTo: null,
+      sourceFeatureIndexOneBased: 1,
+    }
+
+    const result = consolidateHkgovAlsSingletonNumberRangeVariants([singleton, range])
+
+    expect(result.rows).toEqual([range])
+    expect(result.duplicateGroups).toEqual([
+      {
+        address: 'TOI SHAN ASSOCIATION PRIMARY SCHOOL, 14-16 SHEK PAI TAU ROAD',
+        occurrences: [
+          { featureIndexOneBased: 2, sourceFile: 'tuen-mun.geojson' },
+          { featureIndexOneBased: 1, sourceFile: 'tuen-mun.geojson' },
+        ],
+      },
+    ])
+  })
+
+  test('does not infer that an intervening number belongs to a range', () => {
+    const singleton = {
+      ...range,
+      identityNumberFrom: '15',
+      identityNumberTo: null,
+      sourceFeatureIndexOneBased: 3,
+    }
+
+    expect(
+      consolidateHkgovAlsSingletonNumberRangeVariants([range, singleton]).rows,
+    ).toEqual([range, singleton])
   })
 })
 

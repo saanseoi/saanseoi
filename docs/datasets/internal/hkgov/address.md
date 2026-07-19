@@ -27,15 +27,19 @@ retains the first occurrence, and prints:
 | ------ | --------------- | ---------------------------------------------- |
 | 1      | Example address | district-a.geojson #42, district-b.geojson #11 |
 
-No coordinate-, `GeoAddress`-, street-, or number-based collapsing is performed. Two
-rows at the same point can represent distinct ALS premises, such as blocks, towers,
+No general coordinate-, `GeoAddress`-, street-, or number-based collapsing is performed.
+Two rows at the same point can represent distinct ALS premises, such as blocks, towers,
 facilities, or named buildings, and must remain separate address records. The only
-additional consolidation is a representation variant whose complete granular premise
-identity is identical. If the variants differ because
-`EngBlock.BlockDescriptorPrecedenceIndicator` is missing in one source feature and
-present in another, the importer deterministically retains the feature with the
-indicator present. Other same-premise representation variants are printed separately
-from exact feature duplicates.
+additional consolidations are a representation variant whose complete granular premise
+identity is identical, and a single number that repeats an endpoint of a number range.
+For the latter, the importer retains the range only when the rows also have the same
+complete numberless premise identity, `GeoAddress`, and point geometry. It does not
+infer that an arbitrary number between the endpoints is part of the range: ALS supports
+alphanumeric and odd/even numbering, and those can represent different premises. If the
+variants differ because `EngBlock.BlockDescriptorPrecedenceIndicator` is missing in one
+source feature and present in another, the importer deterministically retains the
+feature with the indicator present. Other same-premise representation variants are
+printed separately from exact feature duplicates.
 
 ## Stable ALS premise ID
 

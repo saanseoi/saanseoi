@@ -1,6 +1,9 @@
 import type { HkgovAlsPremiseIdentityDescriptor } from './hkgovAlsIdentity.ts'
 
-export type HkgovAlsIdentityRecord = HkgovAlsPremiseIdentityDescriptor & {
+export type HkgovAlsIdentityRecord = Omit<
+  HkgovAlsPremiseIdentityDescriptor,
+  'numberlessIdentityKey'
+> & {
   id: string
   sourceVersion: string
 }
