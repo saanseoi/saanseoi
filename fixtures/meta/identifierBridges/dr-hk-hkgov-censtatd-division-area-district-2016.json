@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:4124e56866b9b3ca9170e629a75af809343657fee755a0940a6a28e9304514a6",
+  "versionHash": "sha256:d5a12d7675edcb38391ea7393c72c8b2353c557d1d5b03b190b875854fd0bb1c",
   "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district",
   "resourceType": "division",
   "sourceReleaseCode": "dr-hk-hkgov-censtatd-division-area-district-2016",
@@ -37,7 +37,7 @@
     {
       "externalId": "F",
       "externalCode": "23",
-      "canonicalId": "73e4cfa9-2688-4017-84a3-f5c0b3507aa5"
+      "canonicalId": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5"
     },
     {
       "externalId": "G",
