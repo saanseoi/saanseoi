@@ -17,6 +17,9 @@ describe('registry code construction', () => {
     expect(buildDatasetCode('hk', 'hkgov-had', 'divisionArea')).toBe(
       'ds-hk-hkgov-had-division-area-district',
     )
+    expect(buildDatasetCode('hk', 'hkgov-censtatd', 'divisionArea')).toBe(
+      'ds-hk-hkgov-censtatd-division-area-district',
+    )
     expect(buildDatasetCode('hk', 'hkgov-pland-pu', 'division')).toBe(
       'ds-hk-hkgov-pland-division-pu',
     )
@@ -29,6 +32,14 @@ describe('registry code construction', () => {
     expect(buildDatasetReleaseCode('hk', 'hkgov-had', '2022', 'divisionArea')).toBe(
       'dr-hk-hkgov-had-division-area-district-2022',
     )
+    expect(
+      buildDatasetReleaseCode(
+        'hk',
+        'hkgov-censtatd',
+        '2021-simplified-v1',
+        'divisionArea',
+      ),
+    ).toBe('dr-hk-hkgov-censtatd-division-area-district-2021-simplified-v1')
     expect(buildDatasetReleaseCode('hk', 'hkgov-pland-pu', '2006', 'division')).toBe(
       'dr-hk-hkgov-pland-division-pu-2006',
     )
