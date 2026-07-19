@@ -565,7 +565,8 @@ function createPublishReleaseArtifactsDb() {
     INSERT INTO datasets (id, publisherId, code) VALUES
       ('dataset-overture-division-area', 'publisher-overture', 'ds-hk-overture-division-area'),
       ('dataset-overture-division-boundary', 'publisher-overture', 'ds-hk-overture-division-boundary'),
-      ('dataset-hkgov-had-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district');
+      ('dataset-hkgov-had-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district'),
+      ('dataset-hkgov-censtatd-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district');
   `)
 
   return {
@@ -581,7 +582,8 @@ function seedCompleteOvertureFixtureSources(
   sqlite.exec(`
     INSERT OR IGNORE INTO publishers (id, code) VALUES
       ('publisher-overture', 'overture'),
-      ('publisher-hkgov-had', 'hkgov-had');
+      ('publisher-hkgov-had', 'hkgov-had'),
+      ('publisher-hkgov-censtatd', 'hkgov-censtatd');
 
     INSERT OR IGNORE INTO releases (
       id, sourceVersion, sourceSchemaVersion, status, revokedAt,
@@ -589,12 +591,14 @@ function seedCompleteOvertureFixtureSources(
     ) VALUES
       ('release-supporting-area', '2026-06-17.0', '1.17.0', 'published', null, null, null, 1760000000000),
       ('release-supporting-boundary', '2026-06-17.0', '1.17.0', 'published', null, null, null, 1760000000000),
-      ('release-supporting-had', '2022', '1.2', 'published', null, null, null, 1760000000000);
+      ('release-supporting-had', '2022', '1.2', 'published', null, null, null, 1760000000000),
+      ('release-supporting-censtatd', '2016', '1.0', 'published', null, null, null, 1760000000000);
 
     INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
       ('${snapshotId}', 'dataset-overture-division-area', 'release-supporting-area'),
       ('${snapshotId}', 'dataset-overture-division-boundary', 'release-supporting-boundary'),
-      ('${snapshotId}', 'dataset-hkgov-had-district', 'release-supporting-had');
+      ('${snapshotId}', 'dataset-hkgov-had-district', 'release-supporting-had'),
+      ('${snapshotId}', 'dataset-hkgov-censtatd-district', 'release-supporting-censtatd');
   `)
 }
 
