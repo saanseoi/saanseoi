@@ -679,7 +679,7 @@ SELECT
   NULL, NULL, NULL, NULL,
   COALESCE(${jsonTextValue('r.rawProperties', 'enStreetNumberFrom')}, ${jsonTextValue('r.rawProperties', 'zhHantStreetNumberFrom')}),
   COALESCE(${jsonTextValue('r.rawProperties', 'enStreetName')}, ${jsonTextValue('r.rawProperties', 'zhHantStreetName')}),
-  NULL,
+  COALESCE(${jsonTextValue('r.rawProperties', 'enVillageName')}, ${jsonTextValue('r.rawProperties', 'zhHantVillageName')}),
   COALESCE(r.sources, json_object('hkgovAls', json_array(json_object('dataset', 'hkgov-dpo')))),
   r.rawProperties
 FROM ${NORMALIZED_ROWS_TABLE} r
@@ -700,7 +700,8 @@ INSERT INTO hkgovAlsAddress2dI18n (
 SELECT i.sourceRecordId, r.sourcePayloadHash, ${releaseId}, ${sourceVersion}, NULL, 1,
   i.locale, i.formattedAddress, i.buildingName, i.buildingNumberFrom, i.buildingNumberTo,
   i.blockType, i.blockNumber, i.blockTypeBeforeNumber, i.phaseName, i.phaseNumber, i.estateName,
-  i.streetNumber, i.streetName, NULL,
+  i.streetNumber, i.streetName,
+  CASE WHEN i.locale = 'zh-hant' THEN ${jsonTextValue('r.rawProperties', 'zhHantVillageName')} ELSE ${jsonTextValue('r.rawProperties', 'enVillageName')} END,
   CASE WHEN i.locale = 'zh-hant' THEN ${jsonTextValue('r.rawProperties', 'zhHantDistrict')} ELSE ${jsonTextValue('r.rawProperties', 'enDistrict')} END
 FROM ${NORMALIZED_I18N_TABLE} i
 INNER JOIN ${NORMALIZED_ROWS_TABLE} r ON r.runId = i.runId AND r.sourceRecordId = i.sourceRecordId

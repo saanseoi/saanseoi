@@ -26,7 +26,7 @@ import type {
   NormalizedAddressChunkArtifact,
   ResolvedAddressChunkArtifact,
 } from './types'
-import { addAddressPipelineStats } from './types'
+import { addAddressPipelineStats, collectAddressCoverageCounts } from './types'
 import {
   buildAddressHistoryApplySqlImportFile,
   buildAddressResolvedSqlImportFiles,
@@ -175,7 +175,9 @@ export async function writeAddressCurrentSqlChunkStage(
     insertedVersions: artifact.insertedVersions,
     localizedRows: artifact.localizedRows,
     processedRows: artifact.rowEnd - artifact.rowStart,
+    recordedRows: artifact.rows.length,
     unchangedRows: artifact.unchangedRows,
+    ...collectAddressCoverageCounts(artifact.rows),
   })
   const historyApplyFile =
     artifact.rowEnd >= artifact.totalRows && artifact.rows[0]?.base.snapshotId

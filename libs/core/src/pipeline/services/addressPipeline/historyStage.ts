@@ -183,6 +183,7 @@ export async function buildResolvedAddressChunkArtifact(
       base,
       changed,
       changedExistingId: changed ? (matchedCurrent?.id ?? null) : null,
+      coverageComponents: row.coverageComponents,
       i18n,
       sourceId: row.sourceId,
       versionHash,
