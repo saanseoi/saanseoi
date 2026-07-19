@@ -11,6 +11,7 @@ import {
   waitForDatasetRecord,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import { replaceReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVersionChanges'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
@@ -333,6 +334,36 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       changedSourceRecords,
       now,
     )
+    const repairedGeometryRecords = records.filter(wasPlanningGeometryRepaired)
+    await replaceReleaseProcessingActions(
+      metaDb,
+      releaseId,
+      repairedGeometryRecords.length > 0
+        ? [
+            {
+              action: 'planning_geometry_self_intersection_repaired',
+              affectedRecordCount: repairedGeometryRecords.length,
+              evidence: repairedGeometryRecords.map(record => ({
+                canonicalDivision: {
+                  id: record.base.id,
+                  identifiers: record.base.identifiers,
+                  level: record.base.level,
+                  sourceKeys: record.base.sourceKeys,
+                },
+                sourceCell: record.cell
+                  ? {
+                      rawProperties: record.cell.rawProperties,
+                      sourceRecordId: record.cell.sourceRecordId,
+                    }
+                  : (record.raw.source_properties ?? null),
+              })),
+              mode: 'automatic',
+              summary:
+                'Repaired known Planning Department polygon self-intersections with buffer(0); original source geometry remains in the source layer.',
+            },
+          ]
+        : [],
+    )
     await replaceDatasetStats(metaDb, releaseId, [
       statRow('records', 'count', records.length, 'canonical_divisions'),
       statRow(
@@ -344,7 +375,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       statRow(
         'source_quality',
         'repaired',
-        records.filter(record => record.cell?.wasGeometryRepaired).length,
+        records.filter(wasPlanningGeometryRepaired).length,
         'ring_self_intersection',
       ),
     ])
@@ -467,6 +498,16 @@ async function normalizePreparedDivision(value: Record<string, unknown>) {
     sourceHash,
     versionHash,
   } satisfies PreparedDivision
+}
+
+function wasPlanningGeometryRepaired(record: PreparedDivision) {
+  return (
+    record.cell?.wasGeometryRepaired === true ||
+    Boolean(
+      (record.raw.source_properties as Record<string, unknown> | undefined)
+        ?.was_geometry_repaired,
+    )
+  )
 }
 
 function normalizeI18n(value: unknown) {

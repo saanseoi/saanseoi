@@ -48,6 +48,11 @@ canonical geometry and child-area unions. Each repaired record is identified in
 `repairedSourceFeatureIds` and `wasGeometryRepaired`; all other invalid geometry is
 rejected.
 
+Each approved geometry repair is also recorded as a release processing action with the
+canonical division and source-cell reference. Aggregate repair counts remain in release
+stats; the per-record JSON evidence is available through
+`saanseoi reports:processing-actions --source hkgov-pland --type division`.
+
 The TPU/subunit source has no published names—only hierarchy codes. The adapter exposes
 those codes in `identifiers` and does not manufacture labels for TPU/subunit canonical
 divisions. The source I18n table exists for the separately named New Town planning

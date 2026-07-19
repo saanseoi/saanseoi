@@ -2,12 +2,14 @@ import { isReleaseId } from '@repo/core'
 
 import {
   formatIngestionReportTable,
+  formatProcessingActionReport,
   formatReleaseReportTable,
   formatStatsReportTable,
 } from '../display.ts'
 import { getStringOption, type ParsedArgs, type UploadTarget } from '../options.ts'
 import {
   fetchIngestRunReport,
+  fetchProcessingActionReport,
   fetchReleaseReport,
   fetchStatsReport,
 } from '../reporting.ts'
@@ -43,6 +45,17 @@ export async function runReportCommand(args: ParsedArgs, target: UploadTarget) {
       type: reportType,
     })
     console.log(formatStatsReportTable(report.rows))
+    return
+  }
+
+  if (args.command === 'reports:processing-actions') {
+    const report = await fetchProcessingActionReport(target, {
+      limit: hasExplicitLimit ? reportLimit : 1,
+      ...resolveReportReleaseFilter(args),
+      source: reportSource,
+      type: reportType,
+    })
+    console.log(formatProcessingActionReport(report.rows))
     return
   }
 

@@ -2,6 +2,7 @@ import type { prepareUpload } from '@repo/core/uploadLocal'
 
 import type {
   IngestRunReportRow,
+  ProcessingActionReportRow,
   ReleaseReportRow,
   StatReportRow,
 } from './reporting.ts'
@@ -318,7 +319,7 @@ export function formatStatsReportTable(rows: StatReportRow[]) {
   return orderedReleaseCodes
     .map(releaseCode => {
       const releaseRows = groupedRows.get(releaseCode) ?? []
-      const sections = ['completeness', 'churn', 'quality']
+      const sections = ['completeness', 'churn', 'quality', 'processing']
         .map(metric => {
           const metricRows = releaseRows.filter(row => row.metric === metric)
 
@@ -333,6 +334,21 @@ export function formatStatsReportTable(rows: StatReportRow[]) {
 
       return [`release: ${releaseCode}`, ...sections].join('\n\n')
     })
+    .join('\n\n')
+}
+
+export function formatProcessingActionReport(rows: ProcessingActionReportRow[]) {
+  if (rows.length === 0) return 'No processing actions found.'
+
+  return rows
+    .map(row =>
+      [
+        `release: ${row.releaseCode}`,
+        `${row.mode}: ${row.action} (${formatNumber(row.affectedRecordCount)} records)`,
+        row.summary,
+        JSON.stringify(row.evidence, null, 2),
+      ].join('\n'),
+    )
     .join('\n\n')
 }
 

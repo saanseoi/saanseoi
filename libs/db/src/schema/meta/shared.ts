@@ -72,6 +72,26 @@ export const stats = sqliteTable(
   ],
 )
 
+export const releaseProcessingActions = sqliteTable(
+  'releaseProcessingActions',
+  {
+    id: text('id').primaryKey(),
+    releaseId: text('releaseId')
+      .notNull()
+      .references(() => metaReleases.id, { onDelete: 'cascade' }),
+    action: text('action').notNull(),
+    mode: text('mode', { enum: ['automatic', 'manual'] }).notNull(),
+    summary: text('summary').notNull(),
+    affectedRecordCount: integer('affectedRecordCount').notNull(),
+    evidence: jsonText('evidence').notNull(),
+    ...timestamps,
+  },
+  table => [
+    index('releaseProcessingActions_releaseId_idx').on(table.releaseId),
+    index('releaseProcessingActions_action_idx').on(table.action, table.mode),
+  ],
+)
+
 export const entityAliases = sqliteTable(
   'entityAliases',
   {

@@ -10,6 +10,16 @@ The versioned provenance path is:
 
 Saanseoi tracks provenance at two levels.
 
+## Release Processing Actions
+
+Table: `releaseProcessingActions`
+
+This release-scoped audit trail records automatic normalizations and human-reviewed
+decisions made while ingesting a dataset. Each row has a stable action code, an
+`automatic` or `manual` mode, affected-record count, summary, and compact JSON evidence
+that identifies the canonical record and relevant source variants. Aggregate counts are
+also written to `stats` with `type` and `metric` set to `processing`.
+
 ## Snapshot-Level Provenance
 
 Tables:
