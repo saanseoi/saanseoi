@@ -1,6 +1,7 @@
 import addressesImage from '$lib/assets/apiFamily/addresses.webp'
 import divisionsImage from '$lib/assets/apiFamily/divisions.webp'
 import placesImage from '$lib/assets/apiFamily/places.webp'
+import statsImage from '$lib/assets/apiFamily/stats.webp'
 import streetsImage from '$lib/assets/apiFamily/streets.webp'
 
 export type ApiFamilyTheme = {
@@ -53,6 +54,16 @@ export const apiFamilyThemes = {
       secondary: '#242625',
       surface: '#fcf7ed',
       ink: '#111717',
+    },
+  },
+  stats: {
+    name: 'Statistics',
+    image: statsImage,
+    colorway: {
+      primary: '#58637a',
+      secondary: '#9ca9c0',
+      surface: '#fcf7ed',
+      ink: '#161c2a',
     },
   },
 } as const satisfies Record<string, ApiFamilyTheme>
