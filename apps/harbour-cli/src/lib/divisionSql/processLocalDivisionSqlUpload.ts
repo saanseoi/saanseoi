@@ -9,17 +9,24 @@ import {
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
+  and,
   eq,
   metaReleaseShardAssignments,
   metaSnapshotAssemblyRuns,
   metaSnapshotSources,
   metaSnapshots,
+  releaseProcessingActions,
+  stats,
 } from '@repo/db'
 import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
 import type { MetaDatabase } from '@repo/db'
 import type { DivisionI18nPayload, NewDivisionRow } from '@repo/db/currentSchema'
 
 import type { CurrentSourceRecord } from '@repo/core/pipeline/db/source'
+import {
+  replaceReleaseProcessingActions,
+  type ReleaseProcessingAction,
+} from '@repo/core/pipeline/db/processingActions'
 import {
   buildSourceReleaseId,
   getMergedCurrentSourceOvertureDivisionMap,
@@ -44,14 +51,17 @@ import {
   buildCanonicalDivisionApiI18n,
   buildDivisionBaseHashInput,
   buildDivisionHierarchyLookup,
+  buildOvertureDivisionLocaleProcessingActions,
   normalizeDivisionI18nSnapshotRow,
   normalizeDivisionRow,
   resolveAdminLevelValue,
+  resolveDistrictId,
 } from '@repo/core/pipeline/services/division'
 import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisionFixtures'
 import {
   buildChurnCounts,
   buildChurnStatsRows,
+  buildDistrictDistributionStatsRows,
   buildLocaleStatsRows,
   buildQualityCounts,
   buildQualityStatsRows,
@@ -160,6 +170,7 @@ type DivisionSqlState = {
   previousRows: Map<string, DivisionVersionSnapshot>
   processedRows: number
   processedRowsById: Map<string, DivisionVersionSnapshot>
+  processingActions: ReleaseProcessingAction[]
   records: DivisionPreparedRecord[]
   seenIds: Set<string>
   snapshotId: string
@@ -601,6 +612,12 @@ export async function processLocalDivisionSqlUpload(
         processedRows: divisionState.processedRows,
       },
       releaseCode,
+    )
+
+    await replaceReleaseProcessingActions(
+      dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+      releaseId,
+      divisionState.processingActions,
     )
 
     const metaFile = await runLocalStreamingPhase(
@@ -1154,6 +1171,8 @@ async function buildDivisionSqlState(
   const previousRows = new Map(currentRows)
   const processedRowsById = new Map<string, DivisionVersionSnapshot>()
   const statsAccumulator = createLocaleStatsAccumulator()
+  const districtCounts = new Map<string, number>()
+  const processingActions: ReleaseProcessingAction[] = []
   const records: DivisionPreparedRecord[] = []
   const seenIds = new Set<string>()
   const isInitialSourceLoad = currentSourceRows.size === 0
@@ -1188,6 +1207,14 @@ async function buildDivisionSqlState(
       const raw = row as Record<string, unknown>
       const normalized = normalizeDivisionRow(raw, { hierarchyLookup })
       const canonicalI18n = buildCanonicalDivisionApiI18n(normalized.i18n)
+      processingActions.push(
+        ...buildOvertureDivisionLocaleProcessingActions({
+          canonicalI18n,
+          division: normalized.base,
+          rawNames: raw.names,
+          sourceI18n: normalized.i18n,
+        }),
+      )
       const versionHash = await createHash(buildDivisionBaseHashInput(normalized.base))
       const churnHash = await createHash({
         base: buildDivisionBaseHashInput(normalized.base),
@@ -1227,6 +1254,10 @@ async function buildDivisionSqlState(
           locale: localized.locale,
         })),
       )
+      const districtId = resolveDistrictId(normalized.base)
+      if (districtId) {
+        districtCounts.set(districtId, (districtCounts.get(districtId) ?? 0) + 1)
+      }
       processedRowsById.set(normalized.base.id, {
         churnHash,
         geometry: normalized.base.geometry,
@@ -1295,6 +1326,7 @@ async function buildDivisionSqlState(
 
   const statsRows = [
     ...buildLocaleStatsRows(statsAccumulator),
+    ...buildDistrictDistributionStatsRows(districtCounts),
     ...buildChurnStatsRows(buildChurnCounts(previousRows, processedRowsById)),
     ...buildQualityStatsRows(
       buildQualityCounts(previousRows, processedRowsById, {
@@ -1314,6 +1346,7 @@ async function buildDivisionSqlState(
     previousRows,
     processedRows,
     processedRowsById,
+    processingActions,
     records,
     seenIds,
     snapshotId,
@@ -1941,6 +1974,19 @@ async function buildDivisionMetaSqlFile(
     )
   }
 
+  const [processingActionRows, processingStatsRows] = await Promise.all([
+    metaDb
+      .select()
+      .from(releaseProcessingActions)
+      .where(eq(releaseProcessingActions.releaseId, releaseId))
+      .all(),
+    metaDb
+      .select()
+      .from(stats)
+      .where(and(eq(stats.releaseId, releaseId), eq(stats.type, 'processing')))
+      .all(),
+  ])
+
   const rows: Record<string, SqlValue>[] = []
 
   for (let index = 0; index < state.statsRows.length; index += DIVISION_BATCH_SIZE) {
@@ -1964,6 +2010,34 @@ async function buildDivisionMetaSqlFile(
 
     await reportProgress(Math.min(index + batch.length, state.statsRows.length))
   }
+
+  for (const row of processingStatsRows) {
+    rows.push({
+      id: row.id,
+      type: row.type,
+      releaseId: row.releaseId,
+      dimension: row.dimension,
+      metric: row.metric,
+      metricUnit: row.metricUnit,
+      value: row.value,
+      groupBy: row.groupBy ?? null,
+      groupValue: row.groupValue ?? null,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    })
+  }
+
+  const actionRows = processingActionRows.map(row => ({
+    id: row.id,
+    releaseId: row.releaseId,
+    action: row.action,
+    mode: row.mode,
+    summary: row.summary,
+    affectedRecordCount: row.affectedRecordCount,
+    evidence: jsonText(row.evidence),
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  }))
 
   const statements = [
     ...buildInsertStatements(
@@ -2057,6 +2131,22 @@ ON CONFLICT(id) DO UPDATE SET
       {
         suffix: `ON CONFLICT(releaseId, dataShardId) DO NOTHING`,
       },
+    ),
+    `DELETE FROM releaseProcessingActions WHERE releaseId = ${sqlLiteral(releaseId)};`,
+    ...buildInsertStatements(
+      'releaseProcessingActions',
+      [
+        'id',
+        'releaseId',
+        'action',
+        'mode',
+        'summary',
+        'affectedRecordCount',
+        'evidence',
+        'createdAt',
+        'updatedAt',
+      ],
+      actionRows,
     ),
     `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)};`,
     ...buildInsertStatements(
