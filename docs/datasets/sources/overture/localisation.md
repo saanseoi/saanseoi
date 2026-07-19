@@ -29,6 +29,18 @@
 - Mixed-script values in the form `<Chinese> <Latin>` are split into `zh-hant` and `en`
 - Locale-less text may be inferred and marked with `isLocaleInferred = true`
 
+#### Release audit
+
+Each affected division is retained in `releaseProcessingActions` for investigation:
+
+- `overture_division_locale_inferred` records source `names`, normalized i18n rows, and
+  the inferred locales when unlabeled text requires script-based inference.
+- `overture_division_api_locale_fallback_added` records the same source and normalized
+  evidence when an API-facing `zh-hant` or `zh-hans` fallback row is added.
+
+No locale audit row is written when a division already has the required canonical locale
+without inference or fallback.
+
 ### ZH-HANT
 
 #### 標籤正規化

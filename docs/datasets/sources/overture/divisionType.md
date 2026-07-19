@@ -30,6 +30,7 @@ We base `level` and `type` on overture's <black>subtype</black> and
 
 | Overture subtype            | Overture class         | SaanSeoi level | SaanSeoi type                |
 | --------------------------- | ---------------------- | -------------- | ---------------------------- |
+| <black>country</black>      |                        | 0              | <black>country</black>       |
 | <black>dependency</black>   |                        | 0              | <black>SAR</black>           |
 | <black>region</black>       |                        | 2              | <black>district</black>      |
 | <black>locality</black>     | <black>city</black>    | 1              | <black>area</black>          |
@@ -89,6 +90,7 @@ SaanSeoi 使用自訂的區劃 `level` 和 `type` 分類法。
 
 | Overture 值                 | Overture 類別          | 標準層級 | 標準類型                     |
 | --------------------------- | ---------------------- | -------- | ---------------------------- |
+| <black>country</black>      |                        | 0        | <black>country</black>       |
 | <black>dependency</black>   |                        | 0        | <black>SAR</black>           |
 | <black>region</black>       |                        | 2        | <black>district</black>      |
 | <black>locality</black>     | <black>city</black>    | 1        | <black>area</black>          |
@@ -153,6 +155,7 @@ SaanSeoi 使用自定义的区划 `level` 和 `type` 分类法。
 
 | Overture 值                 | Overture 类别          | 标准层级 | 标准类型                     |
 | --------------------------- | ---------------------- | -------- | ---------------------------- |
+| <black>country</black>      |                        | 0        | <black>country</black>       |
 | <black>dependency</black>   |                        | 0        | <black>SAR</black>           |
 | <black>region</black>       |                        | 2        | <black>district</black>      |
 | <black>locality</black>     | <black>city</black>    | 1        | <black>area</black>          |
