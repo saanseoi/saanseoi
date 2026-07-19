@@ -46,6 +46,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function compareReleaseVersions(left: string, right: string) {
+  if (left === right) return 0
+
   const [leftDate = left, leftPatch = '0'] = left.split('.')
   const [rightDate = right, rightPatch = '0'] = right.split('.')
   const dateComparison = leftDate.localeCompare(rightDate)
