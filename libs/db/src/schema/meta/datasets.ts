@@ -76,6 +76,32 @@ export const metaDatasetI18n = sqliteTable(
   ],
 )
 
+/**
+ * A named, reproducible derivative of a dataset resource. Transformations do
+ * not create a second publisher or dataset: they retain the originating
+ * dataset/release and select an additional geometry variant at read time.
+ */
+export const metaDatasetTransforms = sqliteTable(
+  'datasetTransforms',
+  {
+    datasetId: text('datasetId')
+      .notNull()
+      .references(() => metaDatasets.id, { onDelete: 'cascade' }),
+    code: text('code').notNull(),
+    resourceType: text('resourceType').notNull(),
+    sourceVersion: text('sourceVersion').notNull(),
+    outputVariant: text('outputVariant').notNull(),
+    derivation: jsonText('derivation').notNull(),
+    versionHash: text('versionHash').notNull(),
+    ...timestamps,
+  },
+  table => [
+    primaryKey({ columns: [table.datasetId, table.code] }),
+    uniqueIndex('datasetTransforms_outputVariant_unique_idx').on(table.outputVariant),
+    index('datasetTransforms_resourceType_idx').on(table.resourceType),
+  ],
+)
+
 export const metaReleases = sqliteTable(
   'releases',
   {
