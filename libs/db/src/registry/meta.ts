@@ -35,6 +35,7 @@ export const metaRegistryRequiredTables = [
   'licenses',
   'datasets',
   'datasetI18n',
+  'datasetTransforms',
   'apiVersions',
   'apiComposition',
   'apiCompositionMembers',
@@ -99,6 +100,13 @@ type DatasetFixture = {
     locale: Locale
     name: string
     description?: string
+  }>
+  transforms?: Array<{
+    code: string
+    resourceType: ResourceType
+    sourceVersion: string
+    outputVariant: string
+    derivation: Record<string, unknown>
   }>
 }
 
@@ -180,7 +188,7 @@ type InitialPublisherI18nSeed = {
 
 type InitialLicenseSeed = VersionedFixture<LicenseFixture>
 
-type InitialDatasetSeed = VersionedFixture<Omit<DatasetFixture, 'i18n'>>
+type InitialDatasetSeed = VersionedFixture<Omit<DatasetFixture, 'i18n' | 'transforms'>>
 
 type InitialDatasetI18nSeed = {
   datasetCode: string
@@ -188,6 +196,17 @@ type InitialDatasetI18nSeed = {
   locale: Locale
   name: string
   description?: string
+}
+
+type InitialDatasetTransformSeed = {
+  datasetCode: string
+  publisherCode: string
+  code: string
+  resourceType: ResourceType
+  sourceVersion: string
+  outputVariant: string
+  derivation: Record<string, unknown>
+  versionHash: string
 }
 
 type InitialApiVersionSeed = VersionedFixture<ApiVersionFixture>
@@ -356,6 +375,20 @@ export const initialDatasetI18n: InitialDatasetI18nSeed[] = datasetFixtures.flat
       description: translation.description,
     })),
 )
+
+export const initialDatasetTransforms: InitialDatasetTransformSeed[] =
+  datasetFixtures.flatMap(fixture =>
+    (fixture.transforms ?? []).map(transform => ({
+      datasetCode: fixture.code,
+      publisherCode: fixture.publisherCode,
+      ...transform,
+      versionHash: computeVersionHash({
+        datasetCode: fixture.code,
+        publisherCode: fixture.publisherCode,
+        ...transform,
+      }),
+    })),
+  )
 
 export const initialApiVersions = readFixtureDir<InitialApiVersionSeed>('apiVersions')
 
@@ -613,6 +646,38 @@ ON CONFLICT(datasetId, locale) DO UPDATE SET
   name = excluded.name,
   description = excluded.description,
   updatedAt = excluded.updatedAt;`.trim(),
+    )
+  }
+
+  for (const transform of initialDatasetTransforms) {
+    statements.push(
+      `
+INSERT INTO datasetTransforms (
+  datasetId, code, resourceType, sourceVersion, outputVariant, derivation, versionHash, createdAt, updatedAt
+) VALUES (
+  (
+    SELECT d.id
+    FROM datasets d
+    JOIN publishers p ON p.id = d.publisherId
+    WHERE p.code = ${sqlString(transform.publisherCode)} AND d.code = ${sqlString(transform.datasetCode)}
+  ),
+  ${sqlString(transform.code)},
+  ${sqlString(transform.resourceType)},
+  ${sqlString(transform.sourceVersion)},
+  ${sqlString(transform.outputVariant)},
+  ${sqlString(JSON.stringify(transform.derivation))},
+  ${sqlString(transform.versionHash)},
+  ${nowSql},
+  ${nowSql}
+)
+ON CONFLICT(datasetId, code) DO UPDATE SET
+  resourceType = excluded.resourceType,
+  sourceVersion = excluded.sourceVersion,
+  outputVariant = excluded.outputVariant,
+  derivation = excluded.derivation,
+  versionHash = excluded.versionHash,
+  updatedAt = excluded.updatedAt
+WHERE datasetTransforms.versionHash <> excluded.versionHash;`.trim(),
     )
   }
 

@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS `hkgovPlandPlanningCells`;
 DROP TABLE IF EXISTS `hkgovAlsAddress2dI18n`;
 DROP TABLE IF EXISTS `hkgovAlsAddresses2d`;
 DROP TABLE IF EXISTS `hkgovHadDivisionAreas`;
+DROP TABLE IF EXISTS `hkgovCenstatdDivisionAreaI18n`;
 DROP TABLE IF EXISTS `hkgovCenstatdDivisionAreas`;
 DROP TABLE IF EXISTS `overtureDivisionBoundaries`;
 DROP TABLE IF EXISTS `overtureDivisionAreas`;
