@@ -17,6 +17,8 @@ export const resolverCodes = [
   'direct_copy',
   'join_lookup',
   'lookup_fk',
+  'derive_uuid_v5',
+  'format_hkgov_als_address',
   'map_division_level',
   'map_division_type',
   'derive_variant_from_source',
@@ -45,12 +47,14 @@ export const datasetThemes = [
   'transport',
   'places',
   'streets',
+  'stats',
 ] as const
 export const datasetTypes = [
   'address',
   'division',
   'divisionArea',
   'divisionBoundary',
+  'divisionStatistic',
   'place',
   'street',
 ] as const
@@ -81,7 +85,13 @@ export const ingestRunStatuses = ['queued', 'running', 'completed', 'error'] as 
 export const apiVersionStatuses = ['draft', 'current', 'deprecated', 'retired'] as const
 
 export const apiReleaseSetStatuses = ['draft', 'current', 'archived'] as const
-export const apiFamilyTypes = ['addresses', 'divisions', 'places', 'streets'] as const
+export const apiFamilyTypes = [
+  'addresses',
+  'divisions',
+  'places',
+  'streets',
+  'stats',
+] as const
 export const snapshotStatuses = ['draft', 'published', 'archived'] as const
 export const apiReleaseSetSourceRoles = [
   'primary',

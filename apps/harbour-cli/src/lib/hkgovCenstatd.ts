@@ -15,7 +15,6 @@ import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
 const HKGOV_CENSTATD_SOURCE = 'hkgov-censtatd'
 const HKGOV_CENSTATD_SCHEMA_VERSION = '1.0'
 export const HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM = 'simplified'
-const SIMPLIFIED_SOURCE_VERSION = '2021-simplified-v1'
 const DISPLAY_SIMPLIFICATION_TOLERANCE_METRES = 10
 const HONG_KONG_REFERENCE_LONGITUDE = 114
 const HONG_KONG_REFERENCE_LATITUDE = 22.35
@@ -93,12 +92,6 @@ export async function prepareHkgovCenstatdDistrictUpload(
       `No registered ${HKGOV_CENSTATD_SOURCE} parser profile exists for source version ${sourceVersion}.`,
     )
   }
-  if (options.transform && sourceVersion !== '2021') {
-    throw new Error(
-      'The simplified geometry is currently derived only from Census 2021.',
-    )
-  }
-
   const resolvedInputFile = resolve(inputFile)
   const input = await readFile(resolvedInputFile, 'utf8')
   if (!input.trimStart().startsWith('<')) {
@@ -120,7 +113,7 @@ export async function prepareHkgovCenstatdDistrictUpload(
       ? withDisplayGeometry(exactRows, sourceVersion)
       : exactRows
   const outputSourceVersion = options.transform
-    ? SIMPLIFIED_SOURCE_VERSION
+    ? `${sourceVersion}-simplified-v1`
     : sourceVersion
   const filePath = join(
     resolve(outputDir),

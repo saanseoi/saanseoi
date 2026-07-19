@@ -121,6 +121,10 @@ export async function resolveReleaseNotesUrl(
   plan: UploadPlan,
   options: { explicitUrl?: string; skipPrompt: boolean },
 ) {
+  if (isDerivedCenstatdGeometryRelease(plan)) {
+    return undefined
+  }
+
   const key = cacheKey(plan.releaseCode)
   const explicitUrl = options.explicitUrl?.trim()
 
@@ -161,4 +165,12 @@ export async function resolveReleaseNotesUrl(
   cache.entries[key] = releaseNotesUrl
   await writeCache(cache)
   return releaseNotesUrl
+}
+
+function isDerivedCenstatdGeometryRelease(plan: UploadPlan) {
+  return (
+    plan.source === 'hkgov-censtatd' &&
+    plan.type === 'divisionArea' &&
+    /^(?:2016|2021)-simplified-v1$/.test(plan.sourceVersion)
+  )
 }

@@ -4,6 +4,7 @@ import {
   buildMetaRegistrySyncStatements,
   initialApiEndpoints,
   initialApiVersions,
+  initialDatasets,
   initialDataShards,
   resolveInitialDataShardsForEnvironment,
 } from './meta'
@@ -32,6 +33,10 @@ describe('fixture version hashes', () => {
       .filter(endpoint => endpoint.apiVersion === 'api-places-v0.1')
       .map(endpoint => endpoint.path)
       .sort()
+    const statsPaths = initialApiEndpoints
+      .filter(endpoint => endpoint.apiVersion === 'api-stats-v0.1')
+      .map(endpoint => endpoint.path)
+      .sort()
 
     expect(addressPaths).toEqual([
       '/v0.1/addresses',
@@ -46,6 +51,21 @@ describe('fixture version hashes', () => {
       '/v0/divisions/{id}',
     ])
     expect(placePaths).toEqual(['/v0.1/places', '/v0/places'])
+    expect(statsPaths).toEqual(['/v0.1/stats', '/v0/stats'])
+  })
+
+  test('registers all proposed C&SD statistics sources as planned datasets', () => {
+    const censtatdStats = initialDatasets.filter(
+      dataset =>
+        dataset.publisherCode === 'hkgov-censtatd' &&
+        dataset.theme === 'stats' &&
+        dataset.type === 'divisionStatistic',
+    )
+
+    expect(censtatdStats).toHaveLength(9)
+    expect(
+      censtatdStats.every(dataset => dataset.code.startsWith('ds-hk-hkgov-censtatd-')),
+    ).toBe(true)
   })
 })
 

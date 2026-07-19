@@ -31,7 +31,7 @@ const districtClasses = [
 ]
 
 describe('C&SD district GML preparation', () => {
-  test('retains the exact 2021 source geometry and produces its display derivative', async () => {
+  test('retains exact source geometry and produces display derivatives for both census cohorts', async () => {
     const inputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-input-'))
     const outputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-test-'))
     const inputFile = join(inputDir, 'censtatd-2021.gml')
@@ -60,11 +60,8 @@ describe('C&SD district GML preparation', () => {
           </csdi:DC_21C_SDU>
         </wfs:member>`
     })
-    await writeFile(
-      inputFile,
-      `<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:csdi="https://portal.csdi.gov.hk">${members.join('')}</wfs:FeatureCollection>`,
-      'utf8',
-    )
+    const document = `<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:csdi="https://portal.csdi.gov.hk">${members.join('')}</wfs:FeatureCollection>`
+    await writeFile(inputFile, document, 'utf8')
 
     try {
       const exact = await prepareHkgovCenstatdDistrictUpload(
@@ -118,6 +115,24 @@ describe('C&SD district GML preparation', () => {
         source_geometry: { type: 'MultiPolygon' },
         source_feature: { type: 'GML32Feature' },
         source_properties: { dc_class: 'A', sdu_pop: '0' },
+      })
+
+      await writeFile(
+        inputFile,
+        document.replaceAll('DC_21C_SDU', 'DC_16BC_SDU'),
+        'utf8',
+      )
+      const display2016 = await prepareHkgovCenstatdDistrictUpload(
+        inputFile,
+        outputDir,
+        '2016',
+        { transform: 'simplified' },
+      )
+
+      expect(display2016).toMatchObject({
+        cohortKey: '2016',
+        sourceVersion: '2016-simplified-v1',
+        transform: 'simplified',
       })
     } finally {
       await rm(inputDir, { force: true, recursive: true })

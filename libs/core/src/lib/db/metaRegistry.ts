@@ -2170,6 +2170,7 @@ function getApiFamilyForType(type: ResourceType) {
   if (type === 'division' || type === 'divisionArea' || type === 'divisionBoundary') {
     return 'divisions'
   }
+  if (type === 'divisionStatistic') return 'stats'
   if (type === 'address') return 'addresses'
   if (type === 'place') return 'places'
   return 'streets'
@@ -2501,7 +2502,7 @@ function catalogMemberSortKey(
 async function prepareApiCatalogRevision(
   db: HarbourReadableDb,
   args: {
-    apiFamily: 'addresses' | 'divisions' | 'places' | 'streets'
+    apiFamily: 'addresses' | 'divisions' | 'places' | 'streets' | 'stats'
     apiVersion: string
     apiVersionId: string
     apiVersionNumber: string

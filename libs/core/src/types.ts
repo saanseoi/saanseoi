@@ -1,10 +1,17 @@
 import type { ReleaseStatus } from '@repo/db'
 
-export const resourceThemes = ['divisions', 'addresses', 'places', 'streets'] as const
+export const resourceThemes = [
+  'divisions',
+  'addresses',
+  'places',
+  'streets',
+  'stats',
+] as const
 export const resourceTypes = [
   'division',
   'divisionArea',
   'divisionBoundary',
+  'divisionStatistic',
   'address',
   'place',
   'street',

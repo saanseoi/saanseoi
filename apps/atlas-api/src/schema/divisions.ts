@@ -223,7 +223,7 @@ export const DivisionsListQuerySchema = z
       .optional()
       .openapi({
         description:
-          'Select a named geometry transformation. `simplified` applies to `areas:hkgov-censtatd:2021` and returns the C&SD 2021 land-clipped display geometry.',
+          'Select a named geometry transformation. `simplified` applies to `areas:hkgov-censtatd:2016` and `areas:hkgov-censtatd:2021`, returning the corresponding land-clipped C&SD display geometry.',
       }),
     'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
     'page[offset]': z.coerce.number().int().min(0).optional(),
@@ -280,7 +280,7 @@ export const DivisionDetailQuerySchema = z
       .optional()
       .openapi({
         description:
-          'Select a named geometry transformation. `simplified` applies to `areas:hkgov-censtatd:2021` and returns the C&SD 2021 land-clipped display geometry.',
+          'Select a named geometry transformation. `simplified` applies to `areas:hkgov-censtatd:2016` and `areas:hkgov-censtatd:2021`, returning the corresponding land-clipped C&SD display geometry.',
       }),
   })
   .openapi('DivisionDetailQuery')

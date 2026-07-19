@@ -11,6 +11,7 @@ describe('registry code construction', () => {
   test('converts camelCase resource enums to lowercase kebab-case slugs', () => {
     expect(resourceTypeCodeSlug('divisionArea')).toBe('division-area')
     expect(resourceTypeCodeSlug('divisionBoundary')).toBe('division-boundary')
+    expect(resourceTypeCodeSlug('divisionStatistic')).toBe('division-statistic')
   })
 
   test('uses exact publisher, region, resource, and product segments', () => {
@@ -36,6 +37,14 @@ describe('registry code construction', () => {
       buildDatasetReleaseCode(
         'hk',
         'hkgov-censtatd',
+        '2016-simplified-v1',
+        'divisionArea',
+      ),
+    ).toBe('dr-hk-hkgov-censtatd-division-area-district-2016-simplified-v1')
+    expect(
+      buildDatasetReleaseCode(
+        'hk',
+        'hkgov-censtatd',
         '2021-simplified-v1',
         'divisionArea',
       ),
@@ -56,6 +65,12 @@ describe('registry code construction', () => {
         sourceVersion: '2016',
       }),
     ).toBe('hkgov-censtatd:2016')
+    expect(
+      datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
+        cohortKey: '2016',
+        sourceVersion: '2016-simplified-v1',
+      }),
+    ).toBe('hkgov-censtatd:2016:simplified')
     expect(
       datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
         cohortKey: '2021',
