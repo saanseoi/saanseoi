@@ -731,7 +731,7 @@ describe('control service', () => {
     })
   })
 
-  test('publishes address and place releases when api field fixtures are unavailable', async () => {
+  test('publishes addresses with provenance and places without bundled provenance', async () => {
     for (const datasetType of ['address', 'place'] as const) {
       const tempDir = createTempDir()
       const dbPath = join(tempDir, `harbour-publish-${datasetType}-fixture-gap.sqlite`)
@@ -782,6 +782,11 @@ describe('control service', () => {
       sqlite
         .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
         .run('1.17.0', releaseId)
+      if (datasetType === 'address') {
+        sqlite
+          .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
+          .run('3.2', releaseId)
+      }
       seedSnapshot(sqlite, {
         code: `ss-hk-${datasetType}-2026-06-24.0`,
         datasetId,
@@ -904,7 +909,7 @@ describe('control service', () => {
       })
       expect(snapshotRow.status).toBe('published')
       expect(snapshotRow.publishedAt).not.toBeNull()
-      expect(provenanceCount.count).toBe(0)
+      expect(provenanceCount.count).toBe(datasetType === 'address' ? 22 : 0)
       expect(supportingSnapshots).toEqual(
         datasetType === 'address'
           ? [{ code: 'ss-hk-division-2026-06-17.0', role: 'supporting' }]
