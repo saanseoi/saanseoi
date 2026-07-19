@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:59b65c5812aea9e46a107503146b9846d8201e5217da950b12a8cc108d629f3b",
+  "versionHash": "sha256:30ba3d67a755aca4d21c93b45452f6ea60f1e3860fae47c9ccd94e7d413c0b19",
   "apiVersion": "api-divisions-v0.1",
   "validFromSnapshotVersion": "ss-hk-division-2026-05-20.0",
   "schemaVersion": "sv-division-v1",
@@ -8,7 +8,8 @@
     "ds-hk-overture-division": "1.17.0",
     "ds-hk-overture-division-area": "1.17.0",
     "ds-hk-overture-division-boundary": "1.17.0",
-    "ds-hk-hkgov-had-division-area-district": "1.2"
+    "ds-hk-hkgov-had-division-area-district": "1.2",
+    "ds-hk-hkgov-censtatd-division-area-district": "1.0"
   },
   "fields": [
     {
@@ -349,6 +350,46 @@
       "apiField": "divisionArea.attributes.variant",
       "variant": "hkgov-had",
       "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+      "sourceFieldPath": "source",
+      "resolverCode": "derive_variant_from_source",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.variant",
+      "variant": "hkgov-censtatd:2016",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district",
+      "sourceFieldPath": "source",
+      "resolverCode": "derive_variant_from_source",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.variant",
+      "variant": "hkgov-censtatd:2016:simplified",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district",
+      "sourceFieldPath": "source",
+      "resolverCode": "derive_variant_from_source",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.variant",
+      "variant": "hkgov-censtatd:2021",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district",
+      "sourceFieldPath": "source",
+      "resolverCode": "derive_variant_from_source",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.variant",
+      "variant": "hkgov-censtatd:2021:simplified",
+      "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-area-district",
       "sourceFieldPath": "source",
       "resolverCode": "derive_variant_from_source",
       "contributionType": "primary",
