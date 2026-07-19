@@ -41,6 +41,25 @@ source feature and present in another, the importer deterministically retains th
 feature with the indicator present. Other same-premise representation variants are
 printed separately from exact feature duplicates.
 
+## Processing audit trail
+
+At upload, each automatic consolidation and each reviewed identity-drift decision is
+stored against the release in the meta database. The `stats` table records aggregate
+counts under the `processing` metric; `releaseProcessingActions` stores one compact JSON
+evidence object per affected group or record, including the selected canonical ALS
+record and ignored source variants where applicable. Inspect both through:
+
+```bash
+saanseoi reports:stats --source hkgov-dpo --type address
+saanseoi reports:processing-actions --source hkgov-dpo --type address
+```
+
+The source release also persists presentation stats after consolidation: address count
+and lifecycle churn, formatted-address coverage by locale, coverage of meaningful
+optional label components (street, building, estate, phase, and block), and counts by
+canonical district. The district counts are keyed by canonical division ID so Atlas can
+join them to the selected HAD district-area geometry without relying on display names.
+
 ## Stable ALS premise ID
 
 Each retained row receives `ss-<uuid-v5>`. The UUIDv5 input is a normalized premise

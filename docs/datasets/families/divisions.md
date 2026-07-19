@@ -53,3 +53,9 @@ Functional domains are explicit (`administrative`, `planning`, `electoral`, and
 carry domain context so planning or electoral relationships cannot enter the default
 administrative traversal accidentally. Cohort keys identify the period selected for a
 release; source publication and validity metadata remain provenance.
+
+Canonical division source releases persist locale completeness and churn stats as well
+as a district distribution. A district row contributes to itself; every other row is
+counted against the `district` entry in its normalized hierarchy. Atlas joins those
+canonical identifiers to the HAD district-area geometry for a comparable map across
+division datasets.
