@@ -1,4 +1,4 @@
-import type { RegionCode } from '@repo/core'
+import { datasetVariantForSource, type RegionCode } from '@repo/core'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssemblyRun,
@@ -549,7 +549,11 @@ function normalizeHkgovCenstatdInputRow(
 }
 
 function geometryVariant(plan: GeometryUploadPlan) {
-  return plan.transform ? `${plan.source}:${plan.transform}` : plan.source
+  return datasetVariantForSource('divisionArea', plan.source, {
+    cohortKey: plan.cohortKey,
+    sourceVersion: plan.sourceVersion,
+    transform: plan.transform,
+  })
 }
 
 function resolveProviderBridgeConfig(source: GeometryUploadPlan['source']) {

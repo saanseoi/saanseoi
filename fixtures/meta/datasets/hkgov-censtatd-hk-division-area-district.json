@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:2f99a728413064b3a812414e67fcf79aa7ec9a0d06f0ee5619939675e4447c45",
+  "versionHash": "sha256:26ce7a30566e1116913f6862ae4ffaff9adfc16cb017be716760a509d4f36058",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-area-district",
   "regionCode": "hk",
@@ -16,7 +16,7 @@
       "code": "simplified",
       "resourceType": "divisionArea",
       "sourceVersion": "2021",
-      "outputVariant": "hkgov-censtatd:simplified",
+      "outputVariant": "hkgov-censtatd:2021:simplified",
       "derivation": {
         "method": "topology-preserving-simplification",
         "inputGeometryProjection": "EPSG:4326",
