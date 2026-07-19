@@ -16,3 +16,6 @@ the Overture `theme` and `type` fields required for upload planning, and uses Sh
 for the exact intersection. Point-based `division` records are retained when they
 intersect the frame; only polygon areas and line boundaries are clipped. It runs in the
 pinned GDAL-based Docker image defined in `docker/overture-reconstruction/Dockerfile`.
+Generated Hong Kong extracts use the canonical
+`data/overture/<release>/divisions/China/Hong Kong` directory; Macao extracts use
+`data/overture/<release>/divisions/China/Macau`.
