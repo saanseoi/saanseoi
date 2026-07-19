@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:43ea8d8e1a03b052702638177f9f80180ab8f05aff4202781d27df1c8eadc1f2",
+  "versionHash": "sha256:0d0580a1940888a2cbaa6dda1dd507e2f590c78877977dab03fec64fae012e78",
   "publisherCode": "overture",
   "code": "ds-hk-overture-place",
   "regionCode": "hk",
@@ -14,7 +14,7 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "Hong Kong Overture places"
+      "name": "Places"
     },
     {
       "locale": "zh-hant",

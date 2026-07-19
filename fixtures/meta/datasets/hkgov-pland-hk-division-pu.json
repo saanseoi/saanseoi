@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3b51622cac01c71f7200d4ea3c385af6197eb0ba1d3da447236ed1e5fb989c17",
+  "versionHash": "sha256:7ab24a8221fccab6bcf35289b75ec614eb6880bae4f66909f9b3b5fd0da8530b",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
@@ -14,7 +14,7 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "Tertiary Planning Units and Subunits (Hong Kong)",
+      "name": "Tertiary Planning Units and Subunits",
       "description": "Planning divisions derived from the Planning Department's published TPU and subunit boundary cells."
     },
     {

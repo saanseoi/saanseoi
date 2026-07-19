@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:01848f29991ead3bc251368923ccd4b50be6666e3f9b003f0632d7b9ba29ec21",
+  "versionHash": "sha256:86afee0f6221d838887b0f82d794f22716a293fe3dfb8c50d20f8e19090fea5a",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division-area",
   "regionCode": "hk",
@@ -14,7 +14,7 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "Overture Division Areas (Hong Kong)",
+      "name": "Division Areas",
       "description": "Division areas are polygons that represent the land or maritime area covered by a division. Each division area belongs to a division which it references by ID, and for which the division area provides an area polygon."
     },
     {
