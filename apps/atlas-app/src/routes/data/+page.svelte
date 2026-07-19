@@ -21,7 +21,7 @@ import { getDataPageData } from '$lib/registry/meta.remote'
 let data = $derived(await getDataPageData())
 let locale = $derived(getCurrentLocale())
 let activeApiIndex = $state<number | null>(null)
-let apiDeckOrder = $state<Array<0 | 1 | 2 | 3>>([0, 1, 2, 3])
+let apiDeckOrder = $state<number[]>([0, 1, 2, 3, 4])
 let apiSwipeState = $state({
   pointerId: null as number | null,
   startX: 0,
@@ -33,8 +33,8 @@ let apiSwipeState = $state({
   isThrowing: false,
   dragMode: null as 'desktop' | 'mobile' | null,
   throwDirection: 1,
-  throwingApiIndex: null as 0 | 1 | 2 | 3 | null,
-  draggedApiIndex: null as 0 | 1 | 2 | 3 | null,
+  throwingApiIndex: null as number | null,
+  draggedApiIndex: null as number | null,
 })
 let suppressApiClick = false
 let isApiMobileStack = $state<boolean | null>(null)
@@ -45,9 +45,9 @@ let releaseCarouselNavigation = $state({
   canMoveForward: false,
 })
 
-const apiFamilyOrder = ['divisions', 'addresses', 'places', 'streets'] as const
+const apiFamilyOrder = ['stats', 'divisions', 'addresses', 'places', 'streets'] as const
 const atlasDocsUrl = '/docs'
-const pendingApiFamilies = new Set(['places', 'streets'])
+const pendingApiFamilies = new Set(['stats', 'places', 'streets'])
 const registryBackground = `linear-gradient(color-mix(in srgb, var(--background) 88%, transparent), color-mix(in srgb, var(--background) 88%, transparent)), url("data:image/svg+xml,%3Csvg width='120' height='96' viewBox='0 0 120 96' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 18c24 0 36 10 60 10s36-10 60-10M0 42c24 0 36 10 60 10s36-10 60-10M0 66c24 0 36 10 60 10s36-10 60-10M0 90c24 0 36 10 60 10s36-10 60-10' fill='none' stroke='%238e9192' stroke-width='0.7' opacity='0.14'/%3E%3C/svg%3E")`
 
 onMount(() => {
@@ -83,7 +83,7 @@ const resetApiSwipeState = () => {
 
 const handleApiPointerDown = (
   event: PointerEvent,
-  apiIndex: 0 | 1 | 2 | 3,
+  apiIndex: number,
   orderIndex: number,
 ) => {
   const isDesktop = window.innerWidth > 900
@@ -175,7 +175,7 @@ const handleApiClickCapture = (event: MouseEvent) => {
 const handleViewportResize = () => {
   const nextIsApiMobileStack = window.innerWidth <= 900
   if (isApiMobileStack !== null && isApiMobileStack !== nextIsApiMobileStack) {
-    apiDeckOrder = [0, 1, 2, 3]
+    apiDeckOrder = [0, 1, 2, 3, 4]
     activeApiIndex = null
   }
   isApiMobileStack = nextIsApiMobileStack
@@ -207,7 +207,7 @@ const apiDirectory = $derived(
     }
   }),
 )
-const apiDirectoryItem = (index: 0 | 1 | 2 | 3) => {
+const apiDirectoryItem = (index: number) => {
   const item = apiDirectory[index] ?? apiDirectory[0]
   if (!item) throw new Error('The API directory is empty')
   return item
@@ -263,23 +263,26 @@ const releaseCarouselItems = $derived(
 )
 
 const collapsedDeckPositions = [
-  'min-[901px]:left-[calc(50%-29.75rem)] min-[901px]:translate-y-[0.2rem] min-[901px]:-rotate-3',
-  'min-[901px]:left-[calc(50%-15.6rem)] min-[901px]:translate-y-[1.35rem] min-[901px]:rotate-[1.6deg]',
-  'min-[901px]:left-[calc(50%-1.4rem)] min-[901px]:translate-y-[-0.35rem] min-[901px]:rotate-[-1.2deg]',
-  'min-[901px]:left-[calc(50%+12.75rem)] min-[901px]:translate-y-[0.85rem] min-[901px]:rotate-3',
+  'min-[901px]:left-[calc(50%-37rem)] min-[901px]:translate-y-[0.2rem] min-[901px]:-rotate-3',
+  'min-[901px]:left-[calc(50%-22.8rem)] min-[901px]:translate-y-[1.35rem] min-[901px]:rotate-[1.6deg]',
+  'min-[901px]:left-[calc(50%-8.6rem)] min-[901px]:translate-y-[-0.35rem] min-[901px]:rotate-[-1.2deg]',
+  'min-[901px]:left-[calc(50%+5.55rem)] min-[901px]:translate-y-[0.85rem] min-[901px]:rotate-3',
+  'min-[901px]:left-[calc(50%+19.7rem)] min-[901px]:translate-y-[0.1rem] min-[901px]:rotate-[-1.5deg]',
 ] as const
 const expandedDeckPositions = [
-  'min-[901px]:left-[calc(50%-20.1rem)] min-[901px]:translate-y-[0.2rem] min-[901px]:-rotate-3',
-  'min-[901px]:left-[calc(50%-8rem)] min-[901px]:translate-y-[1.05rem] min-[901px]:rotate-[1.6deg]',
-  'min-[901px]:left-[calc(50%+4.1rem)] min-[901px]:translate-y-[-0.35rem] min-[901px]:rotate-[-1.2deg]',
+  'min-[901px]:left-[calc(50%-27rem)] min-[901px]:translate-y-[0.2rem] min-[901px]:-rotate-3',
+  'min-[901px]:left-[calc(50%-14.8rem)] min-[901px]:translate-y-[1.05rem] min-[901px]:rotate-[1.6deg]',
+  'min-[901px]:left-[calc(50%-2.7rem)] min-[901px]:translate-y-[-0.35rem] min-[901px]:rotate-[-1.2deg]',
+  'min-[901px]:left-[calc(50%+9.4rem)] min-[901px]:translate-y-[0.6rem] min-[901px]:rotate-2',
 ] as const
 const mobileDeckPositions = [
   'max-[900px]:z-20 max-[900px]:transform-[translateX(-50%)_translate(var(--swipe-x),var(--swipe-y))_rotate(var(--swipe-rotate))]',
   'max-[900px]:z-19 max-[900px]:transform-[translateX(-50%)_translate(.65rem,.55rem)_rotate(2.4deg)]',
   'max-[900px]:z-18 max-[900px]:transform-[translateX(-50%)_translate(1.25rem,1.1rem)_rotate(4.2deg)]',
   'max-[900px]:z-17 max-[900px]:transform-[translateX(-50%)_translate(1.8rem,1.65rem)_rotate(6deg)]',
+  'max-[900px]:z-16 max-[900px]:transform-[translateX(-50%)_translate(2.25rem,2.05rem)_rotate(7.5deg)]',
 ] as const
-const apiCardClass = (apiIndex: 0 | 1 | 2 | 3, orderIndex: number) => {
+const apiCardClass = (apiIndex: number, orderIndex: number) => {
   const isActive = activeApiIndex === apiIndex
   const nonActivePosition =
     activeApiIndex === null
@@ -287,14 +290,14 @@ const apiCardClass = (apiIndex: 0 | 1 | 2 | 3, orderIndex: number) => {
       : apiDeckOrder.filter(index => index !== activeApiIndex).indexOf(apiIndex)
   const mobilePosition = apiSwipeState.isThrowing
     ? orderIndex === 0
-      ? 3
+      ? 4
       : orderIndex - 1
     : orderIndex
   const desktopClass = isActive
     ? 'min-[901px]:top-4! min-[901px]:left-1/2! min-[901px]:z-5! min-[901px]:h-152! min-[901px]:w-[min(26rem,100%)]! min-[901px]:opacity-100! min-[901px]:transform-[translateX(-50%)_rotate(0deg)]! min-[901px]:shadow-[0_1.25rem_3rem_rgb(0_0_0/0.2)]'
     : activeApiIndex !== null
       ? `min-[901px]:top-132 min-[901px]:h-41 min-[901px]:w-[min(16.25rem,23vw)] min-[901px]:opacity-74 ${expandedDeckPositions[nonActivePosition]}`
-      : collapsedDeckPositions[apiIndex]
+      : (collapsedDeckPositions[apiIndex] ?? '')
   const isDesktopDragCandidate =
     apiSwipeState.dragMode === 'desktop' &&
     apiSwipeState.hasMoved &&
@@ -310,7 +313,7 @@ const apiCardClass = (apiIndex: 0 | 1 | 2 | 3, orderIndex: number) => {
     : isDesktopActiveDrag
       ? 'min-[901px]:cursor-grabbing min-[901px]:transition-[border-color,box-shadow]! min-[901px]:will-change-transform min-[901px]:transform-[translateX(calc(-50%+var(--swipe-x)))_translateY(var(--swipe-y))_rotate(var(--swipe-rotate))]!'
       : ''
-  return `absolute top-16 left-0 z-1 flex h-112 w-[min(18rem,26vw)] cursor-grab flex-col justify-between overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--api-card-foreground)_24%,transparent)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--api-accent)_88%,white),var(--api-accent))] p-5 text-left text-(--api-card-foreground) select-none shadow-mini transition-[top,left,width,transform,border-color,height,opacity,box-shadow] duration-500 hover:border-[color-mix(in_srgb,var(--api-card-foreground)_58%,transparent)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--api-card-foreground)_18%,transparent),var(--shadow-mini)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_58%,transparent)] focus-visible:outline-none focus-visible:shadow-[0_0_0_1px_color-mix(in_srgb,var(--api-card-foreground)_18%,transparent),var(--shadow-mini)] active:cursor-grabbing dark:bg-[linear-gradient(180deg,color-mix(in_srgb,var(--api-accent)_72%,black),color-mix(in_srgb,var(--api-accent)_86%,black))] max-[900px]:top-5 max-[900px]:left-1/2 max-[900px]:h-124 max-[900px]:w-[min(20rem,calc(100vw-4rem))] max-[900px]:justify-start max-[900px]:p-5 max-[900px]:origin-center max-[900px]:touch-none ${desktopClass} ${desktopDragClass} ${mobileDeckPositions[mobilePosition]} ${apiSwipeState.isDragging && apiSwipeState.dragMode === 'mobile' && orderIndex === 0 ? 'max-[900px]:transition-[border-color,box-shadow]' : ''}`
+  return `absolute top-16 left-0 z-1 flex h-112 w-[min(18rem,26vw)] cursor-grab flex-col justify-between overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--api-card-foreground)_24%,transparent)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--api-accent)_88%,white),var(--api-accent))] p-5 text-left text-(--api-card-foreground) select-none shadow-mini transition-[top,left,width,transform,border-color,height,opacity,box-shadow] duration-500 hover:border-[color-mix(in_srgb,var(--api-card-foreground)_58%,transparent)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--api-card-foreground)_18%,transparent),var(--shadow-mini)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_58%,transparent)] focus-visible:outline-none focus-visible:shadow-[0_0_0_1px_color-mix(in_srgb,var(--api-card-foreground)_18%,transparent),var(--shadow-mini)] active:cursor-grabbing dark:bg-[linear-gradient(180deg,color-mix(in_srgb,var(--api-accent)_72%,black),color-mix(in_srgb,var(--api-accent)_86%,black))] max-[900px]:top-5 max-[900px]:left-1/2 max-[900px]:h-124 max-[900px]:w-[min(20rem,calc(100vw-4rem))] max-[900px]:justify-start max-[900px]:p-5 max-[900px]:origin-center max-[900px]:touch-none ${desktopClass} ${desktopDragClass} ${mobileDeckPositions[mobilePosition] ?? ''} ${apiSwipeState.isDragging && apiSwipeState.dragMode === 'mobile' && orderIndex === 0 ? 'max-[900px]:transition-[border-color,box-shadow]' : ''}`
 }
 </script>
 
