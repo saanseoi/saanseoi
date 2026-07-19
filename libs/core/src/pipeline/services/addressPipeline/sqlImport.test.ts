@@ -27,6 +27,8 @@ const message = {
 } satisfies DatasetProcessingMessage
 
 const resolvedArtifact = {
+  addedRows: 0,
+  changedRows: 0,
   insertedVersions: 0,
   kind: 'address.resolved.v1',
   localizedRows: 0,

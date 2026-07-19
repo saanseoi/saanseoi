@@ -191,6 +191,8 @@ export async function buildResolvedAddressChunkArtifact(
 
   const resolvedRows = [...resolvedRowsByAddressId.values()]
   let insertedVersions = 0
+  let addedRows = 0
+  let changedRows = 0
   let unchangedRows = 0
   let localizedRows = 0
 
@@ -204,6 +206,9 @@ export async function buildResolvedAddressChunkArtifact(
 
     if (row.changedExistingId) {
       changedExistingIds.add(row.changedExistingId)
+      changedRows += 1
+    } else {
+      addedRows += 1
     }
 
     insertedVersions += 1
@@ -243,6 +248,8 @@ export async function buildResolvedAddressChunkArtifact(
     changedVersionRows,
     versionInsertContext,
     artifact: {
+      addedRows,
+      changedRows,
       kind: 'address.resolved.v1',
       insertedVersions,
       localizedRows,

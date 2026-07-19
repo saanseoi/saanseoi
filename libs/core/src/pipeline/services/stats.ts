@@ -51,6 +51,20 @@ export type AddressApiReleaseSetStatsInput = {
   >
 }
 
+/**
+ * Release-level address processing counts. These deliberately describe the
+ * prepared source release, while API release-set stats describe the assembled
+ * public API snapshot.
+ */
+export type AddressReleaseStatsInput = {
+  addedRows: number
+  changedRows: number
+  deletedRows: number
+  localizedRows: number
+  processedRows: number
+  unchangedRows: number
+}
+
 export type DivisionApiReleaseSetStatsInput = {
   divisionCount: number
   divisionI18nCount: number
@@ -349,6 +363,34 @@ export function buildQualityStatsRows(counts: QualityCounts) {
       'count',
       counts.geometry_changed_count,
       createdAt,
+    ),
+  ]
+}
+
+/**
+ * Builds presentation stats for a source address release. Address records do
+ * not have division-style type buckets, so the useful comparison is the
+ * canonical address count and its lifecycle outcome.
+ */
+export function buildAddressReleaseStatsRows(input: AddressReleaseStatsInput) {
+  const createdAt = toIsoTimestamp()
+  const churn: ChurnCounts = {
+    added_count: input.addedRows,
+    changed_count: input.changedRows,
+    count: input.processedRows,
+    removed_count: input.deletedRows,
+    unchanged_count: input.unchangedRows,
+  }
+
+  return [
+    ...buildChurnMetricRows(churn, createdAt, null),
+    buildReleaseStatsRow(
+      'localized_records',
+      'count',
+      'count',
+      input.localizedRows,
+      createdAt,
+      { groupBy: 'table', groupValue: 'address2dI18n' },
     ),
   ]
 }
