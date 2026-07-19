@@ -1,0 +1,20 @@
+{
+  "versionHash": "sha256:0af7b4d02e162f7e21a213a55fa4e0580a09c4f1d83d3da5fd13b0fde29c5766",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "yearly",
+  "theme": "stats",
+  "type": "divisionStatistic",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Population and Household Statistics by District Council District",
+      "description": "Planned C&SD source for annual land-based, non-institutional population, household and socio-economic measures."
+    }
+  ]
+}

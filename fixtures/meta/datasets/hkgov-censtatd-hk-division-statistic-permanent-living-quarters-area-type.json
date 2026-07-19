@@ -1,0 +1,20 @@
+{
+  "versionHash": "sha256:a08d8fc4911b4eaf232cdc8cedc4abe1aecb62240595f19b57a291f1e3f6a52a",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "as-needed",
+  "theme": "stats",
+  "type": "divisionStatistic",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Permanent Living Quarters by Area and Type",
+      "description": "Planned C&SD source for area-level permanent living-quarters stock by type."
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "versionHash": "sha256:abbd5a01f491ce7c136fb25301569eb8990e8a4212c9155ecad1adde80c7bda7",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "as-needed",
+  "theme": "stats",
+  "type": "divisionStatistic",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934103275_66203",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Permanent Living Quarters by District Council District",
+      "description": "Planned C&SD source for District Council district permanent living-quarters stock."
+    }
+  ]
+}
