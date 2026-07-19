@@ -200,7 +200,7 @@ describe('api field fixtures', () => {
     ).toBe('ss-hk-division-hkgov-pland-new-town-2006')
   })
 
-  test('resolves HKGov ALS address provenance', () => {
+  test('resolves HKGov ALS address provenance from native feature fields', () => {
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-addresses-v0.1',
       domainCode: 'hkgov-dpo',
@@ -216,7 +216,29 @@ describe('api field fixtures', () => {
     expect(fixture?.fields).toContainEqual(
       expect.objectContaining({
         apiField: 'address.attributes.i18n.zh-hant.formattedAddress',
-        sourceFieldPath: 'zhHantFormattedAddress',
+        sourceFieldPath: 'properties.Address.PremisesAddress.ChiPremisesAddress',
+        resolverCode: 'format_hkgov_als_address',
+      }),
+    )
+    expect(fixture?.fields).toContainEqual(
+      expect.objectContaining({
+        apiField: 'address.id',
+        sourceFieldPath: 'properties.Address.PremisesAddress',
+        resolverCode: 'derive_uuid_v5',
+      }),
+    )
+    expect(fixture?.fields).toContainEqual(
+      expect.objectContaining({
+        apiField: 'address.attributes.identifiers',
+        sourceFieldPath:
+          'properties.Address.PremisesAddress.BuildingCsuInformation.CsuId',
+      }),
+    )
+    expect(fixture?.fields).toContainEqual(
+      expect.objectContaining({
+        apiField: 'address.relationships.district',
+        sourceFieldPath:
+          'properties.Address.PremisesAddress.EngPremisesAddress.EngDistrict',
       }),
     )
   })
