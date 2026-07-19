@@ -94,10 +94,10 @@ source-key fields. Canonical rows expose normalized left/right or division refer
 Overture records where the source class alone would otherwise suggest `land` or
 `maritime`.
 
-Starting with the 2026-02-18.0 release, Overture area rows include nullable integer
-`admin_level`. It is accepted by preflight and retained in `rawProperties`;
-division-area canonical rows do not expose it because the referenced division is the
-canonical owner of that administrative-level attribute.
+Starting with the 2026-02-18.0 release, Overture division, area, and boundary rows
+include nullable integer `admin_level`. It is accepted by preflight and retained in
+`rawProperties`; canonical geometry rows do not expose it because the referenced
+division is the canonical owner of that administrative-level attribute.
 
 When the Hong Kong cut excludes one or more `CN-GD` rows, the release writes one
 `overture_division_geometry_cn_gd_excluded` audit action. Its evidence records the

@@ -854,11 +854,17 @@ function isAllowedKnownSchemaTransition(
   previousFingerprint: string,
   nextInspection: ParquetInspection,
 ) {
-  if (latestDataset.source !== 'overture' || latestDataset.type !== 'division') {
+  const divisionTypes = new Set(['division', 'divisionArea', 'divisionBoundary'])
+
+  if (
+    latestDataset.source !== 'overture' ||
+    !divisionTypes.has(latestDataset.type) ||
+    latestDataset.type !== nextPlan.type
+  ) {
     return false
   }
 
-  if (nextPlan.source !== 'overture' || nextPlan.type !== 'division') {
+  if (nextPlan.source !== 'overture' || !divisionTypes.has(nextPlan.type)) {
     return false
   }
 
