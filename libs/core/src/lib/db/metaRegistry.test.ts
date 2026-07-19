@@ -15,6 +15,7 @@ import {
   recordSnapshotAssemblyRun,
   resolveApiReleaseSetForRequest,
   resolveActiveSnapshotForType,
+  resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
   resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId,
   resolveLatestSnapshotForResourceTypeExcludingId,
   resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
@@ -1503,6 +1504,54 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
         status: 'published',
       },
     ])
+
+    sqlite.close()
+  })
+})
+
+describe('resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey', () => {
+  test('uses the earliest eligible Overture division snapshot as a historical geometry anchor', async () => {
+    const { sqlite, db } = createRegionalSnapshotLookupDb()
+
+    sqlite.exec(`
+      ALTER TABLE snapshots ADD COLUMN cohortKey TEXT;
+
+      INSERT INTO publishers (id, code) VALUES
+        ('publisher-overture', 'overture'),
+        ('publisher-other', 'other');
+
+      INSERT INTO datasets (id, publisherId, regionCode) VALUES
+        ('dataset-overture-division', 'publisher-overture', 'hk'),
+        ('dataset-other-division', 'publisher-other', 'hk');
+
+      INSERT INTO snapshots (
+        id, resourceType, code, cohortKey, status, publishedAt, createdAt
+      ) VALUES
+        ('overture-first', 'division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000),
+        ('overture-later', 'division', 'ss-hk-division-2026-02-18.0', '2026-02-18.0', 'published', 1771372800000, 1771372800000),
+        ('other-earlier', 'division', 'ss-hk-division-2024-01', '2024-01', 'published', 1704067200000, 1704067200000);
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('overture-first', 'dataset-overture-division', 'release-overture-first', 'primary'),
+        ('overture-later', 'dataset-overture-division', 'release-overture-later', 'primary'),
+        ('other-earlier', 'dataset-other-division', 'release-other-earlier', 'primary');
+    `)
+
+    await expect(
+      resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+        db as never,
+        'division',
+        'hk',
+        '2016',
+        { publisherCode: 'overture' },
+      ),
+    ).resolves.toEqual({
+      id: 'overture-first',
+      code: 'ss-hk-division-2025-09-24.0',
+      cohortKey: '2025-09-24.0',
+      resourceType: 'division',
+      status: 'published',
+    })
 
     sqlite.close()
   })

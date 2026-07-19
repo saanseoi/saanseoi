@@ -6,7 +6,7 @@ describe('api field fixtures', () => {
   test('loads bundled fixture definitions', () => {
     const fixtures = listApiFieldFixtures()
 
-    expect(fixtures.length).toBe(6)
+    expect(fixtures.length).toBe(10)
     expect(fixtures[0]?.apiVersion).toBe('api-divisions-v0.1')
     expect(fixtures[0]?.sourceSchemas).toEqual({
       'ds-hk-overture-division': '1.12.0',
@@ -31,8 +31,11 @@ describe('api field fixtures', () => {
     ).toBe('ss-hk-division-2025-09-24.0')
   })
 
-  test('forward-fills every division fixture with the baseline API fields', () => {
-    const [baseline, ...fixtures] = listApiFieldFixtures()
+  test('forward-fills Overture division fixtures with the baseline API fields', () => {
+    const fixtures = listApiFieldFixtures().filter(
+      fixture => fixture.apiVersion === 'api-divisions-v0.1' && !fixture.domainCode,
+    )
+    const [baseline, ...laterFixtures] = fixtures
 
     if (!baseline) {
       throw new Error('Expected a baseline API field fixture')
@@ -50,7 +53,7 @@ describe('api field fixtures', () => {
     const baselineFieldKeys = baseline.fields.map(fieldKey)
     const baselineSourceSchemaKeys = Object.keys(baseline.sourceSchemas).sort()
 
-    for (const fixture of fixtures) {
+    for (const fixture of laterFixtures) {
       expect(Object.keys(fixture.sourceSchemas).sort()).toEqual(
         baselineSourceSchemaKeys,
       )
@@ -151,5 +154,70 @@ describe('api field fixtures', () => {
     })
 
     expect(fixture).toBeNull()
+  })
+
+  test('resolves Planning Department domains across their supported schema eras', () => {
+    expect(
+      resolveApiFieldFixture({
+        apiVersion: 'api-divisions-v0.1',
+        domainCode: 'hkgov-pland-pu',
+        snapshotVersion: 'ss-hk-division-hkgov-pland-pu-2006',
+        schemaVersion: 'sv-division-v1',
+        rulesetVersion: 'rs-division-hkgov-pland-pu-merge-v1',
+        sourceSchemas: {
+          'ds-hk-hkgov-pland-division-pu': '1.0',
+          'ds-hk-hkgov-pland-division-area-pu': '1.0',
+        },
+      })?.validFromSnapshotVersion,
+    ).toBe('ss-hk-division-hkgov-pland-pu-2001')
+
+    expect(
+      resolveApiFieldFixture({
+        apiVersion: 'api-divisions-v0.1',
+        domainCode: 'hkgov-pland-pu',
+        snapshotVersion: 'ss-hk-division-hkgov-pland-pu-2021',
+        schemaVersion: 'sv-division-v1',
+        rulesetVersion: 'rs-division-hkgov-pland-pu-merge-v1',
+        sourceSchemas: {
+          'ds-hk-hkgov-pland-division-pu': '2.0',
+          'ds-hk-hkgov-pland-division-area-pu': '2.0',
+        },
+      })?.validFromSnapshotVersion,
+    ).toBe('ss-hk-division-hkgov-pland-pu-2021')
+
+    expect(
+      resolveApiFieldFixture({
+        apiVersion: 'api-divisions-v0.1',
+        domainCode: 'hkgov-pland-new-town',
+        snapshotVersion: 'ss-hk-division-hkgov-pland-new-town-2021',
+        schemaVersion: 'sv-division-v1',
+        rulesetVersion: 'rs-division-hkgov-pland-new-town-merge-v1',
+        sourceSchemas: {
+          'ds-hk-hkgov-pland-division-new-town': '1.0',
+          'ds-hk-hkgov-pland-division-area-new-town': '1.0',
+        },
+      })?.validFromSnapshotVersion,
+    ).toBe('ss-hk-division-hkgov-pland-new-town-2006')
+  })
+
+  test('resolves HKGov ALS address provenance', () => {
+    const fixture = resolveApiFieldFixture({
+      apiVersion: 'api-addresses-v0.1',
+      domainCode: 'hkgov-dpo',
+      snapshotVersion: 'ss-hk-address-2026-06-04.324',
+      schemaVersion: 'sv-address-v1',
+      rulesetVersion: 'rs-address-hkgov-dpo-merge-v1',
+      sourceSchemas: {
+        'ds-hk-hkgov-dpo-address': '3.2',
+        'ds-hk-overture-division': '1.17.0',
+      },
+    })
+
+    expect(fixture?.fields).toContainEqual(
+      expect.objectContaining({
+        apiField: 'address.attributes.i18n.zh-hant.formattedAddress',
+        sourceFieldPath: 'zhHantFormattedAddress',
+      }),
+    )
   })
 })
