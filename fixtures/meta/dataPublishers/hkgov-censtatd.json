@@ -1,0 +1,24 @@
+{
+  "versionHash": "sha256:06a9d7cd3a71cd8b90b67b858c618857b90000dfaf83ae7f8ef083b4dd6c11c1",
+  "code": "hkgov-censtatd",
+  "parentCode": "hkgov",
+  "url": "https://www.censtatd.gov.hk/",
+  "contactUrl": "https://www.censtatd.gov.hk/en/about_us/contact_us/index.html",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Census and Statistics Department",
+      "description": "Provides official statistics and census data for Hong Kong."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "政府統計處",
+      "description": "政府統計處提供香港官方統計及人口普查數據。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "政府统计处",
+      "description": "政府统计处提供香港官方统计及人口普查数据。"
+    }
+  ]
+}
