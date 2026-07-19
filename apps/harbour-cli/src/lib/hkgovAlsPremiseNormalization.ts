@@ -7,6 +7,19 @@ export type HkgovAlsPremiseStructure = {
 }
 
 /**
+ * Prefer the English canonical component whenever ALS supplied an English source
+ * component. This prevents a deliberately removed duplicate English building name
+ * from being replaced by a different Chinese building-name representation.
+ */
+export function preferHkgovAlsEnglishCanonicalValue(input: {
+  canonicalEnglish: string | null
+  canonicalChinese: string | null
+  rawEnglish: string | null
+}) {
+  return clean(input.rawEnglish) ? input.canonicalEnglish : input.canonicalChinese
+}
+
+/**
  * Normalise the narrowly-defined ALS convention where an estate's block, house or
  * tower has been put in BuildingName rather than the structured block fields.
  *

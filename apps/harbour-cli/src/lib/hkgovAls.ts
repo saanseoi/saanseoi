@@ -28,10 +28,9 @@ import {
   type HkgovAlsIdentityRecord,
 } from './hkgovAlsDrift.ts'
 import {
-  emptyHkgovAlsPrecedenceVariantDecisions,
-  type HkgovAlsPrecedenceVariantDecisions,
-} from './hkgovAlsVariants.ts'
-import { normalizeHkgovAlsPremiseStructure } from './hkgovAlsPremiseNormalization.ts'
+  normalizeHkgovAlsPremiseStructure,
+  preferHkgovAlsEnglishCanonicalValue,
+} from './hkgovAlsPremiseNormalization.ts'
 const HARBOUR_API_WRANGLER_CONFIG = resolve(
   import.meta.dir,
   '../../../harbour-api/wrangler.jsonc',
@@ -67,7 +66,6 @@ type PrepareHkgovAlsOptions = {
   currentDb?: CurrentDatabase
   identityDecisions?: HkgovAlsIdentityDecisions
   identityHistory?: HkgovAlsIdentityHistory
-  precedenceVariantDecisions?: HkgovAlsPrecedenceVariantDecisions
   metaDb?: MetaDatabase
   outputFile: string
   cohortKey: string
@@ -107,16 +105,6 @@ type HkgovAlsFeature = {
 export type HkgovAlsSourceDuplicateGroup = {
   address: string
   occurrences: Array<{
-    featureIndexOneBased: number
-    sourceFile: string
-  }>
-}
-
-export type HkgovAlsPrecedenceVariantCandidate = {
-  address: string
-  identityKey: string
-  variants: Array<{
-    blockDescriptorPrecedenceIndicator: string | null
     featureIndexOneBased: number
     sourceFile: string
   }>
@@ -264,7 +252,6 @@ type PreparedHkgovAlsResult = {
   identityConsolidatedFeatureCount: number
   identityEquivalentFeatureGroups: HkgovAlsSourceDuplicateGroup[]
   resolvedIdConsolidatedFeatureCount: number
-  precedenceVariantCandidates: HkgovAlsPrecedenceVariantCandidate[]
   identityRecords: HkgovAlsIdentityRecord[]
   outputFile: string
   sourceDuplicateFeatureGroups: HkgovAlsSourceDuplicateGroup[]
@@ -346,11 +333,7 @@ export async function prepareHkgovAlsAddressParquet(
   const {
     duplicateGroups: identityEquivalentFeatureGroups,
     rows: identityDistinctRows,
-    precedenceVariantCandidates,
-  } = consolidateEquivalentHkgovAlsPremises(
-    rows,
-    options.precedenceVariantDecisions ?? emptyHkgovAlsPrecedenceVariantDecisions(),
-  )
+  } = consolidateEquivalentHkgovAlsPremises(rows)
   rows.splice(0, rows.length, ...identityDistinctRows)
   assertUniquePreparedRowIds(rows)
   const identityRecords = rows.map(row => ({
@@ -371,7 +354,8 @@ export async function prepareHkgovAlsAddressParquet(
     row.id = existingId
     row.canonicalId = existingId
     row.identityAlias = buildHkgovAlsProvisionalId(row.identityKey)
-    row.identityMatchMethod = 'als-drift-decision'
+    row.identityMatchMethod =
+      drift.resolvedMatchMethods.get(row.identityKey) ?? 'als-drift-decision'
   }
   const resolvedIdentityRecords = rows.map(row => ({
     continuityKey: row.identityContinuityKey,
@@ -629,7 +613,6 @@ export async function prepareHkgovAlsAddressParquet(
     identityEquivalentFeatureGroups,
     resolvedIdConsolidatedFeatureCount:
       identityDistinctRows.length - resolvedIdDistinctRows.length,
-    precedenceVariantCandidates,
     identityRecords: resolvedIdentityRecords,
     outputFile,
     sourceDuplicateFeatureGroups,
@@ -762,13 +745,7 @@ function formatSourceFeatureAddress(feature: HkgovAlsFeature | undefined) {
  * the same fully specified premise. This is deliberately narrower than a spatial or
  * street-address dedupe: every component in the stable premise identity must match.
  */
-export function consolidateEquivalentHkgovAlsPremises(
-  rows: PreparedHkgovAlsRow[],
-  decisions = emptyHkgovAlsPrecedenceVariantDecisions(),
-) {
-  const decisionByIdentity = new Map(
-    decisions.decisions.map(decision => [decision.identityKey, decision]),
-  )
+export function consolidateEquivalentHkgovAlsPremises(rows: PreparedHkgovAlsRow[]) {
   const selectedRows: PreparedHkgovAlsRow[] = []
   const rowsByIdentity = new Map<string, PreparedHkgovAlsRow[]>()
   for (const row of rows) {
@@ -789,7 +766,6 @@ export function consolidateEquivalentHkgovAlsPremises(
         sourceFile: row.sourceFile,
       })),
     }))
-  const precedenceVariantCandidates: HkgovAlsPrecedenceVariantCandidate[] = []
   for (const equivalentRows of equivalentGroups) {
     const firstRow = equivalentRows[0]
     if (!firstRow) continue
@@ -801,37 +777,18 @@ export function consolidateEquivalentHkgovAlsPremises(
       equivalentRows.map(row => row.blockDescriptorPrecedenceIndicator),
     )
     const hasMissingAndPresentIndicator = indicators.has(null) && indicators.size > 1
-    const indicatorPresentRow = hasMissingAndPresentIndicator
-      ? equivalentRows.find(row => row.blockDescriptorPrecedenceIndicator != null)
-      : undefined
-    const decision = decisionByIdentity.get(firstRow.identityKey)
-    const selectedRow =
-      indicatorPresentRow ??
-      (decision
-        ? equivalentRows.find(
-            row =>
-              row.blockDescriptorPrecedenceIndicator ===
-              decision.blockDescriptorPrecedenceIndicator,
-          )
+    const indicatorPresentRow =
+      equivalentRows.find(
+        row => row.blockDescriptorPrecedenceIndicator?.toUpperCase() === 'Y',
+      ) ??
+      (hasMissingAndPresentIndicator
+        ? equivalentRows.find(row => row.blockDescriptorPrecedenceIndicator != null)
         : undefined)
-    if (hasMissingAndPresentIndicator && !indicatorPresentRow) {
-      precedenceVariantCandidates.push({
-        address:
-          firstRow.enFormattedAddress ??
-          firstRow.zhHantFormattedAddress ??
-          'Unformatted ALS address',
-        identityKey: firstRow.identityKey,
-        variants: equivalentRows.map(row => ({
-          blockDescriptorPrecedenceIndicator: row.blockDescriptorPrecedenceIndicator,
-          featureIndexOneBased: row.sourceFeatureIndexOneBased,
-          sourceFile: row.sourceFile,
-        })),
-      })
-    }
+    const selectedRow = indicatorPresentRow ?? firstRow
     selectedRows.push(selectedRow ?? firstRow)
   }
 
-  return { duplicateGroups, precedenceVariantCandidates, rows: selectedRows }
+  return { duplicateGroups, rows: selectedRows }
 }
 
 function assertUniquePreparedRowIds(rows: PreparedHkgovAlsRow[]) {
@@ -970,8 +927,11 @@ function normalizeHkgovAlsFeature(
       asOptionalString(zh.ChiBlock?.BlockDescriptor),
     blockNumber:
       asOptionalString(en.EngBlock?.BlockNo) ?? asOptionalString(zh.ChiBlock?.BlockNo),
-    buildingName:
-      asOptionalString(en.BuildingName) ?? asOptionalString(zh.BuildingName),
+    buildingName: preferHkgovAlsEnglishCanonicalValue({
+      canonicalChinese: asOptionalString(zh.BuildingName),
+      canonicalEnglish: asOptionalString(en.BuildingName),
+      rawEnglish: asOptionalString(rawEn.BuildingName),
+    }),
     csuId,
     districtName: districtNameEn ?? districtNameZhHant,
     estateName:

@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 
-import { normalizeHkgovAlsPremiseStructure } from './hkgovAlsPremiseNormalization.ts'
+import {
+  normalizeHkgovAlsPremiseStructure,
+  preferHkgovAlsEnglishCanonicalValue,
+} from './hkgovAlsPremiseNormalization.ts'
 
 describe('normalizeHkgovAlsPremiseStructure', () => {
   test('moves an estate-prefixed block from building name into structured fields', () => {
@@ -56,5 +59,15 @@ describe('normalizeHkgovAlsPremiseStructure', () => {
         estateName: 'LUNG MUN OASIS',
       }).normalization,
     ).toBe('none')
+  })
+
+  test('does not fall back to Chinese after removing a duplicate English name', () => {
+    expect(
+      preferHkgovAlsEnglishCanonicalValue({
+        rawEnglish: 'THE SALVATION ARMY BRADBURY CAMP',
+        canonicalEnglish: null,
+        canonicalChinese: '救世軍白普理營一期營舍',
+      }),
+    ).toBeNull()
   })
 })
