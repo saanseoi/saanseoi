@@ -4,6 +4,10 @@ import apiDivisionsV01Fixture20251119 from '../../../fixtures/meta/apiFields/api
 import apiDivisionsV01Fixture20251217 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-12-17.0.json'
 import apiDivisionsV01Fixture20260218 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2026-02-18.0.json'
 import apiDivisionsV01Fixture20260520 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2026-05-20.0.json'
+import apiDivisionsV01FixturePlandNewTown2006 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-new-town-2006.json'
+import apiDivisionsV01FixturePlandPu2001 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2001.json'
+import apiDivisionsV01FixturePlandPu2021 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2021.json'
+import apiAddressesV01Fixture20260604 from '../../../fixtures/meta/apiFields/api-addresses-v0.1@ss-hk-address-2026-06-04.324.json'
 
 import type { ProvenanceContributionType, ResolverCode } from './constants/schema'
 
@@ -38,6 +42,10 @@ const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01Fixture20251217 as ApiFieldFixture,
   apiDivisionsV01Fixture20260218 as ApiFieldFixture,
   apiDivisionsV01Fixture20260520 as ApiFieldFixture,
+  apiDivisionsV01FixturePlandNewTown2006 as ApiFieldFixture,
+  apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,
+  apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,
+  apiAddressesV01Fixture20260604 as ApiFieldFixture,
 ]
 
 function cloneApiFieldFixtureField(field: ApiFieldFixtureField): ApiFieldFixtureField {
