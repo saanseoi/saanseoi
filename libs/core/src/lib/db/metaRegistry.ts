@@ -42,6 +42,7 @@ const {
   metaApiVersions,
   ingestRuns,
   metaDatasetI18n,
+  metaDatasetTransforms,
   metaDatasets,
   metaLicenses,
   metaPublishers,
@@ -469,12 +470,19 @@ export async function listRegistrySources(db: MetaDatabase, limit?: number) {
     .all()
 
   const sourceIds = sources.map(source => source.id)
-  const [i18n, sourceVersions, publishers] = await Promise.all([
+  const [i18n, transforms, sourceVersions, publishers] = await Promise.all([
     queryInBatches(sourceIds, ids =>
       db
         .select()
         .from(metaDatasetI18n)
         .where(inArray(metaDatasetI18n.datasetId, ids))
+        .all(),
+    ),
+    queryInBatches(sourceIds, ids =>
+      db
+        .select()
+        .from(metaDatasetTransforms)
+        .where(inArray(metaDatasetTransforms.datasetId, ids))
         .all(),
     ),
     listRegistrySourceVersions(db),
@@ -486,6 +494,7 @@ export async function listRegistrySources(db: MetaDatabase, limit?: number) {
     publisher:
       publishers.find(publisher => publisher.id === source.publisherId) ?? null,
     datasetI18n: i18n.filter(row => row.datasetId === source.id),
+    transforms: transforms.filter(row => row.datasetId === source.id),
     sourceVersions: sourceVersions.filter(version => version.datasetId === source.id),
   }))
 }
@@ -502,11 +511,16 @@ export async function getRegistrySource(db: MetaDatabase, id: string) {
 
   if (!source) return null
 
-  const [datasetI18n, sourceVersions, publisher] = await Promise.all([
+  const [datasetI18n, transforms, sourceVersions, publisher] = await Promise.all([
     db
       .select()
       .from(metaDatasetI18n)
       .where(eq(metaDatasetI18n.datasetId, source.id))
+      .all(),
+    db
+      .select()
+      .from(metaDatasetTransforms)
+      .where(eq(metaDatasetTransforms.datasetId, source.id))
       .all(),
     queryRegistrySourceVersions(db, source.id),
     getRegistrySourcePublisher(db, source.publisherId),
@@ -516,6 +530,7 @@ export async function getRegistrySource(db: MetaDatabase, id: string) {
     ...source,
     publisher,
     datasetI18n,
+    transforms,
     sourceVersions,
   }
 }
