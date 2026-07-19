@@ -121,8 +121,25 @@ describe('consolidateEquivalentHkgovAlsPremises', () => {
       missingIndicator,
       presentIndicator,
     ])
-    expect(result.precedenceVariantCandidates).toEqual([])
     expect(result.rows).toEqual([presentIndicator])
+  })
+
+  test('prefers the affirmative precedence indicator when variants disagree', () => {
+    const no = {
+      blockDescriptorPrecedenceIndicator: 'N',
+      enFormattedAddress: 'EXAMPLE BUILDING, 1 EXAMPLE STREET',
+      identityKey: 'same-complete-premise',
+      sourceFeatureIndexOneBased: 4,
+      sourceFile: 'eastern.geojson',
+      zhHantFormattedAddress: null,
+    } as Parameters<typeof consolidateEquivalentHkgovAlsPremises>[0][number]
+    const yes = {
+      ...no,
+      blockDescriptorPrecedenceIndicator: 'Y',
+      sourceFeatureIndexOneBased: 9,
+    }
+
+    expect(consolidateEquivalentHkgovAlsPremises([no, yes]).rows).toEqual([yes])
   })
 })
 
