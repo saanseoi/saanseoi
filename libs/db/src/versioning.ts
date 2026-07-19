@@ -2,13 +2,13 @@ import { createHash } from 'node:crypto'
 
 import type { ResourceType } from '@repo/core'
 
-export type ApiFamily = 'addresses' | 'divisions' | 'places' | 'streets'
+export type ApiFamily = 'addresses' | 'divisions' | 'places' | 'streets' | 'stats'
 
 function normalizeCodeSlug(value: string) {
   const normalized = value
     .trim()
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-    .replace(/[_\s]+/g, '-')
+    .replace(/[:_\s]+/g, '-')
     .toLowerCase()
 
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)) {
@@ -23,6 +23,7 @@ const API_FAMILY_BY_RESOURCE_TYPE: Record<ResourceType, ApiFamily> = {
   division: 'divisions',
   divisionArea: 'divisions',
   divisionBoundary: 'divisions',
+  divisionStatistic: 'stats',
   place: 'places',
   street: 'streets',
 }

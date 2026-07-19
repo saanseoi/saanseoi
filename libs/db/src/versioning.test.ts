@@ -25,6 +25,20 @@ describe('snapshot identifiers', () => {
       buildSnapshotVersionCode('hk', 'divisionArea', '2006', 'hkgov-pland-new-town'),
     ).toBe('ss-hk-division-area-hkgov-pland-new-town-2006')
   })
+
+  test('normalizes structured C&SD geometry variants in snapshot codes', () => {
+    expect(
+      buildSnapshotVersionCode('hk', 'divisionArea', '2021', 'hkgov-censtatd:2021'),
+    ).toBe('ss-hk-division-area-hkgov-censtatd-2021-2021')
+    expect(
+      buildSnapshotVersionCode(
+        'hk',
+        'divisionArea',
+        '2016',
+        'hkgov-censtatd:2016:simplified',
+      ),
+    ).toBe('ss-hk-division-area-hkgov-censtatd-2016-simplified-2016')
+  })
 })
 
 describe('computeVersionHash', () => {

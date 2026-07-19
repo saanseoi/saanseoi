@@ -35,6 +35,12 @@ describe('sourceSchemas', () => {
     await expect(
       resolveSourceSchemaVersion({
         source: 'hkgov-censtatd',
+        sourceVersion: '2016-simplified-v1',
+      }),
+    ).resolves.toBe('1.0')
+    await expect(
+      resolveSourceSchemaVersion({
+        source: 'hkgov-censtatd',
         sourceVersion: '2021-simplified-v1',
       }),
     ).resolves.toBe('1.0')

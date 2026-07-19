@@ -794,8 +794,8 @@ function requestedGeometryVariants(
     area?.slice('areas:'.length) || (domainCode === 'overture' ? 'overture' : undefined)
   return {
     area:
-      transform && areaVariant === 'hkgov-censtatd:2021'
-        ? `hkgov-censtatd:2021:${transform}`
+      transform && /^hkgov-censtatd:(?:2016|2021)$/.test(areaVariant ?? '')
+        ? `${areaVariant}:${transform}`
         : areaVariant,
     boundary:
       boundary?.slice('boundaries:'.length) ||

@@ -27,6 +27,7 @@ const RESOURCE_TYPE_CODE_SLUGS: Record<ResourceType, string> = {
   division: 'division',
   divisionArea: 'division-area',
   divisionBoundary: 'division-boundary',
+  divisionStatistic: 'division-statistic',
   place: 'place',
   street: 'street',
 }
