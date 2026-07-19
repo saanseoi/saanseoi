@@ -1,4 +1,5 @@
 export * from './components/language-selector'
+export * as ChoroplethMap from './components/choroplethMap'
 export * from './components/swap'
 export * from './pages/docs'
 export * from './pages/sources'
