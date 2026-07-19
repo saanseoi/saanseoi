@@ -123,13 +123,24 @@ export function buildDatasetReleaseCode(
     .join('-')
 }
 
-export function datasetVariantForSource(resourceType: ResourceType, source?: string) {
+export function datasetVariantForSource(
+  resourceType: ResourceType,
+  source?: string,
+  options: { cohortKey?: string; sourceVersion?: string; transform?: string } = {},
+) {
   if (
     resourceType !== 'division' &&
     resourceType !== 'divisionArea' &&
     resourceType !== 'divisionBoundary'
   ) {
     return 'default'
+  }
+
+  if (source === 'hkgov-censtatd' && options.cohortKey) {
+    const transform =
+      options.transform ??
+      (options.sourceVersion?.endsWith('-simplified-v1') ? 'simplified' : undefined)
+    return [source, options.cohortKey, transform].filter(Boolean).join(':')
   }
 
   return source ?? 'overture'

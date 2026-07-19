@@ -50,6 +50,18 @@ describe('registry code construction', () => {
       'hkgov-pland-new-town',
     )
     expect(datasetVariantForSource('address', 'hkgov-dpo')).toBe('default')
+    expect(
+      datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
+        cohortKey: '2016',
+        sourceVersion: '2016',
+      }),
+    ).toBe('hkgov-censtatd:2016')
+    expect(
+      datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
+        cohortKey: '2021',
+        sourceVersion: '2021-simplified-v1',
+      }),
+    ).toBe('hkgov-censtatd:2021:simplified')
   })
 
   test('rejects non-canonical owned code segments', () => {

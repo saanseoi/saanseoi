@@ -60,6 +60,12 @@ counted against the `district` entry in its normalized hierarchy. Atlas joins th
 canonical identifiers to the HAD district-area geometry for a comparable map across
 division datasets.
 
+Historical C&SD district areas are optional, cohort-qualified statistical-geometry
+variants (`hkgov-censtatd:2016` and `hkgov-censtatd:2021`), never defaults. Each is
+anchored to the earliest published Overture canonical-division snapshot at or after its
+census cohort; that immutable anchor provides identity, hierarchy, and names without
+representing the C&SD boundary as an evergreen administrative geometry.
+
 For Overture, release audit entries are limited to investigable source-policy
 exceptions: division locale inference or API-locale fallback rows, and `CN-GD` spillover
 geometry excluded from area or boundary releases. The Sources page hides its Audit tab

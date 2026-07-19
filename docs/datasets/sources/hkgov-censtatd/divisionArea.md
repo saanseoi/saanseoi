@@ -37,7 +37,8 @@ The exact source variant is:
 
 ```text
 dataset  ds-hk-hkgov-censtatd-division-area-district
-variant  hkgov-censtatd
+variants hkgov-censtatd:2016
+         hkgov-censtatd:2021
 releases dr-hk-hkgov-censtatd-division-area-district-2016
          dr-hk-hkgov-censtatd-division-area-district-2021
 ```
@@ -51,7 +52,7 @@ otherwise changing its coastline:
 ```text
 dataset      ds-hk-hkgov-censtatd-division-area-district
 transform    simplified
-variant      hkgov-censtatd:simplified
+variant      hkgov-censtatd:2021:simplified
 release      dr-hk-hkgov-censtatd-division-area-district-2021-simplified-v1
 ```
 
@@ -61,9 +62,9 @@ all districts together keeps shared boundaries consistent. The source row retain
 untouched C&SD geometry and records the input dataset/release, method, tolerance and
 `preservesLandClip: true`.
 
-Use `transform=simplified` with the C&SD geometry request for low-detail display maps;
-omit it for source precision, census-cohort accuracy and geometry auditability. The
-transformation belongs to the C&SD dataset and does not introduce a new publisher or
+Use `include=areas:hkgov-censtatd:2021&transform=simplified` for low-detail display
+maps; omit it for source precision, census-cohort accuracy and geometry auditability.
+The transformation belongs to the C&SD dataset and does not introduce a new publisher or
 dataset.
 
 ## Ingestion

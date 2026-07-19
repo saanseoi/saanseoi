@@ -1649,6 +1649,56 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
 }
 
 /**
+ * Resolves the first published canonical snapshot on or after a source cohort.
+ * This is used to give historical, provider-specific geometry a stable canonical
+ * identity and naming anchor when no same-cohort canonical snapshot exists.
+ */
+export async function resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+  db: HarbourReadableDb,
+  resourceType: ResourceType,
+  regionCode: RegionCode,
+  cohortKey: string,
+  options: { publisherCode?: string } = {},
+) {
+  return (
+    (await db
+      .select({
+        id: metaSnapshots.id,
+        code: metaSnapshots.code,
+        cohortKey: metaSnapshots.cohortKey,
+        resourceType: metaSnapshots.resourceType,
+        status: metaSnapshots.status,
+      })
+      .from(metaSnapshots)
+      .innerJoin(
+        metaSnapshotSources,
+        eq(metaSnapshots.id, metaSnapshotSources.snapshotId),
+      )
+      .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+      .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+      .where(
+        and(
+          eq(metaSnapshots.resourceType, resourceType),
+          eq(metaSnapshots.status, 'published'),
+          sql`${metaSnapshots.cohortKey} >= ${cohortKey}`,
+          eq(metaDatasets.regionCode, regionCode),
+          eq(metaSnapshotSources.role, 'primary'),
+          options.publisherCode
+            ? eq(metaPublishers.code, options.publisherCode)
+            : undefined,
+        ),
+      )
+      .orderBy(
+        metaSnapshots.cohortKey,
+        metaSnapshots.publishedAt,
+        metaSnapshots.createdAt,
+      )
+      .limit(1)
+      .get()) ?? null
+  )
+}
+
+/**
  * Resolves the newest published snapshot at or before a release-set cohort for
  * each primary source dataset. Provider variants therefore stay independent.
  */
@@ -2624,8 +2674,10 @@ export async function publishReleaseArtifacts(
     currentRelease: Pick<DatasetRecord, 'releaseId'> | null
     currentReleaseIsCorrected: boolean
     dataset: Pick<DatasetRecord, 'datasetId' | 'releaseCode' | 'releaseId'> & {
+      cohortKey?: string
       datasetCode?: string
       source?: string
+      sourceVersion?: string
     }
     publishedAt: string
     releaseSetId: string
@@ -2707,7 +2759,10 @@ export async function publishReleaseArtifacts(
   const compositionMembers = composition
     ? await listApiCompositionMembersSafely(db, composition.id)
     : []
-  const datasetVariant = datasetVariantForSource(args.type, args.dataset.source)
+  const datasetVariant = datasetVariantForSource(args.type, args.dataset.source, {
+    cohortKey: args.dataset.cohortKey,
+    sourceVersion: args.dataset.sourceVersion,
+  })
   const datasetMember = compositionMembers.find(
     member =>
       member.domainCode === releaseSet.domainCode &&

@@ -7,6 +7,7 @@ import {
   listCurrentApiCompositionMembersForType,
   listCurrentSnapshotCleanupCandidates,
   listApiReleaseSetSnapshots,
+  resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
   resolveLatestReleaseSetForTypeDomainCohort,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
@@ -215,7 +216,10 @@ export async function handlePublishDataset(
     const dataset = await requireDataset(db, request)
     const publishedAt = new Date().toISOString()
     const datasetType = dataset.type as ResourceType
-    const datasetVariant = datasetVariantForSource(datasetType, dataset.source)
+    const datasetVariant = datasetVariantForSource(datasetType, dataset.source, {
+      cohortKey: dataset.cohortKey,
+      sourceVersion: dataset.sourceVersion,
+    })
     const compositionMembers = await listCurrentApiCompositionMembersForType(
       db,
       datasetType,
@@ -225,17 +229,38 @@ export async function handlePublishDataset(
         member.resourceType === datasetType && member.variant === datasetVariant,
     )
     const domainCode = datasetMember?.domainCode ?? 'default'
+    const isCenstatdGeometry =
+      datasetType === 'divisionArea' && dataset.source === 'hkgov-censtatd'
+    const canonicalAnchor = isCenstatdGeometry
+      ? await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+          db,
+          'division',
+          dataset.regionCode as RegionCode,
+          dataset.cohortKey,
+          { publisherCode: 'overture' },
+        )
+      : null
+
+    if (isCenstatdGeometry && !canonicalAnchor) {
+      throw new ControlRequestError(
+        `No published Overture division snapshot is available on or after C&SD cohort ${dataset.cohortKey}.`,
+      )
+    }
+    const canonicalAnchorCohort = canonicalAnchor?.cohortKey ?? dataset.cohortKey
+
     const currentRelease = await getCurrentReleaseForDatasetId(
       db,
       dataset.datasetId,
       dataset.releaseId,
     )
-    const existingReleaseSet = await resolveReleaseSetForRelease(
-      db,
-      dataset.releaseId,
-      datasetType,
-      domainCode,
-    )
+    const existingReleaseSet = isCenstatdGeometry
+      ? null
+      : await resolveReleaseSetForRelease(
+          db,
+          dataset.releaseId,
+          datasetType,
+          domainCode,
+        )
     const draftReleaseSets =
       datasetVariant === 'hkgov-had'
         ? await listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
@@ -245,8 +270,19 @@ export async function handlePublishDataset(
             dataset.cohortKey,
           )
         : []
-    const releaseSets =
-      draftReleaseSets.length > 0
+    const releaseSets = isCenstatdGeometry
+      ? [
+          await ensureDraftReleaseSetForRelease(
+            db,
+            'division',
+            {
+              cohortKey: canonicalAnchorCohort,
+              regionCode: dataset.regionCode,
+            },
+            { domainCode },
+          ),
+        ]
+      : draftReleaseSets.length > 0
         ? draftReleaseSets
         : [
             existingReleaseSet ??
