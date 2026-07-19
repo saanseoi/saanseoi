@@ -85,7 +85,7 @@ const stackedArrowPath = (inputCount: number) => {
   {#each lanes as lane, laneIndex (lane.id)}
     <section
       class="source-flow-lane"
-      style={`--flow-accent: ${lane.accent}; --flow-secondary: ${lane.secondary}; --flow-connector: ${lane.id === 'addresses' ? lane.secondary : lane.accent}; --flow-ink: ${lane.ink}; --flow-index: ${laneIndex}; --visible-source-count: ${visibleInputs(lane).length};`}
+      style={`--flow-accent: ${lane.accent}; --flow-connector: ${lane.id === 'addresses' ? lane.secondary : lane.accent}; --flow-ink: ${lane.ink}; --flow-index: ${laneIndex}; --visible-source-count: ${visibleInputs(lane).length};`}
       aria-labelledby={`source-flow-${lane.id}`}
     >
       <div class="source-flow-inputs">
@@ -157,7 +157,7 @@ const stackedArrowPath = (inputCount: number) => {
             refY="4"
             orient="auto"
           >
-            <path d="M 0 1 L 7 4 L 0 7 Z" fill="var(--flow-accent)"></path>
+            <path d="M 0 1 L 7 4 L 0 7 Z" fill="var(--flow-connector)"></path>
           </marker>
         </defs>
         {#each visibleInputs(lane) as input, inputIndex (input.id)}
@@ -446,7 +446,7 @@ const stackedArrowPath = (inputCount: number) => {
 .source-flow-stacked-input,
 .source-flow-stacked-trunk {
   fill: none;
-  stroke: var(--flow-accent);
+  stroke: var(--flow-connector);
   stroke-width: 1.55;
   stroke-linecap: round;
   stroke-dasharray: 6 8;
@@ -454,7 +454,7 @@ const stackedArrowPath = (inputCount: number) => {
   animation: source-flow-dash 3.8s linear infinite;
   animation-delay: calc(var(--flow-index) * -360ms);
   filter: drop-shadow(
-    0 0 0.35rem color-mix(in srgb, var(--flow-accent) 22%, transparent)
+    0 0 0.35rem color-mix(in srgb, var(--flow-connector) 22%, transparent)
   );
 }
 
