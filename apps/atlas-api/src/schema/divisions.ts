@@ -210,7 +210,7 @@ export const DivisionsListQuerySchema = z
     include: z
       .string()
       .regex(
-        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
+        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
       )
       .optional()
       .openapi({
@@ -223,7 +223,7 @@ export const DivisionsListQuerySchema = z
       .optional()
       .openapi({
         description:
-          'Select a named geometry transformation. `simplified` applies to `areas:hkgov-censtatd` and returns the C&SD 2021 land-clipped display geometry.',
+          'Select a named geometry transformation. `simplified` applies to `areas:hkgov-censtatd:2021` and returns the C&SD 2021 land-clipped display geometry.',
       }),
     'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
     'page[offset]': z.coerce.number().int().min(0).optional(),
@@ -267,7 +267,7 @@ export const DivisionDetailQuerySchema = z
     include: z
       .string()
       .regex(
-        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
+        /^(none|(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had|hkgov-censtatd:(2016|2021)(:simplified)?|hkgov-pland-pu|hkgov-pland-new-town))?|boundaries(?::overture)?))*)$/,
       )
       .optional()
       .openapi({
@@ -280,7 +280,7 @@ export const DivisionDetailQuerySchema = z
       .optional()
       .openapi({
         description:
-          'Select a named geometry transformation. `simplified` applies to `areas:hkgov-censtatd` and returns the C&SD 2021 land-clipped display geometry.',
+          'Select a named geometry transformation. `simplified` applies to `areas:hkgov-censtatd:2021` and returns the C&SD 2021 land-clipped display geometry.',
       }),
   })
   .openapi('DivisionDetailQuery')
