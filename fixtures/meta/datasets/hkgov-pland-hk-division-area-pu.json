@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:caa472873f5c9c7a009f858faa288760ec477e424f64e2e48568b4ff3b957e9a",
+  "versionHash": "sha256:7a4b6425c12c33a1c6153a9be3b07486366b6415ac5c69e1ae0ec4668a706c63",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-area-pu",
   "regionCode": "hk",
@@ -14,7 +14,7 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "Tertiary Planning Unit Areas (Hong Kong)",
+      "name": "Tertiary Planning Unit Areas",
       "description": "Optional Planning Department geometry assertions for PPU, SPU, TPU, and planning-subunit divisions."
     },
     {

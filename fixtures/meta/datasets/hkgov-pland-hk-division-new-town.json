@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:c32c60cdec4690f60e052045bdf60deb1c3990038c247afd22d3f4e5e9eedea0",
+  "versionHash": "sha256:db91e8047db77750c21e39bd5b3a8588347444dd2461e0f5bf8ac08505160d6e",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-new-town",
   "regionCode": "hk",
@@ -14,7 +14,7 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "New Town Planning Divisions (Hong Kong)",
+      "name": "New Town Planning Divisions",
       "description": "Planning division data for Hong Kong's new towns, published by the Planning Department."
     },
     {

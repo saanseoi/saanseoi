@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3e172eb3679eae6a3780919291d57d3992805ec9ffa212aab1435f45ee56a533",
+  "versionHash": "sha256:278e652e36a5a0074ce7c69f951a38e0f58c9626cd6b36fca0812a0c7eb6c3a8",
   "publisherCode": "hkgov-dpo",
   "code": "ds-hk-hkgov-dpo-address",
   "regionCode": "hk",
@@ -14,7 +14,7 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "Address Lookup Service Addresses",
+      "name": "Address Lookup Service",
       "description": "The ALS provides formatted addresses of the premises in Hong Kong, including private and public housing estates, commercial and industrial buildings, government buildings and offices, markets and shopping centers; and common facilities such as recreation and sports centres. Some addresses provided are representing a complex of buildings, such as schools or universities. Most of the addresses in ALS are available in 2-Dimensional format which typically includes up to street name, building number and building name. 3-Dimensional formatted addresses, such as addresses include flat number and floor number, they are only available for public housing estates. For more details, please refer the [Data Dictionary](https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN-v3.2.pdf)."
     },
     {
