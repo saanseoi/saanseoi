@@ -1,4 +1,7 @@
 <script lang="ts">
+import { slide } from 'svelte/transition'
+import { m } from '$lib/bits/internal/i18n'
+
 export type SourceFlowInput = {
   id: string
   publisher: string
@@ -12,7 +15,15 @@ export type SourceFlowInput = {
     label: string
     value: string
   }>
-  status?: string
+  planned?: boolean
+  variant?: string
+}
+
+export type SourceFlowDomain = {
+  id: string
+  label: string
+  primary: SourceFlowInput
+  variants: SourceFlowInput[]
 }
 
 export type SourceFlowLane = {
@@ -23,19 +34,74 @@ export type SourceFlowLane = {
   secondary: string
   ink: string
   image: string
-  inputs: SourceFlowInput[]
-  primaryInputCount?: number
+  primary: SourceFlowInput
+  primaryGroupLabel: string
+  groupLabel: 'domain' | 'cohort'
+  defaultGroupExpanded?: boolean
+  domains: SourceFlowDomain[]
 }
 
-let { lanes }: { lanes: SourceFlowLane[] } = $props()
+let {
+  lanes,
+  showPlanned = $bindable(true),
+  expandAll = $bindable(false),
+}: {
+  lanes: SourceFlowLane[]
+  showPlanned?: boolean
+  expandAll?: boolean
+} = $props()
 let expandedLaneIds = $state<string[]>([])
+let expandedDomainIds = $state<string[]>([])
+let laneElements = $state<Record<string, HTMLElement>>({})
+let connectorGeometries = $state<
+  Record<
+    string,
+    {
+      inputY: number[]
+      outputY: number
+      lineEnd: number
+    }
+  >
+>({})
 
 const isExpanded = (lane: SourceFlowLane) => expandedLaneIds.includes(lane.id)
+const groupLabel = (lane: SourceFlowLane) =>
+  lane.groupLabel === 'cohort' ? m.sources_flow_cohort() : m.sources_flow_domain()
+const groupLabels = (lane: SourceFlowLane) =>
+  lane.groupLabel === 'cohort' ? m.sources_flow_cohorts() : m.sources_flow_domains()
+const isDomainExpanded = (lane: SourceFlowLane, domain: SourceFlowDomain) =>
+  lane.defaultGroupExpanded === true && domain.label === lane.primaryGroupLabel
+    ? true
+    : expandedDomainIds.includes(domain.id)
 
-const visibleInputs = (lane: SourceFlowLane) =>
-  isExpanded(lane)
-    ? lane.inputs
-    : lane.inputs.slice(0, lane.primaryInputCount ?? lane.inputs.length)
+const isPlanned = (input: SourceFlowInput) => input.planned === true
+const isVisible = (input: SourceFlowInput) => showPlanned || !isPlanned(input)
+const visibleInputs = (inputs: SourceFlowInput[]) => inputs.filter(isVisible)
+const remainingGroupCount = (lane: SourceFlowLane) =>
+  lane.defaultGroupExpanded ? lane.domains.length - 1 : lane.domains.length
+
+const visibleDomainInputs = (lane: SourceFlowLane, domain: SourceFlowDomain) =>
+  visibleInputs([
+    domain.primary,
+    ...(isDomainExpanded(lane, domain) ? domain.variants : []),
+  ])
+
+const visibleDefaultInputs = (lane: SourceFlowLane) => {
+  const domain = lane.domains[0]
+  if (lane.domains.length === 1 && domain) return visibleDomainInputs(lane, domain)
+  if (lane.defaultGroupExpanded && domain) return visibleDomainInputs(lane, domain)
+  return visibleInputs([lane.primary])
+}
+
+const hasVisibleInputs = (inputs: SourceFlowInput[]) => visibleInputs(inputs).length > 0
+const hasVisibleDomain = (domain: SourceFlowDomain) =>
+  hasVisibleInputs([domain.primary, ...domain.variants])
+const hasVisibleDefault = (lane: SourceFlowLane) => {
+  const domain = lane.domains[0]
+  return lane.domains.length === 1 && domain
+    ? hasVisibleDomain(domain)
+    : hasVisibleInputs([lane.primary])
+}
 
 const toggleExpanded = (laneId: string) => {
   expandedLaneIds = expandedLaneIds.includes(laneId)
@@ -43,11 +109,125 @@ const toggleExpanded = (laneId: string) => {
     : [...expandedLaneIds, laneId]
 }
 
-const connectorPath = (inputCount: number, inputIndex: number) => {
-  const outputY = 50
-  const inputY = inputCount <= 1 ? outputY : ((inputIndex + 0.5) / inputCount) * 100
+const toggleDomainExpanded = (domainId: string) => {
+  expandedDomainIds = expandedDomainIds.includes(domainId)
+    ? expandedDomainIds.filter(id => id !== domainId)
+    : [...expandedDomainIds, domainId]
+}
 
-  return `M 4 ${inputY} C 34 ${inputY}, 42 ${outputY}, 72 ${outputY} S 114 ${outputY}, 146 ${outputY}`
+const registerLane = (node: HTMLElement, groupId: string) => {
+  laneElements[groupId] = node
+
+  return {
+    destroy: () => {
+      if (laneElements[groupId] === node) delete laneElements[groupId]
+    },
+  }
+}
+
+const measureConnectorGeometries = () => {
+  const next: Record<
+    string,
+    {
+      inputY: number[]
+      outputY: number
+      lineEnd: number
+    }
+  > = {}
+
+  for (const [groupId, laneElement] of Object.entries(laneElements)) {
+    const connectorElement = laneElement.querySelector<SVGElement>(
+      '.source-flow-connectors',
+    )
+    const inputElements = Array.from(
+      laneElement.querySelectorAll<HTMLElement>('.source-flow-input'),
+    )
+
+    if (!connectorElement || !inputElements.length) continue
+
+    const connectorRect = connectorElement.getBoundingClientRect()
+    if (!connectorRect.height) continue
+
+    const inputRects = inputElements.map(input => input.getBoundingClientRect())
+    const inputY = inputRects.map(
+      input =>
+        ((input.top + input.height / 2 - connectorRect.top) / connectorRect.height) *
+        100,
+    )
+    next[groupId] = {
+      inputY,
+      outputY: inputY[0] ?? 0,
+      lineEnd: 150 - (5 / connectorRect.width) * 150,
+    }
+  }
+
+  connectorGeometries = next
+}
+
+$effect(() => {
+  lanes.length
+  showPlanned
+  expandAll
+  Object.keys(laneElements).length
+
+  const frame = requestAnimationFrame(measureConnectorGeometries)
+  const observer = new ResizeObserver(measureConnectorGeometries)
+
+  for (const laneElement of Object.values(laneElements)) observer.observe(laneElement)
+
+  return () => {
+    cancelAnimationFrame(frame)
+    observer.disconnect()
+  }
+})
+
+$effect(() => {
+  if (expandAll) {
+    expandedLaneIds = lanes.filter(lane => lane.domains.length > 1).map(lane => lane.id)
+    expandedDomainIds = lanes.flatMap(lane => lane.domains.map(domain => domain.id))
+  } else {
+    expandedLaneIds = []
+    expandedDomainIds = []
+  }
+})
+
+const defaultConnectorY = (inputCount: number, inputIndex: number) => {
+  const cardHeight = 5.65
+  const rowHeight = 6.4
+  const flowHeight = Math.max(
+    cardHeight,
+    inputCount * rowHeight - (rowHeight - cardHeight),
+  )
+  const outputY = (cardHeight / 2 / flowHeight) * 100
+  const inputY = ((cardHeight / 2 + inputIndex * rowHeight) / flowHeight) * 100
+
+  return { inputY, outputY }
+}
+
+const connectorPath = (
+  inputY: number,
+  outputY: number,
+  lineEnd: number,
+  isPrimary: boolean,
+) => {
+  if (isPrimary) return `M 0 ${outputY} H ${lineEnd}`
+
+  const joinX = 72
+  return `M 0 ${inputY} C 34 ${inputY}, 42 ${outputY}, ${joinX} ${outputY}`
+}
+
+const getConnectorGeometry = (groupId: string, inputCount: number) => {
+  const measured = connectorGeometries[groupId]
+  if (measured) return measured
+
+  return {
+    inputY: Array.from(
+      { length: inputCount },
+      (_, inputIndex) => defaultConnectorY(inputCount, inputIndex).inputY,
+    ),
+    outputY: defaultConnectorY(inputCount, 0).outputY,
+    lineEnd: 145,
+  }
 }
 
 const stackedFlowPoints = (inputCount: number) => {
@@ -81,130 +261,191 @@ const stackedArrowPath = (inputCount: number) => {
 }
 </script>
 
+{#snippet flowGroup(
+  lane: SourceFlowLane,
+  laneIndex: number,
+  inputs: SourceFlowInput[],
+  groupId: string,
+  domain?: SourceFlowDomain,
+)}
+  {@const geometry = getConnectorGeometry(groupId, inputs.length)}
+  <section
+    class="source-flow-lane"
+    use:registerLane={groupId}
+    transition:slide={{ duration: 220, axis: 'y' }}
+    style={`--flow-accent: ${lane.accent}; --flow-connector: ${lane.id === 'addresses' ? lane.secondary : lane.accent}; --flow-label: ${lane.id === 'addresses' || lane.id === 'stats' ? lane.secondary : lane.accent}; --flow-ink: ${lane.ink}; --flow-index: ${laneIndex}; --visible-source-count: ${inputs.length};`}
+    aria-labelledby={`source-flow-${groupId}`}
+  >
+    <div class="source-flow-inputs">
+      {#each inputs as input (input.id)}
+        <svelte:element
+          this={input.href ? 'a' : 'div'}
+          class="source-flow-input group"
+          style={`--source-accent: ${input.accent};`}
+          href={input.href}
+          aria-label={input.href ? `${input.publisher}: ${input.source}` : undefined}
+          transition:slide={{ duration: 180, axis: 'y' }}
+        >
+          <span
+            class={`source-flow-icon ${
+              input.iconTone ? `source-flow-icon-${input.iconTone}` : ''
+            }`}
+            aria-hidden="true"
+          >
+            {#if input.icon}
+              <img src={input.icon} alt="">
+            {:else}
+              <span>{input.fallbackIcon ?? input.publisher.slice(0, 2)}</span>
+            {/if}
+          </span>
+          <span class="min-w-0">
+            <span class="source-flow-source">{input.source}</span>
+            <span class="source-flow-publisher">{input.publisher}</span>
+            {#if input.fields?.length}
+              <span class="source-flow-fields">
+                {#each input.fields as field}
+                  <span class="source-flow-field">
+                    <span class="source-flow-field-label">{field.label}</span>
+                    <span class="source-flow-field-value">{field.value}</span>
+                  </span>
+                {/each}
+              </span>
+            {/if}
+          </span>
+          {#if input.planned || input.variant}
+            <span class="source-flow-statuses">
+              {#if input.planned}
+                <span class="source-flow-status">PLANNED</span>
+              {/if}
+              {#if input.variant}
+                <span class="source-flow-status source-flow-status-variant"
+                  >{input.variant}</span
+                >
+              {/if}
+            </span>
+          {/if}
+        </svelte:element>
+      {/each}
+      {#if domain?.variants.some(isVisible) &&
+        !(lane.defaultGroupExpanded && domain.label === lane.primaryGroupLabel)}
+        <button
+          class="source-flow-more"
+          type="button"
+          aria-expanded={isDomainExpanded(lane, domain)}
+          onclick={() => toggleDomainExpanded(domain.id)}
+        >
+          {#if isDomainExpanded(lane, domain)}
+            {m.sources_flow_hide()}
+          {:else}
+            <span>{m.sources_flow_show()}</span>
+            <strong>{visibleInputs(domain.variants).length}</strong>
+            <span>{m.sources_flow_more()}</span>
+          {/if}
+        </button>
+      {/if}
+      {#if (!domain || lane.defaultGroupExpanded) && lane.domains.length > 1}
+        <button
+          class="source-flow-more"
+          type="button"
+          aria-expanded={isExpanded(lane)}
+          onclick={() => toggleExpanded(lane.id)}
+        >
+          {#if isExpanded(lane)}
+            {m.sources_flow_hide()} {groupLabels(lane)}
+          {:else}
+            <span>{m.sources_flow_show()}</span>
+            <strong>{remainingGroupCount(lane)}</strong>
+            <span>{groupLabels(lane)}</span>
+          {/if}
+        </button>
+      {/if}
+    </div>
+
+    <dl class="source-flow-gutter">
+      <dt>{groupLabel(lane)}</dt>
+      <dd>{domain?.label ?? lane.primaryGroupLabel}</dd>
+    </dl>
+
+    <svg
+      class="source-flow-connectors"
+      viewBox="0 0 150 100"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      {#each inputs as input, inputIndex (input.id)}
+        <path
+          class="source-flow-path"
+          d={connectorPath(
+            geometry.inputY[inputIndex] ?? geometry.outputY,
+            geometry.outputY,
+            geometry.lineEnd,
+            inputIndex === 0,
+          )}
+        ></path>
+      {/each}
+    </svg>
+
+    <svg
+      class="source-flow-stacked-connectors"
+      viewBox="0 0 36 100"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      {#each inputs as input, inputIndex (input.id)}
+        <path
+          class="source-flow-stacked-input"
+          d={stackedInputPath(inputs.length, inputIndex)}
+        ></path>
+      {/each}
+      <path
+        class="source-flow-stacked-trunk"
+        d={stackedTrunkPath(inputs.length)}
+      ></path>
+      <path
+        class="source-flow-stacked-arrow"
+        d={stackedArrowPath(inputs.length)}
+      ></path>
+    </svg>
+
+    <span class="source-flow-arrow-head" aria-hidden="true"></span>
+
+    <a class="source-flow-output group" href={lane.href} id={`source-flow-${groupId}`}>
+      <span class="source-flow-output-image" aria-hidden="true">
+        <img src={lane.image} alt="">
+      </span>
+      <span class="source-flow-output-label">
+        <span class="font-display text-2xl font-bold leading-none">{lane.label}</span>
+        <span class="source-flow-output-subtitle">{m.sources_flow_api_family()}</span>
+      </span>
+    </a>
+  </section>
+{/snippet}
+
 <div class="source-flow-map grid gap-4">
   {#each lanes as lane, laneIndex (lane.id)}
-    <section
-      class="source-flow-lane"
-      style={`--flow-accent: ${lane.accent}; --flow-connector: ${lane.id === 'addresses' ? lane.secondary : lane.accent}; --flow-ink: ${lane.ink}; --flow-index: ${laneIndex}; --visible-source-count: ${visibleInputs(lane).length};`}
-      aria-labelledby={`source-flow-${lane.id}`}
-    >
-      <div class="source-flow-inputs">
-        {#each visibleInputs(lane) as input (input.id)}
-          <svelte:element
-            this={input.href ? 'a' : 'div'}
-            class="source-flow-input group"
-            style={`--source-accent: ${input.accent};`}
-            href={input.href}
-            aria-label={input.href ? `${input.publisher}: ${input.source}` : undefined}
-          >
-            <span
-              class={`source-flow-icon ${
-                input.iconTone ? `source-flow-icon-${input.iconTone}` : ''
-              }`}
-              aria-hidden="true"
-            >
-              {#if input.icon}
-                <img src={input.icon} alt="">
-              {:else}
-                <span>{input.fallbackIcon ?? input.publisher.slice(0, 2)}</span>
-              {/if}
-            </span>
-            <span class="min-w-0">
-              <span class="source-flow-source">{input.source}</span>
-              <span class="source-flow-publisher">{input.publisher}</span>
-              {#if input.fields?.length}
-                <span class="source-flow-fields">
-                  {#each input.fields as field}
-                    <span class="source-flow-field">
-                      <span class="source-flow-field-label">{field.label}</span>
-                      <span class="source-flow-field-value">{field.value}</span>
-                    </span>
-                  {/each}
-                </span>
-              {/if}
-            </span>
-            {#if input.status}
-              <span class="source-flow-status">{input.status}</span>
-            {/if}
-          </svelte:element>
-        {/each}
-        {#if lane.inputs.length > (lane.primaryInputCount ?? lane.inputs.length)}
-          <button
-            class="source-flow-more"
-            type="button"
-            aria-expanded={isExpanded(lane)}
-            onclick={() => toggleExpanded(lane.id)}
-          >
-            {isExpanded(lane)
-              ? 'Show fewer'
-              : `… ${lane.inputs.length - (lane.primaryInputCount ?? lane.inputs.length)} more`}
-          </button>
+    {#if !isExpanded(lane)}
+      {#if hasVisibleDefault(lane)}
+        {@render flowGroup(
+          lane,
+          laneIndex,
+          visibleDefaultInputs(lane),
+          lane.id,
+          lane.domains.length === 1 ? lane.domains[0] : undefined,
+        )}
+      {/if}
+    {:else}
+      {#each lane.domains as domain (domain.id)}
+        {#if hasVisibleDomain(domain)}
+          {@render flowGroup(
+            lane,
+            laneIndex,
+            visibleDomainInputs(lane, domain),
+            domain.id,
+            domain,
+          )}
         {/if}
-      </div>
-
-      <svg
-        class="source-flow-connectors"
-        viewBox="0 0 150 100"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <defs>
-          <marker
-            id={`source-flow-arrow-${lane.id}`}
-            markerWidth="8"
-            markerHeight="8"
-            refX="6.8"
-            refY="4"
-            orient="auto"
-          >
-            <path d="M 0 1 L 7 4 L 0 7 Z" fill="var(--flow-connector)"></path>
-          </marker>
-        </defs>
-        {#each visibleInputs(lane) as input, inputIndex (input.id)}
-          <path
-            class="source-flow-path"
-            d={connectorPath(visibleInputs(lane).length, inputIndex)}
-            marker-end={`url(#source-flow-arrow-${lane.id})`}
-          ></path>
-        {/each}
-      </svg>
-
-      <svg
-        class="source-flow-stacked-connectors"
-        viewBox="0 0 36 100"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        {#each visibleInputs(lane) as input, inputIndex (input.id)}
-          <path
-            class="source-flow-stacked-input"
-            d={stackedInputPath(visibleInputs(lane).length, inputIndex)}
-          ></path>
-        {/each}
-        <path
-          class="source-flow-stacked-trunk"
-          d={stackedTrunkPath(visibleInputs(lane).length)}
-        ></path>
-        <path
-          class="source-flow-stacked-arrow"
-          d={stackedArrowPath(visibleInputs(lane).length)}
-        ></path>
-      </svg>
-
-      <a
-        class="source-flow-output group"
-        href={lane.href}
-        id={`source-flow-${lane.id}`}
-      >
-        <span class="source-flow-output-image" aria-hidden="true">
-          <img src={lane.image} alt="">
-        </span>
-        <span class="source-flow-output-label">
-          <span class="font-display text-2xl font-bold leading-none">{lane.label}</span>
-          <span class="source-flow-output-subtitle">API FAMILY</span>
-        </span>
-      </a>
-    </section>
+      {/each}
+    {/if}
   {/each}
 </div>
 
@@ -217,8 +458,8 @@ const stackedArrowPath = (inputCount: number) => {
   position: relative;
   display: grid;
   min-height: 9.5rem;
-  grid-template-columns: minmax(0, 1.25fr) minmax(7rem, 0.42fr) minmax(14rem, 0.72fr);
-  align-items: center;
+  grid-template-columns: minmax(0, 1.25fr) minmax(8rem, 0.46fr) minmax(14rem, 0.72fr);
+  align-items: start;
   gap: 1.25rem;
   padding: 1rem 0;
 }
@@ -228,28 +469,75 @@ const stackedArrowPath = (inputCount: number) => {
 }
 
 .source-flow-inputs {
+  grid-column: 1;
+  grid-row: 1;
   display: grid;
   gap: 0.75rem;
 }
 
 .source-flow-more {
-  justify-self: start;
-  border: 1px dashed color-mix(in srgb, var(--flow-accent) 55%, var(--outline-variant));
-  border-radius: 0.35rem;
-  background: color-mix(in srgb, var(--flow-accent) 8%, var(--surface-container-low));
-  padding: 0.45rem 0.65rem;
-  font-family: var(--font-body);
+  justify-self: center;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.32rem;
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 0;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   font-size: 0.75rem;
-  font-weight: 750;
-  color: var(--primary);
+  font-weight: 700;
+  color: var(--foreground-alt);
+  text-transform: uppercase;
   cursor: pointer;
+}
+
+.source-flow-more strong {
+  color: var(--flow-accent);
+  font-size: 1.15rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .source-flow-more:hover,
 .source-flow-more:focus-visible {
-  border-style: solid;
-  border-color: var(--flow-accent);
+  color: var(--primary);
   outline: none;
+  text-decoration: underline;
+  text-decoration-color: var(--flow-accent);
+  text-underline-offset: 0.28rem;
+}
+
+.source-flow-gutter {
+  grid-column: 2;
+  grid-row: 1;
+  z-index: 1;
+  margin-top: 2px;
+  margin-left: -12px;
+  align-self: start;
+  display: grid;
+  gap: 0.18rem;
+  min-height: 5.65rem;
+  align-content: center;
+  padding: 0;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  text-transform: uppercase;
+}
+
+.source-flow-gutter dt {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--foreground-alt) 72%, transparent);
+}
+
+.source-flow-gutter dd {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--flow-label);
 }
 
 .source-flow-input,
@@ -420,7 +708,6 @@ const stackedArrowPath = (inputCount: number) => {
 .source-flow-status {
   position: relative;
   z-index: 1;
-  align-self: start;
   border: 1px solid color-mix(in srgb, var(--source-accent) 42%, transparent);
   border-radius: 0.25rem;
   background: color-mix(in srgb, var(--source-accent) 12%, transparent);
@@ -432,14 +719,62 @@ const stackedArrowPath = (inputCount: number) => {
   text-transform: uppercase;
 }
 
+.source-flow-statuses {
+  position: absolute;
+  inset: 0.72rem;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.source-flow-status-variant {
+  border-color: color-mix(in srgb, #fff 65%, transparent);
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
+}
+
+.source-flow-statuses .source-flow-status {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+.source-flow-statuses .source-flow-status-variant {
+  top: 0;
+  bottom: auto;
+}
+
 .source-flow-connectors {
-  width: 100%;
-  height: max(8rem, calc(var(--visible-source-count) * 6.4rem));
+  grid-column: 2;
+  grid-row: 1;
+  z-index: 0;
+  align-self: start;
+  width: calc(100% + 1.25rem);
+  margin-left: -1.25rem;
+  height: max(5.65rem, calc(var(--visible-source-count) * 6.4rem - 0.75rem));
   overflow: visible;
 }
 
 .source-flow-stacked-connectors {
   display: none;
+}
+
+.source-flow-arrow-head {
+  grid-column: 3;
+  grid-row: 1;
+  z-index: 2;
+  align-self: start;
+  justify-self: start;
+  width: 0;
+  height: 0;
+  margin-left: calc(-0.5rem - 16px);
+  border-top: 0.4rem solid transparent;
+  border-bottom: 0.4rem solid transparent;
+  border-left: 0.5rem solid var(--flow-connector);
+  transform: translateY(2.425rem);
+  pointer-events: none;
+  filter: drop-shadow(
+    0 0 0.2rem color-mix(in srgb, var(--flow-connector) 32%, transparent)
+  );
 }
 
 .source-flow-path,
@@ -456,6 +791,10 @@ const stackedArrowPath = (inputCount: number) => {
   filter: drop-shadow(
     0 0 0.35rem color-mix(in srgb, var(--flow-connector) 22%, transparent)
   );
+}
+
+.source-flow-path {
+  vector-effect: non-scaling-stroke;
 }
 
 .source-flow-stacked-input,
@@ -481,9 +820,12 @@ const stackedArrowPath = (inputCount: number) => {
 }
 
 .source-flow-output {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: start;
   position: relative;
   display: flex;
-  min-height: 6.9rem;
+  min-height: 5.65rem;
   align-items: center;
   justify-content: space-between;
   overflow: hidden;
@@ -603,13 +945,24 @@ const stackedArrowPath = (inputCount: number) => {
   }
 
   .source-flow-inputs,
-  .source-flow-output {
+  .source-flow-output,
+  .source-flow-gutter {
     position: relative;
     z-index: 1;
     margin-left: var(--stacked-flow-gutter);
   }
 
+  .source-flow-gutter {
+    grid-column: 1;
+    grid-row: auto;
+    padding-top: 0;
+  }
+
   .source-flow-connectors {
+    display: none;
+  }
+
+  .source-flow-arrow-head {
     display: none;
   }
 
@@ -657,11 +1010,6 @@ const stackedArrowPath = (inputCount: number) => {
   .source-flow-icon img {
     width: 2.35rem;
     height: 2.35rem;
-  }
-
-  .source-flow-status {
-    grid-column: 2;
-    justify-self: start;
   }
 }
 </style>
