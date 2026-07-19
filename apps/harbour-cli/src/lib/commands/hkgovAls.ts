@@ -68,19 +68,19 @@ export async function runHkgovAlsPrepCommand(
 
   if (result.sourceDuplicateFeatureGroups.length > 0) {
     note(
-      formatSourceDuplicateTable(result.sourceDuplicateFeatureGroups),
+      formatSourceDuplicateSummary(result.sourceDuplicateFeatureGroups),
       'SOURCE DUPLICATES REMOVED',
     )
   }
   if (result.identityEquivalentFeatureGroups.length > 0) {
     note(
-      formatSourceDuplicateTable(result.identityEquivalentFeatureGroups),
+      formatSourceDuplicateSummary(result.identityEquivalentFeatureGroups),
       'EQUIVALENT ALS PREMISE VARIANTS CONSOLIDATED (SAME COMPLETE PREMISE IDENTITY)',
     )
   }
   if (result.numberRangeSingletonFeatureGroups.length > 0) {
     note(
-      formatSourceDuplicateTable(result.numberRangeSingletonFeatureGroups),
+      formatSourceDuplicateSummary(result.numberRangeSingletonFeatureGroups),
       'NUMBER-RANGE/SINGLETON PREMISE VARIANTS CONSOLIDATED',
     )
   }
@@ -238,19 +238,19 @@ export async function runHkgovAlsLocalIngestCommand(
 
     if (result.sourceDuplicateFeatureGroups.length > 0) {
       note(
-        formatSourceDuplicateTable(result.sourceDuplicateFeatureGroups),
+        formatSourceDuplicateSummary(result.sourceDuplicateFeatureGroups),
         `SOURCE DUPLICATES REMOVED — ${sourceVersion}`,
       )
     }
     if (result.identityEquivalentFeatureGroups.length > 0) {
       note(
-        formatSourceDuplicateTable(result.identityEquivalentFeatureGroups),
+        formatSourceDuplicateSummary(result.identityEquivalentFeatureGroups),
         `EQUIVALENT ALS PREMISE VARIANTS CONSOLIDATED (SAME COMPLETE PREMISE IDENTITY) — ${sourceVersion}`,
       )
     }
     if (result.numberRangeSingletonFeatureGroups.length > 0) {
       note(
-        formatSourceDuplicateTable(result.numberRangeSingletonFeatureGroups),
+        formatSourceDuplicateSummary(result.numberRangeSingletonFeatureGroups),
         `NUMBER-RANGE/SINGLETON PREMISE VARIANTS CONSOLIDATED — ${sourceVersion}`,
       )
     }
@@ -661,7 +661,7 @@ async function writeJson(filePath: string, value: unknown) {
   await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`)
 }
 
-function formatSourceDuplicateTable(
+export function formatSourceDuplicateSummary(
   groups: Array<{
     address: string
     canonicalRecord?: Record<string, unknown>
@@ -672,27 +672,20 @@ function formatSourceDuplicateTable(
     }>
   }>,
 ) {
-  const rows = groups.map((group, index) => [
-    String(index + 1),
-    group.address.replaceAll('|', '\\|'),
-    group.occurrences
-      .map(occurrence => `${occurrence.sourceFile} #${occurrence.featureIndexOneBased}`)
-      .join(', '),
-  ])
-  const header = ['Record', 'Address', 'Source feature positions (one-based)']
-  const table = [
-    `| ${header.join(' | ')} |`,
-    `| ${header.map(() => '---').join(' | ')} |`,
-    ...rows.map(row => `| ${row.join(' | ')} |`),
+  const sourceFeatures = groups.reduce(
+    (count, group) => count + group.occurrences.length,
+    0,
+  )
+  const sourceFiles = new Set(
+    groups.flatMap(group => group.occurrences.map(occurrence => occurrence.sourceFile)),
+  )
+
+  return [
+    formatField('affectedPremises', String(groups.length)),
+    formatField('sourceFeaturesInvolved', String(sourceFeatures)),
+    formatField('sourceFeaturesRemoved', String(sourceFeatures - groups.length)),
+    formatField('sourceFilesInvolved', String(sourceFiles.size)),
   ].join('\n')
-  const decisionDetails = groups.flatMap((group, index) => {
-    if (!group.canonicalRecord || !group.ignoredRecords?.length) return []
-    return [
-      `Record ${index + 1} canonical record:\n${JSON.stringify(group.canonicalRecord, null, 2)}`,
-      `Ignored variants:\n${JSON.stringify(group.ignoredRecords, null, 2)}`,
-    ]
-  })
-  return decisionDetails.length > 0 ? [table, ...decisionDetails].join('\n\n') : table
 }
 
 export function inferAlsSourceVersionFromPath(value: string) {
