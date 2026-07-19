@@ -747,12 +747,11 @@ async function writeGeometryRows(
   onProgress?.('clear current rows')
   await context.currentDb
     .delete(currentTable)
-    .where(
-      and(
-        eq(currentTable.snapshotId, version.snapshotId),
-        eq(currentTable.variant, version.variant),
-      ),
-    )
+    // The current-table key is `(snapshotId, id)`, not `(snapshotId, variant, id)`.
+    // A snapshot therefore represents exactly one geometry variant. Clear the full
+    // snapshot so a retry also replaces rows written before a variant was renamed
+    // (for example the legacy `hkgov-censtatd` C&SD variant).
+    .where(eq(currentTable.snapshotId, version.snapshotId))
     .run()
   const historyHashes = new Map<string, string>()
   const sourceHashes = new Map<string, string>()

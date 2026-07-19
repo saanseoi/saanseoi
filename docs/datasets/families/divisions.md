@@ -61,9 +61,11 @@ canonical identifiers to the HAD district-area geometry for a comparable map acr
 division datasets.
 
 Historical C&SD district areas are optional, cohort-qualified statistical-geometry
-variants (`hkgov-censtatd:2016` and `hkgov-censtatd:2021`), never defaults. Each is
-anchored to the earliest published Overture canonical-division snapshot at or after its
-census cohort; that immutable anchor provides identity, hierarchy, and names without
+variants, never defaults. Each census cohort has an exact source variant
+(`hkgov-censtatd:2016` or `hkgov-censtatd:2021`) and an optional low-detail display
+derivative (`hkgov-censtatd:2016:simplified` or `hkgov-censtatd:2021:simplified`). Each
+is anchored to the earliest published Overture canonical-division snapshot at or after
+its census cohort; that immutable anchor provides identity, hierarchy, and names without
 representing the C&SD boundary as an evergreen administrative geometry.
 
 For Overture, release audit entries are limited to investigable source-policy
