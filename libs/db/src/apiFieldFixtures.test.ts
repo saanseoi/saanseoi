@@ -13,6 +13,7 @@ describe('api field fixtures', () => {
       'ds-hk-overture-division-area': '1.12.0',
       'ds-hk-overture-division-boundary': '1.12.0',
       'ds-hk-hkgov-had-division-area-district': '1.2',
+      'ds-hk-hkgov-censtatd-division-area-district': '1.0',
     })
 
     expect(
@@ -29,6 +30,28 @@ describe('api field fixtures', () => {
         },
       })?.validFromSnapshotVersion,
     ).toBe('ss-hk-division-2025-09-24.0')
+
+    expect(
+      resolveApiFieldFixture({
+        apiVersion: 'api-divisions-v0.1',
+        snapshotVersion: 'ss-hk-division-2025-09-24.0',
+        schemaVersion: 'sv-division-v1',
+        rulesetVersion: 'rs-division-merge-v1',
+        sourceSchemas: {
+          'ds-hk-overture-division': '1.12.0',
+          'ds-hk-overture-division-area': '1.12.0',
+          'ds-hk-overture-division-boundary': '1.12.0',
+          'ds-hk-hkgov-had-division-area-district': '1.2',
+          'ds-hk-hkgov-censtatd-division-area-district': '1.0',
+        },
+      })?.fields,
+    ).toContainEqual(
+      expect.objectContaining({
+        apiField: 'divisionArea.attributes.variant',
+        variant: 'hkgov-censtatd:2016',
+        sourceDatasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+      }),
+    )
   })
 
   test('forward-fills Overture division fixtures with the baseline API fields', () => {
