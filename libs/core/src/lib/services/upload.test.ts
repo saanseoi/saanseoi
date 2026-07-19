@@ -96,7 +96,7 @@ function createTempDir() {
 }
 
 function createOvertureStyleFixture(tempDir: string) {
-  const targetDir = join(tempDir, 'data/2025-09-24.0/divisions/中国/Hong Kong SAR')
+  const targetDir = join(tempDir, 'data/2025-09-24.0/divisions/China/Hong Kong')
   const targetFile = join(targetDir, 'division.parquet')
 
   mkdirSync(targetDir, { recursive: true })
@@ -201,8 +201,7 @@ describe('upload', () => {
   })
 
   test('prefers the address filename signal over a broader parent theme folder', () => {
-    const filePath =
-      '/tmp/data/2025-09-24.0/divisions/中国/Hong Kong SAR/address.parquet'
+    const filePath = '/tmp/data/2025-09-24.0/divisions/China/Hong Kong/address.parquet'
 
     expect(inferTypeFromPath(filePath)).toBe('address')
     expect(inferThemeFromPath(filePath)).toBe('addresses')
@@ -224,7 +223,7 @@ describe('upload', () => {
     const tempDir = createTempDir()
     const filePath = join(
       tempDir,
-      'data/2025-09-24.0/divisions/中国/Hong Kong SAR/address.parquet',
+      'data/2025-09-24.0/divisions/China/Hong Kong/address.parquet',
     )
 
     mkdirSync(dirname(filePath), { recursive: true })

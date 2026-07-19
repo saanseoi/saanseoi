@@ -23,8 +23,8 @@ from shapely.ops import transform, unary_union
 
 CHINA_DIVISION_ID = "fb68fc73-3ac6-41c9-a692-22fcf20cb5be"
 TARGETS = {
-    "Hong Kong SAR": "Hong Kong SAR",
-    "Macao SAR": "Macao SAR",
+    "Hong Kong SAR": Path("China") / "Hong Kong",
+    "Macao SAR": Path("China") / "Macau",
 }
 EQUAL_AREA = Transformer.from_crs("EPSG:4326", "EPSG:6933", always_xy=True).transform
 
@@ -225,7 +225,6 @@ def main() -> None:
             output = (
                 args.output_root
                 / "divisions"
-                / "中国"
                 / directory
                 / f"{feature_type}.division.intersects.clipSmart.parquet"
             )
