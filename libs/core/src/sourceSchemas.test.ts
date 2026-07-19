@@ -25,6 +25,21 @@ describe('sourceSchemas', () => {
     ).resolves.toBe('1.2')
   })
 
+  test('resolves C&SD source and display-derivative schema versions', async () => {
+    await expect(
+      resolveSourceSchemaVersion({
+        source: 'hkgov-censtatd',
+        sourceVersion: '2016',
+      }),
+    ).resolves.toBe('1.0')
+    await expect(
+      resolveSourceSchemaVersion({
+        source: 'hkgov-censtatd',
+        sourceVersion: '2021-simplified-v1',
+      }),
+    ).resolves.toBe('1.0')
+  })
+
   test('resolves observed Planning Department TPU and New Town profiles', async () => {
     await expect(
       resolveSourceSchemaVersion({

@@ -47,12 +47,14 @@ export function publisherCodeForSource(source: string) {
   if (source === 'hkgov-pland-pu' || source === 'hkgov-pland-new-town') {
     return 'hkgov-pland'
   }
-
   return source
 }
 
 export function productCodeForSource(source: string, resourceType: ResourceType) {
   if (source === 'hkgov-had' && resourceType === 'divisionArea') return 'district'
+  if (source === 'hkgov-censtatd' && resourceType === 'divisionArea') {
+    return 'district'
+  }
   if (
     source === 'hkgov-pland-pu' &&
     (resourceType === 'division' || resourceType === 'divisionArea')
