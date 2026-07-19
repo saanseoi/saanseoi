@@ -80,6 +80,17 @@ export type SourceVersion = {
     groupBy?: string | null
     groupValue?: string | null
   }>
+  processingActions?: Array<{
+    id: string
+    releaseId: string
+    action: string
+    mode: 'automatic' | 'manual'
+    summary: string
+    affectedRecordCount: number
+    evidence: unknown
+    createdAt: string
+    updatedAt: string
+  }>
   releaseAs?: Array<{
     apiFamily: string
     code: string
@@ -119,5 +130,12 @@ export type RegistrySource = {
   attribution?: string | null
   tags?: unknown
   datasetI18n?: LocalizedRow[]
+  transforms?: Array<{
+    code: string
+    resourceType: string
+    sourceVersion: string
+    outputVariant: string
+    derivation: unknown
+  }>
   sourceVersions?: SourceVersion[]
 }
