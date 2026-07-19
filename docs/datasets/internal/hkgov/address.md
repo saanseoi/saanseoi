@@ -56,9 +56,11 @@ saanseoi reports:processing-actions --source hkgov-dpo --type address
 
 The source release also persists presentation stats after consolidation: address count
 and lifecycle churn, formatted-address coverage by locale, coverage of meaningful
-optional label components (street, building, estate, phase, and block), and counts by
-canonical district. The district counts are keyed by canonical division ID so Atlas can
-join them to the selected HAD district-area geometry without relying on display names.
+optional label components (street name and number, village name, building, estate,
+phase, and block), and counts by canonical district. Street and village names remain
+separate coverage measures: village-addressed premises do not imply that a street name
+was supplied. The district counts are keyed by canonical division ID so Atlas can join
+them to the selected HAD district-area geometry without relying on display names.
 
 ## Stable ALS premise ID
 

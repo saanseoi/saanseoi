@@ -81,7 +81,8 @@ The source schema and canonical schema use the same shared source-versioning,
 history-versioning, current-snapshot and `rawProperties` fragments as `division`. Stats
 include accepted counts, land/maritime/mixed type, land/territorial combinations, and
 source or canonical change counts. Geographic exclusions and rejected rows remain
-visible in CLI diagnostics rather than persisted release stats.
+visible in CLI diagnostics rather than persisted release stats; `CN-GD` exclusions are
+also retained as release audit actions.
 
 The Hong Kong cut excludes rows with `region = 'CN-GD'`. A null country is valid for
 maritime or international-water boundaries and is retained. Boundary rows must have
@@ -92,6 +93,11 @@ source-key fields. Canonical rows expose normalized left/right or division refer
 `mixed` is derived when both source flags are true, including the known upstream
 Overture records where the source class alone would otherwise suggest `land` or
 `maritime`.
+
+When the Hong Kong cut excludes one or more `CN-GD` rows, the release writes one
+`overture_division_geometry_cn_gd_excluded` audit action. Its evidence records the
+filter, resource type, source version, count, and up to ten affected-record examples;
+the action is absent when no rows are excluded.
 
 Each release writes source, history, current, and release-level ingestion statistics.
 Geometry snapshots are assembled and published only for the exact release cohort of the

@@ -59,3 +59,8 @@ as a district distribution. A district row contributes to itself; every other ro
 counted against the `district` entry in its normalized hierarchy. Atlas joins those
 canonical identifiers to the HAD district-area geometry for a comparable map across
 division datasets.
+
+For Overture, release audit entries are limited to investigable source-policy
+exceptions: division locale inference or API-locale fallback rows, and `CN-GD` spillover
+geometry excluded from area or boundary releases. The Sources page hides its Audit tab
+when a release has no entries.
