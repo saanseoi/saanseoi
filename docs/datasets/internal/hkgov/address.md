@@ -55,6 +55,23 @@ same source ID. English components are preferred when present, with Traditional 
 components as the fallback. `GeoAddress` remains provenance and an identity anchor; it
 is never treated as a unique premise by itself.
 
+## Conservative premise post-processing
+
+ALS sometimes represents the same structural component in two incompatible ways: in
+`EngBlock`, or embedded in a building name repeated from its estate (for example,
+`LUNG MUN OASIS BLOCK 10` alongside estate `LUNG MUN OASIS`). Before identity creation,
+the importer losslessly normalizes only an exact
+`<estate> <BLOCK|BLK|HOUSE|TOWER> <single identifier>` form into structured block
+fields, and removes a building name that exactly duplicates its estate. It never parses
+free-form names such as `WEST GATE TOWER`, and it refuses an embedded form that
+conflicts with an already populated structured block.
+
+The original English and Chinese ALS premise JSON is retained unchanged for provenance;
+the cleaned component fields and formatted service address carry the post-processing. If
+two source variants resolve to the same reviewed canonical ID in one release, one
+service row is retained, favouring the representation with more structured premise
+detail. This is not spatial or address-string deduplication.
+
 ## ALS-to-ALS drift review
 
 For historical ingestion, the command persists an ignored local identity history at
@@ -62,15 +79,21 @@ For historical ingestion, the command persists an ignored local identity history
 `.local/hkgov-dpo/als-identity-decisions.json`.
 
 Before its first prompt, historical ingestion performs a local, no-write preflight and
-prints the total precedence-variant and identity-drift choices required across every
-selected release. It also writes a batch Markdown review of unresolved changes involving
-a block, house, or tower to
-`.local/hkgov-dpo/identity-drift/block-house-tower-review.md`.
+prints the total remaining identity-drift choices across every selected release.
 
 When a new row has the same unambiguous continuity anchor (CSU/GeoAddress, district,
 route, number/range, and rounded point) but a different premise identity, it is a
 candidate drift. This catches changes such as building name, estate, phase, block, or
 unit changes without silently assuming that the record is the same premise.
+
+If the only changed component is that ALS has withdrawn a previously populated building
+name, the importer automatically retains the existing ID. Building-name additions and
+replacements still require review.
+
+The importer also retains the existing ID when an identical name is reassigned between
+the building-name and estate-name fields, with every other premise component unchanged.
+A premise with a structured block descriptor and number is automatically treated as a
+different address from an otherwise unqualified premise.
 
 Interactive imports show the old and new relevant details and require one choice:
 
@@ -106,13 +129,17 @@ bin/saanseoi ingest-hkgov-dpo-local \
   data/hkgov/dpo/ALS --target local --cohort-key 2025-12-17.0
 ```
 
-The command defaults to ALS releases from the cohort year onward (January 2025 here), so
-pre-2025 directories are excluded. Use `--from-source-version YYYY-MM-DD.NNNN` to choose
-a later start, or `--block-house-tower-review-file FILE` for a different batch-review
-location.
+For this command, `--cohort-key` establishes the default start year (January 2025 here);
+it is **not** applied to every address release. Each ALS release is assigned the latest
+published same-year Overture division cohort at or before its source version, falling
+back to that year's first published cohort. This is required because address and
+division uploads are sharded by year. Use `--from-source-version YYYY-MM-DD.NNNN` to
+choose a later start. Unknown future drift remains interactive.
 
-It resumes safely after a successful local release: source versions already present in
-the persisted ALS identity history are skipped rather than uploaded again.
+It resumes safely after a successful local release: source versions with a published
+local HKGov ALS release are skipped rather than uploaded again. The persisted ALS
+identity history is not used as a skip marker, so resetting the local database correctly
+re-ingests every release.
 
 Use `--dry-run` to validate each prepared parquet and its upload plan without database
 mutation. Use `--yes` only after reviewing any generated drift reports. The command
