@@ -20,7 +20,7 @@ import type {
   ResolvedAddressChunkArtifact,
   ResolvedAddressRecord,
 } from './types'
-import { addAddressPipelineStats } from './types'
+import { addAddressPipelineStats, collectAddressCoverageCounts } from './types'
 
 export async function writeAddressCurrentChunkStage(
   metaDb: MetaDatabase,
@@ -115,7 +115,9 @@ export async function writeAddressCurrentChunkStage(
     insertedVersions: artifact.insertedVersions,
     localizedRows: artifact.localizedRows,
     processedRows: artifact.rowEnd - artifact.rowStart,
+    recordedRows: artifactRows.length,
     unchangedRows: artifact.unchangedRows,
+    ...collectAddressCoverageCounts(artifactRows),
   })
 
   if (artifact.rowEnd < artifact.totalRows) {

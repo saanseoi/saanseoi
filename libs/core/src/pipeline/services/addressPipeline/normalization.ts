@@ -45,6 +45,7 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
   const otStreet =
     asNonEmptyString(row.enStreetName) ?? asNonEmptyString(row.zhHantStreetName)
   const otNumber = joinRange(row.enStreetNumberFrom, row.enStreetNumberTo)
+  const coverageComponents = new Set<string>()
   const i18n: AddressI18nPayload[] = []
 
   if (asNonEmptyString(row.enFormattedAddress)) {
@@ -98,6 +99,18 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
     })
   }
 
+  for (const localized of i18n) {
+    if (localized.streetName) coverageComponents.add('street_name')
+    if (localized.streetNumber) coverageComponents.add('street_number')
+    if (localized.buildingName) coverageComponents.add('building_name')
+    if (localized.estateName) coverageComponents.add('estate_name')
+    if (localized.phaseName || localized.phaseNumber) coverageComponents.add('phase')
+    if (localized.blockType || localized.blockNumber) coverageComponents.add('block')
+  }
+  if (asNonEmptyString(row.enVillageName) || asNonEmptyString(row.zhHantVillageName)) {
+    coverageComponents.add('village_name')
+  }
+
   return {
     canonicalId,
     sourceId,
@@ -127,6 +140,7 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
       bbox: null,
       sources: parseOptionalJson(row.sources),
     } satisfies Omit<AddressRow, 'id' | 'snapshotId' | 'createdAt' | 'updatedAt'>,
+    coverageComponents: [...coverageComponents],
     i18n,
     source: {},
   }
