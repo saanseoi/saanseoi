@@ -20,6 +20,10 @@ import { metaSchema } from '@repo/db'
 import { and, desc, eq, inArray, lte } from 'drizzle-orm'
 
 import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
+import {
+  HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
+  prepareHkgovCenstatdDistrictUpload,
+} from '../hkgovCenstatd.ts'
 import { prepareHkgovHadDistrictUpload } from '../hkgovHad.ts'
 import {
   describeTarget,
@@ -85,6 +89,7 @@ ${mutedBar}               山水 UPLOADER
 ${mutedBar}  `)
 
   let sourcePreparationCleanup: (() => Promise<void>) | undefined
+  let divisionGeometryTransform: 'simplified' | undefined
   try {
     const registerOptions = buildRegisterOptions(options.invocationCwd, inputFile, args)
     const hkgovHadPreparation = await prepareHkgovHadGeoJsonUpload(
@@ -105,6 +110,30 @@ ${mutedBar}  `)
         type: registerOptions.type ?? hkgovHadPreparation.type,
       })
       log.message('Prepared Home Affairs Department District Boundary GeoJSON.')
+    }
+    const hkgovCenstatdPreparation = await prepareHkgovCenstatdGmlUpload(
+      registerOptions.filePath,
+      registerOptions.source,
+      registerOptions.sourceVersion,
+      typeof args.options.transform === 'string' ? args.options.transform : undefined,
+    )
+    if (hkgovCenstatdPreparation) {
+      sourcePreparationCleanup = hkgovCenstatdPreparation.cleanup
+      divisionGeometryTransform = hkgovCenstatdPreparation.transform
+      Object.assign(registerOptions, {
+        filePath: hkgovCenstatdPreparation.filePath,
+        originalFileName: hkgovCenstatdPreparation.originalFileName,
+        regionCode: registerOptions.regionCode ?? hkgovCenstatdPreparation.regionCode,
+        source: hkgovCenstatdPreparation.source,
+        sourceVersion: hkgovCenstatdPreparation.sourceVersion,
+        theme: registerOptions.theme ?? hkgovCenstatdPreparation.theme,
+        type: registerOptions.type ?? hkgovCenstatdPreparation.type,
+      })
+      log.message(
+        hkgovCenstatdPreparation.transform === HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM
+          ? 'Prepared simplified, land-clipped C&SD display geometry.'
+          : 'Prepared Census and Statistics Department District Council GML.',
+      )
     }
     let previewResult = await prepareUpload(registerOptions)
     const sourceSchemaVersion = await resolveSourceSchemaVersion({
@@ -367,11 +396,12 @@ ${mutedBar}  `)
           previewResult.plan.theme !== 'divisions' ||
           (previewResult.plan.source !== 'overture' &&
             previewResult.plan.source !== 'hkgov-had' &&
+            previewResult.plan.source !== 'hkgov-censtatd' &&
             previewResult.plan.source !== 'hkgov-pland-pu' &&
             previewResult.plan.source !== 'hkgov-pland-new-town')
         ) {
           throw new Error(
-            'Local division geometry SQL processing requires an Overture, Home Affairs Department, Planning Unit, or New Town divisionArea or divisionBoundary dataset.',
+            'Local division geometry SQL processing requires an Overture, Home Affairs Department, Census and Statistics Department, Planning Unit, or New Town divisionArea or divisionBoundary dataset.',
           )
         }
 
@@ -388,6 +418,7 @@ ${mutedBar}  `)
             rowCount: previewResult.plan.rowCount,
             source: previewResult.plan.source,
             sourceVersion: previewResult.plan.sourceVersion,
+            transform: divisionGeometryTransform,
             theme: 'divisions',
             type: previewResult.plan.type,
           },
@@ -461,11 +492,59 @@ async function prepareHkgovHadGeoJsonUpload(
   }
 }
 
+async function prepareHkgovCenstatdGmlUpload(
+  filePath: string,
+  source: string | undefined,
+  sourceVersion: string | undefined,
+  transform: string | undefined,
+) {
+  if (!isHkgovCenstatdDistrictFile(filePath, source)) return null
+
+  const inputSourceVersion = sourceVersion ?? inferCenstatdSourceVersion(filePath)
+  if (inputSourceVersion !== '2016' && inputSourceVersion !== '2021') {
+    throw new Error('C&SD District Council GML requires --source-version 2016 or 2021.')
+  }
+  if (transform && transform !== HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM) {
+    throw new Error(`Unsupported C&SD geometry transform: ${transform}.`)
+  }
+  const tempDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-'))
+  try {
+    const prepared = await prepareHkgovCenstatdDistrictUpload(
+      filePath,
+      tempDir,
+      inputSourceVersion,
+      transform ? { transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM } : undefined,
+    )
+    return {
+      ...prepared,
+      cleanup: async () => {
+        await prepared.cleanup()
+        await rm(tempDir, { force: true, recursive: true })
+      },
+    }
+  } catch (error) {
+    await rm(tempDir, { force: true, recursive: true })
+    throw error
+  }
+}
+
 function isHkgovHadGeoJson(filePath: string, source: string | undefined) {
   return (
     filePath.toLowerCase().endsWith('.geojson') &&
     (source === 'hkgov-had' || /(^|[._/\\-])hkgov-had([._/\\-]|$)/i.test(filePath))
   )
+}
+
+function isHkgovCenstatdDistrictFile(filePath: string, source: string | undefined) {
+  const fileName = filePath.toLowerCase()
+  return (
+    (fileName.endsWith('.gml') || fileName.endsWith('.xml')) &&
+    source === 'hkgov-censtatd'
+  )
+}
+
+function inferCenstatdSourceVersion(filePath: string) {
+  return filePath.match(/(?:^|[^0-9])(2016|2021)(?:[^0-9]|$)/)?.[1]
 }
 
 function resolvePrepareUploadFileMessage(
@@ -511,6 +590,7 @@ function resolveUploadProcessingStrategy(
     previewResult.plan.theme === 'divisions' &&
     (previewResult.plan.source === 'overture' ||
       previewResult.plan.source === 'hkgov-had' ||
+      previewResult.plan.source === 'hkgov-censtatd' ||
       previewResult.plan.source === 'hkgov-pland-pu' ||
       previewResult.plan.source === 'hkgov-pland-new-town')
   ) {
@@ -668,8 +748,10 @@ export async function assertDivisionGeometryUploadPrerequisites(
     return
   }
 
-  // HAD district areas are independently bridged to canonical divisions.
-  if (plan.source === 'hkgov-had') return
+  // HAD and C&SD district areas are independently bridged to canonical divisions.
+  if (plan.source === 'hkgov-had' || plan.source === 'hkgov-censtatd') {
+    return
+  }
 
   const snapshot = target.remote
     ? await (
