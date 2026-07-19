@@ -94,7 +94,7 @@ manufacturing one derived geometry.
 
 - [ ] Inspect each C&SD resource's downloadable files/API, schema, licence, update
       cadence, identifiers, publication date and statistical reference period.
-- [ ] Add `hkgov-censtatd` publisher/dataset/release fixtures and source documentation.
+- [x] Add planned `hkgov-censtatd` dataset fixtures and source documentation.
 - [ ] Ingest and validate 2016 and 2021 C&SD district-boundary variants before choosing
       an API map default; compare area, identifiers and coastal treatment with HAD.
 - [ ] Design the `statisticSeries`, `divisionStatistic` and statistical-geography
