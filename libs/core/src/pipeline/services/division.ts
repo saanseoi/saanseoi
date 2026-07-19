@@ -35,6 +35,10 @@ import {
 } from '../db/division'
 import { replaceDatasetStats } from '../db/stats'
 import {
+  replaceReleaseProcessingActions,
+  type ReleaseProcessingAction,
+} from '../db/processingActions'
+import {
   advanceSourceOvertureDivisionRelease,
   buildSourceReleaseId,
   closeSourceOvertureDivisionVersions,
@@ -45,6 +49,7 @@ import {
 import {
   buildChurnCounts,
   buildChurnStatsRows,
+  buildDistrictDistributionStatsRows,
   buildLocaleStatsRows,
   buildQualityCounts,
   buildQualityStatsRows,
@@ -366,6 +371,8 @@ export async function processDivisionDataset(
   let unchangedRows = 0
   let localizedRows = 0
   const statsAccumulator = createLocaleStatsAccumulator()
+  const districtCounts = new Map<string, number>()
+  const processingActions: ReleaseProcessingAction[] = []
   const sourceBaselineSources =
     sourceDb && message.source === 'overture'
       ? [
@@ -457,6 +464,16 @@ export async function processDivisionDataset(
     for (const row of batch) {
       const normalized = normalizeDivisionRow(row, { hierarchyLookup })
       const canonicalI18n = buildCanonicalDivisionApiI18n(normalized.i18n)
+      if (message.source === 'overture' && message.type === 'division') {
+        processingActions.push(
+          ...buildOvertureDivisionLocaleProcessingActions({
+            canonicalI18n,
+            division: normalized.base,
+            rawNames: row.names,
+            sourceI18n: normalized.i18n,
+          }),
+        )
+      }
       const versionHash = await createHash(buildDivisionBaseHashInput(normalized.base))
       const churnHash = await createHash({
         base: buildDivisionBaseHashInput(normalized.base),
@@ -475,6 +492,10 @@ export async function processDivisionDataset(
           locale: row.locale,
         })),
       )
+      const districtId = resolveDistrictId(normalized.base)
+      if (districtId) {
+        districtCounts.set(districtId, (districtCounts.get(districtId) ?? 0) + 1)
+      }
       processedRowsById.set(normalized.base.id, {
         churnHash,
         geometry: normalized.base.geometry,
@@ -825,9 +846,17 @@ export async function processDivisionDataset(
   const statsRows = await timings.measure('replaceDatasetStatsMs', () =>
     replaceDatasetStats(metaRepoDb, message.releaseId ?? message.datasetId, [
       ...buildLocaleStatsRows(statsAccumulator),
+      ...buildDistrictDistributionStatsRows(districtCounts),
       ...churnStats,
       ...qualityStats,
     ]),
+  )
+  await timings.measure('replaceReleaseProcessingActionsMs', () =>
+    replaceReleaseProcessingActions(
+      metaRepoDb,
+      message.releaseId ?? message.datasetId,
+      processingActions,
+    ),
   )
 
   if (sourceDb && message.source === 'overture' && currentSourceRows) {
@@ -1167,6 +1196,25 @@ function resolveParentDivisionIdFromHierarchy(hierarchy: unknown): string | null
     : null
 }
 
+export function resolveDistrictId(base: {
+  hierarchy: unknown
+  id: string
+  type: string
+}) {
+  if (base.type === 'district') return base.id
+  if (!Array.isArray(base.hierarchy)) return null
+
+  for (const entry of base.hierarchy) {
+    if (!entry || typeof entry !== 'object') continue
+    const record = entry as Record<string, unknown>
+    if (record.type !== 'district') continue
+    const divisionId = record.division_id
+    if (typeof divisionId === 'string' && divisionId.trim()) return divisionId
+  }
+
+  return null
+}
+
 export function normalizeDivisionI18nSnapshotRow(row: DivisionI18nPayload) {
   return {
     ...row,
@@ -1200,6 +1248,89 @@ export function buildCanonicalDivisionApiI18n(rows: DivisionI18nPayload[]) {
   }
 
   return canonicalRows.sort((left, right) => left.locale.localeCompare(right.locale))
+}
+
+/**
+ * Produces record-level audit entries only when locale inference or an API-facing
+ * locale fallback changes the released division i18n rows.
+ */
+export function buildOvertureDivisionLocaleProcessingActions(input: {
+  canonicalI18n: DivisionI18nPayload[]
+  division: Pick<NewDivisionRow, 'id' | 'level' | 'type'>
+  rawNames: unknown
+  sourceI18n: DivisionI18nPayload[]
+}): ReleaseProcessingAction[] {
+  const canonicalDivision = {
+    id: input.division.id,
+    level: input.division.level,
+    type: input.division.type,
+  }
+  const evidenceBase = {
+    canonicalDivision,
+    sourceNames: input.rawNames ?? null,
+    normalizedI18n: input.sourceI18n,
+  }
+  const inferredI18n = input.sourceI18n.filter(row => row.isLocaleInferred)
+  const sourceLocales = new Set(input.sourceI18n.map(row => row.locale))
+  const fallbackI18n = input.canonicalI18n.flatMap(row => {
+    if (sourceLocales.has(row.locale)) return []
+
+    const sourceRow = input.sourceI18n.find(candidate =>
+      isDivisionI18nFallbackSource(candidate, row),
+    )
+    return [
+      {
+        ...row,
+        sourceLocale: sourceRow?.locale ?? null,
+      },
+    ]
+  })
+
+  return [
+    ...(inferredI18n.length > 0
+      ? [
+          {
+            action: 'overture_division_locale_inferred',
+            affectedRecordCount: 1,
+            evidence: {
+              ...evidenceBase,
+              inferredI18n,
+            },
+            mode: 'automatic' as const,
+            summary:
+              'Inferred one or more division-name locales from unlabeled source text.',
+          },
+        ]
+      : []),
+    ...(fallbackI18n.length > 0
+      ? [
+          {
+            action: 'overture_division_api_locale_fallback_added',
+            affectedRecordCount: 1,
+            evidence: {
+              ...evidenceBase,
+              fallbackI18n,
+            },
+            mode: 'automatic' as const,
+            summary:
+              'Added API-facing division locale fallback rows from available source variants.',
+          },
+        ]
+      : []),
+  ]
+}
+
+function isDivisionI18nFallbackSource(
+  source: DivisionI18nPayload,
+  fallback: DivisionI18nPayload,
+) {
+  return (
+    source.name === fallback.name &&
+    source.nameAlts === fallback.nameAlts &&
+    source.nameRules === fallback.nameRules &&
+    source.nameVariant === fallback.nameVariant &&
+    source.isLocaleInferred === fallback.isLocaleInferred
+  )
 }
 
 function normalizeOvertureSources(sources: unknown) {
@@ -1711,6 +1842,10 @@ function resolveDivisionType(input: {
 
   if (isHongKongArea(input.row)) {
     return 'area'
+  }
+
+  if (normalizedSubtype === 'country') {
+    return 'country'
   }
 
   if (normalizedSubtype === 'dependency') {

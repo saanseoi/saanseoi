@@ -59,9 +59,13 @@ export type AddressApiReleaseSetStatsInput = {
 export type AddressReleaseStatsInput = {
   addedRows: number
   changedRows: number
+  componentCounts: Record<string, number>
   deletedRows: number
+  districtCounts: Record<string, number>
+  localeCounts: Record<string, number>
   localizedRows: number
   processedRows: number
+  recordedRows: number
   unchangedRows: number
 }
 
@@ -374,16 +378,20 @@ export function buildQualityStatsRows(counts: QualityCounts) {
  */
 export function buildAddressReleaseStatsRows(input: AddressReleaseStatsInput) {
   const createdAt = toIsoTimestamp()
+  const recordedRows = input.recordedRows || input.processedRows
   const churn: ChurnCounts = {
     added_count: input.addedRows,
     changed_count: input.changedRows,
-    count: input.processedRows,
+    count: recordedRows,
     removed_count: input.deletedRows,
     unchanged_count: input.unchangedRows,
   }
 
   return [
     ...buildChurnMetricRows(churn, createdAt, null),
+    ...buildAddressLocaleStatsRows(input.localeCounts, recordedRows, createdAt),
+    ...buildAddressComponentStatsRows(input.componentCounts, recordedRows, createdAt),
+    ...buildDistrictDistributionStatsRows(input.districtCounts, createdAt),
     buildReleaseStatsRow(
       'localized_records',
       'count',
@@ -393,6 +401,81 @@ export function buildAddressReleaseStatsRows(input: AddressReleaseStatsInput) {
       { groupBy: 'table', groupValue: 'address2dI18n' },
     ),
   ]
+}
+
+/**
+ * Locale coverage for addresses is intentionally separate from name coverage.
+ * An address is present for a locale when it has a complete formatted label.
+ */
+export function buildAddressLocaleStatsRows(
+  localeCounts: Record<string, number>,
+  total: number,
+  createdAt = toIsoTimestamp(),
+) {
+  return ['en', 'zh-hant', 'zh-hans'].flatMap(locale => {
+    const count = localeCounts[locale] ?? 0
+    return [
+      buildReleaseStatsRow('locale_count', 'completeness', 'count', count, createdAt, {
+        groupBy: 'locale',
+        groupValue: locale,
+      }),
+      buildReleaseStatsRow(
+        'locale_coverage',
+        'completeness',
+        'percentage',
+        percentage(count, total),
+        createdAt,
+        { groupBy: 'locale', groupValue: locale },
+      ),
+    ]
+  })
+}
+
+/** Meaningful optional components that can be inspected in an address label. */
+export function buildAddressComponentStatsRows(
+  componentCounts: Record<string, number>,
+  total: number,
+  createdAt = toIsoTimestamp(),
+) {
+  return [
+    'street_name',
+    'street_number',
+    'village_name',
+    'building_name',
+    'estate_name',
+    'phase',
+    'block',
+  ].map(component =>
+    buildReleaseStatsRow(
+      'component_coverage',
+      'completeness',
+      'percentage',
+      percentage(componentCounts[component] ?? 0, total),
+      createdAt,
+      { groupBy: 'addressComponent', groupValue: component },
+    ),
+  )
+}
+
+/** A count per canonical district identifier, consumed by the map presentation. */
+export function buildDistrictDistributionStatsRows(
+  districtCounts: Map<string, number> | Record<string, number>,
+  createdAt = toIsoTimestamp(),
+) {
+  const entries =
+    districtCounts instanceof Map
+      ? [...districtCounts.entries()]
+      : Object.entries(districtCounts)
+
+  return entries
+    .filter(([, count]) => count > 0)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([districtId, count]) =>
+      buildReleaseStatsRow('records', 'distribution', 'count', count, createdAt, {
+        groupBy: 'district',
+        groupValue: districtId,
+      }),
+    )
 }
 
 export function buildAddressApiReleaseSetStatsRows(

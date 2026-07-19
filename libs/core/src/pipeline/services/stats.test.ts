@@ -7,6 +7,10 @@ import {
   buildLocaleStatsRows,
   type ChurnCounts,
 } from './stats'
+import {
+  collectAddressCoverageCounts,
+  type ResolvedAddressRecord,
+} from './addressPipeline/types'
 
 const churnCounts: ChurnCounts = {
   added_count: 2,
@@ -17,6 +21,18 @@ const churnCounts: ChurnCounts = {
 }
 
 describe('stats rows', () => {
+  test('counts village-addressed premises as a distinct address component', () => {
+    const { componentCounts } = collectAddressCoverageCounts([
+      {
+        base: { districtId: 'district' },
+        coverageComponents: ['village_name'],
+        i18n: [{ locale: 'en', streetName: null }],
+      } as unknown as ResolvedAddressRecord,
+    ])
+
+    expect(componentCounts).toEqual({ village_name: 1 })
+  })
+
   test('release locale stats use release scope', () => {
     const rows = buildLocaleStatsRows({
       altCoverage: new Map([['en', 1]]),
@@ -95,9 +111,13 @@ describe('stats rows', () => {
     const rows = buildAddressReleaseStatsRows({
       addedRows: 2,
       changedRows: 3,
+      componentCounts: { street_name: 10, village_name: 10 },
       deletedRows: 1,
+      districtCounts: { district: 10 },
+      localeCounts: { en: 10 },
       localizedRows: 18,
       processedRows: 10,
+      recordedRows: 10,
       unchangedRows: 5,
     })
 
@@ -117,6 +137,35 @@ describe('stats rows', () => {
         metric: 'count',
         type: 'release',
         value: 18,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'component_coverage',
+        groupBy: 'addressComponent',
+        groupValue: 'street_name',
+        metric: 'completeness',
+        metricUnit: 'percentage',
+        value: 100,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'component_coverage',
+        groupBy: 'addressComponent',
+        groupValue: 'village_name',
+        metric: 'completeness',
+        metricUnit: 'percentage',
+        value: 100,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'records',
+        groupBy: 'district',
+        groupValue: 'district',
+        metric: 'distribution',
+        value: 10,
       }),
     )
   })
