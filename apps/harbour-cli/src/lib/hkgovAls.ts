@@ -213,6 +213,7 @@ type PreparedHkgovAlsRow = {
   identityBuildingId: string
   identityContinuityKey: string
   identityKey: string
+  numberlessIdentityKey: string
   identityMatchMethod: string
   blockDescriptorPrecedenceIndicator: string | null
   identityNumberFrom: string | null
@@ -251,6 +252,8 @@ type PreparedHkgovAlsResult = {
   featureCount: number
   identityConsolidatedFeatureCount: number
   identityEquivalentFeatureGroups: HkgovAlsSourceDuplicateGroup[]
+  numberRangeSingletonConsolidatedFeatureCount: number
+  numberRangeSingletonFeatureGroups: HkgovAlsSourceDuplicateGroup[]
   resolvedIdConsolidatedFeatureCount: number
   identityRecords: HkgovAlsIdentityRecord[]
   outputFile: string
@@ -335,6 +338,11 @@ export async function prepareHkgovAlsAddressParquet(
     rows: identityDistinctRows,
   } = consolidateEquivalentHkgovAlsPremises(rows)
   rows.splice(0, rows.length, ...identityDistinctRows)
+  const {
+    duplicateGroups: numberRangeSingletonFeatureGroups,
+    rows: numberRangeDistinctRows,
+  } = consolidateHkgovAlsSingletonNumberRangeVariants(rows)
+  rows.splice(0, rows.length, ...numberRangeDistinctRows)
   assertUniquePreparedRowIds(rows)
   const identityRecords = rows.map(row => ({
     continuityKey: row.identityContinuityKey,
@@ -611,8 +619,11 @@ export async function prepareHkgovAlsAddressParquet(
     identityConsolidatedFeatureCount:
       uniqueSourceFeatures.length - identityDistinctRows.length,
     identityEquivalentFeatureGroups,
+    numberRangeSingletonConsolidatedFeatureCount:
+      identityDistinctRows.length - numberRangeDistinctRows.length,
+    numberRangeSingletonFeatureGroups,
     resolvedIdConsolidatedFeatureCount:
-      identityDistinctRows.length - resolvedIdDistinctRows.length,
+      numberRangeDistinctRows.length - resolvedIdDistinctRows.length,
     identityRecords: resolvedIdentityRecords,
     outputFile,
     sourceDuplicateFeatureGroups,
@@ -656,6 +667,88 @@ function preparedPremiseSpecificity(row: PreparedHkgovAlsRow) {
     ((row.enBlockDescriptor ?? row.zhHantBlockDescriptor) ? 2 : 0) +
     ((row.enEstateName ?? row.zhHantEstateName) ? 1 : 0)
   )
+}
+
+/**
+ * Collapses an ALS singleton number only when it repeats an endpoint of a
+ * range for the exact same geocoded premise. ALS number ranges may use
+ * alphanumeric values and odd/even semantics, so this intentionally does not
+ * infer that a number between two endpoints belongs to the range.
+ */
+export function consolidateHkgovAlsSingletonNumberRangeVariants(
+  rows: PreparedHkgovAlsRow[],
+) {
+  const rowsByNumberlessPremise = new Map<string, PreparedHkgovAlsRow[]>()
+  for (const row of rows) {
+    const key = [row.numberlessIdentityKey, row.geoAddress, row.geometry].join('\u0000')
+    const variants = rowsByNumberlessPremise.get(key) ?? []
+    variants.push(row)
+    rowsByNumberlessPremise.set(key, variants)
+  }
+
+  const removedRows = new Set<PreparedHkgovAlsRow>()
+  const occurrencesByRange = new Map<PreparedHkgovAlsRow, PreparedHkgovAlsRow[]>()
+  for (const variants of rowsByNumberlessPremise.values()) {
+    const ranges = variants.filter(isHkgovAlsNumberRange)
+    if (ranges.length === 0) continue
+
+    for (const singleton of variants.filter(isHkgovAlsSingletonNumber)) {
+      const matchingRanges = ranges.filter(range =>
+        hkgovAlsRangeHasSingletonEndpoint(range, singleton),
+      )
+      if (matchingRanges.length !== 1) continue
+
+      const range = matchingRanges[0]
+      if (!range) continue
+      removedRows.add(singleton)
+      const occurrences = occurrencesByRange.get(range) ?? [range]
+      occurrences.push(singleton)
+      occurrencesByRange.set(range, occurrences)
+    }
+  }
+
+  return {
+    duplicateGroups: [...occurrencesByRange.values()].map(occurrences => ({
+      address:
+        occurrences[0]?.enFormattedAddress ??
+        occurrences[0]?.zhHantFormattedAddress ??
+        'Unformatted ALS address',
+      occurrences: occurrences.map(row => ({
+        featureIndexOneBased: row.sourceFeatureIndexOneBased,
+        sourceFile: row.sourceFile,
+      })),
+    })),
+    rows: rows.filter(row => !removedRows.has(row)),
+  }
+}
+
+function isHkgovAlsNumberRange(row: PreparedHkgovAlsRow) {
+  const from = normalizeHkgovAlsNumber(row.identityNumberFrom)
+  const to = normalizeHkgovAlsNumber(row.identityNumberTo)
+  return from != null && to != null && from !== to
+}
+
+function isHkgovAlsSingletonNumber(row: PreparedHkgovAlsRow) {
+  const from = normalizeHkgovAlsNumber(row.identityNumberFrom)
+  const to = normalizeHkgovAlsNumber(row.identityNumberTo)
+  return from != null && (to == null || from === to)
+}
+
+function hkgovAlsRangeHasSingletonEndpoint(
+  range: PreparedHkgovAlsRow,
+  singleton: PreparedHkgovAlsRow,
+) {
+  const singletonNumber = normalizeHkgovAlsNumber(singleton.identityNumberFrom)
+  const rangeFrom = normalizeHkgovAlsNumber(range.identityNumberFrom)
+  const rangeTo = normalizeHkgovAlsNumber(range.identityNumberTo)
+  return (
+    singletonNumber != null &&
+    (singletonNumber === rangeFrom || singletonNumber === rangeTo)
+  )
+}
+
+function normalizeHkgovAlsNumber(value: string | null) {
+  return value?.normalize('NFKC').trim().toUpperCase() || null
 }
 
 export function dedupeHkgovAlsSourceFeatures(sourceFeatures: HkgovAlsSourceFeature[]) {
@@ -998,6 +1091,7 @@ function normalizeHkgovAlsFeature(
     identityBuildingId,
     identityContinuityKey: premiseIdentity.continuityKey,
     identityKey: premiseIdentity.identityKey,
+    numberlessIdentityKey: premiseIdentity.numberlessIdentityKey,
     identityMatchMethod: 'als-premise',
     blockDescriptorPrecedenceIndicator,
     identityNumberFrom,
