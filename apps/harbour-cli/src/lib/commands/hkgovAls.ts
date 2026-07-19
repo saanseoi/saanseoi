@@ -75,7 +75,7 @@ export async function runHkgovAlsPrepCommand(
   if (result.identityEquivalentFeatureGroups.length > 0) {
     note(
       formatSourceDuplicateTable(result.identityEquivalentFeatureGroups),
-      'EQUIVALENT ALS PREMISE VARIANTS CONSOLIDATED',
+      'EQUIVALENT ALS PREMISE VARIANTS CONSOLIDATED (SAME COMPLETE PREMISE IDENTITY)',
     )
   }
   if (result.numberRangeSingletonFeatureGroups.length > 0) {
@@ -245,7 +245,7 @@ export async function runHkgovAlsLocalIngestCommand(
     if (result.identityEquivalentFeatureGroups.length > 0) {
       note(
         formatSourceDuplicateTable(result.identityEquivalentFeatureGroups),
-        `EQUIVALENT ALS PREMISE VARIANTS CONSOLIDATED — ${sourceVersion}`,
+        `EQUIVALENT ALS PREMISE VARIANTS CONSOLIDATED (SAME COMPLETE PREMISE IDENTITY) — ${sourceVersion}`,
       )
     }
     if (result.numberRangeSingletonFeatureGroups.length > 0) {
@@ -275,6 +275,7 @@ export async function runHkgovAlsLocalIngestCommand(
         dryRun: Boolean(args.options['dry-run']),
         forceUpload: Boolean(args.options.force),
         invocationCwd: INVOCATION_CWD,
+        processingActions: result.processingActions,
         printUsage,
         skipConfirm: true,
         skipSnapshotCleanup: Boolean(args.options['skip-cleanup']),
@@ -663,6 +664,8 @@ async function writeJson(filePath: string, value: unknown) {
 function formatSourceDuplicateTable(
   groups: Array<{
     address: string
+    canonicalRecord?: Record<string, unknown>
+    ignoredRecords?: Array<Record<string, unknown>>
     occurrences: Array<{
       featureIndexOneBased: number
       sourceFile: string
@@ -677,11 +680,19 @@ function formatSourceDuplicateTable(
       .join(', '),
   ])
   const header = ['Record', 'Address', 'Source feature positions (one-based)']
-  return [
+  const table = [
     `| ${header.join(' | ')} |`,
     `| ${header.map(() => '---').join(' | ')} |`,
     ...rows.map(row => `| ${row.join(' | ')} |`),
   ].join('\n')
+  const decisionDetails = groups.flatMap((group, index) => {
+    if (!group.canonicalRecord || !group.ignoredRecords?.length) return []
+    return [
+      `Record ${index + 1} canonical record:\n${JSON.stringify(group.canonicalRecord, null, 2)}`,
+      `Ignored variants:\n${JSON.stringify(group.ignoredRecords, null, 2)}`,
+    ]
+  })
+  return decisionDetails.length > 0 ? [table, ...decisionDetails].join('\n\n') : table
 }
 
 export function inferAlsSourceVersionFromPath(value: string) {

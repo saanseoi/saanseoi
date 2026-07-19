@@ -24,7 +24,11 @@ import { printUsage } from './lib/usage.ts'
 
 async function main() {
   const args = parseArgs(process.argv)
-  const invocationCwd = process.env.INIT_CWD ?? process.cwd()
+  // `bin/saanseoi` changes into the CLI package before launching Bun. Keep
+  // user-provided relative paths anchored to the directory from which that
+  // launcher was invoked.
+  const invocationCwd =
+    process.env.SAANSEOI_INVOCATION_CWD ?? process.env.INIT_CWD ?? process.cwd()
   const dryRun = Boolean(args.options['dry-run'])
   const forceUpload = Boolean(args.options.force)
   const skipSnapshotCleanup = Boolean(args.options['skip-cleanup'])

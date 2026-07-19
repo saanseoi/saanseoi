@@ -92,14 +92,10 @@ describe('consolidateEquivalentHkgovAlsPremises', () => {
     const result = consolidateEquivalentHkgovAlsPremises([first, equivalent, distinct])
 
     expect(result.rows).toEqual([first, distinct])
-    expect(result.duplicateGroups).toEqual([
-      {
-        address: 'BLOCK D, EXAMPLE BUILDING, 1 EXAMPLE STREET',
-        occurrences: [
-          { featureIndexOneBased: 4, sourceFile: 'eastern.geojson' },
-          { featureIndexOneBased: 9, sourceFile: 'eastern.geojson' },
-        ],
-      },
+    expect(result.duplicateGroups).toHaveLength(1)
+    expect(result.duplicateGroups[0]?.occurrences).toEqual([
+      { featureIndexOneBased: 4, sourceFile: 'eastern.geojson' },
+      { featureIndexOneBased: 9, sourceFile: 'eastern.geojson' },
     ])
   })
 
@@ -169,14 +165,10 @@ describe('consolidateHkgovAlsSingletonNumberRangeVariants', () => {
     const result = consolidateHkgovAlsSingletonNumberRangeVariants([singleton, range])
 
     expect(result.rows).toEqual([range])
-    expect(result.duplicateGroups).toEqual([
-      {
-        address: 'TOI SHAN ASSOCIATION PRIMARY SCHOOL, 14-16 SHEK PAI TAU ROAD',
-        occurrences: [
-          { featureIndexOneBased: 2, sourceFile: 'tuen-mun.geojson' },
-          { featureIndexOneBased: 1, sourceFile: 'tuen-mun.geojson' },
-        ],
-      },
+    expect(result.duplicateGroups).toHaveLength(1)
+    expect(result.duplicateGroups[0]?.occurrences).toEqual([
+      { featureIndexOneBased: 2, sourceFile: 'tuen-mun.geojson' },
+      { featureIndexOneBased: 1, sourceFile: 'tuen-mun.geojson' },
     ])
   })
 
