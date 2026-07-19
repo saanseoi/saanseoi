@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   buildAddressApiReleaseSetStatsRows,
+  buildAddressReleaseStatsRows,
   buildDivisionApiReleaseSetStatsRows,
   buildLocaleStatsRows,
   type ChurnCounts,
@@ -86,6 +87,36 @@ describe('stats rows', () => {
         groupValue: 'address2d',
         metric: 'churn',
         value: 2,
+      }),
+    )
+  })
+
+  test('builds address source-release lifecycle stats', () => {
+    const rows = buildAddressReleaseStatsRows({
+      addedRows: 2,
+      changedRows: 3,
+      deletedRows: 1,
+      localizedRows: 18,
+      processedRows: 10,
+      unchangedRows: 5,
+    })
+
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'added_count',
+        metric: 'churn',
+        type: 'release',
+        value: 2,
+      }),
+    )
+    expect(rows).toContainEqual(
+      expect.objectContaining({
+        dimension: 'localized_records',
+        groupBy: 'table',
+        groupValue: 'address2dI18n',
+        metric: 'count',
+        type: 'release',
+        value: 18,
       }),
     )
   })

@@ -110,6 +110,8 @@ export async function writeAddressCurrentChunkStage(
 
   const chunkSize = resolveAddressChunkSize(message.chunkSize)
   const stats = addAddressPipelineStats(pipelineMessage.addressStats, {
+    addedRows: artifact.addedRows,
+    changedRows: artifact.changedRows,
     insertedVersions: artifact.insertedVersions,
     localizedRows: artifact.localizedRows,
     processedRows: artifact.rowEnd - artifact.rowStart,

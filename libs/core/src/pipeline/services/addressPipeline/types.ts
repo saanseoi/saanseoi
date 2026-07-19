@@ -22,6 +22,8 @@ export type AddressPipelineStage =
   | 'sql-cleanup-staging'
 
 export type AddressPipelineStats = {
+  addedRows: number
+  changedRows: number
   deletedRows: number
   insertedVersions: number
   localizedRows: number
@@ -79,6 +81,8 @@ export type ResolvedAddressRecord = {
 }
 
 export type ResolvedAddressChunkArtifact = {
+  addedRows: number
+  changedRows: number
   kind: 'address.resolved.v1'
   insertedVersions: number
   localizedRows: number
@@ -92,6 +96,8 @@ export type ResolvedAddressChunkArtifact = {
 }
 
 export const EMPTY_ADDRESS_PIPELINE_STATS: AddressPipelineStats = {
+  addedRows: 0,
+  changedRows: 0,
   deletedRows: 0,
   insertedVersions: 0,
   localizedRows: 0,
@@ -110,6 +116,8 @@ export function addAddressPipelineStats(
   right: Partial<AddressPipelineStats>,
 ): AddressPipelineStats {
   return {
+    addedRows: (left?.addedRows ?? 0) + (right.addedRows ?? 0),
+    changedRows: (left?.changedRows ?? 0) + (right.changedRows ?? 0),
     deletedRows: (left?.deletedRows ?? 0) + (right.deletedRows ?? 0),
     insertedVersions: (left?.insertedVersions ?? 0) + (right.insertedVersions ?? 0),
     localizedRows: (left?.localizedRows ?? 0) + (right.localizedRows ?? 0),

@@ -58,6 +58,7 @@ const {
   metaSnapshotAssemblyRuns,
   metaSnapshotAssemblySources,
   metaSnapshotSources,
+  releaseProcessingActions,
   stats,
 } = metaSchema
 
@@ -631,6 +632,27 @@ async function queryRegistrySourceVersions(
       .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
       .all(),
   )
+  const processingActions = await queryInBatches(releaseIds, ids =>
+    db
+      .select({
+        id: releaseProcessingActions.id,
+        releaseId: releaseProcessingActions.releaseId,
+        action: releaseProcessingActions.action,
+        mode: releaseProcessingActions.mode,
+        summary: releaseProcessingActions.summary,
+        affectedRecordCount: releaseProcessingActions.affectedRecordCount,
+        evidence: releaseProcessingActions.evidence,
+        createdAt: releaseProcessingActions.createdAt,
+        updatedAt: releaseProcessingActions.updatedAt,
+      })
+      .from(releaseProcessingActions)
+      .where(inArray(releaseProcessingActions.releaseId, ids))
+      .orderBy(
+        desc(releaseProcessingActions.createdAt),
+        desc(releaseProcessingActions.id),
+      )
+      .all(),
+  )
 
   return releases.map(release => ({
     ...release,
@@ -653,6 +675,9 @@ async function queryRegistrySourceVersions(
           ) === index,
       ),
     stats: releaseStats.filter(stat => stat.releaseId === release.id),
+    processingActions: processingActions.filter(
+      action => action.releaseId === release.id,
+    ),
   }))
 }
 

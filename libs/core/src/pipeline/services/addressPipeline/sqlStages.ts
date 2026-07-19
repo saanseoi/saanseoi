@@ -170,6 +170,8 @@ export async function writeAddressCurrentSqlChunkStage(
     : []
   const chunkSize = resolveAddressChunkSize(message.chunkSize)
   const stats = addAddressPipelineStats(pipelineMessage.addressStats, {
+    addedRows: artifact.addedRows,
+    changedRows: artifact.changedRows,
     insertedVersions: artifact.insertedVersions,
     localizedRows: artifact.localizedRows,
     processedRows: artifact.rowEnd - artifact.rowStart,
@@ -183,15 +185,8 @@ export async function writeAddressCurrentSqlChunkStage(
           snapshotId: artifact.rows[0].base.snapshotId,
         })
       : null
-  const metaFile =
-    artifact.rowEnd >= artifact.totalRows && artifact.rows[0]?.base.snapshotId
-      ? await buildAddressMetaSqlFile(metaDb, message, artifact.rows[0].base.snapshotId)
-      : null
   const historyApplyArtifactKeys = historyApplyFile
     ? await writeSqlFiles(bucket, message, [historyApplyFile])
-    : []
-  const metaArtifactKeys = metaFile
-    ? await writeSqlFiles(bucket, message, [metaFile])
     : []
 
   if (artifact.rowEnd < artifact.totalRows) {
@@ -224,7 +219,6 @@ export async function writeAddressCurrentSqlChunkStage(
       ...initArtifactKeys,
       ...historyApplyArtifactKeys,
       ...artifactKeys,
-      ...metaArtifactKeys,
     ],
     artifactKey: undefined,
     resolvedArtifactKey: undefined,
@@ -236,6 +230,53 @@ export async function writeAddressCurrentSqlChunkStage(
   } satisfies AddressPipelineMessage
 }
 
+/**
+ * Serializes release metadata only after every address chunk has completed.
+ * This keeps the published release stats and processing-action audit trail in
+ * sync with the data shards for both local and remote SQL imports.
+ */
+export async function writeAddressReleaseMetaSqlFile(
+  metaDb: MetaDatabase,
+  bucket: HarbourWorkerBucket & PipelineArtifactBucket,
+  message: DatasetProcessingMessage,
+): Promise<AddressPipelineMessage> {
+  const pipelineMessage = message as AddressPipelineMessage
+  const snapshotId = await resolveAddressSnapshotId(metaDb, message)
+  const file = await buildAddressMetaSqlFile(metaDb, message, snapshotId)
+  const keys = await writeSqlFiles(bucket, message, [file])
+
+  return {
+    ...pipelineMessage,
+    addressSqlArtifactKeys: [
+      ...(pipelineMessage.addressSqlArtifactKeys ?? []),
+      ...keys,
+    ],
+  }
+}
+
+async function resolveAddressSnapshotId(
+  metaDb: MetaDatabase,
+  message: DatasetProcessingMessage,
+) {
+  const releaseId = message.releaseId ?? message.datasetId
+  const snapshot = await metaDb
+    .select({ id: metaSchema.metaSnapshots.id })
+    .from(metaSchema.metaSnapshots)
+    .innerJoin(
+      metaSchema.metaSnapshotSources,
+      eq(metaSchema.metaSnapshotSources.snapshotId, metaSchema.metaSnapshots.id),
+    )
+    .where(eq(metaSchema.metaSnapshotSources.sourceReleaseId, releaseId))
+    .limit(1)
+    .get()
+
+  if (!snapshot) {
+    throw new Error(`Address snapshot metadata missing for release ${releaseId}.`)
+  }
+
+  return snapshot.id
+}
+
 async function buildAddressMetaSqlFile(
   metaDb: MetaDatabase,
   message: DatasetProcessingMessage,
@@ -244,9 +285,11 @@ async function buildAddressMetaSqlFile(
   const releaseId = message.releaseId ?? message.datasetId
   const {
     metaReleaseShardAssignments,
+    releaseProcessingActions,
     metaSnapshotAssemblyRuns,
     metaSnapshots,
     metaSnapshotSources,
+    stats,
   } = metaSchema
   const snapshotRow = await metaDb
     .select({
@@ -318,6 +361,15 @@ async function buildAddressMetaSqlFile(
     .from(metaReleaseShardAssignments)
     .where(eq(metaReleaseShardAssignments.releaseId, releaseId))
     .all()
+
+  const [releaseStatsRows, processingActionRows] = await Promise.all([
+    metaDb.select().from(stats).where(eq(stats.releaseId, releaseId)).all(),
+    metaDb
+      .select()
+      .from(releaseProcessingActions)
+      .where(eq(releaseProcessingActions.releaseId, releaseId))
+      .all(),
+  ])
 
   if (releaseShardAssignmentRows.length === 0) {
     throw new Error(
@@ -409,6 +461,59 @@ async function buildAddressMetaSqlFile(
       ['releaseId', 'dataShardId'],
       releaseShardAssignmentRows,
       'ON CONFLICT(releaseId, dataShardId) DO NOTHING',
+    ),
+    buildInsertStatement(
+      'stats',
+      [
+        'id',
+        'type',
+        'releaseId',
+        'snapshotId',
+        'apiReleaseSetId',
+        'dimension',
+        'metric',
+        'metricUnit',
+        'value',
+        'groupBy',
+        'groupValue',
+        'createdAt',
+        'updatedAt',
+      ],
+      releaseStatsRows,
+      `ON CONFLICT(id) DO UPDATE SET
+  type = excluded.type,
+  releaseId = excluded.releaseId,
+  snapshotId = excluded.snapshotId,
+  apiReleaseSetId = excluded.apiReleaseSetId,
+  dimension = excluded.dimension,
+  metric = excluded.metric,
+  metricUnit = excluded.metricUnit,
+  value = excluded.value,
+  groupBy = excluded.groupBy,
+  groupValue = excluded.groupValue,
+  updatedAt = excluded.updatedAt`,
+    ),
+    buildInsertStatement(
+      'releaseProcessingActions',
+      [
+        'id',
+        'releaseId',
+        'action',
+        'mode',
+        'summary',
+        'affectedRecordCount',
+        'evidence',
+        'createdAt',
+        'updatedAt',
+      ],
+      processingActionRows.map(row => ({ ...row, evidence: jsonText(row.evidence) })),
+      `ON CONFLICT(id) DO UPDATE SET
+  action = excluded.action,
+  mode = excluded.mode,
+  summary = excluded.summary,
+  affectedRecordCount = excluded.affectedRecordCount,
+  evidence = excluded.evidence,
+  updatedAt = excluded.updatedAt`,
     ),
   ].filter(Boolean)
   const sql = `${statements.join('\n\n')}\n`
