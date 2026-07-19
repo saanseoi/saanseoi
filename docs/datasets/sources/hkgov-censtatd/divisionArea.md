@@ -45,15 +45,17 @@ releases dr-hk-hkgov-censtatd-division-area-district-2016
 
 ## Land-clipped display transformation
 
-The detailed 2021 source geometry is land-clipped already. For Hong Kong-wide preview
-maps, Saanseoi exposes a named geometry transformation without clipping, unioning or
-otherwise changing its coastline:
+Both detailed source geometries are land-clipped already. For Hong Kong-wide preview
+maps, Saanseoi exposes a named geometry transformation for each census cohort, without
+clipping, unioning or otherwise changing its coastline:
 
 ```text
 dataset      ds-hk-hkgov-censtatd-division-area-district
 transform    simplified
-variant      hkgov-censtatd:2021:simplified
-release      dr-hk-hkgov-censtatd-division-area-district-2021-simplified-v1
+variants     hkgov-censtatd:2016:simplified
+             hkgov-censtatd:2021:simplified
+releases     dr-hk-hkgov-censtatd-division-area-district-2016-simplified-v1
+             dr-hk-hkgov-censtatd-division-area-district-2021-simplified-v1
 ```
 
 The derivation runs a topology-preserving simplification across all 18 canonical
@@ -62,10 +64,11 @@ all districts together keeps shared boundaries consistent. The source row retain
 untouched C&SD geometry and records the input dataset/release, method, tolerance and
 `preservesLandClip: true`.
 
-Use `include=areas:hkgov-censtatd:2021&transform=simplified` for low-detail display
-maps; omit it for source precision, census-cohort accuracy and geometry auditability.
-The transformation belongs to the C&SD dataset and does not introduce a new publisher or
-dataset.
+Use `include=areas:hkgov-censtatd:2016&transform=simplified` or
+`include=areas:hkgov-censtatd:2021&transform=simplified` for low-detail display maps;
+omit the transformation for source precision, census-cohort accuracy and geometry
+auditability. The transformation belongs to the C&SD dataset and does not introduce a
+new publisher or dataset.
 
 ## Ingestion
 
@@ -73,11 +76,12 @@ Pass a downloaded source GML file to the normal uploader:
 
 ```bash
 saanseoi upload data/hkgov/censtatd/district-council-districts-2016.gml --source hkgov-censtatd --source-version 2016 --type divisionArea --theme divisions --region hk --cohort-key 2016
-saanseoi upload data/hkgov/censtatd/district-council-districts-2016.gml --source hkgov-censtatd --source-version 2021 --transform simplified --type divisionArea --theme divisions --region hk --cohort-key 2016
+saanseoi upload data/hkgov/censtatd/district-council-districts-2016.gml --source hkgov-censtatd --source-version 2016 --transform simplified --type divisionArea --theme divisions --region hk --cohort-key 2016
 saanseoi upload data/hkgov/censtatd/district-council-districts-2021.gml --source hkgov-censtatd --source-version 2021 --type divisionArea --theme divisions --region hk --cohort-key 2021
 saanseoi upload data/hkgov/censtatd/district-council-districts-2021.gml --source hkgov-censtatd --source-version 2021 --transform simplified --type divisionArea --theme divisions --region hk --cohort-key 2021
 ```
 
-The last command constructs the versioned `simplified` transformation. It must be run
-only from the verified 2021 C&SD source artifact, and its release notes URL should point
-to the 2021 CSDI dataset.
+The second and fourth commands construct the versioned `simplified` transformations. A
+transformation must be run only from its verified C&SD source artifact. As a local
+derivative, it has no upstream release-notes URL; the corresponding exact-source release
+records the CSDI dataset URL instead.
