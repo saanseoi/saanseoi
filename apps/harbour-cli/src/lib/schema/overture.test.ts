@@ -29,6 +29,24 @@ const BASE_DIVISION_FIELDS = [
   { name: 'type', type: 'utf8', nullable: true },
 ] satisfies ParquetInspection['schema']
 
+const BASE_DIVISION_AREA_FIELDS = [
+  { name: 'id', type: 'utf8', nullable: true },
+  { name: 'geometry', type: 'type', nullable: true },
+  { name: 'country', type: 'utf8', nullable: true },
+  { name: 'sources', type: 'list', nullable: true },
+  { name: 'subtype', type: 'utf8', nullable: true },
+  { name: 'class', type: 'utf8', nullable: true },
+  { name: 'names', type: 'struct', nullable: true },
+  { name: 'is_land', type: 'boolean', nullable: true },
+  { name: 'is_territorial', type: 'boolean', nullable: true },
+  { name: 'region', type: 'utf8', nullable: true },
+  { name: 'division_id', type: 'utf8', nullable: true },
+  { name: 'version', type: 'int_32', nullable: true },
+  { name: 'bbox', type: 'struct', nullable: true },
+  { name: 'theme', type: 'utf8', nullable: true },
+  { name: 'type', type: 'utf8', nullable: true },
+] satisfies ParquetInspection['schema']
+
 function makePlan(sourceVersion: string): UploadPlan {
   return {
     datasetCode: 'ds-hk-overture-division',
@@ -54,6 +72,19 @@ function makePlan(sourceVersion: string): UploadPlan {
       sourceVersion: 'flag',
     },
     supersedesDatasetId: null,
+  }
+}
+
+function makeDivisionAreaPlan(sourceVersion: string): UploadPlan {
+  return {
+    ...makePlan(sourceVersion),
+    datasetCode: 'ds-hk-overture-division-area',
+    releaseCode: `overture-hk-${sourceVersion}-divisionArea`,
+    type: 'divisionArea',
+    datasetId: `overture-hk-${sourceVersion}-divisionArea`,
+    filePath: '/tmp/division-area.parquet',
+    fileName: 'division-area.parquet',
+    originalFileName: 'division-area.parquet',
   }
 }
 
@@ -88,5 +119,18 @@ describe('validateOvertureSchema', () => {
     )
 
     expect(result.schema.id).toBe('overture-division-v2026-02-18.0')
+  })
+
+  test('accepts admin_level for divisionArea uploads from 2026-02-18.0 onward', () => {
+    const result = validateOvertureSchema(
+      makeDivisionAreaPlan('2026-02-18.0'),
+      makeInspection([
+        ...BASE_DIVISION_AREA_FIELDS.slice(0, 13),
+        { name: 'admin_level', type: 'int_32', nullable: true },
+        ...BASE_DIVISION_AREA_FIELDS.slice(13),
+      ]),
+    )
+
+    expect(result.schema.id).toBe('overture-division-area-v2026-02-18.0')
   })
 })
