@@ -27,6 +27,7 @@
     "@iconify-json/material-symbols-light": "^1.2.85",
     "@iconify-json/proicons": "^1.2.19",
     "@iconify/svelte": "^5.2.2",
+    "@protomaps/basemaps": "^5.7.2",
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/i18n": "workspace:*",
