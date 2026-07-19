@@ -229,7 +229,7 @@ describe('api field fixtures', () => {
     )
     expect(fixture?.fields).toContainEqual(
       expect.objectContaining({
-        apiField: 'address.attributes.identifiers',
+        apiField: 'address.attributes.identifiers.hkgovCsuId',
         sourceFieldPath:
           'properties.Address.PremisesAddress.BuildingCsuInformation.CsuId',
       }),

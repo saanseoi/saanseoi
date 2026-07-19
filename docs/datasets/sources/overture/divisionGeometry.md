@@ -65,17 +65,17 @@ IDs; area rows normalize `division_id`. Both expose `sourceKeys` (`version`, `su
 bbox, geometry, and the source land/territorial flags. Boundary rows require exactly two
 distinct division IDs and null `perspectives`.
 
-| Source field                         | Area treatment                                    | Boundary treatment                                |
-| ------------------------------------ | ------------------------------------------------- | ------------------------------------------------- |
-| `id`, `bbox`, `geometry`             | retain exactly                                    | retain exactly                                    |
-| `version`, `subtype`, `class`        | retain; expose through `overture` source keys     | retain; expose through `overture` source keys     |
-| `sources`                            | retain and enrich as `{ overture: ... }`          | retain and enrich as `{ overture: ... }`          |
-| `isLand`, `isTerritorial`            | normalize from `is_land`, `is_territorial`        | normalize from `is_land`, `is_territorial`        |
-| `divisionId`                         | normalize from `division_id`                      | —                                                 |
-| `divisionIds`                        | —                                                 | retain ordered array; derive left/right IDs       |
-| `theme`, `type`, `country`, `region` | drop after preflight; preserve in `rawProperties` | drop after preflight; preserve in `rawProperties` |
-| `names`                              | drop as redundant with the referenced division    | —                                                 |
-| `is_disputed`, `perspectives`        | —                                                 | drop; `perspectives` must be null in preflight    |
+| Source field                                        | Area treatment                                    | Boundary treatment                                |
+| --------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------- |
+| `id`, `bbox`, `geometry`                            | retain exactly                                    | retain exactly                                    |
+| `version`, `subtype`, `class`                       | retain; expose through `overture` source keys     | retain; expose through `overture` source keys     |
+| `sources`                                           | retain and enrich as `{ overture: ... }`          | retain and enrich as `{ overture: ... }`          |
+| `isLand`, `isTerritorial`                           | normalize from `is_land`, `is_territorial`        | normalize from `is_land`, `is_territorial`        |
+| `divisionId`                                        | normalize from `division_id`                      | —                                                 |
+| `divisionIds`                                       | —                                                 | retain ordered array; derive left/right IDs       |
+| `theme`, `type`, `country`, `region`, `admin_level` | drop after preflight; preserve in `rawProperties` | drop after preflight; preserve in `rawProperties` |
+| `names`                                             | drop as redundant with the referenced division    | —                                                 |
+| `is_disputed`, `perspectives`                       | —                                                 | drop; `perspectives` must be null in preflight    |
 
 The source schema and canonical schema use the same shared source-versioning,
 history-versioning, current-snapshot and `rawProperties` fragments as `division`. Stats
@@ -93,6 +93,11 @@ source-key fields. Canonical rows expose normalized left/right or division refer
 `mixed` is derived when both source flags are true, including the known upstream
 Overture records where the source class alone would otherwise suggest `land` or
 `maritime`.
+
+Starting with the 2026-02-18.0 release, Overture area rows include nullable integer
+`admin_level`. It is accepted by preflight and retained in `rawProperties`;
+division-area canonical rows do not expose it because the referenced division is the
+canonical owner of that administrative-level attribute.
 
 When the Hong Kong cut excludes one or more `CN-GD` rows, the release writes one
 `overture_division_geometry_cn_gd_excluded` audit action. Its evidence records the

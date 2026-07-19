@@ -21,11 +21,10 @@ Related docs:
 
 ALS releases occasionally contain the same GeoJSON feature object more than once. The
 preparer removes only exact feature-object duplicates (the same parsed JSON value),
-retains the first occurrence, and prints:
-
-| Record | Address         | Source feature positions (one-based)           |
-| ------ | --------------- | ---------------------------------------------- |
-| 1      | Example address | district-a.geojson #42, district-b.geojson #11 |
+retains the first occurrence, and reports only aggregate CLI counts: affected premises,
+source features involved and removed, and source files involved. It does not print
+canonical records or ignored-variant JSON to the terminal; that structured audit
+evidence remains available through the processing-actions report.
 
 No general coordinate-, `GeoAddress`-, street-, or number-based collapsing is performed.
 Two rows at the same point can represent distinct ALS premises, such as blocks, towers,

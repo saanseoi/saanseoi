@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:26ce7a30566e1116913f6862ae4ffaff9adfc16cb017be716760a509d4f36058",
+  "versionHash": "sha256:3af046763eef22f4366538e2eed74b6322c8c7d6b4c02193b3b3f78d841746f9",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-area-district",
   "regionCode": "hk",
@@ -29,7 +29,7 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "Census District Council District Boundaries",
+      "name": "Census District Boundaries",
       "description": "District Council district boundaries published with C&SD population census and by-census statistics. Each release preserves its exact statistical-geography cohort."
     },
     {
