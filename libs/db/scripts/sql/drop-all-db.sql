@@ -43,6 +43,7 @@ DROP TABLE IF EXISTS `snapshots`;
 DROP TABLE IF EXISTS `snapshotLineages`;
 DROP TABLE IF EXISTS `apiCatalogRevisions`;
 DROP TABLE IF EXISTS `apiVersions`;
+DROP TABLE IF EXISTS `releaseProcessingActions`;
 DROP TABLE IF EXISTS `releases`;
 DROP TABLE IF EXISTS `datasetI18n`;
 DROP TABLE IF EXISTS `datasets`;
