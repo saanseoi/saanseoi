@@ -47,6 +47,25 @@ const BASE_DIVISION_AREA_FIELDS = [
   { name: 'type', type: 'utf8', nullable: true },
 ] satisfies ParquetInspection['schema']
 
+const BASE_DIVISION_BOUNDARY_FIELDS = [
+  { name: 'id', type: 'utf8', nullable: true },
+  { name: 'geometry', type: 'type', nullable: true },
+  { name: 'division_ids', type: 'list', nullable: true },
+  { name: 'subtype', type: 'utf8', nullable: true },
+  { name: 'class', type: 'utf8', nullable: true },
+  { name: 'sources', type: 'list', nullable: true },
+  { name: 'perspectives', type: 'struct', nullable: true },
+  { name: 'is_disputed', type: 'boolean', nullable: true },
+  { name: 'is_land', type: 'boolean', nullable: true },
+  { name: 'is_territorial', type: 'boolean', nullable: true },
+  { name: 'country', type: 'utf8', nullable: true },
+  { name: 'region', type: 'utf8', nullable: true },
+  { name: 'version', type: 'int_32', nullable: true },
+  { name: 'bbox', type: 'struct', nullable: true },
+  { name: 'theme', type: 'utf8', nullable: true },
+  { name: 'type', type: 'utf8', nullable: true },
+] satisfies ParquetInspection['schema']
+
 function makePlan(sourceVersion: string): UploadPlan {
   return {
     datasetCode: 'ds-hk-overture-division',
@@ -85,6 +104,19 @@ function makeDivisionAreaPlan(sourceVersion: string): UploadPlan {
     filePath: '/tmp/division-area.parquet',
     fileName: 'division-area.parquet',
     originalFileName: 'division-area.parquet',
+  }
+}
+
+function makeDivisionBoundaryPlan(sourceVersion: string): UploadPlan {
+  return {
+    ...makePlan(sourceVersion),
+    datasetCode: 'ds-hk-overture-division-boundary',
+    releaseCode: `overture-hk-${sourceVersion}-divisionBoundary`,
+    type: 'divisionBoundary',
+    datasetId: `overture-hk-${sourceVersion}-divisionBoundary`,
+    filePath: '/tmp/division-boundary.parquet',
+    fileName: 'division-boundary.parquet',
+    originalFileName: 'division-boundary.parquet',
   }
 }
 
@@ -132,5 +164,27 @@ describe('validateOvertureSchema', () => {
     )
 
     expect(result.schema.id).toBe('overture-division-area-v2026-02-18.0')
+  })
+
+  test('accepts the pre-admin_level divisionBoundary schema before 2026-02-18.0', () => {
+    const result = validateOvertureSchema(
+      makeDivisionBoundaryPlan('2026-02-17.0'),
+      makeInspection(BASE_DIVISION_BOUNDARY_FIELDS),
+    )
+
+    expect(result.schema.id).toBe('overture-division-boundary-v2025-09-24.0')
+  })
+
+  test('accepts admin_level for divisionBoundary uploads from 2026-02-18.0 onward', () => {
+    const result = validateOvertureSchema(
+      makeDivisionBoundaryPlan('2026-02-18.0'),
+      makeInspection([
+        ...BASE_DIVISION_BOUNDARY_FIELDS.slice(0, 14),
+        { name: 'admin_level', type: 'int_32', nullable: true },
+        ...BASE_DIVISION_BOUNDARY_FIELDS.slice(14),
+      ]),
+    )
+
+    expect(result.schema.id).toBe('overture-division-boundary-v2026-02-18.0')
   })
 })
