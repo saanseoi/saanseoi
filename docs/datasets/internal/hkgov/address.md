@@ -13,7 +13,9 @@ Related docs:
 - Dataset metadata uses `publisherCode: hkgov-dpo` and `code: ds-hk-hkgov-dpo-address`.
 - ALS is the sole source for Hong Kong address records. Address IDs are derived from
   stable ALS premise identities because GERS does not issue address identifiers.
-- The division snapshot is selected with `--cohort-key` as a processing dependency.
+- Each ALS release uses its own source version as its address/API cohort. The selected
+  Overture division snapshot is recorded and reported as an out-of-cohort processing
+  dependency.
 - The CLI reads all 2D district GeoJSON files in one ALS release. It skips the separate
   `als_addresses_3d_*` file.
 
@@ -154,11 +156,12 @@ bin/saanseoi ingest-hkgov-dpo-local \
 ```
 
 For this command, `--cohort-key` establishes the default start year (January 2025 here);
-it is **not** applied to every address release. Each ALS release is assigned the latest
-published same-year Overture division cohort at or before its source version, falling
-back to that year's first published cohort. This is required because address and
-division uploads are sharded by year. Use `--from-source-version YYYY-MM-DD.NNNN` to
-choose a later start. Unknown future drift remains interactive.
+it is **not** applied to every address release. Each ALS release uses its source version
+as its address cohort, while selecting the latest published same-year Overture division
+cohort at or before that version, falling back to that year's first published cohort.
+This is required because address and division uploads are sharded by year. Use
+`--from-source-version YYYY-MM-DD.NNNN` to choose a later start. Unknown future drift
+remains interactive.
 
 It resumes safely after a successful local release: source versions with a published
 local HKGov ALS release are skipped rather than uploaded again. The persisted ALS

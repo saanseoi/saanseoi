@@ -245,11 +245,15 @@ describe('address API release set readiness display', () => {
         { cohortKey: '2025-09-24.0', regionCode: 'hk' },
         true,
         'data-hk-addresses-2025-09-24.0-r0--default',
+        '2025-12-17.0',
       ),
     ).toBe(
       [
         'HK / default / 2025-09-24.0',
         '  \u001B[32m✓\u001B[39m address  available',
+        '',
+        'Out of Cohort',
+        '  \u001B[32m✓\u001B[39m division (overture)  2025-12-17.0',
       ].join('\n'),
     )
   })

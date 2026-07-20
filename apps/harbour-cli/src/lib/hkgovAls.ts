@@ -70,6 +70,7 @@ type PrepareHkgovAlsOptions = {
   metaDb?: MetaDatabase
   outputFile: string
   cohortKey: string
+  divisionCohortKey?: string
   sourceDir: string
   sourceVersion: string
   postProcessPremiseStructure?: boolean
@@ -303,7 +304,7 @@ export async function prepareHkgovAlsAddressParquet(
     dbPath: options.dbPath,
     environment: options.environment,
     metaDb: options.metaDb,
-    cohortKey: options.cohortKey,
+    cohortKey: options.divisionCohortKey ?? options.cohortKey,
   })
   const sourceFeatures: HkgovAlsSourceFeature[] = []
 

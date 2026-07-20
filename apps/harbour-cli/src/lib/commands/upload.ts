@@ -17,7 +17,7 @@ import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingA
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { metaSchema } from '@repo/db'
-import { and, desc, eq, inArray, lte } from 'drizzle-orm'
+import { and, desc, eq, inArray, lte, sql } from 'drizzle-orm'
 
 import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
 import {
@@ -303,11 +303,16 @@ ${mutedBar}  `)
           },
         )
 
+        const releaseSetReadiness = await resolveAddressApiReleaseSetReadiness(
+          target,
+          previewResult.plan,
+        )
         note(
           formatAddressApiReleaseSetReadiness(
             previewResult.plan,
             processingResult.publishResult?.apiReleaseSetStatus === 'current',
             processingResult.publishResult?.apiReleaseSetCode,
+            releaseSetReadiness.divisionCohortKey,
           ),
           'API DOMAIN RELEASE',
         )
@@ -667,7 +672,7 @@ export async function assertAddressUploadPrerequisites(
     throw new Error(
       [
         `Address uploads require a published division snapshot for region ${plan.regionCode.toUpperCase()}.`,
-        `No published division snapshot was found for cohort ${plan.cohortKey}.`,
+        `No published division snapshot was found for the ${plan.sourceVersion.slice(0, 4)} address shard.`,
         'Upload the division release(s) first, then rerun the address upload.',
       ].join(' '),
     )
@@ -697,7 +702,7 @@ export async function assertAddressUploadPrerequisites(
         and(
           eq(metaSchema.metaSnapshots.resourceType, 'division'),
           eq(metaSchema.metaSnapshots.status, 'published'),
-          eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
+          sql`${metaSchema.metaSnapshots.cohortKey} LIKE ${`${plan.sourceVersion.slice(0, 4)}-%`}`,
           eq(metaSchema.metaSnapshotLineages.regionCode, plan.regionCode),
           eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
         ),
@@ -715,7 +720,7 @@ export async function assertAddressUploadPrerequisites(
   throw new Error(
     [
       `Address uploads require a published division snapshot for region ${plan.regionCode.toUpperCase()}.`,
-      `No published division snapshot was found for cohort ${plan.cohortKey}.`,
+      `No published division snapshot was found for the ${plan.sourceVersion.slice(0, 4)} address shard.`,
       'Upload the division release(s) first, then rerun the address upload.',
     ].join(' '),
   )
@@ -724,6 +729,10 @@ export async function assertAddressUploadPrerequisites(
 type DivisionGeometryPlan = Awaited<ReturnType<typeof prepareUpload>>['plan']
 
 type AddressPlan = Awaited<ReturnType<typeof prepareUpload>>['plan']
+
+type AddressReleaseSetReadiness = {
+  divisionCohortKey: string | null
+}
 
 const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS = [
   'ds-hk-hkgov-had-division-area-district',
@@ -776,7 +785,7 @@ export async function assertDivisionGeometryUploadPrerequisites(
   throw new Error(
     [
       `${plan.type} uploads require a published division snapshot for region ${plan.regionCode.toUpperCase()}.`,
-      `No published division snapshot was found for cohort ${plan.cohortKey}.`,
+      `No published division snapshot was found for the ${plan.sourceVersion.slice(0, 4)} address shard.`,
       'Upload the division release first, then rerun this upload.',
     ].join(' '),
   )
@@ -865,13 +874,66 @@ export function formatAddressApiReleaseSetReadiness(
   plan: Pick<AddressPlan, 'cohortKey' | 'regionCode'>,
   addressAvailable: boolean,
   releaseSetCode?: string,
+  divisionCohortKey?: string | null,
 ) {
   const domainCode = releaseSetCode?.match(/--([a-z0-9-]+)$/i)?.[1] ?? 'default'
 
   return [
     `${plan.regionCode.toUpperCase()} / ${domainCode} / ${plan.cohortKey}`,
     `  ${addressAvailable ? greenText('✓') : yellowText('○')} address  ${addressAvailable ? 'available' : 'unavailable'}`,
+    ...(divisionCohortKey && divisionCohortKey !== plan.cohortKey
+      ? [
+          '',
+          'Out of Cohort',
+          `  ${greenText('✓')} division (overture)  ${divisionCohortKey}`,
+        ]
+      : []),
   ].join('\n')
+}
+
+async function resolveAddressApiReleaseSetReadiness(
+  target: UploadTarget,
+  plan: Pick<AddressPlan, 'cohortKey' | 'regionCode' | 'sourceVersion'>,
+): Promise<AddressReleaseSetReadiness> {
+  if (target.remote) return { divisionCohortKey: null }
+
+  const dbContext = await resolveLocalAddressDbContext(
+    target,
+    plan.regionCode,
+    resolveShardYear(plan.cohortKey, plan.sourceVersion),
+    { cacheTableProfile: 'division' },
+  )
+  try {
+    const rows = await (dbContext.metaDb as unknown as HarbourReadableDb)
+      .select({ cohortKey: metaSchema.metaSnapshots.cohortKey })
+      .from(metaSchema.metaSnapshots)
+      .innerJoin(
+        metaSchema.metaSnapshotLineages,
+        eq(
+          metaSchema.metaSnapshots.snapshotLineageId,
+          metaSchema.metaSnapshotLineages.id,
+        ),
+      )
+      .where(
+        and(
+          eq(metaSchema.metaSnapshots.resourceType, 'division'),
+          eq(metaSchema.metaSnapshots.status, 'published'),
+          eq(metaSchema.metaSnapshotLineages.regionCode, plan.regionCode),
+          eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
+          sql`${metaSchema.metaSnapshots.cohortKey} LIKE ${`${plan.sourceVersion.slice(0, 4)}-%`}`,
+        ),
+      )
+      .all()
+    const cohorts = [...new Set(rows.map(row => row.cohortKey))].sort()
+    return {
+      divisionCohortKey:
+        cohorts.filter(cohort => cohort <= plan.sourceVersion).at(-1) ??
+        cohorts[0] ??
+        null,
+    }
+  } finally {
+    dbContext.cleanup()
+  }
 }
 
 function logApiReleaseSetPublication(
@@ -1003,7 +1065,7 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
       AND s.status = 'published'
       AND d.regionCode = ${sqlLiteral(plan.regionCode)}
       AND sl.variant = ${sqlLiteral(resolveDivisionDomainCode(plan.source))}
-      AND s.cohortKey = ${sqlLiteral(plan.cohortKey)}
+      AND s.cohortKey LIKE ${sqlLiteral(`${plan.sourceVersion.slice(0, 4)}-%`)}
       AND ss.role = 'primary'
     LIMIT 1
   `,
@@ -1101,7 +1163,7 @@ async function resolveRemoteDivisionReleaseSetSnapshots(
       AND s.status = 'published'
       AND d.regionCode = ${sqlLiteral(plan.regionCode)}
       AND sl.variant = ${sqlLiteral(resolveDivisionDomainCode(plan.source))}
-      AND s.cohortKey = ${sqlLiteral(plan.cohortKey)}
+      AND s.cohortKey LIKE ${sqlLiteral(`${plan.sourceVersion.slice(0, 4)}-%`)}
       AND ss.role = 'primary'
   `,
   )
