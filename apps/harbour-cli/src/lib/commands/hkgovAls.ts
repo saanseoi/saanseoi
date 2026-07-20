@@ -53,7 +53,8 @@ export async function runHkgovAlsPrepCommand(
   const decisionsFile = stringOption(args, 'identity-decisions')
   const result = await prepareHkgovAlsRelease({
     args,
-    cohortKey,
+    addressCohortKey: sourceVersion,
+    divisionCohortKey: cohortKey,
     decisions: decisionsFile
       ? await readDecisions(resolveInvocationPath(decisionsFile))
       : emptyHkgovAlsIdentityDecisions(),
@@ -175,7 +176,9 @@ export async function runHkgovAlsLocalIngestCommand(
       formatField('releases', String(sourceDirs.length)),
       formatField(
         'divisionCohorts',
-        [...new Set(sourceReleases.map(release => release.cohortKey))].join(', '),
+        [...new Set(sourceReleases.map(release => release.divisionCohortKey))].join(
+          ', ',
+        ),
       ),
       formatField('identityDriftChoicesRequired', String(review.driftCandidates)),
     ].join('\n'),
@@ -183,7 +186,8 @@ export async function runHkgovAlsLocalIngestCommand(
   )
 
   for (const {
-    cohortKey: releaseCohortKey,
+    addressCohortKey,
+    divisionCohortKey,
     sourceDir,
     sourceVersion,
   } of sourceReleases) {
@@ -200,7 +204,8 @@ export async function runHkgovAlsLocalIngestCommand(
     )
     let result = await prepareHkgovAlsRelease({
       args,
-      cohortKey: releaseCohortKey,
+      addressCohortKey,
+      divisionCohortKey,
       decisions,
       history,
       outputFile,
@@ -226,7 +231,8 @@ export async function runHkgovAlsLocalIngestCommand(
       )
       result = await prepareHkgovAlsRelease({
         args,
-        cohortKey: releaseCohortKey,
+        addressCohortKey,
+        divisionCohortKey,
         decisions,
         history,
         outputFile,
@@ -259,7 +265,7 @@ export async function runHkgovAlsLocalIngestCommand(
         command: 'upload',
         positionals: [result.outputFile],
         options: {
-          'cohort-key': releaseCohortKey,
+          'cohort-key': addressCohortKey,
           'release-notes-url':
             stringOption(args, 'release-notes-url') ?? HKGOV_ALS_CATALOGUE_URL,
           region: 'hk',
@@ -319,7 +325,8 @@ async function listLocallyPublishedAlsSourceVersions(
 
 async function prepareHkgovAlsRelease(args: {
   args: ParsedArgs
-  cohortKey: string
+  addressCohortKey: string
+  divisionCohortKey: string
   decisions?: HkgovAlsIdentityDecisions
   history?: HkgovAlsIdentityHistory
   outputFile: string
@@ -335,7 +342,7 @@ async function prepareHkgovAlsRelease(args: {
     : await resolveLocalAddressDbContext(
         args.target,
         'hk',
-        args.cohortKey.slice(0, 4),
+        args.addressCohortKey.slice(0, 4),
         {
           cacheTableProfile: 'address',
         },
@@ -349,7 +356,8 @@ async function prepareHkgovAlsRelease(args: {
       identityHistory: args.history,
       metaDb: dbContext?.metaDb,
       outputFile: args.outputFile,
-      cohortKey: args.cohortKey,
+      cohortKey: args.addressCohortKey,
+      divisionCohortKey: args.divisionCohortKey,
       sourceDir: args.sourceDir,
       sourceVersion: args.sourceVersion,
       postProcessPremiseStructure: args.postProcessPremiseStructure,
@@ -369,10 +377,16 @@ async function reviewHkgovAlsIngest(args: {
 }) {
   let history = args.history
   const driftCandidates = new Set<string>()
-  for (const { cohortKey, sourceDir, sourceVersion } of args.sourceReleases) {
+  for (const {
+    addressCohortKey,
+    divisionCohortKey,
+    sourceDir,
+    sourceVersion,
+  } of args.sourceReleases) {
     const result = await prepareHkgovAlsRelease({
       args: args.args,
-      cohortKey,
+      addressCohortKey,
+      divisionCohortKey,
       decisions: args.decisions,
       history,
       outputFile: join(tmpdir(), `hkgov-als-review-${sourceVersion}.parquet`),
@@ -512,7 +526,8 @@ async function listAlsReleaseDirectories(sourceRoot: string) {
 }
 
 type AlsSourceRelease = {
-  cohortKey: string
+  addressCohortKey: string
+  divisionCohortKey: string
   sourceDir: string
   sourceVersion: string
 }
@@ -587,15 +602,19 @@ async function resolveAlsSourceReleases(
   return sourceReleases.map(release => {
     const year = release.sourceVersion.slice(0, 4)
     const cohorts = cohortsByYear.get(year) ?? []
-    const cohortKey =
+    const divisionCohortKey =
       cohorts.filter(cohort => cohort <= release.sourceVersion).at(-1) ?? cohorts[0]
-    if (!cohortKey) {
+    if (!divisionCohortKey) {
       throw new Error(
         `No published Overture division snapshot is available for the ${year} ALS shard. ` +
           'Publish a same-year division release before ingesting these addresses.',
       )
     }
-    return { ...release, cohortKey }
+    return {
+      ...release,
+      addressCohortKey: release.sourceVersion,
+      divisionCohortKey,
+    }
   })
 }
 
