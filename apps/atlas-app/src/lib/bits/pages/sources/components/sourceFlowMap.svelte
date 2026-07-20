@@ -38,6 +38,8 @@ export type SourceFlowLane = {
   primaryGroupLabel: string
   groupLabel: 'domain' | 'cohort'
   defaultGroupExpanded?: boolean
+  defaultAllGroupsExpanded?: boolean
+  defaultInputLimit?: number
   domains: SourceFlowDomain[]
 }
 
@@ -52,6 +54,7 @@ let {
 } = $props()
 let expandedLaneIds = $state<string[]>([])
 let expandedDomainIds = $state<string[]>([])
+let expandedDefaultInputLaneIds = $state<string[]>([])
 let laneElements = $state<Record<string, HTMLElement>>({})
 let connectorGeometries = $state<
   Record<
@@ -64,7 +67,8 @@ let connectorGeometries = $state<
   >
 >({})
 
-const isExpanded = (lane: SourceFlowLane) => expandedLaneIds.includes(lane.id)
+const isExpanded = (lane: SourceFlowLane) =>
+  lane.defaultAllGroupsExpanded === true || expandedLaneIds.includes(lane.id)
 const groupLabel = (lane: SourceFlowLane) =>
   lane.groupLabel === 'cohort' ? m.sources_flow_cohort() : m.sources_flow_domain()
 const groupLabels = (lane: SourceFlowLane) =>
@@ -73,6 +77,8 @@ const isDomainExpanded = (lane: SourceFlowLane, domain: SourceFlowDomain) =>
   lane.defaultGroupExpanded === true && domain.label === lane.primaryGroupLabel
     ? true
     : expandedDomainIds.includes(domain.id)
+const isDefaultInputListExpanded = (lane: SourceFlowLane) =>
+  expandAll || expandedDefaultInputLaneIds.includes(lane.id)
 
 const isPlanned = (input: SourceFlowInput) => input.planned === true
 const isVisible = (input: SourceFlowInput) => showPlanned || !isPlanned(input)
@@ -80,17 +86,37 @@ const visibleInputs = (inputs: SourceFlowInput[]) => inputs.filter(isVisible)
 const remainingGroupCount = (lane: SourceFlowLane) =>
   lane.defaultGroupExpanded ? lane.domains.length - 1 : lane.domains.length
 
-const visibleDomainInputs = (lane: SourceFlowLane, domain: SourceFlowDomain) =>
+const fullDomainInputs = (lane: SourceFlowLane, domain: SourceFlowDomain) =>
   visibleInputs([
     domain.primary,
     ...(isDomainExpanded(lane, domain) ? domain.variants : []),
   ])
 
+const visibleDomainInputs = (lane: SourceFlowLane, domain: SourceFlowDomain) => {
+  const inputs = fullDomainInputs(lane, domain)
+  if (
+    lane.defaultInputLimit &&
+    domain.label === lane.primaryGroupLabel &&
+    !isDefaultInputListExpanded(lane)
+  ) {
+    return inputs.slice(0, lane.defaultInputLimit)
+  }
+  return inputs
+}
+
 const visibleDefaultInputs = (lane: SourceFlowLane) => {
   const domain = lane.domains[0]
+  if (lane.defaultGroupExpanded && domain) {
+    return visibleDomainInputs(lane, domain)
+  }
   if (lane.domains.length === 1 && domain) return visibleDomainInputs(lane, domain)
-  if (lane.defaultGroupExpanded && domain) return visibleDomainInputs(lane, domain)
   return visibleInputs([lane.primary])
+}
+
+const remainingDefaultInputCount = (lane: SourceFlowLane) => {
+  const domain = lane.domains[0]
+  if (!domain || !lane.defaultInputLimit || isDefaultInputListExpanded(lane)) return 0
+  return Math.max(fullDomainInputs(lane, domain).length - lane.defaultInputLimit, 0)
 }
 
 const hasVisibleInputs = (inputs: SourceFlowInput[]) => visibleInputs(inputs).length > 0
@@ -113,6 +139,12 @@ const toggleDomainExpanded = (domainId: string) => {
   expandedDomainIds = expandedDomainIds.includes(domainId)
     ? expandedDomainIds.filter(id => id !== domainId)
     : [...expandedDomainIds, domainId]
+}
+
+const toggleDefaultInputListExpanded = (laneId: string) => {
+  expandedDefaultInputLaneIds = expandedDefaultInputLaneIds.includes(laneId)
+    ? expandedDefaultInputLaneIds.filter(id => id !== laneId)
+    : [...expandedDefaultInputLaneIds, laneId]
 }
 
 const registerLane = (node: HTMLElement, groupId: string) => {
@@ -185,9 +217,11 @@ $effect(() => {
   if (expandAll) {
     expandedLaneIds = lanes.filter(lane => lane.domains.length > 1).map(lane => lane.id)
     expandedDomainIds = lanes.flatMap(lane => lane.domains.map(domain => domain.id))
+    expandedDefaultInputLaneIds = lanes.map(lane => lane.id)
   } else {
     expandedLaneIds = []
     expandedDomainIds = []
+    expandedDefaultInputLaneIds = []
   }
 })
 
@@ -212,7 +246,9 @@ const connectorPath = (
 ) => {
   if (isPrimary) return `M 0 ${outputY} H ${lineEnd}`
 
-  const joinX = 72
+  // Meet the primary (central) line 9% farther to the right so each curved
+  // input has a clearer run before joining the shared flow.
+  const joinX = 72 + 150 * 0.09
   return `M 0 ${inputY} C 34 ${inputY}, 42 ${outputY}, ${joinX} ${outputY}`
 }
 
@@ -270,10 +306,10 @@ const stackedArrowPath = (inputCount: number) => {
 )}
   {@const geometry = getConnectorGeometry(groupId, inputs.length)}
   <section
-    class="source-flow-lane"
+    class={`source-flow-lane source-flow-lane-${lane.id}`}
     use:registerLane={groupId}
     transition:slide={{ duration: 220, axis: 'y' }}
-    style={`--flow-accent: ${lane.accent}; --flow-connector: ${lane.id === 'addresses' ? lane.secondary : lane.accent}; --flow-label: ${lane.id === 'addresses' || lane.id === 'stats' ? lane.secondary : lane.accent}; --flow-ink: ${lane.ink}; --flow-index: ${laneIndex}; --visible-source-count: ${inputs.length};`}
+    style={`--flow-accent: ${lane.accent}; --flow-connector: ${lane.id === 'addresses' ? lane.secondary : lane.accent}; --flow-label: ${lane.id === 'addresses' || lane.id === 'stats' || lane.id === 'streets' ? lane.secondary : lane.accent}; --flow-ink: ${lane.ink}; --flow-index: ${laneIndex}; --visible-source-count: ${inputs.length};`}
     aria-labelledby={`source-flow-${groupId}`}
   >
     <div class="source-flow-inputs">
@@ -343,7 +379,25 @@ const stackedArrowPath = (inputCount: number) => {
           {/if}
         </button>
       {/if}
-      {#if (!domain || lane.defaultGroupExpanded) && lane.domains.length > 1}
+      {#if (!domain || (lane.defaultGroupExpanded && domain.label === lane.primaryGroupLabel)) && lane.defaultInputLimit &&
+        (remainingDefaultInputCount(lane) || isDefaultInputListExpanded(lane))}
+        <button
+          class="source-flow-more"
+          type="button"
+          aria-expanded={isDefaultInputListExpanded(lane)}
+          onclick={() => toggleDefaultInputListExpanded(lane.id)}
+        >
+          {#if isDefaultInputListExpanded(lane)}
+            {m.sources_flow_hide()}
+          {:else}
+            <span>{m.sources_flow_show()}</span>
+            <strong>{remainingDefaultInputCount(lane)}</strong>
+            <span>{m.sources_flow_more()}</span>
+          {/if}
+        </button>
+      {/if}
+      {#if !lane.defaultAllGroupsExpanded &&
+        (!domain || lane.defaultGroupExpanded) && lane.domains.length > 1}
         <button
           class="source-flow-more"
           type="button"
@@ -513,7 +567,7 @@ const stackedArrowPath = (inputCount: number) => {
   grid-column: 2;
   grid-row: 1;
   z-index: 1;
-  margin-top: 2px;
+  margin-top: 9px;
   margin-left: -12px;
   align-self: start;
   display: grid;
@@ -538,6 +592,10 @@ const stackedArrowPath = (inputCount: number) => {
   font-size: 0.76rem;
   font-weight: 800;
   color: var(--flow-label);
+}
+
+:global(.dark) .source-flow-lane-streets .source-flow-gutter dd {
+  color: var(--flow-accent);
 }
 
 .source-flow-input,
@@ -770,7 +828,7 @@ const stackedArrowPath = (inputCount: number) => {
   border-top: 0.4rem solid transparent;
   border-bottom: 0.4rem solid transparent;
   border-left: 0.5rem solid var(--flow-connector);
-  transform: translateY(2.425rem);
+  transform: translateY(2.95rem);
   pointer-events: none;
   filter: drop-shadow(
     0 0 0.2rem color-mix(in srgb, var(--flow-connector) 32%, transparent)
@@ -831,6 +889,7 @@ const stackedArrowPath = (inputCount: number) => {
   overflow: hidden;
   padding: 1.25rem 1.3rem;
   color: var(--flow-ink);
+  transform: translateY(0.5rem);
 }
 
 .source-flow-output::before {
@@ -955,7 +1014,7 @@ const stackedArrowPath = (inputCount: number) => {
   .source-flow-gutter {
     grid-column: 1;
     grid-row: auto;
-    padding-top: 0;
+    padding-top: 0.5;
   }
 
   .source-flow-connectors {
