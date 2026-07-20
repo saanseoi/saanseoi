@@ -2,7 +2,10 @@
   "versionHash": "sha256:16264f3e0367dd6d20f95503bc4d9cd763d9c78fe04e9133f60c6d54f31c7a6a",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "hkgov-dpo",
-  "validFromSnapshotVersion": "ss-hk-address-2026-06-04.324",
+  "lineageAnchorSnapshotVersions": [
+    "ss-hk-address-2025-09-24.0",
+    "ss-hk-address-2026-06-04.324"
+  ],
   "schemaVersion": "sv-address-v1",
   "rulesetVersion": "rs-address-hkgov-dpo-merge-v1",
   "sourceSchemas": {

@@ -122,7 +122,7 @@ Current selection keys are:
 - `schemaVersion`
 - `rulesetVersion`
 - `sourceSchemas`
-- `validFromSnapshotVersion`
+- `lineageAnchorSnapshotVersions`
 
 These fixtures are resolved at API release publication time to populate
 `apiFieldProvenance`.

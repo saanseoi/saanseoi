@@ -116,6 +116,256 @@ answers a different question:
 | API catalogue revision  | Which domain releases were known at this publication time?              |
 | API version             | What request and response contract, defaults, and handler are promised? |
 
+## Fixture map and selection paths
+
+`fixtures/` is the version-controlled input to the registry and ingestion workflows; it
+is not a second representation of every published object. In particular, an upload
+creates dataset releases, snapshots, API release sets, and catalogue revisions. The
+fixture files describe the stable registry entries, source-specific metadata, mapping
+policy, and human-facing release notes that those workflows use.
+
+The diagram separates **declared fixtures** (blue) from **published objects** (green).
+Solid arrows are references or selection inputs; dashed arrows show a workflow that
+creates an immutable published object.
+
+```mermaid
+flowchart LR
+  subgraph Fixtures[Version-controlled fixtures]
+    Publishers[meta/dataPublishers<br/>publisher registry]
+    Licences[meta/dataLicenses<br/>licence registry]
+    Datasets[meta/datasets<br/>dataset registry]
+    Shards[meta/dataShards<br/>storage placement]
+    ApiVersions[meta/apiVersions<br/>API contract]
+    Endpoints[meta/apiEndpoints<br/>routes + operation IDs]
+    Compositions[meta/apiCompositions<br/>domains + member slots]
+    Schemas[meta/schemaVersions<br/>canonical/API shapes]
+    Rulesets[meta/rulesetVersions<br/>merge and selection semantics]
+    Fields[meta/apiFields<br/>field provenance candidates]
+    Bridges[meta/identifierBridges<br/>source-to-canonical identity bridges]
+    ReleaseDocs[meta/releases<br/>dataset-release documentation]
+    ReleaseSetDocs[meta/apiReleaseSets<br/>domain-release documentation]
+    SourceFixture[resource fixtures<br/>e.g. divisions/overture anchor]
+  end
+
+  subgraph Registry[Registry and ingestion]
+    Dataset[Dataset]
+    Release[Dataset release]
+    Lineage[Snapshot lineage]
+    Snapshot[Snapshot + source manifest]
+  end
+
+  subgraph Publication[Published API state]
+    ReleaseSet[API release set<br/>one domain + cohort + revision]
+    Catalogue[API catalogue revision]
+    Response[Versioned API response]
+  end
+
+  Publishers --> Datasets
+  Licences --> Datasets
+  Datasets --> Dataset
+  Shards --> Release
+  Shards --> Snapshot
+  SourceFixture -. ingested with .-> Release
+  Dataset --> Release
+  Dataset --> Lineage
+  Release -. assembles .-> Snapshot
+  Lineage --> Snapshot
+  Bridges --> Snapshot
+  Compositions --> ReleaseSet
+  Schemas --> ReleaseSet
+  Rulesets --> ReleaseSet
+  Fields --> ReleaseSet
+  Snapshot --> ReleaseSet
+  ApiVersions --> ReleaseSet
+  ReleaseSet -. publishes into .-> Catalogue
+  ApiVersions --> Catalogue
+  Endpoints --> Response
+  ApiVersions --> Response
+  Catalogue --> Response
+  ReleaseSetDocs -. documents .-> ReleaseSet
+  ReleaseDocs -. documents .-> Release
+
+  classDef fixture fill:#e8f1ff,stroke:#4a78a8,color:#142b44
+  classDef published fill:#e8f7ed,stroke:#39764a,color:#173d21
+  class Publishers,Licences,Datasets,Shards,ApiVersions,Endpoints,Compositions,Schemas,Rulesets,Fields,Bridges,ReleaseDocs,ReleaseSetDocs,SourceFixture fixture
+  class Dataset,Release,Lineage,Snapshot,ReleaseSet,Catalogue,Response published
+```
+
+The fixture groups have deliberately different jobs:
+
+| Fixture group                                   | What it declares                                                        | What it does **not** select or create by itself                 |
+| ----------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `dataPublishers/`, `dataLicenses/`, `datasets/` | Stable publisher, licence, and logical-feed identities                  | A source release or snapshot                                    |
+| `dataShards/`                                   | Where source/history/meta data is assigned                              | Which cohort or domain is returned                              |
+| `apiVersions/`, `apiEndpoints/`                 | API contract identity and public route mapping                          | The data to return                                              |
+| `apiCompositions/`                              | Domains and their required/optional resource-and-variant slots          | Exact snapshot IDs                                              |
+| `schemaVersions/`, `rulesetVersions/`           | Shape and executable transformation/selection semantics                 | A publication checkpoint                                        |
+| `apiFields/`                                    | A compatible field-provenance candidate                                 | A release set; it is resolved and pinned while one is published |
+| `identifierBridges/`                            | Source-release/cohort-specific identity reconciliation                  | A cross-cohort identity guarantee for an unrelated lineage      |
+| `releases/`, `apiReleaseSets/`                  | Human-facing documentation for generated release records                | The records themselves                                          |
+| Resource fixtures outside `meta/`               | Source-specific ingestion inputs (for example, the Overture PRC anchor) | Registry policy or an API domain                                |
+
+### From source fixture to snapshot lineage
+
+Each dataset fixture points at one publisher and represents a stable feed. An uploaded
+delivery becomes a release of that feed, then contributes to the lineage whose primary
+dataset defines its identity scope. The exact selected releases, bridge use, and cohort
+rule are recorded in the resulting snapshot's source manifest; they are not inferred
+later from the current fixture tree.
+
+```mermaid
+flowchart LR
+  Publisher[Publisher fixture<br/>overture] --> Dataset[Dataset fixture<br/>ds-hk-overture-division]
+  Dataset --> Release[Uploaded release<br/>dr-hk-overture-division-2025-09-24.0]
+  Release --> Lineage[Lineage<br/>sl-ds-hk-overture-division]
+  Lineage --> Snapshot[Snapshot<br/>ss-hk-division-2025-09-24.0]
+
+  Source[Raw source or resource fixture] --> Release
+  Bridge[Identifier bridge fixture<br/>release + cohort scoped] --> Snapshot
+  SupportingRelease[Supporting dataset release] --> Snapshot
+  Snapshot --> Journal[Parent-relative change journal]
+  Parent[Exact parent snapshot] --> Snapshot
+
+  classDef fixture fill:#e8f1ff,stroke:#4a78a8,color:#142b44
+  classDef published fill:#e8f7ed,stroke:#39764a,color:#173d21
+  class Publisher,Dataset,Source,Bridge fixture
+  class Release,Lineage,Snapshot,Journal,Parent,SupportingRelease published
+```
+
+The lineage is selected from the primary dataset, not from the API domain. A domain can
+therefore combine snapshots from several lineages, while every individual snapshot
+retains its own parent chain and effective cohort.
+
+### Composition selects domain member slots
+
+An API composition is the declaration that turns resource variants into a domain. It
+does not select "the latest division dataset" globally. At publication time, Harbour
+resolves one exact snapshot for each member slot and records those IDs in the API
+release set. This is the current `comp-divisions-v1` shape in compact form:
+
+```mermaid
+flowchart TD
+  Composition[comp-divisions-v1<br/>api-divisions-v0.1] --> Overture[domain: overture<br/>default]
+  Composition --> PU[domain: hkgov-pland-pu]
+  Composition --> NewTown[domain: hkgov-pland-new-town]
+
+  Overture --> ODiv[division / overture<br/>primary, required<br/>exact_ref]
+  Overture --> OArea[divisionArea / overture<br/>geometry, required<br/>exact_ref]
+  Overture --> HadArea[divisionArea / hkgov-had<br/>geometry, required<br/>latest_at_or_before_cohort_per_dataset]
+  Overture --> C2016[divisionArea / hkgov-censtatd:2016<br/>geometry, optional<br/>exact_ref]
+  Overture --> C2021[divisionArea / hkgov-censtatd:2021<br/>geometry, optional<br/>exact_ref]
+  Overture --> CSimple[divisionArea / hkgov-censtatd:2021:simplified<br/>geometry, optional<br/>exact_ref]
+  Overture --> Boundary[divisionBoundary / overture<br/>geometry, required<br/>exact_ref]
+
+  PU --> PUDiv[division / hkgov-pland-pu<br/>primary, required / exact_ref]
+  PU --> PUArea[divisionArea / hkgov-pland-pu<br/>geometry, required / exact_ref]
+  NewTown --> NTDiv[division / hkgov-pland-new-town<br/>primary, required / exact_ref]
+  NewTown --> NTArea[divisionArea / hkgov-pland-new-town<br/>geometry, required / exact_ref]
+
+  ODiv --> ReleaseSet[Generated API release set<br/>exact snapshot manifest]
+  OArea --> ReleaseSet
+  HadArea --> ReleaseSet
+  C2016 --> ReleaseSet
+  C2021 --> ReleaseSet
+  CSimple --> ReleaseSet
+  Boundary --> ReleaseSet
+
+  classDef declared fill:#e8f1ff,stroke:#4a78a8,color:#142b44
+  classDef generated fill:#e8f7ed,stroke:#39764a,color:#173d21
+  class Composition,Overture,PU,NewTown,ODiv,OArea,HadArea,C2016,C2021,CSimple,Boundary,PUDiv,PUArea,NTDiv,NTArea declared
+  class ReleaseSet generated
+```
+
+For a chosen domain/cohort, an `exact_ref` member must resolve to the exact anchored
+cohort. The `hkgov-had` geometry member instead resolves independently for each of its
+datasets to the latest cohort at or before the primary cohort. Required slots must be
+present before publication; optional slots may be absent. The resulting release set
+freezes the selected snapshots, so a later fixture edit or source upload cannot change
+an existing release.
+
+### Field-provenance fixture selection
+
+`apiFields/` is intentionally more selective than the other registry fixture groups. It
+supplies a candidate only when all of its compatibility keys match the draft domain
+release. If several candidates match, the one anchored nearest to the primary snapshot
+on that lineage's root-to-leaf path wins. The selected mapping is then copied into the
+immutable release-set provenance record.
+
+```mermaid
+flowchart TD
+  Draft[Draft domain release] --> Keys[Collect compatibility keys]
+  Keys --> Version[apiVersion]
+  Keys --> Domain[domainCode]
+  Keys --> Shape[schemaVersion + rulesetVersion]
+  Keys --> Sources[Exact source-dataset/schema signature]
+  Keys --> Ancestry[Primary snapshot lineage ancestry]
+
+  Fixture[apiFields fixture] --> Version
+  Fixture --> Domain
+  Fixture --> Shape
+  Fixture --> Sources
+  Fixture --> Anchor[lineageAnchorSnapshotVersion(s)]
+  Anchor --> Ancestry
+
+  Version --> Match{All keys match?}
+  Domain --> Match
+  Shape --> Match
+  Sources --> Match
+  Ancestry --> Match
+  Match -->|no| Reject[Not applicable]
+  Match -->|yes| Nearest[Choose nearest matching lineage anchor]
+  Nearest --> Provenance[Pin field provenance<br/>in API release set]
+
+  classDef fixture fill:#e8f1ff,stroke:#4a78a8,color:#142b44
+  classDef generated fill:#e8f7ed,stroke:#39764a,color:#173d21
+  class Fixture,Anchor fixture
+  class Draft,Keys,Version,Domain,Shape,Sources,Ancestry,Match,Reject,Nearest,Provenance generated
+```
+
+### Request-time selection and replay
+
+The server works from the top down. Fixtures establish the route and the policy already
+pinned into published objects; the catalogue and release-set manifests make the final
+selection immutable.
+
+```mermaid
+flowchart TD
+  Request[Request<br/>route + optional selectors] --> ApiVersion[Route selects API version<br/>and retained handler]
+  ApiVersion --> Region[Resolve region]
+  Region --> Catalogue{Select catalogue}
+  Catalogue -->|catalogRevision| ExactCatalogue[Exact catalogue]
+  Catalogue -->|knownAt| KnownCatalogue[Newest published at or before knownAt]
+  Catalogue -->|otherwise| LatestCatalogue[Latest catalogue]
+  ExactCatalogue --> Domain{Select domain}
+  KnownCatalogue --> Domain
+  LatestCatalogue --> Domain
+  Domain -->|domain| ExplicitDomain[Explicit domain]
+  Domain -->|otherwise| DefaultDomain[Catalogue/API default domain]
+  ExplicitDomain --> ReleaseSet{Select release set}
+  DefaultDomain --> ReleaseSet
+  ReleaseSet -->|releaseSet| ExactSet[Exact immutable release set]
+  ReleaseSet -->|cohort| CohortSet[Exact cohort in catalogue]
+  ReleaseSet -->|effectiveAt| EffectiveSet[Newest effective release]
+  ReleaseSet -->|otherwise| DefaultSet[Domain default release]
+  ExactSet --> Snapshots[Read exact snapshot manifest]
+  CohortSet --> Snapshots
+  EffectiveSet --> Snapshots
+  DefaultSet --> Snapshots
+  Snapshots --> Pinned[Apply pinned schema, ruleset,<br/>field provenance, handler]
+  Pinned --> Content[Read or reconstruct snapshots<br/>from parent graph + journal]
+  Content --> Response[Replayable response]
+
+  classDef request fill:#fff5db,stroke:#9c6b18,color:#493000
+  classDef immutable fill:#e8f7ed,stroke:#39764a,color:#173d21
+  class Request,ApiVersion,Region,Catalogue,Domain,ReleaseSet request
+  class ExactCatalogue,KnownCatalogue,LatestCatalogue,ExplicitDomain,DefaultDomain,ExactSet,CohortSet,EffectiveSet,DefaultSet,Snapshots,Pinned,Content,Response immutable
+```
+
+An explicit selector is exact: it never falls back to a different catalogue, domain,
+cohort, release, or variant. A fully qualified permalink pins the API version, catalogue
+revision, and release set, then follows this same path without consulting mutable
+defaults.
+
 ## Concepts and identifiers
 
 ### Code grammar
@@ -516,13 +766,14 @@ API field provenance records how fields in a particular domain release were prod
 - contribution type and priority
 - confidence
 
-New field fixtures MUST declare a domain and are resolved against API version, schema,
-ruleset, and the exact source-dataset/schema signature. The current legacy v0 fixtures
-without a domain retain subset-compatible resolution only for migration compatibility.
+Field fixtures MUST declare a domain and are resolved against API version, domain,
+schema, ruleset, the exact source-dataset/schema signature, and a parent-linked snapshot
+branch. `lineageAnchorSnapshotVersions` identifies one or more immutable snapshots at
+which the mapping applies. It applies to each anchor and descendants reached through
+`parentSnapshotId`, and never to a sibling or an independently backfilled branch.
 
-`validFromSnapshotVersion` in those legacy fixtures is an ordering key among compatible
-mappings. It MUST NOT be treated as a general rule that a mapping backfilled into an old
-snapshot applies to all later cohorts.
+When more than one fixture matches the branch, the closest ancestor wins. Snapshot-code
+or cohort ordering MUST NOT be used to infer fixture applicability.
 
 ### API release set: immutable domain release
 

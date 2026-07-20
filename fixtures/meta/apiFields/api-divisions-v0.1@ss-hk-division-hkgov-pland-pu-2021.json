@@ -2,7 +2,7 @@
   "versionHash": "sha256:393d8cbbccb470d2a77fa9d379323d3f73af7686708e59a002dd19a1e30c48bc",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-pland-pu",
-  "validFromSnapshotVersion": "ss-hk-division-hkgov-pland-pu-2021",
+  "lineageAnchorSnapshotVersions": ["ss-hk-division-hkgov-pland-pu-2021"],
   "schemaVersion": "sv-division-v1",
   "rulesetVersion": "rs-division-hkgov-pland-pu-merge-v1",
   "sourceSchemas": {

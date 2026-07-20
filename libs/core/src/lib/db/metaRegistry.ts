@@ -2889,12 +2889,15 @@ export async function publishReleaseArtifacts(
       ?.snapshotId ?? null
   const primarySnapshot = primarySnapshotId
     ? await db
-        .select({ code: metaSnapshots.code })
+        .select({ id: metaSnapshots.id, code: metaSnapshots.code })
         .from(metaSnapshots)
         .where(eq(metaSnapshots.id, primarySnapshotId))
         .limit(1)
         .get()
     : null
+  const primarySnapshotLineageVersions = primarySnapshot
+    ? await resolveSnapshotLineageVersions(db, primarySnapshot.id)
+    : await resolveSnapshotLineageVersions(db, snapshot.id)
   const sourceSchemaRows = await db
     .select({
       datasetCode: metaDatasets.code,
@@ -2933,7 +2936,7 @@ export async function publishReleaseArtifacts(
     : resolveApiFieldFixture({
         apiVersion: releaseSet.apiVersion,
         domainCode: releaseSet.domainCode,
-        snapshotVersion: primarySnapshot?.code ?? snapshot.code,
+        lineageSnapshotVersions: primarySnapshotLineageVersions,
         schemaVersion: releaseSet.schemaVersion,
         rulesetVersion: releaseSet.rulesetVersion,
         sourceSchemas: Object.fromEntries(sourceSchemas),
@@ -2941,12 +2944,12 @@ export async function publishReleaseArtifacts(
   const hasBundledApiFieldFixtures = listApiFieldFixtures().some(
     fixture =>
       fixture.apiVersion === releaseSet.apiVersion &&
-      (fixture.domainCode ?? 'overture') === releaseSet.domainCode,
+      fixture.domainCode === releaseSet.domainCode,
   )
 
   if (!deferApiReleaseSet && !resolvedApiFieldFixture && hasBundledApiFieldFixtures) {
     throw new Error(
-      `API field fixture not found for apiVersion=${releaseSet.apiVersion}, snapshotVersion=${primarySnapshot?.code ?? snapshot.code}, schemaVersion=${releaseSet.schemaVersion}, rulesetVersion=${releaseSet.rulesetVersion}.`,
+      `API field fixture not found for apiVersion=${releaseSet.apiVersion}, lineageSnapshotVersions=${primarySnapshotLineageVersions.join(',')}, schemaVersion=${releaseSet.schemaVersion}, rulesetVersion=${releaseSet.rulesetVersion}.`,
     )
   }
 
@@ -3862,6 +3865,41 @@ export type SnapshotReplayStep = {
     dataShardId: string
     bindingName: string
   }>
+}
+
+/**
+ * Returns the immutable root-to-leaf branch for fixture applicability. Snapshot
+ * codes are labels only; parent links establish the branch relationship.
+ */
+async function resolveSnapshotLineageVersions(
+  db: HarbourReadableDb,
+  snapshotId: string,
+): Promise<string[]> {
+  const leafToRoot: Array<{ code: string; parentSnapshotId: string | null }> = []
+  const seen = new Set<string>()
+  let cursor: string | null = snapshotId
+
+  while (cursor) {
+    if (seen.has(cursor)) {
+      throw new Error(`Snapshot parent cycle detected at ${cursor}.`)
+    }
+    seen.add(cursor)
+    const snapshot: { code: string; parentSnapshotId: string | null } | undefined =
+      await db
+        .select({
+          code: metaSnapshots.code,
+          parentSnapshotId: metaSnapshots.parentSnapshotId,
+        })
+        .from(metaSnapshots)
+        .where(eq(metaSnapshots.id, cursor))
+        .limit(1)
+        .get()
+    if (!snapshot) throw new Error(`Snapshot not found: ${cursor}.`)
+    leafToRoot.push(snapshot)
+    cursor = snapshot.parentSnapshotId
+  }
+
+  return leafToRoot.reverse().map(snapshot => snapshot.code)
 }
 
 /**

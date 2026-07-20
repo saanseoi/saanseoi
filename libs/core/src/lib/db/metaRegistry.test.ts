@@ -444,6 +444,7 @@ function createPublishReleaseArtifactsDb() {
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
       snapshotLineageId TEXT,
+      parentSnapshotId TEXT,
       resourceType TEXT NOT NULL DEFAULT 'division',
       code TEXT NOT NULL,
       cohortKey TEXT NOT NULL DEFAULT '2026-05-20.0',
@@ -1574,9 +1575,9 @@ describe('publishReleaseArtifacts', () => {
       INSERT INTO apiVersions (id, code) VALUES
         ('api-version-1', 'api-divisions-v0.1');
 
-      INSERT INTO snapshots (id, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
-        ('snapshot-curated', 'ss-hk-division-2026-05-20.0', 'draft', null, null, null, 1760000000000),
-        ('snapshot-new', 'ss-hk-division-2026-06-17.0', 'draft', null, null, null, 1760000000000);
+      INSERT INTO snapshots (id, parentSnapshotId, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
+        ('snapshot-curated', null, 'ss-hk-division-2026-05-20.0', 'draft', null, null, null, 1760000000000),
+        ('snapshot-new', 'snapshot-curated', 'ss-hk-division-2026-06-17.0', 'draft', null, null, null, 1760000000000);
 
       INSERT INTO apiReleaseSets (
         id, apiVersionId, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
@@ -1829,8 +1830,9 @@ describe('publishReleaseArtifacts', () => {
       INSERT INTO apiVersions (id, code) VALUES
         ('api-version-1', 'api-divisions-v0.1');
 
-      INSERT INTO snapshots (id, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
-        ('snapshot-new', 'ss-hk-division-2026-06-24.0', 'draft', null, null, null, 1760000000000);
+      INSERT INTO snapshots (id, parentSnapshotId, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
+        ('snapshot-fixture-anchor', null, 'ss-hk-division-2026-05-20.0', 'published', 1760000000000, null, null, 1760000000000),
+        ('snapshot-new', 'snapshot-fixture-anchor', 'ss-hk-division-2026-06-24.0', 'draft', null, null, null, 1760000000000);
 
       INSERT INTO apiReleaseSets (
         id, apiVersionId, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
@@ -1904,8 +1906,9 @@ describe('publishReleaseArtifacts', () => {
       INSERT INTO apiVersions (id, code) VALUES
         ('api-version-1', 'api-divisions-v0.1');
 
-      INSERT INTO snapshots (id, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
-        ('snapshot-new', 'ss-hk-division-2026-06-24.0', 'draft', null, null, null, 1760000000000);
+      INSERT INTO snapshots (id, parentSnapshotId, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
+        ('snapshot-fixture-anchor', null, 'ss-hk-division-2026-05-20.0', 'published', 1760000000000, null, null, 1760000000000),
+        ('snapshot-new', 'snapshot-fixture-anchor', 'ss-hk-division-2026-06-24.0', 'draft', null, null, null, 1760000000000);
 
       INSERT INTO apiReleaseSets (
         id, apiVersionId, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt

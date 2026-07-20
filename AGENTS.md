@@ -24,6 +24,9 @@ Repo-local operating notes for Codex and similar agents.
 - Type checking: `tsc --noEmit` in package scripts
 - Worker build/deploy tooling: `wrangler`
 - Prefer `rg`/`rg --files` for search
+- The product is pre-release: do not retain legacy compatibility paths or migration
+  shims unless explicitly requested.
+- Use `playwright` to validate front-end design changes. Ignore content changes.
 
 ## Component and styling conventions
 

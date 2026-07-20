@@ -26,9 +26,13 @@ export type ApiFieldFixtureField = {
 export type ApiFieldFixture = {
   versionHash: string
   apiVersion: string
-  /** Domain this mapping applies to. Legacy fixtures are overture mappings. */
-  domainCode?: string
-  validFromSnapshotVersion: string
+  /** Domain this mapping applies to. */
+  domainCode: string
+  /**
+   * Immutable snapshots that anchor this mapping on snapshot lineage branches.
+   * The mapping applies to each anchor and its descendants only.
+   */
+  lineageAnchorSnapshotVersions: string[]
   schemaVersion: string
   rulesetVersion: string
   sourceSchemas: Record<string, string>
@@ -57,39 +61,10 @@ function cloneApiFieldFixtureField(field: ApiFieldFixtureField): ApiFieldFixture
 function cloneApiFieldFixture(fixture: ApiFieldFixture): ApiFieldFixture {
   return {
     ...fixture,
+    lineageAnchorSnapshotVersions: [...fixture.lineageAnchorSnapshotVersions],
     sourceSchemas: { ...fixture.sourceSchemas },
     fields: fixture.fields.map(cloneApiFieldFixtureField),
   }
-}
-
-function compareSnapshotVersions(left: string, right: string) {
-  const leftMatch = left.match(
-    /^ss-[a-z0-9]+-[a-z0-9-]+-(20\d{2}-\d{2}-\d{2})\.(\d+)$/i,
-  )
-  const rightMatch = right.match(
-    /^ss-[a-z0-9]+-[a-z0-9-]+-(20\d{2}-\d{2}-\d{2})\.(\d+)$/i,
-  )
-
-  if (!leftMatch || !rightMatch) {
-    return left.localeCompare(right)
-  }
-
-  const leftDate = leftMatch[1]
-  const rightDate = rightMatch[1]
-
-  if (!leftDate || !rightDate) {
-    return left.localeCompare(right)
-  }
-
-  const leftPatch = leftMatch[2] ?? '0'
-  const rightPatch = rightMatch[2] ?? '0'
-  const dateComparison = leftDate.localeCompare(rightDate)
-
-  if (dateComparison !== 0) {
-    return dateComparison
-  }
-
-  return Number.parseInt(leftPatch, 10) - Number.parseInt(rightPatch, 10)
 }
 
 function haveEqualSourceSchemas(
@@ -108,28 +83,15 @@ function haveEqualSourceSchemas(
   )
 }
 
-function haveLegacyCompatibleSourceSchemas(
-  fixtureSchemas: Record<string, string>,
-  sourceSchemas: Record<string, string>,
-) {
-  const sourceSchemaEntries = Object.entries(sourceSchemas)
-
-  return (
-    sourceSchemaEntries.length > 0 &&
-    sourceSchemaEntries.every(
-      ([datasetCode, schemaVersion]) => fixtureSchemas[datasetCode] === schemaVersion,
-    )
-  )
-}
-
 export function listApiFieldFixtures() {
   return apiFieldFixtures.map(cloneApiFieldFixture)
 }
 
 export function resolveApiFieldFixture(args: {
   apiVersion: string
-  domainCode?: string
-  snapshotVersion: string
+  domainCode: string
+  /** Snapshot codes from the primary snapshot's lineage root to itself. */
+  lineageSnapshotVersions: string[]
   schemaVersion: string
   rulesetVersion: string
   sourceSchemas: Record<string, string>
@@ -138,25 +100,26 @@ export function resolveApiFieldFixture(args: {
     .filter(
       fixture =>
         fixture.apiVersion === args.apiVersion &&
-        (fixture.domainCode ?? 'overture') === (args.domainCode ?? 'overture') &&
+        fixture.domainCode === args.domainCode &&
         fixture.schemaVersion === args.schemaVersion &&
         fixture.rulesetVersion === args.rulesetVersion &&
-        (haveEqualSourceSchemas(fixture.sourceSchemas, args.sourceSchemas) ||
-          (fixture.domainCode === undefined &&
-            haveLegacyCompatibleSourceSchemas(
-              fixture.sourceSchemas,
-              args.sourceSchemas,
-            ))) &&
-        compareSnapshotVersions(
-          fixture.validFromSnapshotVersion,
-          args.snapshotVersion,
-        ) <= 0,
+        haveEqualSourceSchemas(fixture.sourceSchemas, args.sourceSchemas) &&
+        fixture.lineageAnchorSnapshotVersions.some(snapshotVersion =>
+          args.lineageSnapshotVersions.includes(snapshotVersion),
+        ),
     )
-    .sort((left, right) =>
-      compareSnapshotVersions(
-        right.validFromSnapshotVersion,
-        left.validFromSnapshotVersion,
-      ),
+    .sort(
+      (left, right) =>
+        Math.max(
+          ...right.lineageAnchorSnapshotVersions.map(snapshotVersion =>
+            args.lineageSnapshotVersions.lastIndexOf(snapshotVersion),
+          ),
+        ) -
+        Math.max(
+          ...left.lineageAnchorSnapshotVersions.map(snapshotVersion =>
+            args.lineageSnapshotVersions.lastIndexOf(snapshotVersion),
+          ),
+        ),
     )
 
   return candidates[0] ? cloneApiFieldFixture(candidates[0]) : null
