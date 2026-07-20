@@ -24,6 +24,7 @@ export type ApiRelease = {
   schemaVersion: string
   rulesetVersion: string
   status: string
+  displayStatus?: 'current' | 'draft' | 'revised' | 'superseded' | 'archived'
   publishedAt?: string | null
   validFrom?: string | null
   validTo?: string | null
@@ -45,6 +46,7 @@ export type ApiRelease = {
   }>
   createdAt: string
   updatedAt: string
+  primaryRecordCount?: number | null
 }
 
 export type RegistryApi = {

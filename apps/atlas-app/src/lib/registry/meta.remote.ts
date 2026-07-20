@@ -6,7 +6,7 @@ import {
   listRegistryReleases,
   listRegistrySources,
 } from '@repo/core/db/metaRegistry'
-import { createCurrentDb, createMetaDb, currentSchema, desc, eq } from '@repo/db'
+import { createCurrentDb, createMetaDb, currentSchema, desc, eq, sql } from '@repo/db'
 import { error, redirect } from '@sveltejs/kit'
 import { getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
@@ -36,6 +36,26 @@ function getCurrentDb() {
   const binding = event.platform?.env.DB_CURRENT
   if (!binding) throw new Error('D1 binding "DB_CURRENT" not found.')
   return createCurrentDb(binding)
+}
+
+function isRegistryBootstrapError(error: unknown) {
+  const seen = new Set<unknown>()
+  let current = error
+
+  while (current && typeof current === 'object' && !seen.has(current)) {
+    seen.add(current)
+    if (
+      current instanceof Error &&
+      /no such table: (?:apiReleaseSets|apiVersions|address2d|divisions)/i.test(
+        current.message,
+      )
+    ) {
+      return true
+    }
+    current = 'cause' in current ? current.cause : undefined
+  }
+
+  return false
 }
 
 export const getSourcesPageData = query(
@@ -111,16 +131,73 @@ export const getPublisherPageData = query(registryCodeSchema, async publisherCod
   }
 })
 
-export const getDataPageData = query(async () => {
+async function loadDataPageData() {
   const db = getMetaDb()
   const [releases, apis] = await Promise.all([
     listRegistryReleases(db, 12),
     listRegistryApis(db, 100),
   ])
 
+  const [addressCounts, divisionCounts] = await Promise.all([
+    getCurrentDb()
+      .select({
+        count: sql<number>`count(*)`,
+        snapshotId: currentSchema.address2d.snapshotId,
+      })
+      .from(currentSchema.address2d)
+      .groupBy(currentSchema.address2d.snapshotId)
+      .all(),
+    getCurrentDb()
+      .select({
+        count: sql<number>`count(*)`,
+        snapshotId: currentSchema.divisions.snapshotId,
+      })
+      .from(currentSchema.divisions)
+      .groupBy(currentSchema.divisions.snapshotId)
+      .all(),
+  ])
+  const countsBySnapshot = new Map(
+    [...addressCounts, ...divisionCounts].map(row => [
+      row.snapshotId,
+      Number(row.count),
+    ]),
+  )
+  const releasesWithPrimaryCounts = releases.map(release => {
+    const primaryResourceType =
+      release.apiFamily === 'addresses'
+        ? 'address'
+        : release.apiFamily === 'divisions'
+          ? 'division'
+          : null
+    const primarySnapshot = release.apiReleaseSetSnapshots?.find(
+      releaseSnapshot => releaseSnapshot.snapshot.resourceType === primaryResourceType,
+    )
+
+    return {
+      ...release,
+      primaryRecordCount:
+        primarySnapshot === undefined
+          ? null
+          : (countsBySnapshot.get(primarySnapshot.snapshotId) ?? null),
+    }
+  })
+
   return {
-    releases: releases as ApiRelease[],
+    releases: releasesWithPrimaryCounts as ApiRelease[],
     apis: apis as RegistryApi[],
+  }
+}
+
+export const getDataPageData = query(async () => {
+  try {
+    return await loadDataPageData()
+  } catch (error) {
+    // An import can briefly expose the app before both D1 databases have their
+    // registry tables. Render the empty registry state until the upload finishes.
+    if (isRegistryBootstrapError(error)) {
+      return { releases: [] as ApiRelease[], apis: [] as RegistryApi[] }
+    }
+    throw error
   }
 })
 
@@ -128,7 +205,9 @@ export const getApiFamilyPageData = query(registryCodeSchema, async familyType =
   const api = (await getRegistryApi(getMetaDb(), familyType)) as RegistryApi | null
   if (!api) error(404, 'API family not found.')
 
-  const latestRelease = api.releases?.[0]
+  const latestRelease =
+    api.releases?.find(release => release.displayStatus === 'current') ??
+    api.releases?.[0]
   if (latestRelease) {
     redirect(302, `/apis/${api.familyType}/${latestRelease.code}`)
   }
