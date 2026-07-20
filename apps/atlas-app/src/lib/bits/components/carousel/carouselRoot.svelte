@@ -53,13 +53,13 @@ const handlePointerDown = (event: PointerEvent) => {
       ? event.target.closest<HTMLElement>('[data-carousel-card]')
       : null
   pendingCardId = card?.dataset.carouselCard ?? null
-  ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
 }
 const handlePointerMove = (event: PointerEvent) => {
   if (event.pointerId !== pointerId || !viewport) return
   const offset = event.clientX - startX
   if (Math.abs(offset) > 6 && !hasDragged) {
     hasDragged = true
+    ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
     ondragstatechange?.({ cardId: pendingCardId })
   }
   if (!hasDragged) return
