@@ -1,4 +1,5 @@
 import apiDivisionsV01Fixture20250924 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-09-24.0.json'
+import apiDivisionsV01Fixture20250924WithoutCenstatd from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-09-24.0-no-censtatd.json'
 import apiDivisionsV01Fixture20251022 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-10-22.0.json'
 import apiDivisionsV01Fixture20251119 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-11-19.0.json'
 import apiDivisionsV01Fixture20251217 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-12-17.0.json'
@@ -43,6 +44,7 @@ export type ApiFieldFixtureLineageAnchor = {
 
 const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01Fixture20250924 as ApiFieldFixture,
+  apiDivisionsV01Fixture20250924WithoutCenstatd as ApiFieldFixture,
   apiDivisionsV01Fixture20251022 as ApiFieldFixture,
   apiDivisionsV01Fixture20251119 as ApiFieldFixture,
   apiDivisionsV01Fixture20251217 as ApiFieldFixture,

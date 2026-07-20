@@ -1,0 +1,490 @@
+{
+  "versionHash": "sha256:85c77739238ec8389919d24e30e0823bdc62ea2cc93b5f060802c2aab8c7a659",
+  "apiVersion": "api-divisions-v0.1",
+  "domainCode": "overture",
+  "schemaVersion": "sv-division-v1",
+  "rulesetVersion": "rs-division-merge-v1",
+  "lineageAnchors": [
+    {
+      "snapshotVersion": "ss-hk-division-2025-09-24.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.12.0",
+        "ds-hk-overture-division-area": "1.12.0",
+        "ds-hk-overture-division-boundary": "1.12.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2025-10-22.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.13.0",
+        "ds-hk-overture-division-area": "1.13.0",
+        "ds-hk-overture-division-boundary": "1.13.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2025-11-19.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.14.0",
+        "ds-hk-overture-division-area": "1.14.0",
+        "ds-hk-overture-division-boundary": "1.14.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2025-12-17.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.15.0",
+        "ds-hk-overture-division-area": "1.15.0",
+        "ds-hk-overture-division-boundary": "1.15.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2"
+      }
+    }
+  ],
+  "fields": [
+    {
+      "apiField": "division.id",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "id",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.level",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.primary",
+      "resolverCode": "map_division_level",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 0.75
+    },
+    {
+      "apiField": "division.attributes.level",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.common",
+      "resolverCode": "map_division_level",
+      "contributionType": "resolver-input",
+      "priority": 1,
+      "confidence": 0.8
+    },
+    {
+      "apiField": "division.attributes.level",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "subtype",
+      "resolverCode": "map_division_level",
+      "contributionType": "resolver-input",
+      "priority": 2,
+      "confidence": 0.95
+    },
+    {
+      "apiField": "division.attributes.level",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "class",
+      "resolverCode": "map_division_level",
+      "contributionType": "resolver-input",
+      "priority": 3,
+      "confidence": 0.95
+    },
+    {
+      "apiField": "division.attributes.level",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "parent_division_id",
+      "resolverCode": "map_division_level",
+      "contributionType": "resolver-input",
+      "priority": 4,
+      "confidence": 0.8
+    },
+    {
+      "apiField": "division.attributes.divisionType",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.primary",
+      "resolverCode": "map_division_type",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 0.75
+    },
+    {
+      "apiField": "division.attributes.divisionType",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.common",
+      "resolverCode": "map_division_type",
+      "contributionType": "resolver-input",
+      "priority": 1,
+      "confidence": 0.8
+    },
+    {
+      "apiField": "division.attributes.divisionType",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "subtype",
+      "resolverCode": "map_division_type",
+      "contributionType": "resolver-input",
+      "priority": 2,
+      "confidence": 0.95
+    },
+    {
+      "apiField": "division.attributes.divisionType",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "class",
+      "resolverCode": "map_division_type",
+      "contributionType": "resolver-input",
+      "priority": 3,
+      "confidence": 0.95
+    },
+    {
+      "apiField": "division.attributes.divisionType",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "parent_division_id",
+      "resolverCode": "map_division_type",
+      "contributionType": "resolver-input",
+      "priority": 4,
+      "confidence": 0.8
+    },
+    {
+      "apiField": "division.attributes.subtype",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "subtype",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.divisionClass",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "class",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.geometry",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "geometry",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.bbox",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "bbox",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.wikidata",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "wikidata",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.i18n.en.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.common.en",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 0.95
+    },
+    {
+      "apiField": "division.attributes.i18n.en.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.primary",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 2,
+      "confidence": 0.7
+    },
+    {
+      "apiField": "division.attributes.i18n.zh-hant.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.common.zh-hk",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 0.95
+    },
+    {
+      "apiField": "division.attributes.i18n.zh-hant.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.common.zh-hant",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 1,
+      "confidence": 0.9
+    },
+    {
+      "apiField": "division.attributes.i18n.zh-hant.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.primary",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 3,
+      "confidence": 0.7
+    },
+    {
+      "apiField": "division.attributes.i18n.zh-hans.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.common.zh-hans",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 0.95
+    },
+    {
+      "apiField": "division.attributes.i18n.zh-hans.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.common.zh-cn",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 1,
+      "confidence": 0.9
+    },
+    {
+      "apiField": "division.attributes.i18n.zh-hans.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.primary",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 3,
+      "confidence": 0.7
+    },
+    {
+      "apiField": "division.relationships.areas",
+      "sourceDatasetCode": "ds-hk-overture-division-area",
+      "sourceFieldPath": "division_id",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.relationships.boundaries",
+      "sourceDatasetCode": "ds-hk-overture-division-boundary",
+      "sourceFieldPath": "division_ids",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.id",
+      "sourceDatasetCode": "ds-hk-overture-division-area",
+      "sourceFieldPath": "id",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.geometry",
+      "sourceDatasetCode": "ds-hk-overture-division-area",
+      "sourceFieldPath": "geometry",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.bbox",
+      "sourceDatasetCode": "ds-hk-overture-division-area",
+      "sourceFieldPath": "bbox",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.divisionId",
+      "sourceDatasetCode": "ds-hk-overture-division-area",
+      "sourceFieldPath": "division_id",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.type",
+      "sourceDatasetCode": "ds-hk-overture-division-area",
+      "sourceFieldPath": "class",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.isLand",
+      "sourceDatasetCode": "ds-hk-overture-division-area",
+      "sourceFieldPath": "is_land",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.isTerritorial",
+      "sourceDatasetCode": "ds-hk-overture-division-area",
+      "sourceFieldPath": "is_territorial",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.overture.version",
+      "sourceDatasetCode": "ds-hk-overture-division-area",
+      "sourceFieldPath": "version",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.overture.subtype",
+      "sourceDatasetCode": "ds-hk-overture-division-area",
+      "sourceFieldPath": "subtype",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.overture.class",
+      "sourceDatasetCode": "ds-hk-overture-division-area",
+      "sourceFieldPath": "class",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.variant",
+      "variant": "overture",
+      "sourceDatasetCode": "ds-hk-overture-division-area",
+      "sourceFieldPath": "source",
+      "resolverCode": "derive_variant_from_source",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.variant",
+      "variant": "hkgov-had",
+      "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+      "sourceFieldPath": "source",
+      "resolverCode": "derive_variant_from_source",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionBoundary.id",
+      "sourceDatasetCode": "ds-hk-overture-division-boundary",
+      "sourceFieldPath": "id",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionBoundary.attributes.geometry",
+      "sourceDatasetCode": "ds-hk-overture-division-boundary",
+      "sourceFieldPath": "geometry",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionBoundary.attributes.bbox",
+      "sourceDatasetCode": "ds-hk-overture-division-boundary",
+      "sourceFieldPath": "bbox",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionBoundary.attributes.leftDivisionId",
+      "sourceDatasetCode": "ds-hk-overture-division-boundary",
+      "sourceFieldPath": "division_ids[0]",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionBoundary.attributes.rightDivisionId",
+      "sourceDatasetCode": "ds-hk-overture-division-boundary",
+      "sourceFieldPath": "division_ids[1]",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionBoundary.attributes.type",
+      "sourceDatasetCode": "ds-hk-overture-division-boundary",
+      "sourceFieldPath": "class",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionBoundary.attributes.isLand",
+      "sourceDatasetCode": "ds-hk-overture-division-boundary",
+      "sourceFieldPath": "is_land",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionBoundary.attributes.isTerritorial",
+      "sourceDatasetCode": "ds-hk-overture-division-boundary",
+      "sourceFieldPath": "is_territorial",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionBoundary.attributes.overture.version",
+      "sourceDatasetCode": "ds-hk-overture-division-boundary",
+      "sourceFieldPath": "version",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionBoundary.attributes.overture.subtype",
+      "sourceDatasetCode": "ds-hk-overture-division-boundary",
+      "sourceFieldPath": "subtype",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionBoundary.attributes.overture.class",
+      "sourceDatasetCode": "ds-hk-overture-division-boundary",
+      "sourceFieldPath": "class",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    }
+  ]
+}
