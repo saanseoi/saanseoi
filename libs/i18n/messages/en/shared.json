@@ -22,6 +22,7 @@
   "api_release_ingestion_date": "Ingestion date",
   "api_release_versions": "Versions",
   "api_release_current": "Current",
+  "api_release_revised": "Revised",
   "api_release_superseded": "Superseded",
   "api_release_information": "Release information",
   "api_release_notes": "Release notes",

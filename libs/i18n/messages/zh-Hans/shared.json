@@ -22,6 +22,7 @@
   "api_release_ingestion_date": "导入日期",
   "api_release_versions": "版本",
   "api_release_current": "当前版本",
+  "api_release_revised": "已修订",
   "api_release_superseded": "已被取代",
   "api_release_information": "版本信息",
   "api_release_notes": "版本说明",
