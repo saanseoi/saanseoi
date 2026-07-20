@@ -7,6 +7,7 @@ type Release = {
   apiFamily: string
   code: string
   status: string
+  displayStatus?: string
   schemaVersion: string
 }
 type Props = {
@@ -29,10 +30,15 @@ let theme = $derived(getApiFamilyTheme(release.apiFamily))
 let accent = $derived(theme?.colorway.primary ?? 'var(--secondary)')
 let secondary = $derived(theme?.colorway.secondary ?? 'var(--accent)')
 let ink = $derived(release.apiFamily === 'streets' ? '#111717' : '#fffaf0')
-let isCurrent = $derived(release.status.toLowerCase() === 'current')
-let isDraft = $derived(release.status.toLowerCase() === 'draft')
+let lifecycleStatus = $derived(release.displayStatus ?? release.status)
+let isCurrent = $derived(lifecycleStatus.toLowerCase() === 'current')
+let isDraft = $derived(lifecycleStatus.toLowerCase() === 'draft')
 let statusLabel = $derived(
-  release.status.toLowerCase() === 'archived' ? 'superseded' : release.status,
+  lifecycleStatus.toLowerCase() === 'revised'
+    ? m.api_release_revised()
+    : lifecycleStatus.toLowerCase() === 'superseded'
+      ? m.api_release_superseded()
+      : lifecycleStatus,
 )
 let cardStyle = $derived(
   `--release-accent: ${accent}; --release-secondary: ${secondary}; --release-ink: ${ink}; --release-topo-image: url('${topoImage}'); --release-topo-x: ${(index % 4) * 25}%; --release-topo-y: ${(Math.floor(index / 4) % 4) * 25}%; --release-topo-scale-x: ${index % 2 === 0 ? 1 : -1}; --release-topo-scale-y: ${index % 3 === 0 ? -1 : 1}; background: var(--release-accent);`,

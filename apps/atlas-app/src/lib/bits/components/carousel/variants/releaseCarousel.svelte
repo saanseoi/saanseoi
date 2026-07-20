@@ -5,6 +5,7 @@ type Release = {
   apiFamily: string
   code: string
   status: string
+  displayStatus?: string
   schemaVersion: string
 }
 type Item = {
