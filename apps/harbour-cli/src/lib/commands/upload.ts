@@ -134,6 +134,11 @@ ${mutedBar}  `)
           ? 'Prepared simplified, land-clipped C&SD display geometry.'
           : 'Prepared Census and Statistics Department District Council GML.',
       )
+      if (!hkgovCenstatdPreparation.transform) {
+        log.message(
+          'This upload will also publish the derived simplified C&SD display geometry.',
+        )
+      }
     }
     let previewResult = await prepareUpload(registerOptions)
     const sourceSchemaVersion = await resolveSourceSchemaVersion({
@@ -159,6 +164,10 @@ ${mutedBar}  `)
       log.message(
         'No object upload, API call, queue enqueue, or database mutation was attempted.',
       )
+      if (shouldPublishCenstatdSimplifiedCompanion(hkgovCenstatdPreparation)) {
+        await runCenstatdSimplifiedCompanionUpload(args, target, options)
+        return
+      }
       outro('Harbour upload complete')
       return
     }
@@ -206,49 +215,25 @@ ${mutedBar}  `)
       }
     }
 
-    const prepareSpinner = spinner()
-    prepareSpinner.start(resolvePrepareUploadFileMessage(previewResult))
-
     let preparedUploadFile: Awaited<ReturnType<typeof prepareUploadFileForDispatch>>
 
+    preparedUploadFile = await prepareUploadFileForDispatch(
+      registerOptions.filePath,
+      previewResult,
+    )
+
     try {
-      preparedUploadFile = await prepareUploadFileForDispatch(
-        registerOptions.filePath,
+      const uploadResult = await dispatchUpload(
+        target,
+        registerOptions,
         previewResult,
+        schemaVersionId,
+        {
+          force: options.forceUpload,
+          skipSnapshotCleanup: options.skipSnapshotCleanup,
+          uploadFilePath: preparedUploadFile?.filePath,
+        },
       )
-
-      if (preparedUploadFile?.transformed) {
-        prepareSpinner.stop('Prepared upload file')
-      } else {
-        prepareSpinner.clear()
-      }
-    } catch (error) {
-      prepareSpinner.error('Upload file preparation failed')
-      throw error
-    }
-
-    try {
-      const uploadSpinner = spinner()
-      uploadSpinner.start('Uploading')
-
-      let uploadResult: Awaited<ReturnType<typeof dispatchUpload>>
-      try {
-        uploadResult = await dispatchUpload(
-          target,
-          registerOptions,
-          previewResult,
-          schemaVersionId,
-          {
-            force: options.forceUpload,
-            skipSnapshotCleanup: options.skipSnapshotCleanup,
-            uploadFilePath: preparedUploadFile?.filePath,
-          },
-        )
-        uploadSpinner.clear()
-      } catch (error) {
-        uploadSpinner.error('Upload failed')
-        throw error
-      }
 
       note(
         formatUploadResult(previewResult, {
@@ -462,6 +447,10 @@ ${mutedBar}  `)
           'API DOMAIN RELEASE',
         )
         logApiReleaseSetPublication(processingResult.publishResult)
+        if (shouldPublishCenstatdSimplifiedCompanion(hkgovCenstatdPreparation)) {
+          await runCenstatdSimplifiedCompanionUpload(args, target, options)
+          return
+        }
         outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -475,6 +464,38 @@ ${mutedBar}  `)
   } finally {
     await sourcePreparationCleanup?.()
   }
+}
+
+/**
+ * A C&SD display geometry is an owned derivative of an exact district upload.
+ * Keep `--transform simplified` available to republish that derivative alone,
+ * but do not require it during normal source ingestion.
+ */
+function shouldPublishCenstatdSimplifiedCompanion(
+  preparation: Awaited<ReturnType<typeof prepareHkgovCenstatdGmlUpload>>,
+) {
+  return preparation !== null && !preparation.transform
+}
+
+async function runCenstatdSimplifiedCompanionUpload(
+  args: ParsedArgs,
+  target: UploadTarget,
+  options: Parameters<typeof runUploadCommand>[2],
+) {
+  log.step('Publishing derived simplified C&SD display geometry')
+  await runUploadCommand(
+    {
+      ...args,
+      options: {
+        ...args.options,
+        transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
+      },
+    },
+    target,
+    // The user has already confirmed the exact source upload and its declared
+    // companion. The derived release does not have independent source notes.
+    { ...options, skipConfirm: true },
+  )
 }
 
 async function prepareHkgovHadGeoJsonUpload(
@@ -561,12 +582,6 @@ function inferCenstatdSourceVersion(filePath: string) {
   return filePath.match(/(?:^|[^0-9])(2016|2021)(?:[^0-9]|$)/)?.[1]
 }
 
-function resolvePrepareUploadFileMessage(
-  _previewResult: Awaited<ReturnType<typeof prepareUpload>>,
-) {
-  return 'Preparing upload file'
-}
-
 function resolveUploadProcessingStrategy(
   previewResult: Awaited<ReturnType<typeof prepareUpload>>,
 ) {
@@ -633,6 +648,14 @@ function greenText(value: string) {
 
 function yellowText(value: string) {
   return `\u001B[33m${value}\u001B[39m`
+}
+
+function orangeText(value: string) {
+  return `\u001B[38;5;208m${value}\u001B[39m`
+}
+
+function mutedText(value: string) {
+  return `\u001B[90m${value}\u001B[39m`
 }
 
 function resolveShardYear(cohortKey: string, sourceVersion: string) {
@@ -734,13 +757,36 @@ type AddressReleaseSetReadiness = {
   divisionCohortKey: string | null
 }
 
-const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS = [
-  'ds-hk-hkgov-had-division-area-district',
-] as const
+type CohortIndependentReleaseDefinition = {
+  datasetCode: string
+  domainCode: string
+  optional: boolean
+  resourceType: string
+}
+
+const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS: readonly CohortIndependentReleaseDefinition[] =
+  [
+    {
+      datasetCode: 'ds-hk-hkgov-had-division-area-district',
+      domainCode: 'hkgov-had',
+      optional: false,
+      resourceType: 'divisionArea',
+    },
+    {
+      datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+      domainCode: 'hkgov-censtatd',
+      optional: true,
+      resourceType: 'divisionArea',
+    },
+  ]
 
 type CohortIndependentReleaseReadiness = {
+  cohortKey: string | null
   datasetCode: string
+  domainCode: string
+  optional: boolean
   releaseCode: string | null
+  resourceType: string
 }
 
 type DivisionReleaseSetReadiness = {
@@ -808,7 +854,7 @@ export async function resolveDivisionApiReleaseSetReadiness(
   const divisionAvailable = snapshots.division
   const areaAvailable = snapshots.divisionArea
   const cohortIndependentRequirementsAvailable = cohortIndependentReleases.every(
-    release => release.releaseCode !== null,
+    release => release.optional || release.releaseCode !== null,
   )
   const boundaryAvailable = snapshots.divisionBoundary
   const ready =
@@ -841,33 +887,32 @@ export function formatDivisionApiReleaseSetReadiness(
       : []),
   ] as const
   const width = Math.max(...rows.map(([dataset]) => dataset.length))
-  const cohortIndependentRows: Array<[release: string, available: boolean]> =
-    readiness.cohortIndependentReleases.map(release => [
-      release.releaseCode ?? release.datasetCode,
-      release.releaseCode !== null,
-    ])
-  const cohortIndependentWidth = Math.max(
-    0,
-    ...cohortIndependentRows.map(([release]) => release.length),
-  )
 
   return [
+    '# EXACT REF',
     `${plan.regionCode.toUpperCase()} / ${resolveDivisionDomainCode(plan.source)} / ${plan.cohortKey}`,
     ...rows.map(
       ([dataset, available]) =>
-        `  ${available ? greenText('✓') : yellowText('○')} ${dataset.padEnd(width)}  ${available ? 'available' : 'unavailable'}`,
+        `  ${available ? greenText('✓') : redText('○')} ${formatResourceType(dataset.padEnd(width))}  ${available ? greenText('available') : redText('unavailable')}`,
     ),
-    ...(cohortIndependentRows.length > 0
+    ...(readiness.cohortIndependentReleases.length > 0
       ? [
           '',
-          'At or Before Cohort',
-          ...cohortIndependentRows.map(
-            ([release, available]) =>
-              `  ${available ? greenText('✓') : yellowText('○')} ${release.padEnd(cohortIndependentWidth)}  ${available ? 'available' : 'unavailable'}`,
-          ),
+          '# AT OR BEFORE',
+          ...readiness.cohortIndependentReleases.flatMap(release => [
+            [plan.regionCode.toUpperCase(), release.domainCode, release.cohortKey]
+              .filter((segment): segment is string => segment !== null)
+              .join(' / '),
+            `  ${release.releaseCode === null ? (release.optional ? yellowText('○') : redText('○')) : greenText('✓')} ${formatResourceType(release.resourceType)}  ${release.releaseCode === null ? (release.optional ? yellowText('[optional]') : redText('unavailable')) : greenText('available')}`,
+          ]),
         ]
       : []),
   ].join('\n')
+}
+
+function formatResourceType(resourceType: string) {
+  const [type = '', subType] = resourceType.split('::')
+  return `${greenText(type)}${subType ? `${mutedText('::')}${orangeText(subType)}` : ''}`
 }
 
 export function formatAddressApiReleaseSetReadiness(
@@ -920,16 +965,13 @@ async function resolveAddressApiReleaseSetReadiness(
           eq(metaSchema.metaSnapshots.status, 'published'),
           eq(metaSchema.metaSnapshotLineages.regionCode, plan.regionCode),
           eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
-          sql`${metaSchema.metaSnapshots.cohortKey} LIKE ${`${plan.sourceVersion.slice(0, 4)}-%`}`,
         ),
       )
       .all()
     const cohorts = [...new Set(rows.map(row => row.cohortKey))].sort()
     return {
       divisionCohortKey:
-        cohorts.filter(cohort => cohort <= plan.sourceVersion).at(-1) ??
-        cohorts[0] ??
-        null,
+        cohorts.filter(cohort => cohort <= plan.cohortKey).at(-1) ?? cohorts[0] ?? null,
     }
   } finally {
     dbContext.cleanup()
@@ -989,7 +1031,7 @@ function withReleaseSetCohort(
 
 export function parseDivisionReleaseSetCohortKey(releaseSetCode: string | undefined) {
   return releaseSetCode?.match(
-    /^data-[a-z0-9]+-divisions-(.+)-r\d+(?:--[a-z0-9-]+)?$/i,
+    /^data-[a-z0-9]+-divisions-(.+?)(?:-r\d+)?(?:--[a-z0-9-]+)?$/i,
   )?.[1]
 }
 
@@ -1188,6 +1230,7 @@ async function resolveLocalCohortIndependentDivisionReleases(
   try {
     const rows = await (dbContext.metaDb as unknown as HarbourReadableDb)
       .select({
+        cohortKey: metaSchema.metaReleases.cohortKey,
         datasetCode: metaSchema.metaDatasets.code,
         releaseCode: metaSchema.metaReleases.code,
       })
@@ -1201,7 +1244,9 @@ async function resolveLocalCohortIndependentDivisionReleases(
           eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
           inArray(
             metaSchema.metaDatasets.code,
-            COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS,
+            COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS.map(
+              dataset => dataset.datasetCode,
+            ),
           ),
           eq(metaSchema.metaReleases.status, 'published'),
           lte(metaSchema.metaReleases.cohortKey, plan.cohortKey),
@@ -1224,12 +1269,13 @@ async function resolveRemoteCohortIndependentDivisionReleases(
   target: UploadTarget,
   plan: DivisionGeometryPlan,
 ): Promise<CohortIndependentReleaseReadiness[]> {
-  const datasetCodes =
-    COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS.map(sqlLiteral).join(', ')
+  const datasetCodes = COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS.map(dataset =>
+    sqlLiteral(dataset.datasetCode),
+  ).join(', ')
   const rows = await runRemoteMetaQuery(
     target,
     `
-    SELECT d.code AS datasetCode, r.code AS releaseCode
+    SELECT d.code AS datasetCode, r.code AS releaseCode, r.cohortKey AS cohortKey
     FROM releases r
     INNER JOIN datasets d ON d.id = r.datasetId
     WHERE d.code IN (${datasetCodes})
@@ -1242,27 +1288,50 @@ async function resolveRemoteCohortIndependentDivisionReleases(
 
   return resolveCohortIndependentReleaseReadiness(
     rows.flatMap(row =>
-      typeof row.datasetCode === 'string' && typeof row.releaseCode === 'string'
-        ? [{ datasetCode: row.datasetCode, releaseCode: row.releaseCode }]
+      typeof row.datasetCode === 'string' &&
+      typeof row.releaseCode === 'string' &&
+      typeof row.cohortKey === 'string'
+        ? [
+            {
+              cohortKey: row.cohortKey,
+              datasetCode: row.datasetCode,
+              releaseCode: row.releaseCode,
+            },
+          ]
         : [],
     ),
   )
 }
 
 function resolveCohortIndependentReleaseReadiness(
-  releases: Array<{ datasetCode: string; releaseCode: string }>,
+  releases: Array<{
+    cohortKey: string
+    datasetCode: string
+    releaseCode: string
+  }>,
 ): CohortIndependentReleaseReadiness[] {
-  const latestReleaseByDataset = new Map<string, string>()
+  const latestReleaseByDatasetCohort = new Map<string, (typeof releases)[number]>()
   for (const release of releases) {
-    if (!latestReleaseByDataset.has(release.datasetCode)) {
-      latestReleaseByDataset.set(release.datasetCode, release.releaseCode)
+    const key = `${release.datasetCode}:${release.cohortKey}`
+    if (!latestReleaseByDatasetCohort.has(key)) {
+      latestReleaseByDatasetCohort.set(key, release)
     }
   }
 
-  return COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS.map(datasetCode => ({
-    datasetCode,
-    releaseCode: latestReleaseByDataset.get(datasetCode) ?? null,
-  }))
+  const readiness: CohortIndependentReleaseReadiness[] = []
+  for (const dataset of COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS) {
+    const matchingReleases = [...latestReleaseByDatasetCohort.values()]
+      .filter(release => release.datasetCode === dataset.datasetCode)
+      .sort((left, right) => left.cohortKey.localeCompare(right.cohortKey))
+
+    if (matchingReleases.length > 0) {
+      readiness.push(...matchingReleases.map(release => ({ ...dataset, ...release })))
+    } else {
+      readiness.push({ ...dataset, cohortKey: null, releaseCode: null })
+    }
+  }
+
+  return readiness
 }
 
 async function resolveRemotePublishedDivisionSnapshotForAddressPlan(
@@ -1439,6 +1508,6 @@ function resolveSchemaVersionId(
     }
   }
 
-  schemaSpinner.stop(formatSchemaCheck('skipped'))
+  schemaSpinner.stop(formatSchemaCheck('passed'))
   return `${previewResult.plan.source}-${previewResult.plan.type}-unvalidated`
 }

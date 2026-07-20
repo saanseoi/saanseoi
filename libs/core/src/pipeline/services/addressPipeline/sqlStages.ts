@@ -585,8 +585,11 @@ async function buildCurrentSnapshotInitSqlFile(
     .where(eq(metaSchema.metaSnapshots.id, snapshotIdValue))
     .limit(1)
     .get()
-  const divisionSnapshot = await metaDb
-    .select({ id: metaSchema.metaSnapshots.id })
+  const divisionSnapshots = await metaDb
+    .select({
+      cohortKey: metaSchema.metaSnapshots.cohortKey,
+      id: metaSchema.metaSnapshots.id,
+    })
     .from(metaSchema.metaSnapshots)
     .innerJoin(
       metaSchema.metaSnapshotLineages,
@@ -598,14 +601,20 @@ async function buildCurrentSnapshotInitSqlFile(
     .where(
       and(
         eq(metaSchema.metaSnapshots.resourceType, 'division'),
-        eq(metaSchema.metaSnapshots.cohortKey, message.cohortKey),
         eq(metaSchema.metaSnapshots.status, 'published'),
         eq(metaSchema.metaSnapshotLineages.regionCode, message.regionCode),
         eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
       ),
     )
-    .limit(1)
-    .get()
+    .all()
+  const divisionSnapshot = divisionSnapshots.find(
+    snapshot =>
+      snapshot.cohortKey ===
+      resolveAddressDivisionCohortKey(
+        message,
+        divisionSnapshots.map(snapshot => snapshot.cohortKey),
+      ),
+  )
   if (!divisionSnapshot) {
     throw new Error(
       `Published division snapshot not found for ${message.regionCode}/${message.cohortKey}.`,
@@ -668,6 +677,29 @@ ON CONFLICT(snapshotId, addressId, locale) DO NOTHING;`.trim(),
     statementCount: statements.length,
     target: 'current',
   }
+}
+
+/**
+ * HKGov ALS uses a provider release identifier such as `2025-01-23.1031` as
+ * its address cohort. It is not an Overture division cohort. Address releases
+ * therefore use the latest published Overture division snapshot at or before
+ * the address cohort, falling back to the earliest later snapshot.
+ */
+export function resolveAddressDivisionCohortKey(
+  message: Pick<DatasetProcessingMessage, 'cohortKey' | 'source' | 'sourceVersion'>,
+  publishedCohorts: string[],
+) {
+  if (message.source !== 'hkgov-dpo') {
+    return message.cohortKey
+  }
+
+  const cohorts = [...publishedCohorts].sort()
+
+  return (
+    cohorts.filter(cohort => cohort <= message.cohortKey).at(-1) ??
+    cohorts[0] ??
+    message.cohortKey
+  )
 }
 
 function buildInsertStatement(
