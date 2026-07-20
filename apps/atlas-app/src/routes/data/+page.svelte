@@ -191,11 +191,13 @@ const apiDirectory = $derived(
     const api = apiByFamily.get(familyType)
     const releases =
       api?.releases ?? data.releases.filter(release => release.apiFamily === familyType)
-    const latestRelease = [...releases].sort(
-      (left, right) =>
-        new Date(right.publishedAt ?? right.createdAt).getTime() -
-        new Date(left.publishedAt ?? left.createdAt).getTime(),
-    )[0]
+    const latestRelease =
+      releases.find(release => release.displayStatus === 'current') ??
+      [...releases].sort(
+        (left, right) =>
+          new Date(right.publishedAt ?? right.createdAt).getTime() -
+          new Date(left.publishedAt ?? left.createdAt).getTime(),
+      )[0]
     return {
       familyType,
       code: api?.code ?? `api-${familyType}-v0.1`,
@@ -240,18 +242,9 @@ const compactNumber = (value: number) =>
     notation: 'compact',
   }).format(value)
 const releaseRecordCount = (release: (typeof data.releases)[number]) => {
-  const primaryRowCount = release.rowCounts?.find(
-    row => row.label === 'resourceType' || row.label === 'source',
-  )?.rowCount
-  if (typeof primaryRowCount === 'number') return compactNumber(primaryRowCount)
-  const totalStat = release.stats?.find(
-    row =>
-      row.dimension === 'records' &&
-      row.metric === 'count' &&
-      row.metricUnit === 'count' &&
-      !row.groupBy,
-  )?.value
-  return typeof totalStat === 'number' ? compactNumber(totalStat) : null
+  return typeof release.primaryRecordCount === 'number'
+    ? compactNumber(release.primaryRecordCount)
+    : null
 }
 const releaseCarouselItems = $derived(
   data.releases.map(release => ({
@@ -467,10 +460,14 @@ const apiCardClass = (apiIndex: number, orderIndex: number) => {
         </button>
       </PageSectionActions>
     </PageSectionHeader>
-    <ReleaseCarousel
-      bind:this={releaseCarousel}
-      items={releaseCarouselItems}
-      onnavigationchange={navigation => (releaseCarouselNavigation = navigation)}
-    />
+    {#if releaseCarouselItems.length > 0}
+      <ReleaseCarousel
+        bind:this={releaseCarousel}
+        items={releaseCarouselItems}
+        onnavigationchange={navigation => (releaseCarouselNavigation = navigation)}
+      />
+    {:else}
+      <p class="mt-6 text-sm text-secondary">{m.data_no_releases_yet()}</p>
+    {/if}
   </PageSection>
 </Main>
