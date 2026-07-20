@@ -2336,12 +2336,17 @@ export async function ensureDraftReleaseSetForRelease(
       (maxRevision, row) => Math.max(maxRevision, row.revision),
       -1,
     ) + 1
-  const releaseSetCode = `${buildDataReleaseSetCode(
-    release.regionCode,
-    apiVersion.familyType,
-    release.cohortKey,
-    nextRevision,
-  )}--${domainCode}`
+  const releaseSetCode = [
+    buildDataReleaseSetCode(
+      release.regionCode,
+      apiVersion.familyType,
+      release.cohortKey,
+      nextRevision,
+    ),
+    domainCode === (composition?.defaultDomainCode ?? 'default') ? null : domainCode,
+  ]
+    .filter((segment): segment is string => segment !== null)
+    .join('--')
   const now = toIsoTimestamp()
   const releaseSetId = buildDeterministicApiReleaseSetId(releaseSetCode)
   const resourceCode = resourceTypeCodeSlug(type)
@@ -3051,6 +3056,23 @@ export async function publishReleaseArtifacts(
 
     if (!deferApiReleaseSet) {
       statements.push(
+        tx
+          .update(metaApiReleaseSets)
+          .set({
+            status: 'archived',
+            validTo: publishedAt,
+            updatedAt: publishedAt,
+          })
+          .where(
+            and(
+              eq(metaApiReleaseSets.apiVersionId, releaseSet.apiVersionId),
+              eq(metaApiReleaseSets.regionCode, releaseSet.regionCode),
+              eq(metaApiReleaseSets.domainCode, releaseSet.domainCode),
+              eq(metaApiReleaseSets.cohortKey, releaseSet.cohortKey),
+              eq(metaApiReleaseSets.status, 'current'),
+              ne(metaApiReleaseSets.id, args.releaseSetId),
+            ),
+          ),
         tx
           .update(metaApiReleaseSets)
           .set({

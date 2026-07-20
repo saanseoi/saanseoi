@@ -167,10 +167,10 @@ describe('api field fixtures', () => {
     expect(
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
-        domainCode: 'hkgov-dpo',
+        domainCode: 'default',
         lineageSnapshotVersions: ['ss-hk-address-2025-08-20.0'],
         schemaVersion: 'sv-address-v1',
-        rulesetVersion: 'rs-address-hkgov-dpo-merge-v1',
+        rulesetVersion: 'rs-address-merge-v1',
         sourceSchemas: currentSourceSchemas,
       }),
     ).toBeNull()
@@ -178,10 +178,10 @@ describe('api field fixtures', () => {
     expect(
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
-        domainCode: 'hkgov-dpo',
+        domainCode: 'default',
         lineageSnapshotVersions: ['ss-hk-address-2025-09-24.0'],
         schemaVersion: 'sv-address-v1',
-        rulesetVersion: 'rs-address-hkgov-dpo-merge-v1',
+        rulesetVersion: 'rs-address-merge-v1',
         sourceSchemas: historicalSourceSchemas,
       })?.lineageAnchors,
     ).toContainEqual(
