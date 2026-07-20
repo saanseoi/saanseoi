@@ -70,6 +70,10 @@ omit the transformation for source precision, census-cohort accuracy and geometr
 auditability. The transformation belongs to the C&SD dataset and does not introduce a
 new publisher or dataset.
 
+The Atlas source-release Stats choropleth uses only the 2021 simplified variant
+(`hkgov-censtatd:2021:simplified`) from this dataset. It intentionally does not fall
+back to Home Affairs Department boundaries or the unsimplified C&SD source geometry.
+
 ## Ingestion
 
 Pass a downloaded source GML file to the normal uploader:

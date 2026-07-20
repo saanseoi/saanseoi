@@ -1,7 +1,8 @@
 {
   "versionHash": "sha256:acce9ef797698ccd1aed20054785ce6344ba8e64da60f26c864470862c49d286",
   "apiVersion": "api-divisions-v0.1",
-  "validFromSnapshotVersion": "ss-hk-division-2026-02-18.0",
+  "domainCode": "overture",
+  "lineageAnchorSnapshotVersions": ["ss-hk-division-2026-02-18.0"],
   "schemaVersion": "sv-division-v1",
   "rulesetVersion": "rs-division-merge-v1",
   "sourceSchemas": {

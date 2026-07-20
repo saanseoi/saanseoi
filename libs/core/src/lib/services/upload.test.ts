@@ -113,6 +113,14 @@ function createFixturePath(tempDir: string) {
   return fixtureFile
 }
 
+function createResourceFixturePath(tempDir: string, resourceName: string) {
+  const fixtureFile = join(tempDir, `hk-${resourceName}-2026-05.parquet`)
+
+  writeFileSync(fixtureFile, 'fixture')
+
+  return fixtureFile
+}
+
 function createAddressFixturePath(tempDir: string) {
   const fixtureFile = join(tempDir, 'hkgov-dpo-address.parquet')
 
@@ -127,6 +135,55 @@ function initDb(dbPath: string) {
   seedFixtureCatalog(db)
 
   return db
+}
+
+async function assertAdminLevelTransitionAllowed(
+  resourceType: 'divisionArea' | 'divisionBoundary',
+  resourceName: 'division-area' | 'division-boundary',
+) {
+  const tempDir = createTempDir()
+  const dbPath = join(tempDir, 'harbour.sqlite')
+  const fixtureFile = createResourceFixturePath(tempDir, resourceName)
+  const sqlite = initDb(dbPath)
+  const db = createLocalHarbourDb(sqlite)
+
+  insertFixtureRelease(sqlite, {
+    source: 'overture',
+    regionCode: 'hk',
+    cohortKey: '2026-01',
+    theme: 'divisions',
+    type: resourceType,
+    sourceVersion: '2026-01-21.0',
+    rawObjectKey: `hk/overture/2026-01-21.0/${resourceName}.parquet`,
+    originalFileName: `${resourceName}.parquet`,
+    status: 'published',
+    ingestedAt: '2026-06-02T00:00:00.000Z',
+    createdAt: '2026-06-02T00:00:00.000Z',
+    updatedAt: '2026-06-02T00:00:00.000Z',
+  })
+
+  const inspection: ParquetInspection = {
+    ...fixtureInspectionWithAdminLevel,
+    distinctTypeValues: [resourceType],
+  }
+
+  const planned = await planUpload(db, {
+    filePath: fixtureFile,
+    cohortKey: '2026-02',
+    source: 'overture',
+    sourceVersion: '2026-02-18.0',
+    inspection,
+    resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+  })
+
+  expect(planned).toMatchObject({
+    plan: {
+      datasetId: `dr-hk-overture-${resourceName}-2026-02-18.0`,
+      supersedesDatasetId: `dr-hk-overture-${resourceName}-2026-01-21.0`,
+    },
+  })
+
+  sqlite.close()
 }
 
 function insertFixtureIngestRun(
@@ -1028,6 +1085,14 @@ describe('upload', () => {
     })
 
     sqlite.close()
+  })
+
+  test('allows the known overture divisionArea admin_level schema transition', async () => {
+    await assertAdminLevelTransitionAllowed('divisionArea', 'division-area')
+  })
+
+  test('allows the known overture divisionBoundary admin_level schema transition', async () => {
+    await assertAdminLevelTransitionAllowed('divisionBoundary', 'division-boundary')
   })
 
   test('allows schema-compatible uploads when parquet field order changes', async () => {
