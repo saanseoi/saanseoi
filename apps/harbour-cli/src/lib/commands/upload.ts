@@ -283,7 +283,7 @@ ${mutedBar}  `)
           throw new Error('Expected a prepared upload file for local SQL processing.')
         }
 
-        await processLocalAddressSqlUpload(
+        const processingResult = await processLocalAddressSqlUpload(
           target,
           {
             cohortKey: previewResult.plan.cohortKey,
@@ -303,6 +303,15 @@ ${mutedBar}  `)
           },
         )
 
+        note(
+          formatAddressApiReleaseSetReadiness(
+            previewResult.plan,
+            processingResult.publishResult?.apiReleaseSetStatus === 'current',
+            processingResult.publishResult?.apiReleaseSetCode,
+          ),
+          'API DOMAIN RELEASE',
+        )
+        logApiReleaseSetPublication(processingResult.publishResult)
         outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -714,6 +723,8 @@ export async function assertAddressUploadPrerequisites(
 
 type DivisionGeometryPlan = Awaited<ReturnType<typeof prepareUpload>>['plan']
 
+type AddressPlan = Awaited<ReturnType<typeof prepareUpload>>['plan']
+
 const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS = [
   'ds-hk-hkgov-had-division-area-district',
 ] as const
@@ -850,6 +861,19 @@ export function formatDivisionApiReleaseSetReadiness(
   ].join('\n')
 }
 
+export function formatAddressApiReleaseSetReadiness(
+  plan: Pick<AddressPlan, 'cohortKey' | 'regionCode'>,
+  addressAvailable: boolean,
+  releaseSetCode?: string,
+) {
+  const domainCode = releaseSetCode?.match(/--([a-z0-9-]+)$/i)?.[1] ?? 'default'
+
+  return [
+    `${plan.regionCode.toUpperCase()} / ${domainCode} / ${plan.cohortKey}`,
+    `  ${addressAvailable ? greenText('✓') : yellowText('○')} address  ${addressAvailable ? 'available' : 'unavailable'}`,
+  ].join('\n')
+}
+
 function logApiReleaseSetPublication(
   result:
     | {
@@ -903,7 +927,7 @@ function withReleaseSetCohort(
 
 export function parseDivisionReleaseSetCohortKey(releaseSetCode: string | undefined) {
   return releaseSetCode?.match(
-    /^data-[a-z0-9]+-divisions-(.+)-\d+(?:--[a-z0-9-]+)?$/i,
+    /^data-[a-z0-9]+-divisions-(.+)-r\d+(?:--[a-z0-9-]+)?$/i,
   )?.[1]
 }
 

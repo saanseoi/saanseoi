@@ -460,7 +460,7 @@ function createPublishReleaseArtifactsDb() {
       id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       apiCompositionId TEXT,
-      code TEXT NOT NULL DEFAULT 'data-hk-divisions-2026-05-20.0-0--overture',
+      code TEXT NOT NULL DEFAULT 'data-hk-divisions-2026-05-20.0-r0--overture',
       regionCode TEXT DEFAULT 'hk',
       domainCode TEXT NOT NULL DEFAULT 'overture',
       cohortKey TEXT DEFAULT '2026-05-20.0',
@@ -1055,7 +1055,7 @@ describe('ensureDraftReleaseSetForRelease', () => {
 
     expect(firstReleaseSet).toMatchObject({
       id: secondReleaseSet.id,
-      code: 'data-hk-division-2025-09-24.0-0--default',
+      code: 'data-hk-division-2025-09-24.0-r0--default',
     })
     expect(firstReleaseSet.id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
@@ -1076,7 +1076,9 @@ describe('ensureDraftReleaseSetForRelease', () => {
     sqlite
       .query(
         `UPDATE apiReleaseSets
-         SET status = 'current', publishedAt = '2026-07-01T00:00:00.000Z'
+         SET code = 'data-hk-division-2025-09-24.0-0--default',
+             status = 'current',
+             publishedAt = '2026-07-01T00:00:00.000Z'
          WHERE id = ?`,
       )
       .run(first.id)
@@ -1092,7 +1094,7 @@ describe('ensureDraftReleaseSetForRelease', () => {
       )
       .get(enriched.id)
 
-    expect(enriched.code).toBe('data-hk-division-2025-09-24.0-1--default')
+    expect(enriched.code).toBe('data-hk-division-2025-09-24.0-r1--default')
     expect(row).toEqual({
       revision: 1,
       supersedesApiReleaseSetId: first.id,
@@ -1670,7 +1672,7 @@ describe('publishReleaseArtifacts', () => {
       }),
     ).resolves.toMatchObject({
       apiCatalogRevision: catalogRevision.code,
-      code: 'data-hk-divisions-2026-05-20.0-0--overture',
+      code: 'data-hk-divisions-2026-05-20.0-r0--overture',
       cohortKey: '2026-05-20.0',
     })
     await expect(

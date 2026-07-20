@@ -2135,7 +2135,7 @@ export async function resolveLatestReleaseSetForTypeDomainCohort(
   cohortKey: string,
 ) {
   const apiVersionCode = getApiVersionCodeForType(type)
-  const codePrefix = `data-${regionCode}-${getApiFamilyForType(type)}-${cohortKey}-`
+  const codePrefix = `data-${regionCode}-${getApiFamilyForType(type)}-${cohortKey}-r`
 
   return (
     (await db
@@ -2270,7 +2270,6 @@ export async function ensureDraftReleaseSetForRelease(
     )
   }
 
-  const releaseSetCodePrefix = `data-${release.regionCode}-${apiVersion.familyType}-${release.cohortKey}-`
   const existing = options.forceNew
     ? null
     : await db
@@ -2283,9 +2282,10 @@ export async function ensureDraftReleaseSetForRelease(
         .where(
           and(
             eq(metaApiReleaseSets.apiVersionId, apiVersion.id),
+            eq(metaApiReleaseSets.regionCode, release.regionCode),
             eq(metaApiReleaseSets.domainCode, domainCode),
+            eq(metaApiReleaseSets.cohortKey, release.cohortKey),
             eq(metaApiReleaseSets.status, 'draft'),
-            sql`${metaApiReleaseSets.code} LIKE ${`${releaseSetCodePrefix}%`}`,
           ),
         )
         .orderBy(desc(metaApiReleaseSets.createdAt))
@@ -2308,8 +2308,9 @@ export async function ensureDraftReleaseSetForRelease(
     .where(
       and(
         eq(metaApiVersions.code, apiVersionCode),
+        eq(metaApiReleaseSets.regionCode, release.regionCode),
         eq(metaApiReleaseSets.domainCode, domainCode),
-        sql`${metaApiReleaseSets.code} LIKE ${`${releaseSetCodePrefix}%`}`,
+        eq(metaApiReleaseSets.cohortKey, release.cohortKey),
         ne(metaApiReleaseSets.status, 'draft'),
       ),
     )
@@ -2318,27 +2319,28 @@ export async function ensureDraftReleaseSetForRelease(
     .get()
   const existingCodes = await db
     .select({
-      code: metaApiReleaseSets.code,
+      revision: metaApiReleaseSets.revision,
     })
     .from(metaApiReleaseSets)
     .where(
       and(
         eq(metaApiReleaseSets.apiVersionId, apiVersion.id),
+        eq(metaApiReleaseSets.regionCode, release.regionCode),
         eq(metaApiReleaseSets.domainCode, domainCode),
-        sql`${metaApiReleaseSets.code} LIKE ${`${releaseSetCodePrefix}%`}`,
+        eq(metaApiReleaseSets.cohortKey, release.cohortKey),
       ),
     )
     .all()
-  const nextSequence =
-    existingCodes.reduce((maxSequence, row) => {
-      const sequence = Number.parseInt(row.code.slice(releaseSetCodePrefix.length), 10)
-      return Number.isNaN(sequence) ? maxSequence : Math.max(maxSequence, sequence)
-    }, -1) + 1
+  const nextRevision =
+    existingCodes.reduce(
+      (maxRevision, row) => Math.max(maxRevision, row.revision),
+      -1,
+    ) + 1
   const releaseSetCode = `${buildDataReleaseSetCode(
     release.regionCode,
     apiVersion.familyType,
     release.cohortKey,
-    nextSequence,
+    nextRevision,
   )}--${domainCode}`
   const now = toIsoTimestamp()
   const releaseSetId = buildDeterministicApiReleaseSetId(releaseSetCode)
@@ -2355,7 +2357,7 @@ export async function ensureDraftReleaseSetForRelease(
     apiCompositionId: composition?.id ?? null,
     domainCode,
     cohortKey: release.cohortKey,
-    revision: nextSequence,
+    revision: nextRevision,
     supersedesApiReleaseSetId: latestReleaseSet?.id ?? null,
     schemaVersion,
     rulesetVersion,
@@ -2376,7 +2378,7 @@ export async function ensureDraftReleaseSetForRelease(
       regionCode: release.regionCode,
       domainCode,
       cohortKey: release.cohortKey,
-      revision: nextSequence,
+      revision: nextRevision,
       effectiveFrom: cohortKeyEffectiveFrom(release.cohortKey),
       effectiveTo: null,
       supersedesApiReleaseSetId: latestReleaseSet?.id ?? null,

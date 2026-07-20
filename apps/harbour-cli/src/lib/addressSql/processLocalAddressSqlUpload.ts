@@ -9,6 +9,7 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { hasCurrentAddressVersions } from '@repo/core/pipeline/db/address'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
+import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
 import {
   replaceReleaseProcessingActions,
   type ReleaseProcessingAction,
@@ -250,6 +251,7 @@ export async function processLocalAddressSqlUpload(
   const processingRunStartedAt = new Date().toISOString()
   let shouldRefreshRemoteMetaCache = false
   let postPublishCacheError: Error | null = null
+  let publishResult: PublishDatasetResult | void | null = null
 
   await writeLocalPipelineState(releaseRoot, {
     addressChunkSize: ADDRESS_CHUNK_SIZE,
@@ -499,7 +501,7 @@ export async function processLocalAddressSqlUpload(
       ),
     )
 
-    const publishResult = await importAddressSqlArtifactsAndPublish(
+    publishResult = await importAddressSqlArtifactsAndPublish(
       importProgressClient,
       dbContext.metaDb,
       bucket,
@@ -563,6 +565,8 @@ export async function processLocalAddressSqlUpload(
   if (postPublishCacheError) {
     throw postPublishCacheError
   }
+
+  return { publishResult }
 }
 
 async function replayAddressSqlIntoRemoteCache(

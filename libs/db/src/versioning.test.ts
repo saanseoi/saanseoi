@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  buildDataReleaseSetCode,
   buildDeterministicUuidV5,
   buildSnapshotLineageCode,
   buildSnapshotVersionCode,
@@ -38,6 +39,14 @@ describe('snapshot identifiers', () => {
         'hkgov-censtatd:2016:simplified',
       ),
     ).toBe('ss-hk-division-area-hkgov-censtatd-2016-simplified-2016')
+  })
+})
+
+describe('API release-set identifiers', () => {
+  test('labels the immutable cohort revision explicitly', () => {
+    expect(buildDataReleaseSetCode('hk', 'divisions', '2025-09-24.0', 2)).toBe(
+      'data-hk-divisions-2025-09-24.0-r2',
+    )
   })
 })
 
