@@ -31,6 +31,9 @@ let secondary = $derived(theme?.colorway.secondary ?? 'var(--accent)')
 let ink = $derived(release.apiFamily === 'streets' ? '#111717' : '#fffaf0')
 let isCurrent = $derived(release.status.toLowerCase() === 'current')
 let isDraft = $derived(release.status.toLowerCase() === 'draft')
+let statusLabel = $derived(
+  release.status.toLowerCase() === 'archived' ? 'superseded' : release.status,
+)
 let cardStyle = $derived(
   `--release-accent: ${accent}; --release-secondary: ${secondary}; --release-ink: ${ink}; --release-topo-image: url('${topoImage}'); --release-topo-x: ${(index % 4) * 25}%; --release-topo-y: ${(Math.floor(index / 4) % 4) * 25}%; --release-topo-scale-x: ${index % 2 === 0 ? 1 : -1}; --release-topo-scale-y: ${index % 3 === 0 ? -1 : 1}; background: var(--release-accent);`,
 )
@@ -47,7 +50,7 @@ let cardStyle = $derived(
   ></span>
   {#if isDraft}
     <span
-      class="pointer-events-none absolute inset-0 z-3 rounded-lg bg-[conic-gradient(from_210deg_at_50%_50%,#fb7185,#facc15,#4ade80,#22d3ee,#818cf8,#e879f9,#fb7185)] p-px [mask:linear-gradient(#000_0_0)_content-box,linear-gradient(#000_0_0)] mask-exclude [-webkit-mask-composite:xor]"
+      class="pointer-events-none absolute inset-0 z-1 rounded-lg bg-[conic-gradient(from_210deg_at_50%_50%,#fb7185,#facc15,#4ade80,#22d3ee,#818cf8,#e879f9,#fb7185)] p-px [mask:linear-gradient(#000_0_0)_content-box,linear-gradient(#000_0_0)] mask-exclude [-webkit-mask-composite:xor]"
       aria-hidden="true"
     ></span>
   {/if}
@@ -66,7 +69,7 @@ let cardStyle = $derived(
           class="mr-1.5 inline-block size-1.5 rounded-full bg-[#a7f3d0] align-middle"
         ></span>
       {/if}
-      {release.status}</span
+      {statusLabel}</span
     ></span
   >
   <span class="relative z-2 mt-8 block font-mono text-[1.8rem] font-bold leading-[1.02]"

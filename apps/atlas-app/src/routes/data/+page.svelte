@@ -397,6 +397,7 @@ const apiCardClass = (apiIndex: number, orderIndex: number) => {
                 ><a
                   class="inline-flex items-center gap-[0.28rem] rounded-full border border-[color-mix(in_srgb,var(--api-card-foreground)_34%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_13%,transparent)] px-3 py-1.5 font-bold no-underline transition-colors hover:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] hover:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] focus-visible:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:outline-none"
                   href={`/apis/${api.familyType}`}
+                  onpointerdown={event => event.stopPropagation()}
                   onclick={event => event.stopPropagation()}
                   >{m.data_releases()}</a
                 ><a
@@ -404,6 +405,7 @@ const apiCardClass = (apiIndex: number, orderIndex: number) => {
                   href={docsUrlForFamily(api.familyType)}
                   target="_blank"
                   rel="noreferrer"
+                  onpointerdown={event => event.stopPropagation()}
                   onclick={event => event.stopPropagation()}
                   >{m.data_docs()}
                   <Icon icon="proicons:arrow-up-right" class="size-4" /></a
