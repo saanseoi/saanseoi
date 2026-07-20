@@ -22,6 +22,7 @@
   "api_release_ingestion_date": "匯入日期",
   "api_release_versions": "版本",
   "api_release_current": "目前版本",
+  "api_release_revised": "已修訂",
   "api_release_superseded": "已取代",
   "api_release_information": "版本資訊",
   "api_release_notes": "版本說明",
