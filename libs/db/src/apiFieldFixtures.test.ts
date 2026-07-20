@@ -14,7 +14,7 @@ describe('api field fixtures', () => {
   test('loads only domain-scoped fixtures with explicit lineage anchors', () => {
     const fixtures = listApiFieldFixtures()
 
-    expect(fixtures).toHaveLength(11)
+    expect(fixtures).toHaveLength(13)
     for (const fixture of fixtures) {
       expect(fixture.domainCode).not.toBe('')
       expect(fixture.lineageAnchors.length).toBeGreaterThan(0)
@@ -89,6 +89,40 @@ describe('api field fixtures', () => {
     })
 
     expect(fixture?.fields).toContainEqual(
+      expect.objectContaining({
+        sourceDatasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+      }),
+    )
+  })
+
+  test('selects the required-only mapping after the 1.16 Overture schema change', () => {
+    const fixture = resolveApiFieldFixture({
+      apiVersion: 'api-divisions-v0.1',
+      domainCode: 'overture',
+      lineageSnapshotVersions: [
+        'ss-hk-division-2025-09-24.0',
+        'ss-hk-division-2025-10-22.0',
+        'ss-hk-division-2025-11-19.0',
+        'ss-hk-division-2025-12-17.0',
+        'ss-hk-division-2026-01-21.0',
+        'ss-hk-division-2026-02-18.0',
+      ],
+      schemaVersion: 'sv-division-v1',
+      rulesetVersion: 'rs-division-merge-v1',
+      sourceSchemas: {
+        'ds-hk-overture-division': '1.16.0',
+        'ds-hk-overture-division-area': '1.16.0',
+        'ds-hk-overture-division-boundary': '1.16.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
+      },
+    })
+
+    expect(fixture?.fields).toContainEqual(
+      expect.objectContaining({
+        sourceFieldPath: 'admin_level',
+      }),
+    )
+    expect(fixture?.fields).not.toContainEqual(
       expect.objectContaining({
         sourceDatasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
       }),
