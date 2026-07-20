@@ -67,6 +67,7 @@ mock.module('../upload.ts', () => ({
 const {
   assertAddressUploadPrerequisites,
   assertDivisionGeometryUploadPrerequisites,
+  formatAddressApiReleaseSetReadiness,
   formatDivisionApiReleaseSetReadiness,
   parseDivisionReleaseSetCohortKey,
   rainbowWaveText,
@@ -135,7 +136,7 @@ describe('upload command address prerequisites', () => {
 describe('division API release set readiness display', () => {
   test('resolves the cohort from a variant API release-set code', () => {
     expect(
-      parseDivisionReleaseSetCohortKey('data-hk-divisions-2025-09-24.0-0--overture'),
+      parseDivisionReleaseSetCohortKey('data-hk-divisions-2025-09-24.0-r0--overture'),
     ).toBe('2025-09-24.0')
   })
 
@@ -232,6 +233,23 @@ describe('division API release set readiness display', () => {
         'HK / hkgov-pland-pu / 2006',
         '  \u001B[32m✓\u001B[39m division      available',
         '  \u001B[32m✓\u001B[39m divisionArea  available',
+      ].join('\n'),
+    )
+  })
+})
+
+describe('address API release set readiness display', () => {
+  test('reports the published address release set', () => {
+    expect(
+      formatAddressApiReleaseSetReadiness(
+        { cohortKey: '2025-09-24.0', regionCode: 'hk' },
+        true,
+        'data-hk-addresses-2025-09-24.0-r0--default',
+      ),
+    ).toBe(
+      [
+        'HK / default / 2025-09-24.0',
+        '  \u001B[32m✓\u001B[39m address  available',
       ].join('\n'),
     )
   })

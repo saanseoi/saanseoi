@@ -474,7 +474,7 @@ async function resolveSupportingSnapshotsForMember(
 function parseReleaseSetCohortKey(releaseSetCode?: string) {
   return (
     releaseSetCode?.match(
-      /^data-[a-z0-9]+-divisions-(.+)-\d+(?:--[a-z0-9-]+)?$/i,
+      /^data-[a-z0-9]+-divisions-(.+)-r\d+(?:--[a-z0-9-]+)?$/i,
     )?.[1] ?? null
   )
 }

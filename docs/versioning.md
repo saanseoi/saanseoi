@@ -784,15 +784,15 @@ release containing every domain in the API family.
 Its identity is:
 
 ```text
-data-{region}-{family}-{cohort}-{revision}--{domain}
+data-{region}-{family}-{cohort}-r{revision}--{domain}
 ```
 
 Examples:
 
 ```text
-data-hk-divisions-2025-10-22.0-0--overture
-data-hk-divisions-2006-0--hkgov-pland-pu
-data-hk-divisions-2006-1--hkgov-pland-pu
+data-hk-divisions-2025-10-22.0-r0--overture
+data-hk-divisions-2006-r0--hkgov-pland-pu
+data-hk-divisions-2006-r1--hkgov-pland-pu
 ```
 
 It binds:
@@ -814,9 +814,9 @@ For example, if a secondary dataset is added to the published 2006 Planning Unit
 release:
 
 ```text
-data-hk-divisions-2006-0--hkgov-pland-pu
+data-hk-divisions-2006-r0--hkgov-pland-pu
                          ↓ new immutable composition
-data-hk-divisions-2006-1--hkgov-pland-pu
+data-hk-divisions-2006-r1--hkgov-pland-pu
 ```
 
 Revision 1 records `supersedesApiReleaseSetId` pointing to revision 0. Revision 0
@@ -912,14 +912,14 @@ paths do not imply one Worker deployment per API version.
 
 ## Similar-looking suffixes
 
-| Example                                    | Meaning                                                 |
-| ------------------------------------------ | ------------------------------------------------------- |
-| `sourceVersion=2025-10-22.1`               | Provider release or correction sequence                 |
-| `ss-hk-division-2025-10-22.0-r1`           | Second snapshot assembly for one lineage and cohort     |
-| `data-hk-divisions-2006-1--hkgov-pland-pu` | Second immutable domain composition for the 2006 cohort |
-| `catalog-hk-divisions-v0.1-2026-07-17.1`   | Second catalogue publication checkpoint on 17 July      |
-| `api-divisions-v0.1.1`                     | API contract/handler patch version                      |
-| `sha256:...`                               | Content identity, not chronology                        |
+| Example                                     | Meaning                                                 |
+| ------------------------------------------- | ------------------------------------------------------- |
+| `sourceVersion=2025-10-22.1`                | Provider release or correction sequence                 |
+| `ss-hk-division-2025-10-22.0-r1`            | Second snapshot assembly for one lineage and cohort     |
+| `data-hk-divisions-2006-r1--hkgov-pland-pu` | Second immutable domain composition for the 2006 cohort |
+| `catalog-hk-divisions-v0.1-2026-07-17.1`    | Second catalogue publication checkpoint on 17 July      |
+| `api-divisions-v0.1.1`                      | API contract/handler patch version                      |
+| `sha256:...`                                | Content identity, not chronology                        |
 
 These counters are independent. Incrementing one MUST NOT mechanically increment the
 others.
@@ -1094,7 +1094,7 @@ To add Planning Unit data for 2006 in 2026:
 
 1. Register the 2006 source releases.
 2. Create the appropriate lineages and cohort snapshots.
-3. Publish `data-hk-divisions-2006-0--hkgov-pland-pu`.
+3. Publish `data-hk-divisions-2006-r0--hkgov-pland-pu`.
 4. Publish a 2026 catalogue revision containing that new `(domain, cohort)` entry.
 
 No 2006 Overture release is required because Planning Units are a separate domain.
@@ -1105,8 +1105,8 @@ To add another source to the existing 2006 Planning Unit domain release:
 
 1. Register the supplementary dataset/release if needed.
 2. Create or revise its snapshot.
-3. Build `data-hk-divisions-2006-1--hkgov-pland-pu`, carrying unchanged snapshot members
-   from revision 0.
+3. Build `data-hk-divisions-2006-r1--hkgov-pland-pu`, carrying unchanged snapshot
+   members from revision 0.
 4. Publish a new catalogue revision replacing only the Planning Unit 2006 member.
 
 Users pinned to the earlier catalogue still receive revision 0. Users on the latest

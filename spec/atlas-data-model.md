@@ -280,10 +280,10 @@ knowledge:
 An `apiReleaseSet` is an immutable release of one domain and one effective cohort. Its
 trailing sequence is a composition revision, not an API contract patch. For example,
 adding a newly available secondary snapshot to cohort `2022` creates
-`data-hk-divisions-2022-1--hkgov-pland-pu`; it does not mutate `...-0`. Earlier catalog
-revisions continue to name `...-0`, while a new catalog revision can name `...-1`. The
-legacy `status=current` value now means published/addressable; it no longer means that
-only one release set in the whole API family may have that status.
+`data-hk-divisions-2022-r1--hkgov-pland-pu`; it does not mutate `...-r0`. Earlier
+catalog revisions continue to name `...-r0`, while a new catalog revision can name
+`...-r1`. The legacy `status=current` value now means published/addressable; it no
+longer means that only one release set in the whole API family may have that status.
 
 An `apiCatalogRevision` is an immutable family-and-region publication checkpoint. Its
 date and trailing revision describe when that exact set of domain releases became known,

@@ -182,8 +182,8 @@ export const metaApiReleaseSets = sqliteTable(
     apiCompositionId: text('apiCompositionId').references(() => metaApiComposition.id, {
       onDelete: 'restrict',
     }),
-    // Immutable domain/cohort composition code; its trailing sequence is the
-    // composition revision for this effective cohort.
+    // Immutable domain/cohort composition code; its trailing `r` segment is
+    // the composition revision for this effective cohort.
     code: text('code').notNull(),
     regionCode: text('regionCode'),
     domainCode: text('domainCode').notNull().default('default'),

@@ -114,13 +114,13 @@ export function buildDataReleaseSetCode(
   regionCode: string,
   apiFamily: ApiFamily,
   cohortKey: string,
-  sequence = 0,
+  revision = 0,
 ) {
-  if (!Number.isInteger(sequence) || sequence < 0) {
-    throw new Error(`Invalid release-set sequence="${sequence}". Expected 0 or more.`)
+  if (!Number.isInteger(revision) || revision < 0) {
+    throw new Error(`Invalid release-set revision="${revision}". Expected 0 or more.`)
   }
 
-  return `data-${regionCode}-${apiFamily}-${normalizeCohortKey(cohortKey)}-${sequence}`
+  return `data-${regionCode}-${apiFamily}-${normalizeCohortKey(cohortKey)}-r${revision}`
 }
 
 export function buildApiCatalogRevisionCode(

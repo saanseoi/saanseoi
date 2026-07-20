@@ -948,9 +948,9 @@ export function seedFixtureCatalog(db: Database) {
       updatedAt
     ) VALUES
       (
-        'api-release-set-data-hk-divisions-2026-06-17.0-0',
+        'api-release-set-data-hk-divisions-2026-06-17.0-r0',
         'api-version-api-divisions-v0.1',
-        'data-hk-divisions-2026-06-17.0-0',
+        'data-hk-divisions-2026-06-17.0-r0',
         'overture',
         'sv-division-v1',
         'rs-division-merge-v1',
@@ -961,9 +961,9 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'api-release-set-data-hk-addresses-2026-06-17.0-0',
+        'api-release-set-data-hk-addresses-2026-06-17.0-r0',
         'api-version-api-addresses-v0.1',
-        'data-hk-addresses-2026-06-17.0-0',
+        'data-hk-addresses-2026-06-17.0-r0',
         'default',
         'sv-address-v1',
         'rs-address-merge-v1',
@@ -974,9 +974,9 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'api-release-set-data-hk-places-2026-06-17.0-0',
+        'api-release-set-data-hk-places-2026-06-17.0-r0',
         'api-version-api-places-v0.1',
-        'data-hk-places-2026-06-17.0-0',
+        'data-hk-places-2026-06-17.0-r0',
         'default',
         'sv-place-v1',
         'rs-place-merge-v1',
