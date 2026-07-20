@@ -4,7 +4,11 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 db_family="${1:-all}"
 
-eval "$(bash "$script_dir/lib/resolve-d1-target.sh" "$db_family" local)"
+if ! resolved_targets="$(bash "$script_dir/lib/resolve-d1-target.sh" "$db_family" local)"; then
+  exit 1
+fi
+
+eval "$resolved_targets"
 
 mkdir -p "$persist_dir"
 
