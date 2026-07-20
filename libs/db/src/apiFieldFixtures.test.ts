@@ -14,7 +14,7 @@ describe('api field fixtures', () => {
   test('loads only domain-scoped fixtures with explicit lineage anchors', () => {
     const fixtures = listApiFieldFixtures()
 
-    expect(fixtures).toHaveLength(10)
+    expect(fixtures).toHaveLength(11)
     for (const fixture of fixtures) {
       expect(fixture.domainCode).not.toBe('')
       expect(fixture.lineageAnchors.length).toBeGreaterThan(0)
@@ -32,11 +32,67 @@ describe('api field fixtures', () => {
         sourceSchemas: {
           'ds-hk-overture-division': '1.12.0',
           'ds-hk-overture-division-area': '1.12.0',
-          'ds-hk-overture-division-boundary': '1.12.0',
+          'ds-hk-overture-division-boundary': '1.11.0',
           'ds-hk-hkgov-had-division-area-district': '1.2',
         },
       }),
     ).toBeNull()
+  })
+
+  test('selects the no-C&SD mapping for a complete required-only release set', () => {
+    const fixture = resolveApiFieldFixture({
+      apiVersion: 'api-divisions-v0.1',
+      domainCode: 'overture',
+      lineageSnapshotVersions: [
+        'ss-hk-division-2025-09-24.0',
+        'ss-hk-division-2025-10-22.0',
+      ],
+      schemaVersion: 'sv-division-v1',
+      rulesetVersion: 'rs-division-merge-v1',
+      sourceSchemas: {
+        'ds-hk-overture-division': '1.13.0',
+        'ds-hk-overture-division-area': '1.13.0',
+        'ds-hk-overture-division-boundary': '1.13.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
+      },
+    })
+
+    expect(fixture?.lineageAnchors).toContainEqual(
+      expect.objectContaining({
+        snapshotVersion: 'ss-hk-division-2025-10-22.0',
+      }),
+    )
+    expect(fixture?.fields).not.toContainEqual(
+      expect.objectContaining({
+        sourceDatasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+      }),
+    )
+  })
+
+  test('selects the C&SD mapping once the optional source is present', () => {
+    const fixture = resolveApiFieldFixture({
+      apiVersion: 'api-divisions-v0.1',
+      domainCode: 'overture',
+      lineageSnapshotVersions: [
+        'ss-hk-division-2025-09-24.0',
+        'ss-hk-division-2025-10-22.0',
+      ],
+      schemaVersion: 'sv-division-v1',
+      rulesetVersion: 'rs-division-merge-v1',
+      sourceSchemas: {
+        'ds-hk-overture-division': '1.13.0',
+        'ds-hk-overture-division-area': '1.13.0',
+        'ds-hk-overture-division-boundary': '1.13.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
+        'ds-hk-hkgov-censtatd-division-area-district': '1.0',
+      },
+    })
+
+    expect(fixture?.fields).toContainEqual(
+      expect.objectContaining({
+        sourceDatasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+      }),
+    )
   })
 
   test('selects the closest matching ancestor, not the highest snapshot code', () => {
