@@ -947,7 +947,7 @@ describe('control service', () => {
         '${releaseSetId}',
         'api-version-api-divisions-v0.1',
         'api-composition-divisions-v1',
-        'data-hk-divisions-${cohortKey}-r0',
+        'data-hk-divisions-${cohortKey}',
         'hk',
         'overture',
         '${cohortKey}',

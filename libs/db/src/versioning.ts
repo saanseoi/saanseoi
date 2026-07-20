@@ -120,7 +120,9 @@ export function buildDataReleaseSetCode(
     throw new Error(`Invalid release-set revision="${revision}". Expected 0 or more.`)
   }
 
-  return `data-${regionCode}-${apiFamily}-${normalizeCohortKey(cohortKey)}-r${revision}`
+  const revisionSegment = revision === 0 ? '' : `-r${revision}`
+
+  return `data-${regionCode}-${apiFamily}-${normalizeCohortKey(cohortKey)}${revisionSegment}`
 }
 
 export function buildApiCatalogRevisionCode(

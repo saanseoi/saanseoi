@@ -43,6 +43,12 @@ describe('snapshot identifiers', () => {
 })
 
 describe('API release-set identifiers', () => {
+  test('infers the initial cohort revision from an unadorned code', () => {
+    expect(buildDataReleaseSetCode('hk', 'divisions', '2025-09-24.0')).toBe(
+      'data-hk-divisions-2025-09-24.0',
+    )
+  })
+
   test('labels the immutable cohort revision explicitly', () => {
     expect(buildDataReleaseSetCode('hk', 'divisions', '2025-09-24.0', 2)).toBe(
       'data-hk-divisions-2025-09-24.0-r2',
