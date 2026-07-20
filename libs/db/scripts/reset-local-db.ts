@@ -34,7 +34,8 @@ await runStep({
 })
 
 if (dbFamily === 'all') {
-  const progress = spinner({ withGuide: true })
+  const startedAt = Date.now()
+  const progress = spinner({ withGuide: false })
   progress.start('Clearing local upload state')
 
   await Promise.all([
@@ -46,7 +47,12 @@ if (dbFamily === 'all') {
   ])
 
   progress.clear()
-  log.success('Cleared local upload state.', { withGuide: true })
+  log.success(
+    `Cleared local upload state. (${formatDurationMs(Date.now() - startedAt)})`,
+    {
+      withGuide: false,
+    },
+  )
 }
 
 function describeFamily(family: string) {
@@ -62,7 +68,8 @@ async function runStep({
   pending: string
   success: string
 }) {
-  const progress = spinner({ withGuide: true })
+  const startedAt = Date.now()
+  const progress = spinner({ withGuide: false })
   progress.start(pending)
 
   const child = Bun.spawn({
@@ -79,7 +86,9 @@ async function runStep({
 
   if (exitCode === 0) {
     progress.clear()
-    log.success(success, { withGuide: true })
+    log.success(`${success} (${formatDurationMs(Date.now() - startedAt)})`, {
+      withGuide: false,
+    })
     return
   }
 
@@ -91,4 +100,21 @@ async function runStep({
   }
 
   process.exit(exitCode)
+}
+
+function formatDurationMs(value: number) {
+  if (value < 1000) {
+    return `${Math.round(value)} ms`
+  }
+
+  const totalSeconds = value / 1000
+
+  if (totalSeconds < 60) {
+    return `${totalSeconds.toFixed(totalSeconds >= 10 ? 1 : 2)} s`
+  }
+
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = Math.round(totalSeconds % 60)
+
+  return `${minutes}:${String(seconds).padStart(2, '0')}`
 }
