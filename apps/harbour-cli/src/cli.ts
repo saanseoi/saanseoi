@@ -12,6 +12,7 @@ import { runInspectCommand } from './lib/commands/inspect.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
+import { runUploadInitCommand } from './lib/commands/uploadInit.ts'
 import {
   runVersionBumpCommand,
   runVersionDoctorCommand,
@@ -111,6 +112,9 @@ async function main() {
         skipSnapshotCleanup,
         validateGeometry,
       })
+      return
+    case 'upload:init':
+      await runUploadInitCommand(args, printUsage)
       return
     default:
       throw new Error(`Unsupported harbour command: ${args.command}`)
