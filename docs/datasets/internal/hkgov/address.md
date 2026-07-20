@@ -16,6 +16,8 @@ Related docs:
 - Each ALS release uses its own source version as its address/API cohort. The selected
   Overture division snapshot is recorded and reported as an out-of-cohort processing
   dependency.
+- The addresses API has one composition domain, `default`; its release codes therefore
+  do not include a domain suffix.
 - The CLI reads all 2D district GeoJSON files in one ALS release. It skips the separate
   `als_addresses_3d_*` file.
 

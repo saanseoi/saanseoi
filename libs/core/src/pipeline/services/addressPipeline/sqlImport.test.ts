@@ -8,6 +8,7 @@ import {
   buildAddressSourceSqlImportFiles,
   buildAddressSqlCleanupFile,
 } from './sqlImport'
+import { resolveAddressDivisionCohortKey } from './sqlStages'
 import type { ResolvedAddressChunkArtifact } from './types'
 import type { NormalizedAddressChunkArtifact } from './types'
 
@@ -129,5 +130,46 @@ describe('HKGov ALS identity alias SQL', () => {
     expect(metaFile?.sql).toContain('INSERT OR IGNORE INTO entityAliases')
     expect(metaFile?.sql).toContain('ss-aaaaaaaa-aaaa-5aaa-8aaa-aaaaaaaaaaaa')
     expect(metaFile?.sql).toContain('04bb2336-9590-449b-b6dd-57e22a0462f1')
+  })
+})
+
+describe('HKGov ALS division cohort selection', () => {
+  test('does not treat the DPO release sequence as an Overture cohort', () => {
+    expect(
+      resolveAddressDivisionCohortKey(
+        {
+          cohortKey: '2025-01-23.1031',
+          source: 'hkgov-dpo',
+          sourceVersion: '2025-01-23.1031',
+        },
+        ['2025-09-24.0'],
+      ),
+    ).toBe('2025-09-24.0')
+  })
+
+  test('uses the latest Overture cohort at or before an ALS release', () => {
+    expect(
+      resolveAddressDivisionCohortKey(
+        {
+          cohortKey: '2025-12-18.1200',
+          source: 'hkgov-dpo',
+          sourceVersion: '2025-12-18.1200',
+        },
+        ['2025-09-24.0', '2025-12-17.0', '2026-02-18.0'],
+      ),
+    ).toBe('2025-12-17.0')
+  })
+
+  test('uses the first later Overture cohort even when it is in another year', () => {
+    expect(
+      resolveAddressDivisionCohortKey(
+        {
+          cohortKey: '2025-12-18.1200',
+          source: 'hkgov-dpo',
+          sourceVersion: '2025-12-18.1200',
+        },
+        ['2026-02-18.0', '2026-05-20.0'],
+      ),
+    ).toBe('2026-02-18.0')
   })
 })

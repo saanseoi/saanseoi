@@ -134,9 +134,9 @@ describe('upload command address prerequisites', () => {
 })
 
 describe('division API release set readiness display', () => {
-  test('resolves the cohort from a variant API release-set code', () => {
+  test('resolves the cohort from an initial variant API release-set code', () => {
     expect(
-      parseDivisionReleaseSetCohortKey('data-hk-divisions-2025-09-24.0-r0--overture'),
+      parseDivisionReleaseSetCohortKey('data-hk-divisions-2025-09-24.0--overture'),
     ).toBe('2025-09-24.0')
   })
 
@@ -158,8 +158,28 @@ describe('division API release set readiness display', () => {
           boundaryAvailable: false,
           cohortIndependentReleases: [
             {
+              cohortKey: '2022',
               datasetCode: 'ds-hk-hkgov-had-division-area-district',
+              domainCode: 'hkgov-had',
+              optional: false,
               releaseCode: 'dr-hk-hkgov-had-division-area-district-2022',
+              resourceType: 'divisionArea',
+            },
+            {
+              cohortKey: '2016',
+              datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+              domainCode: 'hkgov-censtatd',
+              optional: true,
+              releaseCode: 'dr-hk-hkgov-censtatd-division-area-district-2016',
+              resourceType: 'divisionArea',
+            },
+            {
+              cohortKey: '2021',
+              datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+              domainCode: 'hkgov-censtatd',
+              optional: true,
+              releaseCode: 'dr-hk-hkgov-censtatd-division-area-district-2021',
+              resourceType: 'divisionArea',
             },
           ],
           divisionAvailable: true,
@@ -168,13 +188,19 @@ describe('division API release set readiness display', () => {
       ),
     ).toBe(
       [
+        '# EXACT REF',
         'HK / overture / 2025-09-24.0',
-        '  \u001B[32m✓\u001B[39m division          available',
-        '  \u001B[33m○\u001B[39m divisionArea      unavailable',
-        '  \u001B[33m○\u001B[39m divisionBoundary  unavailable',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivision        \u001B[39m  \u001B[32mavailable\u001B[39m',
+        '  \u001B[31m○\u001B[39m \u001B[32mdivisionArea    \u001B[39m  \u001B[31munavailable\u001B[39m',
+        '  \u001B[31m○\u001B[39m \u001B[32mdivisionBoundary\u001B[39m  \u001B[31munavailable\u001B[39m',
         '',
-        'At or Before Cohort',
-        '  \u001B[32m✓\u001B[39m dr-hk-hkgov-had-division-area-district-2022  available',
+        '# AT OR BEFORE',
+        'HK / hkgov-had / 2022',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
+        'HK / hkgov-censtatd / 2016',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
+        'HK / hkgov-censtatd / 2021',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
       ].join('\n'),
     )
   })
@@ -191,8 +217,12 @@ describe('division API release set readiness display', () => {
           boundaryAvailable: true,
           cohortIndependentReleases: [
             {
+              cohortKey: '2022',
               datasetCode: 'ds-hk-hkgov-had-division-area-district',
+              domainCode: 'hkgov-had',
+              optional: false,
               releaseCode: 'dr-hk-hkgov-had-division-area-district-2022',
+              resourceType: 'divisionArea',
             },
           ],
           divisionAvailable: true,
@@ -201,15 +231,64 @@ describe('division API release set readiness display', () => {
       ),
     ).toBe(
       [
+        '# EXACT REF',
         'HK / overture / 2025-09-24.0',
-        '  \u001B[32m✓\u001B[39m division          available',
-        '  \u001B[32m✓\u001B[39m divisionArea      available',
-        '  \u001B[32m✓\u001B[39m divisionBoundary  available',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivision        \u001B[39m  \u001B[32mavailable\u001B[39m',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea    \u001B[39m  \u001B[32mavailable\u001B[39m',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionBoundary\u001B[39m  \u001B[32mavailable\u001B[39m',
         '',
-        'At or Before Cohort',
-        '  \u001B[32m✓\u001B[39m dr-hk-hkgov-had-division-area-district-2022  available',
+        '# AT OR BEFORE',
+        'HK / hkgov-had / 2022',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
       ].join('\n'),
     )
+  })
+
+  test('labels an unavailable C&SD release as optional', () => {
+    expect(
+      formatDivisionApiReleaseSetReadiness(
+        { cohortKey: '2025-09-24.0', regionCode: 'hk' },
+        {
+          areaAvailable: true,
+          boundaryAvailable: true,
+          cohortIndependentReleases: [
+            {
+              cohortKey: null,
+              datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+              domainCode: 'hkgov-censtatd',
+              optional: true,
+              releaseCode: null,
+              resourceType: 'divisionArea',
+            },
+          ],
+          divisionAvailable: true,
+          ready: true,
+        },
+      ),
+    ).toContain(
+      '  \u001B[33m○\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[33m[optional]\u001B[39m',
+    )
+    expect(
+      formatDivisionApiReleaseSetReadiness(
+        { cohortKey: '2025-09-24.0', regionCode: 'hk' },
+        {
+          areaAvailable: true,
+          boundaryAvailable: true,
+          cohortIndependentReleases: [
+            {
+              cohortKey: null,
+              datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+              domainCode: 'hkgov-censtatd',
+              optional: true,
+              releaseCode: null,
+              resourceType: 'divisionArea',
+            },
+          ],
+          divisionAvailable: true,
+          ready: true,
+        },
+      ),
+    ).toContain('HK / hkgov-censtatd\n')
   })
 
   test('reports planning domains independently from Overture requirements', () => {
@@ -230,9 +309,10 @@ describe('division API release set readiness display', () => {
       ),
     ).toBe(
       [
+        '# EXACT REF',
         'HK / hkgov-pland-pu / 2006',
-        '  \u001B[32m✓\u001B[39m division      available',
-        '  \u001B[32m✓\u001B[39m divisionArea  available',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivision    \u001B[39m  \u001B[32mavailable\u001B[39m',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[32mavailable\u001B[39m',
       ].join('\n'),
     )
   })
@@ -244,7 +324,7 @@ describe('address API release set readiness display', () => {
       formatAddressApiReleaseSetReadiness(
         { cohortKey: '2025-09-24.0', regionCode: 'hk' },
         true,
-        'data-hk-addresses-2025-09-24.0-r0--default',
+        'data-hk-addresses-2025-09-24.0--default',
         '2025-12-17.0',
       ),
     ).toBe(

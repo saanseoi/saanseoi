@@ -65,18 +65,12 @@ for year in 2016 2021
         exit 1
     end
 
-    for transform in '' simplified
-        set -l upload_args upload --target local "$file" \
-            --source hkgov-censtatd --source-version $year \
-            --type divisionArea --theme divisions --region hk --cohort-key $year \
-            --yes
-
-        if test -n "$transform"
-            set -a upload_args --transform $transform
-        end
-
-        run_step ./bin/saanseoi $upload_args
-    end
+    # A standard C&SD upload also publishes its simplified display-geometry
+    # companion. Do not explicitly upload --transform simplified again.
+    run_step ./bin/saanseoi upload --target local "$file" \
+        --source hkgov-censtatd --source-version $year \
+        --type divisionArea --theme divisions --region hk --cohort-key $year \
+        --yes
 end
 
 run_step ./bin/saanseoi docs:publish --target local --scope all

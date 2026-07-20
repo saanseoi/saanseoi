@@ -47,12 +47,9 @@ if (dbFamily === 'all') {
   ])
 
   progress.clear()
-  log.success(
-    `Cleared local upload state. (${formatDurationMs(Date.now() - startedAt)})`,
-    {
-      withGuide: false,
-    },
-  )
+  log.message(formatCompletedStep('Cleared local upload state.', startedAt), {
+    withGuide: false,
+  })
 }
 
 function describeFamily(family: string) {
@@ -86,7 +83,7 @@ async function runStep({
 
   if (exitCode === 0) {
     progress.clear()
-    log.success(`${success} (${formatDurationMs(Date.now() - startedAt)})`, {
+    log.message(formatCompletedStep(success, startedAt), {
       withGuide: false,
     })
     return
@@ -100,6 +97,11 @@ async function runStep({
   }
 
   process.exit(exitCode)
+}
+
+function formatCompletedStep(message: string, startedAt: number) {
+  const elapsed = formatDurationMs(Date.now() - startedAt)
+  return `${message} \u001B[90m(${elapsed})\u001B[39m`
 }
 
 function formatDurationMs(value: number) {
