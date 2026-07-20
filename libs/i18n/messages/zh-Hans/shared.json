@@ -361,6 +361,7 @@
   "data_pending": "待定",
   "data_view_release": "查看发布版本",
   "data_no_release": "无",
+  "data_no_releases_yet": "尚未发布任何版本。",
   "data_unpublished": "未发布",
   "sources_title": "来源名册",
   "sources_show_planned": "显示规划中项目",

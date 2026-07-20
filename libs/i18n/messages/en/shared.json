@@ -360,6 +360,7 @@
   "data_pending": "Pending",
   "data_view_release": "View release",
   "data_no_release": "None",
+  "data_no_releases_yet": "No releases have been published yet.",
   "data_unpublished": "Unpublished",
   "sources_title": "Source Registry",
   "sources_show_planned": "Show Planned",
