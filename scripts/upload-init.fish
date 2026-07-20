@@ -1,10 +1,10 @@
 #!/usr/bin/env fish
 
-set -l script_dir (cd (dirname (status filename)); and pwd)
-set -l repo (cd "$script_dir/.."; and pwd)
+set -l script_dir (command dirname (status filename))
+set -l repo (command realpath "$script_dir/..")
 set -l root "$repo/data/overture"
 
-cd "$repo"; or exit 1
+builtin cd "$repo"; or exit 1
 
 function run_step
     $argv
