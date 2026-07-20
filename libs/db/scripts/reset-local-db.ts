@@ -1,4 +1,4 @@
-import { spinner } from '@clack/prompts'
+import { log, spinner } from '@clack/prompts'
 import { rm } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
@@ -34,7 +34,7 @@ await runStep({
 })
 
 if (dbFamily === 'all') {
-  const progress = spinner({ withGuide: false })
+  const progress = spinner({ withGuide: true })
   progress.start('Clearing local upload state')
 
   await Promise.all([
@@ -45,7 +45,8 @@ if (dbFamily === 'all') {
     rm(resolve(repoRoot, '.local/d1/dev/v3/r2'), { force: true, recursive: true }),
   ])
 
-  progress.stop('Cleared local upload state.')
+  progress.clear()
+  log.success('Cleared local upload state.', { withGuide: true })
 }
 
 function describeFamily(family: string) {
@@ -61,7 +62,7 @@ async function runStep({
   pending: string
   success: string
 }) {
-  const progress = spinner({ withGuide: false })
+  const progress = spinner({ withGuide: true })
   progress.start(pending)
 
   const child = Bun.spawn({
@@ -77,7 +78,8 @@ async function runStep({
   ])
 
   if (exitCode === 0) {
-    progress.stop(success)
+    progress.clear()
+    log.success(success, { withGuide: true })
     return
   }
 

@@ -11,6 +11,7 @@ import apiDivisionsV01FixturePlandPu2021 from '../../../fixtures/meta/apiFields/
 import apiAddressesV01Fixture20260604 from '../../../fixtures/meta/apiFields/api-addresses-v0.1@ss-hk-address-2026-06-04.324.json'
 
 import type { ProvenanceContributionType, ResolverCode } from './constants/schema'
+import { computeVersionHash } from './versioning'
 
 export type ApiFieldFixtureField = {
   apiField: string
@@ -42,6 +43,38 @@ export type ApiFieldFixtureLineageAnchor = {
   sourceSchemas: Record<string, string>
 }
 
+const CENSTATD_DIVISION_AREA_DATASET = 'ds-hk-hkgov-censtatd-division-area-district'
+
+function createFixtureWithoutCenstatdDivisionAreas(
+  fixture: ApiFieldFixture,
+): ApiFieldFixture {
+  const lineageAnchors = fixture.lineageAnchors.map(anchor => ({
+    snapshotVersion: anchor.snapshotVersion,
+    sourceSchemas: Object.fromEntries(
+      Object.entries(anchor.sourceSchemas).filter(
+        ([datasetCode]) => datasetCode !== CENSTATD_DIVISION_AREA_DATASET,
+      ),
+    ),
+  }))
+  const fields = fixture.fields.filter(
+    field => field.sourceDatasetCode !== CENSTATD_DIVISION_AREA_DATASET,
+  )
+
+  return {
+    ...fixture,
+    versionHash: computeVersionHash({
+      apiVersion: fixture.apiVersion,
+      domainCode: fixture.domainCode,
+      fields,
+      lineageAnchors,
+      rulesetVersion: fixture.rulesetVersion,
+      schemaVersion: fixture.schemaVersion,
+    }),
+    lineageAnchors,
+    fields,
+  }
+}
+
 const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01Fixture20250924 as ApiFieldFixture,
   apiDivisionsV01Fixture20250924WithoutCenstatd as ApiFieldFixture,
@@ -49,7 +82,13 @@ const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01Fixture20251119 as ApiFieldFixture,
   apiDivisionsV01Fixture20251217 as ApiFieldFixture,
   apiDivisionsV01Fixture20260218 as ApiFieldFixture,
+  createFixtureWithoutCenstatdDivisionAreas(
+    apiDivisionsV01Fixture20260218 as ApiFieldFixture,
+  ),
   apiDivisionsV01Fixture20260520 as ApiFieldFixture,
+  createFixtureWithoutCenstatdDivisionAreas(
+    apiDivisionsV01Fixture20260520 as ApiFieldFixture,
+  ),
   apiDivisionsV01FixturePlandNewTown2006 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,
