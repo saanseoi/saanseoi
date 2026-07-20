@@ -28,15 +28,17 @@ export type ApiFieldFixture = {
   apiVersion: string
   /** Domain this mapping applies to. */
   domainCode: string
-  /**
-   * Immutable snapshots that anchor this mapping on snapshot lineage branches.
-   * The mapping applies to each anchor and its descendants only.
-   */
-  lineageAnchorSnapshotVersions: string[]
+  lineageAnchors: ApiFieldFixtureLineageAnchor[]
   schemaVersion: string
   rulesetVersion: string
-  sourceSchemas: Record<string, string>
   fields: ApiFieldFixtureField[]
+}
+
+export type ApiFieldFixtureLineageAnchor = {
+  /** Immutable snapshot at which this mapping applies on one lineage branch. */
+  snapshotVersion: string
+  /** Exact release-set source signature for this branch anchor. */
+  sourceSchemas: Record<string, string>
 }
 
 const apiFieldFixtures: ApiFieldFixture[] = [
@@ -61,8 +63,10 @@ function cloneApiFieldFixtureField(field: ApiFieldFixtureField): ApiFieldFixture
 function cloneApiFieldFixture(fixture: ApiFieldFixture): ApiFieldFixture {
   return {
     ...fixture,
-    lineageAnchorSnapshotVersions: [...fixture.lineageAnchorSnapshotVersions],
-    sourceSchemas: { ...fixture.sourceSchemas },
+    lineageAnchors: fixture.lineageAnchors.map(anchor => ({
+      ...anchor,
+      sourceSchemas: { ...anchor.sourceSchemas },
+    })),
     fields: fixture.fields.map(cloneApiFieldFixtureField),
   }
 }
@@ -83,6 +87,19 @@ function haveEqualSourceSchemas(
   )
 }
 
+function closestMatchingAnchorDepth(
+  fixture: ApiFieldFixture,
+  matchingAnchorIndexes: number[],
+  lineageSnapshotVersions: string[],
+) {
+  return Math.max(
+    ...matchingAnchorIndexes.map(index => {
+      const anchor = fixture.lineageAnchors[index]
+      return anchor ? lineageSnapshotVersions.lastIndexOf(anchor.snapshotVersion) : -1
+    }),
+  )
+}
+
 export function listApiFieldFixtures() {
   return apiFieldFixtures.map(cloneApiFieldFixture)
 }
@@ -97,30 +114,36 @@ export function resolveApiFieldFixture(args: {
   sourceSchemas: Record<string, string>
 }) {
   const candidates = apiFieldFixtures
+    .map(fixture => ({
+      fixture,
+      matchingAnchorIndexes: fixture.lineageAnchors.flatMap((anchor, index) =>
+        haveEqualSourceSchemas(anchor.sourceSchemas, args.sourceSchemas) &&
+        args.lineageSnapshotVersions.includes(anchor.snapshotVersion)
+          ? [index]
+          : [],
+      ),
+    }))
     .filter(
-      fixture =>
+      ({ fixture, matchingAnchorIndexes }) =>
         fixture.apiVersion === args.apiVersion &&
         fixture.domainCode === args.domainCode &&
         fixture.schemaVersion === args.schemaVersion &&
         fixture.rulesetVersion === args.rulesetVersion &&
-        haveEqualSourceSchemas(fixture.sourceSchemas, args.sourceSchemas) &&
-        fixture.lineageAnchorSnapshotVersions.some(snapshotVersion =>
-          args.lineageSnapshotVersions.includes(snapshotVersion),
-        ),
+        matchingAnchorIndexes.length > 0,
     )
     .sort(
       (left, right) =>
-        Math.max(
-          ...right.lineageAnchorSnapshotVersions.map(snapshotVersion =>
-            args.lineageSnapshotVersions.lastIndexOf(snapshotVersion),
-          ),
+        closestMatchingAnchorDepth(
+          right.fixture,
+          right.matchingAnchorIndexes,
+          args.lineageSnapshotVersions,
         ) -
-        Math.max(
-          ...left.lineageAnchorSnapshotVersions.map(snapshotVersion =>
-            args.lineageSnapshotVersions.lastIndexOf(snapshotVersion),
-          ),
+        closestMatchingAnchorDepth(
+          left.fixture,
+          left.matchingAnchorIndexes,
+          args.lineageSnapshotVersions,
         ),
     )
 
-  return candidates[0] ? cloneApiFieldFixture(candidates[0]) : null
+  return candidates[0] ? cloneApiFieldFixture(candidates[0].fixture) : null
 }

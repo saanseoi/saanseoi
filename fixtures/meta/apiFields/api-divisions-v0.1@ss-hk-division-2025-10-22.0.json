@@ -2,16 +2,20 @@
   "versionHash": "sha256:4482c9162751ae8073dfd698fd740d33ec21634aa2b98f63294c32be33434ef9",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "overture",
-  "lineageAnchorSnapshotVersions": ["ss-hk-division-2025-10-22.0"],
   "schemaVersion": "sv-division-v1",
   "rulesetVersion": "rs-division-merge-v1",
-  "sourceSchemas": {
-    "ds-hk-overture-division": "1.13.0",
-    "ds-hk-overture-division-area": "1.13.0",
-    "ds-hk-overture-division-boundary": "1.13.0",
-    "ds-hk-hkgov-had-division-area-district": "1.2",
-    "ds-hk-hkgov-censtatd-division-area-district": "1.0"
-  },
+  "lineageAnchors": [
+    {
+      "snapshotVersion": "ss-hk-division-2025-10-22.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.13.0",
+        "ds-hk-overture-division-area": "1.13.0",
+        "ds-hk-overture-division-boundary": "1.13.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+      }
+    }
+  ],
   "fields": [
     {
       "apiField": "division.id",

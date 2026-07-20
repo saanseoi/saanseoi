@@ -310,9 +310,9 @@ release-set membership rows do not copy entity data.
 API field provenance is resolved per domain release using the API version, domain,
 schema, domain ruleset, exact source-dataset/schema signature, and the primary
 snapshot's parent-linked branch. Fixtures must declare `domainCode` and
-`lineageAnchorSnapshotVersions`; the mapping applies only at an anchor snapshot and its
-descendants. This prevents a fixture on a newer branch from being inferred to apply to a
-late historical backfill.
+`lineageAnchors`; each anchor carries its exact source signature, and the mapping
+applies only at that anchor snapshot and its descendants. This prevents a fixture on a
+newer branch from being inferred to apply to a late historical backfill.
 
 ### Shard Metadata
 

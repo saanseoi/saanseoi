@@ -2,13 +2,17 @@
   "versionHash": "sha256:3c1d0b84134851dc74f95a3d184d3ce9e42800694d937e78948d0a445c8e0e34",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-pland-pu",
-  "lineageAnchorSnapshotVersions": ["ss-hk-division-hkgov-pland-pu-2001"],
   "schemaVersion": "sv-division-v1",
   "rulesetVersion": "rs-division-hkgov-pland-pu-merge-v1",
-  "sourceSchemas": {
-    "ds-hk-hkgov-pland-division-pu": "1.0",
-    "ds-hk-hkgov-pland-division-area-pu": "1.0"
-  },
+  "lineageAnchors": [
+    {
+      "snapshotVersion": "ss-hk-division-hkgov-pland-pu-2001",
+      "sourceSchemas": {
+        "ds-hk-hkgov-pland-division-pu": "1.0",
+        "ds-hk-hkgov-pland-division-area-pu": "1.0"
+      }
+    }
+  ],
   "fields": [
     {
       "apiField": "division.id",
