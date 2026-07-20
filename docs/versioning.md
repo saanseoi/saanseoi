@@ -768,9 +768,10 @@ API field provenance records how fields in a particular domain release were prod
 
 Field fixtures MUST declare a domain and are resolved against API version, domain,
 schema, ruleset, the exact source-dataset/schema signature, and a parent-linked snapshot
-branch. `lineageAnchorSnapshotVersions` identifies one or more immutable snapshots at
-which the mapping applies. It applies to each anchor and descendants reached through
-`parentSnapshotId`, and never to a sibling or an independently backfilled branch.
+branch. `lineageAnchors` binds each immutable snapshot anchor to its exact
+source-dataset/schema signature. A mapping applies to an anchor and descendants reached
+through `parentSnapshotId`, and never to a sibling or an independently backfilled
+branch.
 
 When more than one fixture matches the branch, the closest ancestor wins. Snapshot-code
 or cohort ordering MUST NOT be used to infer fixture applicability.

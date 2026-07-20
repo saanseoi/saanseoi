@@ -6,7 +6,7 @@ import {
   listRegistryReleases,
   listRegistrySources,
 } from '@repo/core/db/metaRegistry'
-import { createCurrentDb, createMetaDb, currentSchema, desc, inArray } from '@repo/db'
+import { createCurrentDb, createMetaDb, currentSchema, desc, eq } from '@repo/db'
 import { error, redirect } from '@sveltejs/kit'
 import { getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
@@ -67,8 +67,9 @@ export const getSourceDatasetPageData = query(registryCodeSchema, async datasetC
 })
 
 /**
- * Prefer C&SD's `simplified` transformation. HAD remains a temporary fallback
- * for deployments whose current database has not yet received that variant.
+ * The district-coverage map uses the C&SD 2021 Census District Boundary's
+ * simplified display geometry. Do not substitute HAD or source-precision
+ * geometry here: the choropleth must remain a lightweight Census map.
  */
 export const getDistrictCoverageMapData = query(async () => {
   const { divisionAreas } = currentSchema
@@ -81,20 +82,13 @@ export const getDistrictCoverageMapData = query(async () => {
       variant: divisionAreas.variant,
     })
     .from(divisionAreas)
-    .where(inArray(divisionAreas.variant, ['hkgov-censtatd:simplified', 'hkgov-had']))
+    .where(eq(divisionAreas.variant, 'hkgov-censtatd:2021:simplified'))
     .orderBy(desc(divisionAreas.updatedAt))
     .all()
 
   const latestByDistrict = new Map<string, (typeof rows)[number]>()
   for (const row of rows) {
-    const existing = latestByDistrict.get(row.divisionId)
-    if (
-      !existing ||
-      (row.variant === 'hkgov-censtatd:simplified' &&
-        existing.variant !== 'hkgov-censtatd:simplified')
-    ) {
-      latestByDistrict.set(row.divisionId, row)
-    }
+    if (!latestByDistrict.has(row.divisionId)) latestByDistrict.set(row.divisionId, row)
   }
 
   return [...latestByDistrict.values()]

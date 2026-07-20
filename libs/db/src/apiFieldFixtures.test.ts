@@ -17,7 +17,7 @@ describe('api field fixtures', () => {
     expect(fixtures).toHaveLength(10)
     for (const fixture of fixtures) {
       expect(fixture.domainCode).not.toBe('')
-      expect(fixture.lineageAnchorSnapshotVersions.length).toBeGreaterThan(0)
+      expect(fixture.lineageAnchors.length).toBeGreaterThan(0)
     }
   })
 
@@ -57,15 +57,21 @@ describe('api field fixtures', () => {
       sourceSchemas: overtureSourceSchemas,
     })
 
-    expect(fixture?.lineageAnchorSnapshotVersions).toEqual([
-      'ss-hk-division-2026-05-20.0',
-    ])
+    expect(fixture?.lineageAnchors).toContainEqual(
+      expect.objectContaining({
+        snapshotVersion: 'ss-hk-division-2026-05-20.0',
+      }),
+    )
   })
 
   test('does not infer a newer branch mapping for an unanchored backfill', () => {
-    const sourceSchemas = {
+    const currentSourceSchemas = {
       'ds-hk-hkgov-dpo-address': '3.2',
       'ds-hk-overture-division': '1.17.0',
+    }
+    const historicalSourceSchemas = {
+      'ds-hk-hkgov-dpo-address': '3.2',
+      'ds-hk-overture-division': '1.12.0',
     }
 
     expect(
@@ -75,7 +81,7 @@ describe('api field fixtures', () => {
         lineageSnapshotVersions: ['ss-hk-address-2025-08-20.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-hkgov-dpo-merge-v1',
-        sourceSchemas,
+        sourceSchemas: currentSourceSchemas,
       }),
     ).toBeNull()
 
@@ -86,9 +92,17 @@ describe('api field fixtures', () => {
         lineageSnapshotVersions: ['ss-hk-address-2025-09-24.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-hkgov-dpo-merge-v1',
-        sourceSchemas,
-      })?.lineageAnchorSnapshotVersions,
-    ).toContain('ss-hk-address-2025-09-24.0')
+        sourceSchemas: historicalSourceSchemas,
+      })?.lineageAnchors,
+    ).toContainEqual(
+      expect.objectContaining({
+        snapshotVersion: 'ss-hk-address-2025-09-24.0',
+        sourceSchemas: {
+          'ds-hk-hkgov-dpo-address': '3.2',
+          'ds-hk-overture-division': '1.12.0',
+        },
+      }),
+    )
   })
 
   test('returns defensive copies from the fixture registry', () => {
@@ -108,17 +122,21 @@ describe('api field fixtures', () => {
     if (!listedFixture || !fixture) throw new Error('Expected matching fixture')
     const listedField = listedFixture.fields.at(0)
     const resolvedField = fixture.fields.at(0)
-    if (!listedField || !resolvedField) throw new Error('Expected fixture fields')
+    const listedAnchor = listedFixture.lineageAnchors.at(0)
+    const resolvedAnchor = fixture.lineageAnchors.at(0)
+    if (!listedField || !resolvedField || !listedAnchor || !resolvedAnchor) {
+      throw new Error('Expected fixture fields and anchors')
+    }
 
     listedFixture.apiVersion = 'mutated'
-    listedFixture.lineageAnchorSnapshotVersions[0] = 'mutated'
+    listedAnchor.snapshotVersion = 'mutated'
     listedField.apiField = 'mutated'
     fixture.apiVersion = 'mutated'
-    fixture.lineageAnchorSnapshotVersions[0] = 'mutated'
+    resolvedAnchor.snapshotVersion = 'mutated'
     resolvedField.apiField = 'mutated'
 
     expect(listApiFieldFixtures()[0]?.apiVersion).toBe('api-divisions-v0.1')
-    expect(listApiFieldFixtures()[0]?.lineageAnchorSnapshotVersions[0]).toBe(
+    expect(listApiFieldFixtures()[0]?.lineageAnchors[0]?.snapshotVersion).toBe(
       'ss-hk-division-2025-09-24.0',
     )
     expect(listApiFieldFixtures()[0]?.fields[0]?.apiField).not.toBe('mutated')
