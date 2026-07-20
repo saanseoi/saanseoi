@@ -4,7 +4,7 @@ import type { DivisionRecord } from '../db/divisions'
 
 const activeSnapshot = {
   snapshotId: 'snapshot-hk-division',
-  apiReleaseSet: 'data-hk-divisions-2026-06-17.0-r0--overture',
+  apiReleaseSet: 'data-hk-divisions-2026-06-17.0',
   apiCatalogRevision: 'catalog-hk-divisions-v0.1-2026-06-29.0',
   catalogPublishedAt: '2026-06-29T00:00:00.000Z',
   cohortKey: '2026-06-17.0',

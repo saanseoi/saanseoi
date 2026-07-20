@@ -80,12 +80,11 @@ Pass a downloaded source GML file to the normal uploader:
 
 ```bash
 saanseoi upload data/hkgov/censtatd/district-council-districts-2016.gml --source hkgov-censtatd --source-version 2016 --type divisionArea --theme divisions --region hk --cohort-key 2016
-saanseoi upload data/hkgov/censtatd/district-council-districts-2016.gml --source hkgov-censtatd --source-version 2016 --transform simplified --type divisionArea --theme divisions --region hk --cohort-key 2016
 saanseoi upload data/hkgov/censtatd/district-council-districts-2021.gml --source hkgov-censtatd --source-version 2021 --type divisionArea --theme divisions --region hk --cohort-key 2021
-saanseoi upload data/hkgov/censtatd/district-council-districts-2021.gml --source hkgov-censtatd --source-version 2021 --transform simplified --type divisionArea --theme divisions --region hk --cohort-key 2021
 ```
 
-The second and fourth commands construct the versioned `simplified` transformations. A
-transformation must be run only from its verified C&SD source artifact. As a local
-derivative, it has no upstream release-notes URL; the corresponding exact-source release
-records the CSDI dataset URL instead.
+Each exact C&SD upload automatically publishes its versioned `simplified` companion from
+the same verified source artifact. `--transform simplified` remains available only to
+republish that derived release independently. As a local derivative, it has no upstream
+release-notes URL; the corresponding exact-source release records the CSDI dataset URL
+instead.

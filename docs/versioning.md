@@ -784,14 +784,14 @@ release containing every domain in the API family.
 Its identity is:
 
 ```text
-data-{region}-{family}-{cohort}-r{revision}--{domain}
+data-{region}-{family}-{cohort}[-r{revision}]--{domain}
 ```
 
 Examples:
 
 ```text
-data-hk-divisions-2025-10-22.0-r0--overture
-data-hk-divisions-2006-r0--hkgov-pland-pu
+data-hk-divisions-2025-10-22.0
+data-hk-divisions-2006--hkgov-pland-pu
 data-hk-divisions-2006-r1--hkgov-pland-pu
 ```
 
@@ -807,6 +807,10 @@ It binds:
 - domain ruleset version
 - field provenance
 
+The composition's default domain is implicit. For divisions this is Overture, so
+`data-hk-divisions-2025-10-22.0` means the Overture domain; non-default domains retain
+their `--{domain}` suffix.
+
 The trailing revision is a **domain-composition revision for that cohort**. It is not a
 source correction number and not an API patch version.
 
@@ -814,17 +818,18 @@ For example, if a secondary dataset is added to the published 2006 Planning Unit
 release:
 
 ```text
-data-hk-divisions-2006-r0--hkgov-pland-pu
+data-hk-divisions-2006--hkgov-pland-pu
                          ↓ new immutable composition
 data-hk-divisions-2006-r1--hkgov-pland-pu
 ```
 
-Revision 1 records `supersedesApiReleaseSetId` pointing to revision 0. Revision 0
-remains addressable by catalogues that already published it.
+Revision 1 records `supersedesApiReleaseSetId` pointing to the implicit revision 0. The
+unadorned initial revision remains addressable by catalogues that already published it.
 
-`status=current` is retained as a legacy status value meaning **published and
-addressable**. It no longer means there can be only one current release set across the
-API family.
+`status=current` means this is the latest published composition for its
+`(region, domain, cohort)`. Publishing a later revision archives its predecessor
+(rendered as “superseded” in the registry). Multiple current release sets may still
+exist across different cohorts and domains.
 
 ### API catalogue revision
 
@@ -1094,7 +1099,7 @@ To add Planning Unit data for 2006 in 2026:
 
 1. Register the 2006 source releases.
 2. Create the appropriate lineages and cohort snapshots.
-3. Publish `data-hk-divisions-2006-r0--hkgov-pland-pu`.
+3. Publish `data-hk-divisions-2006--hkgov-pland-pu`.
 4. Publish a 2026 catalogue revision containing that new `(domain, cohort)` entry.
 
 No 2006 Overture release is required because Planning Units are a separate domain.

@@ -948,9 +948,9 @@ export function seedFixtureCatalog(db: Database) {
       updatedAt
     ) VALUES
       (
-        'api-release-set-data-hk-divisions-2026-06-17.0-r0',
+        'api-release-set-data-hk-divisions-2026-06-17.0',
         'api-version-api-divisions-v0.1',
-        'data-hk-divisions-2026-06-17.0-r0',
+        'data-hk-divisions-2026-06-17.0',
         'overture',
         'sv-division-v1',
         'rs-division-merge-v1',
@@ -961,9 +961,9 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'api-release-set-data-hk-addresses-2026-06-17.0-r0',
+        'api-release-set-data-hk-addresses-2026-06-17.0',
         'api-version-api-addresses-v0.1',
-        'data-hk-addresses-2026-06-17.0-r0',
+        'data-hk-addresses-2026-06-17.0',
         'default',
         'sv-address-v1',
         'rs-address-merge-v1',
@@ -974,9 +974,9 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'api-release-set-data-hk-places-2026-06-17.0-r0',
+        'api-release-set-data-hk-places-2026-06-17.0',
         'api-version-api-places-v0.1',
-        'data-hk-places-2026-06-17.0-r0',
+        'data-hk-places-2026-06-17.0',
         'default',
         'sv-place-v1',
         'rs-place-merge-v1',
@@ -1001,7 +1001,7 @@ export function seedFixtureCatalog(db: Database) {
     INSERT INTO apiComposition (
       id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, notes, versionHash, createdAt, updatedAt
     ) VALUES
-      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-default', 1, 'address', 'hkgov-dpo', 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-default', 1, 'address', 'default', 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('api-composition-divisions-v1', 'api-version-api-divisions-v0.1', 'api-divisions-default', 1, 'division', 'overture', 'current', null, 'vh-api-composition-divisions-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('api-composition-places-v1', 'api-version-api-places-v0.1', 'api-places-default', 1, 'place', null, 'current', null, 'vh-api-composition-places-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
@@ -1017,8 +1017,8 @@ export function seedFixtureCatalog(db: Database) {
     INSERT INTO apiCompositionMembers (
       apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority, configJson
     ) VALUES
-      ('api-composition-addresses-v1', 'hkgov-dpo', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-addresses-v1', 'hkgov-dpo', 'division', 'overture', 'supporting', 1, 'exact_ref', 'address', null, 10, null),
+      ('api-composition-addresses-v1', 'default', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-addresses-v1', 'default', 'division', 'overture', 'supporting', 1, 'exact_ref', 'address', null, 10, null),
       ('api-composition-divisions-v1', 'overture', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0, null),
       ('api-composition-places-v1', 'default', 'place', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
       ('api-composition-places-v1', 'default', 'address', 'default', 'supporting', 1, 'exact_ref', 'place', null, 10, null),
