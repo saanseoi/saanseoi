@@ -786,13 +786,17 @@ export async function resolveDivisionApiReleaseSetReadiness(
         : await resolveLocalCohortIndependentDivisionReleases(target, plan)
       : []
   const divisionAvailable = snapshots.division
-  const areaAvailable =
-    snapshots.divisionArea ||
-    cohortIndependentReleases.some(release => release.releaseCode !== null)
+  const areaAvailable = snapshots.divisionArea
+  const cohortIndependentRequirementsAvailable = cohortIndependentReleases.every(
+    release => release.releaseCode !== null,
+  )
   const boundaryAvailable = snapshots.divisionBoundary
   const ready =
     domainCode === 'overture'
-      ? divisionAvailable && areaAvailable && boundaryAvailable
+      ? divisionAvailable &&
+        areaAvailable &&
+        cohortIndependentRequirementsAvailable &&
+        boundaryAvailable
       : divisionAvailable && areaAvailable
 
   return {

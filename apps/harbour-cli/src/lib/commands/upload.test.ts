@@ -145,7 +145,7 @@ describe('division API release set readiness display', () => {
     )
   })
 
-  test('treats an eligible provider area release as satisfying the area requirement', () => {
+  test('reports an Overture area as unavailable when only the HAD area is present', () => {
     expect(
       formatDivisionApiReleaseSetReadiness(
         {
@@ -153,7 +153,7 @@ describe('division API release set readiness display', () => {
           regionCode: 'hk',
         },
         {
-          areaAvailable: true,
+          areaAvailable: false,
           boundaryAvailable: false,
           cohortIndependentReleases: [
             {
@@ -169,7 +169,7 @@ describe('division API release set readiness display', () => {
       [
         'HK / overture / 2025-09-24.0',
         '  \u001B[32m✓\u001B[39m division          available',
-        '  \u001B[32m✓\u001B[39m divisionArea      available',
+        '  \u001B[33m○\u001B[39m divisionArea      unavailable',
         '  \u001B[33m○\u001B[39m divisionBoundary  unavailable',
         '',
         'At or Before Cohort',
