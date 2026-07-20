@@ -34,7 +34,7 @@ await runStep({
 })
 
 if (dbFamily === 'all') {
-  const progress = spinner()
+  const progress = spinner({ withGuide: false })
   progress.start('Clearing local upload state')
 
   await Promise.all([
@@ -61,7 +61,7 @@ async function runStep({
   pending: string
   success: string
 }) {
-  const progress = spinner()
+  const progress = spinner({ withGuide: false })
   progress.start(pending)
 
   const child = Bun.spawn({

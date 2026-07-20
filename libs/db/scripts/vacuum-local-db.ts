@@ -6,7 +6,7 @@ type VacuumTarget = {
 }
 
 const targets = parseTargets(process.argv[2])
-const progress = spinner()
+const progress = spinner({ withGuide: false })
 
 progress.start(vacuumLabel(targets[0]?.bindingName))
 
