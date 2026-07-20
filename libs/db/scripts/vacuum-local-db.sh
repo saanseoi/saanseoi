@@ -46,6 +46,8 @@ if [[ "${#targets[@]}" -eq 0 ]]; then
   exit 1
 fi
 
+vacuum_targets='[]'
+
 for target in "${targets[@]}"; do
   IFS=$'\t' read -r binding_name local_database_id <<< "$target"
   sqlite_path="$(bash "$script_dir/lib/resolve-local-d1-sqlite-path.sh" "$local_database_id")"
@@ -55,6 +57,11 @@ for target in "${targets[@]}"; do
     exit 1
   fi
 
-  printf 'Vacuuming local D1 database %s\n' "$binding_name"
-  sqlite3 "$sqlite_path" 'PRAGMA wal_checkpoint(TRUNCATE); VACUUM;'
+  vacuum_targets="$(bun -e '
+    const targets = JSON.parse(process.argv[1]);
+    targets.push({ bindingName: process.argv[2], sqlitePath: process.argv[3] });
+    process.stdout.write(JSON.stringify(targets));
+  ' "$vacuum_targets" "$binding_name" "$sqlite_path")"
 done
+
+bun "$script_dir/vacuum-local-db.ts" "$vacuum_targets"
