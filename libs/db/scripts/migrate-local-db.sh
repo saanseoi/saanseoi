@@ -10,7 +10,11 @@ if [[ ! "$migration_jobs" =~ ^[1-9][0-9]*$ ]]; then
   exit 1
 fi
 
-eval "$(bash "$script_dir/lib/resolve-d1-target.sh" "$db_family" local)"
+if ! resolved_targets="$(bash "$script_dir/lib/resolve-d1-target.sh" "$db_family" local)"; then
+  exit 1
+fi
+
+eval "$resolved_targets"
 
 mkdir -p "$persist_dir"
 
