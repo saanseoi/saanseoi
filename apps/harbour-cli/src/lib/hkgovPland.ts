@@ -276,6 +276,10 @@ function writeDivisionParquet(
   parquetWriteFile({
     filename: outputFile,
     rowGroupSize: 5000,
+    // hyparquet 1.26 cannot read the GeoParquet column-statistics metadata
+    // emitted by hyparquet-writer for GEOMETRY columns. The geometry data and
+    // its logical type remain intact without optional column statistics.
+    statistics: false,
     columnData: [
       stringColumn(
         'id',
@@ -369,6 +373,9 @@ function writeDivisionAreaParquet(
   parquetWriteFile({
     filename: outputFile,
     rowGroupSize: 5000,
+    // Keep the generated GeoParquet readable by the upload inspector; see
+    // the matching division writer above.
+    statistics: false,
     columnData: [
       stringColumn(
         'id',
