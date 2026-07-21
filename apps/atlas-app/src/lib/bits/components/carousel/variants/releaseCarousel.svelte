@@ -1,6 +1,7 @@
 <script lang="ts">
 import CarouselRoot from '../carouselRoot.svelte'
 import { Release as CardRelease } from '$lib/bits/components/card'
+import ReleaseCarouselSkeleton from './releaseCarouselSkeleton.svelte'
 type Release = {
   apiFamily: string
   code: string
@@ -18,9 +19,11 @@ type NavigationState = { canMoveBackward: boolean; canMoveForward: boolean }
 type DragState = { cardId: string | null }
 type Props = {
   items: Item[]
+  isLoading?: boolean
   onnavigationchange?: (state: NavigationState) => void
+  onreachend?: () => void
 }
-let { items, onnavigationchange }: Props = $props()
+let { items, isLoading = false, onnavigationchange, onreachend }: Props = $props()
 let carousel = $state<{ scrollByPage: (direction: -1 | 1) => void }>()
 let draggedCardId = $state<string | null>(null)
 export function scrollByPage(direction: -1 | 1) {
@@ -31,10 +34,14 @@ export function scrollByPage(direction: -1 | 1) {
   bind:this={carousel}
   class="mt-6"
   {onnavigationchange}
+  {onreachend}
   ondragstatechange={(state: DragState) => (draggedCardId = state.cardId)}
   ><div class="flex min-w-max gap-4">
     {#each items as item, index (item.release.code)}
       <CardRelease {...item} {index} isDragging={draggedCardId === item.release.code} />
     {/each}
+    {#if isLoading}
+      <ReleaseCarouselSkeleton />
+    {/if}
   </div></CarouselRoot
 >

@@ -1,5 +1,6 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
+import { fade } from 'svelte/transition'
 import { m } from '$lib/bits/internal/i18n'
 import topoImage from '$lib/assets/topo.jpg'
 import { getApiFamilyTheme } from '$lib/registry/apiFamilyTheme'
@@ -45,6 +46,7 @@ let cardStyle = $derived(
 )
 </script>
 <a
+  in:fade={{ duration: 220 }}
   class={`group relative grid min-h-69 w-80 shrink-0 isolate overflow-hidden rounded-lg p-5 text-(--release-ink) shadow-[0_1rem_2.5rem_rgb(0_0_0/0.14)] transition-shadow duration-220 before:absolute before:inset-0 before:z-0 before:bg-[radial-gradient(circle_at_45%_42%,color-mix(in_srgb,var(--release-accent)_74%,#fff_26%)_0,transparent_52%),linear-gradient(135deg,color-mix(in_srgb,var(--release-accent)_86%,#000_14%),color-mix(in_srgb,var(--release-accent)_58%,var(--release-secondary)_42%))] before:content-[''] after:absolute after:-right-12 after:-bottom-18 after:z-1 after:size-48 after:rotate-18 after:border after:border-current after:opacity-[0.18] after:content-[''] hover:shadow-[0_1.25rem_3rem_rgb(0_0_0/0.2)] focus-visible:outline-none focus-visible:shadow-[0_1.25rem_3rem_rgb(0_0_0/0.2)] ${isDragging ? 'shadow-[0_1.25rem_3rem_rgb(0_0_0/0.2)]' : ''}`}
   data-carousel-card={release.code}
   style={cardStyle}
