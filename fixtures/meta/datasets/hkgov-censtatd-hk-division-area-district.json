@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3af046763eef22f4366538e2eed74b6322c8c7d6b4c02193b3b3f78d841746f9",
+  "versionHash": "sha256:1dc0b7600d05c20b1346bcc7eee1a0e270411236ecf78eb1f5b2229b54176384",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-area-district",
   "regionCode": "hk",
@@ -12,6 +12,19 @@
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946",
   "category": "boundaries",
   "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2016",
+      "outputVariant": "hkgov-censtatd:2016:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesLandClip": true
+      }
+    },
     {
       "code": "simplified",
       "resourceType": "divisionArea",

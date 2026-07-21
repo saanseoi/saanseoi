@@ -195,6 +195,26 @@ describe('api field fixtures', () => {
     )
   })
 
+  test('selects the explicitly anchored earliest address backfill', () => {
+    expect(
+      resolveApiFieldFixture({
+        apiVersion: 'api-addresses-v0.1',
+        domainCode: 'default',
+        lineageSnapshotVersions: ['ss-hk-address-2025-01-23.1031'],
+        schemaVersion: 'sv-address-v1',
+        rulesetVersion: 'rs-address-merge-v1',
+        sourceSchemas: {
+          'ds-hk-hkgov-dpo-address': '3.2',
+          'ds-hk-overture-division': '1.12.0',
+        },
+      })?.lineageAnchors,
+    ).toContainEqual(
+      expect.objectContaining({
+        snapshotVersion: 'ss-hk-address-2025-01-23.1031',
+      }),
+    )
+  })
+
   test('returns defensive copies from the fixture registry', () => {
     const fixtures = listApiFieldFixtures()
     const fixture = resolveApiFieldFixture({

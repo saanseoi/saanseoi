@@ -12,6 +12,7 @@ import {
   getLatestDatasetForRegionSourceType,
   listCurrentSnapshotCleanupCandidates,
   publishReleaseArtifacts,
+  resolveRegistryReleaseDisplayStatus,
   recordSnapshotAssemblyRun,
   resolveApiReleaseSetForRequest,
   resolveActiveSnapshotForType,
@@ -21,6 +22,35 @@ import {
   resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
   resolveShardForTypeRegionYear,
 } from './metaRegistry'
+
+describe('resolveRegistryReleaseDisplayStatus', () => {
+  test('keeps older cohort revisions reader-facing as revised', () => {
+    expect(
+      resolveRegistryReleaseDisplayStatus(
+        { cohortKey: '2025-09-24.0', revision: 1, status: 'archived' },
+        { cohortKey: '2026-06-17.0', revision: 0 },
+      ),
+    ).toBe('revised')
+  })
+
+  test('marks an older initial cohort as superseded', () => {
+    expect(
+      resolveRegistryReleaseDisplayStatus(
+        { cohortKey: '2025-09-24.0', revision: 0, status: 'archived' },
+        { cohortKey: '2026-06-17.0', revision: 0 },
+      ),
+    ).toBe('superseded')
+  })
+
+  test('keeps the latest revision current', () => {
+    expect(
+      resolveRegistryReleaseDisplayStatus(
+        { cohortKey: '2026-06-17.0', revision: 2, status: 'current' },
+        { cohortKey: '2026-06-17.0', revision: 2 },
+      ),
+    ).toBe('current')
+  })
+})
 
 function createShardLookupDb() {
   const sqlite = new SQLiteDatabase(':memory:')
@@ -1065,7 +1095,7 @@ describe('ensureDraftReleaseSetForRelease', () => {
     second.sqlite.close()
   })
 
-  test('omits the declared default composition domain from the code', async () => {
+  test('uses the declared default composition domain when none is specified', async () => {
     const { sqlite, db } = createDraftReleaseSetDb()
     sqlite
       .query(
@@ -1075,12 +1105,10 @@ describe('ensureDraftReleaseSetForRelease', () => {
       )
       .run()
 
-    const releaseSet = await ensureDraftReleaseSetForRelease(
-      db as never,
-      'division',
-      { cohortKey: '2026-01-21.0', regionCode: 'hk' },
-      { domainCode: 'overture' },
-    )
+    const releaseSet = await ensureDraftReleaseSetForRelease(db as never, 'division', {
+      cohortKey: '2026-01-21.0',
+      regionCode: 'hk',
+    })
 
     expect(releaseSet.code).toBe('data-hk-division-2026-01-21.0')
     sqlite.close()
@@ -1603,10 +1631,13 @@ describe('publishReleaseArtifacts', () => {
         ('snapshot-new', 'snapshot-curated', 'ss-hk-division-2026-06-17.0', 'draft', null, null, null, 1760000000000);
 
       INSERT INTO apiReleaseSets (
-        id, apiVersionId, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
+        id, apiVersionId, regionCode, domainCode, cohortKey, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
       ) VALUES (
         'release-set-previous',
         'api-version-1',
+        'hk',
+        'overture',
+        '2026-05-20.0',
         'sv-division-v1',
         'rs-division-merge-v1',
         'current',
@@ -1617,6 +1648,9 @@ describe('publishReleaseArtifacts', () => {
       ), (
         'release-set-1',
         'api-version-1',
+        'hk',
+        'overture',
+        '2026-06-17.0',
         'sv-division-v1',
         'rs-division-merge-v1',
         'draft',
@@ -1700,6 +1734,11 @@ describe('publishReleaseArtifacts', () => {
       {
         domainCode: 'overture',
         cohortKey: '2026-05-20.0',
+        isDefault: 0,
+      },
+      {
+        domainCode: 'overture',
+        cohortKey: '2026-06-17.0',
         isDefault: 1,
       },
     ])
@@ -1712,7 +1751,7 @@ describe('publishReleaseArtifacts', () => {
     ).resolves.toMatchObject({
       apiCatalogRevision: catalogRevision.code,
       code: 'data-hk-divisions-2026-05-20.0',
-      cohortKey: '2026-05-20.0',
+      cohortKey: '2026-06-17.0',
     })
     await expect(
       resolveApiReleaseSetForRequest(db, 'division', {
