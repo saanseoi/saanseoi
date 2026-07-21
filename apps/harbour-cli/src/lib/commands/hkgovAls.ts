@@ -151,16 +151,15 @@ export async function runHkgovAlsLocalIngestCommand(
   const firstSourceVersion = normalizeAlsSourceVersion(
     stringOption(args, 'from-source-version') ?? `${cohortKey.slice(0, 4)}-01-01.0`,
   )
-  const sourceDirs = (await listAlsReleaseDirectories(sourceRoot)).filter(sourceDir => {
-    const sourceVersion = inferAlsSourceVersionFromPath(sourceDir)
-    return sourceVersion !== null && sourceVersion >= firstSourceVersion
-  })
-  if (sourceDirs.length === 0) {
+  const sourceDirs = await listAlsReleaseDirectories(sourceRoot)
+  const sourceReleases = (await resolveAlsSourceReleases(target, sourceDirs)).filter(
+    release => release.sourceVersion >= firstSourceVersion,
+  )
+  if (sourceReleases.length === 0) {
     throw new Error(
       `No ALS release directories found in ${resolve(sourceRoot)} on or after ${firstSourceVersion}.`,
     )
   }
-  const sourceReleases = await resolveAlsSourceReleases(target, sourceDirs)
   const ingestedSourceVersions = await listLocallyPublishedAlsSourceVersions(
     target,
     sourceReleases[0]?.sourceVersion.slice(0, 4) ?? cohortKey.slice(0, 4),
@@ -174,7 +173,7 @@ export async function runHkgovAlsLocalIngestCommand(
   })
   note(
     [
-      formatField('releases', String(sourceDirs.length)),
+      formatField('releases', String(sourceReleases.length)),
       formatField(
         'divisionCohorts',
         [...new Set(sourceReleases.map(release => release.divisionCohortKey))].join(

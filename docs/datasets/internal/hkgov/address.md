@@ -21,6 +21,11 @@ Related docs:
 - The CLI reads all 2D district GeoJSON files in one ALS release. It skips the separate
   `als_addresses_3d_*` file.
 
+ALS directory names carry an upstream delivery time (`YYYYMMDD-HHMM`), but address
+release versions use `YYYY-MM-DD.N`: the first release for a date is `.0`, and further
+same-day releases increment `N` in delivery-time order. The delivery time is not itself
+a correction number.
+
 ## Exact duplicate handling
 
 ALS releases occasionally contain the same GeoJSON feature object more than once. The
@@ -160,7 +165,7 @@ bin/saanseoi prep-hkgov-dpo \
   --target local --cohort-key 2025-12-17.0 \
   --identity-history .local/hkgov-dpo/als-identity-history.json \
   --identity-decisions .local/hkgov-dpo/als-identity-decisions.json \
-  --identity-drift-report .local/hkgov-dpo/identity-drift/2026-07-10.1054.json
+  --identity-drift-report .local/hkgov-dpo/identity-drift/2026-07-10.0.json
 ```
 
 Ingest all ALS release directories in chronological order into local D1:
