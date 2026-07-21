@@ -94,6 +94,15 @@ fields, and removes a building name that exactly duplicates its estate. It never
 free-form names such as `WEST GATE TOWER`, and it refuses an embedded form that
 conflicts with an already populated structured block.
 
+Before applying that per-record cleanup, the importer examines the release's English
+building names. When a name family uses a trailing Roman numeral (for example,
+`INTERNATIONAL ENTERPRISE CENTRE II`), every same-family trailing Arabic building number
+is rendered as a Roman numeral (`INTERNATIONAL ENTERPRISE CENTRE 1` becomes
+`INTERNATIONAL ENTERPRISE CENTRE I`). It does not alter unrelated numeric building
+names. Each changed retained address is stored as an automatic
+`als_building_name_roman_numeral_normalized` processing action, including its original
+and normalized building name.
+
 The original English and Chinese ALS premise JSON is retained unchanged for provenance;
 the cleaned component fields and formatted service address carry the post-processing. If
 two source variants resolve to the same reviewed canonical ID in one release, one

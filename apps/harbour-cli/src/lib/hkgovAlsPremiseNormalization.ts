@@ -6,6 +6,59 @@ export type HkgovAlsPremiseStructure = {
   normalization: 'none' | 'redundant-building-name' | 'embedded-block'
 }
 
+export type HkgovAlsBuildingNameRomanNumeralNormalization = {
+  from: string
+  to: string
+}
+
+const ROMAN_NUMERAL_SUFFIX =
+  /^(?<stem>.+?)\s+(?<numeral>(?=[MDCLXVI]+$)M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3}))$/i
+const ARABIC_NUMERAL_SUFFIX = /^(?<stem>.+?)\s+(?<numeral>[1-9]\d*)$/
+
+/**
+ * Finds building-name families which ALS already styles with a Roman-numeral
+ * suffix. A family is the name before its final numeral, normalized only for
+ * comparison; the supplied name itself remains otherwise unchanged.
+ */
+export function collectHkgovAlsRomanNumeralBuildingNameFamilies(
+  buildingNames: Iterable<string | null | undefined>,
+) {
+  const families = new Set<string>()
+
+  for (const buildingName of buildingNames) {
+    const match = buildingName?.trim().match(ROMAN_NUMERAL_SUFFIX)
+    const stem = match?.groups?.stem
+    if (stem) families.add(normalizeBuildingNameFamily(stem))
+  }
+
+  return families
+}
+
+/**
+ * Within a building-name family that ALS has already expressed with Roman
+ * numerals, render a trailing Arabic building number as its Roman equivalent.
+ * This intentionally does not affect numeric names in other families.
+ */
+export function normalizeHkgovAlsBuildingNameRomanNumeral(input: {
+  buildingName: string | null
+  romanNumeralFamilies: ReadonlySet<string>
+}): HkgovAlsBuildingNameRomanNumeralNormalization | null {
+  const from = clean(input.buildingName)
+  const match = from?.match(ARABIC_NUMERAL_SUFFIX)
+  const stem = match?.groups?.stem
+  const numeral = match?.groups?.numeral
+  if (!from || !stem || !numeral) return null
+  if (!input.romanNumeralFamilies.has(normalizeBuildingNameFamily(stem))) {
+    return null
+  }
+
+  const numericValue = Number(numeral)
+  if (numericValue > 3999) return null
+
+  const to = `${stem} ${toRomanNumeral(numericValue)}`
+  return to === from ? null : { from, to }
+}
+
 /**
  * Prefer the English canonical component whenever ALS supplied an English source
  * component. This prevents a deliberately removed duplicate English building name
@@ -120,6 +173,39 @@ function canonicalBlockDescriptor(value: string | null) {
 function clean(value: string | null) {
   const text = value?.trim().replace(/\s+/g, ' ')
   return text || null
+}
+
+function normalizeBuildingNameFamily(value: string) {
+  return value.normalize('NFKC').trim().replace(/\s+/g, ' ').toUpperCase()
+}
+
+function toRomanNumeral(value: number) {
+  const numerals: Array<[number, string]> = [
+    [1000, 'M'],
+    [900, 'CM'],
+    [500, 'D'],
+    [400, 'CD'],
+    [100, 'C'],
+    [90, 'XC'],
+    [50, 'L'],
+    [40, 'XL'],
+    [10, 'X'],
+    [9, 'IX'],
+    [5, 'V'],
+    [4, 'IV'],
+    [1, 'I'],
+  ]
+  let remaining = value
+  let result = ''
+
+  for (const [amount, numeral] of numerals) {
+    while (remaining >= amount) {
+      result += numeral
+      remaining -= amount
+    }
+  }
+
+  return result
 }
 
 function sameName(left: string, right: string) {
