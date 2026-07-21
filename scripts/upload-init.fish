@@ -12,6 +12,7 @@ function run_step
 end
 
 set -g upload_init_continue 0
+set -g upload_init_last_upload_processed 0
 
 if test (count $argv) -gt 1; or test (count $argv) -eq 1; and test "$argv[1]" != "--continue"
     echo "Usage: saanseoi upload:init [--continue]" >&2
@@ -45,6 +46,7 @@ end
 function run_upload_step
     set -l release_code $argv[1]
     set -e argv[1]
+    set -g upload_init_last_upload_processed 0
 
     if test "$upload_init_continue" -eq 1; and is_completed_release "$release_code"
         echo "Skipping completed release $release_code."
@@ -52,6 +54,32 @@ function run_upload_step
     end
 
     run_step ./bin/saanseoi upload --target local $argv
+    set -g upload_init_last_upload_processed 1
+end
+
+function publish_docs_if_processed
+    if test "$argv[1]" -eq 1
+        run_step ./bin/saanseoi docs:publish --target local --scope all
+    end
+end
+
+function domain_has_pending_releases
+    set -l domain $argv[1]
+    set -e argv[1]
+
+    if test "$upload_init_continue" -ne 1
+        return 0
+    end
+
+    for year in $argv
+        for type_slug in division division-area
+            if not is_completed_release "dr-hk-hkgov-pland-$type_slug-$domain-$year"
+                return 0
+            end
+        end
+    end
+
+    return 1
 end
 
 if test "$upload_init_continue" -eq 1
@@ -89,6 +117,7 @@ for release in $releases
     end
 
     for type in division division_area division_boundary
+        set -l resource_type_processed 0
         set -l file "$dir/$type.division.intersects.clipSmart.parquet"
 
         if not test -f "$file"
@@ -99,13 +128,21 @@ for release in $releases
         set -l type_slug (string replace -a -- '_' '-' $type)
         set -l release_code "dr-hk-overture-$type_slug-$release"
         run_upload_step "$release_code" "$file" --yes --skip-cleanup
+        if test "$upload_init_last_upload_processed" -eq 1
+            set resource_type_processed 1
+        end
 
         if test "$had_uploaded" -eq 0; and test "$release" = "2025-09-24.0"; and test "$type" = division
             run_upload_step dr-hk-hkgov-had-division-area-district-2022 \
                 "$upload_init_repo/data/hkgov/had/2022/hkgov-had-districts-20230609.geojson" \
                 --yes --skip-cleanup --cohort-key 2022
+            if test "$upload_init_last_upload_processed" -eq 1
+                set resource_type_processed 1
+            end
             set had_uploaded 1
         end
+
+        publish_docs_if_processed "$resource_type_processed"
     end
 end
 
@@ -123,6 +160,8 @@ for year in 2016 2021
         --source hkgov-censtatd --source-version $year \
         --type divisionArea --theme divisions --region hk --cohort-key $year \
         --yes
+
+    publish_docs_if_processed "$upload_init_last_upload_processed"
 end
 
 set -l continue_args
@@ -131,9 +170,13 @@ if test "$upload_init_continue" -eq 1
 end
 
 run_step ./bin/saanseoi backfill:hkgov-pland-pu --target local $continue_args
+if domain_has_pending_releases pu 2001 2006 2011 2016 2021
+    run_step ./bin/saanseoi docs:publish --target local --scope all
+end
 run_step ./bin/saanseoi backfill:hkgov-pland-new-town --target local $continue_args
-
-run_step ./bin/saanseoi docs:publish --target local --scope all
+if domain_has_pending_releases new-town 2006 2011 2016 2021
+    run_step ./bin/saanseoi docs:publish --target local --scope all
+end
 run_step ./bin/saanseoi ingest-hkgov-dpo-local \
     "$upload_init_repo/data/hkgov/dpo/ALS" \
     --target local --cohort-key 2025-12-17.0
