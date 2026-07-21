@@ -112,7 +112,11 @@ function updateActiveFeature(event: {
 </script>
 
 <div class="overflow-hidden bg-data-surface-container-lowest">
-  <div class="relative h-152" role="img" aria-label={ariaLabel}>
+  <div
+    class="relative h-auto aspect-3/2 lg:h-152 lg:aspect-auto"
+    role="img"
+    aria-label={ariaLabel}
+  >
     <MapLibre
       class="size-full"
       bind:map
