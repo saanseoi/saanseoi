@@ -13,14 +13,10 @@ cohortKey: "2016"
 
 # EN
 
-The <black>{{cohortKey}}</black> Census geometry is returned only when a SaanSeoi
-division route requests its variant, for example <black>GET
-/v0.1/divisions/{id}?include=areas:hkgov-censtatd:{{cohortKey}}</black>. It appears in
-the top-level <black>included</black> array as a <black>division-areas</black> resource.
-
 ## Changelog
 
-- Add geometry for the C&SD {{cohortKey}} Census' District Council districts.
+- <orange>Upstream</orange> Add geometry for the C&SD {{cohortKey}} Census' District
+  Council districts.
 
 ## Geometry
 
@@ -76,7 +72,7 @@ area is connected to its canonical division through the reviewed, cohort-specifi
 
 ## 更新紀錄
 
-- 政府統計處 {{cohortKey}} 年區議會分區統計地理資料分期。
+- <orange>上游</orange> 政府統計處 {{cohortKey}} 年區議會分區統計地理資料分期。
 
 ## 幾何
 
@@ -128,7 +124,7 @@ area is connected to its canonical division through the reviewed, cohort-specifi
 
 ## 更新记录
 
-- 政府统计处 {{cohortKey}} 年区议会分区统计地理资料分期。
+- <orange>上游</orange> 政府统计处 {{cohortKey}} 年区议会分区统计地理资料分期。
 
 ## 几何
 
