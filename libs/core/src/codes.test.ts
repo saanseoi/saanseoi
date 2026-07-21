@@ -42,6 +42,16 @@ describe('registry code construction', () => {
   })
 
   test('derives variants from structured source metadata', () => {
+    expect(
+      datasetVariantForSource('division', 'hkgov-pland', {
+        datasetCode: 'ds-hk-hkgov-pland-division-pu',
+      }),
+    ).toBe('hkgov-pland-pu')
+    expect(
+      datasetVariantForSource('divisionArea', 'hkgov-pland', {
+        datasetCode: 'ds-hk-hkgov-pland-division-area-new-town',
+      }),
+    ).toBe('hkgov-pland-new-town')
     expect(datasetVariantForSource('division', 'hkgov-pland-new-town')).toBe(
       'hkgov-pland-new-town',
     )

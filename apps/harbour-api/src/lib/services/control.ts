@@ -218,6 +218,7 @@ export async function handlePublishDataset(
     const datasetType = dataset.type as ResourceType
     const datasetVariant = datasetVariantForSource(datasetType, dataset.source, {
       cohortKey: dataset.cohortKey,
+      datasetCode: dataset.datasetCode,
       sourceVersion: dataset.sourceVersion,
     })
     const compositionMembers = await listCurrentApiCompositionMembersForType(

@@ -6,6 +6,8 @@ import { prepareHkgovPlandTpuParquet } from '../hkgovPland.ts'
 import { prepareHkgovPlandNewTownParquet } from '../hkgovPlandNewTown.ts'
 import type { ParsedArgs, UploadTarget } from '../options.ts'
 import { runUploadCommand } from './upload.ts'
+import { buildDatasetReleaseCode } from '@repo/core'
+import { openLocalHarbourDb } from '@repo/core/testing/localDb'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 
@@ -84,6 +86,15 @@ export async function runHkgovPlandBackfillCommand(
   printUsage: () => void,
 ) {
   assertBackfillArguments(args, printUsage)
+  const continueUpload = Boolean(args.options.continue)
+  if (continueUpload && target.remote) {
+    throw new Error(
+      '`--continue` is only supported for local Planning Department backfills.',
+    )
+  }
+  const completedReleaseCodes = continueUpload
+    ? await getCompletedLocalReleaseCodes()
+    : new Set<string>()
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const releases = kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES
   const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
@@ -92,6 +103,16 @@ export async function runHkgovPlandBackfillCommand(
 
   try {
     for (const release of releases) {
+      const types = (['division', 'divisionArea'] as const).filter(type => {
+        const releaseCode = buildDatasetReleaseCode('hk', source, release.year, type)
+        return !completedReleaseCodes.has(releaseCode)
+      })
+
+      if (types.length === 0) {
+        console.log(`Skipping completed ${source} ${release.year} backfill.`)
+        continue
+      }
+
       const inputFile = resolve(artifactRoot, release.year, release.fileName)
       const divisionFile = join(
         outputDir,
@@ -101,54 +122,30 @@ export async function runHkgovPlandBackfillCommand(
         outputDir,
         `${source}-hk-${release.year}-division-area.parquet`,
       )
-      if (kind === 'pu') {
-        await Promise.all([
-          prepareHkgovPlandTpuParquet({
-            inputFile,
-            outputFile: divisionFile,
-            sourceVersion: release.year,
-            type: 'division',
-          }),
-          prepareHkgovPlandTpuParquet({
-            inputFile,
-            outputFile: divisionAreaFile,
-            sourceVersion: release.year,
-            type: 'divisionArea',
-          }),
-        ])
-      } else {
-        await Promise.all([
-          prepareHkgovPlandNewTownParquet({
-            inputFile,
-            outputFile: divisionFile,
-            sourceVersion: release.year,
-            type: 'division',
-          }),
-          prepareHkgovPlandNewTownParquet({
-            inputFile,
-            outputFile: divisionAreaFile,
-            sourceVersion: release.year,
-            type: 'divisionArea',
-          }),
-        ])
-      }
+      await Promise.all(
+        types.map(async type => {
+          const outputFile = type === 'division' ? divisionFile : divisionAreaFile
+          const prepare =
+            kind === 'pu'
+              ? prepareHkgovPlandTpuParquet
+              : prepareHkgovPlandNewTownParquet
 
-      await uploadPreparedArtifact({
-        filePath: divisionFile,
-        invocationCwd,
-        release,
-        source,
-        target,
-        type: 'division',
-      })
-      await uploadPreparedArtifact({
-        filePath: divisionAreaFile,
-        invocationCwd,
-        release,
-        source,
-        target,
-        type: 'divisionArea',
-      })
+          await prepare({
+            inputFile,
+            outputFile,
+            sourceVersion: release.year,
+            type,
+          })
+          await uploadPreparedArtifact({
+            filePath: outputFile,
+            invocationCwd,
+            release,
+            source,
+            target,
+            type,
+          })
+        }),
+      )
     }
   } finally {
     await rm(outputDir, { force: true, recursive: true })
@@ -189,10 +186,13 @@ async function uploadPreparedArtifact(args: {
 }
 
 function assertBackfillArguments(args: ParsedArgs, printUsage: () => void) {
-  const invalidOptions = Object.keys(args.options).filter(key => key !== 'target')
+  const invalidOptions = Object.keys(args.options).filter(
+    key => key !== 'continue' && key !== 'target',
+  )
   if (
     args.positionals.length > 0 ||
     invalidOptions.length > 0 ||
+    (args.options.continue !== undefined && args.options.continue !== true) ||
     typeof args.options.target !== 'string' ||
     !['local', 'preview', 'production'].includes(args.options.target)
   ) {
@@ -200,5 +200,24 @@ function assertBackfillArguments(args: ParsedArgs, printUsage: () => void) {
     throw new Error(
       'Planning Department backfill requires exactly --target local|preview|production.',
     )
+  }
+}
+
+async function getCompletedLocalReleaseCodes() {
+  const { sqlite } = openLocalHarbourDb()
+
+  try {
+    const completedReleaseCodes = new Set<string>()
+    const releases = sqlite
+      .query("SELECT code FROM releases WHERE status IN ('published', 'superseded')")
+      .all() as Array<{ code: string }>
+
+    for (const release of releases) {
+      completedReleaseCodes.add(release.code)
+    }
+
+    return completedReleaseCodes
+  } finally {
+    sqlite.close()
   }
 }

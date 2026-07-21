@@ -2905,6 +2905,7 @@ export async function publishReleaseArtifacts(
     : []
   const datasetVariant = datasetVariantForSource(args.type, args.dataset.source, {
     cohortKey: args.dataset.cohortKey,
+    datasetCode: args.dataset.datasetCode,
     sourceVersion: args.dataset.sourceVersion,
   })
   const datasetMember = compositionMembers.find(
