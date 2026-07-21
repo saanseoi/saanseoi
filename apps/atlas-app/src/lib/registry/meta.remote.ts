@@ -13,6 +13,7 @@ import {
   currentSchema,
   desc,
   eq,
+  inArray,
   sql,
 } from '@repo/db'
 import { error, redirect } from '@sveltejs/kit'
@@ -117,19 +118,10 @@ export const getDistrictCoverageMapData = query(
       .select({
         divisionId: divisionAreas.divisionId,
         geometry: divisionAreas.geometry,
-        name: divisionsI18n.name,
         updatedAt: divisionAreas.updatedAt,
         variant: divisionAreas.variant,
       })
       .from(divisionAreas)
-      .leftJoin(
-        divisionsI18n,
-        and(
-          eq(divisionsI18n.snapshotId, divisionAreas.snapshotId),
-          eq(divisionsI18n.divisionId, divisionAreas.divisionId),
-          eq(divisionsI18n.locale, i18nLocale),
-        ),
-      )
       .where(eq(divisionAreas.variant, DISTRICT_COVERAGE_MAP_VARIANT))
       .orderBy(desc(divisionAreas.updatedAt))
       .all()
@@ -140,7 +132,43 @@ export const getDistrictCoverageMapData = query(
         latestByDistrict.set(row.divisionId, row)
     }
 
-    return [...latestByDistrict.values()]
+    const districtIds = [...latestByDistrict.keys()]
+    const i18nRows = districtIds.length
+      ? await getCurrentDb()
+          .select({
+            divisionId: divisionsI18n.divisionId,
+            locale: divisionsI18n.locale,
+            name: divisionsI18n.name,
+          })
+          .from(divisionsI18n)
+          .where(
+            and(
+              inArray(divisionsI18n.locale, [i18nLocale, 'en']),
+              inArray(divisionsI18n.divisionId, districtIds),
+            ),
+          )
+          .orderBy(desc(divisionsI18n.updatedAt))
+          .all()
+      : []
+    const nameByLocale = new Map<string, Map<string, string>>()
+    for (const row of i18nRows) {
+      if (!row.name) continue
+      const names = nameByLocale.get(row.locale) ?? new Map<string, string>()
+      if (!names.has(row.divisionId)) {
+        names.set(row.divisionId, row.name)
+      }
+      nameByLocale.set(row.locale, names)
+    }
+    const localizedNames = nameByLocale.get(i18nLocale)
+    const englishNames = nameByLocale.get('en')
+
+    return [...latestByDistrict.values()].map(row => ({
+      ...row,
+      name:
+        localizedNames?.get(row.divisionId) ??
+        englishNames?.get(row.divisionId) ??
+        null,
+    }))
   },
 )
 
