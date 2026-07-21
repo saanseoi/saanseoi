@@ -259,8 +259,9 @@ export async function listRegistryReleases(
     .from(metaApiReleaseSets)
     .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
     .orderBy(
-      desc(metaApiReleaseSets.publishedAt),
-      desc(metaApiReleaseSets.createdAt),
+      desc(
+        sql`coalesce(${metaApiReleaseSets.publishedAt}, ${metaApiReleaseSets.createdAt})`,
+      ),
       desc(metaApiReleaseSets.id),
     )
     .limit(registryLimit(limit))
