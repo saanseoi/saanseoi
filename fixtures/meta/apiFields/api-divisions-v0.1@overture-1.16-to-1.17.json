@@ -1,16 +1,26 @@
 {
-  "versionHash": "sha256:790364e2321c0b47654a40b08f4cf0895b05ffb1d85d38a0733f09614153fb18",
+  "versionHash": "sha256:c610f2362feae9de7b48c69bdbe6c5ab2074c9341ec52dc02679325a83f09209",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "overture",
   "schemaVersion": "sv-division-v1",
   "rulesetVersion": "rs-division-merge-v1",
   "lineageAnchors": [
     {
-      "snapshotVersion": "ss-hk-division-2025-11-19.0",
+      "snapshotVersion": "ss-hk-division-2026-02-18.0",
       "sourceSchemas": {
-        "ds-hk-overture-division": "1.14.0",
-        "ds-hk-overture-division-area": "1.14.0",
-        "ds-hk-overture-division-boundary": "1.14.0",
+        "ds-hk-overture-division": "1.16.0",
+        "ds-hk-overture-division-area": "1.16.0",
+        "ds-hk-overture-division-boundary": "1.16.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-05-20.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.17.0",
+        "ds-hk-overture-division-area": "1.17.0",
+        "ds-hk-overture-division-boundary": "1.17.0",
         "ds-hk-hkgov-had-division-area-district": "1.2",
         "ds-hk-hkgov-censtatd-division-area-district": "1.0"
       }
@@ -68,7 +78,7 @@
       "sourceFieldPath": "parent_division_id",
       "resolverCode": "map_division_level",
       "contributionType": "resolver-input",
-      "priority": 4,
+      "priority": 5,
       "confidence": 0.8
     },
     {
@@ -113,7 +123,7 @@
       "sourceFieldPath": "parent_division_id",
       "resolverCode": "map_division_type",
       "contributionType": "resolver-input",
-      "priority": 4,
+      "priority": 5,
       "confidence": 0.8
     },
     {
@@ -499,6 +509,51 @@
       "contributionType": "primary",
       "priority": 0,
       "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.level",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "admin_level",
+      "resolverCode": "map_division_level",
+      "contributionType": "resolver-input",
+      "priority": 4,
+      "confidence": 0.9
+    },
+    {
+      "apiField": "division.attributes.divisionType",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "admin_level",
+      "resolverCode": "map_division_type",
+      "contributionType": "resolver-input",
+      "priority": 4,
+      "confidence": 0.9
+    },
+    {
+      "apiField": "division.attributes.i18n.zh-hant.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.common.zh-mo",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 2,
+      "confidence": 0.9
+    },
+    {
+      "apiField": "division.attributes.i18n.zh-hant.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.common.zh-tw",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 3,
+      "confidence": 0.85
+    },
+    {
+      "apiField": "division.attributes.i18n.zh-hans.name",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.common.zh-sg",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 2,
+      "confidence": 0.85
     }
   ]
 }
