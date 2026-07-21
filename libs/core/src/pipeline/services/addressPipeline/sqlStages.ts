@@ -680,7 +680,7 @@ ON CONFLICT(snapshotId, addressId, locale) DO NOTHING;`.trim(),
 }
 
 /**
- * HKGov ALS uses a provider release identifier such as `2025-01-23.1031` as
+ * HKGov ALS uses a date and correction identifier such as `2025-01-23.0` as
  * its address cohort. It is not an Overture division cohort. Address releases
  * therefore use the latest published Overture division snapshot at or before
  * the address cohort, falling back to the earliest later snapshot.

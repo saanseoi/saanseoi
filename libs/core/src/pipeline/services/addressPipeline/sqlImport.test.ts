@@ -94,9 +94,9 @@ describe('HKGov ALS identity alias SQL', () => {
     const hkgovMessage = {
       ...message,
       datasetCode: 'ds-hk-hkgov-dpo-address',
-      releaseCode: 'dr-hk-hkgov-dpo-address-2025-09-03.1043',
+      releaseCode: 'dr-hk-hkgov-dpo-address-2025-09-03.0',
       source: 'hkgov-dpo',
-      sourceVersion: '2025-09-03.1043',
+      sourceVersion: '2025-09-03.0',
     } satisfies DatasetProcessingMessage
     const artifact = {
       kind: 'address.normalized.v1',
@@ -138,9 +138,9 @@ describe('HKGov ALS division cohort selection', () => {
     expect(
       resolveAddressDivisionCohortKey(
         {
-          cohortKey: '2025-01-23.1031',
+          cohortKey: '2025-01-23.0',
           source: 'hkgov-dpo',
-          sourceVersion: '2025-01-23.1031',
+          sourceVersion: '2025-01-23.0',
         },
         ['2025-09-24.0'],
       ),
@@ -151,9 +151,9 @@ describe('HKGov ALS division cohort selection', () => {
     expect(
       resolveAddressDivisionCohortKey(
         {
-          cohortKey: '2025-12-18.1200',
+          cohortKey: '2025-12-18.0',
           source: 'hkgov-dpo',
-          sourceVersion: '2025-12-18.1200',
+          sourceVersion: '2025-12-18.0',
         },
         ['2025-09-24.0', '2025-12-17.0', '2026-02-18.0'],
       ),
@@ -164,9 +164,9 @@ describe('HKGov ALS division cohort selection', () => {
     expect(
       resolveAddressDivisionCohortKey(
         {
-          cohortKey: '2025-12-18.1200',
+          cohortKey: '2025-12-18.0',
           source: 'hkgov-dpo',
-          sourceVersion: '2025-12-18.1200',
+          sourceVersion: '2025-12-18.0',
         },
         ['2026-02-18.0', '2026-05-20.0'],
       ),

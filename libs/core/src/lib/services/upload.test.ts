@@ -301,11 +301,11 @@ describe('upload', () => {
 
   test('infers source version and cohortKey from the filename when needed', async () => {
     const tempDir = createTempDir()
-    const fixtureFile = join(tempDir, 'dr-hk-hkgov-dpo-address-2026-06-04.324.parquet')
+    const fixtureFile = join(tempDir, 'dr-hk-hkgov-dpo-address-2026-06-04.0.parquet')
 
     writeFileSync(fixtureFile, 'fixture')
 
-    expect(inferSourceVersionFromFilename(fixtureFile)).toBe('2026-06-04.324')
+    expect(inferSourceVersionFromFilename(fixtureFile)).toBe('2026-06-04.0')
 
     const planned = await prepareUpload({
       filePath: fixtureFile,
@@ -320,9 +320,9 @@ describe('upload', () => {
       source: 'hkgov-dpo',
     })
 
-    expect(planned.plan.cohortKey).toBe('2026-06-04.324')
-    expect(planned.plan.sourceVersion).toBe('2026-06-04.324')
-    expect(planned.plan.datasetId).toBe('dr-hk-hkgov-dpo-address-2026-06-04.324')
+    expect(planned.plan.cohortKey).toBe('2026-06-04.0')
+    expect(planned.plan.sourceVersion).toBe('2026-06-04.0')
+    expect(planned.plan.datasetId).toBe('dr-hk-hkgov-dpo-address-2026-06-04.0')
     expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-dpo-address')
   })
 
@@ -550,7 +550,7 @@ describe('upload', () => {
       filePath: fixtureFile,
       source: 'hkgov-dpo',
       cohortKey: '2026-06',
-      sourceVersion: '2026-06-04.324',
+      sourceVersion: '2026-06-04.0',
       inspection: {
         rowCount: 1,
         schema: fixtureInspection.schema,
@@ -607,9 +607,9 @@ describe('upload', () => {
       filePath: fixtureFile,
       cohortKey: '2026-06',
       source: 'hkgov-dpo',
-      sourceVersion: '2026-06-04.324',
+      sourceVersion: '2026-06-04.0',
       inspection: addressFixtureInspection,
-      rawObjectKey: 'hk/hkgov-dpo/2026-06-04.324/address.parquet',
+      rawObjectKey: 'hk/hkgov-dpo/2026-06-04.0/address.parquet',
     })
 
     const release = sqlite
@@ -621,7 +621,7 @@ describe('upload', () => {
           WHERE r.code = ?
         `,
       )
-      .get('dr-hk-hkgov-dpo-address-2026-06-04.324') as {
+      .get('dr-hk-hkgov-dpo-address-2026-06-04.0') as {
       datasetCode: string
       releaseCode: string
       status: string
@@ -630,10 +630,10 @@ describe('upload', () => {
     sqlite.close()
 
     expect(result.plan.datasetCode).toBe('ds-hk-hkgov-dpo-address')
-    expect(result.plan.datasetId).toBe('dr-hk-hkgov-dpo-address-2026-06-04.324')
+    expect(result.plan.datasetId).toBe('dr-hk-hkgov-dpo-address-2026-06-04.0')
     expect(release).toEqual({
       datasetCode: 'ds-hk-hkgov-dpo-address',
-      releaseCode: 'dr-hk-hkgov-dpo-address-2026-06-04.324',
+      releaseCode: 'dr-hk-hkgov-dpo-address-2026-06-04.0',
       status: 'staged',
     })
   })
