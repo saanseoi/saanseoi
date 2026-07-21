@@ -408,6 +408,7 @@ function createRegionalSnapshotLookupDb() {
 
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
+      snapshotLineageId TEXT,
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
       status TEXT NOT NULL,
@@ -420,6 +421,11 @@ function createRegionalSnapshotLookupDb() {
       datasetId TEXT NOT NULL,
       sourceReleaseId TEXT NOT NULL,
       role TEXT NOT NULL
+    );
+
+    CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      variant TEXT NOT NULL
     );
   `)
 
@@ -1722,6 +1728,48 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
         id: 'had-area-2022',
         code: 'ss-hk-division-area-2022',
         cohortKey: '2022',
+        resourceType: 'divisionArea',
+        status: 'published',
+      },
+    ])
+
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES ('publisher-censtatd', 'hkgov-censtatd');
+
+      INSERT INTO datasets (id, publisherId, regionCode) VALUES
+        ('dataset-censtatd-area', 'publisher-censtatd', 'hk');
+
+      INSERT INTO snapshotLineages (id, variant) VALUES
+        ('lineage-censtatd-2016', 'hkgov-censtatd:2016'),
+        ('lineage-censtatd-2021', 'hkgov-censtatd:2021');
+
+      INSERT INTO snapshots (
+        id, snapshotLineageId, resourceType, code, cohortKey, status, publishedAt, createdAt
+      ) VALUES
+        ('censtatd-area-2016', 'lineage-censtatd-2016', 'divisionArea', 'ss-hk-division-area-censtatd-2016', '2016', 'published', 1451606400000, 1451606400000),
+        ('censtatd-area-2021', 'lineage-censtatd-2021', 'divisionArea', 'ss-hk-division-area-censtatd-2021', '2021', 'published', 1609459200000, 1609459200000);
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('censtatd-area-2016', 'dataset-censtatd-area', 'release-censtatd-area-2016', 'primary'),
+        ('censtatd-area-2021', 'dataset-censtatd-area', 'release-censtatd-area-2021', 'primary');
+    `)
+
+    await expect(
+      resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
+        db as never,
+        'divisionArea',
+        'hk',
+        '2025-09-24.0',
+        {
+          publisherCode: 'hkgov-censtatd',
+          variant: 'hkgov-censtatd:2016',
+        },
+      ),
+    ).resolves.toEqual([
+      {
+        id: 'censtatd-area-2016',
+        code: 'ss-hk-division-area-censtatd-2016',
+        cohortKey: '2016',
         resourceType: 'divisionArea',
         status: 'published',
       },

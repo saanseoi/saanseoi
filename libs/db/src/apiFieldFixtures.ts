@@ -1,7 +1,5 @@
 import apiDivisionsV01FixtureOverture112To115 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.12-to-1.15.json'
-import apiDivisionsV01FixtureOvertureRequiredOnly112To115 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-required-only-1.12-to-1.15.json'
 import apiDivisionsV01FixtureOverture116To117 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.17.json'
-import apiDivisionsV01FixtureOvertureRequiredOnly116To117 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-required-only-1.16-to-1.17.json'
 import apiDivisionsV01FixturePlandNewTown2006 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-new-town-2006.json'
 import apiDivisionsV01FixturePlandPu2001 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2001.json'
 import apiDivisionsV01FixturePlandPu2021 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2021.json'
@@ -41,9 +39,7 @@ export type ApiFieldFixtureLineageAnchor = {
 
 const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01FixtureOverture112To115 as ApiFieldFixture,
-  apiDivisionsV01FixtureOvertureRequiredOnly112To115 as ApiFieldFixture,
   apiDivisionsV01FixtureOverture116To117 as ApiFieldFixture,
-  apiDivisionsV01FixtureOvertureRequiredOnly116To117 as ApiFieldFixture,
   apiDivisionsV01FixturePlandNewTown2006 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,
