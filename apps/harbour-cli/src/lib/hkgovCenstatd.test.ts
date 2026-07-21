@@ -92,7 +92,7 @@ describe('C&SD district GML preparation', () => {
       expect(display).toMatchObject({
         cohortKey: '2021',
         source: 'hkgov-censtatd',
-        sourceVersion: '2021-simplified-v1',
+        sourceVersion: '2021',
         transform: 'simplified',
         type: 'divisionArea',
       })
@@ -106,7 +106,7 @@ describe('C&SD district GML preparation', () => {
         },
         district_class: 'A',
         geometry: { type: 'Polygon' },
-        id: 'CENSTATD:simplified:2021:A',
+        id: 'CENSTATD:A',
         i18n: [
           { locale: 'en', name: 'District 1' },
           { locale: 'zh-hant', name: '地區1' },
@@ -131,7 +131,7 @@ describe('C&SD district GML preparation', () => {
 
       expect(display2016).toMatchObject({
         cohortKey: '2016',
-        sourceVersion: '2016-simplified-v1',
+        sourceVersion: '2016',
         transform: 'simplified',
       })
     } finally {

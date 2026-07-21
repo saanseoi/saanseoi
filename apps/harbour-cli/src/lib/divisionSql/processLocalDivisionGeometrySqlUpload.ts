@@ -30,6 +30,7 @@ import {
 import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
 import { and, eq } from 'drizzle-orm'
+import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
 import type { PreparedUploadFile } from '../parquetRepack.ts'
 import type { UploadTarget } from '../options.ts'
@@ -92,7 +93,13 @@ export async function processLocalDivisionGeometrySqlUpload(
   previewPlan: GeometryUploadPlan,
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
-  options: { skipSnapshotCleanup?: boolean; validateGeometry?: boolean } = {},
+  options: {
+    deferPublish?: boolean
+    inputFilePath?: string
+    skipRawSeed?: boolean
+    skipSnapshotCleanup?: boolean
+    validateGeometry?: boolean
+  } = {},
 ) {
   const releaseId = requireString(uploadResult.releaseId, 'releaseId')
   const releaseCode = requireString(uploadResult.releaseCode, 'releaseCode')
@@ -107,7 +114,9 @@ export async function processLocalDivisionGeometrySqlUpload(
     max: null,
   })
   const bucket = new LocalPipelineBucket(releaseRoot)
-  await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
+  if (!options.skipRawSeed) {
+    await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
+  }
 
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
   const dbCacheStartedAt = Date.now()
@@ -272,7 +281,9 @@ export async function processLocalDivisionGeometrySqlUpload(
       { current: 0, max: previewPlan.rowCount },
     )
 
-    const file = await createAsyncBufferFromR2(bucket, rawObjectKey)
+    const file = options.inputFilePath
+      ? await asyncBufferFromFile(options.inputFilePath)
+      : await createAsyncBufferFromR2(bucket, rawObjectKey)
     const normalized: Array<NonNullable<NormalizedGeometry>> = []
     const cnGdExcludedRecords: Array<{
       divisionId: string | null
@@ -412,6 +423,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         releaseCode,
         snapshotId: snapshot.id,
         cohortKey: previewPlan.cohortKey,
+        transform: previewPlan.transform,
       },
       label => progress.message(formatGeometryProgressLabel('Write', label)),
     )
@@ -453,6 +465,13 @@ export async function processLocalDivisionGeometrySqlUpload(
         Date.now() - statsStartedAt,
       ),
     )
+    if (options.deferPublish) {
+      return {
+        snapshotId: snapshot.id,
+        importedRows: normalized.length,
+        publishResult: undefined,
+      }
+    }
     const publishStartedAt = Date.now()
     progress.beginPhase(formatGeometryProgressLabel('Publish', 'dataset'), {
       current: 0,
@@ -719,6 +738,7 @@ async function writeGeometryRows(
     releaseCode: string
     snapshotId: string
     cohortKey: string
+    transform?: GeometryUploadPlan['transform']
   },
   onProgress?: (label: string) => void,
 ) {
@@ -743,6 +763,8 @@ async function writeGeometryRows(
               ? sourceSchema.sourceHkgovPlandNewTownDivisionAreas
               : sourceSchema.sourceOvertureDivisionAreas
       : sourceSchema.sourceOvertureDivisionBoundaries
+  const isCenstatdDerivative =
+    version.source === 'hkgov-censtatd' && version.transform === 'simplified'
 
   onProgress?.('clear current rows')
   await context.currentDb
@@ -758,10 +780,12 @@ async function writeGeometryRows(
   onProgress?.('hash geometry rows')
   for (const row of rows) {
     historyHashes.set(row.canonical.id, await hashDivisionGeometryRow(row.canonical))
-    sourceHashes.set(
-      row.source.sourceRecordId,
-      await hashDivisionGeometrySourceRow(row.source),
-    )
+    if (!isCenstatdDerivative) {
+      sourceHashes.set(
+        row.source.sourceRecordId,
+        await hashDivisionGeometrySourceRow(row.source),
+      )
+    }
   }
   const previousHistoryRows = await context.historyDb
     .select({
@@ -795,13 +819,15 @@ async function writeGeometryRows(
     },
   )
   onProgress?.('close source rows')
-  await closeChangedRows(
-    context.sourceDb,
-    sourceTable,
-    sourceTable.sourceRecordId,
-    sourceHashes,
-    { isCurrent: false, validToRelease: version.releaseCode },
-  )
+  if (!isCenstatdDerivative) {
+    await closeChangedRows(
+      context.sourceDb,
+      sourceTable,
+      sourceTable.sourceRecordId,
+      sourceHashes,
+      { isCurrent: false, validToRelease: version.releaseCode },
+    )
+  }
   if (version.source === 'hkgov-pland-new-town') {
     await closeNewTownSourceI18nRows(
       context.sourceDb as unknown as HarbourReadableDb & HarbourWritableDb,
@@ -809,7 +835,7 @@ async function writeGeometryRows(
       version.releaseCode,
     )
   }
-  if (version.source === 'hkgov-censtatd') {
+  if (version.source === 'hkgov-censtatd' && !isCenstatdDerivative) {
     await closeCenstatdSourceI18nRows(
       context.sourceDb as unknown as HarbourReadableDb & HarbourWritableDb,
       sourceHashes,
@@ -835,87 +861,90 @@ async function writeGeometryRows(
       updatedAt: now,
     })),
   )
-  const sourceRows = await Promise.all(
-    rows.map(async row => ({
-      ...row.source,
-      ...(version.source === 'hkgov-had'
-        ? {
-            objectId: (row.source.rawProperties as Record<string, unknown> | null)
-              ?.object_id,
-            cdsiAdminAreaId: (
-              row.source.rawProperties as Record<string, unknown> | null
-            )?.csdi_admin_area_id,
-            areaType: (row.source.rawProperties as Record<string, unknown> | null)
-              ?.area_type,
-            areaId: (row.source.rawProperties as Record<string, unknown> | null)
-              ?.area_id,
-            areaCode: (row.source.rawProperties as Record<string, unknown> | null)
-              ?.area_code,
-            sourceCrs: (row.source.rawProperties as Record<string, unknown> | null)
-              ?.source_crs,
-            sourceGeometry: (row.source.rawProperties as Record<string, unknown> | null)
-              ?.source_geometry,
-          }
-        : version.source === 'hkgov-censtatd'
-          ? {
-              censusYear: (row.source.rawProperties as Record<string, unknown>)
-                ?.census_year,
-              derivation: (row.source.rawProperties as Record<string, unknown>)
-                ?.derivation,
-              districtClass: (row.source.rawProperties as Record<string, unknown>)
-                ?.district_class,
-              districtCode: (row.source.rawProperties as Record<string, unknown>)
-                ?.district_code,
-              sourceCrs: (row.source.rawProperties as Record<string, unknown>)
-                ?.source_crs,
-              sourceGeometry: (row.source.rawProperties as Record<string, unknown>)
-                ?.source_geometry,
-            }
-          : version.source === 'hkgov-pland-pu'
+  const sourceRows = isCenstatdDerivative
+    ? []
+    : await Promise.all(
+        rows.map(async row => ({
+          ...row.source,
+          ...(version.source === 'hkgov-had'
             ? {
-                divisionId: requirePlanningDivisionId(row),
-                planningLevel: (row.source.rawProperties as Record<string, unknown>)
-                  ?.planning_level,
-                sourceCellIds: (row.source.rawProperties as Record<string, unknown>)
-                  ?.source_cell_ids,
-                repairedSourceFeatureIds: (
-                  row.source.rawProperties as Record<string, unknown>
-                )?.repaired_source_feature_ids,
-                sourceCrs: (row.source.rawProperties as Record<string, unknown>)
+                objectId: (row.source.rawProperties as Record<string, unknown> | null)
+                  ?.object_id,
+                cdsiAdminAreaId: (
+                  row.source.rawProperties as Record<string, unknown> | null
+                )?.csdi_admin_area_id,
+                areaType: (row.source.rawProperties as Record<string, unknown> | null)
+                  ?.area_type,
+                areaId: (row.source.rawProperties as Record<string, unknown> | null)
+                  ?.area_id,
+                areaCode: (row.source.rawProperties as Record<string, unknown> | null)
+                  ?.area_code,
+                sourceCrs: (row.source.rawProperties as Record<string, unknown> | null)
                   ?.source_crs,
+                sourceGeometry: (
+                  row.source.rawProperties as Record<string, unknown> | null
+                )?.source_geometry,
               }
-            : version.source === 'hkgov-pland-new-town'
+            : version.source === 'hkgov-censtatd'
               ? {
-                  divisionId: requirePlanningDivisionId(row),
-                  newTownId: (row.source.rawProperties as Record<string, unknown>)
-                    ?.newtown_id,
+                  censusYear: (row.source.rawProperties as Record<string, unknown>)
+                    ?.census_year,
+                  derivation: (row.source.rawProperties as Record<string, unknown>)
+                    ?.derivation,
+                  districtClass: (row.source.rawProperties as Record<string, unknown>)
+                    ?.district_class,
+                  districtCode: (row.source.rawProperties as Record<string, unknown>)
+                    ?.district_code,
                   sourceCrs: (row.source.rawProperties as Record<string, unknown>)
                     ?.source_crs,
-                  // `geometry` in the source table remains the publisher's
-                  // original delivery. The canonical repaired geometry is
-                  // retained separately for audit and reproducibility.
-                  geometry:
-                    (row.source.rawProperties as Record<string, unknown>)
-                      ?.source_geometry ?? row.source.geometry,
-                  bbox:
-                    (row.source.rawProperties as Record<string, unknown>)
-                      ?.source_geometry_bbox ?? row.source.bbox,
-                  canonicalGeometry: row.source.geometry,
-                  wasGeometryRepaired: Boolean(
-                    (row.source.rawProperties as Record<string, unknown>)
-                      ?.was_geometry_repaired,
-                  ),
+                  sourceGeometry: (row.source.rawProperties as Record<string, unknown>)
+                    ?.source_geometry,
                 }
-              : {}),
-      versionHash: await hashDivisionGeometrySourceRow(row.source),
-      releaseId: version.releaseId,
-      validFromRelease: version.releaseCode,
-      validToRelease: null,
-      isCurrent: true,
-      createdAt: now,
-      updatedAt: now,
-    })),
-  )
+              : version.source === 'hkgov-pland-pu'
+                ? {
+                    divisionId: requirePlanningDivisionId(row),
+                    planningLevel: (row.source.rawProperties as Record<string, unknown>)
+                      ?.planning_level,
+                    sourceCellIds: (row.source.rawProperties as Record<string, unknown>)
+                      ?.source_cell_ids,
+                    repairedSourceFeatureIds: (
+                      row.source.rawProperties as Record<string, unknown>
+                    )?.repaired_source_feature_ids,
+                    sourceCrs: (row.source.rawProperties as Record<string, unknown>)
+                      ?.source_crs,
+                  }
+                : version.source === 'hkgov-pland-new-town'
+                  ? {
+                      divisionId: requirePlanningDivisionId(row),
+                      newTownId: (row.source.rawProperties as Record<string, unknown>)
+                        ?.newtown_id,
+                      sourceCrs: (row.source.rawProperties as Record<string, unknown>)
+                        ?.source_crs,
+                      // `geometry` in the source table remains the publisher's
+                      // original delivery. The canonical repaired geometry is
+                      // retained separately for audit and reproducibility.
+                      geometry:
+                        (row.source.rawProperties as Record<string, unknown>)
+                          ?.source_geometry ?? row.source.geometry,
+                      bbox:
+                        (row.source.rawProperties as Record<string, unknown>)
+                          ?.source_geometry_bbox ?? row.source.bbox,
+                      canonicalGeometry: row.source.geometry,
+                      wasGeometryRepaired: Boolean(
+                        (row.source.rawProperties as Record<string, unknown>)
+                          ?.was_geometry_repaired,
+                      ),
+                    }
+                  : {}),
+          versionHash: await hashDivisionGeometrySourceRow(row.source),
+          releaseId: version.releaseId,
+          validFromRelease: version.releaseCode,
+          validToRelease: null,
+          isCurrent: true,
+          createdAt: now,
+          updatedAt: now,
+        })),
+      )
 
   onProgress?.('write current rows')
   for (const chunk of chunkRows(currentRows)) {
@@ -983,11 +1012,19 @@ async function writeGeometryRows(
       now,
     )
   }
-  if (version.source === 'hkgov-censtatd') {
+  if (version.source === 'hkgov-censtatd' && !isCenstatdDerivative) {
     await writeCenstatdSourceI18nRows(
       context.sourceDb as unknown as HarbourWritableDb,
       rows,
       sourceHashes,
+      version,
+      now,
+    )
+  }
+  if (isCenstatdDerivative) {
+    await writeCenstatdSourceDerivatives(
+      context.sourceDb as unknown as HarbourReadableDb & HarbourWritableDb,
+      rows,
       version,
       now,
     )
@@ -1093,6 +1130,132 @@ async function closeCenstatdSourceI18nRows(
           eq(table.isCurrent, true),
         ),
       )
+      .run()
+  }
+}
+
+async function writeCenstatdSourceDerivatives(
+  db: HarbourReadableDb & HarbourWritableDb,
+  rows: Array<NonNullable<NormalizedGeometry>>,
+  version: {
+    releaseId: string
+    releaseCode: string
+    transform?: 'simplified'
+  },
+  now: string,
+) {
+  const transform = version.transform
+  if (!transform) {
+    throw new Error('C&SD derivative write requires a named transform.')
+  }
+
+  const sources = sourceSchema.sourceHkgovCenstatdDivisionAreas
+  const derivatives = sourceSchema.sourceHkgovCenstatdDivisionAreaDerivatives
+  const exactRows = await db
+    .select({
+      censusYear: sources.censusYear,
+      sourceRecordId: sources.sourceRecordId,
+      versionHash: sources.versionHash,
+    })
+    .from(sources)
+    .where(eq(sources.isCurrent, true))
+    .all()
+  const exactHashByRecordAndCohort = new Map(
+    exactRows.map(row => [`${row.sourceRecordId}:${row.censusYear}`, row.versionHash]),
+  )
+  const nextHashes = new Map<string, string>()
+  const derivativeRows = await Promise.all(
+    rows.map(async row => {
+      const properties = row.source.rawProperties as Record<string, unknown>
+      const censusYear = properties?.census_year
+      if (typeof censusYear !== 'string') {
+        throw new Error(
+          `C&SD derivative ${row.source.sourceRecordId} has no census year.`,
+        )
+      }
+      const inputVersionHash = exactHashByRecordAndCohort.get(
+        `${row.source.sourceRecordId}:${censusYear}`,
+      )
+      if (!inputVersionHash) {
+        throw new Error(
+          `C&SD derivative ${row.source.sourceRecordId} (${censusYear}) requires its exact source assertion to be ingested first.`,
+        )
+      }
+      const derivation = properties?.derivation
+      if (!derivation || typeof derivation !== 'object' || Array.isArray(derivation)) {
+        throw new Error(
+          `C&SD derivative ${row.source.sourceRecordId} has no derivation metadata.`,
+        )
+      }
+      const versionHash = await hashDivisionGeometrySourceRow(row.source)
+      nextHashes.set(`${row.source.sourceRecordId}:${inputVersionHash}`, versionHash)
+      return {
+        sourceRecordId: row.source.sourceRecordId,
+        inputVersionHash,
+        transform,
+        derivation,
+        geometry: row.source.geometry,
+        bbox: row.source.bbox,
+        versionHash,
+        releaseId: version.releaseId,
+        validFromRelease: version.releaseCode,
+        validToRelease: null,
+        isCurrent: true,
+        createdAt: now,
+        updatedAt: now,
+      }
+    }),
+  )
+
+  const currentDerivatives = await db
+    .select({
+      inputVersionHash: derivatives.inputVersionHash,
+      sourceRecordId: derivatives.sourceRecordId,
+      versionHash: derivatives.versionHash,
+    })
+    .from(derivatives)
+    .where(and(eq(derivatives.isCurrent, true), eq(derivatives.transform, transform)))
+    .all()
+  for (const derivative of currentDerivatives) {
+    const key = `${derivative.sourceRecordId}:${derivative.inputVersionHash}`
+    // This upload covers one census cohort. Other cohorts may use the same
+    // C&SD district record IDs, so only supersede a derivative of an exact
+    // assertion represented in this upload.
+    if (!nextHashes.has(key)) continue
+    if (nextHashes.get(key) === derivative.versionHash) continue
+    await db
+      .update(derivatives)
+      .set({ isCurrent: false, validToRelease: version.releaseCode })
+      .where(
+        and(
+          eq(derivatives.sourceRecordId, derivative.sourceRecordId),
+          eq(derivatives.inputVersionHash, derivative.inputVersionHash),
+          eq(derivatives.transform, transform),
+          eq(derivatives.versionHash, derivative.versionHash),
+          eq(derivatives.isCurrent, true),
+        ),
+      )
+      .run()
+  }
+  for (const chunk of chunkRows(derivativeRows)) {
+    await db
+      .insert(derivatives)
+      .values(chunk)
+      .onConflictDoUpdate({
+        target: [
+          derivatives.sourceRecordId,
+          derivatives.inputVersionHash,
+          derivatives.transform,
+          derivatives.versionHash,
+        ],
+        set: {
+          releaseId: version.releaseId,
+          validFromRelease: version.releaseCode,
+          validToRelease: null,
+          isCurrent: true,
+          updatedAt: now,
+        },
+      })
       .run()
   }
 }
