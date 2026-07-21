@@ -5,7 +5,7 @@ import {
   buildOvertureDivisionLocaleProcessingActions,
   collectOvertureHongKongDivisionSourceAssumptionViolations,
   type DivisionHierarchyLookup,
-  normalizeDivisionRow,
+  normaliseDivisionRow,
 } from './division'
 import { getSupplementalDivisionFixtureRows } from './divisionFixtures'
 
@@ -200,7 +200,7 @@ describe('getSupplementalDivisionFixtureRows', () => {
         geometry: null,
       }),
     )
-    expect(normalizeDivisionRow(fixture ?? {})).toMatchObject({
+    expect(normaliseDivisionRow(fixture ?? {})).toMatchObject({
       base: {
         id: 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be',
         level: 0,
@@ -225,9 +225,72 @@ describe('getSupplementalDivisionFixtureRows', () => {
   })
 })
 
-describe('normalizeDivisionRow hierarchy', () => {
+describe('normaliseDivisionRow i18n', () => {
+  test('defaults unlabeled Chinese names and alternate rules to zh-hant for Hong Kong', () => {
+    const normalised = normaliseDivisionRow({
+      id: 'division-traditional-chinese',
+      subtype: 'macrohood',
+      names: {
+        primary: '石崗 Shek Kong',
+        common: {
+          en: 'Shek Kong',
+          zh: '石崗',
+        },
+        rules: [
+          {
+            language: null,
+            side: null,
+            value: '西人村',
+            variant: 'alternate',
+          },
+        ],
+      },
+    })
+
+    expect(normalised.i18n).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          isLocaleInferred: false,
+          locale: 'zh-hant',
+          name: '石崗',
+          nameAlts: '西人村',
+          nameRules: [{ value: '西人村', variant: 'alternate' }],
+        }),
+      ]),
+    )
+    expect(normalised.i18n.some(row => row.locale === 'zh-hans')).toBe(false)
+  })
+
+  test('marks a locale-less Chinese alternate rule as inferred zh-hant', () => {
+    const normalised = normaliseDivisionRow({
+      id: 'division-alternate-traditional-chinese',
+      subtype: 'macrohood',
+      names: {
+        rules: [
+          {
+            language: null,
+            side: null,
+            value: '上灣村',
+            variant: 'alternate',
+          },
+        ],
+      },
+    })
+
+    expect(normalised.i18n).toEqual([
+      expect.objectContaining({
+        isLocaleInferred: true,
+        locale: 'zh-hant',
+        name: '上灣村',
+        nameRules: [{ value: '上灣村', variant: 'alternate' }],
+      }),
+    ])
+  })
+})
+
+describe('normaliseDivisionRow hierarchy', () => {
   test('retains a valid Overture FeatureVersion as a compatibility key', () => {
-    const normalized = normalizeDivisionRow({
+    const normalised = normaliseDivisionRow({
       id: 'division-with-feature-version',
       subtype: 'locality',
       version: 42,
@@ -240,10 +303,10 @@ describe('normalizeDivisionRow hierarchy', () => {
       ],
     })
 
-    expect(normalized.base.sourceKeys).toMatchObject({
+    expect(normalised.base.sourceKeys).toMatchObject({
       overture: { version: 42 },
     })
-    expect(normalized.base.sources).toEqual({
+    expect(normalised.base.sources).toEqual({
       overture: [
         {
           property: '/properties/id',
@@ -254,8 +317,8 @@ describe('normalizeDivisionRow hierarchy', () => {
     })
   })
 
-  test('normalizes Overture hierarchy entries using division i18n lookup', () => {
-    const normalized = normalizeDivisionRow(
+  test('normalises Overture hierarchy entries using division i18n lookup', () => {
+    const normalised = normaliseDivisionRow(
       {
         id: '0058e21e-a916-4762-8da1-ba6694204a35',
         parent_division_id: '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d',
@@ -291,7 +354,7 @@ describe('normalizeDivisionRow hierarchy', () => {
       { hierarchyLookup },
     )
 
-    expect(normalized.base.hierarchy).toEqual([
+    expect(normalised.base.hierarchy).toEqual([
       {
         division_id: 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d',
         i18n: {
@@ -319,7 +382,7 @@ describe('normalizeDivisionRow hierarchy', () => {
         type: 'district',
       },
     ])
-    expect(normalized.base.sourceKeys).toEqual({
+    expect(normalised.base.sourceKeys).toEqual({
       overture: {
         subtype: 'macrohood',
         class: '',
@@ -351,8 +414,8 @@ describe('normalizeDivisionRow hierarchy', () => {
     })
   })
 
-  test('normalizes locality hierarchy entries using division lookup', () => {
-    const normalized = normalizeDivisionRow(
+  test('normalises locality hierarchy entries using division lookup', () => {
+    const normalised = normaliseDivisionRow(
       {
         id: 'division-macrohood',
         parent_division_id: 'division-locality',
@@ -389,7 +452,7 @@ describe('normalizeDivisionRow hierarchy', () => {
       },
     )
 
-    expect(normalized.base.hierarchy).toEqual([
+    expect(normalised.base.hierarchy).toEqual([
       {
         division_id: 'division-locality',
         i18n: {
@@ -408,7 +471,7 @@ describe('normalizeDivisionRow hierarchy', () => {
 
   test('rejects locality hierarchy entries missing from lookup', () => {
     expect(() =>
-      normalizeDivisionRow(
+      normaliseDivisionRow(
         {
           id: 'division-town',
           parent_division_id: 'division-locality',
@@ -426,7 +489,7 @@ describe('normalizeDivisionRow hierarchy', () => {
         },
         { hierarchyLookup },
       ),
-    ).toThrow('Cannot normalize hierarchy locality entry division-locality')
+    ).toThrow('Cannot normalise hierarchy locality entry division-locality')
   })
 })
 
@@ -438,17 +501,17 @@ describe('buildOvertureDivisionLocaleProcessingActions', () => {
       },
       primary: 'Example',
     }
-    const normalized = normalizeDivisionRow({
+    const normalised = normaliseDivisionRow({
       id: 'division-audit',
       subtype: 'locality',
       class: 'city',
       names: rawNames,
     })
     const actions = buildOvertureDivisionLocaleProcessingActions({
-      canonicalI18n: buildCanonicalDivisionApiI18n(normalized.i18n),
-      division: normalized.base,
+      canonicalI18n: buildCanonicalDivisionApiI18n(normalised.i18n),
+      division: normalised.base,
       rawNames,
-      sourceI18n: normalized.i18n,
+      sourceI18n: normalised.i18n,
     })
 
     expect(actions).toEqual(
@@ -481,7 +544,7 @@ describe('buildOvertureDivisionLocaleProcessingActions', () => {
   })
 
   test('does not write an audit action for direct canonical locales', () => {
-    const normalized = normalizeDivisionRow({
+    const normalised = normaliseDivisionRow({
       id: 'division-direct-locale',
       subtype: 'locality',
       class: 'city',
@@ -496,10 +559,10 @@ describe('buildOvertureDivisionLocaleProcessingActions', () => {
 
     expect(
       buildOvertureDivisionLocaleProcessingActions({
-        canonicalI18n: buildCanonicalDivisionApiI18n(normalized.i18n),
-        division: normalized.base,
+        canonicalI18n: buildCanonicalDivisionApiI18n(normalised.i18n),
+        division: normalised.base,
         rawNames: null,
-        sourceI18n: normalized.i18n,
+        sourceI18n: normalised.i18n,
       }),
     ).toEqual([])
   })
