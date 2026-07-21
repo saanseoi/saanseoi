@@ -3,6 +3,7 @@ import {
   ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
+  listPublishedOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey,
   listCurrentApiCompositionMembersForType,
   listCurrentSnapshotCleanupCandidates,
@@ -214,7 +215,6 @@ export async function handlePublishDataset(
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
-    const publishedAt = new Date().toISOString()
     const datasetType = dataset.type as ResourceType
     const datasetVariant = datasetVariantForSource(datasetType, dataset.source, {
       cohortKey: dataset.cohortKey,
@@ -237,22 +237,20 @@ export async function handlePublishDataset(
     const domainCode = datasetMember.domainCode
     const isCenstatdGeometry =
       datasetType === 'divisionArea' && dataset.source === 'hkgov-censtatd'
-    const canonicalAnchor = isCenstatdGeometry
-      ? await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+    const censtatdReleaseSetCohorts = isCenstatdGeometry
+      ? await listPublishedOvertureReleaseSetCohortsAtOrAfterCohortKey(
           db,
           'division',
           dataset.regionCode as RegionCode,
           dataset.cohortKey,
-          { publisherCode: 'overture' },
         )
-      : null
+      : []
 
-    if (isCenstatdGeometry && !canonicalAnchor) {
+    if (isCenstatdGeometry && censtatdReleaseSetCohorts.length === 0) {
       throw new ControlRequestError(
-        `No published Overture division snapshot is available on or after C&SD cohort ${dataset.cohortKey}.`,
+        `No published Overture division release set is available on or after C&SD cohort ${dataset.cohortKey}.`,
       )
     }
-    const canonicalAnchorCohort = canonicalAnchor?.cohortKey ?? dataset.cohortKey
 
     const currentRelease = await getCurrentReleaseForDatasetId(
       db,
@@ -277,17 +275,22 @@ export async function handlePublishDataset(
           )
         : []
     const releaseSets = isCenstatdGeometry
-      ? [
-          await ensureDraftReleaseSetForRelease(
-            db,
-            'division',
-            {
-              cohortKey: canonicalAnchorCohort,
-              regionCode: dataset.regionCode,
-            },
-            { domainCode },
-          ),
-        ]
+      ? await (async () => {
+          const releaseSets = []
+          // Create each revision in the same chronological order in which it
+          // is published, so the registry's publication ordering is stable.
+          for (const cohortKey of censtatdReleaseSetCohorts) {
+            releaseSets.push(
+              await ensureDraftReleaseSetForRelease(
+                db,
+                'division',
+                { cohortKey, regionCode: dataset.regionCode },
+                { domainCode },
+              ),
+            )
+          }
+          return releaseSets
+        })()
       : draftReleaseSets.length > 0
         ? draftReleaseSets
         : [
@@ -311,6 +314,8 @@ export async function handlePublishDataset(
       ReturnType<typeof publishReleaseArtifacts>
     > | null = null
     let selectedReleaseSetStatus: 'current' | 'draft' = 'draft'
+    const newestReleaseSetIndex = releaseSets.length - 1
+    const publishedAtMs = Date.now()
     for (const [index, releaseSet] of releaseSets.entries()) {
       const releaseSetCohortKey =
         parseReleaseSetCohortKey(releaseSet.code) ?? dataset.cohortKey
@@ -363,8 +368,14 @@ export async function handlePublishDataset(
       const releaseSetIsComplete = [...requiredMembers].every(memberKey =>
         satisfiedRequiredMembers.has(memberKey),
       )
-      const shouldPublishReleaseSet = releaseSetIsComplete && index === 0
-      if (index === 0 && shouldPublishReleaseSet) {
+      if (isCenstatdGeometry && !releaseSetIsComplete) {
+        throw new ControlRequestError(
+          `Cannot enrich incomplete Overture division release set ${releaseSet.code} with C&SD geometry.`,
+        )
+      }
+      const isNewestReleaseSet = index === newestReleaseSetIndex
+      const shouldPublishReleaseSet = releaseSetIsComplete && isNewestReleaseSet
+      if (isNewestReleaseSet && shouldPublishReleaseSet) {
         selectedReleaseSetStatus = 'current'
       }
       const apiCatalogRevision = await publishReleaseArtifacts(db, {
@@ -374,13 +385,18 @@ export async function handlePublishDataset(
           ? isCorrectedRelease(currentRelease.sourceVersion, dataset.sourceVersion)
           : false,
         dataset,
-        publishedAt,
+        // Preserve chronological ordering in registry queries even when this
+        // backfill completes within one clock tick.
+        publishedAt: new Date(publishedAtMs + index).toISOString(),
         releaseSetId: releaseSet.id,
         snapshotId: snapshot.id,
         type: datasetType,
-        // Several drafts may use the same cohort-independent geometry. Keep
-        // older sets draft and activate only the newest complete candidate.
-        deferApiReleaseSet: !shouldPublishReleaseSet,
+        // The C&SD geometry is a post-hoc optional enrichment. Every affected
+        // Overture cohort needs an immutable published revision; the newest
+        // one becomes current and the older revisions become archived.
+        deferApiReleaseSet: !isCenstatdGeometry && !shouldPublishReleaseSet,
+        publishApiCatalogRevision: shouldPublishReleaseSet,
+        updateDatasetRelease: isNewestReleaseSet,
       })
       if (shouldPublishReleaseSet) {
         selectedApiCatalogRevision = apiCatalogRevision
@@ -405,8 +421,8 @@ export async function handlePublishDataset(
     return {
       apiCatalogRevisionCode: selectedApiCatalogRevision?.code,
       apiCatalogRevisionId: selectedApiCatalogRevision?.id,
-      apiReleaseSetId: releaseSets[0]?.id,
-      apiReleaseSetCode: releaseSets[0]?.code,
+      apiReleaseSetId: releaseSets.at(-1)?.id,
+      apiReleaseSetCode: releaseSets.at(-1)?.code,
       apiReleaseSetStatus: selectedReleaseSetStatus,
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,

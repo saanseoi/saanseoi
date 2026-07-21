@@ -10,6 +10,7 @@ import {
   ensureIngestRunStarted,
   getLatestNewerDatasetRelease,
   getLatestDatasetForRegionSourceType,
+  listPublishedOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listCurrentSnapshotCleanupCandidates,
   publishReleaseArtifacts,
   resolveRegistryReleaseDisplayStatus,
@@ -1613,6 +1614,85 @@ describe('resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKe
   })
 })
 
+describe('listPublishedOvertureReleaseSetCohortsAtOrAfterCohortKey', () => {
+  test('selects compatible Overture cohorts in chronological order', async () => {
+    const { sqlite, db } = createRegionalSnapshotLookupDb()
+
+    sqlite.exec(`
+      CREATE TABLE apiVersions (
+        id TEXT PRIMARY KEY,
+        code TEXT NOT NULL
+      );
+
+      CREATE TABLE apiReleaseSets (
+        id TEXT PRIMARY KEY,
+        apiVersionId TEXT NOT NULL,
+        regionCode TEXT NOT NULL,
+        domainCode TEXT NOT NULL,
+        cohortKey TEXT NOT NULL,
+        revision INTEGER NOT NULL,
+        status TEXT NOT NULL
+      );
+
+      CREATE TABLE apiReleaseSetSnapshots (
+        apiReleaseSetId TEXT NOT NULL,
+        snapshotId TEXT NOT NULL,
+        role TEXT NOT NULL
+      );
+
+      INSERT INTO publishers (id, code) VALUES
+        ('publisher-overture', 'overture'),
+        ('publisher-had', 'hkgov-had');
+
+      INSERT INTO datasets (id, publisherId, regionCode) VALUES
+        ('dataset-overture', 'publisher-overture', 'hk'),
+        ('dataset-had', 'publisher-had', 'hk');
+
+      INSERT INTO snapshots (id, resourceType, code, status, createdAt) VALUES
+        ('snapshot-overture-2025-r0', 'division', 'ss-hk-division-2025-r0', 'published', 1),
+        ('snapshot-overture-2025-r1', 'division', 'ss-hk-division-2025-r1', 'published', 1),
+        ('snapshot-overture-2026', 'division', 'ss-hk-division-2026', 'published', 1),
+        ('snapshot-had', 'division', 'ss-hk-division-had', 'published', 1);
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('snapshot-overture-2025-r0', 'dataset-overture', 'release-overture-2025-r0', 'primary'),
+        ('snapshot-overture-2025-r1', 'dataset-overture', 'release-overture-2025-r1', 'primary'),
+        ('snapshot-overture-2026', 'dataset-overture', 'release-overture-2026', 'primary'),
+        ('snapshot-had', 'dataset-had', 'release-had', 'primary');
+
+      INSERT INTO apiVersions (id, code) VALUES
+        ('api-divisions', 'api-divisions-v0.1');
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, regionCode, domainCode, cohortKey, revision, status
+      ) VALUES
+        ('release-set-2025-r0', 'api-divisions', 'hk', 'overture', '2025-09-24.0', 0, 'archived'),
+        ('release-set-2025-r1', 'api-divisions', 'hk', 'overture', '2025-09-24.0', 1, 'archived'),
+        ('release-set-2026', 'api-divisions', 'hk', 'overture', '2026-06-17.0', 0, 'current'),
+        ('release-set-had', 'api-divisions', 'hk', 'overture', '2026-07-01.0', 0, 'current'),
+        ('release-set-draft', 'api-divisions', 'hk', 'overture', '2026-08-01.0', 0, 'draft');
+
+      INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId, role) VALUES
+        ('release-set-2025-r0', 'snapshot-overture-2025-r0', 'primary'),
+        ('release-set-2025-r1', 'snapshot-overture-2025-r1', 'primary'),
+        ('release-set-2026', 'snapshot-overture-2026', 'primary'),
+        ('release-set-had', 'snapshot-had', 'primary'),
+        ('release-set-draft', 'snapshot-overture-2026', 'primary');
+    `)
+
+    await expect(
+      listPublishedOvertureReleaseSetCohortsAtOrAfterCohortKey(
+        db as never,
+        'division',
+        'hk',
+        '2025-09-24.0',
+      ),
+    ).resolves.toEqual(['2025-09-24.0', '2026-06-17.0'])
+
+    sqlite.close()
+  })
+})
+
 describe('publishReleaseArtifacts', () => {
   test('replaces an existing release-set snapshot for the same resource type and variant', async () => {
     const { sqlite, db } = createPublishReleaseArtifactsDb()
@@ -1876,7 +1956,9 @@ describe('publishReleaseArtifacts', () => {
         snapshotId: 'snapshot-new',
         type: 'division',
       }),
-    ).rejects.toThrow('API field fixture not found')
+    ).rejects.toThrow(
+      /API field fixture not found\. Lookup:\n\{[\s\S]*"sourceSchemas"[\s\S]*\}/,
+    )
 
     const snapshotRow = sqlite
       .query('SELECT status, publishedAt FROM snapshots WHERE id = ?')

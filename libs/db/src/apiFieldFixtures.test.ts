@@ -215,6 +215,53 @@ describe('api field fixtures', () => {
     )
   })
 
+  test('maps every supported ALS release to its selected Overture division schema', () => {
+    const expectedDivisionSchemas = {
+      'ss-hk-address-2025-01-23.1031': '1.12.0',
+      'ss-hk-address-2025-02-25.1050': '1.12.0',
+      'ss-hk-address-2025-03-21.1021': '1.12.0',
+      'ss-hk-address-2025-04-26.1053': '1.12.0',
+      'ss-hk-address-2025-05-22.1029': '1.12.0',
+      'ss-hk-address-2025-06-20.1033': '1.12.0',
+      'ss-hk-address-2025-08-13.1053': '1.12.0',
+      'ss-hk-address-2025-09-03.1043': '1.12.0',
+      'ss-hk-address-2025-11-04.1033': '1.13.0',
+      'ss-hk-address-2025-12-16.1038': '1.14.0',
+      'ss-hk-address-2026-02-04.1057': '1.15.0',
+      'ss-hk-address-2026-04-03.1056': '1.16.0',
+      'ss-hk-address-2026-04-22.1040': '1.16.0',
+      'ss-hk-address-2026-04-25.1038': '1.16.0',
+      'ss-hk-address-2026-07-08.1050': '1.17.0',
+      'ss-hk-address-2026-07-10.1054': '1.17.0',
+    }
+
+    for (const [snapshotVersion, divisionSchemaVersion] of Object.entries(
+      expectedDivisionSchemas,
+    )) {
+      expect(
+        resolveApiFieldFixture({
+          apiVersion: 'api-addresses-v0.1',
+          domainCode: 'default',
+          lineageSnapshotVersions: [snapshotVersion],
+          schemaVersion: 'sv-address-v1',
+          rulesetVersion: 'rs-address-merge-v1',
+          sourceSchemas: {
+            'ds-hk-hkgov-dpo-address': '3.2',
+            'ds-hk-overture-division': divisionSchemaVersion,
+          },
+        })?.lineageAnchors,
+      ).toContainEqual(
+        expect.objectContaining({
+          snapshotVersion,
+          sourceSchemas: {
+            'ds-hk-hkgov-dpo-address': '3.2',
+            'ds-hk-overture-division': divisionSchemaVersion,
+          },
+        }),
+      )
+    }
+  })
+
   test('returns defensive copies from the fixture registry', () => {
     const fixtures = listApiFieldFixtures()
     const fixture = resolveApiFieldFixture({

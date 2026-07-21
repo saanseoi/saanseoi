@@ -8,6 +8,7 @@ import {
   buildDeterministicUuidV5,
   cohortKeyEffectiveFrom,
   computeVersionHash,
+  asc,
   desc,
   eq,
   inArray,
@@ -2294,6 +2295,59 @@ export async function listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
     )
 }
 
+/**
+ * Lists the published canonical-release cohorts that can be enriched by an
+ * optional provider snapshot. We deliberately return one cohort at a time:
+ * publishing the provider creates the next immutable revision for each of
+ * these Overture-backed release sets.
+ */
+export async function listPublishedOvertureReleaseSetCohortsAtOrAfterCohortKey(
+  db: HarbourReadableDb,
+  type: ResourceType,
+  regionCode: RegionCode,
+  cohortKey: string,
+  domainCode = 'overture',
+) {
+  const apiVersionCode = getApiVersionCodeForType(type)
+  const rows = await db
+    .select({
+      cohortKey: metaApiReleaseSets.cohortKey,
+    })
+    .from(metaApiReleaseSets)
+    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .innerJoin(
+      metaApiReleaseSetSnapshots,
+      eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaSnapshots,
+      eq(metaApiReleaseSetSnapshots.snapshotId, metaSnapshots.id),
+    )
+    .innerJoin(
+      metaSnapshotSources,
+      eq(metaSnapshotSources.snapshotId, metaSnapshots.id),
+    )
+    .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+    .where(
+      and(
+        eq(metaApiVersions.code, apiVersionCode),
+        eq(metaApiReleaseSets.regionCode, regionCode),
+        eq(metaApiReleaseSets.domainCode, domainCode),
+        ne(metaApiReleaseSets.status, 'draft'),
+        sql`${metaApiReleaseSets.cohortKey} >= ${cohortKey}`,
+        eq(metaApiReleaseSetSnapshots.role, 'primary'),
+        eq(metaSnapshots.resourceType, type),
+        eq(metaSnapshotSources.role, 'primary'),
+        eq(metaPublishers.code, 'overture'),
+      ),
+    )
+    .orderBy(asc(metaApiReleaseSets.cohortKey), asc(metaApiReleaseSets.revision))
+    .all()
+
+  return [...new Set(rows.flatMap(row => (row.cohortKey ? [row.cohortKey] : [])))]
+}
+
 export async function ensureDraftReleaseSetForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
   type: ResourceType,
@@ -2758,6 +2812,10 @@ export async function publishReleaseArtifacts(
     type: ResourceType
     /** Publish the dataset snapshot, but leave the API release set as draft. */
     deferApiReleaseSet?: boolean
+    /** Whether this release-set publication should emit a catalog revision. */
+    publishApiCatalogRevision?: boolean
+    /** Whether this release-set publication should update the source release. */
+    updateDatasetRelease?: boolean
   },
 ) {
   const releaseSet = await db
@@ -2927,10 +2985,13 @@ export async function publishReleaseArtifacts(
 
   const publishedAt = toIsoTimestamp(args.publishedAt)
   const deferApiReleaseSet = args.deferApiReleaseSet === true
+  const publishApiCatalogRevision =
+    !deferApiReleaseSet && args.publishApiCatalogRevision !== false
+  const updateDatasetRelease = args.updateDatasetRelease !== false
   const releaseSetRegionCode = releaseSet.regionCode
   const releaseSetCohortKey = releaseSet.cohortKey
 
-  if (!deferApiReleaseSet && (!releaseSetRegionCode || !releaseSetCohortKey)) {
+  if (publishApiCatalogRevision && (!releaseSetRegionCode || !releaseSetCohortKey)) {
     throw new Error(
       `Cannot publish API catalog revision for release set ${releaseSet.code}: regionCode or cohortKey is missing.`,
     )
@@ -2976,7 +3037,7 @@ export async function publishReleaseArtifacts(
     : latestPublishedReleaseSet.id
 
   const apiCatalogRevision =
-    !deferApiReleaseSet && releaseSetRegionCode && releaseSetCohortKey
+    publishApiCatalogRevision && releaseSetRegionCode && releaseSetCohortKey
       ? await prepareApiCatalogRevision(db, {
           apiFamily: releaseSet.apiFamily,
           apiVersion: releaseSet.apiVersion,
@@ -3042,16 +3103,19 @@ export async function publishReleaseArtifacts(
     sourceSchemas.set(row.datasetCode, sourceSchemaVersion)
   }
 
+  const apiFieldFixtureLookup = {
+    apiVersion: releaseSet.apiVersion,
+    domainCode: releaseSet.domainCode,
+    lineageSnapshotVersions: primarySnapshotLineageVersions,
+    schemaVersion: releaseSet.schemaVersion,
+    rulesetVersion: releaseSet.rulesetVersion,
+    sourceSchemas: Object.fromEntries(
+      [...sourceSchemas.entries()].sort(([left], [right]) => left.localeCompare(right)),
+    ),
+  }
   const resolvedApiFieldFixture = deferApiReleaseSet
     ? null
-    : resolveApiFieldFixture({
-        apiVersion: releaseSet.apiVersion,
-        domainCode: releaseSet.domainCode,
-        lineageSnapshotVersions: primarySnapshotLineageVersions,
-        schemaVersion: releaseSet.schemaVersion,
-        rulesetVersion: releaseSet.rulesetVersion,
-        sourceSchemas: Object.fromEntries(sourceSchemas),
-      })
+    : resolveApiFieldFixture(apiFieldFixtureLookup)
   const hasBundledApiFieldFixtures = listApiFieldFixtures().some(
     fixture =>
       fixture.apiVersion === releaseSet.apiVersion &&
@@ -3060,7 +3124,7 @@ export async function publishReleaseArtifacts(
 
   if (!deferApiReleaseSet && !resolvedApiFieldFixture && hasBundledApiFieldFixtures) {
     throw new Error(
-      `API field fixture not found for apiVersion=${releaseSet.apiVersion}, lineageSnapshotVersions=${primarySnapshotLineageVersions.join(',')}, schemaVersion=${releaseSet.schemaVersion}, rulesetVersion=${releaseSet.rulesetVersion}.`,
+      `API field fixture not found. Lookup:\n${JSON.stringify(apiFieldFixtureLookup, null, 2)}`,
     )
   }
 
@@ -3147,15 +3211,19 @@ export async function publishReleaseArtifacts(
       tx
         .delete(metaApiReleaseSetSnapshots)
         .where(eq(metaApiReleaseSetSnapshots.apiReleaseSetId, args.releaseSetId)),
-      tx
-        .update(metaReleases)
-        .set({
-          status: 'published',
-          revokedAt: null,
-          revocationReason: null,
-          updatedAt: publishedAt,
-        })
-        .where(eq(metaReleases.id, args.dataset.releaseId)),
+      ...(updateDatasetRelease
+        ? [
+            tx
+              .update(metaReleases)
+              .set({
+                status: 'published',
+                revokedAt: null,
+                revocationReason: null,
+                updatedAt: publishedAt,
+              })
+              .where(eq(metaReleases.id, args.dataset.releaseId)),
+          ]
+        : []),
     )
 
     if (!deferApiReleaseSet) {
@@ -3276,7 +3344,7 @@ export async function publishReleaseArtifacts(
       }
     }
 
-    if (args.currentRelease) {
+    if (updateDatasetRelease && args.currentRelease) {
       const replacedReason = args.currentReleaseIsCorrected
         ? `Superseded by corrected release ${args.dataset.releaseCode}.`
         : `Replaced by release ${args.dataset.releaseCode}.`
@@ -3346,7 +3414,7 @@ export async function publishReleaseArtifacts(
             .where(eq(metaReleases.id, args.currentRelease.releaseId)),
         )
       }
-    } else {
+    } else if (updateDatasetRelease) {
       statements.push(
         tx.insert(metaPublishedDataJournal).values({
           id: crypto.randomUUID(),

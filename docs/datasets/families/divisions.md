@@ -70,10 +70,11 @@ variants, never defaults. Each census cohort has an exact source variant
 (`hkgov-censtatd:2016` or `hkgov-censtatd:2021`). The `simplified` geometry is a named
 display transform on that source variant, requested as
 `areas:hkgov-censtatd:<cohort>&transform=simplified`; it is not an independent
-composition member. Each source variant is anchored to the earliest published Overture
-canonical-division snapshot at or after its census cohort; that immutable anchor
-provides identity, hierarchy, and names without representing the C&SD boundary as an
-evergreen administrative geometry.
+composition member. When a C&SD source cohort is added after Overture release sets
+already exist, it creates an immutable revision of every compatible Overture release set
+at or after that cohort. The newest revised set becomes current and earlier revisions
+are archived, keeping the optional C&SD geometry available in the current store without
+representing it as an evergreen administrative boundary.
 
 For Overture, release audit entries are limited to investigable source-policy
 exceptions: division locale inference or API-locale fallback rows, and `CN-GD` spillover

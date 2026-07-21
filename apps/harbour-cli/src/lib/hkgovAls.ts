@@ -30,7 +30,9 @@ import {
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import {
   collectHkgovAlsRomanNumeralBuildingNameFamilies,
+  collectHkgovAlsRomanNumeralPremiseNumberFamilies,
   normalizeHkgovAlsBuildingNameRomanNumeral,
+  normalizeHkgovAlsPremiseNumberRomanNumeral,
   normalizeHkgovAlsPremiseStructure,
   preferHkgovAlsEnglishCanonicalValue,
 } from './hkgovAlsPremiseNormalization.ts'
@@ -250,6 +252,10 @@ type PreparedHkgovAlsRow = {
   } | null
   enBlockDescriptor: string | null
   enBlockNumber: string | null
+  enBlockNumberRomanNumeralNormalization: {
+    from: string
+    to: string
+  } | null
   enStreetName: string | null
   enStreetNumberFrom: string | null
   enStreetNumberTo: string | null
@@ -345,6 +351,28 @@ export async function prepareHkgovAlsAddressParquet(
           ),
         )
       : new Set<string>()
+  const romanNumeralPremiseNumberFamilies =
+    options.postProcessPremiseStructure !== false
+      ? collectHkgovAlsRomanNumeralPremiseNumberFamilies(
+          uniqueSourceFeatures.map(sourceFeature => {
+            const premises = sourceFeature.feature.properties?.Address?.PremisesAddress
+            const en = premises?.EngPremisesAddress
+            const buildingName = asOptionalString(en?.BuildingName)
+            const buildingNameNormalization = normalizeHkgovAlsBuildingNameRomanNumeral(
+              {
+                buildingName,
+                romanNumeralFamilies: romanNumeralBuildingNameFamilies,
+              },
+            )
+            return normalizeHkgovAlsPremiseStructure({
+              blockDescriptor: asOptionalString(en?.EngBlock?.BlockDescriptor),
+              blockNumber: asOptionalString(en?.EngBlock?.BlockNo),
+              buildingName: buildingNameNormalization?.to ?? buildingName,
+              estateName: asOptionalString(en?.EngEstate?.EstateName),
+            })
+          }),
+        )
+      : new Set<string>()
   const rows = uniqueSourceFeatures.map(sourceFeature =>
     normalizeHkgovAlsFeature(
       sourceFeature.feature,
@@ -355,6 +383,7 @@ export async function prepareHkgovAlsAddressParquet(
       divisionMaps,
       options.postProcessPremiseStructure !== false,
       romanNumeralBuildingNameFamilies,
+      romanNumeralPremiseNumberFamilies,
     ),
   )
   const {
@@ -924,6 +953,25 @@ export function buildHkgovAlsProcessingActions(input: {
     })
   }
 
+  for (const row of input.resolvedRows) {
+    const blockNumber = row.enBlockNumberRomanNumeralNormalization
+    if (!blockNumber) continue
+    actions.push({
+      action: 'als_premise_number_roman_numeral_normalized',
+      affectedRecordCount: 1,
+      evidence: {
+        canonicalRecord: summarizeHkgovAlsProcessingRow(row),
+        premiseNumber: {
+          descriptor: row.enBlockDescriptor,
+          ...blockNumber,
+        },
+      },
+      mode: 'automatic' as const,
+      summary:
+        'Styled an ALS BLOCK, HOUSE or TOWER number as Roman numerals used by its premise family.',
+    })
+  }
+
   return actions
 }
 
@@ -1118,6 +1166,7 @@ function normalizeHkgovAlsFeature(
   divisionMaps: DivisionLookupMaps,
   postProcessPremiseStructure: boolean,
   romanNumeralBuildingNameFamilies: ReadonlySet<string>,
+  romanNumeralPremiseNumberFamilies: ReadonlySet<string>,
 ): PreparedHkgovAlsRow {
   const properties = feature.properties ?? {}
   const premises = properties.Address?.PremisesAddress ?? {}
@@ -1143,9 +1192,21 @@ function normalizeHkgovAlsFeature(
     buildingName: asOptionalString(rawZh.BuildingName),
     estateName: asOptionalString(rawZh.ChiEstate?.EstateName),
   }
-  const enStructure = postProcessPremiseStructure
+  const normalizedEnStructure = postProcessPremiseStructure
     ? normalizeHkgovAlsPremiseStructure(rawEnStructure)
     : { ...rawEnStructure, normalization: 'none' as const }
+  const enBlockNumberRomanNumeralNormalization = postProcessPremiseStructure
+    ? normalizeHkgovAlsPremiseNumberRomanNumeral({
+        premise: normalizedEnStructure,
+        romanNumeralFamilies: romanNumeralPremiseNumberFamilies,
+      })
+    : null
+  const enStructure = enBlockNumberRomanNumeralNormalization
+    ? {
+        ...normalizedEnStructure,
+        blockNumber: enBlockNumberRomanNumeralNormalization.to,
+      }
+    : normalizedEnStructure
   const zhStructure = postProcessPremiseStructure
     ? normalizeHkgovAlsPremiseStructure(rawZhStructure)
     : { ...rawZhStructure, normalization: 'none' as const }
@@ -1275,6 +1336,7 @@ function normalizeHkgovAlsFeature(
         premiseNormalization: {
           en: enStructure.normalization,
           enBuildingNameRomanNumeral: enBuildingNameRomanNumeralNormalization != null,
+          enBlockNumberRomanNumeral: enBlockNumberRomanNumeralNormalization != null,
           zhHant: zhStructure.normalization,
         },
       },
@@ -1340,6 +1402,7 @@ function normalizeHkgovAlsFeature(
     enBuildingNameRomanNumeralNormalization,
     enBlockDescriptor: asOptionalString(en.EngBlock?.BlockDescriptor),
     enBlockNumber: asOptionalString(en.EngBlock?.BlockNo),
+    enBlockNumberRomanNumeralNormalization,
     enStreetName: asOptionalString(enStreet.StreetName),
     enStreetNumberFrom: asOptionalString(enStreet.BuildingNoFrom),
     enStreetNumberTo: asOptionalString(enStreet.BuildingNoTo),
