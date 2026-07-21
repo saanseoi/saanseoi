@@ -57,7 +57,7 @@ export type AddressI18nRecord = NewAddressI18nRow
 export type AddressVersionSnapshot = {
   churnHash: string
   id: string
-  localizedRows: AddressI18nPayload[]
+  localisedRows: AddressI18nPayload[]
   matchKey: string | null
   versionHash: string
 }
@@ -71,6 +71,12 @@ export type AddressCurrentMatchInput = {
 export type CurrentAddressVersionLookupResult = {
   byId: Map<string, AddressVersionSnapshot>
   byMatchKey: Map<string, AddressVersionSnapshot>
+}
+
+type AddressVersionLookupOptions = {
+  buildAddressBaseHashInput: (base: AddressHashInput) => AddressHashInput
+  buildMatchKey: (input: AddressCurrentMatchInput) => string | null
+  normaliseAddressI18nSnapshotRow: (row: AddressI18nPayload) => AddressI18nPayload
 }
 
 type AddressHashInput = Omit<
@@ -171,12 +177,12 @@ function selectCurrentAddressVersionFields() {
   }
 }
 
-function normalizeAddressMatchToken(value: string | null) {
-  const normalized = value?.trim().toUpperCase().replace(/\s+/g, ' ')
-  return normalized || null
+function normaliseAddressMatchToken(value: string | null) {
+  const normalised = value?.trim().toUpperCase().replace(/\s+/g, ' ')
+  return normalised || null
 }
 
-function normalizeAddressSqlMatchToken(value: string) {
+function normaliseAddressSqlMatchToken(value: string) {
   return value.replace(/\s+/g, '')
 }
 
@@ -193,7 +199,7 @@ export async function getCurrentAddressVersionMap(
       streetNumber: string | null
       streetName: string | null
     }) => string | null
-    normalizeAddressI18nSnapshotRow: (row: AddressI18nPayload) => AddressI18nPayload
+    normaliseAddressI18nSnapshotRow: (row: AddressI18nPayload) => AddressI18nPayload
   },
 ) {
   const versionRows = (await db
@@ -209,11 +215,7 @@ export async function getCurrentAddressVersionLookup(
   db: HarbourReadableDb,
   addressIds: string[],
   matchInputs: AddressCurrentMatchInput[],
-  options: {
-    buildAddressBaseHashInput: (base: AddressHashInput) => AddressHashInput
-    buildMatchKey: (input: AddressCurrentMatchInput) => string | null
-    normalizeAddressI18nSnapshotRow: (row: AddressI18nPayload) => AddressI18nPayload
-  },
+  options: AddressVersionLookupOptions,
 ): Promise<CurrentAddressVersionLookupResult> {
   const byIdRows: CurrentAddressVersionLookupRow[] = []
 
@@ -251,8 +253,8 @@ export async function getCurrentAddressVersionLookup(
 
   for (const input of matchInputs) {
     const districtId = input.districtId
-    const streetNumber = normalizeAddressMatchToken(input.streetNumber)
-    const streetName = normalizeAddressMatchToken(input.streetName)
+    const streetNumber = normaliseAddressMatchToken(input.streetNumber)
+    const streetName = normaliseAddressMatchToken(input.streetName)
 
     if (!districtId || !streetNumber || !streetName) {
       continue
@@ -260,8 +262,8 @@ export async function getCurrentAddressVersionLookup(
 
     uniqueMatchInputs.set(`${districtId}\0${streetNumber}\0${streetName}`, {
       districtId,
-      streetName: normalizeAddressSqlMatchToken(streetName),
-      streetNumber: normalizeAddressSqlMatchToken(streetNumber),
+      streetName: normaliseAddressSqlMatchToken(streetName),
+      streetNumber: normaliseAddressSqlMatchToken(streetNumber),
     })
   }
 
@@ -318,6 +320,44 @@ export async function getCurrentAddressVersionLookup(
   }
 }
 
+/**
+ * Looks up current address versions across history shards. Later sources take
+ * precedence, so callers can place the target shard after its predecessors.
+ */
+export async function getMergedCurrentAddressVersionLookup(
+  sources: Array<{
+    db: unknown
+    sortOrder: number
+  }>,
+  addressIds: string[],
+  matchInputs: AddressCurrentMatchInput[],
+  options: AddressVersionLookupOptions,
+): Promise<CurrentAddressVersionLookupResult> {
+  const byId = new Map<string, AddressVersionSnapshot>()
+  const byMatchKey = new Map<string, AddressVersionSnapshot>()
+
+  for (const source of [...sources].sort(
+    (left, right) => left.sortOrder - right.sortOrder,
+  )) {
+    const lookup = await getCurrentAddressVersionLookup(
+      source.db as HarbourReadableDb,
+      addressIds,
+      matchInputs,
+      options,
+    )
+
+    for (const [id, snapshot] of lookup.byId) {
+      byId.set(id, snapshot)
+    }
+
+    for (const [matchKey, snapshot] of lookup.byMatchKey) {
+      byMatchKey.set(matchKey, snapshot)
+    }
+  }
+
+  return { byId, byMatchKey }
+}
+
 export async function hasCurrentAddressVersions(db: HarbourReadableDb) {
   const row = await db
     .select({
@@ -370,7 +410,7 @@ async function buildCurrentAddressVersionSnapshotMap(
   options: {
     buildAddressBaseHashInput: (base: AddressHashInput) => AddressHashInput
     buildMatchKey: (input: AddressCurrentMatchInput) => string | null
-    normalizeAddressI18nSnapshotRow: (row: AddressI18nPayload) => AddressI18nPayload
+    normaliseAddressI18nSnapshotRow: (row: AddressI18nPayload) => AddressI18nPayload
   },
 ) {
   const rows = [...new Map(versionRows.map(row => [row.id, row])).values()]
@@ -423,8 +463,8 @@ async function buildCurrentAddressVersionSnapshotMap(
   const snapshots: Array<readonly [string, AddressVersionSnapshot]> = []
 
   for (const row of rows) {
-    const localizedRows = [...(i18nByAddressId.get(row.id) ?? [])]
-      .map(options.normalizeAddressI18nSnapshotRow)
+    const localisedRows = [...(i18nByAddressId.get(row.id) ?? [])]
+      .map(options.normaliseAddressI18nSnapshotRow)
       .sort((left, right) => left.locale.localeCompare(right.locale))
 
     snapshots.push([
@@ -432,17 +472,17 @@ async function buildCurrentAddressVersionSnapshotMap(
       {
         churnHash: await createHash({
           base: options.buildAddressBaseHashInput(row),
-          i18n: localizedRows,
+          i18n: localisedRows,
         }),
         id: row.id,
-        localizedRows,
+        localisedRows,
         matchKey: options.buildMatchKey({
           districtId: row.districtId,
           streetNumber:
-            localizedRows.find(localized => localized.locale === 'en')?.streetNumber ??
+            localisedRows.find(localised => localised.locale === 'en')?.streetNumber ??
             null,
           streetName:
-            localizedRows.find(localized => localized.locale === 'en')?.streetName ??
+            localisedRows.find(localised => localised.locale === 'en')?.streetName ??
             null,
         }),
         versionHash: row.versionHash,
