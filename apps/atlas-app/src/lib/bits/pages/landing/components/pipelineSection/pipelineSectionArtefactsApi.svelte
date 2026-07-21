@@ -3,9 +3,9 @@ type Props = { latency: string; coordinates: string; status: string }
 let { latency, coordinates, status }: Props = $props()
 </script>
 
-<div class="pipeline-artifacts" aria-hidden="true">
-  <span class="artifact artifact-api artifact-api-target"></span
-  ><span class="artifact artifact-api artifact-api-latency">{latency}</span
-  ><span class="artifact artifact-api artifact-api-coord">{@html coordinates}</span
-  ><span class="artifact artifact-api artifact-api-status">{status}</span>
+<div class="pipeline-artefacts" aria-hidden="true">
+  <span class="artefact artefact-api artefact-api-target"></span
+  ><span class="artefact artefact-api artefact-api-latency">{latency}</span
+  ><span class="artefact artefact-api artefact-api-coord">{@html coordinates}</span
+  ><span class="artefact artefact-api artefact-api-status">{status}</span>
 </div>

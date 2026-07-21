@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 
-import { normalizeBaseUrl, resolveHarbourBaseUrl } from './urls'
+import { normaliseBaseUrl, resolveHarbourBaseUrl } from './urls'
 
 describe('urls', () => {
-  test('normalizes trailing slashes from base URLs', () => {
-    expect(normalizeBaseUrl(' https://harbour.saanseoi.hk/// ')).toBe(
+  test('normalises trailing slashes from base URLs', () => {
+    expect(normaliseBaseUrl(' https://harbour.saanseoi.hk/// ')).toBe(
       'https://harbour.saanseoi.hk',
     )
   })
@@ -15,12 +15,12 @@ describe('urls', () => {
     expect(resolveHarbourBaseUrl('production')).toBe('https://harbour.saanseoi.hk')
   })
 
-  test('exposes normalized canonical Harbour URLs through the environment mapping', () => {
-    expect(normalizeBaseUrl(resolveHarbourBaseUrl('dev'))).toBe('http://localhost:8788')
-    expect(normalizeBaseUrl(resolveHarbourBaseUrl('preview'))).toBe(
+  test('exposes normalised canonical Harbour URLs through the environment mapping', () => {
+    expect(normaliseBaseUrl(resolveHarbourBaseUrl('dev'))).toBe('http://localhost:8788')
+    expect(normaliseBaseUrl(resolveHarbourBaseUrl('preview'))).toBe(
       'https://preview.harbour.saanseoi.hk',
     )
-    expect(normalizeBaseUrl(resolveHarbourBaseUrl('production'))).toBe(
+    expect(normaliseBaseUrl(resolveHarbourBaseUrl('production'))).toBe(
       'https://harbour.saanseoi.hk',
     )
   })

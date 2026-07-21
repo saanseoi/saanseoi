@@ -52,12 +52,12 @@ Hong Kong-specific override:
 When none of the explicit mappings above applies, the available classification fields
 are used in the following order:
 
-1. Normalize <black>subtype</black> and <black>class</black>, then read a string value
+1. Normalise <black>subtype</black> and <black>class</black>, then read a string value
    from <black>admin_level</black> or <black>adminLevel</black> when available.
-2. Check the normalized <black>subtype</black>, then <black>class</black>, then the
-   string admin-level value for a recognized level token. The first matching token
+2. Check the normalised <black>subtype</black>, then <black>class</black>, then the
+   string admin-level value for a recognised level token. The first matching token
    supplies the level.
-3. If no recognized token is found, use level <black>1</black> when the row has a parent
+3. If no recognised token is found, use level <black>1</black> when the row has a parent
    division; otherwise use level <black>0</black>.
 4. If no direct type mapping is available, derive the generic type from the resulting
    level: <black>0</black> → <black>SAR</black>, <black>1</black> → <black>area</black>,

@@ -1,4 +1,4 @@
-# division hierarchy normalization
+# division hierarchy normalisation
 
 ## v1
 
@@ -10,17 +10,17 @@ SaanSeoi unwrap Overture's nested <black>hierarchies</black> payload into a sing
 - The country ancestor and the entry for the division itself are omitted: both are
   implicit in a Hong Kong division record and add no useful hierarchy information.
 - For each remaining ancestor, SaanSeoi first looks up the referenced canonical
-  division. When found, it uses that row's canonical `level`, `type`, and localized
+  division. When found, it uses that row's canonical `level`, `type`, and localised
   names rather than trusting Overture's locale-less hierarchy label.
-- The lookup is built from the complete division file before rows are normalized. For a
+- The lookup is built from the complete division file before rows are normalised. For a
   raw <black>locality</black> ancestor, the matching division row therefore supplies the
-  omitted <black>class</black>: its canonical `level`, `type`, and localized names are
-  copied into the normalized hierarchy entry.
+  omitted <black>class</black>: its canonical `level`, `type`, and localised names are
+  copied into the normalised hierarchy entry.
 - If an ancestor has no canonical lookup row, SaanSeoi can still derive its level and
   type from supported raw subtype hints and infer a label from the supplied name. A raw
   <black>locality</black> ancestor is the exception: it requires the lookup row because
   the hierarchy payload omits the <black>class</black> needed to distinguish city, town,
-  village, and hamlet. If that lookup row is missing, normalization fails with an
+  village, and hamlet. If that lookup row is missing, normalisation fails with an
   explicit error.
 - The original Overture payload is retained under <black>overture.hierarchies</black>.
 

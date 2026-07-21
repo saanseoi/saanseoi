@@ -146,7 +146,7 @@ function splitFileNameParts(fileName: string) {
   }
 }
 
-function normalizeSource(candidate?: string | null) {
+function normaliseSource(candidate?: string | null) {
   if (!candidate) {
     return null
   }
@@ -154,7 +154,7 @@ function normalizeSource(candidate?: string | null) {
   return SOURCE_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
-function normalizeUploadFileName(
+function normaliseUploadFileName(
   filePath: string,
   type: ResourceType,
   providedOriginalFileName?: string,
@@ -170,7 +170,7 @@ function normalizeUploadFileName(
   }
 }
 
-function normalizeToken(value: string) {
+function normaliseToken(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
@@ -183,12 +183,12 @@ function formatDatasetIdentifier(datasetCode?: string, datasetId?: string) {
 }
 
 function matchSourceCandidate(candidate: string) {
-  const normalized = normalizeToken(candidate)
+  const normalised = normaliseToken(candidate)
 
   for (const [token, source] of SOURCE_MATCHERS) {
     const matcher = new RegExp(`(^|[ ._\\/-])${escapeRegExp(token)}([ ._\\/-]|$)`, 'i')
 
-    if (matcher.test(normalized)) {
+    if (matcher.test(normalised)) {
       return source
     }
   }
@@ -197,12 +197,12 @@ function matchSourceCandidate(candidate: string) {
 }
 
 function matchTypeCandidate(candidate: string): ResourceType | null {
-  const normalized = normalizeToken(candidate)
+  const normalised = normaliseToken(candidate)
 
   for (const [token, type] of Object.entries(TYPE_ALIASES)) {
     const matcher = new RegExp(`(^|[ ._\\/-])${token}([ ._\\/-]|$)`, 'i')
 
-    if (matcher.test(normalized)) {
+    if (matcher.test(normalised)) {
       return type
     }
   }
@@ -211,12 +211,12 @@ function matchTypeCandidate(candidate: string): ResourceType | null {
 }
 
 function matchThemeCandidate(candidate: string): ResourceTheme | null {
-  const normalized = normalizeToken(candidate)
+  const normalised = normaliseToken(candidate)
 
   for (const [token, theme] of Object.entries(THEME_ALIASES)) {
     const matcher = new RegExp(`(^|[ ._\\/-])${token}([ ._\\/-]|$)`, 'i')
 
-    if (matcher.test(normalized)) {
+    if (matcher.test(normalised)) {
       return theme
     }
   }
@@ -367,12 +367,12 @@ export function inferSourceFromFilename(filePath: string) {
 }
 
 function matchRegionCandidate(candidate: string): RegionCode | null {
-  const normalized = normalizeToken(candidate)
+  const normalised = normaliseToken(candidate)
 
   for (const [token, regionCode] of Object.entries(REGION_ALIASES)) {
     const matcher = new RegExp(`(^|[ ._\\/-])${token}([ ._\\/-]|$)`, 'i')
 
-    if (matcher.test(normalized)) {
+    if (matcher.test(normalised)) {
       return regionCode
     }
   }
@@ -404,7 +404,7 @@ export function inferRegionFromFilename(filePath: string): RegionCode | null {
   return matchRegionCandidate(fileNameFromPath(filePath))
 }
 
-function normalizeTheme(candidate?: string | null): ResourceTheme | null {
+function normaliseTheme(candidate?: string | null): ResourceTheme | null {
   if (!candidate) {
     return null
   }
@@ -412,7 +412,7 @@ function normalizeTheme(candidate?: string | null): ResourceTheme | null {
   return THEME_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
-function normalizeType(candidate?: string | null): ResourceType | null {
+function normaliseType(candidate?: string | null): ResourceType | null {
   if (!candidate) {
     return null
   }
@@ -420,7 +420,7 @@ function normalizeType(candidate?: string | null): ResourceType | null {
   return TYPE_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
-function normalizeRegion(candidate?: string | null): RegionCode | null {
+function normaliseRegion(candidate?: string | null): RegionCode | null {
   if (!candidate) {
     return null
   }
@@ -430,7 +430,7 @@ function normalizeRegion(candidate?: string | null): RegionCode | null {
 
 function inferThemeFromParquet(inspection: ParquetInspection) {
   const distinctThemes = inspection.distinctThemeValues
-    .map(value => normalizeTheme(value))
+    .map(value => normaliseTheme(value))
     .filter((value): value is ResourceTheme => value !== null)
 
   const uniqueThemes = [...new Set(distinctThemes)]
@@ -444,7 +444,7 @@ function inferThemeFromParquet(inspection: ParquetInspection) {
 
 function inferTypeFromParquet(inspection: ParquetInspection) {
   const distinctTypes = inspection.distinctTypeValues
-    .map(value => normalizeType(value))
+    .map(value => normaliseType(value))
     .filter((value): value is ResourceType => value !== null)
 
   const uniqueTypes = [...new Set(distinctTypes)]
@@ -458,10 +458,10 @@ function inferTypeFromParquet(inspection: ParquetInspection) {
 
 function inferRegionFromParquet(inspection: ParquetInspection) {
   const countryRegions = inspection.distinctCountryValues
-    .map(value => normalizeRegion(value))
+    .map(value => normaliseRegion(value))
     .filter((value): value is RegionCode => value !== null)
   const regionRegions = inspection.distinctRegionValues
-    .map(value => normalizeRegion(value))
+    .map(value => normaliseRegion(value))
     .filter((value): value is RegionCode => value !== null)
   const uniqueRegions = [...new Set([...countryRegions, ...regionRegions])]
 
@@ -472,7 +472,7 @@ function inferRegionFromParquet(inspection: ParquetInspection) {
   return uniqueRegions[0]
 }
 
-function normalizeCohortKey(candidate?: string | null) {
+function normaliseCohortKey(candidate?: string | null) {
   if (!candidate) {
     return null
   }
@@ -490,7 +490,7 @@ export function createSchemaFingerprint(inspection: ParquetInspection) {
 }
 
 function createSchemaFingerprintFromSchema(schema: ParquetInspection['schema']) {
-  return JSON.stringify(normalizeSchemaFingerprintFields(schema))
+  return JSON.stringify(normaliseSchemaFingerprintFields(schema))
 }
 
 function compareFingerprintValue(left: string, right: string) {
@@ -505,7 +505,7 @@ function compareFingerprintValue(left: string, right: string) {
   return 0
 }
 
-function normalizeSchemaFingerprintFields(schema: ParquetInspection['schema']) {
+function normaliseSchemaFingerprintFields(schema: ParquetInspection['schema']) {
   return schema
     .map(field => ({
       name: field.name,
@@ -623,7 +623,7 @@ function resolveUploadPlan(
   resolvedInspection: ParquetInspection,
 ) {
   const directoryPath = directoryPathFromPath(options.filePath)
-  const typeFromFlag = normalizeType(options.type)
+  const typeFromFlag = normaliseType(options.type)
   const typeFromFilename = inferTypeFromFilename(options.filePath)
   const typeFromPath = inferTypeFromPath(directoryPath)
   const typeFromParquet = inferTypeFromParquet(resolvedInspection)
@@ -631,11 +631,11 @@ function resolveUploadPlan(
 
   if (!type) {
     throw new Error(
-      `Could not determine a supported type. Pass \`--type ${resourceTypes.join('|')}\` or use a recognizable path/file name.`,
+      `Could not determine a supported type. Pass \`--type ${resourceTypes.join('|')}\` or use a recognisable path/file name.`,
     )
   }
 
-  const themeFromFlag = normalizeTheme(options.theme)
+  const themeFromFlag = normaliseTheme(options.theme)
   const themeFromFilename = inferThemeFromFilename(options.filePath)
   const themeFromPath = inferThemeFromPath(directoryPath)
   const themeFromParquet = inferThemeFromParquet(resolvedInspection)
@@ -648,7 +648,7 @@ function resolveUploadPlan(
 
   if (!theme) {
     throw new Error(
-      `Could not determine a supported theme. Pass \`--theme ${resourceThemes.join('|')}\` or use a recognizable path/file name.`,
+      `Could not determine a supported theme. Pass \`--theme ${resourceThemes.join('|')}\` or use a recognisable path/file name.`,
     )
   }
 
@@ -672,25 +672,25 @@ function resolveUploadPlan(
     )
   }
 
-  const regionFromFlag = normalizeRegion(options.regionCode)
+  const regionFromFlag = normaliseRegion(options.regionCode)
   const regionFromPath = inferRegionFromPath(options.filePath)
   const regionFromParquet = inferRegionFromParquet(resolvedInspection)
   const regionCode = regionFromFlag ?? regionFromPath ?? regionFromParquet
 
   if (!regionCode) {
     throw new Error(
-      'Could not determine regionCode. Pass `--region hk|mo` or use a recognizable path/content.',
+      'Could not determine regionCode. Pass `--region hk|mo` or use a recognisable path/content.',
     )
   }
 
-  const sourceFromFlag = normalizeSource(options.source)
+  const sourceFromFlag = normaliseSource(options.source)
   const sourceFromPath = inferSourceFromPath(directoryPath)
   const sourceFromFilename = inferSourceFromFilename(options.filePath)
   const source = sourceFromFlag ?? sourceFromPath ?? sourceFromFilename
 
   if (!source) {
     throw new Error(
-      'Could not determine source. Pass `--source overture|hkgov-dpo` or use a recognizable path/file name.',
+      'Could not determine source. Pass `--source overture|hkgov-dpo` or use a recognisable path/file name.',
     )
   }
   const sourceVersionFromPath = inferSourceVersionFromPath(directoryPath)
@@ -700,7 +700,7 @@ function resolveUploadPlan(
   const cohortKeyFromPath = inferCohortKeyFromPath(directoryPath)
   const cohortKeyFromFilename = inferCohortKeyFromFilename(options.filePath)
   const cohortKey =
-    normalizeCohortKey(options.cohortKey) ??
+    normaliseCohortKey(options.cohortKey) ??
     cohortKeyFromPath ??
     cohortKeyFromFilename ??
     sourceVersion
@@ -712,7 +712,7 @@ function resolveUploadPlan(
   }
 
   const resolvedSourceVersion = sourceVersion ?? cohortKey
-  const { fileName, originalFileName } = normalizeUploadFileName(
+  const { fileName, originalFileName } = normaliseUploadFileName(
     options.filePath,
     type,
     options.originalFileName,
@@ -1179,7 +1179,7 @@ export async function requestUpload(
   }
 }
 
-export async function finalizeUpload(
+export async function finaliseUpload(
   db: HarbourReadableDb & HarbourWritableDb,
   options: RegisterUploadOptions,
 ) {

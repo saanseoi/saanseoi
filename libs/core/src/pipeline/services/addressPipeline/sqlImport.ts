@@ -2,8 +2,8 @@ import type { DatasetProcessingMessage } from '../../../types'
 import { buildDeterministicUuidV5 } from '@repo/db'
 
 import type {
-  NormalizedAddressChunkArtifact,
-  ResolvedAddressChunkArtifact,
+  NormalisedAddressChunkArtefact,
+  ResolvedAddressChunkArtefact,
 } from './types'
 import { buildSourceReleaseId } from '../../db/source'
 
@@ -153,20 +153,20 @@ export function buildAddressSqlImportRunId(message: DatasetProcessingMessage) {
 
 export function buildAddressSourceSqlImportFiles(
   message: DatasetProcessingMessage,
-  artifact: NormalizedAddressChunkArtifact,
+  artefact: NormalisedAddressChunkArtefact,
   options: AddressSqlImportBuildOptions = {},
 ): AddressSqlImportFile[] {
   const runId = options.runId ?? buildAddressSqlImportRunId(message)
   const statements = [
-    buildAddressNormalizedStagingSchemaSql(),
+    buildAddressNormalisedStagingSchemaSql(),
     `DELETE FROM ${NORMALIZED_ROWS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
     `DELETE FROM ${NORMALIZED_I18N_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
     ...buildInsertStatements(
       NORMALIZED_ROWS_TABLE,
       NORMALIZED_ROW_COLUMNS,
-      artifact.rows.map((row, index) => ({
+      artefact.rows.map((row, index) => ({
         runId,
-        rowNumber: artifact.rowStart + index,
+        rowNumber: artefact.rowStart + index,
         source: message.source,
         sourceVersion: message.sourceVersion,
         sourceRecordId: row.sourceId,
@@ -195,23 +195,23 @@ export function buildAddressSourceSqlImportFiles(
     ...buildInsertStatements(
       NORMALIZED_I18N_TABLE,
       NORMALIZED_I18N_COLUMNS,
-      artifact.rows.flatMap(row =>
-        row.i18n.map(localized => ({
+      artefact.rows.flatMap(row =>
+        row.i18n.map(localised => ({
           runId,
           sourceRecordId: row.sourceId,
-          locale: localized.locale,
-          formattedAddress: localized.formattedAddress,
-          buildingName: localized.buildingName,
-          buildingNumberFrom: localized.buildingNumberFrom,
-          buildingNumberTo: localized.buildingNumberTo,
-          blockType: localized.blockType,
-          blockNumber: localized.blockNumber,
-          blockTypeBeforeNumber: localized.blockTypeBeforeNumber,
-          phaseName: localized.phaseName,
-          phaseNumber: localized.phaseNumber,
-          estateName: localized.estateName,
-          streetNumber: localized.streetNumber,
-          streetName: localized.streetName,
+          locale: localised.locale,
+          formattedAddress: localised.formattedAddress,
+          buildingName: localised.buildingName,
+          buildingNumberFrom: localised.buildingNumberFrom,
+          buildingNumberTo: localised.buildingNumberTo,
+          blockType: localised.blockType,
+          blockNumber: localised.blockNumber,
+          blockTypeBeforeNumber: localised.blockTypeBeforeNumber,
+          phaseName: localised.phaseName,
+          phaseNumber: localised.phaseNumber,
+          estateName: localised.estateName,
+          streetNumber: localised.streetNumber,
+          streetName: localised.streetName,
         })),
       ),
       options.maxStatementBytes,
@@ -222,17 +222,17 @@ export function buildAddressSourceSqlImportFiles(
   const files = [
     buildSqlImportFile(
       'source',
-      `${runId}-source-${artifact.rowStart}.sql`,
+      `${runId}-source-${artefact.rowStart}.sql`,
       statements,
     ),
   ]
 
   if (message.source === 'hkgov-dpo') {
-    const aliasRows = artifact.rows.flatMap(row => {
+    const aliasRows = artefact.rows.flatMap(row => {
       const aliasValue = asNonEmptyString(row.raw.identityAlias)
       const canonicalId = asNonEmptyString(row.raw.canonicalId)
       if (!aliasValue || !canonicalId || aliasValue === canonicalId) return []
-      const now = artifact.processingRunStartedAt
+      const now = artefact.processingRunStartedAt
 
       return [
         {
@@ -256,7 +256,7 @@ export function buildAddressSourceSqlImportFiles(
       files.push(
         buildSqlImportFile(
           'meta',
-          `${runId}-identity-alias-${artifact.rowStart}.sql`,
+          `${runId}-identity-alias-${artefact.rowStart}.sql`,
           buildInsertStatements(
             'entityAliases',
             [
@@ -284,13 +284,13 @@ export function buildAddressSourceSqlImportFiles(
 
 export function buildAddressResolvedSqlImportFiles(
   message: DatasetProcessingMessage,
-  artifact: ResolvedAddressChunkArtifact,
+  artefact: ResolvedAddressChunkArtefact,
   options: AddressSqlImportBuildOptions = {},
 ): AddressSqlImportFile[] {
   const runId = options.runId ?? buildAddressSqlImportRunId(message)
   const historyStatements = [
     buildAddressResolvedStagingSchemaSql(),
-    ...(artifact.rowStart === 0
+    ...(artefact.rowStart === 0
       ? [
           `DELETE FROM zzAddressImportResolvedRows WHERE runId = ${sqlLiteral(runId)};`,
           `DELETE FROM zzAddressImportResolvedI18n WHERE runId = ${sqlLiteral(runId)};`,
@@ -299,9 +299,9 @@ export function buildAddressResolvedSqlImportFiles(
     ...buildInsertStatements(
       'zzAddressImportResolvedRows',
       RESOLVED_ROW_COLUMNS,
-      artifact.rows.map((row, index) => ({
+      artefact.rows.map((row, index) => ({
         runId,
-        rowNumber: artifact.rowStart + index,
+        rowNumber: artefact.rowStart + index,
         sourceRecordId: row.sourceId,
         addressId: row.addressId,
         changed: row.changed,
@@ -332,27 +332,27 @@ export function buildAddressResolvedSqlImportFiles(
     ...buildInsertStatements(
       'zzAddressImportResolvedI18n',
       RESOLVED_I18N_COLUMNS,
-      artifact.rows.flatMap(row =>
-        row.i18n.map(localized => ({
+      artefact.rows.flatMap(row =>
+        row.i18n.map(localised => ({
           runId,
           addressId: row.addressId,
           versionHash: row.versionHash,
-          snapshotId: localized.snapshotId,
-          locale: localized.locale,
-          formattedAddress: localized.formattedAddress,
-          buildingName: localized.buildingName,
-          buildingNumberFrom: localized.buildingNumberFrom,
-          buildingNumberTo: localized.buildingNumberTo,
-          blockType: localized.blockType,
-          blockNumber: localized.blockNumber,
-          blockTypeBeforeNumber: localized.blockTypeBeforeNumber,
-          phaseName: localized.phaseName,
-          phaseNumber: localized.phaseNumber,
-          estateName: localized.estateName,
-          streetNumber: localized.streetNumber,
-          streetName: localized.streetName,
-          createdAt: localized.createdAt,
-          updatedAt: localized.updatedAt,
+          snapshotId: localised.snapshotId,
+          locale: localised.locale,
+          formattedAddress: localised.formattedAddress,
+          buildingName: localised.buildingName,
+          buildingNumberFrom: localised.buildingNumberFrom,
+          buildingNumberTo: localised.buildingNumberTo,
+          blockType: localised.blockType,
+          blockNumber: localised.blockNumber,
+          blockTypeBeforeNumber: localised.blockTypeBeforeNumber,
+          phaseName: localised.phaseName,
+          phaseNumber: localised.phaseNumber,
+          estateName: localised.estateName,
+          streetNumber: localised.streetNumber,
+          streetName: localised.streetName,
+          createdAt: localised.createdAt,
+          updatedAt: localised.updatedAt,
         })),
       ),
       options.maxStatementBytes,
@@ -365,9 +365,9 @@ export function buildAddressResolvedSqlImportFiles(
     ...buildInsertStatements(
       'zzAddressImportResolvedRows',
       RESOLVED_ROW_COLUMNS,
-      artifact.rows.map((row, index) => ({
+      artefact.rows.map((row, index) => ({
         runId,
-        rowNumber: artifact.rowStart + index,
+        rowNumber: artefact.rowStart + index,
         sourceRecordId: row.sourceId,
         addressId: row.addressId,
         changed: row.changed,
@@ -401,27 +401,27 @@ export function buildAddressResolvedSqlImportFiles(
     ...buildInsertStatements(
       'zzAddressImportResolvedI18n',
       RESOLVED_I18N_COLUMNS,
-      artifact.rows.flatMap(row =>
-        row.i18n.map(localized => ({
+      artefact.rows.flatMap(row =>
+        row.i18n.map(localised => ({
           runId,
           addressId: row.addressId,
           versionHash: row.versionHash,
-          snapshotId: localized.snapshotId,
-          locale: localized.locale,
-          formattedAddress: localized.formattedAddress,
-          buildingName: localized.buildingName,
-          buildingNumberFrom: localized.buildingNumberFrom,
-          buildingNumberTo: localized.buildingNumberTo,
-          blockType: localized.blockType,
-          blockNumber: localized.blockNumber,
-          blockTypeBeforeNumber: localized.blockTypeBeforeNumber,
-          phaseName: localized.phaseName,
-          phaseNumber: localized.phaseNumber,
-          estateName: localized.estateName,
-          streetNumber: localized.streetNumber,
-          streetName: localized.streetName,
-          createdAt: localized.createdAt,
-          updatedAt: localized.updatedAt,
+          snapshotId: localised.snapshotId,
+          locale: localised.locale,
+          formattedAddress: localised.formattedAddress,
+          buildingName: localised.buildingName,
+          buildingNumberFrom: localised.buildingNumberFrom,
+          buildingNumberTo: localised.buildingNumberTo,
+          blockType: localised.blockType,
+          blockNumber: localised.blockNumber,
+          blockTypeBeforeNumber: localised.blockTypeBeforeNumber,
+          phaseName: localised.phaseName,
+          phaseNumber: localised.phaseNumber,
+          estateName: localised.estateName,
+          streetNumber: localised.streetNumber,
+          streetName: localised.streetName,
+          createdAt: localised.createdAt,
+          updatedAt: localised.updatedAt,
         })),
       ),
       options.maxStatementBytes,
@@ -432,10 +432,10 @@ export function buildAddressResolvedSqlImportFiles(
   ]
 
   return [
-    buildSqlImportFile('history', `${runId}-history-${artifact.rowStart}.sql`, [
+    buildSqlImportFile('history', `${runId}-history-${artefact.rowStart}.sql`, [
       ...historyStatements,
     ]),
-    buildSqlImportFile('current', `${runId}-current-${artifact.rowStart}.sql`, [
+    buildSqlImportFile('current', `${runId}-current-${artefact.rowStart}.sql`, [
       ...currentStatements,
       buildAddressCurrentApplySql(runId),
       buildAddressResolvedStagingDropSql(),
@@ -479,7 +479,7 @@ export function buildAddressSqlCleanupFile(
   return buildSqlImportFile(target, `${runId}-${target}-cleanup.sql`, statements)
 }
 
-function buildAddressNormalizedStagingSchemaSql() {
+function buildAddressNormalisedStagingSchemaSql() {
   return `
 CREATE TABLE IF NOT EXISTS ${NORMALIZED_ROWS_TABLE} (
   runId TEXT NOT NULL,

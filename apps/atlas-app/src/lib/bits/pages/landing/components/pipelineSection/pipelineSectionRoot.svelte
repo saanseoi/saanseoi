@@ -17,9 +17,9 @@ let { children, class: className = '' }: Props = $props()
 
 <style>
 :global {
-  .landing-pipeline:not(.landing-pipeline-active) .pipeline-traveler,
+  .landing-pipeline:not(.landing-pipeline-active) .pipeline-traveller,
   .landing-pipeline:not(.landing-pipeline-active) .pipeline-number::before,
-  .landing-pipeline:not(.landing-pipeline-active) .artifact,
+  .landing-pipeline:not(.landing-pipeline-active) .artefact,
   .landing-pipeline:not(.landing-pipeline-active) .pipeline-arrow {
     animation-play-state: paused;
   }
@@ -130,21 +130,21 @@ let { children, class: className = '' }: Props = $props()
     fill: currentColor;
   }
 
-  .pipeline-traveler {
+  .pipeline-traveller {
     opacity: 0;
     filter: drop-shadow(0 0 0.35rem currentColor);
   }
 
-  .pipeline-traveler-source {
+  .pipeline-traveller-source {
     color: #7ff7d8;
     fill: currentColor;
-    animation: pipeline-traveler-source-flare 6s linear infinite;
+    animation: pipeline-traveller-source-flare 6s linear infinite;
   }
 
-  .pipeline-traveler-release {
+  .pipeline-traveller-release {
     color: #ffb08c;
     fill: currentColor;
-    animation: pipeline-traveler-release-flare 6s linear infinite;
+    animation: pipeline-traveller-release-flare 6s linear infinite;
   }
 
   .pipeline-arc-left {
@@ -226,13 +226,13 @@ let { children, class: className = '' }: Props = $props()
     transform: translateY(3.35rem) scale(1.05);
   }
 
-  .pipeline-artifacts {
+  .pipeline-artefacts {
     position: absolute;
     inset: -3.5rem -1.25rem;
     pointer-events: none;
   }
 
-  .artifact {
+  .artefact {
     position: absolute;
     display: block;
     font-family:
@@ -247,34 +247,34 @@ let { children, class: className = '' }: Props = $props()
     animation-timing-function: ease-in-out;
   }
 
-  .artifact-raw {
+  .artefact-raw {
     color: var(--pipeline-source);
     animation-name: raw-drift;
   }
 
-  .artifact-raw-coord {
+  .artefact-raw-coord {
     top: 1.1rem;
     left: 1.4rem;
   }
 
-  .artifact-raw-ref {
+  .artefact-raw-ref {
     top: 3.1rem;
     left: 2.2rem;
     animation-delay: -2s;
   }
 
-  .artifact-raw-meter {
+  .artefact-raw-meter {
     right: 1.35rem;
     bottom: 2.1rem;
     animation-delay: -4s;
   }
 
-  .artifact-release {
+  .artefact-release {
     color: var(--tertiary);
     animation-name: release-float;
   }
 
-  .artifact-release-square {
+  .artefact-release-square {
     top: -4.85rem;
     right: 1.8rem;
     width: 4.2rem;
@@ -283,7 +283,7 @@ let { children, class: className = '' }: Props = $props()
     transform: rotate(14deg);
   }
 
-  .artifact-release-circle {
+  .artefact-release-circle {
     top: -2.7rem;
     right: 4.7rem;
     width: 1.8rem;
@@ -293,13 +293,13 @@ let { children, class: className = '' }: Props = $props()
     animation-delay: -2.5s;
   }
 
-  .artifact-release-label {
+  .artefact-release-label {
     top: 0.25rem;
     right: 0.1rem;
     animation-delay: -4s;
   }
 
-  .artifact-release-grid {
+  .artefact-release-grid {
     right: 8.2rem;
     bottom: 1rem;
     width: 3.2rem;
@@ -309,7 +309,7 @@ let { children, class: className = '' }: Props = $props()
     animation-delay: -6s;
   }
 
-  .artifact-release-bars {
+  .artefact-release-bars {
     bottom: 2.1rem;
     left: 2.4rem;
     width: 4.7rem;
@@ -321,12 +321,12 @@ let { children, class: className = '' }: Props = $props()
     animation-delay: -1s;
   }
 
-  .artifact-api {
+  .artefact-api {
     color: var(--secondary);
     animation-name: api-pulse;
   }
 
-  .artifact-api-target {
+  .artefact-api-target {
     right: 1.4rem;
     bottom: 3.8rem;
     width: 1.5rem;
@@ -336,7 +336,7 @@ let { children, class: className = '' }: Props = $props()
     animation-delay: -2s;
   }
 
-  .artifact-api-target::after {
+  .artefact-api-target::after {
     position: absolute;
     inset: 0.38rem;
     content: "";
@@ -344,21 +344,21 @@ let { children, class: className = '' }: Props = $props()
     border-radius: inherit;
   }
 
-  .artifact-api-latency {
+  .artefact-api-latency {
     bottom: 0.6rem;
     left: 3.9rem;
     white-space: nowrap;
     animation-delay: -4s;
   }
 
-  .artifact-api-coord {
+  .artefact-api-coord {
     top: 0.6rem;
     right: 3rem;
     text-align: right;
     animation-delay: -6s;
   }
 
-  .artifact-api-status {
+  .artefact-api-status {
     top: 3rem;
     right: 1.6rem;
     padding: 0.12rem 0.45rem;
@@ -398,11 +398,11 @@ let { children, class: className = '' }: Props = $props()
     stroke: color-mix(in srgb, #b64e1f 58%, #007b66);
   }
 
-  :global(html:not(.dark)) .pipeline-traveler-source {
+  :global(html:not(.dark)) .pipeline-traveller-source {
     color: #24a98c;
   }
 
-  :global(html:not(.dark)) .pipeline-traveler-release {
+  :global(html:not(.dark)) .pipeline-traveller-release {
     color: #df7548;
   }
 
@@ -422,15 +422,15 @@ let { children, class: className = '' }: Props = $props()
     color: #df7548;
   }
 
-  :global(html:not(.dark)) .artifact {
+  :global(html:not(.dark)) .artefact {
     opacity: 0.44;
   }
 
-  :global(html:not(.dark)) .artifact-release {
+  :global(html:not(.dark)) .artefact-release {
     color: #b64e1f;
   }
 
-  :global(html:not(.dark)) .artifact-api {
+  :global(html:not(.dark)) .artefact-api {
     color: #007b66;
   }
 
@@ -482,7 +482,7 @@ let { children, class: className = '' }: Props = $props()
     }
   }
 
-  @keyframes pipeline-traveler-source-flare {
+  @keyframes pipeline-traveller-source-flare {
     0%,
     11.8%,
     47.8%,
@@ -495,7 +495,7 @@ let { children, class: className = '' }: Props = $props()
     }
   }
 
-  @keyframes pipeline-traveler-release-flare {
+  @keyframes pipeline-traveller-release-flare {
     0%,
     46.8%,
     82.8%,

@@ -21,7 +21,7 @@ Related docs:
 
 HKPost is a likely future input for:
 
-- address normalization checks
+- address normalisation checks
 - 3D unit or floor enrichment
 - user-facing formatting validation
 
@@ -36,6 +36,6 @@ If adopted, HKPost would most likely sit closer to:
 
 - address validation
 - 3D enrichment
-- formatting normalization
+- formatting normalisation
 
 than to the current 2D base-address snapshot flow used by HKGov ALS.

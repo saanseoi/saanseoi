@@ -40,13 +40,13 @@ async function resolveFixturePath(filePath: string) {
     throw new Error(`Fixture path must stay within fixtures/meta: ${filePath}`)
   }
 
-  const normalizedInput = filePath.replace(/^fixtures[\\/]meta[\\/]/, '')
+  const normalisedInput = filePath.replace(/^fixtures[\\/]meta[\\/]/, '')
   const metaRoot = resolve(workspaceRoot, 'fixtures/meta')
-  const candidatePaths = [resolve(metaRoot, normalizedInput)]
+  const candidatePaths = [resolve(metaRoot, normalisedInput)]
 
-  if (basename(normalizedInput) === normalizedInput) {
+  if (basename(normalisedInput) === normalisedInput) {
     for (const fixtureGroup of fixtureGroups) {
-      candidatePaths.push(resolve(metaRoot, fixtureGroup, normalizedInput))
+      candidatePaths.push(resolve(metaRoot, fixtureGroup, normalisedInput))
     }
   }
 

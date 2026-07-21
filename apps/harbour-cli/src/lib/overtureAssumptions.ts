@@ -33,7 +33,7 @@ export async function checkOvertureUploadAssumptions(
     return []
   }
 
-  const summary = await summarizeDivisionAssumptionColumns(filePath)
+  const summary = await summariseDivisionAssumptionColumns(filePath)
   return evaluateDivisionAssumptions(summary, plan.type, plan.regionCode)
 }
 
@@ -154,7 +154,7 @@ function yellowText(value: string) {
   return `\u001B[33m${value}\u001B[39m`
 }
 
-async function summarizeDivisionAssumptionColumns(filePath: string) {
+async function summariseDivisionAssumptionColumns(filePath: string) {
   const file = await asyncBufferFromFile(filePath)
   const metadata = await parquetMetadataAsync(file)
   const schema = parquetSchema(metadata)

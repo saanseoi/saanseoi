@@ -1,5 +1,5 @@
 import {
-  publishReleaseArtifacts,
+  publishReleaseArtefacts,
   ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
@@ -312,7 +312,7 @@ export async function handlePublishDataset(
       member => member.domainCode === domainCode,
     )
     let selectedApiCatalogRevision: Awaited<
-      ReturnType<typeof publishReleaseArtifacts>
+      ReturnType<typeof publishReleaseArtefacts>
     > | null = null
     let selectedReleaseSetStatus: 'current' | 'draft' = 'draft'
     const newestReleaseSetIndex = releaseSets.length - 1
@@ -374,7 +374,7 @@ export async function handlePublishDataset(
       if (isNewestReleaseSet && shouldPublishReleaseSet) {
         selectedReleaseSetStatus = 'current'
       }
-      const apiCatalogRevision = await publishReleaseArtifacts(db, {
+      const apiCatalogRevision = await publishReleaseArtefacts(db, {
         carriedSnapshots,
         currentRelease,
         currentReleaseIsCorrected: currentRelease
@@ -434,7 +434,7 @@ export async function handlePublishDataset(
 }
 
 /**
- * Geometry transforms are materialized for efficient reads, but they do not
+ * Geometry transforms are materialised for efficient reads, but they do not
  * declare independent API-composition slots. A derived variant therefore
  * inherits the source variant's domain and release-set membership.
  */
@@ -646,7 +646,7 @@ function stringifyOptional(value?: Record<string, unknown>) {
 
 function isAddressSqlGenerationProgressPhase(phase: string) {
   return (
-    phase === 'normalizeAddressSql' ||
+    phase === 'normaliseAddressSql' ||
     phase === 'generateAddressSqlSource' ||
     phase === 'generateAddressSqlHistory' ||
     phase === 'generateAddressSqlCurrent'

@@ -129,7 +129,7 @@ export async function prepareHkgovPlandTpuParquet(
   }
 
   const cells = payload.features.map((feature, index) =>
-    normalizePlanningCell(feature, index, options.sourceVersion),
+    normalisePlanningCell(feature, index, options.sourceVersion),
   )
   const divisions = buildPlanningDivisions(cells, options.sourceVersion)
   await mkdir(dirname(resolve(options.outputFile)), { recursive: true })
@@ -152,7 +152,7 @@ export async function prepareHkgovPlandTpuParquet(
   }
 }
 
-function normalizePlanningCell(
+function normalisePlanningCell(
   value: unknown,
   index: number,
   sourceVersion: string,

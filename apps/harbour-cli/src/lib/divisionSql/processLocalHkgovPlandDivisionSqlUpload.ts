@@ -441,18 +441,18 @@ async function readPreparedDivisions(bucket: LocalPipelineBucket, key: string) {
   const file = await createAsyncBufferFromR2(bucket, key)
   const records: PreparedDivision[] = []
   for await (const batch of readParquetObjectsInBatches(file, 512)) {
-    for (const raw of batch) records.push(await normalizePreparedDivision(raw))
+    for (const raw of batch) records.push(await normalisePreparedDivision(raw))
   }
   return records
 }
 
-async function normalizePreparedDivision(value: Record<string, unknown>) {
+async function normalisePreparedDivision(value: Record<string, unknown>) {
   const id = requireString(value.id, 'id')
   const level = requireString(value.planning_level, 'planning_level')
   const sourceProperties = asRecord(value.source_properties)
   const identifiers = asRecord(value.identifiers)
   const sourceCellIds = value.source_cell_ids ?? []
-  const i18n = normalizeI18n(value.i18n)
+  const i18n = normaliseI18n(value.i18n)
   const geometry = parseWkbGeometry(value.geometry)
   if (!geometry) throw new Error(`Planning division ${id} has invalid geometry.`)
   const sourceGeometry = parseWkbGeometry(sourceProperties.sourceGeometry) ?? geometry
@@ -514,7 +514,7 @@ function wasPlanningGeometryRepaired(record: PreparedDivision) {
   )
 }
 
-function normalizeI18n(value: unknown) {
+function normaliseI18n(value: unknown) {
   if (!Array.isArray(value)) return []
   return value.flatMap(item => {
     if (!item || typeof item !== 'object') return []

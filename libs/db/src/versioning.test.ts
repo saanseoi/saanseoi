@@ -27,13 +27,13 @@ describe('snapshot identifiers', () => {
     )
   })
 
-  test('normalizes resource and variant segments in snapshot codes', () => {
+  test('normalises resource and variant segments in snapshot codes', () => {
     expect(
       buildSnapshotVersionCode('hk', 'divisionArea', '2006', 'hkgov-pland-new-town'),
     ).toBe('ss-hk-division-area-hkgov-pland-new-town-2006')
   })
 
-  test('normalizes structured C&SD geometry variants in snapshot codes', () => {
+  test('normalises structured C&SD geometry variants in snapshot codes', () => {
     expect(
       buildSnapshotVersionCode('hk', 'divisionArea', '2021', 'hkgov-censtatd:2021'),
     ).toBe('ss-hk-division-area-hkgov-censtatd-2021-2021')

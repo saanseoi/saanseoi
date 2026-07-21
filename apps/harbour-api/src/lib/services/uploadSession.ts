@@ -3,7 +3,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { and, eq, metaSchema } from '@repo/db'
 import {
   createRawObjectKey,
-  finalizeUpload,
+  finaliseUpload,
   planUpload,
   requestUpload,
 } from '@repo/core/upload'
@@ -61,7 +61,7 @@ export type SignUploadRequest = {
   schemaVersionId?: string
 }
 
-export type FinalizeUploadRequest = {
+export type FinaliseUploadRequest = {
   releaseId: string
   skipSnapshotCleanup?: boolean
 }
@@ -139,10 +139,10 @@ export async function handleSignUploadRequest(
   }
 }
 
-export async function handleFinalizeUploadRequest(
+export async function handleFinaliseUploadRequest(
   db: HarbourReadableDb & HarbourWritableDb,
   bucket: HarbourObjectBucket,
-  request: FinalizeUploadRequest,
+  request: FinaliseUploadRequest,
   _dependencies: UploadSessionDependencies = {},
 ): Promise<RegisterUploadResult> {
   const dataset = await getDatasetRecordByReleaseId(db, request.releaseId)
@@ -153,7 +153,7 @@ export async function handleFinalizeUploadRequest(
 
   if (dataset.status !== 'uploading') {
     throw new Error(
-      `Release ${dataset.releaseCode} is not awaiting upload finalization.`,
+      `Release ${dataset.releaseCode} is not awaiting upload finalisation.`,
     )
   }
 
@@ -168,7 +168,7 @@ export async function handleFinalizeUploadRequest(
 
   if (!isParquetInspection(inspection)) {
     throw new Error(
-      `Upload inspection not found for release finalization: ${dataset.releaseCode}`,
+      `Upload inspection not found for release finalisation: ${dataset.releaseCode}`,
     )
   }
 
@@ -200,17 +200,17 @@ export async function handleFinalizeUploadRequest(
 
   if (planned.plan.releaseCode !== dataset.releaseCode) {
     throw new Error(
-      `Finalize plan mismatch for ${dataset.releaseCode}. Expected ${dataset.releaseCode}, got ${planned.plan.releaseCode}.`,
+      `Finalise plan mismatch for ${dataset.releaseCode}. Expected ${dataset.releaseCode}, got ${planned.plan.releaseCode}.`,
     )
   }
 
   if (createRawObjectKey(planned.plan) !== dataset.rawObjectKey) {
     throw new Error(
-      `Finalize rawObjectKey mismatch for ${dataset.releaseCode}. Expected ${dataset.rawObjectKey}.`,
+      `Finalise rawObjectKey mismatch for ${dataset.releaseCode}. Expected ${dataset.rawObjectKey}.`,
     )
   }
 
-  const finalized = await finalizeUpload(db, {
+  const finalised = await finaliseUpload(db, {
     filePath: fileName,
     originalFileName: dataset.originalFileName,
     regionCode: dataset.regionCode,
@@ -225,7 +225,7 @@ export async function handleFinalizeUploadRequest(
     resolveSchemaFingerprint,
   })
 
-  return finalized
+  return finalised
 }
 
 async function getRequestUploadStats(

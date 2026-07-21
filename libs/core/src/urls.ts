@@ -6,7 +6,7 @@ const harbourBaseUrls: Record<HarbourEnvironment, string> = {
   production: 'https://harbour.saanseoi.hk',
 }
 
-export function normalizeBaseUrl(value: string) {
+export function normaliseBaseUrl(value: string) {
   return value.trim().replace(/\/+$/, '')
 }
 

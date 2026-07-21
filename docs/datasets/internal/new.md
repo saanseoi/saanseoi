@@ -31,7 +31,7 @@ Current examples:
 - [Divisions family policy](../families/divisions.md)
 - [normative geometry contract](../../../spec/divisions-geometry.md)
 
-## 1. Inventory the provider artifact
+## 1. Inventory the provider artefact
 
 Record in the provider document:
 
@@ -40,9 +40,9 @@ Record in the provider document:
 - publication, revision and effective/validity dates;
 - observed feature count, geometry-type distribution, extent and CRS;
 - source fields, nullability, units, identifier semantics and any source invariants;
-- whether the artifact is a complete snapshot or a delta.
+- whether the artefact is a complete snapshot or a delta.
 
-Download a representative artifact and inspect it with the same tools used by the
+Download a representative artefact and inspect it with the same tools used by the
 importer (for example DuckDB for parquet or a GeoJSON/GeoPackage reader for vector
 services). Print the profile and retain reproducible queries or checks in the provider
 document. If an upstream defect is found, record the affected IDs and the decision to
@@ -93,13 +93,13 @@ populations during processing.
 ## 5. Map source and canonical schemas
 
 Follow the family’s established column order and reuse shared schema/versioning
-fragments. For every source field, record one of: retain exactly, normalize, enrich,
+fragments. For every source field, record one of: retain exactly, normalise, enrich,
 drop after a preflight check, or retain only in `rawProperties`.
 
 At minimum, geometry source rows normally include source ID, bbox, source geometry,
 source provenance/version, raw properties and provider relationship IDs. Canonical area
 rows include canonical ID, division ID, bbox, geometry, source keys, source provenance,
-normalized type and source flags. Canonical boundary rows additionally include ordered
+normalised type and source flags. Canonical boundary rows additionally include ordered
 left/right division IDs. History/current rows use the same version-management columns as
 the family’s existing resources.
 
@@ -110,16 +110,16 @@ tables stay in the provider profile.
 ## 6. Plan ingestion, preflight and statistics
 
 Add source-kind routing to the CLI and worker, schema drift checks, source-specific
-preflight, normalization, hashing, source/history advancement, current snapshot cloning,
+preflight, normalisation, hashing, source/history advancement, current snapshot cloning,
 stale-row deletion, rollback and cache profiles. Reuse shared full-snapshot SQL logic;
-keep provider relationship normalization in its adapter.
+keep provider relationship normalisation in its adapter.
 
 Preflight should check required columns, constant/dropped values, source filters,
 geometry validity, relationship cardinality/order, bridge coverage, referenced
 divisions, CRS transformation and duplicate IDs. It must identify the source, cohort,
 record and reason for every failure.
 
-Emit stats for accepted records, geometry types, normalized types/flags, bridge
+Emit stats for accepted records, geometry types, normalised types/flags, bridge
 coverage, and changed/unchanged/deleted rows. Keep rejection and quality diagnostics
 visible in processing output even when they are not persisted as release stats. Add
 stats tests and document any intentionally omitted dimensions.
@@ -133,7 +133,7 @@ requirements or that all requirements are met and a release set can be created.
 
 Geometry relationships should be sparse and opt-in. Use plural relationship names and
 qualified provider selectors (`areas:<provider>`, `boundaries:<provider>`). Update API
-fields, response schemas, query planning, serializers, deduplication and unknown/
+fields, response schemas, query planning, serialisers, deduplication and unknown/
 unavailable variant errors together. The normative response contract belongs in
 [`spec/atlas-api.md`](../../../spec/atlas-api.md).
 
@@ -144,7 +144,7 @@ Create or update, as applicable:
 - publisher, dataset and release metadata fixtures;
 - API composition members, roles/default variants and API-field relationship paths;
 - source-to-canonical bridge fixtures and reverse identifier enrichment;
-- localized release notes with retained, normalized, enriched, compatibility and
+- localised release notes with retained, normalised, enriched, compatibility and
   dropped-field sections;
 - family/resource documentation and the provider profile linked from this plan.
 
@@ -154,10 +154,10 @@ source/spec document.
 
 ## 9. Schema, migration and verification checklist
 
-Add source, history and current tables, indexes, constraints and stats serialization in
+Add source, history and current tables, indexes, constraints and stats serialisation in
 the same style as neighbouring resources. Generate migrations with the repository
 command and run them locally; do not hand-edit Drizzle snapshots. If rename/drop
-resolution is interactive, stop and obtain generated artifacts before continuing.
+resolution is interactive, stop and obtain generated artefacts before continuing.
 
 Before declaring the source complete, verify:
 
@@ -168,7 +168,7 @@ Before declaring the source complete, verify:
 - exact-cohort release assembly and upload-order feedback;
 - API default omission, each include, combined includes, sparse no-result responses,
   variant selection, unknown variants and included-resource de-duplication;
-- metadata, release-note, bridge and localized fixture hashes;
+- metadata, release-note, bridge and localised fixture hashes;
 - links and source/spec docs are current.
 
 ## Questions to resolve for every new source
@@ -176,7 +176,7 @@ Before declaring the source complete, verify:
 1. Is this a new logical resource or a provider variant, and what is its stable code?
 2. Which domain(s), cohort/validity period and hierarchy relationships apply?
 3. What is the deterministic identifier bridge and review process?
-4. Which source fields are retained, normalized, enriched, dropped, or kept in
+4. Which source fields are retained, normalised, enriched, dropped, or kept in
    `rawProperties`?
 5. What CRS/geometry union and validity policy applies?
 6. Is the snapshot required for publication or optional at the family level?

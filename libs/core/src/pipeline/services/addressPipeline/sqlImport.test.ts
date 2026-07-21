@@ -9,8 +9,8 @@ import {
   buildAddressSqlCleanupFile,
 } from './sqlImport'
 import { resolveAddressDivisionCohortKey } from './sqlStages'
-import type { ResolvedAddressChunkArtifact } from './types'
-import type { NormalizedAddressChunkArtifact } from './types'
+import type { ResolvedAddressChunkArtefact } from './types'
+import type { NormalisedAddressChunkArtefact } from './types'
 
 const message = {
   cohortKey: '2025-09',
@@ -27,12 +27,12 @@ const message = {
   type: 'address',
 } satisfies DatasetProcessingMessage
 
-const resolvedArtifact = {
+const resolvedArtefact = {
   addedRows: 0,
   changedRows: 0,
   insertedVersions: 0,
   kind: 'address.resolved.v1',
-  localizedRows: 0,
+  localisedRows: 0,
   processingRunStartedAt: '2026-07-03T00:00:00.000Z',
   releaseId: 'release-address',
   rowEnd: 0,
@@ -40,13 +40,13 @@ const resolvedArtifact = {
   rows: [],
   totalRows: 0,
   unchangedRows: 0,
-} satisfies ResolvedAddressChunkArtifact
+} satisfies ResolvedAddressChunkArtefact
 
 describe('address SQL import staging cleanup', () => {
   test('drops current resolved staging tables after current apply SQL', () => {
     const currentFile = buildAddressResolvedSqlImportFiles(
       message,
-      resolvedArtifact,
+      resolvedArtefact,
     ).find(file => file.target === 'current')
 
     expect(currentFile?.sql).toContain(
@@ -60,7 +60,7 @@ describe('address SQL import staging cleanup', () => {
     )
   })
 
-  test('writes a history-apply cleanup artifact even when there are no changes', () => {
+  test('writes a history-apply cleanup artefact even when there are no changes', () => {
     const historyApplyFile = buildAddressHistoryApplySqlImportFile(message, {
       hasChanges: false,
       snapshotId: 'snapshot-address',
@@ -76,7 +76,7 @@ describe('address SQL import staging cleanup', () => {
     expect(historyApplyFile.sql).not.toContain('INSERT INTO address2d')
   })
 
-  test('drops resolved staging tables in cleanup artifacts', () => {
+  test('drops resolved staging tables in cleanup artefacts', () => {
     const cleanupFile = buildAddressSqlCleanupFile(message, 'history')
 
     expect(cleanupFile.sql).toContain(
@@ -98,8 +98,8 @@ describe('HKGov ALS identity alias SQL', () => {
       source: 'hkgov-dpo',
       sourceVersion: '2025-09-03.0',
     } satisfies DatasetProcessingMessage
-    const artifact = {
-      kind: 'address.normalized.v1',
+    const artefact = {
+      kind: 'address.normalised.v1',
       processingRunStartedAt: '2026-07-18T00:00:00.000Z',
       releaseId: 'release-address',
       rowEnd: 1,
@@ -121,9 +121,9 @@ describe('HKGov ALS identity alias SQL', () => {
         },
       ],
       totalRows: 1,
-    } as unknown as NormalizedAddressChunkArtifact
+    } as unknown as NormalisedAddressChunkArtefact
 
-    const metaFile = buildAddressSourceSqlImportFiles(hkgovMessage, artifact).find(
+    const metaFile = buildAddressSourceSqlImportFiles(hkgovMessage, artefact).find(
       file => file.target === 'meta',
     )
 

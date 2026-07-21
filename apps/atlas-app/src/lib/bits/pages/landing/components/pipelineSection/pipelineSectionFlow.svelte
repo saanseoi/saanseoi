@@ -81,7 +81,7 @@ onMount(() => {
             class="pipeline-arc-right"
             d="M500 210 C597 20 722 20 833.333 157"
           ></path>
-          <circle class="pipeline-traveler pipeline-traveler-source" r="6">
+          <circle class="pipeline-traveller pipeline-traveller-source" r="6">
             {#if isPipelineActive}
               <animateMotion
                 dur="6s"
@@ -95,7 +95,7 @@ onMount(() => {
               </animateMotion>
             {/if}
           </circle>
-          <circle class="pipeline-traveler pipeline-traveler-release" r="6">
+          <circle class="pipeline-traveller pipeline-traveller-release" r="6">
             {#if isPipelineActive}
               <animateMotion
                 dur="6s"
@@ -121,9 +121,9 @@ onMount(() => {
           description={m.pipeline_sources_description()}
         >
           <PipelineSectionArtefactsRaw
-            coordinates={m.pipeline_source_artifact_coordinates()}
-            referenceSystem={m.pipeline_source_artifact_reference_system()}
-            measurements={m.pipeline_source_artifact_measurements()}
+            coordinates={m.pipeline_source_artefact_coordinates()}
+            referenceSystem={m.pipeline_source_artefact_reference_system()}
+            measurements={m.pipeline_source_artefact_measurements()}
           />
         </PipelineSectionBlock>
         <PipelineSectionArrow />
@@ -136,7 +136,7 @@ onMount(() => {
           description={m.pipeline_releases_description()}
         >
           <PipelineSectionArtefactsBundle
-            azimuth={m.pipeline_releases_artifact_azimuth()}
+            azimuth={m.pipeline_releases_artefact_azimuth()}
           />
         </PipelineSectionBlock>
         <PipelineSectionArrow />
@@ -149,9 +149,9 @@ onMount(() => {
           description={m.pipeline_apis_description()}
         >
           <PipelineSectionArtefactsApi
-            latency={m.pipeline_apis_artifact_latency()}
-            coordinates={m.pipeline_apis_artifact_coordinates()}
-            status={m.pipeline_apis_artifact_status()}
+            latency={m.pipeline_apis_artefact_latency()}
+            coordinates={m.pipeline_apis_artefact_coordinates()}
+            status={m.pipeline_apis_artefact_status()}
           />
         </PipelineSectionBlock>
       </PipelineSectionBlockWrapper>

@@ -1,7 +1,7 @@
 # Relationships
 
 - `datasets`
-- -> localized by
+- -> localised by
 - `datasetI18n`
 - -> incremental snapshots are published as
 - `releases`

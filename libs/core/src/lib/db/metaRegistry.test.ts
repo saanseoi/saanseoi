@@ -14,7 +14,7 @@ import {
   listRegistryReleases,
   listOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listCurrentSnapshotCleanupCandidates,
-  publishReleaseArtifacts,
+  publishReleaseArtefacts,
   resolveRegistryReleaseDisplayStatus,
   recordSnapshotAssemblyRun,
   resolveApiReleaseSetForRequest,
@@ -574,7 +574,7 @@ function createActiveSnapshotLookupDb() {
   }
 }
 
-function createPublishReleaseArtifactsDb() {
+function createPublishReleaseArtefactsDb() {
   const sqlite = new SQLiteDatabase(':memory:')
 
   sqlite.exec(`
@@ -1187,7 +1187,7 @@ describe('ensureDraftSnapshotForRelease', () => {
     sqlite.close()
   })
 
-  test('normalizes a v0 lineage code while retaining its referenced id', async () => {
+  test('normalises a v0 lineage code while retaining its referenced id', async () => {
     const { db, sqlite } = createDraftSnapshotDb()
     sqlite
       .query(
@@ -1981,9 +1981,9 @@ describe('listOvertureReleaseSetCohortsAtOrAfterCohortKey', () => {
   })
 })
 
-describe('publishReleaseArtifacts', () => {
+describe('publishReleaseArtefacts', () => {
   test('replaces an existing release-set snapshot for the same resource type and variant', async () => {
-    const { sqlite, db } = createPublishReleaseArtifactsDb()
+    const { sqlite, db } = createPublishReleaseArtefactsDb()
 
     sqlite.exec(`
       INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
@@ -2060,7 +2060,7 @@ describe('publishReleaseArtifacts', () => {
     `)
     seedCompleteOvertureFixtureSources(sqlite, 'snapshot-new')
 
-    const catalogRevision = await publishReleaseArtifacts(db, {
+    const catalogRevision = await publishReleaseArtefacts(db, {
       carriedSnapshots: [],
       currentRelease: null,
       currentReleaseIsCorrected: false,
@@ -2183,7 +2183,7 @@ describe('publishReleaseArtifacts', () => {
   })
 
   test('fails before publishing when a supported api family has no compatible bundled fixture', async () => {
-    const { sqlite, db } = createPublishReleaseArtifactsDb()
+    const { sqlite, db } = createPublishReleaseArtefactsDb()
 
     sqlite.exec(`
       INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
@@ -2229,7 +2229,7 @@ describe('publishReleaseArtifacts', () => {
     `)
 
     await expect(
-      publishReleaseArtifacts(db, {
+      publishReleaseArtefacts(db, {
         carriedSnapshots: [],
         currentRelease: null,
         currentReleaseIsCorrected: false,
@@ -2268,7 +2268,7 @@ describe('publishReleaseArtifacts', () => {
   })
 
   test('rejects unknown future overture releases when schema lookup cannot be resolved', async () => {
-    const { sqlite, db } = createPublishReleaseArtifactsDb()
+    const { sqlite, db } = createPublishReleaseArtefactsDb()
     const originalFetch = globalThis.fetch
 
     sqlite.exec(`
@@ -2320,7 +2320,7 @@ describe('publishReleaseArtifacts', () => {
 
     try {
       await expect(
-        publishReleaseArtifacts(db, {
+        publishReleaseArtefacts(db, {
           carriedSnapshots: [],
           currentRelease: null,
           currentReleaseIsCorrected: false,
@@ -2344,7 +2344,7 @@ describe('publishReleaseArtifacts', () => {
   })
 
   test('uses the overture catalog schema version for unmapped releases when available', async () => {
-    const { sqlite, db } = createPublishReleaseArtifactsDb()
+    const { sqlite, db } = createPublishReleaseArtefactsDb()
     const originalFetch = globalThis.fetch
 
     sqlite.exec(`
@@ -2400,7 +2400,7 @@ describe('publishReleaseArtifacts', () => {
     seedCompleteOvertureFixtureSources(sqlite, 'snapshot-new')
 
     try {
-      await publishReleaseArtifacts(db, {
+      await publishReleaseArtefacts(db, {
         carriedSnapshots: [],
         currentRelease: null,
         currentReleaseIsCorrected: false,

@@ -498,7 +498,7 @@ export const accessibilityPolicy: PolicyDocument = {
         {
           heading: '3. Current status',
           paragraphs: [
-            'We are a volunteer civic initiative and our platform is under active development. We are working towards WCAG 2.1 Level AA conformance and will continue to improve accessibility as our platform evolves. Some areas of the platform may not yet fully meet these standards.',
+            'We are a volunteer civic initiative and our platform is under active development. We are working towardss WCAG 2.1 Level AA conformance and will continue to improve accessibility as our platform evolves. Some areas of the platform may not yet fully meet these standards.',
             'If you encounter an accessibility barrier, we genuinely want to know about it.',
           ],
         },

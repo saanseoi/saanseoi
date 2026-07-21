@@ -115,7 +115,7 @@ describe('stats rows', () => {
       deletedRows: 1,
       districtCounts: { district: 10 },
       localeCounts: { en: 10 },
-      localizedRows: 18,
+      localisedRows: 18,
       processedRows: 10,
       recordedRows: 10,
       unchangedRows: 5,
@@ -131,7 +131,7 @@ describe('stats rows', () => {
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'localized_records',
+        dimension: 'localised_records',
         groupBy: 'table',
         groupValue: 'address2dI18n',
         metric: 'count',

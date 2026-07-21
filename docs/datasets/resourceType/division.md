@@ -16,8 +16,8 @@ There is no second division source in the current pipeline.
 
 ## Ingestion Model
 
-- Division uploads run locally from `saanseoi upload`, generate SQL artifacts, and
-  import those artifacts into the target D1 databases.
+- Division uploads run locally from `saanseoi upload`, generate SQL artefacts, and
+  import those artefacts into the target D1 databases.
 - The local division SQL runner is
   `apps/harbour-cli/src/lib/divisionSql/processLocalDivisionSqlUpload.ts`.
 - Processing creates or reuses a resourceType-scoped draft snapshot via
@@ -83,7 +83,7 @@ is straightforward:
   `subtype`, `class`, source-owned `version`, raw `hierarchies`, and derived
   compatibility `admin_level` where available
 - `wikidata`: retained where present
-- `hierarchy`: normalized from Overture `hierarchies`; country/self entries are dropped,
+- `hierarchy`: normalised from Overture `hierarchies`; country/self entries are dropped,
   entries are mapped to canonical `level`/`type` using the matching division row when
   needed, and labels are resolved from division i18n rows as `en`/`zh-hant`
 - `cartography`: retained when present
@@ -98,11 +98,11 @@ is straightforward:
 - `nameRules`
 - `isLocaleInferred`
 
-Locale storage behavior:
+Locale storage behaviour:
 
-- current/history snapshots preserve normalized source locale rows such as `zh-hk` or
+- current/history snapshots preserve normalised source locale rows such as `zh-hk` or
   `zh-hans`
-- they also materialize canonical API locale rows for `en`, `zh-hant`, and `zh-hans`
+- they also materialise canonical API locale rows for `en`, `zh-hant`, and `zh-hans`
 - Atlas `compact`, `default`, and `map` responses default to the same locale filter as
   `en,zh-hant`
 - the Atlas `full` profile defaults to all stored locales, equivalent to `locales=*`
@@ -114,7 +114,7 @@ Locale storage behavior:
 Division processing uses two hashes:
 
 - `versionHash`: based on base division fields only
-- `churnHash`: based on base fields plus localized rows
+- `churnHash`: based on base fields plus localised rows
 
 The Overture `FeatureVersion` is a source compatibility field. It may advance when
 Overture changes a feature and is exposed as `attributes.overture.version` in the full
@@ -124,7 +124,7 @@ the upstream feature counter. Because compatibility keys participate in the base
 an upstream feature-version change is also recorded as a new canonical hash rather than
 silently leaving the API provenance stale.
 
-Current behavior:
+Current behaviour:
 
 - unchanged rows are carried forward by snapshot clone rather than being rewritten
   row-by-row
@@ -148,14 +148,14 @@ Release precedence is also explicit:
 
 ## Source Retention
 
-The resourceType retains normalized Overture source rows in versioned source database
+The resourceType retains normalised Overture source rows in versioned source database
 tables. The current source row is the row where `isCurrent = 1`; there are no separate
 non-version current source tables.
 
 - `overtureDivisions`
 - `overtureDivisionI18n`
 
-Current behavior:
+Current behaviour:
 
 - changed source payloads close the previous current source row and insert a new current
   source row
@@ -174,14 +174,14 @@ Division processing computes release-level stats and stores them against the rel
 - churn stats comparing previous and current snapshots
 - quality/regression stats such as locale or name regression
 
-These are built in `libs/core/src/pipeline/services/stats.ts`, serialized into a
-dedicated `stats` SQL artifact, and imported into `DB_META`.
+These are built in `libs/core/src/pipeline/services/stats.ts`, serialised into a
+dedicated `stats` SQL artefact, and imported into `DB_META`.
 
 Atlas-facing division summaries should be written as `type = apiReleaseSet` stats
 against the API release set. The standard rows are:
 
 - `records/count/count` total, plus `groupBy = table` rows for `divisions`
-- `localized_records/count/count` with `groupBy = table`, `groupValue = divisionsI18n`
+- `localised_records/count/count` with `groupBy = table`, `groupValue = divisionsI18n`
 - `records/count/count` grouped by `level`
 - `records/count/count` grouped by `divisionType`
 - locale completeness rows: `locale_count`, `locale_coverage`,
@@ -235,5 +235,5 @@ also a live dependency elsewhere:
 - HKGov ALS address preparation also resolves division IDs from the current divisions
   database
 
-So divisions are already part of both serving and downstream canonicalization, even
+So divisions are already part of both serving and downstream canonicalisation, even
 though there is no dedicated public divisions endpoint yet.

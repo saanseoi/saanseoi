@@ -78,7 +78,7 @@ Relevant release fields are:
 - `revocationReason`
 - `ingestedAt`
 
-The active/public state is modeled on `releases.status`, not on a month-scoped dataset
+The active/public state is modelled on `releases.status`, not on a month-scoped dataset
 row.
 
 ### Current And History Split
@@ -98,7 +98,7 @@ History rows carry validity metadata:
 - `validToCohortKey`
 - `isCurrent`
 
-Localized history tables use the same pattern, except they omit month bounds and keep:
+Localised history tables use the same pattern, except they omit month bounds and keep:
 
 - `versionHash`
 - `releaseId`
@@ -110,7 +110,7 @@ Localized history tables use the same pattern, except they omit month bounds and
 
 The implemented canonical tables do not use `ot*`-prefixed columns.
 
-Canonical tables store normalized names directly, for example:
+Canonical tables store normalised names directly, for example:
 
 - `lng`, `lat`
 - `basicCategory`
@@ -121,7 +121,7 @@ Source-specific fidelity is preserved in the `source` database instead.
 
 ### Locale Handling
 
-Localized text is normalized into dedicated `*I18n` tables.
+Localised text is normalised into dedicated `*I18n` tables.
 
 Composite keys are:
 
@@ -158,7 +158,7 @@ Constraints:
 
 ### `datasetI18n`
 
-Localized dataset names and descriptions.
+Localised dataset names and descriptions.
 
 Primary key:
 
@@ -263,7 +263,7 @@ Constraint:
 
 ### API Release Metadata
 
-The implemented publication model separates contract, effective data, and catalog
+The implemented publication model separates contract, effective data, and catalogue
 knowledge:
 
 - `apiVersions`
@@ -281,7 +281,7 @@ An `apiReleaseSet` is an immutable release of one domain and one effective cohor
 trailing sequence is a composition revision, not an API contract patch. For example,
 adding a newly available secondary snapshot to cohort `2022` creates
 `data-hk-divisions-2022-r1--hkgov-pland-pu`; it does not mutate `...-r0`. Earlier
-catalog revisions continue to name `...-r0`, while a new catalog revision can name
+catalogue revisions continue to name `...-r0`, while a new catalogue revision can name
 `...-r1`. The legacy `status=current` value now means published/addressable; it no
 longer means that only one release set in the whole API family may have that status.
 
@@ -300,11 +300,11 @@ a new physical snapshot without rewriting the earlier one.
 These tables form the journal used for bitemporal resolution:
 
 - effective time selects a domain release by its cohort/effective date
-- knowledge time selects the newest catalog revision published at or before that time
-- an exact catalog plus exact release-set code is a publication permalink
+- knowledge time selects the newest catalogue revision published at or before that time
+- an exact catalogue plus exact release-set code is a publication permalink
 
 History validity remains anchored to immutable `apiReleaseSets`, not directly to raw
-uploads alone. Old canonical row versions remain change-only; catalog revisions and
+uploads alone. Old canonical row versions remain change-only; catalogue revisions and
 release-set membership rows do not copy entity data.
 
 API field provenance is resolved per domain release using the API version, domain,
@@ -608,9 +608,9 @@ Implemented relationships are:
 - one release has many ingest runs
 - one snapshot lineage has many cohort/revision snapshots
 - one immutable API domain release has many selected snapshots
-- one API catalog revision has many domain/cohort releases
+- one API catalogue revision has many domain/cohort releases
 - one canonical entity has one current row and many version rows over time
-- one canonical entity has many localized rows
+- one canonical entity has many localised rows
 - one place may reference zero or one `address2d`
 - one place may reference zero or one `address3d`
 - one place may map to many divisions through `placesDivision`
@@ -649,7 +649,7 @@ Important:
 Division ingest currently does all of the following:
 
 - reads parquet from `R2`
-- normalizes canonical division rows
+- normalises canonical division rows
 - upserts current `divisions`
 - replaces current `divisionsI18n`
 - inserts `divisions` and `divisionsI18n` on change
@@ -663,7 +663,7 @@ Division ingest currently does all of the following:
 Address ingest currently does all of the following:
 
 - reads parquet from `R2`
-- normalizes canonical address rows
+- normalises canonical address rows
 - resolves division lookups from current divisions
 - upserts current `address2d`
 - replaces current `address2dI18n`
@@ -672,10 +672,10 @@ Address ingest currently does all of the following:
 - deletes missing current rows for removed addresses
 - mirrors Overture or HK Gov ALS source rows into the `source` database when configured
 
-Current address ingest is centered on `address2d`. It does not yet run a full canonical
+Current address ingest is centred on `address2d`. It does not yet run a full canonical
 `street` or `address3d` derivation pipeline.
 
-### Publish Behavior
+### Publish Behaviour
 
 `publishDataset` marks the new release current and updates the previously current
 release for the same dataset:
@@ -686,10 +686,10 @@ release for the same dataset:
 The correction check is implemented by comparing the `sourceVersion` prefix before the
 final `.` suffix.
 
-Publishing a complete domain release also appends an immutable API catalog revision.
+Publishing a complete domain release also appends an immutable API catalogue revision.
 Published domain releases are never archived merely because a later domain or cohort is
 published. Current-store cleanup protects the default releases named by the latest
-catalog; older response data is reconstructed from change-only history when historical
+catalogue; older response data is reconstructed from change-only history when historical
 serving is enabled for that handler version.
 
 ## What Is Not Implemented

@@ -21,13 +21,13 @@ import type { AddressPipelineMessage } from './types'
 type ProcessAddressDatasetResult = {
   deletedRows: number
   insertedVersions: number
-  localizedRows: number
+  localisedRows: number
   processedRows: number
   statsRows: number
   unchangedRows: number
 }
 
-export async function finalizeAddressDatasetStage(
+export async function finaliseAddressDatasetStage(
   metaDb: MetaDatabase,
   currentDb: CurrentDatabase,
   historyDb: HistoryDatabase,
@@ -38,7 +38,7 @@ export async function finalizeAddressDatasetStage(
   const processingRunStartedAt = message.processingRunStartedAt
 
   if (!processingRunStartedAt) {
-    throw new Error('Missing processingRunStartedAt for address finalization.')
+    throw new Error('Missing processingRunStartedAt for address finalisation.')
   }
 
   const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
@@ -69,7 +69,7 @@ export async function finalizeAddressDatasetStage(
   return {
     deletedRows,
     insertedVersions: pipelineMessage.addressStats?.insertedVersions ?? 0,
-    localizedRows: pipelineMessage.addressStats?.localizedRows ?? 0,
+    localisedRows: pipelineMessage.addressStats?.localisedRows ?? 0,
     processedRows:
       pipelineMessage.addressStats?.processedRows ??
       Math.max(0, Math.floor(message.totalRows ?? 0)),

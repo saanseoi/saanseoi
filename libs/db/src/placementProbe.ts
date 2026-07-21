@@ -98,7 +98,7 @@ export async function runD1PlacementProbe(
 
     bindingResults.push({
       binding: bindingName,
-      stats: summarizeTimings(timingsMs),
+      stats: summariseTimings(timingsMs),
       timingsMs,
     })
   }
@@ -108,15 +108,15 @@ export async function runD1PlacementProbe(
   return {
     bindings: bindingResults,
     iterations: options.iterations,
-    overall: summarizeTimings(overallTimings),
+    overall: summariseTimings(overallTimings),
     query,
     totalQueries: overallTimings.length,
   }
 }
 
-function summarizeTimings(timingsMs: number[]): D1PlacementProbeStats {
+function summariseTimings(timingsMs: number[]): D1PlacementProbeStats {
   if (timingsMs.length === 0) {
-    throw new Error('Cannot summarize an empty timing sample.')
+    throw new Error('Cannot summarise an empty timing sample.')
   }
 
   const sorted = [...timingsMs].sort((left, right) => left - right)

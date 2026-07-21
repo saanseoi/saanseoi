@@ -149,28 +149,28 @@ export type DatasetProcessingMessage = {
   processingRunStartedAt?: string
   processingMode?: 'direct' | 'sql'
   addressStage?:
-    | 'normalize'
+    | 'normalise'
     | 'source'
     | 'history'
     | 'current'
-    | 'finalize'
+    | 'finalise'
     | 'sql-source'
     | 'sql-history'
     | 'sql-current'
-    | 'sql-finalize'
+    | 'sql-finalise'
     | 'sql-import-source'
     | 'sql-import-history'
     | 'sql-import-current'
     | 'sql-import-meta'
     | 'sql-cleanup-staging'
-  artifactKey?: string
-  resolvedArtifactKey?: string
-  addressSqlArtifactKeys?: string[]
+  artefactKey?: string
+  resolvedArtefactKey?: string
+  addressSqlArtefactKeys?: string[]
   addressSqlPublishAfterCleanup?: boolean
   addressStats?: {
     deletedRows: number
     insertedVersions: number
-    localizedRows: number
+    localisedRows: number
     processedRows: number
     unchangedRows: number
   }

@@ -3,11 +3,12 @@ export type HkgovAlsPremiseStructure = {
   blockNumber: string | null
   buildingName: string | null
   estateName: string | null
-  normalization: 'none' | 'redundant-building-name' | 'embedded-block'
+  normalisation: 'none' | 'redundant-building-name' | 'embedded-block'
 }
 
-export type HkgovAlsBuildingNameRomanNumeralNormalization = {
+export type HkgovAlsBuildingNameRomanNumeralNormalisation = {
   from: string
+  reference: string
   to: string
 }
 
@@ -26,20 +27,21 @@ const ROMAN_NUMERAL =
 
 /**
  * Finds building-name families which ALS already styles with a Roman-numeral
- * suffix. A family is the name before its final numeral, normalized only for
+ * suffix. A family is the name before its final numeral, normalised only for
  * comparison; the supplied name itself remains otherwise unchanged.
  */
 export function collectHkgovAlsRomanNumeralBuildingNameFamilies(
   buildingNames: Iterable<string | null | undefined>,
 ) {
-  const families = new Set<string>()
+  const families = new Map<string, string>()
 
   for (const buildingName of buildingNames) {
-    const match = buildingName?.trim().match(ROMAN_NUMERAL_SUFFIX)
+    const value = clean(buildingName ?? null)
+    const match = value?.match(ROMAN_NUMERAL_SUFFIX)
     const stem = match?.groups?.stem
     const numeral = match?.groups?.numeral
-    if (stem && numeral && isUnambiguousRomanNumeral(numeral)) {
-      families.add(normalizeBuildingNameFamily(stem))
+    if (value && stem && numeral && isUnambiguousRomanNumeral(numeral)) {
+      families.set(normaliseBuildingNameFamily(stem), value)
     }
   }
 
@@ -51,16 +53,16 @@ export function collectHkgovAlsRomanNumeralBuildingNameFamilies(
  * numerals, render a trailing Arabic building number as its Roman equivalent.
  * This intentionally does not affect numeric names in other families.
  */
-export function normalizeHkgovAlsBuildingNameRomanNumeral(input: {
+export function normaliseHkgovAlsBuildingNameRomanNumeral(input: {
   buildingName: string | null
-  romanNumeralFamilies: ReadonlySet<string>
-}): HkgovAlsBuildingNameRomanNumeralNormalization | null {
+  romanNumeralFamilies: ReadonlyMap<string, string>
+}): HkgovAlsBuildingNameRomanNumeralNormalisation | null {
   const from = clean(input.buildingName)
   const match = from?.match(ARABIC_NUMERAL_SUFFIX)
   const stem = match?.groups?.stem
   const numeral = match?.groups?.numeral
   if (!from || !stem || !numeral) return null
-  if (!input.romanNumeralFamilies.has(normalizeBuildingNameFamily(stem))) {
+  if (!input.romanNumeralFamilies.has(normaliseBuildingNameFamily(stem))) {
     return null
   }
 
@@ -68,7 +70,8 @@ export function normalizeHkgovAlsBuildingNameRomanNumeral(input: {
   if (numericValue > 3999) return null
 
   const to = `${stem} ${toRomanNumeral(numericValue)}`
-  return to === from ? null : { from, to }
+  const reference = input.romanNumeralFamilies.get(normaliseBuildingNameFamily(stem))
+  return to === from || !reference ? null : { from, reference, to }
 }
 
 /**
@@ -79,13 +82,13 @@ export function normalizeHkgovAlsBuildingNameRomanNumeral(input: {
 export function collectHkgovAlsRomanNumeralPremiseNumberFamilies(
   premises: Iterable<HkgovAlsStructuredPremiseNumber>,
 ) {
-  const families = new Set<string>()
+  const families = new Map<string, string>()
 
   for (const premise of premises) {
     const number = clean(premise.blockNumber)
     const family = structuredPremiseNumberFamily(premise)
     if (number && family && isUnambiguousRomanNumeral(number)) {
-      families.add(family)
+      families.set(family, `${premise.blockDescriptor?.trim() ?? 'PREMISE'} ${number}`)
     }
   }
 
@@ -96,19 +99,20 @@ export function collectHkgovAlsRomanNumeralPremiseNumberFamilies(
  * Within a Roman-styled BLOCK, HOUSE or TOWER family, render a plain Arabic
  * number as Roman numerals.
  */
-export function normalizeHkgovAlsPremiseNumberRomanNumeral(input: {
+export function normaliseHkgovAlsPremiseNumberRomanNumeral(input: {
   premise: HkgovAlsStructuredPremiseNumber
-  romanNumeralFamilies: ReadonlySet<string>
-}): HkgovAlsBuildingNameRomanNumeralNormalization | null {
+  romanNumeralFamilies: ReadonlyMap<string, string>
+}): HkgovAlsBuildingNameRomanNumeralNormalisation | null {
   const from = clean(input.premise.blockNumber)
   const family = structuredPremiseNumberFamily(input.premise)
-  if (!from || !family || !input.romanNumeralFamilies.has(family)) return null
+  const reference = family ? input.romanNumeralFamilies.get(family) : null
+  if (!from || !family || !reference) return null
   if (!/^[1-9]\d*$/.test(from)) return null
 
   const numericValue = Number(from)
   if (numericValue > 3999) return null
 
-  return { from, to: toRomanNumeral(numericValue) }
+  return { from, reference, to: toRomanNumeral(numericValue) }
 }
 
 /**
@@ -131,7 +135,7 @@ export function preferHkgovAlsEnglishCanonicalValue(input: {
  * This deliberately requires an exact estate prefix and a single trailing token.
  * A free-form building name (for example "WEST GATE TOWER") is never parsed.
  */
-export function normalizeHkgovAlsPremiseStructure(input: {
+export function normaliseHkgovAlsPremiseStructure(input: {
   blockDescriptor: string | null
   blockNumber: string | null
   buildingName: string | null
@@ -148,7 +152,7 @@ export function normalizeHkgovAlsPremiseStructure(input: {
       blockNumber,
       buildingName,
       estateName,
-      normalization: 'none',
+      normalisation: 'none',
     }
   }
 
@@ -158,7 +162,7 @@ export function normalizeHkgovAlsPremiseStructure(input: {
       blockNumber,
       buildingName: null,
       estateName,
-      normalization: 'redundant-building-name',
+      normalisation: 'redundant-building-name',
     }
   }
 
@@ -173,7 +177,7 @@ export function normalizeHkgovAlsPremiseStructure(input: {
       blockNumber,
       buildingName,
       estateName,
-      normalization: 'none',
+      normalisation: 'none',
     }
   }
 
@@ -185,7 +189,7 @@ export function normalizeHkgovAlsPremiseStructure(input: {
       blockNumber,
       buildingName,
       estateName,
-      normalization: 'none',
+      normalisation: 'none',
     }
   }
 
@@ -200,7 +204,7 @@ export function normalizeHkgovAlsPremiseStructure(input: {
       blockNumber,
       buildingName,
       estateName,
-      normalization: 'none',
+      normalisation: 'none',
     }
   }
 
@@ -209,7 +213,7 @@ export function normalizeHkgovAlsPremiseStructure(input: {
     blockNumber: parsedNumber,
     buildingName: null,
     estateName,
-    normalization: 'embedded-block',
+    normalisation: 'embedded-block',
   }
 }
 
@@ -227,7 +231,7 @@ function clean(value: string | null) {
   return text || null
 }
 
-function normalizeBuildingNameFamily(value: string) {
+function normaliseBuildingNameFamily(value: string) {
   return value.normalize('NFKC').trim().replace(/\s+/g, ' ').toUpperCase()
 }
 
@@ -238,7 +242,7 @@ function structuredPremiseNumberFamily(input: HkgovAlsStructuredPremiseNumber) {
   }
 
   const context = clean(input.estateName) ?? clean(input.buildingName)
-  return context ? `${descriptor}\u0000${normalizeBuildingNameFamily(context)}` : null
+  return context ? `${descriptor}\u0000${normaliseBuildingNameFamily(context)}` : null
 }
 
 function isUnambiguousRomanNumeral(value: string) {

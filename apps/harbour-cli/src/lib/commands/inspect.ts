@@ -1,13 +1,13 @@
 import { note, outro } from '@clack/prompts'
 
 import { formatField } from '../display.ts'
-import { inspectLocalArtifact } from '../inspect.ts'
+import { inspectLocalArtefact } from '../inspect.ts'
 import { resolveInspectOptions } from '../inspectOptions.ts'
 import type { ParsedArgs } from '../options.ts'
 
 export async function runInspectCommand(args: ParsedArgs) {
   const inspectOptions = await resolveInspectOptions(args)
-  const result = inspectLocalArtifact(inspectOptions)
+  const result = inspectLocalArtefact(inspectOptions)
 
   note(
     [
@@ -27,5 +27,5 @@ export async function runInspectCommand(args: ParsedArgs) {
     ].join('\n'),
     'INSPECT RESULT',
   )
-  outro('Harbour artifact inspection complete')
+  outro('Harbour artefact inspection complete')
 }

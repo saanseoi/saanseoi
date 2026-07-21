@@ -14,7 +14,7 @@ Saanseoi tracks provenance at two levels.
 
 Table: `releaseProcessingActions`
 
-This release-scoped audit trail records automatic normalizations and human-reviewed
+This release-scoped audit trail records automatic normalisations and human-reviewed
 decisions made while ingesting a dataset. Each row has a stable action code, an
 `automatic` or `manual` mode, affected-record count, summary, and compact JSON evidence
 that identifies the canonical record and relevant source variants. Aggregate counts are
@@ -78,7 +78,7 @@ Why these fields are stored this way:
   - a resolver name alone is not enough because the same rule can consume inputs with
     different roles such as `primary`, `fallback`, or `resolver-input`
 - `priority`
-  - precedence is part of the published behavior, so it must be visible in provenance
+  - precedence is part of the published behaviour, so it must be visible in provenance
     rather than hidden inside implementation code
 
 ## Contribution Types
@@ -115,7 +115,7 @@ canonical output.
 
 ## Resolver Codes
 
-`resolverCode` should describe the actual transformation behavior, not just the fixture
+`resolverCode` should describe the actual transformation behaviour, not just the fixture
 authoring pattern.
 
 Examples:

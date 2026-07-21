@@ -132,7 +132,7 @@ const searchRouteConfig = createRoute({
                 httpStatus: 503,
                 error: 'fts_not_ready',
                 message:
-                  'FTS index is not initialized. Rebuild placesFts before using search.',
+                  'FTS index is not initialised. Rebuild placesFts before using search.',
               },
             },
           },
@@ -308,13 +308,13 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
     } catch (error) {
       if (
         error instanceof Error &&
-        error.message.includes('FTS index is not initialized')
+        error.message.includes('FTS index is not initialised')
       ) {
         const response = {
           httpStatus: 503,
           error: 'fts_not_ready',
           message:
-            'FTS index is not initialized. Rebuild placesFts before using search.',
+            'FTS index is not initialised. Rebuild placesFts before using search.',
         } as const
 
         return c.json(response, 503)

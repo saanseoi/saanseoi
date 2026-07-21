@@ -244,7 +244,7 @@ describe('control service', () => {
         '${releaseId}',
         'generateAddressSqlCurrent',
         'completed',
-        '{"processedRows":1024,"sqlArtifactCount":2}',
+        '{"processedRows":1024,"sqlArtefactCount":2}',
         null,
         '2026-06-27T00:00:00.000Z',
         '2026-06-27T00:01:00.000Z',
@@ -258,7 +258,7 @@ describe('control service', () => {
       phase: 'generateAddressSqlCurrent',
       stats: {
         processedRows: 2048,
-        sqlArtifactCount: 3,
+        sqlArtefactCount: 3,
       },
     })
 
@@ -278,7 +278,7 @@ describe('control service', () => {
     expect(row).toEqual({
       finishedAt: null,
       startedAt: '2026-06-27T00:00:00.000Z',
-      stats: '{"processedRows":2048,"sqlArtifactCount":3}',
+      stats: '{"processedRows":2048,"sqlArtefactCount":3}',
       status: 'running',
     })
   })

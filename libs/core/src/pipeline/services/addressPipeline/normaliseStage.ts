@@ -5,25 +5,25 @@ import { createHash } from '../../utils'
 import { logStructuredInfo } from '../../logging'
 import type { HarbourWorkerBucket } from '../division'
 import {
-  buildPipelineArtifactKey,
-  type PipelineArtifactBucket,
-  writeJsonArtifact,
-} from '../pipelineArtifacts'
-import { dedupeAddressI18nRows, normalizeAddressRowForPipeline } from './normalization'
-import type { AddressPipelineMessage, NormalizedAddressChunkArtifact } from './types'
+  buildPipelineArtefactKey,
+  type PipelineArtefactBucket,
+  writeJsonArtefact,
+} from '../pipelineArtefacts'
+import { dedupeAddressI18nRows, normaliseAddressRowForPipeline } from './normalisation'
+import type { AddressPipelineMessage, NormalisedAddressChunkArtefact } from './types'
 
 const ADDRESS_BATCH_SIZE = 128
 const ADDRESS_CHUNK_ROW_COUNT = 1024
 const ADDRESS_PARQUET_READ_ROW_WINDOW_SIZE = 2048
 type ReportProgress = (stats: {
-  localizedRows: number
+  localisedRows: number
   processedRows: number
 }) => Promise<void>
 
-export async function normalizeAddressChunkStage(
+export async function normaliseAddressChunkStage(
   _metaDb: unknown,
   _currentDb: unknown,
-  bucket: HarbourWorkerBucket & PipelineArtifactBucket,
+  bucket: HarbourWorkerBucket & PipelineArtefactBucket,
   message: DatasetProcessingMessage,
   reportProgress?: ReportProgress,
 ): Promise<AddressPipelineMessage> {
@@ -37,10 +37,10 @@ export async function normalizeAddressChunkStage(
     rowStart,
     Math.floor(message.rowEnd ?? rowStart + chunkSize),
   )
-  const rows: NormalizedAddressChunkArtifact['rows'] = []
+  const rows: NormalisedAddressChunkArtefact['rows'] = []
   let totalRows = Math.max(0, Math.floor(message.totalRows ?? 0))
   let processedRows = 0
-  let localizedRows = 0
+  let localisedRows = 0
 
   for await (const batch of readParquetObjectsInBatches(file, ADDRESS_BATCH_SIZE, {
     rowStart,
@@ -51,7 +51,7 @@ export async function normalizeAddressChunkStage(
       logStructuredInfo({
         datasetId: message.datasetId,
         metadata,
-        phase: 'normalizeAddressChunk',
+        phase: 'normaliseAddressChunk',
         rowEnd: Math.min(requestedRowEnd, metadata.rowCount),
         rowStart,
         releaseId: message.releaseId ?? message.datasetId,
@@ -62,22 +62,22 @@ export async function normalizeAddressChunkStage(
     },
   })) {
     for (const row of batch) {
-      const normalized = normalizeAddressRowForPipeline(row)
-      const i18n = dedupeAddressI18nRows(normalized.i18n, normalized.sourceId)
+      const normalised = normaliseAddressRowForPipeline(row)
+      const i18n = dedupeAddressI18nRows(normalised.i18n, normalised.sourceId)
       const sourcePayloadHash = await createHash(row)
 
       rows.push({
-        ...normalized,
+        ...normalised,
         i18n,
         raw: row,
         sourcePayloadHash,
       })
       processedRows += 1
-      localizedRows += i18n.length
+      localisedRows += i18n.length
     }
 
     await reportProgress?.({
-      localizedRows,
+      localisedRows,
       processedRows: rowStart + processedRows,
     })
   }
@@ -87,10 +87,10 @@ export async function normalizeAddressChunkStage(
   }
 
   const rowEnd = Math.min(requestedRowEnd, totalRows)
-  const artifactKey = buildPipelineArtifactKey(message, 'normalized', rowStart, rowEnd)
+  const artefactKey = buildPipelineArtefactKey(message, 'normalised', rowStart, rowEnd)
 
-  await writeJsonArtifact<NormalizedAddressChunkArtifact>(bucket, artifactKey, {
-    kind: 'address.normalized.v1',
+  await writeJsonArtefact<NormalisedAddressChunkArtefact>(bucket, artefactKey, {
+    kind: 'address.normalised.v1',
     processingRunStartedAt,
     releaseId: message.releaseId ?? message.datasetId,
     rowStart,
@@ -102,7 +102,7 @@ export async function normalizeAddressChunkStage(
   return {
     ...message,
     addressStage: 'source',
-    artifactKey,
+    artefactKey,
     chunkSize,
     processingRunStartedAt,
     rowStart,

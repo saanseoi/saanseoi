@@ -64,19 +64,19 @@ describe('local import progress orchestration', () => {
     })
 
     await client.stageRunning('release-id', 'processDataset')
-    await client.stageCompleted('release-id', 'normalizeAddressSql')
+    await client.stageCompleted('release-id', 'normaliseAddressSql')
     await client.stageCompleted('release-id', 'generateAddressSqlCurrent')
     await client.stageRunning('release-id', 'importAddressSqlSource')
 
     expect(events.map(event => event.label)).toContain('Prepare dataset state (0/5)')
-    expect(events.map(event => event.label)).toContain('Prepare normalized rows (2/5)')
+    expect(events.map(event => event.label)).toContain('Prepare normalised rows (2/5)')
     expect(events.map(event => event.label)).toContain(
       'Prepare current SQL state (5/5)',
     )
     expect(events.map(event => event.label)).toContain('Import SQL (0/1)')
     expect(controlEvents).toEqual([
       'running:processDataset',
-      'completed:normalizeAddressSql',
+      'completed:normaliseAddressSql',
       'completed:generateAddressSqlCurrent',
       'running:importAddressSqlSource',
     ])

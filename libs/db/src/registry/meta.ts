@@ -54,7 +54,7 @@ export const initialResolverCodes: ResolverCode[] = [
   'prefer_hkgov_then_overture',
   'prefer_overture_then_hkgov',
   'merge_first_non_empty',
-  'normalize_whitespace',
+  'normalise_whitespace',
 ]
 
 type Locale = 'en' | 'zh-hant' | 'zh-hans'

@@ -8,9 +8,9 @@ export function isVerbosePipelineLoggingEnabled() {
     return false
   }
 
-  const normalized = value.trim().toLowerCase()
+  const normalised = value.trim().toLowerCase()
 
-  return normalized === '1' || normalized === 'true' || normalized === 'yes'
+  return normalised === '1' || normalised === 'true' || normalised === 'yes'
 }
 
 function emitStructuredLog(method: 'error' | 'info', payload: Record<string, unknown>) {

@@ -47,4 +47,4 @@ Repo-local operating notes for Codex and similar agents.
 - Do not handcraft Drizzle migration snapshots when a schema change requires interactive
   snapshot generation or rename resolution.
 - In that case, stop and ask the user to run the snapshot-generation command locally and
-  provide the generated migration artifacts for follow-up changes.
+  provide the generated migration artefacts for follow-up changes.

@@ -10,28 +10,28 @@ import {
   insertSourceHkgovAlsAddresses2dVersions,
 } from '../../db/source'
 import type { HarbourWorkerBucket } from '../division'
-import { type PipelineArtifactBucket, readJsonArtifact } from '../pipelineArtifacts'
-import { dedupeNormalizedAddressRows } from './normalization'
+import { type PipelineArtefactBucket, readJsonArtefact } from '../pipelineArtefacts'
+import { dedupeNormalisedAddressRows } from './normalisation'
 import type {
   AddressPipelineMessage,
-  NormalizedAddressChunkArtifact,
-  NormalizedAddressRecord,
+  NormalisedAddressChunkArtefact,
+  NormalisedAddressRecord,
 } from './types'
 
 export async function writeAddressSourceChunkStage(
   sourceDb: SourceDatabase | undefined,
-  bucket: HarbourWorkerBucket & PipelineArtifactBucket,
+  bucket: HarbourWorkerBucket & PipelineArtefactBucket,
   message: DatasetProcessingMessage,
 ): Promise<AddressPipelineMessage> {
   const pipelineMessage = message as AddressPipelineMessage
 
-  if (!pipelineMessage.artifactKey) {
-    throw new Error('Missing normalized address artifact key for source stage.')
+  if (!pipelineMessage.artefactKey) {
+    throw new Error('Missing normalised address artefact key for source stage.')
   }
 
-  const artifact = await readJsonArtifact<NormalizedAddressChunkArtifact>(
+  const artefact = await readJsonArtefact<NormalisedAddressChunkArtefact>(
     bucket,
-    pipelineMessage.artifactKey,
+    pipelineMessage.artefactKey,
   )
 
   if (!sourceDb) {
@@ -40,7 +40,7 @@ export async function writeAddressSourceChunkStage(
     )
   }
 
-  const uniqueRows = dedupeNormalizedAddressRows(artifact.rows)
+  const uniqueRows = dedupeNormalisedAddressRows(artefact.rows)
   const sourceRecordIds = uniqueRows.map(row => row.sourceId)
   const currentSourceRows = await getCurrentSourceHkgovAlsAddress2dRecords(
     sourceDb,
@@ -69,7 +69,7 @@ export async function writeAddressSourceChunkStage(
 async function writeHkgovSourceRows(
   sourceDb: SourceDatabase,
   message: DatasetProcessingMessage,
-  uniqueRows: NormalizedAddressRecord[],
+  uniqueRows: NormalisedAddressRecord[],
   currentSourceRows: Map<string, { sourcePayloadHash: string | null }>,
   releaseId: string,
   changedIds: Set<string>,
@@ -129,32 +129,32 @@ async function writeHkgovSourceRows(
 
     versionRows.push(hkgovSourceRow)
     i18nVersionRows.push(
-      ...row.i18n.map(localized => ({
+      ...row.i18n.map(localised => ({
         releaseId,
         sourceRecordId: row.sourceId,
         versionHash: row.sourcePayloadHash,
         validFromRelease: message.sourceVersion,
         validToRelease: null,
         isCurrent: true,
-        locale: localized.locale,
-        formattedAddress: localized.formattedAddress,
-        buildingName: localized.buildingName,
-        buildingNumberFrom: localized.buildingNumberFrom,
-        buildingNumberTo: localized.buildingNumberTo,
-        blockType: localized.blockType,
-        blockNumber: localized.blockNumber,
-        blockTypeBeforeNumber: localized.blockTypeBeforeNumber,
-        phaseName: localized.phaseName,
-        phaseNumber: localized.phaseNumber,
-        estateName: localized.estateName,
-        streetNumber: localized.streetNumber,
-        streetName: localized.streetName,
+        locale: localised.locale,
+        formattedAddress: localised.formattedAddress,
+        buildingName: localised.buildingName,
+        buildingNumberFrom: localised.buildingNumberFrom,
+        buildingNumberTo: localised.buildingNumberTo,
+        blockType: localised.blockType,
+        blockNumber: localised.blockNumber,
+        blockTypeBeforeNumber: localised.blockTypeBeforeNumber,
+        phaseName: localised.phaseName,
+        phaseNumber: localised.phaseNumber,
+        estateName: localised.estateName,
+        streetNumber: localised.streetNumber,
+        streetName: localised.streetName,
         villageName:
-          localized.locale === 'zh-hant'
+          localised.locale === 'zh-hant'
             ? asString(row.raw.zhHantVillageName)
             : asString(row.raw.enVillageName),
         districtName:
-          localized.locale === 'zh-hant'
+          localised.locale === 'zh-hant'
             ? asString(row.raw.zhHantDistrict)
             : asString(row.raw.enDistrict),
       })),

@@ -222,11 +222,11 @@ const docsUrlForFamily = (familyType: string) => `${atlasDocsUrl}#tag/${familyTy
 
 const releaseDisplayCode = (code?: string | null, familyType?: string) => {
   if (!code) return m.data_no_release()
-  const normalizedFamily = familyType?.toLowerCase()
-  if (normalizedFamily)
+  const normalisedFamily = familyType?.toLowerCase()
+  if (normalisedFamily)
     return code.replace(
       new RegExp(
-        `^(?:data|rs)-hk-${normalizedFamily.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-`,
+        `^(?:data|rs)-hk-${normalisedFamily.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-`,
       ),
       '',
     )

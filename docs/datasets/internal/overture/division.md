@@ -21,18 +21,18 @@ Stored i18n fields mean:
 
 Current storage boundary:
 
-- source tables keep raw normalized source locales
+- source tables keep raw normalised source locales
 - canonical current/history tables keep both:
-  - raw normalized source locales
+  - raw normalised source locales
   - canonical API locales used by Atlas default responses
 
 ## Local SQL Upload Phases
 
 Division uploads follow the shared local SQL lifecycle documented in
 [ResourceType common processing](../../resourceType/common.md). The division-specific
-generated artifacts are:
+generated artefacts are:
 
-- normalize parquet rows into canonical division records and source-retained rows
+- normalise parquet rows into canonical division records and source-retained rows
 - generate `source` SQL for `overtureDivisions` and `overtureDivisionI18n`
 - generate `history` SQL for canonical version tables in the history shard
 - generate `current` SQL, including optional snapshot clone SQL when a same-region
@@ -46,7 +46,7 @@ Overture-specific source rows are retained in:
 - `overtureDivisions`
 - `overtureDivisionI18n`
 
-Shared source-version behavior is documented in
+Shared source-version behaviour is documented in
 [ResourceType common processing](../../resourceType/common.md#source-retention).
 
 Division parquet uploads are treated as complete source snapshots. A later release

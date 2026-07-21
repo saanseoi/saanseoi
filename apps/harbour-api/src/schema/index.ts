@@ -258,12 +258,12 @@ export const SignUploadResponseSchema = z
   })
   .openapi('HarbourSignUploadResponse')
 
-export const FinalizeUploadRequestSchema = z
+export const FinaliseUploadRequestSchema = z
   .object({
     releaseId: ReleaseIdSchema,
     skipSnapshotCleanup: z.boolean().optional(),
   })
-  .openapi('HarbourFinalizeUploadRequest')
+  .openapi('HarbourFinaliseUploadRequest')
 
 export const ControlStageRequestSchema = z
   .object({

@@ -133,15 +133,15 @@ export async function runWithWriteRetry<T>(
   operation: () => T | Promise<T>,
   options: WriteRetryOptions | number = {},
 ): Promise<T> {
-  const normalizedOptions =
+  const normalisedOptions =
     typeof options === 'number' ? { attempt: options } : { ...options }
-  const attempt = normalizeRetryNumber(normalizedOptions.attempt, 0)
-  const maxRetries = normalizeRetryNumber(
-    normalizedOptions.maxRetries,
+  const attempt = normaliseRetryNumber(normalisedOptions.attempt, 0)
+  const maxRetries = normaliseRetryNumber(
+    normalisedOptions.maxRetries,
     SQLITE_BUSY_RETRY_LIMIT,
   )
-  const retryDelayMs = normalizeRetryNumber(
-    normalizedOptions.retryDelayMs,
+  const retryDelayMs = normaliseRetryNumber(
+    normalisedOptions.retryDelayMs,
     SQLITE_BUSY_RETRY_DELAY_MS,
   )
 
@@ -153,7 +153,7 @@ export async function runWithWriteRetry<T>(
     }
 
     const delayMs = retryDelayMs * 2 ** attempt
-    await normalizedOptions.onRetry?.({
+    await normalisedOptions.onRetry?.({
       attempt: attempt + 1,
       delayMs,
       error,
@@ -161,7 +161,7 @@ export async function runWithWriteRetry<T>(
     })
     await sleep(delayMs)
     return runWithWriteRetry(operation, {
-      ...normalizedOptions,
+      ...normalisedOptions,
       attempt: attempt + 1,
       maxRetries,
       retryDelayMs,
@@ -169,7 +169,7 @@ export async function runWithWriteRetry<T>(
   }
 }
 
-function normalizeRetryNumber(value: unknown, fallback: number) {
+function normaliseRetryNumber(value: unknown, fallback: number) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0
     ? Math.floor(value)
     : fallback
@@ -193,28 +193,28 @@ export function isRetryableSqliteWriteError(error: unknown) {
 }
 
 /**
- * Adds a trimmed localized value while keeping per-locale values unique.
+ * Adds a trimmed localised value while keeping per-locale values unique.
  */
-export function addLocalizedValue(
+export function addLocalisedValue(
   target: Map<string, Set<string>>,
   locale: string,
   value: string,
 ) {
-  const normalizedValue = value.trim()
+  const normalisedValue = value.trim()
 
-  if (!normalizedValue) {
+  if (!normalisedValue) {
     return
   }
 
   const values = target.get(locale) ?? new Set<string>()
-  values.add(normalizedValue)
+  values.add(normalisedValue)
   target.set(locale, values)
 }
 
 /**
- * Normalizes locale keys to lowercase and rejects empty values.
+ * Normalises locale keys to lowercase and rejects empty values.
  */
-export function normalizeLocale(value?: string | null) {
+export function normaliseLocale(value?: string | null) {
   const trimmed = value?.trim().replaceAll('_', '-').toLowerCase()
 
   if (!trimmed || !LOCALE_TAG_RE.test(trimmed)) {
@@ -237,25 +237,25 @@ export type InferredLocaleValue = {
  * Infers locale-bearing name parts from unlabeled source text.
  */
 export function inferLocale(value: unknown): InferredLocaleValue[] {
-  const normalizedValue = asNonEmptyString(value)
+  const normalisedValue = asNonEmptyString(value)
 
-  if (!normalizedValue) {
+  if (!normalisedValue) {
     return []
   }
 
-  const hasChinese = CHINESE_CHARACTER_RE.test(normalizedValue)
-  const hasLatin = LATIN_ALPHA_RE.test(normalizedValue)
+  const hasChinese = CHINESE_CHARACTER_RE.test(normalisedValue)
+  const hasLatin = LATIN_ALPHA_RE.test(normalisedValue)
 
   if (hasChinese && !hasLatin) {
-    return [{ locale: 'zh-hans', value: normalizedValue }]
+    return [{ locale: 'zh-hant', value: normalisedValue }]
   }
 
-  if (!hasChinese && EN_INFERRED_NAME_RE.test(normalizedValue)) {
-    return [{ locale: 'en', value: normalizedValue }]
+  if (!hasChinese && EN_INFERRED_NAME_RE.test(normalisedValue)) {
+    return [{ locale: 'en', value: normalisedValue }]
   }
 
   if (hasChinese && hasLatin) {
-    const match = normalizedValue.match(/^(\S+)\s+(.+)$/u)
+    const match = normalisedValue.match(/^(\S+)\s+(.+)$/u)
 
     if (match) {
       const left = match[1]

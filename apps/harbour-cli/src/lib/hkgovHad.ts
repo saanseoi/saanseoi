@@ -60,7 +60,7 @@ type PreparedHkgovHadDistrictRow = {
 }
 
 /**
- * Converts the CSDI District Boundary GeoJSON into the normalized Parquet
+ * Converts the CSDI District Boundary GeoJSON into the normalised Parquet
  * contract consumed by the division-geometry SQL processor. GeoJSON without a
  * CRS member is WGS84 by definition, so projected coordinates are rejected
  * rather than silently stored as longitude/latitude.
@@ -86,7 +86,7 @@ export async function prepareHkgovHadDistrictUpload(
   }
 
   const rows = payload.features.map((feature, index) =>
-    normalizeHkgovHadDistrictFeature(feature, index),
+    normaliseHkgovHadDistrictFeature(feature, index),
   )
   if (rows.length !== 18) {
     throw new Error(
@@ -197,7 +197,7 @@ export async function prepareHkgovHadDistrictUpload(
   }
 }
 
-function normalizeHkgovHadDistrictFeature(
+function normaliseHkgovHadDistrictFeature(
   value: unknown,
   index: number,
 ): PreparedHkgovHadDistrictRow {

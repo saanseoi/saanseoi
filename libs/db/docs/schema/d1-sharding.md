@@ -67,7 +67,7 @@ timing test.
 
 - maps source releases to physical shards
 - currently used
-- now modeled as a pure join table
+- now modelled as a pure join table
 
 `releaseSetShardAssignments`
 

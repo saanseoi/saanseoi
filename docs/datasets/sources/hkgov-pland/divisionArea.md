@@ -4,9 +4,9 @@ This profile records the Planning Department source-specific adapter. The source
 geometry contract remains in
 [`spec/divisions-geometry.md`](../../../../spec/divisions-geometry.md).
 
-## Catalogue and artifacts
+## Catalogue and artefacts
 
-The CSDI file API publishes the following polygonal GeoJSON artifacts. Their underlying
+The CSDI file API publishes the following polygonal GeoJSON artefacts. Their underlying
 ArcGIS services advertise EPSG:2326; the CSDI GeoJSON delivery is EPSG:4326
 longitude/latitude and is ingested as the API canonical CRS.
 
@@ -20,7 +20,7 @@ longitude/latitude and is ingested as the API canonical CRS.
 
 The publisher is the Planning Department (`hkgov-pland`), not the CSDI host. The source
 licence is the Hong Kong Government open-data licence. `sourceSchemaVersion` is our
-observed artifact-shape profile, not an upstream CSDI version: `1.0` covers the
+observed artefact-shape profile, not an upstream CSDI version: `1.0` covers the
 2001–2016 `PPU`/`SPU`/`TPU`/`SB_VC` columns, while `2.0` covers the 2021 replacement of
 `SB_VC` with `Subunit`. Releases use provider variant `hkgov-pland-pu` and source
 release codes `dr-hk-hkgov-pland-division-pu-{year}` and
@@ -40,7 +40,7 @@ feature and its original geometry remain in `hkgovPlandPlanningCells`.
 
 ## Geometry policy
 
-Only Polygon and MultiPolygon source geometry is accepted. The input artifacts have no
+Only Polygon and MultiPolygon source geometry is accepted. The input artefacts have no
 material same-TPU overlap. Six known source cells have ring self-intersections: two in
 2006, one in 2011, one in 2016, and two in 2021. The approved adapter policy stores the
 original source geometry unchanged and uses a `buffer(0)` topology repair solely for
@@ -79,7 +79,7 @@ datasets use `ds-hk-hkgov-pland-division-new-town` and
 | 2021   | [`pland_rcd_1634023103904_16865`](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865) | `NewTown_2021` |       13 |
 
 The layers publish only English, Traditional Chinese and Simplified Chinese names—no
-stable feature code. The adapter derives a normalized English-name identifier within
+stable feature code. The adapter derives a normalised English-name identifier within
 each cohort and creates a deterministic UUIDv5 canonical division from that cohort-
 scoped Planning Department identity. A 2006, 2011, 2016, or 2021 New Town therefore
 coexists with (and neither replaces nor is a geometry variant of) an Overture geographic
@@ -88,11 +88,11 @@ cohort or Overture bridge is inferred. This makes the geometry selectable as
 `areas:hkgov-pland-new-town` for the corresponding planning division release.
 
 The trilingual labels are retained verbatim in the versioned `hkgovPlandDivisionI18n`
-source table and normalized into the associated canonical planning division's
+source table and normalised into the associated canonical planning division's
 `divisionI18n` rows. The geometry assertion additionally retains those source labels in
 `hkgovPlandNewTownDivisionAreaI18n`.
 
-The downloaded New Town artifacts contain known invalid rings: Tseung Kwan O in 2006,
+The downloaded New Town artefacts contain known invalid rings: Tseung Kwan O in 2006,
 2011 and 2016; Tuen Mun and Tai Po in 2006; and Tung Chung in 2021. The reviewed
 `buffer(0)` policy repairs only those invalid topology cases for canonical geometry. The
 source layer retains the publisher feature and original geometry unchanged, records
@@ -100,20 +100,20 @@ source layer retains the publisher feature and original geometry unchanged, reco
 can also export a separately labelled `-repaired.geojson` diagnostic copy without
 altering the publisher file.
 
-Its `sourceSchemaVersion` `1.0` is likewise an observed artifact profile for the stable
+Its `sourceSchemaVersion` `1.0` is likewise an observed artefact profile for the stable
 `NewTown_en`, `NewTown_Tc`, and `NewTown_Sc` fields, rather than a version declared by
 the catalogue.
 
 ## Backfill commands
 
-The CLI owns the checked-in cohort list, artifact paths and catalogue provenance URLs.
-It prepares each local GeoJSON artifact in a temporary directory, uploads the canonical
+The CLI owns the checked-in cohort list, artefact paths and catalogue provenance URLs.
+It prepares each local GeoJSON artefact in a temporary directory, uploads the canonical
 division release first, then its exact-cohort area variant, and removes the temporary
 Parquet files afterwards. Snapshot cleanup is deferred for the interim division upload,
 so its canonical IDs remain materialised for the companion area validation; normal
 cleanup resumes when the area release is published.
 
-The TPU artifacts use GeoParquet WKB geometry. Their optional Parquet column statistics
+The TPU artefacts use GeoParquet WKB geometry. Their optional Parquet column statistics
 are disabled because the local upload inspector cannot read the GeoParquet statistics
 metadata emitted by the current writer; this does not alter the geometry or records.
 
@@ -130,4 +130,5 @@ The commands accept no data-path, source-version or confirmation options; use `l
 Planning Unit and New Town data publish as independent division domains. Historical
 cohorts do not require a matching Overture release. Planning Units use persistent
 identity; New Town identity is cohort-scoped. Enriching an already published historical
-cohort creates the next immutable domain-release revision and a new catalog checkpoint.
+cohort creates the next immutable domain-release revision and a new catalogue
+checkpoint.

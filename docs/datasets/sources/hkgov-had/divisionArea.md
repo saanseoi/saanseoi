@@ -38,7 +38,7 @@ capitalization, in both source columns and canonical geometry `sourceKeys`:
 | `AREA_ID`            | `hkgov.areaId`          |
 | `AREA_CODE`          | `hkgov.areaCode`        |
 
-The normalized `divisionArea` fields are the retained EPSG:4326 polygon, `divisionId`,
+The normalised `divisionArea` fields are the retained EPSG:4326 polygon, `divisionId`,
 `type = mixed`, and `isLand`/`isTerritorial = true`. `NAME_TC`, `NAME_EN`, `DATA_OWNER`,
 `BEGIN_LIFESPAN`, `END_LIFESPAN`, `SHAPE_Length`, and `SHAPE_Area` are dropped from
 projected fields; the complete input remains in `rawProperties` for auditability.
@@ -71,5 +71,5 @@ exact-cohort Overture area snapshot is available.
 
 HAD district areas form a persistent geometry lineage. They may enrich an immutable
 Overture domain release using the configured at-or-before cohort rule. A later HAD
-backfill creates a new Overture domain-release revision and catalog checkpoint rather
+backfill creates a new Overture domain-release revision and catalogue checkpoint rather
 than mutating the earlier publication.

@@ -106,7 +106,7 @@ export async function runHkgovPlandBackfillCommand(
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const releases = kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES
   const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
-  const artifactRoot = resolve(REPO_ROOT, 'data/hkgov/pland')
+  const artefactRoot = resolve(REPO_ROOT, 'data/hkgov/pland')
   const outputDir = await mkdtemp(join(tmpdir(), `harbour-${source}-backfill-`))
 
   try {
@@ -121,7 +121,7 @@ export async function runHkgovPlandBackfillCommand(
         continue
       }
 
-      const inputFile = resolve(artifactRoot, release.year, release.fileName)
+      const inputFile = resolve(artefactRoot, release.year, release.fileName)
       const divisionFile = join(
         outputDir,
         `${source}-hk-${release.year}-division.parquet`,
@@ -144,7 +144,7 @@ export async function runHkgovPlandBackfillCommand(
       )
 
       for (const type of types) {
-        await uploadPreparedArtifact({
+        await uploadPreparedArtefact({
           filePath: type === 'division' ? divisionFile : divisionAreaFile,
           invocationCwd,
           release,
@@ -159,7 +159,7 @@ export async function runHkgovPlandBackfillCommand(
   }
 }
 
-async function uploadPreparedArtifact(args: {
+async function uploadPreparedArtefact(args: {
   filePath: string
   invocationCwd: string
   release: BackfillRelease

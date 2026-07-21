@@ -7,7 +7,7 @@ Saanseoi keeps canonical storage split by workload.
 Purpose:
 
 - serve live API reads
-- store only the latest materialized row
+- store only the latest materialised row
 
 Examples:
 

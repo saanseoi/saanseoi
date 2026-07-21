@@ -208,8 +208,8 @@ export async function listIngestRuns(
 
   return rows.map(row => ({
     ...row,
-    error: normalizeJsonField(row.error),
-    stats: normalizeJsonField(row.stats),
+    error: normaliseJsonField(row.error),
+    stats: normaliseJsonField(row.stats),
   }))
 }
 
@@ -311,7 +311,7 @@ export async function listProcessingActions(
   return rows.map(row => ({
     ...row,
     createdAt: toIsoString(row.createdAt) ?? '',
-    evidence: normalizeJsonField(row.evidence),
+    evidence: normaliseJsonField(row.evidence),
     mode: row.mode === 'manual' ? 'manual' : 'automatic',
     updatedAt: toIsoString(row.updatedAt) ?? '',
   }))
@@ -843,7 +843,7 @@ async function countReleaseRowsByReleaseIds(
       count: number | string
       releaseId: string
     }>()
-  const rows = normalizeCountRows(result)
+  const rows = normaliseCountRows(result)
 
   return new Map(
     releaseIds.map(releaseId => {
@@ -853,7 +853,7 @@ async function countReleaseRowsByReleaseIds(
   )
 }
 
-function normalizeCountRows(
+function normaliseCountRows(
   result:
     | Array<{
         count: number | string
@@ -1044,18 +1044,18 @@ function resolveHistoryCountSpecs(type: string): CountSpec[] {
 }
 
 function resolveSourceFamily(release: ReleaseContext) {
-  const normalizedSource = release.source.trim().toLowerCase()
-  const normalizedSourceUrl = release.sourceUrl.trim().toLowerCase()
+  const normalisedSource = release.source.trim().toLowerCase()
+  const normalisedSourceUrl = release.sourceUrl.trim().toLowerCase()
 
-  if (normalizedSource === 'overture') {
+  if (normalisedSource === 'overture') {
     return 'overture'
   }
 
-  if (normalizedSource === 'hkgov' && normalizedSourceUrl.includes('dpo')) {
+  if (normalisedSource === 'hkgov' && normalisedSourceUrl.includes('dpo')) {
     return 'hkgov-dpo'
   }
 
-  return normalizedSource
+  return normalisedSource
 }
 
 function resolveReleaseYear(release: ReleaseContext) {
@@ -1069,7 +1069,7 @@ function resolveReleaseYear(release: ReleaseContext) {
   return snapshotYear && /^\d{4}$/.test(snapshotYear) ? snapshotYear : null
 }
 
-function normalizeJsonField(value: unknown) {
+function normaliseJsonField(value: unknown) {
   if (typeof value !== 'string') {
     return value ?? null
   }

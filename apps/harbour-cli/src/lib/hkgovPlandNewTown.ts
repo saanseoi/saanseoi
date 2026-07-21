@@ -53,7 +53,7 @@ export type HkgovPlandNewTownRepairResult = {
 
 /**
  * Exports a clearly labelled diagnostic copy of a New Town delivery with
- * invalid polygon rings canonicalized by buffer(0). The publisher file is
+ * invalid polygon rings canonicalised by buffer(0). The publisher file is
  * never overwritten; the upload adapter uses the same reviewed repair while
  * retaining the source feature and original geometry in the source layer.
  */
@@ -111,11 +111,11 @@ export async function exportRepairedHkgovPlandNewTownGeoJson(options: {
 }
 
 /**
- * Prepare a New Town GeoJSON artifact for the cohort-scoped planning-division
+ * Prepare a New Town GeoJSON artefact for the cohort-scoped planning-division
  * and geometry uploaders.
  * The CSDI GeoJSON delivery is WGS84 even though the catalogue service is
  * published in EPSG:2326. It has no upstream stable feature ID, so `id` is a
- * deterministic, cohort-scoped normalized English name retained as the provider
+ * deterministic, cohort-scoped normalised English name retained as the provider
  * identifier and used to derive the canonical UUIDv5.
  */
 export async function prepareHkgovPlandNewTownParquet(options: {
@@ -144,11 +144,11 @@ export async function prepareHkgovPlandNewTownParquet(options: {
     )
   }
 
-  const rows = payload.features.map(normalizeFeature)
+  const rows = payload.features.map(normaliseFeature)
   const ids = new Set(rows.map(row => row.id))
   if (ids.size !== rows.length) {
     throw new Error(
-      `Planning Department New Town ${options.sourceVersion} has duplicate normalized provider identifiers.`,
+      `Planning Department New Town ${options.sourceVersion} has duplicate normalised provider identifiers.`,
     )
   }
   await mkdir(dirname(resolve(options.outputFile)), { recursive: true })
@@ -391,7 +391,7 @@ function i18nRows(row: NewTownRow) {
   ]
 }
 
-function normalizeFeature(value: unknown, index: number): NewTownRow {
+function normaliseFeature(value: unknown, index: number): NewTownRow {
   if (!isRecord(value) || value.type !== 'Feature') {
     throw new Error(
       `Planning Department New Town feature ${index + 1} is not a GeoJSON Feature.`,
@@ -413,7 +413,7 @@ function normalizeFeature(value: unknown, index: number): NewTownRow {
   const repairedGeometry = repairGeometryIfInvalid(originalGeometry, index)
   return {
     geometry: repairedGeometry.geometry,
-    id: normalizeProviderId(names.en),
+    id: normaliseProviderId(names.en),
     names,
     originalGeometry,
     repaired: repairedGeometry.repaired,
@@ -421,7 +421,7 @@ function normalizeFeature(value: unknown, index: number): NewTownRow {
   }
 }
 
-function normalizeProviderId(value: string) {
+function normaliseProviderId(value: string) {
   return value
     .trim()
     .toLowerCase()

@@ -112,7 +112,7 @@ describe('upload helpers', () => {
         return new Response(null, { status: 200 })
       }
 
-      if (url === 'https://harbour.saanseoi.hk/v1/finalizeUpload') {
+      if (url === 'https://harbour.saanseoi.hk/v1/finaliseUpload') {
         return new Response(
           JSON.stringify({ releaseId: releaseRow.releaseId, status: 'staged' }),
           {
@@ -156,20 +156,20 @@ describe('upload helpers', () => {
     )
 
     const signBody = JSON.parse(String(calls[0]?.init?.body)) as { force?: boolean }
-    const finalizeBody = JSON.parse(String(calls[2]?.init?.body)) as {
+    const finaliseBody = JSON.parse(String(calls[2]?.init?.body)) as {
       releaseId?: string
     }
 
     expect(calls.map(call => call.url)).toEqual([
       'https://harbour.saanseoi.hk/v1/signUpload',
       'https://r2.example/upload?X-Amz-SignedHeaders=content-type%3Bhost',
-      'https://harbour.saanseoi.hk/v1/finalizeUpload',
+      'https://harbour.saanseoi.hk/v1/finaliseUpload',
     ])
     expect(calls[1]?.init?.headers).toEqual({
       'content-type': 'application/octet-stream',
     })
     expect(signBody.force).toBe(true)
-    expect(finalizeBody).toEqual({
+    expect(finaliseBody).toEqual({
       releaseId: releaseRow.releaseId,
     })
   })
@@ -215,7 +215,7 @@ describe('upload helpers', () => {
         return new Response(null, { status: 200 })
       }
 
-      if (url === 'https://harbour.saanseoi.hk/v1/finalizeUpload') {
+      if (url === 'https://harbour.saanseoi.hk/v1/finaliseUpload') {
         return new Response(
           JSON.stringify({ releaseId: releaseRow.releaseId, status: 'staged' }),
           {
@@ -261,12 +261,12 @@ describe('upload helpers', () => {
     const signBody = JSON.parse(String(calls[0]?.init?.body)) as {
       skipSnapshotCleanup?: boolean
     }
-    const finalizeBody = JSON.parse(String(calls[2]?.init?.body)) as {
+    const finaliseBody = JSON.parse(String(calls[2]?.init?.body)) as {
       skipSnapshotCleanup?: boolean
     }
 
     expect(signBody.skipSnapshotCleanup).toBe(true)
-    expect(finalizeBody.skipSnapshotCleanup).toBe(true)
+    expect(finaliseBody.skipSnapshotCleanup).toBe(true)
   })
 
   test('includes R2 response details when signed upload fails', async () => {
@@ -382,7 +382,7 @@ describe('upload helpers', () => {
         return new Response(null, { status: 200 })
       }
 
-      if (url === 'https://harbour.saanseoi.hk/v1/finalizeUpload') {
+      if (url === 'https://harbour.saanseoi.hk/v1/finaliseUpload') {
         return new Response(
           JSON.stringify({ releaseId: releaseRow.releaseId, status: 'staged' }),
           {
@@ -426,13 +426,13 @@ describe('upload helpers', () => {
     const signBody = JSON.parse(String(calls[0]?.init?.body)) as {
       processingMode?: string
     }
-    const finalizeBody = JSON.parse(String(calls[2]?.init?.body)) as {
+    const finaliseBody = JSON.parse(String(calls[2]?.init?.body)) as {
       processingMode?: string
       releaseId?: string
     }
 
     expect(signBody.processingMode).toBeUndefined()
-    expect(finalizeBody).toEqual({
+    expect(finaliseBody).toEqual({
       releaseId: releaseRow.releaseId,
     })
   })
@@ -606,7 +606,7 @@ describe('upload helpers', () => {
         releaseId: releaseRow.releaseId,
       }
     })
-    const finalizeLocalUpload = mock(async (_db, options) => ({
+    const finaliseLocalUpload = mock(async (_db, options) => ({
       datasetId: releaseRow.datasetId,
       inspection: options.inspection,
       plan: {
@@ -647,7 +647,7 @@ describe('upload helpers', () => {
       } as never,
       'schema-version-1',
       {
-        finalizeLocalUpload: finalizeLocalUpload as never,
+        finaliseLocalUpload: finaliseLocalUpload as never,
         force: true,
         requestLocalUpload: requestLocalUpload as never,
         resolveLocalDbContext: mock(async () => ({
@@ -660,7 +660,7 @@ describe('upload helpers', () => {
     expect(result.releaseId).toBe(releaseRow.releaseId)
     expect(result.status).toBe('staged')
     expect(requestLocalUpload).toHaveBeenCalled()
-    expect(finalizeLocalUpload).toHaveBeenCalled()
+    expect(finaliseLocalUpload).toHaveBeenCalled()
     expect(cleanup).toHaveBeenCalled()
   })
 
@@ -704,7 +704,7 @@ describe('upload helpers', () => {
       } as never,
       'schema-version-1',
       {
-        finalizeLocalUpload: mock(async (_db, options) => ({
+        finaliseLocalUpload: mock(async (_db, options) => ({
           datasetId: releaseRow.datasetId,
           inspection: options.inspection,
           plan: {

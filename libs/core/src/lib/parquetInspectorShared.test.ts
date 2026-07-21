@@ -1,19 +1,19 @@
 import { describe, expect, test } from 'bun:test'
 
-import { formatFieldType, normalizeLogicalType } from './parquetInspectorShared'
+import { formatFieldType, normaliseLogicalType } from './parquetInspectorShared'
 
-describe('normalizeLogicalType', () => {
-  test('normalizes modern PyArrow logical type names', () => {
-    expect(normalizeLogicalType('STRING')).toBe('utf8')
-    expect(normalizeLogicalType('LIST')).toBe('list')
-    expect(normalizeLogicalType('MAP')).toBe('map')
+describe('normaliseLogicalType', () => {
+  test('normalises modern PyArrow logical type names', () => {
+    expect(normaliseLogicalType('STRING')).toBe('utf8')
+    expect(normaliseLogicalType('LIST')).toBe('list')
+    expect(normaliseLogicalType('MAP')).toBe('map')
   })
 
   test('keeps extension logical types in the generic schema bucket', () => {
-    expect(normalizeLogicalType('GEOMETRY')).toBe('type')
+    expect(normaliseLogicalType('GEOMETRY')).toBe('type')
   })
 
-  test('recognizes the logical type object emitted by current PyArrow', () => {
+  test('recognises the logical type object emitted by current PyArrow', () => {
     expect(
       formatFieldType({
         element: { logical_type: { type: 'STRING' } },

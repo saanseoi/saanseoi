@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import type { HistoryDatabase } from '@repo/db'
 
 import { hasCurrentAddressVersions } from '@repo/core/pipeline/db/address'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
@@ -16,12 +17,12 @@ import {
 } from '@repo/core/pipeline/db/processingActions'
 import { buildAddressSqlImportRunId } from '@repo/core/pipeline/services/addressPipeline/sqlImport'
 import {
-  importAddressSqlDataArtifacts,
-  importAddressSqlArtifactsAndPublish,
+  importAddressSqlDataArtefacts,
+  importAddressSqlArtefactsAndPublish,
   type AddressSqlImportStageOptions,
 } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
 import {
-  normalizeAddressSqlChunkStage,
+  normaliseAddressSqlChunkStage,
   writeAddressReleaseMetaSqlFile,
   writeAddressCurrentSqlChunkStage,
   writeAddressHistorySqlChunkStage,
@@ -305,7 +306,7 @@ export async function processLocalAddressSqlUpload(
         ({
           addressCurrentLookupCache: addressCurrentLookupCache ?? undefined,
           ...initialMessage,
-          addressStage: 'normalize',
+          addressStage: 'normalise',
           chunkSize: ADDRESS_CHUNK_SIZE,
           processingRunStartedAt,
           rowStart: range.rowStart,
@@ -314,30 +315,30 @@ export async function processLocalAddressSqlUpload(
         }) satisfies AddressPipelineMessage,
     )
 
-    const normalizedMessages = await runLocalGenerationPhase(
+    const normalisedMessages = await runLocalGenerationPhase(
       progress,
       harbourClient,
       {
         completionLabel: formatCompletedPhaseLabel(
-          colorTeal('Normalize'),
+          colorTeal('Normalise'),
           colorTeal('records'),
           previewPlan.rowCount,
         ),
         label: formatRunningPhaseLabel(
-          colorTeal('Normalize'),
+          colorTeal('Normalise'),
           colorTeal('records'),
           0,
           previewPlan.rowCount,
         ),
         labelForProgress(current: number) {
           return formatRunningPhaseLabel(
-            colorTeal('Normalize'),
+            colorTeal('Normalise'),
             colorTeal('records'),
             current,
             previewPlan.rowCount,
           )
         },
-        phase: 'normalizeAddressSql',
+        phase: 'normaliseAddressSql',
         releaseCode,
         releaseId,
         totalUnits: previewPlan.rowCount,
@@ -348,7 +349,7 @@ export async function processLocalAddressSqlUpload(
       chunkMessages,
       GENERATION_CONCURRENCY,
       message =>
-        normalizeAddressSqlChunkStage(
+        normaliseAddressSqlChunkStage(
           dbContext.metaDb,
           dbContext.currentDb,
           bucket,
@@ -386,7 +387,7 @@ export async function processLocalAddressSqlUpload(
           return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
         },
       },
-      normalizedMessages,
+      normalisedMessages,
       GENERATION_CONCURRENCY,
       message => writeAddressSourceSqlChunkStage(bucket, message),
     )
@@ -429,6 +430,11 @@ export async function processLocalAddressSqlUpload(
           dbContext.historyDb,
           bucket,
           message,
+          {
+            previousHistoryDbs: dbContext.historyTargets
+              .filter(targetContext => targetContext.db !== dbContext.historyDb)
+              .map(targetContext => targetContext.db as HistoryDatabase),
+          },
         ),
     )
     const currentMessages = await runLocalGenerationPhase(
@@ -497,11 +503,11 @@ export async function processLocalAddressSqlUpload(
       harbourClient,
       progress,
       buildAddressImportProgressConfig(
-        finalMessageWithMeta.addressSqlArtifactKeys ?? [],
+        finalMessageWithMeta.addressSqlArtefactKeys ?? [],
       ),
     )
 
-    publishResult = await importAddressSqlArtifactsAndPublish(
+    publishResult = await importAddressSqlArtefactsAndPublish(
       importProgressClient,
       dbContext.metaDb,
       bucket,
@@ -518,7 +524,7 @@ export async function processLocalAddressSqlUpload(
           importOptions,
         )
       } catch (error) {
-        postPublishCacheError = normalizeError(error)
+        postPublishCacheError = normaliseError(error)
       }
     }
     await calculateAndStoreApiReleaseSetStats({
@@ -557,7 +563,7 @@ export async function processLocalAddressSqlUpload(
           dbContext.state.dbCacheDir,
         )
       } catch (error) {
-        postPublishCacheError = normalizeError(error)
+        postPublishCacheError = normaliseError(error)
       }
     }
   }
@@ -585,7 +591,7 @@ async function replayAddressSqlIntoRemoteCache(
   }
 
   try {
-    await importAddressSqlDataArtifacts(
+    await importAddressSqlDataArtefacts(
       createNoopHarbourClient(),
       dbContext.metaDb,
       bucket,
@@ -628,7 +634,7 @@ function createNoopHarbourClient(): HarbourClient {
   }
 }
 
-function normalizeError(error: unknown) {
+function normaliseError(error: unknown) {
   return error instanceof Error ? error : new Error(String(error))
 }
 
@@ -719,13 +725,13 @@ function buildFinalImportMessage(
       ),
     EMPTY_ADDRESS_PIPELINE_STATS,
   )
-  const addressSqlArtifactKeys = messages.flatMap(
-    message => message.addressSqlArtifactKeys ?? [],
+  const addressSqlArtefactKeys = messages.flatMap(
+    message => message.addressSqlArtefactKeys ?? [],
   )
 
   return {
     ...initialMessage,
-    addressSqlArtifactKeys,
+    addressSqlArtefactKeys,
     addressStage: 'sql-import-source',
     addressStats,
     chunkSize: ADDRESS_CHUNK_SIZE,

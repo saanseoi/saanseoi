@@ -13,7 +13,7 @@ It replaces the older `places`-first view with the actual monthly dependency ord
 The goal is simple:
 
 - Harbour accepts and stages raw parquet uploads in `R2`
-- a deferred processor turns staged parquet into normalized Atlas tables in `D1`
+- a deferred processor turns staged parquet into normalised Atlas tables in `D1`
 - each dataset type is processed independently, but in dependency order
 
 ## Current reality
@@ -22,14 +22,14 @@ What already exists:
 
 - upload planning and validation
 - direct upload to `R2`
-- `finalizeUpload`
+- `finaliseUpload`
 - dataset metadata in `datasets`
 - phase tracking in `ingestRuns`
-- normalized schema for divisions, addresses, streets, places, and i18n tables
+- normalised schema for divisions, addresses, streets, places, and i18n tables
 
 What does not exist yet:
 
-- post-finalize processing task dispatch
+- post-finalise processing task dispatch
 - parquet extraction workers
 - dataset publication logic
 - address and place reconciliation flows
@@ -39,7 +39,7 @@ What does not exist yet:
 Use:
 
 - `R2` for raw parquet
-- `D1` for normalized and serving tables
+- `D1` for normalised and serving tables
 - `harbour-api` for upload, staging, and ingest orchestration
 - `harbour-workers` a Cloudflare queue-backed processor for deferred extraction work
 
@@ -47,12 +47,12 @@ Recommended processing contract:
 
 1. `requestUpload`
 2. direct client upload to `R2`
-3. `finalizeUpload`
+3. `finaliseUpload`
 4. enqueue `processDataset`
 5. run dataset-specific stages
 6. publish dataset
 
-`finalizeUpload` should stay small and synchronous. The heavy parquet work should happen
+`finaliseUpload` should stay small and synchronous. The heavy parquet work should happen
 in a background queue consumer.
 
 ## Queue and memory rules
@@ -63,7 +63,7 @@ Add a Cloudflare Queue now.
 
 Reason:
 
-- `finalizeUpload` should not do heavy processing
+- `finaliseUpload` should not do heavy processing
 - ingest must be retryable
 - ingest phases should be resumable
 - large parquet reads should not run inside the upload request path
@@ -128,10 +128,10 @@ That order applies both:
 
 ## Shared implementation rules
 
-All dataset types should share the same baseline behavior:
+All dataset types should share the same baseline behaviour:
 
 - validate schema before processing
-- normalize source values into canonical shapes
+- normalise source values into canonical shapes
 - compute deterministic version hashes
 - compare against the current row for the same canonical id
 - insert a new version row only when content changed
@@ -156,7 +156,7 @@ For each division row:
 
 - notify Harbour that `extractCore` started
 - parse a bounded parquet chunk
-- normalize the division payload
+- normalise the division payload
 - compute `otVersionHash`
 - compare with the current `divisions` row for the same `id`
 - insert or update `divisions`
@@ -175,7 +175,7 @@ After base division extraction completes:
 
 - notify Harbour that `extractCore` completed
 - notify Harbour that `extractI18n` started
-- resolve localized names from `names.common` and `names.rules`
+- resolve localised names from `names.common` and `names.rules`
 - upsert `divisionsI18n`
 - write matching history rows to `divisionsI18n` when needed
 - notify Harbour that `extractI18n` completed
@@ -203,7 +203,7 @@ Addresses depend on divisions already being available.
 
 For each address row:
 
-- normalize the source payload
+- normalise the source payload
 - resolve division foreign keys against existing managed divisions
 - derive the deterministic `canonicalKey`
 - compute version hashes
@@ -218,13 +218,13 @@ Deletion rule:
 
 ### `extractI18n`
 
-- normalize localized formatted-address fields
+- normalise localised formatted-address fields
 - upsert `address2dI18n`
 - write `address2dI18n` as needed
 
 ### `reconcileStreets`
 
-- normalize street identity from address payloads
+- normalise street identity from address payloads
 - add issues to the table if there are addresses with missing streets. Because streets
   is a managed dataset, we should not upsert `streets` and `streets`, `streetsI18n` -
   but only notify the admin of discrepancies. To be specified later.
@@ -248,7 +248,7 @@ Places depend on divisions and addresses already being available.
 
 For each place row:
 
-- normalize the source payload
+- normalise the source payload
 - compute `otVersionHash`
 - compare with the current row for the same `id`
 - update `places`
@@ -261,8 +261,8 @@ Deletion rule:
 
 ### `extractI18n`
 
-- resolve localized names from `names.common` and `names.rules`
-- resolve localized brand values from `brand.names.common` and `brand.names.rules`
+- resolve localised names from `names.common` and `names.rules`
+- resolve localised brand values from `brand.names.common` and `brand.names.rules`
 - upsert `placesI18n`
 - write `placesI18n` as needed
 
@@ -290,7 +290,7 @@ Do not publish partial work.
 Implement in this order:
 
 1. add Cloudflare Queue config and a `processDataset` message contract
-2. enqueue a processing task after `finalizeUpload`
+2. enqueue a processing task after `finaliseUpload`
 3. add ingest-run helpers for queued, running, completed, and failed stage updates
 4. implement `division` parquet extraction in chunked batches
 5. implement division versioning, deletion handling, and i18n extraction

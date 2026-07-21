@@ -521,7 +521,7 @@ function sqlLiteral(value: boolean | number | string | null | undefined) {
 
   if (typeof value === 'number') {
     if (!Number.isFinite(value)) {
-      throw new Error(`Cannot serialize non-finite SQL number: ${value}`)
+      throw new Error(`Cannot serialise non-finite SQL number: ${value}`)
     }
 
     return String(value)

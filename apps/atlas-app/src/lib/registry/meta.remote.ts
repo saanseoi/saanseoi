@@ -159,13 +159,13 @@ export const getDistrictCoverageMapData = query(
       }
       nameByLocale.set(row.locale, names)
     }
-    const localizedNames = nameByLocale.get(i18nLocale)
+    const localisedNames = nameByLocale.get(i18nLocale)
     const englishNames = nameByLocale.get('en')
 
     return [...latestByDistrict.values()].map(row => ({
       ...row,
       name:
-        localizedNames?.get(row.divisionId) ??
+        localisedNames?.get(row.divisionId) ??
         englishNames?.get(row.divisionId) ??
         null,
     }))

@@ -18,7 +18,7 @@ earlier ID.
 Processing requires a published, same-cohort division snapshot. The API composition
 selects that snapshot as a required supporting member with exact cohort matching.
 
-The local SQL workflow processes parquet in chunks through `normalize`, `sql-source`,
+The local SQL workflow processes parquet in chunks through `normalise`, `sql-source`,
 `sql-history`, and `sql-current` stages. It stages source data in `stagingAddresses2d`
 and `stagingAddresses2dI18n`, then imports generated source, history, current, and meta
 SQL into their respective D1 databases.

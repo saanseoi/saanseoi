@@ -16,7 +16,7 @@ single geometries must not be rejected merely because a multi geometry is also p
 Canonical `type` may be `land`, `maritime`, or `mixed`; `mixed` is used when both land
 and territorial coverage flags are true.
 
-The canonical layer normalizes relationship IDs, preserves bbox and transformed
+The canonical layer normalises relationship IDs, preserves bbox and transformed
 geometry, records source keys and provenance, and keeps provider flags exactly as
 received. Source-specific fields remain available through `rawProperties` and the source
 tables. External identifiers are resolved through reviewed bridge fixtures when they do

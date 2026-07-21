@@ -88,13 +88,13 @@ type SchemaTreeLike = {
 }
 
 /**
- * Normalizes a parquet schema node into a human-readable field type string.
+ * Normalises a parquet schema node into a human-readable field type string.
  */
 export function formatFieldType(node: SchemaTreeLike) {
   const logicalType = extractLogicalType(node.element)
 
   if (logicalType) {
-    return normalizeLogicalType(logicalType)
+    return normaliseLogicalType(logicalType)
   }
 
   const convertedType = node.element.converted_type ?? node.element.convertedType
@@ -104,7 +104,7 @@ export function formatFieldType(node: SchemaTreeLike) {
 
   const primitiveType = node.element.type
   if (primitiveType) {
-    return normalizePrimitiveType(String(primitiveType))
+    return normalisePrimitiveType(String(primitiveType))
   }
 
   if ((node.children?.length ?? 0) > 0) {
@@ -143,9 +143,9 @@ function extractLogicalType(element: SchemaElementLike) {
 /**
  * Parquet logical types are represented in two shapes by hyparquet: legacy
  * annotations use their type name as an object key, while newer PyArrow files
- * use `{ type: 'STRING' }`. Normalize both to the Harbour schema vocabulary.
+ * use `{ type: 'STRING' }`. Normalise both to the Harbour schema vocabulary.
  */
-export function normalizeLogicalType(logicalType: string) {
+export function normaliseLogicalType(logicalType: string) {
   switch (logicalType.toLowerCase()) {
     case 'string':
       return 'utf8'
@@ -160,7 +160,7 @@ export function normalizeLogicalType(logicalType: string) {
   }
 }
 
-function normalizePrimitiveType(primitiveType: string) {
+function normalisePrimitiveType(primitiveType: string) {
   switch (primitiveType.toUpperCase()) {
     case 'INT32':
       return 'int_32'
