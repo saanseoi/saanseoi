@@ -6,7 +6,7 @@ import { isCancel, note, select } from '@clack/prompts'
 import { and, eq } from 'drizzle-orm'
 
 import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
-import { currentSchema, metaSchema } from '@repo/db'
+import { historySchema, metaSchema } from '@repo/db'
 
 import { formatField } from '../display.ts'
 import {
@@ -151,9 +151,11 @@ export async function runHkgovAlsLocalIngestCommand(
   const firstSourceVersion = normalizeAlsSourceVersion(
     stringOption(args, 'from-source-version') ?? `${cohortKey.slice(0, 4)}-01-01.0`,
   )
-  const sourceDirs = await listAlsReleaseDirectories(sourceRoot)
-  const sourceReleases = (await resolveAlsSourceReleases(target, sourceDirs)).filter(
-    release => release.sourceVersion >= firstSourceVersion,
+  const sourceReleases = await resolveAlsSourceReleases(
+    target,
+    resolveAlsReleaseVersions(await listAlsReleaseDirectories(sourceRoot)).filter(
+      release => release.sourceVersion >= firstSourceVersion,
+    ),
   )
   if (sourceReleases.length === 0) {
     throw new Error(
@@ -539,9 +541,8 @@ type AlsSourceRelease = {
  */
 async function resolveAlsSourceReleases(
   target: UploadTarget,
-  sourceDirs: string[],
+  sourceReleases: Array<Pick<AlsSourceRelease, 'sourceDir' | 'sourceVersion'>>,
 ): Promise<AlsSourceRelease[]> {
-  const sourceReleases = resolveAlsReleaseVersions(sourceDirs)
   const cohortsByYear = new Map<string, string[]>()
 
   for (const year of new Set(
@@ -551,11 +552,11 @@ async function resolveAlsSourceReleases(
       cacheTableProfile: 'address',
     })
     try {
-      const currentSnapshotIds = new Set(
+      const historySnapshotIds = new Set(
         (
-          await dbContext.currentDb
-            .select({ snapshotId: currentSchema.divisions.snapshotId })
-            .from(currentSchema.divisions)
+          await dbContext.historyDb
+            .select({ snapshotId: historySchema.divisions.snapshotId })
+            .from(historySchema.divisions)
             .all()
         ).map(row => row.snapshotId),
       )
@@ -585,7 +586,7 @@ async function resolveAlsSourceReleases(
         [
           ...new Set(
             rows
-              .filter(row => currentSnapshotIds.has(row.snapshotId))
+              .filter(row => historySnapshotIds.has(row.snapshotId))
               .map(row => row.cohortKey)
               .filter(isSameYearCohort(year)),
           ),

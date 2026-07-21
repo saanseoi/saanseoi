@@ -244,7 +244,7 @@ describe('division API release set readiness display', () => {
     )
   })
 
-  test('labels an unavailable C&SD release as optional', () => {
+  test('labels an unavailable C&SD release as required', () => {
     expect(
       formatDivisionApiReleaseSetReadiness(
         { cohortKey: '2025-09-24.0', regionCode: 'hk' },
@@ -256,17 +256,17 @@ describe('division API release set readiness display', () => {
               cohortKey: null,
               datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
               domainCode: 'hkgov-censtatd',
-              optional: true,
+              optional: false,
               releaseCode: null,
               resourceType: 'divisionArea',
             },
           ],
           divisionAvailable: true,
-          ready: true,
+          ready: false,
         },
       ),
     ).toContain(
-      '  \u001B[33m○\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[33m[optional]\u001B[39m',
+      '  \u001B[31m○\u001B[39m \u001B[32mdivisionArea\u001B[39m  \u001B[31munavailable\u001B[39m',
     )
     expect(
       formatDivisionApiReleaseSetReadiness(
@@ -279,13 +279,13 @@ describe('division API release set readiness display', () => {
               cohortKey: null,
               datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
               domainCode: 'hkgov-censtatd',
-              optional: true,
+              optional: false,
               releaseCode: null,
               resourceType: 'divisionArea',
             },
           ],
           divisionAvailable: true,
-          ready: true,
+          ready: false,
         },
       ),
     ).toContain('HK / hkgov-censtatd\n')
