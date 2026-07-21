@@ -15,10 +15,6 @@ function cyanText(label: string) {
   return `\u001B[36m${label}\u001B[39m`
 }
 
-function blueText(text: string) {
-  return `\u001B[34m${text}\u001B[39m`
-}
-
 function deEmphasize(text: string) {
   return `\u001B[90m${text}\u001B[39m`
 }
@@ -114,24 +110,7 @@ function describeInferredFrom(
 }
 
 function formatReleaseValue(result: UploadPreviewResult) {
-  if (
-    result.plan.source === 'hkgov-pland-pu' ||
-    result.plan.source === 'hkgov-pland-new-town'
-  ) {
-    return yellowText(result.plan.releaseCode)
-  }
-
-  const releaseKind =
-    result.plan.source === 'hkgov-had' && result.plan.type === 'divisionArea'
-      ? 'district'
-      : result.plan.type
-
-  return [
-    yellowText(result.plan.source),
-    greenText(result.plan.regionCode),
-    blueText(result.plan.sourceVersion),
-    redText(releaseKind),
-  ].join('-')
+  return yellowText(result.plan.releaseCode)
 }
 
 function formatTargetValue(target: UploadTarget) {
