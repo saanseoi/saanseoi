@@ -43,19 +43,19 @@ Fields which retain the full extent of the original data, with certain additions
   <black>overture</black> key to allow conflation with other datasets while retaining
   source-chain attribution.
 
-### Normalized Fields
+### Normalised Fields
 
 Fields reorganized for storage, query, or API response shaping:
 
 - `names` -
-  [normalized by locale](saanseoi:en:note/overture-division-locale-normalization/v1)
+  [normalised by locale](saanseoi:en:note/overture-division-locale-normalization/v1)
   into [DivisionI18n](/docs#models/DivisionI18n)
   - `names.common` as <black>i18n.{{ LOCALE }}.name</black>
   - `names.primary` as fallback for <black>i18n.{{LOCALE}}.name</black> with an inferred
     locale
   - `names.rules` as <black>i18n.{{ LOCALE }}.rules</black>
 - `hierarchies[][]` -
-  [normalized as a division hierarchy](saanseoi:en:note/overture-division-hierarchy-normalization/v1)
+  [normalised as a division hierarchy](saanseoi:en:note/overture-division-hierarchy-normalization/v1)
   into [DivisionHierarchy](/docs#models/DivisionHierarchy). The original is available
   under <black>overture.hierarchies</black> as a compatibility field.
   - `hierarchies[][].division_id` - as <black>hierarchies[].division_id</black>

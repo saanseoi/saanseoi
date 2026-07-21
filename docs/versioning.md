@@ -49,7 +49,7 @@ these guarantees are implemented end to end.
 - A stable API version retains a version-specific executable handler whenever a change
   can affect data selection, defaults, ordering, or response shape.
 - Replay means equivalent data, shape, ordering, and resolved defaults. It does not mean
-  byte-for-byte JSON serialization.
+  byte-for-byte JSON serialisation.
 - Sequential version numbers and content hashes serve different purposes and MUST NOT be
   used interchangeably.
 
@@ -1050,7 +1050,7 @@ For a supported stable API version, a permalink MUST reproduce:
 It need not reproduce:
 
 - byte-identical whitespace
-- object-key serialization order unless explicitly promised
+- object-key serialisation order unless explicitly promised
 - transport headers unrelated to representation semantics
 - transient operational metadata such as request IDs or timing
 
@@ -1369,7 +1369,7 @@ before v0 can make a family-wide replay promise.
 The former `divisionAreas` migration exception is closed. The oversized rows were an
 ingestion bug: they attached PRC land and maritime geometry to an identity-only parent
 fixture. Cleanup removes those canonical, source, current, and journal records before
-the last physical validity columns are removed. Geometry normalization now rejects all
+the last physical validity columns are removed. Geometry normalisation now rejects all
 areas attached to a referent-only division before decoding or writing geometry.
 Boundaries may still reference that division because a border does not materialise the
 referent's area.

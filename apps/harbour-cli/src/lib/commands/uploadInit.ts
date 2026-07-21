@@ -31,6 +31,6 @@ export async function runUploadInitCommand(args: ParsedArgs, printUsage: () => v
   const exitCode = await process.exited
 
   if (exitCode !== 0) {
-    throw new Error(`Upload initialization failed with exit code ${exitCode}.`)
+    throw new Error(`Upload initialisation failed with exit code ${exitCode}.`)
   }
 }

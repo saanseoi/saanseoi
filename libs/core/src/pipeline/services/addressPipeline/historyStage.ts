@@ -5,7 +5,7 @@ import type { HistoryDatabase, MetaDatabase } from '@repo/db'
 
 import {
   closeCurrentAddressVersions,
-  getCurrentAddressVersionLookup,
+  getMergedCurrentAddressVersionLookup,
   insertAddressVersionRows,
   prepareAddressVersionInsertContext,
 } from '../../db/address'
@@ -13,38 +13,38 @@ import { createHash } from '../../utils'
 import { resolveDataShardEnvironment } from '../shared'
 import type { HarbourWorkerBucket } from '../division'
 import {
-  buildPipelineArtifactKey,
-  type PipelineArtifactBucket,
-  readJsonArtifact,
-  writeJsonArtifact,
-} from '../pipelineArtifacts'
+  buildPipelineArtefactKey,
+  type PipelineArtefactBucket,
+  readJsonArtefact,
+  writeJsonArtefact,
+} from '../pipelineArtefacts'
 import {
   buildAddressBaseHashInput,
   buildAddressI18nHashInput,
   buildMatchKey,
   dedupeAddressI18nRows,
-  dedupeNormalizedAddressRows,
-  normalizeAddressI18nSnapshotRow,
-} from './normalization'
+  dedupeNormalisedAddressRows,
+  normaliseAddressI18nSnapshotRow,
+} from './normalisation'
 import type {
   AddressPipelineMessage,
-  NormalizedAddressChunkArtifact,
-  ResolvedAddressChunkArtifact,
+  NormalisedAddressChunkArtefact,
+  ResolvedAddressChunkArtefact,
 } from './types'
 
 export async function writeAddressHistoryChunkStage(
   metaDb: MetaDatabase,
   historyDb: HistoryDatabase,
-  bucket: HarbourWorkerBucket & PipelineArtifactBucket,
+  bucket: HarbourWorkerBucket & PipelineArtefactBucket,
   message: DatasetProcessingMessage,
 ): Promise<AddressPipelineMessage> {
   const {
     changedExistingIds,
     changedI18nVersionRows,
     changedVersionRows,
-    artifact,
+    artefact,
     versionInsertContext,
-  } = await buildResolvedAddressChunkArtifact(metaDb, historyDb, bucket, message)
+  } = await buildResolvedAddressChunkArtefact(metaDb, historyDb, bucket, message)
   const historyRepoDb = historyDb as unknown as HarbourReadableDb & HarbourWritableDb
 
   if (changedExistingIds.size > 0) {
@@ -63,40 +63,43 @@ export async function writeAddressHistoryChunkStage(
     changedI18nVersionRows,
   )
 
-  const resolvedArtifactKey = buildPipelineArtifactKey(
+  const resolvedArtefactKey = buildPipelineArtefactKey(
     message,
     'resolved',
-    artifact.rowStart,
-    artifact.rowEnd,
+    artefact.rowStart,
+    artefact.rowEnd,
   )
 
-  await writeJsonArtifact<ResolvedAddressChunkArtifact>(bucket, resolvedArtifactKey, {
-    ...artifact,
-    rows: artifact.rows,
+  await writeJsonArtefact<ResolvedAddressChunkArtefact>(bucket, resolvedArtefactKey, {
+    ...artefact,
+    rows: artefact.rows,
   })
 
   return {
     ...(message as AddressPipelineMessage),
     addressStage: 'current',
-    resolvedArtifactKey,
+    resolvedArtefactKey,
   } satisfies AddressPipelineMessage
 }
 
-export async function buildResolvedAddressChunkArtifact(
+export async function buildResolvedAddressChunkArtefact(
   metaDb: MetaDatabase,
   historyDb: HistoryDatabase,
-  bucket: HarbourWorkerBucket & PipelineArtifactBucket,
+  bucket: HarbourWorkerBucket & PipelineArtefactBucket,
   message: DatasetProcessingMessage,
+  options: {
+    previousHistoryDbs?: HistoryDatabase[]
+  } = {},
 ) {
   const pipelineMessage = message as AddressPipelineMessage
 
-  if (!pipelineMessage.artifactKey) {
-    throw new Error('Missing normalized address artifact key for history stage.')
+  if (!pipelineMessage.artefactKey) {
+    throw new Error('Missing normalised address artefact key for history stage.')
   }
 
-  const artifact = await readJsonArtifact<NormalizedAddressChunkArtifact>(
+  const artefact = await readJsonArtefact<NormalisedAddressChunkArtefact>(
     bucket,
-    pipelineMessage.artifactKey,
+    pipelineMessage.artefactKey,
   )
   const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
   const historyRepoDb = historyDb as unknown as HarbourReadableDb & HarbourWritableDb
@@ -117,14 +120,23 @@ export async function buildResolvedAddressChunkArtifact(
       `Address snapshot ${versionInsertContext.snapshotId} branches from ${versionInsertContext.parentSnapshotId}, but the v0 address diff reader can only materialise active parent ${activeSnapshot?.id ?? 'none'}.`,
     )
   }
-  const normalizedRows = dedupeNormalizedAddressRows(artifact.rows)
+  const normalisedRows = dedupeNormalisedAddressRows(artefact.rows)
   const currentAddressLookup = pipelineMessage.addressCurrentLookupCache
     ? buildCurrentAddressLookupFromCache(pipelineMessage.addressCurrentLookupCache)
-    : await getCurrentAddressVersionLookup(
-        historyRepoDb,
-        normalizedRows.map(row => row.canonicalId),
-        normalizedRows.map(row => {
-          const englishI18n = row.i18n.find(localized => localized.locale === 'en')
+    : await getMergedCurrentAddressVersionLookup(
+        [
+          ...(options.previousHistoryDbs ?? []).map((db, index) => ({
+            db,
+            sortOrder: index,
+          })),
+          {
+            db: historyRepoDb,
+            sortOrder: options.previousHistoryDbs?.length ?? 0,
+          },
+        ],
+        normalisedRows.map(row => row.canonicalId),
+        normalisedRows.map(row => {
+          const englishI18n = row.i18n.find(localised => localised.locale === 'en')
 
           return {
             districtId: row.base.districtId,
@@ -135,7 +147,7 @@ export async function buildResolvedAddressChunkArtifact(
         {
           buildAddressBaseHashInput,
           buildMatchKey,
-          normalizeAddressI18nSnapshotRow,
+          normaliseAddressI18nSnapshotRow,
         },
       )
   const changedExistingIds = new Set<string>()
@@ -143,16 +155,16 @@ export async function buildResolvedAddressChunkArtifact(
   const changedI18nVersionRows: Parameters<typeof insertAddressVersionRows>[3] = []
   const resolvedRowsByAddressId = new Map<
     string,
-    ResolvedAddressChunkArtifact['rows'][number]
+    ResolvedAddressChunkArtefact['rows'][number]
   >()
 
-  for (const row of normalizedRows) {
+  for (const row of normalisedRows) {
     const matchedCurrent =
       currentAddressLookup.byId.get(row.canonicalId) ??
       (row.matchKey ? currentAddressLookup.byMatchKey.get(row.matchKey) : null) ??
       null
     const addressId = matchedCurrent?.id ?? row.canonicalId
-    const now = artifact.processingRunStartedAt
+    const now = artefact.processingRunStartedAt
     const base = {
       ...row.base,
       id: addressId,
@@ -161,8 +173,8 @@ export async function buildResolvedAddressChunkArtifact(
       updatedAt: now,
     }
     const i18n = dedupeAddressI18nRows(
-      row.i18n.map(localized => ({
-        ...localized,
+      row.i18n.map(localised => ({
+        ...localised,
         addressId,
         snapshotId: versionInsertContext.snapshotId,
         createdAt: now,
@@ -176,7 +188,7 @@ export async function buildResolvedAddressChunkArtifact(
         .map(buildAddressI18nHashInput)
         .sort((left, right) => left.locale.localeCompare(right.locale)),
     })
-    const changed = matchedCurrent?.versionHash !== versionHash
+    const changed = matchedCurrent?.churnHash !== versionHash
 
     resolvedRowsByAddressId.set(addressId, {
       addressId,
@@ -195,10 +207,10 @@ export async function buildResolvedAddressChunkArtifact(
   let addedRows = 0
   let changedRows = 0
   let unchangedRows = 0
-  let localizedRows = 0
+  let localisedRows = 0
 
   for (const row of resolvedRows) {
-    localizedRows += row.i18n.length
+    localisedRows += row.i18n.length
 
     if (!row.changed) {
       unchangedRows += 1
@@ -218,27 +230,27 @@ export async function buildResolvedAddressChunkArtifact(
       versionHash: row.versionHash,
     })
     changedI18nVersionRows.push(
-      ...row.i18n.map(localized => ({
-        addressId: localized.addressId,
-        locale: localized.locale,
-        formattedAddress: localized.formattedAddress,
-        buildingName: localized.buildingName ?? null,
-        buildingNumberFrom: localized.buildingNumberFrom ?? null,
-        buildingNumberTo: localized.buildingNumberTo ?? null,
-        blockType: localized.blockType ?? null,
-        blockNumber: localized.blockNumber ?? null,
-        blockTypeBeforeNumber: localized.blockTypeBeforeNumber ?? null,
-        phaseName: localized.phaseName ?? null,
-        phaseNumber: localized.phaseNumber ?? null,
-        estateName: localized.estateName ?? null,
-        streetNumber: localized.streetNumber ?? null,
-        streetName: localized.streetName ?? null,
+      ...row.i18n.map(localised => ({
+        addressId: localised.addressId,
+        locale: localised.locale,
+        formattedAddress: localised.formattedAddress,
+        buildingName: localised.buildingName ?? null,
+        buildingNumberFrom: localised.buildingNumberFrom ?? null,
+        buildingNumberTo: localised.buildingNumberTo ?? null,
+        blockType: localised.blockType ?? null,
+        blockNumber: localised.blockNumber ?? null,
+        blockTypeBeforeNumber: localised.blockTypeBeforeNumber ?? null,
+        phaseName: localised.phaseName ?? null,
+        phaseNumber: localised.phaseNumber ?? null,
+        estateName: localised.estateName ?? null,
+        streetNumber: localised.streetNumber ?? null,
+        streetName: localised.streetName ?? null,
         sourceReleaseId: versionInsertContext.releaseId,
-        snapshotId: localized.snapshotId ?? row.base.snapshotId,
+        snapshotId: localised.snapshotId ?? row.base.snapshotId,
         isCurrent: true,
         versionHash: row.versionHash,
-        createdAt: localized.createdAt ?? row.base.createdAt,
-        updatedAt: localized.updatedAt ?? row.base.updatedAt,
+        createdAt: localised.createdAt ?? row.base.createdAt,
+        updatedAt: localised.updatedAt ?? row.base.updatedAt,
       })),
     )
   }
@@ -248,20 +260,20 @@ export async function buildResolvedAddressChunkArtifact(
     changedI18nVersionRows,
     changedVersionRows,
     versionInsertContext,
-    artifact: {
+    artefact: {
       addedRows,
       changedRows,
       kind: 'address.resolved.v1',
       insertedVersions,
-      localizedRows,
-      processingRunStartedAt: artifact.processingRunStartedAt,
-      releaseId: artifact.releaseId,
-      rowStart: artifact.rowStart,
-      rowEnd: artifact.rowEnd,
+      localisedRows,
+      processingRunStartedAt: artefact.processingRunStartedAt,
+      releaseId: artefact.releaseId,
+      rowStart: artefact.rowStart,
+      rowEnd: artefact.rowEnd,
       rows: resolvedRows,
-      totalRows: artifact.totalRows,
+      totalRows: artefact.totalRows,
       unchangedRows,
-    } satisfies ResolvedAddressChunkArtifact,
+    } satisfies ResolvedAddressChunkArtefact,
   }
 }
 

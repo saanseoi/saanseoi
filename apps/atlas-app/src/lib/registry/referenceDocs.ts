@@ -3,7 +3,7 @@ import overtureDivisionHierarchy from '../../../../../docs/datasets/sources/over
 import overtureDivisionTypeLevelMapping from '../../../../../docs/datasets/sources/overture/divisionType.md?raw'
 
 import {
-  getLocalizedMessage,
+  getLocalisedMessage,
   type AppLocale,
   type MessageKey,
 } from '$lib/bits/internal/i18n'
@@ -28,9 +28,9 @@ type MarkdownReferenceSource = {
 type ReferenceMessageKey = Extract<MessageKey, `reference_${string}`>
 
 const markdownReferences = {
-  'overture-division-locale-normalization': {
+  'overture-division-locale-normalisation': {
     title: 'locale',
-    displayTitleKey: 'reference_locale_normalization',
+    displayTitleKey: 'reference_locale_normalisation',
     source: overtureLocalisation,
   },
   'overture-division-type-level-mapping': {
@@ -38,9 +38,9 @@ const markdownReferences = {
     displayTitleKey: 'reference_division_type_level',
     source: overtureDivisionTypeLevelMapping,
   },
-  'overture-division-hierarchy-normalization': {
-    title: 'division hierarchy normalization',
-    displayTitleKey: 'reference_division_hierarchy_normalization',
+  'overture-division-hierarchy-normalisation': {
+    title: 'division hierarchy normalisation',
+    displayTitleKey: 'reference_division_hierarchy_normalisation',
     source: overtureDivisionHierarchy,
   },
 } satisfies Record<string, MarkdownReferenceSource>
@@ -72,7 +72,7 @@ export function getMarkdownTransclusionDisplayTitle(
   transclusion: MarkdownTransclusion | null,
   locale: AppLocale,
 ) {
-  return getLocalizedMessage(
+  return getLocalisedMessage(
     transclusion?.displayTitleKey ?? 'reference_documentation',
     locale,
   )

@@ -153,7 +153,7 @@ describe('formatIngestionReportTable', () => {
           inserted: 12,
           rowEnd: 2048,
           rowStart: 1024,
-          sqlArtifactCount: 4,
+          sqlArtefactCount: 4,
         },
         status: 'completed',
         type: 'address',
@@ -187,7 +187,7 @@ describe('formatIngestionReportTable', () => {
     expect(table).not.toContain('addressStage')
     expect(table).not.toContain('rowEnd')
     expect(table).not.toContain('rowStart')
-    expect(table).not.toContain('sqlArtifactCount')
+    expect(table).not.toContain('sqlArtefactCount')
     expect(table).not.toContain('rawObjectKey')
     expect(table).not.toContain('schemaFieldCount')
   })

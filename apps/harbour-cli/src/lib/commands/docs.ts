@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import { cancel, isCancel, note, outro, select } from '@clack/prompts'
-import { compareReleaseVersions, normalizeBaseUrl } from '@repo/core'
+import { compareReleaseVersions, normaliseBaseUrl } from '@repo/core'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api.ts'
 import { describeTarget, formatField } from '../display.ts'
@@ -141,7 +141,7 @@ export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) 
   const body = previousFixture?.body ?? ''
 
   await mkdir(resolve(API_RELEASE_SET_DOCS_ROOT, selectedFamily), { recursive: true })
-  await writeFile(targetPath, serializeMarkdownFixture(frontmatter, body), 'utf8')
+  await writeFile(targetPath, serialiseMarkdownFixture(frontmatter, body), 'utf8')
 
   note(
     [
@@ -327,7 +327,7 @@ async function runReleaseDocsNewCommand(args: ParsedArgs, target: UploadTarget) 
   await mkdir(resolve(RELEASE_DOCS_ROOT, selectedRelease.datasetCode), {
     recursive: true,
   })
-  await writeFile(targetPath, serializeMarkdownFixture(frontmatter, body), 'utf8')
+  await writeFile(targetPath, serialiseMarkdownFixture(frontmatter, body), 'utf8')
 
   note(
     [
@@ -410,7 +410,7 @@ async function runReleaseDocsPublishCommand(args: ParsedArgs, target: UploadTarg
 }
 
 async function fetchApiReleaseSetDocsRows(target: UploadTarget) {
-  const baseUrl = normalizeBaseUrl(resolveHarbourApiUrl(target))
+  const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const response = await fetch(`${baseUrl}/api/v1/meta/docs/apiReleaseSets`, {
     headers: getAuthHeaders(),
     method: 'GET',
@@ -431,7 +431,7 @@ async function fetchApiReleaseSetDocsRows(target: UploadTarget) {
 }
 
 async function fetchReleaseDocsRows(target: UploadTarget) {
-  const baseUrl = normalizeBaseUrl(resolveHarbourApiUrl(target))
+  const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const response = await fetch(`${baseUrl}/api/v1/meta/docs/releases`, {
     headers: getAuthHeaders(),
     method: 'GET',
@@ -456,7 +456,7 @@ async function putApiReleaseSetNotes(
   code: string,
   notes: string,
 ) {
-  const baseUrl = normalizeBaseUrl(resolveHarbourApiUrl(target))
+  const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const response = await fetch(
     `${baseUrl}/api/v1/meta/docs/apiReleaseSets/${encodeURIComponent(code)}`,
     {
@@ -481,7 +481,7 @@ async function putApiReleaseSetNotes(
 }
 
 async function putReleaseNotes(target: UploadTarget, code: string, notes: string) {
-  const baseUrl = normalizeBaseUrl(resolveHarbourApiUrl(target))
+  const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const response = await fetch(
     `${baseUrl}/api/v1/meta/docs/releases/${encodeURIComponent(code)}`,
     {
@@ -875,7 +875,7 @@ export function parseMarkdownFixture(content: string) {
   }
 }
 
-function serializeMarkdownFixture(frontmatter: Record<string, string>, body: string) {
+function serialiseMarkdownFixture(frontmatter: Record<string, string>, body: string) {
   return `---\n${Object.entries(frontmatter)
     .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
     .join('\n')}\n---\n${ensureTrailingNewline(body)}`

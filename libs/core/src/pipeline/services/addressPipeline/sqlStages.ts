@@ -12,19 +12,19 @@ import {
 import { buildAlignAddressCurrentDivisionSnapshotSql } from '../../db/address'
 import type { HarbourWorkerBucket } from '../division'
 import {
-  buildPipelineArtifactKey,
-  buildSqlPipelineArtifactKey,
-  type PipelineArtifactBucket,
-  readJsonArtifact,
-  writeJsonArtifact,
-  writeTextArtifact,
-} from '../pipelineArtifacts'
-import { normalizeAddressChunkStage, resolveAddressChunkSize } from './normalizeStage'
-import { buildResolvedAddressChunkArtifact } from './historyStage'
+  buildPipelineArtefactKey,
+  buildSqlPipelineArtefactKey,
+  type PipelineArtefactBucket,
+  readJsonArtefact,
+  writeJsonArtefact,
+  writeTextArtefact,
+} from '../pipelineArtefacts'
+import { normaliseAddressChunkStage, resolveAddressChunkSize } from './normaliseStage'
+import { buildResolvedAddressChunkArtefact } from './historyStage'
 import type {
   AddressPipelineMessage,
-  NormalizedAddressChunkArtifact,
-  ResolvedAddressChunkArtifact,
+  NormalisedAddressChunkArtefact,
+  ResolvedAddressChunkArtefact,
 } from './types'
 import { addAddressPipelineStats, collectAddressCoverageCounts } from './types'
 import {
@@ -36,17 +36,17 @@ import {
 } from './sqlImport'
 import { logStructuredInfo } from '../../logging'
 
-export async function normalizeAddressSqlChunkStage(
+export async function normaliseAddressSqlChunkStage(
   metaDb: MetaDatabase,
   currentDb: CurrentDatabase,
-  bucket: HarbourWorkerBucket & PipelineArtifactBucket,
+  bucket: HarbourWorkerBucket & PipelineArtefactBucket,
   message: DatasetProcessingMessage,
   reportProgress?: (stats: {
-    localizedRows: number
+    localisedRows: number
     processedRows: number
   }) => Promise<void>,
 ): Promise<AddressPipelineMessage> {
-  const nextMessage = await normalizeAddressChunkStage(
+  const nextMessage = await normaliseAddressChunkStage(
     metaDb,
     currentDb,
     bucket,
@@ -62,28 +62,28 @@ export async function normalizeAddressSqlChunkStage(
 }
 
 export async function writeAddressSourceSqlChunkStage(
-  bucket: HarbourWorkerBucket & PipelineArtifactBucket,
+  bucket: HarbourWorkerBucket & PipelineArtefactBucket,
   message: DatasetProcessingMessage,
 ): Promise<AddressPipelineMessage> {
   const pipelineMessage = message as AddressPipelineMessage
 
-  if (!pipelineMessage.artifactKey) {
-    throw new Error('Missing normalized address artifact key for SQL source stage.')
+  if (!pipelineMessage.artefactKey) {
+    throw new Error('Missing normalised address artefact key for SQL source stage.')
   }
 
-  const artifact = await readJsonArtifact<NormalizedAddressChunkArtifact>(
+  const artefact = await readJsonArtefact<NormalisedAddressChunkArtefact>(
     bucket,
-    pipelineMessage.artifactKey,
+    pipelineMessage.artefactKey,
   )
-  const files = buildAddressSourceSqlImportFiles(message, artifact)
-  const artifactKeys = await writeSqlFiles(bucket, message, files)
+  const files = buildAddressSourceSqlImportFiles(message, artefact)
+  const artefactKeys = await writeSqlFiles(bucket, message, files)
 
   return {
     ...pipelineMessage,
     addressStage: 'sql-history',
-    addressSqlArtifactKeys: [
-      ...(pipelineMessage.addressSqlArtifactKeys ?? []),
-      ...artifactKeys,
+    addressSqlArtefactKeys: [
+      ...(pipelineMessage.addressSqlArtefactKeys ?? []),
+      ...artefactKeys,
     ],
     processingMode: 'sql',
   } satisfies AddressPipelineMessage
@@ -92,143 +92,147 @@ export async function writeAddressSourceSqlChunkStage(
 export async function writeAddressHistorySqlChunkStage(
   metaDb: MetaDatabase,
   historyDb: HistoryDatabase,
-  bucket: HarbourWorkerBucket & PipelineArtifactBucket,
+  bucket: HarbourWorkerBucket & PipelineArtefactBucket,
   message: DatasetProcessingMessage,
+  options: {
+    previousHistoryDbs?: HistoryDatabase[]
+  } = {},
 ): Promise<AddressPipelineMessage> {
   const pipelineMessage = message as AddressPipelineMessage
-  const { artifact } = await buildResolvedAddressChunkArtifact(
+  const { artefact } = await buildResolvedAddressChunkArtefact(
     metaDb,
     historyDb,
     bucket,
     message,
+    options,
   )
-  const resolvedArtifactKey = buildPipelineArtifactKey(
+  const resolvedArtefactKey = buildPipelineArtefactKey(
     message,
     'resolved',
-    artifact.rowStart,
-    artifact.rowEnd,
+    artefact.rowStart,
+    artefact.rowEnd,
   )
 
-  await writeJsonArtifact<ResolvedAddressChunkArtifact>(
+  await writeJsonArtefact<ResolvedAddressChunkArtefact>(
     bucket,
-    resolvedArtifactKey,
-    artifact,
+    resolvedArtefactKey,
+    artefact,
   )
 
-  const [historyFile] = buildAddressResolvedSqlImportFiles(message, artifact).filter(
+  const [historyFile] = buildAddressResolvedSqlImportFiles(message, artefact).filter(
     file => file.target === 'history',
   )
-  const artifactKeys = historyFile
+  const artefactKeys = historyFile
     ? await writeSqlFiles(bucket, message, [historyFile])
     : []
 
   return {
     ...pipelineMessage,
     addressStage: 'sql-current',
-    addressSqlArtifactKeys: [
-      ...(pipelineMessage.addressSqlArtifactKeys ?? []),
-      ...artifactKeys,
+    addressSqlArtefactKeys: [
+      ...(pipelineMessage.addressSqlArtefactKeys ?? []),
+      ...artefactKeys,
     ],
     processingMode: 'sql',
-    resolvedArtifactKey,
+    resolvedArtefactKey,
   } satisfies AddressPipelineMessage
 }
 
 export async function writeAddressCurrentSqlChunkStage(
   metaDb: MetaDatabase,
   currentDb: CurrentDatabase,
-  bucket: HarbourWorkerBucket & PipelineArtifactBucket,
+  bucket: HarbourWorkerBucket & PipelineArtefactBucket,
   message: DatasetProcessingMessage,
 ): Promise<AddressPipelineMessage> {
   const pipelineMessage = message as AddressPipelineMessage
 
-  if (!pipelineMessage.resolvedArtifactKey) {
-    throw new Error('Missing resolved address artifact key for SQL current stage.')
+  if (!pipelineMessage.resolvedArtefactKey) {
+    throw new Error('Missing resolved address artefact key for SQL current stage.')
   }
 
-  const artifact = await readJsonArtifact<ResolvedAddressChunkArtifact>(
+  const artefact = await readJsonArtefact<ResolvedAddressChunkArtefact>(
     bucket,
-    pipelineMessage.resolvedArtifactKey,
+    pipelineMessage.resolvedArtefactKey,
   )
-  const [currentFile] = buildAddressResolvedSqlImportFiles(message, artifact).filter(
+  const [currentFile] = buildAddressResolvedSqlImportFiles(message, artefact).filter(
     file => file.target === 'current',
   )
   const initFile =
-    artifact.rowStart === 0 && artifact.rows[0]?.base.snapshotId
+    artefact.rowStart === 0 && artefact.rows[0]?.base.snapshotId
       ? await buildCurrentSnapshotInitSqlFile(
           metaDb,
           currentDb,
           message,
-          artifact.rows[0].base.snapshotId,
+          artefact.rows[0].base.snapshotId,
         )
       : null
-  const initArtifactKeys = initFile
+  const initArtefactKeys = initFile
     ? await writeSqlFiles(bucket, message, [initFile])
     : []
-  const artifactKeys = currentFile
+  const artefactKeys = currentFile
     ? await writeSqlFiles(bucket, message, [currentFile])
     : []
   const chunkSize = resolveAddressChunkSize(message.chunkSize)
   const stats = addAddressPipelineStats(pipelineMessage.addressStats, {
-    addedRows: artifact.addedRows,
-    changedRows: artifact.changedRows,
-    insertedVersions: artifact.insertedVersions,
-    localizedRows: artifact.localizedRows,
-    processedRows: artifact.rowEnd - artifact.rowStart,
-    recordedRows: artifact.rows.length,
-    unchangedRows: artifact.unchangedRows,
-    ...collectAddressCoverageCounts(artifact.rows),
+    addedRows: artefact.addedRows,
+    changedRows: artefact.changedRows,
+    insertedVersions: artefact.insertedVersions,
+    localisedRows: artefact.localisedRows,
+    processedRows: artefact.rowEnd - artefact.rowStart,
+    recordedRows: artefact.rows.length,
+    unchangedRows: artefact.unchangedRows,
+    ...collectAddressCoverageCounts(artefact.rows),
   })
   const historyApplyFile =
-    artifact.rowEnd >= artifact.totalRows && artifact.rows[0]?.base.snapshotId
+    artefact.rowEnd >= artefact.totalRows && artefact.rows[0]?.base.snapshotId
       ? buildAddressHistoryApplySqlImportFile(message, {
           hasChanges: stats.insertedVersions > 0,
           runId: buildAddressSqlImportRunId(message),
-          snapshotId: artifact.rows[0].base.snapshotId,
+          snapshotId: artefact.rows[0].base.snapshotId,
         })
       : null
-  const historyApplyArtifactKeys = historyApplyFile
+  const historyApplyArtefactKeys = historyApplyFile
     ? await writeSqlFiles(bucket, message, [historyApplyFile])
     : []
 
-  if (artifact.rowEnd < artifact.totalRows) {
+  if (artefact.rowEnd < artefact.totalRows) {
     return {
       ...pipelineMessage,
-      addressStage: 'normalize',
+      addressStage: 'normalise',
       addressStats: stats,
-      addressSqlArtifactKeys: [
-        ...(pipelineMessage.addressSqlArtifactKeys ?? []),
-        ...initArtifactKeys,
-        ...artifactKeys,
+      addressSqlArtefactKeys: [
+        ...(pipelineMessage.addressSqlArtefactKeys ?? []),
+        ...initArtefactKeys,
+        ...artefactKeys,
       ],
-      artifactKey: undefined,
-      resolvedArtifactKey: undefined,
+      artefactKey: undefined,
+      resolvedArtefactKey: undefined,
       chunkSize,
       processingMode: 'sql',
-      processingRunStartedAt: artifact.processingRunStartedAt,
-      rowStart: artifact.rowEnd,
-      rowEnd: Math.min(artifact.rowEnd + chunkSize, artifact.totalRows),
-      totalRows: artifact.totalRows,
+      processingRunStartedAt: artefact.processingRunStartedAt,
+      rowStart: artefact.rowEnd,
+      rowEnd: Math.min(artefact.rowEnd + chunkSize, artefact.totalRows),
+      totalRows: artefact.totalRows,
     } satisfies AddressPipelineMessage
   }
 
   return {
     ...pipelineMessage,
-    addressStage: 'sql-finalize',
+    addressStage: 'sql-finalise',
     addressStats: stats,
-    addressSqlArtifactKeys: [
-      ...(pipelineMessage.addressSqlArtifactKeys ?? []),
-      ...initArtifactKeys,
-      ...historyApplyArtifactKeys,
-      ...artifactKeys,
+    addressSqlArtefactKeys: [
+      ...(pipelineMessage.addressSqlArtefactKeys ?? []),
+      ...initArtefactKeys,
+      ...historyApplyArtefactKeys,
+      ...artefactKeys,
     ],
-    artifactKey: undefined,
-    resolvedArtifactKey: undefined,
+    artefactKey: undefined,
+    resolvedArtefactKey: undefined,
     processingMode: 'sql',
-    processingRunStartedAt: artifact.processingRunStartedAt,
-    rowStart: artifact.rowEnd,
-    rowEnd: artifact.rowEnd,
-    totalRows: artifact.totalRows,
+    processingRunStartedAt: artefact.processingRunStartedAt,
+    rowStart: artefact.rowEnd,
+    rowEnd: artefact.rowEnd,
+    totalRows: artefact.totalRows,
   } satisfies AddressPipelineMessage
 }
 
@@ -239,7 +243,7 @@ export async function writeAddressCurrentSqlChunkStage(
  */
 export async function writeAddressReleaseMetaSqlFile(
   metaDb: MetaDatabase,
-  bucket: HarbourWorkerBucket & PipelineArtifactBucket,
+  bucket: HarbourWorkerBucket & PipelineArtefactBucket,
   message: DatasetProcessingMessage,
 ): Promise<AddressPipelineMessage> {
   const pipelineMessage = message as AddressPipelineMessage
@@ -249,8 +253,8 @@ export async function writeAddressReleaseMetaSqlFile(
 
   return {
     ...pipelineMessage,
-    addressSqlArtifactKeys: [
-      ...(pipelineMessage.addressSqlArtifactKeys ?? []),
+    addressSqlArtefactKeys: [
+      ...(pipelineMessage.addressSqlArtefactKeys ?? []),
       ...keys,
     ],
   }
@@ -529,39 +533,39 @@ async function buildAddressMetaSqlFile(
   }
 }
 
-export function finalizeAddressSqlDatasetStage(message: DatasetProcessingMessage) {
+export function finaliseAddressSqlDatasetStage(message: DatasetProcessingMessage) {
   const pipelineMessage = message as AddressPipelineMessage
 
   return {
     deletedRows: 0,
     insertedVersions: pipelineMessage.addressStats?.insertedVersions ?? 0,
-    localizedRows: pipelineMessage.addressStats?.localizedRows ?? 0,
+    localisedRows: pipelineMessage.addressStats?.localisedRows ?? 0,
     processedRows:
       pipelineMessage.addressStats?.processedRows ??
       Math.max(0, Math.floor(message.totalRows ?? 0)),
-    statsRows: pipelineMessage.addressSqlArtifactKeys?.length ?? 0,
+    statsRows: pipelineMessage.addressSqlArtefactKeys?.length ?? 0,
     unchangedRows: pipelineMessage.addressStats?.unchangedRows ?? 0,
   }
 }
 
 async function writeSqlFiles(
-  bucket: PipelineArtifactBucket,
+  bucket: PipelineArtefactBucket,
   message: DatasetProcessingMessage,
   files: AddressSqlImportFile[],
 ) {
   const keys: string[] = []
 
   for (const file of files) {
-    const key = buildSqlPipelineArtifactKey(message, file.target, file.filename)
+    const key = buildSqlPipelineArtefactKey(message, file.target, file.filename)
 
-    await writeTextArtifact(bucket, key, file.sql, 'application/sql; charset=utf-8')
+    await writeTextArtefact(bucket, key, file.sql, 'application/sql; charset=utf-8')
     keys.push(key)
 
     logStructuredInfo({
       bytes: file.bytes,
       datasetId: message.datasetId,
       key,
-      phase: 'addressSqlArtifact',
+      phase: 'addressSqlArtefact',
       releaseId: message.releaseId ?? message.datasetId,
       statementCount: file.statementCount,
       status: 'written',

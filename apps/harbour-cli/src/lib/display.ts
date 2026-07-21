@@ -15,7 +15,7 @@ function cyanText(label: string) {
   return `\u001B[36m${label}\u001B[39m`
 }
 
-function deEmphasize(text: string) {
+function deEmphasise(text: string) {
   return `\u001B[90m${text}\u001B[39m`
 }
 
@@ -39,7 +39,7 @@ export function formatField(
   value: string | number,
   inferredFrom?: string,
 ) {
-  const suffix = inferredFrom ? ` ${deEmphasize(`(${inferredFrom})`)}` : ''
+  const suffix = inferredFrom ? ` ${deEmphasise(`(${inferredFrom})`)}` : ''
   return `${cyanText(label)}: ${value}${suffix}`
 }
 
@@ -114,11 +114,11 @@ function formatReleaseValue(result: UploadPreviewResult) {
 }
 
 function formatTargetValue(target: UploadTarget) {
-  return `${target.environment} ${deEmphasize(`(${resolveHarbourBaseUrl(target)})`)}`
+  return `${target.environment} ${deEmphasise(`(${resolveHarbourBaseUrl(target)})`)}`
 }
 
 export function formatMutedValue(value: string) {
-  return deEmphasize(value)
+  return deEmphasise(value)
 }
 
 export function formatSchemaCheck(status: 'passed' | 'failed' | 'skipped') {
@@ -128,7 +128,7 @@ export function formatSchemaCheck(status: 'passed' | 'failed' | 'skipped') {
     case 'failed':
       return `${redText('✗')} Schema Check`
     case 'skipped':
-      return `${deEmphasize('•')} Schema Check`
+      return `${deEmphasise('•')} Schema Check`
   }
 }
 
@@ -363,19 +363,19 @@ function formatNumber(value: number) {
 function formatByteSize(value: number) {
   const units = ['B', 'KB', 'MB', 'GB', 'TB'] as const
   let unitIndex = 0
-  let normalizedValue = value
+  let normalisedValue = value
 
-  while (Math.abs(normalizedValue) >= 1024 && unitIndex < units.length - 1) {
-    normalizedValue /= 1024
+  while (Math.abs(normalisedValue) >= 1024 && unitIndex < units.length - 1) {
+    normalisedValue /= 1024
     unitIndex += 1
   }
 
   return `${new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 1,
-  }).format(normalizedValue)} ${units[unitIndex]}`
+  }).format(normalisedValue)} ${units[unitIndex]}`
 }
 
-function summarizeJsonCell(value: unknown) {
+function summariseJsonCell(value: unknown) {
   if (value == null) {
     return '-'
   }
@@ -397,7 +397,7 @@ function expandIngestRunRows(rows: IngestRunReportRow[]): TableCell[][] {
     const statsEntries = asRecordEntries(row.stats, row.phase)
     const statRows: Array<[string, string]> =
       statsEntries.length > 0 ? statsEntries : [['-', '-']]
-    const renderedError = summarizeJsonCell(row.error)
+    const renderedError = summariseJsonCell(row.error)
 
     return statRows.map(([statKey, statValue], index) => [
       index === 0 ? row.releaseCode : '',
@@ -437,7 +437,7 @@ function asRecordEntries(value: unknown, phase: string): Array<[string, string]>
       key,
       key === 'bytes' && typeof entryValue === 'number'
         ? formatByteSize(entryValue)
-        : summarizeJsonCell(entryValue),
+        : summariseJsonCell(entryValue),
     ])
 }
 
@@ -451,7 +451,7 @@ function shouldDisplayIngestStat(key: string, phase: string) {
     key === 'processedStatements' ||
     key === 'rowEnd' ||
     key === 'rowStart' ||
-    key === 'sqlArtifactCount' ||
+    key === 'sqlArtefactCount' ||
     key === 'target' ||
     key === 'totalFiles'
   ) {
@@ -467,17 +467,17 @@ function shouldDisplayIngestStat(key: string, phase: string) {
 
 function isSqlReportPhase(phase: string) {
   return (
-    phase === 'normalizeAddressSql' ||
+    phase === 'normaliseAddressSql' ||
     phase === 'generateAddressSqlSource' ||
     phase === 'generateAddressSqlHistory' ||
     phase === 'generateAddressSqlCurrent' ||
-    phase === 'finalizeAddressSqlGeneration' ||
+    phase === 'finaliseAddressSqlGeneration' ||
     phase === 'importAddressSqlSource' ||
     phase === 'importAddressSqlHistory' ||
     phase === 'importAddressSqlCurrentInit' ||
     phase === 'importAddressSqlCurrent' ||
     phase === 'cleanupAddressSqlStaging' ||
-    phase === 'normalizeDivisionSql' ||
+    phase === 'normaliseDivisionSql' ||
     phase === 'generateDivisionSqlSource' ||
     phase === 'generateDivisionSqlHistory' ||
     phase === 'generateDivisionSqlCurrent' ||

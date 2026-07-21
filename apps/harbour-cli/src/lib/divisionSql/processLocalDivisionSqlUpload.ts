@@ -52,8 +52,8 @@ import {
   buildDivisionBaseHashInput,
   buildDivisionHierarchyLookup,
   buildOvertureDivisionLocaleProcessingActions,
-  normalizeDivisionI18nSnapshotRow,
-  normalizeDivisionRow,
+  normaliseDivisionI18nSnapshotRow,
+  normaliseDivisionRow,
   resolveAdminLevelValue,
   resolveDistrictId,
 } from '@repo/core/pipeline/services/division'
@@ -76,9 +76,9 @@ import {
   getMaxItemsPerInClause,
 } from '@repo/core/pipeline/utils'
 import {
-  buildSqlPipelineArtifactKey,
-  writeTextArtifact,
-} from '@repo/core/pipeline/services/pipelineArtifacts'
+  buildSqlPipelineArtefactKey,
+  writeTextArtefact,
+} from '@repo/core/pipeline/services/pipelineArtefacts'
 
 import type { PreparedUploadFile } from '../parquetRepack.ts'
 import type { UploadTarget } from '../options.ts'
@@ -105,7 +105,7 @@ import {
 } from '../localPipeline/progressFormatting.ts'
 import {
   executeSqlText,
-  importSqlArtifactKeys,
+  importSqlArtefactKeys,
   runReportedSqlImportPhase,
   type SqlImportExecutionOptions,
   type SqlImportTargetContext,
@@ -166,7 +166,7 @@ type DivisionSqlState = {
   deletedRows: number
   insertedVersions: number
   isInitialSourceLoad: boolean
-  localizedRows: number
+  localisedRows: number
   previousRows: Map<string, DivisionVersionSnapshot>
   processedRows: number
   processedRowsById: Map<string, DivisionVersionSnapshot>
@@ -180,7 +180,7 @@ type DivisionSqlState = {
   unchangedRows: number
 }
 
-type DivisionSqlArtifactManifest = {
+type DivisionSqlArtefactManifest = {
   currentKey: string
   currentInitKey: string | null
   historyKey: string
@@ -447,7 +447,7 @@ export async function processLocalDivisionSqlUpload(
           versionInsertContext.parentSnapshotId,
           {
             buildDivisionBaseHashInput,
-            normalizeDivisionI18nSnapshotRow,
+            normaliseDivisionI18nSnapshotRow,
           },
           dbContext.historyTargets.map((target, index) =>
             buildHistoryOwnerKey(previewPlan.regionCode, shardYear, target.bindingName),
@@ -490,25 +490,25 @@ export async function processLocalDivisionSqlUpload(
       harbourClient,
       {
         completionLabel: formatCompletedPhaseLabel(
-          colorTeal('Normalize'),
+          colorTeal('Normalise'),
           colorTeal('records'),
           previewPlan.rowCount,
         ),
         label: formatRunningPhaseLabel(
-          colorTeal('Normalize'),
+          colorTeal('Normalise'),
           colorTeal('records'),
           0,
           previewPlan.rowCount,
         ),
         labelForProgress(current: number) {
           return formatRunningPhaseLabel(
-            colorTeal('Normalize'),
+            colorTeal('Normalise'),
             colorTeal('records'),
             current,
             previewPlan.rowCount,
           )
         },
-        phase: 'normalizeDivisionSql',
+        phase: 'normaliseDivisionSql',
         releaseCode,
         releaseId,
         totalUnits: previewPlan.rowCount,
@@ -535,9 +535,9 @@ export async function processLocalDivisionSqlUpload(
     )
     await harbourClient.stageCompleted(
       releaseId,
-      'normalizeDivisionSql',
+      'normaliseDivisionSql',
       {
-        localizedRows: divisionState.localizedRows,
+        localisedRows: divisionState.localisedRows,
         processedRows: divisionState.processedRows,
       },
       releaseCode,
@@ -666,7 +666,7 @@ export async function processLocalDivisionSqlUpload(
       releaseCode,
     )
 
-    const manifest = await writeDivisionSqlArtifacts(bucket, initialMessage, {
+    const manifest = await writeDivisionSqlArtefacts(bucket, initialMessage, {
       current: currentFile,
       currentInit: currentInitFile,
       history: historyFile,
@@ -675,7 +675,7 @@ export async function processLocalDivisionSqlUpload(
     })
 
     await writeLocalPipelineState(releaseRoot, {
-      artifacts: manifest,
+      artefacts: manifest,
       divisionBatchSize: DIVISION_BATCH_SIZE,
       preparedAt: processingRunStartedAt,
       rawObjectKey,
@@ -714,7 +714,7 @@ export async function processLocalDivisionSqlUpload(
         releaseCode,
         'importDivisionSqlSource',
         progressReporter =>
-          importSqlArtifactKeys(
+          importSqlArtefactKeys(
             bucket,
             importTargets.source,
             [manifest.sourceKey],
@@ -734,7 +734,7 @@ export async function processLocalDivisionSqlUpload(
         releaseCode,
         'importDivisionSqlHistory',
         progressReporter =>
-          importSqlArtifactKeys(
+          importSqlArtefactKeys(
             bucket,
             importTargets.history,
             [manifest.historyKey],
@@ -758,7 +758,7 @@ export async function processLocalDivisionSqlUpload(
             releaseCode,
             'importDivisionSqlCurrentInit',
             progressReporter =>
-              importSqlArtifactKeys(
+              importSqlArtefactKeys(
                 bucket,
                 importTargets.current,
                 [currentInitKey],
@@ -774,7 +774,7 @@ export async function processLocalDivisionSqlUpload(
           releaseCode,
           'importDivisionSqlCurrent',
           progressReporter =>
-            importSqlArtifactKeys(
+            importSqlArtefactKeys(
               bucket,
               importTargets.current,
               [manifest.currentKey],
@@ -789,7 +789,7 @@ export async function processLocalDivisionSqlUpload(
         releaseCode,
         'importDivisionSqlStats',
         progressReporter =>
-          importSqlArtifactKeys(
+          importSqlArtefactKeys(
             bucket,
             importTargets.meta,
             [manifest.metaKey],
@@ -814,7 +814,7 @@ export async function processLocalDivisionSqlUpload(
       releaseId,
       'extractDivisionsI18n',
       {
-        localizedRows: divisionState.localizedRows,
+        localisedRows: divisionState.localisedRows,
       },
       releaseCode,
     )
@@ -851,7 +851,7 @@ export async function processLocalDivisionSqlUpload(
           importOptions,
         )
       } catch (error) {
-        postPublishCacheError = normalizeError(error)
+        postPublishCacheError = normaliseError(error)
       }
     }
     await calculateAndStoreApiReleaseSetStats({
@@ -869,7 +869,7 @@ export async function processLocalDivisionSqlUpload(
       releaseId,
       'processDataset',
       {
-        sqlArtifactCount:
+        sqlArtefactCount:
           countDivisionImportFiles(manifest) +
           extraSourceSqlOperations.length +
           extraHistorySqlOperations.length,
@@ -895,7 +895,7 @@ export async function processLocalDivisionSqlUpload(
           dbContext.state.dbCacheDir,
         )
       } catch (error) {
-        postPublishCacheError = normalizeError(error)
+        postPublishCacheError = normaliseError(error)
       }
     }
   }
@@ -912,7 +912,7 @@ async function replayDivisionSqlIntoRemoteCache(
   dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   bucket: LocalPipelineBucket,
   importTargets: Awaited<ReturnType<typeof resolveDivisionImportTargets>>,
-  manifest: DivisionSqlArtifactManifest,
+  manifest: DivisionSqlArtefactManifest,
   extraSourceSqlOperations: ExtraSqlImportOperation[],
   extraHistorySqlOperations: ExtraSqlImportOperation[],
   importOptions: SqlImportExecutionOptions,
@@ -927,7 +927,7 @@ async function replayDivisionSqlIntoRemoteCache(
 
   try {
     await Promise.all([
-      importSqlArtifactKeys(
+      importSqlArtefactKeys(
         bucket,
         importTargets.source,
         [manifest.sourceKey],
@@ -938,7 +938,7 @@ async function replayDivisionSqlIntoRemoteCache(
           await executeSqlText(operation.target, operation.sql, cacheImportOptions)
         }
       }),
-      importSqlArtifactKeys(
+      importSqlArtefactKeys(
         bucket,
         importTargets.history,
         [manifest.historyKey],
@@ -951,7 +951,7 @@ async function replayDivisionSqlIntoRemoteCache(
       }),
       (async () => {
         if (manifest.currentInitKey) {
-          await importSqlArtifactKeys(
+          await importSqlArtefactKeys(
             bucket,
             importTargets.current,
             [manifest.currentInitKey],
@@ -960,7 +960,7 @@ async function replayDivisionSqlIntoRemoteCache(
           )
         }
 
-        await importSqlArtifactKeys(
+        await importSqlArtefactKeys(
           bucket,
           importTargets.current,
           [manifest.currentKey],
@@ -997,7 +997,7 @@ async function refreshRemoteMetaCacheAfterReplay(
   }
 }
 
-function normalizeError(error: unknown) {
+function normaliseError(error: unknown) {
   return error instanceof Error ? error : new Error(String(error))
 }
 
@@ -1105,7 +1105,7 @@ async function assertDivisionCurrentSnapshotComplete(
     countDivisionCurrentSnapshotI18nRows(currentDb as never, activeSnapshot.id),
   ])
   const expectedI18nRowCount = [...currentRows.values()].reduce(
-    (total, row) => total + row.localizedRows.length,
+    (total, row) => total + row.localisedRows.length,
     0,
   )
 
@@ -1123,7 +1123,7 @@ async function assertDivisionCurrentSnapshotComplete(
       activeSnapshotId: activeSnapshot.id,
       event: 'baseline',
       historyCurrentExists: currentRows.has(divisionId),
-      historyCurrentLocaleCount: currentRows.get(divisionId)?.localizedRows.length ?? 0,
+      historyCurrentLocaleCount: currentRows.get(divisionId)?.localisedRows.length ?? 0,
       phase: 'assertDivisionCurrentSnapshotComplete',
       snapshotI18nRowCount: snapshotState?.i18nRowCount ?? 0,
       snapshotRowExists: snapshotState?.isPresent ?? false,
@@ -1140,7 +1140,7 @@ async function assertDivisionCurrentSnapshotComplete(
         event: 'activeSnapshotMismatch',
         historyCurrentExists: currentRows.has(divisionId),
         historyCurrentLocaleCount:
-          currentRows.get(divisionId)?.localizedRows.length ?? 0,
+          currentRows.get(divisionId)?.localisedRows.length ?? 0,
         phase: 'assertDivisionCurrentSnapshotComplete',
         snapshotI18nRowCount: snapshotState?.i18nRowCount ?? 0,
         snapshotRowExists: snapshotState?.isPresent ?? false,
@@ -1181,7 +1181,7 @@ async function buildDivisionSqlState(
 
   let processedRows = 0
   let insertedVersions = 0
-  let localizedRows = 0
+  let localisedRows = 0
   let sourceChangedRows = 0
   let sourceUnchangedRows = 0
   let unchangedRows = 0
@@ -1190,7 +1190,7 @@ async function buildDivisionSqlState(
     logDivisionTrace(traceDivisionIds, divisionId, {
       event: 'baseline',
       historyCurrentExists: currentRows.has(divisionId),
-      historyCurrentLocaleCount: currentRows.get(divisionId)?.localizedRows.length ?? 0,
+      historyCurrentLocaleCount: currentRows.get(divisionId)?.localisedRows.length ?? 0,
       phase: 'buildDivisionSqlState',
       snapshotId,
       sourceCurrentExists: currentSourceRows.has(divisionId),
@@ -1205,75 +1205,75 @@ async function buildDivisionSqlState(
   )) {
     for (const row of batch) {
       const raw = row as Record<string, unknown>
-      const normalized = normalizeDivisionRow(raw, { hierarchyLookup })
-      const canonicalI18n = buildCanonicalDivisionApiI18n(normalized.i18n)
+      const normalised = normaliseDivisionRow(raw, { hierarchyLookup })
+      const canonicalI18n = buildCanonicalDivisionApiI18n(normalised.i18n)
       processingActions.push(
         ...buildOvertureDivisionLocaleProcessingActions({
           canonicalI18n,
-          division: normalized.base,
+          division: normalised.base,
           rawNames: raw.names,
-          sourceI18n: normalized.i18n,
+          sourceI18n: normalised.i18n,
         }),
       )
-      const versionHash = await createHash(buildDivisionBaseHashInput(normalized.base))
+      const versionHash = await createHash(buildDivisionBaseHashInput(normalised.base))
       const churnHash = await createHash({
-        base: buildDivisionBaseHashInput(normalized.base),
+        base: buildDivisionBaseHashInput(normalised.base),
         i18n: canonicalI18n,
       })
       const sourcePayloadHash = await createHash(raw)
-      const current = currentRows.get(normalized.base.id)
+      const current = currentRows.get(normalised.base.id)
       const currentChanged = current?.churnHash !== churnHash
       const baseChanged = current?.versionHash !== versionHash
       const i18nVersionHash =
         !baseChanged && currentChanged
           ? await createHash({
               baseVersionHash: versionHash,
-              i18n: canonicalI18n.map(localized => ({
-                isLocaleInferred: localized.isLocaleInferred,
-                locale: localized.locale,
-                name: localized.name ?? null,
-                nameAlts: localized.nameAlts ?? null,
-                nameRules: localized.nameRules,
-                nameVariant: localized.nameVariant,
+              i18n: canonicalI18n.map(localised => ({
+                isLocaleInferred: localised.isLocaleInferred,
+                locale: localised.locale,
+                name: localised.name ?? null,
+                nameAlts: localised.nameAlts ?? null,
+                nameRules: localised.nameRules,
+                nameVariant: localised.nameVariant,
               })),
               kind: 'division-i18n',
             })
           : versionHash
-      const currentSource = currentSourceRows.get(normalized.base.id) ?? null
+      const currentSource = currentSourceRows.get(normalised.base.id) ?? null
       const sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
 
       processedRows += 1
-      localizedRows += canonicalI18n.length
-      seenIds.add(normalized.base.id)
+      localisedRows += canonicalI18n.length
+      seenIds.add(normalised.base.id)
       updateLocaleStatsAccumulator(
         statsAccumulator,
-        canonicalI18n.map(localized => ({
-          hasAltName: Boolean(localized.nameAlts),
-          hasName: Boolean(localized.name),
-          isLocaleInferred: localized.isLocaleInferred,
-          locale: localized.locale,
+        canonicalI18n.map(localised => ({
+          hasAltName: Boolean(localised.nameAlts),
+          hasName: Boolean(localised.name),
+          isLocaleInferred: localised.isLocaleInferred,
+          locale: localised.locale,
         })),
       )
-      const districtId = resolveDistrictId(normalized.base)
+      const districtId = resolveDistrictId(normalised.base)
       if (districtId) {
         districtCounts.set(districtId, (districtCounts.get(districtId) ?? 0) + 1)
       }
-      processedRowsById.set(normalized.base.id, {
+      processedRowsById.set(normalised.base.id, {
         churnHash,
-        geometry: normalized.base.geometry,
-        id: normalized.base.id,
-        localizedRows: canonicalI18n,
-        parentId: resolveParentDivisionIdFromHierarchy(normalized.base.hierarchy),
-        type: normalized.base.type,
+        geometry: normalised.base.geometry,
+        id: normalised.base.id,
+        localisedRows: canonicalI18n,
+        parentId: resolveParentDivisionIdFromHierarchy(normalised.base.hierarchy),
+        type: normalised.base.type,
         versionHash,
       })
 
-      logDivisionTrace(traceDivisionIds, normalized.base.id, {
+      logDivisionTrace(traceDivisionIds, normalised.base.id, {
         baseChanged,
         currentChanged,
         currentExists: Boolean(current),
         event: 'rowSeen',
-        historyCurrentLocaleCount: current?.localizedRows.length ?? 0,
+        historyCurrentLocaleCount: current?.localisedRows.length ?? 0,
         localeCount: canonicalI18n.length,
         phase: 'buildDivisionSqlState',
         sourceChanged,
@@ -1294,12 +1294,12 @@ async function buildDivisionSqlState(
       }
 
       records.push({
-        base: normalized.base,
+        base: normalised.base,
         baseChanged,
         canonicalI18n,
         currentChanged,
         currentExists: Boolean(current),
-        id: normalized.base.id,
+        id: normalised.base.id,
         i18nVersionHash,
         raw,
         sourceChanged,
@@ -1342,7 +1342,7 @@ async function buildDivisionSqlState(
     deletedRows: [...currentRows.keys()].filter(id => !seenIds.has(id)).length,
     insertedVersions,
     isInitialSourceLoad,
-    localizedRows,
+    localisedRows,
     previousRows,
     processedRows,
     processedRowsById,
@@ -1392,14 +1392,14 @@ async function buildDivisionSourceSqlFile(
           isCurrent: true,
         })
         changedI18nRows.push(
-          ...record.canonicalI18n.map(localized => ({
+          ...record.canonicalI18n.map(localised => ({
             sourceRecordId: record.id,
-            locale: localized.locale,
-            name: localized.name ?? null,
-            nameVariant: jsonText(localized.nameVariant),
-            nameAlts: localized.nameAlts ?? null,
-            nameRules: jsonText(localized.nameRules),
-            isLocaleInferred: localized.isLocaleInferred,
+            locale: localised.locale,
+            name: localised.name ?? null,
+            nameVariant: jsonText(localised.nameVariant),
+            nameAlts: localised.nameAlts ?? null,
+            nameRules: jsonText(localised.nameRules),
+            isLocaleInferred: localised.isLocaleInferred,
             versionHash: record.sourcePayloadHash,
             releaseId,
             validFromRelease: message.sourceVersion,
@@ -1557,18 +1557,18 @@ async function buildDivisionHistorySqlFile(
         updatedAt: record.base.updatedAt,
       })
       i18nRows.push(
-        ...record.canonicalI18n.map(localized => ({
+        ...record.canonicalI18n.map(localised => ({
           divisionId: record.id,
           versionHash: record.baseChanged ? record.versionHash : record.i18nVersionHash,
           sourceReleaseId: message.releaseId ?? message.datasetId,
           snapshotId: state.snapshotId,
           isCurrent: true,
-          locale: localized.locale,
-          name: localized.name ?? null,
-          nameVariant: jsonText(localized.nameVariant),
-          nameAlts: localized.nameAlts ?? null,
-          nameRules: jsonText(localized.nameRules),
-          isLocaleInferred: localized.isLocaleInferred,
+          locale: localised.locale,
+          name: localised.name ?? null,
+          nameVariant: jsonText(localised.nameVariant),
+          nameAlts: localised.nameAlts ?? null,
+          nameRules: jsonText(localised.nameRules),
+          isLocaleInferred: localised.isLocaleInferred,
           createdAt: record.base.updatedAt,
           updatedAt: record.base.updatedAt,
         })),
@@ -1797,15 +1797,15 @@ async function buildDivisionCurrentSqlFile(
       }
 
       i18nRows.push(
-        ...record.canonicalI18n.map(localized => ({
+        ...record.canonicalI18n.map(localised => ({
           snapshotId: state.snapshotId,
           divisionId: record.id,
-          locale: localized.locale,
-          name: localized.name ?? null,
-          nameVariant: jsonText(localized.nameVariant),
-          nameAlts: localized.nameAlts ?? null,
-          nameRules: jsonText(localized.nameRules),
-          isLocaleInferred: localized.isLocaleInferred,
+          locale: localised.locale,
+          name: localised.name ?? null,
+          nameVariant: jsonText(localised.nameVariant),
+          nameAlts: localised.nameAlts ?? null,
+          nameRules: jsonText(localised.nameRules),
+          isLocaleInferred: localised.isLocaleInferred,
           createdAt: record.base.updatedAt,
           updatedAt: record.base.updatedAt,
         })),
@@ -1954,7 +1954,7 @@ async function buildDivisionMetaSqlFile(
     .from(metaSnapshotAssemblyRuns)
     .where(eq(metaSnapshotAssemblyRuns.snapshotId, state.snapshotId))
     .all()
-  const serializedSnapshotAssemblyRunRows = snapshotAssemblyRunRows.map(row => ({
+  const serialisedSnapshotAssemblyRunRows = snapshotAssemblyRunRows.map(row => ({
     ...row,
     selectionSummaryJson: jsonText(row.selectionSummaryJson),
   }))
@@ -2110,7 +2110,7 @@ ON CONFLICT(snapshotId, sourceReleaseId) DO UPDATE SET
         'createdAt',
         'updatedAt',
       ],
-      serializedSnapshotAssemblyRunRows,
+      serialisedSnapshotAssemblyRunRows,
       {
         suffix: `
 ON CONFLICT(id) DO UPDATE SET
@@ -2292,7 +2292,7 @@ function buildExtraSourceSqlOperations(
   return operations
 }
 
-async function writeDivisionSqlArtifacts(
+async function writeDivisionSqlArtefacts(
   bucket: LocalPipelineBucket,
   message: DatasetProcessingMessage,
   files: {
@@ -2302,34 +2302,34 @@ async function writeDivisionSqlArtifacts(
     meta: DivisionSqlImportFile
     source: DivisionSqlImportFile
   },
-): Promise<DivisionSqlArtifactManifest> {
-  const manifest: DivisionSqlArtifactManifest = {
+): Promise<DivisionSqlArtefactManifest> {
+  const manifest: DivisionSqlArtefactManifest = {
     currentInitKey: null,
-    currentKey: buildSqlPipelineArtifactKey(message, 'current', files.current.filename),
-    historyKey: buildSqlPipelineArtifactKey(message, 'history', files.history.filename),
-    metaKey: buildSqlPipelineArtifactKey(message, 'meta', files.meta.filename),
-    sourceKey: buildSqlPipelineArtifactKey(message, 'source', files.source.filename),
+    currentKey: buildSqlPipelineArtefactKey(message, 'current', files.current.filename),
+    historyKey: buildSqlPipelineArtefactKey(message, 'history', files.history.filename),
+    metaKey: buildSqlPipelineArtefactKey(message, 'meta', files.meta.filename),
+    sourceKey: buildSqlPipelineArtefactKey(message, 'source', files.source.filename),
   }
 
-  await writeTextArtifact(
+  await writeTextArtefact(
     bucket,
     manifest.sourceKey,
     files.source.sql,
     'application/sql; charset=utf-8',
   )
-  await writeTextArtifact(
+  await writeTextArtefact(
     bucket,
     manifest.historyKey,
     files.history.sql,
     'application/sql; charset=utf-8',
   )
-  await writeTextArtifact(
+  await writeTextArtefact(
     bucket,
     manifest.currentKey,
     files.current.sql,
     'application/sql; charset=utf-8',
   )
-  await writeTextArtifact(
+  await writeTextArtefact(
     bucket,
     manifest.metaKey,
     files.meta.sql,
@@ -2337,12 +2337,12 @@ async function writeDivisionSqlArtifacts(
   )
 
   if (files.currentInit) {
-    manifest.currentInitKey = buildSqlPipelineArtifactKey(
+    manifest.currentInitKey = buildSqlPipelineArtefactKey(
       message,
       'current',
       files.currentInit.filename,
     )
-    await writeTextArtifact(
+    await writeTextArtefact(
       bucket,
       manifest.currentInitKey,
       files.currentInit.sql,
@@ -2424,7 +2424,7 @@ async function resolveDivisionImportTargets(
 }
 
 function buildDivisionImportProgressConfig(
-  manifest: DivisionSqlArtifactManifest,
+  manifest: DivisionSqlArtefactManifest,
   extraImportFileCount = 0,
 ) {
   const totalImportFiles = countDivisionImportFiles(manifest) + extraImportFileCount
@@ -2831,7 +2831,7 @@ function buildSqlImportFile(
   } satisfies DivisionSqlImportFile
 }
 
-function countDivisionImportFiles(manifest: DivisionSqlArtifactManifest) {
+function countDivisionImportFiles(manifest: DivisionSqlArtefactManifest) {
   return manifest.currentInitKey ? 5 : 4
 }
 

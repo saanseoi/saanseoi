@@ -7,8 +7,8 @@ import { runWithWriteRetry, type WriteRetryEvent } from '../../utils'
 import type { MetaDatabase } from '@repo/db'
 import { createHash } from 'node:crypto'
 
-import type { PipelineArtifactBucket } from '../pipelineArtifacts'
-import { readArtifactBytes } from '../pipelineArtifacts'
+import type { PipelineArtefactBucket } from '../pipelineArtefacts'
+import { readArtefactBytes } from '../pipelineArtefacts'
 import { resolveDataShardEnvironment } from '../shared'
 import { buildAddressSqlCleanupFile, type AddressSqlImportTarget } from './sqlImport'
 
@@ -85,7 +85,7 @@ type ImportStats = {
   statementCount: number
 }
 
-type RemoteImportArtifact = {
+type RemoteImportArtefact = {
   bytes: Uint8Array
   etag?: string | null
   key: string
@@ -117,7 +117,7 @@ export function isAddressSqlImportOrCleanupStage(message: DatasetProcessingMessa
 export async function processAddressSqlImportOrCleanupStage(
   harbourClient: SqlStageHarbourClient,
   metaDb: MetaDatabase,
-  bucket: PipelineArtifactBucket,
+  bucket: PipelineArtefactBucket,
   message: DatasetProcessingMessage,
   options: AddressSqlImportStageOptions,
 ): Promise<DatasetProcessingMessage | null> {
@@ -139,12 +139,12 @@ export async function processAddressSqlImportOrCleanupStage(
         message,
         'importAddressSqlSource',
         progress =>
-          importArtifactKeys(
+          importArtefactKeys(
             metaDb,
             bucket,
             message,
             'source',
-            filterSqlArtifactKeys(message, 'source'),
+            filterSqlArtefactKeys(message, 'source'),
             options,
             progress,
           ),
@@ -159,21 +159,21 @@ export async function processAddressSqlImportOrCleanupStage(
         message,
         'importAddressSqlHistory',
         async progress => {
-          const historyStats = await importArtifactKeys(
+          const historyStats = await importArtefactKeys(
             metaDb,
             bucket,
             message,
             'history',
-            filterSqlArtifactKeys(message, 'history'),
+            filterSqlArtefactKeys(message, 'history'),
             options,
             progress,
           )
-          const historyApplyStats = await importArtifactKeys(
+          const historyApplyStats = await importArtefactKeys(
             metaDb,
             bucket,
             message,
             'history-apply',
-            filterSqlArtifactKeys(message, 'history-apply'),
+            filterSqlArtefactKeys(message, 'history-apply'),
             options,
             async () => undefined,
           )
@@ -191,7 +191,7 @@ export async function processAddressSqlImportOrCleanupStage(
         addressStage: 'sql-import-current',
       }
     case 'sql-import-current': {
-      const currentKeys = filterSqlArtifactKeys(message, 'current')
+      const currentKeys = filterSqlArtefactKeys(message, 'current')
       const initKeys = currentKeys.filter(isCurrentInitSqlKey)
       const deltaKeys = currentKeys.filter(key => !isCurrentInitSqlKey(key))
 
@@ -200,7 +200,7 @@ export async function processAddressSqlImportOrCleanupStage(
         message,
         'importAddressSqlCurrentInit',
         progress =>
-          importArtifactKeys(
+          importArtefactKeys(
             metaDb,
             bucket,
             message,
@@ -215,7 +215,7 @@ export async function processAddressSqlImportOrCleanupStage(
         message,
         'importAddressSqlCurrent',
         progress =>
-          importArtifactKeys(
+          importArtefactKeys(
             metaDb,
             bucket,
             message,
@@ -238,12 +238,12 @@ export async function processAddressSqlImportOrCleanupStage(
         message,
         'importAddressSqlStats',
         progress =>
-          importArtifactKeys(
+          importArtefactKeys(
             metaDb,
             bucket,
             message,
             'meta',
-            filterSqlArtifactKeys(message, 'meta'),
+            filterSqlArtefactKeys(message, 'meta'),
             options,
             progress,
           ),
@@ -268,20 +268,20 @@ export async function processAddressSqlImportOrCleanupStage(
   throw new Error(`Unsupported address SQL stage: ${String(message.addressStage)}`)
 }
 
-export async function importAddressSqlArtifactsAndPublish(
+export async function importAddressSqlArtefactsAndPublish(
   harbourClient: SqlStageHarbourClient,
   metaDb: MetaDatabase,
-  bucket: PipelineArtifactBucket,
+  bucket: PipelineArtefactBucket,
   message: DatasetProcessingMessage,
   options: AddressSqlImportStageOptions,
 ): Promise<PublishDatasetResult | void> {
   const releaseId = message.releaseId ?? message.datasetId
   const releaseCode = message.releaseCode
-  const sourceKeys = filterSqlArtifactKeys(message, 'source')
-  const historyKeys = filterSqlArtifactKeys(message, 'history')
-  const historyApplyKeys = filterSqlArtifactKeys(message, 'history-apply')
-  const currentKeys = filterSqlArtifactKeys(message, 'current')
-  const metaKeys = filterSqlArtifactKeys(message, 'meta')
+  const sourceKeys = filterSqlArtefactKeys(message, 'source')
+  const historyKeys = filterSqlArtefactKeys(message, 'history')
+  const historyApplyKeys = filterSqlArtefactKeys(message, 'history-apply')
+  const currentKeys = filterSqlArtefactKeys(message, 'current')
+  const metaKeys = filterSqlArtefactKeys(message, 'meta')
   const initKeys = currentKeys.filter(isCurrentInitSqlKey)
   const deltaKeys = currentKeys.filter(key => !isCurrentInitSqlKey(key))
 
@@ -290,7 +290,7 @@ export async function importAddressSqlArtifactsAndPublish(
 
   await Promise.all([
     runReportedPhase(harbourClient, message, 'importAddressSqlSource', progress =>
-      importArtifactKeys(
+      importArtefactKeys(
         metaDb,
         bucket,
         message,
@@ -305,7 +305,7 @@ export async function importAddressSqlArtifactsAndPublish(
       message,
       'importAddressSqlHistory',
       async progress => {
-        const historyStats = await importArtifactKeys(
+        const historyStats = await importArtefactKeys(
           metaDb,
           bucket,
           message,
@@ -314,7 +314,7 @@ export async function importAddressSqlArtifactsAndPublish(
           options,
           progress,
         )
-        const historyApplyStats = await importArtifactKeys(
+        const historyApplyStats = await importArtefactKeys(
           metaDb,
           bucket,
           message,
@@ -338,7 +338,7 @@ export async function importAddressSqlArtifactsAndPublish(
         message,
         'importAddressSqlCurrentInit',
         progress =>
-          importArtifactKeys(
+          importArtefactKeys(
             metaDb,
             bucket,
             message,
@@ -353,7 +353,7 @@ export async function importAddressSqlArtifactsAndPublish(
         message,
         'importAddressSqlCurrent',
         progress =>
-          importArtifactKeys(
+          importArtefactKeys(
             metaDb,
             bucket,
             message,
@@ -365,7 +365,7 @@ export async function importAddressSqlArtifactsAndPublish(
       )
     })(),
     runReportedPhase(harbourClient, message, 'importAddressSqlStats', progress =>
-      importArtifactKeys(metaDb, bucket, message, 'meta', metaKeys, options, progress),
+      importArtefactKeys(metaDb, bucket, message, 'meta', metaKeys, options, progress),
     ),
   ])
 
@@ -375,19 +375,19 @@ export async function importAddressSqlArtifactsAndPublish(
   return publishImportedAddressSqlRelease(harbourClient, message)
 }
 
-export async function importAddressSqlDataArtifacts(
+export async function importAddressSqlDataArtefacts(
   harbourClient: SqlStageHarbourClient,
   metaDb: MetaDatabase,
-  bucket: PipelineArtifactBucket,
+  bucket: PipelineArtefactBucket,
   message: DatasetProcessingMessage,
   options: AddressSqlImportStageOptions,
 ) {
   const releaseId = message.releaseId ?? message.datasetId
   const releaseCode = message.releaseCode
-  const sourceKeys = filterSqlArtifactKeys(message, 'source')
-  const historyKeys = filterSqlArtifactKeys(message, 'history')
-  const historyApplyKeys = filterSqlArtifactKeys(message, 'history-apply')
-  const currentKeys = filterSqlArtifactKeys(message, 'current')
+  const sourceKeys = filterSqlArtefactKeys(message, 'source')
+  const historyKeys = filterSqlArtefactKeys(message, 'history')
+  const historyApplyKeys = filterSqlArtefactKeys(message, 'history-apply')
+  const currentKeys = filterSqlArtefactKeys(message, 'current')
   const initKeys = currentKeys.filter(isCurrentInitSqlKey)
   const deltaKeys = currentKeys.filter(key => !isCurrentInitSqlKey(key))
 
@@ -395,7 +395,7 @@ export async function importAddressSqlDataArtifacts(
 
   await Promise.all([
     runReportedPhase(harbourClient, message, 'cacheAddressSqlSource', progress =>
-      importArtifactKeys(
+      importArtefactKeys(
         metaDb,
         bucket,
         message,
@@ -410,7 +410,7 @@ export async function importAddressSqlDataArtifacts(
       message,
       'cacheAddressSqlHistory',
       async progress => {
-        const historyStats = await importArtifactKeys(
+        const historyStats = await importArtefactKeys(
           metaDb,
           bucket,
           message,
@@ -419,7 +419,7 @@ export async function importAddressSqlDataArtifacts(
           options,
           progress,
         )
-        const historyApplyStats = await importArtifactKeys(
+        const historyApplyStats = await importArtefactKeys(
           metaDb,
           bucket,
           message,
@@ -443,7 +443,7 @@ export async function importAddressSqlDataArtifacts(
         message,
         'cacheAddressSqlCurrentInit',
         progress =>
-          importArtifactKeys(
+          importArtefactKeys(
             metaDb,
             bucket,
             message,
@@ -458,7 +458,7 @@ export async function importAddressSqlDataArtifacts(
         message,
         'cacheAddressSqlCurrent',
         progress =>
-          importArtifactKeys(
+          importArtefactKeys(
             metaDb,
             bucket,
             message,
@@ -490,14 +490,14 @@ async function completeAddressSqlGenerationPhases(
   const stats: Record<string, unknown> = {
     processedRows,
   }
-  const sqlArtifactCount = message.addressSqlArtifactKeys?.length
+  const sqlArtefactCount = message.addressSqlArtefactKeys?.length
 
-  if (sqlArtifactCount != null) {
-    stats.sqlArtifactCount = sqlArtifactCount
+  if (sqlArtefactCount != null) {
+    stats.sqlArtefactCount = sqlArtefactCount
   }
 
   for (const phase of [
-    'normalizeAddressSql',
+    'normaliseAddressSql',
     'generateAddressSqlSource',
     'generateAddressSqlHistory',
     'generateAddressSqlCurrent',
@@ -568,9 +568,9 @@ async function runReportedPhase<T extends Record<string, unknown>>(
   }
 }
 
-async function importArtifactKeys(
+async function importArtefactKeys(
   metaDb: MetaDatabase,
-  bucket: PipelineArtifactBucket,
+  bucket: PipelineArtefactBucket,
   message: DatasetProcessingMessage,
   target: AddressSqlImportTarget,
   keys: string[],
@@ -606,38 +606,38 @@ async function importArtifactKeys(
   await maybeReportProgress(true)
 
   if (!options.isLocal && shouldBatchRemoteImport(target, options)) {
-    const pendingArtifacts: RemoteImportArtifact[] = []
+    const pendingArtefacts: RemoteImportArtefact[] = []
     let pendingBytes = 0
     const batchBytesLimit =
       options.remoteImportBatchBytes ?? REMOTE_HISTORY_IMPORT_BATCH_BYTES
 
     for (const key of keys) {
-      const artifact = await readArtifactBytes(bucket, key)
-      const artifactBytes = artifact.bytes.byteLength
-      bytes += artifactBytes
+      const artefact = await readArtefactBytes(bucket, key)
+      const artefactBytes = artefact.bytes.byteLength
+      bytes += artefactBytes
 
       if (
-        pendingArtifacts.length > 0 &&
-        pendingBytes + artifactBytes > batchBytesLimit
+        pendingArtefacts.length > 0 &&
+        pendingBytes + artefactBytes > batchBytesLimit
       ) {
-        await importRemoteArtifactBatch(targetContext, pendingArtifacts, options)
-        importedFiles.push(...pendingArtifacts.map(item => item.key))
-        pendingArtifacts.length = 0
+        await importRemoteArtefactBatch(targetContext, pendingArtefacts, options)
+        importedFiles.push(...pendingArtefacts.map(item => item.key))
+        pendingArtefacts.length = 0
         pendingBytes = 0
         await maybeReportProgress()
       }
 
-      pendingArtifacts.push({
-        bytes: artifact.bytes,
-        etag: artifact.etag,
+      pendingArtefacts.push({
+        bytes: artefact.bytes,
+        etag: artefact.etag,
         key,
       })
-      pendingBytes += artifactBytes
+      pendingBytes += artefactBytes
     }
 
-    if (pendingArtifacts.length > 0) {
-      await importRemoteArtifactBatch(targetContext, pendingArtifacts, options)
-      importedFiles.push(...pendingArtifacts.map(item => item.key))
+    if (pendingArtefacts.length > 0) {
+      await importRemoteArtefactBatch(targetContext, pendingArtefacts, options)
+      importedFiles.push(...pendingArtefacts.map(item => item.key))
     }
 
     await maybeReportProgress(true)
@@ -650,13 +650,13 @@ async function importArtifactKeys(
   }
 
   for (const key of keys) {
-    const artifact = await readArtifactBytes(bucket, key)
-    bytes += artifact.bytes.byteLength
+    const artefact = await readArtefactBytes(bucket, key)
+    bytes += artefact.bytes.byteLength
 
     if (options.isLocal) {
-      statementCount += await execSqlWithBoundD1(targetContext, artifact.bytes, options)
+      statementCount += await execSqlWithBoundD1(targetContext, artefact.bytes, options)
     } else {
-      await importSqlWithD1RestApi(targetContext, artifact, options)
+      await importSqlWithD1RestApi(targetContext, artefact, options)
     }
 
     importedFiles.push(key)
@@ -672,12 +672,12 @@ async function importArtifactKeys(
   }
 }
 
-async function importRemoteArtifactBatch(
+async function importRemoteArtefactBatch(
   target: ImportTargetContext,
-  artifacts: RemoteImportArtifact[],
+  artefacts: RemoteImportArtefact[],
   options: AddressSqlImportStageOptions,
 ) {
-  const combined = combineSqlImportArtifacts(artifacts)
+  const combined = combineSqlImportArtefacts(artefacts)
 
   await importSqlWithD1RestApi(target, combined, options)
 }
@@ -733,12 +733,12 @@ async function publishImportedAddressSqlRelease(
     processedRows:
       message.addressStats?.processedRows ??
       Math.max(0, Math.floor(message.totalRows ?? 0)),
-    sqlArtifactCount: message.addressSqlArtifactKeys?.length ?? 0,
+    sqlArtefactCount: message.addressSqlArtefactKeys?.length ?? 0,
     unchangedRows: message.addressStats?.unchangedRows ?? 0,
   }
   const i18nStats = {
-    localizedRows: message.addressStats?.localizedRows ?? 0,
-    sqlArtifactCount: message.addressSqlArtifactKeys?.length ?? 0,
+    localisedRows: message.addressStats?.localisedRows ?? 0,
+    sqlArtefactCount: message.addressSqlArtefactKeys?.length ?? 0,
   }
 
   await harbourClient.stageCompleted(
@@ -771,7 +771,7 @@ async function publishImportedAddressSqlRelease(
     releaseId,
     'processDataset',
     {
-      sqlArtifactCount: message.addressSqlArtifactKeys?.length ?? 0,
+      sqlArtefactCount: message.addressSqlArtefactKeys?.length ?? 0,
     },
     releaseCode,
   )
@@ -832,7 +832,7 @@ async function execSqlWithBoundD1(
   }
 
   const sql = new TextDecoder().decode(sqlBytes)
-  await ensureLegacyNormalizedRowsSchema(target, sql, options)
+  await ensureLegacyNormalisedRowsSchema(target, sql, options)
 
   const statements = splitSqlStatements(sql)
 
@@ -870,7 +870,7 @@ async function execSqlWithBoundD1(
   return statements.length
 }
 
-async function ensureLegacyNormalizedRowsSchema(
+async function ensureLegacyNormalisedRowsSchema(
   target: ImportTargetContext,
   sql: string,
   options: AddressSqlImportStageOptions,
@@ -904,14 +904,14 @@ async function ensureLegacyNormalizedRowsSchema(
         },
       )
     } catch (error) {
-      if (!isIgnorableLegacyNormalizedRowsAlterError(error)) {
+      if (!isIgnorableLegacyNormalisedRowsAlterError(error)) {
         throw error
       }
     }
   }
 }
 
-function isIgnorableLegacyNormalizedRowsAlterError(error: unknown) {
+function isIgnorableLegacyNormalisedRowsAlterError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error)
 
   return /duplicate column name|no such table/i.test(message)
@@ -963,28 +963,28 @@ export function splitSqlStatements(sql: string) {
   return statements
 }
 
-export function combineSqlImportArtifacts(artifacts: RemoteImportArtifact[]) {
-  if (artifacts.length === 0) {
-    throw new Error('Cannot combine an empty SQL artifact batch.')
+export function combineSqlImportArtefacts(artefacts: RemoteImportArtefact[]) {
+  if (artefacts.length === 0) {
+    throw new Error('Cannot combine an empty SQL artefact batch.')
   }
 
-  if (artifacts.length === 1) {
-    const artifact = artifacts[0]
+  if (artefacts.length === 1) {
+    const artefact = artefacts[0]
 
-    if (!artifact) {
-      throw new Error('Expected a SQL artifact in a single-item batch.')
+    if (!artefact) {
+      throw new Error('Expected a SQL artefact in a single-item batch.')
     }
 
     return {
-      bytes: artifact.bytes,
-      etag: artifact.etag ?? createHash('md5').update(artifact.bytes).digest('hex'),
+      bytes: artefact.bytes,
+      etag: artefact.etag ?? createHash('md5').update(artefact.bytes).digest('hex'),
     }
   }
 
   const decoder = new TextDecoder()
   const encoder = new TextEncoder()
-  const sql = artifacts
-    .map(artifact => decoder.decode(artifact.bytes).trimEnd())
+  const sql = artefacts
+    .map(artefact => decoder.decode(artefact.bytes).trimEnd())
     .join('\n\n')
   const bytes = encoder.encode(`${sql}\n`)
 
@@ -996,7 +996,7 @@ export function combineSqlImportArtifacts(artifacts: RemoteImportArtifact[]) {
 
 async function importSqlWithD1RestApi(
   target: ImportTargetContext,
-  artifact: {
+  artefact: {
     bytes: Uint8Array
     etag?: string | null
   },
@@ -1005,11 +1005,11 @@ async function importSqlWithD1RestApi(
   const accountId = options.accountId?.trim()
   const apiToken = options.apiToken?.trim()
   const databaseId = target.databaseId?.trim()
-  const etag = normalizeEtag(artifact.etag)
+  const etag = normaliseEtag(artefact.etag)
 
   if (!accountId || !apiToken || !databaseId || !etag) {
     throw new Error(
-      `Missing D1 REST import configuration for ${target.name}. Required: accountId, apiToken, databaseId, artifact etag.`,
+      `Missing D1 REST import configuration for ${target.name}. Required: accountId, apiToken, databaseId, artefact etag.`,
     )
   }
 
@@ -1022,18 +1022,18 @@ async function importSqlWithD1RestApi(
   await client.importSql({
     etag,
     pollIntervalMs: options.pollIntervalMs ?? IMPORT_POLL_INTERVAL_MS,
-    sql: artifact.bytes,
+    sql: artefact.bytes,
   })
 }
 
-function filterSqlArtifactKeys(
+function filterSqlArtefactKeys(
   message: DatasetProcessingMessage,
   target: AddressSqlImportTarget,
 ) {
   const marker = `/sql/${target}/`
 
-  return sortSqlArtifactKeys(
-    (message.addressSqlArtifactKeys ?? []).filter(key => key.includes(marker)),
+  return sortSqlArtefactKeys(
+    (message.addressSqlArtefactKeys ?? []).filter(key => key.includes(marker)),
     target,
   )
 }
@@ -1058,10 +1058,10 @@ function resolveMessageShardYear(message: DatasetProcessingMessage) {
   return message.sourceVersion.slice(0, 4)
 }
 
-function normalizeEtag(etag: string | null | undefined) {
-  const normalized = etag?.trim().replaceAll('"', '')
+function normaliseEtag(etag: string | null | undefined) {
+  const normalised = etag?.trim().replaceAll('"', '')
 
-  return normalized || null
+  return normalised || null
 }
 
 function shouldBatchRemoteImport(
@@ -1074,14 +1074,14 @@ function shouldBatchRemoteImport(
   return batchBytes > 0
 }
 
-function sortSqlArtifactKeys(keys: string[], target: AddressSqlImportTarget) {
+function sortSqlArtefactKeys(keys: string[], target: AddressSqlImportTarget) {
   if (target === 'history-apply') {
     return [...keys].sort((left, right) => left.localeCompare(right))
   }
 
   return [...keys].sort((left, right) => {
-    const leftRowStart = parseSqlArtifactRowStart(left)
-    const rightRowStart = parseSqlArtifactRowStart(right)
+    const leftRowStart = parseSqlArtefactRowStart(left)
+    const rightRowStart = parseSqlArtefactRowStart(right)
 
     if (
       leftRowStart != null &&
@@ -1103,7 +1103,7 @@ function sortSqlArtifactKeys(keys: string[], target: AddressSqlImportTarget) {
   })
 }
 
-function parseSqlArtifactRowStart(key: string) {
+function parseSqlArtefactRowStart(key: string) {
   const match = key.match(/-(\d+)\.sql$/)
   const rowStart = match?.[1]
 

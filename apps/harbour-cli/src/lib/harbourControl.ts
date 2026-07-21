@@ -1,4 +1,4 @@
-import { normalizeBaseUrl } from '@repo/core'
+import { normaliseBaseUrl } from '@repo/core'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
@@ -19,7 +19,7 @@ type PublishPayload = {
 }
 
 export function createHarbourControlClient(target: UploadTarget) {
-  const baseUrl = normalizeBaseUrl(resolveHarbourApiUrl(target))
+  const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const authHeaders = getAuthHeaders()
 
   return {

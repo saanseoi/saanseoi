@@ -355,27 +355,27 @@ function buildDivisionHierarchyRelationshipData(
             ? record.id
             : null
 
-    const normalizedId = id?.trim()
+    const normalisedId = id?.trim()
 
-    if (!normalizedId) {
+    if (!normalisedId) {
       return []
     }
 
-    const normalizedI18n =
+    const normalisedI18n =
       record.i18n && typeof record.i18n === 'object' && !Array.isArray(record.i18n)
         ? (record.i18n as Record<string, unknown>)
         : null
     const englishI18n =
-      normalizedI18n?.en &&
-      typeof normalizedI18n.en === 'object' &&
-      !Array.isArray(normalizedI18n.en)
-        ? (normalizedI18n.en as Record<string, unknown>)
+      normalisedI18n?.en &&
+      typeof normalisedI18n.en === 'object' &&
+      !Array.isArray(normalisedI18n.en)
+        ? (normalisedI18n.en as Record<string, unknown>)
         : null
     const zhHantI18n =
-      normalizedI18n?.['zh-hant'] &&
-      typeof normalizedI18n['zh-hant'] === 'object' &&
-      !Array.isArray(normalizedI18n['zh-hant'])
-        ? (normalizedI18n['zh-hant'] as Record<string, unknown>)
+      normalisedI18n?.['zh-hant'] &&
+      typeof normalisedI18n['zh-hant'] === 'object' &&
+      !Array.isArray(normalisedI18n['zh-hant'])
+        ? (normalisedI18n['zh-hant'] as Record<string, unknown>)
         : null
     const name =
       typeof record.name === 'string'
@@ -396,7 +396,7 @@ function buildDivisionHierarchyRelationshipData(
 
     return {
       type: 'divisions' as const,
-      id: normalizedId,
+      id: normalisedId,
       meta:
         name || rawSubType
           ? {
@@ -684,7 +684,7 @@ function buildDivisionPermalink(args: {
   )
 
   const includes = requestedIncludes(permalink.searchParams.get('include') ?? undefined)
-  const normalizedIncludes = [...includes].map(include => {
+  const normalisedIncludes = [...includes].map(include => {
     if (include === 'areas') {
       return `areas:${
         requestedGeometryVariants('areas', args.activeSnapshot.domainCode).area ??
@@ -701,7 +701,7 @@ function buildDivisionPermalink(args: {
   })
   permalink.searchParams.set(
     'include',
-    normalizedIncludes.length > 0 ? normalizedIncludes.join(',') : 'none',
+    normalisedIncludes.length > 0 ? normalisedIncludes.join(',') : 'none',
   )
   if (args.limit !== undefined) {
     permalink.searchParams.set('page[limit]', String(args.limit))

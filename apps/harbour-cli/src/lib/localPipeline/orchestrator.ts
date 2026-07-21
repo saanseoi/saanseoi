@@ -60,7 +60,7 @@ export type LocalImportProgressConfig = {
 
 const PRE_IMPORT_PHASES = [
   'processDataset',
-  'normalizeAddressSql',
+  'normaliseAddressSql',
   'generateAddressSqlSource',
   'generateAddressSqlHistory',
   'generateAddressSqlCurrent',
@@ -461,8 +461,8 @@ function describePreImportPhase(phase: string) {
   switch (phase) {
     case 'processDataset':
       return 'dataset state'
-    case 'normalizeAddressSql':
-      return 'normalized rows'
+    case 'normaliseAddressSql':
+      return 'normalised rows'
     case 'generateAddressSqlSource':
       return 'source SQL state'
     case 'generateAddressSqlHistory':

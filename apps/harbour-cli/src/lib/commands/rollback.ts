@@ -64,7 +64,7 @@ type RollbackStepCounts = {
   rows: number
   tables: number
 }
-type RollbackArtifact = {
+type RollbackArtefact = {
   name: keyof RollbackPlanCounts
   sql: string
   statementCount: number
@@ -233,7 +233,7 @@ export async function runRollbackReleaseCommand(
       resolveTargetName(target),
       release.releaseCode,
     )
-    const artifacts = [
+    const artefacts = [
       {
         name: 'source',
         sql: rollbackSql.source,
@@ -252,15 +252,15 @@ export async function runRollbackReleaseCommand(
       { name: 'meta', sql: rollbackSql.meta, target: resolveMetaTarget(dbContext) },
     ] as const
 
-    const artifactStats = artifacts.map(artifact => ({
-      ...artifact,
-      statementCount: splitSqlStatements(artifact.sql).length,
+    const artefactStats = artefacts.map(artefact => ({
+      ...artefact,
+      statementCount: splitSqlStatements(artefact.sql).length,
     }))
 
     await mkdir(rollbackRoot, { recursive: true })
 
-    for (const artifact of artifactStats) {
-      await writeFile(resolve(rollbackRoot, `${artifact.name}.sql`), artifact.sql)
+    for (const artefact of artefactStats) {
+      await writeFile(resolve(rollbackRoot, `${artefact.name}.sql`), artefact.sql)
     }
 
     const importOptions: SqlImportExecutionOptions = {
@@ -269,44 +269,44 @@ export async function runRollbackReleaseCommand(
       isLocal: !target.remote,
     }
 
-    assertRemoteRollbackImportPrerequisites(target, artifactStats, importOptions)
+    assertRemoteRollbackImportPrerequisites(target, artefactStats, importOptions)
     note('✓ Prerequisites', 'ROLLBACK CHECKS')
 
     if (!options.dryRun) {
       try {
-        for (const artifact of artifactStats) {
-          const counts = planCounts[artifact.name]
+        for (const artefact of artefactStats) {
+          const counts = planCounts[artefact.name]
           const startedAt = Date.now()
           const label = formatRollbackStepLabel(
-            artifact.name,
+            artefact.name,
             counts,
             0,
-            artifact.statementCount,
+            artefact.statementCount,
           )
 
           progress.beginPhase(label, {
             current: 0,
-            max: Math.max(artifact.statementCount, 1),
+            max: Math.max(artefact.statementCount, 1),
           })
           const executedStatements = await executeSqlText(
-            artifact.target,
-            artifact.sql,
+            artefact.target,
+            artefact.sql,
             importOptions,
           )
 
-          progress.update(Math.max(executedStatements, artifact.statementCount), {
+          progress.update(Math.max(executedStatements, artefact.statementCount), {
             label: formatRollbackStepLabel(
-              artifact.name,
+              artefact.name,
               counts,
-              Math.max(executedStatements, artifact.statementCount),
-              artifact.statementCount,
+              Math.max(executedStatements, artefact.statementCount),
+              artefact.statementCount,
             ),
           })
           progress.complete(
             appendPhaseDetails(
               formatCompletedPhaseLabel(
                 colorTeal('Rollback'),
-                colorRed(artifact.name),
+                colorRed(artefact.name),
                 counts.rows,
               ),
               [formatDurationMs(Date.now() - startedAt)],
@@ -322,7 +322,7 @@ export async function runRollbackReleaseCommand(
         await replayRollbackSqlIntoRemoteCache(
           target,
           dbContext,
-          artifactStats,
+          artefactStats,
           progress,
           release.releaseCode,
         )
@@ -416,7 +416,7 @@ async function assertRollbackPreconditions(
 async function replayRollbackSqlIntoRemoteCache(
   target: UploadTarget,
   dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
-  artifacts: ReadonlyArray<RollbackArtifact>,
+  artefacts: ReadonlyArray<RollbackArtefact>,
   progress: LocalUploadProgress,
   releaseCode: string,
 ) {
@@ -428,38 +428,38 @@ async function replayRollbackSqlIntoRemoteCache(
   }
 
   try {
-    for (const artifact of artifacts) {
+    for (const artefact of artefacts) {
       const startedAt = Date.now()
       const label = formatRunningPhaseLabel(
         colorTeal('Update cache'),
-        colorRed(artifact.name),
+        colorRed(artefact.name),
         0,
-        Math.max(artifact.statementCount, 1),
+        Math.max(artefact.statementCount, 1),
       )
 
       progress.beginPhase(label, {
         current: 0,
-        max: Math.max(artifact.statementCount, 1),
+        max: Math.max(artefact.statementCount, 1),
       })
       const executedStatements = await executeSqlText(
-        artifact.target,
-        artifact.sql,
+        artefact.target,
+        artefact.sql,
         cacheImportOptions,
       )
 
-      progress.update(Math.max(executedStatements, artifact.statementCount), {
+      progress.update(Math.max(executedStatements, artefact.statementCount), {
         label: formatRunningPhaseLabel(
           colorTeal('Update cache'),
-          colorRed(artifact.name),
-          Math.max(executedStatements, artifact.statementCount),
-          Math.max(artifact.statementCount, 1),
+          colorRed(artefact.name),
+          Math.max(executedStatements, artefact.statementCount),
+          Math.max(artefact.statementCount, 1),
         ),
       })
       progress.complete(
         appendPhaseDetails(
           formatCompletedPhaseLabel(
             colorTeal('Update cache'),
-            colorRed(artifact.name),
+            colorRed(artefact.name),
             executedStatements,
           ),
           [formatDurationMs(Date.now() - startedAt)],
@@ -902,7 +902,7 @@ function formatRollbackResult(input: {
     formatField('latest release', input.previousRelease?.releaseCode ?? '-'),
     formatField('releaseId', input.previousRelease?.releaseId ?? '-'),
     formatField('schemaVersion', input.previousReleaseSet?.schemaVersion ?? '-'),
-    formatField('artifacts', input.rollbackRoot),
+    formatField('artefacts', input.rollbackRoot),
   ]
 }
 
@@ -1083,7 +1083,7 @@ function resolveSourceTarget(
 
 function assertRemoteRollbackImportPrerequisites(
   target: UploadTarget,
-  artifacts: ReadonlyArray<{ target: SqlImportTargetContext }>,
+  artefacts: ReadonlyArray<{ target: SqlImportTargetContext }>,
   options: SqlImportExecutionOptions,
 ) {
   if (!target.remote) {
@@ -1099,9 +1099,9 @@ function assertRemoteRollbackImportPrerequisites(
     missing.push('CLOUDFLARE_D1_TOKEN')
   }
 
-  for (const artifact of artifacts) {
-    if (!artifact.target.databaseId?.trim()) {
-      missing.push(`${artifact.target.name}.databaseId`)
+  for (const artefact of artefacts) {
+    if (!artefact.target.databaseId?.trim()) {
+      missing.push(`${artefact.target.name}.databaseId`)
     }
   }
 

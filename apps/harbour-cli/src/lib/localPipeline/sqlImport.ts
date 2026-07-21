@@ -4,14 +4,14 @@ import { createD1ImportClient } from '@repo/core/d1ImportApi'
 
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import {
-  combineSqlImportArtifacts,
+  combineSqlImportArtefacts,
   splitSqlStatements,
 } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
 import { runWithWriteRetry, type WriteRetryEvent } from '@repo/core/pipeline/utils'
 import {
-  readArtifactBytes,
-  type PipelineArtifactBucket,
-} from '@repo/core/pipeline/services/pipelineArtifacts'
+  readArtefactBytes,
+  type PipelineArtefactBucket,
+} from '@repo/core/pipeline/services/pipelineArtefacts'
 
 type LocalD1PreparedStatement = {
   run(): Promise<unknown>
@@ -49,7 +49,7 @@ type ImportStats = {
   statementCount: number
 }
 
-type RemoteImportArtifact = {
+type RemoteImportArtefact = {
   bytes: Uint8Array
   etag?: string | null
   key: string
@@ -106,8 +106,8 @@ export async function runReportedSqlImportPhase<T extends Record<string, unknown
   }
 }
 
-export async function importSqlArtifactKeys(
-  bucket: PipelineArtifactBucket,
+export async function importSqlArtefactKeys(
+  bucket: PipelineArtefactBucket,
   target: SqlImportTargetContext,
   keys: string[],
   options: SqlImportExecutionOptions,
@@ -141,38 +141,38 @@ export async function importSqlArtifactKeys(
   await maybeReportProgress(true)
 
   if (!options.isLocal) {
-    const pendingArtifacts: RemoteImportArtifact[] = []
+    const pendingArtefacts: RemoteImportArtefact[] = []
     let pendingBytes = 0
     const batchBytesLimit = options.remoteImportBatchBytes ?? REMOTE_IMPORT_BATCH_BYTES
 
     for (const key of keys) {
-      const artifact = await readArtifactBytes(bucket, key)
-      const artifactBytes = artifact.bytes.byteLength
+      const artefact = await readArtefactBytes(bucket, key)
+      const artefactBytes = artefact.bytes.byteLength
 
-      bytes += artifactBytes
+      bytes += artefactBytes
 
       if (
-        pendingArtifacts.length > 0 &&
-        pendingBytes + artifactBytes > batchBytesLimit
+        pendingArtefacts.length > 0 &&
+        pendingBytes + artefactBytes > batchBytesLimit
       ) {
-        await importRemoteArtifactBatch(target, pendingArtifacts, options)
-        importedFiles.push(...pendingArtifacts.map(item => item.key))
-        pendingArtifacts.length = 0
+        await importRemoteArtefactBatch(target, pendingArtefacts, options)
+        importedFiles.push(...pendingArtefacts.map(item => item.key))
+        pendingArtefacts.length = 0
         pendingBytes = 0
         await maybeReportProgress()
       }
 
-      pendingArtifacts.push({
-        bytes: artifact.bytes,
-        etag: artifact.etag,
+      pendingArtefacts.push({
+        bytes: artefact.bytes,
+        etag: artefact.etag,
         key,
       })
-      pendingBytes += artifactBytes
+      pendingBytes += artefactBytes
     }
 
-    if (pendingArtifacts.length > 0) {
-      await importRemoteArtifactBatch(target, pendingArtifacts, options)
-      importedFiles.push(...pendingArtifacts.map(item => item.key))
+    if (pendingArtefacts.length > 0) {
+      await importRemoteArtefactBatch(target, pendingArtefacts, options)
+      importedFiles.push(...pendingArtefacts.map(item => item.key))
     }
 
     await maybeReportProgress(true)
@@ -185,10 +185,10 @@ export async function importSqlArtifactKeys(
   }
 
   for (const key of keys) {
-    const artifact = await readArtifactBytes(bucket, key)
+    const artefact = await readArtefactBytes(bucket, key)
 
-    bytes += artifact.bytes.byteLength
-    statementCount += await executeSqlBytes(target, artifact.bytes, options)
+    bytes += artefact.bytes.byteLength
+    statementCount += await executeSqlBytes(target, artefact.bytes, options)
     importedFiles.push(key)
     await maybeReportProgress()
   }
@@ -210,12 +210,12 @@ export async function executeSqlText(
   return executeSqlBytes(target, new TextEncoder().encode(sql), options)
 }
 
-async function importRemoteArtifactBatch(
+async function importRemoteArtefactBatch(
   target: SqlImportTargetContext,
-  artifacts: RemoteImportArtifact[],
+  artefacts: RemoteImportArtefact[],
   options: SqlImportExecutionOptions,
 ) {
-  const combined = combineSqlImportArtifacts(artifacts)
+  const combined = combineSqlImportArtefacts(artefacts)
 
   await importSqlWithD1RestApi(target, combined, options)
 }
@@ -291,7 +291,7 @@ async function execSqlWithBoundD1(
 
 async function importSqlWithD1RestApi(
   target: SqlImportTargetContext,
-  artifact: {
+  artefact: {
     bytes: Uint8Array
     etag?: string | null
   },
@@ -300,11 +300,11 @@ async function importSqlWithD1RestApi(
   const accountId = options.accountId?.trim()
   const apiToken = options.apiToken?.trim()
   const databaseId = target.databaseId?.trim()
-  const etag = normalizeEtag(artifact.etag)
+  const etag = normaliseEtag(artefact.etag)
 
   if (!accountId || !apiToken || !databaseId || !etag) {
     throw new Error(
-      `Missing D1 REST import configuration for ${target.name}. Required: accountId, apiToken, databaseId, artifact etag.`,
+      `Missing D1 REST import configuration for ${target.name}. Required: accountId, apiToken, databaseId, artefact etag.`,
     )
   }
 
@@ -317,7 +317,7 @@ async function importSqlWithD1RestApi(
   await client.importSql({
     etag,
     pollIntervalMs: options.pollIntervalMs ?? IMPORT_POLL_INTERVAL_MS,
-    sql: artifact.bytes,
+    sql: artefact.bytes,
   })
 }
 
@@ -327,8 +327,8 @@ function isLocalD1PreparedStatement(
   return Boolean(statement)
 }
 
-function normalizeEtag(etag: string | null | undefined) {
-  const normalized = etag?.trim().replaceAll('"', '')
+function normaliseEtag(etag: string | null | undefined) {
+  const normalised = etag?.trim().replaceAll('"', '')
 
-  return normalized || null
+  return normalised || null
 }

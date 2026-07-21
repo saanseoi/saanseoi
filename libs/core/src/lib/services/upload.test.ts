@@ -11,7 +11,7 @@ import {
   seedFixtureCatalog,
 } from '../../testing/metaFixtures'
 import {
-  finalizeUpload,
+  finaliseUpload,
   createSchemaFingerprint,
   inferRegionFromPath,
   inferCohortKeyFromPath,
@@ -248,7 +248,7 @@ describe('upload', () => {
     expect(inferTypeFromFilename('division.parquet')).toBe('division')
   })
 
-  test('infers source from recognizable filename and path tokens', () => {
+  test('infers source from recognisable filename and path tokens', () => {
     expect(inferSourceFromFilename('hkgov-dpo-address.parquet')).toBe('hkgov-dpo')
     expect(inferSourceFromFilename('overture-division.parquet')).toBe('overture')
     expect(inferSourceFromPath('/tmp/hkgov/2026-05/address.parquet')).toBe('hkgov')
@@ -968,7 +968,7 @@ describe('upload', () => {
     })
   })
 
-  test('finalizes an uploading direct-upload session into staged', async () => {
+  test('finalises an uploading direct-upload session into staged', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
     const fixtureFile = createFixturePath(tempDir)
@@ -983,7 +983,7 @@ describe('upload', () => {
       inspection: fixtureInspection,
     })
 
-    const result = await finalizeUpload(db, {
+    const result = await finaliseUpload(db, {
       filePath: fixtureFile,
       cohortKey: '2026-05',
       source: 'overture',

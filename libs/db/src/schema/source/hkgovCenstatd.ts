@@ -32,11 +32,11 @@ export const sourceHkgovCenstatdDivisionAreas = sqliteTable(
 )
 
 /**
- * Materialized geometry transforms of a C&SD district source assertion.
+ * Materialised geometry transforms of a C&SD district source assertion.
  *
  * A transform is deliberately not a second source record: `sourceRecordId`
  * and `inputVersionHash` identify the exact C&SD assertion it was derived
- * from. Its own `versionHash` versions the materialized transform output.
+ * from. Its own `versionHash` versions the materialised transform output.
  */
 export const sourceHkgovCenstatdDivisionAreaDerivatives = sqliteTable(
   'hkgovCenstatdDivisionAreaDerivatives',
@@ -66,7 +66,7 @@ export const sourceHkgovCenstatdDivisionAreaDerivatives = sqliteTable(
   ],
 )
 
-/** Localized C&SD district labels attached to source geometry assertions. */
+/** Localised C&SD district labels attached to source geometry assertions. */
 export const sourceHkgovCenstatdDivisionAreaI18n = sqliteTable(
   'hkgovCenstatdDivisionAreaI18n',
   {

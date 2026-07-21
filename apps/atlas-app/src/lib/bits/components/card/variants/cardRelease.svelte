@@ -44,7 +44,7 @@ let statusLabel = $derived(
       : lifecycleStatus.toLowerCase() === 'revised'
         ? 'revised'
         : lifecycleStatus.toLowerCase() === 'superseded'
-          ? 'superceded'
+          ? 'superseded'
           : lifecycleStatus,
 )
 let cardStyle = $derived(

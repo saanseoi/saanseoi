@@ -63,7 +63,7 @@ export type AddressReleaseStatsInput = {
   deletedRows: number
   districtCounts: Record<string, number>
   localeCounts: Record<string, number>
-  localizedRows: number
+  localisedRows: number
   processedRows: number
   recordedRows: number
   unchangedRows: number
@@ -83,17 +83,17 @@ export type DivisionApiReleaseSetStatsInput = {
   quality?: QualityCounts
 }
 
-export type LocalizedStatsRow = {
+export type LocalisedStatsRow = {
   hasAltName: boolean
   hasName: boolean
   isLocaleInferred: boolean
   locale: string
 }
 
-export type StatsSnapshot<TLocalizedRow> = {
+export type StatsSnapshot<TLocalisedRow> = {
   churnHash: string
   id: string
-  localizedRows: TLocalizedRow[]
+  localisedRows: TLocalisedRow[]
   parentId: string | null
   geometry: GeoJsonGeometry | null
   type: string
@@ -112,11 +112,11 @@ export function createLocaleStatsAccumulator(): LocaleStatsAccumulator {
 }
 
 /**
- * Folds one division's localized rows into the locale completeness counters.
+ * Folds one division's localised rows into the locale completeness counters.
  */
 export function updateLocaleStatsAccumulator(
   statsAccumulator: LocaleStatsAccumulator,
-  rows: LocalizedStatsRow[],
+  rows: LocalisedStatsRow[],
 ) {
   statsAccumulator.total += 1
 
@@ -212,9 +212,9 @@ export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
 /**
  * Compares previous and current snapshots to derive churn totals and per-type counts.
  */
-export function buildChurnCounts<TLocalizedRow>(
-  previousRows: Map<string, StatsSnapshot<TLocalizedRow>>,
-  currentRows: Map<string, StatsSnapshot<TLocalizedRow>>,
+export function buildChurnCounts<TLocalisedRow>(
+  previousRows: Map<string, StatsSnapshot<TLocalisedRow>>,
+  currentRows: Map<string, StatsSnapshot<TLocalisedRow>>,
 ) {
   const totals = createEmptyChurnCounts()
   const byType = new Map<string, ChurnCounts>()
@@ -260,15 +260,15 @@ export function buildChurnCounts<TLocalizedRow>(
 /**
  * Compares shared snapshots to derive quality regressions and structural changes.
  */
-export function buildQualityCounts<TLocalizedRow>(
-  previousRows: Map<string, StatsSnapshot<TLocalizedRow>>,
-  currentRows: Map<string, StatsSnapshot<TLocalizedRow>>,
+export function buildQualityCounts<TLocalisedRow>(
+  previousRows: Map<string, StatsSnapshot<TLocalisedRow>>,
+  currentRows: Map<string, StatsSnapshot<TLocalisedRow>>,
   options: {
     hasLocaleRegression: (
-      previous: TLocalizedRow[],
-      current: TLocalizedRow[],
+      previous: TLocalisedRow[],
+      current: TLocalisedRow[],
     ) => boolean
-    hasNameRegression: (previous: TLocalizedRow[], current: TLocalizedRow[]) => boolean
+    hasNameRegression: (previous: TLocalisedRow[], current: TLocalisedRow[]) => boolean
   },
 ) {
   const counts: QualityCounts = {
@@ -293,11 +293,11 @@ export function buildQualityCounts<TLocalizedRow>(
       counts.geometry_changed_count += 1
     }
 
-    if (options.hasLocaleRegression(previous.localizedRows, current.localizedRows)) {
+    if (options.hasLocaleRegression(previous.localisedRows, current.localisedRows)) {
       counts.locale_regression_count += 1
     }
 
-    if (options.hasNameRegression(previous.localizedRows, current.localizedRows)) {
+    if (options.hasNameRegression(previous.localisedRows, current.localisedRows)) {
       counts.name_regression_count += 1
     }
   }
@@ -393,10 +393,10 @@ export function buildAddressReleaseStatsRows(input: AddressReleaseStatsInput) {
     ...buildAddressComponentStatsRows(input.componentCounts, recordedRows, createdAt),
     ...buildDistrictDistributionStatsRows(input.districtCounts, createdAt),
     buildReleaseStatsRow(
-      'localized_records',
+      'localised_records',
       'count',
       'count',
-      input.localizedRows,
+      input.localisedRows,
       createdAt,
       { groupBy: 'table', groupValue: 'address2dI18n' },
     ),
@@ -513,7 +513,7 @@ export function buildAddressApiReleaseSetStatsRows(
       },
     ),
     buildApiReleaseSetStatsRow(
-      'localized_records',
+      'localised_records',
       'count',
       'count',
       input.address2dI18nCount,
@@ -524,7 +524,7 @@ export function buildAddressApiReleaseSetStatsRows(
       },
     ),
     buildApiReleaseSetStatsRow(
-      'localized_records',
+      'localised_records',
       'count',
       'count',
       input.address3dI18nCount,
@@ -546,7 +546,7 @@ export function buildAddressApiReleaseSetStatsRows(
       },
     ),
     buildApiReleaseSetStatsRow(
-      'localized_detail_records',
+      'localised_detail_records',
       'count',
       'count',
       input.address3dI18nCount,
@@ -657,7 +657,7 @@ export function buildDivisionApiReleaseSetStatsRows(
       },
     ),
     buildApiReleaseSetStatsRow(
-      'localized_records',
+      'localised_records',
       'count',
       'count',
       input.divisionI18nCount,
@@ -730,9 +730,9 @@ export function buildDivisionApiReleaseSetStatsRows(
 /**
  * Reports whether any previously available locale disappeared in the current rows.
  */
-export function hasLocaleRegression<TLocalizedRow extends { locale: string }>(
-  previousRows: TLocalizedRow[],
-  currentRows: TLocalizedRow[],
+export function hasLocaleRegression<TLocalisedRow extends { locale: string }>(
+  previousRows: TLocalisedRow[],
+  currentRows: TLocalisedRow[],
 ) {
   const currentLocales = new Set(currentRows.map(row => row.locale))
   return previousRows.some(row => !currentLocales.has(row.locale))
@@ -742,13 +742,13 @@ export function hasLocaleRegression<TLocalizedRow extends { locale: string }>(
  * Reports whether previously tracked primary or alternate names are missing from the current rows.
  */
 export function hasNameRegression<
-  TLocalizedRow extends {
+  TLocalisedRow extends {
     isLocaleInferred: boolean
     locale: string
     name: string | null
     nameAlts: string | null
   },
->(previousRows: TLocalizedRow[], currentRows: TLocalizedRow[]) {
+>(previousRows: TLocalisedRow[], currentRows: TLocalisedRow[]) {
   const currentByLocale = new Map(currentRows.map(row => [row.locale, row]))
 
   for (const previous of previousRows) {

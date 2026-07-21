@@ -1,13 +1,13 @@
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 
 import { asNonEmptyString } from '../../utils'
-import type { NormalizedAddressRecord } from './types'
+import type { NormalisedAddressRecord } from './types'
 
-export function normalizeAddressRowForPipeline(row: Record<string, unknown>) {
-  return normalizePreparedHkgovAddressRow(row)
+export function normaliseAddressRowForPipeline(row: Record<string, unknown>) {
+  return normalisePreparedHkgovAddressRow(row)
 }
 
-export function dedupeNormalizedAddressRows(rows: NormalizedAddressRecord[]) {
+export function dedupeNormalisedAddressRows(rows: NormalisedAddressRecord[]) {
   return [
     ...new Map(
       rows.map(row => [
@@ -35,7 +35,7 @@ export function dedupeAddressI18nRows<T extends { addressId: string; locale: str
   ]
 }
 
-function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
+function normalisePreparedHkgovAddressRow(row: Record<string, unknown>) {
   const sourceId = requireText(row.id, 'Prepared HKGov ALS row is missing `id`.')
   const canonicalId = requireText(
     row.canonicalId ?? row.id,
@@ -99,13 +99,13 @@ function normalizePreparedHkgovAddressRow(row: Record<string, unknown>) {
     })
   }
 
-  for (const localized of i18n) {
-    if (localized.streetName) coverageComponents.add('street_name')
-    if (localized.streetNumber) coverageComponents.add('street_number')
-    if (localized.buildingName) coverageComponents.add('building_name')
-    if (localized.estateName) coverageComponents.add('estate_name')
-    if (localized.phaseName || localized.phaseNumber) coverageComponents.add('phase')
-    if (localized.blockType || localized.blockNumber) coverageComponents.add('block')
+  for (const localised of i18n) {
+    if (localised.streetName) coverageComponents.add('street_name')
+    if (localised.streetNumber) coverageComponents.add('street_number')
+    if (localised.buildingName) coverageComponents.add('building_name')
+    if (localised.estateName) coverageComponents.add('estate_name')
+    if (localised.phaseName || localised.phaseNumber) coverageComponents.add('phase')
+    if (localised.blockType || localised.blockNumber) coverageComponents.add('block')
   }
   if (asNonEmptyString(row.enVillageName) || asNonEmptyString(row.zhHantVillageName)) {
     coverageComponents.add('village_name')
@@ -167,14 +167,40 @@ export function buildAddressBaseHashInput(
     geometry: base.geometry,
     identifiers: base.identifiers,
     bbox: base.bbox,
-    sources: base.sources,
+    sources: excludeReleaseProvenance(base.sources),
   } satisfies Omit<
     AddressRow,
     'createdAt' | 'updatedAt' | 'snapshotId' | 'divisionSnapshotId' | 'streetSnapshotId'
   >
 }
 
-export function normalizeAddressI18nSnapshotRow(row: AddressI18nPayload) {
+const RELEASE_PROVENANCE_KEYS = new Set([
+  'cohortKey',
+  'publicationDate',
+  'releaseCode',
+  'releaseDate',
+  'releaseId',
+  'sourceFile',
+  'sourceVersion',
+])
+
+function excludeReleaseProvenance(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(excludeReleaseProvenance)
+  }
+
+  if (!value || typeof value !== 'object') {
+    return value
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => !RELEASE_PROVENANCE_KEYS.has(key))
+      .map(([key, child]) => [key, excludeReleaseProvenance(child)]),
+  )
+}
+
+export function normaliseAddressI18nSnapshotRow(row: AddressI18nPayload) {
   return row
 }
 
@@ -207,8 +233,8 @@ export function buildMatchKey(input: {
   streetName: string | null
 }) {
   const districtId = asNonEmptyString(input.districtId)
-  const street = normalizeNameToken(input.streetName)
-  const number = normalizeNameToken(input.streetNumber)
+  const street = normaliseNameToken(input.streetName)
+  const number = normaliseNameToken(input.streetNumber)
 
   if (!districtId || !street || !number) {
     return null
@@ -217,9 +243,9 @@ export function buildMatchKey(input: {
   return `${districtId}::${street}::${number}`
 }
 
-function normalizeNameToken(value: unknown) {
-  const normalized = asNonEmptyString(value)?.trim().toUpperCase().replace(/\s+/g, ' ')
-  return normalized ?? null
+function normaliseNameToken(value: unknown) {
+  const normalised = asNonEmptyString(value)?.trim().toUpperCase().replace(/\s+/g, ' ')
+  return normalised ?? null
 }
 
 function joinRange(from: unknown, to: unknown) {

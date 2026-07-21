@@ -1,4 +1,4 @@
-import { normalizeBaseUrl } from '@repo/core'
+import { normaliseBaseUrl } from '@repo/core'
 
 import type { UploadTarget } from './options.ts'
 import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
@@ -139,7 +139,7 @@ export async function fetchIngestRunReport(
   },
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(target)
-  const url = new URL(`${normalizeBaseUrl(apiBaseUrl)}/v1/reports/ingestion`)
+  const url = new URL(`${normaliseBaseUrl(apiBaseUrl)}/v1/reports/ingestion`)
 
   if (options?.limit != null) {
     url.searchParams.set('limit', String(parseLimit(options.limit)))
@@ -182,7 +182,7 @@ export async function fetchStatsReport(
   },
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(target)
-  const url = new URL(`${normalizeBaseUrl(apiBaseUrl)}/v1/reports/stats`)
+  const url = new URL(`${normaliseBaseUrl(apiBaseUrl)}/v1/reports/stats`)
 
   if (options?.limit != null) {
     url.searchParams.set('limit', String(parseLimit(options.limit)))
@@ -219,7 +219,7 @@ export async function fetchProcessingActionReport(
   },
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(target)
-  const url = new URL(`${normalizeBaseUrl(apiBaseUrl)}/v1/reports/processing-actions`)
+  const url = new URL(`${normaliseBaseUrl(apiBaseUrl)}/v1/reports/processing-actions`)
 
   if (options?.limit != null)
     url.searchParams.set('limit', String(parseLimit(options.limit)))
@@ -249,7 +249,7 @@ export async function fetchReleaseReport(
   },
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(target)
-  const url = new URL(`${normalizeBaseUrl(apiBaseUrl)}/v1/reports/releases`)
+  const url = new URL(`${normaliseBaseUrl(apiBaseUrl)}/v1/reports/releases`)
 
   if (options?.limit != null) {
     url.searchParams.set('limit', String(parseLimit(options.limit)))

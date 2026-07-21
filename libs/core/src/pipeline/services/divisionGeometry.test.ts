@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
-  normalizeDivisionAreaGeometryRow,
-  normalizeDivisionBoundaryGeometryRow,
+  normaliseDivisionAreaGeometryRow,
+  normaliseDivisionBoundaryGeometryRow,
 } from './divisionGeometry'
 
 const polygon = {
@@ -18,17 +18,17 @@ const polygon = {
   ],
 }
 
-describe('division geometry normalization', () => {
+describe('division geometry normalisation', () => {
   test('excludes Guangdong rows from HK area and boundary extracts', () => {
     expect(
-      normalizeDivisionAreaGeometryRow({
+      normaliseDivisionAreaGeometryRow({
         division_id: 'guangdong',
         id: 'guangdong-area',
         region: 'CN-GD',
       }),
     ).toBeNull()
     expect(
-      normalizeDivisionBoundaryGeometryRow({
+      normaliseDivisionBoundaryGeometryRow({
         division_ids: ['guangdong-1', 'guangdong-2'],
         id: 'guangdong-boundary',
         region: 'CN-GD',
@@ -39,13 +39,13 @@ describe('division geometry normalization', () => {
   test('rejects PRC areas but retains boundaries that reference the PRC anchor', () => {
     const prcId = 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be'
     expect(
-      normalizeDivisionAreaGeometryRow({
+      normaliseDivisionAreaGeometryRow({
         division_id: prcId,
         geometry: polygon,
         id: 'prc-area',
       }),
     ).toBeNull()
-    const boundary = normalizeDivisionBoundaryGeometryRow({
+    const boundary = normaliseDivisionBoundaryGeometryRow({
       class: 'land',
       division_ids: [prcId, 'hk'],
       geometry: {
@@ -85,16 +85,16 @@ describe('division geometry normalization', () => {
       is_territorial: false,
     }
 
-    expect(normalizeDivisionAreaGeometryRow(row)).not.toBeNull()
+    expect(normaliseDivisionAreaGeometryRow(row)).not.toBeNull()
     expect(() =>
-      normalizeDivisionAreaGeometryRow(row, 'overture', {
+      normaliseDivisionAreaGeometryRow(row, 'overture', {
         validateGeometry: true,
       }),
     ).toThrow('contains a self-intersecting ring')
   })
 
   test('derives mixed Overture type and bbox from geometry rather than input metadata', () => {
-    const normalized = normalizeDivisionAreaGeometryRow({
+    const normalised = normaliseDivisionAreaGeometryRow({
       bbox: [99, 99, 100, 100],
       class: 'land',
       division_id: 'division-1',
@@ -104,20 +104,20 @@ describe('division geometry normalization', () => {
       is_territorial: true,
       sources: [],
     })
-    if (!normalized) throw new Error('Expected an Overture area row.')
+    if (!normalised) throw new Error('Expected an Overture area row.')
 
-    expect(normalized.canonical.type).toBe('mixed')
-    expect(normalized.canonical.isLand).toBe(true)
-    expect(normalized.canonical.isTerritorial).toBe(true)
-    expect(normalized.canonical.bbox).toEqual([0, 0, 1, 1])
-    expect(normalized.source.bbox).toEqual([0, 0, 1, 1])
+    expect(normalised.canonical.type).toBe('mixed')
+    expect(normalised.canonical.isLand).toBe(true)
+    expect(normalised.canonical.isTerritorial).toBe(true)
+    expect(normalised.canonical.bbox).toEqual([0, 0, 1, 1])
+    expect(normalised.source.bbox).toEqual([0, 0, 1, 1])
     expect(
-      (normalized.source.rawProperties as Record<string, unknown>).is_territorial,
+      (normalised.source.rawProperties as Record<string, unknown>).is_territorial,
     ).toBe(true)
   })
 
   test('uses mixed type and explicit flags for HAD district areas', () => {
-    const normalized = normalizeDivisionAreaGeometryRow(
+    const normalised = normaliseDivisionAreaGeometryRow(
       {
         area_type: 'District',
         area_id: 'A',
@@ -130,12 +130,12 @@ describe('division geometry normalization', () => {
       },
       'hkgov-had',
     )
-    if (!normalized) throw new Error('Expected a HAD area row.')
+    if (!normalised) throw new Error('Expected a HAD area row.')
 
-    expect(normalized.canonical.type).toBe('mixed')
-    expect(normalized.canonical.isLand).toBe(true)
-    expect(normalized.canonical.isTerritorial).toBe(true)
-    expect(normalized.canonical.sourceKeys).toEqual({
+    expect(normalised.canonical.type).toBe('mixed')
+    expect(normalised.canonical.isLand).toBe(true)
+    expect(normalised.canonical.isTerritorial).toBe(true)
+    expect(normalised.canonical.sourceKeys).toEqual({
       hkgov: {
         objectId: 7,
         cdsiAdminAreaId: 42,
@@ -144,13 +144,13 @@ describe('division geometry normalization', () => {
         areaCode: 'CW',
       },
     })
-    expect((normalized.source.rawProperties as Record<string, unknown>).area_code).toBe(
+    expect((normalised.source.rawProperties as Record<string, unknown>).area_code).toBe(
       'CW',
     )
   })
 
   test('keeps C&SD district metadata and the derived display provenance distinct', () => {
-    const normalized = normalizeDivisionAreaGeometryRow(
+    const normalised = normaliseDivisionAreaGeometryRow(
       {
         census_year: '2021',
         derivation: {
@@ -167,22 +167,22 @@ describe('division geometry normalization', () => {
       'hkgov-censtatd',
       { variant: 'hkgov-censtatd:simplified' },
     )
-    if (!normalized) throw new Error('Expected a C&SD display area row.')
+    if (!normalised) throw new Error('Expected a C&SD display area row.')
 
-    expect(normalized.canonical.variant).toBe('hkgov-censtatd:simplified')
-    expect(normalized.canonical.sourceKeys).toEqual({
+    expect(normalised.canonical.variant).toBe('hkgov-censtatd:simplified')
+    expect(normalised.canonical.sourceKeys).toEqual({
       hkgovCenstatd: {
         class: 'A',
         code: 11,
       },
     })
-    expect(normalized.canonical.sources).toEqual({
+    expect(normalised.canonical.sources).toEqual({
       hkgovCenstatd: [{ dataset: 'hkgov-censtatd', districtClass: 'A' }],
     })
   })
 
   test('keeps a New Town area attached to its cohort-scoped planning division', () => {
-    const normalized = normalizeDivisionAreaGeometryRow(
+    const normalised = normaliseDivisionAreaGeometryRow(
       {
         division_id: 'b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2',
         geometry: polygon,
@@ -193,17 +193,17 @@ describe('division geometry normalization', () => {
       },
       'hkgov-pland-new-town',
     )
-    if (!normalized) throw new Error('Expected a New Town area row.')
+    if (!normalised) throw new Error('Expected a New Town area row.')
 
-    expect(normalized.canonical.divisionId).toBe('b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2')
-    expect(normalized.canonical.variant).toBe('hkgov-pland-new-town')
-    expect(normalized.canonical.sourceKeys).toEqual({
+    expect(normalised.canonical.divisionId).toBe('b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2')
+    expect(normalised.canonical.variant).toBe('hkgov-pland-new-town')
+    expect(normalised.canonical.sourceKeys).toEqual({
       hkgovPlandNewTown: { id: 'tseung-kwan-o', name: 'tseung-kwan-o' },
     })
   })
 
   test('retains the complete Overture boundary source row in rawProperties', () => {
-    const normalized = normalizeDivisionBoundaryGeometryRow({
+    const normalised = normaliseDivisionBoundaryGeometryRow({
       class: 'maritime',
       division_ids: ['division-1', 'division-2'],
       geometry: {
@@ -218,14 +218,14 @@ describe('division geometry normalization', () => {
       is_territorial: true,
       perspectives: null,
     })
-    if (!normalized) throw new Error('Expected an Overture boundary row.')
+    if (!normalised) throw new Error('Expected an Overture boundary row.')
 
-    expect(normalized.canonical.type).toBe('mixed')
+    expect(normalised.canonical.type).toBe('mixed')
     expect(
-      (normalized.source.rawProperties as Record<string, unknown>).is_territorial,
+      (normalised.source.rawProperties as Record<string, unknown>).is_territorial,
     ).toBe(true)
     expect(
-      (normalized.source.rawProperties as Record<string, unknown>).division_ids,
+      (normalised.source.rawProperties as Record<string, unknown>).division_ids,
     ).toEqual(['division-1', 'division-2'])
   })
 })

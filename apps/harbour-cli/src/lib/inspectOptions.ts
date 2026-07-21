@@ -6,11 +6,11 @@ import {
   inspectSampleStrategies,
   defaultInspectPersistDir,
   listInspectableReleaseCodes,
-  normalizeInspectDbShard,
-  normalizeInspectResourceType,
-  normalizeInspectSampleStrategy,
-  normalizeInspectStage,
-  type InspectArtifactOptions,
+  normaliseInspectDbShard,
+  normaliseInspectResourceType,
+  normaliseInspectSampleStrategy,
+  normaliseInspectStage,
+  type InspectArtefactOptions,
   type InspectDbShard,
   type InspectResourceType,
   type InspectSampleStrategy,
@@ -20,7 +20,7 @@ import { getStringOption, type ParsedArgs } from './options.ts'
 
 export async function resolveInspectOptions(
   args: ParsedArgs,
-): Promise<InspectArtifactOptions> {
+): Promise<InspectArtefactOptions> {
   const persistDir = getStringOption(args, ['persist-to']) ?? defaultInspectPersistDir
   const outDir = getStringOption(args, ['out-dir']) ?? '.'
   const stage =
@@ -28,7 +28,7 @@ export async function resolveInspectOptions(
     (await promptSelect<InspectStage>('Stage', [
       {
         label: 'JSON Normalised',
-        value: 'normalized',
+        value: 'normalised',
       },
       {
         label: 'Resolved JSON',
@@ -94,11 +94,11 @@ function resolveProvidedInspectStage(args: ParsedArgs) {
     return null
   }
 
-  const stage = normalizeInspectStage(rawValue)
+  const stage = normaliseInspectStage(rawValue)
 
   if (!stage) {
     throw new Error(
-      `Invalid --stage value: ${rawValue}. Use normalized, resolved, or operations.`,
+      `Invalid --stage value: ${rawValue}. Use normalised, resolved, or operations.`,
     )
   }
 
@@ -112,7 +112,7 @@ function resolveProvidedInspectResourceType(args: ParsedArgs) {
     return null
   }
 
-  const resourceType = normalizeInspectResourceType(rawValue)
+  const resourceType = normaliseInspectResourceType(rawValue)
 
   if (!resourceType) {
     throw new Error(`Invalid --resourceType value: ${rawValue}. Use address.`)
@@ -128,7 +128,7 @@ function resolveProvidedInspectDbShard(args: ParsedArgs) {
     return null
   }
 
-  const dbShard = normalizeInspectDbShard(rawValue)
+  const dbShard = normaliseInspectDbShard(rawValue)
 
   if (!dbShard) {
     throw new Error(
@@ -146,7 +146,7 @@ function resolveProvidedInspectSampleStrategy(args: ParsedArgs) {
     return null
   }
 
-  const sample = normalizeInspectSampleStrategy(rawValue)
+  const sample = normaliseInspectSampleStrategy(rawValue)
 
   if (!sample) {
     throw new Error(`Invalid --sample value: ${rawValue}. Use first, last, or random.`)
@@ -164,7 +164,7 @@ async function promptReleaseCode(options: {
 
   if (releaseCodes.length === 0) {
     throw new Error(
-      `No local ${options.stage} artifacts found for ${options.resourceType}.`,
+      `No local ${options.stage} artefacts found for ${options.resourceType}.`,
     )
   }
 

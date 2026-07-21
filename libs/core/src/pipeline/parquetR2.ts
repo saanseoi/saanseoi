@@ -47,9 +47,9 @@ export async function createAsyncBufferFromR2(
   return {
     byteLength: object.size,
     async slice(start: number, end?: number) {
-      const normalizedStart = Math.max(0, start)
-      const normalizedEnd = Math.max(normalizedStart, end ?? object.size)
-      const length = normalizedEnd - normalizedStart
+      const normalisedStart = Math.max(0, start)
+      const normalisedEnd = Math.max(normalisedStart, end ?? object.size)
+      const length = normalisedEnd - normalisedStart
 
       if (length === 0) {
         return new ArrayBuffer(0)
@@ -57,14 +57,14 @@ export async function createAsyncBufferFromR2(
 
       const chunk = await bucket.get(key, {
         range: {
-          offset: normalizedStart,
+          offset: normalisedStart,
           length,
         },
       })
 
       if (!chunk) {
         throw new Error(
-          `Could not read R2 range for ${key} (${normalizedStart}-${normalizedEnd}).`,
+          `Could not read R2 range for ${key} (${normalisedStart}-${normalisedEnd}).`,
         )
       }
 

@@ -12,12 +12,12 @@ import {
 } from '../../db/address'
 import { resolveDataShardEnvironment } from '../shared'
 import type { HarbourWorkerBucket } from '../division'
-import { type PipelineArtifactBucket, readJsonArtifact } from '../pipelineArtifacts'
-import { dedupeAddressI18nRows } from './normalization'
-import { resolveAddressChunkSize } from './normalizeStage'
+import { type PipelineArtefactBucket, readJsonArtefact } from '../pipelineArtefacts'
+import { dedupeAddressI18nRows } from './normalisation'
+import { resolveAddressChunkSize } from './normaliseStage'
 import type {
   AddressPipelineMessage,
-  ResolvedAddressChunkArtifact,
+  ResolvedAddressChunkArtefact,
   ResolvedAddressRecord,
 } from './types'
 import { addAddressPipelineStats, collectAddressCoverageCounts } from './types'
@@ -25,13 +25,13 @@ import { addAddressPipelineStats, collectAddressCoverageCounts } from './types'
 export async function writeAddressCurrentChunkStage(
   metaDb: MetaDatabase,
   currentDb: CurrentDatabase,
-  bucket: HarbourWorkerBucket & PipelineArtifactBucket,
+  bucket: HarbourWorkerBucket & PipelineArtefactBucket,
   message: DatasetProcessingMessage,
 ): Promise<AddressPipelineMessage> {
   const pipelineMessage = message as AddressPipelineMessage
 
-  if (!pipelineMessage.resolvedArtifactKey) {
-    throw new Error('Missing resolved address artifact key for current stage.')
+  if (!pipelineMessage.resolvedArtefactKey) {
+    throw new Error('Missing resolved address artefact key for current stage.')
   }
 
   console.info(
@@ -39,27 +39,27 @@ export async function writeAddressCurrentChunkStage(
       datasetId: message.datasetId,
       phase: 'addressCurrentStage',
       releaseId: message.releaseId ?? message.datasetId,
-      resolvedArtifactKey: pipelineMessage.resolvedArtifactKey,
+      resolvedArtefactKey: pipelineMessage.resolvedArtefactKey,
       rowEnd: message.rowEnd,
       rowStart: message.rowStart,
-      status: 'readArtifactStarted',
+      status: 'readArtefactStarted',
     }),
   )
-  const artifact = await readJsonArtifact<ResolvedAddressChunkArtifact>(
+  const artefact = await readJsonArtefact<ResolvedAddressChunkArtefact>(
     bucket,
-    pipelineMessage.resolvedArtifactKey,
+    pipelineMessage.resolvedArtefactKey,
   )
-  const artifactRows = dedupeResolvedAddressRows(artifact.rows)
+  const artefactRows = dedupeResolvedAddressRows(artefact.rows)
   console.info(
     JSON.stringify({
-      changedRows: artifactRows.filter(row => row.changed).length,
+      changedRows: artefactRows.filter(row => row.changed).length,
       datasetId: message.datasetId,
       phase: 'addressCurrentStage',
       releaseId: message.releaseId ?? message.datasetId,
-      rowEnd: artifact.rowEnd,
-      rowStart: artifact.rowStart,
+      rowEnd: artefact.rowEnd,
+      rowStart: artefact.rowStart,
       status: 'started',
-      totalRows: artifact.totalRows,
+      totalRows: artefact.totalRows,
     }),
   )
   const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
@@ -70,17 +70,17 @@ export async function writeAddressCurrentChunkStage(
     resolveDataShardEnvironment(process.env.DATA_SHARD_ENV),
   )
 
-  if (artifact.rowStart === 0) {
+  if (artefact.rowStart === 0) {
     if (versionInsertContext.parentSnapshotId) {
       await cloneAddressCurrentSnapshot(
         currentRepoDb,
         versionInsertContext.parentSnapshotId,
         versionInsertContext.snapshotId,
-        artifact.processingRunStartedAt,
+        artefact.processingRunStartedAt,
       )
     }
 
-    const divisionSnapshotId = artifactRows[0]?.base.divisionSnapshotId
+    const divisionSnapshotId = artefactRows[0]?.base.divisionSnapshotId
     if (divisionSnapshotId) {
       await alignAddressCurrentDivisionSnapshot(
         currentRepoDb,
@@ -90,7 +90,7 @@ export async function writeAddressCurrentChunkStage(
     }
   }
 
-  const changedRows = artifactRows.filter(row => row.changed)
+  const changedRows = artefactRows.filter(row => row.changed)
   await upsertAddressCurrentStates(
     currentRepoDb,
     changedRows.map(row => row.base),
@@ -104,48 +104,48 @@ export async function writeAddressCurrentChunkStage(
   await touchAddressCurrentRows(
     currentRepoDb,
     versionInsertContext.snapshotId,
-    artifactRows.map(row => row.addressId),
-    artifact.processingRunStartedAt,
+    artefactRows.map(row => row.addressId),
+    artefact.processingRunStartedAt,
   )
 
   const chunkSize = resolveAddressChunkSize(message.chunkSize)
   const stats = addAddressPipelineStats(pipelineMessage.addressStats, {
-    addedRows: artifact.addedRows,
-    changedRows: artifact.changedRows,
-    insertedVersions: artifact.insertedVersions,
-    localizedRows: artifact.localizedRows,
-    processedRows: artifact.rowEnd - artifact.rowStart,
-    recordedRows: artifactRows.length,
-    unchangedRows: artifact.unchangedRows,
-    ...collectAddressCoverageCounts(artifactRows),
+    addedRows: artefact.addedRows,
+    changedRows: artefact.changedRows,
+    insertedVersions: artefact.insertedVersions,
+    localisedRows: artefact.localisedRows,
+    processedRows: artefact.rowEnd - artefact.rowStart,
+    recordedRows: artefactRows.length,
+    unchangedRows: artefact.unchangedRows,
+    ...collectAddressCoverageCounts(artefactRows),
   })
 
-  if (artifact.rowEnd < artifact.totalRows) {
+  if (artefact.rowEnd < artefact.totalRows) {
     console.info(
       JSON.stringify({
         changedRows: changedRows.length,
         datasetId: message.datasetId,
-        nextRowEnd: Math.min(artifact.rowEnd + chunkSize, artifact.totalRows),
-        nextRowStart: artifact.rowEnd,
+        nextRowEnd: Math.min(artefact.rowEnd + chunkSize, artefact.totalRows),
+        nextRowStart: artefact.rowEnd,
         phase: 'addressCurrentStage',
         releaseId: message.releaseId ?? message.datasetId,
-        rowEnd: artifact.rowEnd,
-        rowStart: artifact.rowStart,
+        rowEnd: artefact.rowEnd,
+        rowStart: artefact.rowStart,
         status: 'completed',
-        totalRows: artifact.totalRows,
+        totalRows: artefact.totalRows,
       }),
     )
     return {
       ...pipelineMessage,
-      addressStage: 'normalize',
+      addressStage: 'normalise',
       addressStats: stats,
-      artifactKey: undefined,
-      resolvedArtifactKey: undefined,
+      artefactKey: undefined,
+      resolvedArtefactKey: undefined,
       chunkSize,
-      processingRunStartedAt: artifact.processingRunStartedAt,
-      rowStart: artifact.rowEnd,
-      rowEnd: Math.min(artifact.rowEnd + chunkSize, artifact.totalRows),
-      totalRows: artifact.totalRows,
+      processingRunStartedAt: artefact.processingRunStartedAt,
+      rowStart: artefact.rowEnd,
+      rowEnd: Math.min(artefact.rowEnd + chunkSize, artefact.totalRows),
+      totalRows: artefact.totalRows,
     } satisfies AddressPipelineMessage
   }
 
@@ -155,22 +155,22 @@ export async function writeAddressCurrentChunkStage(
       datasetId: message.datasetId,
       phase: 'addressCurrentStage',
       releaseId: message.releaseId ?? message.datasetId,
-      rowEnd: artifact.rowEnd,
-      rowStart: artifact.rowStart,
+      rowEnd: artefact.rowEnd,
+      rowStart: artefact.rowStart,
       status: 'completed',
-      totalRows: artifact.totalRows,
+      totalRows: artefact.totalRows,
     }),
   )
   return {
     ...pipelineMessage,
-    addressStage: 'finalize',
+    addressStage: 'finalise',
     addressStats: stats,
-    artifactKey: undefined,
-    resolvedArtifactKey: undefined,
-    processingRunStartedAt: artifact.processingRunStartedAt,
-    rowStart: artifact.rowEnd,
-    rowEnd: artifact.rowEnd,
-    totalRows: artifact.totalRows,
+    artefactKey: undefined,
+    resolvedArtefactKey: undefined,
+    processingRunStartedAt: artefact.processingRunStartedAt,
+    rowStart: artefact.rowEnd,
+    rowEnd: artefact.rowEnd,
+    totalRows: artefact.totalRows,
   } satisfies AddressPipelineMessage
 }
 

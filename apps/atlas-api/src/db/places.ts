@@ -159,7 +159,7 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
   } catch (error) {
     if (error instanceof Error && error.message.includes('no such table: placesFts')) {
       throw new Error(
-        'FTS index is not initialized. Rebuild placesFts before using search.',
+        'FTS index is not initialised. Rebuild placesFts before using search.',
       )
     }
 

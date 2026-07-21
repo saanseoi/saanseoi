@@ -47,8 +47,9 @@ source identifiers are never treated as Overture UUIDs.
 ### Compatibility Fields
 
 These source fields are not directly exposed as <black>divisionArea</black> attributes.
-They are available through the <black>hkgov</black> compatibility layer, using our
-database capitalization:
+They are available through the <black>sourceKeys</black> compatibility layer, under the
+<black>hkgov<black> key, i.e. <black>included[].attributes.sourceKeys.hkgov</black>
+using our database capitalization:
 
 - `OBJECTID` -> <black>hkgov.objectId</black>
 - `CSDI_ADMIN_AREA_ID` -> <black>hkgov.cdsiAdminAreaId</black>
@@ -56,7 +57,7 @@ database capitalization:
 - `AREA_ID` -> <black>hkgov.areaId</black>
 - `AREA_CODE` -> <black>hkgov.areaCode</black>
 
-### Normalized Fields
+### Normalised Fields
 
 - `AREA_CODE` - as <black>divisionId</black>, through the <black>hkgov-had</black>
   identifier mapping

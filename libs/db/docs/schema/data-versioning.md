@@ -22,7 +22,7 @@ They should not be collapsed into one identifier.
 - changes when:
   - response fields change
   - response semantics change
-  - routing/query behavior changes
+  - routing/query behaviour changes
 
 `snapshotVersion`
 
@@ -57,7 +57,7 @@ They should not be collapsed into one identifier.
 - changes when:
   - source-priority order changes
   - fallback logic changes
-  - normalization logic changes
+  - normalisation logic changes
   - lookup/join logic changes
   - confidence heuristics change
   - source reconciliation rules change
@@ -70,7 +70,7 @@ converted before being embedded in a code, for example `divisionArea` becomes
 
 `snapshotVersion` is intentionally not tied to a source code.
 
-The published snapshot is the canonical product artifact, not a raw-source artifact.
+The published snapshot is the canonical product artefact, not a raw-source artefact.
 
 For Hong Kong phase 1:
 

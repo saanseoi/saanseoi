@@ -32,11 +32,12 @@ Planning Unit and Overture lineages use persistent identity.
 
 Published domain releases are immutable. Adding another eligible secondary snapshot to
 an already published cohort creates the next trailing composition revision (`...-0` to
-`...-1`). The publication then creates a family-and-region API catalog revision that
-points at the richer release. An older catalog continues pointing at the earlier domain
-release, which preserves knowledge-time replay without duplicating canonical rows.
+`...-1`). The publication then creates a family-and-region API catalogue revision that
+points at the richer release. An older catalogue continues pointing at the earlier
+domain release, which preserves knowledge-time replay without duplicating canonical
+rows.
 
-The uploader reports readiness as an `API DOMAIN RELEASE` and reports the catalog
+The uploader reports readiness as an `API DOMAIN RELEASE` and reports the catalogue
 revision created when the domain release becomes publishable. Overture readiness checks
 its Overture, HAD, and C&SD composition members; each Planning Department domain is
 checked independently.
@@ -53,13 +54,13 @@ administrative traversal accidentally. Cohort keys identify the period selected 
 release; source publication and validity metadata remain provenance.
 
 All division geometry uploads calculate their canonical WGS84 bbox directly from the
-normalized geometry. This applies to Overture, HAD, C&SD, and Planning Department source
+normalised geometry. This applies to Overture, HAD, C&SD, and Planning Department source
 assertions and transforms; upstream bbox fields are not trusted as persisted geometry
 extents.
 
 Canonical division source releases persist locale completeness and churn stats as well
 as a district distribution. A district row contributes to itself; every other row is
-counted against the `district` entry in its normalized hierarchy. Atlas joins those
+counted against the `district` entry in its normalised hierarchy. Atlas joins those
 canonical identifiers to the HAD district-area geometry for a comparable map across
 division datasets.
 
@@ -74,9 +75,15 @@ mapping is needed for each Overture schema range.
 
 The 2016 and 2021 C&SD variants are separate required inputs, not successive revisions
 of one source release. Each keeps its own snapshot lineage and remains available when
-the other cohort is published.
+the other cohort is published. Geometry churn is calculated only against a snapshot's
+declared parent; an initial C&SD cohort therefore reports all 18 district areas as
+additions and never as removals from another cohort.
 
 For Overture, release audit entries are limited to investigable source-policy
 exceptions: division locale inference or API-locale fallback rows, and `CN-GD` spillover
 geometry excluded from area or boundary releases. The Sources page hides its Audit tab
 when a release has no entries.
+
+For Hong Kong Overture divisions, locale-less Chinese names—including alternate name
+rules—are inferred as `zh-hant`; an explicit source `zh` tag is also normalised to
+`zh-hant`.

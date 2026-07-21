@@ -5,46 +5,46 @@ import { tmpdir } from 'node:os'
 import { Database } from 'bun:sqlite'
 import { describe, expect, test } from 'bun:test'
 
-import { inspectLocalArtifact, listInspectableReleaseCodes } from './inspect.ts'
+import { inspectLocalArtefact, listInspectableReleaseCodes } from './inspect.ts'
 
-describe('inspectLocalArtifact', () => {
-  test('copies a sampled normalized JSON artifact', async () => {
+describe('inspectLocalArtefact', () => {
+  test('copies a sampled normalised JSON artefact', async () => {
     const tempDir = await mkdtemp(join(tmpdir(), 'harbour-inspect-'))
 
     try {
       const persistDir = await createLocalR2Fixture(tempDir, [
         {
-          blobId: 'normalized-first',
+          blobId: 'normalised-first',
           body: '{"rowStart":0}',
-          key: 'processed/address/dr-hk-hkgov-dpo-address-2026-06-26.0/normalized/000000000000-000000001024.json',
+          key: 'processed/address/dr-hk-hkgov-dpo-address-2026-06-26.0/normalised/000000000000-000000001024.json',
           uploaded: 1,
         },
         {
-          blobId: 'normalized-last',
+          blobId: 'normalised-last',
           body: '{"rowStart":1024}',
-          key: 'processed/address/dr-hk-hkgov-dpo-address-2026-06-26.0/normalized/000000001024-000000002048.json',
+          key: 'processed/address/dr-hk-hkgov-dpo-address-2026-06-26.0/normalised/000000001024-000000002048.json',
           uploaded: 2,
         },
       ])
       const outDir = join(tempDir, 'out')
-      const result = inspectLocalArtifact({
+      const result = inspectLocalArtefact({
         outDir,
         persistDir,
         releaseCode: 'dr-hk-hkgov-dpo-address-2026-06-26.0',
         resourceType: 'address',
         sample: 'last',
-        stage: 'normalized',
+        stage: 'normalised',
       })
 
       expect(result.rowStart).toBe(1024)
-      expect(result.outputPath.endsWith('-normalized-last.json')).toBe(true)
+      expect(result.outputPath.endsWith('-normalised-last.json')).toBe(true)
       expect(await Bun.file(result.outputPath).text()).toBe('{"rowStart":1024}')
     } finally {
       await rm(tempDir, { force: true, recursive: true })
     }
   })
 
-  test('combines current init and first delta SQL artifacts', async () => {
+  test('combines current init and first delta SQL artefacts', async () => {
     const tempDir = await mkdtemp(join(tmpdir(), 'harbour-inspect-'))
 
     try {
@@ -69,7 +69,7 @@ describe('inspectLocalArtifact', () => {
         resourceType: 'address',
         stage: 'operations',
       })
-      const result = inspectLocalArtifact({
+      const result = inspectLocalArtefact({
         dbShard: 'current',
         outDir,
         persistDir,

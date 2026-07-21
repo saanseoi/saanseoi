@@ -100,9 +100,9 @@ export function createOperationTimer(enabled = false) {
 }
 
 export function resolveDebugEnabled(configuredDebug: string | undefined): boolean {
-  const normalizedDebug = configuredDebug?.trim().toLowerCase()
+  const normalisedDebug = configuredDebug?.trim().toLowerCase()
 
-  return normalizedDebug === '1' || normalizedDebug === 'true'
+  return normalisedDebug === '1' || normalisedDebug === 'true'
 }
 
 export function resolveDataShardEnvironment(

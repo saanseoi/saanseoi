@@ -61,7 +61,7 @@ const hierarchyWithNames = [
   },
 ]
 
-const normalizedHierarchy = [
+const normalisedHierarchy = [
   {
     division_id: 'division-hk-sar',
     i18n: {
@@ -115,7 +115,7 @@ const baseRecord: DivisionRecord = {
     overtureAdminLevel: null,
     overtureHierarchies: hierarchyWithNames,
     wikidata: 'Q123456',
-    hierarchy: normalizedHierarchy,
+    hierarchy: normalisedHierarchy,
     cartography: {
       kind: 'label-center',
     },

@@ -48,7 +48,7 @@ export type DivisionVersionSnapshot = {
   churnHash: string
   geometry: GeoJsonGeometry | null
   id: string
-  localizedRows: DivisionI18nPayload[]
+  localisedRows: DivisionI18nPayload[]
   ownerShardKeys?: string[]
   parentId: string | null
   type: string
@@ -91,7 +91,7 @@ export async function getMergedCurrentDivisionVersionMap(
   }>,
   options: {
     buildDivisionBaseHashInput: (base: DivisionHashInput) => DivisionHashInput
-    normalizeDivisionI18nSnapshotRow: (row: DivisionI18nPayload) => DivisionI18nPayload
+    normaliseDivisionI18nSnapshotRow: (row: DivisionI18nPayload) => DivisionI18nPayload
   },
 ) {
   const mergedRows = new Map<
@@ -143,7 +143,7 @@ export async function getCurrentDivisionVersionMap(
   db: HarbourReadableDb,
   options: {
     buildDivisionBaseHashInput: (base: DivisionHashInput) => DivisionHashInput
-    normalizeDivisionI18nSnapshotRow: (row: DivisionI18nPayload) => DivisionI18nPayload
+    normaliseDivisionI18nSnapshotRow: (row: DivisionI18nPayload) => DivisionI18nPayload
   },
 ) {
   const rows = (await db
@@ -206,8 +206,8 @@ export async function getCurrentDivisionVersionMap(
 
   const snapshots = await Promise.all(
     rows.map(async row => {
-      const localizedRows = [...(i18nByDivisionId.get(row.id) ?? [])]
-        .map(options.normalizeDivisionI18nSnapshotRow)
+      const localisedRows = [...(i18nByDivisionId.get(row.id) ?? [])]
+        .map(options.normaliseDivisionI18nSnapshotRow)
         .sort((left, right) => left.locale.localeCompare(right.locale))
 
       return [
@@ -215,11 +215,11 @@ export async function getCurrentDivisionVersionMap(
         {
           churnHash: await createHash({
             base: options.buildDivisionBaseHashInput(row),
-            i18n: localizedRows,
+            i18n: localisedRows,
           }),
           geometry: row.geometry as GeoJsonGeometry | null,
           id: row.id,
-          localizedRows: localizedRows,
+          localisedRows: localisedRows,
           parentId: resolveParentDivisionIdFromHierarchy(row.hierarchy),
           type: row.type,
           versionHash: row.versionHash,
@@ -237,7 +237,7 @@ export async function getDivisionVersionMapForSnapshot(
   snapshotId: string,
   options: {
     buildDivisionBaseHashInput: (base: DivisionHashInput) => DivisionHashInput
-    normalizeDivisionI18nSnapshotRow: (row: DivisionI18nPayload) => DivisionI18nPayload
+    normaliseDivisionI18nSnapshotRow: (row: DivisionI18nPayload) => DivisionI18nPayload
   },
   ownerShardKeys: string[] = [],
 ) {
@@ -274,27 +274,27 @@ export async function getDivisionVersionMapForSnapshot(
     .all()) as DivisionI18nPayload[]
   const i18nById = new Map<string, DivisionI18nPayload[]>()
   for (const row of i18nRows) {
-    const localized = i18nById.get(row.divisionId) ?? []
-    localized.push(row)
-    i18nById.set(row.divisionId, localized)
+    const localised = i18nById.get(row.divisionId) ?? []
+    localised.push(row)
+    i18nById.set(row.divisionId, localised)
   }
 
   return new Map(
     await Promise.all(
       rows.map(async row => {
-        const localizedRows = (i18nById.get(row.id) ?? [])
-          .map(options.normalizeDivisionI18nSnapshotRow)
+        const localisedRows = (i18nById.get(row.id) ?? [])
+          .map(options.normaliseDivisionI18nSnapshotRow)
           .sort((a, b) => a.locale.localeCompare(b.locale))
         return [
           row.id,
           {
             churnHash: await createHash({
               base: options.buildDivisionBaseHashInput(row),
-              i18n: localizedRows,
+              i18n: localisedRows,
             }),
             geometry: row.geometry as GeoJsonGeometry | null,
             id: row.id,
-            localizedRows,
+            localisedRows,
             ownerShardKeys,
             parentId: resolveParentDivisionIdFromHierarchy(row.hierarchy),
             type: row.type,

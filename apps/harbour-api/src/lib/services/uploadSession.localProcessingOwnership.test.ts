@@ -12,7 +12,7 @@ import {
   seedFixtureCatalog,
 } from '../../../../../libs/core/src/testing/metaFixtures'
 import {
-  handleFinalizeUploadRequest,
+  handleFinaliseUploadRequest,
   handleSignUploadRequest,
   type UploadSigningEnv,
 } from './uploadSession'
@@ -104,8 +104,8 @@ afterEach(() => {
 })
 
 describe('upload session local processing ownership', () => {
-  test('finalizeUpload leaves releases staged without queueing work', async () => {
-    const { bucket, db } = initHarness('harbour-local-sql-finalize.sqlite')
+  test('finaliseUpload leaves releases staged without queueing work', async () => {
+    const { bucket, db } = initHarness('harbour-local-sql-finalise.sqlite')
     const signResult = await handleSignUploadRequest(db, bucket, signingEnv, {
       contentType: 'application/octet-stream',
       fileName: 'hkgov-dpo-hk-address.parquet',
@@ -121,7 +121,7 @@ describe('upload session local processing ownership', () => {
 
     await putSignedUploadObject(bucket, signResult, fixtureBytes.slice().buffer)
 
-    const result = await handleFinalizeUploadRequest(db, bucket, {
+    const result = await handleFinaliseUploadRequest(db, bucket, {
       releaseId: signResult.releaseId,
     })
 
@@ -154,7 +154,7 @@ describe('upload session local processing ownership', () => {
       'lowercase',
     )
 
-    await handleFinalizeUploadRequest(db, bucket, {
+    await handleFinaliseUploadRequest(db, bucket, {
       releaseId: firstSignResult.releaseId,
     })
 
@@ -194,7 +194,7 @@ describe('upload session local processing ownership', () => {
 
     await putSignedUploadObject(bucket, firstSignResult, fixtureBytes.slice().buffer)
 
-    await handleFinalizeUploadRequest(db, bucket, {
+    await handleFinaliseUploadRequest(db, bucket, {
       releaseId: firstSignResult.releaseId,
     })
 
@@ -255,9 +255,9 @@ function signedUploadCustomMetadata(
   const metadata: Record<string, string> = {}
 
   for (const [header, value] of Object.entries(headers)) {
-    const normalizedHeader = header.toLowerCase()
+    const normalisedHeader = header.toLowerCase()
 
-    if (!normalizedHeader.startsWith('x-amz-meta-')) {
+    if (!normalisedHeader.startsWith('x-amz-meta-')) {
       continue
     }
 

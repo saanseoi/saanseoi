@@ -75,7 +75,7 @@ type PreparedDistrictRow = {
 }
 
 /**
- * Converts either Census dataset's GML 3.2 WFS delivery into the normalized
+ * Converts either Census dataset's GML 3.2 WFS delivery into the normalised
  * division-area Parquet contract. The source delivery already contains the
  * detailed land-clipped census district boundaries; its geometry and complete
  * GML feature member are retained for the C&SD provider variant.
@@ -105,7 +105,7 @@ export async function prepareHkgovCenstatdDistrictUpload(
   }
 
   const exactRows = features.map((feature, index) =>
-    normalizeCsdIDistrictFeature(feature, index, sourceVersion),
+    normaliseCsdIDistrictFeature(feature, index, sourceVersion),
   )
   assertUniqueDistricts(exactRows, sourceVersion)
   const rows =
@@ -215,7 +215,7 @@ export async function prepareHkgovCenstatdDistrictUpload(
   }
 }
 
-function normalizeCsdIDistrictFeature(
+function normaliseCsdIDistrictFeature(
   value: unknown,
   index: number,
   sourceVersion: string,

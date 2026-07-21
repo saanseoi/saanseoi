@@ -22,7 +22,7 @@ the Hong Kong release profile and Overture-specific decisions.
 
 ## 2026-06-17.0 Hong Kong profile
 
-The inspected artifacts were:
+The inspected artefacts were:
 
 - `/home/io/code/overturist/data/2026-06-17.0/divisions/China/Hong Kong/division_area.division.intersects.clipSmart.parquet`
 - `/home/io/code/overturist/data/2026-06-17.0/divisions/China/Hong Kong/division_boundary.division.intersects.clipSmart.parquet`
@@ -36,7 +36,7 @@ allowlist is extended.
 
 The dropped-field preflight treats `country = 'CN'` and `region = 'CN-GD'` as the
 allowlisted signature of these early scoped-extract spillover rows for division
-geometry. Normalization still drops the rows before division-reference validation and
+geometry. Normalisation still drops the rows before division-reference validation and
 storage. Other non-HK country or region values continue to produce a preflight warning.
 
 After the cut, boundaries contain 53 `LineString` and 13 `MultiLineString` records;
@@ -59,8 +59,8 @@ Source rows preserve the Overture `id` as `sourceRecordId`, `bbox`, decoded geom
 row, including dropped fields (`theme`, `type`, `country`, `region`, `is_disputed`, and
 `perspectives`) and the original `is_land`/`is_territorial` values for auditability.
 
-Boundary canonical rows normalize `division_ids[0]` and `[1]` to left/right division
-IDs; area rows normalize `division_id`. Both expose `sourceKeys` (`version`, `subtype`,
+Boundary canonical rows normalise `division_ids[0]` and `[1]` to left/right division
+IDs; area rows normalise `division_id`. Both expose `sourceKeys` (`version`, `subtype`,
 `class`), enriched Overture source provenance, `type` (`land`, `maritime`, or `mixed`),
 bbox, geometry, and the source land/territorial flags. Boundary rows require exactly two
 distinct division IDs and null `perspectives`.
@@ -70,8 +70,8 @@ distinct division IDs and null `perspectives`.
 | `id`, `bbox`, `geometry`                            | retain exactly                                    | retain exactly                                    |
 | `version`, `subtype`, `class`                       | retain; expose through `overture` source keys     | retain; expose through `overture` source keys     |
 | `sources`                                           | retain and enrich as `{ overture: ... }`          | retain and enrich as `{ overture: ... }`          |
-| `isLand`, `isTerritorial`                           | normalize from `is_land`, `is_territorial`        | normalize from `is_land`, `is_territorial`        |
-| `divisionId`                                        | normalize from `division_id`                      | —                                                 |
+| `isLand`, `isTerritorial`                           | normalise from `is_land`, `is_territorial`        | normalise from `is_land`, `is_territorial`        |
+| `divisionId`                                        | normalise from `division_id`                      | —                                                 |
 | `divisionIds`                                       | —                                                 | retain ordered array; derive left/right IDs       |
 | `theme`, `type`, `country`, `region`, `admin_level` | drop after preflight; preserve in `rawProperties` | drop after preflight; preserve in `rawProperties` |
 | `names`                                             | drop as redundant with the referenced division    | —                                                 |
@@ -88,7 +88,7 @@ The Hong Kong cut excludes rows with `region = 'CN-GD'`. A null country is valid
 maritime or international-water boundaries and is retained. Boundary rows must have
 exactly two distinct `division_ids`; `perspectives` must be null. Area and boundary
 source rows retain `rawProperties`, the original source array, Overture version, and
-source-key fields. Canonical rows expose normalized left/right or division references,
+source-key fields. Canonical rows expose normalised left/right or division references,
 `type` (`land`, `maritime`, or `mixed`), geometry, bbox, and land/territorial flags.
 `mixed` is derived when both source flags are true, including the known upstream
 Overture records where the source class alone would otherwise suggest `land` or
@@ -118,7 +118,7 @@ Hong Kong's scoped division extract omits the Overture PRC country record
 and the international land boundary reference it. Each Overture Hong Kong division
 snapshot therefore adds the reviewed
 `fixtures/divisions/overture/hk-prc-country-anchor.json` row. The fixture supplies only
-the level-0 country identity and localized names; it deliberately has no country
+the level-0 country identity and localised names; it deliberately has no country
 geometry. It is ingested with every cohort so geometry and address references resolve
 within the exact same division snapshot. The anchor is registered as referent-only, so
 areas belonging to it are rejected before geometry decoding. Boundaries between Hong

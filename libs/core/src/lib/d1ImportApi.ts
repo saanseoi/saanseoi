@@ -60,11 +60,11 @@ const DEFAULT_UPLOAD_RETRY_DELAY_MS = 1000
 export function createD1ImportClient(options: D1ImportClientOptions) {
   const fetchImpl = options.fetch ?? fetch
   const endpoint = `https://api.cloudflare.com/client/v4/accounts/${options.accountId}/d1/database/${options.databaseId}/import`
-  const uploadRetryDelayMs = normalizeRetryNumber(
+  const uploadRetryDelayMs = normaliseRetryNumber(
     options.uploadRetryDelayMs,
     DEFAULT_UPLOAD_RETRY_DELAY_MS,
   )
-  const uploadRetryLimit = normalizeRetryNumber(
+  const uploadRetryLimit = normaliseRetryNumber(
     options.uploadRetryLimit,
     DEFAULT_UPLOAD_RETRY_LIMIT,
   )
@@ -115,7 +115,7 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
         messages: result.messages,
         status: result.status,
         success: result.success,
-        uploadUrl: normalizeUploadUrl(result.upload_url),
+        uploadUrl: normaliseUploadUrl(result.upload_url),
       }
     },
 
@@ -323,16 +323,16 @@ function formatUploadResponse(response: Response) {
   return statusText ? `${response.status} ${statusText}` : String(response.status)
 }
 
-function normalizeRetryNumber(value: number | undefined, fallback: number) {
+function normaliseRetryNumber(value: number | undefined, fallback: number) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0
     ? Math.floor(value)
     : fallback
 }
 
-function normalizeUploadUrl(value: string | undefined) {
-  const normalized = value?.trim()
+function normaliseUploadUrl(value: string | undefined) {
+  const normalised = value?.trim()
 
-  return normalized ? normalized : undefined
+  return normalised ? normalised : undefined
 }
 
 function isImportPollResult(result: D1ImportInitResult) {

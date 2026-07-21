@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 
 import { Database } from 'bun:sqlite'
 
-export const inspectStages = ['normalized', 'resolved', 'operations'] as const
+export const inspectStages = ['normalised', 'resolved', 'operations'] as const
 export const inspectResourceTypes = ['address'] as const
 export const inspectDbShards = ['source', 'history', 'current'] as const
 export const inspectSampleStrategies = ['first', 'last', 'random'] as const
@@ -15,7 +15,7 @@ export type InspectResourceType = (typeof inspectResourceTypes)[number]
 export type InspectDbShard = (typeof inspectDbShards)[number]
 export type InspectSampleStrategy = (typeof inspectSampleStrategies)[number]
 
-export type InspectArtifactOptions = {
+export type InspectArtefactOptions = {
   dbShard?: InspectDbShard
   outDir?: string
   persistDir?: string
@@ -25,7 +25,7 @@ export type InspectArtifactOptions = {
   stage: InspectStage
 }
 
-export type InspectArtifactResult = {
+export type InspectArtefactResult = {
   outputPath: string
   releaseCode: string
   resourceType: InspectResourceType
@@ -44,7 +44,7 @@ type R2ObjectRow = {
   uploaded: number
 }
 
-type ArtifactCandidate = {
+type artefactCandidate = {
   key: string
   rowEnd: number | null
   rowStart: number | null
@@ -63,17 +63,15 @@ const TARGET_ORDER = new Map([
   ['current', 3],
 ])
 
-export function normalizeInspectStage(value: unknown): InspectStage | null {
+export function normaliseInspectStage(value: unknown): InspectStage | null {
   if (typeof value !== 'string') {
     return null
   }
 
   switch (value.trim().toLowerCase()) {
     case 'json-normalised':
-    case 'json-normalized':
     case 'normalised':
-    case 'normalized':
-      return 'normalized'
+      return 'normalised'
     case 'resolved':
     case 'json-resolved':
       return 'resolved'
@@ -86,17 +84,17 @@ export function normalizeInspectStage(value: unknown): InspectStage | null {
   }
 }
 
-export function normalizeInspectResourceType(
+export function normaliseInspectResourceType(
   value: unknown,
 ): InspectResourceType | null {
   return value === 'address' ? 'address' : null
 }
 
-export function normalizeInspectDbShard(value: unknown): InspectDbShard | null {
+export function normaliseInspectDbShard(value: unknown): InspectDbShard | null {
   return value === 'source' || value === 'history' || value === 'current' ? value : null
 }
 
-export function normalizeInspectSampleStrategy(
+export function normaliseInspectSampleStrategy(
   value: unknown,
 ): InspectSampleStrategy | null {
   return value === 'first' || value === 'last' || value === 'random' ? value : null
@@ -133,45 +131,45 @@ export function listInspectableReleaseCodes(options: {
     .map(([releaseCode]) => releaseCode)
 }
 
-export function inspectLocalArtifact(
-  options: InspectArtifactOptions,
-): InspectArtifactResult {
-  const normalizedOptions = {
+export function inspectLocalArtefact(
+  options: InspectArtefactOptions,
+): InspectArtefactResult {
+  const normalisedOptions = {
     ...options,
     outDir: resolve(options.outDir ?? DEFAULT_OUT_DIR),
     persistDir: resolve(options.persistDir ?? DEFAULT_PERSIST_DIR),
   }
-  const rows = loadInspectableObjectRows(normalizedOptions.persistDir)
+  const rows = loadInspectableObjectRows(normalisedOptions.persistDir)
   const matchingRows = rows.filter(row =>
-    matchesArtifactRequest(row.key, normalizedOptions),
+    matchesArtefactRequest(row.key, normalisedOptions),
   )
-  const candidates = buildArtifactCandidates(matchingRows, normalizedOptions)
-  const candidate = selectCandidate(candidates, normalizedOptions.sample)
+  const candidates = buildArtefactCandidates(matchingRows, normalisedOptions)
+  const candidate = selectCandidate(candidates, normalisedOptions.sample)
 
   if (!candidate) {
     throw new Error(
-      `No ${normalizedOptions.stage} artifacts found for ${normalizedOptions.releaseCode}.`,
+      `No ${normalisedOptions.stage} artefacts found for ${normalisedOptions.releaseCode}.`,
     )
   }
 
-  mkdirSync(normalizedOptions.outDir, { recursive: true })
+  mkdirSync(normalisedOptions.outDir, { recursive: true })
 
   const timestamp = formatTimestamp(new Date())
-  const extension = normalizedOptions.stage === 'operations' ? 'sql' : 'json'
+  const extension = normalisedOptions.stage === 'operations' ? 'sql' : 'json'
   const outputPath = join(
-    normalizedOptions.outDir,
+    normalisedOptions.outDir,
     `${[
       timestamp,
-      normalizedOptions.releaseCode,
-      normalizedOptions.stage,
-      normalizedOptions.dbShard,
-      normalizedOptions.sample,
+      normalisedOptions.releaseCode,
+      normalisedOptions.stage,
+      normalisedOptions.dbShard,
+      normalisedOptions.sample,
     ]
       .filter(Boolean)
       .join('-')}.${extension}`,
   )
   const bucketRoot = join(
-    normalizedOptions.persistDir,
+    normalisedOptions.persistDir,
     'v3',
     'r2',
     'ss-raw-preview',
@@ -182,14 +180,14 @@ export function inspectLocalArtifact(
 
   return {
     outputPath,
-    releaseCode: normalizedOptions.releaseCode,
-    resourceType: normalizedOptions.resourceType,
+    releaseCode: normalisedOptions.releaseCode,
+    resourceType: normalisedOptions.resourceType,
     rowEnd: candidate.rowEnd,
     rowStart: candidate.rowStart,
-    sample: normalizedOptions.sample,
+    sample: normalisedOptions.sample,
     sourceKeys: candidate.rows.map(row => row.key),
-    stage: normalizedOptions.stage,
-    ...(normalizedOptions.dbShard ? { dbShard: normalizedOptions.dbShard } : {}),
+    stage: normalisedOptions.stage,
+    ...(normalisedOptions.dbShard ? { dbShard: normalisedOptions.dbShard } : {}),
   }
 }
 
@@ -268,7 +266,7 @@ function matchesStage(
   )
 }
 
-function matchesArtifactRequest(key: string, options: InspectArtifactOptions) {
+function matchesArtefactRequest(key: string, options: InspectArtefactOptions) {
   if (!matchesStage(key, options)) {
     return false
   }
@@ -283,10 +281,10 @@ function matchesArtifactRequest(key: string, options: InspectArtifactOptions) {
   return extractReleaseCode(key, options.resourceType) === options.releaseCode
 }
 
-function buildArtifactCandidates(rows: R2ObjectRow[], options: InspectArtifactOptions) {
+function buildArtefactCandidates(rows: R2ObjectRow[], options: InspectArtefactOptions) {
   if (options.stage !== 'operations') {
     return rows
-      .map((row): ArtifactCandidate => {
+      .map((row): artefactCandidate => {
         const range = extractJsonRange(row.key)
         return {
           key: row.key,
@@ -298,7 +296,7 @@ function buildArtifactCandidates(rows: R2ObjectRow[], options: InspectArtifactOp
       .sort(compareCandidates)
   }
 
-  const grouped = new Map<string, ArtifactCandidate>()
+  const grouped = new Map<string, artefactCandidate>()
 
   for (const row of rows) {
     const rowStart = extractSqlRowStart(row.key)
@@ -323,7 +321,7 @@ function buildArtifactCandidates(rows: R2ObjectRow[], options: InspectArtifactOp
 }
 
 function selectCandidate(
-  candidates: ArtifactCandidate[],
+  candidates: artefactCandidate[],
   sample: InspectSampleStrategy,
 ) {
   if (candidates.length === 0) {
@@ -342,7 +340,7 @@ function selectCandidate(
 
 function writeCandidate(
   bucketRoot: string,
-  candidate: ArtifactCandidate,
+  candidate: artefactCandidate,
   outputPath: string,
 ) {
   if (candidate.rows.length === 1) {
@@ -404,7 +402,7 @@ function extractSqlRowStart(key: string) {
   return Number.parseInt(match[2] ?? '', 10)
 }
 
-function compareCandidates(left: ArtifactCandidate, right: ArtifactCandidate) {
+function compareCandidates(left: artefactCandidate, right: artefactCandidate) {
   const leftStart = left.rowStart ?? Number.POSITIVE_INFINITY
   const rightStart = right.rowStart ?? Number.POSITIVE_INFINITY
 
@@ -440,7 +438,7 @@ function classifyTargetForOrdering(key: string) {
 
 function resolveBlobPath(bucketRoot: string, row: R2ObjectRow | undefined) {
   if (!row) {
-    throw new Error('Missing selected artifact row.')
+    throw new Error('Missing selected artefact row.')
   }
 
   const blobPath = join(bucketRoot, row.blob_id)

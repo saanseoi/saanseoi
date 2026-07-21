@@ -6,15 +6,15 @@ import type {
 } from '@repo/db/currentSchema'
 
 export type AddressPipelineStage =
-  | 'normalize'
+  | 'normalise'
   | 'source'
   | 'history'
   | 'current'
-  | 'finalize'
+  | 'finalise'
   | 'sql-source'
   | 'sql-history'
   | 'sql-current'
-  | 'sql-finalize'
+  | 'sql-finalise'
   | 'sql-import-source'
   | 'sql-import-history'
   | 'sql-import-current'
@@ -29,7 +29,7 @@ export type AddressPipelineStats = {
   districtCounts: Record<string, number>
   insertedVersions: number
   localeCounts: Record<string, number>
-  localizedRows: number
+  localisedRows: number
   processedRows: number
   recordedRows: number
   unchangedRows: number
@@ -38,15 +38,15 @@ export type AddressPipelineStats = {
 export type AddressPipelineMessage = DatasetProcessingMessage & {
   addressStage?: AddressPipelineStage
   addressCurrentLookupCache?: AddressCurrentLookupCache
-  artifactKey?: string
-  resolvedArtifactKey?: string
-  addressSqlArtifactKeys?: string[]
+  artefactKey?: string
+  resolvedArtefactKey?: string
+  addressSqlArtefactKeys?: string[]
   addressStats?: Partial<AddressPipelineStats>
 }
 
 export type AddressCurrentLookupEntry = {
+  churnHash: string
   id: string
-  versionHash: string
 }
 
 export type AddressCurrentLookupCache = {
@@ -54,7 +54,7 @@ export type AddressCurrentLookupCache = {
   byMatchKey: Map<string, AddressCurrentLookupEntry>
 }
 
-export type NormalizedAddressRecord = {
+export type NormalisedAddressRecord = {
   canonicalId: string
   base: Omit<AddressRow, 'id' | 'snapshotId' | 'createdAt' | 'updatedAt'>
   coverageComponents: string[]
@@ -65,13 +65,13 @@ export type NormalizedAddressRecord = {
   sourcePayloadHash: string
 }
 
-export type NormalizedAddressChunkArtifact = {
-  kind: 'address.normalized.v1'
+export type NormalisedAddressChunkArtefact = {
+  kind: 'address.normalised.v1'
   processingRunStartedAt: string
   releaseId: string
   rowEnd: number
   rowStart: number
-  rows: NormalizedAddressRecord[]
+  rows: NormalisedAddressRecord[]
   totalRows: number
 }
 
@@ -86,12 +86,12 @@ export type ResolvedAddressRecord = {
   versionHash: string
 }
 
-export type ResolvedAddressChunkArtifact = {
+export type ResolvedAddressChunkArtefact = {
   addedRows: number
   changedRows: number
   kind: 'address.resolved.v1'
   insertedVersions: number
-  localizedRows: number
+  localisedRows: number
   processingRunStartedAt: string
   releaseId: string
   rowEnd: number
@@ -109,7 +109,7 @@ export const EMPTY_ADDRESS_PIPELINE_STATS: AddressPipelineStats = {
   districtCounts: {},
   insertedVersions: 0,
   localeCounts: {},
-  localizedRows: 0,
+  localisedRows: 0,
   processedRows: 0,
   recordedRows: 0,
   unchangedRows: 0,
@@ -118,7 +118,7 @@ export const EMPTY_ADDRESS_PIPELINE_STATS: AddressPipelineStats = {
 export function getAddressPipelineStage(
   message: DatasetProcessingMessage,
 ): AddressPipelineStage {
-  return (message as AddressPipelineMessage).addressStage ?? 'normalize'
+  return (message as AddressPipelineMessage).addressStage ?? 'normalise'
 }
 
 export function addAddressPipelineStats(
@@ -133,7 +133,7 @@ export function addAddressPipelineStats(
     districtCounts: addCountMaps(left?.districtCounts, right.districtCounts),
     insertedVersions: (left?.insertedVersions ?? 0) + (right.insertedVersions ?? 0),
     localeCounts: addCountMaps(left?.localeCounts, right.localeCounts),
-    localizedRows: (left?.localizedRows ?? 0) + (right.localizedRows ?? 0),
+    localisedRows: (left?.localisedRows ?? 0) + (right.localisedRows ?? 0),
     processedRows: (left?.processedRows ?? 0) + (right.processedRows ?? 0),
     recordedRows: (left?.recordedRows ?? 0) + (right.recordedRows ?? 0),
     unchangedRows: (left?.unchangedRows ?? 0) + (right.unchangedRows ?? 0),
@@ -155,14 +155,14 @@ export function collectAddressCoverageCounts(rows: ResolvedAddressRecord[]) {
 
     const locales = new Set<string>()
     const components = new Set(row.coverageComponents)
-    for (const localized of row.i18n) {
-      locales.add(localized.locale)
-      if (localized.streetName) components.add('street_name')
-      if (localized.streetNumber) components.add('street_number')
-      if (localized.buildingName) components.add('building_name')
-      if (localized.estateName) components.add('estate_name')
-      if (localized.phaseName || localized.phaseNumber) components.add('phase')
-      if (localized.blockType || localized.blockNumber) components.add('block')
+    for (const localised of row.i18n) {
+      locales.add(localised.locale)
+      if (localised.streetName) components.add('street_name')
+      if (localised.streetNumber) components.add('street_number')
+      if (localised.buildingName) components.add('building_name')
+      if (localised.estateName) components.add('estate_name')
+      if (localised.phaseName || localised.phaseNumber) components.add('phase')
+      if (localised.blockType || localised.blockNumber) components.add('block')
     }
 
     for (const locale of locales) incrementCount(localeCounts, locale)

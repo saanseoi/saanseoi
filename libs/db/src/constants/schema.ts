@@ -26,7 +26,7 @@ export const resolverCodes = [
   'prefer_hkgov_then_overture',
   'prefer_overture_then_hkgov',
   'merge_first_non_empty',
-  'normalize_whitespace',
+  'normalise_whitespace',
 ] as const
 
 export const datasetReleaseTypes = ['snapshot', 'static'] as const

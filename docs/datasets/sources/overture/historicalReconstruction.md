@@ -1,7 +1,7 @@
 # Overture historical reconstructions
 
 Overture keeps only a limited window of full release payloads. When a monthly payload
-has expired, SaanSeoi does not synthesize feature properties from a neighbouring release
+has expired, SaanSeoi does not synthesise feature properties from a neighbouring release
 or from a changelog: a changelog identifies changed records but does not carry their
 complete geometry and attributes.
 

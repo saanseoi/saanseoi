@@ -63,11 +63,11 @@ import {
   updateLocaleStatsAccumulator,
 } from './stats'
 import {
-  addLocalizedValue,
+  addLocalisedValue,
   asNonEmptyString,
   createHash,
   inferLocale,
-  normalizeLocale,
+  normaliseLocale,
   stableJsonStringify,
 } from '../utils'
 import {
@@ -112,14 +112,14 @@ export type HarbourWorkerBucket = {
 export type ProcessDatasetResult = {
   deletedRows: number
   insertedVersions: number
-  localizedRows: number
+  localisedRows: number
   processedRows: number
   statsRows: number
   unchangedRows: number
 }
 
 type ReportProgress = (stats: {
-  localizedRows: number
+  localisedRows: number
   processedRows: number
 }) => Promise<void>
 
@@ -145,7 +145,7 @@ type DivisionHierarchyLookupEntry = {
 
 export type DivisionHierarchyLookup = ReadonlyMap<string, DivisionHierarchyLookupEntry>
 
-type DivisionNormalizeOptions = {
+type DivisionNormaliseOptions = {
   hierarchyLookup?: DivisionHierarchyLookup
 }
 
@@ -283,7 +283,7 @@ export async function processDivisionDataset(
       ? getDivisionVersionMapForSnapshot(
           currentRepoDb,
           versionInsertContext.parentSnapshotId,
-          { buildDivisionBaseHashInput, normalizeDivisionI18nSnapshotRow },
+          { buildDivisionBaseHashInput, normaliseDivisionI18nSnapshotRow },
           historyBaselineSources.map(source => source.key),
         )
       : Promise.resolve(new Map<string, DivisionVersionSnapshot>()),
@@ -306,7 +306,7 @@ export async function processDivisionDataset(
       () => countDivisionCurrentSnapshotI18nRows(currentRepoDb, parentSnapshotId),
     )
     const expectedI18nRowCount = [...currentRows.values()].reduce(
-      (total, row) => total + row.localizedRows.length,
+      (total, row) => total + row.localisedRows.length,
       0,
     )
 
@@ -332,7 +332,7 @@ export async function processDivisionDataset(
           event: 'activeSnapshotMismatch',
           historyCurrentExists: currentRows.has(divisionId),
           historyCurrentLocaleCount:
-            currentRows.get(divisionId)?.localizedRows.length ?? 0,
+            currentRows.get(divisionId)?.localisedRows.length ?? 0,
           phase: 'processDivisionDataset',
           releaseId: message.releaseId ?? message.datasetId,
           snapshotI18nRowCount: snapshotState?.i18nRowCount ?? 0,
@@ -373,7 +373,7 @@ export async function processDivisionDataset(
   let sourceChangedRows = 0
   let sourceUnchangedRows = 0
   let unchangedRows = 0
-  let localizedRows = 0
+  let localisedRows = 0
   const statsAccumulator = createLocaleStatsAccumulator()
   const districtCounts = new Map<string, number>()
   const processingActions: ReleaseProcessingAction[] = []
@@ -414,7 +414,7 @@ export async function processDivisionDataset(
       activeSnapshotId: activeSnapshot?.id ?? null,
       event: 'baseline',
       historyCurrentExists: currentRows.has(divisionId),
-      historyCurrentLocaleCount: currentRows.get(divisionId)?.localizedRows.length ?? 0,
+      historyCurrentLocaleCount: currentRows.get(divisionId)?.localisedRows.length ?? 0,
       phase: 'processDivisionDataset',
       releaseId: message.releaseId ?? message.datasetId,
       sourceCurrentExists: currentSourceRows?.has(divisionId) ?? null,
@@ -466,27 +466,27 @@ export async function processDivisionDataset(
     const unchangedSourceIds = new Set<string>()
 
     for (const row of batch) {
-      const normalized = normalizeDivisionRow(row, { hierarchyLookup })
-      const canonicalI18n = buildCanonicalDivisionApiI18n(normalized.i18n)
+      const normalised = normaliseDivisionRow(row, { hierarchyLookup })
+      const canonicalI18n = buildCanonicalDivisionApiI18n(normalised.i18n)
       if (message.source === 'overture' && message.type === 'division') {
         processingActions.push(
           ...buildOvertureDivisionLocaleProcessingActions({
             canonicalI18n,
-            division: normalized.base,
+            division: normalised.base,
             rawNames: row.names,
-            sourceI18n: normalized.i18n,
+            sourceI18n: normalised.i18n,
           }),
         )
       }
-      const versionHash = await createHash(buildDivisionBaseHashInput(normalized.base))
+      const versionHash = await createHash(buildDivisionBaseHashInput(normalised.base))
       const churnHash = await createHash({
-        base: buildDivisionBaseHashInput(normalized.base),
+        base: buildDivisionBaseHashInput(normalised.base),
         i18n: canonicalI18n,
       })
 
       processedRows += 1
-      localizedRows += canonicalI18n.length
-      seenIds.add(normalized.base.id)
+      localisedRows += canonicalI18n.length
+      seenIds.add(normalised.base.id)
       updateLocaleStatsAccumulator(
         statsAccumulator,
         canonicalI18n.map(row => ({
@@ -496,17 +496,17 @@ export async function processDivisionDataset(
           locale: row.locale,
         })),
       )
-      const districtId = resolveDistrictId(normalized.base)
+      const districtId = resolveDistrictId(normalised.base)
       if (districtId) {
         districtCounts.set(districtId, (districtCounts.get(districtId) ?? 0) + 1)
       }
-      processedRowsById.set(normalized.base.id, {
+      processedRowsById.set(normalised.base.id, {
         churnHash,
-        geometry: normalized.base.geometry,
-        id: normalized.base.id,
-        localizedRows: canonicalI18n,
-        parentId: resolveParentDivisionIdFromHierarchy(normalized.base.hierarchy),
-        type: normalized.base.type,
+        geometry: normalised.base.geometry,
+        id: normalised.base.id,
+        localisedRows: canonicalI18n,
+        parentId: resolveParentDivisionIdFromHierarchy(normalised.base.hierarchy),
+        type: normalised.base.type,
         versionHash,
       })
       let sourceChanged: boolean | null = null
@@ -514,14 +514,14 @@ export async function processDivisionDataset(
       if (sourceDb && message.source === 'overture') {
         const releaseId = buildSourceReleaseId(message)
         const sourcePayloadHash = await createHash(row)
-        const currentSource = currentSourceRows?.get(normalized.base.id) ?? null
+        const currentSource = currentSourceRows?.get(normalised.base.id) ?? null
         sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
 
         if (sourceChanged) {
           sourceChangedRows += 1
-          changedSourceIds.add(normalized.base.id)
+          changedSourceIds.add(normalised.base.id)
           sourceVersionRows.push({
-            sourceRecordId: normalized.base.id,
+            sourceRecordId: normalised.base.id,
             versionHash: sourcePayloadHash,
             releaseId,
             validFromRelease: message.sourceVersion,
@@ -531,40 +531,40 @@ export async function processDivisionDataset(
             subtype: sourceString(row.subtype),
             class: sourceString(row.class),
             version: asOptionalInteger(row.version),
-            wikidata: normalized.base.wikidata,
-            geometry: normalized.base.geometry,
-            bbox: normalized.base.bbox,
+            wikidata: normalised.base.wikidata,
+            geometry: normalised.base.geometry,
+            bbox: normalised.base.bbox,
             hierarchies: row.hierarchies,
-            cartography: normalized.base.cartography,
-            sources: normalized.base.sources,
+            cartography: normalised.base.cartography,
+            sources: normalised.base.sources,
             rawProperties: row,
           })
           sourceI18nVersionRows.push(
-            ...normalized.i18n.map(localized => ({
-              sourceRecordId: normalized.base.id,
+            ...normalised.i18n.map(localised => ({
+              sourceRecordId: normalised.base.id,
               versionHash: sourcePayloadHash,
               releaseId,
               validFromRelease: message.sourceVersion,
               validToRelease: null,
               isCurrent: true,
-              locale: localized.locale,
-              name: localized.name,
-              nameVariant: localized.nameVariant,
-              nameAlts: localized.nameAlts,
-              nameRules: localized.nameRules,
-              isLocaleInferred: localized.isLocaleInferred,
+              locale: localised.locale,
+              name: localised.name,
+              nameVariant: localised.nameVariant,
+              nameAlts: localised.nameAlts,
+              nameRules: localised.nameRules,
+              isLocaleInferred: localised.isLocaleInferred,
             })),
           )
         } else if (currentSource) {
           sourceUnchangedRows += 1
-          unchangedSourceIds.add(normalized.base.id)
+          unchangedSourceIds.add(normalised.base.id)
         }
       }
 
-      const current = currentRows.get(normalized.base.id)
+      const current = currentRows.get(normalised.base.id)
       const currentChanged = current?.churnHash !== churnHash
       const baseChanged = current?.versionHash !== versionHash
-      const currentDivisionI18nNow = normalized.base.updatedAt
+      const currentDivisionI18nNow = normalised.base.updatedAt
       const i18nVersionHash =
         !baseChanged && currentChanged
           ? await createHash({
@@ -581,16 +581,16 @@ export async function processDivisionDataset(
             })
           : versionHash
 
-      logDivisionTrace(traceDivisionIds, normalized.base.id, {
+      logDivisionTrace(traceDivisionIds, normalised.base.id, {
         baseChanged,
         currentChanged,
         currentExists: Boolean(current),
         event: 'rowSeen',
-        historyCurrentLocaleCount: current?.localizedRows.length ?? 0,
+        historyCurrentLocaleCount: current?.localisedRows.length ?? 0,
         localeCount: canonicalI18n.length,
         phase: 'processDivisionDataset',
         sourceChanged,
-        sourceCurrentExists: currentSourceRows?.has(normalized.base.id) ?? null,
+        sourceCurrentExists: currentSourceRows?.has(normalised.base.id) ?? null,
         sourceVersion: message.sourceVersion,
       })
 
@@ -600,10 +600,10 @@ export async function processDivisionDataset(
       }
 
       if (current) {
-        changedDivisionExistingIds.add(normalized.base.id)
+        changedDivisionExistingIds.add(normalised.base.id)
       }
 
-      currentDivisionI18nRowIds.add(normalized.base.id)
+      currentDivisionI18nRowIds.add(normalised.base.id)
       currentDivisionI18nRows.push(
         ...canonicalI18n.map(row => ({
           ...row,
@@ -615,7 +615,7 @@ export async function processDivisionDataset(
       if (!baseChanged) {
         i18nOnlyChangedRows += 1
         changedDivisionVersionRows.push({
-          ...normalized.base,
+          ...normalised.base,
           versionHash,
         })
         changedDivisionI18nVersionRows.push(
@@ -637,9 +637,9 @@ export async function processDivisionDataset(
       }
 
       insertedVersions += 1
-      currentDivisionRows.push(normalized.base)
+      currentDivisionRows.push(normalised.base)
       changedDivisionVersionRows.push({
-        ...normalized.base,
+        ...normalised.base,
         versionHash,
       })
       changedDivisionI18nVersionRows.push(
@@ -788,7 +788,7 @@ export async function processDivisionDataset(
 
     if (reportProgress && !isSupplemental) {
       await reportProgress({
-        localizedRows,
+        localisedRows,
         processedRows,
       })
     }
@@ -912,7 +912,7 @@ export async function processDivisionDataset(
   return {
     deletedRows,
     insertedVersions,
-    localizedRows,
+    localisedRows,
     processedRows,
     statsRows,
     unchangedRows,
@@ -1089,11 +1089,11 @@ function formatSourceValue(value: unknown) {
 }
 
 /**
- * Normalizes a raw parquet row into the base division record plus locale rows.
+ * Normalises a raw parquet row into the base division record plus locale rows.
  */
-export function normalizeDivisionRow(
+export function normaliseDivisionRow(
   row: Record<string, unknown>,
-  options: DivisionNormalizeOptions = {},
+  options: DivisionNormaliseOptions = {},
 ) {
   const id = asNonEmptyString(row.id)
   const now = new Date().toISOString()
@@ -1118,21 +1118,21 @@ export function normalizeDivisionRow(
     otSubtype,
     parentDivisionId,
   })
-  const i18n = normalizeDivisionI18n(id, row.names)
-  const normalizedHierarchies = normalizeDivisionHierarchies(
+  const i18n = normaliseDivisionI18n(id, row.names)
+  const normalisedHierarchies = normaliseDivisionHierarchies(
     row.hierarchies,
     id,
     options.hierarchyLookup,
   )
-  const normalizedGeometry = parseWkbGeometry(row.geometry)
+  const normalisedGeometry = parseWkbGeometry(row.geometry)
 
   return {
     base: {
-      bbox: normalizedGeometry ? calculateGeoJsonBbox(normalizedGeometry) : null,
+      bbox: normalisedGeometry ? calculateGeoJsonBbox(normalisedGeometry) : null,
       cartography: row.cartography ?? null,
       createdAt: now,
-      geometry: normalizedGeometry,
-      hierarchy: normalizedHierarchies,
+      geometry: normalisedGeometry,
+      hierarchy: normalisedHierarchies,
       id,
       identifiers: row.identifiers ?? null,
       level,
@@ -1146,7 +1146,7 @@ export function normalizeDivisionRow(
         },
       },
       type,
-      sources: normalizeOvertureSources(row.sources),
+      sources: normaliseOvertureSources(row.sources),
       updatedAt: now,
       wikidata: asNonEmptyString(row.wikidata),
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
@@ -1219,7 +1219,7 @@ export function resolveDistrictId(base: {
   return null
 }
 
-export function normalizeDivisionI18nSnapshotRow(row: DivisionI18nPayload) {
+export function normaliseDivisionI18nSnapshotRow(row: DivisionI18nPayload) {
   return {
     ...row,
     isLocaleInferred: Boolean(row.isLocaleInferred),
@@ -1272,7 +1272,7 @@ export function buildOvertureDivisionLocaleProcessingActions(input: {
   const evidenceBase = {
     canonicalDivision,
     sourceNames: input.rawNames ?? null,
-    normalizedI18n: input.sourceI18n,
+    normalisedI18n: input.sourceI18n,
   }
   const inferredI18n = input.sourceI18n.filter(row => row.isLocaleInferred)
   const sourceLocales = new Set(input.sourceI18n.map(row => row.locale))
@@ -1337,7 +1337,7 @@ function isDivisionI18nFallbackSource(
   )
 }
 
-function normalizeOvertureSources(sources: unknown) {
+function normaliseOvertureSources(sources: unknown) {
   if (!Array.isArray(sources) || sources.length === 0) {
     return undefined
   }
@@ -1346,12 +1346,12 @@ function normalizeOvertureSources(sources: unknown) {
 }
 
 /**
- * Builds localized division name/type rows from mixed source fields.
+ * Builds localised division name/type rows from mixed source fields.
  */
-function normalizeDivisionI18n(divisionId: string, names: unknown) {
-  const localizedNames = new Map<string, Set<string>>()
-  const localizedRuleEntries = new Map<string, DivisionNameRuleRecord[]>()
-  const localizedInferredFlags = new Map<string, boolean>()
+function normaliseDivisionI18n(divisionId: string, names: unknown) {
+  const localisedNames = new Map<string, Set<string>>()
+  const localisedRuleEntries = new Map<string, DivisionNameRuleRecord[]>()
+  const localisedInferredFlags = new Map<string, boolean>()
   const namesRecord =
     names && typeof names === 'object' ? (names as Record<string, unknown>) : null
 
@@ -1363,26 +1363,26 @@ function normalizeDivisionI18n(divisionId: string, names: unknown) {
       rule?: DivisionNameRuleRecord | null
     },
   ) => {
-    addLocalizedValue(localizedNames, locale, value)
+    addLocalisedValue(localisedNames, locale, value)
 
     if (options?.rule) {
-      const rules = localizedRuleEntries.get(locale) ?? []
+      const rules = localisedRuleEntries.get(locale) ?? []
       rules.push(options.rule)
-      localizedRuleEntries.set(locale, rules)
+      localisedRuleEntries.set(locale, rules)
     }
 
     if (options?.inferred) {
-      if (!localizedInferredFlags.has(locale)) {
-        localizedInferredFlags.set(locale, true)
+      if (!localisedInferredFlags.has(locale)) {
+        localisedInferredFlags.set(locale, true)
       }
       return
     }
 
-    localizedInferredFlags.set(locale, false)
+    localisedInferredFlags.set(locale, false)
   }
 
-  collectLocalizedValues(namesRecord?.common, addNameValue)
-  collectLocalizedRuleValues(namesRecord?.rules, addNameValue)
+  collectLocalisedValues(namesRecord?.common, addNameValue)
+  collectLocalisedRuleValues(namesRecord?.rules, addNameValue)
 
   for (const inferredValue of inferLocale(namesRecord?.primary)) {
     addNameValue(inferredValue.locale, inferredValue.value, {
@@ -1390,16 +1390,16 @@ function normalizeDivisionI18n(divisionId: string, names: unknown) {
     })
   }
 
-  const locales = new Set<string>(localizedNames.keys())
+  const locales = new Set<string>(localisedNames.keys())
 
   return [...locales].sort().map(locale => {
-    const values = [...(localizedNames.get(locale) ?? [])]
+    const values = [...(localisedNames.get(locale) ?? [])]
     const [name, ...alts] = values
-    const nameRules = dedupeNameRules(localizedRuleEntries.get(locale) ?? [])
+    const nameRules = dedupeNameRules(localisedRuleEntries.get(locale) ?? [])
 
     return {
       divisionId,
-      isLocaleInferred: localizedInferredFlags.get(locale) ?? false,
+      isLocaleInferred: localisedInferredFlags.get(locale) ?? false,
       locale,
       name: name ?? null,
       nameAlts: alts.length > 0 ? alts.join('|') : null,
@@ -1410,9 +1410,9 @@ function normalizeDivisionI18n(divisionId: string, names: unknown) {
 }
 
 /**
- * Recursively collects localized text values from mixed object/array/string shapes.
+ * Recursively collects localised text values from mixed object/array/string shapes.
  */
-function collectLocalizedValues(
+function collectLocalisedValues(
   value: unknown,
   appendValue: (
     locale: string,
@@ -1429,10 +1429,10 @@ function collectLocalizedValues(
   }
 
   if (typeof value === 'string') {
-    const normalized = normalizeLocale(localeHint)
+    const normalised = normaliseLocale(localeHint)
 
-    if (normalized) {
-      appendValue(normalized, value)
+    if (normalised) {
+      appendValue(normalised, value)
       return
     }
 
@@ -1446,7 +1446,7 @@ function collectLocalizedValues(
 
   if (Array.isArray(value)) {
     for (const item of value) {
-      collectLocalizedValues(item, appendValue, localeHint)
+      collectLocalisedValues(item, appendValue, localeHint)
     }
     return
   }
@@ -1457,10 +1457,10 @@ function collectLocalizedValues(
 
   const record = value as Record<string, unknown>
   const explicitLocale =
-    normalizeLocale(asNonEmptyString(record.locale)) ??
-    normalizeLocale(asNonEmptyString(record.language)) ??
-    normalizeLocale(asNonEmptyString(record.lang)) ??
-    normalizeLocale(localeHint)
+    normaliseLocale(asNonEmptyString(record.locale)) ??
+    normaliseLocale(asNonEmptyString(record.language)) ??
+    normaliseLocale(asNonEmptyString(record.lang)) ??
+    normaliseLocale(localeHint)
   const directValue =
     asNonEmptyString(record.value) ??
     asNonEmptyString(record.name) ??
@@ -1472,15 +1472,15 @@ function collectLocalizedValues(
   }
 
   for (const [key, nestedValue] of Object.entries(record)) {
-    const nestedLocale = normalizeLocale(key) ?? explicitLocale
-    collectLocalizedValues(nestedValue, appendValue, nestedLocale)
+    const nestedLocale = normaliseLocale(key) ?? explicitLocale
+    collectLocalisedValues(nestedValue, appendValue, nestedLocale)
   }
 }
 
 /**
- * Collects localized rule entries and appends their values to locale name sets.
+ * Collects localised rule entries and appends their values to locale name sets.
  */
-function collectLocalizedRuleValues(
+function collectLocalisedRuleValues(
   value: unknown,
   appendValue: (
     locale: string,
@@ -1498,16 +1498,16 @@ function collectLocalizedRuleValues(
 
   if (Array.isArray(value)) {
     for (const item of value) {
-      collectLocalizedRuleValues(item, appendValue, localeHint)
+      collectLocalisedRuleValues(item, appendValue, localeHint)
     }
     return
   }
 
   if (typeof value === 'string') {
-    const normalizedLocale = normalizeLocale(localeHint)
+    const normalisedLocale = normaliseLocale(localeHint)
 
-    if (normalizedLocale) {
-      appendValue(normalizedLocale, value, {
+    if (normalisedLocale) {
+      appendValue(normalisedLocale, value, {
         rule: {
           value,
           variant: null,
@@ -1534,10 +1534,10 @@ function collectLocalizedRuleValues(
 
   const record = value as Record<string, unknown>
   const explicitLocale =
-    normalizeLocale(asNonEmptyString(record.locale)) ??
-    normalizeLocale(asNonEmptyString(record.language)) ??
-    normalizeLocale(asNonEmptyString(record.lang)) ??
-    normalizeLocale(localeHint)
+    normaliseLocale(asNonEmptyString(record.locale)) ??
+    normaliseLocale(asNonEmptyString(record.language)) ??
+    normaliseLocale(asNonEmptyString(record.lang)) ??
+    normaliseLocale(localeHint)
   const directValue =
     asNonEmptyString(record.value) ??
     asNonEmptyString(record.name) ??
@@ -1577,8 +1577,8 @@ function collectLocalizedRuleValues(
   }
 
   for (const [key, nestedValue] of Object.entries(record)) {
-    const nestedLocale = normalizeLocale(key) ?? explicitLocale
-    collectLocalizedRuleValues(nestedValue, appendValue, nestedLocale)
+    const nestedLocale = normaliseLocale(key) ?? explicitLocale
+    collectLocalisedRuleValues(nestedValue, appendValue, nestedLocale)
   }
 }
 
@@ -1602,16 +1602,16 @@ export async function buildDivisionHierarchyLookup(file: AsyncBuffer) {
       const otClass = asNonEmptyString(row.class)
       const parentDivisionId = asNonEmptyString(row.parent_division_id)
       const canonicalI18n = buildCanonicalDivisionApiI18n(
-        normalizeDivisionI18n(id, row.names),
+        normaliseDivisionI18n(id, row.names),
       )
       const i18n = Object.fromEntries(
         canonicalI18n
           .filter(
-            (localized): localized is DivisionI18nPayload & { name: string } =>
-              (localized.locale === 'en' || localized.locale === 'zh-hant') &&
-              Boolean(localized.name),
+            (localised): localised is DivisionI18nPayload & { name: string } =>
+              (localised.locale === 'en' || localised.locale === 'zh-hant') &&
+              Boolean(localised.name),
           )
-          .map(localized => [localized.locale, { name: localized.name }]),
+          .map(localised => [localised.locale, { name: localised.name }]),
       ) as DivisionHierarchyI18n
 
       lookup.set(id, {
@@ -1635,26 +1635,26 @@ export async function buildDivisionHierarchyLookup(file: AsyncBuffer) {
   return lookup
 }
 
-function normalizeDivisionHierarchies(
+function normaliseDivisionHierarchies(
   value: unknown,
   divisionId: string,
   lookup: DivisionHierarchyLookup | undefined,
 ) {
-  let normalized = value
+  let normalised = value
 
   while (
-    Array.isArray(normalized) &&
-    normalized.length === 1 &&
-    Array.isArray(normalized[0])
+    Array.isArray(normalised) &&
+    normalised.length === 1 &&
+    Array.isArray(normalised[0])
   ) {
-    ;[normalized] = normalized
+    ;[normalised] = normalised
   }
 
-  if (!Array.isArray(normalized)) {
-    return normalized
+  if (!Array.isArray(normalised)) {
+    return normalised
   }
 
-  return normalized.flatMap(entry => {
+  return normalised.flatMap(entry => {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
       return []
     }
@@ -1667,7 +1667,7 @@ function normalizeDivisionHierarchies(
     }
 
     const rawSubtype = asNonEmptyString(record.subtype)
-    const subtype = normalizeDivisionLevelToken(rawSubtype)
+    const subtype = normaliseDivisionLevelToken(rawSubtype)
 
     if (subtype === 'country') {
       return []
@@ -1677,7 +1677,7 @@ function normalizeDivisionHierarchies(
 
     if (subtype === 'locality' && !lookupEntry) {
       throw new Error(
-        `Cannot normalize hierarchy locality entry ${hierarchyDivisionId} for division ${divisionId}.`,
+        `Cannot normalise hierarchy locality entry ${hierarchyDivisionId} for division ${divisionId}.`,
       )
     }
 
@@ -1712,7 +1712,7 @@ function buildHierarchyI18nFromName(divisionId: string, name: unknown) {
 }
 
 function resolveHierarchyDivisionLevel(rawSubtype: string | null) {
-  const subtype = normalizeDivisionLevelToken(rawSubtype)
+  const subtype = normaliseDivisionLevelToken(rawSubtype)
 
   if (subtype === 'dependency') {
     return 0
@@ -1736,7 +1736,7 @@ function resolveHierarchyDivisionLevel(rawSubtype: string | null) {
 
   if (subtype === 'locality') {
     throw new Error(
-      'Cannot normalize hierarchy subtype `locality` without a class value.',
+      'Cannot normalise hierarchy subtype `locality` without a class value.',
     )
   }
 
@@ -1744,7 +1744,7 @@ function resolveHierarchyDivisionLevel(rawSubtype: string | null) {
 }
 
 function resolveHierarchyDivisionType(rawSubtype: string | null) {
-  const subtype = normalizeDivisionLevelToken(rawSubtype)
+  const subtype = normaliseDivisionLevelToken(rawSubtype)
 
   if (subtype === 'dependency') {
     return 'sar'
@@ -1768,7 +1768,7 @@ function resolveHierarchyDivisionType(rawSubtype: string | null) {
 
   if (subtype === 'locality') {
     throw new Error(
-      'Cannot normalize hierarchy subtype `locality` without a class value.',
+      'Cannot normalise hierarchy subtype `locality` without a class value.',
     )
   }
 
@@ -1784,9 +1784,9 @@ function resolveDivisionLevel(input: {
   parentDivisionId: string | null
   row: Record<string, unknown>
 }) {
-  const normalizedSubtype = normalizeDivisionLevelToken(input.otSubtype)
-  const normalizedClass = normalizeDivisionLevelToken(input.otClass)
-  const normalizedAdminLevel = normalizeDivisionLevelToken(
+  const normalisedSubtype = normaliseDivisionLevelToken(input.otSubtype)
+  const normalisedClass = normaliseDivisionLevelToken(input.otClass)
+  const normalisedAdminLevel = normaliseDivisionLevelToken(
     resolveAdminLevelToken(input.row),
   )
 
@@ -1794,33 +1794,33 @@ function resolveDivisionLevel(input: {
     return 1
   }
 
-  if (normalizedSubtype === 'dependency') {
+  if (normalisedSubtype === 'dependency') {
     return 0
   }
 
-  if (normalizedSubtype === 'region') {
+  if (normalisedSubtype === 'region') {
     return 2
   }
 
-  if (normalizedSubtype === 'locality') {
-    if (normalizedClass === 'city') {
+  if (normalisedSubtype === 'locality') {
+    if (normalisedClass === 'city') {
       return 1
     }
 
-    if (normalizedClass === 'town') {
+    if (normalisedClass === 'town') {
       return 3
     }
 
-    if (normalizedClass === 'village') {
+    if (normalisedClass === 'village') {
       return 5
     }
 
-    if (normalizedClass === 'hamlet') {
+    if (normalisedClass === 'hamlet') {
       return 6
     }
   }
 
-  const candidates = [normalizedSubtype, normalizedClass, normalizedAdminLevel].filter(
+  const candidates = [normalisedSubtype, normalisedClass, normalisedAdminLevel].filter(
     Boolean,
   )
 
@@ -1841,57 +1841,57 @@ function resolveDivisionType(input: {
   parentDivisionId: string | null
   row: Record<string, unknown>
 }) {
-  const normalizedSubtype = normalizeDivisionLevelToken(input.otSubtype)
-  const normalizedClass = normalizeDivisionLevelToken(input.otClass)
+  const normalisedSubtype = normaliseDivisionLevelToken(input.otSubtype)
+  const normalisedClass = normaliseDivisionLevelToken(input.otClass)
 
   if (isHongKongArea(input.row)) {
     return 'area'
   }
 
-  if (normalizedSubtype === 'country') {
+  if (normalisedSubtype === 'country') {
     return 'country'
   }
 
-  if (normalizedSubtype === 'dependency') {
+  if (normalisedSubtype === 'dependency') {
     return 'sar'
   }
 
-  if (normalizedSubtype === 'region') {
+  if (normalisedSubtype === 'region') {
     return 'district'
   }
 
-  if (normalizedSubtype === 'locality') {
-    if (normalizedClass === 'city') {
+  if (normalisedSubtype === 'locality') {
+    if (normalisedClass === 'city') {
       return 'area'
     }
 
-    if (normalizedClass === 'town') {
+    if (normalisedClass === 'town') {
       return 'town'
     }
 
-    if (normalizedClass === 'village') {
+    if (normalisedClass === 'village') {
       return 'village'
     }
 
-    if (normalizedClass === 'hamlet') {
+    if (normalisedClass === 'hamlet') {
       return 'hamlet'
     }
   }
 
-  if (normalizedSubtype === 'macrohood' || normalizedClass === 'macrohood') {
+  if (normalisedSubtype === 'macrohood' || normalisedClass === 'macrohood') {
     return 'macrohood'
   }
 
   if (
-    normalizedSubtype === 'neighborhood' ||
-    normalizedSubtype === 'neighbourhood' ||
-    normalizedClass === 'neighborhood' ||
-    normalizedClass === 'neighbourhood'
+    normalisedSubtype === 'neighborhood' ||
+    normalisedSubtype === 'neighbourhood' ||
+    normalisedClass === 'neighborhood' ||
+    normalisedClass === 'neighbourhood'
   ) {
     return 'neighbourhood'
   }
 
-  if (normalizedSubtype === 'microhood' || normalizedClass === 'microhood') {
+  if (normalisedSubtype === 'microhood' || normalisedClass === 'microhood') {
     return 'microhood'
   }
 
@@ -1955,7 +1955,7 @@ function sourceString(value: unknown) {
   return typeof value === 'string' ? value : null
 }
 
-function normalizeDivisionLevelToken(value: string | null) {
+function normaliseDivisionLevelToken(value: string | null) {
   return (
     value
       ?.trim()
@@ -1985,7 +1985,7 @@ function collectDivisionNameCandidates(names: Record<string, unknown>) {
     }
   }
 
-  const pushLocalized = (value: unknown) => {
+  const pushLocalised = (value: unknown) => {
     if (typeof value === 'string') {
       pushValue(value)
       return
@@ -2003,14 +2003,14 @@ function collectDivisionNameCandidates(names: Record<string, unknown>) {
     }
 
     if (value && typeof value === 'object') {
-      for (const localizedValue of Object.values(value as Record<string, unknown>)) {
-        pushValue(localizedValue)
+      for (const localisedValue of Object.values(value as Record<string, unknown>)) {
+        pushValue(localisedValue)
       }
     }
   }
 
   pushValue(names.primary)
-  pushLocalized(names.common)
+  pushLocalised(names.common)
 
   return [...candidates]
 }
@@ -2020,23 +2020,23 @@ function dedupeNameRules(rules: DivisionNameRuleRecord[]) {
   const deduped: DivisionNameRuleRecord[] = []
 
   for (const rule of rules) {
-    const normalizedRule = {
+    const normalisedRule = {
       value: rule.value.trim(),
       variant: rule.variant?.trim() ?? null,
     }
 
-    if (!normalizedRule.value) {
+    if (!normalisedRule.value) {
       continue
     }
 
-    const key = stableJsonStringify(normalizedRule)
+    const key = stableJsonStringify(normalisedRule)
 
     if (!key || seen.has(key)) {
       continue
     }
 
     seen.add(key)
-    deduped.push(normalizedRule)
+    deduped.push(normalisedRule)
   }
 
   return deduped

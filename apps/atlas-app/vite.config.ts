@@ -12,7 +12,7 @@ export default defineConfig({
       ignored: ['!**/src/**/*.{js,ts,jsx,tsx}'],
     },
   },
-  optimizeDeps: {
+  optimiseDeps: {
     exclude: ['@tailwindcss/vite'],
     force: true,
   },

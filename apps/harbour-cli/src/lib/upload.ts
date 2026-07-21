@@ -3,7 +3,7 @@ import { readFile, stat } from 'node:fs/promises'
 import type { ResourceType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
-  finalizeUpload as coreFinalizeLocalUpload,
+  finaliseUpload as coreFinaliseLocalUpload,
   requestUpload as coreRequestLocalUpload,
 } from '@repo/core/upload'
 import { and, eq, metaSchema } from '@repo/db'
@@ -39,7 +39,7 @@ type UploadResponse = Record<string, unknown> & {
 }
 export type UploadDispatchTimings = {
   fileBytes: number
-  finalizeMs: number
+  finaliseMs: number
   signMs: number
   totalMs: number
   uploadMs: number
@@ -54,7 +54,7 @@ type SnapshotCleanupResponse = {
 }
 type DispatchUploadOptions = {
   force?: boolean
-  finalizeLocalUpload?: typeof coreFinalizeLocalUpload
+  finaliseLocalUpload?: typeof coreFinaliseLocalUpload
   requestLocalUpload?: typeof coreRequestLocalUpload
   resolveLocalDbContext?: typeof resolveLocalAddressDbContext
   skipSnapshotCleanup?: boolean
@@ -93,8 +93,8 @@ export function buildDirectUploadEndpoint(apiBaseUrl: string) {
   return `${apiBaseUrl}/v1/upload`
 }
 
-export function buildFinalizeUploadEndpoint(apiBaseUrl: string) {
-  return `${apiBaseUrl}/v1/finalizeUpload`
+export function buildFinaliseUploadEndpoint(apiBaseUrl: string) {
+  return `${apiBaseUrl}/v1/finaliseUpload`
 }
 
 export function buildCleanupSnapshotsEndpoint(apiBaseUrl: string) {
@@ -138,15 +138,15 @@ export async function dispatchUpload(
     await uploadFileToSignedUrl(signResponse, fileBytes)
     const uploadMs = Date.now() - uploadStartedAt
 
-    const finalizeStartedAt = Date.now()
-    const result = await finalizeRemoteUpload(apiBaseUrl, signResponse.releaseId, {
+    const finaliseStartedAt = Date.now()
+    const result = await finaliseRemoteUpload(apiBaseUrl, signResponse.releaseId, {
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
-    const finalizeMs = Date.now() - finalizeStartedAt
+    const finaliseMs = Date.now() - finaliseStartedAt
 
     return attachUploadTimings(result, {
       fileBytes: fileStats.size,
-      finalizeMs,
+      finaliseMs,
       signMs,
       totalMs: Date.now() - dispatchStartedAt,
       uploadMs,
@@ -168,7 +168,7 @@ export function getUploadDispatchTimings(
   const candidate = timings as UploadDispatchTimings
 
   return typeof candidate.fileBytes === 'number' &&
-    typeof candidate.finalizeMs === 'number' &&
+    typeof candidate.finaliseMs === 'number' &&
     typeof candidate.signMs === 'number' &&
     typeof candidate.totalMs === 'number' &&
     typeof candidate.uploadMs === 'number'
@@ -237,24 +237,24 @@ async function registerLocalUpload(
       allowExistingDatasetStatuses,
     }
     const requestLocalUpload = options.requestLocalUpload ?? coreRequestLocalUpload
-    const finalizeLocalUpload = options.finalizeLocalUpload ?? coreFinalizeLocalUpload
+    const finaliseLocalUpload = options.finaliseLocalUpload ?? coreFinaliseLocalUpload
     const requested = await requestLocalUpload(metaDb, uploadOptions)
-    const finalized = await finalizeLocalUpload(metaDb, {
+    const finalised = await finaliseLocalUpload(metaDb, {
       ...uploadOptions,
       rawObjectKey: requested.rawObjectKey,
     })
 
     return {
-      datasetId: finalized.datasetId,
-      datasetCode: finalized.plan.datasetCode,
-      rawObjectKey: finalized.rawObjectKey,
-      releaseCode: finalized.plan.releaseCode,
-      releaseId: finalized.releaseId,
-      rowCount: finalized.plan.rowCount,
-      source: finalized.plan.source,
-      sourceVersion: finalized.plan.sourceVersion,
+      datasetId: finalised.datasetId,
+      datasetCode: finalised.plan.datasetCode,
+      rawObjectKey: finalised.rawObjectKey,
+      releaseCode: finalised.plan.releaseCode,
+      releaseId: finalised.releaseId,
+      rowCount: finalised.plan.rowCount,
+      source: finalised.plan.source,
+      sourceVersion: finalised.plan.sourceVersion,
       status: 'staged',
-      type: finalized.plan.type,
+      type: finalised.plan.type,
     }
   } finally {
     dbContext.cleanup()
@@ -403,15 +403,15 @@ function filterSignedUploadHeaders(uploadUrl: string, headers: Record<string, st
   )
 }
 
-async function finalizeRemoteUpload(
+async function finaliseRemoteUpload(
   apiBaseUrl: string,
   releaseId: string,
   options: Pick<DispatchUploadOptions, 'skipSnapshotCleanup'> = {},
 ) {
   return postReleaseAction(
-    buildFinalizeUploadEndpoint(apiBaseUrl),
+    buildFinaliseUploadEndpoint(apiBaseUrl),
     releaseId,
-    'Harbour finalizeUpload',
+    'Harbour finaliseUpload',
     options,
   )
 }

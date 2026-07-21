@@ -2,10 +2,10 @@
 let { azimuth }: { azimuth: string } = $props()
 </script>
 
-<div class="pipeline-artifacts" aria-hidden="true">
-  <span class="artifact artifact-release artifact-release-square"></span
-  ><span class="artifact artifact-release artifact-release-circle"></span
-  ><span class="artifact artifact-release artifact-release-label">{azimuth}</span
-  ><span class="artifact artifact-release artifact-release-grid"></span
-  ><span class="artifact artifact-release artifact-release-bars"></span>
+<div class="pipeline-artefacts" aria-hidden="true">
+  <span class="artefact artefact-release artefact-release-square"></span
+  ><span class="artefact artefact-release artefact-release-circle"></span
+  ><span class="artefact artefact-release artefact-release-label">{azimuth}</span
+  ><span class="artefact artefact-release artefact-release-grid"></span
+  ><span class="artefact artefact-release artefact-release-bars"></span>
 </div>

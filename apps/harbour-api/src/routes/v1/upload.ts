@@ -3,14 +3,14 @@ import { getDatasetRecordByReleaseId } from '@repo/core/db/metaRegistry'
 
 import { handleUploadRequest } from '../../lib/services/ingest'
 import {
-  type FinalizeUploadRequest,
-  handleFinalizeUploadRequest,
+  type FinaliseUploadRequest,
+  handleFinaliseUploadRequest,
   type SignUploadRequest,
   handleSignUploadRequest,
 } from '../../lib/services/uploadSession'
 import {
   ErrorResponseSchema,
-  FinalizeUploadRequestSchema,
+  FinaliseUploadRequestSchema,
   SignUploadRequestSchema,
   SignUploadResponseSchema,
   UploadResponseSchema,
@@ -79,19 +79,19 @@ const signUploadRouteConfig = createRoute({
   },
 })
 
-const finalizeUploadRouteConfig = createRoute({
+const finaliseUploadRouteConfig = createRoute({
   method: 'post',
-  path: '/v1/finalizeUpload',
+  path: '/v1/finaliseUpload',
   tags: ['Upload'],
   request: {
     body: {
       content: {
         'application/json': {
-          schema: FinalizeUploadRequestSchema,
+          schema: FinaliseUploadRequestSchema,
         },
       },
       required: true,
-      description: 'Finalize upload request payload.',
+      description: 'Finalise upload request payload.',
     },
   },
   responses: {
@@ -101,7 +101,7 @@ const finalizeUploadRouteConfig = createRoute({
           schema: UploadResponseSchema,
         },
       },
-      description: 'Finalize a staged upload dataset.',
+      description: 'Finalise a staged upload dataset.',
     },
     400: {
       content: {
@@ -109,7 +109,7 @@ const finalizeUploadRouteConfig = createRoute({
           schema: ErrorResponseSchema,
         },
       },
-      description: 'Upload finalization failed.',
+      description: 'Upload finalisation failed.',
     },
     422: ValidationErrorOpenAPIResponse,
   },
@@ -193,20 +193,20 @@ export const signUploadRoute = defineOpenAPIRoute<typeof signUploadRouteConfig, 
   },
 )
 
-export const finalizeUploadRoute = defineOpenAPIRoute<
-  typeof finalizeUploadRouteConfig,
+export const finaliseUploadRoute = defineOpenAPIRoute<
+  typeof finaliseUploadRouteConfig,
   AppEnv
 >({
-  route: finalizeUploadRouteConfig,
+  route: finaliseUploadRouteConfig,
   handler: async c => {
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
-      const request = c.req.valid('json') as FinalizeUploadRequest
-      const result = await handleFinalizeUploadRequest(db, c.env.R2_RAW, request)
+      const request = c.req.valid('json') as FinaliseUploadRequest
+      const result = await handleFinaliseUploadRequest(db, c.env.R2_RAW, request)
       const release = await getDatasetRecordByReleaseId(db, request.releaseId)
 
       if (!release) {
-        throw new Error(`Release not found after finalization: ${request.releaseId}`)
+        throw new Error(`Release not found after finalisation: ${request.releaseId}`)
       }
 
       return c.json(
@@ -237,4 +237,4 @@ export const finalizeUploadRoute = defineOpenAPIRoute<
   },
 })
 
-export const uploadRoutes = [uploadRoute, signUploadRoute, finalizeUploadRoute] as const
+export const uploadRoutes = [uploadRoute, signUploadRoute, finaliseUploadRoute] as const

@@ -15,7 +15,7 @@ import { isReferentOnlyDivisionId } from './divisionFixtures'
 
 export type DivisionGeometryKind = 'divisionArea' | 'divisionBoundary'
 
-export type GeometryNormalizationOptions = {
+export type GeometryNormalisationOptions = {
   validateGeometry?: boolean
   variant?: string
 }
@@ -32,7 +32,7 @@ type GeometryBase = {
   variant: string
 }
 
-export type NormalizedDivisionArea = {
+export type NormalisedDivisionArea = {
   canonical: Omit<NewDivisionAreaRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
   source: Omit<
     NewSourceDivisionAreaRow,
@@ -46,7 +46,7 @@ export type NormalizedDivisionArea = {
   >
 }
 
-export type NormalizedDivisionBoundary = {
+export type NormalisedDivisionBoundary = {
   canonical: Omit<NewDivisionBoundaryRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
   source: Omit<
     NewSourceDivisionBoundaryRow,
@@ -60,11 +60,11 @@ export type NormalizedDivisionBoundary = {
   >
 }
 
-export function normalizeDivisionAreaGeometryRow(
+export function normaliseDivisionAreaGeometryRow(
   row: Record<string, unknown>,
   source = 'overture',
-  options: GeometryNormalizationOptions = {},
-): NormalizedDivisionArea | null {
+  options: GeometryNormalisationOptions = {},
+): NormalisedDivisionArea | null {
   if (row.region === 'CN-GD') {
     return null
   }
@@ -105,7 +105,7 @@ export function normalizeDivisionAreaGeometryRow(
   }
 
   const sourceKeys = buildSourceKeys(row, source)
-  const sources = normalizeSources(row.sources, source)
+  const sources = normaliseSources(row.sources, source)
   const base: GeometryBase = {
     bbox,
     geometry,
@@ -139,11 +139,11 @@ export function normalizeDivisionAreaGeometryRow(
   }
 }
 
-export function normalizeDivisionBoundaryGeometryRow(
+export function normaliseDivisionBoundaryGeometryRow(
   row: Record<string, unknown>,
   source = 'overture',
-  options: GeometryNormalizationOptions = {},
-): NormalizedDivisionBoundary | null {
+  options: GeometryNormalisationOptions = {},
+): NormalisedDivisionBoundary | null {
   if (row.region === 'CN-GD') {
     return null
   }
@@ -152,7 +152,7 @@ export function normalizeDivisionBoundaryGeometryRow(
   if (!id) {
     throw new Error('Division boundary row requires a non-empty `id`.')
   }
-  const divisionIds = normalizeDivisionIds(row.division_ids, id)
+  const divisionIds = normaliseDivisionIds(row.division_ids, id)
   const geometry = requireGeometry(
     row.geometry,
     ['LineString', 'MultiLineString'],
@@ -169,7 +169,7 @@ export function normalizeDivisionBoundaryGeometryRow(
   }
 
   const sourceKeys = buildSourceKeys(row, source)
-  const sources = normalizeSources(row.sources, source)
+  const sources = normaliseSources(row.sources, source)
   const base: GeometryBase = {
     bbox,
     geometry,
@@ -205,7 +205,7 @@ export function normalizeDivisionBoundaryGeometryRow(
 }
 
 export function buildDivisionGeometryHashInput(
-  row: NormalizedDivisionArea['canonical'] | NormalizedDivisionBoundary['canonical'],
+  row: NormalisedDivisionArea['canonical'] | NormalisedDivisionBoundary['canonical'],
 ) {
   return {
     ...row,
@@ -216,13 +216,13 @@ export function buildDivisionGeometryHashInput(
 }
 
 export function hashDivisionGeometryRow(
-  row: NormalizedDivisionArea['canonical'] | NormalizedDivisionBoundary['canonical'],
+  row: NormalisedDivisionArea['canonical'] | NormalisedDivisionBoundary['canonical'],
 ) {
   return createHash(stableJsonStringify(buildDivisionGeometryHashInput(row)))
 }
 
 export function hashDivisionGeometrySourceRow(
-  row: NormalizedDivisionArea['source'] | NormalizedDivisionBoundary['source'],
+  row: NormalisedDivisionArea['source'] | NormalisedDivisionBoundary['source'],
 ) {
   return createHash(stableJsonStringify(row))
 }
@@ -282,7 +282,7 @@ function buildSourceKeys(
   }
 }
 
-function normalizeSources(value: unknown, source: string) {
+function normaliseSources(value: unknown, source: string) {
   return Array.isArray(value) && value.length > 0
     ? {
         [source === 'hkgov-had'
@@ -319,7 +319,7 @@ function resolveGeometryType(
   throw new Error(`Division geometry ${id} has unsupported class ${String(value)}.`)
 }
 
-function normalizeDivisionIds(value: unknown, id: string): [string, string] {
+function normaliseDivisionIds(value: unknown, id: string): [string, string] {
   if (!Array.isArray(value) || value.length !== 2) {
     throw new Error(`Division boundary ${id} must contain exactly two division IDs.`)
   }

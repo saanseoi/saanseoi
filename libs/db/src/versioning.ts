@@ -4,18 +4,18 @@ import type { ResourceType } from '@repo/core'
 
 export type ApiFamily = 'addresses' | 'divisions' | 'places' | 'streets' | 'stats'
 
-function normalizeCodeSlug(value: string) {
-  const normalized = value
+function normaliseCodeSlug(value: string) {
+  const normalised = value
     .trim()
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
     .replace(/[:_\s]+/g, '-')
     .toLowerCase()
 
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)) {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalised)) {
     throw new Error(`Invalid code slug="${value}".`)
   }
 
-  return normalized
+  return normalised
 }
 
 const API_FAMILY_BY_RESOURCE_TYPE: Record<ResourceType, ApiFamily> = {
@@ -37,7 +37,7 @@ export function buildApiVersionCode(resourceType: ResourceType, version: string)
 }
 
 export function buildSchemaVersionCode(resourceType: ResourceType, version: string) {
-  return `sv-${normalizeCodeSlug(resourceType)}-v${version}`
+  return `sv-${normaliseCodeSlug(resourceType)}-v${version}`
 }
 
 export function buildRulesetVersionCode(
@@ -45,10 +45,10 @@ export function buildRulesetVersionCode(
   strategy: string,
   version: string,
 ) {
-  return `rs-${normalizeCodeSlug(resourceType)}-${normalizeCodeSlug(strategy)}-v${version}`
+  return `rs-${normaliseCodeSlug(resourceType)}-${normaliseCodeSlug(strategy)}-v${version}`
 }
 
-export function normalizeCohortKey(value: string) {
+export function normaliseCohortKey(value: string) {
   const trimmed = value.trim()
 
   if (!trimmed) {
@@ -95,22 +95,22 @@ export function buildSnapshotVersionCode(
     throw new Error(`Invalid snapshot revision="${revision}". Expected 0 or more.`)
   }
 
-  const normalizedVariant = normalizeCodeSlug(variant)
+  const normalisedVariant = normaliseCodeSlug(variant)
   const variantSegment =
-    normalizedVariant === 'default' || normalizedVariant === 'overture'
+    normalisedVariant === 'default' || normalisedVariant === 'overture'
       ? ''
-      : `-${normalizedVariant}`
+      : `-${normalisedVariant}`
   const revisionSegment = revision === 0 ? '' : `-r${revision}`
 
-  return `ss-${normalizeCodeSlug(regionCode)}-${normalizeCodeSlug(resourceType)}${variantSegment}-${normalizeCohortKey(cohortKey)}${revisionSegment}`
+  return `ss-${normaliseCodeSlug(regionCode)}-${normaliseCodeSlug(resourceType)}${variantSegment}-${normaliseCohortKey(cohortKey)}${revisionSegment}`
 }
 
 export function buildSnapshotLineageCode(datasetCode: string, variant = 'default') {
   // A source dataset can expose structured subvariants (for example C&SD
   // census cohorts). Keep ordinary source variants concise because their
   // dataset code already contains that scope.
-  const variantSegment = variant.includes(':') ? `-${normalizeCodeSlug(variant)}` : ''
-  return `sl-${normalizeCodeSlug(datasetCode)}${variantSegment}`
+  const variantSegment = variant.includes(':') ? `-${normaliseCodeSlug(variant)}` : ''
+  return `sl-${normaliseCodeSlug(datasetCode)}${variantSegment}`
 }
 
 export function buildDataReleaseSetCode(
@@ -125,7 +125,7 @@ export function buildDataReleaseSetCode(
 
   const revisionSegment = revision === 0 ? '' : `-r${revision}`
 
-  return `data-${regionCode}-${apiFamily}-${normalizeCohortKey(cohortKey)}${revisionSegment}`
+  return `data-${regionCode}-${apiFamily}-${normaliseCohortKey(cohortKey)}${revisionSegment}`
 }
 
 export function buildApiCatalogRevisionCode(
@@ -136,28 +136,28 @@ export function buildApiCatalogRevisionCode(
   revision = 0,
 ) {
   if (!Number.isInteger(revision) || revision < 0) {
-    throw new Error(`Invalid catalog revision="${revision}". Expected 0 or more.`)
+    throw new Error(`Invalid catalogue revision="${revision}". Expected 0 or more.`)
   }
 
-  const normalizedDate = publicationDate.trim()
-  if (!/^20\d{2}-\d{2}-\d{2}$/.test(normalizedDate)) {
+  const normalisedDate = publicationDate.trim()
+  if (!/^20\d{2}-\d{2}-\d{2}$/.test(normalisedDate)) {
     throw new Error(
-      `Invalid catalog publicationDate="${publicationDate}". Expected YYYY-MM-DD.`,
+      `Invalid catalogue publicationDate="${publicationDate}". Expected YYYY-MM-DD.`,
     )
   }
 
-  return `catalog-${regionCode}-${apiFamily}-v${normalizeCohortKey(apiVersion)}-${normalizedDate}.${revision}`
+  return `catalog-${regionCode}-${apiFamily}-v${normaliseCohortKey(apiVersion)}-${normalisedDate}.${revision}`
 }
 
 export function cohortKeyEffectiveFrom(cohortKey: string) {
-  const normalized = normalizeCohortKey(cohortKey)
-  const date = normalized.match(/^(20\d{2}-\d{2}-\d{2})/)?.[1]
+  const normalised = normaliseCohortKey(cohortKey)
+  const date = normalised.match(/^(20\d{2}-\d{2}-\d{2})/)?.[1]
   if (date) return `${date}T00:00:00.000Z`
 
-  const month = normalized.match(/^(20\d{2}-\d{2})(?:$|[._-])/)?.[1]
+  const month = normalised.match(/^(20\d{2}-\d{2})(?:$|[._-])/)?.[1]
   if (month) return `${month}-01T00:00:00.000Z`
 
-  const year = normalized.match(/^(20\d{2})(?:$|[._-])/)?.[1]
+  const year = normalised.match(/^(20\d{2})(?:$|[._-])/)?.[1]
   if (year) return `${year}-01-01T00:00:00.000Z`
 
   return null
@@ -195,15 +195,15 @@ function stableStringify(value: unknown): string {
       .join(',')}}`
   }
 
-  const serialized = JSON.stringify(value)
+  const serialised = JSON.stringify(value)
 
-  if (serialized === undefined) {
+  if (serialised === undefined) {
     throw new Error(
-      `computeVersionHash only accepts JSON-serializable values. Received ${String(value)}.`,
+      `computeVersionHash only accepts JSON-serialisable values. Received ${String(value)}.`,
     )
   }
 
-  return serialized
+  return serialised
 }
 
 export function computeVersionHash(value: unknown) {

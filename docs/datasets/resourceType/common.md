@@ -36,7 +36,7 @@ generated SQL into the configured target:
 - remote preview/production imports use the Cloudflare D1 REST import API
 - local target imports write directly to local D1 SQLite files
 
-Intermediate normalized JSON, resolved JSON, and SQL artifacts are written under
+Intermediate normalised JSON, resolved JSON, and SQL artefacts are written under
 `.local/harbour-sql/releases/<target>/<releaseCode>/`.
 
 ## Release Ordering
@@ -55,22 +55,22 @@ Release precedence is enforced before local processing starts:
 Local SQL processing uses the shared stage split from `libs/core/src/pipeline`. The CLI
 executes it as phased local work:
 
-- `normalize` reads each parquet range and writes normalized JSON artifacts
-- `sql-source` writes source-table import SQL from normalized artifacts
-- `sql-history` resolves canonical IDs, writes resolved JSON artifacts, and writes
+- `normalise` reads each parquet range and writes normalised JSON artefacts
+- `sql-source` writes source-table import SQL from normalised artefacts
+- `sql-history` resolves canonical IDs, writes resolved JSON artefacts, and writes
   history-table import SQL
 - `sql-current` writes current-table import SQL, including first-chunk current-snapshot
-  initialization SQL when needed
+  initialisation SQL when needed
 
 The local orchestrator runs generation phases across disjoint chunks with bounded
 concurrency, then imports generated SQL with per-database concurrency. Publishing
-happens only after all required SQL artifacts import successfully.
+happens only after all required SQL artefacts import successfully.
 
 ## SQL Import Features
 
 The staged SQL import mode exists to:
 
-- generate SQL artifacts that can be uploaded through the Cloudflare D1 REST import API
+- generate SQL artefacts that can be uploaded through the Cloudflare D1 REST import API
 - avoid D1's bound-parameter limit during bulk writes
 - reduce D1 round trips by replacing small Drizzle insert/update batches with set-based
   SQL
@@ -79,13 +79,13 @@ Generated `INSERT` statements are byte-limited below D1's individual SQL stateme
 limit. Row-count chunks, such as 10,000 rows, are planning inputs and not the final SQL
 safety boundary.
 
-TypeScript remains authoritative for parquet reads, normalization, canonical ID
-resolution, and canonical `versionHash` generation. SQL artifacts are the bulk write
+TypeScript remains authoritative for parquet reads, normalisation, canonical ID
+resolution, and canonical `versionHash` generation. SQL artefacts are the bulk write
 transport.
 
 ## Database Targets
 
-SQL artifacts are grouped by target database because source, history, current, and meta
+SQL artefacts are grouped by target database because source, history, current, and meta
 data live separately:
 
 - `DB_SOURCE_*` stores source-retained version rows
@@ -94,7 +94,7 @@ data live separately:
 - `DB_META` stores release-, snapshot-, and API-release-set stats when a pipeline
   produces them
 
-After SQL generation, local orchestration imports artifacts in database order:
+After SQL generation, local orchestration imports artefacts in database order:
 
 - source shard SQL first
 - history shard SQL second, including any deferred history-apply SQL after all history
@@ -138,14 +138,14 @@ per-record provenance during local SQL ingestion.
 
 ## Source Retention
 
-ResourceTypes retain normalized per-source rows in versioned source database tables. The
+ResourceTypes retain normalised per-source rows in versioned source database tables. The
 current source row is the row where `isCurrent = 1`; there are no separate non-version
 current source tables.
 
-Shared source-version behavior:
+Shared source-version behaviour:
 
 - source rows are keyed by `sourceRecordId + versionHash`
-- `isCurrent = 1` rows store the latest normalized payload per source record
+- `isCurrent = 1` rows store the latest normalised payload per source record
 - changed source payloads close the previous current source row and insert a new current
   source row
 - unchanged source payloads do not create new source rows; only current-row metadata
@@ -158,7 +158,7 @@ Shared source-version behavior:
 
 Canonical history is snapshot-aware and deduped by `(id, versionHash)`.
 
-Shared behavior:
+Shared behaviour:
 
 - changed canonical rows close prior current versions and insert new current versions
 - unchanged rows can be carried forward by snapshot cloning instead of being rewritten
