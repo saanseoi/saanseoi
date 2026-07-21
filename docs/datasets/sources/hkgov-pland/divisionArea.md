@@ -109,6 +109,10 @@ Parquet files afterwards. Snapshot cleanup is deferred for the interim division 
 so its canonical IDs remain materialised for the companion area validation; normal
 cleanup resumes when the area release is published.
 
+The TPU artifacts use GeoParquet WKB geometry. Their optional Parquet column statistics
+are disabled because the local upload inspector cannot read the GeoParquet statistics
+metadata emitted by the current writer; this does not alter the geometry or records.
+
 ```sh
 saanseoi backfill:hkgov-pland-pu --target preview
 saanseoi backfill:hkgov-pland-new-town --target preview

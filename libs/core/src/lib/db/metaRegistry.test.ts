@@ -11,6 +11,7 @@ import {
   getLatestNewerDatasetRelease,
   getLatestDatasetForRegionSourceType,
   insertDataset,
+  listRegistryReleases,
   listPublishedOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listCurrentSnapshotCleanupCandidates,
   publishReleaseArtifacts,
@@ -51,6 +52,117 @@ describe('resolveRegistryReleaseDisplayStatus', () => {
         { cohortKey: '2026-06-17.0', revision: 2 },
       ),
     ).toBe('current')
+  })
+})
+
+function createRegistryReleasesDb() {
+  const sqlite = new SQLiteDatabase(':memory:')
+
+  sqlite.exec(`
+    CREATE TABLE apiVersions (
+      id TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
+      familyType TEXT NOT NULL
+    );
+
+    CREATE TABLE apiReleaseSets (
+      id TEXT PRIMARY KEY,
+      apiVersionId TEXT NOT NULL,
+      code TEXT NOT NULL,
+      domainCode TEXT NOT NULL,
+      cohortKey TEXT,
+      revision INTEGER NOT NULL,
+      schemaVersion TEXT NOT NULL,
+      rulesetVersion TEXT NOT NULL,
+      status TEXT NOT NULL,
+      publishedAt TEXT,
+      validFrom TEXT,
+      validTo TEXT,
+      notes TEXT,
+      versionHash TEXT NOT NULL,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+
+    CREATE TABLE snapshots (
+      id TEXT PRIMARY KEY,
+      resourceType TEXT NOT NULL,
+      code TEXT NOT NULL,
+      cohortKey TEXT NOT NULL,
+      status TEXT NOT NULL,
+      publishedAt TEXT,
+      validFrom TEXT,
+      validTo TEXT,
+      notes TEXT,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+
+    CREATE TABLE apiReleaseSetSnapshots (
+      apiReleaseSetId TEXT NOT NULL,
+      snapshotId TEXT NOT NULL,
+      role TEXT NOT NULL,
+      isRequired INTEGER NOT NULL,
+      cohortMatchingMode TEXT,
+      anchorSnapshotId TEXT,
+      createdAt TEXT NOT NULL
+    );
+
+    CREATE TABLE stats (
+      id TEXT PRIMARY KEY,
+      apiReleaseSetId TEXT,
+      dimension TEXT NOT NULL,
+      metric TEXT NOT NULL,
+      metricUnit TEXT NOT NULL,
+      value REAL NOT NULL,
+      groupBy TEXT,
+      groupValue TEXT
+    );
+
+    CREATE TABLE snapshotSources (
+      snapshotId TEXT NOT NULL,
+      datasetId TEXT NOT NULL,
+      sourceReleaseId TEXT NOT NULL,
+      role TEXT NOT NULL
+    );
+
+    CREATE TABLE releases (
+      id TEXT PRIMARY KEY,
+      ingestedAt TEXT
+    );
+  `)
+
+  return {
+    sqlite,
+    db: createLocalHarbourDb(sqlite),
+  }
+}
+
+describe('listRegistryReleases', () => {
+  test('orders drafts by createdAt alongside published releases', async () => {
+    const { sqlite, db } = createRegistryReleasesDb()
+
+    sqlite.exec(`
+      INSERT INTO apiVersions (id, code, familyType) VALUES
+        ('api-divisions', 'api-divisions-v0.1', 'divisions');
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, code, domainCode, cohortKey, revision, schemaVersion,
+        rulesetVersion, status, publishedAt, versionHash, createdAt, updatedAt
+      ) VALUES
+        ('published-new', 'api-divisions', 'data-hk-divisions-2026-07-15.0', 'default', '2026-07-15.0', 0, 'v1', 'v1', 'published', '2026-07-15T00:00:00.000Z', 'hash-1', '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z'),
+        ('draft', 'api-divisions', 'data-hk-divisions-2026-07-10.0', 'default', '2026-07-10.0', 0, 'v1', 'v1', 'draft', null, 'hash-2', '2026-07-10T00:00:00.000Z', '2026-07-10T00:00:00.000Z'),
+        ('published-old', 'api-divisions', 'data-hk-divisions-2026-07-05.0', 'default', '2026-07-05.0', 0, 'v1', 'v1', 'published', '2026-07-05T00:00:00.000Z', 'hash-3', '2026-07-05T00:00:00.000Z', '2026-07-05T00:00:00.000Z');
+    `)
+
+    const releases = await listRegistryReleases(db as never)
+
+    expect(releases.map(release => release.id)).toEqual([
+      'published-new',
+      'draft',
+      'published-old',
+    ])
+    sqlite.close()
   })
 })
 
