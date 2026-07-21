@@ -11,6 +11,7 @@ import { error, redirect } from '@sveltejs/kit'
 import { getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
 
+import { runWithD1ReadRetry } from '../server/d1'
 import type {
   ApiRelease,
   RegistryApi,
@@ -206,7 +207,7 @@ async function loadDataPageData() {
 
 export const getDataPageData = query(async () => {
   try {
-    return await loadDataPageData()
+    return await runWithD1ReadRetry(loadDataPageData)
   } catch (error) {
     // An import can briefly expose the app before both D1 databases have their
     // registry tables. Render the empty registry state until the upload finishes.
@@ -224,7 +225,7 @@ export const getDataPageData = query(async () => {
 
 export const getDataReleasesPageData = query(releasePageSchema, async ({ offset }) => {
   try {
-    return await loadDataReleasesPage(offset)
+    return await runWithD1ReadRetry(() => loadDataReleasesPage(offset))
   } catch (error) {
     if (isRegistryBootstrapError(error)) {
       return {
