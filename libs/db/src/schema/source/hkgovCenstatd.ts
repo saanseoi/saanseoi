@@ -18,7 +18,6 @@ export const sourceHkgovCenstatdDivisionAreas = sqliteTable(
     censusYear: text('censusYear').notNull(),
     sourceCrs: text('sourceCrs').notNull(),
     sourceGeometry: jsonText('sourceGeometry').notNull(),
-    derivation: jsonText('derivation'),
     ...geoBbox,
     ...sourceProvenance,
     ...sourceVersioning,

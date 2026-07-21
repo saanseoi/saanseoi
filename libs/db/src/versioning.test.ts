@@ -9,10 +9,16 @@ import {
 } from './versioning'
 
 describe('snapshot identifiers', () => {
-  test('anchors a lineage code to its primary dataset without repeating scope', () => {
+  test('qualifies non-default lineage codes with their variant', () => {
     expect(buildSnapshotLineageCode('ds-hk-overture-division')).toBe(
       'sl-ds-hk-overture-division',
     )
+    expect(
+      buildSnapshotLineageCode(
+        'ds-hk-hkgov-censtatd-division-area-district',
+        'hkgov-censtatd:2016',
+      ),
+    ).toBe('sl-ds-hk-hkgov-censtatd-division-area-district-hkgov-censtatd-2016')
   })
 
   test('uses the source variant rather than a full dataset code in snapshot codes', () => {

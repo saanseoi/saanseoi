@@ -1,0 +1,1 @@
+ALTER TABLE `hkgovCenstatdDivisionAreas` DROP COLUMN `derivation`;
