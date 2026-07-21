@@ -192,7 +192,11 @@ export function resolveRegistryReleaseDisplayStatus(
   return release.revision > 0 ? 'revised' : 'superseded'
 }
 
-export async function listRegistryReleases(db: MetaDatabase, limit?: number) {
+export async function listRegistryReleases(
+  db: MetaDatabase,
+  limit?: number,
+  offset = 0,
+) {
   // `status` is an operational routing state. The registry also needs a
   // reader-facing lifecycle: a later cohort supersedes an earlier one, while
   // a later revision of the same cohort revises it. Load the small lifecycle
@@ -249,8 +253,13 @@ export async function listRegistryReleases(db: MetaDatabase, limit?: number) {
     })
     .from(metaApiReleaseSets)
     .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
-    .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
+    .orderBy(
+      desc(metaApiReleaseSets.publishedAt),
+      desc(metaApiReleaseSets.createdAt),
+      desc(metaApiReleaseSets.id),
+    )
     .limit(registryLimit(limit))
+    .offset(Math.max(0, offset))
     .all()
 
   const releaseIds = releases.map(release => release.id)

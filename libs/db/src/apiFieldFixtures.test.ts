@@ -14,7 +14,7 @@ describe('api field fixtures', () => {
   test('loads only domain-scoped fixtures with explicit lineage anchors', () => {
     const fixtures = listApiFieldFixtures()
 
-    expect(fixtures).toHaveLength(13)
+    expect(fixtures).toHaveLength(8)
     for (const fixture of fixtures) {
       expect(fixture.domainCode).not.toBe('')
       expect(fixture.lineageAnchors.length).toBeGreaterThan(0)
@@ -39,7 +39,7 @@ describe('api field fixtures', () => {
     ).toBeNull()
   })
 
-  test('selects the no-C&SD mapping for a complete required-only release set', () => {
+  test('selects the required-only mapping for a complete release set', () => {
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-divisions-v0.1',
       domainCode: 'overture',
@@ -65,6 +65,34 @@ describe('api field fixtures', () => {
     expect(fixture?.fields).not.toContainEqual(
       expect.objectContaining({
         sourceDatasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+      }),
+    )
+  })
+
+  test('keeps the 1.15 required-only mapping through the January 2026 descendant', () => {
+    const fixture = resolveApiFieldFixture({
+      apiVersion: 'api-divisions-v0.1',
+      domainCode: 'overture',
+      lineageSnapshotVersions: [
+        'ss-hk-division-2025-09-24.0',
+        'ss-hk-division-2025-10-22.0',
+        'ss-hk-division-2025-11-19.0',
+        'ss-hk-division-2025-12-17.0',
+        'ss-hk-division-2026-01-21.0',
+      ],
+      schemaVersion: 'sv-division-v1',
+      rulesetVersion: 'rs-division-merge-v1',
+      sourceSchemas: {
+        'ds-hk-overture-division': '1.15.0',
+        'ds-hk-overture-division-area': '1.15.0',
+        'ds-hk-overture-division-boundary': '1.15.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
+      },
+    })
+
+    expect(fixture?.lineageAnchors).toContainEqual(
+      expect.objectContaining({
+        snapshotVersion: 'ss-hk-division-2025-12-17.0',
       }),
     )
   })
@@ -154,6 +182,36 @@ describe('api field fixtures', () => {
     )
   })
 
+  test('keeps the required-only mapping through the May 2026 schema change', () => {
+    const fixture = resolveApiFieldFixture({
+      apiVersion: 'api-divisions-v0.1',
+      domainCode: 'overture',
+      lineageSnapshotVersions: [
+        'ss-hk-division-2025-09-24.0',
+        'ss-hk-division-2025-10-22.0',
+        'ss-hk-division-2025-11-19.0',
+        'ss-hk-division-2025-12-17.0',
+        'ss-hk-division-2026-01-21.0',
+        'ss-hk-division-2026-02-18.0',
+        'ss-hk-division-2026-05-20.0',
+      ],
+      schemaVersion: 'sv-division-v1',
+      rulesetVersion: 'rs-division-merge-v1',
+      sourceSchemas: {
+        'ds-hk-overture-division': '1.17.0',
+        'ds-hk-overture-division-area': '1.17.0',
+        'ds-hk-overture-division-boundary': '1.17.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
+      },
+    })
+
+    expect(fixture?.lineageAnchors).toContainEqual(
+      expect.objectContaining({
+        snapshotVersion: 'ss-hk-division-2026-05-20.0',
+      }),
+    )
+  })
+
   test('does not infer a newer branch mapping for an unanchored backfill', () => {
     const currentSourceSchemas = {
       'ds-hk-hkgov-dpo-address': '3.2',
@@ -200,7 +258,7 @@ describe('api field fixtures', () => {
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
         domainCode: 'default',
-        lineageSnapshotVersions: ['ss-hk-address-2025-01-23.1031'],
+        lineageSnapshotVersions: ['ss-hk-address-2025-01-23.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-merge-v1',
         sourceSchemas: {
@@ -210,29 +268,29 @@ describe('api field fixtures', () => {
       })?.lineageAnchors,
     ).toContainEqual(
       expect.objectContaining({
-        snapshotVersion: 'ss-hk-address-2025-01-23.1031',
+        snapshotVersion: 'ss-hk-address-2025-01-23.0',
       }),
     )
   })
 
   test('maps every supported ALS release to its selected Overture division schema', () => {
     const expectedDivisionSchemas = {
-      'ss-hk-address-2025-01-23.1031': '1.12.0',
-      'ss-hk-address-2025-02-25.1050': '1.12.0',
-      'ss-hk-address-2025-03-21.1021': '1.12.0',
-      'ss-hk-address-2025-04-26.1053': '1.12.0',
-      'ss-hk-address-2025-05-22.1029': '1.12.0',
-      'ss-hk-address-2025-06-20.1033': '1.12.0',
-      'ss-hk-address-2025-08-13.1053': '1.12.0',
-      'ss-hk-address-2025-09-03.1043': '1.12.0',
-      'ss-hk-address-2025-11-04.1033': '1.13.0',
-      'ss-hk-address-2025-12-16.1038': '1.14.0',
-      'ss-hk-address-2026-02-04.1057': '1.15.0',
-      'ss-hk-address-2026-04-03.1056': '1.16.0',
-      'ss-hk-address-2026-04-22.1040': '1.16.0',
-      'ss-hk-address-2026-04-25.1038': '1.16.0',
-      'ss-hk-address-2026-07-08.1050': '1.17.0',
-      'ss-hk-address-2026-07-10.1054': '1.17.0',
+      'ss-hk-address-2025-01-23.0': '1.12.0',
+      'ss-hk-address-2025-02-25.0': '1.12.0',
+      'ss-hk-address-2025-03-21.0': '1.12.0',
+      'ss-hk-address-2025-04-26.0': '1.12.0',
+      'ss-hk-address-2025-05-22.0': '1.12.0',
+      'ss-hk-address-2025-06-20.0': '1.12.0',
+      'ss-hk-address-2025-08-13.0': '1.12.0',
+      'ss-hk-address-2025-09-03.0': '1.12.0',
+      'ss-hk-address-2025-11-04.0': '1.13.0',
+      'ss-hk-address-2025-12-16.0': '1.14.0',
+      'ss-hk-address-2026-02-04.0': '1.15.0',
+      'ss-hk-address-2026-04-03.0': '1.16.0',
+      'ss-hk-address-2026-04-22.0': '1.16.0',
+      'ss-hk-address-2026-04-25.0': '1.16.0',
+      'ss-hk-address-2026-07-08.0': '1.17.0',
+      'ss-hk-address-2026-07-10.0': '1.17.0',
     }
 
     for (const [snapshotVersion, divisionSchemaVersion] of Object.entries(
