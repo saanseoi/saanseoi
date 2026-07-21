@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import divisionFixture20260520 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2026-05-20.0.json'
+import divisionFixtureOverture116To117 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.17.json'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import {
   ensureDraftReleaseSetForRelease,
@@ -1860,7 +1860,7 @@ describe('publishReleaseArtifacts', () => {
 
     expect(sortProvenanceRows(provenanceRows)).toEqual(
       sortProvenanceRows(
-        divisionFixture20260520.fields.map(field => ({
+        divisionFixtureOverture116To117.fields.map(field => ({
           apiField: field.apiField,
           sourceFieldPath: field.sourceFieldPath,
         })),

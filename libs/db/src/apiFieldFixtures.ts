@@ -1,17 +1,13 @@
-import apiDivisionsV01Fixture20250924 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-09-24.0.json'
-import apiDivisionsV01Fixture20250924WithoutCenstatd from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-09-24.0-no-censtatd.json'
-import apiDivisionsV01Fixture20251022 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-10-22.0.json'
-import apiDivisionsV01Fixture20251119 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-11-19.0.json'
-import apiDivisionsV01Fixture20251217 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-12-17.0.json'
-import apiDivisionsV01Fixture20260218 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2026-02-18.0.json'
-import apiDivisionsV01Fixture20260520 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2026-05-20.0.json'
+import apiDivisionsV01FixtureOverture112To115 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.12-to-1.15.json'
+import apiDivisionsV01FixtureOvertureRequiredOnly112To115 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-required-only-1.12-to-1.15.json'
+import apiDivisionsV01FixtureOverture116To117 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.17.json'
+import apiDivisionsV01FixtureOvertureRequiredOnly116To117 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-required-only-1.16-to-1.17.json'
 import apiDivisionsV01FixturePlandNewTown2006 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-new-town-2006.json'
 import apiDivisionsV01FixturePlandPu2001 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2001.json'
 import apiDivisionsV01FixturePlandPu2021 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2021.json'
-import apiAddressesV01Fixture20260604 from '../../../fixtures/meta/apiFields/api-addresses-v0.1@ss-hk-address-2026-06-04.0.json'
+import apiAddressesV01FixtureDefaultLineage from '../../../fixtures/meta/apiFields/api-addresses-v0.1@default-lineage.json'
 
 import type { ProvenanceContributionType, ResolverCode } from './constants/schema'
-import { computeVersionHash } from './versioning'
 
 export type ApiFieldFixtureField = {
   apiField: string
@@ -43,56 +39,15 @@ export type ApiFieldFixtureLineageAnchor = {
   sourceSchemas: Record<string, string>
 }
 
-const CENSTATD_DIVISION_AREA_DATASET = 'ds-hk-hkgov-censtatd-division-area-district'
-
-function createFixtureWithoutCenstatdDivisionAreas(
-  fixture: ApiFieldFixture,
-): ApiFieldFixture {
-  const lineageAnchors = fixture.lineageAnchors.map(anchor => ({
-    snapshotVersion: anchor.snapshotVersion,
-    sourceSchemas: Object.fromEntries(
-      Object.entries(anchor.sourceSchemas).filter(
-        ([datasetCode]) => datasetCode !== CENSTATD_DIVISION_AREA_DATASET,
-      ),
-    ),
-  }))
-  const fields = fixture.fields.filter(
-    field => field.sourceDatasetCode !== CENSTATD_DIVISION_AREA_DATASET,
-  )
-
-  return {
-    ...fixture,
-    versionHash: computeVersionHash({
-      apiVersion: fixture.apiVersion,
-      domainCode: fixture.domainCode,
-      fields,
-      lineageAnchors,
-      rulesetVersion: fixture.rulesetVersion,
-      schemaVersion: fixture.schemaVersion,
-    }),
-    lineageAnchors,
-    fields,
-  }
-}
-
 const apiFieldFixtures: ApiFieldFixture[] = [
-  apiDivisionsV01Fixture20250924 as ApiFieldFixture,
-  apiDivisionsV01Fixture20250924WithoutCenstatd as ApiFieldFixture,
-  apiDivisionsV01Fixture20251022 as ApiFieldFixture,
-  apiDivisionsV01Fixture20251119 as ApiFieldFixture,
-  apiDivisionsV01Fixture20251217 as ApiFieldFixture,
-  apiDivisionsV01Fixture20260218 as ApiFieldFixture,
-  createFixtureWithoutCenstatdDivisionAreas(
-    apiDivisionsV01Fixture20260218 as ApiFieldFixture,
-  ),
-  apiDivisionsV01Fixture20260520 as ApiFieldFixture,
-  createFixtureWithoutCenstatdDivisionAreas(
-    apiDivisionsV01Fixture20260520 as ApiFieldFixture,
-  ),
+  apiDivisionsV01FixtureOverture112To115 as ApiFieldFixture,
+  apiDivisionsV01FixtureOvertureRequiredOnly112To115 as ApiFieldFixture,
+  apiDivisionsV01FixtureOverture116To117 as ApiFieldFixture,
+  apiDivisionsV01FixtureOvertureRequiredOnly116To117 as ApiFieldFixture,
   apiDivisionsV01FixturePlandNewTown2006 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,
-  apiAddressesV01Fixture20260604 as ApiFieldFixture,
+  apiAddressesV01FixtureDefaultLineage as ApiFieldFixture,
 ]
 
 function cloneApiFieldFixtureField(field: ApiFieldFixtureField): ApiFieldFixtureField {
