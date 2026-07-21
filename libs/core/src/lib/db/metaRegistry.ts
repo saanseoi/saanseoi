@@ -677,13 +677,18 @@ async function queryRegistrySourceVersions(
     db
       .select({
         apiFamily: metaApiVersions.familyType,
+        apiVersion: metaApiVersions.version,
         apiReleaseSetRole: metaApiReleaseSetSnapshots.role,
         assemblySourceRole: metaSnapshotAssemblySources.role,
+        cohortKey: metaApiReleaseSets.cohortKey,
         code: metaApiReleaseSets.code,
         compositionRole: metaApiCompositionMembers.role,
+        domainCode: metaApiReleaseSets.domainCode,
+        resourceType: metaSnapshots.resourceType,
         sourceReleaseId: metaSnapshotSources.sourceReleaseId,
         sourceRole: metaSnapshotSources.role,
         snapshotCode: metaSnapshots.code,
+        variant: metaApiReleaseSetSnapshots.variant,
       })
       .from(metaSnapshotSources)
       .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
@@ -756,9 +761,14 @@ async function queryRegistrySourceVersions(
       .filter(item => item.sourceReleaseId === release.id)
       .map(item => ({
         apiFamily: item.apiFamily,
+        apiVersion: item.apiVersion,
+        cohortKey: item.cohortKey,
         code: item.code,
+        domainCode: item.domainCode,
         role: releaseAsRole(item),
+        resourceType: item.resourceType,
         snapshotCode: item.snapshotCode,
+        variant: item.variant,
       }))
       .filter(
         (item, index, items) =>
@@ -766,6 +776,7 @@ async function queryRegistrySourceVersions(
             candidate =>
               candidate.apiFamily === item.apiFamily &&
               candidate.code === item.code &&
+              candidate.variant === item.variant &&
               candidate.snapshotCode === item.snapshotCode &&
               candidate.role === item.role,
           ) === index,
@@ -1124,23 +1135,23 @@ export async function resolveDatasetRecord(
     releaseId?: string | null
   },
 ) {
-  const normalizedReleaseId = releaseId?.trim()
+  const normalisedReleaseId = releaseId?.trim()
 
-  if (normalizedReleaseId) {
-    const dataset = await getDatasetRecordByReleaseId(db, normalizedReleaseId)
+  if (normalisedReleaseId) {
+    const dataset = await getDatasetRecordByReleaseId(db, normalisedReleaseId)
 
     if (dataset) {
       return dataset
     }
   }
 
-  const normalizedReleaseCode = releaseCode?.trim()
+  const normalisedReleaseCode = releaseCode?.trim()
 
-  if (!normalizedReleaseCode) {
+  if (!normalisedReleaseCode) {
     return null
   }
 
-  return getDatasetRecordByReleaseCode(db, normalizedReleaseCode)
+  return getDatasetRecordByReleaseCode(db, normalisedReleaseCode)
 }
 
 export async function waitForDatasetRecord(
@@ -2817,7 +2828,7 @@ async function prepareApiCatalogRevision(
   }
 }
 
-export async function publishReleaseArtifacts(
+export async function publishReleaseArtefacts(
   db: HarbourReadableDb & HarbourWritableDb,
   args: {
     carriedSnapshots: Array<{
@@ -3021,7 +3032,7 @@ export async function publishReleaseArtifacts(
 
   if (publishApiCatalogRevision && (!releaseSetRegionCode || !releaseSetCohortKey)) {
     throw new Error(
-      `Cannot publish API catalog revision for release set ${releaseSet.code}: regionCode or cohortKey is missing.`,
+      `Cannot publish API catalogue revision for release set ${releaseSet.code}: regionCode or cohortKey is missing.`,
     )
   }
 
@@ -4231,7 +4242,7 @@ export async function insertIngestRun(
       releaseId,
       phase,
       status,
-      stats: normalizeOptionalJsonText(stats),
+      stats: normaliseOptionalJsonText(stats),
       error,
       startedAt: now,
       finishedAt,
@@ -4256,7 +4267,7 @@ export async function ensureIngestRunStarted(
       releaseId,
       phase,
       status: 'running',
-      stats: normalizeOptionalJsonText(stats),
+      stats: normaliseOptionalJsonText(stats),
       error: null,
       startedAt,
       finishedAt: null,
@@ -4287,7 +4298,7 @@ export async function ensureIngestRunStarted(
     await db
       .update(ingestRuns)
       .set({
-        stats: normalizeOptionalJsonText(stats),
+        stats: normaliseOptionalJsonText(stats),
         error: null,
         updatedAt: now,
       })
@@ -4304,7 +4315,7 @@ export async function ensureIngestRunStarted(
     .update(ingestRuns)
     .set({
       status: 'running',
-      stats: normalizeOptionalJsonText(stats),
+      stats: normaliseOptionalJsonText(stats),
       error: null,
       startedAt,
       finishedAt: null,
@@ -4326,7 +4337,7 @@ export async function upsertIngestRunStatus(
 ) {
   const createdAt = toIsoTimestamp(startedAt)
   const updatedAt = toIsoTimestamp(finishedAt ?? startedAt)
-  const normalizedStats = normalizeOptionalJsonText(stats)
+  const normalisedStats = normaliseOptionalJsonText(stats)
 
   await db
     .insert(ingestRuns)
@@ -4335,7 +4346,7 @@ export async function upsertIngestRunStatus(
       releaseId,
       phase,
       status,
-      stats: normalizedStats,
+      stats: normalisedStats,
       error,
       startedAt,
       finishedAt,
@@ -4346,7 +4357,7 @@ export async function upsertIngestRunStatus(
       target: [ingestRuns.releaseId, ingestRuns.phase],
       set: {
         status,
-        stats: normalizedStats,
+        stats: normalisedStats,
         error,
         finishedAt,
         updatedAt,
@@ -4364,7 +4375,7 @@ export async function updateLatestOpenIngestRun(
   stats: Record<string, unknown> | string | null,
   error: string | null = null,
 ) {
-  const normalizedStats = normalizeOptionalJsonText(stats)
+  const normalisedStats = normaliseOptionalJsonText(stats)
   const openRun =
     ((await db
       .select({
@@ -4390,7 +4401,7 @@ export async function updateLatestOpenIngestRun(
     .update(ingestRuns)
     .set({
       status,
-      stats: normalizedStats,
+      stats: normalisedStats,
       error,
       finishedAt,
       updatedAt: toIsoTimestamp(finishedAt),
@@ -4401,7 +4412,7 @@ export async function updateLatestOpenIngestRun(
   return true
 }
 
-function normalizeOptionalJsonText(
+function normaliseOptionalJsonText(
   value: Record<string, unknown> | string | null,
 ): Record<string, unknown> | string | null {
   if (!value || typeof value !== 'string') {
