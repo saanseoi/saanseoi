@@ -164,10 +164,6 @@ ${mutedBar}  `)
       log.message(
         'No object upload, API call, queue enqueue, or database mutation was attempted.',
       )
-      if (shouldPublishCenstatdSimplifiedCompanion(hkgovCenstatdPreparation)) {
-        await runCenstatdSimplifiedCompanionUpload(args, target, options)
-        return
-      }
       outro('Harbour upload complete')
       return
     }
@@ -424,33 +420,58 @@ ${mutedBar}  `)
           uploadResult,
           preparedUploadFile,
           {
+            deferPublish: Boolean(hkgovCenstatdPreparation?.displayFilePath),
             skipSnapshotCleanup: options.skipSnapshotCleanup,
             validateGeometry: options.validateGeometry,
           },
         )
+        const companionProcessingResult = hkgovCenstatdPreparation?.displayFilePath
+          ? await processLocalDivisionGeometrySqlUpload(
+              target,
+              {
+                cohortKey: previewResult.plan.cohortKey,
+                regionCode: previewResult.plan.regionCode,
+                releaseCode: previewResult.plan.releaseCode,
+                rowCount: previewResult.plan.rowCount,
+                source: 'hkgov-censtatd',
+                sourceVersion: previewResult.plan.sourceVersion,
+                transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
+                theme: 'divisions',
+                type: 'divisionArea',
+              },
+              uploadResult,
+              preparedUploadFile,
+              {
+                inputFilePath: hkgovCenstatdPreparation.displayFilePath,
+                skipRawSeed: true,
+                skipSnapshotCleanup: options.skipSnapshotCleanup,
+                validateGeometry: options.validateGeometry,
+              },
+            )
+          : undefined
 
         const releaseSetReadiness = await resolveDivisionApiReleaseSetReadiness(
           target,
           withReleaseSetCohort(
             previewResult.plan,
-            processingResult.publishResult?.apiReleaseSetCode,
+            (companionProcessingResult ?? processingResult).publishResult
+              ?.apiReleaseSetCode,
           ),
         )
         note(
           formatDivisionApiReleaseSetReadiness(
             withReleaseSetCohort(
               previewResult.plan,
-              processingResult.publishResult?.apiReleaseSetCode,
+              (companionProcessingResult ?? processingResult).publishResult
+                ?.apiReleaseSetCode,
             ),
             releaseSetReadiness,
           ),
           'API DOMAIN RELEASE',
         )
-        logApiReleaseSetPublication(processingResult.publishResult)
-        if (shouldPublishCenstatdSimplifiedCompanion(hkgovCenstatdPreparation)) {
-          await runCenstatdSimplifiedCompanionUpload(args, target, options)
-          return
-        }
+        logApiReleaseSetPublication(
+          (companionProcessingResult ?? processingResult).publishResult,
+        )
         outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
@@ -464,38 +485,6 @@ ${mutedBar}  `)
   } finally {
     await sourcePreparationCleanup?.()
   }
-}
-
-/**
- * A C&SD display geometry is an owned derivative of an exact district upload.
- * Keep `--transform simplified` available to republish that derivative alone,
- * but do not require it during normal source ingestion.
- */
-function shouldPublishCenstatdSimplifiedCompanion(
-  preparation: Awaited<ReturnType<typeof prepareHkgovCenstatdGmlUpload>>,
-) {
-  return preparation !== null && !preparation.transform
-}
-
-async function runCenstatdSimplifiedCompanionUpload(
-  args: ParsedArgs,
-  target: UploadTarget,
-  options: Parameters<typeof runUploadCommand>[2],
-) {
-  log.step('Publishing derived simplified C&SD display geometry')
-  await runUploadCommand(
-    {
-      ...args,
-      options: {
-        ...args.options,
-        transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
-      },
-    },
-    target,
-    // The user has already confirmed the exact source upload and its declared
-    // companion. The derived release does not have independent source notes.
-    { ...options, skipConfirm: true },
-  )
 }
 
 async function prepareHkgovHadGeoJsonUpload(
@@ -539,8 +528,10 @@ async function prepareHkgovCenstatdGmlUpload(
   if (inputSourceVersion !== '2016' && inputSourceVersion !== '2021') {
     throw new Error('C&SD District Council GML requires --source-version 2016 or 2021.')
   }
-  if (transform && transform !== HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM) {
-    throw new Error(`Unsupported C&SD geometry transform: ${transform}.`)
+  if (transform) {
+    throw new Error(
+      'C&SD display geometry is derived during its exact source upload; omit --transform.',
+    )
   }
   const tempDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-'))
   try {
@@ -548,12 +539,20 @@ async function prepareHkgovCenstatdGmlUpload(
       filePath,
       tempDir,
       inputSourceVersion,
-      transform ? { transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM } : undefined,
+      undefined,
+    )
+    const displayPrepared = await prepareHkgovCenstatdDistrictUpload(
+      filePath,
+      tempDir,
+      inputSourceVersion,
+      { transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM },
     )
     return {
       ...prepared,
+      displayFilePath: displayPrepared?.filePath,
       cleanup: async () => {
         await prepared.cleanup()
+        await displayPrepared?.cleanup()
         await rm(tempDir, { force: true, recursive: true })
       },
     }

@@ -112,12 +112,12 @@ export async function prepareHkgovCenstatdDistrictUpload(
     options.transform === HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM
       ? withDisplayGeometry(exactRows, sourceVersion)
       : exactRows
-  const outputSourceVersion = options.transform
-    ? `${sourceVersion}-simplified-v1`
-    : sourceVersion
+  const outputSourceVersion = sourceVersion
   const filePath = join(
     resolve(outputDir),
-    `${HKGOV_CENSTATD_SOURCE}-hk-${outputSourceVersion}-division-area.parquet`,
+    `${HKGOV_CENSTATD_SOURCE}-hk-${sourceVersion}${
+      options.transform ? '-simplified' : ''
+    }-division-area.parquet`,
   )
 
   const parquet = parquetWriteBuffer({
@@ -295,11 +295,12 @@ function withDisplayGeometry(rows: PreparedDistrictRow[], sourceVersion: string)
         preservesLandClip: true,
       },
       geometry,
-      id: `CENSTATD:${HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM}:${sourceVersion}:${row.district_class}`,
+      // A display transform is another representation of the same C&SD
+      // assertion, not a new source record. The snapshot variant selects it.
+      id: row.id,
       sources: [
         {
           dataset: HKGOV_CENSTATD_SOURCE,
-          transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
           districtClass: row.district_class,
           districtCode: row.district_code,
         },

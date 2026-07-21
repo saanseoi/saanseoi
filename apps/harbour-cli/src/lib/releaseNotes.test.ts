@@ -34,23 +34,6 @@ function buildOvertureDivisionPlan(
   } satisfies UploadPlan
 }
 
-function buildSimplifiedCenstatdPlan() {
-  const type = 'divisionArea' as const
-  return {
-    ...buildOvertureDivisionPlan(type),
-    cohortKey: '2016',
-    datasetCode: buildDatasetCode('hk', 'hkgov-censtatd', type),
-    releaseCode: buildDatasetReleaseCode(
-      'hk',
-      'hkgov-censtatd',
-      '2016-simplified-v1',
-      type,
-    ),
-    source: 'hkgov-censtatd',
-    sourceVersion: '2016-simplified-v1',
-  } satisfies UploadPlan
-}
-
 describe('Overture release notes', () => {
   test('uses the divisions notes for all division resource types', async () => {
     const urls = await Promise.all(
@@ -73,11 +56,5 @@ describe('Overture release notes', () => {
     await expect(resolveReleaseNotesUrl(plan, { skipPrompt: true })).resolves.toBe(
       'https://docs.overturemaps.org/blog/2025/09/24/release-notes/#divisions',
     )
-  })
-
-  test('omits release notes for locally derived C&SD display geometry', async () => {
-    await expect(
-      resolveReleaseNotesUrl(buildSimplifiedCenstatdPlan(), { skipPrompt: false }),
-    ).resolves.toBeUndefined()
   })
 })

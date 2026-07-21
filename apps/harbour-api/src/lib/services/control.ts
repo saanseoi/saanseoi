@@ -224,11 +224,17 @@ export async function handlePublishDataset(
       db,
       datasetType,
     )
-    const datasetMember = compositionMembers.find(
-      member =>
-        member.resourceType === datasetType && member.variant === datasetVariant,
-    )
-    const domainCode = datasetMember?.domainCode ?? 'default'
+    const datasetMember =
+      compositionMembers.find(
+        member =>
+          member.resourceType === datasetType && member.variant === datasetVariant,
+      ) ?? resolveTransformMember(compositionMembers, datasetType, datasetVariant)
+    if (!datasetMember) {
+      throw new ControlRequestError(
+        `No current API composition member accepts ${datasetType}/${datasetVariant}.`,
+      )
+    }
+    const domainCode = datasetMember.domainCode
     const isCenstatdGeometry =
       datasetType === 'divisionArea' && dataset.source === 'hkgov-censtatd'
     const canonicalAnchor = isCenstatdGeometry
@@ -412,6 +418,28 @@ export async function handlePublishDataset(
   })
 }
 
+/**
+ * Geometry transforms are materialized for efficient reads, but they do not
+ * declare independent API-composition slots. A derived variant therefore
+ * inherits the source variant's domain and release-set membership.
+ */
+function resolveTransformMember(
+  compositionMembers: Awaited<
+    ReturnType<typeof listCurrentApiCompositionMembersForType>
+  >,
+  datasetType: ResourceType,
+  datasetVariant: string,
+) {
+  const sourceVariant = datasetVariant.match(
+    /^(hkgov-censtatd:(?:2016|2021)):simplified$/,
+  )?.[1]
+  if (!sourceVariant) return undefined
+
+  return compositionMembers.find(
+    member => member.resourceType === datasetType && member.variant === sourceVariant,
+  )
+}
+
 function releaseSetMemberKey(resourceType: ResourceType, variant: string) {
   return `${resourceType}:${variant}`
 }
@@ -457,9 +485,25 @@ async function resolveSupportingSnapshotsForMember(
         { publisherCode: member.variant },
       )
 
-    return member.cohortMatchingMode === 'latest_at_or_before_cohort_per_dataset'
-      ? snapshots
-      : snapshots.filter(snapshot => snapshot.cohortKey === cohortKey)
+    if (member.cohortMatchingMode === 'latest_at_or_before_cohort_per_dataset') {
+      return snapshots
+    }
+
+    if (member.cohortMatchingMode === 'latest_at_or_before_or_earliest_after_cohort') {
+      if (snapshots.length > 0) return snapshots
+
+      const nextSnapshot =
+        await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+          db,
+          member.resourceType,
+          regionCode,
+          cohortKey,
+          { publisherCode: member.variant },
+        )
+      return nextSnapshot ? [nextSnapshot] : []
+    }
+
+    return snapshots.filter(snapshot => snapshot.cohortKey === cohortKey)
   }
 
   const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(

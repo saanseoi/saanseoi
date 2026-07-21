@@ -19,6 +19,7 @@ import {
   createAsyncBufferFromR2,
   readParquetObjectsInBatches,
 } from '@repo/core/pipeline/parquetR2'
+import { calculateGeoJsonBbox } from '@repo/core/pipeline/geojson'
 import { parseWkbGeometry } from '@repo/core/pipeline/services/division'
 import {
   chunkArray,
@@ -452,8 +453,9 @@ async function normalizePreparedDivision(value: Record<string, unknown>) {
   const i18n = normalizeI18n(value.i18n)
   const geometry = parseWkbGeometry(value.geometry)
   if (!geometry) throw new Error(`Planning division ${id} has invalid geometry.`)
+  const sourceGeometry = parseWkbGeometry(sourceProperties.sourceGeometry) ?? geometry
   const base = {
-    bbox: value.bbox ?? null,
+    bbox: calculateGeoJsonBbox(geometry),
     cartography: null,
     geometry,
     hierarchy: value.hierarchy ?? [],
@@ -473,9 +475,9 @@ async function normalizePreparedDivision(value: Record<string, unknown>) {
   const cell =
     level === 'subunit'
       ? {
-          bbox: sourceProperties.sourceGeometryBbox ?? value.bbox ?? null,
+          bbox: calculateGeoJsonBbox(sourceGeometry),
           canonicalGeometry: geometry,
-          geometry: sourceProperties.sourceGeometry ?? geometry,
+          geometry: sourceGeometry,
           ppuCode: requireString(codes['PLAND:PPU'], 'PLAND:PPU'),
           rawProperties: sourceProperties.sourceFeatureProperties ?? null,
           sourceRecordId: Array.isArray(sourceCellIds)
