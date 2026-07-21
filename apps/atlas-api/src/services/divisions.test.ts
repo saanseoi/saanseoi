@@ -504,18 +504,18 @@ describe('division services', () => {
       'division-hk-sar',
       'division-east',
     ])
-    expect(
-      result.body.included?.find(resource => resource.id === 'division-hk-sar')
-        ?.attributes.overture,
-    ).toMatchObject({
+    const hongKongSar = result.body.included?.find(
+      resource => resource.type === 'divisions' && resource.id === 'division-hk-sar',
+    ) as typeof result.body.data | undefined
+    expect(hongKongSar?.attributes.overture).toMatchObject({
       subtype: 'dependency',
       class: 'dependency',
       admin_level: 1,
     })
-    expect(
-      result.body.included?.find(resource => resource.id === 'division-east')
-        ?.attributes.overture,
-    ).toMatchObject({
+    const easternDistrict = result.body.included?.find(
+      resource => resource.type === 'divisions' && resource.id === 'division-east',
+    ) as typeof result.body.data | undefined
+    expect(easternDistrict?.attributes.overture).toMatchObject({
       subtype: 'region',
       class: 'region',
       admin_level: 2,

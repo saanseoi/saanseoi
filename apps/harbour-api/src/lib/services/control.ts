@@ -3,7 +3,7 @@ import {
   ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
-  listPublishedOvertureReleaseSetCohortsAtOrAfterCohortKey,
+  listOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey,
   listCurrentApiCompositionMembersForType,
   listCurrentSnapshotCleanupCandidates,
@@ -239,7 +239,7 @@ export async function handlePublishDataset(
     const isCenstatdGeometry =
       datasetType === 'divisionArea' && dataset.source === 'hkgov-censtatd'
     const censtatdReleaseSetCohorts = isCenstatdGeometry
-      ? await listPublishedOvertureReleaseSetCohortsAtOrAfterCohortKey(
+      ? await listOvertureReleaseSetCohortsAtOrAfterCohortKey(
           db,
           'division',
           dataset.regionCode as RegionCode,
@@ -249,15 +249,15 @@ export async function handlePublishDataset(
 
     if (isCenstatdGeometry && censtatdReleaseSetCohorts.length === 0) {
       throw new ControlRequestError(
-        `No published Overture division release set is available on or after C&SD cohort ${dataset.cohortKey}.`,
+        `No Overture division release set is available on or after C&SD cohort ${dataset.cohortKey}.`,
       )
     }
 
-    const currentRelease = await getCurrentReleaseForDatasetId(
-      db,
-      dataset.datasetId,
-      dataset.releaseId,
-    )
+    // Census cohorts are independently selectable required inputs. Publishing
+    // a later one must not supersede the earlier source release.
+    const currentRelease = isCenstatdGeometry
+      ? null
+      : await getCurrentReleaseForDatasetId(db, dataset.datasetId, dataset.releaseId)
     const existingReleaseSet = isCenstatdGeometry
       ? null
       : await resolveReleaseSetForRelease(
@@ -369,11 +369,6 @@ export async function handlePublishDataset(
       const releaseSetIsComplete = [...requiredMembers].every(memberKey =>
         satisfiedRequiredMembers.has(memberKey),
       )
-      if (isCenstatdGeometry && !releaseSetIsComplete) {
-        throw new ControlRequestError(
-          `Cannot enrich incomplete Overture division release set ${releaseSet.code} with C&SD geometry.`,
-        )
-      }
       const isNewestReleaseSet = index === newestReleaseSetIndex
       const shouldPublishReleaseSet = releaseSetIsComplete && isNewestReleaseSet
       if (isNewestReleaseSet && shouldPublishReleaseSet) {
@@ -392,10 +387,13 @@ export async function handlePublishDataset(
         releaseSetId: releaseSet.id,
         snapshotId: snapshot.id,
         type: datasetType,
-        // The C&SD geometry is a post-hoc optional enrichment. Every affected
-        // Overture cohort needs an immutable published revision; the newest
-        // one becomes current and the older revisions become archived.
-        deferApiReleaseSet: !isCenstatdGeometry && !shouldPublishReleaseSet,
+        // A first C&SD cohort makes its snapshot available to draft release
+        // sets, but cannot publish them until every required companion is
+        // present. Once complete, all affected cohorts are published and the
+        // newest one becomes current.
+        deferApiReleaseSet: isCenstatdGeometry
+          ? !releaseSetIsComplete
+          : !shouldPublishReleaseSet,
         publishApiCatalogRevision: shouldPublishReleaseSet,
         updateDatasetRelease: isNewestReleaseSet,
       })

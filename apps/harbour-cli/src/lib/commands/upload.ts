@@ -757,6 +757,7 @@ type AddressReleaseSetReadiness = {
 }
 
 type CohortIndependentReleaseDefinition = {
+  cohortKey?: string
   datasetCode: string
   domainCode: string
   optional: boolean
@@ -772,6 +773,14 @@ const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS: readonly CohortIndependentRe
       resourceType: 'divisionArea',
     },
     {
+      cohortKey: '2016',
+      datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
+      domainCode: 'hkgov-censtatd',
+      optional: false,
+      resourceType: 'divisionArea',
+    },
+    {
+      cohortKey: '2021',
       datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
       domainCode: 'hkgov-censtatd',
       optional: false,
@@ -1320,14 +1329,19 @@ function resolveCohortIndependentReleaseReadiness(
   const readiness: CohortIndependentReleaseReadiness[] = []
   for (const dataset of COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS) {
     const matchingReleases = [...latestReleaseByDatasetCohort.values()]
-      .filter(release => release.datasetCode === dataset.datasetCode)
+      .filter(
+        release =>
+          release.datasetCode === dataset.datasetCode &&
+          (!dataset.cohortKey || release.cohortKey === dataset.cohortKey),
+      )
       .sort((left, right) => left.cohortKey.localeCompare(right.cohortKey))
 
-    if (matchingReleases.length > 0) {
-      readiness.push(...matchingReleases.map(release => ({ ...dataset, ...release })))
-    } else {
-      readiness.push({ ...dataset, cohortKey: null, releaseCode: null })
-    }
+    const matchingRelease = matchingReleases.at(-1)
+    readiness.push(
+      matchingRelease
+        ? { ...dataset, ...matchingRelease }
+        : { ...dataset, cohortKey: dataset.cohortKey ?? null, releaseCode: null },
+    )
   }
 
   return readiness

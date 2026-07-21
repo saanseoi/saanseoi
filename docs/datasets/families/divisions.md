@@ -72,6 +72,10 @@ composition member. Both source cohorts are required inputs to each Overture rel
 their source-schema versions are always present in API-field provenance and only one
 mapping is needed for each Overture schema range.
 
+The 2016 and 2021 C&SD variants are separate required inputs, not successive revisions
+of one source release. Each keeps its own snapshot lineage and remains available when
+the other cohort is published.
+
 For Overture, release audit entries are limited to investigable source-policy
 exceptions: division locale inference or API-locale fallback rows, and `CN-GD` spillover
 geometry excluded from area or boundary releases. The Sources page hides its Audit tab

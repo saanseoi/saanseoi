@@ -937,6 +937,8 @@ describe('control service', () => {
         ('api-composition-divisions-v1', 'overture', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0, null),
         ('api-composition-divisions-v1', 'overture', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, null, 10, null),
         ('api-composition-divisions-v1', 'overture', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 11, null),
+        ('api-composition-divisions-v1', 'overture', 'divisionArea', 'hkgov-censtatd:2016', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 12, null),
+        ('api-composition-divisions-v1', 'overture', 'divisionArea', 'hkgov-censtatd:2021', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 13, null),
         ('api-composition-divisions-v1', 'overture', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20, null);
 
       INSERT INTO apiReleaseSets (
@@ -1068,6 +1070,27 @@ describe('control service', () => {
       resourceType: 'divisionArea',
       releaseId: hadArea.releaseId,
     })
+    sqlite.exec(`
+      INSERT INTO snapshotLineages (
+        id, code, regionCode, resourceType, variant, identityMode,
+        primaryDatasetId, versionHash, createdAt, updatedAt
+      ) VALUES
+        ('lineage-overture-division', 'sl-ds-hk-overture-division', 'hk', 'division', 'overture', 'persistent', 'overture-hk-division', 'vh-lineage-overture-division', 1761264000001, 1761264000001),
+        ('lineage-overture-division-area', 'sl-ds-hk-overture-division-area', 'hk', 'divisionArea', 'overture', 'persistent', 'overture-hk-divisionArea', 'vh-lineage-overture-division-area', 1761264000001, 1761264000001),
+        ('lineage-overture-division-boundary', 'sl-ds-hk-overture-division-boundary', 'hk', 'divisionBoundary', 'overture', 'persistent', 'overture-hk-divisionBoundary', 'vh-lineage-overture-division-boundary', 1761264000001, 1761264000001);
+
+      UPDATE snapshots
+      SET snapshotLineageId = CASE id
+        WHEN 'snapshot-${division.releaseId}' THEN 'lineage-overture-division'
+        WHEN 'snapshot-${overtureArea.releaseId}' THEN 'lineage-overture-division-area'
+        WHEN 'snapshot-${boundary.releaseId}' THEN 'lineage-overture-division-boundary'
+      END
+      WHERE id IN (
+        'snapshot-${division.releaseId}',
+        'snapshot-${overtureArea.releaseId}',
+        'snapshot-${boundary.releaseId}'
+      );
+    `)
 
     const result = await handlePublishDataset(db, { releaseId: hadArea.releaseId })
     const publishedSet = sqlite
