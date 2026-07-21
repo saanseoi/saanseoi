@@ -54,6 +54,11 @@ carry domain context so planning or electoral relationships cannot enter the def
 administrative traversal accidentally. Cohort keys identify the period selected for a
 release; source publication and validity metadata remain provenance.
 
+All division geometry uploads calculate their canonical WGS84 bbox directly from the
+normalized geometry. This applies to Overture, HAD, C&SD, and Planning Department source
+assertions and transforms; upstream bbox fields are not trusted as persisted geometry
+extents.
+
 Canonical division source releases persist locale completeness and churn stats as well
 as a district distribution. A district row contributes to itself; every other row is
 counted against the `district` entry in its normalized hierarchy. Atlas joins those
@@ -62,11 +67,13 @@ division datasets.
 
 Historical C&SD district areas are optional, cohort-qualified statistical-geometry
 variants, never defaults. Each census cohort has an exact source variant
-(`hkgov-censtatd:2016` or `hkgov-censtatd:2021`) and an optional low-detail display
-derivative (`hkgov-censtatd:2016:simplified` or `hkgov-censtatd:2021:simplified`). Each
-is anchored to the earliest published Overture canonical-division snapshot at or after
-its census cohort; that immutable anchor provides identity, hierarchy, and names without
-representing the C&SD boundary as an evergreen administrative geometry.
+(`hkgov-censtatd:2016` or `hkgov-censtatd:2021`). The `simplified` geometry is a named
+display transform on that source variant, requested as
+`areas:hkgov-censtatd:<cohort>&transform=simplified`; it is not an independent
+composition member. Each source variant is anchored to the earliest published Overture
+canonical-division snapshot at or after its census cohort; that immutable anchor
+provides identity, hierarchy, and names without representing the C&SD boundary as an
+evergreen administrative geometry.
 
 For Overture, release audit entries are limited to investigable source-policy
 exceptions: division locale inference or API-locale fallback rows, and `CN-GD` spillover

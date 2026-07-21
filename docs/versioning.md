@@ -254,7 +254,6 @@ flowchart TD
   Overture --> HadArea[divisionArea / hkgov-had<br/>geometry, required<br/>latest_at_or_before_cohort_per_dataset]
   Overture --> C2016[divisionArea / hkgov-censtatd:2016<br/>geometry, optional<br/>exact_ref]
   Overture --> C2021[divisionArea / hkgov-censtatd:2021<br/>geometry, optional<br/>exact_ref]
-  Overture --> CSimple[divisionArea / hkgov-censtatd:2021:simplified<br/>geometry, optional<br/>exact_ref]
   Overture --> Boundary[divisionBoundary / overture<br/>geometry, required<br/>exact_ref]
 
   PU --> PUDiv[division / hkgov-pland-pu<br/>primary, required / exact_ref]
@@ -267,7 +266,6 @@ flowchart TD
   HadArea --> ReleaseSet
   C2016 --> ReleaseSet
   C2021 --> ReleaseSet
-  CSimple --> ReleaseSet
   Boundary --> ReleaseSet
 
   classDef declared fill:#e8f1ff,stroke:#4a78a8,color:#142b44
@@ -827,9 +825,9 @@ Revision 1 records `supersedesApiReleaseSetId` pointing to the implicit revision
 unadorned initial revision remains addressable by catalogues that already published it.
 
 `status=current` means this is the latest published composition for its
-`(region, domain, cohort)`. Publishing a later revision archives its predecessor
-(rendered as “superseded” in the registry). Multiple current release sets may still
-exist across different cohorts and domains.
+`(region, domain)`. Publishing a later cohort or a later revision archives every older
+current composition in that continuous domain (rendered as “revised” in the registry).
+Multiple current release sets may still exist across different domains.
 
 ### API catalogue revision
 

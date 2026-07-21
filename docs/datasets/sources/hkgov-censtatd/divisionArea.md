@@ -16,7 +16,9 @@ The source service is published in EPSG:2326. The exact-source variant retains t
 native GML geometry and its complete feature member. The adapter projects it into the
 canonical EPSG:4326 geometry column for current/history use; WFS supplies EPSG:2326 in
 northing/easting axis order, which is normalized to easting/northing before projection.
-It does not simplify, clip or otherwise alter the exact-source geometry.
+It does not simplify, clip or otherwise alter the exact-source geometry. The uploader
+calculates the canonical WGS84 bbox from that geometry rather than accepting an upstream
+bbox value, so source and canonical rows carry the same geometry-derived extent.
 
 ## Source contract
 
@@ -33,7 +35,7 @@ normalized to the C&SD source i18n table. `dc_class` is bridged through a review
 `hkgov-censtatd` identifier bridge for each census cohort; canonical `sourceKeys` expose
 the provider's `class` and numeric `code`.
 
-The exact source variant is:
+The exact source variants are:
 
 ```text
 dataset  ds-hk-hkgov-censtatd-division-area-district
@@ -50,19 +52,20 @@ maps, Saanseoi exposes a named geometry transformation for each census cohort, w
 clipping, unioning or otherwise changing its coastline:
 
 ```text
-dataset      ds-hk-hkgov-censtatd-division-area-district
-transform    simplified
-variants     hkgov-censtatd:2016:simplified
-             hkgov-censtatd:2021:simplified
-releases     dr-hk-hkgov-censtatd-division-area-district-2016-simplified-v1
-             dr-hk-hkgov-censtatd-division-area-district-2021-simplified-v1
+dataset   ds-hk-hkgov-censtatd-division-area-district
+transform simplified
+applies   hkgov-censtatd:2016
+          hkgov-censtatd:2021
 ```
 
 The derivation runs a topology-preserving simplification across all 18 canonical
 EPSG:4326 polygons at a 10-metre tolerance in a local Hong Kong metre plane. Processing
-all districts together keeps shared boundaries consistent. The source row retains the
-untouched C&SD geometry and records the input dataset/release, method, tolerance and
-`preservesLandClip: true`.
+all districts together keeps shared boundaries consistent. The exact source row retains
+the untouched C&SD geometry; its derivative records the input dataset/release, method,
+tolerance and `preservesLandClip: true`. The derived geometry is materialized internally
+for fast map reads in a derivative row keyed to the exact source record and its version
+hash; it remains a transform of the same source release rather than a separate dataset,
+source record or API-composition member.
 
 Use `include=areas:hkgov-censtatd:2016&transform=simplified` or
 `include=areas:hkgov-censtatd:2021&transform=simplified` for low-detail display maps;
@@ -83,8 +86,7 @@ saanseoi upload data/hkgov/censtatd/district-council-districts-2016.gml --source
 saanseoi upload data/hkgov/censtatd/district-council-districts-2021.gml --source hkgov-censtatd --source-version 2021 --type divisionArea --theme divisions --region hk --cohort-key 2021
 ```
 
-Each exact C&SD upload automatically publishes its versioned `simplified` companion from
-the same verified source artifact. `--transform simplified` remains available only to
-republish that derived release independently. As a local derivative, it has no upstream
-release-notes URL; the corresponding exact-source release records the CSDI dataset URL
-instead.
+Each C&SD upload materializes its `simplified` display transform from the same verified
+source artifact, then publishes the exact and display snapshots together under the one
+source release. The transform has no separate upload or release-notes URL; the source
+release records the CSDI dataset URL instead.
