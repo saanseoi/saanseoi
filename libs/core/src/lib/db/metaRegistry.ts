@@ -20,7 +20,11 @@ import {
 import { listApiFieldFixtures, resolveApiFieldFixture } from '@repo/db/apiFieldFixtures'
 import { metaSchema } from '@repo/db'
 import { compareReleaseVersions, resolveSourceSchemaVersion } from '../../sourceSchemas'
-import { datasetVariantForSource, resourceTypeCodeSlug } from '../../codes'
+import {
+  datasetVariantForSource,
+  publisherCodeForSource,
+  resourceTypeCodeSlug,
+} from '../../codes'
 
 import type { DatasetRecord, RegionCode, ResourceType, UploadPlan } from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './types'
@@ -940,7 +944,7 @@ export async function getLatestDatasetForRegionSourceType(
     .where(
       and(
         eq(metaDatasets.regionCode, regionCode),
-        eq(metaPublishers.code, source),
+        eq(metaPublishers.code, publisherCodeForSource(source)),
         eq(metaDatasets.type, type),
         ne(metaReleases.status, 'failed'),
         ne(metaReleases.status, 'uploading'),
@@ -1039,7 +1043,7 @@ export async function hasDatasetForCohortKeySourceType(
         and(
           eq(metaDatasets.regionCode, regionCode),
           eq(metaReleases.cohortKey, cohortKey),
-          eq(metaPublishers.code, source),
+          eq(metaPublishers.code, publisherCodeForSource(source)),
           eq(metaDatasets.type, type),
           ne(metaReleases.status, 'failed'),
         ),
@@ -4409,7 +4413,7 @@ async function requireDatasetDefinition(
       .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
       .where(
         and(
-          eq(metaPublishers.code, plan.source),
+          eq(metaPublishers.code, publisherCodeForSource(plan.source)),
           eq(metaDatasets.code, plan.datasetCode),
         ),
       )

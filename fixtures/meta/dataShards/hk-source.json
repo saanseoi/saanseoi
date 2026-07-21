@@ -1,6 +1,24 @@
 {
-  "versionHash": "sha256:f422ca092f192e9baf077884406c92cb5af2925c6af9e193a1f1d8f420517eae",
+  "versionHash": "sha256:426349db0128274caf322acac13fdb1a28502115bd94f5ba1701326e218aacd9",
   "shards": [
+    {
+      "bindingName": "DB_SOURCE_HK_BEFORE",
+      "shardType": "source",
+      "environment": "preview",
+      "regionCode": "hk",
+      "databaseName": "ss-source-hk-before-db-preview",
+      "databaseId": "6265ab9d-f70d-4893-bc24-91d0bce8642e",
+      "status": "active"
+    },
+    {
+      "bindingName": "DB_SOURCE_HK_BEFORE",
+      "shardType": "source",
+      "environment": "production",
+      "regionCode": "hk",
+      "databaseName": "ss-source-hk-before-db-prod",
+      "databaseId": "45ab08a6-bacc-41ea-9c35-55c3d825de4a",
+      "status": "active"
+    },
     {
       "bindingName": "DB_SOURCE_HK_2025",
       "shardType": "source",
