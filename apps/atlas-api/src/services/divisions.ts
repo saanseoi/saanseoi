@@ -98,7 +98,7 @@ type DivisionGeometryResourcePayload = {
     isLand: boolean | null
     isTerritorial: boolean | null
     sources?: SourcesPayload | null
-    overture?: unknown
+    sourceKeys?: unknown
     variant?: string
   }
 }
@@ -884,7 +884,7 @@ function createDivisionGeometryResource(args: {
       isLand: record.isLand,
       isTerritorial: record.isTerritorial,
       sources: (record.sources as SourcesPayload | null) ?? null,
-      overture: record.sourceKeys,
+      sourceKeys: record.sourceKeys,
       variant: record.variant,
     },
   }

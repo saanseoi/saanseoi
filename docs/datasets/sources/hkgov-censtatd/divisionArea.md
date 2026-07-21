@@ -61,11 +61,11 @@ applies   hkgov-censtatd:2016
 The derivation runs a topology-preserving simplification across all 18 canonical
 EPSG:4326 polygons at a 10-metre tolerance in a local Hong Kong metre plane. Processing
 all districts together keeps shared boundaries consistent. The exact source row retains
-the untouched C&SD geometry; its derivative records the input dataset/release, method,
-tolerance and `preservesLandClip: true`. The derived geometry is materialized internally
-for fast map reads in a derivative row keyed to the exact source record and its version
-hash; it remains a transform of the same source release rather than a separate dataset,
-source record or API-composition member.
+the untouched C&SD geometry and no derivation metadata; its derivative records the input
+dataset/release, method, tolerance and `preservesLandClip: true`. The derived geometry
+is materialized internally for fast map reads in a derivative row keyed to the exact
+source record and its version hash; it remains a transform of the same source release
+rather than a separate dataset, source record or API-composition member.
 
 Use `include=areas:hkgov-censtatd:2016&transform=simplified` or
 `include=areas:hkgov-censtatd:2021&transform=simplified` for low-detail display maps;
@@ -93,4 +93,6 @@ release records the CSDI dataset URL instead.
 
 Both C&SD census cohorts are required Overture division-release inputs. The selected
 source snapshots are carried forward at or before the Overture cohort, so their stable
-source schema is always included in the release's API-field provenance.
+source schema is always included in the release's API-field provenance. They are
+independently selectable source variants with separate snapshot lineages; publishing the
+2021 cohort never supersedes the 2016 release or snapshot.

@@ -981,8 +981,6 @@ async function writeGeometryRows(
               ? {
                   censusYear: (row.source.rawProperties as Record<string, unknown>)
                     ?.census_year,
-                  derivation: (row.source.rawProperties as Record<string, unknown>)
-                    ?.derivation,
                   districtClass: (row.source.rawProperties as Record<string, unknown>)
                     ?.district_class,
                   districtCode: (row.source.rawProperties as Record<string, unknown>)

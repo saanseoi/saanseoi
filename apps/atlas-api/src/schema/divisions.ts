@@ -124,7 +124,7 @@ const DivisionGeometryResourceSchema = z
       isTerritorial: z.boolean().nullable(),
       variant: z.string().optional(),
       sources: z.union([SourcesSchema, z.null()]).optional(),
-      overture: z.unknown().optional(),
+      sourceKeys: z.unknown().optional(),
     }),
   })
   .openapi('DivisionGeometry')
