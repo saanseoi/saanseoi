@@ -39,6 +39,8 @@ Repo-local operating notes for Codex and similar agents.
 
 - Whenever source-data processing changes, document it in the relevant
   `docs/datasets/families/*.md` and `docs/datasets/sources/{source}/*.md` files.
+- In user-facing documentation use 'SaanSeoi' instead of 'Atlas', as the latter is the
+  internal name.
 
 ## Migration workflow
 
