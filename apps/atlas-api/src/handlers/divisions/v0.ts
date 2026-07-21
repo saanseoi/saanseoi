@@ -1,7 +1,7 @@
 /**
  * Unstable v0 Divisions handler bundle.
  *
- * v0 intentionally follows the current shared implementation while the catalog,
+ * v0 intentionally follows the current shared implementation while the catalogue,
  * lineage, and bitemporal serving model is being established. Stable API minors
  * must retain their own handler module when observable data or response shape
  * changes.
