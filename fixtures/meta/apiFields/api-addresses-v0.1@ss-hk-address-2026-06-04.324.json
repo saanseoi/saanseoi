@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:0749a413df534c96da93fa8f278cee66bd04fb657b4ca391b1a7109c6d80ce12",
+  "versionHash": "sha256:4e265468482b20f96eda3b75dd8d87b4391b1fcbcab711366731918c8613ea21",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "default",
   "schemaVersion": "sv-address-v1",
@@ -13,6 +13,55 @@
       }
     },
     {
+      "snapshotVersion": "ss-hk-address-2025-02-25.1050",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.12.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-03-21.1021",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.12.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-04-26.1053",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.12.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-05-22.1029",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.12.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-06-20.1033",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.12.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-08-13.1053",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.12.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-09-03.1043",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.12.0"
+      }
+    },
+    {
       "snapshotVersion": "ss-hk-address-2025-09-24.0",
       "sourceSchemas": {
         "ds-hk-hkgov-dpo-address": "3.2",
@@ -20,7 +69,63 @@
       }
     },
     {
+      "snapshotVersion": "ss-hk-address-2025-11-04.1033",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.13.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-12-16.1038",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.14.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-02-04.1057",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.15.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-04-03.1056",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.16.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-04-22.1040",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.16.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-04-25.1038",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.16.0"
+      }
+    },
+    {
       "snapshotVersion": "ss-hk-address-2026-06-04.324",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.17.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-07-08.1050",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.17.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-07-10.1054",
       "sourceSchemas": {
         "ds-hk-hkgov-dpo-address": "3.2",
         "ds-hk-overture-division": "1.17.0"
