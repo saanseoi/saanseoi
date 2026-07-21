@@ -1,4 +1,4 @@
-export type LocalizedRow = {
+export type LocalisedRow = {
   locale: string
   name: string
   description?: string | null
@@ -12,7 +12,7 @@ export type RegistryPublisher = {
   contactEmail?: string | null
   contactPhone?: string | null
   parentPublisherId?: string | null
-  publisherI18n?: LocalizedRow[]
+  publisherI18n?: LocalisedRow[]
 }
 
 export type ApiRelease = {
@@ -95,9 +95,14 @@ export type SourceVersion = {
   }>
   releaseAs?: Array<{
     apiFamily: string
+    apiVersion: string
+    cohortKey: string | null
     code: string
+    domainCode: string
     role: 'primary' | 'supporting'
+    resourceType: string
     snapshotCode: string
+    variant: string
   }>
   createdAt: string
   updatedAt: string
@@ -131,7 +136,7 @@ export type RegistrySource = {
   category?: string | null
   attribution?: string | null
   tags?: unknown
-  datasetI18n?: LocalizedRow[]
+  datasetI18n?: LocalisedRow[]
   transforms?: Array<{
     code: string
     resourceType: string
