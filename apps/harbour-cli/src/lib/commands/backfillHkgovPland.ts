@@ -187,7 +187,10 @@ async function uploadPreparedArtifact(args: {
     invocationCwd: args.invocationCwd,
     printUsage: () => undefined,
     skipConfirm: true,
-    skipSnapshotCleanup: false,
+    // A Planning Department division snapshot is the required referent for its
+    // companion area release. Keep it materialised while this cohort's area is
+    // uploaded; the area publication can then schedule ordinary cleanup.
+    skipSnapshotCleanup: args.type === 'division',
     validateGeometry: args.type === 'divisionArea',
   })
 }
