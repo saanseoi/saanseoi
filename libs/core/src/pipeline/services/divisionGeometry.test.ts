@@ -93,9 +93,9 @@ describe('division geometry normalization', () => {
     ).toThrow('contains a self-intersecting ring')
   })
 
-  test('derives mixed Overture type from both land and territorial flags', () => {
+  test('derives mixed Overture type and bbox from geometry rather than input metadata', () => {
     const normalized = normalizeDivisionAreaGeometryRow({
-      bbox: [0, 0, 1, 1],
+      bbox: [99, 99, 100, 100],
       class: 'land',
       division_id: 'division-1',
       geometry: polygon,
@@ -109,6 +109,8 @@ describe('division geometry normalization', () => {
     expect(normalized.canonical.type).toBe('mixed')
     expect(normalized.canonical.isLand).toBe(true)
     expect(normalized.canonical.isTerritorial).toBe(true)
+    expect(normalized.canonical.bbox).toEqual([0, 0, 1, 1])
+    expect(normalized.source.bbox).toEqual([0, 0, 1, 1])
     expect(
       (normalized.source.rawProperties as Record<string, unknown>).is_territorial,
     ).toBe(true)
@@ -159,10 +161,8 @@ describe('division geometry normalization', () => {
         district_code: 11,
         division_id: 'division-1',
         geometry: polygon,
-        id: 'CENSTATD:simplified:2021:A',
-        sources: [
-          { dataset: 'hkgov-censtatd', transform: 'simplified', districtClass: 'A' },
-        ],
+        id: 'CENSTATD:A',
+        sources: [{ dataset: 'hkgov-censtatd', districtClass: 'A' }],
       },
       'hkgov-censtatd',
       { variant: 'hkgov-censtatd:simplified' },
@@ -177,9 +177,7 @@ describe('division geometry normalization', () => {
       },
     })
     expect(normalized.canonical.sources).toEqual({
-      hkgovCenstatd: [
-        { dataset: 'hkgov-censtatd', transform: 'simplified', districtClass: 'A' },
-      ],
+      hkgovCenstatd: [{ dataset: 'hkgov-censtatd', districtClass: 'A' }],
     })
   })
 

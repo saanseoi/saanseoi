@@ -25,7 +25,7 @@ describe('sourceSchemas', () => {
     ).resolves.toBe('1.2')
   })
 
-  test('resolves C&SD source and display-derivative schema versions', async () => {
+  test('resolves C&SD source schema versions', async () => {
     await expect(
       resolveSourceSchemaVersion({
         source: 'hkgov-censtatd',
@@ -35,13 +35,7 @@ describe('sourceSchemas', () => {
     await expect(
       resolveSourceSchemaVersion({
         source: 'hkgov-censtatd',
-        sourceVersion: '2016-simplified-v1',
-      }),
-    ).resolves.toBe('1.0')
-    await expect(
-      resolveSourceSchemaVersion({
-        source: 'hkgov-censtatd',
-        sourceVersion: '2021-simplified-v1',
+        sourceVersion: '2021',
       }),
     ).resolves.toBe('1.0')
   })
