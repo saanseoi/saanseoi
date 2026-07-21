@@ -1810,7 +1810,7 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
     )
     .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-    .leftJoin(
+    .innerJoin(
       metaSnapshotLineages,
       eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
     )
@@ -1886,7 +1886,7 @@ export async function ensureDraftSnapshotForRelease(
   }
 
   const variant = args.variant ?? 'default'
-  const lineageCode = buildSnapshotLineageCode(args.datasetCode)
+  const lineageCode = buildSnapshotLineageCode(args.datasetCode, variant)
   const deterministicLineageId = buildDeterministicSnapshotLineageId(lineageCode)
   const identityMode =
     args.identityMode ??
@@ -1916,7 +1916,7 @@ export async function ensureDraftSnapshotForRelease(
       updatedAt: now,
     })
     .onConflictDoUpdate({
-      target: metaSnapshotLineages.primaryDatasetId,
+      target: [metaSnapshotLineages.primaryDatasetId, metaSnapshotLineages.variant],
       set: {
         code: lineageCode,
         regionCode: args.regionCode,
@@ -1932,7 +1932,12 @@ export async function ensureDraftSnapshotForRelease(
   const lineage = await db
     .select({ id: metaSnapshotLineages.id })
     .from(metaSnapshotLineages)
-    .where(eq(metaSnapshotLineages.primaryDatasetId, args.datasetId))
+    .where(
+      and(
+        eq(metaSnapshotLineages.primaryDatasetId, args.datasetId),
+        eq(metaSnapshotLineages.variant, variant),
+      ),
+    )
     .limit(1)
     .get()
 
@@ -2320,12 +2325,11 @@ export async function listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
 }
 
 /**
- * Lists the published canonical-release cohorts that can be enriched by an
- * optional provider snapshot. We deliberately return one cohort at a time:
- * publishing the provider creates the next immutable revision for each of
- * these Overture-backed release sets.
+ * Lists Overture release-set cohorts that can receive a provider snapshot.
+ * Draft sets are included so required companion data can complete an initial
+ * publication; non-draft sets receive an immutable next revision instead.
  */
-export async function listPublishedOvertureReleaseSetCohortsAtOrAfterCohortKey(
+export async function listOvertureReleaseSetCohortsAtOrAfterCohortKey(
   db: HarbourReadableDb,
   type: ResourceType,
   regionCode: RegionCode,
@@ -2358,7 +2362,6 @@ export async function listPublishedOvertureReleaseSetCohortsAtOrAfterCohortKey(
         eq(metaApiVersions.code, apiVersionCode),
         eq(metaApiReleaseSets.regionCode, regionCode),
         eq(metaApiReleaseSets.domainCode, domainCode),
-        ne(metaApiReleaseSets.status, 'draft'),
         sql`${metaApiReleaseSets.cohortKey} >= ${cohortKey}`,
         eq(metaApiReleaseSetSnapshots.role, 'primary'),
         eq(metaSnapshots.resourceType, type),
