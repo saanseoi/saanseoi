@@ -1,7 +1,11 @@
 import { describe, expect, mock, test } from 'bun:test'
 
 const preparedTypes: Array<{ sourceVersion: string; type: string }> = []
-const uploadedTypes: Array<{ sourceVersion: string; type: string }> = []
+const uploadedTypes: Array<{
+  skipSnapshotCleanup: boolean
+  sourceVersion: string
+  type: string
+}> = []
 let divisionPublishComplete = false
 
 const prepareHkgovPlandTpuParquetMock = mock(
@@ -11,10 +15,18 @@ const prepareHkgovPlandTpuParquetMock = mock(
 )
 
 const runUploadCommandMock = mock(
-  async (args: { options: { 'source-version'?: unknown; type?: unknown } }) => {
-    const sourceVersion = String(args.options['source-version'])
-    const type = String(args.options.type)
-    uploadedTypes.push({ sourceVersion, type })
+  async (
+    _args: { options: { 'source-version'?: unknown; type?: unknown } },
+    _target: unknown,
+    options: { skipSnapshotCleanup: boolean },
+  ) => {
+    const sourceVersion = String(_args.options['source-version'])
+    const type = String(_args.options.type)
+    uploadedTypes.push({
+      skipSnapshotCleanup: options.skipSnapshotCleanup,
+      sourceVersion,
+      type,
+    })
 
     if (type === 'division') {
       await Promise.resolve()
@@ -56,16 +68,16 @@ describe('Planning Department backfills', () => {
 
     expect(preparedTypes).toHaveLength(10)
     expect(uploadedTypes).toEqual([
-      { sourceVersion: '2001', type: 'division' },
-      { sourceVersion: '2001', type: 'divisionArea' },
-      { sourceVersion: '2006', type: 'division' },
-      { sourceVersion: '2006', type: 'divisionArea' },
-      { sourceVersion: '2011', type: 'division' },
-      { sourceVersion: '2011', type: 'divisionArea' },
-      { sourceVersion: '2016', type: 'division' },
-      { sourceVersion: '2016', type: 'divisionArea' },
-      { sourceVersion: '2021', type: 'division' },
-      { sourceVersion: '2021', type: 'divisionArea' },
+      { skipSnapshotCleanup: true, sourceVersion: '2001', type: 'division' },
+      { skipSnapshotCleanup: false, sourceVersion: '2001', type: 'divisionArea' },
+      { skipSnapshotCleanup: true, sourceVersion: '2006', type: 'division' },
+      { skipSnapshotCleanup: false, sourceVersion: '2006', type: 'divisionArea' },
+      { skipSnapshotCleanup: true, sourceVersion: '2011', type: 'division' },
+      { skipSnapshotCleanup: false, sourceVersion: '2011', type: 'divisionArea' },
+      { skipSnapshotCleanup: true, sourceVersion: '2016', type: 'division' },
+      { skipSnapshotCleanup: false, sourceVersion: '2016', type: 'divisionArea' },
+      { skipSnapshotCleanup: true, sourceVersion: '2021', type: 'division' },
+      { skipSnapshotCleanup: false, sourceVersion: '2021', type: 'divisionArea' },
     ])
   })
 })

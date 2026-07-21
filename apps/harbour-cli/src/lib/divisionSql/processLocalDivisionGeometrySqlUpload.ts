@@ -21,6 +21,7 @@ import {
   createAsyncBufferFromR2,
   readParquetObjectsInBatches,
 } from '@repo/core/pipeline/parquetR2'
+import { chunkArray } from '@repo/core/pipeline/utils'
 import {
   hashDivisionGeometryRow,
   hashDivisionGeometrySourceRow,
@@ -388,6 +389,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     if (!resolveProviderBridgeConfig(previewPlan.source)) {
       await assertDivisionReferences(
         dbContext.currentDb,
+        dbContext.historyDb,
         metaDb,
         previewPlan.regionCode,
         previewPlan.cohortKey,
@@ -621,6 +623,7 @@ function normalizeJsonArray(value: unknown): unknown[] | null {
 
 async function assertDivisionReferences(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
+  historyDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyDb'],
   metaDb: HarbourReadableDb,
   regionCode: RegionCode,
   cohortKey: string,
@@ -638,11 +641,15 @@ async function assertDivisionReferences(
       `No published division snapshot exists for ${regionCode}/${cohortKey}; geometry references cannot be validated.`,
     )
   }
-  const divisionRows = await currentDb
-    .select({ id: currentSchema.divisions.id })
-    .from(currentSchema.divisions)
-    .where(eq(currentSchema.divisions.snapshotId, divisionSnapshot.id))
-    .all()
+  let divisionRows = await listCurrentDivisionIds(currentDb, divisionSnapshot.id)
+  if (divisionRows.length === 0) {
+    await restoreDivisionSnapshotFromHistory(
+      currentDb as unknown as HarbourWritableDb,
+      historyDb,
+      divisionSnapshot.id,
+    )
+    divisionRows = await listCurrentDivisionIds(currentDb, divisionSnapshot.id)
+  }
   const knownIds = new Set(divisionRows.map(row => row.id))
   const missingReferences = rows.flatMap(row => {
     const missingIds = divisionReferenceIds(type, row).filter(id => !knownIds.has(id))
@@ -665,6 +672,91 @@ async function assertDivisionReferences(
         ...formatMissingDivisionReferenceRecords(missingReferences),
       ].join('\n'),
     )
+  }
+}
+
+async function listCurrentDivisionIds(
+  currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
+  snapshotId: string,
+) {
+  return currentDb
+    .select({ id: currentSchema.divisions.id })
+    .from(currentSchema.divisions)
+    .where(eq(currentSchema.divisions.snapshotId, snapshotId))
+    .all()
+}
+
+// A division release may publish before its required geometry companion. If the
+// asynchronous cleanup removes that incomplete snapshot in the meantime, rebuild
+// its current projection from the immutable history snapshot before validation.
+async function restoreDivisionSnapshotFromHistory(
+  currentDb: HarbourWritableDb,
+  historyDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyDb'],
+  snapshotId: string,
+) {
+  const [divisionRows, i18nRows] = await Promise.all([
+    historyDb
+      .select({
+        bbox: historySchema.divisions.bbox,
+        cartography: historySchema.divisions.cartography,
+        geometry: historySchema.divisions.geometry,
+        hierarchy: historySchema.divisions.hierarchy,
+        id: historySchema.divisions.id,
+        identifiers: historySchema.divisions.identifiers,
+        level: historySchema.divisions.level,
+        sourceKeys: historySchema.divisions.sourceKeys,
+        sources: historySchema.divisions.sources,
+        type: historySchema.divisions.type,
+        wikidata: historySchema.divisions.wikidata,
+      })
+      .from(historySchema.divisions)
+      .where(eq(historySchema.divisions.snapshotId, snapshotId))
+      .all(),
+    historyDb
+      .select({
+        divisionId: historySchema.divisionsI18n.divisionId,
+        isLocaleInferred: historySchema.divisionsI18n.isLocaleInferred,
+        locale: historySchema.divisionsI18n.locale,
+        name: historySchema.divisionsI18n.name,
+        nameAlts: historySchema.divisionsI18n.nameAlts,
+        nameRules: historySchema.divisionsI18n.nameRules,
+        nameVariant: historySchema.divisionsI18n.nameVariant,
+      })
+      .from(historySchema.divisionsI18n)
+      .where(eq(historySchema.divisionsI18n.snapshotId, snapshotId))
+      .all(),
+  ])
+
+  if (divisionRows.length === 0) return
+
+  const now = toIsoTimestamp()
+  for (const chunk of chunkArray(divisionRows, 8)) {
+    await currentDb
+      .insert(currentSchema.divisions)
+      .values(
+        chunk.map(row => ({
+          ...row,
+          createdAt: now,
+          snapshotId,
+          updatedAt: now,
+        })),
+      )
+      .onConflictDoNothing()
+      .run()
+  }
+  for (const chunk of chunkArray(i18nRows, 8)) {
+    await currentDb
+      .insert(currentSchema.divisionsI18n)
+      .values(
+        chunk.map(row => ({
+          ...row,
+          createdAt: now,
+          snapshotId,
+          updatedAt: now,
+        })),
+      )
+      .onConflictDoNothing()
+      .run()
   }
 }
 

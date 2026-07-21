@@ -105,7 +105,9 @@ the catalogue.
 The CLI owns the checked-in cohort list, artifact paths and catalogue provenance URLs.
 It prepares each local GeoJSON artifact in a temporary directory, uploads the canonical
 division release first, then its exact-cohort area variant, and removes the temporary
-Parquet files afterwards.
+Parquet files afterwards. Snapshot cleanup is deferred for the interim division upload,
+so its canonical IDs remain materialised for the companion area validation; normal
+cleanup resumes when the area release is published.
 
 ```sh
 saanseoi backfill:hkgov-pland-pu --target preview
