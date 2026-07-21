@@ -105,9 +105,12 @@ export function buildSnapshotVersionCode(
   return `ss-${normalizeCodeSlug(regionCode)}-${normalizeCodeSlug(resourceType)}${variantSegment}-${normalizeCohortKey(cohortKey)}${revisionSegment}`
 }
 
-export function buildSnapshotLineageCode(datasetCode: string) {
-  // Dataset codes already include source, region, and resource scope.
-  return `sl-${normalizeCodeSlug(datasetCode)}`
+export function buildSnapshotLineageCode(datasetCode: string, variant = 'default') {
+  // A source dataset can expose structured subvariants (for example C&SD
+  // census cohorts). Keep ordinary source variants concise because their
+  // dataset code already contains that scope.
+  const variantSegment = variant.includes(':') ? `-${normalizeCodeSlug(variant)}` : ''
+  return `sl-${normalizeCodeSlug(datasetCode)}${variantSegment}`
 }
 
 export function buildDataReleaseSetCode(
