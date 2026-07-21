@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 
-import { formatSourceDuplicateSummary } from './hkgovAls.ts'
+import {
+  formatSourceDuplicateSummary,
+  inferAlsSourceVersionFromPath,
+  resolveAlsReleaseVersions,
+} from './hkgovAls.ts'
 
 describe('formatSourceDuplicateSummary', () => {
   test('reports aggregate duplicate statistics without source-record JSON', () => {
@@ -34,5 +38,36 @@ describe('formatSourceDuplicateSummary', () => {
     expect(summary).toContain('3')
     expect(summary).not.toContain('canonical-1')
     expect(summary).not.toContain('ignored-1')
+  })
+})
+
+describe('ALS release versions', () => {
+  test('uses a zero correction for the first release on a delivery date', () => {
+    expect(inferAlsSourceVersionFromPath('/data/20250123-1031-ALS-GeoJSON')).toBe(
+      '2025-01-23.0',
+    )
+  })
+
+  test('increments the correction only when two releases share a date', () => {
+    expect(
+      resolveAlsReleaseVersions([
+        '/data/20250123-1530-ALS-GeoJSON',
+        '/data/20250123-1031-ALS-GeoJSON',
+        '/data/20250225-1050-ALS-GeoJSON',
+      ]),
+    ).toEqual([
+      {
+        sourceDir: '/data/20250123-1031-ALS-GeoJSON',
+        sourceVersion: '2025-01-23.0',
+      },
+      {
+        sourceDir: '/data/20250123-1530-ALS-GeoJSON',
+        sourceVersion: '2025-01-23.1',
+      },
+      {
+        sourceDir: '/data/20250225-1050-ALS-GeoJSON',
+        sourceVersion: '2025-02-25.0',
+      },
+    ])
   })
 })

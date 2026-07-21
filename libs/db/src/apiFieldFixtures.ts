@@ -8,7 +8,7 @@ import apiDivisionsV01Fixture20260520 from '../../../fixtures/meta/apiFields/api
 import apiDivisionsV01FixturePlandNewTown2006 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-new-town-2006.json'
 import apiDivisionsV01FixturePlandPu2001 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2001.json'
 import apiDivisionsV01FixturePlandPu2021 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2021.json'
-import apiAddressesV01Fixture20260604 from '../../../fixtures/meta/apiFields/api-addresses-v0.1@ss-hk-address-2026-06-04.324.json'
+import apiAddressesV01Fixture20260604 from '../../../fixtures/meta/apiFields/api-addresses-v0.1@ss-hk-address-2026-06-04.0.json'
 
 import type { ProvenanceContributionType, ResolverCode } from './constants/schema'
 import { computeVersionHash } from './versioning'
