@@ -6,7 +6,15 @@ import {
   listRegistryReleases,
   listRegistrySources,
 } from '@repo/core/db/metaRegistry'
-import { createCurrentDb, createMetaDb, currentSchema, desc, eq, sql } from '@repo/db'
+import {
+  and,
+  createCurrentDb,
+  createMetaDb,
+  currentSchema,
+  desc,
+  eq,
+  sql,
+} from '@repo/db'
 import { error, redirect } from '@sveltejs/kit'
 import { getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
@@ -93,34 +101,48 @@ export const getSourceDatasetPageData = query(registryCodeSchema, async datasetC
 })
 
 const DISTRICT_COVERAGE_MAP_VARIANT = 'hkgov-censtatd:2021:simplified'
+const districtMapLocaleSchema = z.enum(['en', 'zh-Hant', 'zh-Hans'])
 
 /**
  * The district-coverage map uses the C&SD 2021 Census District Boundary's
  * simplified display geometry. Do not substitute HAD or source-precision
  * geometry here: the choropleth must remain a lightweight Census map.
  */
-export const getDistrictCoverageMapData = query(async () => {
-  const { divisionAreas } = currentSchema
-  const rows = await getCurrentDb()
-    .select({
-      divisionId: divisionAreas.divisionId,
-      geometry: divisionAreas.geometry,
-      sourceKeys: divisionAreas.sourceKeys,
-      updatedAt: divisionAreas.updatedAt,
-      variant: divisionAreas.variant,
-    })
-    .from(divisionAreas)
-    .where(eq(divisionAreas.variant, DISTRICT_COVERAGE_MAP_VARIANT))
-    .orderBy(desc(divisionAreas.updatedAt))
-    .all()
+export const getDistrictCoverageMapData = query(
+  districtMapLocaleSchema,
+  async locale => {
+    const { divisionAreas, divisionsI18n } = currentSchema
+    const i18nLocale = locale.toLowerCase()
+    const rows = await getCurrentDb()
+      .select({
+        divisionId: divisionAreas.divisionId,
+        geometry: divisionAreas.geometry,
+        name: divisionsI18n.name,
+        updatedAt: divisionAreas.updatedAt,
+        variant: divisionAreas.variant,
+      })
+      .from(divisionAreas)
+      .leftJoin(
+        divisionsI18n,
+        and(
+          eq(divisionsI18n.snapshotId, divisionAreas.snapshotId),
+          eq(divisionsI18n.divisionId, divisionAreas.divisionId),
+          eq(divisionsI18n.locale, i18nLocale),
+        ),
+      )
+      .where(eq(divisionAreas.variant, DISTRICT_COVERAGE_MAP_VARIANT))
+      .orderBy(desc(divisionAreas.updatedAt))
+      .all()
 
-  const latestByDistrict = new Map<string, (typeof rows)[number]>()
-  for (const row of rows) {
-    if (!latestByDistrict.has(row.divisionId)) latestByDistrict.set(row.divisionId, row)
-  }
+    const latestByDistrict = new Map<string, (typeof rows)[number]>()
+    for (const row of rows) {
+      if (!latestByDistrict.has(row.divisionId))
+        latestByDistrict.set(row.divisionId, row)
+    }
 
-  return [...latestByDistrict.values()]
-})
+    return [...latestByDistrict.values()]
+  },
+)
 
 export const getPublisherPageData = query(registryCodeSchema, async publisherCode => {
   const db = getMetaDb()
