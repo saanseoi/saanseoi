@@ -2850,7 +2850,7 @@ export async function publishReleaseArtefacts(
     type: ResourceType
     /** Publish the dataset snapshot, but leave the API release set as draft. */
     deferApiReleaseSet?: boolean
-    /** Whether this release-set publication should emit a catalog revision. */
+    /** Whether this release-set publication should emit a catalogue revision. */
     publishApiCatalogRevision?: boolean
     /** Whether this release-set publication should update the source release. */
     updateDatasetRelease?: boolean
