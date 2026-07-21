@@ -507,7 +507,7 @@ function unionGeometries(geometries: GeoJsonGeometry[]) {
       left.getEnvelopeInternal().compareTo(right.getEnvelopeInternal()),
     )
   const unioned = unionBalanced(parsed)
-  const result = writer.write(unioned) as GeoJsonGeometry
+  const result = removeDegenerateInteriorRings(writer.write(unioned) as GeoJsonGeometry)
   if (
     (result.type !== 'Polygon' && result.type !== 'MultiPolygon') ||
     !IsValidOp.isValid(unioned)
@@ -517,6 +517,42 @@ function unionGeometries(geometries: GeoJsonGeometry[]) {
     )
   }
   return result
+}
+
+/**
+ * JSTS considers zero-area holes valid after polygon unions, but the canonical
+ * geometry validator correctly rejects them. Keep each exterior ring and drop
+ * only those degenerate interior rings from the aggregate geometry.
+ */
+function removeDegenerateInteriorRings(geometry: GeoJsonGeometry): GeoJsonGeometry {
+  if (geometry.type === 'Polygon') {
+    return {
+      ...geometry,
+      coordinates: removeDegenerateInteriorRingsFromPolygon(geometry.coordinates),
+    }
+  }
+  if (geometry.type === 'MultiPolygon') {
+    return {
+      ...geometry,
+      coordinates: geometry.coordinates.map(removeDegenerateInteriorRingsFromPolygon),
+    }
+  }
+  return geometry
+}
+
+function removeDegenerateInteriorRingsFromPolygon(rings: GeoJsonPosition[][]) {
+  return rings.filter((ring, index) => index === 0 || ringArea(ring) !== 0)
+}
+
+function ringArea(ring: GeoJsonPosition[]) {
+  let total = 0
+  for (let index = 0; index < ring.length - 1; index += 1) {
+    const current = ring[index]
+    const next = ring[index + 1]
+    if (!current || !next) continue
+    total += current[0] * next[1] - next[0] * current[1]
+  }
+  return total / 2
 }
 
 function unionBalanced(geometries: Geometry[]): Geometry {
