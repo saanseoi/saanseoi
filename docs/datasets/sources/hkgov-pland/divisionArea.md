@@ -48,6 +48,10 @@ canonical geometry and child-area unions. Each repaired record is identified in
 `repairedSourceFeatureIds` and `wasGeometryRepaired`; all other invalid geometry is
 rejected.
 
+The aggregate union step also removes zero-area interior rings. These can be emitted by
+otherwise valid unions, but are not valid canonical area geometry; source-cell geometry
+and non-degenerate rings remain unchanged.
+
 Each approved geometry repair is also recorded as a release processing action with the
 canonical division and source-cell reference. Aggregate repair counts remain in release
 stats; the per-record JSON evidence is available through
