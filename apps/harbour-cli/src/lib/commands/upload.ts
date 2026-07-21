@@ -774,7 +774,7 @@ const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS: readonly CohortIndependentRe
     {
       datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
       domainCode: 'hkgov-censtatd',
-      optional: true,
+      optional: false,
       resourceType: 'divisionArea',
     },
   ]
