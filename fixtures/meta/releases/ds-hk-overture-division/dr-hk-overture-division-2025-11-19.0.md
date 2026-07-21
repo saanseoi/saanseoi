@@ -1,21 +1,21 @@
 ---
-createdAt: "2026-07-06T20:03:10.577Z"
+createdAt: "2026-07-22T00:00:00.000Z"
 updatedAt: "2026-07-22T00:00:00.000Z"
 dataset: "ds-hk-overture-division"
-release: "dr-hk-overture-division-2025-10-22.0"
+release: "dr-hk-overture-division-2025-11-19.0"
 regionCode: "hk"
 source: "overture"
-sourceVersion: "2025-10-22.0"
-sourceSchemaVersion: "1.13.0"
+sourceVersion: "2025-11-19.0"
+sourceSchemaVersion: "1.14.0"
 type: "division"
-cohortKey: "2025-10-22.0"
+cohortKey: "2025-11-19.0"
 ---
 
 # EN
 
 ## Changelog
 
-- <orange>Upstream</orange> Refreshed OSM data on <black>2025-10-02</black>
+- <orange>Upstream</orange> Refreshed OSM data on <black>2025-11-06</black>
 - <orange>Upstream</orange> Made minor, incremental updates to the data
 
 ## Compatibility
@@ -120,8 +120,8 @@ neighbourhood  149
 quarter        183
 region          19
 square          72
-suburb         209
-town            16
+suburb          209
+town             16
 village        199
 ```
 
@@ -141,17 +141,3 @@ village        199
 
 - `hierarchies[][]` - the top-level country ancestor is implicit for every division in
   the Hong Kong SAR, and the division itself is redundant with the row being described.
-
-# ZH-HANT
-
-## 更新紀錄
-
-- <orange>上游</orange> 於 <black>2025-10-02</black> 更新 OSM 資料
-- <orange>上游</orange> 對資料作出輕微、逐步的更新
-
-# ZH-HANS
-
-## 更新记录
-
-- <orange>上游</orange> 于 <black>2025-10-02</black> 更新 OSM 数据
-- <orange>上游</orange> 对数据进行了轻微、渐进式更新

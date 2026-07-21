@@ -1,25 +1,21 @@
 ---
-createdAt: "2026-07-15T00:00:00.000Z"
+createdAt: "2026-07-22T00:00:00.000Z"
 updatedAt: "2026-07-22T00:00:00.000Z"
 dataset: "ds-hk-overture-division-area"
-release: "dr-hk-overture-division-area-2025-09-24.0"
+release: "dr-hk-overture-division-area-2026-01-21.0"
 regionCode: "hk"
 source: "overture"
-sourceVersion: "2025-09-24.0"
-sourceSchemaVersion: "1.12.0"
+sourceVersion: "2026-01-21.0"
+sourceSchemaVersion: "1.15.0"
 type: "divisionArea"
-cohortKey: "2025-09-24.0"
+cohortKey: "2026-01-21.0"
 ---
 
 # EN
 
 ## Changelog
 
-- Initial 山水 | SaanSeoi release
-- <orange>Upstream</orange> Added <black>license</black> within <black>sources</black>
-  and populated it with applicable license information
-- <orange>Upstream</orange> Refreshed OSM data with updates through
-  <black>2025-08-29</black>
+- <orange>Upstream</orange> Made minor, incremental updates to the data
 
 ## Compatibility
 
@@ -98,10 +94,7 @@ A future Overture compatibility API will make these available in the future
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 初始版本。
-- <orange>上游</orange> 在 <black>sources</black> 中新增
-  <black>license</black>，並填入適用的授權資訊
-- <orange>上游</orange> OSM 資料更新至 <black>2025-08-29</black>
+- <orange>上游</orange> 對資料進行小幅、漸進式更新
 
 ## 兼容性
 
@@ -174,10 +167,7 @@ schema（`{{sourceSchemaVersion}}`）。
 
 ## 更新记录
 
-- 山水 | SaanSeoi 初始版本。
-- <orange>上游</orange> 在 <black>sources</black> 中新增
-  <black>license</black>，并填入适用的授权信息
-- <orange>上游</orange> OSM 数据更新至 <black>2025-08-29</black>
+- <orange>上游</orange> 对数据进行了小幅、渐进式更新
 
 ## 兼容性
 

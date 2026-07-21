@@ -1,25 +1,28 @@
 ---
-createdAt: "2026-07-15T00:00:00.000Z"
+createdAt: "2026-07-22T00:00:00.000Z"
 updatedAt: "2026-07-22T00:00:00.000Z"
 dataset: "ds-hk-overture-division-area"
-release: "dr-hk-overture-division-area-2025-09-24.0"
+release: "dr-hk-overture-division-area-2026-02-18.0"
 regionCode: "hk"
 source: "overture"
-sourceVersion: "2025-09-24.0"
-sourceSchemaVersion: "1.12.0"
+sourceVersion: "2026-02-18.0"
+sourceSchemaVersion: "1.16.0"
 type: "divisionArea"
-cohortKey: "2025-09-24.0"
+cohortKey: "2026-02-18.0"
 ---
 
 # EN
 
 ## Changelog
 
-- Initial 山水 | SaanSeoi release
-- <orange>Upstream</orange> Added <black>license</black> within <black>sources</black>
-  and populated it with applicable license information
-- <orange>Upstream</orange> Refreshed OSM data with updates through
-  <black>2025-08-29</black>
+- <orange>Upstream</orange> Added a new `admin_level` property to better represent a
+  division's position in its country's administrative hierarchy, i.e. lower numbers
+  correspond to higher level administrative units (0, 1, and 2).
+  - For `DivisionArea`, `admin_level` is accepted during preflight but is not exposed on
+    canonical geometry; the related <black>Division</black> is the canonical owner of
+    this administrative-level attribute.
+  - In Hong Kong, only the SAR itself and the 18 districts are part of the
+    administrative hierarchy.
 
 ## Compatibility
 
@@ -94,14 +97,20 @@ A future Overture compatibility API will make these available in the future
 - `names` - owned by the related [Division](/docs#models/Division) and not duplicated on
   [DivisionArea](/docs#models/DivisionArea)
 
+- `admin_level` - accepted during preflight, but not exposed on canonical
+  [DivisionArea](/docs#models/DivisionArea); the related
+  [Division](/docs#models/Division) is the canonical owner of this administrative-level
+  attribute.
+
 # ZH-HANT
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 初始版本。
-- <orange>上游</orange> 在 <black>sources</black> 中新增
-  <black>license</black>，並填入適用的授權資訊
-- <orange>上游</orange> OSM 資料更新至 <black>2025-08-29</black>
+- <orange>上游</orange> 新增 `admin_level`
+  屬性，以更準確地表示一個 division 在其所屬國家行政層級中的位置，即數值越小代表層級越高的行政單位（0、1 和 2）。
+  - 對於 `DivisionArea`，`admin_level` 在預檢時接受，但不在標準幾何上公開；相關
+    <black>Division</black> 是此行政層級屬性的標準擁有者。
+  - 在香港，只有香港特別行政區本身及 18 個地區屬於行政層級。
 
 ## 兼容性
 
@@ -170,14 +179,18 @@ schema（`{{sourceSchemaVersion}}`）。
 - `names` - 由相關 [Division](/docs#models/Division) 擁有，不在
   [DivisionArea](/docs#models/DivisionArea) 上重複
 
+- `admin_level` - 在預檢時接受，但不在標準 [DivisionArea](/docs#models/DivisionArea)
+  幾何上公開；相關 [Division](/docs#models/Division) 是此行政層級屬性的標準擁有者。
+
 # ZH-HANS
 
 ## 更新记录
 
-- 山水 | SaanSeoi 初始版本。
-- <orange>上游</orange> 在 <black>sources</black> 中新增
-  <black>license</black>，并填入适用的授权信息
-- <orange>上游</orange> OSM 数据更新至 <black>2025-08-29</black>
+- <orange>上游</orange> 新增 `admin_level`
+  属性，以更准确地表示一个 division 在其所属国家行政层级中的位置，即数值越小代表层级越高的行政单位（0、1 和 2）。
+  - 对于 `DivisionArea`，`admin_level` 在预检时接受，但不在标准几何上公开；相关
+    <black>Division</black> 是此行政层级属性的标准所有者。
+  - 在香港，只有香港特别行政区本身及 18 个区属于行政层级。
 
 ## 兼容性
 
@@ -245,3 +258,6 @@ schema（`{{sourceSchemaVersion}}`）。
 
 - `names` - 由相关 [Division](/docs#models/Division) 所有，不在
   [DivisionArea](/docs#models/DivisionArea) 上重复
+
+- `admin_level` - 在预检时接受，但不在标准 [DivisionArea](/docs#models/DivisionArea)
+  几何上公开；相关 [Division](/docs#models/Division) 是此行政层级属性的标准所有者。
