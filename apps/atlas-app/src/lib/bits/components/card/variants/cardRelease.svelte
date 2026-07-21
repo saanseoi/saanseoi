@@ -34,7 +34,7 @@ let lifecycleStatus = $derived(release.displayStatus ?? release.status)
 let isCurrent = $derived(lifecycleStatus.toLowerCase() === 'current')
 let isDraft = $derived(lifecycleStatus.toLowerCase() === 'draft')
 let ink = $derived(
-  isDraft ? '#211b14' : release.apiFamily === 'streets' ? '#111717' : '#fffaf0',
+  isDraft ? '#3c3028' : release.apiFamily === 'streets' ? '#111717' : '#fffaf0',
 )
 let statusLabel = $derived(
   isDraft
@@ -77,13 +77,13 @@ let cardStyle = $derived(
   <span class="relative z-2 flex items-start justify-between gap-4"
     ><span
       ><span
-        class={`block font-body text-caption font-semibold uppercase tracking-[0.16em] ${isDraft ? 'text-[#4c4032]' : 'opacity-76'}`}
+        class={`block font-body text-caption font-semibold uppercase tracking-[0.16em] ${isDraft ? 'text-[#5f4f44]' : 'opacity-76'}`}
         >{displayDate}</span
       ><span class="mt-3 block font-display text-[1.65rem] font-bold leading-none"
         >{theme?.name ?? release.apiFamily}</span
       ></span
     ><span
-      class={`rounded border px-2 py-1 font-body text-caption font-semibold backdrop-blur ${isCurrent ? 'border-2 border-[#5fe39a] bg-[#0e3d2a]/64 text-[#f0fff7]' : isDraft ? 'border-[#211b14]/28 bg-[#fffaf0]/72 text-[#211b14]' : 'border-current/24 bg-white/12'}`}
+      class={`rounded border px-2 py-1 font-body text-caption font-semibold backdrop-blur ${isCurrent ? 'border-2 border-[#5fe39a] bg-[#0e3d2a]/64 text-[#f0fff7]' : isDraft ? 'border-[#fffaf0]/48 bg-[#3c3028]/38 text-[#fffaf0]' : 'border-current/24 bg-white/12'}`}
       >{#if isCurrent}
         <span
           class="mr-1.5 inline-block size-1.5 rounded-full bg-[#a7f3d0] align-middle"
@@ -98,21 +98,23 @@ let cardStyle = $derived(
   <span
     class="relative z-2 mt-5 grid grid-cols-[minmax(8.5rem,1.2fr)_minmax(0,0.8fr)] gap-3 font-body text-caption"
     ><span
-      class={`grid min-h-18 min-w-34 content-center border p-3 backdrop-blur ${isDraft ? 'border-[#211b14]/28 bg-[#fffaf0]/68' : 'border-current bg-white/10'}`}
-      ><span class={isDraft ? 'text-[#4c4032]' : 'opacity-68'}>{m.data_schema()}</span
+      class={`grid min-h-18 min-w-34 content-center border p-3 backdrop-blur ${isDraft ? 'border-[#fffaf0]/48 bg-[#3c3028]/32 text-[#fffaf0]' : 'border-current bg-white/10'}`}
+      ><span class={isDraft ? 'text-[#fffaf0]/88' : 'opacity-68'}
+        >{m.data_schema()}</span
       ><span class="mt-1 font-mono text-[0.95rem] font-bold leading-none"
         >{release.schemaVersion}</span
       ></span
     ><span
-      class={`grid min-h-18 content-center border p-3 backdrop-blur ${isDraft ? 'border-[#211b14]/28 bg-[#fffaf0]/68' : 'border-current bg-white/10'}`}
-      ><span class={isDraft ? 'text-[#4c4032]' : 'opacity-68'}>{m.data_records()}</span
+      class={`grid min-h-18 content-center border p-3 backdrop-blur ${isDraft ? 'border-[#fffaf0]/48 bg-[#3c3028]/32 text-[#fffaf0]' : 'border-current bg-white/10'}`}
+      ><span class={isDraft ? 'text-[#fffaf0]/88' : 'opacity-68'}
+        >{m.data_records()}</span
       ><span class="mt-1 font-mono text-[0.95rem] font-bold leading-none"
         >{records ?? m.data_pending()}</span
       ></span
     ></span
   >
   <span
-    class={`relative z-2 mt-6 inline-flex items-center justify-self-end gap-1 font-body text-label-md font-semibold ${isDraft ? 'rounded bg-[#fffaf0]/62 px-2 py-1' : ''}`}
+    class={`relative z-2 mt-6 inline-flex items-center justify-self-end gap-1 font-body text-label-md font-semibold ${isDraft ? 'rounded border border-[#fffaf0]/40 bg-[#3c3028]/30 px-2 py-1 text-[#fffaf0]' : ''}`}
     >{m.data_view_release()}
     <Icon
       icon="proicons:arrow-right"
