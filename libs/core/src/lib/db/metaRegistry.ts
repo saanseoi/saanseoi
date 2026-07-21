@@ -21,6 +21,7 @@ import { listApiFieldFixtures, resolveApiFieldFixture } from '@repo/db/apiFieldF
 import { metaSchema } from '@repo/db'
 import { compareReleaseVersions, resolveSourceSchemaVersion } from '../../sourceSchemas'
 import {
+  buildDatasetCode,
   datasetVariantForSource,
   publisherCodeForSource,
   resourceTypeCodeSlug,
@@ -945,6 +946,10 @@ export async function getLatestDatasetForRegionSourceType(
       and(
         eq(metaDatasets.regionCode, regionCode),
         eq(metaPublishers.code, publisherCodeForSource(source)),
+        // A publisher can publish more than one product. In particular, the
+        // Planning Department TPU and New Town feeds share `hkgov-pland` but
+        // are independent dataset lineages with incompatible upload schemas.
+        eq(metaDatasets.code, buildDatasetCode(regionCode, source, type)),
         eq(metaDatasets.type, type),
         ne(metaReleases.status, 'failed'),
         ne(metaReleases.status, 'uploading'),

@@ -1231,12 +1231,13 @@ describe('resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId', () =>
 })
 
 describe('getLatestDatasetForRegionSourceType', () => {
-  test('resolves Planning Department upload variants through their publisher', async () => {
+  test('keeps Planning Department upload variants in separate product lineages', async () => {
     const { sqlite, db } = createLatestDatasetLookupDb()
     sqlite.exec(`
       INSERT INTO publishers (id, code) VALUES ('publisher-pland', 'hkgov-pland');
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
-        ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division');
+        ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division'),
+        ('dataset-pland-new-town', 'publisher-pland', 'ds-hk-hkgov-pland-division-new-town', 'hk', 'divisions', 'division');
     `)
 
     await insertDataset(
@@ -1253,11 +1254,47 @@ describe('getLatestDatasetForRegionSourceType', () => {
       '2026-07-21T00:00:00.000Z',
     )
 
+    await insertDataset(
+      db as never,
+      {
+        cohortKey: '2006',
+        datasetCode: 'ds-hk-hkgov-pland-division-new-town',
+        originalFileName: 'hkgov-pland-new-town-hk-2006-division.parquet',
+        releaseCode: 'dr-hk-hkgov-pland-division-new-town-2006',
+        source: 'hkgov-pland-new-town',
+        sourceVersion: '2006',
+      } as never,
+      'raw/hkgov-pland-new-town/2006/division.parquet',
+      '2026-07-21T00:00:00.000Z',
+    )
+
     expect(
       sqlite
         .query('SELECT datasetId FROM releases WHERE code = ?')
         .get('dr-hk-hkgov-pland-division-pu-2001'),
     ).toEqual({ datasetId: 'dataset-pland-pu' })
+
+    expect(
+      (
+        await getLatestDatasetForRegionSourceType(
+          db as never,
+          'hk',
+          'hkgov-pland-pu',
+          'division',
+        )
+      ).latestDataset?.releaseCode,
+    ).toBe('dr-hk-hkgov-pland-division-pu-2001')
+
+    expect(
+      (
+        await getLatestDatasetForRegionSourceType(
+          db as never,
+          'hk',
+          'hkgov-pland-new-town',
+          'division',
+        )
+      ).latestDataset?.releaseCode,
+    ).toBe('dr-hk-hkgov-pland-division-new-town-2006')
 
     sqlite.close()
   })
