@@ -10,6 +10,7 @@ import {
   ensureIngestRunStarted,
   getLatestNewerDatasetRelease,
   getLatestDatasetForRegionSourceType,
+  insertDataset,
   listPublishedOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listCurrentSnapshotCleanupCandidates,
   publishReleaseArtifacts,
@@ -339,6 +340,8 @@ function createLatestDatasetLookupDb() {
       datasetId TEXT NOT NULL,
       code TEXT NOT NULL,
       sourceVersion TEXT NOT NULL,
+      sourceSchemaVersion TEXT,
+      publicationDate TEXT,
       cohortKey TEXT NOT NULL,
       rawObjectKey TEXT NOT NULL,
       originalFileName TEXT NOT NULL,
@@ -1228,6 +1231,37 @@ describe('resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId', () =>
 })
 
 describe('getLatestDatasetForRegionSourceType', () => {
+  test('resolves Planning Department upload variants through their publisher', async () => {
+    const { sqlite, db } = createLatestDatasetLookupDb()
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES ('publisher-pland', 'hkgov-pland');
+      INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
+        ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division');
+    `)
+
+    await insertDataset(
+      db as never,
+      {
+        cohortKey: '2001',
+        datasetCode: 'ds-hk-hkgov-pland-division-pu',
+        originalFileName: 'hkgov-pland-pu-hk-2001-division.parquet',
+        releaseCode: 'dr-hk-hkgov-pland-division-pu-2001',
+        source: 'hkgov-pland-pu',
+        sourceVersion: '2001',
+      } as never,
+      'raw/hkgov-pland-pu/2001/division.parquet',
+      '2026-07-21T00:00:00.000Z',
+    )
+
+    expect(
+      sqlite
+        .query('SELECT datasetId FROM releases WHERE code = ?')
+        .get('dr-hk-hkgov-pland-division-pu-2001'),
+    ).toEqual({ datasetId: 'dataset-pland-pu' })
+
+    sqlite.close()
+  })
+
   test('orders dotted source versions numerically instead of lexicographically', async () => {
     const { sqlite, db } = createLatestDatasetLookupDb()
 

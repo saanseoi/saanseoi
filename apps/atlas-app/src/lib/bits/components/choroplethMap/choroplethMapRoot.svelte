@@ -6,7 +6,9 @@ import {
   MapLibre,
   NavigationControl,
 } from 'svelte-maplibre-gl'
+import { tick } from 'svelte'
 import type { ExpressionSpecification } from 'maplibre-gl'
+import type { Map as MapLibreMap } from 'maplibre-gl'
 import { layers, namedFlavor } from '@protomaps/basemaps'
 import type { StyleSpecification } from 'maplibre-gl'
 
@@ -77,6 +79,21 @@ let fillColor = $derived([
   '#008f7a',
 ] as unknown as ExpressionSpecification)
 let activeFeature = $state<{ label: string; value: number } | null>(null)
+let map = $state<MapLibreMap>()
+
+$effect(() => {
+  sourceData
+  if (!map) return
+
+  let frame: number | undefined
+  void tick().then(() => {
+    frame = requestAnimationFrame(() => map?.resize())
+  })
+
+  return () => {
+    if (frame !== undefined) cancelAnimationFrame(frame)
+  }
+})
 
 const formatValue = (value: number) => new Intl.NumberFormat().format(value)
 
@@ -98,6 +115,7 @@ function updateActiveFeature(event: {
   <div class="relative h-80" role="img" aria-label={ariaLabel}>
     <MapLibre
       class="size-full"
+      bind:map
       style={HYPE_BASEMAP_STYLE}
       center={[114.16, 22.33]}
       zoom={9.7}

@@ -70,6 +70,29 @@ describe('fixture version hashes', () => {
 })
 
 describe('resolveInitialDataShardsForEnvironment', () => {
+  test('registers the Hong Kong BEFORE shards without a year scope', () => {
+    for (const environment of ['preview', 'production'] as const) {
+      expect(resolveInitialDataShardsForEnvironment(environment)).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            bindingName: 'DB_HISTORY_HK_BEFORE',
+            environment,
+            regionCode: 'hk',
+            shardType: 'history',
+            year: undefined,
+          }),
+          expect.objectContaining({
+            bindingName: 'DB_SOURCE_HK_BEFORE',
+            environment,
+            regionCode: 'hk',
+            shardType: 'source',
+            year: undefined,
+          }),
+        ]),
+      )
+    }
+  })
+
   test('returns only preview shard rows for preview targets', () => {
     const previewShards = resolveInitialDataShardsForEnvironment('preview')
 
