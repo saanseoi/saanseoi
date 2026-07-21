@@ -89,6 +89,8 @@ type PreparedDivision = {
 }
 
 const LOCAL_RELEASE_ROOT = `${import.meta.dir}/../../../../../.local/harbour-sql/releases`
+const PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE = 'primary'
+
 export async function processLocalHkgovPlandDivisionSqlUpload(
   target: UploadTarget,
   previewPlan: HkgovPlandDivisionUploadPlan,
@@ -152,7 +154,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       snapshot.id,
       dataset.datasetId,
       dataset.releaseId,
-      'enrichment',
+      PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE,
       {
         anchorReleaseId: dataset.releaseId,
         selectedByRule: `snapshot-assembly-${previewPlan.source}-division-v1`,
@@ -166,7 +168,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       anchorReleaseId: dataset.releaseId,
       anchorCohortKey: dataset.cohortKey,
       selectionSummaryJson: {
-        releaseRole: 'enrichment',
+        releaseRole: PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE,
         sourceReleaseId: dataset.releaseId,
         sourceVersion: dataset.sourceVersion,
       },
