@@ -315,7 +315,7 @@ export function asString(value: unknown) {
 }
 
 /**
- * Serializes JSON after sorting object keys for deterministic comparisons.
+ * Serialises JSON after sorting object keys for deterministic comparisons.
  */
 export function stableJsonStringify(value: unknown): string | null {
   if (value === undefined) {

@@ -4,7 +4,7 @@ The `meta` database is the control plane.
 
 Core groups:
 
-- publisher and license registry
+- publisher and licence registry
 - dataset and release registry
 - snapshot registry
 - API contract registry

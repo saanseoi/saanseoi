@@ -98,7 +98,7 @@ export async function exportRepairedHkgovPlandNewTownGeoJson(options: {
       geometry: repaired.geometry,
       properties: {
         ...(isRecord(feature.properties) ? feature.properties : {}),
-        saanseoiGeometryCanonicalization: repaired.repaired
+        saanseoiGeometryCanonicalisation: repaired.repaired
           ? 'buffer(0): self-intersection repair; original retained separately'
           : 'unchanged',
       },

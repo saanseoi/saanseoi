@@ -21,8 +21,8 @@ await runStep({
 
 if (dbFamily === 'all' || dbFamily === 'meta') {
   await runStep({
-    pending: 'Synchronizing local metadata registry',
-    success: 'Synchronized local metadata registry.',
+    pending: 'Synchronising local metadata registry',
+    success: 'Synchronised local metadata registry.',
     command: ['bun', resolve(scriptDir, 'syncMetaRegistry.ts'), 'local'],
   })
 }

@@ -248,7 +248,7 @@ function structuredPremiseNumberFamily(input: HkgovAlsStructuredPremiseNumber) {
 function isUnambiguousRomanNumeral(value: string) {
   // Single-letter Roman numerals overlap with common Hong Kong block labels such
   // as A–E. Require at least two characters (II, IV, IX, ...) as actual style
-  // evidence before normalizing a family.
+  // evidence before normalising a family.
   return value.length > 1 && ROMAN_NUMERAL.test(value)
 }
 

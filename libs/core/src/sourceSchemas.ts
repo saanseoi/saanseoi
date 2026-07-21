@@ -149,7 +149,7 @@ export async function assertKnownSafeSourceRelease(args: {
         : 'No known safe Overture releases are configured.',
       resolvedSourceSchemaVersion
         ? `Catalog reports source schema version ${resolvedSourceSchemaVersion}.`
-        : 'Harbour could not confirm the source schema version from the Overture catalog.',
+        : 'Harbour could not confirm the source schema version from the Overture catalogue.',
       'Add the release to the known-safe mapping and accepted upload schema windows before uploading it.',
     ].join(' '),
   )
