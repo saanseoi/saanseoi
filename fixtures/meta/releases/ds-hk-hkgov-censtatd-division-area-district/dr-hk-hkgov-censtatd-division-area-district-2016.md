@@ -22,7 +22,7 @@ cohortKey: "2016"
 
 The source release contains exactly 18 Polygon or MultiPolygon district areas. The GML
 declares <black>EPSG:2326</black> (Hong Kong 1980 Grid): each <black>gml:posList</black>
-is supplied as northing/easting, is normalized to <black>[easting, northing]</black>,
+is supplied as northing/easting, is normalised to <black>[easting, northing]</black>,
 then transformed to WGS 84 <black>[longitude, latitude]</black> GeoJSON coordinates in
 <black>EPSG:4326</black> (rounded to eight decimal places). Empty and invalid geometry
 is rejected; no source geometry is silently repaired.
@@ -33,7 +33,7 @@ This is a census-geography assertion, not an evergreen administrative boundary. 
 area is connected to its canonical division through the reviewed, cohort-specific
 <black>hkgov-censtatd</black> identifier bridge.
 
-### Normalized Fields
+### Normalised Fields
 
 - `geometry` - canonical <black>EPSG:4326</black> GeoJSON geometry
 - `bbox` - calculated from the canonical <black>EPSG:4326</black> geometry
@@ -43,7 +43,7 @@ area is connected to its canonical division through the reviewed, cohort-specifi
   as <black>en</black> and <black>zh-hant</black>. They are not fields on the included
   geometry resource; SaanSeoi division labels, when requested, are canonical
   <black>data.attributes.i18n</black> values.
-- `sources` - public source-chain attribution is
+- `sources` - public attribution lineage of the source is under
   <black>included[].attributes.sources.hkgovCenstatd</black>; it is an array of
   publisher attribution values such as <black>{ dataset: "hkgov-censtatd",
   districtClass: "B", districtCode: 12 }</black>.

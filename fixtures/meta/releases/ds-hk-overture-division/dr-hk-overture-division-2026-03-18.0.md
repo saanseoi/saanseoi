@@ -1,6 +1,6 @@
 ---
 createdAt: "2026-07-14T05:19:28.642Z"
-updatedAt: "2026-07-17T00:00:00.000Z"
+updatedAt: "2026-07-22T00:00:00.000Z"
 dataset: "ds-hk-overture-division"
 release: "dr-hk-overture-division-2026-03-18.0"
 regionCode: "hk"
@@ -15,7 +15,7 @@ cohortKey: "2026-03-18.0"
 
 ## Changelog
 
-- <orange>Upstream</orange> Made minor, incremental updates to the data
+- <orange>Upstream</orange> Made minor, incremental changes to the data
 
 ## Compatibility
 
@@ -29,7 +29,8 @@ in the following ways:
 
 Fields that retain the Overture value directly:
 
-- `id` - [Id](/docs#models/Id)
+- `id` - [Id](/docs#models/Id) - a stable GERS UUID; see
+  [Overture's GERS documentation](https://docs.overturemaps.org/gers/)
 - `cartography` - [CartographicHints](/docs#models/CartographicHints)
 - `bbox` - [BBox](/docs#models/BBox)
 - `geometry` - [Geometry](/docs#models/Geometry)
@@ -41,7 +42,7 @@ Fields which retain the full extent of the original data, with certain additions
 
 - `sources` - [Sources](/docs#models/Sources) - wrapped under the
   <black>overture</black> key to allow conflation with other datasets while retaining
-  source-chain attribution.
+  attribution lineage of the source.
 
 ### Normalised Fields
 
@@ -81,8 +82,8 @@ inputs into mappings that are more appropriate for the local context.
 
 ### Dropped Fields
 
-Fields which are not exposed as part of [Division](/docs#models/Division). They will
-however be made available under an Overture compatibility API in the future
+Fields which are not exposed as part of [Division](/docs#models/Division). A future
+Overture compatibility API will make these available in the future
 <orange>FORTHCOMING</orange>.
 
 #### Due to zero variance
