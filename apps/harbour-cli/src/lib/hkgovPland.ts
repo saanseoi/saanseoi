@@ -1,7 +1,8 @@
+import { writeFileSync } from 'node:fs'
 import { mkdir, readFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
-import { parquetWriteFile } from 'hyparquet-writer'
+import { parquetWriteBuffer } from 'hyparquet-writer'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
@@ -273,8 +274,7 @@ function writeDivisionParquet(
   rows: PlanningDivision[],
   sourceVersion: string,
 ) {
-  parquetWriteFile({
-    filename: outputFile,
+  writeParquetFile(outputFile, {
     rowGroupSize: 5000,
     // hyparquet 1.26 cannot read the GeoParquet column-statistics metadata
     // emitted by hyparquet-writer for GEOMETRY columns. The geometry data and
@@ -370,8 +370,7 @@ function writeDivisionAreaParquet(
   rows: PlanningDivision[],
   sourceVersion: string,
 ) {
-  parquetWriteFile({
-    filename: outputFile,
+  writeParquetFile(outputFile, {
     rowGroupSize: 5000,
     // Keep the generated GeoParquet readable by the upload inspector; see
     // the matching division writer above.
@@ -680,4 +679,11 @@ function jsonColumn<T>(name: string, data: T[], nullable = true) {
 
 function geometryColumn(name: string, data: GeoJsonGeometry[], nullable = true) {
   return { data, name, nullable, type: 'GEOMETRY' as const }
+}
+
+function writeParquetFile(
+  outputFile: string,
+  options: Parameters<typeof parquetWriteBuffer>[0],
+) {
+  writeFileSync(outputFile, new Uint8Array(parquetWriteBuffer(options)))
 }
