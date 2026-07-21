@@ -169,6 +169,17 @@ async function loadDataReleasesPage(offset = 0) {
   )
   return {
     releases: releases.slice(0, DATA_RELEASES_PAGE_SIZE).map(release => {
+      // API release-set stats are immutable presentation data for this exact
+      // release. Prefer them over DB_CURRENT: that database only retains the
+      // active snapshot, so it cannot count a revised or superseded release.
+      const recordedCount = release.stats.find(
+        stat =>
+          stat.dimension === 'records' &&
+          stat.metric === 'count' &&
+          stat.metricUnit === 'count' &&
+          stat.groupBy === null &&
+          stat.groupValue === null,
+      )?.value
       const primaryResourceType =
         release.apiFamily === 'addresses'
           ? 'address'
@@ -183,9 +194,10 @@ async function loadDataReleasesPage(offset = 0) {
       return {
         ...release,
         primaryRecordCount:
-          primarySnapshot === undefined
+          recordedCount ??
+          (primarySnapshot === undefined
             ? null
-            : (countsBySnapshot.get(primarySnapshot.snapshotId) ?? null),
+            : (countsBySnapshot.get(primarySnapshot.snapshotId) ?? null)),
       }
     }) as ApiRelease[],
     hasMore: releases.length > DATA_RELEASES_PAGE_SIZE,
