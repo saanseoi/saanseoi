@@ -16,9 +16,10 @@ import {
 import { Main } from '$lib/bits'
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import { apiFamilyThemes } from '$lib/registry/apiFamilyTheme'
-import { getDataPageData } from '$lib/registry/meta.remote'
+import { getDataPageData, getDataReleasesPageData } from '$lib/registry/meta.remote'
 
-let data = $derived(await getDataPageData())
+const data = await getDataPageData()
+let releases = $state(data.releases)
 let locale = $derived(getCurrentLocale())
 let activeApiIndex = $state<number | null>(null)
 let apiDeckOrder = $state<number[]>([0, 1, 2, 3, 4])
@@ -44,6 +45,9 @@ let releaseCarouselNavigation = $state({
   canMoveBackward: false,
   canMoveForward: false,
 })
+let hasMoreReleases = $state(data.hasMore)
+let isLoadingMoreReleases = $state(false)
+let nextReleaseOffset = $state(data.nextOffset)
 
 const apiFamilyOrder = ['stats', 'divisions', 'addresses', 'places', 'streets'] as const
 const atlasDocsUrl = '/docs'
@@ -247,13 +251,31 @@ const releaseRecordCount = (release: (typeof data.releases)[number]) => {
     : null
 }
 const releaseCarouselItems = $derived(
-  data.releases.map(release => ({
+  releases.map(release => ({
     release,
     displayDate: displayDate(release.publishedAt ?? release.createdAt),
     displayCode: releaseDisplayCode(release.code, release.apiFamily),
     records: releaseRecordCount(release),
   })),
 )
+
+const loadMoreReleases = async () => {
+  if (isLoadingMoreReleases || !hasMoreReleases) return
+
+  isLoadingMoreReleases = true
+  try {
+    const nextPage = await getDataReleasesPageData({ offset: nextReleaseOffset })
+    const existingReleaseIds = new Set(releases.map(release => release.id))
+    releases = [
+      ...releases,
+      ...nextPage.releases.filter(release => !existingReleaseIds.has(release.id)),
+    ]
+    hasMoreReleases = nextPage.hasMore
+    nextReleaseOffset = nextPage.nextOffset
+  } finally {
+    isLoadingMoreReleases = false
+  }
+}
 
 const collapsedDeckPositions = [
   'min-[901px]:left-[calc(50%-37rem)] min-[901px]:translate-y-[0.2rem] min-[901px]:-rotate-3',
@@ -464,7 +486,9 @@ const apiCardClass = (apiIndex: number, orderIndex: number) => {
       <ReleaseCarousel
         bind:this={releaseCarousel}
         items={releaseCarouselItems}
+        isLoading={isLoadingMoreReleases}
         onnavigationchange={navigation => (releaseCarouselNavigation = navigation)}
+        onreachend={loadMoreReleases}
       />
     {:else}
       <p class="mt-6 text-sm text-secondary">{m.data_no_releases_yet()}</p>
