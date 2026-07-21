@@ -1,15 +1,23 @@
-import { mkdtemp, rm } from 'node:fs/promises'
+import { createHash, createHmac } from 'node:crypto'
+import { existsSync } from 'node:fs'
+import { readFile, mkdtemp, rm } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
+
+import { Database as SQLiteDatabase } from 'bun:sqlite'
 
 import { prepareHkgovPlandTpuParquet } from '../hkgovPland.ts'
 import { prepareHkgovPlandNewTownParquet } from '../hkgovPlandNewTown.ts'
 import type { ParsedArgs, UploadTarget } from '../options.ts'
 import { runUploadCommand } from './upload.ts'
 import { buildDatasetReleaseCode } from '@repo/core'
-import { openLocalHarbourDb } from '@repo/core/testing/localDb'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
+const HARBOUR_API_WRANGLER_CONFIG = resolve(
+  REPO_ROOT,
+  'apps/harbour-api/wrangler.jsonc',
+)
+const LOCAL_D1_PERSIST_ROOT = resolve(REPO_ROOT, '.local/d1/dev')
 
 type BackfillKind = 'new-town' | 'pu'
 
@@ -122,30 +130,29 @@ export async function runHkgovPlandBackfillCommand(
         outputDir,
         `${source}-hk-${release.year}-division-area.parquet`,
       )
+      const prepare =
+        kind === 'pu' ? prepareHkgovPlandTpuParquet : prepareHkgovPlandNewTownParquet
       await Promise.all(
-        types.map(async type => {
-          const outputFile = type === 'division' ? divisionFile : divisionAreaFile
-          const prepare =
-            kind === 'pu'
-              ? prepareHkgovPlandTpuParquet
-              : prepareHkgovPlandNewTownParquet
-
-          await prepare({
+        types.map(type =>
+          prepare({
             inputFile,
-            outputFile,
+            outputFile: type === 'division' ? divisionFile : divisionAreaFile,
             sourceVersion: release.year,
             type,
-          })
-          await uploadPreparedArtifact({
-            filePath: outputFile,
-            invocationCwd,
-            release,
-            source,
-            target,
-            type,
-          })
-        }),
+          }),
+        ),
       )
+
+      for (const type of types) {
+        await uploadPreparedArtifact({
+          filePath: type === 'division' ? divisionFile : divisionAreaFile,
+          invocationCwd,
+          release,
+          source,
+          target,
+          type,
+        })
+      }
     }
   } finally {
     await rm(outputDir, { force: true, recursive: true })
@@ -204,7 +211,9 @@ function assertBackfillArguments(args: ParsedArgs, printUsage: () => void) {
 }
 
 async function getCompletedLocalReleaseCodes() {
-  const { sqlite } = openLocalHarbourDb()
+  const sqlite = new SQLiteDatabase(await resolveLocalMetaDatabasePath(), {
+    readonly: true,
+  })
 
   try {
     const completedReleaseCodes = new Set<string>()
@@ -220,4 +229,45 @@ async function getCompletedLocalReleaseCodes() {
   } finally {
     sqlite.close()
   }
+}
+
+async function resolveLocalMetaDatabasePath() {
+  const config = JSON.parse(await readFile(HARBOUR_API_WRANGLER_CONFIG, 'utf8')) as {
+    d1_databases?: Array<Record<string, unknown>>
+    env?: { preview?: { d1_databases?: Array<Record<string, unknown>> } }
+  }
+  const databases = config.env?.preview?.d1_databases ?? config.d1_databases ?? []
+  const metaDatabase = databases.find(database => database.binding === 'DB_META')
+  const localDatabaseId =
+    metaDatabase?.preview_database_id ??
+    metaDatabase?.database_id ??
+    metaDatabase?.binding
+
+  if (typeof localDatabaseId !== 'string') {
+    throw new Error('Could not resolve the local DB_META database identifier.')
+  }
+
+  const uniqueKey = 'miniflare-D1DatabaseObject'
+  const key = createHash('sha256').update(uniqueKey).digest()
+  const nameHmac = createHmac('sha256', key)
+    .update(localDatabaseId)
+    .digest()
+    .subarray(0, 16)
+  const objectId = Buffer.concat([
+    nameHmac,
+    createHmac('sha256', key).update(nameHmac).digest().subarray(0, 16),
+  ]).toString('hex')
+  const databasePath = resolve(
+    LOCAL_D1_PERSIST_ROOT,
+    'v3/d1/miniflare-D1DatabaseObject',
+    `${objectId}.sqlite`,
+  )
+
+  if (!existsSync(databasePath)) {
+    throw new Error(
+      `Cannot continue Planning Department backfills: local metadata database not found at ${databasePath}.`,
+    )
+  }
+
+  return databasePath
 }
