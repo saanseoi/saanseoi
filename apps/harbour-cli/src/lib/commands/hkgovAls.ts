@@ -148,8 +148,9 @@ export async function runHkgovAlsLocalIngestCommand(
   )
   let history = await readHistory(historyFile)
   let decisions = await readDecisions(decisionsFile)
-  const firstSourceVersion =
-    stringOption(args, 'from-source-version') ?? `${cohortKey.slice(0, 4)}-01-01.0000`
+  const firstSourceVersion = normalizeAlsSourceVersion(
+    stringOption(args, 'from-source-version') ?? `${cohortKey.slice(0, 4)}-01-01.0`,
+  )
   const sourceDirs = (await listAlsReleaseDirectories(sourceRoot)).filter(sourceDir => {
     const sourceVersion = inferAlsSourceVersionFromPath(sourceDir)
     return sourceVersion !== null && sourceVersion >= firstSourceVersion
@@ -541,10 +542,7 @@ async function resolveAlsSourceReleases(
   target: UploadTarget,
   sourceDirs: string[],
 ): Promise<AlsSourceRelease[]> {
-  const sourceReleases = sourceDirs.flatMap(sourceDir => {
-    const sourceVersion = inferAlsSourceVersionFromPath(sourceDir)
-    return sourceVersion ? [{ sourceDir, sourceVersion }] : []
-  })
+  const sourceReleases = resolveAlsReleaseVersions(sourceDirs)
   const cohortsByYear = new Map<string, string[]>()
 
   for (const year of new Set(
@@ -623,11 +621,47 @@ function isSameYearCohort(year: string) {
 }
 
 function resolveAlsSourceVersion(args: ParsedArgs, sourceDir: string | undefined) {
-  return (
+  const sourceVersion =
     stringOption(args, 'source-version') ??
     inferSourceVersionFromPath(sourceDir ?? '') ??
     inferAlsSourceVersionFromPath(sourceDir ?? '')
-  )
+
+  return sourceVersion ? normalizeAlsSourceVersion(sourceVersion) : null
+}
+
+/**
+ * ALS directory names include a delivery time (`YYYYMMDD-HHMM`) rather than a
+ * provider correction sequence. Release versions use the date and a compact,
+ * zero-based correction number instead. The delivery time only orders multiple
+ * files delivered on one date.
+ */
+export function resolveAlsReleaseVersions(sourceDirs: string[]) {
+  const releases = sourceDirs.flatMap(sourceDir => {
+    const deliveryVersion = inferAlsDeliveryVersionFromPath(sourceDir)
+    return deliveryVersion ? [{ sourceDir, deliveryVersion }] : []
+  })
+  const correctionByDate = new Map<string, number>()
+
+  return releases
+    .sort((left, right) => left.deliveryVersion.localeCompare(right.deliveryVersion))
+    .map(({ sourceDir, deliveryVersion }) => {
+      const date = deliveryVersion.slice(0, 10)
+      const correction = correctionByDate.get(date) ?? 0
+      correctionByDate.set(date, correction + 1)
+      return { sourceDir, sourceVersion: `${date}.${correction}` }
+    })
+}
+
+function normalizeAlsSourceVersion(value: string) {
+  const match = value.match(/^(20\d{2}-\d{2}-\d{2})(?:\.(\d+))?$/)
+  if (!match) {
+    return value
+  }
+
+  const [, date, correction] = match
+  // Legacy ALS inputs used HHMM as this suffix. Preserve intentional compact
+  // correction values while collapsing the legacy timestamp form to .0.
+  return `${date}.${correction && correction.length < 3 ? correction : '0'}`
 }
 
 function stringOption(args: ParsedArgs, key: string) {
@@ -708,6 +742,11 @@ export function formatSourceDuplicateSummary(
 }
 
 export function inferAlsSourceVersionFromPath(value: string) {
+  const deliveryVersion = inferAlsDeliveryVersionFromPath(value)
+  return deliveryVersion ? `${deliveryVersion.slice(0, 10)}.0` : null
+}
+
+function inferAlsDeliveryVersionFromPath(value: string) {
   const match = value.match(
     /(?:^|[/\\])(20\d{2})(\d{2})(\d{2})-(\d{4})-ALS-GeoJSON(?:[/\\]|$)/i,
   )
