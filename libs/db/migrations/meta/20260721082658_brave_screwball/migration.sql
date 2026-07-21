@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS `snapshotLineages_primaryDataset_unique_idx`;--> statement-breakpoint
+CREATE UNIQUE INDEX `snapshotLineages_primaryDataset_variant_unique_idx` ON `snapshotLineages` (`primaryDatasetId`,`variant`);
