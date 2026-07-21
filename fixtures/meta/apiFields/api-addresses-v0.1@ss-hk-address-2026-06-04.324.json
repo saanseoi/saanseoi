@@ -1,10 +1,17 @@
 {
-  "versionHash": "sha256:d9203097bf94ff5286ca3120014291bfdfa552af88692ba22794d55bc525a509",
+  "versionHash": "sha256:0749a413df534c96da93fa8f278cee66bd04fb657b4ca391b1a7109c6d80ce12",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "default",
   "schemaVersion": "sv-address-v1",
   "rulesetVersion": "rs-address-merge-v1",
   "lineageAnchors": [
+    {
+      "snapshotVersion": "ss-hk-address-2025-01-23.1031",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.12.0"
+      }
+    },
     {
       "snapshotVersion": "ss-hk-address-2025-09-24.0",
       "sourceSchemas": {

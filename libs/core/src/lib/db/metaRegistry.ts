@@ -164,7 +164,67 @@ function firstByIdOrCode<T>(
   return rows.find(row => matches(row, id)) ?? null
 }
 
+type RegistryReleaseLifecycle = {
+  cohortKey: string | null
+  revision: number
+  status: string
+}
+
+export function resolveRegistryReleaseDisplayStatus(
+  release: RegistryReleaseLifecycle,
+  latest?: Pick<RegistryReleaseLifecycle, 'cohortKey' | 'revision'>,
+) {
+  if (
+    release.status === 'draft' ||
+    latest === undefined ||
+    release.cohortKey === null
+  ) {
+    return release.status
+  }
+
+  if (release.cohortKey === latest.cohortKey && release.revision === latest.revision) {
+    return 'current'
+  }
+
+  // A nonzero revision is an immutable correction or enrichment of its
+  // cohort. Keep that reader-facing meaning even after a newer cohort exists.
+  return release.revision > 0 ? 'revised' : 'superseded'
+}
+
 export async function listRegistryReleases(db: MetaDatabase, limit?: number) {
+  // `status` is an operational routing state. The registry also needs a
+  // reader-facing lifecycle: a later cohort supersedes an earlier one, while
+  // a later revision of the same cohort revises it. Load the small lifecycle
+  // projection separately so this remains correct when the displayed list is
+  // limited globally.
+  const lifecycleRows = await db
+    .select({
+      id: metaApiReleaseSets.id,
+      apiFamily: metaApiVersions.familyType,
+      cohortKey: metaApiReleaseSets.cohortKey,
+      revision: metaApiReleaseSets.revision,
+      status: metaApiReleaseSets.status,
+    })
+    .from(metaApiReleaseSets)
+    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .all()
+
+  const latestByFamily = new Map<string, { cohortKey: string; revision: number }>()
+  for (const row of lifecycleRows) {
+    if (row.status === 'draft' || row.cohortKey === null) continue
+    const latest = latestByFamily.get(row.apiFamily)
+    if (
+      !latest ||
+      row.cohortKey > latest.cohortKey ||
+      (row.cohortKey === latest.cohortKey && row.revision > latest.revision)
+    ) {
+      latestByFamily.set(row.apiFamily, {
+        cohortKey: row.cohortKey,
+        revision: row.revision,
+      })
+    }
+  }
+
   const releases = await db
     .select({
       id: metaApiReleaseSets.id,
@@ -173,6 +233,8 @@ export async function listRegistryReleases(db: MetaDatabase, limit?: number) {
       apiVersion: metaApiVersions.code,
       code: metaApiReleaseSets.code,
       domainCode: metaApiReleaseSets.domainCode,
+      cohortKey: metaApiReleaseSets.cohortKey,
+      revision: metaApiReleaseSets.revision,
       schemaVersion: metaApiReleaseSets.schemaVersion,
       rulesetVersion: metaApiReleaseSets.rulesetVersion,
       status: metaApiReleaseSets.status,
@@ -263,6 +325,8 @@ export async function listRegistryReleases(db: MetaDatabase, limit?: number) {
   )
 
   return releases.map(release => {
+    const latest = latestByFamily.get(release.apiFamily)
+    const displayStatus = resolveRegistryReleaseDisplayStatus(release, latest)
     const snapshots = releaseSnapshots.filter(
       snapshot => snapshot.apiReleaseSetId === release.id,
     )
@@ -282,6 +346,7 @@ export async function listRegistryReleases(db: MetaDatabase, limit?: number) {
 
     return {
       ...release,
+      displayStatus,
       ingestedAt: ingestedAt ?? null,
       stats: apiReleaseSetStats.filter(stat => stat.apiReleaseSetId === release.id),
       apiReleaseSetSnapshots: snapshots.map(snapshot => ({
@@ -2255,7 +2320,7 @@ export async function ensureDraftReleaseSetForRelease(
   const compositionMembers = composition
     ? await listApiCompositionMembersSafely(db, composition.id)
     : []
-  const domainCode = options.domainCode ?? 'default'
+  const domainCode = options.domainCode ?? composition?.defaultDomainCode ?? 'default'
   const isCompositionMember = compositionMembers.some(
     member => member.domainCode === domainCode && member.resourceType === type,
   )
@@ -2871,6 +2936,45 @@ export async function publishReleaseArtifacts(
     )
   }
 
+  // Upload time is not a measure of data currency: a correction for an older
+  // cohort must not replace the newest cohort in the live API. The most recent
+  // cohort (then its most complete revision) is the active release per API
+  // family/version, region, and domain.
+  const latestPublishedReleaseSet =
+    !deferApiReleaseSet && releaseSetRegionCode && releaseSetCohortKey
+      ? await db
+          .select({
+            id: metaApiReleaseSets.id,
+            cohortKey: metaApiReleaseSets.cohortKey,
+            revision: metaApiReleaseSets.revision,
+          })
+          .from(metaApiReleaseSets)
+          .where(
+            and(
+              eq(metaApiReleaseSets.apiVersionId, releaseSet.apiVersionId),
+              eq(metaApiReleaseSets.regionCode, releaseSetRegionCode),
+              eq(metaApiReleaseSets.domainCode, releaseSet.domainCode),
+              ne(metaApiReleaseSets.status, 'draft'),
+            ),
+          )
+          .orderBy(
+            desc(metaApiReleaseSets.cohortKey),
+            desc(metaApiReleaseSets.revision),
+          )
+          .limit(1)
+          .get()
+      : null
+  const shouldActivateReleaseSet =
+    latestPublishedReleaseSet === null ||
+    latestPublishedReleaseSet === undefined ||
+    releaseSetCohortKey === null ||
+    releaseSetCohortKey > latestPublishedReleaseSet.cohortKey ||
+    (releaseSetCohortKey === latestPublishedReleaseSet.cohortKey &&
+      releaseSet.revision > latestPublishedReleaseSet.revision)
+  const activeReleaseSetId = shouldActivateReleaseSet
+    ? args.releaseSetId
+    : latestPublishedReleaseSet.id
+
   const apiCatalogRevision =
     !deferApiReleaseSet && releaseSetRegionCode && releaseSetCohortKey
       ? await prepareApiCatalogRevision(db, {
@@ -3068,25 +3172,40 @@ export async function publishReleaseArtifacts(
               eq(metaApiReleaseSets.apiVersionId, releaseSet.apiVersionId),
               eq(metaApiReleaseSets.regionCode, releaseSet.regionCode),
               eq(metaApiReleaseSets.domainCode, releaseSet.domainCode),
-              eq(metaApiReleaseSets.cohortKey, releaseSet.cohortKey),
               eq(metaApiReleaseSets.status, 'current'),
-              ne(metaApiReleaseSets.id, args.releaseSetId),
+              ne(metaApiReleaseSets.id, activeReleaseSetId),
             ),
           ),
         tx
           .update(metaApiReleaseSets)
           .set({
             status: 'current',
-            publishedAt,
-            validFrom: publishedAt,
             validTo: null,
             updatedAt: publishedAt,
+            ...(shouldActivateReleaseSet
+              ? { publishedAt, validFrom: publishedAt }
+              : {}),
           })
-          .where(eq(metaApiReleaseSets.id, args.releaseSetId)),
+          .where(eq(metaApiReleaseSets.id, activeReleaseSetId)),
         tx
           .delete(metaApiFieldProvenance)
           .where(eq(metaApiFieldProvenance.apiReleaseSetId, args.releaseSetId)),
       )
+
+      if (!shouldActivateReleaseSet) {
+        statements.push(
+          tx
+            .update(metaApiReleaseSets)
+            .set({
+              status: 'archived',
+              publishedAt,
+              validFrom: publishedAt,
+              validTo: publishedAt,
+              updatedAt: publishedAt,
+            })
+            .where(eq(metaApiReleaseSets.id, args.releaseSetId)),
+        )
+      }
     }
 
     if (apiCatalogRevision) {

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:cd1d02133c60e074b5d8a3624e4d08aad995849db47bacf7124040f83833238f",
+  "versionHash": "sha256:b733394eeefbfe4f2efd4bb1c07c3c46c38cffab4e94766a4cc9a21c19e5a523",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -51,15 +51,6 @@
           "cohortMatchingMode": "exact_ref",
           "anchorResourceType": "division",
           "priority": 13
-        },
-        {
-          "resourceType": "divisionArea",
-          "variant": "hkgov-censtatd:2021:simplified",
-          "role": "geometry",
-          "isRequired": false,
-          "cohortMatchingMode": "exact_ref",
-          "anchorResourceType": "division",
-          "priority": 14
         },
         {
           "resourceType": "divisionBoundary",
