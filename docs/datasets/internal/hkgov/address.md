@@ -95,13 +95,17 @@ free-form names such as `WEST GATE TOWER`, and it refuses an embedded form that
 conflicts with an already populated structured block.
 
 Before applying that per-record cleanup, the importer examines the release's English
-building names. When a name family uses a trailing Roman numeral (for example,
-`INTERNATIONAL ENTERPRISE CENTRE II`), every same-family trailing Arabic building number
-is rendered as a Roman numeral (`INTERNATIONAL ENTERPRISE CENTRE 1` becomes
-`INTERNATIONAL ENTERPRISE CENTRE I`). It does not alter unrelated numeric building
-names. Each changed retained address is stored as an automatic
-`als_building_name_roman_numeral_normalized` processing action, including its original
-and normalized building name.
+building names. When a name family uses an unambiguous trailing Roman numeral (for
+example, `INTERNATIONAL ENTERPRISE CENTRE II`), every same-family trailing Arabic
+building number is rendered as a Roman numeral (`INTERNATIONAL ENTERPRISE CENTRE 1`
+becomes `INTERNATIONAL ENTERPRISE CENTRE I`). The importer applies the same rule to
+structured English `BLOCK`/`BLK`, `HOUSE`, and `TOWER` numbers, scoped to their estate
+or building family. Single-letter values such as `C` or `D` are treated as block labels,
+not Roman numeral evidence. It does not alter unrelated numeric names or structured
+numbers. Each changed retained address is stored as an automatic
+`als_building_name_roman_numeral_normalized` or
+`als_premise_number_roman_numeral_normalized` processing action, including the original
+and normalized component value.
 
 The original English and Chinese ALS premise JSON is retained unchanged for provenance;
 the cleaned component fields and formatted service address carry the post-processing. If

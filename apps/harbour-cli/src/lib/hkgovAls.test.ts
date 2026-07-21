@@ -76,6 +76,8 @@ describe('buildHkgovAlsProcessingActions', () => {
     const row = {
       canonicalId: 'ss-example',
       chiPremisesAddressJson: null,
+      enBlockDescriptor: 'TOWER',
+      enBlockNumberRomanNumeralNormalization: { from: '1', to: 'I' },
       enBuildingNameRomanNumeralNormalization: {
         from: 'INTERNATIONAL ENTERPRISE CENTRE 1',
         to: 'INTERNATIONAL ENTERPRISE CENTRE I',
@@ -111,6 +113,25 @@ describe('buildHkgovAlsProcessingActions', () => {
       mode: 'automatic',
       summary:
         'Styled an ALS building-name number as Roman numerals used by its building-name family.',
+    })
+    expect(
+      buildHkgovAlsProcessingActions({
+        decisions: { authority: 'hkgov-dpo', decisions: [], version: 1 },
+        identityEquivalentFeatureGroups: [],
+        numberRangeSingletonFeatureGroups: [],
+        resolvedRows: [row],
+        sourceDuplicateFeatureGroups: [],
+      }),
+    ).toContainEqual({
+      action: 'als_premise_number_roman_numeral_normalized',
+      affectedRecordCount: 1,
+      evidence: {
+        canonicalRecord: expect.any(Object),
+        premiseNumber: { descriptor: 'TOWER', from: '1', to: 'I' },
+      },
+      mode: 'automatic',
+      summary:
+        'Styled an ALS BLOCK, HOUSE or TOWER number as Roman numerals used by its premise family.',
     })
   })
 })

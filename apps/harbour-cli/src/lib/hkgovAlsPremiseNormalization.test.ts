@@ -2,7 +2,9 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   collectHkgovAlsRomanNumeralBuildingNameFamilies,
+  collectHkgovAlsRomanNumeralPremiseNumberFamilies,
   normalizeHkgovAlsBuildingNameRomanNumeral,
+  normalizeHkgovAlsPremiseNumberRomanNumeral,
   normalizeHkgovAlsPremiseStructure,
   preferHkgovAlsEnglishCanonicalValue,
 } from './hkgovAlsPremiseNormalization.ts'
@@ -103,6 +105,90 @@ describe('normalizeHkgovAlsBuildingNameRomanNumeral', () => {
     expect(
       normalizeHkgovAlsBuildingNameRomanNumeral({
         buildingName: 'UNRELATED BUILDING 1',
+        romanNumeralFamilies,
+      }),
+    ).toBeNull()
+  })
+})
+
+describe('normalizeHkgovAlsPremiseNumberRomanNumeral', () => {
+  test('uses Roman numerals for BLOCK, HOUSE and TOWER numbers within their family', () => {
+    const romanNumeralFamilies = collectHkgovAlsRomanNumeralPremiseNumberFamilies([
+      {
+        blockDescriptor: 'BLOCK',
+        blockNumber: 'IV',
+        buildingName: null,
+        estateName: 'EXAMPLE BLOCK ESTATE',
+      },
+      {
+        blockDescriptor: 'HOUSE',
+        blockNumber: 'II',
+        buildingName: null,
+        estateName: 'EXAMPLE HOUSE ESTATE',
+      },
+      {
+        blockDescriptor: 'TOWER',
+        blockNumber: 'III',
+        buildingName: null,
+        estateName: 'EXAMPLE TOWER ESTATE',
+      },
+    ])
+
+    for (const premise of [
+      { blockDescriptor: 'BLK', estateName: 'EXAMPLE BLOCK ESTATE' },
+      { blockDescriptor: 'HOUSE', estateName: 'EXAMPLE HOUSE ESTATE' },
+      { blockDescriptor: 'TOWER', estateName: 'EXAMPLE TOWER ESTATE' },
+    ]) {
+      expect(
+        normalizeHkgovAlsPremiseNumberRomanNumeral({
+          premise: {
+            blockDescriptor: premise.blockDescriptor,
+            blockNumber: '1',
+            buildingName: null,
+            estateName: premise.estateName,
+          },
+          romanNumeralFamilies,
+        }),
+      ).toEqual({ from: '1', to: 'I' })
+    }
+
+    expect(
+      normalizeHkgovAlsPremiseNumberRomanNumeral({
+        premise: {
+          blockDescriptor: 'TOWER',
+          blockNumber: '1',
+          buildingName: null,
+          estateName: 'UNRELATED ESTATE',
+        },
+        romanNumeralFamilies,
+      }),
+    ).toBeNull()
+  })
+
+  test('does not mistake single-letter block labels for Roman numeral evidence', () => {
+    const romanNumeralFamilies = collectHkgovAlsRomanNumeralPremiseNumberFamilies([
+      {
+        blockDescriptor: 'BLK',
+        blockNumber: 'C',
+        buildingName: null,
+        estateName: 'MING WAH DAI HA',
+      },
+      {
+        blockDescriptor: 'BLK',
+        blockNumber: 'D',
+        buildingName: null,
+        estateName: 'MING WAH DAI HA',
+      },
+    ])
+
+    expect(
+      normalizeHkgovAlsPremiseNumberRomanNumeral({
+        premise: {
+          blockDescriptor: 'BLK',
+          blockNumber: '1',
+          buildingName: null,
+          estateName: 'MING WAH DAI HA',
+        },
         romanNumeralFamilies,
       }),
     ).toBeNull()

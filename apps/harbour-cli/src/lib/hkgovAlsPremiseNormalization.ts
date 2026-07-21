@@ -11,9 +11,18 @@ export type HkgovAlsBuildingNameRomanNumeralNormalization = {
   to: string
 }
 
+export type HkgovAlsStructuredPremiseNumber = {
+  blockDescriptor: string | null
+  blockNumber: string | null
+  buildingName: string | null
+  estateName: string | null
+}
+
 const ROMAN_NUMERAL_SUFFIX =
   /^(?<stem>.+?)\s+(?<numeral>(?=[MDCLXVI]+$)M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3}))$/i
 const ARABIC_NUMERAL_SUFFIX = /^(?<stem>.+?)\s+(?<numeral>[1-9]\d*)$/
+const ROMAN_NUMERAL =
+  /^(?=[MDCLXVI]+$)M{0,3}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})$/i
 
 /**
  * Finds building-name families which ALS already styles with a Roman-numeral
@@ -28,7 +37,10 @@ export function collectHkgovAlsRomanNumeralBuildingNameFamilies(
   for (const buildingName of buildingNames) {
     const match = buildingName?.trim().match(ROMAN_NUMERAL_SUFFIX)
     const stem = match?.groups?.stem
-    if (stem) families.add(normalizeBuildingNameFamily(stem))
+    const numeral = match?.groups?.numeral
+    if (stem && numeral && isUnambiguousRomanNumeral(numeral)) {
+      families.add(normalizeBuildingNameFamily(stem))
+    }
   }
 
   return families
@@ -60,6 +72,46 @@ export function normalizeHkgovAlsBuildingNameRomanNumeral(input: {
 }
 
 /**
+ * Finds estate- or building-scoped BLOCK, HOUSE and TOWER number families which
+ * ALS already styles with Roman numerals. Unscoped structured numbers are not
+ * grouped, preventing a style observed at one premise from affecting another.
+ */
+export function collectHkgovAlsRomanNumeralPremiseNumberFamilies(
+  premises: Iterable<HkgovAlsStructuredPremiseNumber>,
+) {
+  const families = new Set<string>()
+
+  for (const premise of premises) {
+    const number = clean(premise.blockNumber)
+    const family = structuredPremiseNumberFamily(premise)
+    if (number && family && isUnambiguousRomanNumeral(number)) {
+      families.add(family)
+    }
+  }
+
+  return families
+}
+
+/**
+ * Within a Roman-styled BLOCK, HOUSE or TOWER family, render a plain Arabic
+ * number as Roman numerals.
+ */
+export function normalizeHkgovAlsPremiseNumberRomanNumeral(input: {
+  premise: HkgovAlsStructuredPremiseNumber
+  romanNumeralFamilies: ReadonlySet<string>
+}): HkgovAlsBuildingNameRomanNumeralNormalization | null {
+  const from = clean(input.premise.blockNumber)
+  const family = structuredPremiseNumberFamily(input.premise)
+  if (!from || !family || !input.romanNumeralFamilies.has(family)) return null
+  if (!/^[1-9]\d*$/.test(from)) return null
+
+  const numericValue = Number(from)
+  if (numericValue > 3999) return null
+
+  return { from, to: toRomanNumeral(numericValue) }
+}
+
+/**
  * Prefer the English canonical component whenever ALS supplied an English source
  * component. This prevents a deliberately removed duplicate English building name
  * from being replaced by a different Chinese building-name representation.
@@ -87,7 +139,7 @@ export function normalizeHkgovAlsPremiseStructure(input: {
 }): HkgovAlsPremiseStructure {
   const buildingName = clean(input.buildingName)
   const estateName = clean(input.estateName)
-  const blockDescriptor = canonicalBlockDescriptor(clean(input.blockDescriptor))
+  const blockDescriptor = canonicalHkgovAlsBlockDescriptor(clean(input.blockDescriptor))
   const blockNumber = clean(input.blockNumber)
 
   if (!buildingName || !estateName) {
@@ -125,7 +177,7 @@ export function normalizeHkgovAlsPremiseStructure(input: {
     }
   }
 
-  const parsedDescriptor = canonicalBlockDescriptor(match[1] ?? null)
+  const parsedDescriptor = canonicalHkgovAlsBlockDescriptor(match[1] ?? null)
   const parsedNumber = clean(match[2] ?? null)
   if (!parsedDescriptor || !parsedNumber) {
     return {
@@ -161,7 +213,7 @@ export function normalizeHkgovAlsPremiseStructure(input: {
   }
 }
 
-function canonicalBlockDescriptor(value: string | null) {
+export function canonicalHkgovAlsBlockDescriptor(value: string | null) {
   if (!value) return null
   const key = value.toUpperCase().replace(/\.$/, '')
   if (key === 'BLOCK' || key === 'BLK') return 'BLK'
@@ -177,6 +229,23 @@ function clean(value: string | null) {
 
 function normalizeBuildingNameFamily(value: string) {
   return value.normalize('NFKC').trim().replace(/\s+/g, ' ').toUpperCase()
+}
+
+function structuredPremiseNumberFamily(input: HkgovAlsStructuredPremiseNumber) {
+  const descriptor = canonicalHkgovAlsBlockDescriptor(clean(input.blockDescriptor))
+  if (descriptor !== 'BLK' && descriptor !== 'HOUSE' && descriptor !== 'TOWER') {
+    return null
+  }
+
+  const context = clean(input.estateName) ?? clean(input.buildingName)
+  return context ? `${descriptor}\u0000${normalizeBuildingNameFamily(context)}` : null
+}
+
+function isUnambiguousRomanNumeral(value: string) {
+  // Single-letter Roman numerals overlap with common Hong Kong block labels such
+  // as A–E. Require at least two characters (II, IV, IX, ...) as actual style
+  // evidence before normalizing a family.
+  return value.length > 1 && ROMAN_NUMERAL.test(value)
 }
 
 function toRomanNumeral(value: number) {
