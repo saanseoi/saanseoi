@@ -127,7 +127,12 @@ export function buildDatasetReleaseCode(
 export function datasetVariantForSource(
   resourceType: ResourceType,
   source?: string,
-  options: { cohortKey?: string; sourceVersion?: string; transform?: string } = {},
+  options: {
+    cohortKey?: string
+    datasetCode?: string
+    sourceVersion?: string
+    transform?: string
+  } = {},
 ) {
   if (
     resourceType !== 'division' &&
@@ -140,6 +145,27 @@ export function datasetVariantForSource(
   if (source === 'hkgov-censtatd' && options.cohortKey) {
     const transform = options.transform
     return [source, options.cohortKey, transform].filter(Boolean).join(':')
+  }
+
+  // The Planning Department owns both planning datasets under one publisher
+  // code. Preserve the dataset's product segment when a registry record is
+  // read back through that publisher, so its API-composition domain remains
+  // distinguishable.
+  if (source === 'hkgov-pland') {
+    if (
+      /^ds-[a-z0-9-]+-hkgov-pland-division(?:-area)?-pu$/.test(
+        options.datasetCode ?? '',
+      )
+    ) {
+      return 'hkgov-pland-pu'
+    }
+    if (
+      /^ds-[a-z0-9-]+-hkgov-pland-division(?:-area)?-new-town$/.test(
+        options.datasetCode ?? '',
+      )
+    ) {
+      return 'hkgov-pland-new-town'
+    }
   }
 
   return source ?? 'overture'
