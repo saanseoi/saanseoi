@@ -5,6 +5,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+html input:focus,
+html input:focus-visible,
+html input[class]:focus,
+html input[class]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 :root {
   /* Core BITS-style tokens */
   --background: #fcf9f5;
