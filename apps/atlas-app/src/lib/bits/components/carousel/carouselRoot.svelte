@@ -10,12 +10,14 @@ type Props = {
   class?: string
   onnavigationchange?: (state: NavigationState) => void
   ondragstatechange?: (state: DragState) => void
+  onreachend?: () => void
 }
 let {
   children,
   class: className = '',
   onnavigationchange,
   ondragstatechange,
+  onreachend,
 }: Props = $props()
 let viewport = $state<HTMLElement>()
 let pointerId = $state<number | null>(null)
@@ -32,6 +34,9 @@ const updateNavigation = () => {
     canMoveBackward: viewport.scrollLeft > 1,
     canMoveForward: viewport.scrollLeft < maximumScrollLeft - 1,
   })
+  if (maximumScrollLeft > 0 && viewport.scrollLeft >= maximumScrollLeft - 160) {
+    onreachend?.()
+  }
 }
 
 export function scrollByPage(direction: -1 | 1) {
