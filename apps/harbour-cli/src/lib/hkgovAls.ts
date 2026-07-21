@@ -29,6 +29,8 @@ import {
 } from './hkgovAlsDrift.ts'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import {
+  collectHkgovAlsRomanNumeralBuildingNameFamilies,
+  normalizeHkgovAlsBuildingNameRomanNumeral,
   normalizeHkgovAlsPremiseStructure,
   preferHkgovAlsEnglishCanonicalValue,
 } from './hkgovAlsPremiseNormalization.ts'
@@ -242,6 +244,10 @@ type PreparedHkgovAlsRow = {
   enDistrict: string | null
   enEstateName: string | null
   enBuildingName: string | null
+  enBuildingNameRomanNumeralNormalization: {
+    from: string
+    to: string
+  } | null
   enBlockDescriptor: string | null
   enBlockNumber: string | null
   enStreetName: string | null
@@ -329,6 +335,16 @@ export async function prepareHkgovAlsAddressParquet(
     duplicateGroups: sourceDuplicateFeatureGroups,
     features: uniqueSourceFeatures,
   } = dedupeHkgovAlsSourceFeatures(sourceFeatures)
+  const romanNumeralBuildingNameFamilies =
+    options.postProcessPremiseStructure !== false
+      ? collectHkgovAlsRomanNumeralBuildingNameFamilies(
+          uniqueSourceFeatures.map(
+            sourceFeature =>
+              sourceFeature.feature.properties?.Address?.PremisesAddress
+                ?.EngPremisesAddress?.BuildingName,
+          ),
+        )
+      : new Set<string>()
   const rows = uniqueSourceFeatures.map(sourceFeature =>
     normalizeHkgovAlsFeature(
       sourceFeature.feature,
@@ -338,6 +354,7 @@ export async function prepareHkgovAlsAddressParquet(
       options.sourceVersion,
       divisionMaps,
       options.postProcessPremiseStructure !== false,
+      romanNumeralBuildingNameFamilies,
     ),
   )
   const {
@@ -777,7 +794,7 @@ function normalizeHkgovAlsNumber(value: string | null) {
   return value?.normalize('NFKC').trim().toUpperCase() || null
 }
 
-function buildHkgovAlsProcessingActions(input: {
+export function buildHkgovAlsProcessingActions(input: {
   decisions: HkgovAlsIdentityDecisions
   identityEquivalentFeatureGroups: HkgovAlsSourceDuplicateGroup[]
   numberRangeSingletonFeatureGroups: HkgovAlsSourceDuplicateGroup[]
@@ -889,6 +906,22 @@ function buildHkgovAlsProcessingActions(input: {
         summary,
       })),
     )
+  }
+
+  for (const row of input.resolvedRows) {
+    const buildingName = row.enBuildingNameRomanNumeralNormalization
+    if (!buildingName) continue
+    actions.push({
+      action: 'als_building_name_roman_numeral_normalized',
+      affectedRecordCount: 1,
+      evidence: {
+        buildingName,
+        canonicalRecord: summarizeHkgovAlsProcessingRow(row),
+      },
+      mode: 'automatic' as const,
+      summary:
+        'Styled an ALS building-name number as Roman numerals used by its building-name family.',
+    })
   }
 
   return actions
@@ -1084,15 +1117,24 @@ function normalizeHkgovAlsFeature(
   sourceVersion: string,
   divisionMaps: DivisionLookupMaps,
   postProcessPremiseStructure: boolean,
+  romanNumeralBuildingNameFamilies: ReadonlySet<string>,
 ): PreparedHkgovAlsRow {
   const properties = feature.properties ?? {}
   const premises = properties.Address?.PremisesAddress ?? {}
   const rawZh = premises.ChiPremisesAddress ?? {}
   const rawEn = premises.EngPremisesAddress ?? {}
+  const enBuildingNameRomanNumeralNormalization = postProcessPremiseStructure
+    ? normalizeHkgovAlsBuildingNameRomanNumeral({
+        buildingName: asOptionalString(rawEn.BuildingName),
+        romanNumeralFamilies: romanNumeralBuildingNameFamilies,
+      })
+    : null
   const rawEnStructure = {
     blockDescriptor: asOptionalString(rawEn.EngBlock?.BlockDescriptor),
     blockNumber: asOptionalString(rawEn.EngBlock?.BlockNo),
-    buildingName: asOptionalString(rawEn.BuildingName),
+    buildingName:
+      enBuildingNameRomanNumeralNormalization?.to ??
+      asOptionalString(rawEn.BuildingName),
     estateName: asOptionalString(rawEn.EngEstate?.EstateName),
   }
   const rawZhStructure = {
@@ -1232,6 +1274,7 @@ function normalizeHkgovAlsFeature(
         sourceFile,
         premiseNormalization: {
           en: enStructure.normalization,
+          enBuildingNameRomanNumeral: enBuildingNameRomanNumeralNormalization != null,
           zhHant: zhStructure.normalization,
         },
       },
@@ -1294,6 +1337,7 @@ function normalizeHkgovAlsFeature(
     enDistrict: districtNameEn,
     enEstateName: asOptionalString(en.EngEstate?.EstateName),
     enBuildingName: asOptionalString(en.BuildingName),
+    enBuildingNameRomanNumeralNormalization,
     enBlockDescriptor: asOptionalString(en.EngBlock?.BlockDescriptor),
     enBlockNumber: asOptionalString(en.EngBlock?.BlockNo),
     enStreetName: asOptionalString(enStreet.StreetName),

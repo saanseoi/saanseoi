@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  buildHkgovAlsProcessingActions,
   consolidateHkgovAlsSingletonNumberRangeVariants,
   consolidateEquivalentHkgovAlsPremises,
   dedupeHkgovAlsSourceFeatures,
@@ -67,6 +68,50 @@ describe('dedupeHkgovAlsSourceFeatures', () => {
         ],
       },
     ])
+  })
+})
+
+describe('buildHkgovAlsProcessingActions', () => {
+  test('records each Roman-numeral building-name normalization', () => {
+    const row = {
+      canonicalId: 'ss-example',
+      chiPremisesAddressJson: null,
+      enBuildingNameRomanNumeralNormalization: {
+        from: 'INTERNATIONAL ENTERPRISE CENTRE 1',
+        to: 'INTERNATIONAL ENTERPRISE CENTRE I',
+      },
+      enFormattedAddress: 'INTERNATIONAL ENTERPRISE CENTRE I, 11 EXAMPLE STREET',
+      engPremisesAddressJson: null,
+      identityKey: 'example-identity',
+      identityMatchMethod: 'als-premise',
+      identitySummary: {},
+      sourceFeatureIndexOneBased: 1,
+      sourceFile: 'example.geojson',
+      zhHantFormattedAddress: null,
+    } as Parameters<typeof buildHkgovAlsProcessingActions>[0]['resolvedRows'][number]
+
+    expect(
+      buildHkgovAlsProcessingActions({
+        decisions: { authority: 'hkgov-dpo', decisions: [], version: 1 },
+        identityEquivalentFeatureGroups: [],
+        numberRangeSingletonFeatureGroups: [],
+        resolvedRows: [row],
+        sourceDuplicateFeatureGroups: [],
+      }),
+    ).toContainEqual({
+      action: 'als_building_name_roman_numeral_normalized',
+      affectedRecordCount: 1,
+      evidence: {
+        buildingName: {
+          from: 'INTERNATIONAL ENTERPRISE CENTRE 1',
+          to: 'INTERNATIONAL ENTERPRISE CENTRE I',
+        },
+        canonicalRecord: expect.any(Object),
+      },
+      mode: 'automatic',
+      summary:
+        'Styled an ALS building-name number as Roman numerals used by its building-name family.',
+    })
   })
 })
 

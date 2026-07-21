@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  collectHkgovAlsRomanNumeralBuildingNameFamilies,
+  normalizeHkgovAlsBuildingNameRomanNumeral,
   normalizeHkgovAlsPremiseStructure,
   preferHkgovAlsEnglishCanonicalValue,
 } from './hkgovAlsPremiseNormalization.ts'
@@ -67,6 +69,41 @@ describe('normalizeHkgovAlsPremiseStructure', () => {
         rawEnglish: 'THE SALVATION ARMY BRADBURY CAMP',
         canonicalEnglish: null,
         canonicalChinese: '救世軍白普理營一期營舍',
+      }),
+    ).toBeNull()
+  })
+})
+
+describe('normalizeHkgovAlsBuildingNameRomanNumeral', () => {
+  test('uses Roman numerals for every numeric member of a Roman-styled building family', () => {
+    const romanNumeralFamilies = collectHkgovAlsRomanNumeralBuildingNameFamilies([
+      'INTERNATIONAL ENTERPRISE CENTRE II',
+      'INTERNATIONAL ENTERPRISE CENTRE IV',
+      'UNRELATED BUILDING 1',
+    ])
+
+    expect(
+      normalizeHkgovAlsBuildingNameRomanNumeral({
+        buildingName: 'INTERNATIONAL ENTERPRISE CENTRE 1',
+        romanNumeralFamilies,
+      }),
+    ).toEqual({
+      from: 'INTERNATIONAL ENTERPRISE CENTRE 1',
+      to: 'INTERNATIONAL ENTERPRISE CENTRE I',
+    })
+    expect(
+      normalizeHkgovAlsBuildingNameRomanNumeral({
+        buildingName: 'INTERNATIONAL ENTERPRISE CENTRE 3',
+        romanNumeralFamilies,
+      }),
+    ).toEqual({
+      from: 'INTERNATIONAL ENTERPRISE CENTRE 3',
+      to: 'INTERNATIONAL ENTERPRISE CENTRE III',
+    })
+    expect(
+      normalizeHkgovAlsBuildingNameRomanNumeral({
+        buildingName: 'UNRELATED BUILDING 1',
+        romanNumeralFamilies,
       }),
     ).toBeNull()
   })
