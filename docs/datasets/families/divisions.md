@@ -2,12 +2,10 @@
 
 The Divisions API family combines canonical divisions with geometry companions. Geometry
 variants are source-specific assertions and are not merged. The family currently
-requires a snapshot for each resource type: canonical `division`, `divisionArea`, and
-`divisionBoundary`. Required variants of one resource type are alternatives, so at least
-one eligible area source is sufficient. An area may be the exact-cohort Overture
-snapshot or the latest published HAD snapshot at or before the set cohort; the boundary
-requirement currently remains exact-cohort Overture. This lets long-lived authoritative
-HAD geometry accompany a newer canonical division release without selecting future data.
+requires canonical `division`, Overture `divisionArea`, Overture `divisionBoundary`, and
+the latest published HAD and C&SD district-area snapshots at or before the set cohort.
+The boundary requirement remains exact-cohort Overture. This keeps the two authoritative
+district-area sources in every Overture release without selecting future data.
 
 Registry codes use lowercase kebab-case even though programmatic resource-type enums use
 camelCase. For example, `divisionArea` is encoded as `division-area` and
@@ -40,8 +38,8 @@ release, which preserves knowledge-time replay without duplicating canonical row
 
 The uploader reports readiness as an `API DOMAIN RELEASE` and reports the catalog
 revision created when the domain release becomes publishable. Overture readiness checks
-only the Overture composition (including its HAD geometry variant); each Planning
-Department domain is checked independently.
+its Overture, HAD, and C&SD composition members; each Planning Department domain is
+checked independently.
 
 The canonical `schemaVersion` may remain unchanged when a new source merely supplies
 more values in the same response shape. Merge rulesets are domain-scoped for new
@@ -65,16 +63,14 @@ counted against the `district` entry in its normalized hierarchy. Atlas joins th
 canonical identifiers to the HAD district-area geometry for a comparable map across
 division datasets.
 
-Historical C&SD district areas are optional, cohort-qualified statistical-geometry
+Historical C&SD district areas are required, cohort-qualified statistical-geometry
 variants, never defaults. Each census cohort has an exact source variant
 (`hkgov-censtatd:2016` or `hkgov-censtatd:2021`). The `simplified` geometry is a named
 display transform on that source variant, requested as
 `areas:hkgov-censtatd:<cohort>&transform=simplified`; it is not an independent
-composition member. When a C&SD source cohort is added after Overture release sets
-already exist, it creates an immutable revision of every compatible Overture release set
-at or after that cohort. The newest revised set becomes current and earlier revisions
-are archived, keeping the optional C&SD geometry available in the current store without
-representing it as an evergreen administrative boundary.
+composition member. Both source cohorts are required inputs to each Overture release, so
+their source-schema versions are always present in API-field provenance and only one
+mapping is needed for each Overture schema range.
 
 For Overture, release audit entries are limited to investigable source-policy
 exceptions: division locale inference or API-locale fallback rows, and `CN-GD` spillover

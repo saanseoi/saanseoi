@@ -493,13 +493,17 @@ async function resolveSupportingSnapshotsForMember(
   cohortKey: string,
 ) {
   if (member.variant !== 'default') {
+    const publisherCode = member.variant.split(':')[0] ?? member.variant
     const snapshots =
       await resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
         db,
         member.resourceType,
         regionCode,
         cohortKey,
-        { publisherCode: member.variant },
+        {
+          publisherCode,
+          variant: member.variant.includes(':') ? member.variant : undefined,
+        },
       )
 
     if (member.cohortMatchingMode === 'latest_at_or_before_cohort_per_dataset') {

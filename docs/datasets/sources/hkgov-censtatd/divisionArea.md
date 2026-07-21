@@ -91,12 +91,6 @@ source artifact, then publishes the exact and display snapshots together under t
 source release. The transform has no separate upload or release-notes URL; the source
 release records the CSDI dataset URL instead.
 
-Because these are optional, cohort-qualified geometry, a C&SD upload made after Overture
-division releases already exist creates a new immutable revision of every compatible
-Overture division release set. The newest revised set is current; earlier revised sets
-are archived. This keeps the display geometry in the current store for the active API
-release set while preserving each release set's immutable composition.
-
-Backfill revisions are created and published from the earliest compatible Overture
-cohort to the newest. This preserves chronological registry ordering when one upload
-revises several release sets.
+Both C&SD census cohorts are required Overture division-release inputs. The selected
+source snapshots are carried forward at or before the Overture cohort, so their stable
+source schema is always included in the release's API-field provenance.

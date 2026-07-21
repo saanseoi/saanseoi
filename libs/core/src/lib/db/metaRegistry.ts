@@ -1792,7 +1792,7 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
   resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
-  options: { publisherCode?: string } = {},
+  options: { publisherCode?: string; variant?: string } = {},
 ) {
   const candidates = await db
     .select({
@@ -1810,6 +1810,10 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
     )
     .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+    .leftJoin(
+      metaSnapshotLineages,
+      eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+    )
     .where(
       and(
         eq(metaSnapshots.resourceType, resourceType),
@@ -1820,6 +1824,7 @@ export async function resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCo
         options.publisherCode
           ? eq(metaPublishers.code, options.publisherCode)
           : undefined,
+        options.variant ? eq(metaSnapshotLineages.variant, options.variant) : undefined,
       ),
     )
     .orderBy(

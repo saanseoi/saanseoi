@@ -918,7 +918,7 @@ describe('control service', () => {
     }
   })
 
-  test('uses a cohort-independent HAD area to complete the compatible draft division release set', async () => {
+  test('keeps the draft division release set incomplete without its required C&SD areas', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-publish-had-draft-release-set.sqlite')
     const sqlite = initDb(dbPath)
@@ -1099,8 +1099,8 @@ describe('control service', () => {
     sqlite.close()
 
     expect(result.apiReleaseSetId).toBe(releaseSetId)
-    expect(result.apiReleaseSetStatus).toBe('current')
-    expect(publishedSet.status).toBe('current')
+    expect(result.apiReleaseSetStatus).toBe('draft')
+    expect(publishedSet.status).toBe('draft')
     expect(hadRelease.status).toBe('published')
     expect(hadSnapshot.status).toBe('published')
     expect(members).toEqual([
