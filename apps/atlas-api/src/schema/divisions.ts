@@ -185,10 +185,10 @@ const DivisionDocumentMetaSchema = z
 export const DivisionsListQuerySchema = z
   .object({
     catalogRevision: z.string().min(1).optional().openapi({
-      description: 'Immutable family-and-region API catalog checkpoint.',
+      description: 'Immutable family-and-region API catalogue checkpoint.',
     }),
     cohort: z.string().min(1).optional().openapi({
-      description: 'Exact effective cohort to select within the chosen catalog.',
+      description: 'Exact effective cohort to select within the chosen catalogue.',
     }),
     domain: z
       .enum(['overture', 'hkgov-pland-pu', 'hkgov-pland-new-town'])
@@ -200,10 +200,10 @@ export const DivisionsListQuerySchema = z
       description: 'Select the domain release effective at this instant.',
     }),
     knownAt: z.iso.datetime().optional().openapi({
-      description: 'Resolve the newest catalog checkpoint known at this instant.',
+      description: 'Resolve the newest catalogue checkpoint known at this instant.',
     }),
     releaseSet: z.string().min(1).optional().openapi({
-      description: 'Exact immutable domain release within the chosen catalog.',
+      description: 'Exact immutable domain release within the chosen catalogue.',
     }),
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),
@@ -242,10 +242,10 @@ export const DivisionDetailParamsSchema = z
 export const DivisionDetailQuerySchema = z
   .object({
     catalogRevision: z.string().min(1).optional().openapi({
-      description: 'Immutable family-and-region API catalog checkpoint.',
+      description: 'Immutable family-and-region API catalogue checkpoint.',
     }),
     cohort: z.string().min(1).optional().openapi({
-      description: 'Exact effective cohort to select within the chosen catalog.',
+      description: 'Exact effective cohort to select within the chosen catalogue.',
     }),
     domain: z
       .enum(['overture', 'hkgov-pland-pu', 'hkgov-pland-new-town'])
@@ -257,10 +257,10 @@ export const DivisionDetailQuerySchema = z
       description: 'Select the domain release effective at this instant.',
     }),
     knownAt: z.iso.datetime().optional().openapi({
-      description: 'Resolve the newest catalog checkpoint known at this instant.',
+      description: 'Resolve the newest catalogue checkpoint known at this instant.',
     }),
     releaseSet: z.string().min(1).optional().openapi({
-      description: 'Exact immutable domain release within the chosen catalog.',
+      description: 'Exact immutable domain release within the chosen catalogue.',
     }),
     profile: ProfileName.optional(),
     locales: RequestedLocalesQuerySchema.optional(),

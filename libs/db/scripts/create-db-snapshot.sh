@@ -65,16 +65,16 @@ prompt_description() {
   done
 }
 
-sanitize_description() {
+sanitise_description() {
   printf '%s' "$1" | bun -e '
     const raw = require("node:fs").readFileSync(0, "utf8").trim();
-    const sanitized = raw
+    const sanitised = raw
       .replace(/[\\/:*?"<>|]/g, " ")
       .replace(/\s+/g, " ")
       .replace(/[. ]+$/g, "")
       .trim();
 
-    process.stdout.write(sanitized || "snapshot");
+    process.stdout.write(sanitised || "snapshot");
   '
 }
 
@@ -192,7 +192,7 @@ list_remote_applied_migrations() {
 }
 
 description="$(prompt_description)"
-safe_description="$(sanitize_description "$description")"
+safe_description="$(sanitise_description "$description")"
 timestamp="$(date '+%Y-%m-%d %H-%M-%S')"
 created_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 snapshot_dir="$snapshot_root/$timestamp - $safe_description"

@@ -275,6 +275,6 @@ export function selectMarkdownHeadingPath(
   return source
 }
 
-export function stylizeSaanseoiInMarkdown(markdown: string) {
+export function styliseSaanseoiInMarkdown(markdown: string) {
   return markdown.replaceAll('山水 | SaanSeoi', '<saanseoi>山水 | SaanSeoi</saanseoi>')
 }

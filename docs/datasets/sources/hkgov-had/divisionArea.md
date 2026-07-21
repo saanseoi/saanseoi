@@ -28,7 +28,7 @@ administrative domain. The source release is
 version `1.2`. Its dataset code is `ds-hk-hkgov-had-division-area-district`.
 
 The compatibility layer exposes these source fields under `hkgov`, with database
-capitalization, in both source columns and canonical geometry `sourceKeys`:
+capitalisation, in both source columns and canonical geometry `sourceKeys`:
 
 | Source field         | Compatibility field     |
 | -------------------- | ----------------------- |

@@ -5,7 +5,7 @@ import {
   diffMarkdown,
   selectMarkdownHeadingPath,
   selectMarkdownSection,
-  stylizeSaanseoiInMarkdown,
+  styliseSaanseoiInMarkdown,
 } from './markdown'
 
 describe('selectMarkdownSection', () => {
@@ -90,7 +90,7 @@ describe('selectMarkdownSection', () => {
   })
 
   test('replaces each SaanSeoi brand mention with its Markdown renderer tag', () => {
-    expect(stylizeSaanseoiInMarkdown('山水 | SaanSeoi and 山水 | SaanSeoi')).toBe(
+    expect(styliseSaanseoiInMarkdown('山水 | SaanSeoi and 山水 | SaanSeoi')).toBe(
       '<saanseoi>山水 | SaanSeoi</saanseoi> and <saanseoi>山水 | SaanSeoi</saanseoi>',
     )
   })

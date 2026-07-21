@@ -237,7 +237,7 @@ export async function writeAddressCurrentSqlChunkStage(
 }
 
 /**
- * Serializes release metadata only after every address chunk has completed.
+ * Serialises release metadata only after every address chunk has completed.
  * This keeps the published release stats and processing-action audit trail in
  * sync with the data shards for both local and remote SQL imports.
  */

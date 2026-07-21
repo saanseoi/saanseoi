@@ -14,7 +14,7 @@ type Props = {
   tone?: Tone
   align?: Align
   featured?: boolean
-  emphasizedTitle?: boolean
+  emphasisedTitle?: boolean
 }
 
 let {
@@ -26,7 +26,7 @@ let {
   tone = 'default',
   align = 'left',
   featured = false,
-  emphasizedTitle = false,
+  emphasisedTitle = false,
 }: Props = $props()
 
 const toneClass: Record<Tone, string> = {
@@ -87,7 +87,7 @@ const toneClass: Record<Tone, string> = {
             ? 'mt-4 text-[2.1rem] leading-[0.98] tracking-tighter text-primary sm:text-display-md md:text-[3.4rem]'
             : tone === 'highlight'
               ? 'mt-5 text-[2.9rem] leading-[0.92] tracking-[-0.06em] text-primary sm:text-[4.2rem] md:text-[5.1rem]'
-              : `mt-4 text-[1.8rem] leading-[1.04] tracking-display-lg ${emphasizedTitle ? 'text-secondary' : 'text-primary'} sm:text-[2.3rem]`
+              : `mt-4 text-[1.8rem] leading-[1.04] tracking-display-lg ${emphasisedTitle ? 'text-secondary' : 'text-primary'} sm:text-[2.3rem]`
       }`}
     >
       {lead}

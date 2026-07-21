@@ -75,9 +75,9 @@ Important note:
 - this `profile` query parameter is an application-level feature
 - it is not the same thing as the JSON:API media-type `profile` parameter
 
-## Internationalized Fields
+## Internationalised Fields
 
-Internationalized fields should be grouped consistently under:
+Internationalised fields should be grouped consistently under:
 
 - `attributes.i18n.{locale}.{field}`
 
@@ -137,7 +137,7 @@ Recommended query parameters:
 - profile defaults may also imply locale inclusion rules
 
 This `?locales=...` filter should be supported consistently across all API endpoints
-that expose internationalized fields.
+that expose internationalised fields.
 
 ## Relationship Naming
 
