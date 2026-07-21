@@ -6,7 +6,7 @@ import {
   metaReleases,
   toIsoTimestamp,
 } from '@repo/db'
-import { resolveSourceSchemaVersion } from '@repo/core'
+import { publisherCodeForSource, resolveSourceSchemaVersion } from '@repo/core'
 import type { MetaDatabase } from '@repo/db'
 
 type StagedReleaseSyncPlan = {
@@ -38,7 +38,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
       .where(
         and(
           eq(metaDatasets.code, release.datasetCode),
-          eq(metaPublishers.code, plan.source),
+          eq(metaPublishers.code, publisherCodeForSource(plan.source)),
         ),
       )
       .limit(1)
