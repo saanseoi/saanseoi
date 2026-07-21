@@ -12,7 +12,7 @@ const previous: HkgovAlsIdentityRecord = {
   continuityKey: 'same-premise-anchor',
   id: 'ss-previous',
   identityKey: 'old-building-name',
-  sourceVersion: '2025-01-23.1031',
+  sourceVersion: '2025-01-23.0',
   summary: { buildingName: 'OLD BUILDING', routeName: 'EXAMPLE ROAD' },
 }
 
@@ -20,7 +20,7 @@ const renamed: HkgovAlsIdentityRecord = {
   continuityKey: 'same-premise-anchor',
   id: 'ss-new',
   identityKey: 'new-building-name',
-  sourceVersion: '2025-02-25.1050',
+  sourceVersion: '2025-02-25.0',
   summary: { buildingName: 'NEW BUILDING', routeName: 'EXAMPLE ROAD' },
 }
 
@@ -28,7 +28,7 @@ const withdrawnBuildingName: HkgovAlsIdentityRecord = {
   ...previous,
   id: 'ss-new',
   identityKey: 'building-name-removed',
-  sourceVersion: '2025-02-25.1050',
+  sourceVersion: '2025-02-25.0',
   summary: { buildingName: null, routeName: 'EXAMPLE ROAD' },
 }
 
@@ -36,7 +36,7 @@ const movedToEstateName: HkgovAlsIdentityRecord = {
   ...previous,
   id: 'ss-new',
   identityKey: 'building-name-moved-to-estate',
-  sourceVersion: '2025-02-25.1050',
+  sourceVersion: '2025-02-25.0',
   summary: {
     buildingName: null,
     estateName: 'OLD BUILDING',
@@ -61,7 +61,7 @@ const unqualifiedPremise: HkgovAlsIdentityRecord = {
   ...qualifiedBlock,
   id: 'ss-unqualified',
   identityKey: 'unqualified-premise',
-  sourceVersion: '2025-02-25.1050',
+  sourceVersion: '2025-02-25.0',
   summary: {
     blockDescriptor: null,
     blockNumber: null,
