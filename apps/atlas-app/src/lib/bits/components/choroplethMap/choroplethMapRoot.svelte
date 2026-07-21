@@ -1,11 +1,5 @@
 <script lang="ts">
-import {
-  FillLayer,
-  GeoJSONSource,
-  LineLayer,
-  MapLibre,
-  NavigationControl,
-} from 'svelte-maplibre-gl'
+import { FillLayer, GeoJSONSource, LineLayer, MapLibre } from 'svelte-maplibre-gl'
 import { tick } from 'svelte'
 import type { ExpressionSpecification } from 'maplibre-gl'
 import type { Map as MapLibreMap } from 'maplibre-gl'
@@ -80,6 +74,10 @@ let fillColor = $derived([
 ] as unknown as ExpressionSpecification)
 let activeFeature = $state<{ label: string; value: number } | null>(null)
 let map = $state<MapLibreMap>()
+const hongKongBounds: [[number, number], [number, number]] = [
+  [113.83, 22.15],
+  [114.45, 22.58],
+]
 
 $effect(() => {
   sourceData
@@ -87,7 +85,11 @@ $effect(() => {
 
   let frame: number | undefined
   void tick().then(() => {
-    frame = requestAnimationFrame(() => map?.resize())
+    frame = requestAnimationFrame(() => {
+      map?.resize()
+      map?.fitBounds(hongKongBounds, { duration: 0, padding: 0 })
+      if (map) map.setMinZoom(map.getZoom())
+    })
   })
 
   return () => {
@@ -109,22 +111,19 @@ function updateActiveFeature(event: {
 }
 </script>
 
-<div
-  class="overflow-hidden rounded-lg border border-data-outline-variant/60 bg-data-surface-container-lowest"
->
-  <div class="relative h-80" role="img" aria-label={ariaLabel}>
+<div class="overflow-hidden bg-data-surface-container-lowest">
+  <div class="relative h-152" role="img" aria-label={ariaLabel}>
     <MapLibre
       class="size-full"
       bind:map
       style={HYPE_BASEMAP_STYLE}
-      center={[114.16, 22.33]}
-      zoom={9.7}
-      minZoom={8.5}
+      bounds={hongKongBounds}
+      fitBoundsOptions={{ padding: 0 }}
+      minZoom={8}
       maxZoom={13}
       attributionControl={false}
       autoloadGlobalCss={true}
     >
-      <NavigationControl position="top-right" />
       <GeoJSONSource id="choropleth-districts" data={sourceData}>
         <FillLayer
           id="choropleth-district-fill"
