@@ -138,9 +138,7 @@ export function datasetVariantForSource(
   }
 
   if (source === 'hkgov-censtatd' && options.cohortKey) {
-    const transform =
-      options.transform ??
-      (options.sourceVersion?.endsWith('-simplified-v1') ? 'simplified' : undefined)
+    const transform = options.transform
     return [source, options.cohortKey, transform].filter(Boolean).join(':')
   }
 

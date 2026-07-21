@@ -34,21 +34,8 @@ describe('registry code construction', () => {
       'dr-hk-hkgov-had-division-area-district-2022',
     )
     expect(
-      buildDatasetReleaseCode(
-        'hk',
-        'hkgov-censtatd',
-        '2016-simplified-v1',
-        'divisionArea',
-      ),
-    ).toBe('dr-hk-hkgov-censtatd-division-area-district-2016-simplified-v1')
-    expect(
-      buildDatasetReleaseCode(
-        'hk',
-        'hkgov-censtatd',
-        '2021-simplified-v1',
-        'divisionArea',
-      ),
-    ).toBe('dr-hk-hkgov-censtatd-division-area-district-2021-simplified-v1')
+      buildDatasetReleaseCode('hk', 'hkgov-censtatd', '2021', 'divisionArea'),
+    ).toBe('dr-hk-hkgov-censtatd-division-area-district-2021')
     expect(buildDatasetReleaseCode('hk', 'hkgov-pland-pu', '2006', 'division')).toBe(
       'dr-hk-hkgov-pland-division-pu-2006',
     )
@@ -68,13 +55,15 @@ describe('registry code construction', () => {
     expect(
       datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
         cohortKey: '2016',
-        sourceVersion: '2016-simplified-v1',
+        sourceVersion: '2016',
+        transform: 'simplified',
       }),
     ).toBe('hkgov-censtatd:2016:simplified')
     expect(
       datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
         cohortKey: '2021',
-        sourceVersion: '2021-simplified-v1',
+        sourceVersion: '2021',
+        transform: 'simplified',
       }),
     ).toBe('hkgov-censtatd:2021:simplified')
   })

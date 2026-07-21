@@ -86,6 +86,8 @@ export const getSourceDatasetPageData = query(registryCodeSchema, async datasetC
   return source
 })
 
+const DISTRICT_COVERAGE_MAP_VARIANT = 'hkgov-censtatd:2021:simplified'
+
 /**
  * The district-coverage map uses the C&SD 2021 Census District Boundary's
  * simplified display geometry. Do not substitute HAD or source-precision
@@ -102,7 +104,7 @@ export const getDistrictCoverageMapData = query(async () => {
       variant: divisionAreas.variant,
     })
     .from(divisionAreas)
-    .where(eq(divisionAreas.variant, 'hkgov-censtatd:2021:simplified'))
+    .where(eq(divisionAreas.variant, DISTRICT_COVERAGE_MAP_VARIANT))
     .orderBy(desc(divisionAreas.updatedAt))
     .all()
 

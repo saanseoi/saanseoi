@@ -15,7 +15,11 @@ import type {
   NewDivisionRow,
   NewDivisionI18nRow,
 } from '@repo/db/currentSchema'
-import type { GeoJsonGeometry, GeoJsonPosition } from '../geojson'
+import {
+  calculateGeoJsonBbox,
+  type GeoJsonGeometry,
+  type GeoJsonPosition,
+} from '../geojson'
 import type { AsyncBuffer } from 'hyparquet'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
@@ -1124,7 +1128,7 @@ export function normalizeDivisionRow(
 
   return {
     base: {
-      bbox: row.bbox ?? null,
+      bbox: normalizedGeometry ? calculateGeoJsonBbox(normalizedGeometry) : null,
       cartography: row.cartography ?? null,
       createdAt: now,
       geometry: normalizedGeometry,

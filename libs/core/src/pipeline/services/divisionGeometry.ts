@@ -4,7 +4,11 @@ import type {
   NewSourceDivisionBoundaryRow,
 } from '@repo/db/sourceSchema'
 
-import type { GeoJsonGeometry, GeoJsonPosition } from '../geojson'
+import {
+  calculateGeoJsonBbox,
+  type GeoJsonGeometry,
+  type GeoJsonPosition,
+} from '../geojson'
 import { parseWkbGeometry } from './division'
 import { asNonEmptyString, createHash, stableJsonStringify } from '../utils'
 import { isReferentOnlyDivisionId } from './divisionFixtures'
@@ -79,6 +83,7 @@ export function normalizeDivisionAreaGeometryRow(
     id,
     options.validateGeometry,
   )
+  const bbox = calculateGeoJsonBbox(geometry)
   const isLand =
     source === 'hkgov-had' ||
     source === 'hkgov-censtatd' ||
@@ -102,7 +107,7 @@ export function normalizeDivisionAreaGeometryRow(
   const sourceKeys = buildSourceKeys(row, source)
   const sources = normalizeSources(row.sources, source)
   const base: GeometryBase = {
-    bbox: row.bbox ?? null,
+    bbox,
     geometry,
     id,
     isLand,
@@ -119,7 +124,7 @@ export function normalizeDivisionAreaGeometryRow(
       divisionId,
     },
     source: {
-      bbox: row.bbox ?? null,
+      bbox,
       divisionId,
       geometry,
       isLand: base.isLand,
@@ -154,6 +159,7 @@ export function normalizeDivisionBoundaryGeometryRow(
     id,
     options.validateGeometry,
   )
+  const bbox = calculateGeoJsonBbox(geometry)
   const isLand = asOptionalBoolean(row.is_land)
   const isTerritorial = asOptionalBoolean(row.is_territorial)
   const type = resolveGeometryType(row.class, id, { isLand, isTerritorial })
@@ -165,7 +171,7 @@ export function normalizeDivisionBoundaryGeometryRow(
   const sourceKeys = buildSourceKeys(row, source)
   const sources = normalizeSources(row.sources, source)
   const base: GeometryBase = {
-    bbox: row.bbox ?? null,
+    bbox,
     geometry,
     id,
     isLand,
@@ -183,7 +189,7 @@ export function normalizeDivisionBoundaryGeometryRow(
       rightDivisionId: divisionIds[1],
     },
     source: {
-      bbox: row.bbox ?? null,
+      bbox,
       divisionIds,
       geometry,
       isLand: base.isLand,
