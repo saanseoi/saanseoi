@@ -19,10 +19,15 @@ import type {
 } from './types'
 
 const registryCodeSchema = z.string().trim().min(1).max(200)
+const releasePageSchema = z.object({
+  offset: z.number().int().min(0).max(10_000),
+})
 const apiReleaseSchema = z.object({
   familyType: registryCodeSchema,
   releaseCode: registryCodeSchema,
 })
+
+const DATA_RELEASES_PAGE_SIZE = 12
 
 function getMetaDb() {
   const event = getRequestEvent()
@@ -133,12 +138,9 @@ export const getPublisherPageData = query(registryCodeSchema, async publisherCod
   }
 })
 
-async function loadDataPageData() {
+async function loadDataReleasesPage(offset = 0) {
   const db = getMetaDb()
-  const [releases, apis] = await Promise.all([
-    listRegistryReleases(db, 12),
-    listRegistryApis(db, 100),
-  ])
+  const releases = await listRegistryReleases(db, DATA_RELEASES_PAGE_SIZE + 1, offset)
 
   const [addressCounts, divisionCounts] = await Promise.all([
     getCurrentDb()
@@ -164,28 +166,40 @@ async function loadDataPageData() {
       Number(row.count),
     ]),
   )
-  const releasesWithPrimaryCounts = releases.map(release => {
-    const primaryResourceType =
-      release.apiFamily === 'addresses'
-        ? 'address'
-        : release.apiFamily === 'divisions'
-          ? 'division'
-          : null
-    const primarySnapshot = release.apiReleaseSetSnapshots?.find(
-      releaseSnapshot => releaseSnapshot.snapshot.resourceType === primaryResourceType,
-    )
+  return {
+    releases: releases.slice(0, DATA_RELEASES_PAGE_SIZE).map(release => {
+      const primaryResourceType =
+        release.apiFamily === 'addresses'
+          ? 'address'
+          : release.apiFamily === 'divisions'
+            ? 'division'
+            : null
+      const primarySnapshot = release.apiReleaseSetSnapshots?.find(
+        releaseSnapshot =>
+          releaseSnapshot.snapshot.resourceType === primaryResourceType,
+      )
 
-    return {
-      ...release,
-      primaryRecordCount:
-        primarySnapshot === undefined
-          ? null
-          : (countsBySnapshot.get(primarySnapshot.snapshotId) ?? null),
-    }
-  })
+      return {
+        ...release,
+        primaryRecordCount:
+          primarySnapshot === undefined
+            ? null
+            : (countsBySnapshot.get(primarySnapshot.snapshotId) ?? null),
+      }
+    }) as ApiRelease[],
+    hasMore: releases.length > DATA_RELEASES_PAGE_SIZE,
+    nextOffset: offset + Math.min(releases.length, DATA_RELEASES_PAGE_SIZE),
+  }
+}
+
+async function loadDataPageData() {
+  const [releasePage, apis] = await Promise.all([
+    loadDataReleasesPage(),
+    listRegistryApis(getMetaDb(), 100),
+  ])
 
   return {
-    releases: releasesWithPrimaryCounts as ApiRelease[],
+    ...releasePage,
     apis: apis as RegistryApi[],
   }
 }
@@ -197,7 +211,27 @@ export const getDataPageData = query(async () => {
     // An import can briefly expose the app before both D1 databases have their
     // registry tables. Render the empty registry state until the upload finishes.
     if (isRegistryBootstrapError(error)) {
-      return { releases: [] as ApiRelease[], apis: [] as RegistryApi[] }
+      return {
+        releases: [] as ApiRelease[],
+        hasMore: false,
+        nextOffset: 0,
+        apis: [] as RegistryApi[],
+      }
+    }
+    throw error
+  }
+})
+
+export const getDataReleasesPageData = query(releasePageSchema, async ({ offset }) => {
+  try {
+    return await loadDataReleasesPage(offset)
+  } catch (error) {
+    if (isRegistryBootstrapError(error)) {
+      return {
+        releases: [] as ApiRelease[],
+        hasMore: false,
+        nextOffset: offset,
+      }
     }
     throw error
   }

@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 
-import divisionFixture20260218 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2026-02-18.0.json'
+import divisionFixtureOverture116To117 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.17.json'
 import {
   insertFixtureRelease,
   loadMigrationSql,
@@ -675,7 +675,7 @@ describe('control service', () => {
     ])
     expect(sortProvenanceRows(provenanceRows)).toEqual(
       sortProvenanceRows(
-        divisionFixture20260218.fields.map(field => ({
+        divisionFixtureOverture116To117.fields.map(field => ({
           apiField: field.apiField,
           sourceFieldPath: field.sourceFieldPath,
         })),

@@ -73,6 +73,9 @@ for year in 2016 2021
         --yes
 end
 
+run_step ./bin/saanseoi backfill:hkgov-pland-pu --target local
+run_step ./bin/saanseoi backfill:hkgov-pland-new-town --target local
+
 run_step ./bin/saanseoi docs:publish --target local --scope all
 run_step ./bin/saanseoi ingest-hkgov-dpo-local \
     "$repo/data/hkgov/dpo/ALS" \
