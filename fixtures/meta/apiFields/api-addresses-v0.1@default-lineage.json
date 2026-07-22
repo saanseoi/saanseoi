@@ -118,6 +118,13 @@
       }
     },
     {
+      "snapshotVersion": "ss-hk-address-2026-06-24.0",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.17.0"
+      }
+    },
+    {
       "snapshotVersion": "ss-hk-address-2026-07-08.0",
       "sourceSchemas": {
         "ds-hk-hkgov-dpo-address": "3.2",
