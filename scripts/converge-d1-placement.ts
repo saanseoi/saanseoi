@@ -67,11 +67,11 @@ const allBindings: BindingName[] = [
 
 const probeUrls: Record<Target, string[]> = {
   preview: [
-    'https://preview.saanseoi.hk/api/v0/meta/d1-placement-probe',
+    'https://preview.api.saanseoi.hk/v0/meta/d1-placement-probe',
     'https://preview.harbour.saanseoi.hk/api/v1/meta/d1-placement-probe',
   ],
   production: [
-    'https://saanseoi.hk/api/v0/meta/d1-placement-probe',
+    'https://api.saanseoi.hk/v0/meta/d1-placement-probe',
     'https://harbour.saanseoi.hk/api/v1/meta/d1-placement-probe',
   ],
 }

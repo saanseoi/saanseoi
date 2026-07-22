@@ -14,7 +14,6 @@ interface __BaseEnv_Env {
 	ASSETS: Fetcher;
 	PUBLIC_ATLAS_API_BASE_URL: "https://preview.api.saanseoi.hk" | "https://api.saanseoi.hk" | "http://localhost:8787";
 	BETTER_AUTH_SECRET: string;
-	D1_PLACEMENT_PROBE_API_KEY: string;
 	GOOGLE_CLIENT_ID: string;
 	GOOGLE_CLIENT_SECRET: string;
 	GITHUB_CLIENT_ID: string;
@@ -37,7 +36,6 @@ declare namespace Cloudflare {
 		ASSETS: Fetcher;
 		PUBLIC_ATLAS_API_BASE_URL: "https://preview.api.saanseoi.hk";
 		BETTER_AUTH_SECRET: string;
-		D1_PLACEMENT_PROBE_API_KEY: string;
 		GOOGLE_CLIENT_ID: string;
 		GOOGLE_CLIENT_SECRET: string;
 		GITHUB_CLIENT_ID: string;
@@ -56,7 +54,6 @@ declare namespace Cloudflare {
 		ASSETS: Fetcher;
 		PUBLIC_ATLAS_API_BASE_URL: "https://api.saanseoi.hk";
 		BETTER_AUTH_SECRET: string;
-		D1_PLACEMENT_PROBE_API_KEY: string;
 		GOOGLE_CLIENT_ID: string;
 		GOOGLE_CLIENT_SECRET: string;
 		GITHUB_CLIENT_ID: string;
@@ -69,7 +66,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "PUBLIC_ATLAS_API_BASE_URL" | "BETTER_AUTH_SECRET" | "D1_PLACEMENT_PROBE_API_KEY" | "GOOGLE_CLIENT_ID" | "GOOGLE_CLIENT_SECRET" | "GITHUB_CLIENT_ID" | "GITHUB_CLIENT_SECRET">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "PUBLIC_ATLAS_API_BASE_URL" | "BETTER_AUTH_SECRET" | "GOOGLE_CLIENT_ID" | "GOOGLE_CLIENT_SECRET" | "GITHUB_CLIENT_ID" | "GITHUB_CLIENT_SECRET">> {}
 }
 
 // Begin runtime types

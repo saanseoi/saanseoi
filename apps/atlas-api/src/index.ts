@@ -10,7 +10,9 @@ import { authenticateApiKey } from './lib/api-key-auth'
 import { isTransientD1ReadError } from './lib/d1'
 import { defaultOpenAPIHook } from './lib/openapi'
 import { metaRoutes } from './routes/v0/meta'
+import { probeRoutes } from './routes/v0/probe'
 import { divisionRoutes } from './routes/v0/divisions'
+import { addressRoutes } from './routes/v0/addresses'
 import { placeRoutes } from './routes/v0/places'
 import { registryRoutes } from './routes/v0/registry'
 import type { AppEnv } from './types'
@@ -124,8 +126,10 @@ app.get('/', c => c.redirect('/openapi', 302))
 
 app.openapiRoutes([
   ...metaRoutes,
+  ...probeRoutes,
   ...registryRoutes,
   ...divisionRoutes,
+  ...addressRoutes,
   ...placeRoutes,
 ] as const)
 

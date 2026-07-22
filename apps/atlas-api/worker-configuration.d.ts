@@ -13,6 +13,7 @@ interface __BaseEnv_CloudflareBindings {
 	ATLAS_BASE_URL: "https://preview.api.saanseoi.hk" | "https://api.saanseoi.hk" | "http://localhost:8787";
 	HARBOUR_BASE_URL: "https://preview.harbour.saanseoi.hk" | "https://harbour.saanseoi.hk" | "http://localhost:8788";
 	SUBSTACK_PUBLICATION: "saanseoi";
+	D1_PLACEMENT_PROBE_API_KEY: string;
 	SUBSTACK_SESSION_COOKIE: string;
 	TELEGRAM_BOT_TOKEN: string;
 	TELEGRAM_ADMIN_ID: string;
@@ -33,6 +34,7 @@ declare namespace Cloudflare {
 		ATLAS_BASE_URL: "https://preview.api.saanseoi.hk";
 		HARBOUR_BASE_URL: "https://preview.harbour.saanseoi.hk";
 		SUBSTACK_PUBLICATION: "saanseoi";
+		D1_PLACEMENT_PROBE_API_KEY: string;
 		SUBSTACK_SESSION_COOKIE: string;
 		TELEGRAM_BOT_TOKEN: string;
 		TELEGRAM_ADMIN_ID: string;
@@ -49,6 +51,7 @@ declare namespace Cloudflare {
 		ATLAS_BASE_URL: "https://api.saanseoi.hk";
 		HARBOUR_BASE_URL: "https://harbour.saanseoi.hk";
 		SUBSTACK_PUBLICATION: "saanseoi";
+		D1_PLACEMENT_PROBE_API_KEY: string;
 		SUBSTACK_SESSION_COOKIE: string;
 		TELEGRAM_BOT_TOKEN: string;
 		TELEGRAM_ADMIN_ID: string;
@@ -60,7 +63,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "ATLAS_BASE_URL" | "HARBOUR_BASE_URL" | "SUBSTACK_PUBLICATION" | "SUBSTACK_SESSION_COOKIE" | "TELEGRAM_BOT_TOKEN" | "TELEGRAM_ADMIN_ID">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "ATLAS_BASE_URL" | "HARBOUR_BASE_URL" | "SUBSTACK_PUBLICATION" | "D1_PLACEMENT_PROBE_API_KEY" | "SUBSTACK_SESSION_COOKIE" | "TELEGRAM_BOT_TOKEN" | "TELEGRAM_ADMIN_ID">> {}
 }
 
 // Begin runtime types
