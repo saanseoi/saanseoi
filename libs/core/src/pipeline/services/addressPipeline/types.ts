@@ -158,11 +158,12 @@ export function collectAddressCoverageCounts(rows: ResolvedAddressRecord[]) {
     for (const localised of row.i18n) {
       locales.add(localised.locale)
       if (localised.streetName) components.add('street_name')
-      if (localised.streetNumber) components.add('street_number')
+      if (localised.buildingNumberFrom || localised.buildingNumberTo)
+        components.add('building_number')
       if (localised.buildingName) components.add('building_name')
       if (localised.estateName) components.add('estate_name')
-      if (localised.phaseName || localised.phaseNumber) components.add('phase')
-      if (localised.blockType || localised.blockNumber) components.add('block')
+      if (localised.phaseName || localised.phaseRef) components.add('phase')
+      if (localised.blockType || localised.blockRef) components.add('block')
     }
 
     for (const locale of locales) incrementCount(localeCounts, locale)

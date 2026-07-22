@@ -6,6 +6,7 @@ import {
   alignAddressCurrentDivisionSnapshot,
   cloneAddressCurrentSnapshot,
   prepareAddressVersionInsertContext,
+  replaceAddressCurrentBuildingNumberLookups,
   replaceAddressCurrentI18n,
   touchAddressCurrentRows,
   upsertAddressCurrentStates,
@@ -96,6 +97,12 @@ export async function writeAddressCurrentChunkStage(
     changedRows.map(row => row.base),
   )
   await replaceAddressCurrentI18n(
+    currentRepoDb,
+    versionInsertContext.snapshotId,
+    changedRows.map(row => row.addressId),
+    changedRows.flatMap(row => row.i18n),
+  )
+  await replaceAddressCurrentBuildingNumberLookups(
     currentRepoDb,
     versionInsertContext.snapshotId,
     changedRows.map(row => row.addressId),

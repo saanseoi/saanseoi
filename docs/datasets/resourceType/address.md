@@ -15,8 +15,9 @@ prepared parquet file. The address pipeline uses that identity for both the sour
 record and canonical address unless a reviewed ALS identity-drift decision retains an
 earlier ID.
 
-Processing requires a published, same-cohort division snapshot. The API composition
-selects that snapshot as a required supporting member with exact cohort matching.
+Processing requires a published, cohort-compatible division snapshot. The API
+composition selects that snapshot as a required supporting member using its configured
+cohort-matching rule.
 
 The local SQL workflow processes parquet in chunks through `normalise`, `sql-source`,
 `sql-history`, and `sql-current` stages. It stages source data in `stagingAddresses2d`
@@ -37,5 +38,24 @@ the release are marked before final cleanup.
 ## API support
 
 The registry declares the address endpoint aliases in
-`fixtures/meta/apiEndpoints/api-addresses-v0.1.json`. Addresses also support place
-search through the `places.addressSnapshotId` and `places.address2dId` relationships.
+`fixtures/meta/apiEndpoints/api-addresses-v0.1.json`:
+
+- `GET /v0/addresses`
+- `GET /v0.1/addresses`
+- `GET /v0/addresses/{id}`
+- `GET /v0.1/addresses/{id}`
+
+The SaanSeoi API implements these aliases as JSON:API list and detail resources. The
+address composition uses the `default` domain, with an address snapshot as the primary
+member and a cohort-compatible Overture division snapshot as a required supporting
+member. List requests support catalogue/cohort/release-set selection, profiles and
+locale projection, pagination, and country/area/district filters. Address relationships
+always identify the canonical `country`, `area`, and `district` divisions.
+
+The `compact` and `default` profiles return localised formatted addresses, `map` adds
+point geometry and bounding boxes, and `full` adds identifiers, source attribution, and
+all stored localised address components. The public address API is two-dimensional; ALS
+public-rental-housing floor and unit data remains outside this resource.
+
+Addresses also support place search through the `places.addressSnapshotId` and
+`places.address2dId` relationships.

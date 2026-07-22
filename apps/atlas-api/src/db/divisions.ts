@@ -446,33 +446,44 @@ export async function listDivisionRecordsCurrentByIds(
   }
 
   const i18n = buildDivisionI18nJsonSelection(lookup.localeSelection)
-  const rows = await db
-    .select({
-      snapshotId: divisions.snapshotId,
-      id: divisions.id,
-      level: divisions.level,
-      type: divisions.type,
-      geometry: divisions.geometry,
-      bbox: divisions.bbox,
-      sourceKeys: divisions.sourceKeys,
-      identifiers: divisions.identifiers,
-      wikidata: divisions.wikidata,
-      hierarchy: divisions.hierarchy,
-      cartography: divisions.cartography,
-      sources: divisions.sources,
-      createdAt: divisions.createdAt,
-      updatedAt: divisions.updatedAt,
-      i18n,
-    })
-    .from(divisions)
-    .where(
-      and(
-        eq(divisions.snapshotId, lookup.snapshotId),
-        inArray(divisions.id, lookup.divisionIds),
+  const uniqueIds = [...new Set(lookup.divisionIds)]
+  // D1 permits at most 100 bound variables. One is the snapshot id.
+  const chunks = Array.from({ length: Math.ceil(uniqueIds.length / 99) }, (_, index) =>
+    uniqueIds.slice(index * 99, (index + 1) * 99),
+  )
+  const rows = (
+    await Promise.all(
+      chunks.map(divisionIds =>
+        db
+          .select({
+            snapshotId: divisions.snapshotId,
+            id: divisions.id,
+            level: divisions.level,
+            type: divisions.type,
+            geometry: divisions.geometry,
+            bbox: divisions.bbox,
+            sourceKeys: divisions.sourceKeys,
+            identifiers: divisions.identifiers,
+            wikidata: divisions.wikidata,
+            hierarchy: divisions.hierarchy,
+            cartography: divisions.cartography,
+            sources: divisions.sources,
+            createdAt: divisions.createdAt,
+            updatedAt: divisions.updatedAt,
+            i18n,
+          })
+          .from(divisions)
+          .where(
+            and(
+              eq(divisions.snapshotId, lookup.snapshotId),
+              inArray(divisions.id, divisionIds),
+            ),
+          )
+          .orderBy(asc(divisions.level), asc(divisions.type), asc(divisions.id))
+          .all(),
       ),
     )
-    .orderBy(asc(divisions.level), asc(divisions.type), asc(divisions.id))
-    .all()
+  ).flat()
 
   return rows.map(row => mapDivisionRow(row))
 }
