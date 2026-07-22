@@ -370,7 +370,7 @@ let { children, class: className = '' }: Props = $props()
     animation: arrow-breathe 3.5s ease-in-out infinite;
   }
 
-  /* Light mode uses clear, color-coded stages; dark mode keeps its original treatment. */
+  /* Light mode uses clear, colour-coded stages; dark mode keeps its original treatment. */
   :global(html:not(.dark)) .landing-pipeline {
     background: #f8f5ec;
   }

@@ -1002,7 +1002,7 @@ function logApiReleaseSetPublication(
   if (releaseSetCode && result?.apiReleaseSetStatus === 'current') {
     log.success(`Published API domain release ${rainbowWaveText(releaseSetCode)}.`)
     if (result.apiCatalogRevisionCode) {
-      log.info(`Catalog revision ${blueText(result.apiCatalogRevisionCode)}`)
+      log.info(`Catalogue revision ${blueText(result.apiCatalogRevisionCode)}`)
     }
   } else if (releaseSetCode) {
     log.warn(`${redText('DRAFT')} ${blueText(releaseSetCode)}`)

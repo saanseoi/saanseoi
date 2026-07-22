@@ -79,12 +79,6 @@ export async function runHkgovAlsPrepCommand(
       'EQUIVALENT ALS PREMISE VARIANTS CONSOLIDATED (SAME COMPLETE PREMISE IDENTITY)',
     )
   }
-  if (result.numberRangeSingletonFeatureGroups.length > 0) {
-    note(
-      formatSourceDuplicateSummary(result.numberRangeSingletonFeatureGroups),
-      'NUMBER-RANGE/SINGLETON PREMISE VARIANTS CONSOLIDATED',
-    )
-  }
   const driftReportFile = stringOption(args, 'identity-drift-report')
   if (result.driftCandidates.length > 0 && driftReportFile) {
     await writeDriftReport(driftReportFile, sourceVersion, result.driftCandidates)
@@ -102,10 +96,6 @@ export async function runHkgovAlsPrepCommand(
       formatField(
         'equivalentPremiseVariantsConsolidated',
         String(result.identityConsolidatedFeatureCount),
-      ),
-      formatField(
-        'numberRangeSingletonVariantsConsolidated',
-        String(result.numberRangeSingletonConsolidatedFeatureCount),
       ),
       formatField('identityDriftCandidates', String(result.driftCandidates.length)),
       ...(driftReportFile && result.driftCandidates.length > 0
@@ -148,7 +138,7 @@ export async function runHkgovAlsLocalIngestCommand(
   )
   let history = await readHistory(historyFile)
   let decisions = await readDecisions(decisionsFile)
-  const firstSourceVersion = normalizeAlsSourceVersion(
+  const firstSourceVersion = normaliseAlsSourceVersion(
     stringOption(args, 'from-source-version') ?? `${cohortKey.slice(0, 4)}-01-01.0`,
   )
   const sourceReleases = await resolveAlsSourceReleases(
@@ -193,7 +183,7 @@ export async function runHkgovAlsLocalIngestCommand(
     sourceDir,
     sourceVersion,
   } of sourceReleases) {
-    if (ingestedSourceVersions.has(sourceVersion)) {
+    if (ingestedSourceVersions.has(sourceVersion) && !args.options.force) {
       note(
         'A published local address release already exists for this source version; skipping it.',
         `ALREADY INGESTED — ${sourceVersion}`,
@@ -254,12 +244,6 @@ export async function runHkgovAlsLocalIngestCommand(
       note(
         formatSourceDuplicateSummary(result.identityEquivalentFeatureGroups),
         `EQUIVALENT ALS PREMISE VARIANTS CONSOLIDATED (SAME COMPLETE PREMISE IDENTITY) — ${sourceVersion}`,
-      )
-    }
-    if (result.numberRangeSingletonFeatureGroups.length > 0) {
-      note(
-        formatSourceDuplicateSummary(result.numberRangeSingletonFeatureGroups),
-        `NUMBER-RANGE/SINGLETON PREMISE VARIANTS CONSOLIDATED — ${sourceVersion}`,
       )
     }
     await runUploadCommand(
@@ -626,7 +610,7 @@ function resolveAlsSourceVersion(args: ParsedArgs, sourceDir: string | undefined
     inferSourceVersionFromPath(sourceDir ?? '') ??
     inferAlsSourceVersionFromPath(sourceDir ?? '')
 
-  return sourceVersion ? normalizeAlsSourceVersion(sourceVersion) : null
+  return sourceVersion ? normaliseAlsSourceVersion(sourceVersion) : null
 }
 
 /**
@@ -652,7 +636,7 @@ export function resolveAlsReleaseVersions(sourceDirs: string[]) {
     })
 }
 
-function normalizeAlsSourceVersion(value: string) {
+function normaliseAlsSourceVersion(value: string) {
   const match = value.match(/^(20\d{2}-\d{2}-\d{2})(?:\.(\d+))?$/)
   if (!match) {
     return value
