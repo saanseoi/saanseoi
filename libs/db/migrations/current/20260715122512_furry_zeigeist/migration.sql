@@ -1,1 +1,0 @@
-ALTER TABLE `divisions` ADD `identifiers` text;

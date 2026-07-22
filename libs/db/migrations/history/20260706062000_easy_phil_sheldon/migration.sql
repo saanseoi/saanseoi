@@ -1,1 +1,0 @@
-ALTER TABLE `divisions` DROP COLUMN `population`;

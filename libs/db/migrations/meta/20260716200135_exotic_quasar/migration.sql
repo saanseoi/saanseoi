@@ -1,1 +1,0 @@
-ALTER TABLE `apiReleaseSets` ADD `domainCode` text DEFAULT 'default' NOT NULL;
