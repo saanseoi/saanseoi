@@ -1,12 +1,15 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
-import { and, eq } from 'drizzle-orm'
-
 import type { HistoryDatabase } from '@repo/db'
-import { historySchema } from '@repo/db'
 
-import { buildMatchKey } from '@repo/core/pipeline/services/addressPipeline/normalization'
+import type { HarbourReadableDb } from '@repo/core/db/types'
+import { getCurrentAddressVersionMap } from '@repo/core/pipeline/db/address'
+import {
+  buildAddressBaseHashInput,
+  buildMatchKey,
+  normaliseAddressI18nSnapshotRow,
+} from '@repo/core/pipeline/services/addressPipeline/normalisation'
 import type {
   AddressCurrentLookupCache,
   AddressCurrentLookupEntry,
@@ -18,11 +21,11 @@ const ADDRESS_LOOKUP_CACHE_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/address
 type AddressCurrentLookupCacheFile = {
   builtAt: string
   entries: Array<{
+    churnHash: string
     id: string
     matchKey: string | null
-    versionHash: string
   }>
-  kind: 'address.current-lookup.v1'
+  kind: 'address.current-lookup.v2'
   releaseCode: string
   target: 'local' | 'preview' | 'production'
 }
@@ -46,7 +49,7 @@ export async function loadAddressCurrentLookupCache(
 
   const parsed = JSON.parse(raw) as AddressCurrentLookupCacheFile
 
-  if (parsed.kind !== 'address.current-lookup.v1') {
+  if (parsed.kind !== 'address.current-lookup.v2') {
     return null
   }
 
@@ -55,8 +58,8 @@ export async function loadAddressCurrentLookupCache(
 
   for (const entry of parsed.entries) {
     const value = {
+      churnHash: entry.churnHash,
       id: entry.id,
-      versionHash: entry.versionHash,
     } satisfies AddressCurrentLookupEntry
 
     byId.set(entry.id, value)
@@ -78,39 +81,23 @@ export async function writeAddressCurrentLookupCache(
   releaseCode: string,
   historyDb: HistoryDatabase,
 ) {
-  const rows = await historyDb
-    .select({
-      id: historySchema.address2d.id,
-      districtId: historySchema.address2d.districtId,
-      streetName: historySchema.address2dI18n.streetName,
-      streetNumber: historySchema.address2dI18n.streetNumber,
-      versionHash: historySchema.address2d.versionHash,
-    })
-    .from(historySchema.address2d)
-    .leftJoin(
-      historySchema.address2dI18n,
-      and(
-        eq(historySchema.address2d.id, historySchema.address2dI18n.addressId),
-        eq(historySchema.address2dI18n.isCurrent, true),
-        eq(historySchema.address2dI18n.locale, 'en'),
-      ),
-    )
-    .where(eq(historySchema.address2d.isCurrent, true))
-    .all()
-
-  const entries = rows.map(row => ({
-    id: row.id,
-    matchKey: buildMatchKey({
-      districtId: row.districtId,
-      streetName: row.streetName ?? null,
-      streetNumber: row.streetNumber ?? null,
-    }),
-    versionHash: row.versionHash,
+  const snapshots = await getCurrentAddressVersionMap(
+    historyDb as unknown as HarbourReadableDb,
+    {
+      buildAddressBaseHashInput,
+      buildMatchKey,
+      normaliseAddressI18nSnapshotRow,
+    },
+  )
+  const entries = [...snapshots.values()].map(snapshot => ({
+    churnHash: snapshot.churnHash,
+    id: snapshot.id,
+    matchKey: snapshot.matchKey,
   }))
   const cacheFile: AddressCurrentLookupCacheFile = {
     builtAt: new Date().toISOString(),
     entries,
-    kind: 'address.current-lookup.v1',
+    kind: 'address.current-lookup.v2',
     releaseCode,
     target,
   }
