@@ -28,9 +28,11 @@ import {
   runWithWriteRetry,
 } from '../utils'
 import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
+import { buildAddressBuildingNumberLookupRows } from '../services/addressPipeline/normalisation'
 
 const CURRENT_ADDRESS2D_COLUMN_COUNT = 20
-const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 17
+const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 20
+const CURRENT_ADDRESS2D_BUILDING_LOOKUP_COLUMN_COUNT = 8
 const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 21
 const HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 20
 const HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
@@ -63,9 +65,10 @@ export type AddressVersionSnapshot = {
 }
 
 export type AddressCurrentMatchInput = {
+  buildingNumberFrom: string | null
+  buildingNumberTo: string | null
   districtId: string | null
   streetName: string | null
-  streetNumber: string | null
 }
 
 export type CurrentAddressVersionLookupResult = {
@@ -186,7 +189,12 @@ function normaliseAddressSqlMatchToken(value: string) {
   return value.replace(/\s+/g, '')
 }
 
-function sqlAddressMatchToken(column: typeof historySchema.address2dI18n.streetName) {
+function sqlAddressMatchToken(
+  column:
+    | typeof historySchema.address2dI18n.streetName
+    | typeof historySchema.address2dI18n.buildingNumberFrom
+    | typeof historySchema.address2dI18n.buildingNumberTo,
+) {
   return sql`replace(replace(replace(replace(upper(trim(${column})), ' ', ''), char(9), ''), char(10), ''), char(13), '')`
 }
 
@@ -195,8 +203,9 @@ export async function getCurrentAddressVersionMap(
   options: {
     buildAddressBaseHashInput: (base: AddressHashInput) => AddressHashInput
     buildMatchKey: (input: {
+      buildingNumberFrom: string | null
+      buildingNumberTo: string | null
       districtId: string | null
-      streetNumber: string | null
       streetName: string | null
     }) => string | null
     normaliseAddressI18nSnapshotRow: (row: AddressI18nPayload) => AddressI18nPayload
@@ -247,24 +256,32 @@ export async function getCurrentAddressVersionLookup(
     {
       districtId: string
       streetName: string
-      streetNumber: string
+      buildingNumberFrom: string
+      buildingNumberTo: string | null
     }
   >()
 
   for (const input of matchInputs) {
     const districtId = input.districtId
-    const streetNumber = normaliseAddressMatchToken(input.streetNumber)
+    const buildingNumberFrom = normaliseAddressMatchToken(input.buildingNumberFrom)
+    const buildingNumberTo = normaliseAddressMatchToken(input.buildingNumberTo)
     const streetName = normaliseAddressMatchToken(input.streetName)
 
-    if (!districtId || !streetNumber || !streetName) {
+    if (!districtId || !buildingNumberFrom || !streetName) {
       continue
     }
 
-    uniqueMatchInputs.set(`${districtId}\0${streetNumber}\0${streetName}`, {
-      districtId,
-      streetName: normaliseAddressSqlMatchToken(streetName),
-      streetNumber: normaliseAddressSqlMatchToken(streetNumber),
-    })
+    uniqueMatchInputs.set(
+      `${districtId}\0${buildingNumberFrom}\0${buildingNumberTo ?? ''}\0${streetName}`,
+      {
+        districtId,
+        streetName: normaliseAddressSqlMatchToken(streetName),
+        buildingNumberFrom: normaliseAddressSqlMatchToken(buildingNumberFrom),
+        buildingNumberTo: buildingNumberTo
+          ? normaliseAddressSqlMatchToken(buildingNumberTo)
+          : null,
+      },
+    )
   }
 
   for (const inputChunk of chunkArray([...uniqueMatchInputs.values()], 24)) {
@@ -275,9 +292,14 @@ export async function getCurrentAddressVersionLookup(
     const predicates = inputChunk.map(input =>
       and(
         eq(historySchema.address2d.districtId, input.districtId),
-        sql`${sqlAddressMatchToken(historySchema.address2dI18n.streetNumber)} = ${
-          input.streetNumber
+        sql`${sqlAddressMatchToken(historySchema.address2dI18n.buildingNumberFrom)} = ${
+          input.buildingNumberFrom
         }`,
+        input.buildingNumberTo
+          ? sql`${sqlAddressMatchToken(historySchema.address2dI18n.buildingNumberTo)} = ${
+              input.buildingNumberTo
+            }`
+          : sql`${historySchema.address2dI18n.buildingNumberTo} is null`,
         sql`${sqlAddressMatchToken(historySchema.address2dI18n.streetName)} = ${
           input.streetName
         }`,
@@ -429,15 +451,18 @@ async function buildCurrentAddressVersionSnapshotMap(
         locale: historySchema.address2dI18n.locale,
         formattedAddress: historySchema.address2dI18n.formattedAddress,
         buildingName: historySchema.address2dI18n.buildingName,
+        buildingNumberExpression: historySchema.address2dI18n.buildingNumberExpression,
         buildingNumberFrom: historySchema.address2dI18n.buildingNumberFrom,
         buildingNumberTo: historySchema.address2dI18n.buildingNumberTo,
+        buildingNumberConnector: historySchema.address2dI18n.buildingNumberConnector,
+        blockExpression: historySchema.address2dI18n.blockExpression,
         blockType: historySchema.address2dI18n.blockType,
-        blockNumber: historySchema.address2dI18n.blockNumber,
+        blockRef: historySchema.address2dI18n.blockRef,
         blockTypeBeforeNumber: historySchema.address2dI18n.blockTypeBeforeNumber,
+        phaseExpression: historySchema.address2dI18n.phaseExpression,
         phaseName: historySchema.address2dI18n.phaseName,
-        phaseNumber: historySchema.address2dI18n.phaseNumber,
+        phaseRef: historySchema.address2dI18n.phaseRef,
         estateName: historySchema.address2dI18n.estateName,
-        streetNumber: historySchema.address2dI18n.streetNumber,
         streetName: historySchema.address2dI18n.streetName,
       })
       .from(historySchema.address2dI18n)
@@ -478,9 +503,12 @@ async function buildCurrentAddressVersionSnapshotMap(
         localisedRows,
         matchKey: options.buildMatchKey({
           districtId: row.districtId,
-          streetNumber:
-            localisedRows.find(localised => localised.locale === 'en')?.streetNumber ??
-            null,
+          buildingNumberFrom:
+            localisedRows.find(localised => localised.locale === 'en')
+              ?.buildingNumberFrom ?? null,
+          buildingNumberTo:
+            localisedRows.find(localised => localised.locale === 'en')
+              ?.buildingNumberTo ?? null,
           streetName:
             localisedRows.find(localised => localised.locale === 'en')?.streetName ??
             null,
@@ -662,21 +690,50 @@ export async function cloneAddressCurrentSnapshot(
             locale: currentSchema.address2dI18n.locale,
             formattedAddress: currentSchema.address2dI18n.formattedAddress,
             buildingName: currentSchema.address2dI18n.buildingName,
+            buildingNumberExpression:
+              currentSchema.address2dI18n.buildingNumberExpression,
             buildingNumberFrom: currentSchema.address2dI18n.buildingNumberFrom,
             buildingNumberTo: currentSchema.address2dI18n.buildingNumberTo,
+            buildingNumberConnector:
+              currentSchema.address2dI18n.buildingNumberConnector,
+            blockExpression: currentSchema.address2dI18n.blockExpression,
             blockType: currentSchema.address2dI18n.blockType,
-            blockNumber: currentSchema.address2dI18n.blockNumber,
+            blockRef: currentSchema.address2dI18n.blockRef,
             blockTypeBeforeNumber: currentSchema.address2dI18n.blockTypeBeforeNumber,
+            phaseExpression: currentSchema.address2dI18n.phaseExpression,
             phaseName: currentSchema.address2dI18n.phaseName,
-            phaseNumber: currentSchema.address2dI18n.phaseNumber,
+            phaseRef: currentSchema.address2dI18n.phaseRef,
             estateName: currentSchema.address2dI18n.estateName,
-            streetNumber: currentSchema.address2dI18n.streetNumber,
             streetName: currentSchema.address2dI18n.streetName,
             createdAt: sql<string>`${clonedAt}`,
             updatedAt: sql<string>`${clonedAt}`,
           })
           .from(currentSchema.address2dI18n)
           .where(eq(currentSchema.address2dI18n.snapshotId, fromSnapshotId)),
+      )
+      .onConflictDoNothing()
+      .run(),
+  )
+
+  await runWithWriteRetry(() =>
+    db
+      .insert(currentSchema.address2dBuildingNumberLookup)
+      .select(
+        db
+          .select({
+            snapshotId: sql<string>`${toSnapshotId}`,
+            addressId: currentSchema.address2dBuildingNumberLookup.addressId,
+            buildingNumber: currentSchema.address2dBuildingNumberLookup.buildingNumber,
+            numericStem: currentSchema.address2dBuildingNumberLookup.numericStem,
+            evidence: currentSchema.address2dBuildingNumberLookup.evidence,
+            derivation: currentSchema.address2dBuildingNumberLookup.derivation,
+            createdAt: sql<string>`${clonedAt}`,
+            updatedAt: sql<string>`${clonedAt}`,
+          })
+          .from(currentSchema.address2dBuildingNumberLookup)
+          .where(
+            eq(currentSchema.address2dBuildingNumberLookup.snapshotId, fromSnapshotId),
+          ),
       )
       .onConflictDoNothing()
       .run(),
@@ -1177,6 +1234,45 @@ export async function replaceAddressCurrentI18n(
   }
 }
 
+export async function replaceAddressCurrentBuildingNumberLookups(
+  db: HarbourWritableDb,
+  snapshotId: string,
+  addressIds: string[],
+  i18nRows: NewAddressI18nRow[],
+) {
+  if (addressIds.length === 0) return
+
+  for (const chunk of chunkArray(addressIds, getMaxItemsPerInClause(1))) {
+    await runWithWriteRetry(() =>
+      db
+        .delete(currentSchema.address2dBuildingNumberLookup)
+        .where(
+          and(
+            eq(currentSchema.address2dBuildingNumberLookup.snapshotId, snapshotId),
+            inArray(currentSchema.address2dBuildingNumberLookup.addressId, chunk),
+          ),
+        )
+        .run(),
+    )
+  }
+
+  const timestamp = new Date().toISOString()
+  const rows = buildAddressBuildingNumberLookupRows(i18nRows).map(row => ({
+    ...row,
+    snapshotId,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  }))
+  for (const chunk of chunkArray(
+    rows,
+    getMaxRowsPerInsert(CURRENT_ADDRESS2D_BUILDING_LOOKUP_COLUMN_COUNT),
+  )) {
+    await runWithWriteRetry(() =>
+      db.insert(currentSchema.address2dBuildingNumberLookup).values(chunk).run(),
+    )
+  }
+}
+
 async function deleteAddressCurrentRowsByIds(
   db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
@@ -1333,15 +1429,18 @@ async function insertAddressI18nInChunks(
           set: {
             formattedAddress: excluded('formattedAddress'),
             buildingName: excluded('buildingName'),
+            buildingNumberExpression: excluded('buildingNumberExpression'),
             buildingNumberFrom: excluded('buildingNumberFrom'),
             buildingNumberTo: excluded('buildingNumberTo'),
+            buildingNumberConnector: excluded('buildingNumberConnector'),
+            blockExpression: excluded('blockExpression'),
             blockType: excluded('blockType'),
-            blockNumber: excluded('blockNumber'),
+            blockRef: excluded('blockRef'),
             blockTypeBeforeNumber: excluded('blockTypeBeforeNumber'),
+            phaseExpression: excluded('phaseExpression'),
             phaseName: excluded('phaseName'),
-            phaseNumber: excluded('phaseNumber'),
+            phaseRef: excluded('phaseRef'),
             estateName: excluded('estateName'),
-            streetNumber: excluded('streetNumber'),
             streetName: excluded('streetName'),
             updatedAt: excluded('updatedAt'),
           },
@@ -1384,15 +1483,18 @@ async function insertAddressVersionsI18nInChunks(
             isCurrent: true,
             formattedAddress: excluded('formattedAddress'),
             buildingName: excluded('buildingName'),
+            buildingNumberExpression: excluded('buildingNumberExpression'),
             buildingNumberFrom: excluded('buildingNumberFrom'),
             buildingNumberTo: excluded('buildingNumberTo'),
+            buildingNumberConnector: excluded('buildingNumberConnector'),
+            blockExpression: excluded('blockExpression'),
             blockType: excluded('blockType'),
-            blockNumber: excluded('blockNumber'),
+            blockRef: excluded('blockRef'),
             blockTypeBeforeNumber: excluded('blockTypeBeforeNumber'),
+            phaseExpression: excluded('phaseExpression'),
             phaseName: excluded('phaseName'),
-            phaseNumber: excluded('phaseNumber'),
+            phaseRef: excluded('phaseRef'),
             estateName: excluded('estateName'),
-            streetNumber: excluded('streetNumber'),
             streetName: excluded('streetName'),
             updatedAt: excluded('updatedAt'),
           },

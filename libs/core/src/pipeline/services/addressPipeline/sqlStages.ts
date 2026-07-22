@@ -653,18 +653,32 @@ ON CONFLICT(snapshotId, id) DO NOTHING;`.trim(),
       `
 INSERT INTO address2dI18n (
   snapshotId, addressId, locale, formattedAddress, buildingName,
-  buildingNumberFrom, buildingNumberTo, blockType, blockNumber,
-  blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber,
+  buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
+  blockExpression, blockType, blockRef, blockTypeBeforeNumber,
+  phaseExpression, phaseName, phaseRef, estateName,
   streetName, createdAt, updatedAt
 )
 SELECT
   ${snapshotId}, addressId, locale, formattedAddress, buildingName,
-  buildingNumberFrom, buildingNumberTo, blockType, blockNumber,
-  blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber,
+  buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
+  blockExpression, blockType, blockRef, blockTypeBeforeNumber,
+  phaseExpression, phaseName, phaseRef, estateName,
   streetName, ${clonedAt}, ${clonedAt}
 FROM address2dI18n
 WHERE snapshotId = ${previousSnapshotId}
 ON CONFLICT(snapshotId, addressId, locale) DO NOTHING;`.trim(),
+    )
+
+    statements.push(
+      `
+INSERT INTO address2dBuildingNumberLookup (
+  snapshotId, addressId, buildingNumber, numericStem, evidence, derivation, createdAt, updatedAt
+)
+SELECT
+  ${snapshotId}, addressId, buildingNumber, numericStem, evidence, derivation, ${clonedAt}, ${clonedAt}
+FROM address2dBuildingNumberLookup
+WHERE snapshotId = ${previousSnapshotId}
+ON CONFLICT(snapshotId, addressId, buildingNumber) DO NOTHING;`.trim(),
     )
   }
 

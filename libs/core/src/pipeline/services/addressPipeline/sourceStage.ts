@@ -142,12 +142,12 @@ async function writeHkgovSourceRows(
         buildingNumberFrom: localised.buildingNumberFrom,
         buildingNumberTo: localised.buildingNumberTo,
         blockType: localised.blockType,
-        blockNumber: localised.blockNumber,
+        blockNumber: localised.blockRef,
         blockTypeBeforeNumber: localised.blockTypeBeforeNumber,
         phaseName: localised.phaseName,
-        phaseNumber: localised.phaseNumber,
+        phaseNumber: localised.phaseRef,
         estateName: localised.estateName,
-        streetNumber: localised.streetNumber,
+        streetNumber: localised.buildingNumberFrom,
         streetName: localised.streetName,
         villageName:
           localised.locale === 'zh-hant'

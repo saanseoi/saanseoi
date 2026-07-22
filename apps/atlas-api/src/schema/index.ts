@@ -1,4 +1,5 @@
 export * from './common'
+export * from './addresses'
 export * from './divisions'
 export * from './meta'
 export * from './places'

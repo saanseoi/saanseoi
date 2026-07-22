@@ -532,6 +532,28 @@ function createDivisionResource(args: {
   }
 }
 
+/** Projects a Division resource for inclusion from another resource family. */
+export function createIncludedDivisionResource(args: {
+  baseUrl: string
+  requestedVersionPath: RequestedDivisionVersion
+  profile: DivisionProfile
+  localeSelection: RequestedApiLocaleSelection
+  record: DivisionRecord
+}) {
+  return createDivisionResource({
+    baseUrl: args.baseUrl,
+    routeState: {
+      requestedVersionPath: args.requestedVersionPath,
+      requestedApiVersion: '0.1',
+      requestedApiFamily: 'divisions',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      profile: args.profile,
+      localeSelection: args.localeSelection,
+    },
+    record: args.record,
+  })
+}
+
 function buildListDocument(args: {
   url: URL
   routeState: DivisionRouteState

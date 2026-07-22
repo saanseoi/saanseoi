@@ -72,15 +72,18 @@ const NORMALIZED_I18N_COLUMNS = [
   'locale',
   'formattedAddress',
   'buildingName',
+  'buildingNumberExpression',
   'buildingNumberFrom',
   'buildingNumberTo',
+  'buildingNumberConnector',
+  'blockExpression',
   'blockType',
-  'blockNumber',
+  'blockRef',
   'blockTypeBeforeNumber',
+  'phaseExpression',
   'phaseName',
-  'phaseNumber',
+  'phaseRef',
   'estateName',
-  'streetNumber',
   'streetName',
 ] as const
 
@@ -121,15 +124,18 @@ const RESOLVED_I18N_COLUMNS = [
   'locale',
   'formattedAddress',
   'buildingName',
+  'buildingNumberExpression',
   'buildingNumberFrom',
   'buildingNumberTo',
+  'buildingNumberConnector',
+  'blockExpression',
   'blockType',
-  'blockNumber',
+  'blockRef',
   'blockTypeBeforeNumber',
+  'phaseExpression',
   'phaseName',
-  'phaseNumber',
+  'phaseRef',
   'estateName',
-  'streetNumber',
   'streetName',
   'createdAt',
   'updatedAt',
@@ -202,15 +208,18 @@ export function buildAddressSourceSqlImportFiles(
           locale: localised.locale,
           formattedAddress: localised.formattedAddress,
           buildingName: localised.buildingName,
+          buildingNumberExpression: localised.buildingNumberExpression,
           buildingNumberFrom: localised.buildingNumberFrom,
           buildingNumberTo: localised.buildingNumberTo,
+          buildingNumberConnector: localised.buildingNumberConnector,
+          blockExpression: localised.blockExpression,
           blockType: localised.blockType,
-          blockNumber: localised.blockNumber,
+          blockRef: localised.blockRef,
           blockTypeBeforeNumber: localised.blockTypeBeforeNumber,
+          phaseExpression: localised.phaseExpression,
           phaseName: localised.phaseName,
-          phaseNumber: localised.phaseNumber,
+          phaseRef: localised.phaseRef,
           estateName: localised.estateName,
-          streetNumber: localised.streetNumber,
           streetName: localised.streetName,
         })),
       ),
@@ -341,15 +350,18 @@ export function buildAddressResolvedSqlImportFiles(
           locale: localised.locale,
           formattedAddress: localised.formattedAddress,
           buildingName: localised.buildingName,
+          buildingNumberExpression: localised.buildingNumberExpression,
           buildingNumberFrom: localised.buildingNumberFrom,
           buildingNumberTo: localised.buildingNumberTo,
+          buildingNumberConnector: localised.buildingNumberConnector,
+          blockExpression: localised.blockExpression,
           blockType: localised.blockType,
-          blockNumber: localised.blockNumber,
+          blockRef: localised.blockRef,
           blockTypeBeforeNumber: localised.blockTypeBeforeNumber,
+          phaseExpression: localised.phaseExpression,
           phaseName: localised.phaseName,
-          phaseNumber: localised.phaseNumber,
+          phaseRef: localised.phaseRef,
           estateName: localised.estateName,
-          streetNumber: localised.streetNumber,
           streetName: localised.streetName,
           createdAt: localised.createdAt,
           updatedAt: localised.updatedAt,
@@ -410,15 +422,18 @@ export function buildAddressResolvedSqlImportFiles(
           locale: localised.locale,
           formattedAddress: localised.formattedAddress,
           buildingName: localised.buildingName,
+          buildingNumberExpression: localised.buildingNumberExpression,
           buildingNumberFrom: localised.buildingNumberFrom,
           buildingNumberTo: localised.buildingNumberTo,
+          buildingNumberConnector: localised.buildingNumberConnector,
+          blockExpression: localised.blockExpression,
           blockType: localised.blockType,
-          blockNumber: localised.blockNumber,
+          blockRef: localised.blockRef,
           blockTypeBeforeNumber: localised.blockTypeBeforeNumber,
+          phaseExpression: localised.phaseExpression,
           phaseName: localised.phaseName,
-          phaseNumber: localised.phaseNumber,
+          phaseRef: localised.phaseRef,
           estateName: localised.estateName,
-          streetNumber: localised.streetNumber,
           streetName: localised.streetName,
           createdAt: localised.createdAt,
           updatedAt: localised.updatedAt,
@@ -516,15 +531,18 @@ CREATE TABLE IF NOT EXISTS ${NORMALIZED_I18N_TABLE} (
   locale TEXT NOT NULL,
   formattedAddress TEXT,
   buildingName TEXT,
+  buildingNumberExpression TEXT,
   buildingNumberFrom TEXT,
   buildingNumberTo TEXT,
+  buildingNumberConnector TEXT,
+  blockExpression TEXT,
   blockType TEXT,
-  blockNumber TEXT,
+  blockRef TEXT,
   blockTypeBeforeNumber INTEGER,
+  phaseExpression TEXT,
   phaseName TEXT,
-  phaseNumber TEXT,
+  phaseRef TEXT,
   estateName TEXT,
-  streetNumber TEXT,
   streetName TEXT,
   PRIMARY KEY (runId, sourceRecordId, locale)
 );
@@ -577,15 +595,18 @@ CREATE TABLE IF NOT EXISTS zzAddressImportResolvedI18n (
   locale TEXT NOT NULL,
   formattedAddress TEXT NOT NULL,
   buildingName TEXT,
+  buildingNumberExpression TEXT,
   buildingNumberFrom TEXT,
   buildingNumberTo TEXT,
+  buildingNumberConnector TEXT,
+  blockExpression TEXT,
   blockType TEXT,
-  blockNumber TEXT,
+  blockRef TEXT,
   blockTypeBeforeNumber INTEGER,
+  phaseExpression TEXT,
   phaseName TEXT,
-  phaseNumber TEXT,
+  phaseRef TEXT,
   estateName TEXT,
-  streetNumber TEXT,
   streetName TEXT,
   createdAt TEXT NOT NULL,
   updatedAt TEXT NOT NULL,
@@ -699,8 +720,8 @@ INSERT INTO hkgovAlsAddress2dI18n (
 )
 SELECT i.sourceRecordId, r.sourcePayloadHash, ${releaseId}, ${sourceVersion}, NULL, 1,
   i.locale, i.formattedAddress, i.buildingName, i.buildingNumberFrom, i.buildingNumberTo,
-  i.blockType, i.blockNumber, i.blockTypeBeforeNumber, i.phaseName, i.phaseNumber, i.estateName,
-  i.streetNumber, i.streetName,
+  i.blockType, i.blockRef, i.blockTypeBeforeNumber, i.phaseName, i.phaseRef, i.estateName,
+  i.buildingNumberFrom, i.streetName,
   CASE WHEN i.locale = 'zh-hant' THEN ${jsonTextValue('r.rawProperties', 'zhHantVillageName')} ELSE ${jsonTextValue('r.rawProperties', 'enVillageName')} END,
   CASE WHEN i.locale = 'zh-hant' THEN ${jsonTextValue('r.rawProperties', 'zhHantDistrict')} ELSE ${jsonTextValue('r.rawProperties', 'enDistrict')} END
 FROM ${NORMALIZED_I18N_TABLE} i
@@ -786,15 +807,17 @@ ON CONFLICT(id, versionHash) DO UPDATE SET
 INSERT INTO address2dI18n (
   addressId, versionHash, sourceReleaseId, snapshotId,
   isCurrent, locale, formattedAddress, buildingName,
-  buildingNumberFrom, buildingNumberTo, blockType, blockNumber,
-  blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber,
+  buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
+  blockExpression, blockType, blockRef, blockTypeBeforeNumber,
+  phaseExpression, phaseName, phaseRef, estateName,
   streetName, createdAt, updatedAt
 )
 SELECT
   i.addressId, i.versionHash, ${releaseId}, i.snapshotId, 1,
-  i.locale, i.formattedAddress, i.buildingName, i.buildingNumberFrom,
-  i.buildingNumberTo, i.blockType, i.blockNumber, i.blockTypeBeforeNumber,
-  i.phaseName, i.phaseNumber, i.estateName, i.streetNumber, i.streetName,
+  i.locale, i.formattedAddress, i.buildingName, i.buildingNumberExpression,
+  i.buildingNumberFrom, i.buildingNumberTo, i.buildingNumberConnector,
+  i.blockExpression, i.blockType, i.blockRef, i.blockTypeBeforeNumber,
+  i.phaseExpression, i.phaseName, i.phaseRef, i.estateName, i.streetName,
   i.createdAt, i.updatedAt
 FROM zzAddressImportResolvedRows r
 INNER JOIN zzAddressImportResolvedI18n i
@@ -808,15 +831,18 @@ ON CONFLICT(addressId, versionHash, locale) DO UPDATE SET
   isCurrent = 1,
   formattedAddress = excluded.formattedAddress,
   buildingName = excluded.buildingName,
+  buildingNumberExpression = excluded.buildingNumberExpression,
   buildingNumberFrom = excluded.buildingNumberFrom,
   buildingNumberTo = excluded.buildingNumberTo,
+  buildingNumberConnector = excluded.buildingNumberConnector,
+  blockExpression = excluded.blockExpression,
   blockType = excluded.blockType,
-  blockNumber = excluded.blockNumber,
+  blockRef = excluded.blockRef,
   blockTypeBeforeNumber = excluded.blockTypeBeforeNumber,
+  phaseExpression = excluded.phaseExpression,
   phaseName = excluded.phaseName,
-  phaseNumber = excluded.phaseNumber,
+  phaseRef = excluded.phaseRef,
   estateName = excluded.estateName,
-  streetNumber = excluded.streetNumber,
   streetName = excluded.streetName,
   updatedAt = excluded.updatedAt;
 INSERT INTO snapshotVersionChanges (
@@ -898,15 +924,17 @@ WHERE EXISTS (
 );
 INSERT INTO address2dI18n (
   snapshotId, addressId, locale, formattedAddress, buildingName,
-  buildingNumberFrom, buildingNumberTo, blockType, blockNumber,
-  blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber,
+  buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
+  blockExpression, blockType, blockRef, blockTypeBeforeNumber,
+  phaseExpression, phaseName, phaseRef, estateName,
   streetName, createdAt, updatedAt
 )
 SELECT
   i.snapshotId, i.addressId, i.locale, i.formattedAddress, i.buildingName,
-  i.buildingNumberFrom, i.buildingNumberTo, i.blockType, i.blockNumber,
-  i.blockTypeBeforeNumber, i.phaseName, i.phaseNumber, i.estateName,
-  i.streetNumber, i.streetName, i.createdAt, i.updatedAt
+  i.buildingNumberExpression, i.buildingNumberFrom, i.buildingNumberTo,
+  i.buildingNumberConnector, i.blockExpression, i.blockType, i.blockRef,
+  i.blockTypeBeforeNumber, i.phaseExpression, i.phaseName, i.phaseRef,
+  i.estateName, i.streetName, i.createdAt, i.updatedAt
 FROM zzAddressImportResolvedI18n i
 WHERE i.runId = ${run}
   AND EXISTS (
@@ -916,16 +944,59 @@ WHERE i.runId = ${run}
 ON CONFLICT(snapshotId, addressId, locale) DO UPDATE SET
   formattedAddress = excluded.formattedAddress,
   buildingName = excluded.buildingName,
+  buildingNumberExpression = excluded.buildingNumberExpression,
   buildingNumberFrom = excluded.buildingNumberFrom,
   buildingNumberTo = excluded.buildingNumberTo,
+  buildingNumberConnector = excluded.buildingNumberConnector,
+  blockExpression = excluded.blockExpression,
   blockType = excluded.blockType,
-  blockNumber = excluded.blockNumber,
+  blockRef = excluded.blockRef,
   blockTypeBeforeNumber = excluded.blockTypeBeforeNumber,
+  phaseExpression = excluded.phaseExpression,
   phaseName = excluded.phaseName,
-  phaseNumber = excluded.phaseNumber,
+  phaseRef = excluded.phaseRef,
   estateName = excluded.estateName,
-  streetNumber = excluded.streetNumber,
   streetName = excluded.streetName,
+  updatedAt = excluded.updatedAt;
+DELETE FROM address2dBuildingNumberLookup
+WHERE EXISTS (
+  SELECT 1 FROM zzAddressImportResolvedRows r
+  WHERE r.runId = ${run}
+    AND r.changed = 1
+    AND r.snapshotId = address2dBuildingNumberLookup.snapshotId
+    AND r.addressId = address2dBuildingNumberLookup.addressId
+);
+INSERT INTO address2dBuildingNumberLookup (
+  snapshotId, addressId, buildingNumber, numericStem, evidence, derivation, createdAt, updatedAt
+)
+SELECT DISTINCT
+  lookup.snapshotId,
+  lookup.addressId,
+  upper(trim(lookup.number)),
+  CASE WHEN upper(trim(lookup.number)) GLOB '[0-9]*' THEN rtrim(upper(trim(lookup.number)), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') ELSE NULL END,
+  'source_endpoint',
+  NULL,
+  lookup.createdAt,
+  lookup.updatedAt
+FROM (
+  SELECT snapshotId, addressId, buildingNumberFrom AS number, createdAt, updatedAt
+  FROM zzAddressImportResolvedI18n
+  WHERE runId = ${run}
+  UNION ALL
+  SELECT snapshotId, addressId, buildingNumberTo AS number, createdAt, updatedAt
+  FROM zzAddressImportResolvedI18n
+  WHERE runId = ${run}
+) lookup
+WHERE lookup.number IS NOT NULL
+  AND trim(lookup.number) <> ''
+  AND EXISTS (
+    SELECT 1 FROM zzAddressImportResolvedRows r
+    WHERE r.runId = ${run} AND r.addressId = lookup.addressId AND r.changed = 1
+  )
+ON CONFLICT(snapshotId, addressId, buildingNumber) DO UPDATE SET
+  numericStem = excluded.numericStem,
+  evidence = excluded.evidence,
+  derivation = excluded.derivation,
   updatedAt = excluded.updatedAt;
 UPDATE address2d
 SET updatedAt = (

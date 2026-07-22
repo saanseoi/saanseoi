@@ -237,10 +237,14 @@ type PreparedHkgovAlsRow = {
   zhHantBuildingName: string | null
   zhHantBlockDescriptor: string | null
   zhHantBlockNumber: string | null
+  zhHantPhaseName: string | null
+  zhHantPhaseRef: string | null
   zhHantStreetName: string | null
   zhHantStreetNumberFrom: string | null
   zhHantStreetNumberTo: string | null
   zhHantVillageName: string | null
+  zhHantVillageNumberFrom: string | null
+  zhHantVillageNumberTo: string | null
   enFormattedAddress: string | null
   enRegion: string | null
   enDistrict: string | null
@@ -260,6 +264,10 @@ type PreparedHkgovAlsRow = {
   enStreetNumberFrom: string | null
   enStreetNumberTo: string | null
   enVillageName: string | null
+  enVillageNumberFrom: string | null
+  enVillageNumberTo: string | null
+  enPhaseName: string | null
+  enPhaseRef: string | null
   easting: number | null
   northing: number | null
 }
@@ -1371,12 +1379,16 @@ function normaliseHkgovAlsFeature(
     zhHantBuildingName: asOptionalString(zh.BuildingName),
     zhHantBlockDescriptor: asOptionalString(zh.ChiBlock?.BlockDescriptor),
     zhHantBlockNumber: asOptionalString(zh.ChiBlock?.BlockNo),
+    zhHantPhaseName: asOptionalString(zh.ChiPhase?.PhaseName),
+    zhHantPhaseRef: asOptionalString(zh.ChiPhase?.PhaseNo),
     zhHantStreetName: asOptionalString(zhStreet.StreetName),
     zhHantStreetNumberFrom: asOptionalString(zhStreet.BuildingNoFrom),
     zhHantStreetNumberTo: asOptionalString(zhStreet.BuildingNoTo),
     zhHantVillageName:
       asOptionalString(zhVillage.VillageName) ??
       asOptionalString(zhVillage.LocationName),
+    zhHantVillageNumberFrom: asOptionalString(zhVillage.BuildingNoFrom),
+    zhHantVillageNumberTo: asOptionalString(zhVillage.BuildingNoTo),
     enFormattedAddress: formatEnPremisesAddress(en),
     enRegion: asOptionalString(en.Region),
     enDistrict: districtNameEn,
@@ -1392,6 +1404,10 @@ function normaliseHkgovAlsFeature(
     enVillageName:
       asOptionalString(enVillage.VillageName) ??
       asOptionalString(enVillage.LocationName),
+    enVillageNumberFrom: asOptionalString(enVillage.BuildingNoFrom),
+    enVillageNumberTo: asOptionalString(enVillage.BuildingNoTo),
+    enPhaseName: asOptionalString(en.EngPhase?.PhaseName),
+    enPhaseRef: asOptionalString(en.EngPhase?.PhaseNo),
     easting: asOptionalInteger(properties.Easting),
     northing: asOptionalInteger(properties.Northing),
   }

@@ -3,7 +3,13 @@ import { z } from '@hono/zod-openapi'
 export const RegionCode = z.enum(['hk', 'mo'])
 export const ProfileName = z.enum(['compact', 'default', 'full', 'map'])
 export const ApiLocale = z.enum(['en', 'zh-hant', 'zh-hans'])
-export const ApiFamilyName = z.enum(['addresses', 'divisions', 'places', 'streets'])
+export const ApiFamilyName = z.enum([
+  'addresses',
+  'divisions',
+  'places',
+  'streets',
+  'stats',
+])
 
 export const IdSchema = z.string().min(1).regex(/^\S+$/).openapi('Id', {
   description: 'A unique identifier with no whitespace characters.',
