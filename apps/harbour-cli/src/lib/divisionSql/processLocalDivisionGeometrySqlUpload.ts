@@ -25,8 +25,8 @@ import { chunkArray } from '@repo/core/pipeline/utils'
 import {
   hashDivisionGeometryRow,
   hashDivisionGeometrySourceRow,
-  normalizeDivisionAreaGeometryRow,
-  normalizeDivisionBoundaryGeometryRow,
+  normaliseDivisionAreaGeometryRow,
+  normaliseDivisionBoundaryGeometryRow,
 } from '@repo/core/pipeline/services/divisionGeometry'
 import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
@@ -78,8 +78,8 @@ type GeometryUploadPlan = {
   type: 'divisionArea' | 'divisionBoundary'
 }
 
-type NormalizedGeometry = ReturnType<
-  typeof normalizeDivisionAreaGeometryRow | typeof normalizeDivisionBoundaryGeometryRow
+type NormalisedGeometry = ReturnType<
+  typeof normaliseDivisionAreaGeometryRow | typeof normaliseDivisionBoundaryGeometryRow
 >
 
 const LOCAL_RELEASE_ROOT = `${import.meta.dir}/../../../../../.local/harbour-sql/releases`
@@ -271,10 +271,10 @@ export async function processLocalDivisionGeometrySqlUpload(
         Date.now() - snapshotStartedAt,
       ),
     )
-    const normalizationStartedAt = Date.now()
+    const normalisationStartedAt = Date.now()
     progress.beginPhase(
       formatGeometryProgressLabel(
-        'Normalize',
+        'Normalise',
         `${previewPlan.type} records`,
         0,
         previewPlan.rowCount,
@@ -285,7 +285,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     const file = options.inputFilePath
       ? await asyncBufferFromFile(options.inputFilePath)
       : await createAsyncBufferFromR2(bucket, rawObjectKey)
-    const normalized: Array<NonNullable<NormalizedGeometry>> = []
+    const normalised: Array<NonNullable<NormalisedGeometry>> = []
     const cnGdExcludedRecords: Array<{
       divisionId: string | null
       divisionIds: string[] | null
@@ -327,11 +327,11 @@ export async function processLocalDivisionGeometrySqlUpload(
         try {
           const sourceRow =
             previewPlan.source === 'hkgov-had'
-              ? normalizeHkgovHadInputRow(row, providerBridge)
+              ? normaliseHkgovHadInputRow(row, providerBridge)
               : previewPlan.source === 'hkgov-censtatd'
-                ? normalizeHkgovCenstatdInputRow(row, providerBridge)
+                ? normaliseHkgovCenstatdInputRow(row, providerBridge)
                 : previewPlan.source === 'hkgov-pland-new-town'
-                  ? normalizeHkgovPlandNewTownInputRow(row)
+                  ? normaliseHkgovPlandNewTownInputRow(row)
                   : row
           if (previewPlan.source === 'overture' && row.region === 'CN-GD') {
             cnGdExcludedRecords.push({
@@ -345,15 +345,15 @@ export async function processLocalDivisionGeometrySqlUpload(
           }
           const value =
             previewPlan.type === 'divisionArea'
-              ? normalizeDivisionAreaGeometryRow(sourceRow, previewPlan.source, {
+              ? normaliseDivisionAreaGeometryRow(sourceRow, previewPlan.source, {
                   validateGeometry: options.validateGeometry,
                   variant: geometryVariant(previewPlan),
                 })
-              : normalizeDivisionBoundaryGeometryRow(sourceRow, previewPlan.source, {
+              : normaliseDivisionBoundaryGeometryRow(sourceRow, previewPlan.source, {
                   validateGeometry: options.validateGeometry,
                   variant: geometryVariant(previewPlan),
                 })
-          if (value) normalized.push(value as NonNullable<NormalizedGeometry>)
+          if (value) normalised.push(value as NonNullable<NormalisedGeometry>)
         } catch (error) {
           rejectedRows += 1
           throw error
@@ -362,7 +362,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       processedRows += batch.length
       progress.update(processedRows, {
         label: formatGeometryProgressLabel(
-          'Normalize',
+          'Normalise',
           `${previewPlan.type} records`,
           processedRows,
           previewPlan.rowCount,
@@ -372,10 +372,10 @@ export async function processLocalDivisionGeometrySqlUpload(
 
     progress.complete(
       formatGeometryCompletedLabel(
-        'Normalize',
+        'Normalise',
         `${previewPlan.type} records`,
-        normalized.length,
-        Date.now() - normalizationStartedAt,
+        normalised.length,
+        Date.now() - normalisationStartedAt,
       ),
     )
     const validationStartedAt = Date.now()
@@ -394,7 +394,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         previewPlan.regionCode,
         previewPlan.cohortKey,
         previewPlan.type,
-        normalized,
+        normalised,
       )
     }
 
@@ -417,13 +417,14 @@ export async function processLocalDivisionGeometrySqlUpload(
     const churn = await writeGeometryRows(
       dbContext,
       previewPlan.type,
-      normalized,
+      normalised,
       {
         source: previewPlan.source,
         variant: geometryVariant(previewPlan),
         releaseId,
         releaseCode,
         snapshotId: snapshot.id,
+        parentSnapshotId: snapshot.parentSnapshotId,
         cohortKey: previewPlan.cohortKey,
         transform: previewPlan.transform,
       },
@@ -434,12 +435,12 @@ export async function processLocalDivisionGeometrySqlUpload(
       formatGeometryCompletedLabel(
         'Write',
         `${previewPlan.type} rows`,
-        normalized.length,
+        normalised.length,
         Date.now() - writeStartedAt,
       ),
     )
     const statsStartedAt = Date.now()
-    progress.beginPhase(formatGeometryProgressLabel('Finalize', 'dataset statistics'), {
+    progress.beginPhase(formatGeometryProgressLabel('Finalise', 'dataset statistics'), {
       current: 0,
       max: null,
     })
@@ -450,7 +451,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         dbContext.currentDb,
         metaDb,
         previewPlan,
-        normalized,
+        normalised,
         churn,
       ),
     )
@@ -461,7 +462,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     )
     progress.complete(
       formatGeometryCompletedLabel(
-        'Finalize',
+        'Finalise',
         'dataset statistics',
         undefined,
         Date.now() - statsStartedAt,
@@ -470,7 +471,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     if (options.deferPublish) {
       return {
         snapshotId: snapshot.id,
-        importedRows: normalized.length,
+        importedRows: normalised.length,
         publishResult: undefined,
       }
     }
@@ -485,7 +486,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       {
         resourceType: previewPlan.type,
         sourceRows: previewPlan.rowCount,
-        importedRows: normalized.length,
+        importedRows: normalised.length,
         rejectedRows,
       },
       releaseCode,
@@ -503,7 +504,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     )
     return {
       snapshotId: snapshot.id,
-      importedRows: normalized.length,
+      importedRows: normalised.length,
       publishResult,
     }
   } catch (error) {
@@ -525,7 +526,7 @@ export async function processLocalDivisionGeometrySqlUpload(
   }
 }
 
-function normalizeHkgovHadInputRow(
+function normaliseHkgovHadInputRow(
   row: Record<string, unknown>,
   bridge: Map<string, string> | null,
 ) {
@@ -536,7 +537,7 @@ function normalizeHkgovHadInputRow(
       `HAD district area ${areaId || '<unknown>'} has no reviewed administrative identifier bridge.`,
     )
   }
-  const sources = normalizeJsonArray(row.sources)
+  const sources = normaliseJsonArray(row.sources)
   return {
     ...row,
     id: typeof row.id === 'string' && row.id.trim() ? row.id : `HAD:${areaId}`,
@@ -545,7 +546,7 @@ function normalizeHkgovHadInputRow(
   }
 }
 
-function normalizeHkgovCenstatdInputRow(
+function normaliseHkgovCenstatdInputRow(
   row: Record<string, unknown>,
   bridge: Map<string, string> | null,
 ) {
@@ -557,7 +558,7 @@ function normalizeHkgovCenstatdInputRow(
       `C&SD district area ${districtClass || '<unknown>'} has no reviewed administrative identifier bridge.`,
     )
   }
-  const sources = normalizeJsonArray(row.sources)
+  const sources = normaliseJsonArray(row.sources)
   return {
     ...row,
     id:
@@ -587,7 +588,7 @@ function resolveProviderBridgeConfig(source: GeometryUploadPlan['source']) {
   return null
 }
 
-function normalizeHkgovPlandNewTownInputRow(row: Record<string, unknown>) {
+function normaliseHkgovPlandNewTownInputRow(row: Record<string, unknown>) {
   const newTownId = typeof row.newtown_id === 'string' ? row.newtown_id.trim() : ''
   const divisionId = typeof row.division_id === 'string' ? row.division_id.trim() : ''
   if (!newTownId || !divisionId) {
@@ -595,7 +596,7 @@ function normalizeHkgovPlandNewTownInputRow(row: Record<string, unknown>) {
       `Planning Department New Town ${newTownId || '<unknown>'} has no cohort-scoped planning division ID.`,
     )
   }
-  const sources = normalizeJsonArray(row.sources)
+  const sources = normaliseJsonArray(row.sources)
   return {
     ...row,
     id:
@@ -609,7 +610,7 @@ function normalizeHkgovPlandNewTownInputRow(row: Record<string, unknown>) {
   }
 }
 
-function normalizeJsonArray(value: unknown): unknown[] | null {
+function normaliseJsonArray(value: unknown): unknown[] | null {
   if (Array.isArray(value)) return value
   if (typeof value !== 'string') return null
 
@@ -628,7 +629,7 @@ async function assertDivisionReferences(
   regionCode: RegionCode,
   cohortKey: string,
   type: GeometryUploadPlan['type'],
-  rows: Array<NonNullable<NormalizedGeometry>>,
+  rows: Array<NonNullable<NormalisedGeometry>>,
 ) {
   const divisionSnapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
     metaDb,
@@ -762,7 +763,7 @@ async function restoreDivisionSnapshotFromHistory(
 
 function divisionReferenceIds(
   type: GeometryUploadPlan['type'],
-  row: NonNullable<NormalizedGeometry>,
+  row: NonNullable<NormalisedGeometry>,
 ) {
   const canonical = row.canonical as {
     divisionId?: string
@@ -822,13 +823,14 @@ function formatDiagnosticRecord(record: unknown) {
 async function writeGeometryRows(
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   type: GeometryUploadPlan['type'],
-  rows: Array<NonNullable<NormalizedGeometry>>,
+  rows: Array<NonNullable<NormalisedGeometry>>,
   version: {
     source: GeometryUploadPlan['source']
     variant: string
     releaseId: string
     releaseCode: string
     snapshotId: string
+    parentSnapshotId: string | null
     cohortKey: string
     transform?: GeometryUploadPlan['transform']
   },
@@ -879,16 +881,15 @@ async function writeGeometryRows(
       )
     }
   }
-  const previousHistoryRows = await context.historyDb
-    .select({
-      id: historyTable.id,
-      type: historyTable.type,
-      versionHash: historyTable.versionHash,
-    })
-    .from(historyTable)
-    .where(eq(historyTable.isCurrent, true))
-    .all()
-  const previousById = new Map(previousHistoryRows.map(row => [row.id, row]))
+  // Churn is a property of the snapshot lineage, not of the mutable history
+  // cache. In particular, independent C&SD census cohorts have no parent and
+  // must therefore start with an empty baseline rather than compare against
+  // whichever geometry snapshot was most recently written.
+  const previousById = await getGeometryChurnBaseline(
+    context.currentDb,
+    type,
+    version.parentSnapshotId,
+  )
   const churn = createGeometryChurnCounts(rows, historyHashes, previousById)
   onProgress?.('close history rows')
   const closedHistoryRows = await closeChangedRows(
@@ -1123,7 +1124,7 @@ async function writeGeometryRows(
   return churn
 }
 
-function requirePlanningDivisionId(row: NonNullable<NormalizedGeometry>) {
+function requirePlanningDivisionId(row: NonNullable<NormalisedGeometry>) {
   const divisionId =
     'divisionId' in row.canonical ? row.canonical.divisionId : undefined
   if (!divisionId) {
@@ -1135,7 +1136,7 @@ function requirePlanningDivisionId(row: NonNullable<NormalizedGeometry>) {
 }
 
 function readNewTownName(
-  row: NonNullable<NormalizedGeometry>,
+  row: NonNullable<NormalisedGeometry>,
   locale: 'en' | 'zh-hant' | 'zh-hans',
 ) {
   const i18n = (row.source.rawProperties as Record<string, unknown>)?.i18n
@@ -1150,7 +1151,7 @@ function readNewTownName(
 }
 
 function readCenstatdName(
-  row: NonNullable<NormalizedGeometry>,
+  row: NonNullable<NormalisedGeometry>,
   locale: 'en' | 'zh-hant',
 ) {
   const i18n = (row.source.rawProperties as Record<string, unknown>)?.i18n
@@ -1226,7 +1227,7 @@ async function closeCenstatdSourceI18nRows(
 
 async function writeCenstatdSourceDerivatives(
   db: HarbourReadableDb & HarbourWritableDb,
-  rows: Array<NonNullable<NormalizedGeometry>>,
+  rows: Array<NonNullable<NormalisedGeometry>>,
   version: {
     releaseId: string
     releaseCode: string
@@ -1352,7 +1353,7 @@ async function writeCenstatdSourceDerivatives(
 
 async function writeNewTownSourceI18nRows(
   db: HarbourWritableDb,
-  rows: Array<NonNullable<NormalizedGeometry>>,
+  rows: Array<NonNullable<NormalisedGeometry>>,
   sourceHashes: Map<string, string>,
   version: {
     releaseId: string
@@ -1410,7 +1411,7 @@ async function writeNewTownSourceI18nRows(
 
 async function writeCenstatdSourceI18nRows(
   db: HarbourWritableDb,
-  rows: Array<NonNullable<NormalizedGeometry>>,
+  rows: Array<NonNullable<NormalisedGeometry>>,
   sourceHashes: Map<string, string>,
   version: {
     releaseId: string
@@ -1604,8 +1605,8 @@ function churnCountsForType(churn: GeometryChurnCounts, type: string) {
   return counts
 }
 
-function createGeometryChurnCounts(
-  rows: Array<NonNullable<NormalizedGeometry>>,
+export function createGeometryChurnCounts(
+  rows: Array<NonNullable<NormalisedGeometry>>,
   hashes: Map<string, string>,
   previousById: Map<string, { id: string; type: string; versionHash: string }>,
 ) {
@@ -1638,11 +1639,50 @@ function createGeometryChurnCounts(
   return churn
 }
 
+async function getGeometryChurnBaseline(
+  currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
+  type: GeometryUploadPlan['type'],
+  parentSnapshotId: string | null,
+) {
+  if (!parentSnapshotId) {
+    return new Map<string, { id: string; type: string; versionHash: string }>()
+  }
+
+  const parentRows =
+    type === 'divisionArea'
+      ? await currentDb
+          .select()
+          .from(currentSchema.divisionAreas)
+          .where(eq(currentSchema.divisionAreas.snapshotId, parentSnapshotId))
+          .all()
+      : await currentDb
+          .select()
+          .from(currentSchema.divisionBoundaries)
+          .where(eq(currentSchema.divisionBoundaries.snapshotId, parentSnapshotId))
+          .all()
+
+  return new Map(
+    await Promise.all(
+      parentRows.map(
+        async row =>
+          [
+            row.id,
+            {
+              id: row.id,
+              type: row.type,
+              versionHash: await hashDivisionGeometryRow(row),
+            },
+          ] as const,
+      ),
+    ),
+  )
+}
+
 async function buildGeometryStats(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
   metaDb: HarbourReadableDb,
   plan: GeometryUploadPlan,
-  rows: Array<NonNullable<NormalizedGeometry>>,
+  rows: Array<NonNullable<NormalisedGeometry>>,
   churn: GeometryChurnCounts,
 ) {
   return [
@@ -1748,7 +1788,7 @@ async function resolveGeometryDistricts(
 
 function buildGeometryDistrictDistributionRows(
   type: GeometryUploadPlan['type'],
-  rows: Array<NonNullable<NormalizedGeometry>>,
+  rows: Array<NonNullable<NormalisedGeometry>>,
   districtsByDivisionId: Map<string, string>,
   directDistrictReferences = false,
 ) {

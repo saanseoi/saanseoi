@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 
-import { formatMissingDivisionReferenceRecords } from './processLocalDivisionGeometrySqlUpload.ts'
+import {
+  createGeometryChurnCounts,
+  formatMissingDivisionReferenceRecords,
+} from './processLocalDivisionGeometrySqlUpload.ts'
+import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
 
 describe('formatMissingDivisionReferenceRecords', () => {
   test('prints three complete source records and reports the remainder', () => {
@@ -55,5 +59,44 @@ describe('formatMissingDivisionReferenceRecords', () => {
       'Affected record:',
       'Missing division IDs: division-1\n{\n  "coordinates": [\n    [\n      114.1,\n      22.1\n    ],\n    [\n      114.2,\n      22.2\n    ],\n    [\n      114.3,\n      22.3\n    ],\n    "... 2 more"\n  ],\n  "tags": [\n    "one",\n    "two",\n    "three",\n    "... 1 more"\n  ]\n}',
     ])
+  })
+})
+
+describe('createGeometryChurnCounts', () => {
+  test('treats an independent cohort with no parent snapshot as an all-new baseline', () => {
+    const row = normaliseDivisionAreaGeometryRow(
+      {
+        class: 'land',
+        division_id: 'district-2016-1',
+        geometry: {
+          coordinates: [
+            [
+              [114.1, 22.2],
+              [114.2, 22.2],
+              [114.2, 22.3],
+              [114.1, 22.2],
+            ],
+          ],
+          type: 'Polygon',
+        },
+        id: 'censtatd-2016-1',
+      },
+      'hkgov-censtatd',
+    )
+    if (!row) throw new Error('Expected normalised geometry.')
+
+    const churn = createGeometryChurnCounts(
+      [row],
+      new Map([[row.canonical.id, 'current-hash']]),
+      new Map(),
+    )
+
+    expect(churn).toMatchObject({
+      added: 1,
+      changed: 0,
+      count: 1,
+      removed: 0,
+      unchanged: 0,
+    })
   })
 })
