@@ -86,21 +86,91 @@ export const canonicalAddress2d = {
   ...geoBbox,
 }
 
+export const addressBlockTypes = [
+  'block',
+  'building',
+  'tower',
+  'house',
+  'villa',
+  'mansion',
+  'apartment',
+  'flat',
+  'unit',
+  'quarters',
+  'phase',
+  'stage',
+  'commercial',
+  'retail',
+  'parking',
+  'garage',
+  'other',
+] as const
+
+export const addressUnitTypes = [
+  'flat',
+  'room',
+  'shop',
+  'suite',
+  'unit',
+  'stall',
+  'kiosk',
+  'office',
+  'other',
+] as const
+
+export const addressFloorTypes = [
+  'floor',
+  'ground_floor',
+  'upper_ground_floor',
+  'lower_ground_floor',
+  'basement',
+  'mezzanine',
+  'concourse',
+  'podium',
+  'roof',
+  'other',
+] as const
+
 export const canonicalAddress2dI18n = {
   addressId: text('addressId').notNull(),
   locale: text('locale').notNull(),
   formattedAddress: text('formattedAddress').notNull(),
   buildingName: text('buildingName'),
+  buildingNumberExpression: text('buildingNumberExpression'),
   buildingNumberFrom: text('buildingNumberFrom'),
   buildingNumberTo: text('buildingNumberTo'),
-  blockType: text('blockType'),
-  blockNumber: text('blockNumber'),
+  buildingNumberConnector: text('buildingNumberConnector'),
+  blockExpression: text('blockExpression'),
+  blockType: text('blockType', { enum: addressBlockTypes }),
+  blockRef: text('blockRef'),
   blockTypeBeforeNumber: integer('blockTypeBeforeNumber', { mode: 'boolean' }),
+  phaseExpression: text('phaseExpression'),
   phaseName: text('phaseName'),
-  phaseNumber: text('phaseNumber'),
+  phaseRef: text('phaseRef'),
   estateName: text('estateName'),
-  streetNumber: text('streetNumber'),
   streetName: text('streetName'),
+}
+
+export const addressReferenceLookupEvidences = [
+  'source_endpoint',
+  'source_member',
+  'derived_member',
+] as const
+
+export const addressReferenceLookupDerivations = [
+  'integer_consecutive',
+  'integer_alternating',
+  'latin_suffix_consecutive',
+] as const
+
+export const canonicalAddress2dBuildingNumberLookup = {
+  addressId: text('addressId').notNull(),
+  buildingNumber: text('buildingNumber').notNull(),
+  numericStem: text('numericStem'),
+  evidence: text('evidence', { enum: addressReferenceLookupEvidences }).notNull(),
+  derivation: text('derivation', {
+    enum: addressReferenceLookupDerivations,
+  }),
 }
 
 export const canonicalAddress3dI18n = {
@@ -109,10 +179,22 @@ export const canonicalAddress3dI18n = {
   formattedAddressPart: text('formattedAddressPart').notNull(),
   accessHint: text('accessHint'),
   unitPortion: text('unitPortion'),
-  unitNumber: text('unitNumber'),
-  unitType: text('unitType'),
-  floorNumber: text('floorNumber'),
-  floorType: text('floorType'),
+  unitExpression: text('unitExpression'),
+  unitRef: text('unitRef'),
+  unitType: text('unitType', { enum: addressUnitTypes }),
+  floorExpression: text('floorExpression'),
+  floorRef: text('floorRef'),
+  floorType: text('floorType', { enum: addressFloorTypes }),
+}
+
+export const canonicalAddress3dUnitRefLookup = {
+  address3dId: text('address3dId').notNull(),
+  unitRef: text('unitRef').notNull(),
+  numericStem: text('numericStem'),
+  evidence: text('evidence', { enum: addressReferenceLookupEvidences }).notNull(),
+  derivation: text('derivation', {
+    enum: addressReferenceLookupDerivations,
+  }),
 }
 
 export const canonicalPlace = {

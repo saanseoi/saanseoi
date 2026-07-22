@@ -10,7 +10,9 @@ import { sql } from 'drizzle-orm'
 
 import {
   canonicalAddress2d,
+  canonicalAddress2dBuildingNumberLookup,
   canonicalAddress2dI18n,
+  canonicalAddress3dUnitRefLookup,
   canonicalAddress3dI18n,
   jsonText,
   timestamps,
@@ -119,6 +121,33 @@ export const address2dI18n = sqliteTable(
   ],
 )
 
+export const address2dBuildingNumberLookup = sqliteTable(
+  'address2dBuildingNumberLookup',
+  {
+    snapshotId: text('snapshotId').notNull(),
+    ...canonicalAddress2dBuildingNumberLookup,
+    ...timestamps,
+  },
+  table => [
+    primaryKey({
+      columns: [table.snapshotId, table.addressId, table.buildingNumber],
+    }),
+    foreignKey({
+      columns: [table.snapshotId, table.addressId],
+      foreignColumns: [address2d.snapshotId, address2d.id],
+      name: 'address2dBuildingNumberLookup_snapshotId_addressId_address2d_fk',
+    }).onDelete('cascade'),
+    index('address2dBuildingNumberLookup_lookup_idx').on(
+      table.snapshotId,
+      table.buildingNumber,
+    ),
+    index('address2dBuildingNumberLookup_numericStem_idx').on(
+      table.snapshotId,
+      table.numericStem,
+    ),
+  ],
+)
+
 export const address3d = sqliteTable(
   'address3d',
   {
@@ -158,5 +187,29 @@ export const address3dI18n = sqliteTable(
       name: 'address3dI18n_snapshotId_address3dId_address3d_fk',
     }).onDelete('cascade'),
     index('address3dI18n_locale_idx').on(table.locale),
+  ],
+)
+
+export const address3dUnitRefLookup = sqliteTable(
+  'address3dUnitRefLookup',
+  {
+    snapshotId: text('snapshotId').notNull(),
+    ...canonicalAddress3dUnitRefLookup,
+    ...timestamps,
+  },
+  table => [
+    primaryKey({
+      columns: [table.snapshotId, table.address3dId, table.unitRef],
+    }),
+    foreignKey({
+      columns: [table.snapshotId, table.address3dId],
+      foreignColumns: [address3d.snapshotId, address3d.id],
+      name: 'address3dUnitRefLookup_snapshotId_address3dId_address3d_fk',
+    }).onDelete('cascade'),
+    index('address3dUnitRefLookup_lookup_idx').on(table.snapshotId, table.unitRef),
+    index('address3dUnitRefLookup_numericStem_idx').on(
+      table.snapshotId,
+      table.numericStem,
+    ),
   ],
 )
