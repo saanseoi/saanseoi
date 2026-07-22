@@ -26,9 +26,9 @@ SQL into their respective D1 databases.
 
 ## Stored data
 
-Canonical current and history tables are `address2d` and `address2dI18n`. The source
-database retains versioned ALS rows in `hkgovAlsAddresses2d` and
-`hkgovAlsAddress2dI18n`.
+Canonical current and history tables are `address2d`, `address2dI18n`, and the
+exact-token `address2dBuildingNumberLookup`. The source database retains versioned ALS
+rows in `hkgovAlsAddresses2d` and `hkgovAlsAddress2dI18n`.
 
 Source rows are keyed by `sourceRecordId + versionHash`. Current rows use
 `isCurrent = 1`; prior versions are closed with `validToRelease`. Canonical snapshots
@@ -50,12 +50,20 @@ address composition uses the `default` domain, with an address snapshot as the p
 member and a cohort-compatible Overture division snapshot as a required supporting
 member. List requests support catalogue/cohort/release-set selection, profiles and
 locale projection, pagination, and country/area/district filters. Address relationships
-always identify the canonical `country`, `area`, and `district` divisions.
+identify all available canonical containment levels: `country`, `area`, `district`,
+`town`, `macrohood`, `neighbourhood`, `microhood`, `village`, and `hamlet`. They do not
+join division data by default; `include=hierarchy` returns deduplicated Division
+resources in JSON:API `included` using bounded D1 batches.
 
 The `compact` and `default` profiles return localised formatted addresses, `map` adds
 point geometry and bounding boxes, and `full` adds identifiers, source attribution, and
 all stored localised address components. The public address API is two-dimensional; ALS
 public-rental-housing floor and unit data remains outside this resource.
+
+Building-number lookup retains exact endpoints and parser-derived range members; its
+numeric stem is available only for deliberate partial matching. See
+[3D address edge cases](../../../spec/3dAddressEdgeCases.md) for range and future
+unit-address handling.
 
 Addresses also support place search through the `places.addressSnapshotId` and
 `places.address2dId` relationships.

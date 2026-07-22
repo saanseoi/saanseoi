@@ -134,6 +134,12 @@ they use the village number, village name, and location name. This ensures villa
 premises retain their addressable route rather than being reduced to district and
 region.
 
+Canonical 2D components use `buildingNumberFrom` and `buildingNumberTo` for both street
+and village premises; no synthetic `streetNumber` is stored. ALS does not publish a
+range connector, so an ALS range stores only its supplied endpoints. Exact
+building-number lookup rows retain those endpoints; a later parser may derive interior
+members only when an explicit connector establishes a range.
+
 ## ALS-to-ALS drift review
 
 For historical ingestion, the command persists an ignored local identity history at
