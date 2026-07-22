@@ -13,12 +13,40 @@ import PipelineSectionContent from './pipelineSectionContent.svelte'
 import PipelineSectionHeader from './pipelineSectionHeader.svelte'
 
 let pipelineSection = $state<HTMLElement>()
+let pipelineSvg = $state<SVGSVGElement>()
 let isPipelineActive = $state(false)
 let isPipelineRevealed = $state(false)
 let isPipelineWide = $state(false)
+let isDocumentVisible = $state(true)
+let travellerKey = $state(0)
+
+$effect(() => {
+  const svg = pipelineSvg
+  if (!svg) return
+
+  if (isPipelineActive && isDocumentVisible) {
+    svg.unpauseAnimations()
+  } else {
+    svg.pauseAnimations()
+  }
+})
 
 onMount(() => {
   if (!pipelineSection) return
+  isDocumentVisible = !document.hidden
+
+  const restartTravellers = () => {
+    travellerKey += 1
+  }
+
+  const handleVisibilityChange = () => {
+    isDocumentVisible = !document.hidden
+    if (isDocumentVisible) restartTravellers()
+  }
+
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  window.addEventListener('pageshow', restartTravellers)
+
   const query = window.matchMedia('(min-width: 768px)')
   const update = () => {
     isPipelineWide = query.matches
@@ -28,9 +56,12 @@ onMount(() => {
   const observer = new IntersectionObserver(
     ([entry]) => {
       if (!entry) return
-      isPipelineActive =
+      const nextIsPipelineActive =
         entry.isIntersecting &&
         !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+      if (nextIsPipelineActive && !isPipelineActive) restartTravellers()
+      isPipelineActive = nextIsPipelineActive
       if (entry.isIntersecting) isPipelineRevealed = true
     },
     { rootMargin: '20% 0px', threshold: 0.01 },
@@ -39,6 +70,8 @@ onMount(() => {
   return () => {
     observer.disconnect()
     query.removeEventListener('change', update)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
+    window.removeEventListener('pageshow', restartTravellers)
   }
 })
 </script>
@@ -53,6 +86,7 @@ onMount(() => {
       <div class="pipeline-wave-field" aria-hidden="true"></div>
       {#if isPipelineWide}
         <svg
+          bind:this={pipelineSvg}
           class="pipeline-arc"
           viewBox="0 0 1000 240"
           preserveAspectRatio="none"
@@ -81,8 +115,8 @@ onMount(() => {
             class="pipeline-arc-right"
             d="M500 210 C597 20 722 20 833.333 157"
           ></path>
-          <circle class="pipeline-traveller pipeline-traveller-source" r="6">
-            {#if isPipelineActive}
+          {#key travellerKey}
+            <circle class="pipeline-traveller pipeline-traveller-source" r="6">
               <animateMotion
                 dur="6s"
                 repeatCount="indefinite"
@@ -93,10 +127,8 @@ onMount(() => {
               >
                 <mpath href="#pipeline-arc-left-path" />
               </animateMotion>
-            {/if}
-          </circle>
-          <circle class="pipeline-traveller pipeline-traveller-release" r="6">
-            {#if isPipelineActive}
+            </circle>
+            <circle class="pipeline-traveller pipeline-traveller-release" r="6">
               <animateMotion
                 dur="6s"
                 repeatCount="indefinite"
@@ -107,8 +139,8 @@ onMount(() => {
               >
                 <mpath href="#pipeline-arc-right-path" />
               </animateMotion>
-            {/if}
-          </circle>
+            </circle>
+          {/key}
         </svg>
       {/if}
       <PipelineSectionBlockWrapper>
