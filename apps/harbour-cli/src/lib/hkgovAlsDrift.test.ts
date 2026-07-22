@@ -32,6 +32,30 @@ const withdrawnBuildingName: HkgovAlsIdentityRecord = {
   summary: { buildingName: null, routeName: 'EXAMPLE ROAD' },
 }
 
+const withdrawnEstateName: HkgovAlsIdentityRecord = {
+  ...previous,
+  id: 'ss-new',
+  identityKey: 'estate-name-removed',
+  sourceVersion: '2025-02-25.0',
+  summary: {
+    buildingName: 'OLD BUILDING',
+    estateName: null,
+    routeName: 'EXAMPLE ROAD',
+  },
+}
+
+const withdrawnPhaseName: HkgovAlsIdentityRecord = {
+  ...previous,
+  id: 'ss-new',
+  identityKey: 'phase-name-removed',
+  sourceVersion: '2025-02-25.0',
+  summary: {
+    buildingName: 'OLD BUILDING',
+    phaseName: null,
+    routeName: 'EXAMPLE ROAD',
+  },
+}
+
 const movedToEstateName: HkgovAlsIdentityRecord = {
   ...previous,
   id: 'ss-new',
@@ -119,9 +143,36 @@ describe('HKGov ALS identity drift', () => {
     expect(result.candidates).toEqual([])
     expect(result.resolvedIds.get(withdrawnBuildingName.identityKey)).toBe(previous.id)
     expect(result.resolvedMatchMethods.get(withdrawnBuildingName.identityKey)).toBe(
-      'als-building-name-withdrawal',
+      'als-address-component-withdrawal',
     )
   })
+
+  test.each([
+    [
+      'estate name',
+      { ...previous.summary, estateName: 'OLD ESTATE' },
+      withdrawnEstateName,
+    ],
+    ['phase name', { ...previous.summary, phaseName: 'PHASE 1' }, withdrawnPhaseName],
+  ])(
+    'automatically keeps the ID when ALS only withdraws an $0',
+    (_, summary, current) => {
+      const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
+        { ...previous, summary },
+      ])
+      const result = resolveHkgovAlsIdentityDrift(
+        [current],
+        history,
+        emptyHkgovAlsIdentityDecisions(),
+      )
+
+      expect(result.candidates).toEqual([])
+      expect(result.resolvedIds.get(current.identityKey)).toBe(previous.id)
+      expect(result.resolvedMatchMethods.get(current.identityKey)).toBe(
+        'als-address-component-withdrawal',
+      )
+    },
+  )
 
   test('automatically keeps the ID when ALS moves a name from building to estate', () => {
     const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [

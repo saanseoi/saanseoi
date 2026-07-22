@@ -68,8 +68,8 @@ export function parseHkgovAlsIdentityDecisions(
 /**
  * Finds a likely renamed/re-described premise without silently treating it as the
  * old record. A match is only surfaced when the previous continuity key identifies
- * exactly one historic premise. The sole automatic case is withdrawal of a building
- * name while every other premise component remains unchanged.
+ * exactly one historic premise. A component may be withdrawn automatically only
+ * when every other premise component remains unchanged.
  */
 export function resolveHkgovAlsIdentityDrift(
   records: HkgovAlsIdentityRecord[],
@@ -94,6 +94,7 @@ export function resolveHkgovAlsIdentityDrift(
   const candidates: HkgovAlsIdentityDriftCandidate[] = []
   const resolvedIds = new Map<string, string>()
   const resolvedMatchMethods = new Map<string, string>()
+  const resolvedPreviousRecords = new Map<string, HkgovAlsIdentityRecord>()
 
   for (const record of records) {
     if (historyByIdentity.has(record.identityKey)) continue
@@ -107,17 +108,20 @@ export function resolveHkgovAlsIdentityDrift(
     if (decision?.resolution === 'keep-existing-id') {
       resolvedIds.set(record.identityKey, prior.id)
       resolvedMatchMethods.set(record.identityKey, 'als-drift-decision')
+      resolvedPreviousRecords.set(record.identityKey, prior)
       continue
     }
     if (decision?.resolution === 'new-id') continue
-    if (isBuildingNameWithdrawal(prior, record)) {
+    if (droppedAddressComponent(prior, record)) {
       resolvedIds.set(record.identityKey, prior.id)
-      resolvedMatchMethods.set(record.identityKey, 'als-building-name-withdrawal')
+      resolvedMatchMethods.set(record.identityKey, 'als-address-component-withdrawal')
+      resolvedPreviousRecords.set(record.identityKey, prior)
       continue
     }
     if (isBuildingEstateReassignment(prior, record)) {
       resolvedIds.set(record.identityKey, prior.id)
       resolvedMatchMethods.set(record.identityKey, 'als-building-estate-reassignment')
+      resolvedPreviousRecords.set(record.identityKey, prior)
       continue
     }
     if (isStructuredBlockQualificationChange(prior, record)) {
@@ -126,7 +130,7 @@ export function resolveHkgovAlsIdentityDrift(
     candidates.push({ current: record, previous: prior })
   }
 
-  return { candidates, resolvedIds, resolvedMatchMethods }
+  return { candidates, resolvedIds, resolvedMatchMethods, resolvedPreviousRecords }
 }
 
 function isBuildingEstateReassignment(
@@ -150,11 +154,11 @@ function isBuildingEstateReassignment(
 
   const previousNames = [previous.summary.buildingName, previous.summary.estateName]
     .filter((value): value is string => value != null)
-    .map(normalizeName)
+    .map(normaliseName)
     .sort()
   const currentNames = [current.summary.buildingName, current.summary.estateName]
     .filter((value): value is string => value != null)
-    .map(normalizeName)
+    .map(normaliseName)
     .sort()
   return (
     previousNames.length > 0 &&
@@ -163,7 +167,7 @@ function isBuildingEstateReassignment(
   )
 }
 
-function normalizeName(value: string) {
+function normaliseName(value: string) {
   return value.normalize('NFKC').trim().replace(/\s+/g, ' ').toUpperCase()
 }
 
@@ -179,20 +183,24 @@ function hasStructuredBlock(record: HkgovAlsIdentityRecord) {
   return Boolean(record.summary.blockDescriptor && record.summary.blockNumber)
 }
 
-function isBuildingNameWithdrawal(
+function droppedAddressComponent(
   previous: HkgovAlsIdentityRecord,
   current: HkgovAlsIdentityRecord,
 ) {
-  if (!previous.summary.buildingName || current.summary.buildingName != null) {
-    return false
-  }
+  const droppableFields = ['buildingName', 'estateName', 'phaseName'] as const
+  const droppedFields = droppableFields.filter(
+    field => previous.summary[field] != null && current.summary[field] == null,
+  )
+  if (droppedFields.length !== 1) return false
+
+  const droppedField = droppedFields[0]
   const fields = new Set([
     ...Object.keys(previous.summary),
     ...Object.keys(current.summary),
   ])
   return [...fields].every(
     field =>
-      field === 'buildingName' ||
+      field === droppedField ||
       (previous.summary[field] ?? null) === (current.summary[field] ?? null),
   )
 }

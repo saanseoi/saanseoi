@@ -2,12 +2,50 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   buildHkgovAlsProcessingActions,
-  consolidateHkgovAlsSingletonNumberRangeVariants,
   consolidateEquivalentHkgovAlsPremises,
   dedupeHkgovAlsSourceFeatures,
+  formatEnPremisesAddress,
+  formatZhPremisesAddress,
   resolveDivisionLookupSource,
   resolveDivisionSnapshotSource,
 } from './hkgovAls.ts'
+
+describe('ALS premise address formatting', () => {
+  test('retains village number, name, and location in both locales', () => {
+    expect(
+      formatEnPremisesAddress({
+        EngDistrict: 'SHA TIN DISTRICT',
+        EngVillage: {
+          BuildingNoFrom: '9',
+          LocationName: 'SHA TIN',
+          VillageName: 'NORTH YEUK SIU LEK YUEN TSUEN',
+        },
+        Region: 'NT',
+      }),
+    ).toBe('9, NORTH YEUK SIU LEK YUEN TSUEN, SHA TIN, SHA TIN DISTRICT, NT')
+
+    expect(
+      formatZhPremisesAddress({
+        ChiDistrict: '沙田區',
+        ChiVillage: {
+          BuildingNoFrom: '9',
+          LocationName: '沙田',
+          VillageName: '小瀝源村北約',
+        },
+        Region: '新界',
+      }),
+    ).toBe('9小瀝源村北約沙田沙田區新界')
+  })
+
+  test('continues to prefer a street over a village when both are supplied', () => {
+    expect(
+      formatEnPremisesAddress({
+        EngStreet: { BuildingNoFrom: '1', StreetName: 'EXAMPLE STREET' },
+        EngVillage: { BuildingNoFrom: '9', VillageName: 'EXAMPLE VILLAGE' },
+      }),
+    ).toBe('1 EXAMPLE STREET')
+  })
+})
 
 describe('dedupeHkgovAlsSourceFeatures', () => {
   const feature = {
@@ -72,14 +110,15 @@ describe('dedupeHkgovAlsSourceFeatures', () => {
 })
 
 describe('buildHkgovAlsProcessingActions', () => {
-  test('records each Roman-numeral building-name normalization', () => {
+  test('records each Roman-numeral building-name normalisation', () => {
     const row = {
       canonicalId: 'ss-example',
       chiPremisesAddressJson: null,
       enBlockDescriptor: 'TOWER',
-      enBlockNumberRomanNumeralNormalization: { from: '1', to: 'I' },
-      enBuildingNameRomanNumeralNormalization: {
+      enBlockNumberRomanNumeralNormalisation: { from: '1', reference: 'II', to: 'I' },
+      enBuildingNameRomanNumeralNormalisation: {
         from: 'INTERNATIONAL ENTERPRISE CENTRE 1',
+        reference: 'II',
         to: 'INTERNATIONAL ENTERPRISE CENTRE I',
       },
       enFormattedAddress: 'INTERNATIONAL ENTERPRISE CENTRE I, 11 EXAMPLE STREET',
@@ -90,22 +129,24 @@ describe('buildHkgovAlsProcessingActions', () => {
       sourceFeatureIndexOneBased: 1,
       sourceFile: 'example.geojson',
       zhHantFormattedAddress: null,
-    } as Parameters<typeof buildHkgovAlsProcessingActions>[0]['resolvedRows'][number]
+    } as unknown as Parameters<
+      typeof buildHkgovAlsProcessingActions
+    >[0]['resolvedRows'][number]
 
     expect(
       buildHkgovAlsProcessingActions({
         decisions: { authority: 'hkgov-dpo', decisions: [], version: 1 },
         identityEquivalentFeatureGroups: [],
-        numberRangeSingletonFeatureGroups: [],
         resolvedRows: [row],
         sourceDuplicateFeatureGroups: [],
       }),
     ).toContainEqual({
-      action: 'als_building_name_roman_numeral_normalized',
+      action: 'als_building_name_roman_numeral_normalised',
       affectedRecordCount: 1,
       evidence: {
         buildingName: {
           from: 'INTERNATIONAL ENTERPRISE CENTRE 1',
+          reference: 'II',
           to: 'INTERNATIONAL ENTERPRISE CENTRE I',
         },
         canonicalRecord: expect.any(Object),
@@ -118,20 +159,100 @@ describe('buildHkgovAlsProcessingActions', () => {
       buildHkgovAlsProcessingActions({
         decisions: { authority: 'hkgov-dpo', decisions: [], version: 1 },
         identityEquivalentFeatureGroups: [],
-        numberRangeSingletonFeatureGroups: [],
         resolvedRows: [row],
         sourceDuplicateFeatureGroups: [],
       }),
     ).toContainEqual({
-      action: 'als_premise_number_roman_numeral_normalized',
+      action: 'als_premise_number_roman_numeral_normalised',
       affectedRecordCount: 1,
       evidence: {
         canonicalRecord: expect.any(Object),
-        premiseNumber: { descriptor: 'TOWER', from: '1', to: 'I' },
+        premiseNumber: { descriptor: 'TOWER', from: '1', reference: 'II', to: 'I' },
       },
       mode: 'automatic',
       summary:
         'Styled an ALS BLOCK, HOUSE or TOWER number as Roman numerals used by its premise family.',
+    })
+  })
+
+  test('records the field and prior value when an address component is dropped', () => {
+    const row = {
+      canonicalId: 'ss-example',
+      chiPremisesAddressJson: null,
+      enFormattedAddress: '17 EXAMPLE ROAD',
+      engPremisesAddressJson: null,
+      identityKey: 'example-identity',
+      identityMatchMethod: 'als-address-component-withdrawal',
+      identityPreviousSummary: { estateName: 'EXAMPLE ESTATE' },
+      identitySummary: { estateName: null },
+      sourceFeatureIndexOneBased: 1,
+      sourceFile: 'example.geojson',
+      zhHantFormattedAddress: null,
+    } as unknown as Parameters<
+      typeof buildHkgovAlsProcessingActions
+    >[0]['resolvedRows'][number]
+
+    expect(
+      buildHkgovAlsProcessingActions({
+        decisions: { authority: 'hkgov-dpo', decisions: [], version: 1 },
+        identityEquivalentFeatureGroups: [],
+        resolvedRows: [row],
+        sourceDuplicateFeatureGroups: [],
+      }),
+    ).toContainEqual({
+      action: 'als_address_component_withdrawal_matched',
+      affectedRecordCount: 1,
+      evidence: {
+        canonicalRecord: expect.any(Object),
+        droppedComponent: { field: 'estateName', value: 'EXAMPLE ESTATE' },
+      },
+      mode: 'automatic',
+      summary: 'Retained an ALS ID after an address component was dropped.',
+    })
+  })
+
+  test('records source-representation differences for equivalent premises', () => {
+    const actions = buildHkgovAlsProcessingActions({
+      decisions: { authority: 'hkgov-dpo', decisions: [], version: 1 },
+      identityEquivalentFeatureGroups: [
+        {
+          address: 'EXAMPLE BUILDING, 1 EXAMPLE ROAD',
+          canonicalRecord: {
+            sourceRepresentation: {
+              premises: { en: { BuildingName: 'EXAMPLE BUILDING' } },
+            },
+          },
+          ignoredRecords: [
+            {
+              sourceRepresentation: {
+                premises: { en: { BuildingName: 'EXAMPLE BLDG' } },
+              },
+            },
+          ],
+          occurrences: [
+            { featureIndexOneBased: 1, sourceFile: 'example.geojson' },
+            { featureIndexOneBased: 2, sourceFile: 'example.geojson' },
+          ],
+        },
+      ],
+      resolvedRows: [],
+      sourceDuplicateFeatureGroups: [],
+    })
+
+    expect(actions).toContainEqual({
+      action: 'als_equivalent_premise_variant_consolidated',
+      affectedRecordCount: 1,
+      evidence: expect.objectContaining({
+        differences: [
+          {
+            field: 'premises.en.BuildingName',
+            oldValue: 'EXAMPLE BLDG',
+            newValue: 'EXAMPLE BUILDING',
+          },
+        ],
+      }),
+      mode: 'automatic',
+      summary: 'Consolidated ALS variants with the same complete premise identity.',
     })
   })
 })
@@ -203,52 +324,6 @@ describe('consolidateEquivalentHkgovAlsPremises', () => {
     }
 
     expect(consolidateEquivalentHkgovAlsPremises([no, yes]).rows).toEqual([yes])
-  })
-})
-
-describe('consolidateHkgovAlsSingletonNumberRangeVariants', () => {
-  const range = {
-    enFormattedAddress: 'TOI SHAN ASSOCIATION PRIMARY SCHOOL, 14-16 SHEK PAI TAU ROAD',
-    geoAddress: '1521029168T20050430',
-    geometry: '{"type":"Point","coordinates":[113.97237,22.40161]}',
-    identityNumberFrom: '14',
-    identityNumberTo: '16',
-    numberlessIdentityKey: 'same-premise-without-number',
-    sourceFeatureIndexOneBased: 2,
-    sourceFile: 'tuen-mun.geojson',
-    zhHantFormattedAddress: null,
-  } as Parameters<typeof consolidateHkgovAlsSingletonNumberRangeVariants>[0][number]
-
-  test('keeps a range and removes an identical-premise singleton at its endpoint', () => {
-    const singleton = {
-      ...range,
-      enFormattedAddress: 'TOI SHAN ASSOCIATION PRIMARY SCHOOL, 16 SHEK PAI TAU ROAD',
-      identityNumberFrom: '16',
-      identityNumberTo: null,
-      sourceFeatureIndexOneBased: 1,
-    }
-
-    const result = consolidateHkgovAlsSingletonNumberRangeVariants([singleton, range])
-
-    expect(result.rows).toEqual([range])
-    expect(result.duplicateGroups).toHaveLength(1)
-    expect(result.duplicateGroups[0]?.occurrences).toEqual([
-      { featureIndexOneBased: 2, sourceFile: 'tuen-mun.geojson' },
-      { featureIndexOneBased: 1, sourceFile: 'tuen-mun.geojson' },
-    ])
-  })
-
-  test('does not infer that an intervening number belongs to a range', () => {
-    const singleton = {
-      ...range,
-      identityNumberFrom: '15',
-      identityNumberTo: null,
-      sourceFeatureIndexOneBased: 3,
-    }
-
-    expect(
-      consolidateHkgovAlsSingletonNumberRangeVariants([range, singleton]).rows,
-    ).toEqual([range, singleton])
   })
 })
 

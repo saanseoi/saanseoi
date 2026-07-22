@@ -25,7 +25,6 @@ export type HkgovAlsPremiseIdentityInput = {
 export type HkgovAlsPremiseIdentityDescriptor = {
   continuityKey: string
   identityKey: string
-  numberlessIdentityKey: string
   summary: Record<string, string | null>
 }
 
@@ -77,21 +76,6 @@ export function buildHkgovAlsPremiseIdentity(
       summary.routeName,
       summary.numberFrom,
       summary.numberTo,
-      summary.estateName,
-      summary.phaseName,
-      summary.phaseNumber,
-      summary.blockDescriptor,
-      summary.blockNumber,
-      summary.buildingName,
-      summary.unitDescriptor,
-      summary.unitNumber,
-    ]),
-    numberlessIdentityKey: joinIdentityParts([
-      'hkgov-als-premise-without-number-v1',
-      buildingReference,
-      summary.districtName,
-      summary.routeKind,
-      summary.routeName,
       summary.estateName,
       summary.phaseName,
       summary.phaseNumber,
