@@ -27,7 +27,7 @@ type MarkdownReferenceSource = {
 
 type ReferenceMessageKey = Extract<MessageKey, `reference_${string}`>
 
-const markdownReferences = {
+const markdownReferences: Record<string, MarkdownReferenceSource> = {
   'overture-division-locale-normalisation': {
     title: 'locale',
     displayTitleKey: 'reference_locale_normalisation',
@@ -43,7 +43,15 @@ const markdownReferences = {
     displayTitleKey: 'reference_division_hierarchy_normalisation',
     source: overtureDivisionHierarchy,
   },
-} satisfies Record<string, MarkdownReferenceSource>
+}
+
+// Release notes published before the catalogue spelling was standardised use
+// the American `normalization` spelling in their reference IDs.
+const markdownReferenceAliases: Record<string, string> = {
+  'overture-division-locale-normalization': 'overture-division-locale-normalisation',
+  'overture-division-hierarchy-normalization':
+    'overture-division-hierarchy-normalisation',
+}
 
 export function getMarkdownTransclusion(href: string | null | undefined) {
   if (!href?.startsWith(markdownReferenceScheme)) return null
@@ -53,7 +61,8 @@ export function getMarkdownTransclusion(href: string | null | undefined) {
   if (!match) return null
 
   const [, locale, type, id, version] = match
-  const reference = markdownReferences[id as keyof typeof markdownReferences]
+  const reference =
+    markdownReferences[id] ?? markdownReferences[markdownReferenceAliases[id] ?? '']
   if (!locale || !type || !reference || !version) return null
 
   return {
