@@ -37,17 +37,14 @@ evidence remains available through the processing-actions report.
 
 No general coordinate-, `GeoAddress`-, street-, or number-based collapsing is performed.
 Two rows at the same point can represent distinct ALS premises, such as blocks, towers,
-facilities, or named buildings, and must remain separate address records. The only
-additional consolidations are a representation variant whose complete granular premise
-identity is identical, and a single number that repeats an endpoint of a number range.
-For the latter, the importer retains the range only when the rows also have the same
-complete numberless premise identity, `GeoAddress`, and point geometry. It does not
-infer that an arbitrary number between the endpoints is part of the range: ALS supports
-alphanumeric and odd/even numbering, and those can represent different premises. If the
-variants differ because `EngBlock.BlockDescriptorPrecedenceIndicator` is missing in one
-source feature and present in another, the importer deterministically retains the
-feature with the indicator present. Other same-premise representation variants are
-printed separately from exact feature duplicates.
+facilities, or named buildings, and must remain separate address records. This includes
+a singleton number that repeats an endpoint of a number range: the importer retains both
+records because it cannot establish that they are duplicates. The only additional
+consolidation is a representation variant whose complete granular premise identity is
+identical. If the variants differ because `EngBlock.BlockDescriptorPrecedenceIndicator`
+is missing in one source feature and present in another, the importer deterministically
+retains the feature with the indicator present. Other same-premise representation
+variants are printed separately from exact feature duplicates.
 
 ## Processing audit trail
 
@@ -70,9 +67,19 @@ separate coverage measures: village-addressed premises do not imply that a stree
 was supplied. The district counts are keyed by canonical division ID so Atlas can join
 them to the selected HAD district-area geometry without relying on display names.
 
+At an annual history-shard boundary, lifecycle churn is compared with the current
+records from earlier shards as well as the new shard. The first release of a year
+therefore reports changes from the prior release rather than treating the whole source
+dataset as newly added.
+
+Lifecycle churn excludes release-specific source provenance, including the release
+cohort and input file path. Those values remain stored for audit, but a new delivery
+does not count as a changed address solely because its provenance points to that
+delivery.
+
 ## Stable ALS premise ID
 
-Each retained row receives `ss-<uuid-v5>`. The UUIDv5 input is a normalized premise
+Each retained row receives `ss-<uuid-v5>`. The UUIDv5 input is a normalised premise
 identity composed of:
 
 - `CsuId`, falling back to `GeoAddress` when no CSU ID is supplied
@@ -93,7 +100,7 @@ is never treated as a unique premise by itself.
 ALS sometimes represents the same structural component in two incompatible ways: in
 `EngBlock`, or embedded in a building name repeated from its estate (for example,
 `LUNG MUN OASIS BLOCK 10` alongside estate `LUNG MUN OASIS`). Before identity creation,
-the importer losslessly normalizes only an exact
+the importer losslessly normalises only an exact
 `<estate> <BLOCK|BLK|HOUSE|TOWER> <single identifier>` form into structured block
 fields, and removes a building name that exactly duplicates its estate. It never parses
 free-form names such as `WEST GATE TOWER`, and it refuses an embedded form that
@@ -108,15 +115,24 @@ structured English `BLOCK`/`BLK`, `HOUSE`, and `TOWER` numbers, scoped to their 
 or building family. Single-letter values such as `C` or `D` are treated as block labels,
 not Roman numeral evidence. It does not alter unrelated numeric names or structured
 numbers. Each changed retained address is stored as an automatic
-`als_building_name_roman_numeral_normalized` or
-`als_premise_number_roman_numeral_normalized` processing action, including the original
-and normalized component value.
+`als_building_name_roman_numeral_normalised` or
+`als_premise_number_roman_numeral_normalised` processing action, including the original
+and normalised component value plus the complete peer source value that established the
+Roman-numeral style.
 
 The original English and Chinese ALS premise JSON is retained unchanged for provenance;
 the cleaned component fields and formatted service address carry the post-processing. If
 two source variants resolve to the same reviewed canonical ID in one release, one
 service row is retained, favouring the representation with more structured premise
-detail. This is not spatial or address-string deduplication.
+detail. This is not spatial or address-string deduplication. The processing action
+records the exact source-representation fields that differed, including premise fields,
+coordinates, and easting/northing, so the audit does not need to infer its explanation
+at display time.
+
+Formatted addresses use a street number and name when ALS supplies a street; otherwise
+they use the village number, village name, and location name. This ensures village-only
+premises retain their addressable route rather than being reduced to district and
+region.
 
 ## ALS-to-ALS drift review
 
@@ -131,6 +147,12 @@ When a new row has the same unambiguous continuity anchor (CSU/GeoAddress, distr
 route, number/range, and rounded point) but a different premise identity, it is a
 candidate drift. This catches changes such as building name, estate, phase, block, or
 unit changes without silently assuming that the record is the same premise.
+
+If, and only if, every other identity component is unchanged, the importer retains the
+existing ID when ALS drops a building name, estate name, or phase name. Each automatic
+retention is recorded as an `als_address_component_withdrawal_matched` processing action
+with the dropped field and its prior value; other identity changes remain subject to
+review.
 
 If the only changed component is that ALS has withdrawn a previously populated building
 name, the importer automatically retains the existing ID. Building-name additions and
@@ -184,9 +206,10 @@ This is required because address and division uploads are sharded by year. Use
 remains interactive.
 
 It resumes safely after a successful local release: source versions with a published
-local HKGov ALS release are skipped rather than uploaded again. The persisted ALS
-identity history is not used as a skip marker, so resetting the local database correctly
-re-ingests every release.
+local HKGov ALS release are skipped rather than uploaded again. Pass `--force` to
+reprocess and replace those local releases when processing-action evidence changes. The
+persisted ALS identity history is not used as a skip marker, so resetting the local
+database correctly re-ingests every release.
 
 Use `--dry-run` to validate each prepared parquet and its upload plan without database
 mutation. Use `--yes` only after reviewing any generated drift reports. The command
@@ -203,4 +226,4 @@ formatted English and Traditional Chinese addresses, and easting/northing.
 The local SQL pipeline uses the prepared `id` and `canonicalId`, trusts the resolved
 division fields, parses geometry/provenance JSON, and writes English and/or Traditional
 Chinese i18n rows. It processes prepared parquet in bounded chunks through the shared
-normalization, source, history, current, and finalize stages.
+normalisation, source, history, current, and finalise stages.
