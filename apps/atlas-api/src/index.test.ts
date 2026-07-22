@@ -138,6 +138,7 @@ function createEnv(
       DB_SOURCE_HK_2025: db,
       DB_SOURCE_HK_BEFORE: db,
       DB_SOURCE_HK_2026: db,
+      D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
       ATLAS_BASE_URL: 'http://localhost:8787',
       HARBOUR_BASE_URL: 'http://localhost:8788',
       SUBSTACK_PUBLICATION: 'demo-publication',
@@ -173,6 +174,59 @@ describe('atlas-api', () => {
       ok: true,
       datasetCount: 0,
     })
+  })
+
+  test('GET /v0/meta/d1-placement-probe returns timings for all D1 bindings', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/meta/d1-placement-probe?iterations=2', {
+        headers: { 'x-api-key': 'test-probe-api-key' },
+      }),
+      env,
+    )
+    const body = (await res.json()) as {
+      bindings: Array<{ timingsMs: number[] }>
+      configuredPlacementRegion: string
+      iterations: number
+      ok: boolean
+      totalQueries: number
+      worker: string
+    }
+
+    expect(res.status).toBe(200)
+    expect(body.ok).toBe(true)
+    expect(body.worker).toBe('atlas-api')
+    expect(body.configuredPlacementRegion).toBe('azure:eastasia')
+    expect(body.iterations).toBe(2)
+    expect(body.totalQueries).toBe(16)
+    expect(body.bindings).toHaveLength(8)
+    expect(body.bindings.every(binding => binding.timingsMs.length === 2)).toBe(true)
+  })
+
+  test('GET /v0/meta/d1-placement-probe requires the probe API key', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/meta/d1-placement-probe?iterations=2'),
+      env,
+    )
+
+    expect(res.status).toBe(401)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'unauthorized',
+      message: 'Missing or invalid API key.',
+    })
+  })
+
+  test('GET /v0/meta/d1-placement-probe rejects invalid iteration counts', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/meta/d1-placement-probe?iterations=0', {
+        headers: { 'x-api-key': 'test-probe-api-key' },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(400)
   })
 
   test('GET /v0/divisions rejects an absent API key', async () => {
@@ -289,6 +343,23 @@ describe('atlas-api', () => {
     })
   })
 
+  test('GET /v0/addresses returns snapshot_not_ready when no address release set is published', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(apiRequest('http://localhost/v0/addresses'), env)
+    const body = (await res.json()) as {
+      httpStatus: number
+      error: string
+      message: string
+    }
+
+    expect(res.status).toBe(503)
+    expect(body).toEqual({
+      httpStatus: 503,
+      error: 'snapshot_not_ready',
+      message: 'No active address snapshot is published.',
+    })
+  })
+
   test('GET /v0/divisions returns 503 when atlas hits a transient D1 read failure', async () => {
     const { env } = createEnv(
       {},
@@ -345,7 +416,7 @@ describe('atlas-api', () => {
     }
   })
 
-  test('GET /openapi documents the versioned division endpoints', async () => {
+  test('GET /openapi documents the versioned division and address endpoints', async () => {
     const { env } = createEnv()
     const res = await app.fetch(new Request('http://localhost/openapi'), env)
     const body = (await res.json()) as {
@@ -363,6 +434,10 @@ describe('atlas-api', () => {
     expect(body.paths['/v0/divisions']?.get?.operationId).toBe('listDivisionsV0')
     expect(body.paths['/v0.1/divisions/{id}']?.get?.operationId).toBe(
       'getDivisionByIdV01',
+    )
+    expect(body.paths['/v0/addresses']?.get?.operationId).toBe('listAddressesV0')
+    expect(body.paths['/v0.1/addresses/{id}']?.get?.operationId).toBe(
+      'getAddressByIdV01',
     )
     expect(body.components?.schemas?.DivisionRelationships?.required).toContain(
       'hierarchy',

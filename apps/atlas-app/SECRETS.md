@@ -3,7 +3,6 @@
 Atlas App uses Better Auth and requires:
 
 - `BETTER_AUTH_SECRET`
-- `D1_PLACEMENT_PROBE_API_KEY`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `GITHUB_CLIENT_ID`
@@ -24,7 +23,6 @@ Set the preview secret on the preview Worker:
 
 ```bash
 bunx wrangler secret put BETTER_AUTH_SECRET --config apps/atlas-app/wrangler.jsonc --env preview
-bunx wrangler secret put D1_PLACEMENT_PROBE_API_KEY --config apps/atlas-app/wrangler.jsonc --env preview
 bunx wrangler secret put GOOGLE_CLIENT_ID --config apps/atlas-app/wrangler.jsonc --env preview
 bunx wrangler secret put GOOGLE_CLIENT_SECRET --config apps/atlas-app/wrangler.jsonc --env preview
 bunx wrangler secret put GITHUB_CLIENT_ID --config apps/atlas-app/wrangler.jsonc --env preview
@@ -35,7 +33,6 @@ Set the production secret on the production Worker:
 
 ```bash
 bunx wrangler secret put BETTER_AUTH_SECRET --config apps/atlas-app/wrangler.jsonc --env production
-bunx wrangler secret put D1_PLACEMENT_PROBE_API_KEY --config apps/atlas-app/wrangler.jsonc --env production
 bunx wrangler secret put GOOGLE_CLIENT_ID --config apps/atlas-app/wrangler.jsonc --env production
 bunx wrangler secret put GOOGLE_CLIENT_SECRET --config apps/atlas-app/wrangler.jsonc --env production
 bunx wrangler secret put GITHUB_CLIENT_ID --config apps/atlas-app/wrangler.jsonc --env production
