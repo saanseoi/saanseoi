@@ -1,0 +1,24 @@
+{
+  "versionHash": "sha256:2865f4a636224c2ff4243f8c847c5c9386932502f9c6928ab3caafd700a2b2e1",
+  "code": "hkgov-hyd",
+  "parentCode": "hkgov",
+  "url": "https://www.hyd.gov.hk/",
+  "contactUrl": "https://www.hyd.gov.hk/en/contact_us/",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Highways Department",
+      "description": "Department responsible for highways and related road infrastructure in the Hong Kong SAR."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "路政署",
+      "description": "負責香港道路及相關道路基礎設施的香港特別行政區政府部門。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "路政署",
+      "description": "负责香港道路及相关道路基础设施的香港特别行政区政府部门。"
+    }
+  ]
+}
