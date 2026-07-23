@@ -121,10 +121,9 @@ async function loadIncludedAddressHierarchy(args: {
 }) {
   if (args.include !== 'hierarchy') return []
 
-  const primaryIds = new Set(args.records.map(record => record.address.id))
   const divisionIds = [
     ...new Set(args.records.flatMap(record => addressHierarchyIds(record.address))),
-  ].filter(id => !primaryIds.has(id))
+  ]
   const records = await listDivisionRecordsCurrentByIds(args.currentDb, {
     snapshotId: args.snapshotId,
     divisionIds,
