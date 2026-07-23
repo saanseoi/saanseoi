@@ -17,7 +17,7 @@
     "check": "bun run i18n:build && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "bun run i18n:build && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "cf-typegen": "wrangler types --env-interface Env",
-    "test": "bun test",
+    "test": "bun test --path-ignore-patterns 'src/**/*.svelte.{test,spec}.{js,ts}'",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage"
   },
@@ -36,7 +36,7 @@
     "bits-ui": "^2.18.1",
     "diff": "^9.0.0",
     "github-slugger": "^2.0.0",
-    "maplibre-gl": "^5.24.0",
+    "maplibre-gl": "^6.0.0",
     "svelte-maplibre-gl": "^2.1.0",
     "zod": "^4.4.3"
   },
