@@ -36,9 +36,12 @@ export const datasetReleaseFrequencies = [
   'monthly',
   'quarterly',
   'half-yearly',
+  'five-yearly',
   'yearly',
   'ad-hoc',
   'as-needed',
+  'one-off',
+  'census',
 ] as const
 export const datasetThemes = [
   'addresses',

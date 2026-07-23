@@ -90,6 +90,41 @@ describe('api field fixtures', () => {
     )
   })
 
+  test('resolves the current Overture 1.18 release anchor', () => {
+    const fixture = resolveApiFieldFixture({
+      apiVersion: 'api-divisions-v0.1',
+      domainCode: 'overture',
+      lineageSnapshotVersions: [
+        'ss-hk-division-2025-09-24.0',
+        'ss-hk-division-2025-10-22.0',
+        'ss-hk-division-2025-11-19.0',
+        'ss-hk-division-2025-12-17.0',
+        'ss-hk-division-2026-01-21.0',
+        'ss-hk-division-2026-02-18.0',
+        'ss-hk-division-2026-03-18.0',
+        'ss-hk-division-2026-04-15.0',
+        'ss-hk-division-2026-05-20.0',
+        'ss-hk-division-2026-06-17.0',
+        'ss-hk-division-2026-07-22.0',
+      ],
+      schemaVersion: 'sv-division-v1',
+      rulesetVersion: 'rs-division-merge-v1',
+      sourceSchemas: {
+        'ds-hk-overture-division': '1.18.0',
+        'ds-hk-overture-division-area': '1.18.0',
+        'ds-hk-overture-division-boundary': '1.18.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
+        'ds-hk-hkgov-censtatd-division-area-district': '1.0',
+      },
+    })
+
+    expect(fixture?.lineageAnchors).toContainEqual(
+      expect.objectContaining({
+        snapshotVersion: 'ss-hk-division-2026-07-22.0',
+      }),
+    )
+  })
+
   test('does not infer a newer branch mapping for an unanchored backfill', () => {
     const currentSourceSchemas = {
       'ds-hk-hkgov-dpo-address': '3.2',
