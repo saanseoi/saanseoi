@@ -33,7 +33,9 @@ export const metaDatasets = sqliteTable(
       enum: datasetReleaseFrequencies,
     }).notNull(),
     theme: text('theme', { enum: datasetThemes }).notNull(),
-    type: text('type', { enum: datasetTypes }).notNull(),
+    // A dataset describes one publisher product. Its independently processable
+    // resource outputs are declared in metaDatasetResourceTypes below.
+    sourceVariant: text('sourceVariant').notNull().default('default'),
     sourceUrl: text('sourceUrl'),
     licenseId: text('licenseId').references(() => metaLicenses.id, {
       onDelete: 'restrict',
@@ -49,11 +51,21 @@ export const metaDatasets = sqliteTable(
       table.publisherId,
       table.code,
     ),
-    index('datasets_region_theme_type_idx').on(
-      table.regionCode,
-      table.theme,
-      table.type,
-    ),
+    index('datasets_region_theme_idx').on(table.regionCode, table.theme),
+  ],
+)
+
+export const metaDatasetResourceTypes = sqliteTable(
+  'datasetResourceTypes',
+  {
+    datasetId: text('datasetId')
+      .notNull()
+      .references(() => metaDatasets.id, { onDelete: 'cascade' }),
+    resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
+  },
+  table => [
+    primaryKey({ columns: [table.datasetId, table.resourceType] }),
+    index('datasetResourceTypes_resourceType_idx').on(table.resourceType),
   ],
 )
 
@@ -110,6 +122,7 @@ export const metaReleases = sqliteTable(
       .notNull()
       .references(() => metaDatasets.id, { onDelete: 'restrict' }),
     code: text('code').notNull().unique(),
+    resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     sourceVersion: text('sourceVersion').notNull(),
     sourceSchemaVersion: text('sourceSchemaVersion'),
     publicationDate: text('publicationDate'),
@@ -126,8 +139,9 @@ export const metaReleases = sqliteTable(
     ...timestamps,
   },
   table => [
-    uniqueIndex('releases_datasetId_sourceVersion_unique_idx').on(
+    uniqueIndex('releases_datasetId_resourceType_sourceVersion_unique_idx').on(
       table.datasetId,
+      table.resourceType,
       table.sourceVersion,
     ),
     uniqueIndex('releases_id_datasetId_unique_idx').on(table.id, table.datasetId),

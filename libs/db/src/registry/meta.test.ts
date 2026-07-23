@@ -62,7 +62,7 @@ describe('fixture version hashes', () => {
         dataset.type === 'divisionStatistic',
     )
 
-    expect(censtatdStats).toHaveLength(9)
+    expect(censtatdStats).toHaveLength(8)
     expect(
       censtatdStats.every(dataset => dataset.code.startsWith('ds-hk-hkgov-censtatd-')),
     ).toBe(true)

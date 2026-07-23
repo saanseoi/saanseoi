@@ -97,8 +97,9 @@ export const metaSnapshotLineages = sqliteTable(
     ...timestamps,
   },
   table => [
-    uniqueIndex('snapshotLineages_primaryDataset_variant_unique_idx').on(
+    uniqueIndex('snapshotLineages_primaryDataset_resourceType_variant_unique_idx').on(
       table.primaryDatasetId,
+      table.resourceType,
       table.variant,
     ),
     index('snapshotLineages_region_resource_variant_idx').on(
