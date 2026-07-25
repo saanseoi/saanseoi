@@ -88,10 +88,6 @@
   },
   "r2_buckets": [
     {
-      "binding": "R2_RAW",
-      "bucket_name": "ss-raw-preview"
-    },
-    {
       "binding": "R2_ASSETS",
       "bucket_name": "ss-assets-preview"
     }
@@ -187,10 +183,6 @@
       ],
       "r2_buckets": [
         {
-          "binding": "R2_RAW",
-          "bucket_name": "ss-raw-preview"
-        },
-        {
           "binding": "R2_ASSETS",
           "bucket_name": "ss-assets-preview"
         }
@@ -284,10 +276,6 @@
         }
       ],
       "r2_buckets": [
-        {
-          "binding": "R2_RAW",
-          "bucket_name": "ss-raw-prod"
-        },
         {
           "binding": "R2_ASSETS",
           "bucket_name": "ss-assets-prod"

@@ -53,9 +53,9 @@ export const managedAssetRoute = defineOpenAPIRoute<
       )
     }
 
-    const object = await c.env.R2_ASSETS.get(asset.assetKey, {
-      range: c.req.raw.headers,
-    })
+    // Workers Cache slices Range requests from this full immutable response.
+    // Returning a 206 from the Worker would make the response uncacheable.
+    const object = await c.env.R2_ASSETS.get(asset.assetKey)
     if (!object) {
       return c.json(
         {
@@ -80,24 +80,7 @@ export const managedAssetRoute = defineOpenAPIRoute<
       return new Response(null, { headers, status: 304 })
     }
 
-    const range = object.range
-    if (range) {
-      const offset =
-        'offset' in range && typeof range.offset === 'number'
-          ? range.offset
-          : 'suffix' in range
-            ? object.size - Math.min(range.suffix, object.size)
-            : 0
-      const length =
-        'length' in range && typeof range.length === 'number'
-          ? Math.min(range.length, object.size - offset)
-          : object.size - offset
-      headers.set(
-        'content-range',
-        `bytes ${offset}-${offset + length - 1}/${object.size}`,
-      )
-    }
-    return new Response(object.body, { headers, status: range ? 206 : 200 })
+    return new Response(object.body, { headers, status: 200 })
   },
 })
 

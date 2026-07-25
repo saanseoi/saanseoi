@@ -227,6 +227,8 @@
   "source_records": "筆記錄",
   "source_upstream": "上游",
   "source_release_notes": "版本說明",
+  "source_archive": "來源封存檔",
+  "source_download_archive": "下載來源",
   "source_publisher": "發布者",
   "source_contact": "聯絡",
   "source_official_site": "官方網站",

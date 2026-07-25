@@ -14,6 +14,7 @@ import {
   desc,
   eq,
   inArray,
+  metaAssets,
   sql,
 } from '@repo/db'
 import { error, redirect } from '@sveltejs/kit'
@@ -117,13 +118,50 @@ export const getSourcePageData = query(registryCodeSchema, async datasetCode => 
 })
 
 export const getSourceDatasetPageData = query(registryCodeSchema, async datasetCode => {
-  const source = (await getRegistrySource(
-    getMetaDb(),
-    datasetCode,
-  )) as RegistrySource | null
+  const db = getMetaDb()
+  const source = (await getRegistrySource(db, datasetCode)) as RegistrySource | null
   if (!source) error(404, 'Source dataset not found.')
-  return source
+
+  const archives = await db
+    .select({ assetId: metaAssets.id, manifest: metaAssets.manifest })
+    .from(metaAssets)
+    .where(
+      and(
+        eq(metaAssets.role, 'sourceArchive'),
+        sql`json_extract(${metaAssets.manifest}, '$.dataset.code') = ${source.code}`,
+      ),
+    )
+    .orderBy(desc(metaAssets.retrievedAt))
+    .all()
+  const assetIdByReleaseSlot = new Map(
+    archives.flatMap(archive => {
+      const releaseSlot = getSourceArchiveReleaseSlot(archive.manifest)
+      return releaseSlot ? [[releaseSlot, archive.assetId] as const] : []
+    }),
+  )
+
+  return {
+    ...source,
+    sourceVersions: source.sourceVersions?.map(version => {
+      const sourceArchiveAssetId = assetIdByReleaseSlot.get(version.sourceVersion)
+      return sourceArchiveAssetId ? { ...version, sourceArchiveAssetId } : version
+    }),
+  }
 })
+
+function getSourceArchiveReleaseSlot(manifest: unknown) {
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
+    return null
+  }
+  const provenance = (manifest as { provenance?: unknown }).provenance
+  if (!provenance || typeof provenance !== 'object' || Array.isArray(provenance)) {
+    return null
+  }
+  const releaseSlot = (provenance as { releaseSlot?: unknown }).releaseSlot
+  return typeof releaseSlot === 'string' && /^\d{4}-Q[1-4]$/.test(releaseSlot)
+    ? releaseSlot
+    : null
+}
 
 const DISTRICT_COVERAGE_MAP_VARIANT = 'hkgov-censtatd:2021:simplified'
 const districtMapLocaleSchema = z.enum(['en', 'zh-Hant', 'zh-Hans'])

@@ -4,6 +4,7 @@ import app from './index'
 import type { AppBindings } from './types'
 
 type MockDbOptions = {
+  asset?: { assetKey: string } | null
   apiKey?: {
     id?: string
     revokedAt?: number | null
@@ -69,6 +70,10 @@ function createMockDb(options: MockDbOptions = {}) {
               } as T
             }
 
+            if (options.asset !== undefined) {
+              return options.asset as T
+            }
+
             return null as T
           },
           async run() {
@@ -93,6 +98,10 @@ function createMockDb(options: MockDbOptions = {}) {
               throw error
             }
 
+            if (options.asset !== undefined) {
+              return { results: [options.asset] as T[], success: true }
+            }
+
             return {
               results: [] as T[],
               success: true,
@@ -105,6 +114,8 @@ function createMockDb(options: MockDbOptions = {}) {
               throw error
             }
 
+            if (options.asset) return [[options.asset.assetKey] as T]
+
             return [] as T[]
           },
         }
@@ -115,6 +126,26 @@ function createMockDb(options: MockDbOptions = {}) {
 }
 
 const testApiKey = `SS-${'a'.repeat(43)}`
+
+function createAssetBucket() {
+  const reads: string[] = []
+  return {
+    bucket: {
+      async get(key: string) {
+        reads.push(key)
+        return {
+          body: new Blob(['source-pdf']).stream(),
+          httpEtag: '"asset-etag"',
+          size: 10,
+          writeHttpMetadata(headers: Headers) {
+            headers.set('content-type', 'application/pdf')
+          },
+        }
+      },
+    } as unknown as R2Bucket,
+    reads,
+  }
+}
 
 function apiRequest(input: RequestInfo | URL, init?: RequestInit) {
   const request = new Request(input, init)
@@ -176,85 +207,6 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/source-archives serves a public immutable archive download', async () => {
-    const datasetId = 'hyd_rcd_1632211119955_31211'
-    const sha256 = 'a'.repeat(64)
-    const key = `source-archives/hk/hkgov-csdi/${datasetId}/2025-Q1/${sha256}/source.zip`
-    const archive = new Blob(['publisher archive'])
-    const { env } = createEnv({
-      R2_RAW: {
-        async get(requestedKey: string) {
-          return requestedKey === key
-            ? {
-                body: archive.stream(),
-                httpEtag: '"source-archive-etag"',
-              }
-            : null
-        },
-      } as unknown as R2Bucket,
-    })
-
-    const res = await app.fetch(
-      new Request(
-        `http://localhost/v0/source-archives/hk/hkgov-csdi/${datasetId}/2025-Q1/${sha256}/source.zip`,
-      ),
-      env,
-    )
-
-    expect(res.status).toBe(200)
-    expect(res.headers.get('content-type')).toBe('application/zip')
-    expect(res.headers.get('content-disposition')).toBe(
-      'attachment; filename="source.zip"',
-    )
-    expect(res.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')
-    expect(await res.text()).toBe('publisher archive')
-  })
-
-  test('GET /v0/source-archives honours ETag revalidation and byte ranges', async () => {
-    const datasetId = 'hyd_rcd_1632211119955_31211'
-    const sha256 = 'a'.repeat(64)
-    const key = `source-archives/hk/hkgov-csdi/${datasetId}/2025-Q1/${sha256}/source.zip`
-    const archive = new Blob(['publisher archive'])
-    const rangeBody = new Blob(['publisher'])
-    const { env } = createEnv({
-      R2_RAW: {
-        async get(requestedKey: string, options?: R2GetOptions) {
-          if (requestedKey !== key) return null
-
-          const requestedRange = options?.range
-          const range =
-            requestedRange instanceof Headers &&
-            requestedRange.get('range') === 'bytes=0-8'
-              ? { length: 9, offset: 0 }
-              : undefined
-          return {
-            body: range ? rangeBody.stream() : archive.stream(),
-            httpEtag: '"source-archive-etag"',
-            range,
-            size: archive.size,
-          }
-        },
-      } as unknown as R2Bucket,
-    })
-    const url = `http://localhost/v0/source-archives/hk/hkgov-csdi/${datasetId}/2025-Q1/${sha256}/source.zip`
-
-    const conditional = await app.fetch(
-      new Request(url, { headers: { 'if-none-match': '"source-archive-etag"' } }),
-      env,
-    )
-    expect(conditional.status).toBe(304)
-    expect(conditional.headers.get('etag')).toBe('"source-archive-etag"')
-
-    const ranged = await app.fetch(
-      new Request(url, { headers: { range: 'bytes=0-8' } }),
-      env,
-    )
-    expect(ranged.status).toBe(206)
-    expect(ranged.headers.get('accept-ranges')).toBe('bytes')
-    expect(ranged.headers.get('content-range')).toBe(`bytes 0-8/${archive.size}`)
-    expect(await ranged.text()).toBe('publisher')
-  })
-
   test('GET /v0/assets is public but resolves only registered assets', async () => {
     const { env } = createEnv()
     const res = await app.fetch(
@@ -268,6 +220,27 @@ describe('atlas-api', () => {
       error: 'asset_not_found',
       message: 'Managed asset not found.',
     })
+  })
+
+  test('GET /v0/assets streams registered immutable assets with cacheable metadata', async () => {
+    const { bucket, reads } = createAssetBucket()
+    const assetKey =
+      'by-source/hk/hkgov-landsd/street-naming/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-notice.pdf'
+    const { env } = createEnv({ R2_ASSETS: bucket }, { asset: { assetKey } })
+    const res = await app.fetch(
+      new Request('http://localhost/v0/assets/00000000-0000-4000-8000-000000000001', {
+        headers: { Range: 'bytes=0-2' },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('source-pdf')
+    expect(reads).toEqual([assetKey])
+    expect(res.headers.get('accept-ranges')).toBe('bytes')
+    expect(res.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')
+    expect(res.headers.get('content-type')).toBe('application/pdf')
+    expect(res.headers.get('etag')).toBe('"asset-etag"')
   })
 
   test('GET /v0/meta/d1-placement-probe returns timings for all D1 bindings', async () => {
