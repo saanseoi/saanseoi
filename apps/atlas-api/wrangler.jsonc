@@ -86,6 +86,12 @@
   "placement": {
     "region": "azure:eastasia"
   },
+  "r2_buckets": [
+    {
+      "binding": "R2_RAW",
+      "bucket_name": "ss-raw-preview"
+    }
+  ],
   "minify": true,
   "observability": {
     "logs": {
@@ -175,6 +181,12 @@
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
         }
       ],
+      "r2_buckets": [
+        {
+          "binding": "R2_RAW",
+          "bucket_name": "ss-raw-preview"
+        }
+      ],
       "routes": [
         {
           "pattern": "preview.api.saanseoi.hk",
@@ -261,6 +273,12 @@
           "database_id": "dca6df89-880b-42f8-92a8-08f4919a582a",
           "migrations_dir": "../../libs/db/migrations/source",
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_RAW",
+          "bucket_name": "ss-raw-prod"
         }
       ],
       "routes": [

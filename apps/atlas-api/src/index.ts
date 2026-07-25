@@ -15,6 +15,7 @@ import { divisionRoutes } from './routes/v0/divisions'
 import { addressRoutes } from './routes/v0/addresses'
 import { placeRoutes } from './routes/v0/places'
 import { registryRoutes } from './routes/v0/registry'
+import { sourceArchiveRoutes } from './routes/v0/sourceArchives'
 import type { AppEnv } from './types'
 
 const app = new OpenAPIHono<AppEnv>({
@@ -88,7 +89,11 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
 }
 
 function isPublicMetadataPath(path: string) {
-  return path.startsWith('/v0/meta/') || path.startsWith('/v0/api/')
+  return (
+    path.startsWith('/v0/meta/') ||
+    path.startsWith('/v0/api/') ||
+    path.startsWith('/v0/source-archives/')
+  )
 }
 
 app.onError((error, c) => {
@@ -131,6 +136,7 @@ app.openapiRoutes([
   ...divisionRoutes,
   ...addressRoutes,
   ...placeRoutes,
+  ...sourceArchiveRoutes,
 ] as const)
 
 app.get('/openapi', c =>

@@ -176,6 +176,40 @@ describe('atlas-api', () => {
     })
   })
 
+  test('GET /v0/source-archives serves a public immutable archive download', async () => {
+    const datasetId = 'hyd_rcd_1632211119955_31211'
+    const sha256 = 'a'.repeat(64)
+    const key = `source-archives/hk/hkgov-csdi/${datasetId}/2025-Q1/${sha256}/source.zip`
+    const archive = new Blob(['publisher archive'])
+    const { env } = createEnv({
+      R2_RAW: {
+        async get(requestedKey: string) {
+          return requestedKey === key
+            ? {
+                body: archive.stream(),
+                httpEtag: '"source-archive-etag"',
+              }
+            : null
+        },
+      } as unknown as R2Bucket,
+    })
+
+    const res = await app.fetch(
+      new Request(
+        `http://localhost/v0/source-archives/hk/hkgov-csdi/${datasetId}/2025-Q1/${sha256}/source.zip`,
+      ),
+      env,
+    )
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toBe('application/zip')
+    expect(res.headers.get('content-disposition')).toBe(
+      'attachment; filename="source.zip"',
+    )
+    expect(res.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')
+    expect(await res.text()).toBe('publisher archive')
+  })
+
   test('GET /v0/meta/d1-placement-probe returns timings for all D1 bindings', async () => {
     const { env } = createEnv()
     const res = await app.fetch(
