@@ -4,6 +4,7 @@ import {
   buildDatasetCode,
   buildDatasetReleaseCode,
   datasetVariantForSource,
+  publisherCodeForSource,
   resourceTypeCodeSlug,
 } from './codes'
 
@@ -25,7 +26,7 @@ describe('registry code construction', () => {
       'ds-hk-hkgov-pland-division-pu',
     )
     expect(buildDatasetCode('hk', 'hkgov-pland-new-town', 'divisionArea')).toBe(
-      'ds-hk-hkgov-pland-division-area-new-town',
+      'ds-hk-hkgov-pland-division-new-town',
     )
   })
 
@@ -39,6 +40,11 @@ describe('registry code construction', () => {
     expect(buildDatasetReleaseCode('hk', 'hkgov-pland-pu', '2006', 'division')).toBe(
       'dr-hk-hkgov-pland-division-pu-2006',
     )
+  })
+
+  test('maps both Planning Department variants to their publisher code', () => {
+    expect(publisherCodeForSource('hkgov-pland-pu')).toBe('hkgov-pland')
+    expect(publisherCodeForSource('hkgov-pland-new-town')).toBe('hkgov-pland')
   })
 
   test('derives variants from structured source metadata', () => {
