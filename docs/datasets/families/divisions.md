@@ -9,9 +9,10 @@ district-area sources in every Overture release without selecting future data.
 
 Registry codes use lowercase kebab-case even though programmatic resource-type enums use
 camelCase. For example, `divisionArea` is encoded as `division-area` and
-`divisionBoundary` as `division-boundary`. Dataset and release metadata supply
-publisher, resource type, product, and variant directly; publication code must not infer
-them by parsing an identifier.
+`divisionBoundary` as `division-boundary`. A dataset describes one publisher product and
+declares one or more available resource types; each release records the specific
+resource type it materialises. Dataset metadata supplies publisher, product, and source
+variant directly; publication code must not infer them by parsing an identifier.
 
 The reusable resource contract and variant rules are documented in
 [`divisionGeometry`](../resourceType/divisionGeometry.md) and
@@ -22,13 +23,16 @@ Home Affairs Department profiles are kept in the provider source folders:
 - [`Home Affairs Department area`](../sources/hkgov-had/divisionArea.md)
 - [`Overture historical reconstructions`](../sources/overture/historicalReconstruction.md)
 - [`Planning Department TPU and subunit areas`](../sources/hkgov-pland/divisionArea.md)
+- [`LandsD place names`](../sources/hkgov-landsd/placeName.md)
 
 Planning Department Planning Units and New Towns are independent API domains, not
-optional members of an Overture release. Each domain release contains only snapshots
-that can be returned together. Planning-domain canonical rows therefore never need an
-Overture cohort in order to be published, and a 2006 planning cohort can be backfilled
-even when no 2006 Overture divisions exist. New Town identities are cohort-scoped;
-Planning Unit and Overture lineages use persistent identity.
+optional members of an Overture release. Each Planning Department source dataset exposes
+both `division` and `divisionArea` from the same upstream layer and cohort. Each domain
+release contains only snapshots that can be returned together. Planning-domain canonical
+rows therefore never need an Overture cohort in order to be published, and a 2006
+planning cohort can be backfilled even when no 2006 Overture divisions exist. New Town
+identities are cohort-scoped; Planning Unit and Overture lineages use persistent
+identity.
 
 Published domain releases are immutable. Adding another eligible secondary snapshot to
 an already published cohort creates the next trailing composition revision (`...-0` to
@@ -52,6 +56,13 @@ Functional domains are explicit (`administrative`, `planning`, `electoral`, and
 carry domain context so planning or electoral relationships cannot enter the default
 administrative traversal accidentally. Cohort keys identify the period selected for a
 release; source publication and validity metadata remain provenance.
+
+The LandsD Place Name database is registered as the separate `hkgov-landsd` geographic
+domain because its settlement points are an alternative primary division collection, not
+an Overture geometry companion. Only `PLACE_CLASS=Settlement` records belong in that
+division domain. Its Hydrographic and Topographic records remain source data for a
+future government place-name projection; they should not be forced into the divisions
+taxonomy.
 
 All division geometry uploads calculate their canonical WGS84 bbox directly from the
 normalised geometry. This applies to Overture, HAD, C&SD, and Planning Department source

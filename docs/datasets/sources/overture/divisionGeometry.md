@@ -20,6 +20,13 @@ The source-neutral contract is in
 [`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md). This page records
 the Hong Kong release profile and Overture-specific decisions.
 
+## Automated refresh
+
+When a new STAC release is found, `saanseoi update` invokes the sibling Overturist CLI
+with the Hong Kong division id `b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d`, the release
+version, and the `divisions` theme. The resulting Hong Kong files are placed under
+`data/overture/<release>/divisions/China/Hong Kong` for the normal ingestion workflow.
+
 ## 2026-06-17.0 Hong Kong profile
 
 The inspected artefacts were:

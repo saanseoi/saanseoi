@@ -21,6 +21,12 @@ Related docs:
 - The CLI reads all 2D district GeoJSON files in one ALS release. It skips the separate
   `als_addresses_3d_*` file.
 
+The automatic updater checks the
+[CSDI ALS catalogue record](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603).
+It uses the rendered metadata endpoint's `revision` date as the source version and
+downloads the named `ALS_GeoJSON_325.zip` resource. DATA.GOV.HK remains the service
+reference and historical archive, but is no longer the only release-detection path.
+
 ALS directory names carry an upstream delivery time (`YYYYMMDD-HHMM`), but address
 release versions use `YYYY-MM-DD.N`: the first release for a date is `.0`, and further
 same-day releases increment `N` in delivery-time order. The delivery time is not itself

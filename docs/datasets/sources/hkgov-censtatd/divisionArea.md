@@ -7,18 +7,29 @@ polygons alongside census/by-census subdivided-unit statistics. These are statis
 geographies: each geometry release is retained for its census cohort and must not be
 represented as an evergreen administrative boundary.
 
-| Cohort | CSDI dataset                       | WFS layer     | Direct native GML 3.2                                                                                                                                                                                 |
-| ------ | ---------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2016   | `censtatd_rcd_1635932488538_10765` | `DC_16BC_SDU` | `https://portal.csdi.gov.hk/server/services/common/censtatd_rcd_1635932488538_10765/MapServer/WFSServer?service=WFS&version=2.0.0&request=GetFeature&typeNames=csdi%3ADC_16BC_SDU&outputFormat=GML32` |
-| 2021   | `censtatd_rcd_1635933617052_68946` | `DC_21C_SDU`  | `https://portal.csdi.gov.hk/server/services/common/censtatd_rcd_1635933617052_68946/MapServer/WFSServer?service=WFS&version=2.0.0&request=GetFeature&typeNames=csdi%3ADC_21C_SDU&outputFormat=GML32`  |
+| Cohort | CSDI dataset                       | Native layer  |
+| ------ | ---------------------------------- | ------------- |
+| 2016   | `censtatd_rcd_1635932488538_10765` | `DC_16BC_SDU` |
+| 2021   | `censtatd_rcd_1635933617052_68946` | `DC_21C_SDU`  |
 
-The source service is published in EPSG:2326. The exact-source variant retains that
-native GML geometry and its complete feature member. The adapter projects it into the
-canonical EPSG:4326 geometry column for current/history use; WFS supplies EPSG:2326 in
-northing/easting axis order, which is normalised to easting/northing before projection.
-It does not simplify, clip or otherwise alter the exact-source geometry. The uploader
-calculates the canonical WGS84 bbox from that geometry rather than accepting an upstream
-bbox value, so source and canonical rows carry the same geometry-derived extent.
+The updater treats the C&SD dataset as a census-year release: the 2021 cohort is
+`2021.0`, with `.1`, `.2`, and so on reserved for later corrections to that cohort. The
+fixture maps `versionPolicy.releaseField` to the configured release metadata's
+`sourceVersion`; the CSDI catalogue `modified` date is a publisher revision signal, not
+the census-year release version. The updater mirrors every Archived Dataset slot's
+native package and manifest; it does not use WFS or CSDI-converted GeoJSON as input.
+
+The logical dataset is marked five-yearly in SaanSeoi, while CSDI's per-record
+`updateFrequency` is recorded as one-off. Each release stores its own CSDI catalogue URL
+and is checked independently; the fixture's monthly update policy limits routine network
+checks without disabling correction detection.
+
+The archive manifest records the exact native format and CRS for each slot. Source
+processing retains the complete publisher feature and projects only its accepted native
+geometry into the canonical EPSG:4326 column. It does not simplify, clip or otherwise
+alter the exact-source geometry. The uploader calculates the canonical WGS84 bbox from
+that geometry rather than accepting an upstream bbox value, so source and canonical rows
+carry the same geometry-derived extent.
 
 ## Source contract
 

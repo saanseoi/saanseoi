@@ -18,3 +18,7 @@ unmatched geography cohort for every observation.
 
 The current candidate inventory is maintained in
 [`C&SD division statistics`](../sources/hkgov-censtatd/divisionStatistics.md).
+
+The C&SD subdivided-units district source is one logical dataset with distinct 2016
+By-census and 2021 Census releases. Each release retains its own CSDI source and
+statistical-geography cohort.
