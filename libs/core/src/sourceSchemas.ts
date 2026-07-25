@@ -11,6 +11,7 @@ const SOURCE_SCHEMA_RELEASES = [
   { source: 'overture', schema: '1.16.0', version: '2026-04-15.0' },
   { source: 'overture', schema: '1.17.0', version: '2026-05-20.0' },
   { source: 'overture', schema: '1.17.0', version: '2026-06-17.0' },
+  { source: 'overture', schema: '1.18.0', version: '2026-07-22.0' },
   { source: 'hkgov-had', schema: '1.2', version: '2022' },
   { source: 'hkgov-censtatd', schema: '1.0', version: '2016' },
   { source: 'hkgov-censtatd', schema: '1.0', version: '2021' },
@@ -31,6 +32,9 @@ const OVERTURE_SOURCE_SCHEMA_RELEASES = SOURCE_SCHEMA_RELEASES.filter(
 
 const SOURCE_SCHEMA_DEFAULTS: Record<string, string> = {
   'hkgov-dpo': '3.2',
+  // GEO_PLACE_NAME has an observed stable point-gazetteer shape. New release
+  // dates are publisher revisions, not schema revisions.
+  'hkgov-landsd': '1.0',
 }
 
 type ResolveSourceSchemaVersionArgs = {
