@@ -8,6 +8,12 @@ export * as metaSchema from './schema/meta'
 export * as currentSchema from './schema/current'
 export * as historySchema from './schema/history'
 export * as sourceSchema from './schema/source'
-export { toIsoTimestamp } from './schema/shared'
+export {
+  streetEvidenceAssetRoles,
+  toIsoTimestamp,
+  type EvidenceAsset,
+  type StreetEvidenceAsset,
+  type StreetEvidenceAssetRole,
+} from './schema/shared'
 export * from './schema/meta'
 export { and, asc, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm'

@@ -1,7 +1,43 @@
 import { sql } from 'drizzle-orm'
 import { integer, real, text } from 'drizzle-orm/sqlite-core'
 
-export const jsonText = (name: string) => text(name, { mode: 'json' })
+export const streetEvidenceAssetRoles = [
+  'gazettePlan',
+  'gazettePlanPreview',
+  'governmentNotice',
+  'sourceArchive',
+  'sourcePage',
+  'sourcePdf',
+] as const
+
+export type StreetEvidenceAssetRole = (typeof streetEvidenceAssetRoles)[number]
+
+/** A preserved source artifact and the original publisher link it represents. */
+export type EvidenceAsset<TRole extends string = string> = {
+  assetId: string
+  assetUrl: string
+  byteLength: number
+  contentHash: string
+  label?: string | null
+  manifest: {
+    assetId: string
+    assetUrl: string
+    contentHash: string
+    objectKey: string
+  }
+  mediaType: string
+  objectKey: string
+  originalUrl: string
+  retrievedAt: string
+  role: TRole
+  sourcePageLocale?: 'en' | 'zh-Hant'
+  sourcePageUrl?: string
+}
+
+export type StreetEvidenceAsset = EvidenceAsset<StreetEvidenceAssetRole>
+
+export const jsonText = <T = unknown>(name: string) =>
+  text(name, { mode: 'json' }).$type<T>()
 
 export const isoTimestamp = (name: string) => text(name)
 
@@ -238,9 +274,16 @@ export const canonicalPlaceI18n = {
 
 export const canonicalStreet = {
   id: text('id').notNull(),
-  districtIds: jsonText('districtIds'),
+  /**
+   * Monotonic materialised-state version for one persistent logical street.
+   * This is deliberately separate from `versionHash`, which identifies the
+   * immutable history row stored by the snapshot machinery.
+   */
+  version: integer('version').notNull(),
+  status: text('status', { enum: ['active', 'deleted'] }).notNull(),
+  deletedAt: text('deletedAt'),
+  districtIds: jsonText<string[]>('districtIds'),
   landsdPublicationDate: text('landsdPublicationDate'),
-  governmentNoticeType: text('governmentNoticeType'),
   yearBuilt: jsonText('yearBuilt'),
   references: jsonText('references'),
   sourceKeys: jsonText('sourceKeys'),
@@ -255,8 +298,7 @@ export const canonicalStreetI18n = {
   directionalPrefix: text('directionalPrefix'),
   directionalSuffix: text('directionalSuffix'),
   normalised: text('normalised'),
-  governmentNoticeUrl: text('governmentNoticeUrl'),
-  gazettePlanUrls: jsonText('gazettePlanUrls'),
-  assetLinks: jsonText('assetLinks'),
+  description: text('description'),
+  assetLinks: jsonText<StreetEvidenceAsset[]>('assetLinks'),
   translationProvenance: jsonText('translationProvenance'),
 }

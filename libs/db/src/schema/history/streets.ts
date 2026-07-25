@@ -1,4 +1,5 @@
-import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
+import { sql } from 'drizzle-orm'
+import { check, index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 import { canonicalStreet, canonicalStreetI18n } from '../shared'
 import { historyI18nVersioning, historyVersioning } from './shared'
@@ -13,6 +14,8 @@ export const streets = sqliteTable(
     primaryKey({
       columns: [table.id, table.versionHash],
     }),
+    check('history_streets_version_positive', sql`${table.version} > 0`),
+    index('streets_id_version_idx').on(table.id, table.version),
     index('streets_current_lookup_idx').on(table.id, table.isCurrent),
     index('streets_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('streets_snapshotId_idx').on(table.snapshotId),

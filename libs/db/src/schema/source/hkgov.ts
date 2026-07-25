@@ -7,8 +7,10 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import { jsonText } from '../shared'
+import { jsonText, type StreetEvidenceAsset } from '../shared'
 import { sourceVersionIndexes, sourceVersioning } from './shared'
+
+export const landsdStreetCurationStatuses = ['none', 'required', 'applied'] as const
 
 export const sourceHkgovAlsAddresses2d = sqliteTable(
   'hkgovAlsAddresses2d',
@@ -92,11 +94,25 @@ export const sourceHkgovLandsdStreets = sqliteTable(
     }).notNull(),
     landsdPublicationDate: text('landsdPublicationDate'),
     governmentNoticeType: text('governmentNoticeType'),
+    /** Records whether a deliberately curated source patch governed application. */
+    curationStatus: text('curationStatus', {
+      enum: landsdStreetCurationStatuses,
+    })
+      .notNull()
+      .default('none'),
+    curationPatchId: text('curationPatchId'),
+    /** The publisher identifier derived from the linked Government Notice. */
+    noticeIdentity: text('noticeIdentity'),
+    parsedEffectiveDate: text('parsedEffectiveDate'),
+    previousGovernmentNoticeReferences: jsonText<string[]>(
+      'previousGovernmentNoticeReferences',
+    ),
+    rawExtractedText: jsonText('rawExtractedText'),
+    parserDiagnostics: jsonText('parserDiagnostics'),
     district: text('district'),
-    districtCodes: jsonText('districtCodes'),
-    districtIds: jsonText('districtIds'),
-    sourceAssetLinks: jsonText('sourceAssetLinks'),
-    sourcePageSnapshots: jsonText('sourcePageSnapshots'),
+    districtCodes: jsonText<string[]>('districtCodes'),
+    sourceAssetLinks: jsonText<StreetEvidenceAsset[]>('sourceAssetLinks'),
+    sourcePageSnapshots: jsonText<StreetEvidenceAsset[]>('sourcePageSnapshots'),
     translationAudit: jsonText('translationAudit'),
     rawProperties: jsonText('rawProperties'),
     ...sourceVersioning,
@@ -115,11 +131,9 @@ export const sourceHkgovLandsdStreetI18n = sqliteTable(
     sourceRecordId: text('sourceRecordId').notNull(),
     locale: text('locale').notNull(),
     name: text('name').notNull(),
+    description: text('description'),
     district: text('district'),
-    governmentNoticeLabel: text('governmentNoticeLabel'),
-    governmentNoticeUrl: text('governmentNoticeUrl'),
-    gazettePlanUrls: jsonText('gazettePlanUrls'),
-    assetLinks: jsonText('assetLinks'),
+    assetLinks: jsonText<StreetEvidenceAsset[]>('assetLinks'),
     translationProvenance: jsonText('translationProvenance'),
     ...sourceVersioning,
   },
