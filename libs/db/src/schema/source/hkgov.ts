@@ -77,3 +77,58 @@ export const sourceHkgovAlsAddress2dI18n = sqliteTable(
     index('hkgovAlsAddress2dI18n_locale_idx').on(table.locale),
   ],
 )
+
+/**
+ * Immutable LandsD street-register evidence. A Gazette notice is a source
+ * record in its own right, including corrigenda, deletions, and changes; it is
+ * not inferred from the mutable street name.
+ */
+export const sourceHkgovLandsdStreets = sqliteTable(
+  'hkgovLandsdStreets',
+  {
+    sourceRecordId: text('sourceRecordId').notNull(),
+    isGazetteNoticeListed: integer('isGazetteNoticeListed', {
+      mode: 'boolean',
+    }).notNull(),
+    landsdPublicationDate: text('landsdPublicationDate'),
+    governmentNoticeType: text('governmentNoticeType'),
+    district: text('district'),
+    districtCodes: jsonText('districtCodes'),
+    districtIds: jsonText('districtIds'),
+    sourceAssetLinks: jsonText('sourceAssetLinks'),
+    sourcePageSnapshots: jsonText('sourcePageSnapshots'),
+    translationAudit: jsonText('translationAudit'),
+    rawProperties: jsonText('rawProperties'),
+    ...sourceVersioning,
+  },
+  table => [
+    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    ...sourceVersionIndexes(table, 'hkgovLandsdStreets'),
+    index('hkgovLandsdStreets_publicationDate_idx').on(table.landsdPublicationDate),
+    index('hkgovLandsdStreets_noticeType_idx').on(table.governmentNoticeType),
+  ],
+)
+
+export const sourceHkgovLandsdStreetI18n = sqliteTable(
+  'hkgovLandsdStreetI18n',
+  {
+    sourceRecordId: text('sourceRecordId').notNull(),
+    locale: text('locale').notNull(),
+    name: text('name').notNull(),
+    district: text('district'),
+    governmentNoticeLabel: text('governmentNoticeLabel'),
+    governmentNoticeUrl: text('governmentNoticeUrl'),
+    gazettePlanUrls: jsonText('gazettePlanUrls'),
+    assetLinks: jsonText('assetLinks'),
+    translationProvenance: jsonText('translationProvenance'),
+    ...sourceVersioning,
+  },
+  table => [
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.locale],
+    }),
+    ...sourceVersionIndexes(table, 'hkgovLandsdStreetI18n'),
+    index('hkgovLandsdStreetI18n_locale_idx').on(table.locale),
+    index('hkgovLandsdStreetI18n_name_idx').on(table.locale, table.name),
+  ],
+)
