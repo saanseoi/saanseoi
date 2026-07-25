@@ -6,7 +6,11 @@ import {
   metaReleases,
   toIsoTimestamp,
 } from '@repo/db'
-import { publisherCodeForSource, resolveSourceSchemaVersion } from '@repo/core'
+import {
+  publisherCodeForSource,
+  resolveSourceSchemaVersion,
+  type ResourceType,
+} from '@repo/core'
 import type { MetaDatabase } from '@repo/db'
 
 type StagedReleaseSyncPlan = {
@@ -15,7 +19,7 @@ type StagedReleaseSyncPlan = {
   source: string
   sourceVersion: string
   theme: string
-  type: string
+  type: ResourceType
 }
 
 export async function syncStagedReleaseIntoLocalMetaCache(
@@ -63,6 +67,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
       id: release.releaseId,
       datasetId: dataset.id,
       code: release.releaseCode,
+      resourceType: plan.type,
       sourceVersion: plan.sourceVersion,
       sourceSchemaVersion,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,

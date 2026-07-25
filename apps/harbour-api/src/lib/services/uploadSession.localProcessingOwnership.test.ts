@@ -48,7 +48,7 @@ describe('local upload registration', () => {
     const result = await registerFixtureUpload(db, '2026-05-20.0', '2026-05')
 
     expect(result).toMatchObject({
-      localInputKey: 'hk/hkgov-dpo/2026-05-20.0/address.parquet',
+      rawObjectKey: 'hk/hkgov-dpo/2026-05-20.0/address.parquet',
       releaseCode: 'dr-hk-hkgov-dpo-address-2026-05-20.0',
       status: 'staged',
     })

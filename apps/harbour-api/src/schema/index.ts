@@ -249,9 +249,9 @@ export const LocalUploadRegistrationResponseSchema = z
   .object({
     datasetId: DatasetIdSchema,
     datasetCode: DatasetCodeSchema,
-    localInputKey: z.string().openapi({
+    rawObjectKey: RawObjectKeySchema.openapi({
       description:
-        'Ephemeral local-pipeline key used while the CLI processes the prepared Parquet. It is never uploaded to R2 or retained in release metadata.',
+        'Key of the prepared raw source object, used by the CLI during processing and retained in release metadata.',
     }),
     releaseCode: ReleaseCodeSchema,
     releaseId: ReleaseIdSchema,
