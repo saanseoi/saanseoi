@@ -1,8 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  pairLandsdStreetNoticePages,
   parseLandsdStreetNoticePage,
   parseLandsdStreetPdfText,
+  parseLandsdStreetSourcePage,
 } from './landsdStreet.ts'
 
 import {
@@ -436,6 +438,66 @@ describe('dataset update registry', () => {
 })
 
 describe('LandsD street source', () => {
+  test('does not replay notices before the target release when the local cursor is partial', async () => {
+    const englishPage = `
+      <li>Year 2026 (Last modified: 3.7.2026)</li>
+      <table>
+        <tr data-year="2016"><td>22 January 2016</td><td>First Street</td><td>Central</td><td>Declaration of street name</td><td><a href="/doc/en/2016-01.pdf">G.N.1001</a></td><td>-</td></tr>
+        <tr data-year="2026"><td>17 June 2026</td><td>Current Street</td><td>Central</td><td>Declaration of street name</td><td><a href="/doc/en/2026-06.pdf">G.N.2001</a></td><td>-</td></tr>
+        <tr data-year="2026"><td>3 July 2026</td><td>Next Street</td><td>Central</td><td>Declaration of street name</td><td><a href="/doc/en/2026-07.pdf">G.N.2002</a></td><td>-</td></tr>
+      </table>
+    `
+    const traditionalChinesePage = `
+      <li>2026 年（最後修訂日期: 3.7.2026）<div class="hidden_revision_date">3.7.2026</div></li>
+      <table>
+        <tr data-year="2016"><td>2016年1月22日</td><td>第一街</td><td>中西區</td><td>宣布街道名稱</td><td><a href="/doc/tc/2016-01.pdf">第1001號</a></td><td>-</td></tr>
+        <tr data-year="2026"><td>2026年6月17日</td><td>現有街</td><td>中西區</td><td>宣布街道名稱</td><td><a href="/doc/tc/2026-06.pdf">第2001號</a></td><td>-</td></tr>
+        <tr data-year="2026"><td>2026年7月3日</td><td>下一街</td><td>中西區</td><td>宣布街道名稱</td><td><a href="/doc/tc/2026-07.pdf">第2002號</a></td><td>-</td></tr>
+      </table>
+    `
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = Object.assign(
+      async (input: Parameters<typeof fetch>[0]) =>
+        new Response(
+          String(input).includes('/tc/') ? traditionalChinesePage : englishPage,
+        ),
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const julyNotice = pairLandsdStreetNoticePages({
+        en: parseLandsdStreetSourcePage(englishPage, 'en'),
+        zhHant: parseLandsdStreetSourcePage(traditionalChinesePage, 'zh-Hant'),
+      }).find(notice => notice.publicationDate === '2026-07-03')
+      if (!julyNotice) throw new Error('Expected the July LandsD notice.')
+
+      const updates = await lookupDatasetUpdates(
+        {
+          code: 'ds-hk-hkgov-landsd-street',
+          publisherCode: 'hkgov-landsd',
+          regionCode: 'hk',
+          sourceUrl:
+            'https://www.landsd.gov.hk/en/survey-mapping/mapping/street-geographical-place-naming/street-naming.html',
+          theme: 'streets',
+          resourceTypes: ['street'],
+          versionPolicy: { scheme: 'release-date', correction: true },
+        },
+        { sourceCursor: [julyNotice.id] },
+        new Map([['ds-hk-hkgov-landsd-street', '2026-06-17.0']]),
+        true,
+      )
+
+      expect(updates).toEqual([
+        expect.objectContaining({
+          status: 'new',
+          version: '2026-07-03.0',
+        }),
+      ])
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
   test('parses the notice table and resolves relative source links', () => {
     const page = parseLandsdStreetNoticePage(`
       <li>Year 2026 (Last modified: 3.7.2026)</li>

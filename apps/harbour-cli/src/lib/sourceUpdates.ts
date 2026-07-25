@@ -94,6 +94,8 @@ export type DatasetUpdate = {
   dataset: DatasetFixture
   status: 'new' | 'current' | 'review' | 'manual' | 'skipped' | 'error'
   sourceKey?: string
+  /** The target release that preceded this update when it was offered. */
+  targetVersion?: string | null
   version?: string
   versionKey?: string
   sourceUrl?: string
@@ -436,7 +438,11 @@ function isCsdiDataset(dataset: DatasetFixture) {
   )
 }
 
-async function lookupLandsdStreet({ dataset, previous }: LookupContext) {
+async function lookupLandsdStreet({
+  dataset,
+  previous,
+  targetVersions,
+}: LookupContext) {
   const sourceUrl = dataset.sourceUrl ?? LANDSD_STREET_NAMING_URL
   const chineseSourceUrl = sourceUrl.replace('/en/', '/tc/')
   const [englishPage, traditionalChinesePage] = await Promise.all([
@@ -449,11 +455,13 @@ async function lookupLandsdStreet({ dataset, previous }: LookupContext) {
   const baseline = previous?.versionKey
     ? readStreetSourceDate(previous.versionKey)
     : dataset.lastUpdated
+  const targetVersion = targetVersions?.get(dataset.code)
+  const checkingTarget = targetVersion !== undefined
   const knownNoticeIds = new Set(previous?.sourceCursor ?? [])
-  const newNotices = notices.filter(notice =>
-    knownNoticeIds.size > 0
-      ? !knownNoticeIds.has(notice.id)
-      : !baseline || notice.publicationDate > baseline,
+  const newNotices = notices.filter(
+    notice =>
+      (!baseline || notice.publicationDate > baseline) &&
+      (checkingTarget || !knownNoticeIds.has(notice.id)),
   )
   const checkedAt = new Date().toISOString()
   const sourceCursor = notices.map(notice => notice.id)

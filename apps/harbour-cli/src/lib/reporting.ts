@@ -241,6 +241,7 @@ export async function fetchProcessingActionReport(
 export async function fetchReleaseReport(
   target: UploadTarget,
   options?: {
+    datasetCode?: string
     limit?: number
     releaseCode?: string
     releaseId?: string
@@ -250,6 +251,10 @@ export async function fetchReleaseReport(
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(target)
   const url = new URL(`${normaliseBaseUrl(apiBaseUrl)}/v1/reports/releases`)
+
+  if (options?.datasetCode) {
+    url.searchParams.set('datasetCode', options.datasetCode)
+  }
 
   if (options?.limit != null) {
     url.searchParams.set('limit', String(parseLimit(options.limit)))

@@ -258,9 +258,9 @@ ${mutedBar}  `)
             typeof uploadResult?.datasetCode === 'string'
               ? uploadResult.datasetCode
               : previewResult.plan.datasetCode,
-          localInputKey:
-            typeof uploadResult?.localInputKey === 'string'
-              ? uploadResult.localInputKey
+          rawObjectKey:
+            typeof uploadResult?.rawObjectKey === 'string'
+              ? uploadResult.rawObjectKey
               : '-',
           releaseId:
             typeof uploadResult?.releaseId === 'string' ? uploadResult.releaseId : '-',

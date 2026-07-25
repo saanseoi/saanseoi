@@ -17,7 +17,7 @@ type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 type UploadResponse = Record<string, unknown> & {
   datasetCode?: string
   datasetId?: string
-  localInputKey?: string
+  rawObjectKey?: string
   releaseCode?: string
   releaseId?: string
 }
@@ -145,7 +145,7 @@ async function registerUploadLocally(
     return {
       datasetCode: registered.plan.datasetCode,
       datasetId: registered.datasetId,
-      localInputKey: createRawObjectKey(registered.plan),
+      rawObjectKey: createRawObjectKey(registered.plan),
       releaseCode: registered.plan.releaseCode,
       releaseId: registered.releaseId,
       rowCount: registered.plan.rowCount,
@@ -197,7 +197,7 @@ async function requestRemoteRegistration(
 }
 
 function createLocalSchemaFingerprintResolver(db: HarbourReadableDb) {
-  return async (_localInputKey: string | null, releaseCode?: string) => {
+  return async (_rawObjectKey: string | null, releaseCode?: string) => {
     if (!releaseCode) return null
 
     const row = await db

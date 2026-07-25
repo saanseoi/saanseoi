@@ -61,15 +61,18 @@ export async function runUpdateCommand(
   log.message('', { spacing: 0 })
 
   const state = await readUpdateState()
-  const shouldDownload = args.options.download === true
+  const forceDownload = args.options['force-download'] === true
+  const shouldDownload = args.options.download === true || forceDownload
   const skipUpload = args.options['no-upload'] === true
   const skipPrompts = args.options.yes === true
-  const forceCheck = args.options.force === true || args.options['check-now'] === true
+  const forceCheck =
+    args.options.force === true || args.options['check-now'] === true || forceDownload
   const errors: string[] = []
   let reportedTargetLookupFailure = false
 
   for (const dataset of selectedDatasets) {
     const row = new UpdateRow(dataset)
+    const renderedUpdates = new Set<DatasetUpdate>()
     row.start('checking current')
 
     if (!shouldCheckDataset(dataset, state[dataset.code], forceCheck)) {
@@ -99,6 +102,9 @@ export async function runUpdateCommand(
     )
 
     for (const [updateIndex, update] of updates.entries()) {
+      const sourceKey = update.sourceKey ?? dataset.code
+      const targetVersion = targetVersions.get(sourceKey)
+      update.targetVersion = targetVersion
       const deferStateUntilProcessed = Boolean(
         update.archive || update.deferStateUntilProcessed,
       )
@@ -109,14 +115,17 @@ export async function runUpdateCommand(
           printUsage,
           row,
           shouldDownload,
+          forceDownload,
           skipPrompts,
           skipUpload,
           target,
-          targetVersion:
-            targetVersions.get(update.sourceKey ?? dataset.code) ?? undefined,
+          targetVersion: targetVersion ?? undefined,
           updateIndex,
           updateTotal: updates.length,
         })
+        if (result === 'ingested' && update.version) {
+          targetVersions.set(sourceKey, update.version)
+        }
         if (
           deferStateUntilProcessed &&
           (result === 'ingested' ||
@@ -124,6 +133,9 @@ export async function runUpdateCommand(
             update.status === 'current')
         ) {
           recordUpdateState(state, dataset.code, update)
+        }
+        if (result === 'downloaded' || result === 'mirrored') {
+          renderedUpdates.add(update)
         }
         if (update.status === 'error' && update.message) {
           errors.push(`${dataset.code}: ${update.message}`)
@@ -136,7 +148,10 @@ export async function runUpdateCommand(
         errors.push(`${dataset.code}: ${message}`)
       }
     }
-    row.finishUpdates(updates, targetVersions)
+    const unrenderedUpdates = updates.filter(update => !renderedUpdates.has(update))
+    if (unrenderedUpdates.length > 0) {
+      row.finishUpdates(unrenderedUpdates, targetVersions)
+    }
   }
 
   await writeUpdateState(state)
@@ -273,6 +288,7 @@ async function processUpdate(
     printUsage: () => void
     row: UpdateRow
     shouldDownload: boolean
+    forceDownload: boolean
     skipPrompts: boolean
     skipUpload: boolean
     target: UploadTarget
@@ -288,9 +304,15 @@ async function processUpdate(
   if (update.status === 'error' || update.status === 'manual') return 'skipped' as const
   if (update.ingest) {
     if (options.skipUpload) return 'skipped' as const
+    options.row.clear()
     const promptForIngest = !options.skipPrompts
     const ingest = promptForIngest
-      ? await askToDownload(update, options.targetVersion)
+      ? await askToIngest(
+          update,
+          options.targetVersion,
+          options.updateIndex,
+          options.updateTotal,
+        )
       : true
     if (isCancel(ingest)) throw new Error('Update cancelled.')
     if (!ingest) {
@@ -301,16 +323,11 @@ async function processUpdate(
     await update.ingest(options.target)
     return 'ingested' as const
   }
-  if (update.status === 'current' || !update.download) return 'skipped' as const
+  if (!shouldDownloadUpdate(update, options.forceDownload)) return 'skipped' as const
 
   options.row.clear()
 
   const archiveMustMirror = Boolean(update.archive)
-  if (archiveMustMirror && !options.target.remote) {
-    throw new Error(
-      'CSDI source archives must be mirrored to R2; run update with --target preview or --target production.',
-    )
-  }
   const promptForDownload =
     !archiveMustMirror && !options.shouldDownload && !options.skipPrompts
   const download = promptForDownload
@@ -329,19 +346,12 @@ async function processUpdate(
     index: options.updateIndex,
     row: options.row,
     total: options.updateTotal,
+    targetVersion: options.targetVersion,
   })
 
   if (update.archive) {
     const prepared = await loadPreparedSourceArchive(path)
-    const mirrored = await mirrorCsdiSourceArchive(
-      options.target,
-      update.archive,
-      prepared,
-    )
-    log.success(
-      `${colorize('✓', 32)} Mirrored publisher archive ${dim(mirrored.sourceUrl)}`,
-      { spacing: 0, withGuide: true },
-    )
+    await mirrorCsdiSourceArchive(options.target, update.archive, prepared)
     return 'mirrored' as const
   }
 
@@ -370,6 +380,13 @@ async function processUpdate(
     },
   )
   return 'downloaded' as const
+}
+
+export function shouldDownloadUpdate(
+  update: Pick<DatasetUpdate, 'download' | 'status'>,
+  forceDownload = false,
+) {
+  return Boolean(update.download) && (forceDownload || update.status !== 'current')
 }
 
 export function datasetLabel(
@@ -408,6 +425,33 @@ async function askToDownload(
   return answer
 }
 
+export function formatLandsdIngestPrompt(
+  update: DatasetUpdate,
+  targetVersion: string | undefined,
+  index: number,
+  total: number,
+) {
+  const position = total > 1 ? ` ${index + 1}/${total}` : ''
+  const candidate = update.version ? `v${ownVersion(update.version)}` : 'this release'
+  const baseline = targetVersion
+    ? `after v${ownVersion(targetVersion)}`
+    : 'as the target baseline'
+  return `Ingest ${formatDatasetPromptLabel(update.dataset)}${position}: ${candidate} ${baseline}?`
+}
+
+async function askToIngest(
+  update: DatasetUpdate,
+  targetVersion: string | undefined,
+  index: number,
+  total: number,
+) {
+  return confirm({
+    message: formatLandsdIngestPrompt(update, targetVersion, index, total),
+    initialValue: true,
+    withGuide: false,
+  })
+}
+
 async function askToInvestigate(update: DatasetUpdate) {
   const answer = await confirm({
     message: `${formatDatasetPromptLabel(update.dataset)} ${dim('·')} metadata changed — investigate before publishing?`,
@@ -421,7 +465,12 @@ async function askToInvestigate(update: DatasetUpdate) {
 
 async function downloadWithSpinner(
   update: DatasetUpdate,
-  options: { index: number; row: UpdateRow; total: number },
+  options: {
+    index: number
+    row: UpdateRow
+    targetVersion: string | undefined
+    total: number
+  },
 ) {
   const startedAt = Date.now()
   options.row.downloading(update, options.index, options.total)
@@ -434,6 +483,7 @@ async function downloadWithSpinner(
       update,
       options.index,
       options.total,
+      options.targetVersion,
       Date.now() - startedAt,
       file.size,
     )
@@ -508,13 +558,24 @@ export function formatDownloadCompleteLine(
   index: number,
   total: number,
   version: string | undefined,
+  targetVersion: string | null | undefined,
   elapsed: number,
   bytes: number,
 ) {
   const position = total > 1 ? ` ${index + 1}/${total}` : ''
-  const release = version ? ` ${dim(`· v${ownVersion(version)}`)}` : ''
-  const detail = dim(`(${formatElapsed(elapsed)}, ${formatBytes(bytes)})`)
-  return formatUpdateProgressLine(dataset, `downloaded${position}${release} ${detail}`)
+  const release = `${position.trimStart()} ${dim(
+    `(${formatElapsed(elapsed)}, ${formatBytes(bytes)})`,
+  )}`
+  const versions = formatVersionColumns(version, targetVersion)
+  const label = formatDatasetCheckLabel(dataset)
+  const padding = Math.max(
+    2,
+    UPDATE_LINE_WIDTH -
+      visibleWidth(label) -
+      visibleWidth(release) -
+      visibleWidth(versions),
+  )
+  return `${label}${' '.repeat(padding)}${release}${versions}`
 }
 
 export function formatDatasetCheckLine(
@@ -528,7 +589,7 @@ export function formatDatasetCheckLine(
     return formatUpdateLineWithLabel(
       label,
       update.version,
-      targetVersions.get(update.sourceKey ?? dataset.code),
+      targetVersionForUpdate(update, dataset, targetVersions),
       updateStatusLabel(update),
     )
   }
@@ -541,7 +602,7 @@ export function formatDatasetCheckLine(
     return formatUpdateLineWithLabel(
       continuation,
       update.version,
-      targetVersions.get(update.sourceKey ?? dataset.code),
+      targetVersionForUpdate(update, dataset, targetVersions),
       updateStatusLabel(update),
       UPDATE_LINE_WIDTH + CLACK_STATUS_PREFIX_WIDTH,
     )
@@ -550,11 +611,21 @@ export function formatDatasetCheckLine(
     formatUpdateLineWithLabel(
       label,
       first.version,
-      targetVersions.get(first.sourceKey ?? dataset.code),
+      targetVersionForUpdate(first, dataset, targetVersions),
       updateStatusLabel(first),
     ),
     ...releaseLines,
   ].join('\n')
+}
+
+function targetVersionForUpdate(
+  update: DatasetUpdate,
+  dataset: DatasetFixture,
+  targetVersions: ReadonlyMap<string, string | null>,
+) {
+  return Object.hasOwn(update, 'targetVersion')
+    ? update.targetVersion
+    : targetVersions.get(update.sourceKey ?? dataset.code)
 }
 
 function formatUpdateLine(
@@ -768,6 +839,7 @@ class UpdateRow {
     update: DatasetUpdate,
     index: number,
     total: number,
+    targetVersion: string | undefined,
     elapsed: number,
     bytes: number,
   ) {
@@ -777,6 +849,7 @@ class UpdateRow {
         index,
         total,
         update.version,
+        targetVersion,
         elapsed,
         bytes,
       ),
