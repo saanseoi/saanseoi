@@ -77,6 +77,7 @@ export type SourceVersion = {
   sourceSchemaVersion?: string | null
   publicationDate?: string | null
   cohortKey?: string | null
+  sourceArchiveAssetId?: string
   releaseNotesUrl?: string | null
   notes?: string | null
   status: string

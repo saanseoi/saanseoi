@@ -226,6 +226,8 @@
   "source_records": "records",
   "source_upstream": "Upstream",
   "source_release_notes": "Release notes",
+  "source_archive": "Source archive",
+  "source_download_archive": "Download source",
   "source_publisher": "Publisher",
   "source_contact": "Contact",
   "source_official_site": "Official site",
