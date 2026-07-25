@@ -7,8 +7,8 @@ dataset-ingestion worker and no `processDataset` queue contract.
 
 - `harbour-cli` validates, normalises, and loads a source dataset through the local
   pipeline.
-- `harbour-api` is the authenticated control plane for upload registration, release
-  state, and narrowly scoped R2 upload authorization.
+- `harbour-api` is the authenticated control plane for local-release registration,
+  release state, and durable publisher-source mirroring.
 - Atlas API serves the published database-backed product and public source-archive
   downloads.
 - `harbour-workers` consumes only delayed snapshot-cleanup jobs after publication.
@@ -19,8 +19,8 @@ are local processing phases, not remote queue messages.
 ## Artefacts
 
 The published product is the normalised data held in the current/history/source
-databases. Intermediate Parquet is a local, transient processing input and must not be
-retained in R2 once the run completes.
+databases. Intermediate Parquet is a local, transient processing input. It is never
+uploaded to or retained in R2.
 
 Publisher source artefacts are different: they are immutable provenance. For CSDI, the
 updater downloads each archive slot's native publisher delivery, preserves a publisher
@@ -28,13 +28,14 @@ ZIP byte-for-byte or losslessly wraps a non-ZIP delivery, and mirrors the result
 and its manifest to R2:
 
 ```text
-source-archives/hk/hkgov-csdi/{dataset-id}/{release-slot}/{sha256}/
-  source.zip
-  manifest.json
+by-source/hk/hkgov-csdi/{dataset-id}/{release-slot}/
+  {source-sha256}-source.zip
+  {manifest-sha256}-manifest.json
 ```
 
-Atlas API publicly serves those exact objects at `/v0/source-archives/...`. There is no
-public bucket listing or separate conversion artefact.
+Each object is registered as a managed source asset. Atlas API publicly serves it at
+`/v0/assets/{asset-id}`. There is no public bucket listing or separate conversion
+artefact.
 
 ## Release policy
 

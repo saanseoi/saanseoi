@@ -1,4 +1,6 @@
+import { sql } from 'drizzle-orm'
 import {
+  check,
   foreignKey,
   index,
   primaryKey,
@@ -20,6 +22,7 @@ export const streets = sqliteTable(
     primaryKey({
       columns: [table.snapshotId, table.id],
     }),
+    check('streets_version_positive', sql`${table.version} > 0`),
   ],
 )
 
