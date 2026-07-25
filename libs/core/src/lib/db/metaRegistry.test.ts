@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import divisionFixtureOverture116To117 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.17.json'
+import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.18.json'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import {
   ensureDraftReleaseSetForRelease,
@@ -301,6 +301,7 @@ function createDraftReleaseSetDb() {
       version INTEGER NOT NULL,
       primaryResourceType TEXT NOT NULL,
       defaultDomainCode TEXT,
+      i18n TEXT,
       status TEXT NOT NULL,
       createdAt TEXT NOT NULL
     );
@@ -1850,6 +1851,49 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
       },
     ])
 
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES ('publisher-pland', 'hkgov-pland');
+
+      INSERT INTO datasets (id, publisherId, regionCode) VALUES
+        ('dataset-pland-pu-area', 'publisher-pland', 'hk'),
+        ('dataset-pland-new-town-area', 'publisher-pland', 'hk');
+
+      INSERT INTO snapshotLineages (id, variant) VALUES
+        ('lineage-pland-pu-area', 'hkgov-pland-pu'),
+        ('lineage-pland-new-town-area', 'hkgov-pland-new-town');
+
+      INSERT INTO snapshots (
+        id, snapshotLineageId, resourceType, code, cohortKey, status, publishedAt, createdAt
+      ) VALUES
+        ('pland-pu-area-2006', 'lineage-pland-pu-area', 'divisionArea', 'ss-hk-division-area-hkgov-pland-pu-2006', '2006', 'published', 1136073600000, 1136073600000),
+        ('pland-new-town-area-2006', 'lineage-pland-new-town-area', 'divisionArea', 'ss-hk-division-area-hkgov-pland-new-town-2006', '2006', 'published', 1136073600000, 1136073600000);
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('pland-pu-area-2006', 'dataset-pland-pu-area', 'release-pland-pu-area-2006', 'primary'),
+        ('pland-new-town-area-2006', 'dataset-pland-new-town-area', 'release-pland-new-town-area-2006', 'primary');
+    `)
+
+    await expect(
+      resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
+        db as never,
+        'divisionArea',
+        'hk',
+        '2006',
+        {
+          publisherCode: 'hkgov-pland',
+          variant: 'hkgov-pland-pu',
+        },
+      ),
+    ).resolves.toEqual([
+      {
+        id: 'pland-pu-area-2006',
+        code: 'ss-hk-division-area-hkgov-pland-pu-2006',
+        cohortKey: '2006',
+        resourceType: 'divisionArea',
+        status: 'published',
+      },
+    ])
+
     sqlite.close()
   })
 })
@@ -2148,7 +2192,7 @@ describe('publishReleaseArtefacts', () => {
 
     expect(sortProvenanceRows(provenanceRows)).toEqual(
       sortProvenanceRows(
-        divisionFixtureOverture116To117.fields.map(field => ({
+        divisionFixtureOverture116To118.fields.map(field => ({
           apiField: field.apiField,
           sourceFieldPath: field.sourceFieldPath,
         })),

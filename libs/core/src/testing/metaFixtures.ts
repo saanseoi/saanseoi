@@ -712,6 +712,7 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       version INTEGER NOT NULL,
       primaryResourceType TEXT NOT NULL,
       defaultDomainCode TEXT,
+      i18n TEXT,
       status TEXT NOT NULL,
       notes TEXT,
       versionHash TEXT NOT NULL,
@@ -797,6 +798,7 @@ export function seedFixtureCatalog(db: Database) {
       ('publisher-overture', 'overture', 'vh-publisher-overture-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('publisher-hkgov', 'hkgov', 'vh-publisher-hkgov-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('publisher-hkgov-had', 'hkgov-had', 'vh-publisher-hkgov-had-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('publisher-hkgov-landsd', 'hkgov-landsd', 'vh-publisher-hkgov-landsd-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('publisher-hkgov-dpo', 'hkgov-dpo', 'vh-publisher-hkgov-dpo-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
       code = excluded.code,
@@ -805,7 +807,7 @@ export function seedFixtureCatalog(db: Database) {
     WHERE publishers.versionHash <> excluded.versionHash;
 
     INSERT INTO datasets (
-      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, versionHash, createdAt, updatedAt
+      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, sourceUrl, versionHash, createdAt, updatedAt
     ) VALUES
       (
         'overture-hk-division',
@@ -815,7 +817,6 @@ export function seedFixtureCatalog(db: Database) {
         'static',
         'monthly',
         'divisions',
-        'division',
         'https://docs.overturemaps.org/',
         'vh-dataset-overture-hk-division-v1',
         ${FIXTURE_TIMESTAMP_MS},
@@ -829,7 +830,6 @@ export function seedFixtureCatalog(db: Database) {
         'static',
         'monthly',
         'divisions',
-        'divisionArea',
         'https://docs.overturemaps.org/',
         'vh-dataset-overture-hk-division-area-v1',
         ${FIXTURE_TIMESTAMP_MS},
@@ -843,7 +843,6 @@ export function seedFixtureCatalog(db: Database) {
         'static',
         'monthly',
         'divisions',
-        'divisionBoundary',
         'https://docs.overturemaps.org/',
         'vh-dataset-overture-hk-division-boundary-v1',
         ${FIXTURE_TIMESTAMP_MS},
@@ -857,9 +856,21 @@ export function seedFixtureCatalog(db: Database) {
         'static',
         'as-needed',
         'divisions',
-        'divisionArea',
         'https://data.gov.hk/',
         'vh-dataset-hkgov-had-hk-district-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'hkgov-landsd-hk-division',
+        'publisher-hkgov-landsd',
+        'ds-hk-hkgov-landsd-division',
+        'hk',
+        'static',
+        'monthly',
+        'divisions',
+        'https://portal.csdi.gov.hk/',
+        'vh-dataset-hkgov-landsd-hk-division-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
@@ -871,7 +882,6 @@ export function seedFixtureCatalog(db: Database) {
         'static',
         'monthly',
         'addresses',
-        'address',
         'https://data.gov.hk/en-data/dataset/hk-ogcio-st_div_01-als',
         'vh-dataset-hkgov-dpo-hk-address-v1',
         ${FIXTURE_TIMESTAMP_MS},
@@ -884,11 +894,19 @@ export function seedFixtureCatalog(db: Database) {
       releaseType = excluded.releaseType,
       releaseFrequency = excluded.releaseFrequency,
       theme = excluded.theme,
-      type = excluded.type,
       sourceUrl = excluded.sourceUrl,
       versionHash = excluded.versionHash,
       updatedAt = excluded.updatedAt
     WHERE datasets.versionHash <> excluded.versionHash;
+
+    INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
+      ('overture-hk-division', 'division'),
+      ('overture-hk-divisionArea', 'divisionArea'),
+      ('overture-hk-divisionBoundary', 'divisionBoundary'),
+      ('hkgov-had-hk-district', 'divisionArea'),
+      ('hkgov-landsd-hk-division', 'division'),
+      ('hkgov-dpo-hk-address', 'address')
+    ON CONFLICT(datasetId, resourceType) DO NOTHING;
 
     INSERT INTO apiVersions (id, code, familyType, version, status, publishedAt, versionHash, createdAt, updatedAt) VALUES
       (
@@ -1020,6 +1038,7 @@ export function seedFixtureCatalog(db: Database) {
       ('api-composition-addresses-v1', 'default', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
       ('api-composition-addresses-v1', 'default', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 10, null),
       ('api-composition-divisions-v1', 'overture', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-divisions-v1', 'hkgov-landsd', 'division', 'hkgov-landsd', 'primary', 1, 'exact_ref', null, null, 0, null),
       ('api-composition-places-v1', 'default', 'place', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
       ('api-composition-places-v1', 'default', 'address', 'default', 'supporting', 1, 'exact_ref', 'place', null, 10, null),
       ('api-composition-places-v1', 'default', 'division', 'default', 'supporting', 1, 'exact_ref', 'place', null, 20, null)
@@ -1284,6 +1303,7 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
       INSERT INTO releases (
         id,
         datasetId,
+        resourceType,
         code,
         sourceVersion,
         cohortKey,
@@ -1315,13 +1335,15 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
         ?12,
         ?13,
         ?14,
-        ?15
+        ?15,
+        ?16
       )
     `,
   ).run(
     releaseId,
     publisherCode,
     datasetCode,
+    release.type,
     releaseCode,
     release.sourceVersion,
     release.cohortKey,
