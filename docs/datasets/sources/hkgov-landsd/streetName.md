@@ -1,61 +1,66 @@
 # LandsD street names
 
-The Lands Department publishes a complete gazetted street-name list as a PDF and later
-changes in bilingual Government Notices and Gazette Plans tables. SaanSeoi treats the
-PDF as the initial register and every notice row—including changes, deletions and
-corrigenda—as an immutable source record.
+The Lands Department publishes a complete gazetted street-name list as a PDF and
+subsequent bilingual Government Notices and Gazette Plans. SaanSeoi treats
+`Gazetted_Street_Name.pdf` as the baseline street snapshot, not as an event log. Every
+later source row is retained as an immutable LandsD notice event, including a revised
+publisher version when LandsD changes the source page.
 
 The source is
 [`ds-hk-hkgov-landsd-street`](../../../../fixtures/meta/datasets/hkgov-landsd-hk-street.json).
-The initial source release is `2016-01-01.0`; it excludes only exact normalised
-English-name matches represented by a later notice and emits an exclusion audit. Notice
-releases are one per publication day.
+The initial source release is `2016-01-01.0`; it preserves the exclusion audit linking
+baseline rows to their later logical streets or events. Notice releases are grouped by
+publication day.
 
-## Ingestion and evidence
+## Notice ledger and evidence
 
-`saanseoi ingest:hkgov-landsd-streets --target preview|production` downloads both the
-English and Traditional Chinese pages, pairs their rows by publication and evidence
-identity, and fails if either language has an unmatched or ambiguous row. Incremental
-runs can select immutable notice IDs with `--notice-id`.
+The append-only source ledger retains the notice event ID, publication date, notice
+type, bilingual publisher names and district labels, parsed bilingual descriptions, an
+explicitly parsed effective date, explicit previous-Government-Notice references, raw
+publisher properties, retrieval metadata, source-page snapshots, extracted PDF text,
+parser diagnostics, hashes, and source revisions.
 
-The ingestion retains the two HTML snapshots, the gazetted list PDF, every English and
-Traditional Chinese Government Notice PDF, and every Gazette Plan PDF. Every object has
-a SHA-256-addressed immutable key below `by-source/hk/hkgov-landsd/street-naming/`, with
-a JSON manifest alongside it. The bucket is private. Each structured, role-tagged asset
-link contains both the original LandsD URL and the managed public asset URL; no
-duplicate notice or plan URL fields are stored. Plan WebP renders are additional
-release-note previews and never replace the source PDF.
+The two HTML source pages, the baseline PDF, each English and Traditional Chinese
+Government Notice PDF, and related Gazette Plan PDFs are preserved as managed source
+assets. `assetLinks` is the only evidence-link representation: every link is role-tagged
+and includes label, original URL, managed URL, media type, content hash, and provenance.
+Plan WebP previews are optional release-note assets and never replace the primary PDF
+evidence.
 
-Any missing or broken source asset writes an `operator-report.json` and blocks the
-release. The same report records bilingual page counts, pairing failures, translation
-counts, and the baseline-exclusion audit.
+## Parsing and application
+
+`saanseoi ingest:hkgov-landsd-streets --target preview|production` pairs English and
+Traditional Chinese page rows by notice identity. It parses the linked bilingual PDFs
+with their fixed `Description`, `Name`, and `Previous G.N.` layout. Rows are paired by
+notice identity, exact bilingual name, consistent previous-notice references, and only
+then the per-notice ordinal. An unsupported layout, PDF extraction failure, or ambiguous
+pairing is an operator-report error and blocks publication.
+
+Canonical lifecycle resolution uses explicit prior Government Notice references only;
+street names are never used as identity or as a fuzzy target matcher. A deletion updates
+the matched logical street to `deleted` and sets `deletedAt` only for a confidently
+parsed legal effective date. A later valid restoration becomes a new active version. A
+source event that causes no materialised change remains in the source ledger without
+creating a redundant street version.
+
+`Corrigendum` and `Declaration to change street name` notices deliberately fail fast
+with `curationRequired` entries in `operator-report.json`. The data feed does not
+reliably express whether a name change is a replacement, split, or merge.
+`Notice of intention to change street name` remains a source notice event; reviewed
+old/new street-name relations live in the separate name-change model when they can be
+linked deterministically.
 
 ## Names and districts
 
-English and Traditional Chinese names remain publisher text. Unique Traditional Chinese
-names are translated to Simplified Chinese with Azure Translator v3 (`yue` to
-`zh-Hans`), cached by source-text hash, and carry `machine: azure-translator-v3`
-provenance. Translation failures block publication; Traditional Chinese is never used as
-a silent fallback.
+English and Traditional Chinese remain publisher text. Unique Traditional Chinese names
+and parsed descriptions are translated to Simplified Chinese with Azure Translator v3
+(`yue` to `zh-Hans`), cached by source-text hash, and retain translation provenance.
+Translation failures block publication; Traditional Chinese is never a silent fallback.
 
-The original district label and baseline district code are preserved. At import time
-they are resolved against the current canonical district snapshot and persisted as
-`districtIds`. An unresolved district is a blocking quality error. This supplies the
-district coverage map and distribution statistics without making publisher labels or
-canonical IDs substitutes for one another.
-
-## Releases and retry safety
-
-The source/history shard is `BEFORE` for the baseline and 2016–2024 notices, `2025` for
-2025 notices, and `2026` for 2026 notices. A daily release clones its preceding street
-snapshot, then adds or revises only records with that day's immutable notice IDs.
-Current and history tables therefore retain notices even where a street is changed,
-removed, restored, or corrected.
-
-The updater moves `.local/harbour/update-state.json` only after source evidence,
-translations, fixtures, source/history/current rows, and release publication all
-succeed. Its cursor advances by successfully published notice date, allowing a failed
-later date to retry safely.
+Publisher district labels and baseline district codes stay in the source ledger. During
+canonical materialisation they are resolved against the published district snapshot and
+stored as canonical `districtIds`. An unresolved district blocks publication and is
+reported as a quality error.
 
 ## Upstream
 
