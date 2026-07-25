@@ -1,62 +1,21 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { expect, test } from 'bun:test'
+import type { SnapshotCleanupMessage } from '@repo/core'
 
-import type { HarbourJobMessage } from '@repo/core'
 import { createQueueHandler } from './index'
 
-const originalConsoleWarn = console.warn
+test('requires both D1 bindings for the snapshot-cleanup consumer', async () => {
+  const queue = createQueueHandler()
 
-beforeEach(() => {
-  console.warn = mock(() => undefined) as typeof console.warn
-})
-
-afterEach(() => {
-  console.warn = originalConsoleWarn
-})
-
-describe('harbour-workers', () => {
-  test('acks unsupported legacy dataset messages without retrying', async () => {
-    const ack = mock(() => undefined)
-    const retry = mock(() => undefined)
-    const queue = createQueueHandler()
-
-    await queue(
+  await expect(
+    queue(
       {
-        messages: [
-          {
-            ack,
-            attempts: 1,
-            body: {
-              jobType: 'processDataset',
-              datasetId: 'dr-hk-overture-division-2025-05-24.0',
-              rawObjectKey: 'hk/overture/2025-05-24.0/division.parquet',
-              regionCode: 'hk',
-              shardYear: '2025',
-              cohortKey: '2025-05',
-              source: 'overture',
-              sourceVersion: '2025-05-24.0',
-              theme: 'divisions',
-              type: 'division',
-            },
-            id: 'message-1',
-            retry,
-            timestamp: new Date(),
-          },
-        ],
-        metadata: {
-          queueBroker: 'test',
-        },
+        messages: [],
+        metadata: { queueBroker: 'test' },
         queue: 'ss-harbour-jobs-preview',
         ackAll() {},
         retryAll() {},
-      } as unknown as MessageBatch<HarbourJobMessage>,
-      {
-        DB_CURRENT: {} as D1Database,
-        DB_META: {} as D1Database,
-      },
-    )
-
-    expect(ack).toHaveBeenCalledTimes(1)
-    expect(retry).toHaveBeenCalledTimes(0)
-    expect(console.warn).toHaveBeenCalledTimes(1)
-  })
+      } as unknown as MessageBatch<SnapshotCleanupMessage>,
+      { DB_CURRENT: {} as D1Database },
+    ),
+  ).rejects.toThrow('Missing DB_META binding')
 })
