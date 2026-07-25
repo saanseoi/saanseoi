@@ -238,6 +238,9 @@ export const canonicalPlaceI18n = {
 
 export const canonicalStreet = {
   id: text('id').notNull(),
+  districtIds: jsonText('districtIds'),
+  landsdPublicationDate: text('landsdPublicationDate'),
+  governmentNoticeType: text('governmentNoticeType'),
   yearBuilt: jsonText('yearBuilt'),
   references: jsonText('references'),
   sourceKeys: jsonText('sourceKeys'),
@@ -252,4 +255,8 @@ export const canonicalStreetI18n = {
   directionalPrefix: text('directionalPrefix'),
   directionalSuffix: text('directionalSuffix'),
   normalised: text('normalised'),
+  governmentNoticeUrl: text('governmentNoticeUrl'),
+  gazettePlanUrls: jsonText('gazettePlanUrls'),
+  assetLinks: jsonText('assetLinks'),
+  translationProvenance: jsonText('translationProvenance'),
 }
