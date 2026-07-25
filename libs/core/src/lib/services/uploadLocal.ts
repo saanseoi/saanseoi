@@ -44,12 +44,6 @@ export async function registerUpload(
   db: HarbourReadableDb & HarbourWritableDb,
   options: RegisterUploadOptions,
 ): Promise<RegisterUploadResult> {
-  if (!options.rawObjectKey) {
-    throw new Error(
-      'A rawObjectKey is required for shared upload registration. Local staging belongs in the CLI runtime.',
-    )
-  }
-
   const inspection =
     options.inspection ?? (await inspectRequiredParquetFile(options.filePath))
 

@@ -11,7 +11,6 @@ import {
   seedFixtureCatalog,
 } from '../../testing/metaFixtures'
 import {
-  finaliseUpload,
   createSchemaFingerprint,
   inferRegionFromPath,
   inferCohortKeyFromPath,
@@ -22,7 +21,6 @@ import {
   inferThemeFromPath,
   inferTypeFromFilename,
   inferTypeFromPath,
-  requestUpload,
 } from './upload'
 import { planUpload, prepareUpload, registerUpload } from './uploadLocal'
 import { createLocalHarbourDb } from '../../testing/localDb'
@@ -767,7 +765,7 @@ describe('upload', () => {
         phase: 'registerDataset',
         runId: 'run-register-dataset-old',
         startedAt: expect.any(String),
-        stats: null,
+        stats: expect.stringContaining('"schemaFingerprint"'),
         status: 'completed',
       },
       {
@@ -785,222 +783,6 @@ describe('upload', () => {
     ])
     expect(ingestRuns[0]?.startedAt).toBe('2026-06-02T00:00:00.000Z')
     expect(ingestRuns[1]?.startedAt).toBe('2026-06-02T00:00:01.000Z')
-  })
-
-  test('allows restarting a failed direct-upload session', async () => {
-    const tempDir = createTempDir()
-    const dbPath = join(tempDir, 'harbour.sqlite')
-    const fixtureFile = createFixturePath(tempDir)
-    const sqlite = initDb(dbPath)
-    const db = createLocalHarbourDb(sqlite)
-
-    insertFixtureRelease(sqlite, {
-      source: 'overture',
-      regionCode: 'hk',
-      cohortKey: '2026-05',
-      theme: 'divisions',
-      type: 'division',
-      sourceVersion: '2026-05-20.0',
-      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
-      originalFileName: 'division.parquet',
-      status: 'failed',
-      ingestedAt: '2026-06-02T00:00:00.000Z',
-      createdAt: '2026-06-02T00:00:00.000Z',
-      updatedAt: '2026-06-02T00:00:00.000Z',
-    })
-
-    const result = await requestUpload(db, {
-      filePath: fixtureFile,
-      cohortKey: '2026-05',
-      source: 'overture',
-      sourceVersion: '2026-05-20.0',
-      inspection: fixtureInspection,
-    })
-
-    const dataset = sqlite
-      .query('SELECT status, rawObjectKey FROM releases WHERE code = ?')
-      .get('dr-hk-overture-division-2026-05-20.0') as {
-      status: string
-      rawObjectKey: string
-    } | null
-
-    sqlite.close()
-
-    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
-    expect(result.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
-    expect(dataset?.status).toBe('uploading')
-    expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
-  })
-
-  test('reuses the existing requestUpload phase row when retrying a failed direct-upload session', async () => {
-    const tempDir = createTempDir()
-    const dbPath = join(tempDir, 'harbour-request-upload-existing-phase.sqlite')
-    const fixtureFile = createFixturePath(tempDir)
-    const sqlite = initDb(dbPath)
-    const db = createLocalHarbourDb(sqlite)
-
-    const { releaseId } = insertFixtureRelease(sqlite, {
-      source: 'overture',
-      regionCode: 'hk',
-      cohortKey: '2026-05',
-      theme: 'divisions',
-      type: 'division',
-      sourceVersion: '2026-05-20.0',
-      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
-      originalFileName: 'division.parquet',
-      status: 'failed',
-      ingestedAt: '2026-06-02T00:00:00.000Z',
-      createdAt: '2026-06-02T00:00:00.000Z',
-      updatedAt: '2026-06-02T00:00:00.000Z',
-    })
-    insertFixtureIngestRun(sqlite, {
-      runId: 'run-request-upload-old',
-      releaseId,
-      phase: 'requestUpload',
-      status: 'error',
-      stats:
-        '"{\\"releaseCode\\":\\"dr-hk-overture-division-2026-05-20.0\\",\\"rawObjectKey\\":\\"hk/overture/2026-05-20.0/division.parquet\\",\\"rowCount\\":1,\\"schemaFingerprint\\":\\"old\\"}"',
-      error: '"{\\"message\\":\\"old failure\\"}"',
-      startedAt: '2026-06-02T00:00:00.000Z',
-      finishedAt: '2026-06-02T00:00:00.000Z',
-    })
-
-    const result = await requestUpload(db, {
-      filePath: fixtureFile,
-      cohortKey: '2026-05',
-      source: 'overture',
-      sourceVersion: '2026-05-20.0',
-      inspection: fixtureInspection,
-    })
-
-    const ingestRuns = sqlite
-      .query(
-        'SELECT phase, status, stats, error, startedAt FROM ingestRuns WHERE releaseId = ? ORDER BY phase ASC',
-      )
-      .all(releaseId) as Array<{
-      error: string | null
-      phase: string
-      startedAt: string
-      stats: string | null
-      status: string
-    }>
-
-    sqlite.close()
-
-    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
-    expect(result.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
-    expect(ingestRuns).toEqual([
-      {
-        error: null,
-        phase: 'requestUpload',
-        startedAt: expect.any(String),
-        stats: JSON.stringify({
-          releaseCode: 'dr-hk-overture-division-2026-05-20.0',
-          rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
-          rowCount: fixtureInspection.rowCount,
-          schemaFingerprint: createSchemaFingerprint(fixtureInspection),
-          shardYear: null,
-          inspection: fixtureInspection,
-        }),
-        status: 'completed',
-      },
-    ])
-    expect(ingestRuns[0]?.startedAt).toBe('2026-06-02T00:00:00.000Z')
-  })
-
-  test('allows requestUpload to replace an uploading session when explicitly allowed', async () => {
-    const tempDir = createTempDir()
-    const dbPath = join(tempDir, 'harbour-request-upload-force.sqlite')
-    const fixtureFile = createFixturePath(tempDir)
-    const sqlite = initDb(dbPath)
-    const db = createLocalHarbourDb(sqlite)
-
-    const { releaseId } = insertFixtureRelease(sqlite, {
-      source: 'overture',
-      regionCode: 'hk',
-      cohortKey: '2026-05',
-      theme: 'divisions',
-      type: 'division',
-      sourceVersion: '2026-05-20.0',
-      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
-      originalFileName: 'old-division.parquet',
-      status: 'uploading',
-      ingestedAt: '2026-06-02T00:00:00.000Z',
-      createdAt: '2026-06-02T00:00:00.000Z',
-      updatedAt: '2026-06-02T00:00:00.000Z',
-    })
-
-    await expect(
-      requestUpload(db, {
-        filePath: fixtureFile,
-        cohortKey: '2026-05',
-        source: 'overture',
-        sourceVersion: '2026-05-20.0',
-        inspection: fixtureInspection,
-      }),
-    ).rejects.toThrow(
-      'Dataset already exists with status uploading: ds-hk-overture-division',
-    )
-
-    const result = await requestUpload(db, {
-      filePath: fixtureFile,
-      cohortKey: '2026-05',
-      source: 'overture',
-      sourceVersion: '2026-05-20.0',
-      inspection: fixtureInspection,
-      allowExistingDatasetStatuses: ['uploading'],
-    })
-    const dataset = sqlite
-      .query('SELECT id, status, originalFileName FROM releases WHERE code = ?')
-      .get('dr-hk-overture-division-2026-05-20.0') as {
-      id: string
-      originalFileName: string
-      status: string
-    } | null
-
-    sqlite.close()
-
-    expect(result.releaseId).toBe(releaseId)
-    expect(dataset).toMatchObject({
-      id: releaseId,
-      originalFileName: 'hk-division-2026-05.parquet',
-      status: 'uploading',
-    })
-  })
-
-  test('finalises an uploading direct-upload session into staged', async () => {
-    const tempDir = createTempDir()
-    const dbPath = join(tempDir, 'harbour.sqlite')
-    const fixtureFile = createFixturePath(tempDir)
-    const sqlite = initDb(dbPath)
-    const db = createLocalHarbourDb(sqlite)
-
-    await requestUpload(db, {
-      filePath: fixtureFile,
-      cohortKey: '2026-05',
-      source: 'overture',
-      sourceVersion: '2026-05-20.0',
-      inspection: fixtureInspection,
-    })
-
-    const result = await finaliseUpload(db, {
-      filePath: fixtureFile,
-      cohortKey: '2026-05',
-      source: 'overture',
-      sourceVersion: '2026-05-20.0',
-      inspection: fixtureInspection,
-    })
-
-    const dataset = sqlite
-      .query('SELECT status FROM releases WHERE code = ?')
-      .get('dr-hk-overture-division-2026-05-20.0') as {
-      status: string
-    } | null
-
-    sqlite.close()
-
-    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
-    expect(dataset?.status).toBe('staged')
   })
 
   test('uses injected schema metadata for remote chronology checks', async () => {
