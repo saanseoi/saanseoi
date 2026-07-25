@@ -48,6 +48,7 @@ const {
   metaApiVersions,
   ingestRuns,
   metaDatasetI18n,
+  metaDatasetResourceTypes,
   metaDatasetTransforms,
   metaDatasets,
   metaLicenses,
@@ -117,7 +118,8 @@ export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {
       regionCode: metaDatasets.regionCode,
       cohortKey: metaReleases.cohortKey,
       theme: metaDatasets.theme,
-      type: metaDatasets.type,
+      type: metaReleases.resourceType,
+      sourceVariant: metaDatasets.sourceVariant,
       source: metaPublishers.code,
       sourceVersion: metaReleases.sourceVersion,
       rawObjectKey: metaReleases.rawObjectKey,
@@ -523,7 +525,7 @@ const registrySourceSelection = {
   releaseType: metaDatasets.releaseType,
   releaseFrequency: metaDatasets.releaseFrequency,
   theme: metaDatasets.theme,
-  type: metaDatasets.type,
+  sourceVariant: metaDatasets.sourceVariant,
   sourceUrl: metaDatasets.sourceUrl,
   licenseId: metaDatasets.licenseId,
   license: {
@@ -551,30 +553,41 @@ export async function listRegistrySources(db: MetaDatabase, limit?: number) {
     .all()
 
   const sourceIds = sources.map(source => source.id)
-  const [i18n, transforms, sourceVersions, publishers] = await Promise.all([
-    queryInBatches(sourceIds, ids =>
-      db
-        .select()
-        .from(metaDatasetI18n)
-        .where(inArray(metaDatasetI18n.datasetId, ids))
-        .all(),
-    ),
-    queryInBatches(sourceIds, ids =>
-      db
-        .select()
-        .from(metaDatasetTransforms)
-        .where(inArray(metaDatasetTransforms.datasetId, ids))
-        .all(),
-    ),
-    listRegistrySourceVersions(db),
-    listRegistrySourcePublishers(db),
-  ])
+  const [resourceTypes, i18n, transforms, sourceVersions, publishers] =
+    await Promise.all([
+      queryInBatches(sourceIds, ids =>
+        db
+          .select()
+          .from(metaDatasetResourceTypes)
+          .where(inArray(metaDatasetResourceTypes.datasetId, ids))
+          .all(),
+      ),
+      queryInBatches(sourceIds, ids =>
+        db
+          .select()
+          .from(metaDatasetI18n)
+          .where(inArray(metaDatasetI18n.datasetId, ids))
+          .all(),
+      ),
+      queryInBatches(sourceIds, ids =>
+        db
+          .select()
+          .from(metaDatasetTransforms)
+          .where(inArray(metaDatasetTransforms.datasetId, ids))
+          .all(),
+      ),
+      listRegistrySourceVersions(db),
+      listRegistrySourcePublishers(db),
+    ])
 
   return sources.map(source => ({
     ...source,
     publisher:
       publishers.find(publisher => publisher.id === source.publisherId) ?? null,
     datasetI18n: i18n.filter(row => row.datasetId === source.id),
+    resourceTypes: resourceTypes
+      .filter(row => row.datasetId === source.id)
+      .map(row => row.resourceType),
     transforms: transforms.filter(row => row.datasetId === source.id),
     sourceVersions: sourceVersions.filter(version => version.datasetId === source.id),
   }))
@@ -592,25 +605,32 @@ export async function getRegistrySource(db: MetaDatabase, id: string) {
 
   if (!source) return null
 
-  const [datasetI18n, transforms, sourceVersions, publisher] = await Promise.all([
-    db
-      .select()
-      .from(metaDatasetI18n)
-      .where(eq(metaDatasetI18n.datasetId, source.id))
-      .all(),
-    db
-      .select()
-      .from(metaDatasetTransforms)
-      .where(eq(metaDatasetTransforms.datasetId, source.id))
-      .all(),
-    queryRegistrySourceVersions(db, source.id),
-    getRegistrySourcePublisher(db, source.publisherId),
-  ])
+  const [datasetI18n, resourceTypes, transforms, sourceVersions, publisher] =
+    await Promise.all([
+      db
+        .select()
+        .from(metaDatasetI18n)
+        .where(eq(metaDatasetI18n.datasetId, source.id))
+        .all(),
+      db
+        .select()
+        .from(metaDatasetResourceTypes)
+        .where(eq(metaDatasetResourceTypes.datasetId, source.id))
+        .all(),
+      db
+        .select()
+        .from(metaDatasetTransforms)
+        .where(eq(metaDatasetTransforms.datasetId, source.id))
+        .all(),
+      queryRegistrySourceVersions(db, source.id),
+      getRegistrySourcePublisher(db, source.publisherId),
+    ])
 
   return {
     ...source,
     publisher,
     datasetI18n,
+    resourceTypes: resourceTypes.map(row => row.resourceType),
     transforms,
     sourceVersions,
   }
@@ -897,7 +917,7 @@ const releaseRecordSelection = {
   regionCode: metaDatasets.regionCode,
   cohortKey: metaReleases.cohortKey,
   theme: metaDatasets.theme,
-  type: metaDatasets.type,
+  type: metaReleases.resourceType,
   source: metaPublishers.code,
   sourceVersion: metaReleases.sourceVersion,
   rawObjectKey: metaReleases.rawObjectKey,
@@ -962,7 +982,7 @@ export async function getLatestDatasetForRegionSourceType(
         // Planning Department TPU and New Town feeds share `hkgov-pland` but
         // are independent dataset lineages with incompatible upload schemas.
         eq(metaDatasets.code, buildDatasetCode(regionCode, source, type)),
-        eq(metaDatasets.type, type),
+        eq(metaReleases.resourceType, type),
         ne(metaReleases.status, 'failed'),
         ne(metaReleases.status, 'uploading'),
       ),
@@ -1061,7 +1081,7 @@ export async function hasDatasetForCohortKeySourceType(
           eq(metaDatasets.regionCode, regionCode),
           eq(metaReleases.cohortKey, cohortKey),
           eq(metaPublishers.code, publisherCodeForSource(source)),
-          eq(metaDatasets.type, type),
+          eq(metaReleases.resourceType, type),
           ne(metaReleases.status, 'failed'),
         ),
       )
@@ -1225,7 +1245,7 @@ function sleep(ms: number) {
 export async function insertDataset(
   db: HarbourWritableDb & HarbourReadableDb,
   plan: UploadPlan,
-  rawObjectKey: string,
+  rawObjectKey: string | null,
   ingestedAt: string,
   status: ReleaseStatus = 'staged',
 ) {
@@ -1243,6 +1263,7 @@ export async function insertDataset(
       id: buildDeterministicReleaseId(plan.releaseCode),
       datasetId: dataset.id,
       code: plan.releaseCode,
+      resourceType: plan.type,
       sourceVersion: plan.sourceVersion,
       sourceSchemaVersion,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
@@ -1321,7 +1342,7 @@ export function buildDeterministicApiFieldProvenanceId(args: {
 export async function resetFailedDataset(
   db: HarbourWritableDb,
   plan: UploadPlan,
-  rawObjectKey: string,
+  rawObjectKey: string | null,
   ingestedAt: string,
   status: ReleaseStatus,
 ) {
@@ -1336,6 +1357,7 @@ export async function resetFailedDataset(
     .update(metaReleases)
     .set({
       sourceVersion: plan.sourceVersion,
+      resourceType: plan.type,
       sourceSchemaVersion,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
@@ -2842,6 +2864,7 @@ export async function publishReleaseArtefacts(
       cohortKey?: string
       datasetCode?: string
       source?: string
+      sourceVariant?: string
       sourceVersion?: string
     }
     publishedAt: string
@@ -2931,6 +2954,7 @@ export async function publishReleaseArtefacts(
   const datasetVariant = datasetVariantForSource(args.type, args.dataset.source, {
     cohortKey: args.dataset.cohortKey,
     datasetCode: args.dataset.datasetCode,
+    sourceVariant: args.dataset.sourceVariant,
     sourceVersion: args.dataset.sourceVersion,
   })
   const datasetMember = compositionMembers.find(
@@ -4428,7 +4452,7 @@ function normaliseOptionalJsonText(
 
 async function requireDatasetDefinition(
   db: HarbourReadableDb,
-  plan: Pick<UploadPlan, 'datasetCode' | 'source'>,
+  plan: Pick<UploadPlan, 'datasetCode' | 'source' | 'type'>,
 ) {
   const dataset =
     ((await db
@@ -4437,10 +4461,15 @@ async function requireDatasetDefinition(
       })
       .from(metaDatasets)
       .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+      .innerJoin(
+        metaDatasetResourceTypes,
+        eq(metaDatasetResourceTypes.datasetId, metaDatasets.id),
+      )
       .where(
         and(
           eq(metaPublishers.code, publisherCodeForSource(plan.source)),
           eq(metaDatasets.code, plan.datasetCode),
+          eq(metaDatasetResourceTypes.resourceType, plan.type),
         ),
       )
       .limit(1)
