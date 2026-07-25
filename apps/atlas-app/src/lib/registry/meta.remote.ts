@@ -73,9 +73,33 @@ function isRegistryBootstrapError(error: unknown) {
   return false
 }
 
-export const getSourcesPageData = query(
-  async () => (await listRegistrySources(getMetaDb(), 200)) as RegistrySource[],
-)
+export const getSourcesPageData = query(async () => {
+  const db = getMetaDb()
+  const [sources, apis] = await Promise.all([
+    listRegistrySources(db, 200),
+    listRegistryApis(db, 100),
+  ])
+  const domainsByApiFamily = Object.fromEntries(
+    (apis as RegistryApi[]).map(api => {
+      const composition = api.apiComposition
+        ?.filter(item => item.status === 'current')
+        .sort((left, right) => right.version - left.version)[0]
+
+      return [
+        api.familyType,
+        {
+          defaultDomainCode: composition?.defaultDomainCode ?? 'default',
+          i18n: composition?.domainI18n ?? {},
+        },
+      ]
+    }),
+  )
+
+  return {
+    domainsByApiFamily,
+    sources: sources as RegistrySource[],
+  }
+})
 
 export const getSourcePageData = query(registryCodeSchema, async datasetCode => {
   const source = (await getRegistrySource(
