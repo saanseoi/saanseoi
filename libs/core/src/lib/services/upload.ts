@@ -3,7 +3,6 @@ import {
   getLatestDatasetForRegionSourceType,
   insertDataset,
   resetFailedDataset,
-  updateDatasetStatus,
   upsertIngestRunStatus,
 } from '../db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
@@ -98,6 +97,8 @@ const SOURCE_ALIASES: Record<string, string> = {
   hkgov: 'hkgov',
   'hkgov-had': 'hkgov-had',
   'hkgov-censtatd': 'hkgov-censtatd',
+  'hkgov-hyd': 'hkgov-hyd',
+  'hkgov-landsd': 'hkgov-landsd',
   'hkgov-pland-pu': 'hkgov-pland-pu',
   'hkgov-pland-new-town': 'hkgov-pland-new-town',
   'hkgov-dpo': 'hkgov-dpo',
@@ -571,7 +572,7 @@ async function ensureSchemaCompatible(
     throw new Error(
       [
         `Cannot validate schema drift against ${latestDataset.releaseCode}.`,
-        `Expected schema metadata for ${latestDataset.rawObjectKey}.`,
+        'Expected schema metadata in its release ingest run.',
       ].join(' '),
     )
   }
@@ -1081,10 +1082,6 @@ export async function registerUpload(
   const existingDataset = await getDatasetById(db, plan.releaseCode)
   const rawObjectKey = options.rawObjectKey ?? null
 
-  if (!rawObjectKey) {
-    throw new Error('A rawObjectKey is required for upload registration.')
-  }
-
   const now = new Date().toISOString()
 
   if (existingDataset) {
@@ -1106,103 +1103,13 @@ export async function registerUpload(
     'completed',
     now,
     now,
-    null,
-  )
-
-  await upsertIngestRunStatus(
-    db,
-    release.releaseId,
-    'stageDataset',
-    'completed',
-    now,
-    now,
     JSON.stringify({
-      rawObjectKey,
-      rowCount: inspection.rowCount,
-      schemaFieldCount: inspection.schema.length,
-    }),
-  )
-
-  return {
-    datasetId: release.datasetId,
-    plan,
-    inspection,
-    rawObjectKey,
-    releaseId: release.releaseId,
-  }
-}
-
-export async function requestUpload(
-  db: HarbourReadableDb & HarbourWritableDb,
-  options: RegisterUploadOptions,
-) {
-  const { plan, inspection } = await planUpload(db, options)
-  const existingDataset = await getDatasetById(db, plan.releaseCode)
-  const rawObjectKey = createRawObjectKey(plan)
-  const now = new Date().toISOString()
-
-  if (existingDataset) {
-    assertDatasetCanBeReuploaded(existingDataset, options.allowExistingDatasetStatuses)
-    await resetFailedDataset(db, plan, rawObjectKey, now, 'uploading')
-  } else {
-    await insertDataset(db, plan, rawObjectKey, now, 'uploading')
-  }
-  const release = await getDatasetById(db, plan.releaseCode)
-
-  if (!release?.releaseId) {
-    throw new Error(`Release not found after upload request: ${plan.releaseCode}`)
-  }
-
-  await upsertIngestRunStatus(
-    db,
-    release.releaseId,
-    'requestUpload',
-    'completed',
-    now,
-    now,
-    JSON.stringify({
-      releaseCode: plan.releaseCode,
-      rawObjectKey,
-      rowCount: inspection.rowCount,
+      inspection,
       schemaFingerprint: plan.schemaFingerprint,
       shardYear: plan.shardYear ?? null,
-      inspection,
     }),
   )
 
-  return {
-    datasetId: release.datasetId,
-    plan,
-    inspection,
-    rawObjectKey,
-    releaseId: release.releaseId,
-  }
-}
-
-export async function finaliseUpload(
-  db: HarbourReadableDb & HarbourWritableDb,
-  options: RegisterUploadOptions,
-) {
-  const { plan, inspection } = await planUpload(
-    db,
-    {
-      ...options,
-      allowExistingDatasetStatuses: [
-        ...(options.allowExistingDatasetStatuses ?? []),
-        'uploading',
-      ],
-    },
-    options.inspection,
-  )
-  const rawObjectKey = options.rawObjectKey ?? createRawObjectKey(plan)
-  const now = new Date().toISOString()
-  const release = await getDatasetById(db, plan.releaseCode)
-
-  if (!release?.releaseId) {
-    throw new Error(`Release not found: ${plan.releaseCode}`)
-  }
-
-  await updateDatasetStatus(db, release.releaseId, 'staged')
   await upsertIngestRunStatus(
     db,
     release.releaseId,
@@ -1211,7 +1118,7 @@ export async function finaliseUpload(
     now,
     now,
     JSON.stringify({
-      rawObjectKey,
+      ...(rawObjectKey ? { rawObjectKey } : {}),
       rowCount: inspection.rowCount,
       schemaFieldCount: inspection.schema.length,
     }),
