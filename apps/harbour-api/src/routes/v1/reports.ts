@@ -147,6 +147,7 @@ export const ingestionReportRoute = defineOpenAPIRoute<
       return c.json(
         {
           rows: await listIngestRuns(db, {
+            datasetCode: query.datasetCode,
             limit: query.limit,
             releaseCode: query.releaseCode,
             releaseId: query.releaseId,
@@ -204,6 +205,7 @@ export const releasesReportRoute = defineOpenAPIRoute<
       return c.json(
         {
           rows: await listReleases(db, c.env, environment, {
+            datasetCode: query.datasetCode,
             limit: query.limit,
             releaseCode: query.releaseCode,
             releaseId: query.releaseId,
@@ -232,6 +234,7 @@ export const processingActionsReportRoute = defineOpenAPIRoute<
       return c.json(
         {
           rows: await listProcessingActions(db, {
+            datasetCode: query.datasetCode,
             limit: query.limit,
             releaseCode: query.releaseCode,
             releaseId: query.releaseId,

@@ -21,6 +21,7 @@ import {
 } from '@repo/core/db/metaRegistry'
 import {
   datasetVariantForSource,
+  publisherCodeForSource,
   type HarbourJobMessage,
   type RegionCode,
   type ResourceType,
@@ -54,6 +55,10 @@ type ControlResult = {
   apiReleaseSetId?: string
   apiReleaseSetCode?: string
   apiReleaseSetStatus?: 'current' | 'draft'
+  apiReleaseSetPublications?: Array<{
+    apiCatalogRevisionCode?: string
+    apiReleaseSetCode: string
+  }>
   datasetId: string
   releaseCode: string
   releaseId: string
@@ -219,6 +224,7 @@ export async function handlePublishDataset(
     const datasetVariant = datasetVariantForSource(datasetType, dataset.source, {
       cohortKey: dataset.cohortKey,
       datasetCode: dataset.datasetCode,
+      sourceVariant: dataset.sourceVariant,
       sourceVersion: dataset.sourceVersion,
     })
     const compositionMembers = await listCurrentApiCompositionMembersForType(
@@ -315,6 +321,9 @@ export async function handlePublishDataset(
       ReturnType<typeof publishReleaseArtefacts>
     > | null = null
     let selectedReleaseSetStatus: 'current' | 'draft' = 'draft'
+    const apiReleaseSetPublications: NonNullable<
+      ControlResult['apiReleaseSetPublications']
+    > = []
     const newestReleaseSetIndex = releaseSets.length - 1
     const publishedAtMs = Date.now()
     for (const [index, releaseSet] of releaseSets.entries()) {
@@ -370,7 +379,8 @@ export async function handlePublishDataset(
         satisfiedRequiredMembers.has(memberKey),
       )
       const isNewestReleaseSet = index === newestReleaseSetIndex
-      const shouldPublishReleaseSet = releaseSetIsComplete && isNewestReleaseSet
+      const shouldPublishReleaseSet =
+        releaseSetIsComplete && (isCenstatdGeometry || isNewestReleaseSet)
       if (isNewestReleaseSet && shouldPublishReleaseSet) {
         selectedReleaseSetStatus = 'current'
       }
@@ -389,16 +399,18 @@ export async function handlePublishDataset(
         type: datasetType,
         // A first C&SD cohort makes its snapshot available to draft release
         // sets, but cannot publish them until every required companion is
-        // present. Once complete, all affected cohorts are published and the
-        // newest one becomes current.
-        deferApiReleaseSet: isCenstatdGeometry
-          ? !releaseSetIsComplete
-          : !shouldPublishReleaseSet,
+        // present. Once complete, publish every affected cohort in
+        // chronological order; the newest one becomes current.
+        deferApiReleaseSet: !shouldPublishReleaseSet,
         publishApiCatalogRevision: shouldPublishReleaseSet,
         updateDatasetRelease: isNewestReleaseSet,
       })
       if (shouldPublishReleaseSet) {
         selectedApiCatalogRevision = apiCatalogRevision
+        apiReleaseSetPublications.push({
+          apiCatalogRevisionCode: apiCatalogRevision?.code,
+          apiReleaseSetCode: releaseSet.code,
+        })
       }
     }
 
@@ -423,6 +435,7 @@ export async function handlePublishDataset(
       apiReleaseSetId: releaseSets.at(-1)?.id,
       apiReleaseSetCode: releaseSets.at(-1)?.code,
       apiReleaseSetStatus: selectedReleaseSetStatus,
+      apiReleaseSetPublications,
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
       releaseId: dataset.releaseId,
@@ -491,7 +504,8 @@ async function resolveSupportingSnapshotsForMember(
   cohortKey: string,
 ) {
   if (member.variant !== 'default') {
-    const publisherCode = member.variant.split(':')[0] ?? member.variant
+    const source = member.variant.split(':')[0] ?? member.variant
+    const publisherCode = publisherCodeForSource(source)
     const snapshots =
       await resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
         db,
@@ -500,7 +514,7 @@ async function resolveSupportingSnapshotsForMember(
         cohortKey,
         {
           publisherCode,
-          variant: member.variant.includes(':') ? member.variant : undefined,
+          variant: member.variant,
         },
       )
 
@@ -517,7 +531,7 @@ async function resolveSupportingSnapshotsForMember(
           member.resourceType,
           regionCode,
           cohortKey,
-          { publisherCode: member.variant },
+          { publisherCode },
         )
       return nextSnapshot ? [nextSnapshot] : []
     }
