@@ -8,7 +8,7 @@ Repo-local operating notes for Codex and similar agents.
 - Primary apps:
   - `apps/atlas-api`: Cloudflare Workers API built with Hono
   - `apps/harbour-api`: Cloudflare Workers API
-  - `apps/harbour-workers`: Cloudflare Workers ingestion/background logic
+  - `apps/harbour-workers`: Cloudflare Workers snapshot-cleanup queue consumer
   - `apps/harbour-cli`: Bun CLI for uploads and related data tasks
 - Shared libs:
   - `libs/core`

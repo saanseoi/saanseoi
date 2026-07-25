@@ -15,9 +15,7 @@ It also reflects the currently implemented ingest flow in:
 
 - `libs/core/src/lib/services/upload.ts`
 - `apps/harbour-api/src/lib/services/control.ts`
-- `apps/harbour-workers/src/lib/worker.ts`
-- `apps/harbour-workers/src/lib/services/division.ts`
-- `apps/harbour-workers/src/lib/services/address.ts`
+- `apps/harbour-cli/src/lib/localPipeline/`
 
 Geometry companions and provider variants follow the source-neutral contract in
 [`divisions-geometry.md`](./divisions-geometry.md). Source-specific catalogue facts,
@@ -40,8 +38,8 @@ The repository currently has four storage layers:
 4. `source`
    - source-specific snapshots and version history used during ingest
 
-Raw uploaded parquet files are stored in `R2`. Canonical and operational metadata live
-in D1.
+Intermediate parquet is local and transient. Publisher source archives are immutable R2
+provenance; canonical and operational metadata live in D1.
 
 ## Key Decisions In Code
 
@@ -361,8 +359,8 @@ Notes:
 
 - `releaseId` exists on current `places`
 - `address2dId` and `address3dId` are nullable
-- place ingestion is not implemented yet in `harbour-workers`, but the canonical schema
-  and atlas API queries exist
+- place ingestion is not implemented yet, but the canonical schema and Atlas API queries
+  exist
 
 ### `placesI18n`
 
@@ -624,11 +622,11 @@ Implemented relationships are:
 `libs/core/src/lib/services/upload.ts` plans the upload, infers metadata, writes the
 parquet file to `R2`, and registers a release in `meta`.
 
-This step creates the initial control-plane record before worker processing starts.
+This step creates the initial control-plane record before local processing starts.
 
-### Worker Phases Implemented Today
+### Local processing phases
 
-The worker currently reports these phases:
+The local Harbour CLI records these processing phases:
 
 - `processDataset`
 - `extractDivisions`
@@ -641,8 +639,8 @@ Important:
 
 - division datasets are implemented
 - address datasets are implemented
-- place datasets are not implemented in `apps/harbour-workers/src/lib/worker.ts`
-- street reconciliation is not a standalone worker pipeline yet
+- place datasets are not implemented yet
+- street reconciliation is not a standalone pipeline yet
 
 ### Division Processing
 
@@ -701,7 +699,7 @@ These items appeared in the older spec but are not implemented as described:
 - `issues`
 - `streetSegment`
 - `segment`
-- a place worker pipeline with phases such as `extractPlaces`, `reconcileAddress2d`,
+- a place pipeline with phases such as `extractPlaces`, `reconcileAddress2d`,
   `deriveAddress3d`, or `refreshFts`
 - canonical `ot*`-prefixed columns in serving tables
 - month-scoped uploaded datasets as the primary identity model
