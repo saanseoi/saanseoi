@@ -6,6 +6,7 @@ import type {
   ResolvedAddressChunkArtefact,
 } from './types'
 import { buildSourceReleaseId } from '../../db/source'
+import { buildAddressBuildingNumberLookupRows } from './normalisation'
 
 export type AddressSqlImportTarget =
   | 'source'
@@ -37,6 +38,7 @@ const NORMALIZED_I18N_TABLE = 'stagingAddresses2dI18n'
 const SOURCE_CHANGED_TABLE = 'stagingAddresses2dChanged'
 const RESOLVED_ROWS_TABLE = 'zzAddressImportResolvedRows'
 const RESOLVED_I18N_TABLE = 'zzAddressImportResolvedI18n'
+const RESOLVED_BUILDING_LOOKUPS_TABLE = 'zzAddressImportResolvedBuildingNumberLookups'
 const ADDRESS_ALIAS_ID_NAMESPACE = 'dd44d1a8-4b17-58a1-b1db-8dc8a40f180a'
 
 const NORMALIZED_ROW_COLUMNS = [
@@ -137,6 +139,19 @@ const RESOLVED_I18N_COLUMNS = [
   'phaseRef',
   'estateName',
   'streetName',
+  'createdAt',
+  'updatedAt',
+] as const
+
+const RESOLVED_BUILDING_LOOKUP_COLUMNS = [
+  'runId',
+  'addressId',
+  'versionHash',
+  'snapshotId',
+  'buildingNumber',
+  'numericStem',
+  'evidence',
+  'derivation',
   'createdAt',
   'updatedAt',
 ] as const
@@ -303,6 +318,7 @@ export function buildAddressResolvedSqlImportFiles(
       ? [
           `DELETE FROM zzAddressImportResolvedRows WHERE runId = ${sqlLiteral(runId)};`,
           `DELETE FROM zzAddressImportResolvedI18n WHERE runId = ${sqlLiteral(runId)};`,
+          `DELETE FROM ${RESOLVED_BUILDING_LOOKUPS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
         ]
       : []),
     ...buildInsertStatements(
@@ -369,11 +385,18 @@ export function buildAddressResolvedSqlImportFiles(
       ),
       options.maxStatementBytes,
     ),
+    ...buildInsertStatements(
+      RESOLVED_BUILDING_LOOKUPS_TABLE,
+      RESOLVED_BUILDING_LOOKUP_COLUMNS,
+      buildResolvedBuildingLookupInsertRows(artefact, runId),
+      options.maxStatementBytes,
+    ),
   ]
   const currentStatements = [
     buildAddressResolvedStagingSchemaSql(),
     `DELETE FROM zzAddressImportResolvedRows WHERE runId = ${sqlLiteral(runId)};`,
     `DELETE FROM zzAddressImportResolvedI18n WHERE runId = ${sqlLiteral(runId)};`,
+    `DELETE FROM ${RESOLVED_BUILDING_LOOKUPS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
     ...buildInsertStatements(
       'zzAddressImportResolvedRows',
       RESOLVED_ROW_COLUMNS,
@@ -443,6 +466,13 @@ export function buildAddressResolvedSqlImportFiles(
       {
         mode: 'insert',
       },
+    ),
+    ...buildInsertStatements(
+      RESOLVED_BUILDING_LOOKUPS_TABLE,
+      RESOLVED_BUILDING_LOOKUP_COLUMNS,
+      buildResolvedBuildingLookupInsertRows(artefact, runId),
+      options.maxStatementBytes,
+      { mode: 'insert' },
     ),
   ]
 
@@ -612,13 +642,48 @@ CREATE TABLE IF NOT EXISTS zzAddressImportResolvedI18n (
   updatedAt TEXT NOT NULL,
   PRIMARY KEY (runId, addressId, locale)
 );
-CREATE INDEX IF NOT EXISTS zzAddressImportResolvedI18n_run_address_idx ON zzAddressImportResolvedI18n (runId, addressId);`.trim()
+CREATE INDEX IF NOT EXISTS zzAddressImportResolvedI18n_run_address_idx ON zzAddressImportResolvedI18n (runId, addressId);
+CREATE TABLE IF NOT EXISTS ${RESOLVED_BUILDING_LOOKUPS_TABLE} (
+  runId TEXT NOT NULL,
+  addressId TEXT NOT NULL,
+  versionHash TEXT NOT NULL,
+  snapshotId TEXT NOT NULL,
+  buildingNumber TEXT NOT NULL,
+  numericStem TEXT,
+  evidence TEXT NOT NULL,
+  derivation TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL,
+  PRIMARY KEY (runId, addressId, buildingNumber)
+);
+CREATE INDEX IF NOT EXISTS ${RESOLVED_BUILDING_LOOKUPS_TABLE}_run_address_idx ON ${RESOLVED_BUILDING_LOOKUPS_TABLE} (runId, addressId);`.trim()
 }
 
 function buildAddressResolvedStagingDropSql() {
   return `
 DROP TABLE IF EXISTS ${RESOLVED_I18N_TABLE};
+DROP TABLE IF EXISTS ${RESOLVED_BUILDING_LOOKUPS_TABLE};
 DROP TABLE IF EXISTS ${RESOLVED_ROWS_TABLE};`.trim()
+}
+
+function buildResolvedBuildingLookupInsertRows(
+  artefact: ResolvedAddressChunkArtefact,
+  runId: string,
+) {
+  return artefact.rows.flatMap(row =>
+    buildAddressBuildingNumberLookupRows(row.i18n).map(lookup => ({
+      runId,
+      addressId: row.addressId,
+      versionHash: row.versionHash,
+      snapshotId: row.base.snapshotId,
+      buildingNumber: lookup.buildingNumber,
+      numericStem: lookup.numericStem,
+      evidence: lookup.evidence,
+      derivation: lookup.derivation,
+      createdAt: row.base.createdAt,
+      updatedAt: row.base.updatedAt,
+    })),
+  )
 }
 
 function buildAddressSourceApplySql(message: DatasetProcessingMessage, runId: string) {
@@ -786,6 +851,19 @@ SET isCurrent = 0,
 FROM changedExisting
 WHERE address2dI18n.isCurrent = 1
   AND address2dI18n.addressId = changedExisting.addressId;
+WITH changedExisting AS (
+  SELECT DISTINCT r.changedExistingId AS addressId
+  FROM zzAddressImportResolvedRows r
+  WHERE r.runId = ${run}
+    AND r.changed = 1
+    AND r.changedExistingId IS NOT NULL
+)
+UPDATE address2dBuildingNumberLookup
+SET isCurrent = 0,
+  updatedAt = datetime('now')
+FROM changedExisting
+WHERE address2dBuildingNumberLookup.isCurrent = 1
+  AND address2dBuildingNumberLookup.addressId = changedExisting.addressId;
 INSERT INTO address2d (
   id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId,
   hamletId, microhoodId, villageId, neighbourhoodId, macrohoodId, townId,
@@ -844,6 +922,36 @@ ON CONFLICT(addressId, versionHash, locale) DO UPDATE SET
   phaseRef = excluded.phaseRef,
   estateName = excluded.estateName,
   streetName = excluded.streetName,
+  updatedAt = excluded.updatedAt;
+INSERT INTO address2dBuildingNumberLookup (
+  addressId, versionHash, sourceReleaseId, snapshotId, isCurrent,
+  buildingNumber, numericStem, evidence, derivation, createdAt, updatedAt
+)
+SELECT
+  lookup.addressId,
+  lookup.versionHash,
+  ${releaseId},
+  lookup.snapshotId,
+  1,
+  lookup.buildingNumber,
+  lookup.numericStem,
+  lookup.evidence,
+  lookup.derivation,
+  lookup.createdAt,
+  lookup.updatedAt
+FROM ${RESOLVED_BUILDING_LOOKUPS_TABLE} lookup
+WHERE lookup.runId = ${run}
+  AND EXISTS (
+    SELECT 1 FROM zzAddressImportResolvedRows r
+    WHERE r.runId = ${run} AND r.addressId = lookup.addressId AND r.changed = 1
+  )
+ON CONFLICT(addressId, versionHash, buildingNumber) DO UPDATE SET
+  isCurrent = 1,
+  sourceReleaseId = excluded.sourceReleaseId,
+  snapshotId = excluded.snapshotId,
+  numericStem = excluded.numericStem,
+  evidence = excluded.evidence,
+  derivation = excluded.derivation,
   updatedAt = excluded.updatedAt;
 INSERT INTO snapshotVersionChanges (
   snapshotId, recordType, recordId, locale, versionHash, operation,
@@ -969,26 +1077,17 @@ WHERE EXISTS (
 INSERT INTO address2dBuildingNumberLookup (
   snapshotId, addressId, buildingNumber, numericStem, evidence, derivation, createdAt, updatedAt
 )
-SELECT DISTINCT
+SELECT
   lookup.snapshotId,
   lookup.addressId,
-  upper(trim(lookup.number)),
-  CASE WHEN upper(trim(lookup.number)) GLOB '[0-9]*' THEN rtrim(upper(trim(lookup.number)), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') ELSE NULL END,
-  'source_endpoint',
-  NULL,
+  lookup.buildingNumber,
+  lookup.numericStem,
+  lookup.evidence,
+  lookup.derivation,
   lookup.createdAt,
   lookup.updatedAt
-FROM (
-  SELECT snapshotId, addressId, buildingNumberFrom AS number, createdAt, updatedAt
-  FROM zzAddressImportResolvedI18n
-  WHERE runId = ${run}
-  UNION ALL
-  SELECT snapshotId, addressId, buildingNumberTo AS number, createdAt, updatedAt
-  FROM zzAddressImportResolvedI18n
-  WHERE runId = ${run}
-) lookup
-WHERE lookup.number IS NOT NULL
-  AND trim(lookup.number) <> ''
+FROM ${RESOLVED_BUILDING_LOOKUPS_TABLE} lookup
+WHERE lookup.runId = ${run}
   AND EXISTS (
     SELECT 1 FROM zzAddressImportResolvedRows r
     WHERE r.runId = ${run} AND r.addressId = lookup.addressId AND r.changed = 1
@@ -1093,7 +1192,14 @@ function sqlLiteral(value: unknown): string {
     return value ? '1' : '0'
   }
 
-  return `'${String(value).replaceAll("'", "''")}'`
+  const text = String(value)
+  const parts = text.split('\0')
+
+  if (parts.length === 1) {
+    return `'${text.replaceAll("'", "''")}'`
+  }
+
+  return parts.map(part => `'${part.replaceAll("'", "''")}'`).join(' || char(0) || ')
 }
 
 function jsonText(value: unknown): string | null {

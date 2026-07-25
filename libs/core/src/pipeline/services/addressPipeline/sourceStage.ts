@@ -113,8 +113,8 @@ async function writeHkgovSourceRows(
         asString(row.raw.enBlockNumber) ?? asString(row.raw.zhHantBlockNumber),
       blockDescriptor:
         asString(row.raw.enBlockDescriptor) ?? asString(row.raw.zhHantBlockDescriptor),
-      phaseName: null,
-      phaseNumber: null,
+      phaseName: asString(row.raw.enPhaseName) ?? asString(row.raw.zhHantPhaseName),
+      phaseNumber: asString(row.raw.enPhaseRef) ?? asString(row.raw.zhHantPhaseRef),
       floor: null,
       unit: null,
       streetNumber:

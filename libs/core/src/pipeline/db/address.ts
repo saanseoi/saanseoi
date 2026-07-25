@@ -35,6 +35,7 @@ const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 20
 const CURRENT_ADDRESS2D_BUILDING_LOOKUP_COLUMN_COUNT = 8
 const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 21
 const HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 20
+const HISTORY_ADDRESS2D_BUILDING_LOOKUP_VERSION_COLUMN_COUNT = 11
 const HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 const SEEN_ADDRESS_ID_INSERT_COLUMN_COUNT = 1
 const ADDRESS_DIVISION_REFERENCE_COLUMNS = [
@@ -843,6 +844,18 @@ export async function closeCurrentAddressVersions(
         )
         .run(),
     )
+    await runWithWriteRetry(() =>
+      db
+        .update(historySchema.address2dBuildingNumberLookup)
+        .set({ isCurrent: false, updatedAt: now })
+        .where(
+          and(
+            eq(historySchema.address2dBuildingNumberLookup.isCurrent, true),
+            inArray(historySchema.address2dBuildingNumberLookup.addressId, chunk),
+          ),
+        )
+        .run(),
+    )
   }
 
   await recordSnapshotVersionChanges(db, {
@@ -1388,6 +1401,25 @@ export async function insertAddressVersionRows(
 
   if (i18nRows.length > 0) {
     await insertAddressVersionsI18nInChunks(historyDb, i18nRows)
+    const versionHashesByAddressId = new Map(
+      baseRows.map(row => [row.id, row.versionHash]),
+    )
+    const lookupRows = buildAddressBuildingNumberLookupRows(i18nRows).flatMap(row => {
+      const versionHash = versionHashesByAddressId.get(row.addressId)
+      if (!versionHash) return []
+      return [
+        {
+          ...row,
+          versionHash,
+          sourceReleaseId: context.releaseId,
+          snapshotId: context.snapshotId,
+          isCurrent: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ]
+    })
+    await insertAddressBuildingNumberLookupVersionsInChunks(historyDb, lookupRows)
     await recordSnapshotVersionChanges(historyDb, {
       snapshotId: context.snapshotId,
       sourceReleaseId: context.releaseId,
@@ -1399,6 +1431,48 @@ export async function insertAddressVersionRows(
         versionHash: row.versionHash,
       })),
     })
+  }
+}
+
+async function insertAddressBuildingNumberLookupVersionsInChunks(
+  db: HarbourWritableDb,
+  rows: Array<
+    ReturnType<typeof buildAddressBuildingNumberLookupRows>[number] & {
+      sourceReleaseId: string
+      snapshotId: string
+      isCurrent: boolean
+      versionHash: string
+      createdAt: string
+      updatedAt: string
+    }
+  >,
+) {
+  for (const chunk of chunkArray(
+    rows,
+    getMaxRowsPerInsert(HISTORY_ADDRESS2D_BUILDING_LOOKUP_VERSION_COLUMN_COUNT),
+  )) {
+    await runWithWriteRetry(() =>
+      db
+        .insert(historySchema.address2dBuildingNumberLookup)
+        .values(chunk)
+        .onConflictDoUpdate({
+          target: [
+            historySchema.address2dBuildingNumberLookup.addressId,
+            historySchema.address2dBuildingNumberLookup.versionHash,
+            historySchema.address2dBuildingNumberLookup.buildingNumber,
+          ],
+          set: {
+            isCurrent: true,
+            sourceReleaseId: excluded('sourceReleaseId'),
+            snapshotId: excluded('snapshotId'),
+            numericStem: excluded('numericStem'),
+            evidence: excluded('evidence'),
+            derivation: excluded('derivation'),
+            updatedAt: excluded('updatedAt'),
+          },
+        })
+        .run(),
+    )
   }
 }
 
