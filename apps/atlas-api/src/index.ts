@@ -5,7 +5,7 @@ import { cors } from 'hono/cors'
 import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 
-import { createCurrentDb, createMetaDb } from '@repo/db'
+import { createCurrentDb, createHistoryDb, createMetaDb } from '@repo/db'
 import { authenticateApiKey } from './lib/api-key-auth'
 import { isTransientD1ReadError } from './lib/d1'
 import { defaultOpenAPIHook } from './lib/openapi'
@@ -15,7 +15,8 @@ import { divisionRoutes } from './routes/v0/divisions'
 import { addressRoutes } from './routes/v0/addresses'
 import { placeRoutes } from './routes/v0/places'
 import { registryRoutes } from './routes/v0/registry'
-import { sourceArchiveRoutes } from './routes/v0/sourceArchives'
+import { managedAssetRoutes } from './routes/v0/assets'
+import { streetRoutes } from './routes/v0/streets'
 import type { AppEnv } from './types'
 
 const app = new OpenAPIHono<AppEnv>({
@@ -45,6 +46,11 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
   app.use(path, async (c, next) => {
     c.set('metaDb', createMetaDb(c.env.DB_META))
     c.set('currentDb', createCurrentDb(c.env.DB_CURRENT))
+    c.set('historyDbs', [
+      createHistoryDb(c.env.DB_HISTORY_HK_BEFORE),
+      createHistoryDb(c.env.DB_HISTORY_HK_2025),
+      createHistoryDb(c.env.DB_HISTORY_HK_2026),
+    ])
     await next()
   })
 }
@@ -92,7 +98,7 @@ function isPublicMetadataPath(path: string) {
   return (
     path.startsWith('/v0/meta/') ||
     path.startsWith('/v0/api/') ||
-    path.startsWith('/v0/source-archives/')
+    path.startsWith('/v0/assets/')
   )
 }
 
@@ -136,7 +142,8 @@ app.openapiRoutes([
   ...divisionRoutes,
   ...addressRoutes,
   ...placeRoutes,
-  ...sourceArchiveRoutes,
+  ...managedAssetRoutes,
+  ...streetRoutes,
 ] as const)
 
 app.get('/openapi', c =>
