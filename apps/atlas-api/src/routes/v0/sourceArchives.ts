@@ -54,7 +54,9 @@ export const sourceArchiveRoute = defineOpenAPIRoute<
       sha256,
       fileName,
     ].join('/')
-    const object = await c.env.R2_RAW.get(key)
+    const object = await c.env.R2_RAW.get(key, {
+      range: c.req.raw.headers,
+    })
 
     if (!object) {
       return c.json(
@@ -69,6 +71,7 @@ export const sourceArchiveRoute = defineOpenAPIRoute<
 
     const headers = new Headers({
       'access-control-allow-origin': '*',
+      'accept-ranges': 'bytes',
       'cache-control': 'public, max-age=31536000, immutable',
       'content-disposition': `attachment; filename="${fileName}"`,
       'content-type':
@@ -79,7 +82,29 @@ export const sourceArchiveRoute = defineOpenAPIRoute<
     })
     headers.set('etag', object.httpEtag)
 
-    return new Response(object.body, { headers })
+    if (c.req.header('if-none-match') === object.httpEtag) {
+      return new Response(null, { headers, status: 304 })
+    }
+
+    const range = object.range
+    if (range) {
+      const offset =
+        'offset' in range && typeof range.offset === 'number'
+          ? range.offset
+          : 'suffix' in range
+            ? object.size - Math.min(range.suffix, object.size)
+            : 0
+      const length =
+        'length' in range && typeof range.length === 'number'
+          ? Math.min(range.length, object.size - offset)
+          : object.size - offset
+      headers.set(
+        'content-range',
+        `bytes ${offset}-${offset + length - 1}/${object.size}`,
+      )
+    }
+
+    return new Response(object.body, { headers, status: range ? 206 : 200 })
   },
 })
 
