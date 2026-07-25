@@ -48,7 +48,7 @@ export async function handleRegisterUploadRequest(
   return {
     datasetCode: registered.plan.datasetCode,
     datasetId: registered.datasetId,
-    localInputKey: createRawObjectKey(registered.plan),
+    rawObjectKey: createRawObjectKey(registered.plan),
     releaseCode: registered.plan.releaseCode,
     releaseId: registered.releaseId,
     rowCount: registered.plan.rowCount,
@@ -62,7 +62,7 @@ export async function handleRegisterUploadRequest(
 function createSchemaFingerprintResolver(
   db: HarbourReadableDb,
 ): SchemaFingerprintResolver {
-  return async (_localInputKey, releaseCode) => {
+  return async (_rawObjectKey, releaseCode) => {
     if (!releaseCode) return null
 
     return readSchemaFingerprint(
