@@ -1,69 +1,67 @@
 import { createRoute, defineOpenAPIRoute, z } from '@hono/zod-openapi'
+import { eq, metaAssets } from '@repo/db'
 
 import { ErrorResponseSchema } from '../../schema'
 import type { AppEnv } from '../../types'
 
-const SourceArchiveParamsSchema = z.object({
-  datasetId: z.string().regex(/^[a-z0-9_-]+$/i),
-  fileName: z.enum(['manifest.json', 'source.zip']),
-  publisher: z.literal('hkgov-csdi'),
-  regionCode: z.literal('hk'),
-  releaseSlot: z.string().regex(/^\d{4}-Q[1-4]$/),
-  sha256: z.string().regex(/^[a-f0-9]{64}$/),
-})
+const AssetParamsSchema = z.object({ assetId: z.string().uuid() })
 
-const sourceArchiveRouteConfig = createRoute({
+const managedAssetRouteConfig = createRoute({
   method: 'get',
-  path: '/v0/source-archives/{regionCode}/{publisher}/{datasetId}/{releaseSlot}/{sha256}/{fileName}',
-  operationId: 'downloadSourceArchive',
-  tags: ['Source archives'],
-  request: { params: SourceArchiveParamsSchema },
+  path: '/v0/assets/{assetId}',
+  operationId: 'downloadManagedAsset',
+  tags: ['Source assets'],
+  request: { params: AssetParamsSchema },
   responses: {
     200: {
       content: {
         'application/octet-stream': {
           schema: z.string().openapi({
-            description:
-              'An immutable publisher source archive or its provenance manifest.',
+            description: 'An immutable public-source artifact held in private R2.',
           }),
         },
       },
-      description: 'Download an immutable publisher source archive or manifest.',
+      description: 'Stream a registered immutable source asset.',
     },
     404: {
       content: { 'application/json': { schema: ErrorResponseSchema } },
-      description: 'Source archive not found.',
+      description: 'Managed asset not found.',
     },
   },
 })
 
-export const sourceArchiveRoute = defineOpenAPIRoute<
-  typeof sourceArchiveRouteConfig,
+export const managedAssetRoute = defineOpenAPIRoute<
+  typeof managedAssetRouteConfig,
   AppEnv
 >({
-  route: sourceArchiveRouteConfig,
+  route: managedAssetRouteConfig,
   handler: async c => {
-    const { datasetId, fileName, publisher, regionCode, releaseSlot, sha256 } =
-      c.req.valid('param')
-    const key = [
-      'source-archives',
-      regionCode,
-      publisher,
-      datasetId,
-      releaseSlot,
-      sha256,
-      fileName,
-    ].join('/')
-    const object = await c.env.R2_RAW.get(key, {
+    const { assetId } = c.req.valid('param')
+    const asset = await c.var.metaDb
+      .select({ assetKey: metaAssets.assetKey })
+      .from(metaAssets)
+      .where(eq(metaAssets.id, assetId))
+      .get()
+    if (!asset) {
+      return c.json(
+        {
+          httpStatus: 404,
+          error: 'asset_not_found',
+          message: 'Managed asset not found.',
+        },
+        404,
+      )
+    }
+
+    const object = await c.env.R2_ASSETS.get(asset.assetKey, {
       range: c.req.raw.headers,
     })
-
     if (!object) {
       return c.json(
         {
           httpStatus: 404,
-          error: 'source_archive_not_found',
-          message: 'Source archive not found.',
+          error: 'asset_not_found',
+          message: 'Managed asset not found.',
         },
         404,
       )
@@ -73,13 +71,9 @@ export const sourceArchiveRoute = defineOpenAPIRoute<
       'access-control-allow-origin': '*',
       'accept-ranges': 'bytes',
       'cache-control': 'public, max-age=31536000, immutable',
-      'content-disposition': `attachment; filename="${fileName}"`,
-      'content-type':
-        fileName === 'manifest.json'
-          ? 'application/json; charset=utf-8'
-          : 'application/zip',
       'x-content-type-options': 'nosniff',
     })
+    object.writeHttpMetadata(headers)
     headers.set('etag', object.httpEtag)
 
     if (c.req.header('if-none-match') === object.httpEtag) {
@@ -103,9 +97,8 @@ export const sourceArchiveRoute = defineOpenAPIRoute<
         `bytes ${offset}-${offset + length - 1}/${object.size}`,
       )
     }
-
     return new Response(object.body, { headers, status: range ? 206 : 200 })
   },
 })
 
-export const sourceArchiveRoutes = [sourceArchiveRoute] as const
+export const managedAssetRoutes = [managedAssetRoute] as const

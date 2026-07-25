@@ -210,6 +210,66 @@ describe('atlas-api', () => {
     expect(await res.text()).toBe('publisher archive')
   })
 
+  test('GET /v0/source-archives honours ETag revalidation and byte ranges', async () => {
+    const datasetId = 'hyd_rcd_1632211119955_31211'
+    const sha256 = 'a'.repeat(64)
+    const key = `source-archives/hk/hkgov-csdi/${datasetId}/2025-Q1/${sha256}/source.zip`
+    const archive = new Blob(['publisher archive'])
+    const rangeBody = new Blob(['publisher'])
+    const { env } = createEnv({
+      R2_RAW: {
+        async get(requestedKey: string, options?: R2GetOptions) {
+          if (requestedKey !== key) return null
+
+          const requestedRange = options?.range
+          const range =
+            requestedRange instanceof Headers &&
+            requestedRange.get('range') === 'bytes=0-8'
+              ? { length: 9, offset: 0 }
+              : undefined
+          return {
+            body: range ? rangeBody.stream() : archive.stream(),
+            httpEtag: '"source-archive-etag"',
+            range,
+            size: archive.size,
+          }
+        },
+      } as unknown as R2Bucket,
+    })
+    const url = `http://localhost/v0/source-archives/hk/hkgov-csdi/${datasetId}/2025-Q1/${sha256}/source.zip`
+
+    const conditional = await app.fetch(
+      new Request(url, { headers: { 'if-none-match': '"source-archive-etag"' } }),
+      env,
+    )
+    expect(conditional.status).toBe(304)
+    expect(conditional.headers.get('etag')).toBe('"source-archive-etag"')
+
+    const ranged = await app.fetch(
+      new Request(url, { headers: { range: 'bytes=0-8' } }),
+      env,
+    )
+    expect(ranged.status).toBe(206)
+    expect(ranged.headers.get('accept-ranges')).toBe('bytes')
+    expect(ranged.headers.get('content-range')).toBe(`bytes 0-8/${archive.size}`)
+    expect(await ranged.text()).toBe('publisher')
+  })
+
+  test('GET /v0/assets is public but resolves only registered assets', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/assets/00000000-0000-4000-8000-000000000001'),
+      env,
+    )
+
+    expect(res.status).toBe(404)
+    expect((await res.json()) as unknown).toEqual({
+      httpStatus: 404,
+      error: 'asset_not_found',
+      message: 'Managed asset not found.',
+    })
+  })
+
   test('GET /v0/meta/d1-placement-probe returns timings for all D1 bindings', async () => {
     const { env } = createEnv()
     const res = await app.fetch(
@@ -266,6 +326,20 @@ describe('atlas-api', () => {
   test('GET /v0/divisions rejects an absent API key', async () => {
     const { env } = createEnv()
     const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
+
+    expect(res.status).toBe(401)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'invalid_api_key',
+      message: 'A valid API key is required.',
+    })
+  })
+
+  test('GET /v0/hk/streets/:id requires an API key', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/hk/streets/landsd-street-notice-example'),
+      env,
+    )
 
     expect(res.status).toBe(401)
     expect((await res.json()) as unknown).toEqual({
