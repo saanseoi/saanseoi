@@ -61,7 +61,7 @@ export type RegistryApi = {
   apiComposition?: Array<{
     id: string
     defaultDomainCode?: string | null
-    domainI18n?: Record<string, LocalisedRow[]> | null
+    i18n?: Record<string, LocalisedRow[]> | null
     status: string
     version: number
   }>
