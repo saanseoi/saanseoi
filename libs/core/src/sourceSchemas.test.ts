@@ -14,6 +14,12 @@ describe('sourceSchemas', () => {
         sourceVersion: '2025-09-24.0',
       }),
     ).resolves.toBe('1.12.0')
+    await expect(
+      resolveSourceSchemaVersion({
+        source: 'overture',
+        sourceVersion: '2026-07-22.0',
+      }),
+    ).resolves.toBe('1.18.0')
   })
 
   test('resolves the mapped HAD source schema version by source release', async () => {
@@ -23,6 +29,15 @@ describe('sourceSchemas', () => {
         sourceVersion: '2022',
       }),
     ).resolves.toBe('1.2')
+  })
+
+  test('uses the stable LandsD Place Name schema profile for dated releases', async () => {
+    await expect(
+      resolveSourceSchemaVersion({
+        source: 'hkgov-landsd',
+        sourceVersion: '2026-06-10.0',
+      }),
+    ).resolves.toBe('1.0')
   })
 
   test('resolves C&SD source schema versions', async () => {
@@ -70,13 +85,13 @@ describe('sourceSchemas', () => {
     await expect(
       assertKnownSafeSourceRelease({
         source: 'overture',
-        sourceVersion: '2026-06-24.0',
+        sourceVersion: '2026-08-19.0',
       }),
     ).rejects.toThrow(
-      `Overture sourceVersion 2026-06-24.0 is not marked as a known safe release.`,
+      `Overture sourceVersion 2026-08-19.0 is not marked as a known safe release.`,
     )
 
-    expect(latestKnownSafe?.version).toBe('2026-06-17.0')
+    expect(latestKnownSafe?.version).toBe('2026-07-22.0')
   })
 
   test('rejects unmapped older Overture releases as not known safe', async () => {
