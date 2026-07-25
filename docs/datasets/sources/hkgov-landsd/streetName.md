@@ -29,12 +29,17 @@ evidence.
 
 ## Parsing and application
 
-`saanseoi ingest:hkgov-landsd-streets --target preview|production` pairs English and
-Traditional Chinese page rows by notice identity. It parses the linked bilingual PDFs
-with their fixed `Description`, `Name`, and `Previous G.N.` layout. Rows are paired by
-notice identity, exact bilingual name, consistent previous-notice references, and only
-then the per-notice ordinal. An unsupported layout, PDF extraction failure, or ambiguous
-pairing is an operator-report error and blocks publication.
+`saanseoi ingest:hkgov-landsd-streets --target local|preview|production` pairs English
+and Traditional Chinese page rows by notice identity. It parses the linked bilingual
+PDFs with their fixed `Description`, `Name`, and `Previous G.N.` layout. Rows are paired
+by notice identity, exact bilingual name, consistent previous-notice references, and
+only then the per-notice ordinal. An unsupported layout, PDF extraction failure, or
+ambiguous pairing is an operator-report error and blocks publication.
+
+For `--target local`, immutable evidence and manifests are registered in the local
+metadata database and written to the local Wrangler R2 state. The resulting links use
+the local Atlas asset endpoint, so a local release remains inspectable without sending
+publisher evidence to a remote environment.
 
 Canonical lifecycle resolution uses explicit prior Government Notice references only;
 street names are never used as identity or as a fuzzy target matcher. A deletion updates
