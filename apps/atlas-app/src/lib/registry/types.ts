@@ -58,6 +58,13 @@ export type RegistryApi = {
   publishedAt?: string | null
   deprecatedAt?: string | null
   retiredAt?: string | null
+  apiComposition?: Array<{
+    id: string
+    defaultDomainCode?: string | null
+    domainI18n?: Record<string, LocalisedRow[]> | null
+    status: string
+    version: number
+  }>
   releases?: ApiRelease[]
 }
 
@@ -124,7 +131,8 @@ export type RegistrySource = {
   releaseType: string
   releaseFrequency: string
   theme: string
-  type: string
+  sourceVariant: string
+  resourceTypes: string[]
   sourceUrl?: string | null
   licenseId?: string | null
   license?: {
