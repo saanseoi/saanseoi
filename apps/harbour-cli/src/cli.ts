@@ -9,8 +9,10 @@ import {
 import { runHkgovPlandBackfillCommand } from './lib/commands/backfillHkgovPland.ts'
 import { runHkgovPlandPrepCommand } from './lib/commands/hkgovPland.ts'
 import { runInspectCommand } from './lib/commands/inspect.ts'
+import { runLandsdStreetIngestCommand } from './lib/commands/ingestLandsdStreets.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
+import { runUpdateCommand } from './lib/commands/update.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
 import { runUploadInitCommand } from './lib/commands/uploadInit.ts'
 import {
@@ -49,6 +51,9 @@ async function main() {
       return
     case 'ingest-hkgov-dpo-local':
       await runHkgovAlsLocalIngestCommand(args, target, printUsage)
+      return
+    case 'ingest:hkgov-landsd-streets':
+      await runLandsdStreetIngestCommand(args, target, printUsage)
       return
     case 'prepare-hkgov-pland':
     case 'prep-hkgov-pland':
@@ -115,6 +120,9 @@ async function main() {
       return
     case 'upload:init':
       await runUploadInitCommand(args, printUsage)
+      return
+    case 'update':
+      await runUpdateCommand(args, target, printUsage)
       return
     default:
       throw new Error(`Unsupported harbour command: ${args.command}`)
