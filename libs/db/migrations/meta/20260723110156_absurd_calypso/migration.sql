@@ -6,7 +6,13 @@ CREATE TABLE `datasetResourceTypes` (
 );
 --> statement-breakpoint
 ALTER TABLE `datasets` ADD `sourceVariant` text DEFAULT 'default' NOT NULL;--> statement-breakpoint
-ALTER TABLE `releases` ADD `resourceType` text NOT NULL;--> statement-breakpoint
+ALTER TABLE `releases` ADD `resourceType` text NOT NULL DEFAULT 'address';--> statement-breakpoint
+INSERT INTO `datasetResourceTypes` (`datasetId`, `resourceType`)
+SELECT `id`, `type` FROM `datasets`;--> statement-breakpoint
+UPDATE `releases`
+SET `resourceType` = (
+  SELECT `type` FROM `datasets` WHERE `datasets`.`id` = `releases`.`datasetId`
+);--> statement-breakpoint
 DROP INDEX IF EXISTS `datasets_region_theme_type_idx`;--> statement-breakpoint
 DROP INDEX IF EXISTS `releases_datasetId_sourceVersion_unique_idx`;--> statement-breakpoint
 DROP INDEX IF EXISTS `snapshotLineages_primaryDataset_variant_unique_idx`;--> statement-breakpoint
