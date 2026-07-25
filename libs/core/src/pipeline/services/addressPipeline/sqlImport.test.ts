@@ -133,6 +133,55 @@ describe('HKGov ALS identity alias SQL', () => {
   })
 })
 
+describe('address SQL string literals', () => {
+  test('represents NUL separators as SQLite expressions', () => {
+    const artefact = {
+      kind: 'address.normalised.v1',
+      processingRunStartedAt: '2026-07-18T00:00:00.000Z',
+      releaseId: 'release-address',
+      rowEnd: 1,
+      rowStart: 0,
+      rows: [
+        {
+          base: {
+            divisionSnapshotId: 'division-snapshot',
+            streetSnapshotId: null,
+            streetId: null,
+            hamletId: null,
+            microhoodId: null,
+            villageId: null,
+            neighbourhoodId: null,
+            macrohoodId: null,
+            townId: null,
+            districtId: '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d',
+            areaId: null,
+            countryId: null,
+            geometry: null,
+            identifiers: null,
+            bbox: null,
+            sources: null,
+          },
+          canonicalId: 'address-1',
+          coverageComponents: [],
+          i18n: [],
+          matchKey: '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d::GRAHAM STREET::46\0',
+          raw: {},
+          sourceId: 'source-1',
+          sourcePayloadHash: 'hash',
+        },
+      ],
+      totalRows: 1,
+    } as unknown as NormalisedAddressChunkArtefact
+
+    const sourceFile = buildAddressSourceSqlImportFiles(message, artefact)[0]
+
+    expect(sourceFile?.sql).not.toContain('\0')
+    expect(sourceFile?.sql).toContain(
+      "'8d17afe0-5631-49c5-b86d-d53c5d4b2f9d::GRAHAM STREET::46' || char(0) || ''",
+    )
+  })
+})
+
 describe('HKGov ALS division cohort selection', () => {
   test('does not treat the DPO release sequence as an Overture cohort', () => {
     expect(

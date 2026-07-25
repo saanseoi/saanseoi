@@ -261,7 +261,13 @@ export type AddressBuildingNumberLookupRow = {
  * they explicitly offer partial matching.
  */
 export function buildAddressBuildingNumberLookupRows(
-  rows: AddressI18nPayload[],
+  rows: Array<
+    Pick<AddressI18nPayload, 'addressId'> & {
+      buildingNumberConnector?: string | null
+      buildingNumberFrom?: string | null
+      buildingNumberTo?: string | null
+    }
+  >,
 ): AddressBuildingNumberLookupRow[] {
   const lookups = new Map<string, AddressBuildingNumberLookupRow>()
 
@@ -288,12 +294,12 @@ export function buildAddressBuildingNumberLookupRows(
   }
 
   for (const row of rows) {
-    add(row.addressId, row.buildingNumberFrom, 'source_endpoint')
-    add(row.addressId, row.buildingNumberTo, 'source_endpoint')
+    add(row.addressId, row.buildingNumberFrom ?? null, 'source_endpoint')
+    add(row.addressId, row.buildingNumberTo ?? null, 'source_endpoint')
 
     if (row.buildingNumberConnector !== '-') continue
-    const from = normaliseBuildingNumber(row.buildingNumberFrom)
-    const to = normaliseBuildingNumber(row.buildingNumberTo)
+    const from = normaliseBuildingNumber(row.buildingNumberFrom ?? null)
+    const to = normaliseBuildingNumber(row.buildingNumberTo ?? null)
     if (!from || !to) continue
 
     const integerRange = getIntegerRangeMembers(from, to)
