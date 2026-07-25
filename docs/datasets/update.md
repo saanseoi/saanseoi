@@ -23,8 +23,10 @@ theme, staging the result before copying it to
 CSDI datasets are different: `saanseoi update` reads every linked CSDI catalogue's
 `Archived Dataset` list and selects the publisher's native delivery
 (`sourceFormat: true`) for every available quarter. It never uses CSDI's converted
-GeoJSON file API or WFS output as an input. Use a remote target for these updates, for
-example:
+GeoJSON file API or WFS output as an input. The native archive and its manifest are
+mirrored to the selected target's immutable storage; `--target local` uses the local
+Wrangler R2 state, while `preview` and `production` use their respective remote R2
+buckets. For example:
 
 ```sh
 saanseoi update --dataset ds-hk-hkgov-hyd-street --target preview
@@ -61,6 +63,13 @@ Notices table and write only notice rows not present in the saved source cursor,
 together with generated Markdown notes and local WebP plan conversions. `lastUpdated` in
 the dataset fixture is the checked-in bootstrap baseline; the live cursor belongs in the
 ignored update-state file.
+
+For a remote target, the latest published LandsD source version is also a chronological
+high-water mark. A partial or stale local notice-ID cursor cannot enqueue notices at or
+before that release: the updater refreshes its cursor from the publisher pages and
+offers only later publication-date batches. When more than one later batch exists, each
+successful ingest becomes the comparison baseline for the next one; the confirmation
+prompt names its position in that sequence and the preceding target version.
 
 When `--target` is supplied, the updater first queries that SaanSeoi environment's
 `/v1/reports/releases` endpoint for each dataset. The returned latest release is used as
