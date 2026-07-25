@@ -93,6 +93,11 @@ const LOCAL_R2_PERSIST_DIR = resolve(REPO_ROOT, '.local/d1/dev')
 const WRANGLER_CONFIG_HOME = resolve(REPO_ROOT, '.local/wrangler')
 const WRANGLER_LOG_PATH = resolve(WRANGLER_CONFIG_HOME, 'logs')
 
+// Miniflare persists both the local R2 bucket and D1 metadata in SQLite. Asset
+// registration is therefore serialised within one CLI process to avoid lock
+// contention while an immutable object and its metadata are committed.
+let localSourceAssetRegistration = Promise.resolve()
+
 export async function downloadAndPrepareSourceAsset(input: {
   downloadedAt: string
   fileName?: string
@@ -268,13 +273,30 @@ async function uploadLocalManagedSourceAsset(
   options: LocalSourceAssetUploadOptions,
 ): Promise<UploadedSourceAsset> {
   const withMetaDb = options.withMetaDb ?? withLocalMetaDb
-  const assetId = await withMetaDb(metaDb =>
-    registerLocalManagedSourceAsset(metaDb, input, {
-      putObject: options.putObject ?? putLocalSourceAssetObject,
-    }),
+  const assetId = await queueLocalSourceAssetRegistration(() =>
+    withMetaDb(metaDb =>
+      registerLocalManagedSourceAsset(metaDb, input, {
+        putObject: options.putObject ?? putLocalSourceAssetObject,
+      }),
+    ),
   )
 
   return { assetId, url: buildManagedAssetUrl(target, assetId) }
+}
+
+async function queueLocalSourceAssetRegistration<T>(work: () => Promise<T>) {
+  const previous = localSourceAssetRegistration
+  let release: (() => void) | undefined
+  localSourceAssetRegistration = new Promise<void>(resolve => {
+    release = resolve
+  })
+
+  await previous
+  try {
+    return await work()
+  } finally {
+    release?.()
+  }
 }
 
 export async function registerLocalManagedSourceAsset(
