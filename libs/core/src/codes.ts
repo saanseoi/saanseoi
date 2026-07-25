@@ -78,6 +78,11 @@ export function buildDatasetCode(
   resourceType: ResourceType,
 ) {
   const productCode = productCodeForSource(source, resourceType)
+  const datasetResourceType =
+    (source === 'hkgov-pland-pu' || source === 'hkgov-pland-new-town') &&
+    resourceType === 'divisionArea'
+      ? 'division'
+      : resourceType
   const regionSlug = assertLowerKebabCodeSlug(regionCode, 'region')
   const publisherSlug = assertLowerKebabCodeSlug(
     publisherCodeForSource(source),
@@ -88,7 +93,7 @@ export function buildDatasetCode(
     'ds',
     regionSlug,
     publisherSlug,
-    resourceTypeCodeSlug(resourceType),
+    resourceTypeCodeSlug(datasetResourceType),
     productCode,
   ]
     .filter((segment): segment is string => Boolean(segment))
@@ -130,6 +135,7 @@ export function datasetVariantForSource(
   options: {
     cohortKey?: string
     datasetCode?: string
+    sourceVariant?: string
     sourceVersion?: string
     transform?: string
   } = {},
@@ -145,6 +151,10 @@ export function datasetVariantForSource(
   if (source === 'hkgov-censtatd' && options.cohortKey) {
     const transform = options.transform
     return [source, options.cohortKey, transform].filter(Boolean).join(':')
+  }
+
+  if (options.sourceVariant && options.sourceVariant !== 'default') {
+    return options.sourceVariant
   }
 
   // The Planning Department owns both planning datasets under one publisher
