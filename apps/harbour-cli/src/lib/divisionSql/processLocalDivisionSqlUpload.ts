@@ -132,7 +132,7 @@ type UploadPlan = {
   regionCode: 'hk' | 'mo'
   releaseCode: string
   rowCount: number
-  source: 'overture'
+  source: 'hkgov-landsd' | 'overture'
   sourceVersion: string
   theme: 'divisions'
   type: 'division'
@@ -459,13 +459,20 @@ export async function processLocalDivisionSqlUpload(
         `Parent division snapshot ${versionInsertContext.parentSnapshotId} is not materialised in current storage; refusing to branch from another snapshot.`,
       )
     }
-    const currentSourceRows = await getMergedCurrentSourceOvertureDivisionMap(
-      dbContext.sourceTargets.map((target, index) => ({
-        db: target.db as never,
-        key: buildSourceOwnerKey(previewPlan.regionCode, shardYear, target.bindingName),
-        sortOrder: index,
-      })),
-    )
+    const currentSourceRows =
+      previewPlan.source === 'overture'
+        ? await getMergedCurrentSourceOvertureDivisionMap(
+            dbContext.sourceTargets.map((target, index) => ({
+              db: target.db as never,
+              key: buildSourceOwnerKey(
+                previewPlan.regionCode,
+                shardYear,
+                target.bindingName,
+              ),
+              sortOrder: index,
+            })),
+          )
+        : new Map()
     await assertDivisionCurrentSnapshotComplete(
       dbContext.metaDb,
       dbContext.currentDb,
@@ -1362,6 +1369,14 @@ async function buildDivisionSourceSqlFile(
   state: DivisionSqlState,
   reportProgress: (current: number) => Promise<void>,
 ) {
+  if (message.source !== 'overture') {
+    return buildSqlImportFile(
+      'source',
+      `${buildDivisionSqlRunId(message)}-source.sql`,
+      ['SELECT 1;'],
+    )
+  }
+
   const releaseId = buildSourceReleaseId(message)
   const changedBaseRows: Record<string, SqlValue>[] = []
   const changedI18nRows: Record<string, SqlValue>[] = []
