@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f90b3f7d1688936387d4ce23694a0065e8f46ac35caca7bf38076a401c39d5d7",
+  "versionHash": "sha256:00200eb7c95eb2abaf8cbbb276a096bf147852bbf81585ee21b3db146b2c4000",
   "apiVersion": "api-places-v0.1",
   "code": "comp-places-v1",
   "version": 1,
@@ -9,6 +9,11 @@
     {
       "code": "overture",
       "isDefault": true,
+      "i18n": [
+        { "locale": "en", "name": "Overture" },
+        { "locale": "zh-hant", "name": "Overture" },
+        { "locale": "zh-hans", "name": "Overture" }
+      ],
       "members": [
         {
           "resourceType": "place",

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:033005c6a8b69c61ac6f504d4425c465afd1130550ccdd21d0c4ca36e3a99fce",
+  "versionHash": "sha256:e29a24f9c3356e8792a86b24e0523178ea6dc5e55f7518f82a33773d144ff10a",
   "apiVersion": "api-addresses-v0.1",
   "code": "comp-addresses-v1",
   "version": 1,
@@ -9,6 +9,11 @@
     {
       "code": "default",
       "isDefault": true,
+      "i18n": [
+        { "locale": "en", "name": "Default" },
+        { "locale": "zh-hant", "name": "預設" },
+        { "locale": "zh-hans", "name": "默认" }
+      ],
       "members": [
         {
           "resourceType": "address",

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:43d28c147411c8820b0be0704fea9e3dbc2c2296fe5b12c24388b32d5fc62ce6",
+  "versionHash": "sha256:e9410a76bd46924ea432888af4c32e341a5eb9c5d9a0837a07b567bab4614b68",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -9,6 +9,11 @@
     {
       "code": "overture",
       "isDefault": true,
+      "i18n": [
+        { "locale": "en", "name": "Overture" },
+        { "locale": "zh-hant", "name": "Overture" },
+        { "locale": "zh-hans", "name": "Overture" }
+      ],
       "members": [
         {
           "resourceType": "division",
@@ -62,6 +67,11 @@
     },
     {
       "code": "hkgov-pland-pu",
+      "i18n": [
+        { "locale": "en", "name": "Planning Unit" },
+        { "locale": "zh-hant", "name": "規劃單元" },
+        { "locale": "zh-hans", "name": "规划单元" }
+      ],
       "members": [
         {
           "resourceType": "division",
@@ -83,6 +93,11 @@
     },
     {
       "code": "hkgov-pland-new-town",
+      "i18n": [
+        { "locale": "en", "name": "New Town" },
+        { "locale": "zh-hant", "name": "新市鎮" },
+        { "locale": "zh-hans", "name": "新市镇" }
+      ],
       "members": [
         {
           "resourceType": "division",
@@ -99,6 +114,24 @@
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
           "priority": 10
+        }
+      ]
+    },
+    {
+      "code": "hkgov-landsd",
+      "i18n": [
+        { "locale": "en", "name": "HK Gov" },
+        { "locale": "zh-hant", "name": "香港政府" },
+        { "locale": "zh-hans", "name": "香港政府" }
+      ],
+      "members": [
+        {
+          "resourceType": "division",
+          "variant": "hkgov-landsd",
+          "role": "primary",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 0
         }
       ]
     }
