@@ -125,7 +125,7 @@ type CachePruneOperation = {
   tableName: string
   whereSql: string
 }
-type CacheTableProfile = 'address' | 'division' | 'divisionGeometry'
+type CacheTableProfile = 'address' | 'division' | 'divisionGeometry' | 'street'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const WRANGLER_CONFIG_PATH = resolve(REPO_ROOT, 'apps/harbour-api/wrangler.jsonc')
@@ -147,6 +147,8 @@ const VERSION_TABLES_WITH_CURRENT_ROWS = new Set([
   'divisionsI18n',
   'hkgovAlsAddresses2d',
   'hkgovAlsAddress2dI18n',
+  'hkgovLandsdStreets',
+  'hkgovLandsdStreetI18n',
   'overtureDivisions',
   'overtureDivisionAreas',
   'overtureDivisionBoundaries',
@@ -377,6 +379,32 @@ export async function resolveLocalAddressDbContext(
       preparedAt: new Date().toISOString(),
       target: targetName,
     },
+  }
+}
+
+/**
+ * Opens only the shared local metadata database. Use this for local services
+ * that do not need a resource shard, such as immutable evidence registration.
+ */
+export async function withLocalMetaDb<T>(
+  work: (db: MetaDatabase) => Promise<T> | T,
+): Promise<T> {
+  const metaTarget = (await resolveD1Targets('local')).find(
+    target => target.bindingName === 'DB_META',
+  )
+  if (!metaTarget) throw new Error('Could not resolve the local DB_META binding.')
+
+  const metaPath = requirePath(mapLocalTargetPaths([metaTarget]).DB_META, 'DB_META')
+  const meta = (await openSqliteDb(
+    metaPath,
+    metaSchema,
+    'DB_META',
+  )) as unknown as OpenSqliteDb<MetaDatabase>
+
+  try {
+    return await work(meta.db)
+  } finally {
+    meta.sqlite.close()
   }
 }
 
@@ -1289,6 +1317,10 @@ function resolveMirrorTablesForBinding(
   }
 
   if (bindingName === 'DB_CURRENT') {
+    if (cacheTableProfile === 'street') {
+      return ['divisions', 'divisionsI18n', 'streets', 'streetsI18n']
+    }
+
     if (cacheTableProfile === 'division') {
       return ['divisions', 'divisionsI18n']
     }
@@ -1308,6 +1340,10 @@ function resolveMirrorTablesForBinding(
   }
 
   if (/^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
+    if (cacheTableProfile === 'street') {
+      return ['streets', 'streetsI18n']
+    }
+
     if (cacheTableProfile === 'division') {
       return ['divisions', 'divisionsI18n']
     }
@@ -1320,6 +1356,10 @@ function resolveMirrorTablesForBinding(
   }
 
   if (/^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
+    if (cacheTableProfile === 'street') {
+      return ['hkgovLandsdStreets', 'hkgovLandsdStreetI18n']
+    }
+
     if (cacheTableProfile === 'division') {
       return [
         'overtureDivisions',
