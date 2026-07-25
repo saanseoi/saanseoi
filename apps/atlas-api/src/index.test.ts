@@ -16,6 +16,7 @@ type MockDbOptions = {
   failOnFirst?: (query: string, values: unknown[]) => boolean
   failOnRaw?: (query: string, values: unknown[]) => boolean
   failOnRun?: (query: string, values: unknown[]) => boolean
+  streetDetail?: boolean
 }
 
 function createMockDb(options: MockDbOptions = {}) {
@@ -116,6 +117,8 @@ function createMockDb(options: MockDbOptions = {}) {
 
             if (options.asset) return [[options.asset.assetKey] as T]
 
+            if (options.streetDetail) return streetRows(query) as T[][]
+
             return [] as T[]
           },
         }
@@ -123,6 +126,140 @@ function createMockDb(options: MockDbOptions = {}) {
     } as unknown as D1Database,
     operations,
   }
+}
+
+function streetRows(query: string): unknown[][] {
+  const assetLinks = JSON.stringify([
+    {
+      assetId: '00000000-0000-4000-8000-000000000002',
+      assetUrl:
+        'https://preview.api.saanseoi.hk/v0/assets/00000000-0000-4000-8000-000000000002',
+      contentHash: 'notice-hash',
+      label: 'G.N.4034',
+      manifest: {
+        assetId: '00000000-0000-4000-8000-000000000012',
+        assetUrl:
+          'https://preview.api.saanseoi.hk/v0/assets/00000000-0000-4000-8000-000000000012',
+        contentHash: 'manifest-hash',
+        objectKey: 'manifest.json',
+      },
+      mediaType: 'application/pdf',
+      objectKey: 'government-notice.pdf',
+      originalUrl:
+        'https://www.landsd.gov.hk/doc/en/street-name/egazette/2026/egn202630274034.pdf',
+      retrievedAt: '2026-07-03T00:00:00.000Z',
+      role: 'governmentNotice',
+    },
+    {
+      assetId: '00000000-0000-4000-8000-000000000003',
+      assetUrl:
+        'https://preview.api.saanseoi.hk/v0/assets/00000000-0000-4000-8000-000000000003',
+      contentHash: 'plan-hash',
+      label: 'HKRM52',
+      manifest: {
+        assetId: '00000000-0000-4000-8000-000000000013',
+        assetUrl:
+          'https://preview.api.saanseoi.hk/v0/assets/00000000-0000-4000-8000-000000000013',
+        contentHash: 'plan-manifest-hash',
+        objectKey: 'plan-manifest.json',
+      },
+      mediaType: 'application/pdf',
+      objectKey: 'gazette-plan.pdf',
+      originalUrl:
+        'https://www.landsd.gov.hk/doc/en/street-name/gnplan/2026/HKRM52.pdf',
+      retrievedAt: '2026-07-03T00:00:00.000Z',
+      role: 'gazettePlan',
+    },
+  ])
+  const districtIds = JSON.stringify(['district-central-western'])
+  const activeReferences = JSON.stringify({
+    hkgovLandsd: {
+      effectiveDate: null,
+      publicationDate: '2026-07-03',
+      sourceEventIds: ['landsd-street-notice-example'],
+    },
+  })
+  const deletedReferences = JSON.stringify({
+    hkgovLandsd: {
+      effectiveDate: '2026-08-01',
+      publicationDate: '2026-08-01',
+      sourceEventIds: ['landsd-street-notice-deletion'],
+    },
+  })
+  const localizations = (versionHash: string, description: string | null) =>
+    [
+      ['en', 'Central Wan Chai Bypass', null],
+      ['zh-Hant', '中環灣仔繞道', null],
+      ['zh-Hans', '中环湾仔绕道', JSON.stringify({ machine: 'azure-translator-v3' })],
+    ].map(([locale, name, translationProvenance]) => [
+      assetLinks,
+      description,
+      locale,
+      name,
+      'landsd-street-notice-example',
+      translationProvenance,
+      versionHash,
+    ])
+
+  if (!query.includes('from "streets"') && !query.includes('from "streetsI18n"')) {
+    return [['street-snapshot']]
+  }
+  if (query.includes('from "streets"') && query.includes('"snapshotId" = ?')) {
+    return [
+      [
+        null,
+        districtIds,
+        'landsd-street-notice-example',
+        '2026-07-03',
+        activeReferences,
+        JSON.stringify({
+          hkgovLandsd: { sourceEventIds: ['landsd-street-notice-example'] },
+        }),
+        'active',
+        1,
+      ],
+    ]
+  }
+  if (query.includes('from "streetsI18n"') && query.includes('"snapshotId" = ?')) {
+    return localizations('street-version-1', null).map(row => [
+      row[0],
+      row[1],
+      row[2],
+      row[3],
+      row[5],
+    ])
+  }
+  if (query.includes('from "streets"')) {
+    return [
+      [
+        null,
+        districtIds,
+        'landsd-street-notice-example',
+        '2026-07-03',
+        activeReferences,
+        'active',
+        1,
+        'street-version-1',
+      ],
+      [
+        '2026-08-01',
+        districtIds,
+        'landsd-street-notice-example',
+        '2026-08-01',
+        deletedReferences,
+        'deleted',
+        2,
+        'street-version-2',
+      ],
+    ]
+  }
+  if (query.includes('from "streetsI18n"')) {
+    return [
+      ...localizations('street-version-1', null),
+      ...localizations('street-version-2', 'Deleted by Government Notice.'),
+    ]
+  }
+  return []
 }
 
 const testApiKey = `SS-${'a'.repeat(43)}`
@@ -321,6 +458,132 @@ describe('atlas-api', () => {
     })
   })
 
+  test('street history endpoints require an API key', async () => {
+    const { env } = createEnv()
+    for (const path of [
+      '/v0/hk/streets/landsd-street-notice-example/versions',
+      '/v0/hk/streets/landsd-street-notice-example/versions/1',
+    ]) {
+      const res = await app.fetch(new Request(`http://localhost${path}`), env)
+      expect(res.status).toBe(401)
+    }
+  })
+
+  test('GET /v0/hk/streets/:id returns the latest assetLinks-only materialised state', async () => {
+    const { env } = createEnv({}, { streetDetail: true })
+    const res = await app.fetch(
+      apiRequest('http://localhost/v0/hk/streets/landsd-street-notice-example'),
+      env,
+    )
+    const body = (await res.json()) as {
+      data: {
+        attributes: {
+          districtIds: string[]
+          i18n: {
+            en: {
+              assetLinks: Array<{
+                assetUrl: string
+                label: string | null
+                originalUrl: string
+                role: string
+              }>
+              name: string
+            }
+            'zh-Hans': { name: string; translationProvenance: unknown }
+          }
+          landsdPublicationDate: string | null
+          status: string
+          version: number
+        }
+        links: Record<string, string>
+      }
+    }
+
+    expect(res.status).toBe(200)
+    expect(body.data.attributes).toMatchObject({
+      districtIds: ['district-central-western'],
+      landsdPublicationDate: '2026-07-03',
+      status: 'active',
+      version: 1,
+    })
+    expect(body.data.attributes.i18n.en).toMatchObject({
+      assetLinks: [
+        {
+          assetUrl:
+            'https://preview.api.saanseoi.hk/v0/assets/00000000-0000-4000-8000-000000000002',
+          label: 'G.N.4034',
+          originalUrl:
+            'https://www.landsd.gov.hk/doc/en/street-name/egazette/2026/egn202630274034.pdf',
+          role: 'governmentNotice',
+        },
+        {
+          label: 'HKRM52',
+          originalUrl:
+            'https://www.landsd.gov.hk/doc/en/street-name/gnplan/2026/HKRM52.pdf',
+          role: 'gazettePlan',
+        },
+      ],
+      name: 'Central Wan Chai Bypass',
+    })
+    expect(Object.keys(body.data.attributes.i18n.en).sort()).toEqual([
+      'assetLinks',
+      'description',
+      'name',
+      'translationProvenance',
+    ])
+    expect(body.data.attributes.i18n['zh-Hans']).toMatchObject({
+      name: '中环湾仔绕道',
+      translationProvenance: { machine: 'azure-translator-v3' },
+    })
+    expect(body.data.attributes).not.toHaveProperty('governmentNoticeUrl')
+    expect(body.data.attributes).not.toHaveProperty('governmentNoticeLabel')
+    expect(body.data.attributes).not.toHaveProperty('gazettePlanUrls')
+    expect(body.data.links).toMatchObject({
+      version: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/1',
+      versions: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions',
+    })
+  })
+
+  test('GET /v0/hk/streets/:id/versions exposes crawlable previous and next links', async () => {
+    const { env } = createEnv({}, { streetDetail: true })
+    const list = await app.fetch(
+      apiRequest(
+        'http://localhost/v0/hk/streets/landsd-street-notice-example/versions',
+      ),
+      env,
+    )
+    const version = await app.fetch(
+      apiRequest(
+        'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/1',
+      ),
+      env,
+    )
+    const listBody = (await list.json()) as {
+      data: Array<{ attributes: { version: number } }>
+    }
+    const versionBody = (await version.json()) as {
+      data: {
+        attributes: { deletedAt: string | null; status: string; version: number }
+      }
+      links: Record<string, string>
+    }
+
+    expect(list.status).toBe(200)
+    expect(listBody.data.map(item => item.attributes.version)).toEqual([1, 2])
+    expect(version.status).toBe(200)
+    expect(versionBody.data.attributes).toMatchObject({
+      deletedAt: null,
+      status: 'active',
+      version: 1,
+    })
+    expect(versionBody.links).toMatchObject({
+      next: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/2',
+      version: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/1',
+      versions: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions',
+    })
+    expect(versionBody.links).not.toHaveProperty('previous')
+  })
+
   test('GET /v0/divisions rejects a malformed API key', async () => {
     const { env } = createEnv()
     const res = await app.fetch(
@@ -497,7 +760,7 @@ describe('atlas-api', () => {
     }
   })
 
-  test('GET /openapi documents the versioned division and address endpoints', async () => {
+  test('GET /openapi documents the versioned division, address, and street endpoints', async () => {
     const { env } = createEnv()
     const res = await app.fetch(new Request('http://localhost/openapi'), env)
     const body = (await res.json()) as {
@@ -519,6 +782,15 @@ describe('atlas-api', () => {
     expect(body.paths['/v0/addresses']?.get?.operationId).toBe('listAddressesV0')
     expect(body.paths['/v0.1/addresses/{id}']?.get?.operationId).toBe(
       'getAddressByIdV01',
+    )
+    expect(body.paths['/v0/hk/streets/{id}']?.get?.operationId).toBe(
+      'getHongKongStreetByIdV0',
+    )
+    expect(body.paths['/v0/hk/streets/{id}/versions']?.get?.operationId).toBe(
+      'listHongKongStreetVersionsV0',
+    )
+    expect(body.paths['/v0/hk/streets/{id}/versions/{version}']?.get?.operationId).toBe(
+      'getHongKongStreetVersionV0',
     )
     expect(body.components?.schemas?.DivisionRelationships?.required).toContain(
       'hierarchy',
