@@ -25,6 +25,7 @@ import {
   prepareHkgovCenstatdDistrictUpload,
 } from '../hkgovCenstatd.ts'
 import { prepareHkgovHadDistrictUpload } from '../hkgovHad.ts'
+import { prepareLandsdPlaceNameDivisionUpload } from '../landsdPlaceName.ts'
 import {
   describeTarget,
   formatMutedValue,
@@ -33,6 +34,7 @@ import {
   formatUploadResult,
 } from '../display.ts'
 import { processLocalAddressSqlUpload } from '../addressSql/processLocalAddressSqlUpload.ts'
+import { processLocalStreetSqlUpload } from '../streetSql/processLocalStreetSqlUpload.ts'
 import { processLocalDivisionSqlUpload } from '../divisionSql/processLocalDivisionSqlUpload.ts'
 import { processLocalHkgovPlandDivisionSqlUpload } from '../divisionSql/processLocalHkgovPlandDivisionSqlUpload.ts'
 import { processLocalDivisionGeometrySqlUpload } from '../divisionSql/processLocalDivisionGeometrySqlUpload.ts'
@@ -59,6 +61,7 @@ export async function runUploadCommand(
     invocationCwd: string
     printUsage: () => void
     processingActions?: ReleaseProcessingAction[]
+    quiet?: boolean
     skipConfirm: boolean
     skipSnapshotCleanup: boolean
     validateGeometry: boolean
@@ -78,7 +81,8 @@ export async function runUploadCommand(
     throw new Error('Missing file path.')
   }
 
-  intro(`
+  if (!options.quiet)
+    intro(`
 ${mutedBar}
 ${mutedBar}      ▗▄▄▖▗▞▀▜▌▗▞▀▜▌▄▄▄▄   ▗▄▄▖▗▞▀▚▖ ▄▄▄  ▄
 ${mutedBar}     ▐▌   ▝▚▄▟▌▝▚▄▟▌█   █ ▐▌   ▐▛▀▀▘█   █ ▄
@@ -140,6 +144,25 @@ ${mutedBar}  `)
         )
       }
     }
+    const landsdPlaceNamePreparation = await prepareLandsdPlaceNameGeoJsonUpload(
+      registerOptions.filePath,
+      registerOptions.source,
+      registerOptions.sourceVersion,
+    )
+    if (landsdPlaceNamePreparation) {
+      sourcePreparationCleanup = landsdPlaceNamePreparation.cleanup
+      Object.assign(registerOptions, {
+        filePath: landsdPlaceNamePreparation.filePath,
+        originalFileName: landsdPlaceNamePreparation.originalFileName,
+        regionCode: registerOptions.regionCode ?? landsdPlaceNamePreparation.regionCode,
+        source: landsdPlaceNamePreparation.source,
+        sourceVersion:
+          registerOptions.sourceVersion ?? landsdPlaceNamePreparation.sourceVersion,
+        theme: registerOptions.theme ?? landsdPlaceNamePreparation.theme,
+        type: registerOptions.type ?? landsdPlaceNamePreparation.type,
+      })
+      log.message('Prepared LandsD Settlement Place Name GeoJSON.')
+    }
     let previewResult = await prepareUpload(registerOptions)
     const sourceSchemaVersion = await resolveSourceSchemaVersion({
       source: previewResult.plan.source,
@@ -164,7 +187,7 @@ ${mutedBar}  `)
       log.message(
         'No object upload, API call, queue enqueue, or database mutation was attempted.',
       )
-      outro('Harbour upload complete')
+      if (!options.quiet) outro('Harbour upload complete')
       return
     }
 
@@ -226,8 +249,6 @@ ${mutedBar}  `)
         schemaVersionId,
         {
           force: options.forceUpload,
-          skipSnapshotCleanup: options.skipSnapshotCleanup,
-          uploadFilePath: preparedUploadFile?.filePath,
         },
       )
 
@@ -237,9 +258,9 @@ ${mutedBar}  `)
             typeof uploadResult?.datasetCode === 'string'
               ? uploadResult.datasetCode
               : previewResult.plan.datasetCode,
-          rawObjectKey:
-            typeof uploadResult?.rawObjectKey === 'string'
-              ? uploadResult.rawObjectKey
+          localInputKey:
+            typeof uploadResult?.localInputKey === 'string'
+              ? uploadResult.localInputKey
               : '-',
           releaseId:
             typeof uploadResult?.releaseId === 'string' ? uploadResult.releaseId : '-',
@@ -298,7 +319,7 @@ ${mutedBar}  `)
           'API DOMAIN RELEASE',
         )
         logApiReleaseSetPublication(processingResult.publishResult)
-        outro(formatSuccessfulReleaseMessage(commandStartedAt))
+        if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
 
@@ -321,7 +342,7 @@ ${mutedBar}  `)
             regionCode: previewResult.plan.regionCode,
             releaseCode: previewResult.plan.releaseCode,
             rowCount: previewResult.plan.rowCount,
-            source: previewResult.plan.source as 'overture',
+            source: previewResult.plan.source as 'hkgov-landsd' | 'overture',
             sourceVersion: previewResult.plan.sourceVersion,
             theme: previewResult.plan.theme,
             type: previewResult.plan.type,
@@ -342,7 +363,40 @@ ${mutedBar}  `)
           'API DOMAIN RELEASE',
         )
         logApiReleaseSetPublication(processingResult.publishResult)
-        outro(formatSuccessfulReleaseMessage(commandStartedAt))
+        if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
+        return
+      }
+
+      if (processingStrategy.mode === 'local-street-sql') {
+        if (
+          previewResult.plan.type !== 'street' ||
+          previewResult.plan.theme !== 'streets' ||
+          previewResult.plan.source !== 'hkgov-landsd'
+        ) {
+          throw new Error(
+            'LandsD street SQL processing requires a LandsD street dataset.',
+          )
+        }
+        if (!preparedUploadFile) {
+          throw new Error('Expected a prepared upload file for local SQL processing.')
+        }
+        await processLocalStreetSqlUpload(
+          target,
+          {
+            cohortKey: previewResult.plan.cohortKey,
+            regionCode: previewResult.plan.regionCode,
+            releaseCode: previewResult.plan.releaseCode,
+            rowCount: previewResult.plan.rowCount,
+            source: 'hkgov-landsd',
+            sourceVersion: previewResult.plan.sourceVersion,
+            theme: 'streets',
+            type: 'street',
+          },
+          uploadResult,
+          preparedUploadFile,
+          { skipSnapshotCleanup: options.skipSnapshotCleanup },
+        )
+        if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
 
@@ -380,7 +434,7 @@ ${mutedBar}  `)
           'API DOMAIN RELEASE',
         )
         logApiReleaseSetPublication(processingResult.publishResult ?? undefined)
-        outro(formatSuccessfulReleaseMessage(commandStartedAt))
+        if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
 
@@ -472,7 +526,7 @@ ${mutedBar}  `)
         logApiReleaseSetPublication(
           (companionProcessingResult ?? processingResult).publishResult,
         )
-        outro(formatSuccessfulReleaseMessage(commandStartedAt))
+        if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
         return
       }
 
@@ -562,6 +616,36 @@ async function prepareHkgovCenstatdGmlUpload(
   }
 }
 
+async function prepareLandsdPlaceNameGeoJsonUpload(
+  filePath: string,
+  source: string | undefined,
+  sourceVersion: string | undefined,
+) {
+  if (!isLandsdPlaceNameGeoJson(filePath, source)) return null
+  if (!sourceVersion) {
+    throw new Error('LandsD Place Name GeoJSON requires --source-version.')
+  }
+
+  const tempDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-landsd-'))
+  try {
+    const prepared = await prepareLandsdPlaceNameDivisionUpload(
+      filePath,
+      tempDir,
+      sourceVersion,
+    )
+    return {
+      ...prepared,
+      cleanup: async () => {
+        await prepared.cleanup()
+        await rm(tempDir, { force: true, recursive: true })
+      },
+    }
+  } catch (error) {
+    await rm(tempDir, { force: true, recursive: true })
+    throw error
+  }
+}
+
 function isHkgovHadGeoJson(filePath: string, source: string | undefined) {
   return (
     filePath.toLowerCase().endsWith('.geojson') &&
@@ -574,6 +658,14 @@ function isHkgovCenstatdDistrictFile(filePath: string, source: string | undefine
   return (
     (fileName.endsWith('.gml') || fileName.endsWith('.xml')) &&
     source === 'hkgov-censtatd'
+  )
+}
+
+function isLandsdPlaceNameGeoJson(filePath: string, source: string | undefined) {
+  return (
+    filePath.toLowerCase().endsWith('.geojson') &&
+    (source === 'hkgov-landsd' ||
+      /(^|[._/\\-])hkgov-landsd-division([._/\\-]|$)/i.test(filePath))
   )
 }
 
@@ -594,6 +686,14 @@ function resolveUploadProcessingStrategy(
   }
 
   if (
+    previewResult.plan.type === 'street' &&
+    previewResult.plan.theme === 'streets' &&
+    previewResult.plan.source === 'hkgov-landsd'
+  ) {
+    return { mode: 'local-street-sql' as const }
+  }
+
+  if (
     previewResult.plan.type === 'division' &&
     previewResult.plan.theme === 'divisions' &&
     (previewResult.plan.source === 'hkgov-pland-pu' ||
@@ -605,7 +705,8 @@ function resolveUploadProcessingStrategy(
   if (
     previewResult.plan.type === 'division' &&
     previewResult.plan.theme === 'divisions' &&
-    previewResult.plan.source === 'overture'
+    (previewResult.plan.source === 'overture' ||
+      previewResult.plan.source === 'hkgov-landsd')
   ) {
     return {
       mode: 'local-division-sql' as const,
@@ -991,12 +1092,29 @@ function logApiReleaseSetPublication(
     | {
         apiCatalogRevisionCode?: string
         apiReleaseSetCode?: string
+        apiReleaseSetPublications?: Array<{
+          apiCatalogRevisionCode?: string
+          apiReleaseSetCode: string
+        }>
         apiReleaseSetStatus?: 'current' | 'draft'
       }
     | void
     | null
     | undefined,
 ) {
+  if (result?.apiReleaseSetPublications?.length) {
+    for (const publication of result.apiReleaseSetPublications) {
+      log.success(
+        `Published API domain release ${rainbowWaveText(publication.apiReleaseSetCode)}.`,
+      )
+      if (publication.apiCatalogRevisionCode) {
+        log.info(`Catalogue revision ${blueText(publication.apiCatalogRevisionCode)}`)
+      }
+    }
+
+    if (result.apiReleaseSetStatus === 'current') return
+  }
+
   const releaseSetCode = result?.apiReleaseSetCode
 
   if (releaseSetCode && result?.apiReleaseSetStatus === 'current') {
