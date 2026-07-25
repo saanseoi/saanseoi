@@ -1,25 +1,36 @@
 # Streets API family
 
-The Streets API family contains named street records and their source provenance. The
-LandsD gazetted street-name source is a government register rather than road-centreline
-geometry: its initial release is a full name list and subsequent releases are immutable
-Government Notice records. Geometry from another source can later be attached as a
-separate projection without changing this evidence model.
+The Streets family models persistent logical streets rather than Government Notice rows.
+The LandsD gazetted register is the baseline materialisation. Each later LandsD notice
+is an append-only source event that may create a next version of one logical street,
+delete it, restore it, or make no materialised change.
 
-The LandsD source is registered as
-[`ds-hk-hkgov-landsd-street`](../../../../fixtures/meta/datasets/hkgov-landsd-hk-street.json).
-Its snapshots preserve English, Traditional Chinese, and Azure-derived Simplified
-Chinese names; LandsD publication date and notice type; raw district text; resolved
-canonical `districtIds`; and structured, role-tagged asset links that retain both the
-original source URL and managed public asset URL.
+Canonical streets have a positive, monotonic `version`, an `active` or `deleted` status,
+and a nullable `deletedAt`. Deleted streets stay in the current snapshot for
+auditability. A source-page snapshot alone never increments every street version.
+Version changes are limited to changes in the materialised names, descriptions, district
+IDs, status, relevant evidence, or translation provenance.
 
-`GET /v0/hk/streets/{id}` is intentionally the first public surface. It returns the
-three names, LandsD notice fields, and role-tagged asset links with both original
-Government Notice/Gazette Plan URLs and managed public asset URLs. It never exposes
-private R2 object keys. Broad street search and list endpoints are outside this initial
-scope.
+`GET /v0/hk/streets/{id}` returns the latest materialised state. Per-street history is
+available without introducing broad street search endpoints:
 
-Each release records operational quality statistics for the release stats tab: locale
-completeness, district distribution, notice-type counts, source-asset roles, translation
-provenance, churn, and district-normalisation status. Bilingual pairing, asset,
-district, and translation failures are blocking conditions rather than degraded data.
+- `GET /v0/hk/streets/{id}/versions`
+- `GET /v0/hk/streets/{id}/versions/{version}`
+
+Responses contain English, Traditional Chinese, and Simplified Chinese names and
+descriptions, lifecycle status, publication/effective provenance, and role-tagged
+`assetLinks`. Each link contains the original publisher URL and the managed asset URL.
+There are no separate Government Notice or Gazette Plan URL fields. JSON:API links
+provide `self`, `versions`, and the exact `version`; exact historic versions also
+provide adjacent `previous` and `next` links.
+
+Street-name change relations are separate from streets so a complete replacement, split,
+or merge is not forced into a street identity. They link old and new persistent streets
+by role when a reviewed change can be mapped deterministically. The notice itself
+remains the evidence source through its `assetLinks`.
+
+Each release records notice-event counts by type; streets added, changed, deleted, and
+restored; active/deleted totals; versions created; description completeness; PDF
+extraction outcomes; district coverage; and translation provenance. Pairing, parsing,
+district, asset, lifecycle-resolution, and translation failures block publication and
+are reported to the operator.
