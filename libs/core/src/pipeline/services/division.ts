@@ -1105,19 +1105,24 @@ export function normaliseDivisionRow(
   const parentDivisionId = asNonEmptyString(row.parent_division_id)
   const otSubtype = asNonEmptyString(row.subtype)
   const otClass = asNonEmptyString(row.class)
+  const landsdPlaceName = row.source === 'hkgov-landsd'
   const sourceFeatureVersion = asOptionalFeatureVersion(row.version)
-  const type = resolveDivisionType({
-    row,
-    otClass,
-    otSubtype,
-    parentDivisionId,
-  })
-  const level = resolveDivisionLevel({
-    row,
-    otClass,
-    otSubtype,
-    parentDivisionId,
-  })
+  const type = landsdPlaceName
+    ? 'settlement'
+    : resolveDivisionType({
+        row,
+        otClass,
+        otSubtype,
+        parentDivisionId,
+      })
+  const level = landsdPlaceName
+    ? 5
+    : resolveDivisionLevel({
+        row,
+        otClass,
+        otSubtype,
+        parentDivisionId,
+      })
   const i18n = normaliseDivisionI18n(id, row.names)
   const normalisedHierarchies = normaliseDivisionHierarchies(
     row.hierarchies,
@@ -1136,17 +1141,35 @@ export function normaliseDivisionRow(
       id,
       identifiers: row.identifiers ?? null,
       level,
-      sourceKeys: {
-        overture: {
-          subtype: otSubtype ?? '',
-          class: otClass ?? '',
-          hierarchies: row.hierarchies ?? null,
-          ...(sourceFeatureVersion !== null ? { version: sourceFeatureVersion } : {}),
-          ...buildOvertureCompatibilitySourceKeys(level),
-        },
-      },
+      sourceKeys: landsdPlaceName
+        ? {
+            hkgovLandsd: {
+              district: asNonEmptyString(row.district),
+              geoNameId: asNonEmptyString(row.geo_name_id),
+              placeClass: asNonEmptyString(row.place_class),
+              placeType: asNonEmptyString(row.place_type),
+            },
+          }
+        : {
+            overture: {
+              subtype: otSubtype ?? '',
+              class: otClass ?? '',
+              hierarchies: row.hierarchies ?? null,
+              ...(sourceFeatureVersion !== null
+                ? { version: sourceFeatureVersion }
+                : {}),
+              ...buildOvertureCompatibilitySourceKeys(level),
+            },
+          },
       type,
-      sources: normaliseOvertureSources(row.sources),
+      sources: landsdPlaceName
+        ? {
+            hkgovLandsd: {
+              feature: row.source_feature ?? null,
+              properties: row.source_properties ?? null,
+            },
+          }
+        : normaliseOvertureSources(row.sources),
       updatedAt: now,
       wikidata: asNonEmptyString(row.wikidata),
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
