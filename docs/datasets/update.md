@@ -69,7 +69,9 @@ high-water mark. A partial or stale local notice-ID cursor cannot enqueue notice
 before that release: the updater refreshes its cursor from the publisher pages and
 offers only later publication-date batches. When more than one later batch exists, each
 successful ingest becomes the comparison baseline for the next one; the confirmation
-prompt names its position in that sequence and the preceding target version.
+prompt names its position in that sequence and the preceding target version. The target
+is authoritative, so a cursor advanced while updating another environment never hides a
+later batch from the selected target.
 
 When `--target` is supplied, the updater first queries that SaanSeoi environment's
 `/v1/reports/releases` endpoint for each dataset. The returned latest release is used as

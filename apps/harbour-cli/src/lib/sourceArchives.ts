@@ -139,13 +139,9 @@ export async function mirrorCsdiSourceArchive(
   target: UploadTarget,
   archive: CsdiSourceArchive,
   prepared: PreparedSourceArchive,
+  options: { upload?: typeof uploadManagedSourceAsset } = {},
 ) {
-  if (!target.remote) {
-    throw new Error(
-      'Mirroring source archives requires --target preview or --target production.',
-    )
-  }
-
+  const upload = options.upload ?? uploadManagedSourceAsset
   const manifestBytes = await readFile(prepared.manifestPath)
   const manifestSha256 = sha256(manifestBytes)
   const retrievedAt = new Date().toISOString()
@@ -166,7 +162,7 @@ export async function mirrorCsdiSourceArchive(
     'manifest.json',
   )
   const [source, manifest] = await Promise.all([
-    uploadManagedSourceAsset(target, {
+    upload(target, {
       fileName: 'source.zip',
       filePath: prepared.sourcePath,
       metadata: {
@@ -179,7 +175,7 @@ export async function mirrorCsdiSourceArchive(
         role: 'sourceArchive',
       },
     }),
-    uploadManagedSourceAsset(target, {
+    upload(target, {
       fileName: 'manifest.json',
       filePath: prepared.manifestPath,
       metadata: {

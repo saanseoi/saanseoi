@@ -46,7 +46,7 @@ describe('upload helpers', () => {
       return Response.json({
         datasetCode: 'ds-hk-overture-division',
         datasetId: '960b3f6f-437f-49e3-bd72-44e87d1cd5b9',
-        localInputKey: 'hk/overture/2025-09-24.0/division.parquet',
+        rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
         releaseCode: 'dr-hk-overture-division-2025-09-24.0',
         releaseId: '1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70',
         rowCount: 1810,
@@ -66,7 +66,7 @@ describe('upload helpers', () => {
     )
 
     expect(calls).toEqual(['https://harbour.saanseoi.hk/v1/registerUpload'])
-    expect(result.localInputKey).toBe('hk/overture/2025-09-24.0/division.parquet')
+    expect(result.rawObjectKey).toBe('hk/overture/2025-09-24.0/division.parquet')
   })
 
   test('surfaces remote registration failures', async () => {

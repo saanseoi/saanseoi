@@ -7,8 +7,10 @@ import {
   formatDownloadProgressLine,
   formatDatasetCheckLine,
   formatDatasetPromptLabel,
+  formatLandsdIngestPrompt,
   formatUpdateProgressLine,
   resolveTargetVersion,
+  shouldDownloadUpdate,
   wrapUpdateMessage,
 } from './update.ts'
 
@@ -114,6 +116,17 @@ test('keeps active progress beside its stage rather than a trailing version plac
   expect(line).not.toContain('—')
 })
 
+test('allows a current download-backed release to be explicitly re-downloaded', () => {
+  const current = {
+    download: async () => '/tmp/source.zip',
+    status: 'current' as const,
+  }
+
+  expect(shouldDownloadUpdate(current)).toBe(false)
+  expect(shouldDownloadUpdate(current, true)).toBe(true)
+  expect(shouldDownloadUpdate({ status: 'current' }, true)).toBe(false)
+})
+
 test('keeps the dataset context and release position while downloading a batch', () => {
   const line = formatDownloadProgressLine(
     {
@@ -148,13 +161,16 @@ test('reports each completed download with its dataset and release context', () 
     6,
     19,
     '2026-06-17T03:45:16.749Z',
+    '2026-03-17.0',
     1_024,
     559 * 1_024,
   )
 
   expect(line).toContain('Dpang')
-  expect(line).toContain('downloaded 7/19')
+  expect(line).toContain('7/19')
+  expect(line).not.toContain('downloaded')
   expect(line).toContain('v2026-06-17.0')
+  expect(line).toContain('←')
   expect(line).toContain('(1s, 559KB)')
 })
 
@@ -187,6 +203,60 @@ test('renders every configured release while showing the dataset label once', ()
   expect(line).not.toContain('=')
   expect(first).toHaveLength(120)
   expect(second).toHaveLength(123)
+})
+
+test('keeps each incremental release paired with its preceding target version', () => {
+  const dataset = {
+    code: 'ds-hk-hkgov-landsd-street',
+    publisherCode: 'hkgov-landsd',
+    regionCode: 'hk',
+    theme: 'streets',
+    resourceTypes: ['street'],
+    versionPolicy: { scheme: 'release-date', correction: true },
+  } as const
+  const line = formatDatasetCheckLine(
+    dataset,
+    [
+      {
+        dataset,
+        sourceKey: dataset.code,
+        status: 'new',
+        targetVersion: '2026-06-17.0',
+        version: '2026-07-03.0',
+      },
+      {
+        dataset,
+        sourceKey: dataset.code,
+        status: 'new',
+        targetVersion: '2026-07-03.0',
+        version: '2026-07-17.0',
+      },
+    ],
+    new Map([[dataset.code, '2026-07-17.0']]),
+  )
+
+  const [first = '', second = ''] = line.split('\n')
+  expect(first).toEndWith(' v2026-07-03.0 ←  v2026-06-17.0')
+  expect(second).toEndWith(' v2026-07-17.0 ←  v2026-07-03.0')
+})
+
+test('labels LandsD ingestion as a chronological step instead of a generic download', () => {
+  const update = {
+    dataset: {
+      code: 'ds-hk-hkgov-landsd-street',
+      publisherCode: 'hkgov-landsd',
+      regionCode: 'hk',
+      theme: 'streets',
+      resourceTypes: ['street'],
+      versionPolicy: { scheme: 'release-date', correction: true },
+    },
+    status: 'new',
+    version: '2026-07-03.0',
+  } as const
+
+  expect(formatLandsdIngestPrompt(update, '2026-06-17.0', 1, 3)).toContain(
+    '2/3: v2026-07-03.0 after v2026-06-17.0?',
+  )
 })
 
 test('formats division statistics and identifies the HyD nameplate source', () => {

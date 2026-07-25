@@ -8,6 +8,7 @@ import { unzipSync } from 'fflate'
 import {
   buildSourceArchiveObjectKey,
   buildSourceArchivePrefix,
+  mirrorCsdiSourceArchive,
   prepareCsdiSourceArchive,
 } from './sourceArchives.ts'
 
@@ -71,5 +72,56 @@ describe('CSDI source archives', () => {
     expect(buildSourceArchiveObjectKey(input, 'source.zip')).toBe(
       `by-source/hk/hkgov-csdi/${input.datasetId}/2025-Q1/${input.sha256}-source.zip`,
     )
+  })
+
+  test('mirrors source archives into the local managed asset store', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'saanseoi-source-archive-'))
+    const inputPath = join(root, 'Street Name Plates.geojson')
+    const outputPath = join(root, 'source.zip')
+    const archive = {
+      datasetCode: 'ds-hk-hkgov-hyd-pedestrian-street',
+      datasetId: 'td_rcd_1697081765097_37742',
+      releaseSlot: '2025-Q1',
+      sourceUrl: 'https://publisher.example/archive',
+    }
+    await writeFile(inputPath, '{"type":"FeatureCollection","features":[]}', 'utf8')
+    const uploads: Array<{ assetKey: string; role: string }> = []
+
+    try {
+      const prepared = await prepareCsdiSourceArchive({
+        archive,
+        inputPath,
+        outputPath,
+      })
+      const mirrored = await mirrorCsdiSourceArchive(
+        { environment: 'dev', remote: false },
+        archive,
+        prepared,
+        {
+          upload: async (_target, input) => {
+            uploads.push({
+              assetKey: input.metadata.assetKey,
+              role: input.metadata.role,
+            })
+            const assetId = `00000000-0000-4000-8000-00000000000${uploads.length}`
+            return { assetId, url: `https://assets.example/${assetId}` }
+          },
+        },
+      )
+
+      expect(uploads).toHaveLength(2)
+      expect(uploads.map(upload => upload.role).sort()).toEqual([
+        'manifest',
+        'sourceArchive',
+      ])
+      expect(mirrored).toEqual({
+        manifestUrl:
+          'http://localhost:8787/v0/assets/00000000-0000-4000-8000-000000000002',
+        sourceUrl:
+          'http://localhost:8787/v0/assets/00000000-0000-4000-8000-000000000001',
+      })
+    } finally {
+      await rm(root, { force: true, recursive: true })
+    }
   })
 })
