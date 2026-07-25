@@ -10,7 +10,10 @@ The source is
 [`ds-hk-hkgov-landsd-street`](../../../../fixtures/meta/datasets/hkgov-landsd-hk-street.json).
 The initial source release is `2016-01-01.0`; it preserves the exclusion audit linking
 baseline rows to their later logical streets or events. Notice releases are grouped by
-publication day.
+publication day. The incremental updater only offers publication days later than the
+selected target's latest LandsD source version. This prevents a stale local notice
+cursor from trying to upload historical notice releases after a newer target release
+already exists.
 
 ## Notice ledger and evidence
 
