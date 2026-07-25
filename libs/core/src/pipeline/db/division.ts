@@ -334,6 +334,7 @@ export async function prepareDivisionVersionInsertContext(
     variant: datasetVariantForSource(message.type, dataset.source, {
       cohortKey: dataset.cohortKey,
       datasetCode: dataset.datasetCode,
+      sourceVariant: dataset.sourceVariant,
       sourceVersion: dataset.sourceVersion,
     }),
     identityMode: identityModeForSource(dataset.source),

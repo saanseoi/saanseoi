@@ -226,6 +226,52 @@ describe('getSupplementalDivisionFixtureRows', () => {
 })
 
 describe('normaliseDivisionRow i18n', () => {
+  test('retains LandsD settlement classification and full source provenance', () => {
+    const normalised = normaliseDivisionRow({
+      class: 'Town',
+      district: 'CW',
+      geo_name_id: '101',
+      geometry: { coordinates: [114.1577, 22.2855], type: 'Point' },
+      id: 'LANDSD:101',
+      names: { common: { en: 'Central', 'zh-hant': '中環' } },
+      place_class: 'Settlement',
+      place_type: 'Town',
+      source: 'hkgov-landsd',
+      source_feature: {
+        geometry: { coordinates: [114.1577, 22.2855], type: 'Point' },
+        properties: { GEO_NAME_ID: '101', PLACE_CLASS: 'Settlement' },
+        type: 'Feature',
+      },
+      source_properties: { GEO_NAME_ID: '101', PLACE_CLASS: 'Settlement' },
+      subtype: 'locality',
+    })
+
+    expect(normalised).toMatchObject({
+      base: {
+        geometry: { coordinates: [114.1577, 22.2855], type: 'Point' },
+        level: 5,
+        sourceKeys: {
+          hkgovLandsd: {
+            district: 'CW',
+            geoNameId: '101',
+            placeClass: 'Settlement',
+            placeType: 'Town',
+          },
+        },
+        sources: {
+          hkgovLandsd: {
+            properties: { GEO_NAME_ID: '101', PLACE_CLASS: 'Settlement' },
+          },
+        },
+        type: 'settlement',
+      },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Central' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '中環' }),
+      ]),
+    })
+  })
+
   test('defaults unlabeled Chinese names and alternate rules to zh-hant for Hong Kong', () => {
     const normalised = normaliseDivisionRow({
       id: 'division-traditional-chinese',

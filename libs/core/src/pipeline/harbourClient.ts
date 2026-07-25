@@ -1,9 +1,15 @@
+export type ApiReleaseSetPublication = {
+  apiCatalogRevisionCode?: string
+  apiReleaseSetCode: string
+}
+
 export type PublishDatasetResult = {
   apiCatalogRevisionCode?: string
   apiCatalogRevisionId?: string
   apiReleaseSetId?: string
   apiReleaseSetCode?: string
   apiReleaseSetStatus?: 'current' | 'draft'
+  apiReleaseSetPublications?: ApiReleaseSetPublication[]
   datasetId?: string
   phase: string | null
   releaseCode: string
