@@ -5,27 +5,31 @@ This page records the provider-specific profile. The reusable source contract is
 
 ## Catalogue and service
 
-| Property               | Value                                                                                                                                                |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Catalogue              | [District Boundary](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218)                                             |
-| Specification          | [Functional Area FSDT 1.2](https://static.csdi.gov.hk/csdi-webpage/download/common/f9f4daf727620fe453d5c551e7ce63523df27fc618862b5a35979fe309b79003) |
-| Publisher              | Home Affairs Department (`hkgov-had`)                                                                                                                |
-| GeoJSON                | `https://portal.csdi.gov.hk/csdi-webpage/file-api?dataset_id=had_rcd_1634523272907_75218&format=geojson&layer_name=DCD`                              |
-| Feature service        | `https://portal.csdi.gov.hk/server/rest/services/common/had_rcd_1634523272907_75218/FeatureServer/0`                                                 |
-| Source release data    | Catalogue published July 2025; layer last revised in 2022                                                                                            |
-| Source schema          | `1.2`                                                                                                                                                |
-| Observed features      | 18 Polygon features                                                                                                                                  |
-| Downloaded GeoJSON CRS | EPSG:4326 (GeoJSON has no `crs` member; its coordinates are longitude/latitude)                                                                      |
+| Property            | Value                                                                                                                                                |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalogue           | [District Boundary](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218)                                             |
+| Specification       | [Functional Area FSDT 1.2](https://static.csdi.gov.hk/csdi-webpage/download/common/f9f4daf727620fe453d5c551e7ce63523df27fc618862b5a35979fe309b79003) |
+| Publisher           | Home Affairs Department (`hkgov-had`)                                                                                                                |
+| Source artefact     | Native package from each CSDI Archived Dataset slot; format and files are recorded in its manifest                                                   |
+| Feature service     | `https://portal.csdi.gov.hk/server/rest/services/common/had_rcd_1634523272907_75218/FeatureServer/0`                                                 |
+| Source release data | Catalogue published July 2025; layer last revised in 2022                                                                                            |
+| Source schema       | `1.2`                                                                                                                                                |
+| Observed features   | 18 Polygon features                                                                                                                                  |
+| Native CRS          | Recorded from the publisher package in each source-archive manifest                                                                                  |
 
-The `hkgov-had` District Boundary service is downloaded as GeoJSON from the CSDI
-catalogue. Its 18 Polygon features use WGS84 longitude/latitude coordinates. Ingestion
-keeps that canonical EPSG:4326 geometry unchanged and retains the original source
-feature, and coordinates in provenance. `AREA_ID` and `AREA_CODE` are provider
-identifiers. They are resolved through the versioned `identifierBridges` fixture/table
-for resource type `division`, authority `hkgov-had`, cohort `2022`, and the
-administrative domain. The source release is
-`dr-hk-hkgov-had-division-area-district-2022` with cohort key `2022` and source schema
-version `1.2`. Its dataset code is `ds-hk-hkgov-had-division-area-district`.
+The dataset update check maps the configured `sourceVersion` release metadata to the
+`2022.0` source version. The catalogue page's `Creation Date` and `Revision Date` are
+publisher timing, not the source version. The updater mirrors every native Archived
+Dataset package and does not use the CSDI GeoJSON file API as input.
+
+The `hkgov-had` District Boundary native package is read from the CSDI archive. Its
+source CRS and feature count are captured in provenance before the accepted geometry is
+normalised into canonical EPSG:4326. `AREA_ID` and `AREA_CODE` are provider identifiers.
+They are resolved through the versioned `identifierBridges` fixture/table for resource
+type `division`, authority `hkgov-had`, cohort `2022`, and the administrative domain.
+The source release is `dr-hk-hkgov-had-division-area-district-2022` with cohort key
+`2022` and source schema version `1.2`. Its dataset code is
+`ds-hk-hkgov-had-division-area-district`.
 
 The compatibility layer exposes these source fields under `hkgov`, with database
 capitalisation, in both source columns and canonical geometry `sourceKeys`:

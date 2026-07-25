@@ -6,9 +6,11 @@ geometry contract remains in
 
 ## Catalogue and artefacts
 
-The CSDI file API publishes the following polygonal GeoJSON artefacts. Their underlying
-ArcGIS services advertise EPSG:2326; the CSDI GeoJSON delivery is EPSG:4326
-longitude/latitude and is ingested as the API canonical CRS.
+The CSDI Archived Dataset catalogue publishes native publisher packages for the
+following polygonal layers. The updater mirrors every available archive slot and its
+manifest; it does not use CSDI's converted GeoJSON file API. The source package records
+its own CRS, which is retained before accepted geometry is normalised into the API
+canonical CRS.
 
 | Cohort | Catalogue code                                                                                                           | Layer          | Source cells | TPU values |
 | ------ | ------------------------------------------------------------------------------------------------------------------------ | -------------- | -----------: | ---------: |
@@ -24,8 +26,10 @@ observed artefact-shape profile, not an upstream CSDI version: `1.0` covers the
 2001–2016 `PPU`/`SPU`/`TPU`/`SB_VC` columns, while `2.0` covers the 2021 replacement of
 `SB_VC` with `Subunit`. Releases use provider variant `hkgov-pland-pu` and source
 release codes `dr-hk-hkgov-pland-division-pu-{year}` and
-`dr-hk-hkgov-pland-division-area-pu-{year}`. The corresponding dataset codes are
-`ds-hk-hkgov-pland-division-pu` and `ds-hk-hkgov-pland-division-area-pu`.
+`dr-hk-hkgov-pland-division-area-pu-{year}`. The source dataset is
+`ds-hk-hkgov-pland-division-pu`; it declares both `division` and `divisionArea` resource
+types, which are materialised as separate resource releases from the same upstream
+layer.
 
 ## Identity and hierarchy
 
@@ -66,10 +70,11 @@ divisions below; TPU/subunit uploads write no rows to it.
 
 New Towns are a separate Planning Department planning-domain resource and provider
 variant, not geographic/Overture divisions. They use source profile authority
-`hkgov-pland-new-town`, while retaining the Planning Department as publisher. The CSDI
-GeoJSON files are also EPSG:4326 deliveries of EPSG:2326 catalogue services. Its
-datasets use `ds-hk-hkgov-pland-division-new-town` and
-`ds-hk-hkgov-pland-division-area-new-town`.
+`hkgov-pland-new-town`, while retaining the Planning Department as publisher. Their
+native CSDI archive package is retained alongside its CRS and package manifest. Its
+source dataset is `ds-hk-hkgov-pland-division-new-town`, which declares both `division`
+and `divisionArea` resource types. The shared source release is processed into one
+resource release for each type.
 
 | Cohort | Catalogue code                                                                                                           | Layer          | Features |
 | ------ | ------------------------------------------------------------------------------------------------------------------------ | -------------- | -------: |
