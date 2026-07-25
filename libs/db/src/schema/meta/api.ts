@@ -348,6 +348,7 @@ export const metaApiComposition = sqliteTable(
       enum: datasetTypes,
     }).notNull(),
     defaultDomainCode: text('defaultDomainCode'),
+    i18n: jsonText('i18n'),
     status: text('status').notNull(),
     notes: text('notes'),
     versionHash: text('versionHash').notNull(),
