@@ -1,306 +1,48 @@
 # Atlas Data Implementation
 
-## Purpose
+## Current architecture
 
-This document is the current implementation guide for Atlas ingestion.
+SaanSeoi processes datasets in the local Harbour CLI. There is no remote
+dataset-ingestion worker and no `processDataset` queue contract.
 
-It replaces the older `places`-first view with the actual monthly dependency order:
+- `harbour-cli` validates, normalises, and loads a source dataset through the local
+  pipeline.
+- `harbour-api` is the authenticated control plane for upload registration, release
+  state, and narrowly scoped R2 upload authorization.
+- Atlas API serves the published database-backed product and public source-archive
+  downloads.
+- `harbour-workers` consumes only delayed snapshot-cleanup jobs after publication.
 
-1. `division`
-2. `address`
-3. `place`
+The local pipeline records stages such as `processDataset` in release metadata. Those
+are local processing phases, not remote queue messages.
 
-The goal is simple:
+## Artefacts
 
-- Harbour accepts and stages raw parquet uploads in `R2`
-- a deferred processor turns staged parquet into normalised Atlas tables in `D1`
-- each dataset type is processed independently, but in dependency order
+The published product is the normalised data held in the current/history/source
+databases. Intermediate Parquet is a local, transient processing input and must not be
+retained in R2 once the run completes.
 
-## Current reality
+Publisher source artefacts are different: they are immutable provenance. For CSDI, the
+updater downloads each archive slot's native publisher delivery, preserves a publisher
+ZIP byte-for-byte or losslessly wraps a non-ZIP delivery, and mirrors the resulting ZIP
+and its manifest to R2:
 
-What already exists:
-
-- upload planning and validation
-- direct upload to `R2`
-- `finaliseUpload`
-- dataset metadata in `datasets`
-- phase tracking in `ingestRuns`
-- normalised schema for divisions, addresses, streets, places, and i18n tables
-
-What does not exist yet:
-
-- post-finalise processing task dispatch
-- parquet extraction workers
-- dataset publication logic
-- address and place reconciliation flows
-
-## Core architecture
-
-Use:
-
-- `R2` for raw parquet
-- `D1` for normalised and serving tables
-- `harbour-api` for upload, staging, and ingest orchestration
-- `harbour-workers` a Cloudflare queue-backed processor for deferred extraction work
-
-Recommended processing contract:
-
-1. `requestUpload`
-2. direct client upload to `R2`
-3. `finaliseUpload`
-4. enqueue `processDataset`
-5. run dataset-specific stages
-6. publish dataset
-
-`finaliseUpload` should stay small and synchronous. The heavy parquet work should happen
-in a background queue consumer.
-
-## Queue and memory rules
-
-### Queue
-
-Add a Cloudflare Queue now.
-
-Reason:
-
-- `finaliseUpload` should not do heavy processing
-- ingest must be retryable
-- ingest phases should be resumable
-- large parquet reads should not run inside the upload request path
-
-Suggested queue message shape:
-
-```json
-{
-  "datasetId": "dr-hk-overture-division-2026-05-24.0",
-  "type": "division",
-  "regionCode": "hk",
-  "source": "overture",
-  "sourceVersion": "2026-05-24.0",
-  "rawObjectKey": "raw/overture/hk/2026-05-24.0/division.parquet"
-}
+```text
+source-archives/hk/hkgov-csdi/{dataset-id}/{release-slot}/{sha256}/
+  source.zip
+  manifest.json
 ```
 
-### Memory
-
-Do not read the full parquet file into memory.
-
-The safe approach is:
-
-- read the object as a stream or array-buffer only in bounded chunks
-- process row groups or record batches incrementally
-- write database changes in batches
-- keep only the working set needed for the current chunk
-
-If the parquet library cannot process incrementally, treat that as a blocker for
-Worker-native processing. With a 128 MB budget, full in-memory loads are not reliable
-enough for monthly production ingest.
-
-## Dataset lifecycle
-
-Each dataset moves through:
-
-1. `uploading`
-2. `staged`
-3. `processing`
-4. `current` or `failed`
-5. `revoked` if superseded by a corrected release
-
-`ingestRuns` should track each named stage with:
-
-- `queued`
-- `running`
-- `completed`
-- `error`
-
-## Canonical processing order
-
-The dependency order is fixed:
-
-1. divisions first
-2. addresses second
-3. places last
-
-That order applies both:
-
-- across monthly uploads
-- within implementation priority
-
-## Shared implementation rules
-
-All dataset types should share the same baseline behaviour:
-
-- validate schema before processing
-- normalise source values into canonical shapes
-- compute deterministic version hashes
-- compare against the current row for the same canonical id
-- insert a new version row only when content changed
-- upsert the current-state table
-- close out missing current rows as real deletions when the entity disappears from the
-  new current dataset
-- record stage progress in `ingestRuns`
-
-## Division dataset
-
-This is the first real extractor to implement.
-
-### Stages
-
-1. `extractCore`
-2. `extractI18n`
-3. `publishDataset`
-
-### `extractCore`
-
-For each division row:
-
-- notify Harbour that `extractCore` started
-- parse a bounded parquet chunk
-- normalise the division payload
-- compute `otVersionHash`
-- compare with the current `divisions` row for the same `id`
-- insert or update `divisions`
-- upsert `divisions`
-
-Deletion rule:
-
-- if a previously current division is missing from the new staged dataset, treat it as
-  deleted
-- mark the old current version no longer current
-- close its validity window
-
-### `extractI18n`
-
-After base division extraction completes:
-
-- notify Harbour that `extractCore` completed
-- notify Harbour that `extractI18n` started
-- resolve localised names from `names.common` and `names.rules`
-- upsert `divisionsI18n`
-- write matching history rows to `divisionsI18n` when needed
-- notify Harbour that `extractI18n` completed
-
-### Division implementation notes
-
-- divisions are managed entities
-- later address and place ingest may reference divisions
-- later ingest must not create missing divisions implicitly - missing divisions should
-  be addes to the issue table so they can be investigated by the admin
-
-## Address dataset
-
-Addresses depend on divisions already being available.
-
-### Stages
-
-1. `extractCore`
-2. `extractI18n`
-3. `reconcileStreets`
-4. `deriveAddress3d`
-5. `publishDataset`
-
-### `extractCore`
-
-For each address row:
-
-- normalise the source payload
-- resolve division foreign keys against existing managed divisions
-- derive the deterministic `canonicalKey`
-- compute version hashes
-- compare against the current address row
-- update `address2d`
-- upsert `address2d`
-
-Deletion rule:
-
-- if a previously current canonical address is absent from the new current address
-  dataset, treat it as deleted
-
-### `extractI18n`
-
-- normalise localised formatted-address fields
-- upsert `address2dI18n`
-- write `address2dI18n` as needed
-
-### `reconcileStreets`
-
-- normalise street identity from address payloads
-- add issues to the table if there are addresses with missing streets. Because streets
-  is a managed dataset, we should not upsert `streets` and `streets`, `streetsI18n` -
-  but only notify the admin of discrepancies. To be specified later.
-- populate `streetsAddress`
-
-## Place dataset
-
-Places depend on divisions and addresses already being available.
-
-### Stages
-
-1. `extractCore`
-2. `extractI18n`
-3. `reconcileAddress`
-4. `reconcileDivision`
-5. `refreshSpatialIndex`
-6. `refreshFts`
-7. `publishDataset`
-
-### `extractCore`
-
-For each place row:
-
-- normalise the source payload
-- compute `otVersionHash`
-- compare with the current row for the same `id`
-- update `places`
-- upsert `places`
-
-Deletion rule:
-
-- if a previously current place is absent from the new current dataset, treat it as
-  deleted
-
-### `extractI18n`
-
-- resolve localised names from `names.common` and `names.rules`
-- resolve localised brand values from `brand.names.common` and `brand.names.rules`
-- upsert `placesI18n`
-- write `placesI18n` as needed
-
-### Reconciliation and derived indexes
-
-- match places to existing `address2d` and `address3d`
-- link places to existing managed divisions
-- refresh `placesCells`
-- rebuild `placesFts`
-
-## Publication rules
-
-Publishing should be explicit and last.
-
-For any dataset type:
-
-- mark the processed dataset current
-- revoke or deactivate the superseded dataset if this is a replacement
-- ensure only one current lineage exists for the intended region and type
-
-Do not publish partial work.
-
-## Immediate implementation order
-
-Implement in this order:
-
-1. add Cloudflare Queue config and a `processDataset` message contract
-2. enqueue a processing task after `finaliseUpload`
-3. add ingest-run helpers for queued, running, completed, and failed stage updates
-4. implement `division` parquet extraction in chunked batches
-5. implement division versioning, deletion handling, and i18n extraction
-6. implement dataset publication for `division`
-7. implement `address` extraction and reconciliation
-8. implement `place` extraction and downstream indexes
-
-## Constraints
-
-- do not process full parquet files in memory
-- do not create divisions during address or place ingest
-- do not treat FTS or spatial indexes as canonical state
-- do not publish a dataset until all required stages for that type complete
+Atlas API publicly serves those exact objects at `/v0/source-archives/...`. There is no
+public bucket listing or separate conversion artefact.
+
+## Release policy
+
+Every available source archive is mirrored. The manifest records the native package
+contents and, where parsing succeeds, schema and semantic fingerprints. A SaanSeoi
+dataset release is eligible only for an initial baseline or a semantic change (geometry,
+attributes, or features), including schema changes. An identical upstream redelivery is
+provenance only.
+
+Snapshot cleanup remains asynchronous because it is a small post-publication operation
+that safely removes superseded current snapshots. It is unrelated to source ingestion.
