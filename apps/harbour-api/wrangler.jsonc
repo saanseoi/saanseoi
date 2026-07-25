@@ -14,9 +14,6 @@
       "D1_PLACEMENT_PROBE_API_KEY",
       "AZURE_TRANSLATION_KEY",
       "HARBOUR_API_KEY",
-      "R2_ACCOUNT_ID",
-      "R2_RAW_ACCESS_KEY_ID",
-      "R2_RAW_SECRET_ACCESS_KEY",
       "TELEGRAM_BOT_TOKEN",
       "TELEGRAM_ADMIN_ID"
     ]
@@ -24,8 +21,7 @@
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
     "DATA_SHARD_ENV": "preview",
-    "HARBOUR_BASE_URL": "http://localhost:8788",
-    "R2_RAW_BUCKET_NAME": "ss-raw-preview"
+    "HARBOUR_BASE_URL": "http://localhost:8788"
   },
   "d1_databases": [
     {
@@ -90,10 +86,6 @@
   },
   "r2_buckets": [
     {
-      "binding": "R2_RAW",
-      "bucket_name": "ss-raw-preview"
-    },
-    {
       "binding": "R2_ASSETS",
       "bucket_name": "ss-assets-preview"
     }
@@ -129,9 +121,6 @@
           "D1_PLACEMENT_PROBE_API_KEY",
           "AZURE_TRANSLATION_KEY",
           "HARBOUR_API_KEY",
-          "R2_ACCOUNT_ID",
-          "R2_RAW_ACCESS_KEY_ID",
-          "R2_RAW_SECRET_ACCESS_KEY",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
         ]
@@ -139,8 +128,7 @@
       "vars": {
         "ATLAS_BASE_URL": "https://preview.api.saanseoi.hk",
         "DATA_SHARD_ENV": "preview",
-        "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk",
-        "R2_RAW_BUCKET_NAME": "ss-raw-preview"
+        "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk"
       },
       "d1_databases": [
         {
@@ -202,10 +190,6 @@
       ],
       "r2_buckets": [
         {
-          "binding": "R2_RAW",
-          "bucket_name": "ss-raw-preview"
-        },
-        {
           "binding": "R2_ASSETS",
           "bucket_name": "ss-assets-preview"
         }
@@ -240,9 +224,6 @@
           "D1_PLACEMENT_PROBE_API_KEY",
           "AZURE_TRANSLATION_KEY",
           "HARBOUR_API_KEY",
-          "R2_ACCOUNT_ID",
-          "R2_RAW_ACCESS_KEY_ID",
-          "R2_RAW_SECRET_ACCESS_KEY",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
         ]
@@ -250,8 +231,7 @@
       "vars": {
         "ATLAS_BASE_URL": "https://api.saanseoi.hk",
         "DATA_SHARD_ENV": "production",
-        "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk",
-        "R2_RAW_BUCKET_NAME": "ss-raw-prod"
+        "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk"
       },
       "d1_databases": [
         {
@@ -312,10 +292,6 @@
         }
       ],
       "r2_buckets": [
-        {
-          "binding": "R2_RAW",
-          "bucket_name": "ss-raw-prod"
-        },
         {
           "binding": "R2_ASSETS",
           "bucket_name": "ss-assets-prod"
