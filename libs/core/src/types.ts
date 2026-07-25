@@ -31,9 +31,10 @@ export type DatasetRecord = {
   cohortKey: string
   theme: string
   type: string
+  sourceVariant: string
   source: string
   sourceVersion: string
-  rawObjectKey: string
+  rawObjectKey: string | null
   originalFileName: string
   releaseNotesUrl: string | null
   notes: string | null
@@ -63,7 +64,7 @@ export type ParquetInspection = {
 }
 
 export type SchemaFingerprintResolver = (
-  rawObjectKey: string,
+  rawObjectKey: string | null,
   datasetId: string,
 ) => Promise<string | null>
 
@@ -189,4 +190,6 @@ export type AddressSqlStagingCleanupMessage = DatasetProcessingMessage & {
   processingMode: 'sql'
 }
 
-export type HarbourJobMessage = DatasetProcessingMessage | SnapshotCleanupMessage
+// Harbour's only remote queue work is snapshot cleanup. Dataset processing runs
+// in the local CLI pipeline and must not be dispatched to this queue.
+export type HarbourJobMessage = SnapshotCleanupMessage
