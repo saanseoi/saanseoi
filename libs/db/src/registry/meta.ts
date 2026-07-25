@@ -13,7 +13,6 @@ import type {
   DatasetReleaseFrequency,
   DatasetReleaseType,
   DatasetTheme,
-  DatasetType,
   ProfileName,
   ResolverCode,
 } from '../constants/schema'
@@ -34,6 +33,7 @@ export const metaRegistryRequiredTables = [
   'publisherI18n',
   'licenses',
   'datasets',
+  'datasetResourceTypes',
   'datasetI18n',
   'datasetTransforms',
   'apiVersions',
@@ -91,7 +91,8 @@ type DatasetFixture = {
   releaseType: DatasetReleaseType
   releaseFrequency: DatasetReleaseFrequency
   theme: DatasetTheme
-  type: DatasetType
+  sourceVariant?: string
+  resourceTypes: ResourceType[]
   licenseCode: string
   attribution?: string
   sourceUrl?: string
@@ -154,6 +155,11 @@ type ApiCompositionFixture = {
   domains?: Array<{
     code: string
     isDefault?: boolean
+    i18n: Array<{
+      locale: Locale
+      name: string
+      description?: string
+    }>
     members: ApiCompositionMemberFixture[]
   }>
 }
@@ -188,7 +194,17 @@ type InitialPublisherI18nSeed = {
 
 type InitialLicenseSeed = VersionedFixture<LicenseFixture>
 
-type InitialDatasetSeed = VersionedFixture<Omit<DatasetFixture, 'i18n' | 'transforms'>>
+type InitialDatasetSeed = VersionedFixture<
+  Omit<DatasetFixture, 'i18n' | 'transforms' | 'resourceTypes' | 'sourceVariant'> & {
+    sourceVariant: string
+  }
+>
+
+type InitialDatasetResourceTypeSeed = {
+  datasetCode: string
+  publisherCode: string
+  resourceType: ResourceType
+}
 
 type InitialDatasetI18nSeed = {
   datasetCode: string
@@ -225,6 +241,14 @@ type InitialApiCompositionSeed = VersionedFixture<{
   version: number
   primaryResourceType: ResourceType
   defaultDomainCode?: string
+  i18n: Record<
+    string,
+    Array<{
+      locale: Locale
+      name: string
+      description?: string
+    }>
+  >
   status: string
   notes?: string
 }>
@@ -358,12 +382,21 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   releaseType: fixture.releaseType,
   releaseFrequency: fixture.releaseFrequency,
   theme: fixture.theme,
-  type: fixture.type,
+  sourceVariant: fixture.sourceVariant ?? 'default',
   licenseCode: fixture.licenseCode,
   attribution: fixture.attribution,
   sourceUrl: fixture.sourceUrl,
   category: fixture.category,
 }))
+
+export const initialDatasetResourceTypes: InitialDatasetResourceTypeSeed[] =
+  datasetFixtures.flatMap(fixture =>
+    fixture.resourceTypes.map(resourceType => ({
+      datasetCode: fixture.code,
+      publisherCode: fixture.publisherCode,
+      resourceType,
+    })),
+  )
 
 export const initialDatasetI18n: InitialDatasetI18nSeed[] = datasetFixtures.flatMap(
   fixture =>
@@ -399,6 +432,9 @@ export const initialApiCompositions: InitialApiCompositionSeed[] =
     version: fixture.version,
     primaryResourceType: fixture.primaryResourceType,
     defaultDomainCode: fixture.domains?.find(domain => domain.isDefault)?.code,
+    i18n: Object.fromEntries(
+      (fixture.domains ?? []).map(domain => [domain.code, domain.i18n]),
+    ),
     status: fixture.status,
     notes: fixture.notes,
     versionHash: fixture.versionHash,
@@ -590,7 +626,7 @@ ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SE
     statements.push(
       `
 INSERT INTO datasets (
-  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, licenseId, attribution, category, versionHash, createdAt, updatedAt
+  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, sourceVariant, sourceUrl, licenseId, attribution, category, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDatasetId(dataset.publisherCode, dataset.code)},
   (SELECT id FROM publishers WHERE code = ${sqlString(dataset.publisherCode)}),
@@ -599,7 +635,7 @@ INSERT INTO datasets (
   ${sqlString(dataset.releaseType)},
   ${sqlString(dataset.releaseFrequency)},
   ${sqlString(dataset.theme)},
-  ${sqlString(dataset.type)},
+  ${sqlString(dataset.sourceVariant)},
   ${sqlNullable(dataset.sourceUrl)},
   (SELECT id FROM licenses WHERE code = ${sqlString(dataset.licenseCode)}),
   ${sqlNullable(dataset.attribution)},
@@ -613,7 +649,7 @@ ON CONFLICT(publisherId, code) DO UPDATE SET
   releaseType = excluded.releaseType,
   releaseFrequency = excluded.releaseFrequency,
   theme = excluded.theme,
-  type = excluded.type,
+  sourceVariant = excluded.sourceVariant,
   sourceUrl = excluded.sourceUrl,
   licenseId = excluded.licenseId,
   attribution = excluded.attribution,
@@ -621,6 +657,24 @@ ON CONFLICT(publisherId, code) DO UPDATE SET
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE datasets.versionHash <> excluded.versionHash;`.trim(),
+    )
+  }
+
+  for (const resource of initialDatasetResourceTypes) {
+    statements.push(
+      `
+INSERT INTO datasetResourceTypes (datasetId, resourceType)
+VALUES (
+  (
+    SELECT d.id
+    FROM datasets d
+    JOIN publishers p ON p.id = d.publisherId
+    WHERE p.code = ${sqlString(resource.publisherCode)}
+      AND d.code = ${sqlString(resource.datasetCode)}
+  ),
+  ${sqlString(resource.resourceType)}
+)
+ON CONFLICT(datasetId, resourceType) DO NOTHING;`.trim(),
     )
   }
 
@@ -716,7 +770,7 @@ WHERE apiVersions.versionHash <> excluded.versionHash;`.trim(),
     statements.push(
       `
 INSERT INTO apiComposition (
-  id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, notes, versionHash, createdAt, updatedAt
+  id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, i18n, status, notes, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDeterministicId(API_COMPOSITION_ID_NAMESPACE, composition.code)},
   (SELECT id FROM apiVersions WHERE code = ${sqlString(composition.apiVersion)}),
@@ -724,6 +778,7 @@ INSERT INTO apiComposition (
   ${composition.version},
   ${sqlString(composition.primaryResourceType)},
   ${sqlNullable(composition.defaultDomainCode)},
+  ${sqlString(JSON.stringify(composition.i18n))},
   ${sqlString(composition.status)},
   ${sqlNullable(composition.notes)},
   ${sqlString(composition.versionHash)},
@@ -735,6 +790,7 @@ ON CONFLICT(code) DO UPDATE SET
   version = excluded.version,
   primaryResourceType = excluded.primaryResourceType,
   defaultDomainCode = excluded.defaultDomainCode,
+  i18n = excluded.i18n,
   status = excluded.status,
   notes = excluded.notes,
   versionHash = excluded.versionHash,
