@@ -22,11 +22,20 @@ CREATE TABLE `streetNameChanges` (
 	CONSTRAINT `streetNameChanges_pk` PRIMARY KEY(`snapshotId`, `id`)
 );
 --> statement-breakpoint
-ALTER TABLE `streets` ADD `version` integer NOT NULL;--> statement-breakpoint
-ALTER TABLE `streets` ADD `status` text NOT NULL;--> statement-breakpoint
+-- Existing materialised streets predate lifecycle versioning. They are the
+-- baseline materialisation, so retain them as active version 1 while the
+-- table is rebuilt below.
+ALTER TABLE `streets` ADD `version` integer NOT NULL DEFAULT 1;--> statement-breakpoint
+ALTER TABLE `streets` ADD `status` text NOT NULL DEFAULT 'active';--> statement-breakpoint
 ALTER TABLE `streets` ADD `deletedAt` text;--> statement-breakpoint
 ALTER TABLE `streetsI18n` ADD `description` text;--> statement-breakpoint
 PRAGMA foreign_keys=OFF;--> statement-breakpoint
+-- Cloudflare D1 does not honour the PRAGMA above during a table rebuild.
+-- Preserve cascading dependants explicitly before dropping `streets`, then
+-- restore them after the rebuilt table is in place. On SQLite, where the
+-- PRAGMA does work, the DELETE statements make the restore idempotent.
+CREATE TABLE `__streetsI18n_backup` AS SELECT * FROM `streetsI18n`;--> statement-breakpoint
+CREATE TABLE `__streetsAddress_backup` AS SELECT * FROM `streetsAddress`;--> statement-breakpoint
 CREATE TABLE `__new_streets` (
 	`snapshotId` text NOT NULL,
 	`id` text NOT NULL,
@@ -44,9 +53,15 @@ CREATE TABLE `__new_streets` (
 	CONSTRAINT "streets_version_positive" CHECK("version" > 0)
 );
 --> statement-breakpoint
-INSERT INTO `__new_streets`(`snapshotId`, `id`, `districtIds`, `landsdPublicationDate`, `yearBuilt`, `references`, `sourceKeys`, `createdAt`, `updatedAt`) SELECT `snapshotId`, `id`, `districtIds`, `landsdPublicationDate`, `yearBuilt`, `references`, `sourceKeys`, `createdAt`, `updatedAt` FROM `streets`;--> statement-breakpoint
+INSERT INTO `__new_streets`(`snapshotId`, `id`, `version`, `status`, `districtIds`, `landsdPublicationDate`, `yearBuilt`, `references`, `sourceKeys`, `createdAt`, `updatedAt`) SELECT `snapshotId`, `id`, `version`, `status`, `districtIds`, `landsdPublicationDate`, `yearBuilt`, `references`, `sourceKeys`, `createdAt`, `updatedAt` FROM `streets`;--> statement-breakpoint
 DROP TABLE `streets`;--> statement-breakpoint
 ALTER TABLE `__new_streets` RENAME TO `streets`;--> statement-breakpoint
+DELETE FROM `streetsI18n`;--> statement-breakpoint
+INSERT INTO `streetsI18n` SELECT * FROM `__streetsI18n_backup`;--> statement-breakpoint
+DELETE FROM `streetsAddress`;--> statement-breakpoint
+INSERT INTO `streetsAddress` SELECT * FROM `__streetsAddress_backup`;--> statement-breakpoint
+DROP TABLE `__streetsI18n_backup`;--> statement-breakpoint
+DROP TABLE `__streetsAddress_backup`;--> statement-breakpoint
 PRAGMA foreign_keys=ON;--> statement-breakpoint
 CREATE INDEX `streetNameChangeStreets_streetId_idx` ON `streetNameChangeStreets` (`snapshotId`,`streetId`);--> statement-breakpoint
 CREATE INDEX `streetNameChanges_sourceEventId_idx` ON `streetNameChanges` (`sourceEventId`);--> statement-breakpoint

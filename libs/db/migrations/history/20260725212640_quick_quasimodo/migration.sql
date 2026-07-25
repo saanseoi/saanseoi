@@ -28,8 +28,10 @@ CREATE TABLE `streetNameChanges` (
 	CONSTRAINT `streetNameChanges_pk` PRIMARY KEY(`id`, `versionHash`)
 );
 --> statement-breakpoint
-ALTER TABLE `streets` ADD `version` integer NOT NULL;--> statement-breakpoint
-ALTER TABLE `streets` ADD `status` text NOT NULL;--> statement-breakpoint
+-- Historical streets from before lifecycle versioning are their logical
+-- street's active baseline version.
+ALTER TABLE `streets` ADD `version` integer NOT NULL DEFAULT 1;--> statement-breakpoint
+ALTER TABLE `streets` ADD `status` text NOT NULL DEFAULT 'active';--> statement-breakpoint
 ALTER TABLE `streets` ADD `deletedAt` text;--> statement-breakpoint
 ALTER TABLE `streetsI18n` ADD `description` text;--> statement-breakpoint
 PRAGMA foreign_keys=OFF;--> statement-breakpoint
@@ -53,7 +55,7 @@ CREATE TABLE `__new_streets` (
 	CONSTRAINT "history_streets_version_positive" CHECK("version" > 0)
 );
 --> statement-breakpoint
-INSERT INTO `__new_streets`(`id`, `districtIds`, `landsdPublicationDate`, `yearBuilt`, `references`, `sourceKeys`, `versionHash`, `sourceReleaseId`, `snapshotId`, `isCurrent`, `createdAt`, `updatedAt`) SELECT `id`, `districtIds`, `landsdPublicationDate`, `yearBuilt`, `references`, `sourceKeys`, `versionHash`, `sourceReleaseId`, `snapshotId`, `isCurrent`, `createdAt`, `updatedAt` FROM `streets`;--> statement-breakpoint
+INSERT INTO `__new_streets`(`id`, `version`, `status`, `districtIds`, `landsdPublicationDate`, `yearBuilt`, `references`, `sourceKeys`, `versionHash`, `sourceReleaseId`, `snapshotId`, `isCurrent`, `createdAt`, `updatedAt`) SELECT `id`, `version`, `status`, `districtIds`, `landsdPublicationDate`, `yearBuilt`, `references`, `sourceKeys`, `versionHash`, `sourceReleaseId`, `snapshotId`, `isCurrent`, `createdAt`, `updatedAt` FROM `streets`;--> statement-breakpoint
 DROP TABLE `streets`;--> statement-breakpoint
 ALTER TABLE `__new_streets` RENAME TO `streets`;--> statement-breakpoint
 PRAGMA foreign_keys=ON;--> statement-breakpoint

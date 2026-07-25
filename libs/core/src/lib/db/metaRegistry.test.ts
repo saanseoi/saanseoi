@@ -461,6 +461,7 @@ function createLatestDatasetLookupDb() {
       id TEXT PRIMARY KEY,
       datasetId TEXT NOT NULL,
       code TEXT NOT NULL,
+      resourceType TEXT NOT NULL,
       sourceVersion TEXT NOT NULL,
       sourceSchemaVersion TEXT,
       publicationDate TEXT,
@@ -476,6 +477,12 @@ function createLatestDatasetLookupDb() {
       ingestedAt TEXT NOT NULL,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
+    );
+
+    CREATE TABLE datasetResourceTypes (
+      datasetId TEXT NOT NULL,
+      resourceType TEXT NOT NULL,
+      PRIMARY KEY (datasetId, resourceType)
     );
   `)
 
@@ -1410,6 +1417,9 @@ describe('getLatestDatasetForRegionSourceType', () => {
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
         ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division'),
         ('dataset-pland-new-town', 'publisher-pland', 'ds-hk-hkgov-pland-division-new-town', 'hk', 'divisions', 'division');
+      INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
+        ('dataset-pland-pu', 'division'),
+        ('dataset-pland-new-town', 'division');
     `)
 
     await insertDataset(
@@ -1421,6 +1431,7 @@ describe('getLatestDatasetForRegionSourceType', () => {
         releaseCode: 'dr-hk-hkgov-pland-division-pu-2001',
         source: 'hkgov-pland-pu',
         sourceVersion: '2001',
+        type: 'division',
       } as never,
       'raw/hkgov-pland-pu/2001/division.parquet',
       '2026-07-21T00:00:00.000Z',
@@ -1435,6 +1446,7 @@ describe('getLatestDatasetForRegionSourceType', () => {
         releaseCode: 'dr-hk-hkgov-pland-division-new-town-2006',
         source: 'hkgov-pland-new-town',
         sourceVersion: '2006',
+        type: 'division',
       } as never,
       'raw/hkgov-pland-new-town/2006/division.parquet',
       '2026-07-21T00:00:00.000Z',
@@ -1481,12 +1493,13 @@ describe('getLatestDatasetForRegionSourceType', () => {
         ('dataset-division', 'publisher-overture', 'ds-hk-overture-division', 'hk', 'divisions', 'division');
 
       INSERT INTO releases (
-        id, datasetId, code, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+        id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
       ) VALUES
         (
           'release-10',
           'dataset-division',
           'dr-hk-overture-division-2026-06-17.10',
+          'division',
           '2026-06-17.10',
           '2026-06',
           'hk/overture/2026-06-17.10/division.parquet',
@@ -1503,6 +1516,7 @@ describe('getLatestDatasetForRegionSourceType', () => {
           'release-9',
           'dataset-division',
           'dr-hk-overture-division-2026-06-17.9',
+          'division',
           '2026-06-17.9',
           '2026-06',
           'hk/overture/2026-06-17.9/division.parquet',
@@ -1545,12 +1559,13 @@ describe('getLatestNewerDatasetRelease', () => {
         'division'
       );
       INSERT INTO releases (
-        id, datasetId, code, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+        id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
       ) VALUES
       (
         'release-dr-hk-overture-division-2025-09-24.0',
         'dataset-overture-hk-division',
         'dr-hk-overture-division-2025-09-24.0',
+        'division',
         '2025-09-24.0',
         '2025-09',
         'hk/overture/2025-09-24.0/division.parquet',
@@ -1567,6 +1582,7 @@ describe('getLatestNewerDatasetRelease', () => {
         'release-dr-hk-overture-division-2025-10-22.0',
         'dataset-overture-hk-division',
         'dr-hk-overture-division-2025-10-22.0',
+        'division',
         '2025-10-22.0',
         '2025-10',
         'hk/overture/2025-10-22.0/division.parquet',
@@ -1583,6 +1599,7 @@ describe('getLatestNewerDatasetRelease', () => {
         'release-dr-hk-overture-division-2025-11-19.0',
         'dataset-overture-hk-division',
         'dr-hk-overture-division-2025-11-19.0',
+        'division',
         '2025-11-19.0',
         '2025-11',
         'hk/overture/2025-11-19.0/division.parquet',
@@ -1599,6 +1616,7 @@ describe('getLatestNewerDatasetRelease', () => {
         'release-dr-hk-overture-division-2025-12-17.0',
         'dataset-overture-hk-division',
         'dr-hk-overture-division-2025-12-17.0',
+        'division',
         '2025-12-17.0',
         '2025-12',
         'hk/overture/2025-12-17.0/division.parquet',
