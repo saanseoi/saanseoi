@@ -156,7 +156,7 @@ const RawObjectKeySchema = z
   .nullable()
   .openapi({
     description:
-      'R2 object key for the uploaded file, constructed as `{region}/{source}/{sourceVersion}/{resource-slug}.{extension}`',
+      'Legacy object key for an older retained input. Locally processed releases do not retain an intermediate object.',
     examples: [
       'hk/overture/2025-09-24.0/division.parquet',
       'hk/hkgov-dpo/2026-01-20.0/address.json',
@@ -206,64 +206,70 @@ export const UploadResponseSchema = z
   })
   .openapi('HarbourUploadResponse')
 
-export const SignUploadRequestSchema = z
+const ParquetInspectionSchema = z.object({
+  distinctCountryValues: z.array(z.string()),
+  distinctRegionValues: z.array(z.string()),
+  distinctThemeValues: z.array(z.string()),
+  distinctTypeValues: z.array(z.string()),
+  rowCount: z.number().int().nonnegative(),
+  schema: z.array(
+    z.object({
+      name: z.string(),
+      nullable: z.boolean(),
+      type: z.string(),
+    }),
+  ),
+})
+
+export const RegisterUploadRequestSchema = z
   .object({
+    fileName: z.string().min(1),
     force: z
       .boolean()
       .optional()
       .openapi({
-        description:
-          'Allow replacing an existing upload session only when the release is still in uploading status.',
+        description: 'Allow replacing a release that is still staged.',
         examples: [true],
       }),
-    skipSnapshotCleanup: z
-      .boolean()
-      .optional()
-      .openapi({
-        description:
-          'Do not enqueue current-snapshot cleanup after this release is published. Intended for backfill batches.',
-        examples: [true],
-      }),
+    inspection: ParquetInspectionSchema,
+    plan: z.object({
+      cohortKey: z.string().optional(),
+      regionCode: z.string().optional(),
+      releaseNotesUrl: z.string().url().optional(),
+      shardYear: z.string().optional(),
+      source: z.string().optional(),
+      sourceVersion: z.string().optional(),
+      theme: z.string().optional(),
+      type: z.string().optional(),
+    }),
   })
-  .loose()
-  .openapi('HarbourSignUploadRequest')
+  .openapi('HarbourRegisterUploadRequest')
 
-export const SignUploadResponseSchema = z
+export const LocalUploadRegistrationResponseSchema = z
   .object({
     datasetId: DatasetIdSchema,
     datasetCode: DatasetCodeSchema,
-    expiresAt: z.string().openapi({
-      description: 'Expiration timestamp for the signed upload URL',
-      examples: ['2025-09-30T23:59:59Z', '2026-01-21T00:00:00Z'],
+    localInputKey: z.string().openapi({
+      description:
+        'Ephemeral local-pipeline key used while the CLI processes the prepared Parquet. It is never uploaded to R2 or retained in release metadata.',
     }),
-    rawObjectKey: RawObjectKeySchema,
     releaseCode: ReleaseCodeSchema,
     releaseId: ReleaseIdSchema,
     source: SourceSchema,
     status: StatusSchema,
-    uploadHeaders: z.record(z.string(), z.string()).openapi({
-      description: 'HTTP headers to include in the upload request',
-      examples: [{ 'Content-Type': 'application/octet-stream' }],
-    }),
-    uploadMethod: z.string().openapi({
-      description: 'HTTP method to use for the upload',
-      examples: ['PUT', 'POST'],
-    }),
-    uploadUrl: z.string().openapi({
-      description: 'Pre-signed URL for uploading the file',
-      examples: [
-        'https://r2.example.com/hk/overture/2025-09-24.0/division.parquet?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20250930%2Fus-east-1%2Fr2%2Faws4_request&X-Amz-Date=20250930T123600Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=...',
-      ],
-    }),
+    sourceVersion: z.string(),
+    type: z.string(),
+    rowCount: z.number(),
   })
-  .openapi('HarbourSignUploadResponse')
+  .openapi('HarbourLocalUploadRegistrationResponse')
 
-export const FinaliseUploadRequestSchema = z
+export const ManagedSourceAssetResponseSchema = z
   .object({
-    releaseId: ReleaseIdSchema,
-    skipSnapshotCleanup: z.boolean().optional(),
+    assetId: z.string().uuid(),
+    assetUrl: z.string().url(),
+    status: z.enum(['existing', 'uploaded']),
   })
-  .openapi('HarbourFinaliseUploadRequest')
+  .openapi('HarbourManagedSourceAssetResponse')
 
 export const ControlStageRequestSchema = z
   .object({
@@ -323,6 +329,14 @@ export const ControlResponseSchema = z
     apiReleaseSetId: z.string().uuid().optional(),
     apiReleaseSetCode: z.string().optional(),
     apiReleaseSetStatus: z.enum(['current', 'draft']).optional(),
+    apiReleaseSetPublications: z
+      .array(
+        z.object({
+          apiCatalogRevisionCode: z.string().optional(),
+          apiReleaseSetCode: z.string(),
+        }),
+      )
+      .optional(),
     releaseCode: ReleaseCodeSchema,
     releaseId: ReleaseIdSchema,
     phase: z
@@ -338,6 +352,7 @@ export const ControlResponseSchema = z
 
 export const ReportQuerySchema = z
   .object({
+    datasetCode: DatasetCodeSchema.optional(),
     limit: z.coerce.number().int().min(1).max(100).default(10),
     releaseCode: ReleaseCodeSchema.optional(),
     releaseId: ReleaseIdSchema.optional(),

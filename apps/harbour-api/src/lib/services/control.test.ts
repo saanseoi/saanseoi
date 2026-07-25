@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 
-import divisionFixtureOverture116To117 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.17.json'
+import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.18.json'
 import {
   insertFixtureRelease,
   loadMigrationSql,
@@ -107,6 +107,94 @@ function seedSnapshot(
   `)
 
   return snapshotId
+}
+
+function seedCompleteDivisionSourceSignature(
+  sqlite: Database,
+  {
+    snapshotId,
+    sourceVersion,
+    overtureSchemaVersion,
+  }: {
+    snapshotId: string
+    sourceVersion: string
+    overtureSchemaVersion: string
+  },
+) {
+  sqlite.exec(`
+    INSERT OR IGNORE INTO publishers (id, code, versionHash, createdAt, updatedAt)
+    VALUES ('publisher-hkgov-censtatd', 'hkgov-censtatd', 'vh-publisher-hkgov-censtatd-v1', 1761264000000, 1761264000000);
+
+    INSERT OR IGNORE INTO datasets (
+      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme,
+      sourceUrl, versionHash, createdAt, updatedAt
+    ) VALUES (
+      'hkgov-censtatd-hk-district', 'publisher-hkgov-censtatd',
+      'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'static', 'as-needed',
+      'divisions', 'https://www.censtatd.gov.hk/',
+      'vh-dataset-hkgov-censtatd-hk-district-v1', 1761264000000, 1761264000000
+    );
+
+    INSERT OR IGNORE INTO datasetResourceTypes (datasetId, resourceType)
+    VALUES ('hkgov-censtatd-hk-district', 'divisionArea');
+  `)
+
+  const companionReleases = [
+    {
+      source: 'overture',
+      type: 'divisionArea' as const,
+      sourceVersion,
+      schemaVersion: overtureSchemaVersion,
+    },
+    {
+      source: 'overture',
+      type: 'divisionBoundary' as const,
+      sourceVersion,
+      schemaVersion: overtureSchemaVersion,
+    },
+    {
+      source: 'hkgov-had',
+      type: 'divisionArea' as const,
+      sourceVersion: '2022',
+      schemaVersion: '1.2',
+    },
+    {
+      source: 'hkgov-censtatd',
+      type: 'divisionArea' as const,
+      sourceVersion: '2016',
+      schemaVersion: '1.0',
+    },
+  ]
+
+  for (const release of companionReleases) {
+    const releaseCode = `dr-hk-${release.source}-${release.type === 'divisionArea' && release.source !== 'overture' ? 'division-area-district' : release.type === 'divisionBoundary' ? 'division-boundary' : 'division-area'}-${release.sourceVersion}`
+    const releaseId = `release-${releaseCode}`
+    insertFixtureRelease(sqlite, {
+      releaseId,
+      source: release.source,
+      regionCode: 'hk',
+      cohortKey: sourceVersion.slice(0, 7),
+      type: release.type,
+      sourceVersion: release.sourceVersion,
+      rawObjectKey: `hk/${release.source}/${release.sourceVersion}/${release.type}.parquet`,
+      originalFileName: `${release.type}.parquet`,
+      status: 'published',
+      ingestedAt: '2026-06-05T00:00:00.000Z',
+      createdAt: '2026-06-05T00:00:00.000Z',
+      updatedAt: '2026-06-05T00:00:00.000Z',
+    })
+    sqlite
+      .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
+      .run(release.schemaVersion, releaseId)
+    const datasetId = sqlite
+      .query('SELECT datasetId FROM releases WHERE id = ?')
+      .get(releaseId) as { datasetId: string }
+    sqlite
+      .query(
+        'INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES (?, ?, ?, ?)',
+      )
+      .run(snapshotId, datasetId.datasetId, releaseId, 'supporting')
+  }
 }
 
 afterEach(() => {
@@ -611,6 +699,11 @@ describe('control service', () => {
       status: 'draft',
       timestamp: 1762300860000,
     })
+    seedCompleteDivisionSourceSignature(sqlite, {
+      snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.0',
+      sourceVersion: '2026-02-18.0',
+      overtureSchemaVersion: '1.16.0',
+    })
 
     const result = await handlePublishDataset(db, {
       releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
@@ -618,7 +711,10 @@ describe('control service', () => {
 
     const rows = sqlite
       .query(
-        'SELECT code AS datasetId, status, revokedAt, revocationReason FROM releases ORDER BY code',
+        `SELECT code AS datasetId, status, revokedAt, revocationReason
+         FROM releases
+         WHERE datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
+         ORDER BY code`,
       )
       .all() as Array<{
       datasetId: string
@@ -675,7 +771,7 @@ describe('control service', () => {
     ])
     expect(sortProvenanceRows(provenanceRows)).toEqual(
       sortProvenanceRows(
-        divisionFixtureOverture116To117.fields.map(field => ({
+        divisionFixtureOverture116To118.fields.map(field => ({
           apiField: field.apiField,
           sourceFieldPath: field.sourceFieldPath,
         })),
@@ -712,6 +808,11 @@ describe('control service', () => {
         status: 'draft',
         timestamp: 1762300860000,
       })
+      seedCompleteDivisionSourceSignature(sqlite, {
+        snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.0',
+        sourceVersion: '2026-02-18.0',
+        overtureSchemaVersion: '1.16.0',
+      })
     }, 25)
 
     const result = await handlePublishDataset(db, {
@@ -747,7 +848,7 @@ describe('control service', () => {
       if (datasetType === 'place') {
         sqlite.exec(`
           INSERT OR IGNORE INTO datasets (
-            id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, versionHash, createdAt, updatedAt
+            id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, sourceUrl, versionHash, createdAt, updatedAt
           ) VALUES (
             'overture-hk-place',
             'publisher-overture',
@@ -756,12 +857,14 @@ describe('control service', () => {
             'static',
             'monthly',
             'places',
-            'place',
             'https://docs.overturemaps.org/schema/reference/places/place/',
             'vh-dataset-overture-hk-place-v1',
             1718236800000,
             1718236800000
           );
+
+          INSERT OR IGNORE INTO datasetResourceTypes (datasetId, resourceType)
+          VALUES ('overture-hk-place', 'place');
         `)
       }
 
@@ -909,13 +1012,62 @@ describe('control service', () => {
       })
       expect(snapshotRow.status).toBe('published')
       expect(snapshotRow.publishedAt).not.toBeNull()
-      expect(provenanceCount.count).toBe(datasetType === 'address' ? 22 : 0)
+      expect(provenanceCount.count).toBe(datasetType === 'address' ? 25 : 0)
       expect(supportingSnapshots).toEqual(
         datasetType === 'address'
           ? [{ code: 'ss-hk-division-2026-06-17.0', role: 'supporting' }]
           : [],
       )
     }
+  })
+
+  test('publishes LandsD divisions in their own API domain', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-publish-landsd-division.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+    const { releaseId } = insertFixtureRelease(sqlite, {
+      releaseId: 'release-dr-hk-hkgov-landsd-division-2026-06-10.0',
+      source: 'hkgov-landsd',
+      regionCode: 'hk',
+      cohortKey: '2026-06',
+      type: 'division',
+      sourceVersion: '2026-06-10.0',
+      rawObjectKey: 'hk/hkgov-landsd/2026-06-10.0/division.geojson',
+      originalFileName: 'division.geojson',
+      status: 'staged',
+      ingestedAt: '2026-06-10T00:00:00.000Z',
+      createdAt: '2026-06-10T00:00:00.000Z',
+      updatedAt: '2026-06-10T00:00:00.000Z',
+    })
+    const snapshotId = seedSnapshot(sqlite, {
+      code: 'ss-hk-division-2026-06-10.0',
+      cohortKey: '2026-06',
+      datasetId: 'hkgov-landsd-hk-division',
+      releaseId,
+      status: 'draft',
+    })
+
+    const result = await handlePublishDataset(db, { releaseId })
+    if (!result.apiReleaseSetId) {
+      throw new Error(
+        'Expected the LandsD division publish result to include a release set.',
+      )
+    }
+    const releaseSet = sqlite
+      .query('SELECT domainCode, status FROM apiReleaseSets WHERE id = ?')
+      .get(result.apiReleaseSetId) as {
+      domainCode: string
+      status: string
+    }
+
+    sqlite.close()
+
+    expect(result).toMatchObject({ releaseId, snapshotId, status: 'current' })
+    expect(releaseSet).toEqual({
+      domainCode: 'hkgov-landsd',
+      status: 'current',
+    })
   })
 
   test('keeps the draft division release set incomplete without its required C&SD areas', async () => {
@@ -968,11 +1120,16 @@ describe('control service', () => {
 
       INSERT INTO datasets (
         id, publisherId, code, regionCode, releaseType, releaseFrequency,
-        theme, type, sourceUrl, versionHash, createdAt, updatedAt
+        theme, sourceUrl, versionHash, createdAt, updatedAt
       ) VALUES
-        ('overture-hk-divisionArea', 'publisher-overture', 'ds-hk-overture-division-area', 'hk', 'static', 'monthly', 'divisions', 'divisionArea', 'https://docs.overturemaps.org/', 'vh-overture-area', 1761264000001, 1761264000001),
-        ('overture-hk-divisionBoundary', 'publisher-overture', 'ds-hk-overture-division-boundary', 'hk', 'static', 'monthly', 'divisions', 'divisionBoundary', 'https://docs.overturemaps.org/', 'vh-overture-boundary', 1761264000001, 1761264000001),
-        ('hkgov-had-hk-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district', 'hk', 'static', 'as-needed', 'divisions', 'divisionArea', 'https://data.gov.hk/', 'vh-had-district', 1761264000001, 1761264000001);
+        ('overture-hk-divisionArea', 'publisher-overture', 'ds-hk-overture-division-area', 'hk', 'static', 'monthly', 'divisions', 'https://docs.overturemaps.org/', 'vh-overture-area', 1761264000001, 1761264000001),
+        ('overture-hk-divisionBoundary', 'publisher-overture', 'ds-hk-overture-division-boundary', 'hk', 'static', 'monthly', 'divisions', 'https://docs.overturemaps.org/', 'vh-overture-boundary', 1761264000001, 1761264000001),
+        ('hkgov-had-hk-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district', 'hk', 'static', 'as-needed', 'divisions', 'https://data.gov.hk/', 'vh-had-district', 1761264000001, 1761264000001);
+
+      INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
+        ('overture-hk-divisionArea', 'divisionArea'),
+        ('overture-hk-divisionBoundary', 'divisionBoundary'),
+        ('hkgov-had-hk-district', 'divisionArea');
     `)
 
     const division = insertFixtureRelease(sqlite, {
@@ -1020,11 +1177,12 @@ describe('control service', () => {
     }
     sqlite.exec(`
       INSERT INTO releases (
-        id, datasetId, code, sourceVersion, cohortKey, rawObjectKey,
+        id, datasetId, resourceType, code, sourceVersion, cohortKey, rawObjectKey,
         originalFileName, status, ingestedAt, createdAt, updatedAt
       ) VALUES (
         '${hadArea.releaseId}',
         'hkgov-had-hk-district',
+        'divisionArea',
         '${hadArea.releaseCode}',
         '2022', '2022', 'hk/hkgov-had/2022/division-area.geojson',
         'division-area.geojson', 'staged',
@@ -1199,6 +1357,11 @@ describe('control service', () => {
       status: 'draft',
       timestamp: 1762300860000,
     })
+    seedCompleteDivisionSourceSignature(sqlite, {
+      snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.1',
+      sourceVersion: '2026-02-18.1',
+      overtureSchemaVersion: '1.16.0',
+    })
 
     const result = await handlePublishDataset(db, {
       releaseId: 'release-dr-hk-overture-division-2026-02-18.1',
@@ -1206,7 +1369,10 @@ describe('control service', () => {
 
     const rows = sqlite
       .query(
-        'SELECT code AS datasetId, status, revokedAt, revocationReason FROM releases ORDER BY code',
+        `SELECT code AS datasetId, status, revokedAt, revocationReason
+         FROM releases
+         WHERE datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
+         ORDER BY code`,
       )
       .all() as Array<{
       datasetId: string
@@ -1290,6 +1456,11 @@ describe('control service', () => {
       status: 'draft',
       timestamp: 1762300860000,
     })
+    seedCompleteDivisionSourceSignature(sqlite, {
+      snapshotId: 'snapshot-release-dr-hk-overture-division-2026-06-24.0',
+      sourceVersion: '2026-06-24.0',
+      overtureSchemaVersion: '1.17.0',
+    })
 
     await handlePublishDataset(db, {
       releaseId: 'release-dr-hk-overture-division-2026-06-24.0',
@@ -1297,7 +1468,10 @@ describe('control service', () => {
 
     const rows = sqlite
       .query(
-        'SELECT code AS datasetId, status, revokedAt, revocationReason FROM releases ORDER BY code',
+        `SELECT code AS datasetId, status, revokedAt, revocationReason
+         FROM releases
+         WHERE datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
+         ORDER BY code`,
       )
       .all() as Array<{
       datasetId: string

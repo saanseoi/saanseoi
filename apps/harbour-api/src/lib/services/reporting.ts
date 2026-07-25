@@ -88,6 +88,7 @@ type ProcessingActionQueryRow = Omit<
 }
 
 export type ReportFilters = {
+  datasetCode?: string
   limit?: number
   releaseCode?: string
   releaseId?: string
@@ -126,7 +127,7 @@ type ReleaseContext = {
   regionCode: string
   releaseId: string
   source: string
-  sourceUrl: string
+  sourceUrl: string | null
   sourceVersion: string
   cohortKey: string | null
   type: string
@@ -137,7 +138,7 @@ type ReleaseQueryRow = Omit<ReleaseReportRow, 'rowCounts'> & {
   ingestedAt: string | null
   regionCode: string
   revokedAt: string | null
-  sourceUrl: string
+  sourceUrl: string | null
   updatedAt: string
 }
 
@@ -182,7 +183,7 @@ export async function listIngestRuns(
       startedAt: ingestRuns.startedAt,
       stats: ingestRuns.stats,
       status: ingestRuns.status,
-      type: metaDatasets.type,
+      type: metaReleases.resourceType,
     })
     .from(ingestRuns)
     .innerJoin(metaReleases, eq(ingestRuns.releaseId, metaReleases.id))
@@ -190,6 +191,7 @@ export async function listIngestRuns(
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .orderBy(desc(ingestRuns.startedAt), desc(ingestRuns.createdAt))
   const releaseIds = await listLatestIngestRunReleaseIds(db, {
+    datasetCode: options.datasetCode,
     limit: options.limit ?? 10,
     source: options.source,
     type: options.type,
@@ -230,7 +232,7 @@ export async function listStats(
       releaseCode: metaReleases.code,
       releaseId: metaReleases.id,
       source: metaPublishers.code,
-      type: metaDatasets.type,
+      type: metaReleases.resourceType,
       updatedAt: stats.updatedAt,
       value: stats.value,
     })
@@ -280,7 +282,7 @@ export async function listProcessingActions(
       releaseId: metaReleases.id,
       source: metaPublishers.code,
       summary: releaseProcessingActions.summary,
-      type: metaDatasets.type,
+      type: metaReleases.resourceType,
       updatedAt: releaseProcessingActions.updatedAt,
     })
     .from(releaseProcessingActions)
@@ -344,7 +346,7 @@ export async function listReleases(
       sourceVersion: metaReleases.sourceVersion,
       status: metaReleases.status,
       supersededByReleaseId: metaReleases.supersededByReleaseId,
-      type: metaDatasets.type,
+      type: metaReleases.resourceType,
       updatedAt: metaReleases.updatedAt,
     })
     .from(metaReleases)
@@ -501,6 +503,10 @@ async function listLatestStatsReleaseIds(
 function buildReportFilterWhereClause(options: ReportFilters) {
   const conditions = []
 
+  if (options.datasetCode) {
+    conditions.push(eq(metaDatasets.code, options.datasetCode))
+  }
+
   if (options.releaseCode) {
     conditions.push(eq(metaReleases.code, options.releaseCode))
   }
@@ -514,7 +520,7 @@ function buildReportFilterWhereClause(options: ReportFilters) {
   }
 
   if (options.type) {
-    conditions.push(eq(metaDatasets.type, options.type))
+    conditions.push(eq(metaReleases.resourceType, options.type))
   }
 
   if (conditions.length === 0) {
@@ -1045,7 +1051,7 @@ function resolveHistoryCountSpecs(type: string): CountSpec[] {
 
 function resolveSourceFamily(release: ReleaseContext) {
   const normalisedSource = release.source.trim().toLowerCase()
-  const normalisedSourceUrl = release.sourceUrl.trim().toLowerCase()
+  const normalisedSourceUrl = release.sourceUrl?.trim().toLowerCase() ?? ''
 
   if (normalisedSource === 'overture') {
     return 'overture'

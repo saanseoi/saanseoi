@@ -20,6 +20,38 @@ function createMockDb() {
 
           return null as T
         },
+        async all<T>() {
+          if (query.includes('FROM releases r')) {
+            if (query.includes('d.type')) {
+              throw new Error('Dataset type is no longer stored on datasets.')
+            }
+
+            return {
+              results: [
+                {
+                  id: 'release-id',
+                  datasetId: 'dataset-id',
+                  datasetCode: 'hk-streets',
+                  regionCode: 'hk',
+                  theme: 'transport',
+                  type: 'street',
+                  source: 'hkgov-hyd',
+                  code: 'rel-hk-streets-2026-07',
+                  sourceVersion: '2026-07',
+                  sourceSchemaVersion: null,
+                  cohortKey: null,
+                  publicationDate: null,
+                  status: 'published',
+                  notes: null,
+                  createdAt: '2026-07-24T00:00:00.000Z',
+                  updatedAt: '2026-07-24T00:00:00.000Z',
+                } as T,
+              ],
+            }
+          }
+
+          return { results: [] as T[] }
+        },
       }
     },
   } as unknown as D1Database
@@ -106,11 +138,7 @@ describe('harbour-api', () => {
       DATA_SHARD_ENV: 'preview',
       DATASET_QUEUE: createMockQueue(),
       HARBOUR_API_KEY: 'test-api-key',
-      R2_ACCOUNT_ID: 'test-account',
-      R2_RAW: createMockBucket(),
-      R2_RAW_ACCESS_KEY_ID: 'test-access-key',
-      R2_RAW_BUCKET_NAME: 'ss-raw-preview',
-      R2_RAW_SECRET_ACCESS_KEY: 'test-secret-key',
+      R2_ASSETS: createMockBucket(),
     })
     const body = (await res.json()) as {
       ok: boolean
@@ -122,6 +150,26 @@ describe('harbour-api', () => {
       ok: true,
       datasetCount: 0,
     })
+  })
+
+  test('GET /api/v1/meta/docs/releases reads the resource type from the release', async () => {
+    const res = await app.fetch(
+      new Request('http://localhost/api/v1/meta/docs/releases', {
+        headers: { 'x-api-key': 'test-api-key' },
+      }),
+      {
+        ...createDbBindings(),
+        DATA_SHARD_ENV: 'preview',
+        DATASET_QUEUE: createMockQueue(),
+        D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
+        HARBOUR_API_KEY: 'test-api-key',
+        R2_ASSETS: createMockBucket(),
+      },
+    )
+    const body = (await res.json()) as { rows: Array<{ type: string }> }
+
+    expect(res.status).toBe(200)
+    expect(body.rows).toEqual([expect.objectContaining({ type: 'street' })])
   })
 
   test('GET /api/v1/meta/d1-placement-probe returns timings for all D1 bindings', async () => {
@@ -137,11 +185,7 @@ describe('harbour-api', () => {
         DATASET_QUEUE: createMockQueue(),
         D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
         HARBOUR_API_KEY: 'test-api-key',
-        R2_ACCOUNT_ID: 'test-account',
-        R2_RAW: createMockBucket(),
-        R2_RAW_ACCESS_KEY_ID: 'test-access-key',
-        R2_RAW_BUCKET_NAME: 'ss-raw-preview',
-        R2_RAW_SECRET_ACCESS_KEY: 'test-secret-key',
+        R2_ASSETS: createMockBucket(),
         TELEGRAM_ADMIN_ID: '-1001234567890',
         TELEGRAM_BOT_TOKEN: 'telegram-token',
       },
@@ -174,11 +218,7 @@ describe('harbour-api', () => {
         DATASET_QUEUE: createMockQueue(),
         D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
         HARBOUR_API_KEY: 'test-api-key',
-        R2_ACCOUNT_ID: 'test-account',
-        R2_RAW: createMockBucket(),
-        R2_RAW_ACCESS_KEY_ID: 'test-access-key',
-        R2_RAW_BUCKET_NAME: 'ss-raw-preview',
-        R2_RAW_SECRET_ACCESS_KEY: 'test-secret-key',
+        R2_ASSETS: createMockBucket(),
         TELEGRAM_ADMIN_ID: '-1001234567890',
         TELEGRAM_BOT_TOKEN: 'telegram-token',
       },
@@ -197,9 +237,9 @@ describe('harbour-api', () => {
     })
   })
 
-  test('POST /v1/signUpload requires an API key', async () => {
+  test('POST /v1/registerUpload requires an API key', async () => {
     const res = await app.fetch(
-      new Request('http://localhost/v1/signUpload', {
+      new Request('http://localhost/v1/registerUpload', {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -212,11 +252,7 @@ describe('harbour-api', () => {
         DATASET_QUEUE: createMockQueue(),
         D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
         HARBOUR_API_KEY: 'test-api-key',
-        R2_ACCOUNT_ID: 'test-account',
-        R2_RAW: createMockBucket(),
-        R2_RAW_ACCESS_KEY_ID: 'test-access-key',
-        R2_RAW_BUCKET_NAME: 'ss-raw-preview',
-        R2_RAW_SECRET_ACCESS_KEY: 'test-secret-key',
+        R2_ASSETS: createMockBucket(),
       },
     )
     const body = (await res.json()) as {

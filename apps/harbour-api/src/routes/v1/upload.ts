@@ -1,234 +1,85 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
-import { getDatasetRecordByReleaseId } from '@repo/core/db/metaRegistry'
 
-import { handleUploadRequest } from '../../lib/services/ingest'
+import { createPrimaryMetaRepoDb } from '../../lib/d1'
 import {
-  type FinaliseUploadRequest,
-  handleFinaliseUploadRequest,
-  type SignUploadRequest,
-  handleSignUploadRequest,
+  type RegisterUploadRequest,
+  handleRegisterUploadRequest,
 } from '../../lib/services/uploadSession'
 import {
+  parseSourceAssetMetadata,
+  registerManagedSourceAsset,
+} from '../../lib/services/sourceAssets'
+import {
   ErrorResponseSchema,
-  FinaliseUploadRequestSchema,
-  SignUploadRequestSchema,
-  SignUploadResponseSchema,
-  UploadResponseSchema,
+  LocalUploadRegistrationResponseSchema,
+  ManagedSourceAssetResponseSchema,
+  RegisterUploadRequestSchema,
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import type { AppEnv } from '../../types'
-import { createPrimaryMetaRepoDb } from '../../lib/d1'
 
-const uploadRouteConfig = createRoute({
+const registerUploadRouteConfig = createRoute({
   method: 'post',
-  path: '/v1/upload',
-  tags: ['Upload'],
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: UploadResponseSchema,
-        },
-      },
-      description: 'Create a staged upload dataset.',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Upload failed.',
-    },
-  },
-})
-
-const signUploadRouteConfig = createRoute({
-  method: 'post',
-  path: '/v1/signUpload',
+  path: '/v1/registerUpload',
   tags: ['Upload'],
   request: {
     body: {
       content: {
-        'application/json': {
-          schema: SignUploadRequestSchema,
-        },
+        'application/json': { schema: RegisterUploadRequestSchema },
       },
       required: true,
-      description: 'Sign upload request payload.',
+      description:
+        'Register a locally processed Parquet release. The Parquet file is never uploaded to R2.',
     },
   },
   responses: {
     200: {
       content: {
-        'application/json': {
-          schema: SignUploadResponseSchema,
-        },
+        'application/json': { schema: LocalUploadRegistrationResponseSchema },
       },
-      description: 'Signed upload session.',
+      description: 'Registered a staged release for the local pipeline.',
     },
     400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Upload signing failed.',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+      description: 'Upload registration failed.',
     },
     422: ValidationErrorOpenAPIResponse,
   },
 })
 
-const finaliseUploadRouteConfig = createRoute({
+const managedSourceAssetRouteConfig = createRoute({
   method: 'post',
-  path: '/v1/finaliseUpload',
-  tags: ['Upload'],
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: FinaliseUploadRequestSchema,
-        },
-      },
-      required: true,
-      description: 'Finalise upload request payload.',
-    },
-  },
+  path: '/v1/assets',
+  tags: ['Source assets'],
   responses: {
     200: {
       content: {
-        'application/json': {
-          schema: UploadResponseSchema,
-        },
+        'application/json': { schema: ManagedSourceAssetResponseSchema },
       },
-      description: 'Finalise a staged upload dataset.',
+      description: 'Register an immutable publisher source asset in R2.',
     },
     400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Upload finalisation failed.',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+      description: 'Source asset upload failed.',
     },
-    422: ValidationErrorOpenAPIResponse,
   },
 })
 
-export const uploadRoute = defineOpenAPIRoute<typeof uploadRouteConfig, AppEnv>({
-  route: uploadRouteConfig,
-  handler: async c => {
-    try {
-      const db = createPrimaryMetaRepoDb(c.env.DB_META)
-      const formData = await c.req.formData()
-      const result = await handleUploadRequest(db, c.env.R2_RAW, formData)
-      if (!result.datasetId || !result.releaseId) {
-        throw new Error('Upload registration returned incomplete release identifiers.')
-      }
-
-      return c.json(
-        {
-          datasetId: result.datasetId,
-          datasetCode: result.plan.datasetCode,
-          rawObjectKey: result.rawObjectKey,
-          releaseCode: result.plan.releaseCode,
-          releaseId: result.releaseId,
-          rowCount: result.plan.rowCount,
-          source: result.plan.source,
-          sourceVersion: result.plan.sourceVersion,
-          status: 'staged',
-          type: result.plan.type,
-        },
-        200,
-      )
-    } catch (error) {
-      return c.json(
-        {
-          httpStatus: 400,
-          error: 'upload_failed',
-          message: error instanceof Error ? error.message : String(error),
-        },
-        400,
-      )
-    }
-  },
-})
-
-export const signUploadRoute = defineOpenAPIRoute<typeof signUploadRouteConfig, AppEnv>(
-  {
-    route: signUploadRouteConfig,
-    handler: async c => {
-      try {
-        const db = createPrimaryMetaRepoDb(c.env.DB_META)
-        const request = c.req.valid('json') as SignUploadRequest
-        const result = await handleSignUploadRequest(db, c.env.R2_RAW, c.env, request)
-
-        return c.json(
-          {
-            datasetId: result.datasetId,
-            datasetCode: result.datasetCode,
-            expiresAt: result.expiresAt,
-            rawObjectKey: result.rawObjectKey,
-            releaseCode: result.releaseCode,
-            releaseId: result.releaseId,
-            source: result.source,
-            status: result.status,
-            uploadHeaders: result.uploadHeaders,
-            uploadMethod: result.uploadMethod,
-            uploadUrl: result.uploadUrl,
-          },
-          200,
-        )
-      } catch (error) {
-        return c.json(
-          {
-            httpStatus: 400,
-            error: 'upload_failed',
-            message: error instanceof Error ? error.message : String(error),
-          },
-          400,
-        )
-      }
-    },
-  },
-)
-
-export const finaliseUploadRoute = defineOpenAPIRoute<
-  typeof finaliseUploadRouteConfig,
+export const registerUploadRoute = defineOpenAPIRoute<
+  typeof registerUploadRouteConfig,
   AppEnv
 >({
-  route: finaliseUploadRouteConfig,
+  route: registerUploadRouteConfig,
   handler: async c => {
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
-      const request = c.req.valid('json') as FinaliseUploadRequest
-      const result = await handleFinaliseUploadRequest(db, c.env.R2_RAW, request)
-      const release = await getDatasetRecordByReleaseId(db, request.releaseId)
-
-      if (!release) {
-        throw new Error(`Release not found after finalisation: ${request.releaseId}`)
-      }
-
-      return c.json(
-        {
-          datasetId: release.datasetId,
-          datasetCode: result.plan.datasetCode,
-          rawObjectKey: result.rawObjectKey,
-          releaseCode: result.plan.releaseCode,
-          releaseId: release.releaseId,
-          rowCount: result.plan.rowCount,
-          source: result.plan.source,
-          sourceVersion: result.plan.sourceVersion,
-          status: 'staged',
-          type: result.plan.type,
-        },
-        200,
-      )
+      const request = c.req.valid('json') as RegisterUploadRequest
+      return c.json(await handleRegisterUploadRequest(db, request), 200)
     } catch (error) {
       return c.json(
         {
           httpStatus: 400,
-          error: 'upload_failed',
+          error: 'upload_registration_failed',
           message: error instanceof Error ? error.message : String(error),
         },
         400,
@@ -237,4 +88,44 @@ export const finaliseUploadRoute = defineOpenAPIRoute<
   },
 })
 
-export const uploadRoutes = [uploadRoute, signUploadRoute, finaliseUploadRoute] as const
+export const managedSourceAssetRoute = defineOpenAPIRoute<
+  typeof managedSourceAssetRouteConfig,
+  AppEnv
+>({
+  route: managedSourceAssetRouteConfig,
+  handler: async c => {
+    try {
+      const form = await c.req.formData()
+      const asset = form.get('asset')
+      if (!(asset instanceof File)) {
+        throw new Error('Source asset upload requires an `asset` file field.')
+      }
+      const metadata = parseSourceAssetMetadata(form.get('metadata'))
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
+      const result = await registerManagedSourceAsset(
+        db,
+        c.env.R2_ASSETS,
+        asset,
+        metadata,
+      )
+      return c.json(
+        {
+          ...result,
+          assetUrl: `${c.env.ATLAS_BASE_URL}/v0/assets/${result.assetId}`,
+        },
+        200,
+      )
+    } catch (error) {
+      return c.json(
+        {
+          httpStatus: 400,
+          error: 'source_asset_upload_failed',
+          message: error instanceof Error ? error.message : String(error),
+        },
+        400,
+      )
+    }
+  },
+})
+
+export const uploadRoutes = [registerUploadRoute, managedSourceAssetRoute] as const
