@@ -2,14 +2,32 @@
 
 The Streets family models persistent logical streets rather than Government Notice rows.
 The LandsD gazetted register is the baseline materialisation. Each later LandsD notice
-is an append-only source event that may create a next version of one logical street,
-delete it, restore it, or make no materialised change.
+is an append-only source event that may create a street, change its description, rename
+all or part of it, delete it, or make no materialised change.
+
+The historical e-Gazette archive preserves bilingual Government Notice evidence from 19
+May 2000 onward, including notices before the LandsD HTML notice table begins. It is a
+source archive and audit trail; it does not by itself create canonical street identities
+or lifecycle links.
+
+The source ledger separates baseline rows, immutable notices, and persisted notice
+applications. Only declarations that create a new street can be automatic; every
+existing-street change needs an explicit affected canonical ID. `Previous G.N.` is
+publisher provenance, never an identity resolver. No-op notices remain in the source
+ledger without creating a canonical version.
 
 Canonical streets have a positive, monotonic `version`, an `active` or `deleted` status,
-and a nullable `deletedAt`. Deleted streets stay in the current snapshot for
-auditability. A source-page snapshot alone never increments every street version.
-Version changes are limited to changes in the materialised names, descriptions, district
-IDs, status, relevant evidence, or translation provenance.
+and a nullable `deletedAt`. The current snapshot contains active streets only; a deleted
+version remains in the immutable history shard and is never hidden by an API-side
+`active` filter. A source-page snapshot alone never increments every street version.
+
+A whole-street name change creates a new street identity and deletes the old identity. A
+partial name change creates a new identity for the renamed portion while retaining the
+old identity for the remaining portion; the curated decision records the two retained
+descriptions. Every street response embeds its LandsD changelog in
+`attributes.changelog`. `GET /v0/hk/streets/changelog` replays those source events
+across the history shards. Version changes are limited to changes in the materialised
+names, descriptions, district IDs, status, relevant evidence, or translation provenance.
 
 `GET /v0/hk/streets/{id}` returns the latest materialised state. Per-street history is
 available without introducing broad street search endpoints:
@@ -19,18 +37,13 @@ available without introducing broad street search endpoints:
 
 Responses contain English, Traditional Chinese, and Simplified Chinese names and
 descriptions, lifecycle status, publication/effective provenance, and role-tagged
-`assetLinks`. Each link contains the original publisher URL and the managed asset URL.
-There are no separate Government Notice or Gazette Plan URL fields. JSON:API links
-provide `self`, `versions`, and the exact `version`; exact historic versions also
-provide adjacent `previous` and `next` links.
-
-Street-name change relations are separate from streets so a complete replacement, split,
-or merge is not forced into a street identity. They link old and new persistent streets
-by role when a reviewed change can be mapped deterministically. The notice itself
-remains the evidence source through its `assetLinks`.
+`evidenceAssets`. Each link contains the original publisher URL, managed asset URL, and
+publisher identifier where available. There are no separate Government Notice or Gazette
+Plan URL fields. JSON:API links provide `self`, `versions`, and the exact `version`;
+exact historic versions also provide adjacent `previous` and `next` links.
 
 Each release records notice-event counts by type; streets added, changed, deleted, and
-restored; active/deleted totals; versions created; description completeness; PDF
-extraction outcomes; district coverage; and translation provenance. Pairing, parsing,
-district, asset, lifecycle-resolution, and translation failures block publication and
-are reported to the operator.
+active/deleted totals; versions created; description completeness; PDF extraction
+outcomes; district coverage; and translation provenance. Pairing, parsing, district,
+asset, lifecycle-resolution, and translation failures block publication and are reported
+to the operator.
