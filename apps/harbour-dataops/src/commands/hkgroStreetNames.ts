@@ -91,7 +91,7 @@ export async function retrieveHkgroStreetNameArchive(input: {
   const years = normaliseYears(input.years ?? availableHkgroYears())
   const fetcher = createHkgroSessionFetcher(input.fetcher ?? fetch)
   const manifestPath = join(archiveDir, 'manifest.json')
-  const existing = await loadManifestIfPresent(manifestPath)
+  const existing = await loadHkgroStreetNameManifest(manifestPath)
   const recordsByKey = new Map(
     existing.records.map(record => [hkgroRecordKey(record), record]),
   )
@@ -532,7 +532,7 @@ function resolveArchivePath(archiveDir: string, localPath: string) {
     )
   return resolve(archiveDir, suffix)
 }
-async function loadManifestIfPresent(
+export async function loadHkgroStreetNameManifest(
   manifestPath: string,
 ): Promise<HkgroStreetNameManifest> {
   if (!existsSync(manifestPath))

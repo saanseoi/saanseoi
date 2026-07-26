@@ -18,6 +18,9 @@ HKU Libraries' HKGRO scans cover Gazette tables of contents and source PDFs from
 _candidates_ with a manifest, file hashes and explicit classification state. HKGRO
 candidates are not lifecycle events and are neither uploaded to R2 nor materialised into
 this family until OCR, parsing and a reviewed identity/lifecycle decision are available.
+Their local PaddleOCR output is explicitly marked as English `method: "ocr"` derived
+evidence and bound to the exact HKGRO source-PDF SHA-256; it is not publisher-native
+text or a source of canonical street identity.
 
 The source ledger separates baseline rows, immutable notices, and persisted notice
 applications. Only declarations that create a new street can be automatic; every
