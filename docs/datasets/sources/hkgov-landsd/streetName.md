@@ -103,13 +103,13 @@ disagrees only on `Previous G.N.` references, the paired descriptions and names 
 available for review and the combined references are retained as a provenance warning. A
 parseable corrigendum with one matching baseline street is applied automatically as a
 field-scoped amendment. The prose parser recognises flexible English and Traditional
-Chinese wording for a character correction and limits the amendment to the named English
-or Traditional Chinese name and/or description field, or to the published
-`Previous G.N.` provenance. The review displays both the erroneous and corrected street
-name, rather than treating a corrigendum as an unspecified street change. A corrigendum
-always creates a lifecycle version and changelog entry, including when the present-state
-baseline already contains the corrected text. `Previous G.N.` is never used to identify
-a street. A curator chooses one of:
+Chinese wording for a character or complete-text correction and limits the amendment to
+the named English or Traditional Chinese name and/or description field, or to the
+published `Previous G.N.` provenance. The review displays both the erroneous and
+corrected street name, rather than treating a corrigendum as an unspecified street
+change. A corrigendum always creates a lifecycle version and changelog entry, including
+when the present-state baseline already contains the corrected text. `Previous G.N.` is
+never used to identify a street. A curator chooses one of:
 
 - `apply`, with the affected canonical street ID and, for a name change, a new ID and
   whole/partial scope;
@@ -125,9 +125,17 @@ street version. Unknown, duplicate, or stale decisions block the run.
 
 `Notice of intention to change street name` remains a source notice event and appears as
 `notice_of_name_change` in the relevant street changelog when its application identifies
-the affected street. A whole-street name change creates a new street identity and
-deletes the old one; a partial change retains the old identity and creates one for the
-renamed portion.
+the affected street. A parseable intention to rename one language field, with one exact
+English-name baseline match, is linked automatically for that changelog entry but does
+not alter the street state or create a version; only the later legal declaration may do
+so. A whole-street name change creates a new street identity and deletes the old one; a
+partial change retains the old identity and creates one for the renamed portion.
+
+An intention that proposes several actions—for example, renaming one section of a street
+and ceasing another—remains a reviewed changelog decision. The review states each
+proposed action, rather than attaching the multi-street proposal automatically to the
+first matching street. Its later declaration is where the corresponding whole or partial
+name-change application is recorded.
 
 Each updater run emits one source release and canonical snapshot for the newly observed
 batch of notices. Current snapshots contain active streets only. Historic deleted states

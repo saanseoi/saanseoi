@@ -79,6 +79,27 @@ test('applies a field-scoped corrigendum and records a version even when baselin
   expect(corrected.changelog[0]?.kind).toBe('corrigendum')
 })
 
+test('logs an intention without changing the street state', () => {
+  const declared = materialiseLandsdStreetLifecycle({
+    current: [],
+    events: [base({ resultStreetId: 'street-u-lam' })],
+  }).current
+  const intended = materialiseLandsdStreetLifecycle({
+    current: declared,
+    events: [
+      base({
+        noticeType: 'intention',
+        recordKey: 'notice-3020',
+        sourceStreetId: 'street-u-lam',
+      }),
+    ],
+  })
+
+  expect(intended.current).toEqual(declared)
+  expect(intended.changelog[0]?.kind).toBe('notice_of_name_change')
+  expect(intended.stats.versionsCreated).toBe(0)
+})
+
 test('whole name changes replace the identity while partial changes keep both active', () => {
   const declared = materialiseLandsdStreetLifecycle({
     current: [],

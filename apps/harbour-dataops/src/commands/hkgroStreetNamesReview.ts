@@ -70,16 +70,16 @@ export async function runHkgroStreetNameReviewCommand(
       options: [
         {
           value: 'street-name' as const,
-          label: 'Accept as a street-history notice',
+          label: reviewGreen('Accept as a street-history notice'),
           hint: 'Select its material kind next.',
         },
         {
           value: 'not-street-name' as const,
-          label: 'Reject as not a street-history notice',
+          label: reviewRed('Reject as not a street-history notice'),
         },
         {
           value: 'manual-review' as const,
-          label: 'Defer for later review',
+          label: reviewYellow('Defer for later review'),
           hint: 'This remains eligible in a later review run.',
         },
       ],
@@ -118,6 +118,7 @@ export function recordsForReview(
   return records.filter(record => {
     if (record.decision?.classification === 'street-name') return false
     if (record.decision?.classification === 'not-street-name') return false
+    if (record.decision?.classification === 'manual-review') return input.includeAll
     return input.includeAll || record.suggested.classification === 'manual-review'
   })
 }
@@ -165,25 +166,91 @@ function streetChangeKindLabel(kind: HkgroStreetChangeKind) {
 
 export function formatReviewContext(record: HkgroStreetDiscoveryRecord) {
   const tocEntries = record.tocEntries
-    .map(entry => {
+    .map((entry, index) => {
       const metadata = [entry.publicationDate, entry.notificationNumber]
         .filter(Boolean)
         .join(' · ')
-      return `- ${metadata ? `${metadata}: ` : ''}${entry.subject}`
+      return `- ${metadata ? `${reviewMuted(metadata)}: ` : ''}${reviewValue(entry.subject, index)}`
     })
     .join('\n')
   const suggestions = record.suggested.kinds.length
     ? record.suggested.kinds.map(streetChangeKindLabel).join(', ')
     : 'none'
   return [
-    `Year / HKGRO PDF: ${record.year} / ${record.hkgroPdfId}`,
-    `TOC entries:\n${tocEntries}`,
-    `Official scan: ${record.source.officialUrl}`,
-    `Local scan: ${record.source.localPath}`,
-    `OCR output: ${record.ocr.outputPath}`,
-    `Discovery score: ${record.suggested.score}`,
-    `Discovery reasons:\n${record.suggested.reasons.map(reason => `- ${reason}`).join('\n') || '- none'}`,
-    `Suggested material kinds: ${suggestions}`,
-    `OCR excerpt (not source evidence):\n${record.excerpt || '(none)'}`,
+    formatReviewField('Year / HKGRO PDF', [`${record.year}`, record.hkgroPdfId]),
+    `${reviewKey('TOC entries')}:\n${tocEntries}`,
+    formatReviewField('Official scan', [record.source.officialUrl]),
+    formatReviewField('Local scan', [record.source.localPath], 'muted'),
+    formatReviewField('OCR output', [record.ocr.outputPath], 'muted'),
+    formatReviewField(
+      'Discovery score',
+      [`${record.suggested.score}`],
+      reviewScoreStyle(record.suggested.classification),
+    ),
+    `${reviewKey('Discovery reasons')}:\n${formatReviewList(record.suggested.reasons, 'muted') || '- none'}`,
+    formatReviewField('Suggested material kinds', [suggestions]),
+    `${reviewKey('OCR excerpt (not source evidence)')}:\n${reviewMuted(record.excerpt || '(none)')}`,
   ].join('\n\n')
+}
+
+function formatReviewField(
+  label: string,
+  values: string[],
+  valueStyle: ReviewValueStyle = 'default',
+) {
+  return `${reviewKey(label)}: ${values
+    .map((value, index) => reviewValue(value, index, valueStyle))
+    .join(reviewSeparator())}`
+}
+
+function formatReviewList(values: string[], valueStyle: ReviewValueStyle) {
+  return values
+    .map((value, index) => `- ${reviewValue(value, index, valueStyle)}`)
+    .join('\n')
+}
+
+function reviewScoreStyle(
+  classification: HkgroStreetDiscoveryRecord['suggested']['classification'],
+): ReviewValueStyle {
+  if (classification === 'manual-review') return 'warning'
+  if (classification === 'not-street-name') return 'error'
+  return 'muted'
+}
+
+type ReviewValueStyle = 'default' | 'error' | 'muted' | 'warning'
+
+function reviewKey(value: string) {
+  return `\u001B[36m${value}\u001B[39m`
+}
+
+function reviewValue(
+  value: string,
+  index: number,
+  style: ReviewValueStyle = 'default',
+) {
+  if (style === 'muted') return reviewMuted(value)
+  if (style === 'warning') return reviewYellow(value)
+  if (style === 'error') return reviewRed(value)
+  const colours = [33, 32, 35]
+  return `\u001B[${colours[index % colours.length]}m${value}\u001B[39m`
+}
+
+function reviewSeparator() {
+  return ` ${reviewMuted('/')} `
+}
+
+function reviewMuted(value: string) {
+  return `\u001B[90m${value}\u001B[39m`
+}
+
+function reviewGreen(value: string) {
+  return `\u001B[32m${value}\u001B[39m`
+}
+
+function reviewRed(value: string) {
+  return `\u001B[31m${value}\u001B[39m`
+}
+
+function reviewYellow(value: string) {
+  return `\u001B[33m${value}\u001B[39m`
 }
