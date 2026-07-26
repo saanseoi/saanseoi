@@ -2,13 +2,6 @@ import { cancel } from '@clack/prompts'
 import { resolve } from 'node:path'
 
 import {
-  runHkgovAlsLocalIngestCommand,
-  runHkgovAlsPrepCommand,
-} from './commands/hkgovAls.ts'
-import { runHkgovPlandBackfillCommand } from './commands/backfillHkgovPland.ts'
-import { runHkgovPlandPrepCommand } from './commands/hkgovPland.ts'
-import { runLandsdStreetIngestCommand } from './commands/ingestLandsdStreets.ts'
-import {
   parseArgs,
   resolveUploadTarget,
   type ParsedArgs,
@@ -44,21 +37,30 @@ async function main() {
   }
 
   switch (args.command) {
-    case 'hkgov-dpo:prepare':
+    case 'hkgov-dpo:prepare': {
+      const { runHkgovAlsPrepCommand } = await import('./commands/hkgovAls.ts')
       await runHkgovAlsPrepCommand(args, target, printUsage)
       return
-    case 'hkgov-dpo:backfill-local':
+    }
+    case 'hkgov-dpo:backfill-local': {
+      const { runHkgovAlsLocalIngestCommand } = await import('./commands/hkgovAls.ts')
       await runHkgovAlsLocalIngestCommand(args, target, printUsage)
       return
-    case 'hkgov-pland:prepare':
+    }
+    case 'hkgov-pland:prepare': {
+      const { runHkgovPlandPrepCommand } = await import('./commands/hkgovPland.ts')
       await runHkgovPlandPrepCommand(args, printUsage)
       return
+    }
     case 'hkgov-pland:backfill': {
       const kind = args.options.kind
       if (kind !== 'pu' && kind !== 'new-town') {
         printUsage()
         throw new Error('hkgov-pland:backfill requires --kind pu or --kind new-town.')
       }
+      const { runHkgovPlandBackfillCommand } = await import(
+        './commands/backfillHkgovPland.ts'
+      )
       await runHkgovPlandBackfillCommand(
         withoutOption(args, 'kind'),
         target,
@@ -67,9 +69,13 @@ async function main() {
       )
       return
     }
-    case 'hkgov-landsd-streets:backfill':
+    case 'hkgov-landsd-streets:backfill': {
+      const { runLandsdStreetIngestCommand } = await import(
+        './commands/ingestLandsdStreets.ts'
+      )
       await runLandsdStreetIngestCommand(args, target, printUsage)
       return
+    }
     default:
       throw new Error(`Unsupported Harbour DataOps command: ${args.command}`)
   }
