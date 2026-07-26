@@ -1,0 +1,40 @@
+{
+  "versionHash": "sha256:c402be5b71266233a6e1d4a279470485b63da5e84492e54eb83052623cee9796",
+  "publisherCode": "hkgov-hyd",
+  "code": "ds-hk-hkgov-hyd-sensitive-street",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "quarterly",
+  "theme": "streets",
+  "resourceTypes": ["street"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Highways Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632361314743_27775",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "versionPolicy": {
+    "scheme": "release-date",
+    "correctionSuffixSource": "generated"
+  },
+  "sourceLayer": "sensitive",
+  "category": "transportation",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Sensitive Streets",
+      "description": "Highways Department GIS data identifying sensitive streets. The source is a street classification layer and is retained as a government street-domain dataset."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "敏感街道",
+      "description": "路政署提供的敏感街道地理資訊。來源是街道分類圖層，並以政府街道資料域資料集保留。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "敏感街道",
+      "description": "路政署提供的敏感街道地理信息。来源是街道分类图层，并以政府街道数据域数据集保留。"
+    }
+  ]
+}

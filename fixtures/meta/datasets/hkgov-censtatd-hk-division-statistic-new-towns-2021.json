@@ -1,15 +1,29 @@
 {
-  "versionHash": "sha256:8bd52a64422fdffac5056ce73f21e33b46f3d9244fca9812d22b4a97a7c8941e",
+  "versionHash": "sha256:33103950739df93fc5e508b1eb06bf895e87e007469c8064ff3afd67761cfaf8",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns-2021",
   "regionCode": "hk",
   "releaseType": "static",
-  "releaseFrequency": "as-needed",
+  "releaseFrequency": "five-yearly",
   "theme": "stats",
-  "type": "divisionStatistic",
+  "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695181913136_27614",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2021"
+    }
+  ],
   "i18n": [
     {
       "locale": "en",

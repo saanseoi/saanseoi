@@ -1,31 +1,41 @@
 {
-  "versionHash": "sha256:20956466518fc99cafc75f2c1a23e4a78b60a25b0b28a747079207333e298293",
+  "versionHash": "sha256:17817bc09e57b35516024055a53295d78c009a19814f07548cb4b6cdf14ae5a5",
   "publisherCode": "hkgov-landsd",
   "code": "ds-hk-hkgov-landsd-street",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "as-needed",
   "theme": "streets",
-  "type": "street",
+  "resourceTypes": ["street"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Lands Department.",
-  "sourceUrl": "https://www.landsd.gov.hk/en/resources/mapping-and-survey.html",
+  "sourceUrl": "https://www.landsd.gov.hk/en/survey-mapping/mapping/street-geographical-place-naming/street-naming.html",
+  "sourceDocumentUrl": "https://www.landsd.gov.hk/doc/en/street-name/Gazetted_Street_Name.pdf",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "weekly"
+  },
+  "versionPolicy": {
+    "scheme": "release-date",
+    "correctionSuffixSource": "generated"
+  },
+  "lastUpdated": "2025-12-19",
   "category": "places",
   "i18n": [
     {
       "locale": "en",
       "name": "Lands Department Street Names",
-      "description": "A planned source dataset of official Hong Kong street names."
+      "description": "Official Hong Kong street names from the Lands Department gazetted list, with subsequent Government Notice deltas."
     },
     {
       "locale": "zh-hant",
       "name": "地政總署街道名稱",
-      "description": "計劃採用的香港官方街道名稱來源資料集。"
+      "description": "來自地政總署刊憲街道名稱清單及其後政府憲報變更的香港官方街道名稱資料集。"
     },
     {
       "locale": "zh-hans",
       "name": "地政总署街道名称",
-      "description": "计划采用的香港官方街道名称来源数据集。"
+      "description": "来自地政总署刊宪街道名称清单及其后政府宪报变更的香港官方街道名称数据集。"
     }
   ]
 }

@@ -1,15 +1,43 @@
 {
-  "versionHash": "sha256:db91e8047db77750c21e39bd5b3a8588347444dd2461e0f5bf8ac08505160d6e",
+  "versionHash": "sha256:80853255d76c474d341f8ddfcdff7c7e8a310ac51b75e08f946e34709f3974d8",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-new-town",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",
   "theme": "divisions",
-  "type": "division",
+  "sourceVariant": "hkgov-pland-new-town",
+  "resourceTypes": ["division", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Planning Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2006",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535014241_1352"
+    },
+    {
+      "sourceVersion": "2011",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634024777903_55269"
+    },
+    {
+      "sourceVersion": "2016",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634281414408_50485"
+    },
+    {
+      "sourceVersion": "2021",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865"
+    }
+  ],
   "category": "boundaries",
   "i18n": [
     {

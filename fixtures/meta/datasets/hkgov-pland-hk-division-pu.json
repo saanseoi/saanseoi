@@ -1,15 +1,47 @@
 {
-  "versionHash": "sha256:7ab24a8221fccab6bcf35289b75ec614eb6880bae4f66909f9b3b5fd0da8530b",
+  "versionHash": "sha256:719cfe834badaf061b0995b90e14d87c025d643a387e76fcd4f47e8224093b56",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",
   "theme": "divisions",
-  "type": "division",
+  "sourceVariant": "hkgov-pland-pu",
+  "resourceTypes": ["division", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Planning Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2001",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535158118_80594"
+    },
+    {
+      "sourceVersion": "2006",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535383021_30595"
+    },
+    {
+      "sourceVersion": "2011",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634025118087_40967"
+    },
+    {
+      "sourceVersion": "2016",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634281887222_15002"
+    },
+    {
+      "sourceVersion": "2021",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050"
+    }
+  ],
   "category": "boundaries",
   "i18n": [
     {

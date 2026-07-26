@@ -1,0 +1,41 @@
+{
+  "versionHash": "sha256:5750dda771e2320e4a822adedbad0c76f0359d558b7dc7e218c03f9911d05f00",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "five-yearly",
+  "theme": "stats",
+  "resourceTypes": ["divisionStatistic"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946",
+  "publisherReleaseFrequency": "one-off",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2016",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635932488538_10765"
+    },
+    {
+      "sourceVersion": "2021",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946",
+      "publisherLastRevisedAt": "2026-06-05"
+    }
+  ],
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Census Subdivided Units by District Council District",
+      "description": "Planned C&SD source for subdivided-unit population statistics by District Council district. The 2016 By-census and 2021 Census releases each retain their exact statistical-geography cohort."
+    }
+  ]
+}

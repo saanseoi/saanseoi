@@ -1,0 +1,40 @@
+{
+  "versionHash": "sha256:2b5f5e20fd982b6439c93d7e8f00d61b9c07f3a648573aaa1d0314174bf48fdc",
+  "publisherCode": "hkgov-landsd",
+  "code": "ds-hk-hkgov-landsd-division",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "monthly",
+  "theme": "divisions",
+  "resourceTypes": ["division"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Lands Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=landsd_rcd_1648571595120_89752",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "versionPolicy": {
+    "scheme": "release-date",
+    "correctionSuffixSource": "generated"
+  },
+  "sourceLayer": "GEO_PLACE_NAME",
+  "category": "places",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Settlement Place Names",
+      "description": "Settlement place names projected from the Lands Department Place Name database. The divisions projection retains PLACE_CLASS=Settlement records as point divisions; the source also contains Hydrographic and Topographic records, which are not divisions."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "居住地名稱",
+      "description": "由地政總署地名資料庫投影的居住地名稱。區劃投影保留 PLACE_CLASS=Settlement 的點區劃；來源亦包含水文及地形記錄，這些不屬於區劃。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "居住地名称",
+      "description": "由地政总署地名数据库投影的居住地名称。区划投影保留 PLACE_CLASS=Settlement 的点区划；来源亦包含水文及地形记录，这些不属于区划。"
+    }
+  ]
+}
