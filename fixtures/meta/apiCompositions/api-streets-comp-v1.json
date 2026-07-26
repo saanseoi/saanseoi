@@ -1,0 +1,46 @@
+{
+  "apiVersion": "api-streets-v0.1",
+  "code": "comp-streets-v1",
+  "version": 1,
+  "primaryResourceType": "street",
+  "status": "current",
+  "domains": [
+    {
+      "code": "hkgov-landsd",
+      "isDefault": true,
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "HK Gov"
+        },
+        {
+          "locale": "zh-hant",
+          "name": "香港政府"
+        },
+        {
+          "locale": "zh-hans",
+          "name": "香港政府"
+        }
+      ],
+      "members": [
+        {
+          "resourceType": "street",
+          "variant": "hkgov-landsd",
+          "role": "primary",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 0
+        },
+        {
+          "resourceType": "street",
+          "variant": "hkgov-landsd-road-centreline",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
+          "priority": 10
+        }
+      ]
+    }
+  ],
+  "versionHash": "sha256:16710b06118a8c24e9a9055c3b3e3adaaaec9e8012536033f2cd58930899423e"
+}
