@@ -5,7 +5,7 @@ import {
   parseArgs,
   resolveUploadTarget,
   type ParsedArgs,
-} from '../../harbour-cli/src/lib/options.ts'
+} from '../../harbour-cli/src/lib/cli/options.ts'
 
 function printUsage() {
   console.log(`  Usage:
@@ -14,6 +14,7 @@ function printUsage() {
   bun run dataops -- hkgov-pland:prepare <GeoJSON> [--kind tpu|new-town] [--source-version YYYY] [--out-dir PATH]
   bun run dataops -- hkgov-pland:backfill --kind pu|new-town --target local|preview|production [--continue]
   bun run dataops -- hkgov-landsd-streets:backfill --target local|preview|production [--notice-id ID[,ID...]] [--out-dir PATH]
+  bun run dataops -- hkgov-hkgro-street-names:retrieve --target local [--year YYYY[,YYYY...]] [--out-dir PATH]
 `)
 }
 
@@ -74,6 +75,13 @@ async function main() {
         './commands/ingestLandsdStreets.ts'
       )
       await runLandsdStreetIngestCommand(args, target, printUsage)
+      return
+    }
+    case 'hkgov-hkgro-street-names:retrieve': {
+      const { runHkgroStreetNameRetrieveCommand } = await import(
+        './commands/hkgroStreetNames.ts'
+      )
+      await runHkgroStreetNameRetrieveCommand(args, target, printUsage)
       return
     }
     default:
