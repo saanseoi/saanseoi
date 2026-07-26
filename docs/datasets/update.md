@@ -95,15 +95,18 @@ revision describes its latest service revision rather than the census year repre
 by the data. `publisherLastRevisedAt` on a release is tracked as the publisher-release
 signal; it is distinct from `metadataLastRevisedAt`.
 
-`correction` indicates whether a changed delivery for the same version base receives the
-next correction suffix (`2021.1` or `2026-07-23.1`). `initial-release-date` is the
-exception: when the source reports a later revision date, the original date is retained
-and only the correction suffix changes. The concrete `sourceVersion` and `cohortKey`
-belong to each release manifest under `fixtures/meta/releases`; the dataset fixture's
-`releases` array maps the live publisher metadata to that known release series. Update
-state separately records `releaseLastRevisedAt` and `metadataLastRevisedAt`. A changed
-release revision is a new-release candidate, while a metadata-only revision is reported
-as `REVIEW` and prompts the operator to investigate the source before publishing.
+`correctionSuffixSource` declares who owns a correction suffix: `generated` means
+SaanSeoi assigns `.0` to the initial delivery and increments it (`2021.1` or
+`2026-07-23.1`) when a delivery with the same version base changes; `upstream` means the
+publisher's full version, including any suffix, is retained verbatim; and `none` means
+no suffix is used. `initial-release-date` is the exception for generated suffixes: when
+the source reports a later revision date, the original date is retained and only the
+correction suffix changes. The concrete `sourceVersion` and `cohortKey` belong to each
+release manifest under `fixtures/meta/releases`; the dataset fixture's `releases` array
+maps the live publisher metadata to that known release series. Update state separately
+records `releaseLastRevisedAt` and `metadataLastRevisedAt`. A changed release revision
+is a new-release candidate, while a metadata-only revision is reported as `REVIEW` and
+prompts the operator to investigate the source before publishing.
 
 Fixtures may also define an `updatePolicy`:
 
