@@ -3,14 +3,23 @@ import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 
-import type { StreetEvidenceAsset } from '@repo/db'
+import { streetLocaleCodes } from '@repo/db'
+import type {
+  LandsdStreetNameChangeScope,
+  LandsdStreetNoticeApplicationDisposition,
+  LandsdStreetNoticeApplicationMethod,
+  StreetEvidenceAsset,
+  StreetLocaleCode,
+} from '@repo/db'
 import { parquetWriteBuffer } from 'hyparquet-writer'
 
 import {
   LANDSD_STREET_NAMING_URL,
   LANDSD_STREET_PDF_URL,
   governmentNoticeIdentity,
+  parseLandsdGovernmentNoticeType,
   type LandsdStreetPageLocale,
+  type LandsdStreetSourceKind,
   type PairedLandsdGovernmentNoticePdfEntry,
   type LandsdStreetSourceLink,
   parseLandsdGovernmentNoticePdfText,
@@ -20,6 +29,11 @@ import {
   parseLandsdStreetSourcePage,
   type PairedLandsdStreetNotice,
 } from './landsdStreet.ts'
+import {
+  egazetteArchiveFilePath,
+  loadEgazetteStreetNameArchive,
+  type EgazetteStreetNameRecord,
+} from './egazetteStreetName.ts'
 import {
   loadLandsdStreetCuration,
   promptForLandsdStreetCuration,
@@ -43,12 +57,17 @@ const DEFAULT_CURATION_PATH = resolve(
   import.meta.dir,
   '../../../../../fixtures/meta/curations/hkgov-landsd-street.json',
 )
+const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
+const DEFAULT_EGAZETTE_ARCHIVE_DIR = join(
+  REPO_ROOT,
+  'data/hkgov/gld/egazette/street-name',
+)
 
 export type LandsdStreetAssetLink = StreetEvidenceAsset
 
 export type LandsdStreetLocaleRecord = {
   description: string | null
-  locale: 'en' | 'zh-Hant'
+  locale: StreetLocaleCode
   name: string
 }
 
@@ -56,9 +75,9 @@ export type LandsdStreetRecord = {
   application: {
     sourceStreetId: string | null
     resultStreetId: string | null
-    disposition: 'apply' | 'noOp'
-    method: 'automatic' | 'manual'
-    nameChangeScope: 'whole' | 'partial' | null
+    disposition: LandsdStreetNoticeApplicationDisposition
+    method: LandsdStreetNoticeApplicationMethod
+    nameChangeScope: LandsdStreetNameChangeScope | null
     retainedDescriptions: Record<string, string> | null
   } | null
   districtCodes: string[]
@@ -72,7 +91,7 @@ export type LandsdStreetRecord = {
   previousNoticeRefs: string[]
   rawExtractedText: Record<string, unknown> | null
   evidenceAssets: LandsdStreetAssetLink[]
-  sourceKind: 'baseline' | 'historical-notice' | 'notice'
+  sourceKind: LandsdStreetSourceKind
   recordKey: string
   streetId: string | null
 }
@@ -125,6 +144,8 @@ export type LandsdStreetIngestProgress = {
  */
 export async function ingestLandsdStreetSource(options: {
   curationPath?: string
+  egazetteArchiveDir?: string
+  includeEgazetteHistory?: boolean
   includeBaseline?: boolean
   noticeIds?: readonly string[]
   outputDir: string
@@ -143,6 +164,7 @@ export async function ingestLandsdStreetSource(options: {
   sourceCursor: string[]
 }> {
   const outputDir = resolve(options.outputDir)
+  const egazetteArchiveDir = options.egazetteArchiveDir ?? DEFAULT_EGAZETTE_ARCHIVE_DIR
   const sourceUrl = options.sourceUrl ?? LANDSD_STREET_NAMING_URL
   const chineseSourceUrl = sourceUrl.replace('/en/', '/tc/')
   const fetchedAt = (options.now ?? (() => new Date()))().toISOString()
@@ -159,6 +181,19 @@ export async function ingestLandsdStreetSource(options: {
       message: `Found ${persistedAssets.size} cached source artifact(s) from an earlier run`,
     })
   }
+
+  const egazette = options.includeEgazetteHistory
+    ? await (async () => {
+        reportProgress({
+          message: 'Validating and parsing historical e-Gazette street-name PDFs',
+        })
+        return parseEgazetteStreetNameArchive({
+          archiveDir: egazetteArchiveDir,
+          onProgress: reportProgress,
+          repoRoot: REPO_ROOT,
+        })
+      })()
+    : emptyParsedEgazetteStreetNameArchive()
 
   const materialise = (input: {
     bytes?: Uint8Array
@@ -302,7 +337,7 @@ export async function ingestLandsdStreetSource(options: {
     })
   }
   const requestedNoticeIds = options.noticeIds ? new Set(options.noticeIds) : null
-  const notices = requestedNoticeIds
+  let notices = requestedNoticeIds
     ? pairedNotices.filter(notice => requestedNoticeIds.has(notice.id))
     : pairedNotices
   if (requestedNoticeIds) {
@@ -317,6 +352,59 @@ export async function ingestLandsdStreetSource(options: {
     }
   }
   const evidence = new Map<string, PublishedPreparedAsset>()
+  const historicalAssetsByNoticeRef = new Map<string, LandsdStreetAssetLink[]>()
+  const historicalAssetRecords = [...egazette.assetRecords.entries()]
+  const assetTotal =
+    uniqueCount([
+      ...notices.flatMap(notice => [
+        ...(notice.governmentNotices.en
+          ? [['governmentNotice', notice.governmentNotices.en.url, 'en']]
+          : []),
+        ...(notice.governmentNotices.zhHant
+          ? [['governmentNotice', notice.governmentNotices.zhHant.url, 'zh-Hant']]
+          : []),
+        ...notice.planUrls.map(link => ['gazettePlan', link.url, 'en']),
+      ]),
+      ...historicalAssetRecords.flatMap(([, record]) => [
+        ['historicalGovernmentNotice', record.assets.en.officialUrl, 'en'],
+        ['historicalGovernmentNotice', record.assets['zh-Hant'].officialUrl, 'zh-Hant'],
+      ]),
+    ]) + 1
+  let preservedAssets = 0
+  reportProgress({
+    current: preservedAssets,
+    message: `Paired ${pairedNotices.length} LandsD and ${egazette.notices.length} historical e-Gazette notice row(s); preserving ${assetTotal} source PDF(s)`,
+    total: assetTotal,
+  })
+  for (const [recordKey, record] of historicalAssetRecords) {
+    const assets: LandsdStreetAssetLink[] = []
+    for (const locale of streetLocaleCodes) {
+      const source = record.assets[locale]
+      const localPath = egazetteArchiveFilePath(REPO_ROOT, source.localPath)
+      reportProgress({
+        current: preservedAssets,
+        message: `Preserving historical e-Gazette PDF ${preservedAssets + 1}/${assetTotal}: ${recordKey} (${locale})`,
+        total: assetTotal,
+      })
+      const published = await materialise({
+        bytes: new Uint8Array(await readFile(localPath)),
+        fileName: basename(localPath),
+        label: recordKey,
+        mediaType: 'application/pdf',
+        role: 'historicalGovernmentNotice',
+        sourcePageLocale: locale,
+        sourcePageUrl: 'https://egazette.gld.gov.hk/en/search-gazette',
+        url: source.officialUrl,
+      })
+      evidence.set(
+        ['historicalGovernmentNotice', source.officialUrl, locale].join('\0'),
+        published,
+      )
+      assets.push({ ...published.link, publisherIdentifier: recordKey })
+      preservedAssets += 1
+    }
+    historicalAssetsByNoticeRef.set(recordKey, assets)
+  }
   const noticeEvidence = notices.flatMap(notice => [
     ...(notice.governmentNotices.en
       ? [
@@ -347,13 +435,6 @@ export async function ingestLandsdStreetSource(options: {
     noticeEvidenceByKey.set([item.role, item.link.url, item.locale].join('\0'), item)
   }
   const uniqueNoticeEvidence = [...noticeEvidenceByKey.values()]
-  const assetTotal = uniqueNoticeEvidence.length + 1
-  let preservedAssets = 0
-  reportProgress({
-    current: preservedAssets,
-    message: `Paired ${pairedNotices.length} bilingual notice(s); preserving ${assetTotal} source PDF(s)`,
-    total: assetTotal,
-  })
   for (const item of uniqueNoticeEvidence) {
     const cacheKey = [item.role, item.link.url, item.locale].join('\0')
     reportProgress({
@@ -416,6 +497,7 @@ export async function ingestLandsdStreetSource(options: {
   try {
     const parsed = await parseNoticePdfs(notices, evidence, reportProgress)
     parsedNoticeEntries = parsed.entries
+    notices = parsed.notices
     pdfExtraction = parsed.summary
     unmatchedPdfMappings = parsed.pairingFailures
   } catch (error) {
@@ -439,12 +521,22 @@ export async function ingestLandsdStreetSource(options: {
     })
   }
 
+  // The current LandsD page is the forward feed. The archive supplies the
+  // missing pre-2016 ledger. Later archive PDFs remain independent evidence
+  // on matching forward-feed events, rather than duplicating lifecycle events.
+  const historicalNotices = requestedNoticeIds
+    ? []
+    : egazette.notices.filter(
+        notice => `${notice.publicationDate}.0` < LANDSD_STREET_INITIAL_SOURCE_VERSION,
+      )
+  const allNotices = [...historicalNotices, ...notices]
+  const allParsedNoticeEntries = new Map([...egazette.entries, ...parsedNoticeEntries])
   const curationPath = options.curationPath ?? DEFAULT_CURATION_PATH
   let curationManifest = await loadLandsdStreetCuration(curationPath)
   let curation = resolveLandsdStreetCuration({
     manifest: curationManifest,
-    notices,
-    parsedEntries: parsedNoticeEntries,
+    notices: allNotices,
+    parsedEntries: allParsedNoticeEntries,
   })
   if (curation.unresolved.length > 0 && options.promptForCuration) {
     reportProgress({
@@ -458,8 +550,8 @@ export async function ingestLandsdStreetSource(options: {
     await saveLandsdStreetCuration(curationPath, curationManifest)
     curation = resolveLandsdStreetCuration({
       manifest: curationManifest,
-      notices,
-      parsedEntries: parsedNoticeEntries,
+      notices: allNotices,
+      parsedEntries: allParsedNoticeEntries,
     })
   }
   if (curation.unresolved.length > 0) {
@@ -505,20 +597,40 @@ export async function ingestLandsdStreetSource(options: {
       evidence,
       previewsByPlanUrl,
       parsedPdfEntry: parsedNoticeEntries.get(notice.id) ?? null,
+      supplementalEvidenceAssets:
+        (notice.noticeIdentity
+          ? historicalAssetsByNoticeRef.get(notice.noticeIdentity)
+          : undefined) ?? [],
     }),
   )
-  const baseline = buildBaselineRecords(baselineRows, noticeRecords, baselineAsset.link)
+  const historicalNoticeRecords = historicalNotices.map(notice =>
+    buildNoticeRecord(notice, {
+      assetRole: 'historicalGovernmentNotice',
+      curation: curation.applied.get(notice.id) ?? null,
+      evidence,
+      parsedPdfEntry: egazette.entries.get(notice.id) ?? null,
+      previewsByPlanUrl: new Map(),
+      sourceKind: 'historical-notice',
+      supplementalEvidenceAssets: [],
+    }),
+  )
+  const allNoticeRecords = [...historicalNoticeRecords, ...noticeRecords]
+  const baseline = buildBaselineRecords(
+    baselineRows,
+    allNoticeRecords,
+    baselineAsset.link,
+  )
 
   reportProgress({ message: 'Writing release payload and operator report' })
   const releases = await writeReleasePayloads({
     baselineRecords: baseline.records,
-    noticeRecords,
+    noticeRecords: allNoticeRecords,
     outputDir,
     writeFixtures: options.writeFixtures ?? true,
   })
   const report = buildOperatorReport({
     assetFailures,
-    pairedNoticeCount: pairedNotices.length,
+    pairedNoticeCount: pairedNotices.length + historicalNotices.length,
     pairingFailures: [],
     pdfExtraction,
     unmatchedPdfMappings,
@@ -540,10 +652,13 @@ export async function ingestLandsdStreetSource(options: {
 function buildNoticeRecord(
   notice: PairedLandsdStreetNotice,
   options: {
+    assetRole?: 'governmentNotice' | 'historicalGovernmentNotice'
     curation: LandsdStreetAppliedCuration | null
     evidence: Map<string, PublishedPreparedAsset>
     parsedPdfEntry: PairedLandsdGovernmentNoticePdfEntry | null
     previewsByPlanUrl: Map<string, LandsdStreetAssetLink[]>
+    sourceKind?: 'historical-notice' | 'notice'
+    supplementalEvidenceAssets?: LandsdStreetAssetLink[]
   },
 ): LandsdStreetRecord {
   const noticeRef =
@@ -551,13 +666,13 @@ function buildNoticeRecord(
   const governmentNoticeAssets = [
     getEvidence(
       options.evidence,
-      'governmentNotice',
+      options.assetRole ?? 'governmentNotice',
       notice.governmentNotices.en,
       'en',
     ),
     getEvidence(
       options.evidence,
-      'governmentNotice',
+      options.assetRole ?? 'governmentNotice',
       notice.governmentNotices.zhHant,
       'zh-Hant',
     ),
@@ -583,7 +698,7 @@ function buildNoticeRecord(
           retainedDescriptions: options.curation.retainedDescriptions,
         }
       : automaticApplication(notice),
-    districtCodes: [],
+    districtCodes: districtCodesForNotice(notice, options.parsedPdfEntry),
     noticeType: notice.governmentNoticeType,
     i18n: [
       {
@@ -603,8 +718,12 @@ function buildNoticeRecord(
     effectiveDate: options.parsedPdfEntry?.effectiveDate ?? null,
     parserDiagnostics: options.parsedPdfEntry?.parserDiagnostics ?? null,
     previousNoticeRefs: options.parsedPdfEntry?.previousNoticeRefs ?? [],
-    evidenceAssets: [...governmentNoticeAssets, ...planAssets],
-    sourceKind: 'notice',
+    evidenceAssets: [
+      ...governmentNoticeAssets,
+      ...planAssets,
+      ...(options.supplementalEvidenceAssets ?? []),
+    ],
+    sourceKind: options.sourceKind ?? 'notice',
     recordKey: notice.id,
     streetId: null,
     rawExtractedText: options.parsedPdfEntry?.rawExtractedText ?? null,
@@ -626,6 +745,41 @@ function automaticApplication(
         retainedDescriptions: null,
       }
     : null
+}
+
+const DISTRICT_CODES_BY_NAME: Record<string, string> = {
+  'central and western': 'c&w',
+  eastern: 'e',
+  islands: 'i',
+  'kowloon city': 'kc',
+  'kwun tong': 'kt',
+  north: 'n',
+  southern: 's',
+  'sai kung': 'sk',
+  'sham shui po': 'ssp',
+  'sha tin': 'st',
+  'tai po': 'tp',
+  'tsuen wan': 'tw',
+  'tuen mun': 'tm',
+  'wan chai': 'wc',
+  'wong tai sin': 'wts',
+  'yau tsim mong': 'ytm',
+  'yuen long': 'yl',
+}
+
+function districtCodesForNotice(
+  notice: PairedLandsdStreetNotice,
+  parsedPdfEntry: PairedLandsdGovernmentNoticePdfEntry | null,
+) {
+  const label = parsedPdfEntry?.districts?.en ?? notice.district.en
+  const normalised = label
+    .toLocaleLowerCase('en')
+    .replaceAll('&', 'and')
+    .replaceAll(/\bdistrict\b/g, '')
+    .replaceAll(/\s+/g, ' ')
+    .trim()
+  const code = DISTRICT_CODES_BY_NAME[normalised]
+  return code ? [code] : []
 }
 
 function buildBaselineRecords(
@@ -1109,12 +1263,33 @@ async function parseNoticePdfs(
     notice => !isLifecycleCurationNotice(notice) && !entries.has(notice.id),
   )
   if (missingNonReviewable) {
+    const pdfPaths = [
+      ['English', missingNonReviewable.governmentNotices.en, 'en'] as const,
+      [
+        'Traditional Chinese',
+        missingNonReviewable.governmentNotices.zhHant,
+        'zh-Hant',
+      ] as const,
+    ].flatMap(([label, link, locale]) => {
+      if (!link) return []
+      const prepared = evidence.get(['governmentNotice', link.url, locale].join('\0'))
+      return prepared ? [`${label} PDF: ${prepared.prepared.filePath}`] : []
+    })
     throw new Error(
-      `${missingNonReviewable.id}: Government Notice PDF layout was not parseable.`,
+      [
+        `${missingNonReviewable.id}: Government Notice PDF layout was not parseable.`,
+        ...pdfPaths,
+      ].join('\n'),
     )
   }
   return {
     entries,
+    notices: expandIntentionNotices({
+      entries,
+      english,
+      notices,
+      zhHant,
+    }),
     summary: {
       failed: [...english.values(), ...zhHant.values()].filter(
         parsed => parsed.diagnostics.status === 'failed',
@@ -1125,6 +1300,327 @@ async function parseNoticePdfs(
     },
     pairingFailures,
   }
+}
+
+function expandIntentionNotices(input: {
+  entries: Map<string, PairedLandsdGovernmentNoticePdfEntry>
+  english: Map<string, ReturnType<typeof parseLandsdGovernmentNoticePdfText>>
+  notices: PairedLandsdStreetNotice[]
+  zhHant: Map<string, ReturnType<typeof parseLandsdGovernmentNoticePdfText>>
+}) {
+  const groups = new Map<string, PairedLandsdStreetNotice[]>()
+  for (const notice of input.notices) {
+    if (notice.governmentNoticeType !== 'intention') continue
+    const key = notice.noticeIdentity ?? notice.id
+    groups.set(key, [...(groups.get(key) ?? []), notice])
+  }
+  if (groups.size === 0) return input.notices
+
+  const replacedIds = new Set<string>()
+  const expanded: PairedLandsdStreetNotice[] = []
+  for (const notices of groups.values()) {
+    const source = notices[0]
+    if (!source) continue
+    const english = input.english.get(source.id)
+    const zhHant = input.zhHant.get(source.id)
+    if (!english || !zhHant || english.entries.length !== zhHant.entries.length) {
+      throw new Error(
+        `${source.noticeIdentity ?? source.id}: intention notice PDF rows are not bilingual-aligned.`,
+      )
+    }
+    for (const notice of notices) replacedIds.add(notice.id)
+    for (const [ordinal, englishEntry] of english.entries.entries()) {
+      const zhHantEntry = zhHant.entries[ordinal]
+      if (!zhHantEntry || !englishEntry.name || !zhHantEntry.name) {
+        throw new Error(
+          `${source.noticeIdentity ?? source.id}: intention notice PDF row ${ordinal + 1} has no bilingual street name.`,
+        )
+      }
+      const englishReferences = new Set(englishEntry.previousNoticeRefs)
+      const zhHantReferences = new Set(zhHantEntry.previousNoticeRefs)
+      if (
+        englishReferences.size > 0 &&
+        zhHantReferences.size > 0 &&
+        !sameNoticeReferences(englishReferences, zhHantReferences)
+      ) {
+        throw new Error(
+          `${source.noticeIdentity ?? source.id}: intention notice PDF row ${ordinal + 1} has bilingual Previous G.N. disagreement.`,
+        )
+      }
+      const id = `${source.id}:pdf-row:${hashText(`${englishEntry.name}\0${zhHantEntry.name}\0${ordinal}`)}`
+      const parsedEntry: PairedLandsdGovernmentNoticePdfEntry = {
+        descriptions: {
+          en: englishEntry.description,
+          zhHant: zhHantEntry.description,
+        },
+        districts: { en: englishEntry.district, zhHant: zhHantEntry.district },
+        effectiveDate: englishEntry.effectiveDate ?? zhHantEntry.effectiveDate,
+        gazetteDate:
+          english.gazetteDate ?? zhHant.gazetteDate ?? source.publicationDate,
+        parserDiagnostics: { en: english.diagnostics, zhHant: zhHant.diagnostics },
+        previousNoticeRefs: [
+          ...new Set([
+            ...englishEntry.previousNoticeRefs,
+            ...zhHantEntry.previousNoticeRefs,
+          ]),
+        ].sort(),
+        rawExtractedText: { en: english.rawText, zhHant: zhHant.rawText },
+      }
+      input.entries.set(id, parsedEntry)
+      expanded.push({
+        ...source,
+        id,
+        names: { en: englishEntry.name, zhHant: zhHantEntry.name },
+        noticeOrdinal: ordinal,
+        sourceOrdinals: { en: ordinal, zhHant: ordinal },
+      })
+    }
+  }
+  return [...input.notices.filter(notice => !replacedIds.has(notice.id)), ...expanded]
+}
+
+type ParsedEgazetteStreetNameArchive = {
+  assetRecords: Map<string, EgazetteStreetNameRecord>
+  entries: Map<string, PairedLandsdGovernmentNoticePdfEntry>
+  notices: PairedLandsdStreetNotice[]
+}
+
+function emptyParsedEgazetteStreetNameArchive(): ParsedEgazetteStreetNameArchive {
+  return { assetRecords: new Map(), entries: new Map(), notices: [] }
+}
+
+async function extractChineseEgazetteNoticeText(input: {
+  nativeText: string
+  pdfPath: string
+}) {
+  const native = parseLandsdGovernmentNoticePdfText(input.nativeText, 'zh-Hant')
+  if (hasUsableChineseNoticeRows(native)) {
+    return { nativeText: null, parsed: native }
+  }
+  const text = await ocrPdfToTraditionalChineseText(input.pdfPath)
+  const parsed = parseLandsdGovernmentNoticePdfText(text, 'zh-Hant')
+  return {
+    nativeText: input.nativeText,
+    parsed: {
+      ...parsed,
+      diagnostics: {
+        ...parsed.diagnostics,
+        extraction: {
+          engine: 'tesseract',
+          language: 'chi_tra+eng',
+          method: 'ocr' as const,
+          nativeTextStatus: 'unparseable' as const,
+          renderDpi: 300,
+        },
+      },
+    },
+  }
+}
+
+function hasUsableChineseNoticeRows(
+  value: ReturnType<typeof parseLandsdGovernmentNoticePdfText>,
+) {
+  return (
+    value.diagnostics.status === 'success' && value.entries.every(entry => entry.name)
+  )
+}
+
+/**
+ * Tesseract TSV preserves word coordinates. Rebuilding sparse lines from
+ * those coordinates gives the existing fixed-column Gazette parser stable
+ * column boundaries while retaining the raw OCR text for review.
+ */
+async function ocrPdfToTraditionalChineseText(pdfPath: string) {
+  const temporaryDir = await mkdtemp(join(tmpdir(), 'saanseoi-egazette-ocr-'))
+  try {
+    const prefix = join(temporaryDir, 'page')
+    await runCommand('pdftoppm', ['-r', '300', '-png', pdfPath, prefix])
+    const images = (await readdir(temporaryDir))
+      .filter(file => /^page-\d+\.png$/.test(file))
+      .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }))
+    if (images.length === 0) {
+      throw new Error(`OCR could not render any pages from ${pdfPath}.`)
+    }
+    const pages: string[] = []
+    for (const image of images) {
+      const tsv = await runCommandStdout('tesseract', [
+        join(temporaryDir, image),
+        'stdout',
+        '-l',
+        'chi_tra+eng',
+        '--psm',
+        '6',
+        'tsv',
+      ])
+      pages.push(layoutOcrTsv(tsv))
+    }
+    return pages.join('\n')
+  } catch (error) {
+    throw new Error(
+      `Traditional Chinese e-Gazette OCR failed for ${pdfPath}. Install Tesseract with the chi_tra language data, then rerun: ${error instanceof Error ? error.message : String(error)}`,
+    )
+  } finally {
+    await rm(temporaryDir, { recursive: true, force: true })
+  }
+}
+
+function layoutOcrTsv(value: string) {
+  type Word = { key: string; left: number; text: string }
+  const lines = new Map<string, Word[]>()
+  for (const [index, row] of value.split(/\r?\n/).entries()) {
+    if (index === 0 || !row.trim()) continue
+    const fields = row.split('\t')
+    if (fields[0] !== '5') continue
+    const left = Number(fields[6])
+    const text = fields[11]?.trim()
+    if (!Number.isFinite(left) || !text) continue
+    const key = [fields[1], fields[2], fields[3], fields[4]].join('\0')
+    const words = lines.get(key) ?? []
+    words.push({ key, left, text })
+    lines.set(key, words)
+  }
+  return [...lines.values()]
+    .map(words => {
+      const sorted = [...words].sort((left, right) => left.left - right.left)
+      let line = ''
+      for (const word of sorted) {
+        const column = Math.max(0, Math.round(word.left / 8))
+        line += `${' '.repeat(Math.max(1, column - line.length))}${word.text}`
+      }
+      return line
+    })
+    .join('\n')
+}
+
+/**
+ * The archive has no mutable HTML row model. Its bilingual PDFs are therefore
+ * parsed as the source record itself, and every mismatch identifies the exact
+ * manifest entry and local files that need repair.
+ */
+export async function parseEgazetteStreetNameArchive(input: {
+  archiveDir: string
+  onProgress: (progress: LandsdStreetIngestProgress) => void
+  repoRoot: string
+}): Promise<ParsedEgazetteStreetNameArchive> {
+  const records = await loadEgazetteStreetNameArchive({
+    archiveDir: input.archiveDir,
+    repoRoot: input.repoRoot,
+  })
+  const assetRecords = new Map<string, EgazetteStreetNameRecord>()
+  const entries = new Map<string, PairedLandsdGovernmentNoticePdfEntry>()
+  const notices: PairedLandsdStreetNotice[] = []
+
+  for (const [index, record] of records.entries()) {
+    const label = `${record.publicationDate} ${record.issueVolume} ${record.subject}`
+    input.onProgress({
+      current: index,
+      message: `Parsing historical e-Gazette PDF ${index + 1}/${records.length}: ${label}`,
+      total: records.length,
+    })
+    const enPath = egazetteArchiveFilePath(input.repoRoot, record.assets.en.localPath)
+    const zhHantPath = egazetteArchiveFilePath(
+      input.repoRoot,
+      record.assets['zh-Hant'].localPath,
+    )
+    const [enText, zhHantNativeText] = await Promise.all([
+      pdfToText(enPath),
+      pdfToText(zhHantPath),
+    ])
+    const english = parseLandsdGovernmentNoticePdfText(enText, 'en')
+    const chinese = await extractChineseEgazetteNoticeText({
+      nativeText: zhHantNativeText,
+      pdfPath: zhHantPath,
+    })
+    const zhHant = chinese.parsed
+    const details = `${label}; English ${record.assets.en.localPath}; Traditional Chinese ${record.assets['zh-Hant'].localPath}`
+    const noticeRef = parseEgazetteNoticeRef(enText, details)
+    const recordKey = `gn${noticeRef.slice(2)}`
+
+    if (
+      english.diagnostics.status !== 'success' ||
+      zhHant.diagnostics.status !== 'success'
+    ) {
+      throw new Error(
+        `e-Gazette PDF parsing failed for ${details}. English: ${english.diagnostics.message ?? english.diagnostics.layout}; Traditional Chinese: ${zhHant.diagnostics.message ?? zhHant.diagnostics.layout}.`,
+      )
+    }
+    if (english.gazetteDate !== record.publicationDate) {
+      throw new Error(
+        `e-Gazette publication-date mismatch for ${details}. Manifest ${record.publicationDate}; English ${english.gazetteDate ?? 'unparsed'}.`,
+      )
+    }
+    const englishType = parseLandsdGovernmentNoticeType(enText, 'en')
+    if (!englishType) {
+      throw new Error(
+        `e-Gazette notice type is not parseable from the authoritative English PDF for ${details}.`,
+      )
+    }
+    if (english.entries.length !== zhHant.entries.length) {
+      throw new Error(
+        `e-Gazette bilingual row-count mismatch for ${details}. English ${english.entries.length}; Traditional Chinese ${zhHant.entries.length}.`,
+      )
+    }
+    assetRecords.set(recordKey, record)
+    for (const [ordinal, englishEntry] of english.entries.entries()) {
+      const zhHantEntry = zhHant.entries[ordinal]
+      if (!zhHantEntry || !englishEntry.name || !zhHantEntry.name) {
+        throw new Error(
+          `e-Gazette street row ${ordinal + 1} is not parseable for ${details}. English name ${englishEntry.name ? 'present' : 'missing'}; Traditional Chinese name ${zhHantEntry?.name ? 'present' : 'missing'}.`,
+        )
+      }
+      const id = `hkgov-gld-egazette-street:${hashText(`${recordKey}\0${record.publicationDate}\0${ordinal}`)}`
+      notices.push({
+        district: { en: '', zhHant: '' },
+        governmentNotices: {
+          en: {
+            label: `G.N. ${noticeRef.slice(2)}`,
+            url: record.assets.en.officialUrl,
+          },
+          zhHant: {
+            label: `第${noticeRef.slice(2)}號`,
+            url: record.assets['zh-Hant'].officialUrl,
+          },
+        },
+        governmentNoticeType: englishType,
+        id,
+        noticeIdentity: noticeRef,
+        names: { en: englishEntry.name, zhHant: zhHantEntry.name },
+        noticeOrdinal: ordinal,
+        planUrls: [],
+        publicationDate: record.publicationDate,
+        sourceOrdinals: { en: ordinal, zhHant: ordinal },
+      })
+      entries.set(id, {
+        descriptions: {
+          en: englishEntry.description,
+          zhHant: zhHantEntry.description,
+        },
+        // Gazette identity, effective dates, kinds and Previous G.N. values
+        // remain English-PDF facts. Chinese OCR only supplies the publisher's
+        // localized name and description when its text layer is absent.
+        effectiveDate: englishEntry.effectiveDate,
+        gazetteDate: record.publicationDate,
+        parserDiagnostics: { en: english.diagnostics, zhHant: zhHant.diagnostics },
+        previousNoticeRefs: [...new Set([...englishEntry.previousNoticeRefs])].sort(),
+        rawExtractedText: {
+          en: english.rawText,
+          zhHant: zhHant.rawText,
+          ...(chinese.nativeText ? { zhHantNative: chinese.nativeText } : {}),
+        },
+      })
+    }
+  }
+  return { assetRecords, entries, notices }
+}
+
+function parseEgazetteNoticeRef(english: string, label: string) {
+  const en = english.match(/\bG\.?N\.?\s*(\d{2,})\b/i)?.[1]
+  if (!en) {
+    throw new Error(
+      `e-Gazette Government Notice reference is not parseable from the authoritative English PDF for ${label}.`,
+    )
+  }
+  return `gn${en}`
 }
 
 async function loadPersistedSourceAssets(outputDir: string) {
@@ -1315,6 +1811,19 @@ async function runCommand(command: string, args: string[]) {
     throw new Error(`${command} failed: ${stderr.trim() || `exit code ${exitCode}`}`)
 }
 
+async function runCommandStdout(command: string, args: string[]) {
+  const child = Bun.spawn([command, ...args], { stdout: 'pipe', stderr: 'pipe' })
+  const [exitCode, stdout, stderr] = await Promise.all([
+    child.exited,
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+  ])
+  if (exitCode !== 0) {
+    throw new Error(`${command} failed: ${stderr.trim() || `exit code ${exitCode}`}`)
+  }
+  return stdout
+}
+
 function mediaTypeForRole(role: Exclude<SourceAssetRole, 'manifest'>) {
   return role === 'sourcePage' ? 'text/html; charset=utf-8' : 'application/pdf'
 }
@@ -1330,6 +1839,10 @@ function hashText(value: string) {
 
 function hashBytes(value: Uint8Array) {
   return createHash('sha256').update(value).digest('hex')
+}
+
+function uniqueCount(values: string[][]) {
+  return new Set(values.map(value => value.join('\0'))).size
 }
 
 function required(name: string, data: string[]) {

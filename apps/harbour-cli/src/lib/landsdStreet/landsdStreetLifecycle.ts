@@ -1,6 +1,15 @@
-import type { StreetChangelogKind, StreetEvidenceAsset } from '@repo/db'
+import type {
+  LandsdStreetNameChangeScope,
+  LandsdStreetNoticeApplicationDisposition,
+  LandsdStreetNoticeApplicationMethod,
+  StreetChangelogKind,
+  StreetEvidenceAsset,
+  StreetLocaleCode,
+  StreetStatus,
+} from '@repo/db'
+import type { LandsdStreetSourceKind } from './landsdStreet.ts'
 
-export type LandsdStreetLifecycleLocale = 'en' | 'zh-Hant'
+export type LandsdStreetLifecycleLocale = StreetLocaleCode
 
 export type LandsdStreetLifecycleI18n = {
   description: string | null
@@ -13,19 +22,19 @@ export type LandsdStreetLifecycleInput = {
   sourceStreetId: string | null
   resultStreetId: string | null
   districtIds: string[]
-  disposition: 'apply' | 'noOp'
+  disposition: LandsdStreetNoticeApplicationDisposition
   deferToNotices: boolean
   gazetteDate: string | null
   noticeType: string | null
   i18n: LandsdStreetLifecycleI18n[]
-  method: 'automatic' | 'manual' | null
-  nameChangeScope: 'whole' | 'partial' | null
+  method: LandsdStreetNoticeApplicationMethod | null
+  nameChangeScope: LandsdStreetNameChangeScope | null
   noticeRef: string | null
   effectiveDate: string | null
   previousNoticeRefs: string[]
   retainedDescriptions: Partial<Record<LandsdStreetLifecycleLocale, string>> | null
   evidenceAssets: StreetEvidenceAsset[]
-  sourceKind: 'baseline' | 'historical-notice' | 'notice'
+  sourceKind: LandsdStreetSourceKind
   recordKey: string
   streetId: string | null
 }
@@ -48,7 +57,7 @@ export type LandsdStreetMaterialisedStreet = {
   i18n: LandsdStreetLifecycleI18n[]
   id: string
   sourceKeys: Record<string, unknown>
-  status: 'active' | 'deleted'
+  status: StreetStatus
   version: number
 }
 
