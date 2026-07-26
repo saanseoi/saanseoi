@@ -263,7 +263,7 @@ export function createLocalImportProgressClient(
       return harbourClient.stageCompleted(releaseId, phase, stats, releaseCode)
     },
     async stageFailed(releaseId, phase, error, stats, releaseCode) {
-      progress.fail(`${phase}: ${error}`)
+      progress.fail()
       return harbourClient.stageFailed(releaseId, phase, error, stats, releaseCode)
     },
     async stageRunning(releaseId, phase, stats, releaseCode) {

@@ -117,7 +117,7 @@ export async function runRollbackReleaseCommand(
       },
     )
   } catch (error) {
-    progress.fail(error instanceof Error ? error.message : String(error))
+    progress.fail()
     throw error
   }
 
@@ -314,7 +314,7 @@ export async function runRollbackReleaseCommand(
           )
         }
       } catch (error) {
-        progress.fail(error instanceof Error ? error.message : String(error))
+        progress.fail()
         throw error
       }
 
@@ -469,7 +469,7 @@ async function replayRollbackSqlIntoRemoteCache(
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
 
-    progress.fail(reason)
+    progress.fail()
     await invalidateRemoteDbCache(
       targetName,
       dbContext.state.dbCacheDir,

@@ -159,7 +159,7 @@ export async function processLocalAddressSqlUpload(
       },
     )
   } catch (error) {
-    progress.fail(error instanceof Error ? error.message : String(error))
+    progress.fail()
     throw error
   }
 
@@ -545,7 +545,7 @@ export async function processLocalAddressSqlUpload(
       dbContext.historyDb,
     )
   } catch (error) {
-    progress.fail(error instanceof Error ? error.message : String(error))
+    progress.fail()
     await harbourClient.stageFailed(
       releaseId,
       'processDataset',

@@ -137,7 +137,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       },
     )
   } catch (error) {
-    progress.fail(error instanceof Error ? error.message : String(error))
+    progress.fail()
     throw error
   }
 
@@ -508,7 +508,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       publishResult,
     }
   } catch (error) {
-    progress.fail(error instanceof Error ? error.message : String(error))
+    progress.fail()
     const failureClient =
       controlClient ?? (createHarbourControlClient(target) as HarbourClient)
     await failureClient
