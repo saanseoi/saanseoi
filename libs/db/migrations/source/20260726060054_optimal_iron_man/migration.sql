@@ -1,0 +1,1 @@
+ALTER TABLE `hkgovLandsdStreets` ADD `isPartialNameChange` integer DEFAULT false NOT NULL;
