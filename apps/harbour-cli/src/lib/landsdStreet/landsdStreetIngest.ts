@@ -62,6 +62,13 @@ const DEFAULT_EGAZETTE_ARCHIVE_DIR = join(
   REPO_ROOT,
   'data/hkgov/gld/egazette/street-name',
 )
+const PADDLE_OCR_SCRIPT = join(
+  REPO_ROOT,
+  'apps/harbour-dataops/paddleocrTraditional.py',
+)
+const PADDLE_OCR_PYTHON =
+  process.env.SAANSEOI_PADDLEOCR_PYTHON ??
+  join(REPO_ROOT, 'apps/harbour-dataops/.venv/bin/python')
 
 export type LandsdStreetAssetLink = StreetEvidenceAsset
 
@@ -661,8 +668,7 @@ function buildNoticeRecord(
     supplementalEvidenceAssets?: LandsdStreetAssetLink[]
   },
 ): LandsdStreetRecord {
-  const noticeRef =
-    notice.noticeIdentity ?? governmentNoticeIdentity(notice.governmentNotices.en)
+  const noticeRef = governmentNoticeIdentity(notice.governmentNotices.en)
   const governmentNoticeAssets = [
     getEvidence(
       options.evidence,
@@ -1400,7 +1406,8 @@ async function extractChineseEgazetteNoticeText(input: {
   if (hasUsableChineseNoticeRows(native)) {
     return { nativeText: null, parsed: native }
   }
-  const text = await ocrPdfToTraditionalChineseText(input.pdfPath)
+  const ocr = await ocrPdfToTraditionalChineseText(input.pdfPath)
+  const text = ocr.text
   const parsed = parseLandsdGovernmentNoticePdfText(text, 'zh-Hant')
   return {
     nativeText: input.nativeText,
@@ -1409,9 +1416,11 @@ async function extractChineseEgazetteNoticeText(input: {
       diagnostics: {
         ...parsed.diagnostics,
         extraction: {
-          engine: 'tesseract',
-          language: 'chi_tra+eng',
+          engine: 'PaddleOCR',
+          engineVersion: ocr.engineVersion,
+          language: 'zh-Hant',
           method: 'ocr' as const,
+          model: ocr.model,
           nativeTextStatus: 'unparseable' as const,
           renderDpi: 300,
         },
@@ -1429,9 +1438,8 @@ function hasUsableChineseNoticeRows(
 }
 
 /**
- * Tesseract TSV preserves word coordinates. Rebuilding sparse lines from
- * those coordinates gives the existing fixed-column Gazette parser stable
- * column boundaries while retaining the raw OCR text for review.
+ * PaddleOCR word coordinates are rebuilt into sparse fixed-width lines so the
+ * existing Gazette parser keeps responsibility for table interpretation.
  */
 async function ocrPdfToTraditionalChineseText(pdfPath: string) {
   const temporaryDir = await mkdtemp(join(tmpdir(), 'saanseoi-egazette-ocr-'))
@@ -1445,45 +1453,73 @@ async function ocrPdfToTraditionalChineseText(pdfPath: string) {
       throw new Error(`OCR could not render any pages from ${pdfPath}.`)
     }
     const pages: string[] = []
+    let engineVersion: string | undefined
+    let model: string | undefined
     for (const image of images) {
-      const tsv = await runCommandStdout('tesseract', [
+      const output = await runCommandStdout(PADDLE_OCR_PYTHON, [
+        PADDLE_OCR_SCRIPT,
         join(temporaryDir, image),
-        'stdout',
-        '-l',
-        'chi_tra+eng',
-        '--psm',
-        '6',
-        'tsv',
       ])
-      pages.push(layoutOcrTsv(tsv))
+      const page = parsePaddleOcrOutput(output)
+      engineVersion ??= page.engineVersion
+      model ??= page.model
+      pages.push(layoutPaddleOcrWords(page.words))
     }
-    return pages.join('\n')
+    return { engineVersion, model, text: pages.join('\n') }
   } catch (error) {
     throw new Error(
-      `Traditional Chinese e-Gazette OCR failed for ${pdfPath}. Install Tesseract with the chi_tra language data, then rerun: ${error instanceof Error ? error.message : String(error)}`,
+      `Traditional Chinese e-Gazette OCR failed for ${pdfPath}. Ensure the UV runtime is installed with \`uv sync --project apps/harbour-dataops --python 3.12\` and that PaddleOCR can download or access its initial model weights (the underlying error identifies the missing runtime or model): ${error instanceof Error ? error.message : String(error)}`,
     )
   } finally {
     await rm(temporaryDir, { recursive: true, force: true })
   }
 }
 
-function layoutOcrTsv(value: string) {
-  type Word = { left: number; text: string }
-  const lines = new Map<string, Word[]>()
-  for (const [index, row] of value.split(/\r?\n/).entries()) {
-    if (index === 0 || !row.trim()) continue
-    const fields = row.split('\t')
-    if (fields[0] !== '5') continue
-    const left = Number(fields[6])
-    const top = Number(fields[7])
-    const text = fields[11]?.trim()
-    if (!Number.isFinite(left) || !Number.isFinite(top) || !text) continue
+function parsePaddleOcrOutput(value: string) {
+  type Word = { left: number; text: string; top: number }
+  let engineVersion: string | undefined
+  let model: string | undefined
+  const words: Word[] = []
+  for (const [index, line] of value.split(/\r?\n/).entries()) {
+    if (!line.trim()) continue
+    let item: Record<string, unknown>
+    try {
+      item = JSON.parse(line) as Record<string, unknown>
+    } catch {
+      throw new Error(`PaddleOCR emitted invalid JSON on line ${index + 1}.`)
+    }
+    if (item.type === 'metadata') {
+      if (typeof item.engineVersion === 'string') engineVersion = item.engineVersion
+      if (typeof item.model === 'string') model = item.model
+      continue
+    }
+    if (
+      item.type === 'word' &&
+      typeof item.left === 'number' &&
+      typeof item.top === 'number' &&
+      typeof item.text === 'string' &&
+      item.text.trim()
+    ) {
+      words.push({ left: item.left, text: item.text.trim(), top: item.top })
+    }
+  }
+  if (!engineVersion || !model || words.length === 0) {
+    throw new Error('PaddleOCR returned no recognized Traditional Chinese text.')
+  }
+  return { engineVersion, model, words }
+}
+
+function layoutPaddleOcrWords(
+  words: Array<{ left: number; text: string; top: number }>,
+) {
+  const lines = new Map<string, Array<{ left: number; text: string; top: number }>>()
+  for (const word of words) {
     // Separate table columns often become separate OCR blocks. Group by their
     // visual baseline instead, preserving the column positions below.
-    const key = [fields[1], Math.round(top / 16)].join('\0')
-    const words = lines.get(key) ?? []
-    words.push({ left, text })
-    lines.set(key, words)
+    const key = Math.round(word.top / 16).toString()
+    const line = lines.get(key) ?? []
+    line.push(word)
+    lines.set(key, line)
   }
   return [...lines.values()]
     .map(words => {

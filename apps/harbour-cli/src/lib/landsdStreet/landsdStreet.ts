@@ -97,8 +97,10 @@ export type LandsdGovernmentNoticePdfParse = {
   diagnostics: {
     extraction: {
       engine: string | null
+      engineVersion?: string
       language: string | null
       method: 'native-text' | 'ocr'
+      model?: string
       nativeTextStatus?: 'unparseable'
       renderDpi?: number
     }
@@ -279,7 +281,10 @@ export function pairLandsdStreetNoticePages(input: {
         },
         governmentNoticeType,
         id: `landsd-street-notice:${sha256(`${identity}\0${index}`)}`,
-        noticeIdentity: governmentNoticeIdentity(english.governmentNotice),
+        // Government Notice numbers recur in different years. The source URL
+        // (normalised across the bilingual publisher paths) scopes a PDF-row
+        // group; `governmentNoticeIdentity` remains the display reference.
+        noticeIdentity: stableGovernmentNoticeIdentity(english.governmentNotice),
         names: { en: english.name, zhHant: chinese.name },
         noticeOrdinal: index,
         planUrls: mergeEquivalentPlanUrls(english.planUrls, chinese.planUrls),
@@ -313,7 +318,8 @@ export function parseLandsdGovernmentNoticePdfText(
   text: string,
   locale: LandsdStreetPageLocale,
 ): LandsdGovernmentNoticePdfParse {
-  const lines = text.split(/\r?\n/)
+  const layoutText = normaliseExtractedPdfLayoutText(text)
+  const lines = layoutText.split(/\r?\n/)
   const gazetteDate = parseGovernmentNoticeGazetteDate(text, locale)
   const immediateEffect =
     /(?:with\s+immediate\s+effect|immediate\s+effect|即時生效|即时生效)/iu.test(text)
@@ -334,7 +340,7 @@ export function parseLandsdGovernmentNoticePdfText(
       ? /\b(?:Street\s+)?Names?\b.*\bNamed\s+in\b/i.test(line)
       : /(?:街道)?名稱.*?(?:刊載於|原載於|政府公告)/u.test(line),
   )
-  const globalPreviousReferences = extractPreviousNoticeReferences(text)
+  const globalPreviousReferences = extractPreviousNoticeReferences(layoutText)
 
   if (
     previousHeaderIndex < 0 &&
@@ -454,22 +460,56 @@ export function parseLandsdGovernmentNoticePdfText(
         /^\s*\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日\s*$/u.test(line))
     )
       continue
-    const description = isNamedInTable
+    const isThreeColumnTable = !isNamedInTable && previousColumn >= 0
+    const threeColumnRow: {
+      description: string
+      name: string
+      previous: string
+    } | null =
+      isThreeColumnTable &&
+      !(locale === 'zh-Hant' && !current && !hasChinesePreviousNoticeCell(line))
+        ? splitGovernmentNoticeThreeColumnRow(line, locale)
+        : null
+    const description: string = isNamedInTable
       ? ''
-      : cleanPdfCell(line.slice(descriptionColumn, nameColumn))
+      : (threeColumnRow?.description ??
+        cleanPdfCell(line.slice(descriptionColumn, nameColumn)))
     const district =
       isNamedInTable && districtColumn >= 0
         ? cleanPdfCell(line.slice(districtColumn, descriptionColumn))
         : ''
-    const name = isNamedInTable
+    const name: string = isNamedInTable
       ? cleanPdfCell(line.slice(nameColumn, previousColumn))
-      : cleanPdfCell(
-          line.slice(nameColumn, previousColumn >= 0 ? previousColumn : undefined),
-        )
-    const previous = previousColumn >= 0 ? cleanPdfCell(line.slice(previousColumn)) : ''
-    // A long English street name can wrap into the name column on a line whose
-    // description continues mid-sentence. It is still the same table row.
-    if (name && current && description && /^[a-z]/.test(description)) {
+      : threeColumnRow?.name ||
+        (isThreeColumnTable
+          ? !threeColumnRow && !current
+            ? cleanGovernmentNoticeNameCell(line, nameColumn, previousColumn, locale)
+            : threeColumnRow && (locale === 'en' || !current)
+              ? cleanGovernmentNoticeNameCell(line, nameColumn, previousColumn, locale)
+              : extractThreeColumnContinuationName(
+                  line,
+                  locale,
+                  nameColumn,
+                  previousColumn,
+                )
+          : cleanGovernmentNoticeNameCell(
+              line,
+              nameColumn,
+              previousColumn >= 0 ? previousColumn : undefined,
+              locale,
+            ))
+    const previous: string =
+      threeColumnRow?.previous ??
+      (previousColumn >= 0 ? cleanPdfCell(line.slice(previousColumn)) : '')
+    // A long name can wrap into the name column over several lines while its
+    // description continues. A new declaration row begins with a fresh road
+    // or street sentence; every other occupied name cell continues the row.
+    if (
+      name &&
+      current &&
+      description &&
+      !startsGovernmentNoticeDescriptionRow(description, locale)
+    ) {
       current.description = [current.description, description].filter(Boolean).join(' ')
       current.name = [current.name, name].join(' ')
       current.rawText = `${current.rawText}\n${line}`
@@ -499,20 +539,32 @@ export function parseLandsdGovernmentNoticePdfText(
         ordinal: entries.length,
         previousNoticeRefs:
           previousColumn >= 0
-            ? extractGovernmentNoticeReferences(previous, { allowBareChinese: true })
+            ? extractGovernmentNoticeReferences(previous, {
+                allowBareChinese: true,
+                allowOrphanChineseNumber: true,
+              })
             : globalPreviousReferences,
         rawText: line,
       }
       entries.push(current)
       continue
     }
-    if (current && description) {
-      current.description = [current.description, description].filter(Boolean).join(' ')
+    if (current && (description || previous)) {
+      if (description) {
+        current.description = [current.description, description]
+          .filter(Boolean)
+          .join(' ')
+      }
       current.rawText = `${current.rawText}\n${line}`
-      current.effectiveDate ??= parseNoticeEffectiveDate(description)
+      if (description) {
+        current.effectiveDate ??= parseNoticeEffectiveDate(description)
+      }
       const references =
         previousColumn >= 0
-          ? extractGovernmentNoticeReferences(previous, { allowBareChinese: true })
+          ? extractGovernmentNoticeReferences(previous, {
+              allowBareChinese: true,
+              allowOrphanChineseNumber: true,
+            })
           : globalPreviousReferences
       if (references.length > 0) {
         current.previousNoticeRefs = uniqueStrings([
@@ -629,7 +681,18 @@ export function pairLandsdGovernmentNoticePdfEntries(input: {
     }
     const usedEnglish = new Set<number>()
     const usedZhHant = new Set<number>()
-    for (const notice of ordered) {
+    // A corrigendum can correct one bilingual notice as a whole without
+    // repeating its individual street rows. Attach that single evidence-only
+    // entry to every source-page row so each remains subject to curation.
+    const isNoticeWideCorrigendum =
+      first.governmentNoticeType === 'corrigendum' &&
+      english.diagnostics.layout === 'unstructured-notice' &&
+      zhHant.diagnostics.layout === 'unstructured-notice' &&
+      english.entries.length === 1 &&
+      zhHant.entries.length === 1
+    const [noticeWideEnglishEntry] = english.entries
+    const [noticeWideZhHantEntry] = zhHant.entries
+    for (const [pdfOrdinal, notice] of ordered.entries()) {
       const englishCandidates = matchingPdfEntries(
         english.entries,
         notice.names.en,
@@ -640,20 +703,25 @@ export function pairLandsdGovernmentNoticePdfEntries(input: {
         notice.names.zhHant,
         usedZhHant,
       )
-      const selected =
-        selectBilingualPdfEntries({
-          english: englishCandidates,
-          noticeOrdinal: notice.noticeOrdinal,
-          zhHant: zhHantCandidates,
-        }) ??
-        selectStructurallyAlignedPdfEntries({
-          english: english.entries,
-          noticeCount: ordered.length,
-          noticeOrdinal: notice.noticeOrdinal,
-          usedEnglish,
-          usedZhHant,
-          zhHant: zhHant.entries,
-        })
+      // When both PDFs contain exactly one entry for every source-page row,
+      // their shared ordinal is the most direct evidence. Prefer it before a
+      // name match: an index page can order names differently from the PDF,
+      // and an early exact match would otherwise consume the wrong row.
+      const selected = isNoticeWideCorrigendum
+        ? { englishEntry: noticeWideEnglishEntry, zhHantEntry: noticeWideZhHantEntry }
+        : (selectStructurallyAlignedPdfEntries({
+            english: english.entries,
+            noticeCount: ordered.length,
+            noticeOrdinal: pdfOrdinal,
+            usedEnglish,
+            usedZhHant,
+            zhHant: zhHant.entries,
+          }) ??
+          selectBilingualPdfEntries({
+            english: englishCandidates,
+            noticeOrdinal: pdfOrdinal,
+            zhHant: zhHantCandidates,
+          }))
       if (!selected) {
         issues.push(
           `${notice.id}: page row could not be paired to one bilingual Government Notice PDF entry.`,
@@ -991,29 +1059,169 @@ function normalisePdfText(value: string) {
   return value.replaceAll('‐', '-').replaceAll('‑', '-')
 }
 
+/** Keep visual table columns separate when the PDF extractor emits controls. */
+function normaliseExtractedPdfLayoutText(value: string) {
+  return [...value]
+    .map(character => {
+      const codePoint = character.codePointAt(0)
+      return codePoint !== undefined &&
+        codePoint < 0x20 &&
+        !'\t\n\r'.includes(character)
+        ? ' '
+        : character
+    })
+    .join('')
+}
+
 function cleanPdfCell(value: string) {
   return value.replaceAll(/\s+/g, ' ').trim()
 }
 
+/**
+ * Three-column replacement notices frequently have a glyph-width mismatch
+ * between their header and data rows. `pdftotext -layout` therefore puts the
+ * visible Name/Previous G.N. cells several character positions away from the
+ * header. The predecessor cell has a recognisable right-hand anchor, so split
+ * from that anchor instead of trusting the header's string offset.
+ */
+function splitGovernmentNoticeThreeColumnRow(
+  line: string,
+  locale: LandsdStreetPageLocale,
+) {
+  const chineseInlinePrevious =
+    locale === 'zh-Hant'
+      ? lastMatch(line, /\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日\s*第\s*\d+\s*號/gu)
+      : null
+  const previousMatch =
+    locale === 'en'
+      ? (lastMatch(line, /\bG\.?\s*N\.?\s*\d+/gi) ?? lastMatch(line, /\bdated\b/gi))
+      : (chineseInlinePrevious ??
+        lastMatch(
+          line,
+          /(?:\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日|第\s*\d+\s*號)/gu,
+        ) ??
+        lastMatch(line, /\s{8,}\d+\s*號/gu))
+  if (!previousMatch || previousMatch.index === undefined) return null
+
+  const beforePrevious = line.slice(0, previousMatch.index)
+  const previous = cleanPdfCell(line.slice(previousMatch.index))
+  if (locale === 'en') {
+    const nameMatch = beforePrevious.match(
+      /(?:^|\s)([A-Z][A-Z0-9]*(?:[ -]+[A-Z0-9]+)*)\s*$/,
+    )
+    const name = nameMatch?.[1] ?? ''
+    if (!name) return null
+    const nameStart =
+      nameMatch?.index === undefined
+        ? -1
+        : nameMatch.index + (nameMatch[0].startsWith(' ') ? 1 : 0)
+    return {
+      description:
+        nameStart >= 0 ? cleanPdfCell(beforePrevious.slice(0, nameStart)) : '',
+      name,
+      previous,
+    }
+  }
+
+  if (/^(?:第\s*)?\d+\s*號/u.test(previous)) {
+    return { description: cleanPdfCell(beforePrevious), name: '', previous }
+  }
+  const nameMatch = beforePrevious.match(/(?:^|\s)([^\s]+)\s*$/u)
+  const name =
+    nameMatch?.[0].startsWith(' ') &&
+    /^[\p{Script=Han}]{2,12}$/u.test(nameMatch[1] ?? '')
+      ? (nameMatch[1] ?? '')
+      : ''
+  const nameStart =
+    nameMatch?.index === undefined
+      ? -1
+      : nameMatch.index + (nameMatch[0].startsWith(' ') ? 1 : 0)
+  return {
+    description: nameStart >= 0 ? cleanPdfCell(beforePrevious.slice(0, nameStart)) : '',
+    name,
+    previous,
+  }
+}
+
+function lastMatch(value: string, expression: RegExp) {
+  return [...value.matchAll(expression)].at(-1) ?? null
+}
+
+function hasChinesePreviousNoticeCell(line: string) {
+  return /\d{4}\s*年\s*\d{1,2}\s*月\s*\d{1,2}\s*日(?:\s*第\s*\d+\s*號)?\s*$/u.test(line)
+}
+
+function extractThreeColumnContinuationName(
+  line: string,
+  locale: LandsdStreetPageLocale,
+  nameColumn: number,
+  previousColumn: number,
+) {
+  // New Chinese rows always expose their preceding notice's date. A line
+  // without one is description or a reference continuation, never a wrapped
+  // Chinese street-name cell in the notices observed here.
+  if (locale === 'zh-Hant') return ''
+  const candidate = cleanGovernmentNoticeNameCell(
+    line,
+    nameColumn,
+    previousColumn,
+    locale,
+  )
+  if (/^[A-Z][A-Z -]*$/.test(candidate)) return candidate
+  return line.match(/(?:^|\s)([A-Z][A-Z -]*)\s*$/)?.[1] ?? ''
+}
+
+/**
+ * `pdftotext -layout` positions a table heading from its glyph bounding box,
+ * not its visible first letter. In some notices that starts one to a few
+ * characters right of the actual name column (for example `n TAN LAI
+ * STREET`). Recover the all-caps English name only when that displacement is
+ * observable; normal title-case fixtures and historic layouts retain their
+ * declared column position.
+ */
+function cleanGovernmentNoticeNameCell(
+  line: string,
+  nameColumn: number,
+  previousColumn: number | undefined,
+  locale: LandsdStreetPageLocale,
+) {
+  const direct = cleanPdfCell(line.slice(nameColumn, previousColumn))
+  if (locale !== 'en') return direct
+
+  const shifted = line.slice(Math.max(0, nameColumn - 12), previousColumn)
+  const recovered = shifted.match(/(?:^|\s)([A-Z][A-Z0-9]*(?:[ -]+[A-Z0-9]+)*)\s*$/)
+  const candidate = recovered?.[1]
+  const prefix = shifted.slice(0, recovered?.index ?? 0)
+  return candidate &&
+    (/^[a-z]/.test(direct) ||
+      (candidate.endsWith(direct) &&
+        candidate.length > direct.length &&
+        /[a-z]/.test(prefix)))
+    ? candidate
+    : direct
+}
+
 function extractGovernmentNoticeReferences(
   value: string,
-  options: { allowBareChinese?: boolean } = {},
+  options: { allowBareChinese?: boolean; allowOrphanChineseNumber?: boolean } = {},
 ) {
   const matches = value.matchAll(
     new RegExp(
-      String.raw`(?:G\.?\s*N\.?|Government\s+Notice(?:\s+No\.?)?)\s*(\d{2,})(?:\s*(?:of|\/|,|-)\s*\d{4})?|第\s*(\d{2,})\s*號\s*(?:政府)?公告${options.allowBareChinese ? String.raw`|第\s*(\d{2,})\s*號` : ''}`,
+      String.raw`(?:G\.?\s*N\.?|Government\s+Notice(?:\s+No\.?)?)\s*(\d{2,})(?:\s*(?:of|\/|,|-)\s*\d{4})?|第\s*(\d{2,})\s*號\s*(?:政府)?公告${options.allowBareChinese ? String.raw`|第\s*(\d{2,})\s*號` : ''}${options.allowOrphanChineseNumber ? String.raw`|(\d{2,})\s*號` : ''}`,
       'gi',
     ),
   )
   return uniqueStrings(
-    [...matches].map(match => `gn${match[1] ?? match[2] ?? match[3] ?? ''}`),
+    [...matches].map(
+      match => `gn${match[1] ?? match[2] ?? match[3] ?? match[4] ?? ''}`,
+    ),
   )
 }
 
 function isGovernmentNoticePostamble(line: string, locale: LandsdStreetPageLocale) {
   return locale === 'en'
     ? /^\s*A copy of (?:Plan No\.|this notice)/i.test(line)
-    : /^\s*查閱第?.*(?:圖則|本公告)/u.test(line)
+    : /^\s*查\s*閱\s*第?.*(?:圖\s*則|本\s*公\s*告)/u.test(line)
 }
 
 function isGovernmentNoticeTableHeader(line: string, locale: LandsdStreetPageLocale) {
@@ -1030,13 +1238,33 @@ function isGovernmentNoticeSignatureLine(line: string, locale: LandsdStreetPageL
     : /地政總署署長/u.test(line)
 }
 
+function startsGovernmentNoticeDescriptionRow(
+  description: string,
+  locale: LandsdStreetPageLocale,
+) {
+  return locale === 'en'
+    ? /^(?:The|This|A)\s+(?:street|road|interchange)\b/i.test(description)
+    : /^(?:這|此|該)(?:街道|道路|交匯處)/u.test(description)
+}
+
 function extractPreviousNoticeReferences(value: string) {
   const lines = value.split(/\r?\n/)
+  // A Chinese notice heading itself is often written merely as `第 N 號公告`,
+  // whereas predecessor citations can also omit `政府` when the same sentence
+  // establishes that they are announcements. Remove the heading explicitly,
+  // then accept that concise citation form only on announcement-bearing lines.
   const headingReference = lines
-    .map(line => extractGovernmentNoticeReferences(line)[0])
+    .slice(0, 8)
+    .map(line => extractGovernmentNoticeReferences(line, { allowBareChinese: true })[0])
     .find((reference): reference is string => Boolean(reference))
-  return extractGovernmentNoticeReferences(value).filter(
-    reference => reference !== headingReference,
+  return uniqueStrings(
+    lines
+      .flatMap(line =>
+        extractGovernmentNoticeReferences(line, {
+          allowBareChinese: /公告/u.test(line),
+        }),
+      )
+      .filter(reference => reference !== headingReference),
   )
 }
 
