@@ -32,18 +32,18 @@ the primary PDF evidence.
 
 ## Parsing and application
 
-`saanseoi ingest:hkgov-landsd-streets --target local|preview|production` pairs English
-and Traditional Chinese page rows by notice identity. Its PDF parser understands
-three-column `Description`/`Name`/`Previous G.N.`, two-column `Description`/`Name`, and
-deletion `Name`/`Named in` layouts. Lifecycle curation parses the linked bilingual
-change and corrigendum PDFs; e-Gazette source PDFs are parsed before any assets are
-registered. A Chinese e-Gazette PDF without a text layer is OCRed using Tesseract
-(`chi_tra+eng`, 300 DPI), and the event records that extraction method separately from
-native publisher text. Unsupported historical layouts fail with their exact local paths
-and parse facts. Those candidates are evidence only: neither a parser fallback nor
-page-row order creates a lifecycle link. Missing PDF evidence blocks publication. A
-readable PDF whose layout is not recognised is retained as evidence and presented for a
-curator decision instead.
+`bun run dataops -- hkgov-landsd-streets:backfill --target local|preview|production`
+pairs English and Traditional Chinese page rows by notice identity for the historical
+backfill. Its PDF parser understands three-column `Description`/`Name`/`Previous G.N.`,
+two-column `Description`/`Name`, and deletion `Name`/`Named in` layouts. Lifecycle
+curation parses the linked bilingual change and corrigendum PDFs; e-Gazette source PDFs
+are parsed before any assets are registered. A Chinese e-Gazette PDF without a text
+layer is OCRed using PaddleOCR (`chinese_cht`, 300 DPI), and the event records that
+extraction method, engine version and model separately from native publisher text.
+Unsupported historical layouts fail with their exact local paths and parse facts. Those
+candidates are evidence only: neither a parser fallback nor page-row order creates a
+lifecycle link. Missing PDF evidence blocks publication. A readable PDF whose layout is
+not recognised is retained as evidence and presented for a curator decision instead.
 
 The command reports its active stage, source-PDF and Government Notice extraction
 counters, plan-preview rendering, release publication, and cursor update. This makes

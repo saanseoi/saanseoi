@@ -8,7 +8,7 @@ import { and, eq } from 'drizzle-orm'
 import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
 import { historySchema, metaSchema } from '@repo/db'
 
-import { formatField } from '../display.ts'
+import { formatField } from '../../../harbour-cli/src/lib/display.ts'
 import {
   emptyHkgovAlsIdentityDecisions,
   emptyHkgovAlsIdentityHistory,
@@ -18,11 +18,11 @@ import {
   type HkgovAlsIdentityDecisions,
   type HkgovAlsIdentityDriftCandidate,
   type HkgovAlsIdentityHistory,
-} from '../hkgovAlsDrift.ts'
-import { prepareHkgovAlsAddressParquet } from '../hkgovAls.ts'
-import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
-import { runUploadCommand } from './upload.ts'
-import type { ParsedArgs, UploadTarget } from '../options.ts'
+} from '../../../harbour-cli/src/lib/hkgovAlsDrift.ts'
+import { prepareHkgovAlsAddressParquet } from '../../../harbour-cli/src/lib/hkgovAls.ts'
+import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/addressSql/localDbCache.ts'
+import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import type { ParsedArgs, UploadTarget } from '../../../harbour-cli/src/lib/options.ts'
 
 const HKGOV_ALS_CATALOGUE_URL = 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als'
 const DEFAULT_HISTORY_FILE = '.local/hkgov-dpo/als-identity-history.json'
@@ -45,7 +45,7 @@ export async function runHkgovAlsPrepCommand(
   if (!sourceDir || !sourceVersion || !cohortKey) {
     printUsage()
     throw new Error(
-      'Invalid arguments for `prep-hkgov-dpo`. Pass <source-dir> and --cohort-key; include --source-version only when it cannot be inferred from the path.',
+      'Invalid arguments for `hkgov-dpo:prepare`. Pass <source-dir> and --cohort-key; include --source-version only when it cannot be inferred from the path.',
     )
   }
   const outputFile = await createHkgovAlsTempOutputFile(sourceVersion)
@@ -118,7 +118,7 @@ export async function runHkgovAlsLocalIngestCommand(
   printUsage: () => void,
 ) {
   if (target.remote) {
-    throw new Error('`ingest-hkgov-dpo-local` only supports --target local.')
+    throw new Error('`hkgov-dpo:backfill-local` only supports --target local.')
   }
   const sourceRoot = args.positionals[0]
     ? resolveInvocationPath(args.positionals[0])
@@ -127,7 +127,7 @@ export async function runHkgovAlsLocalIngestCommand(
   if (!sourceRoot || !cohortKey) {
     printUsage()
     throw new Error(
-      'Pass <ALS-source-root> and --cohort-key (used to choose the default start year) to `ingest-hkgov-dpo-local`.',
+      'Pass <ALS-source-root> and --cohort-key (used to choose the default start year) to `hkgov-dpo:backfill-local`.',
     )
   }
   const historyFile = resolveInvocationPath(

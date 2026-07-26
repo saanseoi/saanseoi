@@ -4,17 +4,17 @@ import { join, resolve } from 'node:path'
 import {
   LANDSD_STREET_DATASET_CODE,
   ingestLandsdStreetSource,
-} from '../landsdStreet/landsdStreetIngest.ts'
-import { publishLandsdStreetReleasePayloads } from '../landsdStreet/landsdStreetPublish.ts'
+} from '../../../harbour-cli/src/lib/landsdStreet/landsdStreetIngest.ts'
+import { publishLandsdStreetReleasePayloads } from '../../../harbour-cli/src/lib/landsdStreet/landsdStreetPublish.ts'
 import {
   loadDatasetFixtures,
   recordUpdateState,
   readUpdateState,
   writeUpdateState,
-} from '../sourceUpdates.ts'
-import type { ParsedArgs, UploadTarget } from '../options.ts'
+} from '../../../harbour-cli/src/lib/sourceUpdates.ts'
+import type { ParsedArgs, UploadTarget } from '../../../harbour-cli/src/lib/options.ts'
 
-const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
+const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 
 export async function runLandsdStreetIngestCommand(
   args: ParsedArgs,
@@ -23,7 +23,9 @@ export async function runLandsdStreetIngestCommand(
 ) {
   if (args.positionals.length > 0) {
     printUsage()
-    throw new Error('ingest:hkgov-landsd-streets does not accept positional arguments.')
+    throw new Error(
+      'hkgov-landsd-streets:backfill does not accept positional arguments.',
+    )
   }
   const requestedNoticeIds = readCsvOption(args.options['notice-id'])
   const outputDir =

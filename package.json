@@ -17,6 +17,7 @@
     "update": "bun update --interactive --recursive",
     "outdated": "bun outdated --recursive",
     "upload": "./bin/saanseoi upload",
+    "dataops": "SAANSEOI_INVOCATION_CWD=\"$PWD\" bun run --filter harbour-dataops dataops --",
     "datasets:update": "./bin/saanseoi update",
     "upload:preview": "./bin/saanseoi upload --target preview",
     "upload:production": "./bin/saanseoi upload --target production",

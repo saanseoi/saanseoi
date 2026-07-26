@@ -123,8 +123,8 @@ are disabled because the local upload inspector cannot read the GeoParquet stati
 metadata emitted by the current writer; this does not alter the geometry or records.
 
 ```sh
-saanseoi backfill:hkgov-pland-pu --target preview
-saanseoi backfill:hkgov-pland-new-town --target preview
+bun run dataops -- hkgov-pland:backfill --kind pu --target preview
+bun run dataops -- hkgov-pland:backfill --kind new-town --target preview
 ```
 
 The commands accept no data-path, source-version or confirmation options; use `local`,

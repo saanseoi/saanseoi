@@ -31,7 +31,8 @@ git-ignored path:
 The manifest records the publication date, issue and volume, Government Notice subject,
 official URLs, local paths, byte lengths and SHA-256 hashes. The current retrieval
 contains 594 notice records and 1,188 bilingual PDFs, covering 19 May 2000 through 3
-July 2026. `saanseoi ingest:hkgov-landsd-streets --target local|preview|production`
+July 2026.
+`bun run dataops -- hkgov-landsd-streets:backfill --target local|preview|production`
 reads the manifest and parses every bilingual PDF before registering archive assets.
 Parsed notices before 2016 are immutable source events in the LandsD street lifecycle
 ledger, while notices also present in the post-2015 LandsD HTML forward feed contribute
@@ -42,9 +43,25 @@ curation workflow; `Previous G.N.` never resolves a street ID.
 The command uses English text as the authoritative source for Government Notice
 identity, publication/effective dates, notice kind and `Previous G.N.` values. If an old
 Traditional Chinese PDF has no usable text layer, it renders the original PDF at 300 DPI
-and runs Tesseract with `chi_tra+eng`. The resulting Chinese name/description text is
-stored with parser provenance `method: "ocr"`, engine, language, DPI and the retained
-unparseable native extraction. It is never represented as native publisher text.
+and runs PaddleOCR with its `chinese_cht` model. The resulting Chinese name/description
+text is stored with parser provenance `method: "ocr"`, engine, engine version, model,
+language, DPI and the retained unparseable native extraction. It is never represented as
+native publisher text.
+
+PaddlePaddle does not support Python 3.14. The OCR runtime is a UV-managed Python 3.12
+subproject at `apps/harbour-dataops`; create or update it with:
+
+```bash
+uv python install 3.12
+uv sync --project apps/harbour-dataops --python 3.12
+```
+
+The ingest automatically uses `apps/harbour-dataops/.venv/bin/python`. Set
+`SAANSEOI_PADDLEOCR_PYTHON` only to override that UV environment. Model weights are
+managed by PaddleOCR and are downloaded on its first use; network access to its model
+host (or a pre-seeded PaddleOCR model cache) is therefore required. This is an explicit
+host dependency, like the existing Poppler PDF tools, rather than a hidden network
+fallback.
 
 The command fails before publication when the English PDF cannot yield its authoritative
 facts, or OCR cannot yield matching non-empty Chinese rows. Its error includes the

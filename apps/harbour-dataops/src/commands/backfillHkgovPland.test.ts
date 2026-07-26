@@ -1,6 +1,8 @@
 import { describe, expect, mock, test } from 'bun:test'
+import { resolve } from 'node:path'
 
 const preparedTypes: Array<{ sourceVersion: string; type: string }> = []
+const preparedInputs: string[] = []
 const uploadedTypes: Array<{
   skipSnapshotCleanup: boolean
   sourceVersion: string
@@ -9,7 +11,8 @@ const uploadedTypes: Array<{
 let divisionPublishComplete = false
 
 const prepareHkgovPlandTpuParquetMock = mock(
-  async (options: { sourceVersion: string; type: string }) => {
+  async (options: { inputFile: string; sourceVersion: string; type: string }) => {
+    preparedInputs.push(options.inputFile)
     preparedTypes.push({ sourceVersion: options.sourceVersion, type: options.type })
   },
 )
@@ -39,15 +42,15 @@ const runUploadCommandMock = mock(
   },
 )
 
-mock.module('../hkgovPland.ts', () => ({
+mock.module('../../../harbour-cli/src/lib/hkgovPland.ts', () => ({
   prepareHkgovPlandTpuParquet: prepareHkgovPlandTpuParquetMock,
 }))
 
-mock.module('../hkgovPlandNewTown.ts', () => ({
+mock.module('../../../harbour-cli/src/lib/hkgovPlandNewTown.ts', () => ({
   prepareHkgovPlandNewTownParquet: mock(async () => undefined),
 }))
 
-mock.module('./upload.ts', () => ({
+mock.module('../../../harbour-cli/src/lib/commands/upload.ts', () => ({
   runUploadCommand: runUploadCommandMock,
 }))
 
@@ -57,7 +60,7 @@ describe('Planning Department backfills', () => {
   test('publishes each division before attaching its division area', async () => {
     await runHkgovPlandBackfillCommand(
       {
-        command: 'backfill:hkgov-pland-pu',
+        command: 'hkgov-pland:backfill',
         positionals: [],
         options: { target: 'preview' },
       },
@@ -67,6 +70,12 @@ describe('Planning Department backfills', () => {
     )
 
     expect(preparedTypes).toHaveLength(10)
+    expect(preparedInputs[0]).toBe(
+      resolve(
+        import.meta.dir,
+        '../../../../data/hkgov/pland/2001/hkgov-pland-tpu-2001.geojson',
+      ),
+    )
     expect(uploadedTypes).toEqual([
       { skipSnapshotCleanup: true, sourceVersion: '2001', type: 'division' },
       { skipSnapshotCleanup: false, sourceVersion: '2001', type: 'divisionArea' },

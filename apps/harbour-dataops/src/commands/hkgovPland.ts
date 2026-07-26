@@ -4,10 +4,10 @@ import { join, resolve } from 'node:path'
 
 import { note, outro } from '@clack/prompts'
 
-import { formatField } from '../display.ts'
-import { prepareHkgovPlandTpuParquet } from '../hkgovPland.ts'
-import { prepareHkgovPlandNewTownParquet } from '../hkgovPlandNewTown.ts'
-import type { ParsedArgs } from '../options.ts'
+import { formatField } from '../../../harbour-cli/src/lib/display.ts'
+import { prepareHkgovPlandTpuParquet } from '../../../harbour-cli/src/lib/hkgovPland.ts'
+import { prepareHkgovPlandNewTownParquet } from '../../../harbour-cli/src/lib/hkgovPlandNewTown.ts'
+import type { ParsedArgs } from '../../../harbour-cli/src/lib/options.ts'
 
 export async function runHkgovPlandPrepCommand(
   args: ParsedArgs,
@@ -23,7 +23,7 @@ export async function runHkgovPlandPrepCommand(
   if (!inputFile || !sourceVersion) {
     printUsage()
     throw new Error(
-      'Invalid arguments for `prep-hkgov-pland`. Pass a TPU GeoJSON file and --source-version when it cannot be inferred from the filename.',
+      'Invalid arguments for `hkgov-pland:prepare`. Pass a TPU GeoJSON file and --source-version when it cannot be inferred from the filename.',
     )
   }
 

@@ -1,0 +1,81 @@
+import { cancel } from '@clack/prompts'
+import { resolve } from 'node:path'
+
+import {
+  runHkgovAlsLocalIngestCommand,
+  runHkgovAlsPrepCommand,
+} from './commands/hkgovAls.ts'
+import { runHkgovPlandBackfillCommand } from './commands/backfillHkgovPland.ts'
+import { runHkgovPlandPrepCommand } from './commands/hkgovPland.ts'
+import { runLandsdStreetIngestCommand } from './commands/ingestLandsdStreets.ts'
+import {
+  parseArgs,
+  resolveUploadTarget,
+  type ParsedArgs,
+} from '../../harbour-cli/src/lib/options.ts'
+
+function printUsage() {
+  console.log(`  Usage:
+  bun run dataops -- hkgov-dpo:prepare <source-dir> [--target local|preview|production] --cohort-key DIVISION_COHORT [--source-version YYYY-MM-DD.NN] [--identity-history FILE] [--identity-decisions FILE] [--identity-drift-report FILE] [--db /path/to/local.sqlite]
+  bun run dataops -- hkgov-dpo:backfill-local <ALS-source-root> --target local --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes]
+  bun run dataops -- hkgov-pland:prepare <GeoJSON> [--kind tpu|new-town] [--source-version YYYY] [--out-dir PATH]
+  bun run dataops -- hkgov-pland:backfill --kind pu|new-town --target local|preview|production [--continue]
+  bun run dataops -- hkgov-landsd-streets:backfill --target local|preview|production [--notice-id ID[,ID...]] [--out-dir PATH]
+`)
+}
+
+function withoutOption(args: ParsedArgs, option: string): ParsedArgs {
+  const { [option]: _ignored, ...options } = args.options
+  return { ...args, options }
+}
+
+async function main() {
+  const invocationCwd =
+    process.env.SAANSEOI_INVOCATION_CWD ??
+    process.env.INIT_CWD ??
+    resolve(import.meta.dir, '../../..')
+  process.chdir(invocationCwd)
+  const args = parseArgs(process.argv)
+  const target = resolveUploadTarget(args)
+
+  if (!args.command || args.command === '--help' || args.options.help) {
+    printUsage()
+    return
+  }
+
+  switch (args.command) {
+    case 'hkgov-dpo:prepare':
+      await runHkgovAlsPrepCommand(args, target, printUsage)
+      return
+    case 'hkgov-dpo:backfill-local':
+      await runHkgovAlsLocalIngestCommand(args, target, printUsage)
+      return
+    case 'hkgov-pland:prepare':
+      await runHkgovPlandPrepCommand(args, printUsage)
+      return
+    case 'hkgov-pland:backfill': {
+      const kind = args.options.kind
+      if (kind !== 'pu' && kind !== 'new-town') {
+        printUsage()
+        throw new Error('hkgov-pland:backfill requires --kind pu or --kind new-town.')
+      }
+      await runHkgovPlandBackfillCommand(
+        withoutOption(args, 'kind'),
+        target,
+        kind,
+        printUsage,
+      )
+      return
+    }
+    case 'hkgov-landsd-streets:backfill':
+      await runLandsdStreetIngestCommand(args, target, printUsage)
+      return
+    default:
+      throw new Error(`Unsupported Harbour DataOps command: ${args.command}`)
+  }
+}
+
+main().catch(error => {
+  cancel(error instanceof Error ? error.message : String(error))
+  process.exit(1)
+})
