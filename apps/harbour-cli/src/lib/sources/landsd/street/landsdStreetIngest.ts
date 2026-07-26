@@ -519,6 +519,28 @@ export async function ingestLandsdStreetSource(options: {
     noticeEvidenceByKey.set([item.role, item.link.url, item.locale].join('\0'), item)
   }
   const uniqueNoticeEvidence = [...noticeEvidenceByKey.values()]
+  let recoveredPublishedAssetLinks = false
+  for (const item of uniqueNoticeEvidence) {
+    const key = sourceAssetCacheKey({
+      role: item.role,
+      sourcePageLocale: item.locale,
+      url: item.link.url,
+    })
+    if (persistedPublishedAssets.has(key)) continue
+    const cachedAsset = persistedAssets.get(key)
+    if (!cachedAsset) continue
+    const link = await buildRegisteredLocalSourceAssetLink(
+      cachedAsset,
+      item.link.label,
+      localAssetIds,
+      options.target,
+    )
+    if (!link) continue
+    persistedPublishedAssets.set(key, link)
+    recoveredPublishedAssetLinks = true
+  }
+  if (recoveredPublishedAssetLinks)
+    await writePersistedPublishedSourceAssets(outputDir, persistedPublishedAssets)
   const cachedNoticeEvidenceCount = uniqueNoticeEvidence.filter(item =>
     persistedAssets.has(
       sourceAssetCacheKey({
@@ -1982,6 +2004,56 @@ async function loadPersistedPublishedSourceAssets(outputDir: string) {
   return new Map(Object.entries((value as PersistedPublishedSourceAssets).assets))
 }
 
+async function loadLocalSourceAssetIds(target: UploadTarget) {
+  if (target.remote) return new Map<string, string>()
+  const rows = await withLocalMetaDb(db =>
+    db
+      .select({ assetKey: metaAssets.assetKey, id: metaAssets.id })
+      .from(metaAssets)
+      .all(),
+  )
+  return new Map(rows.map(row => [row.assetKey, row.id]))
+}
+
+async function buildRegisteredLocalSourceAssetLink(
+  asset: PreparedSourceAsset,
+  label: string | null | undefined,
+  assetIds: ReadonlyMap<string, string>,
+  target: UploadTarget,
+) {
+  if (target.remote) return null
+  const assetId = assetIds.get(asset.objectKey)
+  const manifestAssetId = assetIds.get(asset.manifestObjectKey)
+  if (!assetId || !manifestAssetId) return null
+  const role = asset.manifest.artefact.role
+  if (role === 'manifest')
+    throw new Error('A source artefact cannot have the manifest role.')
+  return {
+    assetId,
+    assetUrl: buildManagedAssetUrl(target, assetId),
+    byteLength: asset.manifest.artefact.byteLength,
+    contentHash: asset.manifest.artefact.sha256,
+    label: label ?? null,
+    mediaType: asset.manifest.artefact.mediaType,
+    originalUrl: asset.manifest.original.url,
+    retrievedAt: asset.manifest.downloadedAt,
+    role,
+    objectKey: asset.objectKey,
+    ...(asset.manifest.provenance.sourcePageLocale
+      ? { sourcePageLocale: asset.manifest.provenance.sourcePageLocale }
+      : {}),
+    ...(asset.manifest.provenance.sourcePageUrl
+      ? { sourcePageUrl: asset.manifest.provenance.sourcePageUrl }
+      : {}),
+    manifest: {
+      assetId: manifestAssetId,
+      assetUrl: buildManagedAssetUrl(target, manifestAssetId),
+      contentHash: hashBytes(await readFile(asset.manifestFilePath)),
+      objectKey: asset.manifestObjectKey,
+    },
+  } satisfies LandsdStreetAssetLink
+}
+
 async function persistPublishedSourceAssetLink(
   outputDir: string,
   assets: Map<string, LandsdStreetAssetLink>,
@@ -1989,6 +2061,13 @@ async function persistPublishedSourceAssetLink(
   link: LandsdStreetAssetLink,
 ) {
   assets.set(key, link)
+  await writePersistedPublishedSourceAssets(outputDir, assets)
+}
+
+async function writePersistedPublishedSourceAssets(
+  outputDir: string,
+  assets: ReadonlyMap<string, LandsdStreetAssetLink>,
+) {
   const path = join(outputDir, 'published-assets.json')
   const temporaryPath = `${path}.${crypto.randomUUID()}.tmp`
   const value: PersistedPublishedSourceAssets = {
