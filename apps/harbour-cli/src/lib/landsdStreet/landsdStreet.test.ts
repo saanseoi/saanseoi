@@ -191,6 +191,64 @@ describe('LandsD bilingual street notices', () => {
     expect(parsed.entries).toMatchObject([{ name: 'PENG CHAU HO KING STREET' }])
   })
 
+  test('keeps a four-line English street name in its original table row', () => {
+    const parsed = parseLandsdGovernmentNoticePdfText(
+      [
+        `${'Description'.padEnd(64)}Name`,
+        `${'The road starts at the boundary crossing.'.padEnd(64)}HONG KONG-`,
+        `${'It continues across the bridge.'.padEnd(64)}ZHUHAI-MACAO`,
+        `${'It ends at the boundary.'.padEnd(64)}BRIDGE HONG`,
+        `${'Its route is shown on the plan.'.padEnd(64)}KONG LINK ROAD`,
+      ].join('\n'),
+      'en',
+    )
+
+    expect(parsed.entries).toMatchObject([
+      { name: 'HONG KONG- ZHUHAI-MACAO BRIDGE HONG KONG LINK ROAD' },
+    ])
+  })
+
+  test('reads concise Chinese predecessor notices from an announcement sentence', () => {
+    const parsed = parseLandsdGovernmentNoticePdfText(
+      [
+        '第 4003 號公告',
+        '1927 年 4 月 29 日第 250 號及 1930 年 5 月 2 日第 262 號政府公告載述的說明由以下說明取代。',
+        `${'說明'.padEnd(48)}名稱`,
+        `${'新的道路說明。'.padEnd(48)}大埔道`,
+      ].join('\n'),
+      'zh-Hant',
+    )
+
+    expect(parsed.entries[0]?.previousNoticeRefs).toEqual(['gn250', 'gn262'])
+  })
+
+  test('splits replacement-table cells from their previous-notice anchors', () => {
+    const english = parseLandsdGovernmentNoticePdfText(
+      [
+        `${'Description'.padEnd(54)}${'Name'.padEnd(24)}Previous G.N.`,
+        `${'The road starts at Waterloo Road.'.padEnd(48)}PRINCESS              G.N. 769`,
+        `${'It ends at Chatham Road South.'.padEnd(48)}MARGARET              dated 18 March 1966`,
+        `${''.padEnd(48)}ROAD`,
+      ].join('\n'),
+      'en',
+    )
+    const zhHant = parseLandsdGovernmentNoticePdfText(
+      [
+        `${'說明'.padEnd(40)}${'名稱'.padEnd(18)}前政府公告`,
+        '這道路長約 2 310 米，以其與窩打老道的交界處為起點 公主道                       1966 年 3 月 18 日',
+        '至其與漆咸道南的交界處終結。                                      第 769 號',
+      ].join('\n'),
+      'zh-Hant',
+    )
+
+    expect(english.entries).toMatchObject([
+      { name: 'PRINCESS MARGARET ROAD', previousNoticeRefs: ['gn769'] },
+    ])
+    expect(zhHant.entries).toMatchObject([
+      { name: '公主道', previousNoticeRefs: ['gn769'] },
+    ])
+  })
+
   test('retains unstructured corrigenda for review by source-page ordinal', () => {
     const notices = pairLandsdStreetNoticePages({
       en: parseLandsdStreetSourcePage(englishPage, 'en'),
