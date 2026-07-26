@@ -85,6 +85,24 @@ describe('api field fixtures', () => {
         sourceDatasetCode: 'ds-hk-hkgov-pland-division-new-town',
         sourceSchemaVersion: '1.0',
       },
+      {
+        domainCode: 'hkgov-pland-new-town',
+        snapshotVersion: 'ss-hk-division-hkgov-pland-new-town-2011',
+        sourceDatasetCode: 'ds-hk-hkgov-pland-division-new-town',
+        sourceSchemaVersion: '1.0',
+      },
+      {
+        domainCode: 'hkgov-pland-new-town',
+        snapshotVersion: 'ss-hk-division-hkgov-pland-new-town-2016',
+        sourceDatasetCode: 'ds-hk-hkgov-pland-division-new-town',
+        sourceSchemaVersion: '1.0',
+      },
+      {
+        domainCode: 'hkgov-pland-new-town',
+        snapshotVersion: 'ss-hk-division-hkgov-pland-new-town-2021',
+        sourceDatasetCode: 'ds-hk-hkgov-pland-division-new-town',
+        sourceSchemaVersion: '1.0',
+      },
     ]
 
     for (const fixture of fixtures) {

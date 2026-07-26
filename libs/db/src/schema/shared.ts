@@ -24,6 +24,7 @@ export type StreetStatus = (typeof streetStatuses)[number]
 export const streetChangelogKinds = [
   'gazette',
   'description_change',
+  'corrigendum',
   'notice_of_name_change',
   'name_change',
   'deleted',
