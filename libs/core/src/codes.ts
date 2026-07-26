@@ -78,11 +78,6 @@ export function buildDatasetCode(
   resourceType: ResourceType,
 ) {
   const productCode = productCodeForSource(source, resourceType)
-  const datasetResourceType =
-    (source === 'hkgov-pland-pu' || source === 'hkgov-pland-new-town') &&
-    resourceType === 'divisionArea'
-      ? 'division'
-      : resourceType
   const regionSlug = assertLowerKebabCodeSlug(regionCode, 'region')
   const publisherSlug = assertLowerKebabCodeSlug(
     publisherCodeForSource(source),
@@ -93,7 +88,7 @@ export function buildDatasetCode(
     'ds',
     regionSlug,
     publisherSlug,
-    resourceTypeCodeSlug(datasetResourceType),
+    resourceTypeCodeSlug(resourceType),
     productCode,
   ]
     .filter((segment): segment is string => Boolean(segment))

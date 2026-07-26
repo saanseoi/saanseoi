@@ -26,7 +26,7 @@ describe('registry code construction', () => {
       'ds-hk-hkgov-pland-division-pu',
     )
     expect(buildDatasetCode('hk', 'hkgov-pland-new-town', 'divisionArea')).toBe(
-      'ds-hk-hkgov-pland-division-new-town',
+      'ds-hk-hkgov-pland-division-area-new-town',
     )
   })
 
