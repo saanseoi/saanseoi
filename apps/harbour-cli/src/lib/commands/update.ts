@@ -44,7 +44,7 @@ export async function runUpdateCommand(
   const datasets = await loadDatasetFixtures(requested)
   if (datasets.length === 0) throw new Error('No matching datasets found.')
 
-  const selectedFamily = requested ? 'all' : await askApiFamily(datasets)
+  const selectedFamily = await resolveApiFamilySelection(args, datasets, requested)
   const selectedDatasets =
     selectedFamily === 'all'
       ? datasets
@@ -172,6 +172,32 @@ export async function runUpdateCommand(
   outro(`Checked all ${family} datasets for new releases`)
 }
 
+export async function resolveApiFamilySelection(
+  args: ParsedArgs,
+  datasets: readonly DatasetFixture[],
+  requested?: Set<string>,
+) {
+  const selected = args.options['api-family']
+  if (requested && selected !== undefined) {
+    throw new Error('Use either --dataset or --api-family to select updates, not both.')
+  }
+  if (requested) return 'all'
+
+  if (selected === undefined) return askApiFamily(datasets)
+  if (typeof selected !== 'string') {
+    throw new Error('--api-family requires a value.')
+  }
+
+  const families = new Set(datasets.map(dataset => dataset.theme))
+  if (selected !== 'all' && !families.has(selected)) {
+    throw new Error(
+      `Unsupported API family: ${selected}. Use all or ${[...families].sort().join(', ')}.`,
+    )
+  }
+
+  return selected
+}
+
 function updateStatusLabel(update: DatasetUpdate) {
   if (update.status === 'error') return 'ERROR'
   if (update.status === 'manual') return 'MANUAL'
@@ -180,7 +206,7 @@ function updateStatusLabel(update: DatasetUpdate) {
   return update.status === 'new' ? 'NEW' : 'no updates'
 }
 
-async function askApiFamily(datasets: DatasetFixture[]) {
+async function askApiFamily(datasets: readonly DatasetFixture[]) {
   const families = [...new Set(datasets.map(dataset => dataset.theme))].sort(
     (left, right) => familyLabel(left).localeCompare(familyLabel(right)),
   )
@@ -746,11 +772,16 @@ function datasetLabelParts(dataset: DatasetFixture) {
   const resourceTypes = dataset.resourceTypes ?? (dataset.type ? [dataset.type] : [])
   const primaryType = resourceTypes[0] ?? 'resource'
   const typeSlug = primaryType.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
-  const subtype = remainder.startsWith(`${typeSlug}-`)
+  const codeSubtype = remainder.startsWith(`${typeSlug}-`)
     ? remainder.slice(typeSlug.length + 1)
     : remainder.endsWith(`-${typeSlug}`)
       ? remainder.slice(0, -(typeSlug.length + 1))
       : ''
+  const variantPrefix = `${dataset.publisherCode}-`
+  const variantSubtype = dataset.sourceVariant?.startsWith(variantPrefix)
+    ? dataset.sourceVariant.slice(variantPrefix.length)
+    : dataset.sourceVariant
+  const subtype = codeSubtype || variantSubtype
   return {
     publisher: formatPublisherLabel(dataset.publisherCode),
     subtype: subtype

@@ -9,6 +9,7 @@ import {
   formatDatasetPromptLabel,
   formatLandsdIngestPrompt,
   formatUpdateProgressLine,
+  resolveApiFamilySelection,
   resolveTargetVersion,
   shouldDownloadUpdate,
   wrapUpdateMessage,
@@ -38,6 +39,61 @@ test('formats the high-signal Clack dataset label without version noise', () => 
       versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     }),
   ).toBe('CenstatD ∷ DivisionArea ∷ District')
+})
+
+test('uses sourceVariant as the subtype when the dataset code omits its resource type', () => {
+  expect(
+    formatDatasetPromptLabel({
+      code: 'ds-hk-hkgov-landsd-road-centreline',
+      publisherCode: 'hkgov-landsd',
+      regionCode: 'hk',
+      sourceVariant: 'hkgov-landsd-road-centreline',
+      theme: 'streets',
+      resourceTypes: ['street'],
+      versionPolicy: { scheme: 'release-date', correctionSuffixSource: 'generated' },
+    }),
+  ).toBe('LandsD ∷ Street ∷ Road Centreline')
+})
+
+test('selects an API family without prompting', async () => {
+  const datasets = [
+    {
+      code: 'ds-hk-hkgov-landsd-road-centreline',
+      publisherCode: 'hkgov-landsd',
+      regionCode: 'hk',
+      theme: 'streets',
+      resourceTypes: ['street'],
+      versionPolicy: { scheme: 'release-date', correctionSuffixSource: 'generated' },
+    },
+  ] as const
+
+  await expect(
+    resolveApiFamilySelection(
+      { command: 'update', positionals: [], options: { 'api-family': 'streets' } },
+      datasets,
+    ),
+  ).resolves.toBe('streets')
+})
+
+test('rejects overlapping dataset and API-family selectors', async () => {
+  const datasets = [
+    {
+      code: 'ds-hk-hkgov-landsd-road-centreline',
+      publisherCode: 'hkgov-landsd',
+      regionCode: 'hk',
+      theme: 'streets',
+      resourceTypes: ['street'],
+      versionPolicy: { scheme: 'release-date', correctionSuffixSource: 'generated' },
+    },
+  ] as const
+
+  await expect(
+    resolveApiFamilySelection(
+      { command: 'update', positionals: [], options: { 'api-family': 'streets' } },
+      datasets,
+      new Set(['ds-hk-hkgov-landsd-road-centreline']),
+    ),
+  ).rejects.toThrow('either --dataset or --api-family')
 })
 
 test('left-aligns publisher/resource columns and right-aligns versions for a 120-column terminal', () => {
