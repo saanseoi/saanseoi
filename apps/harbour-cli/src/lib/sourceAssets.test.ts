@@ -75,6 +75,33 @@ test('reuses an already registered local source asset without writing it again',
   }
 })
 
+test('retries a transient local metadata lock', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'saanseoi-source-asset-'))
+  const bytes = new TextEncoder().encode('publisher evidence')
+  const contentHash = hash(bytes)
+  const upload = await writeUpload(root, bytes, contentHash)
+  const registry = createMemoryRegistry()
+  let attempts = 0
+
+  try {
+    await expect(
+      uploadManagedSourceAsset({ environment: 'dev', remote: false }, upload, {
+        putObject: async () => {},
+        withMetaDb: (async work => {
+          attempts += 1
+          if (attempts === 1) throw new Error('database is locked')
+          return work(registry.db)
+        }) as typeof withLocalMetaDb,
+      }),
+    ).resolves.toMatchObject({
+      url: expect.stringMatching(/^http:\/\/localhost:8787\/v0\/assets\//),
+    })
+    expect(attempts).toBe(2)
+  } finally {
+    await rm(root, { force: true, recursive: true })
+  }
+})
+
 test('refuses a local source asset whose bytes differ from its declared hash', async () => {
   const root = await mkdtemp(join(tmpdir(), 'saanseoi-source-asset-'))
   const bytes = new TextEncoder().encode('publisher evidence')

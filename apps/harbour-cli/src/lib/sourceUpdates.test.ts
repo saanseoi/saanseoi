@@ -5,10 +5,11 @@ import {
   parseLandsdStreetNoticePage,
   parseLandsdStreetPdfText,
   parseLandsdStreetSourcePage,
-} from './landsdStreet.ts'
+} from './landsdStreet/landsdStreet.ts'
 
 import {
   buildOverturistCommand,
+  datasetCorrectionSuffixSources,
   datasetName,
   isNewUpdate,
   isUpdateCheckDue,
@@ -56,7 +57,7 @@ describe('dataset update registry', () => {
         regionCode: 'hk',
         theme: 'places',
         type: 'place',
-        versionPolicy: { scheme: 'upstream', correction: false },
+        versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
         i18n: [
           { locale: 'zh-hant', name: '例子' },
           { locale: 'en', name: 'Example' },
@@ -73,7 +74,7 @@ describe('dataset update registry', () => {
         regionCode: 'hk',
         theme: 'places',
         type: 'place',
-        versionPolicy: { scheme: 'upstream', correction: true },
+        versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'upstream' },
       },
       status: 'new',
       version: '2026-07-23.0',
@@ -91,7 +92,7 @@ describe('dataset update registry', () => {
       regionCode: 'hk',
       theme: 'places',
       type: 'place',
-      versionPolicy: { scheme: 'upstream', correction: false },
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
       updatePolicy: { allowUpdates: true, checkFrequency: 'monthly' as const },
     } satisfies DatasetFixture
     const lastChecked = '2026-07-01T00:00:00.000Z'
@@ -114,7 +115,7 @@ describe('dataset update registry', () => {
       regionCode: 'hk',
       theme: 'places',
       type: 'place',
-      versionPolicy: { scheme: 'upstream', correction: false },
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
       updatePolicy: { allowUpdates: false },
     } as const
 
@@ -128,7 +129,7 @@ describe('dataset update registry', () => {
       regionCode: 'hk',
       theme: 'places',
       type: 'place',
-      versionPolicy: { scheme: 'upstream', correction: false },
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
       updatePolicy: { allowUpdates: true, checkFrequency: 'monthly' as const },
       releases: [
         { sourceVersion: '2021', sourceUrl: 'https://example.test/2021' },
@@ -153,7 +154,7 @@ describe('dataset update registry', () => {
         regionCode: 'hk',
         theme: 'places',
         type: 'place',
-        versionPolicy: { scheme: 'upstream', correction: false },
+        versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
       } satisfies DatasetFixture,
       status: 'current',
       sourceKey: '2021',
@@ -245,7 +246,7 @@ describe('dataset update registry', () => {
           versionPolicy: {
             scheme: 'reference-year',
             releaseField: 'sourceVersion',
-            correction: true,
+            correctionSuffixSource: 'generated',
           },
         },
         undefined,
@@ -385,7 +386,9 @@ describe('dataset update registry', () => {
             'upstream',
             'reference-year',
           ].includes(fixture.versionPolicy.scheme) &&
-          typeof fixture.versionPolicy.correction === 'boolean',
+          datasetCorrectionSuffixSources.includes(
+            fixture.versionPolicy.correctionSuffixSource,
+          ),
       ),
     ).toBe(true)
   })
@@ -397,7 +400,10 @@ describe('dataset update registry', () => {
       regionCode: 'hk',
       theme: 'places',
       type: 'place',
-      versionPolicy: { scheme: 'initial-release-date', correction: true },
+      versionPolicy: {
+        scheme: 'initial-release-date',
+        correctionSuffixSource: 'generated',
+      },
     } as const
 
     expect(
@@ -420,7 +426,7 @@ describe('dataset update registry', () => {
       regionCode: 'hk',
       theme: 'places',
       type: 'place',
-      versionPolicy: { scheme: 'release-date', correction: true },
+      versionPolicy: { scheme: 'release-date', correctionSuffixSource: 'generated' },
     } as const
 
     expect(
@@ -434,6 +440,32 @@ describe('dataset update registry', () => {
         '2026-07-23',
       ),
     ).toBe('2026-07-23.0')
+  })
+
+  test('preserves an upstream correction suffix instead of generating one', () => {
+    const dataset = {
+      code: 'ds-example',
+      publisherCode: 'example',
+      regionCode: 'hk',
+      theme: 'places',
+      type: 'place',
+      versionPolicy: {
+        scheme: 'upstream',
+        correctionSuffixSource: 'upstream',
+      },
+    } as const
+
+    expect(
+      resolveDatasetVersion(
+        dataset,
+        '2026-07-23.2',
+        {
+          versionKey: '2026-07-23.0',
+          releaseLastRevisedAt: '2026-07-23.0',
+        },
+        '2026-07-23.2',
+      ),
+    ).toBe('2026-07-23.2')
   })
 })
 
@@ -480,7 +512,10 @@ describe('LandsD street source', () => {
             'https://www.landsd.gov.hk/en/survey-mapping/mapping/street-geographical-place-naming/street-naming.html',
           theme: 'streets',
           resourceTypes: ['street'],
-          versionPolicy: { scheme: 'release-date', correction: true },
+          versionPolicy: {
+            scheme: 'release-date',
+            correctionSuffixSource: 'generated',
+          },
         },
         { sourceCursor: [julyNotice.id] },
         new Map([['ds-hk-hkgov-landsd-street', '2026-06-17.0']]),
