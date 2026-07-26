@@ -282,7 +282,7 @@ export async function processLocalDivisionSqlUpload(
       },
     )
   } catch (error) {
-    progress.fail(error instanceof Error ? error.message : String(error))
+    progress.fail()
     throw error
   }
 
@@ -884,7 +884,7 @@ export async function processLocalDivisionSqlUpload(
       releaseCode,
     )
   } catch (error) {
-    progress.fail(error instanceof Error ? error.message : String(error))
+    progress.fail()
     await harbourClient.stageFailed(
       releaseId,
       'processDataset',
