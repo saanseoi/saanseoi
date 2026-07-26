@@ -22,7 +22,7 @@ test('formats update rows with the requested publisher/resource/subtype label', 
       regionCode: 'hk',
       theme: 'divisions',
       resourceTypes: ['divisionArea'],
-      versionPolicy: { scheme: 'upstream', correction: false },
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     }),
   ).toBe('hkgov-censtatd : divisionArea [::district]')
 })
@@ -35,7 +35,7 @@ test('formats the high-signal Clack dataset label without version noise', () => 
       regionCode: 'hk',
       theme: 'divisions',
       resourceTypes: ['divisionArea'],
-      versionPolicy: { scheme: 'upstream', correction: false },
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     }),
   ).toBe('CenstatD ∷ DivisionArea ∷ District')
 })
@@ -48,7 +48,7 @@ test('left-aligns publisher/resource columns and right-aligns versions for a 120
       regionCode: 'hk',
       theme: 'divisions',
       resourceTypes: ['divisionArea'],
-      versionPolicy: { scheme: 'upstream', correction: false },
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     },
     'NEW',
     '2026-06-05T03:45:16.749Z',
@@ -69,7 +69,7 @@ test('shows a matching source and local version once', () => {
       regionCode: 'hk',
       theme: 'divisions',
       resourceTypes: ['divisionArea'],
-      versionPolicy: { scheme: 'upstream', correction: false },
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     },
     'SAME',
     '2021',
@@ -88,7 +88,7 @@ test('does not add a separator when the target has no release', () => {
       regionCode: 'hk',
       theme: 'divisions',
       resourceTypes: ['divisionArea'],
-      versionPolicy: { scheme: 'reference-year', correction: true },
+      versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
     },
     'NEW',
     '2016.0',
@@ -107,7 +107,7 @@ test('keeps active progress beside its stage rather than a trailing version plac
       regionCode: 'hk',
       theme: 'divisions',
       resourceTypes: ['divisionArea'],
-      versionPolicy: { scheme: 'reference-year', correction: true },
+      versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
     },
     'checking latest',
   )
@@ -135,7 +135,7 @@ test('keeps the dataset context and release position while downloading a batch',
       regionCode: 'hk',
       theme: 'streets',
       resourceTypes: ['street'],
-      versionPolicy: { scheme: 'upstream', correction: true },
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'upstream' },
     },
     6,
     19,
@@ -156,7 +156,7 @@ test('reports each completed download with its dataset and release context', () 
       regionCode: 'hk',
       theme: 'streets',
       resourceTypes: ['street'],
-      versionPolicy: { scheme: 'upstream', correction: true },
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'upstream' },
     },
     6,
     19,
@@ -181,7 +181,7 @@ test('renders every configured release while showing the dataset label once', ()
     regionCode: 'hk',
     theme: 'divisions',
     resourceTypes: ['divisionArea'],
-    versionPolicy: { scheme: 'reference-year', correction: true },
+    versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
   } as const
   const line = formatDatasetCheckLine(
     dataset,
@@ -212,7 +212,7 @@ test('keeps each incremental release paired with its preceding target version', 
     regionCode: 'hk',
     theme: 'streets',
     resourceTypes: ['street'],
-    versionPolicy: { scheme: 'release-date', correction: true },
+    versionPolicy: { scheme: 'release-date', correctionSuffixSource: 'generated' },
   } as const
   const line = formatDatasetCheckLine(
     dataset,
@@ -248,7 +248,7 @@ test('labels LandsD ingestion as a chronological step instead of a generic downl
       regionCode: 'hk',
       theme: 'streets',
       resourceTypes: ['street'],
-      versionPolicy: { scheme: 'release-date', correction: true },
+      versionPolicy: { scheme: 'release-date', correctionSuffixSource: 'generated' },
     },
     status: 'new',
     version: '2026-07-03.0',
@@ -267,7 +267,7 @@ test('formats division statistics and identifies the HyD nameplate source', () =
       regionCode: 'hk',
       theme: 'stats',
       resourceTypes: ['divisionStatistic'],
-      versionPolicy: { scheme: 'upstream', correction: false },
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     }),
   ).toBe('CenstatD ∷ Statistic ∷ Land Area')
   expect(
@@ -277,7 +277,7 @@ test('formats division statistics and identifies the HyD nameplate source', () =
       regionCode: 'hk',
       theme: 'divisions',
       resourceTypes: ['division', 'divisionArea'],
-      versionPolicy: { scheme: 'reference-year', correction: true },
+      versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
     }),
   ).toBe('PlanD ∷ Division(Area) ∷ Pu')
   expect(
@@ -287,7 +287,7 @@ test('formats division statistics and identifies the HyD nameplate source', () =
       regionCode: 'hk',
       theme: 'streets',
       resourceTypes: ['street'],
-      versionPolicy: { scheme: 'upstream', correction: false },
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     }),
   ).toBe('HyD ∷ Street ∷ Nameplate')
 })
