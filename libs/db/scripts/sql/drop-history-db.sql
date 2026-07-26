@@ -1,6 +1,7 @@
 PRAGMA foreign_keys = OFF;
 PRAGMA defer_foreign_keys = true;
 
+DROP TABLE IF EXISTS `streetGeometry`;
 DROP TABLE IF EXISTS `snapshotVersionChanges`;
 DROP TABLE IF EXISTS `streetChangelog`;
 DROP TABLE IF EXISTS `streetNameChangeStreets`;
