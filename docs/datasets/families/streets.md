@@ -13,13 +13,16 @@ immutable snapshot revision. The date boundary prevents a Government Notice from
 replayed from both publishers.
 
 HKU Libraries' HKGRO scans cover Gazette tables of contents and source PDFs from
-1842–1941 (except 1849–1852). They are retrieved locally as high-recall street-name
-_candidates_ with a manifest, file hashes and explicit classification state. HKGRO
-candidates are not lifecycle events and are neither uploaded to R2 nor materialised into
-this family until OCR, parsing and a reviewed identity/lifecycle decision are available.
-Their local PaddleOCR output is explicitly marked as English `method: "ocr"` derived
-evidence and bound to the exact HKGRO source-PDF SHA-256; it is not publisher-native
-text or a source of canonical street identity.
+1842–1941 (except 1849–1852). They are retrieved and OCRed locally as high-recall
+street-name _candidates_. Local discovery ranks them into an auditable curator review
+queue while preserving source hashes and OCR provenance. Accepted candidates may be
+street declarations, naming or renaming, deletion, legally material designation, or
+description changes. HKGRO candidates are not lifecycle events and are neither uploaded
+to R2 nor materialised into this family until parsed facts and a reviewed
+identity/lifecycle decision are available. Their local PaddleOCR output is explicitly
+marked as English `method: "ocr"` derived evidence and bound to the exact HKGRO
+source-PDF SHA-256; it is not publisher-native text or a source of canonical street
+identity.
 
 The source ledger separates baseline rows, immutable notices, and persisted notice
 applications. Only declarations that create a new street can be automatic; every

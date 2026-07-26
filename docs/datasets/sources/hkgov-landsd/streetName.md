@@ -47,18 +47,20 @@ corrigendum PDFs; e-Gazette source PDFs are parsed before any assets are registe
 Chinese e-Gazette PDF without a text layer is OCRed using PaddleOCR (`chinese_cht`, 300
 DPI), and the event records that extraction method, engine version and model separately
 from native publisher text. The parser accepts spacing inserted between the opening
-Chinese road-description characters by PDF text extraction, so those rows remain
-distinct notices. Unsupported historical layouts fail with their exact local paths and
-parse facts. Those candidates are evidence only: neither a parser fallback nor page-row
-order creates a lifecycle link. Missing PDF evidence blocks publication. A readable PDF
-whose layout is not recognised is retained as evidence and presented for a curator
-decision instead.
+Chinese road-description characters and English name cells shifted left of their
+headings by PDF text extraction, so those rows remain distinct notices. Unsupported
+historical layouts fail with their exact local paths and parse facts. Those candidates
+are evidence only: neither a parser fallback nor page-row order creates a lifecycle
+link. Missing PDF evidence blocks publication. A readable PDF whose layout is not
+recognised is retained as evidence and presented for a curator decision instead.
 
-The two commands stage evidence and parsed immutable records; neither publishes a street
-snapshot. After the official e-Gazette stage is complete, run
-`hkgov-landsd-streets:assemble` to reconcile baseline names against the complete notice
-ledger and publish one snapshot revision. This avoids treating a present-state baseline
-as an event that follows older notices.
+The baseline stage mints and persists opaque canonical street IDs before either notice
+stage runs. The LandsD and e-Gazette stages require that staged baseline, so lifecycle
+review always presents its matching baseline street IDs. These three commands stage
+evidence and parsed immutable records; none publishes a street snapshot. After the
+official e-Gazette stage is complete, run `hkgov-landsd-streets:assemble` to reconcile
+baseline names against the complete notice ledger and publish one snapshot revision.
+This avoids treating a present-state baseline as an event that follows older notices.
 
 For `--target local`, immutable evidence and manifests are registered in the local
 metadata database and written to the local Wrangler R2 state. The resulting links use
@@ -74,9 +76,28 @@ for a confidently parsed legal effective date.
 Declarations may create a new street automatically. Other existing-street changes
 require a versioned application fixture in
 [`fixtures/meta/curations/hkgov-landsd-street.json`](../../../../fixtures/meta/curations/hkgov-landsd-street.json).
-The first blocked run writes `lifecycle-review.json` beside `operator-report.json`. Each
-entry has the immutable source-record ID, bilingual names, publisher PDF URLs, and
-parsed `Previous G.N.` candidates. A curator chooses one of:
+It is a schema-version 2 manifest; an empty `decisions` array is valid until a
+reviewable notice needs a manual disposition. The first blocked run writes
+`lifecycle-review.json` beside `operator-report.json`. Each entry has the immutable
+source-record ID, bilingual names and descriptions, publisher PDF URLs, parsed
+`Previous G.N.` candidates, and baseline streets whose English names match after case
+and whitespace normalisation. Each baseline candidate includes its minted canonical
+street ID and district codes. During interactive review, one matching baseline street is
+selected automatically; when several match, the operator selects from the
+district-labelled list. No baseline match remains an explicit reviewed decision rather
+than a guessed identity. A description-replacement notice with one matching baseline
+street is applied automatically as a description change. If bilingual PDF extraction
+disagrees only on `Previous G.N.` references, the paired descriptions and names remain
+available for review and the combined references are retained as a provenance warning. A
+parseable corrigendum with one matching baseline street is applied automatically as a
+field-scoped amendment. The prose parser recognises flexible English and Traditional
+Chinese wording for a character correction and limits the amendment to the named English
+or Traditional Chinese name and/or description field, or to the published
+`Previous G.N.` provenance. The review displays both the erroneous and corrected street
+name, rather than treating a corrigendum as an unspecified street change. A corrigendum
+always creates a lifecycle version and changelog entry, including when the present-state
+baseline already contains the corrected text. `Previous G.N.` is never used to identify
+a street. A curator chooses one of:
 
 - `apply`, with the affected canonical street ID and, for a name change, a new ID and
   whole/partial scope;

@@ -31,6 +31,11 @@ release codes `dr-hk-hkgov-pland-division-pu-{year}` and
 types, which are materialised as separate resource releases from the same upstream
 layer.
 
+The backfill validates finite coordinates, ring closure, non-zero area, and ring
+self-intersections before materialising a geometry release. The self-intersection check
+uses a spatial candidate index, so the detailed Planning Department polygons do not
+require an all-pairs segment comparison.
+
 ## Identity and hierarchy
 
 Every source cell has one PPU, SPU, TPU and subunit code. It becomes a planning
