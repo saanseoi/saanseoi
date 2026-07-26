@@ -8,7 +8,7 @@ import { and, eq } from 'drizzle-orm'
 import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
 import { historySchema, metaSchema } from '@repo/db'
 
-import { formatField } from '../../../harbour-cli/src/lib/display.ts'
+import { formatField } from '../../../harbour-cli/src/lib/cli/display.ts'
 import {
   emptyHkgovAlsIdentityDecisions,
   emptyHkgovAlsIdentityHistory,
@@ -18,11 +18,14 @@ import {
   type HkgovAlsIdentityDecisions,
   type HkgovAlsIdentityDriftCandidate,
   type HkgovAlsIdentityHistory,
-} from '../../../harbour-cli/src/lib/hkgovAlsDrift.ts'
-import { prepareHkgovAlsAddressParquet } from '../../../harbour-cli/src/lib/hkgovAls.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDrift.ts'
+import { prepareHkgovAlsAddressParquet } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAls.ts'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/addressSql/localDbCache.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
-import type { ParsedArgs, UploadTarget } from '../../../harbour-cli/src/lib/options.ts'
+import type {
+  ParsedArgs,
+  UploadTarget,
+} from '../../../harbour-cli/src/lib/cli/options.ts'
 
 const HKGOV_ALS_CATALOGUE_URL = 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als'
 const DEFAULT_HISTORY_FILE = '.local/hkgov-dpo/als-identity-history.json'

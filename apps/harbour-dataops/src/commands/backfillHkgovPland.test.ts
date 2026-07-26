@@ -42,11 +42,11 @@ const runUploadCommandMock = mock(
   },
 )
 
-mock.module('../../../harbour-cli/src/lib/hkgovPland.ts', () => ({
+mock.module('../../../harbour-cli/src/lib/sources/hkgov/hkgovPland.ts', () => ({
   prepareHkgovPlandTpuParquet: prepareHkgovPlandTpuParquetMock,
 }))
 
-mock.module('../../../harbour-cli/src/lib/hkgovPlandNewTown.ts', () => ({
+mock.module('../../../harbour-cli/src/lib/sources/hkgov/hkgovPlandNewTown.ts', () => ({
   prepareHkgovPlandNewTownParquet: mock(async () => undefined),
 }))
 
