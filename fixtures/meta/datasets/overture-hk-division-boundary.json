@@ -1,15 +1,23 @@
 {
-  "versionHash": "sha256:9f9c3569ef22acdbbaca1315fbea2638e15e9bb03ccb081d9d7dff4e12dd40de",
+  "versionHash": "sha256:194f857341d8155f0fa2073765241e39f808bd9e7b96feb9bc454ef1b17ca24f",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division-boundary",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "divisions",
-  "type": "divisionBoundary",
+  "resourceTypes": ["divisionBoundary"],
   "licenseCode": "ODbL",
   "attribution": "© OpenStreetMap contributors; Overture Maps Foundation.",
   "sourceUrl": "https://docs.overturemaps.org/",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "versionPolicy": {
+    "scheme": "upstream",
+    "correctionSuffixSource": "upstream"
+  },
   "category": "places",
   "i18n": [
     {
