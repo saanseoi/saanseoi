@@ -560,12 +560,23 @@ function correctedNoticeName(
   if (!correction) return name
   return {
     en: correction.fields.includes('en.name')
-      ? name.en.replaceAll(correction.from, correction.to)
+      ? replaceCorrectionText(name.en, correction)
       : name.en,
     zhHant: correction.fields.includes('zh-Hant.name')
-      ? name.zhHant.replaceAll(correction.from, correction.to)
+      ? replaceCorrectionText(name.zhHant, correction)
       : name.zhHant,
   }
+}
+
+function replaceCorrectionText(value: string, correction: LandsdStreetTextCorrection) {
+  return value.replaceAll(
+    new RegExp(escapeRegularExpression(correction.from), 'giu'),
+    correction.to,
+  )
+}
+
+function escapeRegularExpression(value: string) {
+  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 function parseLandsdStreetCuration(
   value: unknown,

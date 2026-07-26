@@ -120,6 +120,56 @@ test('automatically applies a parseable Chinese-name-and-description corrigendum
   expect(context).not.toContain('Traditional Chinese PDF')
 })
 
+test('automatically applies a complete English street-name correction', () => {
+  const notice = {
+    governmentNoticeType: 'corrigendum',
+    governmentNotices: { en: null, zhHant: null },
+    id: 'notice-6118',
+    names: { en: 'Gascoigne Road Fylover', zhHant: '加士居道天橋' },
+    noticeIdentity: 'gn6118',
+    publicationDate: '2020-10-23',
+  } as PairedLandsdStreetNotice
+  const parsed = {
+    descriptions: { en: null, zhHant: null },
+    rawExtractedText: {
+      en: `With reference to the English version of the Government Notice No. 5983, it is hereby notified that the street name ‘GASCOIGNE ROAD FYLOVER’ in the notice should be amended to read ‘GASCOIGNE ROAD FLYOVER’.`,
+      zhHant: '',
+    },
+  } as PairedLandsdGovernmentNoticePdfEntry
+  const result = resolveLandsdStreetCuration({
+    baselineCandidates: [
+      {
+        districtCodes: ['ytm'],
+        names: { en: 'GASCOIGNE ROAD FLYOVER', zhHant: '加士居道天橋' },
+        recordKey: 'baseline-gascoigne-road-flyover',
+        streetId: '018f0b41-1a00-7000-8000-000000000003',
+      },
+    ],
+    manifest: emptyLandsdStreetCuration(),
+    notices: [notice],
+    parsedEntries: new Map([[notice.id, parsed]]),
+  })
+
+  expect(result.unresolved).toEqual([])
+  expect(result.review[0]).toMatchObject({
+    correction: {
+      fields: ['en.name'],
+      from: 'GASCOIGNE ROAD FYLOVER',
+      to: 'GASCOIGNE ROAD FLYOVER',
+    },
+    name: { en: 'GASCOIGNE ROAD FLYOVER', zhHant: '加士居道天橋' },
+  })
+  expect(result.applied.get(notice.id)).toMatchObject({
+    affectedStreetId: '018f0b41-1a00-7000-8000-000000000003',
+    correction: {
+      fields: ['en.name'],
+      from: 'GASCOIGNE ROAD FYLOVER',
+      to: 'GASCOIGNE ROAD FLYOVER',
+    },
+    method: 'automatic',
+  })
+})
+
 test('recognises a corrigendum scoped to Previous G.N. provenance', () => {
   const notice = {
     governmentNoticeType: 'corrigendum',
