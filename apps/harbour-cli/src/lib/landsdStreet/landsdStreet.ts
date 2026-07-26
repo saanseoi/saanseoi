@@ -383,13 +383,13 @@ export function parseLandsdGovernmentNoticePdfText(
   const districtColumn = isNamedInTable
     ? header.search(locale === 'en' ? /\bDistrict\b/i : /地區|區域|地區名稱/u)
     : -1
-  const descriptionColumn = isNamedInTable
+  let descriptionColumn = isNamedInTable
     ? header.search(locale === 'en' ? /\b(?:Street\s+)?Names?\b/i : /(?:街道)?名稱/u)
     : header.search(locale === 'en' ? /Description/i : /說明|描述/u)
-  const nameColumn = isNamedInTable
+  let nameColumn = isNamedInTable
     ? descriptionColumn
     : header.search(locale === 'en' ? /\bName\b/i : /名稱|名字/u)
-  const previousColumn = isNamedInTable
+  let previousColumn = isNamedInTable
     ? header.search(locale === 'en' ? /Named\s+in/i : /刊載於|原載於|政府公告/u)
     : previousHeaderIndex === headerIndex
       ? header.search(
@@ -427,7 +427,23 @@ export function parseLandsdGovernmentNoticePdfText(
   for (const line of lines.slice(headerIndex + 1)) {
     if (!line.trim() || /^\s*(?:page\s+)?\d+\s*$/i.test(line)) continue
     if (isGovernmentNoticePostamble(line, locale)) break
-    if (isGovernmentNoticeTableHeader(line, locale)) continue
+    if (isGovernmentNoticeTableHeader(line, locale)) {
+      // PDF page breaks can repeat the table header with a narrower column
+      // layout. Continue the same table with its newly declared positions.
+      if (!isNamedInTable) {
+        descriptionColumn = line.search(locale === 'en' ? /Description/i : /說明|描述/u)
+        nameColumn = line.search(locale === 'en' ? /\bName\b/i : /名稱|名字/u)
+        previousColumn =
+          previousHeaderIndex >= 0
+            ? line.search(
+                locale === 'en'
+                  ? /Previous\s+G\.?N\.?/i
+                  : /前.*?(?:政府公告|公告|G\.?N\.?)/u,
+              )
+            : -1
+      }
+      continue
+    }
     if (isGovernmentNoticeSignatureLine(line, locale)) break
     if (
       (locale === 'en' &&
