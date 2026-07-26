@@ -126,14 +126,16 @@ test('stages paired notice releases with managed evidence URLs and an operator r
     })
     expect(progress).toEqual(
       expect.arrayContaining([
-        'Fetching English and Traditional Chinese source pages',
-        expect.stringContaining('Preserving source PDF 1/4'),
+        'Refreshing English and Traditional Chinese source-page indexes to discover notices; cached PDFs will not be downloaded again',
+        'Parsed 1 English and 1 Traditional Chinese source-page row(s); pairing bilingual notices',
+        expect.stringContaining('Downloading source PDF 1/4'),
         'Extracting text from Government Notice PDFs (0/1)',
         expect.stringContaining('Rendering Gazette Plan previews (1/1)'),
         'Writing release payload and operator report',
       ]),
     )
     rejectPdfDownloads = true
+    const resumedProgress: string[] = []
     await expect(
       ingestLandsdStreetSource({
         includeBaseline: false,
@@ -141,6 +143,7 @@ test('stages paired notice releases with managed evidence URLs and an operator r
         target: { environment: 'preview', remote: true },
         writeFixtures: false,
         fetch: sourceFetch,
+        onProgress: event => resumedProgress.push(event.message),
         publishAsset: async () => {
           assetNumber += 1
           return {
@@ -156,6 +159,13 @@ test('stages paired notice releases with managed evidence URLs and an operator r
         },
       }),
     ).resolves.toMatchObject({ releases: expect.any(Array) })
+    expect(resumedProgress).toEqual(
+      expect.arrayContaining([
+        'Found 3 cached source PDF artefact(s) in this stage directory; matching PDFs will be reused by role, URL and locale',
+        expect.stringContaining('reusing 3 cached LandsD PDF(s), downloading 0'),
+        expect.stringContaining('Reusing cached source PDF 1/4'),
+      ]),
+    )
   } finally {
     await rm(root, { recursive: true, force: true })
   }
