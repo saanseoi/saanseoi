@@ -88,7 +88,7 @@ if test "$upload_init_continue" -eq 1
         exit 1
     end
 else
-    run_step bun run db:reset:local
+    run_step bun run --silent db:reset:local
 end
 
 set -l releases \
@@ -170,19 +170,28 @@ if test "$upload_init_continue" -eq 1
     set continue_args --continue
 end
 
-run_step bun run dataops -- hkgov-pland:backfill --kind pu --target local $continue_args
+run_step bun run --silent dataops -- hkgov-pland:backfill --kind pu --target local $continue_args
 if domain_has_pending_releases pu 2001 2006 2011 2016 2021
     run_step ./bin/saanseoi docs:publish --target local --scope all
 end
-run_step bun run dataops -- hkgov-pland:backfill --kind new-town --target local $continue_args
+run_step bun run --silent dataops -- hkgov-pland:backfill --kind new-town --target local $continue_args
 if domain_has_pending_releases new-town 2006 2011 2016 2021
     run_step ./bin/saanseoi docs:publish --target local --scope all
 end
-run_step bun run dataops -- hkgov-landsd-streets:baseline --target local
-run_step bun run dataops -- hkgov-landsd-streets:landsd-notices --target local
-run_step bun run dataops -- hkgov-landsd-streets:official-egazette --target local
-run_step bun run dataops -- hkgov-landsd-streets:assemble --target local
+
+run_step bun run --silent dataops -- hkgov-landsd-streets:baseline --target local
+run_step bun run --silent dataops -- hkgov-landsd-streets:landsd-notices --target local
+run_step bun run --silent dataops -- hkgov-landsd-streets:official-egazette --target local
+run_step bun run --silent dataops -- hkgov-landsd-streets:assemble --target local
 run_step ./bin/saanseoi docs:publish --target local --scope all
-run_step bun run dataops -- hkgov-dpo:backfill-local \
+
+# Preserve the official Road Centreline archive for the dedicated release
+# processor. It must run after street assembly because source segments are
+# matched to the assembled LandsD street identities.
+run_step ./bin/saanseoi update --target local \
+    --dataset ds-hk-hkgov-landsd-road-centreline --check-now --yes
+
+run_step bun run --silent dataops -- hkgov-dpo:backfill-local \
     "$upload_init_repo/data/hkgov/dpo/ALS" \
     --target local --cohort-key 2025-12-17.0
+run_step ./bin/saanseoi docs:publish --target local --scope all
