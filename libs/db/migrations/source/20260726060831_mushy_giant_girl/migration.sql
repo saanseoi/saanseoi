@@ -1,0 +1,1 @@
+ALTER TABLE `hkgovLandsdStreets` ADD `partialRetainedDescriptions` text;

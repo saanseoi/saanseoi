@@ -1,0 +1,1 @@
+ALTER TABLE `streets` RENAME COLUMN `landsdPublicationDate` TO `gazetteDate`;
