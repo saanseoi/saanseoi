@@ -1216,15 +1216,21 @@ export async function waitForDatasetRecord(
 export async function getCurrentReleaseForDatasetId(
   db: HarbourReadableDb,
   datasetId: string,
+  resourceType: ResourceType,
   excludeReleaseId?: string,
 ) {
   const whereClause = excludeReleaseId
     ? and(
         eq(metaReleases.datasetId, datasetId),
+        eq(metaReleases.resourceType, resourceType),
         eq(metaReleases.status, 'published'),
         ne(metaReleases.id, excludeReleaseId),
       )
-    : and(eq(metaReleases.datasetId, datasetId), eq(metaReleases.status, 'published'))
+    : and(
+        eq(metaReleases.datasetId, datasetId),
+        eq(metaReleases.resourceType, resourceType),
+        eq(metaReleases.status, 'published'),
+      )
 
   return (
     ((await db

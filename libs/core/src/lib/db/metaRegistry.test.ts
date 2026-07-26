@@ -8,6 +8,7 @@ import {
   ensureDraftReleaseSetForRelease,
   ensureDraftSnapshotForRelease,
   ensureIngestRunStarted,
+  getCurrentReleaseForDatasetId,
   getLatestNewerDatasetRelease,
   getLatestDatasetForRegionSourceType,
   insertDataset,
@@ -1576,6 +1577,58 @@ describe('getLatestDatasetForRegionSourceType', () => {
     )
 
     expect(result.latestDataset?.releaseId).toBe('release-10')
+  })
+})
+
+describe('getCurrentReleaseForDatasetId', () => {
+  test('keeps independently published resource types in one dataset separate', async () => {
+    const { sqlite, db } = createLatestDatasetLookupDb()
+
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES ('publisher-pland', 'hkgov-pland');
+      INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
+        ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division');
+      INSERT INTO releases (
+        id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+      ) VALUES
+        (
+          'release-pland-pu-division-2001',
+          'dataset-pland-pu',
+          'dr-hk-hkgov-pland-division-pu-2001',
+          'division',
+          '2001',
+          '2001',
+          'hk/hkgov-pland-pu/2001/division.parquet',
+          'division.parquet',
+          'published',
+          '2026-07-21T00:00:00.000Z',
+          '2026-07-21T00:00:00.000Z',
+          '2026-07-21T00:00:00.000Z'
+        ),
+        (
+          'release-pland-pu-area-2001',
+          'dataset-pland-pu',
+          'dr-hk-hkgov-pland-division-area-pu-2001',
+          'divisionArea',
+          '2001',
+          '2001',
+          'hk/hkgov-pland-pu/2001/division-area.parquet',
+          'division-area.parquet',
+          'published',
+          '2026-07-21T00:01:00.000Z',
+          '2026-07-21T00:01:00.000Z',
+          '2026-07-21T00:01:00.000Z'
+        );
+    `)
+
+    await expect(
+      getCurrentReleaseForDatasetId(db as never, 'dataset-pland-pu', 'division'),
+    ).resolves.toMatchObject({ releaseId: 'release-pland-pu-division-2001' })
+    await expect(
+      getCurrentReleaseForDatasetId(db as never, 'dataset-pland-pu', 'divisionArea'),
+    ).resolves.toMatchObject({ releaseId: 'release-pland-pu-area-2001' })
+
+    sqlite.close()
   })
 })
 
