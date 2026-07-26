@@ -7,19 +7,16 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import { jsonText, timestamps, type StreetEvidenceAsset } from '../shared'
+import {
+  jsonText,
+  streetChangelogKinds,
+  timestamps,
+  type StreetEvidenceAsset,
+} from '../shared'
 import { streets } from './streets'
 
 export const streetNameChangeStatuses = ['intended', 'effective', 'withdrawn'] as const
 export const streetNameChangeStreetRoles = ['old', 'new'] as const
-export const streetChangelogKinds = [
-  'gazette',
-  'description_change',
-  'notice_of_name_change',
-  'name_change',
-  'deleted',
-] as const
-
 /**
  * A directed legal street-name change. It may connect multiple old and new
  * logical streets, so a split or merge does not need to overload `streets`.

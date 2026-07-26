@@ -9,9 +9,12 @@ export * as currentSchema from './schema/current'
 export * as historySchema from './schema/history'
 export * as sourceSchema from './schema/source'
 export {
+  isStreetChangelogKind,
+  streetChangelogKinds,
   streetEvidenceAssetRoles,
   toIsoTimestamp,
   type EvidenceAsset,
+  type StreetChangelogKind,
   type StreetEvidenceAsset,
   type StreetEvidenceAssetRole,
 } from './schema/shared'

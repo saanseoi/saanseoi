@@ -12,6 +12,20 @@ export const streetEvidenceAssetRoles = [
 
 export type StreetEvidenceAssetRole = (typeof streetEvidenceAssetRoles)[number]
 
+export const streetChangelogKinds = [
+  'gazette',
+  'description_change',
+  'notice_of_name_change',
+  'name_change',
+  'deleted',
+] as const
+
+export type StreetChangelogKind = (typeof streetChangelogKinds)[number]
+
+export function isStreetChangelogKind(value: string): value is StreetChangelogKind {
+  return (streetChangelogKinds as readonly string[]).includes(value)
+}
+
 /** A preserved source artifact and the original publisher link it represents. */
 export type EvidenceAsset<TRole extends string = string> = {
   assetId: string
