@@ -3,17 +3,30 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 
 import type {
+  LandsdStreetNameChangeScope,
+  LandsdStreetNoticeApplicationDisposition,
+  LandsdStreetNoticeType,
+} from '@repo/db'
+
+import type {
   PairedLandsdGovernmentNoticePdfEntry,
   PairedLandsdStreetNotice,
 } from './landsdStreet.ts'
 import { mintLandsdStreetId } from './landsdStreetIds.ts'
 
-export type LandsdStreetCurationDisposition = 'apply' | 'defer' | 'noOp'
+type LandsdStreetReviewableNoticeType = Extract<
+  LandsdStreetNoticeType,
+  'change' | 'corrigendum' | 'intention'
+>
+
+export type LandsdStreetCurationDisposition =
+  | LandsdStreetNoticeApplicationDisposition
+  | 'defer'
 export type LandsdStreetCurationDecision = {
   affectedStreetId?: string
   createdStreetId?: string
   disposition: LandsdStreetCurationDisposition
-  nameChangeScope?: 'whole' | 'partial'
+  nameChangeScope?: LandsdStreetNameChangeScope
   retainedDescriptions?: { en: string; zhHant: string }
   sourceRecordId: string
 }
@@ -23,7 +36,7 @@ export type LandsdStreetCurationManifest = {
 }
 export type LandsdStreetLifecycleReview = {
   curation: LandsdStreetCurationDecision | null
-  governmentNoticeType: 'change' | 'corrigendum' | 'intention'
+  governmentNoticeType: LandsdStreetReviewableNoticeType
   governmentNoticeUrls: { en: string | null; zhHant: string | null }
   name: { en: string; zhHant: string }
   noticeIdentity: string | null
@@ -34,9 +47,9 @@ export type LandsdStreetLifecycleReview = {
 export type LandsdStreetAppliedCuration = {
   affectedStreetId: string | null
   createdStreetId: string | null
-  disposition: 'apply' | 'noOp'
+  disposition: LandsdStreetNoticeApplicationDisposition
   method: 'manual'
-  nameChangeScope: 'whole' | 'partial' | null
+  nameChangeScope: LandsdStreetNameChangeScope | null
   retainedDescriptions: { en: string; zhHant: string } | null
 }
 
@@ -75,7 +88,7 @@ export async function promptForLandsdStreetCuration(input: {
     if (isCancel(disposition)) throw new Error('LandsD lifecycle review cancelled.')
     let affectedStreetId: string | undefined
     let createdStreetId: string | undefined
-    let nameChangeScope: 'whole' | 'partial' | undefined
+    let nameChangeScope: LandsdStreetNameChangeScope | undefined
     let retainedDescriptions: { en: string; zhHant: string } | undefined
     if (disposition === 'apply') {
       const affected = await text({
@@ -144,7 +157,7 @@ export function resolveLandsdStreetCuration(input: {
     (
       notice,
     ): notice is PairedLandsdStreetNotice & {
-      governmentNoticeType: 'change' | 'corrigendum' | 'intention'
+      governmentNoticeType: LandsdStreetReviewableNoticeType
     } =>
       notice.governmentNoticeType === 'change' ||
       notice.governmentNoticeType === 'corrigendum' ||

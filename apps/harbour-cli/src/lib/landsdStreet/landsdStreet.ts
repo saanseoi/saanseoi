@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto'
 
+import type { LandsdStreetNoticeType, StreetLocaleCode } from '@repo/db'
+
 export const LANDSD_STREET_NAMING_URL =
   'https://www.landsd.gov.hk/en/survey-mapping/mapping/street-geographical-place-naming/street-naming.html'
 export const LANDSD_STREET_PDF_URL =
@@ -23,7 +25,9 @@ export type LandsdStreetNoticePage = {
   }>
 }
 
-export type LandsdStreetPageLocale = 'en' | 'zh-Hant'
+export type LandsdStreetPageLocale = StreetLocaleCode
+
+export type LandsdStreetSourceKind = 'baseline' | 'historical-notice' | 'notice'
 
 export type LandsdStreetSourceLink = {
   label: string
@@ -61,12 +65,7 @@ export type PairedLandsdStreetNotice = {
     en: LandsdStreetSourceLink | null
     zhHant: LandsdStreetSourceLink | null
   }
-  governmentNoticeType:
-    | 'change'
-    | 'corrigendum'
-    | 'declaration'
-    | 'deletion'
-    | 'intention'
+  governmentNoticeType: LandsdStreetNoticeType
   id: string
   noticeIdentity: string | null
   names: {
@@ -85,6 +84,7 @@ export type PairedLandsdStreetNotice = {
 
 export type LandsdGovernmentNoticePdfEntry = {
   description: string | null
+  district: string | null
   effectiveDate: string | null
   immediateEffect: boolean
   name: string
@@ -95,6 +95,13 @@ export type LandsdGovernmentNoticePdfEntry = {
 
 export type LandsdGovernmentNoticePdfParse = {
   diagnostics: {
+    extraction: {
+      engine: string | null
+      language: string | null
+      method: 'native-text' | 'ocr'
+      nativeTextStatus?: 'unparseable'
+      renderDpi?: number
+    }
     header: string | null
     immediateEffect: boolean
     layout:
@@ -114,6 +121,7 @@ export type LandsdGovernmentNoticePdfParse = {
 
 export type PairedLandsdGovernmentNoticePdfEntry = {
   descriptions: { en: string | null; zhHant: string | null }
+  districts?: { en: string | null; zhHant: string | null }
   effectiveDate: string | null
   gazetteDate: string
   parserDiagnostics: {
@@ -121,7 +129,7 @@ export type PairedLandsdGovernmentNoticePdfEntry = {
     zhHant: LandsdGovernmentNoticePdfParse['diagnostics']
   }
   previousNoticeRefs: string[]
-  rawExtractedText: { en: string; zhHant: string }
+  rawExtractedText: { en: string; zhHant: string; zhHantNative?: string }
 }
 
 const MONTHS: Record<string, string> = {
@@ -335,6 +343,11 @@ export function parseLandsdGovernmentNoticePdfText(
   ) {
     return {
       diagnostics: {
+        extraction: {
+          engine: null,
+          language: null,
+          method: 'native-text',
+        },
         header: null,
         immediateEffect,
         layout: 'unstructured-notice',
@@ -345,6 +358,7 @@ export function parseLandsdGovernmentNoticePdfText(
       entries: [
         {
           description: null,
+          district: null,
           effectiveDate: parseNoticeEffectiveDate(text),
           immediateEffect,
           name: '',
@@ -366,11 +380,14 @@ export function parseLandsdGovernmentNoticePdfText(
         : namedInHeaderIndex
   const header = lines[headerIndex] ?? ''
   const isNamedInTable = namedInHeaderIndex === headerIndex && previousHeaderIndex < 0
+  const districtColumn = isNamedInTable
+    ? header.search(locale === 'en' ? /\bDistrict\b/i : /地區|區域|地區名稱/u)
+    : -1
   const descriptionColumn = isNamedInTable
-    ? 0
+    ? header.search(locale === 'en' ? /\b(?:Street\s+)?Names?\b/i : /(?:街道)?名稱/u)
     : header.search(locale === 'en' ? /Description/i : /說明|描述/u)
   const nameColumn = isNamedInTable
-    ? 0
+    ? descriptionColumn
     : header.search(locale === 'en' ? /\bName\b/i : /名稱|名字/u)
   const previousColumn = isNamedInTable
     ? header.search(locale === 'en' ? /Named\s+in/i : /刊載於|原載於|政府公告/u)
@@ -382,11 +399,17 @@ export function parseLandsdGovernmentNoticePdfText(
   if (
     descriptionColumn < 0 ||
     (!isNamedInTable && nameColumn <= descriptionColumn) ||
-    (isNamedInTable && previousColumn <= descriptionColumn) ||
+    (isNamedInTable &&
+      (descriptionColumn < 0 || previousColumn <= descriptionColumn)) ||
     (!isNamedInTable && previousColumn >= 0 && previousColumn <= nameColumn)
   ) {
     return {
       diagnostics: {
+        extraction: {
+          engine: null,
+          language: null,
+          method: 'native-text',
+        },
         header,
         immediateEffect,
         layout: 'unmatched',
@@ -404,6 +427,8 @@ export function parseLandsdGovernmentNoticePdfText(
   for (const line of lines.slice(headerIndex + 1)) {
     if (!line.trim() || /^\s*(?:page\s+)?\d+\s*$/i.test(line)) continue
     if (isGovernmentNoticePostamble(line, locale)) break
+    if (isGovernmentNoticeTableHeader(line, locale)) continue
+    if (isGovernmentNoticeSignatureLine(line, locale)) break
     if (
       (locale === 'en' &&
         /^\s*\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\s*$/i.test(
@@ -416,8 +441,12 @@ export function parseLandsdGovernmentNoticePdfText(
     const description = isNamedInTable
       ? ''
       : cleanPdfCell(line.slice(descriptionColumn, nameColumn))
+    const district =
+      isNamedInTable && districtColumn >= 0
+        ? cleanPdfCell(line.slice(districtColumn, descriptionColumn))
+        : ''
     const name = isNamedInTable
-      ? cleanPdfCell(line.slice(descriptionColumn, previousColumn))
+      ? cleanPdfCell(line.slice(nameColumn, previousColumn))
       : cleanPdfCell(
           line.slice(nameColumn, previousColumn >= 0 ? previousColumn : undefined),
         )
@@ -447,13 +476,14 @@ export function parseLandsdGovernmentNoticePdfText(
     if (name) {
       current = {
         description: description || null,
+        district: district || null,
         effectiveDate: parseNoticeEffectiveDate(`${description}\n${previous}\n${text}`),
         immediateEffect,
         name,
         ordinal: entries.length,
         previousNoticeRefs:
           previousColumn >= 0
-            ? extractGovernmentNoticeReferences(previous)
+            ? extractGovernmentNoticeReferences(previous, { allowBareChinese: true })
             : globalPreviousReferences,
         rawText: line,
       }
@@ -466,7 +496,7 @@ export function parseLandsdGovernmentNoticePdfText(
       current.effectiveDate ??= parseNoticeEffectiveDate(description)
       const references =
         previousColumn >= 0
-          ? extractGovernmentNoticeReferences(previous)
+          ? extractGovernmentNoticeReferences(previous, { allowBareChinese: true })
           : globalPreviousReferences
       if (references.length > 0) {
         current.previousNoticeRefs = uniqueStrings([
@@ -478,6 +508,11 @@ export function parseLandsdGovernmentNoticePdfText(
   }
   return {
     diagnostics: {
+      extraction: {
+        engine: null,
+        language: null,
+        method: 'native-text',
+      },
       header,
       immediateEffect,
       layout:
@@ -648,6 +683,10 @@ export function pairLandsdGovernmentNoticePdfEntries(input: {
         descriptions: {
           en: englishEntry.description,
           zhHant: zhHantEntry.description,
+        },
+        districts: {
+          en: englishEntry.district,
+          zhHant: zhHantEntry.district,
         },
         effectiveDate: englishEntry.effectiveDate ?? zhHantEntry.effectiveDate,
         gazetteDate: english.gazetteDate,
@@ -940,17 +979,39 @@ function cleanPdfCell(value: string) {
   return value.replaceAll(/\s+/g, ' ').trim()
 }
 
-function extractGovernmentNoticeReferences(value: string) {
+function extractGovernmentNoticeReferences(
+  value: string,
+  options: { allowBareChinese?: boolean } = {},
+) {
   const matches = value.matchAll(
-    /(?:G\.?\s*N\.?|Government\s+Notice(?:\s+No\.?)?)\s*(\d{2,})(?:\s*(?:of|\/|,|-)\s*\d{4})?|第\s*(\d{2,})\s*號\s*(?:政府)?公告/gi,
+    new RegExp(
+      String.raw`(?:G\.?\s*N\.?|Government\s+Notice(?:\s+No\.?)?)\s*(\d{2,})(?:\s*(?:of|\/|,|-)\s*\d{4})?|第\s*(\d{2,})\s*號\s*(?:政府)?公告${options.allowBareChinese ? String.raw`|第\s*(\d{2,})\s*號` : ''}`,
+      'gi',
+    ),
   )
-  return uniqueStrings([...matches].map(match => `gn${match[1] ?? match[2] ?? ''}`))
+  return uniqueStrings(
+    [...matches].map(match => `gn${match[1] ?? match[2] ?? match[3] ?? ''}`),
+  )
 }
 
 function isGovernmentNoticePostamble(line: string, locale: LandsdStreetPageLocale) {
   return locale === 'en'
     ? /^\s*A copy of (?:Plan No\.|this notice)/i.test(line)
     : /^\s*查閱第?.*(?:圖則|本公告)/u.test(line)
+}
+
+function isGovernmentNoticeTableHeader(line: string, locale: LandsdStreetPageLocale) {
+  return locale === 'en'
+    ? /\bDescription\b.*\bName\b/i.test(line) ||
+        /\bDistrict\b.*\b(?:Street\s+)?Names?\b.*\bNamed\s+in\b/i.test(line)
+    : /(?:說明|描述).*?(?:名稱|名字)/u.test(line) ||
+        /(?:地區|區域).*?(?:街道)?名稱.*?(?:刊載於|原載於|政府公告)/u.test(line)
+}
+
+function isGovernmentNoticeSignatureLine(line: string, locale: LandsdStreetPageLocale) {
+  return locale === 'en'
+    ? /\bfor Director of Lands\b/i.test(line)
+    : /地政總署署長/u.test(line)
 }
 
 function extractPreviousNoticeReferences(value: string) {
