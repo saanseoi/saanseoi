@@ -6,9 +6,12 @@ is an append-only source event that may create a street, change its description,
 all or part of it, delete it, or make no materialised change.
 
 The historical e-Gazette archive preserves bilingual Government Notice evidence from 19
-May 2000 onward, including notices before the LandsD HTML notice table begins. It is a
-source archive and audit trail; it does not by itself create canonical street identities
-or lifecycle links.
+May 2000 onward, including notices before the LandsD HTML notice table begins. The
+LandsD street ingest parses its immutable manifest before it registers any source
+assets. Its pre-2016 notice rows join the same source ledger and lifecycle/curation
+reducer as the LandsD forward feed; matching later archive PDFs are retained as
+independent evidence on the LandsD-page event, not replayed as duplicate lifecycle
+events.
 
 The source ledger separates baseline rows, immutable notices, and persisted notice
 applications. Only declarations that create a new street can be automatic; every
@@ -46,4 +49,5 @@ Each release records notice-event counts by type; streets added, changed, delete
 active/deleted totals; versions created; description completeness; PDF extraction
 outcomes; district coverage; and translation provenance. Pairing, parsing, district,
 asset, lifecycle-resolution, and translation failures block publication and are reported
-to the operator.
+to the operator. An e-Gazette failure identifies the publication date, issue/subject,
+both local PDF paths, and the exact failed fact.
