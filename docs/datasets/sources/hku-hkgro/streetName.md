@@ -86,6 +86,10 @@ is currently materialised into the LandsD street lifecycle, published to R2, or 
 infer canonical street identity. Before that integration, each scan needs explicit OCR
 provenance, parsed facts, and a reviewed lifecycle/identity decision.
 
+This is intentionally a pending fourth street-backfill stage. Retrieval and OCR may run
+locally while processing continues, but there is no HKGRO staging or assembly command
+until OCR output and candidate selection have been reviewed.
+
 ## Upstream
 
 - [HKGRO annual Government Gazette browsing](https://sunzi.lib.hku.hk/hkgro/browse.jsp)

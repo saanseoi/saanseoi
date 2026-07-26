@@ -5,13 +5,12 @@ The LandsD gazetted register is the baseline materialisation. Each later LandsD 
 is an append-only source event that may create a street, change its description, rename
 all or part of it, delete it, or make no materialised change.
 
-The historical e-Gazette archive preserves bilingual Government Notice evidence from 19
-May 2000 onward, including notices before the LandsD HTML notice table begins. The
-LandsD street ingest parses its immutable manifest before it registers any source
-assets. Its pre-2016 notice rows join the same source ledger and lifecycle/curation
-reducer as the LandsD forward feed; matching later archive PDFs are retained as
-independent evidence on the LandsD-page event, not replayed as duplicate lifecycle
-events.
+The street backfill uses three non-overlapping inputs: the LandsD gazetted-list PDF;
+LandsD bilingual notice PDFs from 22 January 2016 onward; and official e-Gazette notice
+PDFs from 19 May 2000 through 21 January 2016. Each input is staged separately, then the
+assembler reconciles the baseline against the complete notice ledger and publishes one
+immutable snapshot revision. The date boundary prevents a Government Notice from being
+replayed from both publishers.
 
 HKU Libraries' HKGRO scans cover Gazette tables of contents and source PDFs from
 1842–1941 (except 1849–1852). They are retrieved locally as high-recall street-name

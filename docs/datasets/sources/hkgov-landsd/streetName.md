@@ -32,22 +32,31 @@ the primary PDF evidence.
 
 ## Parsing and application
 
-`bun run dataops -- hkgov-landsd-streets:backfill --target local|preview|production`
-pairs English and Traditional Chinese page rows by notice identity for the historical
-backfill. Its PDF parser understands three-column `Description`/`Name`/`Previous G.N.`,
-two-column `Description`/`Name`, and deletion `Name`/`Named in` layouts. Lifecycle
-curation parses the linked bilingual change and corrigendum PDFs; e-Gazette source PDFs
-are parsed before any assets are registered. A Chinese e-Gazette PDF without a text
-layer is OCRed using PaddleOCR (`chinese_cht`, 300 DPI), and the event records that
-extraction method, engine version and model separately from native publisher text.
-Unsupported historical layouts fail with their exact local paths and parse facts. Those
-candidates are evidence only: neither a parser fallback nor page-row order creates a
-lifecycle link. Missing PDF evidence blocks publication. A readable PDF whose layout is
-not recognised is retained as evidence and presented for a curator decision instead.
+The LandsD stages are:
 
-The command reports its active stage, source-PDF and Government Notice extraction
-counters, plan-preview rendering, release publication, and cursor update. This makes
-long local backfills visibly distinguishable from a stalled process.
+```bash
+bun run dataops -- hkgov-landsd-streets:baseline --target local|preview|production
+bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production
+```
+
+The notice stage pairs English and Traditional Chinese page rows by notice identity and
+includes notices dated 22 January 2016 onward. Its PDF parser understands three-column
+`Description`/`Name`/`Previous G.N.`, two-column `Description`/`Name`, and deletion
+`Name`/`Named in` layouts. Lifecycle curation parses the linked bilingual change and
+corrigendum PDFs; e-Gazette source PDFs are parsed before any assets are registered. A
+Chinese e-Gazette PDF without a text layer is OCRed using PaddleOCR (`chinese_cht`, 300
+DPI), and the event records that extraction method, engine version and model separately
+from native publisher text. Unsupported historical layouts fail with their exact local
+paths and parse facts. Those candidates are evidence only: neither a parser fallback nor
+page-row order creates a lifecycle link. Missing PDF evidence blocks publication. A
+readable PDF whose layout is not recognised is retained as evidence and presented for a
+curator decision instead.
+
+The two commands stage evidence and parsed immutable records; neither publishes a street
+snapshot. After the official e-Gazette stage is complete, run
+`hkgov-landsd-streets:assemble` to reconcile baseline names against the complete notice
+ledger and publish one snapshot revision. This avoids treating a present-state baseline
+as an event that follows older notices.
 
 For `--target local`, immutable evidence and manifests are registered in the local
 metadata database and written to the local Wrangler R2 state. The resulting links use
