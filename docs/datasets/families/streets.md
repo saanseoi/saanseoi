@@ -64,3 +64,10 @@ PaddleOCR (`chinese_cht`, rendered at 300 DPI). The English PDF remains authorit
 for Government Notice identity, lifecycle kind, dates, and `Previous G.N.` values; OCR
 is explicitly retained as an extraction method, model and engine version in parser
 provenance.
+
+# Streets
+
+Street identity is established from LandsD gazetted names. LandsD Road Centreline
+releases provide an optional geometry for individual streets, but a published Streets
+composition requires a selected Road Centreline release. Historic street versions
+resolve the corresponding historic centreline release.
