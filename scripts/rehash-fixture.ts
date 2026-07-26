@@ -1,4 +1,4 @@
-import { access, readFile, writeFile } from 'node:fs/promises'
+import { access, readdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, isAbsolute, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -16,6 +16,7 @@ const fixtureGroups = [
   'dataPublishers',
   'datasets',
   'dataShards',
+  'identifierBridges',
   'rulesetVersions',
   'schemaVersions',
 ]
@@ -95,12 +96,24 @@ async function rehashFixture(filePath: string) {
   console.log(`${displayPath}: ${changeLabel}`)
 }
 
-const filePaths = Bun.argv.slice(2)
-
-if (filePaths.length === 0) {
-  console.error('Usage: bun run rehash:fixture <file>')
-  process.exit(1)
+async function allFixturePaths() {
+  return (
+    await Promise.all(
+      fixtureGroups.map(async fixtureGroup =>
+        (
+          await readdir(resolve(workspaceRoot, 'fixtures/meta', fixtureGroup))
+        )
+          .filter(fileName => fileName.endsWith('.json'))
+          .map(fileName => `${fixtureGroup}/${fileName}`),
+      ),
+    )
+  )
+    .flat()
+    .sort()
 }
+
+const specifiedPaths = Bun.argv.slice(2)
+const filePaths = specifiedPaths.length > 0 ? specifiedPaths : await allFixturePaths()
 
 for (const filePath of filePaths) {
   await rehashFixture(filePath)

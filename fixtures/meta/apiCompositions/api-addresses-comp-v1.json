@@ -10,9 +10,18 @@
       "code": "default",
       "isDefault": true,
       "i18n": [
-        { "locale": "en", "name": "Default" },
-        { "locale": "zh-hant", "name": "預設" },
-        { "locale": "zh-hans", "name": "默认" }
+        {
+          "locale": "en",
+          "name": "Default"
+        },
+        {
+          "locale": "zh-hant",
+          "name": "預設"
+        },
+        {
+          "locale": "zh-hans",
+          "name": "默认"
+        }
       ],
       "members": [
         {
