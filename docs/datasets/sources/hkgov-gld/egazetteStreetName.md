@@ -32,13 +32,13 @@ The manifest records the publication date, issue and volume, Government Notice s
 official URLs, local paths, byte lengths and SHA-256 hashes. The current retrieval
 contains 594 notice records and 1,188 bilingual PDFs, covering 19 May 2000 through 3
 July 2026.
-`bun run dataops -- hkgov-landsd-streets:backfill --target local|preview|production`
-reads the manifest and parses every bilingual PDF before registering archive assets.
-Parsed notices before 2016 are immutable source events in the LandsD street lifecycle
-ledger, while notices also present in the post-2015 LandsD HTML forward feed contribute
-a separately role-tagged `historicalGovernmentNotice` evidence asset to that event
-rather than creating a duplicate event. Lifecycle links still require the LandsD
-curation workflow; `Previous G.N.` never resolves a street ID.
+`bun run dataops -- hkgov-landsd-streets:official-egazette --target local|preview|production`
+reads and stages only bilingual PDFs dated 19 May 2000 through 21 January 2016 before
+registering their managed assets. Notices from 22 January 2016 onward belong exclusively
+to the LandsD notice stage, so no event is duplicated in the assembled lifecycle ledger.
+Lifecycle links still require the LandsD curation workflow; `Previous G.N.` never
+resolves a street ID. Run `hkgov-landsd-streets:assemble` after all three street stages
+are ready to publish the combined snapshot revision.
 
 The command uses English text as the authoritative source for Government Notice
 identity, publication/effective dates, notice kind and `Previous G.N.` values. If an old

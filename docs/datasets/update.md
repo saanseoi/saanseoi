@@ -56,10 +56,22 @@ release policy is to compare native schema and semantic fingerprints in release 
 an initial baseline or any geometry, attribute, feature, or schema change warrants a
 back-dated SaanSeoi release and notes; an identical redelivery remains provenance only.
 
-The LandsD street-name dataset is a two-stage source. Its initial baseline and
-historical e-Gazette reconstruction are maintainer-only DataOps work:
-`bun run dataops -- hkgov-landsd-streets:backfill --target local|preview|production`.
-Later `saanseoi update --download` runs read the Government Notices table and write only
+The LandsD street-name backfill is staged maintainer-only DataOps work. Preserve and
+parse the baseline, LandsD notices from 22 January 2016 onward, and the official
+e-Gazette notices from 19 May 2000 through 21 January 2016 separately. Then assemble the
+three stages once into the immutable street snapshot:
+
+```bash
+bun run dataops -- hkgov-landsd-streets:baseline --target local|preview|production
+bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production
+bun run dataops -- hkgov-landsd-streets:official-egazette --target local|preview|production
+bun run dataops -- hkgov-landsd-streets:assemble --target local|preview|production
+```
+
+The stage artefacts and the final assembly must use the same target because their
+managed evidence-asset IDs are target-specific. The assembler is the only command that
+publishes a street release, snapshot revision, and cursor update. Later
+`saanseoi update --download` runs read the Government Notices table and write only
 notice rows not present in the saved source cursor, together with generated Markdown
 notes and local WebP plan conversions. `lastUpdated` in the dataset fixture is the
 checked-in bootstrap baseline; the live cursor belongs in the ignored update-state file.
