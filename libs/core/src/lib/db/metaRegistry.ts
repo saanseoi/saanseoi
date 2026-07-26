@@ -1949,7 +1949,11 @@ export async function ensureDraftSnapshotForRelease(
       updatedAt: now,
     })
     .onConflictDoUpdate({
-      target: [metaSnapshotLineages.primaryDatasetId, metaSnapshotLineages.variant],
+      target: [
+        metaSnapshotLineages.primaryDatasetId,
+        metaSnapshotLineages.resourceType,
+        metaSnapshotLineages.variant,
+      ],
       set: {
         code: lineageCode,
         regionCode: args.regionCode,
