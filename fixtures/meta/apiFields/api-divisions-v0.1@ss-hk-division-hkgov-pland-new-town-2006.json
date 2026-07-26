@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:6636cba4a34d6105db6ab4ef2bf5d9b69d1f05b7d1ffdc69d43c0584bb27ca31",
+  "versionHash": "sha256:9a7c22a09578fdea641afadc7c93bddf22f50abf2fe530c46a611053e86449cb",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-pland-new-town",
   "schemaVersion": "sv-division-v1",
@@ -7,6 +7,24 @@
   "lineageAnchors": [
     {
       "snapshotVersion": "ss-hk-division-hkgov-pland-new-town-2006",
+      "sourceSchemas": {
+        "ds-hk-hkgov-pland-division-new-town": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-hkgov-pland-new-town-2011",
+      "sourceSchemas": {
+        "ds-hk-hkgov-pland-division-new-town": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-hkgov-pland-new-town-2016",
+      "sourceSchemas": {
+        "ds-hk-hkgov-pland-division-new-town": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-hkgov-pland-new-town-2021",
       "sourceSchemas": {
         "ds-hk-hkgov-pland-division-new-town": "1.0"
       }
