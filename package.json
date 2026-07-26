@@ -113,7 +113,7 @@
     "cf-typegen": "bun run --workspaces --if-present cf-typegen"
   },
   "dependencies": {
-    "@inlang/paraglide-js": "^2.22.0",
+    "@inlang/paraglide-js": "^2.23.0",
     "bits-ui": "^2.18.1",
     "bun-types": "^1.3.14",
     "drizzle-orm": "^1.0.0-rc.4-5d5b77c",
@@ -134,7 +134,7 @@
     "husky": "^9.1.7",
     "prettier": "^3.9.6",
     "tailwindcss-animate": "^1.0.7",
-    "turbo": "^2.10.6",
+    "turbo": "^2.10.7",
     "wrangler": "^4.114.0"
   },
   "peerDependencies": {
