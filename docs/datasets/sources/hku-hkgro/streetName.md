@@ -77,6 +77,27 @@ timeout so an unavailable model host cannot hang the archive; set
 `SAANSEOI_PADDLEOCR_TIMEOUT_MS` to a larger positive millisecond value only after
 confirming that the runtime and model download are healthy.
 
+## Discovery review
+
+Once OCR is complete, create the local curator queue with:
+
+```bash
+bun run dataops -- hkgov-hkgro-street-names:discover --target local
+```
+
+It writes `discovery/review.json` beside the archive. The queue groups repeated table of
+contents references to the same source PDF, retains the original source hash and OCR
+path, and ranks entries using title and OCR signals. It suggests `manual-review`,
+`not-street-name`, or `unclassified`; it never automatically accepts a source event.
+Rerunning discovery preserves a curator decision when the bound source hash is
+unchanged.
+
+Curators inspect the original scan before accepting a row. Material events include a
+street declaration, naming or renaming, deletion, legally material designation, or a
+description change. Repairs, tenders, land sales, street cries, house numbering, and
+other incidental street references are rejected as `not-street-name`. OCR excerpts and
+extracted signals are review aids, never publisher-native facts.
+
 ## Classification and lifecycle boundary
 
 Candidate selection is high-recall discovery, not a finding that a notice changes a
@@ -86,9 +107,9 @@ is currently materialised into the LandsD street lifecycle, published to R2, or 
 infer canonical street identity. Before that integration, each scan needs explicit OCR
 provenance, parsed facts, and a reviewed lifecycle/identity decision.
 
-This is intentionally a pending fourth street-backfill stage. Retrieval and OCR may run
-locally while processing continues, but there is no HKGRO staging or assembly command
-until OCR output and candidate selection have been reviewed.
+This is intentionally a pending fourth street-backfill stage. Discovery, retrieval, and
+OCR remain local-only; there is no HKGRO staging or assembly command until the reviewed
+selection also has parsed facts and lifecycle/identity decisions.
 
 ## Upstream
 
