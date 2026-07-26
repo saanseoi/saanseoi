@@ -1341,7 +1341,10 @@ function expandIntentionNotices(input: {
       if (
         englishReferences.size > 0 &&
         zhHantReferences.size > 0 &&
-        !sameNoticeReferences(englishReferences, zhHantReferences)
+        !(
+          englishReferences.size === zhHantReferences.size &&
+          [...englishReferences].every(reference => zhHantReferences.has(reference))
+        )
       ) {
         throw new Error(
           `${source.noticeIdentity ?? source.id}: intention notice PDF row ${ordinal + 1} has bilingual Previous G.N. disagreement.`,
@@ -1465,18 +1468,21 @@ async function ocrPdfToTraditionalChineseText(pdfPath: string) {
 }
 
 function layoutOcrTsv(value: string) {
-  type Word = { key: string; left: number; text: string }
+  type Word = { left: number; text: string }
   const lines = new Map<string, Word[]>()
   for (const [index, row] of value.split(/\r?\n/).entries()) {
     if (index === 0 || !row.trim()) continue
     const fields = row.split('\t')
     if (fields[0] !== '5') continue
     const left = Number(fields[6])
+    const top = Number(fields[7])
     const text = fields[11]?.trim()
-    if (!Number.isFinite(left) || !text) continue
-    const key = [fields[1], fields[2], fields[3], fields[4]].join('\0')
+    if (!Number.isFinite(left) || !Number.isFinite(top) || !text) continue
+    // Separate table columns often become separate OCR blocks. Group by their
+    // visual baseline instead, preserving the column positions below.
+    const key = [fields[1], Math.round(top / 16)].join('\0')
     const words = lines.get(key) ?? []
-    words.push({ key, left, text })
+    words.push({ left, text })
     lines.set(key, words)
   }
   return [...lines.values()]
@@ -1734,7 +1740,8 @@ function requiredAssetBytes(bytes: Uint8Array | undefined) {
 function isLifecycleCurationNotice(notice: PairedLandsdStreetNotice) {
   return (
     notice.governmentNoticeType === 'change' ||
-    notice.governmentNoticeType === 'corrigendum'
+    notice.governmentNoticeType === 'corrigendum' ||
+    notice.governmentNoticeType === 'intention'
   )
 }
 

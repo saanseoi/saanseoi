@@ -54,6 +54,7 @@ export async function runLandsdStreetIngestCommand(
   try {
     const result = await ingestLandsdStreetSource({
       includeBaseline: true,
+      includeEgazetteHistory: true,
       ...(requestedNoticeIds.length > 0 ? { noticeIds: requestedNoticeIds } : {}),
       outputDir,
       target,
