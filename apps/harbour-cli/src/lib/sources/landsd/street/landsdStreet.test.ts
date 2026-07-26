@@ -222,6 +222,19 @@ describe('LandsD bilingual street notices', () => {
     expect(parsed.entries[0]?.previousNoticeRefs).toEqual(['gn250', 'gn262'])
   })
 
+  test('keeps spaced Chinese road-description rows separate', () => {
+    const parsed = parseLandsdGovernmentNoticePdfText(
+      [
+        `${'說明'.padEnd(56)}名稱`,
+        `${'這道路長約 1 550 米。'.padEnd(56)}安愉道`,
+        `${'這 道 路長約 100 米。'.padEnd(56)}安愉徑`,
+      ].join('\n'),
+      'zh-Hant',
+    )
+
+    expect(parsed.entries.map(entry => entry.name)).toEqual(['安愉道', '安愉徑'])
+  })
+
   test('splits replacement-table cells from their previous-notice anchors', () => {
     const english = parseLandsdGovernmentNoticePdfText(
       [
