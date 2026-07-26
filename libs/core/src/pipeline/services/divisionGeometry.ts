@@ -392,21 +392,10 @@ function assertValidGeometry(geometry: GeoJsonGeometry, id: string | null) {
           `Division geometry ${id ?? '<unknown>'} contains a degenerate ring.`,
         )
       }
-      for (let first = 0; first < ring.length - 1; first += 1) {
-        for (let second = first + 1; second < ring.length - 1; second += 1) {
-          if (second <= first + 1 || (first === 0 && second === ring.length - 2))
-            continue
-          const firstStart = ring[first]
-          const firstEnd = ring[first + 1]
-          const secondStart = ring[second]
-          const secondEnd = ring[second + 1]
-          if (!firstStart || !firstEnd || !secondStart || !secondEnd) continue
-          if (segmentsIntersect(firstStart, firstEnd, secondStart, secondEnd)) {
-            throw new Error(
-              `Division geometry ${id ?? '<unknown>'} contains a self-intersecting ring.`,
-            )
-          }
-        }
+      if (hasSelfIntersectingRing(ring)) {
+        throw new Error(
+          `Division geometry ${id ?? '<unknown>'} contains a self-intersecting ring.`,
+        )
       }
     }
   }
@@ -426,6 +415,75 @@ function ringArea(ring: GeoJsonPosition[]) {
     area -= (ring[index + 1]?.[0] ?? 0) * (ring[index]?.[1] ?? 0)
   }
   return Math.abs(area / 2)
+}
+
+function hasSelfIntersectingRing(ring: GeoJsonPosition[]) {
+  const segmentCount = ring.length - 1
+  let minX = Number.POSITIVE_INFINITY
+  let maxX = Number.NEGATIVE_INFINITY
+  let minY = Number.POSITIVE_INFINITY
+  let maxY = Number.NEGATIVE_INFINITY
+  for (const position of ring) {
+    minX = Math.min(minX, position[0])
+    maxX = Math.max(maxX, position[0])
+    minY = Math.min(minY, position[1])
+    maxY = Math.max(maxY, position[1])
+  }
+  const gridSize = Math.max(8, Math.min(256, Math.ceil(Math.sqrt(segmentCount))))
+  const cellWidth = (maxX - minX) / gridSize || 1
+  const cellHeight = (maxY - minY) / gridSize || 1
+  const buckets = new Map<string, number[]>()
+
+  for (let index = 0; index < segmentCount; index += 1) {
+    const start = ring[index]
+    const end = ring[index + 1]
+    if (!start || !end) continue
+
+    const fromX = gridCell(Math.min(start[0], end[0]), minX, cellWidth, gridSize)
+    const toX = gridCell(Math.max(start[0], end[0]), minX, cellWidth, gridSize)
+    const fromY = gridCell(Math.min(start[1], end[1]), minY, cellHeight, gridSize)
+    const toY = gridCell(Math.max(start[1], end[1]), minY, cellHeight, gridSize)
+    const checked = new Set<number>()
+
+    for (let x = fromX; x <= toX; x += 1) {
+      for (let y = fromY; y <= toY; y += 1) {
+        const key = `${x}:${y}`
+        const candidates = buckets.get(key) ?? []
+        for (const candidateIndex of candidates) {
+          if (
+            checked.has(candidateIndex) ||
+            areAdjacentRingSegments(index, candidateIndex, segmentCount)
+          ) {
+            continue
+          }
+          checked.add(candidateIndex)
+
+          const candidateStart = ring[candidateIndex]
+          const candidateEnd = ring[candidateIndex + 1]
+          if (
+            candidateStart &&
+            candidateEnd &&
+            segmentsIntersect(start, end, candidateStart, candidateEnd)
+          ) {
+            return true
+          }
+        }
+        candidates.push(index)
+        buckets.set(key, candidates)
+      }
+    }
+  }
+
+  return false
+}
+
+function gridCell(value: number, minimum: number, size: number, gridSize: number) {
+  return Math.max(0, Math.min(gridSize - 1, Math.floor((value - minimum) / size)))
+}
+
+function areAdjacentRingSegments(left: number, right: number, segmentCount: number) {
+  const difference = Math.abs(left - right)
+  return difference <= 1 || difference === segmentCount - 1
 }
 
 function segmentsIntersect(

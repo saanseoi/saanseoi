@@ -93,6 +93,30 @@ describe('division geometry normalisation', () => {
     ).toThrow('contains a self-intersecting ring')
   })
 
+  test('validates a detailed non-intersecting ring', () => {
+    const segments = 2048
+    const ring = Array.from({ length: segments }, (_, index) => {
+      const angle = (index / segments) * Math.PI * 2
+      return [Math.cos(angle), Math.sin(angle)]
+    })
+    ring.push(ring[0] as [number, number])
+
+    expect(() =>
+      normaliseDivisionAreaGeometryRow(
+        {
+          class: 'land',
+          division_id: 'division-1',
+          geometry: { coordinates: [ring], type: 'Polygon' },
+          id: 'detailed-area',
+          is_land: true,
+          is_territorial: false,
+        },
+        'overture',
+        { validateGeometry: true },
+      ),
+    ).not.toThrow()
+  })
+
   test('derives mixed Overture type and bbox from geometry rather than input metadata', () => {
     const normalised = normaliseDivisionAreaGeometryRow({
       bbox: [99, 99, 100, 100],
