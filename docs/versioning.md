@@ -460,11 +460,11 @@ The final `.N` in an Overture source version is an upstream/correction sequence.
 not an API release-set revision and not a catalogue revision.
 
 Within a dataset, `(datasetId, sourceVersion)` is unique. Where a provider defines an
-ordering or correction suffix, preserve it, but do not use lexical source-version order
-as Saanseoi's knowledge clock. If a published source release is corrected, register a
-distinct correcting source version and connect the old release through
-`supersededByReleaseId`. A correction may mark the old release revoked; an ordinary
-newer release marks it superseded.
+ordering or correction suffix, preserve it with `correctionSuffixSource: "upstream"`,
+but do not use lexical source-version order as Saanseoi's knowledge clock. If a
+published source release is corrected, register a distinct correcting source version and
+connect the old release through `supersededByReleaseId`. A correction may mark the old
+release revoked; an ordinary newer release marks it superseded.
 
 Releases MUST be ingestible out of source-version order. For example, a dataset with a
 registered `2022` source release may later receive a genuine `2006` historical release.
