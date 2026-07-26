@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 
-import type { HkgroStreetDiscoveryRecord } from './hkgroStreetNamesDiscover.ts'
+import {
+  suggestHkgroStreetClassification,
+  type HkgroStreetDiscoveryRecord,
+} from './hkgroStreetNamesDiscover.ts'
 import { formatReviewContext, recordsForReview } from './hkgroStreetNamesReview.ts'
 
 function record(input: Partial<HkgroStreetDiscoveryRecord> = {}) {
@@ -96,5 +99,14 @@ describe('HKGRO street-name review', () => {
     expect(context).toContain('Relevant OCR page(s)')
     expect(context).toContain('Page 1')
     expect(context).toContain('OCR excerpt (not source evidence)')
+  })
+
+  test('distinguishes absorption into an existing street from a rename', () => {
+    const suggestion = suggestHkgroStreetClassification(
+      record(),
+      'That part of the Street hitherto known as Albany Street shall from henceforth cease to form part of Albany Street, and shall be known as Albany Lane.',
+    )
+
+    expect(suggestion.kinds).toContain('absorption')
   })
 })

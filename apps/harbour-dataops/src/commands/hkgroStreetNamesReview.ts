@@ -122,6 +122,7 @@ async function printHkgroSourceInline(input: {
   const pageNumber = input.record.reviewPages?.[0]?.pageNumber ?? 1
   const previewDir = await mkdtemp(join(tmpdir(), 'saanseoi-hkgro-review-'))
   const previewPath = join(previewDir, `source-page-${pageNumber}`)
+  const inlinePath = join(previewDir, `source-page-${pageNumber}-inline.png`)
   try {
     await runInlineCommand('pdftoppm', [
       '-f',
@@ -135,10 +136,28 @@ async function printHkgroSourceInline(input: {
       sourcePath,
       previewPath,
     ])
-    await runInlineCommand('kitten', ['icat', '--fit=width', `${previewPath}.png`])
+    const width = await kittyWindowWidth()
+    await runInlineCommand('magick', [
+      `${previewPath}.png`,
+      '-resize',
+      `${Math.floor(width / 2)}x`,
+      inlinePath,
+    ])
+    await runInlineCommand('kitten', ['icat', '--fit=none', inlinePath])
   } finally {
     await rm(previewDir, { force: true, recursive: true })
   }
+}
+
+async function kittyWindowWidth() {
+  const output = await runInlineCommandOutput('kitten', ['icat', '--print-window-size'])
+  const match = /^(\d+)x\d+$/m.exec(output.trim())
+  if (!match?.[1]) {
+    throw new Error(
+      `Kitty returned an invalid window size: ${output.trim() || 'none'}.`,
+    )
+  }
+  return Number.parseInt(match[1], 10)
 }
 
 async function runInlineCommand(command: string, args: string[]) {
@@ -154,6 +173,34 @@ async function runInlineCommand(command: string, args: string[]) {
     process.on('exit', code => {
       if (code === 0) {
         resolveCommand()
+      } else {
+        rejectCommand(
+          new Error(
+            `${command} failed while rendering the HKGRO source (exit code ${code ?? 'unknown'}).`,
+          ),
+        )
+      }
+    })
+  })
+}
+
+async function runInlineCommandOutput(command: string, args: string[]) {
+  return await new Promise<string>((resolveCommand, rejectCommand) => {
+    const process = spawn(command, args, {
+      stdio: ['inherit', 'pipe', 'inherit'],
+    })
+    const output: Uint8Array[] = []
+    process.stdout.on('data', (chunk: Uint8Array) => output.push(chunk))
+    process.on('error', error => {
+      rejectCommand(
+        new Error(
+          `Could not run ${command} while rendering the HKGRO source: ${error.message}`,
+        ),
+      )
+    })
+    process.on('exit', code => {
+      if (code === 0) {
+        resolveCommand(Buffer.concat(output).toString('utf8'))
       } else {
         rejectCommand(
           new Error(
@@ -193,11 +240,14 @@ async function selectStreetChangeKind(
   suggestedKinds: HkgroStreetChangeKind[],
 ): Promise<HkgroStreetChangeKind> {
   const kind = await select({
-    message: 'Material street-history kind',
+    message: 'How does this notice change street history?',
     options: orderedKinds(suggestedKinds).map(value => ({
       value,
       label: streetChangeKindLabel(value),
-      ...(suggestedKinds.includes(value) ? { hint: 'suggested by discovery' } : {}),
+      hint: [
+        streetChangeKindDefinition(value),
+        ...(suggestedKinds.includes(value) ? ['suggested by discovery'] : []),
+      ].join(' · '),
     })),
   })
   if (isCancel(kind)) throw new Error('HKGRO street-name review cancelled.')
@@ -206,6 +256,7 @@ async function selectStreetChangeKind(
 
 function orderedKinds(suggestedKinds: HkgroStreetChangeKind[]) {
   const allKinds: HkgroStreetChangeKind[] = [
+    'absorption',
     'declaration',
     'name-change',
     'deletion',
@@ -217,6 +268,8 @@ function orderedKinds(suggestedKinds: HkgroStreetChangeKind[]) {
 
 function streetChangeKindLabel(kind: HkgroStreetChangeKind) {
   switch (kind) {
+    case 'absorption':
+      return 'Absorption into an existing street'
     case 'declaration':
       return 'Declaration'
     case 'name-change':
@@ -224,9 +277,26 @@ function streetChangeKindLabel(kind: HkgroStreetChangeKind) {
     case 'deletion':
       return 'Deletion or closure'
     case 'designation':
-      return 'Legally material designation'
+      return 'Legal designation (not a name change)'
     case 'description-change':
       return 'Description change'
+  }
+}
+
+function streetChangeKindDefinition(kind: HkgroStreetChangeKind) {
+  switch (kind) {
+    case 'absorption':
+      return 'moves a street or section into an existing street; the source identity ends and the surviving street gains extent'
+    case 'declaration':
+      return 'creates or declares a street'
+    case 'name-change':
+      return 'assigns or replaces a street name'
+    case 'deletion':
+      return 'removes, closes, or discontinues a street'
+    case 'designation':
+      return 'formally defines a street without changing its name'
+    case 'description-change':
+      return 'changes the legally operative route or extent description'
   }
 }
 

@@ -540,7 +540,7 @@ function partialRenameIntentionFor(
   // than saying "as a section of".  The district and prior-notice wording is
   // provenance, not part of either street name.
   const referencedSectionRename = english.match(
-    /rename\s+a\s+section\s+of\s+(.+?)\s+in\s+.+?\s+as\s+set\s+out\s+in\s+g\.?\s*n\.?\s*\d+.*?\s+to\s+(.+?)(?:\s+as\s+described|[:.—]|$)/i,
+    /rename\s+a\s+section\s+of\s+(.+?)(?:\s+in\s+.+?)?\s+as\s+set\s+out\s+in\s+g\.?\s*n\.?\s*\d+.*?\s+(?:to|as)\s+(.+?)(?:\s+and\s+to\s+cease|\s+as\s+described|[:.—]|$)/i,
   )
   const rename = directSectionRename ?? referencedSectionRename
   const sourceName = rename?.[1]?.trim()
