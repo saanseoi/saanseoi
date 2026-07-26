@@ -1,15 +1,23 @@
 {
-  "versionHash": "sha256:0d0580a1940888a2cbaa6dda1dd507e2f590c78877977dab03fec64fae012e78",
+  "versionHash": "sha256:2f3a0504ac9c027cac5df19d209e5b6ca5660a665014fb06ed7e00ff20a42e4f",
   "publisherCode": "overture",
   "code": "ds-hk-overture-place",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "places",
-  "type": "place",
+  "resourceTypes": ["place"],
   "licenseCode": "CDLA-Permissive-2.0",
   "attribution": "© Meta; Overture Maps Foundation.",
   "sourceUrl": "https://docs.overturemaps.org/",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "versionPolicy": {
+    "scheme": "upstream",
+    "correctionSuffixSource": "upstream"
+  },
   "category": "places",
   "i18n": [
     {
