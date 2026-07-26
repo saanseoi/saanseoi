@@ -23,11 +23,12 @@ publisher properties, retrieval metadata, source-page snapshots, extracted PDF t
 parser diagnostics, hashes, and source revisions.
 
 The two HTML source pages, the baseline PDF, each English and Traditional Chinese
-Government Notice PDF, and related Gazette Plan PDFs are preserved as managed source
-assets. `evidenceAssets` is the only evidence-link representation: every link is
-role-tagged and includes its publisher identifier where available, label, original URL,
-managed URL, media type, content hash, and provenance. Plan WebP previews are optional
-release-note assets and never replace the primary PDF evidence.
+Government Notice PDF, related Gazette Plan PDFs, and their e-Gazette historical
+counterparts are preserved as managed source assets. `evidenceAssets` is the only
+evidence-link representation: every link is role-tagged and includes its publisher
+identifier where available, label, original URL, managed URL, media type, content hash,
+and provenance. Plan WebP previews are optional release-note assets and never replace
+the primary PDF evidence.
 
 ## Parsing and application
 
@@ -35,11 +36,12 @@ release-note assets and never replace the primary PDF evidence.
 and Traditional Chinese page rows by notice identity. Its PDF parser understands
 three-column `Description`/`Name`/`Previous G.N.`, two-column `Description`/`Name`, and
 deletion `Name`/`Named in` layouts. Lifecycle curation parses the linked bilingual
-change and corrigendum PDFs; historical unstructured notices retain their extracted text
-and predecessor candidates for review. Those candidates are evidence only: neither a
-parser fallback nor page-row order creates a lifecycle link. Missing PDF evidence blocks
-publication. A readable PDF whose layout is not recognised is retained as evidence and
-presented for a curator decision instead.
+change and corrigendum PDFs; e-Gazette source PDFs are parsed before any assets are
+registered, and unsupported historical layouts fail with their exact local paths and
+parse facts. Those candidates are evidence only: neither a parser fallback nor page-row
+order creates a lifecycle link. Missing PDF evidence blocks publication. A readable PDF
+whose layout is not recognised is retained as evidence and presented for a curator
+decision instead.
 
 The command reports its active stage, source-PDF and Government Notice extraction
 counters, plan-preview rendering, release publication, and cursor update. This makes
