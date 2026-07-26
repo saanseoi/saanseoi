@@ -134,6 +134,13 @@ export type PairedLandsdGovernmentNoticePdfEntry = {
   rawExtractedText: { en: string; zhHant: string; zhHantNative?: string }
 }
 
+/** A corrigendum that corrects the printed date in an earlier Chinese notice. */
+export type LandsdChineseNoticeDateCorrigendum = {
+  correctedDate: string
+  erroneousDate: string
+  targetNoticeRef: string
+}
+
 const MONTHS: Record<string, string> = {
   january: '01',
   february: '02',
@@ -650,6 +657,7 @@ export function pairLandsdGovernmentNoticePdfEntries(input: {
 }) {
   const result = new Map<string, PairedLandsdGovernmentNoticePdfEntry>()
   const issues: string[] = []
+  const chineseDateCorrigenda = chineseNoticeDateCorrigenda(input)
   const noticeGroups = new Map<string, PairedLandsdStreetNotice[]>()
   for (const notice of input.notices) {
     const group = noticeGroups.get(notice.noticeIdentity ?? notice.id) ?? []
@@ -770,7 +778,12 @@ export function pairLandsdGovernmentNoticePdfEntries(input: {
         continue
       }
       if (english.gazetteDate !== zhHant.gazetteDate) {
-        issues.push(`${notice.id}: bilingual PDFs disagree about Gazette date.`)
+        const corrigendum = chineseDateCorrigenda.get(first.noticeIdentity ?? '')
+        const isCorrectedByLaterNotice =
+          corrigendum?.erroneousDate === zhHant.gazetteDate &&
+          corrigendum.correctedDate === english.gazetteDate
+        if (!isCorrectedByLaterNotice)
+          issues.push(`${notice.id}: bilingual PDFs disagree about Gazette date.`)
         // Retain the paired table rows. A publisher typo in one signature
         // block must not erase the explicit replacement descriptions; the
         // English PDF date remains the event date and the discrepancy is
@@ -803,6 +816,51 @@ export function pairLandsdGovernmentNoticePdfEntries(input: {
   }
   for (const issue of issues) input.onIssue?.(issue)
   return result
+}
+
+function chineseNoticeDateCorrigenda(input: {
+  english: Map<string, LandsdGovernmentNoticePdfParse>
+  notices: PairedLandsdStreetNotice[]
+}) {
+  const corrections = new Map<string, LandsdChineseNoticeDateCorrigendum>()
+  for (const notice of input.notices) {
+    if (notice.governmentNoticeType !== 'corrigendum') continue
+    const correction = parseLandsdChineseNoticeDateCorrigendum(
+      input.english.get(notice.id)?.rawText ?? '',
+    )
+    if (!correction || corrections.has(correction.targetNoticeRef)) continue
+    corrections.set(correction.targetNoticeRef, correction)
+  }
+  return corrections
+}
+
+/**
+ * Corrigenda such as G.N. 2321 amend the date printed in an earlier Chinese
+ * notice. They are publisher-metadata corrections, never street changes.
+ */
+export function parseLandsdChineseNoticeDateCorrigendum(
+  text: string,
+): LandsdChineseNoticeDateCorrigendum | null {
+  const normalised = text.replaceAll(/\s+/g, ' ')
+  const target = normalised.match(/Government\s+Notice\s+No\.\s*(\d+)/i)?.[1]
+  const dates = [...normalised.matchAll(/[‘'“"]([^’'”"]+?\d\s*日)[’'”"]/gu)].map(
+    match => parseChinesePrintedDate(match[1] ?? ''),
+  )
+  const [erroneousDate, correctedDate] = dates
+  return target && erroneousDate && correctedDate
+    ? {
+        correctedDate,
+        erroneousDate,
+        targetNoticeRef: `gn${target}`,
+      }
+    : null
+}
+
+function parseChinesePrintedDate(value: string) {
+  const match = value.match(/(\d{4})\s*年\s*(\d(?:\s*\d)?)\s*月\s*(\d(?:\s*\d)?)\s*日/u)
+  if (!match) return null
+  const [, year, month, day] = match
+  return `${year}-${month?.replaceAll(/\s/g, '').padStart(2, '0')}-${day?.replaceAll(/\s/g, '').padStart(2, '0')}`
 }
 
 /**
