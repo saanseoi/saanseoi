@@ -8,7 +8,12 @@ import {
 } from 'drizzle-orm/sqlite-core'
 
 import { jsonText, type StreetEvidenceAsset } from '../shared'
-import { sourceVersionIndexes, sourceVersioning } from './shared'
+import {
+  sourceReleaseRevisionIndexes,
+  sourceReleaseRevisioning,
+  sourceVersionIndexes,
+  sourceVersioning,
+} from './shared'
 
 export const landsdStreetNoticeApplicationMethods = ['automatic', 'manual'] as const
 export type LandsdStreetNoticeApplicationMethod =
@@ -206,5 +211,50 @@ export const sourceHkgovLandsdStreetNoticeApplications = sqliteTable(
     index('hkgovLandsdStreetNoticeApplications_resultStreet_idx').on(
       table.resultStreetId,
     ),
+  ],
+)
+
+/**
+ * Immutable LandsD Road Centreline source segment. `streetId` is validated by
+ * the ingestion matcher; it deliberately has no SQL foreign key because the
+ * authoritative street state is stored in a separate D1 shard.
+ */
+export const sourceHkgovLandsdRoadCentrelines = sqliteTable(
+  'hkgovLandsdRoadCentrelines',
+  {
+    sourceRecordId: text('sourceRecordId').notNull(),
+    streetId: text('streetId').notNull(),
+    objectId: integer('objectId').notNull(),
+    streetCode: text('streetCode').notNull(),
+    streetType: text('streetType'),
+    sourceGeometry: jsonText('sourceGeometry').notNull(),
+    geometry: jsonText('geometry').notNull(),
+    bbox: jsonText('bbox').notNull(),
+    ...sourceReleaseRevisioning,
+  },
+  table => [
+    primaryKey({
+      columns: [table.sourceRecordId, table.releaseId, table.versionHash],
+    }),
+    ...sourceReleaseRevisionIndexes(table, 'hkgovLandsdRoadCentrelines'),
+    index('hkgovLandsdRoadCentrelines_street_idx').on(table.streetId),
+    index('hkgovLandsdRoadCentrelines_objectId_idx').on(table.objectId),
+  ],
+)
+
+export const sourceHkgovLandsdRoadCentrelineI18n = sqliteTable(
+  'hkgovLandsdRoadCentrelineI18n',
+  {
+    sourceRecordId: text('sourceRecordId').notNull(),
+    locale: text('locale').notNull(),
+    name: text('name').notNull(),
+    ...sourceReleaseRevisioning,
+  },
+  table => [
+    primaryKey({
+      columns: [table.sourceRecordId, table.releaseId, table.versionHash, table.locale],
+    }),
+    ...sourceReleaseRevisionIndexes(table, 'hkgovLandsdRoadCentrelineI18n'),
+    index('hkgovLandsdRoadCentrelineI18n_locale_name_idx').on(table.locale, table.name),
   ],
 )
