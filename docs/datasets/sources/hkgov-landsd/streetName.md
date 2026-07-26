@@ -46,11 +46,13 @@ includes notices dated 22 January 2016 onward. Its PDF parser understands three-
 corrigendum PDFs; e-Gazette source PDFs are parsed before any assets are registered. A
 Chinese e-Gazette PDF without a text layer is OCRed using PaddleOCR (`chinese_cht`, 300
 DPI), and the event records that extraction method, engine version and model separately
-from native publisher text. Unsupported historical layouts fail with their exact local
-paths and parse facts. Those candidates are evidence only: neither a parser fallback nor
-page-row order creates a lifecycle link. Missing PDF evidence blocks publication. A
-readable PDF whose layout is not recognised is retained as evidence and presented for a
-curator decision instead.
+from native publisher text. The parser accepts spacing inserted between the opening
+Chinese road-description characters by PDF text extraction, so those rows remain
+distinct notices. Unsupported historical layouts fail with their exact local paths and
+parse facts. Those candidates are evidence only: neither a parser fallback nor page-row
+order creates a lifecycle link. Missing PDF evidence blocks publication. A readable PDF
+whose layout is not recognised is retained as evidence and presented for a curator
+decision instead.
 
 The two commands stage evidence and parsed immutable records; neither publishes a street
 snapshot. After the official e-Gazette stage is complete, run
