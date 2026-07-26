@@ -194,7 +194,7 @@ the normal local reset, use the current published `2025-12-17.0` division cohort
 Prepare one release (no database mutation):
 
 ```bash
-bin/saanseoi prep-hkgov-dpo \
+bun run dataops -- hkgov-dpo:prepare \
   data/hkgov/dpo/ALS/20260710-1054-ALS-GeoJSON \
   --target local --cohort-key 2025-12-17.0 \
   --identity-history .local/hkgov-dpo/als-identity-history.json \
@@ -205,7 +205,7 @@ bin/saanseoi prep-hkgov-dpo \
 Ingest all ALS release directories in chronological order into local D1:
 
 ```bash
-bin/saanseoi ingest-hkgov-dpo-local \
+bun run dataops -- hkgov-dpo:backfill-local \
   data/hkgov/dpo/ALS --target local --cohort-key 2025-12-17.0
 ```
 

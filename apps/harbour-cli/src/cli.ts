@@ -2,14 +2,7 @@ import { cancel } from '@clack/prompts'
 
 import { runSnapshotCleanupCommand } from './lib/commands/cleanup.ts'
 import { runDocsNewCommand, runDocsPublishCommand } from './lib/commands/docs.ts'
-import {
-  runHkgovAlsLocalIngestCommand,
-  runHkgovAlsPrepCommand,
-} from './lib/commands/hkgovAls.ts'
-import { runHkgovPlandBackfillCommand } from './lib/commands/backfillHkgovPland.ts'
-import { runHkgovPlandPrepCommand } from './lib/commands/hkgovPland.ts'
 import { runInspectCommand } from './lib/commands/inspect.ts'
-import { runLandsdStreetIngestCommand } from './lib/commands/ingestLandsdStreets.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
 import { runUpdateCommand } from './lib/commands/update.ts'
@@ -45,26 +38,6 @@ async function main() {
   }
 
   switch (args.command) {
-    case 'prepare-hkgov-dpo':
-    case 'prep-hkgov-dpo':
-      await runHkgovAlsPrepCommand(args, target, printUsage)
-      return
-    case 'ingest-hkgov-dpo-local':
-      await runHkgovAlsLocalIngestCommand(args, target, printUsage)
-      return
-    case 'ingest:hkgov-landsd-streets':
-      await runLandsdStreetIngestCommand(args, target, printUsage)
-      return
-    case 'prepare-hkgov-pland':
-    case 'prep-hkgov-pland':
-      await runHkgovPlandPrepCommand(args, printUsage)
-      return
-    case 'backfill:hkgov-pland-pu':
-      await runHkgovPlandBackfillCommand(args, target, 'pu', printUsage)
-      return
-    case 'backfill:hkgov-pland-new-town':
-      await runHkgovPlandBackfillCommand(args, target, 'new-town', printUsage)
-      return
     case 'inspect':
       await runInspectCommand(args)
       return

@@ -6,13 +6,13 @@ import { tmpdir } from 'node:os'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import { prepareHkgovPlandTpuParquet } from '../hkgovPland.ts'
-import { prepareHkgovPlandNewTownParquet } from '../hkgovPlandNewTown.ts'
-import type { ParsedArgs, UploadTarget } from '../options.ts'
-import { runUploadCommand } from './upload.ts'
+import { prepareHkgovPlandTpuParquet } from '../../../harbour-cli/src/lib/hkgovPland.ts'
+import { prepareHkgovPlandNewTownParquet } from '../../../harbour-cli/src/lib/hkgovPlandNewTown.ts'
+import type { ParsedArgs, UploadTarget } from '../../../harbour-cli/src/lib/options.ts'
+import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import { buildDatasetReleaseCode } from '@repo/core'
 
-const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
+const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 const HARBOUR_API_WRANGLER_CONFIG = resolve(
   REPO_ROOT,
   'apps/harbour-api/wrangler.jsonc',

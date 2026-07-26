@@ -56,13 +56,13 @@ release policy is to compare native schema and semantic fingerprints in release 
 an initial baseline or any geometry, attribute, feature, or schema change warrants a
 back-dated SaanSeoi release and notes; an identical redelivery remains provenance only.
 
-The LandsD street-name dataset is a two-stage source. Run
-`bun scripts/prepare-landsd-street.ts` once against the complete gazetted PDF to create
-the initial Parquet release. Later `saanseoi update --download` runs read the Government
-Notices table and write only notice rows not present in the saved source cursor,
-together with generated Markdown notes and local WebP plan conversions. `lastUpdated` in
-the dataset fixture is the checked-in bootstrap baseline; the live cursor belongs in the
-ignored update-state file.
+The LandsD street-name dataset is a two-stage source. Its initial baseline and
+historical e-Gazette reconstruction are maintainer-only DataOps work:
+`bun run dataops -- hkgov-landsd-streets:backfill --target local|preview|production`.
+Later `saanseoi update --download` runs read the Government Notices table and write only
+notice rows not present in the saved source cursor, together with generated Markdown
+notes and local WebP plan conversions. `lastUpdated` in the dataset fixture is the
+checked-in bootstrap baseline; the live cursor belongs in the ignored update-state file.
 
 For a remote target, the latest published LandsD source version is also a chronological
 high-water mark. A partial or stale local notice-ID cursor cannot enqueue notices at or

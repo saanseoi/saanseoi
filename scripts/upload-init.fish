@@ -170,14 +170,14 @@ if test "$upload_init_continue" -eq 1
     set continue_args --continue
 end
 
-run_step ./bin/saanseoi backfill:hkgov-pland-pu --target local $continue_args
+run_step bun run dataops -- hkgov-pland:backfill --kind pu --target local $continue_args
 if domain_has_pending_releases pu 2001 2006 2011 2016 2021
     run_step ./bin/saanseoi docs:publish --target local --scope all
 end
-run_step ./bin/saanseoi backfill:hkgov-pland-new-town --target local $continue_args
+run_step bun run dataops -- hkgov-pland:backfill --kind new-town --target local $continue_args
 if domain_has_pending_releases new-town 2006 2011 2016 2021
     run_step ./bin/saanseoi docs:publish --target local --scope all
 end
-run_step ./bin/saanseoi ingest-hkgov-dpo-local \
+run_step bun run dataops -- hkgov-dpo:backfill-local \
     "$upload_init_repo/data/hkgov/dpo/ALS" \
     --target local --cohort-key 2025-12-17.0

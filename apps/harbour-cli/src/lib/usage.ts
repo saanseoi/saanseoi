@@ -15,12 +15,6 @@ export function printUsage() {
   saanseoi version:status
   saanseoi version:doctor
   saanseoi inspect [--stage normalised|resolved|operations] [--resourceType address] [--releaseCode VALUE] [--dbShard source|history|current] [--sample first|last|random] [--persist-to .local/d1/dev] [--out-dir .]
-  saanseoi prep-hkgov-dpo <source-dir> [--target local|preview|production] --cohort-key DIVISION_COHORT [--source-version YYYY-MM-DD.NN] [--identity-history FILE] [--identity-decisions FILE] [--identity-drift-report FILE] [--db /path/to/local.sqlite]
-  saanseoi ingest-hkgov-dpo-local <ALS-source-root> --target local --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes]
-  saanseoi ingest:hkgov-landsd-streets --target local|preview|production [--notice-id ID[,ID...]] [--out-dir PATH]
-  saanseoi prep-hkgov-pland <GeoJSON> [--kind tpu|new-town] [--source-version YYYY] [--out-dir PATH]
-  saanseoi backfill:hkgov-pland-pu --target local|preview|production
-  saanseoi backfill:hkgov-pland-new-town --target local|preview|production
   saanseoi reports:ingestion [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
   saanseoi reports:stats [--target local|preview|production] [--limit 1-100] [--source SOURCE] [--type TYPE]
   saanseoi reports:processing-actions [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]

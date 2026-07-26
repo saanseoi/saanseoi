@@ -52,6 +52,7 @@ asset, lifecycle-resolution, and translation failures block publication and are 
 to the operator. An e-Gazette failure identifies the publication date, issue/subject,
 both local PDF paths, and the exact failed fact. When an older Chinese e-Gazette PDF has
 no usable text layer, Traditional Chinese names and descriptions are extracted with
-Tesseract OCR (`chi_tra+eng`, rendered at 300 DPI). The English PDF remains
-authoritative for Government Notice identity, lifecycle kind, dates, and `Previous G.N.`
-values; OCR is explicitly retained as an extraction method in parser provenance.
+PaddleOCR (`chinese_cht`, rendered at 300 DPI). The English PDF remains authoritative
+for Government Notice identity, lifecycle kind, dates, and `Previous G.N.` values; OCR
+is explicitly retained as an extraction method, model and engine version in parser
+provenance.
