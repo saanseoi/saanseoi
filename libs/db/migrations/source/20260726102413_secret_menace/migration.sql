@@ -11,6 +11,7 @@ ALTER TABLE `hkgovLandsdStreetNotices` ADD `evidenceAssets` text NOT NULL;--> st
 DROP INDEX IF EXISTS `hkgovLandsdStreetBaselineRecords_expectNoticeHistory_idx`;--> statement-breakpoint
 DROP INDEX IF EXISTS `hkgovLandsdStreetNoticeApplications_affectedStreet_idx`;--> statement-breakpoint
 DROP INDEX IF EXISTS `hkgovLandsdStreetNoticeApplications_createdStreet_idx`;--> statement-breakpoint
+DROP INDEX IF EXISTS `hkgovLandsdStreetNotices_noticeType_idx`;--> statement-breakpoint
 DROP INDEX IF EXISTS `hkgovLandsdStreetNotices_noticeIdentity_idx`;--> statement-breakpoint
 DROP INDEX IF EXISTS `hkgovLandsdStreetBaselineRecordI18n_releaseId_idx`;--> statement-breakpoint
 DROP INDEX IF EXISTS `hkgovLandsdStreetBaselineRecordI18n_sourceRecordId_idx`;--> statement-breakpoint
