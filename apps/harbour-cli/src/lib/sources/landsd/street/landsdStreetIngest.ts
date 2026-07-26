@@ -193,7 +193,7 @@ export async function ingestLandsdStreetSource(options: {
   const persistedAssets = await loadPersistedSourceAssets(outputDir)
   if (persistedAssets.size > 0) {
     reportProgress({
-      message: `Found ${persistedAssets.size} cached source artefact(s) from an earlier run`,
+      message: `Found ${persistedAssets.size} cached source PDF artefact(s) in this stage directory; matching PDFs will be reused by role, URL and locale`,
     })
   }
 
@@ -324,7 +324,10 @@ export async function ingestLandsdStreetSource(options: {
   let sourcePageRows = { en: 0, zhHant: 0 }
   let pairedNotices: PairedLandsdStreetNotice[] = []
   if (options.includeLandsdNotices ?? true) {
-    reportProgress({ message: 'Fetching English and Traditional Chinese source pages' })
+    reportProgress({
+      message:
+        'Refreshing English and Traditional Chinese source-page indexes to discover notices; cached PDFs will not be downloaded again',
+    })
     const [englishPageResponse, traditionalChinesePageResponse] = await Promise.all([
       fetchRequired(fetchImplementation, sourceUrl),
       fetchRequired(fetchImplementation, chineseSourceUrl),
@@ -336,6 +339,9 @@ export async function ingestLandsdStreetSource(options: {
     const en = parseLandsdStreetSourcePage(englishHtml, 'en')
     const zhHant = parseLandsdStreetSourcePage(traditionalChineseHtml, 'zh-Hant')
     sourcePageRows = { en: en.notices.length, zhHant: zhHant.notices.length }
+    reportProgress({
+      message: `Parsed ${en.notices.length} English and ${zhHant.notices.length} Traditional Chinese source-page row(s); pairing bilingual notices`,
+    })
     try {
       pairedNotices = pairLandsdStreetNoticePages({ en, zhHant })
     } catch (error) {
@@ -392,11 +398,6 @@ export async function ingestLandsdStreetSource(options: {
       ]),
     ]) + ((options.includeBaseline ?? true) ? 1 : 0)
   let preservedAssets = 0
-  reportProgress({
-    current: preservedAssets,
-    message: `Paired ${pairedNotices.length} LandsD and ${egazette.notices.length} historical e-Gazette notice row(s); preserving ${assetTotal} source PDF(s)`,
-    total: assetTotal,
-  })
   for (const [recordKey, record] of historicalAssetRecords) {
     const assets: LandsdStreetAssetLink[] = []
     for (const locale of streetLocaleCodes) {
@@ -404,7 +405,7 @@ export async function ingestLandsdStreetSource(options: {
       const localPath = egazetteArchiveFilePath(REPO_ROOT, source.localPath)
       reportProgress({
         current: preservedAssets,
-        message: `Preserving historical e-Gazette PDF ${preservedAssets + 1}/${assetTotal}: ${recordKey} (${locale})`,
+        message: `Reading archived historical e-Gazette PDF ${preservedAssets + 1}/${assetTotal}; registering evidence asset: ${recordKey} (${locale})`,
         total: assetTotal,
       })
       const published = await materialise({
@@ -456,11 +457,47 @@ export async function ingestLandsdStreetSource(options: {
     noticeEvidenceByKey.set([item.role, item.link.url, item.locale].join('\0'), item)
   }
   const uniqueNoticeEvidence = [...noticeEvidenceByKey.values()]
+  const cachedNoticeEvidenceCount = uniqueNoticeEvidence.filter(item =>
+    persistedAssets.has(
+      sourceAssetCacheKey({
+        role: item.role,
+        sourcePageLocale: item.locale,
+        url: item.link.url,
+      }),
+    ),
+  ).length
+  const cachedBaseline =
+    (options.includeBaseline ?? true) &&
+    persistedAssets.has(
+      sourceAssetCacheKey({
+        role: 'sourcePdf',
+        sourcePageLocale: 'en',
+        url: LANDSD_STREET_PDF_URL,
+      }),
+    )
+  const cachedSourcePdfCount = cachedNoticeEvidenceCount + Number(cachedBaseline)
+  const downloadableSourcePdfCount =
+    uniqueNoticeEvidence.length +
+    Number(options.includeBaseline ?? true) -
+    cachedSourcePdfCount
+  reportProgress({
+    current: preservedAssets,
+    message: `Paired ${pairedNotices.length} LandsD and ${egazette.notices.length} historical e-Gazette notice row(s); processing ${assetTotal} evidence PDF(s): reusing ${cachedSourcePdfCount} cached LandsD PDF(s), downloading ${downloadableSourcePdfCount}, and reading ${historicalAssetRecords.length * streetLocaleCodes.length} archived e-Gazette PDF(s)`,
+    total: assetTotal,
+  })
   for (const item of uniqueNoticeEvidence) {
     const cacheKey = [item.role, item.link.url, item.locale].join('\0')
     reportProgress({
       current: preservedAssets,
-      message: `Preserving source PDF ${preservedAssets + 1}/${assetTotal}: ${item.link.label ?? item.link.url}`,
+      message: persistedAssets.has(
+        sourceAssetCacheKey({
+          role: item.role,
+          sourcePageLocale: item.locale,
+          url: item.link.url,
+        }),
+      )
+        ? `Reusing cached source PDF ${preservedAssets + 1}/${assetTotal}; registering evidence asset: ${item.link.label ?? item.link.url}`
+        : `Downloading source PDF ${preservedAssets + 1}/${assetTotal}; preserving and registering evidence asset: ${item.link.label ?? item.link.url}`,
       total: assetTotal,
     })
     const asset = await fetchAsset({
@@ -479,7 +516,9 @@ export async function ingestLandsdStreetSource(options: {
       ? await (async () => {
           reportProgress({
             current: preservedAssets,
-            message: `Preserving source PDF ${preservedAssets + 1}/${assetTotal}: Gazetted Street Name`,
+            message: cachedBaseline
+              ? `Reusing cached source PDF ${preservedAssets + 1}/${assetTotal}; registering evidence asset: Gazetted Street Name`
+              : `Downloading source PDF ${preservedAssets + 1}/${assetTotal}; preserving and registering evidence asset: Gazetted Street Name`,
             total: assetTotal,
           })
           const asset = await fetchAsset({
