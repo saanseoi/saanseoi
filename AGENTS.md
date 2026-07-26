@@ -46,6 +46,8 @@ Repo-local operating notes for Codex and similar agents.
 
 ## Migration workflow
 
+- When adding a Drizzle table, add it to the relevant local reset drop script under
+  `libs/db/scripts/sql/` (including `drop-all-db.sql`).
 - Do not handcraft Drizzle migration snapshots when a schema change requires interactive
   snapshot generation or rename resolution.
 - In that case, stop and ask the user to run the snapshot-generation command locally and

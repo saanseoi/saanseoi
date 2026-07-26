@@ -20,6 +20,8 @@ DROP TABLE IF EXISTS `hkgovLandsdStreetBaselineRecordI18n`;
 DROP TABLE IF EXISTS `hkgovLandsdStreetBaselineRecords`;
 DROP TABLE IF EXISTS `hkgovLandsdStreetI18n`;
 DROP TABLE IF EXISTS `hkgovLandsdStreets`;
+DROP TABLE IF EXISTS `hkgovLandsdRoadCentrelineI18n`;
+DROP TABLE IF EXISTS `hkgovLandsdRoadCentrelines`;
 DROP TABLE IF EXISTS `overtureDivisionBoundaries`;
 DROP TABLE IF EXISTS `overtureDivisionAreas`;
 DROP TABLE IF EXISTS `overtureDivisionI18n`;
