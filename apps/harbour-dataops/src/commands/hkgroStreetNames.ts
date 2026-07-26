@@ -45,7 +45,9 @@ export type HkgroCandidateClassification =
   | 'street-name'
   | 'not-street-name'
   | 'manual-review'
+export type HkgroAssetStatus = 'not-requested' | 'pending' | 'retrieved' | 'unavailable'
 export type HkgroTocRecord = {
+  assetStatus: HkgroAssetStatus
   candidateReasons: string[]
   classification: HkgroCandidateClassification
   hkgroPdfId: string
@@ -53,6 +55,7 @@ export type HkgroTocRecord = {
   notificationNumber: string | null
   officialUrl: string
   publicationDate: string | null
+  retrievalFailure: string | null
   sha256: string | null
   subject: string
   byteLength: number | null
@@ -82,6 +85,7 @@ export async function retrieveHkgroStreetNameArchive(input: {
   manifestPath: string
   recordCount: number
   reusedCount: number
+  unavailableCount: number
 }> {
   const archiveDir = resolve(input.archiveDir)
   const years = normaliseYears(input.years ?? availableHkgroYears())
@@ -110,13 +114,26 @@ export async function retrieveHkgroStreetNameArchive(input: {
   await writeManifest(manifestPath, manifest)
   let downloadedCount = 0
   let reusedCount = 0
-  const candidates = records.filter(record => record.candidateReasons.length > 0)
+  let unavailableCount = 0
+  const requestedYears = new Set(years)
+  const candidates = records.filter(
+    record => requestedYears.has(record.year) && record.candidateReasons.length > 0,
+  )
   for (const [index, candidate] of candidates.entries()) {
     input.onProgress?.(
       `retrieving HKGRO candidate ${index + 1}/${candidates.length}: ${candidate.year}/${candidate.hkgroPdfId}`,
     )
+    candidate.assetStatus = 'pending'
+    candidate.retrievalFailure = null
     const asset = await retrieveCandidatePdf({ archiveDir, candidate, fetcher })
+    if (asset.unavailable) {
+      unavailableCount += 1
+      candidate.assetStatus = 'unavailable'
+      candidate.retrievalFailure = asset.failure
+      continue
+    }
     asset.reused ? reusedCount++ : downloadedCount++
+    candidate.assetStatus = 'retrieved'
     candidate.byteLength = asset.byteLength
     candidate.sha256 = asset.sha256
   }
@@ -128,6 +145,7 @@ export async function retrieveHkgroStreetNameArchive(input: {
     manifestPath,
     recordCount: records.length,
     reusedCount,
+    unavailableCount,
   }
 }
 
@@ -168,7 +186,7 @@ export async function runHkgroStreetNameRetrieveCommand(
     })
     if (active) progress.stop('HKGRO street-name retrieval complete')
     log.success(
-      `Indexed ${result.recordCount} HKGRO TOC records; ${result.candidateCount} candidates (${result.downloadedCount} downloaded, ${result.reusedCount} reused); manifest: ${result.manifestPath}`,
+      `Indexed ${result.recordCount} HKGRO TOC records; ${result.candidateCount} candidates (${result.downloadedCount} downloaded, ${result.reusedCount} reused, ${result.unavailableCount} unavailable); manifest: ${result.manifestPath}`,
     )
     outro('HKGRO street-name source retrieval complete')
   } catch (error) {
@@ -209,6 +227,7 @@ export function parseHkgroToc(year: number, html: string): HkgroTocRecord[] {
       if (linkYear !== year || !hkgroPdfId || !subject) continue
       const candidateReasons = hkgroCandidateReasons(subject)
       records.push({
+        assetStatus: candidateReasons.length ? 'pending' : 'not-requested',
         candidateReasons,
         classification: candidateReasons.length ? 'unclassified' : 'not-candidate',
         hkgroPdfId,
@@ -216,6 +235,7 @@ export function parseHkgroToc(year: number, html: string): HkgroTocRecord[] {
         notificationNumber,
         officialUrl: hkgroPdfUrl(year, hkgroPdfId),
         publicationDate,
+        retrievalFailure: null,
         sha256: null,
         subject,
         byteLength: null,
@@ -260,6 +280,8 @@ function preserveDownloadedAsset(
       previous.classification === 'not-candidate'
         ? record.classification
         : previous.classification,
+    assetStatus: previous.sha256 ? 'retrieved' : record.assetStatus,
+    retrievalFailure: previous.sha256 ? null : previous.retrievalFailure,
     sha256: previous.sha256,
     byteLength: previous.byteLength,
   }
@@ -286,7 +308,7 @@ async function retrieveCandidatePdf(input: {
         `HKGRO ${input.candidate.year}/${input.candidate.hkgroPdfId} local SHA-256 mismatch at ${path}: manifest ${input.candidate.sha256}, file ${verified.sha256}.`,
       )
     }
-    return { ...verified, reused: true }
+    return { ...verified, reused: true, unavailable: false as const }
   }
   const response = await input.fetcher(input.candidate.officialUrl)
   if (!response.ok)
@@ -294,10 +316,41 @@ async function retrieveCandidatePdf(input: {
       `HKGRO PDF download failed for ${input.candidate.year}/${input.candidate.hkgroPdfId} (${input.candidate.subject}): ${response.status} ${response.statusText}; ${input.candidate.officialUrl}`,
     )
   const bytes = Buffer.from(await response.arrayBuffer())
+  if (bytes.byteLength === 0) {
+    return {
+      failure: `HKGRO returned an empty application/pdf response for ${input.candidate.year}/${input.candidate.hkgroPdfId} (${input.candidate.subject}); ${input.candidate.officialUrl}`,
+      unavailable: true as const,
+    }
+  }
   const verified = validatePdfBytes(input.candidate, bytes, input.candidate.officialUrl)
   await mkdir(dirname(path), { recursive: true })
-  await writeFile(path, bytes, { flag: 'wx' })
-  return { ...verified, reused: false }
+  try {
+    await writeFile(path, bytes, { flag: 'wx' })
+  } catch (error) {
+    // Another resumable run (or a repeated HKGRO TOC row) can finish the
+    // immutable write after the existence check above. Reuse it only when the
+    // file is a valid byte-for-byte match for this response.
+    if (!isFileAlreadyExistsError(error)) throw error
+    const existing = validatePdfBytes(input.candidate, await readFile(path), path)
+    if (
+      existing.byteLength !== verified.byteLength ||
+      existing.sha256 !== verified.sha256
+    ) {
+      throw new Error(
+        `HKGRO ${input.candidate.year}/${input.candidate.hkgroPdfId} local PDF was created concurrently with different bytes at ${path}; downloaded ${verified.sha256}/${verified.byteLength}, local ${existing.sha256}/${existing.byteLength}.`,
+      )
+    }
+    return { ...existing, reused: true, unavailable: false as const }
+  }
+  return { ...verified, reused: false, unavailable: false as const }
+}
+
+function isFileAlreadyExistsError(error: unknown) {
+  return (
+    error instanceof Error &&
+    'code' in error &&
+    (error as NodeJS.ErrnoException).code === 'EEXIST'
+  )
 }
 
 function validatePdfBytes(
@@ -343,7 +396,7 @@ function createHkgroSessionFetcher(fetcher: Fetcher): Fetcher {
     const requestUrl = new URL(input)
     const headers = new Headers(init?.headers)
     if (cookie && requestUrl.hostname === HKGRO_HOST) headers.set('cookie', cookie)
-    const request = async (redirect: RequestRedirect) =>
+    const request = async (redirect: 'manual' | 'follow') =>
       fetcher(input, { ...init, headers, redirect, signal: timeout }).catch(error => {
         if (timeout.aborted) {
           throw new Error(
@@ -444,7 +497,16 @@ function compareHkgroRecords(left: HkgroTocRecord, right: HkgroTocRecord) {
   )
 }
 function hkgroRecordKey(record: HkgroTocRecord) {
-  return `${record.year}/${record.hkgroPdfId}`
+  // HKGRO occasionally repeats a PDF link in more than one TOC row. Preserve
+  // each bibliographic row in the manifest while allowing their local evidence
+  // paths and hashes to be shared.
+  return [
+    record.year,
+    record.hkgroPdfId,
+    record.publicationDate ?? '',
+    record.notificationNumber ?? '',
+    record.subject,
+  ].join('\0')
 }
 function assertHkgroYear(year: number) {
   if (!Number.isInteger(year) || year < HKGRO_FIRST_YEAR || year > HKGRO_LAST_YEAR)
@@ -557,7 +619,33 @@ function validateRecord(value: unknown, path: string): HkgroTocRecord {
     (typeof record.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(record.sha256))
   )
     throw new Error(`${path}.sha256 must be null or a lowercase SHA-256 digest.`)
-  return record as HkgroTocRecord
+  const assetStatus =
+    record.assetStatus === undefined
+      ? record.sha256
+        ? 'retrieved'
+        : record.candidateReasons.length > 0
+          ? 'pending'
+          : 'not-requested'
+      : record.assetStatus
+  if (
+    assetStatus !== 'not-requested' &&
+    assetStatus !== 'pending' &&
+    assetStatus !== 'retrieved' &&
+    assetStatus !== 'unavailable'
+  )
+    throw new Error(`${path}.assetStatus is invalid.`)
+  if (
+    record.retrievalFailure !== undefined &&
+    record.retrievalFailure !== null &&
+    typeof record.retrievalFailure !== 'string'
+  )
+    throw new Error(`${path}.retrievalFailure must be null or a string.`)
+  return {
+    ...record,
+    assetStatus,
+    retrievalFailure:
+      typeof record.retrievalFailure === 'string' ? record.retrievalFailure : null,
+  } as HkgroTocRecord
 }
 function describeLeadingBytes(bytes: Uint8Array) {
   return Buffer.from(bytes.subarray(0, 16)).toString('hex') || '(empty response)'

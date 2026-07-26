@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { mkdtemp, readFile } from 'node:fs/promises'
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -9,6 +9,7 @@ import {
   hkgroPdfUrl,
   parseHkgroToc,
   retrieveHkgroStreetNameArchive,
+  runHkgroStreetNameRetrieveCommand,
 } from './hkgroStreetNames.ts'
 
 const TOC = `
@@ -116,6 +117,59 @@ describe('HKGRO street-name retrieval', () => {
       years: [1901],
     })
     expect(seenCookies).toEqual([null, 'JSESSIONID=session-one'])
+  })
+
+  test('rejects remote targets before any HKGRO request', async () => {
+    await expect(
+      runHkgroStreetNameRetrieveCommand(
+        { command: 'hkgov-hkgro-street-names:retrieve', options: {}, positionals: [] },
+        { environment: 'preview', remote: true },
+        () => undefined,
+      ),
+    ).rejects.toThrow('local-only')
+  })
+
+  test('fails rather than trusting a changed local candidate PDF', async () => {
+    const archiveDir = await mkdtemp(join(tmpdir(), 'saanseoi-hkgro-test-'))
+    const fetcher = async (url: string) =>
+      url.includes('browseGa.jsp')
+        ? new Response(
+            `<div>Hong Kong Government Gazette 1901<br> Table of Contents</div>${TOC}`,
+          )
+        : new Response('%PDF-1.7 test evidence')
+    await retrieveHkgroStreetNameArchive({ archiveDir, fetcher, years: [1901] })
+    await writeFile(join(archiveDir, '1901', '460097.pdf'), '%PDF-1.7 altered')
+    await expect(
+      retrieveHkgroStreetNameArchive({ archiveDir, fetcher, years: [1901] }),
+    ).rejects.toThrow('local byte-length mismatch')
+  })
+
+  test('records an empty upstream PDF as unavailable and continues', async () => {
+    const archiveDir = await mkdtemp(join(tmpdir(), 'saanseoi-hkgro-test-'))
+    const result = await retrieveHkgroStreetNameArchive({
+      archiveDir,
+      fetcher: async url =>
+        url.includes('browseGa.jsp')
+          ? new Response(
+              `<div>Hong Kong Government Gazette 1901<br> Table of Contents</div>${TOC}`,
+            )
+          : url.endsWith('/460097.pdf')
+            ? new Response('', { headers: { 'content-type': 'application/pdf' } })
+            : new Response('%PDF-1.7 test evidence'),
+      years: [1901],
+    })
+    expect(result).toMatchObject({ downloadedCount: 2, unavailableCount: 1 })
+    const manifest = JSON.parse(
+      await readFile(join(archiveDir, 'manifest.json'), 'utf8'),
+    )
+    expect(
+      manifest.records.find(
+        (record: { hkgroPdfId: string }) => record.hkgroPdfId === '460097',
+      ),
+    ).toMatchObject({
+      assetStatus: 'unavailable',
+      retrievalFailure: expect.stringContaining('empty application/pdf response'),
+    })
   })
 
   test('fails explicitly when a candidate response is not a PDF', async () => {
