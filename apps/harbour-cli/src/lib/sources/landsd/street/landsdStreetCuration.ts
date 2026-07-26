@@ -542,9 +542,12 @@ function partialRenameIntentionFor(
   const referencedSectionRename = english.match(
     /rename\s+a\s+section\s+of\s+(.+?)(?:\s+in\s+.+?)?\s+as\s+set\s+out\s+in\s+g\.?\s*n\.?\s*\d+.*?\s+(?:to|as)\s+(.+?)(?:\s+and\s+to\s+cease|\s+as\s+described|[:.—]|$)/i,
   )
-  const rename = directSectionRename ?? referencedSectionRename
+  // Prefer the historical-reference form: its destination may itself say
+  // "as a section of", which would otherwise make the generic matcher absorb
+  // the prior-notice clause into the source road name.
+  const rename = referencedSectionRename ?? directSectionRename
   const sourceName = rename?.[1]?.trim()
-  const resultName = rename?.[2]?.trim()
+  const resultName = rename?.[2]?.replace(/^a\s+section\s+of\s+/i, '').trim()
   return sourceName && resultName ? { resultName, sourceName } : null
 }
 

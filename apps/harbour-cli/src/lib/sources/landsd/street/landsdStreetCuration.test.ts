@@ -295,7 +295,7 @@ test('describes a multi-street partial-renaming intention without applying it', 
   const parsed = {
     descriptions: { en: 'Replacement description.', zhHant: '新的說明。' },
     rawExtractedText: {
-      en: `The Director of Lands intends to make a declaration to rename a section of HAMMER HILL ROAD as set out in G.N. 1872 dated 28 July 1972 in the district of Wong Tai Sin, Kowloon as LUNG CHEUNG ROAD and to cease a section of HAMMER HILL ROAD inside the Diamond Hill Urn Cemetery to be known by that name as described hereunder:—`,
+      en: `The Director of Lands intends to make a declaration to rename a section of HAMMER HILL ROAD as set out in G.N. 1872 dated 28 July 1972 in the district of Wong Tai Sin, Kowloon as a section of LUNG CHEUNG ROAD and to cease a section of HAMMER HILL ROAD inside the Diamond Hill Urn Cemetery as set out in G.N. 1468 dated 16 November 1956 to be known by that name as described hereunder:—`,
       zhHant: '',
     },
   } as PairedLandsdGovernmentNoticePdfEntry
