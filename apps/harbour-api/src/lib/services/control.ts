@@ -263,7 +263,12 @@ export async function handlePublishDataset(
     // a later one must not supersede the earlier source release.
     const currentRelease = isCenstatdGeometry
       ? null
-      : await getCurrentReleaseForDatasetId(db, dataset.datasetId, dataset.releaseId)
+      : await getCurrentReleaseForDatasetId(
+          db,
+          dataset.datasetId,
+          datasetType,
+          dataset.releaseId,
+        )
     const existingReleaseSet = isCenstatdGeometry
       ? null
       : await resolveReleaseSetForRelease(

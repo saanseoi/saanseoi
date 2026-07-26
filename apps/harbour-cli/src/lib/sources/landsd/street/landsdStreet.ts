@@ -1255,7 +1255,7 @@ function startsGovernmentNoticeDescriptionRow(
 ) {
   return locale === 'en'
     ? /^(?:The|This|A)\s+(?:street|road|interchange)\b/i.test(description)
-    : /^(?:這|此|該)(?:街道|道路|交匯處)/u.test(description)
+    : /^(?:這|此|該)(?:街道|道路|交匯處)/u.test(description.replaceAll(/\s+/g, ''))
 }
 
 function extractPreviousNoticeReferences(value: string) {
