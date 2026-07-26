@@ -1,4 +1,25 @@
 {
   "schemaVersion": 2,
-  "decisions": []
+  "decisions": [
+    {
+      "sourceRecordId": "landsd-street-notice:96a84f780becd574a2d9be19afa8ec5ccc50a1ccbf7390cad1a72a1ac8b96b49:pdf-row:9e6dd8e4b3646ca5f4663eb477b00bf05c482de64ea4d10106695740d4d8492e",
+      "disposition": "apply",
+      "affectedStreetId": "019f9fc3-0cad-7925-b09e-f3308cdce132"
+    },
+    {
+      "sourceRecordId": "landsd-street-notice:96a84f780becd574a2d9be19afa8ec5ccc50a1ccbf7390cad1a72a1ac8b96b49:pdf-row:cc853d0f41edb635ed907ba59575188f806178a5889c1c7d2859e332b4a30be1",
+      "disposition": "apply",
+      "affectedStreetId": "019f9fc3-0cad-7925-b09e-f3308cdce132"
+    },
+    {
+      "sourceRecordId": "landsd-street-notice:43a70c78f65517cc537ca0df51016caf58c3e15638d26c7955cb147f5f2acc4f:pdf-row:46dd9cf01978f64fffbf086851a51b342f4b9842483cda49273fb286c189032b",
+      "disposition": "apply",
+      "affectedStreetId": "019f9fc3-0cab-7dca-a1a8-89e641330d10"
+    },
+    {
+      "sourceRecordId": "landsd-street-notice:aae50c963e8044a2ec3c1bb54439b75ef045f248c9d5a34b906ccf2655fdeeda:pdf-row:4f735d357851018536fe75605add97cb4b6a19b29c6dedbc6c7db5965958a399",
+      "disposition": "apply",
+      "affectedStreetId": "019f9fc3-0cac-7dfc-8e76-fdefa0bec861"
+    }
+  ]
 }
