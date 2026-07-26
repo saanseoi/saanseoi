@@ -251,8 +251,8 @@ function createDraftSnapshotDb() {
       updatedAt TEXT NOT NULL
     );
 
-    CREATE UNIQUE INDEX snapshotLineages_primaryDataset_variant_unique_idx
-      ON snapshotLineages (primaryDatasetId, variant);
+    CREATE UNIQUE INDEX snapshotLineages_primaryDataset_resourceType_variant_unique_idx
+      ON snapshotLineages (primaryDatasetId, resourceType, variant);
 
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
