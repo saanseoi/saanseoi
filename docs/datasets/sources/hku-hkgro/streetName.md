@@ -112,7 +112,10 @@ material designation, or description change. The decision is saved to
 `discovery/review.json` after every record, so stopping safely or rerunning does not
 lose completed work. `manual-review` is non-final and remains eligible for a later run.
 Use `--all` to revisit deferred records and review unfinished `unclassified` records.
-This command does not upload evidence or materialise street history.
+The command renders the first source-PDF page at 300 DPI and prints it inline with
+`pdftoppm` and Kitty's graphics-protocol renderer (`kitten icat`) before prompting; it
+records no free-text curator notes. This command does not upload evidence or materialise
+street history.
 
 ## Classification and lifecycle boundary
 

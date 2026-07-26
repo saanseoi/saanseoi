@@ -525,9 +525,16 @@ function intentionSummaryFor(
 ) {
   if (notice.governmentNoticeType !== 'intention') return null
   const english = (parsed?.rawExtractedText?.en ?? '').replaceAll(/\s+/g, ' ')
-  const rename = english.match(
+  const directSectionRename = english.match(
     /rename\s+a\s+section\s+of\s+(.+?)\s+as\s+a\s+section\s+of\s+(.+?)(?:\s+and\s+to\s+cease|\s+as\s+described|[:.—]|$)/i,
   )
+  // Some notices identify the source section through an earlier G.N. rather
+  // than saying "as a section of".  The district and prior-notice wording is
+  // provenance, not part of either street name.
+  const referencedSectionRename = english.match(
+    /rename\s+a\s+section\s+of\s+(.+?)\s+in\s+.+?\s+as\s+set\s+out\s+in\s+g\.?\s*n\.?\s*\d+.*?\s+to\s+(.+?)(?:\s+as\s+described|[:.—]|$)/i,
+  )
+  const rename = directSectionRename ?? referencedSectionRename
   const ceased = english.match(
     /cease\s+a\s+section\s+of\s+(.+?)\s+(?:inside|as\s+set\s+out|to\s+be\s+known|as\s+described|[:.—])/i,
   )
