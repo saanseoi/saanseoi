@@ -157,6 +157,41 @@ test('recognises a corrigendum scoped to Previous G.N. provenance', () => {
   })
 })
 
+test('automatically records a Chinese-notice date corrigendum as metadata only', () => {
+  const notice = {
+    governmentNoticeType: 'corrigendum',
+    governmentNotices: { en: null, zhHant: null },
+    id: 'notice-2321',
+    names: { en: 'Fleming Road', zhHant: '菲林明道' },
+    noticeIdentity: 'gn2321',
+    publicationDate: '2019-03-29',
+  } as PairedLandsdStreetNotice
+  const parsed = {
+    descriptions: { en: null, zhHant: null },
+    rawExtractedText: {
+      en: `With reference to the Chinese version of the Government Notice No. 1971 in Gazette No. 11/2019 published on 15 March 2019, it is hereby notified that the date ‘2018 年 3 月 15 日’ in the Chinese notice should be amended to read ‘2019 年 3 月 15 日’.`,
+      zhHant: '',
+    },
+  } as PairedLandsdGovernmentNoticePdfEntry
+  const result = resolveLandsdStreetCuration({
+    manifest: emptyLandsdStreetCuration(),
+    notices: [notice],
+    parsedEntries: new Map([[notice.id, parsed]]),
+  })
+
+  expect(result.unresolved).toEqual([])
+  expect(result.review[0]?.chineseNoticeDateCorrigendum).toEqual({
+    correctedDate: '2019-03-15',
+    erroneousDate: '2018-03-15',
+    targetNoticeRef: 'gn1971',
+  })
+  expect(result.applied.get(notice.id)).toMatchObject({
+    affectedStreetId: null,
+    disposition: 'noOp',
+    method: 'automatic',
+  })
+})
+
 test('automatically applies an unambiguous description change', () => {
   const notice = {
     governmentNoticeType: 'change',
@@ -203,7 +238,7 @@ test('automatically applies an unambiguous description change', () => {
   })
 })
 
-test('formats lifecycle review context with a notice type and distinct field values', () => {
+test('formats compact lifecycle review context with only decision-relevant fields', () => {
   const context = formatLifecycleReviewContext({
     automaticApplication: null,
     baselineCandidates: [
@@ -215,6 +250,7 @@ test('formats lifecycle review context with a notice type and distinct field val
       },
     ],
     correction: null,
+    chineseNoticeDateCorrigendum: null,
     curation: null,
     descriptions: { en: 'A replacement description.', zhHant: '新的說明。' },
     governmentNoticeType: 'change',
@@ -231,9 +267,11 @@ test('formats lifecycle review context with a notice type and distinct field val
     sourceRecordId: 'notice-1',
   })
 
-  expect(context).toContain(
-    '\u001B[36mNotice type\u001B[39m: \u001B[33mchange\u001B[39m',
-  )
+  expect(context).not.toContain('Source record')
+  expect(context).not.toContain('Notice type')
+  expect(context).not.toContain('Operation')
+  expect(context).not.toContain('Notice reference')
+  expect(context).not.toContain('Traditional Chinese PDF')
   expect(context).toContain(
     '\u001B[33mYiu Sing Street\u001B[39m \u001B[90m/\u001B[39m \u001B[32m耀星街\u001B[39m',
   )

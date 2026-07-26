@@ -19,14 +19,14 @@ const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 const DEFAULT_ARCHIVE_DIR = join(REPO_ROOT, 'data/hku/hkgro/street-name')
 const DEFAULT_REVIEW_PATH = join(DEFAULT_ARCHIVE_DIR, 'discovery/review.json')
 
-type HkgroStreetChangeKind =
+export type HkgroStreetChangeKind =
   | 'declaration'
   | 'deletion'
   | 'description-change'
   | 'designation'
   | 'name-change'
 
-type HkgroDiscoveryDecision = {
+export type HkgroDiscoveryDecision = {
   classification: Exclude<
     HkgroCandidateClassification,
     'not-candidate' | 'unclassified'
@@ -67,7 +67,7 @@ export type HkgroStreetDiscoveryRecord = {
   year: number
 }
 
-type HkgroStreetDiscoveryReview = {
+export type HkgroStreetDiscoveryReview = {
   generatedAt: string
   records: HkgroStreetDiscoveryRecord[]
   schemaVersion: 1
@@ -98,7 +98,7 @@ export async function discoverHkgroStreetNames(input: {
   const sourceManifest = await loadHkgroStreetNameManifest(
     join(archiveDir, 'manifest.json'),
   )
-  const existing = await loadReview(reviewPath)
+  const existing = await loadHkgroStreetDiscoveryReview(reviewPath)
   const previousByKey = new Map(
     existing.records.map(record => [discoveryKey(record), record]),
   )
@@ -141,8 +141,7 @@ export async function discoverHkgroStreetNames(input: {
     schemaVersion: 1,
     source: 'hku-hkgro-street-name-discovery',
   }
-  await mkdir(dirname(reviewPath), { recursive: true })
-  await writeFile(reviewPath, `${JSON.stringify(review, null, 2)}\n`)
+  await saveHkgroStreetDiscoveryReview(reviewPath, review)
 
   return {
     candidateCount: records.length,
@@ -371,7 +370,9 @@ async function loadOcrResult(
   return result as HkgroOcrResult
 }
 
-async function loadReview(path: string): Promise<HkgroStreetDiscoveryReview> {
+export async function loadHkgroStreetDiscoveryReview(
+  path: string,
+): Promise<HkgroStreetDiscoveryReview> {
   if (!existsSync(path)) {
     return {
       generatedAt: '',
@@ -391,6 +392,14 @@ async function loadReview(path: string): Promise<HkgroStreetDiscoveryReview> {
     throw new Error(`HKGRO discovery review has an invalid schema: ${path}.`)
   }
   return value as HkgroStreetDiscoveryReview
+}
+
+export async function saveHkgroStreetDiscoveryReview(
+  path: string,
+  review: HkgroStreetDiscoveryReview,
+) {
+  await mkdir(dirname(path), { recursive: true })
+  await writeFile(path, `${JSON.stringify(review, null, 2)}\n`, 'utf8')
 }
 
 function excerptForReview(text: string) {

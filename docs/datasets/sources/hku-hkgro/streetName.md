@@ -98,6 +98,22 @@ description change. Repairs, tenders, land sales, street cries, house numbering,
 other incidental street references are rejected as `not-street-name`. OCR excerpts and
 extracted signals are review aids, never publisher-native facts.
 
+Create those decisions through the local interactive curator flow:
+
+```bash
+bun run dataops -- hkgov-hkgro-street-names:review --target local
+```
+
+It starts with unfinished records suggested for `manual-review`, shows the table of
+contents context, original PDF URL and local path, discovery signals, and OCR excerpt,
+then records `street-name`, `not-street-name`, or `manual-review`. An accepted record
+also requires one material kind: declaration, naming or renaming, deletion, legally
+material designation, or description change. The decision is saved to
+`discovery/review.json` after every record, so stopping safely or rerunning does not
+lose completed work. `manual-review` is non-final and remains eligible for a later run.
+Use `--all` to also review unfinished `unclassified` records. This command does not
+upload evidence or materialise street history.
+
 ## Classification and lifecycle boundary
 
 Candidate selection is high-recall discovery, not a finding that a notice changes a

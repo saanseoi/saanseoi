@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   pairLandsdGovernmentNoticePdfEntries,
   pairLandsdStreetNoticePages,
+  parseLandsdChineseNoticeDateCorrigendum,
   parseLandsdGovernmentNoticePdfText,
   parseLandsdStreetSourcePage,
 } from './landsdStreet.ts'
@@ -29,6 +30,18 @@ const traditionalChinesePage = `
 `
 
 describe('LandsD bilingual street notices', () => {
+  test('parses a corrigendum that corrects an earlier Chinese-notice date', () => {
+    expect(
+      parseLandsdChineseNoticeDateCorrigendum(
+        `With reference to the Chinese version of the Government Notice No. 1971 in Gazette No. 11/2019 published on 15 March 2019, it is hereby notified that the date ‘2018 年 3 月 1 5 日’ in the Chinese notice should be amended to read ‘2019 年 3 月 1 5 日’.`,
+      ),
+    ).toEqual({
+      correctedDate: '2019-03-15',
+      erroneousDate: '2018-03-15',
+      targetNoticeRef: 'gn1971',
+    })
+  })
+
   test('parses and pairs the official English and Traditional Chinese rows', () => {
     const en = parseLandsdStreetSourcePage(englishPage, 'en')
     const zhHant = parseLandsdStreetSourcePage(traditionalChinesePage, 'zh-Hant')

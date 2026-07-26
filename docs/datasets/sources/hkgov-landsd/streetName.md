@@ -28,6 +28,12 @@ remain usable: the English PDF date is retained for the event and the discrepanc
 reported to the operator. A date typo must not turn a tabled description replacement
 into an unclassified name change.
 
+A later corrigendum that expressly corrects a date in the Chinese version of an earlier
+notice is parsed as publisher metadata. It identifies the earlier G.N. and the erroneous
+and corrected dates, repairs that known bilingual discrepancy during pairing, and is
+recorded automatically as a source-only no-op; it never creates a street lifecycle
+application.
+
 The two HTML source pages, the baseline PDF, each English and Traditional Chinese
 Government Notice PDF, related Gazette Plan PDFs, and their e-Gazette historical
 counterparts are preserved as managed source assets. `evidenceAssets` is the only

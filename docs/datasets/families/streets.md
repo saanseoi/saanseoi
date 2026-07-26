@@ -17,12 +17,13 @@ HKU Libraries' HKGRO scans cover Gazette tables of contents and source PDFs from
 street-name _candidates_. Local discovery ranks them into an auditable curator review
 queue while preserving source hashes and OCR provenance. Accepted candidates may be
 street declarations, naming or renaming, deletion, legally material designation, or
-description changes. HKGRO candidates are not lifecycle events and are neither uploaded
-to R2 nor materialised into this family until parsed facts and a reviewed
-identity/lifecycle decision are available. Their local PaddleOCR output is explicitly
-marked as English `method: "ocr"` derived evidence and bound to the exact HKGRO
-source-PDF SHA-256; it is not publisher-native text or a source of canonical street
-identity.
+description changes. Curators make those local selection decisions through the HKGRO
+interactive review queue; decisions are saved after each source PDF and do not publish
+data. HKGRO candidates are not lifecycle events and are neither uploaded to R2 nor
+materialised into this family until parsed facts and a reviewed identity/lifecycle
+decision are available. Their local PaddleOCR output is explicitly marked as English
+`method: "ocr"` derived evidence and bound to the exact HKGRO source-PDF SHA-256; it is
+not publisher-native text or a source of canonical street identity.
 
 The source ledger separates baseline rows, immutable notices, and persisted notice
 applications. Only declarations that create a new street can be automatic; every
