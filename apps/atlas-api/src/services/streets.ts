@@ -17,22 +17,25 @@ import {
 } from '@repo/db'
 
 import { getStreetCurrentById } from '../db/streets'
-import type { StreetAsset, StreetLocale, StreetResource } from '../schema'
+import type {
+  StreetAsset,
+  StreetChangelogEntry,
+  StreetLocale,
+  StreetResource,
+} from '../schema'
 
-type StoredStreetLocale = Omit<StreetLocale, 'assetLinks' | 'translationProvenance'> & {
-  assetLinks: unknown
+type StoredStreetLocale = StreetLocale & {
   locale: string
-  translationProvenance: unknown
 }
 
 type StreetState = Omit<
   StreetResource['attributes'],
-  'districtIds' | 'i18n' | 'provenance'
+  'districtIds' | 'i18n' | 'evidence'
 > & {
   districtIds: unknown
   id: StreetResource['id']
+  changelog: StreetChangelogEntry[]
   i18n: StoredStreetLocale[]
-  references: unknown
 }
 
 export async function getHongKongStreetDetail(input: {
@@ -123,6 +126,63 @@ export async function getHongKongStreetVersion(input: {
   }
 }
 
+export async function replayHongKongStreetChangelog(input: {
+  historyDbs: HistoryDatabase[]
+  metaDb: MetaDatabase
+  requestUrl: string
+}) {
+  const snapshot = await getPublishedStreetSnapshot(input.metaDb)
+  if (!snapshot) return snapshotNotReady()
+  const rows = await Promise.all(
+    input.historyDbs.map(db =>
+      db
+        .select({
+          evidenceAssets: historySchema.streetChangelog.evidenceAssets,
+          effectiveDate: historySchema.streetChangelog.effectiveDate,
+          isPartialNameChange: historySchema.streetChangelog.isPartialNameChange,
+          kind: historySchema.streetChangelog.kind,
+          gazetteDate: historySchema.streetChangelog.gazetteDate,
+          noticeRef: historySchema.streetChangelog.noticeRef,
+          recordKey: historySchema.streetChangelog.recordKey,
+          sourceReleaseId: historySchema.streetChangelog.sourceReleaseId,
+          sourceShardId: historySchema.streetChangelog.sourceShardId,
+          streetId: historySchema.streetChangelog.streetId,
+        })
+        .from(historySchema.streetChangelog)
+        .where(eq(historySchema.streetChangelog.isCurrent, true))
+        .all(),
+    ),
+  )
+  const seen = new Set<string>()
+  const data = rows
+    .flat()
+    .sort((left, right) =>
+      `${left.gazetteDate ?? ''}\0${left.recordKey}\0${left.streetId}`.localeCompare(
+        `${right.gazetteDate ?? ''}\0${right.recordKey}\0${right.streetId}`,
+      ),
+    )
+    .flatMap(row => {
+      const id = `${row.recordKey}:${row.streetId}`
+      if (seen.has(id)) return []
+      seen.add(id)
+      return [
+        {
+          type: 'street-changelog' as const,
+          id,
+          attributes: publicChangelogEntry(row),
+        },
+      ]
+    })
+  return {
+    status: 200 as const,
+    body: {
+      jsonapi: { version: '1.1' as const },
+      links: { self: input.requestUrl },
+      data,
+    },
+  }
+}
+
 async function getPublishedStreetSnapshot(metaDb: MetaDatabase) {
   return metaDb
     .select({ id: metaSnapshots.id })
@@ -153,8 +213,7 @@ async function getStreetHistory(historyDbs: HistoryDatabase[], id: string) {
           deletedAt: historySchema.streets.deletedAt,
           districtIds: historySchema.streets.districtIds,
           id: historySchema.streets.id,
-          landsdPublicationDate: historySchema.streets.landsdPublicationDate,
-          references: historySchema.streets.references,
+          gazetteDate: historySchema.streets.gazetteDate,
           status: historySchema.streets.status,
           version: historySchema.streets.version,
           versionHash: historySchema.streets.versionHash,
@@ -165,19 +224,38 @@ async function getStreetHistory(historyDbs: HistoryDatabase[], id: string) {
       if (streets.length === 0) return []
       const i18n = await db
         .select({
-          assetLinks: historySchema.streetsI18n.assetLinks,
           description: historySchema.streetsI18n.description,
           locale: historySchema.streetsI18n.locale,
           name: historySchema.streetsI18n.name,
           streetId: historySchema.streetsI18n.streetId,
-          translationProvenance: historySchema.streetsI18n.translationProvenance,
           versionHash: historySchema.streetsI18n.versionHash,
         })
         .from(historySchema.streetsI18n)
         .where(eq(historySchema.streetsI18n.streetId, id))
         .all()
+      const changelog = await db
+        .select({
+          evidenceAssets: historySchema.streetChangelog.evidenceAssets,
+          effectiveDate: historySchema.streetChangelog.effectiveDate,
+          isPartialNameChange: historySchema.streetChangelog.isPartialNameChange,
+          kind: historySchema.streetChangelog.kind,
+          gazetteDate: historySchema.streetChangelog.gazetteDate,
+          noticeRef: historySchema.streetChangelog.noticeRef,
+          recordKey: historySchema.streetChangelog.recordKey,
+          sourceReleaseId: historySchema.streetChangelog.sourceReleaseId,
+          sourceShardId: historySchema.streetChangelog.sourceShardId,
+        })
+        .from(historySchema.streetChangelog)
+        .where(
+          and(
+            eq(historySchema.streetChangelog.streetId, id),
+            eq(historySchema.streetChangelog.isCurrent, true),
+          ),
+        )
+        .all()
       return streets.map(street => ({
         ...street,
+        changelog: changelog.map(publicChangelogEntry),
         i18n: i18n.filter(item => item.versionHash === street.versionHash),
       }))
     }),
@@ -188,12 +266,12 @@ async function getStreetHistory(historyDbs: HistoryDatabase[], id: string) {
     // retry are equivalent and should not make history traversal ambiguous.
     if (!byVersion.has(row.version)) {
       byVersion.set(row.version, {
+        changelog: row.changelog,
         deletedAt: row.deletedAt,
         districtIds: row.districtIds,
         id: row.id,
         i18n: row.i18n,
-        landsdPublicationDate: row.landsdPublicationDate,
-        references: row.references,
+        gazetteDate: row.gazetteDate,
         status: row.status === 'deleted' ? 'deleted' : 'active',
         version: row.version,
       })
@@ -205,12 +283,12 @@ async function getStreetHistory(historyDbs: HistoryDatabase[], id: string) {
 function asStreetState(street: Awaited<ReturnType<typeof getStreetCurrentById>>) {
   if (!street) throw new Error('Cannot serialize an absent street.')
   return {
+    changelog: street.changelog.map(publicChangelogEntry),
     deletedAt: street.deletedAt,
     districtIds: street.districtIds,
     id: street.id,
     i18n: street.i18n,
-    landsdPublicationDate: street.landsdPublicationDate,
-    references: street.references,
+    gazetteDate: street.gazetteDate,
     status: street.status,
     version: street.version,
   } satisfies StreetState
@@ -233,11 +311,11 @@ function resource(state: StreetState, links: Record<string, string>) {
     type: 'streets' as const,
     id: state.id,
     attributes: {
+      changelog: state.changelog,
       deletedAt: state.deletedAt,
       districtIds: stringArray(state.districtIds),
       i18n: locales(state),
-      landsdPublicationDate: state.landsdPublicationDate,
-      provenance: publicProvenance(state.references),
+      gazetteDate: state.gazetteDate,
       status: state.status,
       version: state.version,
     },
@@ -245,9 +323,45 @@ function resource(state: StreetState, links: Record<string, string>) {
   }
 }
 
+function publicChangelogEntry(value: {
+  evidenceAssets: unknown
+  effectiveDate: string | null
+  gazetteDate: string | null
+  isPartialNameChange: boolean
+  kind: string
+  noticeRef: string | null
+  recordKey: string
+  sourceReleaseId: string | null
+  sourceShardId: string | null
+}): StreetChangelogEntry {
+  return {
+    evidenceAssets: publicAssetLinks(value.evidenceAssets),
+    effectiveDate: value.effectiveDate,
+    gazetteDate: value.gazetteDate,
+    isPartialNameChange: value.isPartialNameChange,
+    kind: changelogKind(value.kind),
+    noticeRef: value.noticeRef,
+    source: {
+      recordKey: value.recordKey,
+      releaseId: value.sourceReleaseId,
+      shardId: value.sourceShardId,
+    },
+  }
+}
+
+function changelogKind(value: string): StreetChangelogEntry['kind'] {
+  return value === 'gazette' ||
+    value === 'description_change' ||
+    value === 'notice_of_name_change' ||
+    value === 'name_change' ||
+    value === 'deleted'
+    ? value
+    : 'gazette'
+}
+
 function locales(street: StreetState) {
   const i18nByLocale = new Map(street.i18n.map(row => [row.locale, row] as const))
-  const localeCodes = ['en', 'zh-Hant', 'zh-Hans'] as const
+  const localeCodes = ['en', 'zh-Hant'] as const
   return Object.fromEntries(
     localeCodes.map(locale => {
       const row = i18nByLocale.get(locale)
@@ -258,10 +372,8 @@ function locales(street: StreetState) {
       return [
         locale,
         {
-          assetLinks: publicAssetLinks(row.assetLinks),
           description: row.description,
           name: row.name,
-          translationProvenance: row.translationProvenance ?? null,
         } satisfies StreetLocale,
       ]
     }),
@@ -323,6 +435,7 @@ function publicAssetLinks(value: unknown): StreetAsset[] {
             label: record.label ?? null,
             mediaType: record.mediaType,
             originalUrl: record.originalUrl,
+            publisherIdentifier: record.publisherIdentifier ?? null,
             retrievedAt: record.retrievedAt,
             role: record.role,
             ...(record.sourcePageLocale

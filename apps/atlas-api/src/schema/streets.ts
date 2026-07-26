@@ -11,6 +11,7 @@ const StreetAssetSchema = z
     label: z.string().nullable(),
     mediaType: z.string(),
     originalUrl: z.string().url(),
+    publisherIdentifier: z.string().nullable(),
     retrievedAt: z.string(),
     role: z.enum(streetEvidenceAssetRoles),
     sourcePageLocale: z.enum(['en', 'zh-Hant']).optional(),
@@ -22,23 +23,36 @@ export type StreetAsset = z.infer<typeof StreetAssetSchema>
 
 const StreetLocaleSchema = z
   .object({
-    assetLinks: z.array(StreetAssetSchema),
     description: z.string().nullable(),
     name: z.string(),
-    translationProvenance: z.unknown().nullable(),
   })
   .openapi('StreetLocale')
 
 export type StreetLocale = z.infer<typeof StreetLocaleSchema>
 
-const StreetProvenanceSchema = z
+const StreetChangelogEntrySchema = z
   .object({
+    evidenceAssets: z.array(StreetAssetSchema),
     effectiveDate: z.string().nullable(),
-    publicationDate: z.string().nullable(),
-    sourceEventIds: z.array(z.string()),
+    gazetteDate: z.string().nullable(),
+    isPartialNameChange: z.boolean(),
+    kind: z.enum([
+      'gazette',
+      'description_change',
+      'notice_of_name_change',
+      'name_change',
+      'deleted',
+    ]),
+    noticeRef: z.string().nullable(),
+    source: z.object({
+      recordKey: z.string(),
+      releaseId: z.string().nullable(),
+      shardId: z.string().nullable(),
+    }),
   })
-  .nullable()
-  .openapi('StreetProvenance')
+  .openapi('StreetChangelogEntry')
+
+export type StreetChangelogEntry = z.infer<typeof StreetChangelogEntrySchema>
 
 export const StreetResourceSchema = z
   .object({
@@ -46,14 +60,13 @@ export const StreetResourceSchema = z
     id: IdSchema,
     attributes: z.object({
       deletedAt: z.string().nullable(),
+      changelog: z.array(StreetChangelogEntrySchema),
       districtIds: z.array(z.string()),
       i18n: z.object({
         en: StreetLocaleSchema,
         'zh-Hant': StreetLocaleSchema,
-        'zh-Hans': StreetLocaleSchema,
       }),
-      landsdPublicationDate: z.string().nullable(),
-      provenance: StreetProvenanceSchema,
+      gazetteDate: z.string().nullable(),
       status: z.enum(['active', 'deleted']),
       version: z.number().int().positive(),
     }),
@@ -86,6 +99,20 @@ export const StreetVersionsResponseSchema = z
     data: z.array(StreetResourceSchema),
   })
   .openapi('StreetVersionsResponse')
+
+export const StreetChangelogReplayResponseSchema = z
+  .object({
+    jsonapi: JsonApiVersionSchema,
+    links: JsonApiLinkMapSchema,
+    data: z.array(
+      z.object({
+        type: z.literal('street-changelog'),
+        id: z.string(),
+        attributes: StreetChangelogEntrySchema,
+      }),
+    ),
+  })
+  .openapi('StreetChangelogReplayResponse')
 
 export const StreetSnapshotNotReadyErrorResponseSchema = z
   .object({
