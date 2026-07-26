@@ -10,13 +10,13 @@ import {
 import {
   jsonText,
   streetChangelogKinds,
+  streetNameChangeStatuses,
+  streetNameChangeStreetRoles,
   timestamps,
   type StreetEvidenceAsset,
 } from '../shared'
 import { streets } from './streets'
 
-export const streetNameChangeStatuses = ['intended', 'effective', 'withdrawn'] as const
-export const streetNameChangeStreetRoles = ['old', 'new'] as const
 /**
  * A directed legal street-name change. It may connect multiple old and new
  * logical streets, so a split or merge does not need to overload `streets`.

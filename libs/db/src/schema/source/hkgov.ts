@@ -11,8 +11,16 @@ import { jsonText, type StreetEvidenceAsset } from '../shared'
 import { sourceVersionIndexes, sourceVersioning } from './shared'
 
 export const landsdStreetNoticeApplicationMethods = ['automatic', 'manual'] as const
+export type LandsdStreetNoticeApplicationMethod =
+  (typeof landsdStreetNoticeApplicationMethods)[number]
+
 export const landsdStreetNoticeApplicationDispositions = ['apply', 'noOp'] as const
+export type LandsdStreetNoticeApplicationDisposition =
+  (typeof landsdStreetNoticeApplicationDispositions)[number]
+
 export const landsdStreetNameChangeScopes = ['whole', 'partial'] as const
+export type LandsdStreetNameChangeScope = (typeof landsdStreetNameChangeScopes)[number]
+
 export const landsdStreetNoticeTypes = [
   'declaration',
   'change',
@@ -20,6 +28,7 @@ export const landsdStreetNoticeTypes = [
   'intention',
   'corrigendum',
 ] as const
+export type LandsdStreetNoticeType = (typeof landsdStreetNoticeTypes)[number]
 
 export const sourceHkgovAlsAddresses2d = sqliteTable(
   'hkgovAlsAddresses2d',

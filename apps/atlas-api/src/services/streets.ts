@@ -15,6 +15,7 @@ import {
   metaSnapshotSources,
   metaSnapshots,
   streetEvidenceAssetRoles,
+  streetLocaleCodes,
 } from '@repo/db'
 
 import { getStreetCurrentById } from '../db/streets'
@@ -356,9 +357,8 @@ function changelogKind(value: string): StreetChangelogEntry['kind'] {
 
 function locales(street: StreetState) {
   const i18nByLocale = new Map(street.i18n.map(row => [row.locale, row] as const))
-  const localeCodes = ['en', 'zh-Hant'] as const
   return Object.fromEntries(
-    localeCodes.map(locale => {
+    streetLocaleCodes.map(locale => {
       const row = i18nByLocale.get(locale)
       if (!row)
         throw new Error(
@@ -372,7 +372,7 @@ function locales(street: StreetState) {
         } satisfies StreetLocale,
       ]
     }),
-  ) as Record<(typeof localeCodes)[number], StreetLocale>
+  ) as Record<(typeof streetLocaleCodes)[number], StreetLocale>
 }
 
 function linksForStreet(

@@ -1,4 +1,4 @@
-import type { CurrentDatabase, StreetChangelogKind } from '@repo/db'
+import type { CurrentDatabase, StreetChangelogKind, StreetStatus } from '@repo/db'
 import { and, currentSchema, eq } from '@repo/db'
 
 const { streetChangelog, streets, streetsI18n } = currentSchema
@@ -14,7 +14,7 @@ export type StreetCurrentRecord = {
   }>
   sourceKeys: unknown
   version: number
-  status: 'active' | 'deleted'
+  status: StreetStatus
   deletedAt: string | null
   changelog: Array<{
     evidenceAssets: unknown

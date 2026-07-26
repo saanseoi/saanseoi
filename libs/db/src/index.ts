@@ -12,11 +12,25 @@ export {
   isStreetChangelogKind,
   streetChangelogKinds,
   streetEvidenceAssetRoles,
+  streetLocaleCodes,
+  streetNameChangeStatuses,
+  streetNameChangeStreetRoles,
+  streetStatuses,
   toIsoTimestamp,
   type EvidenceAsset,
   type StreetChangelogKind,
   type StreetEvidenceAsset,
   type StreetEvidenceAssetRole,
+  type StreetLocaleCode,
+  type StreetNameChangeStatus,
+  type StreetNameChangeStreetRole,
+  type StreetStatus,
 } from './schema/shared'
+export type {
+  LandsdStreetNameChangeScope,
+  LandsdStreetNoticeApplicationDisposition,
+  LandsdStreetNoticeApplicationMethod,
+  LandsdStreetNoticeType,
+} from './schema/source/hkgov'
 export * from './schema/meta'
 export { and, asc, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
