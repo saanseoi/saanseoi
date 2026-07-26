@@ -10,7 +10,16 @@ import {
 import { jsonText, type StreetEvidenceAsset } from '../shared'
 import { sourceVersionIndexes, sourceVersioning } from './shared'
 
-export const landsdStreetCurationStatuses = ['none', 'required', 'applied'] as const
+export const landsdStreetNoticeApplicationMethods = ['automatic', 'manual'] as const
+export const landsdStreetNoticeApplicationDispositions = ['apply', 'noOp'] as const
+export const landsdStreetNameChangeScopes = ['whole', 'partial'] as const
+export const landsdStreetNoticeTypes = [
+  'declaration',
+  'change',
+  'deletion',
+  'intention',
+  'corrigendum',
+] as const
 
 export const sourceHkgovAlsAddresses2d = sqliteTable(
   'hkgovAlsAddresses2d',
@@ -80,69 +89,113 @@ export const sourceHkgovAlsAddress2dI18n = sqliteTable(
   ],
 )
 
-/**
- * Immutable LandsD street-register evidence. A Gazette notice is a source
- * record in its own right, including corrigenda, deletions, and changes; it is
- * not inferred from the mutable street name.
- */
-export const sourceHkgovLandsdStreets = sqliteTable(
-  'hkgovLandsdStreets',
+/** Immutable rows from a versioned LandsD Gazetted Street Name PDF. */
+export const sourceHkgovLandsdStreetBaselineRecords = sqliteTable(
+  'hkgovLandsdStreetBaselineRecords',
   {
+    /** Stable internal key derived from the three fields in the baseline PDF table. */
     sourceRecordId: text('sourceRecordId').notNull(),
-    isGazetteNoticeListed: integer('isGazetteNoticeListed', {
+    /** Opaque SaanSeoi identity minted when this baseline street is accepted. */
+    streetId: text('streetId').notNull(),
+    /** True when the authoritative state is established by Government Notices. */
+    deferToNotices: integer('deferToNotices', {
       mode: 'boolean',
     }).notNull(),
-    landsdPublicationDate: text('landsdPublicationDate'),
-    governmentNoticeType: text('governmentNoticeType'),
-    /** Records whether a deliberately curated source patch governed application. */
-    curationStatus: text('curationStatus', {
-      enum: landsdStreetCurationStatuses,
-    })
-      .notNull()
-      .default('none'),
-    curationPatchId: text('curationPatchId'),
-    /** The publisher identifier derived from the linked Government Notice. */
-    noticeIdentity: text('noticeIdentity'),
-    parsedEffectiveDate: text('parsedEffectiveDate'),
-    previousGovernmentNoticeReferences: jsonText<string[]>(
-      'previousGovernmentNoticeReferences',
-    ),
-    rawExtractedText: jsonText('rawExtractedText'),
-    parserDiagnostics: jsonText('parserDiagnostics'),
-    district: text('district'),
-    districtCodes: jsonText<string[]>('districtCodes'),
-    sourceAssetLinks: jsonText<StreetEvidenceAsset[]>('sourceAssetLinks'),
-    sourcePageSnapshots: jsonText<StreetEvidenceAsset[]>('sourcePageSnapshots'),
-    translationAudit: jsonText('translationAudit'),
-    rawProperties: jsonText('rawProperties'),
+    englishName: text('englishName').notNull(),
+    chineseName: text('chineseName').notNull(),
+    districtCode: text('districtCode').notNull(),
     ...sourceVersioning,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
-    ...sourceVersionIndexes(table, 'hkgovLandsdStreets'),
-    index('hkgovLandsdStreets_publicationDate_idx').on(table.landsdPublicationDate),
-    index('hkgovLandsdStreets_noticeType_idx').on(table.governmentNoticeType),
+    ...sourceVersionIndexes(table, 'hkgovLandsdStreetBaselineRecords'),
+    index('hkgovLandsdStreetBaselineRecords_street_idx').on(table.streetId),
+    index('hkgovLandsdStreetBaselineRecords_deferToNotices_idx').on(
+      table.deferToNotices,
+    ),
   ],
 )
 
-export const sourceHkgovLandsdStreetI18n = sqliteTable(
-  'hkgovLandsdStreetI18n',
+/** Immutable publisher facts extracted from one LandsD Government Notice entry. */
+export const sourceHkgovLandsdStreetNotices = sqliteTable(
+  'hkgovLandsdStreetNotices',
+  {
+    /** Stable internal key: notice reference plus the PDF table row ordinal. */
+    sourceRecordId: text('sourceRecordId').notNull(),
+    /** Gazette date parsed directly from the bilingual notice PDFs. */
+    gazetteDate: text('gazetteDate').notNull(),
+    /** Publisher's notice classification, parsed from the notice PDF. */
+    kind: text('kind', { enum: landsdStreetNoticeTypes }).notNull(),
+    /** Publisher Government Notice reference, for example G.N. 377. */
+    noticeRef: text('noticeRef').notNull(),
+    effectiveDate: text('effectiveDate'),
+    /** Literal `Previous G.N.` values from the publisher notice. */
+    previousNoticeRefs: jsonText<string[]>('previousNoticeRefs'),
+    rawExtractedText: jsonText('rawExtractedText'),
+    parserDiagnostics: jsonText('parserDiagnostics'),
+    districtCodes: jsonText<string[]>('districtCodes'),
+    /** Bilingual Government Notice PDFs and any legally referenced plans. */
+    evidenceAssets: jsonText<StreetEvidenceAsset[]>('evidenceAssets').notNull(),
+    ...sourceVersioning,
+  },
+  table => [
+    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    ...sourceVersionIndexes(table, 'hkgovLandsdStreetNotices'),
+    index('hkgovLandsdStreetNotices_gazetteDate_idx').on(table.gazetteDate),
+    index('hkgovLandsdStreetNotices_kind_idx').on(table.kind),
+    index('hkgovLandsdStreetNotices_noticeRef_idx').on(table.noticeRef),
+  ],
+)
+
+export const sourceHkgovLandsdStreetNoticeI18n = sqliteTable(
+  'hkgovLandsdStreetNoticeI18n',
   {
     sourceRecordId: text('sourceRecordId').notNull(),
     locale: text('locale').notNull(),
     name: text('name').notNull(),
     description: text('description'),
-    district: text('district'),
-    assetLinks: jsonText<StreetEvidenceAsset[]>('assetLinks'),
-    translationProvenance: jsonText('translationProvenance'),
     ...sourceVersioning,
   },
   table => [
     primaryKey({
       columns: [table.sourceRecordId, table.versionHash, table.locale],
     }),
-    ...sourceVersionIndexes(table, 'hkgovLandsdStreetI18n'),
-    index('hkgovLandsdStreetI18n_locale_idx').on(table.locale),
-    index('hkgovLandsdStreetI18n_name_idx').on(table.locale, table.name),
+    ...sourceVersionIndexes(table, 'hkgovLandsdStreetNoticeI18n'),
+    index('hkgovLandsdStreetNoticeI18n_locale_name_idx').on(table.locale, table.name),
+  ],
+)
+
+/**
+ * Persisted reducer input, produced either by deterministic parsing or a manual
+ * fixture. It never repeats immutable publisher facts from StreetNotices.
+ */
+export const sourceHkgovLandsdStreetNoticeApplications = sqliteTable(
+  'hkgovLandsdStreetNoticeApplications',
+  {
+    sourceRecordId: text('sourceRecordId').notNull(),
+    method: text('method', { enum: landsdStreetNoticeApplicationMethods }).notNull(),
+    disposition: text('disposition', {
+      enum: landsdStreetNoticeApplicationDispositions,
+    }).notNull(),
+    /** Existing logical street to which the notice applies; no cross-shard FK. */
+    sourceStreetId: text('sourceStreetId'),
+    /** New logical street produced by a declaration or whole-name change. */
+    resultStreetId: text('resultStreetId'),
+    nameChangeScope: text('nameChangeScope', {
+      enum: landsdStreetNameChangeScopes,
+    }),
+    /** Required when nameChangeScope is partial. */
+    retainedDescriptions: jsonText<Record<string, string>>('retainedDescriptions'),
+    ...sourceVersioning,
+  },
+  table => [
+    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    ...sourceVersionIndexes(table, 'hkgovLandsdStreetNoticeApplications'),
+    index('hkgovLandsdStreetNoticeApplications_sourceStreet_idx').on(
+      table.sourceStreetId,
+    ),
+    index('hkgovLandsdStreetNoticeApplications_resultStreet_idx').on(
+      table.resultStreetId,
+    ),
   ],
 )

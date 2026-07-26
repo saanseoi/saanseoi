@@ -28,6 +28,10 @@ export type EvidenceAsset<TRole extends string = string> = {
   mediaType: string
   objectKey: string
   originalUrl: string
+  // Publisher-level identifier, when the artifact represents one.
+  // - Government Notice PDF: `G.N. 377`
+  // - Gazette plan PDF: `YLRM223`
+  publisherIdentifier?: string | null
   retrievedAt: string
   role: TRole
   sourcePageLocale?: 'en' | 'zh-Hant'
@@ -283,9 +287,13 @@ export const canonicalStreet = {
   status: text('status', { enum: ['active', 'deleted'] }).notNull(),
   deletedAt: text('deletedAt'),
   districtIds: jsonText<string[]>('districtIds'),
-  landsdPublicationDate: text('landsdPublicationDate'),
+  /** Gazette date parsed directly from the authoritative Government Notice PDF. */
+  gazetteDate: text('gazetteDate'),
   yearBuilt: jsonText('yearBuilt'),
-  references: jsonText('references'),
+  /** Government Notice references that establish the current street state. */
+  noticeRefs: jsonText<string[]>('noticeRefs'),
+  /** Government Notice PDFs and plans that establish the current street state. */
+  evidenceAssets: jsonText<StreetEvidenceAsset[]>('evidenceAssets'),
   sourceKeys: jsonText('sourceKeys'),
 }
 
@@ -299,6 +307,4 @@ export const canonicalStreetI18n = {
   directionalSuffix: text('directionalSuffix'),
   normalised: text('normalised'),
   description: text('description'),
-  assetLinks: jsonText<StreetEvidenceAsset[]>('assetLinks'),
-  translationProvenance: jsonText('translationProvenance'),
 }
