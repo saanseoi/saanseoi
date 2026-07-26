@@ -19,6 +19,7 @@ function printUsage() {
   bun run dataops -- hkgov-landsd-streets:assemble --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
   bun run dataops -- hkgov-hkgro-street-names:retrieve --target local [--year YYYY[,YYYY...]] [--out-dir PATH]
   bun run dataops -- hkgov-hkgro-street-names:ocr --target local [--year YYYY[,YYYY...]] [--hkgro-pdf-id ID[,ID...]] [--out-dir PATH]
+  bun run dataops -- hkgov-hkgro-street-names:discover --target local [--out-dir PATH] [--review-file PATH]
 `)
 }
 
@@ -106,6 +107,13 @@ async function main() {
         './commands/hkgroStreetNamesOcr.ts'
       )
       await runHkgroStreetNameOcrCommand(args, target, printUsage)
+      return
+    }
+    case 'hkgov-hkgro-street-names:discover': {
+      const { runHkgroStreetNameDiscoverCommand } = await import(
+        './commands/hkgroStreetNamesDiscover.ts'
+      )
+      await runHkgroStreetNameDiscoverCommand(args, target, printUsage)
       return
     }
     default:
