@@ -58,6 +58,7 @@ import {
   type LandsdStreetLifecycleInput,
   type LandsdStreetLifecycleI18n,
   type LandsdStreetMaterialisedStreet,
+  type LandsdStreetLifecycleTextCorrection,
 } from '../sources/landsd/street/landsdStreetLifecycle.ts'
 import { mintLandsdStreetId } from '../sources/landsd/street/landsdStreetIds.ts'
 import type { LandsdStreetSourceKind } from '../sources/landsd/street/landsdStreet.ts'
@@ -119,6 +120,7 @@ type PreparedStreet = {
     method: LandsdStreetNoticeApplicationMethod
     nameChangeScope: LandsdStreetNameChangeScope | null
     retainedDescriptions: Partial<Record<'en' | 'zh-Hant' | 'zh-Hans', string>> | null
+    correction: LandsdStreetLifecycleTextCorrection | null
   } | null
   districtCodes: string[]
   i18n: PreparedStreetI18n[]
@@ -548,6 +550,7 @@ function toLifecycleInput(record: PreparedStreet): LandsdStreetLifecycleInput {
     effectiveDate: record.effectiveDate,
     previousNoticeRefs: record.previousNoticeRefs,
     retainedDescriptions: record.application?.retainedDescriptions ?? null,
+    correction: record.application?.correction ?? null,
     evidenceAssets: record.evidenceAssets,
     sourceKind: record.sourceKind,
     recordKey: record.base.id,
@@ -1883,6 +1886,7 @@ function parseNoticeApplication(value: unknown): PreparedStreet['application'] {
         )
   if (scope === 'partial' && !retainedDescriptions)
     throw new Error('partial application needs retainedDescriptions.')
+  const correction = parseTextCorrection(record.correction)
   return {
     sourceStreetId: optionalString(record.sourceStreetId),
     resultStreetId: optionalString(record.resultStreetId),
@@ -1890,7 +1894,31 @@ function parseNoticeApplication(value: unknown): PreparedStreet['application'] {
     method,
     nameChangeScope: scope ?? null,
     retainedDescriptions,
+    correction,
   }
+}
+
+function parseTextCorrection(
+  value: unknown,
+): LandsdStreetLifecycleTextCorrection | null {
+  if (value === null || value === undefined) return null
+  const record = asRecord(value, 'application.correction')
+  const from = requireString(record.from, 'application.correction.from')
+  const to = requireString(record.to, 'application.correction.to')
+  if (!Array.isArray(record.fields) || record.fields.length === 0)
+    throw new Error('application.correction.fields must be a non-empty array.')
+  const fields = record.fields.map(field => {
+    if (
+      field === 'en.name' ||
+      field === 'zh-Hant.name' ||
+      field === 'en.description' ||
+      field === 'zh-Hant.description' ||
+      field === 'previousNoticeRefs'
+    )
+      return field
+    throw new Error('application.correction.fields has an invalid field.')
+  })
+  return { fields, from, to }
 }
 
 function requireLocale(value: unknown, name: string): PreparedStreetI18n['locale'] {
