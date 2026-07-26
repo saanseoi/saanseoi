@@ -4,6 +4,7 @@ import {
   ErrorResponseSchema,
   StreetDetailParamsSchema,
   StreetDetailResponseSchema,
+  StreetChangelogReplayResponseSchema,
   StreetSnapshotNotReadyErrorResponseSchema,
   StreetVersionParamsSchema,
   StreetVersionsResponseSchema,
@@ -13,6 +14,7 @@ import {
   getHongKongStreetDetail,
   getHongKongStreetVersion,
   listHongKongStreetVersions,
+  replayHongKongStreetChangelog,
 } from '../../services/streets'
 import type { AppEnv } from '../../types'
 
@@ -38,6 +40,25 @@ const streetDetailRoute = createRoute({
       description: 'Street snapshot is not ready.',
     },
     422: ValidationErrorOpenAPIResponse,
+  },
+})
+
+const streetChangelogRoute = createRoute({
+  method: 'get',
+  path: '/v0/hk/streets/changelog',
+  operationId: 'replayHongKongStreetChangelogV0',
+  tags: ['Streets'],
+  responses: {
+    200: {
+      content: { 'application/json': { schema: StreetChangelogReplayResponseSchema } },
+      description: 'Replay LandsD street source events in publisher order.',
+    },
+    503: {
+      content: {
+        'application/json': { schema: StreetSnapshotNotReadyErrorResponseSchema },
+      },
+      description: 'Street snapshot is not ready.',
+    },
   },
 })
 
@@ -92,6 +113,18 @@ const streetVersionRoute = createRoute({
 })
 
 export const streetRoutes = [
+  defineOpenAPIRoute<typeof streetChangelogRoute, AppEnv>({
+    route: streetChangelogRoute,
+    handler: async c => {
+      const result = await replayHongKongStreetChangelog({
+        historyDbs: c.var.historyDbs,
+        metaDb: c.var.metaDb,
+        requestUrl: c.req.url,
+      })
+      if (result.status === 503) return c.json(result.body, 503)
+      return c.json(result.body, 200)
+    },
+  }),
   defineOpenAPIRoute<typeof streetDetailRoute, AppEnv>({
     route: streetDetailRoute,
     handler: async c => {
