@@ -65,6 +65,50 @@ describe('api field fixtures', () => {
     )
   })
 
+  test('resolves Planning Department mappings with their shared division datasets', () => {
+    const fixtures = [
+      {
+        domainCode: 'hkgov-pland-pu',
+        snapshotVersion: 'ss-hk-division-hkgov-pland-pu-2001',
+        sourceDatasetCode: 'ds-hk-hkgov-pland-division-pu',
+        sourceSchemaVersion: '1.0',
+      },
+      {
+        domainCode: 'hkgov-pland-pu',
+        snapshotVersion: 'ss-hk-division-hkgov-pland-pu-2021',
+        sourceDatasetCode: 'ds-hk-hkgov-pland-division-pu',
+        sourceSchemaVersion: '2.0',
+      },
+      {
+        domainCode: 'hkgov-pland-new-town',
+        snapshotVersion: 'ss-hk-division-hkgov-pland-new-town-2006',
+        sourceDatasetCode: 'ds-hk-hkgov-pland-division-new-town',
+        sourceSchemaVersion: '1.0',
+      },
+    ]
+
+    for (const fixture of fixtures) {
+      const resolved = resolveApiFieldFixture({
+        apiVersion: 'api-divisions-v0.1',
+        domainCode: fixture.domainCode,
+        lineageSnapshotVersions: [fixture.snapshotVersion],
+        schemaVersion: 'sv-division-v1',
+        rulesetVersion: `rs-division-${fixture.domainCode}-merge-v1`,
+        sourceSchemas: {
+          [fixture.sourceDatasetCode]: fixture.sourceSchemaVersion,
+        },
+      })
+
+      expect(resolved).not.toBeNull()
+      expect(resolved?.fields).toContainEqual(
+        expect.objectContaining({
+          apiField: 'divisionArea.id',
+          sourceDatasetCode: fixture.sourceDatasetCode,
+        }),
+      )
+    }
+  })
+
   test('selects the closest matching ancestor, not the highest snapshot code', () => {
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-divisions-v0.1',
