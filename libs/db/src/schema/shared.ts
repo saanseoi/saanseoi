@@ -5,12 +5,21 @@ export const streetEvidenceAssetRoles = [
   'gazettePlan',
   'gazettePlanPreview',
   'governmentNotice',
+  'historicalGovernmentNotice',
   'sourceArchive',
   'sourcePage',
   'sourcePdf',
 ] as const
 
 export type StreetEvidenceAssetRole = (typeof streetEvidenceAssetRoles)[number]
+
+export const streetLocaleCodes = ['en', 'zh-Hant'] as const
+
+export type StreetLocaleCode = (typeof streetLocaleCodes)[number]
+
+export const streetStatuses = ['active', 'deleted'] as const
+
+export type StreetStatus = (typeof streetStatuses)[number]
 
 export const streetChangelogKinds = [
   'gazette',
@@ -21,6 +30,14 @@ export const streetChangelogKinds = [
 ] as const
 
 export type StreetChangelogKind = (typeof streetChangelogKinds)[number]
+
+export const streetNameChangeStatuses = ['intended', 'effective', 'withdrawn'] as const
+
+export type StreetNameChangeStatus = (typeof streetNameChangeStatuses)[number]
+
+export const streetNameChangeStreetRoles = ['old', 'new'] as const
+
+export type StreetNameChangeStreetRole = (typeof streetNameChangeStreetRoles)[number]
 
 export function isStreetChangelogKind(value: string): value is StreetChangelogKind {
   return (streetChangelogKinds as readonly string[]).includes(value)
@@ -48,7 +65,7 @@ export type EvidenceAsset<TRole extends string = string> = {
   publisherIdentifier?: string | null
   retrievedAt: string
   role: TRole
-  sourcePageLocale?: 'en' | 'zh-Hant'
+  sourcePageLocale?: StreetLocaleCode
   sourcePageUrl?: string
 }
 
@@ -298,7 +315,7 @@ export const canonicalStreet = {
    * immutable history row stored by the snapshot machinery.
    */
   version: integer('version').notNull(),
-  status: text('status', { enum: ['active', 'deleted'] }).notNull(),
+  status: text('status', { enum: streetStatuses }).notNull(),
   deletedAt: text('deletedAt'),
   districtIds: jsonText<string[]>('districtIds'),
   /** Gazette date parsed directly from the authoritative Government Notice PDF. */

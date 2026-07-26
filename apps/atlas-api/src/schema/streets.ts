@@ -1,5 +1,10 @@
 import { z } from '@hono/zod-openapi'
-import { streetChangelogKinds, streetEvidenceAssetRoles } from '@repo/db'
+import {
+  streetChangelogKinds,
+  streetEvidenceAssetRoles,
+  streetLocaleCodes,
+  streetStatuses,
+} from '@repo/db'
 
 import { IdSchema, JsonApiLinkMapSchema, JsonApiVersionSchema } from './common'
 
@@ -14,7 +19,7 @@ const StreetAssetSchema = z
     publisherIdentifier: z.string().nullable(),
     retrievedAt: z.string(),
     role: z.enum(streetEvidenceAssetRoles),
-    sourcePageLocale: z.enum(['en', 'zh-Hant']).optional(),
+    sourcePageLocale: z.enum(streetLocaleCodes).optional(),
     sourcePageUrl: z.string().url().optional(),
   })
   .openapi('StreetAssetLink')
@@ -61,7 +66,7 @@ export const StreetResourceSchema = z
         'zh-Hant': StreetLocaleSchema,
       }),
       gazetteDate: z.string().nullable(),
-      status: z.enum(['active', 'deleted']),
+      status: z.enum(streetStatuses),
       version: z.number().int().positive(),
     }),
     links: JsonApiLinkMapSchema,
