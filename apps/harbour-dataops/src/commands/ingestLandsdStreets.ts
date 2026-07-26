@@ -1,4 +1,4 @@
-import { log, outro, spinner } from '@clack/prompts'
+import { log, note, outro, spinner } from '@clack/prompts'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 
@@ -6,6 +6,8 @@ import {
   LANDSD_STREET_DATASET_CODE,
   createLandsdStreetReleasePayload,
   ingestLandsdStreetSource,
+  assignLandsdStreetBaselineIds,
+  landsdStreetBaselineCandidatesFromRecords,
   reconcileLandsdStreetBaselineRecords,
   type LandsdStreetRecord,
 } from '../../../harbour-cli/src/lib/sources/landsd/street/landsdStreetIngest.ts'
@@ -16,6 +18,11 @@ import {
   readUpdateState,
   writeUpdateState,
 } from '../../../harbour-cli/src/lib/sources/sourceUpdates.ts'
+import {
+  describeTarget,
+  formatField,
+  formatMutedValue,
+} from '../../../harbour-cli/src/lib/cli/display.ts'
 import type {
   ParsedArgs,
   UploadTarget,
@@ -47,29 +54,59 @@ export async function runLandsdStreetStageCommand(
     throw new Error(`${commandForStage(stage)} does not accept positional arguments.`)
   }
   const stagingDir = resolveStageDirectory(args, stage)
+  const stagingRoot = resolveStagingRoot(args)
   const progress = createProgress('LandsD streets')
 
   try {
+    const existingBaseline =
+      stage === 'baseline'
+        ? await readOptionalStage(join(stagingRoot, 'baseline'), 'baseline', target)
+        : await readRequiredBaselineStage(stagingRoot, target)
+    const baselineRecords = existingBaseline
+      ? assignLandsdStreetBaselineIds(existingBaseline.records)
+      : []
+    if (
+      existingBaseline &&
+      baselineRecords.some(
+        (record, index) =>
+          record.streetId !== existingBaseline.records[index]?.streetId,
+      )
+    ) {
+      await writeStage(join(stagingRoot, 'baseline'), {
+        ...existingBaseline,
+        records: baselineRecords,
+      })
+    }
     const result = await ingestLandsdStreetSource({
       ...stageOptions(stage),
+      baselineCandidates: landsdStreetBaselineCandidatesFromRecords(baselineRecords),
       outputDir: stagingDir,
       promptForCuration: true,
       target,
       writeFixtures: false,
       onProgress: event => progress.show(event.message, event.waitingForInput ?? false),
     })
+    const stagedRecords = assignLandsdStreetBaselineIds(
+      result.releases.flatMap(release => release.records),
+    )
     await writeStage(stagingDir, {
-      records: result.releases.flatMap(release => release.records),
+      records: stagedRecords,
       sourceCursor: result.sourceCursor,
       stage,
       target,
       version: 1,
     })
     progress.stop(`${stageLabel(stage)} staging complete`)
-    log.success(
-      `Prepared ${result.releases.flatMap(release => release.records).length} ${stageLabel(stage)} record(s); report: ${result.reportPath}`,
+    note(
+      formatStageResult({
+        recordCount: stagedRecords.length,
+        reportPath: result.reportPath,
+        stage,
+        target,
+      }).join('\n'),
+      'STREET STAGING',
     )
-    outro(`Staged ${stageLabel(stage)}; run hkgov-landsd-streets:assemble to publish.`)
+    outro(stageCompletionMessage(stage))
   } catch (error) {
     progress.error(error)
     throw error
@@ -176,6 +213,37 @@ function stageLabel(stage: StreetStage) {
   return stage.replaceAll('-', ' ')
 }
 
+function formatStageResult(input: {
+  recordCount: number
+  reportPath: string
+  stage: StreetStage
+  target: UploadTarget
+}) {
+  const baselineIdentityStatus =
+    input.stage === 'baseline'
+      ? 'canonical street IDs minted and staged'
+      : 'baseline canonical street IDs loaded'
+  return [
+    formatField('target', describeTarget(input.target).label),
+    formatField('stage', stageLabel(input.stage)),
+    formatField('status', 'staged'),
+    formatField('records', input.recordCount),
+    formatField('identity', baselineIdentityStatus),
+    formatField('report', formatMutedValue(input.reportPath)),
+  ]
+}
+
+function stageCompletionMessage(stage: StreetStage) {
+  switch (stage) {
+    case 'baseline':
+      return 'Baseline staged with minted street IDs.'
+    case 'landsd-notices':
+      return 'LandsD notices staged against the baseline IDs; continue with the e-Gazette notice stage.'
+    case 'official-egazette':
+      return 'Historical e-Gazette notices staged; run hkgov-landsd-streets:assemble to publish.'
+  }
+}
+
 async function writeStage(dir: string, stage: StagedStreetRecords) {
   await mkdir(dir, { recursive: true })
   await writeFile(join(dir, 'stage.json'), `${JSON.stringify(stage, null, 2)}\n`)
@@ -221,6 +289,40 @@ async function readStage(
   }
 }
 
+async function readOptionalStage(
+  dir: string,
+  expectedStage: StreetStage,
+  target: UploadTarget,
+) {
+  try {
+    return await readStage(dir, expectedStage, target)
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes(`Cannot read staged ${expectedStage} records`) &&
+      error.message.includes('ENOENT')
+    )
+      return null
+    throw error
+  }
+}
+
+async function readRequiredBaselineStage(stagingRoot: string, target: UploadTarget) {
+  try {
+    return await readStage(join(stagingRoot, 'baseline'), 'baseline', target)
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes('Cannot read staged baseline records') &&
+      error.message.includes('ENOENT')
+    )
+      throw new Error(
+        'LandsD notice stages require a staged baseline with canonical street IDs. Run hkgov-landsd-streets:baseline first.',
+      )
+    throw error
+  }
+}
+
 function latestNoticeSourceVersion(records: LandsdStreetRecord[]) {
   const date = records
     .map(record => record.gazetteDate)
@@ -245,7 +347,7 @@ function assertUniqueRecordKeys(records: LandsdStreetRecord[]) {
 }
 
 async function recordStreetSourceCursor(
-  target: UploadTarget,
+  _target: UploadTarget,
   sourceCursor: string[],
   sourceVersion: string,
 ) {
