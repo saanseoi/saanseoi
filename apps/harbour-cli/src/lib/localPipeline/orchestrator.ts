@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path'
 
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 
-import type { LocalUploadProgress } from '../localUploadProgress.ts'
+import type { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
   appendPhaseDetails,
   formatBytes,

@@ -6,12 +6,12 @@ import {
   LANDSD_STREET_NAMING_URL,
   pairLandsdStreetNoticePages,
   parseLandsdStreetSourcePage,
-} from './landsdStreet/landsdStreet.ts'
-import { ingestLandsdStreetSource } from './landsdStreet/landsdStreetIngest.ts'
-import { publishLandsdStreetReleasePayloads } from './landsdStreet/landsdStreetPublish.ts'
+} from './landsd/street/landsdStreet.ts'
+import { ingestLandsdStreetSource } from './landsd/street/landsdStreetIngest.ts'
+import { publishLandsdStreetReleasePayloads } from './landsd/street/landsdStreetPublish.ts'
 import { type CsdiSourceArchive, prepareCsdiSourceArchive } from './sourceArchives.ts'
 
-const REPO_ROOT = resolve(import.meta.dir, '../../../..')
+const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const DATASET_ROOT = resolve(REPO_ROOT, 'fixtures/meta/datasets')
 const STATE_PATH = resolve(REPO_ROOT, '.local/harbour/update-state.json')
 const OVERTURIST_ROOT = resolve(REPO_ROOT, '../overturist')
@@ -107,7 +107,7 @@ export type DatasetUpdate = {
   downloadUrl?: string
   downloadPath?: string
   download?: () => Promise<string>
-  ingest?: (target: import('./options.ts').UploadTarget) => Promise<void>
+  ingest?: (target: import('../cli/options.ts').UploadTarget) => Promise<void>
   releaseLastRevisedAt?: string
   metadataLastRevisedAt?: string
   metadata?: {

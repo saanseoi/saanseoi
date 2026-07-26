@@ -35,9 +35,9 @@ import {
 } from '@repo/core/pipeline/services/addressPipeline/types'
 import { buildAddressReleaseStatsRows } from '@repo/core/pipeline/services/stats'
 
-import type { PreparedUploadFile } from '../parquetRepack.ts'
-import type { UploadTarget } from '../options.ts'
-import { createHarbourControlClient } from '../harbourControl.ts'
+import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
+import type { UploadTarget } from '../cli/options.ts'
+import { createHarbourControlClient } from '../api/harbourControl.ts'
 import {
   createLocalImportProgressClient,
   runLocalGenerationPhase,
@@ -47,7 +47,7 @@ import { createLocalControlClient } from '../localPipeline/localControlClient.ts
 import {
   calculateAndStoreApiReleaseSetStats,
   resolveApiReleaseSetStatsTarget,
-} from '../apiReleaseSetStats.ts'
+} from '../api/apiReleaseSetStats.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import {
   appendPhaseDetails,
@@ -58,7 +58,7 @@ import {
   formatRetryLabel,
   formatRunningPhaseLabel,
 } from '../localPipeline/progressFormatting.ts'
-import { LocalUploadProgress } from '../localUploadProgress.ts'
+import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
   loadAddressCurrentLookupCache,
   writeAddressCurrentLookupCache,

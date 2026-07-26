@@ -41,9 +41,9 @@ import {
 } from '@repo/db'
 import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
 
-import type { PreparedUploadFile } from '../parquetRepack.ts'
-import type { UploadTarget } from '../options.ts'
-import { createHarbourControlClient } from '../harbourControl.ts'
+import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
+import type { UploadTarget } from '../cli/options.ts'
+import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
@@ -51,16 +51,16 @@ import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
 import {
   resolveLandsdStreetDistricts,
   type LandsdStreetCanonicalDistrict,
-} from '../landsdStreet/landsdStreetDistricts.ts'
+} from '../sources/landsd/street/landsdStreetDistricts.ts'
 import {
   materialiseLandsdStreetLifecycle,
   type LandsdStreetChangelogEntry,
   type LandsdStreetLifecycleInput,
   type LandsdStreetLifecycleI18n,
   type LandsdStreetMaterialisedStreet,
-} from '../landsdStreet/landsdStreetLifecycle.ts'
-import { mintLandsdStreetId } from '../landsdStreet/landsdStreetIds.ts'
-import type { LandsdStreetSourceKind } from '../landsdStreet/landsdStreet.ts'
+} from '../sources/landsd/street/landsdStreetLifecycle.ts'
+import { mintLandsdStreetId } from '../sources/landsd/street/landsdStreetIds.ts'
+import type { LandsdStreetSourceKind } from '../sources/landsd/street/landsdStreet.ts'
 
 type UploadResult = {
   datasetCode?: string

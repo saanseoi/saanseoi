@@ -5,9 +5,9 @@ import type {
   ProcessingActionReportRow,
   ReleaseReportRow,
   StatReportRow,
-} from './reporting.ts'
+} from '../api/reporting.ts'
 import type { UploadTarget } from './options.ts'
-import { resolveHarbourBaseUrl } from './api.ts'
+import { resolveHarbourBaseUrl } from '../api/api.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 

@@ -48,16 +48,16 @@ import {
   uploadPreparedSourceAsset,
   type PreparedSourceAsset,
   type SourceAssetRole,
-} from '../sourceAssets.ts'
-import type { UploadTarget } from '../options.ts'
+} from '../../sourceAssets.ts'
+import type { UploadTarget } from '../../../cli/options.ts'
 
 export const LANDSD_STREET_DATASET_CODE = 'ds-hk-hkgov-landsd-street'
 export const LANDSD_STREET_INITIAL_SOURCE_VERSION = '2016-01-01.0'
 const DEFAULT_CURATION_PATH = resolve(
   import.meta.dir,
-  '../../../../../fixtures/meta/curations/hkgov-landsd-street.json',
+  '../../../../../../../fixtures/meta/curations/hkgov-landsd-street.json',
 )
-const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
+const REPO_ROOT = resolve(import.meta.dir, '../../../../../../..')
 const DEFAULT_EGAZETTE_ARCHIVE_DIR = join(
   REPO_ROOT,
   'data/hkgov/gld/egazette/street-name',
@@ -1172,7 +1172,7 @@ async function writeLifecycleReview(
 function fixturePathFor(sourceVersion: string) {
   return resolve(
     import.meta.dir,
-    '../../../../../fixtures/meta/releases',
+    '../../../../../../../fixtures/meta/releases',
     LANDSD_STREET_DATASET_CODE,
     `dr-hk-hkgov-landsd-street-${sourceVersion}.md`,
   )

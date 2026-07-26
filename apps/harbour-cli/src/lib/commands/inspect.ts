@@ -1,9 +1,9 @@
 import { note, outro } from '@clack/prompts'
 
-import { formatField } from '../display.ts'
-import { inspectLocalArtefact } from '../inspect.ts'
-import { resolveInspectOptions } from '../inspectOptions.ts'
-import type { ParsedArgs } from '../options.ts'
+import { formatField } from '../cli/display.ts'
+import { inspectLocalArtefact } from '../inspection/inspect.ts'
+import { resolveInspectOptions } from '../cli/inspectOptions.ts'
+import type { ParsedArgs } from '../cli/options.ts'
 
 export async function runInspectCommand(args: ParsedArgs) {
   const inspectOptions = await resolveInspectOptions(args)

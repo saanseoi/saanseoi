@@ -5,7 +5,7 @@ import {
   formatIngestionReportTable,
   formatReleaseReportTable,
   formatStatsReportTable,
-} from './display.ts'
+} from '../cli/display.ts'
 import type {
   IngestRunReportRow,
   ReleaseReportRow,

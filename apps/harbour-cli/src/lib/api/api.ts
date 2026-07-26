@@ -1,6 +1,6 @@
 import { resolveHarbourBaseUrl as resolveCoreHarbourBaseUrl } from '@repo/core'
 
-import type { UploadTarget } from './options.ts'
+import type { UploadTarget } from '../cli/options.ts'
 
 export function resolveHarbourBaseUrl(target: UploadTarget) {
   return resolveCoreHarbourBaseUrl(target.environment)

@@ -5,9 +5,9 @@ import { resolve } from 'node:path'
 import { cancel, isCancel, note, outro, select } from '@clack/prompts'
 import { compareReleaseVersions, normaliseBaseUrl } from '@repo/core'
 
-import { getAuthHeaders, resolveHarbourApiUrl } from '../api.ts'
-import { describeTarget, formatField } from '../display.ts'
-import { getStringOption, type ParsedArgs, type UploadTarget } from '../options.ts'
+import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
+import { describeTarget, formatField } from '../cli/display.ts'
+import { getStringOption, type ParsedArgs, type UploadTarget } from '../cli/options.ts'
 
 type ApiReleaseSetDocsRow = {
   id: string

@@ -2,7 +2,7 @@ import { normaliseBaseUrl } from '@repo/core'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
-import type { UploadTarget } from './options.ts'
+import type { UploadTarget } from '../cli/options.ts'
 
 type StagePayload = {
   releaseCode?: string

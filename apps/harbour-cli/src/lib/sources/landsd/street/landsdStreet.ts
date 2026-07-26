@@ -690,8 +690,6 @@ export function pairLandsdGovernmentNoticePdfEntries(input: {
       zhHant.diagnostics.layout === 'unstructured-notice' &&
       english.entries.length === 1 &&
       zhHant.entries.length === 1
-    const [noticeWideEnglishEntry] = english.entries
-    const [noticeWideZhHantEntry] = zhHant.entries
     for (const [pdfOrdinal, notice] of ordered.entries()) {
       const englishCandidates = matchingPdfEntries(
         english.entries,
@@ -707,9 +705,21 @@ export function pairLandsdGovernmentNoticePdfEntries(input: {
       // their shared ordinal is the most direct evidence. Prefer it before a
       // name match: an index page can order names differently from the PDF,
       // and an early exact match would otherwise consume the wrong row.
-      const selected = isNoticeWideCorrigendum
-        ? { englishEntry: noticeWideEnglishEntry, zhHantEntry: noticeWideZhHantEntry }
-        : (selectStructurallyAlignedPdfEntries({
+      let selected: {
+        englishEntry: LandsdGovernmentNoticePdfEntry
+        zhHantEntry: LandsdGovernmentNoticePdfEntry
+      } | null
+      if (isNoticeWideCorrigendum) {
+        const [englishEntry] = english.entries
+        const [zhHantEntry] = zhHant.entries
+        if (!englishEntry || !zhHantEntry) {
+          issues.push(`${notice.id}: corrigendum was missing a bilingual PDF entry.`)
+          continue
+        }
+        selected = { englishEntry, zhHantEntry }
+      } else {
+        selected =
+          selectStructurallyAlignedPdfEntries({
             english: english.entries,
             noticeCount: ordered.length,
             noticeOrdinal: pdfOrdinal,
@@ -721,7 +731,8 @@ export function pairLandsdGovernmentNoticePdfEntries(input: {
             english: englishCandidates,
             noticeOrdinal: pdfOrdinal,
             zhHant: zhHantCandidates,
-          }))
+          })
+      }
       if (!selected) {
         issues.push(
           `${notice.id}: page row could not be paired to one bilingual Government Notice PDF entry.`,

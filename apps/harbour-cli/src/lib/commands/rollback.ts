@@ -28,15 +28,15 @@ import type { ResourceType } from '@repo/core'
 import { note, outro } from '@clack/prompts'
 import { splitSqlStatements } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
 
-import { describeTarget, formatField } from '../display.ts'
-import { resolveHarbourBaseUrl } from '../api.ts'
-import { getStringOption, type ParsedArgs, type UploadTarget } from '../options.ts'
+import { describeTarget, formatField } from '../cli/display.ts'
+import { resolveHarbourBaseUrl } from '../api/api.ts'
+import { getStringOption, type ParsedArgs, type UploadTarget } from '../cli/options.ts'
 import {
   executeSqlText,
   type SqlImportExecutionOptions,
   type SqlImportTargetContext,
 } from '../localPipeline/sqlImport.ts'
-import { LocalUploadProgress } from '../localUploadProgress.ts'
+import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
   appendPhaseDetails,
   colorRed,

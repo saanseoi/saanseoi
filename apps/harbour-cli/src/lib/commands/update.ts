@@ -2,14 +2,14 @@ import { confirm, isCancel, log, outro, select, spinner } from '@clack/prompts'
 import { stat } from 'node:fs/promises'
 import { relative } from 'node:path'
 
-import { describeTarget } from '../display.ts'
-import { fetchReleaseReport } from '../reporting.ts'
-import type { ParsedArgs, UploadTarget } from '../options.ts'
+import { describeTarget } from '../cli/display.ts'
+import { fetchReleaseReport } from '../api/reporting.ts'
+import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { runUploadCommand } from './upload.ts'
 import {
   loadPreparedSourceArchive,
   mirrorCsdiSourceArchive,
-} from '../sourceArchives.ts'
+} from '../sources/sourceArchives.ts'
 import {
   type DatasetFixture,
   type UpdateStateEntry,
@@ -19,7 +19,7 @@ import {
   readUpdateState,
   shouldCheckDataset,
   writeUpdateState,
-} from '../sourceUpdates.ts'
+} from '../sources/sourceUpdates.ts'
 
 type DatasetUpdate = Awaited<ReturnType<typeof lookupDatasetUpdates>>[number]
 

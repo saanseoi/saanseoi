@@ -5,8 +5,8 @@ import { basename, resolve } from 'node:path'
 import { cancel, isCancel, note, outro, select } from '@clack/prompts'
 import { computeVersionHash } from '@repo/db'
 
-import type { ParsedArgs, UploadTarget } from '../options.ts'
-import { getStringOption } from '../options.ts'
+import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
+import { getStringOption } from '../cli/options.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const FIXTURE_ROOT = resolve(REPO_ROOT, 'fixtures/meta')

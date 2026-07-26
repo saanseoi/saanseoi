@@ -15,8 +15,8 @@ import {
   runVersionPublishCommand,
   runVersionStatusCommand,
 } from './lib/commands/version.ts'
-import { parseArgs, resolveUploadTarget } from './lib/options.ts'
-import { printUsage } from './lib/usage.ts'
+import { parseArgs, resolveUploadTarget } from './lib/cli/options.ts'
+import { printUsage } from './lib/cli/usage.ts'
 
 async function main() {
   const args = parseArgs(process.argv)

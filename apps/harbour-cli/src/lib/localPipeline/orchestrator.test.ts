@@ -26,7 +26,7 @@ describe('local import progress orchestration', () => {
       },
     }))
 
-    const { LocalUploadProgress } = await import('../localUploadProgress.ts')
+    const { LocalUploadProgress } = await import('../upload/localUploadProgress.ts')
     const { createLocalImportProgressClient } = await import('./orchestrator.ts')
     const controlEvents: string[] = []
     const harbourClient = {

@@ -13,7 +13,7 @@ import {
   type MetaDatabase,
 } from '@repo/db'
 
-import type { UploadEnvironment } from './options.ts'
+import type { UploadEnvironment } from '../../cli/options.ts'
 import {
   buildHkgovAlsPremiseIdentity,
   buildHkgovAlsProvisionalId,
@@ -38,7 +38,7 @@ import {
 } from './hkgovAlsPremiseNormalisation.ts'
 const HARBOUR_API_WRANGLER_CONFIG = resolve(
   import.meta.dir,
-  '../../../harbour-api/wrangler.jsonc',
+  '../../../../../harbour-api/wrangler.jsonc',
 )
 
 const COUNTRY_NAME_ALIASES = [
@@ -1584,7 +1584,7 @@ async function loadDivisionLookupRowsFromWrangler(
 
   const process = Bun.spawn({
     cmd: ['bun', ...args],
-    cwd: resolve(import.meta.dir, '../../..'),
+    cwd: resolve(import.meta.dir, '../../../..'),
     stdout: 'pipe',
     stderr: 'pipe',
   })
@@ -1649,7 +1649,7 @@ async function loadPublishedDivisionSnapshotIdFromWrangler(
 
   const process = Bun.spawn({
     cmd: ['bun', ...args],
-    cwd: resolve(import.meta.dir, '../../..'),
+    cwd: resolve(import.meta.dir, '../../../..'),
     stdout: 'pipe',
     stderr: 'pipe',
   })
