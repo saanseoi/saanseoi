@@ -17,7 +17,7 @@ const managedAssetRouteConfig = createRoute({
       content: {
         'application/octet-stream': {
           schema: z.string().openapi({
-            description: 'An immutable public-source artifact held in private R2.',
+            description: 'An immutable public-source artefact held in private R2.',
           }),
         },
       },

@@ -193,7 +193,7 @@ export async function ingestLandsdStreetSource(options: {
   const persistedAssets = await loadPersistedSourceAssets(outputDir)
   if (persistedAssets.size > 0) {
     reportProgress({
-      message: `Found ${persistedAssets.size} cached source artifact(s) from an earlier run`,
+      message: `Found ${persistedAssets.size} cached source artefact(s) from an earlier run`,
     })
   }
 
@@ -239,26 +239,26 @@ export async function ingestLandsdStreetSource(options: {
           downloadedAt: fetchedAt,
           fileName: input.fileName,
           mediaType: input.mediaType,
-          outputDir: join(outputDir, 'artifacts'),
+          outputDir: join(outputDir, 'artefacts'),
           role: input.role,
           sourcePageLocale: input.sourcePageLocale,
           sourcePageUrl: input.sourcePageUrl,
           url: input.url,
         }))
       const uploaded = await publisher(asset)
-      const role = asset.manifest.artifact.role
+      const role = asset.manifest.artefact.role
       if (role === 'manifest') {
-        throw new Error('A source artifact cannot have the manifest role.')
+        throw new Error('A source artefact cannot have the manifest role.')
       }
       return {
         prepared: asset,
         link: {
           assetId: uploaded.source.assetId,
           assetUrl: uploaded.source.url,
-          byteLength: asset.manifest.artifact.byteLength,
-          contentHash: asset.manifest.artifact.sha256,
+          byteLength: asset.manifest.artefact.byteLength,
+          contentHash: asset.manifest.artefact.sha256,
           label: input.label ?? null,
-          mediaType: asset.manifest.artifact.mediaType,
+          mediaType: asset.manifest.artefact.mediaType,
           originalUrl: asset.manifest.original.url,
           retrievedAt: asset.manifest.downloadedAt,
           role,
@@ -297,7 +297,7 @@ export async function ingestLandsdStreetSource(options: {
           ...input,
           cachedAsset,
           fileName: cachedAsset.fileName,
-          mediaType: cachedAsset.manifest.artifact.mediaType,
+          mediaType: cachedAsset.manifest.artefact.mediaType,
         })
       }
       const response = await fetchRequired(fetchImplementation, input.url)
@@ -1737,18 +1737,18 @@ function parseEgazetteNoticeRef(english: string, label: string) {
 }
 
 async function loadPersistedSourceAssets(outputDir: string) {
-  const artifactDir = join(outputDir, 'artifacts')
-  const entries = await readdir(artifactDir, { withFileTypes: true }).catch(error => {
+  const artefactDir = join(outputDir, 'artefacts')
+  const entries = await readdir(artefactDir, { withFileTypes: true }).catch(error => {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
     throw error
   })
   const assets = new Map<string, PreparedSourceAsset>()
   for (const entry of entries) {
     if (!entry.isFile() || !entry.name.endsWith('.manifest.json')) continue
-    const manifestFilePath = join(artifactDir, entry.name)
+    const manifestFilePath = join(artefactDir, entry.name)
     const manifestBytes = await readFile(manifestFilePath)
     const manifest = JSON.parse(new TextDecoder().decode(manifestBytes)) as {
-      artifact?: {
+      artefact?: {
         byteLength?: unknown
         mediaType?: unknown
         objectKey?: unknown
@@ -1760,29 +1760,29 @@ async function loadPersistedSourceAssets(outputDir: string) {
       provenance?: { sourcePageLocale?: unknown; sourcePageUrl?: unknown }
       schemaVersion?: unknown
     }
-    const artifact = manifest.artifact
+    const artefact = manifest.artefact
     const original = manifest.original
     const fileStem = entry.name.slice(0, -'.manifest.json'.length)
-    const contentHash = artifact?.sha256
+    const contentHash = artefact?.sha256
     if (
       manifest.schemaVersion !== 1 ||
       typeof contentHash !== 'string' ||
       !/^[a-f0-9]{64}$/.test(contentHash) ||
       !fileStem.startsWith(`${contentHash}-`) ||
-      typeof artifact?.role !== 'string' ||
-      typeof artifact.mediaType !== 'string' ||
-      typeof artifact.objectKey !== 'string' ||
-      typeof artifact.byteLength !== 'number' ||
+      typeof artefact?.role !== 'string' ||
+      typeof artefact.mediaType !== 'string' ||
+      typeof artefact.objectKey !== 'string' ||
+      typeof artefact.byteLength !== 'number' ||
       typeof original?.fileName !== 'string' ||
       typeof original.url !== 'string' ||
       typeof manifest.downloadedAt !== 'string'
     ) {
       continue
     }
-    const filePath = join(artifactDir, fileStem)
+    const filePath = join(artefactDir, fileStem)
     if (!(await Bun.file(filePath).exists())) continue
     const fileName = fileStem.slice(contentHash.length + 1)
-    const role = artifact.role as Exclude<SourceAssetRole, 'manifest'>
+    const role = artefact.role as Exclude<SourceAssetRole, 'manifest'>
     const sourcePageLocale =
       manifest.provenance?.sourcePageLocale === 'en' ||
       manifest.provenance?.sourcePageLocale === 'zh-Hant'
@@ -1797,10 +1797,10 @@ async function loadPersistedSourceAssets(outputDir: string) {
       filePath,
       manifest: {
         schemaVersion: 1,
-        artifact: {
-          byteLength: artifact.byteLength,
-          mediaType: artifact.mediaType,
-          objectKey: artifact.objectKey,
+        artefact: {
+          byteLength: artefact.byteLength,
+          mediaType: artefact.mediaType,
+          objectKey: artefact.objectKey,
           role,
           sha256: contentHash,
         },
@@ -1816,7 +1816,7 @@ async function loadPersistedSourceAssets(outputDir: string) {
         hashBytes(manifestBytes),
         `manifest-for-${contentHash}-${fileName}.json`,
       ),
-      objectKey: artifact.objectKey,
+      objectKey: artefact.objectKey,
     }
     assets.set(
       sourceAssetCacheKey({
@@ -1840,7 +1840,7 @@ function sourceAssetCacheKey(input: {
 
 function requiredAssetBytes(bytes: Uint8Array | undefined) {
   if (!bytes)
-    throw new Error('Source asset requires bytes when no cached artifact exists.')
+    throw new Error('Source asset requires bytes when no cached artefact exists.')
   return bytes
 }
 

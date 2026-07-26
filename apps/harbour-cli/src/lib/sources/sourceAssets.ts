@@ -25,7 +25,7 @@ export type SourceAssetRole =
 
 export type SourceAssetManifest = {
   schemaVersion: 1
-  artifact: {
+  artefact: {
     byteLength: number
     mediaType: string
     objectKey: string
@@ -151,7 +151,7 @@ export async function prepareSourceAsset(input: {
   const filePath = join(resolve(input.outputDir), `${sha256}-${fileName}`)
   const manifest: SourceAssetManifest = {
     schemaVersion: 1,
-    artifact: {
+    artefact: {
       byteLength: input.bytes.byteLength,
       mediaType: input.mediaType,
       objectKey,
@@ -197,12 +197,12 @@ export async function uploadPreparedSourceAsset(
       filePath: asset.filePath,
       metadata: {
         assetKey: asset.objectKey,
-        contentHash: asset.manifest.artifact.sha256,
+        contentHash: asset.manifest.artefact.sha256,
         manifest: { manifestObjectKey: asset.manifestObjectKey, ...asset.manifest },
-        mediaType: asset.manifest.artifact.mediaType,
+        mediaType: asset.manifest.artefact.mediaType,
         originalUrl: asset.manifest.original.url,
         retrievedAt: asset.manifest.downloadedAt,
-        role: asset.manifest.artifact.role,
+        role: asset.manifest.artefact.role,
         sourcePageLocale: asset.manifest.provenance.sourcePageLocale,
         sourcePageUrl: asset.manifest.provenance.sourcePageUrl,
       },
