@@ -29,6 +29,12 @@ SHA-256; existing validated files are resumed without a second download. A bad r
 changed local byte length or changed SHA-256 stops the command with the year, HKGRO PDF
 identifier, title and exact path/URL.
 
+HKGRO sometimes serves a zero-byte `application/pdf` response for a TOC-linked PDF. The
+command records that candidate as `assetStatus: "unavailable"` with the explicit failed
+URL and reason, then continues the acquisition. It never writes a zero-byte source file.
+A non-empty non-PDF response, a malformed local file, or a changed local hash still
+stops the command so archive or parser problems cannot be mistaken for source evidence.
+
 Use `--year 1901,1902` only for a bounded acquisition or repair run. The normal command
 indexes all available years. The workflow retains the archive session cookie and retries
 the annual TOC request once because HKGRO may initially return its generic landing page.
