@@ -302,9 +302,9 @@ test('describes a multi-street partial-renaming intention without applying it', 
   const result = resolveLandsdStreetCuration({
     baselineCandidates: [
       {
-        districtCodes: ['kt', 'wts'],
-        names: { en: 'LUNG CHEUNG ROAD', zhHant: '龍翔道' },
-        recordKey: 'baseline-lung-cheung-road',
+        districtCodes: ['wts'],
+        names: { en: 'HAMMER HILL ROAD', zhHant: '斧山道' },
+        recordKey: 'baseline-hammer-hill-road',
         streetId: '018f0b41-1a00-7000-8000-000000000005',
       },
     ],
@@ -317,6 +317,9 @@ test('describes a multi-street partial-renaming intention without applying it', 
   expect(result.review[0]?.intentionSummary).toBe(
     'Rename part of HAMMER HILL ROAD as LUNG CHEUNG ROAD; Cease part of HAMMER HILL ROAD',
   )
+  expect(
+    result.review[0]?.baselineCandidates.map(candidate => candidate.names.en),
+  ).toEqual(['HAMMER HILL ROAD'])
   expect(formatLifecycleReviewContext(result.review[0]!)).toContain('Proposed action')
 })
 
@@ -337,18 +340,35 @@ test('recognises a partial-renaming intention that identifies its source in an e
     },
   } as PairedLandsdGovernmentNoticePdfEntry
   const result = resolveLandsdStreetCuration({
-    baselineCandidates: [],
+    baselineCandidates: [
+      {
+        districtCodes: ['sk', 'kt'],
+        names: { en: 'ANDERSON ROAD', zhHant: '安達臣道' },
+        recordKey: 'baseline-anderson-road',
+        streetId: '018f0b41-1a00-7000-8000-000000000006',
+      },
+    ],
     manifest: emptyLandsdStreetCuration(),
     notices: [notice],
     parsedEntries: new Map([[notice.id, parsed]]),
   })
 
   expect(result.unresolved).toHaveLength(1)
+  expect(result.review[0]?.partialRenameIntention).toEqual({
+    resultName: 'ON PIK ROAD',
+    sourceName: 'ANDERSON ROAD',
+  })
   expect(result.review[0]?.intentionSummary).toBe(
     'Rename part of ANDERSON ROAD as ON PIK ROAD',
   )
+  expect(
+    result.review[0]?.baselineCandidates.map(candidate => candidate.names.en),
+  ).toEqual(['ANDERSON ROAD'])
   expect(formatLifecycleReviewContext(result.review[0]!)).toContain(
-    'Proposed action: Rename part of ANDERSON ROAD as ON PIK ROAD',
+    'Rename part of ANDERSON ROAD as ON PIK ROAD',
+  )
+  expect(formatLifecycleReviewContext(result.review[0]!)).toContain(
+    'Affected baseline streets',
   )
 })
 
@@ -410,6 +430,7 @@ test('formats compact lifecycle review context with only decision-relevant field
       },
     ],
     correction: null,
+    partialRenameIntention: null,
     chineseNoticeDateCorrigendum: null,
     intentionSummary: null,
     intentionRename: null,

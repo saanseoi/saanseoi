@@ -111,8 +111,8 @@ change. A corrigendum always creates a lifecycle version and changelog entry, in
 when the present-state baseline already contains the corrected text. `Previous G.N.` is
 never used to identify a street. A curator chooses one of:
 
-- `apply`, with the affected canonical street ID and, for a name change, a new ID and
-  whole/partial scope;
+- `apply`, with the affected canonical street and, for a name change, whole/partial
+  scope. The resulting street ID is minted by the system;
 - `noOp`, when the immutable source event has no material street-state effect; or
 - `defer`, which intentionally continues to block publication.
 
@@ -134,8 +134,11 @@ partial change retains the old identity and creates one for the renamed portion.
 An intention that proposes several actions—for example, renaming one section of a street
 and ceasing another—remains a reviewed changelog decision. The review states each
 proposed action, rather than attaching the multi-street proposal automatically to the
-first matching street. Its later declaration is where the corresponding whole or partial
-name-change application is recorded.
+first matching street. This includes notices that identify the source section through an
+earlier Government Notice before naming the replacement street. Review candidates for a
+partial rename are matched against that existing source street, not the proposed new
+name. Its later declaration is where the corresponding whole or partial name-change
+application is recorded.
 
 Each updater run emits one source release and canonical snapshot for the newly observed
 batch of notices. Current snapshots contain active streets only. Historic deleted states
