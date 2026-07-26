@@ -178,6 +178,11 @@ run_step bun run dataops -- hkgov-pland:backfill --kind new-town --target local 
 if domain_has_pending_releases new-town 2006 2011 2016 2021
     run_step ./bin/saanseoi docs:publish --target local --scope all
 end
+run_step bun run dataops -- hkgov-landsd-streets:baseline --target local
+run_step bun run dataops -- hkgov-landsd-streets:landsd-notices --target local
+run_step bun run dataops -- hkgov-landsd-streets:official-egazette --target local
+run_step bun run dataops -- hkgov-landsd-streets:assemble --target local
+run_step ./bin/saanseoi docs:publish --target local --scope all
 run_step bun run dataops -- hkgov-dpo:backfill-local \
     "$upload_init_repo/data/hkgov/dpo/ALS" \
     --target local --cohort-key 2025-12-17.0
