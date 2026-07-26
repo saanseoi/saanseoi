@@ -10,9 +10,18 @@
       "code": "overture",
       "isDefault": true,
       "i18n": [
-        { "locale": "en", "name": "Overture" },
-        { "locale": "zh-hant", "name": "Overture" },
-        { "locale": "zh-hans", "name": "Overture" }
+        {
+          "locale": "en",
+          "name": "Overture"
+        },
+        {
+          "locale": "zh-hant",
+          "name": "Overture"
+        },
+        {
+          "locale": "zh-hans",
+          "name": "Overture"
+        }
       ],
       "members": [
         {

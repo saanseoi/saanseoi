@@ -10,9 +10,18 @@
       "code": "overture",
       "isDefault": true,
       "i18n": [
-        { "locale": "en", "name": "Overture" },
-        { "locale": "zh-hant", "name": "Overture" },
-        { "locale": "zh-hans", "name": "Overture" }
+        {
+          "locale": "en",
+          "name": "Overture"
+        },
+        {
+          "locale": "zh-hant",
+          "name": "Overture"
+        },
+        {
+          "locale": "zh-hans",
+          "name": "Overture"
+        }
       ],
       "members": [
         {
@@ -68,9 +77,18 @@
     {
       "code": "hkgov-pland-pu",
       "i18n": [
-        { "locale": "en", "name": "Planning Unit" },
-        { "locale": "zh-hant", "name": "規劃單元" },
-        { "locale": "zh-hans", "name": "规划单元" }
+        {
+          "locale": "en",
+          "name": "Planning Unit"
+        },
+        {
+          "locale": "zh-hant",
+          "name": "規劃單元"
+        },
+        {
+          "locale": "zh-hans",
+          "name": "规划单元"
+        }
       ],
       "members": [
         {
@@ -94,9 +112,18 @@
     {
       "code": "hkgov-pland-new-town",
       "i18n": [
-        { "locale": "en", "name": "New Town" },
-        { "locale": "zh-hant", "name": "新市鎮" },
-        { "locale": "zh-hans", "name": "新市镇" }
+        {
+          "locale": "en",
+          "name": "New Town"
+        },
+        {
+          "locale": "zh-hant",
+          "name": "新市鎮"
+        },
+        {
+          "locale": "zh-hans",
+          "name": "新市镇"
+        }
       ],
       "members": [
         {
@@ -120,9 +147,18 @@
     {
       "code": "hkgov-landsd",
       "i18n": [
-        { "locale": "en", "name": "HK Gov" },
-        { "locale": "zh-hant", "name": "香港政府" },
-        { "locale": "zh-hans", "name": "香港政府" }
+        {
+          "locale": "en",
+          "name": "HK Gov"
+        },
+        {
+          "locale": "zh-hant",
+          "name": "香港政府"
+        },
+        {
+          "locale": "zh-hans",
+          "name": "香港政府"
+        }
       ],
       "members": [
         {
