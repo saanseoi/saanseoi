@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 
 import { resolveAtlasBaseUrl } from '@repo/core'
+import { runWithWriteRetry } from '@repo/core/pipeline/utils'
 import { eq, metaAssets } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
 
@@ -16,6 +17,7 @@ export type SourceAssetRole =
   | 'gazettePlan'
   | 'gazettePlanPreview'
   | 'governmentNotice'
+  | 'historicalGovernmentNotice'
   | 'manifest'
   | 'sourceArchive'
   | 'sourcePage'
@@ -274,10 +276,12 @@ async function uploadLocalManagedSourceAsset(
 ): Promise<UploadedSourceAsset> {
   const withMetaDb = options.withMetaDb ?? withLocalMetaDb
   const assetId = await queueLocalSourceAssetRegistration(() =>
-    withMetaDb(metaDb =>
-      registerLocalManagedSourceAsset(metaDb, input, {
-        putObject: options.putObject ?? putLocalSourceAssetObject,
-      }),
+    runWithWriteRetry(() =>
+      withMetaDb(metaDb =>
+        registerLocalManagedSourceAsset(metaDb, input, {
+          putObject: options.putObject ?? putLocalSourceAssetObject,
+        }),
+      ),
     ),
   )
 

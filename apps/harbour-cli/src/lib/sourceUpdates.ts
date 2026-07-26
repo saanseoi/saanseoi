@@ -6,9 +6,9 @@ import {
   LANDSD_STREET_NAMING_URL,
   pairLandsdStreetNoticePages,
   parseLandsdStreetSourcePage,
-} from './landsdStreet.ts'
-import { ingestLandsdStreetSource } from './landsdStreetIngest.ts'
-import { publishLandsdStreetReleasePayloads } from './landsdStreetPublish.ts'
+} from './landsdStreet/landsdStreet.ts'
+import { ingestLandsdStreetSource } from './landsdStreet/landsdStreetIngest.ts'
+import { publishLandsdStreetReleasePayloads } from './landsdStreet/landsdStreetPublish.ts'
 import { type CsdiSourceArchive, prepareCsdiSourceArchive } from './sourceArchives.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
@@ -44,8 +44,13 @@ export type DatasetVersionPolicy = {
     | 'release-date'
     | 'upstream'
   releaseField?: DatasetReleaseField
-  correction: boolean
+  correctionSuffixSource: DatasetCorrectionSuffixSource
 }
+
+export const datasetCorrectionSuffixSources = ['none', 'generated', 'upstream'] as const
+
+export type DatasetCorrectionSuffixSource =
+  (typeof datasetCorrectionSuffixSources)[number]
 
 export type DatasetReleaseField =
   | 'sourceVersion'
@@ -481,56 +486,47 @@ async function lookupLandsdStreet({
     } satisfies DatasetUpdate
   }
 
-  const noticesByDate = new Map<string, typeof newNotices>()
-  for (const notice of newNotices) {
-    const group = noticesByDate.get(notice.publicationDate) ?? []
-    group.push(notice)
-    noticesByDate.set(notice.publicationDate, group)
-  }
-  return [...noticesByDate.entries()]
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([date, dateNotices]) => {
-      const sourceVersion = `${date}.0`
-      return {
-        checkedAt,
-        dataset,
-        deferStateUntilProcessed: true,
-        ingest: async target => {
-          const result = await ingestLandsdStreetSource({
-            includeBaseline: false,
-            noticeIds: dateNotices.map(notice => notice.id),
-            outputDir: resolve(
-              REPO_ROOT,
-              'data/hkgov/landsd/street',
-              safeFilePart(sourceVersion),
-            ),
-            sourceUrl,
-            target,
-            translationCachePath: resolve(
-              REPO_ROOT,
-              '.local/harbour/landsd-street-translation-cache.json',
-            ),
-          })
-          await publishLandsdStreetReleasePayloads(target, result.releases, {
-            invocationCwd: process.env.SAANSEOI_INVOCATION_CWD ?? process.cwd(),
-            releaseNotesUrl: sourceUrl,
-          })
-        },
-        message: `${dateNotices.length} paired LandsD notice row(s) for ${date}; evidence, translations and declaration fixtures will be published as one retry-safe release.`,
-        releaseLastRevisedAt: en.lastModified,
-        sourceCursor: [
-          ...knownNoticeIds,
-          ...notices
-            .filter(notice => notice.publicationDate <= date)
-            .map(notice => notice.id),
-        ].sort(),
-        sourceKey: dataset.code,
-        sourceUrl,
-        status: 'new' as const,
-        version: sourceVersion,
-        versionKey: sourceVersion,
-      } satisfies DatasetUpdate
-    })
+  const latestDate = newNotices
+    .map(notice => notice.publicationDate)
+    .sort()
+    .at(-1)
+  if (!latestDate) throw new Error('LandsD update did not contain a publication date.')
+  const sourceVersion = `${latestDate}.0`
+  return [
+    {
+      checkedAt,
+      dataset,
+      deferStateUntilProcessed: true,
+      ingest: async target => {
+        const result = await ingestLandsdStreetSource({
+          // Ingestion always downloads the baseline and uses its content hash
+          // to avoid duplicating an unchanged baseline source version.
+          includeBaseline: true,
+          noticeIds: newNotices.map(notice => notice.id),
+          outputDir: resolve(
+            REPO_ROOT,
+            'data/hkgov/landsd/street',
+            safeFilePart(sourceVersion),
+          ),
+          sourceUrl,
+          target,
+          promptForCuration: true,
+        })
+        await publishLandsdStreetReleasePayloads(target, result.releases, {
+          invocationCwd: process.env.SAANSEOI_INVOCATION_CWD ?? process.cwd(),
+          releaseNotesUrl: sourceUrl,
+        })
+      },
+      message: `${newNotices.length} paired LandsD notice row(s) through ${latestDate}; evidence and a single active-only street snapshot will be published together.`,
+      releaseLastRevisedAt: en.lastModified,
+      sourceCursor: [...knownNoticeIds, ...newNotices.map(notice => notice.id)].sort(),
+      sourceKey: dataset.code,
+      sourceUrl,
+      status: 'new' as const,
+      version: sourceVersion,
+      versionKey: sourceVersion,
+    } satisfies DatasetUpdate,
+  ]
 }
 
 function readStreetSourceDate(versionKey: string) {
@@ -1034,7 +1030,7 @@ function normaliseComparableVersion(value: string) {
 
 function normaliseDatasetVersion(dataset: DatasetFixture, value: string) {
   if (
-    dataset.versionPolicy.correction &&
+    dataset.versionPolicy.correctionSuffixSource === 'generated' &&
     ((dataset.versionPolicy.scheme === 'reference-year' && /^\d{4}$/.test(value)) ||
       (['initial-release-date', 'reference-date', 'release-date'].includes(
         dataset.versionPolicy.scheme,
@@ -1060,7 +1056,11 @@ export function resolveDatasetVersion(
     previous?.releaseLastRevisedAt &&
     releaseLastRevisedAt !== previous.releaseLastRevisedAt
 
-  if (!policy.correction || !releaseRevisionChanged || !previous?.versionKey) {
+  if (
+    policy.correctionSuffixSource !== 'generated' ||
+    !releaseRevisionChanged ||
+    !previous?.versionKey
+  ) {
     return version
   }
 
