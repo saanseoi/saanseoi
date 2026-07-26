@@ -39,6 +39,44 @@ Use `--year 1901,1902` only for a bounded acquisition or repair run. The normal 
 indexes all available years. The workflow retains the archive session cookie and retries
 the annual TOC request once because HKGRO may initially return its generic landing page.
 
+## Local OCR
+
+After retrieval, create derived OCR evidence with:
+
+```bash
+bun run dataops -- hkgov-hkgro-street-names:ocr --target local
+```
+
+The historical HKGRO scans are image-only and predominantly English, so this uses
+PaddleOCR's `en` model after rendering each page at 300 DPI. It writes one result per
+unique retrieved candidate under `ocr/YYYY/<HKGRO-id>.ocr.json` plus
+`ocr-manifest.json`. Each result preserves the source PDF path, byte length and SHA-256,
+PaddleOCR engine/version/model/language, raw page-level PaddleOCR NDJSON, recognised
+words with coordinates and confidence, and a layout-derived convenience text field. The
+PDF remains the source evidence; the JSON is explicitly derived with `method: "ocr"`,
+never publisher-native text.
+
+OCR validates the current PDF header, byte length and hash before it starts. Completed
+results are resumed only when their stored provenance matches those same source bytes.
+An unreadable PDF, failed rendering, unavailable runtime/model, malformed PaddleOCR
+output, or no recognised text records an `unparseable` attempt with the source path and
+full failure detail in `ocr-manifest.json`, then stops immediately. Once corrected, a
+rerun retries that record. Use `--year 1901,1902` for a bounded OCR or repair run. Use
+`--hkgro-pdf-id 460097` to inspect or repair a specific retrieved scan.
+
+The OCR environment remains UV-managed:
+
+```bash
+uv sync --project apps/harbour-dataops --python 3.12
+```
+
+Set `SAANSEOI_PADDLEOCR_PYTHON` only to point at an alternative compatible UV Python.
+PaddleOCR downloads its initial English model weights on first use, so that first run
+needs network access or a pre-seeded PaddleOCR cache. A single OCR page has a two-minute
+timeout so an unavailable model host cannot hang the archive; set
+`SAANSEOI_PADDLEOCR_TIMEOUT_MS` to a larger positive millisecond value only after
+confirming that the runtime and model download are healthy.
+
 ## Classification and lifecycle boundary
 
 Candidate selection is high-recall discovery, not a finding that a notice changes a

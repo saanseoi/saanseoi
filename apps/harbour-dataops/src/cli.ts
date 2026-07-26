@@ -15,6 +15,7 @@ function printUsage() {
   bun run dataops -- hkgov-pland:backfill --kind pu|new-town --target local|preview|production [--continue]
   bun run dataops -- hkgov-landsd-streets:backfill --target local|preview|production [--notice-id ID[,ID...]] [--out-dir PATH]
   bun run dataops -- hkgov-hkgro-street-names:retrieve --target local [--year YYYY[,YYYY...]] [--out-dir PATH]
+  bun run dataops -- hkgov-hkgro-street-names:ocr --target local [--year YYYY[,YYYY...]] [--hkgro-pdf-id ID[,ID...]] [--out-dir PATH]
 `)
 }
 
@@ -82,6 +83,13 @@ async function main() {
         './commands/hkgroStreetNames.ts'
       )
       await runHkgroStreetNameRetrieveCommand(args, target, printUsage)
+      return
+    }
+    case 'hkgov-hkgro-street-names:ocr': {
+      const { runHkgroStreetNameOcrCommand } = await import(
+        './commands/hkgroStreetNamesOcr.ts'
+      )
+      await runHkgroStreetNameOcrCommand(args, target, printUsage)
       return
     }
     default:

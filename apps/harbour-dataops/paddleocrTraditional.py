@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Emit Traditional-Chinese PaddleOCR words as newline-delimited JSON.
+"""Emit PaddleOCR words as newline-delimited JSON.
 
-This deliberately targets the stable PaddleOCR 2.x API. The TypeScript caller
-reconstructs fixed-width lines from the word coordinates so the Gazette table
-parser can continue to own lifecycle interpretation.
+This deliberately targets the stable PaddleOCR 2.x API. The caller reconstructs
+lines from the word coordinates so its Gazette parser can own interpretation.
 """
 
 from importlib.metadata import version
@@ -14,10 +13,11 @@ from paddleocr import PaddleOCR
 
 
 def main() -> None:
-    if len(sys.argv) != 2:
-        raise SystemExit("usage: paddleocrTraditional.py IMAGE")
+    if len(sys.argv) not in (2, 3):
+        raise SystemExit("usage: paddleocrTraditional.py IMAGE [LANGUAGE]")
 
-    ocr = PaddleOCR(lang="chinese_cht", use_angle_cls=True, show_log=False)
+    language = sys.argv[2] if len(sys.argv) == 3 else "chinese_cht"
+    ocr = PaddleOCR(lang=language, use_angle_cls=True, show_log=False)
     pages = ocr.ocr(sys.argv[1], cls=True)
     print(
         json.dumps(
@@ -25,7 +25,7 @@ def main() -> None:
                 "type": "metadata",
                 "engine": "PaddleOCR",
                 "engineVersion": version("paddleocr"),
-                "model": "chinese_cht",
+                "model": language,
             },
             ensure_ascii=False,
         )
