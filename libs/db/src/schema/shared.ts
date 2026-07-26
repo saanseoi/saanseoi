@@ -43,7 +43,7 @@ export function isStreetChangelogKind(value: string): value is StreetChangelogKi
   return (streetChangelogKinds as readonly string[]).includes(value)
 }
 
-/** A preserved source artifact and the original publisher link it represents. */
+/** A preserved source artefact and the original publisher link it represents. */
 export type EvidenceAsset<TRole extends string = string> = {
   assetId: string
   assetUrl: string
@@ -59,7 +59,7 @@ export type EvidenceAsset<TRole extends string = string> = {
   mediaType: string
   objectKey: string
   originalUrl: string
-  // Publisher-level identifier, when the artifact represents one.
+  // Publisher-level identifier, when the artefact represents one.
   // - Government Notice PDF: `G.N. 377`
   // - Gazette plan PDF: `YLRM223`
   publisherIdentifier?: string | null

@@ -37,7 +37,7 @@ test('stages paired notice releases with managed evidence URLs and an operator r
       const url = String(input)
       if (url.endsWith('.pdf')) {
         if (rejectPdfDownloads)
-          throw new Error('The second run should reuse the persisted PDF artifact.')
+          throw new Error('The second run should reuse the persisted PDF artefact.')
         return new Response(validPdfBytes, {
           headers: { 'content-type': 'application/pdf' },
         })
