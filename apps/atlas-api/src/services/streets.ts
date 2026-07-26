@@ -10,6 +10,7 @@ import {
   desc,
   eq,
   historySchema,
+  isStreetChangelogKind,
   metaDatasets,
   metaSnapshotSources,
   metaSnapshots,
@@ -350,13 +351,7 @@ function publicChangelogEntry(value: {
 }
 
 function changelogKind(value: string): StreetChangelogEntry['kind'] {
-  return value === 'gazette' ||
-    value === 'description_change' ||
-    value === 'notice_of_name_change' ||
-    value === 'name_change' ||
-    value === 'deleted'
-    ? value
-    : 'gazette'
+  return isStreetChangelogKind(value) ? value : 'gazette'
 }
 
 function locales(street: StreetState) {

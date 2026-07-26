@@ -1,18 +1,10 @@
 import { index, primaryKey, sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
 
-import { jsonText, type StreetEvidenceAsset } from '../shared'
+import { jsonText, streetChangelogKinds, type StreetEvidenceAsset } from '../shared'
 import { historyVersioning } from './shared'
 
 export const streetNameChangeStatuses = ['intended', 'effective', 'withdrawn'] as const
 export const streetNameChangeStreetRoles = ['old', 'new'] as const
-export const streetChangelogKinds = [
-  'gazette',
-  'description_change',
-  'notice_of_name_change',
-  'name_change',
-  'deleted',
-] as const
-
 /** Immutable versions of the current snapshot's directed name-change relation. */
 export const streetNameChanges = sqliteTable(
   'streetNameChanges',

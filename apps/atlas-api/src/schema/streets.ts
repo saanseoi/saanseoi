@@ -1,5 +1,5 @@
 import { z } from '@hono/zod-openapi'
-import { streetEvidenceAssetRoles } from '@repo/db'
+import { streetChangelogKinds, streetEvidenceAssetRoles } from '@repo/db'
 
 import { IdSchema, JsonApiLinkMapSchema, JsonApiVersionSchema } from './common'
 
@@ -36,13 +36,7 @@ const StreetChangelogEntrySchema = z
     effectiveDate: z.string().nullable(),
     gazetteDate: z.string().nullable(),
     isPartialNameChange: z.boolean(),
-    kind: z.enum([
-      'gazette',
-      'description_change',
-      'notice_of_name_change',
-      'name_change',
-      'deleted',
-    ]),
+    kind: z.enum(streetChangelogKinds),
     noticeRef: z.string().nullable(),
     source: z.object({
       recordKey: z.string(),

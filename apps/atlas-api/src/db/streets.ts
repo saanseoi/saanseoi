@@ -1,4 +1,4 @@
-import type { CurrentDatabase } from '@repo/db'
+import type { CurrentDatabase, StreetChangelogKind } from '@repo/db'
 import { and, currentSchema, eq } from '@repo/db'
 
 const { streetChangelog, streets, streetsI18n } = currentSchema
@@ -21,12 +21,7 @@ export type StreetCurrentRecord = {
     effectiveDate: string | null
     gazetteDate: string | null
     isPartialNameChange: boolean
-    kind:
-      | 'gazette'
-      | 'description_change'
-      | 'notice_of_name_change'
-      | 'name_change'
-      | 'deleted'
+    kind: StreetChangelogKind
     noticeRef: string | null
     recordKey: string
     sourceReleaseId: string | null
