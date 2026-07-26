@@ -242,6 +242,84 @@ test('automatically records a Chinese-notice date corrigendum as metadata only',
   })
 })
 
+test('automatically logs an unambiguous intention to rename the Chinese name', () => {
+  const notice = {
+    governmentNoticeType: 'intention',
+    governmentNotices: { en: null, zhHant: null },
+    id: 'notice-3020',
+    names: { en: 'U Lam Terrace', zhHant: '儒林臺' },
+    noticeIdentity: 'gn3020',
+    publicationDate: '2016-05-27',
+  } as PairedLandsdStreetNotice
+  const parsed = {
+    descriptions: { en: 'Replacement description.', zhHant: '新的說明。' },
+    rawExtractedText: {
+      en: `Notice is hereby given that the Director of Lands intends to make a declaration to rename the Chinese street name of U LAM TERRACE from 裕林臺 to 儒林臺 in Central and Western District, Hong Kong Island as described hereunder:—`,
+      zhHant: '',
+    },
+  } as PairedLandsdGovernmentNoticePdfEntry
+  const result = resolveLandsdStreetCuration({
+    baselineCandidates: [
+      {
+        districtCodes: ['c&w'],
+        names: { en: 'U LAM TERRACE', zhHant: '儒林臺' },
+        recordKey: 'baseline-u-lam-terrace',
+        streetId: '018f0b41-1a00-7000-8000-000000000004',
+      },
+    ],
+    manifest: emptyLandsdStreetCuration(),
+    notices: [notice],
+    parsedEntries: new Map([[notice.id, parsed]]),
+  })
+
+  expect(result.unresolved).toEqual([])
+  expect(result.review[0]).toMatchObject({
+    intentionRename: { from: '裕林臺', locale: 'zh-Hant', to: '儒林臺' },
+  })
+  expect(result.applied.get(notice.id)).toMatchObject({
+    affectedStreetId: '018f0b41-1a00-7000-8000-000000000004',
+    disposition: 'apply',
+    method: 'automatic',
+  })
+})
+
+test('describes a multi-street partial-renaming intention without applying it', () => {
+  const notice = {
+    governmentNoticeType: 'intention',
+    governmentNotices: { en: null, zhHant: null },
+    id: 'notice-875-lung-cheung',
+    names: { en: 'Lung Cheung Road', zhHant: '龍翔道' },
+    noticeIdentity: 'gn875',
+    publicationDate: '2017-02-17',
+  } as PairedLandsdStreetNotice
+  const parsed = {
+    descriptions: { en: 'Replacement description.', zhHant: '新的說明。' },
+    rawExtractedText: {
+      en: `The Director of Lands intends to make a declaration to rename a section of HAMMER HILL ROAD as a section of LUNG CHEUNG ROAD and to cease a section of HAMMER HILL ROAD inside the Diamond Hill Urn Cemetery to be known by that name as described hereunder:—`,
+      zhHant: '',
+    },
+  } as PairedLandsdGovernmentNoticePdfEntry
+  const result = resolveLandsdStreetCuration({
+    baselineCandidates: [
+      {
+        districtCodes: ['kt', 'wts'],
+        names: { en: 'LUNG CHEUNG ROAD', zhHant: '龍翔道' },
+        recordKey: 'baseline-lung-cheung-road',
+        streetId: '018f0b41-1a00-7000-8000-000000000005',
+      },
+    ],
+    manifest: emptyLandsdStreetCuration(),
+    notices: [notice],
+    parsedEntries: new Map([[notice.id, parsed]]),
+  })
+
+  expect(result.unresolved).toHaveLength(1)
+  expect(result.review[0]?.intentionSummary).toBe(
+    'Rename part of HAMMER HILL ROAD as LUNG CHEUNG ROAD; Cease part of HAMMER HILL ROAD',
+  )
+  expect(formatLifecycleReviewContext(result.review[0]!)).toContain('Proposed action')
+})
+
 test('automatically applies an unambiguous description change', () => {
   const notice = {
     governmentNoticeType: 'change',
@@ -301,6 +379,8 @@ test('formats compact lifecycle review context with only decision-relevant field
     ],
     correction: null,
     chineseNoticeDateCorrigendum: null,
+    intentionSummary: null,
+    intentionRename: null,
     curation: null,
     descriptions: { en: 'A replacement description.', zhHant: '新的說明。' },
     governmentNoticeType: 'change',

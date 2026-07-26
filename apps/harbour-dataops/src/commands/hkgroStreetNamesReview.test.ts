@@ -83,6 +83,8 @@ describe('HKGRO street-name review', () => {
   test('includes source evidence and makes the OCR boundary clear', () => {
     const context = formatReviewContext(record())
 
+    expect(context).toContain('\u001B[36mYear / HKGRO PDF\u001B[39m')
+    expect(context).toContain('\u001B[33m1901\u001B[39m')
     expect(context).toContain('Naming of Example Road')
     expect(context).toContain('https://sunzi.lib.hku.hk/hkgro/view/g1901/460097.pdf')
     expect(context).toContain('OCR excerpt (not source evidence)')

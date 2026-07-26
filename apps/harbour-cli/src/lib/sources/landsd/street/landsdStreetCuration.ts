@@ -35,6 +35,11 @@ export type LandsdStreetTextCorrection = {
   from: string
   to: string
 }
+export type LandsdStreetIntentionRename = {
+  from: string
+  locale: 'en' | 'zh-Hant'
+  to: string
+}
 export type LandsdStreetCurationDecision = {
   affectedStreetId?: string
   createdStreetId?: string
@@ -74,6 +79,8 @@ export type LandsdStreetLifecycleReview = {
   noticeIdentity: string | null
   operation: 'description-change' | 'name-change' | 'corrigendum' | 'intention'
   correction: LandsdStreetTextCorrection | null
+  intentionSummary: string | null
+  intentionRename: LandsdStreetIntentionRename | null
   parsedPreviousNoticeRefs: string[]
   publicationDate: string
   sourceRecordId: string
@@ -217,11 +224,15 @@ export function resolveLandsdStreetCuration(input: {
       name.en,
     )
     const operation = lifecycleOperationFor(notice, parsed)
+    const intentionRename = intentionRenameFor(notice, parsed)
+    const intentionSummary = intentionSummaryFor(notice, parsed)
     const chineseNoticeDateCorrigendum = parseLandsdChineseNoticeDateCorrigendum(
       parsed?.rawExtractedText?.en ?? '',
     )
     const automaticApplication =
-      (operation === 'description-change' || Boolean(correction)) &&
+      (operation === 'description-change' ||
+        Boolean(correction) ||
+        Boolean(intentionRename)) &&
       baselineCandidates.length === 1
         ? baselineCandidates[0]
           ? {
@@ -237,6 +248,8 @@ export function resolveLandsdStreetCuration(input: {
       baselineCandidates,
       correction,
       chineseNoticeDateCorrigendum,
+      intentionSummary,
+      intentionRename,
       descriptions: parsed?.descriptions ?? { en: null, zhHant: null },
       governmentNoticeType: notice.governmentNoticeType,
       governmentNoticeUrls: {
@@ -368,6 +381,10 @@ export function formatLifecycleReviewContext(item: LandsdStreetLifecycleReview) 
       ? formatReviewField('Previous G.N.', item.parsedPreviousNoticeRefs)
       : null,
     item.correction ? formatCorrection(item.correction, item.sourceName) : null,
+    item.intentionSummary
+      ? formatReviewField('Proposed action', [item.intentionSummary])
+      : null,
+    item.intentionRename ? formatIntentionRename(item.intentionRename) : null,
     formatReviewField('English PDF', [item.governmentNoticeUrls.en ?? '—'], 'muted'),
     item.baselineCandidates.length === 0
       ? formatReviewField('Matching baseline streets', ['none'])
@@ -387,8 +404,22 @@ function applyLabel(item: LandsdStreetLifecycleReview) {
     return `Apply ${formatCorrectionFields(item.correction.fields)} correction: ${item.correction.from} → ${item.correction.to}`
   if (item.operation === 'description-change') return 'Apply description change'
   if (item.operation === 'name-change') return 'Apply name change'
+  if (item.intentionSummary) return `Record intention: ${item.intentionSummary}`
+  if (item.intentionRename)
+    return `Record intention to rename ${intentionRenameLabel(item.intentionRename)}: ${item.intentionRename.from} → ${item.intentionRename.to}`
   if (item.operation === 'intention') return 'Record reviewed intention notice'
   return 'Apply reviewed corrigendum'
+}
+
+function formatIntentionRename(rename: LandsdStreetIntentionRename) {
+  return formatReviewField(`Intended ${intentionRenameLabel(rename)}`, [
+    rename.from,
+    rename.to,
+  ])
+}
+
+function intentionRenameLabel(rename: LandsdStreetIntentionRename) {
+  return `${rename.locale === 'zh-Hant' ? 'Chinese' : 'English'}-name rename`
 }
 
 function formatCorrection(
@@ -467,6 +498,44 @@ function lifecycleOperationFor(
   )
     return 'description-change' as const
   return 'name-change' as const
+}
+
+function intentionRenameFor(
+  notice: PairedLandsdStreetNotice,
+  parsed: PairedLandsdGovernmentNoticePdfEntry | undefined,
+): LandsdStreetIntentionRename | null {
+  if (notice.governmentNoticeType !== 'intention') return null
+  const english = (parsed?.rawExtractedText?.en ?? '').replaceAll(/\s+/g, ' ')
+  const match = english.match(
+    /intends\s+to\s+make\s+a\s+declaration\s+to\s+rename\s+the\s+(?:(Chinese|English)\s+)?street\s+name\s+of\s+.+?\s+from\s+[‘'“"]?(.+?)[’'”"]?\s+to\s+[‘'“"]?(.+?)[’'”"]?(?:\s+in\s+.+?|\s+as\s+described\s+hereunder)?\s*(?:[:.—]|$)/i,
+  )
+  const from = match?.[2]?.trim()
+  const to = match?.[3]?.trim()
+  if (!from || !to) return null
+  return {
+    from,
+    locale: match?.[1]?.toLocaleLowerCase('en') === 'english' ? 'en' : 'zh-Hant',
+    to,
+  }
+}
+
+function intentionSummaryFor(
+  notice: PairedLandsdStreetNotice,
+  parsed: PairedLandsdGovernmentNoticePdfEntry | undefined,
+) {
+  if (notice.governmentNoticeType !== 'intention') return null
+  const english = (parsed?.rawExtractedText?.en ?? '').replaceAll(/\s+/g, ' ')
+  const rename = english.match(
+    /rename\s+a\s+section\s+of\s+(.+?)\s+as\s+a\s+section\s+of\s+(.+?)(?:\s+and\s+to\s+cease|\s+as\s+described|[:.—]|$)/i,
+  )
+  const ceased = english.match(
+    /cease\s+a\s+section\s+of\s+(.+?)\s+(?:inside|as\s+set\s+out|to\s+be\s+known|as\s+described|[:.—])/i,
+  )
+  const actions = [
+    rename ? `Rename part of ${rename[1]?.trim()} as ${rename[2]?.trim()}` : null,
+    ceased ? `Cease part of ${ceased[1]?.trim()}` : null,
+  ].filter((action): action is string => Boolean(action))
+  return actions.length > 0 ? actions.join('; ') : null
 }
 
 /**
