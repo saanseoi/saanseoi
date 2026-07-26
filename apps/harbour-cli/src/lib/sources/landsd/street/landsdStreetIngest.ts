@@ -1,9 +1,17 @@
 import { createHash } from 'node:crypto'
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rename,
+  rm,
+  writeFile,
+} from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 
-import { streetLocaleCodes } from '@repo/db'
+import { metaAssets, streetLocaleCodes } from '@repo/db'
 import type {
   LandsdStreetNameChangeScope,
   LandsdStreetNoticeApplicationDisposition,
@@ -43,12 +51,14 @@ import {
   type LandsdStreetLifecycleReview,
 } from './landsdStreetCuration.ts'
 import {
+  buildManagedAssetUrl,
   buildSourceAssetObjectKey,
   prepareSourceAsset,
   uploadPreparedSourceAsset,
   type PreparedSourceAsset,
   type SourceAssetRole,
 } from '../../sourceAssets.ts'
+import { withLocalMetaDb } from '../../../addressSql/localDbCache.ts'
 import type { UploadTarget } from '../../../cli/options.ts'
 
 export const LANDSD_STREET_DATASET_CODE = 'ds-hk-hkgov-landsd-street'
@@ -131,6 +141,11 @@ type PublishedPreparedAsset = {
   prepared: PreparedSourceAsset
 }
 
+type PersistedPublishedSourceAssets = {
+  assets: Record<string, LandsdStreetAssetLink>
+  version: 1
+}
+
 export type LandsdStreetAssetPublisher = (asset: PreparedSourceAsset) => Promise<{
   source: { assetId: string; url: string }
   manifest: { assetId: string; url: string }
@@ -191,9 +206,16 @@ export async function ingestLandsdStreetSource(options: {
   const reportProgress = (progress: LandsdStreetIngestProgress) =>
     options.onProgress?.(progress)
   const persistedAssets = await loadPersistedSourceAssets(outputDir)
+  const persistedPublishedAssets = await loadPersistedPublishedSourceAssets(outputDir)
+  const localAssetIds = await loadLocalSourceAssetIds(options.target)
   if (persistedAssets.size > 0) {
     reportProgress({
       message: `Found ${persistedAssets.size} cached source PDF artefact(s) in this stage directory; matching PDFs will be reused by role, URL and locale`,
+    })
+  }
+  if (persistedPublishedAssets.size > 0) {
+    reportProgress({
+      message: `Found ${persistedPublishedAssets.size} completed evidence registration(s) from an earlier run; their asset links will be reused without local D1/R2 work`,
     })
   }
 
@@ -291,17 +313,50 @@ export async function ingestLandsdStreetSource(options: {
     url: string
   }) => {
     try {
-      const cachedAsset = persistedAssets.get(sourceAssetCacheKey(input))
+      const cacheKey = sourceAssetCacheKey(input)
+      const cachedAsset = persistedAssets.get(cacheKey)
+      const cachedLink = persistedPublishedAssets.get(cacheKey)
+      if (cachedAsset && cachedLink) {
+        return {
+          link: cachedLink,
+          prepared: cachedAsset,
+        } satisfies PublishedPreparedAsset
+      }
       if (cachedAsset) {
-        return await materialise({
+        const registeredLink = await buildRegisteredLocalSourceAssetLink(
+          cachedAsset,
+          input.label,
+          localAssetIds,
+          options.target,
+        )
+        if (registeredLink) {
+          await persistPublishedSourceAssetLink(
+            outputDir,
+            persistedPublishedAssets,
+            cacheKey,
+            registeredLink,
+          )
+          return {
+            link: registeredLink,
+            prepared: cachedAsset,
+          } satisfies PublishedPreparedAsset
+        }
+        const published = await materialise({
           ...input,
           cachedAsset,
           fileName: cachedAsset.fileName,
           mediaType: cachedAsset.manifest.artefact.mediaType,
         })
+        await persistPublishedSourceAssetLink(
+          outputDir,
+          persistedPublishedAssets,
+          cacheKey,
+          published.link,
+        )
+        return published
       }
       const response = await fetchRequired(fetchImplementation, input.url)
-      return await materialise({
+      const published = await materialise({
         bytes: new Uint8Array(await response.arrayBuffer()),
         fileName: input.fileName ?? fileNameFromUrl(input.url),
         label: input.label,
@@ -311,6 +366,13 @@ export async function ingestLandsdStreetSource(options: {
         sourcePageUrl: input.sourcePageUrl,
         url: input.url,
       })
+      await persistPublishedSourceAssetLink(
+        outputDir,
+        persistedPublishedAssets,
+        cacheKey,
+        published.link,
+      )
+      return published
     } catch (error) {
       assetFailures.push({
         role: input.role,
@@ -466,6 +528,15 @@ export async function ingestLandsdStreetSource(options: {
       }),
     ),
   ).length
+  const registeredNoticeEvidenceCount = uniqueNoticeEvidence.filter(item =>
+    persistedPublishedAssets.has(
+      sourceAssetCacheKey({
+        role: item.role,
+        sourcePageLocale: item.locale,
+        url: item.link.url,
+      }),
+    ),
+  ).length
   const cachedBaseline =
     (options.includeBaseline ?? true) &&
     persistedAssets.has(
@@ -476,28 +547,47 @@ export async function ingestLandsdStreetSource(options: {
       }),
     )
   const cachedSourcePdfCount = cachedNoticeEvidenceCount + Number(cachedBaseline)
+  const registeredBaseline =
+    (options.includeBaseline ?? true) &&
+    persistedPublishedAssets.has(
+      sourceAssetCacheKey({
+        role: 'sourcePdf',
+        sourcePageLocale: 'en',
+        url: LANDSD_STREET_PDF_URL,
+      }),
+    )
+  const registeredSourcePdfCount =
+    registeredNoticeEvidenceCount + Number(registeredBaseline)
   const downloadableSourcePdfCount =
     uniqueNoticeEvidence.length +
     Number(options.includeBaseline ?? true) -
     cachedSourcePdfCount
   reportProgress({
     current: preservedAssets,
-    message: `Paired ${pairedNotices.length} LandsD and ${egazette.notices.length} historical e-Gazette notice row(s); processing ${assetTotal} evidence PDF(s): reusing ${cachedSourcePdfCount} cached LandsD PDF(s), downloading ${downloadableSourcePdfCount}, and reading ${historicalAssetRecords.length * streetLocaleCodes.length} archived e-Gazette PDF(s)`,
+    message: `Paired ${pairedNotices.length} LandsD and ${egazette.notices.length} historical e-Gazette notice row(s); processing ${assetTotal} evidence PDF(s): ${registeredSourcePdfCount} already registered, ${cachedSourcePdfCount - registeredSourcePdfCount} cached PDF(s) still need local registration, ${downloadableSourcePdfCount} need downloading, and ${historicalAssetRecords.length * streetLocaleCodes.length} archived e-Gazette PDF(s) need reading`,
     total: assetTotal,
   })
   for (const item of uniqueNoticeEvidence) {
     const cacheKey = [item.role, item.link.url, item.locale].join('\0')
     reportProgress({
       current: preservedAssets,
-      message: persistedAssets.has(
+      message: persistedPublishedAssets.has(
         sourceAssetCacheKey({
           role: item.role,
           sourcePageLocale: item.locale,
           url: item.link.url,
         }),
       )
-        ? `Reusing cached source PDF ${preservedAssets + 1}/${assetTotal}; registering evidence asset: ${item.link.label ?? item.link.url}`
-        : `Downloading source PDF ${preservedAssets + 1}/${assetTotal}; preserving and registering evidence asset: ${item.link.label ?? item.link.url}`,
+        ? `Reusing registered evidence asset ${preservedAssets + 1}/${assetTotal}: ${item.link.label ?? item.link.url}`
+        : persistedAssets.has(
+              sourceAssetCacheKey({
+                role: item.role,
+                sourcePageLocale: item.locale,
+                url: item.link.url,
+              }),
+            )
+          ? `Reusing cached source PDF ${preservedAssets + 1}/${assetTotal}; registering evidence asset: ${item.link.label ?? item.link.url}`
+          : `Downloading source PDF ${preservedAssets + 1}/${assetTotal}; preserving and registering evidence asset: ${item.link.label ?? item.link.url}`,
       total: assetTotal,
     })
     const asset = await fetchAsset({
@@ -516,9 +606,11 @@ export async function ingestLandsdStreetSource(options: {
       ? await (async () => {
           reportProgress({
             current: preservedAssets,
-            message: cachedBaseline
-              ? `Reusing cached source PDF ${preservedAssets + 1}/${assetTotal}; registering evidence asset: Gazetted Street Name`
-              : `Downloading source PDF ${preservedAssets + 1}/${assetTotal}; preserving and registering evidence asset: Gazetted Street Name`,
+            message: registeredBaseline
+              ? `Reusing registered evidence asset ${preservedAssets + 1}/${assetTotal}: Gazetted Street Name`
+              : cachedBaseline
+                ? `Reusing cached source PDF ${preservedAssets + 1}/${assetTotal}; registering evidence asset: Gazetted Street Name`
+                : `Downloading source PDF ${preservedAssets + 1}/${assetTotal}; preserving and registering evidence asset: Gazetted Street Name`,
             total: assetTotal,
           })
           const asset = await fetchAsset({
@@ -1867,6 +1959,44 @@ async function loadPersistedSourceAssets(outputDir: string) {
     )
   }
   return assets
+}
+
+async function loadPersistedPublishedSourceAssets(outputDir: string) {
+  const path = join(outputDir, 'published-assets.json')
+  let value: unknown
+  try {
+    value = JSON.parse(await readFile(path, 'utf8'))
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return new Map()
+    throw error
+  }
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    (value as Partial<PersistedPublishedSourceAssets>).version !== 1 ||
+    !(value as Partial<PersistedPublishedSourceAssets>).assets ||
+    typeof (value as Partial<PersistedPublishedSourceAssets>).assets !== 'object'
+  ) {
+    throw new Error(`${path} is not a valid published source-asset cache.`)
+  }
+  return new Map(Object.entries((value as PersistedPublishedSourceAssets).assets))
+}
+
+async function persistPublishedSourceAssetLink(
+  outputDir: string,
+  assets: Map<string, LandsdStreetAssetLink>,
+  key: string,
+  link: LandsdStreetAssetLink,
+) {
+  assets.set(key, link)
+  const path = join(outputDir, 'published-assets.json')
+  const temporaryPath = `${path}.${crypto.randomUUID()}.tmp`
+  const value: PersistedPublishedSourceAssets = {
+    assets: Object.fromEntries(assets),
+    version: 1,
+  }
+  await writeFile(temporaryPath, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
+  await rename(temporaryPath, path)
 }
 
 function sourceAssetCacheKey(input: {
