@@ -13,6 +13,12 @@ reducer as the LandsD forward feed; matching later archive PDFs are retained as
 independent evidence on the LandsD-page event, not replayed as duplicate lifecycle
 events.
 
+HKU Libraries' HKGRO scans cover Gazette tables of contents and source PDFs from
+1842–1941 (except 1849–1852). They are retrieved locally as high-recall street-name
+_candidates_ with a manifest, file hashes and explicit classification state. HKGRO
+candidates are not lifecycle events and are neither uploaded to R2 nor materialised into
+this family until OCR, parsing and a reviewed identity/lifecycle decision are available.
+
 The source ledger separates baseline rows, immutable notices, and persisted notice
 applications. Only declarations that create a new street can be automatic; every
 existing-street change needs an explicit affected canonical ID. `Previous G.N.` is
