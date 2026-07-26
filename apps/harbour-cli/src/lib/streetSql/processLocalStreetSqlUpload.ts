@@ -31,8 +31,13 @@ import {
   historySchema,
   metaSchema,
   sourceSchema,
+  streetLocaleCodes,
   toIsoTimestamp,
+  type LandsdStreetNameChangeScope,
+  type LandsdStreetNoticeApplicationDisposition,
+  type LandsdStreetNoticeApplicationMethod,
   type StreetEvidenceAsset,
+  type StreetLocaleCode,
 } from '@repo/db'
 import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
 
@@ -55,6 +60,7 @@ import {
   type LandsdStreetMaterialisedStreet,
 } from '../landsdStreet/landsdStreetLifecycle.ts'
 import { mintLandsdStreetId } from '../landsdStreet/landsdStreetIds.ts'
+import type { LandsdStreetSourceKind } from '../landsdStreet/landsdStreet.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -87,13 +93,13 @@ type AssetLink = {
   publisherIdentifier?: string | null
   retrievedAt: string
   role: StreetEvidenceAsset['role']
-  sourcePageLocale?: 'en' | 'zh-Hant'
+  sourcePageLocale?: StreetLocaleCode
   sourcePageUrl?: string
 }
 
 type PreparedStreetI18n = {
   description: string | null
-  locale: 'en' | 'zh-Hant'
+  locale: StreetLocaleCode
   name: string
 }
 
@@ -109,9 +115,9 @@ type PreparedStreet = {
   application: {
     sourceStreetId: string | null
     resultStreetId: string | null
-    disposition: 'apply' | 'noOp'
-    method: 'automatic' | 'manual'
-    nameChangeScope: 'whole' | 'partial' | null
+    disposition: LandsdStreetNoticeApplicationDisposition
+    method: LandsdStreetNoticeApplicationMethod
+    nameChangeScope: LandsdStreetNameChangeScope | null
     retainedDescriptions: Partial<Record<'en' | 'zh-Hant' | 'zh-Hans', string>> | null
   } | null
   districtCodes: string[]
@@ -124,7 +130,7 @@ type PreparedStreet = {
   rawExtractedText: Record<string, unknown> | null
   evidenceAssets: AssetLink[]
   sourceHash: string
-  sourceKind: 'baseline' | 'historical-notice' | 'notice'
+  sourceKind: LandsdStreetSourceKind
   streetId: string | null
 }
 
@@ -140,7 +146,7 @@ type PreparedStreetChangelog = LandsdStreetChangelogEntry & {
 
 const LOCAL_RELEASE_ROOT = `${import.meta.dir}/../../../../../.local/harbour-sql/releases`
 const LANDSD_STREET_SNAPSHOT_SOURCE_ROLE = 'primary'
-const REQUIRED_LOCALES = ['en', 'zh-Hant'] as const
+const REQUIRED_LOCALES = streetLocaleCodes
 
 /**
  * Imports a generated LandsD release after its evidence is registered as a
@@ -670,7 +676,7 @@ function hasSameBilingualName(
   street: LandsdStreetMaterialisedStreet,
   baseline: PreparedStreet,
 ) {
-  return ['en', 'zh-Hant'].every(locale => {
+  return streetLocaleCodes.every(locale => {
     const source = baseline.i18n.find(value => value.locale === locale)
     const materialised = street.i18n.find(value => value.locale === locale)
     return source?.name === materialised?.name
@@ -1527,7 +1533,7 @@ async function insertSourceRows(
 function parsePartialRetainedDescriptions(value: unknown, field: string) {
   const parsed = parseNullableRecord(value, field)
   if (!parsed) return null
-  const locales = ['en', 'zh-Hant'] as const
+  const locales = streetLocaleCodes
   const descriptions: Partial<Record<(typeof locales)[number], string>> = {}
   for (const locale of locales) {
     const description = parsed[locale]

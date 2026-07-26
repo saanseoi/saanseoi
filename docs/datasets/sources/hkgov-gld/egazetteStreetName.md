@@ -39,11 +39,17 @@ a separately role-tagged `historicalGovernmentNotice` evidence asset to that eve
 rather than creating a duplicate event. Lifecycle links still require the LandsD
 curation workflow; `Previous G.N.` never resolves a street ID.
 
-The command fails before publication when a PDF cannot yield a bilingual Government
-Notice reference, publication date, notice kind, matching entry count, non-empty row
-names, effective date, or compatible `Previous G.N.` values. Its error includes the
+The command uses English text as the authoritative source for Government Notice
+identity, publication/effective dates, notice kind and `Previous G.N.` values. If an old
+Traditional Chinese PDF has no usable text layer, it renders the original PDF at 300 DPI
+and runs Tesseract with `chi_tra+eng`. The resulting Chinese name/description text is
+stored with parser provenance `method: "ocr"`, engine, language, DPI and the retained
+unparseable native extraction. It is never represented as native publisher text.
+
+The command fails before publication when the English PDF cannot yield its authoritative
+facts, or OCR cannot yield matching non-empty Chinese rows. Its error includes the
 manifest publication date, issue/subject and both local PDF paths so an unsupported PDF
-layout or damaged retrieval can be corrected deliberately.
+layout, missing OCR runtime, or damaged retrieval can be corrected deliberately.
 
 ## Upstream
 
