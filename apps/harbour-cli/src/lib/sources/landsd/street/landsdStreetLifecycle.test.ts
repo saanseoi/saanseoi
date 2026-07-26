@@ -24,6 +24,7 @@ const base = (overrides: Partial<LandsdStreetLifecycleInput> = {}) =>
     effectiveDate: null,
     previousNoticeRefs: ['gn4000'],
     retainedDescriptions: null,
+    correction: null,
     evidenceAssets: [],
     sourceKind: 'notice' as const,
     recordKey: 'notice-4000',
@@ -38,6 +39,44 @@ test('requires explicit application IDs and never resolves Previous G.N.', () =>
       events: [base({ noticeType: 'deletion', recordKey: 'notice-4001' })],
     }),
   ).toThrow('requires sourceStreetId')
+})
+
+test('applies a field-scoped corrigendum and records a version even when baseline text is current', () => {
+  const declared = materialiseLandsdStreetLifecycle({
+    current: [],
+    events: [
+      base({
+        i18n: [
+          { description: '茘寶路的說明。', locale: 'zh-Hant', name: '茘寶路' },
+          { description: 'Description.', locale: 'en', name: 'Lai Po Road' },
+        ],
+        resultStreetId: 'street-lai-po',
+      }),
+    ],
+  }).current
+  const corrected = materialiseLandsdStreetLifecycle({
+    current: declared,
+    events: [
+      base({
+        correction: {
+          fields: ['zh-Hant.name', 'zh-Hant.description'],
+          from: '茘',
+          to: '荔',
+        },
+        noticeType: 'corrigendum',
+        recordKey: 'notice-9290',
+        sourceStreetId: 'street-lai-po',
+      }),
+    ],
+  })
+
+  expect(corrected.current[0]).toMatchObject({
+    i18n: expect.arrayContaining([
+      { description: '荔寶路的說明。', locale: 'zh-Hant', name: '荔寶路' },
+    ]),
+    version: 2,
+  })
+  expect(corrected.changelog[0]?.kind).toBe('corrigendum')
 })
 
 test('whole name changes replace the identity while partial changes keep both active', () => {

@@ -1,10 +1,11 @@
-import { isCancel, select, text } from '@clack/prompts'
+import { isCancel, note, select, text } from '@clack/prompts'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 
 import type {
   LandsdStreetNameChangeScope,
   LandsdStreetNoticeApplicationDisposition,
+  LandsdStreetNoticeApplicationMethod,
   LandsdStreetNoticeType,
 } from '@repo/db'
 
@@ -22,6 +23,17 @@ type LandsdStreetReviewableNoticeType = Extract<
 export type LandsdStreetCurationDisposition =
   | LandsdStreetNoticeApplicationDisposition
   | 'defer'
+export type LandsdStreetCorrectionField =
+  | 'en.description'
+  | 'en.name'
+  | 'previousNoticeRefs'
+  | 'zh-Hant.description'
+  | 'zh-Hant.name'
+export type LandsdStreetTextCorrection = {
+  fields: LandsdStreetCorrectionField[]
+  from: string
+  to: string
+}
 export type LandsdStreetCurationDecision = {
   affectedStreetId?: string
   createdStreetId?: string
@@ -34,21 +46,38 @@ export type LandsdStreetCurationManifest = {
   decisions: LandsdStreetCurationDecision[]
   schemaVersion: 2
 }
+export type LandsdStreetBaselineCandidate = {
+  districtCodes: string[]
+  names: { en: string; zhHant: string }
+  recordKey: string
+  streetId: string
+}
 export type LandsdStreetLifecycleReview = {
+  automaticApplication: {
+    affectedStreetId: string
+    correction: LandsdStreetTextCorrection | null
+    method: 'automatic'
+  } | null
+  baselineCandidates: LandsdStreetBaselineCandidate[]
   curation: LandsdStreetCurationDecision | null
+  descriptions: { en: string | null; zhHant: string | null }
   governmentNoticeType: LandsdStreetReviewableNoticeType
   governmentNoticeUrls: { en: string | null; zhHant: string | null }
   name: { en: string; zhHant: string }
+  sourceName: { en: string; zhHant: string }
   noticeIdentity: string | null
+  operation: 'description-change' | 'name-change' | 'corrigendum' | 'intention'
+  correction: LandsdStreetTextCorrection | null
   parsedPreviousNoticeRefs: string[]
   publicationDate: string
   sourceRecordId: string
 }
 export type LandsdStreetAppliedCuration = {
   affectedStreetId: string | null
+  correction: LandsdStreetTextCorrection | null
   createdStreetId: string | null
   disposition: LandsdStreetNoticeApplicationDisposition
-  method: 'manual'
+  method: LandsdStreetNoticeApplicationMethod
   nameChangeScope: LandsdStreetNameChangeScope | null
   retainedDescriptions: { en: string; zhHant: string } | null
 }
@@ -77,10 +106,16 @@ export async function promptForLandsdStreetCuration(input: {
 }) {
   const decisions = [...input.manifest.decisions]
   for (const item of input.review.filter(entry => !entry.curation)) {
+    note(
+      formatLifecycleReviewContext(item),
+      `NOTICE CONTEXT${
+        item.governmentNoticeType === 'corrigendum' ? ' : CORRIGENDUM' : ''
+      }`,
+    )
     const disposition = await select({
       message: `${item.governmentNoticeType}: ${item.name.en} / ${item.name.zhHant}`,
       options: [
-        { value: 'apply' as const, label: 'Apply a reviewed street change' },
+        { value: 'apply' as const, label: applyLabel(item) },
         { value: 'noOp' as const, label: 'Record as no material street-state change' },
         { value: 'defer' as const, label: 'Defer and block this snapshot' },
       ],
@@ -91,14 +126,8 @@ export async function promptForLandsdStreetCuration(input: {
     let nameChangeScope: LandsdStreetNameChangeScope | undefined
     let retainedDescriptions: { en: string; zhHant: string } | undefined
     if (disposition === 'apply') {
-      const affected = await text({
-        message: 'Affected canonical street ID',
-        validate: value =>
-          (value ?? '').trim() ? undefined : 'Enter the reviewed canonical street ID.',
-      })
-      if (isCancel(affected)) throw new Error('LandsD lifecycle review cancelled.')
-      affectedStreetId = (affected ?? '').trim()
-      if (item.governmentNoticeType === 'change') {
+      affectedStreetId = await selectAffectedStreetId(item)
+      if (item.operation === 'name-change') {
         const scope = await select({
           message: 'Name-change scope',
           options: [
@@ -149,6 +178,7 @@ export function emptyLandsdStreetCuration(): LandsdStreetCurationManifest {
   return { schemaVersion: 2, decisions: [] }
 }
 export function resolveLandsdStreetCuration(input: {
+  baselineCandidates?: readonly LandsdStreetBaselineCandidate[]
   manifest: LandsdStreetCurationManifest
   notices: PairedLandsdStreetNotice[]
   parsedEntries: ReadonlyMap<string, PairedLandsdGovernmentNoticePdfEntry>
@@ -172,36 +202,71 @@ export function resolveLandsdStreetCuration(input: {
       throw new Error(
         `LandsD curation ${decision.sourceRecordId} does not identify a change, corrigendum, or intention notice in the current source.`,
       )
-  const review = reviewable.map(
-    notice =>
-      ({
-        curation: decisions.get(notice.id) ?? null,
-        governmentNoticeType: notice.governmentNoticeType,
-        governmentNoticeUrls: {
-          en: notice.governmentNotices.en?.url ?? null,
-          zhHant: notice.governmentNotices.zhHant?.url ?? null,
-        },
-        name: notice.names,
-        noticeIdentity: notice.noticeIdentity,
-        parsedPreviousNoticeRefs:
-          input.parsedEntries.get(notice.id)?.previousNoticeRefs ?? [],
-        publicationDate: notice.publicationDate,
-        sourceRecordId: notice.id,
-      }) satisfies LandsdStreetLifecycleReview,
-  )
-  const unresolved = review.filter(
-    item =>
-      !item.curation ||
-      item.curation.disposition === 'defer' ||
-      (item.curation.disposition === 'apply' && !item.curation.affectedStreetId),
-  )
+  const review = reviewable.map(notice => {
+    const parsed = input.parsedEntries.get(notice.id)
+    const baselineCandidates = matchingBaselineCandidates(
+      input.baselineCandidates ?? [],
+      notice.names.en,
+    )
+    const operation = lifecycleOperationFor(notice, parsed)
+    const correction = corrigendumCorrectionFor(notice, parsed)
+    const automaticApplication =
+      (operation === 'description-change' || Boolean(correction)) &&
+      baselineCandidates.length === 1
+        ? baselineCandidates[0]
+          ? {
+              affectedStreetId: baselineCandidates[0].streetId,
+              correction,
+              method: 'automatic' as const,
+            }
+          : null
+        : null
+    return {
+      automaticApplication,
+      curation: decisions.get(notice.id) ?? null,
+      baselineCandidates,
+      correction,
+      descriptions: parsed?.descriptions ?? { en: null, zhHant: null },
+      governmentNoticeType: notice.governmentNoticeType,
+      governmentNoticeUrls: {
+        en: notice.governmentNotices.en?.url ?? null,
+        zhHant: notice.governmentNotices.zhHant?.url ?? null,
+      },
+      name: correctedNoticeName(notice.names, correction),
+      sourceName: notice.names,
+      noticeIdentity: notice.noticeIdentity,
+      operation,
+      parsedPreviousNoticeRefs: parsed?.previousNoticeRefs ?? [],
+      publicationDate: notice.publicationDate,
+      sourceRecordId: notice.id,
+    } satisfies LandsdStreetLifecycleReview
+  })
+  const unresolved = review.filter(item => {
+    const decision = item.curation
+    return !decision
+      ? !item.automaticApplication
+      : decision.disposition === 'defer' ||
+          (decision.disposition === 'apply' && !decision.affectedStreetId)
+  })
   const applied = new Map<string, LandsdStreetAppliedCuration>()
   for (const item of review) {
     const decision = item.curation
+    if (!decision && item.automaticApplication) {
+      applied.set(item.sourceRecordId, {
+        affectedStreetId: item.automaticApplication.affectedStreetId,
+        correction: item.automaticApplication.correction,
+        createdStreetId: null,
+        disposition: 'apply',
+        method: item.automaticApplication.method,
+        nameChangeScope: null,
+        retainedDescriptions: null,
+      })
+      continue
+    }
     if (!decision || decision.disposition === 'defer') continue
     if (
       decision.disposition === 'apply' &&
-      item.governmentNoticeType === 'change' &&
+      item.operation === 'name-change' &&
       !decision.createdStreetId
     )
       throw new Error(
@@ -209,6 +274,7 @@ export function resolveLandsdStreetCuration(input: {
       )
     applied.set(item.sourceRecordId, {
       affectedStreetId: decision.affectedStreetId ?? null,
+      correction: item.correction,
       createdStreetId: decision.createdStreetId ?? null,
       disposition: decision.disposition,
       method: 'manual',
@@ -217,6 +283,278 @@ export function resolveLandsdStreetCuration(input: {
     })
   }
   return { applied, review, unresolved }
+}
+
+async function selectAffectedStreetId(item: LandsdStreetLifecycleReview) {
+  if (item.baselineCandidates.length === 1) {
+    const [candidate] = item.baselineCandidates
+    if (!candidate) throw new Error('Expected exactly one baseline candidate.')
+    note(formatBaselineCandidate(candidate), 'SELECTED BASELINE STREET')
+    return candidate.streetId
+  }
+  if (item.baselineCandidates.length > 1) {
+    const selected = await select({
+      message: 'Affected baseline street',
+      options: [
+        ...item.baselineCandidates.map(candidate => ({
+          value: candidate.streetId,
+          label: `${candidate.names.en} / ${candidate.names.zhHant}`,
+          hint: `districts: ${candidate.districtCodes.join(', ') || 'unknown'}; ID: ${candidate.streetId}`,
+        })),
+        {
+          value: 'manual',
+          label: 'Enter a different reviewed canonical street ID',
+        },
+      ],
+    })
+    if (isCancel(selected)) throw new Error('LandsD lifecycle review cancelled.')
+    if (selected !== 'manual') return selected
+  }
+  const affected = await text({
+    message: 'Affected canonical street ID',
+    validate: value =>
+      (value ?? '').trim() ? undefined : 'Enter the reviewed canonical street ID.',
+  })
+  if (isCancel(affected)) throw new Error('LandsD lifecycle review cancelled.')
+  return (affected ?? '').trim()
+}
+
+function matchingBaselineCandidates(
+  candidates: readonly LandsdStreetBaselineCandidate[],
+  englishName: string,
+) {
+  const name = normaliseEnglishName(englishName)
+  return candidates.filter(
+    candidate => normaliseEnglishName(candidate.names.en) === name,
+  )
+}
+
+function normaliseEnglishName(value: string) {
+  return value.toLocaleUpperCase('en').replaceAll(/\s+/g, ' ').trim()
+}
+
+export function formatLifecycleReviewContext(item: LandsdStreetLifecycleReview) {
+  const isCorrigendum = item.governmentNoticeType === 'corrigendum'
+  return [
+    isCorrigendum
+      ? null
+      : formatReviewField('Source record', [item.sourceRecordId], 'muted'),
+    formatReviewField('Publication date', [item.publicationDate]),
+    isCorrigendum
+      ? null
+      : formatReviewField('Notice type', [item.governmentNoticeType]),
+    isCorrigendum ? null : formatReviewField('Operation', [item.operation]),
+    !isCorrigendum && item.noticeIdentity
+      ? formatReviewField('Notice reference', [item.noticeIdentity])
+      : null,
+    formatReviewField('Notice', [item.name.en, item.name.zhHant]),
+    formatReviewField('Description (EN)', [item.descriptions.en ?? '—']),
+    !isCorrigendum || item.descriptions.zhHant
+      ? formatReviewField('Description (ZH-Hant)', [item.descriptions.zhHant ?? '—'])
+      : null,
+    !isCorrigendum
+      ? formatReviewField(
+          'Previous G.N.',
+          item.parsedPreviousNoticeRefs.length > 0
+            ? item.parsedPreviousNoticeRefs
+            : ['—'],
+        )
+      : null,
+    item.correction ? formatCorrection(item.correction, item.sourceName) : null,
+    formatReviewField('English PDF', [item.governmentNoticeUrls.en ?? '—'], 'muted'),
+    !isCorrigendum
+      ? formatReviewField(
+          'Traditional Chinese PDF',
+          [item.governmentNoticeUrls.zhHant ?? '—'],
+          'muted',
+        )
+      : null,
+    item.baselineCandidates.length === 0
+      ? formatReviewField('Matching baseline streets', ['none'])
+      : `${reviewKey('Matching baseline streets')}:\n${item.baselineCandidates.map(formatBaselineCandidate).join('\n')}`,
+    item.automaticApplication
+      ? formatReviewField('Automatic application', [
+          item.automaticApplication.affectedStreetId,
+        ])
+      : null,
+  ]
+    .filter((line): line is string => Boolean(line))
+    .join('\n')
+}
+
+function applyLabel(item: LandsdStreetLifecycleReview) {
+  if (item.correction)
+    return `Apply ${formatCorrectionFields(item.correction.fields)} correction: ${item.correction.from} → ${item.correction.to}`
+  if (item.operation === 'description-change') return 'Apply description change'
+  if (item.operation === 'name-change') return 'Apply name change'
+  if (item.operation === 'intention') return 'Record reviewed intention notice'
+  return 'Apply reviewed corrigendum'
+}
+
+function formatCorrection(
+  correction: LandsdStreetTextCorrection,
+  sourceName: { en: string; zhHant: string },
+) {
+  return correction.fields
+    .map(field => {
+      if (field.endsWith('.name')) {
+        const locale = field.startsWith('zh-Hant') ? 'zhHant' : 'en'
+        const from = sourceName[locale]
+        return formatReviewField(`${formatCorrectionFields([field])} correction`, [
+          from,
+          from.replaceAll(correction.from, correction.to),
+        ])
+      }
+      return formatReviewField(`${formatCorrectionFields([field])} correction`, [
+        `${correction.from} → ${correction.to}`,
+      ])
+    })
+    .join('\n')
+}
+
+function formatCorrectionFields(fields: LandsdStreetCorrectionField[]) {
+  const labels = fields.map(field => {
+    if (field === 'en.name') return 'English name'
+    if (field === 'zh-Hant.name') return 'Chinese name'
+    if (field === 'en.description') return 'English description'
+    if (field === 'previousNoticeRefs') return 'Previous G.N.'
+    return 'Chinese description'
+  })
+  return labels.join(' and ')
+}
+
+function formatBaselineCandidate(candidate: LandsdStreetBaselineCandidate) {
+  return `  ${formatReviewField('Street', [candidate.names.en, candidate.names.zhHant])}\n  ${formatReviewField('Districts', candidate.districtCodes.length > 0 ? candidate.districtCodes : ['unknown'])}\n  ${formatReviewField('Street ID', [candidate.streetId], 'muted')}`
+}
+
+function formatReviewField(
+  label: string,
+  values: string[],
+  valueStyle: 'default' | 'muted' = 'default',
+) {
+  return `${reviewKey(label)}: ${values
+    .map((value, index) => reviewValue(value, index, valueStyle))
+    .join(reviewSeparator())}`
+}
+
+function reviewKey(value: string) {
+  return `\u001B[36m${value}\u001B[39m`
+}
+
+function reviewValue(value: string, index: number, valueStyle: 'default' | 'muted') {
+  if (valueStyle === 'muted') return `\u001B[90m${value}\u001B[39m`
+  const colours = [33, 32, 35]
+  return `\u001B[${colours[index % colours.length]}m${value}\u001B[39m`
+}
+
+function reviewSeparator() {
+  return ' \u001B[90m/\u001B[39m '
+}
+
+function lifecycleOperationFor(
+  notice: PairedLandsdStreetNotice,
+  parsed: PairedLandsdGovernmentNoticePdfEntry | undefined,
+) {
+  if (notice.governmentNoticeType === 'intention') return 'intention' as const
+  if (notice.governmentNoticeType === 'corrigendum') return 'corrigendum' as const
+  const english = (parsed?.rawExtractedText?.en ?? '').replaceAll(/\s+/g, ' ')
+  const chinese = (parsed?.rawExtractedText?.zhHant ?? '').replaceAll(/\s+/g, ' ')
+  if (
+    /\bdescription\s+of\b.*\b(?:will|shall)\s+replace\b|\b(?:Replacing|Replacement of)\s+(?:the\s+)?Description\b/i.test(
+      english,
+    ) ||
+    /(?:取代|更改).*?(?:街道)?(?:說明|描述)/u.test(chinese)
+  )
+    return 'description-change' as const
+  return 'name-change' as const
+}
+
+/**
+ * Corrigenda are prose rather than table rows. Recognise the legal correction
+ * itself, never infer a state change merely from the notice-page label. Both
+ * official languages are accepted, with the scope determining the fields that
+ * may be changed.
+ */
+function corrigendumCorrectionFor(
+  notice: PairedLandsdStreetNotice,
+  parsed: PairedLandsdGovernmentNoticePdfEntry | undefined,
+): LandsdStreetTextCorrection | null {
+  if (notice.governmentNoticeType !== 'corrigendum' || !parsed) return null
+  const english = parseEnglishCorrigendum(parsed.rawExtractedText.en)
+  const chinese = parseChineseCorrigendum(parsed.rawExtractedText.zhHant)
+  const correction = english ?? chinese
+  if (!correction) return null
+  if (
+    english &&
+    chinese &&
+    (english.from !== chinese.from || english.to !== chinese.to)
+  )
+    return null
+  return correction
+}
+
+function parseEnglishCorrigendum(value: string): LandsdStreetTextCorrection | null {
+  const normalised = value.replaceAll(/\s+/g, ' ')
+  const match = normalised.match(
+    /character\s+[‘'“"]([^’'”"]+)[’'”"]\s+in\s+(?:the\s+)?((?:(?:Chinese|English)\s+)?(?:name|description)(?:\s+and\s+(?:(?:the\s+)?(?:Chinese|English)\s+)?(?:name|description))?|(?:previous\s+)?(?:Government\s+Notice|G\.?N\.?))\s+(?:of\s+[‘'“"][^’'”"]+[’'”"]\s+)?(?:should\s+be\s+)?(?:amended|corrected|changed)\s+to(?:\s+read)?\s+[‘'“"]([^’'”"]+)[’'”"]/i,
+  )
+  if (!match) return null
+  const scope = match[2] ?? ''
+  const fields = correctionFields(
+    scope,
+    /\bChinese\b/i.test(scope) ||
+      (!/\bEnglish\b/i.test(scope) && /\bChinese\s+version\b/i.test(normalised))
+      ? 'zh-Hant'
+      : 'en',
+  )
+  const from = match[1]?.trim()
+  const to = match[3]?.trim()
+  return from && to && fields.length > 0 ? { fields, from, to } : null
+}
+
+function parseChineseCorrigendum(value: string): LandsdStreetTextCorrection | null {
+  const normalised = value.replaceAll(/\s+/g, ' ')
+  const match = normalised.match(
+    /(?:名稱|名字).*?(?:說明|描述).*?「[^」]+」中的「([^」]+)」字.*?(?:更正|改正|修正)(?:為|作|成)「([^」]+)」/u,
+  )
+  const from = match?.[1]?.trim()
+  const to = match?.[2]?.trim()
+  return from && to
+    ? {
+        fields: ['zh-Hant.name', 'zh-Hant.description'],
+        from,
+        to,
+      }
+    : null
+}
+
+function correctionFields(
+  scope: string,
+  locale: 'en' | 'zh-Hant',
+): LandsdStreetCorrectionField[] {
+  const fields: LandsdStreetCorrectionField[] = []
+  if (/previous\s+(?:government\s+notice|g\.?n\.?)/i.test(scope))
+    fields.push('previousNoticeRefs')
+  if (/\bname\b/i.test(scope))
+    fields.push(`${locale}.name` as LandsdStreetCorrectionField)
+  if (/\bdescription\b/i.test(scope))
+    fields.push(`${locale}.description` as LandsdStreetCorrectionField)
+  return fields
+}
+
+function correctedNoticeName(
+  name: { en: string; zhHant: string },
+  correction: LandsdStreetTextCorrection | null,
+) {
+  if (!correction) return name
+  return {
+    en: correction.fields.includes('en.name')
+      ? name.en.replaceAll(correction.from, correction.to)
+      : name.en,
+    zhHant: correction.fields.includes('zh-Hant.name')
+      ? name.zhHant.replaceAll(correction.from, correction.to)
+      : name.zhHant,
+  }
 }
 function parseLandsdStreetCuration(
   value: unknown,

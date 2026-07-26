@@ -48,8 +48,11 @@ import {
   resolveLandsdStreetCuration,
   saveLandsdStreetCuration,
   type LandsdStreetAppliedCuration,
+  type LandsdStreetTextCorrection,
+  type LandsdStreetBaselineCandidate,
   type LandsdStreetLifecycleReview,
 } from './landsdStreetCuration.ts'
+import { mintLandsdStreetId } from './landsdStreetIds.ts'
 import {
   buildManagedAssetUrl,
   buildSourceAssetObjectKey,
@@ -96,6 +99,7 @@ export type LandsdStreetRecord = {
     method: LandsdStreetNoticeApplicationMethod
     nameChangeScope: LandsdStreetNameChangeScope | null
     retainedDescriptions: Record<string, string> | null
+    correction: LandsdStreetTextCorrection | null
   } | null
   districtCodes: string[]
   noticeType: PairedLandsdStreetNotice['governmentNoticeType'] | null
@@ -171,6 +175,7 @@ export type LandsdStreetNoticeDateRange = {
  */
 export async function ingestLandsdStreetSource(options: {
   curationPath?: string
+  baselineCandidates?: readonly LandsdStreetBaselineCandidate[]
   egazetteArchiveDir?: string
   includeEgazetteHistory?: boolean
   includeBaseline?: boolean
@@ -703,8 +708,28 @@ export async function ingestLandsdStreetSource(options: {
   const allNotices = [...historicalNotices, ...notices]
   const allParsedNoticeEntries = new Map([...egazette.entries, ...parsedNoticeEntries])
   const curationPath = options.curationPath ?? DEFAULT_CURATION_PATH
+  let baselineRows: Array<{
+    chineseName: string
+    districtCode: string
+    englishName: string
+  }> = []
+  if (baselineAsset) {
+    reportProgress({ message: 'Extracting the gazetted street-name baseline' })
+    baselineRows = parseLandsdStreetPdfText(
+      await pdfToText(baselineAsset.prepared.filePath),
+    )
+  }
+  const baselineCandidates =
+    baselineRows.length > 0
+      ? createLandsdStreetBaselineCandidates(baselineRows, options.baselineCandidates)
+      : (options.baselineCandidates ?? [])
+  const baselineCandidatesByRecordKey = new Map(
+    baselineCandidates.map(candidate => [candidate.recordKey, candidate]),
+  )
+
   let curationManifest = await loadLandsdStreetCuration(curationPath)
   let curation = resolveLandsdStreetCuration({
+    baselineCandidates,
     manifest: curationManifest,
     notices: allNotices,
     parsedEntries: allParsedNoticeEntries,
@@ -720,6 +745,7 @@ export async function ingestLandsdStreetSource(options: {
     })
     await saveLandsdStreetCuration(curationPath, curationManifest)
     curation = resolveLandsdStreetCuration({
+      baselineCandidates,
       manifest: curationManifest,
       notices: allNotices,
       parsedEntries: allParsedNoticeEntries,
@@ -758,17 +784,6 @@ export async function ingestLandsdStreetSource(options: {
     outputDir,
     sourcePageUrl: sourceUrl,
   })
-  let baselineRows: Array<{
-    chineseName: string
-    districtCode: string
-    englishName: string
-  }> = []
-  if (baselineAsset) {
-    reportProgress({ message: 'Extracting the gazetted street-name baseline' })
-    baselineRows = parseLandsdStreetPdfText(
-      await pdfToText(baselineAsset.prepared.filePath),
-    )
-  }
   const noticeRecords = notices.map(notice =>
     buildNoticeRecord(notice, {
       curation: curation.applied.get(notice.id) ?? null,
@@ -794,7 +809,11 @@ export async function ingestLandsdStreetSource(options: {
   )
   const allNoticeRecords = [...historicalNoticeRecords, ...noticeRecords]
   const baseline = baselineAsset
-    ? buildBaselineRecords(baselineRows, allNoticeRecords, baselineAsset.link)
+    ? buildBaselineRecords(
+        baselineRows,
+        allNoticeRecords,
+        baselineCandidatesByRecordKey,
+      )
     : { records: [] }
 
   reportProgress({ message: 'Writing release payload and operator report' })
@@ -871,6 +890,7 @@ function buildNoticeRecord(
           method: options.curation.method,
           nameChangeScope: options.curation.nameChangeScope,
           retainedDescriptions: options.curation.retainedDescriptions,
+          correction: options.curation.correction,
         }
       : automaticApplication(notice),
     districtCodes: districtCodesForNotice(notice, options.parsedPdfEntry),
@@ -892,7 +912,10 @@ function buildNoticeRecord(
     noticeRef,
     effectiveDate: options.parsedPdfEntry?.effectiveDate ?? null,
     parserDiagnostics: options.parsedPdfEntry?.parserDiagnostics ?? null,
-    previousNoticeRefs: options.parsedPdfEntry?.previousNoticeRefs ?? [],
+    previousNoticeRefs: correctedPreviousNoticeRefs(
+      options.parsedPdfEntry?.previousNoticeRefs ?? [],
+      options.curation?.correction ?? null,
+    ),
     evidenceAssets: [
       ...governmentNoticeAssets,
       ...planAssets,
@@ -903,6 +926,18 @@ function buildNoticeRecord(
     streetId: null,
     rawExtractedText: options.parsedPdfEntry?.rawExtractedText ?? null,
   }
+}
+
+function correctedPreviousNoticeRefs(
+  refs: string[],
+  correction: LandsdStreetTextCorrection | null,
+) {
+  if (!correction?.fields.includes('previousNoticeRefs')) return refs
+  const normalise = (value: string) =>
+    /^\d+$/.test(value) ? `gn${value}` : value.toLocaleLowerCase('en')
+  const from = normalise(correction.from)
+  const to = normalise(correction.to)
+  return [...new Set(refs.map(ref => (normalise(ref) === from ? to : ref)))].sort()
 }
 
 function automaticApplication(
@@ -918,6 +953,7 @@ function automaticApplication(
         method: 'automatic',
         nameChangeScope: null,
         retainedDescriptions: null,
+        correction: null,
       }
     : null
 }
@@ -960,7 +996,7 @@ function districtCodesForNotice(
 function buildBaselineRecords(
   rows: Array<{ englishName: string; chineseName: string; districtCode: string }>,
   noticeRecords: LandsdStreetRecord[],
-  _sourcePdf: LandsdStreetAssetLink,
+  candidatesByRecordKey: ReadonlyMap<string, LandsdStreetBaselineCandidate>,
 ) {
   const records: LandsdStreetRecord[] = []
 
@@ -1005,14 +1041,68 @@ function buildBaselineRecords(
       previousNoticeRefs: [],
       evidenceAssets: [],
       sourceKind: 'baseline',
-      recordKey: `landsd-street:baseline:${hashText(
-        [row.englishName, row.chineseName, row.districtCode].join('\0'),
-      )}`,
+      recordKey: baselineRecordKey(row),
       rawExtractedText: null,
-      streetId: null,
+      streetId: candidatesByRecordKey.get(baselineRecordKey(row))?.streetId ?? null,
     })
   }
   return { records }
+}
+
+export function createLandsdStreetBaselineCandidates(
+  rows: Array<{ chineseName: string; districtCode: string; englishName: string }>,
+  existing: readonly LandsdStreetBaselineCandidate[] = [],
+) {
+  const existingByRecordKey = new Map(
+    existing.map(candidate => [candidate.recordKey, candidate]),
+  )
+  return rows.map(row => {
+    const recordKey = baselineRecordKey(row)
+    const candidate = existingByRecordKey.get(recordKey)
+    return {
+      districtCodes: [row.districtCode],
+      names: { en: row.englishName, zhHant: row.chineseName },
+      recordKey,
+      streetId: candidate?.streetId ?? mintLandsdStreetId(),
+    } satisfies LandsdStreetBaselineCandidate
+  })
+}
+
+export function landsdStreetBaselineCandidatesFromRecords(
+  records: readonly LandsdStreetRecord[],
+) {
+  return records.flatMap(record => {
+    if (record.sourceKind !== 'baseline' || !record.streetId) return []
+    const en = record.i18n.find(item => item.locale === 'en')?.name
+    const zhHant = record.i18n.find(item => item.locale === 'zh-Hant')?.name
+    if (!en || !zhHant) return []
+    return [
+      {
+        districtCodes: record.districtCodes,
+        names: { en, zhHant },
+        recordKey: record.recordKey,
+        streetId: record.streetId,
+      } satisfies LandsdStreetBaselineCandidate,
+    ]
+  })
+}
+
+export function assignLandsdStreetBaselineIds(records: readonly LandsdStreetRecord[]) {
+  return records.map(record =>
+    record.sourceKind === 'baseline' && !record.streetId
+      ? { ...record, streetId: mintLandsdStreetId() }
+      : record,
+  )
+}
+
+function baselineRecordKey(row: {
+  chineseName: string
+  districtCode: string
+  englishName: string
+}) {
+  return `landsd-street:baseline:${hashText(
+    [row.englishName, row.chineseName, row.districtCode].join('\0'),
+  )}`
 }
 
 async function createPlanPreviews(input: {

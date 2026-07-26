@@ -84,6 +84,7 @@ export type DatasetFixture = {
   lastUpdated?: string
   type?: string
   resourceTypes?: readonly string[]
+  sourceVariant?: string
   theme: string
   i18n?: Array<{ locale: string; name?: string }>
 }
