@@ -123,6 +123,48 @@ describe('LandsD bilingual street notices', () => {
     })
   })
 
+  test('retains a paired row when bilingual Previous G.N. extraction differs', () => {
+    const notices = pairLandsdStreetNoticePages({
+      en: parseLandsdStreetSourcePage(englishPage, 'en'),
+      zhHant: parseLandsdStreetSourcePage(traditionalChinesePage, 'zh-Hant'),
+    })
+    const notice = notices[0]
+    if (!notice) throw new Error('Expected paired LandsD notice.')
+    const parsed = (name: string, previousNoticeRefs: string[]) =>
+      ({
+        diagnostics: { status: 'success' },
+        entries: [
+          {
+            description: 'Replacement description.',
+            district: null,
+            effectiveDate: null,
+            immediateEffect: true,
+            name,
+            ordinal: 0,
+            previousNoticeRefs,
+            rawText: name,
+          },
+        ],
+        gazetteDate: '2026-07-03',
+        rawText: name,
+      }) as ReturnType<typeof parseLandsdGovernmentNoticePdfText>
+    const english = parsed(notice.names.en, ['gn4000'])
+    const zhHant = parsed(notice.names.zhHant, ['gn4001'])
+    const issues: string[] = []
+
+    const paired = pairLandsdGovernmentNoticePdfEntries({
+      english: new Map([[notice.id, english]]),
+      notices,
+      onIssue: issue => issues.push(issue),
+      zhHant: new Map([[notice.id, zhHant]]),
+    })
+
+    expect(paired.get(notice.id)?.previousNoticeRefs).toEqual(['gn4000', 'gn4001'])
+    expect(issues).toEqual([
+      `${notice.id}: bilingual PDF entries disagree about Previous G.N. references.`,
+    ])
+  })
+
   test('parses historical two-column notices with predecessor candidates', () => {
     const english = parseLandsdGovernmentNoticePdfText(
       [
@@ -206,6 +248,20 @@ describe('LandsD bilingual street notices', () => {
     expect(parsed.entries).toMatchObject([
       { name: 'HONG KONG- ZHUHAI-MACAO BRIDGE HONG KONG LINK ROAD' },
     ])
+  })
+
+  test('recovers an English name cell shifted left of its heading', () => {
+    const parsed = parseLandsdGovernmentNoticePdfText(
+      [
+        'Description                                                           Name',
+        'The interchange connecting Cha Kwo Ling Road, Tseung Lam LAM TIN',
+        'Highway, Eastern Harbour Crossing and an unnamed road. Its INTERCHANGE',
+        'location and alignment are more particularly shown on Plan No. KRM135.',
+      ].join('\n'),
+      'en',
+    )
+
+    expect(parsed.entries).toMatchObject([{ name: 'LAM TIN INTERCHANGE' }])
   })
 
   test('reads concise Chinese predecessor notices from an announcement sentence', () => {

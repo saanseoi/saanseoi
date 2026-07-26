@@ -17,6 +17,19 @@ export type LandsdStreetLifecycleI18n = {
   name: string
 }
 
+/** A narrowly-scoped textual amendment recorded by a Gazette corrigendum. */
+export type LandsdStreetLifecycleTextCorrection = {
+  fields: Array<
+    | 'en.description'
+    | 'en.name'
+    | 'previousNoticeRefs'
+    | 'zh-Hant.description'
+    | 'zh-Hant.name'
+  >
+  from: string
+  to: string
+}
+
 /** Immutable publisher event plus its explicit, persisted application decision. */
 export type LandsdStreetLifecycleInput = {
   sourceStreetId: string | null
@@ -33,6 +46,7 @@ export type LandsdStreetLifecycleInput = {
   effectiveDate: string | null
   previousNoticeRefs: string[]
   retainedDescriptions: Partial<Record<LandsdStreetLifecycleLocale, string>> | null
+  correction: LandsdStreetLifecycleTextCorrection | null
   evidenceAssets: StreetEvidenceAsset[]
   sourceKind: LandsdStreetSourceKind
   recordKey: string
@@ -181,7 +195,10 @@ export function materialiseLandsdStreetLifecycle(input: {
     }
 
     const next = applyNotice(target, event)
-    if (sameMaterialisedState(target, next)) {
+    // A corrigendum is a publisher-issued amendment and must be represented in
+    // the version history even where today's reconciliation baseline already
+    // contains the corrected spelling.
+    if (sameMaterialisedState(target, next) && !event.correction) {
       stats.noOpEvents += 1
       continue
     }
@@ -191,7 +208,11 @@ export function materialiseLandsdStreetLifecycle(input: {
       changelogEntry(
         next,
         event,
-        type === 'deletion' ? 'deleted' : 'description_change',
+        type === 'deletion'
+          ? 'deleted'
+          : event.correction
+            ? 'corrigendum'
+            : 'description_change',
       ),
     )
     stats.changed += 1
@@ -242,11 +263,38 @@ function applyNotice(
       ? [...event.districtIds]
       : [...current.districtIds],
     gazetteDate: event.gazetteDate,
-    i18n: deletion ? cloneI18n(current.i18n) : mergeI18n(current.i18n, event.i18n),
+    i18n: deletion
+      ? cloneI18n(current.i18n)
+      : event.correction
+        ? applyCorrection(current.i18n, event.correction)
+        : mergeI18n(current.i18n, event.i18n),
     sourceKeys: appendSourceKey(current.sourceKeys, event),
     status: deletion ? 'deleted' : 'active',
     version: current.version + 1,
   }
+}
+
+function applyCorrection(
+  current: LandsdStreetLifecycleI18n[],
+  correction: LandsdStreetLifecycleTextCorrection,
+) {
+  return current.map(item => {
+    const nameField =
+      `${item.locale}.name` as LandsdStreetLifecycleTextCorrection['fields'][number]
+    const descriptionField =
+      `${item.locale}.description` as LandsdStreetLifecycleTextCorrection['fields'][number]
+    return {
+      ...item,
+      ...(correction.fields.includes(nameField)
+        ? { name: item.name.replaceAll(correction.from, correction.to) }
+        : {}),
+      ...(item.description !== null && correction.fields.includes(descriptionField)
+        ? {
+            description: item.description.replaceAll(correction.from, correction.to),
+          }
+        : {}),
+    }
+  })
 }
 function applyPartialNameChange(
   current: LandsdStreetMaterialisedStreet,

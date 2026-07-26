@@ -752,7 +752,6 @@ export function pairLandsdGovernmentNoticePdfEntries(input: {
         issues.push(
           `${notice.id}: bilingual PDF entries disagree about Previous G.N. references.`,
         )
-        continue
       }
       if (
         englishEntry.effectiveDate &&
@@ -1199,12 +1198,13 @@ function cleanGovernmentNoticeNameCell(
   const direct = cleanPdfCell(line.slice(nameColumn, previousColumn))
   if (locale !== 'en') return direct
 
-  const shifted = line.slice(Math.max(0, nameColumn - 12), previousColumn)
+  const shifted = line.slice(Math.max(0, nameColumn - 16), previousColumn)
   const recovered = shifted.match(/(?:^|\s)([A-Z][A-Z0-9]*(?:[ -]+[A-Z0-9]+)*)\s*$/)
   const candidate = recovered?.[1]
   const prefix = shifted.slice(0, recovered?.index ?? 0)
   return candidate &&
-    (/^[a-z]/.test(direct) ||
+    (direct === '' ||
+      /^[a-z]/.test(direct) ||
       (candidate.endsWith(direct) &&
         candidate.length > direct.length &&
         /[a-z]/.test(prefix)))
