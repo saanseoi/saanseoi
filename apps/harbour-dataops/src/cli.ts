@@ -13,7 +13,10 @@ function printUsage() {
   bun run dataops -- hkgov-dpo:backfill-local <ALS-source-root> --target local --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes]
   bun run dataops -- hkgov-pland:prepare <GeoJSON> [--kind tpu|new-town] [--source-version YYYY] [--out-dir PATH]
   bun run dataops -- hkgov-pland:backfill --kind pu|new-town --target local|preview|production [--continue]
-  bun run dataops -- hkgov-landsd-streets:backfill --target local|preview|production [--notice-id ID[,ID...]] [--out-dir PATH]
+  bun run dataops -- hkgov-landsd-streets:baseline --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
+  bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
+  bun run dataops -- hkgov-landsd-streets:official-egazette --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
+  bun run dataops -- hkgov-landsd-streets:assemble --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
   bun run dataops -- hkgov-hkgro-street-names:retrieve --target local [--year YYYY[,YYYY...]] [--out-dir PATH]
   bun run dataops -- hkgov-hkgro-street-names:ocr --target local [--year YYYY[,YYYY...]] [--hkgro-pdf-id ID[,ID...]] [--out-dir PATH]
 `)
@@ -71,11 +74,24 @@ async function main() {
       )
       return
     }
-    case 'hkgov-landsd-streets:backfill': {
-      const { runLandsdStreetIngestCommand } = await import(
+    case 'hkgov-landsd-streets:baseline':
+    case 'hkgov-landsd-streets:landsd-notices':
+    case 'hkgov-landsd-streets:official-egazette': {
+      const { runLandsdStreetStageCommand } = await import(
         './commands/ingestLandsdStreets.ts'
       )
-      await runLandsdStreetIngestCommand(args, target, printUsage)
+      const stage = args.command.replace('hkgov-landsd-streets:', '') as
+        | 'baseline'
+        | 'landsd-notices'
+        | 'official-egazette'
+      await runLandsdStreetStageCommand(args, target, stage, printUsage)
+      return
+    }
+    case 'hkgov-landsd-streets:assemble': {
+      const { runLandsdStreetAssembleCommand } = await import(
+        './commands/ingestLandsdStreets.ts'
+      )
+      await runLandsdStreetAssembleCommand(args, target, printUsage)
       return
     }
     case 'hkgov-hkgro-street-names:retrieve': {

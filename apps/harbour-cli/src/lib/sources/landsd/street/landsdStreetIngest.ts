@@ -143,6 +143,11 @@ export type LandsdStreetIngestProgress = {
   waitingForInput?: boolean
 }
 
+export type LandsdStreetNoticeDateRange = {
+  from?: string
+  through?: string
+}
+
 /**
  * Downloads, pairs, parses, preserves and serialises a LandsD Street Name
  * release. It deliberately does not update the updater cursor: callers may
@@ -154,6 +159,9 @@ export async function ingestLandsdStreetSource(options: {
   egazetteArchiveDir?: string
   includeEgazetteHistory?: boolean
   includeBaseline?: boolean
+  includeLandsdNotices?: boolean
+  egazetteNoticeDateRange?: LandsdStreetNoticeDateRange
+  landsdNoticeDateRange?: LandsdStreetNoticeDateRange
   noticeIds?: readonly string[]
   outputDir: string
   sourceUrl?: string
@@ -196,6 +204,7 @@ export async function ingestLandsdStreetSource(options: {
         })
         return parseEgazetteStreetNameArchive({
           archiveDir: egazetteArchiveDir,
+          dateRange: options.egazetteNoticeDateRange,
           onProgress: reportProgress,
           repoRoot: REPO_ROOT,
         })
@@ -312,36 +321,40 @@ export async function ingestLandsdStreetSource(options: {
     }
   }
 
-  reportProgress({ message: 'Fetching English and Traditional Chinese source pages' })
-  const [englishPageResponse, traditionalChinesePageResponse] = await Promise.all([
-    fetchRequired(fetchImplementation, sourceUrl),
-    fetchRequired(fetchImplementation, chineseSourceUrl),
-  ])
-  const [englishHtml, traditionalChineseHtml] = await Promise.all([
-    englishPageResponse.text(),
-    traditionalChinesePageResponse.text(),
-  ])
-  const en = parseLandsdStreetSourcePage(englishHtml, 'en')
-  const zhHant = parseLandsdStreetSourcePage(traditionalChineseHtml, 'zh-Hant')
-  let pairedNotices: PairedLandsdStreetNotice[]
-  try {
-    pairedNotices = pairLandsdStreetNoticePages({ en, zhHant })
-  } catch (error) {
-    const report = buildOperatorReport({
-      assetFailures,
-      baselineCoverage: null,
-      pairedNoticeCount: 0,
-      pairingFailures: [error instanceof Error ? error.message : String(error)],
-      pdfExtraction: { failed: 0, success: 0 },
-      unmatchedPdfMappings: [],
-      ambiguousLifecycleTargets: [],
-      curationRequired: [],
-      sourcePageRows: { en: en.notices.length, zhHant: zhHant.notices.length },
-    })
-    const reportPath = await writeOperatorReport(outputDir, report)
-    throw new Error(`LandsD bilingual pairing failed. See ${reportPath}.`, {
-      cause: error,
-    })
+  let sourcePageRows = { en: 0, zhHant: 0 }
+  let pairedNotices: PairedLandsdStreetNotice[] = []
+  if (options.includeLandsdNotices ?? true) {
+    reportProgress({ message: 'Fetching English and Traditional Chinese source pages' })
+    const [englishPageResponse, traditionalChinesePageResponse] = await Promise.all([
+      fetchRequired(fetchImplementation, sourceUrl),
+      fetchRequired(fetchImplementation, chineseSourceUrl),
+    ])
+    const [englishHtml, traditionalChineseHtml] = await Promise.all([
+      englishPageResponse.text(),
+      traditionalChinesePageResponse.text(),
+    ])
+    const en = parseLandsdStreetSourcePage(englishHtml, 'en')
+    const zhHant = parseLandsdStreetSourcePage(traditionalChineseHtml, 'zh-Hant')
+    sourcePageRows = { en: en.notices.length, zhHant: zhHant.notices.length }
+    try {
+      pairedNotices = pairLandsdStreetNoticePages({ en, zhHant })
+    } catch (error) {
+      const report = buildOperatorReport({
+        assetFailures,
+        baselineCoverage: null,
+        pairedNoticeCount: 0,
+        pairingFailures: [error instanceof Error ? error.message : String(error)],
+        pdfExtraction: { failed: 0, success: 0 },
+        unmatchedPdfMappings: [],
+        ambiguousLifecycleTargets: [],
+        curationRequired: [],
+        sourcePageRows,
+      })
+      const reportPath = await writeOperatorReport(outputDir, report)
+      throw new Error(`LandsD bilingual pairing failed. See ${reportPath}.`, {
+        cause: error,
+      })
+    }
   }
   const requestedNoticeIds = options.noticeIds ? new Set(options.noticeIds) : null
   let notices = requestedNoticeIds
@@ -358,6 +371,7 @@ export async function ingestLandsdStreetSource(options: {
       )
     }
   }
+  notices = filterNoticesByDate(notices, options.landsdNoticeDateRange)
   const evidence = new Map<string, PublishedPreparedAsset>()
   const historicalAssetsByNoticeRef = new Map<string, LandsdStreetAssetLink[]>()
   const historicalAssetRecords = [...egazette.assetRecords.entries()]
@@ -376,7 +390,7 @@ export async function ingestLandsdStreetSource(options: {
         ['historicalGovernmentNotice', record.assets.en.officialUrl, 'en'],
         ['historicalGovernmentNotice', record.assets['zh-Hant'].officialUrl, 'zh-Hant'],
       ]),
-    ]) + 1
+    ]) + ((options.includeBaseline ?? true) ? 1 : 0)
   let preservedAssets = 0
   reportProgress({
     current: preservedAssets,
@@ -460,22 +474,26 @@ export async function ingestLandsdStreetSource(options: {
     preservedAssets += 1
   }
 
-  // Always preserve and parse the current baseline. The SQL stage decides
-  // whether its immutable version is new by content hash.
-  reportProgress({
-    current: preservedAssets,
-    message: `Preserving source PDF ${preservedAssets + 1}/${assetTotal}: Gazetted Street Name`,
-    total: assetTotal,
-  })
-  const baselineAsset = await fetchAsset({
-    fileName: 'Gazetted_Street_Name.pdf',
-    label: 'Gazetted Street Name',
-    role: 'sourcePdf',
-    sourcePageLocale: 'en',
-    sourcePageUrl: sourceUrl,
-    url: LANDSD_STREET_PDF_URL,
-  })
-  preservedAssets += 1
+  const baselineAsset =
+    (options.includeBaseline ?? true)
+      ? await (async () => {
+          reportProgress({
+            current: preservedAssets,
+            message: `Preserving source PDF ${preservedAssets + 1}/${assetTotal}: Gazetted Street Name`,
+            total: assetTotal,
+          })
+          const asset = await fetchAsset({
+            fileName: 'Gazetted_Street_Name.pdf',
+            label: 'Gazetted Street Name',
+            role: 'sourcePdf',
+            sourcePageLocale: 'en',
+            sourcePageUrl: sourceUrl,
+            url: LANDSD_STREET_PDF_URL,
+          })
+          preservedAssets += 1
+          return asset
+        })()
+      : null
 
   if (assetFailures.length > 0) {
     const report = buildOperatorReport({
@@ -486,7 +504,7 @@ export async function ingestLandsdStreetSource(options: {
       unmatchedPdfMappings: [],
       ambiguousLifecycleTargets: [],
       curationRequired: [],
-      sourcePageRows: { en: en.notices.length, zhHant: zhHant.notices.length },
+      sourcePageRows,
       baselineCoverage: null,
     })
     const reportPath = await writeOperatorReport(outputDir, report)
@@ -494,7 +512,7 @@ export async function ingestLandsdStreetSource(options: {
       `LandsD evidence preservation failed for ${assetFailures.length} asset(s). See ${reportPath}.`,
     )
   }
-  if (!baselineAsset) {
+  if ((options.includeBaseline ?? true) && !baselineAsset) {
     throw new Error('LandsD baseline PDF could not be preserved.')
   }
 
@@ -519,7 +537,7 @@ export async function ingestLandsdStreetSource(options: {
         failed: notices.filter(isLifecycleCurationNotice).length * 2,
         success: 0,
       },
-      sourcePageRows: { en: en.notices.length, zhHant: zhHant.notices.length },
+      sourcePageRows,
       unmatchedPdfMappings: [error instanceof Error ? error.message : String(error)],
     })
     const reportPath = await writeOperatorReport(outputDir, report)
@@ -528,14 +546,7 @@ export async function ingestLandsdStreetSource(options: {
     })
   }
 
-  // The current LandsD page is the forward feed. The archive supplies the
-  // missing pre-2016 ledger. Later archive PDFs remain independent evidence
-  // on matching forward-feed events, rather than duplicating lifecycle events.
-  const historicalNotices = requestedNoticeIds
-    ? []
-    : egazette.notices.filter(
-        notice => `${notice.publicationDate}.0` < LANDSD_STREET_INITIAL_SOURCE_VERSION,
-      )
+  const historicalNotices = requestedNoticeIds ? [] : egazette.notices
   const allNotices = [...historicalNotices, ...notices]
   const allParsedNoticeEntries = new Map([...egazette.entries, ...parsedNoticeEntries])
   const curationPath = options.curationPath ?? DEFAULT_CURATION_PATH
@@ -574,7 +585,7 @@ export async function ingestLandsdStreetSource(options: {
       pairedNoticeCount: pairedNotices.length,
       pairingFailures: [],
       pdfExtraction,
-      sourcePageRows: { en: en.notices.length, zhHant: zhHant.notices.length },
+      sourcePageRows,
       unmatchedPdfMappings,
     })
     const [reportPath, reviewPath] = await Promise.all([
@@ -594,10 +605,17 @@ export async function ingestLandsdStreetSource(options: {
     outputDir,
     sourcePageUrl: sourceUrl,
   })
-  reportProgress({ message: 'Extracting the gazetted street-name baseline' })
-  const baselineRows = parseLandsdStreetPdfText(
-    await pdfToText(baselineAsset.prepared.filePath),
-  )
+  let baselineRows: Array<{
+    chineseName: string
+    districtCode: string
+    englishName: string
+  }> = []
+  if (baselineAsset) {
+    reportProgress({ message: 'Extracting the gazetted street-name baseline' })
+    baselineRows = parseLandsdStreetPdfText(
+      await pdfToText(baselineAsset.prepared.filePath),
+    )
+  }
   const noticeRecords = notices.map(notice =>
     buildNoticeRecord(notice, {
       curation: curation.applied.get(notice.id) ?? null,
@@ -622,11 +640,9 @@ export async function ingestLandsdStreetSource(options: {
     }),
   )
   const allNoticeRecords = [...historicalNoticeRecords, ...noticeRecords]
-  const baseline = buildBaselineRecords(
-    baselineRows,
-    allNoticeRecords,
-    baselineAsset.link,
-  )
+  const baseline = baselineAsset
+    ? buildBaselineRecords(baselineRows, allNoticeRecords, baselineAsset.link)
+    : { records: [] }
 
   reportProgress({ message: 'Writing release payload and operator report' })
   const releases = await writeReleasePayloads({
@@ -643,7 +659,7 @@ export async function ingestLandsdStreetSource(options: {
     unmatchedPdfMappings,
     ambiguousLifecycleTargets: [],
     curationRequired: [],
-    sourcePageRows: { en: en.notices.length, zhHant: zhHant.notices.length },
+    sourcePageRows,
     baselineCoverage: null,
   })
   const reportPath = await writeOperatorReport(outputDir, report)
@@ -919,7 +935,7 @@ async function writeReleasePayloads(input: {
     .sort()
     .at(-1)
   return [
-    await writeReleasePayload({
+    await createLandsdStreetReleasePayload({
       fixtureKind: input.baselineRecords.length > 0 ? 'initial' : 'notice',
       outputDir: input.outputDir,
       records,
@@ -931,8 +947,8 @@ async function writeReleasePayloads(input: {
   ]
 }
 
-async function writeReleasePayload(input: {
-  fixtureKind: 'initial' | 'notice'
+export async function createLandsdStreetReleasePayload(input: {
+  fixtureKind?: 'initial' | 'notice'
   outputDir: string
   records: LandsdStreetRecord[]
   sourceVersion: string
@@ -945,15 +961,16 @@ async function writeReleasePayload(input: {
   const hasDeclaration = input.records.some(
     record => record.noticeType === 'declaration',
   )
+  const fixtureKind = input.fixtureKind ?? 'initial'
   const fixturePath =
-    input.writeFixture && (input.fixtureKind === 'initial' || hasDeclaration)
+    input.writeFixture && (fixtureKind === 'initial' || hasDeclaration)
       ? fixturePathFor(input.sourceVersion)
       : null
   if (fixturePath) {
     await mkdir(dirname(fixturePath), { recursive: true })
     await writeFile(
       fixturePath,
-      buildStreetReleaseNotes(input.records, input.sourceVersion, input.fixtureKind),
+      buildStreetReleaseNotes(input.records, input.sourceVersion, fixtureKind),
       'utf8',
     )
   }
@@ -963,6 +980,36 @@ async function writeReleasePayload(input: {
     records: input.records,
     sourceVersion: input.sourceVersion,
   }
+}
+
+/**
+ * The baseline is a present-state reconciliation list. Assemble it only after
+ * every selected notice stage is present, so matching declarations and name
+ * changes remain notice-originated streets rather than duplicate baseline IDs.
+ */
+export function reconcileLandsdStreetBaselineRecords(records: LandsdStreetRecord[]) {
+  const notices = records.filter(record => record.sourceKind !== 'baseline')
+  return records.map(record => {
+    if (record.sourceKind !== 'baseline') return record
+    const deferToNotices = notices.some(
+      notice =>
+        (notice.noticeType === 'declaration' ||
+          Boolean(notice.application?.resultStreetId)) &&
+        hasSameBilingualRecordName(notice, record),
+    )
+    return { ...record, deferToNotices }
+  })
+}
+
+function hasSameBilingualRecordName(
+  left: LandsdStreetRecord,
+  right: LandsdStreetRecord,
+) {
+  return streetLocaleCodes.every(locale => {
+    const leftName = left.i18n.find(item => item.locale === locale)?.name
+    const rightName = right.i18n.find(item => item.locale === locale)?.name
+    return Boolean(leftName && rightName && leftName === rightName)
+  })
 }
 
 function buildStreetReleaseNotes(
@@ -1541,13 +1588,17 @@ function layoutPaddleOcrWords(
  */
 export async function parseEgazetteStreetNameArchive(input: {
   archiveDir: string
+  dateRange?: LandsdStreetNoticeDateRange
   onProgress: (progress: LandsdStreetIngestProgress) => void
   repoRoot: string
 }): Promise<ParsedEgazetteStreetNameArchive> {
-  const records = await loadEgazetteStreetNameArchive({
-    archiveDir: input.archiveDir,
-    repoRoot: input.repoRoot,
-  })
+  const records = filterEgazetteRecordsByDate(
+    await loadEgazetteStreetNameArchive({
+      archiveDir: input.archiveDir,
+      repoRoot: input.repoRoot,
+    }),
+    input.dateRange,
+  )
   const assetRecords = new Map<string, EgazetteStreetNameRecord>()
   const entries = new Map<string, PairedLandsdGovernmentNoticePdfEntry>()
   const notices: PairedLandsdStreetNotice[] = []
@@ -1653,6 +1704,26 @@ export async function parseEgazetteStreetNameArchive(input: {
     }
   }
   return { assetRecords, entries, notices }
+}
+
+function filterEgazetteRecordsByDate(
+  records: EgazetteStreetNameRecord[],
+  range: LandsdStreetNoticeDateRange | undefined,
+) {
+  return records.filter(record => isDateInRange(record.publicationDate, range))
+}
+
+function filterNoticesByDate(
+  notices: PairedLandsdStreetNotice[],
+  range: LandsdStreetNoticeDateRange | undefined,
+) {
+  return notices.filter(notice => isDateInRange(notice.publicationDate, range))
+}
+
+function isDateInRange(date: string, range: LandsdStreetNoticeDateRange | undefined) {
+  return (
+    (!range?.from || date >= range.from) && (!range?.through || date <= range.through)
+  )
 }
 
 function parseEgazetteNoticeRef(english: string, label: string) {
