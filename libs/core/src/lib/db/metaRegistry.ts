@@ -1919,7 +1919,7 @@ export async function ensureDraftSnapshotForRelease(
   }
 
   const variant = args.variant ?? 'default'
-  const lineageCode = buildSnapshotLineageCode(args.datasetCode, variant)
+  const lineageCode = buildSnapshotLineageCode(args.datasetCode, resourceType, variant)
   const deterministicLineageId = buildDeterministicSnapshotLineageId(lineageCode)
   const identityMode =
     args.identityMode ??
