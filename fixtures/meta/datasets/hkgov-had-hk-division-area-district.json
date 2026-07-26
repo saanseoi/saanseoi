@@ -1,15 +1,29 @@
 {
-  "versionHash": "sha256:addc025747eca62368e18ce14dfde64ca16561460cffc33245ed76189be7aa8e",
+  "versionHash": "sha256:23da0c33f17c0dc106bd7b6b2908875559c6e9b64e8b2c8b39dbf1e352e0079d",
   "publisherCode": "hkgov-had",
   "code": "ds-hk-hkgov-had-division-area-district",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "as-needed",
   "theme": "divisions",
-  "type": "divisionArea",
+  "resourceTypes": ["divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Home Affairs Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "weekly"
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2022"
+    }
+  ],
   "category": "boundaries",
   "i18n": [
     {

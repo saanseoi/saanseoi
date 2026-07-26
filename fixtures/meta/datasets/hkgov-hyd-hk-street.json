@@ -1,0 +1,40 @@
+{
+  "versionHash": "sha256:4070b49ae947e00e609f3bbac2878eea4a8a1dd650c3e0a343ad2d558f557c05",
+  "publisherCode": "hkgov-hyd",
+  "code": "ds-hk-hkgov-hyd-street",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "quarterly",
+  "theme": "streets",
+  "resourceTypes": ["street"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Highways Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632211119955_31211",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "versionPolicy": {
+    "scheme": "release-date",
+    "correctionSuffixSource": "generated"
+  },
+  "sourceLayer": "SNP",
+  "category": "transportation",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Street Name Plates",
+      "description": "Point locations of street name plates maintained by the Highways Department. The ROAD_NAME attribute supplies official street-name evidence; the points are not street centerlines."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "路政署街名牌",
+      "description": "由路政署維修保養的街名牌點位置。ROAD_NAME 屬性提供官方街道名稱證據；點位並非街道中心線。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "路政署街名牌",
+      "description": "由路政署维修保养的街名牌点位置。ROAD_NAME 属性提供官方街道名称证据；点位并非街道中心线。"
+    }
+  ]
+}
