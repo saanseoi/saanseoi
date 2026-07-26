@@ -40,6 +40,10 @@ export type LandsdStreetIntentionRename = {
   locale: 'en' | 'zh-Hant'
   to: string
 }
+export type LandsdStreetPartialRenameIntention = {
+  resultName: string
+  sourceName: string
+}
 export type LandsdStreetCurationDecision = {
   affectedStreetId?: string
   createdStreetId?: string
@@ -79,6 +83,7 @@ export type LandsdStreetLifecycleReview = {
   noticeIdentity: string | null
   operation: 'description-change' | 'name-change' | 'corrigendum' | 'intention'
   correction: LandsdStreetTextCorrection | null
+  partialRenameIntention: LandsdStreetPartialRenameIntention | null
   intentionSummary: string | null
   intentionRename: LandsdStreetIntentionRename | null
   parsedPreviousNoticeRefs: string[]
@@ -150,14 +155,10 @@ export async function promptForLandsdStreetCuration(input: {
         })
         if (isCancel(scope)) throw new Error('LandsD lifecycle review cancelled.')
         nameChangeScope = scope
-        const created = await text({
-          message: 'New canonical street ID',
-          initialValue: mintLandsdStreetId(),
-          validate: value =>
-            (value ?? '').trim() ? undefined : 'Enter a new opaque UUID.',
-        })
-        if (isCancel(created)) throw new Error('LandsD lifecycle review cancelled.')
-        createdStreetId = (created ?? '').trim()
+        // Canonical identity is system-owned. The curator decides the legal
+        // operation and scope; a declared result street receives its opaque
+        // ID without exposing that implementation detail in the review UI.
+        createdStreetId = mintLandsdStreetId()
         if (scope === 'partial') {
           const en = await text({
             message: 'Retained portion description (English)',
@@ -219,13 +220,14 @@ export function resolveLandsdStreetCuration(input: {
     const parsed = input.parsedEntries.get(notice.id)
     const correction = corrigendumCorrectionFor(notice, parsed)
     const name = correctedNoticeName(notice.names, correction)
+    const partialRenameIntention = partialRenameIntentionFor(notice, parsed)
     const baselineCandidates = matchingBaselineCandidates(
       input.baselineCandidates ?? [],
-      name.en,
+      partialRenameIntention?.sourceName ?? name.en,
     )
     const operation = lifecycleOperationFor(notice, parsed)
     const intentionRename = intentionRenameFor(notice, parsed)
-    const intentionSummary = intentionSummaryFor(notice, parsed)
+    const intentionSummary = intentionSummaryFor(notice, parsed, partialRenameIntention)
     const chineseNoticeDateCorrigendum = parseLandsdChineseNoticeDateCorrigendum(
       parsed?.rawExtractedText?.en ?? '',
     )
@@ -247,6 +249,7 @@ export function resolveLandsdStreetCuration(input: {
       curation: decisions.get(notice.id) ?? null,
       baselineCandidates,
       correction,
+      partialRenameIntention,
       chineseNoticeDateCorrigendum,
       intentionSummary,
       intentionRename,
@@ -387,8 +390,13 @@ export function formatLifecycleReviewContext(item: LandsdStreetLifecycleReview) 
     item.intentionRename ? formatIntentionRename(item.intentionRename) : null,
     formatReviewField('English PDF', [item.governmentNoticeUrls.en ?? '—'], 'muted'),
     item.baselineCandidates.length === 0
-      ? formatReviewField('Matching baseline streets', ['none'])
-      : `${reviewKey('Matching baseline streets')}:\n${item.baselineCandidates.map(formatBaselineCandidate).join('\n')}`,
+      ? formatReviewField(
+          item.partialRenameIntention
+            ? 'Affected baseline streets'
+            : 'Matching baseline streets',
+          ['none'],
+        )
+      : `${reviewKey(item.partialRenameIntention ? 'Affected baseline streets' : 'Matching baseline streets')}:\n${item.baselineCandidates.map(formatBaselineCandidate).join('\n')}`,
     item.automaticApplication
       ? formatReviewField('Automatic application', [
           item.automaticApplication.affectedStreetId,
@@ -519,10 +527,10 @@ function intentionRenameFor(
   }
 }
 
-function intentionSummaryFor(
+function partialRenameIntentionFor(
   notice: PairedLandsdStreetNotice,
   parsed: PairedLandsdGovernmentNoticePdfEntry | undefined,
-) {
+): LandsdStreetPartialRenameIntention | null {
   if (notice.governmentNoticeType !== 'intention') return null
   const english = (parsed?.rawExtractedText?.en ?? '').replaceAll(/\s+/g, ' ')
   const directSectionRename = english.match(
@@ -535,13 +543,27 @@ function intentionSummaryFor(
     /rename\s+a\s+section\s+of\s+(.+?)\s+in\s+.+?\s+as\s+set\s+out\s+in\s+g\.?\s*n\.?\s*\d+.*?\s+to\s+(.+?)(?:\s+as\s+described|[:.—]|$)/i,
   )
   const rename = directSectionRename ?? referencedSectionRename
+  const sourceName = rename?.[1]?.trim()
+  const resultName = rename?.[2]?.trim()
+  return sourceName && resultName ? { resultName, sourceName } : null
+}
+
+function intentionSummaryFor(
+  notice: PairedLandsdStreetNotice,
+  parsed: PairedLandsdGovernmentNoticePdfEntry | undefined,
+  partialRenameIntention: LandsdStreetPartialRenameIntention | null,
+) {
+  if (notice.governmentNoticeType !== 'intention') return null
+  const english = (parsed?.rawExtractedText?.en ?? '').replaceAll(/\s+/g, ' ')
+  const rename = partialRenameIntention
+    ? `Rename part of ${partialRenameIntention.sourceName} as ${partialRenameIntention.resultName}`
+    : null
   const ceased = english.match(
     /cease\s+a\s+section\s+of\s+(.+?)\s+(?:inside|as\s+set\s+out|to\s+be\s+known|as\s+described|[:.—])/i,
   )
-  const actions = [
-    rename ? `Rename part of ${rename[1]?.trim()} as ${rename[2]?.trim()}` : null,
-    ceased ? `Cease part of ${ceased[1]?.trim()}` : null,
-  ].filter((action): action is string => Boolean(action))
+  const actions = [rename, ceased ? `Cease part of ${ceased[1]?.trim()}` : null].filter(
+    (action): action is string => Boolean(action),
+  )
   return actions.length > 0 ? actions.join('; ') : null
 }
 

@@ -58,6 +58,10 @@ export type HkgroStreetDiscoveryRecord = {
     officialUrl: string
     sha256: string
   }
+  reviewPages: Array<{
+    excerpt: string
+    pageNumber: number
+  }>
   suggested: HkgroDiscoverySuggestion
   tocEntries: Array<{
     notificationNumber: string | null
@@ -113,11 +117,12 @@ export async function discoverHkgroStreetNames(input: {
       )
     }
     const suggested = suggestHkgroStreetClassification(group, ocr.text)
+    const reviewPages = reviewPagesFor(ocr.text)
     const previous = previousByKey.get(`${group.year}\0${group.hkgroPdfId}`)
     records.push({
       candidateReasons: group.candidateReasons,
       decision: previous?.source.sha256 === group.sha256 ? previous.decision : null,
-      excerpt: excerptForReview(ocr.text),
+      excerpt: reviewPages[0]?.excerpt ?? excerptForReview(ocr.text),
       hkgroPdfId: group.hkgroPdfId,
       ocr: {
         outputPath: hkgroOcrOutputPath(group.year, group.hkgroPdfId),
@@ -129,6 +134,7 @@ export async function discoverHkgroStreetNames(input: {
         officialUrl: group.officialUrl,
         sha256: group.sha256,
       },
+      reviewPages,
       suggested,
       tocEntries: group.tocEntries,
       year: group.year,
@@ -409,6 +415,21 @@ function excerptForReview(text: string) {
     )
   return (match?.[0] ?? text.replaceAll(/\s+/g, ' ').slice(0, 280)).trim()
 }
+
+function reviewPagesFor(text: string) {
+  const pages = text.split(/\n?\f\n?/)
+  const matches = pages.flatMap((page, index) =>
+    reviewSignalPattern.test(page)
+      ? [{ excerpt: excerptForReview(page), pageNumber: index + 1 }]
+      : [],
+  )
+  return matches.length > 0
+    ? matches
+    : [{ excerpt: excerptForReview(pages[0] ?? text), pageNumber: 1 }]
+}
+
+const reviewSignalPattern =
+  /(?:change|alteration|naming|designation|description|delet|close|abolish)/i
 
 function matchesNameChange(value: string) {
   return /(?:change|alteration|renam(?:e|ing)|naming|names?)\w*[^.]{0,100}\b(?:street|road|lane|place|path|terrace|avenue|square|fong)\b/i.test(

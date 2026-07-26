@@ -119,14 +119,15 @@ async function printHkgroSourceInline(input: {
     input.archiveDir,
     input.record.source.localPath,
   )
+  const pageNumber = input.record.reviewPages?.[0]?.pageNumber ?? 1
   const previewDir = await mkdtemp(join(tmpdir(), 'saanseoi-hkgro-review-'))
-  const previewPath = join(previewDir, 'source-page-1')
+  const previewPath = join(previewDir, `source-page-${pageNumber}`)
   try {
     await runInlineCommand('pdftoppm', [
       '-f',
-      '1',
+      `${pageNumber}`,
       '-l',
-      '1',
+      `${pageNumber}`,
       '-png',
       '-r',
       '300',
@@ -241,12 +242,18 @@ export function formatReviewContext(record: HkgroStreetDiscoveryRecord) {
   const suggestions = record.suggested.kinds.length
     ? record.suggested.kinds.map(streetChangeKindLabel).join(', ')
     : 'none'
+  const reviewPages = record.reviewPages?.length
+    ? record.reviewPages
+    : [{ excerpt: record.excerpt, pageNumber: 1 }]
   return [
     formatReviewField('Year / HKGRO PDF', [`${record.year}`, record.hkgroPdfId]),
     `${reviewKey('TOC entries')}:\n${tocEntries}`,
     formatReviewField('Official scan', [record.source.officialUrl]),
     formatReviewField('Local scan', [record.source.localPath], 'muted'),
     formatReviewField('OCR output', [record.ocr.outputPath], 'muted'),
+    formatReviewField('Relevant OCR page(s)', [
+      reviewPages.map(page => `${page.pageNumber}`).join(', '),
+    ]),
     formatReviewField(
       'Discovery score',
       [`${record.suggested.score}`],
@@ -254,7 +261,12 @@ export function formatReviewContext(record: HkgroStreetDiscoveryRecord) {
     ),
     `${reviewKey('Discovery reasons')}:\n${formatReviewList(record.suggested.reasons, 'muted') || '- none'}`,
     formatReviewField('Suggested material kinds', [suggestions]),
-    `${reviewKey('OCR excerpt (not source evidence)')}:\n${reviewMuted(record.excerpt || '(none)')}`,
+    `${reviewKey('OCR excerpt (not source evidence)')}:\n${reviewPages
+      .map(
+        page =>
+          `${reviewMuted(`Page ${page.pageNumber}`)}\n${reviewMuted(page.excerpt || '(none)')}`,
+      )
+      .join('\n\n')}`,
   ].join('\n\n')
 }
 
