@@ -105,12 +105,26 @@ export function buildSnapshotVersionCode(
   return `ss-${normaliseCodeSlug(regionCode)}-${normaliseCodeSlug(resourceType)}${variantSegment}-${normaliseCohortKey(cohortKey)}${revisionSegment}`
 }
 
-export function buildSnapshotLineageCode(datasetCode: string, variant = 'default') {
+export function buildSnapshotLineageCode(
+  datasetCode: string,
+  resourceType: ResourceType,
+  variant = 'default',
+) {
   // A source dataset can expose structured subvariants (for example C&SD
   // census cohorts). Keep ordinary source variants concise because their
-  // dataset code already contains that scope.
+  // dataset code already contains that scope. Some source datasets intentionally
+  // expose more than one resource type, so qualify a resource type that is not
+  // already represented by the dataset code.
+  const normalisedDatasetCode = normaliseCodeSlug(datasetCode)
+  const normalisedResourceType = normaliseCodeSlug(resourceType)
+  const resourceTypeIsInDatasetCode =
+    normalisedDatasetCode.endsWith(`-${normalisedResourceType}`) ||
+    normalisedDatasetCode.includes(`-${normalisedResourceType}-`)
+  const resourceTypeSegment = resourceTypeIsInDatasetCode
+    ? ''
+    : `-${normalisedResourceType}`
   const variantSegment = variant.includes(':') ? `-${normaliseCodeSlug(variant)}` : ''
-  return `sl-${normaliseCodeSlug(datasetCode)}${variantSegment}`
+  return `sl-${normalisedDatasetCode}${resourceTypeSegment}${variantSegment}`
 }
 
 export function buildDataReleaseSetCode(

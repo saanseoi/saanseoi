@@ -10,15 +10,26 @@ import {
 
 describe('snapshot identifiers', () => {
   test('qualifies non-default lineage codes with their variant', () => {
-    expect(buildSnapshotLineageCode('ds-hk-overture-division')).toBe(
+    expect(buildSnapshotLineageCode('ds-hk-overture-division', 'division')).toBe(
       'sl-ds-hk-overture-division',
     )
     expect(
       buildSnapshotLineageCode(
         'ds-hk-hkgov-censtatd-division-area-district',
+        'divisionArea',
         'hkgov-censtatd:2016',
       ),
     ).toBe('sl-ds-hk-hkgov-censtatd-division-area-district-hkgov-censtatd-2016')
+  })
+
+  test('qualifies a resource type omitted from a shared dataset code', () => {
+    expect(
+      buildSnapshotLineageCode(
+        'ds-hk-hkgov-pland-division-pu',
+        'divisionArea',
+        'hkgov-pland-pu',
+      ),
+    ).toBe('sl-ds-hk-hkgov-pland-division-pu-division-area')
   })
 
   test('uses the source variant rather than a full dataset code in snapshot codes', () => {

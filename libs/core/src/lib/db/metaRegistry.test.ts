@@ -1081,6 +1081,43 @@ describe('ensureDraftSnapshotForRelease', () => {
     sqlite.close()
   })
 
+  test('creates distinct lineages when a Planning Department dataset exposes division areas', async () => {
+    const { db, sqlite } = createDraftSnapshotDb()
+    const args = {
+      cohortKey: '2001',
+      datasetCode: 'ds-hk-hkgov-pland-division-pu',
+      datasetId: 'dataset-pland-division-pu',
+      regionCode: 'hk',
+      variant: 'hkgov-pland-pu',
+    }
+
+    await ensureDraftSnapshotForRelease(db as never, 'division', {
+      ...args,
+      sourceReleaseId: 'release-pland-division-pu-2001',
+    })
+    await ensureDraftSnapshotForRelease(db as never, 'divisionArea', {
+      ...args,
+      sourceReleaseId: 'release-pland-division-area-pu-2001',
+    })
+
+    expect(
+      sqlite
+        .query('SELECT code, resourceType FROM snapshotLineages ORDER BY resourceType')
+        .all(),
+    ).toEqual([
+      {
+        code: 'sl-ds-hk-hkgov-pland-division-pu',
+        resourceType: 'division',
+      },
+      {
+        code: 'sl-ds-hk-hkgov-pland-division-pu-division-area',
+        resourceType: 'divisionArea',
+      },
+    ])
+
+    sqlite.close()
+  })
+
   test('keeps separately selectable C&SD cohorts in separate lineages', async () => {
     const { db, sqlite } = createDraftSnapshotDb()
     const base = {
