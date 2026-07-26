@@ -16,6 +16,7 @@ const metaRegistry = await import('@repo/core/db/metaRegistry')
 
 mock.module('../addressSql/localDbCache.ts', () => ({
   resolveLocalAddressDbContext: resolveLocalAddressDbContextMock,
+  withLocalMetaDb: mock(async (_target, work) => work({})),
 }))
 
 mock.module('../addressSql/processLocalAddressSqlUpload.ts', () => ({
@@ -38,7 +39,7 @@ mock.module('@repo/core/uploadLocal', () => ({
   }),
 }))
 
-mock.module('../display.ts', () => ({
+mock.module('../cli/display.ts', () => ({
   describeTarget: mock(() => ({ label: 'preview' })),
   formatMutedValue: mock((value: string) => value),
   formatSchemaCheck: mock((value: string) => value),
@@ -46,20 +47,20 @@ mock.module('../display.ts', () => ({
   formatUploadResult: mock(() => []),
 }))
 
-mock.module('../overtureAssumptions.ts', () => ({
+mock.module('../upload/overtureAssumptions.ts', () => ({
   checkOvertureUploadAssumptions: mock(async () => []),
 }))
 
-mock.module('../options.ts', () => ({
+mock.module('../cli/options.ts', () => ({
   buildRegisterOptions: mock(() => ({})),
   getStringOption: mock(() => undefined),
 }))
 
-mock.module('../parquetRepack.ts', () => ({
+mock.module('../upload/parquetRepack.ts', () => ({
   prepareUploadFileForDispatch: mock(async () => null),
 }))
 
-mock.module('../upload.ts', () => ({
+mock.module('../upload/upload.ts', () => ({
   dispatchUpload: mock(async () => ({})),
   getUploadDispatchTimings: mock(() => null),
 }))

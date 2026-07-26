@@ -23,27 +23,31 @@ import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
 import {
   HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
   prepareHkgovCenstatdDistrictUpload,
-} from '../hkgovCenstatd.ts'
-import { prepareHkgovHadDistrictUpload } from '../hkgovHad.ts'
-import { prepareLandsdPlaceNameDivisionUpload } from '../landsdPlaceName.ts'
+} from '../sources/hkgov/hkgovCenstatd.ts'
+import { prepareHkgovHadDistrictUpload } from '../sources/hkgov/hkgovHad.ts'
+import { prepareLandsdPlaceNameDivisionUpload } from '../sources/landsd/landsdPlaceName.ts'
 import {
   describeTarget,
   formatMutedValue,
   formatSchemaCheck,
   formatSummary,
   formatUploadResult,
-} from '../display.ts'
+} from '../cli/display.ts'
 import { processLocalAddressSqlUpload } from '../addressSql/processLocalAddressSqlUpload.ts'
 import { processLocalStreetSqlUpload } from '../streetSql/processLocalStreetSqlUpload.ts'
 import { processLocalDivisionSqlUpload } from '../divisionSql/processLocalDivisionSqlUpload.ts'
 import { processLocalHkgovPlandDivisionSqlUpload } from '../divisionSql/processLocalHkgovPlandDivisionSqlUpload.ts'
 import { processLocalDivisionGeometrySqlUpload } from '../divisionSql/processLocalDivisionGeometrySqlUpload.ts'
-import { buildRegisterOptions, type ParsedArgs, type UploadTarget } from '../options.ts'
-import { checkOvertureUploadAssumptions } from '../overtureAssumptions.ts'
-import { prepareUploadFileForDispatch } from '../parquetRepack.ts'
-import { resolveReleaseNotesUrl } from '../releaseNotes.ts'
+import {
+  buildRegisterOptions,
+  type ParsedArgs,
+  type UploadTarget,
+} from '../cli/options.ts'
+import { checkOvertureUploadAssumptions } from '../upload/overtureAssumptions.ts'
+import { prepareUploadFileForDispatch } from '../upload/parquetRepack.ts'
+import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
-import { dispatchUpload } from '../upload.ts'
+import { dispatchUpload } from '../upload/upload.ts'
 import { formatDurationMs } from '../localPipeline/progressFormatting.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')

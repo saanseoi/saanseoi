@@ -15,7 +15,7 @@ import {
   type InspectResourceType,
   type InspectSampleStrategy,
   type InspectStage,
-} from './inspect.ts'
+} from '../inspection/inspect.ts'
 import { getStringOption, type ParsedArgs } from './options.ts'
 
 export async function resolveInspectOptions(

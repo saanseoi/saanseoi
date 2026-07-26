@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
 
-import type { ParsedArgs } from '../options.ts'
+import type { ParsedArgs } from '../cli/options.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../')
 const UPLOAD_INIT_SCRIPT_PATH = resolve(REPO_ROOT, 'scripts/upload-init.fish')

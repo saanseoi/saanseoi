@@ -6,7 +6,7 @@ import { strFromU8, unzipSync, zipSync } from 'fflate'
 import fgdb from 'fgdb'
 import shp from 'shpjs'
 
-import type { UploadTarget } from './options.ts'
+import type { UploadTarget } from '../cli/options.ts'
 import { buildManagedAssetUrl, uploadManagedSourceAsset } from './sourceAssets.ts'
 
 const SOURCE_ARCHIVE_ROOT = 'by-source'

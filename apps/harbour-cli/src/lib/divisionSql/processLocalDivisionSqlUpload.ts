@@ -80,9 +80,9 @@ import {
   writeTextArtefact,
 } from '@repo/core/pipeline/services/pipelineArtefacts'
 
-import type { PreparedUploadFile } from '../parquetRepack.ts'
-import type { UploadTarget } from '../options.ts'
-import { createHarbourControlClient } from '../harbourControl.ts'
+import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
+import type { UploadTarget } from '../cli/options.ts'
+import { createHarbourControlClient } from '../api/harbourControl.ts'
 import {
   createLocalImportProgressClient,
   runLocalStreamingPhase,
@@ -92,7 +92,7 @@ import { createLocalControlClient } from '../localPipeline/localControlClient.ts
 import {
   calculateAndStoreApiReleaseSetStats,
   resolveApiReleaseSetStatsTarget,
-} from '../apiReleaseSetStats.ts'
+} from '../api/apiReleaseSetStats.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import {
   appendPhaseDetails,
@@ -110,7 +110,7 @@ import {
   type SqlImportExecutionOptions,
   type SqlImportTargetContext,
 } from '../localPipeline/sqlImport.ts'
-import { LocalUploadProgress } from '../localUploadProgress.ts'
+import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
 import {
   invalidateRemoteDbCache,

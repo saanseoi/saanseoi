@@ -5,7 +5,7 @@ import {
   parseLandsdStreetNoticePage,
   parseLandsdStreetPdfText,
   parseLandsdStreetSourcePage,
-} from './landsdStreet/landsdStreet.ts'
+} from './landsd/street/landsdStreet.ts'
 
 import {
   buildOverturistCommand,

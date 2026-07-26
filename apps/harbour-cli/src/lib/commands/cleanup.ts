@@ -4,10 +4,10 @@ import {
   resolveDelaySeconds,
   resolveSnapshotCleanupResourceType,
   resolveSnapshotIds,
-} from '../cleanupOptions.ts'
-import { describeTarget, formatField } from '../display.ts'
-import type { ParsedArgs, UploadTarget } from '../options.ts'
-import { scheduleSnapshotCleanup } from '../upload.ts'
+} from '../cli/cleanupOptions.ts'
+import { describeTarget, formatField } from '../cli/display.ts'
+import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
+import { scheduleSnapshotCleanup } from '../upload/upload.ts'
 
 export async function runSnapshotCleanupCommand(
   args: ParsedArgs,

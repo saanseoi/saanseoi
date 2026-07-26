@@ -28,9 +28,9 @@ import {
 } from '@repo/core/pipeline/utils'
 import { currentSchema, historySchema, sourceSchema, toIsoTimestamp } from '@repo/db'
 
-import type { PreparedUploadFile } from '../parquetRepack.ts'
-import type { UploadTarget } from '../options.ts'
-import { createHarbourControlClient } from '../harbourControl.ts'
+import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
+import type { UploadTarget } from '../cli/options.ts'
+import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import { LocalPipelineBucket } from '../addressSql/localBucket.ts'

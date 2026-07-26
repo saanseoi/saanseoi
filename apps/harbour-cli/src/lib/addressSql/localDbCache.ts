@@ -17,7 +17,7 @@ import {
   type SourceDatabase,
 } from '@repo/db'
 
-import type { UploadTarget } from '../options.ts'
+import type { UploadTarget } from '../cli/options.ts'
 
 type D1TargetRecord = {
   bindingName: string

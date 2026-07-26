@@ -2,7 +2,7 @@ import { isReleaseId } from '@repo/core'
 import { afterEach, describe, expect, test } from 'bun:test'
 
 import { dispatchUpload, scheduleSnapshotCleanup } from './upload.ts'
-import type { UploadTarget } from './options.ts'
+import type { UploadTarget } from '../cli/options.ts'
 
 const target: UploadTarget = {
   environment: 'production',

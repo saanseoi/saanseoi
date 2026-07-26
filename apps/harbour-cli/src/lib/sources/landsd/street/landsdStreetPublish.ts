@@ -1,7 +1,7 @@
 import { LANDSD_STREET_NAMING_URL } from './landsdStreet.ts'
 import type { LandsdStreetReleasePayload } from './landsdStreetIngest.ts'
-import type { UploadTarget } from '../options.ts'
-import { runUploadCommand } from '../commands/upload.ts'
+import type { UploadTarget } from '../../../cli/options.ts'
+import { runUploadCommand } from '../../../commands/upload.ts'
 
 /**
  * A successful evidence download is not a completed ingestion. Every staged

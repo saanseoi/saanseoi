@@ -1,6 +1,6 @@
 import { normaliseBaseUrl } from '@repo/core'
 
-import type { UploadTarget } from './options.ts'
+import type { UploadTarget } from '../cli/options.ts'
 import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
 
 export type ReportRowCount = {

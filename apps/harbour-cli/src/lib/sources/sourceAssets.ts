@@ -7,9 +7,9 @@ import { runWithWriteRetry } from '@repo/core/pipeline/utils'
 import { eq, metaAssets } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
 
-import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
-import { withLocalMetaDb } from './addressSql/localDbCache.ts'
-import type { UploadTarget } from './options.ts'
+import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
+import { withLocalMetaDb } from '../addressSql/localDbCache.ts'
+import type { UploadTarget } from '../cli/options.ts'
 
 export const LANDSD_SOURCE_ASSET_PREFIX = 'by-source/hk/hkgov-landsd/street-naming'
 
@@ -85,7 +85,7 @@ type LocalSourceAssetUploadOptions = {
   withMetaDb?: typeof withLocalMetaDb
 }
 
-const REPO_ROOT = resolve(import.meta.dir, '../../../..')
+const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const HARBOUR_WRANGLER_CONFIG_PATH = resolve(
   REPO_ROOT,
   'apps/harbour-api/wrangler.jsonc',

@@ -14,7 +14,7 @@ import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
 import { and, currentSchema, eq, sql } from '@repo/db'
 import type { ApiReleaseSetScopedStatsRow } from '@repo/db/metaSchema'
 
-import type { LocalUploadProgress } from './localUploadProgress.ts'
+import type { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
   appendPhaseDetails,
   colorRed,
@@ -22,7 +22,7 @@ import {
   formatCompletedPhaseLabel,
   formatDurationMs,
   formatRunningPhaseLabel,
-} from './localPipeline/progressFormatting.ts'
+} from '../localPipeline/progressFormatting.ts'
 
 type D1ExecBinding = {
   exec?(sql: string): Promise<unknown>

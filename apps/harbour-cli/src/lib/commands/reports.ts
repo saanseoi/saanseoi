@@ -5,14 +5,14 @@ import {
   formatProcessingActionReport,
   formatReleaseReportTable,
   formatStatsReportTable,
-} from '../display.ts'
-import { getStringOption, type ParsedArgs, type UploadTarget } from '../options.ts'
+} from '../cli/display.ts'
+import { getStringOption, type ParsedArgs, type UploadTarget } from '../cli/options.ts'
 import {
   fetchIngestRunReport,
   fetchProcessingActionReport,
   fetchReleaseReport,
   fetchStatsReport,
-} from '../reporting.ts'
+} from '../api/reporting.ts'
 
 export async function runReportCommand(args: ParsedArgs, target: UploadTarget) {
   const reportLimit =

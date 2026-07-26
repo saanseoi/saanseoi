@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { expect, test } from 'bun:test'
 import type { MetaDatabase } from '@repo/db'
 
-import type { withLocalMetaDb } from './addressSql/localDbCache.ts'
+import type { withLocalMetaDb } from '../addressSql/localDbCache.ts'
 import {
   buildSourceAssetObjectKey,
   registerLocalManagedSourceAsset,
