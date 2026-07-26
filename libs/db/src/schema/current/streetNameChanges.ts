@@ -7,11 +7,18 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import { jsonText, timestamps } from '../shared'
+import { jsonText, timestamps, type StreetEvidenceAsset } from '../shared'
 import { streets } from './streets'
 
 export const streetNameChangeStatuses = ['intended', 'effective', 'withdrawn'] as const
 export const streetNameChangeStreetRoles = ['old', 'new'] as const
+export const streetChangelogKinds = [
+  'gazette',
+  'description_change',
+  'notice_of_name_change',
+  'name_change',
+  'deleted',
+] as const
 
 /**
  * A directed legal street-name change. It may connect multiple old and new
@@ -23,19 +30,18 @@ export const streetNameChanges = sqliteTable(
   {
     snapshotId: text('snapshotId').notNull(),
     id: text('id').notNull(),
-    sourceEventId: text('sourceEventId').notNull(),
+    noticeRef: text('noticeRef').notNull(),
     intentionNotificationDate: text('intentionNotificationDate'),
     nameChangeDate: text('nameChangeDate'),
     isPartialNameChange: integer('isPartialNameChange', {
       mode: 'boolean',
     }).notNull(),
     status: text('status', { enum: streetNameChangeStatuses }).notNull(),
-    references: jsonText('references'),
     ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.snapshotId, table.id] }),
-    index('streetNameChanges_sourceEventId_idx').on(table.sourceEventId),
+    index('streetNameChanges_noticeRef_idx').on(table.noticeRef),
     index('streetNameChanges_status_idx').on(table.status),
   ],
 )
@@ -63,5 +69,35 @@ export const streetNameChangeStreets = sqliteTable(
       name: 'streetNameChangeStreets_street_fk',
     }).onDelete('cascade'),
     index('streetNameChangeStreets_streetId_idx').on(table.snapshotId, table.streetId),
+  ],
+)
+
+/**
+ * Materialised publisher-event replay for one street snapshot. This is
+ * deliberately a provenance relation rather than a foreign-key relation:
+ * the event is stored in a source shard which may be different from the
+ * current database and the street may be absent after deletion.
+ */
+export const streetChangelog = sqliteTable(
+  'streetChangelog',
+  {
+    snapshotId: text('snapshotId').notNull(),
+    recordKey: text('recordKey').notNull(),
+    streetId: text('streetId').notNull(),
+    /** SaanSeoi replay outcome, derived from the publisher notice kind. */
+    kind: text('kind', { enum: streetChangelogKinds }).notNull(),
+    isPartialNameChange: integer('isPartialNameChange', { mode: 'boolean' }).notNull(),
+    gazetteDate: text('gazetteDate'),
+    effectiveDate: text('effectiveDate'),
+    sourceShardId: text('sourceShardId'),
+    sourceReleaseId: text('sourceReleaseId'),
+    noticeRef: text('noticeRef'),
+    evidenceAssets: jsonText<StreetEvidenceAsset[]>('evidenceAssets'),
+    ...timestamps,
+  },
+  table => [
+    primaryKey({ columns: [table.snapshotId, table.recordKey, table.streetId] }),
+    index('streetChangelog_street_idx').on(table.snapshotId, table.streetId),
+    index('streetChangelog_recordKey_idx').on(table.recordKey),
   ],
 )
