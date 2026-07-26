@@ -286,15 +286,29 @@ function applyCorrection(
     return {
       ...item,
       ...(correction.fields.includes(nameField)
-        ? { name: item.name.replaceAll(correction.from, correction.to) }
+        ? { name: replaceCorrectionText(item.name, correction) }
         : {}),
       ...(item.description !== null && correction.fields.includes(descriptionField)
         ? {
-            description: item.description.replaceAll(correction.from, correction.to),
+            description: replaceCorrectionText(item.description, correction),
           }
         : {}),
     }
   })
+}
+
+function replaceCorrectionText(
+  value: string,
+  correction: LandsdStreetLifecycleTextCorrection,
+) {
+  return value.replaceAll(
+    new RegExp(escapeRegularExpression(correction.from), 'giu'),
+    correction.to,
+  )
+}
+
+function escapeRegularExpression(value: string) {
+  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 function applyPartialNameChange(
   current: LandsdStreetMaterialisedStreet,
