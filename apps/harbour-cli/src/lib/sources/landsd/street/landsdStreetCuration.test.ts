@@ -320,6 +320,38 @@ test('describes a multi-street partial-renaming intention without applying it', 
   expect(formatLifecycleReviewContext(result.review[0]!)).toContain('Proposed action')
 })
 
+test('recognises a partial-renaming intention that identifies its source in an earlier notice', () => {
+  const notice = {
+    governmentNoticeType: 'intention',
+    governmentNotices: { en: null, zhHant: null },
+    id: 'notice-6649-on-pik',
+    names: { en: 'On Pik Road', zhHant: '安碧道' },
+    noticeIdentity: 'gn6649',
+    publicationDate: '2021-10-22',
+  } as PairedLandsdStreetNotice
+  const parsed = {
+    descriptions: { en: 'Replacement description.', zhHant: '新的說明。' },
+    rawExtractedText: {
+      en: `The Director of Lands intends to make a declaration to rename a section of ANDERSON ROAD in the Sai Kung District, New Territories and the Kwun Tong District, Kowloon as set out in G.N. 2757 dated 10 December 1976 to ON PIK ROAD as described hereunder:—`,
+      zhHant: '',
+    },
+  } as PairedLandsdGovernmentNoticePdfEntry
+  const result = resolveLandsdStreetCuration({
+    baselineCandidates: [],
+    manifest: emptyLandsdStreetCuration(),
+    notices: [notice],
+    parsedEntries: new Map([[notice.id, parsed]]),
+  })
+
+  expect(result.unresolved).toHaveLength(1)
+  expect(result.review[0]?.intentionSummary).toBe(
+    'Rename part of ANDERSON ROAD as ON PIK ROAD',
+  )
+  expect(formatLifecycleReviewContext(result.review[0]!)).toContain(
+    'Proposed action: Rename part of ANDERSON ROAD as ON PIK ROAD',
+  )
+})
+
 test('automatically applies an unambiguous description change', () => {
   const notice = {
     governmentNoticeType: 'change',

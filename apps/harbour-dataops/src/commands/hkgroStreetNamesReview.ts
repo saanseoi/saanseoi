@@ -1,5 +1,9 @@
-import { isCancel, log, note, outro, select, text } from '@clack/prompts'
-import { join, resolve } from 'node:path'
+import { spawn } from 'node:child_process'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { isAbsolute, join, relative, resolve } from 'node:path'
+
+import { isCancel, log, note, outro, select } from '@clack/prompts'
 
 import type {
   ParsedArgs,
@@ -65,6 +69,7 @@ export async function runHkgroStreetNameReviewCommand(
   let completed = 0
   for (const record of records) {
     note(formatReviewContext(record), 'SOURCE PDF TO REVIEW')
+    await printHkgroSourceInline({ archiveDir, record })
     const classification = await select({
       message: `Select ${record.year}/${record.hkgroPdfId}`,
       options: [
@@ -90,16 +95,11 @@ export async function runHkgroStreetNameReviewCommand(
       classification === 'street-name'
         ? await selectStreetChangeKind(record.suggested.kinds)
         : null
-    const notes = await text({
-      message: 'Curator notes (optional)',
-      placeholder: 'Why this selection was made, names found, or follow-up needed',
-    })
-    if (isCancel(notes)) throw new Error('HKGRO street-name review cancelled.')
 
     record.decision = {
       classification,
       kind,
-      notes: notes.trim() || null,
+      notes: null,
       reviewedAt: new Date().toISOString(),
     }
     await saveHkgroStreetDiscoveryReview(reviewPath, review)
@@ -109,6 +109,71 @@ export async function runHkgroStreetNameReviewCommand(
   outro(
     `Saved ${completed} HKGRO curator decision${completed === 1 ? '' : 's'} locally: ${reviewPath}`,
   )
+}
+
+async function printHkgroSourceInline(input: {
+  archiveDir: string
+  record: HkgroStreetDiscoveryRecord
+}) {
+  const sourcePath = resolveHkgroSourcePath(
+    input.archiveDir,
+    input.record.source.localPath,
+  )
+  const previewDir = await mkdtemp(join(tmpdir(), 'saanseoi-hkgro-review-'))
+  const previewPath = join(previewDir, 'source-page-1')
+  try {
+    await runInlineCommand('pdftoppm', [
+      '-f',
+      '1',
+      '-l',
+      '1',
+      '-png',
+      '-r',
+      '300',
+      '-singlefile',
+      sourcePath,
+      previewPath,
+    ])
+    await runInlineCommand('kitten', ['icat', '--fit=width', `${previewPath}.png`])
+  } finally {
+    await rm(previewDir, { force: true, recursive: true })
+  }
+}
+
+async function runInlineCommand(command: string, args: string[]) {
+  await new Promise<void>((resolveCommand, rejectCommand) => {
+    const process = spawn(command, args, { stdio: 'inherit' })
+    process.on('error', error => {
+      rejectCommand(
+        new Error(
+          `Could not run ${command} while rendering the HKGRO source: ${error.message}`,
+        ),
+      )
+    })
+    process.on('exit', code => {
+      if (code === 0) {
+        resolveCommand()
+      } else {
+        rejectCommand(
+          new Error(
+            `${command} failed while rendering the HKGRO source (exit code ${code ?? 'unknown'}).`,
+          ),
+        )
+      }
+    })
+  })
+}
+
+function resolveHkgroSourcePath(archiveDir: string, localPath: string) {
+  if (isAbsolute(localPath)) {
+    throw new Error(`HKGRO local path must be repository-relative: ${localPath}.`)
+  }
+  const canonical = resolve(REPO_ROOT, localPath)
+  const suffix = relative(DEFAULT_ARCHIVE_DIR, canonical)
+  if (suffix.startsWith('..') || isAbsolute(suffix)) {
+    throw new Error(`HKGRO local path is outside its archive directory: ${localPath}.`)
+  }
+  return resolve(archiveDir, suffix)
 }
 
 export function recordsForReview(
