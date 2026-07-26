@@ -93,10 +93,14 @@ Rerunning discovery preserves a curator decision when the bound source hash is
 unchanged.
 
 Curators inspect the original scan before accepting a row. Material events include a
-street declaration, naming or renaming, deletion, legally material designation, or a
-description change. Repairs, tenders, land sales, street cries, house numbering, and
-other incidental street references are rejected as `not-street-name`. OCR excerpts and
-extracted signals are review aids, never publisher-native facts.
+street declaration, naming or renaming, absorption into an existing street, deletion,
+legally material designation, or a description change. An absorption is not treated as a
+simple rename: it ends the source street or section while extending the legal extent of
+a surviving, already named street. Its future lifecycle application must therefore
+identify both the ending source and surviving target. Repairs, tenders, land sales,
+street cries, house numbering, and other incidental street references are rejected as
+`not-street-name`. OCR excerpts and extracted signals are review aids, never
+publisher-native facts.
 
 Create those decisions through the local interactive curator flow:
 
@@ -107,16 +111,17 @@ bun run dataops -- hkgov-hkgro-street-names:review --target local
 It starts with unfinished records suggested for `manual-review`, shows the table of
 contents context, original PDF URL and local path, discovery signals, and OCR excerpt,
 then records `street-name`, `not-street-name`, or `manual-review`. An accepted record
-also requires one material kind: declaration, naming or renaming, deletion, legally
-material designation, or description change. The decision is saved to
-`discovery/review.json` after every record, so stopping safely or rerunning does not
-lose completed work. `manual-review` is non-final and remains eligible for a later run.
-Use `--all` to revisit deferred records and review unfinished `unclassified` records.
-Discovery retains the OCR page number(s) that contain the ranking signal. The review
-command shows those page references and renders the first relevant source-PDF page at
-300 DPI inline with `pdftoppm` and Kitty's graphics-protocol renderer (`kitten icat`)
-before prompting; it records no free-text curator notes. This command does not upload
-evidence or materialise street history.
+also requires one material kind: declaration, naming or renaming, absorption into an
+existing street, deletion, legally material designation, or description change. The
+decision is saved to `discovery/review.json` after every record, so stopping safely or
+rerunning does not lose completed work. `manual-review` is non-final and remains
+eligible for a later run. Use `--all` to revisit deferred records and review unfinished
+`unclassified` records. Discovery retains the OCR page number(s) that contain the
+ranking signal. The review command shows those page references and renders the first
+relevant source-PDF page at 300 DPI, resizes it to half the terminal width, and prints
+it inline with `pdftoppm`, ImageMagick, and Kitty's graphics-protocol renderer
+(`kitten icat`) before prompting; it records no free-text curator notes. This command
+does not upload evidence or materialise street history.
 
 ## Classification and lifecycle boundary
 

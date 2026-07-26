@@ -20,6 +20,7 @@ const DEFAULT_ARCHIVE_DIR = join(REPO_ROOT, 'data/hku/hkgro/street-name')
 const DEFAULT_REVIEW_PATH = join(DEFAULT_ARCHIVE_DIR, 'discovery/review.json')
 
 export type HkgroStreetChangeKind =
+  | 'absorption'
   | 'declaration'
   | 'deletion'
   | 'description-change'
@@ -229,6 +230,13 @@ export function suggestHkgroStreetClassification(
     reasons.push('ocr: naming or name-change language with a street type')
     kinds.add('name-change')
   }
+  if (matchesAbsorption(corpus)) {
+    score += 50
+    reasons.push(
+      'ocr: part of a street ceases to form part of it and joins an existing street',
+    )
+    kinds.add('absorption')
+  }
   if (matchesDesignation(text)) {
     score += 40
     reasons.push('ocr: street designation language')
@@ -433,6 +441,18 @@ const reviewSignalPattern =
 
 function matchesNameChange(value: string) {
   return /(?:change|alteration|renam(?:e|ing)|naming|names?)\w*[^.]{0,100}\b(?:street|road|lane|place|path|terrace|avenue|square|fong)\b/i.test(
+    value,
+  )
+}
+
+/**
+ * Historical notices can move a street or section into a street that already
+ * exists. This is not a conventional rename: the source identity ends and
+ * the surviving street gains an extent. Keep it separate for later reviewed
+ * lifecycle resolution.
+ */
+function matchesAbsorption(value: string) {
+  return /\b(?:part|section)\s+of\b[\s\S]{0,240}\bcease\s+to\s+form\s+part\s+of\b[\s\S]{0,240}\b(?:known\s+as|form\s+part\s+of|joined\s+to)\b/i.test(
     value,
   )
 }
