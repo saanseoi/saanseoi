@@ -6,9 +6,12 @@ import { tmpdir } from 'node:os'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import { prepareHkgovPlandTpuParquet } from '../../../harbour-cli/src/lib/hkgovPland.ts'
-import { prepareHkgovPlandNewTownParquet } from '../../../harbour-cli/src/lib/hkgovPlandNewTown.ts'
-import type { ParsedArgs, UploadTarget } from '../../../harbour-cli/src/lib/options.ts'
+import { prepareHkgovPlandTpuParquet } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPland.ts'
+import { prepareHkgovPlandNewTownParquet } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPlandNewTown.ts'
+import type {
+  ParsedArgs,
+  UploadTarget,
+} from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import { buildDatasetReleaseCode } from '@repo/core'
 

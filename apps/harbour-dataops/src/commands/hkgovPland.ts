@@ -4,10 +4,10 @@ import { join, resolve } from 'node:path'
 
 import { note, outro } from '@clack/prompts'
 
-import { formatField } from '../../../harbour-cli/src/lib/display.ts'
-import { prepareHkgovPlandTpuParquet } from '../../../harbour-cli/src/lib/hkgovPland.ts'
-import { prepareHkgovPlandNewTownParquet } from '../../../harbour-cli/src/lib/hkgovPlandNewTown.ts'
-import type { ParsedArgs } from '../../../harbour-cli/src/lib/options.ts'
+import { formatField } from '../../../harbour-cli/src/lib/cli/display.ts'
+import { prepareHkgovPlandTpuParquet } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPland.ts'
+import { prepareHkgovPlandNewTownParquet } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPlandNewTown.ts'
+import type { ParsedArgs } from '../../../harbour-cli/src/lib/cli/options.ts'
 
 export async function runHkgovPlandPrepCommand(
   args: ParsedArgs,
