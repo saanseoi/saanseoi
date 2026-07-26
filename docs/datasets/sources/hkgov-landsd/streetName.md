@@ -22,6 +22,12 @@ previous-Government-Notice candidates where the publisher layout supplies them, 
 publisher properties, retrieval metadata, source-page snapshots, extracted PDF text,
 parser diagnostics, hashes, and source revisions.
 
+The bilingual PDF dates are compared as a source-quality check. If one signature block
+contains a publisher date typo, the paired table rows and their explicit operation
+remain usable: the English PDF date is retained for the event and the discrepancy is
+reported to the operator. A date typo must not turn a tabled description replacement
+into an unclassified name change.
+
 The two HTML source pages, the baseline PDF, each English and Traditional Chinese
 Government Notice PDF, related Gazette Plan PDFs, and their e-Gazette historical
 counterparts are preserved as managed source assets. `evidenceAssets` is the only

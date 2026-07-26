@@ -771,7 +771,10 @@ export function pairLandsdGovernmentNoticePdfEntries(input: {
       }
       if (english.gazetteDate !== zhHant.gazetteDate) {
         issues.push(`${notice.id}: bilingual PDFs disagree about Gazette date.`)
-        continue
+        // Retain the paired table rows. A publisher typo in one signature
+        // block must not erase the explicit replacement descriptions; the
+        // English PDF date remains the event date and the discrepancy is
+        // carried as an operator warning.
       }
       result.set(notice.id, {
         descriptions: {

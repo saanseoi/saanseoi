@@ -165,6 +165,52 @@ describe('LandsD bilingual street notices', () => {
     ])
   })
 
+  test('retains a parsed description change when one PDF has a Gazette-date typo', () => {
+    const notices = pairLandsdStreetNoticePages({
+      en: parseLandsdStreetSourcePage(englishPage, 'en'),
+      zhHant: parseLandsdStreetSourcePage(traditionalChinesePage, 'zh-Hant'),
+    })
+    const notice = notices[0]
+    if (!notice) throw new Error('Expected paired notice.')
+    const parsed = (name: string, gazetteDate: string) =>
+      ({
+        diagnostics: { status: 'success' },
+        entries: [
+          {
+            description: 'Replacement description.',
+            district: null,
+            effectiveDate: null,
+            immediateEffect: true,
+            name,
+            ordinal: 0,
+            previousNoticeRefs: ['gn4000'],
+            rawText: name,
+          },
+        ],
+        gazetteDate,
+        rawText: name,
+      }) as ReturnType<typeof parseLandsdGovernmentNoticePdfText>
+    const issues: string[] = []
+
+    const paired = pairLandsdGovernmentNoticePdfEntries({
+      english: new Map([[notice.id, parsed(notice.names.en, '2026-07-03')]]),
+      notices,
+      onIssue: issue => issues.push(issue),
+      zhHant: new Map([[notice.id, parsed(notice.names.zhHant, '2025-07-03')]]),
+    })
+
+    expect(paired.get(notice.id)).toMatchObject({
+      descriptions: {
+        en: 'Replacement description.',
+        zhHant: 'Replacement description.',
+      },
+      gazetteDate: '2026-07-03',
+    })
+    expect(issues).toEqual([
+      `${notice.id}: bilingual PDFs disagree about Gazette date.`,
+    ])
+  })
+
   test('parses historical two-column notices with predecessor candidates', () => {
     const english = parseLandsdGovernmentNoticePdfText(
       [
