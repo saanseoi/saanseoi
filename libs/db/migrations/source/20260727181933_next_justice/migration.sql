@@ -341,6 +341,20 @@ CREATE TABLE `hkgovHydStreetNamePlates` (
 	CONSTRAINT `hkgovHydStreetNamePlates_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
+CREATE TABLE `hkgovTdPedestrianStreetI18n` (
+	`sourceRecordId` text NOT NULL,
+	`versionHash` text NOT NULL,
+	`releaseId` text NOT NULL,
+	`validFromRelease` text NOT NULL,
+	`validToRelease` text,
+	`isCurrent` integer NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`locale` text NOT NULL,
+	`description` text NOT NULL,
+	CONSTRAINT `hkgovTdPedestrianStreetI18n_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`, `locale`)
+);
+--> statement-breakpoint
 CREATE TABLE `hkgovTdPedestrianStreets` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
@@ -354,7 +368,11 @@ CREATE TABLE `hkgovTdPedestrianStreets` (
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`sourceGeometry` text NOT NULL,
-	`layerName` text NOT NULL,
+	`kind` text NOT NULL,
+	`objectId` integer NOT NULL,
+	`regionCode` text,
+	`startTime` text,
+	`endTime` text,
 	CONSTRAINT `hkgovTdPedestrianStreets_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
@@ -696,11 +714,17 @@ CREATE INDEX `hkgovHydStreetNamePlates_current_lookup_idx` ON `hkgovHydStreetNam
 CREATE INDEX `hkgovHydStreetNamePlates_release_validity_idx` ON `hkgovHydStreetNamePlates` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
 CREATE INDEX `hkgovHydStreetNamePlates_snpId_idx` ON `hkgovHydStreetNamePlates` (`snpId`);--> statement-breakpoint
 CREATE INDEX `hkgovHydStreetNamePlates_roadName_idx` ON `hkgovHydStreetNamePlates` (`roadName`);--> statement-breakpoint
+CREATE INDEX `hkgovTdPedestrianStreetI18n_releaseId_idx` ON `hkgovTdPedestrianStreetI18n` (`releaseId`);--> statement-breakpoint
+CREATE INDEX `hkgovTdPedestrianStreetI18n_sourceRecordId_idx` ON `hkgovTdPedestrianStreetI18n` (`sourceRecordId`);--> statement-breakpoint
+CREATE INDEX `hkgovTdPedestrianStreetI18n_current_lookup_idx` ON `hkgovTdPedestrianStreetI18n` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
+CREATE INDEX `hkgovTdPedestrianStreetI18n_release_validity_idx` ON `hkgovTdPedestrianStreetI18n` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
+CREATE INDEX `hkgovTdPedestrianStreetI18n_locale_idx` ON `hkgovTdPedestrianStreetI18n` (`locale`);--> statement-breakpoint
 CREATE INDEX `hkgovTdPedestrianStreets_releaseId_idx` ON `hkgovTdPedestrianStreets` (`releaseId`);--> statement-breakpoint
 CREATE INDEX `hkgovTdPedestrianStreets_sourceRecordId_idx` ON `hkgovTdPedestrianStreets` (`sourceRecordId`);--> statement-breakpoint
 CREATE INDEX `hkgovTdPedestrianStreets_current_lookup_idx` ON `hkgovTdPedestrianStreets` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
 CREATE INDEX `hkgovTdPedestrianStreets_release_validity_idx` ON `hkgovTdPedestrianStreets` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
-CREATE INDEX `hkgovTdPedestrianStreets_layer_idx` ON `hkgovTdPedestrianStreets` (`layerName`);--> statement-breakpoint
+CREATE INDEX `hkgovTdPedestrianStreets_kind_idx` ON `hkgovTdPedestrianStreets` (`kind`);--> statement-breakpoint
+CREATE INDEX `hkgovTdPedestrianStreets_kind_object_idx` ON `hkgovTdPedestrianStreets` (`kind`,`objectId`);--> statement-breakpoint
 CREATE INDEX `hkgovHadDivisionAreas_releaseId_idx` ON `hkgovHadDivisionAreas` (`releaseId`);--> statement-breakpoint
 CREATE INDEX `hkgovHadDivisionAreas_sourceRecordId_idx` ON `hkgovHadDivisionAreas` (`sourceRecordId`);--> statement-breakpoint
 CREATE INDEX `hkgovHadDivisionAreas_current_lookup_idx` ON `hkgovHadDivisionAreas` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
