@@ -13,6 +13,7 @@ import {
   buildHkgovCenstatdDistrictStatisticArchiveIngestCommand,
   buildHkgovCenstatdStatisticsArchiveIngestCommand,
   buildHkgovHadDistrictArchiveIngestCommand,
+  buildHkgovHydStreetArchiveIngestCommand,
   buildHkgovPlandArchiveIngestCommand,
   buildOverturistCommand,
   buildOverturistReleasesCommand,
@@ -35,6 +36,33 @@ import {
 } from './sourceUpdates.ts'
 
 describe('dataset update registry', () => {
+  test('hands the mirrored HyD archive and caller target to native street intake', () => {
+    const command = buildHkgovHydStreetArchiveIngestCommand({
+      datasetCode: 'ds-hk-hkgov-hyd-pedestrian-street',
+      inputFile: '/tmp/td-source.zip',
+      releaseNotesUrl: 'https://publisher.example/release',
+      sourceArchiveKey: 'by-source/hk/hyd/source.zip',
+      sourceArchiveSha256: 'a'.repeat(64),
+      sourceVersion: '2025-Q1',
+      target: { environment: 'production', remote: true },
+    })
+
+    expect(command).toEqual(
+      expect.arrayContaining([
+        'hkgov-hyd:street',
+        '/tmp/td-source.zip',
+        '--target',
+        'production',
+        '--dataset-code',
+        'ds-hk-hkgov-hyd-pedestrian-street',
+        '--source-archive-key',
+        'by-source/hk/hyd/source.zip',
+        '--source-archive-sha256',
+        'a'.repeat(64),
+      ]),
+    )
+  })
+
   test('starts target-neutral DPO ingestion with the selected publication target', () => {
     const common = {
       sourceRoot: '/tmp/als',

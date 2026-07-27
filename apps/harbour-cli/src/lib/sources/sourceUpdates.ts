@@ -1390,6 +1390,29 @@ async function runCsdiArchiveIngestPlaceholder(
     return 'ingested'
   }
 
+  if (
+    isHkgovHydStreetDataset(dataset.code) &&
+    release?.sourceVersion &&
+    release.sourceUrl
+  ) {
+    const child = Bun.spawn(
+      buildHkgovHydStreetArchiveIngestCommand({
+        datasetCode: dataset.code,
+        inputFile: prepared.sourcePath,
+        releaseNotesUrl: release.sourceUrl,
+        sourceArchiveKey: prepared.manifest.archive.objectKey,
+        sourceArchiveSha256: prepared.manifest.archive.sha256,
+        sourceVersion: release.sourceVersion,
+        target,
+      }),
+      { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
+    )
+    if ((await child.exited) !== 0) {
+      throw new Error(`HyD street ingest failed for ${dataset.code}.`)
+    }
+    return 'ingested'
+  }
+
   console.log(
     `NOT IMPLEMENTED: native CSDI archive ingestion for ${dataset.code}${release?.sourceVersion ? ` (${release.sourceVersion})` : ''}.`,
   )
@@ -1493,6 +1516,49 @@ const HKGOV_CENSTATD_STATISTIC_DATASETS = new Set([
 
 function isHkgovCenstatdStatisticDataset(code: string) {
   return HKGOV_CENSTATD_STATISTIC_DATASETS.has(code)
+}
+
+const HKGOV_HYD_STREET_DATASETS = new Set([
+  'ds-hk-hkgov-hyd-street',
+  'ds-hk-hkgov-hyd-sensitive-street',
+  'ds-hk-hkgov-hyd-strategic-street',
+  'ds-hk-hkgov-hyd-pedestrian-street',
+])
+
+function isHkgovHydStreetDataset(code: string) {
+  return HKGOV_HYD_STREET_DATASETS.has(code)
+}
+
+export function buildHkgovHydStreetArchiveIngestCommand(input: {
+  datasetCode: string
+  inputFile: string
+  releaseNotesUrl: string
+  sourceArchiveKey: string
+  sourceArchiveSha256: string
+  sourceVersion: string
+  target: import('../cli/options.ts').UploadTarget
+}) {
+  return [
+    process.execPath,
+    'run',
+    '--silent',
+    'dataops',
+    '--',
+    'hkgov-hyd:street',
+    input.inputFile,
+    '--target',
+    input.target.environment === 'dev' ? 'local' : input.target.environment,
+    '--dataset-code',
+    input.datasetCode,
+    '--source-version',
+    input.sourceVersion,
+    '--release-notes-url',
+    input.releaseNotesUrl,
+    '--source-archive-key',
+    input.sourceArchiveKey,
+    '--source-archive-sha256',
+    input.sourceArchiveSha256,
+  ]
 }
 
 export function buildHkgovCenstatdStatisticsArchiveIngestCommand(input: {
