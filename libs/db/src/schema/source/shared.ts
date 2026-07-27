@@ -1,5 +1,18 @@
 import { index, integer, text } from 'drizzle-orm/sqlite-core'
-import { jsonText, sourceProvenance, timestamps } from '../shared'
+import { jsonText, timestamps } from '../shared'
+
+/**
+ * A publisher or ingestion reference supporting a source assertion.
+ *
+ * `dataset` is the shared minimum. Source-specific keys preserve publisher
+ * attribution and immutable ingestion evidence without a schema migration.
+ */
+export type SourceReference = {
+  dataset: string
+  [key: string]: unknown
+}
+
+export const sourceReferences = () => jsonText<SourceReference[]>('sources').notNull()
 
 export const sourceVersioning = {
   versionHash: text('versionHash').notNull(),
@@ -18,6 +31,14 @@ export function sourceVersionedRecordColumns() {
   }
 }
 
+/** A versioned publisher assertion with required source provenance. */
+export function sourceVersionedAssertionColumns() {
+  return {
+    ...sourceVersionedRecordColumns(),
+    sources: sourceReferences(),
+  }
+}
+
 /**
  * Columns shared by an immutable publisher-source assertion. Use this for
  * tabular publisher records; source geometry is deliberately optional.
@@ -25,7 +46,9 @@ export function sourceVersionedRecordColumns() {
 export function sourceAssertionColumns() {
   return {
     sourceRecordId: text('sourceRecordId').notNull(),
-    ...sourceProvenance,
+    sources: sourceReferences(),
+    rawProperties: jsonText('rawProperties'),
+    version: integer('version'),
     ...sourceVersioning,
   }
 }
@@ -54,6 +77,14 @@ export function sourceReleaseRevisionRecordColumns() {
   return {
     sourceRecordId: text('sourceRecordId').notNull(),
     ...sourceReleaseRevisioning,
+  }
+}
+
+/** A release-revision source assertion with required source provenance. */
+export function sourceReleaseRevisionAssertionColumns() {
+  return {
+    ...sourceReleaseRevisionRecordColumns(),
+    sources: sourceReferences(),
   }
 }
 
