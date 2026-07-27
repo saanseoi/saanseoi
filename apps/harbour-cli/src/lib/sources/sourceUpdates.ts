@@ -17,6 +17,7 @@ const STATE_PATH = resolve(REPO_ROOT, '.local/harbour/update-state.json')
 const OVERTURIST_ROOT = resolve(REPO_ROOT, '../overturist')
 const OVERTURIST_ENTRYPOINT = resolve(OVERTURIST_ROOT, 'overturist.ts')
 const OVERTURE_HONG_KONG_DIVISION_ID = 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d'
+const DATA_GOV_HK_ALS_RESOURCE_URL = 'https://www.als.gov.hk/data/ALS-GeoJSON.zip'
 const overtureDownloadJobs = new Map<string, Promise<string>>()
 
 export const apiFamilyHeaders = {
@@ -853,38 +854,49 @@ async function lookupDataGovHk({ dataset, localVersion, previous }: LookupContex
   if (!sourceUrl) throw new Error('The DATA.GOV.HK dataset has no catalogue URL.')
 
   const today = new Date()
-  const end = formatDate(today)
+  const end = formatDate(new Date(today.getTime() - 86_400_000))
   const start = formatDate(new Date(today.getTime() - 370 * 86_400_000))
-  const archiveUrl = new URL('https://app.data.gov.hk/v1/historical-archive/list-files')
+  const archiveUrl = new URL(
+    'https://api.data.gov.hk/v1/historical-archive/list-file-versions',
+  )
   archiveUrl.search = new URLSearchParams({
     start,
     end,
-    provider: 'hk-dpo',
-    format: 'json',
-    search: 'Addresses from Address Lookup Service',
-    max: '100',
+    url: DATA_GOV_HK_ALS_RESOURCE_URL,
   }).toString()
-  const archive = await fetchText(archiveUrl.toString())
-  const file = findArchiveFile(JSON.parse(archive.body))
-  if (!file) {
+  const archiveTimestamp = findLatestArchiveTimestamp(
+    await fetchJsonWithRetry(archiveUrl.toString()),
+  )
+  if (!archiveTimestamp) {
     return {
       dataset,
       status: 'manual',
       sourceUrl,
-      message: 'The historical archive returned no downloadable ALS file.',
+      message: 'The historical archive returned no ALS release timestamp.',
     } satisfies DatasetUpdate
   }
 
-  const version = file.version ?? file.time ?? file.lastModified
-  if (!version || !file.url) {
-    throw new Error(
-      'The DATA.GOV.HK archive response did not include a file version and URL.',
-    )
-  }
+  const releaseDate = `${archiveTimestamp.slice(0, 4)}-${archiveTimestamp.slice(
+    4,
+    6,
+  )}-${archiveTimestamp.slice(6, 8)}`
+  const version = resolveDatasetVersion(
+    dataset,
+    releaseDate,
+    previous,
+    archiveTimestamp,
+  )
+  if (!version)
+    throw new Error('The DATA.GOV.HK archive response did not include a version.')
+  const downloadUrl = new URL('https://api.data.gov.hk/v1/historical-archive/get-file')
+  downloadUrl.search = new URLSearchParams({
+    time: archiveTimestamp,
+    url: DATA_GOV_HK_ALS_RESOURCE_URL,
+  }).toString()
   const downloadPath = resolve(
     REPO_ROOT,
     'data/hkgov/dpo/ALS',
-    `${safeFilePart(version)}-ALS.json`,
+    `${safeFilePart(version)}-ALS.zip`,
   )
   return {
     dataset,
@@ -893,15 +905,15 @@ async function lookupDataGovHk({ dataset, localVersion, previous }: LookupContex
       version,
       localVersion,
       previous,
-      releaseLastRevisedAt: version,
+      releaseLastRevisedAt: archiveTimestamp,
     }),
     version,
     versionKey: version,
     sourceUrl,
-    downloadUrl: file.url,
+    downloadUrl: downloadUrl.toString(),
     downloadPath,
-    releaseLastRevisedAt: version,
-    download: async () => downloadResponse(file.url as string, downloadPath),
+    releaseLastRevisedAt: archiveTimestamp,
+    download: async () => downloadResponse(downloadUrl.toString(), downloadPath),
     message:
       'ALS releases require the existing prep/ingest workflow and identity review before upload.',
   } satisfies DatasetUpdate
@@ -912,6 +924,26 @@ async function fetchText(url: string): Promise<{ body: string; headers: Headers 
   if (!response.ok)
     throw new Error(`Request failed with HTTP ${response.status}: ${url}`)
   return { body: await response.text(), headers: response.headers }
+}
+
+async function fetchJsonWithRetry(url: string, attempts = 3): Promise<unknown> {
+  let lastError: unknown
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const response = await fetchText(url)
+    try {
+      return JSON.parse(response.body) as unknown
+    } catch (error) {
+      lastError = error
+      if (attempt === attempts) break
+      await new Promise(resolve => setTimeout(resolve, attempt * 250))
+    }
+  }
+
+  const reason = lastError instanceof Error ? lastError.message : String(lastError)
+  throw new Error(
+    `Response was not valid JSON after ${attempts} attempts: ${url} (${reason})`,
+  )
 }
 
 async function fetchWithRetry(url: string, attempts = 3): Promise<Response> {
@@ -1097,24 +1129,15 @@ function readDatasetId(sourceUrl: string | undefined) {
   return new URL(sourceUrl).searchParams.get('datasetId') ?? undefined
 }
 
-function findArchiveFile(payload: unknown) {
-  const candidates =
-    isRecord(payload) && Array.isArray(payload.files)
-      ? payload.files
-      : isRecord(payload) && Array.isArray(payload.data)
-        ? payload.data
-        : []
-  const files = candidates
-    .filter(isRecord)
+function findLatestArchiveTimestamp(payload: unknown) {
+  if (!isRecord(payload) || !Array.isArray(payload.timestamps)) return undefined
+  return payload.timestamps
     .filter(
-      item =>
-        typeof item.url === 'string' &&
-        /address lookup service/i.test(JSON.stringify(item)),
+      (timestamp): timestamp is string =>
+        typeof timestamp === 'string' && /^\d{8}-\d{4}$/.test(timestamp),
     )
-  return (files.at(-1) ??
-    candidates.filter(isRecord).find(item => typeof item.url === 'string')) as
-    | { url?: string; version?: string; time?: string; lastModified?: string }
-    | undefined
+    .sort()
+    .at(-1)
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
