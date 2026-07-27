@@ -366,6 +366,44 @@ test('shows the matching target version for a CSDI archive release', () => {
   expect(line).toEndWith('no updates         v2021.0')
 })
 
+test('shows both published C&SD district-statistic source releases as current', () => {
+  const dataset = {
+    code: 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+    publisherCode: 'hkgov-censtatd',
+    regionCode: 'hk',
+    theme: 'stats',
+    resourceTypes: ['divisionStatistic'],
+    versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
+  } as const
+
+  const line = formatDatasetCheckLine(
+    dataset,
+    [
+      {
+        dataset,
+        sourceKey: '2022',
+        status: 'current',
+        targetSourceKey: '2022',
+        version: '2022.0',
+      },
+      {
+        dataset,
+        sourceKey: '2024',
+        status: 'current',
+        targetSourceKey: '2024',
+        version: '2024.0',
+      },
+    ],
+    new Map([
+      ['2022', '2022.0'],
+      ['2024', '2024.0'],
+    ]),
+  )
+
+  expect(line).toContain('no updates         v2022.0')
+  expect(line).toContain('no updates         v2024.0')
+})
+
 test('uses the dataset target version for an unversioned CSDI archive', () => {
   const dataset = {
     code: 'ds-hk-hkgov-hyd-street-pedestrian',
