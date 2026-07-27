@@ -3722,6 +3722,59 @@ export async function upsertSnapshotSource(
     .run()
 }
 
+/**
+ * Records a resolved lookup selected by a composition while materialising a
+ * snapshot. The lookup snapshot itself identifies the source release, so the
+ * consumer never needs to restate a source-level dependency.
+ */
+export async function recordSnapshotLookupDependency(
+  db: HarbourReadableDb & HarbourWritableDb,
+  args: {
+    anchorReleaseId: string
+    lookupSnapshotId: string
+    selectedByRule: string
+    selectionMode: string
+    snapshotId: string
+  },
+) {
+  const lookupSource = await db
+    .select({
+      datasetId: metaSnapshotSources.datasetId,
+      sourceCohortKey: metaSnapshots.cohortKey,
+      sourceReleaseId: metaSnapshotSources.sourceReleaseId,
+    })
+    .from(metaSnapshotSources)
+    .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
+    .where(
+      and(
+        eq(metaSnapshotSources.snapshotId, args.lookupSnapshotId),
+        eq(metaSnapshotSources.role, 'primary'),
+      ),
+    )
+    .limit(1)
+    .get()
+
+  if (!lookupSource) {
+    throw new Error(
+      `Lookup snapshot ${args.lookupSnapshotId} has no primary source release.`,
+    )
+  }
+
+  await upsertSnapshotSource(
+    db,
+    args.snapshotId,
+    lookupSource.datasetId,
+    lookupSource.sourceReleaseId,
+    'lookup',
+    {
+      anchorReleaseId: args.anchorReleaseId,
+      selectedByRule: args.selectedByRule,
+      selectionMode: args.selectionMode,
+      sourceCohortKey: lookupSource.sourceCohortKey,
+    },
+  )
+}
+
 export async function upsertApiReleaseSetSnapshot(
   db: HarbourWritableDb,
   releaseSetId: string,

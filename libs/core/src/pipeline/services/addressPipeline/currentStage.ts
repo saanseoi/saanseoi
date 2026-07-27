@@ -1,5 +1,6 @@
 import type { DatasetProcessingMessage } from '../../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
+import { recordSnapshotLookupDependency } from '../../../lib/db/metaRegistry'
 import type { CurrentDatabase, MetaDatabase } from '@repo/db'
 
 import {
@@ -83,6 +84,14 @@ export async function writeAddressCurrentChunkStage(
 
     const divisionSnapshotId = artefactRows[0]?.base.divisionSnapshotId
     if (divisionSnapshotId) {
+      await recordSnapshotLookupDependency(metaRepoDb, {
+        anchorReleaseId: versionInsertContext.releaseId,
+        lookupSnapshotId: divisionSnapshotId,
+        selectedByRule:
+          'api-composition:addresses/default:address/default->division/overture',
+        selectionMode: 'latest_at_or_before_or_earliest_after_cohort',
+        snapshotId: versionInsertContext.snapshotId,
+      })
       await alignAddressCurrentDivisionSnapshot(
         currentRepoDb,
         versionInsertContext.snapshotId,
