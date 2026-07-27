@@ -36,6 +36,35 @@ release versions use `YYYY-MM-DD.N`: the first release for a date is `.0`, and f
 same-day releases increment `N` in delivery-time order. The delivery time is not itself
 a correction number.
 
+## Remote updater hand-off
+
+`hkgov-dpo:backfill-local` deliberately rejects preview and production targets. It
+currently discovers the applicable same-year Overture division snapshot by reading the
+local databases, then prepares ALS and runs the normal uploader locally. To support
+`saanseoi update --target preview|production`, split that responsibility into a
+target-neutral preparation stage and a target-aware publication stage:
+
+1. Keep download, ZIP extraction, ALS identity history, identity-decision review, and
+   source preparation on the operator machine. These deterministic source-processing
+   concerns must not depend on the selected target.
+2. Resolve the required Overture division cohort from the selected target's published
+   release metadata, rather than from local SQLite. Retain the current rule: use the
+   latest same-year division cohort not later than the ALS source version, otherwise the
+   first same-year cohort.
+3. Pass that resolved cohort explicitly into preparation and publication. A local
+   division database must not silently choose a different dependency for preview or
+   production.
+4. Invoke `runUploadCommand` with the requested target after identity review. Preserve
+   the source version, address cohort, release-notes URL, processing actions, and
+   snapshot-cleanup behaviour.
+5. Keep `hkgov-dpo:backfill-local` as a local convenience wrapper; introduce a
+   target-neutral `hkgov-dpo:ingest` command for updater use instead of broadening the
+   old command's local assumptions.
+
+Required tests: target-specific division-cohort selection, refusal when no same-year
+division snapshot exists, identical local/remote prepared identities for the same ALS
+input, and preview/production publication using the explicitly resolved cohort.
+
 ## Exact duplicate handling
 
 ALS releases occasionally contain the same GeoJSON feature object more than once. The

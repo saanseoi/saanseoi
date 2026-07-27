@@ -4,6 +4,7 @@ import {
   formatSourceDuplicateSummary,
   inferAlsSourceVersionFromPath,
   resolveAlsReleaseVersions,
+  selectAlsDivisionCohort,
 } from './hkgovAls.ts'
 
 describe('formatSourceDuplicateSummary', () => {
@@ -38,6 +39,30 @@ describe('formatSourceDuplicateSummary', () => {
     expect(summary).toContain('3')
     expect(summary).not.toContain('canonical-1')
     expect(summary).not.toContain('ignored-1')
+  })
+})
+
+describe('ALS target division cohort selection', () => {
+  test('uses the target-published same-year cohort at or before the ALS release', () => {
+    expect(
+      selectAlsDivisionCohort('2026-07-26.0', [
+        '2025-12-16.0',
+        '2026-03-18.0',
+        '2026-07-22.0',
+      ]),
+    ).toBe('2026-07-22.0')
+  })
+
+  test('uses the first target-published same-year cohort when none is earlier', () => {
+    expect(selectAlsDivisionCohort('2026-01-02.0', ['2026-01-14.0'])).toBe(
+      '2026-01-14.0',
+    )
+  })
+
+  test('refuses a release with no eligible same-year division cohort', () => {
+    expect(() => selectAlsDivisionCohort('2026-07-26.0', ['2025-12-16.0'])).toThrow(
+      'No published Overture division snapshot is available for the 2026 ALS shard.',
+    )
   })
 })
 

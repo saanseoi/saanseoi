@@ -10,6 +10,7 @@ import {
 function printUsage() {
   console.log(`  Usage:
   bun run dataops -- hkgov-dpo:prepare <source-dir> [--target local|preview|production] --cohort-key DIVISION_COHORT [--source-version YYYY-MM-DD.NN] [--identity-history FILE] [--identity-decisions FILE] [--identity-drift-report FILE] [--db /path/to/local.sqlite]
+  bun run dataops -- hkgov-dpo:ingest <ALS-source-root> --target local|preview|production --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes]
   bun run dataops -- hkgov-dpo:backfill-local <ALS-source-root> --target local --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes]
   bun run dataops -- hkgov-pland:prepare <GeoJSON> [--kind tpu|new-town] [--source-version YYYY] [--out-dir PATH]
   bun run dataops -- hkgov-pland:backfill --kind pu|new-town --target local|preview|production [--continue]
@@ -53,6 +54,11 @@ async function main() {
     case 'hkgov-dpo:backfill-local': {
       const { runHkgovAlsLocalIngestCommand } = await import('./commands/hkgovAls.ts')
       await runHkgovAlsLocalIngestCommand(args, target, printUsage)
+      return
+    }
+    case 'hkgov-dpo:ingest': {
+      const { runHkgovAlsIngestCommand } = await import('./commands/hkgovAls.ts')
+      await runHkgovAlsIngestCommand(args, target, printUsage)
       return
     }
     case 'hkgov-pland:prepare': {
