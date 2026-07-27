@@ -74,7 +74,7 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
     currentTables: [{ table: 'divisionsI18n' }, { table: 'divisions' }],
     historyTables: [{ table: 'divisionsI18n' }, { table: 'divisions' }],
     sources: {
-      overture: ['overtureDivisionI18n', 'overtureDivisions'],
+      overture: ['overtureDivisions'],
     },
   },
   divisionArea: {

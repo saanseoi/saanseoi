@@ -36,6 +36,7 @@ describe('latest release rollback SQL', () => {
     expect(sql.source).toContain(
       "DELETE FROM overtureDivisions WHERE releaseId = 'release-new-''quoted''' AND validFromRelease = '2026-05-20.0';",
     )
+    expect(sql.source).not.toContain('overtureDivisionI18n')
     expect(sql.meta).toContain(
       "DELETE FROM releases WHERE id = 'release-new-''quoted''';",
     )

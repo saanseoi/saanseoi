@@ -124,7 +124,6 @@ export function normaliseDivisionAreaGeometryRow(
       divisionId,
     },
     source: {
-      divisionId,
       isLand: base.isLand,
       isTerritorial: base.isTerritorial,
       rawProperties: sourceRawProperties(row, source),
@@ -189,7 +188,6 @@ export function normaliseDivisionBoundaryGeometryRow(
       rightDivisionId: divisionIds[1],
     },
     source: {
-      divisionIds,
       isLand: base.isLand,
       isTerritorial: base.isTerritorial,
       rawProperties: sourceRawProperties(row, source),

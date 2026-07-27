@@ -13,8 +13,7 @@ import {
   runWithWriteRetry,
 } from '../utils'
 
-const SOURCE_OVERTURE_DIVISION_VERSION_COLUMN_COUNT = 17
-const SOURCE_OVERTURE_DIVISION_I18N_VERSION_COLUMN_COUNT = 14
+const SOURCE_OVERTURE_DIVISION_VERSION_COLUMN_COUNT = 18
 const SOURCE_HKGOV_ADDRESS2D_VERSION_COLUMN_COUNT = 17
 const SEEN_SOURCE_RECORD_ID_INSERT_COLUMN_COUNT = 1
 
@@ -168,7 +167,6 @@ export async function closeSourceOvertureDivisionVersions(
     sourceSchema.sourceOvertureDivisions,
     sourceRecordIds,
     validToRelease,
-    sourceSchema.sourceOvertureDivisionI18n,
   )
 }
 
@@ -197,7 +195,6 @@ export async function deleteMissingCurrentSourceOvertureDivisions(
     validToRelease,
     currentRows,
     seenIds,
-    sourceSchema.sourceOvertureDivisionI18n,
   )
 }
 
@@ -351,27 +348,6 @@ export async function insertSourceOvertureDivisionVersions(
     [
       sourceSchema.sourceOvertureDivisions.sourceRecordId,
       sourceSchema.sourceOvertureDivisions.versionHash,
-    ],
-    options,
-  )
-}
-
-export async function insertSourceOvertureDivisionI18nVersions(
-  db: SourceDatabase,
-  rows: Array<typeof sourceSchema.sourceOvertureDivisionI18n.$inferInsert>,
-  options?: {
-    assumeVersionRowsAbsent?: boolean
-  },
-) {
-  await insertVersionRows(
-    db,
-    sourceSchema.sourceOvertureDivisionI18n,
-    rows,
-    SOURCE_OVERTURE_DIVISION_I18N_VERSION_COLUMN_COUNT,
-    [
-      sourceSchema.sourceOvertureDivisionI18n.sourceRecordId,
-      sourceSchema.sourceOvertureDivisionI18n.versionHash,
-      sourceSchema.sourceOvertureDivisionI18n.locale,
     ],
     options,
   )
