@@ -1,10 +1,14 @@
 <script lang="ts">
 import { FillLayer, GeoJSONSource, LineLayer, MapLibre } from 'svelte-maplibre-gl'
 import { tick } from 'svelte'
+import { setWorkerUrl } from 'maplibre-gl'
 import type { ExpressionSpecification } from 'maplibre-gl'
 import type { Map as MapLibreMap } from 'maplibre-gl'
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { layers, namedFlavor } from '@protomaps/basemaps'
 import type { StyleSpecification } from 'maplibre-gl'
+
+setWorkerUrl(maplibreWorkerUrl)
 
 type Geometry = {
   coordinates: unknown
