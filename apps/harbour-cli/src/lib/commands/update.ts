@@ -103,7 +103,9 @@ export async function runUpdateCommand(
 
     for (const [updateIndex, update] of updates.entries()) {
       const sourceKey = update.sourceKey ?? dataset.code
-      const targetVersion = targetVersions.get(sourceKey)
+      const targetVersion =
+        targetVersions.get(sourceKey) ??
+        targetVersions.get(update.targetSourceKey ?? dataset.code)
       update.targetVersion = targetVersion
       const deferStateUntilProcessed = Boolean(
         update.archive || update.deferStateUntilProcessed,
@@ -651,7 +653,8 @@ function targetVersionForUpdate(
 ) {
   return Object.hasOwn(update, 'targetVersion')
     ? update.targetVersion
-    : targetVersions.get(update.sourceKey ?? dataset.code)
+    : (targetVersions.get(update.sourceKey ?? dataset.code) ??
+        targetVersions.get(update.targetSourceKey ?? dataset.code))
 }
 
 function formatUpdateLine(
@@ -680,7 +683,9 @@ function formatUpdateLineWithLabel(
   width = UPDATE_LINE_WIDTH,
   showEmptyVersionPlaceholder = true,
 ) {
-  const showStatus = Boolean(status) && !releasesDiffer(version, targetVersion)
+  const showStatus =
+    Boolean(status) &&
+    (!releasesDiffer(version, targetVersion) || (status === 'no updates' && !version))
   const statusText = showStatus
     ? status === 'ERROR'
       ? colorize((status as string).padStart(VERSION_COLUMN_WIDTH), 31)
