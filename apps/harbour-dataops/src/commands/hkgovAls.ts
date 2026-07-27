@@ -6,7 +6,7 @@ import { isCancel, note, select } from '@clack/prompts'
 import { and, eq } from 'drizzle-orm'
 
 import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
-import { historySchema, metaSchema } from '@repo/db'
+import { metaSchema } from '@repo/db'
 
 import { formatField } from '../../../harbour-cli/src/lib/cli/display.ts'
 import {
@@ -114,15 +114,16 @@ export async function runHkgovAlsPrepCommand(
   }
 }
 
-/** Ingest every chronological ALS release below a directory into the local database. */
-export async function runHkgovAlsLocalIngestCommand(
+/**
+ * Ingest every chronological ALS release below a directory. Source processing
+ * stays on the operator machine; the selected target provides the published
+ * division cohort and receives the resulting address release.
+ */
+export async function runHkgovAlsIngestCommand(
   args: ParsedArgs,
   target: UploadTarget,
   printUsage: () => void,
 ) {
-  if (target.remote) {
-    throw new Error('`hkgov-dpo:backfill-local` only supports --target local.')
-  }
   const sourceRoot = args.positionals[0]
     ? resolveInvocationPath(args.positionals[0])
     : undefined
@@ -155,7 +156,7 @@ export async function runHkgovAlsLocalIngestCommand(
       `No ALS release directories found in ${resolve(sourceRoot)} on or after ${firstSourceVersion}.`,
     )
   }
-  const ingestedSourceVersions = await listLocallyPublishedAlsSourceVersions(
+  const ingestedSourceVersions = await listTargetPublishedAlsSourceVersions(
     target,
     sourceReleases[0]?.sourceVersion.slice(0, 4) ?? cohortKey.slice(0, 4),
   )
@@ -268,6 +269,7 @@ export async function runHkgovAlsLocalIngestCommand(
       target,
       {
         dryRun: Boolean(args.options['dry-run']),
+        divisionCohortKey,
         forceUpload: Boolean(args.options.force),
         invocationCwd: INVOCATION_CWD,
         processingActions: result.processingActions,
@@ -284,7 +286,19 @@ export async function runHkgovAlsLocalIngestCommand(
   }
 }
 
-async function listLocallyPublishedAlsSourceVersions(
+/** Keep the legacy command deliberately local; updater intake uses :ingest. */
+export async function runHkgovAlsLocalIngestCommand(
+  args: ParsedArgs,
+  target: UploadTarget,
+  printUsage: () => void,
+) {
+  if (target.remote) {
+    throw new Error('`hkgov-dpo:backfill-local` only supports --target local.')
+  }
+  return runHkgovAlsIngestCommand(args, target, printUsage)
+}
+
+async function listTargetPublishedAlsSourceVersions(
   target: UploadTarget,
   shardYear: string,
 ) {
@@ -539,20 +553,32 @@ async function resolveAlsSourceReleases(
       cacheTableProfile: 'address',
     })
     try {
-      const historySnapshotIds = new Set(
-        (
-          await dbContext.historyDb
-            .select({ snapshotId: historySchema.divisions.snapshotId })
-            .from(historySchema.divisions)
-            .all()
-        ).map(row => row.snapshotId),
-      )
       const rows = await dbContext.metaDb
         .select({
           cohortKey: metaSchema.metaSnapshots.cohortKey,
-          snapshotId: metaSchema.metaSnapshots.id,
         })
-        .from(metaSchema.metaSnapshots)
+        .from(metaSchema.metaSnapshotSources)
+        .innerJoin(
+          metaSchema.metaReleases,
+          and(
+            eq(
+              metaSchema.metaReleases.id,
+              metaSchema.metaSnapshotSources.sourceReleaseId,
+            ),
+            eq(
+              metaSchema.metaReleases.datasetId,
+              metaSchema.metaSnapshotSources.datasetId,
+            ),
+          ),
+        )
+        .innerJoin(
+          metaSchema.metaDatasets,
+          eq(metaSchema.metaDatasets.id, metaSchema.metaSnapshotSources.datasetId),
+        )
+        .innerJoin(
+          metaSchema.metaSnapshots,
+          eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
+        )
         .innerJoin(
           metaSchema.metaSnapshotLineages,
           eq(
@@ -562,21 +588,19 @@ async function resolveAlsSourceReleases(
         )
         .where(
           and(
+            eq(metaSchema.metaReleases.status, 'published'),
+            eq(metaSchema.metaDatasets.code, 'ds-hk-overture-division'),
             eq(metaSchema.metaSnapshots.resourceType, 'division'),
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
+            eq(metaSchema.metaSnapshotSources.role, 'primary'),
           ),
         )
         .all()
       cohortsByYear.set(
         year,
         [
-          ...new Set(
-            rows
-              .filter(row => historySnapshotIds.has(row.snapshotId))
-              .map(row => row.cohortKey)
-              .filter(isSameYearCohort(year)),
-          ),
+          ...new Set(rows.map(row => row.cohortKey).filter(isSameYearCohort(year))),
         ].sort(),
       )
     } finally {
@@ -585,22 +609,33 @@ async function resolveAlsSourceReleases(
   }
 
   return sourceReleases.map(release => {
-    const year = release.sourceVersion.slice(0, 4)
-    const cohorts = cohortsByYear.get(year) ?? []
-    const divisionCohortKey =
-      cohorts.filter(cohort => cohort <= release.sourceVersion).at(-1) ?? cohorts[0]
-    if (!divisionCohortKey) {
-      throw new Error(
-        `No published Overture division snapshot is available for the ${year} ALS shard. ` +
-          'Publish a same-year division release before ingesting these addresses.',
-      )
-    }
+    const divisionCohortKey = selectAlsDivisionCohort(
+      release.sourceVersion,
+      cohortsByYear.get(release.sourceVersion.slice(0, 4)) ?? [],
+    )
     return {
       ...release,
       addressCohortKey: release.sourceVersion,
       divisionCohortKey,
     }
   })
+}
+
+/** Select the latest same-year cohort not later than the ALS release. */
+export function selectAlsDivisionCohort(
+  sourceVersion: string,
+  publishedCohorts: readonly string[],
+) {
+  const year = sourceVersion.slice(0, 4)
+  const cohorts = [...new Set(publishedCohorts.filter(isSameYearCohort(year)))].sort()
+  const cohort = cohorts.filter(value => value <= sourceVersion).at(-1) ?? cohorts[0]
+  if (!cohort) {
+    throw new Error(
+      `No published Overture division snapshot is available for the ${year} ALS shard. ` +
+        'Publish a same-year division release before ingesting these addresses.',
+    )
+  }
+  return cohort
 }
 
 function isSameYearCohort(year: string) {
