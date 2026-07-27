@@ -1379,7 +1379,6 @@ async function buildDivisionSourceSqlFile(
 
   const releaseId = buildSourceReleaseId(message)
   const changedBaseRows: Record<string, SqlValue>[] = []
-  const changedI18nRows: Record<string, SqlValue>[] = []
   const changedIds: string[] = []
   const unchangedIds: string[] = []
 
@@ -1389,6 +1388,7 @@ async function buildDivisionSourceSqlFile(
         changedIds.push(record.id)
         changedBaseRows.push({
           sourceRecordId: record.id,
+          names: jsonText(record.raw.names),
           admin_level: resolveAdminLevelValue(record.raw),
           subtype: sourceString(record.raw.subtype),
           class: sourceString(record.raw.class),
@@ -1404,22 +1404,6 @@ async function buildDivisionSourceSqlFile(
           validToRelease: null,
           isCurrent: true,
         })
-        changedI18nRows.push(
-          ...record.canonicalI18n.map(localised => ({
-            sourceRecordId: record.id,
-            locale: localised.locale,
-            name: localised.name ?? null,
-            nameVariant: jsonText(localised.nameVariant),
-            nameAlts: localised.nameAlts ?? null,
-            nameRules: jsonText(localised.nameRules),
-            isLocaleInferred: localised.isLocaleInferred,
-            versionHash: record.sourcePayloadHash,
-            releaseId,
-            validFromRelease: message.sourceVersion,
-            validToRelease: null,
-            isCurrent: true,
-          })),
-        )
       } else if (state.currentSourceRows.has(record.id)) {
         unchangedIds.push(record.id)
       }
@@ -1464,6 +1448,7 @@ async function buildDivisionSourceSqlFile(
       'overtureDivisions',
       [
         'sourceRecordId',
+        'names',
         'admin_level',
         'subtype',
         'class',
@@ -1487,38 +1472,6 @@ ON CONFLICT(sourceRecordId, versionHash) DO UPDATE SET
   validFromRelease = excluded.validFromRelease,
   validToRelease = NULL,
   isCurrent = 1,
-  updatedAt = ${sqlLiteral(now)}`.trim(),
-      },
-    ),
-    ...buildInsertStatements(
-      'overtureDivisionI18n',
-      [
-        'sourceRecordId',
-        'locale',
-        'name',
-        'nameVariant',
-        'nameAlts',
-        'nameRules',
-        'isLocaleInferred',
-        'versionHash',
-        'releaseId',
-        'validFromRelease',
-        'validToRelease',
-        'isCurrent',
-      ],
-      changedI18nRows,
-      {
-        suffix: `
-ON CONFLICT(sourceRecordId, versionHash, locale) DO UPDATE SET
-  releaseId = excluded.releaseId,
-  validFromRelease = excluded.validFromRelease,
-  validToRelease = NULL,
-  isCurrent = 1,
-  name = excluded.name,
-  nameVariant = excluded.nameVariant,
-  nameAlts = excluded.nameAlts,
-  nameRules = excluded.nameRules,
-  isLocaleInferred = excluded.isLocaleInferred,
   updatedAt = ${sqlLiteral(now)}`.trim(),
       },
     ),
@@ -2696,11 +2649,6 @@ function buildCloseSourceVersionStatements(
     return [
       `
 UPDATE overtureDivisions
-SET isCurrent = 0, validToRelease = ${sqlLiteral(validToRelease)}, updatedAt = ${sqlLiteral(now)}
-WHERE isCurrent = 1
-  AND sourceRecordId IN (${values});`.trim(),
-      `
-UPDATE overtureDivisionI18n
 SET isCurrent = 0, validToRelease = ${sqlLiteral(validToRelease)}, updatedAt = ${sqlLiteral(now)}
 WHERE isCurrent = 1
   AND sourceRecordId IN (${values});`.trim(),

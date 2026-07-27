@@ -863,11 +863,7 @@ async function writeGeometryRows(
         ? sourceSchema.sourceHkgovHadDivisionAreas
         : version.source === 'hkgov-censtatd'
           ? sourceSchema.sourceHkgovCenstatdDivisionAreas
-          : version.source === 'hkgov-pland-pu'
-            ? sourceSchema.sourceHkgovPlandDivisionAreas
-            : version.source === 'hkgov-pland-new-town'
-              ? sourceSchema.sourceHkgovPlandNewTownDivisionAreas
-              : sourceSchema.sourceOvertureDivisionAreas
+          : sourceSchema.sourceOvertureDivisionAreas
       : sourceSchema.sourceOvertureDivisionBoundaries
   const isCenstatdDerivative =
     version.source === 'hkgov-censtatd' && version.transform === 'simplified'
@@ -886,7 +882,11 @@ async function writeGeometryRows(
   onProgress?.('hash geometry rows')
   for (const row of rows) {
     historyHashes.set(row.canonical.id, await hashDivisionGeometryRow(row.canonical))
-    if (!isCenstatdDerivative) {
+    if (
+      !isCenstatdDerivative &&
+      version.source !== 'hkgov-pland-pu' &&
+      version.source !== 'hkgov-pland-new-town'
+    ) {
       sourceHashes.set(
         row.source.sourceRecordId,
         await hashGeometrySourceAssertion(row.source, version.source),
@@ -924,20 +924,17 @@ async function writeGeometryRows(
     },
   )
   onProgress?.('close source rows')
-  if (!isCenstatdDerivative) {
+  if (
+    !isCenstatdDerivative &&
+    version.source !== 'hkgov-pland-pu' &&
+    version.source !== 'hkgov-pland-new-town'
+  ) {
     await closeChangedRows(
       context.sourceDb,
       sourceTable,
       sourceTable.sourceRecordId,
       sourceHashes,
       { isCurrent: false, validToRelease: version.releaseCode },
-    )
-  }
-  if (version.source === 'hkgov-pland-new-town') {
-    await closeNewTownSourceI18nRows(
-      context.sourceDb as unknown as HarbourReadableDb & HarbourWritableDb,
-      sourceHashes,
-      version.releaseCode,
     )
   }
   onProgress?.('build write batches')
@@ -958,72 +955,58 @@ async function writeGeometryRows(
       updatedAt: now,
     })),
   )
-  const sourceRows = isCenstatdDerivative
-    ? []
-    : await Promise.all(
-        rows.map(async row => {
-          const { sourceGeometry, ...sourceWithProvenance } = row.source
-          const sourceAssertion = sourceWithProvenance
-          const sourceProperties = row.source.rawProperties as Record<string, unknown>
-          return {
-            ...sourceAssertion,
-            ...(version.source === 'hkgov-had'
-              ? {
-                  objectId: asOptionalInteger(sourceProperties.OBJECTID),
-                  cdsiAdminAreaId: asOptionalInteger(
-                    sourceProperties.CSDI_ADMIN_AREA_ID,
-                  ),
-                  areaType: asOptionalString(sourceProperties.AREA_TYPE),
-                  areaId: asOptionalString(sourceProperties.AREA_ID),
-                  areaCode: asOptionalString(sourceProperties.AREA_CODE),
-                  sourceGeometry,
-                }
-              : version.source === 'hkgov-censtatd'
+  const sourceRows =
+    isCenstatdDerivative ||
+    version.source === 'hkgov-pland-pu' ||
+    version.source === 'hkgov-pland-new-town'
+      ? []
+      : await Promise.all(
+          rows.map(async row => {
+            const { sourceGeometry, ...sourceWithProvenance } = row.source
+            const sourceAssertion = sourceWithProvenance
+            const sourceProperties = row.source.rawProperties as Record<string, unknown>
+            return {
+              ...sourceAssertion,
+              ...(version.source === 'hkgov-had'
                 ? {
-                    censusYear: version.cohortKey,
-                    districtClass: requireString(
-                      sourceProperties.dc_class,
-                      'C&SD dc_class',
+                    objectId: asOptionalInteger(sourceProperties.OBJECTID),
+                    cdsiAdminAreaId: asOptionalInteger(
+                      sourceProperties.CSDI_ADMIN_AREA_ID,
                     ),
-                    districtCode: requireInteger(sourceProperties.dc, 'C&SD dc'),
-                    districtEn: requireString(sourceProperties.dc_eng, 'C&SD dc_eng'),
-                    districtZhHant: requireString(
-                      sourceProperties.dc_chi,
-                      'C&SD dc_chi',
-                    ),
+                    areaType: asOptionalString(sourceProperties.AREA_TYPE),
+                    areaId: asOptionalString(sourceProperties.AREA_ID),
+                    areaCode: asOptionalString(sourceProperties.AREA_CODE),
                     sourceGeometry,
                   }
-                : version.source === 'hkgov-pland-pu'
+                : version.source === 'hkgov-censtatd'
                   ? {
-                      divisionId: requirePlanningDivisionId(row),
-                      planningLevel: sourceProperties.planning_level,
-                      sourceCellIds: sourceProperties.source_cell_ids,
-                      repairedSourceFeatureIds:
-                        sourceProperties.repaired_source_feature_ids,
+                      censusYear: version.cohortKey,
+                      districtClass: requireString(
+                        sourceProperties.dc_class,
+                        'C&SD dc_class',
+                      ),
+                      districtCode: requireInteger(sourceProperties.dc, 'C&SD dc'),
+                      districtEn: requireString(sourceProperties.dc_eng, 'C&SD dc_eng'),
+                      districtZhHant: requireString(
+                        sourceProperties.dc_chi,
+                        'C&SD dc_chi',
+                      ),
+                      sourceGeometry,
                     }
-                  : version.source === 'hkgov-pland-new-town'
-                    ? {
-                        divisionId: requirePlanningDivisionId(row),
-                        newTownId: sourceProperties.newtown_id,
-                        // The source assertion retains the original and repaired
-                        // forms separately; canonical geometry is materialised in
-                        // history and current only.
-                        canonicalGeometry: row.canonical.geometry,
-                        wasGeometryRepaired: Boolean(
-                          sourceProperties.was_geometry_repaired,
-                        ),
-                      }
-                    : {}),
-            versionHash: await hashGeometrySourceAssertion(row.source, version.source),
-            releaseId: version.releaseId,
-            validFromRelease: version.releaseCode,
-            validToRelease: null,
-            isCurrent: true,
-            createdAt: now,
-            updatedAt: now,
-          }
-        }),
-      )
+                  : {}),
+              versionHash: await hashGeometrySourceAssertion(
+                row.source,
+                version.source,
+              ),
+              releaseId: version.releaseId,
+              validFromRelease: version.releaseCode,
+              validToRelease: null,
+              isCurrent: true,
+              createdAt: now,
+              updatedAt: now,
+            }
+          }),
+        )
 
   onProgress?.('write current rows')
   for (const chunk of chunkRows(currentRows)) {
@@ -1082,15 +1065,6 @@ async function writeGeometryRows(
         .run()
     }
   }
-  if (version.source === 'hkgov-pland-new-town') {
-    await writeNewTownSourceI18nRows(
-      context.sourceDb as unknown as HarbourWritableDb,
-      rows,
-      sourceHashes,
-      version,
-      now,
-    )
-  }
   if (isCenstatdDerivative) {
     await writeCenstatdSourceDerivatives(
       context.sourceDb as unknown as HarbourReadableDb & HarbourWritableDb,
@@ -1101,17 +1075,6 @@ async function writeGeometryRows(
   }
 
   return churn
-}
-
-function requirePlanningDivisionId(row: NonNullable<NormalisedGeometry>) {
-  const divisionId =
-    'divisionId' in row.canonical ? row.canonical.divisionId : undefined
-  if (!divisionId) {
-    throw new Error(
-      'Planning Department division area requires a canonical division ID.',
-    )
-  }
-  return divisionId
 }
 
 function hashGeometrySourceAssertion(
@@ -1127,51 +1090,6 @@ function hashGeometrySourceAssertion(
   delete sourceAssertion.derivation
   delete sourceAssertion.divisionId
   return hashDivisionGeometrySourceRow(sourceAssertion)
-}
-
-function readNewTownName(
-  row: NonNullable<NormalisedGeometry>,
-  locale: 'en' | 'zh-hant' | 'zh-hans',
-) {
-  const i18n = (row.source.rawProperties as Record<string, unknown>)?.i18n
-  if (!Array.isArray(i18n)) return null
-  const entry = i18n.find(
-    item =>
-      item &&
-      typeof item === 'object' &&
-      (item as Record<string, unknown>).locale === locale,
-  ) as Record<string, unknown> | undefined
-  return typeof entry?.name === 'string' ? entry.name : null
-}
-
-async function closeNewTownSourceI18nRows(
-  db: HarbourReadableDb & HarbourWritableDb,
-  sourceHashes: Map<string, string>,
-  releaseCode: string,
-) {
-  const table = sourceSchema.sourceHkgovPlandNewTownDivisionAreaI18n
-  const existing = await db
-    .select({
-      sourceRecordId: table.sourceRecordId,
-      versionHash: table.versionHash,
-    })
-    .from(table)
-    .where(eq(table.isCurrent, true))
-    .all()
-  for (const row of existing) {
-    if (sourceHashes.get(row.sourceRecordId) === row.versionHash) continue
-    await db
-      .update(table)
-      .set({ isCurrent: false, validToRelease: releaseCode })
-      .where(
-        and(
-          eq(table.sourceRecordId, row.sourceRecordId),
-          eq(table.versionHash, row.versionHash),
-          eq(table.isCurrent, true),
-        ),
-      )
-      .run()
-  }
 }
 
 async function writeCenstatdSourceDerivatives(
@@ -1283,64 +1201,6 @@ async function writeCenstatdSourceDerivatives(
           derivatives.transform,
           derivatives.versionHash,
         ],
-        set: {
-          releaseId: version.releaseId,
-          validFromRelease: version.releaseCode,
-          validToRelease: null,
-          isCurrent: true,
-          updatedAt: now,
-        },
-      })
-      .run()
-  }
-}
-
-async function writeNewTownSourceI18nRows(
-  db: HarbourWritableDb,
-  rows: Array<NonNullable<NormalisedGeometry>>,
-  sourceHashes: Map<string, string>,
-  version: {
-    releaseId: string
-    releaseCode: string
-  },
-  now: string,
-) {
-  const table = sourceSchema.sourceHkgovPlandNewTownDivisionAreaI18n
-  const i18nRows = rows.flatMap(row => {
-    const versionHash = sourceHashes.get(row.source.sourceRecordId)
-    if (!versionHash) {
-      throw new Error(
-        `Planning Department New Town ${row.source.sourceRecordId} has no source version hash.`,
-      )
-    }
-    return (['en', 'zh-hant', 'zh-hans'] as const).map(locale => {
-      const name = readNewTownName(row, locale)
-      if (!name) {
-        throw new Error(
-          `Planning Department New Town ${row.source.sourceRecordId} has no ${locale} source name.`,
-        )
-      }
-      return {
-        sourceRecordId: row.source.sourceRecordId,
-        locale,
-        name,
-        isLocaleInferred: false,
-        versionHash,
-        releaseId: version.releaseId,
-        validFromRelease: version.releaseCode,
-        validToRelease: null,
-        isCurrent: true,
-        createdAt: now,
-        updatedAt: now,
-      }
-    })
-  })
-  for (const chunk of chunkRows(i18nRows)) {
-    await db
-      .insert(table)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: [table.sourceRecordId, table.versionHash, table.locale],
         set: {
           releaseId: version.releaseId,
           validFromRelease: version.releaseCode,

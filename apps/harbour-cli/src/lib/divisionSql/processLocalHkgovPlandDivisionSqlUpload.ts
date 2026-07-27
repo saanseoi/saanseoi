@@ -69,20 +69,30 @@ type PreparedDivision = {
     type: string
     wikidata: null
   }
-  cell: null | {
-    canonicalGeometry: unknown
+  cells: Array<{
     ppuCode: string
     rawProperties: unknown
+    repairedGeometry: unknown
     sourceRecordId: string
+    sourceGeometry: unknown
     spuCode: string
     subunitCode: string
     tpuCode: string
     wasGeometryRepaired: boolean
-  }
+  }>
   i18n: Array<{ locale: string; name: string }>
+  newTown: null | {
+    nameEn: string
+    nameZhHans: string
+    nameZhHant: string
+    rawProperties: unknown
+    repairedGeometry: unknown
+    sourceGeometry: unknown
+    sourceRecordId: string
+    wasGeometryRepaired: boolean
+  }
   raw: Record<string, unknown>
   sourceCellIds: unknown
-  sourceHash: string
   versionHash: string
 }
 
@@ -201,47 +211,27 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     const records = await readPreparedDivisions(bucket, rawObjectKey)
     validatePreparedDivisions(records, previewPlan.rowCount)
     const now = toIsoTimestamp()
-    const currentSourceRows = await context.sourceDb
-      .select({
-        sourceRecordId: sourceSchema.sourceHkgovPlandDivisions.sourceRecordId,
-        versionHash: sourceSchema.sourceHkgovPlandDivisions.versionHash,
-      })
-      .from(sourceSchema.sourceHkgovPlandDivisions)
-      .where(
-        and(
-          eq(sourceSchema.sourceHkgovPlandDivisions.isCurrent, true),
-          previewPlan.source === 'hkgov-pland-new-town'
-            ? eq(sourceSchema.sourceHkgovPlandDivisions.planningLevel, 'newtown')
-            : ne(sourceSchema.sourceHkgovPlandDivisions.planningLevel, 'newtown'),
-        ),
-      )
-      .all()
-    // New Town snapshots have no TPU cells.  In particular, they must not
-    // close the current TPU-cell assertions merely because their source is
-    // processed through the same canonical-division path.
-    const currentCellRows =
+    const nativeSourceTable =
       previewPlan.source === 'hkgov-pland-new-town'
-        ? []
-        : await context.sourceDb
-            .select({
-              sourceRecordId: sourceSchema.sourceHkgovPlandPlanningCells.sourceRecordId,
-              versionHash: sourceSchema.sourceHkgovPlandPlanningCells.versionHash,
-            })
-            .from(sourceSchema.sourceHkgovPlandPlanningCells)
-            .where(eq(sourceSchema.sourceHkgovPlandPlanningCells.isCurrent, true))
-            .all()
+        ? sourceSchema.sourceHkgovPlandNewTowns
+        : sourceSchema.sourceHkgovPlandPlanningCells
+    const currentNativeRows = await context.sourceDb
+      .select({
+        sourceRecordId: nativeSourceTable.sourceRecordId,
+        versionHash: nativeSourceTable.versionHash,
+      })
+      .from(nativeSourceTable)
+      .where(eq(nativeSourceTable.isCurrent, true))
+      .all()
     const currentHistoryRows = await listCurrentHistoryRows(
       context.historyDb as unknown as HarbourReadableDb,
-      [
-        ...records.map(record => record.base.id),
-        ...currentSourceRows.map(row => row.sourceRecordId),
-      ],
+      previewPlan.source,
     )
     const historyHashById = new Map(
       currentHistoryRows.map(row => [row.id, row.versionHash]),
     )
-    const sourceHashById = new Map(
-      currentSourceRows.map(row => [row.sourceRecordId, row.versionHash]),
+    const nativeSourceHashById = new Map(
+      currentNativeRows.map(row => [row.sourceRecordId, row.versionHash]),
     )
     const ids = new Set(records.map(record => record.base.id))
     const changedHistoryIds = records
@@ -250,28 +240,27 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     const missingHistoryIds = currentHistoryRows
       .map(row => row.id)
       .filter(id => !ids.has(id))
-    const changedSourceRecords = records.filter(
-      record => sourceHashById.get(record.base.id) !== record.sourceHash,
+    const nativeRecords =
+      previewPlan.source === 'hkgov-pland-new-town'
+        ? records.flatMap(record => (record.newTown ? [record.newTown] : []))
+        : records.flatMap(record => record.cells)
+    const nativeHashes = await Promise.all(
+      nativeRecords.map(
+        async record => [record.sourceRecordId, await createHash(record)] as const,
+      ),
     )
-    const missingSourceIds = currentSourceRows
-      .map(row => row.sourceRecordId)
-      .filter(id => !ids.has(id))
-    const cells = records.flatMap(record => (record.cell ? [record.cell] : []))
-    const cellHashes = await Promise.all(
-      cells.map(async cell => [cell.sourceRecordId, await createHash(cell)] as const),
-    )
-    const cellHashById = new Map(cellHashes)
-    const incomingCellIds = new Set(cellHashById.keys())
-    const changedCellIds = cells
+    const nativeHashById = new Map(nativeHashes)
+    const incomingNativeIds = new Set(nativeHashById.keys())
+    const changedNativeIds = nativeRecords
       .filter(
-        cell =>
-          currentCellRows.find(row => row.sourceRecordId === cell.sourceRecordId)
-            ?.versionHash !== cellHashById.get(cell.sourceRecordId),
+        record =>
+          nativeSourceHashById.get(record.sourceRecordId) !==
+          nativeHashById.get(record.sourceRecordId),
       )
-      .map(cell => cell.sourceRecordId)
-    const missingCellIds = currentCellRows
+      .map(record => record.sourceRecordId)
+    const missingNativeIds = currentNativeRows
       .map(row => row.sourceRecordId)
-      .filter(id => !incomingCellIds.has(id))
+      .filter(id => !incomingNativeIds.has(id))
 
     await closeHistoryRows(
       context.historyDb as unknown as HarbourWritableDb,
@@ -280,21 +269,10 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       previewPlan.cohortKey,
       now,
     )
-    await closePlanningCellRows(
+    await closeNativeSourceRows(
       context.sourceDb as unknown as HarbourWritableDb,
-      [...changedCellIds, ...missingCellIds],
-      releaseCode,
-      now,
-    )
-    await closeSourceRows(
-      context.sourceDb as unknown as HarbourWritableDb,
-      [...changedSourceRecords.map(record => record.base.id), ...missingSourceIds],
-      releaseCode,
-      now,
-    )
-    await closeSourceI18nRows(
-      context.sourceDb as unknown as HarbourWritableDb,
-      [...changedSourceRecords.map(record => record.base.id), ...missingSourceIds],
+      nativeSourceTable,
+      [...changedNativeIds, ...missingNativeIds],
       releaseCode,
       now,
     )
@@ -302,14 +280,14 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       context.currentDb as unknown as HarbourWritableDb,
       snapshot.id,
       records,
-      currentSourceRows.map(row => row.sourceRecordId),
+      currentHistoryRows.map(row => row.id),
       now,
     )
     await replaceCurrentI18n(
       context.currentDb as unknown as HarbourWritableDb,
       snapshot.id,
       records,
-      currentSourceRows.map(row => row.sourceRecordId),
+      currentHistoryRows.map(row => row.id),
       now,
     )
     await insertHistoryRows(
@@ -332,7 +310,8 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       context.sourceDb as unknown as HarbourWritableDb,
       releaseId,
       releaseCode,
-      changedSourceRecords,
+      nativeRecords.filter(record => changedNativeIds.includes(record.sourceRecordId)),
+      previewPlan.source,
       now,
     )
     const repairedGeometryRecords = records.filter(wasPlanningGeometryRepaired)
@@ -367,12 +346,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     )
     await replaceDatasetStats(metaDb, releaseId, [
       statRow('records', 'count', records.length, 'canonical_divisions'),
-      statRow(
-        'source_features',
-        'count',
-        records.filter(record => record.cell).length,
-        'planning_cells',
-      ),
+      statRow('source_features', 'count', nativeRecords.length, 'planning_cells'),
       statRow(
         'source_quality',
         'repaired',
@@ -412,27 +386,35 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
   }
 }
 
-async function listCurrentHistoryRows(db: HarbourReadableDb, ids: string[]) {
-  const rows: Array<{ id: string; versionHash: string }> = []
-  for (const chunk of chunkArray([...new Set(ids)], getMaxItemsPerInClause(1, 2))) {
-    if (chunk.length === 0) continue
-    rows.push(
-      ...(await db
-        .select({
-          id: historySchema.divisions.id,
-          versionHash: historySchema.divisions.versionHash,
-        })
-        .from(historySchema.divisions)
-        .where(
-          and(
-            eq(historySchema.divisions.isCurrent, true),
-            inArray(historySchema.divisions.id, chunk),
-          ),
-        )
-        .all()),
+async function listCurrentHistoryRows(
+  db: HarbourReadableDb,
+  source: HkgovPlandDivisionUploadPlan['source'],
+) {
+  const rows = await db
+    .select({
+      id: historySchema.divisions.id,
+      sources: historySchema.divisions.sources,
+      versionHash: historySchema.divisions.versionHash,
+    })
+    .from(historySchema.divisions)
+    .where(eq(historySchema.divisions.isCurrent, true))
+    .all()
+  return rows.filter(row => {
+    const sources = row.sources as Record<string, unknown>
+    const pland = sources.hkgovPland
+    return (
+      Array.isArray(pland) &&
+      pland.some(
+        item =>
+          item &&
+          typeof item === 'object' &&
+          (item as Record<string, unknown>).sourceVersion !== undefined &&
+          (source === 'hkgov-pland-new-town'
+            ? (item as Record<string, unknown>).planningLevel === 'newtown'
+            : (item as Record<string, unknown>).planningLevel !== 'newtown'),
+      )
     )
-  }
-  return rows
+  })
 }
 
 async function readPreparedDivisions(bucket: LocalPipelineBucket, key: string) {
@@ -469,44 +451,78 @@ async function normalisePreparedDivision(value: Record<string, unknown>) {
     wikidata: null,
   }
   const versionHash = await createHash(base)
-  const sourceHash = await createHash({ ...value, geometry })
-  const codes = identifiers as Record<string, unknown>
-  const cell =
-    level === 'subunit'
-      ? {
-          canonicalGeometry: geometry,
-          ppuCode: requireString(codes['PLAND:PPU'], 'PLAND:PPU'),
-          rawProperties: sourceProperties.sourceFeatureProperties ?? null,
-          sourceRecordId: Array.isArray(sourceCellIds)
-            ? requireString(sourceCellIds[0], 'source_cell_ids[0]')
-            : id,
-          spuCode: requireString(codes['PLAND:SPU'], 'PLAND:SPU'),
-          subunitCode: requireString(codes['PLAND:SUBUNIT'], 'PLAND:SUBUNIT'),
-          tpuCode: requireString(codes['PLAND:TPU'], 'PLAND:TPU'),
-          wasGeometryRepaired:
-            Array.isArray(value.repaired_source_feature_ids) &&
-            value.repaired_source_feature_ids.length > 0,
-        }
-      : null
+  const cells =
+    level === 'subunit' ? normalisePlanningCells(sourceProperties.sourceFeatures) : []
+  const newTown =
+    level === 'newtown' ? normaliseNewTown(sourceProperties, i18n, geometry) : null
   return {
     base,
-    cell,
+    cells,
     i18n,
+    newTown,
     raw: value,
     sourceCellIds,
-    sourceHash,
     versionHash,
   } satisfies PreparedDivision
 }
 
 function wasPlanningGeometryRepaired(record: PreparedDivision) {
   return (
-    record.cell?.wasGeometryRepaired === true ||
+    record.cells.some(cell => cell.wasGeometryRepaired) ||
+    record.newTown?.wasGeometryRepaired === true ||
     Boolean(
       (record.raw.source_properties as Record<string, unknown> | undefined)
         ?.was_geometry_repaired,
     )
   )
+}
+
+function normalisePlanningCells(value: unknown): PreparedDivision['cells'] {
+  if (!Array.isArray(value)) {
+    throw new Error('Planning subunit source properties require sourceFeatures.')
+  }
+  return value.map((entry, index) => {
+    const cell = asRecord(entry)
+    return {
+      ppuCode: requireString(cell.ppuCode, `sourceFeatures[${index}].ppuCode`),
+      rawProperties: cell.rawProperties ?? null,
+      repairedGeometry: cell.repairedGeometry ?? null,
+      sourceRecordId: requireString(
+        cell.sourceRecordId,
+        `sourceFeatures[${index}].sourceRecordId`,
+      ),
+      sourceGeometry: cell.sourceGeometry ?? null,
+      spuCode: requireString(cell.spuCode, `sourceFeatures[${index}].spuCode`),
+      subunitCode: requireString(
+        cell.subunitCode,
+        `sourceFeatures[${index}].subunitCode`,
+      ),
+      tpuCode: requireString(cell.tpuCode, `sourceFeatures[${index}].tpuCode`),
+      wasGeometryRepaired: cell.wasGeometryRepaired === true,
+    }
+  })
+}
+
+function normaliseNewTown(
+  sourceProperties: Record<string, unknown>,
+  i18n: Array<{ locale: string; name: string }>,
+  geometry: unknown,
+) {
+  const name = (locale: string) =>
+    i18n.find(entry => entry.locale === locale)?.name ?? null
+  return {
+    nameEn: requireString(name('en'), 'New Town English name'),
+    nameZhHans: requireString(name('zh-hans'), 'New Town Simplified Chinese name'),
+    nameZhHant: requireString(name('zh-hant'), 'New Town Traditional Chinese name'),
+    rawProperties: asRecord(sourceProperties.sourceFeature).properties ?? null,
+    repairedGeometry: sourceProperties.was_geometry_repaired ? geometry : null,
+    sourceGeometry: requireValue(
+      sourceProperties.source_geometry,
+      'New Town source geometry',
+    ),
+    sourceRecordId: requireString(sourceProperties.newtown_id, 'newtown_id'),
+    wasGeometryRepaired: sourceProperties.was_geometry_repaired === true,
+  }
 }
 
 function normaliseI18n(value: unknown) {
@@ -726,106 +742,19 @@ async function insertSourceRows(
   db: HarbourWritableDb,
   releaseId: string,
   releaseCode: string,
-  records: PreparedDivision[],
+  records: Array<
+    PreparedDivision['cells'][number] | NonNullable<PreparedDivision['newTown']>
+  >,
+  source: HkgovPlandDivisionUploadPlan['source'],
   now: string,
 ) {
-  const divisionRows = records.map(record => {
-    const identifiers = record.base.identifiers as Record<string, unknown>
-    return {
-      sourceRecordId: record.base.id,
-      planningLevel: requireString(record.raw.planning_level, 'planning_level'),
-      ppuCode: optionalString(identifiers['PLAND:PPU']),
-      spuCode: optionalString(identifiers['PLAND:SPU']),
-      tpuCode: optionalString(identifiers['PLAND:TPU']),
-      subunitCode: optionalString(identifiers['PLAND:SUBUNIT']),
-      newTownId: optionalString(identifiers['PLAND:NEWTOWN']),
-      sourceCellIds: record.sourceCellIds,
-      wasGeometryRepaired:
-        requireString(record.raw.planning_level, 'planning_level') === 'newtown' &&
-        Boolean(
-          (record.raw.source_properties as Record<string, unknown> | undefined)
-            ?.was_geometry_repaired,
-        ),
-      canonicalGeometry: record.base.geometry,
-      sources: record.base.sources,
-      rawProperties: record.raw,
-      version: null,
-      versionHash: record.sourceHash,
-      releaseId,
-      validFromRelease: releaseCode,
-      validToRelease: null,
-      isCurrent: true,
-      createdAt: now,
-      updatedAt: now,
-    }
-  })
-  for (const chunk of chunkArray(divisionRows, 4)) {
-    await db
-      .insert(sourceSchema.sourceHkgovPlandDivisions)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: [
-          sourceSchema.sourceHkgovPlandDivisions.sourceRecordId,
-          sourceSchema.sourceHkgovPlandDivisions.versionHash,
-        ],
-        set: {
-          isCurrent: true,
-          releaseId,
-          validFromRelease: releaseCode,
-          validToRelease: null,
-          updatedAt: now,
-        },
-      })
-      .run()
-  }
-  const i18nRows = records.flatMap(record =>
-    record.i18n.map(item => ({
-      sourceRecordId: record.base.id,
-      locale: item.locale,
-      name: item.name,
-      isLocaleInferred: false,
-      versionHash: record.sourceHash,
-      releaseId,
-      validFromRelease: releaseCode,
-      validToRelease: null,
-      isCurrent: true,
-      createdAt: now,
-      updatedAt: now,
-    })),
-  )
-  for (const chunk of chunkArray(i18nRows, 8)) {
-    await db
-      .insert(sourceSchema.sourceHkgovPlandDivisionI18n)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: [
-          sourceSchema.sourceHkgovPlandDivisionI18n.sourceRecordId,
-          sourceSchema.sourceHkgovPlandDivisionI18n.versionHash,
-          sourceSchema.sourceHkgovPlandDivisionI18n.locale,
-        ],
-        set: {
-          isCurrent: true,
-          releaseId,
-          validFromRelease: releaseCode,
-          validToRelease: null,
-          updatedAt: now,
-        },
-      })
-      .run()
-  }
-  const cellRows = await Promise.all(
-    records
-      .flatMap(record => (record.cell ? [record.cell] : []))
-      .map(async cell => ({
-        sourceRecordId: cell.sourceRecordId,
-        ppuCode: cell.ppuCode,
-        spuCode: cell.spuCode,
-        tpuCode: cell.tpuCode,
-        subunitCode: cell.subunitCode,
-        wasGeometryRepaired: cell.wasGeometryRepaired,
-        canonicalGeometry: cell.canonicalGeometry,
-        sources: { hkgovPland: [{ source: 'TPUSU' }] },
-        rawProperties: cell.rawProperties,
+  if (source === 'hkgov-pland-pu') {
+    const rows = await Promise.all(
+      records.map(async cell => ({
+        ...cell,
+        repairedGeometry: cell.repairedGeometry ?? null,
+        sourceGeometry: cell.sourceGeometry,
+        sources: [{ dataset: 'hkgov-pland-pu', layer: 'TPUSU' }],
         version: null,
         versionHash: await createHash(cell),
         releaseId,
@@ -835,25 +764,64 @@ async function insertSourceRows(
         createdAt: now,
         updatedAt: now,
       })),
+    )
+    for (const chunk of chunkArray(rows, 4)) {
+      await db
+        .insert(sourceSchema.sourceHkgovPlandPlanningCells)
+        .values(chunk)
+        .onConflictDoUpdate({
+          target: [
+            sourceSchema.sourceHkgovPlandPlanningCells.sourceRecordId,
+            sourceSchema.sourceHkgovPlandPlanningCells.versionHash,
+          ],
+          set: sourceVersionConflictUpdate(releaseId, releaseCode, now),
+        })
+        .run()
+    }
+    return
+  }
+
+  const rows = await Promise.all(
+    records.map(async town => ({
+      ...town,
+      newTownId: town.sourceRecordId,
+      sources: [{ dataset: 'hkgov-pland-new-town' }],
+      version: null,
+      versionHash: await createHash(town),
+      releaseId,
+      validFromRelease: releaseCode,
+      validToRelease: null,
+      isCurrent: true,
+      createdAt: now,
+      updatedAt: now,
+    })),
   )
-  for (const chunk of chunkArray(cellRows, 4)) {
+  for (const chunk of chunkArray(rows, 4)) {
     await db
-      .insert(sourceSchema.sourceHkgovPlandPlanningCells)
+      .insert(sourceSchema.sourceHkgovPlandNewTowns)
       .values(chunk)
       .onConflictDoUpdate({
         target: [
-          sourceSchema.sourceHkgovPlandPlanningCells.sourceRecordId,
-          sourceSchema.sourceHkgovPlandPlanningCells.versionHash,
+          sourceSchema.sourceHkgovPlandNewTowns.sourceRecordId,
+          sourceSchema.sourceHkgovPlandNewTowns.versionHash,
         ],
-        set: {
-          isCurrent: true,
-          releaseId,
-          validFromRelease: releaseCode,
-          validToRelease: null,
-          updatedAt: now,
-        },
+        set: sourceVersionConflictUpdate(releaseId, releaseCode, now),
       })
       .run()
+  }
+}
+
+function sourceVersionConflictUpdate(
+  releaseId: string,
+  releaseCode: string,
+  now: string,
+) {
+  return {
+    isCurrent: true,
+    releaseId,
+    validFromRelease: releaseCode,
+    validToRelease: null,
+    updatedAt: now,
   }
 }
 
@@ -900,8 +868,11 @@ async function closeHistoryRows(
   })
 }
 
-async function closeSourceRows(
+async function closeNativeSourceRows(
   db: HarbourWritableDb,
+  table:
+    | typeof sourceSchema.sourceHkgovPlandPlanningCells
+    | typeof sourceSchema.sourceHkgovPlandNewTowns,
   ids: string[],
   releaseCode: string,
   now: string,
@@ -909,56 +880,9 @@ async function closeSourceRows(
   for (const chunk of chunkArray([...new Set(ids)], getMaxItemsPerInClause(1, 4))) {
     if (chunk.length === 0) continue
     await db
-      .update(sourceSchema.sourceHkgovPlandDivisions)
+      .update(table)
       .set({ isCurrent: false, validToRelease: releaseCode, updatedAt: now })
-      .where(
-        and(
-          eq(sourceSchema.sourceHkgovPlandDivisions.isCurrent, true),
-          inArray(sourceSchema.sourceHkgovPlandDivisions.sourceRecordId, chunk),
-        ),
-      )
-      .run()
-  }
-}
-
-async function closeSourceI18nRows(
-  db: HarbourWritableDb,
-  ids: string[],
-  releaseCode: string,
-  now: string,
-) {
-  for (const chunk of chunkArray([...new Set(ids)], getMaxItemsPerInClause(1, 4))) {
-    if (chunk.length === 0) continue
-    await db
-      .update(sourceSchema.sourceHkgovPlandDivisionI18n)
-      .set({ isCurrent: false, validToRelease: releaseCode, updatedAt: now })
-      .where(
-        and(
-          eq(sourceSchema.sourceHkgovPlandDivisionI18n.isCurrent, true),
-          inArray(sourceSchema.sourceHkgovPlandDivisionI18n.sourceRecordId, chunk),
-        ),
-      )
-      .run()
-  }
-}
-
-async function closePlanningCellRows(
-  db: HarbourWritableDb,
-  ids: string[],
-  releaseCode: string,
-  now: string,
-) {
-  for (const chunk of chunkArray([...new Set(ids)], getMaxItemsPerInClause(1, 4))) {
-    if (chunk.length === 0) continue
-    await db
-      .update(sourceSchema.sourceHkgovPlandPlanningCells)
-      .set({ isCurrent: false, validToRelease: releaseCode, updatedAt: now })
-      .where(
-        and(
-          eq(sourceSchema.sourceHkgovPlandPlanningCells.isCurrent, true),
-          inArray(sourceSchema.sourceHkgovPlandPlanningCells.sourceRecordId, chunk),
-        ),
-      )
+      .where(and(eq(table.isCurrent, true), inArray(table.sourceRecordId, chunk)))
       .run()
   }
 }
@@ -1003,4 +927,9 @@ function optionalString(value: unknown) {
 function requireString(value: unknown, name: string): string {
   if (typeof value !== 'string' || !value.trim()) throw new Error(`Missing ${name}.`)
   return value.trim()
+}
+
+function requireValue(value: unknown, name: string) {
+  if (value === null || value === undefined) throw new Error(`Missing ${name}.`)
+  return value
 }
