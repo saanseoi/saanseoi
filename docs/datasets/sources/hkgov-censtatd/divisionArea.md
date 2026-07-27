@@ -24,12 +24,13 @@ The logical dataset is marked five-yearly in SaanSeoi, while CSDI's per-record
 and is checked independently; the fixture's monthly update policy limits routine network
 checks without disabling correction detection.
 
-The archive manifest records the exact native format and CRS for each slot. Source
-processing retains the complete publisher feature and projects only its accepted native
-geometry into the canonical EPSG:4326 column. It does not simplify, clip or otherwise
-alter the exact-source geometry. The uploader calculates the canonical WGS84 bbox from
-that geometry rather than accepting an upstream bbox value, so source and canonical rows
-carry the same geometry-derived extent.
+The archive manifest records the exact native format for each slot, and the source CRS
+is stored once in the dataset metadata record. Source processing retains the complete
+publisher feature and projects only its accepted native geometry into the canonical
+EPSG:4326 column. It does not simplify, clip or otherwise alter the exact-source
+geometry. The uploader calculates the canonical WGS84 bbox from that geometry rather
+than accepting an upstream bbox value, so source and canonical rows carry the same
+geometry-derived extent.
 
 The fixture records the observed CSDI archive slots and publisher-object hashes that are
 byte-identical within the 2016 and 2021 cohorts. The updater suppresses only those exact

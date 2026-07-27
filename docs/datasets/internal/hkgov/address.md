@@ -22,11 +22,14 @@ Related docs:
   `als_addresses_3d_*` file.
 
 The automatic updater queries the DATA.GOV.HK historical file-version endpoint for the
-official `ALS-GeoJSON.zip` resource. It uses the latest publisher timestamp as the
-release revision and downloads that exact historical ZIP when requested. The query ends
-on the previous UTC day because the archive API does not accept the current day. A
-successful response whose body is truncated or otherwise invalid JSON is retried before
-the DPO check is reported as an error.
+official `ALS-GeoJSON.zip` resource. It treats the newest publisher timestamp as the new
+release and earlier available timestamps as download-only archive packages. On a
+confirmed new local release it downloads the exact ZIP, unpacks it into its timestamped
+ALS source directory, then invokes `hkgov-dpo:backfill-local` for the existing identity
+review and upload workflow. Archive-package downloads never upload by themselves. The
+query ends on the previous UTC day because the archive API does not accept the current
+day. A successful response whose body is truncated or otherwise invalid JSON is retried
+before the DPO check is reported as an error.
 
 ALS directory names carry an upstream delivery time (`YYYYMMDD-HHMM`), but address
 release versions use `YYYY-MM-DD.N`: the first release for a date is `.0`, and further
