@@ -52,7 +52,9 @@ and `PLAND:SUBUNIT`. Canonical IDs are deterministic UUIDv5 values derived from 
 provider-scoped Planning Department identity and never reuse an Overture GERS ID.
 
 PPU, SPU and TPU areas are deterministic unions of their child cells. The raw cell
-feature and its original geometry remain in `hkgovPlandPlanningCells`.
+feature properties and original geometry remain in `hkgovPlandPlanningCells`; canonical
+division IDs, hierarchy, aggregate geometry and canonical relationship rows do not enter
+the source schema.
 
 ## Geometry policy
 
@@ -62,7 +64,8 @@ material same-TPU overlap. Six known source cells have ring self-intersections: 
 original source geometry unchanged and uses a `buffer(0)` topology repair solely for
 canonical geometry and child-area unions. Each repaired record is identified in
 `repairedSourceFeatureIds` and `wasGeometryRepaired`; all other invalid geometry is
-rejected.
+rejected. The source row retains a `repairedGeometry` only when it is the approved
+`buffer(0)` transform of that row's exact publisher geometry version.
 
 The aggregate union step also removes zero-area interior rings. These can be emitted by
 otherwise valid unions, but are not valid canonical area geometry; source-cell geometry
@@ -74,9 +77,8 @@ stats; the per-record JSON evidence is available through
 `saanseoi reports:processing-actions --source hkgov-pland --type division`.
 
 The TPU/subunit source has no published names—only hierarchy codes. The adapter exposes
-those codes in `identifiers` and does not manufacture labels for TPU/subunit canonical
-divisions. The source I18n table exists for the separately named New Town planning
-divisions below; TPU/subunit uploads write no rows to it.
+those codes in canonical `identifiers` and does not manufacture labels for TPU/subunit
+canonical divisions.
 
 ## New Town boundaries
 
@@ -104,18 +106,18 @@ town. Renames and splits are intentionally separate cohort assertions, so no cro
 cohort or Overture bridge is inferred. This makes the geometry selectable as
 `areas:hkgov-pland-new-town` for the corresponding planning division release.
 
-The trilingual labels are retained verbatim in the versioned `hkgovPlandDivisionI18n`
-source table and normalised into the associated canonical planning division's
-`divisionI18n` rows. The geometry assertion additionally retains those source labels in
-`hkgovPlandNewTownDivisionAreaI18n`.
+The trilingual publisher labels are retained verbatim on the native `hkgovPlandNewTowns`
+source row as `nameEn`, `nameZhHant`, and `nameZhHans`, then normalised into the
+associated canonical planning division's `divisionI18n` rows. No source-level locale
+rows are created.
 
 The downloaded New Town artefacts contain known invalid rings: Tseung Kwan O in 2006,
 2011 and 2016; Tuen Mun and Tai Po in 2006; and Tung Chung in 2021. The reviewed
 `buffer(0)` policy repairs only those invalid topology cases for canonical geometry. The
 source layer retains the publisher feature and original geometry unchanged, records
-`wasGeometryRepaired`, and stores the repaired canonical geometry separately. The CLI
-can also export a separately labelled `-repaired.geojson` diagnostic copy without
-altering the publisher file.
+`wasGeometryRepaired`, and stores a row-keyed `repairedGeometry` transform separately.
+The CLI can also export a separately labelled `-repaired.geojson` diagnostic copy
+without altering the publisher file.
 
 Its `sourceSchemaVersion` `1.0` is likewise an observed artefact profile for the stable
 `NewTown_en`, `NewTown_Tc`, and `NewTown_Sc` fields, rather than a version declared by
