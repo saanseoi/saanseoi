@@ -313,6 +313,8 @@
   "reference_locale_normalisation": "Locale normalisation",
   "reference_division_type_level": "Division type and level",
   "reference_division_hierarchy_normalisation": "Division hierarchy normalisation",
+  "reference_censtatd": "C&SD",
+  "reference_csdi": "CSDI",
   "reference_address_division_normalisation": "Address division normalisation",
   "auth_reset_subject": "Reset your Saanseoi password",
   "auth_reset_text": "Use this link to reset your Saanseoi password: {url}",

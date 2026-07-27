@@ -314,6 +314,8 @@
   "reference_locale_normalisation": "語言地區正規化",
   "reference_division_type_level": "類型與層級對應",
   "reference_division_hierarchy_normalisation": "區劃層級正規化",
+  "reference_censtatd": "C&SD",
+  "reference_csdi": "CSDI",
   "reference_address_division_normalisation": "地址區劃正規化",
   "auth_reset_subject": "重設你的 Saanseoi 密碼",
   "auth_reset_text": "使用此連結重設你的 Saanseoi 密碼：{url}",

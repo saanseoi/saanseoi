@@ -1,6 +1,7 @@
 import overtureLocalisation from '../../../../../docs/datasets/sources/overture/localisation.md?raw'
 import overtureDivisionHierarchy from '../../../../../docs/datasets/sources/overture/divisionHierarchy.md?raw'
 import overtureDivisionTypeLevelMapping from '../../../../../docs/datasets/sources/overture/divisionType.md?raw'
+import censtatdTerms from '../../../../../docs/datasets/sources/hkgov-censtatd/terms.md?raw'
 
 import {
   getLocalisedMessage,
@@ -43,6 +44,16 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
     displayTitleKey: 'reference_division_hierarchy_normalisation',
     source: overtureDivisionHierarchy,
   },
+  'hkgov-censtatd': {
+    title: 'C&SD',
+    displayTitleKey: 'reference_censtatd',
+    source: censtatdTerms,
+  },
+  'hkgov-csdi': {
+    title: 'CSDI',
+    displayTitleKey: 'reference_csdi',
+    source: censtatdTerms,
+  },
 }
 
 // Release notes published before the catalogue spelling was standardised use
@@ -61,9 +72,11 @@ export function getMarkdownTransclusion(href: string | null | undefined) {
   if (!match) return null
 
   const [, locale, type, id, version] = match
+  if (!locale || !type || !id || !version) return null
+
   const reference =
     markdownReferences[id] ?? markdownReferences[markdownReferenceAliases[id] ?? '']
-  if (!locale || !type || !reference || !version) return null
+  if (!reference) return null
 
   return {
     ...reference,
