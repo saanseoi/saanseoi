@@ -1708,11 +1708,6 @@ function streetStat(
   }
 }
 
-function parseDistrict(value: unknown) {
-  const record = parseRecord(value, 'district')
-  return { en: optionalString(record.en), zhHant: optionalString(record.zhHant) }
-}
-
 function parseI18n(value: unknown, sourceRecordId: string): PreparedStreetI18n[] {
   const values = parseJsonArray(value, 'i18n')
   const result = values.map((item, index) => {
