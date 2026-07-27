@@ -28,6 +28,8 @@ export type NativeSourceRow = Record<string, unknown> & {
 export type NativeSourceTable = {
   /** SQLite source-schema table, never a converted publisher artefact. */
   name: string
+  /** The archive is a complete replacement snapshot for this source table. */
+  replaceCurrentRows?: boolean
   rows: NativeSourceRow[]
 }
 
@@ -196,9 +198,13 @@ async function buildNativeSourceSql(
     assertIdentifier(table.name, 'table')
     const rows = await versionNativeSourceRows(table.rows, releaseId, releaseCode)
     const ids = [...new Set(rows.map(row => row.sourceRecordId))]
-    for (const idsChunk of chunk(ids, 250)) {
+    const currentRowScopes = table.replaceCurrentRows ? [[]] : chunk(ids, 250)
+    for (const idsChunk of currentRowScopes) {
+      const idCondition = table.replaceCurrentRows
+        ? ''
+        : ` AND "sourceRecordId" IN (${idsChunk.map(sqlValue).join(', ')})`
       statements.push(
-        `UPDATE "${table.name}" SET "isCurrent" = 0, "validToRelease" = ${sqlValue(releaseCode)}, "updatedAt" = ${sqlValue(new Date().toISOString())} WHERE "isCurrent" = 1 AND "sourceRecordId" IN (${idsChunk.map(sqlValue).join(', ')});`,
+        `UPDATE "${table.name}" SET "isCurrent" = 0, "validToRelease" = ${sqlValue(releaseCode)}, "updatedAt" = ${sqlValue(new Date().toISOString())} WHERE "isCurrent" = 1${idCondition};`,
       )
     }
     for (const row of rows) {
