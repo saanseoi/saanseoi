@@ -1,4 +1,4 @@
-import { index, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, real, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 import { jsonText } from '../shared'
 import { sourceAssertionColumns, sourceVersionIndexes } from './shared'
