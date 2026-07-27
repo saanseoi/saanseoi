@@ -12,7 +12,7 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Planning Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050",
-  "schemaSpecificationURL": null,
+  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/5fb6f41fe1fc55e1abdb621488dac1887faf03ef1ca0db3ea3d5f0b255d6e4dd",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"

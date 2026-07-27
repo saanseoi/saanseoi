@@ -10,7 +10,7 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Highways Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632211119955_31211",
-  "schemaSpecificationURL": null,
+  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/302b904e3769eae0dc5bfc349288953f2556eb8467288b8226344767031bdafd",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
