@@ -1428,6 +1428,7 @@ async function insertSourceRows(
           isCurrent: true,
           releaseId,
           sourceRecordId: record.base.id,
+          sources: [{ dataset: 'hkgov-landsd', sourceKind: 'streetBaseline' }],
           streetId: requireString(record.streetId, `${record.base.id} streetId`),
           updatedAt: now,
           validFromRelease: releaseCode,
@@ -1474,6 +1475,13 @@ async function insertSourceRows(
           rawExtractedText: record.rawExtractedText,
           releaseId,
           sourceRecordId: record.base.id,
+          sources: [
+            {
+              dataset: 'hkgov-landsd',
+              noticeRef: requireString(record.noticeRef, `${record.base.id} noticeRef`),
+              sourceKind: 'governmentNotice',
+            },
+          ],
           updatedAt: now,
           validFromRelease: releaseCode,
           validToRelease: null,
