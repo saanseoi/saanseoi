@@ -4,6 +4,8 @@ import { createHash } from '../../utils'
 import {
   buildAddressBaseHashInput,
   buildAddressBuildingNumberLookupRows,
+  buildHkgovAlsSourceHashInput,
+  isUnchangedHkgovAlsSourcePayload,
 } from './normalisation'
 
 const buildBase = (sources: unknown) =>
@@ -49,6 +51,65 @@ test('excludes release-specific source provenance from the address content hash'
     hkgovAls: { geoAddress: 'ABC123' },
   })
   expect(await createHash(firstRelease)).toBe(await createHash(nextRelease))
+})
+
+test('excludes ALS release and ingestion bookkeeping from source assertion hashes', async () => {
+  const sourceAssertion = {
+    easting: 836_000,
+    enFormattedAddress: '1 Example Road, Hong Kong',
+    engPremisesAddressJson: '{"BuildingName":"Example House"}',
+    geoAddress: 'ABC123',
+    geometry: '{"coordinates":[114.1,22.3],"type":"Point"}',
+    hkgovCsuId: 'CSU-1',
+    northing: 819_000,
+    zhHantFormattedAddress: '香港示例道1號',
+  }
+  const firstRelease = {
+    ...sourceAssertion,
+    areaId: 'area-hk',
+    canonicalId: 'address-1',
+    cohortKey: '2026-06',
+    divisionSnapshotId: 'division-snapshot-2026-06',
+    id: 'address-1',
+    identityKey: 'first-identity-key',
+    sourceFeatureIndexOneBased: 17,
+    sourceFile: 'als_addresses_(central_district).geojson',
+    sourceVersion: '2026-06-01.0',
+    sources: '{"hkgovAls":{"cohortKey":"2026-06"}}',
+  }
+  const nextRelease = {
+    ...firstRelease,
+    cohortKey: '2026-07',
+    divisionSnapshotId: 'division-snapshot-2026-07',
+    identityKey: 'second-identity-key',
+    sourceFeatureIndexOneBased: 91,
+    sourceFile: 'als_addresses_(central-and-western_district).geojson',
+    sourceVersion: '2026-07-01.0',
+    sources: '{"hkgovAls":{"cohortKey":"2026-07"}}',
+  }
+
+  expect(await createHash(buildHkgovAlsSourceHashInput(firstRelease))).toBe(
+    await createHash(buildHkgovAlsSourceHashInput(nextRelease)),
+  )
+
+  expect(
+    await createHash(
+      buildHkgovAlsSourceHashInput({
+        ...nextRelease,
+        enFormattedAddress: '2 Example Road, Hong Kong',
+      }),
+    ),
+  ).not.toBe(await createHash(buildHkgovAlsSourceHashInput(nextRelease)))
+
+  expect(
+    await isUnchangedHkgovAlsSourcePayload(
+      {
+        rawProperties: firstRelease,
+        sourcePayloadHash: await createHash(firstRelease),
+      },
+      await createHash(buildHkgovAlsSourceHashInput(nextRelease)),
+    ),
+  ).toBe(true)
 })
 
 test('derives only justified members of explicit building-number ranges', () => {

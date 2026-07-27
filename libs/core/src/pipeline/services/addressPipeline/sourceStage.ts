@@ -10,7 +10,10 @@ import {
 } from '../../db/source'
 import type { HarbourWorkerBucket } from '../division'
 import { type PipelineArtefactBucket, readJsonArtefact } from '../pipelineArtefacts'
-import { dedupeNormalisedAddressRows } from './normalisation'
+import {
+  dedupeNormalisedAddressRows,
+  isUnchangedHkgovAlsSourcePayload,
+} from './normalisation'
 import type {
   AddressPipelineMessage,
   NormalisedAddressChunkArtefact,
@@ -69,18 +72,36 @@ async function writeHkgovSourceRows(
   sourceDb: SourceDatabase,
   message: DatasetProcessingMessage,
   uniqueRows: NormalisedAddressRecord[],
-  currentSourceRows: Map<string, { sourcePayloadHash: string | null }>,
+  currentSourceRows: Map<
+    string,
+    {
+      rawProperties: Record<string, unknown> | null
+      sourcePayloadHash: string | null
+    }
+  >,
   releaseId: string,
   changedIds: Set<string>,
   unchangedIds: Set<string>,
 ) {
   const versionRows: Array<typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert> =
     []
+  const unchangedBySourceId = new Map(
+    await Promise.all(
+      uniqueRows.map(
+        async row =>
+          [
+            row.sourceId,
+            await isUnchangedHkgovAlsSourcePayload(
+              currentSourceRows.get(row.sourceId),
+              row.sourcePayloadHash,
+            ),
+          ] as const,
+      ),
+    ),
+  )
 
   for (const row of uniqueRows) {
-    const currentSource = currentSourceRows.get(row.sourceId) ?? null
-
-    if (currentSource?.sourcePayloadHash === row.sourcePayloadHash) {
+    if (unchangedBySourceId.get(row.sourceId)) {
       unchangedIds.add(row.sourceId)
       continue
     }

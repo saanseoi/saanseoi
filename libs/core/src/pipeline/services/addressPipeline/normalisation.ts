@@ -1,11 +1,80 @@
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 
-import { asNonEmptyString } from '../../utils'
+import { asNonEmptyString, createHash } from '../../utils'
 import type { NormalisedAddressRecord } from './types'
 
 export function normaliseAddressRowForPipeline(row: Record<string, unknown>) {
   return normalisePreparedHkgovAddressRow(row)
 }
+
+/**
+ * Returns the publisher assertion fields used to version an ALS source row.
+ *
+ * Prepared ALS rows include release and ingestion bookkeeping alongside the
+ * publisher data. Those values naturally change on every upload and must not
+ * create a new source assertion when the address itself is unchanged.
+ */
+export function buildHkgovAlsSourceHashInput(row: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(row).filter(([key]) => !HKGOV_ALS_SOURCE_HASH_OMITTED_KEYS.has(key)),
+  )
+}
+
+/**
+ * Compares a prepared row with a current source assertion.
+ *
+ * Existing rows may retain the earlier whole-row hash. Rehashing their stored
+ * raw properties with the assertion-only input lets the new comparison take
+ * effect without first rewriting every source-row primary key.
+ */
+export async function isUnchangedHkgovAlsSourcePayload(
+  current:
+    | {
+        rawProperties?: Record<string, unknown> | null
+        sourcePayloadHash: string | null
+      }
+    | null
+    | undefined,
+  sourcePayloadHash: string,
+) {
+  if (!current) return false
+
+  if (current.rawProperties) {
+    return (
+      (await createHash(buildHkgovAlsSourceHashInput(current.rawProperties))) ===
+      sourcePayloadHash
+    )
+  }
+
+  return current.sourcePayloadHash === sourcePayloadHash
+}
+
+const HKGOV_ALS_SOURCE_HASH_OMITTED_KEYS = new Set([
+  'areaId',
+  'canonicalId',
+  'cohortKey',
+  'country',
+  'countryId',
+  'divisionSnapshotId',
+  'districtId',
+  'id',
+  'identityAlias',
+  'identityBuildingId',
+  'identityContinuityKey',
+  'identityKey',
+  'identityMatchMethod',
+  'identityNumberFrom',
+  'identityNumberTo',
+  'identityRouteNames',
+  'identitySummary',
+  'region',
+  'sourceFeatureIndexOneBased',
+  'sourceFile',
+  'sources',
+  'sourceVersion',
+  'theme',
+  'type',
+])
 
 export function dedupeNormalisedAddressRows(rows: NormalisedAddressRecord[]) {
   return [
