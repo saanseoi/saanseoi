@@ -1,0 +1,79 @@
+import { resolve } from 'node:path'
+
+import type { ParsedArgs } from '../cli/options.ts'
+
+const REPO_ROOT = resolve(import.meta.dir, '../../../../../')
+
+const initialisationCommands = {
+  init: {
+    script: 'scripts/init/all.fish',
+    supportsContinue: true,
+  },
+  'init:addresses:default': {
+    script: 'scripts/init/addresses-hkgov-dpo.fish',
+    supportsContinue: false,
+  },
+  'init:divisions:hkgov-pland-new-town': {
+    script: 'scripts/init/divisions-hkgov-pland-new-town.fish',
+    supportsContinue: true,
+  },
+  'init:divisions:hkgov-pland-pu': {
+    script: 'scripts/init/divisions-hkgov-pland-pu.fish',
+    supportsContinue: true,
+  },
+  'init:divisions:overture': {
+    script: 'scripts/init/divisions-overture.fish',
+    supportsContinue: true,
+  },
+  'init:streets:hkgov-landsd': {
+    script: 'scripts/init/streets-hkgov-landsd.fish',
+    supportsContinue: false,
+  },
+} as const
+
+export type InitialisationCommand = keyof typeof initialisationCommands
+
+export function resolveInitialisationCommand(command: string) {
+  return initialisationCommands[command as InitialisationCommand]
+}
+
+export async function runInitialisationCommand(
+  args: ParsedArgs,
+  printUsage: () => void,
+) {
+  const command = args.command ? resolveInitialisationCommand(args.command) : undefined
+  const supportsContinue = command?.supportsContinue ?? false
+  const invalidOptions = Object.keys(args.options).filter(
+    key => key !== 'continue' || !supportsContinue,
+  )
+
+  if (
+    !command ||
+    args.positionals.length > 0 ||
+    invalidOptions.length > 0 ||
+    (args.options.continue !== undefined && args.options.continue !== true)
+  ) {
+    printUsage()
+    const suffix = supportsContinue
+      ? ' accepts only the `--continue` option.'
+      : ' accepts no options.'
+    throw new Error(`\`${args.command}\`${suffix}`)
+  }
+
+  const process = Bun.spawn({
+    cmd: [
+      'fish',
+      resolve(REPO_ROOT, command.script),
+      ...(args.options.continue ? ['--continue'] : []),
+    ],
+    cwd: REPO_ROOT,
+    stdin: 'inherit',
+    stdout: 'inherit',
+    stderr: 'inherit',
+  })
+  const exitCode = await process.exited
+
+  if (exitCode !== 0) {
+    throw new Error(`Initialisation failed with exit code ${exitCode}.`)
+  }
+}
