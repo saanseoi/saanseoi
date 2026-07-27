@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:bdac8ef114273ba79eaec8acbd2fc95b86bf157b889670269066bb6ac674c12b",
+  "versionHash": "sha256:53b1cab19007247a5229042f68915c487f6223deda70eb9334a91b929012c8dd",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-new-town",
   "regionCode": "hk",
@@ -7,6 +7,7 @@
   "releaseFrequency": "census",
   "theme": "divisions",
   "sourceVariant": "hkgov-pland-new-town",
+  "sourceCrs": "EPSG:4326",
   "resourceTypes": ["division", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Planning Department.",

@@ -1,11 +1,12 @@
 {
-  "versionHash": "sha256:3f0a5a24fa44e41ff1f378ae49f889200d111b8327f835fe311f557d03ddf824",
+  "versionHash": "sha256:757707bebfa5ee13050949830f90fe5c741b31b4645d6a63690695662632008a",
   "publisherCode": "hkgov-had",
   "code": "ds-hk-hkgov-had-division-area-district",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "as-needed",
   "theme": "divisions",
+  "sourceCrs": "EPSG:4326",
   "resourceTypes": ["divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Home Affairs Department.",

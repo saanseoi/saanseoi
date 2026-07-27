@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:ce19f3befdca78a99b369f0a7d46d3bb2a0c37c0e4cfb1a2fe0dde30a2685f41",
+  "versionHash": "sha256:7c54f3c9df5b391f18ad240f3855c15cc018d4fd8171125750cd452ceb5e3900",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
@@ -7,6 +7,7 @@
   "releaseFrequency": "census",
   "theme": "divisions",
   "sourceVariant": "hkgov-pland-pu",
+  "sourceCrs": "EPSG:4326",
   "resourceTypes": ["division", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Planning Department.",
