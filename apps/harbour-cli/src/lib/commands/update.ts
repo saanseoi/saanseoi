@@ -158,7 +158,10 @@ export async function runUpdateCommand(
     planned.push({ dataset, duePhases, targetVersions, updates })
   }
 
-  for (const phase of ['new-releases', 'revisions', 'archives'] as const) {
+  // Archive evidence must be mirrored before a correction or a new release is
+  // considered for ingestion, so every later action has its publisher bytes
+  // available for review and reproducibility.
+  for (const phase of ['archives', 'revisions', 'new-releases'] as const) {
     const phasePlans = planned
       .map(plan => ({
         ...plan,
@@ -519,6 +522,7 @@ async function processUpdate(
   }
   if (update.status === 'error' || update.status === 'manual') return 'skipped' as const
   if (update.ingest) {
+    if (!shouldIngestUpdate(update)) return 'skipped' as const
     if (options.skipUpload) return 'skipped' as const
     options.row.clear()
     const promptForIngest = !options.skipPrompts
@@ -597,6 +601,10 @@ async function processUpdate(
     },
   )
   return 'downloaded' as const
+}
+
+export function shouldIngestUpdate(update: Pick<DatasetUpdate, 'ingest' | 'status'>) {
+  return update.status === 'new' && Boolean(update.ingest)
 }
 
 export function shouldDownloadUpdate(

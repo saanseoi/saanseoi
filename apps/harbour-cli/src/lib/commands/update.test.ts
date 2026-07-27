@@ -11,6 +11,7 @@ import {
   formatUpdateProgressLine,
   resolveApiFamilySelection,
   resolveTargetVersion,
+  shouldIngestUpdate,
   shouldDownloadUpdate,
   wrapUpdateMessage,
 } from './update.ts'
@@ -220,6 +221,13 @@ test('allows a current download-backed release to be explicitly re-downloaded', 
   expect(shouldDownloadUpdate(current)).toBe(false)
   expect(shouldDownloadUpdate(current, true)).toBe(true)
   expect(shouldDownloadUpdate({ status: 'current' }, true)).toBe(false)
+})
+
+test('does not ingest an unchanged release merely because its adapter has an ingest handler', () => {
+  const ingest = async () => undefined
+
+  expect(shouldIngestUpdate({ ingest, status: 'current' })).toBe(false)
+  expect(shouldIngestUpdate({ ingest, status: 'new' })).toBe(true)
 })
 
 test('keeps the dataset context and release position while downloading a batch', () => {

@@ -318,6 +318,7 @@ async function runReleaseDocsNewCommand(args: ParsedArgs, target: UploadTarget) 
     regionCode: selectedRelease.regionCode,
     source: selectedRelease.source,
     sourceVersion: selectedRelease.sourceVersion,
+    releaseVersion: releaseVersionFromSourceVersion(selectedRelease.sourceVersion),
     sourceSchemaVersion: selectedRelease.sourceSchemaVersion ?? '',
     type: selectedRelease.type,
     cohortKey: selectedRelease.cohortKey ?? '',
@@ -928,8 +929,13 @@ function frontmatterForReleaseRow(row: ReleaseDocsRow): Record<string, string> {
     source: row.source,
     sourceSchemaVersion: row.sourceSchemaVersion ?? '',
     sourceVersion: row.sourceVersion,
+    releaseVersion: releaseVersionFromSourceVersion(row.sourceVersion),
     type: row.type,
   }
+}
+
+export function releaseVersionFromSourceVersion(sourceVersion: string) {
+  return /\.\d+$/.test(sourceVersion) ? sourceVersion : `${sourceVersion}.0`
 }
 
 function parseSimpleYaml(value: string) {
