@@ -889,7 +889,7 @@ async function writeGeometryRows(
     if (!isCenstatdDerivative) {
       sourceHashes.set(
         row.source.sourceRecordId,
-        await hashDivisionGeometrySourceRow(row.source),
+        await hashGeometrySourceAssertion(row.source, version.source),
       )
     }
   }
@@ -1014,7 +1014,7 @@ async function writeGeometryRows(
                         ),
                       }
                     : {}),
-            versionHash: await hashDivisionGeometrySourceRow(row.source),
+            versionHash: await hashGeometrySourceAssertion(row.source, version.source),
             releaseId: version.releaseId,
             validFromRelease: version.releaseCode,
             validToRelease: null,
@@ -1112,6 +1112,19 @@ function requirePlanningDivisionId(row: NonNullable<NormalisedGeometry>) {
     )
   }
   return divisionId
+}
+
+function hashGeometrySourceAssertion(
+  row: NonNullable<NormalisedGeometry>['source'],
+  source: GeometryUploadPlan['source'],
+) {
+  if (source !== 'hkgov-censtatd') return hashDivisionGeometrySourceRow(row)
+
+  // The bridge-derived canonical division relationship is needed to write the
+  // canonical geometry, but it is neither C&SD evidence nor part of the
+  // source assertion's identity.
+  const { derivation: _derivation, divisionId: _divisionId, ...sourceAssertion } = row
+  return hashDivisionGeometrySourceRow(sourceAssertion)
 }
 
 function readNewTownName(

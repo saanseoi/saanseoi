@@ -202,6 +202,13 @@ describe('division geometry normalisation', () => {
         division_id: 'division-1',
         geometry: polygon,
         id: 'CENSTATD:A',
+        source_geometry: polygon,
+        source_properties: {
+          dc: 11,
+          dc_chi: '中西區',
+          dc_class: 'A',
+          dc_eng: 'Central and Western',
+        },
         sources: [{ dataset: 'hkgov-censtatd', districtClass: 'A' }],
       },
       'hkgov-censtatd',
@@ -218,6 +225,16 @@ describe('division geometry normalisation', () => {
     })
     expect(normalised.canonical.sources).toEqual({
       hkgovCenstatd: [{ dataset: 'hkgov-censtatd', districtClass: 'A' }],
+    })
+    expect(normalised.source.rawProperties).toEqual({
+      dc: 11,
+      dc_chi: '中西區',
+      dc_class: 'A',
+      dc_eng: 'Central and Western',
+    })
+    expect(normalised.source.derivation).toEqual({
+      method: 'topology-preserving-simplification',
+      toleranceMetres: 10,
     })
   })
 
