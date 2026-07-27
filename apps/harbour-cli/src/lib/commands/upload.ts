@@ -38,6 +38,7 @@ import { processLocalStreetSqlUpload } from '../streetSql/processLocalStreetSqlU
 import { processLocalDivisionSqlUpload } from '../divisionSql/processLocalDivisionSqlUpload.ts'
 import { processLocalHkgovPlandDivisionSqlUpload } from '../divisionSql/processLocalHkgovPlandDivisionSqlUpload.ts'
 import { processLocalDivisionGeometrySqlUpload } from '../divisionSql/processLocalDivisionGeometrySqlUpload.ts'
+import { processLocalHkgovCenstatdDistrictStatisticSqlUpload } from '../statisticsSql/processLocalHkgovCenstatdDistrictStatisticSqlUpload.ts'
 import {
   buildRegisterOptions,
   type ParsedArgs,
@@ -534,6 +535,38 @@ ${mutedBar}  `)
         return
       }
 
+      if (processingStrategy.mode === 'local-hkgov-censtatd-statistic-sql') {
+        if (!preparedUploadFile) {
+          throw new Error('Expected a prepared upload file for local SQL processing.')
+        }
+        if (
+          previewResult.plan.type !== 'divisionStatistic' ||
+          previewResult.plan.theme !== 'stats' ||
+          previewResult.plan.source !== 'hkgov-censtatd'
+        ) {
+          throw new Error(
+            'C&SD statistic SQL processing requires its district statistic dataset.',
+          )
+        }
+        await processLocalHkgovCenstatdDistrictStatisticSqlUpload(
+          target,
+          {
+            cohortKey: previewResult.plan.cohortKey,
+            regionCode: previewResult.plan.regionCode,
+            releaseCode: previewResult.plan.releaseCode,
+            rowCount: previewResult.plan.rowCount,
+            source: 'hkgov-censtatd',
+            sourceVersion: previewResult.plan.sourceVersion,
+            theme: 'stats',
+            type: 'divisionStatistic',
+          },
+          uploadResult,
+          preparedUploadFile,
+        )
+        if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
+        return
+      }
+
       throw new Error(
         `No local SQL upload processor is available for ${previewResult.plan.source}/${previewResult.plan.type}.`,
       )
@@ -680,6 +713,14 @@ function inferCenstatdSourceVersion(filePath: string) {
 function resolveUploadProcessingStrategy(
   previewResult: Awaited<ReturnType<typeof prepareUpload>>,
 ) {
+  if (
+    previewResult.plan.type === 'divisionStatistic' &&
+    previewResult.plan.theme === 'stats' &&
+    previewResult.plan.source === 'hkgov-censtatd'
+  ) {
+    return { mode: 'local-hkgov-censtatd-statistic-sql' as const }
+  }
+
   if (
     previewResult.plan.type === 'address' &&
     previewResult.plan.theme === 'addresses'

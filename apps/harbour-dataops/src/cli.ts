@@ -13,6 +13,7 @@ function printUsage() {
   bun run dataops -- hkgov-dpo:backfill-local <ALS-source-root> --target local --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes]
   bun run dataops -- hkgov-pland:prepare <GeoJSON> [--kind tpu|new-town] [--source-version YYYY] [--out-dir PATH]
   bun run dataops -- hkgov-pland:backfill --kind pu|new-town --target local|preview|production [--continue]
+  bun run dataops -- hkgov-censtatd:district-land-area-population-density --target local --source-version 2022|2024
   bun run dataops -- hkgov-landsd-streets:baseline --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
   bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
   bun run dataops -- hkgov-landsd-streets:official-egazette --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
@@ -74,6 +75,13 @@ async function main() {
         kind,
         printUsage,
       )
+      return
+    }
+    case 'hkgov-censtatd:district-land-area-population-density': {
+      const { runHkgovCenstatdDistrictStatisticIngestCommand } = await import(
+        './commands/hkgovCenstatdDistrictStatistics.ts'
+      )
+      await runHkgovCenstatdDistrictStatisticIngestCommand(args, target, printUsage)
       return
     }
     case 'hkgov-landsd-streets:baseline':

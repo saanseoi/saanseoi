@@ -145,6 +145,7 @@ export type DatasetFixture = {
   publisherCode: string
   regionCode: string
   sourceUrl?: string
+  schemaSpecificationURL?: string | null
   publisherReleaseFrequency?: string
   updatePolicy?: DatasetUpdatePolicy
   releasePolicy?: DatasetReleasePolicy
