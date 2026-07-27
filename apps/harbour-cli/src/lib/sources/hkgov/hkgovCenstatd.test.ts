@@ -163,13 +163,13 @@ describe('C&SD district GML preparation', () => {
         district_class: 'A',
         geometry: { type: 'Polygon' },
         id: 'CENSTATD:A',
-        i18n: [
-          { locale: 'en', name: 'District 1' },
-          { locale: 'zh-hant', name: '地區1' },
-        ],
         source_geometry: { type: 'MultiPolygon' },
-        source_feature: { type: 'GML32Feature' },
-        source_properties: { dc_class: 'A', sdu_pop: '0' },
+        source_properties: {
+          dc_chi: '地區1',
+          dc_class: 'A',
+          dc_eng: 'District 1',
+          sdu_pop: '0',
+        },
         sources: [
           {
             dataset: 'hkgov-censtatd',
@@ -180,6 +180,8 @@ describe('C&SD district GML preparation', () => {
           },
         ],
       })
+      expect(displayRows[0]).not.toHaveProperty('i18n')
+      expect(displayRows[0]).not.toHaveProperty('source_feature')
 
       await writeFile(
         inputFile,
