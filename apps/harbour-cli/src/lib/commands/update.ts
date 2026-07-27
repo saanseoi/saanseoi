@@ -13,15 +13,23 @@ import {
 import {
   type DatasetFixture,
   type UpdateStateEntry,
+  getDueUpdatePhases,
   loadDatasetFixtures,
   lookupDatasetUpdates,
+  normaliseDatasetVersion,
+  recordUpdatePhaseCheck,
   recordUpdateState,
   readUpdateState,
-  shouldCheckDataset,
   writeUpdateState,
 } from '../sources/sourceUpdates.ts'
 
 type DatasetUpdate = Awaited<ReturnType<typeof lookupDatasetUpdates>>[number]
+type PlannedDatasetUpdates = {
+  dataset: DatasetFixture
+  duePhases: ReturnType<typeof getDueUpdatePhases>
+  targetVersions: Map<string, string | null>
+  updates: DatasetUpdate[]
+}
 
 const UPDATE_LINE_WIDTH = 120
 const CLACK_STATUS_PREFIX_WIDTH = 3
@@ -69,17 +77,9 @@ export async function runUpdateCommand(
     args.options.force === true || args.options['check-now'] === true || forceDownload
   const errors: string[] = []
   let reportedTargetLookupFailure = false
+  const planned: PlannedDatasetUpdates[] = []
 
   for (const dataset of selectedDatasets) {
-    const row = new UpdateRow(dataset)
-    const renderedUpdates = new Set<DatasetUpdate>()
-    row.start('checking current')
-
-    if (!shouldCheckDataset(dataset, state[dataset.code], forceCheck)) {
-      row.finish('SKIPPED', undefined, null)
-      continue
-    }
-
     let targetVersions: Map<string, string | null>
     try {
       targetVersions = await fetchTargetVersions(target, dataset, state[dataset.code])
@@ -93,66 +93,88 @@ export async function runUpdateCommand(
       targetVersions = new Map()
     }
 
-    row.message('checking latest')
+    const duePhases = getDueUpdatePhases(dataset, state[dataset.code], {
+      force: forceCheck,
+      hasTargetRelease: [...targetVersions.values()].some(version => version !== null),
+    })
+    if (duePhases.length === 0) {
+      const row = new UpdateRow(dataset)
+      row.start('checking current')
+      row.finish('SKIPPED', undefined, null)
+      continue
+    }
+
     const updates = await lookupDatasetUpdates(
       dataset,
       state[dataset.code],
       targetVersions,
-      forceCheck,
+      // Phase scheduling has already decided that this source is due. The
+      // previous single-cadence throttle must not suppress that decision.
+      true,
     )
-
-    for (const [updateIndex, update] of updates.entries()) {
-      const sourceKey = update.sourceKey ?? dataset.code
-      const targetVersion =
-        targetVersions.get(sourceKey) ??
-        targetVersions.get(update.targetSourceKey ?? dataset.code)
-      update.targetVersion = targetVersion
-      const deferStateUntilProcessed = Boolean(
-        update.archive || update.deferStateUntilProcessed,
-      )
-      if (!deferStateUntilProcessed) recordUpdateState(state, dataset.code, update)
-
-      try {
-        const result = await processUpdate(update, {
-          printUsage,
-          row,
-          shouldDownload,
-          forceDownload,
-          skipPrompts,
-          skipUpload,
-          target,
-          targetVersion: targetVersion ?? undefined,
-          updateIndex,
-          updateTotal: updates.length,
+    if (!updates.some(update => update.status === 'error')) {
+      const checkedAt = new Date().toISOString()
+      const latest = updates
+        .filter(update => update.releaseLastRevisedAt)
+        .sort((left, right) =>
+          (left.releaseLastRevisedAt ?? '').localeCompare(
+            right.releaseLastRevisedAt ?? '',
+          ),
+        )
+        .at(-1)
+      for (const phase of duePhases) {
+        recordUpdatePhaseCheck(state, dataset.code, phase, {
+          checkedAt,
+          releaseLastRevisedAt: latest?.releaseLastRevisedAt,
+          sourceCursor: latest?.sourceCursor,
         })
-        if (result === 'ingested' && update.version) {
-          targetVersions.set(sourceKey, update.version)
-        }
-        if (
-          deferStateUntilProcessed &&
-          (result === 'ingested' ||
-            result === 'mirrored' ||
-            update.status === 'current')
-        ) {
-          recordUpdateState(state, dataset.code, update)
-        }
-        if (result === 'downloaded' || result === 'mirrored') {
-          renderedUpdates.add(update)
-        }
-        if (update.status === 'error' && update.message) {
-          errors.push(`${dataset.code}: ${update.message}`)
-        }
-      } catch (error) {
-        if (error instanceof Error && error.message === 'Update cancelled.') {
-          throw error
-        }
-        const message = error instanceof Error ? error.message : String(error)
-        errors.push(`${dataset.code}: ${message}`)
+      }
+
+      const archiveCheck = dataset.releasePolicy?.checks.archives
+      const discoveredNewRelease = updates.some(
+        update => update.status === 'new' && !update.archive,
+      )
+      const initialDownload = ![...targetVersions.values()].some(
+        version => version !== null,
+      )
+      if (
+        archiveCheck?.trigger === 'on-discovery' &&
+        ((archiveCheck.includeInitialDownload && initialDownload) ||
+          (archiveCheck.discoveries.includes('new-release') && discoveredNewRelease))
+      ) {
+        recordUpdatePhaseCheck(state, dataset.code, 'archives', {
+          checkedAt,
+          releaseLastRevisedAt: latest?.releaseLastRevisedAt,
+          sourceCursor: latest?.sourceCursor,
+        })
       }
     }
-    const unrenderedUpdates = updates.filter(update => !renderedUpdates.has(update))
-    if (unrenderedUpdates.length > 0) {
-      row.finishUpdates(unrenderedUpdates, targetVersions)
+    planned.push({ dataset, duePhases, targetVersions, updates })
+  }
+
+  for (const phase of ['new-releases', 'revisions', 'archives'] as const) {
+    const phasePlans = planned
+      .map(plan => ({
+        ...plan,
+        updates: plan.updates.filter(update =>
+          updateBelongsToPhase(update, plan.duePhases, phase),
+        ),
+      }))
+      .filter(plan => plan.updates.length > 0)
+    if (phasePlans.length === 0) continue
+
+    log.message(`${phaseHeading(phase)}`, { spacing: 1 })
+    for (const plan of phasePlans) {
+      await processPlannedUpdates(plan, {
+        errors,
+        forceDownload,
+        printUsage,
+        shouldDownload,
+        skipPrompts,
+        skipUpload,
+        state,
+        target,
+      })
     }
   }
 
@@ -172,6 +194,103 @@ export async function runUpdateCommand(
       ? colorFamilyLabel('API family', 'all')
       : colorFamilyLabel(familyLabel(selectedFamily), selectedFamily)
   outro(`Checked all ${family} datasets for new releases`)
+}
+
+function phaseHeading(phase: 'new-releases' | 'revisions' | 'archives') {
+  return {
+    'new-releases': 'NEW RELEASES',
+    revisions: 'NEW REVISIONS',
+    archives: 'ARCHIVES',
+  }[phase]
+}
+
+function updateBelongsToPhase(
+  update: DatasetUpdate,
+  duePhases: readonly string[],
+  phase: 'new-releases' | 'revisions' | 'archives',
+) {
+  if (update.archive) return phase === 'archives'
+  if (phase === 'archives') return false
+  if (update.status === 'review') return phase === 'revisions'
+  if (
+    phase === 'revisions' &&
+    !duePhases.includes('new-releases') &&
+    duePhases.includes('revisions')
+  ) {
+    return true
+  }
+  return phase === 'new-releases'
+}
+
+async function processPlannedUpdates(
+  plan: PlannedDatasetUpdates,
+  options: {
+    errors: string[]
+    forceDownload: boolean
+    printUsage: () => void
+    shouldDownload: boolean
+    skipPrompts: boolean
+    skipUpload: boolean
+    state: Record<string, UpdateStateEntry>
+    target: UploadTarget
+  },
+) {
+  const row = new UpdateRow(plan.dataset)
+  const renderedUpdates = new Set<DatasetUpdate>()
+  row.start('checking current')
+
+  for (const [updateIndex, update] of plan.updates.entries()) {
+    const sourceKey = update.sourceKey ?? plan.dataset.code
+    const targetVersion =
+      plan.targetVersions.get(sourceKey) ??
+      plan.targetVersions.get(update.targetSourceKey ?? plan.dataset.code)
+    update.targetVersion = targetVersion
+    const deferStateUntilProcessed = Boolean(
+      update.archive || update.deferStateUntilProcessed,
+    )
+    if (!deferStateUntilProcessed) {
+      recordUpdateState(options.state, plan.dataset.code, update)
+    }
+
+    try {
+      const result = await processUpdate(update, {
+        forceDownload: options.forceDownload,
+        printUsage: options.printUsage,
+        row,
+        shouldDownload: options.shouldDownload,
+        skipPrompts: options.skipPrompts,
+        skipUpload: options.skipUpload,
+        target: options.target,
+        targetVersion: targetVersion ?? undefined,
+        updateIndex,
+        updateTotal: plan.updates.length,
+      })
+      if (result === 'ingested' && update.version) {
+        plan.targetVersions.set(sourceKey, update.version)
+      }
+      if (
+        deferStateUntilProcessed &&
+        (result === 'ingested' || result === 'mirrored' || update.status === 'current')
+      ) {
+        recordUpdateState(options.state, plan.dataset.code, update)
+      }
+      if (result === 'downloaded' || result === 'mirrored') {
+        renderedUpdates.add(update)
+      }
+      if (update.status === 'error' && update.message) {
+        options.errors.push(`${plan.dataset.code}: ${update.message}`)
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Update cancelled.') throw error
+      const message = error instanceof Error ? error.message : String(error)
+      options.errors.push(`${plan.dataset.code}: ${message}`)
+    }
+  }
+
+  const unrenderedUpdates = plan.updates.filter(update => !renderedUpdates.has(update))
+  if (unrenderedUpdates.length > 0) {
+    row.finishUpdates(unrenderedUpdates, plan.targetVersions)
+  }
 }
 
 export async function resolveApiFamilySelection(
@@ -285,7 +404,10 @@ async function fetchTargetVersions(
           .map(row => row.sourceVersion)
           .filter(version => versionMatchesSourceRelease(version, releaseSourceVersion))
       : report.rows.map(row => row.sourceVersion)
-    const targetVersion = latestVersion(matchingVersions) ?? fallback ?? null
+    const resolvedTargetVersion = latestVersion(matchingVersions) ?? fallback
+    const targetVersion = resolvedTargetVersion
+      ? normaliseDatasetVersion(dataset, resolvedTargetVersion)
+      : null
 
     targetVersions.set(sourceKey || `release-${index}`, targetVersion)
   }
@@ -379,6 +501,7 @@ async function processUpdate(
 
   if (update.archive) {
     const prepared = await loadPreparedSourceArchive(path)
+    await update.recordIdenticalArchive?.(prepared.manifest.original.sha256)
     await mirrorCsdiSourceArchive(options.target, update.archive, prepared)
     return 'mirrored' as const
   }

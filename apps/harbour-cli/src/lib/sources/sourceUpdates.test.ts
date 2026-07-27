@@ -11,11 +11,14 @@ import {
   buildOverturistCommand,
   datasetCorrectionSuffixSources,
   datasetName,
+  getDueUpdatePhases,
   isNewUpdate,
   isUpdateCheckDue,
   lookupDatasetUpdates,
   loadDatasetFixtures,
+  normaliseDatasetVersion,
   recordUpdateState,
+  recordUpdatePhaseCheck,
   readCsdiArchivedSources,
   resolveDatasetVersion,
   shouldCheckDataset,
@@ -108,6 +111,87 @@ describe('dataset update registry', () => {
     ).toBe(true)
   })
 
+  test('schedules each update phase from its own policy state', () => {
+    const dataset = {
+      code: 'ds-example',
+      publisherCode: 'example',
+      regionCode: 'hk',
+      theme: 'places',
+      type: 'place',
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
+      releasePolicy: {
+        series: 'rolling',
+        schedule: 'regular',
+        revisionScope: 'latest',
+        checks: {
+          newReleases: {
+            trigger: 'after-latest-release-age',
+            ageDays: 25,
+            frequency: 'daily',
+          },
+          revisions: { trigger: 'periodic', frequency: 'weekly' },
+          archives: { trigger: 'on-discovery', discoveries: ['new-release'] },
+        },
+        archives: { availability: 'limited' },
+      },
+    } satisfies DatasetFixture
+    const state: UpdateStateEntry = {
+      phaseChecks: {
+        'new-releases': {
+          lastChecked: '2026-07-20T00:00:00.000Z',
+          releaseLastRevisedAt: '2026-07-01.0',
+        },
+        revisions: { lastChecked: '2026-07-20T00:00:00.000Z' },
+      },
+    }
+
+    expect(
+      getDueUpdatePhases(dataset, state, {
+        now: Date.parse('2026-07-26T00:00:00.000Z'),
+      }),
+    ).toEqual(['new-releases'])
+
+    const mutableState: Record<string, UpdateStateEntry> = {}
+    recordUpdatePhaseCheck(mutableState, dataset.code, 'archives', {
+      checkedAt: '2026-07-26T00:00:00.000Z',
+      sourceCursor: ['2026-07-26.0'],
+    })
+    expect(mutableState[dataset.code]?.phaseChecks?.archives).toEqual({
+      lastChecked: '2026-07-26T00:00:00.000Z',
+      releaseLastRevisedAt: undefined,
+      sourceCursor: ['2026-07-26.0'],
+    })
+  })
+
+  test('runs initial-only phases only before the target has a release', () => {
+    const dataset = {
+      code: 'ds-example',
+      publisherCode: 'example',
+      regionCode: 'hk',
+      theme: 'places',
+      type: 'place',
+      versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
+      releasePolicy: {
+        series: 'cohort',
+        schedule: 'regular',
+        revisionScope: 'all',
+        checks: {
+          newReleases: { trigger: 'initial-only' },
+          revisions: { trigger: 'never' },
+          archives: { trigger: 'never' },
+        },
+        archives: { availability: 'full' },
+      },
+    } satisfies DatasetFixture
+
+    expect(getDueUpdatePhases(dataset, undefined, { hasTargetRelease: false })).toEqual(
+      ['new-releases'],
+    )
+    expect(getDueUpdatePhases(dataset, undefined, { hasTargetRelease: true })).toEqual(
+      [],
+    )
+  })
+
   test('honours an explicit update freeze', () => {
     const dataset = {
       code: 'ds-example',
@@ -131,6 +215,17 @@ describe('dataset update registry', () => {
       type: 'place',
       versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
       updatePolicy: { allowUpdates: true, checkFrequency: 'monthly' as const },
+      releasePolicy: {
+        series: 'cohort',
+        schedule: 'regular',
+        revisionScope: 'all',
+        checks: {
+          newReleases: { trigger: 'periodic', frequency: 'monthly' },
+          revisions: { trigger: 'never' },
+          archives: { trigger: 'never' },
+        },
+        archives: { availability: 'none' },
+      },
       releases: [
         { sourceVersion: '2021', sourceUrl: 'https://example.test/2021' },
         { sourceVersion: '2026', sourceUrl: 'https://example.test/2026' },
@@ -377,13 +472,13 @@ describe('dataset update registry', () => {
 
       expect(updates).toEqual([
         expect.objectContaining({
-          sourceKey: 'identical:2021.0',
+          sourceKey: 'archive-summary:2021',
           status: 'current',
           targetSourceKey: '2021',
           version: '2021.0',
         }),
         expect.objectContaining({
-          sourceKey: 'identical:2016.0',
+          sourceKey: 'archive-summary:2016',
           status: 'current',
           targetSourceKey: '2016',
           version: '2016.0',
@@ -529,6 +624,175 @@ describe('dataset update registry', () => {
         }),
       )
       expect(update).not.toHaveProperty('version')
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  test('versions quarterly CSDI releases and corrections from their archive slot', async () => {
+    const originalFetch = globalThis.fetch
+    const previousSourceObjectHash = 'a'.repeat(64)
+    const sourceObjectHash = 'b'.repeat(64)
+    globalThis.fetch = Object.assign(
+      async () =>
+        Response.json({
+          archivedDatasetVersionList: [
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${sourceObjectHash}`,
+                },
+              ],
+              quarter: 4,
+              year: 2025,
+            },
+          ],
+        }),
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const dataset = {
+        code: 'ds-hk-hkgov-hyd-street',
+        publisherCode: 'hkgov-hyd',
+        regionCode: 'hk',
+        sourceUrl:
+          'https://portal.csdi.gov.hk/geoportal/?datasetId=hyd_rcd_1632211119955_31211',
+        theme: 'streets',
+        resourceTypes: ['street'],
+        versionPolicy: { scheme: 'quarterly', correctionSuffixSource: 'generated' },
+      } satisfies DatasetFixture
+      const sourceKey = 'archive:hyd_rcd_1632211119955_31211:2025-Q4'
+      const previous = {
+        sourceChecks: {
+          [sourceKey]: {
+            version: '2025-Q4.0',
+            versionKey: `sha256:${previousSourceObjectHash}`,
+          },
+        },
+      }
+
+      const [update] = await lookupDatasetUpdates(
+        dataset,
+        previous,
+        new Map([[dataset.code, '2025-Q4.0']]),
+        true,
+      )
+      expect(update).toEqual(
+        expect.objectContaining({ status: 'new', version: '2025-Q4.1' }),
+      )
+
+      const [current] = await lookupDatasetUpdates(
+        dataset,
+        {
+          sourceChecks: {
+            [sourceKey]: {
+              version: '2025-Q4.1',
+              versionKey: `sha256:${sourceObjectHash}`,
+            },
+          },
+        },
+        new Map([[dataset.code, '2025-Q4.1']]),
+        true,
+      )
+      expect(current).toEqual(
+        expect.objectContaining({ status: 'current', version: '2025-Q4.1' }),
+      )
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  test('normalises quarterly target dates to their calendar-quarter release', () => {
+    const dataset = {
+      code: 'ds-hk-hkgov-hyd-street',
+      publisherCode: 'hkgov-hyd',
+      regionCode: 'hk',
+      theme: 'streets',
+      resourceTypes: ['street'],
+      versionPolicy: { scheme: 'quarterly', correctionSuffixSource: 'generated' },
+    } satisfies DatasetFixture
+
+    expect(normaliseDatasetVersion(dataset, '2026-06-16')).toBe('2026-Q2.0')
+    expect(normaliseDatasetVersion(dataset, '2026-Q3')).toBe('2026-Q3.0')
+  })
+
+  test('collapses current CSDI archive slots for the same source release', async () => {
+    const originalFetch = globalThis.fetch
+    const firstSourceObjectHash = 'a'.repeat(64)
+    const secondSourceObjectHash = 'b'.repeat(64)
+    globalThis.fetch = Object.assign(
+      async () =>
+        Response.json({
+          archivedDatasetVersionList: [
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${firstSourceObjectHash}`,
+                },
+              ],
+              quarter: 4,
+              year: 2025,
+            },
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${secondSourceObjectHash}`,
+                },
+              ],
+              quarter: 2,
+              year: 2026,
+            },
+          ],
+        }),
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const dataset = {
+        code: 'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        publisherCode: 'hkgov-censtatd',
+        regionCode: 'hk',
+        sourceUrl:
+          'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635934545173_69201',
+        theme: 'stats',
+        resourceTypes: ['divisionStatistic'],
+        versionPolicy: {
+          scheme: 'reference-year',
+          releaseField: 'sourceVersion',
+          correctionSuffixSource: 'generated',
+        },
+        releases: [{ sourceVersion: '2021' }],
+      } satisfies DatasetFixture
+      const sourceKey = 'archive:censtatd_rcd_1635934545173_69201'
+      const updates = await lookupDatasetUpdates(
+        dataset,
+        {
+          sourceChecks: {
+            [`${sourceKey}:2025-Q4`]: {
+              versionKey: `sha256:${firstSourceObjectHash}`,
+            },
+            [`${sourceKey}:2026-Q2`]: {
+              versionKey: `sha256:${secondSourceObjectHash}`,
+            },
+          },
+        },
+        new Map([['2021', '2021.0']]),
+        true,
+      )
+
+      expect(updates).toEqual([
+        expect.objectContaining({
+          sourceKey: 'archive-summary:2021',
+          status: 'current',
+          targetSourceKey: '2021',
+          version: '2021.0',
+        }),
+      ])
+      expect(updates[0]?.archive).toBeUndefined()
     } finally {
       globalThis.fetch = originalFetch
     }
@@ -681,12 +945,26 @@ describe('dataset update registry', () => {
             'initial-release-date',
             'reference-date',
             'release-date',
+            'quarterly',
             'upstream',
             'reference-year',
           ].includes(fixture.versionPolicy.scheme) &&
           datasetCorrectionSuffixSources.includes(
             fixture.versionPolicy.correctionSuffixSource,
           ),
+      ),
+    ).toBe(true)
+  })
+
+  test('registers a three-phase release policy for every dataset fixture', async () => {
+    const fixtures = await loadDatasetFixtures()
+
+    expect(
+      fixtures.every(
+        fixture =>
+          fixture.releasePolicy?.checks.newReleases &&
+          fixture.releasePolicy.checks.revisions &&
+          fixture.releasePolicy.checks.archives,
       ),
     ).toBe(true)
   })
@@ -806,6 +1084,159 @@ describe('dataset update registry', () => {
       revisionScope: 'all',
       schedule: 'regular',
       series: 'cohort',
+    })
+  })
+
+  test('records C&SD statistics as initial-only cohorts with revision archive scans', async () => {
+    const datasets = await loadDatasetFixtures()
+    const statistics = datasets.filter(
+      dataset =>
+        dataset.publisherCode === 'hkgov-censtatd' && dataset.theme === 'stats',
+    )
+
+    expect(statistics).toHaveLength(8)
+    expect(
+      statistics.every(
+        dataset =>
+          dataset.releasePolicy?.series === 'cohort' &&
+          dataset.releasePolicy.schedule === 'regular' &&
+          dataset.releasePolicy.revisionScope === 'all' &&
+          dataset.releasePolicy.checks.newReleases.trigger === 'initial-only' &&
+          dataset.releasePolicy.checks.revisions.trigger === 'periodic' &&
+          dataset.releasePolicy.checks.revisions.frequency === 'weekly' &&
+          dataset.releasePolicy.checks.archives.trigger === 'on-discovery' &&
+          dataset.releasePolicy.checks.archives.includeInitialDownload === true &&
+          dataset.releasePolicy.archives.availability === 'full' &&
+          dataset.releasePolicy.archives.operation === 'csdi-archived-dataset',
+      ),
+    ).toBe(true)
+  })
+
+  test('records HAD districts as a revisable irregular rolling series', async () => {
+    const [dataset] = await loadDatasetFixtures(
+      new Set(['ds-hk-hkgov-had-division-area-district']),
+    )
+
+    expect(dataset?.releasePolicy).toEqual({
+      archives: {
+        availability: 'full',
+        entryUrl:
+          'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218',
+        operation: 'csdi-archived-dataset',
+      },
+      checks: {
+        archives: { discoveries: ['new-release'], trigger: 'on-discovery' },
+        newReleases: { frequency: 'monthly', trigger: 'periodic' },
+        revisions: { frequency: 'weekly', trigger: 'periodic' },
+      },
+      revisionScope: 'latest',
+      schedule: 'irregular',
+      series: 'rolling',
+    })
+  })
+
+  test('records HyD and TD streets as quarterly rolling series', async () => {
+    const datasets = await loadDatasetFixtures()
+    const streets = datasets.filter(
+      dataset =>
+        dataset.theme === 'streets' &&
+        [
+          'ds-hk-hkgov-hyd-street',
+          'ds-hk-hkgov-hyd-strategic-street',
+          'ds-hk-hkgov-hyd-sensitive-street',
+          'ds-hk-hkgov-hyd-pedestrian-street',
+        ].includes(dataset.code),
+    )
+
+    expect(streets).toHaveLength(4)
+    expect(
+      streets.every(
+        dataset =>
+          dataset.releasePolicy?.series === 'rolling' &&
+          dataset.releasePolicy.schedule === 'regular' &&
+          dataset.releasePolicy.revisionScope === 'latest' &&
+          dataset.releasePolicy.checks.newReleases.trigger ===
+            'after-latest-release-age' &&
+          dataset.releasePolicy.checks.newReleases.ageDays === 90 &&
+          dataset.releasePolicy.checks.newReleases.frequency === 'daily' &&
+          dataset.releasePolicy.checks.revisions.trigger === 'periodic' &&
+          dataset.releasePolicy.checks.revisions.frequency === 'weekly' &&
+          dataset.releasePolicy.checks.archives.trigger === 'on-discovery' &&
+          dataset.releasePolicy.checks.archives.discoveries.includes('new-release') &&
+          dataset.releasePolicy.checks.archives.includeInitialDownload === true &&
+          dataset.releasePolicy.archives.availability === 'full' &&
+          dataset.releasePolicy.archives.operation === 'csdi-archived-dataset',
+      ),
+    ).toBe(true)
+  })
+
+  test('records LandsD divisions as initial-only cohorts with revision archive scans', async () => {
+    const [dataset] = await loadDatasetFixtures(
+      new Set(['ds-hk-hkgov-landsd-division']),
+    )
+
+    expect(dataset?.releasePolicy).toEqual({
+      archives: {
+        availability: 'full',
+        entryUrl:
+          'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=landsd_rcd_1648571595120_89752',
+        operation: 'csdi-archived-dataset',
+      },
+      checks: {
+        archives: {
+          discoveries: ['revision'],
+          includeInitialDownload: true,
+          trigger: 'on-discovery',
+        },
+        newReleases: { trigger: 'initial-only' },
+        revisions: { frequency: 'weekly', trigger: 'periodic' },
+      },
+      revisionScope: 'all',
+      schedule: 'regular',
+      series: 'cohort',
+    })
+  })
+
+  test('records the two LandsD street series separately', async () => {
+    const datasets = await loadDatasetFixtures(
+      new Set(['ds-hk-hkgov-landsd-road-centreline', 'ds-hk-hkgov-landsd-street']),
+    )
+    const centreline = datasets.find(
+      dataset => dataset.code === 'ds-hk-hkgov-landsd-road-centreline',
+    )
+    const notices = datasets.find(
+      dataset => dataset.code === 'ds-hk-hkgov-landsd-street',
+    )
+
+    expect(centreline?.releasePolicy).toMatchObject({
+      archives: { availability: 'full', operation: 'csdi-archived-dataset' },
+      checks: {
+        archives: {
+          discoveries: ['new-release'],
+          includeInitialDownload: true,
+          trigger: 'on-discovery',
+        },
+        newReleases: {
+          ageDays: 28,
+          frequency: 'daily',
+          trigger: 'after-latest-release-age',
+        },
+        revisions: { frequency: 'weekly', trigger: 'periodic' },
+      },
+      revisionScope: 'latest',
+      schedule: 'regular',
+      series: 'rolling',
+    })
+    expect(notices?.releasePolicy).toEqual({
+      archives: { availability: 'none' },
+      checks: {
+        archives: { trigger: 'never' },
+        newReleases: { frequency: 'weekly', trigger: 'periodic' },
+        revisions: { trigger: 'never' },
+      },
+      revisionScope: 'none',
+      schedule: 'irregular',
+      series: 'rolling',
     })
   })
 
