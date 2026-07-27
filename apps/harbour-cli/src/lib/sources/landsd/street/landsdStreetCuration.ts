@@ -196,6 +196,7 @@ export function resolveLandsdStreetCuration(input: {
   manifest: LandsdStreetCurationManifest
   notices: PairedLandsdStreetNotice[]
   parsedEntries: ReadonlyMap<string, PairedLandsdGovernmentNoticePdfEntry>
+  validateManifestDecisions?: boolean
 }) {
   const reviewable = input.notices.filter(
     (
@@ -211,11 +212,12 @@ export function resolveLandsdStreetCuration(input: {
     input.manifest.decisions.map(item => [item.sourceRecordId, item] as const),
   )
   const IDs = new Set(reviewable.map(notice => notice.id))
-  for (const decision of input.manifest.decisions)
-    if (!IDs.has(decision.sourceRecordId))
-      throw new Error(
-        `LandsD curation ${decision.sourceRecordId} does not identify a change, corrigendum, or intention notice in the current source.`,
-      )
+  if (input.validateManifestDecisions ?? true)
+    for (const decision of input.manifest.decisions)
+      if (!IDs.has(decision.sourceRecordId))
+        throw new Error(
+          `LandsD curation ${decision.sourceRecordId} does not identify a change, corrigendum, or intention notice in the current source.`,
+        )
   const review = reviewable.map(notice => {
     const parsed = input.parsedEntries.get(notice.id)
     const correction = corrigendumCorrectionFor(notice, parsed)

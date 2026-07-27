@@ -14,6 +14,26 @@ test('starts with a versioned application-fixture manifest', () => {
   expect(emptyLandsdStreetCuration()).toEqual({ schemaVersion: 2, decisions: [] })
 })
 
+test('allows a shared curation manifest during a disjoint historical backfill', () => {
+  const result = resolveLandsdStreetCuration({
+    manifest: {
+      schemaVersion: 2,
+      decisions: [
+        {
+          affectedStreetId: '018f0b41-1a00-7000-8000-000000000001',
+          disposition: 'apply',
+          sourceRecordId: 'current-notice',
+        },
+      ],
+    },
+    notices: [],
+    parsedEntries: new Map(),
+    validateManifestDecisions: false,
+  })
+
+  expect(result).toMatchObject({ applied: new Map(), review: [], unresolved: [] })
+})
+
 test('includes Gazette descriptions and exact English baseline candidates in review', () => {
   const notice = {
     governmentNoticeType: 'change',
