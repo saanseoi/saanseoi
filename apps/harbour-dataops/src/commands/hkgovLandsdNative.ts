@@ -43,36 +43,13 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
     district: optionalText(feature.properties.DISTRICT),
     geoNameId: String(feature.id),
     placeClass: requiredText(feature.properties.PLACE_CLASS, 'PLACE_CLASS'),
+    placeNames: feature.placeNames,
     placeType: requiredText(feature.properties.PLACE_TYPE, 'PLACE_TYPE'),
     rawProperties: feature.properties,
     sourceGeometry: feature.geometry,
     sourceRecordId: `LANDSD:PLACE_NAME:${feature.id}`,
     sources: [provenance(input, 'GEO_PLACE_NAME')],
   }))
-  const i18nRows = features.flatMap(feature =>
-    feature.placeNames.flatMap(name => [
-      ...(name.englishName
-        ? [
-            {
-              locale: 'en',
-              name: name.englishName,
-              sourceRecordId: `LANDSD:PLACE_NAME:${feature.id}`,
-              status: name.status,
-            },
-          ]
-        : []),
-      ...(name.traditionalChineseName
-        ? [
-            {
-              locale: 'zh-Hant',
-              name: name.traditionalChineseName,
-              sourceRecordId: `LANDSD:PLACE_NAME:${feature.id}`,
-              status: name.status,
-            },
-          ]
-        : []),
-    ]),
-  )
   await processNativeSourceSqlRelease(target, {
     archiveObjectKey: input.key,
     archivePath: input.archivePath,
@@ -89,12 +66,6 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
         provenance: 'required',
         replaceCurrentRows: true,
         rows,
-      },
-      {
-        name: 'hkgovLandsdPlaceNameI18n',
-        provenance: 'inherited',
-        replaceCurrentRows: true,
-        rows: i18nRows,
       },
     ],
     theme: 'divisions',

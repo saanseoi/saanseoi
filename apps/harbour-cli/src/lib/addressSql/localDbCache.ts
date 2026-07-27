@@ -1374,7 +1374,6 @@ function resolveMirrorTablesForBinding(
         'hkgovCenstatdStatistics',
         'hkgovCenstatdDivisionAreaDerivatives',
         'hkgovLandsdPlaceNames',
-        'hkgovLandsdPlaceNameI18n',
         'hkgovLandsdRoadCentrelines',
         'hkgovLandsdRoadCentrelineI18n',
       ]
