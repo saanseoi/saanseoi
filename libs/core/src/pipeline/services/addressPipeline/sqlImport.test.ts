@@ -106,6 +106,51 @@ describe('HKGov ALS source SQL', () => {
     expect(sourceFile?.sql).toContain("AND i.locale = 'zh-hant')")
     expect(sourceFile?.sql).not.toContain('hkgovAlsAddress2dI18n')
   })
+
+  test('keeps unchanged source records as compact release rows', () => {
+    const sourceFile = buildAddressSourceSqlImportFiles(
+      message,
+      {
+        kind: 'address.normalised.v1',
+        processingRunStartedAt: '2026-07-18T00:00:00.000Z',
+        releaseId: 'release-address',
+        rowEnd: 2,
+        rowStart: 0,
+        rows: [
+          {
+            base: {},
+            canonicalId: 'address-unchanged',
+            i18n: [],
+            matchKey: null,
+            raw: { marker: 'unchanged-payload' },
+            sourceId: 'source-unchanged',
+            sourcePayloadHash: 'unchanged-hash',
+          },
+          {
+            base: {},
+            canonicalId: 'address-changed',
+            i18n: [],
+            matchKey: null,
+            raw: { marker: 'changed-payload' },
+            sourceId: 'source-changed',
+            sourcePayloadHash: 'changed-hash',
+          },
+        ],
+        totalRows: 2,
+      } as unknown as NormalisedAddressChunkArtefact,
+      {
+        changedSourceRecordIds: new Set(['source-changed']),
+        unchangedSourceRecordIds: new Set(['source-unchanged']),
+      },
+    )[0]
+
+    expect(sourceFile?.sql).toContain('stagingAddresses2dReleaseRows')
+    expect(sourceFile?.sql).toContain('source-unchanged')
+    expect(sourceFile?.sql).toContain('source-changed')
+    expect(sourceFile?.sql).not.toContain('unchanged-payload')
+    expect(sourceFile?.sql).toContain('changed-payload')
+    expect(sourceFile?.sql).toContain('FROM stagingAddresses2dReleaseRows releaseRow')
+  })
 })
 
 describe('HKGov ALS identity alias SQL', () => {

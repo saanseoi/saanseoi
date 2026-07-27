@@ -7,9 +7,11 @@ import {
   type CurrentDatabase,
   type HistoryDatabase,
   type MetaDatabase,
+  type SourceDatabase,
 } from '@repo/db'
 
 import { buildAlignAddressCurrentDivisionSnapshotSql } from '../../db/address'
+import { getCurrentSourceHkgovAlsAddress2dRecords } from '../../db/source'
 import type { HarbourWorkerBucket } from '../division'
 import {
   buildPipelineArtefactKey,
@@ -20,6 +22,7 @@ import {
   writeTextArtefact,
 } from '../pipelineArtefacts'
 import { normaliseAddressChunkStage, resolveAddressChunkSize } from './normaliseStage'
+import { dedupeNormalisedAddressRows } from './normalisation'
 import { buildResolvedAddressChunkArtefact } from './historyStage'
 import type {
   AddressPipelineMessage,
@@ -62,6 +65,7 @@ export async function normaliseAddressSqlChunkStage(
 }
 
 export async function writeAddressSourceSqlChunkStage(
+  sourceDb: SourceDatabase,
   bucket: HarbourWorkerBucket & PipelineArtefactBucket,
   message: DatasetProcessingMessage,
 ): Promise<AddressPipelineMessage> {
@@ -75,7 +79,28 @@ export async function writeAddressSourceSqlChunkStage(
     bucket,
     pipelineMessage.artefactKey,
   )
-  const files = buildAddressSourceSqlImportFiles(message, artefact)
+  const sourceRows = dedupeNormalisedAddressRows(artefact.rows)
+  const currentSourceRows = await getCurrentSourceHkgovAlsAddress2dRecords(
+    sourceDb,
+    sourceRows.map(row => row.sourceId),
+  )
+  const changedSourceRecordIds = new Set<string>()
+  const unchangedSourceRecordIds = new Set<string>()
+
+  for (const row of sourceRows) {
+    if (
+      currentSourceRows.get(row.sourceId)?.sourcePayloadHash === row.sourcePayloadHash
+    ) {
+      unchangedSourceRecordIds.add(row.sourceId)
+    } else {
+      changedSourceRecordIds.add(row.sourceId)
+    }
+  }
+
+  const files = buildAddressSourceSqlImportFiles(message, artefact, {
+    changedSourceRecordIds,
+    unchangedSourceRecordIds,
+  })
   const artefactKeys = await writeSqlFiles(bucket, message, files)
 
   return {

@@ -389,7 +389,7 @@ export async function processLocalAddressSqlUpload(
       },
       normalisedMessages,
       GENERATION_CONCURRENCY,
-      message => writeAddressSourceSqlChunkStage(bucket, message),
+      message => writeAddressSourceSqlChunkStage(dbContext.sourceDb, bucket, message),
     )
     const historyMessages = await runLocalGenerationPhase(
       progress,
