@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 
 import { parquetWriteFile } from 'hyparquet-writer'
+import fgdb from 'fgdb'
 
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 
@@ -30,6 +31,81 @@ export type PreparedLandsdPlaceNameUpload = {
   sourceVersion: string
   theme: 'divisions'
   type: 'division'
+}
+
+export type NativeLandsdPlaceName = LandsdPlaceNameFeature & {
+  placeNames: Array<{
+    englishName: string | null
+    traditionalChineseName: string | null
+    status: 'Alias' | 'Official'
+  }>
+}
+
+/**
+ * Reads the publisher's FileGDB relationship directly. `GEO_PLACE_NAME`
+ * supplies geometry/classification and `PLACE_NAME` supplies its official and
+ * alias labels; CSDI converted GeoJSON is intentionally not an input.
+ */
+export async function readLandsdPlaceNameArchive(
+  archiveBytes: Uint8Array,
+): Promise<NativeLandsdPlaceName[]> {
+  const layers = await fgdb(Uint8Array.from(archiveBytes))
+  const placeFeatures = layers.GEO_PLACE_NAME
+  const placeNameRows = layers.PLACE_NAME
+  if (!isFeatureCollection(placeFeatures)) {
+    throw new Error('LandsD Place Name archive must contain GEO_PLACE_NAME.')
+  }
+  if (!Array.isArray(placeNameRows)) {
+    throw new Error('LandsD Place Name archive must contain PLACE_NAME.')
+  }
+  if (placeFeatures.features.length !== 2706) {
+    throw new Error(
+      `LandsD GEO_PLACE_NAME must contain 2,706 features; found ${placeFeatures.features.length}.`,
+    )
+  }
+
+  const namesByGeoNameId = new Map<string, NativeLandsdPlaceName['placeNames']>()
+  for (const [index, value] of placeNameRows.entries()) {
+    if (!isRecord(value)) {
+      throw new Error(`LandsD PLACE_NAME row ${index + 1} is invalid.`)
+    }
+    const geoNameId = requireGeoNameId(value.GEO_NAME_ID, index)
+    const status = value.NAME_STATUS
+    if (status !== 'Official' && status !== 'Alias') {
+      throw new Error(`LandsD PLACE_NAME row ${index + 1} has invalid NAME_STATUS.`)
+    }
+    namesByGeoNameId.set(geoNameId, [
+      ...(namesByGeoNameId.get(geoNameId) ?? []),
+      {
+        englishName: decodePublisherText(value.NAME_EN),
+        traditionalChineseName: decodePublisherText(value.NAME_TC),
+        status,
+      },
+    ])
+  }
+
+  return placeFeatures.features.map((value, index) => {
+    const feature = requireFeature(value, index)
+    const geoNameId = requireGeoNameId(feature.properties.GEO_NAME_ID, index)
+    const placeClass = requireText(feature.properties.PLACE_CLASS, 'PLACE_CLASS', index)
+    requireText(feature.properties.PLACE_TYPE, 'PLACE_TYPE', index)
+    requirePointGeometry(feature.geometry, index)
+    const placeNames = namesByGeoNameId.get(geoNameId) ?? []
+    if (!placeNames.some(name => name.status === 'Official')) {
+      throw new Error(
+        `LandsD GEO_PLACE_NAME ${geoNameId} has no official PLACE_NAME label.`,
+      )
+    }
+    return {
+      ...feature,
+      id: geoNameId,
+      placeNames,
+      properties: {
+        ...feature.properties,
+        PLACE_CLASS: placeClass,
+      },
+    }
+  })
 }
 
 /**
@@ -261,6 +337,21 @@ function sourceNames(properties: Record<string, unknown>) {
   }
 }
 
+function decodePublisherText(value: unknown) {
+  const text = optionalString(value)
+  if (!text) return null
+  // `fgdb` decodes FileGDB UTF-8 strings as Latin-1. ASCII values are
+  // unchanged; non-ASCII publisher labels are recovered losslessly here.
+  return Buffer.from(text, 'latin1').toString('utf8')
+}
+
+function requireText(value: unknown, field: string, index: number) {
+  const text = optionalString(value)
+  if (!text)
+    throw new Error(`LandsD Place Name feature ${index + 1} requires ${field}.`)
+  return text
+}
+
 function firstString(properties: Record<string, unknown>, ...keys: string[]) {
   for (const key of keys) {
     const value = optionalString(properties[key])
@@ -275,6 +366,16 @@ function requireFeature(value: unknown, index: number): LandsdPlaceNameFeature {
   }
 
   return value as LandsdPlaceNameFeature
+}
+
+function isFeatureCollection(
+  value: unknown,
+): value is LandsdPlaceNameFeatureCollection {
+  return (
+    isRecord(value) &&
+    value.type === 'FeatureCollection' &&
+    Array.isArray(value.features)
+  )
 }
 
 function requirePointGeometry(value: unknown, index: number) {
