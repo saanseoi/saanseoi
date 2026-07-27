@@ -1598,9 +1598,9 @@ function asOptionalString(value: unknown) {
   return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
-function asOptionalInteger(value: unknown) {
+export function asOptionalInteger(value: unknown) {
   if (typeof value === 'number' && Number.isSafeInteger(value)) return value
-  if (typeof value !== 'string' || !/^-?\d+$/.test(value)) return null
+  if (typeof value !== 'string' || !/^-?\d+(?:\.0+)?$/.test(value)) return null
   const parsed = Number(value)
   return Number.isSafeInteger(parsed) ? parsed : null
 }
