@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:e29a24f9c3356e8792a86b24e0523178ea6dc5e55f7518f82a33773d144ff10a",
+  "versionHash": "sha256:60d714af78161a1bacc667e90aff778915124bd220ebc705eea56ff95f8a0ac5",
   "apiVersion": "api-addresses-v0.1",
   "code": "comp-addresses-v1",
   "version": 1,
@@ -30,7 +30,13 @@
           "role": "primary",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
-          "priority": 0
+          "priority": 0,
+          "ingestDependencies": [
+            {
+              "resourceType": "division",
+              "variant": "overture"
+            }
+          ]
         },
         {
           "resourceType": "division",

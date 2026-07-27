@@ -137,9 +137,14 @@ type ApiEndpointFileFixture = {
 type ApiCompositionMemberFixture = {
   resourceType: ResourceType
   variant?: string
+  ingestDependencies?: Array<{
+    resourceType: ResourceType
+    variant?: string
+  }>
   role: string
   isRequired: boolean
   cohortMatchingMode: string
+  configJson?: string
   anchorResourceType?: ResourceType
   maxLagDays?: number
   priority: number
@@ -458,6 +463,10 @@ export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
       role: member.role,
       isRequired: member.isRequired,
       cohortMatchingMode: member.cohortMatchingMode,
+      configJson:
+        member.ingestDependencies && member.ingestDependencies.length > 0
+          ? JSON.stringify({ ingestDependencies: member.ingestDependencies })
+          : undefined,
       anchorResourceType: member.anchorResourceType,
       maxLagDays: member.maxLagDays,
       priority: member.priority,
@@ -820,7 +829,7 @@ INSERT INTO apiCompositionMembers (
   ${sqlNullable(member.anchorResourceType)},
   ${member.maxLagDays == null ? 'NULL' : member.maxLagDays},
   ${member.priority},
-  NULL
+  ${sqlNullable(member.configJson)}
 )
 ON CONFLICT(apiCompositionId, domainCode, resourceType, variant) DO UPDATE SET
   role = excluded.role,
