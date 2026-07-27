@@ -18,7 +18,6 @@ DROP TABLE IF EXISTS `hkgovHadDivisionAreas`;
 DROP TABLE IF EXISTS `hkgovCenstatdStatistics`;
 DROP TABLE IF EXISTS `hkgovCenstatdDistrictLandAreaPopulationDensityI18n`;
 DROP TABLE IF EXISTS `hkgovCenstatdDistrictLandAreaPopulationDensities`;
-DROP TABLE IF EXISTS `hkgovCenstatdDivisionAreaI18n`;
 DROP TABLE IF EXISTS `hkgovCenstatdDivisionAreaDerivatives`;
 DROP TABLE IF EXISTS `hkgovCenstatdDivisionAreas`;
 DROP TABLE IF EXISTS `hkgovLandsdStreetNoticeI18n`;

@@ -28,6 +28,8 @@ export type NativeSourceRow = Record<string, unknown> & {
 export type NativeSourceTable = {
   /** SQLite source-schema table, never a converted publisher artefact. */
   name: string
+  /** Root assertions retain their own provenance; dependent rows inherit it. */
+  provenance: 'required' | 'inherited'
   /** The archive is a complete replacement snapshot for this source table. */
   replaceCurrentRows?: boolean
   rows: NativeSourceRow[]
@@ -271,6 +273,14 @@ function assertRelease(input: NativeSourceRelease) {
       'Native source release requires at least one non-empty source table.',
     )
   }
+  for (const table of input.tables) {
+    if (table.provenance !== 'required') continue
+    if (table.rows.some(row => !hasSourceReferences(row.sources))) {
+      throw new Error(
+        `Source assertion table ${table.name} requires a non-empty sources array with a dataset on every reference.`,
+      )
+    }
+  }
   const actualRowCount = input.tables
     .filter(table => !table.name.endsWith('I18n'))
     .reduce((total, table) => total + table.rows.length, 0)
@@ -279,6 +289,16 @@ function assertRelease(input: NativeSourceRelease) {
       `Native source row count mismatch: expected ${input.rowCount}, found ${actualRowCount}.`,
     )
   }
+}
+
+function hasSourceReferences(value: unknown): boolean {
+  return Array.isArray(value) && value.length > 0 && value.every(hasSourceReference)
+}
+
+function hasSourceReference(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false
+  const dataset = (value as Record<string, unknown>).dataset
+  return typeof dataset === 'string' && dataset.trim().length > 0
 }
 
 function sqlValue(value: unknown): string {
