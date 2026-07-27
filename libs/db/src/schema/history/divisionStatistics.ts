@@ -1,4 +1,4 @@
-import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 import { canonicalDivisionStatistic } from '../shared'
 import { historyStatisticVersioning } from './shared'
