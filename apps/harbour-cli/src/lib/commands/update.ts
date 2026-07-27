@@ -929,7 +929,11 @@ class UpdateRow {
     } else if (status === 'error') {
       log.error(message, { spacing: 0, withGuide: false })
     } else {
-      log.success(message, { spacing: 0, withGuide: false })
+      // A completed download stops the spinner before any remaining release
+      // rows are rendered. Restart it so those rows retain the same Clack
+      // status prefix and version-column alignment as the download row.
+      this.progress.start('')
+      this.progress.stop(message)
     }
     this.active = false
   }
