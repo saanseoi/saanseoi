@@ -4,6 +4,7 @@ import { jsonText, type StreetEvidenceAsset } from '../shared'
 import {
   sourceReleaseRevisionIndexes,
   sourceReleaseRevisionRecordColumns,
+  sourceSpatialAssertionColumns,
   sourceVersionIndexes,
   sourceVersionedRecordColumns,
 } from './shared'
@@ -27,6 +28,36 @@ export const landsdStreetNoticeTypes = [
   'corrigendum',
 ] as const
 export type LandsdStreetNoticeType = (typeof landsdStreetNoticeTypes)[number]
+
+/**
+ * Complete native LandsD Place Name feature assertions.
+ *
+ * The divisions product selects only Settlement rows; Hydrographic and
+ * Topographic records remain first-class publisher source data for a future
+ * places projection.
+ */
+export const sourceHkgovLandsdPlaceNames = sqliteTable(
+  'hkgovLandsdPlaceNames',
+  {
+    ...sourceSpatialAssertionColumns(),
+    // Geographic Name Identifier
+    geoNameId: text('geoNameId').notNull(),
+    // Class of Place Name (e.g., Topographic, Hydrographic or Settlement)
+    placeClass: text('placeClass').notNull(),
+    // Type of Place Name (e.g., Cape, Cave, Hill, Island, Pass, Peninsula, Reef, Rock, Valley,
+    // Area, Town, Village, Bay, Channel, Creek, Harbour, River, Strait, Stream or Islands)
+    placeType: text('placeType').notNull(),
+    // The District Council Code referenced from the District Boundary dataset of the Functional Area FSDT
+    district: text('district'),
+  },
+  table => [
+    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    ...sourceVersionIndexes(table, 'hkgovLandsdPlaceNames'),
+    index('hkgovLandsdPlaceNames_geoNameId_idx').on(table.geoNameId),
+    index('hkgovLandsdPlaceNames_placeClass_idx').on(table.placeClass),
+    index('hkgovLandsdPlaceNames_district_idx').on(table.district),
+  ],
+)
 
 /** Immutable rows from a versioned LandsD Gazetted Street Name PDF. */
 export const sourceHkgovLandsdStreetBaselineRecords = sqliteTable(

@@ -30,6 +30,7 @@ DROP TABLE IF EXISTS `hkgovLandsdStreetI18n`;
 DROP TABLE IF EXISTS `hkgovLandsdStreets`;
 DROP TABLE IF EXISTS `hkgovLandsdRoadCentrelineI18n`;
 DROP TABLE IF EXISTS `hkgovLandsdRoadCentrelines`;
+DROP TABLE IF EXISTS `hkgovLandsdPlaceNames`;
 DROP TABLE IF EXISTS `overturePlaceI18n`;
 DROP TABLE IF EXISTS `overturePlaces`;
 DROP TABLE IF EXISTS `overtureDivisionI18n`;
