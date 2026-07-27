@@ -3,6 +3,7 @@ import { mkdir, readFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
 import { parquetWriteBuffer } from 'hyparquet-writer'
+import shp from 'shpjs'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
@@ -33,6 +34,27 @@ const EXPECTED_SOURCE_FEATURE_COUNTS: Record<string, number> = {
   '2011': 4815,
   '2016': 4863,
   '2021': 4916,
+}
+const EXPECTED_NATIVE_SOURCE_FEATURE_COUNTS: Record<string, readonly number[]> = {
+  '2001': [4815],
+  '2006': [4977],
+  '2011': [4993],
+  '2016': [5034],
+  // The archived 2021 package carries duplicate cells; current source
+  // packages already omit them.
+  '2021': [4916, 5088],
+}
+const EXPECTED_NATIVE_NORMALISED_SOURCE_FEATURE_COUNTS: Record<
+  string,
+  readonly number[]
+> = {
+  // 2001 has one all-zero polygon sentinel; the remaining duplicate cells are
+  // intentionally retained for geometry union at their planning level.
+  '2001': [4814],
+  '2006': [4977],
+  '2011': [4993],
+  '2016': [5034],
+  '2021': [4916, 5088],
 }
 
 export type HkgovPlandUploadType = 'division' | 'divisionArea'
@@ -107,24 +129,59 @@ type PlanningDivision = {
 export async function prepareHkgovPlandTpuParquet(
   options: PrepareHkgovPlandTpuOptions,
 ): Promise<PreparedHkgovPlandTpuResult> {
-  const expectedCount = EXPECTED_SOURCE_FEATURE_COUNTS[options.sourceVersion]
-  if (!expectedCount) {
+  const payload = JSON.parse(
+    await readFile(resolve(options.inputFile), 'utf8'),
+  ) as FeatureCollection
+  return prepareHkgovPlandTpuFeatureCollection(options, payload)
+}
+
+/**
+ * Reads a mirrored publisher SHP ZIP directly. CSDI's historical TPU packages
+ * retain duplicate cells that were absent from the former GeoJSON hand-off;
+ * only exact provider-cell keys and the all-zero sentinel are removed.
+ */
+export async function prepareHkgovPlandTpuNativeShpZip(
+  options: PrepareHkgovPlandTpuOptions,
+): Promise<PreparedHkgovPlandTpuResult> {
+  return prepareHkgovPlandTpuFeatureCollection(
+    options,
+    await readHkgovPlandTpuNativeShpZip(options.inputFile, options.sourceVersion),
+    EXPECTED_NATIVE_NORMALISED_SOURCE_FEATURE_COUNTS[options.sourceVersion],
+  )
+}
+
+export async function readHkgovPlandTpuNativeShpZip(
+  inputFile: string,
+  sourceVersion: string,
+) {
+  const parsed = await shp((await readFile(resolve(inputFile))).buffer)
+  return normaliseNativeTpuFeatureCollection(
+    selectNativeFeatureCollection(parsed, 'TPU'),
+    sourceVersion,
+  )
+}
+
+async function prepareHkgovPlandTpuFeatureCollection(
+  options: PrepareHkgovPlandTpuOptions,
+  payload: FeatureCollection,
+  expectedSourceFeatureCounts: readonly number[] = [
+    EXPECTED_SOURCE_FEATURE_COUNTS[options.sourceVersion] ?? -1,
+  ],
+): Promise<PreparedHkgovPlandTpuResult> {
+  if (!EXPECTED_SOURCE_FEATURE_COUNTS[options.sourceVersion]) {
     throw new Error(
       `No registered ${HKGOV_PLAND_SOURCE} TPU parser profile exists for source version ${options.sourceVersion}.`,
     )
   }
 
-  const payload = JSON.parse(
-    await readFile(resolve(options.inputFile), 'utf8'),
-  ) as FeatureCollection
   if (payload.type !== 'FeatureCollection' || !Array.isArray(payload.features)) {
     throw new Error(
       'Planning Department TPU input must be a GeoJSON FeatureCollection.',
     )
   }
-  if (payload.features.length !== expectedCount) {
+  if (!expectedSourceFeatureCounts.includes(payload.features.length)) {
     throw new Error(
-      `Planning Department TPU ${options.sourceVersion} must contain ${expectedCount} source features; found ${payload.features.length}.`,
+      `Planning Department TPU ${options.sourceVersion} must contain ${expectedSourceFeatureCounts.join(' or ')} source features; found ${payload.features.length}.`,
     )
   }
 
@@ -150,6 +207,73 @@ export async function prepareHkgovPlandTpuParquet(
     outputFile: resolve(options.outputFile),
     sourceFeatureCount: cells.length,
   }
+}
+
+function selectNativeFeatureCollection(
+  value: unknown,
+  layer: string,
+): FeatureCollection {
+  const collections = Array.isArray(value) ? value : [value]
+  const collection = collections.find(isFeatureCollection)
+  if (!collection || collections.filter(isFeatureCollection).length !== 1) {
+    throw new Error(
+      `Planning Department ${layer} SHP archive must contain exactly one feature layer.`,
+    )
+  }
+  return collection
+}
+
+function normaliseNativeTpuFeatureCollection(
+  payload: FeatureCollection,
+  sourceVersion: string,
+): FeatureCollection {
+  const expectedRawCounts = EXPECTED_NATIVE_SOURCE_FEATURE_COUNTS[sourceVersion]
+  if (!expectedRawCounts) {
+    throw new Error(
+      `No registered ${HKGOV_PLAND_SOURCE} native-SHP parser profile exists for source version ${sourceVersion}.`,
+    )
+  }
+  if (payload.type !== 'FeatureCollection' || !Array.isArray(payload.features)) {
+    throw new Error('Planning Department TPU SHP input must be a FeatureCollection.')
+  }
+  if (!expectedRawCounts.includes(payload.features.length)) {
+    throw new Error(
+      `Planning Department TPU ${sourceVersion} native SHP must contain ${expectedRawCounts.join(' or ')} source features; found ${payload.features.length}.`,
+    )
+  }
+
+  const features: unknown[] = []
+  for (const [index, feature] of payload.features.entries()) {
+    if (!isRecord(feature) || !isRecord(feature.properties)) {
+      throw new Error(
+        `Planning Department native TPU feature ${index + 1} has no properties.`,
+      )
+    }
+    const properties = feature.properties as SourceProperties
+    const values = [
+      properties.PPU,
+      properties.SPU,
+      properties.TPU,
+      sourceVersion === '2021' ? properties.Subunit : properties.SB_VC,
+    ].map(value => String(value ?? '').trim())
+    if (values.every(value => value === '0')) continue
+    if (values.some(value => !value)) {
+      throw new Error(
+        `Planning Department native TPU feature ${index + 1} has an incomplete planning-cell key.`,
+      )
+    }
+    features.push(feature)
+  }
+
+  return { features, type: 'FeatureCollection' }
+}
+
+function isFeatureCollection(value: unknown): value is FeatureCollection {
+  return (
+    isRecord(value) &&
+    value.type === 'FeatureCollection' &&
+    Array.isArray(value.features)
+  )
 }
 
 function normalisePlanningCell(

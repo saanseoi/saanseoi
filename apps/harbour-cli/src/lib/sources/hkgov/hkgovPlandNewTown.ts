@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
 import { parquetWriteFile } from 'hyparquet-writer'
+import shp from 'shpjs'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
@@ -124,15 +125,52 @@ export async function prepareHkgovPlandNewTownParquet(options: {
   sourceVersion: string
   type: 'division' | 'divisionArea'
 }) {
+  const payload = JSON.parse(
+    await readFile(resolve(options.inputFile), 'utf8'),
+  ) as FeatureCollection
+  return prepareHkgovPlandNewTownFeatureCollection(options, payload)
+}
+
+/** Reads a mirrored Planning Department New Town SHP ZIP directly. */
+export async function prepareHkgovPlandNewTownNativeShpZip(options: {
+  inputFile: string
+  outputFile: string
+  sourceVersion: string
+  type: 'division' | 'divisionArea'
+}) {
+  return prepareHkgovPlandNewTownFeatureCollection(
+    options,
+    await readHkgovPlandNewTownNativeShpZip(options.inputFile),
+  )
+}
+
+export async function readHkgovPlandNewTownNativeShpZip(inputFile: string) {
+  const parsed = await shp((await readFile(resolve(inputFile))).buffer)
+  const collections = Array.isArray(parsed) ? parsed : [parsed]
+  const payload = collections.find(isFeatureCollection)
+  if (!payload || collections.filter(isFeatureCollection).length !== 1) {
+    throw new Error(
+      'Planning Department New Town SHP archive must contain exactly one feature layer.',
+    )
+  }
+  return payload
+}
+
+async function prepareHkgovPlandNewTownFeatureCollection(
+  options: {
+    inputFile: string
+    outputFile: string
+    sourceVersion: string
+    type: 'division' | 'divisionArea'
+  },
+  payload: FeatureCollection,
+) {
   const expectedCount = EXPECTED_FEATURE_COUNTS[options.sourceVersion]
   if (!expectedCount) {
     throw new Error(
       `No registered Planning Department New Town parser profile exists for source version ${options.sourceVersion}.`,
     )
   }
-  const payload = JSON.parse(
-    await readFile(resolve(options.inputFile), 'utf8'),
-  ) as FeatureCollection
   if (payload.type !== 'FeatureCollection' || !Array.isArray(payload.features)) {
     throw new Error(
       'Planning Department New Town input must be a GeoJSON FeatureCollection.',
@@ -158,6 +196,14 @@ export async function prepareHkgovPlandNewTownParquet(options: {
     writeDivisionAreaParquet(resolve(options.outputFile), rows, options.sourceVersion)
   }
   return { outputFile: resolve(options.outputFile), sourceFeatureCount: rows.length }
+}
+
+function isFeatureCollection(value: unknown): value is FeatureCollection {
+  return (
+    isRecord(value) &&
+    value.type === 'FeatureCollection' &&
+    Array.isArray(value.features)
+  )
 }
 
 function writeDivisionParquet(
