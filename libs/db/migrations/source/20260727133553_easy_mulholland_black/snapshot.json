@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "a53c3fed-a741-48ce-9e99-c43ce2427ab2",
+  "id": "d309c687-de1f-441e-8898-4afb3d739a72",
   "prevIds": ["17b7ea68-662d-49e2-b47d-85d31a1eff22"],
   "ddl": [
     {
@@ -3215,16 +3215,6 @@
       "default": null,
       "generated": null,
       "name": "censusYear",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDivisionAreas"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sourceCrs",
       "entityType": "columns",
       "table": "hkgovCenstatdDivisionAreas"
     },
