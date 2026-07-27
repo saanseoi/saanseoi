@@ -6,8 +6,8 @@ import { tmpdir } from 'node:os'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import { prepareHkgovPlandTpuParquet } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPland.ts'
-import { prepareHkgovPlandNewTownParquet } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPlandNewTown.ts'
+import { prepareHkgovPlandTpuNativeShpZip } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPland.ts'
+import { prepareHkgovPlandNewTownNativeShpZip } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPlandNewTown.ts'
 import type {
   ParsedArgs,
   UploadTarget,
@@ -25,39 +25,39 @@ const LOCAL_D1_PERSIST_ROOT = resolve(REPO_ROOT, '.local/d1/dev')
 type BackfillKind = 'new-town' | 'pu'
 
 type BackfillRelease = {
+  archiveDatasetId: string
   catalogueUrl: string
-  fileName: string
   year: string
 }
 
 const PLANNING_UNIT_RELEASES: BackfillRelease[] = [
   {
     year: '2001',
-    fileName: 'hkgov-pland-tpu-2001.geojson',
+    archiveDatasetId: 'pland_rcd_1636535158118_80594',
     catalogueUrl:
       'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535158118_80594',
   },
   {
     year: '2006',
-    fileName: 'hkgov-pland-tpu-2006.geojson',
+    archiveDatasetId: 'pland_rcd_1636535383021_30595',
     catalogueUrl:
       'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535383021_30595',
   },
   {
     year: '2011',
-    fileName: 'hkgov-pland-tpu-2011.geojson',
+    archiveDatasetId: 'pland_rcd_1634025118087_40967',
     catalogueUrl:
       'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634025118087_40967',
   },
   {
     year: '2016',
-    fileName: 'hkgov-pland-tpu-2016.geojson',
+    archiveDatasetId: 'pland_rcd_1634281887222_15002',
     catalogueUrl:
       'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634281887222_15002',
   },
   {
     year: '2021',
-    fileName: 'hkgov-pland-tpu-2021.geojson',
+    archiveDatasetId: 'pland_rcd_1634022783366_65050',
     catalogueUrl:
       'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050',
   },
@@ -66,25 +66,25 @@ const PLANNING_UNIT_RELEASES: BackfillRelease[] = [
 const NEW_TOWN_RELEASES: BackfillRelease[] = [
   {
     year: '2006',
-    fileName: 'hkgov-pland-new-town-2006.geojson',
+    archiveDatasetId: 'pland_rcd_1636535014241_1352',
     catalogueUrl:
       'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535014241_1352',
   },
   {
     year: '2011',
-    fileName: 'hkgov-pland-new-town-2011.geojson',
+    archiveDatasetId: 'pland_rcd_1634024777903_55269',
     catalogueUrl:
       'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634024777903_55269',
   },
   {
     year: '2016',
-    fileName: 'hkgov-pland-new-town-2016.geojson',
+    archiveDatasetId: 'pland_rcd_1634281414408_50485',
     catalogueUrl:
       'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634281414408_50485',
   },
   {
     year: '2021',
-    fileName: 'hkgov-pland-new-town-2021.geojson',
+    archiveDatasetId: 'pland_rcd_1634023103904_16865',
     catalogueUrl:
       'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865',
   },
@@ -109,7 +109,7 @@ export async function runHkgovPlandBackfillCommand(
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const releases = kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES
   const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
-  const artefactRoot = resolve(REPO_ROOT, 'data/hkgov/pland')
+  const sourceArchiveRoot = resolve(REPO_ROOT, 'data/hkgov/csdi/archive')
   const outputDir = await mkdtemp(join(tmpdir(), `harbour-${source}-backfill-`))
 
   try {
@@ -124,7 +124,11 @@ export async function runHkgovPlandBackfillCommand(
         continue
       }
 
-      const inputFile = resolve(artefactRoot, release.year, release.fileName)
+      const inputFile = resolve(
+        sourceArchiveRoot,
+        release.archiveDatasetId,
+        '2023-Q4/source.zip',
+      )
       const divisionFile = join(
         outputDir,
         `${source}-hk-${release.year}-division.parquet`,
@@ -134,7 +138,9 @@ export async function runHkgovPlandBackfillCommand(
         `${source}-hk-${release.year}-division-area.parquet`,
       )
       const prepare =
-        kind === 'pu' ? prepareHkgovPlandTpuParquet : prepareHkgovPlandNewTownParquet
+        kind === 'pu'
+          ? prepareHkgovPlandTpuNativeShpZip
+          : prepareHkgovPlandNewTownNativeShpZip
       await Promise.all(
         types.map(type =>
           prepare({
@@ -156,6 +162,73 @@ export async function runHkgovPlandBackfillCommand(
           type,
         })
       }
+    }
+  } finally {
+    await rm(outputDir, { force: true, recursive: true })
+  }
+}
+
+/** Publish one already-mirrored native CSDI SHP archive after updater approval. */
+export async function runHkgovPlandNativeArchiveIngestCommand(
+  args: ParsedArgs,
+  target: UploadTarget,
+  kind: BackfillKind,
+  printUsage: () => void,
+) {
+  const inputFile = args.positionals[0]
+  const sourceVersion = args.options['source-version']
+  const catalogueUrl = args.options['release-notes-url']
+  if (
+    !inputFile ||
+    args.positionals.length !== 1 ||
+    typeof sourceVersion !== 'string' ||
+    typeof catalogueUrl !== 'string'
+  ) {
+    printUsage()
+    throw new Error(
+      'Planning Department native archive intake requires <source.zip>, --source-version, and --release-notes-url.',
+    )
+  }
+  const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
+  const release: BackfillRelease = {
+    archiveDatasetId: '',
+    catalogueUrl,
+    year: sourceVersion,
+  }
+  const outputDir = await mkdtemp(join(tmpdir(), `harbour-${source}-archive-`))
+  try {
+    const divisionFile = join(
+      outputDir,
+      `${source}-hk-${sourceVersion}-division.parquet`,
+    )
+    const divisionAreaFile = join(
+      outputDir,
+      `${source}-hk-${sourceVersion}-division-area.parquet`,
+    )
+    const prepare =
+      kind === 'pu'
+        ? prepareHkgovPlandTpuNativeShpZip
+        : prepareHkgovPlandNewTownNativeShpZip
+    await Promise.all(
+      (['division', 'divisionArea'] as const).map(type =>
+        prepare({
+          inputFile: resolve(inputFile),
+          outputFile: type === 'division' ? divisionFile : divisionAreaFile,
+          sourceVersion,
+          type,
+        }),
+      ),
+    )
+    const invocationCwd = process.env.INIT_CWD ?? process.cwd()
+    for (const type of ['division', 'divisionArea'] as const) {
+      await uploadPreparedArtefact({
+        filePath: type === 'division' ? divisionFile : divisionAreaFile,
+        invocationCwd,
+        release,
+        source,
+        target,
+        type,
+      })
     }
   } finally {
     await rm(outputDir, { force: true, recursive: true })

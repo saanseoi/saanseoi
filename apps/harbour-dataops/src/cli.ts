@@ -14,6 +14,7 @@ function printUsage() {
   bun run dataops -- hkgov-dpo:backfill-local <ALS-source-root> --target local --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes]
   bun run dataops -- hkgov-pland:prepare <GeoJSON> [--kind tpu|new-town] [--source-version YYYY] [--out-dir PATH]
   bun run dataops -- hkgov-pland:backfill --kind pu|new-town --target local|preview|production [--continue]
+  bun run dataops -- hkgov-pland:ingest --kind pu|new-town <source.zip> --target local|preview|production --source-version YYYY --release-notes-url URL
   bun run dataops -- hkgov-censtatd:district-land-area-population-density --target local --source-version 2022|2024
   bun run dataops -- hkgov-landsd-streets:baseline --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
   bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
@@ -76,6 +77,23 @@ async function main() {
         './commands/backfillHkgovPland.ts'
       )
       await runHkgovPlandBackfillCommand(
+        withoutOption(args, 'kind'),
+        target,
+        kind,
+        printUsage,
+      )
+      return
+    }
+    case 'hkgov-pland:ingest': {
+      const kind = args.options.kind
+      if (kind !== 'pu' && kind !== 'new-town') {
+        printUsage()
+        throw new Error('hkgov-pland:ingest requires --kind pu or --kind new-town.')
+      }
+      const { runHkgovPlandNativeArchiveIngestCommand } = await import(
+        './commands/backfillHkgovPland.ts'
+      )
+      await runHkgovPlandNativeArchiveIngestCommand(
         withoutOption(args, 'kind'),
         target,
         kind,
