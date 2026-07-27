@@ -552,7 +552,7 @@ ${mutedBar}  `)
           target,
           {
             cohortKey: previewResult.plan.cohortKey,
-            regionCode: previewResult.plan.regionCode,
+            regionCode: 'hk',
             releaseCode: previewResult.plan.releaseCode,
             rowCount: previewResult.plan.rowCount,
             source: 'hkgov-censtatd',

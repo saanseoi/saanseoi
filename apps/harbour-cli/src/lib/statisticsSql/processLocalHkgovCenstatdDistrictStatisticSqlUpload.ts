@@ -9,6 +9,7 @@ import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
+import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 
 type Plan = {
   cohortKey: string
@@ -37,7 +38,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     plan.sourceVersion.slice(0, 4),
   )
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
-  const remoteClient = createHarbourControlClient(target)
+  const remoteClient = createHarbourControlClient(target) as HarbourClient
   const client = target.remote
     ? remoteClient
     : createLocalControlClient(metaDb, { publishClient: remoteClient })
