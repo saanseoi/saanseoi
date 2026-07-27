@@ -718,13 +718,11 @@ function resolveUploadPlan(
     type,
     options.originalFileName,
   )
-  const datasetCode = buildDatasetCode(regionCode, source, type)
-  const releaseCode = buildDatasetReleaseCode(
-    regionCode,
-    source,
-    resolvedSourceVersion,
-    type,
-  )
+  const datasetCode =
+    options.datasetCode?.trim() || buildDatasetCode(regionCode, source, type)
+  const releaseCode = options.datasetCode
+    ? buildDatasetReleaseCodeForDataset(datasetCode, resolvedSourceVersion)
+    : buildDatasetReleaseCode(regionCode, source, resolvedSourceVersion, type)
   const plan: UploadPlan = {
     datasetId: releaseCode,
     datasetCode,
@@ -781,6 +779,13 @@ function resolveUploadPlan(
     plan,
     inspection: resolvedInspection,
   }
+}
+
+function buildDatasetReleaseCodeForDataset(datasetCode: string, sourceVersion: string) {
+  if (!/^ds-[a-z0-9]+(?:-[a-z0-9]+)+$/.test(datasetCode)) {
+    throw new Error(`Invalid explicit dataset code: ${datasetCode}.`)
+  }
+  return `dr-${datasetCode.slice('ds-'.length)}-${sourceVersion}`
 }
 
 export async function prepareUpload(

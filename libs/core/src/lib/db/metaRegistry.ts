@@ -120,6 +120,7 @@ export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {
       theme: metaDatasets.theme,
       type: metaReleases.resourceType,
       sourceVariant: metaDatasets.sourceVariant,
+      sourceCrs: metaDatasets.sourceCrs,
       source: metaPublishers.code,
       sourceVersion: metaReleases.sourceVersion,
       rawObjectKey: metaReleases.rawObjectKey,
@@ -526,6 +527,7 @@ const registrySourceSelection = {
   releaseFrequency: metaDatasets.releaseFrequency,
   theme: metaDatasets.theme,
   sourceVariant: metaDatasets.sourceVariant,
+  sourceCrs: metaDatasets.sourceCrs,
   sourceUrl: metaDatasets.sourceUrl,
   licenseId: metaDatasets.licenseId,
   license: {
@@ -918,6 +920,7 @@ const releaseRecordSelection = {
   cohortKey: metaReleases.cohortKey,
   theme: metaDatasets.theme,
   type: metaReleases.resourceType,
+  sourceCrs: metaDatasets.sourceCrs,
   source: metaPublishers.code,
   sourceVersion: metaReleases.sourceVersion,
   rawObjectKey: metaReleases.rawObjectKey,
