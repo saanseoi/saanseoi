@@ -1,5 +1,5 @@
 import { index, integer, text } from 'drizzle-orm/sqlite-core'
-import { timestamps } from '../shared'
+import { jsonText, sourceProvenance, timestamps } from '../shared'
 
 export const sourceVersioning = {
   versionHash: text('versionHash').notNull(),
@@ -8,6 +8,34 @@ export const sourceVersioning = {
   validToRelease: text('validToRelease'),
   isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
   ...timestamps,
+}
+
+/** A source child row with a stable parent-record identity and release history. */
+export function sourceVersionedRecordColumns() {
+  return {
+    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceVersioning,
+  }
+}
+
+/**
+ * Columns shared by an immutable publisher-source assertion. Use this for
+ * tabular publisher records; source geometry is deliberately optional.
+ */
+export function sourceAssertionColumns() {
+  return {
+    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceProvenance,
+    ...sourceVersioning,
+  }
+}
+
+/** Adds the required native geometry to a versioned source assertion. */
+export function sourceSpatialAssertionColumns() {
+  return {
+    ...sourceAssertionColumns(),
+    sourceGeometry: jsonText('sourceGeometry').notNull(),
+  }
 }
 
 /**
@@ -19,6 +47,14 @@ export const sourceReleaseRevisioning = {
   versionHash: text('versionHash').notNull(),
   releaseId: text('releaseId').notNull(),
   ...timestamps,
+}
+
+/** A source child row retained independently for every release revision. */
+export function sourceReleaseRevisionRecordColumns() {
+  return {
+    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceReleaseRevisioning,
+  }
 }
 
 export const sourceReleaseRevisionIndexes = <

@@ -1,17 +1,20 @@
 import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { geoBbox, jsonText, sourceProvenance } from '../shared'
-import { sourceVersionIndexes, sourceVersioning } from './shared'
+import { jsonText } from '../shared'
+import {
+  sourceAssertionColumns,
+  sourceVersionIndexes,
+  sourceVersionedRecordColumns,
+} from './shared'
 
 /**
- * Raw CSDI TPU/subunit features.  `geometry` is the untouched file-API
- * delivery; `canonicalGeometry` records the explicitly approved buffer(0)
- * repair when the source ring self-intersects.
+ * Raw CSDI TPU/subunit features. `canonicalGeometry` records the explicitly
+ * approved buffer(0) repair when the source ring self-intersects.
  */
 export const sourceHkgovPlandPlanningCells = sqliteTable(
   'hkgovPlandPlanningCells',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceAssertionColumns(),
     ppuCode: text('ppuCode').notNull(),
     spuCode: text('spuCode').notNull(),
     tpuCode: text('tpuCode').notNull(),
@@ -20,9 +23,6 @@ export const sourceHkgovPlandPlanningCells = sqliteTable(
       .notNull()
       .default(false),
     canonicalGeometry: jsonText('canonicalGeometry'),
-    ...geoBbox,
-    ...sourceProvenance,
-    ...sourceVersioning,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -37,7 +37,7 @@ export const sourceHkgovPlandPlanningCells = sqliteTable(
 export const sourceHkgovPlandDivisions = sqliteTable(
   'hkgovPlandDivisions',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceAssertionColumns(),
     planningLevel: text('planningLevel').notNull(),
     ppuCode: text('ppuCode'),
     spuCode: text('spuCode'),
@@ -49,9 +49,6 @@ export const sourceHkgovPlandDivisions = sqliteTable(
       .notNull()
       .default(false),
     canonicalGeometry: jsonText('canonicalGeometry'),
-    ...geoBbox,
-    ...sourceProvenance,
-    ...sourceVersioning,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -66,13 +63,12 @@ export const sourceHkgovPlandDivisions = sqliteTable(
 export const sourceHkgovPlandDivisionI18n = sqliteTable(
   'hkgovPlandDivisionI18n',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceVersionedRecordColumns(),
     locale: text('locale').notNull(),
     name: text('name').notNull(),
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
       .notNull()
       .default(false),
-    ...sourceVersioning,
   },
   table => [
     primaryKey({
@@ -87,14 +83,11 @@ export const sourceHkgovPlandDivisionI18n = sqliteTable(
 export const sourceHkgovPlandDivisionAreas = sqliteTable(
   'hkgovPlandDivisionAreas',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceAssertionColumns(),
     divisionId: text('divisionId').notNull(),
     planningLevel: text('planningLevel').notNull(),
     sourceCellIds: jsonText('sourceCellIds').notNull(),
     repairedSourceFeatureIds: jsonText('repairedSourceFeatureIds').notNull(),
-    ...geoBbox,
-    ...sourceProvenance,
-    ...sourceVersioning,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -108,16 +101,13 @@ export const sourceHkgovPlandDivisionAreas = sqliteTable(
 export const sourceHkgovPlandNewTownDivisionAreas = sqliteTable(
   'hkgovPlandNewTownDivisionAreas',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceAssertionColumns(),
     divisionId: text('divisionId').notNull(),
     newTownId: text('newTownId').notNull(),
     wasGeometryRepaired: integer('wasGeometryRepaired', { mode: 'boolean' })
       .notNull()
       .default(false),
     canonicalGeometry: jsonText('canonicalGeometry'),
-    ...geoBbox,
-    ...sourceProvenance,
-    ...sourceVersioning,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -131,13 +121,12 @@ export const sourceHkgovPlandNewTownDivisionAreas = sqliteTable(
 export const sourceHkgovPlandNewTownDivisionAreaI18n = sqliteTable(
   'hkgovPlandNewTownDivisionAreaI18n',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceVersionedRecordColumns(),
     locale: text('locale').notNull(),
     name: text('name').notNull(),
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
       .notNull()
       .default(false),
-    ...sourceVersioning,
   },
   table => [
     primaryKey({
