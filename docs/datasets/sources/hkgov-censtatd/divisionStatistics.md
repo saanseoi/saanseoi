@@ -47,16 +47,18 @@ assertions. The source's labels are exposed with the raw `DC` through
 fixture's `sourceVersion` creates `2022.0` and `2024.0`.
 
 The current CSDI simplified data specification is recorded in the dataset fixture as
-`schemaSpecificationURL`. The command resolves the immutable source archive through the
-local asset registry. If an older local R2 layout contains the archive without a current
-registry entry, it re-mirrors only the fixture-mapped CSDI package and verifies its
-content hash. The command then writes the source assertion and canonical history
-observation before publishing the dataset release to the local target. Publish either
-release with:
+`schemaSpecificationURL`. The updater prepares and mirrors the publisher ZIP, then
+passes that local prepared ZIP, its managed-asset key and its SHA-256 to the importer.
+The importer verifies the local ZIP against that hash before parsing it; it never
+reloads the ZIP from object storage. The source assertion retains both archive
+references while the target-aware SQL processor uses its local target-database cache to
+generate and publish the release for local, preview or production. Publish through
+`saanseoi update`, or invoke the importer with the already-prepared archive:
 
 ```sh
-bun run dataops -- hkgov-censtatd:district-land-area-population-density --target local --source-version 2022
-bun run dataops -- hkgov-censtatd:district-land-area-population-density --target local --source-version 2024
+bun run dataops -- hkgov-censtatd:district-land-area-population-density ./data/.../source.zip \
+  --target preview --source-version 2022 --release-notes-url URL \
+  --source-archive-key by-source/.../source.zip --source-archive-sha256 SHA256
 ```
 
 Before an entry advances beyond planned, inspect and record its downloadable artefacts

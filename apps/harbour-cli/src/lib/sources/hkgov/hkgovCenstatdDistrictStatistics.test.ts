@@ -27,6 +27,7 @@ describe('C&SD district land-area statistics', () => {
       inputFile,
       outputFile,
       sourceArchiveKey: 'by-source/test.zip',
+      sourceArchiveSha256: 'a'.repeat(64),
       sourceVersion: '2022',
     })
     expect(result).toEqual({ outputFile, rowCount: 18 })
@@ -40,6 +41,14 @@ describe('C&SD district land-area statistics', () => {
       district_code: BigInt(11),
       mid_year_population: BigInt(2500),
     })
+    expect(JSON.parse(String(rows[0]?.sources))).toEqual([
+      {
+        dataset: 'hkgov-censtatd',
+        districtCode: 11,
+        sourceArchiveKey: 'by-source/test.zip',
+        sourceArchiveSha256: 'a'.repeat(64),
+      },
+    ])
   })
 
   test('rejects duplicate publisher DC assertions', async () => {
@@ -59,6 +68,7 @@ describe('C&SD district land-area statistics', () => {
         inputFile,
         outputFile: join(dir, 'density.parquet'),
         sourceArchiveKey: 'by-source/test.zip',
+        sourceArchiveSha256: 'a'.repeat(64),
         sourceVersion: '2022',
       }),
     ).rejects.toThrow('C&SD Density GML contains duplicate DC values.')
@@ -75,6 +85,7 @@ describe('C&SD district land-area statistics', () => {
       inputFile,
       outputFile,
       sourceArchiveKey: 'by-source/test.zip',
+      sourceArchiveSha256: 'a'.repeat(64),
       sourceVersion: '2022',
     })
     const file = await asyncBufferFromFile(outputFile)

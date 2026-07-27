@@ -9,6 +9,7 @@ import {
 
 import {
   buildHkgovAlsIngestCommand,
+  buildHkgovCenstatdDistrictStatisticArchiveIngestCommand,
   buildHkgovPlandArchiveIngestCommand,
   buildOverturistCommand,
   buildOverturistReleasesCommand,
@@ -78,6 +79,43 @@ describe('dataset update registry', () => {
         '2021',
       ]),
     )
+  })
+
+  test('starts C&SD density intake from the prepared archive and retains its identity', () => {
+    const command = buildHkgovCenstatdDistrictStatisticArchiveIngestCommand({
+      inputFile: '/tmp/prepared-density.zip',
+      releaseNotesUrl: 'https://portal.csdi.gov.hk/density',
+      sourceArchiveKey: 'by-source/hk/hkgov-csdi/density/archive-source.zip',
+      sourceArchiveSha256: 'b'.repeat(64),
+      sourceVersion: '2024',
+      target: { environment: 'preview', remote: true },
+    })
+
+    expect(command).toEqual(
+      expect.arrayContaining([
+        'hkgov-censtatd:district-land-area-population-density',
+        '/tmp/prepared-density.zip',
+        '--target',
+        'preview',
+        '--source-archive-key',
+        'by-source/hk/hkgov-csdi/density/archive-source.zip',
+        '--source-archive-sha256',
+        'b'.repeat(64),
+      ]),
+    )
+  })
+
+  test('preserves a production caller target for C&SD density publication', () => {
+    expect(
+      buildHkgovCenstatdDistrictStatisticArchiveIngestCommand({
+        inputFile: '/tmp/prepared-density.zip',
+        releaseNotesUrl: 'https://portal.csdi.gov.hk/density',
+        sourceArchiveKey: 'by-source/hk/hkgov-csdi/density/archive-source.zip',
+        sourceArchiveSha256: 'c'.repeat(64),
+        sourceVersion: '2022',
+        target: { environment: 'production', remote: true },
+      }),
+    ).toContain('production')
   })
 
   test('loads every dataset fixture', async () => {
@@ -950,7 +988,14 @@ describe('dataset update registry', () => {
             correctionSuffixSource: 'generated',
           },
         },
-        undefined,
+        {
+          sourceChecks: {
+            '2026-07-22.0': {
+              version: '2026-07-22.0',
+              versionKey: '2026-07-22.0',
+            },
+          },
+        },
         undefined,
         true,
       )
@@ -960,6 +1005,7 @@ describe('dataset update registry', () => {
       expect(updates[0]?.phase).toBeUndefined()
       expect(updates[1]?.version).toBe('2026-07-22.0')
       expect(updates[1]?.phase).toBe('archives')
+      expect(updates[1]?.status).toBe('current')
       expect(updates[0]?.ingest).toBeInstanceOf(Function)
       expect(updates[1]?.download).toBeInstanceOf(Function)
       expect(updates[1]?.ingest).toBeUndefined()

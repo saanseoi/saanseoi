@@ -1,33 +1,16 @@
 import { describe, expect, test } from 'bun:test'
+import { createHash } from 'node:crypto'
 
-import { selectSourceArchiveKey } from './hkgovCenstatdDistrictStatistics.ts'
+import { assertSourceArchiveIdentity } from './hkgovCenstatdDistrictStatistics.ts'
 
-const hash = 'a'.repeat(64)
+describe('C&SD district-density archive identity', () => {
+  test('only accepts the archive represented by the updater manifest hash', () => {
+    const archive = new TextEncoder().encode('prepared-local-source-archive')
+    const hash = createHash('sha256').update(archive).digest('hex')
 
-describe('C&SD district-statistic archive resolution', () => {
-  test('uses the asset registry key rather than reconstructing an R2 path from the archive slot', () => {
-    expect(
-      selectSourceArchiveKey(hash, [
-        {
-          assetKey: `by-source/hk/hkgov-csdi/censtatd_rcd_1635934215448_25451/${hash}-source.zip`,
-          contentHash: hash,
-          role: 'sourceArchive',
-        },
-      ]),
-    ).toBe(
-      `by-source/hk/hkgov-csdi/censtatd_rcd_1635934215448_25451/${hash}-source.zip`,
+    expect(() => assertSourceArchiveIdentity(archive, hash)).not.toThrow()
+    expect(() => assertSourceArchiveIdentity(archive, '0'.repeat(64))).toThrow(
+      'differs from its updater manifest',
     )
-  })
-
-  test('requires exactly one registered source archive for the mapped hash', () => {
-    expect(() => selectSourceArchiveKey(hash, [])).toThrow(
-      'No local sourceArchive asset is registered',
-    )
-    expect(() =>
-      selectSourceArchiveKey(hash, [
-        { assetKey: 'one.zip', contentHash: hash, role: 'sourceArchive' },
-        { assetKey: 'two.zip', contentHash: hash, role: 'sourceArchive' },
-      ]),
-    ).toThrow('Multiple local sourceArchive assets are registered')
   })
 })

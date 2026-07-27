@@ -15,6 +15,7 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
   inputFile: string
   outputFile: string
   sourceArchiveKey: string
+  sourceArchiveSha256: string
   sourceVersion: '2022' | '2024'
 }): Promise<PreparedHkgovCenstatdDistrictStatistic> {
   const gml = await readFile(resolve(input.inputFile), 'utf8')
@@ -56,6 +57,7 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
           dataset: 'hkgov-censtatd',
           districtCode,
           sourceArchiveKey: input.sourceArchiveKey,
+          sourceArchiveSha256: input.sourceArchiveSha256,
         },
       ]),
     }

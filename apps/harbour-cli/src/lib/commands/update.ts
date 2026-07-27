@@ -368,14 +368,7 @@ async function processPlannedUpdates(
     }
   }
 
-  const unrenderedUpdates = plan.updates.filter(
-    update =>
-      !renderedUpdates.has(update) &&
-      // Archive discovery is only an implementation detail of a download. Do
-      // not print a second, version-only row for an archive that will report
-      // its download outcome separately.
-      (update.phase !== 'archives' || update.status === 'error'),
-  )
+  const unrenderedUpdates = plan.updates.filter(update => !renderedUpdates.has(update))
   if (unrenderedUpdates.length > 0) {
     row.finishUpdates(unrenderedUpdates, plan.targetVersions)
   }
@@ -1242,7 +1235,7 @@ class UpdateRow {
         targetVersion,
         bytes,
       ),
-      { spacing: 0, withGuide: false },
+      { spacing: 0, withGuide: true },
     )
   }
 
