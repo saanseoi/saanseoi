@@ -16,7 +16,6 @@ export const sourceHkgovPlandPlanningCells = sqliteTable(
     spuCode: text('spuCode').notNull(),
     tpuCode: text('tpuCode').notNull(),
     subunitCode: text('subunitCode').notNull(),
-    sourceCrs: text('sourceCrs').notNull(),
     wasGeometryRepaired: integer('wasGeometryRepaired', { mode: 'boolean' })
       .notNull()
       .default(false),
@@ -46,7 +45,6 @@ export const sourceHkgovPlandDivisions = sqliteTable(
     subunitCode: text('subunitCode'),
     newTownId: text('newTownId'),
     sourceCellIds: jsonText('sourceCellIds').notNull(),
-    sourceCrs: text('sourceCrs').notNull(),
     wasGeometryRepaired: integer('wasGeometryRepaired', { mode: 'boolean' })
       .notNull()
       .default(false),
@@ -94,7 +92,6 @@ export const sourceHkgovPlandDivisionAreas = sqliteTable(
     planningLevel: text('planningLevel').notNull(),
     sourceCellIds: jsonText('sourceCellIds').notNull(),
     repairedSourceFeatureIds: jsonText('repairedSourceFeatureIds').notNull(),
-    sourceCrs: text('sourceCrs').notNull(),
     ...geoBbox,
     ...sourceProvenance,
     ...sourceVersioning,
@@ -114,7 +111,6 @@ export const sourceHkgovPlandNewTownDivisionAreas = sqliteTable(
     sourceRecordId: text('sourceRecordId').notNull(),
     divisionId: text('divisionId').notNull(),
     newTownId: text('newTownId').notNull(),
-    sourceCrs: text('sourceCrs').notNull(),
     wasGeometryRepaired: integer('wasGeometryRepaired', { mode: 'boolean' })
       .notNull()
       .default(false),

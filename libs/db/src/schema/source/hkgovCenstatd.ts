@@ -53,7 +53,6 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
     midYearPopulationDensityPerSqKm: integer(
       'midYearPopulationDensityPerSqKm',
     ).notNull(),
-    sourceCrs: text('sourceCrs').notNull(),
     sourceGeometry: jsonText('sourceGeometry').notNull(),
     ...sourceProvenance,
     ...sourceVersioning,

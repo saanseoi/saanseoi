@@ -16,7 +16,6 @@ export const sourceHkgovHadDivisionAreas = sqliteTable(
     areaCode: text('areaCode'),
     ...geoBbox,
     ...sourceProvenance,
-    sourceCrs: text('sourceCrs'),
     sourceGeometry: jsonText('sourceGeometry'),
     ...sourceVersioning,
   },

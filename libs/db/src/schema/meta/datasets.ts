@@ -36,6 +36,10 @@ export const metaDatasets = sqliteTable(
     // A dataset describes one publisher product. Its independently processable
     // resource outputs are declared in metaDatasetResourceTypes below.
     sourceVariant: text('sourceVariant').notNull().default('default'),
+    // Native CRS shared by every release of this source dataset. Source
+    // records retain their geometry evidence but must not duplicate this
+    // dataset-level metadata on every row.
+    sourceCrs: text('sourceCrs'),
     sourceUrl: text('sourceUrl'),
     licenseId: text('licenseId').references(() => metaLicenses.id, {
       onDelete: 'restrict',
