@@ -11,6 +11,7 @@ import {
   formatUpdateProgressLine,
   resolveApiFamilySelection,
   resolveTargetVersion,
+  shouldRecordUpdateStateAfterProcessing,
   shouldIngestUpdate,
   shouldDownloadUpdate,
   wrapUpdateMessage,
@@ -96,6 +97,15 @@ test('adds a composition lookup provider before an address update', async () => 
     'ds-hk-overture-division',
     'ds-hk-hkgov-dpo-address',
   ])
+})
+
+test('does not record a declined new upload as the source baseline', () => {
+  const update = {
+    status: 'new' as const,
+  }
+
+  expect(shouldRecordUpdateStateAfterProcessing(update, 'skipped')).toBe(false)
+  expect(shouldRecordUpdateStateAfterProcessing(update, 'uploaded')).toBe(true)
 })
 
 test('orders Overture division before its geometry consumers', async () => {

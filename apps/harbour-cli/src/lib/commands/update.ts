@@ -35,6 +35,14 @@ type PlannedDatasetUpdates = {
   updates: DatasetUpdate[]
 }
 
+type UpdateProcessingResult =
+  | 'downloaded'
+  | 'ingested'
+  | 'mirrored'
+  | 'reviewed'
+  | 'skipped'
+  | 'uploaded'
+
 const UPDATE_LINE_WIDTH = 120
 const CLACK_STATUS_PREFIX_WIDTH = 3
 const PUBLISHER_COLUMN_WIDTH = 10
@@ -335,13 +343,6 @@ async function processPlannedUpdates(
       plan.targetVersions.get(sourceKey) ??
       plan.targetVersions.get(update.targetSourceKey ?? plan.dataset.code)
     update.targetVersion = targetVersion
-    const deferStateUntilProcessed = Boolean(
-      update.archive || update.deferStateUntilProcessed,
-    )
-    if (!deferStateUntilProcessed) {
-      recordUpdateState(options.state, plan.dataset.code, update)
-    }
-
     try {
       const result = await processUpdate(update, {
         forceDownload: options.forceDownload,
@@ -364,13 +365,7 @@ async function processPlannedUpdates(
       if (result === 'ingested') {
         recordUpdateDatabaseImport(options.state, plan.dataset.code, update)
       }
-      if (
-        deferStateUntilProcessed &&
-        (result === 'ingested' ||
-          result === 'mirrored' ||
-          (update.phase === 'archives' && result === 'downloaded') ||
-          update.status === 'current')
-      ) {
+      if (shouldRecordUpdateStateAfterProcessing(update, result)) {
         recordUpdateState(options.state, plan.dataset.code, update)
       }
       if (result === 'downloaded' || result === 'mirrored') {
@@ -395,6 +390,37 @@ async function processPlannedUpdates(
   if (unrenderedUpdates.length > 0) {
     row.finishUpdates(unrenderedUpdates, plan.targetVersions)
   }
+}
+
+/**
+ * Source checks are not publication evidence. In particular, a declined or failed
+ * upload must leave a new release eligible for a later retry.
+ */
+export function shouldRecordUpdateStateAfterProcessing(
+  update: Pick<
+    DatasetUpdate,
+    'archive' | 'deferStateUntilProcessed' | 'phase' | 'status'
+  >,
+  result: UpdateProcessingResult,
+) {
+  const deferStateUntilProcessed = Boolean(
+    update.archive || update.deferStateUntilProcessed,
+  )
+  if (deferStateUntilProcessed) {
+    return (
+      result === 'ingested' ||
+      result === 'mirrored' ||
+      (update.phase === 'archives' && result === 'downloaded') ||
+      update.status === 'current'
+    )
+  }
+
+  return (
+    result === 'ingested' ||
+    result === 'reviewed' ||
+    result === 'uploaded' ||
+    update.status === 'current'
+  )
 }
 
 export async function resolveApiFamilySelection(
@@ -557,7 +583,7 @@ async function processUpdate(
     updateIndex: number
     updateTotal: number
   },
-) {
+): Promise<UpdateProcessingResult> {
   if (update.status === 'review') {
     await askToInvestigate(update)
     return 'reviewed' as const
@@ -666,7 +692,7 @@ async function processUpdate(
       validateGeometry: false,
     },
   )
-  return 'downloaded' as const
+  return 'uploaded' as const
 }
 
 export function shouldIngestUpdate(update: Pick<DatasetUpdate, 'ingest' | 'status'>) {
