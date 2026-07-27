@@ -125,7 +125,12 @@ type CachePruneOperation = {
   tableName: string
   whereSql: string
 }
-type CacheTableProfile = 'address' | 'division' | 'divisionGeometry' | 'street'
+type CacheTableProfile =
+  | 'address'
+  | 'division'
+  | 'divisionGeometry'
+  | 'nativeSource'
+  | 'street'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const WRANGLER_CONFIG_PATH = resolve(REPO_ROOT, 'apps/harbour-api/wrangler.jsonc')
@@ -1356,6 +1361,22 @@ function resolveMirrorTablesForBinding(
   }
 
   if (/^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
+    if (cacheTableProfile === 'nativeSource') {
+      return [
+        'hkgovHydStreetNamePlates',
+        'hkgovHydSensitiveStreets',
+        'hkgovHydStrategicStreets',
+        'hkgovTdPedestrianStreets',
+        'hkgovTdPedestrianStreetI18n',
+        'hkgovCenstatdDivisionAreas',
+        'hkgovCenstatdDistrictLandAreaPopulationDensities',
+        'hkgovCenstatdDistrictLandAreaPopulationDensityI18n',
+        'hkgovCenstatdStatistics',
+        'hkgovCenstatdDivisionAreaDerivatives',
+        'hkgovCenstatdDivisionAreaI18n',
+      ]
+    }
+
     if (cacheTableProfile === 'street') {
       return ['hkgovLandsdStreets', 'hkgovLandsdStreetI18n']
     }

@@ -83,8 +83,10 @@ export async function processNativeSourceSqlRelease(
   const releaseId = requireString(registered.releaseId, 'releaseId')
   const releaseCode = requireString(registered.releaseCode, 'releaseCode')
   const shardYear = resolveShardYear(input.cohortKey, input.sourceVersion)
+  // Native source tables are not part of the canonical street/division cache
+  // profiles. Mirror their source assertions into the local planning cache.
   const context = await resolveLocalAddressDbContext(target, 'hk', shardYear, {
-    cacheTableProfile: 'street',
+    cacheTableProfile: 'nativeSource',
   })
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
   const client = target.remote

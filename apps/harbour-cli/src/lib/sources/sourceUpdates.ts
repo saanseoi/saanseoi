@@ -241,6 +241,12 @@ export type DatasetUpdate = {
   sourceCursor?: string[]
   upload?: UpdateUpload
   message?: string
+  /** Written only after the immutable publisher archive is mirrored. */
+  mirroredArchive?: {
+    contentHash: string
+    objectKey: string
+    mirroredAt: string
+  }
 }
 
 export type CsdiArchivedSource = {
@@ -259,6 +265,10 @@ export type UpdateStateEntry = {
   metadataLastRevisedAt?: string
   sourceCursor?: string[]
   sourceChecks?: Record<string, UpdateSourceState>
+  /** Publisher artefacts mirrored into managed storage, independent of DB intake. */
+  archiveMirrors?: Record<string, UpdateArchiveMirrorState>
+  /** Source releases whose importer completed and published a database release. */
+  databaseImports?: Record<string, UpdateDatabaseImportState>
   phaseChecks?: Partial<Record<DatasetUpdatePhase, UpdatePhaseState>>
 }
 
@@ -275,6 +285,20 @@ export type UpdatePhaseState = {
   lastChecked?: string
   releaseLastRevisedAt?: string
   sourceCursor?: string[]
+}
+
+export type UpdateArchiveMirrorState = {
+  contentHash: string
+  mirroredAt: string
+  objectKey: string
+  version?: string
+  versionKey?: string
+}
+
+export type UpdateDatabaseImportState = {
+  importedAt: string
+  version?: string
+  versionKey?: string
 }
 
 type LookupContext = {
@@ -723,6 +747,45 @@ export function recordUpdateState(
   }
 
   if (sourceKey === datasetCode) Object.assign(entry, sourceState)
+  state[datasetCode] = entry
+}
+
+/** Records durable archive custody only after the mirror operation succeeds. */
+export function recordUpdateArchiveMirror(
+  state: UpdateState,
+  datasetCode: string,
+  update: DatasetUpdate,
+) {
+  if (!update.mirroredArchive) return
+  const entry = state[datasetCode] ?? {}
+  const sourceKey = update.sourceKey ?? datasetCode
+  entry.archiveMirrors = {
+    ...entry.archiveMirrors,
+    [sourceKey]: {
+      ...update.mirroredArchive,
+      version: update.version,
+      versionKey: update.versionKey,
+    },
+  }
+  state[datasetCode] = entry
+}
+
+/** Records a database release only after its importer returned successfully. */
+export function recordUpdateDatabaseImport(
+  state: UpdateState,
+  datasetCode: string,
+  update: DatasetUpdate,
+) {
+  const entry = state[datasetCode] ?? {}
+  const sourceKey = update.sourceKey ?? datasetCode
+  entry.databaseImports = {
+    ...entry.databaseImports,
+    [sourceKey]: {
+      importedAt: new Date().toISOString(),
+      version: update.version,
+      versionKey: update.versionKey,
+    },
+  }
   state[datasetCode] = entry
 }
 
