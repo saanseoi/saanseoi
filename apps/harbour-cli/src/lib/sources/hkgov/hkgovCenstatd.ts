@@ -64,11 +64,9 @@ type PreparedDistrictRow = {
   district_code: number
   geometry: GeoJsonGeometry
   id: string
-  source_feature: Record<string, unknown>
   source_geometry: GeoJsonGeometry
   source_properties: Record<string, unknown>
   sources: Array<Record<string, string | number>>
-  i18n: Array<{ locale: 'en' | 'zh-hant'; name: string }>
   theme: 'divisions'
   type: 'divisionArea'
 }
@@ -175,18 +173,8 @@ export async function prepareHkgovCenstatdDistrictUpload(
         false,
       ),
       jsonColumn(
-        'source_feature',
-        rows.map(row => row.source_feature),
-        false,
-      ),
-      jsonColumn(
         'sources',
         rows.map(row => row.sources),
-        false,
-      ),
-      jsonColumn(
-        'i18n',
-        rows.map(row => row.i18n),
         false,
       ),
       jsonColumn(
@@ -274,12 +262,6 @@ function normaliseCsdIDistrictFeature(
     district_code: districtCode,
     geometry,
     id: `CENSTATD:${districtClass}`,
-    source_feature: feature.sourceGml
-      ? {
-          member: feature.sourceGml,
-          type: 'GML32Feature',
-        }
-      : (feature as Record<string, unknown>),
     source_geometry: sourceGeometry,
     source_properties: properties as Record<string, unknown>,
     sources: [
@@ -293,13 +275,6 @@ function normaliseCsdIDistrictFeature(
               sourceArchiveSha256: sourceArchive.sha256,
             }
           : {}),
-      },
-    ],
-    i18n: [
-      { locale: 'en', name: requireString(properties.dc_eng, 'dc_eng', index) },
-      {
-        locale: 'zh-hant',
-        name: requireString(properties.dc_chi, 'dc_chi', index),
       },
     ],
     theme: 'divisions',

@@ -99,6 +99,7 @@ describe('HAD district GeoJSON preparation', () => {
           sourceArchiveSha256: 'a'.repeat(64),
         },
       ])
+      expect(rows[0]).not.toHaveProperty('source_feature')
     } finally {
       await rm(inputDir, { force: true, recursive: true })
       await rm(outputDir, { force: true, recursive: true })
