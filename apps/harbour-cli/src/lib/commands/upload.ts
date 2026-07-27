@@ -65,6 +65,8 @@ export async function runUploadCommand(
     forceUpload: boolean
     invocationCwd: string
     printUsage: () => void
+    /** Explicit out-of-cohort Overture dependency selected during local preparation. */
+    divisionCohortKey?: string
     processingActions?: ReleaseProcessingAction[]
     quiet?: boolean
     skipConfirm: boolean
@@ -228,7 +230,9 @@ ${mutedBar}  `)
 
       try {
         if (processingStrategy.mode === 'local-address-sql') {
-          await assertAddressUploadPrerequisites(target, previewResult.plan)
+          await assertAddressUploadPrerequisites(target, previewResult.plan, {
+            divisionCohortKey: options.divisionCohortKey,
+          })
         } else {
           await assertDivisionGeometryUploadPrerequisites(target, previewResult.plan)
         }
@@ -313,6 +317,7 @@ ${mutedBar}  `)
         const releaseSetReadiness = await resolveAddressApiReleaseSetReadiness(
           target,
           previewResult.plan,
+          options.divisionCohortKey,
         )
         note(
           formatAddressApiReleaseSetReadiness(
@@ -817,6 +822,7 @@ export async function assertAddressUploadPrerequisites(
   target: UploadTarget,
   plan: Awaited<ReturnType<typeof prepareUpload>>['plan'],
   options: {
+    divisionCohortKey?: string
     resolveRemotePublishedDivisionSnapshot?: (
       target: UploadTarget,
       plan: Awaited<ReturnType<typeof prepareUpload>>['plan'],
@@ -828,10 +834,13 @@ export async function assertAddressUploadPrerequisites(
   }
 
   if (target.remote) {
+    const dependencyPlan = options.divisionCohortKey
+      ? { ...plan, cohortKey: options.divisionCohortKey }
+      : plan
     const snapshot = await (
       options.resolveRemotePublishedDivisionSnapshot ??
       resolveRemotePublishedDivisionSnapshotForAddressPlan
-    )(target, plan)
+    )(target, dependencyPlan)
 
     if (snapshot) {
       return
@@ -870,7 +879,9 @@ export async function assertAddressUploadPrerequisites(
         and(
           eq(metaSchema.metaSnapshots.resourceType, 'division'),
           eq(metaSchema.metaSnapshots.status, 'published'),
-          sql`${metaSchema.metaSnapshots.cohortKey} LIKE ${`${plan.sourceVersion.slice(0, 4)}-%`}`,
+          options.divisionCohortKey
+            ? eq(metaSchema.metaSnapshots.cohortKey, options.divisionCohortKey)
+            : sql`${metaSchema.metaSnapshots.cohortKey} LIKE ${`${plan.sourceVersion.slice(0, 4)}-%`}`,
           eq(metaSchema.metaSnapshotLineages.regionCode, plan.regionCode),
           eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
         ),
@@ -1093,7 +1104,9 @@ export function formatAddressApiReleaseSetReadiness(
 async function resolveAddressApiReleaseSetReadiness(
   target: UploadTarget,
   plan: Pick<AddressPlan, 'cohortKey' | 'regionCode' | 'sourceVersion'>,
+  divisionCohortKey?: string,
 ): Promise<AddressReleaseSetReadiness> {
+  if (divisionCohortKey) return { divisionCohortKey }
   if (target.remote) return { divisionCohortKey: null }
 
   const dbContext = await resolveLocalAddressDbContext(
