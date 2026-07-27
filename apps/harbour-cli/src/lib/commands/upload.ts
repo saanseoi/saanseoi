@@ -110,6 +110,7 @@ ${mutedBar}  `)
       registerOptions.filePath,
       registerOptions.source,
       registerOptions.sourceVersion,
+      sourceArchiveReference(args),
     )
     if (hkgovHadPreparation) {
       sourcePreparationCleanup = hkgovHadPreparation.cleanup
@@ -610,6 +611,7 @@ async function prepareHkgovHadGeoJsonUpload(
   filePath: string,
   source: string | undefined,
   sourceVersion: string | undefined,
+  sourceArchive: { key: string; sha256: string } | undefined,
 ) {
   if (!isHkgovHadGeoJson(filePath, source)) {
     return null
@@ -621,6 +623,7 @@ async function prepareHkgovHadGeoJsonUpload(
       filePath,
       tempDir,
       sourceVersion ?? '2022',
+      { sourceArchive },
     )
     return {
       ...prepared,
@@ -761,7 +764,9 @@ function resolveUploadProcessingStrategy(
   if (
     previewResult.plan.type === 'divisionStatistic' &&
     previewResult.plan.theme === 'stats' &&
-    previewResult.plan.source === 'hkgov-censtatd'
+    previewResult.plan.source === 'hkgov-censtatd' &&
+    previewResult.plan.datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
   ) {
     return { mode: 'local-hkgov-censtatd-statistic-sql' as const }
   }

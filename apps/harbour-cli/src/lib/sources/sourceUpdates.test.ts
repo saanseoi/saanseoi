@@ -12,6 +12,7 @@ import {
   buildHkgovCenstatdDistrictArchiveIngestCommand,
   buildHkgovCenstatdDistrictStatisticArchiveIngestCommand,
   buildHkgovCenstatdStatisticsArchiveIngestCommand,
+  buildHkgovHadDistrictArchiveIngestCommand,
   buildHkgovPlandArchiveIngestCommand,
   buildOverturistCommand,
   buildOverturistReleasesCommand,
@@ -148,6 +149,28 @@ describe('dataset update registry', () => {
         'preview',
         '--dataset-code',
         'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+      ]),
+    )
+  })
+
+  test('starts HAD district intake from the mirrored native FGDB archive', () => {
+    expect(
+      buildHkgovHadDistrictArchiveIngestCommand({
+        inputFile: '/tmp/had-districts.zip',
+        releaseNotesUrl: 'https://portal.csdi.gov.hk/had-districts',
+        sourceArchiveKey: 'by-source/hk/hkgov-csdi/had/source.zip',
+        sourceArchiveSha256: 'f'.repeat(64),
+        sourceVersion: '2022',
+        target: { environment: 'production', remote: true },
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        'hkgov-had:district-area',
+        '/tmp/had-districts.zip',
+        '--target',
+        'production',
+        '--source-archive-key',
+        'by-source/hk/hkgov-csdi/had/source.zip',
       ]),
     )
   })

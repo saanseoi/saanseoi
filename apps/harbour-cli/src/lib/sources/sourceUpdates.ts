@@ -1369,6 +1369,27 @@ async function runCsdiArchiveIngestPlaceholder(
     return 'ingested'
   }
 
+  if (
+    dataset.code === 'ds-hk-hkgov-had-division-area-district' &&
+    release?.sourceVersion &&
+    release.sourceUrl
+  ) {
+    const child = Bun.spawn(
+      buildHkgovHadDistrictArchiveIngestCommand({
+        inputFile: prepared.sourcePath,
+        releaseNotesUrl: release.sourceUrl,
+        sourceArchiveKey: prepared.manifest.archive.objectKey,
+        sourceArchiveSha256: prepared.manifest.archive.sha256,
+        sourceVersion: release.sourceVersion,
+        target,
+      }),
+      { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
+    )
+    if ((await child.exited) !== 0)
+      throw new Error(`HAD district-area ingest failed for ${release.sourceVersion}.`)
+    return 'ingested'
+  }
+
   console.log(
     `NOT IMPLEMENTED: native CSDI archive ingestion for ${dataset.code}${release?.sourceVersion ? ` (${release.sourceVersion})` : ''}.`,
   )
@@ -1495,6 +1516,35 @@ export function buildHkgovCenstatdStatisticsArchiveIngestCommand(input: {
     input.target.environment === 'dev' ? 'local' : input.target.environment,
     '--dataset-code',
     input.datasetCode,
+    '--source-version',
+    input.sourceVersion,
+    '--release-notes-url',
+    input.releaseNotesUrl,
+    '--source-archive-key',
+    input.sourceArchiveKey,
+    '--source-archive-sha256',
+    input.sourceArchiveSha256,
+  ]
+}
+
+export function buildHkgovHadDistrictArchiveIngestCommand(input: {
+  inputFile: string
+  releaseNotesUrl: string
+  sourceArchiveKey: string
+  sourceArchiveSha256: string
+  sourceVersion: string
+  target: import('../cli/options.ts').UploadTarget
+}) {
+  return [
+    process.execPath,
+    'run',
+    '--silent',
+    'dataops',
+    '--',
+    'hkgov-had:district-area',
+    input.inputFile,
+    '--target',
+    input.target.environment === 'dev' ? 'local' : input.target.environment,
     '--source-version',
     input.sourceVersion,
     '--release-notes-url',

@@ -1,6 +1,7 @@
 import { datasetVariantForSource, type RegionCode } from '@repo/core'
 import {
   ensureDraftSnapshotForRelease,
+  recordSnapshotLookupDependency,
   recordSnapshotAssemblyRun,
   resolveShardForTypeRegionYear,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
@@ -386,16 +387,25 @@ export async function processLocalDivisionGeometrySqlUpload(
         max: null,
       },
     )
-    if (!resolveProviderBridgeConfig(previewPlan.source)) {
-      await assertDivisionReferences(
-        dbContext.currentDb,
-        dbContext.historyDb,
-        metaDb,
-        previewPlan.regionCode,
-        previewPlan.cohortKey,
-        previewPlan.type,
-        normalised,
-      )
+    const divisionLookupSnapshotId = !resolveProviderBridgeConfig(previewPlan.source)
+      ? await assertDivisionReferences(
+          dbContext.currentDb,
+          dbContext.historyDb,
+          metaDb,
+          previewPlan.regionCode,
+          previewPlan.cohortKey,
+          previewPlan.type,
+          normalised,
+        )
+      : null
+    if (divisionLookupSnapshotId) {
+      await recordSnapshotLookupDependency(metaDb, {
+        anchorReleaseId: dataset.releaseId,
+        lookupSnapshotId: divisionLookupSnapshotId,
+        selectedByRule: 'api-composition:divisions:division-geometry->division',
+        selectionMode: 'exact_ref',
+        snapshotId: snapshot.id,
+      })
     }
 
     progress.complete(
@@ -674,6 +684,8 @@ async function assertDivisionReferences(
       ].join('\n'),
     )
   }
+
+  return divisionSnapshot.id
 }
 
 async function listCurrentDivisionIds(
