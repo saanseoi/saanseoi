@@ -134,7 +134,9 @@ describe('division geometry normalisation', () => {
     expect(normalised.canonical.isLand).toBe(true)
     expect(normalised.canonical.isTerritorial).toBe(true)
     expect(normalised.canonical.bbox).toEqual([0, 0, 1, 1])
-    expect(normalised.source.bbox).toEqual([0, 0, 1, 1])
+    expect(normalised.canonical.geometry).toEqual(polygon)
+    expect(normalised.source).not.toHaveProperty('bbox')
+    expect(normalised.source).not.toHaveProperty('geometry')
     expect(
       (normalised.source.rawProperties as Record<string, unknown>).is_territorial,
     ).toBe(true)

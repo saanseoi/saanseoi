@@ -532,8 +532,6 @@ export async function processDivisionDataset(
             class: sourceString(row.class),
             version: asOptionalInteger(row.version),
             wikidata: normalised.base.wikidata,
-            geometry: normalised.base.geometry,
-            bbox: normalised.base.bbox,
             hierarchies: row.hierarchies,
             cartography: normalised.base.cartography,
             sources: normalised.base.sources,
