@@ -50,6 +50,8 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
     ...sourceSpatialAssertionColumns(),
     // C&SD's numeric `DC` value; canonical district resolution occurs in history.
     districtCode: integer('districtCode').notNull(),
+    districtEn: text('districtEn').notNull(),
+    districtZhHant: text('districtZhHant').notNull(),
     referenceYear: text('referenceYear').notNull(),
     landAreaSqKm: real('landAreaSqKm').notNull(),
     midYearPopulation: integer('midYearPopulation').notNull(),
@@ -69,31 +71,6 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
   ],
 )
 
-/** Localised publisher labels attached to C&SD district statistic assertions. */
-export const sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n = sqliteTable(
-  'hkgovCenstatdDistrictLandAreaPopulationDensityI18n',
-  {
-    ...sourceVersionedRecordColumns(),
-    locale: text('locale').notNull(),
-    name: text('name').notNull(),
-    isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
-      .notNull()
-      .default(false),
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId, table.versionHash, table.locale],
-    }),
-    ...sourceVersionIndexes(
-      table,
-      'hkgovCenstatdDistrictLandAreaPopulationDensityI18n',
-    ),
-    index('hkgovCenstatdDistrictLandAreaPopulationDensityI18n_locale_idx').on(
-      table.locale,
-    ),
-  ],
-)
-
 /**
  * Native CSDI feature assertions for C&SD's non-district-density statistical
  * releases. Their measures differ by publisher layer, so they remain a
@@ -108,8 +85,6 @@ export const sourceHkgovCenstatdStatistics = sqliteTable(
     layerName: text('layerName').notNull(),
     referenceYear: text('referenceYear').notNull(),
     featureId: text('featureId').notNull(),
-    properties: jsonText('properties').notNull(),
-    sourceFeature: jsonText('sourceFeature').notNull(),
     sourceGeometry: jsonText('sourceGeometry'),
   },
   table => [

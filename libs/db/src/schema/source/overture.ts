@@ -8,16 +8,14 @@ import {
 } from 'drizzle-orm/sqlite-core'
 
 import { jsonText } from '../shared'
-import {
-  sourceAssertionColumns,
-  sourceVersionIndexes,
-  sourceVersionedRecordColumns,
-} from './shared'
+import { sourceAssertionColumns, sourceVersionIndexes } from './shared'
 
 export const sourceOvertureDivisions = sqliteTable(
   'overtureDivisions',
   {
     ...sourceAssertionColumns(),
+    /** Exact publisher multilingual name object; canonical locales live elsewhere. */
+    names: jsonText('names'),
     adminLevel: integer('admin_level'),
     subtype: text('subtype'),
     class: text('class'),
@@ -48,12 +46,10 @@ export const sourceOvertureDivisionAreas = sqliteTable(
   'overtureDivisionAreas',
   {
     ...sourceOvertureDivisionGeometryBase,
-    divisionId: text('division_id'),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
     ...sourceVersionIndexes(table, 'overtureDivisionAreas'),
-    index('overtureDivisionAreas_divisionId_idx').on(table.divisionId),
     index('overtureDivisionAreas_subtype_idx').on(table.subtype),
     index('overtureDivisionAreas_class_idx').on(table.class),
   ],
@@ -63,7 +59,6 @@ export const sourceOvertureDivisionBoundaries = sqliteTable(
   'overtureDivisionBoundaries',
   {
     ...sourceOvertureDivisionGeometryBase,
-    divisionIds: jsonText('division_ids'),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -73,32 +68,12 @@ export const sourceOvertureDivisionBoundaries = sqliteTable(
   ],
 )
 
-export const sourceOvertureDivisionI18n = sqliteTable(
-  'overtureDivisionI18n',
-  {
-    ...sourceVersionedRecordColumns(),
-    locale: text('locale').notNull(),
-    name: text('name'),
-    nameVariant: jsonText('nameVariant'),
-    nameAlts: text('nameAlts'),
-    nameRules: jsonText('nameRules'),
-    isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
-      .notNull()
-      .default(false),
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId, table.versionHash, table.locale],
-    }),
-    ...sourceVersionIndexes(table, 'overtureDivisionI18n'),
-    index('overtureDivisionI18n_locale_idx').on(table.locale),
-  ],
-)
-
 export const sourceOverturePlaces = sqliteTable(
   'overturePlaces',
   {
     ...sourceAssertionColumns(),
+    /** Exact publisher multilingual name object; canonical locales live elsewhere. */
+    names: jsonText('names'),
     lng: real('lng'),
     lat: real('lat'),
     bbox: jsonText('bbox'),
@@ -108,6 +83,8 @@ export const sourceOverturePlaces = sqliteTable(
     taxonomyHierarchy: jsonText('taxonomyHierarchy'),
     taxonomyAlternates: jsonText('taxonomyAlternates'),
     brandWikidata: text('brandWikidata'),
+    /** Exact publisher multilingual brand-name object, when supplied. */
+    brandNames: jsonText('brandNames'),
     websites: jsonText('websites'),
     socials: jsonText('socials'),
     emails: jsonText('emails'),
@@ -122,29 +99,5 @@ export const sourceOverturePlaces = sqliteTable(
     ...sourceVersionIndexes(table, 'overturePlaces'),
     index('overturePlaces_basicCategory_idx').on(table.basicCategory),
     index('overturePlaces_taxonomyPrimary_idx').on(table.taxonomyPrimary),
-  ],
-)
-
-export const sourceOverturePlaceI18n = sqliteTable(
-  'overturePlaceI18n',
-  {
-    ...sourceVersionedRecordColumns(),
-    locale: text('locale').notNull(),
-    name: text('name'),
-    nameVariant: jsonText('nameVariant'),
-    nameAlts: text('nameAlts'),
-    brandName: text('brandName'),
-    brandNameVariant: jsonText('brandNameVariant'),
-    brandNameAlts: text('brandNameAlts'),
-    isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
-      .notNull()
-      .default(false),
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId, table.versionHash, table.locale],
-    }),
-    ...sourceVersionIndexes(table, 'overturePlaceI18n'),
-    index('overturePlaceI18n_locale_idx').on(table.locale),
   ],
 )
