@@ -15,7 +15,8 @@ Related docs:
   stable ALS premise identities because GERS does not issue address identifiers.
 - Each ALS release uses its own source version as its address/API cohort. The selected
   Overture division snapshot is recorded and reported as an out-of-cohort processing
-  dependency.
+  dependency. The addresses composition, rather than the ALS source dataset, declares
+  that lookup requirement and its selection rule.
 - The addresses API has one composition domain, `default`; its release codes therefore
   do not include a domain suffix.
 - The CLI reads all 2D district GeoJSON files in one ALS release. It skips the separate
@@ -30,6 +31,11 @@ review and upload workflow. Archive-package downloads never upload by themselves
 query ends on the previous UTC day because the archive API does not accept the current
 day. A successful response whose body is truncated or otherwise invalid JSON is retried
 before the DPO check is reported as an error.
+
+When an addresses update is selected, the updater reads the composition dependency
+graph, adds the required Overture division provider when necessary, and processes it
+first. The address snapshot then records the exact division source release selected for
+canonicalisation as a lookup input.
 
 ALS directory names carry an upstream delivery time (`YYYYMMDD-HHMM`), but address
 release versions use `YYYY-MM-DD.N`: the first release for a date is `.0`, and further

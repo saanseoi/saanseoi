@@ -46,6 +46,17 @@ revision created when the domain release becomes publishable. Overture readiness
 its Overture, HAD, and C&SD composition members; each Planning Department domain is
 checked independently.
 
+## Composition-owned ingestion dependencies
+
+The API composition also defines the prerequisites required to materialise its members.
+This is intentionally not source-dataset metadata. For the Overture domain, canonical
+`division` must be materialised before Overture `divisionArea` or `divisionBoundary` for
+the same cohort; the Planning Unit and New Town areas similarly require their domain's
+canonical division. `saanseoi update` expands the requested family with these providers
+and performs them in dependency order. The resulting geometry snapshot records the exact
+selected division source release as a lookup input, preserving replayable provenance
+without duplicating the dependency declaration in each source fixture.
+
 The canonical `schemaVersion` may remain unchanged when a new source merely supplies
 more values in the same response shape. Merge rulesets are domain-scoped for new
 planning releases; the existing Overture ruleset keeps its legacy code. Adding a new
