@@ -92,6 +92,7 @@ type DatasetFixture = {
   releaseFrequency: DatasetReleaseFrequency
   theme: DatasetTheme
   sourceVariant?: string
+  sourceCrs?: string
   resourceTypes: ResourceType[]
   licenseCode: string
   attribution?: string
@@ -384,6 +385,7 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   releaseFrequency: fixture.releaseFrequency,
   theme: fixture.theme,
   sourceVariant: fixture.sourceVariant ?? 'default',
+  sourceCrs: fixture.sourceCrs,
   licenseCode: fixture.licenseCode,
   attribution: fixture.attribution,
   sourceUrl: fixture.sourceUrl,
@@ -627,7 +629,7 @@ ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SE
     statements.push(
       `
 INSERT INTO datasets (
-  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, sourceVariant, sourceUrl, licenseId, attribution, category, versionHash, createdAt, updatedAt
+  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, sourceVariant, sourceCrs, sourceUrl, licenseId, attribution, category, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDatasetId(dataset.publisherCode, dataset.code)},
   (SELECT id FROM publishers WHERE code = ${sqlString(dataset.publisherCode)}),
@@ -637,6 +639,7 @@ INSERT INTO datasets (
   ${sqlString(dataset.releaseFrequency)},
   ${sqlString(dataset.theme)},
   ${sqlString(dataset.sourceVariant)},
+  ${sqlNullable(dataset.sourceCrs)},
   ${sqlNullable(dataset.sourceUrl)},
   (SELECT id FROM licenses WHERE code = ${sqlString(dataset.licenseCode)}),
   ${sqlNullable(dataset.attribution)},
@@ -651,6 +654,7 @@ ON CONFLICT(publisherId, code) DO UPDATE SET
   releaseFrequency = excluded.releaseFrequency,
   theme = excluded.theme,
   sourceVariant = excluded.sourceVariant,
+  sourceCrs = excluded.sourceCrs,
   sourceUrl = excluded.sourceUrl,
   licenseId = excluded.licenseId,
   attribution = excluded.attribution,
