@@ -7,10 +7,16 @@ counts, churn, coverage, processing decisions). That meaning must remain separat
 published subject-matter statistics such as population, households, housing stock or
 land area.
 
-This proposal introduces a future **Division Statistics** family for the latter. It
-records a published observation against a specific, versioned statistical geography and
-period. It does not calculate demographic values from Saanseoi records, and it does not
-silently attach a value from one district-boundary vintage to another.
+This proposal introduces a **Division Statistics** family for the latter. It records a
+published observation against a specific, versioned statistical geography and period. It
+does not calculate demographic values from Saanseoi records, and it does not silently
+attach a value from one district-boundary vintage to another.
+
+The initial C&SD District Land Area, Population and Density processor writes source and
+history records. The source layer retains C&SD's numeric `DC`; the history layer alone
+resolves it through the reviewed C&SD numeric and HAD district-code bridges to the
+canonical `divisionId` and district code. A snapshot-scoped current table is reserved
+for the Stats API composition stage, which remains pending.
 
 ## Recommended model
 
@@ -96,8 +102,10 @@ manufacturing one derived geometry.
 - [x] Add planned `hkgov-censtatd` dataset fixtures and source documentation.
 - [ ] Ingest and validate 2016 and 2021 C&SD district-boundary variants before choosing
       an API map default; compare area, identifiers and coastal treatment with HAD.
-- [ ] Design the `statisticSeries`, `divisionStatistic` and statistical-geography
-      migrations, generated through the normal Drizzle migration workflow.
+- [x] Add the initial C&SD land-area, population and density source/history schema and
+      reviewed district-resolution processor.
+- [ ] Design the `statisticSeries` and statistical-geography registry, generated through
+      the normal Drizzle migration workflow.
 - [ ] Define the initial compact `include=stats` series allowlist and the filter schema
       for the dedicated family.
 - [ ] Add further Census, housing, labour, education and health datasets only after
