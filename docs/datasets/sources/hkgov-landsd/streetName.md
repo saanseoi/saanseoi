@@ -10,8 +10,11 @@ The source is
 [`ds-hk-hkgov-landsd-street`](../../../../fixtures/meta/datasets/hkgov-landsd-hk-street.json).
 The baseline PDF is downloaded on every update. Its immutable source version is skipped
 when its content hash is unchanged. Baseline rows, immutable notices, and their
-persisted applications are stored separately as `StreetBaselineRecords`,
-`StreetNotices`, and `StreetNoticeApplications`.
+auditable reducer decisions are stored separately as `StreetBaselineRecords`,
+`StreetNotices`, and `StreetNoticeApplications`. Publisher English and Traditional
+Chinese labels stay paired on their parent source row (`nameEn` and `nameZhHant`);
+notices retain paired `descriptionEn` and `descriptionZhHant` there too, rather than
+using source locale rows.
 
 ## Notice ledger and evidence
 
@@ -67,24 +70,26 @@ are evidence only: neither a parser fallback nor page-row order creates a lifecy
 link. Missing PDF evidence blocks publication. A readable PDF whose layout is not
 recognised is retained as evidence and presented for a curator decision instead.
 
-The baseline stage mints and persists opaque canonical street IDs before either notice
-stage runs. The LandsD and e-Gazette stages require that staged baseline, so lifecycle
-review always presents its matching baseline street IDs. These three commands stage
-evidence and parsed immutable records; none publishes a street snapshot. After the
-official e-Gazette stage is complete, run `hkgov-landsd-streets:assemble` to reconcile
-baseline names against the complete notice ledger and publish one snapshot revision.
-This avoids treating a present-state baseline as an event that follows older notices.
+The baseline stage prepares opaque canonical street IDs before either notice stage runs.
+The LandsD and e-Gazette stages require that staged baseline, so lifecycle review always
+presents its matching baseline street IDs. These three commands stage evidence and
+parsed immutable records; none publishes a street snapshot. After the official e-Gazette
+stage is complete, run `hkgov-landsd-streets:assemble` to reconcile baseline names
+against the complete notice ledger and publish one snapshot revision. This avoids
+treating a present-state baseline as an event that follows older notices.
 
 For `--target local`, immutable evidence and manifests are registered in the local
 metadata database and written to the local Wrangler R2 state. The resulting links use
 the local Atlas asset endpoint, so a local release remains inspectable without sending
 publisher evidence to a remote environment.
 
-Canonical street IDs are opaque UUIDv7-style values minted once and persisted. They are
-never derived from a name, district, source record, grid cell, or future geometry.
-`Previous G.N.` values are publisher provenance, not a canonical-street lookup key. A
-deletion updates the application’s explicit affected street and sets `deletedAt` only
-for a confidently parsed legal effective date.
+Canonical street IDs are opaque UUIDv7-style values minted once and persisted in
+canonical street records. Their durable source bridge is the canonical record's
+`sourceKeys`, not a source-table ID or relationship. They are never derived from a name,
+district, source record, grid cell, or future geometry. `Previous G.N.` values are
+publisher provenance, not a canonical-street lookup key. A deletion updates the
+application’s explicit affected street and sets `deletedAt` only for a confidently
+parsed legal effective date.
 
 Declarations may create a new street automatically. Other existing-street changes
 require a versioned application fixture in
@@ -159,8 +164,8 @@ Translation failures block publication; Traditional Chinese is never a silent fa
 
 Publisher district labels and baseline district codes stay in the source ledger. During
 canonical materialisation they are resolved against the published district snapshot and
-stored as canonical `districtIds`. An unresolved district blocks publication and is
-reported as a quality error.
+stored as canonical `districtIds`; those IDs never leak back into source storage. An
+unresolved district blocks publication and is reported as a quality error.
 
 ## Upstream
 
