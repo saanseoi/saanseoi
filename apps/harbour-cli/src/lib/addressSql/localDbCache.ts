@@ -151,7 +151,6 @@ const VERSION_TABLES_WITH_CURRENT_ROWS = new Set([
   'divisions',
   'divisionsI18n',
   'hkgovAlsAddresses2d',
-  'hkgovAlsAddress2dI18n',
   'hkgovLandsdStreets',
   'hkgovLandsdStreetI18n',
   'overtureDivisions',
@@ -1405,12 +1404,7 @@ function resolveMirrorTablesForBinding(
       ]
     }
 
-    return [
-      'overtureDivisions',
-      'overtureDivisionI18n',
-      'hkgovAlsAddresses2d',
-      'hkgovAlsAddress2dI18n',
-    ]
+    return ['overtureDivisions', 'overtureDivisionI18n', 'hkgovAlsAddresses2d']
   }
 
   return []

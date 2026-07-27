@@ -781,8 +781,6 @@ function resolveHistoryTable(tableName: string) {
 
 function resolveSourceTable(tableName: string) {
   switch (tableName) {
-    case 'hkgovAlsAddress2dI18n':
-      return sourceSchema.sourceHkgovAlsAddress2dI18n
     case 'hkgovAlsAddresses2d':
       return sourceSchema.sourceHkgovAlsAddresses2d
     case 'overtureDivisionI18n':

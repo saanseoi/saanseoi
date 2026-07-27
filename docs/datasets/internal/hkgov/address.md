@@ -122,6 +122,11 @@ cohort and input file path. Those values remain stored for audit, but a new deli
 does not count as a changed address solely because its provenance points to that
 delivery.
 
+The source assertion keeps the original bilingual ALS properties unchanged in
+`rawProperties`. Its paired `addressEn` and `addressZhHant` fields record the
+reproducible address-component projection for that exact evidence; only canonical
+address snapshots materialise locale-keyed rows.
+
 ## Stable ALS premise ID
 
 Each retained row receives `ss-<uuid-v5>`. The UUIDv5 input is a normalised premise

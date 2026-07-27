@@ -15,8 +15,7 @@ import {
 
 const SOURCE_OVERTURE_DIVISION_VERSION_COLUMN_COUNT = 17
 const SOURCE_OVERTURE_DIVISION_I18N_VERSION_COLUMN_COUNT = 14
-const SOURCE_HKGOV_ADDRESS2D_VERSION_COLUMN_COUNT = 28
-const SOURCE_HKGOV_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 23
+const SOURCE_HKGOV_ADDRESS2D_VERSION_COLUMN_COUNT = 17
 const SEEN_SOURCE_RECORD_ID_INSERT_COLUMN_COUNT = 1
 
 const tempSeenSourceRecordIds = sqliteTable('tempSeenSourceRecordIds', {
@@ -183,7 +182,6 @@ export async function closeSourceHkgovAlsAddress2dVersions(
     sourceSchema.sourceHkgovAlsAddresses2d,
     sourceRecordIds,
     validToRelease,
-    sourceSchema.sourceHkgovAlsAddress2dI18n,
   )
 }
 
@@ -215,7 +213,6 @@ export async function deleteMissingCurrentSourceHkgovAlsAddresses2d(
     validToRelease,
     currentRows,
     seenIds,
-    sourceSchema.sourceHkgovAlsAddress2dI18n,
   )
 }
 
@@ -229,7 +226,6 @@ export async function deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenIds(
     sourceSchema.sourceHkgovAlsAddresses2d,
     validToRelease,
     seenIds,
-    sourceSchema.sourceHkgovAlsAddress2dI18n,
   )
 }
 
@@ -241,7 +237,6 @@ export async function deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenTable(
     db,
     sourceSchema.sourceHkgovAlsAddresses2d,
     validToRelease,
-    sourceSchema.sourceHkgovAlsAddress2dI18n,
   )
 }
 
@@ -255,7 +250,6 @@ export async function deleteMissingCurrentSourceHkgovAlsAddresses2dByReleaseId(
     sourceSchema.sourceHkgovAlsAddresses2d,
     validToRelease,
     releaseId,
-    sourceSchema.sourceHkgovAlsAddress2dI18n,
   )
 }
 
@@ -395,23 +389,6 @@ export async function insertSourceHkgovAlsAddresses2dVersions(
     [
       sourceSchema.sourceHkgovAlsAddresses2d.sourceRecordId,
       sourceSchema.sourceHkgovAlsAddresses2d.versionHash,
-    ],
-  )
-}
-
-export async function insertSourceHkgovAlsAddress2dI18nVersions(
-  db: SourceDatabase,
-  rows: Array<typeof sourceSchema.sourceHkgovAlsAddress2dI18n.$inferInsert>,
-) {
-  await insertVersionRows(
-    db,
-    sourceSchema.sourceHkgovAlsAddress2dI18n,
-    rows,
-    SOURCE_HKGOV_ADDRESS2D_I18N_VERSION_COLUMN_COUNT,
-    [
-      sourceSchema.sourceHkgovAlsAddress2dI18n.sourceRecordId,
-      sourceSchema.sourceHkgovAlsAddress2dI18n.versionHash,
-      sourceSchema.sourceHkgovAlsAddress2dI18n.locale,
     ],
   )
 }

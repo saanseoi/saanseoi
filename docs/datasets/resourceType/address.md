@@ -28,7 +28,9 @@ SQL into their respective D1 databases.
 
 Canonical current and history tables are `address2d`, `address2dI18n`, and the
 exact-token `address2dBuildingNumberLookup`. The source database retains versioned ALS
-rows in `hkgovAlsAddresses2d` and `hkgovAlsAddress2dI18n`.
+assertions in `hkgovAlsAddresses2d`, including paired `addressEn` and `addressZhHant`
+publisher values. Locale-keyed rows are materialised only for canonical address
+snapshots and API use.
 
 Source rows are keyed by `sourceRecordId + versionHash`. Current rows use
 `isCurrent = 1`; prior versions are closed with `validToRelease`. Canonical snapshots
