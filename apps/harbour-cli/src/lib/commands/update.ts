@@ -38,6 +38,15 @@ const RESOURCE_TYPE_COLUMN_WIDTH = 16
 const VERSION_COLUMN_WIDTH = 'vXXXX-XX-XX.XX'.length
 const ANSI_SGR = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g')
 
+function updateLineWidth() {
+  const columns = process.stdout.isTTY ? process.stdout.columns : undefined
+  if (!columns || columns <= CLACK_STATUS_PREFIX_WIDTH) return UPDATE_LINE_WIDTH
+
+  // Clack adds its own three-column status prefix (for example, `◇  `).
+  // Keep the message itself within the remaining terminal width.
+  return Math.min(UPDATE_LINE_WIDTH, columns - CLACK_STATUS_PREFIX_WIDTH)
+}
+
 export async function runUpdateCommand(
   args: ParsedArgs,
   target: UploadTarget,
@@ -171,7 +180,7 @@ export async function runUpdateCommand(
       }))
       .filter(plan => plan.updates.length > 0)
 
-    log.message(`${phaseHeading(phase)}`, { spacing: 1 })
+    logPhaseHeading(phase)
     if (phasePlans.length === 0) {
       log.message(`No actionable ${phaseHeading(phase).toLowerCase()}.`, {
         spacing: 0,
@@ -216,6 +225,17 @@ function phaseHeading(phase: 'new-releases' | 'revisions' | 'archives') {
     revisions: 'NEW REVISIONS',
     archives: 'ARCHIVES',
   }[phase]
+}
+
+function logPhaseHeading(phase: 'new-releases' | 'revisions' | 'archives') {
+  // The leading and trailing guide make each phase a connected branch while
+  // retaining a clear pause before its dataset rows.
+  log.message([phaseHeading(phase), ''], {
+    secondarySymbol: dim('│'),
+    spacing: 1,
+    symbol: dim('├'),
+    withGuide: true,
+  })
 }
 
 function updateBelongsToPhase(
@@ -296,7 +316,6 @@ async function processPlannedUpdates(
 ) {
   const row = new UpdateRow(plan.dataset)
   const renderedUpdates = new Set<DatasetUpdate>()
-  row.start('checking current')
 
   for (const [updateIndex, update] of plan.updates.entries()) {
     const sourceKey = update.sourceKey ?? plan.dataset.code
@@ -573,7 +592,25 @@ async function processUpdate(
     const prepared = await loadPreparedSourceArchive(path)
     await update.recordIdenticalArchive?.(prepared.manifest.original.sha256)
     await mirrorCsdiSourceArchive(options.target, update.archive, prepared)
-    return 'mirrored' as const
+    if (!update.postArchiveIngest || options.skipUpload) return 'mirrored' as const
+
+    const promptForIngest = !options.skipPrompts
+    const ingest = promptForIngest
+      ? await askToIngest(
+          update,
+          options.targetVersion,
+          options.updateIndex,
+          options.updateTotal,
+        )
+      : true
+    if (isCancel(ingest)) throw new Error('Update cancelled.')
+    if (!ingest) {
+      clearResolvedPrompt()
+      return 'mirrored' as const
+    }
+    if (promptForIngest) replaceResolvedDecision()
+    const result = await update.postArchiveIngest(options.target)
+    return result === 'ingested' ? ('ingested' as const) : ('mirrored' as const)
   }
 
   if (!update.upload || options.skipUpload) return 'downloaded' as const
@@ -762,8 +799,8 @@ export function formatCheckLine(
 
 export function formatUpdateProgressLine(dataset: DatasetFixture, stage: string) {
   const label = formatDatasetCheckLabel(dataset)
-  const stageColumn = UPDATE_LINE_WIDTH - 5 - VERSION_COLUMN_WIDTH * 2
-  const padding = Math.max(4, stageColumn - visibleWidth(label))
+  const stageColumn = updateLineWidth() - 5 - VERSION_COLUMN_WIDTH * 2
+  const padding = Math.max(1, stageColumn - visibleWidth(label))
   return `${label}${' '.repeat(padding)}${stage}`
 }
 
@@ -795,12 +832,23 @@ export function formatDownloadCompleteLine(
   const label = formatDatasetCheckLabel(dataset)
   const padding = Math.max(
     2,
-    UPDATE_LINE_WIDTH -
+    updateLineWidth() -
       visibleWidth(label) -
       visibleWidth(release) -
       visibleWidth(versions),
   )
-  return `${label}${' '.repeat(padding)}${release}${versions}`
+  const line = `${label}${' '.repeat(padding)}${release}${versions}`
+  if (visibleWidth(line) <= updateLineWidth()) return line
+
+  // Completed downloads include both the release position and version
+  // columns. On a narrow terminal, do not let terminal wrapping detach those
+  // details from their dataset label.
+  const compactLabel = formatDatasetCheckLabel(dataset, true)
+  const compactVersions = formatCompactVersionColumns(version, targetVersion)
+  const compactLine = `${compactLabel}  ${release}  ${compactVersions}`
+  if (visibleWidth(compactLine) <= updateLineWidth()) return compactLine
+
+  return `${compactLabel}  ${release}\n  ${compactVersions}`
 }
 
 export function formatDatasetCheckLine(
@@ -927,11 +975,13 @@ function formatUpdateLineWithLabel(
   }${versionText}`
 }
 
-function formatDatasetCheckLabel(dataset: DatasetFixture) {
+function formatDatasetCheckLabel(dataset: DatasetFixture, compact = false) {
   const parts = datasetLabelParts(dataset)
-  return `${colorize(parts.publisher.padEnd(PUBLISHER_COLUMN_WIDTH), 36)} ${dim(
-    '∷',
-  )} ${colorize(parts.type.padEnd(RESOURCE_TYPE_COLUMN_WIDTH), 35)}${
+  const publisher = compact
+    ? parts.publisher
+    : parts.publisher.padEnd(PUBLISHER_COLUMN_WIDTH)
+  const type = compact ? parts.type : parts.type.padEnd(RESOURCE_TYPE_COLUMN_WIDTH)
+  return `${colorize(publisher, 36)} ${dim('∷')} ${colorize(type, 35)}${
     parts.subtype ? ` ${dim('∷')} ${colorize(parts.subtype, 33)}` : ''
   }`
 }
@@ -964,6 +1014,16 @@ function formatVersionColumns(
     targetVersion
       ? colorize(ours.padStart(VERSION_COLUMN_WIDTH), 31)
       : dim(ours.padStart(VERSION_COLUMN_WIDTH))
+  }`
+}
+
+function formatCompactVersionColumns(version?: string, targetVersion?: string | null) {
+  const theirs = version ? `v${ownVersion(version)}` : '—'
+  const ours = targetVersion ? `v${ownVersion(targetVersion)}` : '—'
+  if (!releasesDiffer(version, targetVersion)) return colorize(theirs, 32)
+
+  return `${version ? colorize(theirs, 32) : dim(theirs)} ${dim('←')} ${
+    targetVersion ? colorize(ours, 31) : dim(ours)
   }`
 }
 
