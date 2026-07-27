@@ -447,7 +447,7 @@ describe('reporting service', () => {
       const releases = await listReleases(metaDb, bindings, 'preview', { limit: 2 })
 
       expect(releases).toHaveLength(2)
-      expect(queryCounts.source).toBe(2)
+      expect(queryCounts.source).toBe(1)
       expect(queryCounts.history).toBe(4)
       expect(releases.map(release => release.releaseId)).toEqual([
         'release-dr-hk-hkgov-dpo-address-2026-06-25.0',

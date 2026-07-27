@@ -455,7 +455,8 @@ function createLatestDatasetLookupDb() {
       code TEXT NOT NULL,
       regionCode TEXT NOT NULL,
       theme TEXT NOT NULL,
-      type TEXT NOT NULL
+      type TEXT NOT NULL,
+      sourceCrs TEXT
     );
 
     CREATE TABLE releases (
