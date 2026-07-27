@@ -47,7 +47,6 @@ type SourceRow = {
   featureId: string
   layerName: string
   properties: Record<string, unknown>
-  sourceFeature: Record<string, unknown>
   sourceGeometry: unknown
 }
 
@@ -155,10 +154,6 @@ export async function prepareHkgovCenstatdStatisticUpload(input: {
             rows.map(row => JSON.stringify(row.properties)),
           ),
           strings(
-            'source_feature',
-            rows.map(row => JSON.stringify(row.sourceFeature)),
-          ),
-          strings(
             'source_geometry',
             rows.map(row => JSON.stringify(row.sourceGeometry)),
           ),
@@ -213,7 +208,6 @@ function parseCsdiGml(input: string, layerName: string): SourceRow[] {
       featureId: `${string(feature['@_gml:id'] ?? feature['@_id'] ?? layerName)}:${index + 1}`,
       layerName,
       properties,
-      sourceFeature: feature,
       sourceGeometry:
         find(feature, 'SHAPE') ?? find(feature, 'geometryProperty') ?? null,
     }

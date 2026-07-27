@@ -38,12 +38,12 @@ type UploadResult = { releaseCode?: string; releaseId?: string }
 type SourceStatisticRow = {
   createdAt: string
   districtCode: number
+  districtEn: string
+  districtZhHant: string
   isCurrent: boolean
   landAreaSqKm: number
   midYearPopulation: number
   midYearPopulationDensityPerSqKm: number
-  nameEn: string
-  nameZhHant: string
   rawProperties: unknown
   referenceYear: string
   releaseId: string
@@ -139,15 +139,6 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       now,
     )
     await insertSourceRows(context.sourceDb as HarbourWritableDb, sourceRows)
-    await insertSourceI18nRows(
-      context.sourceDb as HarbourWritableDb,
-      await Promise.all(
-        sourceRows.flatMap(row => [
-          i18nRow(row, 'en', row.nameEn),
-          i18nRow(row, 'zh-hant', row.nameZhHant),
-        ]),
-      ),
-    )
     await insertHistoryRows(
       context.historyDb as unknown as HarbourWritableDb,
       historyRows,
@@ -229,6 +220,8 @@ async function normaliseSourceRow(
   }
   const payload = {
     districtCode: integer(value.district_code, 'district_code'),
+    districtEn: string(value.name_en, 'name_en'),
+    districtZhHant: string(value.name_zh_hant, 'name_zh_hant'),
     landAreaSqKm: number(value.land_area_sq_km, 'land_area_sq_km'),
     midYearPopulationDensityPerSqKm: integer(
       value.mid_year_population_density_per_sq_km,
@@ -246,8 +239,6 @@ async function normaliseSourceRow(
     ...payload,
     createdAt: now,
     isCurrent: true,
-    nameEn: string(value.name_en, 'name_en'),
-    nameZhHant: string(value.name_zh_hant, 'name_zh_hant'),
     releaseId,
     updatedAt: now,
     validFromRelease: releaseCode,
@@ -275,8 +266,8 @@ async function normaliseHistoryRow(
       landAreaSqKm: source.landAreaSqKm,
       midYearPopulation: source.midYearPopulation,
       midYearPopulationDensityPerSqKm: source.midYearPopulationDensityPerSqKm,
-      nameEn: source.nameEn,
-      nameZhHant: source.nameZhHant,
+      nameEn: source.districtEn,
+      nameZhHant: source.districtZhHant,
       referenceYear: source.referenceYear,
       sources: source.sources,
     },
@@ -372,31 +363,6 @@ async function closeCurrentSourceRows(
       ),
     )
     .run()
-  await db
-    .update(sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n)
-    .set({ isCurrent: false, updatedAt: now, validToRelease: releaseCode })
-    .where(
-      and(
-        eq(
-          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
-            .isCurrent,
-          true,
-        ),
-        or(
-          inArray(
-            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
-              .sourceRecordId,
-            sourceRecordIds,
-          ),
-          eq(
-            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
-              .releaseId,
-            releaseId,
-          ),
-        ),
-      ),
-    )
-    .run()
 }
 
 async function closeCurrentHistoryRows(
@@ -418,44 +384,17 @@ async function closeCurrentHistoryRows(
 }
 
 async function insertSourceRows(db: HarbourWritableDb, rows: SourceStatisticRow[]) {
-  // This source assertion has 17 bound columns, including source versioning.
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(17))) {
+  // This source assertion has 18 bound columns, including source versioning.
+  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(18))) {
     await db
       .insert(sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities)
-      .values(chunk.map(({ nameEn: _en, nameZhHant: _zh, ...row }) => row))
-      .onConflictDoUpdate({
-        target: [
-          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
-            .sourceRecordId,
-          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
-            .versionHash,
-        ],
-        set: {
-          isCurrent: true,
-          releaseId: chunk[0]?.releaseId,
-          updatedAt: new Date().toISOString(),
-          validToRelease: null,
-        },
-      })
-      .run()
-  }
-}
-
-async function insertSourceI18nRows(
-  db: HarbourWritableDb,
-  rows: Awaited<ReturnType<typeof i18nRow>>[],
-) {
-  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(13))) {
-    await db
-      .insert(sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n)
       .values(chunk)
       .onConflictDoUpdate({
         target: [
-          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
+          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
             .sourceRecordId,
-          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
+          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
             .versionHash,
-          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n.locale,
         ],
         set: {
           isCurrent: true,
@@ -485,34 +424,6 @@ async function insertHistoryRows(db: HarbourWritableDb, rows: HistoryStatisticRo
         },
       })
       .run()
-  }
-}
-
-async function i18nRow(
-  source: SourceStatisticRow,
-  locale: 'en' | 'zh-hant',
-  name: string,
-) {
-  const now = new Date().toISOString()
-  return {
-    createdAt: now,
-    isCurrent: true,
-    isLocaleInferred: false,
-    locale,
-    name,
-    releaseId: source.releaseId,
-    sourceRecordId: source.sourceRecordId,
-    updatedAt: now,
-    validFromRelease: source.validFromRelease,
-    validToRelease: null,
-    versionHash: await createHash(
-      stableJsonStringify({
-        locale,
-        name,
-        parentHash: source.versionHash,
-        sourceRecordId: source.sourceRecordId,
-      }),
-    ),
   }
 }
 
