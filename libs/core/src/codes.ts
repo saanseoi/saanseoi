@@ -24,38 +24,6 @@ export const hkDistricts = [
 
 export type HkDistrictCode = (typeof hkDistricts)[number]
 
-/** C&SD's published District Council codes mapped to SaanSeoi canonical codes. */
-const hkgovCenstatdDistrictCodes: Record<number, HkDistrictCode> = {
-  11: 'CW',
-  12: 'WC',
-  13: 'EST',
-  14: 'STH',
-  23: 'SSP',
-  24: 'KLC',
-  25: 'WTS',
-  26: 'KT',
-  27: 'YTM',
-  31: 'KC',
-  32: 'TW',
-  33: 'TM',
-  34: 'YL',
-  35: 'NTH',
-  36: 'TP',
-  37: 'ST',
-  38: 'SK',
-  39: 'ILD',
-}
-
-export function canonicalHkDistrictCodeFromHkgovCenstatdCode(
-  sourceDistrictCode: number,
-): HkDistrictCode {
-  const districtCode = hkgovCenstatdDistrictCodes[sourceDistrictCode]
-  if (!districtCode) {
-    throw new Error(`Unknown C&SD District Council code=${sourceDistrictCode}.`)
-  }
-  return districtCode
-}
-
 const RESOURCE_TYPE_CODE_SLUGS: Record<ResourceType, string> = {
   address: 'address',
   division: 'division',
