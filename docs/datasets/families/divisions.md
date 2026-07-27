@@ -76,9 +76,10 @@ future government place-name projection; they should not be forced into the divi
 taxonomy.
 
 All division geometry uploads calculate their canonical WGS84 bbox directly from the
-normalised geometry. This applies to Overture, HAD, C&SD, and Planning Department source
-assertions and transforms; upstream bbox fields are not trusted as persisted geometry
-extents.
+normalised geometry. Canonical geometry and bbox are persisted only in history and
+current; source assertions retain publisher evidence, while named source derivatives
+retain their explicit transform output. Upstream bbox fields are not trusted as
+persisted geometry extents.
 
 Canonical division source releases persist locale completeness and churn stats as well
 as a district distribution. A district row contributes to itself; every other row is
