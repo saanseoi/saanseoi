@@ -63,6 +63,8 @@ export async function runUploadCommand(
   options: {
     dryRun: boolean
     forceUpload: boolean
+    /** Allows a source-specific local repair to reprocess a published release. */
+    allowReprocessPublished?: boolean
     invocationCwd: string
     printUsage: () => void
     /** Explicit out-of-cohort Overture dependency selected during local preparation. */
@@ -258,6 +260,7 @@ ${mutedBar}  `)
         schemaVersionId,
         {
           force: options.forceUpload,
+          allowReprocessPublished: options.allowReprocessPublished,
         },
       )
 

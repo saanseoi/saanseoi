@@ -9,7 +9,11 @@ import {
 } from './landsd/street/landsdStreet.ts'
 import { ingestLandsdStreetSource } from './landsd/street/landsdStreetIngest.ts'
 import { publishLandsdStreetReleasePayloads } from './landsd/street/landsdStreetPublish.ts'
-import { type CsdiSourceArchive, prepareCsdiSourceArchive } from './sourceArchives.ts'
+import {
+  type CsdiSourceArchive,
+  type PreparedSourceArchive,
+  prepareCsdiSourceArchive,
+} from './sourceArchives.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const DATASET_ROOT = resolve(REPO_ROOT, 'fixtures/meta/datasets')
@@ -174,6 +178,7 @@ export type DatasetUpdate = {
   /** Runs only after a native CSDI archive has been mirrored successfully. */
   postArchiveIngest?: (
     target: import('../cli/options.ts').UploadTarget,
+    prepared: PreparedSourceArchive,
   ) => Promise<'ingested' | 'not-implemented'>
   /** Assigns a non-CSDI package to one of the updater's three report phases. */
   phase?: DatasetUpdatePhase
@@ -1076,8 +1081,8 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
           }
           return prepared.sourcePath
         },
-        postArchiveIngest: async target =>
-          runCsdiArchiveIngestPlaceholder(dataset, release, target),
+        postArchiveIngest: async (target, prepared) =>
+          runCsdiArchiveIngestPlaceholder(dataset, release, target, prepared),
         ...(release
           ? {
               recordIdenticalArchive: async (contentHash: string) => {
@@ -1100,7 +1105,33 @@ async function runCsdiArchiveIngestPlaceholder(
   dataset: DatasetFixture,
   release: DatasetRelease | undefined,
   target: import('../cli/options.ts').UploadTarget,
+  prepared: PreparedSourceArchive,
 ): Promise<'ingested' | 'not-implemented'> {
+  const plandKind =
+    dataset.code === 'ds-hk-hkgov-pland-division-pu'
+      ? 'pu'
+      : dataset.code === 'ds-hk-hkgov-pland-division-new-town'
+        ? 'new-town'
+        : null
+  if (plandKind && release?.sourceVersion && release.sourceUrl) {
+    const child = Bun.spawn(
+      buildHkgovPlandArchiveIngestCommand({
+        inputFile: prepared.sourcePath,
+        kind: plandKind,
+        releaseNotesUrl: release.sourceUrl,
+        sourceVersion: release.sourceVersion,
+        target,
+      }),
+      { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
+    )
+    if ((await child.exited) !== 0) {
+      throw new Error(
+        `Planning Department ${plandKind} archive ingest failed for ${release.sourceVersion}.`,
+      )
+    }
+    return 'ingested'
+  }
+
   if (
     dataset.code ===
       'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' &&
@@ -1138,6 +1169,32 @@ async function runCsdiArchiveIngestPlaceholder(
     `NOT IMPLEMENTED: native CSDI archive ingestion for ${dataset.code}${release?.sourceVersion ? ` (${release.sourceVersion})` : ''}.`,
   )
   return 'not-implemented'
+}
+
+export function buildHkgovPlandArchiveIngestCommand(input: {
+  inputFile: string
+  kind: 'new-town' | 'pu'
+  releaseNotesUrl: string
+  sourceVersion: string
+  target: import('../cli/options.ts').UploadTarget
+}) {
+  return [
+    process.execPath,
+    'run',
+    '--silent',
+    'dataops',
+    '--',
+    'hkgov-pland:ingest',
+    '--kind',
+    input.kind,
+    input.inputFile,
+    '--target',
+    input.target.environment === 'dev' ? 'local' : input.target.environment,
+    '--source-version',
+    input.sourceVersion,
+    '--release-notes-url',
+    input.releaseNotesUrl,
+  ]
 }
 
 function resolveCsdiArchiveDatasetVersion(

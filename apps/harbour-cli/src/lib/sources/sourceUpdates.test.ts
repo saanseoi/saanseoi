@@ -9,6 +9,7 @@ import {
 
 import {
   buildHkgovAlsIngestCommand,
+  buildHkgovPlandArchiveIngestCommand,
   buildOverturistCommand,
   buildOverturistReleasesCommand,
   datasetCorrectionSuffixSources,
@@ -54,6 +55,29 @@ describe('dataset update registry', () => {
         target: { environment: 'dev', remote: false },
       }),
     ).toContain('local')
+  })
+
+  test('starts PlanD native archive intake with the mirrored source package', () => {
+    expect(
+      buildHkgovPlandArchiveIngestCommand({
+        inputFile: '/tmp/mirrored-source.zip',
+        kind: 'pu',
+        releaseNotesUrl: 'https://portal.csdi.gov.hk/example',
+        sourceVersion: '2021',
+        target: { environment: 'production', remote: true },
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        'hkgov-pland:ingest',
+        '--kind',
+        'pu',
+        '/tmp/mirrored-source.zip',
+        '--target',
+        'production',
+        '--source-version',
+        '2021',
+      ]),
+    )
   })
 
   test('loads every dataset fixture', async () => {
