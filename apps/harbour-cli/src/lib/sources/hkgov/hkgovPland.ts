@@ -380,13 +380,20 @@ function buildPlanningDivision(
       sourceLevel: level,
       ...(level === 'subunit'
         ? {
-            sourceFeatureProperties: first.originalFeature.properties ?? null,
-            ...(first.repaired
-              ? {
-                  sourceGeometry: first.originalGeometry,
-                  sourceGeometryBbox: calculateBbox(first.originalGeometry),
-                }
-              : {}),
+            // Every native feature is carried through the division hand-off so
+            // the source layer can retain publisher evidence rather than a
+            // canonical subunit projection.
+            sourceFeatures: cells.map(cell => ({
+              ppuCode: cell.ppu,
+              spuCode: cell.spu,
+              subunitCode: cell.subunit,
+              tpuCode: cell.tpu,
+              rawProperties: cell.originalFeature.properties ?? null,
+              repairedGeometry: cell.repaired ? cell.geometry : null,
+              sourceGeometry: cell.originalGeometry,
+              sourceRecordId: sourceCellId(cell),
+              wasGeometryRepaired: cell.repaired,
+            })),
           }
         : {}),
     },

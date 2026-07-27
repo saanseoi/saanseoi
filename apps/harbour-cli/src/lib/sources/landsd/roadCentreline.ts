@@ -52,12 +52,15 @@ export type NormalisedRoadCentreline = {
   objectId: number
   streetCode: string
   streetType: string | null
+  /** Exact native feature attributes, including the publisher's labels. */
+  rawProperties: Record<string, unknown>
+  nameEn: string | null
+  nameZhHant: string | null
   sourceGeometry: GeoJsonGeometry
   geometry: GeoJsonGeometry
   bbox: [number, number, number, number]
   /** Derived matching/statistics evidence; never inserted into source storage. */
   derivedDistrictIds: string[]
-  i18n: Array<{ locale: 'en' | 'zh-Hant'; name: string }>
 }
 
 export type RoadCentrelineMatchIssue = {
@@ -193,7 +196,9 @@ export function normaliseRoadCentrelineFeatures(input: {
         geometry,
         bbox: calculateGeoJsonBbox(geometry),
         derivedDistrictIds,
-        i18n: roadCentrelineI18n(fields),
+        rawProperties: feature.properties,
+        nameEn: fields.englishName,
+        nameZhHant: fields.chineseName,
       })
       continue
     }
@@ -214,7 +219,9 @@ export function normaliseRoadCentrelineFeatures(input: {
         geometry,
         bbox: calculateGeoJsonBbox(geometry),
         derivedDistrictIds,
-        i18n: roadCentrelineI18n(fields),
+        rawProperties: feature.properties,
+        nameEn: fields.englishName,
+        nameZhHant: fields.chineseName,
       })
       issues.push({
         objectId: fields.objectId,
@@ -236,7 +243,9 @@ export function normaliseRoadCentrelineFeatures(input: {
       geometry,
       bbox: calculateGeoJsonBbox(geometry),
       derivedDistrictIds,
-      i18n: roadCentrelineI18n(fields),
+      rawProperties: feature.properties,
+      nameEn: fields.englishName,
+      nameZhHant: fields.chineseName,
     })
   }
   return { issues, records }
@@ -260,7 +269,7 @@ export function buildRoadCentrelineMatchingActions(input: {
           'normalised English name',
           'derived canonical district ID when English-name candidates are ambiguous',
         ],
-        retainedFields: ['streetId', 'sourceGeometry'],
+        retainedFields: ['sourceGeometry'],
       },
       mode: 'automatic',
       summary:
@@ -473,20 +482,6 @@ function curationKey(fields: {
   chineseName: string | null
 }) {
   return `${fields.objectId}:${normaliseRoadCentrelineName(fields.englishName ?? '')}`
-}
-
-function roadCentrelineI18n(fields: {
-  englishName: string | null
-  chineseName: string | null
-}) {
-  return [
-    ...(fields.englishName
-      ? [{ locale: 'en' as const, name: fields.englishName }]
-      : []),
-    ...(fields.chineseName
-      ? [{ locale: 'zh-Hant' as const, name: fields.chineseName }]
-      : []),
-  ]
 }
 
 function disambiguateByDerivedDistricts(
