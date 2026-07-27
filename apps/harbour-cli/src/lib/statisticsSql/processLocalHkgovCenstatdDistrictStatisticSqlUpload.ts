@@ -1,10 +1,20 @@
-import { hkDistricts } from '@repo/core'
-import { createHash, stableJsonStringify } from '@repo/core/pipeline/utils'
 import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
-import { metaSchema, sourceSchema } from '@repo/db'
-import { and, eq } from 'drizzle-orm'
+import {
+  buildHkgovCenstatdDistrictStatisticHistoryRecord,
+  createHkgovCenstatdDistrictResolution,
+  type ResolvedHkgovCenstatdDistrict,
+} from '@repo/core/pipeline/services/divisionStatistics'
+import {
+  chunkArray,
+  createHash,
+  getMaxRowsPerInsert,
+  stableJsonStringify,
+} from '@repo/core/pipeline/utils'
+import { historySchema, metaSchema, sourceSchema } from '@repo/db'
+import { and, eq, inArray } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
 import { createHarbourControlClient } from '../api/harbourControl.ts'
@@ -12,7 +22,6 @@ import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
-import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 
 type Plan = {
   cohortKey: string
@@ -26,7 +35,50 @@ type Plan = {
 }
 type UploadResult = { releaseCode?: string; releaseId?: string }
 
-/** Persists C&SD statistic assertions, then publishes the registered release. */
+type SourceStatisticRow = {
+  createdAt: string
+  districtCode: number
+  isCurrent: boolean
+  landAreaSqKm: number
+  midYearPopulation: number
+  midYearPopulationDensityPerSqKm: number
+  nameEn: string
+  nameZhHant: string
+  rawProperties: unknown
+  referenceYear: string
+  releaseId: string
+  sourceGeometry: unknown
+  sourceRecordId: string
+  sources: unknown
+  updatedAt: string
+  validFromRelease: string
+  validToRelease: null
+  version: number
+  versionHash: string
+}
+
+type HistoryStatisticRow = {
+  createdAt: string
+  districtCode: string
+  divisionId: string
+  id: string
+  isCurrent: boolean
+  landAreaSqKm: number
+  midYearPopulation: number
+  midYearPopulationDensityPerSqKm: number
+  referenceYear: string
+  sourceKeys: unknown
+  sourceReleaseId: string
+  sources: unknown
+  updatedAt: string
+  versionHash: string
+}
+
+/**
+ * Persists raw C&SD source assertions, then publishes their canonical
+ * Division Statistics history observations. Source rows never contain a
+ * canonical district code or division ID.
+ */
 export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
   target: UploadTarget,
   plan: Plan,
@@ -41,12 +93,12 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     plan.sourceVersion.slice(0, 4),
   )
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
-  const divisionIdsByDistrictCode = await resolveCanonicalDistrictIds(metaDb)
   const client = target.remote
     ? (createHarbourControlClient(target) as HarbourClient)
     : createLocalControlClient(metaDb, {
         publishClient: createLocalStatisticPublishClient(metaDb),
       })
+
   try {
     await client.stageRunning(
       releaseId,
@@ -54,90 +106,56 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       { resourceType: plan.type, sourceRows: plan.rowCount },
       releaseCode,
     )
-    let importedRows = 0
-    for await (const batch of readParquetObjectsInBatches(
-      await asyncBufferFromFile(preparedUpload.filePath),
-      256,
-    )) {
-      const rows = await Promise.all(
-        batch.map(row =>
-          normalise(
-            row,
-            divisionIdsByDistrictCode,
-            releaseId,
-            releaseCode,
-            plan.sourceVersion,
-          ),
-        ),
-      )
-      const i18n = await Promise.all(
-        rows.flatMap(row => [
-          i18nRow(
-            row.sourceRecordId,
-            row.nameEn,
-            'en',
-            row.versionHash,
-            releaseId,
-            releaseCode,
-          ),
-          i18nRow(
-            row.sourceRecordId,
-            row.nameZhHant,
-            'zh-hant',
-            row.versionHash,
-            releaseId,
-            releaseCode,
-          ),
-        ]),
-      )
-      await context.sourceDb
-        .insert(sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities)
-        .values(rows.map(({ nameEn: _en, nameZhHant: _zh, ...row }) => row))
-        .onConflictDoUpdate({
-          target: [
-            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
-              .sourceRecordId,
-            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
-              .versionHash,
-          ],
-          set: {
-            isCurrent: true,
-            releaseId,
-            updatedAt: new Date().toISOString(),
-            validToRelease: null,
-          },
-        })
-        .run()
-      await context.sourceDb
-        .insert(sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n)
-        .values(i18n)
-        .onConflictDoUpdate({
-          target: [
-            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
-              .sourceRecordId,
-            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
-              .versionHash,
-            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
-              .locale,
-          ],
-          set: {
-            isCurrent: true,
-            releaseId,
-            updatedAt: new Date().toISOString(),
-            validToRelease: null,
-          },
-        })
-        .run()
-      importedRows += rows.length
-    }
-    if (importedRows !== 18 || importedRows !== plan.rowCount)
+    const resolutionBySourceDistrictCode = await resolveCanonicalDistricts(metaDb)
+    const sourceRows = await readSourceRows(
+      preparedUpload.filePath,
+      releaseId,
+      releaseCode,
+      plan.sourceVersion,
+    )
+    if (sourceRows.length !== 18 || sourceRows.length !== plan.rowCount) {
       throw new Error(
-        `Expected 18 C&SD district statistic rows; imported ${importedRows}.`,
+        `Expected 18 C&SD district statistic rows; imported ${sourceRows.length}.`,
       )
+    }
+    assertUniqueDistrictAssertions(sourceRows)
+    const historyRows = await Promise.all(
+      sourceRows.map(row =>
+        normaliseHistoryRow(row, resolutionBySourceDistrictCode, releaseId),
+      ),
+    )
+    const now = new Date().toISOString()
+
+    await closeCurrentSourceRows(
+      context.sourceDb as HarbourWritableDb,
+      sourceRows.map(row => row.sourceRecordId),
+      releaseCode,
+      now,
+    )
+    await closeCurrentHistoryRows(
+      context.historyDb as unknown as HarbourWritableDb,
+      historyRows.map(row => row.id),
+      now,
+    )
+    await insertSourceRows(context.sourceDb as HarbourWritableDb, sourceRows)
+    await insertSourceI18nRows(
+      context.sourceDb as HarbourWritableDb,
+      await Promise.all(
+        sourceRows.flatMap(row => [
+          i18nRow(row, 'en', row.nameEn),
+          i18nRow(row, 'zh-hant', row.nameZhHant),
+        ]),
+      ),
+    )
+    await insertHistoryRows(
+      context.historyDb as unknown as HarbourWritableDb,
+      historyRows,
+    )
+
     await client.stageCompleted(
       releaseId,
       'processDataset',
-      { importedRows },
+      { historyRows: historyRows.length, importedRows: sourceRows.length },
       releaseCode,
     )
     return client.publishDataset(releaseId, releaseCode)
@@ -157,8 +175,11 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
   }
 }
 
-/** Statistics releases have no API-composition snapshot, so local publishing
- * completes the release directly after their source assertions are stored. */
+/**
+ * The Stats API composition has not yet been activated. The local target must
+ * still publish the processed source release so update checks compare source
+ * release versions, rather than CSDI archive slots.
+ */
 function createLocalStatisticPublishClient(
   metaDb: HarbourReadableDb & HarbourWritableDb,
 ): HarbourClient {
@@ -172,25 +193,41 @@ function createLocalStatisticPublishClient(
   }
 }
 
-async function normalise(
-  value: Record<string, unknown>,
-  divisionIdsByDistrictCode: ReadonlyMap<string, string>,
+async function readSourceRows(
+  filePath: string,
   releaseId: string,
   releaseCode: string,
   sourceVersion: string,
 ) {
-  const sourceRecordId = string(value.id, 'id'),
-    referenceYear = string(value.reference_year, 'reference_year')
-  if (referenceYear !== sourceVersion)
+  const rows: SourceStatisticRow[] = []
+  for await (const batch of readParquetObjectsInBatches(
+    await asyncBufferFromFile(filePath),
+    18,
+  )) {
+    rows.push(
+      ...(await Promise.all(
+        batch.map(row =>
+          normaliseSourceRow(row, releaseId, releaseCode, sourceVersion),
+        ),
+      )),
+    )
+  }
+  return rows
+}
+
+async function normaliseSourceRow(
+  value: Record<string, unknown>,
+  releaseId: string,
+  releaseCode: string,
+  sourceVersion: string,
+): Promise<SourceStatisticRow> {
+  const sourceRecordId = string(value.id, 'id')
+  const referenceYear = string(value.reference_year, 'reference_year')
+  if (referenceYear !== sourceVersion) {
     throw new Error(`Expected reference_year=${sourceVersion}.`)
-  const districtCode = string(value.district_code, 'district_code')
-  const divisionId = divisionIdsByDistrictCode.get(districtCode)
-  if (!divisionId) {
-    throw new Error(`No canonical division ID for district_code=${districtCode}.`)
   }
   const payload = {
-    districtCode,
-    divisionId,
+    districtCode: integer(value.district_code, 'district_code'),
     landAreaSqKm: number(value.land_area_sq_km, 'land_area_sq_km'),
     midYearPopulationDensityPerSqKm: integer(
       value.mid_year_population_density_per_sq_km,
@@ -200,7 +237,6 @@ async function normalise(
     rawProperties: json(value.raw_properties, 'raw_properties'),
     referenceYear,
     sourceGeometry: json(value.source_geometry, 'source_geometry'),
-    sourceDistrictCode: integer(value.source_district_code, 'source_district_code'),
     sourceRecordId,
     sources: json(value.sources, 'sources'),
   }
@@ -220,44 +256,223 @@ async function normalise(
   }
 }
 
-/** Resolves canonical IDs through the reviewed HAD district-code bridge. */
-async function resolveCanonicalDistrictIds(metaDb: HarbourReadableDb) {
-  const rows = await metaDb
-    .select({
-      canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
-      districtCode: metaSchema.metaIdentifierBridges.externalCode,
-    })
-    .from(metaSchema.metaIdentifierBridges)
+async function normaliseHistoryRow(
+  source: SourceStatisticRow,
+  resolutionBySourceDistrictCode: ReadonlyMap<number, ResolvedHkgovCenstatdDistrict>,
+  sourceReleaseId: string,
+): Promise<HistoryStatisticRow> {
+  const resolved = resolutionBySourceDistrictCode.get(source.districtCode)
+  if (!resolved) {
+    throw new Error(
+      `No reviewed canonical district identity for C&SD districtCode=${source.districtCode}.`,
+    )
+  }
+  const payload = buildHkgovCenstatdDistrictStatisticHistoryRecord(
+    {
+      districtCode: source.districtCode,
+      id: source.sourceRecordId,
+      landAreaSqKm: source.landAreaSqKm,
+      midYearPopulation: source.midYearPopulation,
+      midYearPopulationDensityPerSqKm: source.midYearPopulationDensityPerSqKm,
+      nameEn: source.nameEn,
+      nameZhHant: source.nameZhHant,
+      referenceYear: source.referenceYear,
+      sources: source.sources,
+    },
+    resolved,
+  )
+  const now = new Date().toISOString()
+  return {
+    ...payload,
+    createdAt: now,
+    isCurrent: true,
+    sourceReleaseId,
+    updatedAt: now,
+    versionHash: await createHash(stableJsonStringify(payload)),
+  }
+}
+
+function assertUniqueDistrictAssertions(rows: SourceStatisticRow[]) {
+  const sourceRecordIds = new Set(rows.map(row => row.sourceRecordId))
+  const districtCodes = new Set(rows.map(row => row.districtCode))
+  if (sourceRecordIds.size !== rows.length || districtCodes.size !== rows.length) {
+    throw new Error('C&SD district statistic input contains duplicate DC assertions.')
+  }
+}
+
+async function resolveCanonicalDistricts(metaDb: HarbourReadableDb) {
+  const [censtatdRows, hadRows] = await Promise.all([
+    metaDb
+      .select({
+        canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
+        externalCode: metaSchema.metaIdentifierBridges.externalCode,
+      })
+      .from(metaSchema.metaIdentifierBridges)
+      .where(
+        and(
+          eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-censtatd'),
+          eq(metaSchema.metaIdentifierBridges.cohortKey, '2021'),
+          eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
+          eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
+        ),
+      )
+      .all(),
+    metaDb
+      .select({
+        canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
+        externalCode: metaSchema.metaIdentifierBridges.externalCode,
+      })
+      .from(metaSchema.metaIdentifierBridges)
+      .where(
+        and(
+          eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-had'),
+          eq(metaSchema.metaIdentifierBridges.cohortKey, '2022'),
+          eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
+          eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
+        ),
+      )
+      .all(),
+  ])
+  return createHkgovCenstatdDistrictResolution(censtatdRows, hadRows)
+}
+
+async function closeCurrentSourceRows(
+  db: HarbourWritableDb,
+  sourceRecordIds: string[],
+  releaseCode: string,
+  now: string,
+) {
+  if (sourceRecordIds.length === 0) return
+  await db
+    .update(sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities)
+    .set({ isCurrent: false, updatedAt: now, validToRelease: releaseCode })
     .where(
       and(
-        eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-had'),
-        eq(metaSchema.metaIdentifierBridges.cohortKey, '2022'),
-        eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
-        eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
+        eq(
+          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities.isCurrent,
+          true,
+        ),
+        inArray(
+          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
+            .sourceRecordId,
+          sourceRecordIds,
+        ),
       ),
     )
-    .all()
-  const divisionIdsByDistrictCode = new Map(
-    rows.flatMap(row =>
-      row.districtCode ? [[row.districtCode, row.canonicalId] as const] : [],
-    ),
-  )
-  for (const districtCode of hkDistricts) {
-    if (!divisionIdsByDistrictCode.has(districtCode)) {
-      throw new Error(
-        `The reviewed HAD bridge has no canonical division ID for districtCode=${districtCode}.`,
-      )
-    }
-  }
-  return divisionIdsByDistrictCode
+    .run()
+  await db
+    .update(sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n)
+    .set({ isCurrent: false, updatedAt: now, validToRelease: releaseCode })
+    .where(
+      and(
+        eq(
+          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
+            .isCurrent,
+          true,
+        ),
+        inArray(
+          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
+            .sourceRecordId,
+          sourceRecordIds,
+        ),
+      ),
+    )
+    .run()
 }
+
+async function closeCurrentHistoryRows(
+  db: HarbourWritableDb,
+  ids: string[],
+  now: string,
+) {
+  if (ids.length === 0) return
+  await db
+    .update(historySchema.divisionStatistics)
+    .set({ isCurrent: false, updatedAt: now })
+    .where(
+      and(
+        eq(historySchema.divisionStatistics.isCurrent, true),
+        inArray(historySchema.divisionStatistics.id, ids),
+      ),
+    )
+    .run()
+}
+
+async function insertSourceRows(db: HarbourWritableDb, rows: SourceStatisticRow[]) {
+  // This source assertion has 17 bound columns, including source versioning.
+  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(17))) {
+    await db
+      .insert(sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities)
+      .values(chunk.map(({ nameEn: _en, nameZhHant: _zh, ...row }) => row))
+      .onConflictDoUpdate({
+        target: [
+          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
+            .sourceRecordId,
+          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
+            .versionHash,
+        ],
+        set: {
+          isCurrent: true,
+          releaseId: chunk[0]?.releaseId,
+          updatedAt: new Date().toISOString(),
+          validToRelease: null,
+        },
+      })
+      .run()
+  }
+}
+
+async function insertSourceI18nRows(
+  db: HarbourWritableDb,
+  rows: Awaited<ReturnType<typeof i18nRow>>[],
+) {
+  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(13))) {
+    await db
+      .insert(sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n)
+      .values(chunk)
+      .onConflictDoUpdate({
+        target: [
+          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
+            .sourceRecordId,
+          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
+            .versionHash,
+          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n.locale,
+        ],
+        set: {
+          isCurrent: true,
+          releaseId: chunk[0]?.releaseId,
+          updatedAt: new Date().toISOString(),
+          validToRelease: null,
+        },
+      })
+      .run()
+  }
+}
+
+async function insertHistoryRows(db: HarbourWritableDb, rows: HistoryStatisticRow[]) {
+  for (const chunk of chunkArray(rows, getMaxRowsPerInsert(13))) {
+    await db
+      .insert(historySchema.divisionStatistics)
+      .values(chunk)
+      .onConflictDoUpdate({
+        target: [
+          historySchema.divisionStatistics.id,
+          historySchema.divisionStatistics.versionHash,
+        ],
+        set: {
+          isCurrent: true,
+          sourceReleaseId: chunk[0]?.sourceReleaseId,
+          updatedAt: new Date().toISOString(),
+        },
+      })
+      .run()
+  }
+}
+
 async function i18nRow(
-  sourceRecordId: string,
-  name: string,
+  source: SourceStatisticRow,
   locale: 'en' | 'zh-hant',
-  parentHash: string,
-  releaseId: string,
-  releaseCode: string,
+  name: string,
 ) {
   const now = new Date().toISOString()
   return {
@@ -266,16 +481,22 @@ async function i18nRow(
     isLocaleInferred: false,
     locale,
     name,
-    releaseId,
-    sourceRecordId,
+    releaseId: source.releaseId,
+    sourceRecordId: source.sourceRecordId,
     updatedAt: now,
-    validFromRelease: releaseCode,
+    validFromRelease: source.validFromRelease,
     validToRelease: null,
     versionHash: await createHash(
-      stableJsonStringify({ sourceRecordId, locale, name, parentHash }),
+      stableJsonStringify({
+        locale,
+        name,
+        parentHash: source.versionHash,
+        sourceRecordId: source.sourceRecordId,
+      }),
     ),
   }
 }
+
 function json(value: unknown, field: string) {
   if (typeof value !== 'string') throw new Error(`Expected ${field} JSON string.`)
   try {
@@ -284,20 +505,24 @@ function json(value: unknown, field: string) {
     throw new Error(`Invalid ${field} JSON.`)
   }
 }
+
 function string(value: unknown, field: string) {
   if (typeof value !== 'string' || !value.trim()) throw new Error(`Expected ${field}.`)
   return value.trim()
 }
+
 function number(value: unknown, field: string) {
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) throw new Error(`Expected numeric ${field}.`)
   return parsed
 }
+
 function integer(value: unknown, field: string) {
   const parsed = number(value, field)
   if (!Number.isInteger(parsed)) throw new Error(`Expected integer ${field}.`)
   return parsed
 }
+
 function required(value: string | undefined, field: string) {
   if (!value) throw new Error(`Expected ${field}.`)
   return value
