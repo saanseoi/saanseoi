@@ -1,13 +1,17 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 
 import { describe, expect, test } from 'bun:test'
 import { parquetMetadataAsync, parquetReadObjects } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
-import { prepareHkgovCenstatdDistrictUpload } from './hkgovCenstatd.ts'
+import {
+  prepareHkgovCenstatdDistrictUpload,
+  readHkgovCenstatdDistrictGmlArchive,
+} from './hkgovCenstatd.ts'
+import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
 
 const districtClasses = [
   'A',
@@ -31,6 +35,36 @@ const districtClasses = [
 ]
 
 describe('C&SD district GML preparation', () => {
+  test('reads the native CSDI archive with the same district coverage and source geometry as the historical GML', async () => {
+    const repoRoot = resolve(import.meta.dir, '../../../../../../')
+    const [archive, baseline] = await Promise.all([
+      readFile(
+        join(
+          repoRoot,
+          'data/hkgov/csdi/archive/censtatd_rcd_1635933617052_68946/2026-Q2/source.zip',
+        ),
+      ),
+      readFile(
+        join(repoRoot, 'data/hkgov/censtatd/district-council-districts-2021.gml'),
+        'utf8',
+      ),
+    ])
+
+    const nativeFeatures = parseHkgovCenstatdDistrictGml(
+      readHkgovCenstatdDistrictGmlArchive(archive, '2021'),
+      'DC_21C_SDU',
+    )
+    const baselineFeatures = parseHkgovCenstatdDistrictGml(baseline, 'DC_21C_SDU')
+
+    expect(nativeFeatures).toHaveLength(18)
+    expect(nativeFeatures.map(feature => feature.properties.dc_class).sort()).toEqual(
+      baselineFeatures.map(feature => feature.properties.dc_class).sort(),
+    )
+    expect(nativeFeatures.map(feature => feature.sourceGeometry)).toEqual(
+      baselineFeatures.map(feature => feature.sourceGeometry),
+    )
+  })
+
   test('retains exact source geometry and produces display derivatives for both census cohorts', async () => {
     const inputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-input-'))
     const outputDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-test-'))

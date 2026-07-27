@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 
 import { parquetWriteBuffer } from 'hyparquet-writer'
+import { strFromU8, unzipSync } from 'fflate'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
@@ -82,7 +83,10 @@ export async function prepareHkgovCenstatdDistrictUpload(
   inputFile: string,
   outputDir: string,
   sourceVersion: '2016' | '2021',
-  options: { transform?: typeof HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM } = {},
+  options: {
+    sourceArchive?: { key: string; sha256: string }
+    transform?: typeof HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM
+  } = {},
 ): Promise<PreparedHkgovCenstatdDistrictUpload> {
   const profile = SOURCE_PROFILE[sourceVersion]
   if (!profile) {
@@ -103,7 +107,7 @@ export async function prepareHkgovCenstatdDistrictUpload(
   }
 
   const exactRows = features.map((feature, index) =>
-    normaliseCsdIDistrictFeature(feature, index, sourceVersion),
+    normaliseCsdIDistrictFeature(feature, index, sourceVersion, options.sourceArchive),
   )
   assertUniqueDistricts(exactRows, sourceVersion)
   const rows =
@@ -208,10 +212,38 @@ export async function prepareHkgovCenstatdDistrictUpload(
   }
 }
 
+/**
+ * Opens the publisher's native CSDI ZIP and returns its sole cohort GML.
+ * This deliberately rejects CSDI's converted GeoJSON download.
+ */
+export function readHkgovCenstatdDistrictGmlArchive(
+  archiveBytes: Uint8Array,
+  sourceVersion: '2016' | '2021',
+) {
+  const expectedMember = `${SOURCE_PROFILE[sourceVersion].layerName}.gml`
+  const archive = unzipSync(archiveBytes)
+  const gml = archive[expectedMember]
+  if (!gml) {
+    throw new Error(
+      `C&SD ${sourceVersion} source archive must contain ${expectedMember}.`,
+    )
+  }
+  const unexpectedGml = Object.keys(archive).filter(
+    member => member.toLowerCase().endsWith('.gml') && member !== expectedMember,
+  )
+  if (unexpectedGml.length > 0) {
+    throw new Error(
+      `C&SD ${sourceVersion} source archive has unexpected GML layers: ${unexpectedGml.join(', ')}.`,
+    )
+  }
+  return strFromU8(gml)
+}
+
 function normaliseCsdIDistrictFeature(
   value: unknown,
   index: number,
   sourceVersion: string,
+  sourceArchive?: { key: string; sha256: string },
 ): PreparedDistrictRow {
   if (!isRecord(value) || value.type !== 'Feature') {
     throw new Error(`C&SD district feature ${index + 1} is not a GeoJSON Feature.`)
@@ -253,6 +285,12 @@ function normaliseCsdIDistrictFeature(
         dataset: HKGOV_CENSTATD_SOURCE,
         districtClass,
         districtCode,
+        ...(sourceArchive
+          ? {
+              sourceArchiveKey: sourceArchive.key,
+              sourceArchiveSha256: sourceArchive.sha256,
+            }
+          : {}),
       },
     ],
     i18n: [
@@ -290,13 +328,7 @@ function withDisplayGeometry(rows: PreparedDistrictRow[], sourceVersion: string)
       // A display transform is another representation of the same C&SD
       // assertion, not a new source record. The snapshot variant selects it.
       id: row.id,
-      sources: [
-        {
-          dataset: HKGOV_CENSTATD_SOURCE,
-          districtClass: row.district_class,
-          districtCode: row.district_code,
-        },
-      ],
+      sources: row.sources,
     }
   })
 }

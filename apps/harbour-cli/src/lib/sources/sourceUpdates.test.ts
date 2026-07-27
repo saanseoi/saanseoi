@@ -9,6 +9,7 @@ import {
 
 import {
   buildHkgovAlsIngestCommand,
+  buildHkgovCenstatdDistrictArchiveIngestCommand,
   buildHkgovCenstatdDistrictStatisticArchiveIngestCommand,
   buildHkgovPlandArchiveIngestCommand,
   buildOverturistCommand,
@@ -101,6 +102,28 @@ describe('dataset update registry', () => {
         'by-source/hk/hkgov-csdi/density/archive-source.zip',
         '--source-archive-sha256',
         'b'.repeat(64),
+      ]),
+    )
+  })
+
+  test('starts C&SD district-area intake from the prepared native archive', () => {
+    expect(
+      buildHkgovCenstatdDistrictArchiveIngestCommand({
+        inputFile: '/tmp/prepared-districts.zip',
+        releaseNotesUrl: 'https://portal.csdi.gov.hk/districts',
+        sourceArchiveKey: 'by-source/hk/hkgov-csdi/districts/source.zip',
+        sourceArchiveSha256: 'd'.repeat(64),
+        sourceVersion: '2021',
+        target: { environment: 'production', remote: true },
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        'hkgov-censtatd:district-area',
+        '/tmp/prepared-districts.zip',
+        '--target',
+        'production',
+        '--source-archive-key',
+        'by-source/hk/hkgov-csdi/districts/source.zip',
       ]),
     )
   })
