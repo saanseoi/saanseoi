@@ -14,9 +14,11 @@ import {
   type DatasetFixture,
   type UpdateStateEntry,
   getDueUpdatePhases,
+  loadCurrentCompositionIngestDependencies,
   loadDatasetFixtures,
   lookupDatasetUpdates,
   normaliseDatasetVersion,
+  orderDatasetsByCompositionDependencies,
   recordUpdatePhaseCheck,
   recordUpdateState,
   readUpdateState,
@@ -58,14 +60,22 @@ export async function runUpdateCommand(
     throw new Error('`update` accepts dataset selection through --dataset only.')
   }
 
-  const datasets = await loadDatasetFixtures(requested)
-  if (datasets.length === 0) throw new Error('No matching datasets found.')
+  const datasets = await loadDatasetFixtures()
+  const requestedDatasets = requested
+    ? datasets.filter(dataset => requested.has(dataset.code))
+    : datasets
+  if (requestedDatasets.length === 0) throw new Error('No matching datasets found.')
 
   const selectedFamily = await resolveApiFamilySelection(args, datasets, requested)
-  const selectedDatasets =
+  const selectedFamilyDatasets =
     selectedFamily === 'all'
-      ? datasets
-      : datasets.filter(dataset => dataset.theme === selectedFamily)
+      ? requestedDatasets
+      : requestedDatasets.filter(dataset => dataset.theme === selectedFamily)
+  const selectedDatasets = orderDatasetsByCompositionDependencies(
+    datasets,
+    selectedFamilyDatasets,
+    await loadCurrentCompositionIngestDependencies(),
+  )
 
   log.message('', { spacing: 0 })
   log.message(

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:e9410a76bd46924ea432888af4c32e341a5eb9c5d9a0837a07b567bab4614b68",
+  "versionHash": "sha256:390689b83fe8729b7a258327aa8b0de8751456a070aaf732b5571cdb4d99c112",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -38,7 +38,13 @@
           "role": "geometry",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
-          "priority": 10
+          "priority": 10,
+          "ingestDependencies": [
+            {
+              "resourceType": "division",
+              "variant": "overture"
+            }
+          ]
         },
         {
           "resourceType": "divisionArea",
@@ -70,7 +76,13 @@
           "role": "geometry",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
-          "priority": 20
+          "priority": 20,
+          "ingestDependencies": [
+            {
+              "resourceType": "division",
+              "variant": "overture"
+            }
+          ]
         }
       ]
     },
@@ -105,7 +117,13 @@
           "role": "geometry",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
-          "priority": 10
+          "priority": 10,
+          "ingestDependencies": [
+            {
+              "resourceType": "division",
+              "variant": "hkgov-pland-pu"
+            }
+          ]
         }
       ]
     },
@@ -140,7 +158,13 @@
           "role": "geometry",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
-          "priority": 10
+          "priority": 10,
+          "ingestDependencies": [
+            {
+              "resourceType": "division",
+              "variant": "hkgov-pland-new-town"
+            }
+          ]
         }
       ]
     },

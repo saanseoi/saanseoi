@@ -15,6 +15,11 @@ import {
   shouldDownloadUpdate,
   wrapUpdateMessage,
 } from './update.ts'
+import {
+  loadCurrentCompositionIngestDependencies,
+  loadDatasetFixtures,
+  orderDatasetsByCompositionDependencies,
+} from '../sources/sourceUpdates.ts'
 
 test('formats update rows with the requested publisher/resource/subtype label', () => {
   expect(
@@ -74,6 +79,44 @@ test('selects an API family without prompting', async () => {
       datasets,
     ),
   ).resolves.toBe('streets')
+})
+
+test('adds a composition lookup provider before an address update', async () => {
+  const datasets = await loadDatasetFixtures()
+  const address = datasets.find(dataset => dataset.code === 'ds-hk-hkgov-dpo-address')
+  expect(address).toBeDefined()
+
+  const ordered = orderDatasetsByCompositionDependencies(
+    datasets,
+    [address!],
+    await loadCurrentCompositionIngestDependencies(),
+  )
+
+  expect(ordered.map(dataset => dataset.code)).toEqual([
+    'ds-hk-overture-division',
+    'ds-hk-hkgov-dpo-address',
+  ])
+})
+
+test('orders Overture division before its geometry consumers', async () => {
+  const datasets = await loadDatasetFixtures()
+  const geometry = datasets.filter(dataset =>
+    ['ds-hk-overture-division-area', 'ds-hk-overture-division-boundary'].includes(
+      dataset.code,
+    ),
+  )
+
+  const ordered = orderDatasetsByCompositionDependencies(
+    datasets,
+    geometry,
+    await loadCurrentCompositionIngestDependencies(),
+  )
+
+  expect(ordered.map(dataset => dataset.code)).toEqual([
+    'ds-hk-overture-division',
+    'ds-hk-overture-division-area',
+    'ds-hk-overture-division-boundary',
+  ])
 })
 
 test('accepts --scope as an alias for --api-family', async () => {
