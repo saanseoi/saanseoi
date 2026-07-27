@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 
-import type { ParquetInspection } from '@repo/core'
+import type { UploadInspection } from '@repo/core'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
 import {
   loadMigrationSql,
@@ -18,7 +18,7 @@ const migrationSql = loadMigrationSql(migrationsDir, ['meta'])
 const tempDirs: string[] = []
 const sqliteHandles: Database[] = []
 
-const fixtureInspection: ParquetInspection = {
+const fixtureInspection: UploadInspection = {
   rowCount: 2050,
   schema: [
     { name: 'id', type: 'string', nullable: false },

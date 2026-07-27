@@ -54,7 +54,11 @@ export type ParquetSchemaField = {
   nullable: boolean
 }
 
-export type ParquetInspection = {
+/**
+ * Validated upload-input shape. Parquet is one producer of this data; native
+ * publisher archives provide the same contract after source-format validation.
+ */
+export type UploadInspection = {
   rowCount: number
   schema: ParquetSchemaField[]
   distinctThemeValues: string[]
@@ -110,7 +114,7 @@ export type RegisterUploadOptions = {
   releaseNotesUrl?: string
   shardYear?: string
   dryRun?: boolean
-  inspection?: ParquetInspection
+  inspection?: UploadInspection
   rawObjectKey?: string
   resolveSchemaFingerprint?: SchemaFingerprintResolver
   allowExistingDatasetStatuses?: ReleaseStatus[]
@@ -118,12 +122,12 @@ export type RegisterUploadOptions = {
 
 export type PreparedUploadResult = {
   plan: UploadPlan
-  inspection: ParquetInspection
+  inspection: UploadInspection
 }
 
 export type RegisterUploadResult = {
   plan: UploadPlan
-  inspection: ParquetInspection
+  inspection: UploadInspection
   datasetId: string | null
   rawObjectKey: string | null
   releaseId: string | null

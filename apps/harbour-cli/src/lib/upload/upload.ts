@@ -181,6 +181,7 @@ async function requestRemoteRegistration(
         inspection: previewResult.inspection,
         plan: {
           cohortKey: previewResult.plan.cohortKey,
+          datasetCode: previewResult.plan.datasetCode,
           regionCode: previewResult.plan.regionCode,
           releaseNotesUrl: previewResult.plan.releaseNotesUrl,
           shardYear,

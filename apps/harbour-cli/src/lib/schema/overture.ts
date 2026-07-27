@@ -1,4 +1,4 @@
-import type { ParquetInspection, ResourceType, UploadPlan } from '@repo/core'
+import type { ResourceType, UploadInspection, UploadPlan } from '@repo/core'
 
 type SchemaWindow = {
   validFromVersion?: string
@@ -215,7 +215,7 @@ const OVERTURE_SCHEMAS: UploadSchemaVersion[] = [
 
 export function validateOvertureSchema(
   plan: UploadPlan,
-  inspection: ParquetInspection,
+  inspection: UploadInspection,
 ): SchemaValidationResult {
   const schema = resolveSchemaVersion(plan)
   const differences = diffSchema(
@@ -314,7 +314,7 @@ function compareRelease(left: string, right: string) {
 
 function diffSchema(
   expected: UploadSchemaField[],
-  actual: ParquetInspection['schema'],
+  actual: UploadInspection['schema'],
   allowedUnexpected: UploadSchemaField[] = [],
 ) {
   const differences: string[] = []

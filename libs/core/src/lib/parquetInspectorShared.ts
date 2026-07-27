@@ -6,7 +6,7 @@ import {
 } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 
-import type { ParquetInspection } from '../types'
+import type { UploadInspection } from '../types'
 
 /**
  * Reads a parquet buffer, extracts its schema, and collects distinct values
@@ -14,7 +14,7 @@ import type { ParquetInspection } from '../types'
  */
 export async function inspectParquetFromBuffer(
   file: AsyncBuffer | ArrayBuffer,
-): Promise<ParquetInspection> {
+): Promise<UploadInspection> {
   const metadata = await parquetMetadataAsync(file)
   const schema = extractSchema(metadata)
   const availableColumns = new Set(schema.map(field => field.name))
