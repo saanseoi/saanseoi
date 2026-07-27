@@ -2,12 +2,20 @@ import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlit
 
 import { jsonText, type StreetEvidenceAsset } from '../shared'
 import {
+  sourceReleaseRevisionAssertionColumns,
   sourceReleaseRevisionIndexes,
   sourceReleaseRevisionRecordColumns,
   sourceSpatialAssertionColumns,
+  sourceVersionedAssertionColumns,
   sourceVersionIndexes,
   sourceVersionedRecordColumns,
 } from './shared'
+
+export type LandsdPlaceName = {
+  nameEn: string | null
+  nameZhHant: string | null
+  status: 'Alias' | 'Official'
+}
 
 export const landsdStreetNoticeApplicationMethods = ['automatic', 'manual'] as const
 export type LandsdStreetNoticeApplicationMethod =
@@ -49,6 +57,8 @@ export const sourceHkgovLandsdPlaceNames = sqliteTable(
     placeType: text('placeType').notNull(),
     // The District Council Code referenced from the District Boundary dataset of the Functional Area FSDT
     district: text('district'),
+    /** Native `PLACE_NAME` relationship rows, including official and alias pairs. */
+    placeNames: jsonText<LandsdPlaceName[]>('placeNames').notNull(),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -64,7 +74,7 @@ export const sourceHkgovLandsdStreetBaselineRecords = sqliteTable(
   'hkgovLandsdStreetBaselineRecords',
   {
     /** Stable internal key derived from the three fields in the baseline PDF table. */
-    ...sourceVersionedRecordColumns(),
+    ...sourceVersionedAssertionColumns(),
     /** Opaque SaanSeoi identity minted when this baseline street is accepted. */
     streetId: text('streetId').notNull(),
     /** True when the authoritative state is established by Government Notices. */
@@ -90,7 +100,7 @@ export const sourceHkgovLandsdStreetNotices = sqliteTable(
   'hkgovLandsdStreetNotices',
   {
     /** Stable internal key: notice reference plus the PDF table row ordinal. */
-    ...sourceVersionedRecordColumns(),
+    ...sourceVersionedAssertionColumns(),
     /** Gazette date parsed directly from the bilingual notice PDFs. */
     gazetteDate: text('gazetteDate').notNull(),
     /** Publisher's notice classification, parsed from the notice PDF. */
@@ -175,7 +185,7 @@ export const sourceHkgovLandsdStreetNoticeApplications = sqliteTable(
 export const sourceHkgovLandsdRoadCentrelines = sqliteTable(
   'hkgovLandsdRoadCentrelines',
   {
-    ...sourceReleaseRevisionRecordColumns(),
+    ...sourceReleaseRevisionAssertionColumns(),
     streetId: text('streetId'),
     objectId: integer('objectId').notNull(),
     streetCode: text('streetCode').notNull(),

@@ -1123,7 +1123,9 @@ function hashGeometrySourceAssertion(
   // The bridge-derived canonical division relationship is needed to write the
   // canonical geometry, but it is neither C&SD evidence nor part of the
   // source assertion's identity.
-  const { derivation: _derivation, divisionId: _divisionId, ...sourceAssertion } = row
+  const sourceAssertion: Record<string, unknown> = { ...row }
+  delete sourceAssertion.derivation
+  delete sourceAssertion.divisionId
   return hashDivisionGeometrySourceRow(sourceAssertion)
 }
 

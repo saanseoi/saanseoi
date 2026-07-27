@@ -236,9 +236,7 @@ export function hashDivisionGeometryRow(
   return createHash(stableJsonStringify(buildDivisionGeometryHashInput(row)))
 }
 
-export function hashDivisionGeometrySourceRow(
-  row: NormalisedDivisionArea['source'] | NormalisedDivisionBoundary['source'],
-) {
+export function hashDivisionGeometrySourceRow(row: unknown) {
   return createHash(stableJsonStringify(row))
 }
 
