@@ -3,12 +3,43 @@ import { describe, expect, test } from 'bun:test'
 import {
   buildDatasetCode,
   buildDatasetReleaseCode,
+  canonicalHkDistrictCodeFromHkgovCenstatdCode,
   datasetVariantForSource,
   publisherCodeForSource,
   resourceTypeCodeSlug,
 } from './codes'
 
 describe('registry code construction', () => {
+  test('maps C&SD district codes to canonical Hong Kong district codes', () => {
+    expect(
+      [11, 12, 13, 14, 23, 24, 25, 26, 27, 31, 32, 33, 34, 35, 36, 37, 38, 39].map(
+        canonicalHkDistrictCodeFromHkgovCenstatdCode,
+      ),
+    ).toEqual([
+      'CW',
+      'WC',
+      'EST',
+      'STH',
+      'SSP',
+      'KLC',
+      'WTS',
+      'KT',
+      'YTM',
+      'KC',
+      'TW',
+      'TM',
+      'YL',
+      'NTH',
+      'TP',
+      'ST',
+      'SK',
+      'ILD',
+    ])
+    expect(() => canonicalHkDistrictCodeFromHkgovCenstatdCode(1)).toThrow(
+      'Unknown C&SD District Council code=1.',
+    )
+  })
+
   test('converts camelCase resource enums to lowercase kebab-case slugs', () => {
     expect(resourceTypeCodeSlug('divisionArea')).toBe('division-area')
     expect(resourceTypeCodeSlug('divisionBoundary')).toBe('division-boundary')
