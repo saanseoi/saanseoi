@@ -100,6 +100,7 @@ type PlanningCell = {
   originalGeometry: GeoJsonGeometry
   ppu: string
   repaired: boolean
+  sourceRecordId: string
   spu: string
   subunit: string
   tpu: string
@@ -310,6 +311,10 @@ function normalisePlanningCell(
     originalGeometry,
     ppu,
     repaired: repairedGeometry.repaired,
+    // Archived TPU deliveries have repeated planning-cell codes and no
+    // publisher feature identifier. The delivery row ordinal distinguishes
+    // those separate native assertions without changing canonical grouping.
+    sourceRecordId: `${sourceCellId({ ppu, spu, tpu, subunit })}:${index + 1}`,
     spu,
     subunit,
     tpu,
@@ -391,7 +396,7 @@ function buildPlanningDivision(
               rawProperties: cell.originalFeature.properties ?? null,
               repairedGeometry: cell.repaired ? cell.geometry : null,
               sourceGeometry: cell.originalGeometry,
-              sourceRecordId: sourceCellId(cell),
+              sourceRecordId: cell.sourceRecordId,
               wasGeometryRepaired: cell.repaired,
             })),
           }
@@ -736,7 +741,7 @@ function hkgovPlanningDivisionId(
   return `${HKGOV_PLAND_SOURCE}:hk:planning:${level}:${key}`
 }
 
-function sourceCellId(cell: PlanningCell) {
+function sourceCellId(cell: Pick<PlanningCell, 'ppu' | 'spu' | 'tpu' | 'subunit'>) {
   return `PLAND:${cell.ppu}:${cell.spu}:${cell.tpu}:${cell.subunit}`
 }
 
