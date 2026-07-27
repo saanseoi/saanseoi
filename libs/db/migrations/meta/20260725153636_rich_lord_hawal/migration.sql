@@ -1,1 +1,0 @@
-ALTER TABLE `apiComposition` ADD `domainI18n` text;
