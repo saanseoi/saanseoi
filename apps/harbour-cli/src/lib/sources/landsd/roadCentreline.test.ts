@@ -177,7 +177,9 @@ describe('LandsD Road Centreline matching', () => {
     expect(result.issues).toEqual([])
     expect(result.records).toEqual([
       expect.objectContaining({
-        i18n: [],
+        nameEn: null,
+        nameZhHant: null,
+        rawProperties: expect.objectContaining({ STREET_CENTRELINE_ID: 1 }),
         sourceRecordId: 'release:1',
         streetId: null,
       }),
