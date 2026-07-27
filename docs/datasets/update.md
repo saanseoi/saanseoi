@@ -36,12 +36,14 @@ Every source object is retained as an immutable ZIP in R2. Publisher ZIPs are co
 byte-for-byte; a non-ZIP delivery is losslessly wrapped in a ZIP. The paired manifest
 records the source URL, CSDI release slot, original filename and digest, archive digest,
 package contents, and—when native parsing succeeds—schema and semantic fingerprints. The
-immutable objects use this layout:
+source ZIP is content-addressed at the publisher-dataset level, so an identical delivery
+in more than one CSDI archive slot is registered only once; each slot retains its own
+provenance manifest. The immutable objects use this layout:
 
 ```text
-by-source/hk/hkgov-csdi/{dataset-id}/{release-slot}/
-  {source-sha256}-source.zip
-  {manifest-sha256}-manifest.json
+by-source/hk/hkgov-csdi/{dataset-id}/
+  {source-sha256}-source.zip       # shared by identical archive slots
+  {manifest-sha256}-manifest.json  # records the individual archive slot
 ```
 
 Each immutable object is registered as a managed source asset and Atlas API serves its
@@ -55,6 +57,9 @@ Mirroring an archive does not itself publish a SaanSeoi dataset release. The sou
 release policy is to compare native schema and semantic fingerprints in release order:
 an initial baseline or any geometry, attribute, feature, or schema change warrants a
 back-dated SaanSeoi release and notes; an identical redelivery remains provenance only.
+CSDI archive quarters are provenance slots, not dataset versions. The updater displays a
+fixture's explicit source version when one is configured, and otherwise leaves the
+version blank rather than treating an archive quarter as a release version.
 
 The LandsD street-name backfill is staged maintainer-only DataOps work. Preserve and
 parse the baseline, LandsD notices from 22 January 2016 onward, and the official

@@ -21,6 +21,14 @@ District Council boundaries. Their geometry profiles remain documented separatel
 [`divisionArea.md`](./divisionArea.md): they are authoritative statistical-geography
 variants for their respective census cohorts, not an evergreen administrative default.
 
+The fixture records every observed archive slot whose native publisher package is
+byte-identical to the 2016 or 2021 cohort. The updater suppresses only those exact no-op
+object hashes while continuing to check the CSDI archive catalogue for a changed object.
+
+District Land Area, Population and Density is an exception: its `Density_2022.gml` and
+`Density_2024.gml` publisher packages differ, so they are retained as distinct `2022.0`
+and `2024.0` source releases rather than archive no-ops.
+
 Before an entry advances beyond planned, inspect and record its downloadable artefacts
 or API, schema, licence, update cadence, identifiers, publication date, reference
 period, measure definition, and geography cohort. A derived rate must identify its
