@@ -89,6 +89,25 @@ describe('address SQL import staging cleanup', () => {
   })
 })
 
+describe('HKGov ALS source SQL', () => {
+  test('stores paired source addresses on the assertion without a source i18n table', () => {
+    const sourceFile = buildAddressSourceSqlImportFiles(message, {
+      kind: 'address.normalised.v1',
+      processingRunStartedAt: '2026-07-18T00:00:00.000Z',
+      releaseId: 'release-address',
+      rowEnd: 0,
+      rowStart: 0,
+      rows: [],
+      totalRows: 0,
+    })[0]
+
+    expect(sourceFile?.sql).toContain('addressEn, addressZhHant')
+    expect(sourceFile?.sql).toContain("AND i.locale = 'en')")
+    expect(sourceFile?.sql).toContain("AND i.locale = 'zh-hant')")
+    expect(sourceFile?.sql).not.toContain('hkgovAlsAddress2dI18n')
+  })
+})
+
 describe('HKGov ALS identity alias SQL', () => {
   test('writes permanent ss-to-GERS aliases into meta', () => {
     const hkgovMessage = {
