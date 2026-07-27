@@ -1,8 +1,8 @@
 # Census and Statistics Department division statistics
 
-The following C&SD datasets are registered as **planned** Stats-family sources. They are
-source releases to preserve with their published geography cohort and measures; no
-values have been copied into Saanseoi's operational release-statistics tables.
+The following C&SD datasets are registered as Stats-family sources. They preserve
+publisher releases with their published geography cohort and measures; they never write
+to SaanSeoi's operational release-statistics table.
 
 | Planned dataset                                                  | CSDI identifier(s)                                                                   | Geography / intended use                                                    |
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
@@ -33,21 +33,26 @@ and `2024.0` source releases rather than archive no-ops.
 
 The native CSDI ZIP is the input. Each mapped archive contains one GML layer,
 `Density_2022` or `Density_2024`, with 18 District Council district features in
-EPSG:2326. The processor retains the publisher geometry and labels as source evidence,
-then resolves `DC` to SaanSeoi's canonical District Council code and reviewed canonical
-division ID. It retains the raw C&SD code as source provenance. `MYPOPN_LAND` is
-expressed in thousands by the publisher and is multiplied by 1,000 during ingestion, so
-the stored statistic is the actual number of people. `PERIOD`, land area (`LA`), and
-mid-year population density (`POPN_D`) are retained as statistic assertions. It does not
-publish the archive quarter as a version: the fixture's `sourceVersion` creates `2022.0`
-and `2024.0`.
+EPSG:2326. The source shard retains C&SD's numeric `DC`, labels, publisher geometry and
+complete property set without a canonical division value. The history processor resolves
+each `DC` through the reviewed C&SD numeric bridge and the matching reviewed HAD
+district code bridge. It writes the resulting canonical `divisionId` and SaanSeoi
+`districtCode` only to the Division Statistics history observation.
+
+`MYPOPN_LAND` is expressed in thousands by the publisher and is multiplied by 1,000
+during ingestion, so `midYearPopulation` is the actual number of people. `PERIOD`, land
+area (`LA`), and mid-year population density (`POPN_D`) are retained as statistic
+assertions. The source's labels are exposed with the raw `DC` through
+`sourceKeys.hkgovCenstatd`. The archive quarter is never a dataset version: the
+fixture's `sourceVersion` creates `2022.0` and `2024.0`.
 
 The current CSDI simplified data specification is recorded in the dataset fixture as
 `schemaSpecificationURL`. The command resolves the immutable source archive through the
 local asset registry. If an older local R2 layout contains the archive without a current
-registry entry, it re-mirrors only the fixture-mapped CSDI package, verifies its content
-hash, and then publishes the dataset release. Publish either release to the local target
-with:
+registry entry, it re-mirrors only the fixture-mapped CSDI package and verifies its
+content hash. The command then writes the source assertion and canonical history
+observation before publishing the dataset release to the local target. Publish either
+release with:
 
 ```sh
 bun run dataops -- hkgov-censtatd:district-land-area-population-density --target local --source-version 2022

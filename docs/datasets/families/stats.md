@@ -2,19 +2,20 @@
 
 The Stats API family is the home for published subject-matter observations, not the
 operational ingestion and release metrics that are already called `stats` in the
-metadata database. Its planned primary resource is `divisionStatistic`: an immutable
-published value connected to an exact statistical-geography cohort and reference period.
+metadata database. Its primary record is `divisionStatistic`: an immutable published
+value connected to a reviewed canonical division and reference period.
 
-The initial registry entries are deliberately source-only. No C&SD figures are ingested
-or exposed until the pending `statisticSeries`, `divisionStatistic`, and
-`statisticalGeography` schema design is complete and its Drizzle migrations have been
-generated through the normal workflow. This prevents a value from being silently
-attached to a non-matching administrative-boundary vintage.
+The initial C&SD District Land Area, Population and Density releases write two distinct
+layers. The source shard preserves C&SD's numeric `DC` and complete assertion. The
+history shard resolves `DC` only through the reviewed C&SD numeric and HAD district-code
+bridges, then records the canonical `divisionId`, canonical `districtCode`, reference
+year and measures. This prevents a publisher identifier from being mistaken for a
+SaanSeoi district code.
 
-The planned v0.1 collection is `/v0/stats` (with the `/v0.1/stats` alias). It will
-eventually support the documented Division Statistics filters and retain source release,
-publication date, reference period, unit, measure definition, and the resolved or
-unmatched geography cohort for every observation.
+The current schema reserves a snapshot-scoped materialisation for the future `/v0/stats`
+and `/v0.1/stats` collection. Its API composition, series registry and query filters are
+not activated by this initial source/history publication, so this ingestion does not
+claim that a C&SD statistic is an administrative-boundary release.
 
 The current candidate inventory is maintained in
 [`C&SD division statistics`](../sources/hkgov-censtatd/divisionStatistics.md).

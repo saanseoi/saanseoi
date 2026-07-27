@@ -31,6 +31,13 @@ release codes `dr-hk-hkgov-pland-division-pu-{year}` and
 types, which are materialised as separate resource releases from the same upstream
 layer.
 
+The backfill reads the mirrored publisher SHP ZIP directly with its `.dbf` and `.prj`
+members; converted CSDI GeoJSON is not a runtime input. Historical TPU packages contain
+repeated planning-cell keys (and the 2001 package contains one all-zero sentinel). The
+adapter rejects incomplete keys, discards only that sentinel, and retains repeated cells
+for canonical union. Feature-key coverage is regression-tested against the checked-in
+historical GeoJSON baseline before either the division or area release is published.
+
 The backfill validates finite coordinates, ring closure, non-zero area, and ring
 self-intersections before materialising a geometry release. The self-intersection check
 uses a spatial candidate index, so the detailed Planning Department polygons do not
@@ -116,12 +123,12 @@ the catalogue.
 
 ## Backfill commands
 
-The CLI owns the checked-in cohort list, artefact paths and catalogue provenance URLs.
-It prepares each local GeoJSON artefact in a temporary directory, uploads the canonical
-division release first, then its exact-cohort area variant, and removes the temporary
-Parquet files afterwards. Snapshot cleanup is deferred for the interim division upload,
-so its canonical IDs remain materialised for the companion area validation; normal
-cleanup resumes when the area release is published.
+The CLI owns the checked-in cohort list, mirrored native archive paths and catalogue
+provenance URLs. It prepares each local SHP ZIP artefact in a temporary directory,
+uploads the canonical division release first, then its exact-cohort area variant, and
+removes the temporary Parquet files afterwards. Snapshot cleanup is deferred for the
+interim division upload, so its canonical IDs remain materialised for the companion area
+validation; normal cleanup resumes when the area release is published.
 
 The TPU artefacts use GeoParquet WKB geometry. Their optional Parquet column statistics
 are disabled because the local upload inspector cannot read the GeoParquet statistics
@@ -130,10 +137,13 @@ metadata emitted by the current writer; this does not alter the geometry or reco
 ```sh
 bun run dataops -- hkgov-pland:backfill --kind pu --target preview
 bun run dataops -- hkgov-pland:backfill --kind new-town --target preview
+bun run dataops -- hkgov-pland:ingest --kind pu <mirrored-source.zip> --target preview --source-version 2021 --release-notes-url https://portal.csdi.gov.hk/geoportal/
 ```
 
-The commands accept no data-path, source-version or confirmation options; use `local`,
-`preview`, or `production` as the target.
+`backfill` accepts no data-path, source-version or confirmation options; use `local`,
+`preview`, or `production` as the target. `ingest` is the updater hand-off: it accepts
+only the source ZIP that was just mirrored, and publishes its division before the
+companion area.
 
 ## Publication lineage
 
