@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:4c4b1bf91990188d51b1e5a5f7356bd3f1509d766ff0d3a26cdfb16d80fff2e3",
+  "versionHash": "sha256:b19710e827f656c86784be1f42ca740cf99ae94594d5fa0695b3e271947838af",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
   "regionCode": "hk",
@@ -10,9 +10,34 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872",
+  "schemaSpecificationURL": null,
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["revision"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872"
+    }
   },
   "versionPolicy": {
     "scheme": "reference-year",
@@ -21,7 +46,19 @@
   },
   "releases": [
     {
-      "sourceVersion": "2021"
+      "sourceVersion": "2021",
+      "identicalArchiveSlots": [
+        {
+          "releaseSlot": "2026-Q1",
+          "sourceObjectHash": "8c050049b01066d603c04162cddd107ede1d16baaa56140608f14122268702e7",
+          "contentHash": "5cfeb8faf65c9170f8e488037ce5e4790567010e81e4ec9c0e7f5cec9a708a34"
+        },
+        {
+          "releaseSlot": "2026-Q2",
+          "sourceObjectHash": "a8a4336987156e62a92afcde3a24bc6ab6b860cece9fa950885f9c45b9be0790",
+          "contentHash": "5cfeb8faf65c9170f8e488037ce5e4790567010e81e4ec9c0e7f5cec9a708a34"
+        }
+      ]
     }
   ],
   "i18n": [

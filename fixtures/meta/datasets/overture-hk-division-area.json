@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:81e1ee94572018f6f201b5660815aa0aa2925c98119846dd1ebafa91d518b4d1",
+  "versionHash": "sha256:f54c31b419795ee8ca8d0fe1d977a05f3c7adef3cc1cd66e9e3b003d8007ffb6",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division-area",
   "regionCode": "hk",
@@ -10,9 +10,35 @@
   "licenseCode": "ODbL",
   "attribution": "© OpenStreetMap contributors; Overture Maps Foundation.",
   "sourceUrl": "https://docs.overturemaps.org/",
+  "schemaSpecificationURL": null,
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "regular",
+    "revisionScope": "latest",
+    "checks": {
+      "newReleases": {
+        "trigger": "after-latest-release-age",
+        "ageDays": 25,
+        "frequency": "daily"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "daily"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["new-release"]
+      }
+    },
+    "archives": {
+      "availability": "limited",
+      "operation": "overture-release-catalog",
+      "entryUrl": "https://stac.overturemaps.org/catalog.json"
+    }
   },
   "versionPolicy": {
     "scheme": "upstream",

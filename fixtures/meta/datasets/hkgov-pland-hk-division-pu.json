@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:719cfe834badaf061b0995b90e14d87c025d643a387e76fcd4f47e8224093b56",
+  "versionHash": "sha256:9fb45a4439ba1ebe8c1de05de929550c4f01ac48a70ec11135e3fedf9c4d8059",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
@@ -11,9 +11,34 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Planning Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050",
+  "schemaSpecificationURL": null,
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "periodic",
+        "frequency": "monthly"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "periodic",
+        "frequency": "quarterly"
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050"
+    }
   },
   "versionPolicy": {
     "scheme": "reference-year",

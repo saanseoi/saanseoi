@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:c57b2aa4036385b19541b807ed9d7c25f37b55365168f2358b292d29e49c137a",
+  "versionHash": "sha256:2be76176aa6e1ac70c8d1249f85d9d04e4b15ffab1ec8efe906efbeb4e126492",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
   "regionCode": "hk",
@@ -10,9 +10,34 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001",
+  "schemaSpecificationURL": null,
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["revision"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001"
+    }
   },
   "versionPolicy": {
     "scheme": "reference-year",
@@ -21,7 +46,19 @@
   },
   "releases": [
     {
-      "sourceVersion": "2021"
+      "sourceVersion": "2021",
+      "identicalArchiveSlots": [
+        {
+          "releaseSlot": "2024-Q4",
+          "sourceObjectHash": "b2ee014886c981b26f441f9b66923139872d42b5cc37689ecf3eebd6d85c79c1",
+          "contentHash": "28aef3053e090e85954887ec9316a73e9b8ff145246bca45b8739c6d07308397"
+        },
+        {
+          "releaseSlot": "2026-Q2",
+          "sourceObjectHash": "1515e74a0dd7987dbae8332f144224264395ebcfefa089709b79d041ed34878f",
+          "contentHash": "28aef3053e090e85954887ec9316a73e9b8ff145246bca45b8739c6d07308397"
+        }
+      ]
     }
   ],
   "i18n": [
