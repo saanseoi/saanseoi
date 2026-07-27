@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  asOptionalInteger,
   createGeometryChurnCounts,
   formatMissingDivisionReferenceRecords,
 } from './processLocalDivisionGeometrySqlUpload.ts'
@@ -62,24 +63,42 @@ describe('formatMissingDivisionReferenceRecords', () => {
   })
 })
 
+describe('asOptionalInteger', () => {
+  test('accepts C&SD integral decimal codes', () => {
+    expect(asOptionalInteger('11.00000000')).toBe(11)
+  })
+
+  test('rejects non-integral decimal codes', () => {
+    expect(asOptionalInteger('11.5')).toBeNull()
+  })
+})
+
 describe('createGeometryChurnCounts', () => {
   test('treats an independent cohort with no parent snapshot as an all-new baseline', () => {
+    const geometry = {
+      coordinates: [
+        [
+          [114.1, 22.2],
+          [114.2, 22.2],
+          [114.2, 22.3],
+          [114.1, 22.2],
+        ],
+      ],
+      type: 'Polygon' as const,
+    }
     const row = normaliseDivisionAreaGeometryRow(
       {
         class: 'land',
         division_id: 'district-2016-1',
-        geometry: {
-          coordinates: [
-            [
-              [114.1, 22.2],
-              [114.2, 22.2],
-              [114.2, 22.3],
-              [114.1, 22.2],
-            ],
-          ],
-          type: 'Polygon',
-        },
+        geometry,
         id: 'censtatd-2016-1',
+        source_geometry: geometry,
+        source_properties: {
+          dc: '11.00000000',
+          dc_chi: '中西區',
+          dc_class: 'A',
+          dc_eng: 'Central and Western',
+        },
       },
       'hkgov-censtatd',
     )
