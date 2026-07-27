@@ -98,6 +98,9 @@ type ReleaseReportResponse = {
   rows: ReleaseReportRow[]
 }
 
+const REPORT_READ_RETRY_LIMIT = 3
+const REPORT_READ_RETRY_DELAY_MS = 250
+
 function parseLimit(limit: number | undefined) {
   if (limit == null) {
     return 10
@@ -126,6 +129,38 @@ async function parseJsonResponse<T>(response: Response, action: string) {
   }
 
   return payload as T
+}
+
+async function fetchReport<T>(url: URL, action: string) {
+  let lastError: unknown
+
+  for (let attempt = 0; attempt <= REPORT_READ_RETRY_LIMIT; attempt += 1) {
+    try {
+      const response = await fetch(url.toString(), {
+        headers: getAuthHeaders(),
+        method: 'GET',
+      })
+      return await parseJsonResponse<T>(response, action)
+    } catch (error) {
+      lastError = error
+      if (attempt === REPORT_READ_RETRY_LIMIT || !isRetryableReportReadError(error)) {
+        throw error
+      }
+
+      await new Promise(resolve =>
+        setTimeout(resolve, REPORT_READ_RETRY_DELAY_MS * 2 ** attempt),
+      )
+    }
+  }
+
+  throw lastError
+}
+
+function isRetryableReportReadError(error: unknown) {
+  return (
+    error instanceof Error &&
+    /database is locked|sqlite_busy|internal error/i.test(error.message)
+  )
 }
 
 export async function fetchIngestRunReport(
@@ -161,15 +196,7 @@ export async function fetchIngestRunReport(
     url.searchParams.set('type', options.type)
   }
 
-  const response = await fetch(url.toString(), {
-    headers: getAuthHeaders(),
-    method: 'GET',
-  })
-
-  return parseJsonResponse<IngestRunReportResponse>(
-    response,
-    'Harbour ingestion report',
-  )
+  return fetchReport<IngestRunReportResponse>(url, 'Harbour ingestion report')
 }
 
 export async function fetchStatsReport(
@@ -200,12 +227,7 @@ export async function fetchStatsReport(
     url.searchParams.set('type', options.type)
   }
 
-  const response = await fetch(url.toString(), {
-    headers: getAuthHeaders(),
-    method: 'GET',
-  })
-
-  return parseJsonResponse<StatsReportResponse>(response, 'Harbour stats report')
+  return fetchReport<StatsReportResponse>(url, 'Harbour stats report')
 }
 
 export async function fetchProcessingActionReport(
@@ -228,12 +250,8 @@ export async function fetchProcessingActionReport(
   if (options?.source) url.searchParams.set('source', options.source)
   if (options?.type) url.searchParams.set('type', options.type)
 
-  const response = await fetch(url.toString(), {
-    headers: getAuthHeaders(),
-    method: 'GET',
-  })
-  return parseJsonResponse<ProcessingActionReportResponse>(
-    response,
+  return fetchReport<ProcessingActionReportResponse>(
+    url,
     'Harbour processing-actions report',
   )
 }
@@ -276,10 +294,5 @@ export async function fetchReleaseReport(
     url.searchParams.set('type', options.type)
   }
 
-  const response = await fetch(url.toString(), {
-    headers: getAuthHeaders(),
-    method: 'GET',
-  })
-
-  return parseJsonResponse<ReleaseReportResponse>(response, 'Harbour releases report')
+  return fetchReport<ReleaseReportResponse>(url, 'Harbour releases report')
 }

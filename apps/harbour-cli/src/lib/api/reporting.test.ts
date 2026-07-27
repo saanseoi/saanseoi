@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
 
 import {
   filterIngestionRows,
@@ -11,6 +11,61 @@ import type {
   ReleaseReportRow,
   StatReportRow,
 } from './reporting.ts'
+import { fetchReleaseReport } from './reporting.ts'
+
+const originalFetch = globalThis.fetch
+const originalApiKey = process.env.HARBOUR_API_KEY
+
+afterEach(() => {
+  globalThis.fetch = originalFetch
+
+  if (originalApiKey == null) {
+    delete process.env.HARBOUR_API_KEY
+  } else {
+    process.env.HARBOUR_API_KEY = originalApiKey
+  }
+})
+
+describe('reporting client', () => {
+  test('retries transient local D1 release-report failures', async () => {
+    let calls = 0
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async () => {
+      calls += 1
+      return calls === 1
+        ? Response.json(
+            { message: 'internal error; reference = local-d1-lock' },
+            { status: 400 },
+          )
+        : Response.json({ rows: [] })
+    }) as unknown as typeof fetch
+
+    await expect(
+      fetchReleaseReport(
+        { environment: 'dev', remote: false },
+        { datasetCode: 'ds-hk-overture-division' },
+      ),
+    ).resolves.toEqual({ rows: [] })
+    expect(calls).toBe(2)
+  })
+
+  test('does not retry non-transient release-report failures', async () => {
+    let calls = 0
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async () => {
+      calls += 1
+      return Response.json({ message: 'Invalid report query.' }, { status: 400 })
+    }) as unknown as typeof fetch
+
+    await expect(
+      fetchReleaseReport(
+        { environment: 'dev', remote: false },
+        { datasetCode: 'ds-hk-overture-division' },
+      ),
+    ).rejects.toThrow('Invalid report query.')
+    expect(calls).toBe(1)
+  })
+})
 
 describe('filterIngestionRows', () => {
   test('keeps all ongoing releases plus the latest finished release', () => {
