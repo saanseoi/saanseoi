@@ -35,8 +35,8 @@ export type PreparedLandsdPlaceNameUpload = {
 
 export type NativeLandsdPlaceName = LandsdPlaceNameFeature & {
   placeNames: Array<{
-    englishName: string | null
-    traditionalChineseName: string | null
+    nameEn: string | null
+    nameZhHant: string | null
     status: 'Alias' | 'Official'
   }>
 }
@@ -77,8 +77,8 @@ export async function readLandsdPlaceNameArchive(
     namesByGeoNameId.set(geoNameId, [
       ...(namesByGeoNameId.get(geoNameId) ?? []),
       {
-        englishName: decodePublisherText(value.NAME_EN),
-        traditionalChineseName: decodePublisherText(value.NAME_TC),
+        nameEn: decodePublisherText(value.NAME_EN),
+        nameZhHant: decodePublisherText(value.NAME_TC),
         status,
       },
     ])

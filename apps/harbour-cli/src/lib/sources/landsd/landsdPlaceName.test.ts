@@ -30,8 +30,8 @@ describe('LandsD native Place Name FileGDB intake', () => {
       },
     })
     expect(features.find(feature => feature.id === '1')?.placeNames).toContainEqual({
-      englishName: 'A Chau',
-      traditionalChineseName: '鴉洲',
+      nameEn: 'A Chau',
+      nameZhHant: '鴉洲',
       status: 'Official',
     })
   })
