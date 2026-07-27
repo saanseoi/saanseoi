@@ -70,9 +70,7 @@ type PreparedDivision = {
     wikidata: null
   }
   cell: null | {
-    bbox: unknown
     canonicalGeometry: unknown
-    geometry: unknown
     ppuCode: string
     rawProperties: unknown
     sourceRecordId: string
@@ -362,7 +360,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
               })),
               mode: 'automatic',
               summary:
-                'Repaired known Planning Department polygon self-intersections with buffer(0); original source geometry remains in the source layer.',
+                'Repaired known Planning Department polygon self-intersections with buffer(0); the source assertion records the approved canonical geometry.',
             },
           ]
         : [],
@@ -455,7 +453,6 @@ async function normalisePreparedDivision(value: Record<string, unknown>) {
   const i18n = normaliseI18n(value.i18n)
   const geometry = parseWkbGeometry(value.geometry)
   if (!geometry) throw new Error(`Planning division ${id} has invalid geometry.`)
-  const sourceGeometry = parseWkbGeometry(sourceProperties.sourceGeometry) ?? geometry
   const base = {
     bbox: calculateGeoJsonBbox(geometry),
     cartography: null,
@@ -477,9 +474,7 @@ async function normalisePreparedDivision(value: Record<string, unknown>) {
   const cell =
     level === 'subunit'
       ? {
-          bbox: calculateGeoJsonBbox(sourceGeometry),
           canonicalGeometry: geometry,
-          geometry: sourceGeometry,
           ppuCode: requireString(codes['PLAND:PPU'], 'PLAND:PPU'),
           rawProperties: sourceProperties.sourceFeatureProperties ?? null,
           sourceRecordId: Array.isArray(sourceCellIds)
@@ -745,26 +740,13 @@ async function insertSourceRows(
       subunitCode: optionalString(identifiers['PLAND:SUBUNIT']),
       newTownId: optionalString(identifiers['PLAND:NEWTOWN']),
       sourceCellIds: record.sourceCellIds,
-      geometry:
-        requireString(record.raw.planning_level, 'planning_level') === 'newtown'
-          ? ((record.raw.source_properties as Record<string, unknown> | undefined)
-              ?.source_geometry ?? record.base.geometry)
-          : record.base.geometry,
-      bbox:
-        requireString(record.raw.planning_level, 'planning_level') === 'newtown'
-          ? ((record.raw.source_properties as Record<string, unknown> | undefined)
-              ?.source_geometry_bbox ?? record.base.bbox)
-          : record.base.bbox,
       wasGeometryRepaired:
         requireString(record.raw.planning_level, 'planning_level') === 'newtown' &&
         Boolean(
           (record.raw.source_properties as Record<string, unknown> | undefined)
             ?.was_geometry_repaired,
         ),
-      canonicalGeometry:
-        requireString(record.raw.planning_level, 'planning_level') === 'newtown'
-          ? record.base.geometry
-          : null,
+      canonicalGeometry: record.base.geometry,
       sources: record.base.sources,
       rawProperties: record.raw,
       version: null,
@@ -842,8 +824,6 @@ async function insertSourceRows(
         subunitCode: cell.subunitCode,
         wasGeometryRepaired: cell.wasGeometryRepaired,
         canonicalGeometry: cell.canonicalGeometry,
-        geometry: cell.geometry,
-        bbox: cell.bbox,
         sources: { hkgovPland: [{ source: 'TPUSU' }] },
         rawProperties: cell.rawProperties,
         version: null,
