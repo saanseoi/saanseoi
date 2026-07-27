@@ -37,7 +37,9 @@ export function parseHkgovCenstatdDistrictGml(
     throw new Error('C&SD district GML must contain a WFS FeatureCollection.')
   }
 
-  const members = asArray(findElement(collection, 'member'))
+  const members = asArray(
+    findElement(collection, 'member') ?? findElement(collection, 'featureMember'),
+  )
   if (members.length === 0) {
     throw new Error('C&SD district GML FeatureCollection contains no members.')
   }

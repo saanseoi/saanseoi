@@ -29,6 +29,25 @@ District Land Area, Population and Density is an exception: its `Density_2022.gm
 `Density_2024.gml` publisher packages differ, so they are retained as distinct `2022.0`
 and `2024.0` source releases rather than archive no-ops.
 
+## District land area, population and density ingestion
+
+The native CSDI ZIP is the input. Each mapped archive contains one GML layer,
+`Density_2022` or `Density_2024`, with 18 District Council district features in
+EPSG:2326. The processor retains the publisher geometry and labels as source evidence,
+then records `DC`, `PERIOD`, land area (`LA`), mid-year population in thousands
+(`MYPOPN_LAND`), and mid-year population density (`POPN_D`) as statistic assertions. It
+does not publish the archive quarter as a version: the fixture's `sourceVersion` creates
+`2022.0` and `2024.0`.
+
+The current CSDI simplified data specification is recorded in the dataset fixture as
+`schemaSpecificationURL`. After the archive has been mirrored, publish either release to
+the local target with:
+
+```sh
+bun run dataops -- hkgov-censtatd:district-land-area-population-density --target local --source-version 2022
+bun run dataops -- hkgov-censtatd:district-land-area-population-density --target local --source-version 2024
+```
+
 Before an entry advances beyond planned, inspect and record its downloadable artefacts
 or API, schema, licence, update cadence, identifiers, publication date, reference
 period, measure definition, and geography cohort. A derived rate must identify its

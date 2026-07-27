@@ -62,35 +62,56 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
     resolve(input.outputFile),
     new Uint8Array(
       parquetWriteBuffer({
-        columnData: {
-          district_code: { data: rows.map(row => row.district_code), type: 'INT64' },
-          id: { data: rows.map(row => row.id), type: 'STRING' },
-          land_area_sq_km: {
-            data: rows.map(row => row.land_area_sq_km),
-            type: 'DOUBLE',
-          },
-          mid_year_population_density_per_sq_km: {
-            data: rows.map(row => row.mid_year_population_density_per_sq_km),
-            type: 'INT64',
-          },
-          mid_year_population_thousands: {
-            data: rows.map(row => row.mid_year_population_thousands),
-            type: 'DOUBLE',
-          },
-          name_en: { data: rows.map(row => row.name_en), type: 'STRING' },
-          name_zh_hant: { data: rows.map(row => row.name_zh_hant), type: 'STRING' },
-          raw_properties: { data: rows.map(row => row.raw_properties), type: 'STRING' },
-          reference_year: { data: rows.map(row => row.reference_year), type: 'STRING' },
-          source_archive_key: {
-            data: rows.map(row => row.source_archive_key),
-            type: 'STRING',
-          },
-          source_geometry: {
-            data: rows.map(row => row.source_geometry),
-            type: 'STRING',
-          },
-          sources: { data: rows.map(row => row.sources), type: 'STRING' },
-        },
+        columnData: [
+          integerColumn(
+            'district_code',
+            rows.map(row => row.district_code),
+          ),
+          stringColumn(
+            'id',
+            rows.map(row => row.id),
+          ),
+          numberColumn(
+            'land_area_sq_km',
+            rows.map(row => row.land_area_sq_km),
+          ),
+          integerColumn(
+            'mid_year_population_density_per_sq_km',
+            rows.map(row => row.mid_year_population_density_per_sq_km),
+          ),
+          numberColumn(
+            'mid_year_population_thousands',
+            rows.map(row => row.mid_year_population_thousands),
+          ),
+          stringColumn(
+            'name_en',
+            rows.map(row => row.name_en),
+          ),
+          stringColumn(
+            'name_zh_hant',
+            rows.map(row => row.name_zh_hant),
+          ),
+          stringColumn(
+            'raw_properties',
+            rows.map(row => row.raw_properties),
+          ),
+          stringColumn(
+            'reference_year',
+            rows.map(row => row.reference_year),
+          ),
+          stringColumn(
+            'source_archive_key',
+            rows.map(row => row.source_archive_key),
+          ),
+          stringColumn(
+            'source_geometry',
+            rows.map(row => row.source_geometry),
+          ),
+          stringColumn(
+            'sources',
+            rows.map(row => row.sources),
+          ),
+        ],
       }),
     ),
   )
@@ -116,4 +137,21 @@ function integer(value: unknown, field: string, index: number) {
   if (!Number.isInteger(parsed))
     throw new Error(`C&SD Density row ${index + 1} has non-integer ${field}.`)
   return parsed
+}
+
+function stringColumn(name: string, data: string[]) {
+  return { data, name, nullable: false, type: 'STRING' as const }
+}
+
+function integerColumn(name: string, data: number[]) {
+  return {
+    data: data.map(value => BigInt(value)),
+    name,
+    nullable: false,
+    type: 'INT64' as const,
+  }
+}
+
+function numberColumn(name: string, data: number[]) {
+  return { data, name, nullable: false, type: 'DOUBLE' as const }
 }
