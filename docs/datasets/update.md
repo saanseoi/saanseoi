@@ -1,5 +1,8 @@
 # Dataset update checks
 
+For the complete source-addition workflow, including the DataOps and upload hand-offs,
+see the [dataset pipeline](pipeline.md).
+
 `saanseoi update` checks every dataset fixture in `fixtures/meta/datasets` against its
 registered upstream source adapter. It prints the latest upstream version when one is
 available and records the source cursor and last check time in
