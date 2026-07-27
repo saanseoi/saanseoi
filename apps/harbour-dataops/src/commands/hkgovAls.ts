@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 
-import { isCancel, note, select } from '@clack/prompts'
+import { isCancel, log, note, select } from '@clack/prompts'
 import { and, eq, inArray } from 'drizzle-orm'
 
 import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
@@ -72,14 +72,20 @@ export async function runHkgovAlsPrepCommand(
 
   if (result.sourceDuplicateFeatureGroups.length > 0) {
     note(
-      formatSourceDuplicateSummary(result.sourceDuplicateFeatureGroups),
-      'SOURCE DUPLICATES REMOVED',
+      formatAlsPreflightReleaseSummary(
+        sourceVersion,
+        result.sourceDuplicateFeatureGroups,
+      ),
+      'DEDUPLICATION',
     )
   }
   if (result.identityEquivalentFeatureGroups.length > 0) {
     note(
-      formatSourceDuplicateSummary(result.identityEquivalentFeatureGroups),
-      'EQUIVALENT ALS PREMISE VARIANTS CONSOLIDATED (SAME COMPLETE PREMISE IDENTITY)',
+      formatAlsPreflightReleaseSummary(
+        sourceVersion,
+        result.identityEquivalentFeatureGroups,
+      ),
+      'CONSOLIDATION',
     )
   }
   const driftReportFile = stringOption(args, 'identity-drift-report')
@@ -167,6 +173,7 @@ export async function runHkgovAlsIngestCommand(
     sourceReleases,
     target,
   })
+  log.message('\u001B[36mALS Preflight Checks\u001B[39m')
   note(
     [
       formatField('releases', String(sourceReleases.length)),
@@ -178,7 +185,7 @@ export async function runHkgovAlsIngestCommand(
       ),
       formatField('identityDriftChoicesRequired', String(review.driftCandidates)),
     ].join('\n'),
-    'ALS REVIEW REQUIRED BEFORE INGESTION',
+    'DATASETS',
   )
 
   for (const {
@@ -240,14 +247,20 @@ export async function runHkgovAlsIngestCommand(
 
     if (result.sourceDuplicateFeatureGroups.length > 0) {
       note(
-        formatSourceDuplicateSummary(result.sourceDuplicateFeatureGroups),
-        `SOURCE DUPLICATES REMOVED — ${sourceVersion}`,
+        formatAlsPreflightReleaseSummary(
+          sourceVersion,
+          result.sourceDuplicateFeatureGroups,
+        ),
+        'DEDUPLICATION',
       )
     }
     if (result.identityEquivalentFeatureGroups.length > 0) {
       note(
-        formatSourceDuplicateSummary(result.identityEquivalentFeatureGroups),
-        `EQUIVALENT ALS PREMISE VARIANTS CONSOLIDATED (SAME COMPLETE PREMISE IDENTITY) — ${sourceVersion}`,
+        formatAlsPreflightReleaseSummary(
+          sourceVersion,
+          result.identityEquivalentFeatureGroups,
+        ),
+        'CONSOLIDATION',
       )
     }
     await runUploadCommand(
@@ -765,6 +778,16 @@ export function formatSourceDuplicateSummary(
     formatField('sourceFeaturesInvolved', String(sourceFeatures)),
     formatField('sourceFeaturesRemoved', String(sourceFeatures - groups.length)),
     formatField('sourceFilesInvolved', String(sourceFiles.size)),
+  ].join('\n')
+}
+
+function formatAlsPreflightReleaseSummary(
+  sourceVersion: string,
+  duplicateGroups: Parameters<typeof formatSourceDuplicateSummary>[0],
+) {
+  return [
+    `\u001B[31m${sourceVersion}\u001B[39m`,
+    formatSourceDuplicateSummary(duplicateGroups),
   ].join('\n')
 }
 
