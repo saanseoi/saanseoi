@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 
 import { isCancel, note, select } from '@clack/prompts'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 
 import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
 import { metaSchema } from '@repo/db'
@@ -588,7 +588,10 @@ async function resolveAlsSourceReleases(
         )
         .where(
           and(
-            eq(metaSchema.metaReleases.status, 'published'),
+            // Overture source releases are superseded by later monthly releases,
+            // but their published division snapshots remain valid historical
+            // anchors for same-year ALS shards.
+            inArray(metaSchema.metaReleases.status, ['published', 'superseded']),
             eq(metaSchema.metaDatasets.code, 'ds-hk-overture-division'),
             eq(metaSchema.metaDatasets.regionCode, 'hk'),
             eq(metaSchema.metaSnapshots.resourceType, 'division'),
