@@ -261,6 +261,59 @@ test('renders every configured release while showing the dataset label once', ()
   expect(second).toHaveLength(123)
 })
 
+test('shows the matching target version for a CSDI archive release', () => {
+  const dataset = {
+    code: 'ds-hk-hkgov-censtatd-division-area-district',
+    publisherCode: 'hkgov-censtatd',
+    regionCode: 'hk',
+    theme: 'divisions',
+    resourceTypes: ['divisionArea'],
+    versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
+  } as const
+
+  const line = formatDatasetCheckLine(
+    dataset,
+    [
+      {
+        dataset,
+        sourceKey: 'identical:2021.0',
+        status: 'current',
+        targetSourceKey: '2021',
+        version: '2021.0',
+      },
+    ],
+    new Map([['2021', '2021.0']]),
+  )
+
+  expect(line).toEndWith('no updates         v2021.0')
+})
+
+test('uses the dataset target version for an unversioned CSDI archive', () => {
+  const dataset = {
+    code: 'ds-hk-hkgov-hyd-street-pedestrian',
+    publisherCode: 'hkgov-hyd',
+    regionCode: 'hk',
+    theme: 'streets',
+    resourceTypes: ['street'],
+    versionPolicy: { scheme: 'release-date', correctionSuffixSource: 'generated' },
+  } as const
+
+  const line = formatDatasetCheckLine(
+    dataset,
+    [
+      {
+        dataset,
+        sourceKey: 'archive:hyd:2026-Q2',
+        status: 'current',
+        targetSourceKey: dataset.code,
+      },
+    ],
+    new Map([[dataset.code, '2026-07-22.0']]),
+  )
+
+  expect(line).toEndWith('no updates               —   v2026-07-22.0')
+})
+
 test('keeps each incremental release paired with its preceding target version', () => {
   const dataset = {
     code: 'ds-hk-hkgov-landsd-street',
