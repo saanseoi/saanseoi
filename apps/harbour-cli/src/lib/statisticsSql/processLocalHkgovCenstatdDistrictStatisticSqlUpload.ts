@@ -1,8 +1,10 @@
+import { hkDistricts } from '@repo/core'
 import { createHash, stableJsonStringify } from '@repo/core/pipeline/utils'
 import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
-import { sourceSchema } from '@repo/db'
+import { metaSchema, sourceSchema } from '@repo/db'
+import { and, eq } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
 import { createHarbourControlClient } from '../api/harbourControl.ts'
@@ -39,6 +41,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     plan.sourceVersion.slice(0, 4),
   )
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
+  const divisionIdsByDistrictCode = await resolveCanonicalDistrictIds(metaDb)
   const client = target.remote
     ? (createHarbourControlClient(target) as HarbourClient)
     : createLocalControlClient(metaDb, {
@@ -57,7 +60,15 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       256,
     )) {
       const rows = await Promise.all(
-        batch.map(row => normalise(row, releaseId, releaseCode, plan.sourceVersion)),
+        batch.map(row =>
+          normalise(
+            row,
+            divisionIdsByDistrictCode,
+            releaseId,
+            releaseCode,
+            plan.sourceVersion,
+          ),
+        ),
       )
       const i18n = await Promise.all(
         rows.flatMap(row => [
@@ -163,6 +174,7 @@ function createLocalStatisticPublishClient(
 
 async function normalise(
   value: Record<string, unknown>,
+  divisionIdsByDistrictCode: ReadonlyMap<string, string>,
   releaseId: string,
   releaseCode: string,
   sourceVersion: string,
@@ -171,20 +183,24 @@ async function normalise(
     referenceYear = string(value.reference_year, 'reference_year')
   if (referenceYear !== sourceVersion)
     throw new Error(`Expected reference_year=${sourceVersion}.`)
+  const districtCode = string(value.district_code, 'district_code')
+  const divisionId = divisionIdsByDistrictCode.get(districtCode)
+  if (!divisionId) {
+    throw new Error(`No canonical division ID for district_code=${districtCode}.`)
+  }
   const payload = {
-    districtCode: integer(value.district_code, 'district_code'),
+    districtCode,
+    divisionId,
     landAreaSqKm: number(value.land_area_sq_km, 'land_area_sq_km'),
     midYearPopulationDensityPerSqKm: integer(
       value.mid_year_population_density_per_sq_km,
       'mid_year_population_density_per_sq_km',
     ),
-    midYearPopulationThousands: number(
-      value.mid_year_population_thousands,
-      'mid_year_population_thousands',
-    ),
+    midYearPopulation: integer(value.mid_year_population, 'mid_year_population'),
     rawProperties: json(value.raw_properties, 'raw_properties'),
     referenceYear,
     sourceGeometry: json(value.source_geometry, 'source_geometry'),
+    sourceDistrictCode: integer(value.source_district_code, 'source_district_code'),
     sourceRecordId,
     sources: json(value.sources, 'sources'),
   }
@@ -202,6 +218,38 @@ async function normalise(
     version: 1,
     versionHash: await createHash(stableJsonStringify(payload)),
   }
+}
+
+/** Resolves canonical IDs through the reviewed HAD district-code bridge. */
+async function resolveCanonicalDistrictIds(metaDb: HarbourReadableDb) {
+  const rows = await metaDb
+    .select({
+      canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
+      districtCode: metaSchema.metaIdentifierBridges.externalCode,
+    })
+    .from(metaSchema.metaIdentifierBridges)
+    .where(
+      and(
+        eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-had'),
+        eq(metaSchema.metaIdentifierBridges.cohortKey, '2022'),
+        eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
+        eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
+      ),
+    )
+    .all()
+  const divisionIdsByDistrictCode = new Map(
+    rows.flatMap(row =>
+      row.districtCode ? [[row.districtCode, row.canonicalId] as const] : [],
+    ),
+  )
+  for (const districtCode of hkDistricts) {
+    if (!divisionIdsByDistrictCode.has(districtCode)) {
+      throw new Error(
+        `The reviewed HAD bridge has no canonical division ID for districtCode=${districtCode}.`,
+      )
+    }
+  }
+  return divisionIdsByDistrictCode
 }
 async function i18nRow(
   sourceRecordId: string,

@@ -34,10 +34,13 @@ and `2024.0` source releases rather than archive no-ops.
 The native CSDI ZIP is the input. Each mapped archive contains one GML layer,
 `Density_2022` or `Density_2024`, with 18 District Council district features in
 EPSG:2326. The processor retains the publisher geometry and labels as source evidence,
-then records `DC`, `PERIOD`, land area (`LA`), mid-year population in thousands
-(`MYPOPN_LAND`), and mid-year population density (`POPN_D`) as statistic assertions. It
-does not publish the archive quarter as a version: the fixture's `sourceVersion` creates
-`2022.0` and `2024.0`.
+then resolves `DC` to SaanSeoi's canonical District Council code and reviewed canonical
+division ID. It retains the raw C&SD code as source provenance. `MYPOPN_LAND` is
+expressed in thousands by the publisher and is multiplied by 1,000 during ingestion, so
+the stored statistic is the actual number of people. `PERIOD`, land area (`LA`), and
+mid-year population density (`POPN_D`) are retained as statistic assertions. It does not
+publish the archive quarter as a version: the fixture's `sourceVersion` creates `2022.0`
+and `2024.0`.
 
 The current CSDI simplified data specification is recorded in the dataset fixture as
 `schemaSpecificationURL`. The command resolves the immutable source archive through the

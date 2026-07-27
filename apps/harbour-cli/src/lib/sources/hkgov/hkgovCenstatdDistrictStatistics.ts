@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
+import { canonicalHkDistrictCodeFromHkgovCenstatdCode } from '@repo/core'
 import { parquetWriteBuffer } from 'hyparquet-writer'
 
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
@@ -27,7 +28,9 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
 
   const rows = features.map((feature, index) => {
     const properties = feature.properties
-    const districtCode = integer(properties.DC, 'DC', index)
+    const sourceDistrictCode = integer(properties.DC, 'DC', index)
+    const districtCode =
+      canonicalHkDistrictCodeFromHkgovCenstatdCode(sourceDistrictCode)
     const referenceYear = text(properties.PERIOD, 'PERIOD', index)
     if (referenceYear !== input.sourceVersion) {
       throw new Error(
@@ -36,27 +39,24 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
     }
     return {
       district_code: districtCode,
-      id: `CENSTATD:DENSITY:${referenceYear}:${districtCode}`,
+      id: `CENSTATD:DENSITY:${referenceYear}:${sourceDistrictCode}`,
       land_area_sq_km: number(properties.LA, 'LA', index),
       mid_year_population_density_per_sq_km: integer(
         properties.POPN_D,
         'POPN_D',
         index,
       ),
-      mid_year_population_thousands: number(
-        properties.MYPOPN_LAND,
-        'MYPOPN_LAND',
-        index,
-      ),
+      mid_year_population: populationInPeople(properties.MYPOPN_LAND, index),
       name_en: text(properties.DC_ENG, 'DC_ENG', index),
       name_zh_hant: text(properties.DC_CHI, 'DC_CHI', index),
       raw_properties: JSON.stringify(properties),
       reference_year: referenceYear,
       source_geometry: JSON.stringify(feature.sourceGeometry),
+      source_district_code: sourceDistrictCode,
       sources: JSON.stringify([
         {
           dataset: 'hkgov-censtatd',
-          districtCode,
+          districtCode: sourceDistrictCode,
           sourceArchiveKey: input.sourceArchiveKey,
         },
       ]),
@@ -68,7 +68,7 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
     new Uint8Array(
       parquetWriteBuffer({
         columnData: [
-          integerColumn(
+          stringColumn(
             'district_code',
             rows.map(row => row.district_code),
           ),
@@ -84,9 +84,9 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
             'mid_year_population_density_per_sq_km',
             rows.map(row => row.mid_year_population_density_per_sq_km),
           ),
-          numberColumn(
-            'mid_year_population_thousands',
-            rows.map(row => row.mid_year_population_thousands),
+          integerColumn(
+            'mid_year_population',
+            rows.map(row => row.mid_year_population),
           ),
           stringColumn(
             'name_en',
@@ -107,6 +107,10 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
           stringColumn(
             'source_geometry',
             rows.map(row => row.source_geometry),
+          ),
+          integerColumn(
+            'source_district_code',
+            rows.map(row => row.source_district_code),
           ),
           stringColumn(
             'sources',
@@ -131,6 +135,17 @@ function number(value: unknown, field: string, index: number) {
   if (!Number.isFinite(parsed))
     throw new Error(`C&SD Density row ${index + 1} has invalid ${field}.`)
   return parsed
+}
+
+function populationInPeople(value: unknown, index: number) {
+  const thousands = number(value, 'MYPOPN_LAND', index)
+  const population = thousands * 1_000
+  if (!Number.isSafeInteger(population)) {
+    throw new Error(
+      `C&SD Density row ${index + 1} has a non-integral MYPOPN_LAND population.`,
+    )
+  }
+  return population
 }
 
 function integer(value: unknown, field: string, index: number) {
