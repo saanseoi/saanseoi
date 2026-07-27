@@ -777,7 +777,6 @@ async function lookupOverture({
         phase: 'archives',
       })
     })
-    .filter(update => update.status !== 'current')
 
   return [latestUpdate, ...archiveUpdates]
 }
@@ -1135,26 +1134,18 @@ async function runCsdiArchiveIngestPlaceholder(
   if (
     dataset.code ===
       'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' &&
-    (release?.sourceVersion === '2022' || release?.sourceVersion === '2024')
+    (release?.sourceVersion === '2022' || release?.sourceVersion === '2024') &&
+    release.sourceUrl
   ) {
-    if (target.remote) {
-      throw new Error(
-        'C&SD district-density archive ingestion currently supports --target local only.',
-      )
-    }
     const child = Bun.spawn(
-      [
-        process.execPath,
-        'run',
-        '--silent',
-        'dataops',
-        '--',
-        'hkgov-censtatd:district-land-area-population-density',
-        '--target',
-        'local',
-        '--source-version',
-        release.sourceVersion,
-      ],
+      buildHkgovCenstatdDistrictStatisticArchiveIngestCommand({
+        inputFile: prepared.sourcePath,
+        releaseNotesUrl: release.sourceUrl,
+        sourceArchiveKey: prepared.manifest.archive.objectKey,
+        sourceArchiveSha256: prepared.manifest.archive.sha256,
+        sourceVersion: release.sourceVersion,
+        target,
+      }),
       { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
     )
     if ((await child.exited) !== 0) {
@@ -1194,6 +1185,36 @@ export function buildHkgovPlandArchiveIngestCommand(input: {
     input.sourceVersion,
     '--release-notes-url',
     input.releaseNotesUrl,
+  ]
+}
+
+/** Starts density intake from the local archive prepared by this updater run. */
+export function buildHkgovCenstatdDistrictStatisticArchiveIngestCommand(input: {
+  inputFile: string
+  releaseNotesUrl: string
+  sourceArchiveKey: string
+  sourceArchiveSha256: string
+  sourceVersion: '2022' | '2024'
+  target: import('../cli/options.ts').UploadTarget
+}) {
+  return [
+    process.execPath,
+    'run',
+    '--silent',
+    'dataops',
+    '--',
+    'hkgov-censtatd:district-land-area-population-density',
+    input.inputFile,
+    '--target',
+    input.target.environment === 'dev' ? 'local' : input.target.environment,
+    '--source-version',
+    input.sourceVersion,
+    '--release-notes-url',
+    input.releaseNotesUrl,
+    '--source-archive-key',
+    input.sourceArchiveKey,
+    '--source-archive-sha256',
+    input.sourceArchiveSha256,
   ]
 }
 
@@ -1365,6 +1386,7 @@ function summariseSettledCsdiArchives(
           : `${archiveCount} CSDI archive slot${archiveCount === 1 ? '' : 's'} are already current.`,
       sourceKey: `archive-summary:${representative.targetSourceKey ?? dataset.code}`,
       sourceUrl: representative.sourceUrl,
+      phase: 'archives',
       status: 'current',
       targetSourceKey: representative.targetSourceKey ?? dataset.code,
       ...(representative.version ? { version: representative.version } : {}),
@@ -1524,7 +1546,7 @@ async function lookupDataGovHk({
         previous: previous?.sourceChecks?.[version],
         phase: 'archives',
       })
-      return update.status === 'current' ? [] : [update]
+      return [update]
     })
   return [latestUpdate, ...archiveUpdates]
 }

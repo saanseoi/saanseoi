@@ -14,7 +14,7 @@ import {
   stableJsonStringify,
 } from '@repo/core/pipeline/utils'
 import { historySchema, metaSchema, sourceSchema } from '@repo/db'
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, or } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
 import { createHarbourControlClient } from '../api/harbourControl.ts'
@@ -129,6 +129,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     await closeCurrentSourceRows(
       context.sourceDb as HarbourWritableDb,
       sourceRows.map(row => row.sourceRecordId),
+      releaseId,
       releaseCode,
       now,
     )
@@ -339,6 +340,7 @@ async function resolveCanonicalDistricts(metaDb: HarbourReadableDb) {
 async function closeCurrentSourceRows(
   db: HarbourWritableDb,
   sourceRecordIds: string[],
+  releaseId: string,
   releaseCode: string,
   now: string,
 ) {
@@ -352,10 +354,20 @@ async function closeCurrentSourceRows(
           sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities.isCurrent,
           true,
         ),
-        inArray(
-          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
-            .sourceRecordId,
-          sourceRecordIds,
+        // A local repair may replace an earlier source-only ingest whose
+        // record IDs incorrectly included the reference year. Retire those
+        // rows by their release as well as the stable publisher assertion ID.
+        or(
+          inArray(
+            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
+              .sourceRecordId,
+            sourceRecordIds,
+          ),
+          eq(
+            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensities
+              .releaseId,
+            releaseId,
+          ),
         ),
       ),
     )
@@ -370,10 +382,17 @@ async function closeCurrentSourceRows(
             .isCurrent,
           true,
         ),
-        inArray(
-          sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
-            .sourceRecordId,
-          sourceRecordIds,
+        or(
+          inArray(
+            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
+              .sourceRecordId,
+            sourceRecordIds,
+          ),
+          eq(
+            sourceSchema.sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n
+              .releaseId,
+            releaseId,
+          ),
         ),
       ),
     )
