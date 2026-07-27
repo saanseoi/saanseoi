@@ -28,13 +28,71 @@ export const apiFamilyHeaders = {
   streets: 'STREETS',
 } as const
 
-export const datasetUpdateCheckFrequencies = ['daily', 'weekly', 'monthly'] as const
+export const datasetUpdateCheckFrequencies = [
+  'daily',
+  'weekly',
+  'monthly',
+  'quarterly',
+] as const
 
 export type DatasetUpdateCheckFrequency = (typeof datasetUpdateCheckFrequencies)[number]
+
+export const datasetReleaseDiscoveryKinds = ['new-release', 'revision'] as const
+export type DatasetReleaseDiscoveryKind = (typeof datasetReleaseDiscoveryKinds)[number]
+
+/**
+ * Defines when one phase of the updater may query its publisher.
+ *
+ * `on-discovery` runs as part of a successful new-release or revision
+ * discovery. It is useful for bounded archives: the catalogue is scanned when
+ * the release event that may have displaced an archive is observed.
+ */
+export type DatasetUpdateCheck =
+  | { trigger: 'periodic'; frequency: DatasetUpdateCheckFrequency }
+  | {
+      trigger: 'after-latest-release-age'
+      ageDays: number
+      frequency: DatasetUpdateCheckFrequency
+    }
+  | { trigger: 'initial-only' }
+  | {
+      trigger: 'on-discovery'
+      discoveries: DatasetReleaseDiscoveryKind[]
+      includeInitialDownload?: boolean
+    }
+  | { trigger: 'never' }
 
 export type DatasetUpdatePolicy = {
   allowUpdates?: boolean
   checkFrequency?: DatasetUpdateCheckFrequency
+}
+
+export const datasetArchiveAvailability = ['none', 'limited', 'full'] as const
+export type DatasetArchiveAvailability = (typeof datasetArchiveAvailability)[number]
+
+export const archiveDiscoveryOperations = [
+  'csdi-archived-dataset',
+  'data-gov-historical-file-versions',
+  'overture-release-catalog',
+] as const
+export type ArchiveDiscoveryOperation = (typeof archiveDiscoveryOperations)[number]
+
+export type DatasetReleasePolicy = {
+  /** A rolling series supersedes a current snapshot; a cohort remains independently meaningful. */
+  series: 'rolling' | 'cohort'
+  schedule: 'regular' | 'irregular' | 'one-off'
+  /** Whether a publisher can revise every release, only its latest, or none. */
+  revisionScope: 'all' | 'latest' | 'none'
+  checks: {
+    archives: DatasetUpdateCheck
+    newReleases: DatasetUpdateCheck
+    revisions: DatasetUpdateCheck
+  }
+  archives: {
+    availability: DatasetArchiveAvailability
+    entryUrl?: string
+    operation?: ArchiveDiscoveryOperation
+  }
 }
 
 export type DatasetVersionPolicy = {
@@ -60,6 +118,16 @@ export type DatasetReleaseField =
   | 'releaseDate'
 
 export type DatasetRelease = {
+  archiveSlots?: Array<{
+    contentHash: string
+    releaseSlot: string
+    sourceObjectHash: string
+  }>
+  identicalArchiveSlots?: Array<{
+    contentHash: string
+    releaseSlot: string
+    sourceObjectHash: string
+  }>
   sourceVersion?: string
   sourceUrl?: string
   referenceYear?: string
@@ -75,6 +143,7 @@ export type DatasetFixture = {
   sourceUrl?: string
   publisherReleaseFrequency?: string
   updatePolicy?: DatasetUpdatePolicy
+  releasePolicy?: DatasetReleasePolicy
   sourceDocumentUrl?: string
   sourceLayer?: string
   sourceLayers?: string[]
@@ -99,8 +168,11 @@ export type DatasetUpdate = {
   archive?: CsdiSourceArchive
   deferStateUntilProcessed?: boolean
   dataset: DatasetFixture
+  isKnownIdenticalArchive?: boolean
   status: 'new' | 'current' | 'review' | 'manual' | 'skipped' | 'error'
   sourceKey?: string
+  /** Key used to find the corresponding release on the upload target. */
+  targetSourceKey?: string
   /** The target release that preceded this update when it was offered. */
   targetVersion?: string | null
   version?: string
@@ -376,6 +448,8 @@ function updateCheckIntervalMs(dataset: DatasetFixture) {
       return 7 * 86_400_000
     case 'monthly':
       return 30 * 86_400_000
+    case 'quarterly':
+      return 91 * 86_400_000
     case 'daily':
     case undefined:
       return 86_400_000
@@ -430,8 +504,8 @@ function requireSingleResourceType(dataset: DatasetFixture) {
 
 function resolveLookupAdapter(dataset: DatasetFixture): LookupAdapter | undefined {
   if (dataset.publisherCode === 'overture') return lookupOverture
-  if (isCsdiDataset(dataset)) return lookupCsdi
   if (dataset.publisherCode === 'hkgov-dpo') return lookupDataGovHk
+  if (isCsdiDataset(dataset)) return lookupCsdi
   if (dataset.code === 'ds-hk-hkgov-landsd-street') return lookupLandsdStreet
   return undefined
 }
@@ -662,7 +736,14 @@ async function lookupCsdi(context: LookupContext): Promise<DatasetUpdate[]> {
   // CSDI's archive catalogue supplies the publisher package for every known
   // snapshot, including the latest available one. Prefer it over the WFS and
   // file-api conversion paths whenever it exists.
-  if (archiveUpdates.length > 0) return archiveUpdates
+  if (archiveUpdates.length > 0) {
+    const pendingUpdates = archiveUpdates.filter(
+      update => !update.isKnownIdenticalArchive,
+    )
+    if (pendingUpdates.length > 0) return pendingUpdates
+
+    return summariseIdenticalCsdiArchives(dataset, archiveUpdates)
+  }
   return [
     {
       dataset,
@@ -709,6 +790,13 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
       const sourceKey = `archive:${datasetId}:${source.releaseSlot}`
       const previous = getSourceState(context.previous, sourceKey, dataset.code)
       const versionKey = readCsdiArchiveObjectHash(source.sourceUrl)
+      const release = findCsdiDatasetRelease(
+        dataset,
+        archiveSourceUrl,
+        source.releaseSlot,
+        versionKey,
+      )
+      const version = resolveCsdiArchiveDatasetVersion(dataset, release)
       const archive: CsdiSourceArchive = {
         datasetCode: dataset.code,
         datasetId,
@@ -731,13 +819,19 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
         dataset,
         downloadPath: sourcePath,
         downloadUrl: source.sourceUrl,
+        isKnownIdenticalArchive: isKnownIdenticalCsdiArchive(
+          release,
+          source.releaseSlot,
+          versionKey,
+        ),
         message: `CSDI archived publisher ${source.sourceFormat ?? 'source'} package for ${source.releaseSlot}; it will be mirrored even if its semantic content is unchanged.`,
         releaseLastRevisedAt: source.releaseSlot,
         sourceCursor: [source.sourceUrl],
         sourceKey,
         sourceUrl: archiveSourceUrl,
         status: previous?.versionKey === versionKey ? 'current' : 'new',
-        version: source.releaseSlot,
+        targetSourceKey: release?.sourceVersion ?? dataset.code,
+        ...(version ? { version } : {}),
         versionKey,
         download: async () => {
           const originalFileName = await downloadCsdiArchive(
@@ -758,6 +852,82 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
       } satisfies DatasetUpdate
     }),
   )
+}
+
+function resolveCsdiArchiveDatasetVersion(
+  dataset: DatasetFixture,
+  release: DatasetRelease | undefined,
+) {
+  // CSDI's quarter is an archive slot, rather than a dataset release version.
+  // Only show a source version when the fixture explicitly identifies one.
+  return release?.sourceVersion
+    ? normaliseDatasetVersion(dataset, release.sourceVersion)
+    : undefined
+}
+
+function findCsdiDatasetRelease(
+  dataset: DatasetFixture,
+  archiveSourceUrl: string,
+  releaseSlot: string,
+  sourceObjectHash: string,
+) {
+  const releases = dataset.releases ?? []
+  const matchingReleases = releases.filter(
+    release => !release.sourceUrl || release.sourceUrl === archiveSourceUrl,
+  )
+  const archiveMatch = matchingReleases.find(release =>
+    release.archiveSlots?.some(
+      archive =>
+        archive.releaseSlot === releaseSlot &&
+        `sha256:${archive.sourceObjectHash}` === sourceObjectHash,
+    ),
+  )
+  if (archiveMatch) return archiveMatch
+
+  return (
+    matchingReleases.find(release => release.sourceUrl === archiveSourceUrl) ??
+    (matchingReleases.length === 1 ? matchingReleases[0] : undefined)
+  )
+}
+
+function isKnownIdenticalCsdiArchive(
+  release: DatasetRelease | undefined,
+  releaseSlot: string,
+  sourceObjectHash: string,
+) {
+  return release?.identicalArchiveSlots?.some(
+    archive =>
+      archive.releaseSlot === releaseSlot &&
+      `sha256:${archive.sourceObjectHash}` === sourceObjectHash,
+  )
+}
+
+function summariseIdenticalCsdiArchives(
+  dataset: DatasetFixture,
+  archiveUpdates: DatasetUpdate[],
+) {
+  const groups = new Map<string, DatasetUpdate[]>()
+
+  for (const update of archiveUpdates) {
+    const key = update.version
+      ? `version:${update.version}`
+      : `source:${update.sourceUrl ?? update.sourceKey ?? dataset.code}`
+    groups.set(key, [...(groups.get(key) ?? []), update])
+  }
+
+  return [...groups.values()].map(updates => {
+    const first = updates[0] as DatasetUpdate
+    const noOpCount = updates.length
+    return {
+      dataset,
+      message: `${noOpCount} CSDI archive slot${noOpCount === 1 ? '' : 's'} match the fixture's recorded identical publisher artefact${noOpCount === 1 ? '' : 's'}.`,
+      sourceKey: `identical:${first.version ?? first.sourceKey ?? dataset.code}`,
+      sourceUrl: first.sourceUrl,
+      status: 'current',
+      targetSourceKey: first.targetSourceKey ?? dataset.code,
+      ...(first.version ? { version: first.version } : {}),
+    } satisfies DatasetUpdate
+  })
 }
 
 async function downloadCsdiArchive(url: string, targetPath: string) {
@@ -930,8 +1100,8 @@ async function fetchJsonWithRetry(url: string, attempts = 3): Promise<unknown> {
   let lastError: unknown
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    const response = await fetchText(url)
     try {
+      const response = await fetchText(url)
       return JSON.parse(response.body) as unknown
     } catch (error) {
       lastError = error

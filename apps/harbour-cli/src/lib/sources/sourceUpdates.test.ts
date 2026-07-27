@@ -262,12 +262,14 @@ describe('dataset update registry', () => {
           archive: expect.objectContaining({ sourceFormat: 'FGDB' }),
           sourceKey: 'archive:censtatd-2016:2021-Q4',
           status: 'new',
-          version: '2021-Q4',
+          targetSourceKey: '2016',
+          version: '2016.0',
         }),
         expect.objectContaining({
           sourceKey: 'archive:censtatd-2021:2025-Q1',
           status: 'new',
-          version: '2025-Q1',
+          targetSourceKey: '2021',
+          version: '2021.0',
         }),
       ])
     } finally {
@@ -304,13 +306,250 @@ describe('dataset update registry', () => {
     ])
   })
 
+  test('collapses fixture-recorded identical CSDI archive slots by source version', async () => {
+    const originalFetch = globalThis.fetch
+    const sourceObjectHash = 'a'.repeat(64)
+    globalThis.fetch = Object.assign(
+      async () =>
+        Response.json({
+          archivedDatasetVersionList: [
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${sourceObjectHash}`,
+                },
+              ],
+              quarter: 4,
+              year: 2025,
+            },
+          ],
+        }),
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const updates = await lookupDatasetUpdates(
+        {
+          code: 'ds-hk-hkgov-censtatd-division-area-district',
+          publisherCode: 'hkgov-censtatd',
+          regionCode: 'hk',
+          sourceUrl:
+            'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635933617052_68946',
+          theme: 'divisions',
+          resourceTypes: ['divisionArea'],
+          versionPolicy: {
+            scheme: 'reference-year',
+            releaseField: 'sourceVersion',
+            correctionSuffixSource: 'generated',
+          },
+          releases: [
+            {
+              sourceVersion: '2021',
+              sourceUrl:
+                'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635933617052_68946',
+              identicalArchiveSlots: [
+                {
+                  contentHash: 'b'.repeat(64),
+                  releaseSlot: '2025-Q4',
+                  sourceObjectHash,
+                },
+              ],
+            },
+            {
+              sourceVersion: '2016',
+              sourceUrl:
+                'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635932488538_10765',
+              identicalArchiveSlots: [
+                {
+                  contentHash: 'c'.repeat(64),
+                  releaseSlot: '2025-Q4',
+                  sourceObjectHash,
+                },
+              ],
+            },
+          ],
+        },
+        undefined,
+        undefined,
+        true,
+      )
+
+      expect(updates).toEqual([
+        expect.objectContaining({
+          sourceKey: 'identical:2021.0',
+          status: 'current',
+          targetSourceKey: '2021',
+          version: '2021.0',
+        }),
+        expect.objectContaining({
+          sourceKey: 'identical:2016.0',
+          status: 'current',
+          targetSourceKey: '2016',
+          version: '2016.0',
+        }),
+      ])
+      expect(updates[0]?.archive).toBeUndefined()
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  test('maps distinct CSDI archive slots to their configured source releases', async () => {
+    const originalFetch = globalThis.fetch
+    const sourceObjectHash2022 = 'a'.repeat(64)
+    const sourceObjectHash2024 = 'b'.repeat(64)
+    globalThis.fetch = Object.assign(
+      async () =>
+        Response.json({
+          archivedDatasetVersionList: [
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${sourceObjectHash2022}`,
+                },
+              ],
+              quarter: 4,
+              year: 2023,
+            },
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${sourceObjectHash2024}`,
+                },
+              ],
+              quarter: 3,
+              year: 2025,
+            },
+          ],
+        }),
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const sourceUrl =
+        'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635934215448_25451'
+      const updates = await lookupDatasetUpdates(
+        {
+          code: 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+          publisherCode: 'hkgov-censtatd',
+          regionCode: 'hk',
+          sourceUrl,
+          theme: 'stats',
+          resourceTypes: ['divisionStatistic'],
+          versionPolicy: {
+            scheme: 'reference-year',
+            releaseField: 'sourceVersion',
+            correctionSuffixSource: 'generated',
+          },
+          releases: [
+            {
+              sourceVersion: '2022',
+              sourceUrl,
+              archiveSlots: [
+                {
+                  contentHash: 'c'.repeat(64),
+                  releaseSlot: '2023-Q4',
+                  sourceObjectHash: sourceObjectHash2022,
+                },
+              ],
+            },
+            {
+              sourceVersion: '2024',
+              sourceUrl,
+              archiveSlots: [
+                {
+                  contentHash: 'd'.repeat(64),
+                  releaseSlot: '2025-Q3',
+                  sourceObjectHash: sourceObjectHash2024,
+                },
+              ],
+            },
+          ],
+        },
+        undefined,
+        undefined,
+        true,
+      )
+
+      expect(updates.map(update => update.version)).toEqual(['2022.0', '2024.0'])
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  test('does not treat a CSDI archive slot as an unversioned dataset release', async () => {
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = Object.assign(
+      async () =>
+        Response.json({
+          archivedDatasetVersionList: [
+            {
+              fileList: [
+                {
+                  sourceFormat: true,
+                  url: `https://static.csdi.gov.hk/download/${'c'.repeat(64)}`,
+                },
+              ],
+              quarter: 2,
+              year: 2026,
+            },
+          ],
+        }),
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const [update] = await lookupDatasetUpdates(
+        {
+          code: 'ds-hk-hkgov-hyd-street',
+          publisherCode: 'hkgov-hyd',
+          regionCode: 'hk',
+          sourceUrl:
+            'https://portal.csdi.gov.hk/geoportal/?datasetId=hyd_rcd_1632211119955_31211',
+          theme: 'streets',
+          resourceTypes: ['street'],
+          versionPolicy: {
+            scheme: 'release-date',
+            correctionSuffixSource: 'generated',
+          },
+        },
+        undefined,
+        undefined,
+        true,
+      )
+
+      expect(update).toEqual(
+        expect.objectContaining({
+          sourceKey: 'archive:hyd_rcd_1632211119955_31211:2026-Q2',
+          status: 'new',
+          targetSourceKey: 'ds-hk-hkgov-hyd-street',
+        }),
+      )
+      expect(update).not.toHaveProperty('version')
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
   test('retries a truncated DPO archive response and excludes today from its query', async () => {
     const originalFetch = globalThis.fetch
     const calls: string[] = []
     globalThis.fetch = Object.assign(
       async (input: Parameters<typeof fetch>[0]) => {
         calls.push(String(input))
-        if (calls.length === 1) return new Response('{"files":')
+        if (calls.length === 1) {
+          return new Response(
+            new ReadableStream({
+              start(controller) {
+                controller.error(new Error('JSON Parse error: Unexpected EOF'))
+              },
+            }),
+          )
+        }
+        if (calls.length === 2) return new Response('{"timestamps":')
         return Response.json({
           timestamps: ['20260726-0930'],
         })
@@ -324,7 +563,8 @@ describe('dataset update registry', () => {
           code: 'ds-hk-hkgov-dpo-address',
           publisherCode: 'hkgov-dpo',
           regionCode: 'hk',
-          sourceUrl: 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als',
+          sourceUrl:
+            'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603',
           theme: 'addresses',
           resourceTypes: ['address'],
           versionPolicy: {
@@ -337,7 +577,7 @@ describe('dataset update registry', () => {
         true,
       )
 
-      expect(calls).toHaveLength(2)
+      expect(calls).toHaveLength(3)
       const archiveUrl = new URL(calls[0] as string)
       const yesterday = new Date(Date.now() - 86_400_000)
         .toISOString()
@@ -449,6 +689,124 @@ describe('dataset update registry', () => {
           ),
       ),
     ).toBe(true)
+  })
+
+  test('records DPO as an irregular rolling series with daily archive checks', async () => {
+    const [dataset] = await loadDatasetFixtures(new Set(['ds-hk-hkgov-dpo-address']))
+
+    expect(dataset?.releasePolicy).toEqual({
+      archives: {
+        availability: 'limited',
+        entryUrl: 'https://api.data.gov.hk/v1/historical-archive/list-file-versions',
+        operation: 'data-gov-historical-file-versions',
+      },
+      checks: {
+        archives: { trigger: 'periodic', frequency: 'daily' },
+        newReleases: { trigger: 'periodic', frequency: 'daily' },
+        revisions: { trigger: 'never' },
+      },
+      revisionScope: 'none',
+      schedule: 'irregular',
+      series: 'rolling',
+    })
+  })
+
+  test('records Overture as a regular rolling series with conditional checks', async () => {
+    const datasets = await loadDatasetFixtures(
+      new Set([
+        'ds-hk-overture-division',
+        'ds-hk-overture-division-area',
+        'ds-hk-overture-division-boundary',
+        'ds-hk-overture-place',
+      ]),
+    )
+
+    expect(datasets).toHaveLength(4)
+    expect(
+      datasets.every(
+        dataset =>
+          dataset.releasePolicy?.series === 'rolling' &&
+          dataset.releasePolicy.schedule === 'regular' &&
+          dataset.releasePolicy.revisionScope === 'latest' &&
+          dataset.releasePolicy.checks.newReleases.trigger ===
+            'after-latest-release-age' &&
+          dataset.releasePolicy.checks.newReleases.ageDays === 25 &&
+          dataset.releasePolicy.checks.newReleases.frequency === 'daily' &&
+          dataset.releasePolicy.checks.revisions.trigger === 'periodic' &&
+          dataset.releasePolicy.checks.revisions.frequency === 'daily' &&
+          dataset.releasePolicy.checks.archives.trigger === 'on-discovery' &&
+          dataset.releasePolicy.checks.archives.discoveries.includes('new-release') &&
+          dataset.releasePolicy.archives.availability === 'limited' &&
+          dataset.releasePolicy.archives.operation === 'overture-release-catalog',
+      ),
+    ).toBe(true)
+  })
+
+  test('records DPang as a manually maintained rolling series', async () => {
+    const [dataset] = await loadDatasetFixtures(new Set(['ds-hk-dpang-street']))
+
+    expect(dataset?.releasePolicy).toEqual({
+      archives: { availability: 'full' },
+      checks: {
+        archives: { trigger: 'never' },
+        newReleases: { trigger: 'never' },
+        revisions: { trigger: 'never' },
+      },
+      revisionScope: 'latest',
+      schedule: 'irregular',
+      series: 'rolling',
+    })
+  })
+
+  test('records Planning Department divisions as revisable regular cohorts', async () => {
+    const datasets = await loadDatasetFixtures(
+      new Set(['ds-hk-hkgov-pland-division-new-town', 'ds-hk-hkgov-pland-division-pu']),
+    )
+
+    expect(datasets).toHaveLength(2)
+    expect(
+      datasets.every(
+        dataset =>
+          dataset.releasePolicy?.series === 'cohort' &&
+          dataset.releasePolicy.schedule === 'regular' &&
+          dataset.releasePolicy.revisionScope === 'all' &&
+          dataset.releasePolicy.checks.newReleases.trigger === 'periodic' &&
+          dataset.releasePolicy.checks.newReleases.frequency === 'monthly' &&
+          dataset.releasePolicy.checks.revisions.trigger === 'periodic' &&
+          dataset.releasePolicy.checks.revisions.frequency === 'weekly' &&
+          dataset.releasePolicy.checks.archives.trigger === 'periodic' &&
+          dataset.releasePolicy.checks.archives.frequency === 'quarterly' &&
+          dataset.releasePolicy.archives.availability === 'full' &&
+          dataset.releasePolicy.archives.operation === 'csdi-archived-dataset',
+      ),
+    ).toBe(true)
+  })
+
+  test('records C&SD districts as initial-only cohorts with revision archive scans', async () => {
+    const [dataset] = await loadDatasetFixtures(
+      new Set(['ds-hk-hkgov-censtatd-division-area-district']),
+    )
+
+    expect(dataset?.releasePolicy).toEqual({
+      archives: {
+        availability: 'full',
+        entryUrl:
+          'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946',
+        operation: 'csdi-archived-dataset',
+      },
+      checks: {
+        archives: {
+          discoveries: ['revision'],
+          includeInitialDownload: true,
+          trigger: 'on-discovery',
+        },
+        newReleases: { trigger: 'initial-only' },
+        revisions: { frequency: 'weekly', trigger: 'periodic' },
+      },
+      revisionScope: 'all',
+      schedule: 'regular',
+      series: 'cohort',
+    })
   })
 
   test('keeps the initial release date when a later delivery is a correction', () => {
