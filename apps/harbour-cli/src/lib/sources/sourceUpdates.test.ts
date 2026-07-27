@@ -11,6 +11,7 @@ import {
   buildHkgovAlsIngestCommand,
   buildHkgovCenstatdDistrictArchiveIngestCommand,
   buildHkgovCenstatdDistrictStatisticArchiveIngestCommand,
+  buildHkgovCenstatdStatisticsArchiveIngestCommand,
   buildHkgovPlandArchiveIngestCommand,
   buildOverturistCommand,
   buildOverturistReleasesCommand,
@@ -124,6 +125,29 @@ describe('dataset update registry', () => {
         'production',
         '--source-archive-key',
         'by-source/hk/hkgov-csdi/districts/source.zip',
+      ]),
+    )
+  })
+
+  test('starts each remaining C&SD statistic from the prepared archive', () => {
+    expect(
+      buildHkgovCenstatdStatisticsArchiveIngestCommand({
+        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+        inputFile: '/tmp/new-towns.zip',
+        releaseNotesUrl: 'https://portal.csdi.gov.hk/new-towns',
+        sourceArchiveKey: 'by-source/hk/hkgov-csdi/new-towns/source.zip',
+        sourceArchiveSha256: 'e'.repeat(64),
+        sourceVersion: '2021',
+        target: { environment: 'preview', remote: true },
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        'hkgov-censtatd:statistics',
+        '/tmp/new-towns.zip',
+        '--target',
+        'preview',
+        '--dataset-code',
+        'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
       ]),
     )
   })

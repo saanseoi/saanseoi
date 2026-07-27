@@ -17,6 +17,7 @@ function printUsage() {
   bun run dataops -- hkgov-pland:ingest --kind pu|new-town <source.zip> --target local|preview|production --source-version YYYY --release-notes-url URL
   bun run dataops -- hkgov-censtatd:district-land-area-population-density <source.zip> --target local|preview|production --source-version 2022|2024 --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
   bun run dataops -- hkgov-censtatd:district-area <source.zip> --target local|preview|production --source-version 2016|2021 --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
+  bun run dataops -- hkgov-censtatd:statistics <source.zip> --target local|preview|production --dataset-code CODE --source-version YYYY --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
   bun run dataops -- hkgov-landsd-streets:baseline --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
   bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
   bun run dataops -- hkgov-landsd-streets:official-egazette --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
@@ -114,6 +115,13 @@ async function main() {
         './commands/hkgovCenstatdDistricts.ts'
       )
       await runHkgovCenstatdDistrictArchiveIngestCommand(args, target, printUsage)
+      return
+    }
+    case 'hkgov-censtatd:statistics': {
+      const { runHkgovCenstatdStatisticsIngestCommand } = await import(
+        './commands/hkgovCenstatdStatistics.ts'
+      )
+      await runHkgovCenstatdStatisticsIngestCommand(args, target, printUsage)
       return
     }
     case 'hkgov-landsd-streets:baseline':

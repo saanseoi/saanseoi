@@ -84,11 +84,11 @@ test('selects an API family without prompting', async () => {
 test('adds a composition lookup provider before an address update', async () => {
   const datasets = await loadDatasetFixtures()
   const address = datasets.find(dataset => dataset.code === 'ds-hk-hkgov-dpo-address')
-  expect(address).toBeDefined()
+  if (!address) throw new Error('Address dataset fixture is missing.')
 
   const ordered = orderDatasetsByCompositionDependencies(
     datasets,
-    [address!],
+    [address],
     await loadCurrentCompositionIngestDependencies(),
   )
 
