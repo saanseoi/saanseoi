@@ -158,12 +158,42 @@ describe('LandsD Road Centreline matching', () => {
       ],
     })
 
-    expect(result.records).toEqual([])
+    expect(result.records).toEqual([expect.objectContaining({ streetId: null })])
     expect(result.issues).toEqual([
       expect.objectContaining({
         candidates: ['street-west', 'street-east'],
         kind: 'ambiguous',
       }),
+    ])
+  })
+
+  test('retains an unnamed publisher segment as source-only evidence', () => {
+    const result = normaliseRoadCentrelineFeatures({
+      releaseId: 'release',
+      features: [feature({ STREET_NAME_EN: '', STREET_NAME_TC: '' })],
+      streets: [],
+    })
+
+    expect(result.issues).toEqual([])
+    expect(result.records).toEqual([
+      expect.objectContaining({
+        i18n: [],
+        sourceRecordId: 'release:1',
+        streetId: null,
+      }),
+    ])
+  })
+
+  test('retains named unmatched source evidence while blocking canonical publication', () => {
+    const result = normaliseRoadCentrelineFeatures({
+      releaseId: 'release',
+      features: [feature()],
+      streets: [],
+    })
+
+    expect(result.records).toEqual([expect.objectContaining({ streetId: null })])
+    expect(result.issues).toEqual([
+      expect.objectContaining({ kind: 'unmatched', objectId: 1 }),
     ])
   })
 
