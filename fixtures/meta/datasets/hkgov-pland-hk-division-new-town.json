@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:80853255d76c474d341f8ddfcdff7c7e8a310ac51b75e08f946e34709f3974d8",
+  "versionHash": "sha256:11a964ac78a63e04d733ce4b516a7faa949e836e7b24b3e624c42f1d9c69b111",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-new-town",
   "regionCode": "hk",
@@ -11,9 +11,34 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Planning Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865",
+  "schemaSpecificationURL": null,
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "periodic",
+        "frequency": "monthly"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "periodic",
+        "frequency": "quarterly"
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865"
+    }
   },
   "versionPolicy": {
     "scheme": "reference-year",

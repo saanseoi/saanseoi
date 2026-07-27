@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:cc8daa6a7100bb5f8c6044a0209bf2eb742b8b97f2ba21eaebe02aaf2b56c06c",
+  "versionHash": "sha256:54719846fc789346da5c29f341ea602905e6d19444247fa9b348f76c3be705c2",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns-2021",
   "regionCode": "hk",
@@ -10,9 +10,34 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695181913136_27614",
+  "schemaSpecificationURL": null,
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["revision"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695181913136_27614"
+    }
   },
   "versionPolicy": {
     "scheme": "reference-year",
@@ -21,7 +46,19 @@
   },
   "releases": [
     {
-      "sourceVersion": "2021"
+      "sourceVersion": "2021",
+      "identicalArchiveSlots": [
+        {
+          "releaseSlot": "2024-Q4",
+          "sourceObjectHash": "42f7cff4738103ab3eb49af8ccb765905a48776139b87cbb526493709120e63a",
+          "contentHash": "c3bdb6730059ede4b4b14b80f7fed5560f2c823e8475f768015a3aa8e2df55ca"
+        },
+        {
+          "releaseSlot": "2026-Q2",
+          "sourceObjectHash": "9355a79bd309e0c6d913ad81958faea566df916ad6c12154d3bb5b804ff522f6",
+          "contentHash": "c3bdb6730059ede4b4b14b80f7fed5560f2c823e8475f768015a3aa8e2df55ca"
+        }
+      ]
     }
   ],
   "i18n": [

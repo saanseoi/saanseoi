@@ -96,6 +96,7 @@ type DatasetFixture = {
   licenseCode: string
   attribution?: string
   sourceUrl?: string
+  schemaSpecificationURL: string | null
   category?: DatasetCategory
   i18n: Array<{
     locale: Locale

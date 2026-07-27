@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:2e48cd9f4be5e794a0780c62309508ee524421414b9ce07c965e675daa8ec67e",
+  "versionHash": "sha256:b8bb8c19ece192b47e85dc4a8c98b2721f7a1242c9add8fbe79ca9ea6e664bda",
   "publisherCode": "hkgov-dpo",
   "code": "ds-hk-hkgov-dpo-address",
   "regionCode": "hk",
@@ -10,9 +10,33 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© HK SAR Government, Digital Policy Office, DATA.GOV.HK",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603",
+  "schemaSpecificationURL": null,
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "irregular",
+    "revisionScope": "none",
+    "checks": {
+      "newReleases": {
+        "trigger": "periodic",
+        "frequency": "daily"
+      },
+      "revisions": {
+        "trigger": "never"
+      },
+      "archives": {
+        "trigger": "periodic",
+        "frequency": "daily"
+      }
+    },
+    "archives": {
+      "availability": "limited",
+      "operation": "data-gov-historical-file-versions",
+      "entryUrl": "https://api.data.gov.hk/v1/historical-archive/list-file-versions"
+    }
   },
   "versionPolicy": {
     "scheme": "release-date",

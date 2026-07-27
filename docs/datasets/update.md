@@ -155,6 +155,12 @@ the known artefacts for that source release. A match is saved as an
 `identicalArchiveSlots` fixture entry, so the same archive object is not made actionable
 again.
 
+The console collects due source discoveries before processing them, then renders the
+actionable results under `NEW RELEASES`, `NEW REVISIONS`, and `ARCHIVES`. A source
+adapter may expose an archive catalogue while checking a release or revision; its
+archive packages are processed only when the archive policy itself is due or its
+configured discovery event occurs.
+
 When a logical dataset has multiple publisher catalogue records, each `releases[]` entry
 may provide its own `sourceUrl`. Check state is stored independently for each source
 version, so adding a new source URL makes that release eligible immediately.

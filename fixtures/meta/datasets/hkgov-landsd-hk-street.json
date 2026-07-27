@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:17817bc09e57b35516024055a53295d78c009a19814f07548cb4b6cdf14ae5a5",
+  "versionHash": "sha256:c1db7f220e08925a840714d50b9569a0a9061e21a8532e4a7c6db52d58f04619",
   "publisherCode": "hkgov-landsd",
   "code": "ds-hk-hkgov-landsd-street",
   "regionCode": "hk",
@@ -10,10 +10,31 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Lands Department.",
   "sourceUrl": "https://www.landsd.gov.hk/en/survey-mapping/mapping/street-geographical-place-naming/street-naming.html",
+  "schemaSpecificationURL": null,
   "sourceDocumentUrl": "https://www.landsd.gov.hk/doc/en/street-name/Gazetted_Street_Name.pdf",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "weekly"
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "irregular",
+    "revisionScope": "none",
+    "checks": {
+      "newReleases": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "revisions": {
+        "trigger": "never"
+      },
+      "archives": {
+        "trigger": "never"
+      }
+    },
+    "archives": {
+      "availability": "none"
+    }
   },
   "versionPolicy": {
     "scheme": "release-date",

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:c402be5b71266233a6e1d4a279470485b63da5e84492e54eb83052623cee9796",
+  "versionHash": "sha256:f8dde16c15da218468d7f5d28d1b5aee856ae9a34f799e94414627a8eac742fc",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-sensitive-street",
   "regionCode": "hk",
@@ -10,12 +10,39 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Highways Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632361314743_27775",
+  "schemaSpecificationURL": null,
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
   },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "regular",
+    "revisionScope": "latest",
+    "checks": {
+      "newReleases": {
+        "trigger": "after-latest-release-age",
+        "ageDays": 90,
+        "frequency": "daily"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["new-release"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632361314743_27775"
+    }
+  },
   "versionPolicy": {
-    "scheme": "release-date",
+    "scheme": "quarterly",
     "correctionSuffixSource": "generated"
   },
   "sourceLayer": "sensitive",

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:a2c12889f5c5973e91e6807a945c06eb1ec53cd533155f80b37d312995374abe",
+  "versionHash": "sha256:8a2e0998d51954020cae06c70039f2383be5ef39c371c6000d5989aec572db1c",
   "publisherCode": "dpang",
   "code": "ds-hk-dpang-street",
   "regionCode": "hk",
@@ -9,8 +9,28 @@
   "resourceTypes": ["street"],
   "licenseCode": "odc-by-1.0",
   "attribution": "© Diana Pang.",
+  "schemaSpecificationURL": null,
   "updatePolicy": {
     "allowUpdates": true
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "irregular",
+    "revisionScope": "latest",
+    "checks": {
+      "newReleases": {
+        "trigger": "never"
+      },
+      "revisions": {
+        "trigger": "never"
+      },
+      "archives": {
+        "trigger": "never"
+      }
+    },
+    "archives": {
+      "availability": "full"
+    }
   },
   "versionPolicy": {
     "scheme": "upstream",

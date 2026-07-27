@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:66d96321cb3217fdd57e9653574e6f67be1cdfa3d32a20ec89c5af96f17a1aaf",
+  "versionHash": "sha256:6504aed7950e5008e63574b5ced1569b53f941f13fb7f11ab635dbba0456db34",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
@@ -10,9 +10,34 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
+  "schemaSpecificationURL": null,
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["revision"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201"
+    }
   },
   "versionPolicy": {
     "scheme": "reference-year",
