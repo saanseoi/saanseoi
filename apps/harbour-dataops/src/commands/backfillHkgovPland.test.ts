@@ -10,7 +10,7 @@ const uploadedTypes: Array<{
 }> = []
 let divisionPublishComplete = false
 
-const prepareHkgovPlandTpuParquetMock = mock(
+const prepareHkgovPlandTpuNativeShpZipMock = mock(
   async (options: { inputFile: string; sourceVersion: string; type: string }) => {
     preparedInputs.push(options.inputFile)
     preparedTypes.push({ sourceVersion: options.sourceVersion, type: options.type })
@@ -43,11 +43,11 @@ const runUploadCommandMock = mock(
 )
 
 mock.module('../../../harbour-cli/src/lib/sources/hkgov/hkgovPland.ts', () => ({
-  prepareHkgovPlandTpuParquet: prepareHkgovPlandTpuParquetMock,
+  prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
 }))
 
 mock.module('../../../harbour-cli/src/lib/sources/hkgov/hkgovPlandNewTown.ts', () => ({
-  prepareHkgovPlandNewTownParquet: mock(async () => undefined),
+  prepareHkgovPlandNewTownNativeShpZip: mock(async () => undefined),
 }))
 
 mock.module('../../../harbour-cli/src/lib/commands/upload.ts', () => ({
@@ -73,7 +73,7 @@ describe('Planning Department backfills', () => {
     expect(preparedInputs[0]).toBe(
       resolve(
         import.meta.dir,
-        '../../../../data/hkgov/pland/2001/hkgov-pland-tpu-2001.geojson',
+        '../../../../data/hkgov/csdi/archive/pland_rcd_1636535158118_80594/2023-Q4/source.zip',
       ),
     )
     expect(uploadedTypes).toEqual([
