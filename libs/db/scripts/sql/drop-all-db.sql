@@ -69,6 +69,7 @@ DROP TABLE IF EXISTS `publisherI18n`;
 DROP TABLE IF EXISTS `publishers`;
 DROP TABLE IF EXISTS `identifierBridges`;
 DROP TABLE IF EXISTS `divisionIdentifierBridges`;
+DROP TABLE IF EXISTS `divisionStatistics`;
 DROP TABLE IF EXISTS `streetGeometry`;
 DROP TABLE IF EXISTS `snapshotVersionChanges`;
 DROP TABLE IF EXISTS `__new_streetChangelog`;
