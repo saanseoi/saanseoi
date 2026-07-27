@@ -1,7 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
-import { canonicalHkDistrictCodeFromHkgovCenstatdCode } from '@repo/core'
 import { parquetWriteBuffer } from 'hyparquet-writer'
 
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
@@ -28,9 +27,7 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
 
   const rows = features.map((feature, index) => {
     const properties = feature.properties
-    const sourceDistrictCode = integer(properties.DC, 'DC', index)
-    const districtCode =
-      canonicalHkDistrictCodeFromHkgovCenstatdCode(sourceDistrictCode)
+    const districtCode = integer(properties.DC, 'DC', index)
     const referenceYear = text(properties.PERIOD, 'PERIOD', index)
     if (referenceYear !== input.sourceVersion) {
       throw new Error(
@@ -39,7 +36,9 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
     }
     return {
       district_code: districtCode,
-      id: `CENSTATD:DENSITY:${referenceYear}:${sourceDistrictCode}`,
+      // A publisher district assertion remains the same feature across source
+      // releases; its reference year is a versioned property, not its identity.
+      id: `CENSTATD:DENSITY:${districtCode}`,
       land_area_sq_km: number(properties.LA, 'LA', index),
       mid_year_population_density_per_sq_km: integer(
         properties.POPN_D,
@@ -52,11 +51,10 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
       raw_properties: JSON.stringify(properties),
       reference_year: referenceYear,
       source_geometry: JSON.stringify(feature.sourceGeometry),
-      source_district_code: sourceDistrictCode,
       sources: JSON.stringify([
         {
           dataset: 'hkgov-censtatd',
-          districtCode: sourceDistrictCode,
+          districtCode,
           sourceArchiveKey: input.sourceArchiveKey,
         },
       ]),
@@ -68,7 +66,7 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
     new Uint8Array(
       parquetWriteBuffer({
         columnData: [
-          stringColumn(
+          integerColumn(
             'district_code',
             rows.map(row => row.district_code),
           ),
@@ -107,10 +105,6 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
           stringColumn(
             'source_geometry',
             rows.map(row => row.source_geometry),
-          ),
-          integerColumn(
-            'source_district_code',
-            rows.map(row => row.source_district_code),
           ),
           stringColumn(
             'sources',

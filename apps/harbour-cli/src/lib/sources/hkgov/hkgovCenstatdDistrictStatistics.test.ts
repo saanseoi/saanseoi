@@ -37,9 +37,8 @@ describe('C&SD district land-area statistics', () => {
       metadata: await parquetMetadataAsync(file),
     })
     expect(rows[0]).toMatchObject({
-      district_code: 'CW',
+      district_code: BigInt(11),
       mid_year_population: BigInt(2500),
-      source_district_code: BigInt(11),
     })
   })
 })
