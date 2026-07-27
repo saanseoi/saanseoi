@@ -70,6 +70,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     tables: [
       {
         name: 'hkgovCenstatdStatistics',
+        provenance: 'required',
         rows: rows.map(row => ({
           datasetCode,
           featureId: row.featureId,
