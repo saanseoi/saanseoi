@@ -857,12 +857,7 @@ async function cloneStreetCurrentSnapshot(
 }
 
 async function listCurrentSourceRows(db: HarbourReadableDb, ids: string[]) {
-  const rows: Array<{
-    sourceRecordId: string
-    versionHash: string
-    streetId: string | null
-    resultStreetId: string | null
-  }> = []
+  const rows: Array<{ sourceRecordId: string; versionHash: string }> = []
   for (const idsChunk of chunkArray([...new Set(ids)], 90)) {
     if (idsChunk.length === 0) continue
     rows.push(
@@ -871,8 +866,6 @@ async function listCurrentSourceRows(db: HarbourReadableDb, ids: string[]) {
           sourceRecordId:
             sourceSchema.sourceHkgovLandsdStreetBaselineRecords.sourceRecordId,
           versionHash: sourceSchema.sourceHkgovLandsdStreetBaselineRecords.versionHash,
-          streetId: sourceSchema.sourceHkgovLandsdStreetBaselineRecords.streetId,
-          resultStreetId: sql<string | null>`null`,
         })
         .from(sourceSchema.sourceHkgovLandsdStreetBaselineRecords)
         .where(
@@ -889,8 +882,6 @@ async function listCurrentSourceRows(db: HarbourReadableDb, ids: string[]) {
         .select({
           sourceRecordId: sourceSchema.sourceHkgovLandsdStreetNotices.sourceRecordId,
           versionHash: sourceSchema.sourceHkgovLandsdStreetNotices.versionHash,
-          streetId: sql<string | null>`null`,
-          resultStreetId: sql<string | null>`null`,
         })
         .from(sourceSchema.sourceHkgovLandsdStreetNotices)
         .where(
@@ -904,32 +895,6 @@ async function listCurrentSourceRows(db: HarbourReadableDb, ids: string[]) {
         )
         .all()),
     )
-    const applications = await db
-      .select({
-        resultStreetId:
-          sourceSchema.sourceHkgovLandsdStreetNoticeApplications.resultStreetId,
-        sourceRecordId:
-          sourceSchema.sourceHkgovLandsdStreetNoticeApplications.sourceRecordId,
-      })
-      .from(sourceSchema.sourceHkgovLandsdStreetNoticeApplications)
-      .where(
-        and(
-          eq(sourceSchema.sourceHkgovLandsdStreetNoticeApplications.isCurrent, true),
-          inArray(
-            sourceSchema.sourceHkgovLandsdStreetNoticeApplications.sourceRecordId,
-            idsChunk,
-          ),
-        ),
-      )
-      .all()
-    const applicationById = new Map(
-      applications.map(row => [row.sourceRecordId, row.resultStreetId]),
-    )
-    for (const row of rows) {
-      if (applicationById.has(row.sourceRecordId)) {
-        row.resultStreetId = applicationById.get(row.sourceRecordId) ?? null
-      }
-    }
   }
   return rows
 }
@@ -1032,19 +997,6 @@ async function closeSourceVersions(
             eq(sourceSchema.sourceHkgovLandsdStreetNotices.isCurrent, true),
             inArray(
               sourceSchema.sourceHkgovLandsdStreetNotices.sourceRecordId,
-              idsChunk,
-            ),
-          ),
-        )
-        .run(),
-      db
-        .update(sourceSchema.sourceHkgovLandsdStreetNoticeI18n)
-        .set({ isCurrent: false, updatedAt: now, validToRelease: releaseCode })
-        .where(
-          and(
-            eq(sourceSchema.sourceHkgovLandsdStreetNoticeI18n.isCurrent, true),
-            inArray(
-              sourceSchema.sourceHkgovLandsdStreetNoticeI18n.sourceRecordId,
               idsChunk,
             ),
           ),
@@ -1428,7 +1380,7 @@ async function insertSourceRows(
       .insert(sourceSchema.sourceHkgovLandsdStreetBaselineRecords)
       .values(
         rows.map(record => ({
-          chineseName: requireString(
+          nameZhHant: requireString(
             record.i18n.find(item => item.locale === 'zh-Hant')?.name,
             `${record.base.id} Chinese Name`,
           ),
@@ -1438,7 +1390,7 @@ async function insertSourceRows(
             record.districtCodes[0],
             `${record.base.id} District Code`,
           ),
-          englishName: requireString(
+          nameEn: requireString(
             record.i18n.find(item => item.locale === 'en')?.name,
             `${record.base.id} English Name`,
           ),
@@ -1446,7 +1398,6 @@ async function insertSourceRows(
           releaseId,
           sourceRecordId: record.base.id,
           sources: [{ dataset: 'hkgov-landsd', sourceKind: 'streetBaseline' }],
-          streetId: requireString(record.streetId, `${record.base.id} streetId`),
           updatedAt: now,
           validFromRelease: releaseCode,
           validToRelease: null,
@@ -1475,6 +1426,10 @@ async function insertSourceRows(
         rows.map(record => ({
           createdAt: now,
           districtCodes: record.districtCodes,
+          descriptionEn:
+            record.i18n.find(item => item.locale === 'en')?.description ?? null,
+          descriptionZhHant:
+            record.i18n.find(item => item.locale === 'zh-Hant')?.description ?? null,
           effectiveDate: record.effectiveDate,
           evidenceAssets: record.evidenceAssets,
           gazetteDate: requireString(
@@ -1487,6 +1442,14 @@ async function insertSourceRows(
             `${record.base.id} noticeType`,
           ) as (typeof sourceSchema.landsdStreetNoticeTypes)[number],
           noticeRef: requireString(record.noticeRef, `${record.base.id} noticeRef`),
+          nameEn: requireString(
+            record.i18n.find(item => item.locale === 'en')?.name,
+            `${record.base.id} English Name`,
+          ),
+          nameZhHant: requireString(
+            record.i18n.find(item => item.locale === 'zh-Hant')?.name,
+            `${record.base.id} Chinese Name`,
+          ),
           parserDiagnostics: record.parserDiagnostics,
           previousNoticeRefs: record.previousNoticeRefs,
           rawExtractedText: record.rawExtractedText,
@@ -1531,10 +1494,8 @@ async function insertSourceRows(
             method: record.application?.method ?? 'automatic',
             nameChangeScope: record.application?.nameChangeScope ?? null,
             releaseId,
-            resultStreetId: record.application?.resultStreetId ?? null,
             retainedDescriptions: record.application?.retainedDescriptions ?? null,
             sourceRecordId: record.base.id,
-            sourceStreetId: record.application?.sourceStreetId ?? null,
             updatedAt: now,
             validFromRelease: releaseCode,
             validToRelease: null,
@@ -1571,49 +1532,6 @@ function parsePartialRetainedDescriptions(value: unknown, field: string) {
     descriptions[locale] = description.trim()
   }
   return descriptions as Record<(typeof locales)[number], string>
-}
-
-async function insertSourceI18nRows(
-  db: HarbourWritableDb,
-  releaseId: string,
-  releaseCode: string,
-  records: PreparedStreet[],
-  now: string,
-) {
-  const noticeRows = records.filter(isNoticeSource).flatMap(record =>
-    record.i18n.map(item => ({
-      createdAt: now,
-      description: item.description,
-      isCurrent: true,
-      locale: item.locale,
-      name: item.name,
-      releaseId,
-      sourceRecordId: record.base.id,
-      updatedAt: now,
-      validFromRelease: releaseCode,
-      validToRelease: null,
-      versionHash: record.sourceHash,
-    })),
-  )
-  for (const rowsChunk of chunkArray(noticeRows, 5))
-    await db
-      .insert(sourceSchema.sourceHkgovLandsdStreetNoticeI18n)
-      .values(rowsChunk)
-      .onConflictDoUpdate({
-        target: [
-          sourceSchema.sourceHkgovLandsdStreetNoticeI18n.sourceRecordId,
-          sourceSchema.sourceHkgovLandsdStreetNoticeI18n.versionHash,
-          sourceSchema.sourceHkgovLandsdStreetNoticeI18n.locale,
-        ],
-        set: {
-          isCurrent: true,
-          releaseId,
-          updatedAt: now,
-          validFromRelease: releaseCode,
-          validToRelease: null,
-        },
-      })
-      .run()
 }
 
 function buildStreetStats(
