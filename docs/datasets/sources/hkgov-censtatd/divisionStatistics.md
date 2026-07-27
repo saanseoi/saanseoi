@@ -37,9 +37,10 @@ manifest SHA-256, requires each configured GML member, and checks its publisher 
 required fields and feature count. Complete publisher properties, feature geometry and
 archive key/hash are stored in `hkgovCenstatdStatistics`; the distinct measure schemas
 remain publisher assertions rather than being forced into the district-density model.
-The importer normalises those GML members directly into SQL for the selected local,
-preview or production target's local SQLite cache; Parquet is not an intake or upload
-boundary.
+Each assertion retains one raw publisher property set and its native geometry; it does
+not duplicate those values in delivery-wrapper columns. The importer normalises those
+GML members directly into SQL for the selected local, preview or production target's
+local SQLite cache; Parquet is not an intake or upload boundary.
 
 ## District land area, population and density ingestion
 
@@ -50,6 +51,10 @@ complete property set without a canonical division value. The history processor 
 each `DC` through the reviewed C&SD numeric bridge and the matching reviewed HAD
 district code bridge. It writes the resulting canonical `divisionId` and SaanSeoi
 `districtCode` only to the Division Statistics history observation.
+
+Each source assertion retains its publisher labels directly as `districtEn` and
+`districtZhHant`; the source shard has no locale-keyed child table. Canonical/API
+localisation is materialised only when a consumer needs it.
 
 `MYPOPN_LAND` is expressed in thousands by the publisher and is multiplied by 1,000
 during ingestion, so `midYearPopulation` is the actual number of people. `PERIOD`, land
