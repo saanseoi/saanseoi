@@ -31,6 +31,11 @@ alter the exact-source geometry. The uploader calculates the canonical WGS84 bbo
 that geometry rather than accepting an upstream bbox value, so source and canonical rows
 carry the same geometry-derived extent.
 
+The fixture records the observed CSDI archive slots and publisher-object hashes that are
+byte-identical within the 2016 and 2021 cohorts. The updater suppresses only those exact
+no-op objects; it continues to inspect the archive catalogue, so a changed slot or
+object key remains eligible for review.
+
 ## Source contract
 
 Each release contains exactly 18 Polygon/MultiPolygon features. Required properties are:
