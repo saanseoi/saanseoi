@@ -2,14 +2,15 @@ import { and, eq, metaSchema } from '@repo/db'
 import { createRawObjectKey, registerUpload } from '@repo/core/upload'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import type { ParquetInspection, SchemaFingerprintResolver } from '@repo/core'
+import type { SchemaFingerprintResolver, UploadInspection } from '@repo/core'
 
 export type RegisterUploadRequest = {
   fileName: string
   force?: boolean
-  inspection: ParquetInspection
+  inspection: UploadInspection
   plan: {
     cohortKey?: string
+    datasetCode?: string
     regionCode?: string
     releaseNotesUrl?: string
     shardYear?: string
@@ -27,6 +28,7 @@ export async function handleRegisterUploadRequest(
   const registered = await registerUpload(db, {
     allowExistingDatasetStatuses: request.force ? ['staged'] : undefined,
     cohortKey: request.plan.cohortKey,
+    datasetCode: request.plan.datasetCode,
     filePath: request.fileName,
     inspection: request.inspection,
     regionCode: request.plan.regionCode,

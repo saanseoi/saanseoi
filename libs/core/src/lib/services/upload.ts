@@ -17,7 +17,7 @@ import {
   resourceTypes,
   resourceThemes,
   type DatasetRecord,
-  type ParquetInspection,
+  type UploadInspection,
   type PreparedUploadResult,
   type RegisterUploadOptions,
   type RegisterUploadResult,
@@ -429,7 +429,7 @@ function normaliseRegion(candidate?: string | null): RegionCode | null {
   return REGION_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
-function inferThemeFromParquet(inspection: ParquetInspection) {
+function inferThemeFromParquet(inspection: UploadInspection) {
   const distinctThemes = inspection.distinctThemeValues
     .map(value => normaliseTheme(value))
     .filter((value): value is ResourceTheme => value !== null)
@@ -443,7 +443,7 @@ function inferThemeFromParquet(inspection: ParquetInspection) {
   return uniqueThemes[0]
 }
 
-function inferTypeFromParquet(inspection: ParquetInspection) {
+function inferTypeFromParquet(inspection: UploadInspection) {
   const distinctTypes = inspection.distinctTypeValues
     .map(value => normaliseType(value))
     .filter((value): value is ResourceType => value !== null)
@@ -457,7 +457,7 @@ function inferTypeFromParquet(inspection: ParquetInspection) {
   return uniqueTypes[0]
 }
 
-function inferRegionFromParquet(inspection: ParquetInspection) {
+function inferRegionFromParquet(inspection: UploadInspection) {
   const countryRegions = inspection.distinctCountryValues
     .map(value => normaliseRegion(value))
     .filter((value): value is RegionCode => value !== null)
@@ -486,11 +486,11 @@ function normaliseCohortKey(candidate?: string | null) {
   return trimmed
 }
 
-export function createSchemaFingerprint(inspection: ParquetInspection) {
+export function createSchemaFingerprint(inspection: UploadInspection) {
   return createSchemaFingerprintFromSchema(inspection.schema)
 }
 
-function createSchemaFingerprintFromSchema(schema: ParquetInspection['schema']) {
+function createSchemaFingerprintFromSchema(schema: UploadInspection['schema']) {
   return JSON.stringify(normaliseSchemaFingerprintFields(schema))
 }
 
@@ -506,7 +506,7 @@ function compareFingerprintValue(left: string, right: string) {
   return 0
 }
 
-function normaliseSchemaFingerprintFields(schema: ParquetInspection['schema']) {
+function normaliseSchemaFingerprintFields(schema: UploadInspection['schema']) {
   return schema
     .map(field => ({
       name: field.name,
@@ -554,7 +554,7 @@ function ensureChronologicalUpload(
 async function ensureSchemaCompatible(
   latestDataset: DatasetRecord | null,
   nextPlan: Pick<UploadPlan, 'source' | 'sourceVersion' | 'type'>,
-  nextInspection: ParquetInspection,
+  nextInspection: UploadInspection,
   resolveSchemaFingerprint?: RegisterUploadOptions['resolveSchemaFingerprint'],
 ) {
   if (!latestDataset) {
@@ -621,7 +621,7 @@ async function ensureSourcePrerequisites(
 
 function resolveUploadPlan(
   options: RegisterUploadOptions,
-  resolvedInspection: ParquetInspection,
+  resolvedInspection: UploadInspection,
 ) {
   const directoryPath = directoryPathFromPath(options.filePath)
   const typeFromFlag = normaliseType(options.type)
@@ -790,7 +790,7 @@ function buildDatasetReleaseCodeForDataset(datasetCode: string, sourceVersion: s
 
 export async function prepareUpload(
   options: RegisterUploadOptions,
-  inspection?: ParquetInspection,
+  inspection?: UploadInspection,
 ): Promise<PreparedUploadResult> {
   const resolvedInspection = getRequiredInspection(options, inspection)
   const preparedUpload = resolveUploadPlan(options, resolvedInspection)
@@ -806,7 +806,7 @@ export async function prepareUpload(
 export async function planUpload(
   db: HarbourReadableDb,
   options: RegisterUploadOptions,
-  inspection?: ParquetInspection,
+  inspection?: UploadInspection,
 ) {
   const resolvedInspection = getRequiredInspection(options, inspection)
   const preparedUpload = resolveUploadPlan(options, resolvedInspection)
@@ -858,7 +858,7 @@ function isAllowedKnownSchemaTransition(
   latestDataset: DatasetRecord,
   nextPlan: Pick<UploadPlan, 'source' | 'sourceVersion' | 'type'>,
   previousFingerprint: string,
-  nextInspection: ParquetInspection,
+  nextInspection: UploadInspection,
 ) {
   const divisionTypes = new Set(['division', 'divisionArea', 'divisionBoundary'])
 
@@ -892,7 +892,7 @@ function isAllowedKnownSchemaTransition(
 
 function parseSchemaFingerprint(
   fingerprint: string,
-): ParquetInspection['schema'] | null {
+): UploadInspection['schema'] | null {
   try {
     const parsed = JSON.parse(fingerprint)
 
@@ -918,7 +918,7 @@ function parseSchemaFingerprint(
           nullable: field.nullable,
         }
       })
-      .filter((field): field is ParquetInspection['schema'][number] => field !== null)
+      .filter((field): field is UploadInspection['schema'][number] => field !== null)
 
     return schema.length === parsed.length ? schema : null
   } catch {
@@ -927,8 +927,8 @@ function parseSchemaFingerprint(
 }
 
 function describeSchemaDiff(
-  previousSchema: ParquetInspection['schema'] | null,
-  nextSchema: ParquetInspection['schema'],
+  previousSchema: UploadInspection['schema'] | null,
+  nextSchema: UploadInspection['schema'],
 ) {
   if (!previousSchema) {
     return 'Stored schema metadata could not be parsed, so Harbour cannot explain the field-level drift.'
@@ -979,8 +979,8 @@ function describeSchemaDiff(
 }
 
 function matchesAdminLevelTransition(
-  previousSchema: ParquetInspection['schema'],
-  nextSchema: ParquetInspection['schema'],
+  previousSchema: UploadInspection['schema'],
+  nextSchema: UploadInspection['schema'],
 ) {
   if (nextSchema.length !== previousSchema.length + 1) {
     return false
@@ -1028,7 +1028,7 @@ function compareSourceVersion(left: string, right: string) {
 
 function getRequiredInspection(
   options: RegisterUploadOptions,
-  inspection?: ParquetInspection,
+  inspection?: UploadInspection,
 ) {
   const resolvedInspection = inspection ?? options.inspection
 

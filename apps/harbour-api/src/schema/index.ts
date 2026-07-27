@@ -206,7 +206,7 @@ export const UploadResponseSchema = z
   })
   .openapi('HarbourUploadResponse')
 
-const ParquetInspectionSchema = z.object({
+const UploadInspectionSchema = z.object({
   distinctCountryValues: z.array(z.string()),
   distinctRegionValues: z.array(z.string()),
   distinctThemeValues: z.array(z.string()),
@@ -231,9 +231,10 @@ export const RegisterUploadRequestSchema = z
         description: 'Allow replacing a release that is still staged.',
         examples: [true],
       }),
-    inspection: ParquetInspectionSchema,
+    inspection: UploadInspectionSchema,
     plan: z.object({
       cohortKey: z.string().optional(),
+      datasetCode: z.string().optional(),
       regionCode: z.string().optional(),
       releaseNotesUrl: z.string().url().optional(),
       shardYear: z.string().optional(),

@@ -26,12 +26,12 @@ import { planUpload, prepareUpload, registerUpload } from './uploadLocal'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import { buildDeterministicReleaseId } from '../db/metaRegistry'
 
-import type { ParquetInspection } from '../../types'
+import type { UploadInspection } from '../../types'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
 const migrationSql = loadMigrationSql(migrationsDir, ['meta'])
 const tempDirs: string[] = []
-const fixtureInspection: ParquetInspection = {
+const fixtureInspection: UploadInspection = {
   rowCount: 3,
   schema: [
     { name: 'id', type: 'string', nullable: false },
@@ -46,13 +46,13 @@ const fixtureInspection: ParquetInspection = {
   distinctRegionValues: ['hk'],
 }
 
-const addressFixtureInspection: ParquetInspection = {
+const addressFixtureInspection: UploadInspection = {
   ...fixtureInspection,
   distinctThemeValues: ['addresses'],
   distinctTypeValues: ['address'],
 }
 
-const fixtureInspectionWithAdminLevel: ParquetInspection = {
+const fixtureInspectionWithAdminLevel: UploadInspection = {
   ...fixtureInspection,
   schema: [
     ...fixtureInspection.schema,
@@ -60,7 +60,7 @@ const fixtureInspectionWithAdminLevel: ParquetInspection = {
   ],
 }
 
-const reorderedFixtureInspection: ParquetInspection = {
+const reorderedFixtureInspection: UploadInspection = {
   ...fixtureInspectionWithAdminLevel,
   schema: reorderSchemaFields(fixtureInspectionWithAdminLevel, [
     'type',
@@ -73,9 +73,9 @@ const reorderedFixtureInspection: ParquetInspection = {
 }
 
 function reorderSchemaFields(
-  inspection: ParquetInspection,
+  inspection: UploadInspection,
   fieldNames: string[],
-): ParquetInspection['schema'] {
+): UploadInspection['schema'] {
   return fieldNames.map(fieldName => {
     const field = inspection.schema.find(candidate => candidate.name === fieldName)
 
@@ -160,7 +160,7 @@ async function assertAdminLevelTransitionAllowed(
     updatedAt: '2026-06-02T00:00:00.000Z',
   })
 
-  const inspection: ParquetInspection = {
+  const inspection: UploadInspection = {
     ...fixtureInspectionWithAdminLevel,
     distinctTypeValues: [resourceType],
   }

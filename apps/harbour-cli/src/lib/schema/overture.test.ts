@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import type { ParquetInspection, UploadPlan } from '@repo/core'
+import type { UploadInspection, UploadPlan } from '@repo/core'
 
 import { validateOvertureSchema } from './overture.ts'
 
@@ -27,7 +27,7 @@ const BASE_DIVISION_FIELDS = [
   { name: 'capital_of_divisions', type: 'list', nullable: true },
   { name: 'theme', type: 'utf8', nullable: true },
   { name: 'type', type: 'utf8', nullable: true },
-] satisfies ParquetInspection['schema']
+] satisfies UploadInspection['schema']
 
 const BASE_DIVISION_AREA_FIELDS = [
   { name: 'id', type: 'utf8', nullable: true },
@@ -45,7 +45,7 @@ const BASE_DIVISION_AREA_FIELDS = [
   { name: 'bbox', type: 'struct', nullable: true },
   { name: 'theme', type: 'utf8', nullable: true },
   { name: 'type', type: 'utf8', nullable: true },
-] satisfies ParquetInspection['schema']
+] satisfies UploadInspection['schema']
 
 const BASE_DIVISION_BOUNDARY_FIELDS = [
   { name: 'id', type: 'utf8', nullable: true },
@@ -64,7 +64,7 @@ const BASE_DIVISION_BOUNDARY_FIELDS = [
   { name: 'bbox', type: 'struct', nullable: true },
   { name: 'theme', type: 'utf8', nullable: true },
   { name: 'type', type: 'utf8', nullable: true },
-] satisfies ParquetInspection['schema']
+] satisfies UploadInspection['schema']
 
 function makePlan(sourceVersion: string): UploadPlan {
   return {
@@ -120,7 +120,7 @@ function makeDivisionBoundaryPlan(sourceVersion: string): UploadPlan {
   }
 }
 
-function makeInspection(schema: ParquetInspection['schema']): ParquetInspection {
+function makeInspection(schema: UploadInspection['schema']): UploadInspection {
   return {
     rowCount: 1,
     schema,
