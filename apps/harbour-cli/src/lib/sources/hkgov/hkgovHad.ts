@@ -51,7 +51,6 @@ type PreparedHkgovHadDistrictRow = {
   id: string
   object_id: number | null
   region: 'HK'
-  source_feature: HkgovHadFeature
   source_geometry: GeoJsonGeometry
   source_properties: Record<string, unknown>
   sources: Array<Record<string, string>>
@@ -167,11 +166,6 @@ export async function prepareHkgovHadDistrictUpload(
         false,
       ),
       jsonColumn(
-        'source_feature',
-        rows.map(row => row.source_feature),
-        false,
-      ),
-      jsonColumn(
         'sources',
         rows.map(row => row.sources),
         false,
@@ -255,7 +249,6 @@ function normaliseHkgovHadDistrictFeature(
     id: `HAD:${areaId}`,
     object_id: optionalInteger(properties.OBJECTID),
     region: 'HK',
-    source_feature: feature,
     source_geometry: geometry,
     source_properties: properties as Record<string, unknown>,
     sources: [
