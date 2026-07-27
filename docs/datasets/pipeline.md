@@ -25,6 +25,25 @@ provider artefact
 retains archive evidence where applicable, and invokes the source's approved intake
 path. It is not a generic importer.
 
+## Local pipeline initialisation
+
+Initialise one API family and composition domain at a time. Reset local databases before
+starting a fresh run, then use the focused command for the domain under review:
+
+```sh
+bun run db:reset:local
+./bin/saanseoi init:divisions:overture
+./bin/saanseoi init:divisions:hkgov-pland-pu
+./bin/saanseoi init:divisions:hkgov-pland-new-town
+./bin/saanseoi init:streets:hkgov-landsd
+./bin/saanseoi init:addresses:default
+```
+
+The Overture division initialiser includes its HAD and C&SD geometry dependencies,
+including both the `2016` and `2021` C&SD variants. Re-run an interrupted Overture or
+Planning Department backfill with `--continue`; it skips completed source releases.
+`saanseoi init [--continue]` runs all the focused initialisers in the same order.
+
 ## 1. Start with the contract and source evidence
 
 Before writing code, decide whether the provider publishes a new logical resource or a

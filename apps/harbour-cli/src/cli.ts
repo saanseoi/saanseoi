@@ -7,7 +7,7 @@ import { runReportCommand } from './lib/commands/reports.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
 import { runUpdateCommand } from './lib/commands/update.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
-import { runUploadInitCommand } from './lib/commands/uploadInit.ts'
+import { runInitialisationCommand } from './lib/commands/init.ts'
 import {
   runVersionBumpCommand,
   runVersionDoctorCommand,
@@ -91,8 +91,13 @@ async function main() {
         validateGeometry,
       })
       return
-    case 'upload:init':
-      await runUploadInitCommand(args, printUsage)
+    case 'init:addresses:default':
+    case 'init':
+    case 'init:divisions:hkgov-pland-new-town':
+    case 'init:divisions:hkgov-pland-pu':
+    case 'init:divisions:overture':
+    case 'init:streets:hkgov-landsd':
+      await runInitialisationCommand(args, printUsage)
       return
     case 'update':
       await runUpdateCommand(args, target, printUsage)
