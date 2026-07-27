@@ -1015,16 +1015,10 @@ async function writeGeometryRows(
                       divisionId: requirePlanningDivisionId(row),
                       newTownId: (row.source.rawProperties as Record<string, unknown>)
                         ?.newtown_id,
-                      // `geometry` in the source table remains the publisher's
-                      // original delivery. The canonical repaired geometry is
-                      // retained separately for audit and reproducibility.
-                      geometry:
-                        (row.source.rawProperties as Record<string, unknown>)
-                          ?.source_geometry ?? row.source.geometry,
-                      bbox:
-                        (row.source.rawProperties as Record<string, unknown>)
-                          ?.source_geometry_bbox ?? row.source.bbox,
-                      canonicalGeometry: row.source.geometry,
+                      // The source assertion retains the original and repaired
+                      // forms separately; canonical geometry is materialised in
+                      // history and current only.
+                      canonicalGeometry: row.canonical.geometry,
                       wasGeometryRepaired: Boolean(
                         (row.source.rawProperties as Record<string, unknown>)
                           ?.was_geometry_repaired,
@@ -1282,15 +1276,15 @@ async function writeCenstatdSourceDerivatives(
           `C&SD derivative ${row.source.sourceRecordId} has no derivation metadata.`,
         )
       }
-      const versionHash = await hashDivisionGeometrySourceRow(row.source)
+      const versionHash = await hashDivisionGeometryRow(row.canonical)
       nextHashes.set(`${row.source.sourceRecordId}:${inputVersionHash}`, versionHash)
       return {
         sourceRecordId: row.source.sourceRecordId,
         inputVersionHash,
         transform,
         derivation,
-        geometry: row.source.geometry,
-        bbox: row.source.bbox,
+        geometry: row.canonical.geometry,
+        bbox: row.canonical.bbox,
         versionHash,
         releaseId: version.releaseId,
         validFromRelease: version.releaseCode,
