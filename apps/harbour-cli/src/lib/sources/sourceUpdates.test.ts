@@ -304,6 +304,64 @@ describe('dataset update registry', () => {
     ])
   })
 
+  test('retries a truncated DPO archive response and excludes today from its query', async () => {
+    const originalFetch = globalThis.fetch
+    const calls: string[] = []
+    globalThis.fetch = Object.assign(
+      async (input: Parameters<typeof fetch>[0]) => {
+        calls.push(String(input))
+        if (calls.length === 1) return new Response('{"files":')
+        return Response.json({
+          timestamps: ['20260726-0930'],
+        })
+      },
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const [update] = await lookupDatasetUpdates(
+        {
+          code: 'ds-hk-hkgov-dpo-address',
+          publisherCode: 'hkgov-dpo',
+          regionCode: 'hk',
+          sourceUrl: 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als',
+          theme: 'addresses',
+          resourceTypes: ['address'],
+          versionPolicy: {
+            scheme: 'release-date',
+            correctionSuffixSource: 'generated',
+          },
+        },
+        undefined,
+        undefined,
+        true,
+      )
+
+      expect(calls).toHaveLength(2)
+      const archiveUrl = new URL(calls[0] as string)
+      const yesterday = new Date(Date.now() - 86_400_000)
+        .toISOString()
+        .slice(0, 10)
+        .replaceAll('-', '')
+      expect(archiveUrl.searchParams.get('end')).toBe(yesterday)
+      expect(archiveUrl.pathname).toBe('/v1/historical-archive/list-file-versions')
+      expect(archiveUrl.searchParams.get('url')).toBe(
+        'https://www.als.gov.hk/data/ALS-GeoJSON.zip',
+      )
+      expect(update).toEqual(
+        expect.objectContaining({
+          downloadUrl:
+            'https://api.data.gov.hk/v1/historical-archive/get-file?time=20260726-0930&url=https%3A%2F%2Fwww.als.gov.hk%2Fdata%2FALS-GeoJSON.zip',
+          releaseLastRevisedAt: '20260726-0930',
+          status: 'new',
+          version: '2026-07-26.0',
+        }),
+      )
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
   test('builds the Hong Kong Overturist download command', () => {
     expect(buildOverturistCommand('2026-07-23.0', 'divisions')).toEqual([
       process.execPath,
