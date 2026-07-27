@@ -751,7 +751,15 @@ async function queryRegistrySourceVersions(
           eq(metaApiCompositionMembers.resourceType, metaSnapshots.resourceType),
         ),
       )
-      .where(inArray(metaSnapshotSources.sourceReleaseId, ids))
+      // Lookup rows capture an internal snapshot dependency. They do not mean
+      // that the lookup source release supplied this snapshot, so they must
+      // not appear as API releases on that source release's page.
+      .where(
+        and(
+          inArray(metaSnapshotSources.sourceReleaseId, ids),
+          ne(metaSnapshotSources.role, 'lookup'),
+        ),
+      )
       .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
       .all(),
   )

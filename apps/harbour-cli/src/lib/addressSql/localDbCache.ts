@@ -1374,6 +1374,7 @@ function resolveMirrorTablesForBinding(
         'hkgovCenstatdStatistics',
         'hkgovCenstatdDivisionAreaDerivatives',
         'hkgovCenstatdDivisionAreaI18n',
+        'hkgovLandsdPlaceNames',
       ]
     }
 
