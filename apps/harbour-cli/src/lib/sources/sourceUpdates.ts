@@ -738,11 +738,11 @@ async function lookupCsdi(context: LookupContext): Promise<DatasetUpdate[]> {
   // file-api conversion paths whenever it exists.
   if (archiveUpdates.length > 0) {
     const pendingUpdates = archiveUpdates.filter(
-      update => !update.isKnownIdenticalArchive,
+      update => update.status !== 'current' && !update.isKnownIdenticalArchive,
     )
     if (pendingUpdates.length > 0) return pendingUpdates
 
-    return summariseIdenticalCsdiArchives(dataset, archiveUpdates)
+    return summariseSettledCsdiArchives(dataset, archiveUpdates)
   }
   return [
     {
@@ -902,26 +902,30 @@ function isKnownIdenticalCsdiArchive(
   )
 }
 
-function summariseIdenticalCsdiArchives(
+function summariseSettledCsdiArchives(
   dataset: DatasetFixture,
   archiveUpdates: DatasetUpdate[],
 ) {
   const groups = new Map<string, DatasetUpdate[]>()
 
   for (const update of archiveUpdates) {
-    const key = update.version
-      ? `version:${update.version}`
-      : `source:${update.sourceUrl ?? update.sourceKey ?? dataset.code}`
+    const key = update.targetSourceKey ?? dataset.code
     groups.set(key, [...(groups.get(key) ?? []), update])
   }
 
   return [...groups.values()].map(updates => {
     const first = updates[0] as DatasetUpdate
-    const noOpCount = updates.length
+    const archiveCount = updates.length
+    const knownNoOpCount = updates.filter(
+      update => update.isKnownIdenticalArchive,
+    ).length
     return {
       dataset,
-      message: `${noOpCount} CSDI archive slot${noOpCount === 1 ? '' : 's'} match the fixture's recorded identical publisher artefact${noOpCount === 1 ? '' : 's'}.`,
-      sourceKey: `identical:${first.version ?? first.sourceKey ?? dataset.code}`,
+      message:
+        knownNoOpCount === archiveCount
+          ? `${archiveCount} CSDI archive slot${archiveCount === 1 ? '' : 's'} match the fixture's recorded identical publisher artefact${archiveCount === 1 ? '' : 's'}.`
+          : `${archiveCount} CSDI archive slot${archiveCount === 1 ? '' : 's'} are already current.`,
+      sourceKey: `archive-summary:${first.targetSourceKey ?? dataset.code}`,
       sourceUrl: first.sourceUrl,
       status: 'current',
       targetSourceKey: first.targetSourceKey ?? dataset.code,
