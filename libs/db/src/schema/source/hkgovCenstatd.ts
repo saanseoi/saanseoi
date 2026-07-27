@@ -46,10 +46,11 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
   'hkgovCenstatdDistrictLandAreaPopulationDensities',
   {
     sourceRecordId: text('sourceRecordId').notNull(),
+    // C&SD's numeric `DC` value; canonical district resolution occurs in history.
     districtCode: integer('districtCode').notNull(),
     referenceYear: text('referenceYear').notNull(),
     landAreaSqKm: real('landAreaSqKm').notNull(),
-    midYearPopulationThousands: real('midYearPopulationThousands').notNull(),
+    midYearPopulation: integer('midYearPopulation').notNull(),
     midYearPopulationDensityPerSqKm: integer(
       'midYearPopulationDensityPerSqKm',
     ).notNull(),

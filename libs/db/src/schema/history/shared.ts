@@ -18,3 +18,15 @@ export const historyI18nVersioning = {
 export const historyVersioning = {
   ...historyI18nVersioning,
 }
+
+/**
+ * Statistics are source-release observations, not assembled division
+ * snapshots. They gain a snapshot-scoped current representation only when
+ * the Stats API publishes a release set.
+ */
+export const historyStatisticVersioning = {
+  versionHash: text('versionHash').notNull(),
+  sourceReleaseId: text('sourceReleaseId').notNull(),
+  isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
+  ...timestamps,
+}

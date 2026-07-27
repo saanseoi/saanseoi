@@ -141,6 +141,22 @@ export const canonicalDivisionI18n = {
   isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' }).notNull(),
 }
 
+/**
+ * A district-level observation exposed by the Division Statistics API. The
+ * source layer keeps the publisher's complete raw assertion and labels.
+ */
+export const canonicalDivisionStatistic = {
+  id: text('id').notNull(),
+  divisionId: text('divisionId').notNull(),
+  districtCode: text('districtCode').notNull(),
+  referenceYear: text('referenceYear').notNull(),
+  landAreaSqKm: real('landAreaSqKm').notNull(),
+  midYearPopulation: integer('midYearPopulation').notNull(),
+  midYearPopulationDensityPerSqKm: integer('midYearPopulationDensityPerSqKm').notNull(),
+  sourceKeys: jsonText('sourceKeys').notNull(),
+  sources: jsonText('sources').notNull(),
+}
+
 export const canonicalAddress2d = {
   id: text('id').notNull(),
   streetId: text('streetId'),
