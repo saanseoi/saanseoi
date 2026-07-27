@@ -5,6 +5,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   HKGOV_TD_PEDESTRIAN_STREET_LAYERS,
+  readHkgovHydStreetArchive,
   readHkgovTdPedestrianStreetArchive,
 } from './hkgovHyd.ts'
 
@@ -57,5 +58,60 @@ describe('TD pedestrian street native FileGDB intake', () => {
         feature => feature.properties.OBJECTID === 46,
       )?.geometry,
     ).toBeNull()
+  })
+})
+
+describe('HyD native FileGDB street intake', () => {
+  test('validates the publisher schemas and historical source feature counts', async () => {
+    const repoRoot = resolve(import.meta.dir, '../../../../../..')
+    const [nameplates, sensitive, strategic] = await Promise.all([
+      readFile(
+        join(
+          repoRoot,
+          'data/hkgov/csdi/archive/hyd_rcd_1632211119955_31211/2026-Q2/source.zip',
+        ),
+      ),
+      readFile(
+        join(
+          repoRoot,
+          'data/hkgov/csdi/archive/hyd_rcd_1632361314743_27775/2025-Q1/source.zip',
+        ),
+      ),
+      readFile(
+        join(
+          repoRoot,
+          'data/hkgov/csdi/archive/hyd_rcd_1632361405484_23178/2025-Q1/source.zip',
+        ),
+      ),
+    ])
+    const [snp, sensitiveStreets, strategicStreets] = await Promise.all([
+      readHkgovHydStreetArchive('streetNamePlate', nameplates),
+      readHkgovHydStreetArchive('sensitiveStreet', sensitive),
+      readHkgovHydStreetArchive('strategicStreet', strategic),
+    ])
+
+    expect(snp.features).toHaveLength(31_764)
+    expect(snp.features[0]).toMatchObject({
+      geometry: { type: 'Point' },
+      properties: { LVL: 0, ROAD_NAME: 'FU MEI STREET', SNP_ID: 'KL10523008I' },
+    })
+    expect(sensitiveStreets.features).toHaveLength(90)
+    expect(sensitiveStreets.features[0]).toMatchObject({
+      geometry: { type: 'MultiPolygon' },
+      properties: {
+        LVL: 0,
+        SECT_BTWN: 'FULL LENGTH',
+        ST_ENGNM: "NEW HIRAM'S HIGHWAY",
+      },
+    })
+    expect(strategicStreets.features).toHaveLength(159)
+    expect(strategicStreets.features[0]).toMatchObject({
+      geometry: { type: 'MultiPolygon' },
+      properties: {
+        LVL: -1,
+        SECT_BTWN: 'FULL LENGTH',
+        ST_ENGNM: 'TSEUNG KWAN O TUNNEL',
+      },
+    })
   })
 })
