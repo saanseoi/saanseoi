@@ -101,7 +101,7 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
       { table: 'address2d' },
     ],
     sources: {
-      'hkgov-dpo': ['hkgovAlsAddress2dI18n', 'hkgovAlsAddresses2d'],
+      'hkgov-dpo': ['hkgovAlsAddresses2d'],
     },
   },
 }

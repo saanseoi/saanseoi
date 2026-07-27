@@ -715,16 +715,6 @@ WHERE isCurrent = 1
       AND r.sourceRecordId = hkgovAlsAddresses2d.sourceRecordId
       AND COALESCE(r.sourcePayloadHash, '') = COALESCE(hkgovAlsAddresses2d.versionHash, '')
   );
-UPDATE hkgovAlsAddress2dI18n
-SET releaseId = ${releaseId}, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-WHERE isCurrent = 1
-  AND EXISTS (
-    SELECT 1
-    FROM ${NORMALIZED_ROWS_TABLE} r
-    WHERE r.runId = ${run}
-      AND r.sourceRecordId = hkgovAlsAddress2dI18n.sourceRecordId
-      AND COALESCE(r.sourcePayloadHash, '') = COALESCE(hkgovAlsAddress2dI18n.versionHash, '')
-  );
 UPDATE hkgovAlsAddresses2d
 SET isCurrent = 0, validToRelease = ${sourceVersion}, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
 WHERE isCurrent = 1
@@ -733,19 +723,9 @@ WHERE isCurrent = 1
     WHERE changed.runId = ${run}
       AND changed.sourceRecordId = hkgovAlsAddresses2d.sourceRecordId
   );
-UPDATE hkgovAlsAddress2dI18n
-SET isCurrent = 0, validToRelease = ${sourceVersion}, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-WHERE isCurrent = 1
-  AND EXISTS (
-    SELECT 1 FROM ${SOURCE_CHANGED_TABLE} changed
-    WHERE changed.runId = ${run}
-      AND changed.sourceRecordId = hkgovAlsAddress2dI18n.sourceRecordId
-  );
 INSERT INTO hkgovAlsAddresses2d (
   sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent,
-  identifiers, easting, northing, geometry, districtCode, districtName, estateName,
-  buildingName, blockNumber, blockDescriptor, phaseName, phaseNumber, floor, unit,
-  streetNumber, streetName, villageName, sources, rawProperties
+  identifiers, easting, northing, geometry, addressEn, addressZhHant, sources, rawProperties
 )
 SELECT
   r.sourceRecordId, r.sourcePayloadHash, ${releaseId}, ${sourceVersion}, NULL, 1,
@@ -756,17 +736,13 @@ SELECT
   CAST(json_extract(r.rawProperties, '$.easting') AS REAL),
   CAST(json_extract(r.rawProperties, '$.northing') AS REAL),
   r.geometry,
-  NULL,
-  COALESCE(${jsonTextValue('r.rawProperties', 'enDistrict')}, ${jsonTextValue('r.rawProperties', 'zhHantDistrict')}),
-  COALESCE(${jsonTextValue('r.rawProperties', 'enEstateName')}, ${jsonTextValue('r.rawProperties', 'zhHantEstateName')}),
-  COALESCE(${jsonTextValue('r.rawProperties', 'enBuildingName')}, ${jsonTextValue('r.rawProperties', 'zhHantBuildingName')}),
-  COALESCE(${jsonTextValue('r.rawProperties', 'enBlockNumber')}, ${jsonTextValue('r.rawProperties', 'zhHantBlockNumber')}),
-  COALESCE(${jsonTextValue('r.rawProperties', 'enBlockDescriptor')}, ${jsonTextValue('r.rawProperties', 'zhHantBlockDescriptor')}),
-  NULL, NULL, NULL, NULL,
-  COALESCE(${jsonTextValue('r.rawProperties', 'enStreetNumberFrom')}, ${jsonTextValue('r.rawProperties', 'zhHantStreetNumberFrom')}),
-  COALESCE(${jsonTextValue('r.rawProperties', 'enStreetName')}, ${jsonTextValue('r.rawProperties', 'zhHantStreetName')}),
-  COALESCE(${jsonTextValue('r.rawProperties', 'enVillageName')}, ${jsonTextValue('r.rawProperties', 'zhHantVillageName')}),
-  COALESCE(r.sources, json_object('hkgovAls', json_array(json_object('dataset', 'hkgov-dpo')))),
+  ${buildSourceAddressJsonSql('en')},
+  ${buildSourceAddressJsonSql('zh-hant')},
+  CASE
+    WHEN json_type(r.sources) = 'array' THEN r.sources
+    WHEN json_type(r.sources, '$.hkgovAls') = 'array' THEN json_extract(r.sources, '$.hkgovAls')
+    ELSE json_array(json_object('dataset', 'hkgov-dpo', 'sourceRecordId', r.sourceRecordId))
+  END,
   r.rawProperties
 FROM ${NORMALIZED_ROWS_TABLE} r
 WHERE r.runId = ${run}
@@ -777,42 +753,47 @@ ON CONFLICT(sourceRecordId, versionHash) DO UPDATE SET
   validToRelease = NULL,
   isCurrent = 1,
   updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now');
-INSERT INTO hkgovAlsAddress2dI18n (
-  sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent,
-  locale, formattedAddress, buildingName, buildingNumberFrom, buildingNumberTo,
-  blockType, blockNumber, blockTypeBeforeNumber, phaseName, phaseNumber, estateName,
-  streetNumber, streetName, villageName, districtName
-)
-SELECT i.sourceRecordId, r.sourcePayloadHash, ${releaseId}, ${sourceVersion}, NULL, 1,
-  i.locale, i.formattedAddress, i.buildingName, i.buildingNumberFrom, i.buildingNumberTo,
-  i.blockType, i.blockRef, i.blockTypeBeforeNumber, i.phaseName, i.phaseRef, i.estateName,
-  i.buildingNumberFrom, i.streetName,
-  CASE WHEN i.locale = 'zh-hant' THEN ${jsonTextValue('r.rawProperties', 'zhHantVillageName')} ELSE ${jsonTextValue('r.rawProperties', 'enVillageName')} END,
-  CASE WHEN i.locale = 'zh-hant' THEN ${jsonTextValue('r.rawProperties', 'zhHantDistrict')} ELSE ${jsonTextValue('r.rawProperties', 'enDistrict')} END
-FROM ${NORMALIZED_I18N_TABLE} i
-INNER JOIN ${NORMALIZED_ROWS_TABLE} r ON r.runId = i.runId AND r.sourceRecordId = i.sourceRecordId
-WHERE i.runId = ${run}
-  AND EXISTS (SELECT 1 FROM ${SOURCE_CHANGED_TABLE} changed WHERE changed.runId = i.runId AND changed.sourceRecordId = i.sourceRecordId)
-ON CONFLICT(sourceRecordId, versionHash, locale) DO UPDATE SET
-  releaseId = excluded.releaseId,
-  validFromRelease = excluded.validFromRelease,
-  validToRelease = NULL,
-  isCurrent = 1,
-  formattedAddress = excluded.formattedAddress,
-  buildingName = excluded.buildingName,
-  buildingNumberFrom = excluded.buildingNumberFrom,
-  buildingNumberTo = excluded.buildingNumberTo,
-  blockType = excluded.blockType,
-  blockNumber = excluded.blockNumber,
-  blockTypeBeforeNumber = excluded.blockTypeBeforeNumber,
-  phaseName = excluded.phaseName,
-  phaseNumber = excluded.phaseNumber,
-  estateName = excluded.estateName,
-  streetNumber = excluded.streetNumber,
-  streetName = excluded.streetName,
-  villageName = excluded.villageName,
-  districtName = excluded.districtName,
-  updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now');`.trim()
+  `.trim()
+}
+
+function buildSourceAddressJsonSql(locale: 'en' | 'zh-hant') {
+  const isZhHant = locale === 'zh-hant'
+  const villageName = jsonTextValue(
+    'r.rawProperties',
+    isZhHant ? 'zhHantVillageName' : 'enVillageName',
+  )
+  const districtName = jsonTextValue(
+    'r.rawProperties',
+    isZhHant ? 'zhHantDistrict' : 'enDistrict',
+  )
+
+  return `(SELECT json_object(
+    'formattedAddress', i.formattedAddress,
+    'buildingName', i.buildingName,
+    'buildingNumberExpression', i.buildingNumberExpression,
+    'buildingNumberFrom', i.buildingNumberFrom,
+    'buildingNumberTo', i.buildingNumberTo,
+    'buildingNumberConnector', i.buildingNumberConnector,
+    'blockExpression', i.blockExpression,
+    'blockType', i.blockType,
+    'blockRef', i.blockRef,
+    'blockTypeBeforeNumber', CASE
+      WHEN i.blockTypeBeforeNumber IS NULL THEN NULL
+      WHEN i.blockTypeBeforeNumber = 1 THEN json('true')
+      ELSE json('false')
+    END,
+    'phaseExpression', i.phaseExpression,
+    'phaseName', i.phaseName,
+    'phaseRef', i.phaseRef,
+    'estateName', i.estateName,
+    'streetName', i.streetName,
+    'villageName', ${villageName},
+    'districtName', ${districtName}
+  )
+  FROM ${NORMALIZED_I18N_TABLE} i
+  WHERE i.runId = r.runId
+    AND i.sourceRecordId = r.sourceRecordId
+    AND i.locale = ${sqlLiteral(locale)})`
 }
 
 function buildAddressHistoryApplySql(

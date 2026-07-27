@@ -911,20 +911,6 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
           strategy: 'direct',
           tableName: 'hkgovAlsAddresses2d',
         },
-        {
-          label: 'sourceI18n',
-          parentKey: 'sourceRecordId',
-          parentTableName: 'hkgovAlsAddresses2d',
-          relationshipKey: 'sourceRecordId',
-          additionalJoinKeys: [
-            {
-              parentKey: 'versionHash',
-              relationshipKey: 'versionHash',
-            },
-          ],
-          strategy: 'join',
-          tableName: 'hkgovAlsAddress2dI18n',
-        },
       ]
     case 'overture':
       switch (release.type) {

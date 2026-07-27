@@ -74,7 +74,7 @@ describe('latest release rollback SQL', () => {
     )
     expect(sql.source).not.toContain('SET releaseId =')
     expect(sql.source).toContain(
-      "DELETE FROM hkgovAlsAddress2dI18n WHERE releaseId = 'address-release-new' AND validFromRelease = '2026-06-25.0';",
+      "DELETE FROM hkgovAlsAddresses2d WHERE releaseId = 'address-release-new' AND validFromRelease = '2026-06-25.0';",
     )
     expect(sql.meta).toContain(
       "DELETE FROM apiReleaseSets WHERE id = 'address-release-set-new';",

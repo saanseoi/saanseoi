@@ -6,7 +6,6 @@ import {
   buildSourceReleaseId,
   closeSourceHkgovAlsAddress2dVersions,
   getCurrentSourceHkgovAlsAddress2dRecords,
-  insertSourceHkgovAlsAddress2dI18nVersions,
   insertSourceHkgovAlsAddresses2dVersions,
 } from '../../db/source'
 import type { HarbourWorkerBucket } from '../division'
@@ -77,9 +76,6 @@ async function writeHkgovSourceRows(
 ) {
   const versionRows: Array<typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert> =
     []
-  const i18nVersionRows: Array<
-    typeof sourceSchema.sourceHkgovAlsAddress2dI18n.$inferInsert
-  > = []
 
   for (const row of uniqueRows) {
     const currentSource = currentSourceRows.get(row.sourceId) ?? null
@@ -104,61 +100,13 @@ async function writeHkgovSourceRows(
       easting: asNumber(row.raw.easting),
       northing: asNumber(row.raw.northing),
       geometry: row.base.geometry,
-      districtCode: null,
-      districtName: asString(row.raw.enDistrict) ?? asString(row.raw.zhHantDistrict),
-      estateName: asString(row.raw.enEstateName) ?? asString(row.raw.zhHantEstateName),
-      buildingName:
-        asString(row.raw.enBuildingName) ?? asString(row.raw.zhHantBuildingName),
-      blockNumber:
-        asString(row.raw.enBlockNumber) ?? asString(row.raw.zhHantBlockNumber),
-      blockDescriptor:
-        asString(row.raw.enBlockDescriptor) ?? asString(row.raw.zhHantBlockDescriptor),
-      phaseName: asString(row.raw.enPhaseName) ?? asString(row.raw.zhHantPhaseName),
-      phaseNumber: asString(row.raw.enPhaseRef) ?? asString(row.raw.zhHantPhaseRef),
-      floor: null,
-      unit: null,
-      streetNumber:
-        asString(row.raw.enStreetNumberFrom) ??
-        asString(row.raw.zhHantStreetNumberFrom),
-      streetName: asString(row.raw.enStreetName) ?? asString(row.raw.zhHantStreetName),
-      villageName:
-        asString(row.raw.enVillageName) ?? asString(row.raw.zhHantVillageName),
+      addressEn: getSourceAddress(row, 'en'),
+      addressZhHant: getSourceAddress(row, 'zh-hant'),
       sources: normaliseSourceReferences(row.base.sources, row.sourceId),
       rawProperties: row.raw,
     } satisfies typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert
 
     versionRows.push(hkgovSourceRow)
-    i18nVersionRows.push(
-      ...row.i18n.map(localised => ({
-        releaseId,
-        sourceRecordId: row.sourceId,
-        versionHash: row.sourcePayloadHash,
-        validFromRelease: message.sourceVersion,
-        validToRelease: null,
-        isCurrent: true,
-        locale: localised.locale,
-        formattedAddress: localised.formattedAddress,
-        buildingName: localised.buildingName,
-        buildingNumberFrom: localised.buildingNumberFrom,
-        buildingNumberTo: localised.buildingNumberTo,
-        blockType: localised.blockType,
-        blockNumber: localised.blockRef,
-        blockTypeBeforeNumber: localised.blockTypeBeforeNumber,
-        phaseName: localised.phaseName,
-        phaseNumber: localised.phaseRef,
-        estateName: localised.estateName,
-        streetNumber: localised.buildingNumberFrom,
-        streetName: localised.streetName,
-        villageName:
-          localised.locale === 'zh-hant'
-            ? asString(row.raw.zhHantVillageName)
-            : asString(row.raw.enVillageName),
-        districtName:
-          localised.locale === 'zh-hant'
-            ? asString(row.raw.zhHantDistrict)
-            : asString(row.raw.enDistrict),
-      })),
-    )
   }
 
   if (changedIds.size > 0) {
@@ -170,7 +118,32 @@ async function writeHkgovSourceRows(
   }
   await advanceSourceHkgovAlsAddress2dRelease(sourceDb, [...unchangedIds], releaseId)
   await insertSourceHkgovAlsAddresses2dVersions(sourceDb, versionRows)
-  await insertSourceHkgovAlsAddress2dI18nVersions(sourceDb, i18nVersionRows)
+}
+
+function getSourceAddress(row: NormalisedAddressRecord, locale: 'en' | 'zh-hant') {
+  const localised = row.i18n.find(value => value.locale === locale)
+  if (!localised) return null
+
+  const isZhHant = locale === 'zh-hant'
+  return {
+    formattedAddress: localised.formattedAddress,
+    buildingName: localised.buildingName,
+    buildingNumberExpression: localised.buildingNumberExpression,
+    buildingNumberFrom: localised.buildingNumberFrom,
+    buildingNumberTo: localised.buildingNumberTo,
+    buildingNumberConnector: localised.buildingNumberConnector,
+    blockExpression: localised.blockExpression,
+    blockType: localised.blockType,
+    blockRef: localised.blockRef,
+    blockTypeBeforeNumber: localised.blockTypeBeforeNumber,
+    phaseExpression: localised.phaseExpression,
+    phaseName: localised.phaseName,
+    phaseRef: localised.phaseRef,
+    estateName: localised.estateName,
+    streetName: localised.streetName,
+    villageName: asString(row.raw[isZhHant ? 'zhHantVillageName' : 'enVillageName']),
+    districtName: asString(row.raw[isZhHant ? 'zhHantDistrict' : 'enDistrict']),
+  }
 }
 
 function normaliseSourceReferences(

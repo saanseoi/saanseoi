@@ -57,12 +57,6 @@ describe('reporting service', () => {
           tableName: 'hkgovAlsAddresses2d',
         },
         {
-          kind: 'source',
-          label: 'sourceI18n',
-          rowCount: 2,
-          tableName: 'hkgovAlsAddress2dI18n',
-        },
-        {
           kind: 'history',
           label: 'resourceType',
           rowCount: 1,
@@ -619,7 +613,7 @@ function seedSourceRows(
 ) {
   sqlite.exec(`
     INSERT INTO hkgovAlsAddresses2d (
-      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, identifiers, easting, northing, geometry, districtCode, districtName, estateName, buildingName, blockNumber, blockDescriptor, phaseName, phaseNumber, floor, unit, streetNumber, streetName, villageName, sources, rawProperties
+      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, identifiers, easting, northing, geometry, addressEn, addressZhHant, sources, rawProperties
     ) VALUES (
       '${sourceRecordId}',
       'version-hash-1',
@@ -633,29 +627,11 @@ function seedSourceRows(
       null,
       null,
       null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      '1',
-      'Example Road',
-      null,
+      '{"formattedAddress":"1 Example Road"}',
+      '{"formattedAddress":"示例路1號"}',
       '{"hkgovAls":[{"dataset":"hkgov-dpo"}]}',
       null
     );
-
-    INSERT INTO hkgovAlsAddress2dI18n (
-      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, locale, formattedAddress, buildingName, buildingNumberFrom, buildingNumberTo, blockType, blockNumber, blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber, streetName, villageName, districtName
-    ) VALUES
-      ('${sourceRecordId}', 'version-hash-1', '${releaseId}', '${releaseId}', null, 1, '2026-06-24T10:40:00.000Z', '2026-06-24T10:40:00.000Z', 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, '1', 'Example Road', null, null),
-      ('${sourceRecordId}', 'version-hash-1', '${releaseId}', '${releaseId}', null, 1, '2026-06-24T10:40:00.000Z', '2026-06-24T10:40:00.000Z', 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, '1', '示例路', null, null),
-      ('${sourceRecordId}', 'version-hash-old', 'release-dr-hk-hkgov-dpo-address-2026-06-01.0', 'release-dr-hk-hkgov-dpo-address-2026-06-01.0', '${releaseId}', 0, '2026-06-01T10:40:00.000Z', '2026-06-24T10:40:00.000Z', 'en', 'Old Example Road', null, null, null, null, null, null, null, null, null, '1', 'Old Example Road', null, null);
   `)
 }
 
