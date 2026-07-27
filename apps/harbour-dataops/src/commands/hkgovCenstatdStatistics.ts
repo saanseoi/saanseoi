@@ -75,10 +75,8 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
           datasetCode,
           featureId: row.featureId,
           layerName: row.layerName,
-          properties: row.properties,
           rawProperties: row.properties,
           referenceYear: sourceVersion,
-          sourceFeature: row.sourceFeature,
           sourceGeometry: row.sourceGeometry,
           sourceRecordId: `CENSTATD:${row.layerName}:${row.featureId}`,
           sources: [
