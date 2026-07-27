@@ -1132,6 +1132,28 @@ async function runCsdiArchiveIngestPlaceholder(
   }
 
   if (
+    dataset.code === 'ds-hk-hkgov-censtatd-division-area-district' &&
+    (release?.sourceVersion === '2016' || release?.sourceVersion === '2021') &&
+    release.sourceUrl
+  ) {
+    const child = Bun.spawn(
+      buildHkgovCenstatdDistrictArchiveIngestCommand({
+        inputFile: prepared.sourcePath,
+        releaseNotesUrl: release.sourceUrl,
+        sourceArchiveKey: prepared.manifest.archive.objectKey,
+        sourceArchiveSha256: prepared.manifest.archive.sha256,
+        sourceVersion: release.sourceVersion,
+        target,
+      }),
+      { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
+    )
+    if ((await child.exited) !== 0) {
+      throw new Error(`C&SD district-area ingest failed for ${release.sourceVersion}.`)
+    }
+    return 'ingested'
+  }
+
+  if (
     dataset.code ===
       'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' &&
     (release?.sourceVersion === '2022' || release?.sourceVersion === '2024') &&
@@ -1204,6 +1226,35 @@ export function buildHkgovCenstatdDistrictStatisticArchiveIngestCommand(input: {
     'dataops',
     '--',
     'hkgov-censtatd:district-land-area-population-density',
+    input.inputFile,
+    '--target',
+    input.target.environment === 'dev' ? 'local' : input.target.environment,
+    '--source-version',
+    input.sourceVersion,
+    '--release-notes-url',
+    input.releaseNotesUrl,
+    '--source-archive-key',
+    input.sourceArchiveKey,
+    '--source-archive-sha256',
+    input.sourceArchiveSha256,
+  ]
+}
+
+export function buildHkgovCenstatdDistrictArchiveIngestCommand(input: {
+  inputFile: string
+  releaseNotesUrl: string
+  sourceArchiveKey: string
+  sourceArchiveSha256: string
+  sourceVersion: '2016' | '2021'
+  target: import('../cli/options.ts').UploadTarget
+}) {
+  return [
+    process.execPath,
+    'run',
+    '--silent',
+    'dataops',
+    '--',
+    'hkgov-censtatd:district-area',
     input.inputFile,
     '--target',
     input.target.environment === 'dev' ? 'local' : input.target.environment,

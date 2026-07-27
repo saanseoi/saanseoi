@@ -129,6 +129,7 @@ ${mutedBar}  `)
       registerOptions.source,
       registerOptions.sourceVersion,
       typeof args.options.transform === 'string' ? args.options.transform : undefined,
+      sourceArchiveReference(args),
     )
     if (hkgovCenstatdPreparation) {
       sourcePreparationCleanup = hkgovCenstatdPreparation.cleanup
@@ -620,6 +621,7 @@ async function prepareHkgovCenstatdGmlUpload(
   source: string | undefined,
   sourceVersion: string | undefined,
   transform: string | undefined,
+  sourceArchive: { key: string; sha256: string } | undefined,
 ) {
   if (!isHkgovCenstatdDistrictFile(filePath, source)) return null
 
@@ -638,13 +640,13 @@ async function prepareHkgovCenstatdGmlUpload(
       filePath,
       tempDir,
       inputSourceVersion,
-      undefined,
+      { sourceArchive },
     )
     const displayPrepared = await prepareHkgovCenstatdDistrictUpload(
       filePath,
       tempDir,
       inputSourceVersion,
-      { transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM },
+      { sourceArchive, transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM },
     )
     return {
       ...prepared,
@@ -659,6 +661,22 @@ async function prepareHkgovCenstatdGmlUpload(
     await rm(tempDir, { force: true, recursive: true })
     throw error
   }
+}
+
+function sourceArchiveReference(args: ParsedArgs) {
+  const key = args.options['source-archive-key']
+  const sha256 = args.options['source-archive-sha256']
+  if (key === undefined && sha256 === undefined) return undefined
+  if (
+    typeof key !== 'string' ||
+    typeof sha256 !== 'string' ||
+    !/^[a-f0-9]{64}$/i.test(sha256)
+  ) {
+    throw new Error(
+      'Source archive provenance requires both --source-archive-key and a SHA-256 --source-archive-sha256.',
+    )
+  }
+  return { key, sha256 }
 }
 
 async function prepareLandsdPlaceNameGeoJsonUpload(

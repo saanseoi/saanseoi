@@ -1,0 +1,98 @@
+import { createHash } from 'node:crypto'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
+
+import type {
+  ParsedArgs,
+  UploadTarget,
+} from '../../../harbour-cli/src/lib/cli/options.ts'
+import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { readHkgovCenstatdDistrictGmlArchive } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatd.ts'
+
+const REPO_ROOT = resolve(import.meta.dir, '../../../..')
+
+/** Imports one already-mirrored native C&SD district-boundary source archive. */
+export async function runHkgovCenstatdDistrictArchiveIngestCommand(
+  args: ParsedArgs,
+  target: UploadTarget,
+  printUsage: () => void,
+) {
+  const sourceArchive = args.positionals[0]
+  const sourceVersion = args.options['source-version']
+  const releaseNotesUrl = args.options['release-notes-url']
+  const sourceArchiveKey = args.options['source-archive-key']
+  const sourceArchiveSha256 = args.options['source-archive-sha256']
+  if (
+    !sourceArchive ||
+    args.positionals.length !== 1 ||
+    (sourceVersion !== '2016' && sourceVersion !== '2021') ||
+    typeof releaseNotesUrl !== 'string' ||
+    typeof sourceArchiveKey !== 'string' ||
+    !isSha256(sourceArchiveSha256)
+  ) {
+    printUsage()
+    throw new Error(
+      'C&SD district-area ingestion requires <source.zip>, --source-version 2016|2021, --release-notes-url, --source-archive-key, and --source-archive-sha256.',
+    )
+  }
+
+  const archiveBytes = await readFile(resolve(sourceArchive))
+  assertSourceArchiveIdentity(archiveBytes, sourceArchiveSha256)
+  const workDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-district-'))
+  try {
+    const gmlPath = join(workDir, `district-council-districts-${sourceVersion}.gml`)
+    await writeFile(
+      gmlPath,
+      readHkgovCenstatdDistrictGmlArchive(archiveBytes, sourceVersion),
+      'utf8',
+    )
+    await runUploadCommand(
+      {
+        command: 'upload',
+        positionals: [gmlPath],
+        options: {
+          'cohort-key': sourceVersion,
+          'dataset-code': 'ds-hk-hkgov-censtatd-division-area-district',
+          'release-notes-url': releaseNotesUrl,
+          region: 'hk',
+          source: 'hkgov-censtatd',
+          'source-archive-key': sourceArchiveKey,
+          'source-archive-sha256': sourceArchiveSha256,
+          'source-version': sourceVersion,
+          theme: 'divisions',
+          type: 'divisionArea',
+          yes: true,
+        },
+      },
+      target,
+      {
+        dryRun: false,
+        forceUpload: true,
+        invocationCwd: REPO_ROOT,
+        printUsage: () => undefined,
+        skipConfirm: true,
+        skipSnapshotCleanup: false,
+        validateGeometry: true,
+      },
+    )
+  } finally {
+    await rm(workDir, { force: true, recursive: true })
+  }
+}
+
+function isSha256(value: string | boolean | undefined): value is string {
+  return typeof value === 'string' && /^[a-f0-9]{64}$/i.test(value)
+}
+
+export function assertSourceArchiveIdentity(
+  archiveBytes: Uint8Array,
+  expectedSha256: string,
+) {
+  const actualSha256 = createHash('sha256').update(archiveBytes).digest('hex')
+  if (actualSha256 !== expectedSha256) {
+    throw new Error(
+      `Prepared CSDI archive SHA-256 differs from its updater manifest: expected ${expectedSha256}, found ${actualSha256}.`,
+    )
+  }
+}
