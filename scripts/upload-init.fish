@@ -181,7 +181,8 @@ end
 
 run_step bun run --silent dataops -- hkgov-landsd-streets:baseline --target local
 run_step bun run --silent dataops -- hkgov-landsd-streets:landsd-notices --target local
-run_step bun run --silent dataops -- hkgov-landsd-streets:official-egazette --target local
+# Deferred: this processing is intentionally excluded from the release path
+# until it is ready to run independently.
 run_step bun run --silent dataops -- hkgov-landsd-streets:assemble --target local
 run_step ./bin/saanseoi docs:publish --target local --scope all
 
