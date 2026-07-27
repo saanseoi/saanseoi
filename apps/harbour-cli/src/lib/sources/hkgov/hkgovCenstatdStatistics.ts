@@ -51,12 +51,14 @@ type SourceRow = {
   sourceGeometry: unknown
 }
 
-export async function prepareHkgovCenstatdStatisticUpload(input: {
+/**
+ * Validates and normalises the publisher-native GML members. This is the
+ * native intake boundary; Parquet export below is retained only for local
+ * diagnostics and is not required for database publication.
+ */
+export function readHkgovCenstatdStatisticArchive(input: {
   datasetCode: CenstatdStatisticDatasetCode
-  inputFiles: Record<string, string>
-  outputFile: string
-  sourceArchiveKey: string
-  sourceArchiveSha256: string
+  inputGml: Record<string, string>
   sourceVersion: string
 }) {
   const profile = CENSTATD_STATISTIC_PROFILES[input.datasetCode]
@@ -74,9 +76,9 @@ export async function prepareHkgovCenstatdStatisticUpload(input: {
         )
       : profile.layers
   for (const layer of layers) {
-    const file = input.inputFiles[`${layer.name}.gml`]
-    if (!file) throw new Error(`CSDI archive is missing ${layer.name}.gml.`)
-    const layerRows = parseCsdiGml(await readFile(resolve(file), 'utf8'), layer.name)
+    const gml = input.inputGml[`${layer.name}.gml`]
+    if (!gml) throw new Error(`CSDI archive is missing ${layer.name}.gml.`)
+    const layerRows = parseCsdiGml(gml, layer.name)
     if (layerRows.length !== layer.count) {
       throw new Error(
         `${layer.name}.gml must contain ${layer.count} rows; found ${layerRows.length}.`,
@@ -99,6 +101,30 @@ export async function prepareHkgovCenstatdStatisticUpload(input: {
     if (ids.has(id)) throw new Error(`CSDI archive has duplicate feature ${id}.`)
     ids.add(id)
   }
+  return rows
+}
+
+export async function prepareHkgovCenstatdStatisticUpload(input: {
+  datasetCode: CenstatdStatisticDatasetCode
+  inputFiles: Record<string, string>
+  outputFile: string
+  sourceArchiveKey: string
+  sourceArchiveSha256: string
+  sourceVersion: string
+}) {
+  const inputGml = Object.fromEntries(
+    await Promise.all(
+      Object.entries(input.inputFiles).map(async ([name, file]) => [
+        name,
+        await readFile(resolve(file), 'utf8'),
+      ]),
+    ),
+  )
+  const rows = readHkgovCenstatdStatisticArchive({
+    datasetCode: input.datasetCode,
+    inputGml,
+    sourceVersion: input.sourceVersion,
+  })
   await writeFile(
     resolve(input.outputFile),
     new Uint8Array(
