@@ -1,6 +1,7 @@
 import { createRequire } from 'node:module'
 
 import { unzipSync } from 'fflate'
+import fgdb from 'fgdb'
 
 const require = createRequire(import.meta.url)
 
@@ -38,12 +39,53 @@ export type HkgovTdPedestrianStreetCollection = {
 
 type GeoJsonGeometry = {
   coordinates: unknown
-  type: 'MultiPolygon' | 'Polygon'
+  type: 'MultiPolygon' | 'Point' | 'Polygon'
 }
 
 type FgdbFeatureCollection = {
   features?: unknown
   type?: unknown
+}
+
+export type HkgovHydStreetArchiveKind =
+  | 'streetNamePlate'
+  | 'sensitiveStreet'
+  | 'strategicStreet'
+
+type HkgovHydStreetFeature = {
+  geometry: GeoJsonGeometry
+  properties: Record<string, unknown>
+  type: 'Feature'
+}
+
+type HkgovHydStreetCollection = {
+  features: HkgovHydStreetFeature[]
+  type: 'FeatureCollection'
+}
+
+const HKGOV_HYD_STREET_PROFILES: Record<
+  HkgovHydStreetArchiveKind,
+  {
+    geometry: 'Point' | 'Polygon'
+    layer: string
+    required: string[]
+  }
+> = {
+  streetNamePlate: {
+    geometry: 'Point',
+    layer: 'SNP',
+    required: ['SNP_ID', 'LVL', 'ROAD_NAME'],
+  },
+  sensitiveStreet: {
+    geometry: 'Polygon',
+    layer: 'sensitive',
+    required: ['LVL', 'SECT_BTWN', 'ST_ENGNM'],
+  },
+  strategicStreet: {
+    geometry: 'Polygon',
+    layer: 'STRATEGIC',
+    required: ['LVL', 'SECT_BTWN', 'ST_ENGNM'],
+  },
 }
 
 const PEDESTRIAN_FIELDS = [
@@ -94,6 +136,57 @@ export function readHkgovTdPedestrianStreetArchive(
     layers[layerName] = validatePedestrianLayer(layerName, collection)
   }
   return layers
+}
+
+/** Reads one native HyD FileGDB street package and validates its published layer. */
+export async function readHkgovHydStreetArchive(
+  kind: HkgovHydStreetArchiveKind,
+  archiveBytes: Uint8Array,
+): Promise<HkgovHydStreetCollection> {
+  const profile = HKGOV_HYD_STREET_PROFILES[kind]
+  const layers = await fgdb(Uint8Array.from(archiveBytes))
+  const matches = Object.entries(layers).filter(([name]) => name === profile.layer)
+  if (matches.length !== 1) {
+    throw new Error(
+      `HyD ${kind} archive must contain exactly one ${profile.layer} layer.`,
+    )
+  }
+  const collection = matches[0]?.[1]
+  if (!isFeatureCollection(collection) || collection.features.length === 0) {
+    throw new Error(`HyD ${kind} ${profile.layer} layer has no features.`)
+  }
+  return {
+    type: 'FeatureCollection',
+    features: collection.features.map((feature, index) => {
+      const candidate = feature as unknown
+      if (
+        !isRecord(candidate) ||
+        ('type' in candidate && candidate.type !== 'Feature')
+      ) {
+        throw new Error(`HyD ${kind} feature ${index + 1} is invalid.`)
+      }
+      const properties = featureProperties(candidate)
+      if (!properties)
+        throw new Error(`HyD ${kind} feature ${index + 1} has no fields.`)
+      for (const field of profile.required) {
+        if (properties[field] === undefined || properties[field] === '') {
+          throw new Error(`HyD ${kind} feature ${index + 1} requires ${field}.`)
+        }
+      }
+      if (!isHydGeometry(candidate.geometry, profile.geometry)) {
+        throw new Error(`HyD ${kind} feature ${index + 1} has an invalid SHAPE.`)
+      }
+      const level = optionalInteger(properties.LVL)
+      if (level === undefined) {
+        throw new Error(`HyD ${kind} feature ${index + 1} has an invalid LVL.`)
+      }
+      return {
+        type: 'Feature' as const,
+        geometry: candidate.geometry,
+        properties: { ...properties, LVL: level === 0xffffffff ? -1 : level },
+      }
+    }),
+  }
 }
 
 function validatePedestrianLayer(
@@ -282,6 +375,16 @@ function isGeometryOrNull(value: unknown): value is GeoJsonGeometry | null {
       (value.type === 'Polygon' || value.type === 'MultiPolygon') &&
       'coordinates' in value)
   )
+}
+
+function isHydGeometry(
+  value: unknown,
+  expected: 'Point' | 'Polygon',
+): value is GeoJsonGeometry {
+  if (!isRecord(value) || !('coordinates' in value)) return false
+  return expected === 'Point'
+    ? value.type === 'Point'
+    : value.type === 'Polygon' || value.type === 'MultiPolygon'
 }
 
 function optionalString(value: unknown) {
