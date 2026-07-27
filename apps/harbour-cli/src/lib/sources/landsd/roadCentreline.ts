@@ -47,7 +47,8 @@ export type RoadCentrelineDistrict = {
 
 export type NormalisedRoadCentreline = {
   sourceRecordId: string
-  streetId: string
+  /** Null for publisher segments with no usable English street label. */
+  streetId: string | null
   objectId: number
   streetCode: string
   streetType: string | null
@@ -172,13 +173,30 @@ export function normaliseRoadCentrelineFeatures(input: {
   for (const feature of input.features) {
     const fields = readRoadCentrelineFields(feature.properties)
     const curation = input.curations?.[curationKey(fields)]
-    if (curation?.exclude) continue
     const sourceGeometry = requireLineGeometry(feature.geometry, fields.objectId)
     const geometry = projectHk80Geometry(sourceGeometry)
     const derivedDistrictIds = deriveRoadCentrelineDistrictIds(
       geometry,
       input.districts ?? [],
     )
+    // The publisher emits legitimate segments without an English street label.
+    // They remain first-class source evidence, but cannot create a canonical
+    // street aggregate and therefore do not count as matching failures.
+    if (!fields.englishName || curation?.exclude) {
+      records.push({
+        sourceRecordId: `${input.releaseId}:${fields.objectId}`,
+        streetId: null,
+        objectId: fields.objectId,
+        streetCode: fields.streetCode,
+        streetType: fields.streetType,
+        sourceGeometry,
+        geometry,
+        bbox: calculateGeoJsonBbox(geometry),
+        derivedDistrictIds,
+        i18n: roadCentrelineI18n(fields),
+      })
+      continue
+    }
     const candidates = disambiguateByDerivedDistricts(
       byEnglishName.get(normaliseRoadCentrelineName(fields.englishName)) ?? [],
       derivedDistrictIds,
@@ -186,11 +204,23 @@ export function normaliseRoadCentrelineFeatures(input: {
     const streetId =
       curation?.streetId ?? (candidates.length === 1 ? candidates[0]?.id : undefined)
     if (!streetId) {
+      records.push({
+        sourceRecordId: `${input.releaseId}:${fields.objectId}`,
+        streetId: null,
+        objectId: fields.objectId,
+        streetCode: fields.streetCode,
+        streetType: fields.streetType,
+        sourceGeometry,
+        geometry,
+        bbox: calculateGeoJsonBbox(geometry),
+        derivedDistrictIds,
+        i18n: roadCentrelineI18n(fields),
+      })
       issues.push({
         objectId: fields.objectId,
         derivedDistrictIds,
         englishName: fields.englishName,
-        traditionalChineseName: fields.chineseName,
+        traditionalChineseName: fields.chineseName ?? '',
         candidates: candidates.map(candidate => candidate.id),
         kind: candidates.length > 1 ? 'ambiguous' : 'unmatched',
       })
@@ -206,10 +236,7 @@ export function normaliseRoadCentrelineFeatures(input: {
       geometry,
       bbox: calculateGeoJsonBbox(geometry),
       derivedDistrictIds,
-      i18n: [
-        { locale: 'en', name: fields.englishName },
-        { locale: 'zh-Hant', name: fields.chineseName },
-      ],
+      i18n: roadCentrelineI18n(fields),
     })
   }
   return { issues, records }
@@ -282,7 +309,9 @@ export function buildRoadCentrelineReleaseStats(
       dimension: 'street_coverage',
       metric: 'count',
       metricUnit: 'count',
-      value: new Set(records.map(record => record.streetId)).size,
+      value: new Set(
+        records.flatMap(record => (record.streetId ? [record.streetId] : [])),
+      ).size,
     },
     ...[...byStreetType.entries()].map(([type, count]) => ({
       dimension: 'records',
@@ -323,6 +352,7 @@ export function requireResolvedRoadCentrelines(
 export function aggregateRoadCentrelineGeometry(records: NormalisedRoadCentreline[]) {
   const byStreet = new Map<string, NormalisedRoadCentreline[]>()
   for (const record of records) {
+    if (!record.streetId) continue
     byStreet.set(record.streetId, [...(byStreet.get(record.streetId) ?? []), record])
   }
   return [...byStreet.entries()].map(([streetId, segments]) => {
@@ -389,13 +419,11 @@ function readRoadCentrelineFields(properties: Record<string, unknown>) {
       'STREET_CODE or STREETCODE',
     ),
     streetType: optionalText(readAlias(properties, 'STREET_TYPE', 'STREETTYPE')),
-    englishName: requiredText(
+    englishName: optionalText(
       readAlias(properties, 'STREET_NAME_EN', 'ENGLISHSTREETNAME'),
-      'STREET_NAME_EN or ENGLISHSTREETNAME',
     ),
-    chineseName: requiredText(
+    chineseName: optionalText(
       readAlias(properties, 'STREET_NAME_TC', 'CHINESESTREETNAME'),
-      'STREET_NAME_TC or CHINESESTREETNAME',
     ),
   }
 }
@@ -441,10 +469,24 @@ function requiredInteger(value: unknown, field: string) {
 
 function curationKey(fields: {
   objectId: number
-  englishName: string
-  chineseName: string
+  englishName: string | null
+  chineseName: string | null
 }) {
-  return `${fields.objectId}:${normaliseRoadCentrelineName(fields.englishName)}`
+  return `${fields.objectId}:${normaliseRoadCentrelineName(fields.englishName ?? '')}`
+}
+
+function roadCentrelineI18n(fields: {
+  englishName: string | null
+  chineseName: string | null
+}) {
+  return [
+    ...(fields.englishName
+      ? [{ locale: 'en' as const, name: fields.englishName }]
+      : []),
+    ...(fields.chineseName
+      ? [{ locale: 'zh-Hant' as const, name: fields.chineseName }]
+      : []),
+  ]
 }
 
 function disambiguateByDerivedDistricts(
