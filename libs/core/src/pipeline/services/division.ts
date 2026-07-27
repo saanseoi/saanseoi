@@ -534,7 +534,7 @@ export async function processDivisionDataset(
             wikidata: normalised.base.wikidata,
             hierarchies: row.hierarchies,
             cartography: normalised.base.cartography,
-            sources: normalised.base.sources,
+            sources: normaliseOvertureSourceReferences(row.sources, normalised.base.id),
             rawProperties: row,
           })
           sourceI18nVersionRows.push(
@@ -1364,6 +1364,23 @@ function normaliseOvertureSources(sources: unknown) {
   }
 
   return { overture: sources }
+}
+
+function normaliseOvertureSourceReferences(sources: unknown, sourceRecordId: string) {
+  if (
+    Array.isArray(sources) &&
+    sources.length > 0 &&
+    sources.every(hasOvertureSourceReference)
+  ) {
+    return sources
+  }
+  return [{ dataset: 'overture', sourceRecordId }]
+}
+
+function hasOvertureSourceReference(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false
+  const dataset = (value as Record<string, unknown>).dataset
+  return typeof dataset === 'string' && dataset.trim().length > 0
 }
 
 /**
