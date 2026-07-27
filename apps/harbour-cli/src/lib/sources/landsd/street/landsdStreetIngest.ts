@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { existsSync } from 'node:fs'
 import {
   mkdir,
   mkdtemp,
@@ -733,6 +734,7 @@ export async function ingestLandsdStreetSource(options: {
     manifest: curationManifest,
     notices: allNotices,
     parsedEntries: allParsedNoticeEntries,
+    validateManifestDecisions: options.includeLandsdNotices,
   })
   if (curation.unresolved.length > 0 && options.promptForCuration) {
     reportProgress({
@@ -749,6 +751,7 @@ export async function ingestLandsdStreetSource(options: {
       manifest: curationManifest,
       notices: allNotices,
       parsedEntries: allParsedNoticeEntries,
+      validateManifestDecisions: options.includeLandsdNotices,
     })
   }
   if (curation.unresolved.length > 0) {
@@ -1129,21 +1132,25 @@ async function createPlanPreviews(input: {
   }
   let processedPlans = 0
   for (const plan of plans.values()) {
-    input.onProgress({
-      current: processedPlans,
-      message: `Rendering Gazette Plan previews (${processedPlans + 1}/${plans.size}): ${plan.label ?? plan.url}`,
-      total: plans.size,
-    })
     const pdf = getEvidence(input.evidence, 'gazettePlan', plan, 'en')
     const prepared = input.evidence.get(['gazettePlan', plan.url, 'en'].join('\0'))
     if (!pdf || !prepared) {
       processedPlans += 1
       continue
     }
-    const rendered = await renderPlanPdfToWebp(
+    const previewDirectory = join(input.outputDir, 'previews')
+    const cached = await cachedPlanPreviewPaths(
       prepared.prepared.filePath,
-      join(input.outputDir, 'previews'),
+      previewDirectory,
     )
+    input.onProgress({
+      current: processedPlans,
+      message: `${cached ? 'Reusing cached' : 'Rendering'} Gazette Plan previews (${processedPlans + 1}/${plans.size}): ${plan.label ?? plan.url}`,
+      total: plans.size,
+    })
+    const rendered =
+      cached ??
+      (await renderPlanPdfToWebp(prepared.prepared.filePath, previewDirectory))
     const links: LandsdStreetAssetLink[] = []
     for (const path of rendered) {
       const published = await input.materialise({
@@ -2222,10 +2229,7 @@ async function renderPlanPdfToWebp(pdfPath: string, outputDir: string) {
       .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }))
     const rendered: string[] = []
     for (const [index, image] of images.entries()) {
-      const output = join(
-        outputDir,
-        `${hashText(`${pdfPath}\0${index}`)}-${index + 1}.webp`,
-      )
+      const output = planPreviewPath(pdfPath, outputDir, index)
       await runCommand('cwebp', ['-quiet', join(temporaryDir, image), '-o', output])
       rendered.push(output)
     }
@@ -2235,6 +2239,30 @@ async function renderPlanPdfToWebp(pdfPath: string, outputDir: string) {
   } finally {
     await rm(temporaryDir, { recursive: true, force: true })
   }
+}
+
+async function cachedPlanPreviewPaths(pdfPath: string, outputDir: string) {
+  const pageCount = await pdfPageCount(pdfPath)
+  const paths = Array.from({ length: pageCount }, (_, index) =>
+    planPreviewPath(pdfPath, outputDir, index),
+  )
+  return paths.every(existsSync) ? paths : null
+}
+
+function planPreviewPath(pdfPath: string, outputDir: string, pageIndex: number) {
+  return join(
+    outputDir,
+    `${hashText(`${pdfPath}\0${pageIndex}`)}-${pageIndex + 1}.webp`,
+  )
+}
+
+async function pdfPageCount(pdfPath: string) {
+  const output = await runCommandStdout('pdfinfo', [pdfPath])
+  const match = /^Pages:\s*(\d+)$/m.exec(output)
+  const pageCount = match?.[1] ? Number.parseInt(match[1], 10) : Number.NaN
+  if (!Number.isSafeInteger(pageCount) || pageCount < 1)
+    throw new Error(`pdfinfo did not report a valid page count for ${pdfPath}.`)
+  return pageCount
 }
 
 async function pdfToText(pdfPath: string) {

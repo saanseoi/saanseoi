@@ -40,7 +40,8 @@ counterparts are preserved as managed source assets. `evidenceAssets` is the onl
 evidence-link representation: every link is role-tagged and includes its publisher
 identifier where available, label, original URL, managed URL, media type, content hash,
 and provenance. Plan WebP previews are optional release-note assets and never replace
-the primary PDF evidence.
+the primary PDF evidence. Completed preview page sets are cached in the stage directory
+and reused only when their count matches the source PDF's reported page count.
 
 ## Parsing and application
 
@@ -98,18 +99,22 @@ street ID and district codes. During interactive review, one matching baseline s
 selected automatically; when several match, the operator selects from the
 district-labelled list. No baseline match remains an explicit reviewed decision rather
 than a guessed identity. A description-replacement notice with one matching baseline
-street is applied automatically as a description change. If bilingual PDF extraction
-disagrees only on `Previous G.N.` references, the paired descriptions and names remain
-available for review and the combined references are retained as a provenance warning. A
-parseable corrigendum with one matching baseline street is applied automatically as a
-field-scoped amendment. The prose parser recognises flexible English and Traditional
-Chinese wording for a character or complete-text correction and limits the amendment to
-the named English or Traditional Chinese name and/or description field, or to the
-published `Previous G.N.` provenance. The review displays both the erroneous and
-corrected street name, rather than treating a corrigendum as an unspecified street
-change. A corrigendum always creates a lifecycle version and changelog entry, including
-when the present-state baseline already contains the corrected text. `Previous G.N.` is
-never used to identify a street. A curator chooses one of:
+street is applied automatically as a description change. The manifest is shared by the
+non-overlapping LandsD and historical e-Gazette stages: a stage applies only decisions
+for notices in its own input. The LandsD notice stage additionally rejects decisions
+that do not match its current source, retaining drift detection for the live publisher
+feed. If bilingual PDF extraction disagrees only on `Previous G.N.` references, the
+paired descriptions and names remain available for review and the combined references
+are retained as a provenance warning. A parseable corrigendum with one matching baseline
+street is applied automatically as a field-scoped amendment. The prose parser recognises
+flexible English and Traditional Chinese wording for a character or complete-text
+correction and limits the amendment to the named English or Traditional Chinese name
+and/or description field, or to the published `Previous G.N.` provenance. The review
+displays both the erroneous and corrected street name, rather than treating a
+corrigendum as an unspecified street change. A corrigendum always creates a lifecycle
+version and changelog entry, including when the present-state baseline already contains
+the corrected text. `Previous G.N.` is never used to identify a street. A curator
+chooses one of:
 
 - `apply`, with the affected canonical street and, for a name change, whole/partial
   scope. The resulting street ID is minted by the system;

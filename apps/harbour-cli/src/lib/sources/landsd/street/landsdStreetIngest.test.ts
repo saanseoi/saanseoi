@@ -164,6 +164,7 @@ test('stages paired notice releases with managed evidence URLs and an operator r
         'Found 3 cached source PDF artefact(s) in this stage directory; matching PDFs will be reused by role, URL and locale',
         expect.stringContaining('reusing 3 cached LandsD PDF(s), downloading 0'),
         expect.stringContaining('Reusing cached source PDF 1/4'),
+        expect.stringContaining('Reusing cached Gazette Plan previews (1/1)'),
       ]),
     )
   } finally {
