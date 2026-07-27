@@ -1,18 +1,11 @@
-import {
-  index,
-  integer,
-  primaryKey,
-  real,
-  sqliteTable,
-  text,
-} from 'drizzle-orm/sqlite-core'
+import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import { jsonText, type StreetEvidenceAsset } from '../shared'
 import {
   sourceReleaseRevisionIndexes,
-  sourceReleaseRevisioning,
+  sourceReleaseRevisionRecordColumns,
   sourceVersionIndexes,
-  sourceVersioning,
+  sourceVersionedRecordColumns,
 } from './shared'
 
 export const landsdStreetNoticeApplicationMethods = ['automatic', 'manual'] as const
@@ -35,80 +28,12 @@ export const landsdStreetNoticeTypes = [
 ] as const
 export type LandsdStreetNoticeType = (typeof landsdStreetNoticeTypes)[number]
 
-export const sourceHkgovAlsAddresses2d = sqliteTable(
-  'hkgovAlsAddresses2d',
-  {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    districtCode: text('districtCode'),
-    districtName: text('districtName'),
-    estateName: text('estateName'),
-    buildingName: text('buildingName'),
-    blockNumber: text('blockNumber'),
-    blockDescriptor: text('blockDescriptor'),
-    phaseName: text('phaseName'),
-    phaseNumber: text('phaseNumber'),
-    floor: text('floor'),
-    unit: text('unit'),
-    streetNumber: text('streetNumber'),
-    streetName: text('streetName'),
-    villageName: text('villageName'),
-    identifiers: jsonText('identifiers'),
-    easting: real('easting'),
-    northing: real('northing'),
-    sources: jsonText('sources'),
-    geometry: jsonText('geometry'),
-    rawProperties: jsonText('rawProperties'),
-    ...sourceVersioning,
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId, table.versionHash],
-    }),
-    ...sourceVersionIndexes(table, 'hkgovAlsAddresses2d'),
-    index('hkgovAlsAddresses2d_identifiers_idx').on(table.identifiers),
-    index('hkgovAlsAddresses2d_street_lookup_idx').on(
-      table.streetName,
-      table.streetNumber,
-    ),
-  ],
-)
-
-export const sourceHkgovAlsAddress2dI18n = sqliteTable(
-  'hkgovAlsAddress2dI18n',
-  {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    locale: text('locale').notNull(),
-    formattedAddress: text('formattedAddress'),
-    buildingName: text('buildingName'),
-    buildingNumberFrom: text('buildingNumberFrom'),
-    buildingNumberTo: text('buildingNumberTo'),
-    blockType: text('blockType'),
-    blockNumber: text('blockNumber'),
-    blockTypeBeforeNumber: integer('blockTypeBeforeNumber', { mode: 'boolean' }),
-    phaseName: text('phaseName'),
-    phaseNumber: text('phaseNumber'),
-    estateName: text('estateName'),
-    streetNumber: text('streetNumber'),
-    streetName: text('streetName'),
-    villageName: text('villageName'),
-    districtName: text('districtName'),
-    ...sourceVersioning,
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId, table.versionHash, table.locale],
-    }),
-    ...sourceVersionIndexes(table, 'hkgovAlsAddress2dI18n'),
-    index('hkgovAlsAddress2dI18n_locale_idx').on(table.locale),
-  ],
-)
-
 /** Immutable rows from a versioned LandsD Gazetted Street Name PDF. */
 export const sourceHkgovLandsdStreetBaselineRecords = sqliteTable(
   'hkgovLandsdStreetBaselineRecords',
   {
     /** Stable internal key derived from the three fields in the baseline PDF table. */
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceVersionedRecordColumns(),
     /** Opaque SaanSeoi identity minted when this baseline street is accepted. */
     streetId: text('streetId').notNull(),
     /** True when the authoritative state is established by Government Notices. */
@@ -118,7 +43,6 @@ export const sourceHkgovLandsdStreetBaselineRecords = sqliteTable(
     englishName: text('englishName').notNull(),
     chineseName: text('chineseName').notNull(),
     districtCode: text('districtCode').notNull(),
-    ...sourceVersioning,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -135,7 +59,7 @@ export const sourceHkgovLandsdStreetNotices = sqliteTable(
   'hkgovLandsdStreetNotices',
   {
     /** Stable internal key: notice reference plus the PDF table row ordinal. */
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceVersionedRecordColumns(),
     /** Gazette date parsed directly from the bilingual notice PDFs. */
     gazetteDate: text('gazetteDate').notNull(),
     /** Publisher's notice classification, parsed from the notice PDF. */
@@ -150,7 +74,6 @@ export const sourceHkgovLandsdStreetNotices = sqliteTable(
     districtCodes: jsonText<string[]>('districtCodes'),
     /** Bilingual Government Notice PDFs and any legally referenced plans. */
     evidenceAssets: jsonText<StreetEvidenceAsset[]>('evidenceAssets').notNull(),
-    ...sourceVersioning,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -164,11 +87,10 @@ export const sourceHkgovLandsdStreetNotices = sqliteTable(
 export const sourceHkgovLandsdStreetNoticeI18n = sqliteTable(
   'hkgovLandsdStreetNoticeI18n',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceVersionedRecordColumns(),
     locale: text('locale').notNull(),
     name: text('name').notNull(),
     description: text('description'),
-    ...sourceVersioning,
   },
   table => [
     primaryKey({
@@ -186,7 +108,7 @@ export const sourceHkgovLandsdStreetNoticeI18n = sqliteTable(
 export const sourceHkgovLandsdStreetNoticeApplications = sqliteTable(
   'hkgovLandsdStreetNoticeApplications',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceVersionedRecordColumns(),
     method: text('method', { enum: landsdStreetNoticeApplicationMethods }).notNull(),
     disposition: text('disposition', {
       enum: landsdStreetNoticeApplicationDispositions,
@@ -200,7 +122,6 @@ export const sourceHkgovLandsdStreetNoticeApplications = sqliteTable(
     }),
     /** Required when nameChangeScope is partial. */
     retainedDescriptions: jsonText<Record<string, string>>('retainedDescriptions'),
-    ...sourceVersioning,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -222,7 +143,7 @@ export const sourceHkgovLandsdStreetNoticeApplications = sqliteTable(
 export const sourceHkgovLandsdRoadCentrelines = sqliteTable(
   'hkgovLandsdRoadCentrelines',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceReleaseRevisionRecordColumns(),
     streetId: text('streetId').notNull(),
     objectId: integer('objectId').notNull(),
     streetCode: text('streetCode').notNull(),
@@ -230,7 +151,6 @@ export const sourceHkgovLandsdRoadCentrelines = sqliteTable(
     sourceGeometry: jsonText('sourceGeometry').notNull(),
     geometry: jsonText('geometry').notNull(),
     bbox: jsonText('bbox').notNull(),
-    ...sourceReleaseRevisioning,
   },
   table => [
     primaryKey({
@@ -245,10 +165,9 @@ export const sourceHkgovLandsdRoadCentrelines = sqliteTable(
 export const sourceHkgovLandsdRoadCentrelineI18n = sqliteTable(
   'hkgovLandsdRoadCentrelineI18n',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceReleaseRevisionRecordColumns(),
     locale: text('locale').notNull(),
     name: text('name').notNull(),
-    ...sourceReleaseRevisioning,
   },
   table => [
     primaryKey({
