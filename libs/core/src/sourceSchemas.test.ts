@@ -53,6 +53,18 @@ describe('sourceSchemas', () => {
         sourceVersion: '2021',
       }),
     ).resolves.toBe('1.0')
+    await expect(
+      resolveSourceSchemaVersion({
+        source: 'hkgov-censtatd',
+        sourceVersion: '2022',
+      }),
+    ).resolves.toBe('1.0')
+    await expect(
+      resolveSourceSchemaVersion({
+        source: 'hkgov-censtatd',
+        sourceVersion: '2024',
+      }),
+    ).resolves.toBe('1.0')
   })
 
   test('resolves observed Planning Department TPU and New Town profiles', async () => {
