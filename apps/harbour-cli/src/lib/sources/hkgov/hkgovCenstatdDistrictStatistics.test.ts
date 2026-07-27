@@ -41,11 +41,35 @@ describe('C&SD district land-area statistics', () => {
       mid_year_population: BigInt(2500),
     })
   })
+
+  test('rejects duplicate publisher DC assertions', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'hkgov-censtatd-density-test-'))
+    workDirs.push(dir)
+    const inputFile = join(dir, 'Density_2022.gml')
+    await writeFile(
+      inputFile,
+      gml(
+        '2022',
+        [11, 11, 13, 14, 23, 24, 25, 26, 27, 31, 32, 33, 34, 35, 36, 37, 38, 39],
+      ),
+    )
+
+    await expect(
+      prepareHkgovCenstatdDistrictStatisticUpload({
+        inputFile,
+        outputFile: join(dir, 'density.parquet'),
+        sourceArchiveKey: 'by-source/test.zip',
+        sourceVersion: '2022',
+      }),
+    ).rejects.toThrow('C&SD Density GML contains duplicate DC values.')
+  })
 })
 
-function gml(year: string) {
-  const districtCodes = [
+function gml(
+  year: string,
+  districtCodes = [
     11, 12, 13, 14, 23, 24, 25, 26, 27, 31, 32, 33, 34, 35, 36, 37, 38, 39,
-  ]
+  ],
+) {
   return `<?xml version="1.0"?><geodatastore:FeatureCollection xmlns:geodatastore="http://ogr.maptools.org/" xmlns:gml="http://www.opengis.net/gml/3.2">${districtCodes.map((districtCode, index) => `<geodatastore:featureMember><geodatastore:Density_${year}><geodatastore:geometryProperty><gml:MultiSurface srsName="urn:ogc:def:crs:EPSG::2326"><gml:surfaceMember><gml:Polygon><gml:exterior><gml:LinearRing><gml:posList>800000 800000 800010 800000 800010 800010 800000 800000</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon></gml:surfaceMember></gml:MultiSurface></geodatastore:geometryProperty><geodatastore:DC>${districtCode}</geodatastore:DC><geodatastore:DC_ENG>District ${index + 1}</geodatastore:DC_ENG><geodatastore:DC_CHI>區${index + 1}</geodatastore:DC_CHI><geodatastore:PERIOD>${year}</geodatastore:PERIOD><geodatastore:LA>1.5</geodatastore:LA><geodatastore:MYPOPN_LAND>2.5</geodatastore:MYPOPN_LAND><geodatastore:POPN_D>3</geodatastore:POPN_D></geodatastore:Density_${year}></geodatastore:featureMember>`).join('')}</geodatastore:FeatureCollection>`
 }

@@ -60,6 +60,7 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
       ]),
     }
   })
+  assertUniqueDistrictCodes(rows)
 
   await writeFile(
     resolve(input.outputFile),
@@ -147,6 +148,12 @@ function integer(value: unknown, field: string, index: number) {
   if (!Number.isInteger(parsed))
     throw new Error(`C&SD Density row ${index + 1} has non-integer ${field}.`)
   return parsed
+}
+
+function assertUniqueDistrictCodes(rows: Array<{ district_code: number }>) {
+  if (new Set(rows.map(row => row.district_code)).size !== rows.length) {
+    throw new Error('C&SD Density GML contains duplicate DC values.')
+  }
 }
 
 function stringColumn(name: string, data: string[]) {
