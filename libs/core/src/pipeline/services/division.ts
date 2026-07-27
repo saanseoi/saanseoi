@@ -47,7 +47,6 @@ import {
   buildSourceReleaseId,
   closeSourceOvertureDivisionVersions,
   getMergedCurrentSourceOvertureDivisionMap,
-  insertSourceOvertureDivisionI18nVersions,
   insertSourceOvertureDivisionVersions,
 } from '../db/source'
 import {
@@ -434,9 +433,6 @@ export async function processDivisionDataset(
     const sourceVersionRows: Array<
       typeof sourceSchema.sourceOvertureDivisions.$inferInsert
     > = []
-    const sourceI18nVersionRows: Array<
-      typeof sourceSchema.sourceOvertureDivisionI18n.$inferInsert
-    > = []
     const currentDivisionRows: Array<Omit<NewDivisionRow, 'snapshotId'>> = []
     const currentDivisionI18nRowIds = new Set<string>()
     const currentDivisionI18nRows: Array<Omit<NewDivisionI18nRow, 'snapshotId'>> = []
@@ -528,6 +524,7 @@ export async function processDivisionDataset(
             validToRelease: null,
             isCurrent: true,
             adminLevel: resolveAdminLevelValue(row),
+            names: row.names ?? null,
             subtype: sourceString(row.subtype),
             class: sourceString(row.class),
             version: asOptionalInteger(row.version),
@@ -537,22 +534,6 @@ export async function processDivisionDataset(
             sources: normaliseOvertureSourceReferences(row.sources, normalised.base.id),
             rawProperties: row,
           })
-          sourceI18nVersionRows.push(
-            ...normalised.i18n.map(localised => ({
-              sourceRecordId: normalised.base.id,
-              versionHash: sourcePayloadHash,
-              releaseId,
-              validFromRelease: message.sourceVersion,
-              validToRelease: null,
-              isCurrent: true,
-              locale: localised.locale,
-              name: localised.name,
-              nameVariant: localised.nameVariant,
-              nameAlts: localised.nameAlts,
-              nameRules: localised.nameRules,
-              isLocaleInferred: localised.isLocaleInferred,
-            })),
-          )
         } else if (currentSource) {
           sourceUnchangedRows += 1
           unchangedSourceIds.add(normalised.base.id)
@@ -774,11 +755,6 @@ export async function processDivisionDataset(
 
       await timings.measure('insertSourceOvertureDivisionVersionsMs', () =>
         insertSourceOvertureDivisionVersions(sourceDb, sourceVersionRows, {
-          assumeVersionRowsAbsent: isInitialSourceLoad,
-        }),
-      )
-      await timings.measure('insertSourceOvertureDivisionI18nVersionsMs', () =>
-        insertSourceOvertureDivisionI18nVersions(sourceDb, sourceI18nVersionRows, {
           assumeVersionRowsAbsent: isInitialSourceLoad,
         }),
       )
