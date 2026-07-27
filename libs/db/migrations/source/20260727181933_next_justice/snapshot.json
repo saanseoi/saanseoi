@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "b58d4196-4cd2-4f27-97ab-495417bf250e",
+  "id": "f07e3b03-7a43-4627-8b26-5ea06b810724",
   "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
@@ -70,6 +70,10 @@
     },
     {
       "name": "hkgovHydStreetNamePlates",
+      "entityType": "tables"
+    },
+    {
+      "name": "hkgovTdPedestrianStreetI18n",
       "entityType": "tables"
     },
     {
@@ -2886,6 +2890,106 @@
       "generated": null,
       "name": "sourceRecordId",
       "entityType": "columns",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "description",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceRecordId",
+      "entityType": "columns",
       "table": "hkgovTdPedestrianStreets"
     },
     {
@@ -3004,7 +3108,47 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "layerName",
+      "name": "kind",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "objectId",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "regionCode",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "startTime",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "endTime",
       "entityType": "columns",
       "table": "hkgovTdPedestrianStreets"
     },
@@ -5048,6 +5192,13 @@
       "table": "hkgovHydStreetNamePlates"
     },
     {
+      "columns": ["sourceRecordId", "versionHash", "locale"],
+      "nameExplicit": false,
+      "name": "hkgovTdPedestrianStreetI18n_pk",
+      "entityType": "pks",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
       "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovTdPedestrianStreets_pk",
@@ -6603,6 +6754,84 @@
       "isUnique": false,
       "where": null,
       "origin": "manual",
+      "name": "hkgovTdPedestrianStreetI18n_releaseId_idx",
+      "entityType": "indexes",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovTdPedestrianStreetI18n_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovTdPedestrianStreetI18n_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovTdPedestrianStreetI18n_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "locale",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovTdPedestrianStreetI18n_locale_idx",
+      "entityType": "indexes",
+      "table": "hkgovTdPedestrianStreetI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "releaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
       "name": "hkgovTdPedestrianStreets_releaseId_idx",
       "entityType": "indexes",
       "table": "hkgovTdPedestrianStreets"
@@ -6660,14 +6889,32 @@
     {
       "columns": [
         {
-          "value": "layerName",
+          "value": "kind",
           "isExpression": false
         }
       ],
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "hkgovTdPedestrianStreets_layer_idx",
+      "name": "hkgovTdPedestrianStreets_kind_idx",
+      "entityType": "indexes",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "kind",
+          "isExpression": false
+        },
+        {
+          "value": "objectId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovTdPedestrianStreets_kind_object_idx",
       "entityType": "indexes",
       "table": "hkgovTdPedestrianStreets"
     },
