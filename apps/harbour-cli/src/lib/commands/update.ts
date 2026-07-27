@@ -112,6 +112,12 @@ export async function runUpdateCommand(
       // previous single-cadence throttle must not suppress that decision.
       true,
     )
+    for (const update of updates) {
+      const sourceKey = update.sourceKey ?? dataset.code
+      update.targetVersion =
+        targetVersions.get(sourceKey) ??
+        targetVersions.get(update.targetSourceKey ?? dataset.code)
+    }
     if (!updates.some(update => update.status === 'error')) {
       const checkedAt = new Date().toISOString()
       const latest = updates
@@ -131,16 +137,16 @@ export async function runUpdateCommand(
       }
 
       const archiveCheck = dataset.releasePolicy?.checks.archives
-      const discoveredNewRelease = updates.some(
-        update => update.status === 'new' && !update.archive,
-      )
+      const discoveredNewRelease = updates.some(isNewReleaseDiscovery)
+      const discoveredRevision = updates.some(isRevisionDiscovery)
       const initialDownload = ![...targetVersions.values()].some(
         version => version !== null,
       )
       if (
         archiveCheck?.trigger === 'on-discovery' &&
         ((archiveCheck.includeInitialDownload && initialDownload) ||
-          (archiveCheck.discoveries.includes('new-release') && discoveredNewRelease))
+          (archiveCheck.discoveries.includes('new-release') && discoveredNewRelease) ||
+          (archiveCheck.discoveries.includes('revision') && discoveredRevision))
       ) {
         recordUpdatePhaseCheck(state, dataset.code, 'archives', {
           checkedAt,
@@ -157,13 +163,18 @@ export async function runUpdateCommand(
       .map(plan => ({
         ...plan,
         updates: plan.updates.filter(update =>
-          updateBelongsToPhase(update, plan.duePhases, phase),
+          updateBelongsToPhase(update, plan, phase),
         ),
       }))
       .filter(plan => plan.updates.length > 0)
-    if (phasePlans.length === 0) continue
 
     log.message(`${phaseHeading(phase)}`, { spacing: 1 })
+    if (phasePlans.length === 0) {
+      log.message(`No actionable ${phaseHeading(phase).toLowerCase()}.`, {
+        spacing: 0,
+      })
+      continue
+    }
     for (const plan of phasePlans) {
       await processPlannedUpdates(plan, {
         errors,
@@ -206,20 +217,56 @@ function phaseHeading(phase: 'new-releases' | 'revisions' | 'archives') {
 
 function updateBelongsToPhase(
   update: DatasetUpdate,
-  duePhases: readonly string[],
+  plan: PlannedDatasetUpdates,
   phase: 'new-releases' | 'revisions' | 'archives',
 ) {
-  if (update.archive) return phase === 'archives'
+  if (update.archive) return phase === 'archives' && isArchiveActionable(plan)
   if (phase === 'archives') return false
   if (update.status === 'review') return phase === 'revisions'
   if (
     phase === 'revisions' &&
-    !duePhases.includes('new-releases') &&
-    duePhases.includes('revisions')
+    !plan.duePhases.includes('new-releases') &&
+    plan.duePhases.includes('revisions')
   ) {
     return true
   }
   return phase === 'new-releases'
+}
+
+function isArchiveActionable(plan: PlannedDatasetUpdates) {
+  const check = plan.dataset.releasePolicy?.checks.archives
+  if (!check) return false
+  if (check.trigger === 'periodic') return plan.duePhases.includes('archives')
+  if (check.trigger !== 'on-discovery') return false
+
+  const initialDownload = ![...plan.targetVersions.values()].some(
+    version => version !== null,
+  )
+  return (
+    (check.includeInitialDownload && initialDownload) ||
+    (check.discoveries.includes('new-release') &&
+      plan.updates.some(isNewReleaseDiscovery)) ||
+    (check.discoveries.includes('revision') && plan.updates.some(isRevisionDiscovery))
+  )
+}
+
+function isNewReleaseDiscovery(update: DatasetUpdate) {
+  if (update.status !== 'new') return false
+  if (!update.targetVersion) return true
+  return updateVersionBase(update.version) !== updateVersionBase(update.targetVersion)
+}
+
+function isRevisionDiscovery(update: DatasetUpdate) {
+  return (
+    update.status === 'review' ||
+    (update.status === 'new' &&
+      Boolean(update.targetVersion) &&
+      updateVersionBase(update.version) === updateVersionBase(update.targetVersion))
+  )
+}
+
+function updateVersionBase(version: string | null | undefined) {
+  return version?.replace(/\.\d+$/, '')
 }
 
 async function processPlannedUpdates(

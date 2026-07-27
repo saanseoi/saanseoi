@@ -52,9 +52,10 @@ export function parseHkgovCenstatdDistrictGml(
         `C&SD district GML member ${index + 1} must contain ${layerName}.`,
       )
     }
-    const shape = findElement(feature, 'SHAPE')
+    const shape =
+      findElement(feature, 'SHAPE') ?? findElement(feature, 'geometryProperty')
     if (!isRecord(shape)) {
-      throw new Error(`C&SD district GML member ${index + 1} has no SHAPE geometry.`)
+      throw new Error(`C&SD district GML member ${index + 1} has no source geometry.`)
     }
 
     const properties: Record<string, unknown> = {}
