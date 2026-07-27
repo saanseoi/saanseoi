@@ -351,6 +351,37 @@ describe('upload', () => {
     expect(planned.plan.inferredFrom.cohortKey).toBe('sourceVersion')
   })
 
+  test('uses an explicit product dataset code when one publisher has several statistic datasets', async () => {
+    const tempDir = createTempDir()
+    const fixtureFile = join(tempDir, 'hkgov-censtatd-density-2022.parquet')
+    writeFileSync(fixtureFile, 'fixture')
+
+    const planned = await prepareUpload({
+      cohortKey: '2022',
+      datasetCode:
+        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      filePath: fixtureFile,
+      inspection: {
+        rowCount: 18,
+        schema: fixtureInspection.schema,
+        distinctThemeValues: ['stats'],
+        distinctTypeValues: ['divisionStatistic'],
+        distinctCountryValues: ['hk'],
+        distinctRegionValues: ['hk'],
+      },
+      source: 'hkgov-censtatd',
+      sourceVersion: '2022',
+      type: 'divisionStatistic',
+    })
+
+    expect(planned.plan.datasetCode).toBe(
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+    )
+    expect(planned.plan.releaseCode).toBe(
+      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022',
+    )
+  })
+
   test('rejects overture uploads for source versions that are not yet marked safe', async () => {
     const tempDir = createTempDir()
     const fixtureFile = join(tempDir, 'hk-address-2026-06.parquet')

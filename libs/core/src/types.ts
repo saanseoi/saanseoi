@@ -97,6 +97,8 @@ export type UploadPlan = {
 }
 
 export type RegisterUploadOptions = {
+  /** Explicit registered dataset for a source that publishes several products of one type. */
+  datasetCode?: string
   filePath: string
   originalFileName?: string
   regionCode?: string
