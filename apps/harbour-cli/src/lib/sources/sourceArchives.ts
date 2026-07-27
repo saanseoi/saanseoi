@@ -67,23 +67,13 @@ export type PreparedSourceArchive = {
   sourcePath: string
 }
 
-export function buildSourceArchivePrefix(input: {
-  datasetId: string
-  releaseSlot: string
-}) {
+export function buildSourceArchivePrefix(input: { datasetId: string }) {
   assertDatasetId(input.datasetId)
-  assertReleaseSlot(input.releaseSlot)
-  return [
-    SOURCE_ARCHIVE_ROOT,
-    'hk',
-    CSDI_ARCHIVE_PUBLISHER,
-    input.datasetId,
-    input.releaseSlot,
-  ].join('/')
+  return [SOURCE_ARCHIVE_ROOT, 'hk', CSDI_ARCHIVE_PUBLISHER, input.datasetId].join('/')
 }
 
 export function buildSourceArchiveObjectKey(
-  input: { datasetId: string; releaseSlot: string; sha256: string },
+  input: { datasetId: string; sha256: string },
   fileName: 'manifest.json' | 'source.zip',
 ) {
   assertSha256(input.sha256)
@@ -148,7 +138,6 @@ export async function mirrorCsdiSourceArchive(
   const sourceKey = buildSourceArchiveObjectKey(
     {
       datasetId: archive.datasetId,
-      releaseSlot: archive.releaseSlot,
       sha256: prepared.manifest.archive.sha256,
     },
     'source.zip',
@@ -156,7 +145,6 @@ export async function mirrorCsdiSourceArchive(
   const manifestKey = buildSourceArchiveObjectKey(
     {
       datasetId: archive.datasetId,
-      releaseSlot: archive.releaseSlot,
       sha256: manifestSha256,
     },
     'manifest.json',
@@ -217,7 +205,6 @@ async function buildSourceArchiveManifest(input: {
       objectKey: buildSourceArchiveObjectKey(
         {
           datasetId: input.archive.datasetId,
-          releaseSlot: input.archive.releaseSlot,
           sha256: input.archiveSha256,
         },
         'source.zip',
@@ -405,11 +392,6 @@ function sha256(value: Uint8Array | string) {
 function assertDatasetId(value: string) {
   if (!/^[a-z0-9_-]+$/i.test(value))
     throw new Error(`Invalid CSDI dataset id: ${value}`)
-}
-
-function assertReleaseSlot(value: string) {
-  if (!/^\d{4}-Q[1-4]$/.test(value))
-    throw new Error(`Invalid CSDI release slot: ${value}`)
 }
 
 function assertSha256(value: string) {

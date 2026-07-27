@@ -67,10 +67,14 @@ describe('CSDI source archives', () => {
     }
 
     expect(buildSourceArchivePrefix(input)).toBe(
-      `by-source/hk/hkgov-csdi/${input.datasetId}/2025-Q1`,
+      `by-source/hk/hkgov-csdi/${input.datasetId}`,
     )
     expect(buildSourceArchiveObjectKey(input, 'source.zip')).toBe(
-      `by-source/hk/hkgov-csdi/${input.datasetId}/2025-Q1/${input.sha256}-source.zip`,
+      `by-source/hk/hkgov-csdi/${input.datasetId}/${input.sha256}-source.zip`,
+    )
+    const sameContentInAnotherSlot = { ...input, releaseSlot: '2026-Q2' }
+    expect(buildSourceArchiveObjectKey(sameContentInAnotherSlot, 'source.zip')).toBe(
+      buildSourceArchiveObjectKey(input, 'source.zip'),
     )
   })
 
