@@ -75,7 +75,6 @@ export async function runHkgovHydStreetArchiveIngestCommand(
   if (datasetCode === PEDESTRIAN_DATASET) {
     const layers = readHkgovTdPedestrianStreetArchive(archiveBytes)
     const baseRows: NativeSourceRow[] = []
-    const i18nRows: NativeSourceRow[] = []
     for (const layer of HKGOV_TD_PEDESTRIAN_STREET_LAYERS) {
       const kind = pedestrianKind(layer)
       for (const feature of layers[layer].features) {
@@ -84,22 +83,16 @@ export async function runHkgovHydStreetArchiveIngestCommand(
         baseRows.push({
           kind,
           objectId,
+          descriptionEn: feature.properties.EN_Description ?? null,
+          descriptionZhHans: feature.properties.SC_Description ?? null,
+          descriptionZhHant: feature.properties.TC_Description ?? null,
           rawProperties: feature.properties,
-          regionCode: feature.properties.Region ?? null,
           sourceGeometry: feature.geometry === null ? 'null' : feature.geometry,
           sourceRecordId,
           sources: [{ ...provenance, layerName: layer }],
           startTime: feature.properties.Start_Time ?? null,
           endTime: feature.properties.End_Time ?? null,
         })
-        for (const [locale, description] of [
-          ['zh-Hant', feature.properties.TC_Description],
-          ['zh-Hans', feature.properties.SC_Description],
-          ['en', feature.properties.EN_Description],
-        ] as const) {
-          if (!description) continue
-          i18nRows.push({ description, locale, sourceRecordId })
-        }
       }
     }
     if (baseRows.length !== 79) {
@@ -123,12 +116,6 @@ export async function runHkgovHydStreetArchiveIngestCommand(
           provenance: 'required',
           replaceCurrentRows: true,
           rows: baseRows,
-        },
-        {
-          name: 'hkgovTdPedestrianStreetI18n',
-          provenance: 'inherited',
-          replaceCurrentRows: true,
-          rows: i18nRows,
         },
       ],
       theme: 'streets',

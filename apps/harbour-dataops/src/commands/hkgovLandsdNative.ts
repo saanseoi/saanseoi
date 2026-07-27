@@ -111,19 +111,16 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
   // partial street publication.
   requireResolvedRoadCentrelines(result)
   const rows = result.records.map(record => ({
-    bbox: record.bbox,
-    geometry: record.geometry,
+    nameEn: record.nameEn,
+    nameZhHant: record.nameZhHant,
     objectId: record.objectId,
+    rawProperties: record.rawProperties,
     sourceGeometry: record.sourceGeometry,
     sourceRecordId: record.sourceRecordId,
     sources: [provenance(input, archive.layerName)],
     streetCode: record.streetCode,
-    streetId: record.streetId,
     streetType: record.streetType,
   }))
-  const i18nRows = result.records.flatMap(record =>
-    record.i18n.map(i18n => ({ ...i18n, sourceRecordId: record.sourceRecordId })),
-  )
   await processNativeSourceSqlRelease(target, {
     archiveObjectKey: input.key,
     archivePath: input.archivePath,
@@ -141,12 +138,6 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
         replaceCurrentRows: true,
         rows,
       },
-      {
-        name: 'hkgovLandsdRoadCentrelineI18n',
-        provenance: 'inherited',
-        replaceCurrentRows: true,
-        rows: i18nRows,
-      },
     ],
     theme: 'streets',
     type: 'street',
@@ -157,9 +148,7 @@ function summariseRoadCentrelineMatching(
   sourceFeatureCount: number,
   result: ReturnType<typeof normaliseRoadCentrelineFeatures>,
 ) {
-  const named = result.records.filter(record =>
-    record.i18n.some(item => item.locale === 'en'),
-  )
+  const named = result.records.filter(record => record.nameEn !== null)
   return {
     ambiguousNamedSegments: result.issues.filter(issue => issue.kind === 'ambiguous')
       .length,
@@ -167,8 +156,7 @@ function summariseRoadCentrelineMatching(
     namedSegments: named.length,
     sourceFeatureCount,
     sourceOnlyUnnamedSegments: result.records.filter(
-      record =>
-        record.streetId === null && !record.i18n.some(item => item.locale === 'en'),
+      record => record.streetId === null && record.nameEn === null,
     ).length,
     unmatchedNamedSegments: result.issues.filter(issue => issue.kind === 'unmatched')
       .length,
