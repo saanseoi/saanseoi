@@ -10,7 +10,7 @@
   "licenseCode": "hkgov-open-data",
   "attribution": "© HK SAR Government, Digital Policy Office, DATA.GOV.HK",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603",
-  "schemaSpecificationURL": null,
+  "schemaSpecificationURL": "https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN.pdf",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"

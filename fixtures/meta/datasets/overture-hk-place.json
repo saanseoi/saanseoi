@@ -10,7 +10,7 @@
   "licenseCode": "CDLA-Permissive-2.0",
   "attribution": "© Meta; Overture Maps Foundation.",
   "sourceUrl": "https://docs.overturemaps.org/",
-  "schemaSpecificationURL": null,
+  "schemaSpecificationURL": "https://docs.overturemaps.org/schema/reference/places/place/",
   "updatePolicy": {
     "allowUpdates": true,
     "checkFrequency": "monthly"
