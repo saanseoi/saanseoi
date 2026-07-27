@@ -37,8 +37,9 @@ manifest SHA-256, requires each configured GML member, and checks its publisher 
 required fields and feature count. Complete publisher properties, feature geometry and
 archive key/hash are stored in `hkgovCenstatdStatistics`; the distinct measure schemas
 remain publisher assertions rather than being forced into the district-density model.
-The importer publishes through the selected local, preview or production target's local
-SQLite cache, just as the density importer does.
+The importer normalises those GML members directly into SQL for the selected local,
+preview or production target's local SQLite cache; Parquet is not an intake or upload
+boundary.
 
 ## District land area, population and density ingestion
 

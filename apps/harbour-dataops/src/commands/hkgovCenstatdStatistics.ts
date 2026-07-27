@@ -1,21 +1,19 @@
 import { createHash } from 'node:crypto'
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { readFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
 import { unzipSync } from 'fflate'
 
 import type {
   ParsedArgs,
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
-import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import {
   CENSTATD_STATISTIC_PROFILES,
-  prepareHkgovCenstatdStatisticUpload,
+  readHkgovCenstatdStatisticArchive,
   type CenstatdStatisticDatasetCode,
 } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdStatistics.ts'
+import { processNativeSourceSqlRelease } from '../../../harbour-cli/src/lib/localPipeline/nativeSourceSql.ts'
 
-const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 export async function runHkgovCenstatdStatisticsIngestCommand(
   args: ParsedArgs,
   target: UploadTarget,
@@ -49,53 +47,51 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     throw new Error(
       `Prepared CSDI archive SHA-256 differs from its updater manifest: expected ${sha}, found ${actual}.`,
     )
-  const dir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-statistics-'))
-  try {
-    const files: Record<string, string> = {}
-    const archive = unzipSync(bytes)
-    for (const [name, content] of Object.entries(archive)) {
-      if (!name.endsWith('.gml')) continue
-      const path = join(dir, name)
-      await writeFile(path, content)
-      files[name] = path
-    }
-    const output = join(dir, 'statistics.parquet')
-    await prepareHkgovCenstatdStatisticUpload({
-      datasetCode: datasetCode as CenstatdStatisticDatasetCode,
-      inputFiles: files,
-      outputFile: output,
-      sourceArchiveKey: key,
-      sourceArchiveSha256: sha,
-      sourceVersion,
-    })
-    await runUploadCommand(
+  const inputGml = Object.fromEntries(
+    Object.entries(unzipSync(bytes))
+      .filter(([name]) => name.endsWith('.gml'))
+      .map(([name, content]) => [name, new TextDecoder().decode(content)]),
+  )
+  const rows = readHkgovCenstatdStatisticArchive({
+    datasetCode: datasetCode as CenstatdStatisticDatasetCode,
+    inputGml,
+    sourceVersion,
+  })
+  await processNativeSourceSqlRelease(target, {
+    archiveObjectKey: key,
+    archivePath: resolve(input),
+    archiveSha256: sha,
+    cohortKey: sourceVersion,
+    datasetCode,
+    releaseNotesUrl,
+    rowCount: rows.length,
+    source: 'hkgov-censtatd',
+    sourceVersion,
+    tables: [
       {
-        command: 'upload',
-        positionals: [output],
-        options: {
-          'cohort-key': sourceVersion,
-          'dataset-code': datasetCode,
-          'release-notes-url': releaseNotesUrl,
-          region: 'hk',
-          source: 'hkgov-censtatd',
-          'source-version': sourceVersion,
-          theme: 'stats',
-          type: 'divisionStatistic',
-          yes: true,
-        },
+        name: 'hkgovCenstatdStatistics',
+        rows: rows.map(row => ({
+          datasetCode,
+          featureId: row.featureId,
+          layerName: row.layerName,
+          properties: row.properties,
+          rawProperties: row.properties,
+          referenceYear: sourceVersion,
+          sourceFeature: row.sourceFeature,
+          sourceGeometry: row.sourceGeometry,
+          sourceRecordId: `CENSTATD:${row.layerName}:${row.featureId}`,
+          sources: [
+            {
+              dataset: 'hkgov-censtatd',
+              layerName: row.layerName,
+              sourceArchiveKey: key,
+              sourceArchiveSha256: sha,
+            },
+          ],
+        })),
       },
-      target,
-      {
-        dryRun: false,
-        forceUpload: true,
-        invocationCwd: REPO_ROOT,
-        printUsage: () => undefined,
-        skipConfirm: true,
-        skipSnapshotCleanup: false,
-        validateGeometry: false,
-      },
-    )
-  } finally {
-    await rm(dir, { force: true, recursive: true })
-  }
+    ],
+    theme: 'stats',
+    type: 'divisionStatistic',
+  })
 }
