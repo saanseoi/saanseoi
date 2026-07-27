@@ -156,7 +156,6 @@ const VERSION_TABLES_WITH_CURRENT_ROWS = new Set([
   'overtureDivisions',
   'overtureDivisionAreas',
   'overtureDivisionBoundaries',
-  'overtureDivisionI18n',
 ])
 
 function resolveRemoteCacheDir(
@@ -1366,10 +1365,8 @@ function resolveMirrorTablesForBinding(
         'hkgovHydSensitiveStreets',
         'hkgovHydStrategicStreets',
         'hkgovTdPedestrianStreets',
-        'hkgovTdPedestrianStreetI18n',
         'hkgovCenstatdDivisionAreas',
         'hkgovCenstatdDistrictLandAreaPopulationDensities',
-        'hkgovCenstatdDistrictLandAreaPopulationDensityI18n',
         'hkgovCenstatdStatistics',
         'hkgovCenstatdDivisionAreaDerivatives',
         'hkgovLandsdPlaceNames',
@@ -1383,13 +1380,7 @@ function resolveMirrorTablesForBinding(
     }
 
     if (cacheTableProfile === 'division') {
-      return [
-        'overtureDivisions',
-        'overtureDivisionI18n',
-        'hkgovPlandDivisions',
-        'hkgovPlandDivisionI18n',
-        'hkgovPlandPlanningCells',
-      ]
+      return ['overtureDivisions', 'hkgovPlandPlanningCells', 'hkgovPlandNewTowns']
     }
 
     if (cacheTableProfile === 'divisionGeometry') {
@@ -1398,13 +1389,10 @@ function resolveMirrorTablesForBinding(
         'overtureDivisionAreas',
         'overtureDivisionBoundaries',
         'hkgovHadDivisionAreas',
-        'hkgovPlandDivisionAreas',
-        'hkgovPlandNewTownDivisionAreas',
-        'hkgovPlandNewTownDivisionAreaI18n',
       ]
     }
 
-    return ['overtureDivisions', 'overtureDivisionI18n', 'hkgovAlsAddresses2d']
+    return ['overtureDivisions', 'hkgovAlsAddresses2d']
   }
 
   return []

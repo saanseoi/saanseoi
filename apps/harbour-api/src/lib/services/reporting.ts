@@ -921,20 +921,6 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
               strategy: 'direct',
               tableName: 'overtureDivisions',
             },
-            {
-              label: 'sourceI18n',
-              parentKey: 'sourceRecordId',
-              parentTableName: 'overtureDivisions',
-              relationshipKey: 'sourceRecordId',
-              additionalJoinKeys: [
-                {
-                  parentKey: 'versionHash',
-                  relationshipKey: 'versionHash',
-                },
-              ],
-              strategy: 'join',
-              tableName: 'overtureDivisionI18n',
-            },
           ]
         case 'place':
           return [
@@ -942,20 +928,6 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
               label: 'source',
               strategy: 'direct',
               tableName: 'overturePlaces',
-            },
-            {
-              label: 'sourceI18n',
-              parentKey: 'sourceRecordId',
-              parentTableName: 'overturePlaces',
-              relationshipKey: 'sourceRecordId',
-              additionalJoinKeys: [
-                {
-                  parentKey: 'versionHash',
-                  relationshipKey: 'versionHash',
-                },
-              ],
-              strategy: 'join',
-              tableName: 'overturePlaceI18n',
             },
           ]
         default:
