@@ -969,70 +969,63 @@ async function writeGeometryRows(
   const sourceRows = isCenstatdDerivative
     ? []
     : await Promise.all(
-        rows.map(async row => ({
-          ...row.source,
-          ...(version.source === 'hkgov-had'
-            ? {
-                objectId: (row.source.rawProperties as Record<string, unknown> | null)
-                  ?.object_id,
-                cdsiAdminAreaId: (
-                  row.source.rawProperties as Record<string, unknown> | null
-                )?.csdi_admin_area_id,
-                areaType: (row.source.rawProperties as Record<string, unknown> | null)
-                  ?.area_type,
-                areaId: (row.source.rawProperties as Record<string, unknown> | null)
-                  ?.area_id,
-                areaCode: (row.source.rawProperties as Record<string, unknown> | null)
-                  ?.area_code,
-                sourceGeometry: (
-                  row.source.rawProperties as Record<string, unknown> | null
-                )?.source_geometry,
-              }
-            : version.source === 'hkgov-censtatd'
+        rows.map(async row => {
+          const { sourceGeometry, ...sourceWithProvenance } = row.source
+          const sourceAssertion =
+            version.source === 'hkgov-had'
+              ? withoutSources(sourceWithProvenance)
+              : sourceWithProvenance
+          const sourceProperties = row.source.rawProperties as Record<string, unknown>
+          return {
+            ...sourceAssertion,
+            ...(version.source === 'hkgov-had'
               ? {
-                  censusYear: (row.source.rawProperties as Record<string, unknown>)
-                    ?.census_year,
-                  districtClass: (row.source.rawProperties as Record<string, unknown>)
-                    ?.district_class,
-                  districtCode: (row.source.rawProperties as Record<string, unknown>)
-                    ?.district_code,
-                  sourceGeometry: (row.source.rawProperties as Record<string, unknown>)
-                    ?.source_geometry,
+                  objectId: asOptionalInteger(sourceProperties.OBJECTID),
+                  cdsiAdminAreaId: asOptionalInteger(
+                    sourceProperties.CSDI_ADMIN_AREA_ID,
+                  ),
+                  areaType: asOptionalString(sourceProperties.AREA_TYPE),
+                  areaId: asOptionalString(sourceProperties.AREA_ID),
+                  areaCode: asOptionalString(sourceProperties.AREA_CODE),
+                  sourceGeometry,
                 }
-              : version.source === 'hkgov-pland-pu'
+              : version.source === 'hkgov-censtatd'
                 ? {
-                    divisionId: requirePlanningDivisionId(row),
-                    planningLevel: (row.source.rawProperties as Record<string, unknown>)
-                      ?.planning_level,
-                    sourceCellIds: (row.source.rawProperties as Record<string, unknown>)
-                      ?.source_cell_ids,
-                    repairedSourceFeatureIds: (
-                      row.source.rawProperties as Record<string, unknown>
-                    )?.repaired_source_feature_ids,
+                    censusYear: sourceProperties.census_year,
+                    districtClass: sourceProperties.district_class,
+                    districtCode: sourceProperties.district_code,
+                    sourceGeometry: sourceProperties.source_geometry,
                   }
-                : version.source === 'hkgov-pland-new-town'
+                : version.source === 'hkgov-pland-pu'
                   ? {
                       divisionId: requirePlanningDivisionId(row),
-                      newTownId: (row.source.rawProperties as Record<string, unknown>)
-                        ?.newtown_id,
-                      // The source assertion retains the original and repaired
-                      // forms separately; canonical geometry is materialised in
-                      // history and current only.
-                      canonicalGeometry: row.canonical.geometry,
-                      wasGeometryRepaired: Boolean(
-                        (row.source.rawProperties as Record<string, unknown>)
-                          ?.was_geometry_repaired,
-                      ),
+                      planningLevel: sourceProperties.planning_level,
+                      sourceCellIds: sourceProperties.source_cell_ids,
+                      repairedSourceFeatureIds:
+                        sourceProperties.repaired_source_feature_ids,
                     }
-                  : {}),
-          versionHash: await hashDivisionGeometrySourceRow(row.source),
-          releaseId: version.releaseId,
-          validFromRelease: version.releaseCode,
-          validToRelease: null,
-          isCurrent: true,
-          createdAt: now,
-          updatedAt: now,
-        })),
+                  : version.source === 'hkgov-pland-new-town'
+                    ? {
+                        divisionId: requirePlanningDivisionId(row),
+                        newTownId: sourceProperties.newtown_id,
+                        // The source assertion retains the original and repaired
+                        // forms separately; canonical geometry is materialised in
+                        // history and current only.
+                        canonicalGeometry: row.canonical.geometry,
+                        wasGeometryRepaired: Boolean(
+                          sourceProperties.was_geometry_repaired,
+                        ),
+                      }
+                    : {}),
+            versionHash: await hashDivisionGeometrySourceRow(row.source),
+            releaseId: version.releaseId,
+            validFromRelease: version.releaseCode,
+            validToRelease: null,
+            isCurrent: true,
+            createdAt: now,
+            updatedAt: now,
+          }
+        }),
       )
 
   onProgress?.('write current rows')
@@ -1848,6 +1841,18 @@ function buildOvertureGeometryProcessingActions(
 
 function asOptionalString(value: unknown) {
   return typeof value === 'string' && value.trim() ? value.trim() : null
+}
+
+function asOptionalInteger(value: unknown) {
+  if (typeof value === 'number' && Number.isSafeInteger(value)) return value
+  if (typeof value !== 'string' || !/^-?\d+$/.test(value)) return null
+  const parsed = Number(value)
+  return Number.isSafeInteger(parsed) ? parsed : null
+}
+
+function withoutSources<T extends { sources?: unknown }>(row: T) {
+  const { sources: _, ...sourceAssertion } = row
+  return sourceAssertion
 }
 
 function isString(value: string | null): value is string {

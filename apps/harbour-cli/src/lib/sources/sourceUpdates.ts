@@ -1476,6 +1476,52 @@ async function runCsdiArchiveIngestPlaceholder(
     return 'ingested'
   }
 
+  if (
+    dataset.code === 'ds-hk-hkgov-landsd-division' &&
+    release?.sourceVersion &&
+    release.sourceUrl
+  ) {
+    const child = Bun.spawn(
+      buildHkgovLandsdPlaceNameArchiveIngestCommand({
+        inputFile: prepared.sourcePath,
+        releaseNotesUrl: release.sourceUrl,
+        sourceArchiveKey: prepared.manifest.archive.objectKey,
+        sourceArchiveSha256: prepared.manifest.archive.sha256,
+        sourceVersion: release.sourceVersion,
+        target,
+      }),
+      { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
+    )
+    if ((await child.exited) !== 0) {
+      throw new Error(`LandsD Place Name ingest failed for ${release.sourceVersion}.`)
+    }
+    return 'ingested'
+  }
+
+  if (
+    dataset.code === 'ds-hk-hkgov-landsd-road-centreline' &&
+    release?.sourceVersion &&
+    release.sourceUrl
+  ) {
+    const child = Bun.spawn(
+      buildHkgovLandsdRoadCentrelineArchiveIngestCommand({
+        inputFile: prepared.sourcePath,
+        releaseNotesUrl: release.sourceUrl,
+        sourceArchiveKey: prepared.manifest.archive.objectKey,
+        sourceArchiveSha256: prepared.manifest.archive.sha256,
+        sourceVersion: release.sourceVersion,
+        target,
+      }),
+      { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
+    )
+    if ((await child.exited) !== 0) {
+      throw new Error(
+        `LandsD Road Centreline ingest failed for ${release.sourceVersion}.`,
+      )
+    }
+    return 'ingested'
+  }
+
   console.log(
     `NOT IMPLEMENTED: native CSDI archive ingestion for ${dataset.code}${release?.sourceVersion ? ` (${release.sourceVersion})` : ''}.`,
   )
@@ -1613,6 +1659,63 @@ export function buildHkgovHydStreetArchiveIngestCommand(input: {
     input.target.environment === 'dev' ? 'local' : input.target.environment,
     '--dataset-code',
     input.datasetCode,
+    '--source-version',
+    input.sourceVersion,
+    '--release-notes-url',
+    input.releaseNotesUrl,
+    '--source-archive-key',
+    input.sourceArchiveKey,
+    '--source-archive-sha256',
+    input.sourceArchiveSha256,
+  ]
+}
+
+export function buildHkgovLandsdPlaceNameArchiveIngestCommand(input: {
+  inputFile: string
+  releaseNotesUrl: string
+  sourceArchiveKey: string
+  sourceArchiveSha256: string
+  sourceVersion: string
+  target: import('../cli/options.ts').UploadTarget
+}) {
+  return buildHkgovLandsdNativeArchiveIngestCommand('hkgov-landsd:place-name', input)
+}
+
+export function buildHkgovLandsdRoadCentrelineArchiveIngestCommand(input: {
+  inputFile: string
+  releaseNotesUrl: string
+  sourceArchiveKey: string
+  sourceArchiveSha256: string
+  sourceVersion: string
+  target: import('../cli/options.ts').UploadTarget
+}) {
+  return buildHkgovLandsdNativeArchiveIngestCommand(
+    'hkgov-landsd:road-centreline',
+    input,
+  )
+}
+
+function buildHkgovLandsdNativeArchiveIngestCommand(
+  command: 'hkgov-landsd:place-name' | 'hkgov-landsd:road-centreline',
+  input: {
+    inputFile: string
+    releaseNotesUrl: string
+    sourceArchiveKey: string
+    sourceArchiveSha256: string
+    sourceVersion: string
+    target: import('../cli/options.ts').UploadTarget
+  },
+) {
+  return [
+    process.execPath,
+    'run',
+    '--silent',
+    'dataops',
+    '--',
+    command,
+    input.inputFile,
+    '--target',
+    input.target.environment === 'dev' ? 'local' : input.target.environment,
     '--source-version',
     input.sourceVersion,
     '--release-notes-url',

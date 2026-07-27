@@ -14,6 +14,8 @@ import {
   buildHkgovCenstatdStatisticsArchiveIngestCommand,
   buildHkgovHadDistrictArchiveIngestCommand,
   buildHkgovHydStreetArchiveIngestCommand,
+  buildHkgovLandsdPlaceNameArchiveIngestCommand,
+  buildHkgovLandsdRoadCentrelineArchiveIngestCommand,
   buildHkgovPlandArchiveIngestCommand,
   buildOverturistCommand,
   buildOverturistReleasesCommand,
@@ -38,6 +40,34 @@ import {
 } from './sourceUpdates.ts'
 
 describe('dataset update registry', () => {
+  test('hands the exact mirrored LandsD archives to their native importers', () => {
+    const common = {
+      inputFile: '/tmp/landsd-source.zip',
+      releaseNotesUrl: 'https://publisher.example/landsd',
+      sourceArchiveKey: 'by-source/hk/landsd/source.zip',
+      sourceArchiveSha256: 'f'.repeat(64),
+      sourceVersion: '2026-Q2',
+      target: { environment: 'preview' as const, remote: true },
+    }
+
+    for (const command of [
+      buildHkgovLandsdPlaceNameArchiveIngestCommand(common),
+      buildHkgovLandsdRoadCentrelineArchiveIngestCommand(common),
+    ]) {
+      expect(command).toEqual(
+        expect.arrayContaining([
+          '/tmp/landsd-source.zip',
+          '--target',
+          'preview',
+          '--source-archive-key',
+          'by-source/hk/landsd/source.zip',
+          '--source-archive-sha256',
+          'f'.repeat(64),
+        ]),
+      )
+    }
+  })
+
   test('hands the mirrored HyD archive and caller target to native street intake', () => {
     const command = buildHkgovHydStreetArchiveIngestCommand({
       datasetCode: 'ds-hk-hkgov-hyd-pedestrian-street',
