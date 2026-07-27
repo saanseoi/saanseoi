@@ -296,11 +296,13 @@ export async function processLocalStreetSqlUpload(
     const sourceHashById = new Map(
       currentSourceRows.map(row => [row.sourceRecordId, row.versionHash]),
     )
-    const persistedSourceById = new Map(
-      currentSourceRows.map(row => [row.sourceRecordId, row]),
-    )
+    const canonicalStreetIdsBySourceRecord =
+      indexCanonicalStreetIdsBySourceRecord(currentStreets)
     const resolvedRecords = records.map(record =>
-      resolvePersistentStreetIds(record, persistedSourceById.get(record.base.id)),
+      resolvePersistentStreetIds(
+        record,
+        canonicalStreetIdsBySourceRecord.get(record.base.id) ?? [],
+      ),
     )
     const changedSourceRecords = resolvedRecords.filter(
       record => sourceHashById.get(record.base.id) !== record.sourceHash,
@@ -382,14 +384,6 @@ export async function processLocalStreetSqlUpload(
       changedSourceRecords,
       now,
     )
-    await insertSourceI18nRows(
-      context.sourceDb as unknown as HarbourWritableDb,
-      releaseId,
-      releaseCode,
-      changedSourceRecords,
-      now,
-    )
-
     await replaceReleaseProcessingActions(metaDb, releaseId, [])
     await replaceDatasetStats(
       metaDb,
@@ -448,10 +442,9 @@ async function normalisePreparedStreet(
   canonicalDistricts: LandsdStreetCanonicalDistrict[],
 ): Promise<PreparedStreet> {
   const sourceRecordId = requireString(value.id, 'id')
-  const district = { en: null, zhHant: null }
   const districtCodes = parseStringArray(value.district_codes, 'district_codes')
   const resolvedDistricts = resolveLandsdStreetDistricts(
-    district,
+    { en: null, zhHant: null },
     canonicalDistricts,
     districtCodes,
   )
@@ -497,9 +490,6 @@ async function normalisePreparedStreet(
     yearBuilt: null,
   }
   const sourceHash = await createHash({
-    ...base,
-    application,
-    district,
     districtCodes,
     i18n: i18n.map(stableI18n),
     deferToNotices,
@@ -509,7 +499,6 @@ async function normalisePreparedStreet(
     previousNoticeRefs,
     rawExtractedText,
     sourceKind,
-    streetId,
     evidenceAssets: stableAssetLinks(evidenceAssets),
   })
   return {
@@ -560,32 +549,60 @@ function toLifecycleInput(record: PreparedStreet): LandsdStreetLifecycleInput {
 
 function resolvePersistentStreetIds(
   record: PreparedStreet,
-  existing?: {
-    resultStreetId: string | null
-    sourceRecordId: string
-    streetId: string | null
-    versionHash: string
-  },
+  canonicalStreetIds: string[],
 ): PreparedStreet {
   if (record.sourceKind === 'baseline') {
+    const streetId = uniqueCanonicalStreetId(canonicalStreetIds, record.base.id)
     return {
       ...record,
-      streetId: existing?.streetId ?? record.streetId ?? mintLandsdStreetId(),
+      streetId: streetId ?? record.streetId ?? mintLandsdStreetId(),
     }
   }
   if (record.base.noticeType === 'declaration' && record.application) {
+    const resultStreetId = uniqueCanonicalStreetId(canonicalStreetIds, record.base.id)
     return {
       ...record,
       application: {
         ...record.application,
         resultStreetId:
-          existing?.resultStreetId ??
-          record.application.resultStreetId ??
-          mintLandsdStreetId(),
+          resultStreetId ?? record.application.resultStreetId ?? mintLandsdStreetId(),
       },
     }
   }
   return record
+}
+
+/**
+ * Canonical source keys are the durable identity bridge. Source tables retain
+ * publisher evidence only, so a replay never needs to persist a canonical ID
+ * beside it.
+ */
+function indexCanonicalStreetIdsBySourceRecord(
+  streets: LandsdStreetMaterialisedStreet[],
+) {
+  const result = new Map<string, string[]>()
+  for (const street of streets) {
+    const landsd = street.sourceKeys.hkgovLandsd
+    if (!landsd || typeof landsd !== 'object' || Array.isArray(landsd)) continue
+    const sourceKeys = landsd as Record<string, unknown>
+    for (const key of ['baselineRecordKeys', 'noticeRecordKeys'] as const) {
+      const recordKeys = sourceKeys[key]
+      if (!Array.isArray(recordKeys)) continue
+      for (const recordKey of recordKeys) {
+        if (typeof recordKey !== 'string') continue
+        result.set(recordKey, [...(result.get(recordKey) ?? []), street.id])
+      }
+    }
+  }
+  return result
+}
+
+function uniqueCanonicalStreetId(ids: string[], sourceRecordId: string) {
+  const uniqueIds = [...new Set(ids)]
+  if (uniqueIds.length <= 1) return uniqueIds[0] ?? null
+  throw new Error(
+    `Canonical source keys map LandsD record ${sourceRecordId} to multiple streets: ${uniqueIds.join(', ')}.`,
+  )
 }
 
 async function addMaterialisedStreetHash(

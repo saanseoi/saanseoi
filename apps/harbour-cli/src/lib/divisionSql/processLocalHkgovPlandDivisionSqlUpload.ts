@@ -330,16 +330,22 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                   level: record.base.level,
                   sourceKeys: record.base.sourceKeys,
                 },
-                sourceCell: record.cell
-                  ? {
-                      rawProperties: record.cell.rawProperties,
-                      sourceRecordId: record.cell.sourceRecordId,
-                    }
-                  : (record.raw.source_properties ?? null),
+                sourceEvidence:
+                  record.cells.length > 0
+                    ? record.cells.map(cell => ({
+                        rawProperties: cell.rawProperties,
+                        sourceRecordId: cell.sourceRecordId,
+                      }))
+                    : record.newTown
+                      ? {
+                          rawProperties: record.newTown.rawProperties,
+                          sourceRecordId: record.newTown.sourceRecordId,
+                        }
+                      : null,
               })),
               mode: 'automatic',
               summary:
-                'Repaired known Planning Department polygon self-intersections with buffer(0); the source assertion records the approved canonical geometry.',
+                'Repaired known Planning Department polygon self-intersections with buffer(0); the native source assertion records the row-keyed approved transform.',
             },
           ]
         : [],
