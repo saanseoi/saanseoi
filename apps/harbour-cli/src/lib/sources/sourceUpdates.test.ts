@@ -8,6 +8,7 @@ import {
 } from './landsd/street/landsdStreet.ts'
 
 import {
+  buildHkgovAlsIngestCommand,
   buildOverturistCommand,
   buildOverturistReleasesCommand,
   datasetCorrectionSuffixSources,
@@ -29,6 +30,32 @@ import {
 } from './sourceUpdates.ts'
 
 describe('dataset update registry', () => {
+  test('starts target-neutral DPO ingestion with the selected publication target', () => {
+    const common = {
+      sourceRoot: '/tmp/als',
+      version: '2026-07-26.0',
+    }
+
+    expect(
+      buildHkgovAlsIngestCommand({
+        ...common,
+        target: { environment: 'preview', remote: true },
+      }),
+    ).toContain('preview')
+    expect(
+      buildHkgovAlsIngestCommand({
+        ...common,
+        target: { environment: 'production', remote: true },
+      }),
+    ).toContain('production')
+    expect(
+      buildHkgovAlsIngestCommand({
+        ...common,
+        target: { environment: 'dev', remote: false },
+      }),
+    ).toContain('local')
+  })
+
   test('loads every dataset fixture', async () => {
     const fixtures = await loadDatasetFixtures()
 

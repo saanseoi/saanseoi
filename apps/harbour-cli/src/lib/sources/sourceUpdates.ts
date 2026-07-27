@@ -171,6 +171,10 @@ export type UpdateUpload = {
 
 export type DatasetUpdate = {
   archive?: CsdiSourceArchive
+  /** Runs only after a native CSDI archive has been mirrored successfully. */
+  postArchiveIngest?: (
+    target: import('../cli/options.ts').UploadTarget,
+  ) => Promise<'ingested' | 'not-implemented'>
   /** Assigns a non-CSDI package to one of the updater's three report phases. */
   phase?: DatasetUpdatePhase
   deferStateUntilProcessed?: boolean
@@ -1072,6 +1076,8 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
           }
           return prepared.sourcePath
         },
+        postArchiveIngest: async target =>
+          runCsdiArchiveIngestPlaceholder(dataset, release, target),
         ...(release
           ? {
               recordIdenticalArchive: async (contentHash: string) => {
@@ -1088,6 +1094,50 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
       } satisfies DatasetUpdate
     }),
   )
+}
+
+async function runCsdiArchiveIngestPlaceholder(
+  dataset: DatasetFixture,
+  release: DatasetRelease | undefined,
+  target: import('../cli/options.ts').UploadTarget,
+): Promise<'ingested' | 'not-implemented'> {
+  if (
+    dataset.code ===
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' &&
+    (release?.sourceVersion === '2022' || release?.sourceVersion === '2024')
+  ) {
+    if (target.remote) {
+      throw new Error(
+        'C&SD district-density archive ingestion currently supports --target local only.',
+      )
+    }
+    const child = Bun.spawn(
+      [
+        process.execPath,
+        'run',
+        '--silent',
+        'dataops',
+        '--',
+        'hkgov-censtatd:district-land-area-population-density',
+        '--target',
+        'local',
+        '--source-version',
+        release.sourceVersion,
+      ],
+      { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
+    )
+    if ((await child.exited) !== 0) {
+      throw new Error(
+        `C&SD district-density ingest failed for ${release.sourceVersion}.`,
+      )
+    }
+    return 'ingested'
+  }
+
+  console.log(
+    `NOT IMPLEMENTED: native CSDI archive ingestion for ${dataset.code}${release?.sourceVersion ? ` (${release.sourceVersion})` : ''}.`,
+  )
+  return 'not-implemented'
 }
 
 function resolveCsdiArchiveDatasetVersion(
@@ -1489,7 +1539,7 @@ function createDataGovHkUpdate({
           download: async () => downloadResponse(downloadUrl.toString(), downloadPath),
         }),
     message: ingest
-      ? 'ALS will be unpacked, identity-reviewed, and uploaded through the existing local backfill workflow.'
+      ? 'ALS will be unpacked and identity-reviewed locally, then uploaded to the selected target.'
       : 'Archived ALS package available; downloading it does not upload it.',
   } satisfies DatasetUpdate
 }
@@ -1520,11 +1570,6 @@ async function ingestDataGovHkAlsRelease({
   timestamp: string
   version: string
 }) {
-  if (target.remote) {
-    throw new Error(
-      'DPO ALS preparation and upload currently support --target local only.',
-    )
-  }
   await downloadResponse(downloadUrl, downloadPath)
   const sourceRoot = resolve(REPO_ROOT, 'data/hkgov/dpo/ALS')
   const sourceDir = resolve(sourceRoot, `${timestamp}-ALS-GeoJSON`)
@@ -1538,26 +1583,34 @@ async function ingestDataGovHkAlsRelease({
     throw new Error(`Could not unpack ALS release ${timestamp}.`)
   }
   const dataops = Bun.spawn(
-    [
-      process.execPath,
-      'run',
-      '--silent',
-      'dataops',
-      '--',
-      'hkgov-dpo:backfill-local',
-      sourceRoot,
-      '--target',
-      'local',
-      '--cohort-key',
-      version,
-      '--from-source-version',
-      version,
-    ],
+    buildHkgovAlsIngestCommand({ sourceRoot, target, version }),
     { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
   )
   if ((await dataops.exited) !== 0) {
     throw new Error(`DPO ALS backfill failed for ${version}.`)
   }
+}
+
+export function buildHkgovAlsIngestCommand(input: {
+  sourceRoot: string
+  target: import('../cli/options.ts').UploadTarget
+  version: string
+}) {
+  return [
+    process.execPath,
+    'run',
+    '--silent',
+    'dataops',
+    '--',
+    'hkgov-dpo:ingest',
+    input.sourceRoot,
+    '--target',
+    input.target.environment === 'dev' ? 'local' : input.target.environment,
+    '--cohort-key',
+    input.version,
+    '--from-source-version',
+    input.version,
+  ]
 }
 
 async function fetchText(url: string): Promise<{ body: string; headers: Headers }> {
