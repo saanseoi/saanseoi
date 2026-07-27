@@ -20,9 +20,12 @@ composition selects that snapshot as a required supporting member using its conf
 cohort-matching rule.
 
 The local SQL workflow processes parquet in chunks through `normalise`, `sql-source`,
-`sql-history`, and `sql-current` stages. It stages source data in `stagingAddresses2d`
-and `stagingAddresses2dI18n`, then imports generated source, history, current, and meta
-SQL into their respective D1 databases.
+`sql-history`, and `sql-current` stages. For a remote upload, `sql-source` compares each
+normalised source payload with the persistent local mirror of the source D1 shard. It
+imports full staging rows only for changed assertions; unchanged assertions are sent as
+compact source-record IDs in `stagingAddresses2dReleaseRows` so their release lifecycle
+can still advance. History, current, and meta SQL are then imported into their
+respective D1 databases.
 
 ## Stored data
 

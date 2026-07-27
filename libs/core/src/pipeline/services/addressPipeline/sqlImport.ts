@@ -24,6 +24,10 @@ export type AddressSqlImportFile = {
 }
 
 export type AddressSqlImportBuildOptions = {
+  /** Source rows whose payload differs from the local D1 mirror. */
+  changedSourceRecordIds?: ReadonlySet<string>
+  /** Unchanged source rows whose current assertion advances to this release. */
+  unchangedSourceRecordIds?: ReadonlySet<string>
   maxStatementBytes?: number
   runId?: string
 }
@@ -36,6 +40,7 @@ const SQL_TEXT_ENCODER = new TextEncoder()
 const NORMALIZED_ROWS_TABLE = 'stagingAddresses2d'
 const NORMALIZED_I18N_TABLE = 'stagingAddresses2dI18n'
 const SOURCE_CHANGED_TABLE = 'stagingAddresses2dChanged'
+const SOURCE_RELEASE_ROWS_TABLE = 'stagingAddresses2dReleaseRows'
 const RESOLVED_ROWS_TABLE = 'zzAddressImportResolvedRows'
 const RESOLVED_I18N_TABLE = 'zzAddressImportResolvedI18n'
 const RESOLVED_BUILDING_LOOKUPS_TABLE = 'zzAddressImportResolvedBuildingNumberLookups'
@@ -178,14 +183,28 @@ export function buildAddressSourceSqlImportFiles(
   options: AddressSqlImportBuildOptions = {},
 ): AddressSqlImportFile[] {
   const runId = options.runId ?? buildAddressSqlImportRunId(message)
+  const sourceRows = options.changedSourceRecordIds
+    ? artefact.rows.filter(row => options.changedSourceRecordIds?.has(row.sourceId))
+    : artefact.rows
   const statements = [
     buildAddressNormalisedStagingSchemaSql(),
     `DELETE FROM ${NORMALIZED_ROWS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
     `DELETE FROM ${NORMALIZED_I18N_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
+    `DELETE FROM ${SOURCE_RELEASE_ROWS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
+    ...buildInsertStatements(
+      SOURCE_RELEASE_ROWS_TABLE,
+      ['runId', 'sourceRecordId'],
+      [...(options.unchangedSourceRecordIds ?? [])].map(sourceRecordId => ({
+        runId,
+        sourceRecordId,
+      })),
+      options.maxStatementBytes,
+      { mode: 'ignore' },
+    ),
     ...buildInsertStatements(
       NORMALIZED_ROWS_TABLE,
       NORMALIZED_ROW_COLUMNS,
-      artefact.rows.map((row, index) => ({
+      sourceRows.map((row, index) => ({
         runId,
         rowNumber: artefact.rowStart + index,
         source: message.source,
@@ -216,7 +235,7 @@ export function buildAddressSourceSqlImportFiles(
     ...buildInsertStatements(
       NORMALIZED_I18N_TABLE,
       NORMALIZED_I18N_COLUMNS,
-      artefact.rows.flatMap(row =>
+      sourceRows.flatMap(row =>
         row.i18n.map(localised => ({
           runId,
           sourceRecordId: row.sourceId,
@@ -517,6 +536,7 @@ export function buildAddressSqlCleanupFile(
       ? [
           `DELETE FROM ${NORMALIZED_ROWS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
           `DELETE FROM ${NORMALIZED_I18N_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
+          `DELETE FROM ${SOURCE_RELEASE_ROWS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
           `DELETE FROM ${SOURCE_CHANGED_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
         ]
       : [buildAddressResolvedStagingDropSql()]
@@ -555,6 +575,11 @@ CREATE TABLE IF NOT EXISTS ${NORMALIZED_ROWS_TABLE} (
 );
 CREATE INDEX IF NOT EXISTS ${NORMALIZED_ROWS_TABLE}_run_row_idx ON ${NORMALIZED_ROWS_TABLE} (runId, rowNumber);
 CREATE INDEX IF NOT EXISTS ${NORMALIZED_ROWS_TABLE}_run_match_idx ON ${NORMALIZED_ROWS_TABLE} (runId, matchKey);
+CREATE TABLE IF NOT EXISTS ${SOURCE_RELEASE_ROWS_TABLE} (
+  runId TEXT NOT NULL,
+  sourceRecordId TEXT NOT NULL,
+  PRIMARY KEY (runId, sourceRecordId)
+);
 CREATE TABLE IF NOT EXISTS ${NORMALIZED_I18N_TABLE} (
   runId TEXT NOT NULL,
   sourceRecordId TEXT NOT NULL,
@@ -697,6 +722,15 @@ function buildHkgovSourceApplySql(message: DatasetProcessingMessage, runId: stri
 
   return `
 DELETE FROM ${SOURCE_CHANGED_TABLE} WHERE runId = ${run};
+UPDATE hkgovAlsAddresses2d
+SET releaseId = ${releaseId}, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+WHERE isCurrent = 1
+  AND EXISTS (
+    SELECT 1
+    FROM ${SOURCE_RELEASE_ROWS_TABLE} releaseRow
+    WHERE releaseRow.runId = ${run}
+      AND releaseRow.sourceRecordId = hkgovAlsAddresses2d.sourceRecordId
+  );
 INSERT OR IGNORE INTO ${SOURCE_CHANGED_TABLE} (runId, sourceRecordId)
 SELECT r.runId, r.sourceRecordId
 FROM ${NORMALIZED_ROWS_TABLE} r
