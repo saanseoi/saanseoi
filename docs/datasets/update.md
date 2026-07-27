@@ -64,6 +64,11 @@ exception: its archive quarter establishes the release base as `vYYYY-Qn.0`; a c
 publisher object in that same quarter increments the correction suffix (`vYYYY-Qn.1`,
 then `.2`, and so on).
 
+Dataset fixtures retain `schemaSpecificationURL` when the publisher provides a source
+schema. A missing value is explicit (`null`) rather than an inferred schema claim. CSDI
+simplified data specifications are publisher references, separate from SaanSeoi's own
+source-schema version labels.
+
 The update report collapses already-current CSDI archive slots into one row per source
 release. The updater still retains and checks state for every archive slot; a newly
 changed publisher object remains visible as an actionable update.

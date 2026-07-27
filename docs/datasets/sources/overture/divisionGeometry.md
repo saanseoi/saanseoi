@@ -26,6 +26,10 @@ When a new STAC release is found, `saanseoi update` invokes the sibling Overturi
 with the Hong Kong division id `b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d`, the release
 version, and the `divisions` theme. The resulting Hong Kong files are placed under
 `data/overture/<release>/divisions/China/Hong Kong` for the normal ingestion workflow.
+Overturist also exposes `releases`, which emits the currently S3-available versions as
+JSON. The updater uses that bounded catalogue to identify a displaced Overture release
+as an archive package whenever it discovers a new release; archive downloads do not hold
+up the current-release upload.
 
 ## 2026-06-17.0 Hong Kong profile
 

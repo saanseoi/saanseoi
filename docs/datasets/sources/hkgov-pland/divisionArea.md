@@ -8,9 +8,9 @@ geometry contract remains in
 
 The CSDI Archived Dataset catalogue publishes native publisher packages for the
 following polygonal layers. The updater mirrors every available archive slot and its
-manifest; it does not use CSDI's converted GeoJSON file API. The source package records
-its own CRS, which is retained before accepted geometry is normalised into the API
-canonical CRS.
+manifest; it does not use CSDI's converted GeoJSON file API. The source CRS is retained
+once in dataset metadata before accepted geometry is normalised into the API canonical
+CRS.
 
 | Cohort | Catalogue code                                                                                                           | Layer          | Source cells | TPU values |
 | ------ | ------------------------------------------------------------------------------------------------------------------------ | -------------- | -----------: | ---------: |

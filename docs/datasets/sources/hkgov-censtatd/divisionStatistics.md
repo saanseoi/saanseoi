@@ -40,8 +40,11 @@ does not publish the archive quarter as a version: the fixture's `sourceVersion`
 `2022.0` and `2024.0`.
 
 The current CSDI simplified data specification is recorded in the dataset fixture as
-`schemaSpecificationURL`. After the archive has been mirrored, publish either release to
-the local target with:
+`schemaSpecificationURL`. The command resolves the immutable source archive through the
+local asset registry. If an older local R2 layout contains the archive without a current
+registry entry, it re-mirrors only the fixture-mapped CSDI package, verifies its content
+hash, and then publishes the dataset release. Publish either release to the local target
+with:
 
 ```sh
 bun run dataops -- hkgov-censtatd:district-land-area-population-density --target local --source-version 2022

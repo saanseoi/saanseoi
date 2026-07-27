@@ -23,13 +23,13 @@ publisher timing, not the source version. The updater mirrors every native Archi
 Dataset package and does not use the CSDI GeoJSON file API as input.
 
 The `hkgov-had` District Boundary native package is read from the CSDI archive. Its
-source CRS and feature count are captured in provenance before the accepted geometry is
-normalised into canonical EPSG:4326. `AREA_ID` and `AREA_CODE` are provider identifiers.
-They are resolved through the versioned `identifierBridges` fixture/table for resource
-type `division`, authority `hkgov-had`, cohort `2022`, and the administrative domain.
-The source release is `dr-hk-hkgov-had-division-area-district-2022` with cohort key
-`2022` and source schema version `1.2`. Its dataset code is
-`ds-hk-hkgov-had-division-area-district`.
+source CRS is stored once in the dataset metadata record, while its feature count is
+captured in provenance before the accepted geometry is normalised into canonical
+EPSG:4326. `AREA_ID` and `AREA_CODE` are provider identifiers. They are resolved through
+the versioned `identifierBridges` fixture/table for resource type `division`, authority
+`hkgov-had`, cohort `2022`, and the administrative domain. The source release is
+`dr-hk-hkgov-had-division-area-district-2022` with cohort key `2022` and source schema
+version `1.2`. Its dataset code is `ds-hk-hkgov-had-division-area-district`.
 
 The compatibility layer exposes these source fields under `hkgov`, with database
 capitalisation, in both source columns and canonical geometry `sourceKeys`:
