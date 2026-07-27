@@ -7,26 +7,26 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import { geoBbox, jsonText, sourceProvenance } from '../shared'
-import { sourceVersionIndexes, sourceVersioning } from './shared'
+import { geoBbox, jsonText } from '../shared'
+import {
+  sourceAssertionColumns,
+  sourceSpatialAssertionColumns,
+  sourceVersionIndexes,
+  sourceVersionedRecordColumns,
+} from './shared'
 
 /**
  * C&SD District Council district assertions. `sourceGeometry` is retained in
- * the publisher's CRS; the inherited `geometry` column is its EPSG:4326
- * canonical projection. The display derivative simplifies that canonical
- * geometry while retaining this source assertion for audit.
+ * the publisher's CRS. Canonical EPSG:4326 geometry belongs to history and
+ * current; the display derivative retains its named transform for audit.
  */
 export const sourceHkgovCenstatdDivisionAreas = sqliteTable(
   'hkgovCenstatdDivisionAreas',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceSpatialAssertionColumns(),
     districtClass: text('districtClass').notNull(),
     districtCode: integer('districtCode').notNull(),
     censusYear: text('censusYear').notNull(),
-    sourceGeometry: jsonText('sourceGeometry').notNull(),
-    ...geoBbox,
-    ...sourceProvenance,
-    ...sourceVersioning,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -45,7 +45,7 @@ export const sourceHkgovCenstatdDivisionAreas = sqliteTable(
 export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTable(
   'hkgovCenstatdDistrictLandAreaPopulationDensities',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceSpatialAssertionColumns(),
     // C&SD's numeric `DC` value; canonical district resolution occurs in history.
     districtCode: integer('districtCode').notNull(),
     referenceYear: text('referenceYear').notNull(),
@@ -54,9 +54,6 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
     midYearPopulationDensityPerSqKm: integer(
       'midYearPopulationDensityPerSqKm',
     ).notNull(),
-    sourceGeometry: jsonText('sourceGeometry').notNull(),
-    ...sourceProvenance,
-    ...sourceVersioning,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -74,13 +71,12 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
 export const sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n = sqliteTable(
   'hkgovCenstatdDistrictLandAreaPopulationDensityI18n',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceVersionedRecordColumns(),
     locale: text('locale').notNull(),
     name: text('name').notNull(),
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
       .notNull()
       .default(false),
-    ...sourceVersioning,
   },
   table => [
     primaryKey({
@@ -105,7 +101,7 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n = sqliteTa
 export const sourceHkgovCenstatdStatistics = sqliteTable(
   'hkgovCenstatdStatistics',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceAssertionColumns(),
     datasetCode: text('datasetCode').notNull(),
     layerName: text('layerName').notNull(),
     referenceYear: text('referenceYear').notNull(),
@@ -113,8 +109,6 @@ export const sourceHkgovCenstatdStatistics = sqliteTable(
     properties: jsonText('properties').notNull(),
     sourceFeature: jsonText('sourceFeature').notNull(),
     sourceGeometry: jsonText('sourceGeometry'),
-    ...sourceProvenance,
-    ...sourceVersioning,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -137,12 +131,11 @@ export const sourceHkgovCenstatdStatistics = sqliteTable(
 export const sourceHkgovCenstatdDivisionAreaDerivatives = sqliteTable(
   'hkgovCenstatdDivisionAreaDerivatives',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceVersionedRecordColumns(),
     inputVersionHash: text('inputVersionHash').notNull(),
     transform: text('transform').notNull(),
     derivation: jsonText('derivation').notNull(),
     ...geoBbox,
-    ...sourceVersioning,
   },
   table => [
     primaryKey({
@@ -166,13 +159,12 @@ export const sourceHkgovCenstatdDivisionAreaDerivatives = sqliteTable(
 export const sourceHkgovCenstatdDivisionAreaI18n = sqliteTable(
   'hkgovCenstatdDivisionAreaI18n',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceVersionedRecordColumns(),
     locale: text('locale').notNull(),
     name: text('name').notNull(),
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
       .notNull()
       .default(false),
-    ...sourceVersioning,
   },
   table => [
     primaryKey({

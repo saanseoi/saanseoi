@@ -31,6 +31,6 @@ export type {
   LandsdStreetNoticeApplicationDisposition,
   LandsdStreetNoticeApplicationMethod,
   LandsdStreetNoticeType,
-} from './schema/source/hkgov'
+} from './schema/source/hkgovLandsd'
 export * from './schema/meta'
 export { and, asc, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm'

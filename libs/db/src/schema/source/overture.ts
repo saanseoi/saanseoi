@@ -7,22 +7,23 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import { jsonText, geoBbox, sourceProvenance } from '../shared'
-import { sourceVersionIndexes, sourceVersioning } from './shared'
+import { jsonText } from '../shared'
+import {
+  sourceAssertionColumns,
+  sourceVersionIndexes,
+  sourceVersionedRecordColumns,
+} from './shared'
 
 export const sourceOvertureDivisions = sqliteTable(
   'overtureDivisions',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceAssertionColumns(),
     adminLevel: integer('admin_level'),
     subtype: text('subtype'),
     class: text('class'),
     wikidata: text('wikidata'),
     hierarchies: jsonText('hierarchies'),
-    ...geoBbox,
     cartography: jsonText('cartography'),
-    ...sourceProvenance,
-    ...sourceVersioning,
   },
   table => [
     primaryKey({
@@ -36,14 +37,11 @@ export const sourceOvertureDivisions = sqliteTable(
 )
 
 const sourceOvertureDivisionGeometryBase = {
-  sourceRecordId: text('sourceRecordId').notNull(),
+  ...sourceAssertionColumns(),
   subtype: text('subtype'),
   class: text('class'),
   isLand: integer('isLand', { mode: 'boolean' }),
   isTerritorial: integer('isTerritorial', { mode: 'boolean' }),
-  ...geoBbox,
-  ...sourceProvenance,
-  ...sourceVersioning,
 }
 
 export const sourceOvertureDivisionAreas = sqliteTable(
@@ -78,7 +76,7 @@ export const sourceOvertureDivisionBoundaries = sqliteTable(
 export const sourceOvertureDivisionI18n = sqliteTable(
   'overtureDivisionI18n',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceVersionedRecordColumns(),
     locale: text('locale').notNull(),
     name: text('name'),
     nameVariant: jsonText('nameVariant'),
@@ -87,7 +85,6 @@ export const sourceOvertureDivisionI18n = sqliteTable(
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
       .notNull()
       .default(false),
-    ...sourceVersioning,
   },
   table => [
     primaryKey({
@@ -101,7 +98,7 @@ export const sourceOvertureDivisionI18n = sqliteTable(
 export const sourceOverturePlaces = sqliteTable(
   'overturePlaces',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceAssertionColumns(),
     lng: real('lng'),
     lat: real('lat'),
     bbox: jsonText('bbox'),
@@ -117,8 +114,6 @@ export const sourceOverturePlaces = sqliteTable(
     phones: jsonText('phones'),
     addresses: jsonText('addresses'),
     confidence: real('confidence'),
-    ...sourceProvenance,
-    ...sourceVersioning,
   },
   table => [
     primaryKey({
@@ -133,7 +128,7 @@ export const sourceOverturePlaces = sqliteTable(
 export const sourceOverturePlaceI18n = sqliteTable(
   'overturePlaceI18n',
   {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceVersionedRecordColumns(),
     locale: text('locale').notNull(),
     name: text('name'),
     nameVariant: jsonText('nameVariant'),
@@ -144,7 +139,6 @@ export const sourceOverturePlaceI18n = sqliteTable(
     isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
       .notNull()
       .default(false),
-    ...sourceVersioning,
   },
   table => [
     primaryKey({
