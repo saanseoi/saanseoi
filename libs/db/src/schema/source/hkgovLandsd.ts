@@ -167,15 +167,16 @@ export const sourceHkgovLandsdStreetNoticeApplications = sqliteTable(
 )
 
 /**
- * Immutable LandsD Road Centreline source segment. `streetId` is validated by
- * the ingestion matcher; it deliberately has no SQL foreign key because the
- * authoritative street state is stored in a separate D1 shard.
+ * Immutable LandsD Road Centreline source segment. Segments without publisher
+ * street names are retained with no `streetId`; only matched records become
+ * canonical street geometry. There is deliberately no SQL foreign key because
+ * the authoritative street state is stored in a separate D1 shard.
  */
 export const sourceHkgovLandsdRoadCentrelines = sqliteTable(
   'hkgovLandsdRoadCentrelines',
   {
     ...sourceReleaseRevisionRecordColumns(),
-    streetId: text('streetId').notNull(),
+    streetId: text('streetId'),
     objectId: integer('objectId').notNull(),
     streetCode: text('streetCode').notNull(),
     streetType: text('streetType'),
