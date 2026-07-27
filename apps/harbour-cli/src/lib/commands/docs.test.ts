@@ -1,20 +1,33 @@
 import { describe, expect, test } from 'bun:test'
 
-import { parseMarkdownFixture, renderMarkdownFixtureBody } from './docs.ts'
+import {
+  parseMarkdownFixture,
+  releaseVersionFromSourceVersion,
+  renderMarkdownFixtureBody,
+} from './docs.ts'
 
 describe('docs markdown fixtures', () => {
+  test('normalises source versions for the release-version frontmatter', () => {
+    expect(releaseVersionFromSourceVersion('2022')).toBe('2022.0')
+    expect(releaseVersionFromSourceVersion('2025-09-24.0')).toBe('2025-09-24.0')
+    expect(releaseVersionFromSourceVersion('2025-09-24.1')).toBe('2025-09-24.1')
+  })
+
   test('renders lower-camel frontmatter tags in fixture bodies', () => {
     const fixture = parseMarkdownFixture(`---
 sourceSchemaVersion: "1.12.0"
 sourceVersion: "2025-09-24.0"
+releaseVersion: "2025-09-24.0"
 ---
 Schema \`{{sourceSchemaVersion}}\`
 Source \`{{ sourceVersion }}\`
+Release \`{{ releaseVersion }}\`
 Locale \`{{LOCALE}}\`
 `)
 
     expect(renderMarkdownFixtureBody(fixture)).toBe(`Schema \`1.12.0\`
 Source \`2025-09-24.0\`
+Release \`2025-09-24.0\`
 Locale \`{{LOCALE}}\`
 `)
   })
