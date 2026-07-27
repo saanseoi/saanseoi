@@ -8,6 +8,10 @@ import shp from 'shpjs'
 
 import type { UploadTarget } from '../cli/options.ts'
 import { buildManagedAssetUrl, uploadManagedSourceAsset } from './sourceAssets.ts'
+import {
+  HKGOV_TD_PEDESTRIAN_STREET_LAYERS,
+  readHkgovTdPedestrianStreetArchive,
+} from './hkgov/hkgovHyd.ts'
 
 const SOURCE_ARCHIVE_ROOT = 'by-source'
 const CSDI_ARCHIVE_PUBLISHER = 'hkgov-csdi'
@@ -264,9 +268,11 @@ async function inspectNativeSemantics(
   requestedLayers: string[] | undefined,
 ) {
   const entries = unzipSync(archiveBytes)
-  const parsed = Object.keys(entries).some(file => file.toLowerCase().includes('.gdb/'))
-    ? await fgdb(Uint8Array.from(archiveBytes))
-    : await shp(Uint8Array.from(archiveBytes).buffer)
+  const parsed = isTdPedestrianStreetLayers(requestedLayers)
+    ? readHkgovTdPedestrianStreetArchive(archiveBytes)
+    : Object.keys(entries).some(file => file.toLowerCase().includes('.gdb/'))
+      ? await fgdb(Uint8Array.from(archiveBytes))
+      : await shp(Uint8Array.from(archiveBytes).buffer)
   const featureCollections = readFeatureCollections(parsed)
   if (featureCollections.length === 0) return undefined
 
@@ -316,6 +322,15 @@ async function inspectNativeSemantics(
     layers,
     schemaFingerprint: sha256(stableJson(layers)),
   }
+}
+
+function isTdPedestrianStreetLayers(layers: string[] | undefined): layers is string[] {
+  return (
+    layers?.length === HKGOV_TD_PEDESTRIAN_STREET_LAYERS.length &&
+    layers.every(layer =>
+      (HKGOV_TD_PEDESTRIAN_STREET_LAYERS as readonly string[]).includes(layer),
+    )
+  )
 }
 
 function readFeatureCollections(value: unknown): Array<{
