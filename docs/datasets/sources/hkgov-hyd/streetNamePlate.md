@@ -8,7 +8,8 @@ The source is registered as
 [`ds-hk-hkgov-hyd-street`](../../../../fixtures/meta/datasets/hkgov-hyd-hk-street.json).
 The updater reads every CSDI Archived Dataset slot and mirrors the native publisher FGDB
 package. It does not use CSDI's converted GeoJSON delivery. Every publisher artefact is
-kept as an immutable R2 ZIP with a public Atlas API download and a provenance manifest.
+kept as an immutable managed ZIP with a public SaanSeoi API download and a provenance
+manifest.
 
 The same HighwayD Streets domain also contains the CSDI `Sensitive Street` and
 `Strategic Street` classifications. The Transport Department `Pedestrian Streets`
@@ -24,11 +25,17 @@ Street). It retains `OBJECTID`, timing, native geometry, and the three publisher
 descriptions; calculated shape area and length are not treated as source facts. CSDI
 converted GeoJSON is only a historical regression fixture, never an intake dependency.
 
+Native ingestion writes those source assertions directly to the source SQLite shard: one
+table each for name plates, sensitive streets, strategic streets, and pedestrian
+streets, with a separate localised-description table for the pedestrian source. The
+mirrored archive object key and SHA-256 are retained in every assertion's provenance.
+The local source DB cache is updated before the same SQL is imported to preview or
+production D1; the archive is never reloaded from managed storage during intake.
+
 This belongs to the Streets API family as official street-name evidence. It is not a
-street-centerline or street-geometry dataset: the point is the sign location, and
-several points may carry the same `ROAD_NAME`. The point geometry should therefore be
-retained as source provenance when street ingestion is implemented, rather than exposed
-as a false centerline geometry.
+street-centreline or street-geometry dataset: the point is the sign location, and
+several points may carry the same `ROAD_NAME`. The point geometry is therefore retained
+as source provenance, rather than exposed as a false centreline geometry.
 
 ## Archive release notes
 
