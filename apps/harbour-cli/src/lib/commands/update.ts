@@ -589,6 +589,7 @@ async function processUpdate(
   if (promptForDownload) replaceResolvedDecision()
 
   const path = await downloadWithSpinner(update, {
+    forceDownload: options.forceDownload,
     index: options.updateIndex,
     row: options.row,
     total: options.updateTotal,
@@ -616,7 +617,7 @@ async function processUpdate(
       return 'mirrored' as const
     }
     if (promptForIngest) replaceResolvedDecision()
-    const result = await update.postArchiveIngest(options.target)
+    const result = await update.postArchiveIngest(options.target, prepared)
     return result === 'ingested' ? ('ingested' as const) : ('mirrored' as const)
   }
 
@@ -735,12 +736,27 @@ async function askToInvestigate(update: DatasetUpdate) {
 async function downloadWithSpinner(
   update: DatasetUpdate,
   options: {
+    forceDownload: boolean
     index: number
     row: UpdateRow
     targetVersion: string | undefined
     total: number
   },
 ) {
+  const cached = options.forceDownload
+    ? undefined
+    : await findCachedDownload(update.downloadPath)
+  if (cached) {
+    options.row.cached(
+      update,
+      options.index,
+      options.total,
+      options.targetVersion,
+      cached.size,
+    )
+    return update.downloadPath as string
+  }
+
   const startedAt = Date.now()
   options.row.downloading(update, options.index, options.total)
 
@@ -760,6 +776,17 @@ async function downloadWithSpinner(
   } catch (error) {
     options.row.error('Download failed')
     throw error
+  }
+}
+
+async function findCachedDownload(path: string | undefined) {
+  if (!path) return undefined
+
+  try {
+    const file = await stat(path)
+    return file.isFile() && file.size > 0 ? file : undefined
+  } catch {
+    return undefined
   }
 }
 
@@ -835,6 +862,28 @@ export function formatDownloadCompleteLine(
   const release = `${position.trimStart()} ${dim(
     `(${formatElapsed(elapsed)}, ${formatBytes(bytes)})`,
   )}`
+  return formatDownloadResultLine(dataset, release, version, targetVersion)
+}
+
+function formatDownloadCachedLine(
+  dataset: DatasetFixture,
+  index: number,
+  total: number,
+  version: string | undefined,
+  targetVersion: string | null | undefined,
+  bytes: number,
+) {
+  const position = total > 1 ? ` ${index + 1}/${total}` : ''
+  const release = `${position.trimStart()} ${dim(`(cached, ${formatBytes(bytes)})`)}`
+  return formatDownloadResultLine(dataset, release, version, targetVersion)
+}
+
+function formatDownloadResultLine(
+  dataset: DatasetFixture,
+  release: string,
+  version: string | undefined,
+  targetVersion: string | null | undefined,
+) {
   const versions = formatVersionColumns(version, targetVersion)
   const label = formatDatasetCheckLabel(dataset)
   const padding = Math.max(
@@ -1175,6 +1224,26 @@ class UpdateRow {
       ),
     )
     this.active = false
+  }
+
+  cached(
+    update: DatasetUpdate,
+    index: number,
+    total: number,
+    targetVersion: string | undefined,
+    bytes: number,
+  ) {
+    log.success(
+      formatDownloadCachedLine(
+        this.dataset,
+        index,
+        total,
+        update.version,
+        targetVersion,
+        bytes,
+      ),
+      { spacing: 0, withGuide: false },
+    )
   }
 
   clear() {
