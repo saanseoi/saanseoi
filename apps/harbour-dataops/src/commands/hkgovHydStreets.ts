@@ -118,8 +118,16 @@ export async function runHkgovHydStreetArchiveIngestCommand(
       source: 'hkgov-hyd',
       sourceVersion,
       tables: [
-        { name: 'hkgovTdPedestrianStreets', rows: baseRows },
-        { name: 'hkgovTdPedestrianStreetI18n', rows: i18nRows },
+        {
+          name: 'hkgovTdPedestrianStreets',
+          replaceCurrentRows: true,
+          rows: baseRows,
+        },
+        {
+          name: 'hkgovTdPedestrianStreetI18n',
+          replaceCurrentRows: true,
+          rows: i18nRows,
+        },
       ],
       theme: 'streets',
       type: 'street',
@@ -168,7 +176,7 @@ export async function runHkgovHydStreetArchiveIngestCommand(
     rowCount: rows.length,
     source: 'hkgov-hyd',
     sourceVersion,
-    tables: [{ name: profile.table, rows }],
+    tables: [{ name: profile.table, replaceCurrentRows: true, rows }],
     theme: 'streets',
     type: 'street',
   })
