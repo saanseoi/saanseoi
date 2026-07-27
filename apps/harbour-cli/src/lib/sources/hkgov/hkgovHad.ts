@@ -50,7 +50,6 @@ type PreparedHkgovHadDistrictRow = {
   id: string
   object_id: number | null
   region: 'HK'
-  source_crs: 'EPSG:4326'
   source_feature: HkgovHadFeature
   source_geometry: GeoJsonGeometry
   source_properties: Record<string, unknown>
@@ -155,11 +154,6 @@ export async function prepareHkgovHadDistrictUpload(
         'csdi_admin_area_id',
         rows.map(row => row.csdi_admin_area_id),
       ),
-      stringColumn(
-        'source_crs',
-        rows.map(row => row.source_crs),
-        false,
-      ),
       jsonColumn(
         'source_geometry',
         rows.map(row => row.source_geometry),
@@ -226,7 +220,6 @@ function normaliseHkgovHadDistrictFeature(
     id: `HAD:${areaId}`,
     object_id: optionalInteger(properties.OBJECTID),
     region: 'HK',
-    source_crs: 'EPSG:4326',
     source_feature: feature,
     source_geometry: geometry,
     source_properties: properties as Record<string, unknown>,

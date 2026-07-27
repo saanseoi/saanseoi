@@ -171,6 +171,8 @@ export type UpdateUpload = {
 
 export type DatasetUpdate = {
   archive?: CsdiSourceArchive
+  /** Assigns a non-CSDI package to one of the updater's three report phases. */
+  phase?: DatasetUpdatePhase
   deferStateUntilProcessed?: boolean
   dataset: DatasetFixture
   isKnownIdenticalArchive?: boolean
@@ -467,8 +469,9 @@ function isReleasePolicyCheckDue(
   previous: UpdatePhaseState | undefined,
   options: { force?: boolean; hasTargetRelease?: boolean; now: number },
 ) {
-  if (check.trigger === 'never' || check.trigger === 'on-discovery') return false
+  if (check.trigger === 'never') return false
   if (options.force) return true
+  if (check.trigger === 'on-discovery') return false
   if (check.trigger === 'initial-only') {
     return options.hasTargetRelease === false && !previous?.lastChecked
   }
@@ -714,7 +717,12 @@ function readStreetSourceDate(versionKey: string) {
   return versionKey.match(/^(\d{4}-\d{2}-\d{2})/)?.[1]
 }
 
-async function lookupOverture({ dataset, localVersion, previous }: LookupContext) {
+async function lookupOverture({
+  dataset,
+  localVersion,
+  previous,
+  targetVersions,
+}: LookupContext) {
   const sourceUrl = 'https://stac.overturemaps.org/catalog.json'
   const response = await fetch(sourceUrl)
   if (!response.ok) throw new Error(`STAC request failed with HTTP ${response.status}.`)
@@ -723,9 +731,67 @@ async function lookupOverture({ dataset, localVersion, previous }: LookupContext
     throw new Error('Overture STAC catalog did not contain a latest release.')
   }
 
-  const version = payload.latest
+  const s3Versions =
+    dataset.releasePolicy?.archives.operation === 'overture-release-catalog'
+      ? await listOverturistReleaseVersions()
+      : []
+  const version = s3Versions[0] ?? payload.latest
   const resourceType = requireSingleResourceType(dataset)
   const outputFileName = overtureOutputFileName(resourceType)
+  const latestUpdate = createOvertureUpdate({
+    dataset,
+    version,
+    localVersion,
+    previous,
+    outputFileName,
+    resourceType,
+    sourceUrl,
+  })
+  if (dataset.releasePolicy?.archives.operation !== 'overture-release-catalog') {
+    return latestUpdate
+  }
+
+  const archiveUpdates = s3Versions
+    .filter(archiveVersion => archiveVersion !== version)
+    .map(archiveVersion => {
+      const archiveLocalVersion =
+        targetVersions?.get(archiveVersion) ??
+        previous?.sourceChecks?.[archiveVersion]?.version
+      return createOvertureUpdate({
+        dataset,
+        version: archiveVersion,
+        localVersion: archiveLocalVersion,
+        previous: previous?.sourceChecks?.[archiveVersion],
+        outputFileName,
+        resourceType,
+        sourceUrl,
+        phase: 'archives',
+      })
+    })
+    .filter(update => update.status !== 'current')
+
+  return [latestUpdate, ...archiveUpdates]
+}
+
+function createOvertureUpdate({
+  dataset,
+  version,
+  localVersion,
+  previous,
+  outputFileName,
+  resourceType,
+  sourceUrl,
+  phase,
+}: {
+  dataset: DatasetFixture
+  version: string
+  localVersion?: string
+  previous?: UpdateSourceState
+  outputFileName: string
+  resourceType: string
+  sourceUrl: string
+  phase?: DatasetUpdatePhase
+}) {
   const downloadPath = resolve(
     REPO_ROOT,
     'data/overture',
@@ -735,6 +801,14 @@ async function lookupOverture({ dataset, localVersion, previous }: LookupContext
   )
   const releaseCatalogUrl = `https://stac.overturemaps.org/${encodeURIComponent(version)}/catalog.json`
   return {
+    ...(phase
+      ? {
+          deferStateUntilProcessed: true,
+          phase,
+          sourceKey: version,
+          targetSourceKey: version,
+        }
+      : {}),
     dataset,
     status: resolveDatasetStatus({
       dataset,
@@ -750,17 +824,23 @@ async function lookupOverture({ dataset, localVersion, previous }: LookupContext
     downloadPath,
     releaseLastRevisedAt: version,
     download: async () => downloadOverture(version, dataset.theme, outputFileName),
-    upload: {
-      positionals: [],
-      options: {
-        region: dataset.regionCode,
-        source: 'overture',
-        'source-version': version,
-        theme: dataset.theme,
-        type: resourceType,
-      },
-    },
-    message: `Overturist downloaded the Hong Kong ${dataset.theme} release.`,
+    ...(phase
+      ? {}
+      : {
+          upload: {
+            positionals: [],
+            options: {
+              region: dataset.regionCode,
+              source: 'overture',
+              'source-version': version,
+              theme: dataset.theme,
+              type: resourceType,
+            },
+          },
+        }),
+    message: phase
+      ? `Overturist downloaded an archived Hong Kong ${dataset.theme} release.`
+      : `Overturist downloaded the Hong Kong ${dataset.theme} release.`,
   } satisfies DatasetUpdate
 }
 
@@ -777,6 +857,38 @@ export function buildOverturistCommand(version: string, theme: string) {
     theme,
     '--replace',
   ]
+}
+
+export function buildOverturistReleasesCommand() {
+  return [process.execPath, OVERTURIST_ENTRYPOINT, 'releases', '--format', 'json']
+}
+
+async function listOverturistReleaseVersions() {
+  const child = Bun.spawn(buildOverturistReleasesCommand(), {
+    cwd: OVERTURIST_ROOT,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  })
+  const [exitCode, stdout, stderr] = await Promise.all([
+    child.exited,
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+  ])
+  if (exitCode !== 0) {
+    throw new Error(`Overturist release listing failed: ${stderr.trim() || exitCode}`)
+  }
+  const payload = JSON.parse(stdout) as { versions?: unknown }
+  if (!Array.isArray(payload.versions)) {
+    throw new Error('Overturist release listing did not return a versions array.')
+  }
+  const versions = payload.versions.filter(
+    (candidate): candidate is string =>
+      typeof candidate === 'string' && /^20\d{2}-\d{2}-\d{2}\.\d+$/.test(candidate),
+  )
+  if (versions.length !== payload.versions.length) {
+    throw new Error('Overturist release listing returned an invalid version.')
+  }
+  return versions
 }
 
 async function downloadOverture(
@@ -1242,7 +1354,12 @@ function readCsdiArchiveObjectHash(url: string) {
   return `sha256:${key}`
 }
 
-async function lookupDataGovHk({ dataset, localVersion, previous }: LookupContext) {
+async function lookupDataGovHk({
+  dataset,
+  localVersion,
+  previous,
+  targetVersions,
+}: LookupContext) {
   const sourceUrl = dataset.sourceUrl
   if (!sourceUrl) throw new Error('The DATA.GOV.HK dataset has no catalogue URL.')
 
@@ -1257,10 +1374,10 @@ async function lookupDataGovHk({ dataset, localVersion, previous }: LookupContex
     end,
     url: DATA_GOV_HK_ALS_RESOURCE_URL,
   }).toString()
-  const archiveTimestamp = findLatestArchiveTimestamp(
+  const archiveTimestamps = findArchiveTimestamps(
     await fetchJsonWithRetry(archiveUrl.toString()),
   )
-  if (!archiveTimestamp) {
+  if (archiveTimestamps.length === 0) {
     return {
       dataset,
       status: 'manual',
@@ -1269,21 +1386,64 @@ async function lookupDataGovHk({ dataset, localVersion, previous }: LookupContex
     } satisfies DatasetUpdate
   }
 
-  const releaseDate = `${archiveTimestamp.slice(0, 4)}-${archiveTimestamp.slice(
-    4,
-    6,
-  )}-${archiveTimestamp.slice(6, 8)}`
-  const version = resolveDatasetVersion(
-    dataset,
-    releaseDate,
-    previous,
-    archiveTimestamp,
-  )
-  if (!version)
+  const versions = resolveDataGovArchiveVersions(archiveTimestamps)
+  const latestTimestamp = archiveTimestamps.at(-1)
+  const latestVersion = latestTimestamp ? versions.get(latestTimestamp) : undefined
+  if (!latestTimestamp || !latestVersion) {
     throw new Error('The DATA.GOV.HK archive response did not include a version.')
+  }
+  const latestUpdate = createDataGovHkUpdate({
+    dataset,
+    sourceUrl,
+    timestamp: latestTimestamp,
+    version: latestVersion,
+    localVersion,
+    previous,
+    ingest: true,
+  })
+  const archiveUpdates = archiveTimestamps
+    .filter(timestamp => timestamp !== latestTimestamp)
+    .flatMap(timestamp => {
+      const version = versions.get(timestamp)
+      if (!version) return []
+      const archiveLocalVersion =
+        targetVersions?.get(version) ?? previous?.sourceChecks?.[version]?.version
+      const update = createDataGovHkUpdate({
+        dataset,
+        sourceUrl,
+        timestamp,
+        version,
+        localVersion: archiveLocalVersion,
+        previous: previous?.sourceChecks?.[version],
+        phase: 'archives',
+      })
+      return update.status === 'current' ? [] : [update]
+    })
+  return [latestUpdate, ...archiveUpdates]
+}
+
+function createDataGovHkUpdate({
+  dataset,
+  sourceUrl,
+  timestamp,
+  version,
+  localVersion,
+  previous,
+  phase,
+  ingest,
+}: {
+  dataset: DatasetFixture
+  sourceUrl: string
+  timestamp: string
+  version: string
+  localVersion?: string
+  previous?: UpdateSourceState
+  phase?: DatasetUpdatePhase
+  ingest?: boolean
+}) {
   const downloadUrl = new URL('https://api.data.gov.hk/v1/historical-archive/get-file')
   downloadUrl.search = new URLSearchParams({
-    time: archiveTimestamp,
+    time: timestamp,
     url: DATA_GOV_HK_ALS_RESOURCE_URL,
   }).toString()
   const downloadPath = resolve(
@@ -1292,24 +1452,112 @@ async function lookupDataGovHk({ dataset, localVersion, previous }: LookupContex
     `${safeFilePart(version)}-ALS.zip`,
   )
   return {
+    ...(phase
+      ? {
+          deferStateUntilProcessed: true,
+          phase,
+          sourceKey: version,
+          targetSourceKey: version,
+        }
+      : {}),
     dataset,
     status: resolveDatasetStatus({
       dataset,
       version,
       localVersion,
       previous,
-      releaseLastRevisedAt: archiveTimestamp,
+      releaseLastRevisedAt: timestamp,
     }),
     version,
     versionKey: version,
     sourceUrl,
     downloadUrl: downloadUrl.toString(),
     downloadPath,
-    releaseLastRevisedAt: archiveTimestamp,
-    download: async () => downloadResponse(downloadUrl.toString(), downloadPath),
-    message:
-      'ALS releases require the existing prep/ingest workflow and identity review before upload.',
+    releaseLastRevisedAt: timestamp,
+    ...(ingest
+      ? {
+          ingest: async (target: import('../cli/options.ts').UploadTarget) =>
+            ingestDataGovHkAlsRelease({
+              downloadPath,
+              downloadUrl: downloadUrl.toString(),
+              target,
+              timestamp,
+              version,
+            }),
+        }
+      : {
+          download: async () => downloadResponse(downloadUrl.toString(), downloadPath),
+        }),
+    message: ingest
+      ? 'ALS will be unpacked, identity-reviewed, and uploaded through the existing local backfill workflow.'
+      : 'Archived ALS package available; downloading it does not upload it.',
   } satisfies DatasetUpdate
+}
+
+/** Maps chronological DATA.GOV.HK delivery timestamps to release-date corrections. */
+function resolveDataGovArchiveVersions(timestamps: readonly string[]) {
+  const correctionByDate = new Map<string, number>()
+  const versions = new Map<string, string>()
+  for (const timestamp of [...timestamps].sort()) {
+    const releaseDate = `${timestamp.slice(0, 4)}-${timestamp.slice(4, 6)}-${timestamp.slice(6, 8)}`
+    const correction = correctionByDate.get(releaseDate) ?? 0
+    correctionByDate.set(releaseDate, correction + 1)
+    versions.set(timestamp, `${releaseDate}.${correction}`)
+  }
+  return versions
+}
+
+async function ingestDataGovHkAlsRelease({
+  downloadPath,
+  downloadUrl,
+  target,
+  timestamp,
+  version,
+}: {
+  downloadPath: string
+  downloadUrl: string
+  target: import('../cli/options.ts').UploadTarget
+  timestamp: string
+  version: string
+}) {
+  if (target.remote) {
+    throw new Error(
+      'DPO ALS preparation and upload currently support --target local only.',
+    )
+  }
+  await downloadResponse(downloadUrl, downloadPath)
+  const sourceRoot = resolve(REPO_ROOT, 'data/hkgov/dpo/ALS')
+  const sourceDir = resolve(sourceRoot, `${timestamp}-ALS-GeoJSON`)
+  await mkdir(sourceDir, { recursive: true })
+  const unzip = Bun.spawn(['unzip', '-q', '-n', downloadPath, '-d', sourceDir], {
+    cwd: REPO_ROOT,
+    stdout: 'inherit',
+    stderr: 'inherit',
+  })
+  if ((await unzip.exited) !== 0) {
+    throw new Error(`Could not unpack ALS release ${timestamp}.`)
+  }
+  const dataops = Bun.spawn(
+    [
+      process.execPath,
+      'run',
+      '--silent',
+      'dataops',
+      '--',
+      'hkgov-dpo:backfill-local',
+      sourceRoot,
+      '--target',
+      'local',
+      '--cohort-key',
+      version,
+      '--from-source-version',
+      version,
+    ],
+    { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
+  )
+  if ((await dataops.exited) !== 0) {
+    throw new Error(`DPO ALS backfill failed for ${version}.`)
+  }
 }
 
 async function fetchText(url: string): Promise<{ body: string; headers: Headers }> {
@@ -1408,6 +1656,7 @@ function resolveDatasetStatus(input: {
   const previousReleaseRevision =
     input.previous?.releaseLastRevisedAt ?? input.dataset.releaseLastRevisedAt
   if (
+    input.dataset.releasePolicy?.revisionScope !== 'none' &&
     input.releaseLastRevisedAt &&
     previousReleaseRevision &&
     input.releaseLastRevisedAt !== previousReleaseRevision
@@ -1535,15 +1784,14 @@ function readDatasetId(sourceUrl: string | undefined) {
   return new URL(sourceUrl).searchParams.get('datasetId') ?? undefined
 }
 
-function findLatestArchiveTimestamp(payload: unknown) {
-  if (!isRecord(payload) || !Array.isArray(payload.timestamps)) return undefined
+function findArchiveTimestamps(payload: unknown) {
+  if (!isRecord(payload) || !Array.isArray(payload.timestamps)) return []
   return payload.timestamps
     .filter(
       (timestamp): timestamp is string =>
         typeof timestamp === 'string' && /^\d{8}-\d{4}$/.test(timestamp),
     )
     .sort()
-    .at(-1)
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

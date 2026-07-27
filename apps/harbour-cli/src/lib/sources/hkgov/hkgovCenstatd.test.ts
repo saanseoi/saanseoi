@@ -111,7 +111,6 @@ describe('C&SD district GML preparation', () => {
           { locale: 'en', name: 'District 1' },
           { locale: 'zh-hant', name: '地區1' },
         ],
-        source_crs: 'EPSG:2326',
         source_geometry: { type: 'MultiPolygon' },
         source_feature: { type: 'GML32Feature' },
         source_properties: { dc_class: 'A', sdu_pop: '0' },

@@ -347,11 +347,6 @@ function writeDivisionParquet(
         false,
       ),
       stringColumn(
-        'source_crs',
-        rows.map(() => 'EPSG:4326'),
-        false,
-      ),
-      stringColumn(
         'source_schema_version',
         rows.map(() => sourceSchemaVersion(sourceVersion)),
         false,
@@ -454,11 +449,6 @@ function writeDivisionAreaParquet(
       jsonColumn(
         'source_properties',
         rows.map(row => row.sourceProperties),
-        false,
-      ),
-      stringColumn(
-        'source_crs',
-        rows.map(() => 'EPSG:4326'),
         false,
       ),
       stringColumn(

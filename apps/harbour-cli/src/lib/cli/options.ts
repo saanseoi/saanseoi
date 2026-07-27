@@ -64,6 +64,10 @@ export function buildRegisterOptions(
   args: ParsedArgs,
 ): CliUploadOptions {
   return {
+    datasetCode:
+      typeof args.options['dataset-code'] === 'string'
+        ? args.options['dataset-code']
+        : undefined,
     filePath: resolve(invocationCwd, inputFile),
     type: typeof args.options.type === 'string' ? args.options.type : undefined,
     theme: typeof args.options.theme === 'string' ? args.options.theme : undefined,

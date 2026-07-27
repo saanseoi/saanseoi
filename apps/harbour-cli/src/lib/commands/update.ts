@@ -220,6 +220,12 @@ function updateBelongsToPhase(
   plan: PlannedDatasetUpdates,
   phase: 'new-releases' | 'revisions' | 'archives',
 ) {
+  if (update.phase) {
+    return (
+      update.phase === phase &&
+      (update.phase !== 'archives' || isArchiveActionable(plan))
+    )
+  }
   if (update.archive) return phase === 'archives' && isArchiveActionable(plan)
   if (phase === 'archives') return false
   if (update.status === 'review') return phase === 'revisions'
@@ -236,7 +242,10 @@ function updateBelongsToPhase(
 function isArchiveActionable(plan: PlannedDatasetUpdates) {
   const check = plan.dataset.releasePolicy?.checks.archives
   if (!check) return false
-  if (check.trigger === 'periodic') return plan.duePhases.includes('archives')
+  // An explicitly due archive phase (currently only a periodic policy or a
+  // forced check) must report every unresolved archive slot. On-discovery
+  // policies otherwise limit routine scans to release events.
+  if (plan.duePhases.includes('archives')) return true
   if (check.trigger !== 'on-discovery') return false
 
   const initialDownload = ![...plan.targetVersions.values()].some(
@@ -317,7 +326,10 @@ async function processPlannedUpdates(
       }
       if (
         deferStateUntilProcessed &&
-        (result === 'ingested' || result === 'mirrored' || update.status === 'current')
+        (result === 'ingested' ||
+          result === 'mirrored' ||
+          (update.phase === 'archives' && result === 'downloaded') ||
+          update.status === 'current')
       ) {
         recordUpdateState(options.state, plan.dataset.code, update)
       }
@@ -345,7 +357,7 @@ export async function resolveApiFamilySelection(
   datasets: readonly DatasetFixture[],
   requested?: Set<string>,
 ) {
-  const selected = args.options['api-family']
+  const selected = args.options['api-family'] ?? args.options.scope
   if (requested && selected !== undefined) {
     throw new Error('Use either --dataset or --api-family to select updates, not both.')
   }
@@ -366,11 +378,12 @@ export async function resolveApiFamilySelection(
   return selected
 }
 
-function updateStatusLabel(update: DatasetUpdate) {
+function updateStatusLabel(update: DatasetUpdate, targetVersion?: string | null) {
   if (update.status === 'error') return 'ERROR'
   if (update.status === 'manual') return 'MANUAL'
   if (update.status === 'skipped') return 'SKIPPED'
   if (update.status === 'review') return 'REVIEW'
+  if (update.status === 'new' && targetVersion === null) return 'MISSING'
   return update.status === 'new' ? 'NEW' : 'no updates'
 }
 
@@ -439,6 +452,12 @@ async function fetchTargetVersions(
   })
   const targetVersions = new Map<string, string | null>()
   const releases = dataset.releases?.length ? dataset.releases : [undefined]
+
+  for (const sourceVersion of report.rows
+    .map(row => row.sourceVersion)
+    .filter((version): version is string => Boolean(version))) {
+    targetVersions.set(sourceVersion, normaliseDatasetVersion(dataset, sourceVersion))
+  }
 
   for (const [index, release] of releases.entries()) {
     const releaseSourceVersion = release?.sourceVersion
@@ -782,38 +801,56 @@ export function formatDatasetCheckLine(
   targetVersions: ReadonlyMap<string, string | null>,
 ) {
   const label = formatDatasetCheckLabel(dataset)
-  if (updates.length === 1) {
-    const update = updates[0] as DatasetUpdate
+  const orderedUpdates = orderUpdatesForDisplay(dataset, updates)
+  if (orderedUpdates.length === 1) {
+    const update = orderedUpdates[0] as DatasetUpdate
+    const targetVersion = targetVersionForUpdate(update, dataset, targetVersions)
     return formatUpdateLineWithLabel(
       label,
       update.version,
-      targetVersionForUpdate(update, dataset, targetVersions),
-      updateStatusLabel(update),
+      targetVersion,
+      updateStatusLabel(update, targetVersion),
     )
   }
 
-  const first = updates[0] as DatasetUpdate
-  const releaseLines = updates.slice(1).map(update => {
+  const first = orderedUpdates[0] as DatasetUpdate
+  const releaseLines = orderedUpdates.slice(1).map(update => {
     const continuation = `${dim('│')} ${' '.repeat(
       Math.max(0, visibleWidth(label) - 2),
     )}`
+    const targetVersion = targetVersionForUpdate(update, dataset, targetVersions)
     return formatUpdateLineWithLabel(
       continuation,
       update.version,
-      targetVersionForUpdate(update, dataset, targetVersions),
-      updateStatusLabel(update),
+      targetVersion,
+      updateStatusLabel(update, targetVersion),
       UPDATE_LINE_WIDTH + CLACK_STATUS_PREFIX_WIDTH,
     )
   })
+  const firstTargetVersion = targetVersionForUpdate(first, dataset, targetVersions)
   return [
     formatUpdateLineWithLabel(
       label,
       first.version,
-      targetVersionForUpdate(first, dataset, targetVersions),
-      updateStatusLabel(first),
+      firstTargetVersion,
+      updateStatusLabel(first, firstTargetVersion),
     ),
     ...releaseLines,
   ].join('\n')
+}
+
+function orderUpdatesForDisplay(dataset: DatasetFixture, updates: DatasetUpdate[]) {
+  if (dataset.releasePolicy?.series !== 'cohort') return updates
+
+  return updates.toSorted((left, right) => {
+    const versionComparison = (right.version ?? '').localeCompare(
+      left.version ?? '',
+      undefined,
+      { numeric: true },
+    )
+    if (versionComparison !== 0) return versionComparison
+    return (right.sourceKey ?? '').localeCompare(left.sourceKey ?? '')
+  })
 }
 
 function targetVersionForUpdate(
@@ -855,7 +892,9 @@ function formatUpdateLineWithLabel(
 ) {
   const showStatus =
     Boolean(status) &&
-    (!releasesDiffer(version, targetVersion) || (status === 'no updates' && !version))
+    (status === 'MISSING' ||
+      !releasesDiffer(version, targetVersion) ||
+      (status === 'no updates' && !version))
   const statusText = showStatus
     ? status === 'ERROR'
       ? colorize((status as string).padStart(VERSION_COLUMN_WIDTH), 31)

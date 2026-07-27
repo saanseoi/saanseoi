@@ -6,7 +6,6 @@ import type { GeoJsonGeometry, GeoJsonPosition } from '@repo/core/pipeline/geojs
 export type HkgovCenstatdGmlFeature = {
   geometry: GeoJsonGeometry
   properties: Record<string, unknown>
-  sourceCrs: 'EPSG:2326'
   sourceGeometry: GeoJsonGeometry
   sourceGml: Record<string, unknown>
   type: 'Feature'
@@ -63,7 +62,13 @@ export function parseHkgovCenstatdDistrictGml(
     const properties: Record<string, unknown> = {}
     for (const [name, value] of Object.entries(feature)) {
       const localName = name.split(':').at(-1)
-      if (!localName || localName === 'SHAPE' || name.startsWith('@_')) continue
+      if (
+        !localName ||
+        localName === 'SHAPE' ||
+        localName === 'geometryProperty' ||
+        name.startsWith('@_')
+      )
+        continue
       properties[localName] = value
     }
 
@@ -71,7 +76,6 @@ export function parseHkgovCenstatdDistrictGml(
     return {
       geometry: projectHk80Geometry(sourceGeometry),
       properties,
-      sourceCrs: 'EPSG:2326',
       sourceGeometry,
       sourceGml: feature,
       type: 'Feature',

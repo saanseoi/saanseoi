@@ -52,9 +52,14 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
       name_zh_hant: text(properties.DC_CHI, 'DC_CHI', index),
       raw_properties: JSON.stringify(properties),
       reference_year: referenceYear,
-      source_archive_key: input.sourceArchiveKey,
       source_geometry: JSON.stringify(feature.sourceGeometry),
-      sources: JSON.stringify([{ dataset: 'hkgov-censtatd', districtCode }]),
+      sources: JSON.stringify([
+        {
+          dataset: 'hkgov-censtatd',
+          districtCode,
+          sourceArchiveKey: input.sourceArchiveKey,
+        },
+      ]),
     }
   })
 
@@ -98,10 +103,6 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
           stringColumn(
             'reference_year',
             rows.map(row => row.reference_year),
-          ),
-          stringColumn(
-            'source_archive_key',
-            rows.map(row => row.source_archive_key),
           ),
           stringColumn(
             'source_geometry',

@@ -3,17 +3,24 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 import { unzipSync } from 'fflate'
+import { and, eq } from 'drizzle-orm'
+
+import { metaAssets } from '@repo/db'
 
 import type {
   ParsedArgs,
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { withLocalMetaDb } from '../../../harbour-cli/src/lib/addressSql/localDbCache.ts'
 import { prepareHkgovCenstatdDistrictStatisticUpload } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdDistrictStatistics.ts'
+import {
+  mirrorCsdiSourceArchive,
+  prepareCsdiSourceArchive,
+} from '../../../harbour-cli/src/lib/sources/sourceArchives.ts'
 
 const DATASET_CODE =
   'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
-const DATASET_ID = 'censtatd_rcd_1635934215448_25451'
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 
 export async function runHkgovCenstatdDistrictStatisticIngestCommand(
@@ -35,8 +42,9 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
   const release = await resolveRelease(sourceVersion)
   const workDir = await mkdtemp(join(tmpdir(), 'harbour-hkgov-censtatd-density-'))
   try {
+    const sourceArchiveKey = await ensureLocalSourceArchive(release, workDir)
     const archivePath = join(workDir, 'source.zip')
-    await readLocalSourceArchive(release.objectKey, archivePath)
+    await readLocalSourceArchive(sourceArchiveKey, archivePath)
     const archive = unzipSync(new Uint8Array(await readFile(archivePath)))
     const gmlBytes = archive[`Density_${sourceVersion}.gml`]
     if (!gmlBytes)
@@ -50,7 +58,7 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
     await prepareHkgovCenstatdDistrictStatisticUpload({
       inputFile: gmlPath,
       outputFile: parquetPath,
-      sourceArchiveKey: release.objectKey,
+      sourceArchiveKey,
       sourceVersion,
     })
     await runUploadCommand(
@@ -59,7 +67,9 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
         positionals: [parquetPath],
         options: {
           'cohort-key': sourceVersion,
+          'dataset-code': DATASET_CODE,
           region: 'hk',
+          'release-notes-url': release.sourceUrl,
           source: 'hkgov-censtatd',
           'source-version': sourceVersion,
           theme: 'stats',
@@ -70,7 +80,9 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
       target,
       {
         dryRun: false,
-        forceUpload: false,
+        // A previous local process can have staged this deterministic release
+        // before the source-statistic importer ran; retry that staged release.
+        forceUpload: true,
         invocationCwd: REPO_ROOT,
         printUsage: () => undefined,
         skipConfirm: true,
@@ -95,17 +107,144 @@ async function resolveRelease(sourceVersion: '2022' | '2024') {
   ) as {
     releases?: Array<{
       sourceVersion?: string
-      archiveSlots?: Array<{ contentHash?: string; releaseSlot?: string }>
+      sourceUrl?: string
+      archiveSlots?: Array<{
+        contentHash?: string
+        releaseSlot?: string
+        sourceObjectHash?: string
+      }>
     }>
   }
   const slot = fixture.releases?.find(
     release => release.sourceVersion === sourceVersion,
   )?.archiveSlots?.[0]
-  if (!slot?.contentHash || !slot.releaseSlot)
+  const sourceUrl = fixture.releases?.find(
+    release => release.sourceVersion === sourceVersion,
+  )?.sourceUrl
+  if (!slot?.contentHash || !slot.releaseSlot || !slot.sourceObjectHash || !sourceUrl)
     throw new Error(`Fixture lacks the CSDI archive mapping for ${sourceVersion}.`)
   return {
-    objectKey: `by-source/hk/hkgov-csdi/${DATASET_ID}/${slot.releaseSlot}/${slot.contentHash}-source.zip`,
+    contentHash: slot.contentHash,
+    releaseSlot: slot.releaseSlot,
+    sourceObjectHash: slot.sourceObjectHash,
+    sourceUrl,
+    sourceVersion,
   }
+}
+
+type CsdiRelease = {
+  contentHash: string
+  releaseSlot: string
+  sourceObjectHash: string
+  sourceUrl: string
+  sourceVersion: '2022' | '2024'
+}
+
+/**
+ * Resolves the registered immutable archive, repairing only an absent local
+ * mirror from the fixture-pinned publisher package when local R2 storage was
+ * migrated without its source-asset metadata.
+ */
+async function ensureLocalSourceArchive(release: CsdiRelease, workDir: string) {
+  try {
+    return await resolveLocalSourceArchiveKey(release.contentHash)
+  } catch (error) {
+    if (
+      !(error instanceof Error) ||
+      !error.message.startsWith('No local sourceArchive asset is registered')
+    ) {
+      throw error
+    }
+  }
+
+  const sourceUrl = `https://static.csdi.gov.hk/csdi-webpage/download/common/${release.sourceObjectHash}?a=1`
+  const publisherDownloadPath = join(workDir, 'publisher-download')
+  const response = await fetch(sourceUrl)
+  if (!response.ok) {
+    throw new Error(
+      `Could not re-mirror mapped CSDI archive ${release.releaseSlot}: HTTP ${response.status}.`,
+    )
+  }
+  await writeFile(publisherDownloadPath, new Uint8Array(await response.arrayBuffer()))
+  const archive = {
+    datasetCode: DATASET_CODE,
+    datasetId: 'censtatd_rcd_1635934215448_25451',
+    releaseSlot: release.releaseSlot,
+    sourceLayers: [`Density_${release.sourceVersion}`],
+    sourceUrl,
+  }
+  const prepared = await prepareCsdiSourceArchive({
+    archive,
+    inputPath: publisherDownloadPath,
+    outputPath: join(workDir, 'mirrored-source.zip'),
+  })
+  if (prepared.manifest.archive.sha256 !== release.contentHash) {
+    throw new Error(
+      `Mapped CSDI archive ${release.releaseSlot} has unexpected SHA-256 ${prepared.manifest.archive.sha256}.`,
+    )
+  }
+  await mirrorCsdiSourceArchive(
+    { environment: 'dev', remote: false },
+    archive,
+    prepared,
+  )
+  return resolveLocalSourceArchiveKey(release.contentHash)
+}
+
+type SourceArchiveAsset = {
+  assetKey: string
+  contentHash: string
+  role: string
+}
+
+/**
+ * Finds the immutable CSDI archive through the local asset registry. Archive
+ * slots identify the publisher release, whereas the registry owns physical
+ * R2 placement and may change that layout independently.
+ */
+export async function resolveLocalSourceArchiveKey(contentHash: string) {
+  const assets = await withLocalMetaDb(db =>
+    db
+      .select({
+        assetKey: metaAssets.assetKey,
+        contentHash: metaAssets.contentHash,
+        role: metaAssets.role,
+      })
+      .from(metaAssets)
+      .where(
+        and(
+          eq(metaAssets.contentHash, contentHash),
+          eq(metaAssets.role, 'sourceArchive'),
+        ),
+      )
+      .all(),
+  )
+  return selectSourceArchiveKey(contentHash, assets)
+}
+
+export function selectSourceArchiveKey(
+  contentHash: string,
+  assets: readonly SourceArchiveAsset[],
+) {
+  const keys = [
+    ...new Set(
+      assets
+        .filter(
+          asset => asset.role === 'sourceArchive' && asset.contentHash === contentHash,
+        )
+        .map(asset => asset.assetKey),
+    ),
+  ]
+  if (keys.length !== 1) {
+    throw new Error(
+      keys.length === 0
+        ? `No local sourceArchive asset is registered for CSDI archive ${contentHash}.`
+        : `Multiple local sourceArchive assets are registered for CSDI archive ${contentHash}: ${keys.join(', ')}.`,
+    )
+  }
+  const key = keys[0]
+  if (!key) throw new Error('Source archive key resolution returned no key.')
+  return key
 }
 
 async function readLocalSourceArchive(objectKey: string, outputFile: string) {

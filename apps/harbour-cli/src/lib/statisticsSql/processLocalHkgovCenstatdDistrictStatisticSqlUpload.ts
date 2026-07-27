@@ -1,4 +1,5 @@
 import { createHash, stableJsonStringify } from '@repo/core/pipeline/utils'
+import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
 import { sourceSchema } from '@repo/db'
@@ -38,10 +39,11 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     plan.sourceVersion.slice(0, 4),
   )
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
-  const remoteClient = createHarbourControlClient(target) as HarbourClient
   const client = target.remote
-    ? remoteClient
-    : createLocalControlClient(metaDb, { publishClient: remoteClient })
+    ? (createHarbourControlClient(target) as HarbourClient)
+    : createLocalControlClient(metaDb, {
+        publishClient: createLocalStatisticPublishClient(metaDb),
+      })
   try {
     await client.stageRunning(
       releaseId,
@@ -141,6 +143,21 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     throw error
   } finally {
     context.cleanup()
+  }
+}
+
+/** Statistics releases have no API-composition snapshot, so local publishing
+ * completes the release directly after their source assertions are stored. */
+function createLocalStatisticPublishClient(
+  metaDb: HarbourReadableDb & HarbourWritableDb,
+): HarbourClient {
+  return {
+    async publishDataset(releaseId) {
+      await updateDatasetStatus(metaDb, releaseId, 'published')
+    },
+    async stageCompleted() {},
+    async stageFailed() {},
+    async stageRunning() {},
   }
 }
 

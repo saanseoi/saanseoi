@@ -242,11 +242,6 @@ function writeDivisionParquet(
         false,
       ),
       stringColumn(
-        'source_crs',
-        rows.map(() => 'EPSG:4326'),
-        false,
-      ),
-      stringColumn(
         'source_schema_version',
         rows.map(() => '1.0'),
         false,
@@ -349,17 +344,11 @@ function writeDivisionAreaParquet(
         rows.map(row => ({
           i18n: i18nRows(row),
           newtown_id: row.id,
-          source_crs: 'EPSG:4326',
           source_geometry: row.originalGeometry,
           source_geometry_bbox: bbox(row.originalGeometry),
           was_geometry_repaired: row.repaired,
           sourceFeature: row.sourceFeature,
         })),
-        false,
-      ),
-      stringColumn(
-        'source_crs',
-        rows.map(() => 'EPSG:4326'),
         false,
       ),
       stringColumn(
