@@ -39,6 +39,7 @@ import { processLocalDivisionSqlUpload } from '../divisionSql/processLocalDivisi
 import { processLocalHkgovPlandDivisionSqlUpload } from '../divisionSql/processLocalHkgovPlandDivisionSqlUpload.ts'
 import { processLocalDivisionGeometrySqlUpload } from '../divisionSql/processLocalDivisionGeometrySqlUpload.ts'
 import { processLocalHkgovCenstatdDistrictStatisticSqlUpload } from '../statisticsSql/processLocalHkgovCenstatdDistrictStatisticSqlUpload.ts'
+import { processLocalHkgovCenstatdStatisticSqlUpload } from '../statisticsSql/processLocalHkgovCenstatdStatisticSqlUpload.ts'
 import {
   buildRegisterOptions,
   type ParsedArgs,
@@ -576,6 +577,24 @@ ${mutedBar}  `)
         return
       }
 
+      if (processingStrategy.mode === 'local-hkgov-censtatd-generic-statistic-sql') {
+        if (!preparedUploadFile)
+          throw new Error('Expected a prepared upload file for local SQL processing.')
+        await processLocalHkgovCenstatdStatisticSqlUpload(
+          target,
+          {
+            cohortKey: previewResult.plan.cohortKey,
+            releaseCode: previewResult.plan.releaseCode,
+            rowCount: previewResult.plan.rowCount,
+            sourceVersion: previewResult.plan.sourceVersion,
+          },
+          uploadResult,
+          preparedUploadFile,
+        )
+        if (!options.quiet) outro(formatSuccessfulReleaseMessage(commandStartedAt))
+        return
+      }
+
       throw new Error(
         `No local SQL upload processor is available for ${previewResult.plan.source}/${previewResult.plan.type}.`,
       )
@@ -746,6 +765,13 @@ function resolveUploadProcessingStrategy(
   ) {
     return { mode: 'local-hkgov-censtatd-statistic-sql' as const }
   }
+
+  if (
+    previewResult.plan.type === 'divisionStatistic' &&
+    previewResult.plan.theme === 'stats' &&
+    previewResult.plan.source === 'hkgov-censtatd'
+  )
+    return { mode: 'local-hkgov-censtatd-generic-statistic-sql' as const }
 
   if (
     previewResult.plan.type === 'address' &&

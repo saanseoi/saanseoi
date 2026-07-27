@@ -1347,6 +1347,28 @@ async function runCsdiArchiveIngestPlaceholder(
     return 'ingested'
   }
 
+  if (
+    isHkgovCenstatdStatisticDataset(dataset.code) &&
+    release?.sourceVersion &&
+    release.sourceUrl
+  ) {
+    const child = Bun.spawn(
+      buildHkgovCenstatdStatisticsArchiveIngestCommand({
+        datasetCode: dataset.code,
+        inputFile: prepared.sourcePath,
+        releaseNotesUrl: release.sourceUrl,
+        sourceArchiveKey: prepared.manifest.archive.objectKey,
+        sourceArchiveSha256: prepared.manifest.archive.sha256,
+        sourceVersion: release.sourceVersion,
+        target,
+      }),
+      { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
+    )
+    if ((await child.exited) !== 0)
+      throw new Error(`C&SD statistic ingest failed for ${dataset.code}.`)
+    return 'ingested'
+  }
+
   console.log(
     `NOT IMPLEMENTED: native CSDI archive ingestion for ${dataset.code}${release?.sourceVersion ? ` (${release.sourceVersion})` : ''}.`,
   )
@@ -1427,6 +1449,52 @@ export function buildHkgovCenstatdDistrictArchiveIngestCommand(input: {
     input.inputFile,
     '--target',
     input.target.environment === 'dev' ? 'local' : input.target.environment,
+    '--source-version',
+    input.sourceVersion,
+    '--release-notes-url',
+    input.releaseNotesUrl,
+    '--source-archive-key',
+    input.sourceArchiveKey,
+    '--source-archive-sha256',
+    input.sourceArchiveSha256,
+  ]
+}
+
+const HKGOV_CENSTATD_STATISTIC_DATASETS = new Set([
+  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021',
+  'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021',
+  'ds-hk-hkgov-censtatd-division-statistic-new-towns-2021',
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-area-type',
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district',
+  'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+])
+
+function isHkgovCenstatdStatisticDataset(code: string) {
+  return HKGOV_CENSTATD_STATISTIC_DATASETS.has(code)
+}
+
+export function buildHkgovCenstatdStatisticsArchiveIngestCommand(input: {
+  datasetCode: string
+  inputFile: string
+  releaseNotesUrl: string
+  sourceArchiveKey: string
+  sourceArchiveSha256: string
+  sourceVersion: string
+  target: import('../cli/options.ts').UploadTarget
+}) {
+  return [
+    process.execPath,
+    'run',
+    '--silent',
+    'dataops',
+    '--',
+    'hkgov-censtatd:statistics',
+    input.inputFile,
+    '--target',
+    input.target.environment === 'dev' ? 'local' : input.target.environment,
+    '--dataset-code',
+    input.datasetCode,
     '--source-version',
     input.sourceVersion,
     '--release-notes-url',
