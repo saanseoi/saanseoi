@@ -16,6 +16,14 @@ catalogue is grouped into this requested government Streets domain, while its TD
 attribution and source provenance remain explicit. Their native source layers remain
 distinct in each archive manifest.
 
+Native intake validates the publisher schemas before database import: `SNP` points
+require `SNP_ID`, `LVL`, and `ROAD_NAME`; Sensitive and Strategic Street polygons
+require `LVL`, `SECT_BTWN`, and `ST_ENGNM`. Pedestrian Streets are a five-layer FGDB
+package (Part-time Pedestrian, Hawker, Market, Traffic Calming, and Full-time Pedestrian
+Street). It retains `OBJECTID`, timing, native geometry, and the three publisher
+descriptions; calculated shape area and length are not treated as source facts. CSDI
+converted GeoJSON is only a historical regression fixture, never an intake dependency.
+
 This belongs to the Streets API family as official street-name evidence. It is not a
 street-centerline or street-geometry dataset: the point is the sign location, and
 several points may carry the same `ROAD_NAME`. The point geometry should therefore be
