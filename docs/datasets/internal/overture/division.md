@@ -21,10 +21,10 @@ Stored i18n fields mean:
 
 Current storage boundary:
 
-- source tables keep raw normalised source locales
-- canonical current/history tables keep both:
-  - raw normalised source locales
-  - canonical API locales used by Atlas default responses
+- source rows retain the publisher's `names` object unchanged; they do not create
+  locale-keyed rows or infer locales
+- canonical current/history tables create locale-keyed rows for API consumption,
+  including the canonical API locales used by Atlas default responses
 
 ## Local SQL Upload Phases
 
@@ -33,7 +33,7 @@ Division uploads follow the shared local SQL lifecycle documented in
 generated artefacts are:
 
 - normalise parquet rows into canonical division records and source-retained rows
-- generate `source` SQL for `overtureDivisions` and `overtureDivisionI18n`
+- generate `source` SQL for `overtureDivisions`, including the native `names` object
 - generate `history` SQL for canonical version tables in the history shard
 - generate `current` SQL, including optional snapshot clone SQL when a same-region
   published predecessor exists
@@ -44,7 +44,10 @@ generated artefacts are:
 Overture-specific source rows are retained in:
 
 - `overtureDivisions`
-- `overtureDivisionI18n`
+
+`overtureDivisions.names` is the exact publisher multilingual value. Locale inference,
+normalisation, and API fallbacks are canonical transforms, retained only in canonical
+current/history i18n rows and release processing actions.
 
 Shared source-version behaviour is documented in
 [ResourceType common processing](../../resourceType/common.md#source-retention).

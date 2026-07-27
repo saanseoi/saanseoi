@@ -100,8 +100,8 @@ is straightforward:
 
 Locale storage behaviour:
 
-- current/history snapshots preserve normalised source locale rows such as `zh-hk` or
-  `zh-hans`
+- current/history snapshots preserve publisher-derived locale rows such as `zh-hk` or
+  `zh-hans`; these are canonical/API projections, not source-table rows
 - they also materialise canonical API locale rows for `en`, `zh-hant`, and `zh-hans`
 - Atlas `compact`, `default`, and `map` responses default to the same locale filter as
   `en,zh-hant`
@@ -153,7 +153,9 @@ tables. The current source row is the row where `isCurrent = 1`; there are no se
 non-version current source tables.
 
 - `overtureDivisions`
-- `overtureDivisionI18n`
+
+The source row keeps Overture's multilingual `names` object unchanged. Locale-keyed rows
+are canonical API projections rather than source evidence.
 
 Current behaviour:
 
