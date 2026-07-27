@@ -1,4 +1,11 @@
-import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import {
+  index,
+  integer,
+  primaryKey,
+  real,
+  sqliteTable,
+  text,
+} from 'drizzle-orm/sqlite-core'
 
 import { geoBbox, jsonText, sourceProvenance } from '../shared'
 import { sourceVersionIndexes, sourceVersioning } from './shared'
@@ -16,7 +23,6 @@ export const sourceHkgovCenstatdDivisionAreas = sqliteTable(
     districtClass: text('districtClass').notNull(),
     districtCode: integer('districtCode').notNull(),
     censusYear: text('censusYear').notNull(),
-    sourceCrs: text('sourceCrs').notNull(),
     sourceGeometry: jsonText('sourceGeometry').notNull(),
     ...geoBbox,
     ...sourceProvenance,
@@ -28,6 +34,65 @@ export const sourceHkgovCenstatdDivisionAreas = sqliteTable(
     index('hkgovCenstatdDivisionAreas_districtClass_idx').on(table.districtClass),
     index('hkgovCenstatdDivisionAreas_districtCode_idx').on(table.districtCode),
     index('hkgovCenstatdDivisionAreas_censusYear_idx').on(table.censusYear),
+  ],
+)
+
+/**
+ * District-level land area, mid-year population, and population-density
+ * assertions supplied by C&SD. Geometry remains publisher evidence: these
+ * statistics are not a replacement district-boundary release.
+ */
+export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTable(
+  'hkgovCenstatdDistrictLandAreaPopulationDensities',
+  {
+    sourceRecordId: text('sourceRecordId').notNull(),
+    districtCode: integer('districtCode').notNull(),
+    referenceYear: text('referenceYear').notNull(),
+    landAreaSqKm: real('landAreaSqKm').notNull(),
+    midYearPopulationThousands: real('midYearPopulationThousands').notNull(),
+    midYearPopulationDensityPerSqKm: integer(
+      'midYearPopulationDensityPerSqKm',
+    ).notNull(),
+    sourceCrs: text('sourceCrs').notNull(),
+    sourceGeometry: jsonText('sourceGeometry').notNull(),
+    ...sourceProvenance,
+    ...sourceVersioning,
+  },
+  table => [
+    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    ...sourceVersionIndexes(table, 'hkgovCenstatdDistrictLandAreaPopulationDensities'),
+    index('hkgovCenstatdDistrictLandAreaPopulationDensities_districtCode_idx').on(
+      table.districtCode,
+    ),
+    index('hkgovCenstatdDistrictLandAreaPopulationDensities_referenceYear_idx').on(
+      table.referenceYear,
+    ),
+  ],
+)
+
+/** Localised publisher labels attached to C&SD district statistic assertions. */
+export const sourceHkgovCenstatdDistrictLandAreaPopulationDensityI18n = sqliteTable(
+  'hkgovCenstatdDistrictLandAreaPopulationDensityI18n',
+  {
+    sourceRecordId: text('sourceRecordId').notNull(),
+    locale: text('locale').notNull(),
+    name: text('name').notNull(),
+    isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    ...sourceVersioning,
+  },
+  table => [
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.locale],
+    }),
+    ...sourceVersionIndexes(
+      table,
+      'hkgovCenstatdDistrictLandAreaPopulationDensityI18n',
+    ),
+    index('hkgovCenstatdDistrictLandAreaPopulationDensityI18n_locale_idx').on(
+      table.locale,
+    ),
   ],
 )
 
