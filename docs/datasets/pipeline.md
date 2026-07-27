@@ -195,6 +195,28 @@ source/resource combination needs all of the following, as applicable:
 - release, quality/churn and processing-action stats; and
 - cache and shard handling for local and remote targets.
 
+### Release presentation metadata
+
+The source-release page presents pipeline metadata in two data-driven tabs. Persist this
+metadata in the meta database as part of the local processor; the page reads it through
+the registry and does not derive it from terminal output or release notes.
+
+- **Stats** reads release-scoped rows from `stats`. Emit the measurements that are
+  meaningful for the resource, including record totals and, where applicable, churn,
+  quality, locale coverage, component completeness or geographic distribution. Use the
+  release-level stats replacement helper so a re-run replaces the release's previous
+  values atomically.
+- **Audit** reads detailed rows from `releaseProcessingActions`. Emit one row for each
+  auditable automated or manual processing decision, with an action name, mode, summary,
+  affected-record count and structured JSON evidence. The replacement helper also stores
+  aggregate processing metrics in `stats`; these support reporting, while the detailed
+  action rows and evidence support the Audit tab.
+
+The Stats tab can render any available release statistics. The Audit tab is shown only
+when the release has processing-action rows: do not create placeholder actions solely to
+make it visible. A processor with no auditable processing decisions should replace the
+release's action rows with an empty set, so a re-run cannot retain stale audit evidence.
+
 The shared stages are `normalise`, `sql-source`, `sql-history`, `sql-current`, meta
 updates and publication. See [resource processing](resourceType/common.md) for the
 required ordering, snapshot semantics and local/remote D1 behaviour. Local processing
