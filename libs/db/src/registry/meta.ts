@@ -268,6 +268,7 @@ type InitialApiCompositionMemberSeed = {
   role: string
   isRequired: boolean
   cohortMatchingMode: string
+  configJson?: string
   anchorResourceType?: ResourceType
   maxLagDays?: number
   priority: number

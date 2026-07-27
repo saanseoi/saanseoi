@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 
 import { parquetWriteFile } from 'hyparquet-writer'
+import fgdb from 'fgdb'
 
 import type { GeoJsonGeometry, GeoJsonPosition } from '@repo/core/pipeline/geojson'
 
@@ -68,6 +69,7 @@ export async function prepareHkgovHadDistrictUpload(
   inputFile: string,
   outputDir: string,
   sourceVersion: string,
+  options: { sourceArchive?: { key: string; sha256: string } } = {},
 ): Promise<PreparedHkgovHadDistrictUpload> {
   if (sourceVersion !== '2022') {
     throw new Error(
@@ -85,7 +87,7 @@ export async function prepareHkgovHadDistrictUpload(
   }
 
   const rows = payload.features.map((feature, index) =>
-    normaliseHkgovHadDistrictFeature(feature, index),
+    normaliseHkgovHadDistrictFeature(feature, index, options.sourceArchive),
   )
   if (rows.length !== 18) {
     throw new Error(
@@ -191,9 +193,42 @@ export async function prepareHkgovHadDistrictUpload(
   }
 }
 
+/** Reads and validates the publisher's native File Geodatabase package. */
+export async function readHkgovHadDistrictArchive(archiveBytes: Uint8Array) {
+  const layers = await fgdb(Uint8Array.from(archiveBytes))
+  const dcdLayers = Object.entries(layers).filter(
+    ([name]) => name.toUpperCase() === 'DCD',
+  )
+  if (dcdLayers.length !== 1) {
+    throw new Error('HAD district archive must contain exactly one DCD layer.')
+  }
+  const [, layer] = dcdLayers[0]!
+  if (!layer || layer.type !== 'FeatureCollection' || !Array.isArray(layer.features)) {
+    throw new Error('HAD district archive DCD layer must be a FeatureCollection.')
+  }
+  if (layer.features.length !== 18) {
+    throw new Error(
+      `HAD district archive DCD layer must contain 18 features; found ${layer.features.length}.`,
+    )
+  }
+  for (const [index, feature] of layer.features.entries()) {
+    if (!isRecord(feature.properties)) {
+      throw new Error(`HAD district archive feature ${index + 1} has no properties.`)
+    }
+    for (const field of ['AREA_CODE', 'AREA_ID', 'AREA_TYPE'] as const) {
+      if (typeof feature.properties[field] !== 'string' || !feature.properties[field]) {
+        throw new Error(`HAD district archive feature ${index + 1} requires ${field}.`)
+      }
+    }
+    requireDistrictGeometry(feature.geometry, index)
+  }
+  return layer as HkgovHadFeatureCollection & { features: HkgovHadFeature[] }
+}
+
 function normaliseHkgovHadDistrictFeature(
   value: unknown,
   index: number,
+  sourceArchive: { key: string; sha256: string } | undefined,
 ): PreparedHkgovHadDistrictRow {
   if (!isRecord(value) || value.type !== 'Feature') {
     throw new Error(`HAD district feature ${index + 1} is not a GeoJSON Feature.`)
@@ -223,7 +258,19 @@ function normaliseHkgovHadDistrictFeature(
     source_feature: feature,
     source_geometry: geometry,
     source_properties: properties as Record<string, unknown>,
-    sources: [{ areaCode, areaId, dataset: HKGOV_HAD_SOURCE }],
+    sources: [
+      {
+        areaCode,
+        areaId,
+        dataset: HKGOV_HAD_SOURCE,
+        ...(sourceArchive
+          ? {
+              sourceArchiveKey: sourceArchive.key,
+              sourceArchiveSha256: sourceArchive.sha256,
+            }
+          : {}),
+      },
+    ],
     theme: 'divisions',
     type: 'divisionArea',
   }
