@@ -96,11 +96,16 @@ back to Home Affairs Department boundaries or the unsimplified C&SD source geome
 
 ## Ingestion
 
-Pass a downloaded source GML file to the normal uploader:
+The updater passes the locally prepared native CSDI ZIP to the district importer. It
+requires the cohort-specific `DC_16BC_SDU.gml` or `DC_21C_SDU.gml` member, verifies the
+ZIP SHA-256 against its prepared manifest, and keeps the managed archive key and hash in
+the source provenance. Converted CSDI GeoJSON and a separately downloaded GML are not
+runtime inputs. Use `saanseoi update`, or invoke the importer with the prepared archive:
 
 ```bash
-saanseoi upload data/hkgov/censtatd/district-council-districts-2016.gml --source hkgov-censtatd --source-version 2016 --type divisionArea --theme divisions --region hk --cohort-key 2016
-saanseoi upload data/hkgov/censtatd/district-council-districts-2021.gml --source hkgov-censtatd --source-version 2021 --type divisionArea --theme divisions --region hk --cohort-key 2021
+bun run dataops -- hkgov-censtatd:district-area ./data/.../source.zip \
+  --target preview --source-version 2021 --release-notes-url URL \
+  --source-archive-key by-source/.../source.zip --source-archive-sha256 SHA256
 ```
 
 Each C&SD upload materialises its `simplified` display transform from the same verified
