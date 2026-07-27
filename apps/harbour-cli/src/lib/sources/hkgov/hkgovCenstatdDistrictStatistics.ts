@@ -134,10 +134,14 @@ function number(value: unknown, field: string, index: number) {
 
 function populationInPeople(value: unknown, index: number) {
   const thousands = number(value, 'MYPOPN_LAND', index)
-  const population = thousands * 1_000
-  if (!Number.isSafeInteger(population)) {
+  const calculatedPopulation = thousands * 1_000
+  const population = Math.round(calculatedPopulation)
+  if (
+    !Number.isSafeInteger(population) ||
+    Math.abs(calculatedPopulation - population) > 1e-6
+  ) {
     throw new Error(
-      `C&SD Density row ${index + 1} has a non-integral MYPOPN_LAND population.`,
+      `C&SD Density row ${index + 1} has a MYPOPN_LAND value that does not resolve to whole people.`,
     )
   }
   return population

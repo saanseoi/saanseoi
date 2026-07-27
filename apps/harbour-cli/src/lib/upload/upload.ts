@@ -31,6 +31,8 @@ type SnapshotCleanupResponse = {
 }
 
 type DispatchUploadOptions = {
+  /** Restricted local repair path for a source-specific deterministic reprocess. */
+  allowReprocessPublished?: boolean
   force?: boolean
   resolveLocalDbContext?: typeof resolveLocalAddressDbContext
 }
@@ -117,7 +119,9 @@ async function registerUploadLocally(
   try {
     const metaDb = dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
     const allowExistingDatasetStatuses: ReleaseStatus[] | undefined = options.force
-      ? ['staged']
+      ? options.allowReprocessPublished
+        ? ['staged', 'published']
+        : ['staged']
       : undefined
     const registered = await registerLocalUpload(metaDb, {
       ...registerOptions,
