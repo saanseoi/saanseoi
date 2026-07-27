@@ -43,7 +43,6 @@ export type PreparedHkgovCenstatdDistrictUpload = {
 
 type CsdIFeature = {
   geometry?: unknown
-  sourceCrs?: 'EPSG:2326'
   sourceGeometry?: GeoJsonGeometry
   properties?: unknown
   sourceGml?: Record<string, unknown>
@@ -64,7 +63,6 @@ type PreparedDistrictRow = {
   district_code: number
   geometry: GeoJsonGeometry
   id: string
-  source_crs: 'EPSG:2326'
   source_feature: Record<string, unknown>
   source_geometry: GeoJsonGeometry
   source_properties: Record<string, unknown>
@@ -162,11 +160,6 @@ export async function prepareHkgovCenstatdDistrictUpload(
         rows.map(row => row.census_year),
         false,
       ),
-      stringColumn(
-        'source_crs',
-        rows.map(row => row.source_crs),
-        false,
-      ),
       jsonColumn(
         'source_geometry',
         rows.map(row => row.source_geometry),
@@ -247,7 +240,6 @@ function normaliseCsdIDistrictFeature(
     district_code: districtCode,
     geometry,
     id: `CENSTATD:${districtClass}`,
-    source_crs: feature.sourceCrs ?? 'EPSG:2326',
     source_feature: feature.sourceGml
       ? {
           member: feature.sourceGml,

@@ -972,8 +972,6 @@ async function writeGeometryRows(
                   ?.area_id,
                 areaCode: (row.source.rawProperties as Record<string, unknown> | null)
                   ?.area_code,
-                sourceCrs: (row.source.rawProperties as Record<string, unknown> | null)
-                  ?.source_crs,
                 sourceGeometry: (
                   row.source.rawProperties as Record<string, unknown> | null
                 )?.source_geometry,
@@ -986,8 +984,6 @@ async function writeGeometryRows(
                     ?.district_class,
                   districtCode: (row.source.rawProperties as Record<string, unknown>)
                     ?.district_code,
-                  sourceCrs: (row.source.rawProperties as Record<string, unknown>)
-                    ?.source_crs,
                   sourceGeometry: (row.source.rawProperties as Record<string, unknown>)
                     ?.source_geometry,
                 }
@@ -1001,16 +997,12 @@ async function writeGeometryRows(
                     repairedSourceFeatureIds: (
                       row.source.rawProperties as Record<string, unknown>
                     )?.repaired_source_feature_ids,
-                    sourceCrs: (row.source.rawProperties as Record<string, unknown>)
-                      ?.source_crs,
                   }
                 : version.source === 'hkgov-pland-new-town'
                   ? {
                       divisionId: requirePlanningDivisionId(row),
                       newTownId: (row.source.rawProperties as Record<string, unknown>)
                         ?.newtown_id,
-                      sourceCrs: (row.source.rawProperties as Record<string, unknown>)
-                        ?.source_crs,
                       // `geometry` in the source table remains the publisher's
                       // original delivery. The canonical repaired geometry is
                       // retained separately for audit and reproducibility.

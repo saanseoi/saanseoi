@@ -74,7 +74,6 @@ describe('HAD district GeoJSON preparation', () => {
         geometry: { type: 'Polygon' },
         id: 'HAD:D',
         region: 'HK',
-        source_crs: 'EPSG:4326',
         source_feature: {
           properties: { AREA_CODE: 'STH', AREA_ID: 'D' },
           type: 'Feature',

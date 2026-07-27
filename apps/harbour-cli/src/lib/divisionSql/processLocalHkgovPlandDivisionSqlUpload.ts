@@ -745,7 +745,6 @@ async function insertSourceRows(
       subunitCode: optionalString(identifiers['PLAND:SUBUNIT']),
       newTownId: optionalString(identifiers['PLAND:NEWTOWN']),
       sourceCellIds: record.sourceCellIds,
-      sourceCrs: requireString(record.raw.source_crs, 'source_crs'),
       geometry:
         requireString(record.raw.planning_level, 'planning_level') === 'newtown'
           ? ((record.raw.source_properties as Record<string, unknown> | undefined)
@@ -841,7 +840,6 @@ async function insertSourceRows(
         spuCode: cell.spuCode,
         tpuCode: cell.tpuCode,
         subunitCode: cell.subunitCode,
-        sourceCrs: 'EPSG:4326',
         wasGeometryRepaired: cell.wasGeometryRepaired,
         canonicalGeometry: cell.canonicalGeometry,
         geometry: cell.geometry,

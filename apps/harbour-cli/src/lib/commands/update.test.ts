@@ -75,6 +75,26 @@ test('selects an API family without prompting', async () => {
   ).resolves.toBe('streets')
 })
 
+test('accepts --scope as an alias for --api-family', async () => {
+  const datasets = [
+    {
+      code: 'ds-hk-hkgov-landsd-road-centreline',
+      publisherCode: 'hkgov-landsd',
+      regionCode: 'hk',
+      theme: 'streets',
+      resourceTypes: ['street'],
+      versionPolicy: { scheme: 'release-date', correctionSuffixSource: 'generated' },
+    },
+  ] as const
+
+  await expect(
+    resolveApiFamilySelection(
+      { command: 'update', positionals: [], options: { scope: 'streets' } },
+      datasets,
+    ),
+  ).resolves.toBe('streets')
+})
+
 test('rejects overlapping dataset and API-family selectors', async () => {
   const datasets = [
     {
@@ -257,7 +277,18 @@ test('renders every configured release while showing the dataset label once', ()
     theme: 'divisions',
     resourceTypes: ['divisionArea'],
     versionPolicy: { scheme: 'reference-year', correctionSuffixSource: 'generated' },
-  } as const
+    releasePolicy: {
+      series: 'cohort',
+      schedule: 'regular',
+      revisionScope: 'all',
+      checks: {
+        archives: { trigger: 'on-discovery', discoveries: ['revision'] },
+        newReleases: { trigger: 'initial-only' },
+        revisions: { trigger: 'periodic', frequency: 'weekly' },
+      },
+      archives: { availability: 'full' },
+    },
+  } satisfies Parameters<typeof formatDatasetCheckLine>[0]
   const line = formatDatasetCheckLine(
     dataset,
     [
@@ -272,12 +303,32 @@ test('renders every configured release while showing the dataset label once', ()
 
   const [first = '', second = ''] = line.split('\n')
   expect(first).toContain('CenstatD   ∷ DivisionArea     ∷ District')
-  expect(first).toEndWith('no updates         v2016.0')
-  expect(second).toEndWith('no updates         v2021.0')
+  expect(first).toEndWith('no updates         v2021.0')
+  expect(second).toEndWith('no updates         v2016.0')
   expect(second).toStartWith('│ ')
   expect(line).not.toContain('=')
   expect(first).toHaveLength(120)
   expect(second).toHaveLength(123)
+})
+
+test('labels a discovered source with no target release as missing', () => {
+  const dataset = {
+    code: 'ds-hk-hkgov-hyd-street',
+    publisherCode: 'hkgov-hyd',
+    regionCode: 'hk',
+    theme: 'streets',
+    resourceTypes: ['street'],
+    versionPolicy: { scheme: 'quarterly', correctionSuffixSource: 'generated' },
+  } as const
+
+  const line = formatDatasetCheckLine(
+    dataset,
+    [{ dataset, sourceKey: dataset.code, status: 'new', version: '2026-Q2.0' }],
+    new Map([[dataset.code, null]]),
+  )
+
+  expect(line).toContain('MISSING')
+  expect(line).toEndWith('v2026-Q2.0               —')
 })
 
 test('shows the matching target version for a CSDI archive release', () => {

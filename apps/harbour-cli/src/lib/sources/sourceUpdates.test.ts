@@ -9,6 +9,7 @@ import {
 
 import {
   buildOverturistCommand,
+  buildOverturistReleasesCommand,
   datasetCorrectionSuffixSources,
   datasetName,
   getDueUpdatePhases,
@@ -150,6 +151,13 @@ describe('dataset update registry', () => {
         now: Date.parse('2026-07-26T00:00:00.000Z'),
       }),
     ).toEqual(['new-releases'])
+
+    expect(
+      getDueUpdatePhases(dataset, state, {
+        force: true,
+        now: Date.parse('2026-07-26T00:00:00.000Z'),
+      }),
+    ).toEqual(['new-releases', 'revisions', 'archives'])
 
     const mutableState: Record<string, UpdateStateEntry> = {}
     recordUpdatePhaseCheck(mutableState, dataset.code, 'archives', {
@@ -866,6 +874,103 @@ describe('dataset update registry', () => {
     }
   })
 
+  test('separates an older DPO delivery as a download-only archive', async () => {
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = Object.assign(
+      async () =>
+        Response.json({
+          timestamps: ['20260722-0930', '20260723-1015'],
+        }),
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const updates = await lookupDatasetUpdates(
+        {
+          code: 'ds-hk-hkgov-dpo-address',
+          publisherCode: 'hkgov-dpo',
+          regionCode: 'hk',
+          sourceUrl:
+            'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603',
+          theme: 'addresses',
+          resourceTypes: ['address'],
+          versionPolicy: {
+            scheme: 'release-date',
+            correctionSuffixSource: 'generated',
+          },
+        },
+        undefined,
+        undefined,
+        true,
+      )
+
+      expect(updates).toHaveLength(2)
+      expect(updates[0]?.version).toBe('2026-07-23.0')
+      expect(updates[0]?.phase).toBeUndefined()
+      expect(updates[1]?.version).toBe('2026-07-22.0')
+      expect(updates[1]?.phase).toBe('archives')
+      expect(updates[0]?.ingest).toBeInstanceOf(Function)
+      expect(updates[1]?.download).toBeInstanceOf(Function)
+      expect(updates[1]?.ingest).toBeUndefined()
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
+  test('does not re-ingest an unchanged DPO release when its delivery timestamp changes', async () => {
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = Object.assign(
+      async () => Response.json({ timestamps: ['20260722-0930'] }),
+      { preconnect: originalFetch.preconnect },
+    )
+
+    try {
+      const [update] = await lookupDatasetUpdates(
+        {
+          code: 'ds-hk-hkgov-dpo-address',
+          publisherCode: 'hkgov-dpo',
+          regionCode: 'hk',
+          sourceUrl:
+            'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603',
+          theme: 'addresses',
+          resourceTypes: ['address'],
+          versionPolicy: {
+            scheme: 'release-date',
+            correctionSuffixSource: 'generated',
+          },
+          releasePolicy: {
+            archives: { availability: 'limited' },
+            checks: {
+              archives: { trigger: 'never' },
+              newReleases: { trigger: 'periodic', frequency: 'daily' },
+              revisions: { trigger: 'never' },
+            },
+            revisionScope: 'none',
+            schedule: 'irregular',
+            series: 'rolling',
+          },
+        },
+        {
+          releaseLastRevisedAt: '20260722-1931',
+          version: '2026-07-22.0',
+          versionKey: '2026-07-22.0',
+        },
+        new Map([['ds-hk-hkgov-dpo-address', '2026-07-22.0']]),
+        true,
+      )
+
+      expect(update).toEqual(
+        expect.objectContaining({
+          releaseLastRevisedAt: '20260722-0930',
+          status: 'current',
+          version: '2026-07-22.0',
+        }),
+      )
+    } finally {
+      globalThis.fetch = originalFetch
+    }
+  })
+
   test('builds the Hong Kong Overturist download command', () => {
     expect(buildOverturistCommand('2026-07-23.0', 'divisions')).toEqual([
       process.execPath,
@@ -878,6 +983,16 @@ describe('dataset update registry', () => {
       '--theme',
       'divisions',
       '--replace',
+    ])
+  })
+
+  test('requests JSON from the Overturist release catalogue', () => {
+    expect(buildOverturistReleasesCommand()).toEqual([
+      process.execPath,
+      expect.stringContaining('/overturist/overturist.ts'),
+      'releases',
+      '--format',
+      'json',
     ])
   })
 
