@@ -123,7 +123,7 @@ async function writeHkgovSourceRows(
       streetName: asString(row.raw.enStreetName) ?? asString(row.raw.zhHantStreetName),
       villageName:
         asString(row.raw.enVillageName) ?? asString(row.raw.zhHantVillageName),
-      sources: row.base.sources ?? { hkgovAls: [{ dataset: 'hkgov-dpo' }] },
+      sources: normaliseSourceReferences(row.base.sources, row.sourceId),
       rawProperties: row.raw,
     } satisfies typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert
 
@@ -171,6 +171,33 @@ async function writeHkgovSourceRows(
   await advanceSourceHkgovAlsAddress2dRelease(sourceDb, [...unchangedIds], releaseId)
   await insertSourceHkgovAlsAddresses2dVersions(sourceDb, versionRows)
   await insertSourceHkgovAlsAddress2dI18nVersions(sourceDb, i18nVersionRows)
+}
+
+function normaliseSourceReferences(
+  value: unknown,
+  sourceRecordId: string,
+): SourceReferences {
+  const hkgovAlsReferences =
+    value && typeof value === 'object'
+      ? (value as Record<string, unknown>).hkgovAls
+      : null
+  const references: unknown[] | null = Array.isArray(value)
+    ? value
+    : Array.isArray(hkgovAlsReferences)
+      ? hkgovAlsReferences
+      : null
+  if (references?.length && references.every(hasSourceReference)) return references
+  return [{ dataset: 'hkgov-dpo', sourceRecordId }]
+}
+
+type SourceReferences = NonNullable<
+  typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert.sources
+>
+
+function hasSourceReference(value: unknown): value is SourceReferences[number] {
+  if (!value || typeof value !== 'object') return false
+  const dataset = (value as Record<string, unknown>).dataset
+  return typeof dataset === 'string' && dataset.trim().length > 0
 }
 
 function asNumber(value: unknown) {

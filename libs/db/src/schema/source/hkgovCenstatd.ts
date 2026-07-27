@@ -26,6 +26,8 @@ export const sourceHkgovCenstatdDivisionAreas = sqliteTable(
     ...sourceSpatialAssertionColumns(),
     districtClass: text('districtClass').notNull(),
     districtCode: integer('districtCode').notNull(),
+    districtEn: text('districtEn').notNull(),
+    districtZhHant: text('districtZhHant').notNull(),
     censusYear: text('censusYear').notNull(),
   },
   table => [
@@ -152,25 +154,5 @@ export const sourceHkgovCenstatdDivisionAreaDerivatives = sqliteTable(
       table.inputVersionHash,
       table.transform,
     ),
-  ],
-)
-
-/** Localised C&SD district labels attached to source geometry assertions. */
-export const sourceHkgovCenstatdDivisionAreaI18n = sqliteTable(
-  'hkgovCenstatdDivisionAreaI18n',
-  {
-    ...sourceVersionedRecordColumns(),
-    locale: text('locale').notNull(),
-    name: text('name').notNull(),
-    isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' })
-      .notNull()
-      .default(false),
-  },
-  table => [
-    primaryKey({
-      columns: [table.sourceRecordId, table.versionHash, table.locale],
-    }),
-    ...sourceVersionIndexes(table, 'hkgovCenstatdDivisionAreaI18n'),
-    index('hkgovCenstatdDivisionAreaI18n_locale_idx').on(table.locale),
   ],
 )

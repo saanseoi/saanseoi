@@ -34,31 +34,31 @@ type GeometryBase = {
 
 export type NormalisedDivisionArea = {
   canonical: Omit<NewDivisionAreaRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
-  source: Omit<
-    NewSourceDivisionAreaRow,
-    | 'versionHash'
-    | 'releaseId'
-    | 'validFromRelease'
-    | 'validToRelease'
-    | 'isCurrent'
-    | 'createdAt'
-    | 'updatedAt'
-  >
+  source: StagedSourceRow<NewSourceDivisionAreaRow>
 }
 
 export type NormalisedDivisionBoundary = {
   canonical: Omit<NewDivisionBoundaryRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
-  source: Omit<
-    NewSourceDivisionBoundaryRow,
-    | 'versionHash'
-    | 'releaseId'
-    | 'validFromRelease'
-    | 'validToRelease'
-    | 'isCurrent'
-    | 'createdAt'
-    | 'updatedAt'
-  >
+  source: StagedSourceRow<NewSourceDivisionBoundaryRow>
 }
+
+type StagedSourceRow<T> = Omit<
+  T,
+  | 'versionHash'
+  | 'releaseId'
+  | 'validFromRelease'
+  | 'validToRelease'
+  | 'isCurrent'
+  | 'createdAt'
+  | 'updatedAt'
+> & {
+  /** Publisher geometry retained outside raw publisher attributes until persistence. */
+  sourceGeometry?: GeoJsonGeometry
+  /** Transform metadata retained only for a materialised derivative. */
+  derivation?: Record<string, unknown>
+}
+
+type SourceReferences = NewSourceDivisionAreaRow['sources']
 
 export function normaliseDivisionAreaGeometryRow(
   row: Record<string, unknown>,
@@ -127,9 +127,11 @@ export function normaliseDivisionAreaGeometryRow(
       divisionId,
       isLand: base.isLand,
       isTerritorial: base.isTerritorial,
-      rawProperties: { ...row },
-      sources: Array.isArray(row.sources) ? row.sources : null,
+      rawProperties: sourceRawProperties(row, source),
+      sources: normaliseSourceReferences(row.sources, source, id),
       sourceRecordId: id,
+      derivation: sourceDerivation(row, source),
+      sourceGeometry: sourceGeometry(row, source),
       subtype: asNonEmptyString(row.subtype),
       class: asNonEmptyString(row.class),
       version: asOptionalInteger(row.version),
@@ -190,14 +192,31 @@ export function normaliseDivisionBoundaryGeometryRow(
       divisionIds,
       isLand: base.isLand,
       isTerritorial: base.isTerritorial,
-      rawProperties: { ...row },
-      sources: Array.isArray(row.sources) ? row.sources : null,
+      rawProperties: sourceRawProperties(row, source),
+      sources: normaliseSourceReferences(row.sources, source, id),
       sourceRecordId: id,
       subtype: asNonEmptyString(row.subtype),
       class: asNonEmptyString(row.class),
       version: asOptionalInteger(row.version),
     },
   }
+}
+
+function normaliseSourceReferences(
+  value: unknown,
+  dataset: string,
+  sourceRecordId: string,
+): SourceReferences {
+  if (Array.isArray(value) && value.length > 0 && value.every(hasSourceReference)) {
+    return value
+  }
+  return [{ dataset, sourceRecordId }]
+}
+
+function hasSourceReference(value: unknown): value is SourceReferences[number] {
+  if (!value || typeof value !== 'object') return false
+  const dataset = (value as Record<string, unknown>).dataset
+  return typeof dataset === 'string' && dataset.trim().length > 0
 }
 
 export function buildDivisionGeometryHashInput(
@@ -292,6 +311,34 @@ function normaliseSources(value: unknown, source: string) {
                 : 'overture']: value,
       }
     : undefined
+}
+
+function sourceRawProperties(row: Record<string, unknown>, source: string) {
+  if (source !== 'hkgov-had' && source !== 'hkgov-censtatd') return { ...row }
+
+  const properties = row.source_properties
+  if (!isRecord(properties)) {
+    throw new Error(`${source} district area requires publisher \`source_properties\`.`)
+  }
+  return { ...properties }
+}
+
+function sourceGeometry(row: Record<string, unknown>, source: string) {
+  if (source !== 'hkgov-had' && source !== 'hkgov-censtatd') return undefined
+  return requireGeometry(
+    row.source_geometry,
+    ['Polygon', 'MultiPolygon'],
+    asNonEmptyString(row.id),
+  )
+}
+
+function sourceDerivation(row: Record<string, unknown>, source: string) {
+  if (source !== 'hkgov-censtatd') return undefined
+  return isRecord(row.derivation) ? { ...row.derivation } : undefined
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
 function readIdentifier(value: unknown, key: string) {

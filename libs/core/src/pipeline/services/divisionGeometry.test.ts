@@ -153,6 +153,14 @@ describe('division geometry normalisation', () => {
         geometry: polygon,
         id: 'HAD:A',
         object_id: 7,
+        source_geometry: polygon,
+        source_properties: {
+          AREA_CODE: 'CW',
+          AREA_ID: 'A',
+          AREA_TYPE: 'District',
+          CSDI_ADMIN_AREA_ID: 42,
+          OBJECTID: 7,
+        },
       },
       'hkgov-had',
     )
@@ -170,9 +178,15 @@ describe('division geometry normalisation', () => {
         areaCode: 'CW',
       },
     })
-    expect((normalised.source.rawProperties as Record<string, unknown>).area_code).toBe(
+    expect((normalised.source.rawProperties as Record<string, unknown>).AREA_CODE).toBe(
       'CW',
     )
+    expect(normalised.source.rawProperties).not.toHaveProperty('theme')
+    expect(normalised.source.rawProperties).not.toHaveProperty('source_feature')
+    expect(normalised.source.sources).toEqual([
+      { dataset: 'hkgov-had', sourceRecordId: 'HAD:A' },
+    ])
+    expect(normalised.source.sourceGeometry).toMatchObject(polygon)
   })
 
   test('keeps C&SD district metadata and the derived display provenance distinct', () => {
