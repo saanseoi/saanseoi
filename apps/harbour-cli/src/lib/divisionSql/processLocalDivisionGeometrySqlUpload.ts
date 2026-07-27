@@ -940,14 +940,6 @@ async function writeGeometryRows(
       version.releaseCode,
     )
   }
-  if (version.source === 'hkgov-censtatd' && !isCenstatdDerivative) {
-    await closeCenstatdSourceI18nRows(
-      context.sourceDb as unknown as HarbourReadableDb & HarbourWritableDb,
-      sourceHashes,
-      version.releaseCode,
-    )
-  }
-
   onProgress?.('build write batches')
   const currentRows = rows.map(row => ({
     ...row.canonical,
@@ -971,10 +963,7 @@ async function writeGeometryRows(
     : await Promise.all(
         rows.map(async row => {
           const { sourceGeometry, ...sourceWithProvenance } = row.source
-          const sourceAssertion =
-            version.source === 'hkgov-had'
-              ? withoutSources(sourceWithProvenance)
-              : sourceWithProvenance
+          const sourceAssertion = sourceWithProvenance
           const sourceProperties = row.source.rawProperties as Record<string, unknown>
           return {
             ...sourceAssertion,
@@ -991,10 +980,18 @@ async function writeGeometryRows(
                 }
               : version.source === 'hkgov-censtatd'
                 ? {
-                    censusYear: sourceProperties.census_year,
-                    districtClass: sourceProperties.district_class,
-                    districtCode: sourceProperties.district_code,
-                    sourceGeometry: sourceProperties.source_geometry,
+                    censusYear: version.cohortKey,
+                    districtClass: requireString(
+                      sourceProperties.dc_class,
+                      'C&SD dc_class',
+                    ),
+                    districtCode: requireInteger(sourceProperties.dc, 'C&SD dc'),
+                    districtEn: requireString(sourceProperties.dc_eng, 'C&SD dc_eng'),
+                    districtZhHant: requireString(
+                      sourceProperties.dc_chi,
+                      'C&SD dc_chi',
+                    ),
+                    sourceGeometry,
                   }
                 : version.source === 'hkgov-pland-pu'
                   ? {
@@ -1094,15 +1091,6 @@ async function writeGeometryRows(
       now,
     )
   }
-  if (version.source === 'hkgov-censtatd' && !isCenstatdDerivative) {
-    await writeCenstatdSourceI18nRows(
-      context.sourceDb as unknown as HarbourWritableDb,
-      rows,
-      sourceHashes,
-      version,
-      now,
-    )
-  }
   if (isCenstatdDerivative) {
     await writeCenstatdSourceDerivatives(
       context.sourceDb as unknown as HarbourReadableDb & HarbourWritableDb,
@@ -1129,21 +1117,6 @@ function requirePlanningDivisionId(row: NonNullable<NormalisedGeometry>) {
 function readNewTownName(
   row: NonNullable<NormalisedGeometry>,
   locale: 'en' | 'zh-hant' | 'zh-hans',
-) {
-  const i18n = (row.source.rawProperties as Record<string, unknown>)?.i18n
-  if (!Array.isArray(i18n)) return null
-  const entry = i18n.find(
-    item =>
-      item &&
-      typeof item === 'object' &&
-      (item as Record<string, unknown>).locale === locale,
-  ) as Record<string, unknown> | undefined
-  return typeof entry?.name === 'string' ? entry.name : null
-}
-
-function readCenstatdName(
-  row: NonNullable<NormalisedGeometry>,
-  locale: 'en' | 'zh-hant',
 ) {
   const i18n = (row.source.rawProperties as Record<string, unknown>)?.i18n
   if (!Array.isArray(i18n)) return null
@@ -1186,40 +1159,11 @@ async function closeNewTownSourceI18nRows(
   }
 }
 
-async function closeCenstatdSourceI18nRows(
-  db: HarbourReadableDb & HarbourWritableDb,
-  sourceHashes: Map<string, string>,
-  releaseCode: string,
-) {
-  const table = sourceSchema.sourceHkgovCenstatdDivisionAreaI18n
-  const existing = await db
-    .select({
-      sourceRecordId: table.sourceRecordId,
-      versionHash: table.versionHash,
-    })
-    .from(table)
-    .where(eq(table.isCurrent, true))
-    .all()
-  for (const row of existing) {
-    if (sourceHashes.get(row.sourceRecordId) === row.versionHash) continue
-    await db
-      .update(table)
-      .set({ isCurrent: false, validToRelease: releaseCode })
-      .where(
-        and(
-          eq(table.sourceRecordId, row.sourceRecordId),
-          eq(table.versionHash, row.versionHash),
-          eq(table.isCurrent, true),
-        ),
-      )
-      .run()
-  }
-}
-
 async function writeCenstatdSourceDerivatives(
   db: HarbourReadableDb & HarbourWritableDb,
   rows: Array<NonNullable<NormalisedGeometry>>,
   version: {
+    cohortKey: string
     releaseId: string
     releaseCode: string
     transform?: 'simplified'
@@ -1248,13 +1192,7 @@ async function writeCenstatdSourceDerivatives(
   const nextHashes = new Map<string, string>()
   const derivativeRows = await Promise.all(
     rows.map(async row => {
-      const properties = row.source.rawProperties as Record<string, unknown>
-      const censusYear = properties?.census_year
-      if (typeof censusYear !== 'string') {
-        throw new Error(
-          `C&SD derivative ${row.source.sourceRecordId} has no census year.`,
-        )
-      }
+      const censusYear = version.cohortKey
       const inputVersionHash = exactHashByRecordAndCohort.get(
         `${row.source.sourceRecordId}:${censusYear}`,
       )
@@ -1263,8 +1201,8 @@ async function writeCenstatdSourceDerivatives(
           `C&SD derivative ${row.source.sourceRecordId} (${censusYear}) requires its exact source assertion to be ingested first.`,
         )
       }
-      const derivation = properties?.derivation
-      if (!derivation || typeof derivation !== 'object' || Array.isArray(derivation)) {
+      const derivation = row.source.derivation
+      if (!derivation) {
         throw new Error(
           `C&SD derivative ${row.source.sourceRecordId} has no derivation metadata.`,
         )
@@ -1365,64 +1303,6 @@ async function writeNewTownSourceI18nRows(
       if (!name) {
         throw new Error(
           `Planning Department New Town ${row.source.sourceRecordId} has no ${locale} source name.`,
-        )
-      }
-      return {
-        sourceRecordId: row.source.sourceRecordId,
-        locale,
-        name,
-        isLocaleInferred: false,
-        versionHash,
-        releaseId: version.releaseId,
-        validFromRelease: version.releaseCode,
-        validToRelease: null,
-        isCurrent: true,
-        createdAt: now,
-        updatedAt: now,
-      }
-    })
-  })
-  for (const chunk of chunkRows(i18nRows)) {
-    await db
-      .insert(table)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: [table.sourceRecordId, table.versionHash, table.locale],
-        set: {
-          releaseId: version.releaseId,
-          validFromRelease: version.releaseCode,
-          validToRelease: null,
-          isCurrent: true,
-          updatedAt: now,
-        },
-      })
-      .run()
-  }
-}
-
-async function writeCenstatdSourceI18nRows(
-  db: HarbourWritableDb,
-  rows: Array<NonNullable<NormalisedGeometry>>,
-  sourceHashes: Map<string, string>,
-  version: {
-    releaseId: string
-    releaseCode: string
-  },
-  now: string,
-) {
-  const table = sourceSchema.sourceHkgovCenstatdDivisionAreaI18n
-  const i18nRows = rows.flatMap(row => {
-    const versionHash = sourceHashes.get(row.source.sourceRecordId)
-    if (!versionHash) {
-      throw new Error(
-        `C&SD district ${row.source.sourceRecordId} has no source version hash.`,
-      )
-    }
-    return (['en', 'zh-hant'] as const).map(locale => {
-      const name = readCenstatdName(row, locale)
-      if (!name) {
-        throw new Error(
-          `C&SD district ${row.source.sourceRecordId} has no ${locale} source name.`,
         )
       }
       return {
@@ -1850,9 +1730,10 @@ function asOptionalInteger(value: unknown) {
   return Number.isSafeInteger(parsed) ? parsed : null
 }
 
-function withoutSources<T extends { sources?: unknown }>(row: T) {
-  const { sources: _, ...sourceAssertion } = row
-  return sourceAssertion
+function requireInteger(value: unknown, name: string) {
+  const integer = asOptionalInteger(value)
+  if (integer === null) throw new Error(`Missing ${name}.`)
+  return integer
 }
 
 function isString(value: string | null): value is string {
