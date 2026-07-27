@@ -35,34 +35,44 @@ const districtClasses = [
 ]
 
 describe('C&SD district GML preparation', () => {
-  test('reads the native CSDI archive with the same district coverage and source geometry as the historical GML', async () => {
+  test('reads both native CSDI archives with the same district coverage and source geometry as their historical GML', async () => {
     const repoRoot = resolve(import.meta.dir, '../../../../../../')
-    const [archive, baseline] = await Promise.all([
-      readFile(
-        join(
-          repoRoot,
-          'data/hkgov/csdi/archive/censtatd_rcd_1635933617052_68946/2026-Q2/source.zip',
+    for (const source of [
+      {
+        archive: 'censtatd_rcd_1635932488538_10765/2026-Q2/source.zip',
+        layer: 'DC_16BC_SDU',
+        sourceVersion: '2016',
+      },
+      {
+        archive: 'censtatd_rcd_1635933617052_68946/2026-Q2/source.zip',
+        layer: 'DC_21C_SDU',
+        sourceVersion: '2021',
+      },
+    ] as const) {
+      const [archive, baseline] = await Promise.all([
+        readFile(join(repoRoot, 'data/hkgov/csdi/archive', source.archive)),
+        readFile(
+          join(
+            repoRoot,
+            `data/hkgov/censtatd/district-council-districts-${source.sourceVersion}.gml`,
+          ),
+          'utf8',
         ),
-      ),
-      readFile(
-        join(repoRoot, 'data/hkgov/censtatd/district-council-districts-2021.gml'),
-        'utf8',
-      ),
-    ])
+      ])
+      const nativeFeatures = parseHkgovCenstatdDistrictGml(
+        readHkgovCenstatdDistrictGmlArchive(archive, source.sourceVersion),
+        source.layer,
+      )
+      const baselineFeatures = parseHkgovCenstatdDistrictGml(baseline, source.layer)
 
-    const nativeFeatures = parseHkgovCenstatdDistrictGml(
-      readHkgovCenstatdDistrictGmlArchive(archive, '2021'),
-      'DC_21C_SDU',
-    )
-    const baselineFeatures = parseHkgovCenstatdDistrictGml(baseline, 'DC_21C_SDU')
-
-    expect(nativeFeatures).toHaveLength(18)
-    expect(nativeFeatures.map(feature => feature.properties.dc_class).sort()).toEqual(
-      baselineFeatures.map(feature => feature.properties.dc_class).sort(),
-    )
-    expect(nativeFeatures.map(feature => feature.sourceGeometry)).toEqual(
-      baselineFeatures.map(feature => feature.sourceGeometry),
-    )
+      expect(nativeFeatures).toHaveLength(18)
+      expect(nativeFeatures.map(feature => feature.properties.dc_class).sort()).toEqual(
+        baselineFeatures.map(feature => feature.properties.dc_class).sort(),
+      )
+      expect(geometryProfilesByDistrictClass(nativeFeatures)).toEqual(
+        geometryProfilesByDistrictClass(baselineFeatures),
+      )
+    }
   })
 
   test('retains exact source geometry and produces display derivatives for both census cohorts', async () => {
@@ -102,12 +112,24 @@ describe('C&SD district GML preparation', () => {
         inputFile,
         outputDir,
         '2021',
+        {
+          sourceArchive: {
+            key: 'by-source/hk/hkgov-csdi/districts/source.zip',
+            sha256: 'a'.repeat(64),
+          },
+        },
       )
       const display = await prepareHkgovCenstatdDistrictUpload(
         inputFile,
         outputDir,
         '2021',
-        { transform: 'simplified' },
+        {
+          sourceArchive: {
+            key: 'by-source/hk/hkgov-csdi/districts/source.zip',
+            sha256: 'a'.repeat(64),
+          },
+          transform: 'simplified',
+        },
       )
       const displayFile = await asyncBufferFromFile(display.filePath)
       const displayMetadata = await parquetMetadataAsync(displayFile)
@@ -148,6 +170,15 @@ describe('C&SD district GML preparation', () => {
         source_geometry: { type: 'MultiPolygon' },
         source_feature: { type: 'GML32Feature' },
         source_properties: { dc_class: 'A', sdu_pop: '0' },
+        sources: [
+          {
+            dataset: 'hkgov-censtatd',
+            districtClass: 'A',
+            districtCode: 11,
+            sourceArchiveKey: 'by-source/hk/hkgov-csdi/districts/source.zip',
+            sourceArchiveSha256: 'a'.repeat(64),
+          },
+        ],
       })
 
       await writeFile(
@@ -173,3 +204,49 @@ describe('C&SD district GML preparation', () => {
     }
   })
 })
+
+function geometryProfilesByDistrictClass(
+  features: Array<{ properties: Record<string, unknown>; sourceGeometry: unknown }>,
+) {
+  const entries: Array<[string, ReturnType<typeof geometryProfile>]> = features.map(
+    feature => [
+      String(feature.properties.dc_class),
+      geometryProfile(feature.sourceGeometry),
+    ],
+  )
+  return Object.fromEntries(
+    entries.sort(([first], [second]) => first.localeCompare(second)),
+  )
+}
+
+function geometryProfile(value: unknown) {
+  const positions: Array<[number, number]> = []
+  const visit = (candidate: unknown): void => {
+    if (
+      Array.isArray(candidate) &&
+      candidate.length >= 2 &&
+      typeof candidate[0] === 'number' &&
+      typeof candidate[1] === 'number'
+    ) {
+      positions.push([candidate[0], candidate[1]])
+      return
+    }
+    if (Array.isArray(candidate)) candidate.forEach(visit)
+    else if (candidate && typeof candidate === 'object') {
+      const coordinates = (candidate as { coordinates?: unknown }).coordinates
+      if (coordinates) visit(coordinates)
+    }
+  }
+  visit(value)
+  return {
+    maxX: rounded(Math.max(...positions.map(([x]) => x))),
+    maxY: rounded(Math.max(...positions.map(([, y]) => y))),
+    minX: rounded(Math.min(...positions.map(([x]) => x))),
+    minY: rounded(Math.min(...positions.map(([, y]) => y))),
+    vertexCount: positions.length,
+  }
+}
+
+function rounded(value: number) {
+  return Math.round(value * 100) / 100
+}

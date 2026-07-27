@@ -220,7 +220,9 @@ export function readHkgovCenstatdDistrictGmlArchive(
   archiveBytes: Uint8Array,
   sourceVersion: '2016' | '2021',
 ) {
-  const expectedMember = `${SOURCE_PROFILE[sourceVersion].layerName}.gml`
+  const profile = SOURCE_PROFILE[sourceVersion]
+  if (!profile) throw new Error(`No C&SD district profile exists for ${sourceVersion}.`)
+  const expectedMember = `${profile.layerName}.gml`
   const archive = unzipSync(archiveBytes)
   const gml = archive[expectedMember]
   if (!gml) {
