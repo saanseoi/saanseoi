@@ -10,6 +10,7 @@ import { unzipSync } from 'fflate'
 
 import {
   prepareHkgovCenstatdStatisticUpload,
+  readHkgovCenstatdStatisticArchive,
   type CenstatdStatisticDatasetCode,
 } from './hkgovCenstatdStatistics.ts'
 
@@ -91,6 +92,23 @@ afterEach(async () => {
 })
 
 describe('C&SD native statistics archives', () => {
+  test('normalises a mirrored archive directly without a Parquet hand-off', async () => {
+    const entry = CASES[2]!
+    const archive = unzipSync(await readFile(resolve(REPO_ROOT, entry.archive)))
+    const rows = readHkgovCenstatdStatisticArchive({
+      datasetCode: entry.datasetCode,
+      inputGml: Object.fromEntries(
+        Object.entries(archive)
+          .filter(([name]) => name.endsWith('.gml'))
+          .map(([name, content]) => [name, new TextDecoder().decode(content)]),
+      ),
+      sourceVersion: entry.sourceVersion,
+    })
+
+    expect(rows).toHaveLength(entry.rowCount)
+    expect(rows[0]).toMatchObject({ layerName: 'NewTown_21C' })
+  })
+
   for (const entry of CASES) {
     test(`${entry.datasetCode} validates its publisher archive`, async () => {
       const dir = await unpack(entry.archive)

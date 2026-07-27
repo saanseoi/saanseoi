@@ -27,6 +27,8 @@ import {
   normaliseDatasetVersion,
   recordUpdateState,
   recordUpdatePhaseCheck,
+  recordUpdateArchiveMirror,
+  recordUpdateDatabaseImport,
   readCsdiArchivedSources,
   resolveDatasetVersion,
   shouldCheckDataset,
@@ -460,6 +462,48 @@ describe('dataset update registry', () => {
       releaseLastRevisedAt: undefined,
       metadataLastRevisedAt: undefined,
       sourceCursor: undefined,
+    })
+  })
+
+  test('keeps archive custody separate from a completed database import', () => {
+    const state: Record<string, UpdateStateEntry> = {}
+    const update = {
+      checkedAt: '2026-07-28T00:00:00.000Z',
+      dataset: {
+        code: 'ds-example',
+        publisherCode: 'example',
+        regionCode: 'hk',
+        theme: 'streets',
+        type: 'street',
+        versionPolicy: { scheme: 'quarterly', correctionSuffixSource: 'generated' },
+      } satisfies DatasetFixture,
+      mirroredArchive: {
+        contentHash: 'a'.repeat(64),
+        mirroredAt: '2026-07-28T00:01:00.000Z',
+        objectKey: 'by-source/hk/example/source.zip',
+      },
+      sourceKey: '2026-Q2',
+      status: 'new' as const,
+      version: '2026-Q2.0',
+      versionKey: 'sha256:abc',
+    }
+
+    recordUpdateState(state, 'ds-example', update)
+    recordUpdateArchiveMirror(state, 'ds-example', update)
+
+    expect(state['ds-example']?.archiveMirrors?.['2026-Q2']).toEqual({
+      contentHash: 'a'.repeat(64),
+      mirroredAt: '2026-07-28T00:01:00.000Z',
+      objectKey: 'by-source/hk/example/source.zip',
+      version: '2026-Q2.0',
+      versionKey: 'sha256:abc',
+    })
+    expect(state['ds-example']?.databaseImports).toBeUndefined()
+
+    recordUpdateDatabaseImport(state, 'ds-example', update)
+    expect(state['ds-example']?.databaseImports?.['2026-Q2']).toMatchObject({
+      version: '2026-Q2.0',
+      versionKey: 'sha256:abc',
     })
   })
 

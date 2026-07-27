@@ -20,6 +20,8 @@ import {
   normaliseDatasetVersion,
   orderDatasetsByCompositionDependencies,
   recordUpdatePhaseCheck,
+  recordUpdateArchiveMirror,
+  recordUpdateDatabaseImport,
   recordUpdateState,
   readUpdateState,
   writeUpdateState,
@@ -356,6 +358,12 @@ async function processPlannedUpdates(
       if (result === 'ingested' && update.version) {
         plan.targetVersions.set(sourceKey, update.version)
       }
+      if (update.mirroredArchive) {
+        recordUpdateArchiveMirror(options.state, plan.dataset.code, update)
+      }
+      if (result === 'ingested') {
+        recordUpdateDatabaseImport(options.state, plan.dataset.code, update)
+      }
       if (
         deferStateUntilProcessed &&
         (result === 'ingested' ||
@@ -373,6 +381,11 @@ async function processPlannedUpdates(
       }
     } catch (error) {
       if (error instanceof Error && error.message === 'Update cancelled.') throw error
+      // Mirroring succeeded before a downstream importer failed. Persist archive
+      // custody independently; deliberately do not record database intake.
+      if (update.mirroredArchive) {
+        recordUpdateArchiveMirror(options.state, plan.dataset.code, update)
+      }
       const message = error instanceof Error ? error.message : String(error)
       options.errors.push(`${plan.dataset.code}: ${message}`)
     }
@@ -603,6 +616,11 @@ async function processUpdate(
     const prepared = await loadPreparedSourceArchive(path)
     await update.recordIdenticalArchive?.(prepared.manifest.original.sha256)
     await mirrorCsdiSourceArchive(options.target, update.archive, prepared)
+    update.mirroredArchive = {
+      contentHash: prepared.manifest.archive.sha256,
+      mirroredAt: new Date().toISOString(),
+      objectKey: prepared.manifest.archive.objectKey,
+    }
     if (!update.postArchiveIngest || options.skipUpload) return 'mirrored' as const
 
     const promptForIngest = !options.skipPrompts
