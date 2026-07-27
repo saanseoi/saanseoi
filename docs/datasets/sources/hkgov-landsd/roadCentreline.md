@@ -24,4 +24,7 @@ be represented in the versioned curation fixture before canonical publication.
 
 The original publisher archive is the CSDI Road Centreline package. The CSDI
 old-Street-Name archive link is descriptive provenance only and is never an input to
-this pipeline.
+this pipeline. `hkgov-landsd:road-centreline` reads the locally mirrored FileGDB ZIP
+directly, verifies the updater-provided archive key and SHA-256, and imports native
+source rows through the local SQLite/D1 SQL pipeline. It never downloads the managed
+archive again and has no GeoJSON or Parquet hand-off.
