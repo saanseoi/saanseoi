@@ -64,6 +64,18 @@ exception: its archive quarter establishes the release base as `vYYYY-Qn.0`; a c
 publisher object in that same quarter increments the correction suffix (`vYYYY-Qn.1`,
 then `.2`, and so on).
 
+The C&SD District Land Area, Population and Density dataset has an additional local
+ingestion stage after its mapped archive is available. It prepares the native
+`Density_2022.gml` or `Density_2024.gml`, writes the raw publisher assertion to the
+source shard, and writes the canonical Division Statistics observation to the history
+shard. Its source version remains the `PERIOD` reference year; the CSDI archive quarter
+is provenance only. Run either explicit release with:
+
+```sh
+bun run dataops -- hkgov-censtatd:district-land-area-population-density --target local --source-version 2022
+bun run dataops -- hkgov-censtatd:district-land-area-population-density --target local --source-version 2024
+```
+
 Dataset fixtures retain `schemaSpecificationURL` when the publisher provides a source
 schema. A missing value is explicit (`null`) rather than an inferred schema claim. CSDI
 simplified data specifications are publisher references, separate from SaanSeoi's own
