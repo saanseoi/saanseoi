@@ -1,4 +1,4 @@
-import { and, eq, inArray, ne } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 
 import type { RegionCode } from '@repo/core'
 import {
@@ -640,7 +640,7 @@ async function insertHistoryRows(
   db: HarbourWritableDb,
   snapshotId: string,
   releaseId: string,
-  cohortKey: string,
+  _cohortKey: string,
   records: PreparedDivision[],
   now: string,
 ) {
@@ -685,7 +685,7 @@ async function insertHistoryI18nRows(
   db: HarbourWritableDb,
   snapshotId: string,
   releaseId: string,
-  cohortKey: string,
+  _cohortKey: string,
   records: PreparedDivision[],
   now: string,
 ) {
@@ -749,8 +749,9 @@ async function insertSourceRows(
   now: string,
 ) {
   if (source === 'hkgov-pland-pu') {
+    const cells = records as PreparedDivision['cells']
     const rows = await Promise.all(
-      records.map(async cell => ({
+      cells.map(async cell => ({
         ...cell,
         repairedGeometry: cell.repairedGeometry ?? null,
         sourceGeometry: cell.sourceGeometry,
@@ -781,8 +782,9 @@ async function insertSourceRows(
     return
   }
 
+  const towns = records as Array<NonNullable<PreparedDivision['newTown']>>
   const rows = await Promise.all(
-    records.map(async town => ({
+    towns.map(async town => ({
       ...town,
       newTownId: town.sourceRecordId,
       sources: [{ dataset: 'hkgov-pland-new-town' }],
@@ -829,7 +831,7 @@ async function closeHistoryRows(
   db: HarbourWritableDb,
   ids: string[],
   snapshotId: string,
-  cohortKey: string,
+  _cohortKey: string,
   now: string,
 ) {
   for (const chunk of chunkArray([...new Set(ids)], getMaxItemsPerInClause(1, 6))) {
@@ -918,10 +920,6 @@ function statRow(dimension: string, metric: string, value: number, groupValue: s
 function asRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
   return value as Record<string, unknown>
-}
-
-function optionalString(value: unknown) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
 function requireString(value: unknown, name: string): string {
