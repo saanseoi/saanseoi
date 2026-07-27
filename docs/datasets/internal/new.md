@@ -1,5 +1,10 @@
 # Adding a data source — implementation plan for the next dataset
 
+For the end-to-end implementation route and the ownership of DataOps, `saanseoi update`,
+upload dispatch, schemas and fixtures, start with the
+[dataset pipeline](../pipeline.md). This page remains a detailed design checklist for
+the early source-modelling decisions.
+
 This document is a reusable planning checklist for an LLM or engineer adding a new
 source to an existing dataset family. It deliberately contains no provider-specific
 feature counts, URLs, field quirks, or quality findings. Those facts belong in the

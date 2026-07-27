@@ -4,14 +4,14 @@ The following C&SD datasets are registered as Stats-family sources. They preserv
 publisher releases with their published geography cohort and measures; they never write
 to SaanSeoi's operational release-statistics table.
 
-| Planned dataset                                                  | CSDI identifier(s)                                                                   | Geography / intended use                                                    |
+| Dataset                                                          | CSDI identifier(s)                                                                   | Geography / intended use                                                    |
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
 | Census Subdivided Units by District Council District             | `censtatd_rcd_1635932488538_10765` (2016); `censtatd_rcd_1635933617052_68946` (2021) | Two 18-district census cohorts; subdivided-unit population                  |
 | Permanent Living Quarters by Area and Type                       | `censtatd_rcd_1635933883228_46491`                                                   | Area-level housing stock                                                    |
 | Permanent Living Quarters by District Council District           | `censtatd_rcd_1635934103275_66203`                                                   | District-level housing stock                                                |
 | Population and Household Statistics by District Council District | `censtatd_rcd_1635934545173_69201`                                                   | Annual land-based, non-institutional population and socio-economic measures |
 | District Land Area, Population and Density                       | `censtatd_rcd_1635934215448_25451`                                                   | District land area, population and density                                  |
-| 2021 Census: Housing Market Areas and Building Groups            | `censtatd_rcd_1728978338390_76872`                                                   | 173 housing market areas and 3,286 building groups                          |
+| 2021 Census: Housing Market Areas and Building Groups            | `censtatd_rcd_1728978338390_76872`                                                   | 173 housing market areas and 3,322 building groups                          |
 | 2021 Census: New Towns                                           | `censtatd_rcd_1695181913136_27614`                                                   | 10 new towns                                                                |
 | 2021 Census: Major Housing Estates                               | `censtatd_rcd_1695182015782_79001`                                                   | 540 major housing estates                                                   |
 
@@ -28,6 +28,17 @@ object hashes while continuing to check the CSDI archive catalogue for a changed
 District Land Area, Population and Density is an exception: its `Density_2022.gml` and
 `Density_2024.gml` publisher packages differ, so they are retained as distinct `2022.0`
 and `2024.0` source releases rather than archive no-ops.
+
+## Remaining native statistics ingestion
+
+The updater invokes one shared native CSDI statistics importer for the seven remaining
+datasets. It accepts only its locally prepared publisher ZIP, verifies the updater
+manifest SHA-256, requires each configured GML member, and checks its publisher layer,
+required fields and feature count. Complete publisher properties, feature geometry and
+archive key/hash are stored in `hkgovCenstatdStatistics`; the distinct measure schemas
+remain publisher assertions rather than being forced into the district-density model.
+The importer publishes through the selected local, preview or production target's local
+SQLite cache, just as the density importer does.
 
 ## District land area, population and density ingestion
 
