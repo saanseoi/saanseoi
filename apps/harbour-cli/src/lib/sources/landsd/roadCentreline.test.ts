@@ -1,4 +1,6 @@
 import { describe, expect, test } from 'bun:test'
+import { readFile } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
 
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 
@@ -7,6 +9,7 @@ import {
   buildRoadCentrelineReleaseStats,
   deriveRoadCentrelineDistrictIds,
   normaliseRoadCentrelineFeatures,
+  readLandsdRoadCentrelineArchive,
   type RoadCentrelineDistrict,
 } from './roadCentreline.ts'
 
@@ -63,6 +66,40 @@ const feature = (overrides: Record<string, unknown> = {}) => ({
 })
 
 describe('LandsD Road Centreline matching', () => {
+  test('reads both observed native FGDB schema revisions', async () => {
+    const repoRoot = resolve(import.meta.dir, '../../../../../..')
+    const [legacy, current] = await Promise.all(
+      ['2024-Q1', '2026-Q2'].map(async releaseSlot =>
+        readLandsdRoadCentrelineArchive(
+          await readFile(
+            join(
+              repoRoot,
+              'data/hkgov/csdi/archive/landsd_rcd_1637310758814_80061',
+              releaseSlot,
+              'source.zip',
+            ),
+          ),
+        ),
+      ),
+    )
+
+    expect(legacy).toMatchObject({
+      layerName: 'GEO_STREET_CENTRELINE',
+      sourceFeatureCount: 36976,
+    })
+    expect(current).toMatchObject({
+      layerName: 'RoadCentreLine',
+      sourceFeatureCount: 39724,
+    })
+    expect(current?.features[1]).toMatchObject({
+      geometry: { type: 'LineString' },
+      properties: {
+        ENGLISHSTREETNAME: 'FUNG KAM STREET',
+        STREETCENTRELINEID: 1810253285,
+      },
+    })
+  })
+
   test('retains native EPSG:2326 geometry and uses English plus derived district IDs to resolve a collision', () => {
     const result = normaliseRoadCentrelineFeatures({
       releaseId: 'dr-hk-hkgov-landsd-road-centreline-2026-q2',

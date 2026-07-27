@@ -1,4 +1,5 @@
 import proj4 from 'proj4'
+import fgdb from 'fgdb'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
@@ -80,6 +81,59 @@ export type RoadCentrelineSchemaProfile = {
   code: string
   fields: string[]
   streetTypeAvailable: boolean
+}
+
+export type NativeRoadCentrelineArchive = {
+  features: RoadCentrelineFeature[]
+  layerName: string
+  sourceFeatureCount: number
+}
+
+/**
+ * Reads a native Road Centreline FileGDB. The publisher renamed fields and
+ * the feature class between archived releases; both observed native profiles
+ * are explicitly accepted and normalised by the alias rules below.
+ */
+export async function readLandsdRoadCentrelineArchive(
+  archiveBytes: Uint8Array,
+): Promise<NativeRoadCentrelineArchive> {
+  const layers = await fgdb(Uint8Array.from(archiveBytes))
+  const candidates = Object.entries(layers).filter(([, value]) =>
+    isFeatureCollection(value),
+  )
+  if (candidates.length !== 1) {
+    throw new Error('Road Centreline archive must contain exactly one feature layer.')
+  }
+  const candidate = candidates.at(0)
+  if (!candidate) {
+    throw new Error('Road Centreline archive must contain exactly one feature layer.')
+  }
+  const [layerName, collection] = candidate
+  if (layerName !== 'GEO_STREET_CENTRELINE' && layerName !== 'RoadCentreLine') {
+    throw new Error(`Unexpected Road Centreline feature layer ${layerName}.`)
+  }
+  const features = collection.features as RoadCentrelineFeature[]
+  const fields = new Set<string>()
+  for (const feature of features) {
+    for (const field of Object.keys(feature.properties)) {
+      fields.add(field)
+    }
+    if (!requireNativeLineGeometry(feature.geometry)) {
+      throw new Error(`Road Centreline ${layerName} has a non-line feature.`)
+    }
+  }
+  validateRoadCentrelineLayer({
+    fields: [...fields],
+    layerName: LANDSD_ROAD_CENTRELINE_LAYER,
+  })
+  if (features.length === 0) {
+    throw new Error('Road Centreline archive has no features.')
+  }
+  return {
+    features,
+    layerName,
+    sourceFeatureCount: features.length,
+  }
 }
 
 /**
@@ -302,7 +356,7 @@ export function validateRoadCentrelineLayer(input: {
   }
   const fields = new Set(input.fields)
   const requiredAlternatives = [
-    ['STREET_CENTRELINE_ID', 'OBJECTID'],
+    ['STREET_CENTRELINE_ID', 'STREETCENTRELINEID', 'OBJECTID'],
     ['STREET_CODE', 'STREETCODE'],
     ['STREET_NAME_EN', 'ENGLISHSTREETNAME'],
     ['STREET_NAME_TC', 'CHINESESTREETNAME'],
@@ -325,7 +379,7 @@ export function normaliseRoadCentrelineName(value: string) {
 
 function readRoadCentrelineFields(properties: Record<string, unknown>) {
   const objectId = requiredInteger(
-    readAlias(properties, 'STREET_CENTRELINE_ID', 'OBJECTID'),
+    readAlias(properties, 'STREET_CENTRELINE_ID', 'STREETCENTRELINEID', 'OBJECTID'),
     'STREET_CENTRELINE_ID or OBJECTID',
   )
   return {
@@ -348,6 +402,24 @@ function readRoadCentrelineFields(properties: Record<string, unknown>) {
 
 function readAlias(properties: Record<string, unknown>, ...names: string[]) {
   return names.map(name => properties[name]).find(value => value !== undefined)
+}
+
+function isFeatureCollection(value: unknown): value is {
+  features: RoadCentrelineFeature[]
+  type: 'FeatureCollection'
+} {
+  return (
+    Boolean(value) &&
+    typeof value === 'object' &&
+    (value as { type?: unknown }).type === 'FeatureCollection' &&
+    Array.isArray((value as { features?: unknown }).features)
+  )
+}
+
+function requireNativeLineGeometry(value: unknown): value is GeoJsonGeometry {
+  const type =
+    value && typeof value === 'object' ? (value as { type?: unknown }).type : null
+  return type === 'LineString' || type === 'MultiLineString'
 }
 
 function requiredText(value: unknown, field: string) {
