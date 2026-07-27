@@ -64,11 +64,11 @@ Hong Kong clipping artefact.
 
 ## Source and canonical mapping
 
-Source rows preserve the Overture `id` as `sourceRecordId`, `bbox`, decoded geometry,
-`sources`, `version`, `subtype`, `class`, `is_land`, `is_territorial`, and the ordered
-`division_ids`/`division_id` values. `rawProperties` retains the complete decoded source
-row, including dropped fields (`theme`, `type`, `country`, `region`, `is_disputed`, and
-`perspectives`) and the original `is_land`/`is_territorial` values for auditability.
+Source rows preserve the Overture `id` as `sourceRecordId`, publisher `sources`,
+`version`, `subtype`, `class`, and land/territorial flags. `rawProperties` retains the
+complete decoded source row, including the native ordered `division_ids`/`division_id`
+relationships and dropped fields (`theme`, `type`, `country`, `region`, `is_disputed`,
+and `perspectives`). Source tables do not duplicate canonical relationships.
 
 Boundary canonical rows normalise `division_ids[0]` and `[1]` to left/right division
 IDs; area rows normalise `division_id`. Both expose `sourceKeys` (`version`, `subtype`,
@@ -76,17 +76,16 @@ IDs; area rows normalise `division_id`. Both expose `sourceKeys` (`version`, `su
 bbox, geometry, and the source land/territorial flags. Boundary rows require exactly two
 distinct division IDs and null `perspectives`.
 
-| Source field                                        | Area treatment                                    | Boundary treatment                                |
-| --------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------- |
-| `id`, `bbox`, `geometry`                            | retain exactly                                    | retain exactly                                    |
-| `version`, `subtype`, `class`                       | retain; expose through `overture` source keys     | retain; expose through `overture` source keys     |
-| `sources`                                           | retain and enrich as `{ overture: ... }`          | retain and enrich as `{ overture: ... }`          |
-| `isLand`, `isTerritorial`                           | normalise from `is_land`, `is_territorial`        | normalise from `is_land`, `is_territorial`        |
-| `divisionId`                                        | normalise from `division_id`                      | —                                                 |
-| `divisionIds`                                       | —                                                 | retain ordered array; derive left/right IDs       |
-| `theme`, `type`, `country`, `region`, `admin_level` | drop after preflight; preserve in `rawProperties` | drop after preflight; preserve in `rawProperties` |
-| `names`                                             | drop as redundant with the referenced division    | —                                                 |
-| `is_disputed`, `perspectives`                       | —                                                 | drop; `perspectives` must be null in preflight    |
+| Source field                                        | Area treatment                                      | Boundary treatment                                    |
+| --------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------- |
+| `id`, `bbox`, `geometry`                            | retain exactly                                      | retain exactly                                        |
+| `version`, `subtype`, `class`                       | retain; expose through `overture` source keys       | retain; expose through `overture` source keys         |
+| `sources`                                           | retain and enrich as `{ overture: ... }`            | retain and enrich as `{ overture: ... }`              |
+| `isLand`, `isTerritorial`                           | normalise from `is_land`, `is_territorial`          | normalise from `is_land`, `is_territorial`            |
+| `division_id`, `division_ids`                       | retain only in source evidence; derive canonical ID | retain only in source evidence; derive left/right IDs |
+| `theme`, `type`, `country`, `region`, `admin_level` | drop after preflight; preserve in `rawProperties`   | drop after preflight; preserve in `rawProperties`     |
+| `names`                                             | drop as redundant with the referenced division      | —                                                     |
+| `is_disputed`, `perspectives`                       | —                                                   | drop; `perspectives` must be null in preflight        |
 
 The source schema and canonical schema use the same shared source-versioning,
 history-versioning, current-snapshot and `rawProperties` fragments as `division`. Stats
