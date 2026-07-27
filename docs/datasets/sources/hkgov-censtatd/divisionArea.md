@@ -47,8 +47,9 @@ Each release contains exactly 18 Polygon/MultiPolygon features. Required propert
 
 All publisher properties, including the subdivided-unit measures, remain in
 `rawProperties`; this geometry ingest does not yet publish them through the proposed
-Division Statistics family. English and Traditional Chinese district names are
-normalised to the C&SD source i18n table. `dc_class` is bridged through a reviewed
+Division Statistics family. The source assertion also projects the publisher-native
+`dc_eng` and `dc_chi` values to `districtEn` and `districtZhHant`; it does not create
+locale-normalised source child rows. `dc_class` is bridged through a reviewed
 `hkgov-censtatd` identifier bridge for each census cohort; canonical `sourceKeys` expose
 the provider's `class` and numeric `code`.
 

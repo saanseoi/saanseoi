@@ -25,13 +25,13 @@ Dataset package and does not use the CSDI GeoJSON file API as input.
 The `hkgov-had` District Boundary native package is read from the CSDI archive. Its File
 Geodatabase `DCD` layer is required to contain 18 Polygon district features with
 `AREA_ID`, `AREA_CODE`, and `AREA_TYPE`. The mirrored archive's managed key and SHA-256
-are retained on every source assertion; the importer reads that local archive rather
-than the converted GeoJSON delivery. `AREA_ID` and `AREA_CODE` are provider identifiers.
-They are resolved through the versioned `identifierBridges` fixture/table for resource
-type `division`, authority `hkgov-had`, cohort `2022`, and the administrative domain.
-The source release is `dr-hk-hkgov-had-division-area-district-2022` with cohort key
-`2022` and source schema version `1.2`. Its dataset code is
-`ds-hk-hkgov-had-division-area-district`.
+are retained in every source assertion's `sources` provenance and carried into canonical
+geometry provenance; the importer reads that local archive rather than the converted
+GeoJSON delivery. `AREA_ID` and `AREA_CODE` are provider identifiers. They are resolved
+through the versioned `identifierBridges` fixture/table for resource type `division`,
+authority `hkgov-had`, cohort `2022`, and the administrative domain. The source release
+is `dr-hk-hkgov-had-division-area-district-2022` with cohort key `2022` and source
+schema version `1.2`. Its dataset code is `ds-hk-hkgov-had-division-area-district`.
 
 The compatibility layer exposes these source fields under `hkgov`, with database
 capitalisation, in both source columns and canonical geometry `sourceKeys`:
@@ -47,7 +47,9 @@ capitalisation, in both source columns and canonical geometry `sourceKeys`:
 The normalised `divisionArea` fields are the retained EPSG:4326 polygon, `divisionId`,
 `type = mixed`, and `isLand`/`isTerritorial = true`. `NAME_TC`, `NAME_EN`, `DATA_OWNER`,
 `BEGIN_LIFESPAN`, `END_LIFESPAN`, `SHAPE_Length`, and `SHAPE_Area` are dropped from
-projected fields; the complete input remains in `rawProperties` for auditability.
+projected fields. The source assertion retains the publisher's original attribute object
+in `rawProperties` and its native geometry in `sourceGeometry`; normalised delivery
+fields and the redundant GeoJSON feature wrapper are not persisted.
 
 Preflight rejects null or empty geometry, invalid rings, and self-intersections. It does
 not repair geometry. Feature counts, geometry-type counts, rejected rows, CRS, bridge
