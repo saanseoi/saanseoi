@@ -111,6 +111,7 @@ describe('upload command address prerequisites', () => {
         type: 'address',
       },
       {
+        divisionCohortKey: '2025-09-10.0',
         resolveRemotePublishedDivisionSnapshot:
           resolveRemotePublishedDivisionSnapshotMock,
       },
@@ -122,7 +123,7 @@ describe('upload command address prerequisites', () => {
         remote: true,
       },
       expect.objectContaining({
-        cohortKey: '2025-09-24.0',
+        cohortKey: '2025-09-10.0',
         regionCode: 'hk',
         type: 'address',
       }),
