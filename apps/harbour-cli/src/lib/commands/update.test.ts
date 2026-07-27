@@ -136,6 +136,25 @@ test('shows a matching source and local version once', () => {
   expect(line).not.toContain('vlatest')
 })
 
+test('formats matching quarterly source and target versions once', () => {
+  const line = formatCheckLine(
+    {
+      code: 'ds-hk-hkgov-hyd-street',
+      publisherCode: 'hkgov-hyd',
+      regionCode: 'hk',
+      theme: 'streets',
+      resourceTypes: ['street'],
+      versionPolicy: { scheme: 'quarterly', correctionSuffixSource: 'generated' },
+    },
+    'SAME',
+    '2026-Q2.0',
+    '2026-Q2.0',
+  )
+
+  expect(line).toContain('SAME')
+  expect(line).toEndWith('v2026-Q2.0')
+})
+
 test('does not add a separator when the target has no release', () => {
   const line = formatCheckLine(
     {

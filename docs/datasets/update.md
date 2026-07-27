@@ -57,9 +57,16 @@ Mirroring an archive does not itself publish a SaanSeoi dataset release. The sou
 release policy is to compare native schema and semantic fingerprints in release order:
 an initial baseline or any geometry, attribute, feature, or schema change warrants a
 back-dated SaanSeoi release and notes; an identical redelivery remains provenance only.
-CSDI archive quarters are provenance slots, not dataset versions. The updater displays a
-fixture's explicit source version when one is configured, and otherwise leaves the
-version blank rather than treating an archive quarter as a release version.
+CSDI archive quarters are provenance slots, not dataset versions by default. The updater
+displays a fixture's explicit source version when one is configured, and otherwise
+leaves the version blank. A dataset with the explicit `quarterly` version policy is the
+exception: its archive quarter establishes the release base as `vYYYY-Qn.0`; a changed
+publisher object in that same quarter increments the correction suffix (`vYYYY-Qn.1`,
+then `.2`, and so on).
+
+The update report collapses already-current CSDI archive slots into one row per source
+release. The updater still retains and checks state for every archive slot; a newly
+changed publisher object remains visible as an actionable update.
 
 The LandsD street-name backfill is staged maintainer-only DataOps work. Preserve and
 parse the baseline, LandsD notices from 22 January 2016 onward, and the official
@@ -125,14 +132,28 @@ records `releaseLastRevisedAt` and `metadataLastRevisedAt`. A changed release re
 is a new-release candidate, while a metadata-only revision is reported as `REVIEW` and
 prompts the operator to investigate the source before publishing.
 
-Fixtures may also define an `updatePolicy`:
+Every fixture defines a `releasePolicy`, which separates source discovery into three
+phases with separate state in `.local/harbour/update-state.json`:
 
-- `allowUpdates` defaults to `true`; set it to `false` when the source is intentionally
-  frozen and should no longer be queried.
-- `checkFrequency` may be `daily`, `weekly`, or `monthly`, and defaults to `daily`. The
-  updater records the last check in `.local/harbour/update-state.json` and does not
-  query a source again before its interval expires. `--force` or `--check-now` bypasses
-  this throttle.
+- `newReleases` finds new head releases or performs an initial cohort intake.
+- `revisions` checks the correction scope allowed by the publisher.
+- `archives` enumerates historical publisher artefacts independently of the first two
+  phases, either periodically or after a specified discovery event.
+
+Each phase uses a trigger rather than only a fixed cadence: `periodic`,
+`after-latest-release-age`, `initial-only`, `on-discovery`, or `never`.
+`after-latest-release-age` supports release cliffs such as Overture's daily polling
+after 25 days. `on-discovery` can run on a newly found release, a revision, and/or the
+initial download, which lets bounded archives recover an intermediate release missed
+between updater runs. `--force` and `--check-now` bypass due intervals but never a
+policy explicitly set to `never`.
+
+Archive metadata records whether availability is `none`, `limited`, or `full`, plus the
+entry URL and reusable discovery operation where automated access exists. Once an
+archive package has been downloaded, the updater compares its publisher-byte hash with
+the known artefacts for that source release. A match is saved as an
+`identicalArchiveSlots` fixture entry, so the same archive object is not made actionable
+again.
 
 When a logical dataset has multiple publisher catalogue records, each `releases[]` entry
 may provide its own `sourceUrl`. Check state is stored independently for each source

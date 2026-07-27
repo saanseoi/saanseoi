@@ -24,9 +24,12 @@ as a false centerline geometry.
 
 ## Archive release notes
 
-These observations are CSDI archive slots, not inferred quarter-end dates. SaanSeoi will
-create a back-dated dataset release when native semantic or schema fingerprints show a
-changed source.
+These observations are CSDI archive slots, not inferred quarter-end dates. Because the
+HyD and TD street datasets publish quarterly, the slot's quarter is their SaanSeoi
+release base: `vYYYY-Qn.0`. A changed publisher object in the same quarter is a
+correction of that release (`vYYYY-Qn.1`, then `.2`, and so on). SaanSeoi will create a
+back-dated dataset release when native semantic or schema fingerprints show a changed
+source.
 
 - `2023-Q3` — initial inspected Street Name Plates baseline: 31,382 FGDB `SNP` point
   features with `SNP_ID` and `ROAD_NAME`.

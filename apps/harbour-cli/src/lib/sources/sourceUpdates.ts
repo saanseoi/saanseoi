@@ -62,6 +62,9 @@ export type DatasetUpdateCheck =
     }
   | { trigger: 'never' }
 
+export const datasetUpdatePhases = ['new-releases', 'revisions', 'archives'] as const
+export type DatasetUpdatePhase = (typeof datasetUpdatePhases)[number]
+
 export type DatasetUpdatePolicy = {
   allowUpdates?: boolean
   checkFrequency?: DatasetUpdateCheckFrequency
@@ -101,6 +104,7 @@ export type DatasetVersionPolicy = {
     | 'initial-release-date'
     | 'reference-date'
     | 'release-date'
+    | 'quarterly'
     | 'upstream'
   releaseField?: DatasetReleaseField
   correctionSuffixSource: DatasetCorrectionSuffixSource
@@ -184,6 +188,8 @@ export type DatasetUpdate = {
   ingest?: (target: import('../cli/options.ts').UploadTarget) => Promise<void>
   releaseLastRevisedAt?: string
   metadataLastRevisedAt?: string
+  /** Persists a proven byte-identical publisher archive after it is downloaded. */
+  recordIdenticalArchive?: (contentHash: string) => Promise<void>
   metadata?: {
     abstract?: string
     creationDate?: string
@@ -215,6 +221,7 @@ export type UpdateStateEntry = {
   metadataLastRevisedAt?: string
   sourceCursor?: string[]
   sourceChecks?: Record<string, UpdateSourceState>
+  phaseChecks?: Partial<Record<DatasetUpdatePhase, UpdatePhaseState>>
 }
 
 export type UpdateSourceState = {
@@ -223,6 +230,12 @@ export type UpdateSourceState = {
   lastChecked?: string
   releaseLastRevisedAt?: string
   metadataLastRevisedAt?: string
+  sourceCursor?: string[]
+}
+
+export type UpdatePhaseState = {
+  lastChecked?: string
+  releaseLastRevisedAt?: string
   sourceCursor?: string[]
 }
 
@@ -403,16 +416,105 @@ export function shouldCheckDataset(
 ) {
   if (dataset.updatePolicy?.allowUpdates === false) return false
 
-  const sourceKeys = dataset.releases?.length
-    ? dataset.releases.map(
-        (release, index) =>
-          release.sourceVersion ?? release.sourceUrl ?? `release-${index}`,
-      )
-    : [dataset.code]
+  return getDueUpdatePhases(dataset, previous, { force }).length > 0
+}
 
-  return sourceKeys.some(sourceKey =>
-    isUpdateCheckDue(dataset, getSourceState(previous, sourceKey, dataset.code), force),
-  )
+export function getDueUpdatePhases(
+  dataset: DatasetFixture,
+  previous?: UpdateStateEntry,
+  options: {
+    force?: boolean
+    hasTargetRelease?: boolean
+    now?: number
+  } = {},
+) {
+  const policy = dataset.releasePolicy
+  if (!policy || dataset.updatePolicy?.allowUpdates === false) return []
+  const now = options.now ?? Date.now()
+  const phases: DatasetUpdatePhase[] = []
+
+  if (
+    isReleasePolicyCheckDue(
+      policy.checks.newReleases,
+      previous?.phaseChecks?.['new-releases'],
+      { ...options, now },
+    )
+  ) {
+    phases.push('new-releases')
+  }
+  if (
+    isReleasePolicyCheckDue(policy.checks.revisions, previous?.phaseChecks?.revisions, {
+      ...options,
+      now,
+    })
+  ) {
+    phases.push('revisions')
+  }
+  if (
+    isReleasePolicyCheckDue(policy.checks.archives, previous?.phaseChecks?.archives, {
+      ...options,
+      now,
+    })
+  ) {
+    phases.push('archives')
+  }
+  return phases
+}
+
+function isReleasePolicyCheckDue(
+  check: DatasetUpdateCheck,
+  previous: UpdatePhaseState | undefined,
+  options: { force?: boolean; hasTargetRelease?: boolean; now: number },
+) {
+  if (check.trigger === 'never' || check.trigger === 'on-discovery') return false
+  if (options.force) return true
+  if (check.trigger === 'initial-only') {
+    return options.hasTargetRelease === false && !previous?.lastChecked
+  }
+  if (check.trigger === 'periodic') {
+    return isFrequencyDue(check.frequency, previous?.lastChecked, options.now)
+  }
+
+  const releaseDate = readReleasePolicyDate(previous?.releaseLastRevisedAt)
+  if (!Number.isFinite(releaseDate)) return true
+  if (options.now - releaseDate < check.ageDays * 86_400_000) return false
+  return isFrequencyDue(check.frequency, previous?.lastChecked, options.now)
+}
+
+function readReleasePolicyDate(value: string | undefined) {
+  if (!value) return Number.NaN
+  const date = value.match(/\b(\d{4})-(\d{2})-(\d{2})\b/)
+  if (date) return Date.parse(`${date[1]}-${date[2]}-${date[3]}T00:00:00.000Z`)
+  return Date.parse(value)
+}
+
+function isFrequencyDue(
+  frequency: DatasetUpdateCheckFrequency,
+  lastChecked: string | undefined,
+  now: number,
+) {
+  if (!lastChecked) return true
+  const lastCheckedAt = Date.parse(lastChecked)
+  if (!Number.isFinite(lastCheckedAt)) return true
+  return now - lastCheckedAt >= updateCheckIntervalMs(frequency)
+}
+
+export function recordUpdatePhaseCheck(
+  state: UpdateState,
+  datasetCode: string,
+  phase: DatasetUpdatePhase,
+  input: Omit<UpdatePhaseState, 'lastChecked'> & { checkedAt: string },
+) {
+  const entry = state[datasetCode] ?? {}
+  entry.phaseChecks = {
+    ...entry.phaseChecks,
+    [phase]: {
+      lastChecked: input.checkedAt,
+      releaseLastRevisedAt: input.releaseLastRevisedAt,
+      sourceCursor: input.sourceCursor,
+    },
+  }
+  state[datasetCode] = entry
 }
 
 export function recordUpdateState(
@@ -442,8 +544,10 @@ export function recordUpdateState(
   state[datasetCode] = entry
 }
 
-function updateCheckIntervalMs(dataset: DatasetFixture) {
-  switch (dataset.updatePolicy?.checkFrequency) {
+function updateCheckIntervalMs(input: DatasetUpdateCheckFrequency | DatasetFixture) {
+  const frequency =
+    typeof input === 'string' ? input : (input.updatePolicy?.checkFrequency ?? 'daily')
+  switch (frequency) {
     case 'weekly':
       return 7 * 86_400_000
     case 'monthly':
@@ -796,7 +900,13 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
         source.releaseSlot,
         versionKey,
       )
-      const version = resolveCsdiArchiveDatasetVersion(dataset, release)
+      const version = resolveCsdiArchiveDatasetVersion(
+        dataset,
+        release,
+        source.releaseSlot,
+        previous,
+        versionKey,
+      )
       const archive: CsdiSourceArchive = {
         datasetCode: dataset.code,
         datasetId,
@@ -849,6 +959,19 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
           }
           return prepared.sourcePath
         },
+        ...(release
+          ? {
+              recordIdenticalArchive: async (contentHash: string) => {
+                await recordIdenticalCsdiArchiveSlot({
+                  contentHash,
+                  datasetCode: dataset.code,
+                  release,
+                  releaseSlot: source.releaseSlot,
+                  sourceObjectHash: versionKey.replace(/^sha256:/, ''),
+                })
+              },
+            }
+          : {}),
       } satisfies DatasetUpdate
     }),
   )
@@ -857,12 +980,27 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
 function resolveCsdiArchiveDatasetVersion(
   dataset: DatasetFixture,
   release: DatasetRelease | undefined,
+  releaseSlot: string,
+  previous: UpdateSourceState | undefined,
+  versionKey: string,
 ) {
   // CSDI's quarter is an archive slot, rather than a dataset release version.
-  // Only show a source version when the fixture explicitly identifies one.
-  return release?.sourceVersion
-    ? normaliseDatasetVersion(dataset, release.sourceVersion)
-    : undefined
+  // It becomes the release basis only for datasets explicitly configured to
+  // publish on a quarterly cadence.
+  if (release?.sourceVersion) {
+    return normaliseDatasetVersion(dataset, release.sourceVersion)
+  }
+  if (dataset.versionPolicy.scheme !== 'quarterly') return undefined
+
+  const version = normaliseDatasetVersion(dataset, releaseSlot)
+  if (previous?.versionKey === versionKey && previous.version) return previous.version
+  const base = quarterlyVersionBase(version)
+  if (!previous?.version || quarterlyVersionBase(previous.version) !== base) {
+    return version
+  }
+
+  const previousCorrection = readVersionCorrection(previous.version, base) ?? 0
+  return `${base}.${previousCorrection + 1}`
 }
 
 function findCsdiDatasetRelease(
@@ -902,6 +1040,78 @@ function isKnownIdenticalCsdiArchive(
   )
 }
 
+async function recordIdenticalCsdiArchiveSlot(input: {
+  contentHash: string
+  datasetCode: string
+  release: DatasetRelease
+  releaseSlot: string
+  sourceObjectHash: string
+}) {
+  // An archive slot becomes suppressible only after the downloaded publisher
+  // bytes match a byte hash already recorded for this source release.
+  if (
+    !input.release.archiveSlots?.some(slot => slot.contentHash === input.contentHash)
+  ) {
+    return
+  }
+  if (
+    input.release.identicalArchiveSlots?.some(
+      slot =>
+        slot.releaseSlot === input.releaseSlot &&
+        slot.sourceObjectHash === input.sourceObjectHash,
+    )
+  ) {
+    return
+  }
+
+  const fixturePath = await findDatasetFixturePath(input.datasetCode)
+  if (!fixturePath) return
+  const fixture = JSON.parse(await readFile(fixturePath, 'utf8')) as DatasetFixture
+  const release = fixture.releases?.find(
+    candidate =>
+      candidate.sourceVersion === input.release.sourceVersion &&
+      candidate.sourceUrl === input.release.sourceUrl,
+  )
+  if (!release?.archiveSlots?.some(slot => slot.contentHash === input.contentHash)) {
+    return
+  }
+
+  const slot = {
+    contentHash: input.contentHash,
+    releaseSlot: input.releaseSlot,
+    sourceObjectHash: input.sourceObjectHash,
+  }
+  if (
+    release.identicalArchiveSlots?.some(
+      candidate =>
+        candidate.releaseSlot === slot.releaseSlot &&
+        candidate.sourceObjectHash === slot.sourceObjectHash,
+    )
+  ) {
+    return
+  }
+
+  release.identicalArchiveSlots = [...(release.identicalArchiveSlots ?? []), slot].sort(
+    (left, right) => left.releaseSlot.localeCompare(right.releaseSlot),
+  )
+  await writeFile(fixturePath, `${JSON.stringify(fixture, null, 2)}\n`, 'utf8')
+  input.release.identicalArchiveSlots = [
+    ...(input.release.identicalArchiveSlots ?? []),
+    slot,
+  ]
+}
+
+async function findDatasetFixturePath(datasetCode: string) {
+  const entries = await readdir(DATASET_ROOT, { withFileTypes: true })
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith('.json')) continue
+    const path = resolve(DATASET_ROOT, entry.name)
+    const fixture = JSON.parse(await readFile(path, 'utf8')) as { code?: unknown }
+    if (fixture.code === datasetCode) return path
+  }
+  return undefined
+}
+
 function summariseSettledCsdiArchives(
   dataset: DatasetFixture,
   archiveUpdates: DatasetUpdate[],
@@ -915,6 +1125,14 @@ function summariseSettledCsdiArchives(
 
   return [...groups.values()].map(updates => {
     const first = updates[0] as DatasetUpdate
+    const representative =
+      dataset.releasePolicy?.series === 'rolling'
+        ? (updates
+            .toSorted((left, right) =>
+              compareVersions(left.version ?? '', right.version ?? ''),
+            )
+            .at(-1) as DatasetUpdate)
+        : first
     const archiveCount = updates.length
     const knownNoOpCount = updates.filter(
       update => update.isKnownIdenticalArchive,
@@ -925,11 +1143,11 @@ function summariseSettledCsdiArchives(
         knownNoOpCount === archiveCount
           ? `${archiveCount} CSDI archive slot${archiveCount === 1 ? '' : 's'} match the fixture's recorded identical publisher artefact${archiveCount === 1 ? '' : 's'}.`
           : `${archiveCount} CSDI archive slot${archiveCount === 1 ? '' : 's'} are already current.`,
-      sourceKey: `archive-summary:${first.targetSourceKey ?? dataset.code}`,
-      sourceUrl: first.sourceUrl,
+      sourceKey: `archive-summary:${representative.targetSourceKey ?? dataset.code}`,
+      sourceUrl: representative.sourceUrl,
       status: 'current',
-      targetSourceKey: first.targetSourceKey ?? dataset.code,
-      ...(first.version ? { version: first.version } : {}),
+      targetSourceKey: representative.targetSourceKey ?? dataset.code,
+      ...(representative.version ? { version: representative.version } : {}),
     } satisfies DatasetUpdate
   })
 }
@@ -1235,18 +1453,31 @@ function normaliseComparableVersion(value: string) {
   return /^\d{4}$/.test(value) ? `${value}.0` : value
 }
 
-function normaliseDatasetVersion(dataset: DatasetFixture, value: string) {
+export function normaliseDatasetVersion(dataset: DatasetFixture, value: string) {
   if (
     dataset.versionPolicy.correctionSuffixSource === 'generated' &&
     ((dataset.versionPolicy.scheme === 'reference-year' && /^\d{4}$/.test(value)) ||
       (['initial-release-date', 'reference-date', 'release-date'].includes(
         dataset.versionPolicy.scheme,
       ) &&
-        /^\d{4}-\d{2}-\d{2}$/.test(value)))
+        /^\d{4}-\d{2}-\d{2}$/.test(value)) ||
+      (dataset.versionPolicy.scheme === 'quarterly' &&
+        (/^\d{4}-Q[1-4]$/.test(value) || /^\d{4}-\d{2}-\d{2}$/.test(value))))
   ) {
+    if (dataset.versionPolicy.scheme === 'quarterly') {
+      const match = value.match(/^(\d{4})-(?:Q([1-4])|(\d{2})-\d{2})$/)
+      if (!match) return value
+      const year = match[1] as string
+      const quarter = match[2] ?? String(Math.ceil(Number(match[3]) / 3))
+      return `${year}-Q${quarter}.0`
+    }
     return `${value}.0`
   }
   return value
+}
+
+function quarterlyVersionBase(value: string) {
+  return value.replace(/\.\d+$/, '')
 }
 
 export function resolveDatasetVersion(
