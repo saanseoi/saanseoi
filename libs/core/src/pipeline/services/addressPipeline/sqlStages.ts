@@ -22,7 +22,10 @@ import {
   writeTextArtefact,
 } from '../pipelineArtefacts'
 import { normaliseAddressChunkStage, resolveAddressChunkSize } from './normaliseStage'
-import { dedupeNormalisedAddressRows } from './normalisation'
+import {
+  dedupeNormalisedAddressRows,
+  isUnchangedHkgovAlsSourcePayload,
+} from './normalisation'
 import { buildResolvedAddressChunkArtefact } from './historyStage'
 import type {
   AddressPipelineMessage,
@@ -86,11 +89,23 @@ export async function writeAddressSourceSqlChunkStage(
   )
   const changedSourceRecordIds = new Set<string>()
   const unchangedSourceRecordIds = new Set<string>()
+  const unchangedBySourceId = new Map(
+    await Promise.all(
+      sourceRows.map(
+        async row =>
+          [
+            row.sourceId,
+            await isUnchangedHkgovAlsSourcePayload(
+              currentSourceRows.get(row.sourceId),
+              row.sourcePayloadHash,
+            ),
+          ] as const,
+      ),
+    ),
+  )
 
   for (const row of sourceRows) {
-    if (
-      currentSourceRows.get(row.sourceId)?.sourcePayloadHash === row.sourcePayloadHash
-    ) {
+    if (unchangedBySourceId.get(row.sourceId)) {
       unchangedSourceRecordIds.add(row.sourceId)
     } else {
       changedSourceRecordIds.add(row.sourceId)

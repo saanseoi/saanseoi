@@ -40,6 +40,10 @@ export type CurrentSourceRecord = {
   sourceRecordId: string
 }
 
+export type CurrentHkgovAlsAddress2dRecord = CurrentSourceRecord & {
+  rawProperties: Record<string, unknown> | null
+}
+
 function excluded(column: string) {
   return sql.raw(`excluded.${column}`)
 }
@@ -111,11 +115,33 @@ export async function getCurrentSourceHkgovAlsAddress2dRecords(
   db: SourceDatabase,
   sourceRecordIds: string[],
 ) {
-  return loadCurrentSourceRecordMapByIds(
-    db,
-    sourceSchema.sourceHkgovAlsAddresses2d,
-    sourceRecordIds,
-  )
+  const rows: CurrentHkgovAlsAddress2dRecord[] = []
+
+  for (const chunk of chunkArray(
+    [...new Set(sourceRecordIds)],
+    getMaxItemsPerInClause(),
+  )) {
+    if (chunk.length === 0) continue
+
+    rows.push(
+      ...((await db
+        .select({
+          rawProperties: sourceSchema.sourceHkgovAlsAddresses2d.rawProperties,
+          sourcePayloadHash: sourceSchema.sourceHkgovAlsAddresses2d.versionHash,
+          sourceRecordId: sourceSchema.sourceHkgovAlsAddresses2d.sourceRecordId,
+        })
+        .from(sourceSchema.sourceHkgovAlsAddresses2d)
+        .where(
+          and(
+            eq(sourceSchema.sourceHkgovAlsAddresses2d.isCurrent, true),
+            inArray(sourceSchema.sourceHkgovAlsAddresses2d.sourceRecordId, chunk),
+          ),
+        )
+        .all()) as CurrentHkgovAlsAddress2dRecord[]),
+    )
+  }
+
+  return new Map(rows.map(row => [row.sourceRecordId, row]))
 }
 
 export async function hasCurrentSourceHkgovAlsAddress2dRecords(db: SourceDatabase) {
@@ -391,43 +417,6 @@ async function loadCurrentSourceRecordMap<
       row as CurrentSourceRecord,
     ]),
   )
-}
-
-async function loadCurrentSourceRecordMapByIds<
-  TTable extends {
-    isCurrent: unknown
-    sourceRecordId: unknown
-    versionHash: unknown
-  },
->(db: SourceDatabase, table: TTable, sourceRecordIds: string[]) {
-  const rows: CurrentSourceRecord[] = []
-
-  for (const chunk of chunkArray(
-    [...new Set(sourceRecordIds)],
-    getMaxItemsPerInClause(),
-  )) {
-    if (chunk.length === 0) {
-      continue
-    }
-
-    rows.push(
-      ...((await db
-        .select({
-          sourcePayloadHash: table.versionHash as never,
-          sourceRecordId: table.sourceRecordId as never,
-        })
-        .from(table as never)
-        .where(
-          and(
-            eq(table.isCurrent as never, true),
-            inArray(table.sourceRecordId as never, chunk),
-          ),
-        )
-        .all()) as CurrentSourceRecord[]),
-    )
-  }
-
-  return new Map(rows.map(row => [row.sourceRecordId, row]))
 }
 
 async function hasCurrentSourceRecords<

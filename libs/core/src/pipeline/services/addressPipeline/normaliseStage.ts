@@ -9,7 +9,11 @@ import {
   type PipelineArtefactBucket,
   writeJsonArtefact,
 } from '../pipelineArtefacts'
-import { dedupeAddressI18nRows, normaliseAddressRowForPipeline } from './normalisation'
+import {
+  buildHkgovAlsSourceHashInput,
+  dedupeAddressI18nRows,
+  normaliseAddressRowForPipeline,
+} from './normalisation'
 import type { AddressPipelineMessage, NormalisedAddressChunkArtefact } from './types'
 
 const ADDRESS_BATCH_SIZE = 128
@@ -64,7 +68,7 @@ export async function normaliseAddressChunkStage(
     for (const row of batch) {
       const normalised = normaliseAddressRowForPipeline(row)
       const i18n = dedupeAddressI18nRows(normalised.i18n, normalised.sourceId)
-      const sourcePayloadHash = await createHash(row)
+      const sourcePayloadHash = await createHash(buildHkgovAlsSourceHashInput(row))
 
       rows.push({
         ...normalised,

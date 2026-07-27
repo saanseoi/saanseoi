@@ -117,10 +117,13 @@ records from earlier shards as well as the new shard. The first release of a yea
 therefore reports changes from the prior release rather than treating the whole source
 dataset as newly added.
 
-Lifecycle churn excludes release-specific source provenance, including the release
-cohort and input file path. Those values remain stored for audit, but a new delivery
-does not count as a changed address solely because its provenance points to that
-delivery.
+Lifecycle churn excludes release-specific provenance and ingestion bookkeeping,
+including the release cohort, input file path and position, resolved identity metadata,
+and selected division snapshot. Those values remain stored for audit, but a new delivery
+does not count as a changed address solely because it has a new release context. The
+source assertion hash still includes the publisher address representation, coordinates,
+identifiers, and projected address fields, so an actual ALS record change creates a new
+version.
 
 The source assertion keeps the original bilingual ALS properties unchanged in
 `rawProperties`. Its paired `addressEn` and `addressZhHant` fields record the
