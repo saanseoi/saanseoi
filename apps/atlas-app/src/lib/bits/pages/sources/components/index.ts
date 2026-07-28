@@ -1,2 +1,8 @@
-export { default as SourceFlowMap } from './sourceFlowMap.svelte'
-export type { SourceFlowInput, SourceFlowLane } from './sourceFlowMap.svelte'
+export * as SourceFlowMap from './sourceFlowMap'
+export * as SourcesHeader from './sourcesHeader'
+export type {
+  SourceFlowDomain,
+  SourceFlowField,
+  SourceFlowInput,
+  SourceFlowLane,
+} from './sourceFlowMap'
