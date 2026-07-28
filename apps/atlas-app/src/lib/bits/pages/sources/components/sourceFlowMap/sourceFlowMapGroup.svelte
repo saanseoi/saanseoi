@@ -17,6 +17,7 @@ type Props = {
   inputs: SourceFlowInput[]
   groupId: string
   domain?: SourceFlowDomain
+  visible: boolean
   isLaneExpanded: boolean
   isDomainExpanded: boolean
   isDefaultInputListExpanded: boolean
@@ -34,6 +35,7 @@ let {
   inputs,
   groupId,
   domain,
+  visible,
   isLaneExpanded,
   isDomainExpanded,
   isDefaultInputListExpanded,
@@ -79,78 +81,80 @@ let shouldShowLaneToggle = $derived(
 )
 </script>
 
-<section
-  bind:this={groupElement}
-  class={`source-flow-lane source-flow-lane-${lane.id}`}
-  transition:slide={{ duration: 220, axis: 'y' }}
-  style={`--flow-accent: ${lane.accent}; --flow-connector: ${lane.id === 'addresses' ? lane.secondary : lane.accent}; --flow-label: ${lane.id === 'addresses' || lane.id === 'stats' || lane.id === 'streets' ? lane.secondary : lane.accent}; --flow-ink: ${lane.ink}; --flow-index: ${laneIndex}; --visible-source-count: ${inputs.length};`}
-  aria-labelledby={`source-flow-${groupId}`}
->
-  <div class="source-flow-inputs">
-    {#each inputs as input (input.id)}
-      <SourceFlowMapInput {input} />
-    {/each}
+{#if visible}
+  <section
+    bind:this={groupElement}
+    class={`source-flow-lane source-flow-lane-${lane.id}`}
+    transition:slide={{ duration: 220, axis: 'y' }}
+    style={`--flow-accent: ${lane.accent}; --flow-connector: ${lane.id === 'addresses' ? lane.secondary : lane.accent}; --flow-label: ${lane.id === 'addresses' || lane.id === 'stats' || lane.id === 'streets' ? lane.secondary : lane.accent}; --flow-ink: ${lane.ink}; --flow-index: ${laneIndex}; --visible-source-count: ${inputs.length};`}
+    aria-labelledby={`source-flow-${groupId}`}
+  >
+    <div class="source-flow-inputs">
+      {#each inputs as input (input.id)}
+        <SourceFlowMapInput {input} />
+      {/each}
 
-    {#if shouldShowDomainToggle && domain}
-      <button
-        class="source-flow-more"
-        type="button"
-        aria-expanded={isDomainExpanded}
-        onclick={() => onToggleDomain(domain.id)}
-      >
-        {#if isDomainExpanded}
-          {m.sources_flow_hide()}
-        {:else}
-          <span>{m.sources_flow_show()}</span>
-          <strong>{visibleVariantCount}</strong>
-          <span>{m.sources_flow_more()}</span>
-        {/if}
-      </button>
-    {/if}
+      {#if shouldShowDomainToggle && domain}
+        <button
+          class="source-flow-more"
+          type="button"
+          aria-expanded={isDomainExpanded}
+          onclick={() => onToggleDomain(domain.id)}
+        >
+          {#if isDomainExpanded}
+            {m.sources_flow_hide()}
+          {:else}
+            <span>{m.sources_flow_show()}</span>
+            <strong>{visibleVariantCount}</strong>
+            <span>{m.sources_flow_more()}</span>
+          {/if}
+        </button>
+      {/if}
 
-    {#if shouldShowDefaultInputToggle}
-      <button
-        class="source-flow-more"
-        type="button"
-        aria-expanded={isDefaultInputListExpanded}
-        onclick={() => onToggleDefaultInputList(lane.id)}
-      >
-        {#if isDefaultInputListExpanded}
-          {m.sources_flow_hide()}
-        {:else}
-          <span>{m.sources_flow_show()}</span>
-          <strong>{remainingDefaultInputCount}</strong>
-          <span>{m.sources_flow_more()}</span>
-        {/if}
-      </button>
-    {/if}
+      {#if shouldShowDefaultInputToggle}
+        <button
+          class="source-flow-more"
+          type="button"
+          aria-expanded={isDefaultInputListExpanded}
+          onclick={() => onToggleDefaultInputList(lane.id)}
+        >
+          {#if isDefaultInputListExpanded}
+            {m.sources_flow_hide()}
+          {:else}
+            <span>{m.sources_flow_show()}</span>
+            <strong>{remainingDefaultInputCount}</strong>
+            <span>{m.sources_flow_more()}</span>
+          {/if}
+        </button>
+      {/if}
 
-    {#if shouldShowLaneToggle}
-      <button
-        class="source-flow-more"
-        type="button"
-        aria-expanded={isLaneExpanded}
-        onclick={() => onToggleLane(lane.id)}
-      >
-        {#if isLaneExpanded}
-          {m.sources_flow_hide()} {groupLabels(lane)}
-        {:else}
-          <span>{m.sources_flow_show()}</span>
-          <strong>{remainingGroupCount}</strong>
-          <span>{groupLabels(lane)}</span>
-        {/if}
-      </button>
-    {/if}
-  </div>
+      {#if shouldShowLaneToggle}
+        <button
+          class="source-flow-more"
+          type="button"
+          aria-expanded={isLaneExpanded}
+          onclick={() => onToggleLane(lane.id)}
+        >
+          {#if isLaneExpanded}
+            {m.sources_flow_hide()} {groupLabels(lane)}
+          {:else}
+            <span>{m.sources_flow_show()}</span>
+            <strong>{remainingGroupCount}</strong>
+            <span>{groupLabels(lane)}</span>
+          {/if}
+        </button>
+      {/if}
+    </div>
 
-  <dl class="source-flow-gutter">
-    <dt>{groupLabel(lane)}</dt>
-    <dd>{domain?.label ?? lane.primaryGroupLabel}</dd>
-  </dl>
+    <dl class="source-flow-gutter">
+      <dt>{groupLabel(lane)}</dt>
+      <dd>{domain?.label ?? lane.primaryGroupLabel}</dd>
+    </dl>
 
-  <SourceFlowMapConnectors {groupElement} {inputs} />
-  <SourceFlowMapOutput {lane} {groupId} />
-</section>
+    <SourceFlowMapConnectors {groupElement} {inputs} />
+    <SourceFlowMapOutput {lane} {groupId} />
+  </section>
+{/if}
 
 <style>
 .source-flow-lane {
