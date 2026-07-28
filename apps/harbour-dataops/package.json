@@ -25,7 +25,7 @@
     "hyparquet-compressors": "^1.1.1",
     "hyparquet-writer": "^0.16.1",
     "jsts": "2.12.1",
-    "proj4": "2.20.9",
+    "proj4": "2.21.0",
     "shpjs": "6.2.0"
   }
 }
