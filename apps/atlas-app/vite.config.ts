@@ -6,6 +6,9 @@ import { sveltekit } from '@sveltejs/kit/vite'
 export default defineConfig({
   plugins: [tailwindcss(), sveltekit()],
   server: {
+    // Tailnet-only remote development through `tailscale serve --https=8443`.
+    // Vite otherwise rejects the MagicDNS Host header before proxying/HMR.
+    allowedHosts: ['fi.tailb49776.ts.net'],
     watch: {
       usePolling: true,
       interval: 1000,
