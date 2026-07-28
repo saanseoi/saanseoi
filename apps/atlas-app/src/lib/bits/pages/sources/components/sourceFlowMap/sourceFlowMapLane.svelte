@@ -84,20 +84,51 @@ $effect(() => {
 })
 
 let isExpanded = $derived(lane.defaultAllGroupsExpanded === true || expanded)
+let primaryDomain = $derived(lane.domains[0])
+let primaryGroupDomain = $derived(
+  isExpanded ? primaryDomain : lane.domains.length === 1 ? primaryDomain : undefined,
+)
+let primaryGroupInputs = $derived(
+  isExpanded && primaryDomain
+    ? visibleDomainInputs(primaryDomain)
+    : visibleDefaultInputs(),
+)
+let isPrimaryGroupVisible = $derived(
+  isExpanded && primaryDomain ? hasVisibleDomain(primaryDomain) : hasVisibleDefault(),
+)
 </script>
 
-{#if !isExpanded}
-  {#if hasVisibleDefault()}
+<SourceFlowMapGroup
+  {lane}
+  {laneIndex}
+  inputs={primaryGroupInputs}
+  groupId={isExpanded && primaryDomain ? primaryDomain.id : lane.id}
+  domain={primaryGroupDomain}
+  visible={isPrimaryGroupVisible}
+  isLaneExpanded={isExpanded}
+  isDomainExpanded={lane.domains[0] ? isDomainExpanded(lane.domains[0]) : false}
+  isDefaultInputListExpanded={defaultInputListExpanded}
+  visibleVariantCount={lane.domains[0] ? visibleVariantCount(lane.domains[0]) : 0}
+  remainingDefaultInputCount={remainingDefaultInputCount()}
+  remainingGroupCount={remainingGroupCount()}
+  onToggleLane={toggleLane}
+  onToggleDomain={toggleDomain}
+  onToggleDefaultInputList={toggleDefaultInputList}
+/>
+
+{#each lane.domains as domain (domain.id)}
+  {#if domain !== primaryDomain}
     <SourceFlowMapGroup
       {lane}
       {laneIndex}
-      inputs={visibleDefaultInputs()}
-      groupId={lane.id}
-      domain={lane.domains.length === 1 ? lane.domains[0] : undefined}
+      inputs={visibleDomainInputs(domain)}
+      groupId={domain.id}
+      {domain}
+      visible={isExpanded && hasVisibleDomain(domain)}
       isLaneExpanded={isExpanded}
-      isDomainExpanded={lane.domains[0] ? isDomainExpanded(lane.domains[0]) : false}
+      isDomainExpanded={isDomainExpanded(domain)}
       isDefaultInputListExpanded={defaultInputListExpanded}
-      visibleVariantCount={lane.domains[0] ? visibleVariantCount(lane.domains[0]) : 0}
+      visibleVariantCount={visibleVariantCount(domain)}
       remainingDefaultInputCount={remainingDefaultInputCount()}
       remainingGroupCount={remainingGroupCount()}
       onToggleLane={toggleLane}
@@ -105,25 +136,4 @@ let isExpanded = $derived(lane.defaultAllGroupsExpanded === true || expanded)
       onToggleDefaultInputList={toggleDefaultInputList}
     />
   {/if}
-{:else}
-  {#each lane.domains as domain (domain.id)}
-    {#if hasVisibleDomain(domain)}
-      <SourceFlowMapGroup
-        {lane}
-        {laneIndex}
-        inputs={visibleDomainInputs(domain)}
-        groupId={domain.id}
-        {domain}
-        isLaneExpanded={isExpanded}
-        isDomainExpanded={isDomainExpanded(domain)}
-        isDefaultInputListExpanded={defaultInputListExpanded}
-        visibleVariantCount={visibleVariantCount(domain)}
-        remainingDefaultInputCount={remainingDefaultInputCount()}
-        remainingGroupCount={remainingGroupCount()}
-        onToggleLane={toggleLane}
-        onToggleDomain={toggleDomain}
-        onToggleDefaultInputList={toggleDefaultInputList}
-      />
-    {/if}
-  {/each}
-{/if}
+{/each}
