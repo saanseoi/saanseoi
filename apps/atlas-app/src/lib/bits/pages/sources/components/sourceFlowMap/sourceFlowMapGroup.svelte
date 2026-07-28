@@ -253,7 +253,10 @@ let shouldShowLaneToggle = $derived(
   .source-flow-gutter {
     grid-column: 1;
     grid-row: auto;
-    padding-top: 0.5rem;
+    min-height: 2.75rem;
+    align-content: start;
+    gap: 0.1rem;
+    padding-top: 0.25rem;
   }
 }
 </style>

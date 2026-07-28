@@ -14,6 +14,8 @@ type Props = {
 
 let { groupElement, inputs }: Props = $props()
 let geometry = $state<ConnectorGeometry>()
+let stackedGeometry = $state<ConnectorGeometry>()
+let stackedArrowHalfHeight = $state(2.625)
 
 const defaultConnectorY = (inputCount: number, inputIndex: number) => {
   const cardHeight = 5.65
@@ -49,7 +51,7 @@ const connectorPath = (
   return `M 0 ${inputY} C 34 ${inputY}, 42 ${outputY}, ${joinX} ${outputY}`
 }
 
-const stackedFlowPoints = (inputCount: number) => {
+const fallbackStackedGeometry = (inputCount: number): ConnectorGeometry => {
   const pointsByCount = {
     1: { inputY: [34], outputY: 76 },
     2: { inputY: [18, 56], outputY: 86 },
@@ -57,23 +59,17 @@ const stackedFlowPoints = (inputCount: number) => {
     4: { inputY: [10, 29, 48, 67], outputY: 92 },
   } as const
 
-  return pointsByCount[Math.min(Math.max(inputCount, 1), 4) as 1 | 2 | 3 | 4]
+  const points = pointsByCount[Math.min(Math.max(inputCount, 1), 4) as 1 | 2 | 3 | 4]
+  return { inputY: [...points.inputY], outputY: points.outputY, lineEnd: 0 }
 }
 
-const stackedInputPath = (inputCount: number, inputIndex: number) => {
-  const { inputY } = stackedFlowPoints(inputCount)
-  return `M 36 ${inputY[inputIndex] ?? inputY[0]} H 14`
-}
+const stackedInputPath = (inputY: number) => `M 36 ${inputY} H 14`
 
-const stackedTrunkPath = (inputCount: number) => {
-  const { inputY, outputY } = stackedFlowPoints(inputCount)
-  return `M 14 ${inputY[0]} V ${outputY} H 27.25`
-}
+const stackedTrunkPath = (inputY: number, outputY: number) =>
+  `M 14 ${inputY} V ${outputY} H 27.25`
 
-const stackedArrowPath = (inputCount: number) => {
-  const { outputY } = stackedFlowPoints(inputCount)
-  return `M 27.25 ${outputY - 2.625} L 36 ${outputY} L 27.25 ${outputY + 2.625} Z`
-}
+const stackedArrowPath = (outputY: number, arrowHalfHeight: number) =>
+  `M 27.25 ${outputY - arrowHalfHeight} L 36 ${outputY} L 27.25 ${outputY + arrowHalfHeight} Z`
 
 $effect(() => {
   const laneElement = groupElement
@@ -84,29 +80,53 @@ $effect(() => {
     const connectorElement = laneElement.querySelector<SVGElement>(
       '.source-flow-connectors',
     )
+    const stackedConnectorElement = laneElement.querySelector<SVGElement>(
+      '.source-flow-stacked-connectors',
+    )
+    const outputElement = laneElement.querySelector<HTMLElement>('.source-flow-output')
     const inputElements = Array.from(
       laneElement.querySelectorAll<HTMLElement>('.source-flow-input'),
     )
-    if (!connectorElement || !inputElements.length) return
+    if (!inputElements.length) return
 
-    const connectorRect = connectorElement.getBoundingClientRect()
-    if (!connectorRect.height) return
+    const inputRects = inputElements.map(input => input.getBoundingClientRect())
+    if (connectorElement) {
+      const connectorRect = connectorElement.getBoundingClientRect()
+      if (connectorRect.height) {
+        const inputY = inputRects.map(
+          input =>
+            ((input.top + input.height / 2 - connectorRect.top) /
+              connectorRect.height) *
+            100,
+        )
+        geometry = {
+          inputY,
+          outputY: inputY[0] ?? 0,
+          lineEnd: 150 - (5 / connectorRect.width) * 150,
+        }
+      }
+    }
 
-    const inputY = inputElements.map(input => {
-      const rect = input.getBoundingClientRect()
-      return (
-        ((rect.top + rect.height / 2 - connectorRect.top) / connectorRect.height) * 100
-      )
-    })
-
-    geometry = {
-      inputY,
-      outputY: inputY[0] ?? 0,
-      lineEnd: 150 - (5 / connectorRect.width) * 150,
+    if (stackedConnectorElement && outputElement) {
+      const stackedConnectorRect = stackedConnectorElement.getBoundingClientRect()
+      const outputRect = outputElement.getBoundingClientRect()
+      if (stackedConnectorRect.height) {
+        const relativeY = (rect: DOMRect) =>
+          ((rect.top + rect.height / 2 - stackedConnectorRect.top) /
+            stackedConnectorRect.height) *
+          100
+        stackedGeometry = {
+          inputY: inputRects.map(relativeY),
+          outputY: relativeY(outputRect),
+          lineEnd: 0,
+        }
+        stackedArrowHalfHeight = (8 / stackedConnectorRect.height) * 100
+      }
     }
   }
 
   geometry = fallbackGeometry(inputCount)
+  stackedGeometry = fallbackStackedGeometry(inputCount)
   const frame = requestAnimationFrame(measure)
   const observer = new ResizeObserver(measure)
   observer.observe(laneElement)
@@ -118,6 +138,9 @@ $effect(() => {
 })
 
 let displayedGeometry = $derived(geometry ?? fallbackGeometry(inputs.length))
+let displayedStackedGeometry = $derived(
+  stackedGeometry ?? fallbackStackedGeometry(inputs.length),
+)
 </script>
 
 <svg
@@ -148,11 +171,25 @@ let displayedGeometry = $derived(geometry ?? fallbackGeometry(inputs.length))
   {#each inputs as input, inputIndex (input.id)}
     <path
       class="source-flow-stacked-input"
-      d={stackedInputPath(inputs.length, inputIndex)}
+      d={stackedInputPath(
+        displayedStackedGeometry.inputY[inputIndex] ?? displayedStackedGeometry.outputY,
+      )}
     ></path>
   {/each}
-  <path class="source-flow-stacked-trunk" d={stackedTrunkPath(inputs.length)}></path>
-  <path class="source-flow-stacked-arrow" d={stackedArrowPath(inputs.length)}></path>
+  <path
+    class="source-flow-stacked-trunk"
+    d={stackedTrunkPath(
+      displayedStackedGeometry.inputY[0] ?? displayedStackedGeometry.outputY,
+      displayedStackedGeometry.outputY,
+    )}
+  ></path>
+  <path
+    class="source-flow-stacked-arrow"
+    d={stackedArrowPath(
+      displayedStackedGeometry.outputY,
+      stackedArrowHalfHeight,
+    )}
+  ></path>
 </svg>
 
 <span class="source-flow-arrow-head" aria-hidden="true"></span>
