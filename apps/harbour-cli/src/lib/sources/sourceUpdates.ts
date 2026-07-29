@@ -165,6 +165,10 @@ export type DatasetFixture = {
   type?: string
   resourceTypes?: readonly string[]
   sourceVariant?: string
+  mergeRules?: Array<{
+    rulesetVersion: string
+    operationCodes: string[]
+  }>
   theme: string
   i18n?: Array<{ locale: string; name?: string }>
 }
