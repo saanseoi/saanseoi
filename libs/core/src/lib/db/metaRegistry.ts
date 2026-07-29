@@ -685,6 +685,7 @@ async function queryRegistrySourceVersions(
       code: metaReleases.code,
       sourceVersion: metaReleases.sourceVersion,
       sourceSchemaVersion: metaReleases.sourceSchemaVersion,
+      processingRules: metaReleases.processingRules,
       publicationDate: metaReleases.publicationDate,
       cohortKey: metaReleases.cohortKey,
       rawObjectKey: metaReleases.rawObjectKey,
@@ -1317,6 +1318,7 @@ export async function insertDataset(
       resourceType: plan.type,
       sourceVersion: plan.sourceVersion,
       sourceSchemaVersion,
+      processingRules: dataset.processingRules,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
       rawObjectKey,
@@ -4566,6 +4568,7 @@ async function requireDatasetDefinition(
     ((await db
       .select({
         id: metaDatasets.id,
+        processingRules: metaDatasets.processingRules,
       })
       .from(metaDatasets)
       .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
@@ -4581,7 +4584,7 @@ async function requireDatasetDefinition(
         ),
       )
       .limit(1)
-      .get()) as { id: string } | undefined) ?? null
+      .get()) as { id: string; processingRules: unknown } | undefined) ?? null
 
   if (!dataset) {
     throw new Error(
