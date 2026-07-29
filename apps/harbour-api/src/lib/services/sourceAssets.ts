@@ -9,11 +9,13 @@ type AssetBucket = Pick<R2Bucket, 'head' | 'put'>
 export type SourceAssetMetadata = {
   assetKey: string
   contentHash: string
+  datasetId?: string
   mediaType: string
   role: string
   retrievedAt: string
   manifest?: unknown
   originalUrl?: string
+  releaseId?: string
   sourcePageLocale?: string
   sourcePageUrl?: string
 }
@@ -91,8 +93,8 @@ export async function registerManagedSourceAsset(
       sourcePageLocale: metadata.sourcePageLocale ?? null,
       sourcePageUrl: metadata.sourcePageUrl ?? null,
       sourceRecordId: null,
-      datasetId: null,
-      releaseId: null,
+      datasetId: metadata.datasetId ?? null,
+      releaseId: metadata.releaseId ?? null,
     })
     .onConflictDoNothing()
     .run()

@@ -49,6 +49,7 @@ import { checkOvertureUploadAssumptions } from '../upload/overtureAssumptions.ts
 import { prepareUploadFileForDispatch } from '../upload/parquetRepack.ts'
 import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
+import { uploadSourceReleaseAsset } from '../sources/sourceAssets.ts'
 import { dispatchUpload } from '../upload/upload.ts'
 import { formatDurationMs } from '../localPipeline/progressFormatting.ts'
 
@@ -287,6 +288,26 @@ ${mutedBar}  `)
         }).join('\n'),
         'UPLOAD RESULT',
       )
+
+      if (previewResult.plan.source === 'overture') {
+        const datasetId =
+          typeof uploadResult?.datasetId === 'string' ? uploadResult.datasetId : null
+        const releaseId =
+          typeof uploadResult?.releaseId === 'string' ? uploadResult.releaseId : null
+        if (!datasetId || !releaseId) {
+          throw new Error('Overture source retention requires release identifiers.')
+        }
+        const sourceAsset = await uploadSourceReleaseAsset(target, {
+          datasetCode: previewResult.plan.datasetCode,
+          datasetId,
+          filePath: registerOptions.filePath,
+          publisherCode: 'overture',
+          releaseCode: previewResult.plan.releaseCode,
+          releaseId,
+          sourceVersion: previewResult.plan.sourceVersion,
+        })
+        log.message(`Retained Overture source: ${sourceAsset.url}`)
+      }
 
       if (processingStrategy.mode === 'local-address-sql') {
         if (
