@@ -35,6 +35,7 @@ export const metaDatasets = sqliteTable(
     theme: text('theme', { enum: datasetThemes }).notNull(),
     // A dataset describes one publisher product. Its independently processable
     // resource outputs are declared in metaDatasetResourceTypes below.
+    subType: text('subType'),
     sourceVariant: text('sourceVariant').notNull().default('default'),
     // Native CRS shared by every release of this source dataset. Source
     // records retain their geometry evidence but must not duplicate this
