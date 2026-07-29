@@ -6,7 +6,6 @@ import {
   initialApiVersions,
   initialDatasets,
   initialDatasetResourceTypes,
-  resolveDatasetMergeRules,
   initialDataShards,
   resolveInitialDataShardsForEnvironment,
 } from './meta'
@@ -75,7 +74,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('resolves deterministic bulk actions from versioned merge rulesets', () => {
+  test('stores deterministic bulk actions resolved from versioned merge rulesets', () => {
     const overtureDivisions = initialDatasets.find(
       dataset => dataset.code === 'ds-hk-overture-division',
     )
@@ -85,21 +84,7 @@ describe('fixture version hashes', () => {
         'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
     )
 
-    expect(overtureDivisions?.processingRules).toEqual([
-      expect.objectContaining({
-        rulesetVersion: 'rs-division-merge-v1',
-        operationCodes: expect.arrayContaining([
-          'normalise_overture_division_hierarchy',
-        ]),
-      }),
-    ])
-    expect(censtatdDensity?.processingRules).toEqual([
-      {
-        rulesetVersion: 'rs-division-merge-v1',
-        operationCodes: ['map_censtatd_district_code_to_canonical_division'],
-      },
-    ])
-    expect(resolveDatasetMergeRules(overtureDivisions?.processingRules)).toEqual(
+    expect(overtureDivisions?.processingRules).toEqual(
       expect.objectContaining({
         rulesets: [
           expect.objectContaining({
@@ -108,8 +93,43 @@ describe('fixture version hashes', () => {
               expect.objectContaining({
                 operationCode: 'normalise_overture_division_hierarchy',
                 sourceFieldPath: 'hierarchies',
+                type: 'bulk',
+              }),
+              expect.objectContaining({
+                operationCode: 'derive_division_type_from_overture_taxonomy',
+                mappings: expect.arrayContaining([
+                  expect.objectContaining({
+                    from: 'subtype = dependency',
+                    to: 'sar',
+                  }),
+                ]),
+              }),
+              expect.objectContaining({
+                operationCode: 'overture_division_locale_inferred',
+                type: 'record',
               }),
             ]),
+          }),
+        ],
+      }),
+    )
+    expect(censtatdDensity?.processingRules).toEqual(
+      expect.objectContaining({
+        rulesets: [
+          expect.objectContaining({
+            rulesetVersion: 'rs-division-merge-v1',
+            rules: [
+              expect.objectContaining({
+                operationCode: 'map_censtatd_district_code_to_canonical_division',
+                type: 'bulk',
+                mappings: expect.arrayContaining([
+                  expect.objectContaining({
+                    from: 'matching C&SD bridge canonicalId',
+                    to: 'divisionId',
+                  }),
+                ]),
+              }),
+            ],
           }),
         ],
       }),

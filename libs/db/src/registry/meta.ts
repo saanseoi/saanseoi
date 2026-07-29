@@ -193,6 +193,7 @@ type DataShardFileFixture = {
 
 export type MergeProcessingRule = {
   operationCode: string
+  type: 'bulk' | 'record'
   sourceFieldPath?: string
   targetFieldPath?: string
   condition?: string
@@ -253,7 +254,7 @@ type InitialDatasetSeed = VersionedFixture<
     | 'transforms'
   > & {
     sourceVariant: string
-    processingRules?: DatasetMergeRuleReference[]
+    processingRules: ReleaseMergeRules | null
   }
 >
 
@@ -447,7 +448,7 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   attribution: fixture.attribution,
   sourceUrl: fixture.sourceUrl,
   category: fixture.category,
-  processingRules: fixture.mergeRules,
+  processingRules: resolveDatasetMergeRules(fixture.mergeRules),
 }))
 
 /**

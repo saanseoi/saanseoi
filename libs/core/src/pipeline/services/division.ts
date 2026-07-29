@@ -1659,9 +1659,9 @@ function normaliseDivisionHierarchies(
   divisionId: string,
   lookup: DivisionHierarchyLookup | undefined,
 ) {
-  // See the `normalise_overture_division_hierarchy` bulk rule in the dataset
-  // fixture. Update the rule alongside this logic so the audit describes the
-  // release's deterministic processing accurately.
+  // See `normalise_overture_division_hierarchy` in the division merge ruleset
+  // selected by this dataset fixture. Update the rule alongside this logic so
+  // the audit describes the release's deterministic processing accurately.
   let normalised = value
 
   while (
@@ -2065,7 +2065,8 @@ function dedupeNameRules(rules: DivisionNameRuleRecord[]) {
 }
 
 export function parseWkbGeometry(value: unknown): GeoJsonGeometry | null {
-  // See the `decode_wkb_geometry_to_geojson` bulk rule in the dataset fixture.
+  // See `decode_wkb_geometry_to_geojson` in the division merge ruleset selected
+  // by this dataset fixture.
   const decodedGeometry = asGeoJsonGeometry(value)
 
   if (decodedGeometry) {

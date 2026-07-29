@@ -18,6 +18,31 @@ export type ReleaseProcessingAction = {
   summary: string
 }
 
+function declaredRecordOperationCodes(processingRules: unknown) {
+  if (!processingRules || typeof processingRules !== 'object') return null
+  const rulesets = (processingRules as { rulesets?: unknown }).rulesets
+  if (!Array.isArray(rulesets)) return null
+
+  const operationCodes = new Set<string>()
+  for (const ruleset of rulesets) {
+    if (!ruleset || typeof ruleset !== 'object') continue
+    const rules = (ruleset as { rules?: unknown }).rules
+    if (!Array.isArray(rules)) continue
+    for (const rule of rules) {
+      if (!rule || typeof rule !== 'object') continue
+      const { operationCode, type } = rule as {
+        operationCode?: unknown
+        type?: unknown
+      }
+      if (type === 'record' && typeof operationCode === 'string') {
+        operationCodes.add(operationCode)
+      }
+    }
+  }
+
+  return operationCodes
+}
+
 /**
  * Replaces a release's auditable processing decisions and their aggregate stats.
  * Evidence remains structured JSON so consumers can render the canonical record
@@ -29,7 +54,10 @@ export async function replaceReleaseProcessingActions(
   actions: ReleaseProcessingAction[],
 ) {
   const release = await metaDb
-    .select({ status: metaSchema.metaReleases.status })
+    .select({
+      status: metaSchema.metaReleases.status,
+      processingRules: metaSchema.metaReleases.processingRules,
+    })
     .from(metaSchema.metaReleases)
     .where(eq(metaSchema.metaReleases.id, releaseId))
     .limit(1)
@@ -42,6 +70,18 @@ export async function replaceReleaseProcessingActions(
     throw new Error(
       `Cannot replace processing actions for ${releaseId}: ${release.status} releases are immutable.`,
     )
+  }
+
+  const recordOperationCodes = declaredRecordOperationCodes(release.processingRules)
+  if (recordOperationCodes) {
+    const undeclaredActions = actions
+      .map(action => action.action)
+      .filter(action => !recordOperationCodes.has(action))
+    if (undeclaredActions.length > 0) {
+      throw new Error(
+        `Processing actions are not declared as record rules for ${releaseId}: ${[...new Set(undeclaredActions)].join(', ')}.`,
+      )
+    }
   }
 
   await runStatementBatchWithWriteRetry(metaDb, [
