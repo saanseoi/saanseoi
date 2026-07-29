@@ -302,6 +302,7 @@
   "source_processing_actions_info_description": "顯示匯入此版本時進行的自動正規化、配對及修復操作。",
   "source_audit_info": "發布決策說明",
   "source_audit_info_description": "保留自動合併、配對決策及已審閱變更的來源證據。",
+  "source_bulk_actions": "批次操作",
   "source_stats_unavailable": "此版本尚未發布統計資料。",
   "source_notes_empty": "此語言沒有版本說明。",
   "source_versions": "版本",

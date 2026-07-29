@@ -278,6 +278,7 @@ export async function listRegistryReleases(
         .select({
           apiReleaseSetId: metaApiReleaseSetSnapshots.apiReleaseSetId,
           snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+          variant: metaApiReleaseSetSnapshots.variant,
           role: metaApiReleaseSetSnapshots.role,
           isRequired: metaApiReleaseSetSnapshots.isRequired,
           cohortMatchingMode: metaApiReleaseSetSnapshots.cohortMatchingMode,
@@ -335,10 +336,16 @@ export async function listRegistryReleases(
   const sourceReleaseIds = [
     ...new Set(snapshotSources.map(source => source.sourceReleaseId)),
   ]
-  const sourceReleaseIngestions = await queryInBatches(sourceReleaseIds, ids =>
+  const sourceReleases = await queryInBatches(sourceReleaseIds, ids =>
     db
-      .select({ id: metaReleases.id, ingestedAt: metaReleases.ingestedAt })
+      .select({
+        id: metaReleases.id,
+        code: metaReleases.code,
+        datasetCode: metaDatasets.code,
+        ingestedAt: metaReleases.ingestedAt,
+      })
       .from(metaReleases)
+      .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
       .where(inArray(metaReleases.id, ids))
       .all(),
   )
@@ -356,7 +363,7 @@ export async function listRegistryReleases(
           .map(source => source.sourceReleaseId),
       ),
     )
-    const ingestedAt = sourceReleaseIngestions
+    const ingestedAt = sourceReleases
       .filter(source => releaseSourceIds.has(source.id))
       .map(source => source.ingestedAt)
       .filter((value): value is string => value !== null)
@@ -374,6 +381,32 @@ export async function listRegistryReleases(
           source => source.snapshotId === snapshot.snapshotId,
         ),
       })),
+      contributingSources: snapshots.flatMap(snapshot =>
+        snapshotSources
+          .filter(source => source.snapshotId === snapshot.snapshotId)
+          .flatMap(source => {
+            const release = sourceReleases.find(
+              candidate => candidate.id === source.sourceReleaseId,
+            )
+            return release
+              ? [
+                  {
+                    sourceCode: release.datasetCode,
+                    sourceReleaseCode: release.code,
+                    snapshotCode: snapshot.snapshot.code,
+                    role: releaseAsRole({
+                      apiReleaseSetRole: snapshot.role,
+                      assemblySourceRole: null,
+                      compositionRole: null,
+                      sourceRole: source.role,
+                    }),
+                    resourceType: snapshot.snapshot.resourceType,
+                    variant: snapshot.variant,
+                  },
+                ]
+              : []
+          }),
+      ),
     }
   })
 }
@@ -538,6 +571,7 @@ const registrySourceSelection = {
   },
   category: metaDatasets.category,
   attribution: metaDatasets.attribution,
+  processingRules: metaDatasets.processingRules,
   tags: metaDatasets.tags,
   versionHash: metaDatasets.versionHash,
   createdAt: metaDatasets.createdAt,
