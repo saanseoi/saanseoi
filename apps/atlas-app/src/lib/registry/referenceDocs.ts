@@ -2,6 +2,7 @@ import overtureLocalisation from '../../../../../docs/datasets/sources/overture/
 import overtureDivisionHierarchy from '../../../../../docs/datasets/sources/overture/divisionHierarchy.md?raw'
 import overtureDivisionTypeLevelMapping from '../../../../../docs/datasets/sources/overture/divisionType.md?raw'
 import censtatdTerms from '../../../../../docs/datasets/sources/hkgov-censtatd/terms.md?raw'
+import glossary from '../../../../../docs/glossary.md?raw'
 
 import {
   getLocalisedMessage,
@@ -12,7 +13,7 @@ import { selectMarkdownHeadingPath } from './markdown'
 
 export const markdownReferenceScheme = 'saanseoi:'
 
-type MarkdownTransclusion = {
+export type MarkdownTransclusion = {
   displayTitleKey: ReferenceMessageKey
   markdown: string
   title: string
@@ -22,8 +23,13 @@ type MarkdownTransclusion = {
 
 type MarkdownReferenceSource = {
   displayTitleKey: ReferenceMessageKey
+  glossary?: boolean
   source: string
   title: string
+}
+
+export type MarkdownGlossaryEntry = MarkdownTransclusion & {
+  id: string
 }
 
 type ReferenceMessageKey = Extract<MessageKey, `reference_${string}`>
@@ -47,12 +53,109 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
   'hkgov-censtatd': {
     title: 'C&SD',
     displayTitleKey: 'reference_censtatd',
+    glossary: true,
     source: censtatdTerms,
   },
   'hkgov-csdi': {
     title: 'CSDI',
     displayTitleKey: 'reference_csdi',
+    glossary: true,
     source: censtatdTerms,
+  },
+  'catalogue-revision': {
+    title: 'Catalogue revision',
+    displayTitleKey: 'reference_catalogue_revision',
+    glossary: true,
+    source: glossary,
+  },
+  catalogue: {
+    title: 'Catalogue',
+    displayTitleKey: 'reference_catalogue',
+    glossary: true,
+    source: glossary,
+  },
+  cohort: {
+    title: 'Cohort',
+    displayTitleKey: 'reference_cohort',
+    glossary: true,
+    source: glossary,
+  },
+  collection: {
+    title: 'Collection',
+    displayTitleKey: 'reference_collection',
+    glossary: true,
+    source: glossary,
+  },
+  'companion-resource': {
+    title: 'Companion resource',
+    displayTitleKey: 'reference_companion_resource',
+    glossary: true,
+    source: glossary,
+  },
+  'composition-policy': {
+    title: 'Composition policy',
+    displayTitleKey: 'reference_composition_policy',
+    glossary: true,
+    source: glossary,
+  },
+  domain: {
+    title: 'Domain',
+    displayTitleKey: 'reference_domain',
+    glossary: true,
+    source: glossary,
+  },
+  'hong-kong-extract': {
+    title: 'Hong Kong extract',
+    displayTitleKey: 'reference_hong_kong_extract',
+    source: glossary,
+  },
+  lineage: {
+    title: 'Lineage',
+    displayTitleKey: 'reference_lineage',
+    glossary: true,
+    source: glossary,
+  },
+  profile: {
+    title: 'Profile',
+    displayTitleKey: 'reference_profile',
+    glossary: true,
+    source: glossary,
+  },
+  release: {
+    title: 'Release',
+    displayTitleKey: 'reference_release',
+    glossary: true,
+    source: glossary,
+  },
+  revision: {
+    title: 'Revision',
+    displayTitleKey: 'reference_revision',
+    glossary: true,
+    source: glossary,
+  },
+  'release-set': {
+    title: 'Release set',
+    displayTitleKey: 'reference_release_set',
+    glossary: true,
+    source: glossary,
+  },
+  snapshot: {
+    title: 'Snapshot',
+    displayTitleKey: 'reference_snapshot',
+    glossary: true,
+    source: glossary,
+  },
+  'source-release': {
+    title: 'Source release',
+    displayTitleKey: 'reference_source_release',
+    glossary: true,
+    source: glossary,
+  },
+  variant: {
+    title: 'Variant',
+    displayTitleKey: 'reference_variant',
+    glossary: true,
+    source: glossary,
   },
 }
 
@@ -78,13 +181,54 @@ export function getMarkdownTransclusion(href: string | null | undefined) {
     markdownReferences[id] ?? markdownReferences[markdownReferenceAliases[id] ?? '']
   if (!reference) return null
 
-  return {
-    ...reference,
+  return getMarkdownReference({
+    id,
+    locale,
     type: type as MarkdownTransclusion['type'],
     version: `v${version}`,
+  })
+}
+
+export function getMarkdownGlossaryEntries(locale: AppLocale): MarkdownGlossaryEntry[] {
+  const collator = new Intl.Collator(locale, { sensitivity: 'base' })
+
+  return Object.entries(markdownReferences)
+    .filter(([, reference]) => reference.glossary)
+    .map(([id]) =>
+      getMarkdownReference({ id, locale, type: 'definition', version: 'v1' }),
+    )
+    .filter((entry): entry is MarkdownGlossaryEntry => entry !== null)
+    .sort((left, right) =>
+      collator.compare(
+        getLocalisedMessage(left.displayTitleKey, locale),
+        getLocalisedMessage(right.displayTitleKey, locale),
+      ),
+    )
+}
+
+function getMarkdownReference({
+  id,
+  locale,
+  type,
+  version,
+}: {
+  id: string
+  locale: string
+  type: MarkdownTransclusion['type']
+  version: string
+}): MarkdownGlossaryEntry | null {
+  const reference =
+    markdownReferences[id] ?? markdownReferences[markdownReferenceAliases[id] ?? '']
+  if (!reference) return null
+
+  return {
+    ...reference,
+    id,
+    type,
+    version,
     markdown: selectMarkdownHeadingPath(reference.source, [
       { heading: reference.title, level: 1 },
-      { heading: `v${version}`, level: 2 },
+      { heading: version, level: 2 },
       { heading: locale, level: 3 },
     ]),
   }
