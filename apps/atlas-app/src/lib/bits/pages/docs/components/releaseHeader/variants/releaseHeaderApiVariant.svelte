@@ -38,6 +38,9 @@ let statusLabel = $derived(
 )
 let theme = $derived(getApiFamilyTheme(api.familyType))
 let domainLabel = $derived(release.domainCode ?? 'default')
+let regionLabel = $derived(
+  release.regionCode === 'hk' || !release.regionCode ? 'Hong Kong' : release.regionCode,
+)
 let catalogueRevision = $derived(
   api.apiCatalogRevisions?.find(revision =>
     revision.releases.some(item => item.apiReleaseSetId === release.id),
@@ -83,9 +86,26 @@ let scopeDescription = $derived(
 )
 let details = $derived([
   {
-    disclosure: versionDetails,
-    label: m.api_release_version(),
-    value: api.version,
+    disclosure: [
+      {
+        label: m.api_release_ingestion_date(),
+        value: displayDate(release.ingestedAt),
+        isMonospace: true,
+      },
+      {
+        label: m.api_release_effective_date(),
+        value: effectiveDate,
+        isMonospace: true,
+      },
+      {
+        label: m.api_release_last_revised(),
+        value: lastRevisedDate,
+        isMonospace: true,
+      },
+    ],
+    isMonospace: true,
+    label: m.api_release_published_data(),
+    value: displayDate(release.publishedAt),
   },
   {
     disclosure: [
@@ -106,20 +126,20 @@ let details = $derived([
     value: release.code,
   },
   {
-    disclosure: [
-      { label: m.api_release_ingestion_date(), value: displayDate(release.ingestedAt) },
-      { label: m.api_release_effective_date(), value: effectiveDate },
-      { label: m.api_release_last_revised(), value: lastRevisedDate },
-    ],
-    isMonospace: true,
-    label: m.api_release_published_data(),
-    value: displayDate(release.publishedAt),
+    disclosure: versionDetails,
+    label: m.api_release_version(),
+    value: api.version,
   },
 ])
 </script>
 
 {#snippet main()}
-  <ReleaseHeader.Main title={api.familyType} {details} {description} />
+  <ReleaseHeader.Main
+    title={api.familyType}
+    region={regionLabel}
+    {details}
+    {description}
+  />
 {/snippet}
 
 {#snippet description()}

@@ -32,7 +32,7 @@ let { detail, isOpen, onToggle }: Props = $props()
     onclick={onToggle}
   >
     <span
-      class="flex items-center gap-1 text-caption font-semibold uppercase tracking-[0.12em] text-foreground-alt"
+      class="flex items-center gap-1 text-caption font-semibold uppercase tracking-[0.12em] text-foreground-alt/70"
     >
       {detail.label}
       <Icon
@@ -50,13 +50,13 @@ let { detail, isOpen, onToggle }: Props = $props()
 
   {#if isOpen}
     <dl
-      class="mt-4 grid gap-3 border-l-2 border-outline-variant pl-4"
+      class="mt-4 grid gap-3 border-l-2 border-outline-variant pl-4 text-left"
       transition:slide={{ duration: 180, axis: 'y' }}
     >
       {#each detail.disclosure ?? [] as item}
         <div>
           <dt
-            class="text-caption font-semibold uppercase tracking-widest text-foreground-alt"
+            class="text-caption font-semibold uppercase tracking-widest text-foreground-alt/70"
           >
             {item.label}
           </dt>

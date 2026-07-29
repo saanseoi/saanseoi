@@ -21,23 +21,33 @@ type Detail = {
 
 type Props = {
   title: string
+  region?: string
   details: Detail[]
   description?: Snippet
 }
 
-let { title, details, description }: Props = $props()
+let { title, region, details, description }: Props = $props()
 let allDetailsOpen = $state(false)
 </script>
 
 <div class="min-w-0">
   <h1 class="font-display text-headline-lg font-bold text-primary md:text-display-sm">
     {title}
+    {#if region}
+      <span class="inline-block whitespace-nowrap">
+        <span
+          class="ml-1 mr-2 inline-block font-[Caveat] text-[0.92em] font-bold leading-none tracking-[-0.055em] text-secondary"
+          >of</span
+        >
+        {region}
+      </span>
+    {/if}
   </h1>
   {#if description}
     {@render description()}
   {/if}
   <dl
-    class="mt-7 grid grid-cols-1 gap-x-6 gap-y-5 font-body text-label-md md:grid-cols-3"
+    class="mt-7 grid grid-cols-1 gap-x-8 gap-y-5 font-body text-label-md md:grid-cols-3 lg:grid-cols-[11rem_max-content_max-content]"
   >
     {#each details as detail}
       {#if detail.disclosure?.length}
@@ -49,7 +59,7 @@ let allDetailsOpen = $state(false)
       {:else}
         <div class="min-w-0">
           <dt
-            class="text-caption font-semibold uppercase tracking-[0.12em] text-foreground-alt"
+            class="text-caption font-semibold uppercase tracking-[0.12em] text-foreground-alt/70"
           >
             {detail.label}
           </dt>
