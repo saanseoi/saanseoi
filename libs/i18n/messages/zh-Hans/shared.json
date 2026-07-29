@@ -226,6 +226,7 @@
   "source_ingestion_unavailable": "不可用",
   "source_records": "条记录",
   "source_upstream": "上游",
+  "source_notes": "说明",
   "source_release_notes": "发布说明",
   "source_archive": "来源归档",
   "source_download_archive": "下载来源",

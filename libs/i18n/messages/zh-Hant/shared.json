@@ -226,6 +226,7 @@
   "source_ingestion_unavailable": "未提供",
   "source_records": "筆記錄",
   "source_upstream": "上游",
+  "source_notes": "說明",
   "source_release_notes": "版本說明",
   "source_archive": "來源封存檔",
   "source_download_archive": "下載來源",
