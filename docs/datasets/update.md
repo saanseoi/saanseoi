@@ -21,7 +21,10 @@ Each dataset is checked sequentially with a compact spinner row. Overture is che
 through its STAC catalog. For a new release, the command runs
 `../overturist/overturist.ts get` with the stable Hong Kong division id and the dataset
 theme, staging the result before copying it to
-`data/overture/{release}/divisions/China/Hong Kong`.
+`data/overture/{release}/divisions/China/Hong Kong`. That retained Parquet is the source
+artefact for the SaanSeoi release: it is copied to managed R2 storage with a
+source-release-specific filename, checksum and manifest, then made available through the
+Atlas asset endpoint.
 
 CSDI datasets are different: `saanseoi update` reads every linked CSDI catalogue's
 `Archived Dataset` list and selects the publisher's native delivery
@@ -35,13 +38,13 @@ buckets. For example:
 saanseoi update --dataset ds-hk-hkgov-hyd-street --target preview
 ```
 
-Every source object is retained as an immutable ZIP in R2. Publisher ZIPs are copied
-byte-for-byte; a non-ZIP delivery is losslessly wrapped in a ZIP. The paired manifest
-records the source URL, CSDI release slot, original filename and digest, archive digest,
-package contents, and—when native parsing succeeds—schema and semantic fingerprints. The
-source ZIP is content-addressed at the publisher-dataset level, so an identical delivery
-in more than one CSDI archive slot is registered only once; each slot retains its own
-provenance manifest. The immutable objects use this layout:
+Every CSDI source object is retained as an immutable ZIP in R2. Publisher ZIPs are
+copied byte-for-byte; a non-ZIP delivery is losslessly wrapped in a ZIP. The paired
+manifest records the source URL, CSDI release slot, original filename and digest,
+archive digest, package contents, and—when native parsing succeeds—schema and semantic
+fingerprints. The source ZIP is content-addressed at the publisher-dataset level, so an
+identical delivery in more than one CSDI archive slot is registered only once; each slot
+retains its own provenance manifest. The immutable objects use this layout:
 
 ```text
 by-source/hk/hkgov-csdi/{dataset-id}/
@@ -49,12 +52,11 @@ by-source/hk/hkgov-csdi/{dataset-id}/
   {manifest-sha256}-manifest.json  # records the individual archive slot
 ```
 
-Each immutable object is registered as a managed source asset and Atlas API serves its
-public download at `/v0/assets/{asset-id}`; there is no public R2 bucket listing.
-Archive ZIPs are publisher evidence, while SaanSeoi's database-backed datasets are the
-product. Intermediate Parquet is local-only and transient: it is never uploaded to R2 or
-retained in release metadata. Schema fingerprints are retained in release ingest
-metadata.
+Each retained source object is registered as a managed source asset and Atlas API serves
+its public download at `/v0/assets/{asset-id}`; there is no public R2 bucket listing.
+Archives and retained source Parquet are publisher evidence, while SaanSeoi's
+database-backed datasets are the product. Processing intermediates remain local-only and
+transient. Schema fingerprints are retained in release ingest metadata.
 
 Mirroring an archive does not itself publish a SaanSeoi dataset release. The source
 release policy is to compare native schema and semantic fingerprints in release order:
