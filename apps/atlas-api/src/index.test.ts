@@ -806,6 +806,12 @@ describe('atlas-api', () => {
     expect(body.paths['/v0.1/divisions/{id}']?.get?.operationId).toBe(
       'getDivisionByIdV01',
     )
+    expect(body.paths['/v0.1/divisions/source-releases']?.get?.operationId).toBe(
+      'listDivisionSourceReleasesV01',
+    )
+    expect(body.paths['/v0.1/divisions/sources']?.get?.operationId).toBe(
+      'listDivisionSourceRecordsV01',
+    )
     expect(body.paths['/v0/addresses']?.get?.operationId).toBe('listAddressesV0')
     expect(body.paths['/v0.1/addresses/{id}']?.get?.operationId).toBe(
       'getAddressByIdV01',
@@ -836,6 +842,28 @@ describe('atlas-api', () => {
     expect(body.components?.schemas?.FeatureVersion?.maximum).toBe(2_147_483_647)
     expect(body.paths['/latest/divisions']).toBeUndefined()
     expect(body.servers).toEqual([{ url: 'http://localhost:8787' }])
+  })
+
+  test('GET /v0.1/divisions/sources requires one exact source release', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      apiRequest('http://localhost/v0.1/divisions/sources'),
+      env,
+    )
+
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ error: 'validation_error' })
+  })
+
+  test('GET /v0.1/divisions/sources validates NDJSON requests before streaming', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      apiRequest('http://localhost/v0.1/divisions/sources?format=ndjson'),
+      env,
+    )
+
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ error: 'validation_error' })
   })
 
   test('POST /v0/meta/substack forwards the subscription request to Substack', async () => {
