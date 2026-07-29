@@ -9,6 +9,7 @@ type SourceFamily = 'divisions'
 
 type SourceRecordCatalogueEntry = {
   geometryColumn?: 'sourceGeometry'
+  geometryProperty?: string
   tableName: string
 }
 
@@ -87,14 +88,15 @@ const DIVISION_SOURCE_RECORD_CATALOGUE = {
     tableName: 'hkgovPlandPlanningCells',
   },
   'ds-hk-overture-division': {
+    geometryProperty: 'geometry',
     tableName: 'overtureDivisions',
   },
   'ds-hk-overture-division-area': {
-    geometryColumn: 'sourceGeometry',
+    geometryProperty: 'geometry',
     tableName: 'overtureDivisionAreas',
   },
   'ds-hk-overture-division-boundary': {
-    geometryColumn: 'sourceGeometry',
+    geometryProperty: 'geometry',
     tableName: 'overtureDivisionBoundaries',
   },
 } as const satisfies Record<string, SourceRecordCatalogueEntry>
@@ -240,10 +242,12 @@ async function readSourceRecordPage(args: {
 function toSourceRecord(
   row: SourceRecordRow,
   release: SourceReleaseRow,
+  entry: SourceRecordCatalogueEntry,
   includeGeometry: boolean,
 ): SourceRecord {
+  const rawProperties = parseRawProperties(row.rawProperties)
   const record: SourceRecord = {
-    rawProperties: parseRawProperties(row.rawProperties),
+    rawProperties,
     resourceType: release.resourceType,
     sourceRecordId: row.sourceRecordId,
     variant: release.sourceVariant,
@@ -255,6 +259,13 @@ function toSourceRecord(
     row.sourceGeometry !== undefined
   ) {
     record.geometry = parseStoredJson(row.sourceGeometry)
+  }
+  if (
+    includeGeometry &&
+    entry.geometryProperty &&
+    rawProperties?.[entry.geometryProperty] !== undefined
+  ) {
+    record.geometry = rawProperties[entry.geometryProperty]
   }
 
   return record
@@ -320,7 +331,7 @@ export async function listSourceRecords(args: {
       sourceReleaseCode: resolved.release.sourceReleaseCode,
     },
     records: pageRows.map(row =>
-      toSourceRecord(row, resolved.release, args.includeGeometry),
+      toSourceRecord(row, resolved.release, resolved.entry, args.includeGeometry),
     ),
   }
 }
@@ -357,7 +368,7 @@ export async function streamSourceRecordsNdjson(args: {
         for (const row of rows) {
           controller.enqueue(
             encoder.encode(
-              `${JSON.stringify(toSourceRecord(row, resolved.release, args.includeGeometry))}\n`,
+              `${JSON.stringify(toSourceRecord(row, resolved.release, resolved.entry, args.includeGeometry))}\n`,
             ),
           )
         }

@@ -4,13 +4,20 @@ type Props = {
   statusLabel: string
   statusClass: string
   statusDotClass: string
+  showBackground?: boolean
 }
 
-let { label, statusLabel, statusClass, statusDotClass }: Props = $props()
+let {
+  label,
+  statusLabel,
+  statusClass,
+  statusDotClass,
+  showBackground = false,
+}: Props = $props()
 </script>
 
 <div
-  class="border-b border-outline-variant/60 bg-surface-container-low px-6 py-3 dark:border-outline-variant md:px-8"
+  class={`border-b border-outline-variant/60 px-6 py-3 dark:border-outline-variant md:px-8 ${showBackground ? 'bg-surface-container-low/60' : 'bg-surface-container-low'}`}
 >
   <div class="flex items-center justify-between gap-4">
     <p

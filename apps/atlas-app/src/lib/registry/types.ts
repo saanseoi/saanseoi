@@ -21,6 +21,9 @@ export type ApiRelease = {
   apiFamily: string
   apiVersion: string
   code: string
+  domainCode?: string
+  cohortKey?: string | null
+  revision?: number
   schemaVersion: string
   rulesetVersion: string
   status: string
@@ -101,6 +104,16 @@ export type RegistryApi = {
     status: string
     version: number
   }>
+  apiCatalogRevisions?: Array<{
+    code: string
+    publicationDate: string
+    revision: number
+    releases: Array<{
+      apiReleaseSetId: string
+      domainCode: string
+      cohortKey: string
+    }>
+  }>
   releases?: ApiRelease[]
 }
 
@@ -144,6 +157,7 @@ export type SourceVersion = {
     cohortKey: string | null
     code: string
     domainCode: string
+    revision: number
     role: 'primary' | 'supporting'
     resourceType: string
     snapshotCode: string

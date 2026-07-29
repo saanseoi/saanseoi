@@ -27,24 +27,24 @@ let {
 
 <div use:scrollAction class="mt-6">
   {@render navBar?.()}
-  <div class="grid gap-8 lg:grid-cols-[1fr_18rem]">
+  <div class="grid gap-8 xl:grid-cols-[1fr_18rem]">
     <div class="min-w-0">
       <div
         data-release-nav-mobile-toc
-        class="sticky top-[2.5rem] z-30 -mx-6 w-[calc(100%+3rem)] lg:top-[112px] lg:hidden"
+        class="sticky top-[2.5rem] z-30 -mx-6 w-[calc(100%+3rem)] xl:top-[112px] xl:hidden"
       >
         {@render mobileSideNav?.()}
       </div>
       <div
         data-release-nav-content-panel
         bind:this={panel}
-        class={`mt-4 scroll-mt-24 lg:mt-2 lg:scroll-mt-[120px] ${hasContent && showNestedPanel ? 'lg:h-[calc(100svh-144px)] lg:min-h-[calc(100svh-144px)] lg:max-h-[calc(100svh-144px)] lg:overflow-hidden lg:rounded-lg lg:border lg:border-outline-variant/60 lg:bg-surface-container-lowest lg:dark:border-outline-variant' : ''}`}
+        class={`mt-4 scroll-mt-24 xl:mt-2 xl:scroll-mt-[120px] ${hasContent && showNestedPanel ? 'xl:h-[calc(100svh-144px)] xl:min-h-[calc(100svh-144px)] xl:max-h-[calc(100svh-144px)] xl:overflow-hidden xl:rounded-lg xl:border xl:border-outline-variant/60 xl:bg-surface-container-lowest xl:dark:border-outline-variant' : ''}`}
       >
         {@render children?.()}
       </div>
     </div>
     <div
-      class="hidden h-[calc(100svh-136px)] lg:sticky lg:top-[112px] lg:block lg:self-start"
+      class="hidden h-[calc(100svh-136px)] xl:sticky xl:top-[112px] xl:block xl:self-start"
     >
       {@render sideNav?.()}
     </div>
