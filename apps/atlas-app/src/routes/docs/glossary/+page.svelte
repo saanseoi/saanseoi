@@ -52,7 +52,13 @@ let resultCount = $derived(
     <GlossaryHeader.Root>
       <GlossaryHeader.Content />
       {#snippet actions()}
-        <GlossaryHeader.Filter bind:query {resultCount} />
+        <GlossaryHeader.Filter bind:query />
+      {/snippet}
+      {#snippet description()}
+        <GlossaryHeader.Description />
+      {/snippet}
+      {#snippet meta()}
+        <GlossaryHeader.ResultCount {resultCount} />
       {/snippet}
     </GlossaryHeader.Root>
   </div>
