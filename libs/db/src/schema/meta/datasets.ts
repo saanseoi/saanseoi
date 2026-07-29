@@ -47,9 +47,9 @@ export const metaDatasets = sqliteTable(
     category: text('category', { enum: datasetCategories }),
     attribution: text('attribution'),
     tags: jsonText('tags'),
-    // Dataset-specific references to versioned merge-rule operations. The
-    // resolved rule revisions are frozen on releases.processingRules when a
-    // source release is created; per-record exceptions belong in
+    // Resolved, versioned merge-rule revisions are synchronised from the
+    // registry. Releases copy this value so later dataset changes cannot
+    // rewrite historic processing decisions; per-record exceptions belong in
     // releaseProcessingActions instead.
     processingRules: jsonText('processingRules'),
     versionHash: text('versionHash').notNull(),
@@ -144,9 +144,9 @@ export const metaReleases = sqliteTable(
     revokedAt: isoTimestamp('revokedAt'),
     revocationReason: text('revocationReason'),
     supersededByReleaseId: text('supersededByReleaseId'),
-    // Captured by resolving the dataset's merge-rule references when this
-    // immutable source release is created. Do not rebuild a historic audit
-    // from later dataset metadata or later merge-ruleset revisions.
+    // Copied from the dataset when this immutable source release is created.
+    // Do not rebuild a historic audit from later dataset metadata or later
+    // merge-ruleset revisions.
     processingRules: jsonText('processingRules'),
     ingestedAt: isoTimestamp('ingestedAt'),
     ...timestamps,

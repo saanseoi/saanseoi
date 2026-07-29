@@ -10,7 +10,8 @@ function createProcessingActionsDb() {
   sqlite.exec(`
     CREATE TABLE releases (
       id TEXT PRIMARY KEY,
-      status TEXT NOT NULL
+      status TEXT NOT NULL,
+      processingRules TEXT
     );
     CREATE TABLE releaseProcessingActions (
       id TEXT PRIMARY KEY,
@@ -46,7 +47,13 @@ function createProcessingActionsDb() {
 describe('replaceReleaseProcessingActions', () => {
   test('allows retries before publication and preserves published action evidence', async () => {
     const { sqlite, db } = createProcessingActionsDb()
-    sqlite.exec("INSERT INTO releases (id, status) VALUES ('release-1', 'staged')")
+    sqlite.exec(
+      `INSERT INTO releases (id, status, processingRules) VALUES (
+        'release-1',
+        'staged',
+        '{"rulesets":[{"rules":[{"operationCode":"division_code_mapped","type":"record"}]}]}'
+      )`,
+    )
 
     await replaceReleaseProcessingActions(db, 'release-1', [
       {
@@ -57,6 +64,18 @@ describe('replaceReleaseProcessingActions', () => {
         evidence: { bridge: 'districts-v1' },
       },
     ])
+
+    await expect(
+      replaceReleaseProcessingActions(db, 'release-1', [
+        {
+          action: 'undeclared_action',
+          mode: 'automatic',
+          summary: 'Should be rejected.',
+          affectedRecordCount: 1,
+          evidence: {},
+        },
+      ]),
+    ).rejects.toThrow('not declared as record rules')
 
     sqlite.exec("UPDATE releases SET status = 'published' WHERE id = 'release-1'")
 
