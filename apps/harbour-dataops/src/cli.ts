@@ -11,7 +11,7 @@ function printUsage() {
   console.log(`  Usage:
   bun run dataops -- hkgov-dpo:prepare <source-dir> [--target local|preview|production] --cohort-key DIVISION_COHORT [--source-version YYYY-MM-DD.NN] [--identity-history FILE] [--identity-decisions FILE] [--identity-drift-report FILE] [--db /path/to/local.sqlite]
   bun run dataops -- hkgov-dpo:ingest <ALS-source-root> --target local|preview|production --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes]
-  bun run dataops -- hkgov-dpo:backfill-local <ALS-source-root> --target local --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes]
+  bun run dataops -- hkgov-dpo:backfill-local <ALS-source-root> --target local --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes] [--continue]
   bun run dataops -- hkgov-pland:prepare <GeoJSON> [--kind tpu|new-town] [--source-version YYYY] [--out-dir PATH]
   bun run dataops -- hkgov-pland:backfill --kind pu|new-town --target local|preview|production [--continue]
   bun run dataops -- hkgov-pland:ingest --kind pu|new-town <source.zip> --target local|preview|production --source-version YYYY --release-notes-url URL
