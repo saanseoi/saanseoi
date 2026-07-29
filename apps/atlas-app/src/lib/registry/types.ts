@@ -44,6 +44,14 @@ export type ApiRelease = {
     groupBy?: string | null
     groupValue?: string | null
   }>
+  contributingSources?: Array<{
+    sourceCode: string
+    sourceReleaseCode: string
+    snapshotCode: string
+    role: 'primary' | 'supporting'
+    resourceType: string
+    variant: string
+  }>
   createdAt: string
   updatedAt: string
   primaryRecordCount?: number | null
@@ -75,6 +83,7 @@ export type SourceVersion = {
   code: string
   sourceVersion: string
   sourceSchemaVersion?: string | null
+  processingRules?: ReleaseMergeRules | null
   publicationDate?: string | null
   cohortKey?: string | null
   sourceArchiveAssetId?: string
@@ -145,6 +154,7 @@ export type RegistrySource = {
   category?: string | null
   attribution?: string | null
   tags?: unknown
+  processingRules?: DatasetMergeRuleReference[] | null
   datasetI18n?: LocalisedRow[]
   transforms?: Array<{
     code: string
@@ -154,4 +164,28 @@ export type RegistrySource = {
     derivation: unknown
   }>
   sourceVersions?: SourceVersion[]
+}
+
+export type DatasetMergeRuleReference = {
+  rulesetVersion: string
+  operationCodes: string[]
+}
+
+export type ReleaseMergeRules = {
+  rulesets: Array<{
+    rulesetVersion: string
+    rulesetVersionHash: string
+    rules: Array<{
+      operationCode: string
+      type: 'bulk' | 'record'
+      sourceFieldPath?: string
+      targetFieldPath?: string
+      condition?: string
+      mappings?: Array<{ from: string; to: string }>
+      i18n: Array<{
+        locale: string
+        description: string
+      }>
+    }>
+  }>
 }
