@@ -12,7 +12,7 @@ import '@scalar/api-reference/style.css'
 
 const openApiUrl = '/openapi'
 
-const scalarConfig = (theme: ThemeMode) => ({
+const scalarConfig = (theme: ThemeMode, onLoaded: () => void) => ({
   defaultOpenFirstTag: true,
   darkMode: theme === 'dark',
   documentDownloadType: 'both' as const,
@@ -34,6 +34,7 @@ const scalarConfig = (theme: ThemeMode) => ({
   isEditable: false,
   layout: 'modern' as const,
   modelsSectionLabel: m.docs_models(),
+  onLoaded,
   operationTitleSource: 'summary' as const,
   orderRequiredPropertiesFirst: true,
   orderSchemaPropertiesBy: 'alpha' as const,
@@ -49,6 +50,30 @@ const scalarConfig = (theme: ThemeMode) => ({
   withDefaultFonts: false,
 })
 
+const addGlossaryLink = (mountElement: Element) => {
+  requestAnimationFrame(() => {
+    const sidebarItems = mountElement.querySelector('.t-doc__sidebar .group\\/items')
+
+    if (!sidebarItems || sidebarItems.querySelector('.scalar-glossary-link')) {
+      return
+    }
+
+    const item = document.createElement('li')
+    const link = document.createElement('a')
+
+    item.className = 'group/item flex flex-col text-base'
+    link.className =
+      'scalar-glossary-link group/button peer/button flex items-stretch rounded p-2 font-sidebar text-base/4 text-sidebar-c-2 no-underline wrap-break-word hover:bg-sidebar-b-hover hover:text-sidebar-c-hover'
+    link.href = '/docs/glossary'
+    link.textContent = `${m.glossary_title()} →`
+    item.appendChild(link)
+    sidebarItems.insertBefore(
+      item,
+      sidebarItems.firstElementChild?.nextElementSibling ?? null,
+    )
+  })
+}
+
 onMount(() => {
   let scalarReference: ReturnType<typeof createScalarApiReference> | null = null
   let createReference: typeof createScalarApiReference | null = null
@@ -60,11 +85,14 @@ onMount(() => {
     scalarReference = null
     mountElement?.replaceChildren()
 
-    if (!createReference) {
+    if (!createReference || !mountElement) {
       return
     }
 
-    scalarReference = createReference('#atlas-api-reference', scalarConfig(theme))
+    scalarReference = createReference(
+      '#atlas-api-reference',
+      scalarConfig(theme, () => addGlossaryLink(mountElement)),
+    )
   }
 
   const handleThemeChange = (event: Event) => {
