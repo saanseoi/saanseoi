@@ -3,7 +3,7 @@ import { env } from '$env/dynamic/public'
 
 import {
   Main,
-  ReleaseApiLinks,
+  ApiReleases,
   ReleaseAudit,
   ReleaseDiff,
   ReleaseHeader,
@@ -55,6 +55,12 @@ let auditHeadings = $state<MarkdownHeading[]>([])
 let activeAuditHeadingId = $state<string | null>(null)
 let activeTab = $state<'notes' | 'released-as' | 'stats' | 'audit'>('notes')
 let showNoteDiff = $state(false)
+let showBulkActions = $state(false)
+let bulkActions = $derived(
+  version.processingRules?.rulesets
+    .flatMap(ruleset => ruleset.rules)
+    .filter(rule => rule.type === 'bulk') ?? [],
+)
 let districtMapData = $derived(
   activeTab === 'stats' ? getDistrictCoverageMapData(locale) : null,
 )
@@ -63,7 +69,9 @@ let hasContent = $derived.by(() => {
     return showNoteDiff ? noteDiff.changes.length > 0 : notes.trim().length > 0
   }
   if (activeTab === 'stats') return Boolean(version.stats?.length)
-  if (activeTab === 'audit') return Boolean(version.processingActions?.length)
+  if (activeTab === 'audit') {
+    return Boolean(version.processingActions?.length || bulkActions.length)
+  }
   return Boolean(version.releaseAs?.length)
 })
 let tocHeadings = $derived(
@@ -111,10 +119,12 @@ $effect(() => {
     activeHeadingId={activeTocHeadingId}
     {hasContent}
     releases={version.releaseAs}
-    showAudit={Boolean(version.processingActions?.length)}
+    showAudit={Boolean(version.processingActions?.length || bulkActions.length)}
+    hasBulkActions={Boolean(bulkActions.length)}
     {sourceArchiveUrl}
     bind:activeTab
     bind:showNoteDiff
+    bind:showBulkActions
   >
     {#if activeTab === 'notes'}
       <div class:contents={showNoteDiff} class="h-full min-h-0">
@@ -158,11 +168,14 @@ $effect(() => {
     {:else if activeTab === 'audit'}
       <ReleaseAudit.Root
         actions={version.processingActions}
+        {bulkActions}
+        {locale}
+        {showBulkActions}
         bind:headings={auditHeadings}
         bind:activeHeadingId={activeAuditHeadingId}
       />
     {:else}
-      <ReleaseApiLinks.Root releases={version.releaseAs} />
+      <ApiReleases.SourceVariant releases={version.releaseAs} />
     {/if}
   </ReleaseNav.Root>
 </Main>
