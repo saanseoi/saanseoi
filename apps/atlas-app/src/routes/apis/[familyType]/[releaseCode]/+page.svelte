@@ -220,7 +220,6 @@ let hasContent = $derived(
 
 $effect(() => {
   release.code
-  activeTab = 'notes'
   activeHeadingId = null
   activeStatsHeadingId = null
   activeAuditHeadingId = null

@@ -73,7 +73,11 @@ $effect(() => {
   void persistence.restore()
 })
 
-$effect(() => observeReleaseNavOutline(outline, id => (observedOutlineId = id)))
+$effect(() => {
+  currentVersionCode
+  observedOutlineId = null
+  return observeReleaseNavOutline(outline, id => (observedOutlineId = id))
+})
 </script>
 
 {#snippet navBar()}
