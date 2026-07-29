@@ -4,8 +4,9 @@ import { auditHeadingId, formatAuditOperationCode } from './releaseAuditUtils'
 
 export type { AuditBulkRule }
 
-export const bulkSectionHeadingId = (operationCode: string) =>
-  auditHeadingId('bulk', operationCode)
+export const bulkSectionHeadingId = (
+  rule: Pick<AuditBulkRule, 'id' | 'operationCode'>,
+) => auditHeadingId('bulk', rule.id ?? rule.operationCode)
 
 const searchableHeaderText = (rule: AuditBulkRule) =>
   [

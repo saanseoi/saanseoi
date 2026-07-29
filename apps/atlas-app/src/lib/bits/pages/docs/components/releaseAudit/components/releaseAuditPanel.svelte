@@ -8,7 +8,7 @@ let { children, element = $bindable<HTMLElement>() }: Props = $props()
 
 <div
   bind:this={element}
-  data-source-release-content-body
+  data-release-nav-content-body
   role="tabpanel"
   class="scroll-mt-24 pt-4 lg:scroll-mt-[120px] lg:pt-0"
 >
