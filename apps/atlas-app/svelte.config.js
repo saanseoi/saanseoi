@@ -16,6 +16,8 @@ const config = {
       platformProxy: {
         // Share the same Miniflare state as the local API/workers stack and migration scripts.
         configPath: resolve(import.meta.dirname, 'wrangler.jsonc'),
+        // Wrangler appends `v3` to its --persist-to root; getPlatformProxy passes
+        // this path directly to Miniflare. Point at Wrangler's effective store.
         persist: { path: resolve(import.meta.dirname, '../../.local/d1/dev/v3') },
         envFiles: ['.dev.vars'],
         remoteBindings: true,
