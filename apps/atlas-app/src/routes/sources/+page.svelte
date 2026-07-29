@@ -1,12 +1,10 @@
 <script lang="ts">
 import { Main, SourceFlowMap, SourcesHeader } from '$lib/bits'
-import dianapangLogo from '$lib/assets/sourcePublishers/dpang.png'
-import hkgovLogo from '$lib/assets/sourcePublishers/hkgov.webp'
-import overtureLogo from '$lib/assets/sourcePublishers/overture.png'
 import type { SourceFlowInput, SourceFlowLane } from '$lib/bits'
 import { getCurrentLocale, selectLocalisedRow } from '$lib/bits/internal/i18n'
 import { apiFamilyThemes } from '$lib/registry/apiFamilyTheme'
 import { getSourcesPageData } from '$lib/registry/meta.remote'
+import { getPublisherLogo } from '$lib/registry/publisherLogo'
 import type { LocalisedRow, RegistrySource } from '$lib/registry/types'
 
 let { sources, domainsByApiFamily } = $derived(await getSourcesPageData())
@@ -21,18 +19,6 @@ const primaryTypeByApiFamily = {
   places: 'place',
   streets: 'street',
 } as const
-
-const publisherLogos: Record<string, string> = {
-  dpang: dianapangLogo,
-  overture: overtureLogo,
-  hkgov: hkgovLogo,
-  'hkgov-censtatd': hkgovLogo,
-  'hkgov-dpo': hkgovLogo,
-  'hkgov-had': hkgovLogo,
-  'hkgov-hyd': hkgovLogo,
-  'hkgov-landsd': hkgovLogo,
-  'hkgov-pland': hkgovLogo,
-}
 
 const sourceAccentColors = {
   dpang: '#76b85b',
@@ -116,10 +102,6 @@ const publisherName = (source: RegistrySource) =>
   selectLocalisedRow(source.publisher?.publisherI18n, locale)?.name ??
   source.publisherCode
 
-const publisherLogo = (publisherCode: string) =>
-  publisherLogos[publisherCode] ??
-  (publisherCode.startsWith('hkgov') ? hkgovLogo : overtureLogo)
-
 const publisherAccent = (publisherCode: string) => {
   if (publisherCode === 'dpang') return sourceAccentColors.dpang
   if (publisherCode === 'overture') return sourceAccentColors.overture
@@ -179,7 +161,7 @@ const sourceFlowInput = (
     publisher: publisherName(source),
     source: sourceName(source),
     href: `/sources/${source.code}${release ? `/${release.code}` : ''}`,
-    icon: publisherLogo(source.publisherCode),
+    icon: getPublisherLogo(source.publisherCode),
     iconTone:
       source.publisherCode === 'overture'
         ? 'light'

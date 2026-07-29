@@ -169,6 +169,7 @@ export function buildSourceReleaseLinksPresentation(
         detailLabel: m.source_released_as_domain(),
         eyebrow: theme?.name ?? titleCase(release.apiFamily),
         eyebrowColour: accentColour,
+        expanded: release.role === 'primary',
         facts: [
           {
             description: m.source_released_as_domain_description(),
