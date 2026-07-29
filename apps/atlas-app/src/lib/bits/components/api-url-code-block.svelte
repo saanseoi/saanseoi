@@ -67,11 +67,10 @@ let tokens = $derived(lang === 'url' ? tokeniseUrl(text) : [])
     class="overflow-x-auto rounded-md bg-slate-950 p-4 text-sm leading-6 text-slate-100"
   ><code>{#each tokens as token}<span
         class:font-semibold={token.kind === 'parameter'}
-        class:text-violet-300={token.kind === 'version'}
-        class:text-emerald-300={token.kind === 'family'}
-        class:text-sky-300={token.kind === 'parameter'}
-        class:text-slate-500={token.kind === 'separator'}
-        class:text-amber-300={token.kind === 'value'}>{token.value}</span
+        class:text-orange-200={token.kind === 'family'}
+        class:text-secondary-fixed={token.kind === 'parameter'}
+        class:text-outline={token.kind === 'separator'}
+        class:text-blue-300={token.kind === 'value'}>{token.value}</span
       >{/each}</code
     ></pre>
 {:else}
