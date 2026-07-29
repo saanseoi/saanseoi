@@ -136,7 +136,7 @@
     "prettier": "^3.9.6",
     "tailwindcss-animate": "^1.0.7",
     "turbo": "^2.10.7",
-    "wrangler": "^4.114.0"
+    "wrangler": "^4.115.0"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"
