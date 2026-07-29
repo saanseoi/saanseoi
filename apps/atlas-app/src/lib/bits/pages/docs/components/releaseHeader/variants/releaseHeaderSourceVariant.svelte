@@ -4,6 +4,7 @@ import hkgovLogo from '$lib/assets/sourcePublishers/hkgov.webp'
 import overtureLogo from '$lib/assets/sourcePublishers/overture.png'
 import { m, selectLocalisedRow, type AppLocale } from '$lib/bits/internal/i18n'
 import * as ReleaseNotes from '$lib/bits/pages/docs/components/releaseNotes'
+import { buildReleaseNotesPresentation } from '$lib/registry/releaseNotesPresentation'
 import type { RegistrySource, SourceVersion } from '$lib/registry/types'
 
 import * as ReleaseHeader from '../components'
@@ -27,6 +28,9 @@ let { source, version, locale }: Props = $props()
 let dataset = $derived(selectLocalisedRow(source.datasetI18n, locale))
 let name = $derived(dataset?.name ?? source.code)
 let description = $derived(dataset?.description)
+let descriptionPresentation = $derived(
+  buildReleaseNotesPresentation(description ?? '', locale),
+)
 let isLatest = $derived(source.sourceVersions?.[0]?.code === version.code)
 let statusClass = $derived(
   version.status === 'published' && isLatest
@@ -160,7 +164,11 @@ const displayNumber = (value: number) =>
     <div
       class="prose prose-neutral mt-3 max-w-none font-body text-body-sm leading-7 text-foreground-alt prose-p:my-0 prose-a:text-secondary prose-a:decoration-secondary/50 prose-a:underline-offset-4 dark:prose-invert dark:prose-a:text-secondary"
     >
-      <ReleaseNotes.Content source={description} {locale} />
+      <ReleaseNotes.Content
+        markdown={descriptionPresentation.markdown}
+        labels={descriptionPresentation.labels}
+        transclusions={descriptionPresentation.transclusions}
+      />
     </div>
   {/if}
 {/snippet}
