@@ -693,15 +693,17 @@ async function resolveSelectedRelease(input: {
 }
 
 function parseReleaseSetCode(code: string): ParsedReleaseSetCode | null {
-  const match = /^data-([a-z0-9]+)-([a-z]+)-(.+)-(\d+)$/.exec(code)
+  const match = /^data-([a-z0-9]+)-([a-z]+)-(.+?)(?:-r(\d+))?(?:--[a-z0-9-]+)?$/.exec(
+    code,
+  )
 
   if (!match) {
     return null
   }
 
-  const [, regionCode, apiFamily, cohortKey, sequence] = match
+  const [, regionCode, apiFamily, cohortKey, revision] = match
 
-  if (!regionCode || !apiFamily || !cohortKey || !sequence) {
+  if (!regionCode || !apiFamily || !cohortKey) {
     return null
   }
 
@@ -709,7 +711,7 @@ function parseReleaseSetCode(code: string): ParsedReleaseSetCode | null {
     regionCode,
     apiFamily,
     cohortKey,
-    sequence: Number.parseInt(sequence, 10),
+    sequence: Number.parseInt(revision ?? '0', 10),
   }
 }
 
@@ -737,7 +739,7 @@ function compareReleaseRows(left: ReleaseDocsRow, right: ReleaseDocsRow) {
 }
 
 function resolveDocsFixturePath(apiFamily: string, code: string) {
-  return resolve(API_RELEASE_SET_DOCS_ROOT, apiFamily, `${code}.md`)
+  return resolve(API_RELEASE_SET_DOCS_ROOT, apiFamily, `${code}-r0.md`)
 }
 
 function resolveReleaseDocsFixturePath(datasetCode: string, code: string) {
