@@ -4,6 +4,8 @@ export type AuditAction = {
   evidence: unknown
   id: string
   mode: 'automatic' | 'manual'
+  sourceCode?: string
+  sourceReleaseCode?: string
   summary: string
 }
 
@@ -11,10 +13,13 @@ export type AuditBulkMapping = { from: string; to: string }
 
 export type AuditBulkRule = {
   condition?: string
+  id?: string
   i18n: Array<{ description: string; locale: string }>
   mappings?: AuditBulkMapping[]
   operationCode: string
   sourceFieldPath?: string
+  sourceCode?: string
+  sourceReleaseCode?: string
   targetFieldPath?: string
   type: 'bulk' | 'record'
 }

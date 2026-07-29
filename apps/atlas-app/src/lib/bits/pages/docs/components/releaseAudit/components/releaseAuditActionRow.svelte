@@ -12,7 +12,7 @@ type Props = {
   onFullscreen: (id: string, evidence: unknown) => void
   onToggle: (id: string) => void
   presentation: AuditRowPresentation
-  row: Pick<AuditAction, 'evidence' | 'id'>
+  row: Pick<AuditAction, 'evidence' | 'id' | 'sourceReleaseCode'>
   transitionName: string
 }
 
@@ -48,6 +48,11 @@ let hasRight = $derived(
       >
         {presentation.leftValue}
       </p>
+      {#if row.sourceReleaseCode}
+        <p class="mt-2 font-mono text-caption text-foreground-alt">
+          {m.reference_source_release()}: {row.sourceReleaseCode}
+        </p>
+      {/if}
     </div>
     {#if presentation.rightItems}
       <div

@@ -149,7 +149,7 @@ let sections = $derived.by(() => {
 })
 let sectionHeadings = $derived([
   ...visibleBulkSections.map(rule => ({
-    id: bulkSectionHeadingId(rule.operationCode),
+    id: bulkSectionHeadingId(rule),
     level: 2,
     text: formatLabel(rule.operationCode),
   })),

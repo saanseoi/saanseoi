@@ -8,6 +8,7 @@ type Props = {
   description?: string
   headingId: string
   sourceFieldPath?: string
+  sourceReleaseCode?: string
   targetFieldPath?: string
   title: string
 }
@@ -17,6 +18,7 @@ let {
   description,
   headingId,
   sourceFieldPath,
+  sourceReleaseCode,
   targetFieldPath,
   title,
 }: Props = $props()
@@ -31,7 +33,9 @@ const formatFieldPath = (value: string) =>
 
 {#snippet aside()}
   {#if sourceFieldPath || targetFieldPath}
-    <div class="flex flex-wrap items-start justify-end gap-x-8 gap-y-3 text-right">
+    <div
+      class="flex flex-col items-start gap-3 text-left sm:flex-row sm:flex-wrap sm:justify-end sm:gap-x-8 sm:gap-y-3 sm:text-right"
+    >
       {#if sourceFieldPath}
         <div class="min-w-0">
           <p
@@ -74,7 +78,11 @@ const formatFieldPath = (value: string) =>
   {/if}
 {/snippet}
 
-<ReleaseAuditCardHeader {aside} asideClass={condition ? 'w-1/2' : ''}>
+<ReleaseAuditCardHeader
+  {aside}
+  asideClass={condition ? 'sm:w-1/2' : ''}
+  mobileAsideAfter
+>
   <p
     class="font-body text-caption font-semibold uppercase tracking-[0.08em] text-data-primary"
   >
@@ -95,5 +103,10 @@ const formatFieldPath = (value: string) =>
       </p>
     {/if}
     <p class="mt-2 font-body text-label-md leading-6 text-primary">{description}</p>
+  {/if}
+  {#if sourceReleaseCode}
+    <p class="mt-4 font-mono text-caption text-foreground-alt">
+      {m.reference_source_release()}: {sourceReleaseCode}
+    </p>
   {/if}
 </ReleaseAuditCardHeader>

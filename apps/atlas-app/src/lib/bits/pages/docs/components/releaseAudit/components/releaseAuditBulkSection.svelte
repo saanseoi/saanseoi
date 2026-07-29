@@ -14,8 +14,9 @@ let { description, rule, title }: Props = $props()
   <ReleaseAuditBulkSectionHeader
     {description}
     condition={rule.condition}
-    headingId={bulkSectionHeadingId(rule.operationCode)}
+    headingId={bulkSectionHeadingId(rule)}
     sourceFieldPath={rule.sourceFieldPath}
+    sourceReleaseCode={rule.sourceReleaseCode}
     targetFieldPath={rule.targetFieldPath}
     {title}
   />
