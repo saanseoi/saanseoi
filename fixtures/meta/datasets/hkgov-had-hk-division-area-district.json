@@ -1,11 +1,12 @@
 {
-  "versionHash": "sha256:02ca094039ad05e4c01767eab55250fd237a14349bff3e5fc15b53819328ba23",
+  "versionHash": "sha256:0369dd58ce872046473e22c27b95c7975353f20a346c03790ef1f4aca34be5af",
   "publisherCode": "hkgov-had",
   "code": "ds-hk-hkgov-had-division-area-district",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "as-needed",
   "theme": "divisions",
+  "subType": "district",
   "sourceCrs": "EPSG:4326",
   "resourceTypes": ["divisionArea"],
   "licenseCode": "hkgov-open-data",

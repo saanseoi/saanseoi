@@ -135,6 +135,7 @@ export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {
       cohortKey: metaReleases.cohortKey,
       theme: metaDatasets.theme,
       type: metaReleases.resourceType,
+      subType: metaDatasets.subType,
       sourceVariant: metaDatasets.sourceVariant,
       sourceCrs: metaDatasets.sourceCrs,
       source: metaPublishers.code,
@@ -374,11 +375,15 @@ export async function listRegistryReleases(
           id: metaReleases.id,
           code: metaReleases.code,
           datasetCode: metaDatasets.code,
+          publisherCode: metaPublishers.code,
+          sourceVersion: metaReleases.sourceVersion,
+          subType: metaDatasets.subType,
           ingestedAt: metaReleases.ingestedAt,
           processingRules: metaReleases.processingRules,
         })
         .from(metaReleases)
         .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+        .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
         .where(inArray(metaReleases.id, ids))
         .all(),
     ),
@@ -479,6 +484,7 @@ export async function listRegistryReleases(
                   {
                     sourceCode: release.datasetCode,
                     sourceReleaseCode: release.code,
+                    publisherCode: release.publisherCode,
                     snapshotCode: snapshot.snapshot.code,
                     role: releaseAsRole({
                       apiReleaseSetRole: snapshot.role,
@@ -487,6 +493,8 @@ export async function listRegistryReleases(
                       sourceRole: source.role,
                     }),
                     resourceType: snapshot.snapshot.resourceType,
+                    sourceVersion: release.sourceVersion,
+                    subType: release.subType,
                     variant: snapshot.variant,
                   },
                 ]
@@ -701,6 +709,7 @@ const registrySourceSelection = {
   releaseType: metaDatasets.releaseType,
   releaseFrequency: metaDatasets.releaseFrequency,
   theme: metaDatasets.theme,
+  subType: metaDatasets.subType,
   sourceVariant: metaDatasets.sourceVariant,
   sourceCrs: metaDatasets.sourceCrs,
   sourceUrl: metaDatasets.sourceUrl,

@@ -1,11 +1,12 @@
 {
-  "versionHash": "sha256:507db01695fc14e05344b25a8c5c7f3d008f1cee486656422e18cff9b5467b1e",
+  "versionHash": "sha256:465674e01612fe072e2d448afa89419ac4f652f8cdb695c6f38384710e46d4a2",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",
   "theme": "divisions",
+  "subType": "pu",
   "sourceVariant": "hkgov-pland-pu",
   "sourceCrs": "EPSG:4326",
   "resourceTypes": ["division", "divisionArea"],
