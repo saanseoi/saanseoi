@@ -14,7 +14,9 @@ function sourceDatabase(rows: Array<Record<string, unknown>>) {
           return {
             all: async () => {
               expect(query).toContain('FROM overtureDivisions')
-              expect(values[0]).toBe('source-release-id')
+              expect(query).toContain('validFromRelease <= ?')
+              expect(query).toContain('validToRelease IS NULL')
+              expect(values.slice(0, 2)).toEqual(['2026-07-22.0', '2026-07-22.0'])
               return { results: rows, success: true }
             },
           }
@@ -42,6 +44,7 @@ function metaDatabase() {
                       releaseId: 'source-release-id',
                       resourceType: 'division',
                       sourceReleaseCode: 'dr-hk-overture-division-2026-07-22.0',
+                      sourceVersion: '2026-07-22.0',
                       sourceVariant: 'overture',
                     },
                   ],

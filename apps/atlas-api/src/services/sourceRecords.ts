@@ -18,6 +18,7 @@ type SourceReleaseRow = {
   releaseId: string
   resourceType: string
   sourceReleaseCode: string
+  sourceVersion: string
   sourceVariant: string
 }
 
@@ -53,7 +54,10 @@ export type SourceRecordPage = {
   records: SourceRecord[]
 }
 
-export type SourceReleaseDiscoveryEntry = Omit<SourceReleaseRow, 'releaseId'> & {
+export type SourceReleaseDiscoveryEntry = Omit<
+  SourceReleaseRow,
+  'releaseId' | 'sourceVersion'
+> & {
   apiReleaseSetCode: string | null
   recordsAvailable: boolean
   recordsHref: string | null
@@ -179,6 +183,7 @@ async function resolveSourceRelease(
           releases.id AS releaseId,
           releases.resourceType AS resourceType,
           releases.code AS sourceReleaseCode,
+          releases.sourceVersion AS sourceVersion,
           datasets.sourceVariant AS sourceVariant,
           dataShards.bindingName AS bindingName
         FROM releases
@@ -218,13 +223,15 @@ async function readSourceRecordPage(args: {
     .prepare(
       `SELECT sourceRecordId, versionHash, rawProperties, ${geometrySelection}
        FROM ${args.entry.tableName}
-       WHERE releaseId = ?
+       WHERE validFromRelease <= ?
+         AND (validToRelease IS NULL OR validToRelease > ?)
        ${cursorCondition}
        ORDER BY sourceRecordId ASC, versionHash ASC
        LIMIT ?`,
     )
     .bind(
-      args.release.releaseId,
+      args.release.sourceVersion,
+      args.release.sourceVersion,
       ...(args.cursor
         ? [
             args.cursor.sourceRecordId,

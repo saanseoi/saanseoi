@@ -369,6 +369,9 @@ describe('atlas-api', () => {
     expect(res.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')
     expect(res.headers.get('content-type')).toBe('application/pdf')
     expect(res.headers.get('etag')).toBe('"asset-etag"')
+    expect(res.headers.get('content-disposition')).toBe(
+      'attachment; filename="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-notice.pdf"',
+    )
   })
 
   test('GET /v0/meta/d1-placement-probe returns timings for all D1 bindings', async () => {

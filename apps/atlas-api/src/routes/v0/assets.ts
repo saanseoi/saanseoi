@@ -75,6 +75,10 @@ export const managedAssetRoute = defineOpenAPIRoute<
     })
     object.writeHttpMetadata(headers)
     headers.set('etag', object.httpEtag)
+    headers.set(
+      'content-disposition',
+      `attachment; filename="${assetFilename(asset.assetKey)}"`,
+    )
 
     if (c.req.header('if-none-match') === object.httpEtag) {
       return new Response(null, { headers, status: 304 })
@@ -83,5 +87,10 @@ export const managedAssetRoute = defineOpenAPIRoute<
     return new Response(object.body, { headers, status: 200 })
   },
 })
+
+function assetFilename(assetKey: string) {
+  const filename = assetKey.split('/').filter(Boolean).at(-1) ?? 'source-asset'
+  return filename.replaceAll(/[\\/"\r\n]/g, '_')
+}
 
 export const managedAssetRoutes = [managedAssetRoute] as const
