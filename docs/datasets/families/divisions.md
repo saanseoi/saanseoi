@@ -102,10 +102,13 @@ the other cohort is published. Geometry churn is calculated only against a snaps
 declared parent; an initial C&SD cohort therefore reports all 18 district areas as
 additions and never as removals from another cohort.
 
-For Overture, release audit entries are limited to investigable source-policy
-exceptions: division locale inference or API-locale fallback rows, and `CN-GD` spillover
-geometry excluded from area or boundary releases. The Sources page hides its Audit tab
-when a release has no entries.
+For Overture, release audit entries record investigable source-policy exceptions:
+division locale inference or API-locale fallback rows, and `CN-GD` spillover geometry
+excluded from area or boundary releases. The dataset fixture selects the deterministic
+bulk operations that apply to every matching row from a versioned merge ruleset, such as
+taxonomy-derived division type/level and hierarchy normalisation. The Sources Audit tab
+keeps those bulk rules hidden until requested, so they remain discoverable without
+obscuring record-level decisions.
 
 For Hong Kong Overture divisions, locale-less Chinese names—including alternate name
 rules—are inferred as `zh-hant`; an explicit source `zh` tag is also normalised to

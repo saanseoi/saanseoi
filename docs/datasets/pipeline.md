@@ -97,6 +97,30 @@ Dataset fixtures are source-discovery metadata. They must declare at least one
 roles, required variants and cohort matching; do not put those dependencies in a dataset
 fixture.
 
+### Define audit processing rules
+
+Every source that normalises, maps, corrects or otherwise changes a publisher assertion
+must declare its audit rules before its processor is written.
+
+1. Add the complete rule definition to the applicable merge `rulesetVersions/` fixture.
+   A rule has a stable `operationCode`, `type` and all three localised descriptions.
+   `type: "bulk"` describes a deterministic operation applied to every matching row;
+   `type: "record"` describes an individual decision that is emitted as a
+   `releaseProcessingActions` row.
+2. For a mapping, include the ordered `mappings` and any `condition`, source and target
+   field paths. If the mapping is maintained by a reviewed `identifierBridges` fixture,
+   reference the bridge join, authority, domain, cohort and output fields rather than
+   copying its mapping rows into the rule.
+3. In the dataset fixture, add `mergeRules` references to the ruleset version and the
+   exact operation codes that apply to that dataset. A dataset only selects rules; it
+   does not repeat their descriptions or mappings.
+4. Add a JSDoc comment to every corresponding processing function naming its
+   `operationCode` and requiring the rule and code to stay in sync.
+
+Ruleset versions are linear processing-policy revisions. Make a new ruleset version
+whenever observable normalisation, mapping, precedence or fallback behaviour changes;
+never rewrite the definition of a version already captured by a release.
+
 Define a `versionPolicy` and a three-phase `releasePolicy` (`newReleases`, `revisions`,
 and `archives`) deliberately. A release's source version and cohort belong in its
 release manifest, while the dataset fixture maps the publisher's live releases to that
@@ -212,10 +236,21 @@ the registry and does not derive it from terminal output or release notes.
   aggregate processing metrics in `stats`; these support reporting, while the detailed
   action rows and evidence support the Audit tab.
 
+At source-release creation, the processor resolves the dataset's selected merge rules
+and freezes the complete ruleset revision, hash and definitions on the release. The
+Audit tab must read that frozen projection, never the current dataset or ruleset
+fixture. For every `type: "record"` rule, the emitted `releaseProcessingActions.action`
+must exactly equal the rule's `operationCode`; the processing-action replacement helper
+enforces this whenever a release has a frozen audit projection. `type: "bulk"` rules are
+not emitted once per row: they are surfaced as deterministic bulk actions.
+
 The Stats tab can render any available release statistics. The Audit tab is shown only
-when the release has processing-action rows: do not create placeholder actions solely to
-make it visible. A processor with no auditable processing decisions should replace the
-release's action rows with an empty set, so a re-run cannot retain stale audit evidence.
+when the release has processing-action rows or selected bulk rules: do not create
+placeholder actions solely to make it visible. A processor with no record-level
+decisions should replace the release's action rows with an empty set, so a re-run cannot
+retain stale audit evidence. Action replacement is allowed only while the source release
+is staged or processing; published release actions and frozen rules are immutable. A
+reprocess or correction after publication must create a new source release.
 
 The shared stages are `normalise`, `sql-source`, `sql-history`, `sql-current`, meta
 updates and publication. See [resource processing](resourceType/common.md) for the
@@ -288,6 +323,10 @@ Before considering a new source complete:
   source-schema mappings; and
 - validate the target API/release-set result when the source is published there.
 
+For audit coverage, test at least one selected bulk rule, one emitted record rule whose
+action code matches its `operationCode`, and a published/superseded release to confirm
+that its audit projection does not change when later rules or source releases change.
+
 Run `bun run format:markdown` after editing this or any other Markdown documentation.
 
 ## Delivery checklist
@@ -298,6 +337,9 @@ Use this as the review checklist for a source addition:
 - [ ] Dataset/source/variant identity, cohort and bridges are explicit.
 - [ ] Publisher, licence, dataset, release and any composition/API/bridge fixtures are
       present and rehashed.
+- [ ] Merge-rule definitions include stable operation codes, `bulk`/`record` type,
+      localised descriptions, mappings or bridge references, and are selected by each
+      applicable dataset fixture.
 - [ ] Publisher, source-retention and canonical schemas are correct; migrations and
       reset drops are generated/updated.
 - [ ] Source-schema version mapping is registered.
@@ -306,4 +348,6 @@ Use this as the review checklist for a source addition:
 - [ ] `saanseoi update` is deliberately automated or documented as manual.
 - [ ] Source/history/current/meta results, snapshots, stats, rollback and API release
       assembly are tested.
+- [ ] Bulk and record audit rules, matching processing-action codes and
+      published-release audit immutability are tested.
 - [ ] Source, family, resource and release documentation is complete.
