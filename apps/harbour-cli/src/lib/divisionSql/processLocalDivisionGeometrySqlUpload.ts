@@ -262,17 +262,32 @@ export async function processLocalDivisionGeometrySqlUpload(
         sourceVersion: dataset.sourceVersion,
       },
     })
-    const historyShard = await resolveShardForTypeRegionYear(
-      metaDb,
-      'history',
-      target.remote ? 'production' : 'preview',
-      previewPlan.regionCode,
-      shardYear,
-    )
-    if (historyShard) {
-      await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
-      await upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id)
+    const [historyShard, sourceShard] = await Promise.all([
+      resolveShardForTypeRegionYear(
+        metaDb,
+        'history',
+        target.remote ? 'production' : 'preview',
+        previewPlan.regionCode,
+        shardYear,
+      ),
+      resolveShardForTypeRegionYear(
+        metaDb,
+        'source',
+        target.remote ? 'production' : 'preview',
+        previewPlan.regionCode,
+        shardYear,
+      ),
+    ])
+    if (!historyShard || !sourceShard) {
+      throw new Error(
+        `Shard mapping not found for ${previewPlan.regionCode}/${shardYear}.`,
+      )
     }
+    await Promise.all([
+      upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id),
+      upsertReleaseShardAssignment(metaDb, dataset.releaseId, sourceShard.id),
+      upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id),
+    ])
 
     progress.complete(
       formatGeometryCompletedLabel(

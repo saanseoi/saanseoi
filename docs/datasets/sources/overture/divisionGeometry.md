@@ -91,11 +91,13 @@ distinct division IDs and null `perspectives`.
 | `is_disputed`, `perspectives`                       | —                                                   | drop; `perspectives` must be null in preflight        |
 
 The source schema and canonical schema use the same shared source-versioning,
-history-versioning, current-snapshot and `rawProperties` fragments as `division`. Stats
-include accepted counts, land/maritime/mixed type, land/territorial combinations, and
-source or canonical change counts. Geographic exclusions and rejected rows remain
-visible in CLI diagnostics rather than persisted release stats; `CN-GD` exclusions are
-also retained as release audit actions.
+history-versioning, current-snapshot and `rawProperties` fragments as `division`. Each
+geometry release is assigned to both its source and history shards, allowing the source
+record API to resolve its retained publisher records. Stats include accepted counts,
+land/maritime/mixed type, land/territorial combinations, and source or canonical change
+counts. Geographic exclusions and rejected rows remain visible in CLI diagnostics rather
+than persisted release stats; `CN-GD` exclusions are also retained as release audit
+actions.
 
 The Hong Kong cut excludes rows with `region = 'CN-GD'`. A null country is valid for
 maritime or international-water boundaries and is retained. Boundary rows must have
