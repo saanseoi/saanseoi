@@ -28,7 +28,7 @@ describe('initialisation commands', () => {
     })
     expect(resolveInitialisationCommand('init:addresses:default')).toEqual({
       script: 'scripts/init/addresses-hkgov-dpo.fish',
-      supportsContinue: false,
+      supportsContinue: true,
     })
   })
 
