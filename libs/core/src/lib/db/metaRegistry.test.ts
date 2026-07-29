@@ -102,6 +102,7 @@ function createRegistryReleasesDb() {
     CREATE TABLE apiReleaseSetSnapshots (
       apiReleaseSetId TEXT NOT NULL,
       snapshotId TEXT NOT NULL,
+      variant TEXT NOT NULL DEFAULT 'default',
       role TEXT NOT NULL,
       isRequired INTEGER NOT NULL,
       cohortMatchingMode TEXT,
@@ -129,7 +130,27 @@ function createRegistryReleasesDb() {
 
     CREATE TABLE releases (
       id TEXT PRIMARY KEY,
-      ingestedAt TEXT
+      datasetId TEXT,
+      code TEXT,
+      ingestedAt TEXT,
+      processingRules TEXT
+    );
+
+    CREATE TABLE datasets (
+      id TEXT PRIMARY KEY,
+      code TEXT NOT NULL
+    );
+
+    CREATE TABLE releaseProcessingActions (
+      id TEXT PRIMARY KEY,
+      releaseId TEXT NOT NULL,
+      action TEXT NOT NULL,
+      mode TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      affectedRecordCount INTEGER NOT NULL,
+      evidence TEXT,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
     );
   `)
 
@@ -163,6 +184,82 @@ describe('listRegistryReleases', () => {
       'draft',
       'published-old',
     ])
+    sqlite.close()
+  })
+
+  test('combines actions and bulk rules from the contributing source releases', async () => {
+    const { sqlite, db } = createRegistryReleasesDb()
+
+    sqlite.exec(`
+      INSERT INTO apiVersions (id, code, familyType) VALUES
+        ('api-addresses', 'api-addresses-v0.1', 'addresses');
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, code, domainCode, cohortKey, revision, schemaVersion,
+        rulesetVersion, status, publishedAt, versionHash, createdAt, updatedAt
+      ) VALUES
+        ('api-release', 'api-addresses', 'data-hk-addresses-2026-07-15.0', 'default', '2026-07-15.0', 0, 'v1', 'v1', 'published', '2026-07-15T00:00:00.000Z', 'hash', '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z');
+
+      INSERT INTO snapshots (
+        id, resourceType, code, cohortKey, status, createdAt, updatedAt
+      ) VALUES
+        ('snapshot-a', 'address', 'snapshot-a', '2026-07-15.0', 'published', '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z'),
+        ('snapshot-b', 'address', 'snapshot-b', '2026-07-15.0', 'published', '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z');
+
+      INSERT INTO apiReleaseSetSnapshots (
+        apiReleaseSetId, snapshotId, role, isRequired, createdAt
+      ) VALUES
+        ('api-release', 'snapshot-a', 'primary', 1, '2026-07-15T00:00:00.000Z'),
+        ('api-release', 'snapshot-b', 'supporting', 1, '2026-07-15T00:00:00.000Z');
+
+      INSERT INTO datasets (id, code) VALUES
+        ('dataset-a', 'hkgov-als'),
+        ('dataset-b', 'landsd-addresses');
+
+      INSERT INTO releases (id, datasetId, code, ingestedAt, processingRules) VALUES
+        ('source-release-a', 'dataset-a', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
+        ('source-release-b', 'dataset-b', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}');
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('snapshot-a', 'dataset-a', 'source-release-a', 'primary'),
+        ('snapshot-b', 'dataset-b', 'source-release-b', 'primary');
+
+      INSERT INTO releaseProcessingActions (
+        id, releaseId, action, mode, summary, affectedRecordCount, evidence, createdAt, updatedAt
+      ) VALUES
+        ('action-a', 'source-release-a', 'address_normalised', 'automatic', 'Normalised source A', 5, '{}', '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z'),
+        ('action-b', 'source-release-b', 'address_normalised', 'automatic', 'Normalised source B', 3, '{}', '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z');
+    `)
+
+    const [release] = await listRegistryReleases(db as never)
+    if (!release) throw new Error('Expected API release to be returned.')
+
+    expect(release.processingActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'action-a',
+          sourceCode: 'hkgov-als',
+          sourceReleaseCode: '2026-07-15',
+        }),
+        expect.objectContaining({
+          id: 'action-b',
+          sourceCode: 'landsd-addresses',
+          sourceReleaseCode: '2026-07-15',
+        }),
+      ]),
+    )
+    expect(release.bulkActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'source-release-a:v1:0',
+          sourceCode: 'hkgov-als',
+        }),
+        expect.objectContaining({
+          id: 'source-release-b:v1:0',
+          sourceCode: 'landsd-addresses',
+        }),
+      ]),
+    )
     sqlite.close()
   })
 })

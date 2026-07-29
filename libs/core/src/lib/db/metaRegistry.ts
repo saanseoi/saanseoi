@@ -14,6 +14,7 @@ import {
   inArray,
   isNull,
   ne,
+  or,
   sql,
   toIsoTimestamp,
 } from '@repo/db'
@@ -97,6 +98,21 @@ type DatasetFilters = {
   theme?: typeof metaDatasets.$inferSelect.theme
   status?: typeof metaReleases.$inferSelect.status
   limit?: number
+}
+
+type ReleaseProcessingRules = {
+  rulesets: Array<{
+    rulesetVersion: string
+    rules: Array<{
+      condition?: string
+      i18n: Array<{ description: string; locale: string }>
+      mappings?: Array<{ from: string; to: string }>
+      operationCode: string
+      sourceFieldPath?: string
+      targetFieldPath?: string
+      type: 'bulk' | 'record'
+    }>
+  }>
 }
 
 export async function listDatasets(db: MetaDatabase, filters: DatasetFilters = {}) {
@@ -204,6 +220,8 @@ export async function listRegistryReleases(
   db: MetaDatabase,
   limit?: number,
   offset = 0,
+  apiVersionId?: string,
+  releaseCode?: string,
 ) {
   // `status` is an operational routing state. The registry also needs a
   // reader-facing lifecycle: a later cohort supersedes an earlier one, while
@@ -220,6 +238,7 @@ export async function listRegistryReleases(
     })
     .from(metaApiReleaseSets)
     .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .where(apiVersionId ? eq(metaApiReleaseSets.apiVersionId, apiVersionId) : undefined)
     .all()
 
   const latestByFamily = new Map<string, { cohortKey: string; revision: number }>()
@@ -238,6 +257,17 @@ export async function listRegistryReleases(
     }
   }
 
+  const releaseCondition =
+    apiVersionId && releaseCode
+      ? and(
+          eq(metaApiReleaseSets.apiVersionId, apiVersionId),
+          eq(metaApiReleaseSets.code, releaseCode),
+        )
+      : apiVersionId
+        ? eq(metaApiReleaseSets.apiVersionId, apiVersionId)
+        : releaseCode
+          ? eq(metaApiReleaseSets.code, releaseCode)
+          : undefined
   const releases = await db
     .select({
       id: metaApiReleaseSets.id,
@@ -261,6 +291,7 @@ export async function listRegistryReleases(
     })
     .from(metaApiReleaseSets)
     .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .where(releaseCondition)
     .orderBy(
       desc(
         sql`coalesce(${metaApiReleaseSets.publishedAt}, ${metaApiReleaseSets.createdAt})`,
@@ -336,19 +367,43 @@ export async function listRegistryReleases(
   const sourceReleaseIds = [
     ...new Set(snapshotSources.map(source => source.sourceReleaseId)),
   ]
-  const sourceReleases = await queryInBatches(sourceReleaseIds, ids =>
-    db
-      .select({
-        id: metaReleases.id,
-        code: metaReleases.code,
-        datasetCode: metaDatasets.code,
-        ingestedAt: metaReleases.ingestedAt,
-      })
-      .from(metaReleases)
-      .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
-      .where(inArray(metaReleases.id, ids))
-      .all(),
-  )
+  const [sourceReleases, processingActions] = await Promise.all([
+    queryInBatches(sourceReleaseIds, ids =>
+      db
+        .select({
+          id: metaReleases.id,
+          code: metaReleases.code,
+          datasetCode: metaDatasets.code,
+          ingestedAt: metaReleases.ingestedAt,
+          processingRules: metaReleases.processingRules,
+        })
+        .from(metaReleases)
+        .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+        .where(inArray(metaReleases.id, ids))
+        .all(),
+    ),
+    queryInBatches(sourceReleaseIds, ids =>
+      db
+        .select({
+          id: releaseProcessingActions.id,
+          releaseId: releaseProcessingActions.releaseId,
+          action: releaseProcessingActions.action,
+          mode: releaseProcessingActions.mode,
+          summary: releaseProcessingActions.summary,
+          affectedRecordCount: releaseProcessingActions.affectedRecordCount,
+          evidence: releaseProcessingActions.evidence,
+          createdAt: releaseProcessingActions.createdAt,
+          updatedAt: releaseProcessingActions.updatedAt,
+        })
+        .from(releaseProcessingActions)
+        .where(inArray(releaseProcessingActions.releaseId, ids))
+        .orderBy(
+          desc(releaseProcessingActions.createdAt),
+          desc(releaseProcessingActions.id),
+        )
+        .all(),
+    ),
+  ])
 
   return releases.map(release => {
     const latest = latestByFamily.get(release.apiFamily)
@@ -369,12 +424,43 @@ export async function listRegistryReleases(
       .filter((value): value is string => value !== null)
       .sort()
       .at(-1)
+    const sourceReleaseActions = processingActions
+      .filter(action => releaseSourceIds.has(action.releaseId))
+      .map(action => {
+        const source = sourceReleases.find(
+          candidate => candidate.id === action.releaseId,
+        )
+        return {
+          ...action,
+          sourceCode: source?.datasetCode,
+          sourceReleaseCode: source?.code,
+        }
+      })
+    const bulkActions = sourceReleases
+      .filter(source => releaseSourceIds.has(source.id))
+      .flatMap(source => {
+        const processingRules = source.processingRules as ReleaseProcessingRules | null
+        return (
+          processingRules?.rulesets.flatMap(ruleset =>
+            ruleset.rules
+              .filter(rule => rule.type === 'bulk')
+              .map((rule, index) => ({
+                ...rule,
+                id: `${source.id}:${ruleset.rulesetVersion}:${index}`,
+                sourceCode: source.datasetCode,
+                sourceReleaseCode: source.code,
+              })),
+          ) ?? []
+        )
+      })
 
     return {
       ...release,
       displayStatus,
       ingestedAt: ingestedAt ?? null,
       stats: apiReleaseSetStats.filter(stat => stat.apiReleaseSetId === release.id),
+      processingActions: sourceReleaseActions,
+      bulkActions,
       apiReleaseSetSnapshots: snapshots.map(snapshot => ({
         ...snapshot,
         snapshotSources: snapshotSources.filter(
@@ -488,12 +574,68 @@ export async function listRegistryApis(db: MetaDatabase, limit?: number) {
 }
 
 export async function getRegistryApi(db: MetaDatabase, id: string) {
-  const apis = await listRegistryApis(db)
-  return firstByIdOrCode(
-    apis,
-    id,
-    (api, value) => api.id === value || api.code === value || api.familyType === value,
+  const api = await db
+    .select()
+    .from(metaApiVersions)
+    .where(
+      or(
+        eq(metaApiVersions.id, id),
+        eq(metaApiVersions.code, id),
+        sql`${metaApiVersions.familyType} = ${id}`,
+      ),
+    )
+    .limit(1)
+    .get()
+  if (!api) return null
+
+  const compositions = await db
+    .select()
+    .from(metaApiComposition)
+    .where(eq(metaApiComposition.apiVersionId, api.id))
+    .all()
+  const compositionIds = compositions.map(composition => composition.id)
+  const members = await queryInBatches(compositionIds, ids =>
+    db
+      .select()
+      .from(metaApiCompositionMembers)
+      .where(inArray(metaApiCompositionMembers.apiCompositionId, ids))
+      .all(),
   )
+  const catalogRevisions = await db
+    .select()
+    .from(metaApiCatalogRevisions)
+    .where(eq(metaApiCatalogRevisions.apiVersionId, api.id))
+    .orderBy(
+      desc(metaApiCatalogRevisions.publishedAt),
+      desc(metaApiCatalogRevisions.revision),
+    )
+    .all()
+  const catalogRevisionIds = catalogRevisions.map(revision => revision.id)
+  const catalogReleaseSets = await queryInBatches(catalogRevisionIds, ids =>
+    db
+      .select()
+      .from(metaApiCatalogRevisionReleaseSets)
+      .where(inArray(metaApiCatalogRevisionReleaseSets.apiCatalogRevisionId, ids))
+      .all(),
+  )
+  const releases = await listRegistryReleases(db, undefined, 0, api.id)
+
+  return {
+    ...api,
+    apiComposition: compositions.map(composition => ({
+      ...composition,
+      apiCompositionMembers: members.filter(
+        member => member.apiCompositionId === composition.id,
+      ),
+    })),
+    apiCatalogRevisions: catalogRevisions.map(revision => ({
+      ...revision,
+      releases: catalogReleaseSets.filter(
+        release => release.apiCatalogRevisionId === revision.id,
+      ),
+    })),
+    releases,
+  }
 }
 
 export async function listRegistryApiFields(db: MetaDatabase, limit?: number) {
