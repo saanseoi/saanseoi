@@ -7,16 +7,29 @@ type Props = {
 let { lang, text }: Props = $props()
 
 type UrlToken = {
-  kind: 'path' | 'separator' | 'parameter' | 'value'
+  kind: 'path' | 'version' | 'family' | 'separator' | 'parameter' | 'value' | 'newline'
   value: string
 }
 
-function tokeniseUrl(value: string): UrlToken[] {
+function tokenisePath(value: string): UrlToken[] {
+  const match = /^(\/v[^/]+)(\/[^/?]+)?(.*)$/.exec(value)
+  if (!match) return [{ kind: 'path', value }]
+
+  const [, version, family, rest] = match
+  const tokens: UrlToken[] = [{ kind: 'version', value: version }]
+
+  if (family) tokens.push({ kind: 'family', value: family })
+  if (rest) tokens.push({ kind: 'path', value: rest })
+
+  return tokens
+}
+
+function tokeniseUrlLine(value: string): UrlToken[] {
   const queryIndex = value.indexOf('?')
-  if (queryIndex === -1) return [{ kind: 'path', value }]
+  if (queryIndex === -1) return tokenisePath(value)
 
   const tokens: UrlToken[] = [
-    { kind: 'path', value: value.slice(0, queryIndex) },
+    ...tokenisePath(value.slice(0, queryIndex)),
     { kind: 'separator', value: '?' },
   ]
 
@@ -38,6 +51,14 @@ function tokeniseUrl(value: string): UrlToken[] {
   return tokens
 }
 
+function tokeniseUrl(value: string): UrlToken[] {
+  return value
+    .split(/(\r?\n)/)
+    .flatMap(line =>
+      /\r?\n/.test(line) ? [{ kind: 'newline', value: line }] : tokeniseUrlLine(line),
+    )
+}
+
 let tokens = $derived(lang === 'url' ? tokeniseUrl(text) : [])
 </script>
 
@@ -46,6 +67,8 @@ let tokens = $derived(lang === 'url' ? tokeniseUrl(text) : [])
     class="overflow-x-auto rounded-md bg-slate-950 p-4 text-sm leading-6 text-slate-100"
   ><code>{#each tokens as token}<span
         class:font-semibold={token.kind === 'parameter'}
+        class:text-violet-300={token.kind === 'version'}
+        class:text-emerald-300={token.kind === 'family'}
         class:text-sky-300={token.kind === 'parameter'}
         class:text-slate-500={token.kind === 'separator'}
         class:text-amber-300={token.kind === 'value'}>{token.value}</span

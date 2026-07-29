@@ -363,7 +363,9 @@ export const getDataReleasesPageData = query(releasePageSchema, async ({ offset 
 })
 
 export const getApiFamilyPageData = query(registryCodeSchema, async familyType => {
-  const api = (await getRegistryApi(getMetaDb(), familyType)) as RegistryApi | null
+  const api = (await runWithD1ReadRetry(() =>
+    getRegistryApi(getMetaDb(), familyType),
+  )) as RegistryApi | null
   if (!api) error(404, 'API family not found.')
 
   const latestRelease =
@@ -379,7 +381,9 @@ export const getApiFamilyPageData = query(registryCodeSchema, async familyType =
 export const getApiReleasePageData = query(
   apiReleaseSchema,
   async ({ familyType, releaseCode }) => {
-    const api = (await getRegistryApi(getMetaDb(), familyType)) as RegistryApi | null
+    const api = (await runWithD1ReadRetry(() =>
+      getRegistryApi(getMetaDb(), familyType),
+    )) as RegistryApi | null
     if (!api) error(404, 'API family not found.')
 
     const release = api.releases?.find(item => item.code === releaseCode)
