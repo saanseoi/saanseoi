@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:00200eb7c95eb2abaf8cbbb276a096bf147852bbf81585ee21b3db146b2c4000",
+  "versionHash": "sha256:17916c6ffbcbed284b3981f099145623a3a2423a74e591b369593ab15148464b",
   "apiVersion": "api-places-v0.1",
   "code": "comp-places-v1",
   "version": 1,
@@ -12,15 +12,18 @@
       "i18n": [
         {
           "locale": "en",
-          "name": "Overture"
+          "name": "Overture",
+          "description": "Explore named places in Hong Kong, including buildings, landmarks, venues, and other points of interest linked to their addresses and divisions."
         },
         {
           "locale": "zh-hant",
-          "name": "Overture"
+          "name": "Overture",
+          "description": "探索香港的具名地點，包括建築物、地標、場地及其他興趣點，並連結至其地址及所屬分區。"
         },
         {
           "locale": "zh-hans",
-          "name": "Overture"
+          "name": "Overture",
+          "description": "探索香港的具名地点，包括建筑物、地标、场地及其他兴趣点，并关联至其地址及所属分区。"
         }
       ],
       "members": [

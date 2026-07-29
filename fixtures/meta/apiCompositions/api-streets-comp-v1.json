@@ -11,15 +11,18 @@
       "i18n": [
         {
           "locale": "en",
-          "name": "HK Gov"
+          "name": "HK Gov",
+          "description": "Explore Hong Kong’s street network, including official street names, road centre lines, and related geography."
         },
         {
           "locale": "zh-hant",
-          "name": "香港政府"
+          "name": "香港政府",
+          "description": "探索香港的街道網絡，包括官方街道名稱、道路中心線及相關地理資料。"
         },
         {
           "locale": "zh-hans",
-          "name": "香港政府"
+          "name": "香港政府",
+          "description": "探索香港的街道网络，包括官方街道名称、道路中心线及相关地理资料。"
         }
       ],
       "members": [
@@ -42,5 +45,5 @@
       ]
     }
   ],
-  "versionHash": "sha256:16710b06118a8c24e9a9055c3b3e3adaaaec9e8012536033f2cd58930899423e"
+  "versionHash": "sha256:8ec84c7b47d0a26758d3fdaaeb4fa662c3ccdaba841026a5c7264a3fb763726e"
 }
