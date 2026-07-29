@@ -162,9 +162,10 @@ export async function runHkgovAlsIngestCommand(
       `No ALS release directories found in ${resolve(sourceRoot)} on or after ${firstSourceVersion}.`,
     )
   }
-  const ingestedSourceVersions = await listTargetPublishedAlsSourceVersions(
+  const completedSourceVersions = await listTargetCompletedAlsSourceVersions(
     target,
     sourceReleases[0]?.sourceVersion.slice(0, 4) ?? cohortKey.slice(0, 4),
+    Boolean(args.options.continue),
   )
   const review = await reviewHkgovAlsIngest({
     args,
@@ -194,10 +195,10 @@ export async function runHkgovAlsIngestCommand(
     sourceDir,
     sourceVersion,
   } of sourceReleases) {
-    if (ingestedSourceVersions.has(sourceVersion) && !args.options.force) {
+    if (completedSourceVersions.has(sourceVersion) && !args.options.force) {
       note(
-        'A published local address release already exists for this source version; skipping it.',
-        `ALREADY INGESTED — ${sourceVersion}`,
+        'A completed local address release already exists for this source version; skipping it.',
+        `ALREADY COMPLETED — ${sourceVersion}`,
       )
       continue
     }
@@ -311,9 +312,10 @@ export async function runHkgovAlsLocalIngestCommand(
   return runHkgovAlsIngestCommand(args, target, printUsage)
 }
 
-async function listTargetPublishedAlsSourceVersions(
+async function listTargetCompletedAlsSourceVersions(
   target: UploadTarget,
   shardYear: string,
+  includeSuperseded: boolean,
 ) {
   const dbContext = await resolveLocalAddressDbContext(target, 'hk', shardYear, {
     cacheTableProfile: 'address',
@@ -329,7 +331,10 @@ async function listTargetPublishedAlsSourceVersions(
       .where(
         and(
           eq(metaSchema.metaDatasets.code, 'ds-hk-hkgov-dpo-address'),
-          eq(metaSchema.metaReleases.status, 'published'),
+          inArray(
+            metaSchema.metaReleases.status,
+            includeSuperseded ? ['published', 'superseded'] : ['published'],
+          ),
         ),
       )
       .all()
