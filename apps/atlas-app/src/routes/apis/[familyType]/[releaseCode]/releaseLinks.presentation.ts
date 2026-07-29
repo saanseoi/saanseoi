@@ -13,6 +13,11 @@ const sourceLinkId = (source: NonNullable<ApiRelease['contributingSources']>[num
     source.variant,
   ].join(':')
 
+const sourceGroupId = (
+  role: string,
+  sources: NonNullable<ApiRelease['contributingSources']>,
+) => ['source-records', role, ...sources.map(sourceLinkId).sort()].join(':')
+
 const humaniseResourceType = (value: string) =>
   value
     .replaceAll(/([a-z])([A-Z])/g, '$1 $2')
@@ -25,6 +30,7 @@ const humaniseCode = (value: string) =>
 export function buildApiReleaseLinksPresentation(
   sources: ApiRelease['contributingSources'],
   familyType: string,
+  apiBaseUrl: string,
 ): ReleaseLinksProvenancePresentation {
   const entries = (items: NonNullable<ApiRelease['contributingSources']>) =>
     [...items]
@@ -42,11 +48,15 @@ export function buildApiReleaseLinksPresentation(
                 query: [
                   { key: 'sourceRelease', value: source.sourceReleaseCode },
                   { key: 'include', value: 'geometry' },
-                  { key: 'format', value: 'ndjson' },
-                  { key: 'download', value: '1' },
                 ],
               }
             : undefined
+        const sourceArchive = source.sourceArchive
+        const archiveExtension = sourceArchive?.mediaType.includes('parquet')
+          ? '.parquet'
+          : sourceArchive?.mediaType === 'application/zip'
+            ? '.zip'
+            : ''
 
         return {
           accentColour: 'var(--data-primary)',
@@ -57,13 +67,24 @@ export function buildApiReleaseLinksPresentation(
           eyebrowColour: 'var(--data-primary)',
           expanded: source.role === 'primary',
           facts: [
-            { label: m.source_dataset(), value: source.sourceCode },
+            { label: m.source_publisher(), value: humaniseCode(source.publisherCode) },
             {
-              label: m.source_resource_type(),
-              value: humaniseResourceType(source.resourceType),
+              label: m.source_release(),
+              value: source.sourceReleaseCode,
             },
             { label: m.source_released_as_snapshot(), value: source.snapshotCode },
           ],
+          actions: sourceArchive
+            ? [
+                {
+                  download: true,
+                  href: `${apiBaseUrl}/v0/assets/${sourceArchive.assetId}`,
+                  icon: 'ion:download-outline',
+                  id: 'download-source-archive',
+                  label: `${m.source_download_archive()}${archiveExtension ? ` (${archiveExtension})` : ''}`,
+                },
+              ]
+            : undefined,
           href: `/sources/${source.sourceCode}/${source.sourceReleaseCode}`,
           id: sourceLinkId(source),
           publisherLogoSrc: getPublisherLogo(source.publisherCode),
@@ -94,7 +115,7 @@ export function buildApiReleaseLinksPresentation(
     groups: [
       {
         entries: entries(primarySources),
-        id: 'source-records-primary',
+        id: sourceGroupId('primary', primarySources),
         label: m.source_primary_sources(),
         title: m.source_direct_records(),
       },
@@ -102,7 +123,7 @@ export function buildApiReleaseLinksPresentation(
         .sort(([left], [right]) => left.localeCompare(right))
         .map(([resourceType, groupedSources]) => ({
           entries: entries(groupedSources),
-          id: `source-records-${resourceType}`,
+          id: sourceGroupId(resourceType, groupedSources),
           label: humaniseResourceType(resourceType),
           title: m.source_direct_records(),
         })),

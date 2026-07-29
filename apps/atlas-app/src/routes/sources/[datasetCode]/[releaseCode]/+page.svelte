@@ -280,15 +280,12 @@ let actions = $derived<ReleaseNavAction[]>(
 let sourceReleaseLinksPresentation = $derived(
   buildSourceReleaseLinksPresentation(version.releaseAs),
 )
+let releaseAsOutline = $derived(
+  ReleaseLinks.getReleaseLinksOutline(sourceReleaseLinksPresentation),
+)
 let outline = $derived<ReleaseNavOutlineItem[]>(
   activeTab === 'released-as'
-    ? sourceReleaseLinksPresentation.groups.flatMap(group =>
-        group.entries.map(entry => ({
-          depth: 2,
-          id: entry.id ?? entry.href,
-          label: `${entry.eyebrow} · ${entry.title}`,
-        })),
-      )
+    ? releaseAsOutline
     : tocHeadings.map(heading => ({
         depth: heading.level,
         id: heading.id,

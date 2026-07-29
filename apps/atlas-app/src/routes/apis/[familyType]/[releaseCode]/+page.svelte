@@ -1,6 +1,7 @@
 <script lang="ts">
 import { goto } from '$app/navigation'
 import { page } from '$app/state'
+import { env } from '$env/dynamic/public'
 import {
   Main,
   ReleaseAudit,
@@ -169,20 +170,14 @@ let actions = $derived<ReleaseNavAction[]>(
       : [],
 )
 let sourceReleaseLinksPresentation = $derived(
-  buildApiReleaseLinksPresentation(release.contributingSources, api.familyType),
-)
-let sourceHeadings = $derived(
-  sourceReleaseLinksPresentation.groups.flatMap(group =>
-    group.entries.length && group.id && group.title
-      ? [
-          {
-            id: group.id,
-            label: group.label ? `${group.label} · ${group.title}` : group.title,
-            level: 2,
-          },
-        ]
-      : [],
+  buildApiReleaseLinksPresentation(
+    release.contributingSources,
+    api.familyType,
+    (env.PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(/\/+$/, ''),
   ),
+)
+let sourceOutline = $derived(
+  ReleaseLinks.getReleaseLinksOutline(sourceReleaseLinksPresentation, 'groups'),
 )
 let tocHeadings = $derived(
   activeTab === 'notes'
@@ -191,7 +186,7 @@ let tocHeadings = $derived(
       ? statsHeadings
       : activeTab === 'audit'
         ? auditHeadings
-        : sourceHeadings,
+        : [],
 )
 let activeTocHeadingId = $derived(
   activeTab === 'notes'
@@ -203,11 +198,13 @@ let activeTocHeadingId = $derived(
         : null,
 )
 let outline = $derived<ReleaseNavOutlineItem[]>(
-  tocHeadings.map(heading => ({
-    depth: heading.level,
-    id: heading.id,
-    label: 'label' in heading ? heading.label : heading.text,
-  })),
+  activeTab === 'sources'
+    ? sourceOutline
+    : tocHeadings.map(heading => ({
+        depth: heading.level,
+        id: heading.id,
+        label: 'label' in heading ? heading.label : heading.text,
+      })),
 )
 let hasContent = $derived(
   activeTab === 'notes'
