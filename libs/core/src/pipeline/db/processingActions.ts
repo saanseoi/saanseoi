@@ -28,6 +28,22 @@ export async function replaceReleaseProcessingActions(
   releaseId: string,
   actions: ReleaseProcessingAction[],
 ) {
+  const release = await metaDb
+    .select({ status: metaSchema.metaReleases.status })
+    .from(metaSchema.metaReleases)
+    .where(eq(metaSchema.metaReleases.id, releaseId))
+    .limit(1)
+    .get()
+
+  if (!release) {
+    throw new Error(`Cannot replace processing actions: unknown release ${releaseId}.`)
+  }
+  if (release.status !== 'staged' && release.status !== 'processing') {
+    throw new Error(
+      `Cannot replace processing actions for ${releaseId}: ${release.status} releases are immutable.`,
+    )
+  }
+
   await runStatementBatchWithWriteRetry(metaDb, [
     metaDb
       .delete(metaSchema.releaseProcessingActions)
