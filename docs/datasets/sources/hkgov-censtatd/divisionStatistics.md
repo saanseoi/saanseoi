@@ -52,6 +52,11 @@ each `DC` through the reviewed C&SD numeric bridge and the matching reviewed HAD
 district code bridge. It writes the resulting canonical `divisionId` and SaanSeoi
 `districtCode` only to the Division Statistics history observation.
 
+The dataset fixture selects `map_censtatd_district_code_to_canonical_division` from the
+versioned division merge ruleset. It is a versioned description of the deterministic
+bridge operation, while any record-specific exception remains a release processing
+action with its own evidence.
+
 Each source assertion retains its publisher labels directly as `districtEn` and
 `districtZhHant`; the source shard has no locale-keyed child table. Canonical/API
 localisation is materialised only when a consumer needs it.
