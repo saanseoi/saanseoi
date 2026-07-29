@@ -15,6 +15,7 @@ import {
   eq,
   inArray,
   metaAssets,
+  metaReleases,
   sql,
 } from '@repo/db'
 import { error, redirect } from '@sveltejs/kit'
@@ -385,10 +386,49 @@ export const getApiFamilyPageData = query(registryCodeSchema, async familyType =
 })
 
 export const getApiReleasePageData = query(registryCodeSchema, async familyType => {
+  const db = getMetaDb()
   const api = (await runWithD1ReadRetry(() =>
-    getRegistryApi(getMetaDb(), familyType),
+    getRegistryApi(db, familyType),
   )) as RegistryApi | null
   if (!api) error(404, 'API family not found.')
 
-  return api
+  const sourceReleaseCodes = [
+    ...new Set(
+      api.releases
+        ?.flatMap(release => release.contributingSources ?? [])
+        .map(source => source.sourceReleaseCode) ?? [],
+    ),
+  ]
+  const archives = sourceReleaseCodes.length
+    ? await db
+        .select({
+          assetId: metaAssets.id,
+          mediaType: metaAssets.mediaType,
+          releaseCode: metaReleases.code,
+        })
+        .from(metaAssets)
+        .innerJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
+        .where(
+          and(
+            eq(metaAssets.role, 'sourceArchive'),
+            inArray(metaReleases.code, sourceReleaseCodes),
+          ),
+        )
+        .orderBy(desc(metaAssets.retrievedAt))
+        .all()
+    : []
+  const archiveByReleaseCode = new Map(
+    [...archives].reverse().map(archive => [archive.releaseCode, archive] as const),
+  )
+
+  return {
+    ...api,
+    releases: api.releases?.map(release => ({
+      ...release,
+      contributingSources: release.contributingSources?.map(source => {
+        const archive = archiveByReleaseCode.get(source.sourceReleaseCode)
+        return archive ? { ...source, sourceArchive: archive } : source
+      }),
+    })),
+  }
 })
