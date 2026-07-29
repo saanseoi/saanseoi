@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   buildMetaRegistrySyncStatements,
+  initialApiCompositions,
   initialApiEndpoints,
   initialApiVersions,
   initialDatasets,
@@ -53,6 +54,23 @@ describe('fixture version hashes', () => {
     ])
     expect(placePaths).toEqual(['/v0.1/places', '/v0/places'])
     expect(statsPaths).toEqual(['/v0.1/stats', '/v0/stats'])
+  })
+
+  test('provides localised explanatory text for every API family', () => {
+    const describedFamilies = new Set(
+      initialApiCompositions
+        .filter(composition => composition.status === 'current')
+        .filter(composition =>
+          Object.values(composition.i18n).every(translations =>
+            translations.every(translation => translation.description),
+          ),
+        )
+        .map(composition => composition.apiVersion),
+    )
+
+    expect(
+      initialApiVersions.every(apiVersion => describedFamilies.has(apiVersion.code)),
+    ).toBe(true)
   })
 
   test('registers all proposed C&SD statistics sources as planned datasets', () => {

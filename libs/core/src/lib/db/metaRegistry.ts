@@ -276,6 +276,7 @@ export async function listRegistryReleases(
       apiFamily: metaApiVersions.familyType,
       apiVersion: metaApiVersions.code,
       code: metaApiReleaseSets.code,
+      regionCode: metaApiReleaseSets.regionCode,
       domainCode: metaApiReleaseSets.domainCode,
       cohortKey: metaApiReleaseSets.cohortKey,
       revision: metaApiReleaseSets.revision,
