@@ -360,6 +360,8 @@
   "source_bulk_actions": "批量操作",
   "source_stats_unavailable": "此版本尚未发布统计数据。",
   "source_notes_empty": "此语言没有发布说明。",
+  "reference_close_transclusion": "关闭引用内容",
+  "reference_show_transclusion": "显示{title}",
   "source_versions": "版本",
   "source_versions_nav": "来源版本与发布说明",
   "source_release_sections": "发布说明章节",

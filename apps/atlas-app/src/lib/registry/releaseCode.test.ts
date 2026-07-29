@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { getReleaseCodeParts } from './releaseCode'
+import { getReleaseCodeParts, getReleaseVersionLabel } from './releaseCode'
 
 describe('getReleaseCodeParts', () => {
   test('extracts the version before a domain slug', () => {
@@ -23,5 +23,11 @@ describe('getReleaseCodeParts', () => {
       family: 'data-hk-divisions',
       version: '2025-09-24.0',
     })
+  })
+
+  test('labels a release set with its concise version', () => {
+    expect(getReleaseVersionLabel('data-hk-divisions-2025-09-24.0', 'divisions')).toBe(
+      'v2025-09-24.0',
+    )
   })
 })

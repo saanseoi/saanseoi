@@ -1,6 +1,8 @@
 import type { AppLocale } from '$lib/bits/internal/i18n'
 import { diffLines } from 'diff'
 import GithubSlugger from 'github-slugger'
+import type { ReleaseDiffChange } from '$lib/bits/pages/docs/components/releaseDiff'
+import { getMarkdownHeadingId } from './markdownHeading'
 
 const localeHeadings = {
   en: 'EN',
@@ -29,10 +31,7 @@ type MarkdownDiffOperation = {
   line: string
 }
 
-export type MarkdownDiffChange = {
-  addedMarkdown: string
-  removedMarkdown: string
-}
+export type MarkdownDiffChange = ReleaseDiffChange
 
 export type MarkdownDiff = {
   addedLines: number
@@ -55,7 +54,7 @@ export function getMarkdownHeadings(markdown: string): MarkdownHeading[] {
     if (!level || !text) continue
 
     headings.push({
-      id: `source-heading-${slugger.slug(text)}`,
+      id: getMarkdownHeadingId(slugger.slug(text)),
       level,
       text,
     })

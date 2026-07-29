@@ -44,6 +44,31 @@ export type ApiRelease = {
     groupBy?: string | null
     groupValue?: string | null
   }>
+  processingActions?: Array<{
+    id: string
+    releaseId: string
+    action: string
+    mode: 'automatic' | 'manual'
+    summary: string
+    affectedRecordCount: number
+    evidence: unknown
+    createdAt: string
+    updatedAt: string
+    sourceCode?: string
+    sourceReleaseCode?: string
+  }>
+  bulkActions?: Array<{
+    id: string
+    operationCode: string
+    type: 'bulk'
+    sourceFieldPath?: string
+    targetFieldPath?: string
+    condition?: string
+    mappings?: Array<{ from: string; to: string }>
+    i18n: Array<{ locale: string; description: string }>
+    sourceCode: string
+    sourceReleaseCode: string
+  }>
   contributingSources?: Array<{
     sourceCode: string
     sourceReleaseCode: string
