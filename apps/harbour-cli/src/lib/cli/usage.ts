@@ -8,7 +8,7 @@ export function printUsage() {
   saanseoi init:divisions:hkgov-pland-pu [--continue]
   saanseoi init:divisions:hkgov-pland-new-town [--continue]
   saanseoi init:streets:hkgov-landsd
-  saanseoi init:addresses:default
+  saanseoi init:addresses:default [--continue]
   saanseoi update [--target local|preview|production] [--api-family|--scope all|addresses|divisions|places|stats|streets] [--dataset CODE[,CODE...]] [--download] [--force-download] [--no-upload] [--force|--check-now] [--yes]
   saanseoi cleanup:snapshots [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
   saanseoi docs:new [--target local|preview|production] [--scope apiReleaseSets|releases] [--region hk|mo] [--api-family addresses|divisions|places] [--dataset CODE] [--release CODE] [--cohort-key VALUE]

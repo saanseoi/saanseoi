@@ -11,7 +11,7 @@ const initialisationCommands = {
   },
   'init:addresses:default': {
     script: 'scripts/init/addresses-hkgov-dpo.fish',
-    supportsContinue: false,
+    supportsContinue: true,
   },
   'init:divisions:hkgov-pland-new-town': {
     script: 'scripts/init/divisions-hkgov-pland-new-town.fish',
