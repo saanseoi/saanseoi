@@ -1,8 +1,175 @@
 {
-  "versionHash": "sha256:29c29c90dd71d367613092dea2b22b23c3816f35004cca216ff688ff4415bdf5",
+  "versionHash": "sha256:f9490435d174dbfbc728fbd634a22c12d87200de28e7d7eb12edb3b00037033a",
   "code": "rs-division-merge-v1",
   "resourceType": "division",
   "strategy": "merge",
   "version": "1",
-  "notes": "Initial division merge ruleset."
+  "notes": "Initial division merge ruleset.",
+  "mergeRules": [
+    {
+      "operationCode": "derive_division_type_from_overture_taxonomy",
+      "type": "bulk",
+      "sourceFieldPath": "subtype, class, parent_division_id",
+      "targetFieldPath": "type",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Derives the canonical division type from Overture taxonomy fields and parent context."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "根據 Overture 分類欄位及上層脈絡推導標準區劃類型。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "根据 Overture 分类字段及上级语境推导标准区划类型。"
+        }
+      ]
+    },
+    {
+      "operationCode": "derive_division_level_from_overture_taxonomy",
+      "type": "bulk",
+      "sourceFieldPath": "subtype, class, admin_level, parent_division_id",
+      "targetFieldPath": "level",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Derives the canonical hierarchy level from Overture taxonomy fields and parent context."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "根據 Overture 分類欄位及上層脈絡推導標準層級。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "根据 Overture 分类字段及上级语境推导标准层级。"
+        }
+      ]
+    },
+    {
+      "operationCode": "normalise_overture_division_hierarchy",
+      "type": "bulk",
+      "sourceFieldPath": "hierarchies",
+      "targetFieldPath": "hierarchy",
+      "condition": "Drops referent-only and country hierarchy entries; resolves locality names from the release hierarchy lookup when available.",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Normalises Overture hierarchy entries for the canonical division history, excluding non-published outer referents."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "將 Overture 層級項目正規化為標準區劃歷史資料，並排除不會發布的外層參照項目。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "将 Overture 层级项目规范化为标准区划历史数据，并排除不会发布的外层参照项目。"
+        }
+      ]
+    },
+    {
+      "operationCode": "decode_wkb_geometry_to_geojson",
+      "type": "bulk",
+      "sourceFieldPath": "geometry",
+      "targetFieldPath": "geometry, bbox",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Decodes source WKB geometry to GeoJSON and calculates its canonical bounding box."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "將來源 WKB 幾何解碼為 GeoJSON，並計算標準邊界框。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "将来源 WKB 几何解码为 GeoJSON，并计算标准边界框。"
+        }
+      ]
+    },
+    {
+      "operationCode": "map_censtatd_district_code_to_canonical_division",
+      "type": "bulk",
+      "sourceFieldPath": "district_code",
+      "targetFieldPath": "divisionId, districtCode",
+      "condition": "Resolves through the C&SD and HAD district identifier bridge for the release's canonical division snapshot.",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Maps each C&SD district code to the canonical district code and division ID used by the history observation."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "將每個政府統計處地區代碼對應至歷史觀測資料使用的標準地區代碼及區劃 ID。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "将每个政府统计处地区代码映射至历史观测数据使用的标准地区代码及区划 ID。"
+        }
+      ]
+    },
+    {
+      "operationCode": "overture_division_locale_inferred",
+      "type": "record",
+      "sourceFieldPath": "names",
+      "targetFieldPath": "i18n.*.locale",
+      "condition": "A source division name has no usable locale label and its locale is inferred from its text.",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Records each division-name locale inferred from unlabeled Overture source text."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "記錄每個根據未標示 Overture 來源文字推斷的區劃名稱語言。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "记录每个根据未标示 Overture 源文本推断的区划名称语言。"
+        }
+      ]
+    },
+    {
+      "operationCode": "overture_division_api_locale_fallback_added",
+      "type": "record",
+      "sourceFieldPath": "names",
+      "targetFieldPath": "i18n.*",
+      "condition": "The canonical API locale is absent but an equivalent source-language variant is available as a fallback.",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Records each API-facing division locale fallback added from an available source variant."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "記錄每個根據可用來源變體新增的 API 區劃名稱語言備援。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "记录每个根据可用源变体新增的 API 区划名称语言回退。"
+        }
+      ]
+    },
+    {
+      "operationCode": "overture_division_geometry_cn_gd_excluded",
+      "type": "record",
+      "sourceFieldPath": "region",
+      "targetFieldPath": "geometry",
+      "condition": "The Overture geometry belongs to the Guangdong spillover region (`CN-GD`) rather than Hong Kong.",
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Records each Guangdong spillover geometry excluded from a Hong Kong Overture release."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "記錄每個從香港 Overture 發布版本中排除的廣東延伸幾何。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "记录每个从香港 Overture 发布版本中排除的广东延伸几何。"
+        }
+      ]
+    }
+  ]
 }

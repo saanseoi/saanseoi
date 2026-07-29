@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:c982579fa8a4b63864655b1e09a655c868db23f904e7499e4dcff7c940ba489a",
+  "versionHash": "sha256:cf5e73b93aff459ec4978b2befb77f220bd91b95c7eca8f5d0aed2b4020c0f8e",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division-boundary",
   "regionCode": "hk",
@@ -45,6 +45,12 @@
     "correctionSuffixSource": "upstream"
   },
   "category": "places",
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-division-merge-v1",
+      "operationCodes": ["overture_division_geometry_cn_gd_excluded"]
+    }
+  ],
   "i18n": [
     {
       "locale": "en",
