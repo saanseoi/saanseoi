@@ -86,6 +86,46 @@ Use meaningful child names instead of generic names such as `section.svelte`:
   consumers outside that folder should use the section entry file or the namespace
   deliberately.
 
+## Release Headers
+
+`pages/docs/components/releaseHeader/` is organised around one canonical presentation:
+the source-release header. API release sets must use that same presentation by supplying
+their own data to the available slots; do not create API-specific counterparts for
+shared visual parts.
+
+```text
+releaseHeader/
+├── components/
+│   ├── releaseHeaderRoot.svelte
+│   ├── releaseHeaderHeader.svelte
+│   ├── releaseHeaderContent.svelte
+│   ├── releaseHeaderMain.svelte
+│   ├── releaseHeaderAside.svelte
+│   └── index.ts
+├── variants/
+│   ├── releaseHeaderSourceVariant.svelte
+│   └── releaseHeaderApiVariant.svelte
+└── index.ts
+```
+
+- `components/` owns the reusable visual structure only. Its props describe presentation
+  data and slots: labels, status styling, detail rows, links, optional descriptions, and
+  snippets for main or aside content.
+- Components must not import source-release or API-release-set types, derive localised
+  data, select logos, determine statuses, or make route/domain decisions.
+- `variants/` are the data adapters and small composers. They may import domain types,
+  i18n, assets, and lower-level components; they derive the presentation props and pass
+  them to the shared `components/` namespace.
+- Use the source-release variant as the reference for layout, hierarchy, and behaviour.
+  If an API release set needs a different value, label, link, or status, supply that
+  value through the existing component contract before considering a new component.
+- Add a component only when the source and API variants cannot express the needed UI
+  with an existing data prop or snippet. Do not duplicate `Root`, `Header`, `Content`,
+  or `Main` as `Source*` and `Api*` files.
+- Route pages consume the public variant (`ReleaseHeader.SourceVariant` or
+  `ReleaseHeader.ApiVariant`); only variants import `releaseHeader/components/`
+  directly.
+
 ## Release Statistics
 
 `pages/docs/components/releaseStats/` owns the reusable Stats-tab presentation for
