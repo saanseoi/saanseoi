@@ -36,6 +36,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
     ((await metaDb
       .select({
         id: metaDatasets.id,
+        processingRules: metaDatasets.processingRules,
       })
       .from(metaDatasets)
       .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
@@ -46,11 +47,23 @@ export async function syncStagedReleaseIntoLocalMetaCache(
         ),
       )
       .limit(1)
-      .get()) as { id: string } | undefined) ?? null
+      .get()) as { id: string; processingRules: unknown } | undefined) ?? null
 
   if (!dataset) {
     throw new Error(
       `Dataset definition not found in local meta cache: ${plan.source}/${release.datasetCode}`,
+    )
+  }
+
+  const existingRelease = await metaDb
+    .select({ status: metaReleases.status })
+    .from(metaReleases)
+    .where(eq(metaReleases.code, release.releaseCode))
+    .limit(1)
+    .get()
+  if (existingRelease && existingRelease.status !== 'staged') {
+    throw new Error(
+      `Cannot replace source release ${release.releaseCode}: ${existingRelease.status} releases are immutable.`,
     )
   }
 
@@ -60,6 +73,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
     sourceVersion: plan.sourceVersion,
     allowOlderMappedRelease: true,
   })
+  const processingRules = dataset.processingRules
 
   await metaDb
     .insert(metaReleases)
@@ -70,6 +84,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
       resourceType: plan.type,
       sourceVersion: plan.sourceVersion,
       sourceSchemaVersion,
+      processingRules,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
       rawObjectKey: release.rawObjectKey,
@@ -90,6 +105,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
         datasetId: dataset.id,
         sourceVersion: plan.sourceVersion,
         sourceSchemaVersion,
+        processingRules,
         publicationDate: plan.sourceVersion.split('.')[0] ?? null,
         cohortKey: plan.cohortKey,
         rawObjectKey: release.rawObjectKey,
@@ -101,6 +117,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
         ingestedAt: now,
         updatedAt: now,
       },
+      where: eq(metaReleases.status, 'staged'),
     })
     .run()
 }

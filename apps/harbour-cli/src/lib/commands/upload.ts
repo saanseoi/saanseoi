@@ -513,6 +513,7 @@ ${mutedBar}  `)
               preparedUploadFile,
               {
                 inputFilePath: hkgovCenstatdPreparation.displayFilePath,
+                reuseRunningRelease: true,
                 skipRawSeed: true,
                 skipSnapshotCleanup: options.skipSnapshotCleanup,
                 validateGeometry: options.validateGeometry,

@@ -98,6 +98,12 @@ export async function processLocalDivisionGeometrySqlUpload(
   options: {
     deferPublish?: boolean
     inputFilePath?: string
+    /**
+     * Add a geometry variant to a source release that was initialised by an
+     * earlier pass in this upload. The release remains in its running state
+     * until this pass publishes it.
+     */
+    reuseRunningRelease?: boolean
     skipRawSeed?: boolean
     skipSnapshotCleanup?: boolean
     validateGeometry?: boolean
@@ -165,11 +171,13 @@ export async function processLocalDivisionGeometrySqlUpload(
       current: 0,
       max: null,
     })
-    await syncStagedReleaseIntoLocalMetaCache(
-      dbContext.metaDb,
-      { datasetCode, rawObjectKey, releaseCode, releaseId },
-      previewPlan,
-    )
+    if (!options.reuseRunningRelease) {
+      await syncStagedReleaseIntoLocalMetaCache(
+        dbContext.metaDb,
+        { datasetCode, rawObjectKey, releaseCode, releaseId },
+        previewPlan,
+      )
+    }
 
     progress.complete(
       formatGeometryCompletedLabel(
@@ -192,15 +200,17 @@ export async function processLocalDivisionGeometrySqlUpload(
           { publishClient: remoteClient },
         )
     controlClient = client
-    await client.stageRunning(
-      releaseId,
-      'processDataset',
-      {
-        resourceType: previewPlan.type,
-        rowCount: previewPlan.rowCount,
-      },
-      releaseCode,
-    )
+    if (!options.reuseRunningRelease) {
+      await client.stageRunning(
+        releaseId,
+        'processDataset',
+        {
+          resourceType: previewPlan.type,
+          rowCount: previewPlan.rowCount,
+        },
+        releaseCode,
+      )
+    }
 
     progress.complete(
       formatGeometryCompletedLabel(

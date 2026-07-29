@@ -253,6 +253,9 @@ async function normaliseHistoryRow(
   resolutionBySourceDistrictCode: ReadonlyMap<number, ResolvedHkgovCenstatdDistrict>,
   sourceReleaseId: string,
 ): Promise<HistoryStatisticRow> {
+  // See `map_censtatd_district_code_to_canonical_division` in the division
+  // merge ruleset selected by this dataset fixture. Keep its field paths and
+  // localised description in sync with this canonical identity resolution.
   const resolved = resolutionBySourceDistrictCode.get(source.districtCode)
   if (!resolved) {
     throw new Error(
