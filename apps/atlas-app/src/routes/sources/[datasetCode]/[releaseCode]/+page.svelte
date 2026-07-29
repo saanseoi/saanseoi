@@ -1,4 +1,6 @@
 <script lang="ts">
+import { goto } from '$app/navigation'
+import { page } from '$app/state'
 import { env } from '$env/dynamic/public'
 
 import {
@@ -62,7 +64,7 @@ let activeStatsHeadingId = $state<string | null>(null)
 let auditHeadings = $state<MarkdownHeading[]>([])
 let activeAuditHeadingId = $state<string | null>(null)
 let activeTab = $state<'notes' | 'released-as' | 'stats' | 'audit'>('notes')
-let showNoteDiff = $state(false)
+let showNoteDiff = $derived(page.url.searchParams.get('view') === 'diff')
 let showBulkActions = $state(false)
 let bulkActions = $derived(
   version.processingRules?.rulesets
@@ -210,12 +212,22 @@ let sourceArchiveUrl = $derived.by(() => {
   return `${baseUrl}/v0/assets/${version.sourceArchiveAssetId}`
 })
 let versions = $derived(
-  (source.sourceVersions ?? []).map(item => ({
+  (source.sourceVersions ?? []).map((item, index, releases) => ({
     code: item.code,
-    href: `/sources/${source.code}/${item.code}`,
+    href: `/sources/${source.code}/${item.code}${showNoteDiff && index < releases.length - 1 ? '?view=diff' : ''}`,
     label: item.sourceVersion || item.code,
   })),
 )
+function setShowNoteDiff(enabled: boolean) {
+  const url = new URL(page.url)
+  if (enabled) url.searchParams.set('view', 'diff')
+  else url.searchParams.delete('view')
+  void goto(`${url.pathname}${url.search}${url.hash}`, {
+    keepFocus: true,
+    noScroll: true,
+    replaceState: true,
+  })
+}
 let tabs = $derived<ReleaseNavTab[]>([
   { compactLabel: m.source_notes(), id: 'notes', label: m.source_ingestion_notes() },
   { id: 'stats', label: m.source_tab_stats() },
@@ -228,10 +240,10 @@ let actions = $derived<ReleaseNavAction[]>(
   activeTab === 'notes' && versions[1]
     ? [
         {
-          icon: 'ion:git-compare-outline',
+          icon: 'proicons:diff',
           id: 'diff',
           label: m.source_diff_since_last_release(),
-          onSelect: () => (showNoteDiff = !showNoteDiff),
+          onSelect: () => setShowNoteDiff(!showNoteDiff),
           pressed: showNoteDiff,
         },
       ]

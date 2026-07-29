@@ -21,6 +21,13 @@ type Detail = {
   href?: string
   isExternal?: boolean
   isMonospace?: boolean
+  disclosure?: Array<{
+    label: string
+    value: string
+    isMonospace?: boolean
+    href?: string
+    isExternal?: boolean
+  }>
 }
 
 let { source, version, locale }: Props = $props()
@@ -55,42 +62,82 @@ let statusLabel = $derived(
         ? m.source_superseded()
         : version.status,
 )
-let recordCount = $derived(
-  version.stats?.find(
-    stat =>
-      stat.dimension === 'records' &&
-      stat.metric === 'count' &&
-      stat.metricUnit === 'count' &&
-      !stat.groupBy,
-  )?.value,
+let primaryRelease = $derived(
+  version.releaseAs?.find(release => release.role === 'primary') ??
+    version.releaseAs?.[0],
 )
 let details = $derived.by((): Detail[] => {
-  const rows: Detail[] = [
-    { isMonospace: true, label: m.source_code(), value: source.code },
+  const codeDetails = [
     { isMonospace: true, label: m.source_version(), value: version.sourceVersion },
+    ...(version.sourceSchemaVersion
+      ? [
+          {
+            isMonospace: true,
+            label: m.source_schema(),
+            value: version.sourceSchemaVersion,
+          },
+        ]
+      : []),
     {
+      label: m.source_resource_type(),
+      value: source.resourceTypes.join(', ') || m.api_release_unavailable(),
+    },
+    ...(source.subType ? [{ label: m.source_subtype(), value: source.subType }] : []),
+    ...(version.releaseNotesUrl
+      ? [
+          {
+            href: version.releaseNotesUrl,
+            isExternal: true,
+            label: m.source_upstream(),
+            value: m.source_release_notes(),
+          },
+        ]
+      : []),
+  ]
+  const rows: Detail[] = [
+    {
+      disclosure: codeDetails,
       isMonospace: true,
-      label: m.source_ingestion_date(),
-      value: displayDate(version.ingestedAt),
+      label: m.source_code(),
+      value: source.code,
+    },
+    {
+      disclosure: [
+        {
+          label: m.api_release_domain(),
+          value: primaryRelease?.domainCode ?? m.api_release_unavailable(),
+          isMonospace: true,
+        },
+        {
+          label: m.api_release_cohort(),
+          value: primaryRelease?.cohortKey ?? m.api_release_unavailable(),
+          isMonospace: true,
+        },
+        {
+          label: m.api_release_revision(),
+          value: String(primaryRelease?.revision ?? 0),
+          isMonospace: true,
+        },
+        {
+          label: m.api_release_version(),
+          value: primaryRelease?.apiVersion ?? m.api_release_unavailable(),
+          isMonospace: true,
+        },
+      ],
+      isMonospace: true,
+      label: m.source_release(),
+      value: primaryRelease?.code ?? m.api_release_unavailable(),
+    },
+    {
+      disclosure: [
+        { label: m.source_ingested(), value: displayDate(version.ingestedAt) },
+        { label: m.source_reference(), value: displayDate(version.publicationDate) },
+        { label: m.source_last_revised(), value: displayDate(version.updatedAt) },
+      ],
+      label: m.source_published(),
+      value: displayDate(version.publicationDate ?? version.ingestedAt),
     },
   ]
-
-  if (recordCount !== undefined) {
-    rows.push({
-      isMonospace: true,
-      label: m.source_records(),
-      value: displayNumber(recordCount),
-    })
-  }
-  if (version.releaseNotesUrl) {
-    rows.push({
-      href: version.releaseNotesUrl,
-      isExternal: true,
-      label: m.source_upstream(),
-      value: m.source_release_notes(),
-    })
-  }
-
   return rows
 })
 let publisherLogo = $derived(
@@ -154,9 +201,6 @@ let secondaryLinks = $derived(
 
 const displayDate = (value?: string | null) =>
   value?.slice(0, 10) ?? m.source_ingestion_unavailable()
-
-const displayNumber = (value: number) =>
-  new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value)
 </script>
 
 {#snippet descriptionContent()}

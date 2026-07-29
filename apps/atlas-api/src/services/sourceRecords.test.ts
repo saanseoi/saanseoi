@@ -99,6 +99,32 @@ describe('source records', () => {
     })
   })
 
+  test('returns Overture geometry retained in the raw source properties', async () => {
+    const geometry = {
+      coordinates: [114.1, 22.3],
+      type: 'Point',
+    }
+    const result = await listSourceRecords({
+      env: {
+        DB_SOURCE_HK_2025: sourceDatabase([]),
+        DB_SOURCE_HK_2026: sourceDatabase([
+          {
+            rawProperties: JSON.stringify({ geometry, id: 'division-1' }),
+            sourceRecordId: 'division-1',
+            versionHash: 'version-1',
+          },
+        ]),
+        DB_SOURCE_HK_BEFORE: sourceDatabase([]),
+      } as never,
+      family: 'divisions',
+      includeGeometry: true,
+      metaDb: metaDatabase(),
+      sourceReleaseCode,
+    })
+
+    expect(result?.records[0]).toMatchObject({ geometry })
+  })
+
   test('rejects a malformed opaque source cursor', async () => {
     await expect(
       listSourceRecords({

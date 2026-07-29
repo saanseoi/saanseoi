@@ -1,7 +1,10 @@
 <script lang="ts">
+import { goto } from '$app/navigation'
+import { page } from '$app/state'
 import {
   Main,
   ReleaseAudit,
+  ReleaseDiff,
   ReleaseHeader,
   ReleaseLinks,
   ReleaseNav,
@@ -10,6 +13,7 @@ import {
 } from '$lib/bits'
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import { getApiReleasePageData } from '$lib/registry/meta.remote'
+import { diffMarkdown } from '$lib/registry/markdown'
 import { getReleaseVersionLabel } from '$lib/registry/releaseCode'
 import {
   buildReleaseNotesPresentation,
@@ -34,8 +38,17 @@ let release = $derived.by(() => {
   return selected
 })
 let locale = $derived(getCurrentLocale())
+let previousRelease = $derived.by(() => {
+  const releases = api.releases ?? []
+  const currentIndex = releases.findIndex(item => item.code === release.code)
+  return currentIndex >= 0 ? releases[currentIndex + 1] : undefined
+})
 let notes = $derived(selectReleaseNotesMarkdown(release.notes, locale))
-let notesPresentation = $derived(buildReleaseNotesPresentation(notes, locale))
+let previousNotes = $derived(selectReleaseNotesMarkdown(previousRelease?.notes, locale))
+let notesPresentation = $derived(
+  buildReleaseNotesPresentation(notes, locale, [previousNotes]),
+)
+let noteDiff = $derived(diffMarkdown(previousNotes, notes))
 let noteHeadings = $derived(notesPresentation.headings)
 let activeTab = $state('notes')
 let activeHeadingId = $state<string | null>(null)
@@ -43,6 +56,7 @@ let statsHeadings = $state<ReleaseContentHeading[]>([])
 let activeStatsHeadingId = $state<string | null>(null)
 let auditHeadings = $state<MarkdownHeading[]>([])
 let activeAuditHeadingId = $state<string | null>(null)
+let showNoteDiff = $derived(page.url.searchParams.get('view') === 'diff')
 let showBulkActions = $state(false)
 const humaniseStat = (value: string | null | undefined) =>
   !value
@@ -107,14 +121,24 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
   qualityDescription: humaniseStat,
 })
 let versions = $derived(
-  (api.releases ?? []).map(item => ({
+  (api.releases ?? []).map((item, index, releases) => ({
     code: item.code,
-    href: `/apis/${api.familyType}/${item.code}`,
+    href: `/apis/${api.familyType}/${item.code}${showNoteDiff && index < releases.length - 1 ? '?view=diff' : ''}`,
     label: getReleaseVersionLabel(item.code, api.familyType),
   })),
 )
+function setShowNoteDiff(enabled: boolean) {
+  const url = new URL(page.url)
+  if (enabled) url.searchParams.set('view', 'diff')
+  else url.searchParams.delete('view')
+  void goto(`${url.pathname}${url.search}${url.hash}`, {
+    keepFocus: true,
+    noScroll: true,
+    replaceState: true,
+  })
+}
 let tabs = $derived<ReleaseNavTab[]>([
-  { id: 'notes', label: m.api_release_notes() },
+  { compactLabel: m.source_notes(), id: 'notes', label: m.api_release_notes() },
   { id: 'stats', label: m.api_release_stats() },
   ...(release.processingActions?.length || release.bulkActions?.length
     ? [{ id: 'audit', label: 'Audit' }]
@@ -122,17 +146,27 @@ let tabs = $derived<ReleaseNavTab[]>([
   { id: 'sources', label: m.pipeline_sources_eyebrow() },
 ])
 let actions = $derived<ReleaseNavAction[]>(
-  activeTab === 'audit' && release.bulkActions?.length
+  activeTab === 'notes' && versions[1]
     ? [
         {
-          icon: 'ion:layers-outline',
-          id: 'bulk',
-          label: m.source_bulk_actions(),
-          onSelect: () => (showBulkActions = !showBulkActions),
-          pressed: showBulkActions,
+          icon: 'proicons:diff',
+          id: 'diff',
+          label: m.source_diff_since_last_release(),
+          onSelect: () => setShowNoteDiff(!showNoteDiff),
+          pressed: showNoteDiff,
         },
       ]
-    : [],
+    : activeTab === 'audit' && release.bulkActions?.length
+      ? [
+          {
+            icon: 'ion:layers-outline',
+            id: 'bulk',
+            label: m.source_bulk_actions(),
+            onSelect: () => (showBulkActions = !showBulkActions),
+            pressed: showBulkActions,
+          },
+        ]
+      : [],
 )
 let sourceReleaseLinksPresentation = $derived(
   buildApiReleaseLinksPresentation(release.contributingSources, api.familyType),
@@ -177,7 +211,9 @@ let outline = $derived<ReleaseNavOutlineItem[]>(
 )
 let hasContent = $derived(
   activeTab === 'notes'
-    ? Boolean(notesPresentation.markdown.trim())
+    ? showNoteDiff
+      ? noteDiff.changes.length > 0
+      : Boolean(notesPresentation.markdown.trim())
     : activeTab === 'stats'
       ? Boolean(release.stats?.length)
       : activeTab === 'audit'
@@ -201,7 +237,7 @@ $effect(() => {
     currentVersionCode={release.code}
     activeOutlineId={activeTocHeadingId}
     {hasContent}
-    nestedContent={activeTab === 'notes'}
+    nestedContent={activeTab === 'notes' && !showNoteDiff}
     {outline}
     {actions}
     versionTitle={m.api_release_versions()}
@@ -209,13 +245,27 @@ $effect(() => {
     bind:activeTab
   >
     {#if activeTab === 'notes'}
-      <ReleaseNotes.Root
-        markdown={notesPresentation.markdown}
-        headings={noteHeadings}
-        labels={notesPresentation.labels}
-        transclusions={notesPresentation.transclusions}
-        bind:activeHeadingId
-      />
+      <div class:contents={showNoteDiff} class="h-full min-h-0">
+        {#if showNoteDiff && previousRelease}
+          <ReleaseDiff.Root
+            changes={noteDiff.changes}
+            labels={{
+              added: m.source_added(),
+              removed: m.source_removed(),
+              empty: m.source_diff_no_changes(),
+            }}
+            markdown={notesPresentation}
+          />
+        {:else}
+          <ReleaseNotes.Root
+            markdown={notesPresentation.markdown}
+            headings={noteHeadings}
+            labels={notesPresentation.labels}
+            transclusions={notesPresentation.transclusions}
+            bind:activeHeadingId
+          />
+        {/if}
+      </div>
     {:else if activeTab === 'stats'}
       <ReleaseStats.Root
         stats={release.stats}

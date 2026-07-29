@@ -2,12 +2,21 @@
 import Icon from '@iconify/svelte'
 import type { Snippet } from 'svelte'
 
+import ReleaseHeaderDetail from './releaseHeaderDetail.svelte'
+
 type Detail = {
   label: string
   value: string
   href?: string
   isExternal?: boolean
   isMonospace?: boolean
+  disclosure?: Array<{
+    label: string
+    value: string
+    isMonospace?: boolean
+    href?: string
+    isExternal?: boolean
+  }>
 }
 
 type Props = {
@@ -17,6 +26,7 @@ type Props = {
 }
 
 let { title, details, description }: Props = $props()
+let allDetailsOpen = $state(false)
 </script>
 
 <div class="min-w-0">
@@ -27,35 +37,43 @@ let { title, details, description }: Props = $props()
     {@render description()}
   {/if}
   <dl
-    class="mt-7 flex flex-wrap items-start justify-between gap-x-6 gap-y-5 font-body text-label-md"
+    class="mt-7 grid grid-cols-1 gap-x-6 gap-y-5 font-body text-label-md md:grid-cols-3"
   >
     {#each details as detail}
-      <div class="min-w-fit">
-        <dt
-          class="text-caption font-semibold uppercase tracking-[0.12em] text-foreground-alt"
-        >
-          {detail.label}
-        </dt>
-        <dd
-          class={`mt-2 text-sm font-semibold text-primary ${detail.isMonospace ? 'font-mono' : ''}`}
-        >
-          {#if detail.href}
-            <a
-              class="inline-flex items-center gap-1 font-body font-semibold text-secondary underline decoration-secondary/40 underline-offset-4 hover:text-primary"
-              href={detail.href}
-              target={detail.isExternal ? '_blank' : undefined}
-              rel={detail.isExternal ? 'noopener noreferrer' : undefined}
-            >
+      {#if detail.disclosure?.length}
+        <ReleaseHeaderDetail
+          {detail}
+          isOpen={allDetailsOpen}
+          onToggle={() => (allDetailsOpen = !allDetailsOpen)}
+        />
+      {:else}
+        <div class="min-w-0">
+          <dt
+            class="text-caption font-semibold uppercase tracking-[0.12em] text-foreground-alt"
+          >
+            {detail.label}
+          </dt>
+          <dd
+            class={`mt-2 text-sm font-semibold text-primary ${detail.isMonospace ? 'font-mono' : ''}`}
+          >
+            {#if detail.href}
+              <a
+                class="inline-flex items-center gap-1 font-body font-semibold text-secondary underline decoration-secondary/40 underline-offset-4 hover:text-primary"
+                href={detail.href}
+                target={detail.isExternal ? '_blank' : undefined}
+                rel={detail.isExternal ? 'noopener noreferrer' : undefined}
+              >
+                {detail.value}
+                {#if detail.isExternal}
+                  <Icon icon="ion:open-outline" class="size-4" aria-hidden="true" />
+                {/if}
+              </a>
+            {:else}
               {detail.value}
-              {#if detail.isExternal}
-                <Icon icon="ion:open-outline" class="size-4" aria-hidden="true" />
-              {/if}
-            </a>
-          {:else}
-            {detail.value}
-          {/if}
-        </dd>
-      </div>
+            {/if}
+          </dd>
+        </div>
+      {/if}
     {/each}
   </dl>
 </div>

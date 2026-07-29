@@ -25,8 +25,8 @@ let { activeTab, onSelect, tabs }: Props = $props()
         aria-selected={activeTab === id}
         onclick={() => onSelect(id)}
       >
-        <span class="lg:hidden">{compactLabel ?? label}</span
-        ><span class="hidden lg:inline">{label}</span>
+        <span class="xl:hidden">{compactLabel ?? label}</span
+        ><span class="hidden xl:inline">{label}</span>
       </button>
     {/each}
   </div>
