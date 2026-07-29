@@ -1,0 +1,6 @@
+export { default as Root } from './releaseDiffRoot.svelte'
+export { default as Legend } from './releaseDiffLegend.svelte'
+export { default as ChangeList } from './releaseDiffChangeList.svelte'
+export { default as Change } from './releaseDiffChange.svelte'
+export { default as Pane } from './releaseDiffPane.svelte'
+export { default as EmptyState } from './releaseDiffEmptyState.svelte'
