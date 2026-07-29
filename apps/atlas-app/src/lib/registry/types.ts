@@ -21,6 +21,7 @@ export type ApiRelease = {
   apiFamily: string
   apiVersion: string
   code: string
+  regionCode?: string | null
   domainCode?: string
   cohortKey?: string | null
   revision?: number
@@ -82,6 +83,10 @@ export type ApiRelease = {
     sourceVersion: string
     subType: string | null
     variant: string
+    sourceArchive?: {
+      assetId: string
+      mediaType: string
+    }
   }>
   createdAt: string
   updatedAt: string
