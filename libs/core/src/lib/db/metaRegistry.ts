@@ -368,7 +368,8 @@ export async function listRegistryReleases(
   const sourceReleaseIds = [
     ...new Set(snapshotSources.map(source => source.sourceReleaseId)),
   ]
-  const [sourceReleases, processingActions] = await Promise.all([
+  const datasetIds = [...new Set(snapshotSources.map(source => source.datasetId))]
+  const [sourceReleases, processingActions, datasetResourceTypes] = await Promise.all([
     queryInBatches(sourceReleaseIds, ids =>
       db
         .select({
@@ -408,7 +409,23 @@ export async function listRegistryReleases(
         )
         .all(),
     ),
+    queryInBatches(datasetIds, ids =>
+      db
+        .select({
+          datasetId: metaDatasetResourceTypes.datasetId,
+          resourceType: metaDatasetResourceTypes.resourceType,
+        })
+        .from(metaDatasetResourceTypes)
+        .where(inArray(metaDatasetResourceTypes.datasetId, ids))
+        .all(),
+    ),
   ])
+  const resourceTypesByDatasetId = new Map<string, Set<string>>()
+  for (const resource of datasetResourceTypes) {
+    const resourceTypes = resourceTypesByDatasetId.get(resource.datasetId) ?? new Set()
+    resourceTypes.add(resource.resourceType)
+    resourceTypesByDatasetId.set(resource.datasetId, resourceTypes)
+  }
 
   return releases.map(release => {
     const latest = latestByFamily.get(release.apiFamily)
@@ -474,7 +491,13 @@ export async function listRegistryReleases(
       })),
       contributingSources: snapshots.flatMap(snapshot =>
         snapshotSources
-          .filter(source => source.snapshotId === snapshot.snapshotId)
+          .filter(
+            source =>
+              source.snapshotId === snapshot.snapshotId &&
+              resourceTypesByDatasetId
+                .get(source.datasetId)
+                ?.has(snapshot.snapshot.resourceType),
+          )
           .flatMap(source => {
             const release = sourceReleases.find(
               candidate => candidate.id === source.sourceReleaseId,

@@ -149,6 +149,11 @@ function createRegistryReleasesDb() {
       subType TEXT
     );
 
+    CREATE TABLE datasetResourceTypes (
+      datasetId TEXT NOT NULL,
+      resourceType TEXT NOT NULL
+    );
+
     CREATE TABLE releaseProcessingActions (
       id TEXT PRIMARY KEY,
       releaseId TEXT NOT NULL,
@@ -222,18 +227,27 @@ describe('listRegistryReleases', () => {
 
       INSERT INTO publishers (id, code) VALUES
         ('publisher-a', 'hkgov-als'),
-        ('publisher-b', 'landsd');
+        ('publisher-b', 'landsd'),
+        ('publisher-c', 'overture');
 
       INSERT INTO datasets (id, publisherId, code) VALUES
         ('dataset-a', 'publisher-a', 'hkgov-als'),
-        ('dataset-b', 'publisher-b', 'landsd-addresses');
+        ('dataset-b', 'publisher-b', 'landsd-addresses'),
+        ('dataset-c', 'publisher-c', 'overture-divisions');
+
+      INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
+        ('dataset-a', 'address'),
+        ('dataset-b', 'address'),
+        ('dataset-c', 'division');
 
       INSERT INTO releases (id, datasetId, code, sourceVersion, ingestedAt, processingRules) VALUES
         ('source-release-a', 'dataset-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
-        ('source-release-b', 'dataset-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}');
+        ('source-release-b', 'dataset-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
+        ('source-release-c', 'dataset-c', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', null);
 
       INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
         ('snapshot-a', 'dataset-a', 'source-release-a', 'primary'),
+        ('snapshot-a', 'dataset-c', 'source-release-c', 'primary'),
         ('snapshot-b', 'dataset-b', 'source-release-b', 'primary');
 
       INSERT INTO releaseProcessingActions (
@@ -286,6 +300,11 @@ describe('listRegistryReleases', () => {
           sourceVersion: '2026-07-15',
           subType: null,
         }),
+      ]),
+    )
+    expect(release.contributingSources).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ sourceCode: 'overture-divisions' }),
       ]),
     )
     sqlite.close()

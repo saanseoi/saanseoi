@@ -135,7 +135,20 @@ let actions = $derived<ReleaseNavAction[]>(
     : [],
 )
 let sourceReleaseLinksPresentation = $derived(
-  buildApiReleaseLinksPresentation(release.contributingSources),
+  buildApiReleaseLinksPresentation(release.contributingSources, api.familyType),
+)
+let sourceHeadings = $derived(
+  sourceReleaseLinksPresentation.groups.flatMap(group =>
+    group.entries.length && group.id && group.title
+      ? [
+          {
+            id: group.id,
+            label: group.label ? `${group.label} · ${group.title}` : group.title,
+            level: 2,
+          },
+        ]
+      : [],
+  ),
 )
 let tocHeadings = $derived(
   activeTab === 'notes'
@@ -144,7 +157,7 @@ let tocHeadings = $derived(
       ? statsHeadings
       : activeTab === 'audit'
         ? auditHeadings
-        : [],
+        : sourceHeadings,
 )
 let activeTocHeadingId = $derived(
   activeTab === 'notes'
