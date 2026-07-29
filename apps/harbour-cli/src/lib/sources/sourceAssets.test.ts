@@ -9,9 +9,12 @@ import type { MetaDatabase } from '@repo/db'
 import type { withLocalMetaDb } from '../addressSql/localDbCache.ts'
 import {
   buildSourceAssetObjectKey,
+  buildSourceReleaseAssetFileName,
+  buildSourceReleaseAssetObjectKey,
   registerLocalManagedSourceAsset,
   type ManagedSourceAssetUpload,
   uploadManagedSourceAsset,
+  uploadSourceReleaseAsset,
 } from './sourceAssets.ts'
 
 test('registers a local source asset after storing its immutable object', async () => {
@@ -42,10 +45,73 @@ test('registers a local source asset after storing its immutable object', async 
     expect(uploads).toEqual([{ objectKey: upload.metadata.assetKey }])
     expect(registry.rows.get(upload.metadata.assetKey)).toMatchObject({
       contentHash,
+      datasetId: upload.metadata.datasetId,
       id: assetId,
       mediaType: 'application/pdf',
+      releaseId: upload.metadata.releaseId,
       role: 'governmentNotice',
     })
+  } finally {
+    await rm(root, { force: true, recursive: true })
+  }
+})
+
+test('retains an Overture release Parquet as a managed source asset', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'saanseoi-source-asset-'))
+  const bytes = new TextEncoder().encode('overture parquet source')
+  const filePath = join(root, 'division.division.intersects.clipSmart.parquet')
+  const contentHash = hash(bytes)
+  const uploads: ManagedSourceAssetUpload[] = []
+
+  try {
+    await writeFile(filePath, bytes)
+    await uploadSourceReleaseAsset(
+      { environment: 'dev', remote: false },
+      {
+        datasetCode: 'ds-hk-overture-division',
+        datasetId: '00000000-0000-4000-8000-000000000001',
+        filePath,
+        publisherCode: 'overture',
+        releaseCode: 'dr-hk-overture-division-2026-01-21.0',
+        releaseId: '00000000-0000-4000-8000-000000000002',
+        sourceVersion: '2026-01-21.0',
+      },
+      {
+        now: () => new Date('2026-07-30T00:00:00.000Z'),
+        upload: async (_target, input) => {
+          uploads.push(input)
+          return {
+            assetId: 'asset-id',
+            url: 'http://localhost:8787/v0/assets/asset-id',
+          }
+        },
+      },
+    )
+
+    const fileName = buildSourceReleaseAssetFileName({
+      datasetCode: 'ds-hk-overture-division',
+      sourceVersion: '2026-01-21.0',
+    })
+    expect(uploads).toEqual([
+      expect.objectContaining({
+        fileName,
+        filePath,
+        metadata: expect.objectContaining({
+          assetKey: buildSourceReleaseAssetObjectKey({
+            datasetCode: 'ds-hk-overture-division',
+            fileName,
+            publisherCode: 'overture',
+            releaseCode: 'dr-hk-overture-division-2026-01-21.0',
+            sha256: contentHash,
+          }),
+          contentHash,
+          datasetId: '00000000-0000-4000-8000-000000000001',
+          mediaType: 'application/vnd.apache.parquet',
+          releaseId: '00000000-0000-4000-8000-000000000002',
+          role: 'sourceArchive',
+        }),
+      }),
+    ])
   } finally {
     await rm(root, { force: true, recursive: true })
   }
@@ -130,8 +196,10 @@ async function writeUpload(root: string, bytes: Uint8Array, contentHash: string)
     metadata: {
       assetKey: buildSourceAssetObjectKey(contentHash, 'notice.pdf'),
       contentHash,
+      datasetId: '00000000-0000-4000-8000-000000000001',
       mediaType: 'application/pdf',
       originalUrl: 'https://www.landsd.gov.hk/example/notice.pdf',
+      releaseId: '00000000-0000-4000-8000-000000000002',
       retrievedAt: '2026-07-26T00:00:00.000Z',
       role: 'governmentNotice',
     },

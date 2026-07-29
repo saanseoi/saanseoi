@@ -63,14 +63,26 @@ export type ManagedSourceAssetUpload = {
   metadata: {
     assetKey: string
     contentHash: string
+    datasetId?: string
     manifest?: unknown
     mediaType: string
     originalUrl?: string
+    releaseId?: string
     retrievedAt: string
     role: SourceAssetRole
     sourcePageLocale?: 'en' | 'zh-Hant'
     sourcePageUrl?: string
   }
+}
+
+export type SourceReleaseAssetInput = {
+  datasetCode: string
+  datasetId: string
+  filePath: string
+  publisherCode: string
+  releaseCode: string
+  releaseId: string
+  sourceVersion: string
 }
 
 type LocalSourceAssetObjectUpload = (input: {
@@ -231,6 +243,93 @@ export function buildSourceAssetObjectKey(sha256: string, fileName: string) {
   return `${LANDSD_SOURCE_ASSET_PREFIX}/${sha256}-${safeFileName(fileName)}`
 }
 
+export function buildSourceReleaseAssetFileName(input: {
+  datasetCode: string
+  sourceVersion: string
+}) {
+  return safeFileName(`${input.datasetCode}-${input.sourceVersion}.parquet`)
+}
+
+export function buildSourceReleaseAssetObjectKey(input: {
+  datasetCode: string
+  publisherCode: string
+  releaseCode: string
+  sha256: string
+  fileName: string
+}) {
+  if (!/^[a-f0-9]{64}$/.test(input.sha256)) {
+    throw new Error('Expected a SHA-256 digest.')
+  }
+  for (const value of [input.publisherCode, input.datasetCode, input.releaseCode]) {
+    if (!/^[A-Za-z0-9._-]+$/.test(value)) {
+      throw new Error(`Invalid source asset path component: ${value}`)
+    }
+  }
+  return [
+    'by-source',
+    'hk',
+    input.publisherCode,
+    input.datasetCode,
+    input.releaseCode,
+    `${input.sha256}-${safeFileName(input.fileName)}`,
+  ].join('/')
+}
+
+/**
+ * Retains the exact file consumed by the source-release pipeline. Unlike the
+ * CSDI archive flow, Overture's retained source is the prepared Parquet itself.
+ */
+export async function uploadSourceReleaseAsset(
+  target: UploadTarget,
+  input: SourceReleaseAssetInput,
+  options: {
+    now?: () => Date
+    upload?: typeof uploadManagedSourceAsset
+  } = {},
+) {
+  const bytes = await readFile(input.filePath)
+  const contentHash = hash(bytes)
+  const fileName = buildSourceReleaseAssetFileName(input)
+  const assetKey = buildSourceReleaseAssetObjectKey({
+    datasetCode: input.datasetCode,
+    fileName,
+    publisherCode: input.publisherCode,
+    releaseCode: input.releaseCode,
+    sha256: contentHash,
+  })
+  const retrievedAt = (options.now ?? (() => new Date()))().toISOString()
+  const upload = options.upload ?? uploadManagedSourceAsset
+
+  return upload(target, {
+    fileName,
+    filePath: input.filePath,
+    metadata: {
+      assetKey,
+      contentHash,
+      datasetId: input.datasetId,
+      manifest: {
+        schemaVersion: 1,
+        artefact: {
+          byteLength: bytes.byteLength,
+          mediaType: 'application/vnd.apache.parquet',
+          objectKey: assetKey,
+          role: 'sourceArchive',
+          sha256: contentHash,
+        },
+        dataset: { code: input.datasetCode },
+        provenance: {
+          releaseCode: input.releaseCode,
+          sourceVersion: input.sourceVersion,
+        },
+      },
+      mediaType: 'application/vnd.apache.parquet',
+      releaseId: input.releaseId,
+      retrievedAt,
+      role: 'sourceArchive',
+    },
+  })
+}
+
 export function buildManagedAssetUrl(target: UploadTarget, assetId: string) {
   return `${resolveAtlasBaseUrl(target.environment)}/v0/assets/${assetId}`
 }
@@ -353,8 +452,8 @@ export async function registerLocalManagedSourceAsset(
       sourcePageLocale: input.metadata.sourcePageLocale ?? null,
       sourcePageUrl: input.metadata.sourcePageUrl ?? null,
       sourceRecordId: null,
-      datasetId: null,
-      releaseId: null,
+      datasetId: input.metadata.datasetId ?? null,
+      releaseId: input.metadata.releaseId ?? null,
     })
     .onConflictDoNothing()
     .run()
