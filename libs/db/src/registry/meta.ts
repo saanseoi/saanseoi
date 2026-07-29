@@ -91,6 +91,7 @@ type DatasetFixture = {
   releaseType: DatasetReleaseType
   releaseFrequency: DatasetReleaseFrequency
   theme: DatasetTheme
+  subType?: string
   sourceVariant?: string
   sourceCrs?: string
   resourceTypes: ResourceType[]
@@ -250,9 +251,11 @@ type InitialDatasetSeed = VersionedFixture<
     | 'mergeRules'
     | 'resourceTypes'
     | 'schemaSpecificationURL'
+    | 'subType'
     | 'sourceVariant'
     | 'transforms'
   > & {
+    subType: string | null
     sourceVariant: string
     processingRules: ReleaseMergeRules | null
   }
@@ -442,6 +445,7 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   releaseType: fixture.releaseType,
   releaseFrequency: fixture.releaseFrequency,
   theme: fixture.theme,
+  subType: fixture.subType ?? null,
   sourceVariant: fixture.sourceVariant ?? 'default',
   sourceCrs: fixture.sourceCrs,
   licenseCode: fixture.licenseCode,
@@ -732,7 +736,7 @@ ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SE
     statements.push(
       `
 INSERT INTO datasets (
-  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, sourceVariant, sourceCrs, sourceUrl, licenseId, attribution, category, processingRules, versionHash, createdAt, updatedAt
+  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, subType, sourceVariant, sourceCrs, sourceUrl, licenseId, attribution, category, processingRules, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDatasetId(dataset.publisherCode, dataset.code)},
   (SELECT id FROM publishers WHERE code = ${sqlString(dataset.publisherCode)}),
@@ -741,6 +745,7 @@ INSERT INTO datasets (
   ${sqlString(dataset.releaseType)},
   ${sqlString(dataset.releaseFrequency)},
   ${sqlString(dataset.theme)},
+  ${sqlNullable(dataset.subType)},
   ${sqlString(dataset.sourceVariant)},
   ${sqlNullable(dataset.sourceCrs)},
   ${sqlNullable(dataset.sourceUrl)},
@@ -759,6 +764,7 @@ ON CONFLICT(publisherId, code) DO UPDATE SET
   releaseType = excluded.releaseType,
   releaseFrequency = excluded.releaseFrequency,
   theme = excluded.theme,
+  subType = excluded.subType,
   sourceVariant = excluded.sourceVariant,
   sourceCrs = excluded.sourceCrs,
   sourceUrl = excluded.sourceUrl,

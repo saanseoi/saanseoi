@@ -31,6 +31,7 @@ export type DatasetRecord = {
   cohortKey: string
   theme: string
   type: string
+  subType: string | null
   sourceVariant: string
   source: string
   sourceVersion: string
