@@ -1064,6 +1064,11 @@ function formatSourceValue(value: unknown) {
 
 /**
  * Normalises a raw parquet row into the base division record plus locale rows.
+ * Bulk rules are documented in the dataset fixture as
+ * `derive_division_type_from_overture_taxonomy`,
+ * `derive_division_level_from_overture_taxonomy`, and
+ * `decode_wkb_geometry_to_geojson`. Keep those fixture descriptions aligned
+ * with this transformation when changing its behaviour.
  */
 export function normaliseDivisionRow(
   row: Record<string, unknown>,
@@ -1654,6 +1659,9 @@ function normaliseDivisionHierarchies(
   divisionId: string,
   lookup: DivisionHierarchyLookup | undefined,
 ) {
+  // See the `normalise_overture_division_hierarchy` bulk rule in the dataset
+  // fixture. Update the rule alongside this logic so the audit describes the
+  // release's deterministic processing accurately.
   let normalised = value
 
   while (
@@ -2057,6 +2065,7 @@ function dedupeNameRules(rules: DivisionNameRuleRecord[]) {
 }
 
 export function parseWkbGeometry(value: unknown): GeoJsonGeometry | null {
+  // See the `decode_wkb_geometry_to_geojson` bulk rule in the dataset fixture.
   const decodedGeometry = asGeoJsonGeometry(value)
 
   if (decodedGeometry) {

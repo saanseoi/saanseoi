@@ -99,6 +99,17 @@ type DatasetFixture = {
   sourceUrl?: string
   schemaSpecificationURL: string | null
   category?: DatasetCategory
+  processingRules?: Array<{
+    operationCode: string
+    sourceFieldPath?: string
+    targetFieldPath?: string
+    condition?: string
+    mappings?: Array<{ from: string; to: string }>
+    i18n: Array<{
+      locale: Locale
+      description: string
+    }>
+  }>
   i18n: Array<{
     locale: Locale
     name: string
@@ -396,6 +407,7 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   attribution: fixture.attribution,
   sourceUrl: fixture.sourceUrl,
   category: fixture.category,
+  processingRules: fixture.processingRules,
 }))
 
 export const initialDatasetResourceTypes: InitialDatasetResourceTypeSeed[] =
@@ -639,7 +651,7 @@ ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SE
     statements.push(
       `
 INSERT INTO datasets (
-  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, sourceVariant, sourceCrs, sourceUrl, licenseId, attribution, category, versionHash, createdAt, updatedAt
+  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, sourceVariant, sourceCrs, sourceUrl, licenseId, attribution, category, processingRules, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDatasetId(dataset.publisherCode, dataset.code)},
   (SELECT id FROM publishers WHERE code = ${sqlString(dataset.publisherCode)}),
@@ -654,6 +666,9 @@ INSERT INTO datasets (
   (SELECT id FROM licenses WHERE code = ${sqlString(dataset.licenseCode)}),
   ${sqlNullable(dataset.attribution)},
   ${sqlNullable(dataset.category)},
+  ${sqlNullable(
+    dataset.processingRules ? JSON.stringify(dataset.processingRules) : undefined,
+  )},
   ${sqlString(dataset.versionHash)},
   ${nowSql},
   ${nowSql}
@@ -669,6 +684,7 @@ ON CONFLICT(publisherId, code) DO UPDATE SET
   licenseId = excluded.licenseId,
   attribution = excluded.attribution,
   category = excluded.category,
+  processingRules = excluded.processingRules,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE datasets.versionHash <> excluded.versionHash;`.trim(),

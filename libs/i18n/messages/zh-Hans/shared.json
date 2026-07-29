@@ -302,6 +302,7 @@
   "source_processing_actions_info_description": "显示导入此版本时进行的自动规范化、匹配及修复操作。",
   "source_audit_info": "发布决策说明",
   "source_audit_info_description": "保留自动合并、匹配决策及已审阅变更的源证据。",
+  "source_bulk_actions": "批量操作",
   "source_stats_unavailable": "此版本尚未发布统计数据。",
   "source_notes_empty": "此语言没有发布说明。",
   "source_versions": "版本",

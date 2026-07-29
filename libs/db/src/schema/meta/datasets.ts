@@ -47,6 +47,10 @@ export const metaDatasets = sqliteTable(
     category: text('category', { enum: datasetCategories }),
     attribution: text('attribution'),
     tags: jsonText('tags'),
+    // Versioned, localised descriptions of deterministic bulk transformations
+    // applied while this dataset is ingested. Per-record exceptions belong in
+    // releaseProcessingActions instead.
+    processingRules: jsonText('processingRules'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
