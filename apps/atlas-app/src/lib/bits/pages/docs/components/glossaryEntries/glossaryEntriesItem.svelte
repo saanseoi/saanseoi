@@ -4,6 +4,7 @@ import {
   getMarkdownTransclusionDisplayTitle,
   type MarkdownGlossaryEntry,
 } from '$lib/registry/referenceDocs'
+import { buildReleaseNotesPresentation } from '$lib/registry/releaseNotesPresentation'
 
 import { Content as ReleaseNotesContent } from '../releaseNotes'
 
@@ -13,6 +14,7 @@ type Props = {
 }
 
 let { entry, locale }: Props = $props()
+let presentation = $derived(buildReleaseNotesPresentation(entry.markdown, locale))
 </script>
 
 <article
@@ -29,6 +31,10 @@ let { entry, locale }: Props = $props()
     >
   </div>
   <div class="prose mt-4 max-w-none dark:prose-invert">
-    <ReleaseNotesContent source={entry.markdown} {locale} />
+    <ReleaseNotesContent
+      markdown={presentation.markdown}
+      labels={presentation.labels}
+      transclusions={presentation.transclusions}
+    />
   </div>
 </article>
