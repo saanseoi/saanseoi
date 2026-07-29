@@ -73,6 +73,36 @@ describe('fixture version hashes', () => {
       censtatdStats.every(dataset => dataset.code.startsWith('ds-hk-hkgov-censtatd-')),
     ).toBe(true)
   })
+
+  test('keeps deterministic bulk processing rules with their dataset fixtures', () => {
+    const overtureDivisions = initialDatasets.find(
+      dataset => dataset.code === 'ds-hk-overture-division',
+    )
+    const censtatdDensity = initialDatasets.find(
+      dataset =>
+        dataset.code ===
+        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+    )
+
+    expect(overtureDivisions?.processingRules).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          operationCode: 'normalise_overture_division_hierarchy',
+          sourceFieldPath: 'hierarchies',
+        }),
+      ]),
+    )
+    expect(censtatdDensity?.processingRules).toEqual([
+      expect.objectContaining({
+        operationCode: 'map_censtatd_district_code_to_canonical_division',
+        i18n: expect.arrayContaining([
+          expect.objectContaining({ locale: 'en' }),
+          expect.objectContaining({ locale: 'zh-hant' }),
+          expect.objectContaining({ locale: 'zh-hans' }),
+        ]),
+      }),
+    ])
+  })
 })
 
 describe('resolveInitialDataShardsForEnvironment', () => {

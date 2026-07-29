@@ -143,6 +143,9 @@ export const metaReleases = sqliteTable(
     revokedAt: isoTimestamp('revokedAt'),
     revocationReason: text('revocationReason'),
     supersededByReleaseId: text('supersededByReleaseId'),
+    // Captured from the dataset fixture when this immutable source release is
+    // created. Do not rebuild a historic audit from later dataset metadata.
+    processingRules: jsonText('processingRules'),
     ingestedAt: isoTimestamp('ingestedAt'),
     ...timestamps,
   },
