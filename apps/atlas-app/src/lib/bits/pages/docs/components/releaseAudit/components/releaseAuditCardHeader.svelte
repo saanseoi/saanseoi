@@ -1,9 +1,9 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
 
-type Props = { aside?: Snippet; children?: Snippet }
+type Props = { aside?: Snippet; asideClass?: string; children?: Snippet }
 
-let { aside, children }: Props = $props()
+let { aside, asideClass = '', children }: Props = $props()
 </script>
 
 <div
@@ -11,7 +11,7 @@ let { aside, children }: Props = $props()
 >
   {#if aside}
     <div
-      class="float-right mb-3 ml-6 max-w-1/2 max-sm:float-none max-sm:ml-0 max-sm:max-w-none"
+      class={`float-right mb-3 ml-6 max-w-1/2 max-sm:float-none max-sm:ml-0 max-sm:max-w-none ${asideClass}`}
     >
       {@render aside()}
     </div>
