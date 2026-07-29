@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:9a7a02fab15d3d36f08325e4c0a58c4788a10078c62cb8576f90af77b8f55fec",
+  "versionHash": "sha256:e3b30b6e3aa73d54fdc599a78fb4a979490d7ab963455ba954663b8cc51c929a",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
   "regionCode": "hk",
@@ -45,6 +45,12 @@
     "releaseField": "sourceVersion",
     "correctionSuffixSource": "generated"
   },
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-division-merge-v1",
+      "operationCodes": ["map_censtatd_district_code_to_canonical_division"]
+    }
+  ],
   "releases": [
     {
       "sourceVersion": "2022",
