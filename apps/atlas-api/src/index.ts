@@ -17,6 +17,7 @@ import { placeRoutes } from './routes/v0/places'
 import { registryRoutes } from './routes/v0/registry'
 import { managedAssetRoutes } from './routes/v0/assets'
 import { streetRoutes } from './routes/v0/streets'
+import { sourceRoutes, streamSourceRecordsMiddleware } from './routes/v0/sources'
 import type { AppEnv } from './types'
 
 const app = new OpenAPIHono<AppEnv>({
@@ -94,6 +95,8 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
   })
 }
 
+app.use('/v0.1/divisions/sources', streamSourceRecordsMiddleware)
+
 function isPublicMetadataPath(path: string) {
   return (
     path.startsWith('/v0/meta/') ||
@@ -139,6 +142,7 @@ app.openapiRoutes([
   ...metaRoutes,
   ...probeRoutes,
   ...registryRoutes,
+  ...sourceRoutes,
   ...divisionRoutes,
   ...addressRoutes,
   ...placeRoutes,
