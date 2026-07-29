@@ -5,6 +5,7 @@ import {
   initialApiEndpoints,
   initialApiVersions,
   initialDatasets,
+  initialDatasetResourceTypes,
   initialDataShards,
   resolveInitialDataShardsForEnvironment,
 } from './meta'
@@ -59,7 +60,12 @@ describe('fixture version hashes', () => {
       dataset =>
         dataset.publisherCode === 'hkgov-censtatd' &&
         dataset.theme === 'stats' &&
-        dataset.type === 'divisionStatistic',
+        initialDatasetResourceTypes.some(
+          resourceType =>
+            resourceType.publisherCode === dataset.publisherCode &&
+            resourceType.datasetCode === dataset.code &&
+            resourceType.resourceType === 'divisionStatistic',
+        ),
     )
 
     expect(censtatdStats).toHaveLength(8)

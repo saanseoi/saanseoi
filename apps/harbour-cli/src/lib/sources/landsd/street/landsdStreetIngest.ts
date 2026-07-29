@@ -193,6 +193,7 @@ export async function ingestLandsdStreetSource(options: {
   onProgress?: (progress: LandsdStreetIngestProgress) => void
   fetch?: typeof fetch
   now?: () => Date
+  pdfToText?: (pdfPath: string) => Promise<string>
 }): Promise<{
   releases: LandsdStreetReleasePayload[]
   report: LandsdStreetOperatorReport
@@ -679,7 +680,12 @@ export async function ingestLandsdStreetSource(options: {
   let pdfExtraction = { failed: 0, success: 0 }
   let unmatchedPdfMappings: string[] = []
   try {
-    const parsed = await parseNoticePdfs(notices, evidence, reportProgress)
+    const parsed = await parseNoticePdfs(
+      notices,
+      evidence,
+      reportProgress,
+      options.pdfToText ?? pdfToText,
+    )
     parsedNoticeEntries = parsed.entries
     notices = parsed.notices
     pdfExtraction = parsed.summary
@@ -1488,6 +1494,7 @@ async function parseNoticePdfs(
   notices: PairedLandsdStreetNotice[],
   evidence: Map<string, PublishedPreparedAsset>,
   onProgress: (progress: LandsdStreetIngestProgress) => void,
+  extractText: (pdfPath: string) => Promise<string>,
 ) {
   const reviewable = notices.filter(
     notice => notice.governmentNotices.en || notice.governmentNotices.zhHant,
@@ -1528,7 +1535,7 @@ async function parseNoticePdfs(
     }
     const existing = cache.get(key)
     if (existing) return existing
-    const parsed = pdfToText(prepared.prepared.filePath)
+    const parsed = extractText(prepared.prepared.filePath)
       .then(text => parseLandsdGovernmentNoticePdfText(text, locale))
       .catch(error => {
         if (!isLifecycleCurationNotice(notice)) {

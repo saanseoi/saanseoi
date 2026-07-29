@@ -30,6 +30,12 @@ type BackfillRelease = {
   year: string
 }
 
+type BackfillDependencies = {
+  prepareHkgovPlandNewTownNativeShpZip?: typeof prepareHkgovPlandNewTownNativeShpZip
+  prepareHkgovPlandTpuNativeShpZip?: typeof prepareHkgovPlandTpuNativeShpZip
+  runUploadCommand?: typeof runUploadCommand
+}
+
 const PLANNING_UNIT_RELEASES: BackfillRelease[] = [
   {
     year: '2001',
@@ -95,6 +101,7 @@ export async function runHkgovPlandBackfillCommand(
   target: UploadTarget,
   kind: BackfillKind,
   printUsage: () => void,
+  dependencies: BackfillDependencies = {},
 ) {
   assertBackfillArguments(args, printUsage)
   const continueUpload = Boolean(args.options.continue)
@@ -139,8 +146,10 @@ export async function runHkgovPlandBackfillCommand(
       )
       const prepare =
         kind === 'pu'
-          ? prepareHkgovPlandTpuNativeShpZip
-          : prepareHkgovPlandNewTownNativeShpZip
+          ? (dependencies.prepareHkgovPlandTpuNativeShpZip ??
+            prepareHkgovPlandTpuNativeShpZip)
+          : (dependencies.prepareHkgovPlandNewTownNativeShpZip ??
+            prepareHkgovPlandNewTownNativeShpZip)
       await Promise.all(
         types.map(type =>
           prepare({
@@ -160,6 +169,7 @@ export async function runHkgovPlandBackfillCommand(
           source,
           target,
           type,
+          runUploadCommand: dependencies.runUploadCommand,
         })
       }
     }
@@ -228,6 +238,7 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
         source,
         target,
         type,
+        runUploadCommand: dependencies.runUploadCommand,
       })
     }
   } finally {
@@ -242,6 +253,7 @@ async function uploadPreparedArtefact(args: {
   source: string
   target: UploadTarget
   type: 'division' | 'divisionArea'
+  runUploadCommand?: typeof runUploadCommand
 }) {
   const uploadArgs: ParsedArgs = {
     command: 'upload',
@@ -257,7 +269,7 @@ async function uploadPreparedArtefact(args: {
       yes: true,
     },
   }
-  await runUploadCommand(uploadArgs, args.target, {
+  await (args.runUploadCommand ?? runUploadCommand)(uploadArgs, args.target, {
     dryRun: false,
     forceUpload: false,
     invocationCwd: args.invocationCwd,
