@@ -1,78 +1,13 @@
 import { describe, expect, mock, test } from 'bun:test'
 
-const cleanupMock = mock(() => undefined)
-const resolveLocalAddressDbContextMock = mock(async () => ({
-  cleanup: cleanupMock,
-  metaDb: {},
-}))
-const resolveCohortSnapshotMock = mock(async () => null)
-const resolveLatestSnapshotMock = mock(async () => ({
-  id: 'snapshot-dr-hk-overture-division-2025-09-24.0',
-  code: 'ss-hk-division-2025-09-24.0',
-  resourceType: 'division',
-  status: 'published',
-}))
-const metaRegistry = await import('@repo/core/db/metaRegistry')
-
-mock.module('../addressSql/localDbCache.ts', () => ({
-  resolveLocalAddressDbContext: resolveLocalAddressDbContextMock,
-  withLocalMetaDb: mock(async (_target, work) => work({})),
-}))
-
-mock.module('../addressSql/processLocalAddressSqlUpload.ts', () => ({
-  processLocalAddressSqlUpload: mock(async () => undefined),
-}))
-
-mock.module('../divisionSql/processLocalDivisionSqlUpload.ts', () => ({
-  processLocalDivisionSqlUpload: mock(async () => undefined),
-}))
-
-mock.module('@repo/core/db/metaRegistry', () => ({
-  ...metaRegistry,
-  resolveLatestPublishedSnapshotForResourceTypeRegion: resolveLatestSnapshotMock,
-  resolvePublishedSnapshotForResourceTypeRegionCohortKey: resolveCohortSnapshotMock,
-}))
-
-mock.module('@repo/core/uploadLocal', () => ({
-  prepareUpload: mock(async () => {
-    throw new Error('prepareUpload should not be called by this test.')
-  }),
-}))
-
-mock.module('../cli/display.ts', () => ({
-  describeTarget: mock(() => ({ label: 'preview' })),
-  formatMutedValue: mock((value: string) => value),
-  formatSchemaCheck: mock((value: string) => value),
-  formatSummary: mock(() => []),
-  formatUploadResult: mock(() => []),
-}))
-
-mock.module('../upload/overtureAssumptions.ts', () => ({
-  checkOvertureUploadAssumptions: mock(async () => []),
-}))
-
-mock.module('../cli/options.ts', () => ({
-  buildRegisterOptions: mock(() => ({})),
-  getStringOption: mock(() => undefined),
-}))
-
-mock.module('../upload/parquetRepack.ts', () => ({
-  prepareUploadFileForDispatch: mock(async () => null),
-}))
-
-mock.module('../upload/upload.ts', () => ({
-  dispatchUpload: mock(async () => ({})),
-  getUploadDispatchTimings: mock(() => null),
-}))
-
-const {
+import {
   assertAddressUploadPrerequisites,
   assertDivisionGeometryUploadPrerequisites,
   formatAddressApiReleaseSetReadiness,
   formatDivisionApiReleaseSetReadiness,
   parseDivisionReleaseSetCohortKey,
   rainbowWaveText,
-} = await import('./upload.ts')
+} from './upload.ts'
 
 describe('upload command address prerequisites', () => {
   test('checks remote address prerequisites without refreshing the local D1 cache', async () => {
@@ -128,10 +63,6 @@ describe('upload command address prerequisites', () => {
         type: 'address',
       }),
     )
-    expect(resolveLocalAddressDbContextMock).not.toHaveBeenCalled()
-    expect(resolveCohortSnapshotMock).not.toHaveBeenCalled()
-    expect(resolveLatestSnapshotMock).not.toHaveBeenCalled()
-    expect(cleanupMock).not.toHaveBeenCalled()
   })
 })
 

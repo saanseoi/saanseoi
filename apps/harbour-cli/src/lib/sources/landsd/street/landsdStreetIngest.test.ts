@@ -27,6 +27,18 @@ const traditionalChinesePage = `
 
 const validPdfBytes = createMinimalPdf()
 
+const englishGovernmentNoticeText = [
+  'Description                              Name                              Previous G.N.',
+  'Effective from 3 July 2026.               Central Wan Chai Bypass          G.N. 4000',
+  '3 July 2026',
+].join('\n')
+
+const traditionalChineseGovernmentNoticeText = [
+  '說明                                      名稱                                前政府公告',
+  '由中環至東區，於2026年7月3日起生效。        中環灣仔繞道                        第4000號',
+  '2026 年 7 月 3 日',
+].join('\n')
+
 test('stages paired notice releases with managed evidence URLs and an operator report', async () => {
   const root = await mkdtemp(join(tmpdir(), 'saanseoi-landsd-ingest-'))
   let assetNumber = 0
@@ -43,17 +55,10 @@ test('stages paired notice releases with managed evidence URLs and an operator r
         })
       }
       if (url.includes('/tc/')) {
-        return new Response(
-          traditionalChinesePage.replace('宣布街道名稱', '擬更改街道名稱公告'),
-        )
+        return new Response(traditionalChinesePage)
       }
       if (url.endsWith('street-naming.html')) {
-        return new Response(
-          englishPage.replace(
-            'Declaration of street name',
-            'Notice of intention to change street name',
-          ),
-        )
+        return new Response(englishPage)
       }
       throw new Error(`Unexpected source URL ${url}`)
     },
@@ -63,11 +68,18 @@ test('stages paired notice releases with managed evidence URLs and an operator r
   try {
     const result = await ingestLandsdStreetSource({
       includeBaseline: false,
+      curationPath: join(root, 'curation.json'),
       outputDir: root,
       target: { environment: 'preview', remote: true },
       writeFixtures: false,
       fetch: sourceFetch,
       onProgress: event => progress.push(event.message),
+      pdfToText: pdfPath =>
+        Promise.resolve(
+          pdfPath.includes('cgn')
+            ? traditionalChineseGovernmentNoticeText
+            : englishGovernmentNoticeText,
+        ),
       publishAsset: async () => {
         assetNumber += 1
         return {
@@ -128,7 +140,7 @@ test('stages paired notice releases with managed evidence URLs and an operator r
       expect.arrayContaining([
         'Refreshing English and Traditional Chinese source-page indexes to discover notices; cached PDFs will not be downloaded again',
         'Parsed 1 English and 1 Traditional Chinese source-page row(s); pairing bilingual notices',
-        expect.stringContaining('Downloading source PDF 1/4'),
+        expect.stringContaining('Downloading source PDF 1/3'),
         'Extracting text from Government Notice PDFs (0/1)',
         expect.stringContaining('Rendering Gazette Plan previews (1/1)'),
         'Writing release payload and operator report',
@@ -139,11 +151,18 @@ test('stages paired notice releases with managed evidence URLs and an operator r
     await expect(
       ingestLandsdStreetSource({
         includeBaseline: false,
+        curationPath: join(root, 'curation.json'),
         outputDir: root,
         target: { environment: 'preview', remote: true },
         writeFixtures: false,
         fetch: sourceFetch,
         onProgress: event => resumedProgress.push(event.message),
+        pdfToText: pdfPath =>
+          Promise.resolve(
+            pdfPath.includes('cgn')
+              ? traditionalChineseGovernmentNoticeText
+              : englishGovernmentNoticeText,
+          ),
         publishAsset: async () => {
           assetNumber += 1
           return {
@@ -161,9 +180,9 @@ test('stages paired notice releases with managed evidence URLs and an operator r
     ).resolves.toMatchObject({ releases: expect.any(Array) })
     expect(resumedProgress).toEqual(
       expect.arrayContaining([
-        'Found 3 cached source PDF artefact(s) in this stage directory; matching PDFs will be reused by role, URL and locale',
-        expect.stringContaining('reusing 3 cached LandsD PDF(s), downloading 0'),
-        expect.stringContaining('Reusing cached source PDF 1/4'),
+        'Found 4 cached source PDF artefact(s) in this stage directory; matching PDFs will be reused by role, URL and locale',
+        'Found 3 completed evidence registration(s) from an earlier run; their asset links will be reused without local D1/R2 work',
+        expect.stringContaining('Reusing registered evidence asset 1/3'),
         expect.stringContaining('Reusing cached Gazette Plan previews (1/1)'),
       ]),
     )

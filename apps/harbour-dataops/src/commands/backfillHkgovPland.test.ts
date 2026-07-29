@@ -42,19 +42,7 @@ const runUploadCommandMock = mock(
   },
 )
 
-mock.module('../../../harbour-cli/src/lib/sources/hkgov/hkgovPland.ts', () => ({
-  prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
-}))
-
-mock.module('../../../harbour-cli/src/lib/sources/hkgov/hkgovPlandNewTown.ts', () => ({
-  prepareHkgovPlandNewTownNativeShpZip: mock(async () => undefined),
-}))
-
-mock.module('../../../harbour-cli/src/lib/commands/upload.ts', () => ({
-  runUploadCommand: runUploadCommandMock,
-}))
-
-const { runHkgovPlandBackfillCommand } = await import('./backfillHkgovPland.ts')
+import { runHkgovPlandBackfillCommand } from './backfillHkgovPland.ts'
 
 describe('Planning Department backfills', () => {
   test('publishes each division before attaching its division area', async () => {
@@ -67,6 +55,10 @@ describe('Planning Department backfills', () => {
       { environment: 'preview', remote: true },
       'pu',
       () => undefined,
+      {
+        prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
+        runUploadCommand: runUploadCommandMock,
+      },
     )
 
     expect(preparedTypes).toHaveLength(10)
