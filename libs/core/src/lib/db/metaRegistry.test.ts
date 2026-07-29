@@ -70,6 +70,7 @@ function createRegistryReleasesDb() {
       id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       code TEXT NOT NULL,
+      regionCode TEXT,
       domainCode TEXT NOT NULL,
       cohortKey TEXT,
       revision INTEGER NOT NULL,
@@ -182,12 +183,12 @@ describe('listRegistryReleases', () => {
         ('api-divisions', 'api-divisions-v0.1', 'divisions');
 
       INSERT INTO apiReleaseSets (
-        id, apiVersionId, code, domainCode, cohortKey, revision, schemaVersion,
+        id, apiVersionId, code, regionCode, domainCode, cohortKey, revision, schemaVersion,
         rulesetVersion, status, publishedAt, versionHash, createdAt, updatedAt
       ) VALUES
-        ('published-new', 'api-divisions', 'data-hk-divisions-2026-07-15.0', 'default', '2026-07-15.0', 0, 'v1', 'v1', 'published', '2026-07-15T00:00:00.000Z', 'hash-1', '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z'),
-        ('draft', 'api-divisions', 'data-hk-divisions-2026-07-10.0', 'default', '2026-07-10.0', 0, 'v1', 'v1', 'draft', null, 'hash-2', '2026-07-10T00:00:00.000Z', '2026-07-10T00:00:00.000Z'),
-        ('published-old', 'api-divisions', 'data-hk-divisions-2026-07-05.0', 'default', '2026-07-05.0', 0, 'v1', 'v1', 'published', '2026-07-05T00:00:00.000Z', 'hash-3', '2026-07-05T00:00:00.000Z', '2026-07-05T00:00:00.000Z');
+        ('published-new', 'api-divisions', 'data-hk-divisions-2026-07-15.0', 'hk', 'default', '2026-07-15.0', 0, 'v1', 'v1', 'published', '2026-07-15T00:00:00.000Z', 'hash-1', '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z'),
+        ('draft', 'api-divisions', 'data-hk-divisions-2026-07-10.0', 'hk', 'default', '2026-07-10.0', 0, 'v1', 'v1', 'draft', null, 'hash-2', '2026-07-10T00:00:00.000Z', '2026-07-10T00:00:00.000Z'),
+        ('published-old', 'api-divisions', 'data-hk-divisions-2026-07-05.0', 'hk', 'default', '2026-07-05.0', 0, 'v1', 'v1', 'published', '2026-07-05T00:00:00.000Z', 'hash-3', '2026-07-05T00:00:00.000Z', '2026-07-05T00:00:00.000Z');
     `)
 
     const releases = await listRegistryReleases(db as never)
@@ -197,6 +198,7 @@ describe('listRegistryReleases', () => {
       'draft',
       'published-old',
     ])
+    expect(releases[0]?.regionCode).toBe('hk')
     sqlite.close()
   })
 
