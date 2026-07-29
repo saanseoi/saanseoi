@@ -435,6 +435,23 @@ describe('atlas-api', () => {
     })
   })
 
+  test('GET /v0/divisions permits an absent API key when the local bypass is enabled', async () => {
+    const { env } = createEnv({ BYPASS_API_KEY_AUTH: 'true' })
+    const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
+    const body = (await res.json()) as {
+      httpStatus: number
+      error: string
+      message: string
+    }
+
+    expect(res.status).toBe(503)
+    expect(body).toEqual({
+      httpStatus: 503,
+      error: 'snapshot_not_ready',
+      message: 'No active division snapshot is published.',
+    })
+  })
+
   test('GET /v0/hk/streets/:id requires an API key', async () => {
     const { env } = createEnv()
     const res = await app.fetch(
