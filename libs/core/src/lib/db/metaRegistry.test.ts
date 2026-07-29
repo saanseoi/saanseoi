@@ -132,13 +132,21 @@ function createRegistryReleasesDb() {
       id TEXT PRIMARY KEY,
       datasetId TEXT,
       code TEXT,
+      sourceVersion TEXT,
       ingestedAt TEXT,
       processingRules TEXT
     );
 
-    CREATE TABLE datasets (
+    CREATE TABLE publishers (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL
+    );
+
+    CREATE TABLE datasets (
+      id TEXT PRIMARY KEY,
+      publisherId TEXT,
+      code TEXT NOT NULL,
+      subType TEXT
     );
 
     CREATE TABLE releaseProcessingActions (
@@ -212,13 +220,17 @@ describe('listRegistryReleases', () => {
         ('api-release', 'snapshot-a', 'primary', 1, '2026-07-15T00:00:00.000Z'),
         ('api-release', 'snapshot-b', 'supporting', 1, '2026-07-15T00:00:00.000Z');
 
-      INSERT INTO datasets (id, code) VALUES
-        ('dataset-a', 'hkgov-als'),
-        ('dataset-b', 'landsd-addresses');
+      INSERT INTO publishers (id, code) VALUES
+        ('publisher-a', 'hkgov-als'),
+        ('publisher-b', 'landsd');
 
-      INSERT INTO releases (id, datasetId, code, ingestedAt, processingRules) VALUES
-        ('source-release-a', 'dataset-a', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
-        ('source-release-b', 'dataset-b', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}');
+      INSERT INTO datasets (id, publisherId, code) VALUES
+        ('dataset-a', 'publisher-a', 'hkgov-als'),
+        ('dataset-b', 'publisher-b', 'landsd-addresses');
+
+      INSERT INTO releases (id, datasetId, code, sourceVersion, ingestedAt, processingRules) VALUES
+        ('source-release-a', 'dataset-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
+        ('source-release-b', 'dataset-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}');
 
       INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
         ('snapshot-a', 'dataset-a', 'source-release-a', 'primary'),
@@ -257,6 +269,22 @@ describe('listRegistryReleases', () => {
         expect.objectContaining({
           id: 'source-release-b:v1:0',
           sourceCode: 'landsd-addresses',
+        }),
+      ]),
+    )
+    expect(release.contributingSources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          publisherCode: 'hkgov-als',
+          sourceReleaseCode: '2026-07-15',
+          sourceVersion: '2026-07-15',
+          subType: null,
+        }),
+        expect.objectContaining({
+          publisherCode: 'landsd',
+          sourceReleaseCode: '2026-07-15',
+          sourceVersion: '2026-07-15',
+          subType: null,
         }),
       ]),
     )

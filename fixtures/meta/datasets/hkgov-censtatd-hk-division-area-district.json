@@ -1,11 +1,12 @@
 {
-  "versionHash": "sha256:1e04de847c9c1a28e872de61b3e2f5e77e3c9f0675959689f6bca4d5c7833c95",
+  "versionHash": "sha256:d683b1dbe0358b13cbada590e2d80f493aec38319bdf5af594a43883e4e009d3",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-area-district",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "five-yearly",
   "theme": "divisions",
+  "subType": "district",
   "sourceCrs": "EPSG:2326",
   "resourceTypes": ["divisionArea"],
   "licenseCode": "hkgov-open-data",

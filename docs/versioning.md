@@ -385,18 +385,19 @@ matching a code.
 Dataset and source-release codes use these grammars:
 
 ```text
-ds-{region}-{publisherCode}-{resourceSlug}[-{productSlug}]
-dr-{region}-{publisherCode}-{resourceSlug}[-{productSlug}]-{sourceVersion}
+ds-{region}-{publisherCode}-{resourceSlug}[-{subTypeSlug}]
+dr-{region}-{publisherCode}-{resourceSlug}[-{subTypeSlug}]-{sourceVersion}
 ```
 
-`dr` means dataset release. Keeping the prefix, region, publisher, resource, and product
+`dr` means dataset release. Keeping the prefix, region, publisher, resource, and subtype
 segments in the same order as dataset codes makes the two namespaces visually
 consistent; the provider-owned source version is appended because it versions that
-dataset. The publisher segment is the exact registered publisher code.
-`ds-hk-hkgov-had-...` is not redundant: `hk` is the dataset's geographic coverage, while
-`hkgov-had` is the globally identified publisher. Externally governed identifiers, such
-as SPDX licence IDs and upstream source versions, retain their authoritative spelling
-and casing.
+dataset. The publisher segment is the exact registered publisher code. `subType` is
+stored separately on the dataset; codes remain identifiers rather than the source of
+registry metadata. `ds-hk-hkgov-had-...` is not redundant: `hk` is the dataset's
+geographic coverage, while `hkgov-had` is the globally identified publisher. Externally
+governed identifiers, such as SPDX licence IDs and upstream source versions, retain
+their authoritative spelling and casing.
 
 ### Publisher
 

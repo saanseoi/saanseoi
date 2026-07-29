@@ -1,11 +1,12 @@
 {
-  "versionHash": "sha256:f7e038871ab1ca45fef5091c905ba4bdac8705beb6603e6fee9faff5b4c12a85",
+  "versionHash": "sha256:5247f5c89ba9919c6bcc2a70086d0fb1769e1a90a41ab8d4806365e9acb81715",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-new-town",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",
   "theme": "divisions",
+  "subType": "new-town",
   "sourceVariant": "hkgov-pland-new-town",
   "sourceCrs": "EPSG:4326",
   "resourceTypes": ["division", "divisionArea"],

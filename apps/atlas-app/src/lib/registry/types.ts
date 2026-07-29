@@ -72,9 +72,12 @@ export type ApiRelease = {
   contributingSources?: Array<{
     sourceCode: string
     sourceReleaseCode: string
+    publisherCode: string
     snapshotCode: string
     role: 'primary' | 'supporting'
     resourceType: string
+    sourceVersion: string
+    subType: string | null
     variant: string
   }>
   createdAt: string
@@ -166,6 +169,7 @@ export type RegistrySource = {
   releaseType: string
   releaseFrequency: string
   theme: string
+  subType: string | null
   sourceVariant: string
   resourceTypes: string[]
   sourceUrl?: string | null
