@@ -151,11 +151,10 @@
       "type": "bulk",
       "sourceFieldPath": "hierarchies",
       "targetFieldPath": "hierarchy",
-      "condition": "Drops referent-only and country hierarchy entries; resolves locality names from the release hierarchy lookup when available.",
       "i18n": [
         {
           "locale": "en",
-          "description": "Normalises Overture hierarchy entries for the canonical division history, excluding non-published outer referents."
+          "description": "Normalises hierarchy entries not exclude themselves and China PRC."
         },
         {
           "locale": "zh-hant",

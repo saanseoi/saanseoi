@@ -3,7 +3,7 @@ import { env } from '$env/dynamic/public'
 
 import {
   Main,
-  ApiReleases,
+  ReleaseLinks,
   ReleaseAudit,
   ReleaseDiff,
   ReleaseHeader,
@@ -100,6 +100,24 @@ let sourceArchiveUrl = $derived.by(() => {
   )
   return `${baseUrl}/v0/assets/${version.sourceArchiveAssetId}`
 })
+let versions = $derived(
+  (source.sourceVersions ?? []).map(item => ({
+    code: item.code,
+    href: `/sources/${source.code}/${item.code}`,
+    label: item.sourceVersion || item.code,
+  })),
+)
+let releaseLinkGroups = $derived([
+  {
+    links: (version.releaseAs ?? []).map(release => ({
+      description: `${release.role} · ${release.resourceType} · ${release.variant}`,
+      details: release.apiFamily,
+      eyebrow: release.role,
+      href: `/apis/${release.apiFamily}/${release.code}`,
+      title: release.code,
+    })),
+  },
+])
 
 $effect(() => {
   version.code
@@ -112,8 +130,7 @@ $effect(() => {
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-8 md:px-8">
   <ReleaseHeader.SourceVariant {source} {version} {locale} />
   <ReleaseNav.Root
-    sourceCode={source.code}
-    versions={source.sourceVersions ?? []}
+    {versions}
     currentVersionCode={version.code}
     headings={tocHeadings}
     activeHeadingId={activeTocHeadingId}
@@ -175,7 +192,7 @@ $effect(() => {
         bind:activeHeadingId={activeAuditHeadingId}
       />
     {:else}
-      <ApiReleases.SourceVariant releases={version.releaseAs} />
+      <ReleaseLinks.Root groups={releaseLinkGroups} />
     {/if}
   </ReleaseNav.Root>
 </Main>
