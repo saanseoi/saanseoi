@@ -6,6 +6,7 @@ import {
   initialApiVersions,
   initialDatasets,
   initialDatasetResourceTypes,
+  resolveDatasetMergeRules,
   initialDataShards,
   resolveInitialDataShardsForEnvironment,
 } from './meta'
@@ -74,7 +75,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('keeps deterministic bulk processing rules with their dataset fixtures', () => {
+  test('resolves deterministic bulk actions from versioned merge rulesets', () => {
     const overtureDivisions = initialDatasets.find(
       dataset => dataset.code === 'ds-hk-overture-division',
     )
@@ -84,24 +85,35 @@ describe('fixture version hashes', () => {
         'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
     )
 
-    expect(overtureDivisions?.processingRules).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          operationCode: 'normalise_overture_division_hierarchy',
-          sourceFieldPath: 'hierarchies',
-        }),
-      ]),
-    )
-    expect(censtatdDensity?.processingRules).toEqual([
+    expect(overtureDivisions?.processingRules).toEqual([
       expect.objectContaining({
-        operationCode: 'map_censtatd_district_code_to_canonical_division',
-        i18n: expect.arrayContaining([
-          expect.objectContaining({ locale: 'en' }),
-          expect.objectContaining({ locale: 'zh-hant' }),
-          expect.objectContaining({ locale: 'zh-hans' }),
+        rulesetVersion: 'rs-division-merge-v1',
+        operationCodes: expect.arrayContaining([
+          'normalise_overture_division_hierarchy',
         ]),
       }),
     ])
+    expect(censtatdDensity?.processingRules).toEqual([
+      {
+        rulesetVersion: 'rs-division-merge-v1',
+        operationCodes: ['map_censtatd_district_code_to_canonical_division'],
+      },
+    ])
+    expect(resolveDatasetMergeRules(overtureDivisions?.processingRules)).toEqual(
+      expect.objectContaining({
+        rulesets: [
+          expect.objectContaining({
+            rulesetVersion: 'rs-division-merge-v1',
+            rules: expect.arrayContaining([
+              expect.objectContaining({
+                operationCode: 'normalise_overture_division_hierarchy',
+                sourceFieldPath: 'hierarchies',
+              }),
+            ]),
+          }),
+        ],
+      }),
+    )
   })
 })
 

@@ -18,6 +18,10 @@ import {
   toIsoTimestamp,
 } from '@repo/db'
 import { listApiFieldFixtures, resolveApiFieldFixture } from '@repo/db/apiFieldFixtures'
+import {
+  resolveDatasetMergeRules,
+  type DatasetMergeRuleReference,
+} from '@repo/db/registry'
 import { metaSchema } from '@repo/db'
 import { compareReleaseVersions, resolveSourceSchemaVersion } from '../../sourceSchemas'
 import {
@@ -1318,7 +1322,9 @@ export async function insertDataset(
       resourceType: plan.type,
       sourceVersion: plan.sourceVersion,
       sourceSchemaVersion,
-      processingRules: dataset.processingRules,
+      processingRules: resolveDatasetMergeRules(
+        dataset.processingRules as DatasetMergeRuleReference[] | null,
+      ),
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
       rawObjectKey,

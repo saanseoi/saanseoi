@@ -99,16 +99,11 @@ type DatasetFixture = {
   sourceUrl?: string
   schemaSpecificationURL: string | null
   category?: DatasetCategory
-  processingRules?: Array<{
-    operationCode: string
-    sourceFieldPath?: string
-    targetFieldPath?: string
-    condition?: string
-    mappings?: Array<{ from: string; to: string }>
-    i18n: Array<{
-      locale: Locale
-      description: string
-    }>
+  // A dataset selects the source-specific operations it uses from a versioned
+  // merge ruleset. The rule definitions themselves belong to rulesetVersions.
+  mergeRules?: Array<{
+    rulesetVersion: string
+    operationCodes: string[]
   }>
   i18n: Array<{
     locale: Locale
@@ -196,6 +191,41 @@ type DataShardFileFixture = {
   }>
 }
 
+export type MergeProcessingRule = {
+  operationCode: string
+  sourceFieldPath?: string
+  targetFieldPath?: string
+  condition?: string
+  mappings?: Array<{ from: string; to: string }>
+  i18n: Array<{
+    locale: Locale
+    description: string
+  }>
+}
+
+type MergeRulesetFixture = {
+  versionHash: string
+  code: string
+  resourceType: ResourceType
+  strategy: 'merge'
+  version: string
+  notes?: string
+  mergeRules?: MergeProcessingRule[]
+}
+
+export type DatasetMergeRuleReference = {
+  rulesetVersion: string
+  operationCodes: string[]
+}
+
+export type ReleaseMergeRules = {
+  rulesets: Array<{
+    rulesetVersion: string
+    rulesetVersionHash: string
+    rules: MergeProcessingRule[]
+  }>
+}
+
 type InitialPublisherSeed = VersionedFixture<{
   code: string
   url?: string
@@ -213,8 +243,17 @@ type InitialPublisherI18nSeed = {
 type InitialLicenseSeed = VersionedFixture<LicenseFixture>
 
 type InitialDatasetSeed = VersionedFixture<
-  Omit<DatasetFixture, 'i18n' | 'transforms' | 'resourceTypes' | 'sourceVariant'> & {
+  Omit<
+    DatasetFixture,
+    | 'i18n'
+    | 'mergeRules'
+    | 'resourceTypes'
+    | 'schemaSpecificationURL'
+    | 'sourceVariant'
+    | 'transforms'
+  > & {
     sourceVariant: string
+    processingRules?: DatasetMergeRuleReference[]
   }
 >
 
@@ -352,6 +391,7 @@ function sqlTimestampMs(value: string) {
 
 const publisherFixtures = readFixtureDir<PublisherFixture>('dataPublishers')
 const datasetFixtures = readFixtureDir<DatasetFixture>('datasets')
+const mergeRulesetFixtures = readFixtureDir<MergeRulesetFixture>('rulesetVersions')
 const apiCompositionFixtures = readFixtureDir<ApiCompositionFixture>('apiCompositions')
 const apiEndpointFixtures = readFixtureDir<ApiEndpointFileFixture>('apiEndpoints')
 const dataShardFixtures = readFixtureDir<DataShardFileFixture>('dataShards')
@@ -407,8 +447,48 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   attribution: fixture.attribution,
   sourceUrl: fixture.sourceUrl,
   category: fixture.category,
-  processingRules: fixture.processingRules,
+  processingRules: fixture.mergeRules,
 }))
+
+/**
+ * Resolves the dataset's declared operation codes against immutable merge-rule
+ * revisions. Callers persist this result on the source release at creation.
+ */
+export function resolveDatasetMergeRules(
+  references: DatasetMergeRuleReference[] | null | undefined,
+): ReleaseMergeRules | null {
+  if (!references?.length) return null
+
+  return {
+    rulesets: references.map(reference => {
+      const ruleset = mergeRulesetFixtures.find(
+        fixture => fixture.code === reference.rulesetVersion,
+      )
+      if (!ruleset) {
+        throw new Error(`Unknown merge ruleset version: ${reference.rulesetVersion}.`)
+      }
+
+      const rulesByCode = new Map(
+        (ruleset.mergeRules ?? []).map(rule => [rule.operationCode, rule]),
+      )
+      const rules = reference.operationCodes.map(operationCode => {
+        const rule = rulesByCode.get(operationCode)
+        if (!rule) {
+          throw new Error(
+            `Merge ruleset ${reference.rulesetVersion} does not define operation ${operationCode}.`,
+          )
+        }
+        return rule
+      })
+
+      return {
+        rulesetVersion: ruleset.code,
+        rulesetVersionHash: ruleset.versionHash,
+        rules,
+      }
+    }),
+  }
+}
 
 export const initialDatasetResourceTypes: InitialDatasetResourceTypeSeed[] =
   datasetFixtures.flatMap(fixture =>
