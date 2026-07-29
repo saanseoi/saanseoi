@@ -360,6 +360,8 @@
   "source_bulk_actions": "批次操作",
   "source_stats_unavailable": "此版本尚未發布統計資料。",
   "source_notes_empty": "此語言沒有版本說明。",
+  "reference_close_transclusion": "關閉引用內容",
+  "reference_show_transclusion": "顯示{title}",
   "source_versions": "版本",
   "source_versions_nav": "來源版本與版本說明",
   "source_release_sections": "版本說明章節",

@@ -359,6 +359,8 @@
   "source_bulk_actions": "Bulk actions",
   "source_stats_unavailable": "Stats have not been published for this release yet.",
   "source_notes_empty": "No release notes are available for this locale.",
+  "reference_close_transclusion": "Close transclusion",
+  "reference_show_transclusion": "Show {title}",
   "source_versions": "Versions",
   "source_versions_nav": "Source versions and release notes",
   "source_release_sections": "Release note sections",

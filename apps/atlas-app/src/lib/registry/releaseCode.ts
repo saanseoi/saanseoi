@@ -13,3 +13,7 @@ export function getReleaseCodeParts(code: string, apiFamily: string): ReleaseCod
     ? { family: matched[1] ?? apiFamily, version: matched[2] ?? code }
     : { family: apiFamily, version: code }
 }
+
+export function getReleaseVersionLabel(code: string, apiFamily: string) {
+  return `v${getReleaseCodeParts(code, apiFamily).version}`
+}

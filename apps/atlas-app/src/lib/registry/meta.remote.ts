@@ -33,11 +33,6 @@ const registryCodeSchema = z.string().trim().min(1).max(200)
 const releasePageSchema = z.object({
   offset: z.number().int().min(0).max(10_000),
 })
-const apiReleaseSchema = z.object({
-  familyType: registryCodeSchema,
-  releaseCode: registryCodeSchema,
-})
-
 const DATA_RELEASES_PAGE_SIZE = 12
 
 function getMetaDb() {
@@ -123,7 +118,11 @@ export const getSourceDatasetPageData = query(registryCodeSchema, async datasetC
   if (!source) error(404, 'Source dataset not found.')
 
   const archives = await db
-    .select({ assetId: metaAssets.id, manifest: metaAssets.manifest })
+    .select({
+      assetId: metaAssets.id,
+      manifest: metaAssets.manifest,
+      releaseId: metaAssets.releaseId,
+    })
     .from(metaAssets)
     .where(
       and(
@@ -133,6 +132,11 @@ export const getSourceDatasetPageData = query(registryCodeSchema, async datasetC
     )
     .orderBy(desc(metaAssets.retrievedAt))
     .all()
+  const assetIdByReleaseId = new Map(
+    archives.flatMap(archive =>
+      archive.releaseId ? [[archive.releaseId, archive.assetId] as const] : [],
+    ),
+  )
   const assetIdByReleaseSlot = new Map(
     archives.flatMap(archive => {
       const releaseSlot = getSourceArchiveReleaseSlot(archive.manifest)
@@ -143,7 +147,9 @@ export const getSourceDatasetPageData = query(registryCodeSchema, async datasetC
   return {
     ...source,
     sourceVersions: source.sourceVersions?.map(version => {
-      const sourceArchiveAssetId = assetIdByReleaseSlot.get(version.sourceVersion)
+      const sourceArchiveAssetId =
+        assetIdByReleaseId.get(version.id) ??
+        assetIdByReleaseSlot.get(version.sourceVersion)
       return sourceArchiveAssetId ? { ...version, sourceArchiveAssetId } : version
     }),
   }
@@ -378,17 +384,11 @@ export const getApiFamilyPageData = query(registryCodeSchema, async familyType =
   return { api, release: null }
 })
 
-export const getApiReleasePageData = query(
-  apiReleaseSchema,
-  async ({ familyType, releaseCode }) => {
-    const api = (await runWithD1ReadRetry(() =>
-      getRegistryApi(getMetaDb(), familyType),
-    )) as RegistryApi | null
-    if (!api) error(404, 'API family not found.')
+export const getApiReleasePageData = query(registryCodeSchema, async familyType => {
+  const api = (await runWithD1ReadRetry(() =>
+    getRegistryApi(getMetaDb(), familyType),
+  )) as RegistryApi | null
+  if (!api) error(404, 'API family not found.')
 
-    const release = api.releases?.find(item => item.code === releaseCode)
-    if (!release) error(404, 'API release not found.')
-
-    return { api, release }
-  },
-)
+  return api
+})
