@@ -18,7 +18,7 @@ import { registryRoutes } from './routes/v0/registry'
 import { managedAssetRoutes } from './routes/v0/assets'
 import { streetRoutes } from './routes/v0/streets'
 import { sourceRoutes, streamSourceRecordsMiddleware } from './routes/v0/sources'
-import type { AppEnv } from './types'
+import type { AppBindings, AppEnv } from './types'
 
 const app = new OpenAPIHono<AppEnv>({
   defaultHook: defaultOpenAPIHook,
@@ -57,7 +57,9 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
 }
 for (const path of ['/v0/*', '/v0.1/*'] as const) {
   app.use(path, async (c, next) => {
-    if (isPublicMetadataPath(c.req.path)) return next()
+    if (isPublicMetadataPath(c.req.path) || isApiKeyAuthenticationBypassed(c.env)) {
+      return next()
+    }
 
     const authentication = await authenticateApiKey({
       d1: c.env.DB_META,
@@ -103,6 +105,10 @@ function isPublicMetadataPath(path: string) {
     path.startsWith('/v0/api/') ||
     path.startsWith('/v0/assets/')
   )
+}
+
+function isApiKeyAuthenticationBypassed(env: AppBindings) {
+  return env.BYPASS_API_KEY_AUTH === 'true'
 }
 
 app.onError((error, c) => {

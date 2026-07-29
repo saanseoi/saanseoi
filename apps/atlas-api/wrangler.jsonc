@@ -22,6 +22,7 @@
   },
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
+    "BYPASS_API_KEY_AUTH": "true",
     "HARBOUR_BASE_URL": "http://localhost:8788",
     "SUBSTACK_PUBLICATION": "saanseoi"
   },
