@@ -26,6 +26,7 @@ For more detail on contributing, workflows, and project expectations, see
 
 - [Repository overview](docs/repo.md)
 - [Taxonomy](docs/taxonomy.md)
+- [Basemap tiles](docs/tiles.md)
 
 ### Dataset Docs
 
@@ -36,6 +37,8 @@ For more detail on contributing, workflows, and project expectations, see
 - [HKPost address](docs/datasets/sources/hkpost/address.md)
 
 ### App Docs
+
+- [Basemap tiles](apps/basemap-tiles/README.md)
 
 #### Atlas (Public Site)
 
