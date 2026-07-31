@@ -23,6 +23,7 @@ import {
   resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
   resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId,
   resolveLatestSnapshotForResourceTypeExcludingId,
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
   resolveShardForTypeRegionYear,
 } from './metaRegistry'
@@ -1981,6 +1982,53 @@ describe('resolveActiveSnapshotForType', () => {
     ).resolves.toMatchObject({
       snapshotId: 'snapshot-mo-place',
       apiReleaseSet: 'rs-mo-place-2026-05',
+    })
+
+    sqlite.close()
+  })
+})
+
+describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
+  test('selects the requested variant when a cohort has multiple division snapshots', async () => {
+    const { sqlite, db } = createRegionalSnapshotLookupDb()
+
+    sqlite.exec(`
+      ALTER TABLE snapshots ADD COLUMN cohortKey TEXT;
+
+      INSERT INTO publishers (id, code) VALUES ('publisher-pland', 'hkgov-pland');
+
+      INSERT INTO datasets (id, publisherId, regionCode) VALUES
+        ('dataset-pland-pu', 'publisher-pland', 'hk'),
+        ('dataset-pland-new-town', 'publisher-pland', 'hk');
+
+      INSERT INTO snapshotLineages (id, variant) VALUES
+        ('lineage-pland-pu', 'hkgov-pland-pu'),
+        ('lineage-pland-new-town', 'hkgov-pland-new-town');
+
+      INSERT INTO snapshots (
+        id, snapshotLineageId, resourceType, code, cohortKey, status, publishedAt, createdAt
+      ) VALUES
+        ('pland-pu-2006', 'lineage-pland-pu', 'division', 'ss-hk-division-hkgov-pland-pu-2006', '2006', 'published', 1136073600000, 1136073600000),
+        ('pland-new-town-2006', 'lineage-pland-new-town', 'division', 'ss-hk-division-hkgov-pland-new-town-2006', '2006', 'published', 1136073600001, 1136073600001);
+
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('pland-pu-2006', 'dataset-pland-pu', 'release-pland-pu-2006', 'primary'),
+        ('pland-new-town-2006', 'dataset-pland-new-town', 'release-pland-new-town-2006', 'primary');
+    `)
+
+    await expect(
+      resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+        db as never,
+        'division',
+        'hk',
+        '2006',
+        { variant: 'hkgov-pland-new-town' },
+      ),
+    ).resolves.toEqual({
+      id: 'pland-new-town-2006',
+      code: 'ss-hk-division-hkgov-pland-new-town-2006',
+      resourceType: 'division',
+      status: 'published',
     })
 
     sqlite.close()

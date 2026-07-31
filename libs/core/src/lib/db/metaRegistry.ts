@@ -1966,6 +1966,7 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
   resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
+  options: { variant?: string } = {},
 ) {
   return (
     (await db
@@ -1976,6 +1977,10 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
         status: metaSnapshots.status,
       })
       .from(metaSnapshots)
+      .innerJoin(
+        metaSnapshotLineages,
+        eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+      )
       .innerJoin(
         metaSnapshotSources,
         eq(metaSnapshots.id, metaSnapshotSources.snapshotId),
@@ -1988,6 +1993,9 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
           eq(metaSnapshots.cohortKey, cohortKey),
           eq(metaDatasets.regionCode, regionCode),
           eq(metaSnapshotSources.role, 'primary'),
+          options.variant
+            ? eq(metaSnapshotLineages.variant, options.variant)
+            : undefined,
         ),
       )
       .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
