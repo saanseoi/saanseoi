@@ -1,0 +1,16 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ss-basemap",
+  "compatibility_date": "2026-07-31",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
+  "routes": [{ "pattern": "viewer.saanseoi.hk", "custom_domain": true }]
+}
