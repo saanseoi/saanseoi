@@ -7,6 +7,7 @@ import {
   boundary_path,
   metadata_path,
   pmtiles_path,
+  release_manifest_request,
   tile_path,
 } from '@repo/basemap'
 import { getAllowedOrigin } from './lib/access'
@@ -57,16 +58,20 @@ export default {
     const url = new URL(request.url)
     const { ok, name, tile, ext } = tile_path(url.pathname)
     const metadataKey = metadata_path(url.pathname)
+    const manifestRequest = release_manifest_request(url.pathname)
     const boundaryName = boundary_name(url.pathname)
-    if (!ok && !metadataKey && !boundaryName) {
+    if (!ok && !metadataKey && !manifestRequest && !boundaryName) {
       return new Response('Invalid URL', { status: 404 })
     }
 
     const access = await authenticateTileRequest(request, env)
-    if (!access) {
+    // Release manifests contain immutable, non-sensitive provenance and must be
+    // linkable from the viewer's diagnostic report. Unlike tile data, they are
+    // intentionally readable without a browser Origin or bearer token.
+    if (!access && !manifestRequest) {
       return new Response('A valid basemap access token is required.', { status: 401 })
     }
-    if (!access.unmetered) {
+    if (access && !access.unmetered) {
       const rateLimit = await env.TILE_RATE_LIMIT.limit({ key: access.claims.sub })
       if (!rateLimit.success)
         return new Response('Tile rate limit exceeded.', { status: 429 })
@@ -111,6 +116,23 @@ export default {
 
     try {
       const regions = await getRegionsIndex(env)
+      if (manifestRequest) {
+        const region = regions.regions.find(
+          candidate => candidate.code === manifestRequest.regionCode,
+        )
+        if (!region)
+          return responseCache.response('Release manifest not found', headers, 404)
+        const manifestKey = `basemap/${region.code}/${region.name}-${manifestRequest.version}.json`
+        const manifest = await env.BUCKET.get(manifestKey)
+        if (!manifest)
+          return responseCache.response('Release manifest not found', headers, 404)
+        headers.set('Content-Type', 'application/json')
+        return responseCache.response(
+          JSON.stringify(publicReleaseManifest(await manifest.json())),
+          headers,
+          200,
+        )
+      }
       const requestedName = boundaryName ?? name
       const region = regions.regions.find(candidate =>
         requestedName.startsWith(`${candidate.name}-`),
@@ -226,4 +248,19 @@ export default {
       throw error
     }
   },
+}
+
+export function publicReleaseManifest(value: unknown): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null) return {}
+  const manifest = value as Record<string, unknown>
+  // The CLI's top-level command may contain local file paths. Publish only the
+  // structured release provenance, whose command has already been normalised
+  // by the release builder, rather than echoing the operator's raw argv.
+  return {
+    schemaVersion: manifest.schemaVersion,
+    createdAt: manifest.createdAt,
+    region: manifest.region,
+    release: manifest.release,
+    provenance: manifest.provenance,
+  }
 }

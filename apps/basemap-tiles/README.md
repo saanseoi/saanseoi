@@ -25,6 +25,7 @@ serves these public resources:
 | URL                                                                      | Response                                |
 | ------------------------------------------------------------------------ | --------------------------------------- |
 | `/regions.json`, `/versions.json`, `/{region}/versions.json`             | Published catalogues                    |
+| `/releases/{region}/{date}.json`                                         | Immutable release provenance manifest   |
 | `/{region}-{date}.json`, `/{region}-latest.json`                         | TileJSON, including `saanseoi:boundary` |
 | `/{region}-{date}.boundary.geojson`, `/{region}-latest.boundary.geojson` | The exact release clipping boundary     |
 | `/{region}-{date}/{z}/{x}/{y}.mvt`                                       | A vector tile from the PMTiles archive  |
@@ -38,6 +39,10 @@ its boundary, and label-filtered responses are cached for five minutes. The Work
 not cache `404` responses, so a release that appears after a request can become
 available immediately. A forced `-latest` rebuild versions the TileJSON’s tile URLs with
 the archive ETag, avoiding mixed tiles from old and new archive contents.
+
+Release manifests are deliberately public and do not require a token. They are safe,
+immutable provenance records intended for diagnostic reports; all other tile-service
+resources continue to follow the normal browser-origin or bearer-token policy.
 
 ## Development and deployment
 

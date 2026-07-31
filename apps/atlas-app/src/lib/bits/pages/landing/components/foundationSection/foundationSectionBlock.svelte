@@ -25,7 +25,7 @@ let { label, isVisible, usesCjkEyebrows }: Props = $props()
 
 const blockClass = $derived(
   cn(
-    'foundation-section-block absolute block w-[min(18.5rem,23vw)] -translate-x-1/2 -translate-y-1/2 text-primary no-underline transition-[opacity,translate,filter] duration-620 [transition-timing-function:cubic-bezier(0.2,0.7,0.2,1)] min-[786px]:w-[min(22rem,32vw)] max-[785px]:static max-[785px]:min-h-48 max-[785px]:w-full max-[785px]:translate-x-0 max-[785px]:translate-y-0 max-[785px]:py-[1.05rem] max-[785px]:pr-0 max-[785px]:pl-[calc(var(--mobile-marker-size)+1rem)] max-[785px]:text-left',
+    'foundation-section-block absolute block w-[min(18.5rem,23vw)] -translate-x-1/2 -translate-y-1/2 text-primary no-underline transition-[opacity,translate,filter] duration-620 ease-[cubic-bezier(0.2,0.7,0.2,1)] min-[786px]:w-[min(22rem,32vw)] max-[785px]:static max-[785px]:min-h-48 max-[785px]:w-full max-[785px]:translate-x-0 max-[785px]:translate-y-0 max-[785px]:py-[1.05rem] max-[785px]:pr-0 max-[785px]:pl-[calc(var(--mobile-marker-size)+1rem)] max-[785px]:text-left',
     label.tone !== 'projects' &&
       'group cursor-pointer min-[786px]:hover:-translate-y-1 min-[786px]:hover:drop-shadow-[0_0.65rem_1rem_rgb(0_0_0/0.12)] focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-6 focus-visible:outline-(--label-accent)',
     label.tone === 'data' &&
