@@ -179,6 +179,17 @@ jobs:
               - 'apps/atlas-app/**'
               - 'libs/config-typescript/**'
               - 'libs/db/**'
+            basemap-tiles:
+              - 'bun.lock'
+              - 'package.json'
+              - 'apps/basemap-tiles/**'
+              - 'libs/auth/**'
+              - 'libs/basemap/**'
+            basemap-viewer:
+              - 'bun.lock'
+              - 'package.json'
+              - 'apps/basemap-viewer/**'
+              - 'libs/basemap/**'
             harbour-api:
               - 'bun.lock'
               - 'package.json'
@@ -240,6 +251,22 @@ jobs:
         run: bun run deploy:production
         working-directory: apps/atlas-app
         if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.atlas-app == 'true'
+
+      - name: 'DEPLOY :: Basemap Tiles'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run deploy
+        working-directory: apps/basemap-tiles
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.basemap-tiles == 'true'
+
+      - name: 'DEPLOY :: Basemap Viewer'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run deploy:production
+        working-directory: apps/basemap-viewer
+        if: github.event_name == 'workflow_dispatch' || steps.changed-workers.outputs.basemap-viewer == 'true'
 
       - name: 'DEPLOY :: Harbour API'
         env:
