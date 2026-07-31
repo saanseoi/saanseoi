@@ -6,11 +6,14 @@ TileJSON endpoints. It never requests a `.pmtiles` archive directly.
 ## Release diagnostics
 
 Choose a second release in **Compare with** to render synchronised primary and
-comparison maps side by side. The diagnostics control reports the immutable resolved
-release, TileJSON metadata, clipping/boundary health, tile request timing and failures,
-and links to its public provenance manifest. It also provides MapLibre tile-boundary,
-collision-box, and overdraw modes, plus click-to-inspect rendered features. Copy report
-creates a self-contained JSON issue payload including the current share URL.
+comparison maps side by side, as an overlay, or in **Differences** mode. Differences
+uses the compared release as the map base, showing labels added in that release in green
+and labels removed from it in red; geometry changes are ignored. The diagnostics control
+reports the immutable resolved release, TileJSON metadata, clipping/boundary health,
+tile request timing and failures, and links to its public provenance manifest. It also
+provides MapLibre tile-boundary, collision-box, and overdraw modes, plus
+click-to-inspect rendered features. Copy report creates a self-contained JSON issue
+payload including the current share URL.
 
 ## Development
 
