@@ -4,6 +4,7 @@ import { getApiFamilyTheme } from '$lib/registry/apiFamilyTheme'
 import type { ApiRelease, RegistryApi } from '$lib/registry/types'
 
 import * as ReleaseHeader from '../components'
+import { getReleaseHeaderDomainOptions } from '../releaseHeaderDomainOptions'
 
 type Props = {
   api: RegistryApi
@@ -80,6 +81,13 @@ let composition = $derived(
     ?.filter(item => item.status === 'current')
     .sort((left, right) => right.version - left.version)[0],
 )
+let domainOptions = $derived(
+  getReleaseHeaderDomainOptions(api, release).map(option => ({
+    ...option,
+    label:
+      selectLocalisedRow(composition?.i18n?.[option.code], locale)?.name ?? option.code,
+  })),
+)
 let scopeDescription = $derived(
   selectLocalisedRow(composition?.i18n?.[release.domainCode ?? 'default'], locale)
     ?.description,
@@ -150,9 +158,25 @@ let details = $derived([
   {/if}
 {/snippet}
 
+{#snippet domainSelector()}
+  <div class="flex min-w-0 items-center gap-1.5">
+    <span
+      class="hidden shrink-0 font-body text-caption font-semibold uppercase tracking-[0.14em] text-secondary sm:inline"
+      >{m.api_release_domain()}
+      ·</span
+    >
+    <ReleaseHeader.DomainSelector
+      currentDomainCode={release.domainCode ?? 'default'}
+      label={m.api_release_domain()}
+      options={domainOptions}
+    />
+  </div>
+{/snippet}
+
 <ReleaseHeader.Root backgroundImage={theme?.image}>
   <ReleaseHeader.Header
-    label={`${m.common_api()} · ${m.api_release_domain()} · ${domainLabel}`}
+    label={`${m.common_api()} ·`}
+    labelAction={domainSelector}
     {statusLabel}
     {statusClass}
     {statusDotClass}

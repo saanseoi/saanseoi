@@ -1,6 +1,7 @@
 export { default as Card } from './releaseHeaderCard.svelte'
 export { default as Content } from './releaseHeaderContent.svelte'
 export { default as Detail } from './releaseHeaderDetail.svelte'
+export { default as DomainSelector } from './releaseHeaderDomainSelector.svelte'
 export { default as Header } from './releaseHeaderHeader.svelte'
 export { default as Main } from './releaseHeaderMain.svelte'
 export { default as Root } from './releaseHeaderRoot.svelte'
