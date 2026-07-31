@@ -11,6 +11,9 @@ export type Region = {
 export type Catalogue = { regions: Region[] }
 export type RegionVersions = { versions: string[] }
 
+export const BASEMAP_ATTRIBUTION =
+  '<a href="https://openstreetmap.org/copyright">OpenStreetMaps (ODbL)</a>; <a href="https://protomaps.com/legal">Protomaps</a>'
+
 type TilePath = {
   ok: boolean
   name: string
