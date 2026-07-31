@@ -66,3 +66,17 @@ export function parseTilejson(value: unknown): Tilejson {
     vectorLayers: vectorLayers(document.vector_layers),
   }
 }
+
+/** Label-filtered tiles depend on the release's boundary artefact. */
+export function canUseFilteredLabels(
+  labelClippingEnabled: boolean,
+  filteredTilejson: unknown,
+  hasBoundary: boolean,
+): boolean {
+  return (
+    labelClippingEnabled &&
+    hasBoundary &&
+    filteredTilejson !== null &&
+    parseTilejson(filteredTilejson).insideRegionLabels
+  )
+}

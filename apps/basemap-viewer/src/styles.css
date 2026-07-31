@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --header-height: 62px;
+  --header-height: 54px;
+  --page-background: #000;
   --bar-background: rgb(255 255 255 / 94%);
   --bar-border: #bdc7cd;
   --bar-shadow: rgb(24 33 38 / 18%);
@@ -13,9 +14,23 @@
   --bar-accent: #16759a;
   --bar-divider: #d9e0e4;
   color: #202426;
+  color-scheme: dark;
   font-family: "Plus Jakarta Sans", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   line-height: 1.2;
-  background: #e7edf1;
+  background: var(--page-background);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --page-background: #fff;
+    color-scheme: light;
+  }
+}
+
+@media (max-width: 1100px) {
+  :root {
+    --header-height: 96px;
+  }
 }
 
 html,
@@ -25,6 +40,19 @@ body,
 #comparison-map {
   width: 100%;
   height: 100%;
+}
+
+html,
+body {
+  background: var(--page-background);
+}
+
+header fieldset::-webkit-scrollbar {
+  height: 0;
+}
+
+header fieldset {
+  scrollbar-width: none;
 }
 
 #map,
@@ -38,17 +66,87 @@ body,
   --map-widget-icon-filter: none;
 }
 
+#map canvas.is-inspecting,
+#comparison-map canvas.is-inspecting {
+  cursor: pointer;
+}
+
+#map canvas.is-inspecting.is-dragging,
+#comparison-map canvas.is-inspecting.is-dragging {
+  cursor: grabbing;
+}
+
 #comparison-map {
-  left: 50%;
   z-index: 1;
+}
+
+#comparison-map[data-comparison-mode="split"] {
+  clip-path: inset(0 0 0 50%);
+}
+
+#comparison-map[data-comparison-mode="side-by-side"] {
+  right: 0;
+  left: 50%;
+  border-right: 0;
   border-left: 2px solid rgb(255 255 255 / 86%);
+}
+
+#comparison-map[data-comparison-mode="overlay"] {
+  left: 0;
+  opacity: 0.5;
+  border-left: 0;
+}
+
+#comparison-map[data-comparison-mode="diff"] {
+  right: 0;
+  left: 0;
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+  border: 0;
+}
+
+#map[data-comparison-mode="diff"][data-diff-release="newest"] {
+  z-index: 1;
+}
+
+#comparison-map[data-comparison-mode="diff"][data-diff-release="oldest"] {
+  z-index: 0;
+}
+
+#map .maplibregl-ctrl-bottom-right,
+#comparison-map .maplibregl-ctrl-bottom-right {
+  width: 36px;
+  height: 121px;
+  right: 10px;
+  bottom: 10px;
+}
+
+#map[data-comparison-active="true"][data-comparison-mode="split"]
+  .maplibregl-ctrl-bottom-right,
+#map[data-comparison-active="true"][data-comparison-mode="overlay"]
+  .maplibregl-ctrl-bottom-right {
+  display: none;
 }
 
 #comparison-map[aria-hidden="true"] {
   display: none;
 }
 
-#map[data-map-theme="dark"] {
+#map[data-comparison-active="true"][data-comparison-mode="split"] {
+  right: 0;
+  left: 0;
+}
+
+#map[data-comparison-active="true"][data-comparison-mode="side-by-side"] {
+  right: 50%;
+  left: 0;
+}
+
+#map[data-map-theme="dark"],
+#map[data-map-theme="midnight"],
+#comparison-map[data-map-theme="dark"],
+#comparison-map[data-map-theme="midnight"] {
   --map-widget-background: rgb(20 24 26 / 90%);
   --map-widget-border: #536169;
   --map-widget-text: #edf3f5;
@@ -56,16 +154,8 @@ body,
   --map-widget-icon-filter: brightness(0) invert(1);
 }
 
-#map[data-map-theme="midnight"] {
-  --map-widget-background: rgb(2 6 23 / 90%);
-  --map-widget-border: #299fc1;
-  --map-widget-text: #f8fafc;
-  --map-widget-hover: #111827;
-  --map-widget-icon-filter: invert(92%) sepia(13%) saturate(484%) hue-rotate(176deg)
-    brightness(104%) contrast(98%);
-}
-
-[data-bar-theme="dark"] {
+[data-bar-theme="dark"],
+[data-bar-theme="midnight"] {
   --bar-background: rgb(20 24 26 / 94%);
   --bar-border: #536169;
   --bar-shadow: rgb(0 0 0 / 42%);
@@ -78,88 +168,88 @@ body,
   --bar-divider: #465158;
 }
 
-[data-bar-theme="midnight"] {
-  --bar-background: rgb(2 6 23 / 94%);
-  --bar-border: #299fc1;
-  --bar-shadow: rgb(0 0 0 / 56%);
-  --bar-text: #f8fafc;
-  --bar-muted: #94a3b8;
-  --bar-control-background: #111827;
-  --bar-hover-background: #1b2638;
-  --bar-hover-border: #24c4de;
-  --bar-accent: #24c4de;
-  --bar-divider: #243147;
-}
-
 /* MapLibre's controls are created outside the Svelte component tree. */
-#map .maplibregl-ctrl-group {
+#map .maplibregl-ctrl-group,
+#comparison-map .maplibregl-ctrl-group {
   background: var(--map-widget-background);
   box-shadow: 0 0 0 2px rgb(0 0 0 / 22%);
 }
 
-#map .maplibregl-ctrl-group button + button {
+#map .maplibregl-ctrl-group button + button,
+#comparison-map .maplibregl-ctrl-group button + button {
   border-top-color: var(--map-widget-border);
 }
 
 #map .maplibregl-ctrl-group button:not(:disabled):hover,
-#map .maplibregl-ctrl-group button:not(:disabled):active {
+#map .maplibregl-ctrl-group button:not(:disabled):active,
+#comparison-map .maplibregl-ctrl-group button:not(:disabled):hover,
+#comparison-map .maplibregl-ctrl-group button:not(:disabled):active {
   background-color: var(--map-widget-hover);
 }
 
-#map .maplibregl-ctrl-group button:focus-visible {
+#map .maplibregl-ctrl-group button:focus-visible,
+#comparison-map .maplibregl-ctrl-group button:focus-visible {
   box-shadow: 0 0 0 2px #80d2ee;
 }
 
-#map .maplibregl-ctrl-icon {
+#map .maplibregl-ctrl-icon,
+#comparison-map .maplibregl-ctrl-icon {
   filter: var(--map-widget-icon-filter);
 }
 
 #map .maplibregl-ctrl.maplibregl-ctrl-attrib,
-#map .maplibregl-ctrl-attrib-button {
+#map .maplibregl-ctrl-attrib-button,
+#comparison-map .maplibregl-ctrl.maplibregl-ctrl-attrib,
+#comparison-map .maplibregl-ctrl-attrib-button {
   background-color: var(--map-widget-background);
   color: var(--map-widget-text);
 }
 
-#map .maplibregl-ctrl-attrib a {
+#map .maplibregl-ctrl-attrib a,
+#comparison-map .maplibregl-ctrl-attrib a {
   color: var(--map-widget-text);
 }
 
 #map .maplibregl-ctrl-attrib-button:focus,
-#map .maplibregl-ctrl-attrib-button:focus-visible {
+#map .maplibregl-ctrl-attrib-button:focus-visible,
+#comparison-map .maplibregl-ctrl-attrib-button:focus,
+#comparison-map .maplibregl-ctrl-attrib-button:focus-visible {
   box-shadow: none;
 }
 
-#map[data-map-theme="dark"] .maplibregl-ctrl-attrib-button {
+#map[data-map-theme="dark"] .maplibregl-ctrl-attrib-button,
+#map[data-map-theme="midnight"] .maplibregl-ctrl-attrib-button,
+#comparison-map[data-map-theme="dark"] .maplibregl-ctrl-attrib-button,
+#comparison-map[data-map-theme="midnight"] .maplibregl-ctrl-attrib-button {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='%23fff' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E");
 }
 
-#map .maplibregl-ctrl-bottom-right {
-  width: 29px;
-  height: 121px;
-  right: 10px;
-  bottom: 10px;
-}
-
-#map .maplibregl-ctrl-bottom-right .maplibregl-ctrl {
+#map .maplibregl-ctrl-bottom-right .maplibregl-ctrl,
+#comparison-map .maplibregl-ctrl-bottom-right .maplibregl-ctrl {
   float: none;
   margin: 0;
 }
 
-#map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+#map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group,
+#comparison-map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
   position: absolute;
   top: 0;
   right: 0;
 }
 
-#map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib {
+#map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib,
+#comparison-map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib {
   position: absolute;
-  right: 2px;
+  right: 6px;
   bottom: 0;
   margin: 0;
   overflow: hidden;
 }
 
-#map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib.maplibregl-compact {
+#map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib.maplibregl-compact,
+#comparison-map
+  .maplibregl-ctrl-bottom-right
+  .maplibregl-ctrl-attrib.maplibregl-compact {
   width: 24px;
   height: 24px;
   padding: 0;
@@ -169,13 +259,29 @@ body,
     padding 0.2s ease;
 }
 
-#map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib.maplibregl-compact-show {
+#map
+  .maplibregl-ctrl-bottom-right
+  .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show),
+#comparison-map
+  .maplibregl-ctrl-bottom-right
+  .maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+  right: 3px;
+}
+
+#map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib.maplibregl-compact-show,
+#comparison-map
+  .maplibregl-ctrl-bottom-right
+  .maplibregl-ctrl-attrib.maplibregl-compact-show {
   width: max-content;
   max-width: calc(100vw - 20px);
   padding: 2px 28px 2px 8px;
 }
 
 #map
+  .maplibregl-ctrl-bottom-right
+  .maplibregl-ctrl-attrib.maplibregl-compact
+  .maplibregl-ctrl-attrib-inner,
+#comparison-map
   .maplibregl-ctrl-bottom-right
   .maplibregl-ctrl-attrib.maplibregl-compact
   .maplibregl-ctrl-attrib-inner {
@@ -189,6 +295,10 @@ body,
 }
 
 #map
+  .maplibregl-ctrl-bottom-right
+  .maplibregl-ctrl-attrib.maplibregl-compact-show
+  .maplibregl-ctrl-attrib-inner,
+#comparison-map
   .maplibregl-ctrl-bottom-right
   .maplibregl-ctrl-attrib.maplibregl-compact-show
   .maplibregl-ctrl-attrib-inner {

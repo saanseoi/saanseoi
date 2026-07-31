@@ -1,0 +1,95 @@
+<script lang="ts">
+import type { ViewerDiagnostics } from '../../../../../../../diagnostics'
+import type { AppState } from '../../../../../../types'
+import type { ViewerText } from '../../../i18n'
+import DefinitionItem from '../panelDefinitionItem.svelte'
+
+let {
+  diagnostics,
+  locale,
+  text,
+  theme,
+}: {
+  diagnostics: ViewerDiagnostics
+  locale: AppState['locale']
+  text: ViewerText
+  theme: AppState['theme']
+} = $props()
+</script>
+
+<section class="grid gap-2 border-t border-(--bar-divider) pt-2">
+  <h3 class="m-0 text-[11px] font-bold uppercase tracking-[0.06em] text-(--bar-muted)">
+    {text.release}
+  </h3>
+  <dl class="m-0 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 leading-[1.25]">
+    <DefinitionItem
+      label={text.diagnosticPrimary}
+      valueClass="truncate font-mono font-medium"
+    >
+      {diagnostics.primary.version ?? '—'}
+    </DefinitionItem>
+    {#if diagnostics.comparison}
+      <DefinitionItem
+        label={text.diagnosticComparison}
+        valueClass="truncate font-mono font-medium"
+      >
+        {diagnostics.comparison.version ?? '—'}
+      </DefinitionItem>
+    {/if}
+    <DefinitionItem label={text.diagnosticTiles} valueClass="font-mono font-medium">
+      {diagnostics.tileRequests}
+      {text.tileRequests}
+      · {diagnostics.tileFailures} {text.tileFailures}
+    </DefinitionItem>
+    <DefinitionItem label={text.diagnosticLastTile} valueClass="font-mono font-medium">
+      {diagnostics.lastTileDurationMs ?? '—'}
+      {text.milliseconds}
+    </DefinitionItem>
+    <DefinitionItem
+      label={text.diagnosticLabelClipping}
+      valueClass="truncate font-mono font-medium"
+    >
+      {diagnostics.primary.labelClipping}
+    </DefinitionItem>
+    <DefinitionItem
+      label={text.diagnosticBoundary}
+      valueClass="truncate font-mono font-medium"
+    >
+      {diagnostics.primary.boundary}
+    </DefinitionItem>
+    <DefinitionItem label={text.diagnosticZoom} valueClass="font-mono font-medium">
+      {diagnostics.primary.minZoom ?? '—'}–{diagnostics.primary.maxZoom ?? '—'}
+    </DefinitionItem>
+    <DefinitionItem
+      label={text.diagnosticLayers}
+      valueClass="break-words font-mono font-medium"
+      valueTitle={diagnostics.primary.vectorLayers.join(', ')}
+    >
+      {diagnostics.primary.vectorLayers.join(', ') || '—'}
+    </DefinitionItem>
+    <DefinitionItem label={text.diagnosticLocale} valueClass="font-mono font-medium">
+      {locale}
+    </DefinitionItem>
+    <DefinitionItem label={text.diagnosticTheme} valueClass="font-mono font-medium">
+      {text[theme]}
+    </DefinitionItem>
+  </dl>
+  <div class="flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
+    {#if diagnostics.primary.tilejsonUrl}
+      <a
+        class="text-(--bar-accent) underline-offset-2 hover:underline"
+        href={diagnostics.primary.tilejsonUrl}
+        target="_blank"
+        >{text.tilejson}</a
+      >
+    {/if}
+    {#if diagnostics.primary.manifestUrl}
+      <a
+        class="text-(--bar-accent) underline-offset-2 hover:underline"
+        href={diagnostics.primary.manifestUrl}
+        target="_blank"
+        >{text.releaseManifest}</a
+      >
+    {/if}
+  </div>
+</section>

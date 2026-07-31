@@ -136,10 +136,12 @@ describe('basemap style', () => {
     const { groups } = createStyle('https://tiles.example/hongkong-latest.json')
     const state = defaultState()
     state.features.roads = false
+    state.features.landuse = false
     state.labels.roads = true
     const calls: Array<[string, string]> = []
     applyVisibility((id, visibility) => calls.push([id, visibility]), groups, state)
     expect(calls).toContainEqual(['roads_labels_minor', 'none'])
+    expect(calls).toContainEqual(['landuse_park', 'none'])
   })
 
   it('provides a label insertion point for geometry-only overlays', () => {
