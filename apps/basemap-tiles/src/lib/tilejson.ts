@@ -1,4 +1,5 @@
 import type { PMTiles } from 'pmtiles'
+import { BASEMAP_ATTRIBUTION } from '@repo/basemap'
 
 type TileJson = Record<string, unknown> & { tiles: string[] }
 
@@ -25,6 +26,8 @@ export const getTileJson = async ({
 }: TileJsonOptions): Promise<TileJson> => {
   const tileJson = await pmtiles.getTileJson(`${origin}/${name}`)
   if (!isTileJson(tileJson)) throw new Error('PMTiles returned invalid TileJSON')
+
+  tileJson.attribution = BASEMAP_ATTRIBUTION
 
   if (name.endsWith('-latest') && archiveVersion) {
     tileJson.tiles = tileJson.tiles.map(
