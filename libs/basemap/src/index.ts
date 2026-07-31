@@ -76,6 +76,15 @@ export function metadata_path(path: string): string | undefined {
   return match ? `basemap/${match[1]}/versions.json` : undefined
 }
 
+export function release_manifest_request(
+  path: string,
+): { regionCode: string; version: string } | undefined {
+  const match = path.match(/^\/releases\/([a-z0-9-]+)\/(\d{4}-\d{2}-\d{2})\.json$/)
+  if (!match) return undefined
+  const [, regionCode, version] = match
+  return regionCode && version ? { regionCode, version } : undefined
+}
+
 function regionForTileset(name: string, regions: Region[]): Region | undefined {
   return regions.find(candidate => name.startsWith(`${candidate.name}-`))
 }

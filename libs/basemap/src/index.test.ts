@@ -7,6 +7,7 @@ import {
   metadata_path,
   parseCatalogue,
   pmtiles_path,
+  release_manifest_request,
   tilejsonUrl,
 } from './index'
 
@@ -22,6 +23,11 @@ describe('basemap contract', () => {
       'basemap/hk/hongkong-latest.boundary.geojson',
     )
     expect(metadata_path('/hk/versions.json')).toBe('basemap/hk/versions.json')
+    expect(release_manifest_request('/releases/hk/2026-07-31.json')).toEqual({
+      regionCode: 'hk',
+      version: '2026-07-31',
+    })
+    expect(release_manifest_request('/releases/hk/latest.json')).toBeUndefined()
     const region = catalogue.regions[0]
     if (!region) throw new Error('Expected a published region.')
     expect(tilejsonUrl('https://tiles.example/', region, 'latest')).toBe(
