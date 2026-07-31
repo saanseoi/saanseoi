@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
+import { createAccessToken } from '@repo/auth'
 import app from './index'
 import type { AppBindings } from './types'
 
@@ -254,6 +255,16 @@ function streetRows(query: string): unknown[][] {
 }
 
 const testApiKey = `SS-${'a'.repeat(43)}`
+const tokenKeyPair = (await crypto.subtle.generateKey('Ed25519', true, [
+  'sign',
+  'verify',
+])) as CryptoKeyPair
+const tokenPrivateJwk = JSON.stringify(
+  await crypto.subtle.exportKey('jwk', tokenKeyPair.privateKey),
+)
+const tokenPublicJwk = JSON.stringify(
+  await crypto.subtle.exportKey('jwk', tokenKeyPair.publicKey),
+)
 
 function createAssetBucket() {
   const reads: string[] = []
@@ -299,6 +310,12 @@ function createEnv(
       DB_SOURCE_HK_2026: db,
       D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
       ATLAS_BASE_URL: 'http://localhost:8787',
+      AUTH_MODE: 'disabled',
+      ENVIRONMENT: 'local',
+      API_RATE_LIMIT: { limit: async () => ({ success: true }) } as RateLimit,
+      API_USAGE: { writeDataPoint: () => {} } as AnalyticsEngineDataset,
+      ACCESS_TOKEN_PRIVATE_JWK: '{}',
+      ACCESS_TOKEN_PUBLIC_JWK: '{}',
       HARBOUR_BASE_URL: 'http://localhost:8788',
       SUBSTACK_PUBLICATION: 'demo-publication',
       SUBSTACK_SESSION_COOKIE:
@@ -309,6 +326,39 @@ function createEnv(
     } as AppBindings,
     operations,
   }
+}
+
+function createAuthenticatedEnv(
+  overrides: Partial<AppBindings> = {},
+  dbOptions: MockDbOptions = {},
+) {
+  return createEnv(
+    {
+      AUTH_MODE: 'required',
+      ENVIRONMENT: 'local',
+      ACCESS_TOKEN_PRIVATE_JWK: tokenPrivateJwk,
+      ACCESS_TOKEN_PUBLIC_JWK: tokenPublicJwk,
+      ...overrides,
+    },
+    dbOptions,
+  )
+}
+
+const createTestAccessToken = (
+  audience: 'atlas-api' | 'basemap-tiles' = 'atlas-api',
+  environment = 'local',
+) => {
+  const iat = Math.floor(Date.now() / 1000)
+  return createAccessToken(
+    {
+      aud: audience,
+      env: environment,
+      exp: iat + 15 * 60,
+      iat,
+      sub: 'api-key-1',
+    },
+    tokenPrivateJwk,
+  )
 }
 
 describe('atlas-api', () => {
@@ -427,19 +477,19 @@ describe('atlas-api', () => {
     expect(res.status).toBe(400)
   })
 
-  test('GET /v0/divisions rejects an absent API key', async () => {
-    const { env } = createEnv()
+  test('GET /v0/divisions rejects an absent access token', async () => {
+    const { env } = createAuthenticatedEnv()
     const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
 
     expect(res.status).toBe(401)
     expect((await res.json()) as unknown).toEqual({
-      error: 'invalid_api_key',
-      message: 'A valid API key is required.',
+      error: 'invalid_access_token',
+      message: 'A valid Atlas API access token is required.',
     })
   })
 
   test('GET /v0/divisions permits an absent API key when the local bypass is enabled', async () => {
-    const { env } = createEnv({ BYPASS_API_KEY_AUTH: 'true' })
+    const { env } = createEnv({ AUTH_MODE: 'disabled' })
     const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
     const body = (await res.json()) as {
       httpStatus: number
@@ -455,8 +505,8 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/hk/streets/:id requires an API key', async () => {
-    const { env } = createEnv()
+  test('GET /v0/hk/streets/:id requires an access token', async () => {
+    const { env } = createAuthenticatedEnv()
     const res = await app.fetch(
       new Request('http://localhost/v0/hk/streets/landsd-street-notice-example'),
       env,
@@ -464,13 +514,13 @@ describe('atlas-api', () => {
 
     expect(res.status).toBe(401)
     expect((await res.json()) as unknown).toEqual({
-      error: 'invalid_api_key',
-      message: 'A valid API key is required.',
+      error: 'invalid_access_token',
+      message: 'A valid Atlas API access token is required.',
     })
   })
 
-  test('street history endpoints require an API key', async () => {
-    const { env } = createEnv()
+  test('street history endpoints require an access token', async () => {
+    const { env } = createAuthenticatedEnv()
     for (const path of [
       '/v0/hk/streets/landsd-street-notice-example/versions',
       '/v0/hk/streets/landsd-street-notice-example/versions/1',
@@ -631,11 +681,16 @@ describe('atlas-api', () => {
     expect(versionBody.links).not.toHaveProperty('previous')
   })
 
-  test('GET /v0/divisions rejects a malformed API key', async () => {
-    const { env } = createEnv()
+  test('POST /v0/auth/tokens rejects a malformed API key', async () => {
+    const { env } = createAuthenticatedEnv()
     const res = await app.fetch(
-      new Request('http://localhost/v0/divisions', {
-        headers: { 'x-api-key': 'not-an-api-key' },
+      new Request('http://localhost/v0/auth/tokens', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': 'not-an-api-key',
+        },
+        body: JSON.stringify({ audience: 'atlas-api' }),
       }),
       env,
     )
@@ -647,9 +702,16 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/divisions rejects an unknown API key', async () => {
-    const { env } = createEnv({}, { apiKey: null })
-    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+  test('POST /v0/auth/tokens rejects an unknown API key', async () => {
+    const { env } = createAuthenticatedEnv({}, { apiKey: null })
+    const res = await app.fetch(
+      new Request('http://localhost/v0/auth/tokens', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': testApiKey },
+        body: JSON.stringify({ audience: 'atlas-api' }),
+      }),
+      env,
+    )
 
     expect(res.status).toBe(401)
     expect((await res.json()) as unknown).toEqual({
@@ -658,9 +720,16 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/divisions rejects a revoked API key', async () => {
-    const { env } = createEnv({}, { apiKey: { revokedAt: Date.now() } })
-    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+  test('POST /v0/auth/tokens rejects a revoked API key', async () => {
+    const { env } = createAuthenticatedEnv({}, { apiKey: { revokedAt: Date.now() } })
+    const res = await app.fetch(
+      new Request('http://localhost/v0/auth/tokens', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': testApiKey },
+        body: JSON.stringify({ audience: 'atlas-api' }),
+      }),
+      env,
+    )
 
     expect(res.status).toBe(403)
     expect((await res.json()) as unknown).toEqual({
@@ -669,16 +738,70 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/divisions rate-limits a key after 25% over its minute soft limit', async () => {
-    const { env } = createEnv({}, { usageRequestCount: 151 })
-    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+  test('POST /v0/auth/tokens exchanges a key once, then tracks bearer-token usage', async () => {
+    const events: AnalyticsEngineDataPoint[] = []
+    const { env, operations } = createAuthenticatedEnv({
+      API_USAGE: {
+        writeDataPoint: event => events.push(event ?? {}),
+      } as AnalyticsEngineDataset,
+    })
+    const tokenResponse = await app.fetch(
+      new Request('http://localhost/v0/auth/tokens', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': testApiKey },
+        body: JSON.stringify({ audience: 'atlas-api' }),
+      }),
+      env,
+    )
+    const issued = (await tokenResponse.json()) as { accessToken: string }
+    const res = await app.fetch(
+      new Request('http://localhost/v0/divisions', {
+        headers: { authorization: `Bearer ${issued.accessToken}` },
+      }),
+      env,
+    )
+
+    expect(tokenResponse.status).toBe(201)
+    expect(res.status).toBe(503)
+    expect(operations).toEqual([])
+    expect(events).toEqual([
+      { indexes: ['api-key-1'], blobs: ['/v0/divisions'], doubles: [1] },
+    ])
+  })
+
+  test('GET /v0/divisions rate-limits an access token at the edge', async () => {
+    const { env } = createAuthenticatedEnv({
+      API_RATE_LIMIT: { limit: async () => ({ success: false }) } as RateLimit,
+    })
+    const accessToken = await createTestAccessToken()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/divisions', {
+        headers: { authorization: `Bearer ${accessToken}` },
+      }),
+      env,
+    )
 
     expect(res.status).toBe(429)
-    expect(Number(res.headers.get('Retry-After'))).toBeGreaterThan(0)
     expect((await res.json()) as unknown).toEqual({
       error: 'rate_limit_exceeded',
-      message: 'This API key has exceeded its current usage limit.',
+      message: 'The API rate limit has been exceeded.',
     })
+  })
+
+  test('GET /v0/divisions rejects a token for another audience or environment', async () => {
+    const { env } = createAuthenticatedEnv()
+    for (const token of [
+      await createTestAccessToken('basemap-tiles'),
+      await createTestAccessToken('atlas-api', 'preview'),
+    ]) {
+      const res = await app.fetch(
+        new Request('http://localhost/v0/divisions', {
+          headers: { authorization: `Bearer ${token}` },
+        }),
+        env,
+      )
+      expect(res.status).toBe(401)
+    }
   })
 
   test('GET /v0/api registry endpoints do not require an API key', async () => {
