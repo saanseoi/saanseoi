@@ -15,6 +15,8 @@
   "secrets": {
     "required": [
       "D1_PLACEMENT_PROBE_API_KEY",
+      "ACCESS_TOKEN_PRIVATE_JWK",
+      "ACCESS_TOKEN_PUBLIC_JWK",
       "SUBSTACK_SESSION_COOKIE",
       "TELEGRAM_BOT_TOKEN",
       "TELEGRAM_ADMIN_ID"
@@ -22,7 +24,8 @@
   },
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
-    "BYPASS_API_KEY_AUTH": "true",
+    "AUTH_MODE": "disabled",
+    "ENVIRONMENT": "local",
     "HARBOUR_BASE_URL": "http://localhost:8788",
     "SUBSTACK_PUBLICATION": "saanseoi"
   },
@@ -84,6 +87,16 @@
       "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
     }
   ],
+  "analytics_engine_datasets": [
+    { "binding": "API_USAGE", "dataset": "ss-api-usage-local" }
+  ],
+  "ratelimits": [
+    {
+      "name": "API_RATE_LIMIT",
+      "namespace_id": "42001",
+      "simple": { "limit": 120, "period": 60 }
+    }
+  ],
   "placement": {
     "region": "azure:eastasia"
   },
@@ -109,6 +122,8 @@
       "secrets": {
         "required": [
           "D1_PLACEMENT_PROBE_API_KEY",
+          "ACCESS_TOKEN_PRIVATE_JWK",
+          "ACCESS_TOKEN_PUBLIC_JWK",
           "SUBSTACK_SESSION_COOKIE",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
@@ -121,6 +136,8 @@
       },
       "vars": {
         "ATLAS_BASE_URL": "https://preview.api.saanseoi.hk",
+        "AUTH_MODE": "required",
+        "ENVIRONMENT": "preview",
         "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk",
         "SUBSTACK_PUBLICATION": "saanseoi"
       },
@@ -188,6 +205,16 @@
           "bucket_name": "ss-assets-preview"
         }
       ],
+      "analytics_engine_datasets": [
+        { "binding": "API_USAGE", "dataset": "ss-api-usage-preview" }
+      ],
+      "ratelimits": [
+        {
+          "name": "API_RATE_LIMIT",
+          "namespace_id": "42002",
+          "simple": { "limit": 120, "period": 60 }
+        }
+      ],
       "routes": [
         {
           "pattern": "preview.api.saanseoi.hk",
@@ -203,6 +230,8 @@
       "secrets": {
         "required": [
           "D1_PLACEMENT_PROBE_API_KEY",
+          "ACCESS_TOKEN_PRIVATE_JWK",
+          "ACCESS_TOKEN_PUBLIC_JWK",
           "SUBSTACK_SESSION_COOKIE",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
@@ -215,6 +244,8 @@
       },
       "vars": {
         "ATLAS_BASE_URL": "https://api.saanseoi.hk",
+        "AUTH_MODE": "required",
+        "ENVIRONMENT": "production",
         "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk",
         "SUBSTACK_PUBLICATION": "saanseoi"
       },
@@ -280,6 +311,16 @@
         {
           "binding": "R2_ASSETS",
           "bucket_name": "ss-assets-prod"
+        }
+      ],
+      "analytics_engine_datasets": [
+        { "binding": "API_USAGE", "dataset": "ss-api-usage-production" }
+      ],
+      "ratelimits": [
+        {
+          "name": "API_RATE_LIMIT",
+          "namespace_id": "42003",
+          "simple": { "limit": 120, "period": 60 }
         }
       ],
       "routes": [

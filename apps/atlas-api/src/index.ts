@@ -6,6 +6,7 @@ import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 
 import { createCurrentDb, createHistoryDb, createMetaDb } from '@repo/db'
+import { authenticateAccessToken, issueAccessToken } from './lib/access-token'
 import { authenticateApiKey } from './lib/api-key-auth'
 import { isTransientD1ReadError } from './lib/d1'
 import { defaultOpenAPIHook } from './lib/openapi'
@@ -57,45 +58,78 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
 }
 for (const path of ['/v0/*', '/v0.1/*'] as const) {
   app.use(path, async (c, next) => {
-    if (isPublicMetadataPath(c.req.path) || isApiKeyAuthenticationBypassed(c.env)) {
+    if (
+      isPublicMetadataPath(c.req.path) ||
+      isTokenPath(c.req.path) ||
+      isAuthDisabled(c.env)
+    ) {
       return next()
     }
-
-    const authentication = await authenticateApiKey({
-      d1: c.env.DB_META,
-      rawKey: c.req.header('x-api-key') ?? null,
-      telegram: {
-        botToken: c.env.TELEGRAM_BOT_TOKEN,
-        chatId: c.env.TELEGRAM_ADMIN_ID,
-      },
-      notify: promise => {
-        const backgroundTask = promise.catch(console.error)
-        try {
-          c.executionCtx.waitUntil(backgroundTask)
-        } catch {
-          // Hono's in-process request helper has no execution context. Workers always do.
-          void backgroundTask
-        }
-      },
-    })
-
-    if (!authentication.ok) {
-      if (authentication.retryAfterSeconds) {
-        c.header('Retry-After', String(authentication.retryAfterSeconds))
-      }
+    const claims = await authenticateAccessToken(
+      c.req.header('authorization'),
+      c.env,
+      'atlas-api',
+    )
+    if (!claims) {
       return c.json(
         {
-          error: authentication.error,
-          message: authentication.message,
+          error: 'invalid_access_token',
+          message: 'A valid Atlas API access token is required.',
         },
-        authentication.status,
+        401,
       )
     }
-
-    c.set('apiKey', authentication.apiKey)
+    const rateLimit = await c.env.API_RATE_LIMIT.limit({ key: claims.sub })
+    if (!rateLimit.success) {
+      return c.json(
+        {
+          error: 'rate_limit_exceeded',
+          message: 'The API rate limit has been exceeded.',
+        },
+        429,
+      )
+    }
+    c.env.API_USAGE.writeDataPoint({
+      indexes: [claims.sub],
+      blobs: [c.req.path],
+      doubles: [1],
+    })
+    c.set('apiKey', { id: claims.sub, userId: claims.sub })
     return next()
   })
 }
+
+app.post('/v0/auth/tokens', async c => {
+  if (isAuthDisabled(c.env)) {
+    return c.json(
+      { error: 'auth_disabled', message: 'Token issuance is disabled locally.' },
+      404,
+    )
+  }
+  const body = await c.req.json<{ audience?: unknown }>().catch(() => null)
+  if (body?.audience !== 'atlas-api' && body?.audience !== 'basemap-tiles') {
+    return c.json(
+      { error: 'invalid_audience', message: 'A valid token audience is required.' },
+      422,
+    )
+  }
+  const authentication = await authenticateApiKey({
+    d1: c.env.DB_META,
+    rawKey: c.req.header('x-api-key') ?? null,
+  })
+  if (!authentication.ok) {
+    return c.json(
+      { error: authentication.error, message: authentication.message },
+      authentication.status,
+    )
+  }
+  const accessToken = await issueAccessToken(
+    c.env,
+    body.audience,
+    authentication.apiKey.id,
+  )
+  return c.json({ accessToken, expiresIn: 900, tokenType: 'Bearer' }, 201)
+})
 
 app.use('/v0.1/divisions/sources', streamSourceRecordsMiddleware)
 
@@ -107,8 +141,12 @@ function isPublicMetadataPath(path: string) {
   )
 }
 
-function isApiKeyAuthenticationBypassed(env: AppBindings) {
-  return env.BYPASS_API_KEY_AUTH === 'true'
+function isTokenPath(path: string) {
+  return path === '/v0/auth/tokens'
+}
+
+function isAuthDisabled(env: AppBindings) {
+  return env.AUTH_MODE === 'disabled'
 }
 
 app.onError((error, c) => {

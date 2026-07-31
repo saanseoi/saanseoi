@@ -24,10 +24,11 @@
     "noPropertyAccessFromIndexSignature": false,
 
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": "../../",
     "types": ["bun-types", "vitest/globals"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@repo/auth": ["../../libs/auth/src/index.ts"]
     }
   },
   "include": [
