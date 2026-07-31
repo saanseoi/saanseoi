@@ -35,14 +35,14 @@ type Props = {
 
 let { ariaLabel, features, values, valueLabel = 'records' }: Props = $props()
 
-// Hype publishes a TileJSON manifest, so it must be mounted as a vector source
+// SaanSeoi publishes a TileJSON manifest, so it must be mounted as a vector source
 // inside a Style Specification rather than passed to MapLibre as a style URL.
-const HYPE_BASEMAP_STYLE: StyleSpecification = {
+const SAANSEOI_BASEMAP_STYLE: StyleSpecification = {
   version: 8,
   sources: {
     'hongkong-latest': {
       type: 'vector',
-      url: 'https://tiles.hype.hk/basemap/hongkong-latest.json',
+      url: 'https://tiles.saanseoi.hk/hongkong-latest.json',
     },
   },
   glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
@@ -124,7 +124,7 @@ function updateActiveFeature(event: {
     <MapLibre
       class="size-full"
       bind:map
-      style={HYPE_BASEMAP_STYLE}
+      style={SAANSEOI_BASEMAP_STYLE}
       bounds={hongKongBounds}
       fitBoundsOptions={{ padding: 0 }}
       minZoom={8}
