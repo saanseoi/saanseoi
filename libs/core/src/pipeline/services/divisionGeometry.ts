@@ -423,15 +423,17 @@ function assertValidGeometry(geometry: GeoJsonGeometry, id: string | null) {
           `Division geometry ${id ?? '<unknown>'} contains an invalid ring.`,
         )
       }
+      const topologyRing = withoutConsecutiveDuplicatePositions(ring)
       if (
         ring.some(position => !position.every(Number.isFinite)) ||
-        ringArea(ring) === 0
+        topologyRing.length < 4 ||
+        ringArea(topologyRing) === 0
       ) {
         throw new Error(
           `Division geometry ${id ?? '<unknown>'} contains a degenerate ring.`,
         )
       }
-      if (hasSelfIntersectingRing(ring)) {
+      if (hasSelfIntersectingRing(topologyRing)) {
         throw new Error(
           `Division geometry ${id ?? '<unknown>'} contains a self-intersecting ring.`,
         )
@@ -454,6 +456,16 @@ function ringArea(ring: GeoJsonPosition[]) {
     area -= (ring[index + 1]?.[0] ?? 0) * (ring[index]?.[1] ?? 0)
   }
   return Math.abs(area / 2)
+}
+
+/**
+ * GeoJSON permits repeated consecutive positions. They create zero-length
+ * segments, which must not make their neighbouring segments appear to cross.
+ */
+function withoutConsecutiveDuplicatePositions(ring: GeoJsonPosition[]) {
+  return ring.filter(
+    (position, index) => index === 0 || !samePosition(ring[index - 1], position),
+  )
 }
 
 function hasSelfIntersectingRing(ring: GeoJsonPosition[]) {
