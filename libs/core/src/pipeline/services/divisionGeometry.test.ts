@@ -117,6 +117,35 @@ describe('division geometry normalisation', () => {
     ).not.toThrow()
   })
 
+  test('accepts a valid ring with a consecutive duplicate position', () => {
+    expect(() =>
+      normaliseDivisionAreaGeometryRow(
+        {
+          class: 'land',
+          division_id: 'division-1',
+          geometry: {
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 0],
+                [1, 1],
+                [0, 1],
+                [0, 0],
+              ],
+            ],
+            type: 'Polygon',
+          },
+          id: 'duplicate-position-area',
+          is_land: true,
+          is_territorial: false,
+        },
+        'overture',
+        { validateGeometry: true },
+      ),
+    ).not.toThrow()
+  })
+
   test('derives mixed Overture type and bbox from geometry rather than input metadata', () => {
     const normalised = normaliseDivisionAreaGeometryRow({
       bbox: [99, 99, 100, 100],
