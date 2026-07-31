@@ -1,0 +1,39 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ss-protomap",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-31",
+  "compatibility_flags": ["nodejs_compat"],
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "ss-pmtiles" }],
+  "analytics_engine_datasets": [
+    { "binding": "TILE_USAGE", "dataset": "ss-tile-usage-production" }
+  ],
+  "ratelimits": [
+    {
+      "name": "TILE_RATE_LIMIT",
+      "namespace_id": "42004",
+      "simple": { "limit": 3000, "period": 60 }
+    }
+  ],
+  "secrets": { "required": ["ACCESS_TOKEN_PUBLIC_JWK"] },
+  "routes": [{ "pattern": "tiles.saanseoi.hk", "custom_domain": true }],
+  "vars": {
+    "DIAGNOSTIC_ORIGINS": "https://maplibre.org,https://pmtiles.io,https://protomaps.github.io",
+    "DEV_ORIGINS": "http://localhost:5173,http://localhost:5174",
+    "CORE_ORIGIN_SUFFIXES": "*.hype.hk,*.type.hk,*.saanseoi.hk",
+    "HUB_ORIGINS": "https://hype.hk,https://breadline.hk,https://hkghostsigns.com",
+    "PREVIEW_PREFIXES": "preview.",
+    "EXTERNAL_ORIGINS": "*",
+    "CACHE_CONTROL": "public, max-age=31536000, immutable",
+    "PUBLIC_HOSTNAME": "tiles.saanseoi.hk",
+    "AUTH_MODE": "required",
+    "ENVIRONMENT": "production"
+  },
+  "minify": true,
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  }
+}
