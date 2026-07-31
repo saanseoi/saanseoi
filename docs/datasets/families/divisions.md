@@ -81,6 +81,11 @@ current; source assertions retain publisher evidence, while named source derivat
 retain their explicit transform output. Upstream bbox fields are not trusted as
 persisted geometry extents.
 
+Source-specific aggregate geometry canonicalisation is permitted only when its provider
+profile documents the triggering topology condition and the source assertions remain
+unchanged. The Planning Department 2021 TPU aggregate uses this policy for coincident
+geometry fragments and boundaries that a pairwise overlay cannot node.
+
 Canonical division source releases persist locale completeness and churn stats as well
 as a district distribution. A district row contributes to itself; every other row is
 counted against the `district` entry in its normalised hierarchy. Atlas joins those
