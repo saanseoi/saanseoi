@@ -71,6 +71,12 @@ The aggregate union step also removes zero-area interior rings. These can be emi
 otherwise valid unions, but are not valid canonical area geometry; source-cell geometry
 and non-degenerate rings remain unchanged.
 
+The native 2021 TPU archive repeats 49 provider cell keys across 172 extra geometry
+fragments and also has coincident boundaries between some adjacent cells. JSTS pairwise
+overlay cannot node that topology, so the adapter canonicalises every 2021 aggregate
+geometry collection with `buffer(0)`. The transform is limited to canonical geometry—
+every publisher source cell remains unchanged in source evidence.
+
 Each approved geometry repair is also recorded as a release processing action with the
 canonical division and source-cell reference. Aggregate repair counts remain in release
 stats; the per-record JSON evidence is available through
