@@ -2,7 +2,7 @@
 import type { Snippet } from 'svelte'
 
 let { theme, children }: { theme: string; children: Snippet } = $props()
-const isDevelopment = import.meta.env.DEV
+const environmentLabel = import.meta.env.DEV ? 'DEV' : 'BETA'
 </script>
 
 <header
@@ -16,12 +16,10 @@ const isDevelopment = import.meta.env.DEV
     <span
       class="relative inline-block font-medium text-(--bar-muted) max-[700px]:hidden"
     >
-      {#if isDevelopment}
-        <span
-          class="absolute right-0 bottom-full font-mono text-[8px] leading-none tracking-[0.08em] text-(--bar-accent)"
-          >DEV</span
-        >
-      {/if}
+      <span
+        class="absolute right-0 bottom-full font-mono text-[8px] leading-none tracking-[0.08em] text-(--bar-accent)"
+        >{environmentLabel}</span
+      >
       Basemaps
     </span></a
   >
