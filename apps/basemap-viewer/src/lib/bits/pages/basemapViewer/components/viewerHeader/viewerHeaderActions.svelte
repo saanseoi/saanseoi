@@ -16,6 +16,7 @@ import {
   type ViewerText,
 } from '../../i18n'
 import LayerGroup, { type LayerGroupItem } from './viewerHeaderLayerGroup.svelte'
+import UseThisMap from './viewerHeaderUseThisMap.svelte'
 
 let {
   callbacks,
@@ -138,4 +139,5 @@ const labelItems = $derived<readonly LayerGroupItem[]>(
     theme={$viewerState.theme}
     value={$viewerState.locale}
   />
+  <UseThisMap {text} />
 </div>
