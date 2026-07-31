@@ -1,5 +1,6 @@
 import {
   DEFAULT_VISIBILITY,
+  COMPARISON_MODES,
   FEATURE_KEYS,
   LABEL_KEYS,
   LOCALES,
@@ -77,6 +78,10 @@ export function readUrlState(
     (comparison !== null && /^\d{4}-\d{2}-\d{2}$/.test(comparison))
       ? comparison
       : null
+  const comparisonMode = params.get('compareMode')
+  state.comparisonMode = has(COMPARISON_MODES, comparisonMode)
+    ? comparisonMode
+    : 'split'
   const theme = params.get('theme')
   state.theme = has(THEMES, theme) ? theme : theme === null ? preferredTheme : 'light'
   const locale = params.get('locale')
@@ -112,6 +117,7 @@ export function writeUrlState(state: AppState): string {
   if (state.regionCode) params.set('region', state.regionCode)
   params.set('version', state.version)
   if (state.comparisonVersion) params.set('compare', state.comparisonVersion)
+  if (state.comparisonMode !== 'split') params.set('compareMode', state.comparisonMode)
   params.set('theme', state.theme)
   params.set('locale', state.locale)
   if (!state.labelClip) params.set('labelClip', 'off')

@@ -3,6 +3,7 @@ import { writable, type Readable, type Writable } from 'svelte/store'
 import App from '../../App.svelte'
 import { defaultDiagnostics, type ViewerDiagnostics } from '../../diagnostics'
 import type { Region } from '../catalogue'
+import type { DiffLabelChange, DiffStatus, DiffSummary } from '../diff'
 import { DEFAULT_VISIBILITY, type AppState } from '../types'
 
 export const [getAppState, setAppState] = createContext<Readable<AppState>>()
@@ -12,6 +13,8 @@ export function defaultState(): AppState {
     regionCode: null,
     version: 'latest',
     comparisonVersion: null,
+    comparisonMode: 'split',
+    diffVisibility: { added: true, removed: true },
     theme: 'light',
     locale: 'en',
     labelClip: true,
@@ -25,6 +28,9 @@ export interface Callbacks {
   onRegion: (code: string) => void
   onVersion: (version: string) => void
   onComparisonVersion: (version: string | null) => void
+  onComparisonMode: (mode: AppState['comparisonMode']) => void
+  onDiffVisibility: (status: DiffStatus, enabled: boolean) => void
+  onDiffLabel: (change: DiffLabelChange) => void
   onTheme: (theme: AppState['theme']) => void
   onLocale: (locale: AppState['locale']) => void
   onFeature: (key: keyof AppState['features'], enabled: boolean) => void
@@ -34,25 +40,31 @@ export interface Callbacks {
   onInspect: (enabled: boolean) => void
   onDebug: (key: 'tiles' | 'collisions' | 'overdraw', enabled: boolean) => void
   onCopyReport: () => void
+  onDismissNotice: () => void
 }
 
 export interface ViewerUiState {
   enabled: boolean
   notice: string | null
+  noticeId: number
   regions: Region[]
   versions: string[]
+  diffSummary: DiffSummary | null
   diagnostics: ViewerDiagnostics
 }
 
 const initialUiState: ViewerUiState = {
   enabled: false,
   notice: null,
+  noticeId: 0,
   regions: [],
   versions: [],
+  diffSummary: null,
   diagnostics: defaultDiagnostics(),
 }
 
 export class AppContext {
+  private noticeId = 0
   private readonly state: Writable<AppState> = writable(defaultState())
   private readonly ui: Writable<ViewerUiState> = writable(initialUiState)
 
@@ -71,6 +83,10 @@ export class AppContext {
     this.update({ versions })
   }
 
+  setDiffSummary(diffSummary: DiffSummary | null): void {
+    this.update({ diffSummary })
+  }
+
   setState(state: AppState): void {
     this.state.set(state)
   }
@@ -80,7 +96,7 @@ export class AppContext {
   }
 
   setNotice(notice: string | null): void {
-    this.update({ notice })
+    this.update({ notice, noticeId: this.noticeId++ })
   }
 
   setDiagnostics(diagnostics: ViewerDiagnostics): void {

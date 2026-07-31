@@ -53,7 +53,7 @@ describe('basemap label diff', () => {
   it('reports added and removed labels while ignoring relocated labels', () => {
     const result = buildDiff(
       [
-        labelFeature(1, 'places', 'New place', {
+        labelFeature(1, 'places', 'Old place', {
           type: 'Point',
           coordinates: [1, 1],
         }),
@@ -66,7 +66,7 @@ describe('basemap label diff', () => {
         }),
       ],
       [
-        labelFeature(3, 'places', 'Old place', {
+        labelFeature(3, 'places', 'New place', {
           type: 'Point',
           coordinates: [10, 10],
         }),
@@ -84,8 +84,8 @@ describe('basemap label diff', () => {
       added: 1,
       removed: 1,
       labelChanges: [
-        { status: 'removed', label: 'New place', sourceLayer: 'places' },
-        { status: 'added', label: 'Old place', sourceLayer: 'places' },
+        { status: 'added', label: 'New place', sourceLayer: 'places' },
+        { status: 'removed', label: 'Old place', sourceLayer: 'places' },
       ],
     })
     expect(
@@ -99,13 +99,13 @@ describe('basemap label diff', () => {
   it('treats a renamed label as one addition and one removal', () => {
     const result = buildDiff(
       [
-        labelFeature(9, 'places', 'New name', {
+        labelFeature(9, 'places', 'Old name', {
           type: 'Point',
           coordinates: [1, 1],
         }),
       ],
       [
-        labelFeature(9, 'places', 'Old name', {
+        labelFeature(9, 'places', 'New name', {
           type: 'Point',
           coordinates: [2, 2],
         }),
@@ -116,8 +116,8 @@ describe('basemap label diff', () => {
       added: 1,
       removed: 1,
       labelChanges: [
-        { status: 'removed', label: 'New name', sourceLayer: 'places' },
-        { status: 'added', label: 'Old name', sourceLayer: 'places' },
+        { status: 'added', label: 'New name', sourceLayer: 'places' },
+        { status: 'removed', label: 'Old name', sourceLayer: 'places' },
       ],
     })
     expect(result.data.features.map(feature => feature.properties.diffStatus)).toEqual([

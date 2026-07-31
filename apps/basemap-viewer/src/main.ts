@@ -1,5 +1,8 @@
 import * as maplibregl from 'maplibre-gl'
-import type { Map as MapLibreMap, VectorTileSource } from 'maplibre-gl'
+import type { GeoJSONSource, Map as MapLibreMap, VectorTileSource } from 'maplibre-gl'
+import type { FilterSpecification } from '@maplibre/maplibre-gl-style-spec'
+import type { Geometry } from 'geojson'
+import { BASEMAP_ATTRIBUTION } from '@repo/basemap'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { AppState, CameraState } from './lib/types'
@@ -27,8 +30,16 @@ import {
   parseRegionBoundary,
   type RegionBoundary,
 } from './lib/boundaries'
-import { parseTilejson, type Tilejson } from './lib/tilejson'
+import { canUseFilteredLabels, parseTilejson, type Tilejson } from './lib/tilejson'
 import { readUrlState, writeUrlState } from './lib/url-state'
+import {
+  buildDiff,
+  type DiffLabelChange,
+  type DiffInputFeature,
+  type DiffFeatureCollection,
+  type DiffStatus,
+} from './lib/diff'
+import { isSameRelease, orderComparisonReleases } from './lib/release-order'
 import { parseReleaseMetadata, type ReleaseMetadata } from './lib/release-metadata'
 import {
   defaultDiagnostics,
@@ -47,10 +58,15 @@ maplibregl.setWorkerUrl(maplibreWorkerUrl)
 
 const TILE_ORIGIN = import.meta.env.VITE_TILE_ORIGIN ?? 'https://tiles.saanseoi.hk'
 const GLYPH_URL = import.meta.env.VITE_GLYPH_URL
+const DEFAULT_REGION_CODE = 'hk'
 const BOUNDARY_MASK_SOURCE_ID = 'region-boundary-mask'
 const BOUNDARY_MASK_LAYER_ID = 'region-boundary-mask-fill'
 const BOUNDARY_SOURCE_ID = 'region-boundary'
 const BOUNDARY_LAYER_ID = 'region-boundary-line'
+const DIFF_SOURCE_ID = 'release-diff'
+const DIFF_LAYER_PREFIX = 'release-diff'
+const DIFF_STATUSES = ['added', 'removed'] as const
+const MAX_VIEWER_ZOOM = 22
 
 const preferredTheme: AppState['theme'] = window.matchMedia(
   '(prefers-color-scheme: dark)',
@@ -68,16 +84,24 @@ let groups: LayerGroups | null = null
 let currentTilejsonUrl: string | null = null
 let currentLabelTilejsonUrl: string | null = null
 let currentBoundary: RegionBoundary | null = null
+let primaryVectorLayers: string[] = []
+let comparisonVectorLayers: string[] = []
+let comparisonGroups: LayerGroups | null = null
 let requestId = 0
 let comparisonRequestId = 0
 let controller: AbortController | null = null
 let synchronisingComparison = false
+let diffRefreshTimer: number | null = null
+const tileLoadStartedAt = new Map<string, number>()
 const diagnostics: ViewerDiagnostics = defaultDiagnostics()
 
 const controls = new AppContext(requiredElement('app'), {
   onRegion: code => void changeRegion(code),
   onVersion: version => void changeVersion(version),
   onComparisonVersion: version => void changeComparisonVersion(version),
+  onComparisonMode: mode => changeComparisonMode(mode),
+  onDiffVisibility: (status, enabled) => changeDiffVisibility(status, enabled),
+  onDiffLabel: change => flyToDiffLabel(change),
   onTheme: theme => void changeTheme(theme),
   onLocale: locale => changeLocale(locale),
   onFeature: (key, enabled) => changeFeature(key, enabled),
@@ -87,6 +111,7 @@ const controls = new AppContext(requiredElement('app'), {
   onInspect: enabled => changeInspect(enabled),
   onDebug: (key, enabled) => changeDebug(key, enabled),
   onCopyReport: () => void copyReport(),
+  onDismissNotice: () => controls.setNotice(null),
 })
 
 void start()
@@ -97,7 +122,9 @@ async function start(): Promise<void> {
     const catalogue = parseCatalogue(await fetchJson(`${TILE_ORIGIN}/regions.json`))
     regions = catalogue.regions
     const selected =
-      regions.find(region => region.code === state.regionCode) ?? regions[0]
+      regions.find(region => region.code === state.regionCode) ??
+      regions.find(region => region.code === DEFAULT_REGION_CODE) ??
+      regions[0]
     if (!selected) throw new Error('The regions catalogue has no regions.')
     state.regionCode = selected.code
     controls.setRegions(regions)
@@ -171,16 +198,127 @@ async function changeVersion(version: string): Promise<void> {
 async function changeComparisonVersion(version: string | null): Promise<void> {
   if (version !== null && version !== 'latest' && !versions.includes(version)) return
   if (version === state.comparisonVersion) return
+  const needsResize =
+    state.comparisonMode === 'side-by-side' &&
+    (state.comparisonVersion !== null || version !== null)
   state.comparisonVersion = version
   controls.setState(state)
   syncUrl()
+  clearDiffPresentation(map)
+  clearDiffPresentation(comparisonMap)
+  applyMapState()
+  controls.setDiffSummary(null)
+  if (needsResize) await resizeComparisonView()
   if (!version) {
+    ++comparisonRequestId
     comparisonMap?.remove()
     comparisonMap = null
+    comparisonGroups = null
+    comparisonVectorLayers = []
+    diagnostics.comparison = null
+    publishDiagnostics()
     return
   }
   const region = currentRegion()
   if (region) await loadComparison(region, version)
+}
+
+function changeComparisonMode(mode: AppState['comparisonMode']): void {
+  if (mode === state.comparisonMode) return
+  const needsResize =
+    state.comparisonVersion !== null &&
+    (state.comparisonMode === 'side-by-side' || mode === 'side-by-side')
+  state.comparisonMode = mode
+  controls.setState(state)
+  syncUrl()
+  if (needsResize) void resizeComparisonView()
+  applyMapState()
+  applyMapState(comparisonMap)
+  if (isDiffMode()) scheduleDiffRefresh()
+  else {
+    clearDiffPresentation(map)
+    clearDiffPresentation(comparisonMap)
+    controls.setDiffSummary(null)
+  }
+}
+
+function changeDiffVisibility(status: DiffStatus, enabled: boolean): void {
+  state.diffVisibility[status] = enabled
+  controls.setState(state)
+  applyDiffVisibility(map)
+  applyDiffVisibility(comparisonMap)
+}
+
+function geometryCentre(geometry: Geometry): [number, number] | null {
+  const bounds: [number, number, number, number] = [
+    Infinity,
+    Infinity,
+    -Infinity,
+    -Infinity,
+  ]
+  const visitCoordinates = (value: unknown): void => {
+    if (!Array.isArray(value)) return
+    if (
+      value.length >= 2 &&
+      typeof value[0] === 'number' &&
+      typeof value[1] === 'number'
+    ) {
+      bounds[0] = Math.min(bounds[0], value[0])
+      bounds[1] = Math.min(bounds[1], value[1])
+      bounds[2] = Math.max(bounds[2], value[0])
+      bounds[3] = Math.max(bounds[3], value[1])
+      return
+    }
+    for (const nested of value) visitCoordinates(nested)
+  }
+  const visitGeometry = (value: Geometry): void => {
+    if (value.type === 'GeometryCollection') {
+      for (const nested of value.geometries) visitGeometry(nested)
+    } else {
+      visitCoordinates(value.coordinates)
+    }
+  }
+  visitGeometry(geometry)
+  return Number.isFinite(bounds[0])
+    ? [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2]
+    : null
+}
+
+function flyToDiffLabel(change: DiffLabelChange): void {
+  const order = comparisonReleaseOrder()
+  if (!order) return
+  const source =
+    change.status === 'added'
+      ? order.newest === 'primary'
+        ? map
+        : comparisonMap
+      : order.oldest === 'primary'
+        ? map
+        : comparisonMap
+  const visibleMap = diffPresentationMap()
+  if (!source || !visibleMap) return
+  const feature = queryDiffFeatures(source, [change.sourceLayer]).find(
+    candidate => candidate.label?.trim() === change.label,
+  )
+  const centre = feature ? geometryCentre(feature.geometry) : null
+  if (!centre) return
+  visibleMap.flyTo({
+    center: centre,
+    zoom: Math.max(visibleMap.getZoom(), 14),
+    duration: 700,
+    essential: true,
+  })
+}
+
+async function resizeComparisonView(): Promise<void> {
+  const primaryCamera = map ? mapCamera(map) : null
+  await new Promise<void>(resolve => window.requestAnimationFrame(() => resolve()))
+  map?.resize()
+  comparisonMap?.resize()
+  if (primaryCamera && map) {
+    map.jumpTo(primaryCamera)
+    syncComparison(map, comparisonMap)
+  }
 }
 
 function previousVersion(available: string[], current: string): string | null {
@@ -209,15 +347,18 @@ async function loadTileset(
         ? fetchJson(tilejson.boundary, controller.signal).catch(() => null)
         : Promise.resolve(null),
     ])
-    const labelsAreFiltered =
-      state.labelClip &&
-      labelTilejsonValue !== null &&
-      parseTilejson(labelTilejsonValue).insideRegionLabels
+    const boundary = boundaryValue ? parseRegionBoundary(boundaryValue) : null
+    const labelsAreFiltered = canUseFilteredLabels(
+      state.labelClip,
+      labelTilejsonValue,
+      boundary !== null,
+    )
     const labelSourceUrl = labelsAreFiltered ? labelUrl : url
     if (id !== requestId) return
     currentTilejsonUrl = url
     currentLabelTilejsonUrl = labelSourceUrl
-    currentBoundary = boundaryValue ? parseRegionBoundary(boundaryValue) : null
+    currentBoundary = boundary
+    primaryVectorLayers = tilejson.vectorLayers
     updateReleaseDiagnostic(
       'primary',
       region,
@@ -242,11 +383,12 @@ async function loadTileset(
     updateAttribution(map)
     applyMapState()
     applyBoundaryPresentation(map, currentBoundary)
+    clearDiffPresentation(map)
+    controls.setDiffSummary(null)
     if (comparisonMap && state.comparisonVersion) {
       comparisonMap.remove()
       comparisonMap = null
-      const region = currentRegion()
-      if (region) await loadComparison(region, state.comparisonVersion)
+      comparisonGroups = null
     }
     controls.setEnabled(true)
     controls.setState(state)
@@ -281,10 +423,14 @@ async function loadComparison(region: Region, version: string): Promise<void> {
       tilejson.boundary ? fetchJson(tilejson.boundary).catch(() => null) : null,
     ])
     if (id !== comparisonRequestId || state.comparisonVersion !== version) return
-    const filteredLabels =
-      state.labelClip && filtered !== null && parseTilejson(filtered).insideRegionLabels
-    const comparisonLabelUrl = filteredLabels ? labelUrl : url
     const boundary = boundaryValue ? parseRegionBoundary(boundaryValue) : null
+    const filteredLabels = canUseFilteredLabels(
+      state.labelClip,
+      filtered,
+      boundary !== null,
+    )
+    const comparisonLabelUrl = filteredLabels ? labelUrl : url
+    comparisonVectorLayers = tilejson.vectorLayers
     updateReleaseDiagnostic(
       'comparison',
       region,
@@ -301,6 +447,7 @@ async function loadComparison(region: Region, version: string): Promise<void> {
       applyBoundaryPresentation(comparisonMap, boundary)
       applyMapState(comparisonMap)
     }
+    scheduleDiffRefresh()
   } catch (error) {
     if (id !== comparisonRequestId) return
     showError('Could not load the comparison release.', error)
@@ -318,7 +465,7 @@ async function createMap(tilejsonUrl: string, labelTilejsonUrl: string): Promise
     zoom: camera?.zoom ?? 10,
     bearing: camera?.bearing ?? 0,
     pitch: camera?.pitch ?? 0,
-    maxZoom: 18,
+    maxZoom: MAX_VIEWER_ZOOM,
     attributionControl: false,
     collectResourceTiming: true,
   })
@@ -331,7 +478,10 @@ async function createMap(tilejsonUrl: string, labelTilejsonUrl: string): Promise
     new maplibregl.NavigationControl({ showCompass: true }),
     'bottom-right',
   )
-  createdMap.on('moveend', () => syncUrl())
+  createdMap.on('moveend', () => {
+    syncUrl()
+    scheduleDiffRefresh()
+  })
   createdMap.on('move', () => syncComparison(createdMap, comparisonMap))
   installDiagnostics(createdMap, 'primary')
   await new Promise<void>((resolve, reject) => {
@@ -348,8 +498,13 @@ async function createComparisonMap(
   labelTilejsonUrl: string,
   boundary: RegionBoundary | null,
 ): Promise<void> {
+  // Selecting a comparison release makes its Svelte container visible. Give
+  // that DOM update a frame before MapLibre measures it; constructing against
+  // the previous display:none size leaves the map with a zero-sized viewport
+  // and no visible tiles.
+  await new Promise<void>(resolve => window.requestAnimationFrame(() => resolve()))
   const generated = createStyle(tilejsonUrl, GLYPH_URL, state.theme, labelTilejsonUrl)
-  groups = generated.groups
+  comparisonGroups = generated.groups
   const primary = map
   const createdMap = new maplibregl.Map({
     container: 'comparison-map',
@@ -358,7 +513,7 @@ async function createComparisonMap(
     zoom: primary?.getZoom() ?? 10,
     bearing: primary?.getBearing() ?? 0,
     pitch: primary?.getPitch() ?? 0,
-    maxZoom: 18,
+    maxZoom: MAX_VIEWER_ZOOM,
     attributionControl: false,
     collectResourceTiming: true,
   })
@@ -377,6 +532,8 @@ async function createComparisonMap(
     createdMap.once('load', resolve)
     createdMap.once('error', event => reject(event.error))
   })
+  createdMap.resize()
+  await resizeComparisonView()
   await waitForSource(createdMap, BASEMAP_SOURCE_ID)
   await waitForSource(createdMap, BASEMAP_LABEL_SOURCE_ID)
   updateAttribution(createdMap, true)
@@ -399,6 +556,7 @@ async function updateSources(
     ;(source as VectorTileSource).setUrl(sourceUrl)
   }
   await Promise.all(sourceUrls.map(([sourceId]) => waitForSource(target, sourceId)))
+  updateAttribution(target)
 }
 
 function syncComparison(source: MapLibreMap, target: MapLibreMap | null): void {
@@ -414,25 +572,29 @@ function syncComparison(source: MapLibreMap, target: MapLibreMap | null): void {
 }
 
 function updateAttribution(target: MapLibreMap, collapse = false): void {
+  for (const sourceId of [BASEMAP_SOURCE_ID, BASEMAP_LABEL_SOURCE_ID]) {
+    const source = target.getSource(sourceId)
+    if (source) source.attribution = BASEMAP_ATTRIBUTION
+  }
+
   const attribution = target
     .getContainer()
     .querySelector<HTMLElement>('.maplibregl-ctrl-attrib')
-  const openStreetMapLink = attribution?.querySelector<HTMLAnchorElement>(
-    'a[href*="openstreetmap.org/copyright"]',
+  const attributionContent = attribution?.querySelector<HTMLElement>(
+    '.maplibregl-ctrl-attrib-inner',
   )
-  if (openStreetMapLink) {
+  if (attributionContent) {
+    const openStreetMapLink = document.createElement('a')
     openStreetMapLink.href = 'https://openstreetmap.org/copyright'
     openStreetMapLink.textContent = 'OpenStreetMaps (ODbL)'
-  } else {
-    const attributionContent = attribution?.querySelector<HTMLElement>(
-      '.maplibregl-ctrl-attrib-inner',
+    const protomapsLink = document.createElement('a')
+    protomapsLink.href = 'https://protomaps.com/legal'
+    protomapsLink.textContent = 'Protomaps'
+    attributionContent.replaceChildren(
+      openStreetMapLink,
+      document.createTextNode('; '),
+      protomapsLink,
     )
-    if (attributionContent?.textContent?.includes('OpenStreetMap')) {
-      const odblLink = document.createElement('a')
-      odblLink.href = 'https://openstreetmap.org/copyright'
-      odblLink.textContent = 'OpenStreetMaps (ODbL)'
-      attributionContent.replaceChildren(odblLink)
-    }
   }
   if (collapse) {
     attribution?.classList.remove('maplibregl-compact-show')
@@ -468,17 +630,198 @@ function waitForSource(target: MapLibreMap, sourceId: string): Promise<void> {
 }
 
 function applyMapState(target: MapLibreMap | null = map): void {
-  if (!target || !groups) return
-  applyVisibility(
-    (id, visibility) => target.setLayoutProperty(id, 'visibility', visibility),
-    groups,
-    state,
-  )
+  const targetGroups = target === comparisonMap ? comparisonGroups : groups
+  if (!target || !targetGroups) return
+  if (isDiffMode() && target !== diffPresentationMap()) {
+    for (const layerIds of Object.values(targetGroups))
+      for (const layerId of layerIds)
+        target.setLayoutProperty(layerId, 'visibility', 'none')
+  } else {
+    applyVisibility(
+      (id, visibility) => target.setLayoutProperty(id, 'visibility', visibility),
+      targetGroups,
+      state,
+    )
+  }
   applyLocale(
     (id, expression) => target.setLayoutProperty(id, 'text-field', expression),
-    groups,
+    targetGroups,
     state.locale,
   )
+}
+
+function isDiffMode(): boolean {
+  return state.comparisonVersion !== null && state.comparisonMode === 'diff'
+}
+
+function comparisonReleaseOrder() {
+  if (!state.comparisonVersion) return null
+  return orderComparisonReleases(state.version, state.comparisonVersion, versions)
+}
+
+function diffPresentationMap(): MapLibreMap | null {
+  const order = comparisonReleaseOrder()
+  if (!order) return null
+  return order.newest === 'primary' ? map : comparisonMap
+}
+
+function diffLayerVisible(sourceLayer: string): boolean {
+  if (sourceLayer === 'roads') return state.labels.roads
+  if (sourceLayer === 'pois') return state.labels.pois
+  if (sourceLayer === 'places') return state.labels.places
+  if (sourceLayer === 'water') return state.labels.water
+  return true
+}
+
+function featureLabel(properties: Record<string, unknown> | null): string | undefined {
+  if (!properties) return undefined
+  const localized = properties[`name:${state.locale}`]
+  if (typeof localized === 'string' && localized.trim()) return localized
+  const name = properties.name
+  return typeof name === 'string' && name.trim() ? name : undefined
+}
+
+function queryDiffFeatures(
+  target: MapLibreMap,
+  sourceLayers: readonly string[],
+): DiffInputFeature[] {
+  return sourceLayers.flatMap(sourceLayer =>
+    diffLayerVisible(sourceLayer)
+      ? target.querySourceFeatures(BASEMAP_SOURCE_ID, { sourceLayer }).map(feature => ({
+          id: feature.id,
+          sourceLayer,
+          geometry: feature.geometry,
+          properties: feature.properties,
+          label: featureLabel(feature.properties),
+        }))
+      : [],
+  )
+}
+
+function scheduleDiffRefresh(): void {
+  if (!isDiffMode()) return
+  if (diffRefreshTimer !== null) window.clearTimeout(diffRefreshTimer)
+  diffRefreshTimer = window.setTimeout(() => {
+    diffRefreshTimer = null
+    refreshDiffPresentation()
+  }, 180)
+}
+
+function refreshDiffPresentation(): void {
+  if (!isDiffMode() || !map || !comparisonMap) return
+  const comparisonVersion = state.comparisonVersion
+  if (!comparisonVersion) return
+  if (isSameRelease(state.version, comparisonVersion, versions)) {
+    clearDiffPresentation(map)
+    clearDiffPresentation(comparisonMap)
+    controls.setDiffSummary({ added: 0, removed: 0, labelChanges: [] })
+    return
+  }
+  const order = comparisonReleaseOrder()
+  if (!order) return
+  const sourceLayers = [...new Set([...primaryVectorLayers, ...comparisonVectorLayers])]
+  const oldestMap = order.oldest === 'primary' ? map : comparisonMap
+  const newestMap = order.newest === 'primary' ? map : comparisonMap
+  const result = buildDiff(
+    queryDiffFeatures(oldestMap, sourceLayers),
+    queryDiffFeatures(newestMap, sourceLayers),
+  )
+  clearDiffPresentation(oldestMap)
+  setDiffPresentation(newestMap, result.data)
+  controls.setDiffSummary(result.summary)
+}
+
+function clearDiffPresentation(target: MapLibreMap | null): void {
+  if (!target) return
+  for (const status of DIFF_STATUSES) {
+    for (const geometry of ['label-point', 'label-line']) {
+      const layerId = `${DIFF_LAYER_PREFIX}-${status}-${geometry}`
+      if (target.getLayer(layerId)) target.removeLayer(layerId)
+    }
+  }
+  if (target.getSource(DIFF_SOURCE_ID)) target.removeSource(DIFF_SOURCE_ID)
+}
+
+function setDiffPresentation(target: MapLibreMap, data: DiffFeatureCollection): void {
+  const existingSource = target.getSource(DIFF_SOURCE_ID)
+  if (existingSource) {
+    if (existingSource.type === 'geojson') {
+      ;(existingSource as GeoJSONSource).setData(data)
+      applyDiffVisibility(target)
+    }
+    return
+  }
+
+  target.addSource(DIFF_SOURCE_ID, { type: 'geojson', data })
+  const labelColours = { added: '#16a34a', removed: '#dc2626' }
+  const labelHalo = '#ffffff'
+  for (const status of DIFF_STATUSES) {
+    const filter: FilterSpecification = ['==', ['get', 'diffStatus'], status]
+    target.addLayer({
+      id: `${DIFF_LAYER_PREFIX}-${status}-label-point`,
+      type: 'symbol',
+      source: DIFF_SOURCE_ID,
+      filter: [
+        'all',
+        filter,
+        ['has', 'diffLabel'],
+        ['!=', ['get', 'diffGeometry'], 'line'],
+      ],
+      layout: {
+        visibility: state.diffVisibility[status] ? 'visible' : 'none',
+        'text-field': ['get', 'diffLabel'],
+        'text-font': ['KlokanTech Noto Sans CJK Regular'],
+        'text-size': 12,
+        'text-padding': 2,
+        // Added labels also exist in the newest basemap layer. Render the
+        // diff label above that layer and do not let it lose the placement
+        // collision to the ordinary, white label.
+        'text-allow-overlap': true,
+      },
+      paint: {
+        'text-color': labelColours[status],
+        'text-halo-color': labelHalo,
+        'text-halo-width': 1.75,
+      },
+    })
+    target.addLayer({
+      id: `${DIFF_LAYER_PREFIX}-${status}-label-line`,
+      type: 'symbol',
+      source: DIFF_SOURCE_ID,
+      filter: [
+        'all',
+        filter,
+        ['has', 'diffLabel'],
+        ['==', ['get', 'diffGeometry'], 'line'],
+      ],
+      layout: {
+        visibility: state.diffVisibility[status] ? 'visible' : 'none',
+        'symbol-placement': 'line',
+        'text-field': ['get', 'diffLabel'],
+        'text-font': ['KlokanTech Noto Sans CJK Regular'],
+        'text-size': 12,
+        'text-padding': 2,
+        'text-allow-overlap': true,
+      },
+      paint: {
+        'text-color': labelColours[status],
+        'text-halo-color': labelHalo,
+        'text-halo-width': 1.75,
+      },
+    })
+  }
+}
+
+function applyDiffVisibility(target: MapLibreMap | null): void {
+  if (!target) return
+  for (const status of DIFF_STATUSES) {
+    const visibility = state.diffVisibility[status] ? 'visible' : 'none'
+    for (const geometry of ['label-point', 'label-line']) {
+      const layerId = `${DIFF_LAYER_PREFIX}-${status}-${geometry}`
+      if (target.getLayer(layerId))
+        target.setLayoutProperty(layerId, 'visibility', visibility)
+    }
+  }
 }
 
 function applyBoundaryPresentation(
@@ -541,6 +884,7 @@ function changeLocale(locale: AppState['locale']): void {
   state.locale = locale
   applyMapState()
   applyMapState(comparisonMap)
+  scheduleDiffRefresh()
   controls.setState(state)
   syncUrl()
 }
@@ -573,6 +917,13 @@ async function changeTheme(theme: AppState['theme']): Promise<void> {
     updateAttribution(map)
     applyMapState()
     applyBoundaryPresentation(map, currentBoundary)
+    if (comparisonMap && state.comparisonVersion) {
+      comparisonMap.remove()
+      comparisonMap = null
+      comparisonGroups = null
+      const region = currentRegion()
+      if (region) await loadComparison(region, state.comparisonVersion)
+    }
     controls.setEnabled(true)
     controls.setState(state)
   } catch (error) {
@@ -586,6 +937,7 @@ function changeFeature(key: keyof AppState['features'], enabled: boolean): void 
   state.features[key] = enabled
   applyMapState()
   applyMapState(comparisonMap)
+  scheduleDiffRefresh()
   controls.setState(state)
   syncUrl()
 }
@@ -599,6 +951,7 @@ function changeLabel(key: keyof AppState['labels'], enabled: boolean): void {
   state.labels[key] = enabled
   applyMapState()
   applyMapState(comparisonMap)
+  scheduleDiffRefresh()
   controls.setState(state)
   syncUrl()
 }
@@ -675,7 +1028,7 @@ function updateReleaseDiagnostic(
       : null,
     bounds: tilejson.bounds,
     minZoom: tilejson.minZoom,
-    maxZoom: tilejson.maxZoom,
+    maxZoom: Math.max(tilejson.maxZoom ?? MAX_VIEWER_ZOOM, MAX_VIEWER_ZOOM),
     vectorLayers: tilejson.vectorLayers,
     labelClipping: state.labelClip
       ? filteredLabels
@@ -719,18 +1072,38 @@ function installDiagnostics(
   target.showTileBoundaries = diagnostics.debug.tiles
   target.showCollisionBoxes = diagnostics.debug.collisions
   target.showOverdrawInspector = diagnostics.debug.overdraw
+  target.getCanvas().classList.toggle('is-inspecting', diagnostics.inspect)
+  target.on('dragstart', () => {
+    target.getCanvas().classList.add('is-dragging')
+  })
+  target.on('dragend', () => {
+    target.getCanvas().classList.remove('is-dragging')
+  })
   target.on('error', event => recordError(`${release}: ${errorMessage(event.error)}`))
+  const isBasemapTile = (sourceId: string | undefined): boolean =>
+    sourceId === BASEMAP_SOURCE_ID || sourceId === BASEMAP_LABEL_SOURCE_ID
+  const tileKey = (
+    sourceId: string | undefined,
+    key: string | undefined,
+  ): string | null => (sourceId && key ? `${release}:${sourceId}:${key}` : null)
   target.on('sourcedataloading', event => {
-    if (event.sourceId === BASEMAP_SOURCE_ID) {
-      diagnostics.tileRequests += 1
-      publishDiagnostics()
-    }
+    if (!isBasemapTile(event.sourceId)) return
+    diagnostics.tileRequests += 1
+    const key = tileKey(event.sourceId, event.coord?.key)
+    if (key) tileLoadStartedAt.set(key, performance.now())
+    publishDiagnostics()
   })
   target.on('sourcedata', event => {
-    if (event.sourceId !== BASEMAP_SOURCE_ID || !event.resourceTiming?.length) return
-    const latest = event.resourceTiming.at(-1)
-    if (!latest) return
-    diagnostics.lastTileDurationMs = Math.round(latest.duration)
+    if (!isBasemapTile(event.sourceId)) return
+    const key = tileKey(event.sourceId, event.coord?.key)
+    const startedAt = key ? tileLoadStartedAt.get(key) : undefined
+    if (key) tileLoadStartedAt.delete(key)
+    const latest = event.resourceTiming?.at(-1)
+    const duration =
+      latest?.duration ??
+      (startedAt !== undefined ? performance.now() - startedAt : null)
+    if (duration === null) return
+    diagnostics.lastTileDurationMs = Math.round(duration)
     publishDiagnostics()
   })
   target.on('click', event => {
@@ -759,6 +1132,7 @@ function changeDiagnostics(open: boolean): void {
 
 function changeInspect(enabled: boolean): void {
   diagnostics.inspect = enabled
+  if (!enabled) diagnostics.feature = null
   for (const target of [map, comparisonMap]) {
     target?.getCanvas().classList.toggle('is-inspecting', enabled)
   }

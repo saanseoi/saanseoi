@@ -6,6 +6,7 @@ import type {
   SymbolLayerSpecification,
 } from '@maplibre/maplibre-gl-style-spec'
 import type { FeatureKey, LabelKey, Locale, Theme, VisibilityState } from './types'
+import { BASEMAP_ATTRIBUTION } from '@repo/basemap'
 
 export const BASEMAP_SOURCE_ID = 'basemap'
 export const BASEMAP_LABEL_SOURCE_ID = 'basemap-labels'
@@ -167,6 +168,7 @@ function groupedLayers(styleLayers: LayerSpecification[]): LayerGroups {
   const groups: LayerGroups = {
     roads: [],
     buildings: [],
+    landuse: [],
     pois: [],
     boundaries: [],
     places: [],
@@ -181,6 +183,7 @@ function groupedLayers(styleLayers: LayerSpecification[]): LayerGroups {
     }
     if (sourceLayer === 'buildings' && !isTextSymbol(layer))
       groups.buildings.push(layer.id)
+    if (sourceLayer === 'landuse' && !isTextSymbol(layer)) groups.landuse.push(layer.id)
     if (sourceLayer === 'boundaries') groups.boundaries.push(layer.id)
     if ((sourceLayer === 'places' || sourceLayer === 'earth') && isTextSymbol(layer))
       groups.places.push(layer.id)
@@ -243,8 +246,16 @@ export function createStyle(
       glyphs,
       sprite: `${SPRITE_BASE_URL}/${theme === 'midnight' ? 'dark' : theme}`,
       sources: {
-        [BASEMAP_SOURCE_ID]: { type: 'vector', url: tilejsonUrl },
-        [BASEMAP_LABEL_SOURCE_ID]: { type: 'vector', url: labelTilejsonUrl },
+        [BASEMAP_SOURCE_ID]: {
+          type: 'vector',
+          url: tilejsonUrl,
+          attribution: BASEMAP_ATTRIBUTION,
+        },
+        [BASEMAP_LABEL_SOURCE_ID]: {
+          type: 'vector',
+          url: labelTilejsonUrl,
+          attribution: BASEMAP_ATTRIBUTION,
+        },
       },
       layers: styleLayers,
     },
@@ -262,6 +273,8 @@ export function applyVisibility(
     setVisibility(layerId, visible(state.features.roads))
   for (const layerId of groups.buildings)
     setVisibility(layerId, visible(state.features.buildings))
+  for (const layerId of groups.landuse)
+    setVisibility(layerId, visible(state.features.landuse))
   for (const layerId of groups.boundaries)
     setVisibility(layerId, visible(state.features.boundaries))
   for (const layerId of groups.pois)
