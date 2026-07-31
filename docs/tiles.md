@@ -87,6 +87,11 @@ basemap/versions.json
 basemap/regions.json
 ```
 
+The tiles Worker serves a dated release manifest at
+`/releases/{regionCode}/{YYYY-MM-DD}.json`. It is the public provenance record for the
+viewer’s diagnostic report: archive and boundary hashes, clipping inputs, coastline
+inputs, build commits, and command context. It never exposes a PMTiles archive itself.
+
 `tiles:refresh` always uses the current Hong Kong time (HKT) date. A version may not be
 overwritten by a normal refresh. Use `--dry-run` to inspect object names without
 downloading, building, or uploading.

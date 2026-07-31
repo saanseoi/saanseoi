@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>SaanSeoi basemaps</title>
+  <rect width="64" height="64" rx="12" fill="#02030a" />
+  <path d="M8 48 25 19l10 17 7-11 14 23H8Z" fill="#00e5ff" />
+  <path d="m25 19 10 17 7-11 7 12-7 11H8l17-29Z" fill="#ff00d9" opacity=".82" />
+</svg>

@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "dev": "turbo run dev --filter=harbour-api --filter=atlas-api --filter=atlas-app",
+    "dev": "turbo run dev --filter=harbour-api --filter=atlas-api --filter=atlas-app --filter=basemap-viewer",
     "update": "bun update --interactive --recursive",
     "outdated": "bun outdated --recursive",
     "upload": "./bin/saanseoi upload",
