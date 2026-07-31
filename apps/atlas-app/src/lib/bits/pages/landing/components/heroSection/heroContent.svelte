@@ -75,7 +75,7 @@ onMount(() => {
     >
       <div class="space-y-5">
         <span
-          class="hero-eyebrow inline-flex items-center gap-2 rounded-(--radius-sm) border border-secondary/25 bg-secondary/8 px-3 py-1 font-body text-[0.76rem] font-semibold uppercase tracking-[0.08em] text-secondary max-[785px]:bg-surface"
+          class="hero-eyebrow inline-flex items-center gap-2 rounded-sm border border-secondary/25 bg-secondary/8 px-3 py-1 font-body text-[0.76rem] font-semibold uppercase tracking-[0.08em] text-secondary max-[785px]:bg-surface"
         >
           <Icon icon="proicons:globe" class="size-3.5" />
           {m.hero_badge()}

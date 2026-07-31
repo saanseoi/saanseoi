@@ -38,7 +38,7 @@ let {
 
 const positions = [
   'min-[901px]:left-[calc(50%-29.75rem)] min-[901px]:translate-y-[.3rem] min-[901px]:rotate-[-3.5deg] min-[901px]:hover:translate-y-0 min-[901px]:hover:-rotate-1',
-  'min-[901px]:left-[calc(50%-15.6rem)] min-[901px]:translate-y-[1.5rem] min-[901px]:rotate-[1.8deg] min-[901px]:hover:translate-y-[1.2rem] min-[901px]:hover:rotate-[.8deg]',
+  'min-[901px]:left-[calc(50%-15.6rem)] min-[901px]:translate-y-6 min-[901px]:rotate-[1.8deg] min-[901px]:hover:translate-y-[1.2rem] min-[901px]:hover:rotate-[.8deg]',
   'min-[901px]:left-[calc(50%-1.4rem)] min-[901px]:translate-y-[-.5rem] min-[901px]:rotate-[-1.4deg] min-[901px]:hover:translate-y-[-.8rem] min-[901px]:hover:rotate-[-.5deg]',
   'min-[901px]:left-[calc(50%+12.75rem)] min-[901px]:translate-y-4 min-[901px]:rotate-[3.2deg] min-[901px]:hover:translate-y-[.7rem] min-[901px]:hover:rotate-[1.1deg]',
 ] as const
