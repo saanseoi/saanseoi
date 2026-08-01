@@ -12,6 +12,7 @@ import { runInitialisationCommand } from './lib/commands/init.ts'
 import {
   runTilesBackfillCommand,
   runTilesRetractCommand,
+  runTilesRenderCommand,
   runTilesRefreshCommand,
 } from './lib/commands/tiles.ts'
 import {
@@ -113,6 +114,9 @@ async function main() {
       return
     case 'tiles:retract':
       await runTilesRetractCommand(args, printUsage)
+      return
+    case 'tiles:render':
+      await runTilesRenderCommand(args, printUsage)
       return
     case 'schedule':
       await runScheduleCommand(args, printUsage)
