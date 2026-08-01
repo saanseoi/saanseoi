@@ -107,7 +107,7 @@
   },
   "env": {
     "preview": {
-      "name": "ss-harbour-preview",
+      "name": "ss-harbour-api-preview",
       "placement": {
         "region": "azure:eastasia"
       },
@@ -210,7 +210,7 @@
       ]
     },
     "production": {
-      "name": "ss-harbour-production",
+      "name": "ss-harbour-api-prod",
       "placement": {
         "region": "azure:eastasia"
       },
