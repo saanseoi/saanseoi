@@ -477,6 +477,8 @@
   "data_title": "API 與資料",
   "data_description": "我們的地理空間架構把香港的城市記錄整合成統一、具版本控制的數碼共享資源。",
   "data_apis": "API",
+  "data_basemaps": "底圖",
+  "data_get_started": "開始使用",
   "data_api_docs": "API 文件",
   "data_planned_api": "規劃中的 API",
   "data_public_api": "公開 API",
