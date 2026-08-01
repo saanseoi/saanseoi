@@ -121,13 +121,6 @@ saanseoi tiles:backfill \
 Backfill manifests mark the source as an imported local archive, since the original
 build commits and command are not available.
 
-If a `-latest` object was promoted accidentally, remove the pointer and its catalogue
-entry with:
-
-```sh
-saanseoi tiles:unpublish-latest --region hk
-```
-
 To retract an incorrectly published dated release, remove its archive, boundary,
 manifest, version-catalogue entry, and cached public URLs together:
 
