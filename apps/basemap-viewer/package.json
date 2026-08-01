@@ -22,7 +22,7 @@
     "@protomaps/basemaps": "^5.7.2",
     "@repo/basemap": "workspace:*",
     "bits-ui": "^2.18.1",
-    "maplibre-gl": "^6.0.0",
+    "maplibre-gl": "^6.1.0",
     "svelte": "^5.56.8"
   },
   "devDependencies": {
@@ -31,8 +31,8 @@
     "@types/node": "^26.1.2",
     "svelte-check": "^4.7.4",
     "typescript": "^6.0.3",
-    "vite": "^8.1.5",
+    "vite": "^8.2.0",
     "vitest": "^4.1.10",
-    "wrangler": "^4.115.0"
+    "wrangler": "^4.118.0"
   }
 }
