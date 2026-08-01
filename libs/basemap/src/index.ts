@@ -88,6 +88,19 @@ export function release_manifest_request(
   return regionCode && version ? { regionCode, version } : undefined
 }
 
+export function render_request(
+  path: string,
+): { regionCode: string; name: string; latest: boolean } | undefined {
+  const match = path.match(
+    /^\/render\/([a-z0-9-]+)\/([a-z0-9-]+-(?:latest|\d{4}-\d{2}-\d{2})-(?:light|dark))\.webp$/,
+  )
+  if (!match) return undefined
+  const [, regionCode, name] = match
+  return regionCode && name
+    ? { regionCode, name, latest: name.includes('-latest-') }
+    : undefined
+}
+
 function regionForTileset(name: string, regions: Region[]): Region | undefined {
   return regions.find(candidate => name.startsWith(`${candidate.name}-`))
 }

@@ -7,6 +7,7 @@ import {
   metadata_path,
   parseCatalogue,
   pmtiles_path,
+  render_request,
   release_manifest_request,
   tilejsonUrl,
 } from './index'
@@ -28,6 +29,16 @@ describe('basemap contract', () => {
       version: '2026-07-31',
     })
     expect(release_manifest_request('/releases/hk/latest.json')).toBeUndefined()
+    expect(render_request('/render/hk/hongkong-2026-07-31-light.webp')).toEqual({
+      regionCode: 'hk',
+      name: 'hongkong-2026-07-31-light',
+      latest: false,
+    })
+    expect(render_request('/render/hk/hongkong-latest-dark.webp')).toEqual({
+      regionCode: 'hk',
+      name: 'hongkong-latest-dark',
+      latest: true,
+    })
     const region = catalogue.regions[0]
     if (!region) throw new Error('Expected a published region.')
     expect(tilejsonUrl('https://tiles.example/', region, 'latest')).toBe(
