@@ -1,8 +1,12 @@
 import { describe, expect, test } from 'bun:test'
-import { readFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 
-import { readHkgovPlandTpuNativeShpZip } from './hkgovPland.ts'
+import {
+  prepareHkgovPlandTpuNativeShpZip,
+  readHkgovPlandTpuNativeShpZip,
+} from './hkgovPland.ts'
 import { readHkgovPlandNewTownNativeShpZip } from './hkgovPlandNewTown.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../..')
@@ -48,6 +52,28 @@ describe('Planning Department native TPU SHP intake', () => {
       )
     }
   })
+
+  test('canonicalises native 2021 non-noded aggregate boundaries', async () => {
+    const outputDir = await mkdtemp(join(tmpdir(), 'saanseoi-pland-2021-'))
+    try {
+      await expect(
+        prepareHkgovPlandTpuNativeShpZip({
+          inputFile: resolve(
+            REPO_ROOT,
+            'data/hkgov/csdi/archive/pland_rcd_1634022783366_65050/2023-Q4/source.zip',
+          ),
+          outputFile: join(outputDir, 'division.parquet'),
+          sourceVersion: '2021',
+          type: 'division',
+        }),
+      ).resolves.toMatchObject({
+        divisionCount: 5269,
+        sourceFeatureCount: 5088,
+      })
+    } finally {
+      await rm(outputDir, { force: true, recursive: true })
+    }
+  }, 30_000)
 })
 
 const NEW_TOWN_ARCHIVES = {

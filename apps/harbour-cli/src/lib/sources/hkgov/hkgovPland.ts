@@ -363,7 +363,10 @@ function buildPlanningDivision(
     throw new Error(`Cannot build an empty ${level} planning division.`)
   }
   const id = divisionId(level, key, first)
-  const geometry = unionGeometries(cells.map(cell => cell.geometry))
+  const geometry = unionGeometries(
+    cells.map(cell => cell.geometry),
+    sourceVersion === '2021',
+  )
   const hierarchy = resolveHierarchy(level, first)
   const repairedSourceFeatureIds = cells
     .filter(cell => cell.repaired)
@@ -624,15 +627,18 @@ function repairGeometryIfRequired(geometry: GeoJsonGeometry, index: number) {
   return { geometry: result, repaired: true }
 }
 
-function unionGeometries(geometries: GeoJsonGeometry[]) {
-  const reader = new GeoJSONReader(new GeometryFactory())
+function unionGeometries(geometries: GeoJsonGeometry[], canonicaliseAggregate = false) {
+  const factory = new GeometryFactory()
+  const reader = new GeoJSONReader(factory)
   const writer = new GeoJSONWriter()
   const parsed = geometries
     .map(geometry => reader.read(JSON.stringify(geometry)))
     .sort((left, right) =>
       left.getEnvelopeInternal().compareTo(right.getEnvelopeInternal()),
     )
-  const unioned = unionBalanced(parsed)
+  const unioned = canonicaliseAggregate
+    ? BufferOp.bufferOp(factory.createGeometryCollection(parsed), 0)
+    : unionBalanced(parsed)
   const result = removeDegenerateInteriorRings(writer.write(unioned) as GeoJsonGeometry)
   if (
     (result.type !== 'Polygon' && result.type !== 'MultiPolygon') ||
