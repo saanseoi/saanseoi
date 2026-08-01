@@ -150,16 +150,17 @@ export async function runHkgovPlandBackfillCommand(
             prepareHkgovPlandTpuNativeShpZip)
           : (dependencies.prepareHkgovPlandNewTownNativeShpZip ??
             prepareHkgovPlandNewTownNativeShpZip)
-      await Promise.all(
-        types.map(type =>
-          prepare({
-            inputFile,
-            outputFile: type === 'division' ? divisionFile : divisionAreaFile,
-            sourceVersion: release.year,
-            type,
-          }),
-        ),
-      )
+      // The 2021 native TPU aggregate performs topology canonicalisation over
+      // thousands of source cells. Prepare the two artefacts serially so their
+      // geometry workspaces do not compete for the local process memory.
+      for (const type of types) {
+        await prepare({
+          inputFile,
+          outputFile: type === 'division' ? divisionFile : divisionAreaFile,
+          sourceVersion: release.year,
+          type,
+        })
+      }
 
       for (const type of types) {
         await uploadPreparedArtefact({
@@ -219,16 +220,14 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
       kind === 'pu'
         ? prepareHkgovPlandTpuNativeShpZip
         : prepareHkgovPlandNewTownNativeShpZip
-    await Promise.all(
-      (['division', 'divisionArea'] as const).map(type =>
-        prepare({
-          inputFile: resolve(inputFile),
-          outputFile: type === 'division' ? divisionFile : divisionAreaFile,
-          sourceVersion,
-          type,
-        }),
-      ),
-    )
+    for (const type of ['division', 'divisionArea'] as const) {
+      await prepare({
+        inputFile: resolve(inputFile),
+        outputFile: type === 'division' ? divisionFile : divisionAreaFile,
+        sourceVersion,
+        type,
+      })
+    }
     const invocationCwd = process.env.INIT_CWD ?? process.cwd()
     for (const type of ['division', 'divisionArea'] as const) {
       await uploadPreparedArtefact({
@@ -238,7 +237,6 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
         source,
         target,
         type,
-        runUploadCommand: dependencies.runUploadCommand,
       })
     }
   } finally {
