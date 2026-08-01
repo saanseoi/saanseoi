@@ -178,9 +178,7 @@ function groupedLayers(styleLayers: LayerSpecification[]): LayerGroups {
     const sourceLayer = 'source-layer' in layer ? layer['source-layer'] : undefined
     if (layer.id === 'pois-point') groups.pois.push(layer.id)
     if (layer.id === 'pois-label') groups.pois.push(layer.id)
-    if (sourceLayer === 'roads') {
-      ;(isTextSymbol(layer) ? groups.roads : groups.roads).push(layer.id)
-    }
+    if (sourceLayer === 'roads') groups.roads.push(layer.id)
     if (sourceLayer === 'buildings' && !isTextSymbol(layer))
       groups.buildings.push(layer.id)
     if (sourceLayer === 'landuse' && !isTextSymbol(layer)) groups.landuse.push(layer.id)

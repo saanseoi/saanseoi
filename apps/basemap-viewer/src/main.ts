@@ -69,14 +69,23 @@ const DIFF_STATUSES = ['added', 'removed'] as const
 const MAX_VIEWER_ZOOM = 22
 
 const preferredTheme: AppState['theme'] = window.matchMedia(
-  '(prefers-color-scheme: dark)',
+  '(prefers-color-scheme: light)',
 ).matches
-  ? 'dark'
-  : 'light'
-const state: AppState = readUrlState(window.location.search, preferredTheme)
+  ? 'light'
+  : 'midnight'
+const preferredLocale: AppState['locale'] = resolvePreferredLocale(navigator.languages)
+const state: AppState = readUrlState(
+  window.location.search,
+  preferredTheme,
+  preferredLocale,
+)
 let regions: Region[] = []
 let versions: string[] = []
 let releaseMetadata: ReleaseMetadata[] = []
+const regionReleaseCache = new Map<
+  string,
+  { versions: string[]; releaseMetadata: ReleaseMetadata[] }
+>()
 let currentBounds: Tilejson['bounds'] = null
 let map: MapLibreMap | null = null
 let comparisonMap: MapLibreMap | null = null
@@ -94,6 +103,28 @@ let synchronisingComparison = false
 let diffRefreshTimer: number | null = null
 const tileLoadStartedAt = new Map<string, number>()
 const diagnostics: ViewerDiagnostics = defaultDiagnostics()
+const attributionControls = new Set<HTMLElement>()
+
+document.addEventListener('pointerdown', event => {
+  for (const attribution of attributionControls) {
+    if (!attribution.isConnected) {
+      attributionControls.delete(attribution)
+      continue
+    }
+    if (attribution.contains(event.target as Node)) continue
+    attribution.classList.remove('maplibregl-compact-show')
+    attribution.removeAttribute('open')
+  }
+})
+
+function resolvePreferredLocale(languages: readonly string[]): AppState['locale'] {
+  const locale = languages[0]?.toLowerCase() ?? 'en'
+  if (locale.startsWith('zh-hant') || /(^|-)zh-(hk|mo|tw)(-|$)/.test(locale))
+    return 'zh-Hant'
+  if (locale.startsWith('zh-hans') || /(^|-)zh-(cn|sg)(-|$)/.test(locale))
+    return 'zh-Hans'
+  return 'en'
+}
 
 const controls = new AppContext(requiredElement('app'), {
   onRegion: code => void changeRegion(code),
@@ -126,14 +157,30 @@ async function start(): Promise<void> {
       regions.find(region => region.code === DEFAULT_REGION_CODE) ??
       regions[0]
     if (!selected) throw new Error('The regions catalogue has no regions.')
+    await preloadRegionReleases(regions)
     state.regionCode = selected.code
     controls.setRegions(regions)
+    controls.setCatalogueReady(true)
     controls.setState(state)
     await loadRegion(selected, true, state.camera === null)
   } catch (error) {
     showError('Could not load the regions catalogue.', error)
     controls.setEnabled(false)
   }
+}
+
+async function preloadRegionReleases(catalogue: Region[]): Promise<void> {
+  await Promise.all(
+    catalogue.map(async region => {
+      const versionsValue = await fetchJson(
+        `${TILE_ORIGIN}/${region.code}/versions.json`,
+      )
+      regionReleaseCache.set(region.code, {
+        versions: parseVersions(versionsValue).versions,
+        releaseMetadata: parseReleaseMetadata(versionsValue),
+      })
+    }),
+  )
 }
 
 async function changeRegion(code: string): Promise<void> {
@@ -153,18 +200,24 @@ async function loadRegion(
   const id = ++requestId
   controller?.abort()
   controller = new AbortController()
-  controls.setEnabled(false)
-  controls.setVersions([])
+  if (!regionReleaseCache.has(region.code)) controls.setCatalogueReady(false)
   setStatus(`Loading ${region.description} versions…`)
   try {
-    const versionsValue = await fetchJson(
-      `${TILE_ORIGIN}/${region.code}/versions.json`,
-      controller.signal,
-    )
-    const published = parseVersions(versionsValue)
+    let published = regionReleaseCache.get(region.code)
+    if (!published) {
+      const versionsValue = await fetchJson(
+        `${TILE_ORIGIN}/${region.code}/versions.json`,
+        controller.signal,
+      )
+      published = {
+        versions: parseVersions(versionsValue).versions,
+        releaseMetadata: parseReleaseMetadata(versionsValue),
+      }
+      regionReleaseCache.set(region.code, published)
+    }
     if (id !== requestId) return
     versions = published.versions
-    releaseMetadata = parseReleaseMetadata(versionsValue)
+    releaseMetadata = published.releaseMetadata
     diagnostics.latestVersion = versions[0] ?? null
     publishDiagnostics()
     if (state.version !== 'latest' && !versions.includes(state.version))
@@ -176,11 +229,13 @@ async function loadRegion(
     )
       state.comparisonVersion = previousVersion(versions, state.version)
     controls.setVersions(versions)
+    controls.setCatalogueReady(true)
     controls.setState(state)
     await loadTileset(region, initial, fitWhenReady, id)
   } catch (error) {
     if (isAbort(error) || id !== requestId) return
     showError('Could not load versions for this region.', error)
+    controls.setCatalogueReady(regionReleaseCache.size > 0)
     controls.setEnabled(map !== null)
   }
 }
@@ -249,7 +304,7 @@ function changeDiffVisibility(status: DiffStatus, enabled: boolean): void {
   applyDiffVisibility(comparisonMap)
 }
 
-function geometryCentre(geometry: Geometry): [number, number] | null {
+function geometryBounds(geometry: Geometry): [number, number, number, number] | null {
   const bounds: [number, number, number, number] = [
     Infinity,
     Infinity,
@@ -279,9 +334,24 @@ function geometryCentre(geometry: Geometry): [number, number] | null {
     }
   }
   visitGeometry(geometry)
-  return Number.isFinite(bounds[0])
-    ? [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2]
-    : null
+  return Number.isFinite(bounds[0]) ? bounds : null
+}
+
+function geometryCentre(geometry: Geometry): [number, number] | null {
+  const bounds = geometryBounds(geometry)
+  return bounds ? [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2] : null
+}
+
+function geometryIntersectsViewport(geometry: Geometry, target: MapLibreMap): boolean {
+  const featureBounds = geometryBounds(geometry)
+  if (!featureBounds) return false
+  const viewport = target.getBounds()
+  return !(
+    featureBounds[2] < viewport.getWest() ||
+    featureBounds[0] > viewport.getEast() ||
+    featureBounds[3] < viewport.getSouth() ||
+    featureBounds[1] > viewport.getNorth()
+  )
 }
 
 function flyToDiffLabel(change: DiffLabelChange): void {
@@ -334,7 +404,6 @@ async function loadTileset(
 ): Promise<void> {
   controller?.abort()
   controller = new AbortController()
-  controls.setEnabled(false)
   setStatus(`Loading ${region.description} · ${state.version}…`)
   const url = tilejsonUrl(TILE_ORIGIN, region, state.version)
   const labelUrl = insideLabelsTilejsonUrl(url)
@@ -539,6 +608,10 @@ async function createComparisonMap(
   updateAttribution(createdMap, true)
   applyMapState(createdMap)
   applyBoundaryPresentation(createdMap, boundary)
+  // The primary map can change from a full-width canvas to a half-width canvas
+  // while the comparison source is loading. Resize once both sources are ready
+  // so side-by-side mode reliably renders both releases.
+  await resizeComparisonView()
 }
 
 async function updateSources(
@@ -583,6 +656,7 @@ function updateAttribution(target: MapLibreMap, collapse = false): void {
   const attributionContent = attribution?.querySelector<HTMLElement>(
     '.maplibregl-ctrl-attrib-inner',
   )
+  if (attribution) attributionControls.add(attribution)
   if (attributionContent) {
     const openStreetMapLink = document.createElement('a')
     openStreetMapLink.href = 'https://openstreetmap.org/copyright'
@@ -687,13 +761,16 @@ function queryDiffFeatures(
 ): DiffInputFeature[] {
   return sourceLayers.flatMap(sourceLayer =>
     diffLayerVisible(sourceLayer)
-      ? target.querySourceFeatures(BASEMAP_SOURCE_ID, { sourceLayer }).map(feature => ({
-          id: feature.id,
-          sourceLayer,
-          geometry: feature.geometry,
-          properties: feature.properties,
-          label: featureLabel(feature.properties),
-        }))
+      ? target
+          .querySourceFeatures(BASEMAP_SOURCE_ID, { sourceLayer })
+          .map(feature => ({
+            id: feature.id,
+            sourceLayer,
+            geometry: feature.geometry,
+            properties: feature.properties,
+            label: featureLabel(feature.properties),
+          }))
+          .filter(feature => geometryIntersectsViewport(feature.geometry, target))
       : [],
   )
 }
@@ -962,10 +1039,31 @@ function fitCurrentBounds(duration = 250): void {
     showWarning('This tileset has no valid bounds; the current camera was retained.')
     return
   }
-  map.fitBounds(currentBounds, {
-    padding: { top: 88, right: 32, bottom: 32, left: 32 },
-    duration,
-  })
+  const mobile = window.innerWidth <= (state.comparisonVersion ? 894 : 720)
+  const padding = mobile
+    ? { top: 24, right: 24, bottom: 24, left: 24 }
+    : { top: 88, right: 32, bottom: 32, left: 32 }
+  const fitVertically = () => {
+    if (!map || !currentBounds) return
+    const southWest = map.project([currentBounds[0], currentBounds[1]])
+    const northEast = map.project([currentBounds[2], currentBounds[3]])
+    const boundsHeight = Math.abs(southWest.y - northEast.y)
+    const availableHeight =
+      map.getContainer().clientHeight - padding.top - padding.bottom
+    if (boundsHeight <= 0 || availableHeight <= 0) return
+    map.jumpTo({
+      zoom: map.getZoom() + Math.log2(availableHeight / boundsHeight),
+    })
+  }
+
+  if (mobile && duration > 0)
+    map.once('moveend', () => window.requestAnimationFrame(fitVertically))
+  map.fitBounds(currentBounds, { padding, duration })
+  if (mobile && duration === 0)
+    window.requestAnimationFrame(() => {
+      map?.resize()
+      fitVertically()
+    })
 }
 
 function currentRegion(): Region | undefined {

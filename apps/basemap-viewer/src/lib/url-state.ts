@@ -9,6 +9,7 @@ import {
   type CameraState,
   type FeatureKey,
   type LabelKey,
+  type Locale,
   type Theme,
 } from './types'
 import { defaultState } from './ctx/app'
@@ -62,6 +63,7 @@ function parseCamera(params: URLSearchParams): CameraState | null {
 export function readUrlState(
   search: string,
   preferredTheme: Theme = 'light',
+  preferredLocale: Locale = 'en',
 ): AppState {
   const params = new URLSearchParams(search)
   const state = defaultState()
@@ -85,7 +87,11 @@ export function readUrlState(
   const theme = params.get('theme')
   state.theme = has(THEMES, theme) ? theme : theme === null ? preferredTheme : 'light'
   const locale = params.get('locale')
-  state.locale = has(LOCALES, locale) ? locale : 'en'
+  state.locale = has(LOCALES, locale)
+    ? locale
+    : locale === null
+      ? preferredLocale
+      : 'en'
   state.labelClip = params.get('labelClip') !== 'off'
   state.features = parseSet<FeatureKey>(
     params.get('features'),

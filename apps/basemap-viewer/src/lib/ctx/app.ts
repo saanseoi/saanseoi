@@ -44,6 +44,7 @@ export interface Callbacks {
 }
 
 export interface ViewerUiState {
+  catalogueReady: boolean
   enabled: boolean
   notice: string | null
   noticeId: number
@@ -54,6 +55,7 @@ export interface ViewerUiState {
 }
 
 const initialUiState: ViewerUiState = {
+  catalogueReady: false,
   enabled: false,
   notice: null,
   noticeId: 0,
@@ -93,6 +95,10 @@ export class AppContext {
 
   setEnabled(enabled: boolean): void {
     this.update({ enabled })
+  }
+
+  setCatalogueReady(catalogueReady: boolean): void {
+    this.update({ catalogueReady })
   }
 
   setNotice(notice: string | null): void {

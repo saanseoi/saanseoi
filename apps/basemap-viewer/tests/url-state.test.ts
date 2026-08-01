@@ -48,6 +48,11 @@ describe('URL state', () => {
     expect(readUrlState('?theme=light', 'dark').theme).toBe('light')
   })
 
+  it('uses the preferred locale only when a shared URL does not specify one', () => {
+    expect(readUrlState('', 'light', 'zh-Hant').locale).toBe('zh-Hant')
+    expect(readUrlState('?locale=en', 'light', 'zh-Hant').locale).toBe('en')
+  })
+
   it('allows temporary inspection without label clipping', () => {
     const state = readUrlState('?labelClip=off')
     expect(state.labelClip).toBe(false)
