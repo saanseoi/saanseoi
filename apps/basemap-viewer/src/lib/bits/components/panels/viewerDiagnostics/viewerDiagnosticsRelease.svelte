@@ -21,7 +21,7 @@ let {
   <h3 class="m-0 text-[11px] font-bold uppercase tracking-[0.06em] text-(--bar-muted)">
     {text.release}
   </h3>
-  <dl class="m-0 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 leading-[1.25]">
+  <dl class="m-0 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 leading-tight">
     <DefinitionItem
       label={text.diagnosticPrimary}
       valueClass="truncate font-mono font-medium"

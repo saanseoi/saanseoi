@@ -254,7 +254,7 @@ function selectMobilePanel(panel: 'diff' | 'diagnostics' | 'inspection'): void {
       use:reportMobilePanelHeight
       in:fly={{ x: compact ? 0 : 24, y: compact ? -120 : 0, duration: 180 }}
       out:fly={{ x: compact ? 0 : 24, y: compact ? -120 : 0, duration: 160 }}
-      class={`fixed top-[calc(var(--header-height)+10px)] right-2.5 z-20 w-[min(390px,calc(100vw-20px))] max-h-[calc(100vh-var(--header-height)-20px)] overflow-y-auto ${compact ? '!top-0 !right-0 !bottom-auto !w-full !max-h-[50dvh] rounded-none [&>aside]:rounded-none [&>aside]:border-x-0' : ''}`}
+      class={`fixed top-[calc(var(--header-height)+10px)] right-2.5 z-20 w-[min(390px,calc(100vw-20px))] max-h-[calc(100vh-var(--header-height)-20px)] overflow-y-auto ${compact ? 'top-0! right-0! bottom-auto! w-full! max-h-[50dvh]! rounded-none [&>aside]:rounded-none [&>aside]:border-x-0' : ''}`}
     >
       <ViewerDiagnostics.Panel
         callbacks={panelCallbacks}
@@ -271,7 +271,7 @@ function selectMobilePanel(panel: 'diff' | 'diagnostics' | 'inspection'): void {
       use:reportMobilePanelHeight
       in:fly={{ x: compact ? 0 : 24, y: compact ? -120 : 0, duration: 180 }}
       out:fly={{ x: compact ? 0 : 24, y: compact ? -120 : 0, duration: 160 }}
-      class={`fixed top-[calc(var(--header-height)+10px)] right-2.5 z-20 w-[min(390px,calc(100vw-20px))] max-h-[calc(100vh-var(--header-height)-20px)] overflow-y-auto ${compact ? '!top-0 !right-0 !bottom-auto !w-full !max-h-[50dvh] rounded-none [&>aside]:rounded-none [&>aside]:border-x-0' : ''}`}
+      class={`fixed top-[calc(var(--header-height)+10px)] right-2.5 z-20 w-[min(390px,calc(100vw-20px))] max-h-[calc(100vh-var(--header-height)-20px)] overflow-y-auto ${compact ? 'top-0! right-0! bottom-auto! w-full! max-h-[50dvh]! rounded-none [&>aside]:rounded-none [&>aside]:border-x-0' : ''}`}
     >
       <ViewerFeatureInspection.Panel
         callbacks={panelCallbacks}
