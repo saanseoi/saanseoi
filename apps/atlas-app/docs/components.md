@@ -73,6 +73,9 @@ Use meaningful child names instead of generic names such as `section.svelte`:
   consumer.
 - Use context only for a genuine local component contract, not to hide page-level state
   ownership.
+- Compose page components directly at the route where they are used. Do not create a
+  wrapper component whose only responsibility is to render other page components; keep
+  that composition in `+page.svelte`.
 
 ## Naming and Public Contracts
 
