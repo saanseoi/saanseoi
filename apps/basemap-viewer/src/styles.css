@@ -22,13 +22,6 @@
   background: var(--page-background);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --page-background: #fff;
-    color-scheme: light;
-  }
-}
-
 @media (max-width: 1302px) {
   :root {
     --header-height: 96px;

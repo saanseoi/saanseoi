@@ -15,7 +15,7 @@ export function defaultState(): AppState {
     comparisonVersion: null,
     comparisonMode: 'split',
     diffVisibility: { added: true, removed: true },
-    theme: 'light',
+    theme: 'dark',
     locale: 'en',
     labelClip: true,
     features: { ...DEFAULT_VISIBILITY.features },

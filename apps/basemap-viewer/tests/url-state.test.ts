@@ -43,7 +43,7 @@ describe('URL state', () => {
     expect(readUrlState('?theme=midnight').theme).toBe('midnight')
   })
 
-  it('uses the system theme only when a shared URL does not specify one', () => {
+  it('uses the preferred theme only when a shared URL does not specify one', () => {
     expect(readUrlState('', 'dark').theme).toBe('dark')
     expect(readUrlState('?theme=light', 'dark').theme).toBe('light')
   })

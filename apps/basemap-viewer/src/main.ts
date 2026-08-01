@@ -68,11 +68,7 @@ const DIFF_LAYER_PREFIX = 'release-diff'
 const DIFF_STATUSES = ['added', 'removed'] as const
 const MAX_VIEWER_ZOOM = 22
 
-const preferredTheme: AppState['theme'] = window.matchMedia(
-  '(prefers-color-scheme: light)',
-).matches
-  ? 'light'
-  : 'midnight'
+const preferredTheme: AppState['theme'] = 'dark'
 const preferredLocale: AppState['locale'] = resolvePreferredLocale(navigator.languages)
 const state: AppState = readUrlState(
   window.location.search,
