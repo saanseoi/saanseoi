@@ -58,6 +58,8 @@ maplibregl.setWorkerUrl(maplibreWorkerUrl)
 
 const TILE_ORIGIN = import.meta.env.VITE_TILE_ORIGIN ?? 'https://tiles.saanseoi.hk'
 const GLYPH_URL = import.meta.env.VITE_GLYPH_URL
+const HEADLESS_MODE =
+  new URLSearchParams(window.location.search).get('headless') === 'true'
 const DEFAULT_REGION_CODE = 'hk'
 const BOUNDARY_MASK_SOURCE_ID = 'region-boundary-mask'
 const BOUNDARY_MASK_LAYER_ID = 'region-boundary-mask-fill'
@@ -501,6 +503,7 @@ async function loadTileset(
     else hideWarning()
     syncUrl()
     if (state.comparisonVersion) await loadComparison(region, state.comparisonVersion)
+    if (HEADLESS_MODE && id === requestId) await markHeadlessReady()
   } catch (error) {
     if (isAbort(error) || id !== requestId) return
     showError('Could not load this tileset.', error)
@@ -567,14 +570,16 @@ async function createMap(tilejsonUrl: string, labelTilejsonUrl: string): Promise
     collectResourceTiming: true,
   })
   map = createdMap
-  createdMap.addControl(
-    new maplibregl.AttributionControl({ compact: true }),
-    'bottom-right',
-  )
-  createdMap.addControl(
-    new maplibregl.NavigationControl({ showCompass: true }),
-    'bottom-right',
-  )
+  if (!HEADLESS_MODE) {
+    createdMap.addControl(
+      new maplibregl.AttributionControl({ compact: true }),
+      'bottom-right',
+    )
+    createdMap.addControl(
+      new maplibregl.NavigationControl({ showCompass: true }),
+      'bottom-right',
+    )
+  }
   createdMap.on('moveend', () => {
     syncUrl()
     scheduleDiffRefresh()
@@ -1164,10 +1169,13 @@ function fitCurrentBounds(duration = 250): void {
     showWarning('This tileset has no valid bounds; the current camera was retained.')
     return
   }
-  const mobile = window.innerWidth <= (state.comparisonVersion ? 894 : 720)
-  const padding = mobile
+  const mobile =
+    !HEADLESS_MODE && window.innerWidth <= (state.comparisonVersion ? 894 : 720)
+  const padding = HEADLESS_MODE
     ? { top: 24, right: 24, bottom: 24, left: 24 }
-    : { top: 88, right: 32, bottom: 32, left: 32 }
+    : mobile
+      ? { top: 24, right: 24, bottom: 24, left: 24 }
+      : { top: 88, right: 32, bottom: 32, left: 32 }
   const fitVertically = () => {
     if (!map || !currentBounds) return
     const southWest = map.project([currentBounds[0], currentBounds[1]])
@@ -1189,6 +1197,22 @@ function fitCurrentBounds(duration = 250): void {
       map?.resize()
       fitVertically()
     })
+}
+
+async function markHeadlessReady(): Promise<void> {
+  if (!map) return
+  if (!(map.loaded() && map.areTilesLoaded())) {
+    await new Promise<void>(resolve => map?.once('idle', () => resolve()))
+  }
+  await new Promise<void>(resolve =>
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve())),
+  )
+  if (document.querySelector('#basemap-render-ready')) return
+  const signal = document.createElement('span')
+  signal.id = 'basemap-render-ready'
+  signal.dataset.ready = 'true'
+  signal.hidden = true
+  document.body.append(signal)
 }
 
 function currentRegion(): Region | undefined {
