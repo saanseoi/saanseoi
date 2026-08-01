@@ -1,5 +1,5 @@
 import { TileType } from 'pmtiles'
-import Pbf from 'pbf'
+import { PbfReader } from 'pbf'
 import { VectorTile } from '@mapbox/vector-tile'
 import vectorTilePbf from 'vt-pbf'
 import {
@@ -8,6 +8,7 @@ import {
   metadata_path,
   pmtiles_path,
   release_manifest_request,
+  render_request,
   tile_path,
 } from '@repo/basemap'
 import { getAllowedOrigin } from './lib/access'
@@ -59,8 +60,9 @@ export default {
     const { ok, name, tile, ext } = tile_path(url.pathname)
     const metadataKey = metadata_path(url.pathname)
     const manifestRequest = release_manifest_request(url.pathname)
+    const renderRequest = render_request(url.pathname)
     const boundaryName = boundary_name(url.pathname)
-    if (!ok && !metadataKey && !manifestRequest && !boundaryName) {
+    if (!ok && !metadataKey && !manifestRequest && !renderRequest && !boundaryName) {
       return new Response('Invalid URL', { status: 404 })
     }
 
@@ -68,7 +70,7 @@ export default {
     // Release manifests contain immutable, non-sensitive provenance and must be
     // linkable from the viewer's diagnostic report. Unlike tile data, they are
     // intentionally readable without a browser Origin or bearer token.
-    if (!access && !manifestRequest) {
+    if (!access && !manifestRequest && !renderRequest) {
       return new Response('A valid basemap access token is required.', { status: 401 })
     }
     if (access && !access.unmetered) {
@@ -83,7 +85,8 @@ export default {
     }
 
     const insideLabelsOnly = url.searchParams.get('labels') === 'inside'
-    const latestRequest = (boundaryName ?? name).endsWith('-latest')
+    const latestRequest =
+      (boundaryName ?? name).endsWith('-latest') || Boolean(renderRequest?.latest)
     const responseCache = new ResponseCache({
       request,
       env,
@@ -116,6 +119,27 @@ export default {
 
     try {
       const regions = await getRegionsIndex(env)
+      if (renderRequest) {
+        const region = regions.regions.find(
+          candidate => candidate.code === renderRequest.regionCode,
+        )
+        if (!region || !renderRequest.name.startsWith(`${region.name}-`)) {
+          return responseCache.response('Basemap preview not found', headers, 404)
+        }
+        const preview = await env.BUCKET.get(
+          `basemap/${region.code}/${renderRequest.name}.webp`,
+        )
+        if (!preview) {
+          return responseCache.response('Basemap preview not found', headers, 404)
+        }
+        headers.set('Content-Type', 'image/webp')
+        return responseCache.response(
+          await preview.arrayBuffer(),
+          headers,
+          200,
+          renderRequest.latest ? DYNAMIC_CACHE_CONTROL : undefined,
+        )
+      }
       if (manifestRequest) {
         const region = regions.regions.find(
           candidate => candidate.code === manifestRequest.regionCode,
@@ -231,7 +255,7 @@ export default {
           tile[1],
           tile[2],
           VectorTile,
-          Pbf,
+          PbfReader,
           vectorTilePbf.fromVectorTileJs,
         )
       }

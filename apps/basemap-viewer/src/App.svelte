@@ -47,6 +47,7 @@ let mobileMenuSnapshot = $state<string | null>(null)
 let diffPanelOpen = $state(true)
 let mobilePanelShortcut = $state<'diff' | 'diagnostics' | 'inspection' | null>(null)
 let mobilePanelHeight = $state(0)
+const headless = new URLSearchParams(window.location.search).get('headless') === 'true'
 
 function reportMobilePanelHeight(node: HTMLElement): { destroy: () => void } {
   const update = () => {
@@ -204,134 +205,146 @@ function selectMobilePanel(panel: 'diff' | 'diagnostics' | 'inspection'): void {
   role="application"
 ></div>
 
-<Tooltip.Provider>
-  <ViewerHeader.Root
-    bind:compact
-    comparisonActive={$appState.comparisonVersion !== null}
-    theme={$appState.theme}
-  >
-    <ViewerHeader.Controls callbacks={panelCallbacks} state={viewerState} {text} {ui} />
-    <ViewerHeader.Actions callbacks={panelCallbacks} state={viewerState} {text} {ui} />
-  </ViewerHeader.Root>
+{#if !headless}
+  <Tooltip.Provider>
+    <ViewerHeader.Root
+      bind:compact
+      comparisonActive={$appState.comparisonVersion !== null}
+      theme={$appState.theme}
+    >
+      <ViewerHeader.Controls
+        callbacks={panelCallbacks}
+        state={viewerState}
+        {text}
+        {ui}
+      />
+      <ViewerHeader.Actions
+        callbacks={panelCallbacks}
+        state={viewerState}
+        {text}
+        {ui}
+      />
+    </ViewerHeader.Root>
 
-  {#if compact && mobileMenuOpen}
-    <ViewerHeader.MobileMenu
-      callbacks={mobileCallbacks}
-      selectedPanel={mobileMenuPanel}
-      state={viewerState}
-      {text}
-      {ui}
-    />
-  {/if}
+    {#if compact && mobileMenuOpen}
+      <ViewerHeader.MobileMenu
+        callbacks={mobileCallbacks}
+        selectedPanel={mobileMenuPanel}
+        state={viewerState}
+        {text}
+        {ui}
+      />
+    {/if}
 
-  <ViewerStatus.Root
-    callbacks={panelCallbacks}
-    {compact}
-    dismissLabel={text.dismissNotice}
-    latest={text.latest}
-    notice={$ui.notice}
-    noticeId={$ui.noticeId}
-    panelOpen={($appState.comparisonVersion !== null &&
+    <ViewerStatus.Root
+      callbacks={panelCallbacks}
+      {compact}
+      dismissLabel={text.dismissNotice}
+      latest={text.latest}
+      notice={$ui.notice}
+      noticeId={$ui.noticeId}
+      panelOpen={($appState.comparisonVersion !== null &&
         $appState.comparisonMode === 'diff' &&
         diffPanelOpen) ||
       $ui.diagnostics.open ||
       $ui.diagnostics.inspect}
-    panelHeight={mobilePanelHeight}
-    state={viewerState}
-    suppressNotice={$ui.diagnostics.open}
-    versions={$ui.versions}
-  />
-  {#if !compact}
-    <ViewerDiff.Panel
-      callbacks={panelCallbacks}
-      open={diffPanelOpen}
+      panelHeight={mobilePanelHeight}
       state={viewerState}
-      {text}
-      {ui}
+      suppressNotice={$ui.diagnostics.open}
+      versions={$ui.versions}
     />
-  {/if}
-  {#if !compact && $ui.diagnostics.open}
-    <div
-      use:reportMobilePanelHeight
-      in:fly={{ x: compact ? 0 : 24, y: compact ? -120 : 0, duration: 180 }}
-      out:fly={{ x: compact ? 0 : 24, y: compact ? -120 : 0, duration: 160 }}
-      class={`fixed top-[calc(var(--header-height)+10px)] right-2.5 z-20 w-[min(390px,calc(100vw-20px))] max-h-[calc(100vh-var(--header-height)-20px)] overflow-y-auto ${compact ? 'top-0! right-0! bottom-auto! w-full! max-h-[50dvh]! rounded-none [&>aside]:rounded-none [&>aside]:border-x-0' : ''}`}
-    >
-      <ViewerDiagnostics.Panel
+    {#if !compact}
+      <ViewerDiff.Panel
         callbacks={panelCallbacks}
-        dismissLabel={text.dismissNotice}
-        notice={$ui.notice}
+        open={diffPanelOpen}
         state={viewerState}
         {text}
         {ui}
       />
-    </div>
-  {/if}
-  {#if !compact && $ui.diagnostics.inspect}
-    <div
-      use:reportMobilePanelHeight
-      in:fly={{ x: compact ? 0 : 24, y: compact ? -120 : 0, duration: 180 }}
-      out:fly={{ x: compact ? 0 : 24, y: compact ? -120 : 0, duration: 160 }}
-      class={`fixed top-[calc(var(--header-height)+10px)] right-2.5 z-20 w-[min(390px,calc(100vw-20px))] max-h-[calc(100vh-var(--header-height)-20px)] overflow-y-auto ${compact ? 'top-0! right-0! bottom-auto! w-full! max-h-[50dvh]! rounded-none [&>aside]:rounded-none [&>aside]:border-x-0' : ''}`}
-    >
-      <ViewerFeatureInspection.Panel
-        callbacks={panelCallbacks}
-        state={viewerState}
-        {text}
-        {ui}
-      />
-    </div>
-  {/if}
-  {#if compact && mobilePanelOpen}
-    <div
-      class="fixed top-0 right-0 z-20 w-full overflow-hidden transition-[height] duration-180 ease-out"
-      style:height={`${mobilePanelHeight}px`}
-    >
+    {/if}
+    {#if !compact && $ui.diagnostics.open}
       <div
         use:reportMobilePanelHeight
-        class="max-h-[50dvh] overflow-y-auto [&>aside]:rounded-none [&>aside]:border-x-0"
+        in:fly={{ x: compact ? 0 : 24, y: compact ? -120 : 0, duration: 180 }}
+        out:fly={{ x: compact ? 0 : 24, y: compact ? -120 : 0, duration: 160 }}
+        class={`fixed top-[calc(var(--header-height)+10px)] right-2.5 z-20 w-[min(390px,calc(100vw-20px))] max-h-[calc(100vh-var(--header-height)-20px)] overflow-y-auto ${compact ? 'top-0! right-0! bottom-auto! w-full! max-h-[50dvh]! rounded-none [&>aside]:rounded-none [&>aside]:border-x-0' : ''}`}
       >
-        {#if mobilePanel === 'diff'}
-          <ViewerDiff.Panel
-            callbacks={panelCallbacks}
-            compact
-            mobileHosted
-            onClose={() => (diffPanelOpen = false)}
-            open={diffPanelOpen}
-            state={viewerState}
-            {text}
-            {ui}
-          />
-        {:else if mobilePanel === 'diagnostics'}
-          <ViewerDiagnostics.Panel
-            callbacks={panelCallbacks}
-            dismissLabel={text.dismissNotice}
-            notice={$ui.notice}
-            state={viewerState}
-            {text}
-            {ui}
-          />
-        {:else if mobilePanel === 'inspection'}
-          <ViewerFeatureInspection.Panel
-            callbacks={panelCallbacks}
-            state={viewerState}
-            {text}
-            {ui}
-          />
-        {/if}
+        <ViewerDiagnostics.Panel
+          callbacks={panelCallbacks}
+          dismissLabel={text.dismissNotice}
+          notice={$ui.notice}
+          state={viewerState}
+          {text}
+          {ui}
+        />
       </div>
-    </div>
-  {/if}
-  {#if compact}
-    <ViewerHeader.MobileBar
-      active={mobilePanel}
-      dirty={mobileMenuDirty}
-      menuOpen={mobileMenuOpen}
-      onMenu={toggleMobileMenu}
-      onPanel={selectMobilePanel}
-      panelOpen={mobilePanelOpen}
-      {text}
-      theme={$appState.theme}
-    />
-  {/if}
-</Tooltip.Provider>
+    {/if}
+    {#if !compact && $ui.diagnostics.inspect}
+      <div
+        use:reportMobilePanelHeight
+        in:fly={{ x: compact ? 0 : 24, y: compact ? -120 : 0, duration: 180 }}
+        out:fly={{ x: compact ? 0 : 24, y: compact ? -120 : 0, duration: 160 }}
+        class={`fixed top-[calc(var(--header-height)+10px)] right-2.5 z-20 w-[min(390px,calc(100vw-20px))] max-h-[calc(100vh-var(--header-height)-20px)] overflow-y-auto ${compact ? 'top-0! right-0! bottom-auto! w-full! max-h-[50dvh]! rounded-none [&>aside]:rounded-none [&>aside]:border-x-0' : ''}`}
+      >
+        <ViewerFeatureInspection.Panel
+          callbacks={panelCallbacks}
+          state={viewerState}
+          {text}
+          {ui}
+        />
+      </div>
+    {/if}
+    {#if compact && mobilePanelOpen}
+      <div
+        class="fixed top-0 right-0 z-20 w-full overflow-hidden transition-[height] duration-180 ease-out"
+        style:height={`${mobilePanelHeight}px`}
+      >
+        <div
+          use:reportMobilePanelHeight
+          class="max-h-[50dvh] overflow-y-auto [&>aside]:rounded-none [&>aside]:border-x-0"
+        >
+          {#if mobilePanel === 'diff'}
+            <ViewerDiff.Panel
+              callbacks={panelCallbacks}
+              compact
+              mobileHosted
+              onClose={() => (diffPanelOpen = false)}
+              open={diffPanelOpen}
+              state={viewerState}
+              {text}
+              {ui}
+            />
+          {:else if mobilePanel === 'diagnostics'}
+            <ViewerDiagnostics.Panel
+              callbacks={panelCallbacks}
+              dismissLabel={text.dismissNotice}
+              notice={$ui.notice}
+              state={viewerState}
+              {text}
+              {ui}
+            />
+          {:else if mobilePanel === 'inspection'}
+            <ViewerFeatureInspection.Panel
+              callbacks={panelCallbacks}
+              state={viewerState}
+              {text}
+              {ui}
+            />
+          {/if}
+        </div>
+      </div>
+    {/if}
+    {#if compact}
+      <ViewerHeader.MobileBar
+        active={mobilePanel}
+        dirty={mobileMenuDirty}
+        menuOpen={mobileMenuOpen}
+        onMenu={toggleMobileMenu}
+        onPanel={selectMobilePanel}
+        panelOpen={mobilePanelOpen}
+        {text}
+        theme={$appState.theme}
+      />
+    {/if}
+  </Tooltip.Provider>
+{/if}

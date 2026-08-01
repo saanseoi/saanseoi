@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import Pbf from 'pbf'
+import { PbfReader } from 'pbf'
 import { VectorTile } from '@mapbox/vector-tile'
 import vectorTilePbf from 'vt-pbf'
 import {
@@ -72,10 +72,10 @@ test('keeps only label features whose anchor is within the requested boundary', 
     inside.x,
     inside.y,
     VectorTile,
-    Pbf,
+    PbfReader,
     vectorTilePbf.fromVectorTileJs,
   )
-  const result = new VectorTile(new Pbf(filtered))
+  const result = new VectorTile(new PbfReader(filtered))
   const pois = result.layers.pois
   assert.ok(pois)
 
