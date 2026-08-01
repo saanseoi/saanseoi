@@ -31,7 +31,7 @@ let {
     <div class="min-w-0">
       <div
         data-release-nav-mobile-toc
-        class="sticky top-[2.5rem] z-30 -mx-6 w-[calc(100%+3rem)] xl:top-[112px] xl:hidden"
+        class="sticky top-10 z-30 -mx-6 w-[calc(100%+3rem)] xl:top-[112px] xl:hidden"
       >
         {@render mobileSideNav?.()}
       </div>

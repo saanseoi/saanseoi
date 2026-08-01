@@ -476,6 +476,8 @@
   "data_title": "APIs & Data",
   "data_description": "Our geospatial architecture assembles Hong Kong's urban records into a unified, version-controlled commons.",
   "data_apis": "APIs",
+  "data_basemaps": "Basemaps",
+  "data_get_started": "Get started",
   "data_api_docs": "API docs",
   "data_planned_api": "Planned API",
   "data_public_api": "Public API",
