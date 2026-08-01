@@ -5,9 +5,15 @@ import { runDocsNewCommand, runDocsPublishCommand } from './lib/commands/docs.ts
 import { runInspectCommand } from './lib/commands/inspect.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
+import { runScheduleCommand, runScheduledCommand } from './lib/commands/schedule.ts'
 import { runUpdateCommand } from './lib/commands/update.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
 import { runInitialisationCommand } from './lib/commands/init.ts'
+import {
+  runTilesBackfillCommand,
+  runTilesRetractCommand,
+  runTilesRefreshCommand,
+} from './lib/commands/tiles.ts'
 import {
   runVersionBumpCommand,
   runVersionDoctorCommand,
@@ -98,6 +104,21 @@ async function main() {
     case 'init:divisions:overture':
     case 'init:streets:hkgov-landsd':
       await runInitialisationCommand(args, printUsage)
+      return
+    case 'tiles:refresh':
+      await runTilesRefreshCommand(args, printUsage)
+      return
+    case 'tiles:backfill':
+      await runTilesBackfillCommand(args, printUsage)
+      return
+    case 'tiles:retract':
+      await runTilesRetractCommand(args, printUsage)
+      return
+    case 'schedule':
+      await runScheduleCommand(args, printUsage)
+      return
+    case 'schedule:run':
+      await runScheduledCommand(args, printUsage)
       return
     case 'update':
       await runUpdateCommand(args, target, printUsage)

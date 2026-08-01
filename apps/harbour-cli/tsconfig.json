@@ -23,6 +23,7 @@
     "types": ["bun-types"],
     "paths": {
       "@/*": ["./src/*"],
+      "@repo/basemap": ["../../libs/basemap/src/index.ts"],
       "@repo/core": ["../../libs/core/src/index.ts"],
       "@repo/core/d1ImportApi": ["../../libs/core/src/lib/d1ImportApi.ts"],
       "@repo/core/db/*": ["../../libs/core/src/lib/db/*"],

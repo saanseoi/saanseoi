@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@clack/prompts": "^1.7.0",
+    "@repo/basemap": "workspace:*",
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
     "fast-xml-parser": "5.10.1",

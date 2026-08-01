@@ -8,6 +8,10 @@ export function printUsage() {
   saanseoi init:divisions:hkgov-pland-pu [--continue]
   saanseoi init:divisions:hkgov-pland-new-town [--continue]
   saanseoi init:streets:hkgov-landsd
+  saanseoi tiles:refresh [--region gba|hk|mo] [--dry-run] [--force]
+  saanseoi tiles:backfill --region gba|hk|mo --date YYYY-MM-DD --file PATH [--dry-run]
+  saanseoi tiles:retract --region gba|hk|mo --date YYYY-MM-DD [--dry-run]
+  saanseoi schedule [--dry-run]
   saanseoi init:addresses:default [--continue]
   saanseoi update [--target local|preview|production] [--api-family|--scope all|addresses|divisions|places|stats|streets] [--dataset CODE[,CODE...]] [--download] [--force-download] [--no-upload] [--force|--check-now] [--yes]
   saanseoi cleanup:snapshots [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
