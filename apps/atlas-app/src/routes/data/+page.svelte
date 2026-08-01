@@ -17,6 +17,7 @@ import { Main } from '$lib/bits'
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import { apiFamilyThemes } from '$lib/registry/apiFamilyTheme'
 import { getDataPageData, getDataReleasesPageData } from '$lib/registry/meta.remote'
+import BasemapPostcard from '$lib/bits/components/card/variants/cardBasemapPostcard.svelte'
 
 const data = await getDataPageData()
 let releases = $state(data.releases)
@@ -52,6 +53,11 @@ let nextReleaseOffset = $state(data.nextOffset)
 const apiFamilyOrder = ['stats', 'divisions', 'addresses', 'places', 'streets'] as const
 const atlasDocsUrl = '/docs'
 const pendingApiFamilies = new Set(['stats', 'places', 'streets'])
+const basemapDirectory = [
+  { code: 'hk', name: 'Hong Kong', tileset: 'hongkong' },
+  { code: 'mo', name: 'Macao', tileset: 'macau' },
+  { code: 'gba', name: 'Greater Bay Area', tileset: 'gba' },
+] as const
 const registryBackground = `linear-gradient(color-mix(in srgb, var(--background) 88%, transparent), color-mix(in srgb, var(--background) 88%, transparent)), url("data:image/svg+xml,%3Csvg width='120' height='96' viewBox='0 0 120 96' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 18c24 0 36 10 60 10s36-10 60-10M0 42c24 0 36 10 60 10s36-10 60-10M0 66c24 0 36 10 60 10s36-10 60-10M0 90c24 0 36 10 60 10s36-10 60-10' fill='none' stroke='%238e9192' stroke-width='0.7' opacity='0.14'/%3E%3C/svg%3E")`
 
 onMount(() => {
@@ -252,11 +258,34 @@ const releaseRecordCount = (release: (typeof data.releases)[number]) => {
 }
 const releaseCarouselItems = $derived(
   releases.map(release => ({
+    kind: 'api' as const,
     release,
     displayDate: displayDate(release.publishedAt ?? release.createdAt),
     displayCode: releaseDisplayCode(release.code, release.apiFamily),
     records: releaseRecordCount(release),
   })),
+)
+const basemapReleaseCarouselItems = $derived(
+  data.basemapReleases.map(release => ({
+    kind: 'basemap' as const,
+    release,
+    displayDate: displayDate(release.version),
+    displayCode: release.code,
+    size: `${(release.size / 1_000_000).toFixed(1)} Mb`,
+  })),
+)
+const allReleaseCarouselItems = $derived(
+  [...releaseCarouselItems, ...basemapReleaseCarouselItems].sort((left, right) => {
+    const leftDate =
+      left.kind === 'basemap'
+        ? left.release.version
+        : (left.release.publishedAt ?? left.release.createdAt)
+    const rightDate =
+      right.kind === 'basemap'
+        ? right.release.version
+        : (right.release.publishedAt ?? right.release.createdAt)
+    return rightDate.localeCompare(leftDate)
+  }),
 )
 
 const loadMoreReleases = async () => {
@@ -458,6 +487,24 @@ const apiCardClass = (apiIndex: number, orderIndex: number) => {
     </CardDeck.Root>
   </PageSection>
 
+  <PageSection id="basemaps">
+    <PageSectionHeader>
+      <PageSectionTitle>{m.data_basemaps()}</PageSectionTitle>
+      <PageSectionActions>
+        <a
+          class="font-body text-label-md font-semibold text-secondary"
+          href="/tiles/get-started"
+          >{m.data_get_started()}</a
+        >
+      </PageSectionActions>
+    </PageSectionHeader>
+    <CardDeck.Root class="mt-6 grid gap-12 py-8 md:grid-cols-3">
+      {#each basemapDirectory as region (region.code)}
+        <BasemapPostcard {...region} />
+      {/each}
+    </CardDeck.Root>
+  </PageSection>
+
   <PageSection id="releases">
     <PageSectionHeader>
       <PageSectionTitle>{m.data_releases()}</PageSectionTitle>
@@ -482,10 +529,10 @@ const apiCardClass = (apiIndex: number, orderIndex: number) => {
         </button>
       </PageSectionActions>
     </PageSectionHeader>
-    {#if releaseCarouselItems.length > 0}
+    {#if allReleaseCarouselItems.length > 0}
       <ReleaseCarousel
         bind:this={releaseCarousel}
-        items={releaseCarouselItems}
+        items={allReleaseCarouselItems}
         isLoading={isLoadingMoreReleases}
         onnavigationchange={navigation => (releaseCarouselNavigation = navigation)}
         onreachend={loadMoreReleases}
