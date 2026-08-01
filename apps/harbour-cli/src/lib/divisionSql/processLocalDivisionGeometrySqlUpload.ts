@@ -419,6 +419,7 @@ export async function processLocalDivisionGeometrySqlUpload(
           metaDb,
           previewPlan.regionCode,
           previewPlan.cohortKey,
+          previewPlan.source,
           previewPlan.type,
           normalised,
         )
@@ -663,6 +664,7 @@ async function assertDivisionReferences(
   metaDb: HarbourReadableDb,
   regionCode: RegionCode,
   cohortKey: string,
+  variant: GeometryUploadPlan['source'],
   type: GeometryUploadPlan['type'],
   rows: Array<NonNullable<NormalisedGeometry>>,
 ) {
@@ -671,6 +673,7 @@ async function assertDivisionReferences(
     'division',
     regionCode,
     cohortKey,
+    { variant },
   )
   if (!divisionSnapshot) {
     throw new Error(
