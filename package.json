@@ -92,6 +92,7 @@
     "d1:probe": "bash ./scripts/run-d1-placement-probes.sh preview 20",
     "d1:probe:preview": "bash ./scripts/run-d1-placement-probes.sh preview 20",
     "d1:probe:production": "bash ./scripts/run-d1-placement-probes.sh production 20",
+    "workers:provision-renamed": "bun ./scripts/provision-renamed-workers.ts",
     "rehash:fixture": "bun ./scripts/rehash-fixture.ts",
     "test": "turbo run test",
     "test:run": "turbo run test",
@@ -135,8 +136,8 @@
     "husky": "^9.1.7",
     "prettier": "^3.9.6",
     "tailwindcss-animate": "^1.0.7",
-    "turbo": "^2.10.7",
-    "wrangler": "^4.115.0"
+    "turbo": "^2.10.8",
+    "wrangler": "^4.118.0"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"
