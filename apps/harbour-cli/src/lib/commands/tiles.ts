@@ -24,6 +24,8 @@ const BUCKET = 'ss-pmtiles'
 const CLOUDFLARE_ACCOUNT_ID = 'a6eeace4b6d9f8e07ab307964e74d801'
 const WRANGLER = resolve(REPO_ROOT, 'node_modules/.bin/wrangler')
 const PREFIX = 'basemap'
+const VIEWER_ORIGIN = 'https://viewer.saanseoi.hk'
+const BROWSER_RENDER_ENDPOINT = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/browser-rendering/screenshot`
 const BASEMAPS_REPOSITORY = 'https://github.com/protomaps/basemaps.git'
 const SAANSEOI_REPOSITORY = 'https://github.com/saanseoi/saanseoi.git'
 const GUANGDONG_EXTRACT_URL =
@@ -104,6 +106,7 @@ type VersionsIndex = {
 }
 
 type TilesOperation = 'backfill' | 'refresh'
+type PreviewMode = 'light' | 'dark'
 
 type NominatimGeometry =
   | { type: 'Polygon'; coordinates: number[][][] }
@@ -116,8 +119,28 @@ export type NominatimBoundary = {
 
 export async function runTilesRefreshCommand(args: ParsedArgs, printUsage: () => void) {
   const input = resolveTilesInput(args, printUsage, 'refresh')
-  if (input.region.code !== 'gba') return runTilesCommand(input)
-  return runGbaRefresh(input)
+  const regions =
+    input.region.code === 'gba'
+      ? ([
+          { code: 'gba', ...REGIONS.gba },
+          { code: 'hk', ...REGIONS.hk },
+          { code: 'mo', ...REGIONS.mo },
+        ] satisfies Region[])
+      : [input.region]
+  if (input.region.code === 'gba') await runGbaRefresh(input)
+  else await runTilesCommand(input)
+  for (const region of regions) {
+    await renderBasemapPreviews({
+      region,
+      version: input.version,
+      modes: ['light', 'dark'],
+      dryRun: input.dryRun,
+    })
+  }
+}
+
+export async function runTilesRenderCommand(args: ParsedArgs, printUsage: () => void) {
+  await renderBasemapPreviews(resolveTilesRenderInput(args, printUsage))
 }
 
 export async function runTilesBackfillCommand(
@@ -491,6 +514,130 @@ function resolveTilesRetractInput(args: ParsedArgs, printUsage: () => void) {
     version: rawDate,
     dryRun: Boolean(args.options['dry-run']),
   }
+}
+
+function resolveTilesRenderInput(args: ParsedArgs, printUsage: () => void) {
+  const rawRegion =
+    typeof args.options.region === 'string' ? args.options.region : undefined
+  const version = typeof args.options.date === 'string' ? args.options.date : undefined
+  const rawMode = typeof args.options.mode === 'string' ? args.options.mode : undefined
+  const regionDefinition = rawRegion ? REGIONS[rawRegion as RegionCode] : undefined
+  const mode = rawMode === 'light' || rawMode === 'dark' ? rawMode : undefined
+  const invalid =
+    args.positionals.length > 0 ||
+    Object.keys(args.options).some(
+      key => !['region', 'date', 'mode', 'dry-run'].includes(key),
+    ) ||
+    (rawMode !== undefined && !mode)
+  if (
+    !rawRegion ||
+    !regionDefinition ||
+    !version ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(version) ||
+    invalid
+  ) {
+    printUsage()
+    throw new Error(
+      'tiles:render requires --region gba|hk|mo and --date YYYY-MM-DD; --mode accepts light or dark.',
+    )
+  }
+  const modes: PreviewMode[] = mode ? [mode] : ['light', 'dark']
+  return {
+    region: { code: rawRegion as RegionCode, ...regionDefinition },
+    version,
+    modes,
+    dryRun: Boolean(args.options['dry-run']),
+  }
+}
+
+async function renderBasemapPreviews(input: {
+  region: Region
+  version: string
+  modes: PreviewMode[]
+  dryRun: boolean
+}) {
+  const datedNames = input.modes.map(
+    mode => `${input.region.name}-${input.version}-${mode}.webp`,
+  )
+  if (input.dryRun) {
+    note(
+      [
+        `region: ${input.region.code} (${input.region.name})`,
+        `version: ${input.version}`,
+        `viewer: ${basemapRenderUrl(input.region, input.version)}`,
+        ...datedNames.map(name => `preview: ${objectKey(input.region.code, name)}`),
+      ].join('\n'),
+      'TILES RENDER DRY RUN',
+    )
+    return
+  }
+
+  const regionVersions = await readRegionVersions(input.region)
+  if (!regionVersions.versions.some(entry => entry.version === input.version)) {
+    throw new Error(
+      `Cannot render ${input.region.name}-${input.version}: the release is not published.`,
+    )
+  }
+  const token = process.env.CLOUDFLARE_API_TOKEN
+  if (!token) {
+    throw new Error(
+      'tiles:render requires CLOUDFLARE_API_TOKEN with Browser Rendering - Edit and Workers R2 Storage - Edit permissions.',
+    )
+  }
+  await mkdir(resolve(TILES_ROOT, 'renders'), { recursive: true })
+  const latestVersion = (await readVersionsIndex()).regions[input.region.code]?.latest
+    ?.version
+
+  for (const [index, mode] of input.modes.entries()) {
+    const name = datedNames[index]
+    if (!name) continue
+    note(
+      `Rendering ${input.region.description} ${input.version} (${mode}).`,
+      'BASEMAP PREVIEW',
+    )
+    const response = await fetch(BROWSER_RENDER_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: basemapRenderUrl(input.region, input.version),
+        viewport: { width: 1200, height: 800, deviceScaleFactor: 1 },
+        gotoOptions: { waitUntil: 'networkidle2', timeout: 60_000 },
+        waitForSelector: { selector: '#basemap-render-ready', timeout: 120_000 },
+        actionTimeout: 120_000,
+        screenshotOptions: { type: 'webp', quality: 88, fullPage: false },
+      }),
+    })
+    if (!response.ok) {
+      throw new Error(
+        `Cloudflare Browser Rendering failed (${response.status}): ${await response.text()}`,
+      )
+    }
+    const path = resolve(TILES_ROOT, 'renders', name)
+    await writeFile(path, new Uint8Array(await response.arrayBuffer()))
+    await putObject(objectKey(input.region.code, name), path, 'image/webp')
+    if (latestVersion === input.version) {
+      await putObject(
+        objectKey(input.region.code, `${input.region.name}-latest-${mode}.webp`),
+        path,
+        'image/webp',
+      )
+    }
+  }
+  outro(`Rendered ${input.region.name}-${input.version} basemap previews`)
+}
+
+function basemapRenderUrl(region: Region, version: string) {
+  const url = new URL(VIEWER_ORIGIN)
+  url.searchParams.set('headless', 'true')
+  url.searchParams.set('region', region.code)
+  url.searchParams.set('version', version)
+  // Light and dark marketing modes deliberately share the midnight map style for now.
+  url.searchParams.set('theme', 'midnight')
+  url.searchParams.set('locale', 'en')
+  return url.toString()
 }
 
 async function buildTileset(
