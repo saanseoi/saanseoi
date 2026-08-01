@@ -93,6 +93,26 @@ export type ApiRelease = {
   primaryRecordCount?: number | null
 }
 
+export type BasemapSchemaVersion = `pm-basemap-layers-v${number}`
+
+export const CURRENT_BASEMAP_SCHEMA_VERSION =
+  'pm-basemap-layers-v4' satisfies BasemapSchemaVersion
+
+export type BasemapRelease = {
+  apiFamily: 'basemaps'
+  code: string
+  createdAt: string
+  displayStatus: 'current' | 'superseded'
+  previewUrl: string
+  regionCode: 'gba' | 'hk' | 'mo'
+  regionName: string
+  schemaVersion: BasemapSchemaVersion
+  size: number
+  status: 'published'
+  version: string
+  viewerUrl: string
+}
+
 export type RegistryApi = {
   id: string
   code: string

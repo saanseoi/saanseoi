@@ -23,8 +23,10 @@ import { getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
 
 import { runWithD1ReadRetry } from '../server/d1'
+import { CURRENT_BASEMAP_SCHEMA_VERSION } from './types'
 import type {
   ApiRelease,
+  BasemapRelease,
   RegistryApi,
   RegistryPublisher,
   RegistrySource,
@@ -35,6 +37,69 @@ const releasePageSchema = z.object({
   offset: z.number().int().min(0).max(10_000),
 })
 const DATA_RELEASES_PAGE_SIZE = 12
+const BASEMAP_TILE_ORIGIN = 'https://tiles.saanseoi.hk'
+const BASEMAP_VIEWER_ORIGIN = 'https://viewer.saanseoi.hk'
+const BASEMAP_REGIONS = {
+  gba: { name: 'Greater Bay Area', tileset: 'gba' },
+  hk: { name: 'Hong Kong', tileset: 'hongkong' },
+  mo: { name: 'Macao', tileset: 'macau' },
+} as const
+
+function isBasemapVersionEntry(
+  value: unknown,
+): value is { version: string; size: number; createdAt: string } {
+  if (typeof value !== 'object' || value === null) return false
+  const entry = value as Record<string, unknown>
+  return (
+    typeof entry.version === 'string' &&
+    /^\d{4}-\d{2}-\d{2}$/.test(entry.version) &&
+    typeof entry.size === 'number' &&
+    Number.isFinite(entry.size) &&
+    typeof entry.createdAt === 'string'
+  )
+}
+
+async function loadBasemapReleases(): Promise<BasemapRelease[]> {
+  const releases = await Promise.all(
+    Object.entries(BASEMAP_REGIONS).map(async ([code, region]) => {
+      try {
+        const response = await fetch(`${BASEMAP_TILE_ORIGIN}/${code}/versions.json`, {
+          headers: { Accept: 'application/json', Origin: BASEMAP_VIEWER_ORIGIN },
+        })
+        if (!response.ok) return []
+        const value = (await response.json()) as { versions?: unknown }
+        if (!Array.isArray(value.versions)) return []
+        const entries = value.versions.filter(isBasemapVersionEntry)
+        return entries.map((entry, index): BasemapRelease => {
+          const viewer = new URL(BASEMAP_VIEWER_ORIGIN)
+          viewer.searchParams.set('region', code)
+          viewer.searchParams.set('version', entry.version)
+          viewer.searchParams.set('theme', 'midnight')
+          return {
+            apiFamily: 'basemaps',
+            code: `${entry.version}-${code.toUpperCase()}`,
+            createdAt: entry.createdAt,
+            displayStatus: index === 0 ? 'current' : 'superseded',
+            previewUrl: `${BASEMAP_TILE_ORIGIN}/render/${code}/${region.tileset}-${entry.version}-dark.webp`,
+            regionCode: code as BasemapRelease['regionCode'],
+            regionName: region.name,
+            schemaVersion: CURRENT_BASEMAP_SCHEMA_VERSION,
+            size: entry.size,
+            status: 'published',
+            version: entry.version,
+            viewerUrl: viewer.toString(),
+          }
+        })
+      } catch {
+        return []
+      }
+    }),
+  )
+  return releases.flat().sort((left, right) => {
+    const byDate = right.version.localeCompare(left.version)
+    return byDate || left.regionCode.localeCompare(right.regionCode)
+  })
+}
 
 function getMetaDb() {
   const event = getRequestEvent()
@@ -58,9 +123,11 @@ function isRegistryBootstrapError(error: unknown) {
     seen.add(current)
     if (
       current instanceof Error &&
-      /no such table: (?:apiReleaseSets|apiVersions|address2d|divisions)/i.test(
+      (/no such table: (?:apiReleaseSets|apiVersions|address2d|divisions)/i.test(
         current.message,
-      )
+      ) ||
+        (current.name === 'DrizzleQueryError' &&
+          /Failed query:[\s\S]*from "apiReleaseSets"/i.test(current.message)))
     ) {
       return true
     }
@@ -325,14 +392,16 @@ async function loadDataReleasesPage(offset = 0) {
 }
 
 async function loadDataPageData() {
-  const [releasePage, apis] = await Promise.all([
+  const [releasePage, apis, basemapReleases] = await Promise.all([
     loadDataReleasesPage(),
     listRegistryApis(getMetaDb(), 100),
+    loadBasemapReleases(),
   ])
 
   return {
     ...releasePage,
     apis: apis as RegistryApi[],
+    basemapReleases,
   }
 }
 
@@ -348,6 +417,7 @@ export const getDataPageData = query(async () => {
         hasMore: false,
         nextOffset: 0,
         apis: [] as RegistryApi[],
+        basemapReleases: await loadBasemapReleases(),
       }
     }
     throw error
