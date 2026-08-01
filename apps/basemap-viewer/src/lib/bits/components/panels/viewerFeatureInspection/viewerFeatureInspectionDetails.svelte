@@ -14,7 +14,7 @@ let {
 </script>
 
 <section class="grid gap-2 border-t border-(--bar-divider) pt-2">
-  <dl class="m-0 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 leading-[1.25]">
+  <dl class="m-0 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 leading-tight">
     <DefinitionItem label={text.featureRelease} valueClass="truncate font-medium">
       {feature.release}
     </DefinitionItem>

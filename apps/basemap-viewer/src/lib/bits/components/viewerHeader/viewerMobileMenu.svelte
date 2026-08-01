@@ -62,7 +62,7 @@ const actionClass =
   aria-label={text.mapControls}
   in:fly={{ x: -320, duration: 220 }}
   out:fly={{ x: -320, duration: 180 }}
-  class="fixed inset-y-0 left-0 z-[25] flex w-full flex-col border-r border-(--bar-border) bg-(--panel-background) text-(--bar-text) shadow-[0_8px_24px_var(--bar-shadow)]"
+  class="fixed inset-y-0 left-0 z-25 flex w-full flex-col border-r border-(--bar-border) bg-(--panel-background) text-(--bar-text) shadow-[0_8px_24px_var(--bar-shadow)]"
   data-bar-theme={$viewerState.theme}
 >
   <div class="min-h-0 flex-1 overflow-y-auto px-5 pt-3 pb-28">
@@ -80,7 +80,7 @@ const actionClass =
             onValueChange={(value) => callbacks.onTheme(value as Theme)}
             placeholder={text.mapTheme}
             theme={$viewerState.theme}
-            triggerClass="!size-[37px]"
+            triggerClass="size-[37px]!"
             value={$viewerState.theme}
           />
           <SelectMenu
@@ -93,7 +93,7 @@ const actionClass =
             onValueChange={(value) => callbacks.onLocale(value as Locale)}
             placeholder={text.mapLabelLanguage}
             theme={$viewerState.theme}
-            triggerClass="!size-[37px]"
+            triggerClass="size-[37px]!"
             value={$viewerState.locale}
           />
         </div>
@@ -114,10 +114,10 @@ const actionClass =
               optionClass="font-mono"
               placeholder={text.selectRegion}
               theme={$viewerState.theme}
-              triggerClass="!h-11 !pl-4 w-full font-mono"
+              triggerClass="h-11! pl-4! w-full font-mono"
               value={$viewerState.regionCode ?? ''}
               valueLabel={regionValueLabel}
-              valueLabelClass="!left-4"
+              valueLabelClass="left-4!"
             />
           </div>
           <div class="grid grid-cols-2 gap-3">
@@ -131,10 +131,10 @@ const actionClass =
                 optionClass="font-mono"
                 placeholder={text.latest}
                 theme={$viewerState.theme}
-                triggerClass="!h-11 !pl-4 w-full font-mono"
+                triggerClass="h-11! pl-4! w-full font-mono"
                 value={$viewerState.version}
                 valueLabel={versionValueLabel}
-                valueLabelClass="!left-4"
+                valueLabelClass="left-4!"
               />
             </div>
             <div class="grid min-w-0 gap-1.5">
@@ -147,10 +147,10 @@ const actionClass =
                 optionClass="font-mono"
                 placeholder={text.noComparison}
                 theme={$viewerState.theme}
-                triggerClass="!h-11 !pl-4 w-full font-mono"
+                triggerClass="h-11! pl-4! w-full font-mono"
                 value={$viewerState.comparisonVersion ?? 'off'}
                 valueLabel={comparisonValueLabel}
-                valueLabelClass="!left-4"
+                valueLabelClass="left-4!"
               />
             </div>
           </div>
@@ -165,7 +165,7 @@ const actionClass =
         >
           <h3 class={fieldLabelClass}>{text.comparisonMode}</h3>
           <ComparisonModes
-            class="!h-11 w-full self-stretch"
+            class="h-11! w-full self-stretch"
             mode={$viewerState.comparisonMode}
             {callbacks}
             {text}
