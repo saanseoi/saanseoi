@@ -62,7 +62,7 @@ function parseCamera(params: URLSearchParams): CameraState | null {
 
 export function readUrlState(
   search: string,
-  preferredTheme: Theme = 'dark',
+  preferredTheme: Theme = 'light',
   preferredLocale: Locale = 'en',
 ): AppState {
   const params = new URLSearchParams(search)

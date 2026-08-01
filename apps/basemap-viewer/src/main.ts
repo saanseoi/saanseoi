@@ -68,7 +68,11 @@ const DIFF_LAYER_PREFIX = 'release-diff'
 const DIFF_STATUSES = ['added', 'removed'] as const
 const MAX_VIEWER_ZOOM = 22
 
-const preferredTheme: AppState['theme'] = 'dark'
+const preferredTheme: AppState['theme'] = window.matchMedia(
+  '(prefers-color-scheme: light)',
+).matches
+  ? 'light'
+  : 'midnight'
 const preferredLocale: AppState['locale'] = resolvePreferredLocale(navigator.languages)
 const state: AppState = readUrlState(
   window.location.search,
@@ -100,6 +104,20 @@ let diffRefreshTimer: number | null = null
 const tileLoadStartedAt = new Map<string, number>()
 const diagnostics: ViewerDiagnostics = defaultDiagnostics()
 const attributionControls = new Set<HTMLElement>()
+const splitTouchPointers = new Map<number, SplitTouchPointer>()
+let splitTouchGesture: SplitTouchGesture | null = null
+
+type SplitTouchPointer = {
+  map: MapLibreMap
+  x: number
+  y: number
+}
+
+type SplitTouchGesture = {
+  pointers: readonly [number, number]
+  initialCamera: CameraState
+  initialDistance: number
+}
 
 document.addEventListener('pointerdown', event => {
   for (const attribution of attributionControls) {
@@ -112,6 +130,16 @@ document.addEventListener('pointerdown', event => {
     attribution.removeAttribute('open')
   }
 })
+document.addEventListener('touchstart', handleSplitTouchStart, {
+  capture: true,
+  passive: false,
+})
+document.addEventListener('touchmove', handleSplitTouchMove, {
+  capture: true,
+  passive: false,
+})
+document.addEventListener('touchend', handleSplitTouchEnd, { capture: true })
+document.addEventListener('touchcancel', handleSplitTouchEnd, { capture: true })
 
 function resolvePreferredLocale(languages: readonly string[]): AppState['locale'] {
   const locale = languages[0]?.toLowerCase() ?? 'en'
@@ -122,24 +150,28 @@ function resolvePreferredLocale(languages: readonly string[]): AppState['locale'
   return 'en'
 }
 
-const controls = new AppContext(requiredElement('app'), {
-  onRegion: code => void changeRegion(code),
-  onVersion: version => void changeVersion(version),
-  onComparisonVersion: version => void changeComparisonVersion(version),
-  onComparisonMode: mode => changeComparisonMode(mode),
-  onDiffVisibility: (status, enabled) => changeDiffVisibility(status, enabled),
-  onDiffLabel: change => flyToDiffLabel(change),
-  onTheme: theme => void changeTheme(theme),
-  onLocale: locale => changeLocale(locale),
-  onFeature: (key, enabled) => changeFeature(key, enabled),
-  onLabel: (key, enabled) => changeLabel(key, enabled),
-  onFit: () => fitCurrentBounds(),
-  onDiagnostics: open => changeDiagnostics(open),
-  onInspect: enabled => changeInspect(enabled),
-  onDebug: (key, enabled) => changeDebug(key, enabled),
-  onCopyReport: () => void copyReport(),
-  onDismissNotice: () => controls.setNotice(null),
-})
+const controls = new AppContext(
+  requiredElement('app'),
+  {
+    onRegion: code => void changeRegion(code),
+    onVersion: version => void changeVersion(version),
+    onComparisonVersion: version => void changeComparisonVersion(version),
+    onComparisonMode: mode => changeComparisonMode(mode),
+    onDiffVisibility: (status, enabled) => changeDiffVisibility(status, enabled),
+    onDiffLabel: change => flyToDiffLabel(change),
+    onTheme: theme => void changeTheme(theme),
+    onLocale: locale => changeLocale(locale),
+    onFeature: (key, enabled) => changeFeature(key, enabled),
+    onLabel: (key, enabled) => changeLabel(key, enabled),
+    onFit: () => fitCurrentBounds(),
+    onDiagnostics: open => changeDiagnostics(open),
+    onInspect: enabled => changeInspect(enabled),
+    onDebug: (key, enabled) => changeDebug(key, enabled),
+    onCopyReport: () => void copyReport(),
+    onDismissNotice: () => controls.setNotice(null),
+  },
+  state,
+)
 
 void start()
 
@@ -638,6 +670,103 @@ function syncComparison(source: MapLibreMap, target: MapLibreMap | null): void {
     pitch: source.getPitch(),
   })
   synchronisingComparison = false
+}
+
+function canBridgeSplitTouch(): boolean {
+  return (
+    window.innerWidth <= 894 &&
+    state.comparisonVersion !== null &&
+    state.comparisonMode === 'split' &&
+    map !== null &&
+    comparisonMap !== null
+  )
+}
+
+function mapForTouchTarget(target: EventTarget | null): MapLibreMap | null {
+  if (!(target instanceof Node)) return null
+  if (map?.getContainer().contains(target)) return map
+  if (comparisonMap?.getContainer().contains(target)) return comparisonMap
+  return null
+}
+
+function touchDistance(first: SplitTouchPointer, second: SplitTouchPointer): number {
+  return Math.hypot(first.x - second.x, first.y - second.y)
+}
+
+/**
+ * MapLibre receives touches per canvas. In a split comparison, one finger on
+ * each canvas therefore cannot form a native pinch. This bridge activates only
+ * for that cross-canvas gesture; every other touch continues to reach MapLibre.
+ */
+function handleSplitTouchStart(event: TouchEvent): void {
+  if (!canBridgeSplitTouch()) {
+    splitTouchPointers.clear()
+    splitTouchGesture = null
+    return
+  }
+  for (const touch of event.changedTouches) {
+    const target = mapForTouchTarget(touch.target)
+    if (!target) continue
+    splitTouchPointers.set(touch.identifier, {
+      map: target,
+      x: touch.clientX,
+      y: touch.clientY,
+    })
+  }
+  if (splitTouchGesture || !map) return
+
+  const pointers = [...splitTouchPointers.entries()]
+  const first = pointers.at(-2)
+  const second = pointers.at(-1)
+  if (!first || !second || first[1].map === second[1].map) return
+
+  const initialDistance = touchDistance(first[1], second[1])
+  if (initialDistance === 0) return
+  splitTouchGesture = {
+    pointers: [first[0], second[0]],
+    initialCamera: mapCamera(map),
+    initialDistance,
+  }
+  if (event.cancelable) event.preventDefault()
+  event.stopImmediatePropagation()
+}
+
+function handleSplitTouchMove(event: TouchEvent): void {
+  if (!splitTouchGesture || !canBridgeSplitTouch() || !map) return
+  for (const touch of event.changedTouches) {
+    const pointer = splitTouchPointers.get(touch.identifier)
+    if (!pointer) continue
+    pointer.x = touch.clientX
+    pointer.y = touch.clientY
+  }
+
+  const [firstId, secondId] = splitTouchGesture.pointers
+  const first = splitTouchPointers.get(firstId)
+  const second = splitTouchPointers.get(secondId)
+  if (!first || !second) return
+  const distance = touchDistance(first, second)
+  if (distance === 0) return
+
+  const zoom = Math.min(
+    MAX_VIEWER_ZOOM,
+    Math.max(
+      0,
+      splitTouchGesture.initialCamera.zoom +
+        Math.log2(distance / splitTouchGesture.initialDistance),
+    ),
+  )
+  map.jumpTo({ ...splitTouchGesture.initialCamera, zoom })
+  if (event.cancelable) event.preventDefault()
+  event.stopImmediatePropagation()
+}
+
+function handleSplitTouchEnd(event: TouchEvent): void {
+  for (const touch of event.changedTouches) splitTouchPointers.delete(touch.identifier)
+  if (
+    splitTouchGesture?.pointers.some(identifier => !splitTouchPointers.has(identifier))
+  ) {
+    splitTouchGesture = null
+  }
 }
 
 function updateAttribution(target: MapLibreMap, collapse = false): void {

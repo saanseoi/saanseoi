@@ -119,6 +119,7 @@ const mobileMenuFingerprint = $derived.by(() =>
   JSON.stringify({
     comparisonMode: $appState.comparisonMode,
     comparisonVersion: $appState.comparisonVersion,
+    debug: $ui.diagnostics.debug,
     diagnosticsOpen: $ui.diagnostics.open,
     diffVisibility: $appState.diffVisibility,
     features: $appState.features,
