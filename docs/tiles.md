@@ -82,6 +82,8 @@ basemap/{regionCode}/{regionName}-{YYYY-MM-DD}.json
 basemap/{regionCode}/{regionName}-{YYYY-MM-DD}.boundary.geojson
 basemap/{regionCode}/{regionName}-latest.pmtiles
 basemap/{regionCode}/{regionName}-latest.boundary.geojson
+basemap/{regionCode}/{regionName}-{YYYY-MM-DD}-{light|dark}.webp
+basemap/{regionCode}/{regionName}-latest-{light|dark}.webp
 basemap/{regionCode}/versions.json
 basemap/versions.json
 basemap/regions.json
@@ -95,6 +97,24 @@ inputs, build commits, and command context. It never exposes a PMTiles archive i
 `tiles:refresh` always uses the current Hong Kong time (HKT) date. A version may not be
 overwritten by a normal refresh. Use `--dry-run` to inspect object names without
 downloading, building, or uploading.
+
+After publishing each tileset, `tiles:refresh` invokes Cloudflare Browser Rendering to
+capture the release in the viewer's headless mode at 1200 × 800 pixels. It publishes
+immutable `light` and `dark` WebP previews alongside the release; both modes currently
+use the viewer's `midnight` map theme. When the release is the region's current release,
+the command also refreshes the two `-latest` preview objects.
+
+Render or backfill previews independently with:
+
+```sh
+saanseoi tiles:render --region hk --date 2026-08-01
+saanseoi tiles:render --region hk --date 2026-08-01 --mode light
+```
+
+Omitting `--mode` renders both modes. The dated tileset must already be present in the
+region's version index. The viewer URL uses `headless=true`, which hides its navigation,
+controls, status, and panels; rendering waits for the fitted map to become idle before
+capturing it.
 
 Use `--force` to rebuild an existing current-date release with Planetiler. It replaces
 the dated archive and its manifest, then publishes that rebuilt archive as `-latest` and
@@ -144,6 +164,7 @@ The token needs both reads, to merge existing indexes and check existing release
 writes, to publish the archive and catalogue objects. A `tiles:retract` additionally
 needs **Zone** > **Cache Purge** > **Purge**, scoped to `saanseoi.hk`, so cached dated
 TileJSON and tiles cannot remain publicly accessible after their R2 objects are removed.
+Rendering previews additionally requires **Account** > **Browser Rendering** > **Edit**.
 The CLI supplies the fixed `tijptjik` account ID when it calls Wrangler, so no separate
 account environment variable is required.
 
