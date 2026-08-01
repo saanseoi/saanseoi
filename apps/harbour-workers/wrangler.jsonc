@@ -102,7 +102,7 @@
       }
     },
     "production": {
-      "name": "ss-harbour-workers-production",
+      "name": "ss-harbour-workers-prod",
       "placement": {
         "region": "azure:eastasia"
       },

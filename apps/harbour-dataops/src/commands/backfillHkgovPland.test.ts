@@ -14,6 +14,12 @@ const prepareHkgovPlandTpuNativeShpZipMock = mock(
   async (options: { inputFile: string; sourceVersion: string; type: string }) => {
     preparedInputs.push(options.inputFile)
     preparedTypes.push({ sourceVersion: options.sourceVersion, type: options.type })
+    return {
+      divisionCount: 0,
+      invalidSourceFeatureCount: 0,
+      outputFile: '',
+      sourceFeatureCount: 0,
+    }
   },
 )
 
