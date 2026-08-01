@@ -15,7 +15,7 @@ export function defaultState(): AppState {
     comparisonVersion: null,
     comparisonMode: 'split',
     diffVisibility: { added: true, removed: true },
-    theme: 'dark',
+    theme: 'light',
     locale: 'en',
     labelClip: true,
     features: { ...DEFAULT_VISIBILITY.features },
@@ -67,10 +67,15 @@ const initialUiState: ViewerUiState = {
 
 export class AppContext {
   private noticeId = 0
-  private readonly state: Writable<AppState> = writable(defaultState())
+  private readonly state: Writable<AppState>
   private readonly ui: Writable<ViewerUiState> = writable(initialUiState)
 
-  constructor(container: HTMLElement, callbacks: Callbacks) {
+  constructor(
+    container: HTMLElement,
+    callbacks: Callbacks,
+    initialState: AppState = defaultState(),
+  ) {
+    this.state = writable(initialState)
     mount(App, {
       target: container,
       props: { callbacks, state: this.state, ui: this.ui },

@@ -2,7 +2,7 @@
 
 :root {
   --header-height: 54px;
-  --page-background: #000;
+  --page-background: #020617;
   --bar-background: rgb(255 255 255 / 94%);
   --panel-background: #fff;
   --bar-border: #bdc7cd;
@@ -20,6 +20,13 @@
   font-family: "Plus Jakarta Sans", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   line-height: 1.2;
   background: var(--page-background);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --page-background: #fff;
+    color-scheme: light;
+  }
 }
 
 @media (max-width: 1302px) {
