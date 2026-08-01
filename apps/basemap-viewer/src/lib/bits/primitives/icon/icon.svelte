@@ -10,6 +10,7 @@ export type IconName =
   | 'identify'
   | 'language'
   | 'layers'
+  | 'menu'
   | 'debug'
   | 'target'
   | 'info'
@@ -22,7 +23,15 @@ let { name, class: className = '' }: { name: IconName; class?: string } = $props
   class={className}
   viewBox={name === "language" ? "0 0 512 512" : name === "identify" ? "0 0 32 32" : "0 0 24 24"}
 >
-  {#if name === "layers"}
+  {#if name === "menu"}
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-width="1.5"
+      d="M4 7.25h16M4 12h16M4 16.75h16"
+    />
+  {:else if name === "layers"}
     <g fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.5">
       <path
         d="M12.991 3.066a2 2 0 0 0-1.982 0L2.75 7.778l8.259 4.712a2 2 0 0 0 1.982 0l8.259-4.712z"

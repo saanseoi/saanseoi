@@ -48,7 +48,7 @@ export const DEFAULT_VISIBILITY: VisibilityState = {
     roads: true,
     buildings: true,
     landuse: true,
-    pois: false,
+    pois: true,
     boundaries: true,
   },
   labels: { places: true, roads: true, pois: false, water: true },
