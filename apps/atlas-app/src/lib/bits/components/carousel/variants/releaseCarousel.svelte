@@ -1,6 +1,8 @@
 <script lang="ts">
 import CarouselRoot from '../carouselRoot.svelte'
 import { Release as CardRelease } from '$lib/bits/components/card'
+import { BasemapRelease as CardBasemapRelease } from '$lib/bits/components/card'
+import type { BasemapRelease } from '$lib/registry/types'
 import ReleaseCarouselSkeleton from './releaseCarouselSkeleton.svelte'
 type Release = {
   apiFamily: string
@@ -9,12 +11,21 @@ type Release = {
   displayStatus?: string
   schemaVersion: string
 }
-type Item = {
+type ApiItem = {
+  kind: 'api'
   release: Release
   displayDate: string
   displayCode: string
   records: string | null
 }
+type BasemapItem = {
+  kind: 'basemap'
+  release: BasemapRelease
+  displayDate: string
+  displayCode: string
+  size: string
+}
+type Item = ApiItem | BasemapItem
 type NavigationState = { canMoveBackward: boolean; canMoveForward: boolean }
 type DragState = { cardId: string | null }
 type Props = {
@@ -38,7 +49,21 @@ export function scrollByPage(direction: -1 | 1) {
   ondragstatechange={(state: DragState) => (draggedCardId = state.cardId)}
   ><div class="flex min-w-max gap-4">
     {#each items as item, index (item.release.code)}
-      <CardRelease {...item} {index} isDragging={draggedCardId === item.release.code} />
+      {#if item.kind === 'basemap'}
+        <CardBasemapRelease
+          release={item.release}
+          displayDate={item.displayDate}
+          displayCode={item.displayCode}
+          size={item.size}
+          isDragging={draggedCardId === item.release.code}
+        />
+      {:else}
+        <CardRelease
+          {...item}
+          {index}
+          isDragging={draggedCardId === item.release.code}
+        />
+      {/if}
     {/each}
     {#if isLoading}
       <ReleaseCarouselSkeleton />
