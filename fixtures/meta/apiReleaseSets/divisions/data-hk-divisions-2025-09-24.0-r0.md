@@ -15,10 +15,9 @@ primarySourceReleaseUrl: "/sources/ds-hk-overture-division/dr-hk-overture-divisi
 
 ## Changelog
 
-- Initial 山水 | SaanSeoi Divisions API [release](saanseoi:en:definition/release/v1) for
-  [Hong Kong](saanseoi:en:note/hong-kong-extract/v1).
-- Publishes the first immutable <black>{{ domainCode }}</black> domain view for cohort
-  <black>{{ cohortKey }}</black>.
+- Initial 山水 | SaanSeoi Divisions API release for Hong Kong
+- Publishes the first immutable `{{ domainCode }}` domain view for cohort
+  `{{ cohortKey }}`.
 - Provides canonical division records with separately selectable area and boundary
   [companion resources](saanseoi:en:definition/companion-resource/v1). Geometry remains
   provider-specific; it is never silently merged or substituted.
