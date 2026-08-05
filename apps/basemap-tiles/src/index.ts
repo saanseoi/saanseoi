@@ -184,12 +184,14 @@ export default {
       const archiveKey = pmtiles_path(name, regions.regions)
       if (!archiveKey) return responseCache.response('Archive not found', headers, 404)
 
-      // A forced `-latest` rebuild retains its R2 key. Version the PMTiles
-      // source cache by its ETag so a warm Worker cannot read new bytes with a
-      // directory cached for the archive it replaced.
-      const latestArchive = name.endsWith('-latest')
-        ? await env.BUCKET.head(archiveKey)
-        : undefined
+      // TileJSON requests need the current ETag so clients can cache-bust a
+      // newly promoted `-latest` archive. Do not issue this R2 HEAD for every
+      // tile request: a map loads many tiles in parallel, and PMTiles already
+      // detects a replaced object through its conditional range reads.
+      const latestArchive =
+        name.endsWith('-latest') && !tile
+          ? await env.BUCKET.head(archiveKey)
+          : undefined
       const archiveVersion = latestArchive?.httpEtag ?? latestArchive?.etag
       const pmtiles = openPmtiles(env, archiveKey, archiveVersion)
       const header = await pmtiles.getHeader()
