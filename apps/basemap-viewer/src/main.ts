@@ -42,6 +42,12 @@ import {
 import { isSameRelease, orderComparisonReleases } from './lib/release-order'
 import { parseReleaseMetadata, type ReleaseMetadata } from './lib/release-metadata'
 import {
+  createTileWeightCollection,
+  knownTimingBytes,
+  knownTimingDuration,
+  type BasemapTileSource,
+} from './lib/tile-weight'
+import {
   defaultDiagnostics,
   emptyReleaseDiagnostic,
   type FeatureDiagnostic,
@@ -104,6 +110,10 @@ let controller: AbortController | null = null
 let synchronisingComparison = false
 let diffRefreshTimer: number | null = null
 const tileLoadStartedAt = new Map<string, number>()
+const tileWeightCollections = {
+  primary: createTileWeightCollection(),
+  comparison: createTileWeightCollection(),
+}
 const diagnostics: ViewerDiagnostics = defaultDiagnostics()
 const attributionControls = new Set<HTMLElement>()
 const splitTouchPointers = new Map<number, SplitTouchPointer>()
@@ -301,6 +311,7 @@ async function changeComparisonVersion(version: string | null): Promise<void> {
     comparisonGroups = null
     comparisonVectorLayers = []
     diagnostics.comparison = null
+    diagnostics.tileWeight.comparison = null
     publishDiagnostics()
     return
   }
@@ -488,6 +499,7 @@ async function loadTileset(
       comparisonMap.remove()
       comparisonMap = null
       comparisonGroups = null
+      resetTileWeight('comparison')
     }
     controls.setEnabled(true)
     controls.setState(state)
@@ -555,6 +567,7 @@ async function loadComparison(region: Region, version: string): Promise<void> {
 }
 
 async function createMap(tilejsonUrl: string, labelTilejsonUrl: string): Promise<void> {
+  resetTileWeight('primary')
   const generated = createStyle(tilejsonUrl, GLYPH_URL, state.theme, labelTilejsonUrl)
   groups = generated.groups
   const camera = state.camera
@@ -600,6 +613,7 @@ async function createComparisonMap(
   labelTilejsonUrl: string,
   boundary: RegionBoundary | null,
 ): Promise<void> {
+  resetTileWeight('comparison')
   // Selecting a comparison release makes its Svelte container visible. Give
   // that DOM update a frame before MapLibre measures it; constructing against
   // the previous display:none size leaves the map with a zero-sized viewport
@@ -652,6 +666,7 @@ async function updateSources(
   tilejsonUrl: string,
   labelTilejsonUrl: string,
 ): Promise<void> {
+  resetTileWeight(target === map ? 'primary' : 'comparison')
   const sourceUrls: Array<[string, string]> = [
     [BASEMAP_SOURCE_ID, tilejsonUrl],
     [BASEMAP_LABEL_SOURCE_ID, labelTilejsonUrl],
@@ -1113,6 +1128,7 @@ async function changeTheme(theme: AppState['theme']): Promise<void> {
   )
   groups = generated.groups
   try {
+    resetTileWeight('primary')
     await new Promise<void>((resolve, reject) => {
       map?.once('style.load', resolve)
       map?.once('error', event => reject(event.error))
@@ -1299,12 +1315,27 @@ function publishDiagnostics(): void {
     errors: [...diagnostics.errors],
     primary: { ...diagnostics.primary },
     comparison: diagnostics.comparison ? { ...diagnostics.comparison } : null,
+    tileWeight: {
+      primary: { ...diagnostics.tileWeight.primary },
+      comparison: diagnostics.tileWeight.comparison
+        ? { ...diagnostics.tileWeight.comparison }
+        : null,
+    },
   })
 }
 
-function recordError(error: string): void {
+function recordError(
+  error: string,
+  release?: 'primary' | 'comparison',
+  sourceId?: string,
+): void {
   diagnostics.errors = [...diagnostics.errors, error].slice(-8)
   diagnostics.tileFailures += 1
+  const source = basemapTileSource(sourceId)
+  if (release && source) {
+    tileWeightCollections[release].recordFailure()
+    diagnostics.tileWeight[release] = tileWeightCollections[release].summary()
+  }
   publishDiagnostics()
 }
 
@@ -1326,31 +1357,48 @@ function installDiagnostics(
   target.on('dragend', () => {
     target.getCanvas().classList.remove('is-dragging')
   })
-  target.on('error', event => recordError(`${release}: ${errorMessage(event.error)}`))
-  const isBasemapTile = (sourceId: string | undefined): boolean =>
-    sourceId === BASEMAP_SOURCE_ID || sourceId === BASEMAP_LABEL_SOURCE_ID
-  const tileKey = (
-    sourceId: string | undefined,
-    key: string | undefined,
-  ): string | null => (sourceId && key ? `${release}:${sourceId}:${key}` : null)
+  target.on('error', event => {
+    const sourceId = (event as { sourceId?: string }).sourceId
+    recordError(`${release}: ${errorMessage(event.error)}`, release, sourceId)
+  })
   target.on('sourcedataloading', event => {
-    if (!isBasemapTile(event.sourceId)) return
+    const source = basemapTileSource(event.sourceId)
+    if (!source) return
     diagnostics.tileRequests += 1
-    const key = tileKey(event.sourceId, event.coord?.key)
+    tileWeightCollections[release].recordRequest(source)
+    diagnostics.tileWeight[release] = tileWeightCollections[release].summary()
+    const key = tileKey(release, event.sourceId, event.coord?.key)
     if (key) tileLoadStartedAt.set(key, performance.now())
     publishDiagnostics()
   })
   target.on('sourcedata', event => {
-    if (!isBasemapTile(event.sourceId)) return
-    const key = tileKey(event.sourceId, event.coord?.key)
+    const source = basemapTileSource(event.sourceId)
+    if (!source) return
+    const key = tileKey(release, event.sourceId, event.coord?.key)
     const startedAt = key ? tileLoadStartedAt.get(key) : undefined
     if (key) tileLoadStartedAt.delete(key)
-    const latest = event.resourceTiming?.at(-1)
+    const tileTimings = (event.tile as { resourceTiming?: PerformanceResourceTiming[] })
+      ?.resourceTiming
+    let observedDuration: number | null = null
+    for (const timing of [...(event.resourceTiming ?? []), ...(tileTimings ?? [])]) {
+      const duration = knownTimingDuration(timing.duration)
+      if (duration !== null) observedDuration = duration
+      tileWeightCollections[release].add({
+        identity: `${release}:${source}:${timing.name}:${timing.startTime}`,
+        source,
+        tile: event.coord?.key ?? null,
+        url: timing.name,
+        durationMs: duration,
+        transferBytes: knownTimingBytes(timing.transferSize),
+        encodedBodyBytes: knownTimingBytes(timing.encodedBodySize),
+        decodedBodyBytes: knownTimingBytes(timing.decodedBodySize),
+      })
+    }
+    diagnostics.tileWeight[release] = tileWeightCollections[release].summary()
     const duration =
-      latest?.duration ??
+      observedDuration ??
       (startedAt !== undefined ? performance.now() - startedAt : null)
-    if (duration === null) return
-    diagnostics.lastTileDurationMs = Math.round(duration)
+    if (duration !== null) diagnostics.lastTileDurationMs = Math.round(duration)
     publishDiagnostics()
   })
   target.on('click', event => {
@@ -1370,6 +1418,28 @@ function installDiagnostics(
     diagnostics.feature = feature
     publishDiagnostics()
   })
+}
+
+function basemapTileSource(sourceId: string | undefined): BasemapTileSource | null {
+  if (sourceId === BASEMAP_SOURCE_ID) return BASEMAP_SOURCE_ID
+  if (sourceId === BASEMAP_LABEL_SOURCE_ID) return BASEMAP_LABEL_SOURCE_ID
+  return null
+}
+
+function tileKey(
+  release: 'primary' | 'comparison',
+  sourceId: string | undefined,
+  key: string | undefined,
+): string | null {
+  return sourceId && key ? `${release}:${sourceId}:${key}` : null
+}
+
+function resetTileWeight(release: 'primary' | 'comparison'): void {
+  tileWeightCollections[release].reset()
+  diagnostics.tileWeight[release] = tileWeightCollections[release].summary()
+  for (const key of tileLoadStartedAt.keys()) {
+    if (key.startsWith(`${release}:`)) tileLoadStartedAt.delete(key)
+  }
 }
 
 function changeDiagnostics(open: boolean): void {
@@ -1405,6 +1475,7 @@ async function copyReport(): Promise<void> {
     tileRequests: diagnostics.tileRequests,
     tileFailures: diagnostics.tileFailures,
     lastTileDurationMs: diagnostics.lastTileDurationMs,
+    tileWeight: diagnostics.tileWeight,
     errors: diagnostics.errors,
     inspectedFeature: diagnostics.feature,
   }

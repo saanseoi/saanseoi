@@ -7,6 +7,7 @@ import Notice from '../../viewerStatus/viewerStatusNotice.svelte'
 import Errors from './viewerDiagnosticsErrors.svelte'
 import Header from './viewerDiagnosticsHeader.svelte'
 import Release from './viewerDiagnosticsRelease.svelte'
+import TileWeight from './viewerDiagnosticsTileWeight.svelte'
 
 let {
   callbacks,
@@ -46,6 +47,7 @@ let {
       {text}
       theme={$viewerState.theme}
     />
+    <TileWeight diagnostics={$ui.diagnostics} locale={$viewerState.locale} {text} />
     {#if $ui.diagnostics.errors.length}
       <Errors errors={$ui.diagnostics.errors} {text} />
     {/if}
