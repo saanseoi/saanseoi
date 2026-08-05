@@ -67,7 +67,10 @@ export const applyAccessHeaders = (
   allowedOrigin: string,
 ): Headers => {
   const responseHeaders = new Headers(headers)
-  if (allowedOrigin) responseHeaders.set('Access-Control-Allow-Origin', allowedOrigin)
+  if (allowedOrigin) {
+    responseHeaders.set('Access-Control-Allow-Origin', allowedOrigin)
+    responseHeaders.set('Timing-Allow-Origin', allowedOrigin)
+  }
   responseHeaders.set('Vary', 'Origin')
   return responseHeaders
 }
