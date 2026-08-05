@@ -7,9 +7,20 @@
     "not_found_handling": "404-page"
   },
   "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
     "logs": {
       "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "destinations": ["cloudflare"],
       "invocation_logs": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.1,
+      "persist": true,
+      "destinations": ["cloudflare"]
     }
   },
   "routes": [{ "pattern": "viewer.saanseoi.hk", "custom_domain": true }],
