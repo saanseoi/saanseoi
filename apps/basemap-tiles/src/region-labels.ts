@@ -184,6 +184,10 @@ export function filterInsideRegionLabels(
     const features: VectorTileFeature[] = []
     for (let index = 0; index < layer.length; index++) {
       const feature = layer.feature(index)
+      // The label-only source must not duplicate generated earth/water fills:
+      // they have no label attributes, but can be large polygons for a regional
+      // tileset and otherwise make MapLibre decode them a second time.
+      if (feature.properties['saanseoi:base'] === true) continue
       if (!featureBelongsToRegion(feature, boundary, z, x, y)) continue
       feature.properties = {
         ...feature.properties,

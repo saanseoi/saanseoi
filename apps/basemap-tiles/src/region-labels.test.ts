@@ -85,3 +85,44 @@ test('keeps only label features whose anchor is within the requested boundary', 
     'saanseoi:inside_region': true,
   })
 })
+
+test('omits generated base polygons from the label-only tile source', () => {
+  const inside = tilePoint(113.944, 22.495)
+  const [pointX, pointY] = inside.point
+  if (pointX === undefined || pointY === undefined) {
+    throw new Error('Expected a tile point coordinate.')
+  }
+  const source = vectorTilePbf.fromGeojsonVt(
+    {
+      earth: {
+        features: [
+          {
+            type: 3,
+            geometry: [
+              inside.point,
+              [pointX + 10, pointY],
+              [pointX + 10, pointY + 10],
+              inside.point,
+            ],
+            tags: { kind: 'earth', 'saanseoi:base': true },
+          },
+        ],
+      },
+    },
+    { extent: EXTENT, version: 2 },
+  )
+  const sourceData = new ArrayBuffer(source.byteLength)
+  new Uint8Array(sourceData).set(source)
+  const filtered = filterInsideRegionLabels(
+    sourceData,
+    HONG_KONG_BOUNDARY,
+    ZOOM,
+    inside.x,
+    inside.y,
+    VectorTile,
+    PbfReader,
+    vectorTilePbf.fromVectorTileJs,
+  )
+  const result = new VectorTile(new PbfReader(filtered))
+  assert.equal(result.layers.earth, undefined)
+})
