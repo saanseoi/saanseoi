@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createAccessToken } from '@repo/auth'
-import { getAllowedOrigin, isUnmeteredOrigin, type OriginAccessConfig } from './access'
+import {
+  applyAccessHeaders,
+  getAllowedOrigin,
+  isUnmeteredOrigin,
+  type OriginAccessConfig,
+} from './access'
 import { authenticateTileRequest } from './token-access'
 
 const config: OriginAccessConfig = {
@@ -29,6 +34,18 @@ test('rejects malformed and lookalike origins', () => {
   assert.equal(getAllowedOrigin('not an origin', config), '')
   assert.equal(getAllowedOrigin('https://saanseoi.hk.example', config), '')
   assert.equal(getAllowedOrigin(null, config), '')
+})
+
+test('exposes Resource Timing only to an allowed origin', () => {
+  const allowed = applyAccessHeaders(new Headers(), 'https://maps.saanseoi.hk')
+  assert.equal(allowed.get('access-control-allow-origin'), 'https://maps.saanseoi.hk')
+  assert.equal(allowed.get('timing-allow-origin'), 'https://maps.saanseoi.hk')
+  assert.equal(allowed.get('vary'), 'Origin')
+
+  const denied = applyAccessHeaders(new Headers(), '')
+  assert.equal(denied.get('access-control-allow-origin'), null)
+  assert.equal(denied.get('timing-allow-origin'), null)
+  assert.equal(denied.get('vary'), 'Origin')
 })
 
 test('only configured first-party origins are unmetered', () => {
