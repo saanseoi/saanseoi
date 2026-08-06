@@ -1049,6 +1049,7 @@ async function renderBasemapPreviews(input: {
       )
     }
   }
+  await purgeTilesHostCache()
   outro(`Rendered ${input.region.name}-${input.version} basemap previews`)
 }
 
@@ -2139,7 +2140,7 @@ async function deleteObject(key: string) {
   ])
 }
 
-/** Invalidate CDN and Worker Cache API entries after retracting an archive. */
+/** Invalidate CDN and Worker Cache API entries after changing tile artefacts. */
 async function purgeTilesHostCache() {
   const token = process.env.CLOUDFLARE_API_TOKEN
   if (!token) {
