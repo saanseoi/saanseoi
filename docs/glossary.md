@@ -1,3 +1,41 @@
+# API
+
+## v1
+
+### EN
+
+An API (application programming interface) is a documented way for software to request
+data or services. SaanSeoi APIs let an application retrieve versioned geospatial data
+with standard web requests.
+
+### ZH-HANT
+
+API（應用程式介面）是讓軟件請求資料或服務的文件化方式。SaanSeoi
+API 讓應用程式可透過標準網絡請求，取得具版本控制的地理空間資料。
+
+### ZH-HANS
+
+API（应用程序接口）是让软件请求数据或服务的文档化方式。SaanSeoi
+API 让应用程序可通过标准网络请求，获取受版本控制的地理空间数据。
+
+# Basemap
+
+## v1
+
+### EN
+
+A basemap is a map layer that provides geographic context, such as coastlines, roads and
+places. SaanSeoi makes its basemaps freely available for use in compatible mapping
+software.
+
+### ZH-HANT
+
+底圖是提供地理背景的地圖圖層，例如海岸線、道路和地點。SaanSeoi 的底圖可免費用於相容的製圖軟件。
+
+### ZH-HANS
+
+底图是提供地理背景的地图图层，例如海岸线、道路和地点。SaanSeoi 的底图可免费用于兼容的制图软件。
+
 # Catalogue
 
 ## v1
