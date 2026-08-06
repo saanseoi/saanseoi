@@ -14,7 +14,6 @@ type TileJsonOptions = {
   origin: string
   name: string
   archiveVersion?: string
-  insideLabelsOnly: boolean
 }
 
 export const getTileJson = async ({
@@ -22,7 +21,6 @@ export const getTileJson = async ({
   origin,
   name,
   archiveVersion,
-  insideLabelsOnly,
 }: TileJsonOptions): Promise<TileJson> => {
   const tileJson = await pmtiles.getTileJson(`${origin}/${name}`)
   if (!isTileJson(tileJson)) throw new Error('PMTiles returned invalid TileJSON')
@@ -36,12 +34,5 @@ export const getTileJson = async ({
     )
   }
   tileJson['saanseoi:boundary'] = `${origin}/${name}.boundary.geojson`
-  if (insideLabelsOnly) {
-    tileJson.tiles = tileJson.tiles.map(tileUrl => {
-      const delimiter = tileUrl.includes('?') ? '&' : '?'
-      return `${tileUrl}${delimiter}labels=inside`
-    })
-    tileJson['saanseoi:label-filter'] = 'inside-region'
-  }
   return tileJson
 }

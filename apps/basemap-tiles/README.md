@@ -14,8 +14,7 @@ conventions used by this Worker and the release viewer.
 `src/index.ts` coordinates requests only. Its local `src/lib/` modules own distinct
 concerns: `access` applies origin access policy, `cache` handles Worker Cache API
 responses, `catalogue` reads and validates release metadata, `pmtiles` adapts R2 range
-reads, and `tilejson` enriches PMTiles metadata. `region-labels` remains responsible for
-the geographic label filter.
+reads, and `tilejson` enriches PMTiles metadata.
 
 ## Public API
 
@@ -30,15 +29,11 @@ serves these public resources:
 | `/{region}-{date}.boundary.geojson`, `/{region}-latest.boundary.geojson` | The exact release clipping boundary     |
 | `/{region}-{date}/{z}/{x}/{y}.mvt`                                       | A vector tile from the PMTiles archive  |
 
-Use `?labels=inside` on a TileJSON URL to obtain tile URLs that retain only labels whose
-anchors fall within the release boundary. This is intended for the basemap viewer’s
-boundary mask. It requires MVT tiles and is deliberately short-lived.
-
 Versioned releases are immutable and cached for one year. The moving `-latest` TileJSON,
-its boundary, and label-filtered responses are cached for five minutes. The Worker does
-not cache `404` responses, so a release that appears after a request can become
-available immediately. A forced `-latest` rebuild versions the TileJSON’s tile URLs with
-the archive ETag, avoiding mixed tiles from old and new archive contents.
+and its boundary are cached for five minutes. The Worker does not cache `404` responses,
+so a release that appears after a request can become available immediately. A forced
+`-latest` rebuild versions the TileJSON’s tile URLs with the archive ETag, avoiding
+mixed tiles from old and new archive contents.
 
 Release manifests are deliberately public and do not require a token. They are safe,
 immutable provenance records intended for diagnostic reports; all other tile-service

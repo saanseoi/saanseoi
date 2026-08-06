@@ -22,6 +22,10 @@ sole styling contract for an earth/sea outline, so consumers must not derive tha
 outline from polygon edges. All generated base features expose `saanseoi:base: true`;
 coastline features also expose `kind: "coastline"`.
 
+The same exact clip applies to labels and all ordinary source geometry. A published
+regional PMTiles archive is therefore self-contained: viewers render it from one tile
+source and use the published boundary GeoJSON only for the outside-region mask.
+
 Historic source-backed releases are regenerated only from their matching archived
 GeoFabrik PBF. A history rewrite fails before publication when an archived regional
 input is unavailable. Imported PMTiles archives are retained instead: the generic import
