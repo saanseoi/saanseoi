@@ -17,7 +17,7 @@ export function defaultState(): AppState {
     diffVisibility: { added: true, removed: true },
     theme: 'light',
     locale: 'en',
-    labelClip: true,
+    diagnosticsOpen: false,
     features: { ...DEFAULT_VISIBILITY.features },
     labels: { ...DEFAULT_VISIBILITY.labels },
     camera: null,

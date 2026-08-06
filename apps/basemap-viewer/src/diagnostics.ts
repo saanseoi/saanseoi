@@ -11,7 +11,6 @@ export type ReleaseDiagnostic = {
   minZoom: number | null
   maxZoom: number | null
   vectorLayers: string[]
-  labelClipping: CheckStatus
   boundary: CheckStatus
   archiveSize: number | null
   archiveSha256: string | null
@@ -54,7 +53,6 @@ export const emptyReleaseDiagnostic = (): ReleaseDiagnostic => ({
   minZoom: null,
   maxZoom: null,
   vectorLayers: [],
-  labelClipping: 'unknown',
   boundary: 'unknown',
   archiveSize: null,
   archiveSha256: null,
@@ -77,8 +75,6 @@ export const defaultDiagnostics = (): ViewerDiagnostics => ({
       tileRequests: 0,
       completedLoads: 0,
       failedLoads: 0,
-      normalBasemapRequests: 0,
-      labelOnlyRequests: 0,
       totalTransferBytes: null,
       totalEncodedBodyBytes: null,
       totalDecodedBodyBytes: null,

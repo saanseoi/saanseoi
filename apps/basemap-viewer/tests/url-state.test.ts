@@ -53,10 +53,17 @@ describe('URL state', () => {
     expect(readUrlState('?locale=en', 'light', 'zh-Hant').locale).toBe('en')
   })
 
-  it('allows temporary inspection without label clipping', () => {
-    const state = readUrlState('?labelClip=off')
-    expect(state.labelClip).toBe(false)
-    expect(writeUrlState(state)).toContain('labelClip=off')
+  it('reads the diagnostic panel setting', () => {
+    const state = readUrlState('?diagnostics=true')
+
+    expect(state.diagnosticsOpen).toBe(true)
+    expect(writeUrlState(state)).toContain('diagnostics=true')
+  })
+
+  it('uses closed diagnostics for an invalid setting', () => {
+    const state = readUrlState('?diagnostics=yes')
+
+    expect(state.diagnosticsOpen).toBe(false)
   })
 
   it('ignores invalid parameters', () => {

@@ -88,16 +88,6 @@ function tileLabel(summary: TileWeightSummary): string {
         comparison: comparison && formatNumber(comparison.failedLoads),
       },
       {
-        label: text.tileWeightBasemapRequests,
-        primary: formatNumber(diagnostics.tileWeight.primary.normalBasemapRequests),
-        comparison: comparison && formatNumber(comparison.normalBasemapRequests),
-      },
-      {
-        label: text.tileWeightLabelRequests,
-        primary: formatNumber(diagnostics.tileWeight.primary.labelOnlyRequests),
-        comparison: comparison && formatNumber(comparison.labelOnlyRequests),
-      },
-      {
         label: text.tileWeightTransfer,
         primary: formatBytes(diagnostics.tileWeight.primary.totalTransferBytes),
         comparison: comparison && formatBytes(comparison.totalTransferBytes),

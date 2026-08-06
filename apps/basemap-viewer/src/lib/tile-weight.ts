@@ -1,6 +1,6 @@
 export const DEFAULT_TILE_WEIGHT_SAMPLE_LIMIT = 200
 
-export type BasemapTileSource = 'basemap' | 'basemap-labels'
+export type BasemapTileSource = 'basemap'
 
 export type TileTimingRecord = {
   identity: string
@@ -22,8 +22,6 @@ export type TileWeightSummary = {
   tileRequests: number
   completedLoads: number
   failedLoads: number
-  normalBasemapRequests: number
-  labelOnlyRequests: number
   totalTransferBytes: number | null
   totalEncodedBodyBytes: number | null
   totalDecodedBodyBytes: number | null
@@ -35,7 +33,7 @@ export type TileWeightSummary = {
 }
 
 export interface TileWeightCollection {
-  recordRequest(source: BasemapTileSource): void
+  recordRequest(): void
   recordFailure(): void
   add(record: TileTimingRecord): boolean
   reset(): void
@@ -111,14 +109,10 @@ export function createTileWeightCollection(
   const identities = new Set<string>()
   let tileRequests = 0
   let failedLoads = 0
-  let normalBasemapRequests = 0
-  let labelOnlyRequests = 0
 
   return {
-    recordRequest(source) {
+    recordRequest() {
       tileRequests += 1
-      if (source === 'basemap') normalBasemapRequests += 1
-      else labelOnlyRequests += 1
     },
     recordFailure() {
       failedLoads += 1
@@ -135,16 +129,12 @@ export function createTileWeightCollection(
       identities.clear()
       tileRequests = 0
       failedLoads = 0
-      normalBasemapRequests = 0
-      labelOnlyRequests = 0
     },
     summary() {
       return {
         tileRequests,
         completedLoads: records.length,
         failedLoads,
-        normalBasemapRequests,
-        labelOnlyRequests,
         totalTransferBytes: total(records, 'transferBytes'),
         totalEncodedBodyBytes: total(records, 'encodedBodyBytes'),
         totalDecodedBodyBytes: total(records, 'decodedBodyBytes'),

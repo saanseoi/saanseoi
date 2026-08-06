@@ -45,6 +45,12 @@ function parseNumber(
     : null
 }
 
+function parseBoolean(value: string | null, fallback: boolean): boolean {
+  if (value === 'true') return true
+  if (value === 'false') return false
+  return fallback
+}
+
 function parseCamera(params: URLSearchParams): CameraState | null {
   const lng = parseNumber(params.get('lng'), -180, 180)
   const lat = parseNumber(params.get('lat'), -90, 90)
@@ -92,7 +98,6 @@ export function readUrlState(
     : locale === null
       ? preferredLocale
       : 'en'
-  state.labelClip = params.get('labelClip') !== 'off'
   state.features = parseSet<FeatureKey>(
     params.get('features'),
     FEATURE_KEYS,
@@ -103,6 +108,7 @@ export function readUrlState(
     LABEL_KEYS,
     DEFAULT_VISIBILITY.labels,
   )
+  state.diagnosticsOpen = parseBoolean(params.get('diagnostics'), false)
   state.camera = parseCamera(params)
   return state
 }
@@ -126,9 +132,9 @@ export function writeUrlState(state: AppState): string {
   if (state.comparisonMode !== 'split') params.set('compareMode', state.comparisonMode)
   params.set('theme', state.theme)
   params.set('locale', state.locale)
-  if (!state.labelClip) params.set('labelClip', 'off')
   params.set('features', selected(FEATURE_KEYS, state.features))
   params.set('labels', selected(LABEL_KEYS, state.labels))
+  params.set('diagnostics', String(state.diagnosticsOpen))
   if (state.camera) {
     params.set('lng', format(state.camera.lng, 5))
     params.set('lat', format(state.camera.lat, 5))
