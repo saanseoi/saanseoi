@@ -93,10 +93,10 @@ export type ApiRelease = {
   primaryRecordCount?: number | null
 }
 
-export type BasemapSchemaVersion = `pm-basemap-layers-v${number}`
+export type BasemapSchemaVersion = `protomaps-v4.${number}`
 
 export const CURRENT_BASEMAP_SCHEMA_VERSION =
-  'pm-basemap-layers-v4' satisfies BasemapSchemaVersion
+  'protomaps-v4.0' satisfies BasemapSchemaVersion
 
 export type BasemapRelease = {
   apiFamily: 'basemaps'
