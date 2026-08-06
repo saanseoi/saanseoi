@@ -156,12 +156,6 @@ export function tilejsonUrl(
   return `${tileOrigin.replace(/\/$/, '')}/${tilesetName}.json`
 }
 
-export function insideLabelsTilejsonUrl(tilejson: string): string {
-  const url = new URL(tilejson)
-  url.searchParams.set('labels', 'inside')
-  return url.toString()
-}
-
 export async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
   const response = await fetch(url, { signal, headers: { Accept: 'application/json' } })
   if (!response.ok) throw new Error(`Request failed (${response.status}).`)

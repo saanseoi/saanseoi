@@ -1,7 +1,4 @@
 import { TileType } from 'pmtiles'
-import { PbfReader } from 'pbf'
-import { VectorTile } from '@mapbox/vector-tile'
-import vectorTilePbf from 'vt-pbf'
 import {
   boundary_name,
   boundary_path,
@@ -14,11 +11,10 @@ import {
 import { getAllowedOrigin } from './lib/access'
 import { authenticateTileRequest } from './lib/token-access'
 import { ResponseCache, DYNAMIC_CACHE_CONTROL } from './lib/cache'
-import { getRegionBoundary, getRegionsIndex } from './lib/catalogue'
+import { getRegionsIndex } from './lib/catalogue'
 import { KeyNotFoundError } from './lib/errors'
 import { openPmtiles } from './lib/pmtiles'
 import { getTileJson } from './lib/tilejson'
-import { filterInsideRegionLabels } from './region-labels'
 
 type Env = CloudflareBindings
 
@@ -84,7 +80,6 @@ export default {
       })
     }
 
-    const insideLabelsOnly = url.searchParams.get('labels') === 'inside'
     const latestRequest =
       (boundaryName ?? name).endsWith('-latest') || Boolean(renderRequest?.latest)
     const responseCache = new ResponseCache({
@@ -206,14 +201,11 @@ export default {
               origin,
               name,
               archiveVersion,
-              insideLabelsOnly,
             }),
           ),
           headers,
           200,
-          insideLabelsOnly || name.endsWith('-latest')
-            ? DYNAMIC_CACHE_CONTROL
-            : undefined,
+          name.endsWith('-latest') ? DYNAMIC_CACHE_CONTROL : undefined,
         )
       }
 
@@ -235,38 +227,11 @@ export default {
       }
 
       const tileData = await pmtiles.getZxy(tile[0], tile[1], tile[2])
-      const boundaryKey = insideLabelsOnly
-        ? boundary_path(name, regions.regions)
-        : undefined
-      if (insideLabelsOnly && !boundaryKey) {
-        return responseCache.response('Boundary not found', headers, 404)
-      }
-
       const contentType = tileContentType(header.tileType)
       if (contentType) headers.set('Content-Type', contentType)
       if (!tileData) return responseCache.response(undefined, headers, 204)
 
-      let data = tileData.data
-      if (insideLabelsOnly && header.tileType === TileType.Mvt) {
-        if (!boundaryKey)
-          return responseCache.response('Boundary not found', headers, 404)
-        data = filterInsideRegionLabels(
-          tileData.data,
-          await getRegionBoundary(env, boundaryKey),
-          tile[0],
-          tile[1],
-          tile[2],
-          VectorTile,
-          PbfReader,
-          vectorTilePbf.fromVectorTileJs,
-        )
-      }
-      return responseCache.response(
-        data,
-        headers,
-        200,
-        insideLabelsOnly ? DYNAMIC_CACHE_CONTROL : undefined,
-      )
+      return responseCache.response(tileData.data, headers, 200)
     } catch (error) {
       if (error instanceof KeyNotFoundError) {
         return responseCache.response('Archive not found', headers, 404)

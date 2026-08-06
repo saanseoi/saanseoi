@@ -28,9 +28,8 @@ Every tileset is clipped to its exact OSM administrative boundary during tile
 generation. The command resolves and dissolves the region relations into one GeoJSON
 footprint, then passes it to Protomaps with `--clip-buffer=0`. Consequently, vector-tile
 features outside the boundary are absent from the PMTiles archive rather than merely
-hidden by the viewer. Labels whose anchors fall within the boundary remain intact;
-labels outside it are omitted. The boundary relation identifiers and exact-buffer policy
-are included in the release manifest.
+hidden by the viewer. The boundary relation identifiers and exact-buffer policy are
+included in the release manifest.
 
 The same resolved footprint is published as a versioned GeoJSON boundary artefact beside
 each archive. The `-latest` boundary pointer advances with `-latest.pmtiles`. Consumers
