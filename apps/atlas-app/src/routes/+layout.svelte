@@ -7,6 +7,7 @@ let { children, data } = $props()
 </script>
 
 <svelte:head>
+  <title>山水 | SaanSeoi</title>
   <link rel="icon" href={favicon}>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
