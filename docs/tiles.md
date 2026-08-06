@@ -25,11 +25,11 @@ Macao release already exists for the current HKT date, a normal refresh leaves i
 place instead of rebuilding it.
 
 Every tileset is clipped to its exact OSM administrative boundary during tile
-generation. The command resolves and dissolves the region relations into one GeoJSON
-footprint, then passes it to Protomaps with `--clip-buffer=0`. Consequently, vector-tile
-features outside the boundary are absent from the PMTiles archive rather than merely
-hidden by the viewer. The boundary relation identifiers and exact-buffer policy are
-included in the release manifest.
+generation. The command resolves and dissolves the region relations from its archived
+GeoFabrik PBF into one GeoJSON footprint, then passes it to Protomaps with
+`--clip-buffer=0`. Consequently, vector-tile features outside the boundary are absent
+from the PMTiles archive rather than merely hidden by the viewer. The boundary relation
+identifiers and exact-buffer policy are included in the release manifest.
 
 The same resolved footprint is published as a versioned GeoJSON boundary artefact beside
 each archive. The `-latest` boundary pointer advances with `-latest.pmtiles`. Consumers
@@ -38,35 +38,35 @@ including external map features.
 
 During the build, the exact regional OSM PBF that Planetiler consumes is also filtered
 for `natural=coastline` ways. The resolved footprint closes those lines only while
-constructing land and water faces; it is never emitted as coastline geometry. Land is
-the face on the left of each directed OSM coastline, and the complementary faces become
-regional water. These are emitted into the PMTiles archive itself as its `earth` and
-`water` layers, before tiling. This keeps source dates aligned and avoids tile-edge
-outlines without requiring a special viewer-side overlay.
+constructing land and water faces. Land is the face on the left of each directed OSM
+coastline, and the complementary faces become regional water. These are emitted into the
+PMTiles archive itself as standard Protomaps `earth` and `water` polygons, before
+tiling.
 
-The archive also exposes a `coastline` line layer. It contains only original OSM
-`natural=coastline` linework inside the regional footprint: no footprint or vector-tile
-edges, and no enclosed inland-water outlines. It is the layer consumers should use for a
-styled earth boundary; outlining `earth` or `water` polygons will also outline their
-vector-tile clipping edges.
+Original coastline lines are also emitted in the standard `water` layer as `LineString`
+features with `kind: "coastline"`. The optional landward segments that complete a
+region's outline are emitted in the standard `boundaries` layer with `kind: "region"`,
+`kind_detail: 4`, and `saanseoi:region_border: true`. Consumers can combine those two
+feature sets to draw a complete regional outline without deriving lines from
+tile-clipped polygon edges. Neither layer includes temporary footprint construction
+geometry.
 
-SaanSeoi-generated base geography carries `saanseoi:base: true`. The stable coastline
-contract is source layer `coastline`, `LineString` geometry, and `kind: "coastline"`.
-Consumers should select that layer directly; the marker identifies SaanSeoi's generated
-base features rather than a styling category.
+SaanSeoi-generated base geography carries `saanseoi:base: true`. This is a processing
+marker; consumers should use the standard layer names and `kind` values above.
 
-The GBA archive is not a bounding box and is not a Guangdong basemap. The command
-downloads GeoFabrik's Guangdong extract once, uses the eleven OSM administrative
-relations for Guangzhou, Shenzhen, Zhuhai, Foshan, Huizhou, Dongguan, Zhongshan,
-Jiangmen, Zhaoqing, Hong Kong, and Macao to construct an Osmium polygon, then extracts
-their complete ways into the local `gba.osm.pbf` source Planetiler consumes. The final
-tile-generation clip removes any geometry retained solely to complete an OSM way.
+The GBA archive is not a bounding box and is not a Guangdong basemap. For each refresh,
+the command downloads one GeoFabrik Guangdong PBF, archives it privately in the
+`ss-basemap-sources` R2 bucket, and resolves the eleven OSM administrative relations for
+Guangzhou, Shenzhen, Zhuhai, Foshan, Huizhou, Dongguan, Zhongshan, Jiangmen, Zhaoqing,
+Hong Kong, and Macao directly from that PBF. It derives the GBA, Hong Kong, and Macao
+complete-way inputs from that single source snapshot. The final tile-generation clip
+removes any geometry retained solely to complete an OSM way.
 
 The same prepared GBA export supplies the complete OSM relation context for Macao's
-`regional_border` layer. Macao's dedicated GeoFabrik extract omits some adjoining Zhuhai
-ways referenced by its administrative relation; the GBA export retains them. The layer
-is intersected with Macao's exact boundary before publication, so this context never
-adds mainland geometry to the Macao tileset.
+landward `boundaries` features. Macao's dedicated GeoFabrik extract omits some adjoining
+Zhuhai ways referenced by its administrative relation; the GBA export retains them. The
+linework is intersected with Macao's exact boundary before publication, so this context
+never adds mainland geometry to the Macao tileset.
 
 `osmium` must be installed and available on `PATH` for a GBA refresh:
 
@@ -97,8 +97,8 @@ different purposes:
 - `tiles:import` publishes a supplied, prebuilt historic PMTiles archive at a fixed
   date. It never changes `-latest` and does not claim to have regenerated its layers.
 - `tiles:rebuild --all` replaces source-backed releases after a generator-contract
-  change, using their date-matched archived GeoFabrik PBFs. It retains imported archives
-  because they have a separate upstream build provenance.
+  change, using their date-matched archived GeoFabrik Guangdong PBF. It retains imported
+  archives because they have a separate upstream build provenance.
 
 ```
 basemap/{regionCode}/{regionName}-{YYYY-MM-DD}.pmtiles
@@ -148,9 +148,9 @@ updates the version indexes:
 saanseoi tiles:refresh --region hk --force
 ```
 
-`--force` does not download the existing archive from R2. It reuses the local regional
-PBF (downloading it only when absent), derives the source-local base layers, and
-generates a new PMTiles archive with Planetiler.
+`--force` does not download the existing archive from R2. It reuses the date-named input
+for that release, derives the source-local base layers, and generates a new PMTiles
+archive with Planetiler.
 
 ## Pre-release history rewrite
 
@@ -164,13 +164,14 @@ saanseoi tiles:rebuild --all --rewrite-history
 
 The dry run reads each regional version catalogue and prints every archive that would be
 replaced or retained. `--rewrite-history` is intentionally required for the write
-operation. Before it replaces anything, it requires one locally archived GeoFabrik PBF
-for every source-backed regional release under
-`.local/tiles/historical/sources/{YYYY-MM-DD}/`; otherwise it fails without publishing a
-partial rewrite. It rebuilds each eligible release from that archived input, replaces
-its PMTiles, manifest, and previews, and refreshes a region's `-latest` pointer only
-when rebuilding the release it already identified as latest. Imported releases are
-retained.
+operation. Before it replaces anything, it restores the date-matched Guangdong PBF from
+the private `ss-basemap-sources` R2 bucket. Existing local archives under
+`.local/tiles/historical/sources/{YYYY-MM-DD}/` remain a migration fallback. If an old
+GBA extract cannot resolve its boundary relations, the rebuild may reuse the release's
+published boundary only after verifying its hash against the original release manifest.
+It rebuilds each eligible release from the archived input, replaces its PMTiles,
+manifest, and previews, and refreshes a region's `-latest` pointer only when rebuilding
+the release it already identified as latest. Imported releases are retained.
 
 Macao's historic rebuild also requires the matching archived `gba.osm.pbf`, because it
 uses that complete GBA export to resolve Macao's cross-boundary administrative relation
@@ -198,15 +199,17 @@ An already-built PMTiles file can be imported without rerunning Planetiler:
 saanseoi tiles:import \
   --region hk \
   --date 2025-04-25 \
-  --file /path/to/basemap_hongkong-2025-04-25.pmtiles
+  --file /path/to/basemap_hongkong-2025-04-25.pmtiles \
+  --boundary /path/to/hongkong-2025-04-25.boundary.geojson
 ```
 
-Import manifests mark the source as an imported local archive, since the original build
-commits and command are not available. Importing does not add SaanSeoi's generated
-`earth`, `water`, `coastline`, or `regional_border` layers to the supplied archive.
-Those layers must be generated from the release's matching historic GeoFabrik PBF and
-packaged with the imported source in a separate, source-aware build; `tiles:rebuild`
-will not substitute another date or replace an import with a current OSM extract.
+Imports require the corresponding release boundary; they never resolve a current OSM
+relation. Import manifests mark the source as an imported local archive, since the
+original build commits and command are not available. Importing does not add SaanSeoi's
+generated `earth`, `water`, or `boundaries` features to the supplied archive. Those
+layers must be generated from the release's matching historic GeoFabrik PBF and packaged
+with the imported source in a separate, source-aware build; `tiles:rebuild` will not
+substitute another date or replace an import with a current OSM extract.
 
 To retract an incorrectly published dated release, remove its archive, boundary,
 manifest, version-catalogue entry, and cached public URLs together:

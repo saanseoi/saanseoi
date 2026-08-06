@@ -11,23 +11,28 @@ The build filters the exact regional OpenStreetMap PBF used by Planetiler for
 construction geometry to close faces, derives complementary water, and emits the
 following generated vector layers before tile clipping:
 
-| Layer       | Geometry | Semantics                                                |
-| ----------- | -------- | -------------------------------------------------------- |
-| `earth`     | polygon  | Regional land coverage                                   |
-| `water`     | polygon  | Regional water coverage                                  |
-| `coastline` | line     | Original OSM sea, harbour, and island coastline linework |
+| Layer        | Geometry | Semantics                                                  |
+| ------------ | -------- | ---------------------------------------------------------- |
+| `earth`      | polygon  | Regional land coverage                                     |
+| `water`      | polygon  | Regional water coverage                                    |
+| `water`      | line     | Original coastline linework (`kind: "coastline"`)          |
+| `boundaries` | line     | Landward regional outline (`saanseoi:region_border: true`) |
 
-`coastline` excludes construction edges and enclosed inland-water boundaries. It is the
-sole styling contract for an earth/sea outline, so consumers must not derive that
-outline from polygon edges. All generated base features expose `saanseoi:base: true`;
-coastline features also expose `kind: "coastline"`.
+The coastline and boundary features exclude construction edges and enclosed inland-water
+boundaries. Together they are the styling contract for a complete regional outline, so
+consumers must not derive it from polygon edges. All generated base features expose
+`saanseoi:base: true`.
 
 The same exact clip applies to labels and all ordinary source geometry. A published
 regional PMTiles archive is therefore self-contained: viewers render it from one tile
 source and use the published boundary GeoJSON only for the outside-region mask.
 
-Historic source-backed releases are regenerated only from their matching archived
-GeoFabrik PBF. A history rewrite fails before publication when an archived regional
-input is unavailable. Imported PMTiles archives are retained instead: the generic import
-operation does not embed this generated geography, so an import needs a source-aware
-build with its matching historic PBF before it can carry the same coastline contract.
+Historic source-backed releases are regenerated from their matching archived GeoFabrik
+Guangdong PBF. The source is retained privately in R2 and supplies the locally resolved
+GBA, Hong Kong, and Macao clipping boundaries. A history rewrite fails before
+publication when an archived input is unavailable, except that an old GBA extract may
+reuse its hash-verified published boundary when its relation members cannot be resolved.
+Imported PMTiles archives are retained instead: the generic import operation does not
+embed this generated geography, so an import needs a matching boundary and a
+source-aware build with its matching historic PBF before it can carry the same coastline
+contract.
