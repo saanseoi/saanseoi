@@ -10,7 +10,8 @@ import { runUpdateCommand } from './lib/commands/update.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
 import { runInitialisationCommand } from './lib/commands/init.ts'
 import {
-  runTilesBackfillCommand,
+  runTilesImportCommand,
+  runTilesRebuildCommand,
   runTilesRetractCommand,
   runTilesRenderCommand,
   runTilesRefreshCommand,
@@ -109,8 +110,11 @@ async function main() {
     case 'tiles:refresh':
       await runTilesRefreshCommand(args, printUsage)
       return
-    case 'tiles:backfill':
-      await runTilesBackfillCommand(args, printUsage)
+    case 'tiles:import':
+      await runTilesImportCommand(args, printUsage)
+      return
+    case 'tiles:rebuild':
+      await runTilesRebuildCommand(args, printUsage)
       return
     case 'tiles:retract':
       await runTilesRetractCommand(args, printUsage)
