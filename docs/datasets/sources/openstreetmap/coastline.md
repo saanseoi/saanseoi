@@ -7,19 +7,18 @@ GeoFabrik OpenStreetMap PBF that Planetiler uses for the PMTiles archive. This k
 base geography tied to the release input rather than to a separately updated global
 land-polygon download.
 
-Hong Kong and Macao use their respective GeoFabrik regional extracts. The Greater Bay
-Area first extracts its administrative footprint from the Guangdong PBF with Osmium's
-`complete_ways` strategy, then uses that resulting PBF for both Planetiler and coastline
-processing. The prepared GBA PBF also provides Macao's administrative-boundary context:
-Macao's own extract excludes some adjoining Zhuhai ways referenced by relation
-`1867188`. The generator resolves that complete relation graph from the GBA export, then
-intersects the linework with the Macao footprint before publication.
+The generator downloads and archives one GeoFabrik Guangdong PBF for each release date.
+It resolves every GBA, Hong Kong, and Macao administrative relation directly from that
+same PBF, then uses Osmium's `complete_ways` strategy to prepare each regional input for
+Planetiler and coastline processing. The complete source also provides Macao's
+administrative-boundary context, including adjoining Zhuhai ways referenced by relation
+`1867188`, before that linework is intersected with the Macao footprint.
 
 When rebuilding a historic source-backed release, the generator uses only its
-date-matched archived GeoFabrik PBF. It refuses to substitute a current extract for a
-missing historic input. A prebuilt imported PMTiles archive is retained by a history
-rewrite; importing it alone cannot add these layers, because the source PBF is still
-needed to construct them.
+date-matched archived GeoFabrik Guangdong PBF from the private `ss-basemap-sources` R2
+bucket. It refuses to substitute a current extract for a missing historic input. A
+prebuilt imported PMTiles archive is retained by a history rewrite; importing it alone
+cannot add these layers, because the source PBF is still needed to construct them.
 
 ## Regional processing
 
@@ -30,14 +29,15 @@ crossing is noded and the footprint's outer face is preserved. OSM's directed co
 convention identifies land as the face to the left of each line; the remaining footprint
 faces are water.
 
-The temporary closure boundary is never published. The `coastline` vector layer contains
-only source coastline lines, so it excludes vector-tile edges and enclosed inland-water
-boundaries. Generated `earth`, `water`, and `coastline` features carry
-`saanseoi:base: true`; coastline features also expose `kind: "coastline"`. See the
-[basemap family contract](../../families/basemap.md).
+The temporary closure boundary is never published. Source coastline lines are emitted in
+the standard `water` vector layer as `kind: "coastline"`, so they exclude vector-tile
+edges and enclosed inland-water boundaries. Generated features carry
+`saanseoi:base: true`. See the [basemap family contract](../../families/basemap.md).
 
-The optional `regional_border` layer is emitted only when the dated PBF includes the
-administrative relation members needed to distinguish landward from maritime boundary
-segments. Its absence never changes the generated earth, water, or coastline geometry.
-Historic Macao processing uses the date-matched archived GBA PBF for the same relation
-context; it does not substitute a current source.
+When the dated PBF includes the administrative relation members needed to distinguish
+landward from maritime segments, the landward segments are emitted in the standard
+`boundaries` layer as `kind: "region"`, `kind_detail: 4`, and
+`saanseoi:region_border: true`. Consumers can combine them with `water/kind=coastline`
+to identify a region's complete outline. Their absence never changes generated earth,
+water, or coastline geometry. Historic Macao processing uses the date-matched archived
+GBA PBF for the same relation context; it does not substitute a current source.
