@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import type { SymbolLayerSpecification } from '@maplibre/maplibre-gl-style-spec'
+import type {
+  LineLayerSpecification,
+  SymbolLayerSpecification,
+} from '@maplibre/maplibre-gl-style-spec'
 import {
   applyVisibility,
+  createPostcardStyle,
   createStyle,
   earthColor,
   firstTextSymbolLayerId,
   labelExpression,
+  postcardPalette,
   waterColor,
 } from '../src/lib/style'
 import { defaultState } from '../src/lib/ctx/app'
@@ -42,6 +47,82 @@ describe('basemap style', () => {
       filter: ['==', 'kind', 'coastline'],
       minzoom: 6,
     })
+  })
+
+  it('builds a regional, geometry-only postcard style', () => {
+    const { style } = createPostcardStyle(
+      'https://tiles.example/hongkong-latest.json',
+      'hk',
+    )
+    const layerIds = style.layers.map(layer => layer.id)
+    expect(postcardPalette('hk')).toEqual({
+      accent: '#C83D3D',
+      coast: '#D99393',
+      road: '#E7A3A3',
+    })
+    expect(layerIds).toEqual(
+      expect.arrayContaining([
+        'earth',
+        'landuse_park',
+        'water',
+        'water_coastline',
+        'roads_major',
+        'roads_highway',
+      ]),
+    )
+    expect(layerIds.some(id => id.includes('label') || id === 'pois-point')).toBe(false)
+    expect(style.layers.find(layer => layer.id === 'earth')?.paint).toMatchObject({
+      'fill-color': '#F6ECD8',
+    })
+    expect(style.layers.find(layer => layer.id === 'water')?.paint).toMatchObject({
+      'fill-color': '#D7E6E4',
+    })
+    expect(
+      style.layers.find(layer => layer.id === 'water_coastline')?.paint,
+    ).toMatchObject({ 'line-color': '#D99393', 'line-opacity': 0.72 })
+    expect(style.layers.find(layer => layer.id === 'roads_major')?.paint).toMatchObject(
+      {
+        'line-color': '#E7A3A3',
+      },
+    )
+  })
+
+  it('reduces Macao road widths while preserving their zoom interpolation', () => {
+    const { style } = createPostcardStyle(
+      'https://tiles.example/macau-latest.json',
+      'mo',
+    )
+    const roadsMajor = style.layers.find(
+      (layer): layer is LineLayerSpecification =>
+        layer.id === 'roads_major' && layer.type === 'line',
+    )
+    expect(roadsMajor?.paint?.['line-width']).toEqual([
+      'interpolate',
+      ['exponential', 1.6],
+      ['zoom'],
+      6,
+      0,
+      12,
+      0.992,
+      15,
+      1.8599999999999999,
+      18,
+      8.06,
+    ])
+  })
+
+  it('uses the regional accent colour for illuminated postcard roads', () => {
+    const { style } = createPostcardStyle(
+      'https://tiles.example/hongkong-latest.json',
+      'hk',
+      undefined,
+      true,
+    )
+    const roadsMajor = style.layers.find(
+      (layer): layer is LineLayerSpecification =>
+        layer.id === 'roads_major' && layer.type === 'line',
+    )
+    expect(roadsMajor?.paint?.['line-color']).toBe('#C83D3D')
   })
 
   it('keeps repeated road-direction arrows below the boundary mask insertion point', () => {

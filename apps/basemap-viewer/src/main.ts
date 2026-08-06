@@ -18,8 +18,10 @@ import {
   BASEMAP_SOURCE_ID,
   applyLocale,
   applyVisibility,
+  createPostcardStyle,
   createStyle,
   firstTextSymbolLayerId,
+  postcardPalette,
   type LayerGroups,
 } from './lib/style'
 import {
@@ -64,6 +66,21 @@ const TILE_ORIGIN = import.meta.env.VITE_TILE_ORIGIN ?? 'https://tiles.saanseoi.
 const GLYPH_URL = import.meta.env.VITE_GLYPH_URL
 const HEADLESS_MODE =
   new URLSearchParams(window.location.search).get('headless') === 'true'
+const POSTCARD_RENDER_MODE = new URLSearchParams(window.location.search).get('render')
+const POSTCARD_RENDERING =
+  HEADLESS_MODE &&
+  (POSTCARD_RENDER_MODE === 'postcard' || POSTCARD_RENDER_MODE === 'postcard-lit')
+const POSTCARD_ILLUMINATED =
+  POSTCARD_RENDERING && POSTCARD_RENDER_MODE === 'postcard-lit'
+const POSTCARD_BOUNDS = {
+  gba: [112.4, 21.6, 115.2, 23.5],
+  hk: [113.82, 22.14, 114.48, 22.58],
+  mo: [113.48, 22.1, 113.62, 22.25],
+} as const
+const POSTCARD_BEARING = { gba: 0, hk: 0, mo: 90 } as const
+const POSTCARD_OFFSET = { gba: [-240, -160], hk: [-60, 70], mo: [80, -80] } as const
+const POSTCARD_ZOOM = { gba: 0.14, hk: 0, mo: 0.7 } as const
+
 const DEFAULT_REGION_CODE = 'hk'
 const BOUNDARY_MASK_SOURCE_ID = 'region-boundary-mask'
 const BOUNDARY_MASK_LAYER_ID = 'region-boundary-mask-fill'
@@ -535,7 +552,7 @@ async function loadComparison(region: Region, version: string): Promise<void> {
 
 async function createMap(tilejsonUrl: string): Promise<void> {
   resetTileWeight('primary')
-  const generated = createStyle(tilejsonUrl, GLYPH_URL, state.theme)
+  const generated = createMapStyle(tilejsonUrl)
   groups = generated.groups
   const camera = state.camera
   const createdMap = new maplibregl.Map({
@@ -571,7 +588,11 @@ async function createMap(tilejsonUrl: string): Promise<void> {
     createdMap.once('load', resolve)
     createdMap.once('error', event => reject(event.error))
   })
-  await waitForSource(createdMap, BASEMAP_SOURCE_ID)
+  // A close postcard crop can keep requesting vector tiles past the screenshot
+  // deadline. The headless postcard path waits briefly before capture instead,
+  // so its visible tiles have time to settle without requiring every source
+  // request to complete.
+  if (!POSTCARD_RENDERING) await waitForSource(createdMap, BASEMAP_SOURCE_ID)
   updateAttribution(createdMap, true)
 }
 
@@ -585,7 +606,7 @@ async function createComparisonMap(
   // the previous display:none size leaves the map with a zero-sized viewport
   // and no visible tiles.
   await new Promise<void>(resolve => window.requestAnimationFrame(() => resolve()))
-  const generated = createStyle(tilejsonUrl, GLYPH_URL, state.theme)
+  const generated = createMapStyle(tilejsonUrl)
   comparisonGroups = generated.groups
   const primary = map
   const createdMap = new maplibregl.Map({
@@ -1016,6 +1037,7 @@ function applyBoundaryPresentation(
   for (const sourceId of [BOUNDARY_SOURCE_ID, BOUNDARY_MASK_SOURCE_ID]) {
     if (target.getSource(sourceId)) target.removeSource(sourceId)
   }
+  if (POSTCARD_RENDERING) return
   if (!boundary) return
 
   target.addSource(BOUNDARY_SOURCE_ID, { type: 'geojson', data: boundary })
@@ -1050,15 +1072,28 @@ function applyBoundaryPresentation(
 }
 
 function boundaryMaskColor(theme: AppState['theme']): string {
+  if (POSTCARD_RENDERING) return '#F8F2E6'
   if (theme === 'dark') return '#14181a'
   if (theme === 'midnight') return '#020617'
   return '#e7edf1'
 }
 
 function boundaryLineColor(theme: AppState['theme']): string {
+  if (POSTCARD_RENDERING) return postcardPalette(state.regionCode).accent
   if (theme === 'dark') return '#536169'
   if (theme === 'midnight') return '#6beaf5'
   return '#82929a'
+}
+
+function createMapStyle(tilejsonUrl: string) {
+  return POSTCARD_RENDERING
+    ? createPostcardStyle(
+        tilejsonUrl,
+        state.regionCode,
+        GLYPH_URL,
+        POSTCARD_ILLUMINATED,
+      )
+    : createStyle(tilejsonUrl, GLYPH_URL, state.theme)
 }
 
 function changeLocale(locale: AppState['locale']): void {
@@ -1079,7 +1114,7 @@ async function changeTheme(theme: AppState['theme']): Promise<void> {
 
   controls.setEnabled(false)
   setStatus(`Applying ${theme} theme…`)
-  const generated = createStyle(currentTilejsonUrl, GLYPH_URL, theme)
+  const generated = createMapStyle(currentTilejsonUrl)
   groups = generated.groups
   try {
     resetTileWeight('primary')
@@ -1134,17 +1169,20 @@ function changeLabel(key: keyof AppState['labels'], enabled: boolean): void {
 
 function fitCurrentBounds(duration = 250): void {
   if (!map) return
-  if (!currentBounds) {
+  const bounds = postcardBounds() ?? currentBounds
+  if (!bounds) {
     showWarning('This tileset has no valid bounds; the current camera was retained.')
     return
   }
   const mobile =
     !HEADLESS_MODE && window.innerWidth <= (state.comparisonVersion ? 894 : 720)
-  const padding = HEADLESS_MODE
-    ? { top: 24, right: 24, bottom: 24, left: 24 }
-    : mobile
+  const padding = POSTCARD_RENDERING
+    ? postcardPadding()
+    : HEADLESS_MODE
       ? { top: 24, right: 24, bottom: 24, left: 24 }
-      : { top: 88, right: 32, bottom: 32, left: 32 }
+      : mobile
+        ? { top: 24, right: 24, bottom: 24, left: 24 }
+        : { top: 88, right: 32, bottom: 32, left: 32 }
   const fitVertically = () => {
     if (!map || !currentBounds) return
     const southWest = map.project([currentBounds[0], currentBounds[1]])
@@ -1160,7 +1198,11 @@ function fitCurrentBounds(duration = 250): void {
 
   if (mobile && duration > 0)
     map.once('moveend', () => window.requestAnimationFrame(fitVertically))
-  map.fitBounds(currentBounds, { padding, duration })
+  map.fitBounds(bounds, { bearing: postcardBearing(), padding, duration })
+  const offset = postcardOffset()
+  if (offset[0] !== 0 || offset[1] !== 0) map.panBy(offset, { duration: 0 })
+  const zoom = postcardZoom()
+  if (zoom !== 0) map.zoomTo(map.getZoom() + zoom, { duration: 0 })
   if (mobile && duration === 0)
     window.requestAnimationFrame(() => {
       map?.resize()
@@ -1168,14 +1210,52 @@ function fitCurrentBounds(duration = 250): void {
     })
 }
 
+function postcardBounds(): [number, number, number, number] | null {
+  if (!POSTCARD_RENDERING) return null
+  const bounds = state.regionCode
+    ? POSTCARD_BOUNDS[state.regionCode as keyof typeof POSTCARD_BOUNDS]
+    : undefined
+  return bounds ? [...bounds] : null
+}
+
+function postcardBearing(): number {
+  if (!POSTCARD_RENDERING || !state.regionCode) return 0
+  return POSTCARD_BEARING[state.regionCode as keyof typeof POSTCARD_BEARING] ?? 0
+}
+
+function postcardPadding() {
+  if (state.regionCode === 'gba') return { top: 48, right: 48, bottom: 48, left: 48 }
+  return { top: 0, right: 0, bottom: 0, left: 0 }
+}
+
+function postcardOffset(): [number, number] {
+  if (!POSTCARD_RENDERING || !state.regionCode) return [0, 0]
+  const offset = POSTCARD_OFFSET[state.regionCode as keyof typeof POSTCARD_OFFSET]
+  return offset ? [...offset] : [0, 0]
+}
+
+function postcardZoom(): number {
+  if (!POSTCARD_RENDERING || !state.regionCode) return 0
+  return POSTCARD_ZOOM[state.regionCode as keyof typeof POSTCARD_ZOOM] ?? 0
+}
+
 async function markHeadlessReady(): Promise<void> {
   if (!map) return
-  if (!(map.loaded() && map.areTilesLoaded())) {
+  if (POSTCARD_RENDERING) {
+    await Promise.race([
+      new Promise<void>(resolve => map?.once('idle', () => resolve())),
+      new Promise<void>(resolve => window.setTimeout(resolve, 8_000)),
+    ])
+  } else if (!(map.loaded() && map.areTilesLoaded())) {
     await new Promise<void>(resolve => map?.once('idle', () => resolve()))
   }
   await new Promise<void>(resolve =>
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve())),
   )
+  signalHeadlessReady()
+}
+
+function signalHeadlessReady(): void {
   if (document.querySelector('#basemap-render-ready')) return
   const signal = document.createElement('span')
   signal.id = 'basemap-render-ready'

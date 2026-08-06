@@ -1,6 +1,7 @@
-import { DARK, layers, namedFlavor, type Flavor } from '@protomaps/basemaps'
+import { DARK, LIGHT, layers, namedFlavor, type Flavor } from '@protomaps/basemaps'
 import type {
   ExpressionSpecification,
+  LineLayerSpecification,
   LayerSpecification,
   StyleSpecification,
   SymbolLayerSpecification,
@@ -16,6 +17,38 @@ const CJK_FONT_NAME = 'KlokanTech Noto Sans CJK Regular'
 const CJK_FONT = [CJK_FONT_NAME]
 const MIDNIGHT_LABEL_COLOR = '#F8FAFC'
 const MIDNIGHT_LABEL_HALO = '#020617'
+
+type PostcardPalette = {
+  accent: string
+  coast: string
+  road: string
+}
+
+const POSTCARD_PALETTES = {
+  hk: { accent: '#C83D3D', coast: '#D99393', road: '#E7A3A3' },
+  mo: { accent: '#00856A', coast: '#72B4A4', road: '#85C9B8' },
+  gba: { accent: '#287FA3', coast: '#8DB8CA', road: '#82B4CD' },
+} as const satisfies Record<string, PostcardPalette>
+
+const POSTCARD_LAYER_IDS = new Set([
+  'background',
+  'earth',
+  'landcover',
+  'water',
+  'water_stream',
+  'water_river',
+  'boundaries_country',
+  'roads_major_casing_late',
+  'roads_highway_casing_late',
+  'roads_major_casing_early',
+  'roads_major',
+  'roads_highway_casing_early',
+  'roads_highway',
+  'roads_bridges_major_casing',
+  'roads_bridges_major',
+  'roads_bridges_highway_casing',
+  'roads_bridges_highway',
+])
 
 const MIDNIGHT_FLAVOR: Flavor = {
   ...DARK,
@@ -98,6 +131,16 @@ const MIDNIGHT_FLAVOR: Flavor = {
 }
 
 export type LayerGroups = Record<FeatureKey | LabelKey, string[]>
+
+/** The regional palette used by the renderer-only basemap postcards. */
+export function postcardPalette(
+  regionCode: string | null | undefined,
+): PostcardPalette {
+  return (
+    POSTCARD_PALETTES[regionCode as keyof typeof POSTCARD_PALETTES] ??
+    POSTCARD_PALETTES.gba
+  )
+}
 
 export function labelExpression(locale: Locale): ExpressionSpecification {
   return ['coalesce', ['get', `name:${locale}`], ['get', 'name']]
@@ -270,6 +313,134 @@ export function createStyle(
   }
 }
 
+function postcardFlavor(palette: PostcardPalette, illuminated: boolean): Flavor {
+  return {
+    ...LIGHT,
+    // Keep the sea calm and slightly darker than the paper-toned land so the
+    // regional coastline remains legible without becoming conventional map blue.
+    background: '#D7E6E4',
+    earth: '#F6ECD8',
+    park_a: '#F0E3C8',
+    park_b: '#EBDABD',
+    hospital: '#F2E5CE',
+    industrial: '#EDE0C7',
+    school: '#F1E4CC',
+    wood_a: '#F0E3C8',
+    wood_b: '#EAD9B8',
+    scrub_a: '#F0E3C8',
+    scrub_b: '#EAD9B8',
+    glacier: '#F6ECD8',
+    sand: '#F5EAD3',
+    beach: '#F7EEDC',
+    aerodrome: '#EFE2CA',
+    runway: '#F3E8D2',
+    water: '#D7E6E4',
+    zoo: '#EEE1C8',
+    military: '#EDE0C7',
+    major_casing_late: '#F6ECD8',
+    highway_casing_late: '#F6ECD8',
+    major_casing_early: '#F6ECD8',
+    highway_casing_early: '#F6ECD8',
+    major: illuminated ? palette.accent : palette.road,
+    highway: illuminated ? palette.accent : palette.road,
+    bridges_major_casing: '#F6ECD8',
+    bridges_highway_casing: '#F6ECD8',
+    bridges_major: illuminated ? palette.accent : palette.road,
+    bridges_highway: illuminated ? palette.accent : palette.road,
+    boundaries: palette.coast,
+    landcover: {
+      grassland: '#F0E3C8',
+      barren: '#F7EEDC',
+      urban_area: '#F1E4CC',
+      farmland: '#EEDFC3',
+      glacier: '#F6ECD8',
+      scrub: '#EFE1C8',
+      forest: '#EAD9B8',
+    },
+  }
+}
+
+function isPostcardLayer(layer: LayerSpecification): boolean {
+  return POSTCARD_LAYER_IDS.has(layer.id) || layer.id.startsWith('landuse_')
+}
+
+/**
+ * A deliberately sparse style used only to render regional postcard artefacts.
+ * It keeps regional land, water, road, and boundary geometry while omitting
+ * labels and local detail so the regional form carries the image.
+ */
+export function createPostcardStyle(
+  tilejsonUrl: string,
+  regionCode: string | null | undefined,
+  glyphs = GLYPH_URL,
+  illuminated = false,
+): { style: StyleSpecification; groups: LayerGroups } {
+  const palette = postcardPalette(regionCode)
+  const flavor = postcardFlavor(palette, illuminated)
+  const styleLayers = addRegionalCoastlineLayer(
+    layers(BASEMAP_SOURCE_ID, flavor, { lang: 'name' }).filter(isPostcardLayer),
+    flavor,
+  )
+  for (const layer of styleLayers) {
+    if (layer.id === 'water_coastline') {
+      layer.paint = {
+        'line-color': palette.coast,
+        'line-opacity': 0.72,
+        'line-width': 0.7,
+      }
+    }
+  }
+  softenMacaoRoads(styleLayers, regionCode)
+  return {
+    style: {
+      version: 8,
+      glyphs,
+      sources: {
+        [BASEMAP_SOURCE_ID]: {
+          type: 'vector',
+          url: tilejsonUrl,
+          attribution: BASEMAP_ATTRIBUTION,
+        },
+      },
+      layers: styleLayers,
+    },
+    groups: groupedLayers(styleLayers),
+  }
+}
+
+function softenMacaoRoads(
+  styleLayers: LayerSpecification[],
+  regionCode: string | null | undefined,
+): void {
+  if (regionCode !== 'mo') return
+  for (const layer of styleLayers) {
+    if (layer.type !== 'line' || !layer.id.startsWith('roads_')) continue
+    const line = layer as LineLayerSpecification
+    const width = line.paint?.['line-width']
+    if (!width) continue
+    line.paint = {
+      ...line.paint,
+      'line-opacity': 0.68,
+      'line-width': scaleLineWidth(width),
+    }
+  }
+}
+
+function scaleLineWidth(
+  width: NonNullable<NonNullable<LineLayerSpecification['paint']>['line-width']>,
+): NonNullable<NonNullable<LineLayerSpecification['paint']>['line-width']> {
+  if (typeof width === 'number') return width * 0.62
+  // MapLibre only permits `zoom` as the input of a top-level interpolate or
+  // step expression. Scale the output stops rather than wrapping the curve in
+  // a multiplication expression, which would invalidate the style.
+  if (Array.isArray(width) && width[0] === 'interpolate') {
+    return width.map((value, index) =>
+      index >= 4 && index % 2 === 0 && typeof value === 'number' ? value * 0.62 : value,
+    ) as ExpressionSpecification
+  }
+  return width
+}
+
 export function applyVisibility(
   setVisibility: (layerId: string, visibility: 'visible' | 'none') => void,
   groups: LayerGroups,
@@ -295,7 +466,8 @@ export function applyVisibility(
       setVisibility(layerId, visible(state.features.roads && state.labels.roads))
     }
   }
-  setVisibility('pois-label', visible(state.features.pois && state.labels.pois))
+  if (groups.pois.includes('pois-label'))
+    setVisibility('pois-label', visible(state.features.pois && state.labels.pois))
 }
 
 export function applyLocale(
@@ -309,5 +481,5 @@ export function applyLocale(
   for (const layerId of groups.roads) {
     if (layerId.startsWith('roads_labels')) setTextField(layerId, expression)
   }
-  setTextField('pois-label', expression)
+  if (groups.pois.includes('pois-label')) setTextField('pois-label', expression)
 }
