@@ -35,6 +35,18 @@ export type MarkdownGlossaryEntry = MarkdownTransclusion & {
 type ReferenceMessageKey = Extract<MessageKey, `reference_${string}`>
 
 const markdownReferences: Record<string, MarkdownReferenceSource> = {
+  api: {
+    title: 'API',
+    displayTitleKey: 'reference_api',
+    glossary: true,
+    source: glossary,
+  },
+  basemap: {
+    title: 'Basemap',
+    displayTitleKey: 'reference_basemap',
+    glossary: true,
+    source: glossary,
+  },
   'overture-division-locale-normalisation': {
     title: 'locale',
     displayTitleKey: 'reference_locale_normalisation',

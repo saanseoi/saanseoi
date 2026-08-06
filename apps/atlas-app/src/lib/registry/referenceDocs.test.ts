@@ -13,6 +13,14 @@ test('resolves glossary definitions in the requested locale', () => {
   expect(transclusion?.type).toBe('definition')
 })
 
+test('resolves API and basemap glossary definitions', () => {
+  const api = getMarkdownTransclusion('saanseoi:en:definition/api/v1')
+  const basemap = getMarkdownTransclusion('saanseoi:en:definition/basemap/v1')
+
+  expect(api?.markdown).toContain('application programming interface')
+  expect(basemap?.markdown).toContain('map layer')
+})
+
 test('lists glossary definitions alphabetically without contextual notes', () => {
   const entries = getMarkdownGlossaryEntries('en')
 
