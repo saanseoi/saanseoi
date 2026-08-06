@@ -1,5 +1,6 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
+import { Tooltip } from 'bits-ui'
 import { onMount } from 'svelte'
 
 import * as CardDeck from '$lib/bits/components/cardDeck'
@@ -17,11 +18,19 @@ import { Main } from '$lib/bits'
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import { apiFamilyThemes } from '$lib/registry/apiFamilyTheme'
 import { getDataPageData, getDataReleasesPageData } from '$lib/registry/meta.remote'
+import {
+  getMarkdownTransclusion,
+  getMarkdownTransclusionDisplayTitle,
+} from '$lib/registry/referenceDocs'
 import BasemapPostcard from '$lib/bits/components/card/variants/cardBasemapPostcard.svelte'
 
 const data = await getDataPageData()
 let releases = $state(data.releases)
 let locale = $derived(getCurrentLocale())
+const definitionHref = (id: 'api' | 'basemap') =>
+  `saanseoi:${locale.toLowerCase()}:definition/${id}/v1`
+let apiDefinition = $derived(getMarkdownTransclusion(definitionHref('api')))
+let basemapDefinition = $derived(getMarkdownTransclusion(definitionHref('basemap')))
 let activeApiIndex = $state<number | null>(null)
 let apiDeckOrder = $state<number[]>([0, 1, 2, 3, 4])
 let apiSwipeState = $state({
@@ -53,11 +62,48 @@ let nextReleaseOffset = $state(data.nextOffset)
 const apiFamilyOrder = ['stats', 'divisions', 'addresses', 'places', 'streets'] as const
 const atlasDocsUrl = '/docs'
 const pendingApiFamilies = new Set(['stats', 'places', 'streets'])
+const latestBasemapVersion = (code: 'gba' | 'hk' | 'mo') =>
+  data.basemapReleases.find(
+    release => release.regionCode === code && release.displayStatus === 'current',
+  )?.version ??
+  data.basemapReleases.find(release => release.regionCode === code)?.version ??
+  'latest'
 const basemapDirectory = [
-  { code: 'hk', name: 'Hong Kong', tileset: 'hongkong' },
-  { code: 'mo', name: 'Macao', tileset: 'macau' },
-  { code: 'gba', name: 'Greater Bay Area', tileset: 'gba' },
+  {
+    code: 'hk',
+    name: 'Hong Kong',
+    tileset: 'hongkong',
+    version: latestBasemapVersion('hk'),
+  },
+  {
+    code: 'gba',
+    name: 'Greater Bay Area',
+    tileset: 'gba',
+    version: latestBasemapVersion('gba'),
+  },
+  {
+    code: 'mo',
+    name: 'Macao',
+    tileset: 'macau',
+    version: latestBasemapVersion('mo'),
+  },
 ] as const
+let activeBasemapCode = $state<(typeof basemapDirectory)[number]['code'] | null>(null)
+let basemapFlipDirection = $state<1 | -1>(1)
+let suppressBasemapClick = false
+let basemapDragState = $state({
+  pointerId: null as number | null,
+  startX: 0,
+  startY: 0,
+  deltaX: 0,
+  deltaY: 0,
+  hasMoved: false,
+  isDragging: false,
+  isThrowing: false,
+  throwPhase: null as 'launch' | 'flight' | 'settle' | null,
+  draggedCode: null as (typeof basemapDirectory)[number]['code'] | null,
+  throwingCode: null as (typeof basemapDirectory)[number]['code'] | null,
+})
 const registryBackground = `linear-gradient(color-mix(in srgb, var(--background) 88%, transparent), color-mix(in srgb, var(--background) 88%, transparent)), url("data:image/svg+xml,%3Csvg width='120' height='96' viewBox='0 0 120 96' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 18c24 0 36 10 60 10s36-10 60-10M0 42c24 0 36 10 60 10s36-10 60-10M0 66c24 0 36 10 60 10s36-10 60-10M0 90c24 0 36 10 60 10s36-10 60-10' fill='none' stroke='%238e9192' stroke-width='0.7' opacity='0.14'/%3E%3C/svg%3E")`
 
 onMount(() => {
@@ -190,6 +236,7 @@ const handleViewportResize = () => {
   }
   isApiMobileStack = nextIsApiMobileStack
   resetApiSwipeState()
+  resetBasemapDragState()
   if (window.innerWidth <= 900) activeApiIndex = null
 }
 
@@ -359,6 +406,146 @@ const apiCardClass = (apiIndex: number, orderIndex: number) => {
       : ''
   return `absolute top-16 left-0 z-1 flex h-112 w-[min(18rem,26vw)] cursor-grab flex-col justify-between overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--api-card-foreground)_24%,transparent)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--api-accent)_88%,white),var(--api-accent))] p-5 text-left text-(--api-card-foreground) select-none shadow-mini transition-[top,left,width,transform,border-color,height,opacity,box-shadow] duration-500 hover:border-[color-mix(in_srgb,var(--api-card-foreground)_58%,transparent)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--api-card-foreground)_18%,transparent),var(--shadow-mini)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_58%,transparent)] focus-visible:outline-none focus-visible:shadow-[0_0_0_1px_color-mix(in_srgb,var(--api-card-foreground)_18%,transparent),var(--shadow-mini)] active:cursor-grabbing dark:bg-[linear-gradient(180deg,color-mix(in_srgb,var(--api-accent)_72%,black),color-mix(in_srgb,var(--api-accent)_86%,black))] max-[900px]:top-5 max-[900px]:left-1/2 max-[900px]:h-124 max-[900px]:w-[min(20rem,calc(100vw-4rem))] max-[900px]:justify-start max-[900px]:p-5 max-[900px]:origin-center max-[900px]:touch-none ${desktopClass} ${desktopDragClass} ${mobileDeckPositions[mobilePosition] ?? ''} ${apiSwipeState.isDragging && apiSwipeState.dragMode === 'mobile' && orderIndex === 0 ? 'max-[900px]:transition-[border-color,box-shadow]' : ''}`
 }
+
+const activateBasemap = (code: (typeof basemapDirectory)[number]['code']) => {
+  if (suppressBasemapClick) {
+    suppressBasemapClick = false
+    return
+  }
+  if (basemapDragState.isThrowing) return
+  if (activeBasemapCode !== code) {
+    basemapFlipDirection = code === 'gba' ? -1 : 1
+  }
+  activeBasemapCode = activeBasemapCode === code ? null : code
+}
+
+const resetBasemapDragState = () => {
+  basemapDragState = {
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    deltaX: 0,
+    deltaY: 0,
+    hasMoved: false,
+    isDragging: false,
+    isThrowing: false,
+    throwPhase: null,
+    draggedCode: null,
+    throwingCode: null,
+  }
+}
+
+const handleBasemapPointerDown = (
+  event: PointerEvent,
+  code: (typeof basemapDirectory)[number]['code'],
+) => {
+  ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
+  basemapDragState = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    deltaX: 0,
+    deltaY: 0,
+    hasMoved: false,
+    isDragging: true,
+    isThrowing: false,
+    throwPhase: null,
+    draggedCode: code,
+    throwingCode: null,
+  }
+}
+
+const handleBasemapPointerMove = (event: PointerEvent) => {
+  if (basemapDragState.pointerId !== event.pointerId) return
+  const deltaX = event.clientX - basemapDragState.startX
+  const deltaY = event.clientY - basemapDragState.startY
+  const hasMoved = Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8
+  if (hasMoved && event.cancelable) event.preventDefault()
+  basemapDragState = {
+    ...basemapDragState,
+    deltaX,
+    deltaY,
+    hasMoved,
+  }
+}
+
+const handleBasemapPointerEnd = (event: PointerEvent) => {
+  if (basemapDragState.pointerId !== event.pointerId) return
+  const draggedCode = basemapDragState.draggedCode
+  if (basemapDragState.hasMoved && draggedCode !== null) {
+    suppressBasemapClick = true
+    if (
+      activeBasemapCode === draggedCode &&
+      Math.hypot(basemapDragState.deltaX, basemapDragState.deltaY) >= 96
+    ) {
+      activeBasemapCode = null
+      resetBasemapDragState()
+      return
+    }
+    if (activeBasemapCode === draggedCode) {
+      resetBasemapDragState()
+      return
+    }
+    basemapFlipDirection = basemapDragState.deltaX >= 0 ? 1 : -1
+    activeBasemapCode = draggedCode
+    basemapDragState = {
+      ...basemapDragState,
+      pointerId: null,
+      isDragging: false,
+      isThrowing: true,
+      throwPhase: 'launch',
+      throwingCode: draggedCode,
+    }
+    window.setTimeout(() => {
+      if (
+        basemapDragState.throwingCode !== draggedCode ||
+        basemapDragState.throwPhase !== 'launch'
+      )
+        return
+      basemapDragState = { ...basemapDragState, throwPhase: 'flight' }
+    }, 280)
+    window.setTimeout(() => {
+      if (
+        basemapDragState.throwingCode !== draggedCode ||
+        basemapDragState.throwPhase !== 'flight'
+      )
+        return
+      basemapDragState = { ...basemapDragState, throwPhase: 'settle' }
+    }, 800)
+    window.setTimeout(() => {
+      if (basemapDragState.throwingCode !== draggedCode) return
+      resetBasemapDragState()
+    }, 1_260)
+    return
+  }
+  resetBasemapDragState()
+}
+
+const basemapInactiveIndex = (code: (typeof basemapDirectory)[number]['code']) =>
+  basemapDirectory
+    .filter(region => region.code !== activeBasemapCode)
+    .findIndex(region => region.code === code)
+
+const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
+  const isSelected = activeBasemapCode === code
+  const isShrunk = activeBasemapCode !== null && !isSelected
+  const inactiveIndex = basemapInactiveIndex(code)
+
+  if (isSelected) {
+    return 'relative order-1 w-full min-[901px]:absolute min-[901px]:top-12 min-[901px]:left-1/2 min-[901px]:w-[min(38rem,calc(100%-4rem))]'
+  }
+
+  if (isShrunk) {
+    return `relative order-2 w-[86%] justify-self-center min-[901px]:absolute min-[901px]:top-132 min-[901px]:w-[min(15rem,27%)] ${inactiveIndex === 0 ? 'min-[901px]:left-[calc(50%-14rem)]' : 'min-[901px]:left-[calc(50%-2rem)]'}`
+  }
+
+  const positions = {
+    hk: 'min-[901px]:top-21 min-[901px]:left-[4%]',
+    gba: 'min-[901px]:top-21 min-[901px]:left-[35%]',
+    mo: 'min-[901px]:top-21 min-[901px]:right-[4%]',
+  } as const
+  return `relative w-full min-[901px]:absolute min-[901px]:w-[30%] ${positions[code]}`
+}
 </script>
 
 <svelte:window onresize={handleViewportResize} />
@@ -367,12 +554,69 @@ const apiCardClass = (apiIndex: number, orderIndex: number) => {
   class="mx-auto w-full max-w-(--spacing-container-max) bg-(image:--registry-background) bg-repeat px-6 py-14 md:px-8 md:py-18"
   style={`--registry-background: ${registryBackground};`}
 >
-  <section class="space-y-10">
-    <PageHeader>
-      <PageTitle>{m.data_title()}</PageTitle>
-      <PageDescription>{m.data_description()}</PageDescription>
-    </PageHeader>
-  </section>
+  <Tooltip.Provider delayDuration={200}>
+    <section class="space-y-10">
+      <PageHeader>
+        <PageTitle>{m.data_title()}</PageTitle>
+        <PageDescription>
+          {m.data_description()}
+          {m.data_description_before_apis()}
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              {#snippet child({ props })}
+                <button
+                  {...props}
+                  class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+                  type="button"
+                  aria-label={getMarkdownTransclusionDisplayTitle(apiDefinition, locale)}
+                >
+                  {m.reference_api()}
+                </button>
+              {/snippet}
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content
+                class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+                side="bottom"
+                sideOffset={8}
+                >{apiDefinition?.markdown}</Tooltip.Content
+              >
+            </Tooltip.Portal>
+          </Tooltip.Root>
+          {m.data_description_after_apis()}
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              {#snippet child({ props })}
+                <button
+                  {...props}
+                  class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+                  type="button"
+                  aria-label={getMarkdownTransclusionDisplayTitle(basemapDefinition, locale)}
+                >
+                  {m.reference_basemap()}
+                </button>
+              {/snippet}
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content
+                class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+                side="bottom"
+                sideOffset={8}
+                >{basemapDefinition?.markdown}</Tooltip.Content
+              >
+            </Tooltip.Portal>
+          </Tooltip.Root>
+          {m.data_description_after_basemaps()}
+          <a
+            class="font-semibold text-secondary underline decoration-secondary/45 underline-offset-4 hover:text-primary hover:decoration-primary"
+            href="/create-a-map"
+            >{m.data_create_map()}</a
+          >
+          {m.data_description_after_create_map()}
+        </PageDescription>
+      </PageHeader>
+    </section>
+  </Tooltip.Provider>
 
   <PageSection id="apis">
     <PageSectionHeader>
@@ -493,14 +737,39 @@ const apiCardClass = (apiIndex: number, orderIndex: number) => {
       <PageSectionActions>
         <a
           class="font-body text-label-md font-semibold text-secondary"
-          href="/tiles/get-started"
+          href="/basemaps/get-started"
           >{m.data_get_started()}</a
         >
       </PageSectionActions>
     </PageSectionHeader>
-    <CardDeck.Root class="mt-6 grid gap-12 py-8 md:grid-cols-3">
+    <CardDeck.Root
+      class={`relative mt-6 isolate transition-[height,padding] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${activeBasemapCode === null ? 'pt-16 min-[901px]:h-112' : 'pt-12 min-[901px]:h-184'} max-[900px]:grid max-[900px]:grid-cols-1 max-[900px]:justify-items-center max-[900px]:gap-12 max-[900px]:py-8`}
+    >
       {#each basemapDirectory as region (region.code)}
-        <BasemapPostcard {...region} />
+        <div class="contents">
+          <BasemapPostcard
+            {...region}
+            isSelected={activeBasemapCode === region.code}
+            isShrunk={activeBasemapCode !== null && activeBasemapCode !== region.code}
+            shrunkIndex={activeBasemapCode !== null && activeBasemapCode !== region.code
+              ? basemapInactiveIndex(region.code)
+              : null}
+            isDragging={basemapDragState.isDragging && basemapDragState.draggedCode === region.code}
+            isThrowing={basemapDragState.isThrowing && basemapDragState.throwingCode === region.code}
+            throwPhase={basemapDragState.throwingCode === region.code
+              ? basemapDragState.throwPhase
+              : null}
+            dragX={basemapDragState.draggedCode === region.code ? basemapDragState.deltaX : 0}
+            dragY={basemapDragState.draggedCode === region.code ? basemapDragState.deltaY : 0}
+            flipDirection={basemapFlipDirection}
+            layoutClass={basemapCardClass(region.code)}
+            onactivate={() => activateBasemap(region.code)}
+            onpointerdown={event => handleBasemapPointerDown(event, region.code)}
+            onpointermove={handleBasemapPointerMove}
+            onpointerup={handleBasemapPointerEnd}
+            onpointercancel={handleBasemapPointerEnd}
+          />
+        </div>
       {/each}
     </CardDeck.Root>
   </PageSection>
