@@ -188,6 +188,10 @@ This still preflights all three date-matched archived inputs before it replaces 
 release. `--promote-latest` is required to move all three `-latest` pointers; omit it
 when the rebuilt date should remain historic.
 
+A date-specific rebuild only replaces releases already published for the requested
+region and date; it never creates a missing release. Imported releases are retained,
+even when an archived source exists for the same date.
+
 For a single region, replace `--all` with `--region gba`, `--region hk`, or
 `--region mo`. A date-specific rebuild always requires `--rewrite-history` to write.
 

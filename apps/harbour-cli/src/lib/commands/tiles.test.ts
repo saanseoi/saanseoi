@@ -1,6 +1,28 @@
 import { describe, expect, test } from 'bun:test'
 
-import { boundariesToClipGeoJson, boundariesToOsmiumPolygon } from './tiles.ts'
+import {
+  boundariesToClipGeoJson,
+  boundariesToOsmiumPolygon,
+  historicalBorderSourceRequired,
+  polygoniseCoastlineFeatures,
+} from './tiles.ts'
+
+describe('historicalBorderSourceRequired', () => {
+  test('requires the companion GBA archive for a Macao-only historical source', () => {
+    expect(
+      historicalBorderSourceRequired('mo', '/archives/2026-08-01/macau-260801.osm.pbf'),
+    ).toBe(true)
+  })
+
+  test('uses a Guangdong archive as Macao’s complete border context', () => {
+    expect(
+      historicalBorderSourceRequired(
+        'mo',
+        '/archives/2026-08-01/guangdong-260801.osm.pbf',
+      ),
+    ).toBe(false)
+  })
+})
 
 describe('boundariesToOsmiumPolygon', () => {
   test('preserves outer rings and marks interior rings as holes', () => {
@@ -98,5 +120,56 @@ describe('boundariesToClipGeoJson', () => {
         ],
       },
     })
+  })
+})
+
+describe('polygoniseCoastlineFeatures', () => {
+  test('cuts island land out of the enclosing water face', () => {
+    const result = polygoniseCoastlineFeatures(
+      [
+        {
+          geometry: {
+            type: 'LineString',
+            // OSM coastline direction puts the island land on the left.
+            coordinates: [
+              [2, 2],
+              [8, 2],
+              [8, 8],
+              [2, 8],
+              [2, 2],
+            ],
+          },
+        },
+      ],
+      {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [0, 0],
+              [10, 0],
+              [10, 10],
+              [0, 10],
+              [0, 0],
+            ],
+          ],
+        },
+      },
+    )
+
+    expect(result.land.features).toHaveLength(1)
+    expect(result.water.features).toHaveLength(1)
+    const waterGeometry = result.water.features[0]?.geometry
+    if (!waterGeometry) {
+      throw new Error('Expected the water feature to have a geometry')
+    }
+
+    expect(waterGeometry).toEqual({
+      type: 'Polygon',
+      coordinates: expect.any(Array),
+    })
+    expect((waterGeometry as { coordinates: unknown[][] }).coordinates).toHaveLength(2)
   })
 })

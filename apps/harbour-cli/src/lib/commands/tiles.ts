@@ -1,15 +1,31 @@
 import { createHash } from 'node:crypto'
 import { existsSync } from 'node:fs'
-import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises'
+import {
+  copyFile,
+  mkdir,
+  readdir,
+  readFile,
+  rename,
+  stat,
+  writeFile,
+} from 'node:fs/promises'
 import { basename, resolve } from 'node:path'
 
 import { note, outro } from '@clack/prompts'
+import ArrayList from 'jsts/java/util/ArrayList.js'
+import Coordinate from 'jsts/org/locationtech/jts/geom/Coordinate.js'
+import Envelope from 'jsts/org/locationtech/jts/geom/Envelope.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import type Geometry from 'jsts/org/locationtech/jts/geom/Geometry.js'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
+import STRtree from 'jsts/org/locationtech/jts/index/strtree/STRtree.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
-import UnionOp from 'jsts/org/locationtech/jts/operation/union/UnionOp.js'
+import PointLocator from 'jsts/org/locationtech/jts/algorithm/PointLocator.js'
+import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
+import Polygonizer from 'jsts/org/locationtech/jts/operation/polygonize/Polygonizer.js'
+import UnionOp from 'jsts/org/locationtech/jts/operation/union/UnionOp.js'
+import UnaryUnionOp from 'jsts/org/locationtech/jts/operation/union/UnaryUnionOp.js'
 
 import { hktReleaseDate } from '@repo/basemap'
 
@@ -20,7 +36,9 @@ const TILES_ROOT = resolve(REPO_ROOT, '.local/tiles')
 const REPOSITORIES_ROOT = resolve(TILES_ROOT, 'repositories')
 const OUTPUT_ROOT = resolve(TILES_ROOT, 'data')
 const SOURCES_ROOT = resolve(TILES_ROOT, 'sources')
+const HISTORICAL_SOURCES_ROOT = resolve(TILES_ROOT, 'historical', 'sources')
 const BUCKET = 'ss-pmtiles'
+const SOURCE_BUCKET = 'ss-basemap-sources'
 const CLOUDFLARE_ACCOUNT_ID = 'a6eeace4b6d9f8e07ab307964e74d801'
 const WRANGLER = resolve(REPO_ROOT, 'node_modules/.bin/wrangler')
 const PREFIX = 'basemap'
@@ -31,12 +49,6 @@ const SAANSEOI_REPOSITORY = 'https://github.com/saanseoi/saanseoi.git'
 const GUANGDONG_EXTRACT_URL =
   'https://download.geofabrik.de/asia/china/guangdong-latest.osm.pbf'
 const GBA_SOURCE_NAME = 'gba'
-const LAND_POLYGONS_URL =
-  'https://osmdata.openstreetmap.de/download/land-polygons-split-3857.zip'
-const LAND_POLYGONS_ARCHIVE = 'land-polygons-split-3857.zip'
-const LAND_POLYGONS_SHAPEFILE =
-  '/vsizip//sources/land-polygons-split-3857.zip/land-polygons-split-3857/land_polygons.shp'
-const GDAL_IMAGE = 'ghcr.io/osgeo/gdal:ubuntu-small-latest'
 const REGIONAL_COASTLINE_PATCH = resolve(
   import.meta.dir,
   'protomaps-regional-coastline.patch',
@@ -60,8 +72,7 @@ const REGIONS = {
   gba: {
     name: 'gba',
     area: GBA_SOURCE_NAME,
-    description:
-      'Greater Bay Area (nine Guangdong municipalities, Hong Kong, and Macao)',
+    description: 'Greater Bay Area',
   },
   hk: { name: 'hongkong', area: 'hong kong', description: 'Hong Kong' },
   mo: { name: 'macau', area: 'macau', description: 'Macao' },
@@ -69,11 +80,55 @@ const REGIONS = {
 
 type RegionCode = keyof typeof REGIONS
 type Region = (typeof REGIONS)[RegionCode] & { code: RegionCode }
+const REGION_PROCESSING_ORDER = [
+  'gba',
+  'hk',
+  'mo',
+] as const satisfies readonly RegionCode[]
+type PreparedSource = {
+  path: string
+  planetilerArea: string
+  upstream: string
+  /** Complete OSM context used only to resolve boundary relation members. */
+  borderSourcePath?: string
+  boundaryRelations?: typeof GBA_BOUNDARY_RELATIONS
+  extractionStrategy?: string
+  sourceArchive?: {
+    bucket: typeof SOURCE_BUCKET
+    key: string
+    sha256: string
+    size: number
+    sourceUrl: string
+  }
+}
+type HistoricalSources = {
+  primary: string
+  /** Complete GBA context required by Macao's cross-boundary relation. */
+  border?: string
+}
+type CoastlineGeometry = Geometry & {
+  isEmpty(): boolean
+  getGeometryType(): string
+  getCoordinates(): Array<{ x: number; y: number }>
+  getBoundary(): CoastlineGeometry
+}
 const REGION_BOUNDARY_RELATIONS: Record<RegionCode, readonly number[]> = {
   gba: Object.values(GBA_BOUNDARY_RELATIONS),
   hk: [GBA_BOUNDARY_RELATIONS.hongKong],
   mo: [GBA_BOUNDARY_RELATIONS.macau],
 }
+
+function regionsInProcessingOrder(): Region[] {
+  return REGION_PROCESSING_ORDER.map(code => ({ code, ...REGIONS[code] }))
+}
+
+function regionProcessingIndex(region: RegionCode) {
+  const index = REGION_PROCESSING_ORDER.indexOf(region)
+  if (index === -1) throw new Error(`Unknown tile region: ${region}`)
+  return index
+}
+
+const LEGACY_IMPORTED_RELEASES = new Set(['hk:2025-04-25', 'hk:2026-03-18'])
 type VersionEntry = {
   version: string
   tileset: string
@@ -105,28 +160,22 @@ type VersionsIndex = {
   regions: Record<string, { name: string; versionsKey: string; latest?: VersionEntry }>
 }
 
-type TilesOperation = 'backfill' | 'refresh'
+type TilesOperation = 'import' | 'rebuild' | 'refresh'
 type PreviewMode = 'light' | 'dark'
 
-type NominatimGeometry =
+type BoundaryGeometry =
   | { type: 'Polygon'; coordinates: number[][][] }
   | { type: 'MultiPolygon'; coordinates: number[][][][] }
 
-export type NominatimBoundary = {
+export type OsmBoundary = {
   osm_id: number
-  geojson: NominatimGeometry
+  geojson: BoundaryGeometry
 }
 
 export async function runTilesRefreshCommand(args: ParsedArgs, printUsage: () => void) {
   const input = resolveTilesInput(args, printUsage, 'refresh')
   const regions =
-    input.region.code === 'gba'
-      ? ([
-          { code: 'gba', ...REGIONS.gba },
-          { code: 'hk', ...REGIONS.hk },
-          { code: 'mo', ...REGIONS.mo },
-        ] satisfies Region[])
-      : [input.region]
+    input.region.code === 'gba' ? regionsInProcessingOrder() : [input.region]
   if (input.region.code === 'gba') await runGbaRefresh(input)
   else await runTilesCommand(input)
   for (const region of regions) {
@@ -143,11 +192,257 @@ export async function runTilesRenderCommand(args: ParsedArgs, printUsage: () => 
   await renderBasemapPreviews(resolveTilesRenderInput(args, printUsage))
 }
 
-export async function runTilesBackfillCommand(
-  args: ParsedArgs,
-  printUsage: () => void,
-) {
-  return runTilesCommand(resolveTilesInput(args, printUsage, 'backfill'))
+export async function runTilesImportCommand(args: ParsedArgs, printUsage: () => void) {
+  return runTilesCommand(resolveTilesInput(args, printUsage, 'import'))
+}
+
+/**
+ * Rebuild every published regional release from the current tile pipeline.
+ *
+ * @param args Parsed command-line arguments.
+ * @param printUsage Prints the CLI usage summary when arguments are invalid.
+ * @returns A promise that resolves after every archive and preview is rebuilt.
+ * @remarks This deliberately replaces immutable pre-release history only when
+ * `--rewrite-history` is supplied. Source-backed releases use their locally archived
+ * GeoFabrik PBF; imported archives are retained and never replaced by this command.
+ */
+export async function runTilesRebuildCommand(args: ParsedArgs, printUsage: () => void) {
+  const input = resolveTilesRebuildInput(args, printUsage)
+  if (input.version) return runTilesDateRebuild(input)
+  const versionsIndex = await readVersionsIndex()
+  const releases = (
+    await Promise.all(
+      REGION_PROCESSING_ORDER.map(async code => {
+        const region = { code, ...REGIONS[code] }
+        const versions = await readRegionVersions(region)
+        return Promise.all(
+          versions.versions.map(async version => {
+            const source = await findHistoricalSource(region, version.version)
+            return {
+              region,
+              version: version.version,
+              source: source.path,
+              sourceError: source.error,
+              imported: await isImportedRelease(region, version.version),
+              promoteLatest:
+                versionsIndex.regions[code]?.latest?.version === version.version,
+            }
+          }),
+        )
+      }),
+    )
+  )
+    .flat()
+    .sort(
+      (left, right) =>
+        right.version.localeCompare(left.version) ||
+        regionProcessingIndex(left.region.code) -
+          regionProcessingIndex(right.region.code),
+    )
+
+  const sourceBackedReleases = releases.filter(
+    release => release.source && !release.imported,
+  )
+  const unavailableReleases = releases.filter(
+    release => !release.source && !release.imported,
+  )
+  if (sourceBackedReleases.length === 0)
+    throw new Error('No published PMTiles releases to rebuild.')
+
+  if (input.dryRun) {
+    note(
+      releases
+        .map(release => {
+          const name = `${release.region.name}-${release.version}`
+          const flags = [
+            release.promoteLatest ? 'latest' : undefined,
+            release.imported
+              ? 'imported; retained'
+              : release.source
+                ? undefined
+                : 'historical source missing; not rebuildable',
+          ].filter(Boolean)
+          return `${release.region.code}: ${name}${flags.length ? ` (${flags.join(', ')})` : ''}`
+        })
+        .join('\n'),
+      'TILES REBUILD DRY RUN',
+    )
+    outro(
+      `Would rebuild ${sourceBackedReleases.length} PMTiles releases; retain ${releases.filter(release => release.imported).length} imported releases; ${unavailableReleases.length} source-backed releases need archived inputs`,
+    )
+    return
+  }
+
+  if (!input.rewriteHistory) {
+    throw new Error('tiles:rebuild requires --rewrite-history outside a dry run.')
+  }
+
+  if (unavailableReleases.length > 0) {
+    throw new Error(
+      [
+        'Historical source archives are missing; nothing has been published:',
+        ...unavailableReleases.map(
+          release =>
+            `${release.region.code} ${release.version}: ${release.sourceError ?? 'unknown source error'}`,
+        ),
+      ].join('\n'),
+    )
+  }
+
+  // Validate the entire source-backed release set before replacing any immutable
+  // object. This prevents a partially rewritten history if an archive is absent.
+  const historicalSources = new Map(
+    sourceBackedReleases.flatMap(release =>
+      release.source
+        ? [[releaseKey(release.region, release.version), release.source] as const]
+        : [],
+    ),
+  )
+
+  for (const release of sourceBackedReleases) {
+    const historicalSource = historicalSources.get(
+      releaseKey(release.region, release.version),
+    )
+    if (!historicalSource) {
+      throw new Error(
+        `Missing preflight source for ${release.region.code} ${release.version}.`,
+      )
+    }
+    await runTilesCommand({
+      region: release.region,
+      version: release.version,
+      operation: 'rebuild',
+      dryRun: false,
+      force: true,
+      file: undefined,
+      boundaryFile: undefined,
+      promoteLatest: release.promoteLatest,
+      historicalSource: historicalSource.primary,
+      historicalBorderSource: historicalSource.border,
+    })
+    await renderBasemapPreviews({
+      region: release.region,
+      version: release.version,
+      modes: ['light', 'dark'],
+      dryRun: false,
+    })
+  }
+
+  outro(
+    `Rebuilt ${sourceBackedReleases.length} PMTiles releases; retained ${releases.filter(release => release.imported).length} imported releases`,
+  )
+}
+
+/** Rebuild one date across all regions from its archived GeoFabrik inputs. */
+async function runTilesDateRebuild(input: ReturnType<typeof resolveTilesRebuildInput>) {
+  const version = input.version
+  if (!version) throw new Error('A date-specific rebuild requires --date YYYY-MM-DD.')
+  const regionCodes = input.region ? [input.region] : REGION_PROCESSING_ORDER
+  const releases = await Promise.all(
+    regionCodes.map(async code => {
+      const region = { code, ...REGIONS[code] }
+      const versions = await readRegionVersions(region)
+      return {
+        region,
+        version,
+        published: versions.versions.some(entry => entry.version === version),
+        imported: await isImportedRelease(region, version),
+      }
+    }),
+  )
+  const missingReleases = releases.filter(release => !release.published)
+  if (missingReleases.length > 0) {
+    throw new Error(
+      [
+        'Cannot rebuild unpublished PMTiles releases:',
+        ...missingReleases.map(release => `${release.region.code} ${release.version}`),
+      ].join('\n'),
+    )
+  }
+  const sourceBackedReleases = releases.filter(release => !release.imported)
+  if (sourceBackedReleases.length === 0)
+    throw new Error('No source-backed PMTiles releases to rebuild.')
+  const historicalSources = new Map<string, HistoricalSources>()
+  const missingSources: string[] = []
+  for (const release of sourceBackedReleases) {
+    const source = await findHistoricalSource(release.region, release.version)
+    if (source.path) {
+      historicalSources.set(releaseKey(release.region, release.version), source.path)
+    } else {
+      missingSources.push(
+        `${release.region.code} ${release.version}: ${source.error ?? 'unknown source error'}`,
+      )
+    }
+  }
+
+  if (input.dryRun) {
+    note(
+      releases
+        .map(release => {
+          const flags = [
+            release.imported ? 'imported; retained' : undefined,
+            input.promoteLatest && !release.imported ? 'promote latest' : undefined,
+          ].filter(Boolean)
+          return `${release.region.code}: ${release.region.name}-${release.version}${flags.length ? ` (${flags.join(', ')})` : ''}`
+        })
+        .join('\n'),
+      'TILES DATE REBUILD DRY RUN',
+    )
+    if (missingSources.length > 0) {
+      throw new Error(
+        ['Historical source archives are missing:', ...missingSources].join('\n'),
+      )
+    }
+    outro(
+      `Would rebuild ${sourceBackedReleases.length} PMTiles releases; retain ${releases.length - sourceBackedReleases.length} imported releases`,
+    )
+    return
+  }
+
+  if (!input.rewriteHistory) {
+    throw new Error('A date-specific tiles:rebuild requires --rewrite-history.')
+  }
+  if (missingSources.length > 0) {
+    throw new Error(
+      [
+        'Historical source archives are missing; nothing has been published:',
+        ...missingSources,
+      ].join('\n'),
+    )
+  }
+
+  for (const release of sourceBackedReleases) {
+    const historicalSource = historicalSources.get(
+      releaseKey(release.region, release.version),
+    )
+    if (!historicalSource) {
+      throw new Error(
+        `Missing preflight source for ${release.region.code} ${release.version}.`,
+      )
+    }
+    await runTilesCommand({
+      region: release.region,
+      version: release.version,
+      operation: 'rebuild',
+      dryRun: false,
+      force: true,
+      file: undefined,
+      boundaryFile: undefined,
+      promoteLatest: input.promoteLatest,
+      historicalSource: historicalSource.primary,
+      historicalBorderSource: historicalSource.border,
+    })
+    await renderBasemapPreviews({
+      region: release.region,
+      version: release.version,
+      modes: ['light', 'dark'],
+      dryRun: false,
+    })
+  }
+
+  outro(
+    `Rebuilt ${sourceBackedReleases.length} PMTiles releases for ${version}; retained ${releases.length - sourceBackedReleases.length} imported releases`,
+  )
 }
 
 /**
@@ -190,6 +485,8 @@ export async function runTilesRetractCommand(args: ParsedArgs, printUsage: () =>
     // Releases published before regional coastlines were embedded expose this
     // legacy, viewer-only artefact too. R2 deletion is idempotent.
     objectKey(input.region.code, `${releaseName}.land.geojson`),
+    objectKey(input.region.code, `${releaseName}-light.webp`),
+    objectKey(input.region.code, `${releaseName}-dark.webp`),
   ]
   for (const key of artefacts) await deleteObject(key)
 
@@ -202,6 +499,12 @@ export async function runTilesRetractCommand(args: ParsedArgs, printUsage: () =>
     )
     await deleteObject(
       objectKey(input.region.code, `${input.region.name}-latest.land.geojson`),
+    )
+    await deleteObject(
+      objectKey(input.region.code, `${input.region.name}-latest-light.webp`),
+    )
+    await deleteObject(
+      objectKey(input.region.code, `${input.region.name}-latest-dark.webp`),
     )
   }
 
@@ -235,7 +538,16 @@ export async function runTilesRetractCommand(args: ParsedArgs, printUsage: () =>
   )
 }
 
-async function runTilesCommand(input: ReturnType<typeof resolveTilesInput>) {
+async function runTilesCommand(
+  input: ReturnType<typeof resolveTilesInput> & {
+    promoteLatest?: boolean
+    historicalSource?: string
+    historicalBorderSource?: string
+  },
+) {
+  const shouldPromoteLatest =
+    input.operation === 'refresh' ||
+    (input.operation === 'rebuild' && input.promoteLatest)
   const outputName = `${input.region.name}-${input.version}.pmtiles`
   const outputPath = resolve(OUTPUT_ROOT, input.region.code, outputName)
 
@@ -246,7 +558,7 @@ async function runTilesCommand(input: ReturnType<typeof resolveTilesInput>) {
         `version: ${input.version}`,
         `source: ${input.file ?? `Planetiler --area=${input.region.area}`}`,
         `archive: ${objectKey(input.region.code, outputName)}`,
-        ...(input.operation === 'refresh'
+        ...(shouldPromoteLatest
           ? [
               `latest: ${objectKey(input.region.code, `${input.region.name}-latest.pmtiles`)}`,
               ...(input.force
@@ -272,20 +584,46 @@ async function runTilesCommand(input: ReturnType<typeof resolveTilesInput>) {
     )
   }
 
-  const prepared = await prepareRegionInputs(input.region)
-  const coastline = await buildRegionalCoastline(
-    input.region,
-    input.version,
-    prepared.clip,
-  )
-  const build = input.file
-    ? { archivePath: input.file, provenance: { type: 'backfill' as const } }
-    : await buildTileset(input.region, outputPath, input.force, prepared, coastline)
+  const prepared =
+    input.operation === 'import'
+      ? undefined
+      : await prepareRegionInputs(
+          input.region,
+          input.version,
+          input.historicalSource,
+          input.historicalBorderSource,
+        )
+  const clip =
+    prepared?.clip ??
+    (await prepareImportedRegionClip(input.region, input.boundaryFile))
+  const coastline = prepared
+    ? await buildRegionalCoastline(input.region, input.version, clip, prepared.source)
+    : undefined
+  let build:
+    | Awaited<ReturnType<typeof buildTileset>>
+    | {
+        archivePath: string
+        provenance: { type: 'import' }
+      }
+  if (input.file) {
+    build = { archivePath: input.file, provenance: { type: 'import' } }
+  } else {
+    if (!prepared || !coastline) {
+      throw new Error('A generated tileset requires source-backed regional inputs.')
+    }
+    build = await buildTileset(
+      input.region,
+      outputPath,
+      input.force,
+      prepared,
+      coastline,
+    )
+  }
   const archivePath = build.archivePath
   const archive = await archiveMetadata(archivePath)
   const boundaryName = `${input.region.name}-${input.version}.boundary.geojson`
   const boundaryPath = resolve(OUTPUT_ROOT, input.region.code, boundaryName)
-  await writeJson(boundaryPath, prepared.clip.geojson)
+  await writeJson(boundaryPath, clip.geojson)
   const boundary = await archiveMetadata(boundaryPath)
   const createdAt = new Date().toISOString()
   const archiveKey = objectKey(input.region.code, outputName)
@@ -315,19 +653,26 @@ async function runTilesCommand(input: ReturnType<typeof resolveTilesInput>) {
       archive: entry,
       boundary: {
         key: objectKey(input.region.code, boundaryName),
-        ...(input.operation === 'refresh' ? { latestKey: latestBoundaryKey } : {}),
+        ...(shouldPromoteLatest ? { latestKey: latestBoundaryKey } : {}),
         sha256: boundary.sha256,
         size: boundary.size,
-        boundaryRelations: prepared.clip.boundaryRelations,
-        clipBuffer: prepared.clip.buffer,
+        boundaryRelations: clip.boundaryRelations,
+        clipBuffer: clip.buffer,
+        source: clip.source,
       },
-      coastline: {
-        source: LAND_POLYGONS_URL,
-        land: coastline.land.metadata,
-        water: coastline.water.metadata,
-        mode: 'embedded PMTiles earth and water layers',
-      },
-      ...(input.operation === 'refresh' ? { latestKey } : {}),
+      ...(coastline
+        ? {
+            coastline: {
+              source: prepared?.source.upstream,
+              land: coastline.land.metadata,
+              water: coastline.water.metadata,
+              line: coastline.line.metadata,
+              ...(coastline.border ? { border: coastline.border.metadata } : {}),
+              mode: 'source-local OSM earth, water, and coastline layers',
+            },
+          }
+        : {}),
+      ...(shouldPromoteLatest ? { latestKey } : {}),
     },
     provenance: build.provenance,
     command: process.argv.slice(2),
@@ -337,7 +682,7 @@ async function runTilesCommand(input: ReturnType<typeof resolveTilesInput>) {
 
   // Releases are immutable by default. --force deliberately rebuilds and replaces
   // the date-versioned archive and manifest before promoting it to latest; a
-  // backfill never changes the current tileset.
+  // import never changes the current tileset.
   await putObject(archiveKey, archivePath, 'application/octet-stream')
   await putObject(
     objectKey(input.region.code, boundaryName),
@@ -345,7 +690,7 @@ async function runTilesCommand(input: ReturnType<typeof resolveTilesInput>) {
     'application/geo+json',
   )
   await putObject(manifestKey, manifestPath, 'application/json')
-  if (input.operation === 'refresh') {
+  if (shouldPromoteLatest) {
     await putObject(latestKey, archivePath, 'application/octet-stream')
     await putObject(latestBoundaryKey, boundaryPath, 'application/geo+json')
   }
@@ -372,7 +717,7 @@ async function runTilesCommand(input: ReturnType<typeof resolveTilesInput>) {
   versionsIndex.regions[input.region.code] = {
     name: input.region.name,
     versionsKey: objectKey(input.region.code, 'versions.json'),
-    ...(input.operation === 'refresh'
+    ...(shouldPromoteLatest
       ? {
           latest: regionVersions.versions.find(
             version => version.version === input.version,
@@ -390,16 +735,14 @@ async function runTilesCommand(input: ReturnType<typeof resolveTilesInput>) {
   outro(
     input.operation === 'refresh'
       ? `Published ${input.region.name}-${input.version} and refreshed ${latestName}`
-      : `Backfilled ${input.region.name}-${input.version}`,
+      : input.operation === 'rebuild'
+        ? `Rebuilt ${input.region.name}-${input.version}`
+        : `Imported ${input.region.name}-${input.version}`,
   )
 }
 
 async function runGbaRefresh(input: ReturnType<typeof resolveTilesInput>) {
-  const regions: Region[] = [
-    { code: 'gba', ...REGIONS.gba },
-    { code: 'hk', ...REGIONS.hk },
-    { code: 'mo', ...REGIONS.mo },
-  ]
+  const regions = regionsInProcessingOrder()
 
   if (input.dryRun) {
     note(
@@ -450,10 +793,12 @@ function resolveTilesInput(
   const regionDefinition = REGIONS[rawRegion as RegionCode]
   const rawDate = typeof args.options.date === 'string' ? args.options.date : undefined
   const rawFile = typeof args.options.file === 'string' ? args.options.file : undefined
-  const version = operation === 'backfill' ? rawDate : today()
+  const rawBoundary =
+    typeof args.options.boundary === 'string' ? args.options.boundary : undefined
+  const version = operation === 'import' ? rawDate : today()
   const allowedOptions =
-    operation === 'backfill'
-      ? ['region', 'date', 'file', 'dry-run']
+    operation === 'import'
+      ? ['region', 'date', 'file', 'boundary', 'dry-run']
       : ['region', 'dry-run', 'force']
   const invalid =
     args.positionals.length > 0 ||
@@ -463,31 +808,88 @@ function resolveTilesInput(
     !regionDefinition ||
     !version ||
     !/^\d{4}-\d{2}-\d{2}$/.test(version) ||
-    (operation === 'backfill' && !rawFile) ||
+    (operation === 'import' && !rawFile) ||
+    (operation === 'import' && !rawBoundary) ||
     invalid
   ) {
     printUsage()
     throw new Error(
-      operation === 'backfill'
-        ? 'tiles:backfill requires --region, --date YYYY-MM-DD, and --file PATH.'
+      operation === 'import'
+        ? 'tiles:import requires --region, --date YYYY-MM-DD, --file PATH, and --boundary PATH.'
         : 'tiles:refresh accepts only --region gba|hk|mo, --dry-run, and --force.',
     )
   }
 
   let file: string | undefined
-  if (operation === 'backfill') {
-    if (!rawFile) throw new Error('tiles:backfill requires --file PATH.')
+  let boundaryFile: string | undefined
+  if (operation === 'import') {
+    if (!rawFile) throw new Error('tiles:import requires --file PATH.')
     file = resolve(process.env.SAANSEOI_INVOCATION_CWD ?? REPO_ROOT, rawFile)
+    if (!rawBoundary) throw new Error('tiles:import requires --boundary PATH.')
+    boundaryFile = resolve(
+      process.env.SAANSEOI_INVOCATION_CWD ?? REPO_ROOT,
+      rawBoundary,
+    )
   }
   if (file && !existsSync(file)) throw new Error(`Tileset file not found: ${file}`)
+  if (boundaryFile && !existsSync(boundaryFile))
+    throw new Error(`Boundary file not found: ${boundaryFile}`)
 
   return {
     region: { code: rawRegion as RegionCode, ...regionDefinition },
     version,
     file,
+    boundaryFile,
     operation,
     dryRun: Boolean(args.options['dry-run']),
     force: operation === 'refresh' && Boolean(args.options.force),
+  }
+}
+
+/** Resolve either an all-history rewrite or an explicit all-region date rebuild. */
+function resolveTilesRebuildInput(args: ParsedArgs, printUsage: () => void) {
+  const rawDate = typeof args.options.date === 'string' ? args.options.date : undefined
+  const rawRegion =
+    typeof args.options.region === 'string' ? args.options.region : undefined
+  const region = rawRegion
+    ? REGIONS[rawRegion as RegionCode]
+      ? (rawRegion as RegionCode)
+      : undefined
+    : undefined
+  const dateRebuild = rawDate !== undefined
+  const invalid =
+    args.positionals.length > 0 ||
+    (!dateRebuild && args.options.all !== true) ||
+    (dateRebuild && args.options.all !== true && !region) ||
+    (dateRebuild && args.options.all === true && region !== undefined) ||
+    (rawRegion !== undefined && !region) ||
+    Object.keys(args.options).some(
+      key =>
+        ![
+          'all',
+          'date',
+          'dry-run',
+          'promote-latest',
+          'region',
+          'rewrite-history',
+        ].includes(key),
+    )
+  if (
+    invalid ||
+    (dateRebuild && !/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) ||
+    (!dateRebuild && args.options['promote-latest'] === true)
+  ) {
+    printUsage()
+    throw new Error(
+      'tiles:rebuild requires --all, or --region gba|hk|mo with --date YYYY-MM-DD; use --promote-latest only for a single-date promotion.',
+    )
+  }
+  return {
+    region,
+    version: rawDate,
+    dryRun: Boolean(args.options['dry-run']),
+    promoteLatest: Boolean(args.options['promote-latest']),
+    rewriteHistory: Boolean(args.options['rewrite-history']),
   }
 }
 
@@ -650,7 +1052,11 @@ async function buildTileset(
   const basemaps = await updateRepository('basemaps', BASEMAPS_REPOSITORY)
   await applyBasemapRegionalCoastlinePatch(basemaps.path)
   const saanSeoiCommit = await capture(['git', '-C', REPO_ROOT, 'rev-parse', 'HEAD'])
-  const image = `protomaps/basemaps:${basemaps.commit.slice(0, 12)}-regional-coastline-v1`
+  const regionalPatchHash = createHash('sha256')
+    .update(await readFile(REGIONAL_COASTLINE_PATCH))
+    .digest('hex')
+    .slice(0, 12)
+  const image = `protomaps/basemaps:${basemaps.commit.slice(0, 12)}-regional-coastline-${regionalPatchHash}`
   const imageExists = await commandSucceeds(['docker', 'image', 'inspect', image])
   if (!imageExists) {
     await run(['docker', 'build', '--tag', image, resolve(basemaps.path, 'tiles')])
@@ -669,11 +1075,15 @@ async function buildTileset(
     image,
     '--download',
     `--output=data/${basename(outputPath)}`,
-    `--area=${region.area}`,
+    `--area=${prepared.source.planetilerArea}`,
     `--clip=/tiles/data/sources/${prepared.clip.fileName}`,
     '--clip-buffer=0',
     `--regional-land=/tiles/data/${basename(coastline.land.path)}`,
     `--regional-water=/tiles/data/${basename(coastline.water.path)}`,
+    `--regional-coastline=/tiles/data/${basename(coastline.line.path)}`,
+    ...(coastline.border
+      ? [`--regional-border=/tiles/data/${basename(coastline.border.path)}`]
+      : []),
     ...(force ? ['--force'] : []),
   ])
 
@@ -684,15 +1094,20 @@ async function buildTileset(
       basemaps: { repository: BASEMAPS_REPOSITORY, commit: basemaps.commit },
       saanSeoi: { repository: SAANSEOI_REPOSITORY, commit: saanSeoiCommit.trim() },
       dockerImage: image,
-      regionalCoastline: 'exact pre-clipped earth and water layers',
+      regionalCoastline:
+        'source-local earth, water, coastline, and optional land-border layers',
       command: [
         '--download',
         `--output=data/${basename(outputPath)}`,
-        `--area=${region.area}`,
+        `--area=${prepared.source.planetilerArea}`,
         `--clip=/tiles/data/sources/${prepared.clip.fileName}`,
         '--clip-buffer=0',
         `--regional-land=/tiles/data/${basename(coastline.land.path)}`,
         `--regional-water=/tiles/data/${basename(coastline.water.path)}`,
+        `--regional-coastline=/tiles/data/${basename(coastline.line.path)}`,
+        ...(coastline.border
+          ? [`--regional-border=/tiles/data/${basename(coastline.border.path)}`]
+          : []),
         ...(force ? ['--force'] : []),
       ],
       clip: {
@@ -706,114 +1121,676 @@ async function buildTileset(
   }
 }
 
-async function prepareRegionInputs(region: Region) {
-  note(`Resolving the ${region.description} boundary.`, 'TILE CLIP')
-  const boundaries = await getRegionBoundaries(region)
-  const clip = await prepareRegionClip(region, boundaries)
-  const source = region.code === 'gba' ? await prepareGbaSource(boundaries) : undefined
-  return { clip, source }
+async function prepareRegionInputs(
+  region: Region,
+  version: string,
+  historicalSource?: string,
+  historicalBorderSource?: string,
+) {
+  const parent = historicalSource
+    ? await prepareHistoricalOsmSource(region, historicalSource)
+    : await prepareGuangdongSource(version)
+  const borderParent = historicalBorderSource
+    ? await prepareHistoricalOsmSource(
+        { code: 'gba', ...REGIONS.gba },
+        historicalBorderSource,
+      )
+    : parent
+  note(`Resolving the ${region.description} boundary from the source PBF.`, 'TILE CLIP')
+  let clip: Awaited<ReturnType<typeof prepareRegionClip>>
+  try {
+    clip = await prepareRegionClip(
+      region,
+      await getRegionBoundaries(region, borderParent.path),
+    )
+  } catch (error) {
+    if (region.code !== 'gba' || !historicalSource) throw error
+    note(
+      'The archived source cannot resolve the GBA relations; reusing the release boundary after integrity verification.',
+      'TILE CLIP',
+    )
+    clip = await preparePublishedRegionClip(region, version)
+  }
+  const source = await extractRegionalOsmSource(region, version, parent, clip.geojson)
+  const borderSourcePath = region.code === 'mo' ? borderParent.path : source.path
+  return { clip, source: { ...source, borderSourcePath } }
 }
 
 /**
- * Build coastline-accurate earth and water layers for the exact release area.
+ * Build coastline-accurate earth, water, and shoreline layers for the exact release area.
  *
- * This is deliberately separate from the administrative clipping boundary:
- * coastal administrative boundaries contain territorial water, whereas this
- * artefact contains only OSM's land polygons intersected with that boundary. The
- * complementary water geometry is the boundary minus those land polygons. Both are
- * fed directly into the PMTiles build, before tile simplification and clipping.
+ * Coastline ways are clipped to the regional footprint and combined with the footprint
+ * boundary to polygonise local faces. OSM coastline direction identifies land as the
+ * face on the line's left. The footprint edges close fills only and are never emitted
+ * in the public coastline line layer.
  */
 async function buildRegionalCoastline(
   region: Region,
   version: string,
   clip: Awaited<ReturnType<typeof prepareRegionClip>>,
+  source: PreparedSource,
 ) {
-  const archivePath = resolve(SOURCES_ROOT, LAND_POLYGONS_ARCHIVE)
-  if (!existsSync(archivePath)) {
-    note('Downloading global coastline land polygons.', 'LAND COVERAGE')
-    await downloadFile(LAND_POLYGONS_URL, archivePath)
-  }
-
   const landName = `${region.name}-${version}.coastline-land.geojson`
   const waterName = `${region.name}-${version}.coastline-water.geojson`
+  const lineName = `${region.name}-${version}.coastline.geojson`
+  const borderName = `${region.name}-${version}.regional-border.geojson`
   const landPath = resolve(OUTPUT_ROOT, region.code, landName)
   const waterPath = resolve(OUTPUT_ROOT, region.code, waterName)
-  const regionOutput = resolve(OUTPUT_ROOT, region.code)
-  note(`Building exact coastline layers for ${region.description}.`, 'COASTLINE')
+  const linePath = resolve(OUTPUT_ROOT, region.code, lineName)
+  const borderPath = resolve(OUTPUT_ROOT, region.code, borderName)
+  note(`Building source-local coastline layers for ${region.description}.`, 'COASTLINE')
+  const coastlinePath = resolve(
+    OUTPUT_ROOT,
+    region.code,
+    `${region.name}-${version}.osm-coastline.geojson`,
+  )
+  const coastlinePbfPath = resolve(SOURCES_ROOT, `${region.code}.osm-coastline.pbf`)
   await run([
-    'docker',
-    'run',
-    '--rm',
-    '--user',
-    dockerUser(),
-    '--volume',
-    `${SOURCES_ROOT}:/sources:ro`,
-    '--volume',
-    `${regionOutput}:/output`,
-    GDAL_IMAGE,
-    'sh',
-    '-ceu',
-    [
-      'rm -f /tmp/regional-coastline.gpkg',
-      `rm -f /output/${landName} /output/${waterName}`,
-      `ogr2ogr -makevalid -f GPKG /tmp/regional-coastline.gpkg /sources/${clip.fileName} -nln boundary -t_srs EPSG:3857`,
-      `ogr2ogr -makevalid -update -append /tmp/regional-coastline.gpkg ${LAND_POLYGONS_SHAPEFILE} -nln land -clipsrc /tmp/regional-coastline.gpkg -t_srs EPSG:3857`,
-      `ogr2ogr -makevalid -f GeoJSON -t_srs EPSG:4326 /output/${landName} /tmp/regional-coastline.gpkg land`,
-      `ogr2ogr -makevalid -f GeoJSON -t_srs EPSG:4326 -dialect sqlite -sql "SELECT ST_Difference((SELECT geom FROM boundary), ST_Union(geom)) AS geometry FROM land" /output/${waterName} /tmp/regional-coastline.gpkg`,
-    ].join('\n'),
+    'osmium',
+    'tags-filter',
+    source.path,
+    'w/natural=coastline',
+    '--output',
+    coastlinePbfPath,
+    '--overwrite',
   ])
+  await run([
+    'osmium',
+    'export',
+    coastlinePbfPath,
+    '--geometry-types=linestring',
+    '--output',
+    coastlinePath,
+    '--overwrite',
+  ])
+  const coastline = await readCoastlineFeatures(coastlinePath, clip.geojson)
+  const border = await buildRegionalLandBorder(
+    region,
+    source.borderSourcePath ?? source.path,
+    clip.geojson,
+  )
+  await writeJson(linePath, coastline.lines)
+  await writeJson(landPath, coastline.land)
+  await writeJson(waterPath, coastline.water)
+  if (border) await writeJson(borderPath, border)
   return {
     land: { path: landPath, metadata: await archiveMetadata(landPath) },
     water: { path: waterPath, metadata: await archiveMetadata(waterPath) },
+    line: { path: linePath, metadata: await archiveMetadata(linePath) },
+    ...(border
+      ? { border: { path: borderPath, metadata: await archiveMetadata(borderPath) } }
+      : {}),
   }
 }
 
-async function prepareRegionClip(region: Region, boundaries: NominatimBoundary[]) {
+/**
+ * Polygonise the source coastline with the regional footprint only as temporary
+ * closing geometry, then return public source-only shoreline lines and complementary
+ * land/water fills.
+ *
+ * @param coastlinePath GeoJSON exported from the exact OSM PBF used for tiles.
+ * @param clipGeojson Regional administrative footprint.
+ * @returns GeoJSON ready for Planetiler's regional base layers.
+ */
+async function readCoastlineFeatures(
+  coastlinePath: string,
+  clipGeojson: ReturnType<typeof boundariesToClipGeoJson>,
+) {
+  const source = JSON.parse(await readFile(coastlinePath, 'utf8')) as {
+    type?: string
+    features?: Array<{ geometry?: unknown }>
+  }
+  if (source.type !== 'FeatureCollection' || !Array.isArray(source.features)) {
+    throw new Error('OSM coastline export did not produce a GeoJSON FeatureCollection.')
+  }
+
+  return polygoniseCoastlineFeatures(source.features, clipGeojson)
+}
+
+/**
+ * Build non-overlapping land and water faces from source coastline linework.
+ *
+ * Exported to keep the nested-island coverage invariant directly testable.
+ */
+export function polygoniseCoastlineFeatures(
+  sourceFeatures: Array<{ geometry?: unknown }>,
+  clipGeojson: ReturnType<typeof boundariesToClipGeoJson>,
+) {
+  const factory = new GeometryFactory()
+  const reader = new GeoJSONReader(factory)
+  const writer = new GeoJSONWriter()
+  const clip = reader.read(JSON.stringify(clipGeojson.geometry)) as CoastlineGeometry
+  const coastlineLines: CoastlineGeometry[] = []
+
+  for (const feature of sourceFeatures) {
+    if (!feature.geometry) continue
+    const geometry = reader.read(JSON.stringify(feature.geometry)) as CoastlineGeometry
+    if (geometry.isEmpty()) continue
+    // Preserve only source coastline inside the release footprint for publication.
+    coastlineLines.push(
+      ...lineComponents(OverlayOp.intersection(geometry, clip) as CoastlineGeometry),
+    )
+  }
+
+  if (coastlineLines.length === 0) {
+    throw new Error('No OSM coastline intersects the regional footprint.')
+  }
+
+  // Noding the temporary footprint boundary with source lines gives Polygonizer closed faces.
+  const constructionLines = new ArrayList([])
+  for (const line of [...coastlineLines, ...lineComponents(clip.getBoundary())]) {
+    constructionLines.add(line)
+  }
+  // Unary union both nodes crossings and preserves the footprint's outer face.
+  // GeometryNoder can leave that large face invalid for detailed, multi-island
+  // administrative boundaries, which incorrectly turns the residual mainland into water.
+  const nodedLinework = new ArrayList([])
+  for (const line of lineComponents(UnaryUnionOp.union(constructionLines))) {
+    nodedLinework.add(line)
+  }
+  const polygonizer = new Polygonizer()
+  polygonizer.add(nodedLinework)
+  const faces = polygonizer.getPolygons().toArray() as CoastlineGeometry[]
+  if (faces.length === 0) {
+    throw new Error('OSM coastline could not polygonise any regional faces.')
+  }
+
+  // OSM's coastline direction places land on its left, so that side selects land faces.
+  // Polygonizer represents an enclosing water area and its island faces as nested
+  // polygons rather than a disjoint partition. Choose the smallest face containing
+  // the left-side point to identify the local face instead of marking every enclosing
+  // polygon as land.
+  const pointLocator = new PointLocator()
+  const facesByEnvelope = new STRtree()
+  for (const face of faces) {
+    facesByEnvelope.insert(face.getEnvelopeInternal(), face)
+  }
+  const landFaces = new Set<CoastlineGeometry>()
+  for (const line of coastlineLines) {
+    const face = leftSideFace(line, facesByEnvelope, pointLocator)
+    if (face) landFaces.add(face)
+  }
+  if (landFaces.size === 0) {
+    throw new Error(
+      'OSM coastline did not produce complementary regional land and water.',
+    )
+  }
+
+  // Polygonizer produces nested faces rather than a partition: the outer water
+  // face still geometrically contains every island face. Publishing that face
+  // directly would render ocean over the islands because the water layer sits
+  // above earth. Derive water from the exact footprint minus all land faces so
+  // its interior rings preserve every island.
+  const land = unionBalanced([...landFaces]) as CoastlineGeometry
+  const water = OverlayOp.difference(clip, land) as CoastlineGeometry
+  const waterFaces = polygonComponents(water)
+  if (waterFaces.length === 0) {
+    throw new Error(
+      'OSM coastline did not produce complementary regional land and water.',
+    )
+  }
+
+  return {
+    lines: geojsonFeatureCollection(writer, coastlineLines),
+    land: geojsonFeatureCollection(writer, [...landFaces]),
+    water: geojsonFeatureCollection(writer, waterFaces),
+  }
+}
+
+/**
+ * Extract the source relation members that form the regional footprint's non-maritime boundary.
+ *
+ * @param region Regional tile release being built.
+ * @param sourcePath Complete OSM context used to resolve the boundary relation.
+ * @param clipGeojson Dissolved regional footprint used to exclude internal GBA borders.
+ * @returns Source-local linework for the intentional landward regional border layer.
+ */
+async function buildRegionalLandBorder(
+  region: Region,
+  sourcePath: string,
+  clipGeojson: ReturnType<typeof boundariesToClipGeoJson>,
+) {
+  const relationPbfPath = resolve(
+    SOURCES_ROOT,
+    `${region.code}.regional-border.osm.pbf`,
+  )
+  const relationGeojsonPath = resolve(
+    SOURCES_ROOT,
+    `${region.code}.regional-border.geojson`,
+  )
+  const extract = await runQuiet([
+    'osmium',
+    'getid',
+    '-r',
+    '--output',
+    relationPbfPath,
+    '--overwrite',
+    sourcePath,
+    ...REGION_BOUNDARY_RELATIONS[region.code].map(id => `r${id}`),
+  ])
+  if (extract.exitCode !== 0) {
+    note(
+      `The date-matched source does not contain the regional boundary relation; omitting the optional regional_border layer.`,
+      'REGIONAL BORDER',
+    )
+    return undefined
+  }
+  await run([
+    'osmium',
+    'export',
+    relationPbfPath,
+    '--geometry-types=linestring',
+    '--output',
+    relationGeojsonPath,
+    '--overwrite',
+  ])
+
+  const source = JSON.parse(await readFile(relationGeojsonPath, 'utf8')) as {
+    type?: string
+    features?: Array<{ geometry?: unknown; properties?: Record<string, unknown> }>
+  }
+  if (source.type !== 'FeatureCollection' || !Array.isArray(source.features)) {
+    throw new Error('OSM boundary export did not produce a GeoJSON FeatureCollection.')
+  }
+
+  const factory = new GeometryFactory()
+  const reader = new GeoJSONReader(factory)
+  const writer = new GeoJSONWriter()
+  const clip = reader.read(JSON.stringify(clipGeojson.geometry)) as CoastlineGeometry
+  const landBorderLines: CoastlineGeometry[] = []
+  for (const feature of source.features) {
+    if (
+      !feature.geometry ||
+      feature.properties?.boundary !== 'administrative' ||
+      feature.properties?.natural === 'coastline' ||
+      feature.properties?.maritime === 'yes'
+    ) {
+      continue
+    }
+    const geometry = reader.read(JSON.stringify(feature.geometry)) as CoastlineGeometry
+    landBorderLines.push(
+      ...lineComponents(
+        OverlayOp.intersection(geometry, clip.getBoundary()) as CoastlineGeometry,
+      ),
+    )
+  }
+  if (landBorderLines.length === 0) return undefined
+  return geojsonFeatureCollection(writer, landBorderLines)
+}
+
+/** Return each LineString component without exposing construction-only polygon edges. */
+function lineComponents(geometry: CoastlineGeometry): CoastlineGeometry[] {
+  if (geometry.isEmpty()) return []
+  const type = geometry.getGeometryType()
+  if (type === 'LineString' || type === 'LinearRing') return [geometry]
+  if (type !== 'MultiLineString' && type !== 'GeometryCollection') return []
+  const lines: CoastlineGeometry[] = []
+  for (let index = 0; index < geometry.getNumGeometries(); index += 1) {
+    const component = geometry.getGeometryN(index) as CoastlineGeometry
+    lines.push(...lineComponents(component))
+  }
+  return lines
+}
+
+/** Return every Polygon component, including polygons held in a collection. */
+function polygonComponents(geometry: CoastlineGeometry): CoastlineGeometry[] {
+  if (geometry.isEmpty()) return []
+  const type = geometry.getGeometryType()
+  if (type === 'Polygon') return [geometry]
+  if (type !== 'MultiPolygon' && type !== 'GeometryCollection') return []
+  const polygons: CoastlineGeometry[] = []
+  for (let index = 0; index < geometry.getNumGeometries(); index += 1) {
+    const component = geometry.getGeometryN(index) as CoastlineGeometry
+    polygons.push(...polygonComponents(component))
+  }
+  return polygons
+}
+
+/** Return the smallest local face containing a point infinitesimally left of a coastline. */
+function leftSideFace(
+  line: CoastlineGeometry,
+  facesByEnvelope: STRtree,
+  pointLocator: PointLocator,
+): CoastlineGeometry | undefined {
+  const coordinates = line.getCoordinates()
+  for (let index = 1; index < coordinates.length; index += 1) {
+    const previous = coordinates[index - 1]
+    const current = coordinates[index]
+    if (!previous || !current) continue
+    const deltaX = current.x - previous.x
+    const deltaY = current.y - previous.y
+    const length = Math.hypot(deltaX, deltaY)
+    if (length === 0) continue
+    const midpointX = (previous.x + current.x) / 2
+    const midpointY = (previous.y + current.y) / 2
+    const offset = Math.min(length / 10, 0.000001)
+    const point = new Coordinate(
+      midpointX - (deltaY / length) * offset,
+      midpointY + (deltaX / length) * offset,
+    )
+    const faces = facesByEnvelope
+      .query(new Envelope(point))
+      .toArray()
+      .filter((face: unknown): face is CoastlineGeometry =>
+        pointLocator.intersects(point, face as CoastlineGeometry),
+      )
+      .sort(
+        (left: CoastlineGeometry, right: CoastlineGeometry) =>
+          left.getArea() - right.getArea(),
+      ) as CoastlineGeometry[]
+    const face = faces[0]
+    if (face) return face
+  }
+  return undefined
+}
+
+/** Serialise geometries as a GeoJSON FeatureCollection for Planetiler's GeoJSON source. */
+function geojsonFeatureCollection(
+  writer: GeoJSONWriter,
+  geometries: CoastlineGeometry[],
+) {
+  return {
+    type: 'FeatureCollection' as const,
+    features: geometries
+      .filter(geometry => !geometry.isEmpty())
+      .map(geometry => ({
+        type: 'Feature' as const,
+        properties: {},
+        geometry: writer.write(geometry),
+      })),
+  }
+}
+
+async function prepareRegionClip(region: Region, boundaries: OsmBoundary[]) {
+  return prepareRegionClipGeoJson(
+    region,
+    boundariesToClipGeoJson(boundaries),
+    'source-pbf',
+  )
+}
+
+async function preparePublishedRegionClip(region: Region, version: string) {
+  const key = objectKey(region.code, `${region.name}-${version}.boundary.geojson`)
+  const manifest = await getJson<{
+    release?: { boundary?: { sha256?: unknown } }
+  }>(objectKey(region.code, `${region.name}-${version}.json`))
+  const expectedSha = manifest?.release?.boundary?.sha256
+  if (typeof expectedSha !== 'string') {
+    throw new Error(
+      `Historic ${region.description} release has no verifiable boundary hash.`,
+    )
+  }
+  const path = resolve(
+    SOURCES_ROOT,
+    `${region.code}-${version}.published-boundary.geojson`,
+  )
+  const found = await getObject(BUCKET, key, path)
+  if (!found)
+    throw new Error(
+      `Published boundary is missing for ${region.description} ${version}.`,
+    )
+  const metadata = await archiveMetadata(path)
+  if (metadata.sha256 !== expectedSha) {
+    throw new Error(
+      `Published boundary hash does not match its release manifest for ${region.description} ${version}.`,
+    )
+  }
+  const geojson = JSON.parse(await readFile(path, 'utf8')) as ReturnType<
+    typeof boundariesToClipGeoJson
+  >
+  if (geojson.type !== 'Feature' || !geojson.geometry) {
+    throw new Error(
+      `Published boundary is not a GeoJSON feature for ${region.description} ${version}.`,
+    )
+  }
+  return prepareRegionClipGeoJson(region, geojson, 'published-release-geojson')
+}
+
+async function prepareImportedRegionClip(
+  region: Region,
+  boundaryPath: string | undefined,
+) {
+  if (!boundaryPath)
+    throw new Error('An imported tileset requires a matching boundary file.')
+  const geojson = JSON.parse(await readFile(boundaryPath, 'utf8')) as ReturnType<
+    typeof boundariesToClipGeoJson
+  >
+  if (
+    geojson.type !== 'Feature' ||
+    !geojson.geometry ||
+    (geojson.geometry.type !== 'Polygon' && geojson.geometry.type !== 'MultiPolygon')
+  ) {
+    throw new Error(
+      'Imported boundary must be a GeoJSON Polygon or MultiPolygon feature.',
+    )
+  }
+  return prepareRegionClipGeoJson(region, geojson, 'imported-file')
+}
+
+async function prepareRegionClipGeoJson(
+  region: Region,
+  geojson: ReturnType<typeof boundariesToClipGeoJson>,
+  source: 'source-pbf' | 'published-release-geojson' | 'imported-file',
+) {
   await mkdir(SOURCES_ROOT, { recursive: true })
   const fileName = `${region.code}.clip.geojson`
   const path = resolve(SOURCES_ROOT, fileName)
-  const geojson = boundariesToClipGeoJson(boundaries)
   await writeFile(path, `${JSON.stringify(geojson)}\n`, 'utf8')
   return {
     fileName,
     boundaryRelations: REGION_BOUNDARY_RELATIONS[region.code],
     buffer: 0,
     geojson,
+    source,
   }
 }
 
-async function prepareGbaSource(boundaries: NominatimBoundary[]) {
+/**
+ * Download and extract one date-named GBA source for a refresh.
+ *
+ * A refresh must not reuse an unversioned `*-latest` cache: that would allow a
+ * newly dated tileset to carry stale OSM and coastline data. Re-running the
+ * same release date deliberately reuses its input so all GBA subregions share
+ * one exact source snapshot.
+ */
+async function prepareGuangdongSource(version: string): Promise<PreparedSource> {
   await mkdir(SOURCES_ROOT, { recursive: true })
-  const guangdongPath = resolve(SOURCES_ROOT, 'guangdong-latest.osm.pbf')
-  const polygonPath = resolve(SOURCES_ROOT, `${GBA_SOURCE_NAME}.poly`)
-  const outputPath = resolve(SOURCES_ROOT, `${GBA_SOURCE_NAME}.osm.pbf`)
-
-  if (!(await commandSucceeds(['osmium', '--version']))) {
-    throw new Error(
-      'GBA refresh requires osmium on PATH. Install osmium-tool and retry.',
+  const guangdongPath = resolve(SOURCES_ROOT, `guangdong-${version}.osm.pbf`)
+  if (!existsSync(guangdongPath)) {
+    const restored = await getObject(
+      SOURCE_BUCKET,
+      sourceArchiveKey(version),
+      guangdongPath,
     )
+    if (restored) {
+      note(
+        `Restored the archived GeoFabrik Guangdong source for ${version}.`,
+        'OSM SOURCE',
+      )
+    } else {
+      note(
+        `Downloading the latest GeoFabrik Guangdong source for ${version}.`,
+        'OSM SOURCE',
+      )
+      await downloadFile(GUANGDONG_EXTRACT_URL, guangdongPath)
+    }
   }
-
-  note('Downloading the GeoFabrik Guangdong source extract.', 'GBA SOURCE')
-  await downloadFile(GUANGDONG_EXTRACT_URL, guangdongPath)
-  await writeFile(polygonPath, boundariesToOsmiumPolygon(boundaries), 'utf8')
-  note('Extracting the Greater Bay Area with complete ways.', 'GBA SOURCE')
-  await run([
-    'osmium',
-    'extract',
-    '--strategy=complete_ways',
-    `--polygon=${polygonPath}`,
-    `--output=${outputPath}`,
-    '--overwrite',
-    guangdongPath,
-  ])
-  note('Greater Bay Area source is ready for Planetiler.', 'GBA SOURCE')
+  const sourceArchive = await archiveGuangdongSource(guangdongPath, version)
 
   return {
+    path: guangdongPath,
+    planetilerArea: `source-guangdong-${version}`,
     upstream: GUANGDONG_EXTRACT_URL,
     boundaryRelations: GBA_BOUNDARY_RELATIONS,
-    extractionStrategy: 'osmium complete_ways',
+    sourceArchive,
   }
+}
+
+/**
+ * Resolve Macao's cross-boundary administrative relation against the complete GBA
+ * export. The dedicated Macao GeoFabrik extract omits the adjoining Zhuhai ways.
+ */
+/** Derive each published region from the one archived Guangdong source snapshot. */
+async function extractRegionalOsmSource(
+  region: Region,
+  version: string,
+  parent: PreparedSource,
+  boundary: ReturnType<typeof boundariesToClipGeoJson>,
+) {
+  const planetilerArea = `refresh-${region.code}-${version}`
+  const path = resolve(SOURCES_ROOT, `${planetilerArea}.osm.pbf`)
+  const polygonPath = resolve(SOURCES_ROOT, `${planetilerArea}.poly`)
+  await mkdir(SOURCES_ROOT, { recursive: true })
+  if (!existsSync(path)) {
+    if (!(await commandSucceeds(['osmium', '--version']))) {
+      throw new Error(
+        'Tile preparation requires osmium on PATH. Install osmium-tool and retry.',
+      )
+    }
+    await writeFile(
+      polygonPath,
+      boundariesToOsmiumPolygon([{ osm_id: 0, geojson: boundary.geometry }]),
+      'utf8',
+    )
+    note(
+      `Extracting ${region.description} from the archived Guangdong source.`,
+      'OSM SOURCE',
+    )
+    await run([
+      'osmium',
+      'extract',
+      '--strategy=complete_ways',
+      `--polygon=${polygonPath}`,
+      `--output=${path}`,
+      '--overwrite',
+      parent.path,
+    ])
+  }
+  return {
+    path,
+    planetilerArea,
+    upstream: parent.upstream,
+    boundaryRelations: parent.boundaryRelations,
+    extractionStrategy: 'osmium complete_ways from archived GeoFabrik Guangdong',
+    sourceArchive: parent.sourceArchive,
+  } satisfies PreparedSource
+}
+
+/**
+ * Stage one archived GeoFabrik PBF under the Planetiler source directory.
+ *
+ * Rebuilds use a date-specific name so historical data can never overwrite a
+ * current refresh input, while Planetiler still receives its usual --area value.
+ */
+async function prepareHistoricalOsmSource(
+  region: Region,
+  archivePath: string,
+): Promise<PreparedSource> {
+  const version = archivePath.split('/').at(-2)
+  if (!version) throw new Error(`Invalid historical source path: ${archivePath}`)
+  const planetilerArea = `historical-${region.code}-${version}`
+  const path = resolve(SOURCES_ROOT, `${planetilerArea}.osm.pbf`)
+  await mkdir(SOURCES_ROOT, { recursive: true })
+  await copyFile(archivePath, path)
+  const sourceArchive = basename(archivePath).startsWith('guangdong')
+    ? await archiveGuangdongSource(path, version)
+    : undefined
+  return {
+    path,
+    planetilerArea,
+    upstream: `local GeoFabrik archive ${basename(archivePath)}`,
+    sourceArchive,
+  }
+}
+
+/** Locate the one archived PBF required to faithfully rebuild a regional release. */
+async function historicalSourcePath(region: Region, version: string): Promise<string> {
+  const directory = resolve(HISTORICAL_SOURCES_ROOT, version)
+  const archivedGuangdong = resolve(directory, 'guangdong.osm.pbf')
+  if (await getObject(SOURCE_BUCKET, sourceArchiveKey(version), archivedGuangdong)) {
+    return archivedGuangdong
+  }
+  if (!existsSync(directory)) {
+    throw new Error(
+      `Historical source directory missing for ${region.code} ${version}: ${directory}`,
+    )
+  }
+  const guangdongCandidates = (await readdir(directory))
+    .filter(name => name.startsWith('guangdong-') && name.endsWith('.osm.pbf'))
+    .sort()
+  if (guangdongCandidates.length === 1) {
+    const candidate = guangdongCandidates[0]
+    if (!candidate)
+      throw new Error(`Historical Guangdong source missing for ${version}.`)
+    return resolve(directory, candidate)
+  }
+  if (guangdongCandidates.length > 1) {
+    throw new Error(
+      `Expected exactly one historical GeoFabrik Guangdong PBF for ${version} in ${directory}; found ${guangdongCandidates.length}.`,
+    )
+  }
+  if (region.code === 'gba') {
+    const path = resolve(directory, 'gba.osm.pbf')
+    if (!existsSync(path)) {
+      throw new Error(`Historical GBA source missing for ${version}: ${path}`)
+    }
+    return path
+  }
+
+  const prefix = region.code === 'hk' ? 'hong-kong-' : 'macau-'
+  const candidates = (await readdir(directory))
+    .filter(name => name.startsWith(prefix) && name.endsWith('.osm.pbf'))
+    .sort()
+  if (candidates.length !== 1) {
+    throw new Error(
+      `Expected exactly one historical ${region.description} GeoFabrik PBF for ${version} in ${directory}; found ${candidates.length}.`,
+    )
+  }
+  const candidate = candidates[0]
+  if (!candidate)
+    throw new Error(`Historical source missing for ${region.code} ${version}.`)
+  return resolve(directory, candidate)
+}
+
+/** Imported archives have no reproducible regional source, so history rewrites retain them. */
+async function isImportedRelease(region: Region, version: string): Promise<boolean> {
+  const manifest = await getJson<{ provenance?: { type?: unknown } }>(
+    objectKey(region.code, `${region.name}-${version}.json`),
+  )
+  const type = manifest?.provenance?.type
+  return type === 'import' || LEGACY_IMPORTED_RELEASES.has(releaseKey(region, version))
+}
+
+/** Report absence separately so a dry run can show all releases without publishing. */
+async function findHistoricalSource(region: Region, version: string) {
+  try {
+    const primary = await historicalSourcePath(region, version)
+    const border = historicalBorderSourceRequired(region.code, primary)
+      ? await historicalSourcePath({ code: 'gba', ...REGIONS.gba }, version)
+      : undefined
+    return { path: { primary, border } }
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : String(error),
+    }
+  }
+}
+
+/** A Guangdong export already contains Macao's adjoining Zhuhai relation members. */
+export function isGuangdongSource(path: string) {
+  return basename(path).startsWith('guangdong')
+}
+
+/** Macao needs GBA relation context unless its primary source is already Guangdong. */
+export function historicalBorderSourceRequired(
+  region: RegionCode,
+  primarySource: string,
+) {
+  return region === 'mo' && !isGuangdongSource(primarySource)
+}
+
+function releaseKey(region: Region, version: string): string {
+  return `${region.code}:${version}`
 }
 
 async function downloadFile(url: string, path: string) {
@@ -831,30 +1808,73 @@ async function downloadFile(url: string, path: string) {
   await rename(temporaryPath, path)
 }
 
-async function getRegionBoundaries(region: Region) {
-  const relationIds = REGION_BOUNDARY_RELATIONS[region.code]
-  const url = new URL('https://nominatim.openstreetmap.org/lookup')
-  url.searchParams.set('osm_ids', relationIds.map(id => `R${id}`).join(','))
-  url.searchParams.set('format', 'jsonv2')
-  url.searchParams.set('polygon_geojson', '1')
-
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'SaanSeoi tiles boundary preparation/1.0 (https://saanseoi.hk)',
-    },
-  })
-  if (!response.ok) {
+/** Assemble the requested administrative relations from the exact source PBF. */
+async function getRegionBoundaries(
+  region: Region,
+  sourcePath: string,
+): Promise<OsmBoundary[]> {
+  if (!(await commandSucceeds(['osmium', '--version']))) {
     throw new Error(
-      `Could not fetch ${region.description} boundaries: ${response.status} ${response.statusText}`,
+      'Boundary preparation requires osmium on PATH. Install osmium-tool and retry.',
     )
   }
-
-  const boundaries = (await response.json()) as NominatimBoundary[]
+  const relationIds = REGION_BOUNDARY_RELATIONS[region.code]
+  const relationsPath = resolve(
+    SOURCES_ROOT,
+    `${region.code}.boundary-relations.osm.pbf`,
+  )
+  const geojsonPath = resolve(SOURCES_ROOT, `${region.code}.boundary-relations.geojson`)
+  const extracted = await runQuiet([
+    'osmium',
+    'getid',
+    '-r',
+    '--output',
+    relationsPath,
+    '--overwrite',
+    sourcePath,
+    ...relationIds.map(id => `r${id}`),
+  ])
+  if (extracted.exitCode !== 0) {
+    throw new Error(
+      `Could not extract ${region.description} boundary relations from the source PBF.`,
+    )
+  }
+  await run([
+    'osmium',
+    'export',
+    relationsPath,
+    '--geometry-types=polygon',
+    '--add-unique-id=type_id',
+    '--output',
+    geojsonPath,
+    '--overwrite',
+  ])
+  const exported = JSON.parse(await readFile(geojsonPath, 'utf8')) as {
+    type?: string
+    features?: Array<{
+      id?: unknown
+      geometry?: unknown
+      properties?: Record<string, unknown>
+    }>
+  }
+  if (exported.type !== 'FeatureCollection' || !Array.isArray(exported.features)) {
+    throw new Error('OSM boundary export did not produce a GeoJSON FeatureCollection.')
+  }
+  const boundaries = relationIds.flatMap(id => {
+    const feature = exported.features?.find(
+      candidate => candidate.id === `a${id * 2 + 1}`,
+    )
+    if (!feature?.geometry || feature.properties?.boundary !== 'administrative')
+      return []
+    const geometry = feature.geometry as BoundaryGeometry
+    if (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon') return []
+    return [{ osm_id: id, geojson: geometry }]
+  })
   const found = new Set(boundaries.map(boundary => boundary.osm_id))
   const missing = relationIds.filter(id => !found.has(id))
   if (missing.length > 0) {
     throw new Error(
-      `Could not resolve ${region.description} boundary relations: ${missing.join(', ')}`,
+      `Could not resolve ${region.description} boundary relations from the source PBF: ${missing.join(', ')}`,
     )
   }
 
@@ -865,7 +1885,7 @@ async function getRegionBoundaries(region: Region) {
   })
 }
 
-export function boundariesToOsmiumPolygon(boundaries: NominatimBoundary[]) {
+export function boundariesToOsmiumPolygon(boundaries: OsmBoundary[]) {
   const rings: string[] = []
   let ringIndex = 0
 
@@ -893,7 +1913,7 @@ export function boundariesToOsmiumPolygon(boundaries: NominatimBoundary[]) {
   return `gba\n${rings.join('\n')}\nEND\n`
 }
 
-export function boundariesToClipGeoJson(boundaries: NominatimBoundary[]) {
+export function boundariesToClipGeoJson(boundaries: OsmBoundary[]) {
   if (boundaries.length === 0)
     throw new Error('Cannot create a clip from no boundaries.')
 
@@ -909,7 +1929,7 @@ export function boundariesToClipGeoJson(boundaries: NominatimBoundary[]) {
   if (!IsValidOp.isValid(unioned)) {
     throw new Error('Region boundary union did not produce a valid clipping geometry.')
   }
-  const geometry = writer.write(unioned) as NominatimGeometry
+  const geometry = writer.write(unioned) as BoundaryGeometry
   if (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon') {
     throw new Error('Region boundary union produced unsupported geometry.')
   }
@@ -940,7 +1960,8 @@ async function updateRepository(name: string, repository: string) {
     await run(['git', 'clone', '--depth', '1', '--branch', 'main', repository, path])
   } else {
     await run(['git', '-C', path, 'fetch', '--depth', '1', 'origin', 'main'])
-    await run(['git', '-C', path, 'checkout', '--detach', 'FETCH_HEAD'])
+    await run(['git', '-C', path, 'checkout', '--detach', '--force', 'FETCH_HEAD'])
+    await run(['git', '-C', path, 'clean', '--force', '-d'])
   }
   return {
     path,
@@ -972,6 +1993,24 @@ async function applyBasemapRegionalCoastlinePatch(path: string) {
 async function archiveMetadata(path: string) {
   const [info, bytes] = await Promise.all([stat(path), readFile(path)])
   return { size: info.size, sha256: createHash('sha256').update(bytes).digest('hex') }
+}
+
+function sourceArchiveKey(version: string) {
+  return `osm/geofabrik/guangdong/${version}.osm.pbf`
+}
+
+async function archiveGuangdongSource(
+  path: string,
+  version: string,
+): Promise<NonNullable<PreparedSource['sourceArchive']>> {
+  const metadata = await archiveMetadata(path)
+  await putSourceObject(sourceArchiveKey(version), path)
+  return {
+    bucket: SOURCE_BUCKET,
+    key: sourceArchiveKey(version),
+    ...metadata,
+    sourceUrl: GUANGDONG_EXTRACT_URL,
+  }
 }
 
 async function readRegionVersions(region: Region): Promise<RegionVersions> {
@@ -1009,37 +2048,52 @@ async function readVersionsIndex(): Promise<VersionsIndex> {
 async function getJson<T>(key: string): Promise<T | undefined> {
   const path = resolve(TILES_ROOT, 'catalogue', key.replaceAll('/', '__'))
   await mkdir(resolve(path, '..'), { recursive: true })
+  if (!(await getObject(BUCKET, key, path))) return undefined
+  return JSON.parse(await readFile(path, 'utf8')) as T
+}
+
+async function getObject(bucket: string, key: string, path: string): Promise<boolean> {
+  await mkdir(resolve(path, '..'), { recursive: true })
   const result = await runQuiet([
     ...wranglerCommand(),
     'r2',
     'object',
     'get',
-    `${BUCKET}/${key}`,
+    `${bucket}/${key}`,
     '--remote',
     '--file',
     path,
   ])
-  if (result.exitCode !== 0) {
-    if (!result.stderr.trim() && !result.stdout.trim()) {
-      return undefined
-    }
-    if (/not found|does not exist|no such object/i.test(result.stderr)) return undefined
-    throw commandError(
-      [...wranglerCommand(), 'r2', 'object', 'get', `${BUCKET}/${key}`],
-      result.stderr,
-      result.stdout,
-    )
-  }
-  return JSON.parse(await readFile(path, 'utf8')) as T
+  if (result.exitCode === 0) return true
+  if (!result.stderr.trim() && !result.stdout.trim()) return false
+  if (/not found|does not exist|no such object/i.test(result.stderr)) return false
+  throw commandError(
+    [...wranglerCommand(), 'r2', 'object', 'get', `${bucket}/${key}`],
+    result.stderr,
+    result.stdout,
+  )
 }
 
 async function putObject(key: string, file: string, contentType: string) {
+  return putBucketObject(BUCKET, key, file, contentType)
+}
+
+async function putSourceObject(key: string, file: string) {
+  return putBucketObject(SOURCE_BUCKET, key, file, 'application/x-protobuf')
+}
+
+async function putBucketObject(
+  bucket: string,
+  key: string,
+  file: string,
+  contentType: string,
+) {
   await run([
     ...wranglerCommand(),
     'r2',
     'object',
     'put',
-    `${BUCKET}/${key}`,
+    `${bucket}/${key}`,
     '--remote',
     '--file',
     file,

@@ -9,7 +9,9 @@ export function printUsage() {
   saanseoi init:divisions:hkgov-pland-new-town [--continue]
   saanseoi init:streets:hkgov-landsd
   saanseoi tiles:refresh [--region gba|hk|mo] [--dry-run] [--force]
-  saanseoi tiles:backfill --region gba|hk|mo --date YYYY-MM-DD --file PATH [--dry-run]
+  saanseoi tiles:import --region gba|hk|mo --date YYYY-MM-DD --file PATH --boundary PATH [--dry-run]
+  saanseoi tiles:rebuild --all [--dry-run] [--rewrite-history]
+  saanseoi tiles:rebuild --region gba|hk|mo --date YYYY-MM-DD [--promote-latest] [--dry-run] [--rewrite-history]
   saanseoi tiles:retract --region gba|hk|mo --date YYYY-MM-DD [--dry-run]
   saanseoi tiles:render --region gba|hk|mo --date YYYY-MM-DD [--mode light|dark] [--dry-run]
   saanseoi schedule [--dry-run]
