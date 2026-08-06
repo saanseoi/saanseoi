@@ -8,7 +8,7 @@ import {
   getLocalisedMessage,
   type AppLocale,
   type MessageKey,
-} from '$lib/bits/internal/i18n'
+} from '../bits/internal/localisedMessages'
 import { selectMarkdownHeadingPath } from './markdown'
 
 export const markdownReferenceScheme = 'saanseoi:'
