@@ -101,8 +101,6 @@ header fieldset {
 #comparison-map[data-comparison-mode="side-by-side"] {
   right: 0;
   left: 50%;
-  border-right: 0;
-  border-left: 2px solid rgb(255 255 255 / 86%);
 }
 
 #comparison-map[data-comparison-mode="overlay"] {
@@ -111,7 +109,7 @@ header fieldset {
   border-left: 0;
 }
 
-#comparison-map[data-comparison-mode="diff"] {
+#comparison-map[data-comparison-mode="labels"] {
   right: 0;
   left: 0;
   opacity: 1;
@@ -120,11 +118,11 @@ header fieldset {
   border: 0;
 }
 
-#map[data-comparison-mode="diff"][data-diff-release="newest"] {
+#map[data-comparison-mode="labels"][data-diff-release="newest"] {
   z-index: 1;
 }
 
-#comparison-map[data-comparison-mode="diff"][data-diff-release="oldest"] {
+#comparison-map[data-comparison-mode="labels"][data-diff-release="oldest"] {
   z-index: 0;
 }
 

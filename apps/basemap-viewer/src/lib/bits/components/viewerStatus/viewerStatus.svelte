@@ -39,7 +39,7 @@ $effect(() => {
 })
 </script>
 
-{#if $viewerState.comparisonVersion && $viewerState.comparisonMode !== 'diff'}
+{#if $viewerState.comparisonVersion && $viewerState.comparisonMode !== 'labels'}
   <ReleaseLabels
     comparisonMode={$viewerState.comparisonMode}
     comparisonVersion={$viewerState.comparisonVersion}

@@ -33,10 +33,10 @@ describe('URL state', () => {
     expect(writeUrlState(state)).toContain('compareMode=side-by-side')
   })
 
-  it('preserves the differences comparison presentation', () => {
-    const state = readUrlState('?compare=2026-03-18&compareMode=diff')
-    expect(state.comparisonMode).toBe('diff')
-    expect(writeUrlState(state)).toContain('compareMode=diff')
+  it('preserves the label comparison presentation', () => {
+    const state = readUrlState('?compare=2026-03-18&compareMode=labels')
+    expect(state.comparisonMode).toBe('labels')
+    expect(writeUrlState(state)).toContain('compareMode=labels')
   })
 
   it('reads the Midnight theme from a shared URL', () => {

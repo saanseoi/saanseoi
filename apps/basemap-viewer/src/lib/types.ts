@@ -4,7 +4,7 @@ export type Locale = (typeof LOCALES)[number]
 export const THEMES = ['light', 'dark', 'midnight'] as const
 export type Theme = (typeof THEMES)[number]
 
-export const COMPARISON_MODES = ['split', 'overlay', 'side-by-side', 'diff'] as const
+export const COMPARISON_MODES = ['split', 'overlay', 'side-by-side', 'labels'] as const
 export type ComparisonMode = (typeof COMPARISON_MODES)[number]
 
 export const FEATURE_KEYS = [

@@ -22,7 +22,7 @@ const modes: readonly {
   { value: 'split', label: 'split' },
   { value: 'overlay', label: 'overlay' },
   { value: 'side-by-side', label: 'sideBySide' },
-  { value: 'diff', label: 'diff' },
+  { value: 'labels', label: 'labels' },
 ]
 
 const buttonClass =
