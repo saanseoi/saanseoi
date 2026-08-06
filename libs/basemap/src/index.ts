@@ -5,7 +5,7 @@ const VERSION = /^\d{4}-\d{2}-\d{2}$/
  * The vector-layer contract starts with Protomaps Basemaps v2 and increments for
  * SaanSeoi-owned layer or property changes.
  */
-export const BASEMAP_SCHEMA_VERSION = 'protomaps-v2.1'
+export const BASEMAP_SCHEMA_VERSION = 'protomaps-v4.0'
 
 export type Region = {
   code: string
