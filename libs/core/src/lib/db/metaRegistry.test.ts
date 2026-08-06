@@ -603,7 +603,8 @@ function createLatestDatasetLookupDb() {
       regionCode TEXT NOT NULL,
       theme TEXT NOT NULL,
       type TEXT NOT NULL,
-      sourceCrs TEXT
+      sourceCrs TEXT,
+      processingRules TEXT
     );
 
     CREATE TABLE releases (
@@ -619,6 +620,7 @@ function createLatestDatasetLookupDb() {
       originalFileName TEXT NOT NULL,
       releaseNotesUrl TEXT,
       notes TEXT,
+      processingRules TEXT,
       status TEXT NOT NULL,
       revokedAt INTEGER,
       revocationReason TEXT,

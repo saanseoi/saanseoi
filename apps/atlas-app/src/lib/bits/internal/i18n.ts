@@ -1,17 +1,16 @@
 import { getLocale, locales, setLocale } from '@repo/i18n/runtime'
-import enMessages from '@repo/i18n/messages/en/shared.json'
-import zhHansMessages from '@repo/i18n/messages/zh-Hans/shared.json'
-import zhHantMessages from '@repo/i18n/messages/zh-Hant/shared.json'
 
 import { getCurrentLocale, updateLocale } from './localeState.svelte'
+import {
+  getLocalisedMessage,
+  type AppLocale,
+  type MessageKey,
+} from './localisedMessages'
 
 export { getLocale, locales, setLocale }
 export { getCurrentLocale, updateLocale }
-
-export type AppLocale = (typeof locales)[number]
-type MessageKey = keyof typeof enMessages
-
-export type { MessageKey }
+export { getLocalisedMessage }
+export type { AppLocale, MessageKey }
 
 export function selectLocalisedRow<T extends { locale: string }>(
   rows: readonly T[] | null | undefined,
@@ -25,18 +24,8 @@ export function selectLocalisedRow<T extends { locale: string }>(
   )
 }
 
-const messages = {
-  en: enMessages,
-  'zh-Hant': zhHantMessages,
-  'zh-Hans': zhHansMessages,
-} satisfies Record<AppLocale, Record<MessageKey, string>>
-
 function resolveMessage(key: MessageKey) {
   return getLocalisedMessage(key, getCurrentLocale())
-}
-
-export function getLocalisedMessage(key: MessageKey, locale: AppLocale) {
-  return messages[locale]?.[key] ?? messages.en[key]
 }
 
 export const m = new Proxy({} as { [K in MessageKey]: () => string }, {
