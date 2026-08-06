@@ -25,11 +25,23 @@ describe('basemap style', () => {
       expect.arrayContaining([
         'earth',
         'water',
+        'water_coastline',
         'buildings',
         'pois-point',
         'pois-label',
       ]),
     )
+  })
+
+  it('renders source-local coastlines through the Protomaps water layer', () => {
+    const { style } = createStyle('https://tiles.example/hongkong-latest.json')
+    expect(style.layers.find(layer => layer.id === 'water_coastline')).toMatchObject({
+      type: 'line',
+      source: 'basemap',
+      'source-layer': 'water',
+      filter: ['==', 'kind', 'coastline'],
+      minzoom: 6,
+    })
   })
 
   it('keeps repeated road-direction arrows below the boundary mask insertion point', () => {

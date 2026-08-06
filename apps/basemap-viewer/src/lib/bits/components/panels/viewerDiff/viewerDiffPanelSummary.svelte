@@ -38,7 +38,7 @@ const comparisonOrder = $derived(
   <PanelHeader
     alignmentClass={compact ? 'items-center' : 'items-start'}
     eyebrow={text.comparisonView}
-    title={text.diff}
+    title={text.labels}
   >
     <div class="flex items-center gap-2">
       <span

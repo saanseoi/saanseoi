@@ -88,7 +88,7 @@ function openInspection(open: boolean): void {
 }
 
 function selectComparisonMode(mode: AppState['comparisonMode']): void {
-  if (mode === 'diff') {
+  if (mode === 'labels') {
     if (compact) {
       callbacks.onDiagnostics(false)
       callbacks.onInspect(false)
@@ -153,14 +153,14 @@ function toggleMobileMenu(): void {
 }
 const mobilePanel = $derived(
   mobilePanelShortcut ??
-    ($appState.comparisonVersion && $appState.comparisonMode === 'diff'
+    ($appState.comparisonVersion && $appState.comparisonMode === 'labels'
       ? 'diff'
       : null),
 )
 const mobilePanelOpen = $derived(
   mobilePanel === 'diff'
     ? $appState.comparisonVersion !== null &&
-        $appState.comparisonMode === 'diff' &&
+        $appState.comparisonMode === 'labels' &&
         diffPanelOpen
     : mobilePanel === 'diagnostics'
       ? $ui.diagnostics.open
@@ -244,7 +244,7 @@ function selectMobilePanel(panel: 'diff' | 'diagnostics' | 'inspection'): void {
       notice={$ui.notice}
       noticeId={$ui.noticeId}
       panelOpen={($appState.comparisonVersion !== null &&
-        $appState.comparisonMode === 'diff' &&
+        $appState.comparisonMode === 'labels' &&
         diffPanelOpen) ||
       $ui.diagnostics.open ||
       $ui.diagnostics.inspect}

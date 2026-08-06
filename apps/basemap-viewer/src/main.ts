@@ -329,7 +329,7 @@ function changeComparisonMode(mode: AppState['comparisonMode']): void {
   if (needsResize) void resizeComparisonView()
   applyMapState()
   applyMapState(comparisonMap)
-  if (isDiffMode()) scheduleDiffRefresh()
+  if (isLabelsMode()) scheduleDiffRefresh()
   else {
     clearDiffPresentation(map)
     clearDiffPresentation(comparisonMap)
@@ -810,7 +810,7 @@ function waitForSource(target: MapLibreMap, sourceId: string): Promise<void> {
 function applyMapState(target: MapLibreMap | null = map): void {
   const targetGroups = target === comparisonMap ? comparisonGroups : groups
   if (!target || !targetGroups) return
-  if (isDiffMode() && target !== diffPresentationMap()) {
+  if (isLabelsMode() && target !== diffPresentationMap()) {
     for (const layerIds of Object.values(targetGroups))
       for (const layerId of layerIds)
         target.setLayoutProperty(layerId, 'visibility', 'none')
@@ -828,8 +828,8 @@ function applyMapState(target: MapLibreMap | null = map): void {
   )
 }
 
-function isDiffMode(): boolean {
-  return state.comparisonVersion !== null && state.comparisonMode === 'diff'
+function isLabelsMode(): boolean {
+  return state.comparisonVersion !== null && state.comparisonMode === 'labels'
 }
 
 function comparisonReleaseOrder() {
@@ -880,7 +880,7 @@ function queryDiffFeatures(
 }
 
 function scheduleDiffRefresh(): void {
-  if (!isDiffMode()) return
+  if (!isLabelsMode()) return
   if (diffRefreshTimer !== null) window.clearTimeout(diffRefreshTimer)
   diffRefreshTimer = window.setTimeout(() => {
     diffRefreshTimer = null
@@ -889,7 +889,7 @@ function scheduleDiffRefresh(): void {
 }
 
 function refreshDiffPresentation(): void {
-  if (!isDiffMode() || !map || !comparisonMap) return
+  if (!isLabelsMode() || !map || !comparisonMap) return
   const comparisonVersion = state.comparisonVersion
   if (!comparisonVersion) return
   if (isSameRelease(state.version, comparisonVersion, versions)) {

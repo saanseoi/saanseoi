@@ -153,6 +153,30 @@ function moveRoadDirectionArrowsBelowLabels(
   ]
 }
 
+/** Render SaanSeoi's source-local coastlines through Protomaps' water schema. */
+function addRegionalCoastlineLayer(
+  styleLayers: LayerSpecification[],
+  flavor: Flavor,
+): LayerSpecification[] {
+  const coastline: LayerSpecification = {
+    id: 'water_coastline',
+    type: 'line',
+    source: BASEMAP_SOURCE_ID,
+    'source-layer': 'water',
+    filter: ['==', 'kind', 'coastline'],
+    minzoom: 6,
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': flavor.water, 'line-width': 0.75 },
+  }
+  const waterRiverIndex = styleLayers.findIndex(layer => layer.id === 'water_river')
+  if (waterRiverIndex === -1) return [...styleLayers, coastline]
+  return [
+    ...styleLayers.slice(0, waterRiverIndex + 1),
+    coastline,
+    ...styleLayers.slice(waterRiverIndex + 1),
+  ]
+}
+
 function groupedLayers(styleLayers: LayerSpecification[]): LayerGroups {
   const groups: LayerGroups = {
     roads: [],
@@ -207,8 +231,12 @@ export function createStyle(
   glyphs = GLYPH_URL,
   theme: Theme = 'light',
 ): { style: StyleSpecification; groups: LayerGroups } {
-  const baseLayers = layers(BASEMAP_SOURCE_ID, flavorFor(theme), { lang: 'name' })
-  const styleLayers = moveRoadDirectionArrowsBelowLabels(copyPoiLayers(baseLayers))
+  const flavor = flavorFor(theme)
+  const baseLayers = layers(BASEMAP_SOURCE_ID, flavor, { lang: 'name' })
+  const styleLayers = addRegionalCoastlineLayer(
+    moveRoadDirectionArrowsBelowLabels(copyPoiLayers(baseLayers)),
+    flavor,
+  )
   for (const layer of styleLayers) {
     if (isTextSymbol(layer)) {
       const layout = layer.layout

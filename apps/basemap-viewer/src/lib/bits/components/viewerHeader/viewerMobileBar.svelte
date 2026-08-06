@@ -24,7 +24,7 @@ let {
 
 const panel = $derived(
   active === 'diff'
-    ? { icon: 'layers' as const, label: text.diff }
+    ? { icon: 'layers' as const, label: text.labels }
     : active === 'diagnostics'
       ? { icon: 'debug' as const, label: text.diagnostics }
       : active === 'inspection'
