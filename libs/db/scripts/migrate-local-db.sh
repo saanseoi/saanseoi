@@ -18,6 +18,12 @@ eval "$resolved_targets"
 
 mkdir -p "$persist_dir"
 
+# Local D1 is a shared SQLite store. Serialise migration invocations from
+# independently started dev processes before Wrangler/workerd opens it.
+lock_file="$(dirname "$persist_dir")/migrations.lock"
+exec 9>"$lock_file"
+flock 9
+
 IFS=',' read -r -a binding_names <<< "$bindings_csv"
 IFS=',' read -r -a database_names <<< "$database_names_csv"
 
