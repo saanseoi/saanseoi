@@ -101,17 +101,15 @@ describe('tile-weight collection', () => {
     })
   })
 
-  it('keeps normal-basemap and label-only request counts separate', () => {
+  it('counts requests and failures', () => {
     const collection = createTileWeightCollection()
-    collection.recordRequest('basemap')
-    collection.recordRequest('basemap')
-    collection.recordRequest('basemap-labels')
+    collection.recordRequest()
+    collection.recordRequest()
+    collection.recordRequest()
     collection.recordFailure()
 
     expect(collection.summary()).toMatchObject({
       tileRequests: 3,
-      normalBasemapRequests: 2,
-      labelOnlyRequests: 1,
       failedLoads: 1,
     })
   })
@@ -119,12 +117,10 @@ describe('tile-weight collection', () => {
   it('keeps primary and comparison collections independent', () => {
     const primary = createTileWeightCollection()
     const comparison = createTileWeightCollection()
-    primary.recordRequest('basemap')
+    primary.recordRequest()
     primary.add(record('primary'))
-    comparison.recordRequest('basemap-labels')
-    comparison.add(
-      record('comparison', { source: 'basemap-labels', transferBytes: 300 }),
-    )
+    comparison.recordRequest()
+    comparison.add(record('comparison', { transferBytes: 300 }))
 
     expect(primary.summary()).toMatchObject({
       tileRequests: 1,
@@ -132,7 +128,6 @@ describe('tile-weight collection', () => {
     })
     expect(comparison.summary()).toMatchObject({
       tileRequests: 1,
-      labelOnlyRequests: 1,
       totalTransferBytes: 300,
     })
   })

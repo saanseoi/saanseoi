@@ -11,7 +11,7 @@ import {
 import { defaultState } from '../src/lib/ctx/app'
 
 describe('basemap style', () => {
-  it('uses one TileJSON vector source and CJK-capable glyph configuration', () => {
+  it('uses one vector source when labels do not need filtering', () => {
     const { style } = createStyle('https://tiles.example/hongkong-2026-03-18.json')
     expect(style.sources.basemap).toEqual({
       attribution:
@@ -20,12 +20,6 @@ describe('basemap style', () => {
       url: 'https://tiles.example/hongkong-2026-03-18.json',
     })
     expect(style.glyphs).toContain('klokantech-gl-fonts')
-    expect(style.sources['basemap-labels']).toEqual({
-      attribution:
-        '<a href="https://openstreetmap.org/copyright">OpenStreetMaps (ODbL)</a>; <a href="https://protomaps.com/legal">Protomaps</a>',
-      type: 'vector',
-      url: 'https://tiles.example/hongkong-2026-03-18.json',
-    })
     expect(JSON.stringify(style.layers)).not.toContain('"Noto Sans Regular"')
     expect(style.layers.map(layer => layer.id)).toEqual(
       expect.arrayContaining([
@@ -36,20 +30,6 @@ describe('basemap style', () => {
         'pois-label',
       ]),
     )
-  })
-
-  it('draws symbols from the boundary-filtered label source', () => {
-    const { style } = createStyle(
-      'https://tiles.example/hongkong-latest.json',
-      undefined,
-      'light',
-      'https://tiles.example/hongkong-latest.json?labels=inside',
-    )
-    expect(
-      style.layers
-        .filter(layer => layer.type === 'symbol')
-        .every(layer => layer.source === 'basemap-labels'),
-    ).toBe(true)
   })
 
   it('keeps repeated road-direction arrows below the boundary mask insertion point', () => {

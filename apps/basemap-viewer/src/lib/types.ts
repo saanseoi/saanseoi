@@ -31,7 +31,7 @@ export interface AppState extends VisibilityState {
   diffVisibility: { added: boolean; removed: boolean }
   theme: Theme
   locale: Locale
-  labelClip: boolean
+  diagnosticsOpen: boolean
   camera: CameraState | null
 }
 

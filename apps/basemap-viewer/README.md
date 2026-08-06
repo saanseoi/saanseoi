@@ -62,7 +62,5 @@ set `VITE_GLYPH_URL` to its `{fontstack}/{range}.pbf` template at build time.
 
 Each TileJSON release advertises its own exact clipping footprint as a GeoJSON boundary
 artefact. The viewer loads that artefact, masks the area outside it, and draws its
-outline below filtered labels. Symbols use a separate, viewer-only tile source that
-retains only features whose label anchor is inside the same footprint. This prevents
-external labels and empty regional tiles from being mistaken for ocean without adding
-external map features to the PMTiles archive.
+outline below labels. Regional releases are clipped at build time, so their ordinary
+tile source is the sole source for both map geometry and symbols.

@@ -9,7 +9,6 @@ import type { FeatureKey, LabelKey, Locale, Theme, VisibilityState } from './typ
 import { BASEMAP_ATTRIBUTION } from '@repo/basemap'
 
 export const BASEMAP_SOURCE_ID = 'basemap'
-export const BASEMAP_LABEL_SOURCE_ID = 'basemap-labels'
 export const GLYPH_URL =
   'https://raw.githubusercontent.com/klokantech/klokantech-gl-fonts/master/{fontstack}/{range}.pbf'
 const SPRITE_BASE_URL = 'https://protomaps.github.io/basemaps-assets/sprites/v4'
@@ -139,16 +138,6 @@ function copyPoiLayers(styleLayers: LayerSpecification[]): LayerSpecification[] 
   })
 }
 
-function moveSymbolsToLabelSource(
-  styleLayers: LayerSpecification[],
-): LayerSpecification[] {
-  return styleLayers.map(layer =>
-    layer.type === 'symbol' && layer.source === BASEMAP_SOURCE_ID
-      ? { ...layer, source: BASEMAP_LABEL_SOURCE_ID }
-      : layer,
-  )
-}
-
 function moveRoadDirectionArrowsBelowLabels(
   styleLayers: LayerSpecification[],
 ): LayerSpecification[] {
@@ -217,12 +206,9 @@ export function createStyle(
   tilejsonUrl: string,
   glyphs = GLYPH_URL,
   theme: Theme = 'light',
-  labelTilejsonUrl = tilejsonUrl,
 ): { style: StyleSpecification; groups: LayerGroups } {
   const baseLayers = layers(BASEMAP_SOURCE_ID, flavorFor(theme), { lang: 'name' })
-  const styleLayers = moveRoadDirectionArrowsBelowLabels(
-    moveSymbolsToLabelSource(copyPoiLayers(baseLayers)),
-  )
+  const styleLayers = moveRoadDirectionArrowsBelowLabels(copyPoiLayers(baseLayers))
   for (const layer of styleLayers) {
     if (isTextSymbol(layer)) {
       const layout = layer.layout
@@ -247,11 +233,6 @@ export function createStyle(
         [BASEMAP_SOURCE_ID]: {
           type: 'vector',
           url: tilejsonUrl,
-          attribution: BASEMAP_ATTRIBUTION,
-        },
-        [BASEMAP_LABEL_SOURCE_ID]: {
-          type: 'vector',
-          url: labelTilejsonUrl,
           attribution: BASEMAP_ATTRIBUTION,
         },
       },

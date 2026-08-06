@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import {
-  insideLabelsTilejsonUrl,
-  parseCatalogue,
-  parseVersions,
-  tilejsonUrl,
-} from '../src/lib/catalogue'
-import { canUseFilteredLabels, parseTilejson } from '../src/lib/tilejson'
+import { parseCatalogue, parseVersions, tilejsonUrl } from '../src/lib/catalogue'
+import { parseTilejson } from '../src/lib/tilejson'
 import { parseReleaseMetadata } from '../src/lib/release-metadata'
 
 describe('catalogue parsing', () => {
@@ -49,25 +44,6 @@ describe('catalogue parsing', () => {
   })
 })
 
-it('adds the label-only query without changing the tileset URL', () => {
-  expect(insideLabelsTilejsonUrl('https://tiles.example/hongkong-latest.json')).toBe(
-    'https://tiles.example/hongkong-latest.json?labels=inside',
-  )
-})
-
-it('recognises a TileJSON label source produced by the tile service', () => {
-  expect(
-    parseTilejson({ 'saanseoi:label-filter': 'inside-region' }).insideRegionLabels,
-  ).toBe(true)
-  expect(parseTilejson({}).insideRegionLabels).toBe(false)
-})
-
-it('does not select boundary-dependent filtered labels when historic boundaries are absent', () => {
-  const filtered = { 'saanseoi:label-filter': 'inside-region' }
-  expect(canUseFilteredLabels(true, filtered, false)).toBe(false)
-  expect(canUseFilteredLabels(true, filtered, true)).toBe(true)
-})
-
 it('reads the canonical boundary URL advertised by a release', () => {
   expect(
     parseTilejson({
@@ -84,9 +60,14 @@ it('retains TileJSON diagnostics and immutable release metadata', () => {
     parseTilejson({
       minzoom: 0,
       maxzoom: 15,
+      tiles: ['https://tiles.example/hongkong/{z}/{x}/{y}.mvt', 'javascript:alert(1)'],
       vector_layers: [{ id: 'roads' }, { id: 'water' }, { broken: true }],
     }),
-  ).toMatchObject({ minZoom: 0, maxZoom: 15, vectorLayers: ['roads', 'water'] })
+  ).toMatchObject({
+    minZoom: 0,
+    maxZoom: 15,
+    vectorLayers: ['roads', 'water'],
+  })
   expect(
     parseReleaseMetadata({
       versions: [

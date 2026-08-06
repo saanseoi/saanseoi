@@ -1,6 +1,5 @@
 export {
   fetchJson,
-  insideLabelsTilejsonUrl,
   parseCatalogue,
   parseVersions,
   tilejsonUrl,

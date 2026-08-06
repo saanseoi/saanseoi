@@ -10,13 +10,11 @@ import {
   parseCatalogue,
   parseVersions,
   fetchJson,
-  insideLabelsTilejsonUrl,
   tilejsonUrl,
   type Region,
 } from './lib/catalogue'
 import { AppContext } from './lib/ctx/app'
 import {
-  BASEMAP_LABEL_SOURCE_ID,
   BASEMAP_SOURCE_ID,
   applyLocale,
   applyVisibility,
@@ -30,7 +28,7 @@ import {
   parseRegionBoundary,
   type RegionBoundary,
 } from './lib/boundaries'
-import { canUseFilteredLabels, parseTilejson, type Tilejson } from './lib/tilejson'
+import { parseTilejson, type Tilejson } from './lib/tilejson'
 import { readUrlState, writeUrlState } from './lib/url-state'
 import {
   buildDiff,
@@ -75,6 +73,7 @@ const DIFF_SOURCE_ID = 'release-diff'
 const DIFF_LAYER_PREFIX = 'release-diff'
 const DIFF_STATUSES = ['added', 'removed'] as const
 const MAX_VIEWER_ZOOM = 22
+const MAX_TILE_CACHE_ZOOM_LEVELS = 10
 
 const preferredTheme: AppState['theme'] = window.matchMedia(
   '(prefers-color-scheme: light)',
@@ -99,7 +98,6 @@ let map: MapLibreMap | null = null
 let comparisonMap: MapLibreMap | null = null
 let groups: LayerGroups | null = null
 let currentTilejsonUrl: string | null = null
-let currentLabelTilejsonUrl: string | null = null
 let currentBoundary: RegionBoundary | null = null
 let primaryVectorLayers: string[] = []
 let comparisonVectorLayers: string[] = []
@@ -115,6 +113,7 @@ const tileWeightCollections = {
   comparison: createTileWeightCollection(),
 }
 const diagnostics: ViewerDiagnostics = defaultDiagnostics()
+diagnostics.open = state.diagnosticsOpen
 const attributionControls = new Set<HTMLElement>()
 const splitTouchPointers = new Map<number, SplitTouchPointer>()
 let splitTouchGesture: SplitTouchGesture | null = null
@@ -447,26 +446,15 @@ async function loadTileset(
   controller = new AbortController()
   setStatus(`Loading ${region.description} · ${state.version}…`)
   const url = tilejsonUrl(TILE_ORIGIN, region, state.version)
-  const labelUrl = insideLabelsTilejsonUrl(url)
   try {
     const tilejsonValue = await fetchJson(url, controller.signal)
     const tilejson = parseTilejson(tilejsonValue)
-    const [labelTilejsonValue, boundaryValue] = await Promise.all([
-      fetchJson(labelUrl, controller.signal).catch(() => null),
-      tilejson.boundary
-        ? fetchJson(tilejson.boundary, controller.signal).catch(() => null)
-        : Promise.resolve(null),
-    ])
+    const boundaryValue = await (tilejson.boundary
+      ? fetchJson(tilejson.boundary, controller.signal).catch(() => null)
+      : Promise.resolve(null))
     const boundary = boundaryValue ? parseRegionBoundary(boundaryValue) : null
-    const labelsAreFiltered = canUseFilteredLabels(
-      state.labelClip,
-      labelTilejsonValue,
-      boundary !== null,
-    )
-    const labelSourceUrl = labelsAreFiltered ? labelUrl : url
     if (id !== requestId) return
     currentTilejsonUrl = url
-    currentLabelTilejsonUrl = labelSourceUrl
     currentBoundary = boundary
     primaryVectorLayers = tilejson.vectorLayers
     updateReleaseDiagnostic(
@@ -475,7 +463,6 @@ async function loadTileset(
       state.version,
       url,
       tilejson,
-      labelsAreFiltered,
       currentBoundary,
     )
     currentBounds = currentBoundary ? boundaryBounds(currentBoundary) : tilejson.bounds
@@ -485,9 +472,9 @@ async function loadTileset(
     const fittedExistingMap = fitWhenReady && map !== null
     if (fittedExistingMap) fitCurrentBounds(initial ? 0 : 250)
     if (!map) {
-      await createMap(url, labelSourceUrl)
+      await createMap(url)
     } else {
-      await updateSources(map, url, labelSourceUrl)
+      await updateSources(map, url)
     }
     if (id !== requestId || !map || !groups) return
     updateAttribution(map)
@@ -508,10 +495,6 @@ async function loadTileset(
       showWarning('This tileset has no valid bounds; the current camera was retained.')
     else if (!currentBoundary)
       showWarning('The release boundary is unavailable; the clipping mask is disabled.')
-    else if (state.labelClip && !labelsAreFiltered)
-      showWarning(
-        'Inside-region label clipping is unavailable; unfiltered labels are shown.',
-      )
     else hideWarning()
     syncUrl()
     if (state.comparisonVersion) await loadComparison(region, state.comparisonVersion)
@@ -527,35 +510,19 @@ async function loadTileset(
 async function loadComparison(region: Region, version: string): Promise<void> {
   const id = ++comparisonRequestId
   const url = tilejsonUrl(TILE_ORIGIN, region, version)
-  const labelUrl = insideLabelsTilejsonUrl(url)
   try {
     const tilejson = parseTilejson(await fetchJson(url))
-    const [filtered, boundaryValue] = await Promise.all([
-      fetchJson(labelUrl).catch(() => null),
-      tilejson.boundary ? fetchJson(tilejson.boundary).catch(() => null) : null,
-    ])
+    const boundaryValue = await (tilejson.boundary
+      ? fetchJson(tilejson.boundary).catch(() => null)
+      : null)
     if (id !== comparisonRequestId || state.comparisonVersion !== version) return
     const boundary = boundaryValue ? parseRegionBoundary(boundaryValue) : null
-    const filteredLabels = canUseFilteredLabels(
-      state.labelClip,
-      filtered,
-      boundary !== null,
-    )
-    const comparisonLabelUrl = filteredLabels ? labelUrl : url
     comparisonVectorLayers = tilejson.vectorLayers
-    updateReleaseDiagnostic(
-      'comparison',
-      region,
-      version,
-      url,
-      tilejson,
-      filteredLabels,
-      boundary,
-    )
+    updateReleaseDiagnostic('comparison', region, version, url, tilejson, boundary)
     if (!comparisonMap) {
-      await createComparisonMap(url, comparisonLabelUrl, boundary)
+      await createComparisonMap(url, boundary)
     } else {
-      await updateSources(comparisonMap, url, comparisonLabelUrl)
+      await updateSources(comparisonMap, url)
       applyBoundaryPresentation(comparisonMap, boundary)
       applyMapState(comparisonMap)
     }
@@ -566,9 +533,9 @@ async function loadComparison(region: Region, version: string): Promise<void> {
   }
 }
 
-async function createMap(tilejsonUrl: string, labelTilejsonUrl: string): Promise<void> {
+async function createMap(tilejsonUrl: string): Promise<void> {
   resetTileWeight('primary')
-  const generated = createStyle(tilejsonUrl, GLYPH_URL, state.theme, labelTilejsonUrl)
+  const generated = createStyle(tilejsonUrl, GLYPH_URL, state.theme)
   groups = generated.groups
   const camera = state.camera
   const createdMap = new maplibregl.Map({
@@ -579,6 +546,7 @@ async function createMap(tilejsonUrl: string, labelTilejsonUrl: string): Promise
     bearing: camera?.bearing ?? 0,
     pitch: camera?.pitch ?? 0,
     maxZoom: MAX_VIEWER_ZOOM,
+    maxTileCacheZoomLevels: MAX_TILE_CACHE_ZOOM_LEVELS,
     attributionControl: false,
     collectResourceTiming: true,
   })
@@ -604,13 +572,11 @@ async function createMap(tilejsonUrl: string, labelTilejsonUrl: string): Promise
     createdMap.once('error', event => reject(event.error))
   })
   await waitForSource(createdMap, BASEMAP_SOURCE_ID)
-  await waitForSource(createdMap, BASEMAP_LABEL_SOURCE_ID)
   updateAttribution(createdMap, true)
 }
 
 async function createComparisonMap(
   tilejsonUrl: string,
-  labelTilejsonUrl: string,
   boundary: RegionBoundary | null,
 ): Promise<void> {
   resetTileWeight('comparison')
@@ -619,7 +585,7 @@ async function createComparisonMap(
   // the previous display:none size leaves the map with a zero-sized viewport
   // and no visible tiles.
   await new Promise<void>(resolve => window.requestAnimationFrame(() => resolve()))
-  const generated = createStyle(tilejsonUrl, GLYPH_URL, state.theme, labelTilejsonUrl)
+  const generated = createStyle(tilejsonUrl, GLYPH_URL, state.theme)
   comparisonGroups = generated.groups
   const primary = map
   const createdMap = new maplibregl.Map({
@@ -630,6 +596,7 @@ async function createComparisonMap(
     bearing: primary?.getBearing() ?? 0,
     pitch: primary?.getPitch() ?? 0,
     maxZoom: MAX_VIEWER_ZOOM,
+    maxTileCacheZoomLevels: MAX_TILE_CACHE_ZOOM_LEVELS,
     attributionControl: false,
     collectResourceTiming: true,
   })
@@ -651,7 +618,6 @@ async function createComparisonMap(
   createdMap.resize()
   await resizeComparisonView()
   await waitForSource(createdMap, BASEMAP_SOURCE_ID)
-  await waitForSource(createdMap, BASEMAP_LABEL_SOURCE_ID)
   updateAttribution(createdMap, true)
   applyMapState(createdMap)
   applyBoundaryPresentation(createdMap, boundary)
@@ -661,16 +627,9 @@ async function createComparisonMap(
   await resizeComparisonView()
 }
 
-async function updateSources(
-  target: MapLibreMap,
-  tilejsonUrl: string,
-  labelTilejsonUrl: string,
-): Promise<void> {
+async function updateSources(target: MapLibreMap, tilejsonUrl: string): Promise<void> {
   resetTileWeight(target === map ? 'primary' : 'comparison')
-  const sourceUrls: Array<[string, string]> = [
-    [BASEMAP_SOURCE_ID, tilejsonUrl],
-    [BASEMAP_LABEL_SOURCE_ID, labelTilejsonUrl],
-  ]
+  const sourceUrls: Array<[string, string]> = [[BASEMAP_SOURCE_ID, tilejsonUrl]]
   for (const [sourceId, sourceUrl] of sourceUrls) {
     const source = target.getSource(sourceId)
     if (source?.type !== 'vector') throw new Error('The basemap source is unavailable.')
@@ -790,7 +749,7 @@ function handleSplitTouchEnd(event: TouchEvent): void {
 }
 
 function updateAttribution(target: MapLibreMap, collapse = false): void {
-  for (const sourceId of [BASEMAP_SOURCE_ID, BASEMAP_LABEL_SOURCE_ID]) {
+  for (const sourceId of [BASEMAP_SOURCE_ID]) {
     const source = target.getSource(sourceId)
     if (source) source.attribution = BASEMAP_ATTRIBUTION
   }
@@ -1116,16 +1075,11 @@ async function changeTheme(theme: AppState['theme']): Promise<void> {
   state.theme = theme
   controls.setState(state)
   syncUrl()
-  if (!map || !currentTilejsonUrl || !currentLabelTilejsonUrl) return
+  if (!map || !currentTilejsonUrl) return
 
   controls.setEnabled(false)
   setStatus(`Applying ${theme} theme…`)
-  const generated = createStyle(
-    currentTilejsonUrl,
-    GLYPH_URL,
-    theme,
-    currentLabelTilejsonUrl,
-  )
+  const generated = createStyle(currentTilejsonUrl, GLYPH_URL, theme)
   groups = generated.groups
   try {
     resetTileWeight('primary')
@@ -1136,7 +1090,6 @@ async function changeTheme(theme: AppState['theme']): Promise<void> {
     })
     if (!map) return
     await waitForSource(map, BASEMAP_SOURCE_ID)
-    await waitForSource(map, BASEMAP_LABEL_SOURCE_ID)
     updateAttribution(map)
     applyMapState()
     applyBoundaryPresentation(map, currentBoundary)
@@ -1276,7 +1229,6 @@ function updateReleaseDiagnostic(
   selectedVersion: string,
   tilejsonUrl: string,
   tilejson: Tilejson,
-  filteredLabels: boolean,
   boundary: RegionBoundary | null,
 ): void {
   const resolvedVersion = selectedVersion === 'latest' ? versions[0] : selectedVersion
@@ -1293,11 +1245,6 @@ function updateReleaseDiagnostic(
     minZoom: tilejson.minZoom,
     maxZoom: Math.max(tilejson.maxZoom ?? MAX_VIEWER_ZOOM, MAX_VIEWER_ZOOM),
     vectorLayers: tilejson.vectorLayers,
-    labelClipping: state.labelClip
-      ? filteredLabels
-        ? 'active'
-        : 'unavailable'
-      : 'disabled',
     boundary: tilejson.boundary ? (boundary ? 'active' : 'unavailable') : 'unavailable',
     archiveSize: metadata?.size ?? null,
     archiveSha256: metadata?.sha256 ?? null,
@@ -1365,7 +1312,7 @@ function installDiagnostics(
     const source = basemapTileSource(event.sourceId)
     if (!source) return
     diagnostics.tileRequests += 1
-    tileWeightCollections[release].recordRequest(source)
+    tileWeightCollections[release].recordRequest()
     diagnostics.tileWeight[release] = tileWeightCollections[release].summary()
     const key = tileKey(release, event.sourceId, event.coord?.key)
     if (key) tileLoadStartedAt.set(key, performance.now())
@@ -1422,7 +1369,6 @@ function installDiagnostics(
 
 function basemapTileSource(sourceId: string | undefined): BasemapTileSource | null {
   if (sourceId === BASEMAP_SOURCE_ID) return BASEMAP_SOURCE_ID
-  if (sourceId === BASEMAP_LABEL_SOURCE_ID) return BASEMAP_LABEL_SOURCE_ID
   return null
 }
 
@@ -1444,6 +1390,9 @@ function resetTileWeight(release: 'primary' | 'comparison'): void {
 
 function changeDiagnostics(open: boolean): void {
   diagnostics.open = open
+  state.diagnosticsOpen = open
+  controls.setState(state)
+  syncUrl()
   publishDiagnostics()
 }
 

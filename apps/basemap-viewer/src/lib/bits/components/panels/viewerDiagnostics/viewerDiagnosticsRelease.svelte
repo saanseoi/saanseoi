@@ -46,12 +46,6 @@ let {
       {text.milliseconds}
     </DefinitionItem>
     <DefinitionItem
-      label={text.diagnosticLabelClipping}
-      valueClass="truncate font-mono font-medium"
-    >
-      {diagnostics.primary.labelClipping}
-    </DefinitionItem>
-    <DefinitionItem
       label={text.diagnosticBoundary}
       valueClass="truncate font-mono font-medium"
     >

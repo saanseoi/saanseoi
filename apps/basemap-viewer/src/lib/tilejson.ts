@@ -1,7 +1,6 @@
 export interface Tilejson {
   bounds: [number, number, number, number] | null
   boundary: string | null
-  insideRegionLabels: boolean
   minZoom: number | null
   maxZoom: number | null
   vectorLayers: string[]
@@ -60,23 +59,8 @@ export function parseTilejson(value: unknown): Tilejson {
     boundary: isHttpUrl(document['saanseoi:boundary'])
       ? document['saanseoi:boundary']
       : null,
-    insideRegionLabels: document['saanseoi:label-filter'] === 'inside-region',
     minZoom: zoom(document.minzoom),
     maxZoom: zoom(document.maxzoom),
     vectorLayers: vectorLayers(document.vector_layers),
   }
-}
-
-/** Label-filtered tiles depend on the release's boundary artefact. */
-export function canUseFilteredLabels(
-  labelClippingEnabled: boolean,
-  filteredTilejson: unknown,
-  hasBoundary: boolean,
-): boolean {
-  return (
-    labelClippingEnabled &&
-    hasBoundary &&
-    filteredTilejson !== null &&
-    parseTilejson(filteredTilejson).insideRegionLabels
-  )
 }
