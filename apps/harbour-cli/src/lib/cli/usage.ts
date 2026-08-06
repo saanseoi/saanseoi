@@ -13,7 +13,7 @@ export function printUsage() {
   saanseoi tiles:rebuild --all [--dry-run] [--rewrite-history]
   saanseoi tiles:rebuild --region gba|hk|mo --date YYYY-MM-DD [--promote-latest] [--dry-run] [--rewrite-history]
   saanseoi tiles:retract --region gba|hk|mo --date YYYY-MM-DD [--dry-run]
-  saanseoi tiles:render --region gba|hk|mo --date YYYY-MM-DD [--mode light|dark] [--dry-run]
+  saanseoi tiles:render --region gba|hk|mo --date YYYY-MM-DD [--mode light|dark|postcard|postcard-lit] [--dry-run]
   saanseoi schedule [--dry-run]
   saanseoi init:addresses:default [--continue]
   saanseoi update [--target local|preview|production] [--api-family|--scope all|addresses|divisions|places|stats|streets] [--dataset CODE[,CODE...]] [--download] [--force-download] [--no-upload] [--force|--check-now] [--yes]

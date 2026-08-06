@@ -4,6 +4,15 @@ SaanSeoi's regional PMTiles archives are a generated base-geography family, sepa
 from the API resource families. Their input and publication process is documented in
 [basemap tiles](../../tiles.md).
 
+## Schema contract
+
+The vector-layer schema is versioned as `protomaps-v2.N`: it starts from Protomaps
+Basemaps v2, while `N` is incremented whenever SaanSeoi changes its published layers or
+properties. The current contract is `protomaps-v2.4`. In addition to the inherited
+Protomaps layers, it defines SaanSeoi's exact regional boundary, coastline, earth and
+water additions described below. Each release manifest records the schema version it was
+built against.
+
 ## Geography contract
 
 The build filters the exact regional OpenStreetMap PBF used by Planetiler for

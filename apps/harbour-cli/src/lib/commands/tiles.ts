@@ -27,7 +27,7 @@ import Polygonizer from 'jsts/org/locationtech/jts/operation/polygonize/Polygoni
 import UnionOp from 'jsts/org/locationtech/jts/operation/union/UnionOp.js'
 import UnaryUnionOp from 'jsts/org/locationtech/jts/operation/union/UnaryUnionOp.js'
 
-import { hktReleaseDate } from '@repo/basemap'
+import { BASEMAP_SCHEMA_VERSION, hktReleaseDate } from '@repo/basemap'
 
 import type { ParsedArgs } from '../cli/options.ts'
 
@@ -161,7 +161,7 @@ type VersionsIndex = {
 }
 
 type TilesOperation = 'import' | 'rebuild' | 'refresh'
-type PreviewMode = 'light' | 'dark'
+type PreviewMode = 'light' | 'dark' | 'postcard' | 'postcard-lit'
 
 type BoundaryGeometry =
   | { type: 'Polygon'; coordinates: number[][][] }
@@ -182,7 +182,7 @@ export async function runTilesRefreshCommand(args: ParsedArgs, printUsage: () =>
     await renderBasemapPreviews({
       region,
       version: input.version,
-      modes: ['light', 'dark'],
+      modes: ['light', 'dark', 'postcard', 'postcard-lit'],
       dryRun: input.dryRun,
     })
   }
@@ -650,6 +650,10 @@ async function runTilesCommand(
     region: input.region,
     release: {
       version: input.version,
+      schema: {
+        version: BASEMAP_SCHEMA_VERSION,
+        base: 'Protomaps Basemaps v2',
+      },
       archive: entry,
       boundary: {
         key: objectKey(input.region.code, boundaryName),
@@ -924,7 +928,13 @@ function resolveTilesRenderInput(args: ParsedArgs, printUsage: () => void) {
   const version = typeof args.options.date === 'string' ? args.options.date : undefined
   const rawMode = typeof args.options.mode === 'string' ? args.options.mode : undefined
   const regionDefinition = rawRegion ? REGIONS[rawRegion as RegionCode] : undefined
-  const mode = rawMode === 'light' || rawMode === 'dark' ? rawMode : undefined
+  const mode =
+    rawMode === 'light' ||
+    rawMode === 'dark' ||
+    rawMode === 'postcard' ||
+    rawMode === 'postcard-lit'
+      ? rawMode
+      : undefined
   const invalid =
     args.positionals.length > 0 ||
     Object.keys(args.options).some(
@@ -940,10 +950,12 @@ function resolveTilesRenderInput(args: ParsedArgs, printUsage: () => void) {
   ) {
     printUsage()
     throw new Error(
-      'tiles:render requires --region gba|hk|mo and --date YYYY-MM-DD; --mode accepts light or dark.',
+      'tiles:render requires --region gba|hk|mo and --date YYYY-MM-DD; --mode accepts light, dark, postcard, or postcard-lit.',
     )
   }
-  const modes: PreviewMode[] = mode ? [mode] : ['light', 'dark']
+  const modes: PreviewMode[] = mode
+    ? [mode]
+    : ['light', 'dark', 'postcard', 'postcard-lit']
   return {
     region: { code: rawRegion as RegionCode, ...regionDefinition },
     version,
@@ -966,7 +978,10 @@ async function renderBasemapPreviews(input: {
       [
         `region: ${input.region.code} (${input.region.name})`,
         `version: ${input.version}`,
-        `viewer: ${basemapRenderUrl(input.region, input.version)}`,
+        ...input.modes.map(
+          mode =>
+            `viewer (${mode}): ${basemapRenderUrl(input.region, input.version, mode)}`,
+        ),
         ...datedNames.map(name => `preview: ${objectKey(input.region.code, name)}`),
       ].join('\n'),
       'TILES RENDER DRY RUN',
@@ -1004,9 +1019,15 @@ async function renderBasemapPreviews(input: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        url: basemapRenderUrl(input.region, input.version),
+        url: basemapRenderUrl(input.region, input.version, mode),
         viewport: { width: 1200, height: 800, deviceScaleFactor: 1 },
-        gotoOptions: { waitUntil: 'networkidle2', timeout: 60_000 },
+        gotoOptions: {
+          waitUntil:
+            mode === 'postcard' || mode === 'postcard-lit'
+              ? 'domcontentloaded'
+              : 'networkidle2',
+          timeout: 60_000,
+        },
         waitForSelector: { selector: '#basemap-render-ready', timeout: 120_000 },
         actionTimeout: 120_000,
         screenshotOptions: { type: 'webp', quality: 88, fullPage: false },
@@ -1031,13 +1052,18 @@ async function renderBasemapPreviews(input: {
   outro(`Rendered ${input.region.name}-${input.version} basemap previews`)
 }
 
-function basemapRenderUrl(region: Region, version: string) {
+function basemapRenderUrl(region: Region, version: string, mode: PreviewMode) {
   const url = new URL(VIEWER_ORIGIN)
   url.searchParams.set('headless', 'true')
   url.searchParams.set('region', region.code)
   url.searchParams.set('version', version)
   // Light and dark marketing modes deliberately share the midnight map style for now.
   url.searchParams.set('theme', 'midnight')
+  if (mode === 'postcard' || mode === 'postcard-lit')
+    url.searchParams.set('render', mode)
+  // Browser Rendering retains its navigation cache between captures. Ensure a
+  // refreshed artefact always evaluates the newly deployed postcard camera.
+  url.searchParams.set('capture', `${mode}-${Date.now()}`)
   url.searchParams.set('locale', 'en')
   return url.toString()
 }

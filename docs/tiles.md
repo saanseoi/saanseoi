@@ -106,8 +106,8 @@ basemap/{regionCode}/{regionName}-{YYYY-MM-DD}.json
 basemap/{regionCode}/{regionName}-{YYYY-MM-DD}.boundary.geojson
 basemap/{regionCode}/{regionName}-latest.pmtiles
 basemap/{regionCode}/{regionName}-latest.boundary.geojson
-basemap/{regionCode}/{regionName}-{YYYY-MM-DD}-{light|dark}.webp
-basemap/{regionCode}/{regionName}-latest-{light|dark}.webp
+basemap/{regionCode}/{regionName}-{YYYY-MM-DD}-{light|dark|postcard|postcard-lit}.webp
+basemap/{regionCode}/{regionName}-latest-{light|dark|postcard|postcard-lit}.webp
 basemap/{regionCode}/versions.json
 basemap/versions.json
 basemap/regions.json
@@ -124,21 +124,27 @@ downloading, building, or uploading.
 
 After publishing each tileset, `tiles:refresh` invokes Cloudflare Browser Rendering to
 capture the release in the viewer's headless mode at 1200 × 800 pixels. It publishes
-immutable `light` and `dark` WebP previews alongside the release; both modes currently
-use the viewer's `midnight` map theme. When the release is the region's current release,
-the command also refreshes the two `-latest` preview objects.
+immutable `light`, `dark`, `postcard`, and `postcard-lit` WebP previews alongside the
+release. The `light` and `dark` modes currently use the viewer's `midnight` map theme.
+`postcard` is a renderer-only regional style: cream land-use, an accent-colour coastline
+and regional boundary, and lightly tinted major roads. `postcard-lit` uses the same
+geometry and camera but promotes the road network to the regional accent colour for the
+postcard hover state. When the release is the region's current release, the command also
+refreshes all four `-latest` preview objects.
 
 Render imported or generated releases independently with:
 
 ```sh
 saanseoi tiles:render --region hk --date 2026-08-01
 saanseoi tiles:render --region hk --date 2026-08-01 --mode light
+saanseoi tiles:render --region hk --date 2026-08-01 --mode postcard
+saanseoi tiles:render --region hk --date 2026-08-01 --mode postcard-lit
 ```
 
-Omitting `--mode` renders both modes. The dated tileset must already be present in the
-region's version index. The viewer URL uses `headless=true`, which hides its navigation,
-controls, status, and panels; rendering waits for the fitted map to become idle before
-capturing it.
+Omitting `--mode` renders all four modes. The dated tileset must already be present in
+the region's version index. The viewer URL uses `headless=true`, which hides its
+navigation, controls, status, and panels; rendering waits for the fitted map to become
+idle before capturing it.
 
 Use `--force` to rebuild an existing current-date release with Planetiler. It replaces
 the dated archive and its manifest, then publishes that rebuilt archive as `-latest` and
