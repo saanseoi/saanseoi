@@ -1,6 +1,12 @@
 const IDENTIFIER = /^[a-z0-9-]+$/
 const VERSION = /^\d{4}-\d{2}-\d{2}$/
 
+/**
+ * The vector-layer contract starts with Protomaps Basemaps v2 and increments for
+ * SaanSeoi-owned layer or property changes.
+ */
+export const BASEMAP_SCHEMA_VERSION = 'protomaps-v2.1'
+
 export type Region = {
   code: string
   name: string
@@ -92,7 +98,7 @@ export function render_request(
   path: string,
 ): { regionCode: string; name: string; latest: boolean } | undefined {
   const match = path.match(
-    /^\/render\/([a-z0-9-]+)\/([a-z0-9-]+-(?:latest|\d{4}-\d{2}-\d{2})-(?:light|dark))\.webp$/,
+    /^\/render\/([a-z0-9-]+)\/([a-z0-9-]+-(?:latest|\d{4}-\d{2}-\d{2})-(?:light|dark|postcard(?:-lit)?))\.webp$/,
   )
   if (!match) return undefined
   const [, regionCode, name] = match
