@@ -43,7 +43,7 @@ let { lane, groupId }: Props = $props()
   position: absolute;
   inset: 0;
   content: "";
-  background: color-mix(in srgb, var(--flow-accent) 82%, #000 18%);
+  background: var(--flow-accent);
 }
 .source-flow-output::after {
   position: absolute;
@@ -79,7 +79,7 @@ let { lane, groupId }: Props = $props()
   content: "";
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--flow-accent) 82%, #000 18%) 0%,
+    var(--flow-accent) 0%,
     color-mix(in srgb, var(--flow-accent) 58%, transparent) 35%,
     transparent 74%
   );
