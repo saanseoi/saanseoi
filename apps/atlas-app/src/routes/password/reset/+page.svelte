@@ -40,7 +40,7 @@ const resetPassword = async () => {
   {#if invalid}
     <p class="mt-5 font-body text-body-lg text-destructive">
       {m.auth_reset_link_invalid()}
-      <a class="text-secondary hover:underline" href="/forgot-password"
+      <a class="text-secondary hover:underline" href="/password/forgot"
         >{m.auth_request_new_link()}</a
       >.
     </p>

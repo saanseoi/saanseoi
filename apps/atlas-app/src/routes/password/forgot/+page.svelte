@@ -11,7 +11,7 @@ const requestReset = async () => {
   busy = true
   await authClient.requestPasswordReset({
     email,
-    redirectTo: `${window.location.origin}/reset-password`,
+    redirectTo: `${window.location.origin}/password/reset`,
   })
   busy = false
   submitted = true
