@@ -271,7 +271,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
         href: `/apis/${familyType}`,
         accent: theme.colorway.primary,
         secondary: theme.colorway.secondary,
-        ink: familyType === 'streets' ? theme.colorway.ink : '#fffaf0',
+        ink: '#fffaf0',
         image: theme.image,
         primary: defaultDomain.primary,
         primaryGroupLabel: defaultDomain.label,
