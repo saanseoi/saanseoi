@@ -26,6 +26,7 @@ let startScrollLeft = $state(0)
 let hasDragged = $state(false)
 let shouldSuppressClick = $state(false)
 let pendingCardId = $state<string | null>(null)
+let lastWheelNavigationAt = 0
 
 const updateNavigation = () => {
   if (!viewport) return
@@ -84,6 +85,21 @@ const endPointerInteraction = (event: PointerEvent) => {
   ondragstatechange?.({ cardId: null })
 }
 
+const handleWheel = (event: WheelEvent) => {
+  if (!viewport || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return
+  const maximumScrollLeft = Math.max(0, viewport.scrollWidth - viewport.clientWidth)
+  if (
+    (event.deltaY > 0 && viewport.scrollLeft >= maximumScrollLeft - 1) ||
+    (event.deltaY < 0 && viewport.scrollLeft <= 1)
+  )
+    return
+  event.preventDefault()
+  const now = performance.now()
+  if (now - lastWheelNavigationAt < 360) return
+  lastWheelNavigationAt = now
+  scrollByPage(event.deltaY > 0 ? 1 : -1)
+}
+
 const suppressDraggedClick = (node: HTMLElement) => {
   const handleClick = (event: MouseEvent) => {
     if (!shouldSuppressClick) return
@@ -111,12 +127,13 @@ onMount(() => {
 <section
   bind:this={viewport}
   use:suppressDraggedClick
-  class={cn('cursor-grab overflow-x-auto pb-4 select-none [scrollbar-color:color-mix(in_srgb,var(--secondary)_55%,transparent)_transparent] [touch-action:pan-y] active:cursor-grabbing', className)}
+  class={cn('cursor-grab overflow-x-auto pb-4 select-none [scrollbar-color:transparent_transparent] scrollbar-thin [touch-action:pan-y] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[color-mix(in_srgb,var(--secondary)_55%,transparent)] [&::-webkit-scrollbar-thumb]:opacity-0 [&::-webkit-scrollbar-thumb]:transition-opacity [&::-webkit-scrollbar-thumb]:duration-220 hover:[scrollbar-color:color-mix(in_srgb,var(--secondary)_55%,transparent)_transparent] hover:[&::-webkit-scrollbar-thumb]:opacity-100 active:cursor-grabbing', className)}
   aria-label="Carousel"
   onpointerdown={handlePointerDown}
   onpointermove={handlePointerMove}
   onpointerup={endPointerInteraction}
   onpointercancel={endPointerInteraction}
+  onwheel={handleWheel}
   ondragstart={event => event.preventDefault()}
 >
   {@render children?.()}
