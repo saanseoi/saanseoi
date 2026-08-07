@@ -17,6 +17,7 @@ import { addressRoutes } from './routes/v0/addresses'
 import { placeRoutes } from './routes/v0/places'
 import { registryRoutes } from './routes/v0/registry'
 import { managedAssetRoutes } from './routes/v0/assets'
+import { styleRoutes } from './routes/v0/styles'
 import { streetRoutes } from './routes/v0/streets'
 import { sourceRoutes, streamSourceRecordsMiddleware } from './routes/v0/sources'
 import type { AppBindings, AppEnv } from './types'
@@ -137,7 +138,8 @@ function isPublicMetadataPath(path: string) {
   return (
     path.startsWith('/v0/meta/') ||
     path.startsWith('/v0/api/') ||
-    path.startsWith('/v0/assets/')
+    path.startsWith('/v0/assets/') ||
+    path.startsWith('/v0/styles/')
   )
 }
 
@@ -191,6 +193,7 @@ app.openapiRoutes([
   ...addressRoutes,
   ...placeRoutes,
   ...managedAssetRoutes,
+  ...styleRoutes,
   ...streetRoutes,
 ] as const)
 
