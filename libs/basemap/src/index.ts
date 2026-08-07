@@ -20,6 +20,17 @@ export type RegionVersions = { versions: string[] }
 export const BASEMAP_ATTRIBUTION =
   '<a href="https://openstreetmap.org/copyright">OpenStreetMap (ODbL)</a>; <a href="https://protomaps.com/legal">Protomaps</a>'
 
+export {
+  createMapStyleFragment,
+  MAP_STYLE_VERSION,
+  mapStyleDefinitions,
+  mapStyleFlavor,
+  mapStyleIds,
+  selectableMapStyleIds,
+  type MapStyleDefinition,
+  type MapStyleId,
+} from './styles'
+
 type TilePath = {
   ok: boolean
   name: string
@@ -98,7 +109,7 @@ export function render_request(
   path: string,
 ): { regionCode: string; name: string; latest: boolean } | undefined {
   const match = path.match(
-    /^\/render\/([a-z0-9-]+)\/([a-z0-9-]+-(?:latest|\d{4}-\d{2}-\d{2})-(?:light|dark|postcard(?:-lit)?))\.webp$/,
+    /^\/render\/([a-z0-9-]+)\/([a-z0-9-]+-(?:latest|\d{4}-\d{2}-\d{2})-(?:light|dark|white|grayscale|black|midnight|postcard(?:-lit)?)(?:-[a-z0-9-]+-z(?:16|19))?)\.webp$/,
   )
   if (!match) return undefined
   const [, regionCode, name] = match
