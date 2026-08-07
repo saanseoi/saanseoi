@@ -47,6 +47,18 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
     glossary: true,
     source: glossary,
   },
+  render: {
+    title: 'Render',
+    displayTitleKey: 'reference_render',
+    glossary: true,
+    source: glossary,
+  },
+  'map-style': {
+    title: 'Map style',
+    displayTitleKey: 'reference_map_style',
+    glossary: true,
+    source: glossary,
+  },
   'overture-division-locale-normalisation': {
     title: 'locale',
     displayTitleKey: 'reference_locale_normalisation',
