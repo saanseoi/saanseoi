@@ -37,6 +37,42 @@ background to show a collection of markers or to study locations and patterns.
 
 底图是地图的<i>最底层背景图层</i>。它以道路、水域、陆地和地名等要素提供地理背景。你通常会在这个背景之上添加其他图层，以呈现一组标记，或研究地点和模式。
 
+# Map style
+
+## v1
+
+### EN
+
+A map style is the <i>set of visual rules</i> a map renderer follows. It decides which
+layers are visible and how colours, lines, labels and symbols look. A style does not
+contain the map data or tiles it draws.
+
+### ZH-HANT
+
+地圖樣式是地圖渲染器遵循的一組<i>視覺指令</i>。它決定哪些圖層可見，以及顏色、線條、標籤和符號的外觀。樣式並不包含它繪製的地圖資料或圖磚。
+
+### ZH-HANS
+
+地图样式是地图渲染器遵循的一组<i>视觉指令</i>。它决定哪些图层可见，以及颜色、线条、标签和符号的外观。样式并不包含它绘制的地图数据或图块。
+
+# Render
+
+## v1
+
+### EN
+
+To render a map is to <i>turn geographic data and visual instructions into pixels</i>
+that people can see and interact with. A map renderer does this work in a browser, app,
+or other display environment.
+
+### ZH-HANT
+
+渲染地圖是把<i>地理資料和視覺指令轉換成像素</i>，讓人看見並與之互動。地圖渲染器會在瀏覽器、應用程式或其他顯示環境中完成這項工作。
+
+### ZH-HANS
+
+渲染地图是把<i>地理数据和视觉指令转换成像素</i>，让人看见并与之互动。地图渲染器会在浏览器、应用程序或其他显示环境中完成这项工作。
+
 # Catalogue
 
 ## v1
