@@ -22,7 +22,7 @@ export const BASEMAP_ATTRIBUTION =
 
 export {
   createMapStyleFragment,
-  MAP_STYLE_VERSION,
+  mapStyleDefinition,
   mapStyleDefinitions,
   mapStyleFlavor,
   mapStyleIds,
