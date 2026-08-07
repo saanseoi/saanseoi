@@ -3,6 +3,7 @@ import { m } from '$lib/bits/internal/i18n'
 export const navigationItems = [
   { href: '/data', icon: 'proicons:database', label: () => m.nav_data() },
   { href: '/sources', icon: 'proicons:archive', label: () => m.nav_sources() },
+  { href: '/themes', icon: 'proicons:color-swatch', label: () => m.nav_themes() },
   {
     href: '/manifesto',
     icon: 'hugeicons:scroll-01',
