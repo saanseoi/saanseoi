@@ -424,6 +424,35 @@ describe('atlas-api', () => {
     )
   })
 
+  test('GET /v0/styles streams public immutable style artefacts from R2', async () => {
+    const reads: string[] = []
+    const { env } = createAuthenticatedEnv({
+      R2_ASSETS: {
+        async get(key: string) {
+          reads.push(key)
+          return {
+            body: new Blob(['{"version":8}']).stream(),
+            httpEtag: '"style-etag"',
+            writeHttpMetadata(headers: Headers) {
+              headers.set('content-type', 'application/json')
+            },
+          }
+        },
+      } as unknown as R2Bucket,
+    })
+    const res = await app.fetch(
+      new Request('http://localhost/v0/styles/midnight/1.0.0.json'),
+      env,
+    )
+
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('{"version":8}')
+    expect(reads).toEqual(['styles/midnight/1.0.0.json'])
+    expect(res.headers.get('access-control-allow-origin')).toBe('*')
+    expect(res.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')
+    expect(res.headers.get('etag')).toBe('"style-etag"')
+  })
+
   test('GET /v0/meta/d1-placement-probe returns timings for all D1 bindings', async () => {
     const { env } = createEnv()
     const res = await app.fetch(
