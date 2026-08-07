@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth/minimal'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { sveltekitCookies } from 'better-auth/svelte-kit'
+import { passkey } from '@better-auth/passkey'
 import { env } from '$env/dynamic/private'
 import { getRequestEvent } from '$app/server'
 import { getLocale } from '@repo/i18n/runtime'
@@ -89,6 +90,8 @@ type AuthEnvironment = {
   BETTER_AUTH_SECRET?: string
   GOOGLE_CLIENT_ID?: string
   GOOGLE_CLIENT_SECRET?: string
+  FACEBOOK_CLIENT_ID?: string
+  FACEBOOK_CLIENT_SECRET?: string
   GITHUB_CLIENT_ID?: string
   GITHUB_CLIENT_SECRET?: string
 }
@@ -100,6 +103,14 @@ const createSocialProviders = (authEnv: AuthEnvironment) => ({
           clientId: authEnv.GOOGLE_CLIENT_ID,
           clientSecret: authEnv.GOOGLE_CLIENT_SECRET,
           prompt: 'select_account' as const,
+        },
+      }
+    : {}),
+  ...(authEnv.FACEBOOK_CLIENT_ID && authEnv.FACEBOOK_CLIENT_SECRET
+    ? {
+        facebook: {
+          clientId: authEnv.FACEBOOK_CLIENT_ID,
+          clientSecret: authEnv.FACEBOOK_CLIENT_SECRET,
         },
       }
     : {}),
@@ -117,6 +128,12 @@ const createAuthConfig = (baseURL: string, authEnv: AuthEnvironment) =>
   ({
     baseURL,
     secret: authEnv.BETTER_AUTH_SECRET,
+    account: {
+      accountLinking: {
+        allowDifferentEmails: true,
+        trustedProviders: ['facebook'],
+      },
+    },
     user: {
       additionalFields: {
         locale: {
@@ -150,6 +167,11 @@ const createAuthConfig = (baseURL: string, authEnv: AuthEnvironment) =>
     },
     socialProviders: createSocialProviders(authEnv),
     plugins: [
+      passkey({
+        rpID: new URL(baseURL).hostname,
+        rpName: 'SaanSeoi',
+        origin: baseURL,
+      }),
       sveltekitCookies(getRequestEvent), // make sure this is the last plugin in the array
     ],
   }) satisfies Omit<Parameters<typeof betterAuth>[0], 'database'>
