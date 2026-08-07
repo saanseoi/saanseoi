@@ -22,7 +22,7 @@ import {
   getMarkdownTransclusion,
   getMarkdownTransclusionDisplayTitle,
 } from '$lib/registry/referenceDocs'
-import BasemapPostcard from '$lib/bits/components/card/variants/cardBasemapPostcard.svelte'
+import BasemapPostcard from '$lib/bits/pages/data/basemapPostcard.svelte'
 
 const data = await getDataPageData()
 let releases = $state(data.releases)
