@@ -16,6 +16,8 @@
       "BETTER_AUTH_SECRET",
       "GOOGLE_CLIENT_ID",
       "GOOGLE_CLIENT_SECRET",
+      "FACEBOOK_CLIENT_ID",
+      "FACEBOOK_CLIENT_SECRET",
       "GITHUB_CLIENT_ID",
       "GITHUB_CLIENT_SECRET"
     ]
@@ -128,6 +130,8 @@
           "BETTER_AUTH_SECRET",
           "GOOGLE_CLIENT_ID",
           "GOOGLE_CLIENT_SECRET",
+          "FACEBOOK_CLIENT_ID",
+          "FACEBOOK_CLIENT_SECRET",
           "GITHUB_CLIENT_ID",
           "GITHUB_CLIENT_SECRET"
         ]
@@ -222,6 +226,8 @@
           "BETTER_AUTH_SECRET",
           "GOOGLE_CLIENT_ID",
           "GOOGLE_CLIENT_SECRET",
+          "FACEBOOK_CLIENT_ID",
+          "FACEBOOK_CLIENT_SECRET",
           "GITHUB_CLIENT_ID",
           "GITHUB_CLIENT_SECRET"
         ]

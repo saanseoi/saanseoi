@@ -4,6 +4,9 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-07-31",
   "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "public"
+  },
   "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "ss-pmtiles" }],
   "analytics_engine_datasets": [
     { "binding": "TILE_USAGE", "dataset": "ss-tile-usage-production" }

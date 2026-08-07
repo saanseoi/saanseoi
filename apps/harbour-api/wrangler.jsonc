@@ -4,6 +4,9 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-05-01",
   "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "public"
+  },
   "define": {
     "__VUE_OPTIONS_API__": "true",
     "__VUE_PROD_DEVTOOLS__": "false",
