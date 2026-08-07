@@ -17,8 +17,8 @@ test('resolves API and basemap glossary definitions', () => {
   const api = getMarkdownTransclusion('saanseoi:en:definition/api/v1')
   const basemap = getMarkdownTransclusion('saanseoi:en:definition/basemap/v1')
 
-  expect(api?.markdown).toContain('application programming interface')
-  expect(basemap?.markdown).toContain('map layer')
+  expect(api?.markdown).toContain('<i>software</i>')
+  expect(basemap?.markdown).toContain('<i>bottom background layer</i>')
 })
 
 test('lists glossary definitions alphabetically without contextual notes', () => {
