@@ -43,6 +43,11 @@ Repo-local operating notes for Codex and similar agents.
   `docs/datasets/families/*.md` and `docs/datasets/sources/{source}/*.md` files.
 - In user-facing documentation use 'SaanSeoi' instead of 'Atlas', as the latter is the
   internal name.
+- When changing the Places API route, schema, pagination, category vocabulary, token
+  requirements, basemap token exchange, map-style contract, or supported basemap
+  regions, review and update the `/how-to/create-a-map` tutorial and its planned sushi
+  restaurants example before merging. Update the associated coverage matrix in
+  `docs/how-to/create-a-map-coverage.md` too.
 
 ## Migration workflow
 
