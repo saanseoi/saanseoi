@@ -50,6 +50,8 @@ apps/atlas-api/.env.local
 data/
 !apps/atlas-app/src/routes/data/
 !apps/atlas-app/src/routes/data/**
+!apps/atlas-app/src/lib/bits/pages/data/
+!apps/atlas-app/src/lib/bits/pages/data/**
 *.db
 *.sqlite3
 *.sqlite
