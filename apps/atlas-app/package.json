@@ -22,6 +22,7 @@
     "test:coverage": "bun test --coverage"
   },
   "dependencies": {
+    "@better-auth/passkey": "1.6.18",
     "@humanspeak/svelte-markdown": "^1.8.5",
     "@iconify-json/ion": "^1.2.7",
     "@iconify-json/material-symbols-light": "^1.2.88",
