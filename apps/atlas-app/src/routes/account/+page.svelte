@@ -1,6 +1,7 @@
 <script lang="ts">
 import { Button, Main } from '$lib/bits'
 import { authClient } from '$lib/auth-client'
+import type { SocialProvider } from '$lib/auth-providers'
 import { signOut } from '$lib/auth.remote'
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import Icon from '@iconify/svelte'
@@ -9,14 +10,18 @@ import { Dialog } from 'bits-ui'
 import {
   addPasswordForCurrentUser,
   changePasswordForCurrentUser,
+  deletePasskeyForCurrentUser,
   getAccountPageData,
   unlinkAccountForCurrentUser,
 } from './account.remote'
 
 let data = $derived(await getAccountPageData())
 let accounts = $state<typeof data.accounts>([])
+let passkeys = $state<typeof data.passkeys>([])
 let error = $state<string | null>(null)
 let unlinkingAccountId = $state<string | null>(null)
+let removingPasskeyId = $state<string | null>(null)
+let addingPasskey = $state(false)
 let password = $state('')
 let currentPassword = $state('')
 let passwordMessage = $state<string | null>(null)
@@ -24,6 +29,7 @@ let passwordDialogOpen = $state(false)
 let passwordDialogMode = $state<'add' | 'change'>('add')
 const providers = [
   { id: 'google', label: 'Google', icon: 'ion:logo-google' },
+  { id: 'facebook', label: 'Facebook', icon: 'ion:logo-facebook' },
   { id: 'github', label: 'GitHub', icon: 'ion:logo-github' },
 ]
 const linked = (provider: string) =>
@@ -31,10 +37,41 @@ const linked = (provider: string) =>
 
 $effect(() => {
   accounts = data.accounts
+  passkeys = data.passkeys
 })
 
-const link = async (provider: 'google' | 'github') => {
+const link = async (provider: SocialProvider) => {
   await authClient.linkSocial({ provider, callbackURL: '/account' })
+}
+
+const addPasskey = async () => {
+  if (addingPasskey) return
+  error = null
+  addingPasskey = true
+  try {
+    const result = await authClient.passkey.addPasskey()
+    if (result.error) error = result.error.message ?? m.account_passkey_add_error()
+    else await getAccountPageData().refresh()
+  } catch {
+    error = m.account_passkey_add_error()
+  } finally {
+    addingPasskey = false
+  }
+}
+
+const removePasskey = async (id: string) => {
+  if (removingPasskeyId) return
+  error = null
+  removingPasskeyId = id
+  try {
+    const result = await deletePasskeyForCurrentUser({
+      id,
+      locale: getCurrentLocale(),
+    })
+    if (!result.ok) error = result.message
+  } finally {
+    removingPasskeyId = null
+  }
 }
 
 const unlink = async (providerId: string, accountId: string) => {
@@ -173,7 +210,7 @@ const providerDetails = (providerId: string) =>
               </div>
             </div>
             <Button
-              onclick={() => link(provider.id as 'google' | 'github')}
+              onclick={() => link(provider.id as SocialProvider)}
               size="compact"
               variant="primary"
               >{m.account_connect()}</Button
@@ -181,6 +218,54 @@ const providerDetails = (providerId: string) =>
           </article>
         {/if}
       {/each}
+      {#each passkeys as passkey}
+        <article class="flex items-center justify-between gap-4 p-5">
+          <div class="flex items-center gap-3">
+            <div
+              class="flex size-10 items-center justify-center rounded-full bg-surface-container-low text-secondary"
+            >
+              <Icon icon="ion:key-outline" class="size-5" />
+            </div>
+            <div>
+              <p class="font-body font-semibold text-foreground">
+                {passkey.name ?? m.account_passkey()}
+              </p>
+              <p class="mt-1 font-body text-sm text-foreground-alt">
+                {m.account_connected_method()}
+              </p>
+            </div>
+          </div>
+          <Button
+            onclick={() => removePasskey(passkey.id)}
+            disabled={removingPasskeyId !== null}
+            size="compact"
+            variant="secondary"
+            >{removingPasskeyId === passkey.id ? m.account_removing() : m.account_remove()}</Button
+          >
+        </article>
+      {/each}
+      <article class="flex items-center justify-between gap-4 p-5">
+        <div class="flex items-center gap-3">
+          <div
+            class="flex size-10 items-center justify-center rounded-full bg-surface-container-low text-secondary"
+          >
+            <Icon icon="ion:key-outline" class="size-5" />
+          </div>
+          <div>
+            <p class="font-body font-semibold text-foreground">{m.account_passkey()}</p>
+            <p class="mt-1 font-body text-sm text-foreground-alt">
+              {m.account_passkey_description()}
+            </p>
+          </div>
+        </div>
+        <Button
+          disabled={addingPasskey}
+          onclick={addPasskey}
+          size="compact"
+          variant="primary"
+          >{m.account_add_passkey()}</Button
+        >
+      </article>
       {#if !linked('credential')}
         <article class="flex items-center justify-between gap-4 p-5">
           <div class="flex items-center gap-3">

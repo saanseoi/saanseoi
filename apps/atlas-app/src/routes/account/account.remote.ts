@@ -23,6 +23,11 @@ const changePasswordSchema = z.object({
   locale: z.enum(userLocales),
 })
 
+const deletePasskeySchema = z.object({
+  id: z.string(),
+  locale: z.enum(userLocales),
+})
+
 type AccountLocale = (typeof userLocales)[number]
 type AccountMessageKey =
   | 'account_unlink_error'
@@ -35,6 +40,7 @@ type AccountMessageKey =
   | 'account_password_change_error'
   | 'account_current_password_not_accepted'
   | 'account_password_changed'
+  | 'account_passkey_remove_error'
 
 const messages = {
   en: enMessages,
@@ -57,15 +63,17 @@ export const getAccountPageData = query(async () => {
   const event = getRequestEvent()
   if (!event.locals.user) redirect(303, '/sign-in?next=/account')
 
-  const accounts = await event.locals.auth.api.listUserAccounts({
-    headers: event.request.headers,
-  })
+  const [accounts, passkeys] = await Promise.all([
+    event.locals.auth.api.listUserAccounts({ headers: event.request.headers }),
+    event.locals.auth.api.listPasskeys({ headers: event.request.headers }),
+  ])
 
   return {
     user: {
       email: event.locals.user.email,
     },
     accounts,
+    passkeys,
   }
 })
 
@@ -79,10 +87,11 @@ export const unlinkAccountForCurrentUser = command(
         message: getAccountMessage(locale, 'account_unlink_error'),
       } as const
 
-    const accounts = await event.locals.auth.api.listUserAccounts({
-      headers: event.request.headers,
-    })
-    if (accounts.length <= 1) {
+    const [accounts, passkeys] = await Promise.all([
+      event.locals.auth.api.listUserAccounts({ headers: event.request.headers }),
+      event.locals.auth.api.listPasskeys({ headers: event.request.headers }),
+    ])
+    if (accounts.length + passkeys.length <= 1) {
       return {
         ok: false,
         message: getAccountMessage(locale, 'account_last_sign_in_method'),
@@ -110,6 +119,47 @@ export const unlinkAccountForCurrentUser = command(
     })
     await getAccountPageData().refresh()
 
+    return { ok: true } as const
+  },
+)
+
+export const deletePasskeyForCurrentUser = command(
+  deletePasskeySchema,
+  async ({ id, locale }) => {
+    const event = requireUser()
+    if (!event)
+      return {
+        ok: false,
+        message: getAccountMessage(locale, 'account_passkey_remove_error'),
+      } as const
+
+    const [accounts, passkeys] = await Promise.all([
+      event.locals.auth.api.listUserAccounts({ headers: event.request.headers }),
+      event.locals.auth.api.listPasskeys({ headers: event.request.headers }),
+    ])
+    if (
+      accounts.length + passkeys.length <= 1 ||
+      !passkeys.some(passkey => passkey.id === id)
+    ) {
+      return {
+        ok: false,
+        message: getAccountMessage(locale, 'account_passkey_remove_error'),
+      } as const
+    }
+
+    try {
+      await event.locals.auth.api.deletePasskey({
+        headers: event.request.headers,
+        body: { id },
+      })
+    } catch {
+      return {
+        ok: false,
+        message: getAccountMessage(locale, 'account_passkey_remove_error'),
+      } as const
+    }
+
+    await getAccountPageData().refresh()
     return { ok: true } as const
   },
 )
