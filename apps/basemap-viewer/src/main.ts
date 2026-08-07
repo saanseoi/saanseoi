@@ -588,10 +588,6 @@ async function createMap(tilejsonUrl: string): Promise<void> {
     createdMap.once('load', resolve)
     createdMap.once('error', event => reject(event.error))
   })
-  // A close postcard crop can keep requesting vector tiles past the screenshot
-  // deadline. The headless postcard path waits briefly before capture instead,
-  // so its visible tiles have time to settle without requiring every source
-  // request to complete.
   if (!POSTCARD_RENDERING) await waitForSource(createdMap, BASEMAP_SOURCE_ID)
   updateAttribution(createdMap, true)
 }
@@ -801,13 +797,17 @@ function updateAttribution(target: MapLibreMap, collapse = false): void {
   }
 }
 
-function waitForSource(target: MapLibreMap, sourceId: string): Promise<void> {
+function waitForSource(
+  target: MapLibreMap,
+  sourceId: string,
+  timeoutMs = 15_000,
+): Promise<void> {
   if (target.isSourceLoaded(sourceId)) return Promise.resolve()
   return new Promise((resolve, reject) => {
     const timeout = window.setTimeout(() => {
       cleanup()
       reject(new Error('Timed out while loading map tiles.'))
-    }, 15_000)
+    }, timeoutMs)
     const onData = (event: { sourceId?: string }) => {
       if (event.sourceId === sourceId && target.isSourceLoaded(sourceId)) {
         cleanup()
@@ -1242,10 +1242,11 @@ function postcardZoom(): number {
 async function markHeadlessReady(): Promise<void> {
   if (!map) return
   if (POSTCARD_RENDERING) {
-    await Promise.race([
-      new Promise<void>(resolve => map?.once('idle', () => resolve())),
-      new Promise<void>(resolve => window.setTimeout(resolve, 8_000)),
-    ])
+    // The illuminated postcard often follows the standard capture in the same
+    // Browser Rendering session. A fixed delay can therefore capture Hong
+    // Kong before its dense land-cover tiles finish, while the warmed follow-up
+    // capture appears complete. Wait for the final postcard camera instead.
+    await waitForSource(map, BASEMAP_SOURCE_ID, 60_000)
   } else if (!(map.loaded() && map.areTilesLoaded())) {
     await new Promise<void>(resolve => map?.once('idle', () => resolve()))
   }

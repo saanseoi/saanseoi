@@ -77,6 +77,9 @@ describe('basemap style', () => {
     expect(style.layers.find(layer => layer.id === 'water')?.paint).toMatchObject({
       'fill-color': '#D7E6E4',
     })
+    expect(JSON.stringify(style.layers)).toContain('#B7C99E')
+    expect(JSON.stringify(style.layers)).toContain('#DFC17B')
+    expect(JSON.stringify(style.layers)).toContain('#CEDAB9')
     expect(
       style.layers.find(layer => layer.id === 'water_coastline')?.paint,
     ).toMatchObject({ 'line-color': '#D99393', 'line-opacity': 0.72 })
