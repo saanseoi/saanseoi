@@ -1,8 +1,8 @@
 import type { PolicyDocument } from './types'
 
 export const privacyPolicy: PolicyDocument = {
-  version: '1',
-  effectiveDate: '10 June 2026',
+  version: '2',
+  effectiveDate: '8 August 2026',
   contactEmail: 'policy@saanseoi.hk',
   i18n: {
     en: {
@@ -16,9 +16,9 @@ export const privacyPolicy: PolicyDocument = {
           heading: '1. What data we collect',
           bullets: [
             'Email address - when you subscribe to our informational updates.',
-            'Email address or OAuth identity (e.g. via GitHub or Google) - when you register for our API portal.',
+            'Email address, name, and profile image - when you register for our API portal. These may be supplied by an OAuth provider (e.g. Facebook, GitHub, or Google).',
             'Server logs and Cloudflare Analytics data - including IP addresses, request paths, timestamps, browser/client information, and referrer URLs. This is collected automatically when you visit our website or use our APIs.',
-            'We do not collect names, phone numbers, payment details, or any sensitive personal data as defined under the PDPO.',
+            'We do not collect phone numbers, payment details, or any sensitive personal data as defined under the PDPO.',
           ],
         },
         {
@@ -55,13 +55,26 @@ export const privacyPolicy: PolicyDocument = {
           ],
         },
         {
-          heading: '5. Data retention',
+          heading: '5. Requests from public authorities',
+          paragraphs: [
+            'We respond to requests for personal data from public authorities, including law-enforcement and regulatory bodies, only when required by applicable law or a valid, binding legal process. Before disclosing any personal data, we:',
+          ],
+          bullets: [
+            'Review the request for legal validity, scope, and authority.',
+            'Challenge, seek clarification of, or narrow a request where we reasonably consider it unlawful, invalid, or overbroad.',
+            'Disclose only the minimum personal data necessary to comply with the valid request.',
+            'Document the request, our response, the legal basis for the decision, and the people involved in handling it.',
+            'Where permitted by law and where doing so would not compromise an investigation or safety, notify the affected user before disclosure or as soon as we are permitted to do so.',
+          ],
+        },
+        {
+          heading: '6. Data retention',
           paragraphs: [
             'We retain personal data only as long as necessary for the purpose for which it was collected. Mailing list addresses are held until you unsubscribe. API portal credentials are held until you request account deletion. Server logs are retained for a limited operational period.',
           ],
         },
         {
-          heading: '6. Your rights',
+          heading: '7. Your rights',
           paragraphs: ['Under the PDPO, you have the right to:'],
           bullets: [
             'Request access to personal data we hold about you.',
@@ -71,21 +84,21 @@ export const privacyPolicy: PolicyDocument = {
           ],
         },
         {
-          heading: '7. Cookies and analytics',
+          heading: '8. Cookies and analytics',
           paragraphs: [
             'We use Cloudflare Analytics, which is a privacy-friendly analytics solution that does not use cookies to track individual users across the web. Our server logs may capture technical request data as described above.',
           ],
         },
         {
-          heading: '8. Changes to this policy',
+          heading: '9. Changes to this policy',
           paragraphs: [
             'If we make material changes to this policy, we will notify registered users by email before the changes take effect. The current version is always published at saanseoi.hk.',
           ],
         },
         {
-          heading: '9. Contact',
+          heading: '10. Contact',
           paragraphs: [
-            'If you have any questions or concerns about your privacy, please write to us at policy@saanseoi.hk. We are a citizen initiative and we genuinely welcome your feedback.',
+            'For privacy matters, including data-access, correction, and deletion requests, please write to us at policy@saanseoi.hk. Our Data Protection Officer is Mart van de Ven, 14/F, 8 Hennessy Road, Wan Chai, Hong Kong. We are a citizen initiative and we genuinely welcome your feedback.',
           ],
         },
       ],
@@ -101,9 +114,9 @@ export const privacyPolicy: PolicyDocument = {
           heading: '一、我們收集的資料',
           bullets: [
             '電郵地址 - 當你訂閱我們的資訊更新時。',
-            '電郵地址或 OAuth 身份（如 GitHub 或 Google）- 當你註冊 API 平台時。',
+            '電郵地址、姓名及個人頭像 - 當你註冊 API 平台時。這些資料可能由 OAuth 服務供應商（如 Facebook、GitHub 或 Google）提供。',
             '伺服器日誌及 Cloudflare Analytics 數據 - 包括 IP 地址、請求路徑、時間戳記、瀏覽器/客戶端資訊及來源網址。當你瀏覽本網站或使用 API 時，此類資料會自動收集。',
-            '我們不收集姓名、電話號碼、付款資料，或私隱條例下定義的任何敏感個人資料。',
+            '我們不收集電話號碼、付款資料，或私隱條例下定義的任何敏感個人資料。',
           ],
         },
         {
@@ -138,13 +151,26 @@ export const privacyPolicy: PolicyDocument = {
           ],
         },
         {
-          heading: '五、資料保留',
+          heading: '五、公共機關的資料要求',
+          paragraphs: [
+            '我們只會在適用法律或有效並具約束力的法律程序所要求時，回應公共機關（包括執法及監管機構）索取個人資料的要求。在披露任何個人資料前，我們會：',
+          ],
+          bullets: [
+            '審核要求的法律效力、範圍及權限。',
+            '如我們合理地認為要求不合法、無效或過於廣泛，會提出質疑、要求澄清或尋求縮窄範圍。',
+            '只披露為遵從有效要求所必需的最少個人資料。',
+            '記錄該要求、我們的回覆、作出決定的法律依據，以及參與處理的人員。',
+            '在法律允許且不會損害調查或安全的情況下，在披露前通知受影響用戶，或在獲准後盡快通知。',
+          ],
+        },
+        {
+          heading: '六、資料保留',
           paragraphs: [
             '我們只在實現收集目的所需的期限內保留個人資料。訂閱電郵地址保留至你取消訂閱為止；API 平台登入憑證保留至你要求刪除帳戶為止；伺服器日誌保留有限的運營期限。',
           ],
         },
         {
-          heading: '六、你的權利',
+          heading: '七、你的權利',
           paragraphs: ['根據私隱條例，你有權：'],
           bullets: [
             '要求查閱我們持有的你的個人資料。',
@@ -154,21 +180,21 @@ export const privacyPolicy: PolicyDocument = {
           ],
         },
         {
-          heading: '七、Cookies 及分析',
+          heading: '八、Cookies 及分析',
           paragraphs: [
             '我們使用 Cloudflare Analytics，這是一個不使用 cookies 跨網站追蹤個別用戶的私隱友好型分析方案。我們的伺服器日誌可能如上所述記錄技術請求資料。',
           ],
         },
         {
-          heading: '八、政策更新',
+          heading: '九、政策更新',
           paragraphs: [
             '如我們對本政策作出重大更改，我們將在更改生效前以電郵通知已登記用戶。最新版本將持續於 saanseoi.hk 發布。',
           ],
         },
         {
-          heading: '九、聯絡我們',
+          heading: '十、聯絡我們',
           paragraphs: [
-            '如對你的私隱有任何疑問或關切，歡迎電郵 policy@saanseoi.hk 聯絡我們。我們是公民自發項目，真誠歡迎你的意見。',
+            '如對你的私隱有任何疑問或關切（包括查閱、更正及刪除資料的要求），請電郵 policy@saanseoi.hk 聯絡我們。我們的資料保護主任為 Mart van de Ven，地址為香港灣仔軒尼詩道8號14樓。我們是公民自發項目，真誠歡迎你的意見。',
           ],
         },
       ],
