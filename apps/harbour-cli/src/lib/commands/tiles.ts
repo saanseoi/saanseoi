@@ -27,7 +27,12 @@ import Polygonizer from 'jsts/org/locationtech/jts/operation/polygonize/Polygoni
 import UnionOp from 'jsts/org/locationtech/jts/operation/union/UnionOp.js'
 import UnaryUnionOp from 'jsts/org/locationtech/jts/operation/union/UnaryUnionOp.js'
 
-import { BASEMAP_SCHEMA_VERSION, hktReleaseDate } from '@repo/basemap'
+import {
+  BASEMAP_SCHEMA_VERSION,
+  hktReleaseDate,
+  mapStyleIds,
+  type MapStyleId,
+} from '@repo/basemap'
 
 import type { ParsedArgs } from '../cli/options.ts'
 
@@ -162,6 +167,13 @@ type VersionsIndex = {
 
 type TilesOperation = 'import' | 'rebuild' | 'refresh'
 type PreviewMode = 'light' | 'dark' | 'postcard' | 'postcard-lit'
+type StylePreviewCamera = { landmark: string; lng: number; lat: number }
+
+const STYLE_PREVIEW_CAMERAS: Record<RegionCode, StylePreviewCamera> = {
+  gba: { landmark: 'canton-tower', lng: 113.3247, lat: 23.1065 },
+  hk: { landmark: 'central', lng: 114.1584, lat: 22.2855 },
+  mo: { landmark: 'senado-square', lng: 113.5439, lat: 22.1933 },
+}
 
 type BoundaryGeometry =
   | { type: 'Polygon'; coordinates: number[][][] }
@@ -185,11 +197,14 @@ export async function runTilesRefreshCommand(args: ParsedArgs, printUsage: () =>
       modes: ['light', 'dark', 'postcard', 'postcard-lit'],
       dryRun: input.dryRun,
     })
+    await renderStyleLibraryPreviews(region, input.version, input.dryRun)
   }
 }
 
 export async function runTilesRenderCommand(args: ParsedArgs, printUsage: () => void) {
-  await renderBasemapPreviews(resolveTilesRenderInput(args, printUsage))
+  const input = resolveTilesRenderInput(args, printUsage)
+  await renderBasemapPreviews(input)
+  await renderStyleLibraryPreviews(input.region, input.version, input.dryRun)
 }
 
 export async function runTilesImportCommand(args: ParsedArgs, printUsage: () => void) {
@@ -326,6 +341,7 @@ export async function runTilesRebuildCommand(args: ParsedArgs, printUsage: () =>
       modes: ['light', 'dark'],
       dryRun: false,
     })
+    await renderStyleLibraryPreviews(release.region, release.version, false)
   }
 
   outro(
@@ -438,6 +454,7 @@ async function runTilesDateRebuild(input: ReturnType<typeof resolveTilesRebuildI
       modes: ['light', 'dark'],
       dryRun: false,
     })
+    await renderStyleLibraryPreviews(release.region, release.version, false)
   }
 
   outro(
@@ -1065,6 +1082,106 @@ function basemapRenderUrl(region: Region, version: string, mode: PreviewMode) {
   // Browser Rendering retains its navigation cache between captures. Ensure a
   // refreshed artefact always evaluates the newly deployed postcard camera.
   url.searchParams.set('capture', `${mode}-${Date.now()}`)
+  url.searchParams.set('locale', 'en')
+  return url.toString()
+}
+
+async function renderStyleLibraryPreviews(
+  region: Region,
+  version: string,
+  dryRun: boolean,
+) {
+  const camera = STYLE_PREVIEW_CAMERAS[region.code]
+  const previews = mapStyleIds.flatMap(style =>
+    ([16, 19] as const).map(zoom => ({ style, zoom })),
+  )
+  if (dryRun) {
+    note(
+      previews
+        .map(({ style, zoom }) => {
+          const name = stylePreviewName(region, version, style, camera.landmark, zoom)
+          return `${style} z${zoom}: ${basemapStylePreviewUrl(region, version, style, camera, zoom)}\npreview: ${objectKey(region.code, name)}`
+        })
+        .join('\n'),
+      'STYLE LIBRARY PREVIEW DRY RUN',
+    )
+    return
+  }
+
+  const token = process.env.CLOUDFLARE_API_TOKEN
+  if (!token) {
+    throw new Error(
+      'Style preview rendering requires CLOUDFLARE_API_TOKEN with Browser Rendering - Edit and Workers R2 Storage - Edit permissions.',
+    )
+  }
+  await mkdir(resolve(TILES_ROOT, 'renders'), { recursive: true })
+  const latestVersion = (await readVersionsIndex()).regions[region.code]?.latest
+    ?.version
+  for (const { style, zoom } of previews) {
+    const name = stylePreviewName(region, version, style, camera.landmark, zoom)
+    const response = await fetch(BROWSER_RENDER_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url: basemapStylePreviewUrl(region, version, style, camera, zoom),
+        viewport: { width: 512, height: 512, deviceScaleFactor: 1 },
+        gotoOptions: { waitUntil: 'networkidle2', timeout: 60_000 },
+        waitForSelector: { selector: '#basemap-render-ready', timeout: 120_000 },
+        actionTimeout: 120_000,
+        screenshotOptions: { type: 'webp', quality: 88, fullPage: false },
+      }),
+    })
+    if (!response.ok) {
+      throw new Error(
+        `Cloudflare Browser Rendering failed (${response.status}): ${await response.text()}`,
+      )
+    }
+    const path = resolve(TILES_ROOT, 'renders', name)
+    await writeFile(path, new Uint8Array(await response.arrayBuffer()))
+    await putObject(objectKey(region.code, name), path, 'image/webp')
+    if (latestVersion === version) {
+      await putObject(
+        objectKey(
+          region.code,
+          stylePreviewName(region, 'latest', style, camera.landmark, zoom),
+        ),
+        path,
+        'image/webp',
+      )
+    }
+  }
+}
+
+function stylePreviewName(
+  region: Region,
+  version: string,
+  style: MapStyleId,
+  landmark: string,
+  zoom: 16 | 19,
+) {
+  return `${region.name}-${version}-${style}-${landmark}-z${zoom}.webp`
+}
+
+function basemapStylePreviewUrl(
+  region: Region,
+  version: string,
+  style: MapStyleId,
+  camera: StylePreviewCamera,
+  zoom: 16 | 19,
+) {
+  const url = new URL(VIEWER_ORIGIN)
+  url.searchParams.set('headless', 'true')
+  url.searchParams.set('region', region.code)
+  url.searchParams.set('version', version)
+  url.searchParams.set('theme', style)
+  url.searchParams.set('lng', String(camera.lng))
+  url.searchParams.set('lat', String(camera.lat))
+  url.searchParams.set('z', String(zoom))
+  url.searchParams.set('bearing', '0')
+  url.searchParams.set('pitch', '0')
   url.searchParams.set('locale', 'en')
   return url.toString()
 }
