@@ -4,19 +4,20 @@
 
 ### EN
 
-An API (application programming interface) is a documented way for software to request
-data or services. SaanSeoi APIs let an application retrieve versioned geospatial data
-with standard web requests.
+APIs are how <i>software</i> talks to each other. Use code or an LLM to make requests to
+our API and it will respond with data. The benefit of using APIs over raw data downloads
+is that you won't need to download the full dataset or host it yourself. Just point your
+map, app, or analysis to our APIs and the data is just a request away.
 
 ### ZH-HANT
 
-API（應用程式介面）是讓軟件請求資料或服務的文件化方式。SaanSeoi
-API 讓應用程式可透過標準網絡請求，取得具版本控制的地理空間資料。
+API 是讓<i>軟件</i>彼此溝通的方式。你可使用程式碼或 LLM 向 SaanSeoi
+API 發出請求，它會回傳資料。這表示你無須自行下載或託管資料；只需把地圖、應用程式或分析工具連接至我們的 API，便不用擔心資料庫或保持資料更新。
 
 ### ZH-HANS
 
-API（应用程序接口）是让软件请求数据或服务的文档化方式。SaanSeoi
-API 让应用程序可通过标准网络请求，获取受版本控制的地理空间数据。
+API 是让<i>软件</i>彼此通信的方式。你可以使用代码或 LLM 向 SaanSeoi
+API 发出请求，它会返回数据。这意味着无需自行下载或托管数据；只需将地图、应用程序或分析工具连接到我们的 API，就不必担心数据库或保持数据更新。
 
 # Basemap
 
@@ -24,17 +25,17 @@ API 让应用程序可通过标准网络请求，获取受版本控制的地理�
 
 ### EN
 
-A basemap is a map layer that provides geographic context, such as coastlines, roads and
-places. SaanSeoi makes its basemaps freely available for use in compatible mapping
-software.
+The <i>bottom background layer</i> of a map. It gives geographic context with features
+like roads, water, land, and place names. You typically put layers on top of this
+background to show a collection of markers or to study locations and patterns.
 
 ### ZH-HANT
 
-底圖是提供地理背景的地圖圖層，例如海岸線、道路和地點。SaanSeoi 的底圖可免費用於相容的製圖軟件。
+底圖是地圖的<i>最底層背景圖層</i>。它以道路、水域、陸地和地名等要素提供地理背景。你通常會在這個背景之上加上其他圖層，以呈現一組標記，或研究地點和模式。
 
 ### ZH-HANS
 
-底图是提供地理背景的地图图层，例如海岸线、道路和地点。SaanSeoi 的底图可免费用于兼容的制图软件。
+底图是地图的<i>最底层背景图层</i>。它以道路、水域、陆地和地名等要素提供地理背景。你通常会在这个背景之上添加其他图层，以呈现一组标记，或研究地点和模式。
 
 # Catalogue
 

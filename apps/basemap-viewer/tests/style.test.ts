@@ -20,7 +20,7 @@ describe('basemap style', () => {
     const { style } = createStyle('https://tiles.example/hongkong-2026-03-18.json')
     expect(style.sources.basemap).toEqual({
       attribution:
-        '<a href="https://openstreetmap.org/copyright">OpenStreetMaps (ODbL)</a>; <a href="https://protomaps.com/legal">Protomaps</a>',
+        '<a href="https://openstreetmap.org/copyright">OpenStreetMap (ODbL)</a>; <a href="https://protomaps.com/legal">Protomaps</a>',
       type: 'vector',
       url: 'https://tiles.example/hongkong-2026-03-18.json',
     })

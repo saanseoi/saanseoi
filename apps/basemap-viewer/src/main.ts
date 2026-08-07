@@ -781,7 +781,7 @@ function updateAttribution(target: MapLibreMap, collapse = false): void {
   if (attributionContent) {
     const openStreetMapLink = document.createElement('a')
     openStreetMapLink.href = 'https://openstreetmap.org/copyright'
-    openStreetMapLink.textContent = 'OpenStreetMaps (ODbL)'
+    openStreetMapLink.textContent = 'OpenStreetMap (ODbL)'
     const protomapsLink = document.createElement('a')
     protomapsLink.href = 'https://protomaps.com/legal'
     protomapsLink.textContent = 'Protomaps'
