@@ -65,7 +65,7 @@ const socialSignIn = async (provider: 'google' | 'github') => {
     >
     <a
       class="block w-fit font-body text-body-sm text-secondary hover:underline"
-      href="/forgot-password"
+      href="/password/forgot"
       >{m.auth_forgot_password()}</a
     >
     {#if error}
