@@ -6,12 +6,13 @@ import zhHantMessages from '@repo/i18n/messages/zh-Hant/shared.json'
 export type AppLocale = (typeof locales)[number]
 export type MessageKey = keyof typeof enMessages
 
-const messages = {
+// TODO - undo this change as soon as we have will guides in Chinese
+const messages: Record<AppLocale, Partial<Record<MessageKey, string>>> = {
   en: enMessages,
   'zh-Hant': zhHantMessages,
   'zh-Hans': zhHansMessages,
-} satisfies Record<AppLocale, Record<MessageKey, string>>
+}
 
 export function getLocalisedMessage(key: MessageKey, locale: AppLocale) {
-  return messages[locale]?.[key] ?? messages.en[key]
+  return messages[locale]?.[key] ?? enMessages[key]
 }
