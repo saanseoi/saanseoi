@@ -122,6 +122,7 @@ const layers = $derived(layerItems($viewerState, $ui.enabled, text))
     <SelectMenu
       ariaLabel={`${text.mapTheme}: ${themeLabel($viewerState.theme)}`}
       align="end"
+      buttonLabel={themeLabel($viewerState.theme)}
       disabled={!$ui.enabled}
       icon="color-palette"
       items={themes.map((theme) => ({ value: theme, label: themeLabel(theme) }))}

@@ -1,8 +1,16 @@
 export const LOCALES = ['en', 'zh-Hant', 'zh-Hans'] as const
 export type Locale = (typeof LOCALES)[number]
 
-export const THEMES = ['light', 'dark', 'midnight'] as const
+export const THEMES = [
+  'light',
+  'dark',
+  'white',
+  'grayscale',
+  'black',
+  'midnight',
+] as const
 export type Theme = (typeof THEMES)[number]
+export const SELECTABLE_THEMES = ['light', 'dark', 'midnight'] as const
 
 export const COMPARISON_MODES = ['split', 'overlay', 'side-by-side', 'labels'] as const
 export type ComparisonMode = (typeof COMPARISON_MODES)[number]

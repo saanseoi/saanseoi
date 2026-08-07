@@ -43,6 +43,10 @@ describe('URL state', () => {
     expect(readUrlState('?theme=midnight').theme).toBe('midnight')
   })
 
+  it('reads a hidden Protomaps flavour from a shared URL', () => {
+    expect(readUrlState('?theme=grayscale').theme).toBe('grayscale')
+  })
+
   it('uses the system theme only when a shared URL does not specify one', () => {
     expect(readUrlState('', 'dark').theme).toBe('dark')
     expect(readUrlState('?theme=light', 'dark').theme).toBe('light')

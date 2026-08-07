@@ -1073,14 +1073,14 @@ function applyBoundaryPresentation(
 
 function boundaryMaskColor(theme: AppState['theme']): string {
   if (POSTCARD_RENDERING) return '#F8F2E6'
-  if (theme === 'dark') return '#14181a'
+  if (theme === 'dark' || theme === 'black') return '#14181a'
   if (theme === 'midnight') return '#020617'
   return '#e7edf1'
 }
 
 function boundaryLineColor(theme: AppState['theme']): string {
   if (POSTCARD_RENDERING) return postcardPalette(state.regionCode).accent
-  if (theme === 'dark') return '#536169'
+  if (theme === 'dark' || theme === 'black') return '#536169'
   if (theme === 'midnight') return '#6beaf5'
   return '#82929a'
 }

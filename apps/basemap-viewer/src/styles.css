@@ -156,8 +156,10 @@ header fieldset {
 }
 
 #map[data-map-theme="dark"],
+#map[data-map-theme="black"],
 #map[data-map-theme="midnight"],
 #comparison-map[data-map-theme="dark"],
+#comparison-map[data-map-theme="black"],
 #comparison-map[data-map-theme="midnight"] {
   --map-widget-background: rgb(20 24 26 / 90%);
   --map-widget-border: #536169;
@@ -167,6 +169,7 @@ header fieldset {
 }
 
 [data-bar-theme="dark"],
+[data-bar-theme="black"],
 [data-bar-theme="midnight"] {
   --bar-background: rgb(20 24 26 / 94%);
   --panel-background: #14181a;
@@ -232,8 +235,10 @@ header fieldset {
 }
 
 #map[data-map-theme="dark"] .maplibregl-ctrl-attrib-button,
+#map[data-map-theme="black"] .maplibregl-ctrl-attrib-button,
 #map[data-map-theme="midnight"] .maplibregl-ctrl-attrib-button,
 #comparison-map[data-map-theme="dark"] .maplibregl-ctrl-attrib-button,
+#comparison-map[data-map-theme="black"] .maplibregl-ctrl-attrib-button,
 #comparison-map[data-map-theme="midnight"] .maplibregl-ctrl-attrib-button {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='%23fff' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E");
 }
