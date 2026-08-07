@@ -37,10 +37,10 @@ let {
 }: Props = $props()
 
 const positions = [
-  'min-[901px]:left-[calc(50%-29.75rem)] min-[901px]:translate-y-[.3rem] min-[901px]:rotate-[-3.5deg] min-[901px]:hover:translate-y-0 min-[901px]:hover:-rotate-1',
-  'min-[901px]:left-[calc(50%-15.6rem)] min-[901px]:translate-y-6 min-[901px]:rotate-[1.8deg] min-[901px]:hover:translate-y-[1.2rem] min-[901px]:hover:rotate-[.8deg]',
-  'min-[901px]:left-[calc(50%-1.4rem)] min-[901px]:translate-y-[-.5rem] min-[901px]:rotate-[-1.4deg] min-[901px]:hover:translate-y-[-.8rem] min-[901px]:hover:rotate-[-.5deg]',
-  'min-[901px]:left-[calc(50%+12.75rem)] min-[901px]:translate-y-4 min-[901px]:rotate-[3.2deg] min-[901px]:hover:translate-y-[.7rem] min-[901px]:hover:rotate-[1.1deg]',
+  'min-[901px]:left-[calc(50%-29.75rem)] min-[901px]:translate-y-[.3rem] min-[901px]:rotate-[-3.5deg]',
+  'min-[901px]:left-[calc(50%-15.6rem)] min-[901px]:translate-y-6 min-[901px]:rotate-[1.8deg]',
+  'min-[901px]:left-[calc(50%-1.4rem)] min-[901px]:translate-y-[-.5rem] min-[901px]:rotate-[-1.4deg]',
+  'min-[901px]:left-[calc(50%+12.75rem)] min-[901px]:translate-y-4 min-[901px]:rotate-[3.2deg]',
 ] as const
 
 const tones = {
@@ -52,7 +52,7 @@ const tones = {
 <Card.Card
   as="button"
   class={cn(
-    `principle-card principle-stack-position-${orderIndex} absolute top-28 z-1 flex h-88 w-[min(18rem,26vw)] cursor-grab flex-col justify-between overflow-hidden rounded-2xl border border-outline-variant/84 p-[1.35rem] text-left shadow-[0_.7rem_1.6rem_rgb(24_25_25/0.1),var(--shadow-mini)] transition-[top,left,width,transform,border-color,height,opacity,box-shadow] duration-500 focus-visible:outline-none active:cursor-grabbing dark:border-outline-variant/70 dark:shadow-mini`,
+    `principle-card principle-stack-position-${orderIndex} absolute top-28 z-1 flex h-88 w-[min(18rem,26vw)] cursor-grab flex-col justify-between overflow-hidden rounded-2xl border border-outline-variant/84 p-[1.35rem] text-left shadow-[0_.7rem_1.6rem_rgb(24_25_25/0.1),var(--shadow-mini)] transition-[top,left,width,transform,translate,rotate,border-color,height,opacity,box-shadow] duration-500 min-[901px]:hover:[translate:0_-0.75rem] min-[901px]:hover:rotate-0 focus-visible:outline-none active:cursor-grabbing dark:border-outline-variant/70 dark:shadow-mini`,
     positions[principleIndex],
     tones[principle.tone],
     isActive && 'principle-card-active',
