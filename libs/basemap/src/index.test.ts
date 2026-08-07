@@ -49,6 +49,13 @@ describe('basemap contract', () => {
       name: 'hongkong-latest-postcard-lit',
       latest: true,
     })
+    expect(
+      render_request('/render/hk/hongkong-latest-midnight-central-z19.webp'),
+    ).toEqual({
+      regionCode: 'hk',
+      name: 'hongkong-latest-midnight-central-z19',
+      latest: true,
+    })
     const region = catalogue.regions[0]
     if (!region) throw new Error('Expected a published region.')
     expect(tilejsonUrl('https://tiles.example/', region, 'latest')).toBe(
