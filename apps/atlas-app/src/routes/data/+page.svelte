@@ -627,7 +627,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
         {m.data_description_after_basemaps()}
         <a
           class="font-semibold text-secondary underline decoration-secondary/45 underline-offset-4 hover:text-primary hover:decoration-primary"
-          href="/create-a-map"
+          href="/how-to/create-a-map"
           >{m.data_create_map()}</a
         >
         {m.data_description_after_create_map()}
