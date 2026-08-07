@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>SaanSeoi API</title>
+  <rect width="512" height="512" fill="#000" />
+  <path fill="#fff" d="M92 156h52v196h88V76h48v276h88V156h52v248H92z" />
+  <rect x="368" y="404" width="52" height="40" fill="#fff" />
+</svg>
