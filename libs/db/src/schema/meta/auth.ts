@@ -123,6 +123,35 @@ export const verification = sqliteTable(
   table => [index('verification_identifier_idx').on(table.identifier)],
 )
 
+/**
+ * WebAuthn passkeys registered for Better Auth users.
+ *
+ * Private keys remain in the user's authenticator; this table stores only
+ * public credential material required for authentication.
+ */
+export const passkey = sqliteTable(
+  'passkey',
+  {
+    id: text('id').primaryKey(),
+    name: text('name'),
+    publicKey: text('publicKey').notNull(),
+    userId: text('userId')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    credentialID: text('credentialID').notNull(),
+    counter: integer('counter').notNull(),
+    deviceType: text('deviceType').notNull(),
+    backedUp: integer('backedUp', { mode: 'boolean' }).notNull(),
+    transports: text('transports'),
+    createdAt: betterAuthTimestamp('createdAt'),
+    aaguid: text('aaguid'),
+  },
+  table => [
+    index('passkey_userId_idx').on(table.userId),
+    index('passkey_credentialID_idx').on(table.credentialID),
+  ],
+)
+
 export const apiKey = sqliteTable(
   'api_key',
   {
