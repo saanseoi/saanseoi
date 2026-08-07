@@ -1,6 +1,6 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
-import { Tooltip } from 'bits-ui'
+import { Popover } from 'bits-ui'
 import { onMount } from 'svelte'
 
 import * as CardDeck from '$lib/bits/components/cardDeck'
@@ -50,6 +50,8 @@ let apiSwipeState = $state({
 let suppressApiClick = false
 let isApiMobileStack = $state<boolean | null>(null)
 let isApiDeckVisible = $state(false)
+let isBasemapDeckVisible = $state(false)
+let isReleaseCarouselVisible = $state(false)
 let releaseCarousel = $state<{ scrollByPage: (direction: -1 | 1) => void }>()
 let releaseCarouselNavigation = $state({
   canMoveBackward: false,
@@ -104,11 +106,11 @@ let basemapDragState = $state({
   draggedCode: null as (typeof basemapDirectory)[number]['code'] | null,
   throwingCode: null as (typeof basemapDirectory)[number]['code'] | null,
 })
-const registryBackground = `linear-gradient(color-mix(in srgb, var(--background) 88%, transparent), color-mix(in srgb, var(--background) 88%, transparent)), url("data:image/svg+xml,%3Csvg width='120' height='96' viewBox='0 0 120 96' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 18c24 0 36 10 60 10s36-10 60-10M0 42c24 0 36 10 60 10s36-10 60-10M0 66c24 0 36 10 60 10s36-10 60-10M0 90c24 0 36 10 60 10s36-10 60-10' fill='none' stroke='%238e9192' stroke-width='0.7' opacity='0.14'/%3E%3C/svg%3E")`
-
 onMount(() => {
   window.requestAnimationFrame(() => {
     isApiDeckVisible = true
+    isBasemapDeckVisible = true
+    isReleaseCarouselVisible = true
   })
 })
 
@@ -271,6 +273,14 @@ const apiDirectoryItem = (index: number) => {
   if (!item) throw new Error('The API directory is empty')
   return item
 }
+const apiFamilyDescription = (familyType: string) =>
+  ({
+    divisions: m.data_api_description_divisions(),
+    addresses: m.data_api_description_addresses(),
+    places: m.data_api_description_places(),
+    streets: m.data_api_description_streets(),
+    stats: m.data_api_description_stats(),
+  })[familyType] ?? m.data_public_api()
 const docsUrlForFamily = (familyType: string) => `${atlasDocsUrl}#tag/${familyType}`
 
 const releaseDisplayCode = (code?: string | null, familyType?: string) => {
@@ -285,14 +295,14 @@ const releaseDisplayCode = (code?: string | null, familyType?: string) => {
     )
   return code.replace(/^(?:data|rs)-hk-[a-z-]+-/, '')
 }
-const displayDate = (value?: string | null) =>
-  !value
-    ? m.data_unpublished()
-    : new Intl.DateTimeFormat(locale, {
-        month: 'short',
-        day: '2-digit',
-        year: 'numeric',
-      }).format(new Date(value))
+const displayDate = (value?: string | null) => {
+  if (!value) return m.data_unpublished()
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(value))
+}
 const compactNumber = (value: number) =>
   new Intl.NumberFormat(locale, {
     maximumFractionDigits: value >= 1_000_000 ? 1 : 0,
@@ -385,26 +395,26 @@ const apiCardClass = (apiIndex: number, orderIndex: number) => {
       : orderIndex - 1
     : orderIndex
   const desktopClass = isActive
-    ? 'min-[901px]:top-4! min-[901px]:left-1/2! min-[901px]:z-5! min-[901px]:h-152! min-[901px]:w-[min(26rem,100%)]! min-[901px]:opacity-100! min-[901px]:transform-[translateX(-50%)_rotate(0deg)]! min-[901px]:shadow-[0_1.25rem_3rem_rgb(0_0_0/0.2)]'
+    ? 'min-[901px]:top-4! min-[901px]:left-1/2! min-[901px]:z-5! min-[901px]:h-[calc(36rem+6px)]! min-[901px]:w-[min(26rem,100%)]! min-[901px]:opacity-100! min-[901px]:transform-[translateX(-50%)_rotate(0deg)]! min-[901px]:shadow-[0_1.25rem_3rem_rgb(0_0_0/0.2)]'
     : activeApiIndex !== null
-      ? `min-[901px]:top-132 min-[901px]:h-41 min-[901px]:w-[min(16.25rem,23vw)] min-[901px]:opacity-74 ${expandedDeckPositions[nonActivePosition]}`
+      ? `min-[901px]:top-132 min-[901px]:h-65.5 min-[901px]:w-[min(16.25rem,23vw)] ${expandedDeckPositions[nonActivePosition]}`
       : (collapsedDeckPositions[apiIndex] ?? '')
-  const isDesktopDragCandidate =
-    apiSwipeState.dragMode === 'desktop' &&
-    apiSwipeState.hasMoved &&
-    apiSwipeState.draggedApiIndex === apiIndex &&
-    !isActive
   const isDesktopActiveDrag =
     apiSwipeState.dragMode === 'desktop' &&
     apiSwipeState.isDragging &&
     apiSwipeState.draggedApiIndex === apiIndex &&
     isActive
+  const isDesktopDragCandidate =
+    apiSwipeState.dragMode === 'desktop' &&
+    apiSwipeState.isDragging &&
+    apiSwipeState.draggedApiIndex === apiIndex &&
+    !isActive
   const desktopDragClass = isDesktopDragCandidate
-    ? 'min-[901px]:top-4! min-[901px]:left-1/2! min-[901px]:z-6! min-[901px]:h-152! min-[901px]:w-[min(26rem,100%)]! min-[901px]:cursor-grabbing min-[901px]:opacity-100! min-[901px]:transition-[top,left,width,height,border-color,opacity,box-shadow]! min-[901px]:duration-500 min-[901px]:will-change-transform min-[901px]:transform-[translateX(calc(-50%+var(--swipe-x)))_translateY(var(--swipe-y))_rotate(var(--swipe-rotate))]!'
+    ? 'min-[901px]:z-6! min-[901px]:cursor-grabbing min-[901px]:transition-[border-color,box-shadow]! min-[901px]:will-change-transform min-[901px]:transform-[translate(var(--swipe-x),var(--swipe-y))_rotate(var(--swipe-rotate))]!'
     : isDesktopActiveDrag
       ? 'min-[901px]:cursor-grabbing min-[901px]:transition-[border-color,box-shadow]! min-[901px]:will-change-transform min-[901px]:transform-[translateX(calc(-50%+var(--swipe-x)))_translateY(var(--swipe-y))_rotate(var(--swipe-rotate))]!'
       : ''
-  return `absolute top-16 left-0 z-1 flex h-112 w-[min(18rem,26vw)] cursor-grab flex-col justify-between overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--api-card-foreground)_24%,transparent)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--api-accent)_88%,white),var(--api-accent))] p-5 text-left text-(--api-card-foreground) select-none shadow-mini transition-[top,left,width,transform,border-color,height,opacity,box-shadow] duration-500 hover:border-[color-mix(in_srgb,var(--api-card-foreground)_58%,transparent)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--api-card-foreground)_18%,transparent),var(--shadow-mini)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_58%,transparent)] focus-visible:outline-none focus-visible:shadow-[0_0_0_1px_color-mix(in_srgb,var(--api-card-foreground)_18%,transparent),var(--shadow-mini)] active:cursor-grabbing dark:bg-[linear-gradient(180deg,color-mix(in_srgb,var(--api-accent)_72%,black),color-mix(in_srgb,var(--api-accent)_86%,black))] max-[900px]:top-5 max-[900px]:left-1/2 max-[900px]:h-124 max-[900px]:w-[min(20rem,calc(100vw-4rem))] max-[900px]:justify-start max-[900px]:p-5 max-[900px]:origin-center max-[900px]:touch-none ${desktopClass} ${desktopDragClass} ${mobileDeckPositions[mobilePosition] ?? ''} ${apiSwipeState.isDragging && apiSwipeState.dragMode === 'mobile' && orderIndex === 0 ? 'max-[900px]:transition-[border-color,box-shadow]' : ''}`
+  return `group absolute top-16 left-0 z-1 flex h-[calc(29.5rem-20px)] w-[min(18rem,26vw)] cursor-grab flex-col overflow-hidden rounded-[1.1rem] border border-[color-mix(in_srgb,var(--api-card-foreground)_28%,transparent)] bg-[linear-gradient(160deg,color-mix(in_srgb,var(--api-accent)_86%,white),var(--api-accent))] p-[0.55rem] text-left text-(--api-card-foreground) select-none shadow-[0_0.8rem_2.2rem_rgb(0_0_0/0.16)] transition-[top,left,width,transform,translate,rotate,border-color,height,opacity,box-shadow] duration-500 after:pointer-events-none after:absolute after:inset-[0.42rem] after:z-0 after:rounded-[0.78rem] after:border-[0.42rem] after:border-white/45 after:content-[''] min-[901px]:hover:[translate:0_-0.75rem] min-[901px]:hover:rotate-[0.001deg] hover:border-[color-mix(in_srgb,var(--api-card-foreground)_64%,transparent)] hover:shadow-[0_1.1rem_2.8rem_rgb(0_0_0/0.24)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_64%,transparent)] focus-visible:outline-none focus-visible:shadow-[0_1.1rem_2.8rem_rgb(0_0_0/0.24)] active:cursor-grabbing dark:bg-[linear-gradient(160deg,color-mix(in_srgb,var(--api-accent)_72%,black),color-mix(in_srgb,var(--api-accent)_88%,black))] max-[900px]:top-5 max-[900px]:left-1/2 max-[900px]:h-[calc(32.5rem-20px)] max-[900px]:w-[min(20rem,calc(100vw-4rem))] max-[900px]:origin-center max-[900px]:touch-none ${desktopClass} ${desktopDragClass} ${mobileDeckPositions[mobilePosition] ?? ''} ${apiSwipeState.isDragging && apiSwipeState.dragMode === 'mobile' && orderIndex === 0 ? 'max-[900px]:transition-[border-color,box-shadow]' : ''}`
 }
 
 const activateBasemap = (code: (typeof basemapDirectory)[number]['code']) => {
@@ -417,6 +427,15 @@ const activateBasemap = (code: (typeof basemapDirectory)[number]['code']) => {
     basemapFlipDirection = code === 'gba' ? -1 : 1
   }
   activeBasemapCode = activeBasemapCode === code ? null : code
+}
+
+const handlePageKeydown = (event: KeyboardEvent) => {
+  if (event.key !== 'Escape') return
+  if (activeApiIndex === null && activeBasemapCode === null) return
+
+  activeApiIndex = null
+  activeBasemapCode = null
+  event.preventDefault()
 }
 
 const resetBasemapDragState = () => {
@@ -540,83 +559,81 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
   }
 
   const positions = {
-    hk: 'min-[901px]:top-21 min-[901px]:left-[4%]',
-    gba: 'min-[901px]:top-21 min-[901px]:left-[35%]',
-    mo: 'min-[901px]:top-21 min-[901px]:right-[4%]',
+    hk: 'max-[900px]:absolute max-[900px]:top-0 max-[900px]:-left-3 max-[900px]:w-[96%] min-[901px]:top-21 min-[901px]:left-[4%]',
+    gba: 'max-[900px]:absolute max-[900px]:top-[59cqw] max-[900px]:left-[2%] max-[900px]:w-[96%] min-[901px]:top-21 min-[901px]:left-[35%]',
+    mo: 'max-[900px]:absolute max-[900px]:top-[118cqw] max-[900px]:left-[4%] max-[900px]:w-[96%] min-[901px]:top-21 min-[901px]:right-[4%]',
   } as const
   return `relative w-full min-[901px]:absolute min-[901px]:w-[30%] ${positions[code]}`
 }
 </script>
 
-<svelte:window onresize={handleViewportResize} />
+<svelte:window onresize={handleViewportResize} onkeydown={handlePageKeydown} />
 
 <Main
-  class="mx-auto w-full max-w-(--spacing-container-max) bg-(image:--registry-background) bg-repeat px-6 py-14 md:px-8 md:py-18"
-  style={`--registry-background: ${registryBackground};`}
+  class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-18"
 >
-  <Tooltip.Provider delayDuration={200}>
-    <section class="space-y-10">
-      <PageHeader>
-        <PageTitle>{m.data_title()}</PageTitle>
-        <PageDescription>
-          {m.data_description()}
-          {m.data_description_before_apis()}
-          <Tooltip.Root>
-            <Tooltip.Trigger>
-              {#snippet child({ props })}
-                <button
-                  {...props}
-                  class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
-                  type="button"
-                  aria-label={getMarkdownTransclusionDisplayTitle(apiDefinition, locale)}
-                >
-                  {m.reference_api()}
-                </button>
-              {/snippet}
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content
-                class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
-                side="bottom"
-                sideOffset={8}
-                >{apiDefinition?.markdown}</Tooltip.Content
+  <section class="space-y-10">
+    <PageHeader>
+      <PageTitle>{m.data_title()}</PageTitle>
+      <PageDescription>
+        {m.data_description_before_apis()}
+        <Popover.Root>
+          <Popover.Trigger openOnHover openDelay={200}>
+            {#snippet child({ props })}
+              <button
+                {...props}
+                class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+                type="button"
+                aria-label={getMarkdownTransclusionDisplayTitle(apiDefinition, locale)}
               >
-            </Tooltip.Portal>
-          </Tooltip.Root>
-          {m.data_description_after_apis()}
-          <Tooltip.Root>
-            <Tooltip.Trigger>
-              {#snippet child({ props })}
-                <button
-                  {...props}
-                  class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
-                  type="button"
-                  aria-label={getMarkdownTransclusionDisplayTitle(basemapDefinition, locale)}
-                >
-                  {m.reference_basemap()}
-                </button>
-              {/snippet}
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content
-                class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
-                side="bottom"
-                sideOffset={8}
-                >{basemapDefinition?.markdown}</Tooltip.Content
+                {m.reference_api()}
+              </button>
+            {/snippet}
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Content
+              class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+              side="bottom"
+              sideOffset={8}
+              collisionPadding={{ right: 16 }}
+              >{@html apiDefinition?.markdown ?? ''}</Popover.Content
+            >
+          </Popover.Portal>
+        </Popover.Root>
+        {m.data_description_after_apis()}
+        <Popover.Root>
+          <Popover.Trigger openOnHover openDelay={200}>
+            {#snippet child({ props })}
+              <button
+                {...props}
+                class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+                type="button"
+                aria-label={getMarkdownTransclusionDisplayTitle(basemapDefinition, locale)}
               >
-            </Tooltip.Portal>
-          </Tooltip.Root>
-          {m.data_description_after_basemaps()}
-          <a
-            class="font-semibold text-secondary underline decoration-secondary/45 underline-offset-4 hover:text-primary hover:decoration-primary"
-            href="/create-a-map"
-            >{m.data_create_map()}</a
-          >
-          {m.data_description_after_create_map()}
-        </PageDescription>
-      </PageHeader>
-    </section>
-  </Tooltip.Provider>
+                {m.reference_basemap()}
+              </button>
+            {/snippet}
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Content
+              class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+              side="bottom"
+              sideOffset={8}
+              collisionPadding={{ right: 16 }}
+              >{@html basemapDefinition?.markdown ?? ''}</Popover.Content
+            >
+          </Popover.Portal>
+        </Popover.Root>
+        {m.data_description_after_basemaps()}
+        <a
+          class="font-semibold text-secondary underline decoration-secondary/45 underline-offset-4 hover:text-primary hover:decoration-primary"
+          href="/create-a-map"
+          >{m.data_create_map()}</a
+        >
+        {m.data_description_after_create_map()}
+      </PageDescription>
+    </PageHeader>
+  </section>
 
   <PageSection id="apis">
     <PageSectionHeader>
@@ -631,7 +648,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
     </PageSectionHeader>
 
     <CardDeck.Root
-      class={`relative mt-6 h-140 isolate overflow-visible py-3 transition-[height] duration-500 before:absolute before:inset-0 before:-z-1 before:bg-[radial-gradient(var(--secondary)_1px,transparent_1px)] before:bg-size-[1.2rem_1.2rem] before:opacity-[0.05] ${activeApiIndex !== null ? 'min-[901px]:h-180' : ''} max-[900px]:block max-[900px]:h-140 max-[900px]:pt-5 max-[900px]:pb-8`}
+      class={`relative mt-6 h-143 isolate overflow-visible py-3 transition-[height] duration-500 before:absolute before:inset-0 before:-z-1 before:bg-[radial-gradient(var(--secondary)_1px,transparent_1px)] before:bg-size-[1.2rem_1.2rem] before:opacity-0 dark:before:opacity-[0.05] ${activeApiIndex !== null ? 'min-[901px]:h-220' : ''} max-[900px]:block max-[900px]:h-140 max-[900px]:pt-5 max-[900px]:pb-8`}
     >
       {#each apiDeckOrder as apiIndex, orderIndex (apiIndex)}
         {@const api = apiDirectoryItem(apiIndex)}
@@ -640,7 +657,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
             intro={{ y: 18, duration: 360, delay: orderIndex * 70 }}
             as="article"
             class={apiCardClass(apiIndex, orderIndex)}
-            style={`--api-accent: ${api.theme.colorway.primary}; --api-card-foreground: ${api.familyType === 'streets' ? api.theme.colorway.ink : '#fffaf0'}; --api-image-scale: ${api.familyType === 'streets' ? 1.25 : api.familyType === 'places' ? 1.05 : 1}; --swipe-x: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaX : 0}px; --swipe-y: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaY : 0}px; --swipe-rotate: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaX * 0.035 : 0}deg;`}
+            style={`--api-accent: ${api.theme.colorway.primary}; --api-ink: ${api.theme.colorway.ink}; --api-card-foreground: #fff9ed; --swipe-x: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaX : 0}px; --swipe-y: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaY : 0}px; --swipe-rotate: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaX * 0.035 : 0}deg;`}
             onclickcapture={handleApiClickCapture}
             onpointerdown={(event: PointerEvent) => handleApiPointerDown(event, apiIndex, orderIndex)}
             onpointermove={handleApiPointerMove}
@@ -648,83 +665,27 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
             onpointercancel={handleApiPointerEnd}
             onclick={() => handleApiClick(apiIndex)}
           >
-            {#if apiIndex !== 2}
-              <CardDeck.Visual
-                class={`absolute size-[1.1rem] border-current opacity-[0.42] ${apiIndex === 0 ? 'top-[-0.45rem] left-[-0.45rem] border-t border-l' : 'right-[-0.45rem] bottom-[-0.45rem] border-r border-b'}`}
-              />
-            {/if}
-            <CardDeck.Visual
-              class="relative mb-4 block aspect-square w-full shrink-0 overflow-hidden rounded-[0.65rem] bg-[color-mix(in_srgb,var(--api-card-foreground)_15%,transparent)]"
+            <div
+              class={`relative z-1 flex size-full min-h-0 flex-col overflow-hidden rounded-[0.7rem] border border-black/16 bg-[linear-gradient(160deg,color-mix(in_srgb,var(--api-accent)_86%,white),var(--api-accent))] px-2 pt-2 shadow-[inset_0_1px_rgb(255_255_255/0.2)] dark:bg-[linear-gradient(160deg,color-mix(in_srgb,var(--api-accent)_72%,black),color-mix(in_srgb,var(--api-accent)_88%,black))] ${activeApiIndex === apiIndex ? 'pb-[18px]' : 'pb-[6px]'}`}
             >
-              <img
-                class="pointer-events-none block size-full object-fill transform-[scale(var(--api-image-scale))] origin-center"
-                src={api.theme.image}
-                alt=""
-                draggable="false"
-              >
-            </CardDeck.Visual>
-            <span class="relative z-2 block">
-              <span class="flex flex-wrap items-start justify-between gap-3"
-                ><span
-                  class="block font-body text-caption font-semibold uppercase tracking-[0.16em] opacity-78"
-                  >{api.isPending ? m.data_planned_api() : m.data_public_api()}</span
-                >
-                {#if api.isPending}
-                  <span
-                    class="shrink-0 rounded-full border border-[color-mix(in_srgb,var(--api-card-foreground)_34%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_15%,transparent)] px-2 py-1 font-body text-[0.7rem] leading-none font-extrabold uppercase"
-                    >{m.data_coming_soon()}</span
-                  >
-                {/if}</span
-              >
-              <span
-                class="mt-3 block font-display text-headline-lg-md font-bold leading-[1.02]"
-                >{api.theme.name}</span
-              >
-              <span
-                class="mt-5 flex flex-wrap items-center gap-2 font-body text-label-md"
-                ><a
-                  class="inline-flex items-center gap-[0.28rem] rounded-full border border-[color-mix(in_srgb,var(--api-card-foreground)_34%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_13%,transparent)] px-3 py-1.5 font-bold no-underline transition-colors hover:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] hover:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] focus-visible:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:outline-none"
-                  href={`/apis/${api.familyType}`}
-                  onpointerdown={event => event.stopPropagation()}
-                  onclick={event => event.stopPropagation()}
-                  >{m.data_releases()}</a
-                ><a
-                  class="inline-flex items-center gap-[0.28rem] rounded-full border border-[color-mix(in_srgb,var(--api-card-foreground)_34%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_13%,transparent)] px-3 py-1.5 font-bold no-underline transition-colors hover:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] hover:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:border-[color-mix(in_srgb,var(--api-card-foreground)_62%,transparent)] focus-visible:bg-[color-mix(in_srgb,var(--api-card-foreground)_22%,transparent)] focus-visible:outline-none"
-                  href={docsUrlForFamily(api.familyType)}
-                  target="_blank"
-                  rel="noreferrer"
-                  onpointerdown={event => event.stopPropagation()}
-                  onclick={event => event.stopPropagation()}
-                  >{m.data_docs()}
-                  <Icon icon="proicons:arrow-up-right" class="size-4" /></a
-                ></span
-              >
-              <span
-                class={`block max-h-0 overflow-hidden opacity-0 pointer-events-none transition-[max-height,margin-top,opacity] duration-450 ${activeApiIndex === apiIndex || (apiSwipeState.dragMode === 'desktop' && apiSwipeState.hasMoved && apiSwipeState.draggedApiIndex === apiIndex) ? 'mt-4 max-h-32 opacity-100 pointer-events-auto' : ''}`}
-                ><dl class="grid gap-2 font-body text-caption">
-                  <div class="flex items-baseline justify-between gap-4">
-                    <dt class="font-semibold uppercase opacity-72">
-                      {m.data_api_version()}
-                    </dt>
-                    <dd
-                      class="rounded-[0.35rem] border border-[color-mix(in_srgb,var(--api-card-foreground)_28%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_14%,transparent)] px-2 py-0.5 font-mono text-[0.76rem] font-extrabold"
-                    >
-                      v{api.version}
-                    </dd>
-                  </div>
-                  <div class="flex items-baseline justify-between gap-4">
-                    <dt class="font-semibold uppercase opacity-72">
-                      {m.data_latest_release()}
-                    </dt>
-                    <dd
-                      class="rounded-[0.35rem] border border-[color-mix(in_srgb,var(--api-card-foreground)_28%,transparent)] bg-[color-mix(in_srgb,var(--api-card-foreground)_14%,transparent)] px-2 py-0.5 font-mono text-[0.76rem] font-extrabold"
-                    >
-                      {releaseDisplayCode(api.latestRelease?.code, api.familyType)}
-                    </dd>
-                  </div>
-                </dl></span
-              >
-            </span>
+              <CardDeck.ApiVisual image={api.theme.image} />
+              <CardDeck.ApiBody
+                active={activeApiIndex === apiIndex}
+                anotherCardActive={activeApiIndex !== null && activeApiIndex !== apiIndex}
+                familyLabel={m.sources_flow_api_family()}
+                accessLabel={api.isPending ? m.data_coming_soon() : m.data_open_access()}
+                name={api.theme.name}
+                description={apiFamilyDescription(api.familyType)}
+                releasesHref={`/apis/${api.familyType}`}
+                releasesLabel={m.data_releases()}
+                docsHref={docsUrlForFamily(api.familyType)}
+                docsLabel={m.data_docs()}
+                versionLabel={m.data_api_version()}
+                version={api.version}
+                releaseLabel={m.data_latest_release()}
+                release={releaseDisplayCode(api.latestRelease?.code, api.familyType)}
+              />
+            </div>
           </CardDeck.Card>
         {/if}
       {/each}
@@ -743,34 +704,37 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
       </PageSectionActions>
     </PageSectionHeader>
     <CardDeck.Root
-      class={`relative mt-6 isolate transition-[height,padding] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${activeBasemapCode === null ? 'pt-16 min-[901px]:h-112' : 'pt-12 min-[901px]:h-184'} max-[900px]:grid max-[900px]:grid-cols-1 max-[900px]:justify-items-center max-[900px]:gap-12 max-[900px]:py-8`}
+      class={`relative mt-6 h-224 isolate overflow-visible transition-[height,padding] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none max-[900px]:mb-12 max-[900px]:@container ${activeBasemapCode === null ? 'pt-16 max-[900px]:h-[calc(182vw-5.46rem)] min-[901px]:h-112' : 'pt-12 max-[900px]:h-auto min-[901px]:h-184'}`}
     >
-      {#each basemapDirectory as region (region.code)}
-        <div class="contents">
-          <BasemapPostcard
-            {...region}
-            isSelected={activeBasemapCode === region.code}
-            isShrunk={activeBasemapCode !== null && activeBasemapCode !== region.code}
-            shrunkIndex={activeBasemapCode !== null && activeBasemapCode !== region.code
-              ? basemapInactiveIndex(region.code)
-              : null}
-            isDragging={basemapDragState.isDragging && basemapDragState.draggedCode === region.code}
-            isThrowing={basemapDragState.isThrowing && basemapDragState.throwingCode === region.code}
-            throwPhase={basemapDragState.throwingCode === region.code
-              ? basemapDragState.throwPhase
-              : null}
-            dragX={basemapDragState.draggedCode === region.code ? basemapDragState.deltaX : 0}
-            dragY={basemapDragState.draggedCode === region.code ? basemapDragState.deltaY : 0}
-            flipDirection={basemapFlipDirection}
-            layoutClass={basemapCardClass(region.code)}
-            onactivate={() => activateBasemap(region.code)}
-            onpointerdown={event => handleBasemapPointerDown(event, region.code)}
-            onpointermove={handleBasemapPointerMove}
-            onpointerup={handleBasemapPointerEnd}
-            onpointercancel={handleBasemapPointerEnd}
-          />
-        </div>
-      {/each}
+      {#if isBasemapDeckVisible}
+        {#each basemapDirectory as region, index (region.code)}
+          <div class="contents">
+            <BasemapPostcard
+              {...region}
+              intro={{ y: 18, duration: 360, delay: index * 70 }}
+              isSelected={activeBasemapCode === region.code}
+              isShrunk={activeBasemapCode !== null && activeBasemapCode !== region.code}
+              shrunkIndex={activeBasemapCode !== null && activeBasemapCode !== region.code
+                ? basemapInactiveIndex(region.code)
+                : null}
+              isDragging={basemapDragState.isDragging && basemapDragState.draggedCode === region.code}
+              isThrowing={basemapDragState.isThrowing && basemapDragState.throwingCode === region.code}
+              throwPhase={basemapDragState.throwingCode === region.code
+                ? basemapDragState.throwPhase
+                : null}
+              dragX={basemapDragState.draggedCode === region.code ? basemapDragState.deltaX : 0}
+              dragY={basemapDragState.draggedCode === region.code ? basemapDragState.deltaY : 0}
+              flipDirection={basemapFlipDirection}
+              layoutClass={basemapCardClass(region.code)}
+              onactivate={() => activateBasemap(region.code)}
+              onpointerdown={event => handleBasemapPointerDown(event, region.code)}
+              onpointermove={handleBasemapPointerMove}
+              onpointerup={handleBasemapPointerEnd}
+              onpointercancel={handleBasemapPointerEnd}
+            />
+          </div>
+        {/each}
+      {/if}
     </CardDeck.Root>
   </PageSection>
 
@@ -798,16 +762,20 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
         </button>
       </PageSectionActions>
     </PageSectionHeader>
-    {#if allReleaseCarouselItems.length > 0}
-      <ReleaseCarousel
-        bind:this={releaseCarousel}
-        items={allReleaseCarouselItems}
-        isLoading={isLoadingMoreReleases}
-        onnavigationchange={navigation => (releaseCarouselNavigation = navigation)}
-        onreachend={loadMoreReleases}
-      />
-    {:else}
-      <p class="mt-6 text-sm text-secondary">{m.data_no_releases_yet()}</p>
+    {#if isReleaseCarouselVisible}
+      {#if allReleaseCarouselItems.length > 0}
+        <div class="relative left-1/2 w-screen -translate-x-1/2">
+          <ReleaseCarousel
+            bind:this={releaseCarousel}
+            items={allReleaseCarouselItems}
+            isLoading={isLoadingMoreReleases}
+            onnavigationchange={navigation => (releaseCarouselNavigation = navigation)}
+            onreachend={loadMoreReleases}
+          />
+        </div>
+      {:else}
+        <p class="mt-6 text-sm text-secondary">{m.data_no_releases_yet()}</p>
+      {/if}
     {/if}
   </PageSection>
 </Main>
