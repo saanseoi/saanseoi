@@ -74,7 +74,7 @@ const closeMobileMenu = () => {
         </div>
         <Button
           class="min-h-11 rounded-default px-6 text-body-md font-medium text-nowrap"
-          href={user ? '/api-keys' : '/get-started'}
+          href={user ? '/api-keys' : '/how-to/'}
           onclick={closeMobileMenu}
           variant="primary"
         >

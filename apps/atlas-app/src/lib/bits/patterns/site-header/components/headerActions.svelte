@@ -78,7 +78,7 @@ const initials = $derived(
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
     {:else}
-      <CtaButton href="/get-started" text={m.nav_get_started()} />
+      <CtaButton href="/how-to/" text={m.nav_get_started()} />
     {/if}
   </div>
 
