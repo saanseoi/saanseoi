@@ -173,7 +173,7 @@ let details = $derived([
   </div>
 {/snippet}
 
-<ReleaseHeader.Root backgroundImage={theme?.image}>
+<ReleaseHeader.Root backgroundImage={theme?.headerImage ?? theme?.image}>
   <ReleaseHeader.Header
     label={`${m.common_api()} ·`}
     labelAction={domainSelector}
