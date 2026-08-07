@@ -42,6 +42,7 @@ DROP TABLE IF EXISTS `divisionIdentifierBridges`;
 DROP TABLE IF EXISTS `api_key_usage`;
 DROP TABLE IF EXISTS `api_key`;
 DROP TABLE IF EXISTS `newsletterSubscription`;
+DROP TABLE IF EXISTS `facebookDeletionRequest`;
 DROP TABLE IF EXISTS `passkey`;
 DROP TABLE IF EXISTS `verification`;
 DROP TABLE IF EXISTS `account`;
