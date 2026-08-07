@@ -108,6 +108,8 @@ basemap/{regionCode}/{regionName}-latest.pmtiles
 basemap/{regionCode}/{regionName}-latest.boundary.geojson
 basemap/{regionCode}/{regionName}-{YYYY-MM-DD}-{light|dark|postcard|postcard-lit}.webp
 basemap/{regionCode}/{regionName}-latest-{light|dark|postcard|postcard-lit}.webp
+basemap/{regionCode}/{regionName}-{YYYY-MM-DD}-{light|dark|white|grayscale|black|midnight}-{landmark}-z{16|19}.webp
+basemap/{regionCode}/{regionName}-latest-{light|dark|white|grayscale|black|midnight}-{landmark}-z{16|19}.webp
 basemap/{regionCode}/versions.json
 basemap/versions.json
 basemap/regions.json
@@ -132,6 +134,12 @@ geometry and camera but promotes the road network to the regional accent colour 
 postcard hover state. When the release is the region's current release, the command also
 refreshes all four `-latest` preview objects.
 
+The same workflow creates the style-library previews: every official Protomaps flavour
+and SaanSeoi Midnight at 512 × 512 pixels, centred on Central in Hong Kong, Senado
+Square in Macao, and Canton Tower in the Greater Bay Area. Every style has a z16 and a
+z19 capture, published as immutable release artefacts and refreshed under a matching
+`-latest` name.
+
 Render imported or generated releases independently with:
 
 ```sh
@@ -141,10 +149,10 @@ saanseoi tiles:render --region hk --date 2026-08-01 --mode postcard
 saanseoi tiles:render --region hk --date 2026-08-01 --mode postcard-lit
 ```
 
-Omitting `--mode` renders all four modes. The dated tileset must already be present in
-the region's version index. The viewer URL uses `headless=true`, which hides its
-navigation, controls, status, and panels; rendering waits for the fitted map to become
-idle before capturing it.
+Omitting `--mode` renders all four release-preview modes and the twelve style-library
+captures. The dated tileset must already be present in the region's version index. The
+viewer URL uses `headless=true`, which hides its navigation, controls, status, and
+panels; rendering waits for the fitted map to become idle before capturing it.
 
 Use `--force` to rebuild an existing current-date release with Planetiler. It replaces
 the dated archive and its manifest, then publishes that rebuilt archive as `-latest` and
