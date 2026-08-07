@@ -124,6 +124,17 @@ export const verification = sqliteTable(
 )
 
 /**
+ * Completed Facebook account-deletion callbacks.
+ *
+ * Confirmation codes are stored only as hashes so the public status endpoint
+ * can verify completed requests without retaining a reusable code.
+ */
+export const facebookDeletionRequest = sqliteTable('facebookDeletionRequest', {
+  confirmationCodeHash: text('confirmationCodeHash').primaryKey(),
+  completedAt: defaultBetterAuthTimestamp('completedAt').notNull(),
+})
+
+/**
  * WebAuthn passkeys registered for Better Auth users.
  *
  * Private keys remain in the user's authenticator; this table stores only
