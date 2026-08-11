@@ -93,6 +93,9 @@
       "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
     }
   ],
+  "analytics_engine_datasets": [
+    { "binding": "MAP_GUIDE_SELECTIONS", "dataset": "ss-map-guide-selections-local" }
+  ],
   "workers_dev": true,
   "preview_urls": true,
   "observability": {
@@ -206,6 +209,12 @@
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
         }
       ],
+      "analytics_engine_datasets": [
+        {
+          "binding": "MAP_GUIDE_SELECTIONS",
+          "dataset": "ss-map-guide-selections-preview"
+        }
+      ],
       "routes": [
         {
           "pattern": "preview.saanseoi.hk",
@@ -294,6 +303,12 @@
           "database_id": "dca6df89-880b-42f8-92a8-08f4919a582a",
           "migrations_dir": "../../libs/db/migrations/source",
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
+        }
+      ],
+      "analytics_engine_datasets": [
+        {
+          "binding": "MAP_GUIDE_SELECTIONS",
+          "dataset": "ss-map-guide-selections-production"
         }
       ],
       "routes": [
