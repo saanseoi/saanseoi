@@ -405,9 +405,11 @@ variant 用以区分同一资源类型的替代发布者、转换或表示方式
 
 ### EN
 
-Bun is a JavaScript and TypeScript runtime, package manager, and command-line tool. This
-guide uses it as one convenient default. If you prefer Node.js with npm, pnpm, or Yarn,
-or Deno, use that instead — they are largely interchangeable for this guide's purposes.
+Bun is a programme that lets you run JavaScript and TypeScript, install the libraries
+your project needs, and use commands in a terminal. This guide uses Bun because it
+combines these common tools in one place. If you are more familiar with Node.js, npm,
+pnpm, Yarn, or Deno, you can use one of those instead; the examples in this guide should
+work in much the same way.
 
 ### ZH-HANT
 
@@ -424,18 +426,18 @@ Bun 是 JavaScript 和 TypeScript 运行环境、包管理器及命令行工具�
 ### EN
 
 Vite is a development tool for web projects. In this guide, it starts a local
-development server so you can preview your map at `http://localhost:5173` while you
-work. It also bundles your project files for deployment.
+development server so you can preview your map at <code>http://localhost:5173</code>
+while you work. It also bundles your project files for deployment.
 
 ### ZH-HANT
 
 Vite 是網頁專案的開發工具。本指南會用它啟動本機開發伺服器，讓你在工作期間於
-`http://localhost:5173` 預覽地圖；它亦會把專案檔案打包以供部署。
+<code>http://localhost:5173</code> 預覽地圖；它亦會把專案檔案打包以供部署。
 
 ### ZH-HANS
 
 Vite 是网页项目的开发工具。本指南会用它启动本地开发服务器，让你在工作期间于
-`http://localhost:5173` 预览地图；它也会将项目文件打包以供部署。
+<code>http://localhost:5173</code> 预览地图；它也会将项目文件打包以供部署。
 
 # TypeScript
 
