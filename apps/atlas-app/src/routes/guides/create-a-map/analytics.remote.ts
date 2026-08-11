@@ -1,40 +1,8 @@
 import { command, getRequestEvent } from '$app/server'
-import { mapStyleDefinitions } from '@repo/basemap'
+import { createAMapSelectionChoices } from '$lib/guides/createAMapSelections'
 import { z } from 'zod'
 
-const choices = {
-  objective: ['local', 'web', 'web-embed', 'mobile-embed', 'notebook-embed'],
-  operatingSystem: ['windows', 'macos', 'linux'],
-  terminalExperience: ['none', 'basic', 'advanced'],
-  codeEditor: ['zed', 'vscode', 'sublime-text', 'cursor', 'other'],
-  llmMode: ['manual', 'assisted', 'handover'],
-  aiAccess: ['agentic', 'web'],
-  vpnAccess: ['yes', 'no'],
-  agentTool: [
-    'codex-app',
-    'codex-cli',
-    'claude-code',
-    'claude-cowork',
-    'kimi-code',
-    'qwen-code',
-    'cursor',
-    'opencode',
-    'pi',
-    'zed',
-    'other',
-  ],
-  llm: ['chatgpt', 'claude', 'gemini', 'deepseek', 'kimi', 'other'],
-  hosting: ['cloudflare', 'github-pages', 'vercel', 'netlify', 'other'],
-  websitePlatform: ['wordpress', 'squarespace', 'wix', 'webflow', 'other'],
-  mobileLibrary: ['maplibre-native'],
-  mobilePlatform: ['android', 'ios', 'other'],
-  notebookLibrary: ['maplibre-jupyter', 'folium'],
-  notebookRuntime: ['local', 'colab', 'jupyterhub'],
-  renderer: ['maplibre', 'mapbox', 'leaflet'],
-  region: ['hk', 'mo', 'gba'],
-  style: ['custom', ...mapStyleDefinitions.map(style => style.id)],
-  dataSource: ['existing', 'api'],
-} as const
+const choices = createAMapSelectionChoices
 
 const selectionSchema = z
   .object({
