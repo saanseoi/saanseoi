@@ -2,4 +2,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://saanseoi.hk/sitemap.xml
+Sitemap: https://viewer.saanseoi.hk/sitemap.xml
