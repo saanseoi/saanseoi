@@ -627,7 +627,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
         {m.data_description_after_basemaps()}
         <a
           class="font-semibold text-secondary underline decoration-secondary/45 underline-offset-4 hover:text-primary hover:decoration-primary"
-          href="/how-to/create-a-map"
+          href="/guides/create-a-map"
           >{m.data_create_map()}</a
         >
         {m.data_description_after_create_map()}
@@ -696,6 +696,9 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
     <PageSectionHeader>
       <PageSectionTitle>{m.data_basemaps()}</PageSectionTitle>
       <PageSectionActions>
+        <a class="font-body text-label-md font-semibold text-secondary" href="/themes"
+          >{m.data_map_styles()}</a
+        >
         <a
           class="font-body text-label-md font-semibold text-secondary"
           href="/basemaps/get-started"
