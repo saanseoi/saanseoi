@@ -2,7 +2,6 @@
 import { Button, Main } from '$lib/bits'
 import { authClient } from '$lib/auth-client'
 import type { SocialProvider } from '$lib/auth-providers'
-import { signOut } from '$lib/auth.remote'
 import { getCurrentLocale, m } from '$lib/bits/internal/i18n'
 import Icon from '@iconify/svelte'
 import { Dialog } from 'bits-ui'
@@ -34,6 +33,12 @@ const providers = [
 ]
 const linked = (provider: string) =>
   accounts.some(account => account.providerId === provider)
+
+const handleSignOut = async () => {
+  const { error } = await authClient.signOut()
+  if (error) return
+  window.location.assign('/')
+}
 
 $effect(() => {
   accounts = data.accounts
@@ -141,9 +146,7 @@ const providerDetails = (providerId: string) =>
   <p class="mt-3 font-body text-body-lg text-foreground-alt">{data.user.email}</p>
   <div class="mt-8 flex gap-3">
     <Button href="/api-keys" variant="primary">{m.account_manage_api_keys()}</Button>
-    <Button onclick={() => signOut()} variant="secondary"
-      >{m.account_sign_out()}</Button
-    >
+    <Button onclick={handleSignOut} variant="secondary">{m.account_sign_out()}</Button>
   </div>
   <section class="mt-14 max-w-3xl">
     <h2 class="font-display text-headline-sm font-bold text-primary">
