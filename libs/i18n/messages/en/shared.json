@@ -675,7 +675,7 @@
   "guide_download_dataset_title": "Download datasets without using the API",
   "guide_download_dataset_description": "Work with published data files when an offline or one-time copy suits your project.",
   "guide_download_dataset_use_cases": "Best for archival research, bulk processing and tools that cannot call an API.",
-  "guide_coming_soon": "This guide is being prepared. Explore the data catalogue in the meantime.",
+  "guide_coming_soon": "Coming Soon",
   "guide_explore_data": "Explore data",
   "guide_create_map_title": "Create a map with SaanSeoi basemaps",
   "guide_create_map_meta_description": "Choose a map workflow, renderer, SaanSeoi basemap, style and data source.",
