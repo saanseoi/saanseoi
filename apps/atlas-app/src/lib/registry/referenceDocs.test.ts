@@ -16,14 +16,17 @@ test('resolves glossary definitions in the requested locale', () => {
 test('resolves map-guide glossary definitions and notes', () => {
   const api = getMarkdownTransclusion('saanseoi:en:definition/api/v1')
   const basemap = getMarkdownTransclusion('saanseoi:en:note/basemap/v1')
+  const vite = getMarkdownTransclusion('saanseoi:en:note/vite/v1')
   const render = getMarkdownTransclusion('saanseoi:en:definition/render/v1')
   const mapStyle = getMarkdownTransclusion('saanseoi:en:definition/map-style/v1')
 
   expect(api?.markdown).toContain('<i>software</i>')
   expect(basemap?.markdown).toContain('<i>bottom background layer</i>')
   expect(basemap?.type).toBe('note')
+  expect(vite?.markdown).toContain('bundles your project files')
+  expect(vite?.type).toBe('note')
   expect(render?.markdown).toContain('turn geographic data')
-  expect(mapStyle?.markdown).toContain('visual instructions')
+  expect(mapStyle?.markdown).toContain('set of visual rules')
 })
 
 test('lists glossary definitions alphabetically without contextual notes', () => {

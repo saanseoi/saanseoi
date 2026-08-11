@@ -59,6 +59,30 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
     glossary: true,
     source: glossary,
   },
+  bun: {
+    title: 'Bun',
+    displayTitleKey: 'reference_bun',
+    glossary: true,
+    source: glossary,
+  },
+  vite: {
+    title: 'Vite',
+    displayTitleKey: 'reference_vite',
+    glossary: true,
+    source: glossary,
+  },
+  typescript: {
+    title: 'TypeScript',
+    displayTitleKey: 'reference_typescript',
+    glossary: true,
+    source: glossary,
+  },
+  packages: {
+    title: 'Packages',
+    displayTitleKey: 'reference_packages',
+    glossary: true,
+    source: glossary,
+  },
   'overture-division-locale-normalisation': {
     title: 'locale',
     displayTitleKey: 'reference_locale_normalisation',
