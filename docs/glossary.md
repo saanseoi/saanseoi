@@ -398,3 +398,79 @@ variant 用以區分同一資源類型的替代發布者、轉換或表示方式
 
 variant 用以区分同一资源类型的替代发布者、转换或表示方式。例如，区划面可由 Overture、民政事务总署或政府统计处提供；政府统计处的区划面亦可有
 `simplified` 变体。变体必须明确选取；不可用的选项不会被另一来源静默取代。
+
+# Bun
+
+## v1
+
+### EN
+
+Bun is a JavaScript and TypeScript runtime, package manager, and command-line tool. This
+guide uses it as one convenient default. If you prefer Node.js with npm, pnpm, or Yarn,
+or Deno, use that instead — they are largely interchangeable for this guide's purposes.
+
+### ZH-HANT
+
+Bun 是 JavaScript 和 TypeScript 執行環境、套件管理器及命令列工具。本指南以它為方便的預設選項；Node.js 配合 npm、pnpm 或 Yarn，以及 Deno，在這裡都可發揮相近作用。若你已有慣用工具，可直接使用並相應調整指令。
+
+### ZH-HANS
+
+Bun 是 JavaScript 和 TypeScript 运行环境、包管理器及命令行工具。本指南以它为方便的默认选项；Node.js 配合 npm、pnpm 或 Yarn，以及 Deno，在这里都可发挥相近作用。如果你已有习惯的工具，可以直接使用并相应调整命令。
+
+# Vite
+
+## v1
+
+### EN
+
+Vite is a development tool for web projects. In this guide, it starts a local
+development server so you can preview your map at `http://localhost:5173` while you
+work. It also bundles your project files for deployment.
+
+### ZH-HANT
+
+Vite 是網頁專案的開發工具。本指南會用它啟動本機開發伺服器，讓你在工作期間於
+`http://localhost:5173` 預覽地圖；它亦會把專案檔案打包以供部署。
+
+### ZH-HANS
+
+Vite 是网页项目的开发工具。本指南会用它启动本地开发服务器，让你在工作期间于
+`http://localhost:5173` 预览地图；它也会将项目文件打包以供部署。
+
+# TypeScript
+
+## v1
+
+### EN
+
+TypeScript is JavaScript with more structured code, making bugs easier to catch and the
+developer experience smoother. Behind the scenes, TypeScript is still transformed into
+JavaScript before it is used, because browsers — where this code runs — support only
+JavaScript.
+
+### ZH-HANT
+
+TypeScript 是加入可選型別檢查的 JavaScript。它可在編寫程式時找出不匹配之處，之後會轉換成瀏覽器可執行的普通 JavaScript。
+
+### ZH-HANS
+
+TypeScript 是加入可选类型检查的 JavaScript。它可在编写代码时找出不匹配之处，之后会转换成浏览器可执行的普通 JavaScript。
+
+# Packages
+
+## v1
+
+### EN
+
+Packages are code projects maintained by other people and made available — often for
+free — to use in your own projects. There are so many packages that building something
+often means choosing a few, then connecting them together. A package manager, such as
+Bun, downloads the specific versions your project needs.
+
+### ZH-HANT
+
+套件是與專案分開維護、可重用的程式碼。套件管理器會下載專案所需版本並記錄下來，讓協作者和部署環境使用同一組套件。
+
+### ZH-HANS
+
+包是与项目分开维护、可重用的代码。包管理器会下载项目所需版本并记录下来，让协作者和部署环境使用同一组包。
