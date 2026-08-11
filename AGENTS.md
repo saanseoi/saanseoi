@@ -45,9 +45,9 @@ Repo-local operating notes for Codex and similar agents.
   internal name.
 - When changing the Places API route, schema, pagination, category vocabulary, token
   requirements, basemap token exchange, map-style contract, or supported basemap
-  regions, review and update the `/how-to/create-a-map` tutorial and its planned sushi
+  regions, review and update the `/guides/create-a-map` tutorial and its planned sushi
   restaurants example before merging. Update the associated coverage matrix in
-  `docs/how-to/create-a-map-coverage.md` too.
+  `docs/guides/create-a-map-coverage.md` too.
 
 ## Migration workflow
 

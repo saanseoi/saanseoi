@@ -1,6 +1,6 @@
 # Create a Map coverage
 
-Use this matrix when changing `apps/atlas-app/src/routes/how-to/create-a-map/`. It
+Use this matrix when changing `apps/atlas-app/src/routes/guides/create-a-map/`. It
 records whether each user choice has an intentional path and whether its copy has been
 reviewed by a person with relevant mapping experience. Do not mark a cell reviewed
 solely because it compiles or an LLM generated the wording.
