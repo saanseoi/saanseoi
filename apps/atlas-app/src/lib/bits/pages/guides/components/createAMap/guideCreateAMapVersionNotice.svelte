@@ -1,11 +1,11 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 
-import type { GuidedFlowDependency } from './guidedFlow.types'
+import type { GuideDependency } from './guide.types'
 
-type Version = GuidedFlowDependency & { currentVersion: string }
+type Version = GuideDependency & { currentVersion: string }
 type Props = {
-  dependencies: GuidedFlowDependency[]
+  dependencies: GuideDependency[]
   latestLabel: string
   majorUpdateLabel: string
 }
