@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 
-import type { GuideDependency } from './guide.types'
+import type { GuideDependency } from '../shared/guide.types'
 
 type Version = GuideDependency & { currentVersion: string }
 type Props = {
