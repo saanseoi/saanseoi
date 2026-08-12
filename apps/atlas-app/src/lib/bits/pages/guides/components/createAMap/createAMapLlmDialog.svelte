@@ -5,7 +5,7 @@ import { Dialog } from 'bits-ui'
 import { m } from '$lib/bits/internal/i18n'
 import { Button } from '$lib/bits/primitives/button'
 
-type QuickstartLlmChoice = {
+type HandoverChatChoice = {
   icon: string
   label: string
   requiresPaste: boolean
@@ -14,22 +14,22 @@ type QuickstartLlmChoice = {
 
 type Props = {
   copiedPromptProvider: 'local' | 'gemini' | 'kimi' | undefined
-  onCopyPromptForLocalAgent: () => void
-  onOpenQuickstartLlm: (provider: QuickstartLlmChoice['value']) => void
+  handoverChatChoices: HandoverChatChoice[]
+  onCopyAgenticHandoverPrompt: () => void
+  onOpenChatHandover: (provider: HandoverChatChoice['value']) => void
   open: boolean
   pastePromptMessage: string
-  quickstartLlmChoices: QuickstartLlmChoice[]
-  quickstartPromptCopied: boolean
+  handoverAgentPromptCopied: boolean
 }
 
 let {
   copiedPromptProvider,
-  onCopyPromptForLocalAgent,
-  onOpenQuickstartLlm,
+  handoverChatChoices,
+  onCopyAgenticHandoverPrompt,
+  onOpenChatHandover,
   open: isOpen = $bindable(),
   pastePromptMessage,
-  quickstartLlmChoices,
-  quickstartPromptCopied,
+  handoverAgentPromptCopied,
 }: Props = $props()
 </script>
 
@@ -93,16 +93,16 @@ let {
           </div>
           <Button
             class="shrink-0"
-            onclick={onCopyPromptForLocalAgent}
+            onclick={onCopyAgenticHandoverPrompt}
             size="compact"
             variant="primary"
           >
             <Icon
-              icon={quickstartPromptCopied ? 'ion:checkmark' : 'ion:copy-outline'}
+              icon={handoverAgentPromptCopied ? 'ion:checkmark' : 'ion:copy-outline'}
               class="size-4"
               aria-hidden="true"
             />
-            {quickstartPromptCopied ? m.common_copied() : m.common_copy()}
+            {handoverAgentPromptCopied ? m.common_copied() : m.common_copy()}
           </Button>
         </div>
 
@@ -121,10 +121,10 @@ let {
           {@html m.guide_llm_modal_web_chat_heading()}
         </p>
         <div class="mt-3 grid gap-3 sm:grid-cols-2">
-          {#each quickstartLlmChoices as provider}
+          {#each handoverChatChoices as provider}
             <Button
               class="h-auto min-h-25 w-full justify-start px-4 py-4 text-left"
-              onclick={() => onOpenQuickstartLlm(provider.value)}
+              onclick={() => onOpenChatHandover(provider.value)}
               variant="secondary"
             >
               <span

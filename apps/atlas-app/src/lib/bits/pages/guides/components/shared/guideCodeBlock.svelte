@@ -1,5 +1,8 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
+import { Dialog } from 'bits-ui'
+
+import { m } from '$lib/bits/internal/i18n'
 
 type Props = {
   code: string
@@ -79,6 +82,8 @@ let {
   variant = 'code',
 }: Props = $props()
 let copied = $state(false)
+let manualCopyOpen = $state(false)
+let manualCopyText: HTMLTextAreaElement
 const highlightedCode = $derived(
   language === 'bash'
     ? highlightBash(code)
@@ -87,10 +92,41 @@ const highlightedCode = $derived(
       : escapeHtml(code),
 )
 
+const copyWithFallback = (text: string) => {
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  textarea.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0'
+  document.body.appendChild(textarea)
+  textarea.select()
+  const success = document.execCommand('copy')
+  textarea.remove()
+
+  return success
+}
+
 async function copy() {
-  await navigator.clipboard.writeText(code)
+  if (variant === 'prompt') {
+    manualCopyOpen = true
+    return
+  }
+
+  try {
+    await navigator.clipboard.writeText(code)
+  } catch {
+    if (!copyWithFallback(code)) {
+      manualCopyOpen = true
+      return
+    }
+  }
+
   copied = true
   window.setTimeout(() => (copied = false), 1600)
+}
+
+const selectManualCopyText = () => {
+  manualCopyText.focus()
+  manualCopyText.select()
 }
 </script>
 
@@ -155,3 +191,46 @@ async function copy() {
     }`}
   ><code>{@html highlightedCode}</code></pre>
 </div>
+
+<Dialog.Root bind:open={manualCopyOpen}>
+  <Dialog.Portal>
+    <Dialog.Overlay class="fixed inset-0 z-80 bg-black/70 backdrop-blur-sm" />
+    <Dialog.Content
+      class="fixed top-1/2 left-1/2 z-90 max-h-[calc(100svh-2rem)] w-[calc(100vw-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-auto border border-secondary/50 bg-surface-container-low p-6 shadow-popover focus:outline-none sm:p-8"
+    >
+      <Dialog.Title class="font-display text-headline-sm font-bold text-primary">
+        {m.guide_code_block_manual_copy_title()}
+      </Dialog.Title>
+      <Dialog.Description
+        class="mt-3 font-body text-body-md leading-7 text-foreground-alt"
+      >
+        {m.guide_code_block_manual_copy_description()}
+      </Dialog.Description>
+      <textarea
+        bind:this={manualCopyText}
+        class="mt-6 min-h-64 w-full resize-y border border-border-card bg-[#0c1111] p-4 font-mono text-sm leading-6 text-[#d6e4df] outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/30"
+        readonly
+        value={code}
+        aria-label={m.guide_code_block_manual_copy_text_label()}
+        onclick={selectManualCopyText}
+      ></textarea>
+      <div class="mt-5 flex flex-wrap justify-end gap-3">
+        <button
+          class="inline-flex items-center gap-2 border border-secondary bg-secondary px-4 py-2 font-body text-label-md font-semibold text-on-secondary hover:bg-secondary/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          type="button"
+          onclick={selectManualCopyText}
+        >
+          <Icon icon="ion:select-outline" class="size-4" aria-hidden="true" />
+          {m.guide_code_block_select_all()}
+        </button>
+        <button
+          class="inline-flex border border-border-card px-4 py-2 font-body text-label-md font-semibold text-foreground-alt hover:border-secondary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          type="button"
+          onclick={() => (manualCopyOpen = false)}
+        >
+          {m.common_close()}
+        </button>
+      </div>
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>

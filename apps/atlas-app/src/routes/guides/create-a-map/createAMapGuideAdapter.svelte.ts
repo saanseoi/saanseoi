@@ -9,6 +9,7 @@ import { trackCreateAMapSelection } from './analytics.remote'
 
 type CreateAMapGuideUrlState = CreateAMapSelectionQuery & {
   agenticAiPrimerExpanded: boolean
+  completedDataKey?: string
   completedEditorReadinessKey?: string
   completedLlmReadinessKey?: string
   completedPaymentKey?: string
@@ -59,6 +60,7 @@ export function createCreateAMapGuideAdapter({
       region: state.region,
       style: state.style,
       data: state.dataSource,
+      'data-ready': state.completedDataKey,
       'editor-ready': state.completedEditorReadinessKey,
       'llm-ready': state.completedLlmReadinessKey,
       'payment-ready': state.completedPaymentKey,
