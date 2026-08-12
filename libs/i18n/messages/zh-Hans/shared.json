@@ -458,6 +458,7 @@
   "account_current_password": "当前密码",
   "account_new_password": "新密码",
   "common_cancel": "取消",
+  "common_close": "关闭",
   "auth_sign_in_title": "登录",
   "auth_sign_in_description": "管理你的 API 访问权限和账户设置。",
   "auth_sign_in_error": "无法登录。",

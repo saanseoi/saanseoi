@@ -1,10 +1,40 @@
-// TODO Replace with proper instructions
+import {
+  createAMapRendererReferenceInstructions,
+  getCreateAMapRendererReference,
+} from './createAMapRendererReference'
+
+const renderReferences = (['maplibre', 'mapbox', 'leaflet'] as const)
+  .map(renderer => {
+    const { label } = getCreateAMapRendererReference(renderer)
+
+    return [
+      `### ${label}`,
+      '',
+      createAMapRendererReferenceInstructions(renderer, 4),
+    ].join('\n')
+  })
+  .join('\n\n')
+
 const instructions = `
 ## Render the map
 
-- Use the selected mapping library and the project's web-framework integration.
-- Keep the map container responsive and accessible. Confirm a blank map can initialise.
-- Select current, compatible dependency versions from the real project ecosystem.
+- Continue only after the prerequisite project setup is complete. Inspect the actual
+  workspace and make only the render-related changes needed for the selected mapping
+  library; preserve unrelated work.
+- Keep the map container responsive and accessible. Confirm that a blank map view can
+  initialise in a browser, rather than treating an HTTP response as visual verification.
+- Choose current dependency versions compatible with the project ecosystem. The
+  following starter snippets are references only: adapt them to the files, framework,
+  package manager and conventions actually present in the workspace.
+- If Mapbox GL JS is selected, use the public Mapbox token only through
+  \`VITE_MAPBOX_TOKEN\`. Do not ask for, print, commit, or otherwise expose its value;
+  confirm that \`.env\` is excluded from version control.
+
+### Library-specific starter references
+
+Use only the reference matching the mapping library selected in the project decisions.
+
+${renderReferences}
 
 ## Add the SaanSeoi basemap
 

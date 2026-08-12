@@ -18,6 +18,11 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).toContain('## Prerequisites')
     expect(instructions).toContain('```bash')
     expect(instructions).toContain('## Render the map')
+    expect(instructions).toContain('### Library-specific starter references')
+    expect(instructions).toContain('#### Setup')
+    expect(instructions).toContain('bun add maplibre-gl')
+    expect(instructions).toContain('bun add mapbox-gl')
+    expect(instructions).toContain('bun add leaflet')
     expect(instructions).toContain('## Publish')
     expect(instructions).toContain('current workspace root only if it is not the')
     expect(instructions).toContain(
@@ -357,6 +362,45 @@ describe('Create a Map LLM instructions', () => {
     )
 
     expect(prompt).not.toContain('Respond in my preferred locale')
+  })
+
+  test('stops the render hand-off without the existing SaanSeoi project context', () => {
+    const state = { preferredLocale: 'en', rendererLabel: 'MapLibre' }
+
+    for (const prompt of [
+      createAMapAgenticSectionPrompt(state, 'render'),
+      createAMapChatSectionPrompt(state, 'render'),
+    ]) {
+      expect(prompt).toContain(
+        'If you do not have that project context, stop and ask me to provide it before changing anything.',
+      )
+    }
+  })
+
+  test('provides the selected renderer reference without exposing a Mapbox token', () => {
+    const prompt = createAMapAgenticSectionPrompt(
+      {
+        mapboxAccessTokenConfigured: true,
+        preferredLocale: 'en',
+        renderer: 'mapbox',
+        rendererLabel: 'Mapbox GL JS',
+      },
+      'render',
+    )
+
+    expect(prompt).toContain(
+      'If you have no context for the SaanSeoi project, stop immediately',
+    )
+    expect(prompt).toContain('### Setup')
+    expect(prompt).toContain('bun add mapbox-gl')
+    expect(prompt).toContain('Replace the existing `src/main.ts` with:')
+    expect(prompt).toContain('Replace the existing styles in `src/style.css` with:')
+    expect(prompt).toContain('### Verify')
+    expect(prompt).toContain(
+      'Mapbox access token: confirmed in local `.env` as `VITE_MAPBOX_TOKEN`',
+    )
+    expect(prompt).toContain('confirm that `.env` is excluded from version control')
+    expect(prompt).not.toContain('pk.')
   })
 
   test('names the next section or confirms guide completion', () => {

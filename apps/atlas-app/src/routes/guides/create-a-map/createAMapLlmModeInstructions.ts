@@ -1,6 +1,7 @@
 export type CreateAMapLlmMode = 'agentic' | 'chat'
 
 const chatInstructions = [
+  'As a web chat, we expect you cannot inspect or edit my computer directly. Guide me through the work and wait for my confirmation before continuing.',
   'Assume I am working in a new project folder. Do not ask to inspect, reuse, or adapt an existing workspace.',
   'Give one safe action at a time and wait for my result before continuing.',
   'For every action, name the exact paste target: either the terminal and its working directory, such as “Terminal in `saanseoi-project`”, or the editor window and file, such as “Editor window in `src/main.ts`”. State whether I should create, replace, or append the content.',

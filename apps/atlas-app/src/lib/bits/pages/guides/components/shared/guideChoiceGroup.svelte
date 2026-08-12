@@ -33,7 +33,7 @@ let {
 
 let inspectedChoiceValue = $state<string>()
 let inspectedChoice = $derived(
-  choices.find(choice => choice.value === inspectedChoiceValue),
+  choices.find(choice => choice.value === (value ?? inspectedChoiceValue)),
 )
 let hasTileDescriptions = $derived(
   variant === 'tiles' && choices.some(choice => Boolean(choice.description)),

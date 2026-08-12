@@ -9,13 +9,21 @@ type Props = {
   copyable?: boolean
   copiedLabel: string
   copyLabel: string
+  editorIcon?: string
   label: string
-  language?: 'bash' | 'powershell' | 'text'
+  language?: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
   promptIcon?: string
-  variant?: 'code' | 'prompt'
+  variant?: 'code' | 'editor' | 'prompt'
 }
 
 type BashTokenKind = 'command' | 'comment' | 'flag' | 'operator' | 'plain' | 'string'
+type SourceTokenKind =
+  | 'comment'
+  | 'keyword'
+  | 'number'
+  | 'plain'
+  | 'selector'
+  | 'string'
 
 const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -27,6 +35,13 @@ const bashTokenClass: Record<BashTokenKind, string> = {
   operator: 'text-[#ef9da5]',
   plain: '',
   string: 'text-[#ffd28a]',
+}
+const sourceTokenClass: Record<Exclude<SourceTokenKind, 'plain'>, string> = {
+  comment: 'text-[#7e938e]',
+  keyword: 'text-[#d7a6ff]',
+  number: 'text-[#ffd28a]',
+  selector: 'text-[#80e7c7]',
+  string: 'text-[#a5d6ff]',
 }
 
 const highlightBash = (source: string, prompt = '$') =>
@@ -69,13 +84,54 @@ const highlightBash = (source: string, prompt = '$') =>
 
       return `<span class="block"><span class="mr-[0.6rem] select-none text-[#65d8ba]" aria-hidden="true">${prompt}</span>${content}</span>`
     })
-    .join('\n')
+    .join('')
+
+const highlightSource = (source: string, language: 'css' | 'typescript') =>
+  source
+    .split('\n')
+    .map(line => {
+      const tokens =
+        line.match(
+          /\/\/[^\n]*|\/\*[\s\S]*?\*\/|'[^']*'|"[^"]*"|`[^`]*`|#[\w-]+|\.[\w-]+|\b\d+(?:\.\d+)?\b|\b(?:import|from|new|const|let|return|type|interface|export|default|class|function|async|await|if|else|true|false|html|body|width|height|margin|padding|display|background|color)\b|\s+|[^\s]+/g,
+        ) ?? []
+      const content = tokens
+        .map(token => {
+          if (/^\s+$/.test(token)) return escapeHtml(token)
+
+          let kind: SourceTokenKind = 'plain'
+          if (/^(\/\/|\/\*)/.test(token)) kind = 'comment'
+          else if (/^['"`]/.test(token)) kind = 'string'
+          else if (/^\d/.test(token)) kind = 'number'
+          else if (
+            language === 'css' &&
+            (/^[#.]/.test(token) || /^(html|body)$/.test(token))
+          ) {
+            kind = 'selector'
+          } else if (
+            /^(import|from|new|const|let|return|type|interface|export|default|class|function|async|await|if|else|true|false|width|height|margin|padding|display|background|color)$/.test(
+              token,
+            )
+          ) {
+            kind = 'keyword'
+          }
+
+          const escaped = escapeHtml(token)
+          return kind === 'plain'
+            ? escaped
+            : `<span class="${sourceTokenClass[kind]}">${escaped}</span>`
+        })
+        .join('')
+
+      return `<span class="block">${content}</span>`
+    })
+    .join('')
 
 let {
   code,
   copyable = true,
   copiedLabel,
   copyLabel,
+  editorIcon = 'material-symbols-light:code-rounded',
   label,
   language = 'text',
   promptIcon = 'material-symbols-light:auto-awesome',
@@ -89,7 +145,9 @@ const highlightedCode = $derived(
     ? highlightBash(code)
     : language === 'powershell'
       ? highlightBash(code, 'PS>')
-      : escapeHtml(code),
+      : language === 'typescript' || language === 'css'
+        ? highlightSource(code, language)
+        : escapeHtml(code),
 )
 
 const copyWithFallback = (text: string) => {
@@ -134,14 +192,18 @@ const selectManualCopyText = () => {
   class={`overflow-hidden border shadow-card ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521]'
+      : variant === 'editor'
+        ? 'border-[#596074] bg-[#131722]'
       : 'border-[#47605b] bg-[#101515]'
   }`}
 >
   <div
     class={`flex items-center justify-between gap-3 border-b px-4 py-2.5 ${
-      variant === 'prompt'
-        ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#211d32]'
-        : 'border-[#47605b] bg-[#182021]'
+    variant === 'prompt'
+      ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#211d32]'
+      : variant === 'editor'
+        ? 'border-[#596074] bg-[#202633]'
+      : 'border-[#47605b] bg-[#182021]'
     }`}
   >
     <div class="flex min-w-0 items-center gap-3">
@@ -151,6 +213,13 @@ const selectManualCopyText = () => {
           aria-hidden="true"
         >
           <Icon icon={promptIcon} class="size-4" />
+        </span>
+      {:else if variant === 'editor'}
+        <span
+          class="inline-flex size-7 items-center justify-center rounded-sm bg-[#2d3547] text-[#a5d6ff]"
+          aria-hidden="true"
+        >
+          <Icon icon={editorIcon} class="size-4" />
         </span>
       {:else}
         <span class="flex gap-1.5" aria-hidden="true">
@@ -163,6 +232,8 @@ const selectManualCopyText = () => {
         class={`font-semibold ${
           variant === 'prompt'
             ? 'font-body tracking-[0.01em] text-[#eeeaff]'
+            : variant === 'editor'
+              ? 'font-mono text-label-sm text-[#d6e4ff]'
             : 'font-mono text-label-sm text-white/75'
         }`}
         >{@html label}</span
@@ -187,6 +258,8 @@ const selectManualCopyText = () => {
     class={`m-0 whitespace-pre-wrap wrap-break-word p-4 ${
       variant === 'prompt'
         ? 'bg-[#14121e] font-body text-body-md leading-7 text-[#eeeaff]'
+        : variant === 'editor'
+          ? 'bg-[#131722] font-mono text-sm leading-6 text-[#d6e4ff]'
         : 'bg-[#0c1111] font-mono text-sm leading-6 text-[#d6e4df]'
     }`}
   ><code>{@html highlightedCode}</code></pre>
