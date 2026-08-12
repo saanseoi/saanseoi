@@ -1423,9 +1423,9 @@ function recordError(
   sourceId?: string,
 ): void {
   diagnostics.errors = [...diagnostics.errors, error].slice(-8)
-  diagnostics.tileFailures += 1
   const source = basemapTileSource(sourceId)
   if (release && source) {
+    diagnostics.tileFailures += 1
     tileWeightCollections[release].recordFailure()
     diagnostics.tileWeight[release] = tileWeightCollections[release].summary()
   }
