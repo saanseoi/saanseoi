@@ -115,7 +115,7 @@ export function createCreateAMapGuidePresentation({
         label: 'Zed',
         description: m.guide_agent_tool_zed_description(),
         note: undefined,
-        badge: recommendationBadge(!isVpnRequired || vpnAccess === 'no'),
+        badge: m.guide_recommended(),
       },
     )
   }
