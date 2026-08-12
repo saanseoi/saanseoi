@@ -311,8 +311,6 @@ function createEnv(
         }),
       } as unknown as KVNamespace,
       PUBLIC_KEY_LEASE_COORDINATOR: {} as DurableObjectNamespace,
-      ACCESS_TOKEN_PRIVATE_JWK: '{}',
-      ACCESS_TOKEN_PUBLIC_JWK: '{}',
       HARBOUR_BASE_URL: 'http://localhost:8788',
       SUBSTACK_PUBLICATION: 'demo-publication',
       SUBSTACK_SESSION_COOKIE:
@@ -571,7 +569,7 @@ describe('atlas-api', () => {
     })
   })
 
-  test('street history endpoints require an access token', async () => {
+  test('street history endpoints require a public API key', async () => {
     const { env } = createAuthenticatedEnv()
     for (const path of [
       '/v0/hk/streets/landsd-street-notice-example/versions',
