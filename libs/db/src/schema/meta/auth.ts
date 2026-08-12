@@ -193,6 +193,31 @@ export const apiKeyUsageWindows = ['minute', 'day', 'month'] as const
 
 export type ApiKeyUsageWindow = (typeof apiKeyUsageWindows)[number]
 
+export const apiKeyOriginPolicyActions = ['allow', 'block'] as const
+
+export type ApiKeyOriginPolicyAction = (typeof apiKeyOriginPolicyActions)[number]
+
+/**
+ * Browser-origin rules for a public API key. A key with at least one allow rule
+ * becomes an allowlist; block rules always take precedence. The rules are read
+ * when a short-lived access token is issued, then represented in its claims.
+ */
+export const apiKeyOriginPolicy = sqliteTable(
+  'api_key_origin_policy',
+  {
+    apiKeyId: text('api_key_id')
+      .notNull()
+      .references(() => apiKey.id, { onDelete: 'cascade' }),
+    hostname: text('hostname').notNull(),
+    action: text('action', { enum: apiKeyOriginPolicyActions }).notNull(),
+    createdAt: defaultBetterAuthTimestamp('created_at').notNull(),
+    updatedAt: defaultBetterAuthTimestamp('updated_at')
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  table => [primaryKey({ columns: [table.apiKeyId, table.hostname] })],
+)
+
 export const apiKeyUsage = sqliteTable(
   'api_key_usage',
   {
