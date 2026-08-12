@@ -15,7 +15,7 @@ function tokenisePath(value: string): UrlToken[] {
   const match = /^(\/v[^/]+)(\/[^/?]+)?(.*)$/.exec(value)
   if (!match) return [{ kind: 'path', value }]
 
-  const [, version, family, rest] = match
+  const [, version = '', family, rest = ''] = match
   const tokens: UrlToken[] = [{ kind: 'version', value: version }]
 
   if (family) tokens.push({ kind: 'family', value: family })

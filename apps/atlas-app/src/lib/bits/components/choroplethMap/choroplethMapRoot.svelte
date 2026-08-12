@@ -4,16 +4,14 @@ import { tick } from 'svelte'
 import { setWorkerUrl } from 'maplibre-gl'
 import type { ExpressionSpecification } from 'maplibre-gl'
 import type { Map as MapLibreMap } from 'maplibre-gl'
+import type { MultiPolygon, Polygon } from 'geojson'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { layers, namedFlavor } from '@protomaps/basemaps'
 import type { StyleSpecification } from 'maplibre-gl'
 
 setWorkerUrl(maplibreWorkerUrl)
 
-type Geometry = {
-  coordinates: unknown
-  type: 'Polygon' | 'MultiPolygon'
-}
+type Geometry = Polygon | MultiPolygon
 
 export type ChoroplethFeature = {
   geometry: Geometry
