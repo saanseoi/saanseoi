@@ -26,6 +26,7 @@ const BOUNDARY_SOURCE_ID = 'region-boundary'
 const BOUNDARY_LAYER_ID = 'region-boundary-line'
 const MAX_VIEWER_ZOOM = 22
 const MAX_TILE_CACHE_ZOOM_LEVELS = 10
+const STYLE_LOAD_TIMEOUT_MS = 15_000
 
 const attributionControls = new Set<HTMLElement>()
 
@@ -46,6 +47,7 @@ export type MapControllerOptions = {
   installDiagnostics: (target: MapLibreMap, role: MapControllerRole) => void
   resetTileWeight: (role: MapControllerRole) => void
   onCreated?: (target: MapLibreMap) => void
+  onDisposed?: () => void
   onMove?: (target: MapLibreMap) => void
   onMoveEnd?: (target: MapLibreMap) => void
 }
@@ -105,16 +107,7 @@ export class MapController {
     })
     this.target = createdMap
     this.options.onCreated?.(createdMap)
-    if (this.options.role === 'primary' && !this.options.headless) {
-      createdMap.addControl(
-        new maplibregl.AttributionControl({ compact: true }),
-        'bottom-right',
-      )
-      createdMap.addControl(
-        new maplibregl.NavigationControl({ showCompass: true }),
-        'bottom-right',
-      )
-    } else if (this.options.role === 'comparison') {
+    if (!this.options.headless) {
       createdMap.addControl(
         new maplibregl.AttributionControl({ compact: true }),
         'bottom-right',
@@ -127,9 +120,15 @@ export class MapController {
     createdMap.on('move', () => this.options.onMove?.(createdMap))
     createdMap.on('moveend', () => this.options.onMoveEnd?.(createdMap))
     this.options.installDiagnostics(createdMap, this.options.role)
-    await this.waitForMapLoad(createdMap, 15_000, options.signal)
-    if (!this.options.postcardRendering || this.options.role === 'comparison')
-      await this.waitForSource(createdMap, BASEMAP_SOURCE_ID, 15_000, options.signal)
+    try {
+      await this.waitForMapLoad(createdMap, 15_000, options.signal)
+      if (!this.options.postcardRendering || this.options.role === 'comparison')
+        await this.waitForSource(createdMap, BASEMAP_SOURCE_ID, 15_000, options.signal)
+    } catch (error) {
+      this.dispose()
+      this.options.onDisposed?.()
+      throw error
+    }
     createdMap.resize()
     this.updateAttribution(createdMap, true)
     this.applyBoundary(createdMap, options.boundary)
@@ -153,29 +152,52 @@ export class MapController {
     this.applyBoundary(target, boundary)
   }
 
-  async replaceStyle(tilejsonUrl: string): Promise<void> {
+  async replaceStyle(tilejsonUrl: string, signal?: AbortSignal): Promise<void> {
     const target = this.requireMap()
     this.options.resetTileWeight(this.options.role)
     const generated = this.options.createStyle(tilejsonUrl)
     this.currentGroups = generated.groups
     await new Promise<void>((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        cleanup()
+        reject(new Error('Timed out while loading the map style.'))
+      }, STYLE_LOAD_TIMEOUT_MS)
       const onLoad = () => {
         cleanup()
         resolve()
       }
-      const onError = (event: { error?: unknown }) => {
+      const onError = (event: { error?: unknown; sourceId?: string }) => {
+        if (event.sourceId !== undefined) return
         cleanup()
-        reject(event.error)
+        reject(event.error ?? new Error('Could not load the map style.'))
+      }
+      const onAbort = () => {
+        cleanup()
+        reject(
+          signal?.reason ??
+            new DOMException('The operation was aborted.', 'AbortError'),
+        )
       }
       const cleanup = () => {
+        window.clearTimeout(timeout)
         target.off('style.load', onLoad)
         target.off('error', onError)
+        signal?.removeEventListener('abort', onAbort)
       }
-      target.once('style.load', onLoad)
-      target.once('error', onError)
-      target.setStyle(generated.style)
+      target.on('style.load', onLoad)
+      target.on('error', onError)
+      if (signal?.aborted) onAbort()
+      else {
+        signal?.addEventListener('abort', onAbort, { once: true })
+        try {
+          target.setStyle(generated.style)
+        } catch (error) {
+          cleanup()
+          reject(error)
+        }
+      }
     })
-    await this.waitForSource(target, BASEMAP_SOURCE_ID)
+    await this.waitForSource(target, BASEMAP_SOURCE_ID, 15_000, signal)
     this.updateAttribution(target)
     this.options.applyState(target, generated.groups)
     this.applyBoundary(target, this.currentBoundary)

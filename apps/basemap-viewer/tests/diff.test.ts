@@ -84,8 +84,20 @@ describe('basemap label diff', () => {
       added: 1,
       removed: 1,
       labelChanges: [
-        { status: 'added', label: 'New place', sourceLayer: 'places' },
-        { status: 'removed', label: 'Old place', sourceLayer: 'places' },
+        {
+          status: 'added',
+          label: 'New place',
+          sourceLayer: 'places',
+          featureId: 3,
+          centre: [10, 10],
+        },
+        {
+          status: 'removed',
+          label: 'Old place',
+          sourceLayer: 'places',
+          featureId: 1,
+          centre: [1, 1],
+        },
       ],
     })
     expect(
@@ -116,8 +128,20 @@ describe('basemap label diff', () => {
       added: 1,
       removed: 1,
       labelChanges: [
-        { status: 'added', label: 'New name', sourceLayer: 'places' },
-        { status: 'removed', label: 'Old name', sourceLayer: 'places' },
+        {
+          status: 'added',
+          label: 'New name',
+          sourceLayer: 'places',
+          featureId: 9,
+          centre: [2, 2],
+        },
+        {
+          status: 'removed',
+          label: 'Old name',
+          sourceLayer: 'places',
+          featureId: 9,
+          centre: [1, 1],
+        },
       ],
     })
     expect(result.data.features.map(feature => feature.properties.diffStatus)).toEqual([

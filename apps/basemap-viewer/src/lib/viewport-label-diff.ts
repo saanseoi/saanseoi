@@ -123,13 +123,9 @@ export class ViewportLabelDiff {
           : comparison
     const visibleMap = this.presentationMap()
     if (!source || !visibleMap) return
-    const feature = this.queryFeatures(source, [change.sourceLayer]).find(
-      candidate => candidate.label?.trim() === change.label,
-    )
-    const centre = feature ? geometryCentre(feature.geometry) : null
-    if (!centre) return
+    if (!change.centre) return
     visibleMap.flyTo({
-      center: centre,
+      center: change.centre,
       zoom: Math.max(visibleMap.getZoom(), 14),
       duration: 700,
       essential: true,
@@ -262,11 +258,6 @@ function geometryIntersectsViewport(geometry: Geometry, target: MapLibreMap): bo
     featureBounds[3] < viewport.getSouth() ||
     featureBounds[1] > viewport.getNorth()
   )
-}
-
-function geometryCentre(geometry: Geometry): [number, number] | null {
-  const bounds = geometryBounds(geometry)
-  return bounds ? [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2] : null
 }
 
 function geometryBounds(geometry: Geometry): [number, number, number, number] | null {

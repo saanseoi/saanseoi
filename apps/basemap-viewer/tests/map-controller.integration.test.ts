@@ -139,5 +139,7 @@ describe('MapController lifecycle integration', () => {
     operation.abort()
 
     await expect(loading).rejects.toMatchObject({ name: 'AbortError' })
+    expect(map.removed).toBe(true)
+    expect(controller.map).toBeNull()
   })
 })

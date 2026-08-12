@@ -14,6 +14,8 @@ export interface DiffLabelChange {
   status: DiffStatus
   label: string
   sourceLayer: string
+  featureId: number | string | undefined
+  centre: [number, number] | null
 }
 
 export interface DiffSummary {
@@ -52,6 +54,39 @@ function geometryKind(geometry: Geometry): 'point' | 'line' | 'area' {
 
 function labelKey(sourceLayer: string, label: string): string {
   return `${sourceLayer}\u0000${label}`
+}
+
+function geometryCentre(geometry: Geometry): [number, number] | null {
+  const bounds: [number, number, number, number] = [
+    Infinity,
+    Infinity,
+    -Infinity,
+    -Infinity,
+  ]
+  const visitCoordinates = (value: unknown): void => {
+    if (!Array.isArray(value)) return
+    if (
+      value.length >= 2 &&
+      typeof value[0] === 'number' &&
+      typeof value[1] === 'number'
+    ) {
+      bounds[0] = Math.min(bounds[0], value[0])
+      bounds[1] = Math.min(bounds[1], value[1])
+      bounds[2] = Math.max(bounds[2], value[0])
+      bounds[3] = Math.max(bounds[3], value[1])
+      return
+    }
+    for (const nested of value) visitCoordinates(nested)
+  }
+  const visitGeometry = (value: Geometry): void => {
+    if (value.type === 'GeometryCollection') {
+      for (const nested of value.geometries) visitGeometry(nested)
+    } else visitCoordinates(value.coordinates)
+  }
+  visitGeometry(geometry)
+  return Number.isFinite(bounds[0])
+    ? [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2]
+    : null
 }
 
 function labelledFeatures(
@@ -115,11 +150,15 @@ export function buildDiff(
       status: 'added' as const,
       label: entry.label,
       sourceLayer: entry.sourceLayer,
+      featureId: entry.feature.id,
+      centre: geometryCentre(entry.feature.geometry),
     })),
     ...removed.map(entry => ({
       status: 'removed' as const,
       label: entry.label,
       sourceLayer: entry.sourceLayer,
+      featureId: entry.feature.id,
+      centre: geometryCentre(entry.feature.geometry),
     })),
   ].sort(
     (left, right) =>
