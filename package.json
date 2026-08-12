@@ -98,6 +98,9 @@
     "test:run": "turbo run test",
     "test:watch": "turbo run test:watch",
     "test:coverage": "turbo run test:coverage",
+    "build": "turbo run build --filter=atlas-api --filter=atlas-app --filter=basemap-tiles --filter=basemap-viewer --filter=harbour-api --filter=harbour-workers",
+    "build:preview": "turbo run build:preview --filter=atlas-api --filter=atlas-app --filter=basemap-viewer --filter=harbour-api --filter=harbour-workers",
+    "build:production": "turbo run build:production --filter=atlas-api --filter=atlas-app --filter=basemap-viewer --filter=harbour-api --filter=harbour-workers && bun run --filter=basemap-tiles build",
     "preview": "turbo run preview",
     "check": "turbo run check",
     "format": "biome format --write . && bun run format:markdown",
@@ -138,7 +141,7 @@
     "prettier": "^3.9.6",
     "tailwindcss-animate": "^1.0.7",
     "turbo": "^2.10.9",
-    "wrangler": "^4.121.0"
+    "wrangler": "^4.122.0"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"
