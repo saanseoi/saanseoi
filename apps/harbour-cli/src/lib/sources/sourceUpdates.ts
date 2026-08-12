@@ -1018,6 +1018,10 @@ async function lookupOverture({
       })
     })
 
+  if (targetHasNoRelease) {
+    archiveUpdates.sort((left, right) => compareVersions(left.version, right.version))
+  }
+
   return [latestUpdate, ...archiveUpdates]
 }
 
@@ -1237,22 +1241,26 @@ function selectCsdiBootstrapUpdates(
     groups.set(key, [...(groups.get(key) ?? []), update])
   }
 
-  return [...groups.values()].map(updates => {
-    const representative =
-      dataset.releasePolicy?.series === 'rolling'
-        ? (updates
-            .toSorted((left, right) =>
-              compareVersions(left.version ?? '', right.version ?? ''),
-            )
-            .at(-1) as DatasetUpdate)
-        : (updates[0] as DatasetUpdate)
+  return [...groups.values()]
+    .toSorted((left, right) =>
+      compareVersions(left[0]?.version ?? '', right[0]?.version ?? ''),
+    )
+    .map(updates => {
+      const representative =
+        dataset.releasePolicy?.series === 'rolling'
+          ? (updates
+              .toSorted((left, right) =>
+                compareVersions(left.version ?? '', right.version ?? ''),
+              )
+              .at(-1) as DatasetUpdate)
+          : (updates[0] as DatasetUpdate)
 
-    return {
-      ...representative,
-      status: 'new' as const,
-      message: `Rebuilding the reset target from the ${representative.targetSourceKey ?? dataset.code} source release.`,
-    }
-  })
+      return {
+        ...representative,
+        status: 'new' as const,
+        message: `Rebuilding the reset target from the ${representative.targetSourceKey ?? dataset.code} source release.`,
+      }
+    })
 }
 
 async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate[]> {
