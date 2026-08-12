@@ -34,7 +34,11 @@ consumers must not derive it from polygon edges. All generated base features exp
 
 The same exact clip applies to labels and all ordinary source geometry. A published
 regional PMTiles archive is therefore self-contained: viewers render it from one tile
-source and use the published boundary GeoJSON only for the outside-region mask.
+source and use the published boundary GeoJSON only for the outside-region mask. We
+intentionally retain the versioned GeoJSON artefact; it records the exact release
+footprint, supports that optional presentation, and supplies the integrity-checked input
+required by imported and exceptional historic rebuild workflows. It is not required to
+render or clip the regional PMTiles source.
 
 Historic source-backed releases are regenerated from their matching archived GeoFabrik
 Guangdong PBF. The source is retained privately in R2 and supplies the locally resolved

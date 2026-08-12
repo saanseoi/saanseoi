@@ -34,7 +34,10 @@ identifiers and exact-buffer policy are included in the release manifest.
 The same resolved footprint is published as a versioned GeoJSON boundary artefact beside
 each archive. The `-latest` boundary pointer advances with `-latest.pmtiles`. Consumers
 use this artefact to mask the area outside a regional extract without inventing water or
-including external map features.
+including external map features. This is an intentional retained release artefact, not a
+dependency for map rendering: the PMTiles archive already contains all clipped geometry.
+The GeoJSON also preserves the exact release footprint for integrity-checked imports and
+the exceptional historic rebuild fallback.
 
 During the build, the exact regional OSM PBF that Planetiler consumes is also filtered
 for `natural=coastline` ways. The resolved footprint closes those lines only while
