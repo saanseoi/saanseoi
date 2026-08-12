@@ -442,7 +442,10 @@ async function storeApiReleaseSetStats(
   }
 
   const sqlText = buildStatsSql(apiReleaseSetId, rows)
-  const etag = createHash('sha256').update(sqlText).digest('hex')
+  // D1's import endpoint validates the uploaded object using its MD5 ETag.
+  // Keep this aligned with the regular SQL import path; SHA-256 is used for
+  // provenance hashes, not for the import upload contract.
+  const etag = createHash('md5').update(new TextEncoder().encode(sqlText)).digest('hex')
   const client = createD1ImportClient({
     accountId: options.accountId,
     apiToken: options.apiToken,
