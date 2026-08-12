@@ -3,6 +3,9 @@ import {
   metaRegistryRequiredTables,
   type MetaRegistrySyncEnvironment,
 } from '../src/registry'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 const target = process.argv[2] ?? 'local'
 
@@ -53,8 +56,14 @@ function parseWranglerExecuteJson(raw: string) {
         error?: string
       }
 
+  const jsonStart = raw.search(/^[[{]/m)
+
+  if (jsonStart === -1) {
+    throw new Error(`Unexpected wrangler d1 execute response: ${raw}`)
+  }
+
   try {
-    payload = JSON.parse(raw) as typeof payload
+    payload = JSON.parse(raw.slice(jsonStart)) as typeof payload
   } catch {
     throw new Error(`Unexpected wrangler d1 execute response: ${raw}`)
   }
@@ -91,7 +100,7 @@ function decodeOutput(output: ArrayBufferLike | Uint8Array | null | undefined) {
   return new TextDecoder().decode(bytes).trim()
 }
 
-function runWranglerExecute(command: string) {
+function runWranglerExecute(sqlInput: { command: string } | { file: string }) {
   const proc = Bun.spawnSync({
     cmd: [
       'bun',
@@ -102,8 +111,9 @@ function runWranglerExecute(command: string) {
       databaseName,
       ...buildWranglerSyncTargetArgs(),
       '--json',
-      '--command',
-      command,
+      ...('command' in sqlInput
+        ? ['--command', sqlInput.command]
+        : ['--file', sqlInput.file]),
     ],
     cwd: new URL('..', scriptDir).pathname,
     env: {
@@ -126,6 +136,18 @@ function runWranglerExecute(command: string) {
   }
 
   return parseWranglerExecuteJson(decodeOutput(proc.stdout))
+}
+
+function runWranglerSqlFile(sql: string) {
+  const tempDir = mkdtempSync(join(tmpdir(), 'saanseoi-meta-registry-'))
+  const sqlPath = join(tempDir, 'sync.sql')
+
+  try {
+    writeFileSync(sqlPath, sql)
+    return runWranglerExecute({ file: sqlPath })
+  } finally {
+    rmSync(tempDir, { force: true, recursive: true })
+  }
 }
 
 function buildMissingTablesMessage(missingTables: string[]) {
@@ -158,7 +180,7 @@ function assertMetaSchemaReady() {
     `AND name IN (${metaRegistryRequiredTables.map(sqlString).join(', ')})`,
     'ORDER BY name;',
   ].join(' ')
-  const rows = runWranglerExecute(query)
+  const rows = runWranglerExecute({ command: query })
   const existing = new Set(
     rows
       .map(row => (typeof row.name === 'string' ? row.name : null))
@@ -173,7 +195,7 @@ function assertMetaSchemaReady() {
 
 function main() {
   assertMetaSchemaReady()
-  const resultRows = runWranglerExecute(buildMetaRegistrySyncSql(registryEnvironment))
+  const resultRows = runWranglerSqlFile(buildMetaRegistrySyncSql(registryEnvironment))
   console.log(`Meta registry sync succeeded. result_rows=${resultRows.length}`)
 }
 

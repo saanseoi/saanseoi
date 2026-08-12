@@ -1,14 +1,16 @@
-import apiDivisionsV01Fixture20250924 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-09-24.0.json'
-import apiDivisionsV01Fixture20251022 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-10-22.0.json'
-import apiDivisionsV01Fixture20251119 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-11-19.0.json'
-import apiDivisionsV01Fixture20251217 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2025-12-17.0.json'
-import apiDivisionsV01Fixture20260218 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2026-02-18.0.json'
-import apiDivisionsV01Fixture20260520 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-2026-05-20.0.json'
+import apiDivisionsV01FixtureOverture112To115 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.12-to-1.15.json'
+import apiDivisionsV01FixtureOverture116To118 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.18.json'
+import apiDivisionsV01FixturePlandNewTown2006 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-new-town-2006.json'
+import apiDivisionsV01FixturePlandPu2001 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2001.json'
+import apiDivisionsV01FixturePlandPu2021 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2021.json'
+import apiAddressesV01FixtureDefaultLineage from '../../../fixtures/meta/apiFields/api-addresses-v0.1@default-lineage.json'
 
 import type { ProvenanceContributionType, ResolverCode } from './constants/schema'
 
 export type ApiFieldFixtureField = {
   apiField: string
+  /** Geometry-source selector; omitted for fields independent of a variant. */
+  variant?: string | null
   sourceDatasetCode: string
   sourceFieldPath: string
   resolverCode: ResolverCode
@@ -20,20 +22,28 @@ export type ApiFieldFixtureField = {
 export type ApiFieldFixture = {
   versionHash: string
   apiVersion: string
-  validFromSnapshotVersion: string
+  /** Domain this mapping applies to. */
+  domainCode: string
+  lineageAnchors: ApiFieldFixtureLineageAnchor[]
   schemaVersion: string
   rulesetVersion: string
-  sourceSchemas: Record<string, string>
   fields: ApiFieldFixtureField[]
 }
 
+export type ApiFieldFixtureLineageAnchor = {
+  /** Immutable snapshot at which this mapping applies on one lineage branch. */
+  snapshotVersion: string
+  /** Exact release-set source signature for this branch anchor. */
+  sourceSchemas: Record<string, string>
+}
+
 const apiFieldFixtures: ApiFieldFixture[] = [
-  apiDivisionsV01Fixture20250924 as ApiFieldFixture,
-  apiDivisionsV01Fixture20251022 as ApiFieldFixture,
-  apiDivisionsV01Fixture20251119 as ApiFieldFixture,
-  apiDivisionsV01Fixture20251217 as ApiFieldFixture,
-  apiDivisionsV01Fixture20260218 as ApiFieldFixture,
-  apiDivisionsV01Fixture20260520 as ApiFieldFixture,
+  apiDivisionsV01FixtureOverture112To115 as ApiFieldFixture,
+  apiDivisionsV01FixtureOverture116To118 as ApiFieldFixture,
+  apiDivisionsV01FixturePlandNewTown2006 as ApiFieldFixture,
+  apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,
+  apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,
+  apiAddressesV01FixtureDefaultLineage as ApiFieldFixture,
 ]
 
 function cloneApiFieldFixtureField(field: ApiFieldFixtureField): ApiFieldFixtureField {
@@ -45,39 +55,12 @@ function cloneApiFieldFixtureField(field: ApiFieldFixtureField): ApiFieldFixture
 function cloneApiFieldFixture(fixture: ApiFieldFixture): ApiFieldFixture {
   return {
     ...fixture,
-    sourceSchemas: { ...fixture.sourceSchemas },
+    lineageAnchors: fixture.lineageAnchors.map(anchor => ({
+      ...anchor,
+      sourceSchemas: { ...anchor.sourceSchemas },
+    })),
     fields: fixture.fields.map(cloneApiFieldFixtureField),
   }
-}
-
-function compareSnapshotVersions(left: string, right: string) {
-  const leftMatch = left.match(
-    /^ss-[a-z0-9]+-[a-z0-9-]+-(20\d{2}-\d{2}-\d{2})\.(\d+)$/i,
-  )
-  const rightMatch = right.match(
-    /^ss-[a-z0-9]+-[a-z0-9-]+-(20\d{2}-\d{2}-\d{2})\.(\d+)$/i,
-  )
-
-  if (!leftMatch || !rightMatch) {
-    return left.localeCompare(right)
-  }
-
-  const leftDate = leftMatch[1]
-  const rightDate = rightMatch[1]
-
-  if (!leftDate || !rightDate) {
-    return left.localeCompare(right)
-  }
-
-  const leftPatch = leftMatch[2] ?? '0'
-  const rightPatch = rightMatch[2] ?? '0'
-  const dateComparison = leftDate.localeCompare(rightDate)
-
-  if (dateComparison !== 0) {
-    return dateComparison
-  }
-
-  return Number.parseInt(leftPatch, 10) - Number.parseInt(rightPatch, 10)
 }
 
 function haveEqualSourceSchemas(
@@ -96,35 +79,63 @@ function haveEqualSourceSchemas(
   )
 }
 
+function closestMatchingAnchorDepth(
+  fixture: ApiFieldFixture,
+  matchingAnchorIndexes: number[],
+  lineageSnapshotVersions: string[],
+) {
+  return Math.max(
+    ...matchingAnchorIndexes.map(index => {
+      const anchor = fixture.lineageAnchors[index]
+      return anchor ? lineageSnapshotVersions.lastIndexOf(anchor.snapshotVersion) : -1
+    }),
+  )
+}
+
 export function listApiFieldFixtures() {
   return apiFieldFixtures.map(cloneApiFieldFixture)
 }
 
 export function resolveApiFieldFixture(args: {
   apiVersion: string
-  snapshotVersion: string
+  domainCode: string
+  /** Snapshot codes from the primary snapshot's lineage root to itself. */
+  lineageSnapshotVersions: string[]
   schemaVersion: string
   rulesetVersion: string
   sourceSchemas: Record<string, string>
 }) {
   const candidates = apiFieldFixtures
+    .map(fixture => ({
+      fixture,
+      matchingAnchorIndexes: fixture.lineageAnchors.flatMap((anchor, index) =>
+        haveEqualSourceSchemas(anchor.sourceSchemas, args.sourceSchemas) &&
+        args.lineageSnapshotVersions.includes(anchor.snapshotVersion)
+          ? [index]
+          : [],
+      ),
+    }))
     .filter(
-      fixture =>
+      ({ fixture, matchingAnchorIndexes }) =>
         fixture.apiVersion === args.apiVersion &&
+        fixture.domainCode === args.domainCode &&
         fixture.schemaVersion === args.schemaVersion &&
         fixture.rulesetVersion === args.rulesetVersion &&
-        haveEqualSourceSchemas(fixture.sourceSchemas, args.sourceSchemas) &&
-        compareSnapshotVersions(
-          fixture.validFromSnapshotVersion,
-          args.snapshotVersion,
-        ) <= 0,
+        matchingAnchorIndexes.length > 0,
     )
-    .sort((left, right) =>
-      compareSnapshotVersions(
-        right.validFromSnapshotVersion,
-        left.validFromSnapshotVersion,
-      ),
+    .sort(
+      (left, right) =>
+        closestMatchingAnchorDepth(
+          right.fixture,
+          right.matchingAnchorIndexes,
+          args.lineageSnapshotVersions,
+        ) -
+        closestMatchingAnchorDepth(
+          left.fixture,
+          left.matchingAnchorIndexes,
+          args.lineageSnapshotVersions,
+        ),
     )
 
-  return candidates[0] ? cloneApiFieldFixture(candidates[0]) : null
+  return candidates[0] ? cloneApiFieldFixture(candidates[0].fixture) : null
 }

@@ -1,0 +1,71 @@
+{
+  "versionHash": "sha256:ff165ebfea81253560610f8e7c38cb52d24fdde3273e082eba219025fc72fbb0",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "five-yearly",
+  "theme": "stats",
+  "resourceTypes": ["divisionStatistic"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001",
+  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/822b2812efe52d97631c140132a42ce953c74555051f84ce4f52b9d1912d73e9",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["revision"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2021",
+      "identicalArchiveSlots": [
+        {
+          "releaseSlot": "2024-Q4",
+          "sourceObjectHash": "b2ee014886c981b26f441f9b66923139872d42b5cc37689ecf3eebd6d85c79c1",
+          "contentHash": "28aef3053e090e85954887ec9316a73e9b8ff145246bca45b8739c6d07308397"
+        },
+        {
+          "releaseSlot": "2026-Q2",
+          "sourceObjectHash": "1515e74a0dd7987dbae8332f144224264395ebcfefa089709b79d041ed34878f",
+          "contentHash": "28aef3053e090e85954887ec9316a73e9b8ff145246bca45b8739c6d07308397"
+        }
+      ]
+    }
+  ],
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "2021 Census: Major Housing Estates",
+      "description": "Planned C&SD source for 2021 Census statistics and boundaries for 540 major housing estates."
+    }
+  ]
+}

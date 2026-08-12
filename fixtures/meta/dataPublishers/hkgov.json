@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:1e20103dd4147ee3af9a136d920b626e7de82e583a082248e64c90e35ee6286f",
+  "versionHash": "sha256:2e6d620aaf5a4c46e3d28eb7f9794663db8d2f4a4885bbc620795badaa529a44",
   "code": "hkgov",
   "url": "https://data.gov.hk",
   "contactUrl": "https://data.gov.hk/en/feedback",
@@ -7,7 +7,7 @@
     {
       "locale": "en",
       "name": "DATA.GOV.HK",
-      "description": "Hong Kong Special Administrative Region Government open data portal."
+      "description": "Open data portal from the HK SAR Government"
     },
     {
       "locale": "zh-hant",

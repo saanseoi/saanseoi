@@ -1,0 +1,24 @@
+{
+  "versionHash": "sha256:c0c12c9b3460e6fac3860dbb1b122918afe0907f3d7ad72cd1ce7db8549720d9",
+  "code": "hkgov-had",
+  "parentCode": "hkgov",
+  "url": "https://www.had.gov.hk/en/index.htm",
+  "contactUrl": "https://www.had.gov.hk/en/contact_us/",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Home Affairs Department",
+      "description": "The Home Affairs Department promotes district governance, enhances communication between the Government and the people, and connects with and cares for the people."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "民政事務總署",
+      "description": "民政事務總署致力推動地區治理，加強政府與市民的溝通，聯繫及關懷市民，建立和諧社區。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "民政事务总署",
+      "description": "民政事务总署致力推动地区治理，加强政府与市民的沟通，联系及关怀市民，建立和谐社区。"
+    }
+  ]
+}

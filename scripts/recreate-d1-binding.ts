@@ -9,8 +9,10 @@ type Environment = 'preview' | 'production'
 type BindingName =
   | 'DB_META'
   | 'DB_CURRENT'
+  | 'DB_HISTORY_HK_BEFORE'
   | 'DB_HISTORY_HK_2025'
   | 'DB_HISTORY_HK_2026'
+  | 'DB_SOURCE_HK_BEFORE'
   | 'DB_SOURCE_HK_2025'
   | 'DB_SOURCE_HK_2026'
 
@@ -60,9 +62,11 @@ const wranglerConfigPaths = [
 
 const bindingFamilies: Record<BindingName, string> = {
   DB_CURRENT: 'current',
+  DB_HISTORY_HK_BEFORE: 'history-hk-before',
   DB_HISTORY_HK_2025: 'history-hk-2025',
   DB_HISTORY_HK_2026: 'history-hk-2026',
   DB_META: 'meta',
+  DB_SOURCE_HK_BEFORE: 'source-hk-before',
   DB_SOURCE_HK_2025: 'source-hk-2025',
   DB_SOURCE_HK_2026: 'source-hk-2026',
 }
@@ -237,7 +241,7 @@ function printHelpAndExit(code: number): never {
   bun ./scripts/recreate-d1-binding.ts --binding DB_META --env preview [options]
 
 Options:
-  --binding <binding>       One of DB_META, DB_CURRENT, DB_HISTORY_HK_2025, DB_HISTORY_HK_2026, DB_SOURCE_HK_2025, DB_SOURCE_HK_2026
+  --binding <binding>       One of DB_META, DB_CURRENT, DB_HISTORY_HK_BEFORE, DB_HISTORY_HK_2025, DB_HISTORY_HK_2026, DB_SOURCE_HK_BEFORE, DB_SOURCE_HK_2025, DB_SOURCE_HK_2026
   --env <preview|production>
   --location <hint>         Passed through to wrangler d1 create. Defaults to apac-ne when supported by wrangler, otherwise apac.
   --deploy                  Run bun run deploy:<env> after patching configs.

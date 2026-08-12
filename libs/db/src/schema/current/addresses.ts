@@ -2,14 +2,21 @@ import {
   check,
   foreignKey,
   index,
-  integer,
   primaryKey,
   sqliteTable,
   text,
 } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
-import { jsonText, timestamps } from './_shared'
+import {
+  canonicalAddress2d,
+  canonicalAddress2dBuildingNumberLookup,
+  canonicalAddress2dI18n,
+  canonicalAddress3dUnitRefLookup,
+  canonicalAddress3dI18n,
+  jsonText,
+  timestamps,
+} from '../shared'
 import { divisions } from './divisions'
 import { streets } from './streets'
 
@@ -17,23 +24,9 @@ export const address2d = sqliteTable(
   'address2d',
   {
     snapshotId: text('snapshotId').notNull(),
-    id: text('id').notNull(),
-    geometry: jsonText('geometry'),
-    bbox: jsonText('bbox'),
     divisionSnapshotId: text('divisionSnapshotId').notNull(),
-    countryId: text('countryId'),
-    areaId: text('areaId'),
-    districtId: text('districtId'),
-    townId: text('townId'),
-    macrohoodId: text('macrohoodId'),
-    villageId: text('villageId'),
-    neighbourhoodId: text('neighbourhoodId'),
-    hamletId: text('hamletId'),
-    microhoodId: text('microhoodId'),
     streetSnapshotId: text('streetSnapshotId'),
-    streetId: text('streetId'),
-    identifiers: jsonText('identifiers'),
-    sources: jsonText('sources'),
+    ...canonicalAddress2d,
     ...timestamps,
   },
   table => [
@@ -112,20 +105,7 @@ export const address2dI18n = sqliteTable(
   'address2dI18n',
   {
     snapshotId: text('snapshotId').notNull(),
-    addressId: text('addressId').notNull(),
-    locale: text('locale').notNull(),
-    formattedAddress: text('formattedAddress').notNull(),
-    buildingName: text('buildingName'),
-    buildingNumberFrom: text('buildingNumberFrom'),
-    buildingNumberTo: text('buildingNumberTo'),
-    blockType: text('blockType'),
-    blockNumber: text('blockNumber'),
-    blockTypeBeforeNumber: integer('blockTypeBeforeNumber', { mode: 'boolean' }),
-    phaseName: text('phaseName'),
-    phaseNumber: text('phaseNumber'),
-    estateName: text('estateName'),
-    streetNumber: text('streetNumber'),
-    streetName: text('streetName'),
+    ...canonicalAddress2dI18n,
     ...timestamps,
   },
   table => [
@@ -138,6 +118,33 @@ export const address2dI18n = sqliteTable(
       name: 'address2dI18n_snapshotId_addressId_address2d_fk',
     }).onDelete('cascade'),
     index('address2dI18n_locale_idx').on(table.locale),
+  ],
+)
+
+export const address2dBuildingNumberLookup = sqliteTable(
+  'address2dBuildingNumberLookup',
+  {
+    snapshotId: text('snapshotId').notNull(),
+    ...canonicalAddress2dBuildingNumberLookup,
+    ...timestamps,
+  },
+  table => [
+    primaryKey({
+      columns: [table.snapshotId, table.addressId, table.buildingNumber],
+    }),
+    foreignKey({
+      columns: [table.snapshotId, table.addressId],
+      foreignColumns: [address2d.snapshotId, address2d.id],
+      name: 'address2dBuildingNumberLookup_snapshotId_addressId_address2d_fk',
+    }).onDelete('cascade'),
+    index('address2dBuildingNumberLookup_lookup_idx').on(
+      table.snapshotId,
+      table.buildingNumber,
+    ),
+    index('address2dBuildingNumberLookup_numericStem_idx').on(
+      table.snapshotId,
+      table.numericStem,
+    ),
   ],
 )
 
@@ -167,15 +174,7 @@ export const address3dI18n = sqliteTable(
   'address3dI18n',
   {
     snapshotId: text('snapshotId').notNull(),
-    address3dId: text('address3dId').notNull(),
-    locale: text('locale').notNull(),
-    formattedAddressPart: text('formattedAddressPart').notNull(),
-    accessHint: text('accessHint'),
-    unitPortion: text('unitPortion'),
-    unitNumber: text('unitNumber'),
-    unitType: text('unitType'),
-    floorNumber: text('floorNumber'),
-    floorType: text('floorType'),
+    ...canonicalAddress3dI18n,
     ...timestamps,
   },
   table => [
@@ -188,5 +187,29 @@ export const address3dI18n = sqliteTable(
       name: 'address3dI18n_snapshotId_address3dId_address3d_fk',
     }).onDelete('cascade'),
     index('address3dI18n_locale_idx').on(table.locale),
+  ],
+)
+
+export const address3dUnitRefLookup = sqliteTable(
+  'address3dUnitRefLookup',
+  {
+    snapshotId: text('snapshotId').notNull(),
+    ...canonicalAddress3dUnitRefLookup,
+    ...timestamps,
+  },
+  table => [
+    primaryKey({
+      columns: [table.snapshotId, table.address3dId, table.unitRef],
+    }),
+    foreignKey({
+      columns: [table.snapshotId, table.address3dId],
+      foreignColumns: [address3d.snapshotId, address3d.id],
+      name: 'address3dUnitRefLookup_snapshotId_address3dId_address3d_fk',
+    }).onDelete('cascade'),
+    index('address3dUnitRefLookup_lookup_idx').on(table.snapshotId, table.unitRef),
+    index('address3dUnitRefLookup_numericStem_idx').on(
+      table.snapshotId,
+      table.numericStem,
+    ),
   ],
 )

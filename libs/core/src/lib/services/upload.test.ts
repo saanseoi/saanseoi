@@ -11,7 +11,6 @@ import {
   seedFixtureCatalog,
 } from '../../testing/metaFixtures'
 import {
-  finalizeUpload,
   createSchemaFingerprint,
   inferRegionFromPath,
   inferCohortKeyFromPath,
@@ -22,17 +21,17 @@ import {
   inferThemeFromPath,
   inferTypeFromFilename,
   inferTypeFromPath,
-  requestUpload,
 } from './upload'
 import { planUpload, prepareUpload, registerUpload } from './uploadLocal'
 import { createLocalHarbourDb } from '../../testing/localDb'
+import { buildDeterministicReleaseId } from '../db/metaRegistry'
 
-import type { ParquetInspection } from '../../types'
+import type { UploadInspection } from '../../types'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
-const migrationSql = loadMigrationSql(migrationsDir)
+const migrationSql = loadMigrationSql(migrationsDir, ['meta'])
 const tempDirs: string[] = []
-const fixtureInspection: ParquetInspection = {
+const fixtureInspection: UploadInspection = {
   rowCount: 3,
   schema: [
     { name: 'id', type: 'string', nullable: false },
@@ -47,13 +46,13 @@ const fixtureInspection: ParquetInspection = {
   distinctRegionValues: ['hk'],
 }
 
-const addressFixtureInspection: ParquetInspection = {
+const addressFixtureInspection: UploadInspection = {
   ...fixtureInspection,
   distinctThemeValues: ['addresses'],
   distinctTypeValues: ['address'],
 }
 
-const fixtureInspectionWithAdminLevel: ParquetInspection = {
+const fixtureInspectionWithAdminLevel: UploadInspection = {
   ...fixtureInspection,
   schema: [
     ...fixtureInspection.schema,
@@ -61,7 +60,7 @@ const fixtureInspectionWithAdminLevel: ParquetInspection = {
   ],
 }
 
-const reorderedFixtureInspection: ParquetInspection = {
+const reorderedFixtureInspection: UploadInspection = {
   ...fixtureInspectionWithAdminLevel,
   schema: reorderSchemaFields(fixtureInspectionWithAdminLevel, [
     'type',
@@ -74,9 +73,9 @@ const reorderedFixtureInspection: ParquetInspection = {
 }
 
 function reorderSchemaFields(
-  inspection: ParquetInspection,
+  inspection: UploadInspection,
   fieldNames: string[],
-): ParquetInspection['schema'] {
+): UploadInspection['schema'] {
   return fieldNames.map(fieldName => {
     const field = inspection.schema.find(candidate => candidate.name === fieldName)
 
@@ -95,7 +94,7 @@ function createTempDir() {
 }
 
 function createOvertureStyleFixture(tempDir: string) {
-  const targetDir = join(tempDir, 'data/2025-09-24.0/divisions/中国/Hong Kong SAR')
+  const targetDir = join(tempDir, 'data/2025-09-24.0/divisions/China/Hong Kong')
   const targetFile = join(targetDir, 'division.parquet')
 
   mkdirSync(targetDir, { recursive: true })
@@ -112,8 +111,16 @@ function createFixturePath(tempDir: string) {
   return fixtureFile
 }
 
+function createResourceFixturePath(tempDir: string, resourceName: string) {
+  const fixtureFile = join(tempDir, `hk-${resourceName}-2026-05.parquet`)
+
+  writeFileSync(fixtureFile, 'fixture')
+
+  return fixtureFile
+}
+
 function createAddressFixturePath(tempDir: string) {
-  const fixtureFile = join(tempDir, 'hkgov-als-address.parquet')
+  const fixtureFile = join(tempDir, 'hkgov-dpo-address.parquet')
 
   writeFileSync(fixtureFile, 'fixture')
 
@@ -126,6 +133,55 @@ function initDb(dbPath: string) {
   seedFixtureCatalog(db)
 
   return db
+}
+
+async function assertAdminLevelTransitionAllowed(
+  resourceType: 'divisionArea' | 'divisionBoundary',
+  resourceName: 'division-area' | 'division-boundary',
+) {
+  const tempDir = createTempDir()
+  const dbPath = join(tempDir, 'harbour.sqlite')
+  const fixtureFile = createResourceFixturePath(tempDir, resourceName)
+  const sqlite = initDb(dbPath)
+  const db = createLocalHarbourDb(sqlite)
+
+  insertFixtureRelease(sqlite, {
+    source: 'overture',
+    regionCode: 'hk',
+    cohortKey: '2026-01',
+    theme: 'divisions',
+    type: resourceType,
+    sourceVersion: '2026-01-21.0',
+    rawObjectKey: `hk/overture/2026-01-21.0/${resourceName}.parquet`,
+    originalFileName: `${resourceName}.parquet`,
+    status: 'published',
+    ingestedAt: '2026-06-02T00:00:00.000Z',
+    createdAt: '2026-06-02T00:00:00.000Z',
+    updatedAt: '2026-06-02T00:00:00.000Z',
+  })
+
+  const inspection: UploadInspection = {
+    ...fixtureInspectionWithAdminLevel,
+    distinctTypeValues: [resourceType],
+  }
+
+  const planned = await planUpload(db, {
+    filePath: fixtureFile,
+    cohortKey: '2026-02',
+    source: 'overture',
+    sourceVersion: '2026-02-18.0',
+    inspection,
+    resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+  })
+
+  expect(planned).toMatchObject({
+    plan: {
+      datasetId: `dr-hk-overture-${resourceName}-2026-02-18.0`,
+      supersedesDatasetId: `dr-hk-overture-${resourceName}-2026-01-21.0`,
+    },
+  })
+
+  sqlite.close()
 }
 
 function insertFixtureIngestRun(
@@ -190,18 +246,17 @@ describe('upload', () => {
     expect(inferTypeFromFilename('division.parquet')).toBe('division')
   })
 
-  test('infers source from recognizable filename and path tokens', () => {
-    expect(inferSourceFromFilename('hkgov-als-address.parquet')).toBe('hkgov-als')
-    expect(inferSourceFromFilename('overture-address.parquet')).toBe('overture')
+  test('infers source from recognisable filename and path tokens', () => {
+    expect(inferSourceFromFilename('hkgov-dpo-address.parquet')).toBe('hkgov-dpo')
+    expect(inferSourceFromFilename('overture-division.parquet')).toBe('overture')
     expect(inferSourceFromPath('/tmp/hkgov/2026-05/address.parquet')).toBe('hkgov')
-    expect(inferSourceFromPath('/tmp/overture/2026-05/address.parquet')).toBe(
+    expect(inferSourceFromPath('/tmp/overture/2026-05/division.parquet')).toBe(
       'overture',
     )
   })
 
   test('prefers the address filename signal over a broader parent theme folder', () => {
-    const filePath =
-      '/tmp/data/2025-09-24.0/divisions/中国/Hong Kong SAR/address.parquet'
+    const filePath = '/tmp/data/2025-09-24.0/divisions/China/Hong Kong/address.parquet'
 
     expect(inferTypeFromPath(filePath)).toBe('address')
     expect(inferThemeFromPath(filePath)).toBe('addresses')
@@ -219,11 +274,11 @@ describe('upload', () => {
     expect(inferCohortKeyFromPath(overtureFixturePath)).toBe('2025-09-24.0')
   })
 
-  test('uses the parent directory, not the filename, for upload type inference', async () => {
+  test('prefers the filename over the parent directory for upload type inference', async () => {
     const tempDir = createTempDir()
     const filePath = join(
       tempDir,
-      'data/2025-09-24.0/divisions/中国/Hong Kong SAR/address.parquet',
+      'data/2025-09-24.0/divisions/China/Hong Kong/address.parquet',
     )
 
     mkdirSync(dirname(filePath), { recursive: true })
@@ -231,22 +286,24 @@ describe('upload', () => {
 
     const planned = await prepareUpload({
       filePath,
-      inspection: fixtureInspection,
+      inspection: addressFixtureInspection,
       source: 'overture',
       sourceVersion: '2025-09-24.0',
     })
 
-    expect(planned.plan.type).toBe('division')
-    expect(planned.plan.theme).toBe('divisions')
+    expect(planned.plan.type).toBe('address')
+    expect(planned.plan.theme).toBe('addresses')
+    expect(planned.plan.inferredFrom.type).toBe('filename')
+    expect(planned.plan.inferredFrom.theme).toBe('filename')
   })
 
   test('infers source version and cohortKey from the filename when needed', async () => {
     const tempDir = createTempDir()
-    const fixtureFile = join(tempDir, 'hkgov-als-hk-2026-06-04.324-address.parquet')
+    const fixtureFile = join(tempDir, 'dr-hk-hkgov-dpo-address-2026-06-04.0.parquet')
 
     writeFileSync(fixtureFile, 'fixture')
 
-    expect(inferSourceVersionFromFilename(fixtureFile)).toBe('2026-06-04.324')
+    expect(inferSourceVersionFromFilename(fixtureFile)).toBe('2026-06-04.0')
 
     const planned = await prepareUpload({
       filePath: fixtureFile,
@@ -258,13 +315,90 @@ describe('upload', () => {
         distinctCountryValues: ['hk'],
         distinctRegionValues: ['hk'],
       },
-      source: 'hkgov-als',
+      source: 'hkgov-dpo',
     })
 
-    expect(planned.plan.cohortKey).toBe('2026-06-04.324')
-    expect(planned.plan.sourceVersion).toBe('2026-06-04.324')
-    expect(planned.plan.datasetId).toBe('hkgov-als-hk-2026-06-04.324-address')
-    expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-als-address')
+    expect(planned.plan.cohortKey).toBe('2026-06-04.0')
+    expect(planned.plan.sourceVersion).toBe('2026-06-04.0')
+    expect(planned.plan.datasetId).toBe('dr-hk-hkgov-dpo-address-2026-06-04.0')
+    expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-dpo-address')
+  })
+
+  test('uses the source version as the cohort for a prepared HAD district upload', async () => {
+    const tempDir = createTempDir()
+    const fixtureFile = join(tempDir, 'hkgov-had-hk-2022-divisionArea.parquet')
+
+    writeFileSync(fixtureFile, 'fixture')
+
+    const planned = await prepareUpload({
+      filePath: fixtureFile,
+      inspection: {
+        rowCount: 18,
+        schema: fixtureInspection.schema,
+        distinctThemeValues: ['divisions'],
+        distinctTypeValues: ['divisionArea'],
+        distinctCountryValues: ['hk'],
+        distinctRegionValues: ['hk'],
+      },
+      source: 'hkgov-had',
+      sourceVersion: '2022',
+      type: 'divisionArea',
+    })
+
+    expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-had-division-area-district')
+    expect(planned.plan.releaseCode).toBe('dr-hk-hkgov-had-division-area-district-2022')
+    expect(planned.plan.cohortKey).toBe('2022')
+    expect(planned.plan.inferredFrom.cohortKey).toBe('sourceVersion')
+  })
+
+  test('uses an explicit product dataset code when one publisher has several statistic datasets', async () => {
+    const tempDir = createTempDir()
+    const fixtureFile = join(tempDir, 'hkgov-censtatd-density-2022.parquet')
+    writeFileSync(fixtureFile, 'fixture')
+
+    const planned = await prepareUpload({
+      cohortKey: '2022',
+      datasetCode:
+        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      filePath: fixtureFile,
+      inspection: {
+        rowCount: 18,
+        schema: fixtureInspection.schema,
+        distinctThemeValues: ['stats'],
+        distinctTypeValues: ['divisionStatistic'],
+        distinctCountryValues: ['hk'],
+        distinctRegionValues: ['hk'],
+      },
+      source: 'hkgov-censtatd',
+      sourceVersion: '2022',
+      type: 'divisionStatistic',
+    })
+
+    expect(planned.plan.datasetCode).toBe(
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+    )
+    expect(planned.plan.releaseCode).toBe(
+      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022',
+    )
+  })
+
+  test('rejects overture uploads for source versions that are not yet marked safe', async () => {
+    const tempDir = createTempDir()
+    const fixtureFile = join(tempDir, 'hk-address-2026-06.parquet')
+
+    writeFileSync(fixtureFile, 'fixture')
+
+    await expect(
+      prepareUpload({
+        filePath: fixtureFile,
+        inspection: addressFixtureInspection,
+        source: 'overture',
+        sourceVersion: '2026-06-24.0',
+        cohortKey: '2026-06',
+      }),
+    ).rejects.toThrow(
+      'Overture sourceVersion 2026-06-24.0 is not marked as a known safe release.',
+    )
   })
 
   test('registers the first dataset upload against a provided raw object key', async () => {
@@ -280,23 +414,23 @@ describe('upload', () => {
       filePath: fixtureFile,
       cohortKey: '2026-05',
       source: 'overture',
-      sourceVersion: '2026-05-24.0',
+      sourceVersion: '2026-05-20.0',
       inspection: fixtureInspection,
-      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
     })
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
+    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(result.plan.type).toBe('division')
     expect(result.plan.originalFileName).toBe('hk-division-2026-05.parquet')
-    expect(result.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
+    expect(result.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
 
     const sqliteCheck = new Database(dbPath)
     const dataset = sqliteCheck
       .query(
         'SELECT code AS datasetId, status, rawObjectKey, originalFileName FROM releases WHERE code = ?',
       )
-      .get('overture-hk-2026-05-24.0-division') as {
+      .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
       status: string
       rawObjectKey: string
@@ -306,7 +440,7 @@ describe('upload', () => {
       .query(
         'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ?',
       )
-      .get('overture-hk-2026-05-24.0-division') as { count: number }
+      .get('dr-hk-overture-division-2026-05-20.0') as { count: number }
 
     sqliteCheck.close()
 
@@ -315,6 +449,37 @@ describe('upload', () => {
     expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
     expect(dataset?.originalFileName).toBe('hk-division-2026-05.parquet')
     expect(ingestRunCount.count).toBe(2)
+  })
+
+  test('uses a deterministic release id for the same release code', async () => {
+    const tempDir = createTempDir()
+    const fixtureFile = createFixturePath(tempDir)
+
+    async function registerFreshUpload() {
+      const dbPath = join(createTempDir(), 'harbour.sqlite')
+
+      initDb(dbPath).close()
+      const sqlite = new Database(dbPath)
+      const db = createLocalHarbourDb(sqlite)
+      const result = await registerUpload(db, {
+        filePath: fixtureFile,
+        cohortKey: '2026-05',
+        source: 'overture',
+        sourceVersion: '2026-05-20.0',
+        inspection: fixtureInspection,
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+      })
+
+      sqlite.close()
+      return result
+    }
+
+    const first = await registerFreshUpload()
+    const second = await registerFreshUpload()
+    const expectedReleaseId = await buildDeterministicReleaseId(first.plan.releaseCode)
+
+    expect(first.releaseId).toBe(expectedReleaseId)
+    expect(second.releaseId).toBe(expectedReleaseId)
   })
 
   test('rejects non-chronological uploads for the same region/type', async () => {
@@ -330,7 +495,7 @@ describe('upload', () => {
       cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
-      sourceVersion: '2026-05-24.0',
+      sourceVersion: '2026-05-20.0',
       originalFileName: 'division.parquet',
       rawObjectKey: fixtureFile,
       status: 'published',
@@ -344,9 +509,9 @@ describe('upload', () => {
         filePath: fixtureFile,
         cohortKey: '2026-04',
         source: 'overture',
-        sourceVersion: '2026-04-24.0',
+        sourceVersion: '2026-04-15.0',
         inspection: fixtureInspection,
-        rawObjectKey: 'hk/overture/2026-04-24.0/division.parquet',
+        rawObjectKey: 'hk/overture/2026-04-15.0/division.parquet',
       }),
     ).rejects.toThrow('strictly newer source versions')
     sqlite.close()
@@ -363,13 +528,13 @@ describe('upload', () => {
       filePath: fixtureFile,
       cohortKey: '2026-05',
       source: 'overture',
-      sourceVersion: '2026-05-24.0',
+      sourceVersion: '2026-05-20.0',
       inspection: fixtureInspection,
     })
 
     db.close()
 
-    expect(planned.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
+    expect(planned.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(planned.plan.type).toBe('division')
     expect(planned.plan.fileName).toBe('division.parquet')
   })
@@ -401,33 +566,32 @@ describe('upload', () => {
     db.close()
   })
 
-  test('requires matching cohortKey overture addresses before hkgov address upload', async () => {
+  test('allows hkgov address cohorts without another address release', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
-    const fixtureFile = join(tempDir, 'hkgov-als-address.parquet')
+    const fixtureFile = join(tempDir, 'hkgov-dpo-address.parquet')
 
     writeFileSync(fixtureFile, 'fixture')
     const db = initDb(dbPath)
     const harbourDb = createLocalHarbourDb(db)
 
-    await expect(
-      planUpload(harbourDb, {
-        filePath: fixtureFile,
-        source: 'hkgov-als',
-        cohortKey: '2026-06',
-        sourceVersion: '2026-06-04.324',
-        inspection: {
-          rowCount: 1,
-          schema: fixtureInspection.schema,
-          distinctThemeValues: ['addresses'],
-          distinctTypeValues: ['address'],
-          distinctCountryValues: ['hk'],
-          distinctRegionValues: ['hk'],
-        },
-      }),
-    ).rejects.toThrow(
-      'Upload the matching Overture address dataset for the same cohortKey first.',
-    )
+    const result = await planUpload(harbourDb, {
+      filePath: fixtureFile,
+      source: 'hkgov-dpo',
+      cohortKey: '2026-06',
+      sourceVersion: '2026-06-04.0',
+      inspection: {
+        rowCount: 1,
+        schema: fixtureInspection.schema,
+        distinctThemeValues: ['addresses'],
+        distinctTypeValues: ['address'],
+        distinctCountryValues: ['hk'],
+        distinctRegionValues: ['hk'],
+      },
+    })
+
+    expect(result.plan.source).toBe('hkgov-dpo')
+    expect(result.plan.cohortKey).toBe('2026-06')
 
     db.close()
   })
@@ -443,21 +607,21 @@ describe('upload', () => {
       filePath: fixtureFile,
       cohortKey: '2026-05',
       source: 'overture',
-      sourceVersion: '2026-05-24.0',
+      sourceVersion: '2026-05-20.0',
       inspection: fixtureInspection,
-      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
     })
 
     const dataset = sqlite
       .query('SELECT code AS datasetId, rawObjectKey FROM releases WHERE code = ?')
-      .get('overture-hk-2026-05-24.0-division') as {
+      .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
       rawObjectKey: string
     } | null
 
     sqlite.close()
 
-    expect(result.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
+    expect(result.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
     expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
   })
 
@@ -468,28 +632,13 @@ describe('upload', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    insertFixtureRelease(sqlite, {
-      source: 'overture',
-      regionCode: 'hk',
-      cohortKey: '2026-06',
-      theme: 'addresses',
-      type: 'address',
-      sourceVersion: '2026-06-24.0',
-      rawObjectKey: 'hk/overture/2026-06-24.0/address.parquet',
-      originalFileName: 'address.parquet',
-      status: 'published',
-      ingestedAt: '2026-06-24T00:00:00.000Z',
-      createdAt: '2026-06-24T00:00:00.000Z',
-      updatedAt: '2026-06-24T00:00:00.000Z',
-    })
-
     const result = await registerUpload(db, {
       filePath: fixtureFile,
       cohortKey: '2026-06',
-      source: 'hkgov-als',
-      sourceVersion: '2026-06-04.324',
+      source: 'hkgov-dpo',
+      sourceVersion: '2026-06-04.0',
       inspection: addressFixtureInspection,
-      rawObjectKey: 'hk/hkgov-als/2026-06-04.324/address.parquet',
+      rawObjectKey: 'hk/hkgov-dpo/2026-06-04.0/address.parquet',
     })
 
     const release = sqlite
@@ -501,7 +650,7 @@ describe('upload', () => {
           WHERE r.code = ?
         `,
       )
-      .get('hkgov-als-hk-2026-06-04.324-address') as {
+      .get('dr-hk-hkgov-dpo-address-2026-06-04.0') as {
       datasetCode: string
       releaseCode: string
       status: string
@@ -509,11 +658,11 @@ describe('upload', () => {
 
     sqlite.close()
 
-    expect(result.plan.datasetCode).toBe('ds-hk-hkgov-als-address')
-    expect(result.plan.datasetId).toBe('hkgov-als-hk-2026-06-04.324-address')
+    expect(result.plan.datasetCode).toBe('ds-hk-hkgov-dpo-address')
+    expect(result.plan.datasetId).toBe('dr-hk-hkgov-dpo-address-2026-06-04.0')
     expect(release).toEqual({
-      datasetCode: 'ds-hk-hkgov-als-address',
-      releaseCode: 'hkgov-als-hk-2026-06-04.324-address',
+      datasetCode: 'ds-hk-hkgov-dpo-address',
+      releaseCode: 'dr-hk-hkgov-dpo-address-2026-06-04.0',
       status: 'staged',
     })
   })
@@ -531,8 +680,8 @@ describe('upload', () => {
       cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
-      sourceVersion: '2026-05-24.0',
-      rawObjectKey: 'hk/overture/2026-05-24.0/division-old.parquet',
+      sourceVersion: '2026-05-20.0',
+      rawObjectKey: 'hk/overture/2026-05-20.0/division-old.parquet',
       originalFileName: 'division-old.parquet',
       status: 'failed',
       ingestedAt: '2026-06-02T00:00:00.000Z',
@@ -544,16 +693,16 @@ describe('upload', () => {
       filePath: fixtureFile,
       cohortKey: '2026-05',
       source: 'overture',
-      sourceVersion: '2026-05-24.0',
+      sourceVersion: '2026-05-20.0',
       inspection: fixtureInspection,
-      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
     })
 
     const dataset = sqlite
       .query(
         'SELECT code AS datasetId, status, rawObjectKey, originalFileName FROM releases WHERE code = ?',
       )
-      .get('overture-hk-2026-05-24.0-division') as {
+      .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
       status: string
       rawObjectKey: string
@@ -563,14 +712,14 @@ describe('upload', () => {
       .query(
         'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ?',
       )
-      .get('overture-hk-2026-05-24.0-division') as { count: number }
+      .get('dr-hk-overture-division-2026-05-20.0') as { count: number }
 
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
+    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(dataset).not.toBeNull()
     expect(dataset?.status).toBe('staged')
-    expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
+    expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
     expect(dataset?.originalFileName).toBe('hk-division-2026-05.parquet')
     expect(ingestRunCount.count).toBe(2)
   })
@@ -588,8 +737,8 @@ describe('upload', () => {
       cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
-      sourceVersion: '2026-05-24.0',
-      rawObjectKey: 'hk/overture/2026-05-24.0/division-old.parquet',
+      sourceVersion: '2026-05-20.0',
+      rawObjectKey: 'hk/overture/2026-05-20.0/division-old.parquet',
       originalFileName: 'division-old.parquet',
       status: 'failed',
       ingestedAt: '2026-06-02T00:00:00.000Z',
@@ -610,7 +759,7 @@ describe('upload', () => {
       phase: 'stageDataset',
       status: 'error',
       stats:
-        '"{\\"rawObjectKey\\":\\"hk/overture/2026-05-24.0/division-old.parquet\\"}"',
+        '"{\\"rawObjectKey\\":\\"hk/overture/2026-05-20.0/division-old.parquet\\"}"',
       error: '"{\\"message\\":\\"old failure\\"}"',
       startedAt: '2026-06-02T00:00:01.000Z',
       finishedAt: '2026-06-02T00:00:01.000Z',
@@ -620,9 +769,9 @@ describe('upload', () => {
       filePath: fixtureFile,
       cohortKey: '2026-05',
       source: 'overture',
-      sourceVersion: '2026-05-24.0',
+      sourceVersion: '2026-05-20.0',
       inspection: fixtureInspection,
-      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
     })
 
     const ingestRuns = sqlite
@@ -640,14 +789,14 @@ describe('upload', () => {
 
     sqlite.close()
 
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
+    expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(ingestRuns).toEqual([
       {
         error: null,
         phase: 'registerDataset',
         runId: 'run-register-dataset-old',
         startedAt: expect.any(String),
-        stats: null,
+        stats: expect.stringContaining('"schemaFingerprint"'),
         status: 'completed',
       },
       {
@@ -656,7 +805,7 @@ describe('upload', () => {
         runId: 'run-stage-dataset-old',
         startedAt: expect.any(String),
         stats: JSON.stringify({
-          rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+          rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
           rowCount: 3,
           schemaFieldCount: 5,
         }),
@@ -665,221 +814,6 @@ describe('upload', () => {
     ])
     expect(ingestRuns[0]?.startedAt).toBe('2026-06-02T00:00:00.000Z')
     expect(ingestRuns[1]?.startedAt).toBe('2026-06-02T00:00:01.000Z')
-  })
-
-  test('allows restarting a failed direct-upload session', async () => {
-    const tempDir = createTempDir()
-    const dbPath = join(tempDir, 'harbour.sqlite')
-    const fixtureFile = createFixturePath(tempDir)
-    const sqlite = initDb(dbPath)
-    const db = createLocalHarbourDb(sqlite)
-
-    insertFixtureRelease(sqlite, {
-      source: 'overture',
-      regionCode: 'hk',
-      cohortKey: '2026-05',
-      theme: 'divisions',
-      type: 'division',
-      sourceVersion: '2026-05-24.0',
-      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
-      originalFileName: 'division.parquet',
-      status: 'failed',
-      ingestedAt: '2026-06-02T00:00:00.000Z',
-      createdAt: '2026-06-02T00:00:00.000Z',
-      updatedAt: '2026-06-02T00:00:00.000Z',
-    })
-
-    const result = await requestUpload(db, {
-      filePath: fixtureFile,
-      cohortKey: '2026-05',
-      source: 'overture',
-      sourceVersion: '2026-05-24.0',
-      inspection: fixtureInspection,
-    })
-
-    const dataset = sqlite
-      .query('SELECT status, rawObjectKey FROM releases WHERE code = ?')
-      .get('overture-hk-2026-05-24.0-division') as {
-      status: string
-      rawObjectKey: string
-    } | null
-
-    sqlite.close()
-
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
-    expect(result.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
-    expect(dataset?.status).toBe('uploading')
-    expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
-  })
-
-  test('reuses the existing requestUpload phase row when retrying a failed direct-upload session', async () => {
-    const tempDir = createTempDir()
-    const dbPath = join(tempDir, 'harbour-request-upload-existing-phase.sqlite')
-    const fixtureFile = createFixturePath(tempDir)
-    const sqlite = initDb(dbPath)
-    const db = createLocalHarbourDb(sqlite)
-
-    const { releaseId } = insertFixtureRelease(sqlite, {
-      source: 'overture',
-      regionCode: 'hk',
-      cohortKey: '2026-05',
-      theme: 'divisions',
-      type: 'division',
-      sourceVersion: '2026-05-24.0',
-      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
-      originalFileName: 'division.parquet',
-      status: 'failed',
-      ingestedAt: '2026-06-02T00:00:00.000Z',
-      createdAt: '2026-06-02T00:00:00.000Z',
-      updatedAt: '2026-06-02T00:00:00.000Z',
-    })
-    insertFixtureIngestRun(sqlite, {
-      runId: 'run-request-upload-old',
-      releaseId,
-      phase: 'requestUpload',
-      status: 'error',
-      stats:
-        '"{\\"releaseCode\\":\\"overture-hk-2026-05-24.0-division\\",\\"rawObjectKey\\":\\"hk/overture/2026-05-24.0/division.parquet\\",\\"rowCount\\":1,\\"schemaFingerprint\\":\\"old\\"}"',
-      error: '"{\\"message\\":\\"old failure\\"}"',
-      startedAt: '2026-06-02T00:00:00.000Z',
-      finishedAt: '2026-06-02T00:00:00.000Z',
-    })
-
-    const result = await requestUpload(db, {
-      filePath: fixtureFile,
-      cohortKey: '2026-05',
-      source: 'overture',
-      sourceVersion: '2026-05-24.0',
-      inspection: fixtureInspection,
-    })
-
-    const ingestRuns = sqlite
-      .query(
-        'SELECT phase, status, stats, error, startedAt FROM ingestRuns WHERE releaseId = ? ORDER BY phase ASC',
-      )
-      .all(releaseId) as Array<{
-      error: string | null
-      phase: string
-      startedAt: string
-      stats: string | null
-      status: string
-    }>
-
-    sqlite.close()
-
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
-    expect(result.rawObjectKey).toBe('hk/overture/2026-05-24.0/division.parquet')
-    expect(ingestRuns).toEqual([
-      {
-        error: null,
-        phase: 'requestUpload',
-        startedAt: expect.any(String),
-        stats: JSON.stringify({
-          releaseCode: 'overture-hk-2026-05-24.0-division',
-          rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
-          rowCount: fixtureInspection.rowCount,
-          schemaFingerprint: createSchemaFingerprint(fixtureInspection),
-          shardYear: null,
-        }),
-        status: 'completed',
-      },
-    ])
-    expect(ingestRuns[0]?.startedAt).toBe('2026-06-02T00:00:00.000Z')
-  })
-
-  test('allows requestUpload to replace an uploading session when explicitly allowed', async () => {
-    const tempDir = createTempDir()
-    const dbPath = join(tempDir, 'harbour-request-upload-force.sqlite')
-    const fixtureFile = createFixturePath(tempDir)
-    const sqlite = initDb(dbPath)
-    const db = createLocalHarbourDb(sqlite)
-
-    const { releaseId } = insertFixtureRelease(sqlite, {
-      source: 'overture',
-      regionCode: 'hk',
-      cohortKey: '2026-05',
-      theme: 'divisions',
-      type: 'division',
-      sourceVersion: '2026-05-24.0',
-      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
-      originalFileName: 'old-division.parquet',
-      status: 'uploading',
-      ingestedAt: '2026-06-02T00:00:00.000Z',
-      createdAt: '2026-06-02T00:00:00.000Z',
-      updatedAt: '2026-06-02T00:00:00.000Z',
-    })
-
-    await expect(
-      requestUpload(db, {
-        filePath: fixtureFile,
-        cohortKey: '2026-05',
-        source: 'overture',
-        sourceVersion: '2026-05-24.0',
-        inspection: fixtureInspection,
-      }),
-    ).rejects.toThrow(
-      'Dataset already exists with status uploading: overture-hk-division',
-    )
-
-    const result = await requestUpload(db, {
-      filePath: fixtureFile,
-      cohortKey: '2026-05',
-      source: 'overture',
-      sourceVersion: '2026-05-24.0',
-      inspection: fixtureInspection,
-      allowExistingDatasetStatuses: ['uploading'],
-    })
-    const dataset = sqlite
-      .query('SELECT id, status, originalFileName FROM releases WHERE code = ?')
-      .get('overture-hk-2026-05-24.0-division') as {
-      id: string
-      originalFileName: string
-      status: string
-    } | null
-
-    sqlite.close()
-
-    expect(result.releaseId).toBe(releaseId)
-    expect(dataset).toMatchObject({
-      id: releaseId,
-      originalFileName: 'hk-division-2026-05.parquet',
-      status: 'uploading',
-    })
-  })
-
-  test('finalizes an uploading direct-upload session into staged', async () => {
-    const tempDir = createTempDir()
-    const dbPath = join(tempDir, 'harbour.sqlite')
-    const fixtureFile = createFixturePath(tempDir)
-    const sqlite = initDb(dbPath)
-    const db = createLocalHarbourDb(sqlite)
-
-    await requestUpload(db, {
-      filePath: fixtureFile,
-      cohortKey: '2026-05',
-      source: 'overture',
-      sourceVersion: '2026-05-24.0',
-      inspection: fixtureInspection,
-    })
-
-    const result = await finalizeUpload(db, {
-      filePath: fixtureFile,
-      cohortKey: '2026-05',
-      source: 'overture',
-      sourceVersion: '2026-05-24.0',
-      inspection: fixtureInspection,
-    })
-
-    const dataset = sqlite
-      .query('SELECT status FROM releases WHERE code = ?')
-      .get('overture-hk-2026-05-24.0-division') as {
-      status: string
-    } | null
-
-    sqlite.close()
-
-    expect(result.plan.datasetId).toBe('overture-hk-2026-05-24.0-division')
-    expect(dataset?.status).toBe('staged')
   })
 
   test('uses injected schema metadata for remote chronology checks', async () => {
@@ -896,8 +830,8 @@ describe('upload', () => {
       cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
-      sourceVersion: '2026-05-24.0',
-      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+      sourceVersion: '2026-05-20.0',
+      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
       status: 'published',
       ingestedAt: '2026-06-02T00:00:00.000Z',
@@ -910,14 +844,14 @@ describe('upload', () => {
         filePath: fixtureFile,
         cohortKey: '2026-06',
         source: 'overture',
-        sourceVersion: '2026-06-24.0',
+        sourceVersion: '2026-06-17.0',
         inspection,
         resolveSchemaFingerprint: async () => createSchemaFingerprint(inspection),
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'overture-hk-2026-06-24.0-division',
-        supersedesDatasetId: 'overture-hk-2026-05-24.0-division',
+        datasetId: 'dr-hk-overture-division-2026-06-17.0',
+        supersedesDatasetId: 'dr-hk-overture-division-2026-05-20.0',
       },
     })
 
@@ -958,12 +892,20 @@ describe('upload', () => {
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'overture-hk-2026-02-18.0-division',
-        supersedesDatasetId: 'overture-hk-2026-01-21.0-division',
+        datasetId: 'dr-hk-overture-division-2026-02-18.0',
+        supersedesDatasetId: 'dr-hk-overture-division-2026-01-21.0',
       },
     })
 
     sqlite.close()
+  })
+
+  test('allows the known overture divisionArea admin_level schema transition', async () => {
+    await assertAdminLevelTransitionAllowed('divisionArea', 'division-area')
+  })
+
+  test('allows the known overture divisionBoundary admin_level schema transition', async () => {
+    await assertAdminLevelTransitionAllowed('divisionBoundary', 'division-boundary')
   })
 
   test('allows schema-compatible uploads when parquet field order changes', async () => {
@@ -1000,8 +942,8 @@ describe('upload', () => {
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'overture-hk-2026-03-18.0-division',
-        supersedesDatasetId: 'overture-hk-2026-02-18.0-division',
+        datasetId: 'dr-hk-overture-division-2026-03-18.0',
+        supersedesDatasetId: 'dr-hk-overture-division-2026-02-18.0',
       },
     })
 
@@ -1046,8 +988,8 @@ describe('upload', () => {
         resolveSchemaFingerprint: async () =>
           createSchemaFingerprint(fixtureInspection),
       }),
-    ).rejects.toThrow(`Schema drift detected against overture-hk-2026-01-21.0-division.
-Current upload schema has 6 fields; overture-hk-2026-01-21.0-division recorded 5 fields.
+    ).rejects.toThrow(`Schema drift detected against dr-hk-overture-division-2026-01-21.0.
+Current upload schema has 6 fields; dr-hk-overture-division-2026-01-21.0 recorded 5 fields.
 Field-level differences:
 - added \`wrong_field\` (int_32, nullable=true)
 Reconcile the schema before uploading this dataset.`)
@@ -1068,8 +1010,8 @@ Reconcile the schema before uploading this dataset.`)
       cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
-      sourceVersion: '2026-05-24.0',
-      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+      sourceVersion: '2026-05-20.0',
+      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
       status: 'processing',
       ingestedAt: '2026-06-02T00:00:00.000Z',
@@ -1082,12 +1024,12 @@ Reconcile the schema before uploading this dataset.`)
         filePath: fixtureFile,
         cohortKey: '2026-05',
         source: 'overture',
-        sourceVersion: '2026-05-24.0',
+        sourceVersion: '2026-05-20.0',
         inspection: fixtureInspection,
-        rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       }),
     ).rejects.toThrow(
-      'Dataset already exists with status processing: overture-hk-division',
+      'Dataset already exists with status processing: ds-hk-overture-division',
     )
 
     sqlite.close()
@@ -1106,8 +1048,8 @@ Reconcile the schema before uploading this dataset.`)
       cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
-      sourceVersion: '2026-05-24.0',
-      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+      sourceVersion: '2026-05-20.0',
+      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
       status: 'published',
       ingestedAt: '2026-06-02T00:00:00.000Z',
@@ -1127,7 +1069,7 @@ Reconcile the schema before uploading this dataset.`)
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'hkgov-hk-2026-01-20.0-division',
+        datasetId: 'dr-hk-hkgov-division-2026-01-20.0',
         supersedesDatasetId: null,
       },
     })
@@ -1148,8 +1090,8 @@ Reconcile the schema before uploading this dataset.`)
       cohortKey: '2026-05',
       theme: 'divisions',
       type: 'division',
-      sourceVersion: '2026-05-24.0',
-      rawObjectKey: 'hk/overture/2026-05-24.0/division.parquet',
+      sourceVersion: '2026-05-20.0',
+      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
       status: 'published',
       ingestedAt: '2026-06-02T00:00:00.000Z',
@@ -1169,7 +1111,7 @@ Reconcile the schema before uploading this dataset.`)
       ingestedAt: '2026-06-03T00:00:00.000Z',
       createdAt: '2026-06-03T00:00:00.000Z',
       updatedAt: '2026-06-03T00:00:00.000Z',
-      supersededByReleaseCode: 'overture-hk-2026-05-24.0-division',
+      supersededByReleaseCode: 'dr-hk-overture-division-2026-05-20.0',
     })
     insertFixtureRelease(sqlite, {
       source: 'overture',
@@ -1189,17 +1131,17 @@ Reconcile the schema before uploading this dataset.`)
     await expect(
       planUpload(db, {
         filePath: fixtureFile,
-        cohortKey: '2026-08',
+        cohortKey: '2026-06',
         source: 'overture',
-        sourceVersion: '2026-08-24.0',
+        sourceVersion: '2026-06-17.0',
         inspection: fixtureInspection,
         resolveSchemaFingerprint: async () =>
           createSchemaFingerprint(fixtureInspection),
       }),
     ).resolves.toMatchObject({
       plan: {
-        datasetId: 'overture-hk-2026-08-24.0-division',
-        supersedesDatasetId: 'overture-hk-2026-05-24.0-division',
+        datasetId: 'dr-hk-overture-division-2026-06-17.0',
+        supersedesDatasetId: 'dr-hk-overture-division-2026-05-20.0',
       },
     })
 

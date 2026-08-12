@@ -1,0 +1,38 @@
+{
+  "name": "basemap-viewer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "svelte-check --tsconfig ./tsconfig.json && vite build",
+    "build:preview": "bun run build",
+    "build:production": "bun run build",
+    "deploy": "bun run build:production && wrangler deploy",
+    "deploy:preview": "bun run build:preview && wrangler deploy --env preview",
+    "deploy:production": "bun run build:production && wrangler deploy",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@iconify/svelte": "^5.2.2",
+    "@protomaps/basemaps": "^5.7.2",
+    "@repo/basemap": "workspace:*",
+    "bits-ui": "^2.18.1",
+    "maplibre-gl": "^6.3.0",
+    "svelte": "^5.56.8"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.2.0",
+    "svelte-check": "^4.7.5",
+    "typescript": "^6.0.3",
+    "vite": "^8.2.1",
+    "vitest": "^4.1.10",
+    "wrangler": "^4.122.0"
+  }
+}

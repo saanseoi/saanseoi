@@ -6,7 +6,7 @@ import {
 } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 
-import type { ParquetInspection } from '../types'
+import type { UploadInspection } from '../types'
 
 /**
  * Reads a parquet buffer, extracts its schema, and collects distinct values
@@ -14,7 +14,7 @@ import type { ParquetInspection } from '../types'
  */
 export async function inspectParquetFromBuffer(
   file: AsyncBuffer | ArrayBuffer,
-): Promise<ParquetInspection> {
+): Promise<UploadInspection> {
   const metadata = await parquetMetadataAsync(file)
   const schema = extractSchema(metadata)
   const availableColumns = new Set(schema.map(field => field.name))
@@ -88,13 +88,13 @@ type SchemaTreeLike = {
 }
 
 /**
- * Normalizes a parquet schema node into a human-readable field type string.
+ * Normalises a parquet schema node into a human-readable field type string.
  */
-function formatFieldType(node: SchemaTreeLike) {
+export function formatFieldType(node: SchemaTreeLike) {
   const logicalType = extractLogicalType(node.element)
 
   if (logicalType) {
-    return logicalType
+    return normaliseLogicalType(logicalType)
   }
 
   const convertedType = node.element.converted_type ?? node.element.convertedType
@@ -104,7 +104,7 @@ function formatFieldType(node: SchemaTreeLike) {
 
   const primitiveType = node.element.type
   if (primitiveType) {
-    return String(primitiveType).toLowerCase()
+    return normalisePrimitiveType(String(primitiveType))
   }
 
   if ((node.children?.length ?? 0) > 0) {
@@ -125,6 +125,12 @@ function extractLogicalType(element: SchemaElementLike) {
   }
 
   if (logicalType && typeof logicalType === 'object') {
+    const type = (logicalType as { type?: unknown }).type
+
+    if (typeof type === 'string') {
+      return type.toLowerCase()
+    }
+
     const keys = Object.keys(logicalType)
     if (keys.length > 0) {
       return keys[0]?.toLowerCase() ?? null
@@ -132,6 +138,37 @@ function extractLogicalType(element: SchemaElementLike) {
   }
 
   return null
+}
+
+/**
+ * Parquet logical types are represented in two shapes by hyparquet: legacy
+ * annotations use their type name as an object key, while newer PyArrow files
+ * use `{ type: 'STRING' }`. Normalise both to the Harbour schema vocabulary.
+ */
+export function normaliseLogicalType(logicalType: string) {
+  switch (logicalType.toLowerCase()) {
+    case 'string':
+      return 'utf8'
+    case 'list':
+      return 'list'
+    case 'map':
+      return 'map'
+    default:
+      // Geometry and extension logical types do not have a more specific
+      // Harbour schema representation.
+      return 'type'
+  }
+}
+
+function normalisePrimitiveType(primitiveType: string) {
+  switch (primitiveType.toUpperCase()) {
+    case 'INT32':
+      return 'int_32'
+    case 'INT64':
+      return 'int_64'
+    default:
+      return primitiveType.toLowerCase()
+  }
 }
 
 /**

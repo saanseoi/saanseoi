@@ -1,6 +1,6 @@
 # API Versioning
 
-API versions describe the public contract shape and behavior of one API family.
+API versions describe the public contract shape and behaviour of one API family.
 
 Code format:
 

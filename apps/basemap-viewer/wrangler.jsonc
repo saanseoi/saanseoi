@@ -1,0 +1,32 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ss-basemap",
+  "compatibility_date": "2026-07-31",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "destinations": ["cloudflare"],
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.1,
+      "persist": true,
+      "destinations": ["cloudflare"]
+    }
+  },
+  "routes": [{ "pattern": "viewer.saanseoi.hk", "custom_domain": true }],
+  "env": {
+    "preview": {
+      "name": "ss-basemap-preview"
+    }
+  }
+}

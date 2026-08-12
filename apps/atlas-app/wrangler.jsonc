@@ -12,8 +12,23 @@
     "PUBLIC_ATLAS_API_BASE_URL": "http://localhost:8787"
   },
   "secrets": {
-    "required": ["BETTER_AUTH_SECRET", "D1_PLACEMENT_PROBE_API_KEY"]
+    "required": [
+      "BETTER_AUTH_SECRET",
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET",
+      "FACEBOOK_CLIENT_ID",
+      "FACEBOOK_CLIENT_SECRET",
+      "GITHUB_CLIENT_ID",
+      "GITHUB_CLIENT_SECRET"
+    ]
   },
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "remote": true,
+      "allowed_sender_addresses": ["noreply@saanseoi.hk"]
+    }
+  ],
   "d1_databases": [
     {
       "binding": "DB_META",
@@ -30,6 +45,13 @@
       "preview_database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
       "migrations_dir": "../../libs/db/migrations/current",
       "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
+    },
+    {
+      "binding": "DB_HISTORY_HK_BEFORE",
+      "database_name": "ss-history-hk-before-db-preview",
+      "migrations_dir": "../../libs/db/migrations/history",
+      "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+      "database_id": "aa2d7228-c2dd-413b-8b23-d3e92f2b5b9a"
     },
     {
       "binding": "DB_HISTORY_HK_2025",
@@ -56,6 +78,13 @@
       "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
     },
     {
+      "binding": "DB_SOURCE_HK_BEFORE",
+      "database_name": "ss-source-hk-before-db-preview",
+      "migrations_dir": "../../libs/db/migrations/source",
+      "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql",
+      "database_id": "6265ab9d-f70d-4893-bc24-91d0bce8642e"
+    },
+    {
       "binding": "DB_SOURCE_HK_2026",
       "database_name": "ss-source-hk-2026-db-preview",
       "database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
@@ -64,12 +93,26 @@
       "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
     }
   ],
+  "analytics_engine_datasets": [
+    { "binding": "MAP_GUIDE_SELECTIONS", "dataset": "ss-map-guide-selections-local" }
+  ],
   "workers_dev": true,
   "preview_urls": true,
   "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
     "logs": {
       "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "destinations": ["cloudflare"],
       "invocation_logs": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.1,
+      "persist": true,
+      "destinations": ["cloudflare"]
     }
   },
   "minify": true,
@@ -86,8 +129,22 @@
         "PUBLIC_ATLAS_API_BASE_URL": "https://preview.api.saanseoi.hk"
       },
       "secrets": {
-        "required": ["BETTER_AUTH_SECRET", "D1_PLACEMENT_PROBE_API_KEY"]
+        "required": [
+          "BETTER_AUTH_SECRET",
+          "GOOGLE_CLIENT_ID",
+          "GOOGLE_CLIENT_SECRET",
+          "FACEBOOK_CLIENT_ID",
+          "FACEBOOK_CLIENT_SECRET",
+          "GITHUB_CLIENT_ID",
+          "GITHUB_CLIENT_SECRET"
+        ]
       },
+      "send_email": [
+        {
+          "name": "EMAIL",
+          "allowed_sender_addresses": ["noreply@saanseoi.hk"]
+        }
+      ],
       "d1_databases": [
         {
           "binding": "DB_META",
@@ -104,6 +161,13 @@
           "preview_database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
           "migrations_dir": "../../libs/db/migrations/current",
           "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
+        },
+        {
+          "binding": "DB_HISTORY_HK_BEFORE",
+          "database_name": "ss-history-hk-before-db-preview",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+          "database_id": "aa2d7228-c2dd-413b-8b23-d3e92f2b5b9a"
         },
         {
           "binding": "DB_HISTORY_HK_2025",
@@ -130,12 +194,25 @@
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
         },
         {
+          "binding": "DB_SOURCE_HK_BEFORE",
+          "database_name": "ss-source-hk-before-db-preview",
+          "migrations_dir": "../../libs/db/migrations/source",
+          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql",
+          "database_id": "6265ab9d-f70d-4893-bc24-91d0bce8642e"
+        },
+        {
           "binding": "DB_SOURCE_HK_2026",
           "database_name": "ss-source-hk-2026-db-preview",
           "database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
           "preview_database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
           "migrations_dir": "../../libs/db/migrations/source",
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
+        }
+      ],
+      "analytics_engine_datasets": [
+        {
+          "binding": "MAP_GUIDE_SELECTIONS",
+          "dataset": "ss-map-guide-selections-preview"
         }
       ],
       "routes": [
@@ -146,7 +223,7 @@
       ]
     },
     "production": {
-      "name": "ss-atlas-app-production",
+      "name": "ss-atlas-app-prod",
       "placement": {
         "region": "azure:eastasia"
       },
@@ -154,14 +231,27 @@
         "PUBLIC_ATLAS_API_BASE_URL": "https://api.saanseoi.hk"
       },
       "secrets": {
-        "required": ["BETTER_AUTH_SECRET", "D1_PLACEMENT_PROBE_API_KEY"]
+        "required": [
+          "BETTER_AUTH_SECRET",
+          "GOOGLE_CLIENT_ID",
+          "GOOGLE_CLIENT_SECRET",
+          "FACEBOOK_CLIENT_ID",
+          "FACEBOOK_CLIENT_SECRET",
+          "GITHUB_CLIENT_ID",
+          "GITHUB_CLIENT_SECRET"
+        ]
       },
+      "send_email": [
+        {
+          "name": "EMAIL",
+          "allowed_sender_addresses": ["noreply@saanseoi.hk"]
+        }
+      ],
       "d1_databases": [
         {
           "binding": "DB_META",
           "database_name": "ss-meta-db-prod",
           "database_id": "cf03b2ff-b5ee-4265-899f-6916ed8b6c2c",
-          "preview_database_id": "d37ea879-848d-4548-a565-0d86b4bc3d43",
           "migrations_dir": "../../libs/db/migrations/meta",
           "migrations_pattern": "../../libs/db/migrations/meta/*/migration.sql"
         },
@@ -169,15 +259,20 @@
           "binding": "DB_CURRENT",
           "database_name": "ss-current-db-prod",
           "database_id": "edd3cdf9-1d05-4847-b235-b7fd4189c38d",
-          "preview_database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
           "migrations_dir": "../../libs/db/migrations/current",
           "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
+        },
+        {
+          "binding": "DB_HISTORY_HK_BEFORE",
+          "database_name": "ss-history-hk-before-db-prod",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+          "database_id": "94f74b90-42c5-4c2d-98da-f0eae188d836"
         },
         {
           "binding": "DB_HISTORY_HK_2025",
           "database_name": "ss-history-hk-2025-db-prod",
           "database_id": "09c217e2-0e04-4ce5-a197-b4210bcb1dea",
-          "preview_database_id": "9566cfa9-2af6-473c-a74b-c7f7c6a757a9",
           "migrations_dir": "../../libs/db/migrations/history",
           "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
         },
@@ -185,7 +280,6 @@
           "binding": "DB_HISTORY_HK_2026",
           "database_name": "ss-history-hk-2026-db-prod",
           "database_id": "f85a2708-a0aa-4549-8c61-e2289d3694cd",
-          "preview_database_id": "b76baf00-7138-44b0-bd24-e99f3aea4249",
           "migrations_dir": "../../libs/db/migrations/history",
           "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
         },
@@ -193,17 +287,28 @@
           "binding": "DB_SOURCE_HK_2025",
           "database_name": "ss-source-hk-2025-db-prod",
           "database_id": "0e5ff999-c928-4e41-a0e1-e5d7c6fc6d20",
-          "preview_database_id": "113ea535-e571-4e31-b15a-c18f116e0424",
           "migrations_dir": "../../libs/db/migrations/source",
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
+        },
+        {
+          "binding": "DB_SOURCE_HK_BEFORE",
+          "database_name": "ss-source-hk-before-db-prod",
+          "migrations_dir": "../../libs/db/migrations/source",
+          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql",
+          "database_id": "45ab08a6-bacc-41ea-9c35-55c3d825de4a"
         },
         {
           "binding": "DB_SOURCE_HK_2026",
           "database_name": "ss-source-hk-2026-db-prod",
           "database_id": "dca6df89-880b-42f8-92a8-08f4919a582a",
-          "preview_database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
           "migrations_dir": "../../libs/db/migrations/source",
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
+        }
+      ],
+      "analytics_engine_datasets": [
+        {
+          "binding": "MAP_GUIDE_SELECTIONS",
+          "dataset": "ss-map-guide-selections-production"
         }
       ],
       "routes": [

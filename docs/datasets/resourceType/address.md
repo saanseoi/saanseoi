@@ -1,185 +1,76 @@
 # Address ResourceType
 
-This document describes how the address resourceType is currently composed across sources.
+Hong Kong addresses are sourced from the Digital Policy Office Address Lookup Service
+(ALS): `publisherCode: hkgov-dpo`, `code: ds-hk-hkgov-dpo-address`.
 
-Related source-specific docs:
+Related documentation:
 
-- [Overture address](../sources/overture/address.md)
-- [HKGov ALS address](../sources/hkgov/address.md)
+- [HKGov ALS address](../internal/hkgov/address.md)
+- [Common resource processing](common.md)
 
-## Scope
+## Processing
 
-The address resourceType currently has two seeded source datasets in meta:
+ALS preparation assigns each premise a stable `ss-<uuid-v5>` identity and writes a
+prepared parquet file. The address pipeline uses that identity for both the source
+record and canonical address unless a reviewed ALS identity-drift decision retains an
+earlier ID.
 
-- `publisherCode: overture`, `code: ds-hk-overture-address`
-- `publisherCode: hkgov-als`, `code: ds-hk-hkgov-als-address`
+Processing requires a published, cohort-compatible division snapshot. The API
+composition selects that snapshot as a required supporting member using its configured
+cohort-matching rule.
 
-Both feed the same canonical address resourceType, but they arrive in different shapes and play different roles in the merge flow.
+The local SQL workflow processes parquet in chunks through `normalise`, `sql-source`,
+`sql-history`, and `sql-current` stages. For a remote upload, `sql-source` compares each
+normalised source payload with the persistent local mirror of the source D1 shard. It
+imports full staging rows only for changed assertions; unchanged assertions are sent as
+compact source-record IDs in `stagingAddresses2dReleaseRows` so their release lifecycle
+can still advance. The source assertion hash excludes release and ingestion bookkeeping
+(including the source version and file, resolved identity metadata, and division
+snapshot) while retaining the publisher address assertion. History, current, and meta
+SQL are then imported into their respective D1 databases.
 
-## Merge Order
+## Stored data
 
-### Division snapshot dependency
+Canonical current and history tables are `address2d`, `address2dI18n`, and the
+exact-token `address2dBuildingNumberLookup`. The source database retains versioned ALS
+assertions in `hkgovAlsAddresses2d`, including paired `addressEn` and `addressZhHant`
+publisher values. Locale-keyed rows are materialised only for canonical address
+snapshots and API use.
 
-- Address processing depends on an already-published division snapshot.
-- Overture address ingestion resolves `countryId`, `areaId`, and `districtId` from the latest published division snapshot.
-- HKGov ALS preparation also resolves those IDs from the latest division snapshot before worker ingestion.
+Source rows are keyed by `sourceRecordId + versionHash`. Current rows use
+`isCurrent = 1`; prior versions are closed with `validToRelease`. Canonical snapshots
+are cloned for an incoming release, changed rows create new versions, and rows seen in
+the release are marked before final cleanup.
 
-### Overture must arrive first
+## API support
 
-- Upload planning rejects `hkgov-als` address uploads unless the same `cohortKey` already has an Overture address upload.
-- This is enforced in `libs/core/src/lib/services/upload.ts`.
-
-Current practical meaning:
-
-- Overture establishes the base address set.
-- HKGov ALS reconciles against that base and can enrich or overwrite matched canonical rows.
-
-## Reconciliation
-
-The worker tries to match each incoming source row to an existing canonical address in this order:
-
-1. direct match on canonical `id == sourceId`
-2. fallback match on a derived street key
-
-The derived match key is:
-
-- `districtId::normalizedStreetName::normalizedStreetNumber`
-
-Implications:
-
-- there is no explicit cross-source address mapping table
-- HKGov ALS can merge into an Overture-backed canonical row when the street key matches
-- if nothing matches, the incoming source row creates a canonical `address2d` row under its own source ID
-
-## Canonical Tables
-
-The address resourceType currently writes these canonical current tables:
-
-- `address2d`
-- `address2dI18n`
-
-It also writes these canonical history tables:
-
-- `address2dVersions`
-- `address2dVersionsI18n`
-
-It does not currently populate:
-
-- `address3d`
-- `address3dI18n`
-- `streetsAddress`
-
-### Canonical field composition
-
-`address2d` is source-dependent:
-
-- `id`: existing canonical ID if matched, otherwise the incoming source ID
-- `divisionSnapshotId`: latest published division snapshot for Overture rows, prepared ALS division snapshot for HKGov rows
-- `districtId`, `areaId`, `countryId`: resolved from division lookups
-- `geometry`: Overture point geometry or prepared ALS geometry
-- `identifiers`: `null` for Overture, parsed prepared ALS identifiers for HKGov
-- `bbox`: Overture only, `null` for HKGov
-- `sources`: `{ overture: ... }` for Overture rows, parsed prepared ALS sources for HKGov rows
-
-`address2dI18n` currently behaves like this:
-
-- Overture usually contributes a single `en` row with `formattedAddress`, `streetNumber`, and `streetName`
-- HKGov contributes richer `en` and `zh-hant` rows with `formattedAddress`, `buildingName`, `estateName`, `streetNumber`, and `streetName`
-
-Because the canonical row is rewritten from the matched source row, a matched HKGov row can replace previously Overture-only canonical fields for the same address ID.
-
-## Source Retention
-
-The resourceType also retains normalized per-source rows in the source database.
-
-Current-state source tables:
-
-- `sourceOvertureAddresses2d`
-- `sourceOvertureAddress2dI18n`
-- `sourceHkgovAlsAddresses2d`
-- `sourceHkgovAlsAddress2dI18n`
-
-Source history tables:
-
-- `sourceOvertureAddresses2dVersions`
-- `sourceOvertureAddress2dI18nVersions`
-- `sourceHkgovAlsAddresses2dVersions`
-- `sourceHkgovAlsAddress2dI18nVersions`
-
-Shared behavior:
-
-- current tables are keyed by `sourceRecordId`
-- current rows store the latest normalized payload per source record
-- source version rows are keyed by `sourceRecordId + versionHash`
-- previous current source versions are closed with `validToRelease`
-- source history is separate from canonical address history
-- unchanged source payloads only advance current-row `releaseId`/`datasetId`; they do not create new source version rows
-
-## Versioning and Deletion
-
-Canonical address history is snapshot-aware but deduped by `(id, versionHash)`.
-
-Current behavior:
-
-- a new draft address snapshot bulk-clones the latest non-archived snapshot before applying incoming deltas
-- changed rows close prior current versions and insert a new current version
-- unchanged rows are carried forward in the cloned current snapshot without rewriting canonical history rows
-- snapshot-to-release membership is tracked through `snapshotSources`, not a per-record provenance table in the worker hot path
-
-Deletion is asymmetric:
-
-- Overture uploads can close canonical addresses that disappeared from the latest Overture release
-- HKGov ALS uploads do not delete canonical addresses
-
-So, in runtime terms:
-
-- Overture defines base address existence
-- HKGov ALS acts as a non-deleting reconciliation and overwrite layer
-
-## API Support
-
-### Registry endpoint metadata
-
-The fixture-backed registry declares four address endpoint aliases for `api-addresses-v0.1`:
+The registry declares the address endpoint aliases in
+`fixtures/meta/apiEndpoints/api-addresses-v0.1.json`:
 
 - `GET /v0/addresses`
 - `GET /v0.1/addresses`
 - `GET /v0/addresses/{id}`
 - `GET /v0.1/addresses/{id}`
 
-These are declared in `fixtures/meta/apiEndpoints/api-addresses-v0.1.json` and synced by `libs/db/src/registry/meta.ts`.
+The SaanSeoi API implements these aliases as JSON:API list and detail resources. The
+address composition uses the `default` domain, with an address snapshot as the primary
+member and a cohort-compatible Overture division snapshot as a required supporting
+member. List requests support catalogue/cohort/release-set selection, profiles and
+locale projection, pagination, and country/area/district filters. Address relationships
+identify all available canonical containment levels: `country`, `area`, `district`,
+`town`, `macrohood`, `neighbourhood`, `microhood`, `village`, and `hamlet`. They do not
+join division data by default; `include=hierarchy` returns deduplicated Division
+resources in JSON:API `included` using bounded D1 batches.
 
-### Implemented routes today
+The `compact` and `default` profiles return localised formatted addresses, `map` adds
+point geometry and bounding boxes, and `full` adds identifiers, source attribution, and
+all stored localised address components. The public address API is two-dimensional; ALS
+public-rental-housing floor and unit data remains outside this resource.
 
-Those standalone address handlers are not currently implemented in `apps/atlas-api`.
+Building-number lookup retains exact endpoints and parser-derived range members; its
+numeric stem is available only for deliberate partial matching. See
+[3D address edge cases](../../../spec/3dAddressEdgeCases.md) for range and future
+unit-address handling.
 
-Implemented Atlas routes are:
-
-- `/v0/meta/...`
-- `/v0/{region}/places/{id}`
-- `/v0/{region}/places/by-cell/{h3Level}/{h3Cell}`
-- `/v0/{region}/search`
-
-### Live API dependency on address data
-
-The address resourceType is still used by live API behavior indirectly:
-
-- `places.addressSnapshotId` and `places.address2dId` reference canonical address rows
-- place search FTS joins `address2dI18n` and `address3dI18n` into indexed search text
-- `/v0/{region}/search` therefore depends on canonical address text
-
-Current limitation:
-
-- `/v0/{region}/places/{id}` does not currently hydrate and return the referenced address object
-
-## Metadata vs Runtime Role Labels
-
-Snapshot-source metadata currently labels:
-
-- HKGov ALS as `primary`
-- Overture as `enrichment`
-
-That matches `prepareAddressVersionInsertContext` and the endpoint metadata, but the implemented canonical flow still behaves more like:
-
-- Overture = base address set
-- HKGov ALS = richer reconciliation layer on top of that base
+Addresses also support place search through the `places.addressSnapshotId` and
+`places.address2dId` relationships.

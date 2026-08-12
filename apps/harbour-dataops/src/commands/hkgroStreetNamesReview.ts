@@ -1,0 +1,403 @@
+import { spawn } from 'node:child_process'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { isAbsolute, join, relative, resolve } from 'node:path'
+
+import { isCancel, log, note, outro, select } from '@clack/prompts'
+
+import type {
+  ParsedArgs,
+  UploadTarget,
+} from '../../../harbour-cli/src/lib/cli/options.ts'
+import {
+  loadHkgroStreetDiscoveryReview,
+  saveHkgroStreetDiscoveryReview,
+  type HkgroStreetChangeKind,
+  type HkgroStreetDiscoveryRecord,
+} from './hkgroStreetNamesDiscover.ts'
+
+const REPO_ROOT = resolve(import.meta.dir, '../../../..')
+const DEFAULT_ARCHIVE_DIR = join(REPO_ROOT, 'data/hku/hkgro/street-name')
+
+/**
+ * Curate the OCR-ranked HKGRO discovery queue. The choices here only select
+ * source PDFs for later extraction; they never publish source evidence or
+ * change a canonical street snapshot.
+ */
+export async function runHkgroStreetNameReviewCommand(
+  args: ParsedArgs,
+  target: UploadTarget,
+  printUsage: () => void,
+) {
+  if (target.remote) {
+    throw new Error(
+      '`hkgov-hkgro-street-names:review` is local-only. It records curator decisions locally and never uploads HKGRO scans, OCR, or street data.',
+    )
+  }
+  if (args.positionals.length > 0) {
+    printUsage()
+    throw new Error(
+      'hkgov-hkgro-street-names:review does not accept positional arguments.',
+    )
+  }
+
+  const archiveDir =
+    typeof args.options['out-dir'] === 'string'
+      ? resolve(args.options['out-dir'])
+      : DEFAULT_ARCHIVE_DIR
+  const reviewPath =
+    typeof args.options['review-file'] === 'string'
+      ? resolve(args.options['review-file'])
+      : join(archiveDir, 'discovery/review.json')
+  const includeAll = args.options.all === true
+  const review = await loadHkgroStreetDiscoveryReview(reviewPath)
+  const records = recordsForReview(review.records, { includeAll })
+
+  if (records.length === 0) {
+    log.info(
+      includeAll
+        ? 'No unfinished HKGRO street-name discovery records remain.'
+        : 'No suggested manual-review HKGRO street-name records remain. Use --all to include unclassified records.',
+    )
+    outro(`HKGRO review remains local: ${reviewPath}`)
+    return
+  }
+
+  log.info(
+    `Reviewing ${records.length} ${includeAll ? 'unfinished' : 'suggested manual-review'} HKGRO source PDF${records.length === 1 ? '' : 's'}. Inspect the official scan before accepting a record; OCR is only a finding aid.`,
+  )
+  let completed = 0
+  for (const record of records) {
+    note(formatReviewContext(record), 'SOURCE PDF TO REVIEW')
+    await printHkgroSourceInline({ archiveDir, record })
+    const classification = await select({
+      message: `Select ${record.year}/${record.hkgroPdfId}`,
+      options: [
+        {
+          value: 'street-name' as const,
+          label: reviewGreen('Accept as a street-history notice'),
+          hint: 'Select its material kind next.',
+        },
+        {
+          value: 'not-street-name' as const,
+          label: reviewRed('Reject as not a street-history notice'),
+        },
+        {
+          value: 'manual-review' as const,
+          label: reviewYellow('Defer for later review'),
+          hint: 'This remains eligible in a later review run.',
+        },
+      ],
+    })
+    if (isCancel(classification)) throw new Error('HKGRO street-name review cancelled.')
+
+    const kind =
+      classification === 'street-name'
+        ? await selectStreetChangeKind(record.suggested.kinds)
+        : null
+
+    record.decision = {
+      classification,
+      kind,
+      notes: null,
+      reviewedAt: new Date().toISOString(),
+    }
+    await saveHkgroStreetDiscoveryReview(reviewPath, review)
+    completed += 1
+  }
+
+  outro(
+    `Saved ${completed} HKGRO curator decision${completed === 1 ? '' : 's'} locally: ${reviewPath}`,
+  )
+}
+
+async function printHkgroSourceInline(input: {
+  archiveDir: string
+  record: HkgroStreetDiscoveryRecord
+}) {
+  const sourcePath = resolveHkgroSourcePath(
+    input.archiveDir,
+    input.record.source.localPath,
+  )
+  const pageNumber = input.record.reviewPages?.[0]?.pageNumber ?? 1
+  const previewDir = await mkdtemp(join(tmpdir(), 'saanseoi-hkgro-review-'))
+  const previewPath = join(previewDir, `source-page-${pageNumber}`)
+  const inlinePath = join(previewDir, `source-page-${pageNumber}-inline.png`)
+  try {
+    await runInlineCommand('pdftoppm', [
+      '-f',
+      `${pageNumber}`,
+      '-l',
+      `${pageNumber}`,
+      '-png',
+      '-r',
+      '300',
+      '-singlefile',
+      sourcePath,
+      previewPath,
+    ])
+    const width = await kittyWindowWidth()
+    await runInlineCommand('magick', [
+      `${previewPath}.png`,
+      '-resize',
+      `${Math.floor(width / 2)}x`,
+      inlinePath,
+    ])
+    await runInlineCommand('kitten', ['icat', '--fit=none', inlinePath])
+  } finally {
+    await rm(previewDir, { force: true, recursive: true })
+  }
+}
+
+async function kittyWindowWidth() {
+  const output = await runInlineCommandOutput('kitten', ['icat', '--print-window-size'])
+  const match = /^(\d+)x\d+$/m.exec(output.trim())
+  if (!match?.[1]) {
+    throw new Error(
+      `Kitty returned an invalid window size: ${output.trim() || 'none'}.`,
+    )
+  }
+  return Number.parseInt(match[1], 10)
+}
+
+async function runInlineCommand(command: string, args: string[]) {
+  await new Promise<void>((resolveCommand, rejectCommand) => {
+    const process = spawn(command, args, { stdio: 'inherit' })
+    process.on('error', error => {
+      rejectCommand(
+        new Error(
+          `Could not run ${command} while rendering the HKGRO source: ${error.message}`,
+        ),
+      )
+    })
+    process.on('exit', code => {
+      if (code === 0) {
+        resolveCommand()
+      } else {
+        rejectCommand(
+          new Error(
+            `${command} failed while rendering the HKGRO source (exit code ${code ?? 'unknown'}).`,
+          ),
+        )
+      }
+    })
+  })
+}
+
+async function runInlineCommandOutput(command: string, args: string[]) {
+  return await new Promise<string>((resolveCommand, rejectCommand) => {
+    const process = spawn(command, args, {
+      stdio: ['inherit', 'pipe', 'inherit'],
+    })
+    const output: Uint8Array[] = []
+    process.stdout.on('data', (chunk: Uint8Array) => output.push(chunk))
+    process.on('error', error => {
+      rejectCommand(
+        new Error(
+          `Could not run ${command} while rendering the HKGRO source: ${error.message}`,
+        ),
+      )
+    })
+    process.on('exit', code => {
+      if (code === 0) {
+        resolveCommand(Buffer.concat(output).toString('utf8'))
+      } else {
+        rejectCommand(
+          new Error(
+            `${command} failed while rendering the HKGRO source (exit code ${code ?? 'unknown'}).`,
+          ),
+        )
+      }
+    })
+  })
+}
+
+function resolveHkgroSourcePath(archiveDir: string, localPath: string) {
+  if (isAbsolute(localPath)) {
+    throw new Error(`HKGRO local path must be repository-relative: ${localPath}.`)
+  }
+  const canonical = resolve(REPO_ROOT, localPath)
+  const suffix = relative(DEFAULT_ARCHIVE_DIR, canonical)
+  if (suffix.startsWith('..') || isAbsolute(suffix)) {
+    throw new Error(`HKGRO local path is outside its archive directory: ${localPath}.`)
+  }
+  return resolve(archiveDir, suffix)
+}
+
+export function recordsForReview(
+  records: HkgroStreetDiscoveryRecord[],
+  input: { includeAll: boolean },
+) {
+  return records.filter(record => {
+    if (record.decision?.classification === 'street-name') return false
+    if (record.decision?.classification === 'not-street-name') return false
+    if (record.decision?.classification === 'manual-review') return input.includeAll
+    return input.includeAll || record.suggested.classification === 'manual-review'
+  })
+}
+
+async function selectStreetChangeKind(
+  suggestedKinds: HkgroStreetChangeKind[],
+): Promise<HkgroStreetChangeKind> {
+  const kind = await select({
+    message: 'How does this notice change street history?',
+    options: orderedKinds(suggestedKinds).map(value => ({
+      value,
+      label: streetChangeKindLabel(value),
+      hint: [
+        streetChangeKindDefinition(value),
+        ...(suggestedKinds.includes(value) ? ['suggested by discovery'] : []),
+      ].join(' · '),
+    })),
+  })
+  if (isCancel(kind)) throw new Error('HKGRO street-name review cancelled.')
+  return kind
+}
+
+function orderedKinds(suggestedKinds: HkgroStreetChangeKind[]) {
+  const allKinds: HkgroStreetChangeKind[] = [
+    'absorption',
+    'declaration',
+    'name-change',
+    'deletion',
+    'designation',
+    'description-change',
+  ]
+  return [...suggestedKinds, ...allKinds.filter(kind => !suggestedKinds.includes(kind))]
+}
+
+function streetChangeKindLabel(kind: HkgroStreetChangeKind) {
+  switch (kind) {
+    case 'absorption':
+      return 'Absorption into an existing street'
+    case 'declaration':
+      return 'Declaration'
+    case 'name-change':
+      return 'Naming or renaming'
+    case 'deletion':
+      return 'Deletion or closure'
+    case 'designation':
+      return 'Legal designation (not a name change)'
+    case 'description-change':
+      return 'Description change'
+  }
+}
+
+function streetChangeKindDefinition(kind: HkgroStreetChangeKind) {
+  switch (kind) {
+    case 'absorption':
+      return 'moves a street or section into an existing street; the source identity ends and the surviving street gains extent'
+    case 'declaration':
+      return 'creates or declares a street'
+    case 'name-change':
+      return 'assigns or replaces a street name'
+    case 'deletion':
+      return 'removes, closes, or discontinues a street'
+    case 'designation':
+      return 'formally defines a street without changing its name'
+    case 'description-change':
+      return 'changes the legally operative route or extent description'
+  }
+}
+
+export function formatReviewContext(record: HkgroStreetDiscoveryRecord) {
+  const tocEntries = record.tocEntries
+    .map((entry, index) => {
+      const metadata = [entry.publicationDate, entry.notificationNumber]
+        .filter(Boolean)
+        .join(' · ')
+      return `- ${metadata ? `${reviewMuted(metadata)}: ` : ''}${reviewValue(entry.subject, index)}`
+    })
+    .join('\n')
+  const suggestions = record.suggested.kinds.length
+    ? record.suggested.kinds.map(streetChangeKindLabel).join(', ')
+    : 'none'
+  const reviewPages = record.reviewPages?.length
+    ? record.reviewPages
+    : [{ excerpt: record.excerpt, pageNumber: 1 }]
+  return [
+    formatReviewField('Year / HKGRO PDF', [`${record.year}`, record.hkgroPdfId]),
+    `${reviewKey('TOC entries')}:\n${tocEntries}`,
+    formatReviewField('Official scan', [record.source.officialUrl]),
+    formatReviewField('Local scan', [record.source.localPath], 'muted'),
+    formatReviewField('OCR output', [record.ocr.outputPath], 'muted'),
+    formatReviewField('Relevant OCR page(s)', [
+      reviewPages.map(page => `${page.pageNumber}`).join(', '),
+    ]),
+    formatReviewField(
+      'Discovery score',
+      [`${record.suggested.score}`],
+      reviewScoreStyle(record.suggested.classification),
+    ),
+    `${reviewKey('Discovery reasons')}:\n${formatReviewList(record.suggested.reasons, 'muted') || '- none'}`,
+    formatReviewField('Suggested material kinds', [suggestions]),
+    `${reviewKey('OCR excerpt (not source evidence)')}:\n${reviewPages
+      .map(
+        page =>
+          `${reviewMuted(`Page ${page.pageNumber}`)}\n${reviewMuted(page.excerpt || '(none)')}`,
+      )
+      .join('\n\n')}`,
+  ].join('\n\n')
+}
+
+function formatReviewField(
+  label: string,
+  values: string[],
+  valueStyle: ReviewValueStyle = 'default',
+) {
+  return `${reviewKey(label)}: ${values
+    .map((value, index) => reviewValue(value, index, valueStyle))
+    .join(reviewSeparator())}`
+}
+
+function formatReviewList(values: string[], valueStyle: ReviewValueStyle) {
+  return values
+    .map((value, index) => `- ${reviewValue(value, index, valueStyle)}`)
+    .join('\n')
+}
+
+function reviewScoreStyle(
+  classification: HkgroStreetDiscoveryRecord['suggested']['classification'],
+): ReviewValueStyle {
+  if (classification === 'manual-review') return 'warning'
+  if (classification === 'not-street-name') return 'error'
+  return 'muted'
+}
+
+type ReviewValueStyle = 'default' | 'error' | 'muted' | 'warning'
+
+function reviewKey(value: string) {
+  return `\u001B[36m${value}\u001B[39m`
+}
+
+function reviewValue(
+  value: string,
+  index: number,
+  style: ReviewValueStyle = 'default',
+) {
+  if (style === 'muted') return reviewMuted(value)
+  if (style === 'warning') return reviewYellow(value)
+  if (style === 'error') return reviewRed(value)
+  const colours = [33, 32, 35]
+  return `\u001B[${colours[index % colours.length]}m${value}\u001B[39m`
+}
+
+function reviewSeparator() {
+  return ` ${reviewMuted('/')} `
+}
+
+function reviewMuted(value: string) {
+  return `\u001B[90m${value}\u001B[39m`
+}
+
+function reviewGreen(value: string) {
+  return `\u001B[32m${value}\u001B[39m`
+}
+
+function reviewRed(value: string) {
+  return `\u001B[31m${value}\u001B[39m`
+}
+
+function reviewYellow(value: string) {
+  return `\u001B[33m${value}\u001B[39m`
+}

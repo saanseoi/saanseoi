@@ -1,0 +1,63 @@
+{
+  "versionHash": "sha256:d4d4b2c0449dd87512f6e5ae046902427f1cf5aa28455f1bd09065e61772f384",
+  "publisherCode": "hkgov-dpo",
+  "code": "ds-hk-hkgov-dpo-address",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "monthly",
+  "theme": "addresses",
+  "resourceTypes": ["address"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© HK SAR Government, Digital Policy Office, DATA.GOV.HK",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603",
+  "schemaSpecificationURL": "https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN.pdf",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "irregular",
+    "revisionScope": "none",
+    "checks": {
+      "newReleases": {
+        "trigger": "periodic",
+        "frequency": "daily"
+      },
+      "revisions": {
+        "trigger": "never"
+      },
+      "archives": {
+        "trigger": "periodic",
+        "frequency": "daily"
+      }
+    },
+    "archives": {
+      "availability": "limited",
+      "operation": "data-gov-historical-file-versions",
+      "entryUrl": "https://api.data.gov.hk/v1/historical-archive/list-file-versions"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "release-date",
+    "correctionSuffixSource": "generated"
+  },
+  "category": "places",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Address Lookup Service",
+      "description": "The ALS provides formatted addresses of the premises in Hong Kong, including private and public housing estates, commercial and industrial buildings, government buildings and offices, markets and shopping centers; and common facilities such as recreation and sports centres. Some addresses provided are representing a complex of buildings, such as schools or universities. Most of the addresses in ALS are available in 2-Dimensional format which typically includes up to street name, building number and building name. 3-Dimensional formatted addresses, such as addresses include flat number and floor number, they are only available for public housing estates. For more details, please refer the [Data Dictionary](https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN-v3.2.pdf)."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "香港政府 ALS 地址",
+      "description": "ALS 提供香港樓宇的格式化地址，包括私人及公共屋邨、商業及工業大廈、政府大樓及辦事處、街市和購物中心，以及康樂和體育中心等公共設施。部分地址代表建築群，例如學校或大學。ALS 大部分地址以二維格式提供，通常包括街道名稱、門牌號碼及大廈名稱；包含單位及樓層號碼等資料的三維格式化地址只適用於公共屋邨。詳情請參閱 [資料字典](https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN-v3.2.pdf)。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "香港政府 ALS 地址",
+      "description": "ALS 提供香港楼宇的格式化地址，包括私人及公共屋邨、商业及工业大厦、政府大楼及办公室、街市和购物中心，以及康乐和体育中心等公共设施。部分地址代表建筑群，例如学校或大学。ALS 大部分地址以二维格式提供，通常包括街道名称、门牌号码及大厦名称；包含单元及楼层号码等资料的三维格式化地址只适用于公共屋邨。详情请参阅 [数据字典](https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN-v3.2.pdf)。"
+    }
+  ]
+}

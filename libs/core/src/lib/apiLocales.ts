@@ -35,10 +35,10 @@ export function isApiLocale(value: string): value is ApiLocale {
   return apiLocales.includes(value as ApiLocale)
 }
 
-export function normalizeRequestedApiLocale(value: string) {
-  const normalized = value.trim().replaceAll('_', '-').toLowerCase()
+export function normaliseRequestedApiLocale(value: string) {
+  const normalised = value.trim().replaceAll('_', '-').toLowerCase()
 
-  return normalized.length > 0 ? normalized : null
+  return normalised.length > 0 ? normalised : null
 }
 
 function isValidStructuredLocale(value: string) {
@@ -67,20 +67,20 @@ function isValidStructuredLocale(value: string) {
 }
 
 export function getRequestedApiLocalesValidationError(value: string): string | null {
-  const normalized = value.trim().replaceAll('_', '-').toLowerCase()
+  const normalised = value.trim().replaceAll('_', '-').toLowerCase()
 
-  if (normalized.length === 0) {
+  if (normalised.length === 0) {
     return `locales must be ${REQUESTED_LOCALE_LIST_EXAMPLE}, "*", or "null"`
   }
 
-  if (normalized === '*' || normalized === 'null') {
+  if (normalised === '*' || normalised === 'null') {
     return null
   }
 
   const locales = value.split(LOCALE_SEPARATOR)
 
   for (const rawLocale of locales) {
-    const locale = normalizeRequestedApiLocale(rawLocale)
+    const locale = normaliseRequestedApiLocale(rawLocale)
 
     if (!locale) {
       return `locales must be a comma-separated list like ${REQUESTED_LOCALE_LIST_EXAMPLE}, "*" for all locales, or "null" for no i18n`
@@ -133,16 +133,16 @@ export function parseRequestedApiLocales(
     throw new Error(validationError)
   }
 
-  const normalized = value.trim().replaceAll('_', '-').toLowerCase()
+  const normalised = value.trim().replaceAll('_', '-').toLowerCase()
 
-  if (normalized === '*') {
+  if (normalised === '*') {
     return {
       mode: 'all',
       locales: ['*'],
     }
   }
 
-  if (normalized === 'null') {
+  if (normalised === 'null') {
     return {
       mode: 'none',
       locales: [],
@@ -151,7 +151,7 @@ export function parseRequestedApiLocales(
 
   const locales = value
     .split(LOCALE_SEPARATOR)
-    .map(locale => normalizeRequestedApiLocale(locale))
+    .map(locale => normaliseRequestedApiLocale(locale))
     .filter((locale): locale is RequestedApiLocale => locale !== null)
 
   return {

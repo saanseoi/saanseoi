@@ -1,0 +1,71 @@
+{
+  "versionHash": "sha256:7e2ef22dfd750d46d04f3b9e72df969cbc29f64df70bd17215e88f4621dfdb4f",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "five-yearly",
+  "theme": "stats",
+  "resourceTypes": ["divisionStatistic"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872",
+  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["revision"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2021",
+      "identicalArchiveSlots": [
+        {
+          "releaseSlot": "2026-Q1",
+          "sourceObjectHash": "8c050049b01066d603c04162cddd107ede1d16baaa56140608f14122268702e7",
+          "contentHash": "5cfeb8faf65c9170f8e488037ce5e4790567010e81e4ec9c0e7f5cec9a708a34"
+        },
+        {
+          "releaseSlot": "2026-Q2",
+          "sourceObjectHash": "a8a4336987156e62a92afcde3a24bc6ab6b860cece9fa950885f9c45b9be0790",
+          "contentHash": "5cfeb8faf65c9170f8e488037ce5e4790567010e81e4ec9c0e7f5cec9a708a34"
+        }
+      ]
+    }
+  ],
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "2021 Census: Housing Market Areas and Building Groups",
+      "description": "Planned C&SD source for 2021 Census statistics and geography for housing market areas and building groups."
+    }
+  ]
+}

@@ -1,28 +1,78 @@
 {
-  "versionHash": "sha256:8818852d24dde95e0bdbc26d360829ff825f3a7ad7037677e220e1bfff17d395",
+  "versionHash": "sha256:56b33640b7e307fcbc99a231a725f06ccb1f11edccaf97556517b885dd27f62e",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "divisions",
-  "type": "division",
+  "resourceTypes": ["division"],
   "licenseCode": "ODbL",
   "attribution": "© OpenStreetMap contributors; Overture Maps Foundation.",
   "sourceUrl": "https://docs.overturemaps.org/",
+  "schemaSpecificationURL": "https://docs.overturemaps.org/schema/reference/divisions/division/",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "regular",
+    "revisionScope": "latest",
+    "checks": {
+      "newReleases": {
+        "trigger": "after-latest-release-age",
+        "ageDays": 25,
+        "frequency": "daily"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "daily"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["new-release"]
+      }
+    },
+    "archives": {
+      "availability": "limited",
+      "operation": "overture-release-catalog",
+      "entryUrl": "https://stac.overturemaps.org/catalog.json"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "upstream",
+    "correctionSuffixSource": "upstream"
+  },
   "category": "places",
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-division-merge-v1",
+      "operationCodes": [
+        "derive_division_type_from_overture_taxonomy",
+        "derive_division_level_from_overture_taxonomy",
+        "normalise_overture_division_hierarchy",
+        "decode_wkb_geometry_to_geojson",
+        "overture_division_locale_inferred",
+        "overture_division_api_locale_fallback_added"
+      ]
+    }
+  ],
   "i18n": [
     {
       "locale": "en",
-      "name": "Hong Kong Overture divisions"
+      "name": "Divisions",
+      "description": "A `division` is a feature type that represents an official or non-official organization of people: country, region, province, city, neighborhood, etc. — as seen from a given political perspective. It has a Point geometry which gives an approximate location of the position most commonly associated with the feature."
     },
     {
       "locale": "zh-hant",
-      "name": "香港 Overture 區劃"
+      "name": "區劃 (香港)",
+      "description": "「division」是一種要素類型，表示從某一政治視角所見的官方或非官方人群組織：國家、地區、省、市、社區等。它具有 Point 幾何，提供與該要素最常見相關位置的大約位置。"
     },
     {
       "locale": "zh-hans",
-      "name": "香港 Overture 区划"
+      "name": "区划 (香港)",
+      "description": "「division」是一种要素类型，表示从某个政治视角所见的官方或非官方人群组织：国家、地区、省、市、社区等。它具有 Point 几何，提供与该要素最常关联位置的大致位置。"
     }
   ]
 }

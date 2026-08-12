@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
+import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements'
 
 import { cn } from '$lib/bits/utilities/helpers/cn'
 
@@ -16,7 +17,10 @@ type Props = {
   target?: string
   type?: 'button' | 'submit' | 'reset'
   variant?: Variant
-}
+} & Omit<
+  HTMLAnchorAttributes & HTMLButtonAttributes,
+  'children' | 'class' | 'disabled' | 'href' | 'rel' | 'target' | 'type'
+>
 
 const buttonVariantClasses: Record<Variant, string> = {
   primary:
@@ -51,6 +55,7 @@ let {
   target,
   type = 'button',
   variant = 'primary',
+  ...restProps
 }: Props = $props()
 
 const baseClasses =
@@ -58,10 +63,14 @@ const baseClasses =
 
 const anchorClasses = $derived(linkVariantClasses[variant])
 const buttonClasses = $derived(buttonVariantClasses[variant])
+const isExternalHref = $derived(Boolean(href && /^https?:\/\//.test(href)))
+const anchorRel = $derived(rel ?? (isExternalHref ? 'noreferrer' : undefined))
+const anchorTarget = $derived(target ?? (isExternalHref ? '_blank' : undefined))
 </script>
 
 {#if href}
   <a
+    {...restProps}
     class={cn(
       baseClasses,
       sizeClasses[size],
@@ -70,13 +79,14 @@ const buttonClasses = $derived(buttonVariantClasses[variant])
       className
     )}
     href={href ?? ''}
-    {rel}
-    {target}
+    rel={anchorRel}
+    target={anchorTarget}
   >
     {@render children?.()}
   </a>
 {:else}
   <button
+    {...restProps}
     class={cn(
       baseClasses,
       sizeClasses[size],

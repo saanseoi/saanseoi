@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -lt 1 || $# -gt 2 ]]; then
-  echo "Usage: $0 <all|meta|current|history|source|history-hk-2025|history-hk-2026|source-hk-2025|source-hk-2026> [local|preview|production]" >&2
+  echo "Usage: $0 <all|meta|current|history|source|history-hk-before|history-hk-2025|history-hk-2026|source-hk-before|source-hk-2025|source-hk-2026> [local|preview|production]" >&2
   exit 1
 fi
 
@@ -42,16 +42,18 @@ targets_json="$(bun -e '
     all: binding =>
       binding === "DB_META" ||
       binding === "DB_CURRENT" ||
-      /^DB_HISTORY_[A-Z]{2}_\d{4}$/.test(binding) ||
-      /^DB_SOURCE_[A-Z]{2}_\d{4}$/.test(binding),
+      /^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(binding) ||
+      /^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(binding),
     meta: binding => binding === "DB_META",
     current: binding => binding === "DB_CURRENT",
-    history: binding => /^DB_HISTORY_[A-Z]{2}_\d{4}$/.test(binding),
-    source: binding => /^DB_SOURCE_[A-Z]{2}_\d{4}$/.test(binding),
+    history: binding => /^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(binding),
+    source: binding => /^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(binding),
+    "history-hk-before": binding => binding === "DB_HISTORY_HK_BEFORE",
     "history-hk-2025": binding => binding === "DB_HISTORY_HK_2025",
     "history-hk-2026": binding => binding === "DB_HISTORY_HK_2026",
     "source-hk-2025": binding => binding === "DB_SOURCE_HK_2025",
     "source-hk-2026": binding => binding === "DB_SOURCE_HK_2026",
+    "source-hk-before": binding => binding === "DB_SOURCE_HK_BEFORE",
   };
 
   const matcher = bindingMatchers[dbFamily];
@@ -74,9 +76,9 @@ targets_json="$(bun -e '
           ? "meta"
           : entry.binding === "DB_CURRENT"
             ? "current"
-            : /^DB_HISTORY_[A-Z]{2}_\d{4}$/.test(entry.binding)
+            : /^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(entry.binding)
               ? "history"
-              : /^DB_SOURCE_[A-Z]{2}_\d{4}$/.test(entry.binding)
+              : /^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(entry.binding)
                 ? "source"
                 : null;
 

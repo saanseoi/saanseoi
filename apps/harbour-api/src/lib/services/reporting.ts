@@ -1,7 +1,7 @@
 import { and, desc, eq, metaSchema } from '@repo/db'
 import { inArray, sql } from 'drizzle-orm'
-import { resolveShardForTypeRegionYear } from '@repo/core/db/metaRepository'
-import type { DataShardRecord } from '@repo/core/db/metaRepository'
+import { resolveShardForTypeRegionYear } from '@repo/core/db/metaRegistry'
+import type { DataShardRecord } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { DatasetType } from '@repo/db'
 
@@ -12,6 +12,7 @@ const {
   metaPublishers,
   metaReleaseShardAssignments,
   metaReleases,
+  releaseProcessingActions,
   stats,
 } = metaSchema
 
@@ -57,12 +58,37 @@ export type StatReportRow = {
   value: number
 }
 
+export type ProcessingActionReportRow = {
+  action: string
+  affectedRecordCount: number
+  createdAt: string
+  datasetCode: string
+  evidence: unknown
+  id: string
+  mode: 'automatic' | 'manual'
+  releaseCode: string
+  releaseId: string
+  source: string
+  summary: string
+  type: string
+  updatedAt: string
+}
+
 type StatQueryRow = Omit<StatReportRow, 'createdAt' | 'updatedAt'> & {
-  createdAt: Date
-  updatedAt: Date
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
+type ProcessingActionQueryRow = Omit<
+  ProcessingActionReportRow,
+  'createdAt' | 'updatedAt'
+> & {
+  createdAt: Date | string
+  updatedAt: Date | string
 }
 
 export type ReportFilters = {
+  datasetCode?: string
   limit?: number
   releaseCode?: string
   releaseId?: string
@@ -79,6 +105,7 @@ export type ReleaseReportRow = {
   datasetCode: string
   datasetId: string
   ingestedAt: string | null
+  notes: string | null
   originalFileName: string | null
   publicationDate: string | null
   rawObjectKey: string | null
@@ -100,19 +127,19 @@ type ReleaseContext = {
   regionCode: string
   releaseId: string
   source: string
-  sourceUrl: string
+  sourceUrl: string | null
   sourceVersion: string
   cohortKey: string | null
   type: string
 }
 
 type ReleaseQueryRow = Omit<ReleaseReportRow, 'rowCounts'> & {
-  createdAt: Date
-  ingestedAt: Date | null
+  createdAt: string
+  ingestedAt: string | null
   regionCode: string
-  revokedAt: Date | null
-  sourceUrl: string
-  updatedAt: Date
+  revokedAt: string | null
+  sourceUrl: string | null
+  updatedAt: string
 }
 
 type CountSpec = {
@@ -120,12 +147,17 @@ type CountSpec = {
   tableName: string
 } & (
   | {
+      additionalJoinKeys?: never
       parentTableName?: never
       parentKey?: never
       relationshipKey?: never
       strategy: 'direct'
     }
   | {
+      additionalJoinKeys?: Array<{
+        parentKey: string
+        relationshipKey: string
+      }>
       parentKey: string
       parentTableName: string
       relationshipKey: string
@@ -151,7 +183,7 @@ export async function listIngestRuns(
       startedAt: ingestRuns.startedAt,
       stats: ingestRuns.stats,
       status: ingestRuns.status,
-      type: metaDatasets.type,
+      type: metaReleases.resourceType,
     })
     .from(ingestRuns)
     .innerJoin(metaReleases, eq(ingestRuns.releaseId, metaReleases.id))
@@ -159,6 +191,7 @@ export async function listIngestRuns(
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .orderBy(desc(ingestRuns.startedAt), desc(ingestRuns.createdAt))
   const releaseIds = await listLatestIngestRunReleaseIds(db, {
+    datasetCode: options.datasetCode,
     limit: options.limit ?? 10,
     source: options.source,
     type: options.type,
@@ -177,8 +210,8 @@ export async function listIngestRuns(
 
   return rows.map(row => ({
     ...row,
-    error: normalizeJsonField(row.error),
-    stats: normalizeJsonField(row.stats),
+    error: normaliseJsonField(row.error),
+    stats: normaliseJsonField(row.stats),
   }))
 }
 
@@ -199,7 +232,7 @@ export async function listStats(
       releaseCode: metaReleases.code,
       releaseId: metaReleases.id,
       source: metaPublishers.code,
-      type: metaDatasets.type,
+      type: metaReleases.resourceType,
       updatedAt: stats.updatedAt,
       value: stats.value,
     })
@@ -232,6 +265,60 @@ export async function listStats(
   }))
 }
 
+export async function listProcessingActions(
+  db: HarbourReadableDb,
+  options: ReportFilters,
+): Promise<ProcessingActionReportRow[]> {
+  const query = db
+    .select({
+      action: releaseProcessingActions.action,
+      affectedRecordCount: releaseProcessingActions.affectedRecordCount,
+      createdAt: releaseProcessingActions.createdAt,
+      datasetCode: metaDatasets.code,
+      evidence: releaseProcessingActions.evidence,
+      id: releaseProcessingActions.id,
+      mode: releaseProcessingActions.mode,
+      releaseCode: metaReleases.code,
+      releaseId: metaReleases.id,
+      source: metaPublishers.code,
+      summary: releaseProcessingActions.summary,
+      type: metaReleases.resourceType,
+      updatedAt: releaseProcessingActions.updatedAt,
+    })
+    .from(releaseProcessingActions)
+    .innerJoin(metaReleases, eq(releaseProcessingActions.releaseId, metaReleases.id))
+    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+    .orderBy(
+      desc(releaseProcessingActions.createdAt),
+      desc(releaseProcessingActions.id),
+    )
+  const releaseIds = options.releaseId
+    ? [options.releaseId]
+    : await listLatestStatsReleaseIds(db, {
+        limit: options.limit ?? 1,
+        source: options.source,
+        type: options.type,
+      })
+
+  if (releaseIds.length === 0) return []
+
+  const whereClause = buildReportFilterWhereClause(options)
+  const rows = (
+    whereClause
+      ? await query.where(and(whereClause, inArray(metaReleases.id, releaseIds))).all()
+      : await query.where(inArray(metaReleases.id, releaseIds)).all()
+  ) as ProcessingActionQueryRow[]
+
+  return rows.map(row => ({
+    ...row,
+    createdAt: toIsoString(row.createdAt) ?? '',
+    evidence: normaliseJsonField(row.evidence),
+    mode: row.mode === 'manual' ? 'manual' : 'automatic',
+    updatedAt: toIsoString(row.updatedAt) ?? '',
+  }))
+}
+
 export async function listReleases(
   db: HarbourReadableDb,
   bindings: ReportBindings,
@@ -244,6 +331,7 @@ export async function listReleases(
       datasetCode: metaDatasets.code,
       datasetId: metaDatasets.id,
       ingestedAt: metaReleases.ingestedAt,
+      notes: metaReleases.notes,
       originalFileName: metaReleases.originalFileName,
       publicationDate: metaReleases.publicationDate,
       rawObjectKey: metaReleases.rawObjectKey,
@@ -258,7 +346,7 @@ export async function listReleases(
       sourceVersion: metaReleases.sourceVersion,
       status: metaReleases.status,
       supersededByReleaseId: metaReleases.supersededByReleaseId,
-      type: metaDatasets.type,
+      type: metaReleases.resourceType,
       updatedAt: metaReleases.updatedAt,
     })
     .from(metaReleases)
@@ -286,6 +374,7 @@ export async function listReleases(
     datasetCode: row.datasetCode,
     datasetId: row.datasetId,
     ingestedAt: toIsoString(row.ingestedAt),
+    notes: row.notes,
     originalFileName: row.originalFileName,
     publicationDate: row.publicationDate,
     rawObjectKey: row.rawObjectKey,
@@ -309,7 +398,7 @@ async function listLatestIngestRunReleaseIds(
   options: ReportFilters,
 ) {
   const latestStartedAt = sql<string>`max(${ingestRuns.startedAt})`
-  const latestCreatedAt = sql<number>`max(${ingestRuns.createdAt})`
+  const latestCreatedAt = sql<string>`max(${ingestRuns.createdAt})`
   const query = db
     .select({
       releaseId: metaReleases.id,
@@ -379,8 +468,8 @@ async function listLatestStatsReleaseIds(
   db: HarbourReadableDb,
   options: ReportFilters,
 ) {
-  const latestCreatedAt = sql<number>`max(${stats.createdAt})`
-  const latestUpdatedAt = sql<number>`max(${stats.updatedAt})`
+  const latestCreatedAt = sql<string>`max(${stats.createdAt})`
+  const latestUpdatedAt = sql<string>`max(${stats.updatedAt})`
   const query = db
     .select({
       createdAt: latestCreatedAt,
@@ -414,6 +503,10 @@ async function listLatestStatsReleaseIds(
 function buildReportFilterWhereClause(options: ReportFilters) {
   const conditions = []
 
+  if (options.datasetCode) {
+    conditions.push(eq(metaDatasets.code, options.datasetCode))
+  }
+
   if (options.releaseCode) {
     conditions.push(eq(metaReleases.code, options.releaseCode))
   }
@@ -427,7 +520,7 @@ function buildReportFilterWhereClause(options: ReportFilters) {
   }
 
   if (options.type) {
-    conditions.push(eq(metaDatasets.type, options.type))
+    conditions.push(eq(metaReleases.resourceType, options.type))
   }
 
   if (conditions.length === 0) {
@@ -523,23 +616,53 @@ async function buildSourceCountTargets(
   environment: 'preview' | 'production',
   releases: ReleaseContext[],
 ) {
-  const sourceShards = await resolveFallbackShardsByRelease(
+  const releaseIds = releases.map(release => release.releaseId)
+  const assignedSourceBindings = releaseIds.length
+    ? ((await db
+        .select({
+          bindingName: metaDataShards.bindingName,
+          releaseId: metaReleaseShardAssignments.releaseId,
+        })
+        .from(metaReleaseShardAssignments)
+        .innerJoin(
+          metaDataShards,
+          eq(metaReleaseShardAssignments.dataShardId, metaDataShards.id),
+        )
+        .where(
+          and(
+            inArray(metaReleaseShardAssignments.releaseId, releaseIds),
+            eq(metaDataShards.shardType, 'source'),
+            eq(metaDataShards.environment, environment),
+            eq(metaDataShards.status, 'active'),
+          ),
+        )
+        .all()) as Array<{ bindingName: string; releaseId: string }>)
+    : []
+  const assignedSourceBindingsByReleaseId = new Map(
+    assignedSourceBindings.map((row): [string, string] => [
+      row.releaseId,
+      row.bindingName,
+    ]),
+  )
+  const fallbackSourceShards = await resolveFallbackShardsByRelease(
     db,
     'source',
     environment,
-    releases,
+    releases.filter(release => {
+      return !assignedSourceBindingsByReleaseId.has(release.releaseId)
+    }),
   )
 
   return new Map(
     releases.map((release): [string, CountTarget] => {
-      const sourceShard = sourceShards.get(release.releaseId)
+      const bindingName =
+        assignedSourceBindingsByReleaseId.get(release.releaseId) ??
+        fallbackSourceShards.get(release.releaseId)?.bindingName
 
       return [
         release.releaseId,
         {
-          binding: sourceShard
-            ? resolveD1Binding(bindings, sourceShard.bindingName)
-            : undefined,
+          binding: bindingName ? resolveD1Binding(bindings, bindingName) : undefined,
           kind: 'source',
           releaseId: release.releaseId,
           specs: resolveSourceCountSpecs(release),
@@ -697,6 +820,16 @@ async function countReleaseRowsByReleaseIds(
 
   const placeholders = releaseIds.map((_, index) => `?${index + 1}`).join(', ')
   const releaseColumn = kind === 'history' ? 'sourceReleaseId' : 'releaseId'
+  const joinConditions =
+    spec.strategy === 'join'
+      ? [
+          `parent."${spec.parentKey}" = child."${spec.relationshipKey}"`,
+          ...(spec.additionalJoinKeys ?? []).map(
+            joinKey =>
+              `parent."${joinKey.parentKey}" = child."${joinKey.relationshipKey}"`,
+          ),
+        ].join(' AND ')
+      : ''
   const query =
     spec.strategy === 'direct'
       ? `SELECT "${releaseColumn}" AS releaseId, COUNT(*) AS count
@@ -706,7 +839,7 @@ async function countReleaseRowsByReleaseIds(
       : `SELECT parent."${releaseColumn}" AS releaseId, COUNT(*) AS count
          FROM "${spec.tableName}" child
          INNER JOIN "${spec.parentTableName}" parent
-           ON parent."${spec.parentKey}" = child."${spec.relationshipKey}"
+           ON ${joinConditions}
          WHERE parent."${releaseColumn}" IN (${placeholders})
          GROUP BY parent."${releaseColumn}"`
   const result = await binding
@@ -716,7 +849,7 @@ async function countReleaseRowsByReleaseIds(
       count: number | string
       releaseId: string
     }>()
-  const rows = normalizeCountRows(result)
+  const rows = normaliseCountRows(result)
 
   return new Map(
     releaseIds.map(releaseId => {
@@ -726,7 +859,7 @@ async function countReleaseRowsByReleaseIds(
   )
 }
 
-function normalizeCountRows(
+function normaliseCountRows(
   result:
     | Array<{
         count: number | string
@@ -752,6 +885,10 @@ function buildCountSpecKey(spec: CountSpec) {
         spec.parentTableName,
         spec.parentKey,
         spec.relationshipKey,
+        ...(spec.additionalJoinKeys ?? []).flatMap(joinKey => [
+          joinKey.parentKey,
+          joinKey.relationshipKey,
+        ]),
       ].join(':')
 }
 
@@ -767,84 +904,22 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
   const sourceFamily = resolveSourceFamily(release)
 
   switch (sourceFamily) {
-    case 'hkgov-als':
+    case 'hkgov-dpo':
       return [
         {
           label: 'source',
           strategy: 'direct',
-          tableName: 'sourceHkgovAlsAddresses2d',
-        },
-        {
-          label: 'sourceI18n',
-          parentKey: 'sourceRecordId',
-          parentTableName: 'sourceHkgovAlsAddresses2d',
-          relationshipKey: 'sourceRecordId',
-          strategy: 'join',
-          tableName: 'sourceHkgovAlsAddress2dI18n',
-        },
-        {
-          label: 'sourceVersions',
-          strategy: 'direct',
-          tableName: 'sourceHkgovAlsAddresses2dVersions',
-        },
-        {
-          label: 'sourceI18nVersions',
-          strategy: 'direct',
-          tableName: 'sourceHkgovAlsAddress2dI18nVersions',
+          tableName: 'hkgovAlsAddresses2d',
         },
       ]
     case 'overture':
       switch (release.type) {
-        case 'address':
-          return [
-            {
-              label: 'source',
-              strategy: 'direct',
-              tableName: 'sourceOvertureAddresses2d',
-            },
-            {
-              label: 'sourceI18n',
-              parentKey: 'sourceRecordId',
-              parentTableName: 'sourceOvertureAddresses2d',
-              relationshipKey: 'sourceRecordId',
-              strategy: 'join',
-              tableName: 'sourceOvertureAddress2dI18n',
-            },
-            {
-              label: 'sourceVersions',
-              strategy: 'direct',
-              tableName: 'sourceOvertureAddresses2dVersions',
-            },
-            {
-              label: 'sourceI18nVersions',
-              strategy: 'direct',
-              tableName: 'sourceOvertureAddress2dI18nVersions',
-            },
-          ]
         case 'division':
           return [
             {
               label: 'source',
               strategy: 'direct',
-              tableName: 'sourceOvertureDivisions',
-            },
-            {
-              label: 'sourceI18n',
-              parentKey: 'sourceRecordId',
-              parentTableName: 'sourceOvertureDivisions',
-              relationshipKey: 'sourceRecordId',
-              strategy: 'join',
-              tableName: 'sourceOvertureDivisionI18n',
-            },
-            {
-              label: 'sourceVersions',
-              strategy: 'direct',
-              tableName: 'sourceOvertureDivisionsVersions',
-            },
-            {
-              label: 'sourceI18nVersions',
-              strategy: 'direct',
-              tableName: 'sourceOvertureDivisionI18nVersions',
+              tableName: 'overtureDivisions',
             },
           ]
         case 'place':
@@ -852,25 +927,7 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
             {
               label: 'source',
               strategy: 'direct',
-              tableName: 'sourceOverturePlaces',
-            },
-            {
-              label: 'sourceI18n',
-              parentKey: 'sourceRecordId',
-              parentTableName: 'sourceOverturePlaces',
-              relationshipKey: 'sourceRecordId',
-              strategy: 'join',
-              tableName: 'sourceOverturePlaceI18n',
-            },
-            {
-              label: 'sourceVersions',
-              strategy: 'direct',
-              tableName: 'sourceOverturePlacesVersions',
-            },
-            {
-              label: 'sourceI18nVersions',
-              strategy: 'direct',
-              tableName: 'sourceOverturePlaceI18nVersions',
+              tableName: 'overturePlaces',
             },
           ]
         default:
@@ -886,63 +943,63 @@ function resolveHistoryCountSpecs(type: string): CountSpec[] {
     case 'address':
       return [
         {
-          label: 'history2dVersions',
+          label: 'resourceType',
           strategy: 'direct',
-          tableName: 'address2dVersions',
+          tableName: 'address2d',
         },
         {
-          label: 'history2dI18nVersions',
+          label: 'resourceTypeI18n',
           strategy: 'direct',
-          tableName: 'address2dVersionsI18n',
+          tableName: 'address2dI18n',
         },
         {
-          label: 'history3dVersions',
+          label: 'resourceDetail',
           strategy: 'direct',
-          tableName: 'address3dVersions',
+          tableName: 'address3d',
         },
         {
-          label: 'history3dI18nVersions',
+          label: 'resourceDetailI18n',
           strategy: 'direct',
-          tableName: 'address3dVersionsI18n',
+          tableName: 'address3dI18n',
         },
       ]
     case 'division':
       return [
         {
-          label: 'historyVersions',
+          label: 'resourceType',
           strategy: 'direct',
-          tableName: 'divisionsVersions',
+          tableName: 'divisions',
         },
         {
-          label: 'historyI18nVersions',
+          label: 'resourceTypeI18n',
           strategy: 'direct',
-          tableName: 'divisionsVersionsI18n',
+          tableName: 'divisionsI18n',
         },
       ]
     case 'place':
       return [
         {
-          label: 'historyVersions',
+          label: 'resourceType',
           strategy: 'direct',
-          tableName: 'placesVersions',
+          tableName: 'places',
         },
         {
-          label: 'historyI18nVersions',
+          label: 'resourceTypeI18n',
           strategy: 'direct',
-          tableName: 'placesVersionsI18n',
+          tableName: 'placesI18n',
         },
       ]
     case 'street':
       return [
         {
-          label: 'historyVersions',
+          label: 'resourceType',
           strategy: 'direct',
-          tableName: 'streetsVersions',
+          tableName: 'streets',
         },
         {
-          label: 'historyI18nVersions',
+          label: 'resourceTypeI18n',
           strategy: 'direct',
-          tableName: 'streetsVersionsI18n',
+          tableName: 'streetsI18n',
         },
       ]
     default:
@@ -951,18 +1008,18 @@ function resolveHistoryCountSpecs(type: string): CountSpec[] {
 }
 
 function resolveSourceFamily(release: ReleaseContext) {
-  const normalizedSource = release.source.trim().toLowerCase()
-  const normalizedSourceUrl = release.sourceUrl.trim().toLowerCase()
+  const normalisedSource = release.source.trim().toLowerCase()
+  const normalisedSourceUrl = release.sourceUrl?.trim().toLowerCase() ?? ''
 
-  if (normalizedSource === 'overture') {
+  if (normalisedSource === 'overture') {
     return 'overture'
   }
 
-  if (normalizedSource === 'hkgov' && normalizedSourceUrl.includes('als')) {
-    return 'hkgov-als'
+  if (normalisedSource === 'hkgov' && normalisedSourceUrl.includes('dpo')) {
+    return 'hkgov-dpo'
   }
 
-  return normalizedSource
+  return normalisedSource
 }
 
 function resolveReleaseYear(release: ReleaseContext) {
@@ -976,7 +1033,7 @@ function resolveReleaseYear(release: ReleaseContext) {
   return snapshotYear && /^\d{4}$/.test(snapshotYear) ? snapshotYear : null
 }
 
-function normalizeJsonField(value: unknown) {
+function normaliseJsonField(value: unknown) {
   if (typeof value !== 'string') {
     return value ?? null
   }

@@ -1,7 +1,21 @@
 import type { ReleaseStatus } from '@repo/db'
 
-export const resourceThemes = ['divisions', 'addresses', 'places', 'streets'] as const
-export const resourceTypes = ['division', 'address', 'place', 'street'] as const
+export const resourceThemes = [
+  'divisions',
+  'addresses',
+  'places',
+  'streets',
+  'stats',
+] as const
+export const resourceTypes = [
+  'division',
+  'divisionArea',
+  'divisionBoundary',
+  'divisionStatistic',
+  'address',
+  'place',
+  'street',
+] as const
 
 export type ResourceTheme = (typeof resourceThemes)[number]
 export type ResourceType = (typeof resourceTypes)[number]
@@ -17,10 +31,14 @@ export type DatasetRecord = {
   cohortKey: string
   theme: string
   type: string
+  subType: string | null
+  sourceVariant: string
   source: string
   sourceVersion: string
-  rawObjectKey: string
+  rawObjectKey: string | null
   originalFileName: string
+  releaseNotesUrl: string | null
+  notes: string | null
   status: ReleaseStatus
   supersedesDatasetId: string | null
   supersededByReleaseId: string | null
@@ -37,7 +55,11 @@ export type ParquetSchemaField = {
   nullable: boolean
 }
 
-export type ParquetInspection = {
+/**
+ * Validated upload-input shape. Parquet is one producer of this data; native
+ * publisher archives provide the same contract after source-format validation.
+ */
+export type UploadInspection = {
   rowCount: number
   schema: ParquetSchemaField[]
   distinctThemeValues: string[]
@@ -47,7 +69,7 @@ export type ParquetInspection = {
 }
 
 export type SchemaFingerprintResolver = (
-  rawObjectKey: string,
+  rawObjectKey: string | null,
   datasetId: string,
 ) => Promise<string | null>
 
@@ -65,11 +87,12 @@ export type UploadPlan = {
   filePath: string
   fileName: string
   originalFileName: string
+  releaseNotesUrl?: string
   rowCount: number
   schemaFingerprint: string
   inferredFrom: {
-    theme: 'path' | 'parquet' | 'flag'
-    type: 'path' | 'parquet' | 'flag'
+    theme: 'path' | 'filename' | 'parquet' | 'flag'
+    type: 'path' | 'filename' | 'parquet' | 'flag'
     regionCode: 'path' | 'parquet' | 'flag'
     cohortKey: 'path' | 'filename' | 'flag' | 'sourceVersion'
     source: 'flag' | 'path' | 'filename'
@@ -79,6 +102,8 @@ export type UploadPlan = {
 }
 
 export type RegisterUploadOptions = {
+  /** Explicit registered dataset for a source that publishes several products of one type. */
+  datasetCode?: string
   filePath: string
   originalFileName?: string
   regionCode?: string
@@ -87,9 +112,10 @@ export type RegisterUploadOptions = {
   type?: string
   source?: string
   sourceVersion?: string
+  releaseNotesUrl?: string
   shardYear?: string
   dryRun?: boolean
-  inspection?: ParquetInspection
+  inspection?: UploadInspection
   rawObjectKey?: string
   resolveSchemaFingerprint?: SchemaFingerprintResolver
   allowExistingDatasetStatuses?: ReleaseStatus[]
@@ -97,12 +123,12 @@ export type RegisterUploadOptions = {
 
 export type PreparedUploadResult = {
   plan: UploadPlan
-  inspection: ParquetInspection
+  inspection: UploadInspection
 }
 
 export type RegisterUploadResult = {
   plan: UploadPlan
-  inspection: ParquetInspection
+  inspection: UploadInspection
   datasetId: string | null
   rawObjectKey: string | null
   releaseId: string | null
@@ -123,6 +149,39 @@ export type DatasetProcessingMessage = {
   theme: ResourceTheme
   type: ResourceType
   skipSnapshotCleanup?: boolean
+  preplannedAddressChunks?: boolean
+  rowStart?: number
+  rowEnd?: number
+  totalRows?: number
+  chunkSize?: number
+  processingRunStartedAt?: string
+  processingMode?: 'direct' | 'sql'
+  addressStage?:
+    | 'normalise'
+    | 'source'
+    | 'history'
+    | 'current'
+    | 'finalise'
+    | 'sql-source'
+    | 'sql-history'
+    | 'sql-current'
+    | 'sql-finalise'
+    | 'sql-import-source'
+    | 'sql-import-history'
+    | 'sql-import-current'
+    | 'sql-import-meta'
+    | 'sql-cleanup-staging'
+  artefactKey?: string
+  resolvedArtefactKey?: string
+  addressSqlArtefactKeys?: string[]
+  addressSqlPublishAfterCleanup?: boolean
+  addressStats?: {
+    deletedRows: number
+    insertedVersions: number
+    localisedRows: number
+    processedRows: number
+    unchangedRows: number
+  }
 }
 
 export type SnapshotCleanupMessage = {
@@ -132,4 +191,12 @@ export type SnapshotCleanupMessage = {
   snapshotIds?: string[]
 }
 
-export type HarbourJobMessage = DatasetProcessingMessage | SnapshotCleanupMessage
+export type AddressSqlStagingCleanupMessage = DatasetProcessingMessage & {
+  addressStage: 'sql-cleanup-staging'
+  jobType?: 'processDataset'
+  processingMode: 'sql'
+}
+
+// Harbour's only remote queue work is snapshot cleanup. Dataset processing runs
+// in the local CLI pipeline and must not be dispatched to this queue.
+export type HarbourJobMessage = SnapshotCleanupMessage

@@ -1,6 +1,6 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
+import { listDatasets } from '@repo/core/db/metaRegistry'
 
-import { listDatasets } from '../../db/meta'
 import {
   markNewsletterFailed,
   markNewsletterPending,

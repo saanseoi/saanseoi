@@ -1,11 +1,9 @@
 import type { SnapshotCleanupMessage } from '@repo/core'
 import type { ResourceType } from '@repo/core'
-import { listCurrentSnapshotCleanupCandidates } from '@repo/core/db/metaRepository'
+import { listCurrentSnapshotCleanupCandidates } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { currentSchema, eq } from '@repo/db'
 import type { CurrentDatabase, MetaDatabase } from '@repo/db'
-
-import { runStatementsInGroupsWithWriteRetry } from '../utils'
 
 type SnapshotCleanupCandidate = {
   snapshotId: string
@@ -16,6 +14,16 @@ type SnapshotCleanupResult = {
   deletedSnapshots: number
   skippedSnapshots: number
   snapshotIds: string[]
+}
+
+async function runStatementsInGroups(_db: unknown, statements: unknown[]) {
+  for (const statement of statements) {
+    const runnable = statement as { run?: () => unknown | Promise<unknown> }
+
+    if (typeof runnable.run === 'function') {
+      await runnable.run()
+    }
+  }
 }
 
 export async function cleanupCurrentSnapshots(
@@ -32,7 +40,14 @@ export async function cleanupCurrentSnapshots(
   const snapshotIds: string[] = []
   let skippedSnapshots = 0
 
-  for (const resourceType of ['place', 'address', 'street', 'division'] as const) {
+  for (const resourceType of [
+    'place',
+    'address',
+    'street',
+    'division',
+    'divisionArea',
+    'divisionBoundary',
+  ] as const) {
     for (const candidate of candidates.filter(
       candidate => candidate.resourceType === resourceType,
     )) {
@@ -91,6 +106,16 @@ async function cleanupSnapshotByResourceType(
       }
       await deleteDivisionSnapshot(db, candidate.snapshotId)
       return true
+    case 'divisionArea':
+      await db
+        .delete(currentSchema.divisionAreas)
+        .where(eq(currentSchema.divisionAreas.snapshotId, candidate.snapshotId))
+      return true
+    case 'divisionBoundary':
+      await db
+        .delete(currentSchema.divisionBoundaries)
+        .where(eq(currentSchema.divisionBoundaries.snapshotId, candidate.snapshotId))
+      return true
   }
 }
 
@@ -98,7 +123,7 @@ async function deletePlaceSnapshot(
   db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
 ) {
-  await runStatementsInGroupsWithWriteRetry(db, [
+  await runStatementsInGroups(db, [
     db
       .delete(currentSchema.placesFts)
       .where(eq(currentSchema.placesFts.snapshotId, snapshotId)),
@@ -121,7 +146,7 @@ async function deleteAddressSnapshot(
   db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
 ) {
-  await runStatementsInGroupsWithWriteRetry(db, [
+  await runStatementsInGroups(db, [
     db
       .delete(currentSchema.address3dI18n)
       .where(eq(currentSchema.address3dI18n.snapshotId, snapshotId)),
@@ -144,7 +169,7 @@ async function deleteStreetSnapshot(
   db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
 ) {
-  await runStatementsInGroupsWithWriteRetry(db, [
+  await runStatementsInGroups(db, [
     db
       .delete(currentSchema.streetsAddress)
       .where(eq(currentSchema.streetsAddress.streetSnapshotId, snapshotId)),
@@ -161,7 +186,7 @@ async function deleteDivisionSnapshot(
   db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
 ) {
-  await runStatementsInGroupsWithWriteRetry(db, [
+  await runStatementsInGroups(db, [
     db
       .delete(currentSchema.divisionsI18n)
       .where(eq(currentSchema.divisionsI18n.snapshotId, snapshotId)),

@@ -1,6 +1,8 @@
 import { browser } from '$app/environment'
 import { getLocale, setLocale } from '@repo/i18n/runtime'
 
+import { setUserLocale } from '$lib/locale.remote'
+
 import type { AppLocale } from './i18n'
 
 const localeState = $state<{ current: AppLocale | null }>({
@@ -13,9 +15,14 @@ export function getCurrentLocale() {
   return localeState.current ?? (getLocale() as AppLocale)
 }
 
-export async function updateLocale(nextLocale: AppLocale) {
+export function updateLocale(nextLocale: AppLocale) {
   if (getLocale() === nextLocale) return
 
   localeState.current = nextLocale
-  await setLocale(nextLocale, { reload: false })
+  void Promise.all([
+    setLocale(nextLocale, { reload: false }),
+    setUserLocale(nextLocale),
+  ]).catch(error => {
+    console.error('Unable to persist locale preference.', error)
+  })
 }

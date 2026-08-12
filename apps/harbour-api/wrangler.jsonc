@@ -4,6 +4,9 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-05-01",
   "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "public"
+  },
   "define": {
     "__VUE_OPTIONS_API__": "true",
     "__VUE_PROD_DEVTOOLS__": "false",
@@ -12,10 +15,8 @@
   "secrets": {
     "required": [
       "D1_PLACEMENT_PROBE_API_KEY",
+      "AZURE_TRANSLATION_KEY",
       "HARBOUR_API_KEY",
-      "R2_ACCOUNT_ID",
-      "R2_RAW_ACCESS_KEY_ID",
-      "R2_RAW_SECRET_ACCESS_KEY",
       "TELEGRAM_BOT_TOKEN",
       "TELEGRAM_ADMIN_ID"
     ]
@@ -23,8 +24,7 @@
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
     "DATA_SHARD_ENV": "preview",
-    "HARBOUR_BASE_URL": "http://localhost:8788",
-    "R2_RAW_BUCKET_NAME": "ss-raw-preview"
+    "HARBOUR_BASE_URL": "http://localhost:8788"
   },
   "d1_databases": [
     {
@@ -40,6 +40,13 @@
       "database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
       "migrations_dir": "../../libs/db/migrations/current",
       "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
+    },
+    {
+      "binding": "DB_HISTORY_HK_BEFORE",
+      "database_name": "ss-history-hk-before-db-preview",
+      "migrations_dir": "../../libs/db/migrations/history",
+      "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+      "database_id": "aa2d7228-c2dd-413b-8b23-d3e92f2b5b9a"
     },
     {
       "binding": "DB_HISTORY_HK_2025",
@@ -63,6 +70,13 @@
       "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
     },
     {
+      "binding": "DB_SOURCE_HK_BEFORE",
+      "database_name": "ss-source-hk-before-db-preview",
+      "migrations_dir": "../../libs/db/migrations/source",
+      "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql",
+      "database_id": "6265ab9d-f70d-4893-bc24-91d0bce8642e"
+    },
+    {
       "binding": "DB_SOURCE_HK_2026",
       "database_name": "ss-source-hk-2026-db-preview",
       "database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
@@ -75,8 +89,8 @@
   },
   "r2_buckets": [
     {
-      "binding": "R2_RAW",
-      "bucket_name": "ss-raw-preview"
+      "binding": "R2_ASSETS",
+      "bucket_name": "ss-assets-preview"
     }
   ],
   "queues": {
@@ -89,14 +103,25 @@
   },
   "minify": true,
   "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
     "logs": {
       "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "destinations": ["cloudflare"],
       "invocation_logs": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.1,
+      "persist": true,
+      "destinations": ["cloudflare"]
     }
   },
   "env": {
     "preview": {
-      "name": "ss-harbour-preview",
+      "name": "ss-harbour-api-preview",
       "placement": {
         "region": "azure:eastasia"
       },
@@ -108,10 +133,8 @@
       "secrets": {
         "required": [
           "D1_PLACEMENT_PROBE_API_KEY",
+          "AZURE_TRANSLATION_KEY",
           "HARBOUR_API_KEY",
-          "R2_ACCOUNT_ID",
-          "R2_RAW_ACCESS_KEY_ID",
-          "R2_RAW_SECRET_ACCESS_KEY",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
         ]
@@ -119,8 +142,7 @@
       "vars": {
         "ATLAS_BASE_URL": "https://preview.api.saanseoi.hk",
         "DATA_SHARD_ENV": "preview",
-        "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk",
-        "R2_RAW_BUCKET_NAME": "ss-raw-preview"
+        "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk"
       },
       "d1_databases": [
         {
@@ -136,6 +158,13 @@
           "database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
           "migrations_dir": "../../libs/db/migrations/current",
           "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
+        },
+        {
+          "binding": "DB_HISTORY_HK_BEFORE",
+          "database_name": "ss-history-hk-before-db-preview",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+          "database_id": "aa2d7228-c2dd-413b-8b23-d3e92f2b5b9a"
         },
         {
           "binding": "DB_HISTORY_HK_2025",
@@ -159,6 +188,13 @@
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
         },
         {
+          "binding": "DB_SOURCE_HK_BEFORE",
+          "database_name": "ss-source-hk-before-db-preview",
+          "migrations_dir": "../../libs/db/migrations/source",
+          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql",
+          "database_id": "6265ab9d-f70d-4893-bc24-91d0bce8642e"
+        },
+        {
           "binding": "DB_SOURCE_HK_2026",
           "database_name": "ss-source-hk-2026-db-preview",
           "database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
@@ -168,8 +204,8 @@
       ],
       "r2_buckets": [
         {
-          "binding": "R2_RAW",
-          "bucket_name": "ss-raw-preview"
+          "binding": "R2_ASSETS",
+          "bucket_name": "ss-assets-preview"
         }
       ],
       "queues": {
@@ -188,7 +224,7 @@
       ]
     },
     "production": {
-      "name": "ss-harbour-production",
+      "name": "ss-harbour-api-prod",
       "placement": {
         "region": "azure:eastasia"
       },
@@ -200,10 +236,8 @@
       "secrets": {
         "required": [
           "D1_PLACEMENT_PROBE_API_KEY",
+          "AZURE_TRANSLATION_KEY",
           "HARBOUR_API_KEY",
-          "R2_ACCOUNT_ID",
-          "R2_RAW_ACCESS_KEY_ID",
-          "R2_RAW_SECRET_ACCESS_KEY",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
         ]
@@ -211,8 +245,7 @@
       "vars": {
         "ATLAS_BASE_URL": "https://api.saanseoi.hk",
         "DATA_SHARD_ENV": "production",
-        "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk",
-        "R2_RAW_BUCKET_NAME": "ss-raw-prod"
+        "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk"
       },
       "d1_databases": [
         {
@@ -228,6 +261,13 @@
           "database_id": "edd3cdf9-1d05-4847-b235-b7fd4189c38d",
           "migrations_dir": "../../libs/db/migrations/current",
           "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
+        },
+        {
+          "binding": "DB_HISTORY_HK_BEFORE",
+          "database_name": "ss-history-hk-before-db-prod",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+          "database_id": "94f74b90-42c5-4c2d-98da-f0eae188d836"
         },
         {
           "binding": "DB_HISTORY_HK_2025",
@@ -251,6 +291,13 @@
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
         },
         {
+          "binding": "DB_SOURCE_HK_BEFORE",
+          "database_name": "ss-source-hk-before-db-prod",
+          "migrations_dir": "../../libs/db/migrations/source",
+          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql",
+          "database_id": "45ab08a6-bacc-41ea-9c35-55c3d825de4a"
+        },
+        {
           "binding": "DB_SOURCE_HK_2026",
           "database_name": "ss-source-hk-2026-db-prod",
           "database_id": "dca6df89-880b-42f8-92a8-08f4919a582a",
@@ -260,8 +307,8 @@
       ],
       "r2_buckets": [
         {
-          "binding": "R2_RAW",
-          "bucket_name": "ss-raw-prod"
+          "binding": "R2_ASSETS",
+          "bucket_name": "ss-assets-prod"
         }
       ],
       "queues": {

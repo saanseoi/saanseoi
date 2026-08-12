@@ -1,0 +1,59 @@
+{
+  "versionHash": "sha256:e81360b20e08c546838b44e2dacd37b3b0d862fb9993591fd97170422ba0bf39",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "five-yearly",
+  "theme": "stats",
+  "resourceTypes": ["divisionStatistic"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934103275_66203",
+  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/b3f0372efef6e9b26d05f13d02d52fd631e1767f0d88f763b8bd86d500ed7bf4",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["revision"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934103275_66203"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2021"
+    }
+  ],
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Permanent Living Quarters by District Council District",
+      "description": "Planned C&SD source for District Council district permanent living-quarters stock."
+    }
+  ]
+}

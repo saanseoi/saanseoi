@@ -1,0 +1,298 @@
+import { normaliseBaseUrl } from '@repo/core'
+
+import type { UploadTarget } from '../cli/options.ts'
+import { getAuthHeaders, resolveHarbourApiUrl } from './api.ts'
+
+export type ReportRowCount = {
+  kind: 'history' | 'source'
+  label: string
+  rowCount: number
+  tableName: string
+}
+
+export type IngestRunReportRow = {
+  datasetCode: string
+  error: unknown
+  finishedAt: string | null
+  phase: string
+  releaseCode: string
+  releaseId: string
+  runId: string
+  cohortKey: string | null
+  source: string
+  startedAt: string
+  stats: unknown
+  status: string
+  type: string
+}
+
+export type StatReportRow = {
+  createdAt: string
+  datasetCode: string
+  dimension: string
+  groupBy: string | null
+  groupValue: string | null
+  id: string
+  metric: string
+  metricUnit: string
+  releaseCode: string
+  releaseId: string
+  source: string
+  type: string
+  updatedAt: string
+  value: number
+}
+
+export type ProcessingActionReportRow = {
+  action: string
+  affectedRecordCount: number
+  createdAt: string
+  datasetCode: string
+  evidence: unknown
+  id: string
+  mode: 'automatic' | 'manual'
+  releaseCode: string
+  releaseId: string
+  source: string
+  summary: string
+  type: string
+  updatedAt: string
+}
+
+export type ReleaseReportRow = {
+  createdAt: string
+  datasetCode: string
+  datasetId: string
+  ingestedAt: string | null
+  notes: string | null
+  originalFileName: string | null
+  publicationDate: string | null
+  rawObjectKey: string | null
+  releaseCode: string
+  releaseId: string
+  revocationReason: string | null
+  revokedAt: string | null
+  rowCounts: ReportRowCount[]
+  cohortKey: string | null
+  source: string
+  sourceVersion: string
+  status: string
+  supersededByReleaseId: string | null
+  type: string
+  updatedAt: string
+}
+
+type IngestRunReportResponse = {
+  rows: IngestRunReportRow[]
+}
+
+type StatsReportResponse = {
+  rows: StatReportRow[]
+}
+
+type ProcessingActionReportResponse = {
+  rows: ProcessingActionReportRow[]
+}
+
+type ReleaseReportResponse = {
+  rows: ReleaseReportRow[]
+}
+
+const REPORT_READ_RETRY_LIMIT = 3
+const REPORT_READ_RETRY_DELAY_MS = 250
+
+function parseLimit(limit: number | undefined) {
+  if (limit == null) {
+    return 10
+  }
+
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+    throw new Error('`--limit` must be an integer between 1 and 100.')
+  }
+
+  return limit
+}
+
+async function parseJsonResponse<T>(response: Response, action: string) {
+  const payload = (await response.json().catch(() => null)) as Record<
+    string,
+    unknown
+  > | null
+
+  if (!response.ok) {
+    const message =
+      typeof payload?.message === 'string'
+        ? payload.message
+        : `${action} failed with status ${response.status}.`
+
+    throw new Error(message)
+  }
+
+  return payload as T
+}
+
+async function fetchReport<T>(url: URL, action: string) {
+  let lastError: unknown
+
+  for (let attempt = 0; attempt <= REPORT_READ_RETRY_LIMIT; attempt += 1) {
+    try {
+      const response = await fetch(url.toString(), {
+        headers: getAuthHeaders(),
+        method: 'GET',
+      })
+      return await parseJsonResponse<T>(response, action)
+    } catch (error) {
+      lastError = error
+      if (attempt === REPORT_READ_RETRY_LIMIT || !isRetryableReportReadError(error)) {
+        throw error
+      }
+
+      await new Promise(resolve =>
+        setTimeout(resolve, REPORT_READ_RETRY_DELAY_MS * 2 ** attempt),
+      )
+    }
+  }
+
+  throw lastError
+}
+
+function isRetryableReportReadError(error: unknown) {
+  return (
+    error instanceof Error &&
+    /database is locked|sqlite_busy|internal error/i.test(error.message)
+  )
+}
+
+export async function fetchIngestRunReport(
+  target: UploadTarget,
+  options?: {
+    limit?: number
+    releaseCode?: string
+    releaseId?: string
+    source?: string
+    type?: string
+  },
+) {
+  const apiBaseUrl = resolveHarbourApiUrl(target)
+  const url = new URL(`${normaliseBaseUrl(apiBaseUrl)}/v1/reports/ingestion`)
+
+  if (options?.limit != null) {
+    url.searchParams.set('limit', String(parseLimit(options.limit)))
+  }
+
+  if (options?.releaseCode) {
+    url.searchParams.set('releaseCode', options.releaseCode)
+  }
+
+  if (options?.releaseId) {
+    url.searchParams.set('releaseId', options.releaseId)
+  }
+
+  if (options?.source) {
+    url.searchParams.set('source', options.source)
+  }
+
+  if (options?.type) {
+    url.searchParams.set('type', options.type)
+  }
+
+  return fetchReport<IngestRunReportResponse>(url, 'Harbour ingestion report')
+}
+
+export async function fetchStatsReport(
+  target: UploadTarget,
+  options?: {
+    limit?: number
+    releaseId?: string
+    source?: string
+    type?: string
+  },
+) {
+  const apiBaseUrl = resolveHarbourApiUrl(target)
+  const url = new URL(`${normaliseBaseUrl(apiBaseUrl)}/v1/reports/stats`)
+
+  if (options?.limit != null) {
+    url.searchParams.set('limit', String(parseLimit(options.limit)))
+  }
+
+  if (options?.releaseId) {
+    url.searchParams.set('releaseId', options.releaseId)
+  }
+
+  if (options?.source) {
+    url.searchParams.set('source', options.source)
+  }
+
+  if (options?.type) {
+    url.searchParams.set('type', options.type)
+  }
+
+  return fetchReport<StatsReportResponse>(url, 'Harbour stats report')
+}
+
+export async function fetchProcessingActionReport(
+  target: UploadTarget,
+  options?: {
+    limit?: number
+    releaseCode?: string
+    releaseId?: string
+    source?: string
+    type?: string
+  },
+) {
+  const apiBaseUrl = resolveHarbourApiUrl(target)
+  const url = new URL(`${normaliseBaseUrl(apiBaseUrl)}/v1/reports/processing-actions`)
+
+  if (options?.limit != null)
+    url.searchParams.set('limit', String(parseLimit(options.limit)))
+  if (options?.releaseCode) url.searchParams.set('releaseCode', options.releaseCode)
+  if (options?.releaseId) url.searchParams.set('releaseId', options.releaseId)
+  if (options?.source) url.searchParams.set('source', options.source)
+  if (options?.type) url.searchParams.set('type', options.type)
+
+  return fetchReport<ProcessingActionReportResponse>(
+    url,
+    'Harbour processing-actions report',
+  )
+}
+
+export async function fetchReleaseReport(
+  target: UploadTarget,
+  options?: {
+    datasetCode?: string
+    limit?: number
+    releaseCode?: string
+    releaseId?: string
+    source?: string
+    type?: string
+  },
+) {
+  const apiBaseUrl = resolveHarbourApiUrl(target)
+  const url = new URL(`${normaliseBaseUrl(apiBaseUrl)}/v1/reports/releases`)
+
+  if (options?.datasetCode) {
+    url.searchParams.set('datasetCode', options.datasetCode)
+  }
+
+  if (options?.limit != null) {
+    url.searchParams.set('limit', String(parseLimit(options.limit)))
+  }
+
+  if (options?.releaseCode) {
+    url.searchParams.set('releaseCode', options.releaseCode)
+  }
+
+  if (options?.releaseId) {
+    url.searchParams.set('releaseId', options.releaseId)
+  }
+
+  if (options?.source) {
+    url.searchParams.set('source', options.source)
+  }
+
+  if (options?.type) {
+    url.searchParams.set('type', options.type)
+  }
+
+  return fetchReport<ReleaseReportResponse>(url, 'Harbour releases report')
+}

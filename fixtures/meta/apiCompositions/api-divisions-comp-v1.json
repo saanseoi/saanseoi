@@ -1,0 +1,211 @@
+{
+  "versionHash": "sha256:6fee6ee85b2a17d0e59f7206c5fff3d704adbad270105d3569465397d65083d9",
+  "apiVersion": "api-divisions-v0.1",
+  "code": "comp-divisions-v1",
+  "version": 1,
+  "primaryResourceType": "division",
+  "status": "current",
+  "domains": [
+    {
+      "code": "overture",
+      "isDefault": true,
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Overture",
+          "description": "Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."
+        },
+        {
+          "locale": "zh-hant",
+          "name": "Overture",
+          "description": "探索用以描述香港的地理及行政分區，包括地區、規劃單元、新市鎮、邊界及面積範圍。"
+        },
+        {
+          "locale": "zh-hans",
+          "name": "Overture",
+          "description": "探索用以描述香港的地理及行政分区，包括地区、规划单元、新市镇、边界及面积范围。"
+        }
+      ],
+      "members": [
+        {
+          "resourceType": "division",
+          "variant": "overture",
+          "role": "primary",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 0
+        },
+        {
+          "resourceType": "divisionArea",
+          "variant": "overture",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 10,
+          "ingestDependencies": [
+            {
+              "resourceType": "division",
+              "variant": "overture"
+            }
+          ]
+        },
+        {
+          "resourceType": "divisionArea",
+          "variant": "hkgov-had",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
+          "priority": 11
+        },
+        {
+          "resourceType": "divisionArea",
+          "variant": "hkgov-censtatd:2016",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
+          "priority": 12
+        },
+        {
+          "resourceType": "divisionArea",
+          "variant": "hkgov-censtatd:2021",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
+          "priority": 13
+        },
+        {
+          "resourceType": "divisionBoundary",
+          "variant": "overture",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 20,
+          "ingestDependencies": [
+            {
+              "resourceType": "division",
+              "variant": "overture"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "hkgov-pland-pu",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Planning Unit",
+          "description": "Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."
+        },
+        {
+          "locale": "zh-hant",
+          "name": "規劃單元",
+          "description": "探索用以描述香港的地理及行政分區，包括地區、規劃單元、新市鎮、邊界及面積範圍。"
+        },
+        {
+          "locale": "zh-hans",
+          "name": "规划单元",
+          "description": "探索用以描述香港的地理及行政分区，包括地区、规划单元、新市镇、边界及面积范围。"
+        }
+      ],
+      "members": [
+        {
+          "resourceType": "division",
+          "variant": "hkgov-pland-pu",
+          "role": "primary",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 0
+        },
+        {
+          "resourceType": "divisionArea",
+          "variant": "hkgov-pland-pu",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 10,
+          "ingestDependencies": [
+            {
+              "resourceType": "division",
+              "variant": "hkgov-pland-pu"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "hkgov-pland-new-town",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "New Town",
+          "description": "Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."
+        },
+        {
+          "locale": "zh-hant",
+          "name": "新市鎮",
+          "description": "探索用以描述香港的地理及行政分區，包括地區、規劃單元、新市鎮、邊界及面積範圍。"
+        },
+        {
+          "locale": "zh-hans",
+          "name": "新市镇",
+          "description": "探索用以描述香港的地理及行政分区，包括地区、规划单元、新市镇、边界及面积范围。"
+        }
+      ],
+      "members": [
+        {
+          "resourceType": "division",
+          "variant": "hkgov-pland-new-town",
+          "role": "primary",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 0
+        },
+        {
+          "resourceType": "divisionArea",
+          "variant": "hkgov-pland-new-town",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 10,
+          "ingestDependencies": [
+            {
+              "resourceType": "division",
+              "variant": "hkgov-pland-new-town"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "hkgov-landsd",
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "HK Gov",
+          "description": "Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."
+        },
+        {
+          "locale": "zh-hant",
+          "name": "香港政府",
+          "description": "探索用以描述香港的地理及行政分區，包括地區、規劃單元、新市鎮、邊界及面積範圍。"
+        },
+        {
+          "locale": "zh-hans",
+          "name": "香港政府",
+          "description": "探索用以描述香港的地理及行政分区，包括地区、规划单元、新市镇、边界及面积范围。"
+        }
+      ],
+      "members": [
+        {
+          "resourceType": "division",
+          "variant": "hkgov-landsd",
+          "role": "primary",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 0
+        }
+      ]
+    }
+  ]
+}

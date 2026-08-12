@@ -13,12 +13,22 @@
     "directory": "public"
   },
   "secrets": {
-    "required": ["SUBSTACK_SESSION_COOKIE", "TELEGRAM_BOT_TOKEN", "TELEGRAM_ADMIN_ID"]
+    "required": [
+      "D1_PLACEMENT_PROBE_API_KEY",
+      "ANALYTICS_ENGINE_READ_TOKEN",
+      "SUBSTACK_SESSION_COOKIE",
+      "TELEGRAM_BOT_TOKEN",
+      "TELEGRAM_ADMIN_ID"
+    ]
   },
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
+    "ANALYTICS_ENGINE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
+    "AUTH_MODE": "disabled",
+    "ENVIRONMENT": "local",
     "HARBOUR_BASE_URL": "http://localhost:8788",
-    "SUBSTACK_PUBLICATION": "saanseoi"
+    "SUBSTACK_PUBLICATION": "saanseoi",
+    "USAGE_ROLLUP_DATASETS": "ss-api-usage-local"
   },
   "d1_databases": [
     {
@@ -34,6 +44,13 @@
       "database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
       "migrations_dir": "../../libs/db/migrations/current",
       "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
+    },
+    {
+      "binding": "DB_HISTORY_HK_BEFORE",
+      "database_name": "ss-history-hk-before-db-preview",
+      "migrations_dir": "../../libs/db/migrations/history",
+      "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+      "database_id": "aa2d7228-c2dd-413b-8b23-d3e92f2b5b9a"
     },
     {
       "binding": "DB_HISTORY_HK_2025",
@@ -57,6 +74,13 @@
       "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
     },
     {
+      "binding": "DB_SOURCE_HK_BEFORE",
+      "database_name": "ss-source-hk-before-db-preview",
+      "migrations_dir": "../../libs/db/migrations/source",
+      "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql",
+      "database_id": "6265ab9d-f70d-4893-bc24-91d0bce8642e"
+    },
+    {
       "binding": "DB_SOURCE_HK_2026",
       "database_name": "ss-source-hk-2026-db-preview",
       "database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
@@ -64,24 +88,72 @@
       "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
     }
   ],
+  // Local development uses Wrangler's local KV simulation.
+  "kv_namespaces": [{ "binding": "PUBLIC_KEY_LEASES" }],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "PUBLIC_KEY_LEASE_COORDINATOR",
+        "class_name": "PublicKeyLeaseCoordinator"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "public-key-lease-v1",
+      "new_sqlite_classes": ["PublicKeyLeaseCoordinator"]
+    }
+  ],
+  "analytics_engine_datasets": [
+    { "binding": "API_USAGE", "dataset": "ss-api-usage-local" }
+  ],
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  },
+  "ratelimits": [
+    {
+      "name": "API_RATE_LIMIT",
+      "namespace_id": "42001",
+      "simple": { "limit": 120, "period": 60 }
+    }
+  ],
   "placement": {
     "region": "azure:eastasia"
   },
+  "r2_buckets": [
+    {
+      "binding": "R2_ASSETS",
+      "bucket_name": "ss-assets-preview"
+    }
+  ],
   "minify": true,
   "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
     "logs": {
       "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "destinations": ["cloudflare"],
       "invocation_logs": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.1,
+      "persist": true,
+      "destinations": ["cloudflare"]
     }
   },
   "env": {
     "preview": {
-      "name": "ss-atlas-preview",
+      "name": "ss-atlas-api-preview",
       "placement": {
         "region": "azure:eastasia"
       },
       "secrets": {
         "required": [
+          "D1_PLACEMENT_PROBE_API_KEY",
+          "ANALYTICS_ENGINE_READ_TOKEN",
           "SUBSTACK_SESSION_COOKIE",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
@@ -94,8 +166,26 @@
       },
       "vars": {
         "ATLAS_BASE_URL": "https://preview.api.saanseoi.hk",
+        "ANALYTICS_ENGINE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
+        "AUTH_MODE": "required",
+        "ENVIRONMENT": "preview",
         "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk",
-        "SUBSTACK_PUBLICATION": "saanseoi"
+        "SUBSTACK_PUBLICATION": "saanseoi",
+        "USAGE_ROLLUP_DATASETS": "ss-api-usage-preview"
+      },
+      "kv_namespaces": [
+        {
+          "binding": "PUBLIC_KEY_LEASES",
+          "id": "36cf703d92244e26872fbfab2dc06dec"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "PUBLIC_KEY_LEASE_COORDINATOR",
+            "class_name": "PublicKeyLeaseCoordinator"
+          }
+        ]
       },
       "d1_databases": [
         {
@@ -111,6 +201,13 @@
           "database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde",
           "migrations_dir": "../../libs/db/migrations/current",
           "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
+        },
+        {
+          "binding": "DB_HISTORY_HK_BEFORE",
+          "database_name": "ss-history-hk-before-db-preview",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+          "database_id": "aa2d7228-c2dd-413b-8b23-d3e92f2b5b9a"
         },
         {
           "binding": "DB_HISTORY_HK_2025",
@@ -134,11 +231,34 @@
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
         },
         {
+          "binding": "DB_SOURCE_HK_BEFORE",
+          "database_name": "ss-source-hk-before-db-preview",
+          "migrations_dir": "../../libs/db/migrations/source",
+          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql",
+          "database_id": "6265ab9d-f70d-4893-bc24-91d0bce8642e"
+        },
+        {
           "binding": "DB_SOURCE_HK_2026",
           "database_name": "ss-source-hk-2026-db-preview",
           "database_id": "014dc342-54c8-4049-8667-cfbf7c92cbec",
           "migrations_dir": "../../libs/db/migrations/source",
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_ASSETS",
+          "bucket_name": "ss-assets-preview"
+        }
+      ],
+      "analytics_engine_datasets": [
+        { "binding": "API_USAGE", "dataset": "ss-api-usage-preview" }
+      ],
+      "ratelimits": [
+        {
+          "name": "API_RATE_LIMIT",
+          "namespace_id": "42002",
+          "simple": { "limit": 120, "period": 60 }
         }
       ],
       "routes": [
@@ -149,12 +269,14 @@
       ]
     },
     "production": {
-      "name": "ss-atlas-production",
+      "name": "ss-atlas-api-prod",
       "placement": {
         "region": "azure:eastasia"
       },
       "secrets": {
         "required": [
+          "D1_PLACEMENT_PROBE_API_KEY",
+          "ANALYTICS_ENGINE_READ_TOKEN",
           "SUBSTACK_SESSION_COOKIE",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
@@ -167,8 +289,26 @@
       },
       "vars": {
         "ATLAS_BASE_URL": "https://api.saanseoi.hk",
+        "ANALYTICS_ENGINE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
+        "AUTH_MODE": "required",
+        "ENVIRONMENT": "production",
         "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk",
-        "SUBSTACK_PUBLICATION": "saanseoi"
+        "SUBSTACK_PUBLICATION": "saanseoi",
+        "USAGE_ROLLUP_DATASETS": "ss-api-usage-production,ss-tile-usage-production"
+      },
+      "kv_namespaces": [
+        {
+          "binding": "PUBLIC_KEY_LEASES",
+          "id": "c3f1cb8495d24f3d8e8719dec815bf00"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "PUBLIC_KEY_LEASE_COORDINATOR",
+            "class_name": "PublicKeyLeaseCoordinator"
+          }
+        ]
       },
       "d1_databases": [
         {
@@ -184,6 +324,13 @@
           "database_id": "edd3cdf9-1d05-4847-b235-b7fd4189c38d",
           "migrations_dir": "../../libs/db/migrations/current",
           "migrations_pattern": "../../libs/db/migrations/current/*/migration.sql"
+        },
+        {
+          "binding": "DB_HISTORY_HK_BEFORE",
+          "database_name": "ss-history-hk-before-db-prod",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+          "database_id": "94f74b90-42c5-4c2d-98da-f0eae188d836"
         },
         {
           "binding": "DB_HISTORY_HK_2025",
@@ -207,11 +354,34 @@
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
         },
         {
+          "binding": "DB_SOURCE_HK_BEFORE",
+          "database_name": "ss-source-hk-before-db-prod",
+          "migrations_dir": "../../libs/db/migrations/source",
+          "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql",
+          "database_id": "45ab08a6-bacc-41ea-9c35-55c3d825de4a"
+        },
+        {
           "binding": "DB_SOURCE_HK_2026",
           "database_name": "ss-source-hk-2026-db-prod",
           "database_id": "dca6df89-880b-42f8-92a8-08f4919a582a",
           "migrations_dir": "../../libs/db/migrations/source",
           "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_ASSETS",
+          "bucket_name": "ss-assets-prod"
+        }
+      ],
+      "analytics_engine_datasets": [
+        { "binding": "API_USAGE", "dataset": "ss-api-usage-production" }
+      ],
+      "ratelimits": [
+        {
+          "name": "API_RATE_LIMIT",
+          "namespace_id": "42003",
+          "simple": { "limit": 120, "period": 60 }
         }
       ],
       "routes": [

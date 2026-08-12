@@ -1,0 +1,16 @@
+{
+  "versionHash": "sha256:2464ad86a2ae79ced6fe5081c6b9ed3b7aa0febc56ee7840d8effc49ff7a66dc",
+  "apiVersion": "api-stats-v0.1",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/v0/stats",
+      "operationId": "listDivisionStatisticsV0"
+    },
+    {
+      "method": "GET",
+      "path": "/v0.1/stats",
+      "operationId": "listDivisionStatisticsV01"
+    }
+  ]
+}

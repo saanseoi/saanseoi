@@ -3,11 +3,14 @@ import { join } from 'node:path'
 
 import type { Database } from 'bun:sqlite'
 
-const FIXTURE_TIMESTAMP_MS = 1718236800000
+import {
+  buildDatasetCode,
+  buildDatasetReleaseCode,
+  publisherCodeForSource,
+} from '../codes'
+import type { ResourceType } from '../types'
 
-function resolveFixtureDatasetCode(source: string, regionCode: string, type: string) {
-  return `ds-${regionCode}-${source}-${type}`
-}
+const FIXTURE_TIMESTAMP_MS = 1718236800000
 
 function hasColumn(db: Database, tableName: string, columnName: string) {
   const rows = db.query(`PRAGMA table_info(${tableName})`).all() as Array<{
@@ -15,6 +18,16 @@ function hasColumn(db: Database, tableName: string, columnName: string) {
   }>
 
   return rows.some(row => row.name === columnName)
+}
+
+function hasTable(db: Database, tableName: string) {
+  const row = db
+    .query(
+      "SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name = ?1 LIMIT 1",
+    )
+    .get(tableName)
+
+  return Boolean(row)
 }
 
 function addColumnIfMissing(
@@ -57,108 +70,70 @@ function rebuildTable(
   db.exec('PRAGMA foreign_keys = ON;')
 }
 
-function ensureHistoryCohortKeyColumns(db: Database, tableName: string) {
-  addColumnIfMissing(
-    db,
-    tableName,
-    'validFromCohortKey',
-    "validFromCohortKey TEXT NOT NULL DEFAULT ''",
-  )
-  addColumnIfMissing(db, tableName, 'validToCohortKey', 'validToCohortKey TEXT')
-
-  if (hasColumn(db, tableName, 'validFromMonth')) {
-    db.exec(`
-      UPDATE ${tableName}
-      SET
-        validFromCohortKey = COALESCE(NULLIF(validFromCohortKey, ''), validFromMonth, ''),
-        validToCohortKey = COALESCE(validToCohortKey, validToMonth)
-      WHERE
-        validFromCohortKey IS NULL
-        OR validFromCohortKey = ''
-        OR validToCohortKey IS NULL;
-    `)
-  }
-}
-
 function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
+  if (!hasTable(db, tableName)) {
+    return
+  }
+
   if (!hasColumn(db, tableName, 'validFromMonth')) {
-    ensureHistoryCohortKeyColumns(db, tableName)
     return
   }
 
   switch (tableName) {
-    case 'divisionsVersions':
+    case 'divisions':
       rebuildTable(
         db,
         tableName,
         `
-          CREATE TABLE divisionsVersions (
+          CREATE TABLE divisions (
             id TEXT NOT NULL,
-            regionCode TEXT NOT NULL,
             versionHash TEXT NOT NULL,
             sourceReleaseId TEXT NOT NULL,
             snapshotId TEXT NOT NULL,
-            validFromSnapshotId TEXT NOT NULL,
-            validToSnapshotId TEXT,
-            validFromCohortKey TEXT NOT NULL,
-            validToCohortKey TEXT,
             isCurrent INTEGER NOT NULL,
             level INTEGER NOT NULL,
             type TEXT NOT NULL,
             geometry TEXT,
             bbox TEXT,
-            population INTEGER,
-            subtype TEXT,
-            class TEXT,
+            sourceKeys TEXT,
             wikidata TEXT,
             hierarchy TEXT,
-            parentDivisionId TEXT,
             cartography TEXT,
             sources TEXT,
             createdAt TEXT NOT NULL,
             updatedAt TEXT NOT NULL,
             PRIMARY KEY (id, versionHash)
           );
-          CREATE INDEX divisionsVersions_current_lookup_idx
-            ON divisionsVersions (regionCode, id, isCurrent);
-          CREATE INDEX divisionsVersions_snapshot_validity_idx
-            ON divisionsVersions (regionCode, validFromSnapshotId, validToSnapshotId);
-          CREATE INDEX divisionsVersions_validity_idx
-            ON divisionsVersions (regionCode, validFromCohortKey, validToCohortKey);
-          CREATE INDEX divisionsVersions_sourceReleaseId_idx
-            ON divisionsVersions (sourceReleaseId);
-          CREATE INDEX divisionsVersions_snapshotId_idx
-            ON divisionsVersions (snapshotId);
+          CREATE INDEX divisions_current_lookup_idx
+            ON divisions (id, isCurrent);
+          CREATE INDEX divisions_sourceReleaseId_idx
+            ON divisions (sourceReleaseId);
+          CREATE INDEX divisions_snapshotId_idx
+            ON divisions (snapshotId);
         `,
         `
-          INSERT INTO divisionsVersions (
-            id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromCohortKey, validToCohortKey, isCurrent, level, type, geometry, bbox, population,
-            subtype, class, wikidata, hierarchy, parentDivisionId, cartography, sources, createdAt, updatedAt
+          INSERT INTO divisions (
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, level, type, geometry, bbox,
+            sourceKeys, wikidata, hierarchy, cartography, sources, createdAt, updatedAt
           )
           SELECT
-            id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromMonth, validToMonth, isCurrent, level, type, geometry, bbox, population,
-            subtype, class, wikidata, hierarchy, parentDivisionId, cartography, sources, createdAt, updatedAt
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, level, type, geometry, bbox,
+            json_object('overture', json_object('subtype', COALESCE(subtype, ''), 'class', COALESCE(class, ''))),
+            wikidata, hierarchy, cartography, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
         `,
       )
       return
-    case 'address2dVersions':
+    case 'address2d':
       rebuildTable(
         db,
         tableName,
         `
-          CREATE TABLE address2dVersions (
+          CREATE TABLE address2d (
             id TEXT NOT NULL,
-            regionCode TEXT NOT NULL,
             versionHash TEXT NOT NULL,
             sourceReleaseId TEXT NOT NULL,
             snapshotId TEXT NOT NULL,
-            validFromSnapshotId TEXT NOT NULL,
-            validToSnapshotId TEXT,
-            validFromCohortKey TEXT NOT NULL,
-            validToCohortKey TEXT,
             isCurrent INTEGER NOT NULL,
             streetId TEXT,
             hamletId TEXT,
@@ -178,47 +153,37 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             updatedAt TEXT NOT NULL,
             PRIMARY KEY (id, versionHash)
           );
-          CREATE INDEX address2dVersions_current_lookup_idx
-            ON address2dVersions (regionCode, id, isCurrent);
-          CREATE INDEX address2dVersions_snapshot_validity_idx
-            ON address2dVersions (regionCode, validFromSnapshotId, validToSnapshotId);
-          CREATE INDEX address2dVersions_validity_idx
-            ON address2dVersions (regionCode, validFromCohortKey, validToCohortKey);
-          CREATE INDEX address2dVersions_sourceReleaseId_idx
-            ON address2dVersions (sourceReleaseId);
-          CREATE INDEX address2dVersions_snapshotId_idx
-            ON address2dVersions (snapshotId);
+          CREATE INDEX address2d_current_lookup_idx
+            ON address2d (id, isCurrent);
+          CREATE INDEX address2d_sourceReleaseId_idx
+            ON address2d (sourceReleaseId);
+          CREATE INDEX address2d_snapshotId_idx
+            ON address2d (snapshotId);
         `,
         `
-          INSERT INTO address2dVersions (
-            id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromCohortKey, validToCohortKey, isCurrent, streetId, hamletId, microhoodId, villageId,
+          INSERT INTO address2d (
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId, hamletId, microhoodId, villageId,
             neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox,
             identifiers, sources, createdAt, updatedAt
           )
           SELECT
-            id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromMonth, validToMonth, isCurrent, streetId, hamletId, microhoodId, villageId,
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId, hamletId, microhoodId, villageId,
             neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox,
             identifiers, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
         `,
       )
       return
-    case 'address3dVersions':
+    case 'address3d':
       rebuildTable(
         db,
         tableName,
         `
-          CREATE TABLE address3dVersions (
+          CREATE TABLE address3d (
             id TEXT NOT NULL,
             versionHash TEXT NOT NULL,
             sourceReleaseId TEXT NOT NULL,
             snapshotId TEXT NOT NULL,
-            validFromSnapshotId TEXT NOT NULL,
-            validToSnapshotId TEXT,
-            validFromCohortKey TEXT NOT NULL,
-            validToCohortKey TEXT,
             isCurrent INTEGER NOT NULL,
             address2dId TEXT NOT NULL,
             sources TEXT,
@@ -226,45 +191,35 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             updatedAt TEXT NOT NULL,
             PRIMARY KEY (id, versionHash)
           );
-          CREATE INDEX address3dVersions_current_lookup_idx
-            ON address3dVersions (id, isCurrent);
-          CREATE INDEX address3dVersions_snapshot_validity_idx
-            ON address3dVersions (validFromSnapshotId, validToSnapshotId);
-          CREATE INDEX address3dVersions_validity_idx
-            ON address3dVersions (validFromCohortKey, validToCohortKey);
-          CREATE INDEX address3dVersions_sourceReleaseId_idx
-            ON address3dVersions (sourceReleaseId);
-          CREATE INDEX address3dVersions_snapshotId_idx
-            ON address3dVersions (snapshotId);
-          CREATE INDEX address3dVersions_address2dId_idx
-            ON address3dVersions (address2dId);
+          CREATE INDEX address3d_current_lookup_idx
+            ON address3d (id, isCurrent);
+          CREATE INDEX address3d_sourceReleaseId_idx
+            ON address3d (sourceReleaseId);
+          CREATE INDEX address3d_snapshotId_idx
+            ON address3d (snapshotId);
+          CREATE INDEX address3d_address2dId_idx
+            ON address3d (address2dId);
         `,
         `
-          INSERT INTO address3dVersions (
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromCohortKey, validToCohortKey, isCurrent, address2dId, sources, createdAt, updatedAt
+          INSERT INTO address3d (
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, sources, createdAt, updatedAt
           )
           SELECT
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromMonth, validToMonth, isCurrent, address2dId, sources, createdAt, updatedAt
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
         `,
       )
       return
-    case 'streetsVersions':
+    case 'streets':
       rebuildTable(
         db,
         tableName,
         `
-          CREATE TABLE streetsVersions (
+          CREATE TABLE streets (
             id TEXT NOT NULL,
             versionHash TEXT NOT NULL,
             sourceReleaseId TEXT NOT NULL,
             snapshotId TEXT NOT NULL,
-            validFromSnapshotId TEXT NOT NULL,
-            validToSnapshotId TEXT,
-            validFromCohortKey TEXT NOT NULL,
-            validToCohortKey TEXT,
             isCurrent INTEGER NOT NULL,
             yearBuilt TEXT,
             "references" TEXT,
@@ -272,44 +227,33 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             updatedAt TEXT NOT NULL,
             PRIMARY KEY (id, versionHash)
           );
-          CREATE INDEX streetsVersions_current_lookup_idx
-            ON streetsVersions (id, isCurrent);
-          CREATE INDEX streetsVersions_snapshot_validity_idx
-            ON streetsVersions (validFromSnapshotId, validToSnapshotId);
-          CREATE INDEX streetsVersions_validity_idx
-            ON streetsVersions (validFromCohortKey, validToCohortKey);
-          CREATE INDEX streetsVersions_sourceReleaseId_idx
-            ON streetsVersions (sourceReleaseId);
-          CREATE INDEX streetsVersions_snapshotId_idx
-            ON streetsVersions (snapshotId);
+          CREATE INDEX streets_current_lookup_idx
+            ON streets (id, isCurrent);
+          CREATE INDEX streets_sourceReleaseId_idx
+            ON streets (sourceReleaseId);
+          CREATE INDEX streets_snapshotId_idx
+            ON streets (snapshotId);
         `,
         `
-          INSERT INTO streetsVersions (
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromCohortKey, validToCohortKey, isCurrent, yearBuilt, "references", createdAt, updatedAt
+          INSERT INTO streets (
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, yearBuilt, "references", createdAt, updatedAt
           )
           SELECT
-            id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromMonth, validToMonth, isCurrent, yearBuilt, "references", createdAt, updatedAt
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, yearBuilt, "references", createdAt, updatedAt
           FROM __LEGACY_TABLE__;
         `,
       )
       return
-    case 'placesVersions':
+    case 'places':
       rebuildTable(
         db,
         tableName,
         `
-          CREATE TABLE placesVersions (
+          CREATE TABLE places (
             id TEXT NOT NULL,
-            regionCode TEXT NOT NULL,
             versionHash TEXT NOT NULL,
             sourceReleaseId TEXT NOT NULL,
             snapshotId TEXT NOT NULL,
-            validFromSnapshotId TEXT NOT NULL,
-            validToSnapshotId TEXT,
-            validFromCohortKey TEXT NOT NULL,
-            validToCohortKey TEXT,
             isCurrent INTEGER NOT NULL,
             address2dId TEXT,
             address3dId TEXT,
@@ -333,27 +277,21 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             updatedAt TEXT NOT NULL,
             PRIMARY KEY (id, versionHash)
           );
-          CREATE INDEX placesVersions_current_lookup_idx
-            ON placesVersions (regionCode, id, isCurrent);
-          CREATE INDEX placesVersions_snapshot_validity_idx
-            ON placesVersions (regionCode, validFromSnapshotId, validToSnapshotId);
-          CREATE INDEX placesVersions_validity_idx
-            ON placesVersions (regionCode, validFromCohortKey, validToCohortKey);
-          CREATE INDEX placesVersions_sourceReleaseId_idx
-            ON placesVersions (sourceReleaseId);
-          CREATE INDEX placesVersions_snapshotId_idx
-            ON placesVersions (snapshotId);
+          CREATE INDEX places_current_lookup_idx
+            ON places (id, isCurrent);
+          CREATE INDEX places_sourceReleaseId_idx
+            ON places (sourceReleaseId);
+          CREATE INDEX places_snapshotId_idx
+            ON places (snapshotId);
         `,
         `
-          INSERT INTO placesVersions (
-            id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromCohortKey, validToCohortKey, isCurrent, address2dId, address3dId, lng, lat, bbox,
+          INSERT INTO places (
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, address3dId, lng, lat, bbox,
             operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates,
             brandWikidata, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
           )
           SELECT
-            id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId,
-            validFromMonth, validToMonth, isCurrent, address2dId, address3dId, lng, lat, bbox,
+            id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, address3dId, lng, lat, bbox,
             operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates,
             brandWikidata, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
@@ -484,6 +422,7 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
   }
 
   addColumnIfMissing(db, 'snapshots', 'cohortKey', "cohortKey TEXT NOT NULL DEFAULT ''")
+  addColumnIfMissing(db, 'snapshots', 'parentSnapshotId', 'parentSnapshotId TEXT')
 
   if (
     hasColumn(db, 'apiReleaseSets', 'canonicalSchemaVersion') ||
@@ -573,6 +512,12 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       "versionHash TEXT NOT NULL DEFAULT ''",
     )
   }
+  addColumnIfMissing(
+    db,
+    'apiReleaseSets',
+    'domainCode',
+    "domainCode TEXT NOT NULL DEFAULT 'default'",
+  )
 
   if (hasColumn(db, 'apiReleaseSetSnapshots', 'snapshotFamily')) {
     rebuildTable(
@@ -650,6 +595,12 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
     addColumnIfMissing(
       db,
       'apiReleaseSetSnapshots',
+      'cohortMatchingMode',
+      "cohortMatchingMode TEXT NOT NULL DEFAULT 'carry_forward_optional'",
+    )
+    addColumnIfMissing(
+      db,
+      'apiReleaseSetSnapshots',
       'anchorSnapshotId',
       'anchorSnapshotId TEXT',
     )
@@ -660,6 +611,56 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       `createdAt INTEGER NOT NULL DEFAULT ${FIXTURE_TIMESTAMP_MS}`,
     )
   }
+
+  if (
+    hasTable(db, 'apiCompositionMembers') &&
+    !hasColumn(db, 'apiCompositionMembers', 'variant')
+  ) {
+    rebuildTable(
+      db,
+      'apiCompositionMembers',
+      `
+        CREATE TABLE apiCompositionMembers (
+          apiCompositionId TEXT NOT NULL,
+          resourceType TEXT NOT NULL,
+          variant TEXT NOT NULL DEFAULT 'default',
+          role TEXT NOT NULL,
+          isRequired INTEGER NOT NULL,
+          selectionMode TEXT NOT NULL,
+          anchorResourceType TEXT,
+          maxLagDays INTEGER,
+          priority INTEGER NOT NULL DEFAULT 0,
+          configJson TEXT,
+          PRIMARY KEY (apiCompositionId, resourceType, variant)
+        );
+      `,
+      `
+        INSERT INTO apiCompositionMembers (
+          apiCompositionId, resourceType, variant, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+        )
+        SELECT apiCompositionId, resourceType, 'default', role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+        FROM __LEGACY_TABLE__;
+      `,
+    )
+  }
+  addColumnIfMissing(
+    db,
+    'apiCompositionMembers',
+    'domainCode',
+    "domainCode TEXT NOT NULL DEFAULT 'default'",
+  )
+  addColumnIfMissing(
+    db,
+    'apiCompositionMembers',
+    'cohortMatchingMode',
+    "cohortMatchingMode TEXT NOT NULL DEFAULT 'exact_ref'",
+  )
+  addColumnIfMissing(
+    db,
+    'apiComposition',
+    'defaultDomainCode',
+    'defaultDomainCode TEXT',
+  )
 
   addColumnIfMissing(db, 'snapshotSources', 'selectedByRule', 'selectedByRule TEXT')
   addColumnIfMissing(db, 'snapshotSources', 'selectionMode', 'selectionMode TEXT')
@@ -710,6 +711,8 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       code TEXT NOT NULL UNIQUE,
       version INTEGER NOT NULL,
       primaryResourceType TEXT NOT NULL,
+      defaultDomainCode TEXT,
+      i18n TEXT,
       status TEXT NOT NULL,
       notes TEXT,
       versionHash TEXT NOT NULL,
@@ -719,15 +722,17 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
 
     CREATE TABLE IF NOT EXISTS apiCompositionMembers (
       apiCompositionId TEXT NOT NULL,
+      domainCode TEXT NOT NULL DEFAULT 'default',
       resourceType TEXT NOT NULL,
+      variant TEXT NOT NULL DEFAULT 'default',
       role TEXT NOT NULL,
       isRequired INTEGER NOT NULL,
-      selectionMode TEXT NOT NULL,
+      cohortMatchingMode TEXT NOT NULL,
       anchorResourceType TEXT,
       maxLagDays INTEGER,
       priority INTEGER NOT NULL DEFAULT 0,
       configJson TEXT,
-      PRIMARY KEY (apiCompositionId, resourceType)
+      PRIMARY KEY (apiCompositionId, domainCode, resourceType, variant)
     );
   `)
 
@@ -745,11 +750,11 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
   )
 
   for (const historyTable of [
-    'divisionsVersions',
-    'address2dVersions',
-    'address3dVersions',
-    'streetsVersions',
-    'placesVersions',
+    'divisions',
+    'address2d',
+    'address3d',
+    'streets',
+    'places',
   ]) {
     rebuildHistoryVersionTableIfNeeded(db, historyTable)
   }
@@ -767,8 +772,19 @@ export function collectSqlFiles(dir: string): string[] {
   })
 }
 
-export function loadMigrationSql(dir: string) {
+export function loadMigrationSql(dir: string, families?: string[]) {
+  const familySet = families ? new Set(families) : null
+
   return collectSqlFiles(dir)
+    .filter(filePath => {
+      if (!familySet) {
+        return true
+      }
+
+      const relativePath = filePath.slice(dir.length + 1)
+      const family = relativePath.split('/')[0]
+      return family ? familySet.has(family) : false
+    })
     .sort()
     .map(filePath => readFileSync(filePath, 'utf8'))
     .join('\n')
@@ -781,7 +797,9 @@ export function seedFixtureCatalog(db: Database) {
     INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
       ('publisher-overture', 'overture', 'vh-publisher-overture-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('publisher-hkgov', 'hkgov', 'vh-publisher-hkgov-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('publisher-hkgov-als', 'hkgov-als', 'vh-publisher-hkgov-als-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
+      ('publisher-hkgov-had', 'hkgov-had', 'vh-publisher-hkgov-had-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('publisher-hkgov-landsd', 'hkgov-landsd', 'vh-publisher-hkgov-landsd-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('publisher-hkgov-dpo', 'hkgov-dpo', 'vh-publisher-hkgov-dpo-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
       code = excluded.code,
       versionHash = excluded.versionHash,
@@ -789,7 +807,7 @@ export function seedFixtureCatalog(db: Database) {
     WHERE publishers.versionHash <> excluded.versionHash;
 
     INSERT INTO datasets (
-      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, versionHash, createdAt, updatedAt
+      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, sourceUrl, versionHash, createdAt, updatedAt
     ) VALUES
       (
         'overture-hk-division',
@@ -799,37 +817,73 @@ export function seedFixtureCatalog(db: Database) {
         'static',
         'monthly',
         'divisions',
-        'division',
         'https://docs.overturemaps.org/',
         'vh-dataset-overture-hk-division-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'overture-hk-address',
+        'overture-hk-divisionArea',
         'publisher-overture',
-        'ds-hk-overture-address',
+        'ds-hk-overture-division-area',
         'hk',
         'static',
         'monthly',
-        'addresses',
-        'address',
-        'https://docs.overturemaps.org/schema/reference/addresses/address/',
-        'vh-dataset-overture-hk-address-v1',
+        'divisions',
+        'https://docs.overturemaps.org/',
+        'vh-dataset-overture-hk-division-area-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'hkgov-als-hk-address',
-        'publisher-hkgov-als',
-        'ds-hk-hkgov-als-address',
+        'overture-hk-divisionBoundary',
+        'publisher-overture',
+        'ds-hk-overture-division-boundary',
+        'hk',
+        'static',
+        'monthly',
+        'divisions',
+        'https://docs.overturemaps.org/',
+        'vh-dataset-overture-hk-division-boundary-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'hkgov-had-hk-district',
+        'publisher-hkgov-had',
+        'ds-hk-hkgov-had-division-area-district',
+        'hk',
+        'static',
+        'as-needed',
+        'divisions',
+        'https://data.gov.hk/',
+        'vh-dataset-hkgov-had-hk-district-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'hkgov-landsd-hk-division',
+        'publisher-hkgov-landsd',
+        'ds-hk-hkgov-landsd-division',
+        'hk',
+        'static',
+        'monthly',
+        'divisions',
+        'https://portal.csdi.gov.hk/',
+        'vh-dataset-hkgov-landsd-hk-division-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'hkgov-dpo-hk-address',
+        'publisher-hkgov-dpo',
+        'ds-hk-hkgov-dpo-address',
         'hk',
         'static',
         'monthly',
         'addresses',
-        'address',
         'https://data.gov.hk/en-data/dataset/hk-ogcio-st_div_01-als',
-        'vh-dataset-hkgov-als-hk-address-v1',
+        'vh-dataset-hkgov-dpo-hk-address-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       )
@@ -840,11 +894,19 @@ export function seedFixtureCatalog(db: Database) {
       releaseType = excluded.releaseType,
       releaseFrequency = excluded.releaseFrequency,
       theme = excluded.theme,
-      type = excluded.type,
       sourceUrl = excluded.sourceUrl,
       versionHash = excluded.versionHash,
       updatedAt = excluded.updatedAt
     WHERE datasets.versionHash <> excluded.versionHash;
+
+    INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
+      ('overture-hk-division', 'division'),
+      ('overture-hk-divisionArea', 'divisionArea'),
+      ('overture-hk-divisionBoundary', 'divisionBoundary'),
+      ('hkgov-had-hk-district', 'divisionArea'),
+      ('hkgov-landsd-hk-division', 'division'),
+      ('hkgov-dpo-hk-address', 'address')
+    ON CONFLICT(datasetId, resourceType) DO NOTHING;
 
     INSERT INTO apiVersions (id, code, familyType, version, status, publishedAt, versionHash, createdAt, updatedAt) VALUES
       (
@@ -894,6 +956,7 @@ export function seedFixtureCatalog(db: Database) {
       id,
       apiVersionId,
       code,
+      domainCode,
       schemaVersion,
       rulesetVersion,
       status,
@@ -903,9 +966,10 @@ export function seedFixtureCatalog(db: Database) {
       updatedAt
     ) VALUES
       (
-        'api-release-set-data-hk-divisions-2026-06-17.0-0',
+        'api-release-set-data-hk-divisions-2026-06-17.0',
         'api-version-api-divisions-v0.1',
-        'data-hk-divisions-2026-06-17.0-0',
+        'data-hk-divisions-2026-06-17.0',
+        'overture',
         'sv-division-v1',
         'rs-division-merge-v1',
         'current',
@@ -915,9 +979,10 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'api-release-set-data-hk-addresses-2026-06-17.0-0',
+        'api-release-set-data-hk-addresses-2026-06-17.0',
         'api-version-api-addresses-v0.1',
-        'data-hk-addresses-2026-06-17.0-0',
+        'data-hk-addresses-2026-06-17.0',
+        'default',
         'sv-address-v1',
         'rs-address-merge-v1',
         'current',
@@ -927,9 +992,10 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
-        'api-release-set-data-hk-places-2026-06-17.0-0',
+        'api-release-set-data-hk-places-2026-06-17.0',
         'api-version-api-places-v0.1',
-        'data-hk-places-2026-06-17.0-0',
+        'data-hk-places-2026-06-17.0',
+        'default',
         'sv-place-v1',
         'rs-place-merge-v1',
         'current',
@@ -941,6 +1007,7 @@ export function seedFixtureCatalog(db: Database) {
     ON CONFLICT(id) DO UPDATE SET
       apiVersionId = excluded.apiVersionId,
       code = excluded.code,
+      domainCode = excluded.domainCode,
       schemaVersion = excluded.schemaVersion,
       rulesetVersion = excluded.rulesetVersion,
       status = excluded.status,
@@ -950,11 +1017,11 @@ export function seedFixtureCatalog(db: Database) {
     WHERE apiReleaseSets.versionHash <> excluded.versionHash;
 
     INSERT INTO apiComposition (
-      id, apiVersionId, code, version, primaryResourceType, status, notes, versionHash, createdAt, updatedAt
+      id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, notes, versionHash, createdAt, updatedAt
     ) VALUES
-      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-default', 1, 'address', 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('api-composition-divisions-v1', 'api-version-api-divisions-v0.1', 'api-divisions-default', 1, 'division', 'current', null, 'vh-api-composition-divisions-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('api-composition-places-v1', 'api-version-api-places-v0.1', 'api-places-default', 1, 'place', 'current', null, 'vh-api-composition-places-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
+      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-default', 1, 'address', 'default', 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-composition-divisions-v1', 'api-version-api-divisions-v0.1', 'api-divisions-default', 1, 'division', 'overture', 'current', null, 'vh-api-composition-divisions-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-composition-places-v1', 'api-version-api-places-v0.1', 'api-places-default', 1, 'place', null, 'current', null, 'vh-api-composition-places-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
       apiVersionId = excluded.apiVersionId,
       code = excluded.code,
@@ -966,17 +1033,19 @@ export function seedFixtureCatalog(db: Database) {
       updatedAt = excluded.updatedAt;
 
     INSERT INTO apiCompositionMembers (
-      apiCompositionId, resourceType, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+      apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority, configJson
     ) VALUES
-      ('api-composition-addresses-v1', 'address', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-divisions-v1', 'division', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-places-v1', 'place', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-places-v1', 'address', 'supporting', 1, 'exact_ref', 'place', null, 10, null),
-      ('api-composition-places-v1', 'division', 'supporting', 1, 'exact_ref', 'place', null, 20, null)
-    ON CONFLICT(apiCompositionId, resourceType) DO UPDATE SET
+      ('api-composition-addresses-v1', 'default', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-addresses-v1', 'default', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 10, null),
+      ('api-composition-divisions-v1', 'overture', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-divisions-v1', 'hkgov-landsd', 'division', 'hkgov-landsd', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-places-v1', 'default', 'place', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
+      ('api-composition-places-v1', 'default', 'address', 'default', 'supporting', 1, 'exact_ref', 'place', null, 10, null),
+      ('api-composition-places-v1', 'default', 'division', 'default', 'supporting', 1, 'exact_ref', 'place', null, 20, null)
+    ON CONFLICT(apiCompositionId, domainCode, resourceType, variant) DO UPDATE SET
       role = excluded.role,
       isRequired = excluded.isRequired,
-      selectionMode = excluded.selectionMode,
+      cohortMatchingMode = excluded.cohortMatchingMode,
       anchorResourceType = excluded.anchorResourceType,
       maxLagDays = excluded.maxLagDays,
       priority = excluded.priority,
@@ -1025,6 +1094,20 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
+        'data-shard-history-hk-before-preview',
+        'history',
+        'hk',
+        null,
+        'preview',
+        'fixture-history-hk-before-preview',
+        'fixture-history-hk-before-preview',
+        'DB_HISTORY_HK_BEFORE',
+        'active',
+        'vh-data-shards-hk-history-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
         'data-shard-history-hk-2025-preview',
         'history',
         'hk',
@@ -1067,6 +1150,20 @@ export function seedFixtureCatalog(db: Database) {
         ${FIXTURE_TIMESTAMP_MS}
       ),
       (
+        'data-shard-source-hk-before-preview',
+        'source',
+        'hk',
+        null,
+        'preview',
+        'fixture-source-hk-before-preview',
+        'fixture-source-hk-before-preview',
+        'DB_SOURCE_HK_BEFORE',
+        'active',
+        'vh-data-shards-hk-source-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
         'data-shard-current-production',
         'current',
         null,
@@ -1077,6 +1174,20 @@ export function seedFixtureCatalog(db: Database) {
         'DB_CURRENT_PRODUCTION',
         'active',
         'vh-data-shards-current-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'data-shard-history-hk-before-production',
+        'history',
+        'hk',
+        null,
+        'production',
+        'fixture-history-hk-before-production',
+        'fixture-history-hk-before-production',
+        'DB_HISTORY_HK_BEFORE_PRODUCTION',
+        'active',
+        'vh-data-shards-hk-history-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
       ),
@@ -1121,6 +1232,20 @@ export function seedFixtureCatalog(db: Database) {
         'vh-data-shards-hk-source-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
+      ),
+      (
+        'data-shard-source-hk-before-production',
+        'source',
+        'hk',
+        null,
+        'production',
+        'fixture-source-hk-before-production',
+        'fixture-source-hk-before-production',
+        'DB_SOURCE_HK_BEFORE_PRODUCTION',
+        'active',
+        'vh-data-shards-hk-source-v1',
+        ${FIXTURE_TIMESTAMP_MS},
+        ${FIXTURE_TIMESTAMP_MS}
       )
     ON CONFLICT(id) DO UPDATE SET
       shardType = excluded.shardType,
@@ -1140,7 +1265,7 @@ export function seedFixtureCatalog(db: Database) {
 type FixtureRelease = {
   source: string
   regionCode: string
-  type: string
+  type: ResourceType
   theme?: string
   sourceVersion: string
   cohortKey: string
@@ -1158,15 +1283,16 @@ type FixtureRelease = {
 }
 
 export function insertFixtureRelease(db: Database, release: FixtureRelease) {
-  const publisherCode = release.source
-  const datasetCode = resolveFixtureDatasetCode(
-    release.source,
-    release.regionCode,
-    release.type,
-  )
+  const publisherCode = publisherCodeForSource(release.source)
+  const datasetCode = buildDatasetCode(release.regionCode, release.source, release.type)
   const releaseCode =
     release.releaseCode ??
-    `${release.source}-${release.regionCode}-${release.sourceVersion}-${release.type}`
+    buildDatasetReleaseCode(
+      release.regionCode,
+      release.source,
+      release.sourceVersion,
+      release.type,
+    )
   const releaseId = release.releaseId ?? `release-${releaseCode}`
   const supersededByReleaseId = release.supersededByReleaseCode
     ? `release-${release.supersededByReleaseCode}`
@@ -1177,6 +1303,7 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
       INSERT INTO releases (
         id,
         datasetId,
+        resourceType,
         code,
         sourceVersion,
         cohortKey,
@@ -1208,25 +1335,27 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
         ?12,
         ?13,
         ?14,
-        ?15
+        ?15,
+        ?16
       )
     `,
   ).run(
     releaseId,
     publisherCode,
     datasetCode,
+    release.type,
     releaseCode,
     release.sourceVersion,
     release.cohortKey,
     release.rawObjectKey,
     release.originalFileName,
     release.status,
-    release.revokedAt ? new Date(release.revokedAt).getTime() : null,
+    release.revokedAt ?? null,
     release.revocationReason ?? null,
     supersededByReleaseId,
-    new Date(release.ingestedAt).getTime(),
-    new Date(release.createdAt).getTime(),
-    new Date(release.updatedAt).getTime(),
+    release.ingestedAt,
+    release.createdAt,
+    release.updatedAt,
   )
 
   return {

@@ -67,8 +67,10 @@ const D1BindingNameSchema = z
   .enum([
     'DB_META',
     'DB_CURRENT',
+    'DB_HISTORY_HK_BEFORE',
     'DB_HISTORY_HK_2025',
     'DB_HISTORY_HK_2026',
+    'DB_SOURCE_HK_BEFORE',
     'DB_SOURCE_HK_2025',
     'DB_SOURCE_HK_2026',
   ])
@@ -130,7 +132,7 @@ const DatasetIdSchema = z
 
 const DatasetCodeSchema = z.string().openapi({
   description: 'Stable dataset code within a publisher.',
-  examples: ['ds-hk-overture-division', 'ds-hk-hkgov-als-address'],
+  examples: ['ds-hk-overture-division', 'ds-hk-hkgov-dpo-address'],
 })
 
 const ReleaseIdSchema = z
@@ -143,7 +145,10 @@ const ReleaseIdSchema = z
 
 const ReleaseCodeSchema = z.string().openapi({
   description: 'Public release identifier.',
-  examples: ['overture-hk-division-2025-09-24.0', 'hkgov-als-hk-address-2026-01-20.0'],
+  examples: [
+    'dr-hk-overture-division-2025-09-24.0',
+    'dr-hk-hkgov-dpo-address-2026-01-20.0',
+  ],
 })
 
 const RawObjectKeySchema = z
@@ -151,10 +156,10 @@ const RawObjectKeySchema = z
   .nullable()
   .openapi({
     description:
-      'R2 object key for the uploaded file, constructed as `{region}/{source}/{sourceVersion}/{type}.{extension}`',
+      'Legacy object key for an older retained input. Locally processed releases do not retain an intermediate object.',
     examples: [
       'hk/overture/2025-09-24.0/division.parquet',
-      'hk/hkgov-als/2026-01-20.0/address.json',
+      'hk/hkgov-dpo/2026-01-20.0/address.json',
     ],
   })
 
@@ -169,7 +174,7 @@ const SourceSchema = z.string().openapi({
 })
 
 const DatasetTypeQuerySchema = z
-  .enum(['address', 'division', 'place', 'street'])
+  .enum(['address', 'division', 'divisionArea', 'divisionBoundary', 'place', 'street'])
   .openapi('HarbourDatasetTypeQuery')
 
 const ResourceTypeSchema = z.enum(resourceTypes).openapi('HarbourResourceType')
@@ -201,71 +206,71 @@ export const UploadResponseSchema = z
   })
   .openapi('HarbourUploadResponse')
 
-export const SignUploadRequestSchema = z
+const UploadInspectionSchema = z.object({
+  distinctCountryValues: z.array(z.string()),
+  distinctRegionValues: z.array(z.string()),
+  distinctThemeValues: z.array(z.string()),
+  distinctTypeValues: z.array(z.string()),
+  rowCount: z.number().int().nonnegative(),
+  schema: z.array(
+    z.object({
+      name: z.string(),
+      nullable: z.boolean(),
+      type: z.string(),
+    }),
+  ),
+})
+
+export const RegisterUploadRequestSchema = z
   .object({
+    fileName: z.string().min(1),
     force: z
       .boolean()
       .optional()
       .openapi({
-        description:
-          'Allow replacing an existing upload session only when the release is still in uploading status.',
+        description: 'Allow replacing a release that is still staged.',
         examples: [true],
       }),
-    skipSnapshotCleanup: z
-      .boolean()
-      .optional()
-      .openapi({
-        description:
-          'Do not enqueue current-snapshot cleanup after this release is published. Intended for backfill batches.',
-        examples: [true],
-      }),
+    inspection: UploadInspectionSchema,
+    plan: z.object({
+      cohortKey: z.string().optional(),
+      datasetCode: z.string().optional(),
+      regionCode: z.string().optional(),
+      releaseNotesUrl: z.string().url().optional(),
+      shardYear: z.string().optional(),
+      source: z.string().optional(),
+      sourceVersion: z.string().optional(),
+      theme: z.string().optional(),
+      type: z.string().optional(),
+    }),
   })
-  .loose()
-  .openapi('HarbourSignUploadRequest')
+  .openapi('HarbourRegisterUploadRequest')
 
-export const SignUploadResponseSchema = z
+export const LocalUploadRegistrationResponseSchema = z
   .object({
     datasetId: DatasetIdSchema,
     datasetCode: DatasetCodeSchema,
-    expiresAt: z.string().openapi({
-      description: 'Expiration timestamp for the signed upload URL',
-      examples: ['2025-09-30T23:59:59Z', '2026-01-21T00:00:00Z'],
+    rawObjectKey: RawObjectKeySchema.openapi({
+      description:
+        'Key of the prepared raw source object, used by the CLI during processing and retained in release metadata.',
     }),
-    rawObjectKey: RawObjectKeySchema,
     releaseCode: ReleaseCodeSchema,
     releaseId: ReleaseIdSchema,
     source: SourceSchema,
     status: StatusSchema,
-    uploadHeaders: z.record(z.string(), z.string()).openapi({
-      description: 'HTTP headers to include in the upload request',
-      examples: [{ 'Content-Type': 'application/octet-stream' }],
-    }),
-    uploadMethod: z.string().openapi({
-      description: 'HTTP method to use for the upload',
-      examples: ['PUT', 'POST'],
-    }),
-    uploadUrl: z.string().openapi({
-      description: 'Pre-signed URL for uploading the file',
-      examples: [
-        'https://r2.example.com/hk/overture/2025-09-24.0/division.parquet?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20250930%2Fus-east-1%2Fr2%2Faws4_request&X-Amz-Date=20250930T123600Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=...',
-      ],
-    }),
+    sourceVersion: z.string(),
+    type: z.string(),
+    rowCount: z.number(),
   })
-  .openapi('HarbourSignUploadResponse')
+  .openapi('HarbourLocalUploadRegistrationResponse')
 
-export const FinalizeUploadRequestSchema = z
+export const ManagedSourceAssetResponseSchema = z
   .object({
-    releaseId: ReleaseIdSchema,
-    skipSnapshotCleanup: z.boolean().optional(),
+    assetId: z.string().uuid(),
+    assetUrl: z.string().url(),
+    status: z.enum(['existing', 'uploaded']),
   })
-  .openapi('HarbourFinalizeUploadRequest')
-
-export const RequeueUploadRequestSchema = z
-  .object({
-    releaseId: ReleaseIdSchema,
-    skipSnapshotCleanup: z.boolean().optional(),
-  })
-  .openapi('HarbourRequeueUploadRequest')
+  .openapi('HarbourManagedSourceAssetResponse')
 
 export const ControlStageRequestSchema = z
   .object({
@@ -278,7 +283,8 @@ export const ControlStageRequestSchema = z
     error: z.string().optional(),
   })
   .refine(
-    value => Boolean(value.releaseId || value.releaseCode),
+    (value: { releaseCode?: string; releaseId?: string }) =>
+      Boolean(value.releaseId || value.releaseCode),
     'Either releaseId or releaseCode is required.',
   )
   .openapi('HarbourControlStageRequest', {
@@ -292,7 +298,8 @@ export const PublishDatasetRequestSchema = z
     skipSnapshotCleanup: z.boolean().optional(),
   })
   .refine(
-    value => Boolean(value.releaseId || value.releaseCode),
+    (value: { releaseCode?: string; releaseId?: string }) =>
+      Boolean(value.releaseId || value.releaseCode),
     'Either releaseId or releaseCode is required.',
   )
   .openapi('HarbourPublishDatasetRequest', {
@@ -320,6 +327,19 @@ export const CleanupSnapshotsResponseSchema = z
 
 export const ControlResponseSchema = z
   .object({
+    apiCatalogRevisionCode: z.string().optional(),
+    apiCatalogRevisionId: z.string().uuid().optional(),
+    apiReleaseSetId: z.string().uuid().optional(),
+    apiReleaseSetCode: z.string().optional(),
+    apiReleaseSetStatus: z.enum(['current', 'draft']).optional(),
+    apiReleaseSetPublications: z
+      .array(
+        z.object({
+          apiCatalogRevisionCode: z.string().optional(),
+          apiReleaseSetCode: z.string(),
+        }),
+      )
+      .optional(),
     releaseCode: ReleaseCodeSchema,
     releaseId: ReleaseIdSchema,
     phase: z
@@ -328,12 +348,14 @@ export const ControlResponseSchema = z
       .openapi({
         examples: ['extractDivisions', null],
       }),
+    snapshotId: z.string().uuid().optional(),
     status: StatusSchema,
   })
   .openapi('HarbourControlResponse')
 
 export const ReportQuerySchema = z
   .object({
+    datasetCode: DatasetCodeSchema.optional(),
     limit: z.coerce.number().int().min(1).max(100).default(10),
     releaseCode: ReleaseCodeSchema.optional(),
     releaseId: ReleaseIdSchema.optional(),
@@ -408,6 +430,30 @@ export const StatsReportResponseSchema = z
     rows: z.array(StatReportRowSchema),
   })
   .openapi('HarbourStatsReportResponse')
+
+export const ProcessingActionReportRowSchema = z
+  .object({
+    action: z.string(),
+    affectedRecordCount: z.number().int().nonnegative(),
+    createdAt: z.string(),
+    datasetCode: DatasetCodeSchema,
+    evidence: z.unknown(),
+    id: z.string(),
+    mode: z.enum(['automatic', 'manual']),
+    releaseCode: ReleaseCodeSchema,
+    releaseId: ReleaseIdSchema,
+    source: SourceSchema,
+    summary: z.string(),
+    type: z.string(),
+    updatedAt: z.string(),
+  })
+  .openapi('HarbourProcessingActionReportRow')
+
+export const ProcessingActionReportResponseSchema = z
+  .object({
+    rows: z.array(ProcessingActionReportRowSchema),
+  })
+  .openapi('HarbourProcessingActionReportResponse')
 
 export const ReleaseReportRowSchema = z
   .object({

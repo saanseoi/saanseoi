@@ -54,49 +54,31 @@ describe('reporting service', () => {
           kind: 'source',
           label: 'source',
           rowCount: 1,
-          tableName: 'sourceHkgovAlsAddresses2d',
+          tableName: 'hkgovAlsAddresses2d',
         },
         {
-          kind: 'source',
-          label: 'sourceI18n',
+          kind: 'history',
+          label: 'resourceType',
+          rowCount: 1,
+          tableName: 'address2d',
+        },
+        {
+          kind: 'history',
+          label: 'resourceTypeI18n',
           rowCount: 2,
-          tableName: 'sourceHkgovAlsAddress2dI18n',
-        },
-        {
-          kind: 'source',
-          label: 'sourceVersions',
-          rowCount: 1,
-          tableName: 'sourceHkgovAlsAddresses2dVersions',
-        },
-        {
-          kind: 'source',
-          label: 'sourceI18nVersions',
-          rowCount: 2,
-          tableName: 'sourceHkgovAlsAddress2dI18nVersions',
+          tableName: 'address2dI18n',
         },
         {
           kind: 'history',
-          label: 'history2dVersions',
+          label: 'resourceDetail',
           rowCount: 1,
-          tableName: 'address2dVersions',
+          tableName: 'address3d',
         },
         {
           kind: 'history',
-          label: 'history2dI18nVersions',
-          rowCount: 2,
-          tableName: 'address2dVersionsI18n',
-        },
-        {
-          kind: 'history',
-          label: 'history3dVersions',
+          label: 'resourceDetailI18n',
           rowCount: 1,
-          tableName: 'address3dVersions',
-        },
-        {
-          kind: 'history',
-          label: 'history3dI18nVersions',
-          rowCount: 1,
-          tableName: 'address3dVersionsI18n',
+          tableName: 'address3dI18n',
         },
       ])
 
@@ -129,12 +111,13 @@ describe('reporting service', () => {
       seedMetaCatalog(metaSqlite)
       metaSqlite.exec(`
         INSERT INTO releases (
-          id, datasetId, code, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+          id, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
         ) VALUES
           (
             'release-1',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-26.0-address',
+            'hkgov-dpo-hk-address',
+            'dr-hk-hkgov-dpo-address-2026-06-26.0',
+            'address',
             '2026-06-26.0',
             null,
             null,
@@ -151,8 +134,9 @@ describe('reporting service', () => {
           ),
           (
             'release-2',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-25.0-address',
+            'hkgov-dpo-hk-address',
+            'dr-hk-hkgov-dpo-address-2026-06-25.0',
+            'address',
             '2026-06-25.0',
             null,
             null,
@@ -169,8 +153,9 @@ describe('reporting service', () => {
           ),
           (
             'release-3',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-24.0-address',
+            'hkgov-dpo-hk-address',
+            'dr-hk-hkgov-dpo-address-2026-06-24.0',
+            'address',
             '2026-06-24.0',
             null,
             null,
@@ -187,8 +172,9 @@ describe('reporting service', () => {
           ),
           (
             'release-4',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-23.0-address',
+            'hkgov-dpo-hk-address',
+            'dr-hk-hkgov-dpo-address-2026-06-23.0',
+            'address',
             '2026-06-23.0',
             null,
             null,
@@ -252,9 +238,9 @@ describe('reporting service', () => {
       const rows = await listStats(metaDb, { limit: 3 })
 
       expect([...new Set(rows.map(row => row.releaseCode))]).toEqual([
-        'hkgov-als-hk-2026-06-25.0-address',
-        'hkgov-als-hk-2026-06-24.0-address',
-        'hkgov-als-hk-2026-06-23.0-address',
+        'dr-hk-hkgov-dpo-address-2026-06-25.0',
+        'dr-hk-hkgov-dpo-address-2026-06-24.0',
+        'dr-hk-hkgov-dpo-address-2026-06-23.0',
       ])
 
       metaSqlite.close()
@@ -263,7 +249,7 @@ describe('reporting service', () => {
     }
   })
 
-  test('limits ingestion runs by release in SQL before materializing rows', async () => {
+  test('limits ingestion runs by release in SQL before materialising rows', async () => {
     const tempDir = await mkdtemp(join(tmpdir(), 'harbour-reporting-ingest-'))
 
     try {
@@ -275,12 +261,13 @@ describe('reporting service', () => {
       seedMetaCatalog(metaSqlite)
       metaSqlite.exec(`
         INSERT INTO releases (
-          id, datasetId, code, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+          id, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
         ) VALUES
           (
             'release-1',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-26.0-address',
+            'hkgov-dpo-hk-address',
+            'dr-hk-hkgov-dpo-address-2026-06-26.0',
+            'address',
             '2026-06-26.0',
             null,
             null,
@@ -297,8 +284,9 @@ describe('reporting service', () => {
           ),
           (
             'release-2',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-25.0-address',
+            'hkgov-dpo-hk-address',
+            'dr-hk-hkgov-dpo-address-2026-06-25.0',
+            'address',
             '2026-06-25.0',
             null,
             null,
@@ -315,8 +303,9 @@ describe('reporting service', () => {
           ),
           (
             'release-3',
-            'hkgov-als-hk-address',
-            'hkgov-als-hk-2026-06-24.0-address',
+            'hkgov-dpo-hk-address',
+            'dr-hk-hkgov-dpo-address-2026-06-24.0',
+            'address',
             '2026-06-24.0',
             null,
             null,
@@ -336,7 +325,7 @@ describe('reporting service', () => {
           runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
         ) VALUES
           ('run-1a', 'release-1', 'extractAddresses', 'completed', '{"release":1,"run":"a"}', null, '2026-06-26T10:00:00.000Z', '2026-06-26T10:05:00.000Z', 1761434400000, 1761434700000),
-          ('run-1b', 'release-1', 'normalizeAddresses', 'completed', '{"release":1,"run":"b"}', null, '2026-06-26T09:00:00.000Z', '2026-06-26T09:05:00.000Z', 1761430800000, 1761431100000),
+          ('run-1b', 'release-1', 'normaliseAddresses', 'completed', '{"release":1,"run":"b"}', null, '2026-06-26T09:00:00.000Z', '2026-06-26T09:05:00.000Z', 1761430800000, 1761431100000),
           ('run-2a', 'release-2', 'extractAddresses', 'completed', '{"release":2,"run":"a"}', null, '2026-06-25T10:00:00.000Z', '2026-06-25T10:05:00.000Z', 1761348000000, 1761348300000),
           ('run-3a', 'release-3', 'extractAddresses', 'completed', '{"release":3,"run":"a"}', null, '2026-06-24T10:00:00.000Z', '2026-06-24T10:05:00.000Z', 1761261600000, 1761261900000);
       `)
@@ -371,8 +360,8 @@ describe('reporting service', () => {
       seedRelease(metaSqlite)
       seedRelease(
         metaSqlite,
-        'release-hkgov-als-hk-2026-06-25.0-address',
-        'hkgov-als-hk-2026-06-25.0-address',
+        'release-dr-hk-hkgov-dpo-address-2026-06-25.0',
+        'dr-hk-hkgov-dpo-address-2026-06-25.0',
         '2026-06-25.0',
         1761350400000,
       )
@@ -380,19 +369,19 @@ describe('reporting service', () => {
       const metaDb = createLocalHarbourDb(metaSqlite)
       const byReleaseCode = await listReleases(metaDb, {}, 'preview', {
         limit: 10,
-        releaseCode: 'hkgov-als-hk-2026-06-25.0-address',
+        releaseCode: 'dr-hk-hkgov-dpo-address-2026-06-25.0',
       })
       const byReleaseId = await listReleases(metaDb, {}, 'preview', {
         limit: 10,
-        releaseId: 'release-hkgov-als-hk-2026-06-24.0-address',
+        releaseId: 'release-dr-hk-hkgov-dpo-address-2026-06-24.0',
       })
 
       expect(byReleaseCode).toHaveLength(1)
       expect(byReleaseCode[0]?.releaseId).toBe(
-        'release-hkgov-als-hk-2026-06-25.0-address',
+        'release-dr-hk-hkgov-dpo-address-2026-06-25.0',
       )
       expect(byReleaseId).toHaveLength(1)
-      expect(byReleaseId[0]?.releaseCode).toBe('hkgov-als-hk-2026-06-24.0-address')
+      expect(byReleaseId[0]?.releaseCode).toBe('dr-hk-hkgov-dpo-address-2026-06-24.0')
 
       metaSqlite.close()
     } finally {
@@ -423,20 +412,19 @@ describe('reporting service', () => {
       seedHistoryRows(historySqlite)
       seedRelease(
         metaSqlite,
-        'release-hkgov-als-hk-2026-06-25.0-address',
-        'hkgov-als-hk-2026-06-25.0-address',
+        'release-dr-hk-hkgov-dpo-address-2026-06-25.0',
+        'dr-hk-hkgov-dpo-address-2026-06-25.0',
         '2026-06-25.0',
         1761350400000,
       )
       seedSourceRows(
         sourceSqlite,
-        'release-hkgov-als-hk-2026-06-25.0-address',
-        'hkgov-als-hk-address',
+        'release-dr-hk-hkgov-dpo-address-2026-06-25.0',
         'source-address-2',
       )
       seedHistoryRows(
         historySqlite,
-        'release-hkgov-als-hk-2026-06-25.0-address',
+        'release-dr-hk-hkgov-dpo-address-2026-06-25.0',
         'release-set-2',
         'address-2',
         'address3d-2',
@@ -459,11 +447,11 @@ describe('reporting service', () => {
       const releases = await listReleases(metaDb, bindings, 'preview', { limit: 2 })
 
       expect(releases).toHaveLength(2)
-      expect(queryCounts.source).toBe(4)
+      expect(queryCounts.source).toBe(1)
       expect(queryCounts.history).toBe(4)
       expect(releases.map(release => release.releaseId)).toEqual([
-        'release-hkgov-als-hk-2026-06-25.0-address',
-        'release-hkgov-als-hk-2026-06-24.0-address',
+        'release-dr-hk-hkgov-dpo-address-2026-06-25.0',
+        'release-dr-hk-hkgov-dpo-address-2026-06-24.0',
       ])
 
       metaSqlite.close()
@@ -487,24 +475,23 @@ function seedMetaCatalog(sqlite: SQLiteDatabase) {
     INSERT INTO publishers (
       id, code, url, contactUrl, contactEmail, contactPhone, parentPublisherId, versionHash, createdAt, updatedAt
     ) VALUES
-      ('publisher-hkgov-als', 'hkgov-als', 'https://data.gov.hk', 'https://data.gov.hk/en/feedback', null, null, null, 'vh-publisher-hkgov-als-v1', 1, 1);
+      ('publisher-hkgov-dpo', 'hkgov-dpo', 'https://data.gov.hk', 'https://data.gov.hk/en/feedback', null, null, null, 'vh-publisher-hkgov-dpo-v1', 1, 1);
 
     INSERT INTO datasets (
-      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, type, sourceUrl, licenseId, attribution, category, versionHash, createdAt, updatedAt
+      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, sourceUrl, licenseId, attribution, category, versionHash, createdAt, updatedAt
     ) VALUES (
-      'hkgov-als-hk-address',
-      'publisher-hkgov-als',
-      'ds-hk-hkgov-als-address',
+      'hkgov-dpo-hk-address',
+      'publisher-hkgov-dpo',
+      'ds-hk-hkgov-dpo-address',
       'hk',
       'static',
       'monthly',
       'addresses',
-      'address',
-      'https://data.gov.hk/en-data/dataset/hk-ogcio-st_div_01-als',
+      null,
       null,
       null,
       'places',
-      'vh-dataset-hkgov-als-hk-address-v1',
+      'vh-dataset-hkgov-dpo-hk-address-v1',
       1,
       1
     );
@@ -545,23 +532,24 @@ function seedMetaCatalog(sqlite: SQLiteDatabase) {
 
 function seedRelease(
   sqlite: SQLiteDatabase,
-  releaseId = 'release-hkgov-als-hk-2026-06-24.0-address',
-  releaseCode = 'hkgov-als-hk-2026-06-24.0-address',
+  releaseId = 'release-dr-hk-hkgov-dpo-address-2026-06-24.0',
+  releaseCode = 'dr-hk-hkgov-dpo-address-2026-06-24.0',
   sourceVersion = '2026-06-24.0',
   timestamp = 1761264000000,
 ) {
   sqlite.exec(`
     INSERT INTO releases (
-      id, datasetId, code, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+      id, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
     ) VALUES (
       '${releaseId}',
-      'hkgov-als-hk-address',
+      'hkgov-dpo-hk-address',
       '${releaseCode}',
+      'address',
       '${sourceVersion}',
       null,
       null,
       '2026-06',
-      'hk/hkgov-als/${sourceVersion}/address.parquet',
+      'hk/hkgov-dpo/${sourceVersion}/address.parquet',
       'address.parquet',
       'published',
       null,
@@ -584,8 +572,8 @@ function seedIngestRun(sqlite: SQLiteDatabase) {
     INSERT INTO ingestRuns (
       runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
     ) VALUES (
-      'run-hkgov-als-hk-2026-06-24.0-address',
-      'release-hkgov-als-hk-2026-06-24.0-address',
+      'run-dr-hk-hkgov-dpo-address-2026-06-24.0',
+      'release-dr-hk-hkgov-dpo-address-2026-06-24.0',
       'extractAddresses',
       'completed',
       '{"inserted":1}',
@@ -603,9 +591,9 @@ function seedStat(sqlite: SQLiteDatabase) {
     INSERT INTO stats (
       id, type, releaseId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt
     ) VALUES (
-      'stat-hkgov-als-hk-2026-06-24.0-address-rows',
+      'stat-dr-hk-hkgov-dpo-address-2026-06-24.0-rows',
       'address',
-      'release-hkgov-als-hk-2026-06-24.0-address',
+      'release-dr-hk-hkgov-dpo-address-2026-06-24.0',
       'ingest',
       'rows',
       'count',
@@ -620,111 +608,48 @@ function seedStat(sqlite: SQLiteDatabase) {
 
 function seedSourceRows(
   sqlite: SQLiteDatabase,
-  releaseId = 'release-hkgov-als-hk-2026-06-24.0-address',
-  datasetId = 'hkgov-als-hk-address',
+  releaseId = 'release-dr-hk-hkgov-dpo-address-2026-06-24.0',
   sourceRecordId = 'source-address-1',
 ) {
   sqlite.exec(`
-    INSERT INTO sourceHkgovAlsAddresses2d (
-      releaseId, datasetId, sourceRecordId, sourcePayloadHash, createdAt, updatedAt, regionCode, geoAddress, csuId, x, y, geometry, districtCode, districtName, estateName, buildingName, blockNumber, blockDescriptor, phaseName, phaseNumber, floor, unit, streetNumber, streetName, villageName, dataOwner, rawPayload
-    ) VALUES (
-      '${releaseId}',
-      '${datasetId}',
-      '${sourceRecordId}',
-      'hash-1',
-      1761264000000,
-      1761264000000,
-      'hk',
-      '1 Example Road',
-      'csu-1',
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      '1',
-      'Example Road',
-      null,
-      'hkgov-als',
-      null
-    );
-
-    INSERT INTO sourceHkgovAlsAddress2dI18n (
-      sourceRecordId, locale, formattedAddress, buildingName, buildingNumberFrom, buildingNumberTo, blockType, blockNumber, blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber, streetName, villageName, districtName
-    ) VALUES
-      ('${sourceRecordId}', 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, '1', 'Example Road', null, null),
-      ('${sourceRecordId}', 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, '1', '示例路', null, null);
-
-    INSERT INTO sourceHkgovAlsAddresses2dVersions (
-      sourceRecordId, regionCode, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, geoAddress, csuId, x, y, geometry, districtCode, districtName, estateName, buildingName, blockNumber, blockDescriptor, phaseName, phaseNumber, floor, unit, streetNumber, streetName, villageName, dataOwner, rawPayload
+    INSERT INTO hkgovAlsAddresses2d (
+      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, identifiers, easting, northing, geometry, addressEn, addressZhHant, sources, rawProperties
     ) VALUES (
       '${sourceRecordId}',
-      'hk',
       'version-hash-1',
       '${releaseId}',
       '${releaseId}',
       null,
       1,
-      1761264000000,
-      1761264000000,
-      '1 Example Road',
-      'csu-1',
+      '2026-06-24T10:40:00.000Z',
+      '2026-06-24T10:40:00.000Z',
+      '{"geoAddress":"1 Example Road","csuId":"csu-1"}',
       null,
       null,
       null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      '1',
-      'Example Road',
-      null,
-      'hkgov-als',
+      '{"formattedAddress":"1 Example Road"}',
+      '{"formattedAddress":"示例路1號"}',
+      '{"hkgovAls":[{"dataset":"hkgov-dpo"}]}',
       null
     );
-
-    INSERT INTO sourceHkgovAlsAddress2dI18nVersions (
-      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, locale, formattedAddress, buildingName, buildingNumberFrom, buildingNumberTo, blockType, blockNumber, blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber, streetName, villageName, districtName
-    ) VALUES
-      ('${sourceRecordId}', 'version-hash-1', '${releaseId}', '${releaseId}', null, 1, 1761264000000, 1761264000000, 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, '1', 'Example Road', null, null),
-      ('${sourceRecordId}', 'version-hash-1', '${releaseId}', '${releaseId}', null, 1, 1761264000000, 1761264000000, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, '1', '示例路', null, null);
   `)
 }
 
 function seedHistoryRows(
   sqlite: SQLiteDatabase,
-  releaseId = 'release-hkgov-als-hk-2026-06-24.0-address',
+  releaseId = 'release-dr-hk-hkgov-dpo-address-2026-06-24.0',
   snapshotId = 'snapshot-1',
   addressId = 'address-1',
   address3dId = 'address3d-1',
 ) {
   sqlite.exec(`
-    INSERT INTO address2dVersions (
-      id, regionCode, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, validFromCohortKey, validToCohortKey, isCurrent, streetId, hamletId, microhoodId, villageId, neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox, identifiers, sources, createdAt, updatedAt
+    INSERT INTO address2d (
+      id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId, hamletId, microhoodId, villageId, neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox, identifiers, sources, createdAt, updatedAt
     ) VALUES (
       '${addressId}',
-      'hk',
       'address-2d-version-1',
       '${releaseId}',
       '${snapshotId}',
-      '${snapshotId}',
-      null,
-      '2026-06',
-      null,
       1,
       null,
       null,
@@ -744,23 +669,23 @@ function seedHistoryRows(
       '2026-06-24T12:00:00.000Z'
     );
 
-    INSERT INTO address2dVersionsI18n (
-      addressId, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, isCurrent, locale, formattedAddress, buildingName, buildingNumberFrom, buildingNumberTo, blockType, blockNumber, blockTypeBeforeNumber, phaseName, phaseNumber, estateName, streetNumber, streetName, createdAt, updatedAt
+    INSERT INTO address2dI18n (
+      addressId, versionHash, sourceReleaseId, snapshotId, isCurrent, locale,
+      formattedAddress, buildingName, buildingNumberExpression, buildingNumberFrom,
+      buildingNumberTo, buildingNumberConnector, blockExpression, blockType, blockRef,
+      blockTypeBeforeNumber, phaseExpression, phaseName, phaseRef, estateName,
+      streetName, createdAt, updatedAt
     ) VALUES
-      ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', '${snapshotId}', null, 1, 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, '1', 'Example Road', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z'),
-      ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', '${snapshotId}', null, 1, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, '1', '示例路', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z');
+      ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', 1, 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, null, null, null, null, 'Example Road', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z'),
+      ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', 1, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, null, null, null, null, '示例路', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z');
 
-    INSERT INTO address3dVersions (
-      id, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, validFromCohortKey, validToCohortKey, isCurrent, address2dId, sources, createdAt, updatedAt
+    INSERT INTO address3d (
+      id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, sources, createdAt, updatedAt
     ) VALUES (
       '${address3dId}',
       'address-3d-version-1',
       '${releaseId}',
       '${snapshotId}',
-      '${snapshotId}',
-      null,
-      '2026-06',
-      null,
       1,
       '${addressId}',
       null,
@@ -768,21 +693,23 @@ function seedHistoryRows(
       '2026-06-24T12:00:00.000Z'
     );
 
-    INSERT INTO address3dVersionsI18n (
-      address3dId, versionHash, sourceReleaseId, snapshotId, validFromSnapshotId, validToSnapshotId, isCurrent, locale, formattedAddressPart, accessHint, unitPortion, unitNumber, unitType, floorNumber, floorType, createdAt, updatedAt
+    INSERT INTO address3dI18n (
+      address3dId, versionHash, sourceReleaseId, snapshotId, isCurrent, locale,
+      formattedAddressPart, accessHint, unitPortion, unitExpression, unitRef, unitType,
+      floorExpression, floorRef, floorType, createdAt, updatedAt
     ) VALUES (
       '${address3dId}',
       'address-3d-version-1',
       '${releaseId}',
       '${snapshotId}',
-      '${snapshotId}',
-      null,
       1,
       'en',
       'Flat A',
       null,
       null,
+      null,
       'A',
+      null,
       null,
       null,
       null,

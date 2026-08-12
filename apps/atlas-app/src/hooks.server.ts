@@ -30,7 +30,11 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
   if (!event.platform?.env?.DB_META)
     throw new Error('D1 binding "DB_META" not found - are you running with wrangler?')
 
-  event.locals.auth = createAuth(event.platform.env.DB_META, event.url.origin)
+  event.locals.auth = createAuth(
+    event.platform.env.DB_META,
+    event.url.origin,
+    event.platform.env,
+  )
 
   const { auth } = event.locals
   const session = await auth.api.getSession({ headers: event.request.headers })

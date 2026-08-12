@@ -1,0 +1,68 @@
+{
+  "publisherCode": "hkgov-landsd",
+  "code": "ds-hk-hkgov-landsd-road-centreline",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "monthly",
+  "theme": "streets",
+  "resourceTypes": ["street"],
+  "sourceVariant": "hkgov-landsd-road-centreline",
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Lands Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=landsd_rcd_1637310758814_80061",
+  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/0d06e0991048689dd9b2e33462b5f9c885fff7858b2ca5626de8c1f6e840b503",
+  "sourceLayer": "GEO_STREET_CENTRELINE",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "regular",
+    "revisionScope": "latest",
+    "checks": {
+      "newReleases": {
+        "trigger": "after-latest-release-age",
+        "ageDays": 28,
+        "frequency": "daily"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["new-release"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=landsd_rcd_1637310758814_80061"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "release-date",
+    "correctionSuffixSource": "generated"
+  },
+  "category": "places",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Lands Department Road Centreline",
+      "description": "Based on the Land Information System (“LIS”) 1:1000 Topographic dataset and is also available as the Street Centre Lines feature class in the iB1000 dataset and Road Centreline in iRG1000 dataset. The usage of the LandsD’s Road Centreline is primarily focused on approximate location query and map annotation labelling."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "地政總署道路中心線",
+      "description": "本資料以土地資訊系統（「LIS」）1:1000 地形資料集為基礎，亦可於 iB1000 資料集的 Street Centre Lines 要素類別及 iRG1000 資料集的 Road Centreline 取得。地政總署道路中心線主要用於大概位置查詢及地圖註記標籤。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "地政总署道路中心线",
+      "description": "本数据以土地信息系统（“LIS”）1:1000 地形数据集为基础，亦可在 iB1000 数据集的 Street Centre Lines 要素类及 iRG1000 数据集的 Road Centreline 获取。地政总署道路中心线主要用于大概位置查询及地图注记标注。"
+    }
+  ],
+  "versionHash": "sha256:f113cf708b175620cf69a9b43423daa3ed0855cc866f98990b854e21346ca6b2"
+}

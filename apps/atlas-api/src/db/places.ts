@@ -13,10 +13,7 @@ const {
   placesI18n,
 } = currentSchema
 
-type RegionCode = 'hk' | 'mo'
-
 type PlaceLookup = {
-  regionCode: RegionCode
   placeId: string
   snapshotId: string
 }
@@ -28,7 +25,6 @@ type I18nLookup = {
 }
 
 type H3Lookup = {
-  regionCode: RegionCode
   snapshotId: string
   h3Level: number
   h3Cell: string
@@ -36,7 +32,6 @@ type H3Lookup = {
 }
 
 type FtsLookup = {
-  regionCode: RegionCode
   snapshotId: string
   locale?: string
   query: string
@@ -49,11 +44,7 @@ export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) 
       .select()
       .from(places)
       .where(
-        and(
-          eq(places.snapshotId, lookup.snapshotId),
-          eq(places.regionCode, lookup.regionCode),
-          eq(places.id, lookup.placeId),
-        ),
+        and(eq(places.snapshotId, lookup.snapshotId), eq(places.id, lookup.placeId)),
       )
       .limit(1)
       .get()) ?? null
@@ -80,7 +71,6 @@ export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup
     .select({
       divisionId: divisions.id,
       level: divisions.level,
-      parentDivisionId: divisions.parentDivisionId,
       locale: divisionsI18n.locale,
       name: divisionsI18n.name,
     })
@@ -115,7 +105,6 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
     .select({
       placeId: places.id,
       releaseId: places.releaseId,
-      regionCode: places.regionCode,
       basicCategory: places.basicCategory,
       taxonomyPrimary: places.taxonomyPrimary,
       operatingStatus: places.operatingStatus,
@@ -132,7 +121,6 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
     .where(
       and(
         eq(placesCells.snapshotId, lookup.snapshotId),
-        eq(placesCells.regionCode, lookup.regionCode),
         eq(placesCells.h3Level, lookup.h3Level),
         eq(placesCells.h3Cell, lookup.h3Cell),
       ),
@@ -146,7 +134,6 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
     return await db
       .select({
         placeId: places.id,
-        regionCode: places.regionCode,
         releaseId: places.releaseId,
         locale: placesFts.locale,
         nameText: placesFts.nameText,
@@ -163,7 +150,6 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
       .where(
         and(
           eq(placesFts.snapshotId, lookup.snapshotId),
-          eq(places.regionCode, lookup.regionCode),
           lookup.locale ? eq(placesFts.locale, lookup.locale) : undefined,
           placesFtsMatch(lookup.query),
         ),
@@ -173,7 +159,7 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
   } catch (error) {
     if (error instanceof Error && error.message.includes('no such table: placesFts')) {
       throw new Error(
-        'FTS index is not initialized. Rebuild placesFts before using search.',
+        'FTS index is not initialised. Rebuild placesFts before using search.',
       )
     }
 

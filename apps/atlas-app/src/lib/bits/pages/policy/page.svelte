@@ -16,7 +16,7 @@ let { policy }: Props = $props()
 <Main class="policy-shell">
   <section class="policy-hero">
     <div
-      class="mx-auto max-w-(--spacing-container-max) px-(--spacing-margin-mobile) py-16 md:px-8 md:py-20 xl:px-(--spacing-margin-desktop)"
+      class="mx-auto max-w-(--spacing-container-max) px-(--spacing-margin-md) py-16 md:px-8 md:py-20 xl:px-(--spacing-margin-xl)"
     >
       <div class="max-w-5xl">
         <div
@@ -30,11 +30,11 @@ let { policy }: Props = $props()
           <h1
             class="max-w-4xl font-display text-[2.95rem] leading-[0.94] font-bold tracking-[-0.06em] text-primary sm:text-[4.1rem] lg:text-[4.8rem]"
           >
-            {policy.title}
+            {policy.i18n.en.title}
             <span
               class="mt-3 block w-fit rounded-full bg-secondary-container px-5 py-2 text-[1.35rem] leading-none tracking-display-md text-on-secondary-container sm:text-[1.55rem]"
             >
-              {policy.chineseTitle}
+              {policy.i18n['zh-hant'].title}
             </span>
           </h1>
         </div>
@@ -70,24 +70,24 @@ let { policy }: Props = $props()
 
   <section class="relative">
     <div
-      class="mx-auto grid max-w-(--spacing-container-max) gap-8 px-(--spacing-margin-mobile) pb-18 md:px-8 lg:gap-10 xl:px-(--spacing-margin-desktop)"
+      class="mx-auto grid max-w-(--spacing-container-max) gap-8 px-(--spacing-margin-md) pb-18 md:px-8 lg:gap-10 xl:px-(--spacing-margin-xl)"
     >
       <PolicyDocument
         badge="English"
         description="Primary version"
         lang="en"
-        title={policy.title}
-        intro={policy.englishIntro}
-        sections={policy.englishSections}
+        title={policy.i18n.en.title}
+        intro={policy.i18n.en.intro}
+        sections={policy.i18n.en.sections}
       />
 
       <PolicyDocument
         badge="繁體中文"
         description="Provided after the English version for convenience"
         lang="zh-Hant"
-        title={policy.chineseTitle}
-        intro={policy.chineseIntro}
-        sections={policy.chineseSections}
+        title={policy.i18n['zh-hant'].title}
+        intro={policy.i18n['zh-hant'].intro}
+        sections={policy.i18n['zh-hant'].sections}
       />
     </div>
   </section>

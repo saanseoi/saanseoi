@@ -1,19 +1,23 @@
 import {
   getDatasetById,
-  hasDatasetForCohortKeySourceType,
   getLatestDatasetForRegionSourceType,
   insertDataset,
   resetFailedDataset,
-  updateDatasetStatus,
   upsertIngestRunStatus,
-} from '../db/metaRepository'
+} from '../db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
 import type { ReleaseStatus } from '@repo/db'
+import { assertKnownSafeSourceRelease } from '../../sourceSchemas'
+import {
+  buildDatasetCode,
+  buildDatasetReleaseCode,
+  resourceTypeCodeSlug,
+} from '../../codes'
 import {
   resourceTypes,
   resourceThemes,
   type DatasetRecord,
-  type ParquetInspection,
+  type UploadInspection,
   type PreparedUploadResult,
   type RegisterUploadOptions,
   type RegisterUploadResult,
@@ -24,6 +28,21 @@ import {
 } from '../../types'
 
 const TYPE_ALIASES: Record<string, ResourceType> = {
+  divisionarea: 'divisionArea',
+  'division-area': 'divisionArea',
+  division_area: 'divisionArea',
+  area: 'divisionArea',
+  areas: 'divisionArea',
+  divisionboundary: 'divisionBoundary',
+  'division-boundary': 'divisionBoundary',
+  division_boundary: 'divisionBoundary',
+  boundary: 'divisionBoundary',
+  boundaries: 'divisionBoundary',
+  divisionstatistic: 'divisionStatistic',
+  'division-statistic': 'divisionStatistic',
+  division_statistic: 'divisionStatistic',
+  statistic: 'divisionStatistic',
+  statistics: 'divisionStatistic',
   address: 'address',
   addresses: 'address',
   division: 'division',
@@ -37,6 +56,9 @@ const TYPE_ALIASES: Record<string, ResourceType> = {
 const TYPE_THEME_MAP: Record<ResourceType, ResourceTheme> = {
   address: 'addresses',
   division: 'divisions',
+  divisionArea: 'divisions',
+  divisionBoundary: 'divisions',
+  divisionStatistic: 'stats',
   street: 'streets',
   place: 'places',
 }
@@ -46,6 +68,9 @@ const THEME_ALIASES: Record<string, ResourceTheme> = {
   addresses: 'addresses',
   division: 'divisions',
   divisions: 'divisions',
+  statistic: 'stats',
+  statistics: 'stats',
+  stats: 'stats',
   street: 'streets',
   streets: 'streets',
   place: 'places',
@@ -70,10 +95,16 @@ const SOURCE_ALIASES: Record<string, string> = {
   overture: 'overture',
   'overture-maps': 'overture',
   hkgov: 'hkgov',
-  'hkgov-als': 'hkgov-als',
-  'hkgov als': 'hkgov-als',
-  als: 'hkgov-als',
-  'hk-als': 'hkgov-als',
+  'hkgov-had': 'hkgov-had',
+  'hkgov-censtatd': 'hkgov-censtatd',
+  'hkgov-hyd': 'hkgov-hyd',
+  'hkgov-landsd': 'hkgov-landsd',
+  'hkgov-pland-pu': 'hkgov-pland-pu',
+  'hkgov-pland-new-town': 'hkgov-pland-new-town',
+  'hkgov-dpo': 'hkgov-dpo',
+  'hkgov als': 'hkgov-dpo',
+  als: 'hkgov-dpo',
+  'hk-als': 'hkgov-dpo',
 }
 
 const SOURCE_MATCHERS = Object.entries(SOURCE_ALIASES).sort(
@@ -116,7 +147,7 @@ function splitFileNameParts(fileName: string) {
   }
 }
 
-function normalizeSource(candidate?: string | null) {
+function normaliseSource(candidate?: string | null) {
   if (!candidate) {
     return null
   }
@@ -124,7 +155,7 @@ function normalizeSource(candidate?: string | null) {
   return SOURCE_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
-function normalizeUploadFileName(
+function normaliseUploadFileName(
   filePath: string,
   type: ResourceType,
   providedOriginalFileName?: string,
@@ -132,14 +163,15 @@ function normalizeUploadFileName(
   const originalFileName =
     providedOriginalFileName?.trim() || fileNameFromPath(filePath)
   const { extension } = splitFileNameParts(originalFileName)
+  const resourceSlug = resourceTypeCodeSlug(type)
 
   return {
     originalFileName,
-    fileName: extension ? `${type}.${extension}` : type,
+    fileName: extension ? `${resourceSlug}.${extension}` : resourceSlug,
   }
 }
 
-function normalizeToken(value: string) {
+function normaliseToken(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
@@ -147,40 +179,17 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-function getDatasetCodeSubType(_source: string, _type: ResourceType) {
-  return null
-}
-
-function buildDatasetCode(regionCode: RegionCode, source: string, type: ResourceType) {
-  const subType = getDatasetCodeSubType(source, type)
-
-  return `ds-${regionCode}-${source}-${type}${subType ? `-${subType}` : ''}`
-}
-
 function formatDatasetIdentifier(datasetCode?: string, datasetId?: string) {
-  if (datasetCode?.startsWith('ds-')) {
-    const match = datasetCode.match(
-      /^ds-([a-z0-9]+)-(.+)-(address|division|place|street)(?:-(.+))?$/i,
-    )
-
-    if (match) {
-      const [, regionCode, source, resourceType, subType] = match
-      const subTypeParts = subType ? [subType] : []
-
-      return [source, regionCode, resourceType, ...subTypeParts].join('-')
-    }
-  }
-
   return datasetCode ?? datasetId ?? 'unknown-dataset'
 }
 
 function matchSourceCandidate(candidate: string) {
-  const normalized = normalizeToken(candidate)
+  const normalised = normaliseToken(candidate)
 
   for (const [token, source] of SOURCE_MATCHERS) {
     const matcher = new RegExp(`(^|[ ._\\/-])${escapeRegExp(token)}([ ._\\/-]|$)`, 'i')
 
-    if (matcher.test(normalized)) {
+    if (matcher.test(normalised)) {
       return source
     }
   }
@@ -189,12 +198,12 @@ function matchSourceCandidate(candidate: string) {
 }
 
 function matchTypeCandidate(candidate: string): ResourceType | null {
-  const normalized = normalizeToken(candidate)
+  const normalised = normaliseToken(candidate)
 
   for (const [token, type] of Object.entries(TYPE_ALIASES)) {
     const matcher = new RegExp(`(^|[ ._\\/-])${token}([ ._\\/-]|$)`, 'i')
 
-    if (matcher.test(normalized)) {
+    if (matcher.test(normalised)) {
       return type
     }
   }
@@ -203,12 +212,12 @@ function matchTypeCandidate(candidate: string): ResourceType | null {
 }
 
 function matchThemeCandidate(candidate: string): ResourceTheme | null {
-  const normalized = normalizeToken(candidate)
+  const normalised = normaliseToken(candidate)
 
   for (const [token, theme] of Object.entries(THEME_ALIASES)) {
     const matcher = new RegExp(`(^|[ ._\\/-])${token}([ ._\\/-]|$)`, 'i')
 
-    if (matcher.test(normalized)) {
+    if (matcher.test(normalised)) {
       return theme
     }
   }
@@ -359,12 +368,12 @@ export function inferSourceFromFilename(filePath: string) {
 }
 
 function matchRegionCandidate(candidate: string): RegionCode | null {
-  const normalized = normalizeToken(candidate)
+  const normalised = normaliseToken(candidate)
 
   for (const [token, regionCode] of Object.entries(REGION_ALIASES)) {
     const matcher = new RegExp(`(^|[ ._\\/-])${token}([ ._\\/-]|$)`, 'i')
 
-    if (matcher.test(normalized)) {
+    if (matcher.test(normalised)) {
       return regionCode
     }
   }
@@ -396,7 +405,7 @@ export function inferRegionFromFilename(filePath: string): RegionCode | null {
   return matchRegionCandidate(fileNameFromPath(filePath))
 }
 
-function normalizeTheme(candidate?: string | null): ResourceTheme | null {
+function normaliseTheme(candidate?: string | null): ResourceTheme | null {
   if (!candidate) {
     return null
   }
@@ -404,7 +413,7 @@ function normalizeTheme(candidate?: string | null): ResourceTheme | null {
   return THEME_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
-function normalizeType(candidate?: string | null): ResourceType | null {
+function normaliseType(candidate?: string | null): ResourceType | null {
   if (!candidate) {
     return null
   }
@@ -412,7 +421,7 @@ function normalizeType(candidate?: string | null): ResourceType | null {
   return TYPE_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
-function normalizeRegion(candidate?: string | null): RegionCode | null {
+function normaliseRegion(candidate?: string | null): RegionCode | null {
   if (!candidate) {
     return null
   }
@@ -420,9 +429,9 @@ function normalizeRegion(candidate?: string | null): RegionCode | null {
   return REGION_ALIASES[candidate.trim().toLowerCase()] ?? null
 }
 
-function inferThemeFromParquet(inspection: ParquetInspection) {
+function inferThemeFromParquet(inspection: UploadInspection) {
   const distinctThemes = inspection.distinctThemeValues
-    .map(value => normalizeTheme(value))
+    .map(value => normaliseTheme(value))
     .filter((value): value is ResourceTheme => value !== null)
 
   const uniqueThemes = [...new Set(distinctThemes)]
@@ -434,9 +443,9 @@ function inferThemeFromParquet(inspection: ParquetInspection) {
   return uniqueThemes[0]
 }
 
-function inferTypeFromParquet(inspection: ParquetInspection) {
+function inferTypeFromParquet(inspection: UploadInspection) {
   const distinctTypes = inspection.distinctTypeValues
-    .map(value => normalizeType(value))
+    .map(value => normaliseType(value))
     .filter((value): value is ResourceType => value !== null)
 
   const uniqueTypes = [...new Set(distinctTypes)]
@@ -448,12 +457,12 @@ function inferTypeFromParquet(inspection: ParquetInspection) {
   return uniqueTypes[0]
 }
 
-function inferRegionFromParquet(inspection: ParquetInspection) {
+function inferRegionFromParquet(inspection: UploadInspection) {
   const countryRegions = inspection.distinctCountryValues
-    .map(value => normalizeRegion(value))
+    .map(value => normaliseRegion(value))
     .filter((value): value is RegionCode => value !== null)
   const regionRegions = inspection.distinctRegionValues
-    .map(value => normalizeRegion(value))
+    .map(value => normaliseRegion(value))
     .filter((value): value is RegionCode => value !== null)
   const uniqueRegions = [...new Set([...countryRegions, ...regionRegions])]
 
@@ -464,7 +473,7 @@ function inferRegionFromParquet(inspection: ParquetInspection) {
   return uniqueRegions[0]
 }
 
-function normalizeCohortKey(candidate?: string | null) {
+function normaliseCohortKey(candidate?: string | null) {
   if (!candidate) {
     return null
   }
@@ -477,12 +486,12 @@ function normalizeCohortKey(candidate?: string | null) {
   return trimmed
 }
 
-export function createSchemaFingerprint(inspection: ParquetInspection) {
+export function createSchemaFingerprint(inspection: UploadInspection) {
   return createSchemaFingerprintFromSchema(inspection.schema)
 }
 
-function createSchemaFingerprintFromSchema(schema: ParquetInspection['schema']) {
-  return JSON.stringify(normalizeSchemaFingerprintFields(schema))
+function createSchemaFingerprintFromSchema(schema: UploadInspection['schema']) {
+  return JSON.stringify(normaliseSchemaFingerprintFields(schema))
 }
 
 function compareFingerprintValue(left: string, right: string) {
@@ -497,7 +506,7 @@ function compareFingerprintValue(left: string, right: string) {
   return 0
 }
 
-function normalizeSchemaFingerprintFields(schema: ParquetInspection['schema']) {
+function normaliseSchemaFingerprintFields(schema: UploadInspection['schema']) {
   return schema
     .map(field => ({
       name: field.name,
@@ -545,7 +554,7 @@ function ensureChronologicalUpload(
 async function ensureSchemaCompatible(
   latestDataset: DatasetRecord | null,
   nextPlan: Pick<UploadPlan, 'source' | 'sourceVersion' | 'type'>,
-  nextInspection: ParquetInspection,
+  nextInspection: UploadInspection,
   resolveSchemaFingerprint?: RegisterUploadOptions['resolveSchemaFingerprint'],
 ) {
   if (!latestDataset) {
@@ -563,7 +572,7 @@ async function ensureSchemaCompatible(
     throw new Error(
       [
         `Cannot validate schema drift against ${latestDataset.releaseCode}.`,
-        `Expected schema metadata for ${latestDataset.rawObjectKey}.`,
+        'Expected schema metadata in its release ingest run.',
       ].join(' '),
     )
   }
@@ -603,53 +612,44 @@ async function ensureSourcePrerequisites(
   db: HarbourReadableDb,
   plan: Pick<UploadPlan, 'regionCode' | 'cohortKey' | 'source' | 'type'>,
 ) {
-  if (plan.source !== 'hkgov-als' || plan.type !== 'address') {
-    return
-  }
-
-  const overtureDataset = await hasDatasetForCohortKeySourceType(
-    db,
-    plan.regionCode,
-    plan.cohortKey,
-    'overture',
-    'address',
-  )
-
-  if (!overtureDataset) {
-    throw new Error(
-      [
-        `Cannot upload ${plan.source} ${plan.type} for ${plan.cohortKey}.`,
-        'Upload the matching Overture address dataset for the same cohortKey first.',
-      ].join(' '),
-    )
-  }
+  // HKGov ALS can establish pre-GERS address cohorts from a reviewed future
+  // identity bridge. Overture is therefore preferred, but not a hard source
+  // prerequisite; the exact-cohort division snapshot remains mandatory.
+  void db
+  void plan
 }
 
 function resolveUploadPlan(
   options: RegisterUploadOptions,
-  resolvedInspection: ParquetInspection,
+  resolvedInspection: UploadInspection,
 ) {
   const directoryPath = directoryPathFromPath(options.filePath)
-  const typeFromFlag = normalizeType(options.type)
+  const typeFromFlag = normaliseType(options.type)
+  const typeFromFilename = inferTypeFromFilename(options.filePath)
   const typeFromPath = inferTypeFromPath(directoryPath)
   const typeFromParquet = inferTypeFromParquet(resolvedInspection)
-  const type = typeFromFlag ?? typeFromPath ?? typeFromParquet
+  const type = typeFromFlag ?? typeFromFilename ?? typeFromPath ?? typeFromParquet
 
   if (!type) {
     throw new Error(
-      `Could not determine a supported type. Pass \`--type ${resourceTypes.join('|')}\` or use a recognizable path/file name.`,
+      `Could not determine a supported type. Pass \`--type ${resourceTypes.join('|')}\` or use a recognisable path/file name.`,
     )
   }
 
-  const themeFromFlag = normalizeTheme(options.theme)
-  const themeFromPath = inferThemeFromPath(directoryPath) ?? TYPE_THEME_MAP[type]
+  const themeFromFlag = normaliseTheme(options.theme)
+  const themeFromFilename = inferThemeFromFilename(options.filePath)
+  const themeFromPath = inferThemeFromPath(directoryPath)
   const themeFromParquet = inferThemeFromParquet(resolvedInspection)
   const theme =
-    themeFromFlag ?? themeFromPath ?? themeFromParquet ?? TYPE_THEME_MAP[type]
+    themeFromFlag ??
+    themeFromFilename ??
+    themeFromPath ??
+    themeFromParquet ??
+    TYPE_THEME_MAP[type]
 
   if (!theme) {
     throw new Error(
-      `Could not determine a supported theme. Pass \`--theme ${resourceThemes.join('|')}\` or use a recognizable path/file name.`,
+      `Could not determine a supported theme. Pass \`--theme ${resourceThemes.join('|')}\` or use a recognisable path/file name.`,
     )
   }
 
@@ -673,25 +673,25 @@ function resolveUploadPlan(
     )
   }
 
-  const regionFromFlag = normalizeRegion(options.regionCode)
+  const regionFromFlag = normaliseRegion(options.regionCode)
   const regionFromPath = inferRegionFromPath(options.filePath)
   const regionFromParquet = inferRegionFromParquet(resolvedInspection)
   const regionCode = regionFromFlag ?? regionFromPath ?? regionFromParquet
 
   if (!regionCode) {
     throw new Error(
-      'Could not determine regionCode. Pass `--region hk|mo` or use a recognizable path/content.',
+      'Could not determine regionCode. Pass `--region hk|mo` or use a recognisable path/content.',
     )
   }
 
-  const sourceFromFlag = normalizeSource(options.source)
+  const sourceFromFlag = normaliseSource(options.source)
   const sourceFromPath = inferSourceFromPath(directoryPath)
   const sourceFromFilename = inferSourceFromFilename(options.filePath)
   const source = sourceFromFlag ?? sourceFromPath ?? sourceFromFilename
 
   if (!source) {
     throw new Error(
-      'Could not determine source. Pass `--source overture|hkgov-als` or use a recognizable path/file name.',
+      'Could not determine source. Pass `--source overture|hkgov-dpo` or use a recognisable path/file name.',
     )
   }
   const sourceVersionFromPath = inferSourceVersionFromPath(directoryPath)
@@ -701,7 +701,7 @@ function resolveUploadPlan(
   const cohortKeyFromPath = inferCohortKeyFromPath(directoryPath)
   const cohortKeyFromFilename = inferCohortKeyFromFilename(options.filePath)
   const cohortKey =
-    normalizeCohortKey(options.cohortKey) ??
+    normaliseCohortKey(options.cohortKey) ??
     cohortKeyFromPath ??
     cohortKeyFromFilename ??
     sourceVersion
@@ -713,13 +713,16 @@ function resolveUploadPlan(
   }
 
   const resolvedSourceVersion = sourceVersion ?? cohortKey
-  const { fileName, originalFileName } = normalizeUploadFileName(
+  const { fileName, originalFileName } = normaliseUploadFileName(
     options.filePath,
     type,
     options.originalFileName,
   )
-  const datasetCode = buildDatasetCode(regionCode, source, type)
-  const releaseCode = `${source}-${regionCode}-${resolvedSourceVersion}-${type}`
+  const datasetCode =
+    options.datasetCode?.trim() || buildDatasetCode(regionCode, source, type)
+  const releaseCode = options.datasetCode
+    ? buildDatasetReleaseCodeForDataset(datasetCode, resolvedSourceVersion)
+    : buildDatasetReleaseCode(regionCode, source, resolvedSourceVersion, type)
   const plan: UploadPlan = {
     datasetId: releaseCode,
     datasetCode,
@@ -734,11 +737,24 @@ function resolveUploadPlan(
     filePath: options.filePath,
     fileName,
     originalFileName,
+    releaseNotesUrl: options.releaseNotesUrl?.trim() || undefined,
     rowCount: resolvedInspection.rowCount,
     schemaFingerprint: createSchemaFingerprint(resolvedInspection),
     inferredFrom: {
-      theme: themeFromFlag ? 'flag' : themeFromPath ? 'path' : 'parquet',
-      type: typeFromFlag ? 'flag' : typeFromPath ? 'path' : 'parquet',
+      theme: themeFromFlag
+        ? 'flag'
+        : themeFromFilename
+          ? 'filename'
+          : themeFromPath
+            ? 'path'
+            : 'parquet',
+      type: typeFromFlag
+        ? 'flag'
+        : typeFromFilename
+          ? 'filename'
+          : typeFromPath
+            ? 'path'
+            : 'parquet',
       regionCode: regionFromFlag ? 'flag' : regionFromPath ? 'path' : 'parquet',
       cohortKey: options.cohortKey
         ? 'flag'
@@ -765,22 +781,41 @@ function resolveUploadPlan(
   }
 }
 
+function buildDatasetReleaseCodeForDataset(datasetCode: string, sourceVersion: string) {
+  if (!/^ds-[a-z0-9]+(?:-[a-z0-9]+)+$/.test(datasetCode)) {
+    throw new Error(`Invalid explicit dataset code: ${datasetCode}.`)
+  }
+  return `dr-${datasetCode.slice('ds-'.length)}-${sourceVersion}`
+}
+
 export async function prepareUpload(
   options: RegisterUploadOptions,
-  inspection?: ParquetInspection,
+  inspection?: UploadInspection,
 ): Promise<PreparedUploadResult> {
   const resolvedInspection = getRequiredInspection(options, inspection)
+  const preparedUpload = resolveUploadPlan(options, resolvedInspection)
 
-  return resolveUploadPlan(options, resolvedInspection)
+  await assertKnownSafeSourceRelease({
+    source: preparedUpload.plan.source,
+    sourceVersion: preparedUpload.plan.sourceVersion,
+  })
+
+  return preparedUpload
 }
 
 export async function planUpload(
   db: HarbourReadableDb,
   options: RegisterUploadOptions,
-  inspection?: ParquetInspection,
+  inspection?: UploadInspection,
 ) {
   const resolvedInspection = getRequiredInspection(options, inspection)
   const preparedUpload = resolveUploadPlan(options, resolvedInspection)
+
+  await assertKnownSafeSourceRelease({
+    source: preparedUpload.plan.source,
+    sourceVersion: preparedUpload.plan.sourceVersion,
+  })
+
   const {
     plan: { releaseCode, regionCode, source, sourceVersion, type },
   } = preparedUpload
@@ -823,13 +858,19 @@ function isAllowedKnownSchemaTransition(
   latestDataset: DatasetRecord,
   nextPlan: Pick<UploadPlan, 'source' | 'sourceVersion' | 'type'>,
   previousFingerprint: string,
-  nextInspection: ParquetInspection,
+  nextInspection: UploadInspection,
 ) {
-  if (latestDataset.source !== 'overture' || latestDataset.type !== 'division') {
+  const divisionTypes = new Set(['division', 'divisionArea', 'divisionBoundary'])
+
+  if (
+    latestDataset.source !== 'overture' ||
+    !divisionTypes.has(latestDataset.type) ||
+    latestDataset.type !== nextPlan.type
+  ) {
     return false
   }
 
-  if (nextPlan.source !== 'overture' || nextPlan.type !== 'division') {
+  if (nextPlan.source !== 'overture' || !divisionTypes.has(nextPlan.type)) {
     return false
   }
 
@@ -851,7 +892,7 @@ function isAllowedKnownSchemaTransition(
 
 function parseSchemaFingerprint(
   fingerprint: string,
-): ParquetInspection['schema'] | null {
+): UploadInspection['schema'] | null {
   try {
     const parsed = JSON.parse(fingerprint)
 
@@ -877,7 +918,7 @@ function parseSchemaFingerprint(
           nullable: field.nullable,
         }
       })
-      .filter((field): field is ParquetInspection['schema'][number] => field !== null)
+      .filter((field): field is UploadInspection['schema'][number] => field !== null)
 
     return schema.length === parsed.length ? schema : null
   } catch {
@@ -886,8 +927,8 @@ function parseSchemaFingerprint(
 }
 
 function describeSchemaDiff(
-  previousSchema: ParquetInspection['schema'] | null,
-  nextSchema: ParquetInspection['schema'],
+  previousSchema: UploadInspection['schema'] | null,
+  nextSchema: UploadInspection['schema'],
 ) {
   if (!previousSchema) {
     return 'Stored schema metadata could not be parsed, so Harbour cannot explain the field-level drift.'
@@ -938,8 +979,8 @@ function describeSchemaDiff(
 }
 
 function matchesAdminLevelTransition(
-  previousSchema: ParquetInspection['schema'],
-  nextSchema: ParquetInspection['schema'],
+  previousSchema: UploadInspection['schema'],
+  nextSchema: UploadInspection['schema'],
 ) {
   if (nextSchema.length !== previousSchema.length + 1) {
     return false
@@ -987,13 +1028,13 @@ function compareSourceVersion(left: string, right: string) {
 
 function getRequiredInspection(
   options: RegisterUploadOptions,
-  inspection?: ParquetInspection,
+  inspection?: UploadInspection,
 ) {
   const resolvedInspection = inspection ?? options.inspection
 
   if (!resolvedInspection) {
     throw new Error(
-      'A parquet inspection is required in Worker-safe upload flows. Use the CLI-local upload service for file-based inspection.',
+      'A parquet inspection is required for shared upload planning. Use the CLI-local upload service for file-based inspection.',
     )
   }
 
@@ -1046,10 +1087,6 @@ export async function registerUpload(
   const existingDataset = await getDatasetById(db, plan.releaseCode)
   const rawObjectKey = options.rawObjectKey ?? null
 
-  if (!rawObjectKey) {
-    throw new Error('A rawObjectKey is required for Worker-safe registration.')
-  }
-
   const now = new Date().toISOString()
 
   if (existingDataset) {
@@ -1071,102 +1108,13 @@ export async function registerUpload(
     'completed',
     now,
     now,
-    null,
-  )
-
-  await upsertIngestRunStatus(
-    db,
-    release.releaseId,
-    'stageDataset',
-    'completed',
-    now,
-    now,
     JSON.stringify({
-      rawObjectKey,
-      rowCount: inspection.rowCount,
-      schemaFieldCount: inspection.schema.length,
-    }),
-  )
-
-  return {
-    datasetId: release.datasetId,
-    plan,
-    inspection,
-    rawObjectKey,
-    releaseId: release.releaseId,
-  }
-}
-
-export async function requestUpload(
-  db: HarbourReadableDb & HarbourWritableDb,
-  options: RegisterUploadOptions,
-) {
-  const { plan, inspection } = await planUpload(db, options)
-  const existingDataset = await getDatasetById(db, plan.releaseCode)
-  const rawObjectKey = createRawObjectKey(plan)
-  const now = new Date().toISOString()
-
-  if (existingDataset) {
-    assertDatasetCanBeReuploaded(existingDataset, options.allowExistingDatasetStatuses)
-    await resetFailedDataset(db, plan, rawObjectKey, now, 'uploading')
-  } else {
-    await insertDataset(db, plan, rawObjectKey, now, 'uploading')
-  }
-  const release = await getDatasetById(db, plan.releaseCode)
-
-  if (!release?.releaseId) {
-    throw new Error(`Release not found after upload request: ${plan.releaseCode}`)
-  }
-
-  await upsertIngestRunStatus(
-    db,
-    release.releaseId,
-    'requestUpload',
-    'completed',
-    now,
-    now,
-    JSON.stringify({
-      releaseCode: plan.releaseCode,
-      rawObjectKey,
-      rowCount: inspection.rowCount,
+      inspection,
       schemaFingerprint: plan.schemaFingerprint,
       shardYear: plan.shardYear ?? null,
     }),
   )
 
-  return {
-    datasetId: release.datasetId,
-    plan,
-    inspection,
-    rawObjectKey,
-    releaseId: release.releaseId,
-  }
-}
-
-export async function finalizeUpload(
-  db: HarbourReadableDb & HarbourWritableDb,
-  options: RegisterUploadOptions,
-) {
-  const { plan, inspection } = await planUpload(
-    db,
-    {
-      ...options,
-      allowExistingDatasetStatuses: [
-        ...(options.allowExistingDatasetStatuses ?? []),
-        'uploading',
-      ],
-    },
-    options.inspection,
-  )
-  const rawObjectKey = options.rawObjectKey ?? createRawObjectKey(plan)
-  const now = new Date().toISOString()
-  const release = await getDatasetById(db, plan.releaseCode)
-
-  if (!release?.releaseId) {
-    throw new Error(`Release not found: ${plan.releaseCode}`)
-  }
-
-  await updateDatasetStatus(db, release.releaseId, 'staged')
   await upsertIngestRunStatus(
     db,
     release.releaseId,
@@ -1175,7 +1123,7 @@ export async function finalizeUpload(
     now,
     now,
     JSON.stringify({
-      rawObjectKey,
+      ...(rawObjectKey ? { rawObjectKey } : {}),
       rowCount: inspection.rowCount,
       schemaFieldCount: inspection.schema.length,
     }),

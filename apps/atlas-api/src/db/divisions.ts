@@ -3,13 +3,22 @@ import { and, asc, eq, inArray, sql } from '@repo/db'
 import { currentSchema } from '@repo/db'
 import type { RequestedApiLocale, RequestedApiLocaleSelection } from '@repo/core'
 
-const { divisions, divisionsI18n } = currentSchema
+const { divisions, divisionsI18n, divisionAreas, divisionBoundaries } = currentSchema
+
+export type DivisionNameRule = {
+  value: string
+  variant: string | null
+}
 
 export type DivisionLocaleValue = {
   name: string | null
+  nameVariant?: string[] | null
+  nameAlts?: string[] | null
+  nameRules?: DivisionNameRule[] | null
 }
 
 export type DivisionLocaleCode = RequestedApiLocale
+export type DivisionSourceKeys = Record<string, Record<string, unknown>>
 
 export type DivisionRecord = {
   division: {
@@ -19,11 +28,19 @@ export type DivisionRecord = {
     type: string
     geometry: typeof divisions.$inferSelect.geometry
     bbox: typeof divisions.$inferSelect.bbox
-    population: number | null
+    sourceKeys: DivisionSourceKeys | null
+    identifiers?: typeof divisions.$inferSelect.identifiers
     subtype: string | null
     class: string | null
+    overtureFeatureVersion: number | null
+    overtureAdminLevel: number | null
+    overtureHierarchies: unknown
     wikidata: string | null
-    parentDivisionId: string | null
+    hierarchy: typeof divisions.$inferSelect.hierarchy
+    cartography: typeof divisions.$inferSelect.cartography
+    sources: typeof divisions.$inferSelect.sources
+    createdAt: string
+    updatedAt: string
   }
   i18n: Record<string, DivisionLocaleValue>
 }
@@ -40,7 +57,7 @@ type DivisionListLookup = {
   offset?: number
   level?: number
   type?: string
-  parentDivisionId?: string
+  parentId?: string
   localeSelection: DivisionLocaleSelection
 }
 
@@ -57,15 +74,131 @@ type DivisionRow = {
   type: string
   geometry: typeof divisions.$inferSelect.geometry
   bbox: typeof divisions.$inferSelect.bbox
-  population: number | null
-  subtype: string | null
-  class: string | null
+  sourceKeys: typeof divisions.$inferSelect.sourceKeys
+  identifiers: typeof divisions.$inferSelect.identifiers
   wikidata: string | null
-  parentDivisionId: string | null
+  hierarchy: typeof divisions.$inferSelect.hierarchy
+  cartography: typeof divisions.$inferSelect.cartography
+  sources: typeof divisions.$inferSelect.sources
+  createdAt: string
+  updatedAt: string
   i18n: string
 }
 
 export type DivisionLocaleSelection = RequestedApiLocaleSelection
+
+export type DivisionAreaRecord = {
+  id: string
+  variant: string
+  divisionId: string
+  bbox: typeof divisionAreas.$inferSelect.bbox
+  geometry: typeof divisionAreas.$inferSelect.geometry
+  sourceKeys: typeof divisionAreas.$inferSelect.sourceKeys
+  sources: typeof divisionAreas.$inferSelect.sources
+  type: string
+  isLand: boolean | null
+  isTerritorial: boolean | null
+}
+
+export type DivisionBoundaryRecord = {
+  id: string
+  variant: string
+  leftDivisionId: string
+  rightDivisionId: string
+  bbox: typeof divisionBoundaries.$inferSelect.bbox
+  geometry: typeof divisionBoundaries.$inferSelect.geometry
+  sourceKeys: typeof divisionBoundaries.$inferSelect.sourceKeys
+  sources: typeof divisionBoundaries.$inferSelect.sources
+  type: string
+  isLand: boolean | null
+  isTerritorial: boolean | null
+}
+
+export async function listDivisionAreasCurrentByDivisionIds(
+  db: CurrentDatabase,
+  lookup: { snapshotId: string; divisionIds: string[]; variant?: string },
+) {
+  if (lookup.divisionIds.length === 0) return []
+  return (await db
+    .select({
+      id: divisionAreas.id,
+      variant: divisionAreas.variant,
+      divisionId: divisionAreas.divisionId,
+      bbox: divisionAreas.bbox,
+      geometry: divisionAreas.geometry,
+      sourceKeys: divisionAreas.sourceKeys,
+      sources: divisionAreas.sources,
+      type: divisionAreas.type,
+      isLand: divisionAreas.isLand,
+      isTerritorial: divisionAreas.isTerritorial,
+    })
+    .from(divisionAreas)
+    .where(
+      and(
+        eq(divisionAreas.snapshotId, lookup.snapshotId),
+        inArray(divisionAreas.divisionId, lookup.divisionIds),
+        ...(lookup.variant ? [eq(divisionAreas.variant, lookup.variant)] : []),
+      ),
+    )
+    .all()) as DivisionAreaRecord[]
+}
+
+export async function listDivisionBoundariesCurrentByDivisionIds(
+  db: CurrentDatabase,
+  lookup: { snapshotId: string; divisionIds: string[]; variant?: string },
+) {
+  if (lookup.divisionIds.length === 0) return []
+  const left = await db
+    .select({
+      id: divisionBoundaries.id,
+      variant: divisionBoundaries.variant,
+      leftDivisionId: divisionBoundaries.leftDivisionId,
+      rightDivisionId: divisionBoundaries.rightDivisionId,
+      bbox: divisionBoundaries.bbox,
+      geometry: divisionBoundaries.geometry,
+      sourceKeys: divisionBoundaries.sourceKeys,
+      sources: divisionBoundaries.sources,
+      type: divisionBoundaries.type,
+      isLand: divisionBoundaries.isLand,
+      isTerritorial: divisionBoundaries.isTerritorial,
+    })
+    .from(divisionBoundaries)
+    .where(
+      and(
+        eq(divisionBoundaries.snapshotId, lookup.snapshotId),
+        inArray(divisionBoundaries.leftDivisionId, lookup.divisionIds),
+        ...(lookup.variant ? [eq(divisionBoundaries.variant, lookup.variant)] : []),
+      ),
+    )
+    .all()
+  const right = await db
+    .select({
+      id: divisionBoundaries.id,
+      variant: divisionBoundaries.variant,
+      leftDivisionId: divisionBoundaries.leftDivisionId,
+      rightDivisionId: divisionBoundaries.rightDivisionId,
+      bbox: divisionBoundaries.bbox,
+      geometry: divisionBoundaries.geometry,
+      sourceKeys: divisionBoundaries.sourceKeys,
+      sources: divisionBoundaries.sources,
+      type: divisionBoundaries.type,
+      isLand: divisionBoundaries.isLand,
+      isTerritorial: divisionBoundaries.isTerritorial,
+    })
+    .from(divisionBoundaries)
+    .where(
+      and(
+        eq(divisionBoundaries.snapshotId, lookup.snapshotId),
+        inArray(divisionBoundaries.rightDivisionId, lookup.divisionIds),
+        ...(lookup.variant ? [eq(divisionBoundaries.variant, lookup.variant)] : []),
+      ),
+    )
+    .all()
+  return [
+    ...left,
+    ...right.filter(item => !left.some(existing => existing.id === item.id)),
+  ] as DivisionBoundaryRecord[]
+}
 
 function buildDivisionI18nCondition(localeSelection: DivisionLocaleSelection) {
   return and(
@@ -87,14 +220,89 @@ function buildDivisionI18nJsonSelection(localeSelection: DivisionLocaleSelection
   return sql<string>`coalesce((
     select json_group_object(
       ${divisionsI18n.locale},
-      json_object('name', ${divisionsI18n.name})
+      json_object(
+        'name', ${divisionsI18n.name},
+        'nameVariant', ${divisionsI18n.nameVariant},
+        'nameAlts', ${divisionsI18n.nameAlts},
+        'nameRules', ${divisionsI18n.nameRules}
+      )
     )
     from ${divisionsI18n}
     where ${condition}
   ), '{}')`
 }
 
+function parseOptionalJsonString<T>(value: unknown): T | null | undefined {
+  if (value === null) {
+    return null
+  }
+
+  if (typeof value !== 'string') {
+    return undefined
+  }
+
+  return JSON.parse(value) as T
+}
+
+function mapDivisionLocaleValue(value: unknown): DivisionLocaleValue {
+  const raw =
+    value && typeof value === 'object' ? (value as Record<string, unknown>) : {}
+  const nameAlts =
+    typeof raw.nameAlts === 'string'
+      ? raw.nameAlts
+          .split('|')
+          .map(item => item.trim())
+          .filter(item => item.length > 0)
+      : raw.nameAlts === null
+        ? null
+        : undefined
+
+  return {
+    name: typeof raw.name === 'string' ? raw.name : null,
+    nameVariant: parseOptionalJsonString<string[]>(raw.nameVariant),
+    nameAlts,
+    nameRules: parseOptionalJsonString<DivisionNameRule[]>(raw.nameRules),
+  }
+}
+
+function mapDivisionSourceKeys(value: unknown): DivisionSourceKeys | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null
+  }
+
+  return value as DivisionSourceKeys
+}
+
+function getDivisionSourceKey(
+  sourceKeys: DivisionSourceKeys | null,
+  source: string,
+  key: string,
+) {
+  const value = sourceKeys?.[source]?.[key]
+  return typeof value === 'string' ? value : null
+}
+
+function getDivisionSourceNumber(
+  sourceKeys: DivisionSourceKeys | null,
+  source: string,
+  key: string,
+) {
+  const value = sourceKeys?.[source]?.[key]
+  return typeof value === 'number' ? value : null
+}
+
+function getDivisionSourceValue(
+  sourceKeys: DivisionSourceKeys | null,
+  source: string,
+  key: string,
+) {
+  return sourceKeys?.[source]?.[key]
+}
+
 function mapDivisionRow(row: DivisionRow): DivisionRecord {
+  const rawI18n = JSON.parse(row.i18n) as Record<string, unknown>
+  const sourceKeys = mapDivisionSourceKeys(row.sourceKeys)
+
   return {
     division: {
       snapshotId: row.snapshotId,
@@ -103,28 +311,51 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
       type: row.type,
       geometry: row.geometry,
       bbox: row.bbox,
-      population: row.population,
-      subtype: row.subtype,
-      class: row.class,
+      sourceKeys,
+      identifiers: row.identifiers,
+      subtype: getDivisionSourceKey(sourceKeys, 'overture', 'subtype'),
+      class: getDivisionSourceKey(sourceKeys, 'overture', 'class'),
+      overtureFeatureVersion: getDivisionSourceNumber(
+        sourceKeys,
+        'overture',
+        'version',
+      ),
+      overtureAdminLevel: getDivisionSourceNumber(
+        sourceKeys,
+        'overture',
+        'admin_level',
+      ),
+      overtureHierarchies: getDivisionSourceValue(
+        sourceKeys,
+        'overture',
+        'hierarchies',
+      ),
       wikidata: row.wikidata,
-      parentDivisionId: row.parentDivisionId,
+      hierarchy: row.hierarchy,
+      cartography: row.cartography,
+      sources: row.sources,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
     },
-    i18n: JSON.parse(row.i18n) as DivisionRecord['i18n'],
+    i18n: Object.fromEntries(
+      Object.entries(rawI18n).map(([locale, value]) => [
+        locale,
+        mapDivisionLocaleValue(value),
+      ]),
+    ),
   }
 }
 
 function buildDivisionConditions(
-  lookup: Pick<
-    DivisionListLookup,
-    'snapshotId' | 'level' | 'type' | 'parentDivisionId'
-  >,
+  lookup: Pick<DivisionListLookup, 'snapshotId' | 'level' | 'type' | 'parentId'>,
 ) {
   return [
     eq(divisions.snapshotId, lookup.snapshotId),
     lookup.level !== undefined ? eq(divisions.level, lookup.level) : undefined,
     lookup.type ? eq(divisions.type, lookup.type) : undefined,
-    lookup.parentDivisionId
-      ? eq(divisions.parentDivisionId, lookup.parentDivisionId)
+    lookup.parentId
+      ? sql`coalesce(json_array_length(${divisions.hierarchy}), 0) > 0
+          and json_extract(${divisions.hierarchy}, printf('$[%d].division_id', json_array_length(${divisions.hierarchy}) - 1)) = ${lookup.parentId}`
       : undefined,
   ].filter(condition => condition !== undefined)
 }
@@ -166,11 +397,14 @@ export async function listDivisionRecordsCurrent(
       type: divisions.type,
       geometry: divisions.geometry,
       bbox: divisions.bbox,
-      population: divisions.population,
-      subtype: divisions.subtype,
-      class: divisions.class,
+      sourceKeys: divisions.sourceKeys,
+      identifiers: divisions.identifiers,
       wikidata: divisions.wikidata,
-      parentDivisionId: divisions.parentDivisionId,
+      hierarchy: divisions.hierarchy,
+      cartography: divisions.cartography,
+      sources: divisions.sources,
+      createdAt: divisions.createdAt,
+      updatedAt: divisions.updatedAt,
       i18n,
     })
     .from(pagedDivisions)
@@ -212,30 +446,44 @@ export async function listDivisionRecordsCurrentByIds(
   }
 
   const i18n = buildDivisionI18nJsonSelection(lookup.localeSelection)
-  const rows = await db
-    .select({
-      snapshotId: divisions.snapshotId,
-      id: divisions.id,
-      level: divisions.level,
-      type: divisions.type,
-      geometry: divisions.geometry,
-      bbox: divisions.bbox,
-      population: divisions.population,
-      subtype: divisions.subtype,
-      class: divisions.class,
-      wikidata: divisions.wikidata,
-      parentDivisionId: divisions.parentDivisionId,
-      i18n,
-    })
-    .from(divisions)
-    .where(
-      and(
-        eq(divisions.snapshotId, lookup.snapshotId),
-        inArray(divisions.id, lookup.divisionIds),
+  const uniqueIds = [...new Set(lookup.divisionIds)]
+  // D1 permits at most 100 bound variables. One is the snapshot id.
+  const chunks = Array.from({ length: Math.ceil(uniqueIds.length / 99) }, (_, index) =>
+    uniqueIds.slice(index * 99, (index + 1) * 99),
+  )
+  const rows = (
+    await Promise.all(
+      chunks.map(divisionIds =>
+        db
+          .select({
+            snapshotId: divisions.snapshotId,
+            id: divisions.id,
+            level: divisions.level,
+            type: divisions.type,
+            geometry: divisions.geometry,
+            bbox: divisions.bbox,
+            sourceKeys: divisions.sourceKeys,
+            identifiers: divisions.identifiers,
+            wikidata: divisions.wikidata,
+            hierarchy: divisions.hierarchy,
+            cartography: divisions.cartography,
+            sources: divisions.sources,
+            createdAt: divisions.createdAt,
+            updatedAt: divisions.updatedAt,
+            i18n,
+          })
+          .from(divisions)
+          .where(
+            and(
+              eq(divisions.snapshotId, lookup.snapshotId),
+              inArray(divisions.id, divisionIds),
+            ),
+          )
+          .orderBy(asc(divisions.level), asc(divisions.type), asc(divisions.id))
+          .all(),
       ),
     )
-    .orderBy(asc(divisions.level), asc(divisions.type), asc(divisions.id))
-    .all()
+  ).flat()
 
   return rows.map(row => mapDivisionRow(row))
 }

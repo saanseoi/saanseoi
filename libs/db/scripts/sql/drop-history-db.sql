@@ -1,14 +1,26 @@
+PRAGMA foreign_keys = OFF;
 PRAGMA defer_foreign_keys = true;
 
-DROP TABLE IF EXISTS `placesVersionsI18n`;
-DROP TABLE IF EXISTS `placesVersions`;
-DROP TABLE IF EXISTS `streetsVersionsI18n`;
-DROP TABLE IF EXISTS `streetsVersions`;
-DROP TABLE IF EXISTS `address3dVersionsI18n`;
-DROP TABLE IF EXISTS `address3dVersions`;
-DROP TABLE IF EXISTS `address2dVersionsI18n`;
-DROP TABLE IF EXISTS `address2dVersionsDatasets`;
-DROP TABLE IF EXISTS `address2dVersions`;
-DROP TABLE IF EXISTS `divisionsVersionsI18n`;
-DROP TABLE IF EXISTS `divisionsVersions`;
+DROP TABLE IF EXISTS `streetGeometry`;
+DROP TABLE IF EXISTS `divisionStatistics`;
+DROP TABLE IF EXISTS `snapshotVersionChanges`;
+DROP TABLE IF EXISTS `streetChangelog`;
+DROP TABLE IF EXISTS `streetNameChangeStreets`;
+DROP TABLE IF EXISTS `streetNameChanges`;
+DROP TABLE IF EXISTS `placesI18n`;
+DROP TABLE IF EXISTS `places`;
+DROP TABLE IF EXISTS `streetsI18n`;
+DROP TABLE IF EXISTS `streets`;
+DROP TABLE IF EXISTS `address3dUnitRefLookup`;
+DROP TABLE IF EXISTS `address3dI18n`;
+DROP TABLE IF EXISTS `address3d`;
+DROP TABLE IF EXISTS `address2dBuildingNumberLookup`;
+DROP TABLE IF EXISTS `address2dI18n`;
+DROP TABLE IF EXISTS `address2d`;
+DROP TABLE IF EXISTS `divisionsI18n`;
+DROP TABLE IF EXISTS `divisions`;
+DROP TABLE IF EXISTS `divisionBoundaries`;
+DROP TABLE IF EXISTS `divisionAreas`;
 DROP TABLE IF EXISTS `d1_migrations`;
+
+PRAGMA foreign_keys = ON;

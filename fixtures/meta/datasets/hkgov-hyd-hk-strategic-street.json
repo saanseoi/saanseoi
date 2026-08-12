@@ -1,0 +1,67 @@
+{
+  "versionHash": "sha256:e54008a57f01d44ea2e6891866b884004e8f5aba62ff4372601a9133cad14bd8",
+  "publisherCode": "hkgov-hyd",
+  "code": "ds-hk-hkgov-hyd-strategic-street",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "quarterly",
+  "theme": "streets",
+  "resourceTypes": ["street"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Highways Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632361405484_23178",
+  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/f57192b371a4134c56a2a48bf2bc746b6cf8a04d81d3576fbdc38575b9e0563b",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "regular",
+    "revisionScope": "latest",
+    "checks": {
+      "newReleases": {
+        "trigger": "after-latest-release-age",
+        "ageDays": 90,
+        "frequency": "daily"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["new-release"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632361405484_23178"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "quarterly",
+    "correctionSuffixSource": "generated"
+  },
+  "sourceLayer": "STRATEGIC",
+  "category": "transportation",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Strategic Streets",
+      "description": "Highways Department GIS data identifying strategic streets. The source is a street classification layer and is retained as a government street-domain dataset."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "策略性街道",
+      "description": "路政署提供的策略性街道地理資訊。來源是街道分類圖層，並以政府街道資料域資料集保留。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "策略性街道",
+      "description": "路政署提供的策略性街道地理信息。来源是街道分类图层，并以政府街道数据域数据集保留。"
+    }
+  ]
+}

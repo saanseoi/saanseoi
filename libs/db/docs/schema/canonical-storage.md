@@ -7,7 +7,7 @@ Saanseoi keeps canonical storage split by workload.
 Purpose:
 
 - serve live API reads
-- store only the latest materialized row
+- store only the latest materialised row
 
 Examples:
 
@@ -24,9 +24,9 @@ Purpose:
 
 Examples:
 
-- `divisionsVersions`
-- `address2dVersions`
-- `placesVersions`
+- `divisions`
+- `address2d`
+- `places`
 
 Validity is tracked against release sets, not calendar timestamps.
 
@@ -40,5 +40,6 @@ Purpose:
 
 ## Planned / Transitional
 
-- `releaseSetShardAssignments` should become the normal route to current/history canonical shards
+- `releaseSetShardAssignments` should become the normal route to current/history
+  canonical shards
 - current reporting still leans more heavily on `releaseShardAssignments`

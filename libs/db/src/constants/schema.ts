@@ -1,6 +1,8 @@
 export const jsonApiResourceTypes = [
   'addresses',
   'divisions',
+  'division-areas',
+  'division-boundaries',
   'streets',
   'places',
   'place-divisions',
@@ -15,13 +17,16 @@ export const resolverCodes = [
   'direct_copy',
   'join_lookup',
   'lookup_fk',
+  'derive_uuid_v5',
+  'format_hkgov_als_address',
   'map_division_level',
   'map_division_type',
+  'derive_variant_from_source',
   'derive_bbox_from_geometry',
   'prefer_hkgov_then_overture',
   'prefer_overture_then_hkgov',
   'merge_first_non_empty',
-  'normalize_whitespace',
+  'normalise_whitespace',
 ] as const
 
 export const datasetReleaseTypes = ['snapshot', 'static'] as const
@@ -31,8 +36,12 @@ export const datasetReleaseFrequencies = [
   'monthly',
   'quarterly',
   'half-yearly',
+  'five-yearly',
   'yearly',
   'ad-hoc',
+  'as-needed',
+  'one-off',
+  'census',
 ] as const
 export const datasetThemes = [
   'addresses',
@@ -40,8 +49,18 @@ export const datasetThemes = [
   'divisions',
   'transport',
   'places',
+  'streets',
+  'stats',
 ] as const
-export const datasetTypes = ['address', 'division', 'place', 'street'] as const
+export const datasetTypes = [
+  'address',
+  'division',
+  'divisionArea',
+  'divisionBoundary',
+  'divisionStatistic',
+  'place',
+  'street',
+] as const
 export const datasetCategories = ['terrain', 'transit', 'places', 'cultural'] as const
 
 export const datasetStatuses = [
@@ -69,16 +88,25 @@ export const ingestRunStatuses = ['queued', 'running', 'completed', 'error'] as 
 export const apiVersionStatuses = ['draft', 'current', 'deprecated', 'retired'] as const
 
 export const apiReleaseSetStatuses = ['draft', 'current', 'archived'] as const
-export const apiFamilyTypes = ['addresses', 'divisions', 'places', 'streets'] as const
+export const apiFamilyTypes = [
+  'addresses',
+  'divisions',
+  'places',
+  'streets',
+  'stats',
+] as const
 export const snapshotStatuses = ['draft', 'published', 'archived'] as const
 export const apiReleaseSetSourceRoles = [
   'primary',
+  'geometry',
   'enrichment',
   'fallback',
   'lookup',
 ] as const
 export const historyVersionEntityTypes = [
   'division',
+  'divisionArea',
+  'divisionBoundary',
   'address2d',
   'address3d',
   'street',
