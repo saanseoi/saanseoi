@@ -31,6 +31,7 @@ export type SqlImportTargetContext = {
 export type SqlImportExecutionOptions = {
   accountId?: string
   apiToken?: string
+  metaDatabaseId?: string | null
   isLocal: boolean
   localWriteMaxRetries?: number
   onRetry?: (event: SqlImportRetryEvent) => void | Promise<void>

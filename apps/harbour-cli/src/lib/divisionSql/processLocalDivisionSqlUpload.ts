@@ -357,6 +357,7 @@ export async function processLocalDivisionSqlUpload(
     accountId: resolveCloudflareAccountId(target),
     apiToken: resolveCloudflareD1ApiToken(),
     isLocal: !target.remote,
+    metaDatabaseId: dbContext.state.bindings.DB_META?.databaseId ?? null,
     localWriteMaxRetries: LOCAL_SQL_WRITE_RETRY_LIMIT,
     onRetry(event) {
       progress.message(
