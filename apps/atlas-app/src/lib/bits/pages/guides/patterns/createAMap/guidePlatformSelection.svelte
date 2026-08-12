@@ -16,7 +16,11 @@ type Props = {
   notebookRuntimeChoices: GuideChoice[]
   objective?: CreateAMapSelectionQuery['objective']
   onWebsitePlatformChange?: (value: string) => void
-  prerequisiteMarker: (id: string) => string
+  prerequisiteMarker: (id: string) => {
+    current: number
+    label: string
+    total: number
+  }
   websitePlatform?: CreateAMapSelectionQuery['websitePlatform']
   websitePlatformChoices: GuideChoice[]
 }
