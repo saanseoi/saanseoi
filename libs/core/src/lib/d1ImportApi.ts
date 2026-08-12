@@ -121,12 +121,15 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
 
     async upload(uploadUrl: string, sql: string | ArrayBuffer | Uint8Array) {
       let lastError: unknown = null
+      // `Uint8Array` may be backed by a SharedArrayBuffer, which is not accepted
+      // by the DOM's `BodyInit` type. Copy it into an ordinary ArrayBuffer first.
+      const body = sql instanceof Uint8Array ? new Uint8Array(sql).buffer : sql
 
       for (let attempt = 0; attempt <= uploadRetryLimit; attempt += 1) {
         try {
           const response = await fetchImpl(uploadUrl, {
             method: 'PUT',
-            body: sql,
+            body,
           })
 
           if (response.ok) {
