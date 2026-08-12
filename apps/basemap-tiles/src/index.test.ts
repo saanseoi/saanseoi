@@ -13,13 +13,20 @@ test('keeps unversioned latest resources and latest renders dynamic', () => {
 })
 
 test('shares authenticated tile cache entries while retaining version pins', () => {
-  const cacheKey = tileBodyCacheKey(
+  const firstCacheKey = tileBodyCacheKey(
     new Request(
       'https://tiles.saanseoi.hk/hong-kong-2026-08-13/8/219/111.mvt?v=archive-etag&access_token=pk.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&scale=2',
     ),
   )
 
-  expect(cacheKey).toBe(
+  expect(firstCacheKey).toBe(
     'https://tiles.saanseoi.hk/hong-kong-2026-08-13/8/219/111.mvt?v=archive-etag&scale=2',
   )
+  expect(
+    tileBodyCacheKey(
+      new Request(
+        'https://tiles.saanseoi.hk/hong-kong-2026-08-13/8/219/111.mvt?v=archive-etag&access_token=pk.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb&scale=2',
+      ),
+    ),
+  ).toBe(firstCacheKey)
 })
