@@ -4,9 +4,10 @@ export function printUsage() {
   console.log(`  Usage:
   saanseoi upload <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--transform simplified] [--release-notes-url URL] [--dry-run] [--force] [--skip-cleanup] [--validate-geometry] [--yes] [--verbose]
   saanseoi init [--continue]
-  saanseoi init:divisions:overture [--continue]
-  saanseoi init:divisions:hkgov-pland-pu [--continue]
-  saanseoi init:divisions:hkgov-pland-new-town [--continue]
+  saanseoi init:divisions:overture [--target local|preview|production] [--continue]
+  saanseoi init:divisions:hkgov-pland-pu [--target local|preview|production] [--continue]
+  saanseoi init:divisions:hkgov-pland-new-town [--target local|preview|production] [--continue]
+  saanseoi init:divisions:hkgov-landsd [--target local|preview|production]
   saanseoi init:streets:hkgov-landsd
   saanseoi tiles:refresh [--region gba|hk|mo] [--dry-run] [--force]
   saanseoi tiles:import --region gba|hk|mo --date YYYY-MM-DD --file PATH --boundary PATH [--dry-run]

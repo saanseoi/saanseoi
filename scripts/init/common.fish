@@ -9,6 +9,7 @@ function init_run_step
 end
 
 set -g saanseoi_init_continue 0
+set -g saanseoi_init_target local
 set -g saanseoi_init_last_upload_processed 0
 set -g saanseoi_init_completed_release_codes
 
@@ -16,13 +17,35 @@ function init_configure
     set -l usage $argv[1]
     set -e argv[1]
 
-    if test (count $argv) -gt 1; or test (count $argv) -eq 1; and test "$argv[1]" != "--continue"
-        echo "Usage: $usage [--continue]" >&2
-        exit 1
+    while test (count $argv) -gt 0
+        switch $argv[1]
+            case --continue
+                set -g saanseoi_init_continue 1
+                set -e argv[1]
+            case --target
+                if test (count $argv) -lt 2
+                    echo "Usage: $usage [--target local|preview|production] [--continue]" >&2
+                    exit 1
+                end
+                switch $argv[2]
+                    case local preview production
+                        set -g saanseoi_init_target $argv[2]
+                    case '*'
+                        echo "Unsupported initialisation target: $argv[2]. Use local, preview, or production." >&2
+                        exit 1
+                end
+                set -e argv[1..2]
+            case '*'
+                echo "Usage: $usage [--target local|preview|production] [--continue]" >&2
+                exit 1
+        end
     end
 
-    if test (count $argv) -eq 1
-        set -g saanseoi_init_continue 1
+    if test "$saanseoi_init_continue" -eq 1
+        if test "$saanseoi_init_target" != local
+            echo "Initialisation continuation is currently supported only for the local target." >&2
+            exit 1
+        end
         init_load_completed_release_codes
         or begin
             echo "Cannot continue initialisation: could not read completed local releases." >&2
@@ -59,13 +82,19 @@ function init_run_upload
         return
     end
 
-    init_run_step ./bin/saanseoi upload --target local $argv
+    set -l retry_args
+    if test "$saanseoi_init_target" != local
+        # Remote registration happens before the local cache clone. If the clone
+        # fails, the release remains staged and must be safely re-entrant.
+        set retry_args --force
+    end
+    init_run_step ./bin/saanseoi upload --target $saanseoi_init_target $argv $retry_args
     set -g saanseoi_init_last_upload_processed 1
 end
 
 function init_publish_docs_if_processed
     if test "$argv[1]" -eq 1
-        init_run_step ./bin/saanseoi docs:publish --target local --scope all
+        init_run_step ./bin/saanseoi docs:publish --target $saanseoi_init_target --scope all
     end
 end
 
