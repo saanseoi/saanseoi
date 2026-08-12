@@ -75,13 +75,13 @@ development origins, and diagnostic origins may request tiles without a bearer t
 This keeps the SaanSeoi applications free of API-key or token plumbing. These requests
 are not rate-limited or included in product usage analytics.
 
-Every other caller must use a short-lived bearer token. Exchange a SaanSeoi API key at
-the Atlas API, then send the returned token on tile requests:
+Every other caller must use a short-lived bearer token. Exchange a public SaanSeoi API
+key (prefixed `pk.`) at the Atlas API, then send the returned token on tile requests:
 
 ```sh
 curl -X POST https://api.saanseoi.hk/v0/auth/tokens \
   -H 'content-type: application/json' \
-  -H 'x-api-key: SS-your-api-key' \
+  -H 'x-api-key: pk.your-public-key' \
   --data '{"audience":"basemap-tiles"}'
 
 curl https://tiles.saanseoi.hk/hk-latest.json \
@@ -94,9 +94,10 @@ reporting. The tiles product currently permits 600 requests per key per minute; 
 edge limiter is an eventually consistent abuse guard, not a billing ledger.
 
 An `Origin` header is browser metadata, not proof of caller identity: a non-browser
-client can forge it. The first-party origin policy is therefore a browser convenience,
-not an authorisation boundary. Do not add untrusted domains to it, and never embed an
-API key in browser-delivered code.
+client can forge it. It is used for usage attribution and future browser-domain
+policies, not as an authorisation boundary. A `pk.` key is intentionally public and may
+be embedded in browser-delivered code; never treat it like a server secret or put it in
+logs or source control.
 
 `AUTH_MODE` is `required` in deployment. `bun run dev` overrides it to transparent local
 access. Use `bun run dev:auth` plus a matching `ACCESS_TOKEN_PUBLIC_JWK` in `.dev.vars`

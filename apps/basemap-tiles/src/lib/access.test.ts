@@ -141,7 +141,7 @@ test('allows browser preflight for the signed-token header', async () => {
       ENVIRONMENT: 'production',
       EXTERNAL_ORIGINS: '*',
     } as CloudflareBindings,
-    { waitUntil: () => {} } as ExecutionContext,
+    { waitUntil: () => {} } as unknown as ExecutionContext,
   )
 
   assert.equal(response.status, 204)

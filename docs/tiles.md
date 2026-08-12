@@ -3,9 +3,11 @@
 ## Access
 
 SaanSeoi's own browser applications can call the tiles Worker without an API key or
-bearer token. Other callers exchange a SaanSeoi API key for a 15-minute `basemap-tiles`
-bearer token at `POST /v0/auth/tokens` on the Atlas API, then use that token in the
-`Authorization: Bearer …` header. See the
+bearer token. Other callers exchange a public SaanSeoi API key (prefixed `pk.`) for a
+15-minute `basemap-tiles` bearer token at `POST /v0/auth/tokens` on the Atlas API, then
+use that token in the `Authorization: Bearer …` header. Browser applications may embed
+the public key and should use a small client utility to refresh the bearer token before
+it expires. See the
 [tiles Worker README](../apps/basemap-tiles/README.md#access-and-usage-metering) for the
 request format, quotas, and the important distinction between the browser-only origin
 convenience and authentication.
