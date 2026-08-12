@@ -1,5 +1,11 @@
 import * as maplibregl from 'maplibre-gl'
-import type { GeoJSONSource, Map as MapLibreMap, VectorTileSource } from 'maplibre-gl'
+import type {
+  ErrorEvent,
+  GeoJSONSource,
+  Map as MapLibreMap,
+  MapSourceDataEvent,
+  VectorTileSource,
+} from 'maplibre-gl'
 import type { FilterSpecification } from '@maplibre/maplibre-gl-style-spec'
 import type { Geometry } from 'geojson'
 import { BASEMAP_ATTRIBUTION } from '@repo/basemap'
@@ -585,7 +591,7 @@ async function createMap(tilejsonUrl: string): Promise<void> {
   createdMap.on('move', () => syncComparison(createdMap, comparisonMap))
   installDiagnostics(createdMap, 'primary')
   await new Promise<void>((resolve, reject) => {
-    createdMap.once('load', resolve)
+    createdMap.once('load', () => resolve())
     createdMap.once('error', event => reject(event.error))
   })
   if (!POSTCARD_RENDERING) await waitForSource(createdMap, BASEMAP_SOURCE_ID)
@@ -629,7 +635,7 @@ async function createComparisonMap(
   createdMap.on('move', () => syncComparison(createdMap, map))
   installDiagnostics(createdMap, 'comparison')
   await new Promise<void>((resolve, reject) => {
-    createdMap.once('load', resolve)
+    createdMap.once('load', () => resolve())
     createdMap.once('error', event => reject(event.error))
   })
   createdMap.resize()
@@ -808,13 +814,13 @@ function waitForSource(
       cleanup()
       reject(new Error('Timed out while loading map tiles.'))
     }, timeoutMs)
-    const onData = (event: { sourceId?: string }) => {
+    const onData = (event: MapSourceDataEvent) => {
       if (event.sourceId === sourceId && target.isSourceLoaded(sourceId)) {
         cleanup()
         resolve()
       }
     }
-    const onError = (event: { error?: Error }) => {
+    const onError = (event: ErrorEvent) => {
       cleanup()
       reject(event.error ?? new Error('The map source failed to load.'))
     }
@@ -1119,7 +1125,7 @@ async function changeTheme(theme: AppState['theme']): Promise<void> {
   try {
     resetTileWeight('primary')
     await new Promise<void>((resolve, reject) => {
-      map?.once('style.load', resolve)
+      map?.once('style.load', () => resolve())
       map?.once('error', event => reject(event.error))
       map?.setStyle(generated.style)
     })
