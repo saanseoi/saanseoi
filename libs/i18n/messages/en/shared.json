@@ -1189,7 +1189,7 @@
   "guide_basemap_gba_description": "OSM extract of 9 mainland municipalities plus HK and MO with Protomaps layers.",
   "guide_basemap_token_title": "Use your public key directly",
   "guide_basemap_token_description": "The public key is embedded in your map application. Pass it as the access_token query parameter for SaanSeoi APIs and tiles; SaanSeoi handles lease refresh and limits at the edge.",
-  "guide_basemap_token_code": "Authentication utility",
+  "guide_basemap_token_code": "Public-key configuration",
   "guide_basemap_mobile_handoff": "Use a dedicated SaanSeoi public key in MapLibre Native, passed directly to SaanSeoi requests. Do not reuse that key for another application, commit it, or write it to logs.",
   "guide_basemap_notebook_handoff": "Use a dedicated SaanSeoi public key directly in the notebook map. Never include the key in a notebook that may be shared.",
   "guide_basemap_apply_title": "Use the selected basemap in your renderer",

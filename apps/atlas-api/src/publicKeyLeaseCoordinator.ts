@@ -27,6 +27,11 @@ type UsageLimit = {
   windowStartedAt: number
 }
 
+type OriginPolicyRecord = {
+  action: 'allow' | 'block'
+  hostname: string
+}
+
 /**
  * A deliberately single coordinator while public-key traffic is small. It only
  * serialises stale lease refreshes; normal requests read the shared KV lease.
@@ -94,15 +99,24 @@ export class PublicKeyLeaseCoordinator {
       .first<ApiKeyRecord>()
     if (!key || key.revokedAt !== null) return null
 
-    const exhausted = await this.getExhaustedLimit(key, now)
+    const [exhausted, originPolicy] = await Promise.all([
+      this.getExhaustedLimit(key, now),
+      this.getOriginPolicy(key.id),
+    ])
     const lease: PublicKeyLease = exhausted
       ? {
           keyId: key.id,
           status: 'exhausted',
           nextCheckAt: exhausted.resetAt,
           resetAt: exhausted.resetAt,
+          originPolicy,
         }
-      : { keyId: key.id, status: 'active', nextCheckAt: now + LEASE_MS }
+      : {
+          keyId: key.id,
+          status: 'active',
+          nextCheckAt: now + LEASE_MS,
+          originPolicy,
+        }
 
     await Promise.all([
       this.env.PUBLIC_KEY_LEASES.put(storageKey, JSON.stringify(lease), {
@@ -135,6 +149,24 @@ export class PublicKeyLeaseCoordinator {
       if ((usage?.requestCount ?? 0) >= limit.limit) return limit
     }
     return null
+  }
+
+  async getOriginPolicy(keyId: string) {
+    const result = await this.env.DB_META.prepare(
+      `SELECT hostname, action
+       FROM api_key_origin_policy
+       WHERE api_key_id = ?`,
+    )
+      .bind(keyId)
+      .all<OriginPolicyRecord>()
+    const allowedHostnames: string[] = []
+    const blockedHostnames: string[] = []
+    for (const rule of result.results) {
+      const hostname = rule.hostname.toLowerCase()
+      if (rule.action === 'allow') allowedHostnames.push(hostname)
+      if (rule.action === 'block') blockedHostnames.push(hostname)
+    }
+    return { allowedHostnames, blockedHostnames }
   }
 }
 

@@ -200,7 +200,7 @@ export type ApiKeyOriginPolicyAction = (typeof apiKeyOriginPolicyActions)[number
 /**
  * Browser-origin rules for a public API key. A key with at least one allow rule
  * becomes an allowlist; block rules always take precedence. The rules are read
- * when a short-lived access token is issued, then represented in its claims.
+ * when a public-key lease is refreshed at the edge.
  */
 export const apiKeyOriginPolicy = sqliteTable(
   'api_key_origin_policy',

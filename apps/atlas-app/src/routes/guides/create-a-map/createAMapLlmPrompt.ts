@@ -205,7 +205,7 @@ const createSectionInstructions = (
   style: [
     state.style === 'custom'
       ? 'Help me create and apply a custom map style. First establish the desired visual direction and the style source or URL; keep it compatible with the selected renderer and SaanSeoi tiles.'
-      : 'Apply the selected SaanSeoi map style through the project’s basemap integration, preserving the secure token exchange and checking that sources and layers render correctly.',
+      : 'Apply the selected SaanSeoi map style through the project’s basemap integration, passing the public key to SaanSeoi tile requests and checking that sources and layers render correctly.',
     'Make only the style-related changes in this section and verify them in the running map.',
   ],
   data: [

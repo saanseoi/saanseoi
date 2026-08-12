@@ -309,7 +309,7 @@ function createEnv(
           status: 'active' as const,
           nextCheckAt: Date.now() + 60_000,
         }),
-      } as KVNamespace,
+      } as unknown as KVNamespace,
       PUBLIC_KEY_LEASE_COORDINATOR: {} as DurableObjectNamespace,
       ACCESS_TOKEN_PRIVATE_JWK: '{}',
       ACCESS_TOKEN_PUBLIC_JWK: '{}',
@@ -492,6 +492,51 @@ describe('atlas-api', () => {
     expect((await res.json()) as unknown).toEqual({
       error: 'invalid_api_key',
       message: 'A valid SaanSeoi public API key is required.',
+    })
+  })
+
+  test('GET /v0/divisions returns 503 when public-key validation is unavailable', async () => {
+    const { env } = createAuthenticatedEnv({
+      PUBLIC_KEY_LEASES: {
+        get: async () => {
+          throw new Error('KV unavailable')
+        },
+      } as unknown as KVNamespace,
+    })
+    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+
+    expect(res.status).toBe(503)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'public_key_validation_unavailable',
+      message: 'Public API key validation is temporarily unavailable. Please retry.',
+    })
+  })
+
+  test('GET /v0/divisions enforces public-key origin rules at the edge', async () => {
+    const { env } = createAuthenticatedEnv({
+      PUBLIC_KEY_LEASES: {
+        get: async () => ({
+          keyId: 'api-key-1',
+          status: 'active' as const,
+          nextCheckAt: Date.now() + 60_000,
+          originPolicy: {
+            allowedHostnames: ['maps.example.com'],
+            blockedHostnames: ['rogue.example.com'],
+          },
+        }),
+      } as unknown as KVNamespace,
+    })
+    const res = await app.fetch(
+      apiRequest('http://localhost/v0/divisions', {
+        headers: { origin: 'https://rogue.example.com' },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(403)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'api_key_origin_not_allowed',
+      message: 'This public API key is not allowed from this origin.',
     })
   })
 
@@ -780,7 +825,7 @@ describe('atlas-api', () => {
           nextCheckAt: Date.now() + 60_000,
           resetAt: Date.now() + 60_000,
         }),
-      } as KVNamespace,
+      } as unknown as KVNamespace,
     })
     const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
 
