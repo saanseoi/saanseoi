@@ -21,6 +21,17 @@ export default defineConfig({
     exclude: ['@tailwindcss/vite', 'maplibre-gl', 'svelte-maplibre-gl'],
     force: true,
   },
+  resolve: {
+    // Scalar ships several Vue-based packages. Some of them contain a nested
+    // Vue version, which must resolve to the app runtime or components fail
+    // with `currentRenderingInstance is null` during drawer updates.
+    dedupe: ['vue'],
+  },
+  define: {
+    __VUE_OPTIONS_API__: true,
+    __VUE_PROD_DEVTOOLS__: false,
+    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+  },
   ssr: {
     noExternal: ['bits-ui', 'runed', 'svelte-toolbelt'],
   },
