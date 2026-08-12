@@ -9,16 +9,18 @@ import { createGuideApiKey } from './createAMapApiKeys.remote'
 let name = $state('')
 let error = $state<string>()
 let newKey = $state<string>()
+let newKeyName = $state<string>()
 let isNewKeyRevealed = $state(false)
 let copied = $state(false)
 const saveApiKeyCommand =
-  'bun -e \'import { createInterface } from "node:readline/promises"; const rl=createInterface({input:process.stdin,output:process.stdout}); const key=await rl.question("Paste your SaanSeoi public key: "); rl.close(); await Bun.write(".env","VITE_SAANSEOI_API_KEY="+key.trim()+"\\n")\''
+  'bun -e \'import { createInterface } from "node:readline/promises"; const rl=createInterface({input:process.stdin,output:process.stdout}); const key=(await rl.question("Paste your SaanSeoi public key: ")).trim(); rl.close(); const path=".env"; const current=await Bun.file(path).text().catch(()=>""); const line="VITE_SAANSEOI_API_KEY="+key; const next=/^VITE_SAANSEOI_API_KEY=.*$/m.test(current)?current.replace(/^VITE_SAANSEOI_API_KEY=.*$/m,line):current+(current&&!current.endsWith("\\n")?"\\n":"")+line+"\\n"; await Bun.write(path,next)\''
 
 const createKey = async () => {
   error = undefined
   try {
     const result = await createGuideApiKey({ name })
     newKey = result.rawKey
+    newKeyName = name.trim()
     isNewKeyRevealed = false
     copied = false
     name = ''
@@ -86,6 +88,10 @@ const copyNewKey = async () => {
       <p class="mt-2 font-body text-body-sm leading-6 text-foreground-alt">
         {m.api_keys_store_description()}
       </p>
+      <p class="mt-2 font-body text-body-sm leading-6 text-foreground-alt">
+        {m.api_keys_name_label()}
+        <strong class="font-semibold text-foreground">{newKeyName}</strong>
+      </p>
       <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         <code
           class="min-w-0 flex-1 overflow-x-auto border border-border-card bg-background-alt px-4 py-3 font-mono text-sm text-foreground"
@@ -116,7 +122,9 @@ const copyNewKey = async () => {
           language="bash"
         />
         <p class="mt-3 font-body text-body-sm leading-6 text-foreground-alt">
-          {m.guide_basemap_api_key_env_description()}
+          {m.guide_basemap_api_key_env_description_before()}
+          <strong class="font-semibold text-foreground">VITE_SAANSEOI_API_KEY</strong>
+          {m.guide_basemap_api_key_env_description_after()}
         </p>
       </div>
     </div>
