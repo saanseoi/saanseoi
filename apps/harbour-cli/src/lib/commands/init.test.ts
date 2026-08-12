@@ -7,28 +7,39 @@ describe('initialisation commands', () => {
     expect(resolveInitialisationCommand('init')).toEqual({
       script: 'scripts/init/all.fish',
       supportsContinue: true,
+      supportsTarget: false,
     })
     expect(resolveInitialisationCommand('init:divisions:overture')).toEqual({
       script: 'scripts/init/divisions-overture.fish',
       supportsContinue: true,
+      supportsTarget: true,
     })
     expect(resolveInitialisationCommand('init:divisions:hkgov-pland-pu')).toEqual({
       script: 'scripts/init/divisions-hkgov-pland-pu.fish',
       supportsContinue: true,
+      supportsTarget: true,
+    })
+    expect(resolveInitialisationCommand('init:divisions:hkgov-landsd')).toEqual({
+      script: 'scripts/init/divisions-hkgov-landsd.fish',
+      supportsContinue: false,
+      supportsTarget: true,
     })
     expect(resolveInitialisationCommand('init:divisions:hkgov-pland-new-town')).toEqual(
       {
         script: 'scripts/init/divisions-hkgov-pland-new-town.fish',
         supportsContinue: true,
+        supportsTarget: true,
       },
     )
     expect(resolveInitialisationCommand('init:streets:hkgov-landsd')).toEqual({
       script: 'scripts/init/streets-hkgov-landsd.fish',
       supportsContinue: false,
+      supportsTarget: false,
     })
     expect(resolveInitialisationCommand('init:addresses:default')).toEqual({
       script: 'scripts/init/addresses-hkgov-dpo.fish',
       supportsContinue: true,
+      supportsTarget: false,
     })
   })
 

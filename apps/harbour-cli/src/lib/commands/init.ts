@@ -8,26 +8,37 @@ const initialisationCommands = {
   init: {
     script: 'scripts/init/all.fish',
     supportsContinue: true,
+    supportsTarget: false,
   },
   'init:addresses:default': {
     script: 'scripts/init/addresses-hkgov-dpo.fish',
     supportsContinue: true,
+    supportsTarget: false,
   },
   'init:divisions:hkgov-pland-new-town': {
     script: 'scripts/init/divisions-hkgov-pland-new-town.fish',
     supportsContinue: true,
+    supportsTarget: true,
   },
   'init:divisions:hkgov-pland-pu': {
     script: 'scripts/init/divisions-hkgov-pland-pu.fish',
     supportsContinue: true,
+    supportsTarget: true,
+  },
+  'init:divisions:hkgov-landsd': {
+    script: 'scripts/init/divisions-hkgov-landsd.fish',
+    supportsContinue: false,
+    supportsTarget: true,
   },
   'init:divisions:overture': {
     script: 'scripts/init/divisions-overture.fish',
     supportsContinue: true,
+    supportsTarget: true,
   },
   'init:streets:hkgov-landsd': {
     script: 'scripts/init/streets-hkgov-landsd.fish',
     supportsContinue: false,
+    supportsTarget: false,
   },
 } as const
 
@@ -43,20 +54,32 @@ export async function runInitialisationCommand(
 ) {
   const command = args.command ? resolveInitialisationCommand(args.command) : undefined
   const supportsContinue = command?.supportsContinue ?? false
+  const supportsTarget = command?.supportsTarget ?? false
   const invalidOptions = Object.keys(args.options).filter(
-    key => key !== 'continue' || !supportsContinue,
+    key =>
+      !(key === 'continue' && supportsContinue) &&
+      !(key === 'target' && supportsTarget),
   )
+  const target = args.options.target
 
   if (
     !command ||
     args.positionals.length > 0 ||
     invalidOptions.length > 0 ||
-    (args.options.continue !== undefined && args.options.continue !== true)
+    (args.options.continue !== undefined && args.options.continue !== true) ||
+    (target !== undefined &&
+      (typeof target !== 'string' ||
+        !['local', 'preview', 'production'].includes(target)))
   ) {
     printUsage()
-    const suffix = supportsContinue
-      ? ' accepts only the `--continue` option.'
-      : ' accepts no options.'
+    const acceptedOptions = [
+      ...(supportsTarget ? ['`--target local|preview|production`'] : []),
+      ...(supportsContinue ? ['`--continue`'] : []),
+    ]
+    const suffix =
+      acceptedOptions.length > 0
+        ? ` accepts only ${acceptedOptions.join(' and ')}.`
+        : ' accepts no options.'
     throw new Error(`\`${args.command}\`${suffix}`)
   }
 
@@ -64,6 +87,7 @@ export async function runInitialisationCommand(
     cmd: [
       'fish',
       resolve(REPO_ROOT, command.script),
+      ...(typeof target === 'string' ? ['--target', target] : []),
       ...(args.options.continue ? ['--continue'] : []),
     ],
     cwd: REPO_ROOT,

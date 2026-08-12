@@ -35,9 +35,27 @@ bun run db:reset:local
 ./bin/saanseoi init:divisions:overture
 ./bin/saanseoi init:divisions:hkgov-pland-pu
 ./bin/saanseoi init:divisions:hkgov-pland-new-town
+./bin/saanseoi init:divisions:hkgov-landsd
 ./bin/saanseoi init:streets:hkgov-landsd
 ./bin/saanseoi init:addresses:default
 ```
+
+The four focused division initialisers also accept a remote target. They process the
+same checked-in source cohorts in dependency order and publish to the selected Harbour
+environment:
+
+```sh
+./bin/saanseoi init:divisions:overture --target preview
+./bin/saanseoi init:divisions:hkgov-pland-pu --target preview
+./bin/saanseoi init:divisions:hkgov-pland-new-town --target preview
+./bin/saanseoi init:divisions:hkgov-landsd --target preview
+```
+
+Use `--target production` for the production database after authenticating Wrangler and
+Harbour. Remote initialisers are safe to rerun after a failed cache refresh: they allow
+an existing staged release to be registered again, but never replace a published one.
+The umbrella `init` command remains local-only because its street and address steps
+include local-only preparation workflows.
 
 The Overture division initialiser includes its HAD and C&SD geometry dependencies,
 including both the `2016` and `2021` C&SD variants. Re-run an interrupted Overture or
