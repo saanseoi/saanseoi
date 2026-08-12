@@ -283,7 +283,8 @@ export const ControlStageRequestSchema = z
     error: z.string().optional(),
   })
   .refine(
-    value => Boolean(value.releaseId || value.releaseCode),
+    (value: { releaseCode?: string; releaseId?: string }) =>
+      Boolean(value.releaseId || value.releaseCode),
     'Either releaseId or releaseCode is required.',
   )
   .openapi('HarbourControlStageRequest', {
@@ -297,7 +298,8 @@ export const PublishDatasetRequestSchema = z
     skipSnapshotCleanup: z.boolean().optional(),
   })
   .refine(
-    value => Boolean(value.releaseId || value.releaseCode),
+    (value: { releaseCode?: string; releaseId?: string }) =>
+      Boolean(value.releaseId || value.releaseCode),
     'Either releaseId or releaseCode is required.',
   )
   .openapi('HarbourPublishDatasetRequest', {
