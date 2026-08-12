@@ -173,9 +173,20 @@ function defaultXdgConfigHome(configPath: string) {
 }
 
 function parseWranglerExecuteJson(raw: string) {
-  const payload = JSON.parse(raw) as
+  const jsonStart = raw.search(/^[[{]/m)
+  let payload:
     | Array<{ error?: string; success?: boolean }>
     | { error?: string; success?: boolean }
+
+  if (jsonStart === -1) {
+    fail(`Unexpected wrangler d1 execute response: ${raw}`)
+  }
+
+  try {
+    payload = JSON.parse(raw.slice(jsonStart)) as typeof payload
+  } catch {
+    fail(`Unexpected wrangler d1 execute response: ${raw}`)
+  }
 
   const first = Array.isArray(payload) ? payload[0] : payload
 

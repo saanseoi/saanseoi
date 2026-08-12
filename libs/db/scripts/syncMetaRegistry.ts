@@ -56,8 +56,14 @@ function parseWranglerExecuteJson(raw: string) {
         error?: string
       }
 
+  const jsonStart = raw.search(/^[[{]/m)
+
+  if (jsonStart === -1) {
+    throw new Error(`Unexpected wrangler d1 execute response: ${raw}`)
+  }
+
   try {
-    payload = JSON.parse(raw) as typeof payload
+    payload = JSON.parse(raw.slice(jsonStart)) as typeof payload
   } catch {
     throw new Error(`Unexpected wrangler d1 execute response: ${raw}`)
   }
