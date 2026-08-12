@@ -365,22 +365,37 @@ describe('Create a Map LLM instructions', () => {
   })
 
   test('stops the render hand-off without the existing SaanSeoi project context', () => {
-    const state = { preferredLocale: 'en', rendererLabel: 'MapLibre' }
+    const state = {
+      preferredLocale: 'en',
+      renderer: 'maplibre',
+      rendererLabel: 'MapLibre',
+    }
 
     for (const prompt of [
       createAMapAgenticSectionPrompt(state, 'render'),
       createAMapChatSectionPrompt(state, 'render'),
     ]) {
+      expect(prompt).toStartWith('## Render Section')
       expect(prompt).toContain(
-        'If you do not have that project context, stop and ask me to provide it before changing anything.',
+        'If you have no context for the SaanSeoi project, stop immediately',
       )
+      expect(prompt).toContain(
+        'Continue the “Render” section of my SaanSeoi map project.\n\nIf you have no context',
+      )
+    }
+  })
+
+  test('adds headings to the later progressive prompts', () => {
+    for (const section of ['basemap', 'style', 'data', 'publish'] as const) {
+      expect(
+        createAMapAgenticSectionPrompt({ preferredLocale: 'en' }, section),
+      ).toStartWith(`## ${section.charAt(0).toUpperCase() + section.slice(1)} Section`)
     }
   })
 
   test('provides the selected renderer reference without exposing a Mapbox token', () => {
     const prompt = createAMapAgenticSectionPrompt(
       {
-        mapboxAccessTokenConfigured: true,
         preferredLocale: 'en',
         renderer: 'mapbox',
         rendererLabel: 'Mapbox GL JS',
@@ -397,9 +412,10 @@ describe('Create a Map LLM instructions', () => {
     expect(prompt).toContain('Replace the existing styles in `src/style.css` with:')
     expect(prompt).toContain('### Verify')
     expect(prompt).toContain(
-      'Mapbox access token: confirmed in local `.env` as `VITE_MAPBOX_TOKEN`',
+      'Use the Mapbox access token already stored in local `.env` as `VITE_MAPBOX_TOKEN`.',
     )
-    expect(prompt).toContain('confirm that `.env` is excluded from version control')
+    expect(prompt).not.toContain('### This section')
+    expect(prompt).not.toContain('### Project decisions')
     expect(prompt).not.toContain('pk.')
   })
 

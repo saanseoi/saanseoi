@@ -134,7 +134,7 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
         <label
           for={`${label}-${choice.value}`}
           aria-label={choice.label}
-          class={`group relative flex w-[min(84vw,19rem)] shrink-0 snap-start flex-col has-focus-visible:outline-2 has-focus-visible:outline-offset-4 has-[:focus-visible]:outline-secondary md:w-full md:min-w-0 md:max-w-64 md:flex-1 ${choice.disabled ? 'cursor-default opacity-55' : 'cursor-pointer'}`}
+          class={`group relative flex w-[min(84vw,19rem)] shrink-0 snap-start flex-col select-none has-focus-visible:outline-2 has-focus-visible:outline-offset-4 has-[:focus-visible]:outline-secondary md:w-full md:min-w-0 md:max-w-64 md:flex-1 ${choice.disabled ? 'cursor-default opacity-55' : 'cursor-pointer'}`}
         >
           <input
             id={`${label}-${choice.value}`}
@@ -155,11 +155,24 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
                   {@html choice.badge}
                 </span>
               {/if}
-              <img
-                class="max-h-full max-w-full object-contain"
-                src={choice.image}
-                alt=""
-              >
+              {#if choice.darkImage}
+                <img
+                  class="max-h-full max-w-full object-contain dark:hidden"
+                  src={choice.image}
+                  alt=""
+                >
+                <img
+                  class="hidden max-h-full max-w-full object-contain dark:block"
+                  src={choice.darkImage}
+                  alt=""
+                >
+              {:else}
+                <img
+                  class="max-h-full max-w-full object-contain"
+                  src={choice.image}
+                  alt=""
+                >
+              {/if}
             </span>
           {/if}
           <span
@@ -200,7 +213,7 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
           aria-label={choice.label}
           onmouseenter={() => (inspectedChoiceValue = choice.value)}
           onfocusin={() => (inspectedChoiceValue = choice.value)}
-          class={`group relative flex cursor-pointer border transition-colors ${variant === 'tiles' ? 'aspect-square flex-col items-center justify-center gap-2 p-3 text-center' : 'min-h-30 gap-3 p-4'} ${value === choice.value ? 'border-secondary bg-secondary-container/35' : 'border-border-card bg-background hover:border-secondary/50'} ${choice.disabled ? 'cursor-not-allowed opacity-55' : ''}`}
+          class={`group relative flex cursor-pointer select-none border transition-colors ${variant === 'tiles' ? 'aspect-square flex-col items-center justify-center gap-2 p-3 text-center' : 'min-h-30 gap-3 p-4'} ${value === choice.value ? 'border-secondary bg-secondary-container/35' : 'border-border-card bg-background hover:border-secondary/50'} ${choice.disabled ? 'cursor-not-allowed opacity-55' : ''}`}
         >
           <input
             id={`${label}-${choice.value}`}

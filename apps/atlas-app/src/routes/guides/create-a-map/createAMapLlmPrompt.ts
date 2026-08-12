@@ -25,7 +25,6 @@ export type CreateAMapLlmPromptState = {
   dataSourceLabel?: string
   hosting?: string
   hostingValue?: string
-  mapboxAccessTokenConfigured?: boolean
   mobileLibrary?: string
   mobilePlatform?: string
   notebookLibrary?: string
@@ -97,9 +96,6 @@ const createSelections = (state: CreateAMapLlmPromptState) =>
     promptValue('Website platform', state.websitePlatform),
     promptValue('Mobile platform', state.mobilePlatform),
     promptValue('Notebook runtime', state.notebookRuntime),
-    ...(state.mapboxAccessTokenConfigured
-      ? ['- Mapbox access token: confirmed in local `.env` as `VITE_MAPBOX_TOKEN`']
-      : []),
   ].filter((line): line is string => Boolean(line))
 
 const createAMapObjectiveSummary = (state: CreateAMapLlmPromptState) => {
@@ -189,17 +185,10 @@ export function createAMapChatHandoverPrompt(
 
 const createSectionInstructions = (
   state: CreateAMapLlmPromptState,
-): Record<Exclude<CreateAMapLlmPromptSection, 'prerequisites'>, string[]> => ({
-  render: [
-    'This continues a previous thread about the SaanSeoi mapping project. If you do not have that project context, stop and ask me to provide it before changing anything.',
-    'Implement the map-rendering foundation in the actual project using the selected library. Keep the map container accessible and responsive, and verify that a blank map view can initialise.',
-    'Choose current, compatible package versions from the project ecosystem. Do not rely on pasted guide snippets; write the implementation that suits the files you found.',
-    ...(state.renderer === 'mapbox'
-      ? [
-          'The Mapbox access token is already configured locally. Do not ask for or reveal it, and confirm that `.env` is excluded from version control.',
-        ]
-      : []),
-  ],
+): Record<
+  Exclude<CreateAMapLlmPromptSection, 'prerequisites' | 'render'>,
+  string[]
+> => ({
   basemap: [
     'Integrate the selected SaanSeoi basemap. Create a server-side token exchange: the SaanSeoi API key must remain in server-side configuration and must never be sent to the browser, mobile client, notebook output, repository, or logs.',
     'Pause before requesting or using an API key. Once the user has configured it, apply the returned short-lived token only to SaanSeoi tile and style requests, then verify the map loads.',
@@ -291,9 +280,12 @@ const createAMapProgressivePrompt = (
   }
 
   return [
+    `## ${sectionLabel(section)} Section`,
+    '',
     `Continue the “${sectionLabel(section)}” section of my SaanSeoi map project.`,
     ...(section === 'render'
       ? [
+          '',
           'If you have no context for the SaanSeoi project, stop immediately and tell me that I am likely in the wrong thread or should paste the project context again.',
         ]
       : []),
@@ -301,20 +293,12 @@ const createAMapProgressivePrompt = (
     ...createAMapLlmAssistanceModeInstructions(mode),
     ...(localeInstruction ? ['', localeInstruction] : []),
     '',
-    'The following entries are the user’s supplied project decisions. Treat them as requirements: do not ask again about a listed decision, and use every applicable one when completing this section.',
-    ...projectDecisions,
-    '',
     ...(section === 'render'
-      ? [
-          '### This section',
-          '',
-          ...createSectionInstructions(state)[section].map(
-            instruction => `- ${instruction}`,
-          ),
-          '',
-          ...createRenderReferenceInstructions(state),
-        ]
+      ? createRenderReferenceInstructions(state)
       : [
+          'The following entries are the user’s supplied project decisions. Treat them as requirements: do not ask again about a listed decision, and use every applicable one when completing this section.',
+          ...projectDecisions,
+          '',
           'This section:',
           ...createSectionInstructions(state)[section].map(
             instruction => `- ${instruction}`,

@@ -4,6 +4,7 @@ export type CreateAMapRendererReference = {
   code: string
   installCommand: string
   label: string
+  setupInstruction?: string
   stylesheetCode: string
 }
 
@@ -51,6 +52,8 @@ const references: Record<CreateAMapRenderer, CreateAMapRendererReference> = {
   mapbox: {
     label: 'Mapbox GL JS',
     installCommand: 'bun add mapbox-gl',
+    setupInstruction:
+      'Use the Mapbox access token already stored in local `.env` as `VITE_MAPBOX_TOKEN`. Do not ask for or reveal its value.',
     code: [
       "import mapboxgl from 'mapbox-gl'",
       "import 'mapbox-gl/dist/mapbox-gl.css'",
@@ -109,6 +112,7 @@ export const createAMapRendererReferenceInstructions = (
     '```bash',
     reference.installCommand,
     '```',
+    ...(reference.setupInstruction ? ['', reference.setupInstruction] : []),
     '',
     `${heading} Code edits`,
     '',
