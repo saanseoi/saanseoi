@@ -22,9 +22,7 @@ const selectedTilejson = $derived(
 
 const mapLibreExample = $derived(
   [
-    "const { accessToken } = await fetch('/api/saanseoi-tile-token').then(response =>",
-    '  response.json(),',
-    ')',
+    'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
     "const tileOrigin = 'https://tiles.saanseoi.hk/'",
     '',
     'const map = new maplibregl.Map({',
@@ -32,38 +30,28 @@ const mapLibreExample = $derived(
     '  style: {',
     '    version: 8,',
     '    sources: {',
-    `      saanseoi: { type: 'vector', url: tileOrigin + '${selectedTilejson}' },`,
+    `      saanseoi: { type: 'vector', url: tileOrigin + '${selectedTilejson}?access_token=' + encodeURIComponent(accessToken) },`,
     '    },',
     '    layers: [/* your MapLibre style layers for the saanseoi source */],',
     '  },',
-    '  transformRequest: url =>',
-    '    url.startsWith(tileOrigin)',
-    "      ? { url, headers: { Authorization: 'Bearer ' + accessToken } }",
-    '      : { url },',
     '})',
   ].join('\n'),
 )
 
 const mapboxExample = $derived(
   [
-    "const { accessToken } = await fetch('/api/saanseoi-tile-token').then(response =>",
-    '  response.json(),',
-    ')',
+    'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
     "const tileOrigin = 'https://tiles.saanseoi.hk/'",
     '',
     'const map = new mapboxgl.Map({',
     "  container: 'map',",
     "  style: 'mapbox://styles/your-account/your-style',",
-    '  transformRequest: url =>',
-    '    url.startsWith(tileOrigin)',
-    "      ? { url, headers: { Authorization: 'Bearer ' + accessToken } }",
-    '      : { url },',
     '})',
     '',
     "map.on('load', () => {",
     "  map.addSource('saanseoi', {",
     "    type: 'vector',",
-    `    url: tileOrigin + '${selectedTilejson}',`,
+    `    url: tileOrigin + '${selectedTilejson}?access_token=' + encodeURIComponent(accessToken),`,
     '  })',
     '  // Add layers that use the `saanseoi` source and its source layers.',
     '})',
@@ -71,14 +59,12 @@ const mapboxExample = $derived(
 )
 
 const otherLibraryExample = [
-  "const { accessToken } = await fetch('/api/saanseoi-tile-token').then(response =>",
-  '  response.json(),',
-  ')',
+  'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
   '',
   "// Use this in your library's tile-load or request hook.",
   'async function fetchSaanSeoiTile(url: string) {',
   '  return fetch(url, {',
-  "    headers: { Authorization: 'Bearer ' + accessToken },",
+  "    headers: { 'x-api-key': accessToken },",
   '  })',
   '}',
 ].join('\n')
