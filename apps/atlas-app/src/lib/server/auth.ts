@@ -96,6 +96,16 @@ type AuthEnvironment = {
   GITHUB_CLIENT_SECRET?: string
 }
 
+const localAuthEnvironment: AuthEnvironment = {
+  BETTER_AUTH_SECRET: env.BETTER_AUTH_SECRET,
+  GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET,
+  FACEBOOK_CLIENT_ID: env.FACEBOOK_CLIENT_ID,
+  FACEBOOK_CLIENT_SECRET: env.FACEBOOK_CLIENT_SECRET,
+  GITHUB_CLIENT_ID: env.GITHUB_CLIENT_ID,
+  GITHUB_CLIENT_SECRET: env.GITHUB_CLIENT_SECRET,
+}
+
 const createSocialProviders = (authEnv: AuthEnvironment) => ({
   ...(authEnv.GOOGLE_CLIENT_ID && authEnv.GOOGLE_CLIENT_SECRET
     ? {
@@ -179,7 +189,7 @@ const createAuthConfig = (baseURL: string, authEnv: AuthEnvironment) =>
 export const createAuth = (
   d1: D1Database,
   baseURL = env.ORIGIN ?? 'http://localhost:5173',
-  authEnv: AuthEnvironment = env,
+  authEnv: AuthEnvironment = localAuthEnvironment,
 ) =>
   betterAuth({
     ...createAuthConfig(baseURL, authEnv),
