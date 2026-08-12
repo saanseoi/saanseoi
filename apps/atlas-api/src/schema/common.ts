@@ -87,7 +87,8 @@ const OvertureSourceItemsSchema = z
   .array(OvertureSourceItemSchema)
   .min(1)
   .refine(
-    items => new Set(items.map(item => JSON.stringify(item))).size === items.length,
+    (items: Array<z.infer<typeof OvertureSourceItemSchema>>) =>
+      new Set(items.map(item => JSON.stringify(item))).size === items.length,
     { message: 'Source items must be unique.' },
   )
   .openapi({ uniqueItems: true })
@@ -96,7 +97,8 @@ const OtherSourceTypeItemsSchema = z
   .array(OtherSourceTypeItemSchema)
   .min(1)
   .refine(
-    items => new Set(items.map(item => JSON.stringify(item))).size === items.length,
+    (items: Array<z.infer<typeof OtherSourceTypeItemSchema>>) =>
+      new Set(items.map(item => JSON.stringify(item))).size === items.length,
     { message: 'Source items must be unique.' },
   )
   .openapi({ uniqueItems: true })
@@ -188,7 +190,8 @@ export const RequestedLocaleCodeSchema = z.string().openapi({
 export const RequestedLocalesMetadataSchema = z
   .array(z.union([RequestedLocaleCodeSchema, z.literal('*')]))
   .refine(
-    locales => !locales.includes('*') || (locales.length === 1 && locales[0] === '*'),
+    (locales: string[]) =>
+      !locales.includes('*') || (locales.length === 1 && locales[0] === '*'),
     {
       message:
         'locales must be locale codes, or a single "*" when all locales are returned',

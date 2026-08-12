@@ -64,8 +64,12 @@ export const SourceReleasesQuerySchema = z
     dataset: z.string().min(1).optional(),
   })
   .refine(
-    value =>
-      [value.releaseSet, value.snapshot, value.cohort].filter(Boolean).length <= 1,
+    (value: {
+      releaseSet?: string
+      snapshot?: string
+      cohort?: string
+      dataset?: string
+    }) => [value.releaseSet, value.snapshot, value.cohort].filter(Boolean).length <= 1,
     {
       message: 'Use at most one of releaseSet, snapshot, and cohort.',
       path: ['releaseSet'],
