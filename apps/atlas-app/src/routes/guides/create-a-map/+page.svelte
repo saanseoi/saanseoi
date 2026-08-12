@@ -63,7 +63,10 @@ import {
   llmSetupLinks,
 } from './createAMapGuideProviders'
 import { createCreateAMapGuidePresentation } from './createAMapGuidePresentation'
-import { getCreateAMapRendererReference } from './createAMapRendererReference'
+import {
+  createAMapRendererBasemapCode,
+  getCreateAMapRendererReference,
+} from './createAMapRendererReference'
 import GuideCreateAMapAccountComplete from './guideCreateAMapAccountComplete.svelte'
 import GuideCreateAMapApiKeys from './guideCreateAMapApiKeys.svelte'
 import {
@@ -1414,40 +1417,9 @@ const rendererCodeLabel = $derived.by(() => {
 const rendererCssCode = $derived(rendererReference.stylesheetCode)
 const rendererCode = $derived(rendererReference.code)
 const basemapCode = $derived(
-  renderer === 'leaflet'
-    ? [
-        "import L from 'leaflet'",
-        "import 'maplibre-gl-leaflet'",
-        '',
-        'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
-        "if (!accessToken?.startsWith('pk.')) throw new Error('Set VITE_SAANSEOI_API_KEY.')",
-        '',
-        `const style = await fetch('${styleUrl}').then(response => response.json())`,
-        'style.sources = {',
-        `  basemap: { type: 'vector', url: '${tilejsonUrl}?access_token=' + encodeURIComponent(accessToken) },`,
-        '}',
-        '',
-        "const map = L.map('map').setView([22.3193, 114.1694], 11)",
-        'L.maplibreGL({',
-        '  style,',
-        '}).addTo(map)',
-      ].join('\n')
-    : [
-        `import ${renderer === 'mapbox' ? "mapboxgl from 'mapbox-gl'" : "maplibregl from 'maplibre-gl'"}`,
-        '',
-        'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
-        "if (!accessToken?.startsWith('pk.')) throw new Error('Set VITE_SAANSEOI_API_KEY.')",
-        '',
-        `const style = await fetch('${styleUrl}').then(response => response.json())`,
-        'style.sources = {',
-        `  basemap: { type: 'vector', url: '${tilejsonUrl}?access_token=' + encodeURIComponent(accessToken) },`,
-        '}',
-        '',
-        `new ${renderer === 'mapbox' ? 'mapboxgl' : 'maplibregl'}.Map({`,
-        "  container: 'map',",
-        '  style,',
-        '})',
-      ].join('\n'),
+  renderer === 'maplibre' || renderer === 'mapbox' || renderer === 'leaflet'
+    ? createAMapRendererBasemapCode(renderer, styleUrl, tilejsonUrl)
+    : '',
 )
 const rendererEditorInstruction = $derived(
   m
@@ -1585,6 +1557,19 @@ const urbanDensityMetricsCss = [
 
 const selectedStylePreview = (styleId: string) =>
   createAMapStylePreviewUrl(styleId, region, tileset)
+const styleChoices = $derived.by(() => [
+  ...mapStyleDefinitions.map(candidate => ({
+    value: candidate.id,
+    label: candidate.name,
+    description: '',
+    image: selectedStylePreview(candidate.id),
+  })),
+  {
+    value: 'custom',
+    label: m.guide_style_custom(),
+    description: m.guide_style_custom_choice_description(),
+  },
+])
 </script>
 
 <svelte:head>
