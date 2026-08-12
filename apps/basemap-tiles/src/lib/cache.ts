@@ -4,6 +4,7 @@ export const DYNAMIC_CACHE_CONTROL = 'public, max-age=300'
 
 type CacheResponseOptions = {
   request: Request
+  cacheKey?: string
   env: Pick<CloudflareBindings, 'CACHE_CONTROL'>
   ctx: ExecutionContext
   allowedOrigin: string
@@ -11,7 +12,7 @@ type CacheResponseOptions = {
 }
 
 export class ResponseCache {
-  readonly #request: Request
+  readonly #cacheKey: string
   readonly #env: CacheResponseOptions['env']
   readonly #ctx: ExecutionContext
   readonly #allowedOrigin: string
@@ -19,12 +20,13 @@ export class ResponseCache {
 
   constructor({
     request,
+    cacheKey = request.url,
     env,
     ctx,
     allowedOrigin,
     latestRequest,
   }: CacheResponseOptions) {
-    this.#request = request
+    this.#cacheKey = cacheKey
     this.#env = env
     this.#ctx = ctx
     this.#allowedOrigin = allowedOrigin
@@ -34,9 +36,9 @@ export class ResponseCache {
   async match(): Promise<Response | undefined> {
     if (this.#latestRequest) return undefined
 
-    const cached = await caches.default.match(this.#request.url)
+    const cached = await caches.default.match(this.#cacheKey)
     if (cached?.status === 404) {
-      await caches.default.delete(this.#request.url)
+      await caches.default.delete(this.#cacheKey)
       return undefined
     }
     if (!cached) return undefined
@@ -58,7 +60,7 @@ export class ResponseCache {
     headers.set('Cache-Control', cacheable ? cacheControl : 'no-store')
     if (cacheable && !this.#latestRequest) {
       this.#ctx.waitUntil(
-        caches.default.put(this.#request.url, new Response(body, { headers, status })),
+        caches.default.put(this.#cacheKey, new Response(body, { headers, status })),
       )
     }
     return new Response(body, {
@@ -66,4 +68,16 @@ export class ResponseCache {
       status,
     })
   }
+}
+
+/**
+ * Authenticated TileJSON includes the caller's public key in its tile URLs.
+ * Tile content is not key-specific once the request has been authenticated, so
+ * omit that key from its edge-cache identity while retaining every other query
+ * parameter, including a version pin for a promoted latest archive.
+ */
+export const tileBodyCacheKey = (request: Request): string => {
+  const url = new URL(request.url)
+  url.searchParams.delete('access_token')
+  return url.toString()
 }
