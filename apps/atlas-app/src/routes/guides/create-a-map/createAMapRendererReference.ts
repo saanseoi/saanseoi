@@ -1,6 +1,7 @@
 export type CreateAMapRenderer = 'maplibre' | 'mapbox' | 'leaflet'
 
 export type CreateAMapRendererReference = {
+  authCode: string
   code: string
   installCommand: string
   label: string
@@ -19,8 +20,76 @@ const stylesheetCode = [
   '}',
 ].join('\n')
 
+const authCode = [
+  "type Audience = 'atlas-api' | 'basemap-tiles'",
+  '',
+  'type AccessToken = {',
+  '  value: string',
+  '  expiresAt: number',
+  '}',
+  '',
+  'const key = import.meta.env.VITE_SAANSEOI_API_KEY',
+  "if (!key?.startsWith('pk.')) {",
+  "  throw new Error('Set VITE_SAANSEOI_API_KEY to your SaanSeoi public key.')",
+  '}',
+  '',
+  'const tokens = new Map<Audience, AccessToken>()',
+  'const refreshTimers = new Map<Audience, number>()',
+  'const refreshMarginMs = 60_000',
+  '',
+  'async function refresh(audience: Audience) {',
+  "  const response = await fetch('https://api.saanseoi.hk/v0/auth/tokens', {",
+  "    method: 'POST',",
+  "    headers: { 'content-type': 'application/json', 'x-api-key': key },",
+  '    body: JSON.stringify({ audience }),',
+  '  })',
+  '',
+  "  if (!response.ok) throw new Error('SaanSeoi could not refresh the access token.')",
+  '  const { accessToken, expiresIn } = await response.json() as {',
+  '    accessToken: string',
+  '    expiresIn: number',
+  '  }',
+  '  const token = { value: accessToken, expiresAt: Date.now() + expiresIn * 1_000 }',
+  '  tokens.set(audience, token)',
+  '',
+  '  const previousTimer = refreshTimers.get(audience)',
+  '  if (previousTimer) window.clearTimeout(previousTimer)',
+  '  refreshTimers.set(',
+  '    audience,',
+  '    window.setTimeout(() => void refresh(audience), Math.max(0, expiresIn * 1_000 - refreshMarginMs)),',
+  '  )',
+  '  return token',
+  '}',
+  '',
+  'async function ready(audience: Audience) {',
+  '  const token = tokens.get(audience)',
+  '  return token && token.expiresAt - Date.now() > refreshMarginMs',
+  '    ? token',
+  '    : refresh(audience)',
+  '}',
+  '',
+  'function headers(audience: Audience) {',
+  '  const token = tokens.get(audience)',
+  "  if (!token || token.expiresAt <= Date.now()) throw new Error('SaanSeoi access token is unavailable.')",
+  '  return { Authorization: `Bearer ${token.value}` }',
+  '}',
+  '',
+  'async function fetchApi(input: RequestInfo | URL, init?: RequestInit) {',
+  "  await ready('atlas-api')",
+  '  const requestHeaders = new Headers(init?.headers)',
+  "  requestHeaders.set('Authorization', headers('atlas-api').Authorization)",
+  '  return fetch(input, {',
+  '    ...init,',
+  '    headers: requestHeaders,',
+  '  })',
+  '}',
+  '',
+  'export const saanseoiAuth = { ready, headers, fetchApi }',
+].join('\n')
+
 const references: Record<CreateAMapRenderer, CreateAMapRendererReference> = {
   maplibre: {
+    authCode,
     label: 'MapLibre',
     installCommand: 'bun add maplibre-gl',
     code: [
@@ -50,6 +119,7 @@ const references: Record<CreateAMapRenderer, CreateAMapRendererReference> = {
     stylesheetCode,
   },
   mapbox: {
+    authCode,
     label: 'Mapbox GL JS',
     installCommand: 'bun add mapbox-gl',
     setupInstruction:
@@ -73,8 +143,9 @@ const references: Record<CreateAMapRenderer, CreateAMapRendererReference> = {
     stylesheetCode,
   },
   leaflet: {
+    authCode,
     label: 'Leaflet',
-    installCommand: 'bun add leaflet',
+    installCommand: 'bun add leaflet maplibre-gl maplibre-gl-leaflet',
     code: [
       "import L from 'leaflet'",
       "import 'leaflet/dist/leaflet.css'",
@@ -121,6 +192,14 @@ export const createAMapRendererReferenceInstructions = (
     '```ts',
     reference.code,
     '```',
+    '',
+    'Create `src/auth.ts` with:',
+    '',
+    '```ts',
+    reference.authCode,
+    '```',
+    '',
+    'Set `VITE_SAANSEOI_API_KEY` in your local `.env` file. This is a public key: it is embedded in the browser build and can be limited by origin from your SaanSeoi account.',
     '',
     'Replace the existing styles in `src/style.css` with:',
     '',
