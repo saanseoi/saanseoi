@@ -38,6 +38,14 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
   app.use(path, prettyJSON())
 }
 app.use(
+  '/v0/*',
+  cors({
+    origin: '*',
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    allowHeaders: ['Authorization', 'Content-Type', 'X-API-Key'],
+  }),
+)
+app.use(
   '/v0/meta/substack',
   cors({
     origin: '*',
