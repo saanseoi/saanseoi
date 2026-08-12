@@ -12,7 +12,7 @@ import GuideEditorProjectSetupSection from './guideEditorProjectSetupSection.sve
 type Props = {
   bunInstallCode: string
   bunInstallExplanation: string
-  codeEditor?: string
+  codeEditor?: 'vscode' | 'zed' | 'cursor' | 'other'
   hostingInstallCode?: string
   hostingInstallExplanation: string
   locale: string
