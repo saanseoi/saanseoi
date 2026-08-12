@@ -1,4 +1,5 @@
 import { tick } from 'svelte'
+import { replaceState } from '$app/navigation'
 
 import type { ReleaseNavOutlineItem, ReleaseNavVersion } from './releaseNav.types'
 
@@ -197,7 +198,7 @@ export function scrollToReleaseNavAnchor({
       scrollContainer.getBoundingClientRect().top -
       firstItemPadding -
       24
-    window.history.replaceState(null, '', `#${id}`)
+    replaceState(`#${id}`, {})
     scrollContainer.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
     return
   }
@@ -211,7 +212,7 @@ export function scrollToReleaseNavAnchor({
       ?.getBoundingClientRect().bottom ?? 0,
   )
   const offset = mobile ? mobileOffset + 24 : 7.5 * rootFontSize + firstItemPadding + 24
-  window.history.replaceState(null, '', `#${id}`)
+  replaceState(`#${id}`, {})
   if (mobile) window.dispatchEvent(new Event('app-header:preserve-visibility'))
   window.scrollTo({
     top: Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset),
