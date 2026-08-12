@@ -10,23 +10,10 @@ const t = (key: Parameters<typeof getMessage>[0]) => {
   return getMessage(key)
 }
 
-const tokenEndpointExample = [
-  '// Your server only — never send SAANSEOI_API_KEY to the browser.',
-  'export async function GET() {',
-  "  const response = await fetch('https://api.saanseoi.hk/v0/auth/tokens', {",
-  "    method: 'POST',",
-  '    headers: {',
-  "      'content-type': 'application/json',",
-  "      'x-api-key': process.env.SAANSEOI_API_KEY,",
-  '    },',
-  "    body: JSON.stringify({ audience: 'basemap-tiles' }),",
-  '  })',
-  '',
-  "  if (!response.ok) return new Response('Could not get a tile token', { status: 502 })",
-  '  const { accessToken, expiresIn } = await response.json()',
-  '  return Response.json({ accessToken, expiresIn }, {',
-  "    headers: { 'cache-control': 'private, no-store' },",
-  '  })',
+const publicKeyExample = [
+  'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
+  "if (!accessToken?.startsWith('pk.')) {",
+  "  throw new Error('Set VITE_SAANSEOI_API_KEY to your SaanSeoi public key.')",
   '}',
 ].join('\n')
 </script>
@@ -44,20 +31,12 @@ const tokenEndpointExample = [
       {t('tiles_getting_started_exchange_heading')}
     </h2>
     <div class="mt-5 space-y-4 font-body text-body-md leading-7 text-foreground-alt">
-      <p>
-        {t('tiles_getting_started_exchange_intro_before_endpoint')}
-        <code class="font-mono text-sm text-foreground"
-          >POST https://api.saanseoi.hk/v0/auth/tokens</code
-        >
-        {t('tiles_getting_started_exchange_intro_before_audience')}
-        <code class="font-mono text-sm text-foreground">basemap-tiles</code>
-        {t('tiles_getting_started_exchange_intro_after_audience')}
-      </p>
+      <p>{t('tiles_getting_started_exchange_intro_before_endpoint')}</p>
       <p>{t('tiles_getting_started_exchange_browser')}</p>
     </div>
   </div>
   <CodeBlock
-    code={tokenEndpointExample}
-    label={t('tiles_getting_started_server_route')}
+    code={publicKeyExample}
+    label={t('tiles_getting_started_public_key_code')}
   />
 </section>
