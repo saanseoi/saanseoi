@@ -41,9 +41,8 @@ ${renderReferences}
 - Use SaanSeoi’s public \`pk.\` key through \`VITE_SAANSEOI_API_KEY\`. It is intentionally
   embedded in the browser build, so configure it as a public build variable rather than
   as a secret. Never commit it or log it.
-- Create \`src/auth.ts\` to exchange the public key for a short-lived signed token for
-  each SaanSeoi audience, then refresh before expiry. Use those tokens only for
-  SaanSeoi API and tile requests; do not add a server proxy or D1 lookup path.
+- Send the public key directly as the \`access_token\` query parameter on SaanSeoi API
+  and tile requests. Do not add a token refresh utility, server proxy or D1 lookup path.
 - Request the key only when the application is ready for it, then verify the selected
   basemap loads after it has been configured.
 

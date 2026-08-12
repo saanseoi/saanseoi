@@ -191,7 +191,7 @@ const createSectionInstructions = (
 > => ({
   basemap: [
     'Integrate the selected SaanSeoi basemap using its public `pk.` key. Place it in the Vite `VITE_SAANSEOI_API_KEY` build variable: it is intentionally embedded in the browser output, so never describe it as a secret or put it in a server-only variable.',
-    'Create `src/auth.ts` as a client utility that exchanges the public key for short-lived signed tokens, refreshes each audience token before it expires, and sends bearer tokens only to SaanSeoi API and tile requests. Do not query D1 or add a server proxy.',
+    'Use the public key directly as the `access_token` query parameter on SaanSeoi API and tile requests. Do not add a client token refresh utility, server proxy, or D1 lookup path.',
     'Pause before requesting or using the key. After the user has configured it, verify the selected basemap loads and that no token is logged or committed.',
     ...(state.tilejsonUrl ? [`Use this TileJSON endpoint: ${state.tilejsonUrl}`] : []),
     ...(state.styleUrl

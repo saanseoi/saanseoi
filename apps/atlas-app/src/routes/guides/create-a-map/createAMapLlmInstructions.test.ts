@@ -416,7 +416,7 @@ describe('Create a Map LLM instructions', () => {
     )
     expect(prompt).not.toContain('### This section')
     expect(prompt).not.toContain('### Project decisions')
-    expect(prompt).toContain("startsWith('pk.')")
+    expect(prompt).toContain('access_token')
     expect(prompt).toContain('VITE_SAANSEOI_API_KEY')
   })
 
