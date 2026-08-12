@@ -97,6 +97,51 @@ export const isCreateAMapRenderer = (value?: string): value is CreateAMapRendere
 export const getCreateAMapRendererReference = (renderer: CreateAMapRenderer) =>
   references[renderer]
 
+/**
+ * Builds the renderer-specific changes needed once a SaanSeoi style has been
+ * selected. Keep this in the renderer reference module so the editor snippet
+ * and LLM hand-off can describe the same integration.
+ */
+export const createAMapRendererBasemapCode = (
+  renderer: CreateAMapRenderer,
+  styleUrl: string,
+  tilejsonUrl: string,
+) =>
+  renderer === 'leaflet'
+    ? [
+        "import L from 'leaflet'",
+        "import 'maplibre-gl-leaflet'",
+        '',
+        'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
+        "if (!accessToken?.startsWith('pk.')) throw new Error('Set VITE_SAANSEOI_API_KEY.')",
+        '',
+        `const style = await fetch('${styleUrl}').then(response => response.json())`,
+        'style.sources = {',
+        `  basemap: { type: 'vector', url: '${tilejsonUrl}?access_token=' + encodeURIComponent(accessToken) },`,
+        '}',
+        '',
+        "const map = L.map('map').setView([22.3193, 114.1694], 11)",
+        'L.maplibreGL({',
+        '  style,',
+        '}).addTo(map)',
+      ].join('\n')
+    : [
+        `import ${renderer === 'mapbox' ? "mapboxgl from 'mapbox-gl'" : "maplibregl from 'maplibre-gl'"}`,
+        '',
+        'const accessToken = import.meta.env.VITE_SAANSEOI_API_KEY',
+        "if (!accessToken?.startsWith('pk.')) throw new Error('Set VITE_SAANSEOI_API_KEY.')",
+        '',
+        `const style = await fetch('${styleUrl}').then(response => response.json())`,
+        'style.sources = {',
+        `  basemap: { type: 'vector', url: '${tilejsonUrl}?access_token=' + encodeURIComponent(accessToken) },`,
+        '}',
+        '',
+        `new ${renderer === 'mapbox' ? 'mapboxgl' : 'maplibregl'}.Map({`,
+        "  container: 'map',",
+        '  style,',
+        '})',
+      ].join('\n')
+
 export const createAMapRendererReferenceInstructions = (
   renderer: CreateAMapRenderer,
   headingLevel = 3,
