@@ -454,6 +454,20 @@ function createDraftReleaseSetDb() {
       createdAt TEXT NOT NULL
     );
 
+    CREATE TABLE apiCompositionMembers (
+      apiCompositionId TEXT NOT NULL,
+      domainCode TEXT NOT NULL DEFAULT 'default',
+      resourceType TEXT NOT NULL,
+      variant TEXT NOT NULL DEFAULT 'default',
+      role TEXT NOT NULL,
+      isRequired INTEGER NOT NULL,
+      cohortMatchingMode TEXT NOT NULL,
+      anchorResourceType TEXT,
+      maxLagDays INTEGER,
+      priority INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (apiCompositionId, domainCode, resourceType, variant)
+    );
+
     CREATE TABLE apiReleaseSets (
       id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
@@ -664,6 +678,21 @@ function createCleanupCandidatesDb() {
       snapshotId TEXT NOT NULL,
       PRIMARY KEY (apiReleaseSetId, snapshotId)
     );
+
+    CREATE TABLE apiCatalogRevisions (
+      id TEXT PRIMARY KEY,
+      apiVersionId TEXT NOT NULL,
+      regionCode TEXT NOT NULL,
+      revision INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      publishedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE apiCatalogRevisionReleaseSets (
+      apiCatalogRevisionId TEXT NOT NULL,
+      apiReleaseSetId TEXT NOT NULL,
+      isDefault INTEGER NOT NULL
+    );
   `)
 
   return {
@@ -753,6 +782,31 @@ function createPublishReleaseArtefactsDb() {
       code TEXT NOT NULL,
       familyType TEXT NOT NULL DEFAULT 'divisions',
       version TEXT NOT NULL DEFAULT '0.1'
+    );
+
+    CREATE TABLE apiComposition (
+      id TEXT PRIMARY KEY,
+      apiVersionId TEXT NOT NULL,
+      code TEXT NOT NULL,
+      version INTEGER NOT NULL,
+      primaryResourceType TEXT NOT NULL,
+      defaultDomainCode TEXT,
+      status TEXT NOT NULL,
+      createdAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE apiCompositionMembers (
+      apiCompositionId TEXT NOT NULL,
+      domainCode TEXT NOT NULL DEFAULT 'default',
+      resourceType TEXT NOT NULL,
+      variant TEXT NOT NULL DEFAULT 'default',
+      role TEXT NOT NULL,
+      isRequired INTEGER NOT NULL,
+      cohortMatchingMode TEXT NOT NULL,
+      anchorResourceType TEXT,
+      maxLagDays INTEGER,
+      priority INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (apiCompositionId, domainCode, resourceType, variant)
     );
 
     CREATE TABLE snapshots (
@@ -1896,6 +1950,16 @@ describe('listCurrentSnapshotCleanupCandidates', () => {
 
       INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId) VALUES
         ('release-set-current', 'snapshot-published-protected');
+
+      INSERT INTO apiCatalogRevisions (
+        id, apiVersionId, regionCode, revision, status, publishedAt
+      ) VALUES (
+        'catalog-current', 'api-version-division', 'hk', 0, 'current', 1760000000000
+      );
+
+      INSERT INTO apiCatalogRevisionReleaseSets (
+        apiCatalogRevisionId, apiReleaseSetId, isDefault
+      ) VALUES ('catalog-current', 'release-set-current', 1);
     `)
 
     await expect(
