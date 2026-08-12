@@ -71,27 +71,26 @@ the currently permitted external origins. Keep any change to those rules in
 ## Access and usage metering
 
 First-party browser callers at the configured hub origins, core domain suffixes, local
-development origins, and diagnostic origins may request tiles without a bearer token.
-This keeps the SaanSeoi applications free of API-key or token plumbing. These requests
-are not rate-limited or included in product usage analytics.
+development origins, and diagnostic origins may request tiles without a public key. This
+keeps the SaanSeoi applications free of API-key plumbing. These requests are not
+rate-limited or included in product usage analytics.
 
-Every other caller must use a short-lived bearer token. Exchange a public SaanSeoi API
-key (prefixed `pk.`) at the Atlas API, then send the returned token on tile requests:
+Every other caller sends a public SaanSeoi API key (prefixed `pk.`) directly. Use the
+`access_token` query parameter when a map library cannot set request headers, or send an
+`X-API-Key` header:
 
 ```sh
-curl -X POST https://api.saanseoi.hk/v0/auth/tokens \
-  -H 'content-type: application/json' \
-  -H 'x-api-key: pk.your-public-key' \
-  --data '{"audience":"basemap-tiles"}'
+curl 'https://tiles.saanseoi.hk/hk-latest.json?access_token=pk.your-public-key'
 
 curl https://tiles.saanseoi.hk/hk-latest.json \
-  -H 'authorization: Bearer <access-token>'
+  -H 'x-api-key: pk.your-public-key'
 ```
 
-Tokens last 15 minutes, are valid only for the target product and deployment
-environment, and identify the API key for rate limiting and Analytics Engine usage
-reporting. The tiles product currently permits 600 requests per key per minute; this
-edge limiter is an eventually consistent abuse guard, not a billing ledger.
+The edge stores a 15-minute authorisation lease per key in KV, validates the key's
+current status when renewing that lease, and identifies the key for rate limiting and
+Analytics Engine usage reporting. The tiles product currently permits 600 requests per
+key per minute; this edge limiter is an eventually consistent abuse guard, not a billing
+ledger.
 
 An `Origin` header is browser metadata, not proof of caller identity: a non-browser
 client can forge it. It is used for usage attribution and future browser-domain
@@ -100,5 +99,5 @@ be embedded in browser-delivered code; never treat it like a server secret or pu
 logs or source control.
 
 `AUTH_MODE` is `required` in deployment. `bun run dev` overrides it to transparent local
-access. Use `bun run dev:auth` plus a matching `ACCESS_TOKEN_PUBLIC_JWK` in `.dev.vars`
-to exercise bearer verification locally.
+access. Use `bun run dev:auth` with local KV and Durable Object storage to exercise
+public-key verification locally.

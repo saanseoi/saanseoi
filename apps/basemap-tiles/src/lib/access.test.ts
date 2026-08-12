@@ -1,13 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createAccessToken } from '@repo/auth'
 import {
   applyAccessHeaders,
   getAllowedOrigin,
   isUnmeteredOrigin,
   type OriginAccessConfig,
 } from './access'
-import { authenticateTileRequest } from './token-access'
+import { authenticatePublicKeyRequest } from './public-key-access'
 import worker from '../index'
 
 const config: OriginAccessConfig = {
@@ -60,68 +59,41 @@ test('only configured first-party origins are unmetered', () => {
   assert.equal(isUnmeteredOrigin(null, config), false)
 })
 
-test('requires a production tiles token outside the unmetered browser origins', async () => {
-  const keyPair = (await crypto.subtle.generateKey('Ed25519', true, [
-    'sign',
-    'verify',
-  ])) as CryptoKeyPair
-  const privateJwk = JSON.stringify(
-    await crypto.subtle.exportKey('jwk', keyPair.privateKey),
-  )
-  const publicJwk = JSON.stringify(
-    await crypto.subtle.exportKey('jwk', keyPair.publicKey),
-  )
-  const now = Math.floor(Date.now() / 1000)
-  const token = await createAccessToken(
-    {
-      aud: 'basemap-tiles',
-      env: 'production',
-      exp: now + 15 * 60,
-      iat: now,
-      sub: 'key-123',
-    },
-    privateJwk,
-  )
+test('requires a production public key outside the unmetered browser origins', async () => {
+  const lease = {
+    keyId: 'key-123',
+    status: 'active' as const,
+    nextCheckAt: Date.now() + 60_000,
+  }
   const env = {
     ...config,
-    ACCESS_TOKEN_PUBLIC_JWK: publicJwk,
     AUTH_MODE: 'required',
     ENVIRONMENT: 'production',
-  } as Pick<
-    CloudflareBindings,
-    | 'ACCESS_TOKEN_PUBLIC_JWK'
-    | 'AUTH_MODE'
-    | 'ENVIRONMENT'
-    | 'CORE_ORIGIN_SUFFIXES'
-    | 'DIAGNOSTIC_ORIGINS'
-    | 'DEV_ORIGINS'
-    | 'HUB_ORIGINS'
-    | 'PREVIEW_PREFIXES'
-  >
+    PUBLIC_KEY_LEASES: {
+      get: async () => lease,
+    },
+    PUBLIC_KEY_LEASE_COORDINATOR: {},
+  } as unknown as Parameters<typeof authenticatePublicKeyRequest>[1]
 
   assert.deepEqual(
-    await authenticateTileRequest(
-      new Request('https://tiles.saanseoi.hk/hk-latest/0/0/0.mvt', {
-        headers: {
-          authorization: `Bearer ${token}`,
-          origin: 'https://example.com',
+    await authenticatePublicKeyRequest(
+      new Request(
+        'https://tiles.saanseoi.hk/hk-latest/0/0/0.mvt?access_token=pk.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        {
+          headers: {
+            origin: 'https://example.com',
+          },
         },
-      }),
+      ),
       env,
     ),
     {
       unmetered: false,
-      claims: {
-        aud: 'basemap-tiles',
-        env: 'production',
-        exp: now + 15 * 60,
-        iat: now,
-        sub: 'key-123',
-      },
+      lease,
     },
   )
   assert.equal(
-    await authenticateTileRequest(
+    await authenticatePublicKeyRequest(
       new Request('https://tiles.saanseoi.hk/hk-latest/0/0/0.mvt'),
       env,
     ),
@@ -129,7 +101,7 @@ test('requires a production tiles token outside the unmetered browser origins', 
   )
 })
 
-test('allows browser preflight for the signed-token header', async () => {
+test('allows browser preflight for public-key headers', async () => {
   const response = await worker.fetch(
     new Request('https://tiles.saanseoi.hk/hk-latest.json', {
       method: 'OPTIONS',
@@ -153,4 +125,5 @@ test('allows browser preflight for the signed-token header', async () => {
     response.headers.get('access-control-allow-headers') ?? '',
     /authorization/i,
   )
+  assert.match(response.headers.get('access-control-allow-headers') ?? '', /x-api-key/i)
 })

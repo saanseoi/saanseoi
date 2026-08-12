@@ -8,8 +8,6 @@ import type { AuthenticatedApiKey } from './lib/api-key-auth'
 
 export type AppBindings = CloudflareBindings &
   SaanseoiWorkerBindings & {
-    ACCESS_TOKEN_PRIVATE_JWK: string
-    ACCESS_TOKEN_PUBLIC_JWK: string
     API_RATE_LIMIT: RateLimit
     API_USAGE: AnalyticsEngineDataset
     AUTH_MODE: 'disabled' | 'required'

@@ -8,6 +8,17 @@
     "directory": "public"
   },
   "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "ss-pmtiles" }],
+  // Use the same namespace ID as atlas-api after creating PUBLIC_KEY_LEASES.
+  "kv_namespaces": [{ "binding": "PUBLIC_KEY_LEASES" }],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "PUBLIC_KEY_LEASE_COORDINATOR",
+        "class_name": "PublicKeyLeaseCoordinator",
+        "script_name": "ss-atlas-api-prod"
+      }
+    ]
+  },
   "analytics_engine_datasets": [
     { "binding": "TILE_USAGE", "dataset": "ss-tile-usage-production" }
   ],
@@ -18,7 +29,6 @@
       "simple": { "limit": 3000, "period": 60 }
     }
   ],
-  "secrets": { "required": ["ACCESS_TOKEN_PUBLIC_JWK"] },
   "routes": [{ "pattern": "tiles.saanseoi.hk", "custom_domain": true }],
   "vars": {
     "DIAGNOSTIC_ORIGINS": "https://maplibre.org,https://pmtiles.io,https://protomaps.github.io",

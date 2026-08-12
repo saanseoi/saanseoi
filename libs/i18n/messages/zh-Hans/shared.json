@@ -599,7 +599,7 @@
   "tiles_getting_started_maplibre_description_before_hook": "推荐用于开源、兼容 Mapbox 样式的网页地图。它的",
   "tiles_getting_started_maplibre_description_after_hook": "钩子会将标头应用到 TileJSON 和瓦片请求。",
   "tiles_getting_started_maplibre_label": "MapLibre GL JS",
-  "tiles_getting_started_mapbox_description": "请将你的 Mapbox 公开令牌分开管理。SaanSeoi bearer token 只应使用于发送至 SaanSeoi 瓦片来源的请求。",
+  "tiles_getting_started_mapbox_description": "请将你的 Mapbox 公开令牌分开管理。SaanSeoi 公开密钥只应使用于发送至 SaanSeoi 瓦片来源的请求。",
   "tiles_getting_started_mapbox_label": "Mapbox GL JS",
   "tiles_getting_started_other_libraries_title": "其他库",
   "tiles_getting_started_other_libraries_description": "对于 OpenLayers、Leaflet 矢量瓦片插件、原生应用程序和自定义渲染器，请使用库的瓦片加载或请求钩子。如果它无法发送标头，请通过你的服务器代理瓦片请求。",
