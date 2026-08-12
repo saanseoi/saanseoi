@@ -11,16 +11,18 @@ type Props = {
 let { children, class: className = '' }: Props = $props()
 </script>
 
-<section
-  class={cn(
-    'landing-community-section min-h-[calc(100svh-var(--landing-header-height,4.5rem))]',
-    className,
-  )}
->
+<section class={cn('landing-community-section', className)}>
   {@render children?.()}
 </section>
 
 <style>
+:global(.landing-community-section) {
+  --community-header-height: 4.5rem;
+  box-sizing: border-box;
+  min-height: 100svh;
+  padding-top: var(--community-header-height);
+}
+
 :global {
   .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature,
   .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature::after,
@@ -53,7 +55,7 @@ let { children, class: className = '' }: Props = $props()
   .newsletter-signal {
     --orange-creature-diameter: clamp(4.75rem, 8vw, 6.5rem);
     position: absolute;
-    top: -1.25rem;
+    top: 0;
     right: calc(50% - 50vw);
     bottom: 0;
     left: calc(50% - 50vw);
@@ -66,7 +68,7 @@ let { children, class: className = '' }: Props = $props()
     position: absolute;
     top: 0;
     right: max(0px, calc(50% - var(--spacing-container-max) / 2));
-    bottom: -3.5rem;
+    bottom: 0;
     left: max(0px, calc(50% - var(--spacing-container-max) / 2));
     z-index: 0;
   }
