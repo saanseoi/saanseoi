@@ -1348,7 +1348,7 @@ function resolveMirrorTablesForBinding(
     }
 
     if (cacheTableProfile === 'division') {
-      return ['divisions', 'divisionsI18n']
+      return ['divisions', 'divisionsI18n', 'snapshotVersionChanges']
     }
 
     if (cacheTableProfile === 'divisionGeometry') {
