@@ -62,6 +62,23 @@ export function getAgentModel(agentTool: CreateAMapSelectionQuery['agentTool']) 
   if (agentTool === 'cursor') return m.guide_agentic_ai_readiness_model_cursor()
 }
 
+export function getAgentModelSelectionInstruction(
+  agentTool: CreateAMapSelectionQuery['agentTool'],
+) {
+  if (agentTool === 'codex-app' || agentTool === 'codex-cli') {
+    return m.guide_setup_agent_codex_model_instruction()
+  }
+  if (agentTool === 'claude-code') {
+    return m.guide_setup_agent_claude_code_model_instruction()
+  }
+  if (agentTool === 'claude-cowork') {
+    return m.guide_setup_agent_claude_cowork_model_instruction()
+  }
+  if (agentTool === 'qwen-code') {
+    return m.guide_setup_agent_qwen_code_model_instruction()
+  }
+}
+
 export function getAgentPricing(
   agentTool: CreateAMapSelectionQuery['agentTool'],
   paymentNoteOverride?: string,
