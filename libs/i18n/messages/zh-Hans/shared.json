@@ -77,6 +77,8 @@
   "api_keys_stored_safely": "我已安全保存",
   "api_keys_copied": "已复制",
   "api_keys_copy": "复制密钥",
+  "api_keys_reveal": "显示",
+  "api_keys_hide": "隐藏",
   "account_unlink_error": "无法移除此登录方式。",
   "account_last_sign_in_method": "请先添加另一种登录方式，再移除此方式。",
   "account_sign_in_method_not_found": "未找到登录方式。",
