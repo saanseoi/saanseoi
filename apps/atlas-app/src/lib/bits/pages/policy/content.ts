@@ -398,7 +398,7 @@ export const fairUsePolicy: PolicyDocument = {
         {
           heading: '1. API key required',
           paragraphs: [
-            'Every API request must include an active API key in the x-api-key header. Create separate keys for separate applications and keep them private. Do not embed keys in a public website, mobile application, repository, or client-side code.',
+            'Every API request must include an active public API key in the access_token query parameter or x-api-key header. Create separate keys for separate applications. Public keys may be embedded in browser and mobile applications, but do not commit them to a repository or write them to logs.',
           ],
         },
         {

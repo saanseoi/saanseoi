@@ -33,6 +33,7 @@ type UsageLimit = {
  */
 export class PublicKeyLeaseCoordinator {
   #inFlight = new Map<string, Promise<PublicKeyLease | null>>()
+  #leases = new Map<string, PublicKeyLease>()
 
   constructor(
     readonly _state: DurableObjectState,
@@ -68,11 +69,16 @@ export class PublicKeyLeaseCoordinator {
   async refresh(digest: string): Promise<PublicKeyLease | null> {
     const storageKey = publicKeyLeaseStorageKey(digest)
     const now = Date.now()
+    const inMemory = this.#leases.get(digest)
+    if (inMemory && inMemory.nextCheckAt > now) return inMemory
     const cached = await this.env.PUBLIC_KEY_LEASES.get<PublicKeyLease>(
       storageKey,
       'json',
     )
-    if (cached && cached.nextCheckAt > now) return cached
+    if (cached && cached.nextCheckAt > now) {
+      this.#leases.set(digest, cached)
+      return cached
+    }
 
     const key = await this.env.DB_META.prepare(
       `SELECT id,
@@ -106,6 +112,7 @@ export class PublicKeyLeaseCoordinator {
         .bind(now, key.id)
         .run(),
     ])
+    this.#leases.set(digest, lease)
     return lease
   }
 
