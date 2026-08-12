@@ -85,8 +85,7 @@
       "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
     }
   ],
-  // Add the shared namespace ID after creating it with:
-  // bunx wrangler kv namespace create PUBLIC_KEY_LEASES
+  // Local development uses Wrangler's local KV simulation.
   "kv_namespaces": [{ "binding": "PUBLIC_KEY_LEASES" }],
   "durable_objects": {
     "bindings": [
@@ -165,7 +164,12 @@
         "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk",
         "SUBSTACK_PUBLICATION": "saanseoi"
       },
-      "kv_namespaces": [{ "binding": "PUBLIC_KEY_LEASES" }],
+      "kv_namespaces": [
+        {
+          "binding": "PUBLIC_KEY_LEASES",
+          "id": "36cf703d92244e26872fbfab2dc06dec"
+        }
+      ],
       "durable_objects": {
         "bindings": [
           {
@@ -280,7 +284,12 @@
         "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk",
         "SUBSTACK_PUBLICATION": "saanseoi"
       },
-      "kv_namespaces": [{ "binding": "PUBLIC_KEY_LEASES" }],
+      "kv_namespaces": [
+        {
+          "binding": "PUBLIC_KEY_LEASES",
+          "id": "c3f1cb8495d24f3d8e8719dec815bf00"
+        }
+      ],
       "durable_objects": {
         "bindings": [
           {

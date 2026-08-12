@@ -8,8 +8,13 @@
     "directory": "public"
   },
   "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "ss-pmtiles" }],
-  // Use the same namespace ID as atlas-api after creating PUBLIC_KEY_LEASES.
-  "kv_namespaces": [{ "binding": "PUBLIC_KEY_LEASES" }],
+  // Shared with atlas-api production so both Workers resolve the same leases.
+  "kv_namespaces": [
+    {
+      "binding": "PUBLIC_KEY_LEASES",
+      "id": "c3f1cb8495d24f3d8e8719dec815bf00"
+    }
+  ],
   "durable_objects": {
     "bindings": [
       {
