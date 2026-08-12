@@ -688,7 +688,9 @@ onMount(() => {
   position: relative;
   display: grid;
   width: 100%;
+  min-height: calc(100svh - var(--community-header-height, 4.5rem));
   max-width: var(--spacing-container-max);
+  box-sizing: border-box;
   grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.82fr);
   gap: clamp(2rem, 6vw, 6rem);
   align-items: center;
@@ -699,7 +701,7 @@ onMount(() => {
 }
 
 :global(.newsletter-panel .newsletter-orange-route) {
-  translate: 0 -1rem;
+  translate: 0;
 }
 
 @media (min-width: 768px) {
