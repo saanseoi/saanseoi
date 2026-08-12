@@ -63,6 +63,9 @@ const baseClasses =
 
 const anchorClasses = $derived(linkVariantClasses[variant])
 const buttonClasses = $derived(buttonVariantClasses[variant])
+const isExternalHref = $derived(Boolean(href && /^https?:\/\//.test(href)))
+const anchorRel = $derived(rel ?? (isExternalHref ? 'noreferrer' : undefined))
+const anchorTarget = $derived(target ?? (isExternalHref ? '_blank' : undefined))
 </script>
 
 {#if href}
@@ -76,8 +79,8 @@ const buttonClasses = $derived(buttonVariantClasses[variant])
       className
     )}
     href={href ?? ''}
-    {rel}
-    {target}
+    rel={anchorRel}
+    target={anchorTarget}
   >
     {@render children?.()}
   </a>

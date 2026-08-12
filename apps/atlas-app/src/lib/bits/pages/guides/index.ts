@@ -20,6 +20,8 @@ export type {
 export { default as GuideCreateAMapModelTable } from './components/createAMap/guideCreateAMapModelTable.svelte'
 export { default as GuideCreateAMapPricingTable } from './components/createAMap/guideCreateAMapPricingTable.svelte'
 export { default as GuideReadinessPanel } from './components/createAMap/guideReadinessPanel.svelte'
+export { default as GuideReadinessCompleteSummary } from './components/createAMap/guideReadinessCompleteSummary.svelte'
+export { default as GuideReadinessCompleteToggle } from './components/createAMap/guideReadinessCompleteToggle.svelte'
 export { default as GuideCreateAMapVersionNotice } from './components/createAMap/guideCreateAMapVersionNotice.svelte'
 export { default as GuidePaymentWarning } from './components/createAMap/guidePaymentWarning.svelte'
 export { default as GuideAgenticAiPrimer } from './patterns/createAMap/guideAgenticAiPrimer.svelte'
