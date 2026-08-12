@@ -517,6 +517,37 @@ describe('upload', () => {
     sqlite.close()
   })
 
+  test('allows retrying an existing staged release when explicitly permitted', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createFixturePath(tempDir)
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
+
+    await registerUpload(db, {
+      filePath: fixtureFile,
+      cohortKey: '2026-05',
+      source: 'overture',
+      sourceVersion: '2026-05-20.0',
+      inspection: fixtureInspection,
+      rawObjectKey: 'hk/overture/2026-05.0/division.parquet',
+    })
+
+    const result = await registerUpload(db, {
+      filePath: fixtureFile,
+      cohortKey: '2026-05',
+      source: 'overture',
+      sourceVersion: '2026-05-20.0',
+      inspection: fixtureInspection,
+      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+      allowExistingDatasetStatuses: ['staged'],
+      resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
+    })
+
+    expect(result.plan.releaseCode).toBe('dr-hk-overture-division-2026-05-20.0')
+    sqlite.close()
+  })
+
   test('can dry-run without staging files', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
