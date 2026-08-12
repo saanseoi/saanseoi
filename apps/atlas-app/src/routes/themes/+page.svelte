@@ -15,21 +15,21 @@ const regions = [
     code: 'hk',
     name: 'Hong Kong',
     tileset: 'hongkong',
-    landmark: 'Central',
+    landmarks: { 16: 'Central', 19: 'Hollywood Road' },
     camera: { lng: 114.1584, lat: 22.2855 },
   },
   {
     code: 'mo',
     name: 'Macao',
     tileset: 'macau',
-    landmark: 'Senado Square',
+    landmarks: { 16: 'Senado Square', 19: 'Senado Square' },
     camera: { lng: 113.5439, lat: 22.1933 },
   },
   {
     code: 'gba',
     name: 'Greater Bay Area',
     tileset: 'gba',
-    landmark: 'Canton Tower',
+    landmarks: { 16: 'Canton Tower', 19: 'Canton Tower' },
     camera: { lng: 113.3247, lat: 23.1065 },
   },
 ] as const
@@ -55,7 +55,8 @@ const visibleStyles = $derived(
 )
 
 function previewUrl(style: MapStyleDefinition, zoom: 16 | 19) {
-  return `https://tiles.saanseoi.hk/render/${selectedRegion.code}/${selectedRegion.tileset}-latest-${style.id}-${selectedRegion.landmark.toLowerCase().replaceAll(' ', '-')}-z${zoom}.webp`
+  const landmark = selectedRegion.landmarks[zoom].toLowerCase().replaceAll(' ', '-')
+  return `https://tiles.saanseoi.hk/render/${selectedRegion.code}/${selectedRegion.tileset}-latest-${style.id}-${landmark}-z${zoom}.webp`
 }
 
 function viewerUrl(style: MapStyleDefinition) {
@@ -206,7 +207,7 @@ function purposeLabel(option: PurposeFilter) {
                 <img
                   class="size-full object-cover"
                   src={previewUrl(style, zoom as 16 | 19)}
-                  alt={`${style.name}, ${selectedRegion.landmark}, zoom ${zoom}`}
+                  alt={`${style.name}, ${selectedRegion.landmarks[zoom as 16 | 19]}, zoom ${zoom}`}
                   loading="lazy"
                 >
                 <figcaption
