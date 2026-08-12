@@ -23,6 +23,23 @@ describe('ReleaseRepository', () => {
     fetchMock.mockRestore()
   })
 
+  it('checks release metadata cache by region', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+      const url = String(input)
+      if (url.endsWith('/versions.json'))
+        return Response.json({ versions: [{ version: '2026-01-01' }] })
+      return Response.json({})
+    })
+    const repository = new ReleaseRepository('https://tiles.example')
+    const otherRegion = { ...region, code: 'jp' }
+
+    await repository.getReleases(region)
+
+    expect(repository.hasCachedReleases(region.code)).toBe(true)
+    expect(repository.hasCachedReleases(otherRegion.code)).toBe(false)
+    fetchMock.mockRestore()
+  })
+
   it('does not fetch a boundary advertised on another origin', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
       const url = String(input)
