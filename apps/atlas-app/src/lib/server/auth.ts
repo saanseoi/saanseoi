@@ -4,47 +4,15 @@ import { sveltekitCookies } from 'better-auth/svelte-kit'
 import { passkey } from '@better-auth/passkey'
 import { env } from '$env/dynamic/private'
 import { getRequestEvent } from '$app/server'
-import { getLocale } from '@repo/i18n/runtime'
-import enMessages from '@repo/i18n/messages/en/shared.json'
-import zhHansMessages from '@repo/i18n/messages/zh-Hans/shared.json'
-import zhHantMessages from '@repo/i18n/messages/zh-Hant/shared.json'
-import { userLocales } from '@repo/db'
 import { createMetaDb } from '@repo/db/client'
 
-const escapeHtml = (value: string) =>
-  value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-
-type AuthLocale = (typeof userLocales)[number]
-type AuthMessageKey =
-  | 'auth_reset_subject'
-  | 'auth_reset_text'
-  | 'auth_verify_subject'
-  | 'auth_verify_text'
-  | 'auth_email_continue'
-
-const messages = {
-  en: enMessages,
-  'zh-Hant': zhHantMessages,
-  'zh-Hans': zhHansMessages,
-} as const
-
-const toAuthLocale = (locale: string | null | undefined): AuthLocale | null =>
-  userLocales.find(candidate => candidate.toLowerCase() === locale?.toLowerCase()) ??
-  null
-
-const getAuthMessage = (locale: AuthLocale, key: AuthMessageKey) =>
-  messages[locale][key]
+import { createAuthEmail } from './auth-email'
 
 const sendAuthEmail = (input: {
   to: string
   subject: string
   text: string
-  url: string
-  continueLabel: string
+  html: string
 }) => {
   const event = getRequestEvent()
   const platform = event.platform
@@ -55,36 +23,16 @@ const sendAuthEmail = (input: {
   platform.ctx.waitUntil(
     email.send({
       to: input.to,
-      from: { email: 'noreply@saanseoi.hk', name: 'Saanseoi' },
+      from: { email: 'noreply@saanseoi.hk', name: 'SaanSeoi' },
       subject: input.subject,
       text: input.text,
-      html: `<p>${escapeHtml(input.text)}</p><p><a href="${escapeHtml(input.url)}">${escapeHtml(input.continueLabel)}</a></p>`,
+      html: input.html,
     }),
   )
 }
 
-const getEmailLocale = (preferredLocale: string | null | undefined): AuthLocale =>
-  toAuthLocale(preferredLocale) ?? toAuthLocale(getLocale()) ?? 'en'
-
 const getPreferredLocale = (user: unknown) =>
   (user as { locale?: string | null }).locale
-
-const createAuthEmail = (
-  kind: 'reset' | 'verify',
-  preferredLocale: string | null | undefined,
-  url: string,
-) => {
-  const locale = getEmailLocale(preferredLocale)
-  const subject = getAuthMessage(locale, `auth_${kind}_subject`)
-  const text = getAuthMessage(locale, `auth_${kind}_text`).replace('{url}', url)
-
-  return {
-    subject,
-    text,
-    url,
-    continueLabel: getAuthMessage(locale, 'auth_email_continue'),
-  }
-}
 
 type AuthEnvironment = {
   BETTER_AUTH_SECRET?: string
@@ -160,7 +108,7 @@ const createAuthConfig = (baseURL: string, authEnv: AuthEnvironment) =>
       sendResetPassword: async ({ user, url }) => {
         sendAuthEmail({
           to: user.email,
-          ...createAuthEmail('reset', getPreferredLocale(user), url),
+          ...createAuthEmail('reset', getPreferredLocale(user), url, user.name),
         })
       },
     },
@@ -171,7 +119,7 @@ const createAuthConfig = (baseURL: string, authEnv: AuthEnvironment) =>
       sendVerificationEmail: async ({ user, url }) => {
         sendAuthEmail({
           to: user.email,
-          ...createAuthEmail('verify', getPreferredLocale(user), url),
+          ...createAuthEmail('verify', getPreferredLocale(user), url, user.name),
         })
       },
     },
