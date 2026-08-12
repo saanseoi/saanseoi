@@ -5,7 +5,7 @@ import { PublicKeyLeaseCoordinator } from './publicKeyLeaseCoordinator'
 
 const publicKey = `pk.${'a'.repeat(43)}`
 
-test('the per-key coordinator coalesces concurrent refreshes', async () => {
+test('the coordinator coalesces concurrent refreshes for one public key', async () => {
   let keyLookups = 0
   const coordinator = new PublicKeyLeaseCoordinator(
     {} as DurableObjectState,

@@ -11,7 +11,6 @@ type MockDbOptions = {
     requestsPerMinute?: number | null
     userRole?: 'user' | 'admin'
   } | null
-  usageRequestCount?: number
   failOnAll?: (query: string, values: unknown[]) => boolean
   failOnFirst?: (query: string, values: unknown[]) => boolean
   failOnRaw?: (query: string, values: unknown[]) => boolean
@@ -61,13 +60,6 @@ function createMockDb(options: MockDbOptions = {}) {
                 requestsPerMinute: options.apiKey?.requestsPerMinute ?? null,
                 requestsPerDay: null,
                 requestsPerMonth: null,
-              } as T
-            }
-
-            if (query.includes('INSERT INTO api_key_usage')) {
-              return {
-                requestCount: options.usageRequestCount ?? 1,
-                softLimitNotifiedAt: options.usageRequestCount ? Date.now() : null,
               } as T
             }
 
