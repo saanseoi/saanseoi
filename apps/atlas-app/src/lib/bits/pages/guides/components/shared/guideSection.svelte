@@ -1,19 +1,37 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
 
+import GuideProgressMarker from './guideProgressMarker.svelte'
+
 type Props = {
-  actionLabel?: string
+  actionLabel?:
+    | string
+    | {
+        current: number
+        label: string
+        total: number
+      }
   children?: Snippet
   description?: string
   eyebrow?: string
   id: string
   intro?: string
+  number?: number
   step?: string
   title?: string
 }
 
-let { actionLabel, children, description, eyebrow, id, intro, step, title }: Props =
-  $props()
+let {
+  actionLabel,
+  children,
+  description,
+  eyebrow,
+  id,
+  intro,
+  number,
+  step,
+  title,
+}: Props = $props()
 </script>
 
 <section
@@ -22,6 +40,9 @@ let { actionLabel, children, description, eyebrow, id, intro, step, title }: Pro
 >
   {#if eyebrow}
     <p class="font-display text-headline-lg font-bold leading-tight text-primary">
+      {#if number}
+        <span aria-hidden="true">{number}. </span>
+      {/if}
       {@html eyebrow}
     </p>
   {/if}
@@ -34,7 +55,11 @@ let { actionLabel, children, description, eyebrow, id, intro, step, title }: Pro
     <p
       class="mt-6 font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
     >
-      {@html actionLabel}
+      {#if typeof actionLabel === 'string'}
+        {@html actionLabel}
+      {:else}
+        <GuideProgressMarker {...actionLabel} />
+      {/if}
     </p>
   {/if}
   {#if title}
