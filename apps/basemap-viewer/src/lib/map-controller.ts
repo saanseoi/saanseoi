@@ -45,6 +45,7 @@ export type MapControllerOptions = {
   applyState: (target: MapLibreMap, groups: LayerGroups) => void
   installDiagnostics: (target: MapLibreMap, role: MapControllerRole) => void
   resetTileWeight: (role: MapControllerRole) => void
+  onCreated?: (target: MapLibreMap) => void
   onMove?: (target: MapLibreMap) => void
   onMoveEnd?: (target: MapLibreMap) => void
 }
@@ -103,6 +104,7 @@ export class MapController {
       collectResourceTiming: true,
     })
     this.target = createdMap
+    this.options.onCreated?.(createdMap)
     if (this.options.role === 'primary' && !this.options.headless) {
       createdMap.addControl(
         new maplibregl.AttributionControl({ compact: true }),
