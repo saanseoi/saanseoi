@@ -3,6 +3,7 @@ PRAGMA defer_foreign_keys = true;
 
 DROP TABLE IF EXISTS `hkgovPlandNewTownDivisionAreaI18n`;
 DROP TABLE IF EXISTS `hkgovPlandNewTownDivisionAreas`;
+DROP TABLE IF EXISTS `hkgovPlandNewTowns`;
 DROP TABLE IF EXISTS `hkgovPlandDivisionI18n`;
 DROP TABLE IF EXISTS `hkgovPlandDivisionAreas`;
 DROP TABLE IF EXISTS `hkgovPlandDivisions`;
@@ -115,6 +116,8 @@ DROP TABLE IF EXISTS `api_key_usage`;
 DROP TABLE IF EXISTS `api_key_origin_policy`;
 DROP TABLE IF EXISTS `api_key`;
 DROP TABLE IF EXISTS `newsletterSubscription`;
+DROP TABLE IF EXISTS `facebookDeletionRequest`;
+DROP TABLE IF EXISTS `passkey`;
 DROP TABLE IF EXISTS `verification`;
 DROP TABLE IF EXISTS `account`;
 DROP TABLE IF EXISTS `session`;
