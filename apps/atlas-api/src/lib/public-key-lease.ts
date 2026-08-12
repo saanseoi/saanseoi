@@ -2,12 +2,11 @@ import {
   isCurrentPublicKeyLease,
   isPublicKeyLease,
   publicApiKeyDigest,
+  publicKeyLeaseCoordinatorName,
   PublicKeyLeaseUnavailableError,
   publicKeyLeaseStorageKey,
   type PublicKeyLease,
 } from '@repo/core/publicApiKey'
-
-const coordinatorName = 'all-public-keys'
 
 export type PublicKeyLeaseBindings = {
   PUBLIC_KEY_LEASE_COORDINATOR: DurableObjectNamespace
@@ -25,7 +24,7 @@ export const resolvePublicKeyLease = async (
     if (cached && isCurrentPublicKeyLease(cached)) return cached
 
     const response = await env.PUBLIC_KEY_LEASE_COORDINATOR.getByName(
-      coordinatorName,
+      publicKeyLeaseCoordinatorName(digest),
     ).fetch('https://public-key-lease/refresh', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },

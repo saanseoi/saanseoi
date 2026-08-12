@@ -310,7 +310,11 @@ function createEnv(
           nextCheckAt: Date.now() + 60_000,
         }),
       } as unknown as KVNamespace,
-      PUBLIC_KEY_LEASE_COORDINATOR: {} as DurableObjectNamespace,
+      PUBLIC_KEY_LEASE_COORDINATOR: {
+        getByName: () => ({
+          fetch: async () => Response.json({ status: 'active' }),
+        }),
+      } as unknown as DurableObjectNamespace,
       HARBOUR_BASE_URL: 'http://localhost:8788',
       SUBSTACK_PUBLICATION: 'demo-publication',
       SUBSTACK_SESSION_COOKIE:
@@ -829,6 +833,26 @@ describe('atlas-api', () => {
 
     expect(res.status).toBe(429)
     expect(res.headers.get('retry-after')).toBeTruthy()
+    expect((await res.json()) as { error: string }).toMatchObject({
+      error: 'usage_limit_exceeded',
+    })
+  })
+
+  test('GET /v0/divisions rejects a key whose persisted usage is exhausted', async () => {
+    const { env } = createAuthenticatedEnv({
+      PUBLIC_KEY_LEASE_COORDINATOR: {
+        getByName: () => ({
+          fetch: async () =>
+            Response.json({
+              status: 'exhausted',
+              resetAt: Date.now() + 60_000,
+            }),
+        }),
+      } as unknown as DurableObjectNamespace,
+    })
+    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+
+    expect(res.status).toBe(429)
     expect((await res.json()) as { error: string }).toMatchObject({
       error: 'usage_limit_exceeded',
     })
