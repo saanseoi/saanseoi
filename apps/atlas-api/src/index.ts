@@ -45,6 +45,14 @@ app.use(
     allowHeaders: ['Content-Type'],
   }),
 )
+app.use(
+  '/v0/auth/tokens',
+  cors({
+    origin: '*',
+    allowMethods: ['POST', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'X-API-Key'],
+  }),
+)
 for (const path of ['/v0/*', '/v0.1/*'] as const) {
   app.use(path, async (c, next) => {
     c.set('metaDb', createMetaDb(c.env.DB_META))
@@ -92,7 +100,7 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
     }
     c.env.API_USAGE.writeDataPoint({
       indexes: [claims.sub],
-      blobs: [c.req.path],
+      blobs: [c.req.path, requestOrigin(c.req.header('origin'))],
       doubles: [1],
     })
     c.set('apiKey', { id: claims.sub, userId: claims.sub })
@@ -149,6 +157,15 @@ function isTokenPath(path: string) {
 
 function isAuthDisabled(env: AppBindings) {
   return env.AUTH_MODE === 'disabled'
+}
+
+function requestOrigin(origin: string | undefined) {
+  if (!origin) return '(none)'
+  try {
+    return new URL(origin).host
+  } catch {
+    return '(invalid)'
+  }
 }
 
 app.onError((error, c) => {

@@ -35,7 +35,7 @@ export const listApiKeys = (d1: D1Database, userId: string) =>
     .orderBy(desc(apiKey.createdAt))
 
 export const createApiKey = async (d1: D1Database, userId: string, name: string) => {
-  const rawKey = `SS-${toBase64Url(crypto.getRandomValues(new Uint8Array(32)))}`
+  const rawKey = `pk.${toBase64Url(crypto.getRandomValues(new Uint8Array(32)))}`
   const keyDigest = await digestKey(rawKey)
   const prefix = `${rawKey.slice(0, 13)}…`
   const db = createMetaDb(d1)

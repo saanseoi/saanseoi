@@ -7,13 +7,13 @@ solely because it compiles or an LLM generated the wording.
 
 ## Objective coverage
 
-| Objective          | Setup path                                                                                  | Render                                                              | Basemap                              | Style                                     | Data                                                  | Copy review |
-| ------------------ | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------ | ----------------------------------------- | ----------------------------------------------------- | ----------- |
-| Local              | OS-specific Bun install and the existing local Vite commands                                | MapLibre, Mapbox and Leaflet starter snippets                       | Token exchange and regional TileJSON | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |
-| Web                | Cloudflare Pages default; GitHub Pages, Vercel, Netlify and another-host deployment handoff | MapLibre, Mapbox and Leaflet starter snippets                       | Token exchange and regional TileJSON | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |
-| Existing web embed | WordPress, Squarespace, Wix or Webflow iframe after a standalone deployment; local fallback | Web setup plus iframe/component guidance                            | Token exchange and regional TileJSON | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |
-| Mobile embed       | MapLibre Native Android or iOS guide; other frameworks have a deliberate hand-off           | MapLibre Native Android and iOS hand-off links                      | Backend-token warning only           | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |
-| Jupyter Notebook   | Local JupyterLab, Colab or JupyterHub; MapLibre Python or Folium first-cell path            | MapLibre Python or Folium starter cell; secure integration hand-off | Trusted-service warning only         | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |
+| Objective          | Setup path                                                                                  | Render                                                                  | Basemap                                         | Style                                     | Data                                                  | Copy review |
+| ------------------ | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------- | ----------------------------------------------------- | ----------- |
+| Local              | OS-specific Bun install and the existing local Vite commands                                | MapLibre, Mapbox and Leaflet starter snippets                           | Public-key client utility and regional TileJSON | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |
+| Web                | Cloudflare Pages default; GitHub Pages, Vercel, Netlify and another-host deployment handoff | MapLibre, Mapbox and Leaflet starter snippets                           | Public-key client utility and regional TileJSON | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |
+| Existing web embed | WordPress, Squarespace, Wix or Webflow iframe after a standalone deployment; local fallback | Web setup plus iframe/component guidance                                | Public-key client utility and regional TileJSON | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |
+| Mobile embed       | MapLibre Native Android or iOS guide; other frameworks have a deliberate hand-off           | MapLibre Native Android and iOS hand-off links                          | Public-key hand-off only                        | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |
+| Jupyter Notebook   | Local JupyterLab, Colab or JupyterHub; MapLibre Python or Folium first-cell path            | MapLibre Python or Folium starter cell; public-key integration hand-off | Public-key hand-off only                        | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |
 
 ## Renderer coverage
 
@@ -37,8 +37,9 @@ solely because it compiles or an LLM generated the wording.
 - Exercise Windows, macOS and Linux setup selections for every destination.
 - Verify host-specific deployment and iframe instructions before presenting them as an
   end-to-end production deployment path.
-- Test the SaanSeoi token exchange without exposing an API key to a browser, native
-  bundle or shared notebook.
+- Test the SaanSeoi public-key client utility from a browser build, including proactive
+  refresh and selected-host build-variable configuration. Confirm private credentials
+  are never exposed.
 - Confirm each region's TileJSON and every shown style URL exist in the target
   environment.
 - Recalculate the urban-density example from pinned releases, check that its land-use

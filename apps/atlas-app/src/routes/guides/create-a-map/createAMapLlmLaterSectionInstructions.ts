@@ -38,12 +38,14 @@ ${renderReferences}
 
 ## Add the SaanSeoi basemap
 
-- Keep the SaanSeoi API key exclusively in server-side configuration. Never expose it in
-  browser code, repository files, screenshots or logs.
-- Implement a server-side exchange that returns a short-lived tile token. Apply the
-  token only to SaanSeoi style and tile requests.
-- Request the API key only when the application is ready for it, then verify the map
-  loads after it has been configured.
+- Use SaanSeoi’s public \`pk.\` key through \`VITE_SAANSEOI_API_KEY\`. It is intentionally
+  embedded in the browser build, so configure it as a public build variable rather than
+  as a secret. Never commit it or log it.
+- Create \`src/auth.ts\` to exchange the public key for a short-lived signed token for
+  each SaanSeoi audience, then refresh before expiry. Use those tokens only for
+  SaanSeoi API and tile requests; do not add a server proxy or D1 lookup path.
+- Request the key only when the application is ready for it, then verify the selected
+  basemap loads after it has been configured.
 
 ## Choose a style
 
@@ -62,7 +64,8 @@ ${renderReferences}
 ## Publish
 
 - Build and validate a production artefact before any deployment step.
-- Keep secrets out of the output artefact and source repository.
+- Keep private credentials out of the output artefact and source repository. Configure
+  \`VITE_SAANSEOI_API_KEY\` as a public build variable in the selected host instead.
 - Stop before authentication, deployment, DNS, app-store actions or signing until the
   user confirms.
 - For a website embed, provide an accessible iframe only after a real public map URL is

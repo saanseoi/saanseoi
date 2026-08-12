@@ -190,8 +190,9 @@ const createSectionInstructions = (
   string[]
 > => ({
   basemap: [
-    'Integrate the selected SaanSeoi basemap. Create a server-side token exchange: the SaanSeoi API key must remain in server-side configuration and must never be sent to the browser, mobile client, notebook output, repository, or logs.',
-    'Pause before requesting or using an API key. Once the user has configured it, apply the returned short-lived token only to SaanSeoi tile and style requests, then verify the map loads.',
+    'Integrate the selected SaanSeoi basemap using its public `pk.` key. Place it in the Vite `VITE_SAANSEOI_API_KEY` build variable: it is intentionally embedded in the browser output, so never describe it as a secret or put it in a server-only variable.',
+    'Create `src/auth.ts` as a client utility that exchanges the public key for short-lived signed tokens, refreshes each audience token before it expires, and sends bearer tokens only to SaanSeoi API and tile requests. Do not query D1 or add a server proxy.',
+    'Pause before requesting or using the key. After the user has configured it, verify the selected basemap loads and that no token is logged or committed.',
     ...(state.tilejsonUrl ? [`Use this TileJSON endpoint: ${state.tilejsonUrl}`] : []),
     ...(state.styleUrl
       ? [`Use this selected SaanSeoi style URL: ${state.styleUrl}`]
@@ -216,7 +217,7 @@ const createSectionInstructions = (
   publish: [
     state.objective === 'mobile-embed'
       ? 'Prepare the selected mobile app for its platform’s build and release workflow. Keep secrets out of the app binary and explain each signing, store-account or release action that needs my involvement.'
-      : 'Prepare the project for the selected host. Build and validate a production artefact first, then stop before authentication, deployment, DNS, or any other external action that needs my account confirmation.',
+      : 'Prepare the project for the selected host. Configure `VITE_SAANSEOI_API_KEY` as a public build-time variable using that host’s environment-variable settings; it must be available to the browser build, but never committed. Build and validate a production artefact first, then stop before authentication, deployment, DNS, or any other external action that needs my account confirmation.',
     ...(state.objective === 'web-embed' && state.websitePlatform !== 'other'
       ? [
           'After a successful deployment, provide an accessible iframe integration for the selected website platform, using the real public URL and a meaningful title.',
