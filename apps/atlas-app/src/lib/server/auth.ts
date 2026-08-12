@@ -61,6 +61,7 @@ const createSocialProviders = (authEnv: AuthEnvironment) => ({
           clientId: authEnv.GOOGLE_CLIENT_ID,
           clientSecret: authEnv.GOOGLE_CLIENT_SECRET,
           prompt: 'select_account' as const,
+          overrideUserInfoOnSignIn: true,
         },
       }
     : {}),
@@ -90,6 +91,7 @@ const createAuthConfig = (baseURL: string, authEnv: AuthEnvironment) =>
       accountLinking: {
         allowDifferentEmails: true,
         trustedProviders: ['facebook'],
+        updateUserInfoOnLink: true,
       },
     },
     user: {
