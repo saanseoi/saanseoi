@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 class FakeMap {
   static instances: FakeMap[] = []
   static autoLoad = true
-  private readonly listeners = new Map<string, Set<(event?: any) => void>>()
+  private readonly listeners = new Map<string, Set<(event?: unknown) => void>>()
   private readonly source = {
     type: 'vector' as const,
     attribution: '',
@@ -17,27 +17,27 @@ class FakeMap {
     if (FakeMap.autoLoad) queueMicrotask(() => this.emit('load'))
   }
 
-  on(event: string, listener: (value?: any) => void): this {
+  on(event: string, listener: (value?: unknown) => void): this {
     const listeners = this.listeners.get(event) ?? new Set()
     listeners.add(listener)
     this.listeners.set(event, listeners)
     return this
   }
 
-  once(event: string, listener: (value?: any) => void): this {
-    const once = (value?: any) => {
+  once(event: string, listener: (value?: unknown) => void): this {
+    const once = (value?: unknown) => {
       this.off(event, once)
       listener(value)
     }
     return this.on(event, once)
   }
 
-  off(event: string, listener: (value?: any) => void): this {
+  off(event: string, listener: (value?: unknown) => void): this {
     this.listeners.get(event)?.delete(listener)
     return this
   }
 
-  emit(event: string, value?: any): void {
+  emit(event: string, value?: unknown): void {
     for (const listener of this.listeners.get(event) ?? []) listener(value)
   }
 

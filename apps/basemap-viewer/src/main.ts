@@ -91,6 +91,9 @@ const primaryController = new MapController({
   applyState: (target, targetGroups) => applyMapState(target, targetGroups),
   installDiagnostics,
   resetTileWeight,
+  onCreated: target => {
+    map = target
+  },
   onMove: target => syncComparison(target, comparisonMap),
   onMoveEnd: () => {
     syncUrl()
@@ -459,6 +462,9 @@ async function createComparisonMap(
       applyState: (target, targetGroups) => applyMapState(target, targetGroups),
       installDiagnostics,
       resetTileWeight,
+      onCreated: target => {
+        comparisonMap = target
+      },
       onMove: target => syncComparison(target, map),
     })
   }
