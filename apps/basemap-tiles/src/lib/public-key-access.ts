@@ -3,7 +3,6 @@ import {
   isPublicKeyOriginAllowed,
   isPublicKeyLease,
   publicApiKeyDigest,
-  publicKeyLeaseCoordinatorName,
   PublicKeyLeaseUnavailableError,
   publicKeyLeaseStorageKey,
   readPublicApiKey,
@@ -11,6 +10,8 @@ import {
 } from '@repo/core/publicApiKey'
 
 import { isUnmeteredOrigin } from './access'
+
+const coordinatorName = 'all-public-keys'
 
 type PublicKeyBindings = Pick<
   CloudflareBindings,
@@ -59,12 +60,9 @@ export const authenticatePublicKeyRequest = async (
   }
 }
 
-export const retryAfterSeconds = (lease: PublicKeyLease, now = Date.now()) =>
-  Math.max(1, Math.ceil(((lease.resetAt ?? lease.nextCheckAt) - now) / 1_000))
-
 const refreshLease = async (apiKey: string, env: PublicKeyBindings) => {
   const response = await env.PUBLIC_KEY_LEASE_COORDINATOR.getByName(
-    publicKeyLeaseCoordinatorName(await publicApiKeyDigest(apiKey)),
+    coordinatorName,
   ).fetch('https://public-key-lease/refresh', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

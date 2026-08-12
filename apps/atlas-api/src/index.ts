@@ -8,10 +8,9 @@ import { prettyJSON } from 'hono/pretty-json'
 import { createCurrentDb, createHistoryDb, createMetaDb } from '@repo/db'
 import { isTransientD1ReadError } from './lib/d1'
 import { defaultOpenAPIHook } from './lib/openapi'
-import { resolvePublicKeyLease, retryAfterSeconds } from './lib/public-key-lease'
+import { resolvePublicKeyLease } from './lib/public-key-lease'
 import {
   PublicKeyLeaseUnavailableError,
-  consumePublicKeyUsage,
   isPublicKeyOriginAllowed,
   readPublicApiKey,
   type PublicKeyLease,
@@ -119,17 +118,6 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
         403,
       )
     }
-    if (lease.status === 'exhausted') {
-      c.header('Retry-After', String(retryAfterSeconds(lease)))
-      return c.json(
-        {
-          error: 'usage_limit_exceeded',
-          message: 'This public API key has reached its current usage limit.',
-          resetAt: lease.resetAt,
-        },
-        429,
-      )
-    }
     const rateLimit = await c.env.API_RATE_LIMIT.limit({ key: lease.keyId })
     if (!rateLimit.success) {
       return c.json(
@@ -138,33 +126,6 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
           message: 'The API rate limit has been exceeded.',
         },
         429,
-      )
-    }
-    try {
-      const usage = await consumePublicKeyUsage(
-        rawKey,
-        c.env.PUBLIC_KEY_LEASE_COORDINATOR,
-      )
-      if (usage.status === 'exhausted') {
-        c.header('Retry-After', String(retryAfterSeconds({ ...lease, ...usage })))
-        return c.json(
-          {
-            error: 'usage_limit_exceeded',
-            message: 'This public API key has reached its current usage limit.',
-            resetAt: usage.resetAt,
-          },
-          429,
-        )
-      }
-    } catch (error) {
-      if (!(error instanceof PublicKeyLeaseUnavailableError)) throw error
-      return c.json(
-        {
-          error: 'public_key_validation_unavailable',
-          message:
-            'Public API key validation is temporarily unavailable. Please retry.',
-        },
-        503,
       )
     }
     c.env.API_USAGE.writeDataPoint({
