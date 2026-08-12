@@ -11,7 +11,7 @@ const isTileJson = (value: unknown): value is TileJson => {
 
 type TileJsonOptions = {
   accessToken?: string
-  pmtiles: PMTiles
+  pmtiles: Pick<PMTiles, 'getTileJson'>
   origin: string
   name: string
   archiveVersion?: string
@@ -41,6 +41,8 @@ export const getTileJson = async ({
         `${tileUrl}${tileUrl.includes('?') ? '&' : '?'}access_token=${encodeURIComponent(accessToken)}`,
     )
   }
-  tileJson['saanseoi:boundary'] = `${origin}/${name}.boundary.geojson`
+  const boundaryUrl = new URL(`${origin}/${name}.boundary.geojson`)
+  if (accessToken) boundaryUrl.searchParams.set('access_token', accessToken)
+  tileJson['saanseoi:boundary'] = boundaryUrl.toString()
   return tileJson
 }
