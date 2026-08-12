@@ -223,7 +223,7 @@ async function loadRegion(
   fitWhenReady: boolean,
 ): Promise<void> {
   const operation = primaryLoad.begin()
-  if (!repository.hasCachedReleases()) controls.setCatalogueReady(false)
+  if (!repository.hasCachedReleases(region.code)) controls.setCatalogueReady(false)
   setStatus(`Loading ${region.description} versions…`)
   try {
     const published = await repository.getReleases(
@@ -260,7 +260,7 @@ async function loadRegion(
   } catch (error) {
     if (isAbort(error) || !primaryLoad.isCurrent(operation)) return
     showError('Could not load versions for this region.', error)
-    controls.setCatalogueReady(repository.hasCachedReleases())
+    controls.setCatalogueReady(repository.hasCachedReleases(region.code))
     controls.setEnabled(map !== null)
   }
 }

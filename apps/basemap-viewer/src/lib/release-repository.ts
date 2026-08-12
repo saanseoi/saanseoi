@@ -74,8 +74,8 @@ export class ReleaseRepository {
     return release
   }
 
-  hasCachedReleases(): boolean {
-    return this.releasesCache.size > 0
+  hasCachedReleases(regionCode: string): boolean {
+    return this.releasesCache.has(regionCode)
   }
 
   private async getJsonIfAllowed(
