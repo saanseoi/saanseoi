@@ -173,7 +173,7 @@ type StylePreviewCameras = Record<16 | 19, StylePreviewCamera>
 const STYLE_PREVIEW_CAMERAS: Record<RegionCode, StylePreviewCameras> = {
   gba: {
     16: { landmark: 'canton-tower', lng: 113.3247, lat: 23.1065 },
-    19: { landmark: 'canton-tower', lng: 113.3247, lat: 23.1065 },
+    19: { landmark: 'beijing-road', lng: 113.2646563, lat: 23.1207302 },
   },
   hk: {
     16: { landmark: 'central', lng: 114.1584, lat: 22.2855 },
@@ -181,7 +181,7 @@ const STYLE_PREVIEW_CAMERAS: Record<RegionCode, StylePreviewCameras> = {
   },
   mo: {
     16: { landmark: 'senado-square', lng: 113.5439, lat: 22.1933 },
-    19: { landmark: 'senado-square', lng: 113.5439, lat: 22.1933 },
+    19: { landmark: 'grand-lisboa', lng: 113.5433758, lat: 22.1909321 },
   },
 }
 
