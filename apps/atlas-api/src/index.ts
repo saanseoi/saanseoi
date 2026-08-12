@@ -26,6 +26,7 @@ import { managedAssetRoutes } from './routes/v0/assets'
 import { styleRoutes } from './routes/v0/styles'
 import { streetRoutes } from './routes/v0/streets'
 import { sourceRoutes, streamSourceRecordsMiddleware } from './routes/v0/sources'
+import { rollUpApiKeyUsage } from './services/apiKeyUsageRollup'
 import type { AppBindings, AppEnv } from './types'
 
 const app = new OpenAPIHono<AppEnv>({
@@ -234,4 +235,15 @@ const llmsMarkdown = createMarkdownFromOpenApi(
 
 app.get('/llms.txt', async c => c.text(await llmsMarkdown))
 
-export default app
+const worker = Object.assign(app, {
+  async scheduled(
+    controller: ScheduledController,
+    env: AppBindings,
+    ctx: ExecutionContext,
+  ) {
+    if (controller.cron !== '*/5 * * * *') return
+    ctx.waitUntil(rollUpApiKeyUsage(env, controller.scheduledTime))
+  },
+})
+
+export default worker

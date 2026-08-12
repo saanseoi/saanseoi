@@ -12,9 +12,6 @@ const PROPAGATION_BUFFER_MS = 2 * 60 * 1_000
 
 type ApiKeyRecord = {
   id: string
-  requestsPerMinute: number | null
-  requestsPerDay: number | null
-  requestsPerMonth: number | null
   revokedAt: number | null
 }
 
@@ -74,11 +71,7 @@ export class PublicKeyLeaseCoordinator {
     }
 
     const key = await this.env.DB_META.prepare(
-      `SELECT id,
-              requests_per_minute AS requestsPerMinute,
-              requests_per_day AS requestsPerDay,
-              requests_per_month AS requestsPerMonth,
-              revoked_at AS revokedAt
+      `SELECT id, revoked_at AS revokedAt
        FROM api_key
        WHERE key_digest = ?
        LIMIT 1`,

@@ -15,6 +15,7 @@
   "secrets": {
     "required": [
       "D1_PLACEMENT_PROBE_API_KEY",
+      "ANALYTICS_ENGINE_READ_TOKEN",
       "SUBSTACK_SESSION_COOKIE",
       "TELEGRAM_BOT_TOKEN",
       "TELEGRAM_ADMIN_ID"
@@ -22,10 +23,12 @@
   },
   "vars": {
     "ATLAS_BASE_URL": "http://localhost:8787",
+    "ANALYTICS_ENGINE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
     "AUTH_MODE": "disabled",
     "ENVIRONMENT": "local",
     "HARBOUR_BASE_URL": "http://localhost:8788",
-    "SUBSTACK_PUBLICATION": "saanseoi"
+    "SUBSTACK_PUBLICATION": "saanseoi",
+    "USAGE_ROLLUP_DATASETS": "ss-api-usage-local"
   },
   "d1_databases": [
     {
@@ -104,6 +107,9 @@
   "analytics_engine_datasets": [
     { "binding": "API_USAGE", "dataset": "ss-api-usage-local" }
   ],
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  },
   "ratelimits": [
     {
       "name": "API_RATE_LIMIT",
@@ -147,6 +153,7 @@
       "secrets": {
         "required": [
           "D1_PLACEMENT_PROBE_API_KEY",
+          "ANALYTICS_ENGINE_READ_TOKEN",
           "SUBSTACK_SESSION_COOKIE",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
@@ -159,10 +166,12 @@
       },
       "vars": {
         "ATLAS_BASE_URL": "https://preview.api.saanseoi.hk",
+        "ANALYTICS_ENGINE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
         "AUTH_MODE": "required",
         "ENVIRONMENT": "preview",
         "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk",
-        "SUBSTACK_PUBLICATION": "saanseoi"
+        "SUBSTACK_PUBLICATION": "saanseoi",
+        "USAGE_ROLLUP_DATASETS": "ss-api-usage-preview"
       },
       "kv_namespaces": [
         {
@@ -267,6 +276,7 @@
       "secrets": {
         "required": [
           "D1_PLACEMENT_PROBE_API_KEY",
+          "ANALYTICS_ENGINE_READ_TOKEN",
           "SUBSTACK_SESSION_COOKIE",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
@@ -279,10 +289,12 @@
       },
       "vars": {
         "ATLAS_BASE_URL": "https://api.saanseoi.hk",
+        "ANALYTICS_ENGINE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
         "AUTH_MODE": "required",
         "ENVIRONMENT": "production",
         "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk",
-        "SUBSTACK_PUBLICATION": "saanseoi"
+        "SUBSTACK_PUBLICATION": "saanseoi",
+        "USAGE_ROLLUP_DATASETS": "ss-api-usage-production,ss-tile-usage-production"
       },
       "kv_namespaces": [
         {
