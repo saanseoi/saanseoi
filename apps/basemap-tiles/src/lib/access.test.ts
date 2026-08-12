@@ -101,7 +101,10 @@ test('requires a production tiles token outside the unmetered browser origins', 
   assert.deepEqual(
     await authenticateTileRequest(
       new Request('https://tiles.saanseoi.hk/hk-latest/0/0/0.mvt', {
-        headers: { authorization: `Bearer ${token}` },
+        headers: {
+          authorization: `Bearer ${token}`,
+          origin: 'https://example.com',
+        },
       }),
       env,
     ),

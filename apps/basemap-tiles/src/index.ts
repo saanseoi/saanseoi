@@ -75,7 +75,7 @@ export default {
         return new Response('Tile rate limit exceeded.', { status: 429 })
       env.TILE_USAGE.writeDataPoint({
         indexes: [access.claims.sub],
-        blobs: [url.pathname],
+        blobs: [url.pathname, requestOrigin(request.headers.get('Origin'))],
         doubles: [1],
       })
     }
@@ -239,6 +239,15 @@ export default {
       throw error
     }
   },
+}
+
+function requestOrigin(origin: string | null) {
+  if (!origin) return '(none)'
+  try {
+    return new URL(origin).host
+  } catch {
+    return '(invalid)'
+  }
 }
 
 export function publicReleaseManifest(value: unknown): Record<string, unknown> {

@@ -1,4 +1,4 @@
-const API_KEY_PATTERN = /^SS-[A-Za-z0-9_-]{43}$/
+const API_KEY_PATTERN = /^pk\.[A-Za-z0-9_-]{43}$/
 
 export type AuthenticatedApiKey = { id: string; userId: string }
 

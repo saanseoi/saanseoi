@@ -12,7 +12,7 @@ let newKey = $state<string>()
 let isNewKeyRevealed = $state(false)
 let copied = $state(false)
 const saveApiKeyCommand =
-  'bun -e \'import { createInterface } from "node:readline/promises"; const rl=createInterface({input:process.stdin,output:process.stdout}); const key=await rl.question("Paste your SaanSeoi API key: "); rl.close(); await Bun.write(".env","SAANSEOI_API_KEY="+key.trim()+"\\n")\''
+  'bun -e \'import { createInterface } from "node:readline/promises"; const rl=createInterface({input:process.stdin,output:process.stdout}); const key=await rl.question("Paste your SaanSeoi public key: "); rl.close(); await Bun.write(".env","VITE_SAANSEOI_API_KEY="+key.trim()+"\\n")\''
 
 const createKey = async () => {
   error = undefined

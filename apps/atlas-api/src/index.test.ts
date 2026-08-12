@@ -254,7 +254,7 @@ function streetRows(query: string): unknown[][] {
   return []
 }
 
-const testApiKey = `SS-${'a'.repeat(43)}`
+const testApiKey = `pk.${'a'.repeat(43)}`
 const tokenKeyPair = (await crypto.subtle.generateKey('Ed25519', true, [
   'sign',
   'verify',
@@ -767,7 +767,7 @@ describe('atlas-api', () => {
     })
   })
 
-  test('POST /v0/auth/tokens exchanges a key once, then tracks bearer-token usage', async () => {
+  test('POST /v0/auth/tokens exchanges a public key once, then tracks token usage by origin', async () => {
     const events: AnalyticsEngineDataPoint[] = []
     const { env, operations } = createAuthenticatedEnv({
       API_USAGE: {
@@ -777,7 +777,11 @@ describe('atlas-api', () => {
     const tokenResponse = await app.fetch(
       new Request('http://localhost/v0/auth/tokens', {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-api-key': testApiKey },
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': testApiKey,
+          origin: 'https://example.com',
+        },
         body: JSON.stringify({ audience: 'atlas-api' }),
       }),
       env,
@@ -785,7 +789,10 @@ describe('atlas-api', () => {
     const issued = (await tokenResponse.json()) as { accessToken: string }
     const res = await app.fetch(
       new Request('http://localhost/v0/divisions', {
-        headers: { authorization: `Bearer ${issued.accessToken}` },
+        headers: {
+          authorization: `Bearer ${issued.accessToken}`,
+          origin: 'https://example.com',
+        },
       }),
       env,
     )
@@ -794,8 +801,33 @@ describe('atlas-api', () => {
     expect(res.status).toBe(503)
     expect(operations).toEqual([])
     expect(events).toEqual([
-      { indexes: ['api-key-1'], blobs: ['/v0/divisions'], doubles: [1] },
+      {
+        indexes: ['api-key-1'],
+        blobs: ['/v0/divisions', 'example.com'],
+        doubles: [1],
+      },
     ])
+  })
+
+  test('POST /v0/auth/tokens allows public-key browser requests', async () => {
+    const { env } = createAuthenticatedEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/auth/tokens', {
+        method: 'OPTIONS',
+        headers: {
+          origin: 'https://example.com',
+          'access-control-request-method': 'POST',
+          'access-control-request-headers': 'content-type,x-api-key',
+        },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(204)
+    expect(res.headers.get('access-control-allow-origin')).toBe('*')
+    expect(res.headers.get('access-control-allow-headers')?.toLowerCase()).toContain(
+      'x-api-key',
+    )
   })
 
   test('GET /v0/divisions rate-limits an access token at the edge', async () => {
