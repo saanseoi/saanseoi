@@ -34,6 +34,7 @@ export { default as GuideTerminalDemo } from './patterns/createAMap/guideTermina
 export { default as GuideTerminalIntroduction } from './patterns/createAMap/guideTerminalIntroduction.svelte'
 export { default as GuideCreateAMapZedSetup } from './patterns/createAMap/guideCreateAMapZedSetup.svelte'
 export { default as GuideEditorProjectSetupSection } from './patterns/createAMap/guideEditorProjectSetupSection.svelte'
+export { default as GuideManualSetup } from './patterns/createAMap/guideManualSetup.svelte'
 export { default as GuidePlatformSelection } from './patterns/createAMap/guidePlatformSelection.svelte'
 export { default as GuidePromptBlock } from './components/shared/guidePromptBlock.svelte'
 export { default as GuideLlmPromptSection } from './components/shared/guideLlmPromptSection.svelte'
