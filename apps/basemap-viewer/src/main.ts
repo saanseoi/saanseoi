@@ -3,13 +3,7 @@ import type { FilterSpecification } from '@maplibre/maplibre-gl-style-spec'
 import type { Geometry } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { AppState, CameraState } from './lib/types'
-import {
-  parseCatalogue,
-  parseVersions,
-  fetchJson,
-  tilejsonUrl,
-  type Region,
-} from './lib/catalogue'
+import type { Region } from './lib/catalogue'
 import { AppContext } from './lib/ctx/app'
 import {
   BASEMAP_SOURCE_ID,
@@ -17,12 +11,8 @@ import {
   applyVisibility,
   type LayerGroups,
 } from './lib/style'
-import {
-  boundaryBounds,
-  parseRegionBoundary,
-  type RegionBoundary,
-} from './lib/boundaries'
-import { parseTilejson, type Tilejson } from './lib/tilejson'
+import { boundaryBounds, type RegionBoundary } from './lib/boundaries'
+import type { Tilejson } from './lib/tilejson'
 import { readUrlState, writeUrlState } from './lib/url-state'
 import {
   buildDiff,
@@ -32,7 +22,7 @@ import {
   type DiffStatus,
 } from './lib/diff'
 import { isSameRelease, orderComparisonReleases } from './lib/release-order'
-import { parseReleaseMetadata, type ReleaseMetadata } from './lib/release-metadata'
+import type { ReleaseMetadata } from './lib/release-metadata'
 import {
   createTileWeightCollection,
   knownTimingBytes,
@@ -53,6 +43,7 @@ import {
 } from './lib/map-controller'
 import { LatestLoad, type LoadOperation } from './lib/load-operation'
 import { reduceViewerState, type ViewerAction } from './lib/viewer-state'
+import { ReleaseRepository } from './lib/release-repository'
 import './styles.css'
 
 const TILE_ORIGIN = import.meta.env.VITE_TILE_ORIGIN ?? 'https://tiles.saanseoi.hk'
@@ -80,7 +71,7 @@ const DIFF_LAYER_PREFIX = 'release-diff'
 const DIFF_STATUSES = ['added', 'removed'] as const
 const MAX_VIEWER_ZOOM = 22
 const REGION_RELEASE_PREFETCH_CONCURRENCY = 3
-const REGION_RELEASE_REQUEST_TIMEOUT_MS = 10_000
+const repository = new ReleaseRepository(TILE_ORIGIN)
 
 const preferredTheme: AppState['theme'] = window.matchMedia(
   '(prefers-color-scheme: light)',
@@ -96,10 +87,6 @@ let state: AppState = readUrlState(
 let regions: Region[] = []
 let versions: string[] = []
 let releaseMetadata: ReleaseMetadata[] = []
-const regionReleaseCache = new Map<
-  string,
-  { versions: string[]; releaseMetadata: ReleaseMetadata[] }
->()
 let currentBounds: Tilejson['bounds'] = null
 let map: MapLibreMap | null = null
 let comparisonMap: MapLibreMap | null = null
@@ -217,14 +204,14 @@ void start()
 async function start(): Promise<void> {
   controls.setEnabled(false)
   try {
-    const catalogue = parseCatalogue(await fetchJson(`${TILE_ORIGIN}/regions.json`))
+    const catalogue = await repository.getCatalogue()
     regions = catalogue.regions
     const selected =
       regions.find(region => region.code === state.regionCode) ??
       regions.find(region => region.code === DEFAULT_REGION_CODE) ??
       regions[0]
     if (!selected) throw new Error('The regions catalogue has no regions.')
-    await preloadRegionRelease(selected)
+    await repository.getReleases(selected)
     void preloadRegionReleases(regions.filter(region => region.code !== selected.code))
     dispatch({ type: 'setRegion', regionCode: selected.code })
     controls.setRegions(regions)
@@ -258,45 +245,8 @@ async function preloadRegionReleases(catalogue: Region[]): Promise<void> {
   await Promise.allSettled(workers)
 }
 
-async function preloadRegionRelease(
-  region: Region,
-  signal?: AbortSignal,
-): Promise<void> {
-  if (regionReleaseCache.has(region.code)) return
-  const versionsValue = await fetchRegionReleases(region, signal)
-  regionReleaseCache.set(region.code, {
-    versions: parseVersions(versionsValue).versions,
-    releaseMetadata: parseReleaseMetadata(versionsValue),
-  })
-}
-
-function fetchRegionReleases(region: Region, signal?: AbortSignal): Promise<unknown> {
-  return fetchJsonWithTimeout(
-    `${TILE_ORIGIN}/${region.code}/versions.json`,
-    signal,
-    REGION_RELEASE_REQUEST_TIMEOUT_MS,
-  )
-}
-
-function fetchJsonWithTimeout(
-  url: string,
-  signal: AbortSignal | undefined,
-  timeoutMs: number,
-): Promise<unknown> {
-  const requestController = new AbortController()
-  const onAbort = () => requestController.abort(signal?.reason)
-  if (signal?.aborted) onAbort()
-  else signal?.addEventListener('abort', onAbort, { once: true })
-  const timeout = window.setTimeout(
-    () =>
-      requestController.abort(new Error(`Request timed out after ${timeoutMs} ms.`)),
-    timeoutMs,
-  )
-
-  return fetchJson(url, requestController.signal).finally(() => {
-    window.clearTimeout(timeout)
-    signal?.removeEventListener('abort', onAbort)
-  })
+async function preloadRegionRelease(region: Region): Promise<void> {
+  await repository.getReleases(region)
 }
 
 async function changeRegion(code: string): Promise<void> {
@@ -312,21 +262,13 @@ async function loadRegion(
   fitWhenReady: boolean,
 ): Promise<void> {
   const operation = primaryLoad.begin()
-  if (!regionReleaseCache.has(region.code)) controls.setCatalogueReady(false)
+  if (!repository.hasCachedReleases()) controls.setCatalogueReady(false)
   setStatus(`Loading ${region.description} versions…`)
   try {
-    let published = regionReleaseCache.get(region.code)
-    if (!published) {
-      const versionsValue = await fetchRegionReleases(
-        region,
-        operation.abortController.signal,
-      )
-      published = {
-        versions: parseVersions(versionsValue).versions,
-        releaseMetadata: parseReleaseMetadata(versionsValue),
-      }
-      regionReleaseCache.set(region.code, published)
-    }
+    const published = await repository.getReleases(
+      region,
+      operation.abortController.signal,
+    )
     if (!primaryLoad.isCurrent(operation)) return
     versions = published.versions
     releaseMetadata = published.releaseMetadata
@@ -358,7 +300,7 @@ async function loadRegion(
   } catch (error) {
     if (isAbort(error) || !primaryLoad.isCurrent(operation)) return
     showError('Could not load versions for this region.', error)
-    controls.setCatalogueReady(regionReleaseCache.size > 0)
+    controls.setCatalogueReady(repository.hasCachedReleases())
     controls.setEnabled(map !== null)
   }
 }
@@ -518,18 +460,10 @@ async function loadTileset(
   operation: LoadOperation,
 ): Promise<void> {
   setStatus(`Loading ${region.description} · ${state.version}…`)
-  const url = tilejsonUrl(TILE_ORIGIN, region, state.version)
   try {
     const signal = operation.abortController.signal
-    const tilejsonValue = await fetchJson(url, signal)
-    const tilejson = parseTilejson(tilejsonValue)
-    const boundaryValue = await (tilejson.boundary
-      ? fetchJson(tilejson.boundary, signal).catch(error => {
-          if (isAbort(error)) throw error
-          return null
-        })
-      : Promise.resolve(null))
-    const boundary = boundaryValue ? parseRegionBoundary(boundaryValue) : null
+    const release = await repository.getRelease(region, state.version, signal)
+    const { url, tilejson, boundary } = release
     if (!primaryLoad.isCurrent(operation)) return
     currentTilejsonUrl = url
     currentBoundary = boundary
@@ -591,18 +525,11 @@ async function loadPrimaryTileset(
 async function loadComparison(region: Region, version: string): Promise<void> {
   const operation = comparisonLoad.begin()
   const signal = operation.abortController.signal
-  const url = tilejsonUrl(TILE_ORIGIN, region, version)
   try {
-    const tilejson = parseTilejson(await fetchJson(url, signal))
-    const boundaryValue = await (tilejson.boundary
-      ? fetchJson(tilejson.boundary, signal).catch(error => {
-          if (isAbort(error)) throw error
-          return null
-        })
-      : null)
+    const release = await repository.getRelease(region, version, signal)
+    const { url, tilejson, boundary } = release
     if (!comparisonLoad.isCurrent(operation) || state.comparisonVersion !== version)
       return
-    const boundary = boundaryValue ? parseRegionBoundary(boundaryValue) : null
     comparisonVectorLayers = tilejson.vectorLayers
     updateReleaseDiagnostic('comparison', region, version, url, tilejson, boundary)
     if (!comparisonMap) {
