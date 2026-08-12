@@ -111,7 +111,7 @@ const AddressDocumentMetaSchema = z
 
 const RequestedLocalesQuerySchema = z
   .string()
-  .superRefine((value, ctx) => {
+  .superRefine((value: string, ctx: z.RefinementCtx<string>) => {
     const error = getRequestedApiLocalesValidationError(value)
     if (error) ctx.addIssue({ code: 'custom', message: error })
   })

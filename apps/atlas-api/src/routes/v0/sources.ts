@@ -155,7 +155,7 @@ export async function streamSourceRecordsMiddleware(c: Context<AppEnv>, next: Ne
   if (!parsed.success) {
     return c.json(
       {
-        details: parsed.error.issues.map(issue => ({
+        details: parsed.error.issues.map((issue: z.ZodIssue) => ({
           code: issue.code,
           message: issue.message,
           path: issue.path.join('.'),
