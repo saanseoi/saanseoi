@@ -12,7 +12,7 @@ import GuideEditorProjectSetupSection from './guideEditorProjectSetupSection.sve
 type Props = {
   bunInstallCode: string
   bunInstallExplanation: string
-  codeEditor?: 'vscode' | 'zed' | 'cursor' | 'other'
+  codeEditor?: 'vscode' | 'zed' | 'cursor' | 'sublime-text' | 'other'
   hostingInstallCode?: string
   hostingInstallExplanation: string
   locale: string
@@ -20,7 +20,7 @@ type Props = {
   notebookLibrary?: string
   notebookRuntime?: string
   notebookSetupCode: string
-  objective: 'website' | 'web-embed' | 'mobile-embed' | 'notebook-embed'
+  objective: 'local' | 'web' | 'web-embed' | 'mobile-embed' | 'notebook-embed'
   operatingSystem?: 'windows' | 'macos' | 'linux'
   restartProjectCode: string
   setupCode: string

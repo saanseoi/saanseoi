@@ -7,6 +7,7 @@ export { default as GuideInstructionCallout } from './guideInstructionCallout.sv
 export { default as GuideCodeInstructionStep } from './guideCodeInstructionStep.svelte'
 export { default as GuideEditorReadiness } from './guideEditorReadiness.svelte'
 export { default as GuideLlmReadiness } from './guideLlmReadiness.svelte'
+export { default as GuideMapboxTokenReadiness } from './guideMapboxTokenReadiness.svelte'
 export { default as GuideReadinessCompleteSummary } from './guideReadinessCompleteSummary.svelte'
 export { default as GuideReadinessCompleteToggle } from './guideReadinessCompleteToggle.svelte'
 export { default as GuideReadinessIncompleteSummary } from './guideReadinessIncompleteSummary.svelte'
