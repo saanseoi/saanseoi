@@ -968,6 +968,7 @@ async function lookupOverture({
   previous,
   targetVersions,
 }: LookupContext) {
+  const targetHasNoRelease = targetVersions?.get(dataset.code) === null
   const sourceUrl = 'https://stac.overturemaps.org/catalog.json'
   const response = await fetch(sourceUrl)
   if (!response.ok) throw new Error(`STAC request failed with HTTP ${response.status}.`)
@@ -986,8 +987,8 @@ async function lookupOverture({
   const latestUpdate = createOvertureUpdate({
     dataset,
     version,
-    localVersion,
-    previous,
+    localVersion: targetHasNoRelease ? undefined : localVersion,
+    previous: targetHasNoRelease ? undefined : previous,
     outputFileName,
     resourceType,
     sourceUrl,
@@ -999,14 +1000,17 @@ async function lookupOverture({
   const archiveUpdates = s3Versions
     .filter(archiveVersion => archiveVersion !== version)
     .map(archiveVersion => {
-      const archiveLocalVersion =
-        targetVersions?.get(archiveVersion) ??
-        previous?.sourceChecks?.[archiveVersion]?.version
+      const archiveLocalVersion = targetHasNoRelease
+        ? undefined
+        : (targetVersions?.get(archiveVersion) ??
+          previous?.sourceChecks?.[archiveVersion]?.version)
       return createOvertureUpdate({
         dataset,
         version: archiveVersion,
         localVersion: archiveLocalVersion,
-        previous: previous?.sourceChecks?.[archiveVersion],
+        previous: targetHasNoRelease
+          ? undefined
+          : previous?.sourceChecks?.[archiveVersion],
         outputFileName,
         resourceType,
         sourceUrl,
@@ -1194,6 +1198,12 @@ async function runOverturist(version: string, theme: string) {
 async function lookupCsdi(context: LookupContext): Promise<DatasetUpdate[]> {
   const { dataset } = context
   const archiveUpdates = await lookupCsdiArchives(context)
+  const targetHasNoRelease = archiveUpdates.some(
+    update =>
+      context.targetVersions?.get(update.targetSourceKey ?? dataset.code) === null,
+  )
+  if (targetHasNoRelease) return selectCsdiBootstrapUpdates(dataset, archiveUpdates)
+
   // CSDI's archive catalogue supplies the publisher package for every known
   // snapshot, including the latest available one. Prefer it over the WFS and
   // file-api conversion paths whenever it exists.
@@ -1215,6 +1225,34 @@ async function lookupCsdi(context: LookupContext): Promise<DatasetUpdate[]> {
       status: 'manual',
     } satisfies DatasetUpdate,
   ]
+}
+
+function selectCsdiBootstrapUpdates(
+  dataset: DatasetFixture,
+  archiveUpdates: DatasetUpdate[],
+) {
+  const groups = new Map<string, DatasetUpdate[]>()
+  for (const update of archiveUpdates) {
+    const key = update.targetSourceKey ?? dataset.code
+    groups.set(key, [...(groups.get(key) ?? []), update])
+  }
+
+  return [...groups.values()].map(updates => {
+    const representative =
+      dataset.releasePolicy?.series === 'rolling'
+        ? (updates
+            .toSorted((left, right) =>
+              compareVersions(left.version ?? '', right.version ?? ''),
+            )
+            .at(-1) as DatasetUpdate)
+        : (updates[0] as DatasetUpdate)
+
+    return {
+      ...representative,
+      status: 'new' as const,
+      message: `Rebuilding the reset target from the ${representative.targetSourceKey ?? dataset.code} source release.`,
+    }
+  })
 }
 
 async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate[]> {
@@ -1264,6 +1302,9 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
         previous,
         versionKey,
       )
+      const targetVersion = context.targetVersions?.get(
+        release?.sourceVersion ?? dataset.code,
+      )
       const archive: CsdiSourceArchive = {
         datasetCode: dataset.code,
         datasetId,
@@ -1296,7 +1337,12 @@ async function lookupCsdiArchives(context: LookupContext): Promise<DatasetUpdate
         sourceCursor: [source.sourceUrl],
         sourceKey,
         sourceUrl: archiveSourceUrl,
-        status: previous?.versionKey === versionKey ? 'current' : 'new',
+        // A target with no release for this source cohort must be rebuilt even
+        // when the operator's local update state already contains the archive.
+        status:
+          targetVersion === null || previous?.versionKey !== versionKey
+            ? 'new'
+            : 'current',
         targetSourceKey: release?.sourceVersion ?? dataset.code,
         ...(version ? { version } : {}),
         versionKey,
