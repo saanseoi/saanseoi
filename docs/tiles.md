@@ -138,10 +138,10 @@ postcard hover state. When the release is the region's current release, the comm
 refreshes all four `-latest` preview objects.
 
 The same workflow creates the style-library previews: every official Protomaps flavour
-and SaanSeoi Midnight at 512 × 512 pixels, centred on Central in Hong Kong, Senado
-Square in Macao, and Canton Tower in the Greater Bay Area. Every style has a z16 and a
-z19 capture, published as immutable release artefacts and refreshed under a matching
-`-latest` name.
+and SaanSeoi Midnight at 512 × 512 pixels. Hong Kong uses Central at z16 and Hollywood
+Road in Central at z19; Macao uses Senado Square, and the Greater Bay Area uses Canton
+Tower. Every style has a z16 and a z19 capture, published as immutable release artefacts
+and refreshed under a matching `-latest` name.
 
 Render imported or generated releases independently with:
 

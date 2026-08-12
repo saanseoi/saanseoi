@@ -168,11 +168,21 @@ type VersionsIndex = {
 type TilesOperation = 'import' | 'rebuild' | 'refresh'
 type PreviewMode = 'light' | 'dark' | 'postcard' | 'postcard-lit'
 type StylePreviewCamera = { landmark: string; lng: number; lat: number }
+type StylePreviewCameras = Record<16 | 19, StylePreviewCamera>
 
-const STYLE_PREVIEW_CAMERAS: Record<RegionCode, StylePreviewCamera> = {
-  gba: { landmark: 'canton-tower', lng: 113.3247, lat: 23.1065 },
-  hk: { landmark: 'central', lng: 114.1584, lat: 22.2855 },
-  mo: { landmark: 'senado-square', lng: 113.5439, lat: 22.1933 },
+const STYLE_PREVIEW_CAMERAS: Record<RegionCode, StylePreviewCameras> = {
+  gba: {
+    16: { landmark: 'canton-tower', lng: 113.3247, lat: 23.1065 },
+    19: { landmark: 'canton-tower', lng: 113.3247, lat: 23.1065 },
+  },
+  hk: {
+    16: { landmark: 'central', lng: 114.1584, lat: 22.2855 },
+    19: { landmark: 'hollywood-road', lng: 114.1535551, lat: 22.2821544 },
+  },
+  mo: {
+    16: { landmark: 'senado-square', lng: 113.5439, lat: 22.1933 },
+    19: { landmark: 'senado-square', lng: 113.5439, lat: 22.1933 },
+  },
 }
 
 type BoundaryGeometry =
@@ -1091,7 +1101,6 @@ async function renderStyleLibraryPreviews(
   version: string,
   dryRun: boolean,
 ) {
-  const camera = STYLE_PREVIEW_CAMERAS[region.code]
   const previews = mapStyleIds.flatMap(style =>
     ([16, 19] as const).map(zoom => ({ style, zoom })),
   )
@@ -1099,6 +1108,7 @@ async function renderStyleLibraryPreviews(
     note(
       previews
         .map(({ style, zoom }) => {
+          const camera = STYLE_PREVIEW_CAMERAS[region.code][zoom]
           const name = stylePreviewName(region, version, style, camera.landmark, zoom)
           return `${style} z${zoom}: ${basemapStylePreviewUrl(region, version, style, camera, zoom)}\npreview: ${objectKey(region.code, name)}`
         })
@@ -1118,6 +1128,7 @@ async function renderStyleLibraryPreviews(
   const latestVersion = (await readVersionsIndex()).regions[region.code]?.latest
     ?.version
   for (const { style, zoom } of previews) {
+    const camera = STYLE_PREVIEW_CAMERAS[region.code][zoom]
     const name = stylePreviewName(region, version, style, camera.landmark, zoom)
     const response = await fetch(BROWSER_RENDER_ENDPOINT, {
       method: 'POST',
