@@ -72,14 +72,36 @@ const closeMobileMenu = () => {
           <LanguageSelector side="right" align="end" />
           <DarkModeToggle class="inline-grid" />
         </div>
-        <Button
-          class="min-h-11 rounded-default px-6 text-body-md font-medium text-nowrap"
-          href={user ? '/api-keys' : '/how-to/'}
-          onclick={closeMobileMenu}
-          variant="primary"
-        >
-          {user ? 'API keys' : m.nav_get_started()}
-        </Button>
+        {#if user}
+          <Button
+            class="min-h-11 rounded-default px-6 text-body-md font-medium text-nowrap"
+            href="/api-keys"
+            onclick={closeMobileMenu}
+            variant="primary"
+          >
+            API keys
+          </Button>
+        {:else}
+          <div class="flex items-center gap-3">
+            <Button
+              class="min-h-11 px-0 text-body-md font-medium text-nowrap"
+              href="/sign-in"
+              onclick={closeMobileMenu}
+              variant="text"
+            >
+              {m.auth_sign_in_title()}
+            </Button>
+            <span aria-hidden="true" class="h-5 w-px bg-border-card/70"></span>
+            <Button
+              class="min-h-11 px-4 text-body-md font-medium text-nowrap"
+              href="/sign-up"
+              onclick={closeMobileMenu}
+              variant="primary"
+            >
+              {m.nav_sign_up()}
+            </Button>
+          </div>
+        {/if}
       </div>
     </Dialog.Content>
   </Dialog.Portal>
