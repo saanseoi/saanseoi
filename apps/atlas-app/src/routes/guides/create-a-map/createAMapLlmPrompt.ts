@@ -5,7 +5,9 @@ import {
   createAMapLlmAssistancePrerequisiteVerificationInstructions,
 } from './createAMapLlmPrerequisitesInstructions'
 import {
+  createAMapRendererBasemapCode,
   createAMapRendererReferenceInstructions,
+  getCreateAMapRendererReference,
   isCreateAMapRenderer,
 } from './createAMapRendererReference'
 
@@ -206,6 +208,7 @@ const createSectionInstructions = (
     state.style === 'custom'
       ? 'Help me create and apply a custom map style. First establish the desired visual direction and the style source or URL; keep it compatible with the selected renderer and SaanSeoi tiles.'
       : 'Apply the selected SaanSeoi map style through the project’s basemap integration, passing the public key to SaanSeoi tile requests and checking that sources and layers render correctly.',
+    ...createStyleReferenceInstructions(state),
     'Make only the style-related changes in this section and verify them in the running map.',
   ],
   data: [
@@ -225,6 +228,24 @@ const createSectionInstructions = (
       : []),
   ],
 })
+
+const createStyleReferenceInstructions = (state: CreateAMapLlmPromptState) => {
+  if (!isCreateAMapRenderer(state.renderer) || !state.styleUrl || !state.tilejsonUrl) {
+    return []
+  }
+
+  const reference = getCreateAMapRendererReference(state.renderer)
+
+  return [
+    `The selected renderer is ${reference.label}. Use its existing project setup and apply the selected style with the following renderer-specific changes:`,
+    '',
+    '```ts',
+    createAMapRendererBasemapCode(state.renderer, state.styleUrl, state.tilejsonUrl),
+    '```',
+    '',
+    'Adapt the snippet to the project’s actual file structure, preserving the selected renderer and its existing setup. Do not expose or log the public key.',
+  ]
+}
 
 const createRenderReferenceInstructions = (state: CreateAMapLlmPromptState) => {
   if (!isCreateAMapRenderer(state.renderer)) return []

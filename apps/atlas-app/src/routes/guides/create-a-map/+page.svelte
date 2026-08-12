@@ -2301,12 +2301,7 @@ const styleChoices = $derived.by(() => [
         {/if}
       </GuideSection>
 
-      <GuideSection
-        id="style"
-        number={3}
-        eyebrow={m.guide_style_eyebrow()}
-        title={m.guide_style_title()}
-      >
+      <GuideSection id="style" number={3} eyebrow={m.guide_style_eyebrow()}>
         <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
           {@html m.guide_style_description_before()}
           <GuideReference
@@ -2319,42 +2314,16 @@ const styleChoices = $derived.by(() => [
           href="/themes"
           >{@html m.guide_style_gallery()}</a
         >
-        <fieldset id="style-choice" class="mt-8 min-w-0 scroll-mt-28">
-          <legend class="font-display text-headline-sm font-bold text-primary">
-            {@html m.guide_style_label()}
-          </legend>
-          <div class="mt-4 flex snap-x gap-4 overflow-x-auto pb-4">
-            {#each mapStyleDefinitions as candidate}
-              <label
-                class={`w-64 shrink-0 snap-start cursor-pointer overflow-hidden border ${style === candidate.id ? 'border-secondary bg-secondary-container/25' : 'border-border-card bg-background'}`}
-                ><input
-                  class="sr-only"
-                  type="radio"
-                  value={candidate.id}
-                  bind:group={style}
-                ><img
-                  class="aspect-video w-full object-cover"
-                  src={selectedStylePreview(candidate.id)}
-                  alt={candidate.name}
-                  loading="lazy"
-                ><span
-                  class="block p-4 font-body text-body-md font-semibold text-primary"
-                  >{candidate.name}</span
-                ></label
-              >
-            {/each}
-            <label
-              class={`grid w-64 shrink-0 snap-start cursor-pointer place-content-center border p-5 text-center ${style === 'custom' ? 'border-secondary bg-secondary-container/25' : 'border-border-card bg-background'}`}
-              aria-label={m.guide_style_custom()}
-              ><input class="sr-only" type="radio" value="custom" bind:group={style}>
-              <span class="font-body text-body-md font-semibold text-primary"
-                >{@html m.guide_style_custom()}</span
-              ><span class="mt-2 font-body text-body-sm text-foreground-alt"
-                >{@html m.guide_style_custom_choice_description()}</span
-              ></label
-            >
-          </div>
-        </fieldset>
+        <div id="style-choice" class="scroll-mt-28">
+          <GuideChoiceGroup
+            alignment="left"
+            label={m.guide_style_label()}
+            choices={styleChoices}
+            bind:value={style}
+            variant="illustrated"
+            illustratedLayout="grid"
+          />
+        </div>
         {#if style === 'custom'}
           <GuideCallout class="mt-6" size="generous">
             <h3 class="font-display text-headline-sm font-bold text-primary">
@@ -2382,13 +2351,44 @@ const styleChoices = $derived.by(() => [
             <code class="font-mono">{styleUrl}</code>
           </p>
         {/if}
-        {#if llmGuidanceEnabled && style}
-          <div class="mt-6">
-            <GuidePromptBlock
-              code={progressiveSectionPrompts.style}
-              promptIcon={selectedLlmOption?.icon}
+        {#if selectedStyle && renderer}
+          <div class="mt-10 max-w-3xl border-t border-border-card pt-10">
+            <GuideSubSectionHeader
+              eyebrow={m.guide_basemap_editor_eyebrow()}
+              title={m
+                .guide_renderer_code_title()
+                .replace('{library}', selectedRenderer?.label ?? '')}
             />
+            <GuideSubSectionBody>
+              <GuideCodeBlock
+                label={rendererEditorPath}
+                code={basemapCode}
+                editorIcon={selectedCodeEditor?.icon}
+                language="typescript"
+                variant="editor"
+                copyLabel={m.common_copy()}
+                copiedLabel={m.common_copied()}
+              />
+              <p
+                class="font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
+              >
+                {@html rendererEditorInstruction}
+              </p>
+            </GuideSubSectionBody>
           </div>
+        {/if}
+        {#if llmGuidanceEnabled && style}
+          <GuideLlmPromptSection
+            eyebrow={aiAccess === 'agentic'
+              ? m.guide_renderer_prompt_agent_eyebrow()
+              : m.guide_renderer_prompt_chat_eyebrow()}
+            prompt={progressiveSectionPrompts.style}
+            promptIcon={selectedLlmOption?.icon}
+            title={m.guide_renderer_setup_title().replace(
+              '{library}',
+              selectedMapLibrary?.label ?? '',
+            )}
+          />
         {/if}
       </GuideSection>
 
