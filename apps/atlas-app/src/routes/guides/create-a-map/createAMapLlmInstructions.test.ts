@@ -9,6 +9,7 @@ import {
   createAMapAgenticSectionPrompt,
   createAMapChatSectionPrompt,
 } from './createAMapLlmPrompt'
+import { createAMapRendererBasemapCode } from './createAMapRendererReference'
 
 describe('Create a Map LLM instructions', () => {
   test('renders the complete guide', () => {
@@ -418,6 +419,40 @@ describe('Create a Map LLM instructions', () => {
     expect(prompt).not.toContain('### Project decisions')
     expect(prompt).toContain('access_token')
     expect(prompt).toContain('VITE_SAANSEOI_API_KEY')
+  })
+
+  test('includes renderer-specific style code in agent and chat hand-offs', () => {
+    const renderers = [
+      ['maplibre', 'MapLibre', "import maplibregl from 'maplibre-gl'"],
+      ['mapbox', 'Mapbox GL JS', "import mapboxgl from 'mapbox-gl'"],
+      ['leaflet', 'Leaflet', "import L from 'leaflet'"],
+    ] as const
+
+    for (const [renderer, rendererLabel, importLine] of renderers) {
+      const state = {
+        preferredLocale: 'en',
+        renderer,
+        rendererLabel,
+        style: 'light',
+        styleUrl: 'https://api.saanseoi.hk/v0/styles/light/1.0.0.json',
+        tilejsonUrl: 'https://tiles.saanseoi.hk/hongkong-latest.json',
+      }
+      const expectedCode = createAMapRendererBasemapCode(
+        renderer,
+        state.styleUrl,
+        state.tilejsonUrl,
+      )
+
+      for (const prompt of [
+        createAMapAgenticSectionPrompt(state, 'style'),
+        createAMapChatSectionPrompt(state, 'style'),
+      ]) {
+        expect(prompt).toContain(`The selected renderer is ${rendererLabel}.`)
+        expect(prompt).toContain(importLine)
+        expect(prompt).toContain(expectedCode)
+        expect(prompt).toContain('Make only the style-related changes')
+      }
+    }
   })
 
   test('names the next section or confirms guide completion', () => {
