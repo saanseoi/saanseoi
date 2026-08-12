@@ -6,7 +6,7 @@ requires-python = ">=3.12,<3.14"
 dependencies = [
   "paddleocr==2.9.1",
   "paddlepaddle==2.6.2",
-  "setuptools>=75,<81",
+  "setuptools>=83.0.0,<84",
 ]
 
 [tool.uv]
