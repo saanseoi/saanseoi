@@ -1,9 +1,5 @@
 import { TileType } from 'pmtiles'
-import {
-  consumePublicKeyUsage,
-  PublicKeyLeaseUnavailableError,
-  readPublicApiKey,
-} from '@repo/core/publicApiKey'
+import { PublicKeyLeaseUnavailableError } from '@repo/core/publicApiKey'
 import {
   boundary_name,
   boundary_path,
@@ -14,10 +10,7 @@ import {
   tile_path,
 } from '@repo/basemap'
 import { getAllowedOrigin } from './lib/access'
-import {
-  authenticatePublicKeyRequest,
-  retryAfterSeconds,
-} from './lib/public-key-access'
+import { authenticatePublicKeyRequest } from './lib/public-key-access'
 import { ResponseCache, DYNAMIC_CACHE_CONTROL, tileBodyCacheKey } from './lib/cache'
 import { getRegionsIndex } from './lib/catalogue'
 import { KeyNotFoundError } from './lib/errors'
@@ -115,45 +108,10 @@ export default {
         status: 403,
       })
     }
-    if (access && !access.unmetered && access.lease.status === 'exhausted') {
-      return new Response('This public API key has reached its current usage limit.', {
-        headers: { 'Retry-After': String(retryAfterSeconds(access.lease)) },
-        status: 429,
-      })
-    }
     if (access && !access.unmetered) {
-      const apiKey = readPublicApiKey(request)
-      if (!apiKey) {
-        return new Response('A valid SaanSeoi public API key is required.', {
-          status: 401,
-        })
-      }
       const rateLimit = await env.TILE_RATE_LIMIT.limit({ key: access.lease.keyId })
       if (!rateLimit.success)
         return new Response('Tile rate limit exceeded.', { status: 429 })
-      try {
-        const usage = await consumePublicKeyUsage(
-          apiKey,
-          env.PUBLIC_KEY_LEASE_COORDINATOR,
-        )
-        if (usage.status === 'exhausted') {
-          return new Response(
-            'This public API key has reached its current usage limit.',
-            {
-              headers: {
-                'Retry-After': String(retryAfterSeconds({ ...access.lease, ...usage })),
-              },
-              status: 429,
-            },
-          )
-        }
-      } catch (error) {
-        if (!(error instanceof PublicKeyLeaseUnavailableError)) throw error
-        return new Response(
-          'Public API key validation is temporarily unavailable. Please retry.',
-          { status: 503 },
-        )
-      }
       env.TILE_USAGE.writeDataPoint({
         indexes: [access.lease.keyId],
         blobs: [url.pathname, requestOrigin(request.headers.get('Origin'))],

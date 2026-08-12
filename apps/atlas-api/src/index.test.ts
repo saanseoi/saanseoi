@@ -818,46 +818,6 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/divisions reports an exhausted public-key lease', async () => {
-    const { env } = createAuthenticatedEnv({
-      PUBLIC_KEY_LEASES: {
-        get: async () => ({
-          keyId: 'api-key-1',
-          status: 'exhausted',
-          nextCheckAt: Date.now() + 60_000,
-          resetAt: Date.now() + 60_000,
-        }),
-      } as unknown as KVNamespace,
-    })
-    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
-
-    expect(res.status).toBe(429)
-    expect(res.headers.get('retry-after')).toBeTruthy()
-    expect((await res.json()) as { error: string }).toMatchObject({
-      error: 'usage_limit_exceeded',
-    })
-  })
-
-  test('GET /v0/divisions rejects a key whose persisted usage is exhausted', async () => {
-    const { env } = createAuthenticatedEnv({
-      PUBLIC_KEY_LEASE_COORDINATOR: {
-        getByName: () => ({
-          fetch: async () =>
-            Response.json({
-              status: 'exhausted',
-              resetAt: Date.now() + 60_000,
-            }),
-        }),
-      } as unknown as DurableObjectNamespace,
-    })
-    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
-
-    expect(res.status).toBe(429)
-    expect((await res.json()) as { error: string }).toMatchObject({
-      error: 'usage_limit_exceeded',
-    })
-  })
-
   test('GET /v0/api registry endpoints do not require an API key', async () => {
     const { env } = createEnv()
 

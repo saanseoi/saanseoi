@@ -2,7 +2,6 @@ import {
   isCurrentPublicKeyLease,
   isPublicKeyLease,
   publicApiKeyDigest,
-  publicKeyLeaseCoordinatorName,
   PublicKeyLeaseUnavailableError,
   publicKeyLeaseStorageKey,
   type PublicKeyLease,
@@ -24,7 +23,7 @@ export const resolvePublicKeyLease = async (
     if (cached && isCurrentPublicKeyLease(cached)) return cached
 
     const response = await env.PUBLIC_KEY_LEASE_COORDINATOR.getByName(
-      publicKeyLeaseCoordinatorName(digest),
+      coordinatorName,
     ).fetch('https://public-key-lease/refresh', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -41,5 +40,4 @@ export const resolvePublicKeyLease = async (
   }
 }
 
-export const retryAfterSeconds = (lease: PublicKeyLease, now = Date.now()) =>
-  Math.max(1, Math.ceil(((lease.resetAt ?? lease.nextCheckAt) - now) / 1_000))
+const coordinatorName = 'all-public-keys'

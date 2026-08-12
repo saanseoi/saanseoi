@@ -2,7 +2,6 @@ import {
   publicApiKeyDigest,
   publicApiKeyPattern,
   publicKeyLeaseStorageKey,
-  type PublicKeyUsage,
   type PublicKeyLease,
 } from '@repo/core/publicApiKey'
 
@@ -19,24 +18,12 @@ type ApiKeyRecord = {
   revokedAt: number | null
 }
 
-type UsageWindow = 'minute' | 'day' | 'month'
-
-type UsageLimit = {
-  limit: number
-  resetAt: number
-  window: UsageWindow
-  windowStartedAt: number
-}
-
 type OriginPolicyRecord = {
   action: 'allow' | 'block'
   hostname: string
 }
 
-/**
- * One instance is addressed per public key. It serialises usage consumption
- * for that key while normal lease reads still use the shared KV cache.
- */
+/** Serialises stale lease refreshes; normal requests read the shared KV lease. */
 export class PublicKeyLeaseCoordinator {
   #inFlight = new Map<string, Promise<PublicKeyLease | null>>()
   #leases = new Map<string, PublicKeyLease>()
@@ -47,7 +34,7 @@ export class PublicKeyLeaseCoordinator {
   ) {}
 
   async fetch(request: Request) {
-    if (request.method !== 'POST') {
+    if (request.method !== 'POST' || new URL(request.url).pathname !== '/refresh') {
       return new Response('Not found', { status: 404 })
     }
     const body = await request.json<{ apiKey?: unknown }>().catch(() => null)
@@ -56,13 +43,6 @@ export class PublicKeyLeaseCoordinator {
     }
 
     const digest = await publicApiKeyDigest(body.apiKey)
-    const path = new URL(request.url).pathname
-    if (path === '/consume') {
-      return this._state.blockConcurrencyWhile(async () =>
-        Response.json(await this.consume(digest)),
-      )
-    }
-    if (path !== '/refresh') return new Response('Not found', { status: 404 })
     const inFlight = this.#inFlight.get(digest)
     const refresh = inFlight ?? this.refresh(digest)
     if (!inFlight) {
@@ -107,24 +87,13 @@ export class PublicKeyLeaseCoordinator {
       .first<ApiKeyRecord>()
     if (!key || key.revokedAt !== null) return null
 
-    const [exhausted, originPolicy] = await Promise.all([
-      this.getExhaustedLimit(key, now),
-      this.getOriginPolicy(key.id),
-    ])
-    const lease: PublicKeyLease = exhausted
-      ? {
-          keyId: key.id,
-          status: 'exhausted',
-          nextCheckAt: exhausted.resetAt,
-          resetAt: exhausted.resetAt,
-          originPolicy,
-        }
-      : {
-          keyId: key.id,
-          status: 'active',
-          nextCheckAt: now + LEASE_MS,
-          originPolicy,
-        }
+    const originPolicy = await this.getOriginPolicy(key.id)
+    const lease: PublicKeyLease = {
+      keyId: key.id,
+      status: 'active',
+      nextCheckAt: now + LEASE_MS,
+      originPolicy,
+    }
 
     await Promise.all([
       this.env.PUBLIC_KEY_LEASES.put(storageKey, JSON.stringify(lease), {
@@ -136,70 +105,6 @@ export class PublicKeyLeaseCoordinator {
     ])
     this.#leases.set(digest, lease)
     return lease
-  }
-
-  async consume(digest: string): Promise<PublicKeyUsage> {
-    const now = Date.now()
-    const key = await this.env.DB_META.prepare(
-      `SELECT id,
-              requests_per_minute AS requestsPerMinute,
-              requests_per_day AS requestsPerDay,
-              requests_per_month AS requestsPerMonth,
-              revoked_at AS revokedAt
-       FROM api_key
-       WHERE key_digest = ?
-       LIMIT 1`,
-    )
-      .bind(digest)
-      .first<ApiKeyRecord>()
-    if (!key || key.revokedAt !== null) {
-      throw new Error('Cannot consume usage for an invalid or revoked public key')
-    }
-
-    const limits = [
-      createUsageLimit('minute', key.requestsPerMinute, now),
-      createUsageLimit('day', key.requestsPerDay, now),
-      createUsageLimit('month', key.requestsPerMonth, now),
-    ].filter((limit): limit is UsageLimit => limit !== null)
-    const exhausted = await this.getExhaustedLimit(key, now)
-    if (exhausted) {
-      return { status: 'exhausted', resetAt: exhausted.resetAt }
-    }
-    if (limits.length === 0) return { status: 'active' }
-
-    await this.env.DB_META.batch(
-      limits.map(limit =>
-        this.env.DB_META.prepare(
-          `INSERT INTO api_key_usage (
-             api_key_id, window, window_started_at, request_count
-           ) VALUES (?, ?, ?, 1)
-           ON CONFLICT(api_key_id, window, window_started_at) DO UPDATE SET
-             request_count = api_key_usage.request_count + 1`,
-        ).bind(key.id, limit.window, limit.windowStartedAt),
-      ),
-    )
-    return { status: 'active' }
-  }
-
-  async getExhaustedLimit(key: ApiKeyRecord, now: number): Promise<UsageLimit | null> {
-    const limits = [
-      createUsageLimit('minute', key.requestsPerMinute, now),
-      createUsageLimit('day', key.requestsPerDay, now),
-      createUsageLimit('month', key.requestsPerMonth, now),
-    ].filter((limit): limit is UsageLimit => limit !== null)
-
-    for (const limit of limits) {
-      const usage = await this.env.DB_META.prepare(
-        `SELECT request_count AS requestCount
-         FROM api_key_usage
-         WHERE api_key_id = ? AND window = ? AND window_started_at = ?
-         LIMIT 1`,
-      )
-        .bind(key.id, limit.window, limit.windowStartedAt)
-        .first<{ requestCount: number }>()
-      if ((usage?.requestCount ?? 0) >= limit.limit) return limit
-    }
-    return null
   }
 
   async getOriginPolicy(keyId: string) {
@@ -218,42 +123,5 @@ export class PublicKeyLeaseCoordinator {
       if (rule.action === 'block') blockedHostnames.push(hostname)
     }
     return { allowedHostnames, blockedHostnames }
-  }
-}
-
-const createUsageLimit = (
-  window: UsageWindow,
-  limit: number | null,
-  now: number,
-): UsageLimit | null => {
-  if (limit === null) return null
-  const date = new Date(now)
-  if (window === 'minute') {
-    date.setUTCSeconds(0, 0)
-    return {
-      limit,
-      resetAt: date.getTime() + 60_000,
-      window,
-      windowStartedAt: date.getTime(),
-    }
-  }
-  if (window === 'day') {
-    date.setUTCHours(0, 0, 0, 0)
-    return {
-      limit,
-      resetAt: date.getTime() + 24 * 60 * 60 * 1_000,
-      window,
-      windowStartedAt: date.getTime(),
-    }
-  }
-  date.setUTCDate(1)
-  date.setUTCHours(0, 0, 0, 0)
-  const nextMonth = new Date(date)
-  nextMonth.setUTCMonth(nextMonth.getUTCMonth() + 1)
-  return {
-    limit,
-    resetAt: nextMonth.getTime(),
-    window,
-    windowStartedAt: date.getTime(),
   }
 }
