@@ -1,6 +1,5 @@
 import * as maplibregl from 'maplibre-gl'
 import type {
-  ErrorEvent,
   GeoJSONSource,
   Map as MapLibreMap,
   MapSourceDataEvent,
@@ -97,6 +96,8 @@ const DIFF_LAYER_PREFIX = 'release-diff'
 const DIFF_STATUSES = ['added', 'removed'] as const
 const MAX_VIEWER_ZOOM = 22
 const MAX_TILE_CACHE_ZOOM_LEVELS = 10
+const REGION_RELEASE_PREFETCH_CONCURRENCY = 3
+const REGION_RELEASE_REQUEST_TIMEOUT_MS = 10_000
 
 const preferredTheme: AppState['theme'] = window.matchMedia(
   '(prefers-color-scheme: light)',
@@ -219,7 +220,8 @@ async function start(): Promise<void> {
       regions.find(region => region.code === DEFAULT_REGION_CODE) ??
       regions[0]
     if (!selected) throw new Error('The regions catalogue has no regions.')
-    await preloadRegionReleases(regions)
+    await preloadRegionRelease(selected)
+    void preloadRegionReleases(regions.filter(region => region.code !== selected.code))
     state.regionCode = selected.code
     controls.setRegions(regions)
     controls.setCatalogueReady(true)
@@ -232,17 +234,65 @@ async function start(): Promise<void> {
 }
 
 async function preloadRegionReleases(catalogue: Region[]): Promise<void> {
-  await Promise.all(
-    catalogue.map(async region => {
-      const versionsValue = await fetchJson(
-        `${TILE_ORIGIN}/${region.code}/versions.json`,
-      )
-      regionReleaseCache.set(region.code, {
-        versions: parseVersions(versionsValue).versions,
-        releaseMetadata: parseReleaseMetadata(versionsValue),
-      })
-    }),
+  let nextRegionIndex = 0
+  const workers = Array.from(
+    {
+      length: Math.min(REGION_RELEASE_PREFETCH_CONCURRENCY, catalogue.length),
+    },
+    async () => {
+      while (nextRegionIndex < catalogue.length) {
+        const region = catalogue[nextRegionIndex++]
+        if (!region) break
+        try {
+          await preloadRegionRelease(region)
+        } catch (error) {
+          console.warn(`Could not prefetch ${region.description} versions.`, error)
+        }
+      }
+    },
   )
+  await Promise.allSettled(workers)
+}
+
+async function preloadRegionRelease(
+  region: Region,
+  signal?: AbortSignal,
+): Promise<void> {
+  if (regionReleaseCache.has(region.code)) return
+  const versionsValue = await fetchRegionReleases(region, signal)
+  regionReleaseCache.set(region.code, {
+    versions: parseVersions(versionsValue).versions,
+    releaseMetadata: parseReleaseMetadata(versionsValue),
+  })
+}
+
+function fetchRegionReleases(region: Region, signal?: AbortSignal): Promise<unknown> {
+  return fetchJsonWithTimeout(
+    `${TILE_ORIGIN}/${region.code}/versions.json`,
+    signal,
+    REGION_RELEASE_REQUEST_TIMEOUT_MS,
+  )
+}
+
+function fetchJsonWithTimeout(
+  url: string,
+  signal: AbortSignal | undefined,
+  timeoutMs: number,
+): Promise<unknown> {
+  const requestController = new AbortController()
+  const onAbort = () => requestController.abort(signal?.reason)
+  if (signal?.aborted) onAbort()
+  else signal?.addEventListener('abort', onAbort, { once: true })
+  const timeout = window.setTimeout(
+    () =>
+      requestController.abort(new Error(`Request timed out after ${timeoutMs} ms.`)),
+    timeoutMs,
+  )
+
+  return fetchJson(url, requestController.signal).finally(() => {
+    window.clearTimeout(timeout)
+    signal?.removeEventListener('abort', onAbort)
+  })
 }
 
 async function changeRegion(code: string): Promise<void> {
@@ -267,10 +317,7 @@ async function loadRegion(
   try {
     let published = regionReleaseCache.get(region.code)
     if (!published) {
-      const versionsValue = await fetchJson(
-        `${TILE_ORIGIN}/${region.code}/versions.json`,
-        controller.signal,
-      )
+      const versionsValue = await fetchRegionReleases(region, controller.signal)
       published = {
         versions: parseVersions(versionsValue).versions,
         releaseMetadata: parseReleaseMetadata(versionsValue),
@@ -590,10 +637,7 @@ async function createMap(tilejsonUrl: string): Promise<void> {
   })
   createdMap.on('move', () => syncComparison(createdMap, comparisonMap))
   installDiagnostics(createdMap, 'primary')
-  await new Promise<void>((resolve, reject) => {
-    createdMap.once('load', () => resolve())
-    createdMap.once('error', event => reject(event.error))
-  })
+  await waitForMapLoad(createdMap)
   if (!POSTCARD_RENDERING) await waitForSource(createdMap, BASEMAP_SOURCE_ID)
   updateAttribution(createdMap, true)
 }
@@ -634,10 +678,7 @@ async function createComparisonMap(
   )
   createdMap.on('move', () => syncComparison(createdMap, map))
   installDiagnostics(createdMap, 'comparison')
-  await new Promise<void>((resolve, reject) => {
-    createdMap.once('load', () => resolve())
-    createdMap.once('error', event => reject(event.error))
-  })
+  await waitForMapLoad(createdMap)
   createdMap.resize()
   await resizeComparisonView()
   await waitForSource(createdMap, BASEMAP_SOURCE_ID)
@@ -660,6 +701,27 @@ async function updateSources(target: MapLibreMap, tilejsonUrl: string): Promise<
   }
   await Promise.all(sourceUrls.map(([sourceId]) => waitForSource(target, sourceId)))
   updateAttribution(target)
+}
+
+function waitForMapLoad(target: MapLibreMap, timeoutMs = 15_000): Promise<void> {
+  // MapLibre's error event also covers optional resources such as glyphs and
+  // sprites. installDiagnostics records those errors, but they do not mean
+  // that the map style cannot load.
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      cleanup()
+      reject(new Error('Timed out while loading the map style.'))
+    }, timeoutMs)
+    const onLoad = () => {
+      cleanup()
+      resolve()
+    }
+    const cleanup = () => {
+      window.clearTimeout(timeout)
+      target.off('load', onLoad)
+    }
+    target.once('load', onLoad)
+  })
 }
 
 function syncComparison(source: MapLibreMap, target: MapLibreMap | null): void {
@@ -809,6 +871,9 @@ function waitForSource(
   timeoutMs = 15_000,
 ): Promise<void> {
   if (target.isSourceLoaded(sourceId)) return Promise.resolve()
+  // Error events are map-wide and can belong to another source or resource.
+  // The sourcedata signal plus isSourceLoaded is the source-specific success
+  // condition; diagnostics records individual errors independently.
   return new Promise((resolve, reject) => {
     const timeout = window.setTimeout(() => {
       cleanup()
@@ -820,17 +885,11 @@ function waitForSource(
         resolve()
       }
     }
-    const onError = (event: ErrorEvent) => {
-      cleanup()
-      reject(event.error ?? new Error('The map source failed to load.'))
-    }
     const cleanup = () => {
       window.clearTimeout(timeout)
       target.off('sourcedata', onData)
-      target.off('error', onError)
     }
     target.on('sourcedata', onData)
-    target.on('error', onError)
   })
 }
 
