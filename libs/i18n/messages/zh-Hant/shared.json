@@ -599,7 +599,7 @@
   "tiles_getting_started_maplibre_description_before_hook": "推薦用於開源、兼容 Mapbox 樣式的網頁地圖。它的",
   "tiles_getting_started_maplibre_description_after_hook": "掛鉤會將標頭套用到 TileJSON 和圖磚請求。",
   "tiles_getting_started_maplibre_label": "MapLibre GL JS",
-  "tiles_getting_started_mapbox_description": "請將你的 Mapbox 公開權杖分開管理。SaanSeoi bearer token 只應用於傳送至 SaanSeoi 圖磚來源的請求。",
+  "tiles_getting_started_mapbox_description": "請將你的 Mapbox 公開權杖分開管理。SaanSeoi 公開金鑰只應用於傳送至 SaanSeoi 圖磚來源的請求。",
   "tiles_getting_started_mapbox_label": "Mapbox GL JS",
   "tiles_getting_started_other_libraries_title": "其他函式庫",
   "tiles_getting_started_other_libraries_description": "對於 OpenLayers、Leaflet 向量圖磚外掛、原生應用程式和自訂渲染器，請使用函式庫的圖磚載入或請求掛鉤。如果它無法傳送標頭，請透過你的伺服器代理圖磚請求。",

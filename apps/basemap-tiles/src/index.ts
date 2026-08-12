@@ -57,7 +57,7 @@ export default {
     if (request.method.toUpperCase() === 'OPTIONS') {
       const allowedOrigin = getAllowedOrigin(request.headers.get('Origin'), env)
       const headers = new Headers({
-        'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+        'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-API-Key',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Max-Age': '86400',
       })
@@ -82,7 +82,7 @@ export default {
     const access = await authenticatePublicKeyRequest(request, env)
     // Release manifests contain immutable, non-sensitive provenance and must be
     // linkable from the viewer's diagnostic report. Unlike tile data, they are
-    // intentionally readable without a browser Origin or bearer token.
+    // intentionally readable without a browser Origin or public key.
     if (!access && !manifestRequest && !renderRequest) {
       return new Response('A valid SaanSeoi public API key is required.', {
         status: 401,

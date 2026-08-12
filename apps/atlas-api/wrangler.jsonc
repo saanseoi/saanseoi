@@ -15,8 +15,6 @@
   "secrets": {
     "required": [
       "D1_PLACEMENT_PROBE_API_KEY",
-      "ACCESS_TOKEN_PRIVATE_JWK",
-      "ACCESS_TOKEN_PUBLIC_JWK",
       "SUBSTACK_SESSION_COOKIE",
       "TELEGRAM_BOT_TOKEN",
       "TELEGRAM_ADMIN_ID"
@@ -87,6 +85,23 @@
       "migrations_pattern": "../../libs/db/migrations/source/*/migration.sql"
     }
   ],
+  // Add the shared namespace ID after creating it with:
+  // bunx wrangler kv namespace create PUBLIC_KEY_LEASES
+  "kv_namespaces": [{ "binding": "PUBLIC_KEY_LEASES" }],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "PUBLIC_KEY_LEASE_COORDINATOR",
+        "class_name": "PublicKeyLeaseCoordinator"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "public-key-lease-v1",
+      "new_sqlite_classes": ["PublicKeyLeaseCoordinator"]
+    }
+  ],
   "analytics_engine_datasets": [
     { "binding": "API_USAGE", "dataset": "ss-api-usage-local" }
   ],
@@ -133,8 +148,6 @@
       "secrets": {
         "required": [
           "D1_PLACEMENT_PROBE_API_KEY",
-          "ACCESS_TOKEN_PRIVATE_JWK",
-          "ACCESS_TOKEN_PUBLIC_JWK",
           "SUBSTACK_SESSION_COOKIE",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
@@ -151,6 +164,15 @@
         "ENVIRONMENT": "preview",
         "HARBOUR_BASE_URL": "https://preview.harbour.saanseoi.hk",
         "SUBSTACK_PUBLICATION": "saanseoi"
+      },
+      "kv_namespaces": [{ "binding": "PUBLIC_KEY_LEASES" }],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "PUBLIC_KEY_LEASE_COORDINATOR",
+            "class_name": "PublicKeyLeaseCoordinator"
+          }
+        ]
       },
       "d1_databases": [
         {
@@ -241,8 +263,6 @@
       "secrets": {
         "required": [
           "D1_PLACEMENT_PROBE_API_KEY",
-          "ACCESS_TOKEN_PRIVATE_JWK",
-          "ACCESS_TOKEN_PUBLIC_JWK",
           "SUBSTACK_SESSION_COOKIE",
           "TELEGRAM_BOT_TOKEN",
           "TELEGRAM_ADMIN_ID"
@@ -259,6 +279,15 @@
         "ENVIRONMENT": "production",
         "HARBOUR_BASE_URL": "https://harbour.saanseoi.hk",
         "SUBSTACK_PUBLICATION": "saanseoi"
+      },
+      "kv_namespaces": [{ "binding": "PUBLIC_KEY_LEASES" }],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "PUBLIC_KEY_LEASE_COORDINATOR",
+            "class_name": "PublicKeyLeaseCoordinator"
+          }
+        ]
       },
       "d1_databases": [
         {

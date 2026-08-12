@@ -50,10 +50,13 @@ export class PublicKeyLeaseCoordinator {
 
     const digest = await publicApiKeyDigest(body.apiKey)
     const inFlight = this.#inFlight.get(digest)
-    const refresh = inFlight ?? this.refresh(body.apiKey, digest)
+    const refresh = inFlight ?? this.refresh(digest)
     if (!inFlight) {
       this.#inFlight.set(digest, refresh)
-      void refresh.finally(() => this.#inFlight.delete(digest))
+      void refresh.then(
+        () => this.#inFlight.delete(digest),
+        () => this.#inFlight.delete(digest),
+      )
     }
 
     const lease = await refresh
@@ -62,7 +65,7 @@ export class PublicKeyLeaseCoordinator {
       : new Response('Invalid or revoked public key', { status: 401 })
   }
 
-  async refresh(apiKey: string, digest: string): Promise<PublicKeyLease | null> {
+  async refresh(digest: string): Promise<PublicKeyLease | null> {
     const storageKey = publicKeyLeaseStorageKey(digest)
     const now = Date.now()
     const cached = await this.env.PUBLIC_KEY_LEASES.get<PublicKeyLease>(
