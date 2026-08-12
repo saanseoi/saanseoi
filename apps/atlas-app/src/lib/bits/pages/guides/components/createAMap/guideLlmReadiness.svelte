@@ -147,7 +147,7 @@ let expanded = $state(false)
         {#if option.signUpUrl}
           <Button href={option.signUpUrl} size="compact" variant="secondary">
             <Icon
-              icon={aiAccess === 'web' ? option.icon : 'proicons:user-add'}
+              icon={aiAccess === 'web' ? (option.icon ?? 'proicons:user-add') : 'proicons:user-add'}
               class="size-4"
               aria-hidden="true"
             />
