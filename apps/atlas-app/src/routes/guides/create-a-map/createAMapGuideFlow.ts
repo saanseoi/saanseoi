@@ -17,10 +17,17 @@ type PrerequisiteStepInput = Pick<
 }
 
 type MissingPrerequisiteInput = CreateAMapSelectionQuery & {
+  isBasemapAccountReady: boolean
+  isBasemapApiKeyReady: boolean
+  isDataStepComplete: boolean
   isEditorReadinessComplete: boolean
   isLlmReadinessComplete: boolean
+  isMapboxTokenConfigured: boolean
+  isPaymentConfirmed: boolean
+  isPaymentConfirmationRequired: boolean
   isVpnRequired: boolean
   isZedSetupGuideProvided: boolean
+  llmGuidanceEnabled: boolean
   selectedCodeEditor?: unknown
   selectedLlmOption?: unknown
 }
@@ -69,17 +76,26 @@ export function createMissingPrerequisiteQuestions({
   aiAccess,
   agentTool,
   codeEditor,
+  dataSource,
   hosting,
+  isBasemapAccountReady,
+  isBasemapApiKeyReady,
+  isDataStepComplete,
   isEditorReadinessComplete,
   isLlmReadinessComplete,
+  isMapboxTokenConfigured,
+  isPaymentConfirmed,
+  isPaymentConfirmationRequired,
   isVpnRequired,
   isZedSetupGuideProvided,
+  llmGuidanceEnabled,
   llmMode,
   mobilePlatform,
   notebookLibrary,
   notebookRuntime,
   objective,
   operatingSystem,
+  renderer,
   selectedCodeEditor,
   selectedLlmOption,
   terminalExperience,
@@ -164,6 +180,12 @@ export function createMissingPrerequisiteQuestions({
       answered: aiAccess !== 'agentic' || Boolean(agentTool),
     },
     {
+      id: 'payment-readiness',
+      label: m.guide_payment_warning_successful(),
+      reminderTitle: m.guide_missing_confirmation(),
+      answered: !isPaymentConfirmationRequired || isPaymentConfirmed,
+    },
+    {
       id: 'llm-readiness',
       label: m.guide_agentic_ai_readiness_eyebrow(),
       reminderTitle: m.guide_missing_confirmation(),
@@ -177,6 +199,30 @@ export function createMissingPrerequisiteQuestions({
       answered: !regularFlow || !selectedCodeEditor || isEditorReadinessComplete,
     },
     ...(platformQuestion ? [platformQuestion] : []),
+    {
+      id: 'mapbox-account-readiness',
+      label: m.guide_renderer_mapbox_account_title(),
+      reminderTitle: m.guide_missing_confirmation(),
+      answered: renderer !== 'mapbox' || isMapboxTokenConfigured,
+    },
+    {
+      id: 'basemap-account-readiness',
+      label: m.guide_basemap_account(),
+      reminderTitle: m.guide_missing_confirmation(),
+      answered: isBasemapAccountReady,
+    },
+    {
+      id: 'basemap-api-key-readiness',
+      label: m.api_keys_title(),
+      reminderTitle: m.guide_missing_confirmation(),
+      answered: !isBasemapAccountReady || isBasemapApiKeyReady,
+    },
+    {
+      id: 'data-step-readiness',
+      label: m.guide_data_readiness_eyebrow(),
+      reminderTitle: m.guide_missing_confirmation(),
+      answered: !llmGuidanceEnabled || !dataSource || isDataStepComplete,
+    },
   ]
 }
 

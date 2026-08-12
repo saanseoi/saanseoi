@@ -122,7 +122,7 @@ const highlightSource = (source: string, language: 'css' | 'typescript') =>
         })
         .join('')
 
-      return `<span class="block">${content}</span>`
+      return `<span class="block">${content || '&nbsp;'}</span>`
     })
     .join('')
 

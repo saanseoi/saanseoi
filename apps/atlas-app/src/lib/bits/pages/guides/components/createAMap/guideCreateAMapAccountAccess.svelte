@@ -9,9 +9,10 @@ import { m } from '$lib/bits/internal/i18n'
 type AccountMode = 'sign-in' | 'sign-up'
 type Props = {
   continueUrl: string
+  id?: string
 }
 
-let { continueUrl }: Props = $props()
+let { continueUrl, id }: Props = $props()
 let mode = $state<AccountMode>('sign-up')
 let name = $state('')
 let email = $state('')
@@ -222,7 +223,7 @@ const switchMode = (nextMode: AccountMode) => {
   </div>
 {/snippet}
 
-<div class="mt-8 max-w-3xl overflow-hidden">
+<div {id} class="mt-8 max-w-3xl overflow-hidden">
   <div
     class={`flex w-[200%] transition-transform duration-300 ease-out motion-reduce:transition-none ${mode === 'sign-in' ? '-translate-x-1/2' : 'translate-x-0'}`}
   >
