@@ -53,7 +53,12 @@ bunx @better-auth/cli secret
 
 ## Facebook setup
 
-Register these OAuth redirect URIs with the Facebook app:
+In the Meta app dashboard, go to **App settings → Basic** and set **App domains** to:
+
+- `saanseoi.hk`
+- `preview.saanseoi.hk`
+
+Then, in **Facebook Login → Settings**, set **Valid OAuth redirect URIs** to:
 
 - `https://preview.saanseoi.hk/api/auth/callback/facebook`
 - `https://saanseoi.hk/api/auth/callback/facebook`

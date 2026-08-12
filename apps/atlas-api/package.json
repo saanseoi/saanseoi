@@ -26,7 +26,7 @@
     "drizzle-kit": "^0.31.10",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10",
-    "wrangler": "^4.120.1"
+    "wrangler": "^4.121.0"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.5.2",
