@@ -23,19 +23,7 @@ import {
 } from './lib/diff'
 import { isSameRelease, orderComparisonReleases } from './lib/release-order'
 import type { ReleaseMetadata } from './lib/release-metadata'
-import {
-  createTileWeightCollection,
-  knownTimingBytes,
-  knownTimingDuration,
-  type BasemapTileSource,
-} from './lib/tile-weight'
-import {
-  defaultDiagnostics,
-  emptyReleaseDiagnostic,
-  type FeatureDiagnostic,
-  type ReleaseDiagnostic,
-  type ViewerDiagnostics,
-} from './diagnostics'
+import { emptyReleaseDiagnostic, type ReleaseDiagnostic } from './diagnostics'
 import {
   closeAttributionControls,
   createDefaultMapStyle,
@@ -44,6 +32,7 @@ import {
 import { LatestLoad, type LoadOperation } from './lib/load-operation'
 import { reduceViewerState, type ViewerAction } from './lib/viewer-state'
 import { ReleaseRepository } from './lib/release-repository'
+import { DiagnosticsCollector } from './lib/diagnostics-collector'
 import './styles.css'
 
 const TILE_ORIGIN = import.meta.env.VITE_TILE_ORIGIN ?? 'https://tiles.saanseoi.hk'
@@ -101,13 +90,7 @@ const primaryLoad = new LatestLoad()
 const comparisonLoad = new LatestLoad()
 let synchronisingComparison = false
 let diffRefreshTimer: number | null = null
-const tileLoadStartedAt = new Map<string, number>()
-const tileWeightCollections = {
-  primary: createTileWeightCollection(),
-  comparison: createTileWeightCollection(),
-}
-const diagnostics: ViewerDiagnostics = defaultDiagnostics()
-diagnostics.open = state.diagnosticsOpen
+let diagnosticsCollector!: DiagnosticsCollector
 const splitTouchPointers = new Map<number, SplitTouchPointer>()
 let splitTouchGesture: SplitTouchGesture | null = null
 
@@ -199,6 +182,11 @@ const controls = new AppContext(
   state,
 )
 
+diagnosticsCollector = new DiagnosticsCollector(diagnostics =>
+  controls.setDiagnostics(diagnostics),
+)
+diagnosticsCollector.setOpen(state.diagnosticsOpen)
+
 void start()
 
 async function start(): Promise<void> {
@@ -272,8 +260,7 @@ async function loadRegion(
     if (!primaryLoad.isCurrent(operation)) return
     versions = published.versions
     releaseMetadata = published.releaseMetadata
-    diagnostics.latestVersion = versions[0] ?? null
-    publishDiagnostics()
+    diagnosticsCollector.setLatestVersion(versions[0] ?? null)
     const selectedVersion =
       state.version !== 'latest' && !versions.includes(state.version)
         ? 'latest'
@@ -329,9 +316,7 @@ async function changeComparisonVersion(version: string | null): Promise<void> {
     comparisonLoad.cancel()
     disposeComparisonMap()
     comparisonVectorLayers = []
-    diagnostics.comparison = null
-    diagnostics.tileWeight.comparison = null
-    publishDiagnostics()
+    diagnosticsCollector.clearRelease('comparison')
     return
   }
   const region = currentRegion()
@@ -1129,40 +1114,11 @@ function updateReleaseDiagnostic(
     archiveSha256: metadata?.sha256 ?? null,
     createdAt: metadata?.createdAt ?? null,
   }
-  if (target === 'primary') diagnostics.primary = release
-  else diagnostics.comparison = release
-  publishDiagnostics()
+  diagnosticsCollector.setRelease(target, release)
 }
 
-function publishDiagnostics(): void {
-  controls.setDiagnostics({
-    ...diagnostics,
-    debug: { ...diagnostics.debug },
-    errors: [...diagnostics.errors],
-    primary: { ...diagnostics.primary },
-    comparison: diagnostics.comparison ? { ...diagnostics.comparison } : null,
-    tileWeight: {
-      primary: { ...diagnostics.tileWeight.primary },
-      comparison: diagnostics.tileWeight.comparison
-        ? { ...diagnostics.tileWeight.comparison }
-        : null,
-    },
-  })
-}
-
-function recordError(
-  error: string,
-  release?: 'primary' | 'comparison',
-  sourceId?: string,
-): void {
-  diagnostics.errors = [...diagnostics.errors, error].slice(-8)
-  const source = basemapTileSource(sourceId)
-  if (release && source) {
-    diagnostics.tileFailures += 1
-    tileWeightCollections[release].recordFailure()
-    diagnostics.tileWeight[release] = tileWeightCollections[release].summary()
-  }
-  publishDiagnostics()
+function recordError(error: string): void {
+  diagnosticsCollector.recordError(error)
 }
 
 function errorMessage(error: unknown): string {
@@ -1173,127 +1129,37 @@ function installDiagnostics(
   target: MapLibreMap,
   release: 'primary' | 'comparison',
 ): void {
-  target.showTileBoundaries = diagnostics.debug.tiles
-  target.showCollisionBoxes = diagnostics.debug.collisions
-  target.showOverdrawInspector = diagnostics.debug.overdraw
-  target.getCanvas().classList.toggle('is-inspecting', diagnostics.inspect)
-  target.on('dragstart', () => {
-    target.getCanvas().classList.add('is-dragging')
-  })
-  target.on('dragend', () => {
-    target.getCanvas().classList.remove('is-dragging')
-  })
-  target.on('error', event => {
-    const sourceId = (event as { sourceId?: string }).sourceId
-    recordError(`${release}: ${errorMessage(event.error)}`, release, sourceId)
-  })
-  target.on('sourcedataloading', event => {
-    const source = basemapTileSource(event.sourceId)
-    if (!source) return
-    diagnostics.tileRequests += 1
-    tileWeightCollections[release].recordRequest()
-    diagnostics.tileWeight[release] = tileWeightCollections[release].summary()
-    const key = tileKey(release, event.sourceId, event.coord?.key)
-    if (key) tileLoadStartedAt.set(key, performance.now())
-    publishDiagnostics()
-  })
-  target.on('sourcedata', event => {
-    const source = basemapTileSource(event.sourceId)
-    if (!source) return
-    const key = tileKey(release, event.sourceId, event.coord?.key)
-    const startedAt = key ? tileLoadStartedAt.get(key) : undefined
-    if (key) tileLoadStartedAt.delete(key)
-    const tileTimings = (event.tile as { resourceTiming?: PerformanceResourceTiming[] })
-      ?.resourceTiming
-    let observedDuration: number | null = null
-    for (const timing of [...(event.resourceTiming ?? []), ...(tileTimings ?? [])]) {
-      const duration = knownTimingDuration(timing.duration)
-      if (duration !== null) observedDuration = duration
-      tileWeightCollections[release].add({
-        identity: `${release}:${source}:${timing.name}:${timing.startTime}`,
-        source,
-        tile: event.coord?.key ?? null,
-        url: timing.name,
-        durationMs: duration,
-        transferBytes: knownTimingBytes(timing.transferSize),
-        encodedBodyBytes: knownTimingBytes(timing.encodedBodySize),
-        decodedBodyBytes: knownTimingBytes(timing.decodedBodySize),
-      })
-    }
-    diagnostics.tileWeight[release] = tileWeightCollections[release].summary()
-    const duration =
-      observedDuration ??
-      (startedAt !== undefined ? performance.now() - startedAt : null)
-    if (duration !== null) diagnostics.lastTileDurationMs = Math.round(duration)
-    publishDiagnostics()
-  })
-  target.on('click', event => {
-    if (!diagnostics.inspect) return
-    const layers = target.queryRenderedFeatures(event.point).slice(0, 12)
-    const feature: FeatureDiagnostic = {
-      release,
-      longitude: event.lngLat.lng,
-      latitude: event.lngLat.lat,
-      zoom: target.getZoom(),
-      layers: layers.map(layer => ({
-        id: layer.layer.id,
-        sourceLayer: layer.sourceLayer,
-        properties: layer.properties,
-      })),
-    }
-    diagnostics.feature = feature
-    publishDiagnostics()
-  })
-}
-
-function basemapTileSource(sourceId: string | undefined): BasemapTileSource | null {
-  if (sourceId === BASEMAP_SOURCE_ID) return BASEMAP_SOURCE_ID
-  return null
-}
-
-function tileKey(
-  release: 'primary' | 'comparison',
-  sourceId: string | undefined,
-  key: string | undefined,
-): string | null {
-  return sourceId && key ? `${release}:${sourceId}:${key}` : null
+  diagnosticsCollector.install(target, release)
 }
 
 function resetTileWeight(release: 'primary' | 'comparison'): void {
-  tileWeightCollections[release].reset()
-  diagnostics.tileWeight[release] = tileWeightCollections[release].summary()
-  for (const key of tileLoadStartedAt.keys()) {
-    if (key.startsWith(`${release}:`)) tileLoadStartedAt.delete(key)
-  }
+  diagnosticsCollector.resetTileWeight(release)
 }
 
 function changeDiagnostics(open: boolean): void {
-  diagnostics.open = open
+  diagnosticsCollector.setOpen(open)
   dispatch({ type: 'setDiagnosticsOpen', open }, true)
-  publishDiagnostics()
 }
 
 function changeInspect(enabled: boolean): void {
-  diagnostics.inspect = enabled
-  if (!enabled) diagnostics.feature = null
+  diagnosticsCollector.setInspect(enabled)
   for (const target of [map, comparisonMap]) {
     target?.getCanvas().classList.toggle('is-inspecting', enabled)
   }
-  publishDiagnostics()
 }
 
 function changeDebug(key: 'tiles' | 'collisions' | 'overdraw', enabled: boolean): void {
-  diagnostics.debug[key] = enabled
+  diagnosticsCollector.setDebug(key, enabled)
   for (const target of [map, comparisonMap]) {
     if (!target) continue
     if (key === 'tiles') target.showTileBoundaries = enabled
     if (key === 'collisions') target.showCollisionBoxes = enabled
     if (key === 'overdraw') target.showOverdrawInspector = enabled
   }
-  publishDiagnostics()
 }
 
 async function copyReport(): Promise<void> {
+  const diagnostics = diagnosticsCollector.snapshot
   const report = {
     url: window.location.href,
     primary: diagnostics.primary,
