@@ -53,6 +53,7 @@ export type MapControllerCreateOptions = {
   camera: CameraState | null
   boundary: RegionBoundary | null
   waitForContainer?: boolean
+  signal?: AbortSignal
 }
 
 export class MapController {
@@ -124,9 +125,9 @@ export class MapController {
     createdMap.on('move', () => this.options.onMove?.(createdMap))
     createdMap.on('moveend', () => this.options.onMoveEnd?.(createdMap))
     this.options.installDiagnostics(createdMap, this.options.role)
-    await this.waitForMapLoad(createdMap)
+    await this.waitForMapLoad(createdMap, 15_000, options.signal)
     if (!this.options.postcardRendering || this.options.role === 'comparison')
-      await this.waitForSource(createdMap, BASEMAP_SOURCE_ID)
+      await this.waitForSource(createdMap, BASEMAP_SOURCE_ID, 15_000, options.signal)
     createdMap.resize()
     this.updateAttribution(createdMap, true)
     this.applyBoundary(createdMap, options.boundary)
@@ -137,13 +138,14 @@ export class MapController {
   async replaceSource(
     tilejsonUrl: string,
     boundary: RegionBoundary | null,
+    signal?: AbortSignal,
   ): Promise<void> {
     const target = this.requireMap()
     this.options.resetTileWeight(this.options.role)
     const source = target.getSource(BASEMAP_SOURCE_ID)
     if (source?.type !== 'vector') throw new Error('The basemap source is unavailable.')
     ;(source as VectorTileSource).setUrl(tilejsonUrl)
-    await this.waitForSource(target, BASEMAP_SOURCE_ID)
+    await this.waitForSource(target, BASEMAP_SOURCE_ID, 15_000, signal)
     this.currentBoundary = boundary
     this.updateAttribution(target)
     this.applyBoundary(target, boundary)
@@ -297,7 +299,11 @@ export class MapController {
     }
   }
 
-  private waitForMapLoad(target: MapLibreMap, timeoutMs = 15_000): Promise<void> {
+  private waitForMapLoad(
+    target: MapLibreMap,
+    timeoutMs = 15_000,
+    signal?: AbortSignal,
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       const timeout = window.setTimeout(() => {
         cleanup()
@@ -310,8 +316,18 @@ export class MapController {
       const cleanup = () => {
         window.clearTimeout(timeout)
         target.off('load', onLoad)
+        signal?.removeEventListener('abort', onAbort)
+      }
+      const onAbort = () => {
+        cleanup()
+        reject(
+          signal?.reason ??
+            new DOMException('The operation was aborted.', 'AbortError'),
+        )
       }
       target.once('load', onLoad)
+      if (signal?.aborted) onAbort()
+      else signal?.addEventListener('abort', onAbort, { once: true })
     })
   }
 
@@ -319,8 +335,9 @@ export class MapController {
     target: MapLibreMap,
     sourceId: string,
     timeoutMs = 15_000,
+    signal?: AbortSignal,
   ): Promise<void> {
-    if (target.isSourceLoaded(sourceId)) return Promise.resolve()
+    if (target.isSourceLoaded(sourceId) && !signal?.aborted) return Promise.resolve()
     return new Promise((resolve, reject) => {
       const timeout = window.setTimeout(() => {
         cleanup()
@@ -335,8 +352,18 @@ export class MapController {
       const cleanup = () => {
         window.clearTimeout(timeout)
         target.off('sourcedata', onData)
+        signal?.removeEventListener('abort', onAbort)
+      }
+      const onAbort = () => {
+        cleanup()
+        reject(
+          signal?.reason ??
+            new DOMException('The operation was aborted.', 'AbortError'),
+        )
       }
       target.on('sourcedata', onData)
+      if (signal?.aborted) onAbort()
+      else signal?.addEventListener('abort', onAbort, { once: true })
     })
   }
 }

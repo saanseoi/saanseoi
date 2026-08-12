@@ -51,6 +51,7 @@ import {
   createDefaultMapStyle,
   MapController,
 } from './lib/map-controller'
+import { LatestLoad, type LoadOperation } from './lib/load-operation'
 import './styles.css'
 
 const TILE_ORIGIN = import.meta.env.VITE_TILE_ORIGIN ?? 'https://tiles.saanseoi.hk'
@@ -108,9 +109,8 @@ let currentBoundary: RegionBoundary | null = null
 let primaryVectorLayers: string[] = []
 let comparisonVectorLayers: string[] = []
 let comparisonGroups: LayerGroups | null = null
-let requestId = 0
-let comparisonRequestId = 0
-let controller: AbortController | null = null
+const primaryLoad = new LatestLoad()
+const comparisonLoad = new LatestLoad()
 let synchronisingComparison = false
 let diffRefreshTimer: number | null = null
 const tileLoadStartedAt = new Map<string, number>()
@@ -306,22 +306,23 @@ async function loadRegion(
   initial: boolean,
   fitWhenReady: boolean,
 ): Promise<void> {
-  const id = ++requestId
-  controller?.abort()
-  controller = new AbortController()
+  const operation = primaryLoad.begin()
   if (!regionReleaseCache.has(region.code)) controls.setCatalogueReady(false)
   setStatus(`Loading ${region.description} versions…`)
   try {
     let published = regionReleaseCache.get(region.code)
     if (!published) {
-      const versionsValue = await fetchRegionReleases(region, controller.signal)
+      const versionsValue = await fetchRegionReleases(
+        region,
+        operation.abortController.signal,
+      )
       published = {
         versions: parseVersions(versionsValue).versions,
         releaseMetadata: parseReleaseMetadata(versionsValue),
       }
       regionReleaseCache.set(region.code, published)
     }
-    if (id !== requestId) return
+    if (!primaryLoad.isCurrent(operation)) return
     versions = published.versions
     releaseMetadata = published.releaseMetadata
     diagnostics.latestVersion = versions[0] ?? null
@@ -337,9 +338,9 @@ async function loadRegion(
     controls.setVersions(versions)
     controls.setCatalogueReady(true)
     controls.setState(state)
-    await loadTileset(region, initial, fitWhenReady, id)
+    await loadTileset(region, initial, fitWhenReady, operation)
   } catch (error) {
-    if (isAbort(error) || id !== requestId) return
+    if (isAbort(error) || !primaryLoad.isCurrent(operation)) return
     showError('Could not load versions for this region.', error)
     controls.setCatalogueReady(regionReleaseCache.size > 0)
     controls.setEnabled(map !== null)
@@ -353,7 +354,7 @@ async function changeVersion(version: string): Promise<void> {
   controls.setState(state)
   syncUrl()
   const region = currentRegion()
-  if (region) await loadTileset(region, false, false, ++requestId)
+  if (region) await loadPrimaryTileset(region, false, false)
 }
 
 async function changeComparisonVersion(version: string | null): Promise<void> {
@@ -371,7 +372,7 @@ async function changeComparisonVersion(version: string | null): Promise<void> {
   controls.setDiffSummary(null)
   if (needsResize) await resizeComparisonView()
   if (!version) {
-    ++comparisonRequestId
+    comparisonLoad.cancel()
     disposeComparisonMap()
     comparisonVectorLayers = []
     diagnostics.comparison = null
@@ -505,20 +506,22 @@ async function loadTileset(
   region: Region,
   initial: boolean,
   fitWhenReady: boolean,
-  id: number,
+  operation: LoadOperation,
 ): Promise<void> {
-  controller?.abort()
-  controller = new AbortController()
   setStatus(`Loading ${region.description} · ${state.version}…`)
   const url = tilejsonUrl(TILE_ORIGIN, region, state.version)
   try {
-    const tilejsonValue = await fetchJson(url, controller.signal)
+    const signal = operation.abortController.signal
+    const tilejsonValue = await fetchJson(url, signal)
     const tilejson = parseTilejson(tilejsonValue)
     const boundaryValue = await (tilejson.boundary
-      ? fetchJson(tilejson.boundary, controller.signal).catch(() => null)
+      ? fetchJson(tilejson.boundary, signal).catch(error => {
+          if (isAbort(error)) throw error
+          return null
+        })
       : Promise.resolve(null))
     const boundary = boundaryValue ? parseRegionBoundary(boundaryValue) : null
-    if (id !== requestId) return
+    if (!primaryLoad.isCurrent(operation)) return
     currentTilejsonUrl = url
     currentBoundary = boundary
     primaryVectorLayers = tilejson.vectorLayers
@@ -537,11 +540,11 @@ async function loadTileset(
     const fittedExistingMap = fitWhenReady && map !== null
     if (fittedExistingMap) fitCurrentBounds(initial ? 0 : 250)
     if (!map) {
-      await createMap(url)
+      await createMap(url, signal)
     } else {
-      await primaryController.replaceSource(url, currentBoundary)
+      await primaryController.replaceSource(url, currentBoundary, signal)
     }
-    if (id !== requestId || !map || !groups) return
+    if (!primaryLoad.isCurrent(operation) || !map || !groups) return
     applyMapState()
     clearDiffPresentation(map)
     controls.setDiffSummary(null)
@@ -559,45 +562,61 @@ async function loadTileset(
     else hideWarning()
     syncUrl()
     if (state.comparisonVersion) await loadComparison(region, state.comparisonVersion)
-    if (HEADLESS_MODE && id === requestId) await markHeadlessReady()
+    if (HEADLESS_MODE && primaryLoad.isCurrent(operation)) await markHeadlessReady()
   } catch (error) {
-    if (isAbort(error) || id !== requestId) return
+    if (isAbort(error) || !primaryLoad.isCurrent(operation)) return
     showError('Could not load this tileset.', error)
     controls.setEnabled(map !== null)
     controls.setState(state)
   }
 }
 
+async function loadPrimaryTileset(
+  region: Region,
+  initial: boolean,
+  fitWhenReady: boolean,
+): Promise<void> {
+  await loadTileset(region, initial, fitWhenReady, primaryLoad.begin())
+}
+
 async function loadComparison(region: Region, version: string): Promise<void> {
-  const id = ++comparisonRequestId
+  const operation = comparisonLoad.begin()
+  const signal = operation.abortController.signal
   const url = tilejsonUrl(TILE_ORIGIN, region, version)
   try {
-    const tilejson = parseTilejson(await fetchJson(url))
+    const tilejson = parseTilejson(await fetchJson(url, signal))
     const boundaryValue = await (tilejson.boundary
-      ? fetchJson(tilejson.boundary).catch(() => null)
+      ? fetchJson(tilejson.boundary, signal).catch(error => {
+          if (isAbort(error)) throw error
+          return null
+        })
       : null)
-    if (id !== comparisonRequestId || state.comparisonVersion !== version) return
+    if (!comparisonLoad.isCurrent(operation) || state.comparisonVersion !== version)
+      return
     const boundary = boundaryValue ? parseRegionBoundary(boundaryValue) : null
     comparisonVectorLayers = tilejson.vectorLayers
     updateReleaseDiagnostic('comparison', region, version, url, tilejson, boundary)
     if (!comparisonMap) {
-      await createComparisonMap(url, boundary)
+      await createComparisonMap(url, boundary, signal)
     } else {
-      await comparisonController?.replaceSource(url, boundary)
+      await comparisonController?.replaceSource(url, boundary, signal)
       comparisonGroups = comparisonController?.groups ?? comparisonGroups
       applyMapState(comparisonMap)
     }
+    if (!comparisonLoad.isCurrent(operation) || state.comparisonVersion !== version)
+      return
     scheduleDiffRefresh()
   } catch (error) {
-    if (id !== comparisonRequestId) return
+    if (isAbort(error) || !comparisonLoad.isCurrent(operation)) return
     showError('Could not load the comparison release.', error)
   }
 }
 
-async function createMap(tilejsonUrl: string): Promise<void> {
+async function createMap(tilejsonUrl: string, signal?: AbortSignal): Promise<void> {
   map = await primaryController.create(tilejsonUrl, {
     camera: state.camera,
     boundary: currentBoundary,
+    signal,
   })
   groups = primaryController.groups
 }
@@ -605,6 +624,7 @@ async function createMap(tilejsonUrl: string): Promise<void> {
 async function createComparisonMap(
   tilejsonUrl: string,
   boundary: RegionBoundary | null,
+  signal?: AbortSignal,
 ): Promise<void> {
   if (!comparisonController) {
     comparisonController = new MapController({
@@ -633,6 +653,7 @@ async function createComparisonMap(
     camera: map ? mapCamera(map) : state.camera,
     boundary,
     waitForContainer: true,
+    signal,
   })
   comparisonGroups = comparisonController.groups
   await resizeComparisonView()
