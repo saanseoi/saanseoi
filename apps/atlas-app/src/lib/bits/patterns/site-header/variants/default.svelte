@@ -3,10 +3,12 @@ import { addCollection } from '@iconify/svelte'
 import { icons as proicons } from '@iconify-json/proicons'
 import { icons as ionicons } from '@iconify-json/ion'
 import { icons as materialSymbolsLight } from '@iconify-json/material-symbols-light'
+import { icons as simpleIcons } from '@iconify-json/simple-icons'
 
 addCollection(proicons)
 addCollection(ionicons)
 addCollection(materialSymbolsLight)
+addCollection(simpleIcons)
 </script>
 
 <script lang="ts">
@@ -126,7 +128,7 @@ $effect(() => {
   class:-translate-y-full={!mobileHeaderVisible}
 >
   <div
-    class="mx-auto flex h-full max-w-(--spacing-container-max) items-center justify-between gap-4 px-(--spacing-margin-md) @container md:grid md:grid-cols-[1fr_auto_1fr] md:px-8 xl:px-(--spacing-margin-xl)"
+    class="mx-auto flex h-full max-w-(--spacing-container-max) items-center justify-between gap-4 px-(--spacing-margin-md) @container md:grid md:grid-cols-[1fr_auto_1fr]"
   >
     <SiteBrand />
     <PrimaryNavigation />
