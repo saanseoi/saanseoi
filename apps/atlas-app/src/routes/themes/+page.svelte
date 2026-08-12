@@ -22,14 +22,14 @@ const regions = [
     code: 'mo',
     name: 'Macao',
     tileset: 'macau',
-    landmarks: { 16: 'Senado Square', 19: 'Senado Square' },
+    landmarks: { 16: 'Senado Square', 19: 'Grand Lisboa' },
     camera: { lng: 113.5439, lat: 22.1933 },
   },
   {
     code: 'gba',
     name: 'Greater Bay Area',
     tileset: 'gba',
-    landmarks: { 16: 'Canton Tower', 19: 'Canton Tower' },
+    landmarks: { 16: 'Canton Tower', 19: 'Beijing Road' },
     camera: { lng: 113.3247, lat: 23.1065 },
   },
 ] as const
