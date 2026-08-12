@@ -1,4 +1,4 @@
-export * from './createAMap'
+export * as CreateAMap from './components/createAMap'
 export { default as GuideFoundations } from './components/guideFoundations.svelte'
 export { default as GuideChoiceGroup } from './components/shared/guideChoiceGroup.svelte'
 export { default as GuideCodeBlock } from './components/shared/guideCodeBlock.svelte'
