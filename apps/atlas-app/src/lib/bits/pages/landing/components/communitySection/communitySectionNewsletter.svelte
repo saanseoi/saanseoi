@@ -353,6 +353,299 @@ function getCollectorObstacles() {
   })
 }
 
+function syncOrangeRouteGeometry() {
+  if (!newsletterPanel || !newsletterSignal || !orangeCreature || !newsletterHeader)
+    return
+
+  const route = newsletterSignal.querySelector<HTMLElement>('.newsletter-orange-route')
+  const heading = newsletterHeader.querySelector('h2')
+  const card = newsletterContent?.querySelector('.newsletter-card')
+  const firstPad = newsletterSignal.querySelector<HTMLElement>(
+    '.newsletter-orange-platform-first',
+  )
+  const secondPad = newsletterSignal.querySelector<HTMLElement>(
+    '.newsletter-orange-platform-second',
+  )
+
+  if (!route || !heading || !card || !firstPad || !secondPad) return
+
+  const routeRect = route.getBoundingClientRect()
+  const orangeDiameter = orangeCreature.getBoundingClientRect().width
+  const headingRect = heading.getBoundingClientRect()
+  const cardRect = card.getBoundingClientRect()
+  const relativeY = (value: number) => value - routeRect.top
+  const leftForCenter = (value: number) => value - routeRect.left - orangeDiameter / 2
+  const setRouteVariable = (name: string, value: number) => {
+    route.style.setProperty(name, `${value}px`)
+  }
+  const midpoint = (first: number, second: number) => (first + second) / 2
+  const jumpApex = (from: number, to: number, height: number) =>
+    Math.max(0, Math.min(from, to) - height)
+  const clampRouteX = (value: number) =>
+    Math.max(0, Math.min(routeRect.width - orangeDiameter, value))
+
+  // Keep the pads in a useful stair below the lettering. Their positions are
+  // tied to the measured heading rather than the viewport percentage, so the
+  // return route remains useful when the section height changes.
+  const platformWidth = firstPad.getBoundingClientRect().width
+  const platformHeight = firstPad.getBoundingClientRect().height
+  const headingLeft = headingRect.left - routeRect.left
+  const headingWidth = headingRect.width
+  const platformCenterX = (ratio: number) =>
+    Math.max(
+      platformWidth / 2,
+      Math.min(routeRect.width - platformWidth / 2, headingLeft + headingWidth * ratio),
+    )
+  const platformGap = Math.max(20, Math.min(48, routeRect.height * 0.035))
+  const firstPlatformTop = Math.min(
+    routeRect.height - platformHeight,
+    relativeY(headingRect.bottom) + platformGap * 2,
+  )
+  const secondPlatformTop = Math.min(
+    routeRect.height - platformHeight,
+    relativeY(headingRect.bottom) + platformGap,
+  )
+  firstPad.style.left = `${platformCenterX(0.78)}px`
+  firstPad.style.top = `${firstPlatformTop}px`
+  secondPad.style.left = `${platformCenterX(0.3)}px`
+  secondPad.style.top = `${secondPlatformTop}px`
+
+  const firstPadRect = firstPad.getBoundingClientRect()
+  const secondPadRect = secondPad.getBoundingClientRect()
+
+  const headingTextNode = (() => {
+    const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT)
+    let node = walker.nextNode()
+
+    while (node && !node.textContent?.trim()) node = walker.nextNode()
+    return node
+  })()
+  const characterRect = (index: number) => {
+    if (!headingTextNode?.textContent) return headingRect
+
+    const range = document.createRange()
+    const textLength = headingTextNode.textContent.length
+    range.setStart(headingTextNode, Math.min(index, textLength - 1))
+    range.setEnd(headingTextNode, Math.min(index + 1, textLength))
+    return range.getBoundingClientRect()
+  }
+  const headingCharacterCount = headingTextNode?.textContent?.length ?? 0
+  const visibleCharacterIndices = Array.from(
+    { length: headingCharacterCount },
+    (_, index) => index,
+  ).filter(index => headingTextNode?.textContent?.[index]?.trim())
+  const headingCharacterAt = (ratio: number) => {
+    const index =
+      visibleCharacterIndices[
+        Math.min(
+          visibleCharacterIndices.length - 1,
+          Math.round((visibleCharacterIndices.length - 1) * ratio),
+        )
+      ] ?? 0
+    return characterRect(index)
+  }
+  const firstLetterRect = characterRect(0)
+  const thirdLetterRect = characterRect(2)
+  // Keep the cradle in the measured gap, while the first hop lands on the
+  // slightly lower-left contact point used by the artwork.
+  const firstLandingOffset = { x: -24, y: 18 }
+  const fhdScaleX = window.innerWidth / 1920
+  const fhdScaleY = window.innerHeight / 1080
+  const cradleOffsetX = -4 * fhdScaleX
+  const cradleOffsetY = 22 * fhdScaleY
+  const cradleCenter =
+    (firstLetterRect.right + thirdLetterRect.left) / 2 || headingRect.left
+  const headingTargets = [0.18, 0.5, 0.82].map(ratio => headingCharacterAt(ratio))
+  const cradleX = clampRouteX(leftForCenter(cradleCenter) + cradleOffsetX)
+  const headingX = headingTargets.map((rect, index) =>
+    clampRouteX(
+      leftForCenter(rect.left + rect.width / 2) +
+        (index === 0 ? firstLandingOffset.x : 0),
+    ),
+  )
+  const formX = clampRouteX(leftForCenter(cardRect.left + cardRect.width / 2))
+  const rightX2 = clampRouteX(routeRect.width - orangeDiameter)
+  // Split the two final rightward landings evenly so their horizontal speed
+  // remains consistent across viewport widths.
+  const rightX1 = clampRouteX(midpoint(formX, rightX2))
+  const bottomX = rightX2
+  const firstPadX = clampRouteX(
+    leftForCenter(firstPadRect.left + firstPadRect.width / 2),
+  )
+  const secondPadX = clampRouteX(
+    leftForCenter(secondPadRect.left + secondPadRect.width / 2),
+  )
+  const bottomTargetX = clampRouteX(
+    Math.max(headingX[0] ?? 0, firstPadX + routeRect.width * 0.08),
+  )
+  const returnX = Array.from(
+    { length: 7 },
+    (_, index) => rightX2 + (bottomTargetX - rightX2) * ((index + 1) / 7),
+  )
+
+  const headingLandingY = headingTargets.map((rect, index) =>
+    Math.max(
+      0,
+      relativeY(rect.top) - orangeDiameter + (index === 0 ? firstLandingOffset.y : 0),
+    ),
+  )
+  const cradleY = Math.max(
+    0,
+    relativeY(firstLetterRect.top) - orangeDiameter + cradleOffsetY,
+  )
+  const formLandingY = Math.max(0, relativeY(cardRect.top) - orangeDiameter)
+  const firstPadLandingY = Math.max(0, relativeY(firstPadRect.top) - orangeDiameter)
+  const secondPadLandingY = Math.max(0, relativeY(secondPadRect.top) - orangeDiameter)
+  const letterBottomLandingY = Math.max(
+    0,
+    relativeY(headingRect.bottom) - orangeDiameter,
+  )
+  const bottomY = Math.max(0, routeRect.height - orangeDiameter)
+  const glyphTop = relativeY(headingTargets[0]?.top ?? headingRect.top)
+  const baseJumpHeight = Math.max(24, glyphTop * 0.4)
+  const jumpHeightOne = baseJumpHeight * 0.9
+  const jumpHeightTwo = baseJumpHeight
+  const jumpHeightThree = baseJumpHeight * 1.1
+
+  setRouteVariable('--newsletter-orange-cradle-x', cradleX)
+  headingX.forEach((value, index) => {
+    setRouteVariable(`--newsletter-orange-heading-x-${index + 1}`, value)
+  })
+  setRouteVariable('--newsletter-orange-form-x', formX)
+  setRouteVariable('--newsletter-orange-right-x-1', rightX1)
+  setRouteVariable('--newsletter-orange-right-x-2', rightX2)
+  setRouteVariable('--newsletter-orange-bottom-x', bottomX)
+  returnX.forEach((value, index) => {
+    setRouteVariable(`--newsletter-orange-return-x-${index + 1}`, value)
+  })
+  setRouteVariable('--newsletter-orange-first-pad-x', firstPadX)
+  setRouteVariable('--newsletter-orange-second-pad-x', secondPadX)
+  headingLandingY.forEach((value, index) => {
+    setRouteVariable(`--newsletter-orange-heading-landing-y-${index + 1}`, value)
+  })
+  setRouteVariable('--newsletter-orange-cradle-y', cradleY)
+  setRouteVariable('--newsletter-orange-form-landing-y', formLandingY)
+  setRouteVariable('--newsletter-orange-first-pad-landing-y', firstPadLandingY)
+  setRouteVariable('--newsletter-orange-second-pad-landing-y', secondPadLandingY)
+  setRouteVariable('--newsletter-orange-bottom-y', bottomY)
+
+  // Every return hop has a real apex. Without these values the CSS `top`
+  // declarations become invalid and the creature appears to teleport.
+  const returnHopHeight = Math.max(24, (bottomY - letterBottomLandingY) * 0.3)
+  returnX.forEach((_, index) => {
+    const variation = [0.9, 1, 1.08, 0.94, 1.04, 0.92, 1.02][index] ?? 1
+    setRouteVariable(
+      `--newsletter-orange-return-${index + 1}-apex-y`,
+      Math.max(0, bottomY - returnHopHeight * variation),
+    )
+  })
+
+  const apexes = [
+    [
+      'heading-1',
+      cradleX,
+      headingX[0] ?? cradleX,
+      cradleY,
+      headingLandingY[0] ?? cradleY,
+      jumpHeightOne,
+    ],
+    [
+      'heading-2',
+      headingX[0] ?? cradleX,
+      headingX[1] ?? cradleX,
+      headingLandingY[0] ?? cradleY,
+      headingLandingY[1] ?? cradleY,
+      jumpHeightTwo,
+    ],
+    [
+      'heading-3',
+      headingX[1] ?? cradleX,
+      headingX[2] ?? cradleX,
+      headingLandingY[1] ?? cradleY,
+      headingLandingY[2] ?? cradleY,
+      jumpHeightThree,
+    ],
+    [
+      'form',
+      headingX[2] ?? cradleX,
+      formX,
+      headingLandingY[2] ?? cradleY,
+      formLandingY,
+      jumpHeightTwo,
+    ],
+    ['right-1', formX, rightX1, formLandingY, formLandingY, jumpHeightThree],
+    ['right-2', rightX1, rightX2, formLandingY, formLandingY, jumpHeightOne],
+    ['forward', rightX2, bottomX, formLandingY, formLandingY, jumpHeightTwo * 0.7],
+    [
+      'pad-1',
+      returnX[6] ?? bottomTargetX,
+      firstPadX,
+      bottomY,
+      firstPadLandingY,
+      jumpHeightTwo,
+    ],
+    [
+      'pad-2',
+      firstPadX,
+      secondPadX,
+      firstPadLandingY,
+      secondPadLandingY,
+      jumpHeightOne,
+    ],
+    ['cradle', secondPadX, cradleX, secondPadLandingY, cradleY, jumpHeightTwo],
+  ] as const
+
+  const firstHeadingApexX = midpoint(cradleX, headingX[0] ?? cradleX)
+  const firstHeadingApexY = jumpApex(
+    cradleY,
+    headingLandingY[0] ?? cradleY,
+    jumpHeightOne,
+  )
+  setRouteVariable(
+    '--newsletter-orange-heading-1-takeoff-x',
+    cradleX + (firstHeadingApexX - cradleX) * 0.24,
+  )
+  setRouteVariable(
+    '--newsletter-orange-heading-1-takeoff-y',
+    cradleY + (firstHeadingApexY - cradleY) * 0.18,
+  )
+
+  for (const [name, fromX, toX, fromY, toY, height] of apexes) {
+    setRouteVariable(`--newsletter-orange-${name}-apex-x`, midpoint(fromX, toX))
+    setRouteVariable(`--newsletter-orange-${name}-apex-y`, jumpApex(fromY, toY, height))
+  }
+
+  returnX.forEach((value, index) => {
+    const previousX = index === 0 ? rightX2 : (returnX[index - 1] ?? rightX2)
+    setRouteVariable(
+      `--newsletter-orange-return-apex-x-${index + 1}`,
+      midpoint(previousX, value),
+    )
+  })
+
+  orangeCreature.style.animation = 'none'
+  void orangeCreature.offsetWidth
+  orangeCreature.style.animation = ''
+  route.classList.add('newsletter-orange-route-ready')
+}
+
+onMount(() => {
+  const resizeObserver = new ResizeObserver(syncOrangeRouteGeometry)
+  resizeObserver.observe(newsletterPanel)
+  resizeObserver.observe(newsletterSignal)
+  resizeObserver.observe(newsletterHeader)
+  if (newsletterContent) resizeObserver.observe(newsletterContent)
+  window.addEventListener('resize', syncOrangeRouteGeometry)
+  const initialFrame = window.requestAnimationFrame(syncOrangeRouteGeometry)
+  void document.fonts?.ready.then(syncOrangeRouteGeometry)
+
+  return () => {
+    resizeObserver.disconnect()
+    window.removeEventListener('resize', syncOrangeRouteGeometry)
+    window.cancelAnimationFrame(initialFrame)
+  }
+})
+
 onMount(() => {
   const cycleSeconds = Number.parseFloat(
     getComputedStyle(newsletterPanel).getPropertyValue('--newsletter-orange-cycle'),

@@ -51,6 +51,41 @@ Use a high-entropy value at least 32 characters long. You can generate one with:
 bunx @better-auth/cli secret
 ```
 
+## Google setup
+
+In Google Cloud Console, open the OAuth client used by the deployed app and add these
+entries under **Authorised redirect URIs**:
+
+- `https://preview.saanseoi.hk/api/auth/callback/google`
+- `https://saanseoi.hk/api/auth/callback/google`
+
+The app uses separate Google OAuth clients per environment:
+
+- Preview: `972786292819-8o9mpvci3ldaccr9n2bb74ij6njmbv3b.apps.googleusercontent.com`
+- Production: `972786292819-3qma9l177e9k2isbnt8lrukdldd8m99f.apps.googleusercontent.com`
+
+The production callback must match exactly, including the scheme, hostname, path, and
+the absence of a trailing slash. Local development uses
+`http://localhost:5173/api/auth/callback/google`.
+
+## GitHub setup
+
+GitHub OAuth Apps support one callback URL each, so use a separate app for each
+environment. Set the app's **Authorization callback URL** to the matching value:
+
+- Local: `http://localhost:5173/api/auth/callback/github`
+- Preview: `https://preview.saanseoi.hk/api/auth/callback/github`
+- Production: `https://saanseoi.hk/api/auth/callback/github`
+
+The current deployed client IDs are:
+
+- Preview: `Ov23lix0sHaq58lHqbQC`
+- Production: `Ov23liLPaefiHuQpOP2K`
+
+The callback URL must match exactly, including the scheme, hostname, path, and the
+absence of a trailing slash. Store each app's client ID and client secret in the
+matching Worker environment.
+
 ## Facebook setup
 
 In the Meta app dashboard, go to **App settings → Basic** and set **App domains** to:
