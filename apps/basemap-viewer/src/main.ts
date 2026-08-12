@@ -52,6 +52,7 @@ import {
   MapController,
 } from './lib/map-controller'
 import { LatestLoad, type LoadOperation } from './lib/load-operation'
+import { reduceViewerState, type ViewerAction } from './lib/viewer-state'
 import './styles.css'
 
 const TILE_ORIGIN = import.meta.env.VITE_TILE_ORIGIN ?? 'https://tiles.saanseoi.hk'
@@ -87,7 +88,7 @@ const preferredTheme: AppState['theme'] = window.matchMedia(
   ? 'light'
   : 'midnight'
 const preferredLocale: AppState['locale'] = resolvePreferredLocale(navigator.languages)
-const state: AppState = readUrlState(
+let state: AppState = readUrlState(
   window.location.search,
   preferredTheme,
   preferredLocale,
@@ -182,6 +183,12 @@ function resolvePreferredLocale(languages: readonly string[]): AppState['locale'
   return 'en'
 }
 
+function dispatch(action: ViewerAction, sync = false): void {
+  state = reduceViewerState(state, action)
+  controls.setState(state)
+  if (sync) syncUrl()
+}
+
 const controls = new AppContext(
   requiredElement('app'),
   {
@@ -219,7 +226,7 @@ async function start(): Promise<void> {
     if (!selected) throw new Error('The regions catalogue has no regions.')
     await preloadRegionRelease(selected)
     void preloadRegionReleases(regions.filter(region => region.code !== selected.code))
-    state.regionCode = selected.code
+    dispatch({ type: 'setRegion', regionCode: selected.code })
     controls.setRegions(regions)
     controls.setCatalogueReady(true)
     controls.setState(state)
@@ -295,9 +302,7 @@ function fetchJsonWithTimeout(
 async function changeRegion(code: string): Promise<void> {
   const region = regions.find(candidate => candidate.code === code)
   if (!region || region.code === state.regionCode) return
-  state.regionCode = region.code
-  controls.setState(state)
-  syncUrl()
+  dispatch({ type: 'setRegion', regionCode: region.code }, true)
   await loadRegion(region, false, true)
 }
 
@@ -327,14 +332,25 @@ async function loadRegion(
     releaseMetadata = published.releaseMetadata
     diagnostics.latestVersion = versions[0] ?? null
     publishDiagnostics()
-    if (state.version !== 'latest' && !versions.includes(state.version))
-      state.version = 'latest'
-    if (
+    const selectedVersion =
+      state.version !== 'latest' && !versions.includes(state.version)
+        ? 'latest'
+        : state.version
+    const selectedComparisonVersion =
       state.comparisonVersion !== null &&
       state.comparisonVersion !== 'latest' &&
       !versions.includes(state.comparisonVersion)
+        ? previousVersion(versions, selectedVersion)
+        : state.comparisonVersion
+    if (
+      selectedVersion !== state.version ||
+      selectedComparisonVersion !== state.comparisonVersion
     )
-      state.comparisonVersion = previousVersion(versions, state.version)
+      dispatch({
+        type: 'setReleaseSelection',
+        version: selectedVersion,
+        comparisonVersion: selectedComparisonVersion,
+      })
     controls.setVersions(versions)
     controls.setCatalogueReady(true)
     controls.setState(state)
@@ -350,9 +366,7 @@ async function loadRegion(
 async function changeVersion(version: string): Promise<void> {
   if (version !== 'latest' && !versions.includes(version)) return
   if (version === state.version) return
-  state.version = version
-  controls.setState(state)
-  syncUrl()
+  dispatch({ type: 'setVersion', version }, true)
   const region = currentRegion()
   if (region) await loadPrimaryTileset(region, false, false)
 }
@@ -363,9 +377,7 @@ async function changeComparisonVersion(version: string | null): Promise<void> {
   const needsResize =
     state.comparisonMode === 'side-by-side' &&
     (state.comparisonVersion !== null || version !== null)
-  state.comparisonVersion = version
-  controls.setState(state)
-  syncUrl()
+  dispatch({ type: 'setComparisonVersion', version }, true)
   clearDiffPresentation(map)
   clearDiffPresentation(comparisonMap)
   applyMapState()
@@ -389,9 +401,7 @@ function changeComparisonMode(mode: AppState['comparisonMode']): void {
   const needsResize =
     state.comparisonVersion !== null &&
     (state.comparisonMode === 'side-by-side' || mode === 'side-by-side')
-  state.comparisonMode = mode
-  controls.setState(state)
-  syncUrl()
+  dispatch({ type: 'setComparisonMode', mode }, true)
   if (needsResize) void resizeComparisonView()
   applyMapState()
   applyMapState(comparisonMap)
@@ -404,8 +414,7 @@ function changeComparisonMode(mode: AppState['comparisonMode']): void {
 }
 
 function changeDiffVisibility(status: DiffStatus, enabled: boolean): void {
-  state.diffVisibility[status] = enabled
-  controls.setState(state)
+  dispatch({ type: 'setDiffVisibility', status, enabled })
   applyDiffVisibility(map)
   applyDiffVisibility(comparisonMap)
 }
@@ -978,19 +987,15 @@ function applyDiffVisibility(target: MapLibreMap | null): void {
 }
 
 function changeLocale(locale: AppState['locale']): void {
-  state.locale = locale
+  dispatch({ type: 'setLocale', locale }, true)
   applyMapState()
   applyMapState(comparisonMap)
   scheduleDiffRefresh()
-  controls.setState(state)
-  syncUrl()
 }
 
 async function changeTheme(theme: AppState['theme']): Promise<void> {
   if (theme === state.theme) return
-  state.theme = theme
-  controls.setState(state)
-  syncUrl()
+  dispatch({ type: 'setTheme', theme }, true)
   if (!map || !currentTilejsonUrl) return
 
   controls.setEnabled(false)
@@ -1015,12 +1020,10 @@ async function changeTheme(theme: AppState['theme']): Promise<void> {
 }
 
 function changeFeature(key: keyof AppState['features'], enabled: boolean): void {
-  state.features[key] = enabled
+  dispatch({ type: 'setFeature', key, enabled }, true)
   applyMapState()
   applyMapState(comparisonMap)
   scheduleDiffRefresh()
-  controls.setState(state)
-  syncUrl()
 }
 
 function changeLabel(key: keyof AppState['labels'], enabled: boolean): void {
@@ -1029,12 +1032,10 @@ function changeLabel(key: keyof AppState['labels'], enabled: boolean): void {
     (key === 'pois' && !state.features.pois)
   )
     return
-  state.labels[key] = enabled
+  dispatch({ type: 'setLabel', key, enabled }, true)
   applyMapState()
   applyMapState(comparisonMap)
   scheduleDiffRefresh()
-  controls.setState(state)
-  syncUrl()
 }
 
 function fitCurrentBounds(duration = 250): void {
@@ -1140,7 +1141,7 @@ function currentRegion(): Region | undefined {
 }
 
 function syncUrl(): void {
-  if (map) state.camera = mapCamera(map)
+  if (map) dispatch({ type: 'setCamera', camera: mapCamera(map) })
   history.replaceState(null, '', `${window.location.pathname}${writeUrlState(state)}`)
 }
 
@@ -1341,9 +1342,7 @@ function resetTileWeight(release: 'primary' | 'comparison'): void {
 
 function changeDiagnostics(open: boolean): void {
   diagnostics.open = open
-  state.diagnosticsOpen = open
-  controls.setState(state)
-  syncUrl()
+  dispatch({ type: 'setDiagnosticsOpen', open }, true)
   publishDiagnostics()
 }
 
