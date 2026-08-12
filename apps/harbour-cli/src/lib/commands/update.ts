@@ -523,11 +523,12 @@ async function fetchTargetVersions(
   })
   const targetVersions = new Map<string, string | null>()
   const releases = dataset.releases?.length ? dataset.releases : [undefined]
+  const targetHasNoReleases = report.rows.length === 0
 
   // A reset target has no release rows at all. Preserve that fact for datasets
   // without an explicit release manifest (for example Overture), so local
   // update state cannot make the first production bootstrap look current.
-  if (report.rows.length === 0) targetVersions.set(dataset.code, null)
+  if (targetHasNoReleases) targetVersions.set(dataset.code, null)
 
   for (const sourceVersion of report.rows
     .map(row => row.sourceVersion)
@@ -538,9 +539,10 @@ async function fetchTargetVersions(
   for (const [index, release] of releases.entries()) {
     const releaseSourceVersion = release?.sourceVersion
     const sourceKey = releaseSourceVersion ?? dataset.code
-    const fallback =
-      previous?.sourceChecks?.[sourceKey]?.version ??
-      (sourceKey === dataset.code ? previous?.version : undefined)
+    const fallback = targetHasNoReleases
+      ? undefined
+      : (previous?.sourceChecks?.[sourceKey]?.version ??
+        (sourceKey === dataset.code ? previous?.version : undefined))
     const matchingVersions = releaseSourceVersion
       ? report.rows
           .map(row => row.sourceVersion)
