@@ -1,0 +1,90 @@
+{
+  "versionHash": "sha256:465674e01612fe072e2d448afa89419ac4f652f8cdb695c6f38384710e46d4a2",
+  "publisherCode": "hkgov-pland",
+  "code": "ds-hk-hkgov-pland-division-pu",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "census",
+  "theme": "divisions",
+  "subType": "pu",
+  "sourceVariant": "hkgov-pland-pu",
+  "sourceCrs": "EPSG:4326",
+  "resourceTypes": ["division", "divisionArea"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Planning Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050",
+  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/5fb6f41fe1fc55e1abdb621488dac1887faf03ef1ca0db3ea3d5f0b255d6e4dd",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "periodic",
+        "frequency": "monthly"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "periodic",
+        "frequency": "quarterly"
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2001",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535158118_80594"
+    },
+    {
+      "sourceVersion": "2006",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535383021_30595"
+    },
+    {
+      "sourceVersion": "2011",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634025118087_40967"
+    },
+    {
+      "sourceVersion": "2016",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634281887222_15002"
+    },
+    {
+      "sourceVersion": "2021",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050"
+    }
+  ],
+  "category": "boundaries",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Tertiary Planning Units and Subunits",
+      "description": "Planning divisions derived from the Planning Department's published TPU and subunit boundary cells."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "第三級規劃單位及分區（香港）",
+      "description": "由規劃署公布的第三級規劃單位及分區界線格網衍生的規劃區劃。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "第三级规划单位及分区（香港）",
+      "description": "由规划署公布的第三级规划单位及分区边界格网衍生的规划区划。"
+    }
+  ]
+}

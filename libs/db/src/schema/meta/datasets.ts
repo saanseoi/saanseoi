@@ -1,7 +1,6 @@
 import {
   foreignKey,
   index,
-  integer,
   primaryKey,
   sqliteTable,
   text,
@@ -17,7 +16,7 @@ import {
   releaseStatuses,
 } from '../../constants/schema'
 import { metaLicenses } from './licenses'
-import { jsonText, primaryUuid, timestamps } from './_shared'
+import { isoTimestamp, jsonText, primaryUuid, timestamps } from '../shared'
 import { metaPublishers } from './publishers'
 
 export const metaDatasets = sqliteTable(
@@ -34,7 +33,14 @@ export const metaDatasets = sqliteTable(
       enum: datasetReleaseFrequencies,
     }).notNull(),
     theme: text('theme', { enum: datasetThemes }).notNull(),
-    type: text('type', { enum: datasetTypes }).notNull(),
+    // A dataset describes one publisher product. Its independently processable
+    // resource outputs are declared in metaDatasetResourceTypes below.
+    subType: text('subType'),
+    sourceVariant: text('sourceVariant').notNull().default('default'),
+    // Native CRS shared by every release of this source dataset. Source
+    // records retain their geometry evidence but must not duplicate this
+    // dataset-level metadata on every row.
+    sourceCrs: text('sourceCrs'),
     sourceUrl: text('sourceUrl'),
     licenseId: text('licenseId').references(() => metaLicenses.id, {
       onDelete: 'restrict',
@@ -42,6 +48,11 @@ export const metaDatasets = sqliteTable(
     category: text('category', { enum: datasetCategories }),
     attribution: text('attribution'),
     tags: jsonText('tags'),
+    // Resolved, versioned merge-rule revisions are synchronised from the
+    // registry. Releases copy this value so later dataset changes cannot
+    // rewrite historic processing decisions; per-record exceptions belong in
+    // releaseProcessingActions instead.
+    processingRules: jsonText('processingRules'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
@@ -50,11 +61,21 @@ export const metaDatasets = sqliteTable(
       table.publisherId,
       table.code,
     ),
-    index('datasets_region_theme_type_idx').on(
-      table.regionCode,
-      table.theme,
-      table.type,
-    ),
+    index('datasets_region_theme_idx').on(table.regionCode, table.theme),
+  ],
+)
+
+export const metaDatasetResourceTypes = sqliteTable(
+  'datasetResourceTypes',
+  {
+    datasetId: text('datasetId')
+      .notNull()
+      .references(() => metaDatasets.id, { onDelete: 'cascade' }),
+    resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
+  },
+  table => [
+    primaryKey({ columns: [table.datasetId, table.resourceType] }),
+    index('datasetResourceTypes_resourceType_idx').on(table.resourceType),
   ],
 )
 
@@ -77,6 +98,32 @@ export const metaDatasetI18n = sqliteTable(
   ],
 )
 
+/**
+ * A named, reproducible derivative of a dataset resource. Transformations do
+ * not create a second publisher or dataset: they retain the originating
+ * dataset/release and select an additional geometry variant at read time.
+ */
+export const metaDatasetTransforms = sqliteTable(
+  'datasetTransforms',
+  {
+    datasetId: text('datasetId')
+      .notNull()
+      .references(() => metaDatasets.id, { onDelete: 'cascade' }),
+    code: text('code').notNull(),
+    resourceType: text('resourceType').notNull(),
+    sourceVersion: text('sourceVersion').notNull(),
+    outputVariant: text('outputVariant').notNull(),
+    derivation: jsonText('derivation').notNull(),
+    versionHash: text('versionHash').notNull(),
+    ...timestamps,
+  },
+  table => [
+    primaryKey({ columns: [table.datasetId, table.code] }),
+    uniqueIndex('datasetTransforms_outputVariant_unique_idx').on(table.outputVariant),
+    index('datasetTransforms_resourceType_idx').on(table.resourceType),
+  ],
+)
+
 export const metaReleases = sqliteTable(
   'releases',
   {
@@ -85,22 +132,30 @@ export const metaReleases = sqliteTable(
       .notNull()
       .references(() => metaDatasets.id, { onDelete: 'restrict' }),
     code: text('code').notNull().unique(),
+    resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     sourceVersion: text('sourceVersion').notNull(),
     sourceSchemaVersion: text('sourceSchemaVersion'),
     publicationDate: text('publicationDate'),
     cohortKey: text('cohortKey'),
     rawObjectKey: text('rawObjectKey'),
     originalFileName: text('originalFileName'),
+    releaseNotesUrl: text('releaseNotesUrl'),
+    notes: text('notes'),
     status: text('status', { enum: releaseStatuses }).notNull(),
-    revokedAt: integer('revokedAt', { mode: 'timestamp_ms' }),
+    revokedAt: isoTimestamp('revokedAt'),
     revocationReason: text('revocationReason'),
     supersededByReleaseId: text('supersededByReleaseId'),
-    ingestedAt: integer('ingestedAt', { mode: 'timestamp_ms' }),
+    // Copied from the dataset when this immutable source release is created.
+    // Do not rebuild a historic audit from later dataset metadata or later
+    // merge-ruleset revisions.
+    processingRules: jsonText('processingRules'),
+    ingestedAt: isoTimestamp('ingestedAt'),
     ...timestamps,
   },
   table => [
-    uniqueIndex('releases_datasetId_sourceVersion_unique_idx').on(
+    uniqueIndex('releases_datasetId_resourceType_sourceVersion_unique_idx').on(
       table.datasetId,
+      table.resourceType,
       table.sourceVersion,
     ),
     uniqueIndex('releases_id_datasetId_unique_idx').on(table.id, table.datasetId),

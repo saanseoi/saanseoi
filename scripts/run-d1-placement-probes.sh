@@ -36,16 +36,16 @@ run_probe() {
 
 case "$target" in
   preview)
-    run_probe "https://preview.saanseoi.hk/api/v0/meta/d1-placement-probe"
+    run_probe "https://preview.api.saanseoi.hk/v0/meta/d1-placement-probe"
     run_probe "https://preview.harbour.saanseoi.hk/api/v1/meta/d1-placement-probe"
     ;;
   production)
-    run_probe "https://saanseoi.hk/api/v0/meta/d1-placement-probe"
+    run_probe "https://api.saanseoi.hk/v0/meta/d1-placement-probe"
     run_probe "https://harbour.saanseoi.hk/api/v1/meta/d1-placement-probe"
     ;;
   all)
-    run_probe "https://saanseoi.hk/api/v0/meta/d1-placement-probe"
-    run_probe "https://preview.saanseoi.hk/api/v0/meta/d1-placement-probe"
+    run_probe "https://api.saanseoi.hk/v0/meta/d1-placement-probe"
+    run_probe "https://preview.api.saanseoi.hk/v0/meta/d1-placement-probe"
     run_probe "https://preview.harbour.saanseoi.hk/api/v1/meta/d1-placement-probe"
     run_probe "https://harbour.saanseoi.hk/api/v1/meta/d1-placement-probe"
     ;;

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -lt 1 || $# -gt 2 ]]; then
-  echo "Usage: $0 <meta|current|history|source> [year]" >&2
+  echo "Usage: $0 <meta|current|history|source> [year|BEFORE]" >&2
   exit 1
 fi
 
@@ -26,14 +26,14 @@ case "$db_family" in
     ;;
   history)
     drizzle_db_year="${requested_year:-$current_year}"
-    d1_target_family="history-hk-${drizzle_db_year}"
+    d1_target_family="history-hk-${drizzle_db_year,,}"
     config_file="./drizzle.history.config.ts"
     local_path_env="LOCAL_D1_SQLITE_PATH_HISTORY_HK_${drizzle_db_year}"
     remote_database_id_env="CLOUDFLARE_DATABASE_ID_HISTORY_HK_${drizzle_db_year}"
     ;;
   source)
     drizzle_db_year="${requested_year:-$current_year}"
-    d1_target_family="source-hk-${drizzle_db_year}"
+    d1_target_family="source-hk-${drizzle_db_year,,}"
     config_file="./drizzle.source.config.ts"
     local_path_env="LOCAL_D1_SQLITE_PATH_SOURCE_HK_${drizzle_db_year}"
     remote_database_id_env="CLOUDFLARE_DATABASE_ID_SOURCE_HK_${drizzle_db_year}"

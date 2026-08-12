@@ -1,0 +1,29 @@
+{
+  "name": "basemap-tiles",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --var AUTH_MODE:disabled --var ENVIRONMENT:local",
+    "dev:auth": "wrangler dev --var AUTH_MODE:required --var ENVIRONMENT:local",
+    "build": "mkdir -p dist && wrangler deploy --dry-run --outdir dist --minify",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "check": "tsc --noEmit",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "test": "bun test",
+    "test:watch": "bun test --watch"
+  },
+  "dependencies": {
+    "@repo/auth": "workspace:*",
+    "@repo/basemap": "workspace:*",
+    "pmtiles": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "bun-types": "^1.3.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10",
+    "wrangler": "^4.122.0"
+  }
+}

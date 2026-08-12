@@ -1,6 +1,6 @@
 # Divisions
 
-## Levels 
+## Levels
 
 - `0` - SAR, e.g. Hong Kong SAR, Macao SAR
 - `1` - Area | City, e.g. Kowloon, Hong Kong Island, New Territories
@@ -12,15 +12,17 @@
 
 - All levels can contain none, one or more divisions of a lower level
 - No level will contain any division of the same level
-- All levels smaller than 2 (District) are optional for the hierarchy chain 
+- All levels smaller than 2 (District) are optional for the hierarchy chain
 - All levels of 3 or below MUST have at least 1 district it is within
 - All levels of 2 have exactly 1 Area they are within
 - All levels of 1 have exactly 1 SAR they are within
-- Typically a Microhood will either have a Macrohood or a Neighbourhood as parent 
+- Typically a Microhood will either have a Macrohood or a Neighbourhood as parent
 
 ### Mapping overture PlaceType to Level
 
-See Overture [docs](https://docs.overturemaps.org/guides/divisions/#subtype-descriptions) for definitions.
+See Overture
+[docs](https://docs.overturemaps.org/guides/divisions/#subtype-descriptions) for
+definitions.
 
 First based on `subtype`, then on `class`
 
@@ -42,4 +44,5 @@ First based on `subtype`, then on `class`
 - `microhood` -> 6 (Microhood | Hamlet)
 
 We need to add `Areas`:
+
 - New Territories

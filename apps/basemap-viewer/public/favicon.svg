@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>SaanSeoi basemap viewer</title>
+  <defs>
+    <linearGradient id="background" x1="48" y1="32" x2="464" y2="480" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#351000" />
+      <stop offset="0.48" stop-color="#7c2e00" />
+      <stop offset="1" stop-color="#f36b20" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#background)" />
+  <path fill="#fcf9f5" d="M92 156h52v196h88V76h48v276h88V156h52v248H92z" />
+  <rect x="368" y="404" width="52" height="40" fill="#fcf9f5" />
+</svg>

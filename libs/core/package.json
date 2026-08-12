@@ -13,24 +13,29 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./codes": "./src/codes.ts",
     "./upload": "./src/lib/services/upload.ts",
     "./uploadLocal": "./src/lib/services/uploadLocal.ts",
+    "./d1ImportApi": "./src/lib/d1ImportApi.ts",
+    "./apiLocales": "./src/lib/apiLocales.ts",
+    "./publicApiKey": "./src/publicApiKey.ts",
+    "./pipeline/*": "./src/pipeline/*",
     "./testing/localDb": "./src/testing/localDb.ts",
     "./parquetInspector": "./src/lib/parquetInspector.ts",
     "./parquetInspectorNode": "./src/lib/parquetInspectorNode.ts",
     "./db/types": "./src/lib/db/types.ts",
-    "./db/metaRepository": "./src/lib/db/metaRepository.ts"
+    "./db/metaRegistry": "./src/lib/db/metaRegistry.ts"
   },
   "dependencies": {
     "@repo/db": "workspace:*",
-    "drizzle-orm": "^1.0.0-rc.4-5d5b77c",
-    "hyparquet": "^1.26.1",
+    "drizzle-orm": "1.0.0-rc.4-5d5b77c",
+    "hyparquet": "^1.28.1",
     "hyparquet-compressors": "^1.1.1"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "bun-types": "^1.3.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   }
 }

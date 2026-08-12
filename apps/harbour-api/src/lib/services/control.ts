@@ -1,19 +1,31 @@
 import {
-  publishReleaseArtifacts,
+  publishReleaseArtefacts,
   ensureDraftReleaseSetForRelease,
   ensureIngestRunStarted,
   getCurrentReleaseForDatasetId,
+  listOvertureReleaseSetCohortsAtOrAfterCohortKey,
+  listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey,
+  listCurrentApiCompositionMembersForType,
   listCurrentSnapshotCleanupCandidates,
   listApiReleaseSetSnapshots,
-  resolveActiveReleaseSetForType,
+  resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
+  resolveLatestReleaseSetForTypeDomainCohort,
+  resolvePublishedSnapshotForResourceTypeRegionCohortKey,
+  resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
   resolveReleaseSetForRelease,
   resolveSnapshotForRelease,
   updateLatestOpenIngestRun,
   updateDatasetStatus,
   upsertIngestRunStatus,
   waitForDatasetRecord,
-} from '@repo/core/db/metaRepository'
-import type { HarbourJobMessage, ResourceType } from '@repo/core'
+} from '@repo/core/db/metaRegistry'
+import {
+  datasetVariantForSource,
+  publisherCodeForSource,
+  type HarbourJobMessage,
+  type RegionCode,
+  type ResourceType,
+} from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 type StageRequest = {
@@ -38,10 +50,20 @@ type CleanupSnapshotsRequest = {
 }
 
 type ControlResult = {
+  apiCatalogRevisionCode?: string
+  apiCatalogRevisionId?: string
+  apiReleaseSetId?: string
+  apiReleaseSetCode?: string
+  apiReleaseSetStatus?: 'current' | 'draft'
+  apiReleaseSetPublications?: Array<{
+    apiCatalogRevisionCode?: string
+    apiReleaseSetCode: string
+  }>
   datasetId: string
   releaseCode: string
   releaseId: string
   phase: string | null
+  snapshotId?: string
   status: string
 }
 
@@ -60,6 +82,8 @@ export type HarbourJobQueue = {
 }
 
 const DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS = 30
+const PUBLISH_SNAPSHOT_WAIT_LIMIT = 20
+const PUBLISH_SNAPSHOT_WAIT_DELAY_MS = 250
 const TRANSIENT_CONTROL_RETRY_LIMIT = 4
 const TRANSIENT_CONTROL_RETRY_DELAY_MS = 50
 
@@ -75,13 +99,25 @@ export async function handleStageRunning(
       await updateDatasetStatus(db, dataset.releaseId, 'processing')
     }
 
-    await ensureIngestRunStarted(
-      db,
-      dataset.releaseId,
-      request.phase,
-      request.stats ?? null,
-      now,
-    )
+    if (isAddressSqlGenerationProgressPhase(request.phase)) {
+      await upsertIngestRunStatus(
+        db,
+        dataset.releaseId,
+        request.phase,
+        'running',
+        now,
+        null,
+        request.stats ?? null,
+      )
+    } else {
+      await ensureIngestRunStarted(
+        db,
+        dataset.releaseId,
+        request.phase,
+        request.stats ?? null,
+        now,
+      )
+    }
 
     return {
       datasetId: dataset.releaseCode,
@@ -184,17 +220,98 @@ export async function handlePublishDataset(
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
-    const publishedAt = new Date().toISOString()
     const datasetType = dataset.type as ResourceType
-    const currentRelease = await getCurrentReleaseForDatasetId(
+    const datasetVariant = datasetVariantForSource(datasetType, dataset.source, {
+      cohortKey: dataset.cohortKey,
+      datasetCode: dataset.datasetCode,
+      sourceVariant: dataset.sourceVariant,
+      sourceVersion: dataset.sourceVersion,
+    })
+    const compositionMembers = await listCurrentApiCompositionMembersForType(
       db,
-      dataset.datasetId,
-      dataset.releaseId,
+      datasetType,
     )
-    const releaseSet =
-      (await resolveReleaseSetForRelease(db, dataset.releaseId, datasetType)) ??
-      (await ensureDraftReleaseSetForRelease(db, datasetType, dataset))
-    const snapshot = await resolveSnapshotForRelease(db, dataset.releaseId, datasetType)
+    const datasetMember =
+      compositionMembers.find(
+        member =>
+          member.resourceType === datasetType && member.variant === datasetVariant,
+      ) ?? resolveTransformMember(compositionMembers, datasetType, datasetVariant)
+    if (!datasetMember) {
+      throw new ControlRequestError(
+        `No current API composition member accepts ${datasetType}/${datasetVariant}.`,
+      )
+    }
+    const domainCode = datasetMember.domainCode
+    const isCenstatdGeometry =
+      datasetType === 'divisionArea' && dataset.source === 'hkgov-censtatd'
+    const censtatdReleaseSetCohorts = isCenstatdGeometry
+      ? await listOvertureReleaseSetCohortsAtOrAfterCohortKey(
+          db,
+          'division',
+          dataset.regionCode as RegionCode,
+          dataset.cohortKey,
+        )
+      : []
+
+    if (isCenstatdGeometry && censtatdReleaseSetCohorts.length === 0) {
+      throw new ControlRequestError(
+        `No Overture division release set is available on or after C&SD cohort ${dataset.cohortKey}.`,
+      )
+    }
+
+    // Census cohorts are independently selectable required inputs. Publishing
+    // a later one must not supersede the earlier source release.
+    const currentRelease = isCenstatdGeometry
+      ? null
+      : await getCurrentReleaseForDatasetId(
+          db,
+          dataset.datasetId,
+          datasetType,
+          dataset.releaseId,
+        )
+    const existingReleaseSet = isCenstatdGeometry
+      ? null
+      : await resolveReleaseSetForRelease(
+          db,
+          dataset.releaseId,
+          datasetType,
+          domainCode,
+        )
+    const draftReleaseSets =
+      datasetVariant === 'hkgov-had'
+        ? await listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
+            db,
+            datasetType,
+            dataset.regionCode as RegionCode,
+            dataset.cohortKey,
+          )
+        : []
+    const releaseSets = isCenstatdGeometry
+      ? await (async () => {
+          const releaseSets = []
+          // Create each revision in the same chronological order in which it
+          // is published, so the registry's publication ordering is stable.
+          for (const cohortKey of censtatdReleaseSetCohorts) {
+            releaseSets.push(
+              await ensureDraftReleaseSetForRelease(
+                db,
+                'division',
+                { cohortKey, regionCode: dataset.regionCode },
+                { domainCode },
+              ),
+            )
+          }
+          return releaseSets
+        })()
+      : draftReleaseSets.length > 0
+        ? draftReleaseSets
+        : [
+            existingReleaseSet ??
+              (await ensureDraftReleaseSetForRelease(db, datasetType, dataset, {
+                domainCode,
+              })),
+          ]
+    const snapshot = await waitForSnapshotForRelease(db, dataset.releaseId, datasetType)
 
     if (!snapshot) {
       throw new ControlRequestError(
@@ -202,39 +319,105 @@ export async function handlePublishDataset(
       )
     }
 
-    const activeReleaseSet = await resolveActiveReleaseSetForType(db, datasetType)
-    const carriedSnapshots: Array<{
-      resourceType: ResourceType
-      snapshotId: string
-    }> = []
+    const domainMembers = compositionMembers.filter(
+      member => member.domainCode === domainCode,
+    )
+    let selectedApiCatalogRevision: Awaited<
+      ReturnType<typeof publishReleaseArtefacts>
+    > | null = null
+    let selectedReleaseSetStatus: 'current' | 'draft' = 'draft'
+    const apiReleaseSetPublications: NonNullable<
+      ControlResult['apiReleaseSetPublications']
+    > = []
+    const newestReleaseSetIndex = releaseSets.length - 1
+    const publishedAtMs = Date.now()
+    for (const [index, releaseSet] of releaseSets.entries()) {
+      const releaseSetCohortKey =
+        parseReleaseSetCohortKey(releaseSet.code) ?? dataset.cohortKey
+      const previousReleaseSet = await resolveLatestReleaseSetForTypeDomainCohort(
+        db,
+        datasetType,
+        domainCode,
+        dataset.regionCode as RegionCode,
+        releaseSetCohortKey,
+      )
+      const carriedSnapshots = await resolveCarriedSnapshots(
+        db,
+        previousReleaseSet?.id === releaseSet.id ? null : previousReleaseSet,
+        datasetType,
+        datasetVariant,
+      )
+      const requiredMembers = new Set(
+        domainMembers
+          .filter(member => member.isRequired)
+          .map(member => releaseSetMemberKey(member.resourceType, member.variant)),
+      )
+      const satisfiedRequiredMembers = new Set<string>()
 
-    if (activeReleaseSet && activeReleaseSet.id !== releaseSet.id) {
-      const activeSnapshots = await listApiReleaseSetSnapshots(db, activeReleaseSet.id)
-
-      for (const activeSnapshot of activeSnapshots) {
-        if (activeSnapshot.snapshotResourceType === datasetType) {
+      for (const member of domainMembers) {
+        const memberKey = releaseSetMemberKey(member.resourceType, member.variant)
+        if (member.resourceType === datasetType && member.variant === datasetVariant) {
+          if (member.isRequired) satisfiedRequiredMembers.add(memberKey)
           continue
         }
 
-        carriedSnapshots.push({
-          resourceType: activeSnapshot.snapshotResourceType,
-          snapshotId: activeSnapshot.snapshotId,
+        const supportingSnapshots = await resolveSupportingSnapshotsForMember(
+          db,
+          member,
+          dataset.regionCode as RegionCode,
+          releaseSetCohortKey,
+        )
+
+        if (supportingSnapshots.length === 0) continue
+        if (member.isRequired) satisfiedRequiredMembers.add(memberKey)
+
+        for (const supportingSnapshot of supportingSnapshots) {
+          carriedSnapshots.push({
+            resourceType: member.resourceType,
+            snapshotId: supportingSnapshot.id,
+            variant: member.variant,
+          })
+        }
+      }
+
+      const releaseSetIsComplete = [...requiredMembers].every(memberKey =>
+        satisfiedRequiredMembers.has(memberKey),
+      )
+      const isNewestReleaseSet = index === newestReleaseSetIndex
+      const shouldPublishReleaseSet =
+        releaseSetIsComplete && (isCenstatdGeometry || isNewestReleaseSet)
+      if (isNewestReleaseSet && shouldPublishReleaseSet) {
+        selectedReleaseSetStatus = 'current'
+      }
+      const apiCatalogRevision = await publishReleaseArtefacts(db, {
+        carriedSnapshots,
+        currentRelease,
+        currentReleaseIsCorrected: currentRelease
+          ? isCorrectedRelease(currentRelease.sourceVersion, dataset.sourceVersion)
+          : false,
+        dataset,
+        // Preserve chronological ordering in registry queries even when this
+        // backfill completes within one clock tick.
+        publishedAt: new Date(publishedAtMs + index).toISOString(),
+        releaseSetId: releaseSet.id,
+        snapshotId: snapshot.id,
+        type: datasetType,
+        // A first C&SD cohort makes its snapshot available to draft release
+        // sets, but cannot publish them until every required companion is
+        // present. Once complete, publish every affected cohort in
+        // chronological order; the newest one becomes current.
+        deferApiReleaseSet: !shouldPublishReleaseSet,
+        publishApiCatalogRevision: shouldPublishReleaseSet,
+        updateDatasetRelease: isNewestReleaseSet,
+      })
+      if (shouldPublishReleaseSet) {
+        selectedApiCatalogRevision = apiCatalogRevision
+        apiReleaseSetPublications.push({
+          apiCatalogRevisionCode: apiCatalogRevision?.code,
+          apiReleaseSetCode: releaseSet.code,
         })
       }
     }
-
-    await publishReleaseArtifacts(db, {
-      carriedSnapshots,
-      currentRelease,
-      currentReleaseIsCorrected: currentRelease
-        ? isCorrectedRelease(currentRelease.sourceVersion, dataset.sourceVersion)
-        : false,
-      dataset,
-      publishedAt,
-      releaseSetId: releaseSet.id,
-      snapshotId: snapshot.id,
-      type: datasetType,
-    })
 
     if (!request.skipSnapshotCleanup && cleanupQueue) {
       try {
@@ -252,13 +435,130 @@ export async function handlePublishDataset(
     }
 
     return {
+      apiCatalogRevisionCode: selectedApiCatalogRevision?.code,
+      apiCatalogRevisionId: selectedApiCatalogRevision?.id,
+      apiReleaseSetId: releaseSets.at(-1)?.id,
+      apiReleaseSetCode: releaseSets.at(-1)?.code,
+      apiReleaseSetStatus: selectedReleaseSetStatus,
+      apiReleaseSetPublications,
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
       releaseId: dataset.releaseId,
       phase: null,
+      snapshotId: snapshot.id,
       status: 'current',
     }
   })
+}
+
+/**
+ * Geometry transforms are materialised for efficient reads, but they do not
+ * declare independent API-composition slots. A derived variant therefore
+ * inherits the source variant's domain and release-set membership.
+ */
+function resolveTransformMember(
+  compositionMembers: Awaited<
+    ReturnType<typeof listCurrentApiCompositionMembersForType>
+  >,
+  datasetType: ResourceType,
+  datasetVariant: string,
+) {
+  const sourceVariant = datasetVariant.match(
+    /^(hkgov-censtatd:(?:2016|2021)):simplified$/,
+  )?.[1]
+  if (!sourceVariant) return undefined
+
+  return compositionMembers.find(
+    member => member.resourceType === datasetType && member.variant === sourceVariant,
+  )
+}
+
+function releaseSetMemberKey(resourceType: ResourceType, variant: string) {
+  return `${resourceType}:${variant}`
+}
+
+async function resolveCarriedSnapshots(
+  db: HarbourReadableDb,
+  activeReleaseSet: Awaited<
+    ReturnType<typeof resolveLatestReleaseSetForTypeDomainCohort>
+  >,
+  datasetType: ResourceType,
+  datasetVariant: string,
+) {
+  if (!activeReleaseSet) return []
+
+  const activeSnapshots = await listApiReleaseSetSnapshots(db, activeReleaseSet.id)
+  return activeSnapshots.flatMap(activeSnapshot =>
+    activeSnapshot.snapshotResourceType === datasetType &&
+    activeSnapshot.variant === datasetVariant
+      ? []
+      : [
+          {
+            resourceType: activeSnapshot.snapshotResourceType,
+            snapshotId: activeSnapshot.snapshotId,
+            variant: activeSnapshot.variant,
+          },
+        ],
+  )
+}
+
+async function resolveSupportingSnapshotsForMember(
+  db: HarbourReadableDb,
+  member: Awaited<ReturnType<typeof listCurrentApiCompositionMembersForType>>[number],
+  regionCode: RegionCode,
+  cohortKey: string,
+) {
+  if (member.variant !== 'default') {
+    const source = member.variant.split(':')[0] ?? member.variant
+    const publisherCode = publisherCodeForSource(source)
+    const snapshots =
+      await resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
+        db,
+        member.resourceType,
+        regionCode,
+        cohortKey,
+        {
+          publisherCode,
+          variant: member.variant,
+        },
+      )
+
+    if (member.cohortMatchingMode === 'latest_at_or_before_cohort_per_dataset') {
+      return snapshots
+    }
+
+    if (member.cohortMatchingMode === 'latest_at_or_before_or_earliest_after_cohort') {
+      if (snapshots.length > 0) return snapshots
+
+      const nextSnapshot =
+        await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+          db,
+          member.resourceType,
+          regionCode,
+          cohortKey,
+          { publisherCode },
+        )
+      return nextSnapshot ? [nextSnapshot] : []
+    }
+
+    return snapshots.filter(snapshot => snapshot.cohortKey === cohortKey)
+  }
+
+  const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+    db,
+    member.resourceType,
+    regionCode,
+    cohortKey,
+  )
+  return snapshot ? [snapshot] : []
+}
+
+function parseReleaseSetCohortKey(releaseSetCode?: string) {
+  return (
+    releaseSetCode?.match(
+      /^data-[a-z0-9]+-divisions-(.+?)(?:-r\d+)?(?:--[a-z0-9-]+)?$/i,
+    )?.[1] ?? null
+  )
 }
 
 export async function handleScheduleSnapshotCleanup(
@@ -339,8 +639,37 @@ async function requireDataset(
   return dataset
 }
 
+async function waitForSnapshotForRelease(
+  db: HarbourReadableDb,
+  releaseId: string,
+  datasetType: ResourceType,
+) {
+  for (let attempt = 0; attempt <= PUBLISH_SNAPSHOT_WAIT_LIMIT; attempt += 1) {
+    const snapshot = await resolveSnapshotForRelease(db, releaseId, datasetType)
+
+    if (snapshot) {
+      return snapshot
+    }
+
+    if (attempt < PUBLISH_SNAPSHOT_WAIT_LIMIT) {
+      await sleep(PUBLISH_SNAPSHOT_WAIT_DELAY_MS)
+    }
+  }
+
+  return null
+}
+
 function stringifyOptional(value?: Record<string, unknown>) {
   return value ? JSON.stringify(value) : null
+}
+
+function isAddressSqlGenerationProgressPhase(phase: string) {
+  return (
+    phase === 'normaliseAddressSql' ||
+    phase === 'generateAddressSqlSource' ||
+    phase === 'generateAddressSqlHistory' ||
+    phase === 'generateAddressSqlCurrent'
+  )
 }
 
 export function isTransientControlError(error: unknown) {

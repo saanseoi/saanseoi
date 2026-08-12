@@ -1,0 +1,59 @@
+{
+  "versionHash": "sha256:caa8178cd8e2b51c361f92c1d0f1000fe36dc75471164b657fc8bf097e6c9cbc",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "five-yearly",
+  "theme": "stats",
+  "resourceTypes": ["divisionStatistic"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
+  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["revision"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2021"
+    }
+  ],
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Population and Household Statistics by District Council District",
+      "description": "Planned C&SD source for annual land-based, non-institutional population, household and socio-economic measures."
+    }
+  ]
+}

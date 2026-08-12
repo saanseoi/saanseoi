@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import type { ParquetInspection, UploadPlan } from '@repo/core'
+import type { UploadInspection, UploadPlan } from '@repo/core'
 
 import { validateOvertureSchema } from './overture.ts'
 
@@ -27,19 +27,56 @@ const BASE_DIVISION_FIELDS = [
   { name: 'capital_of_divisions', type: 'list', nullable: true },
   { name: 'theme', type: 'utf8', nullable: true },
   { name: 'type', type: 'utf8', nullable: true },
-] satisfies ParquetInspection['schema']
+] satisfies UploadInspection['schema']
+
+const BASE_DIVISION_AREA_FIELDS = [
+  { name: 'id', type: 'utf8', nullable: true },
+  { name: 'geometry', type: 'type', nullable: true },
+  { name: 'country', type: 'utf8', nullable: true },
+  { name: 'sources', type: 'list', nullable: true },
+  { name: 'subtype', type: 'utf8', nullable: true },
+  { name: 'class', type: 'utf8', nullable: true },
+  { name: 'names', type: 'struct', nullable: true },
+  { name: 'is_land', type: 'boolean', nullable: true },
+  { name: 'is_territorial', type: 'boolean', nullable: true },
+  { name: 'region', type: 'utf8', nullable: true },
+  { name: 'division_id', type: 'utf8', nullable: true },
+  { name: 'version', type: 'int_32', nullable: true },
+  { name: 'bbox', type: 'struct', nullable: true },
+  { name: 'theme', type: 'utf8', nullable: true },
+  { name: 'type', type: 'utf8', nullable: true },
+] satisfies UploadInspection['schema']
+
+const BASE_DIVISION_BOUNDARY_FIELDS = [
+  { name: 'id', type: 'utf8', nullable: true },
+  { name: 'geometry', type: 'type', nullable: true },
+  { name: 'division_ids', type: 'list', nullable: true },
+  { name: 'subtype', type: 'utf8', nullable: true },
+  { name: 'class', type: 'utf8', nullable: true },
+  { name: 'sources', type: 'list', nullable: true },
+  { name: 'perspectives', type: 'struct', nullable: true },
+  { name: 'is_disputed', type: 'boolean', nullable: true },
+  { name: 'is_land', type: 'boolean', nullable: true },
+  { name: 'is_territorial', type: 'boolean', nullable: true },
+  { name: 'country', type: 'utf8', nullable: true },
+  { name: 'region', type: 'utf8', nullable: true },
+  { name: 'version', type: 'int_32', nullable: true },
+  { name: 'bbox', type: 'struct', nullable: true },
+  { name: 'theme', type: 'utf8', nullable: true },
+  { name: 'type', type: 'utf8', nullable: true },
+] satisfies UploadInspection['schema']
 
 function makePlan(sourceVersion: string): UploadPlan {
   return {
-    datasetCode: 'hk-division',
-    releaseCode: `overture-hk-division-${sourceVersion}`,
+    datasetCode: 'ds-hk-overture-division',
+    releaseCode: `overture-hk-${sourceVersion}-division`,
     regionCode: 'hk',
     theme: 'divisions',
     type: 'division',
     source: 'overture',
     cohortKey: '2026-05',
     sourceVersion,
-    datasetId: `overture-hk-division-${sourceVersion}`,
+    datasetId: `overture-hk-${sourceVersion}-division`,
     filePath: '/tmp/division.parquet',
     fileName: 'division.parquet',
     originalFileName: 'division.parquet',
@@ -57,35 +94,33 @@ function makePlan(sourceVersion: string): UploadPlan {
   }
 }
 
-function makeAddressPlan(sourceVersion: string): UploadPlan {
+function makeDivisionAreaPlan(sourceVersion: string): UploadPlan {
   return {
-    datasetCode: 'hk-address',
-    releaseCode: `overture-hk-address-${sourceVersion}`,
-    regionCode: 'hk',
-    theme: 'addresses',
-    type: 'address',
-    source: 'overture',
-    cohortKey: '2026-05',
-    sourceVersion,
-    datasetId: `overture-hk-address-${sourceVersion}`,
-    filePath: '/tmp/address.parquet',
-    fileName: 'address.parquet',
-    originalFileName: 'address.parquet',
-    rowCount: 1,
-    schemaFingerprint: 'test-fingerprint',
-    inferredFrom: {
-      theme: 'path',
-      type: 'path',
-      regionCode: 'path',
-      cohortKey: 'flag',
-      source: 'flag',
-      sourceVersion: 'flag',
-    },
-    supersedesDatasetId: null,
+    ...makePlan(sourceVersion),
+    datasetCode: 'ds-hk-overture-division-area',
+    releaseCode: `overture-hk-${sourceVersion}-divisionArea`,
+    type: 'divisionArea',
+    datasetId: `overture-hk-${sourceVersion}-divisionArea`,
+    filePath: '/tmp/division-area.parquet',
+    fileName: 'division-area.parquet',
+    originalFileName: 'division-area.parquet',
   }
 }
 
-function makeInspection(schema: ParquetInspection['schema']): ParquetInspection {
+function makeDivisionBoundaryPlan(sourceVersion: string): UploadPlan {
+  return {
+    ...makePlan(sourceVersion),
+    datasetCode: 'ds-hk-overture-division-boundary',
+    releaseCode: `overture-hk-${sourceVersion}-divisionBoundary`,
+    type: 'divisionBoundary',
+    datasetId: `overture-hk-${sourceVersion}-divisionBoundary`,
+    filePath: '/tmp/division-boundary.parquet',
+    fileName: 'division-boundary.parquet',
+    originalFileName: 'division-boundary.parquet',
+  }
+}
+
+function makeInspection(schema: UploadInspection['schema']): UploadInspection {
   return {
     rowCount: 1,
     schema,
@@ -105,7 +140,6 @@ describe('validateOvertureSchema', () => {
 
     expect(result.schema.id).toBe('overture-division-v2025-09-24.0')
   })
-
   test('accepts admin_level for division uploads from 2026-02-18.0 onward', () => {
     const result = validateOvertureSchema(
       makePlan('2026-02-18.0'),
@@ -119,27 +153,38 @@ describe('validateOvertureSchema', () => {
     expect(result.schema.id).toBe('overture-division-v2026-02-18.0')
   })
 
-  test('accepts nullable postcode on overture address uploads', () => {
+  test('accepts admin_level for divisionArea uploads from 2026-02-18.0 onward', () => {
     const result = validateOvertureSchema(
-      makeAddressPlan('2026-05-20.0'),
+      makeDivisionAreaPlan('2026-02-18.0'),
       makeInspection([
-        { name: 'id', type: 'utf8', nullable: true },
-        { name: 'geometry', type: 'type', nullable: true },
-        { name: 'bbox', type: 'struct', nullable: true },
-        { name: 'country', type: 'utf8', nullable: true },
-        { name: 'street', type: 'utf8', nullable: true },
-        { name: 'number', type: 'utf8', nullable: true },
-        { name: 'unit', type: 'utf8', nullable: true },
-        { name: 'address_levels', type: 'list', nullable: true },
-        { name: 'postal_city', type: 'utf8', nullable: true },
-        { name: 'postcode', type: 'utf8', nullable: true },
-        { name: 'version', type: 'int_32', nullable: true },
-        { name: 'sources', type: 'list', nullable: true },
-        { name: 'theme', type: 'utf8', nullable: true },
-        { name: 'type', type: 'utf8', nullable: true },
+        ...BASE_DIVISION_AREA_FIELDS.slice(0, 13),
+        { name: 'admin_level', type: 'int_32', nullable: true },
+        ...BASE_DIVISION_AREA_FIELDS.slice(13),
       ]),
     )
 
-    expect(result.schema.id).toBe('overture-address-v2025-09-24.0')
+    expect(result.schema.id).toBe('overture-division-area-v2026-02-18.0')
+  })
+
+  test('accepts the pre-admin_level divisionBoundary schema before 2026-02-18.0', () => {
+    const result = validateOvertureSchema(
+      makeDivisionBoundaryPlan('2026-02-17.0'),
+      makeInspection(BASE_DIVISION_BOUNDARY_FIELDS),
+    )
+
+    expect(result.schema.id).toBe('overture-division-boundary-v2025-09-24.0')
+  })
+
+  test('accepts admin_level for divisionBoundary uploads from 2026-02-18.0 onward', () => {
+    const result = validateOvertureSchema(
+      makeDivisionBoundaryPlan('2026-02-18.0'),
+      makeInspection([
+        ...BASE_DIVISION_BOUNDARY_FIELDS.slice(0, 14),
+        { name: 'admin_level', type: 'int_32', nullable: true },
+        ...BASE_DIVISION_BOUNDARY_FIELDS.slice(14),
+      ]),
+    )
+
+    expect(result.schema.id).toBe('overture-division-boundary-v2026-02-18.0')
   })
 })

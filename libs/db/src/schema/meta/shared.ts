@@ -1,4 +1,5 @@
 import {
+  check,
   index,
   integer,
   real,
@@ -6,10 +7,12 @@ import {
   text,
   uniqueIndex,
 } from 'drizzle-orm/sqlite-core'
+import { sql } from 'drizzle-orm'
 
 import { ingestRunStatuses } from '../../constants/schema'
+import { metaApiReleaseSets, metaSnapshots } from './api'
 import { metaReleases } from './datasets'
-import { jsonText, timestamps } from './_shared'
+import { jsonText, timestamps } from '../shared'
 
 export const ingestRuns = sqliteTable(
   'ingestRuns',
@@ -36,9 +39,13 @@ export const stats = sqliteTable(
   {
     id: text('id').primaryKey(),
     type: text('type').notNull(),
-    releaseId: text('releaseId')
-      .notNull()
-      .references(() => metaReleases.id),
+    releaseId: text('releaseId').references(() => metaReleases.id),
+    snapshotId: text('snapshotId').references(() => metaSnapshots.id, {
+      onDelete: 'cascade',
+    }),
+    apiReleaseSetId: text('apiReleaseSetId').references(() => metaApiReleaseSets.id, {
+      onDelete: 'cascade',
+    }),
     dimension: text('dimension').notNull(),
     metric: text('metric').notNull(),
     metricUnit: text('metricUnit').notNull(),
@@ -49,6 +56,8 @@ export const stats = sqliteTable(
   },
   table => [
     index('stats_releaseId_idx').on(table.releaseId),
+    index('stats_snapshotId_idx').on(table.snapshotId),
+    index('stats_apiReleaseSetId_idx').on(table.apiReleaseSetId),
     index('stats_dimension_idx').on(
       table.type,
       table.dimension,
@@ -56,6 +65,30 @@ export const stats = sqliteTable(
       table.groupBy,
       table.groupValue,
     ),
+    check(
+      'stats_owner_chk',
+      sql`${table.releaseId} IS NOT NULL OR ${table.snapshotId} IS NOT NULL OR ${table.apiReleaseSetId} IS NOT NULL`,
+    ),
+  ],
+)
+
+export const releaseProcessingActions = sqliteTable(
+  'releaseProcessingActions',
+  {
+    id: text('id').primaryKey(),
+    releaseId: text('releaseId')
+      .notNull()
+      .references(() => metaReleases.id, { onDelete: 'cascade' }),
+    action: text('action').notNull(),
+    mode: text('mode', { enum: ['automatic', 'manual'] }).notNull(),
+    summary: text('summary').notNull(),
+    affectedRecordCount: integer('affectedRecordCount').notNull(),
+    evidence: jsonText('evidence').notNull(),
+    ...timestamps,
+  },
+  table => [
+    index('releaseProcessingActions_releaseId_idx').on(table.releaseId),
+    index('releaseProcessingActions_action_idx').on(table.action, table.mode),
   ],
 )
 
@@ -68,8 +101,6 @@ export const entityAliases = sqliteTable(
     canonicalId: text('canonicalId').notNull(),
     sourceSystem: text('sourceSystem').notNull(),
     isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
-    validFromCohortKey: text('validFromCohortKey'),
-    validToCohortKey: text('validToCohortKey'),
     notes: text('notes'),
     ...timestamps,
   },

@@ -5,7 +5,7 @@ type SubstackSubscribeResult = {
   message: string
 }
 
-function normalizeSubstackSessionCookie(rawCookie?: string | null): string {
+function normaliseSubstackSessionCookie(rawCookie?: string | null): string {
   if (!rawCookie) {
     return ''
   }
@@ -48,7 +48,7 @@ export async function subscribeToSubstack(input: {
   sessionCookie?: string
 }): Promise<SubstackSubscribeResult> {
   const publication = input.publication.trim()
-  const cookie = normalizeSubstackSessionCookie(input.sessionCookie)
+  const cookie = normaliseSubstackSessionCookie(input.sessionCookie)
 
   if (!publication) {
     throw new Error('SUBSTACK_PUBLICATION is not configured.')

@@ -25,10 +25,10 @@ export const SearchFtsNotReadyErrorResponseSchema = z
       examples: ['fts_not_ready'],
     }),
     message: z
-      .literal('FTS index is not initialized. Rebuild placesFts before using search.')
+      .literal('FTS index is not initialised. Rebuild placesFts before using search.')
       .openapi({
         examples: [
-          'FTS index is not initialized. Rebuild placesFts before using search.',
+          'FTS index is not initialised. Rebuild placesFts before using search.',
         ],
       }),
   })

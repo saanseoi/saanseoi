@@ -1,0 +1,71 @@
+{
+  "versionHash": "sha256:8b9672a9d3b9c84f7a558a961ddea33f0cd8ed2cf0805584d5513d2632de20d4",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns-2021",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "five-yearly",
+  "theme": "stats",
+  "resourceTypes": ["divisionStatistic"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695181913136_27614",
+  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/a4cfda9071dd0c7ef994b6ff23621e0b708ad2227392b9f09084aa09f009d295",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["revision"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695181913136_27614"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2021",
+      "identicalArchiveSlots": [
+        {
+          "releaseSlot": "2024-Q4",
+          "sourceObjectHash": "42f7cff4738103ab3eb49af8ccb765905a48776139b87cbb526493709120e63a",
+          "contentHash": "c3bdb6730059ede4b4b14b80f7fed5560f2c823e8475f768015a3aa8e2df55ca"
+        },
+        {
+          "releaseSlot": "2026-Q2",
+          "sourceObjectHash": "9355a79bd309e0c6d913ad81958faea566df916ad6c12154d3bb5b804ff522f6",
+          "contentHash": "c3bdb6730059ede4b4b14b80f7fed5560f2c823e8475f768015a3aa8e2df55ca"
+        }
+      ]
+    }
+  ],
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "2021 Census: New Towns",
+      "description": "Planned C&SD source for 2021 Census statistics and boundaries for 10 new towns."
+    }
+  ]
+}

@@ -23,7 +23,11 @@ trap cleanup EXIT
 if bun x wrangler d1 execute "$@" --json >"$tmp_output" 2>&1; then
   bun -e '
     const raw = require("fs").readFileSync(process.argv[1], "utf8");
-    const payload = JSON.parse(raw);
+    const jsonStart = raw.search(/^[\[{]/m);
+    if (jsonStart === -1) {
+      throw new Error(`Unexpected wrangler d1 execute response: ${raw}`);
+    }
+    const payload = JSON.parse(raw.slice(jsonStart));
     const first = Array.isArray(payload) ? payload[0] ?? {} : payload ?? {};
     const meta = first.meta ?? {};
     const resultCount = Array.isArray(first.results) ? first.results.length : 0;

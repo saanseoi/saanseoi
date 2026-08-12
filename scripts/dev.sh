@@ -3,19 +3,12 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 
-cleanup() {
-  if [[ -n "${atlas_pid:-}" ]]; then
-    kill "$atlas_pid" 2>/dev/null || true
-    wait "$atlas_pid" 2>/dev/null || true
-  fi
-}
+# Migrate before any local Worker opens the shared persisted D1 databases.
+bash "$repo_root/libs/db/scripts/migrate-local-db.sh"
 
-trap cleanup EXIT INT TERM
-
-(
-  cd "$repo_root/apps/atlas-api"
-  bash ./scripts/dev.sh
-) &
-atlas_pid=$!
-
-exec bash "$repo_root/scripts/dev-local-stack.sh"
+export SAANSEOI_LOCAL_D1_MIGRATIONS_READY=1
+exec bun x turbo run dev \
+  --filter=harbour-api \
+  --filter=atlas-api \
+  --filter=atlas-app \
+  --filter=basemap-viewer

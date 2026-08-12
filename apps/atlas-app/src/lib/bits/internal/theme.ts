@@ -1,6 +1,7 @@
 export type ThemeMode = 'light' | 'dark'
 
 export const THEME_STORAGE_KEY = 'saanseoi-theme'
+export const THEME_CHANGE_EVENT = 'saanseoi:theme-change'
 export const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 function persistThemeCookie(theme: ThemeMode) {
@@ -56,6 +57,10 @@ export function applyTheme(theme: ThemeMode) {
 
   document.documentElement.classList.toggle('dark', theme === 'dark')
   document.documentElement.style.colorScheme = theme
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(THEME_CHANGE_EVENT, { detail: { theme } }))
+  }
 }
 
 export function setTheme(theme: ThemeMode) {

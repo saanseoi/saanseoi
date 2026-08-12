@@ -9,10 +9,15 @@ type SourceShardBindings = {
   [K in `DB_SOURCE_${ShardedRegionCode}_${ShardedYear}`]: D1Database
 }
 
+type BeforeShardBindings = {
+  DB_HISTORY_HK_BEFORE: D1Database
+  DB_SOURCE_HK_BEFORE: D1Database
+}
+
 export type MultiDbBindings = HistoryShardBindings &
   SourceShardBindings & {
     DB_META: D1Database
     DB_CURRENT: D1Database
-  }
+  } & BeforeShardBindings
 
 export type SaanseoiWorkerBindings = MultiDbBindings

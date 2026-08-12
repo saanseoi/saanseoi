@@ -32,6 +32,14 @@ const fallbackOption = options[0] ?? {
 const currentOption = $derived(
   options.find(option => option.value === getCurrentLocale()) ?? fallbackOption,
 )
+const localeDisplayNames: Record<AppLocale, string> = {
+  en: 'English',
+  'zh-Hant': '繁體中文',
+  'zh-Hans': '简体中文',
+}
+const selectedLanguageLabel = $derived(
+  localeDisplayNames[getCurrentLocale()] ?? m.language_selector_placeholder(),
+)
 const alternateOptions = $derived(
   options.filter(option => option.value !== getCurrentLocale()),
 )
@@ -58,7 +66,7 @@ function handleLocaleChange(nextLocale: string) {
       <Select.Value placeholder={m.language_selector_placeholder()}>
         {#snippet children()}
           <span class="sr-only">{currentOption.label}</span>
-          <Icon icon="ion:language-outline" class="size-4.5 dark:text-secondary" />
+          <Icon icon="ion:language-outline" class="size-5 dark:text-secondary" />
         {/snippet}
       </Select.Value>
     </Select.Trigger>
@@ -66,21 +74,21 @@ function handleLocaleChange(nextLocale: string) {
     <Select.Portal>
       <Select.Content
         {align}
-        class="z-50 min-w-56 overflow-hidden rounded-lg border border-border-card/60 bg-background-alt p-1 text-foreground shadow-popover"
+        class="z-70 min-w-56 overflow-hidden rounded-default border border-border-card/60 bg-background-alt p-1 text-foreground shadow-popover"
         {side}
         sideOffset={8}
       >
         <Select.Viewport class="flex flex-col gap-1">
           <div
-            class="flex items-center justify-between rounded-default border border-border-card/60 bg-muted px-3 py-2"
+            class="grid items-center rounded-default border border-border-card/60 bg-muted px-3 py-2"
+            style="grid-template-columns: minmax(0, 1fr) auto"
           >
-            <div class="flex min-w-0 flex-col">
-              <span
-                class="truncate font-body text-[0.92rem] font-semibold text-foreground"
-              >
-                {currentOption.label}
-              </span>
-            </div>
+            <span
+              class="font-body text-[0.92rem] font-semibold text-foreground"
+              style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
+            >
+              {selectedLanguageLabel}
+            </span>
             <Icon icon="proicons:checkmark" class="size-4 shrink-0 text-secondary" />
           </div>
 

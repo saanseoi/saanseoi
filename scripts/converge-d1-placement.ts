@@ -4,16 +4,20 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
-type Environment = 'preview'
+type Target = 'preview' | 'production'
 type BindingName =
   | 'DB_META'
   | 'DB_CURRENT'
+  | 'DB_HISTORY_HK_BEFORE'
   | 'DB_HISTORY_HK_2025'
   | 'DB_HISTORY_HK_2026'
+  | 'DB_SOURCE_HK_BEFORE'
   | 'DB_SOURCE_HK_2025'
   | 'DB_SOURCE_HK_2026'
 
 type Options = {
+  bindings: BindingName[]
+  target: Target
   iterations: number
   location: string
   maxCycles: number
@@ -48,29 +52,37 @@ type BindingAssessment = {
   worstP95Ms: number
 }
 
-type PlacementWhitelist = Partial<Record<`${Environment}:${BindingName}`, true>>
+type PlacementWhitelist = Partial<Record<`${Target}:${BindingName}`, true>>
 
 const allBindings: BindingName[] = [
   'DB_META',
   'DB_CURRENT',
+  'DB_HISTORY_HK_BEFORE',
   'DB_HISTORY_HK_2025',
   'DB_HISTORY_HK_2026',
+  'DB_SOURCE_HK_BEFORE',
   'DB_SOURCE_HK_2025',
   'DB_SOURCE_HK_2026',
 ]
 
-const probeUrls: Record<Environment, string[]> = {
+const probeUrls: Record<Target, string[]> = {
   preview: [
-    'https://preview.saanseoi.hk/api/v0/meta/d1-placement-probe',
+    'https://preview.api.saanseoi.hk/v0/meta/d1-placement-probe',
     'https://preview.harbour.saanseoi.hk/api/v1/meta/d1-placement-probe',
+  ],
+  production: [
+    'https://api.saanseoi.hk/v0/meta/d1-placement-probe',
+    'https://harbour.saanseoi.hk/api/v1/meta/d1-placement-probe',
   ],
 }
 
 const repoRoot = resolve(import.meta.dir, '..')
-const environment: Environment = 'preview'
 const options = parseArgs(Bun.argv.slice(2))
+const environment = options.target
 const probeApiKey = resolveRequiredEnvValue('D1_PLACEMENT_PROBE_API_KEY')
 const whitelist = loadWhitelist(options.whitelistFile)
+const MAX_PROBE_ATTEMPTS = 6
+const PROBE_RETRY_DELAY_MS = 10_000
 
 console.log(
   [
@@ -79,6 +91,7 @@ console.log(
     `location=${options.location}`,
     `max_cycles=${options.maxCycles}`,
     `iterations=${options.iterations}`,
+    `bindings=${options.bindings.join(',')}`,
     `threshold_p50_ms=${options.thresholdP50Ms}`,
     `threshold_p95_ms=${options.thresholdP95Ms}`,
     `whitelist_file=${options.whitelistFile}`,
@@ -141,6 +154,8 @@ process.exit(1)
 
 function parseArgs(args: string[]): Options {
   const defaults: Options = {
+    bindings: allBindings,
+    target: 'preview',
     iterations: 20,
     location: 'apac',
     maxCycles: 20,
@@ -154,8 +169,17 @@ function parseArgs(args: string[]): Options {
     const arg = args[index]
 
     switch (arg) {
+      case '--target':
+      case '--env':
+      case '--environment':
+        defaults.target = expectTarget(expectValue(args, ++index, arg), arg)
+        break
       case '--location':
         defaults.location = expectValue(args, ++index, '--location')
+        break
+      case '--bindings':
+      case '--binding':
+        defaults.bindings = parseBindingList(expectValue(args, ++index, arg), arg)
         break
       case '--iterations':
         defaults.iterations = Number(expectValue(args, ++index, '--iterations'))
@@ -210,6 +234,37 @@ function parseArgs(args: string[]): Options {
   return defaults
 }
 
+function parseBindingList(value: string, flag: string): BindingName[] {
+  const bindings = value
+    .split(',')
+    .map(binding => binding.trim())
+    .filter(Boolean)
+
+  if (bindings.length === 0) {
+    throw new Error(`${flag} must include at least one binding.`)
+  }
+
+  const unknownBindings = bindings.filter(
+    (binding): binding is string => !allBindings.includes(binding as BindingName),
+  )
+
+  if (unknownBindings.length > 0) {
+    throw new Error(
+      `${flag} contains unsupported binding(s): ${unknownBindings.join(', ')}. Supported bindings: ${allBindings.join(', ')}.`,
+    )
+  }
+
+  return [...new Set(bindings)] as BindingName[]
+}
+
+function expectTarget(value: string, flag: string): Target {
+  if (value === 'preview' || value === 'production') {
+    return value
+  }
+
+  throw new Error(`${flag} must be preview or production.`)
+}
+
 function expectValue(args: string[], index: number, flag: string) {
   const value = args[index]
 
@@ -225,7 +280,11 @@ function printHelpAndExit(code: number): never {
   bun ./scripts/converge-d1-placement.ts [options]
 
 Options:
+  --target <target>                Target to converge: preview or production. Defaults to preview.
+                                   --env and --environment are accepted aliases.
   --location <hint>                Passed to wrangler d1 create. Defaults to apac.
+  --bindings <csv>                 Only converge these bindings; omitted means all bindings.
+                                   Example: DB_HISTORY_HK_BEFORE,DB_SOURCE_HK_BEFORE.
   --iterations <n>                 Probe iterations per endpoint. Defaults to 20.
   --max-cycles <n>                 Maximum recreate/deploy cycles. Defaults to 20.
   --threshold-p50-ms <n>           Pass threshold for the worst p50 across both probes. Defaults to 15.
@@ -237,7 +296,7 @@ Options:
 }
 
 async function assessEnvironment(
-  environment: Environment,
+  environment: Target,
   options: Options,
   whitelist: PlacementWhitelist,
   probeApiKey: string,
@@ -246,25 +305,60 @@ async function assessEnvironment(
     probeUrls[environment].map(url => fetchProbe(url, options.iterations, probeApiKey)),
   )
 
-  return allBindings.map(binding =>
+  return options.bindings.map(binding =>
     assessBinding(binding, probes, options, whitelist, environment),
   )
 }
 
 async function fetchProbe(url: string, iterations: number, probeApiKey: string) {
-  const response = await fetch(`${url}?iterations=${iterations}`, {
-    headers: {
-      'x-api-key': probeApiKey,
-    },
-  })
+  let lastError: Error | null = null
 
-  if (!response.ok) {
-    throw new Error(
-      `Probe request failed for ${url}: ${response.status} ${response.statusText}`,
-    )
+  for (let attempt = 1; attempt <= MAX_PROBE_ATTEMPTS; attempt += 1) {
+    let response: Response | null = null
+
+    try {
+      response = await fetch(`${url}?iterations=${iterations}`, {
+        headers: {
+          'x-api-key': probeApiKey,
+        },
+      })
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+    }
+
+    if (response?.ok) {
+      return (await response.json()) as ProbeResponse
+    }
+
+    if (response) {
+      const responseBody = (await response.text()).trim()
+      lastError = new Error(
+        [
+          `Probe request failed for ${url}: ${response.status} ${response.statusText}`,
+          responseBody ? `body=${responseBody.slice(0, 500)}` : null,
+        ]
+          .filter(Boolean)
+          .join(' '),
+      )
+
+      if (response.status < 500 || response.status > 599) {
+        throw lastError
+      }
+    }
+
+    if (attempt < MAX_PROBE_ATTEMPTS) {
+      console.warn(
+        `Probe attempt ${attempt}/${MAX_PROBE_ATTEMPTS} failed for ${url}; retrying in ${PROBE_RETRY_DELAY_MS / 1000}s. ${lastError?.message ?? 'unknown error'}`,
+      )
+      await sleep(PROBE_RETRY_DELAY_MS)
+    }
   }
 
-  return (await response.json()) as ProbeResponse
+  throw lastError ?? new Error(`Probe request failed for ${url}.`)
+}
+
+function sleep(milliseconds: number) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
 
 function assessBinding(
@@ -272,7 +366,7 @@ function assessBinding(
   probes: ProbeResponse[],
   options: Options,
   whitelist: PlacementWhitelist,
-  environment: Environment,
+  environment: Target,
 ): BindingAssessment {
   const matchingBindings = probes.map(probe => {
     const match = probe.bindings.find(entry => entry.binding === binding)
@@ -337,7 +431,7 @@ function assessBinding(
 }
 
 function printEnvironmentSummary(
-  environment: Environment,
+  environment: Target,
   assessments: BindingAssessment[],
 ) {
   console.log(`\n${environment.toUpperCase()}`)
@@ -360,11 +454,7 @@ function printEnvironmentSummary(
   }
 }
 
-function recreateBinding(
-  environment: Environment,
-  binding: BindingName,
-  options: Options,
-) {
+function recreateBinding(environment: Target, binding: BindingName, options: Options) {
   const command = [
     'bun',
     'run',
@@ -381,7 +471,7 @@ function recreateBinding(
   runCommand(`Recreating ${environment} ${binding}`, command)
 }
 
-function deployEnvironment(environment: Environment) {
+function deployEnvironment(environment: Target) {
   runCommand(`Deploying ${environment} workers`, [
     'bun',
     'run',
@@ -403,7 +493,7 @@ function runCommand(label: string, command: string[]) {
   })
 }
 
-function whitelistKey(environment: Environment, binding: BindingName) {
+function whitelistKey(environment: Target, binding: BindingName) {
   return `${environment}:${binding}` as const
 }
 

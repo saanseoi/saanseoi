@@ -15,9 +15,15 @@ It also reflects the currently implemented ingest flow in:
 
 - `libs/core/src/lib/services/upload.ts`
 - `apps/harbour-api/src/lib/services/control.ts`
-- `apps/harbour-workers/src/lib/worker.ts`
-- `apps/harbour-workers/src/lib/services/division.ts`
-- `apps/harbour-workers/src/lib/services/address.ts`
+- `apps/harbour-cli/src/lib/localPipeline/`
+
+Geometry companions and provider variants follow the source-neutral contract in
+[`divisions-geometry.md`](./divisions-geometry.md). Source-specific catalogue facts,
+quality exceptions, and identifier bridges are documented under
+`docs/datasets/sources/<provider>/` rather than embedded in this model overview. The
+cross-layer rules for dataset releases, snapshots, domain releases, catalogue revisions,
+API contracts, and replay are normative in
+[`docs/versioning.md`](../docs/versioning.md).
 
 ## Current Scope
 
@@ -32,7 +38,8 @@ The repository currently has four storage layers:
 4. `source`
    - source-specific snapshots and version history used during ingest
 
-Raw uploaded parquet files are stored in `R2`. Canonical and operational metadata live in D1.
+Intermediate parquet is local and transient. Publisher source archives are immutable R2
+provenance; canonical and operational metadata live in D1.
 
 ## Key Decisions In Code
 
@@ -42,13 +49,14 @@ The implementation does not treat a monthly upload as a `dataset`.
 
 Instead:
 
-- `datasets` are stable logical feeds such as `overture/hk-address` or `overture/hk-division`
+- `datasets` are stable logical feeds such as `hkgov-dpo/hk-address` or
+  `overture/hk-division`
 - `releases` are individual uploaded snapshots for a dataset
 
 Examples from seed data:
 
 - dataset code: `hk-address`
-- release code: `overture-hk-address-2026-05-24.0`
+- release code: `dr-hk-hkgov-dpo-address-2026-05-24.0`
 
 This is the most important difference from the earlier spec.
 
@@ -68,7 +76,8 @@ Relevant release fields are:
 - `revocationReason`
 - `ingestedAt`
 
-The active/public state is modeled on `releases.status`, not on a month-scoped dataset row.
+The active/public state is modelled on `releases.status`, not on a month-scoped dataset
+row.
 
 ### Current And History Split
 
@@ -87,7 +96,7 @@ History rows carry validity metadata:
 - `validToCohortKey`
 - `isCurrent`
 
-Localized history tables use the same pattern, except they omit month bounds and keep:
+Localised history tables use the same pattern, except they omit month bounds and keep:
 
 - `versionHash`
 - `releaseId`
@@ -99,7 +108,7 @@ Localized history tables use the same pattern, except they omit month bounds and
 
 The implemented canonical tables do not use `ot*`-prefixed columns.
 
-Canonical tables store normalized names directly, for example:
+Canonical tables store normalised names directly, for example:
 
 - `lng`, `lat`
 - `basicCategory`
@@ -110,7 +119,7 @@ Source-specific fidelity is preserved in the `source` database instead.
 
 ### Locale Handling
 
-Localized text is normalized into dedicated `*I18n` tables.
+Localised text is normalised into dedicated `*I18n` tables.
 
 Composite keys are:
 
@@ -147,7 +156,7 @@ Constraints:
 
 ### `datasetI18n`
 
-Localized dataset names and descriptions.
+Localised dataset names and descriptions.
 
 Primary key:
 
@@ -209,13 +218,16 @@ Statuses:
 
 ### `stats`
 
-Dataset-level metrics produced by ingest.
+Release-, snapshot-, and API-release-set metrics produced by ingest or presentation
+processing.
 
 Fields:
 
 - `id`
 - `type`
 - `releaseId`
+- `snapshotId`
+- `apiReleaseSetId`
 - `dimension`
 - `metric`
 - `metricUnit`
@@ -249,16 +261,56 @@ Constraint:
 
 ### API Release Metadata
 
-The implementation also includes:
+The implemented publication model separates contract, effective data, and catalogue
+knowledge:
 
 - `apiVersions`
+- `apiComposition` and `apiCompositionMembers`
 - `apiReleaseSets`
-- `apiReleaseSetMembers`
+- `apiReleaseSetSnapshots`
+- `apiCatalogRevisions`
+- `apiCatalogRevisionReleaseSets`
+- `snapshotLineages`
 - `apiEndpoints`
 - `apiEndpointDatasets`
 - `apiFieldProvenance`
 
-These tables are part of the operational model. History validity is anchored to `apiReleaseSets`, not directly to raw uploads alone.
+An `apiReleaseSet` is an immutable release of one domain and one effective cohort. Its
+trailing sequence is a composition revision, not an API contract patch. For example,
+adding a newly available secondary snapshot to cohort `2022` creates
+`data-hk-divisions-2022-r1--hkgov-pland-pu`; it does not mutate `...-r0`. Earlier
+catalogue revisions continue to name `...-r0`, while a new catalogue revision can name
+`...-r1`. The legacy `status=current` value now means published/addressable; it no
+longer means that only one release set in the whole API family may have that status.
+
+An `apiCatalogRevision` is an immutable family-and-region publication checkpoint. Its
+date and trailing revision describe when that exact set of domain releases became known,
+for example `catalog-hk-divisions-v0.1-2026-07-17.0`. It may contain monthly Overture
+releases alongside much older planning-domain releases without pretending that those
+domains share a cohort.
+
+A `snapshotLineage` identifies the stable logical stream to which snapshot revisions
+belong. `identityMode=persistent` means entity identity may be compared across cohorts;
+`identityMode=cohort_scoped` means identity is meaningful only within that cohort.
+Snapshots are revisioned independently inside `(lineage, cohort)`, so a backfill can add
+a new physical snapshot without rewriting the earlier one.
+
+These tables form the journal used for bitemporal resolution:
+
+- effective time selects a domain release by its cohort/effective date
+- knowledge time selects the newest catalogue revision published at or before that time
+- an exact catalogue plus exact release-set code is a publication permalink
+
+History validity remains anchored to immutable `apiReleaseSets`, not directly to raw
+uploads alone. Old canonical row versions remain change-only; catalogue revisions and
+release-set membership rows do not copy entity data.
+
+API field provenance is resolved per domain release using the API version, domain,
+schema, domain ruleset, exact source-dataset/schema signature, and the primary
+snapshot's parent-linked branch. Fixtures must declare `domainCode` and
+`lineageAnchors`; each anchor carries its exact source signature, and the mapping
+applies only at that anchor snapshot and its descendants. This prevents a fixture on a
+newer branch from being inferred to apply to a late historical backfill.
 
 ### Shard Metadata
 
@@ -307,7 +359,8 @@ Notes:
 
 - `releaseId` exists on current `places`
 - `address2dId` and `address3dId` are nullable
-- place ingestion is not implemented yet in `harbour-workers`, but the canonical schema and atlas API queries exist
+- place ingestion is not implemented yet, but the canonical schema and Atlas API queries
+  exist
 
 ### `placesI18n`
 
@@ -372,7 +425,6 @@ Fields:
 - `type`
 - `geometry`
 - `bbox`
-- `population`
 - `subtype`
 - `class`
 - `wikidata`
@@ -385,7 +437,7 @@ Fields:
 Notes:
 
 - current `divisions` does not store `regionCode` or `releaseId`
-- those exist in `divisionsVersions`
+- those exist in `divisions`
 
 ### `divisionsI18n`
 
@@ -512,37 +564,38 @@ Primary key:
 
 The following typed history tables exist:
 
-- `placesVersions`
-- `placesVersionsI18n`
-- `divisionsVersions`
-- `divisionsVersionsI18n`
-- `address2dVersions`
-- `address2dVersionsI18n`
-- `address3dVersions`
-- `address3dVersionsI18n`
-- `streetsVersions`
-- `streetsVersionsI18n`
+- `places`
+- `placesI18n`
+- `divisions`
+- `divisionsI18n`
+- `address2d`
+- `address2dI18n`
+- `address3d`
+- `address3dI18n`
+- `streets`
+- `streetsI18n`
 
 Rules reflected in the implementation:
 
 - primary keys are stable ID plus `versionHash`
 - relationship columns point to stable canonical IDs, not to version rows
-- `regionCode` is present on `placesVersions`, `divisionsVersions`, and `address2dVersions`
-- `address3dVersions` and `streetsVersions` do not currently carry `regionCode`
+- `regionCode` is present on `places`, `divisions`, and `address2d`
+- `address3d` and `streets` do not currently carry `regionCode`
 
 ## Implemented Source Schema
 
-The repository also persists source-specific snapshots and source-specific version history in the `source` database.
+The repository also persists source-specific snapshots and source-specific version
+history in the `source` database.
 
 This is where publisher-specific fidelity belongs.
 
 Currently implemented source families include:
 
 - Overture divisions
-- Overture addresses
 - HK Gov ALS addresses
 
-Those tables are intentionally separate from the canonical `current` and `history` schemas.
+Those tables are intentionally separate from the canonical `current` and `history`
+schemas.
 
 ## Relationship Summary
 
@@ -551,9 +604,11 @@ Implemented relationships are:
 - one publisher has many datasets
 - one dataset has many releases
 - one release has many ingest runs
-- one API release set has many selected release members
+- one snapshot lineage has many cohort/revision snapshots
+- one immutable API domain release has many selected snapshots
+- one API catalogue revision has many domain/cohort releases
 - one canonical entity has one current row and many version rows over time
-- one canonical entity has many localized rows
+- one canonical entity has many localised rows
 - one place may reference zero or one `address2d`
 - one place may reference zero or one `address3d`
 - one place may map to many divisions through `placesDivision`
@@ -564,13 +619,14 @@ Implemented relationships are:
 
 ### Upload Registration
 
-`libs/core/src/lib/services/upload.ts` plans the upload, infers metadata, writes the parquet file to `R2`, and registers a release in `meta`.
+`libs/core/src/lib/services/upload.ts` plans the upload, infers metadata, writes the
+parquet file to `R2`, and registers a release in `meta`.
 
-This step creates the initial control-plane record before worker processing starts.
+This step creates the initial control-plane record before local processing starts.
 
-### Worker Phases Implemented Today
+### Local processing phases
 
-The worker currently reports these phases:
+The local Harbour CLI records these processing phases:
 
 - `processDataset`
 - `extractDivisions`
@@ -583,47 +639,56 @@ Important:
 
 - division datasets are implemented
 - address datasets are implemented
-- place datasets are not implemented in `apps/harbour-workers/src/lib/worker.ts`
-- street reconciliation is not a standalone worker pipeline yet
+- place datasets are not implemented yet
+- street reconciliation is not a standalone pipeline yet
 
 ### Division Processing
 
 Division ingest currently does all of the following:
 
 - reads parquet from `R2`
-- normalizes canonical division rows
+- normalises canonical division rows
 - upserts current `divisions`
 - replaces current `divisionsI18n`
-- inserts `divisionsVersions` and `divisionsVersionsI18n` on change
+- inserts `divisions` and `divisionsI18n` on change
 - closes superseded history versions
 - deletes missing current rows for removed divisions
 - mirrors Overture data into the `source` database when configured
-- computes dataset stats rows
+- computes release stats rows
 
 ### Address Processing
 
 Address ingest currently does all of the following:
 
 - reads parquet from `R2`
-- normalizes canonical address rows
+- normalises canonical address rows
 - resolves division lookups from current divisions
 - upserts current `address2d`
 - replaces current `address2dI18n`
-- inserts `address2dVersions` and `address2dVersionsI18n` on change
+- inserts `address2d` and `address2dI18n` on change
 - closes superseded history versions
 - deletes missing current rows for removed addresses
 - mirrors Overture or HK Gov ALS source rows into the `source` database when configured
 
-Current address ingest is centered on `address2d`. It does not yet run a full canonical `street` or `address3d` derivation pipeline.
+Current address ingest is centred on `address2d`. It does not yet run a full canonical
+`street` or `address3d` derivation pipeline.
 
-### Publish Behavior
+### Publish Behaviour
 
-`publishDataset` marks the new release current and updates the previously current release for the same dataset:
+`publishDataset` marks the new release current and updates the previously current
+release for the same dataset:
 
 - corrected release for the same base source version: previous release becomes `revoked`
 - ordinary newer release: previous release becomes `historic`
 
-The correction check is implemented by comparing the `sourceVersion` prefix before the final `.` suffix.
+The correction check is implemented by comparing the `sourceVersion` prefix before the
+final `.` suffix.
+
+Publishing a complete domain release also appends an immutable API catalogue revision.
+Published domain releases are never archived merely because a later domain or cohort is
+published. Current-store cleanup protects the default releases named by the latest
+catalogue; older response data is reconstructed from change-only history when historical
+serving is enabled for that handler version.
 
 ## What Is Not Implemented
 
@@ -634,7 +699,8 @@ These items appeared in the older spec but are not implemented as described:
 - `issues`
 - `streetSegment`
 - `segment`
-- a place worker pipeline with phases such as `extractPlaces`, `reconcileAddress2d`, `deriveAddress3d`, or `refreshFts`
+- a place pipeline with phases such as `extractPlaces`, `reconcileAddress2d`,
+  `deriveAddress3d`, or `refreshFts`
 - canonical `ot*`-prefixed columns in serving tables
 - month-scoped uploaded datasets as the primary identity model
 

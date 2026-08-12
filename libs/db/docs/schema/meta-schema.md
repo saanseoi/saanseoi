@@ -4,7 +4,7 @@ The `meta` database is the control plane.
 
 Core groups:
 
-- publisher and license registry
+- publisher and licence registry
 - dataset and release registry
 - snapshot registry
 - API contract registry
@@ -25,19 +25,25 @@ Tables:
 Key points:
 
 - `datasets.code` uses:
-  - `ds-{region}-{source}-{resourceType}[-{subType}]`
-- `releases.code` remains the source release identifier
+  - `ds-{region}-{publisherCode}-{resource-slug}[-{product-slug}]`
+- `releases.code` uses:
+  - `dr-{region}-{publisherCode}-{resource-slug}[-{product-slug}]-{sourceVersion}`
+- Saanseoi-owned code segments are lowercase kebab-case; structured fields are never
+  recovered by parsing a code.
+- Programmatic resource types such as `divisionArea` become `division-area` in codes.
 
 ## Snapshot Registry
 
 Tables:
 
 - `snapshots`
+- `snapshotLineages`
 - `snapshotSources`
 
 Key points:
 
 - `snapshots.code` should use the snapshot-version format
+- `snapshots.parentSnapshotId` records the exact parent in the lineage DAG
 - `snapshotSources` records versioned upstream membership
 
 ## API Registry
@@ -57,7 +63,7 @@ Key points:
 - `apiVersions.familyType`
   - stores the API contract family such as `divisions` or `addresses`
 - `apiReleaseSets.code`
-  - `ss-{region}-{resourceType}-{releaseDate}.{increment}`
+  - `data-{region}-{family}-{cohort}-{revision}--{domain}`
 - `apiFieldProvenance`
   - stores field-level sourcing for one published API release set
   - `resolverCode` names the actual transformation rule
@@ -69,4 +75,5 @@ Tables:
 
 - `dataShards`
 - `releaseShardAssignments`
+- `snapshotShardAssignments` (history shards containing each snapshot journal delta)
 - `releaseSetShardAssignments`

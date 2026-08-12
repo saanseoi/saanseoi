@@ -1,0 +1,168 @@
+{
+  "versionHash": "sha256:8e2cfcb97b2e4f2fc91a516cf5f92348588566a0066827e9cb00ff1f022fa4d3",
+  "apiVersion": "api-divisions-v0.1",
+  "domainCode": "hkgov-pland-pu",
+  "schemaVersion": "sv-division-v1",
+  "rulesetVersion": "rs-division-hkgov-pland-pu-merge-v1",
+  "lineageAnchors": [
+    {
+      "snapshotVersion": "ss-hk-division-hkgov-pland-pu-2001",
+      "sourceSchemas": {
+        "ds-hk-hkgov-pland-division-pu": "1.0"
+      }
+    }
+  ],
+  "fields": [
+    {
+      "apiField": "division.id",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "id",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.level",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "planning_level",
+      "resolverCode": "map_division_level",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.type",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "planning_level",
+      "resolverCode": "map_division_type",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.geometry",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "geometry",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.bbox",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "bbox",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.identifiers",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "identifiers",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.i18n.en.name",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "i18n.en.name",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.i18n.zh-hant.name",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "i18n.zh-hant.name",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.relationships.hierarchy",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "hierarchy",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.relationships.areas",
+      "variant": "hkgov-pland-pu",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "division_id",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.id",
+      "variant": "hkgov-pland-pu",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "id",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.geometry",
+      "variant": "hkgov-pland-pu",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "geometry",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.bbox",
+      "variant": "hkgov-pland-pu",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "bbox",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.divisionId",
+      "variant": "hkgov-pland-pu",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "division_id",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "divisionArea.attributes.type",
+      "variant": "hkgov-pland-pu",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "class",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 0.9
+    },
+    {
+      "apiField": "divisionArea.attributes.variant",
+      "variant": "hkgov-pland-pu",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "source",
+      "resolverCode": "derive_variant_from_source",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    }
+  ]
+}

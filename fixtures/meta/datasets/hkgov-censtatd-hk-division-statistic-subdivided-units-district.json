@@ -1,0 +1,115 @@
+{
+  "versionHash": "sha256:7d400132c008f427dacfe72d62b3e26ff8de27eb2a833c4e7ca349c258b16e01",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "five-yearly",
+  "theme": "stats",
+  "resourceTypes": ["divisionStatistic"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946",
+  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54",
+  "publisherReleaseFrequency": "one-off",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["revision"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2016",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635932488538_10765",
+      "identicalArchiveSlots": [
+        {
+          "releaseSlot": "2023-Q3",
+          "sourceObjectHash": "218c737610e0ae91cdfa67fb6e80ff9c98e55143abe8f72ff2b1c8bd1396760b",
+          "contentHash": "55c4ad0e8703bdb60fc2ed8a5e4626ba08e489154e36f4460cba12c1c838a2ca"
+        },
+        {
+          "releaseSlot": "2023-Q4",
+          "sourceObjectHash": "7c72b3dd19f38217274454a7a080d25a93bcbecbc486ade411e5783f2a9f088e",
+          "contentHash": "55c4ad0e8703bdb60fc2ed8a5e4626ba08e489154e36f4460cba12c1c838a2ca"
+        },
+        {
+          "releaseSlot": "2024-Q4",
+          "sourceObjectHash": "e77ad93df8584bbb3343c8c8a6d24e18f4f0877a6c2e38f13071255b6bfd2374",
+          "contentHash": "55c4ad0e8703bdb60fc2ed8a5e4626ba08e489154e36f4460cba12c1c838a2ca"
+        },
+        {
+          "releaseSlot": "2025-Q1",
+          "sourceObjectHash": "afeee81a3b9d320b2a4d3f19e21e14fa399fa0b25b4ab69ab5131d66eae058fa",
+          "contentHash": "55c4ad0e8703bdb60fc2ed8a5e4626ba08e489154e36f4460cba12c1c838a2ca"
+        },
+        {
+          "releaseSlot": "2026-Q2",
+          "sourceObjectHash": "d37559194459b3c5cf5137dd87bef975192d46b19f3768ffb208f683b74ff16f",
+          "contentHash": "55c4ad0e8703bdb60fc2ed8a5e4626ba08e489154e36f4460cba12c1c838a2ca"
+        }
+      ]
+    },
+    {
+      "sourceVersion": "2021",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933617052_68946",
+      "publisherLastRevisedAt": "2026-06-05",
+      "identicalArchiveSlots": [
+        {
+          "releaseSlot": "2023-Q3",
+          "sourceObjectHash": "07a4cd854c5a5f9c2d920a615804b68a2f06a79c9c604338a8cfc8b504b6676c",
+          "contentHash": "fbb07f6e7341392472293ea3c78997d7abb6765c410087bfdc1d8936ab0996a2"
+        },
+        {
+          "releaseSlot": "2023-Q4",
+          "sourceObjectHash": "43cd3cd3c77d0707ec0f38c11b2ea6720fb119610679d4fe033ab69ff6e121bd",
+          "contentHash": "fbb07f6e7341392472293ea3c78997d7abb6765c410087bfdc1d8936ab0996a2"
+        },
+        {
+          "releaseSlot": "2024-Q4",
+          "sourceObjectHash": "3087ea81f6e4b01790a0d5231779fe2a22685dabc83fc7207918dd230846fcb5",
+          "contentHash": "fbb07f6e7341392472293ea3c78997d7abb6765c410087bfdc1d8936ab0996a2"
+        },
+        {
+          "releaseSlot": "2026-Q2",
+          "sourceObjectHash": "090f9d406a757935869595e55d995a4b9f052853d1c6bf629965255dec53edc7",
+          "contentHash": "fbb07f6e7341392472293ea3c78997d7abb6765c410087bfdc1d8936ab0996a2"
+        }
+      ]
+    }
+  ],
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Census Subdivided Units by District Council District",
+      "description": "Planned C&SD source for subdivided-unit population statistics by District Council district. The 2016 By-census and 2021 Census releases each retain their exact statistical-geography cohort."
+    }
+  ]
+}

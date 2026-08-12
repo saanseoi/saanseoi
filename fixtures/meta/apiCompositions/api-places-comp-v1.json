@@ -1,0 +1,59 @@
+{
+  "versionHash": "sha256:17916c6ffbcbed284b3981f099145623a3a2423a74e591b369593ab15148464b",
+  "apiVersion": "api-places-v0.1",
+  "code": "comp-places-v1",
+  "version": 1,
+  "primaryResourceType": "place",
+  "status": "current",
+  "domains": [
+    {
+      "code": "overture",
+      "isDefault": true,
+      "i18n": [
+        {
+          "locale": "en",
+          "name": "Overture",
+          "description": "Explore named places in Hong Kong, including buildings, landmarks, venues, and other points of interest linked to their addresses and divisions."
+        },
+        {
+          "locale": "zh-hant",
+          "name": "Overture",
+          "description": "探索香港的具名地點，包括建築物、地標、場地及其他興趣點，並連結至其地址及所屬分區。"
+        },
+        {
+          "locale": "zh-hans",
+          "name": "Overture",
+          "description": "探索香港的具名地点，包括建筑物、地标、场地及其他兴趣点，并关联至其地址及所属分区。"
+        }
+      ],
+      "members": [
+        {
+          "resourceType": "place",
+          "variant": "default",
+          "role": "primary",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 0
+        },
+        {
+          "resourceType": "address",
+          "variant": "default",
+          "role": "supporting",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "anchorResourceType": "place",
+          "priority": 10
+        },
+        {
+          "resourceType": "division",
+          "variant": "overture",
+          "role": "supporting",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "anchorResourceType": "address",
+          "priority": 20
+        }
+      ]
+    }
+  ]
+}

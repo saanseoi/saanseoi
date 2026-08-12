@@ -1,5 +1,5 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
-import { resolveActiveSnapshotForType } from '@repo/core/db/metaRepository'
+import { resolveActiveSnapshotForType } from '@repo/core/db/metaRegistry'
 
 import {
   getPlaceCurrent,
@@ -132,7 +132,7 @@ const searchRouteConfig = createRoute({
                 httpStatus: 503,
                 error: 'fts_not_ready',
                 message:
-                  'FTS index is not initialized. Rebuild placesFts before using search.',
+                  'FTS index is not initialised. Rebuild placesFts before using search.',
               },
             },
           },
@@ -151,7 +151,9 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
     const { locale } = c.req.valid('query')
     const db = c.var.currentDb
     const activePlaceSnapshot = await runWithD1ReadRetry(() =>
-      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place'),
+      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place', {
+        regionCode,
+      }),
     )
 
     if (!activePlaceSnapshot) {
@@ -167,7 +169,6 @@ export const placeRoute = defineOpenAPIRoute<typeof placeRouteConfig, AppEnv>({
 
     const place = await runWithD1ReadRetry(() =>
       getPlaceCurrent(db, {
-        regionCode,
         placeId,
         snapshotId: activePlaceSnapshot.snapshotId,
       }),
@@ -233,7 +234,9 @@ export const placesByCellRoute = defineOpenAPIRoute<
 
     const db = c.var.currentDb
     const activePlaceSnapshot = await runWithD1ReadRetry(() =>
-      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place'),
+      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place', {
+        regionCode: params.region,
+      }),
     )
 
     if (!activePlaceSnapshot) {
@@ -248,7 +251,6 @@ export const placesByCellRoute = defineOpenAPIRoute<
 
     const places = await runWithD1ReadRetry(() =>
       listPlacesByH3Cell(db, {
-        regionCode: params.region,
         snapshotId: activePlaceSnapshot.snapshotId,
         h3Level,
         h3Cell: params.h3Cell,
@@ -268,11 +270,13 @@ export const placesByCellRoute = defineOpenAPIRoute<
 export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>({
   route: searchRouteConfig,
   handler: async c => {
-    const { region } = c.req.valid('param')
+    const params = c.req.valid('param')
     const query = c.req.valid('query')
     const db = c.var.currentDb
     const activePlaceSnapshot = await runWithD1ReadRetry(() =>
-      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place'),
+      resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place', {
+        regionCode: params.region,
+      }),
     )
 
     if (!activePlaceSnapshot) {
@@ -288,7 +292,6 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
     try {
       const results = await runWithD1ReadRetry(() =>
         searchPlacesFts(db, {
-          regionCode: region,
           snapshotId: activePlaceSnapshot.snapshotId,
           locale: query.locale,
           query: query.q,
@@ -305,13 +308,13 @@ export const searchRoute = defineOpenAPIRoute<typeof searchRouteConfig, AppEnv>(
     } catch (error) {
       if (
         error instanceof Error &&
-        error.message.includes('FTS index is not initialized')
+        error.message.includes('FTS index is not initialised')
       ) {
         const response = {
           httpStatus: 503,
           error: 'fts_not_ready',
           message:
-            'FTS index is not initialized. Rebuild placesFts before using search.',
+            'FTS index is not initialised. Rebuild placesFts before using search.',
         } as const
 
         return c.json(response, 503)

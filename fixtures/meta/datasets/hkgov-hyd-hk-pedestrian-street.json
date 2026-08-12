@@ -1,0 +1,73 @@
+{
+  "versionHash": "sha256:9f455c3a75ca96eb69113aa3ffcc31818b67e479733c718ebd2ebfaf1a7a254d",
+  "publisherCode": "hkgov-hyd",
+  "code": "ds-hk-hkgov-hyd-pedestrian-street",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "quarterly",
+  "theme": "streets",
+  "resourceTypes": ["street"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Transport Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=td_rcd_1697081765097_37742",
+  "schemaSpecificationURL": "https://portal.csdi.gov.hk/csdi-webpage/view/common/b8562cd1703ad443a23157c2e6bad6435784aa9993154f924c533b3055268940",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "regular",
+    "revisionScope": "latest",
+    "checks": {
+      "newReleases": {
+        "trigger": "after-latest-release-age",
+        "ageDays": 90,
+        "frequency": "daily"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["new-release"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=td_rcd_1697081765097_37742"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "quarterly",
+    "correctionSuffixSource": "generated"
+  },
+  "sourceLayers": [
+    "Full_Time_Pedestrian_Street",
+    "Hawker_Street",
+    "Market_Street",
+    "Part_time_Pedestrian_Street",
+    "Traffic_Calming_Street"
+  ],
+  "category": "transportation",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Pedestrian Streets",
+      "description": "Transport Department GIS data describing pedestrian-street areas and effective hours across five source layers. It is grouped in the requested HighwayD government Streets domain while retaining Transport Department provenance."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "行人專用街道",
+      "description": "運輸署提供的行人專用街道範圍及生效時間地理資訊，包含五個來源圖層。資料集按要求歸入 HighwayD 政府街道資料域，並保留運輸署來源。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "行人专用街道",
+      "description": "运输署提供的行人专用街道范围及生效时间地理信息，包含五个来源图层。数据集按要求归入 HighwayD 政府街道数据域，并保留运输署来源。"
+    }
+  ]
+}

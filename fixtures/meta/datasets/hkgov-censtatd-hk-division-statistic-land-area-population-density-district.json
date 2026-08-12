@@ -1,0 +1,85 @@
+{
+  "versionHash": "sha256:e3b30b6e3aa73d54fdc599a78fb4a979490d7ab963455ba954663b8cc51c929a",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "five-yearly",
+  "theme": "stats",
+  "sourceCrs": "EPSG:2326",
+  "resourceTypes": ["divisionStatistic"],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department.",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451",
+  "schemaSpecificationURL": "https://static.csdi.gov.hk/csdi-webpage/view/58ddbfa4e88d5d4296f86d932227a3af/sds_view",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["revision"],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-division-merge-v1",
+      "operationCodes": ["map_censtatd_district_code_to_canonical_division"]
+    }
+  ],
+  "releases": [
+    {
+      "sourceVersion": "2022",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451",
+      "archiveSlots": [
+        {
+          "releaseSlot": "2023-Q4",
+          "sourceObjectHash": "9a91cc77cd3af6fbb8512d04b13e6f60d0f24fd6f64c017253baf6f07f2d7f20",
+          "contentHash": "97459d23e1d08f1b72241e082a28d993dca5bbd7631b89db8c6f1e4b1d69f72a"
+        }
+      ]
+    },
+    {
+      "sourceVersion": "2024",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451",
+      "archiveSlots": [
+        {
+          "releaseSlot": "2025-Q3",
+          "sourceObjectHash": "8abab942b6fddf50cedc732b95f77132eb4ba805b4eed5ffa96d1cc1d2502b07",
+          "contentHash": "14ca05cef251be311160ed9e99a9e699ee2a2f505035660933c6bb40cd85e64b"
+        }
+      ]
+    }
+  ],
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "District Land Area, Population and Density",
+      "description": "Planned C&SD source for District Council district land area, mid-year population and density."
+    }
+  ]
+}

@@ -4,10 +4,18 @@ import app from './index'
 import type { AppBindings } from './types'
 
 type MockDbOptions = {
+  asset?: { assetKey: string } | null
+  apiKey?: {
+    id?: string
+    revokedAt?: number | null
+    requestsPerMinute?: number | null
+    userRole?: 'user' | 'admin'
+  } | null
   failOnAll?: (query: string, values: unknown[]) => boolean
   failOnFirst?: (query: string, values: unknown[]) => boolean
   failOnRaw?: (query: string, values: unknown[]) => boolean
   failOnRun?: (query: string, values: unknown[]) => boolean
+  streetDetail?: boolean
 }
 
 function createMockDb(options: MockDbOptions = {}) {
@@ -39,6 +47,26 @@ function createMockDb(options: MockDbOptions = {}) {
               return { count: 0 } as T
             }
 
+            if (query.includes('FROM api_key')) {
+              if (options.apiKey === null) return null as T
+
+              return {
+                id: options.apiKey?.id ?? 'api-key-1',
+                name: 'Test key',
+                userId: 'user-1',
+                userEmail: 'test@example.com',
+                userRole: options.apiKey?.userRole ?? 'user',
+                revokedAt: options.apiKey?.revokedAt ?? null,
+                requestsPerMinute: options.apiKey?.requestsPerMinute ?? null,
+                requestsPerDay: null,
+                requestsPerMonth: null,
+              } as T
+            }
+
+            if (options.asset !== undefined) {
+              return options.asset as T
+            }
+
             return null as T
           },
           async run() {
@@ -53,6 +81,7 @@ function createMockDb(options: MockDbOptions = {}) {
 
             return {
               success: true,
+              meta: { changes: 1 },
             }
           },
           async all<T>() {
@@ -60,6 +89,10 @@ function createMockDb(options: MockDbOptions = {}) {
               const error = new Error('Failed query: transient read failure')
               error.cause = new Error('SQLITE_BUSY: database is locked')
               throw error
+            }
+
+            if (options.asset !== undefined) {
+              return { results: [options.asset] as T[], success: true }
             }
 
             return {
@@ -74,6 +107,10 @@ function createMockDb(options: MockDbOptions = {}) {
               throw error
             }
 
+            if (options.asset) return [[options.asset.assetKey] as T]
+
+            if (options.streetDetail) return streetRows(query) as T[][]
+
             return [] as T[]
           },
         }
@@ -81,6 +118,159 @@ function createMockDb(options: MockDbOptions = {}) {
     } as unknown as D1Database,
     operations,
   }
+}
+
+function streetRows(query: string): unknown[][] {
+  const assetLinks = JSON.stringify([
+    {
+      assetId: '00000000-0000-4000-8000-000000000002',
+      assetUrl:
+        'https://preview.api.saanseoi.hk/v0/assets/00000000-0000-4000-8000-000000000002',
+      contentHash: 'notice-hash',
+      label: 'G.N.4034',
+      manifest: {
+        assetId: '00000000-0000-4000-8000-000000000012',
+        assetUrl:
+          'https://preview.api.saanseoi.hk/v0/assets/00000000-0000-4000-8000-000000000012',
+        contentHash: 'manifest-hash',
+        objectKey: 'manifest.json',
+      },
+      mediaType: 'application/pdf',
+      objectKey: 'government-notice.pdf',
+      originalUrl:
+        'https://www.landsd.gov.hk/doc/en/street-name/egazette/2026/egn202630274034.pdf',
+      publisherIdentifier: 'G.N. 4034',
+      retrievedAt: '2026-07-03T00:00:00.000Z',
+      role: 'governmentNotice',
+    },
+    {
+      assetId: '00000000-0000-4000-8000-000000000003',
+      assetUrl:
+        'https://preview.api.saanseoi.hk/v0/assets/00000000-0000-4000-8000-000000000003',
+      contentHash: 'plan-hash',
+      label: 'HKRM52',
+      manifest: {
+        assetId: '00000000-0000-4000-8000-000000000013',
+        assetUrl:
+          'https://preview.api.saanseoi.hk/v0/assets/00000000-0000-4000-8000-000000000013',
+        contentHash: 'plan-manifest-hash',
+        objectKey: 'plan-manifest.json',
+      },
+      mediaType: 'application/pdf',
+      objectKey: 'gazette-plan.pdf',
+      originalUrl:
+        'https://www.landsd.gov.hk/doc/en/street-name/gnplan/2026/HKRM52.pdf',
+      publisherIdentifier: 'HKRM52',
+      retrievedAt: '2026-07-03T00:00:00.000Z',
+      role: 'gazettePlan',
+    },
+  ])
+  const districtIds = JSON.stringify(['district-central-western'])
+  const changelog = [
+    assetLinks,
+    null,
+    0,
+    'gazette',
+    '2026-07-03',
+    'G.N. 4034',
+    'landsd-street-notice-example',
+    'release-1',
+    'history-shard-1',
+    'landsd-street-notice-example',
+  ]
+  const localizations = (versionHash: string, description: string | null) =>
+    [
+      ['en', 'Central Wan Chai Bypass'],
+      ['zh-Hant', '中環灣仔繞道'],
+    ].map(([locale, name]) => [
+      description,
+      locale,
+      name,
+      'landsd-street-notice-example',
+      versionHash,
+    ])
+
+  if (query.includes('from "streetChangelog"')) {
+    return [changelog]
+  }
+  if (!query.includes('from "streets"') && !query.includes('from "streetsI18n"')) {
+    return [['street-snapshot']]
+  }
+  if (query.includes('from "streets"') && query.includes('"snapshotId" = ?')) {
+    return [
+      [
+        null,
+        districtIds,
+        'landsd-street-notice-example',
+        '2026-07-03',
+        JSON.stringify({
+          hkgovLandsd: { sourceEventIds: ['landsd-street-notice-example'] },
+        }),
+        'active',
+        1,
+      ],
+    ]
+  }
+  if (query.includes('from "streetsI18n"') && query.includes('"snapshotId" = ?')) {
+    return localizations('street-version-1', null).map(row => [row[0], row[1], row[2]])
+  }
+  if (query.includes('from "streets"')) {
+    return [
+      [
+        null,
+        districtIds,
+        'landsd-street-notice-example',
+        '2026-07-03',
+        'active',
+        1,
+        'street-version-1',
+      ],
+      [
+        '2026-08-01',
+        districtIds,
+        'landsd-street-notice-example',
+        '2026-08-01',
+        'deleted',
+        2,
+        'street-version-2',
+      ],
+    ]
+  }
+  if (query.includes('from "streetsI18n"')) {
+    return [
+      ...localizations('street-version-1', null),
+      ...localizations('street-version-2', 'Deleted by Government Notice.'),
+    ]
+  }
+  return []
+}
+
+const testApiKey = `pk.${'a'.repeat(43)}`
+
+function createAssetBucket() {
+  const reads: string[] = []
+  return {
+    bucket: {
+      async get(key: string) {
+        reads.push(key)
+        return {
+          body: new Blob(['source-pdf']).stream(),
+          httpEtag: '"asset-etag"',
+          size: 10,
+          writeHttpMetadata(headers: Headers) {
+            headers.set('content-type', 'application/pdf')
+          },
+        }
+      },
+    } as unknown as R2Bucket,
+    reads,
+  }
+}
+
+function apiRequest(input: RequestInfo | URL, init?: RequestInit) {
+  const request = new Request(input, init)
+  request.headers.set('x-api-key', testApiKey)
+  return request
 }
 
 function createEnv(
@@ -93,11 +283,30 @@ function createEnv(
     env: {
       DB_META: db,
       DB_CURRENT: db,
+      DB_HISTORY_HK_BEFORE: db,
       DB_HISTORY_HK_2025: db,
       DB_HISTORY_HK_2026: db,
       DB_SOURCE_HK_2025: db,
+      DB_SOURCE_HK_BEFORE: db,
       DB_SOURCE_HK_2026: db,
+      D1_PLACEMENT_PROBE_API_KEY: 'test-probe-api-key',
       ATLAS_BASE_URL: 'http://localhost:8787',
+      AUTH_MODE: 'disabled',
+      ENVIRONMENT: 'local',
+      API_RATE_LIMIT: { limit: async () => ({ success: true }) } as RateLimit,
+      API_USAGE: { writeDataPoint: () => {} } as AnalyticsEngineDataset,
+      PUBLIC_KEY_LEASES: {
+        get: async () => ({
+          keyId: 'api-key-1',
+          status: 'active' as const,
+          nextCheckAt: Date.now() + 60_000,
+        }),
+      } as unknown as KVNamespace,
+      PUBLIC_KEY_LEASE_COORDINATOR: {
+        getByName: () => ({
+          fetch: async () => Response.json({ status: 'active' }),
+        }),
+      } as unknown as DurableObjectNamespace,
       HARBOUR_BASE_URL: 'http://localhost:8788',
       SUBSTACK_PUBLICATION: 'demo-publication',
       SUBSTACK_SESSION_COOKIE:
@@ -108,6 +317,20 @@ function createEnv(
     } as AppBindings,
     operations,
   }
+}
+
+function createAuthenticatedEnv(
+  overrides: Partial<AppBindings> = {},
+  dbOptions: MockDbOptions = {},
+) {
+  return createEnv(
+    {
+      AUTH_MODE: 'required',
+      ENVIRONMENT: 'local',
+      ...overrides,
+    },
+    dbOptions,
+  )
 }
 
 describe('atlas-api', () => {
@@ -121,7 +344,7 @@ describe('atlas-api', () => {
 
   test('GET /v0/meta/health checks DB access', async () => {
     const { env } = createEnv()
-    const res = await app.fetch(new Request('http://localhost/v0/meta/health'), env)
+    const res = await app.fetch(apiRequest('http://localhost/v0/meta/health'), env)
     const body = (await res.json()) as {
       ok: boolean
       datasetCount: number
@@ -134,8 +357,185 @@ describe('atlas-api', () => {
     })
   })
 
-  test('GET /v0/divisions returns snapshot_not_ready when no division release set is published', async () => {
+  test('GET /v0/assets is public but resolves only registered assets', async () => {
     const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/assets/00000000-0000-4000-8000-000000000001'),
+      env,
+    )
+
+    expect(res.status).toBe(404)
+    expect((await res.json()) as unknown).toEqual({
+      httpStatus: 404,
+      error: 'asset_not_found',
+      message: 'Managed asset not found.',
+    })
+  })
+
+  test('GET /v0/assets streams registered immutable assets with cacheable metadata', async () => {
+    const { bucket, reads } = createAssetBucket()
+    const assetKey =
+      'by-source/hk/hkgov-landsd/street-naming/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-notice.pdf'
+    const { env } = createEnv({ R2_ASSETS: bucket }, { asset: { assetKey } })
+    const res = await app.fetch(
+      new Request('http://localhost/v0/assets/00000000-0000-4000-8000-000000000001', {
+        headers: { Range: 'bytes=0-2' },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('source-pdf')
+    expect(reads).toEqual([assetKey])
+    expect(res.headers.get('accept-ranges')).toBe('bytes')
+    expect(res.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')
+    expect(res.headers.get('content-type')).toBe('application/pdf')
+    expect(res.headers.get('etag')).toBe('"asset-etag"')
+    expect(res.headers.get('content-disposition')).toBe(
+      'attachment; filename="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-notice.pdf"',
+    )
+  })
+
+  test('GET /v0/styles streams public immutable style artefacts from R2', async () => {
+    const reads: string[] = []
+    const { env } = createAuthenticatedEnv({
+      R2_ASSETS: {
+        async get(key: string) {
+          reads.push(key)
+          return {
+            body: new Blob(['{"version":8}']).stream(),
+            httpEtag: '"style-etag"',
+            writeHttpMetadata(headers: Headers) {
+              headers.set('content-type', 'application/json')
+            },
+          }
+        },
+      } as unknown as R2Bucket,
+    })
+    const res = await app.fetch(
+      new Request('http://localhost/v0/styles/midnight/1.0.0.json'),
+      env,
+    )
+
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('{"version":8}')
+    expect(reads).toEqual(['styles/midnight/1.0.0.json'])
+    expect(res.headers.get('access-control-allow-origin')).toBe('*')
+    expect(res.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')
+    expect(res.headers.get('etag')).toBe('"style-etag"')
+  })
+
+  test('GET /v0/meta/d1-placement-probe returns timings for all D1 bindings', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/meta/d1-placement-probe?iterations=2', {
+        headers: { 'x-api-key': 'test-probe-api-key' },
+      }),
+      env,
+    )
+    const body = (await res.json()) as {
+      bindings: Array<{ timingsMs: number[] }>
+      configuredPlacementRegion: string
+      iterations: number
+      ok: boolean
+      totalQueries: number
+      worker: string
+    }
+
+    expect(res.status).toBe(200)
+    expect(body.ok).toBe(true)
+    expect(body.worker).toBe('atlas-api')
+    expect(body.configuredPlacementRegion).toBe('azure:eastasia')
+    expect(body.iterations).toBe(2)
+    expect(body.totalQueries).toBe(16)
+    expect(body.bindings).toHaveLength(8)
+    expect(body.bindings.every(binding => binding.timingsMs.length === 2)).toBe(true)
+  })
+
+  test('GET /v0/meta/d1-placement-probe requires the probe API key', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/meta/d1-placement-probe?iterations=2'),
+      env,
+    )
+
+    expect(res.status).toBe(401)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'unauthorized',
+      message: 'Missing or invalid API key.',
+    })
+  })
+
+  test('GET /v0/meta/d1-placement-probe rejects invalid iteration counts', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/meta/d1-placement-probe?iterations=0', {
+        headers: { 'x-api-key': 'test-probe-api-key' },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(400)
+  })
+
+  test('GET /v0/divisions rejects an absent public API key', async () => {
+    const { env } = createAuthenticatedEnv()
+    const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
+
+    expect(res.status).toBe(401)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'invalid_api_key',
+      message: 'A valid SaanSeoi public API key is required.',
+    })
+  })
+
+  test('GET /v0/divisions returns 503 when public-key validation is unavailable', async () => {
+    const { env } = createAuthenticatedEnv({
+      PUBLIC_KEY_LEASES: {
+        get: async () => {
+          throw new Error('KV unavailable')
+        },
+      } as unknown as KVNamespace,
+    })
+    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+
+    expect(res.status).toBe(503)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'public_key_validation_unavailable',
+      message: 'Public API key validation is temporarily unavailable. Please retry.',
+    })
+  })
+
+  test('GET /v0/divisions enforces public-key origin rules at the edge', async () => {
+    const { env } = createAuthenticatedEnv({
+      PUBLIC_KEY_LEASES: {
+        get: async () => ({
+          keyId: 'api-key-1',
+          status: 'active' as const,
+          nextCheckAt: Date.now() + 60_000,
+          originPolicy: {
+            allowedHostnames: ['maps.example.com'],
+            blockedHostnames: ['rogue.example.com'],
+          },
+        }),
+      } as unknown as KVNamespace,
+    })
+    const res = await app.fetch(
+      apiRequest('http://localhost/v0/divisions', {
+        headers: { origin: 'https://rogue.example.com' },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(403)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'api_key_origin_not_allowed',
+      message: 'This public API key is not allowed from this origin.',
+    })
+  })
+
+  test('GET /v0/divisions permits an absent API key when the local bypass is enabled', async () => {
+    const { env } = createEnv({ AUTH_MODE: 'disabled' })
     const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
     const body = (await res.json()) as {
       httpStatus: number
@@ -151,6 +551,335 @@ describe('atlas-api', () => {
     })
   })
 
+  test('GET /v0/hk/streets/:id requires a public API key', async () => {
+    const { env } = createAuthenticatedEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/hk/streets/landsd-street-notice-example'),
+      env,
+    )
+
+    expect(res.status).toBe(401)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'invalid_api_key',
+      message: 'A valid SaanSeoi public API key is required.',
+    })
+  })
+
+  test('street history endpoints require a public API key', async () => {
+    const { env } = createAuthenticatedEnv()
+    for (const path of [
+      '/v0/hk/streets/landsd-street-notice-example/versions',
+      '/v0/hk/streets/landsd-street-notice-example/versions/1',
+    ]) {
+      const res = await app.fetch(new Request(`http://localhost${path}`), env)
+      expect(res.status).toBe(401)
+    }
+  })
+
+  test('GET /v0/hk/streets/:id returns the latest PDF-evidenced materialised state', async () => {
+    const { env } = createEnv({}, { streetDetail: true })
+    const res = await app.fetch(
+      apiRequest('http://localhost/v0/hk/streets/landsd-street-notice-example'),
+      env,
+    )
+    const body = (await res.json()) as {
+      data: {
+        attributes: {
+          districtIds: string[]
+          i18n: {
+            en: {
+              name: string
+            }
+            'zh-Hant': { name: string }
+          }
+          gazetteDate: string | null
+          status: string
+          version: number
+          changelog: Array<{
+            evidenceAssets: Array<{ publisherIdentifier: string | null; role: string }>
+            kind: string
+            source: {
+              recordKey: string
+              releaseId: string | null
+              shardId: string | null
+            }
+          }>
+        }
+        links: Record<string, string>
+      }
+    }
+
+    expect(res.status).toBe(200)
+    expect(body.data.attributes).toMatchObject({
+      districtIds: ['district-central-western'],
+      gazetteDate: '2026-07-03',
+      status: 'active',
+      version: 1,
+    })
+    expect(body.data.attributes.changelog[0]?.evidenceAssets).toMatchObject([
+      {
+        assetUrl:
+          'https://preview.api.saanseoi.hk/v0/assets/00000000-0000-4000-8000-000000000002',
+        label: 'G.N.4034',
+        originalUrl:
+          'https://www.landsd.gov.hk/doc/en/street-name/egazette/2026/egn202630274034.pdf',
+        role: 'governmentNotice',
+      },
+      {
+        label: 'HKRM52',
+        originalUrl:
+          'https://www.landsd.gov.hk/doc/en/street-name/gnplan/2026/HKRM52.pdf',
+        role: 'gazettePlan',
+      },
+    ])
+    expect(Object.keys(body.data.attributes.i18n.en).sort()).toEqual([
+      'description',
+      'name',
+    ])
+    expect(body.data.attributes.i18n['zh-Hant']).toMatchObject({
+      name: '中環灣仔繞道',
+    })
+    expect(body.data.attributes).not.toHaveProperty('governmentNoticeUrl')
+    expect(body.data.attributes).not.toHaveProperty('governmentNoticeLabel')
+    expect(body.data.attributes).not.toHaveProperty('gazettePlanUrls')
+    expect(body.data.attributes.changelog).toEqual([
+      expect.objectContaining({
+        kind: 'gazette',
+        source: {
+          recordKey: 'landsd-street-notice-example',
+          releaseId: 'release-1',
+          shardId: 'history-shard-1',
+        },
+      }),
+    ])
+    expect(body.data.links).toMatchObject({
+      version: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/1',
+      versions: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions',
+    })
+  })
+
+  test('GET /v0/hk/streets/changelog replays LandsD events', async () => {
+    const { env } = createEnv({}, { streetDetail: true })
+    const res = await app.fetch(
+      apiRequest('http://localhost/v0/hk/streets/changelog'),
+      env,
+    )
+    const body = (await res.json()) as {
+      data: Array<{
+        id: string
+        type: string
+        attributes: { kind: string; source: { recordKey: string } }
+      }>
+    }
+
+    expect(res.status).toBe(200)
+    expect(body.data).toEqual([
+      expect.objectContaining({
+        id: 'landsd-street-notice-example:landsd-street-notice-example',
+        type: 'street-changelog',
+        attributes: expect.objectContaining({
+          kind: 'gazette',
+          source: expect.objectContaining({
+            recordKey: 'landsd-street-notice-example',
+          }),
+        }),
+      }),
+    ])
+  })
+
+  test('GET /v0/hk/streets/:id/versions exposes crawlable previous and next links', async () => {
+    const { env } = createEnv({}, { streetDetail: true })
+    const list = await app.fetch(
+      apiRequest(
+        'http://localhost/v0/hk/streets/landsd-street-notice-example/versions',
+      ),
+      env,
+    )
+    const version = await app.fetch(
+      apiRequest(
+        'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/1',
+      ),
+      env,
+    )
+    const listBody = (await list.json()) as {
+      data: Array<{ attributes: { version: number } }>
+    }
+    const versionBody = (await version.json()) as {
+      data: {
+        attributes: { deletedAt: string | null; status: string; version: number }
+      }
+      links: Record<string, string>
+    }
+
+    expect(list.status).toBe(200)
+    expect(listBody.data.map(item => item.attributes.version)).toEqual([1, 2])
+    expect(version.status).toBe(200)
+    expect(versionBody.data.attributes).toMatchObject({
+      deletedAt: null,
+      status: 'active',
+      version: 1,
+    })
+    expect(versionBody.links).toMatchObject({
+      next: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/2',
+      version: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions/1',
+      versions: 'http://localhost/v0/hk/streets/landsd-street-notice-example/versions',
+    })
+    expect(versionBody.links).not.toHaveProperty('previous')
+  })
+
+  test('GET /v0/divisions rejects a malformed public API key', async () => {
+    const { env } = createAuthenticatedEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/divisions', {
+        headers: { 'x-api-key': 'not-an-api-key' },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(401)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'invalid_api_key',
+      message: 'A valid SaanSeoi public API key is required.',
+    })
+  })
+
+  test('GET /v0/divisions accepts a public key and tracks usage by origin', async () => {
+    const events: AnalyticsEngineDataPoint[] = []
+    const { env, operations } = createAuthenticatedEnv({
+      API_USAGE: {
+        writeDataPoint: event => events.push(event ?? {}),
+      } as AnalyticsEngineDataset,
+    })
+    const res = await app.fetch(
+      new Request('http://localhost/v0/divisions', {
+        headers: {
+          'x-api-key': testApiKey,
+          origin: 'https://example.com',
+        },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(503)
+    expect(operations).toEqual([])
+    expect(events).toEqual([
+      {
+        indexes: ['api-key-1'],
+        blobs: ['/v0/divisions', 'example.com'],
+        doubles: [1],
+      },
+    ])
+  })
+
+  test('OPTIONS /v0/divisions allows public-key browser requests', async () => {
+    const { env } = createAuthenticatedEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/divisions', {
+        method: 'OPTIONS',
+        headers: {
+          origin: 'https://example.com',
+          'access-control-request-method': 'GET',
+          'access-control-request-headers': 'x-api-key',
+        },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(204)
+    expect(res.headers.get('access-control-allow-origin')).toBe('*')
+    expect(res.headers.get('access-control-allow-headers')?.toLowerCase()).toContain(
+      'x-api-key',
+    )
+  })
+
+  test('GET /v0/divisions rate-limits a public key at the edge', async () => {
+    const { env } = createAuthenticatedEnv({
+      API_RATE_LIMIT: { limit: async () => ({ success: false }) } as RateLimit,
+    })
+    const res = await app.fetch(
+      new Request('http://localhost/v0/divisions', {
+        headers: { 'x-api-key': testApiKey },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(429)
+    expect((await res.json()) as unknown).toEqual({
+      error: 'rate_limit_exceeded',
+      message: 'The API rate limit has been exceeded.',
+    })
+  })
+
+  test('GET /v0/api registry endpoints do not require an API key', async () => {
+    const { env } = createEnv()
+
+    for (const path of [
+      '/v0/api/releases',
+      '/v0/api/apis',
+      '/v0/api/sources',
+      '/v0/api/sourcePublishers',
+    ]) {
+      const res = await app.fetch(new Request(`http://localhost${path}`), env)
+
+      expect(res.status).toBe(200)
+      expect((await res.json()) as unknown).toEqual({ data: [] })
+    }
+  })
+
+  test('OPTIONS /v0/meta/substack allows cross-origin JSON subscriptions', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      new Request('http://localhost/v0/meta/substack', {
+        method: 'OPTIONS',
+        headers: {
+          origin: 'http://localhost:5173',
+          'access-control-request-method': 'POST',
+          'access-control-request-headers': 'content-type',
+        },
+      }),
+      env,
+    )
+
+    expect(res.status).toBe(204)
+    expect(res.headers.get('access-control-allow-origin')).toBe('*')
+    expect(res.headers.get('access-control-allow-methods')).toContain('POST')
+    expect(res.headers.get('access-control-allow-headers')).toContain('Content-Type')
+  })
+
+  test('GET /v0/divisions returns snapshot_not_ready when no division release set is published', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
+    const body = (await res.json()) as {
+      httpStatus: number
+      error: string
+      message: string
+    }
+
+    expect(res.status).toBe(503)
+    expect(body).toEqual({
+      httpStatus: 503,
+      error: 'snapshot_not_ready',
+      message: 'No active division snapshot is published.',
+    })
+  })
+
+  test('GET /v0/addresses returns snapshot_not_ready when no address release set is published', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(apiRequest('http://localhost/v0/addresses'), env)
+    const body = (await res.json()) as {
+      httpStatus: number
+      error: string
+      message: string
+    }
+
+    expect(res.status).toBe(503)
+    expect(body).toEqual({
+      httpStatus: 503,
+      error: 'snapshot_not_ready',
+      message: 'No active address snapshot is published.',
+    })
+  })
+
   test('GET /v0/divisions returns 503 when atlas hits a transient D1 read failure', async () => {
     const { env } = createEnv(
       {},
@@ -160,7 +889,7 @@ describe('atlas-api', () => {
         failOnRaw: () => true,
       },
     )
-    const res = await app.fetch(new Request('http://localhost/v0/divisions'), env)
+    const res = await app.fetch(apiRequest('http://localhost/v0/divisions'), env)
     const body = (await res.json()) as {
       error: string
       message: string
@@ -176,7 +905,7 @@ describe('atlas-api', () => {
   test('GET /v0/divisions rejects invalid locale syntax', async () => {
     const { env } = createEnv()
     const res = await app.fetch(
-      new Request('http://localhost/v0/divisions?locales=en,zh-hk-extra-piece'),
+      apiRequest('http://localhost/v0/divisions?locales=en,zh-hk-extra-piece'),
       env,
     )
     const body = (await res.json()) as {
@@ -197,7 +926,7 @@ describe('atlas-api', () => {
 
     for (const locales of ['fr-ca', 'EN,ZH_HANT', '*', 'null']) {
       const res = await app.fetch(
-        new Request(
+        apiRequest(
           `http://localhost/v0/divisions?locales=${encodeURIComponent(locales)}`,
         ),
         env,
@@ -207,10 +936,18 @@ describe('atlas-api', () => {
     }
   })
 
-  test('GET /openapi documents the versioned division endpoints', async () => {
-    const res = await app.request('http://localhost/openapi')
+  test('GET /openapi documents the versioned division, address, and street endpoints', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(new Request('http://localhost/openapi'), env)
     const body = (await res.json()) as {
       paths: Record<string, Record<string, { operationId?: string }>>
+      servers: Array<{ url: string }>
+      components?: {
+        schemas?: Record<
+          string,
+          { pattern?: string; required?: string[]; minimum?: number; maximum?: number }
+        >
+      }
     }
 
     expect(res.status).toBe(200)
@@ -218,7 +955,64 @@ describe('atlas-api', () => {
     expect(body.paths['/v0.1/divisions/{id}']?.get?.operationId).toBe(
       'getDivisionByIdV01',
     )
+    expect(body.paths['/v0.1/divisions/source-releases']?.get?.operationId).toBe(
+      'listDivisionSourceReleasesV01',
+    )
+    expect(body.paths['/v0.1/divisions/sources']?.get?.operationId).toBe(
+      'listDivisionSourceRecordsV01',
+    )
+    expect(body.paths['/v0/addresses']?.get?.operationId).toBe('listAddressesV0')
+    expect(body.paths['/v0.1/addresses/{id}']?.get?.operationId).toBe(
+      'getAddressByIdV01',
+    )
+    expect(body.paths['/v0/hk/streets/{id}']?.get?.operationId).toBe(
+      'getHongKongStreetByIdV0',
+    )
+    expect(body.paths['/v0/hk/streets/changelog']?.get?.operationId).toBe(
+      'replayHongKongStreetChangelogV0',
+    )
+    expect(body.paths['/v0/hk/streets/{id}/versions']?.get?.operationId).toBe(
+      'listHongKongStreetVersionsV0',
+    )
+    expect(body.paths['/v0/hk/streets/{id}/versions/{version}']?.get?.operationId).toBe(
+      'getHongKongStreetVersionV0',
+    )
+    expect(body.components?.schemas?.DivisionRelationships?.required).toContain(
+      'hierarchy',
+    )
+    expect(body.components?.schemas?.Id?.pattern).toBe('^\\S+$')
+    expect(body.components?.schemas).toHaveProperty('OverturePlaceType')
+    expect(body.components?.schemas).toHaveProperty('OvertureDivisionClass')
+    expect(body.components?.schemas).toHaveProperty('FeatureVersion')
+    expect(body.components?.schemas).toHaveProperty('OvertureSourceItem')
+    expect(body.components?.schemas).toHaveProperty('OtherSourceTypeItem')
+    expect(body.components?.schemas).toHaveProperty('Sources')
+    expect(body.components?.schemas?.FeatureVersion?.minimum).toBe(0)
+    expect(body.components?.schemas?.FeatureVersion?.maximum).toBe(2_147_483_647)
     expect(body.paths['/latest/divisions']).toBeUndefined()
+    expect(body.servers).toEqual([{ url: 'http://localhost:8787' }])
+  })
+
+  test('GET /v0.1/divisions/sources requires one exact source release', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      apiRequest('http://localhost/v0.1/divisions/sources'),
+      env,
+    )
+
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ error: 'validation_error' })
+  })
+
+  test('GET /v0.1/divisions/sources validates NDJSON requests before streaming', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      apiRequest('http://localhost/v0.1/divisions/sources?format=ndjson'),
+      env,
+    )
+
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ error: 'validation_error' })
   })
 
   test('POST /v0/meta/substack forwards the subscription request to Substack', async () => {

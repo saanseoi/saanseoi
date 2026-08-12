@@ -3,7 +3,117 @@ import { z } from '@hono/zod-openapi'
 export const RegionCode = z.enum(['hk', 'mo'])
 export const ProfileName = z.enum(['compact', 'default', 'full', 'map'])
 export const ApiLocale = z.enum(['en', 'zh-hant', 'zh-hans'])
-export const ApiFamilyName = z.enum(['addresses', 'divisions', 'places', 'streets'])
+export const ApiFamilyName = z.enum([
+  'addresses',
+  'divisions',
+  'places',
+  'streets',
+  'stats',
+])
+
+export const IdSchema = z.string().min(1).regex(/^\S+$/).openapi('Id', {
+  description: 'A unique identifier with no whitespace characters.',
+})
+
+export const BBoxSchema = z
+  .tuple([z.number(), z.number(), z.number(), z.number()])
+  .openapi('BBox', {
+    description: 'A four-coordinate bounding box: west, south, east, north.',
+  })
+
+export const GeometrySchema = z.object({}).loose().openapi('Geometry', {
+  description: 'A GeoJSON geometry value.',
+})
+
+export const CartographicHintsSchema = z
+  .object({
+    prominence: z.number().optional(),
+    min_zoom: z.number().optional(),
+    max_zoom: z.number().optional(),
+  })
+  .loose()
+  .openapi('CartographicHints', {
+    description: 'Cartographic hints for map display and feature prominence.',
+  })
+
+export const WikidataIdSchema = z
+  .string()
+  .regex(/^Q\d+$/)
+  .openapi('WikidataId', {
+    description: 'A Wikidata identifier in Q-number form.',
+  })
+
+export const OverturePlaceTypeSchema = z.string().openapi('OverturePlaceType', {
+  description: 'An Overture place-type compatibility value.',
+})
+
+export const OvertureDivisionClassSchema = z.string().openapi('OvertureDivisionClass', {
+  description: 'An Overture division-class compatibility value.',
+})
+
+export const FeatureVersionSchema = z
+  .number()
+  .int()
+  .min(0)
+  .max(2_147_483_647)
+  .openapi('FeatureVersion', {
+    description:
+      'The source feature version supplied by Overture. This is independent of Atlas canonical version hashes.',
+  })
+
+export const OvertureSourceItemSchema = z
+  .object({
+    property: z.string(),
+    dataset: z.string().min(1),
+    license: z.string().nullable().optional(),
+    record_id: z.string().nullable().optional(),
+    update_time: z.string().nullable().optional(),
+    confidence: z.number().min(0).max(1).nullable().optional(),
+    between: z.tuple([z.number(), z.number()]).nullable().optional(),
+  })
+  .loose()
+  .openapi('OvertureSourceItem', {
+    description: 'An Overture source attribution item for a feature property.',
+  })
+
+export const OtherSourceTypeItemSchema = z
+  .object({})
+  .loose()
+  .openapi('OtherSourceTypeItem', {
+    description: 'A provider-specific source attribution item.',
+  })
+
+const OvertureSourceItemsSchema = z
+  .array(OvertureSourceItemSchema)
+  .min(1)
+  .refine(
+    (items: Array<z.infer<typeof OvertureSourceItemSchema>>) =>
+      new Set(items.map(item => JSON.stringify(item))).size === items.length,
+    { message: 'Source items must be unique.' },
+  )
+  .openapi({ uniqueItems: true })
+
+const OtherSourceTypeItemsSchema = z
+  .array(OtherSourceTypeItemSchema)
+  .min(1)
+  .refine(
+    (items: Array<z.infer<typeof OtherSourceTypeItemSchema>>) =>
+      new Set(items.map(item => JSON.stringify(item))).size === items.length,
+    { message: 'Source items must be unique.' },
+  )
+  .openapi({ uniqueItems: true })
+
+export const SourcesSchema = z
+  .object({
+    overture: OvertureSourceItemsSchema.optional(),
+  })
+  .catchall(OtherSourceTypeItemsSchema)
+  .openapi('Sources', {
+    description:
+      'Source attribution grouped by provider. Each provider key maps to one or more source items.',
+  })
+
+export type SourcesPayload = z.infer<typeof SourcesSchema>
 
 export const ErrorResponseSchema = z
   .object({
@@ -80,7 +190,8 @@ export const RequestedLocaleCodeSchema = z.string().openapi({
 export const RequestedLocalesMetadataSchema = z
   .array(z.union([RequestedLocaleCodeSchema, z.literal('*')]))
   .refine(
-    locales => !locales.includes('*') || (locales.length === 1 && locales[0] === '*'),
+    (locales: string[]) =>
+      !locales.includes('*') || (locales.length === 1 && locales[0] === '*'),
     {
       message:
         'locales must be locale codes, or a single "*" when all locales are returned',

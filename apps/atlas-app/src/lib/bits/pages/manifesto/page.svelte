@@ -29,7 +29,7 @@ const closingPrinciple = $derived(principles[12])
 <Main class="manifesto-shell">
   <section class="relative manifesto-header">
     <div
-      class="mx-auto max-w-(--spacing-container-max) px-(--spacing-margin-mobile) pt-18 md:px-8 md:py-14 xl:px-(--spacing-margin-desktop)"
+      class="mx-auto max-w-(--spacing-container-max) px-(--spacing-margin-md) pt-18 md:px-8 md:py-14 xl:px-(--spacing-margin-xl)"
     >
       <div class="max-w-5xl">
         <div
@@ -73,7 +73,7 @@ const closingPrinciple = $derived(principles[12])
     </div>
 
     <div
-      class="relative mx-auto max-w-(--spacing-container-max) space-y-16 px-(--spacing-margin-mobile) py-16 md:px-8 md:space-y-20 md:py-24 xl:px-(--spacing-margin-desktop)"
+      class="relative mx-auto max-w-(--spacing-container-max) space-y-16 px-(--spacing-margin-md) py-16 md:px-8 md:space-y-20 md:py-24 xl:px-(--spacing-margin-xl)"
     >
       <div class="grid grid-cols-1 gap-6 md:grid-cols-12 md:gap-8">
         <div class="md:col-span-8">

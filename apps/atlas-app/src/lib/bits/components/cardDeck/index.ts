@@ -1,0 +1,7 @@
+export { default as Root } from './cardDeckRoot.svelte'
+export { default as Card } from './cardDeckCard.svelte'
+export { default as Body } from './cardDeckBody.svelte'
+export { default as Visual } from './cardDeckVisual.svelte'
+export { default as ApiVisual } from './cardDeckApiVisual.svelte'
+export { default as ApiBody } from './cardDeckApiBody.svelte'
+export { default as ApiFacts } from './cardDeckApiFacts.svelte'

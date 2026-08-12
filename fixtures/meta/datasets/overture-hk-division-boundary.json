@@ -1,0 +1,71 @@
+{
+  "versionHash": "sha256:cf5e73b93aff459ec4978b2befb77f220bd91b95c7eca8f5d0aed2b4020c0f8e",
+  "publisherCode": "overture",
+  "code": "ds-hk-overture-division-boundary",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "monthly",
+  "theme": "divisions",
+  "resourceTypes": ["divisionBoundary"],
+  "licenseCode": "ODbL",
+  "attribution": "© OpenStreetMap contributors; Overture Maps Foundation.",
+  "sourceUrl": "https://docs.overturemaps.org/",
+  "schemaSpecificationURL": "https://docs.overturemaps.org/schema/reference/divisions/division_boundary/",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "regular",
+    "revisionScope": "latest",
+    "checks": {
+      "newReleases": {
+        "trigger": "after-latest-release-age",
+        "ageDays": 25,
+        "frequency": "daily"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "daily"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": ["new-release"]
+      }
+    },
+    "archives": {
+      "availability": "limited",
+      "operation": "overture-release-catalog",
+      "entryUrl": "https://stac.overturemaps.org/catalog.json"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "upstream",
+    "correctionSuffixSource": "upstream"
+  },
+  "category": "places",
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-division-merge-v1",
+      "operationCodes": ["overture_division_geometry_cn_gd_excluded"]
+    }
+  ],
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Division Boundaries",
+      "description": "Boundaries represent borders between divisions of the same subtype. In the case of Hong Kong, only district-level divisions have boundaries as these are the only official administrative levels within the SAR."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "Overture 區劃邊界 (香港)",
+      "description": "邊界代表相同 subtype 區劃之間的界線。在香港，只有區級區劃具有邊界，因為這些是特區內唯一的正式行政級別。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "Overture 区划边界 (香港)",
+      "description": "边界代表相同 subtype 区划之间的界线。在香港，只有区级区划具有边界，因为这些是特区内唯一的正式行政级别。"
+    }
+  ]
+}

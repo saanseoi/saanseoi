@@ -1,0 +1,57 @@
+{
+  "versionHash": "sha256:d0d386b3624760f1131ec3ede059218a87e5c40619acc5762f772a1d6c0e48b4",
+  "publisherCode": "dpang",
+  "code": "ds-hk-dpang-street",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "as-needed",
+  "theme": "streets",
+  "resourceTypes": ["street"],
+  "licenseCode": "odc-by-1.0",
+  "attribution": "© Diana Pang.",
+  "schemaSpecificationURL": null,
+  "updatePolicy": {
+    "allowUpdates": true
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "irregular",
+    "revisionScope": "latest",
+    "checks": {
+      "newReleases": {
+        "trigger": "never"
+      },
+      "revisions": {
+        "trigger": "never"
+      },
+      "archives": {
+        "trigger": "never"
+      }
+    },
+    "archives": {
+      "availability": "full"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "upstream",
+    "correctionSuffixSource": "generated"
+  },
+  "category": "cultural",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Hong Kong Street Names",
+      "description": "A planned dataset of Hong Kong street names and their histories."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "香港街道名稱",
+      "description": "計劃收錄香港街道名稱及其歷史的資料集。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "香港街道名称",
+      "description": "计划收录香港街道名称及其历史的数据集。"
+    }
+  ]
+}

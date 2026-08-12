@@ -1,0 +1,597 @@
+import type { prepareUpload } from '@repo/core/uploadLocal'
+
+import type {
+  IngestRunReportRow,
+  ProcessingActionReportRow,
+  ReleaseReportRow,
+  StatReportRow,
+} from '../api/reporting.ts'
+import type { UploadTarget } from './options.ts'
+import { resolveHarbourBaseUrl } from '../api/api.ts'
+
+type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
+
+function cyanText(label: string) {
+  return `\u001B[36m${label}\u001B[39m`
+}
+
+function deEmphasise(text: string) {
+  return `\u001B[90m${text}\u001B[39m`
+}
+
+function greenText(text: string) {
+  return `\u001B[32m${text}\u001B[39m`
+}
+
+function redText(text: string) {
+  return `\u001B[31m${text}\u001B[39m`
+}
+
+function yellowText(text: string) {
+  return `\u001B[33m${text}\u001B[39m`
+}
+
+/**
+ * Format a labelled CLI output field with optional provenance metadata.
+ */
+export function formatField(
+  label: string,
+  value: string | number,
+  inferredFrom?: string,
+) {
+  const suffix = inferredFrom ? ` ${deEmphasise(`(${inferredFrom})`)}` : ''
+  return `${cyanText(label)}: ${value}${suffix}`
+}
+
+function describeInferredFrom(
+  field: 'regionCode' | 'cohortKey' | 'source' | 'sourceVersion' | 'type',
+  inferredFrom:
+    | 'flag'
+    | 'filename'
+    | 'parquet'
+    | 'path'
+    | 'cohortKey'
+    | 'sourceVersion'
+    | undefined,
+) {
+  switch (field) {
+    case 'source':
+      switch (inferredFrom) {
+        case 'flag':
+          return 'flag --source'
+        case 'path':
+          return 'path'
+        case 'filename':
+          return 'filename'
+        default:
+          return undefined
+      }
+    case 'regionCode':
+    case 'type':
+      switch (inferredFrom) {
+        case 'flag':
+          return 'flag'
+        case 'filename':
+          return 'filename'
+        case 'path':
+          return 'path'
+        case 'parquet':
+          return 'parquet'
+        default:
+          return undefined
+      }
+    case 'cohortKey':
+      switch (inferredFrom) {
+        case 'flag':
+          return 'flag --cohort-key'
+        case 'path':
+          return 'path'
+        case 'filename':
+          return 'filename'
+        case 'sourceVersion':
+          return 'sourceVersion fallback'
+        default:
+          return undefined
+      }
+    case 'sourceVersion':
+      switch (inferredFrom) {
+        case 'flag':
+          return 'flag --source-version'
+        case 'path':
+          return 'path'
+        case 'filename':
+          return 'filename'
+        case 'cohortKey':
+          return 'cohortKey fallback'
+        default:
+          return undefined
+      }
+  }
+}
+
+function formatReleaseValue(result: UploadPreviewResult) {
+  return yellowText(result.plan.releaseCode)
+}
+
+function formatTargetValue(target: UploadTarget) {
+  return `${target.environment} ${deEmphasise(`(${resolveHarbourBaseUrl(target)})`)}`
+}
+
+export function formatMutedValue(value: string) {
+  return deEmphasise(value)
+}
+
+export function formatSchemaCheck(status: 'passed' | 'failed' | 'skipped') {
+  switch (status) {
+    case 'passed':
+      return `${greenText('✓')} Schema Check`
+    case 'failed':
+      return `${redText('✗')} Schema Check`
+    case 'skipped':
+      return `${deEmphasise('•')} Schema Check`
+  }
+}
+
+/**
+ * Convert an upload target into user-facing labels for prompts and logs.
+ */
+export function describeTarget(target: UploadTarget) {
+  if (!target.remote) {
+    switch (target.environment) {
+      case 'dev':
+        return {
+          label: 'local-dev',
+          destination: 'local Wrangler dev / Miniflare environment',
+        }
+      case 'preview':
+      case 'production':
+        throw new Error(
+          `Invalid local upload environment: ${target.environment}. Local uploads must use target=local.`,
+        )
+    }
+  }
+
+  switch (target.environment) {
+    case 'dev':
+      return {
+        label: 'cf-dev',
+        destination: 'Cloudflare dev environment',
+      }
+    case 'preview':
+      return {
+        label: 'preview',
+        destination: 'Cloudflare preview environment',
+      }
+    case 'production':
+      return {
+        label: 'production',
+        destination: 'Cloudflare production environment',
+      }
+  }
+}
+
+/**
+ * Render the prepared upload plan as formatted CLI output lines.
+ */
+export function formatPlan(result: UploadPreviewResult) {
+  return [
+    formatField('dataset', result.plan.datasetCode),
+    formatField('release', formatReleaseValue(result)),
+    formatField(
+      'cohortKey',
+      result.plan.cohortKey,
+      describeInferredFrom('cohortKey', result.plan.inferredFrom.cohortKey),
+    ),
+    formatField('rows', result.plan.rowCount),
+  ]
+}
+
+/**
+ * Render the top-level upload summary shown before confirmation.
+ */
+export function formatSummary(result: UploadPreviewResult, target: UploadTarget) {
+  return [formatField('target', formatTargetValue(target)), ...formatPlan(result)]
+}
+
+export function formatUploadResult(
+  result: UploadPreviewResult,
+  summary: {
+    datasetCode: string
+    rawObjectKey: string
+    releaseId: string
+    datasetId: string
+    schemaVersion: string
+    status: string
+  },
+) {
+  return [
+    formatField('status', summary.status),
+    formatField('R2', summary.rawObjectKey),
+    formatField('dataset', summary.datasetCode),
+    formatField('datasetId', formatMutedValue(summary.datasetId)),
+    formatField('release', formatReleaseValue(result)),
+    formatField('releaseId', formatMutedValue(summary.releaseId)),
+    formatField('schemaVersion', summary.schemaVersion),
+  ]
+}
+
+type TableCell = string | number
+
+export function filterIngestionRows(rows: IngestRunReportRow[]) {
+  const groupedRows = new Map<string, IngestRunReportRow[]>()
+  const orderedReleaseCodes: string[] = []
+
+  for (const row of rows) {
+    const existing = groupedRows.get(row.releaseCode)
+
+    if (existing) {
+      existing.push(row)
+      continue
+    }
+
+    groupedRows.set(row.releaseCode, [row])
+    orderedReleaseCodes.push(row.releaseCode)
+  }
+
+  const ongoingGroups = orderedReleaseCodes.filter(releaseCode =>
+    (groupedRows.get(releaseCode) ?? []).some(
+      row => row.status === 'queued' || row.status === 'running',
+    ),
+  )
+
+  const latestFinishedRelease = orderedReleaseCodes.find(releaseCode =>
+    (groupedRows.get(releaseCode) ?? []).every(
+      row => row.status !== 'queued' && row.status !== 'running',
+    ),
+  )
+
+  const selectedReleaseCodes = new Set([
+    ...ongoingGroups,
+    ...(latestFinishedRelease ? [latestFinishedRelease] : []),
+  ])
+
+  return orderedReleaseCodes.flatMap(releaseCode =>
+    selectedReleaseCodes.has(releaseCode) ? (groupedRows.get(releaseCode) ?? []) : [],
+  )
+}
+
+export function formatIngestionReportTable(
+  rows: IngestRunReportRow[],
+  options?: {
+    applyDefaultReleaseFilter?: boolean
+  },
+) {
+  const filteredRows =
+    options?.applyDefaultReleaseFilter === false ? rows : filterIngestionRows(rows)
+  const displayRows = filterDisplayIngestionRows(filteredRows)
+
+  if (displayRows.length === 0) {
+    return 'No ingest runs found.'
+  }
+
+  return formatTable(
+    ['release', 'phase', 'status', 'startedAt', 'duration', 'stat', 'value', 'error'],
+    expandIngestRunRows(displayRows),
+  )
+}
+
+export function formatStatsReportTable(rows: StatReportRow[]) {
+  if (rows.length === 0) {
+    return 'No stats found.'
+  }
+
+  const groupedRows = new Map<string, StatReportRow[]>()
+  const orderedReleaseCodes: string[] = []
+
+  for (const row of rows) {
+    const existing = groupedRows.get(row.releaseCode)
+
+    if (existing) {
+      existing.push(row)
+      continue
+    }
+
+    groupedRows.set(row.releaseCode, [row])
+    orderedReleaseCodes.push(row.releaseCode)
+  }
+
+  return orderedReleaseCodes
+    .map(releaseCode => {
+      const releaseRows = groupedRows.get(releaseCode) ?? []
+      const sections = ['completeness', 'churn', 'quality', 'processing']
+        .map(metric => {
+          const metricRows = releaseRows.filter(row => row.metric === metric)
+
+          if (metricRows.length === 0) {
+            return null
+          }
+
+          const pivot = pivotStatsRows(metricRows)
+          return [metric, formatTable(pivot.headers, pivot.rows)].join('\n')
+        })
+        .filter((section): section is string => section !== null)
+
+      return [`release: ${releaseCode}`, ...sections].join('\n\n')
+    })
+    .join('\n\n')
+}
+
+export function formatProcessingActionReport(rows: ProcessingActionReportRow[]) {
+  if (rows.length === 0) return 'No processing actions found.'
+
+  return rows
+    .map(row =>
+      [
+        `release: ${row.releaseCode}`,
+        `${row.mode}: ${row.action} (${formatNumber(row.affectedRecordCount)} records)`,
+        row.summary,
+        JSON.stringify(row.evidence, null, 2),
+      ].join('\n'),
+    )
+    .join('\n\n')
+}
+
+export function formatReleaseReportTable(rows: ReleaseReportRow[]) {
+  if (rows.length === 0) {
+    return 'No releases found.'
+  }
+
+  const countHeaders = uniqueHeaders(
+    rows.flatMap(row => row.rowCounts.map(rowCount => `${rowCount.label}Count`)),
+  )
+
+  return formatTable(
+    ['release', 'ingestedAt', 'status', ...countHeaders],
+    rows.map(row => [
+      row.releaseCode,
+      formatDateTime(row.ingestedAt ?? row.createdAt),
+      row.status,
+      ...countHeaders.map(header => {
+        const rowCount = row.rowCounts.find(entry => `${entry.label}Count` === header)
+        return rowCount ? formatNumber(rowCount.rowCount) : '-'
+      }),
+    ]),
+  )
+}
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 3,
+  }).format(value)
+}
+
+function formatByteSize(value: number) {
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'] as const
+  let unitIndex = 0
+  let normalisedValue = value
+
+  while (Math.abs(normalisedValue) >= 1024 && unitIndex < units.length - 1) {
+    normalisedValue /= 1024
+    unitIndex += 1
+  }
+
+  return `${new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 1,
+  }).format(normalisedValue)} ${units[unitIndex]}`
+}
+
+function summariseJsonCell(value: unknown) {
+  if (value == null) {
+    return '-'
+  }
+
+  const text =
+    typeof value === 'string'
+      ? value
+      : JSON.stringify(value, null, 0).replace(/\s+/g, ' ')
+
+  return text.length > 48 ? `${text.slice(0, 45)}...` : text
+}
+
+function uniqueHeaders(values: string[]) {
+  return [...new Set(values)]
+}
+
+function expandIngestRunRows(rows: IngestRunReportRow[]): TableCell[][] {
+  return rows.flatMap<TableCell[]>(row => {
+    const statsEntries = asRecordEntries(row.stats, row.phase)
+    const statRows: Array<[string, string]> =
+      statsEntries.length > 0 ? statsEntries : [['-', '-']]
+    const renderedError = summariseJsonCell(row.error)
+
+    return statRows.map(([statKey, statValue], index) => [
+      index === 0 ? row.releaseCode : '',
+      index === 0 ? row.phase : '',
+      index === 0 ? row.status : '',
+      index === 0 ? formatDateTime(row.startedAt) : '',
+      index === 0 ? formatDuration(row.startedAt, row.finishedAt) : '',
+      statKey,
+      statValue,
+      index === 0 ? renderedError : '',
+    ])
+  })
+}
+
+function filterDisplayIngestionRows(rows: IngestRunReportRow[]) {
+  const sqlReleaseIds = new Set(
+    rows.filter(row => isSqlReportPhase(row.phase)).map(row => row.releaseId),
+  )
+
+  if (sqlReleaseIds.size === 0) {
+    return rows
+  }
+
+  return rows.filter(
+    row => !(sqlReleaseIds.has(row.releaseId) && isSqlHiddenUmbrellaPhase(row.phase)),
+  )
+}
+
+function asRecordEntries(value: unknown, phase: string): Array<[string, string]> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return []
+  }
+
+  return Object.entries(value)
+    .filter(([key]) => shouldDisplayIngestStat(key, phase))
+    .map(([key, entryValue]) => [
+      key,
+      key === 'bytes' && typeof entryValue === 'number'
+        ? formatByteSize(entryValue)
+        : summariseJsonCell(entryValue),
+    ])
+}
+
+function shouldDisplayIngestStat(key: string, phase: string) {
+  if (
+    key === 'addressStage' ||
+    key === 'durationMs' ||
+    key === 'fileCount' ||
+    key === 'importedFiles' ||
+    key === 'processedFiles' ||
+    key === 'processedStatements' ||
+    key === 'rowEnd' ||
+    key === 'rowStart' ||
+    key === 'sqlArtefactCount' ||
+    key === 'target' ||
+    key === 'totalFiles'
+  ) {
+    return false
+  }
+
+  if (phase === 'stageDataset') {
+    return key !== 'rawObjectKey' && key !== 'schemaFieldCount'
+  }
+
+  return true
+}
+
+function isSqlReportPhase(phase: string) {
+  return (
+    phase === 'normaliseAddressSql' ||
+    phase === 'generateAddressSqlSource' ||
+    phase === 'generateAddressSqlHistory' ||
+    phase === 'generateAddressSqlCurrent' ||
+    phase === 'finaliseAddressSqlGeneration' ||
+    phase === 'importAddressSqlSource' ||
+    phase === 'importAddressSqlHistory' ||
+    phase === 'importAddressSqlCurrentInit' ||
+    phase === 'importAddressSqlCurrent' ||
+    phase === 'cleanupAddressSqlStaging' ||
+    phase === 'normaliseDivisionSql' ||
+    phase === 'generateDivisionSqlSource' ||
+    phase === 'generateDivisionSqlHistory' ||
+    phase === 'generateDivisionSqlCurrent' ||
+    phase === 'generateDivisionSqlStats' ||
+    phase === 'importDivisionSqlSource' ||
+    phase === 'importDivisionSqlHistory' ||
+    phase === 'importDivisionSqlCurrentInit' ||
+    phase === 'importDivisionSqlCurrent' ||
+    phase === 'importDivisionSqlStats'
+  )
+}
+
+function isSqlHiddenUmbrellaPhase(phase: string) {
+  return (
+    phase === 'processDataset' ||
+    phase === 'extractAddresses' ||
+    phase === 'extractAddressesI18n' ||
+    phase === 'extractDivisions' ||
+    phase === 'extractDivisionsI18n'
+  )
+}
+
+function pivotStatsRows(rows: StatReportRow[]) {
+  const countHeaders = uniqueHeaders(
+    rows.filter(row => row.metricUnit === 'count').map(row => row.dimension),
+  )
+  const percentageHeaders = uniqueHeaders(
+    rows.filter(row => row.metricUnit === 'percentage').map(row => row.dimension),
+  )
+  const dimensionHeaders = [...countHeaders, ...percentageHeaders]
+  const grouped = new Map<string, Map<string, string>>()
+
+  for (const row of rows) {
+    const rowLabel = formatStatsRowLabel(row)
+    const current = grouped.get(rowLabel) ?? new Map<string, string>()
+    current.set(row.dimension, formatNumber(row.value))
+    grouped.set(rowLabel, current)
+  }
+
+  return {
+    headers: ['group', ...dimensionHeaders],
+    rows: [...grouped.entries()].map(([label, values]) => [
+      label,
+      ...dimensionHeaders.map(header => values.get(header) ?? '-'),
+    ]),
+  }
+}
+
+function formatStatsRowLabel(row: StatReportRow) {
+  return row.groupBy ? `${row.groupBy}=${row.groupValue ?? '(null)'}` : 'all'
+}
+
+function formatDateTime(value: string) {
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  const hours = String(date.getUTCHours()).padStart(2, '0')
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0')
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0')
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
+function formatDuration(startedAt: string, finishedAt: string | null) {
+  if (!finishedAt) {
+    return 'ongoing'
+  }
+
+  const startMs = new Date(startedAt).getTime()
+  const endMs = new Date(finishedAt).getTime()
+
+  if (Number.isNaN(startMs) || Number.isNaN(endMs) || endMs < startMs) {
+    return '-'
+  }
+
+  const diffMs = endMs - startMs
+  const units = [
+    ['day', 24 * 60 * 60 * 1000],
+    ['hour', 60 * 60 * 1000],
+    ['minute', 60 * 1000],
+    ['second', 1000],
+  ] as const
+
+  for (const [label, unitMs] of units) {
+    if (diffMs >= unitMs) {
+      const rounded = Math.round(diffMs / unitMs)
+      return `${rounded} ${label}${rounded === 1 ? '' : 's'}`
+    }
+  }
+
+  return '0 seconds'
+}
+
+function formatTable(headers: string[], rows: TableCell[][]) {
+  const widths = headers.map((header, columnIndex) =>
+    Math.max(header.length, ...rows.map(row => String(row[columnIndex] ?? '').length)),
+  )
+  const divider = widths.map(width => '-'.repeat(width)).join('  ')
+
+  return [
+    formatTableRow(headers, widths),
+    divider,
+    ...rows.map(row => formatTableRow(row, widths)),
+  ].join('\n')
+}
+
+function formatTableRow(cells: TableCell[], widths: number[]) {
+  return cells
+    .map((cell, columnIndex) => String(cell ?? '').padEnd(widths[columnIndex] ?? 0))
+    .join('  ')
+}

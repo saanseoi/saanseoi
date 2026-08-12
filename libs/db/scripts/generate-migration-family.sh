@@ -62,4 +62,4 @@ else
   fi
 fi
 
-echo "Generated Drizzle migration artifacts for $family in $migrations_dir"
+echo "Generated Drizzle migration artefacts for $family in $migrations_dir"

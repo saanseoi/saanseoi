@@ -39,8 +39,8 @@ bun -e '
       return (
         binding === "DB_META" ||
         binding === "DB_CURRENT" ||
-        /^DB_HISTORY_[A-Z]{2}_\d{4}$/.test(binding) ||
-        /^DB_SOURCE_[A-Z]{2}_\d{4}$/.test(binding)
+        /^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(binding) ||
+        /^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(binding)
       );
     })
     .sort((left, right) => left.binding.localeCompare(right.binding))

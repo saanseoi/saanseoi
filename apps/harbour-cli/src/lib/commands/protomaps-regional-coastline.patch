@@ -1,0 +1,226 @@
+diff --git a/tiles/src/main/java/com/protomaps/basemap/Basemap.java b/tiles/src/main/java/com/protomaps/basemap/Basemap.java
+index a71ce5f..9b7b2db 100644
+--- a/tiles/src/main/java/com/protomaps/basemap/Basemap.java
++++ b/tiles/src/main/java/com/protomaps/basemap/Basemap.java
+@@ -16,6 +16,7 @@ import com.protomaps.basemap.layers.Landcover;
+ import com.protomaps.basemap.layers.Landuse;
+ import com.protomaps.basemap.layers.Places;
+ import com.protomaps.basemap.layers.Pois;
++import com.protomaps.basemap.layers.RegionalCoastline;
+ import com.protomaps.basemap.layers.Roads;
+ import com.protomaps.basemap.layers.Transit;
+ import com.protomaps.basemap.layers.Water;
+@@ -41,12 +42,21 @@ public class Basemap extends ForwardingProfile {
+ 
+   public Basemap(QrankDb qrankDb, CountryCoder countryCoder, Clip clip,
+     String layer) {
++    this(qrankDb, countryCoder, clip, layer, false);
++  }
++
++  public Basemap(QrankDb qrankDb, CountryCoder countryCoder, Clip clip,
++    String layer, boolean regionalCoastline) {
+ 
+     if (layer.isEmpty() || layer.equals(Boundaries.LAYER_NAME)) {
+       var admin = new Boundaries();
+       registerHandler(admin);
+       registerSourceHandler("osm", admin::processOsm);
+       registerSourceHandler("ne", admin::processNe);
++      if (regionalCoastline) {
++        var coastline = new RegionalCoastline();
++        registerSourceHandler("regional_border", coastline::processBorder);
++      }
+     }
+
+     if (layer.isEmpty() || layer.equals(Buildings.LAYER_NAME)) {
+@@ -102,19 +112,30 @@ public class Basemap extends ForwardingProfile {
+       var water = new Water();
+       registerHandler(water);
+       registerSourceHandler("osm", water::processOsm);
+-      registerSourceHandler("osm_water", water::processPreparedOsm);
+-      registerSourceHandler("ne", water::processNe);
++      if (!regionalCoastline) {
++        registerSourceHandler("osm_water", water::processPreparedOsm);
++        registerSourceHandler("ne", water::processNe);
++      }
+       registerSourceHandler("pm:overture", water::processOverture);
++      if (regionalCoastline) {
++        var coastline = new RegionalCoastline();
++        registerSourceHandler("regional_coastline", coastline::processCoastline);
++      }
+     }
+ 
+     if (layer.isEmpty() || layer.equals(Earth.LAYER_NAME)) {
+-      var earth = new Earth();
+-      registerHandler(earth);
+-
+-      registerSourceHandler("osm", earth::processOsm);
+-      registerSourceHandler("osm_land", earth::processPreparedOsm);
+-      registerSourceHandler("ne", earth::processNe);
+-      registerSourceHandler("pm:overture", earth::processOverture);
++      if (regionalCoastline) {
++        var coastline = new RegionalCoastline();
++        registerSourceHandler("regional_land", coastline::processLand);
++        registerSourceHandler("regional_water", coastline::processWater);
++      } else {
++        var earth = new Earth();
++        registerHandler(earth);
++        registerSourceHandler("osm", earth::processOsm);
++        registerSourceHandler("osm_land", earth::processPreparedOsm);
++        registerSourceHandler("ne", earth::processNe);
++        registerSourceHandler("pm:overture", earth::processOverture);
++      }
+     }
+ 
+     if (clip != null) {
+@@ -347,6 +368,33 @@ public class Basemap extends ForwardingProfile {
+         Clip.fromGeoJSONFile(args.getStats(), planetiler.config().minzoom(), planetiler.config().maxzoom(), true,
+           clipBuffer, Paths.get(clipArg));
+     }
++    var regionalLand = args.getString("regional_land",
++      "Pre-clipped regional land GeoJSON used as the earth layer.", "");
++    var regionalWater = args.getString("regional_water",
++      "Pre-clipped regional water GeoJSON used as the water layer.", "");
++    var regionalCoastlinePath = args.getString("regional_coastline",
++      "Pre-clipped regional coastline GeoJSON used as the water layer.", "");
++    var regionalBorderPath = args.getString("regional_border",
++      "Pre-clipped regional land-border GeoJSON used as the boundaries layer.", "");
++    boolean hasRegionalCoastlineInput =
++      !regionalLand.isEmpty() || !regionalWater.isEmpty() || !regionalCoastlinePath.isEmpty() ||
++        !regionalBorderPath.isEmpty();
++    if (hasRegionalCoastlineInput &&
++      (regionalLand.isEmpty() || regionalWater.isEmpty() || regionalCoastlinePath.isEmpty())) {
++      LOGGER.error(
++        "Error: --regional-land, --regional-water, and --regional-coastline must be set together.");
++      System.exit(1);
++    }
++    boolean regionalCoastline = hasRegionalCoastlineInput;
++    if (regionalCoastline) {
++      planetiler
++        .addGeoJsonSource("regional_land", Path.of(regionalLand))
++        .addGeoJsonSource("regional_water", Path.of(regionalWater))
++        .addGeoJsonSource("regional_coastline", Path.of(regionalCoastlinePath));
++      if (!regionalBorderPath.isEmpty()) {
++        planetiler.addGeoJsonSource("regional_border", Path.of(regionalBorderPath));
++      }
++    }
+ 
+     List<String> availableLayers = List.of(
+       Boundaries.LAYER_NAME,
+@@ -383,7 +431,7 @@ public class Basemap extends ForwardingProfile {
+       outputName = area;
+     }
+ 
+-    planetiler.setProfile(new Basemap(qrankDb, countryCoder, clip, layer))
++    planetiler.setProfile(new Basemap(qrankDb, countryCoder, clip, layer, regionalCoastline))
+       .setOutput(Path.of(outputName + ".pmtiles"))
+       .run();
+   }
+diff --git a/tiles/src/main/java/com/protomaps/basemap/layers/RegionalCoastline.java b/tiles/src/main/java/com/protomaps/basemap/layers/RegionalCoastline.java
+new file mode 100644
+index 0000000..372914a
+--- /dev/null
++++ b/tiles/src/main/java/com/protomaps/basemap/layers/RegionalCoastline.java
+@@ -0,0 +1,54 @@
++package com.protomaps.basemap.layers;
++
++import com.onthegomap.planetiler.FeatureCollector;
++import com.onthegomap.planetiler.reader.SourceFeature;
++
++/** Emits exact, pre-clipped regional base geometry in the standard Protomaps layers. */
++public class RegionalCoastline {
++
++  public static final String BASE_ATTRIBUTE = "saanseoi:base";
++
++  public void processLand(SourceFeature sf, FeatureCollector features) {
++    features.polygon(Earth.LAYER_NAME)
++      .setAttr("kind", "earth")
++      .setAttr(BASE_ATTRIBUTE, true)
++      .setMinZoom(0)
++      .setMinPixelSize(1)
++      .setPixelTolerance(Earth.PIXEL_TOLERANCE)
++      .setBufferPixels(8);
++  }
++
++  public void processWater(SourceFeature sf, FeatureCollector features) {
++    features.polygon(Water.LAYER_NAME)
++      .setAttr("kind", "ocean")
++      .setAttr("sort_rank", 200)
++      .setAttr(BASE_ATTRIBUTE, true)
++      .setMinZoom(0)
++      .setMinPixelSize(1)
++      .setPixelTolerance(Earth.PIXEL_TOLERANCE)
++      .setBufferPixels(8);
++  }
++
++  public void processCoastline(SourceFeature sf, FeatureCollector features) {
++    features.line(Water.LAYER_NAME)
++      .setAttr("kind", "coastline")
++      .setAttr(BASE_ATTRIBUTE, true)
++      .setMinZoom(0)
++      .setMinPixelSize(1)
++      .setPixelTolerance(Earth.PIXEL_TOLERANCE)
++      .setBufferPixels(8);
++  }
++
++  /** Emits only landward footprint segments into the standard boundaries layer. */
++  public void processBorder(SourceFeature sf, FeatureCollector features) {
++    features.line(Boundaries.LAYER_NAME)
++      .setAttr("kind", "region")
++      .setAttr("kind_detail", 4)
++      .setAttr("sort_rank", 289)
++      .setAttr("saanseoi:region_border", true)
++      .setAttr(BASE_ATTRIBUTE, true)
++      .setMinZoom(6)
++      .setMinPixelSize(0)
++      .setBufferPixels(8);
++  }
++}
+diff --git a/tiles/src/main/java/com/protomaps/basemap/layers/Water.java b/tiles/src/main/java/com/protomaps/basemap/layers/Water.java
+index 1278848..361dca1 100644
+--- a/tiles/src/main/java/com/protomaps/basemap/layers/Water.java
++++ b/tiles/src/main/java/com/protomaps/basemap/layers/Water.java
+@@ -459,7 +459,19 @@ public class Water implements ForwardingProfile.LayerPostProcessor {
+ 
+   @Override
+   public List<VectorTile.Feature> postProcess(int zoom, List<VectorTile.Feature> items) throws GeometryException {
+-    items = FeatureMerge.mergeLineStrings(items, 0.5, Earth.PIXEL_TOLERANCE, 4.0);
+-    return FeatureMerge.mergeNearbyPolygons(items, Earth.MIN_AREA, Earth.MIN_AREA, 0.5, Earth.BUFFER);
++    var coastlineBase = items.stream()
++      .filter(item -> Boolean.TRUE.equals(item.attrs().get(RegionalCoastline.BASE_ATTRIBUTE)))
++      .toList();
++    var ordinaryItems = items.stream()
++      .filter(item -> !Boolean.TRUE.equals(item.attrs().get(RegionalCoastline.BASE_ATTRIBUTE)))
++      .toList();
++    var processed = FeatureMerge.mergeLineStrings(ordinaryItems, 0.5, Earth.PIXEL_TOLERANCE, 4.0);
++    processed = FeatureMerge.mergeNearbyPolygons(processed, Earth.MIN_AREA, Earth.MIN_AREA, 0.5, Earth.BUFFER);
++    if (coastlineBase.isEmpty()) {
++      return processed;
++    }
++    var result = new java.util.ArrayList<>(processed);
++    result.addAll(coastlineBase);
++    return result;
+   }
+ }
+diff --git a/tiles/src/main/java/com/protomaps/basemap/postprocess/Clip.java b/tiles/src/main/java/com/protomaps/basemap/postprocess/Clip.java
+index 4aaa41b..5e764f5 100644
+--- a/tiles/src/main/java/com/protomaps/basemap/postprocess/Clip.java
++++ b/tiles/src/main/java/com/protomaps/basemap/postprocess/Clip.java
+@@ -13,6 +13,7 @@ import com.onthegomap.planetiler.reader.FileFormatException;
+ import com.onthegomap.planetiler.reader.geojson.GeoJson;
+ import com.onthegomap.planetiler.render.TiledGeometry;
+ import com.onthegomap.planetiler.stats.Stats;
++import com.protomaps.basemap.layers.RegionalCoastline;
+ import java.nio.file.Path;
+ import java.util.*;
+ import org.locationtech.jts.geom.*;
+@@ -145,6 +146,10 @@ public class Clip implements ForwardingProfile.TilePostProcessor {
+     for (Map.Entry<String, List<VectorTile.Feature>> layer : layers.entrySet()) {
+       List<VectorTile.Feature> clippedFeatures = new ArrayList<>();
+       for (var feature : layer.getValue()) {
++        if (Boolean.TRUE.equals(feature.attrs().get(RegionalCoastline.BASE_ATTRIBUTE))) {
++          clippedFeatures.add(feature);
++          continue;
++        }
+         try {
+           var clippedGeom =
+             OverlayNGRobust.overlay(feature.geometry().decode(), clippingPoly, OverlayNG.INTERSECTION);

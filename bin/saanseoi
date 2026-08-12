@@ -12,7 +12,15 @@ while [[ -L "$script_path" ]]; do
   fi
 done
 
+script_path="$(cd "$(dirname "$script_path")" && pwd)/$(basename "$script_path")"
 repo_root="$(cd "$(dirname "$script_path")/.." && pwd)"
 
+export SAANSEOI_INVOCATION_CWD="${SAANSEOI_INVOCATION_CWD:-$PWD}"
+export SAANSEOI_COMMAND_PATH="$script_path"
 cd "$repo_root"
-exec bun --cwd ./apps/harbour-cli ./src/cli.ts "$@"
+exec "${SAANSEOI_BUN_PATH:-bun}" \
+  --env-file="$repo_root/.env" \
+  --env-file="$repo_root/.env.local" \
+  --cwd ./apps/harbour-cli \
+  ./src/cli.ts \
+  "$@"
