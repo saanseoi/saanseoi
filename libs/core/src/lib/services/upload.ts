@@ -539,6 +539,13 @@ function ensureChronologicalUpload(
     return
   }
 
+  // A remote upload registers the release before processing it. If the
+  // subsequent cache refresh or processing step fails, retrying the same
+  // staged release must not be rejected as a non-chronological upload.
+  if (latestDataset.releaseCode === releaseCode) {
+    return
+  }
+
   if (compareSourceVersion(sourceVersion, latestDataset.sourceVersion) <= 0) {
     throw new Error(
       [
