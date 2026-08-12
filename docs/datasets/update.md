@@ -125,6 +125,18 @@ the comparison baseline, so `NEW` and `SAME` describe what that target already k
 rather than only what is present in the local checkout. Each row finishes with `-`, `x`,
 or `✓`, the status gutter, and the latest source version reported by the target.
 
+If the target has been reset and the report contains no releases, the empty target is
+treated as authoritative. This causes previously checked local source versions and
+retained CSDI archive slots to be re-materialised. Bootstrap a remote environment by
+selecting the family and allowing downloads/uploads without prompts:
+
+```sh
+saanseoi update --target production --api-family divisions --download --yes
+```
+
+The same command is safe to rerun after an interrupted bootstrap; the target release
+report becomes the comparison baseline and completed releases are not re-published.
+
 Every dataset fixture defines a `versionPolicy`. The policy describes how the updater
 reads a version from the dataset's optional `releases` metadata:
 
