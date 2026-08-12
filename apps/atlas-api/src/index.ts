@@ -11,6 +11,7 @@ import { defaultOpenAPIHook } from './lib/openapi'
 import { resolvePublicKeyLease, retryAfterSeconds } from './lib/public-key-lease'
 import {
   PublicKeyLeaseUnavailableError,
+  consumePublicKeyUsage,
   isPublicKeyOriginAllowed,
   readPublicApiKey,
   type PublicKeyLease,
@@ -137,6 +138,33 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
           message: 'The API rate limit has been exceeded.',
         },
         429,
+      )
+    }
+    try {
+      const usage = await consumePublicKeyUsage(
+        rawKey,
+        c.env.PUBLIC_KEY_LEASE_COORDINATOR,
+      )
+      if (usage.status === 'exhausted') {
+        c.header('Retry-After', String(retryAfterSeconds({ ...lease, ...usage })))
+        return c.json(
+          {
+            error: 'usage_limit_exceeded',
+            message: 'This public API key has reached its current usage limit.',
+            resetAt: usage.resetAt,
+          },
+          429,
+        )
+      }
+    } catch (error) {
+      if (!(error instanceof PublicKeyLeaseUnavailableError)) throw error
+      return c.json(
+        {
+          error: 'public_key_validation_unavailable',
+          message:
+            'Public API key validation is temporarily unavailable. Please retry.',
+        },
+        503,
       )
     }
     c.env.API_USAGE.writeDataPoint({
