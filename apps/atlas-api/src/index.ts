@@ -6,10 +6,11 @@ import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 
 import { createCurrentDb, createHistoryDb, createMetaDb } from '@repo/db'
-import { authenticateAccessToken, issueAccessToken } from './lib/access-token'
-import { authenticateApiKey } from './lib/api-key-auth'
 import { isTransientD1ReadError } from './lib/d1'
 import { defaultOpenAPIHook } from './lib/openapi'
+import { resolvePublicKeyLease, retryAfterSeconds } from './lib/public-key-lease'
+import { readPublicApiKey } from '@repo/core/publicApiKey'
+export { PublicKeyLeaseCoordinator } from './publicKeyLeaseCoordinator'
 import { metaRoutes } from './routes/v0/meta'
 import { probeRoutes } from './routes/v0/probe'
 import { divisionRoutes } from './routes/v0/divisions'
@@ -53,14 +54,6 @@ app.use(
     allowHeaders: ['Content-Type'],
   }),
 )
-app.use(
-  '/v0/auth/tokens',
-  cors({
-    origin: '*',
-    allowMethods: ['POST', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'X-API-Key'],
-  }),
-)
 for (const path of ['/v0/*', '/v0.1/*'] as const) {
   app.use(path, async (c, next) => {
     c.set('metaDb', createMetaDb(c.env.DB_META))
@@ -75,28 +68,41 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
 }
 for (const path of ['/v0/*', '/v0.1/*'] as const) {
   app.use(path, async (c, next) => {
-    if (
-      isPublicMetadataPath(c.req.path) ||
-      isTokenPath(c.req.path) ||
-      isAuthDisabled(c.env)
-    ) {
+    if (isPublicMetadataPath(c.req.path) || isAuthDisabled(c.env)) {
       return next()
     }
-    const claims = await authenticateAccessToken(
-      c.req.header('authorization'),
-      c.env,
-      'atlas-api',
-    )
-    if (!claims) {
+    const rawKey = readPublicApiKey(c.req.raw)
+    if (!rawKey) {
       return c.json(
         {
-          error: 'invalid_access_token',
-          message: 'A valid Atlas API access token is required.',
+          error: 'invalid_api_key',
+          message: 'A valid SaanSeoi public API key is required.',
         },
         401,
       )
     }
-    const rateLimit = await c.env.API_RATE_LIMIT.limit({ key: claims.sub })
+    const lease = await resolvePublicKeyLease(rawKey, c.env)
+    if (!lease) {
+      return c.json(
+        {
+          error: 'invalid_api_key',
+          message: 'This public API key is invalid or revoked.',
+        },
+        401,
+      )
+    }
+    if (lease.status === 'exhausted') {
+      c.header('Retry-After', String(retryAfterSeconds(lease)))
+      return c.json(
+        {
+          error: 'usage_limit_exceeded',
+          message: 'This public API key has reached its current usage limit.',
+          resetAt: lease.resetAt,
+        },
+        429,
+      )
+    }
+    const rateLimit = await c.env.API_RATE_LIMIT.limit({ key: lease.keyId })
     if (!rateLimit.success) {
       return c.json(
         {
@@ -107,46 +113,14 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
       )
     }
     c.env.API_USAGE.writeDataPoint({
-      indexes: [claims.sub],
+      indexes: [lease.keyId],
       blobs: [c.req.path, requestOrigin(c.req.header('origin'))],
       doubles: [1],
     })
-    c.set('apiKey', { id: claims.sub, userId: claims.sub })
+    c.set('apiKey', { id: lease.keyId, userId: lease.keyId })
     return next()
   })
 }
-
-app.post('/v0/auth/tokens', async c => {
-  if (isAuthDisabled(c.env)) {
-    return c.json(
-      { error: 'auth_disabled', message: 'Token issuance is disabled locally.' },
-      404,
-    )
-  }
-  const body = await c.req.json<{ audience?: unknown }>().catch(() => null)
-  if (body?.audience !== 'atlas-api' && body?.audience !== 'basemap-tiles') {
-    return c.json(
-      { error: 'invalid_audience', message: 'A valid token audience is required.' },
-      422,
-    )
-  }
-  const authentication = await authenticateApiKey({
-    d1: c.env.DB_META,
-    rawKey: c.req.header('x-api-key') ?? null,
-  })
-  if (!authentication.ok) {
-    return c.json(
-      { error: authentication.error, message: authentication.message },
-      authentication.status,
-    )
-  }
-  const accessToken = await issueAccessToken(
-    c.env,
-    body.audience,
-    authentication.apiKey.id,
-  )
-  return c.json({ accessToken, expiresIn: 900, tokenType: 'Bearer' }, 201)
-})
 
 app.use('/v0.1/divisions/sources', streamSourceRecordsMiddleware)
 
@@ -157,10 +131,6 @@ function isPublicMetadataPath(path: string) {
     path.startsWith('/v0/assets/') ||
     path.startsWith('/v0/styles/')
   )
-}
-
-function isTokenPath(path: string) {
-  return path === '/v0/auth/tokens'
 }
 
 function isAuthDisabled(env: AppBindings) {

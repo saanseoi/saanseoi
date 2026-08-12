@@ -10,6 +10,7 @@ const isTileJson = (value: unknown): value is TileJson => {
 }
 
 type TileJsonOptions = {
+  accessToken?: string
   pmtiles: PMTiles
   origin: string
   name: string
@@ -17,6 +18,7 @@ type TileJsonOptions = {
 }
 
 export const getTileJson = async ({
+  accessToken,
   pmtiles,
   origin,
   name,
@@ -31,6 +33,12 @@ export const getTileJson = async ({
     tileJson.tiles = tileJson.tiles.map(
       tileUrl =>
         `${tileUrl}${tileUrl.includes('?') ? '&' : '?'}v=${encodeURIComponent(archiveVersion)}`,
+    )
+  }
+  if (accessToken) {
+    tileJson.tiles = tileJson.tiles.map(
+      tileUrl =>
+        `${tileUrl}${tileUrl.includes('?') ? '&' : '?'}access_token=${encodeURIComponent(accessToken)}`,
     )
   }
   tileJson['saanseoi:boundary'] = `${origin}/${name}.boundary.geojson`

@@ -15,6 +15,8 @@ export type AppBindings = CloudflareBindings &
     AUTH_MODE: 'disabled' | 'required'
     D1_PLACEMENT_PROBE_API_KEY: string
     R2_ASSETS: R2Bucket
+    PUBLIC_KEY_LEASE_COORDINATOR: DurableObjectNamespace
+    PUBLIC_KEY_LEASES: KVNamespace
     ENVIRONMENT: string
     SUBSTACK_SESSION_COOKIE: string
     TELEGRAM_ADMIN_ID: string

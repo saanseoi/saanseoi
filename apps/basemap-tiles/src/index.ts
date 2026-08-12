@@ -9,14 +9,20 @@ import {
   tile_path,
 } from '@repo/basemap'
 import { getAllowedOrigin } from './lib/access'
-import { authenticateTileRequest } from './lib/token-access'
+import {
+  authenticatePublicKeyRequest,
+  retryAfterSeconds,
+} from './lib/public-key-access'
 import { ResponseCache, DYNAMIC_CACHE_CONTROL } from './lib/cache'
 import { getRegionsIndex } from './lib/catalogue'
 import { KeyNotFoundError } from './lib/errors'
 import { openPmtiles } from './lib/pmtiles'
 import { getTileJson } from './lib/tilejson'
 
-type Env = CloudflareBindings
+type Env = CloudflareBindings & {
+  PUBLIC_KEY_LEASE_COORDINATOR: DurableObjectNamespace
+  PUBLIC_KEY_LEASES: KVNamespace
+}
 
 const tileContentType = (tileType: TileType): string | undefined => {
   switch (tileType) {
@@ -73,19 +79,27 @@ export default {
       return new Response('Invalid URL', { status: 404 })
     }
 
-    const access = await authenticateTileRequest(request, env)
+    const access = await authenticatePublicKeyRequest(request, env)
     // Release manifests contain immutable, non-sensitive provenance and must be
     // linkable from the viewer's diagnostic report. Unlike tile data, they are
     // intentionally readable without a browser Origin or bearer token.
     if (!access && !manifestRequest && !renderRequest) {
-      return new Response('A valid basemap access token is required.', { status: 401 })
+      return new Response('A valid SaanSeoi public API key is required.', {
+        status: 401,
+      })
+    }
+    if (access && !access.unmetered && access.lease.status === 'exhausted') {
+      return new Response('This public API key has reached its current usage limit.', {
+        headers: { 'Retry-After': String(retryAfterSeconds(access.lease)) },
+        status: 429,
+      })
     }
     if (access && !access.unmetered) {
-      const rateLimit = await env.TILE_RATE_LIMIT.limit({ key: access.claims.sub })
+      const rateLimit = await env.TILE_RATE_LIMIT.limit({ key: access.lease.keyId })
       if (!rateLimit.success)
         return new Response('Tile rate limit exceeded.', { status: 429 })
       env.TILE_USAGE.writeDataPoint({
-        indexes: [access.claims.sub],
+        indexes: [access.lease.keyId],
         blobs: [url.pathname, requestOrigin(request.headers.get('Origin'))],
         doubles: [1],
       })
@@ -208,6 +222,7 @@ export default {
         return responseCache.response(
           JSON.stringify(
             await getTileJson({
+              accessToken: url.searchParams.get('access_token') ?? undefined,
               pmtiles,
               origin,
               name,
