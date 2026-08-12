@@ -273,10 +273,6 @@ mock.module('../db/divisions', () => ({
   listDivisionBoundariesCurrentByDivisionIds: mock(async () => []),
 }))
 
-mock.module('../lib/d1', () => ({
-  runWithD1ReadRetry: mock(async <T>(fn: () => Promise<T> | T) => await fn()),
-}))
-
 const { getDivisionDetail, listDivisions } = await import('./divisions')
 
 describe('division services', () => {
