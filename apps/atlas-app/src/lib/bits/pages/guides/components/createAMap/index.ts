@@ -5,6 +5,7 @@ export { default as GuideCreateAMapAccountAccess } from './guideCreateAMapAccoun
 export { default as GuidePaymentWarning } from './guidePaymentWarning.svelte'
 export { default as GuideInstructionCallout } from './guideInstructionCallout.svelte'
 export { default as GuideCodeInstructionStep } from './guideCodeInstructionStep.svelte'
+export { default as GuideEditorReadiness } from './guideEditorReadiness.svelte'
 export { default as GuideReadinessCompleteSummary } from './guideReadinessCompleteSummary.svelte'
 export { default as GuideReadinessCompleteToggle } from './guideReadinessCompleteToggle.svelte'
 export { default as GuideReadinessIncompleteSummary } from './guideReadinessIncompleteSummary.svelte'
