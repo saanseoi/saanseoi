@@ -7,12 +7,14 @@ import { m } from '$lib/bits/internal/i18n'
 import { createGuideApiKey } from './createAMapApiKeys.remote'
 
 type Props = {
+  apiKeyReady?: boolean
   onApiKeyReadyChange?: (ready: boolean) => void
+  showHeading?: boolean
 }
 
-let { onApiKeyReadyChange }: Props = $props()
-let hasConfirmedApiKey = $state(false)
-let isApiKeyReady = $derived(hasConfirmedApiKey)
+let { apiKeyReady = false, onApiKeyReadyChange, showHeading = true }: Props = $props()
+let hasConfirmedApiKey = $state<boolean>()
+let isApiKeyReady = $derived(hasConfirmedApiKey ?? apiKeyReady)
 let apiKeyOptionsExpanded = $state(false)
 let name = $state('')
 let error = $state<string>()
@@ -60,16 +62,22 @@ $effect(() => {
 })
 </script>
 
-<section class="mt-8 max-w-3xl" aria-labelledby="guide-api-keys-title">
-  <h3
-    id="guide-api-keys-title"
-    class="font-display text-headline-sm font-bold text-primary"
-  >
-    {m.api_keys_title()}
-  </h3>
-  <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
-    {m.api_keys_description()}
-  </p>
+<section
+  id="basemap-api-key-readiness"
+  class="mt-8 max-w-3xl"
+  aria-labelledby="guide-api-keys-title"
+>
+  {#if showHeading}
+    <h3
+      id="guide-api-keys-title"
+      class="font-display text-headline-sm font-bold text-primary"
+    >
+      {m.api_keys_title()}
+    </h3>
+    <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
+      {m.api_keys_description()}
+    </p>
+  {/if}
 
   {#if isApiKeyReady}
     <button

@@ -9,7 +9,7 @@ type Props = {
   id: string
   intro?: string
   step?: string
-  title: string
+  title?: string
 }
 
 let { actionLabel, children, description, eyebrow, id, intro, step, title }: Props =
@@ -37,16 +37,18 @@ let { actionLabel, children, description, eyebrow, id, intro, step, title }: Pro
       {@html actionLabel}
     </p>
   {/if}
-  <h2
-    class={`${actionLabel ? 'mt-1' : 'mt-8'} font-display text-headline-md font-bold text-primary`}
-  >
-    {@html title}
-    {#if step}
-      <span class="ml-3 font-body text-label-md font-semibold text-secondary"
-        >[{step}]</span
-      >
-    {/if}
-  </h2>
+  {#if title}
+    <h2
+      class={`${actionLabel ? 'mt-1' : 'mt-8'} font-display text-headline-md font-bold text-primary`}
+    >
+      {@html title}
+      {#if step}
+        <span class="ml-3 font-body text-label-md font-semibold text-secondary"
+          >[{step}]</span
+        >
+      {/if}
+    </h2>
+  {/if}
   {#if description}
     <p
       class={`${actionLabel ? 'mt-2' : 'mt-4'} max-w-3xl font-body text-body-md leading-7 text-foreground-alt`}

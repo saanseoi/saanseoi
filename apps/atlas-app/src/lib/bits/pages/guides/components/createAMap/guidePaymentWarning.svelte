@@ -29,6 +29,7 @@ $effect(() => {
 </script>
 
 <aside
+  id="payment-readiness"
   class={`mb-5 max-w-3xl border-l-4 px-5 py-5 ${completed ? 'border-[#6fdec9] bg-[#6fdec9]/12' : 'border-[#ef8b88] bg-[#ef8b88]/12'}`}
   aria-labelledby="payment-warning-title"
 >
