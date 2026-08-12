@@ -11,6 +11,7 @@ type CreateAMapGuideUrlState = CreateAMapSelectionQuery & {
   agenticAiPrimerExpanded: boolean
   completedEditorReadinessKey?: string
   completedLlmReadinessKey?: string
+  completedPaymentKey?: string
   zedSetupContentExpanded: boolean
   zedSetupExpanded: boolean
 }
@@ -60,6 +61,7 @@ export function createCreateAMapGuideAdapter({
       data: state.dataSource,
       'editor-ready': state.completedEditorReadinessKey,
       'llm-ready': state.completedLlmReadinessKey,
+      'payment-ready': state.completedPaymentKey,
       'ai-primer': state.agenticAiPrimerExpanded ? undefined : 'collapsed',
       'zed-setup': state.zedSetupExpanded
         ? state.zedSetupContentExpanded

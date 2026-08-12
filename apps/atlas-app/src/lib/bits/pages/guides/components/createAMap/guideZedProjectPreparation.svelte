@@ -21,9 +21,6 @@ let {
 </script>
 
 <div class={className}>
-  <p class="font-body text-body-md leading-7 text-foreground-alt">
-    {@html m.guide_zed_setup_project_add_description()}
-  </p>
   <GuideScreenshot
     src={projectTrustImage}
     alt={m.guide_zed_setup_image_project_trust_alt()}

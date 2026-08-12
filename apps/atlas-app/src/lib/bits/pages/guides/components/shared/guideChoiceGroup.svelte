@@ -85,13 +85,15 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
   {#if Array.isArray(hint)}
     {#each hint as paragraph, index}
       <p
-        class={`${index === 0 ? 'mt-1' : 'mt-3'} font-body text-body-sm leading-6 text-foreground-alt`}
+        class={`${index === 0 ? 'mt-1' : 'mt-3'} max-w-3xl font-body text-body-sm leading-6 text-foreground-alt`}
       >
         {@html paragraph}
       </p>
     {/each}
   {:else if hint}
-    <p class="mt-1 font-body text-body-sm text-foreground-alt">{@html hint}</p>
+    <p class="mt-1 max-w-3xl font-body text-body-sm text-foreground-alt">
+      {@html hint}
+    </p>
   {/if}
   {#if variant === 'illustrated'}
     {#if choices.length > 1}
