@@ -8,6 +8,7 @@ import {
   type OriginAccessConfig,
 } from './access'
 import { authenticateTileRequest } from './token-access'
+import worker from '../index'
 
 const config: OriginAccessConfig = {
   DIAGNOSTIC_ORIGINS: 'https://maplibre.org',
@@ -125,5 +126,31 @@ test('requires a production tiles token outside the unmetered browser origins', 
       env,
     ),
     null,
+  )
+})
+
+test('allows browser preflight for the signed-token header', async () => {
+  const response = await worker.fetch(
+    new Request('https://tiles.saanseoi.hk/hk-latest.json', {
+      method: 'OPTIONS',
+      headers: { origin: 'https://example.com' },
+    }),
+    {
+      ...config,
+      AUTH_MODE: 'required',
+      ENVIRONMENT: 'production',
+      EXTERNAL_ORIGINS: '*',
+    } as CloudflareBindings,
+    { waitUntil: () => {} } as ExecutionContext,
+  )
+
+  assert.equal(response.status, 204)
+  assert.equal(
+    response.headers.get('access-control-allow-origin'),
+    'https://example.com',
+  )
+  assert.match(
+    response.headers.get('access-control-allow-headers') ?? '',
+    /authorization/i,
   )
 })

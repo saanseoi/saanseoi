@@ -48,6 +48,17 @@ const expectedExtension = (tileType: TileType): string | undefined => {
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    if (request.method.toUpperCase() === 'OPTIONS') {
+      const allowedOrigin = getAllowedOrigin(request.headers.get('Origin'), env)
+      const headers = new Headers({
+        'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Max-Age': '86400',
+      })
+      if (allowedOrigin) headers.set('Access-Control-Allow-Origin', allowedOrigin)
+      headers.set('Vary', 'Origin')
+      return new Response(undefined, { headers, status: 204 })
+    }
     if (request.method.toUpperCase() === 'POST') {
       return new Response(undefined, { status: 405 })
     }
