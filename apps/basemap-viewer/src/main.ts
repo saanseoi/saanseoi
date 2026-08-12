@@ -1,6 +1,4 @@
-import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl'
-import type { FilterSpecification } from '@maplibre/maplibre-gl-style-spec'
-import type { Geometry } from 'geojson'
+import type { Map as MapLibreMap } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { AppState, CameraState } from './lib/types'
 import type { Region } from './lib/catalogue'
@@ -14,14 +12,7 @@ import {
 import { boundaryBounds, type RegionBoundary } from './lib/boundaries'
 import type { Tilejson } from './lib/tilejson'
 import { readUrlState, writeUrlState } from './lib/url-state'
-import {
-  buildDiff,
-  type DiffLabelChange,
-  type DiffInputFeature,
-  type DiffFeatureCollection,
-  type DiffStatus,
-} from './lib/diff'
-import { isSameRelease, orderComparisonReleases } from './lib/release-order'
+import type { DiffStatus } from './lib/diff'
 import type { ReleaseMetadata } from './lib/release-metadata'
 import { emptyReleaseDiagnostic, type ReleaseDiagnostic } from './diagnostics'
 import {
@@ -35,6 +26,7 @@ import { ReleaseRepository } from './lib/release-repository'
 import { DiagnosticsCollector } from './lib/diagnostics-collector'
 import { createRenderingMode } from './lib/rendering-mode'
 import { installSplitTouchBridge } from './lib/split-touch-bridge'
+import { ViewportLabelDiff } from './lib/viewport-label-diff'
 import './styles.css'
 
 const TILE_ORIGIN = import.meta.env.VITE_TILE_ORIGIN ?? 'https://tiles.saanseoi.hk'
@@ -45,9 +37,6 @@ const POSTCARD_RENDERING = renderingMode.postcard
 const POSTCARD_ILLUMINATED = renderingMode.illuminated
 
 const DEFAULT_REGION_CODE = 'hk'
-const DIFF_SOURCE_ID = 'release-diff'
-const DIFF_LAYER_PREFIX = 'release-diff'
-const DIFF_STATUSES = ['added', 'removed'] as const
 const MAX_VIEWER_ZOOM = 22
 const REGION_RELEASE_PREFETCH_CONCURRENCY = 3
 const repository = new ReleaseRepository(TILE_ORIGIN)
@@ -81,6 +70,7 @@ const comparisonLoad = new LatestLoad()
 let synchronisingComparison = false
 let diffRefreshTimer: number | null = null
 let diagnosticsCollector!: DiagnosticsCollector
+let viewportLabelDiff!: ViewportLabelDiff
 
 const primaryController = new MapController({
   role: 'primary',
@@ -133,7 +123,7 @@ const controls = new AppContext(
     onComparisonVersion: version => void changeComparisonVersion(version),
     onComparisonMode: mode => changeComparisonMode(mode),
     onDiffVisibility: (status, enabled) => changeDiffVisibility(status, enabled),
-    onDiffLabel: change => flyToDiffLabel(change),
+    onDiffLabel: change => viewportLabelDiff.flyTo(change),
     onTheme: theme => void changeTheme(theme),
     onLocale: locale => changeLocale(locale),
     onFeature: (key, enabled) => changeFeature(key, enabled),
@@ -152,6 +142,13 @@ diagnosticsCollector = new DiagnosticsCollector(diagnostics =>
   controls.setDiagnostics(diagnostics),
 )
 diagnosticsCollector.setOpen(state.diagnosticsOpen)
+viewportLabelDiff = new ViewportLabelDiff({
+  getState: () => state,
+  getVersions: () => versions,
+  getPrimaryMap: () => map,
+  getComparisonMap: () => comparisonMap,
+  onSummary: summary => controls.setDiffSummary(summary),
+})
 installSplitTouchBridge({
   canBridge: canBridgeSplitTouch,
   getPrimaryMap: () => map,
@@ -280,8 +277,7 @@ async function changeComparisonVersion(version: string | null): Promise<void> {
     state.comparisonMode === 'side-by-side' &&
     (state.comparisonVersion !== null || version !== null)
   dispatch({ type: 'setComparisonVersion', version }, true)
-  clearDiffPresentation(map)
-  clearDiffPresentation(comparisonMap)
+  viewportLabelDiff.clearAll()
   applyMapState()
   controls.setDiffSummary(null)
   if (needsResize) await resizeComparisonView()
@@ -307,92 +303,15 @@ function changeComparisonMode(mode: AppState['comparisonMode']): void {
   applyMapState(comparisonMap)
   if (isLabelsMode()) scheduleDiffRefresh()
   else {
-    clearDiffPresentation(map)
-    clearDiffPresentation(comparisonMap)
+    viewportLabelDiff.clearAll()
     controls.setDiffSummary(null)
   }
 }
 
 function changeDiffVisibility(status: DiffStatus, enabled: boolean): void {
   dispatch({ type: 'setDiffVisibility', status, enabled })
-  applyDiffVisibility(map)
-  applyDiffVisibility(comparisonMap)
-}
-
-function geometryBounds(geometry: Geometry): [number, number, number, number] | null {
-  const bounds: [number, number, number, number] = [
-    Infinity,
-    Infinity,
-    -Infinity,
-    -Infinity,
-  ]
-  const visitCoordinates = (value: unknown): void => {
-    if (!Array.isArray(value)) return
-    if (
-      value.length >= 2 &&
-      typeof value[0] === 'number' &&
-      typeof value[1] === 'number'
-    ) {
-      bounds[0] = Math.min(bounds[0], value[0])
-      bounds[1] = Math.min(bounds[1], value[1])
-      bounds[2] = Math.max(bounds[2], value[0])
-      bounds[3] = Math.max(bounds[3], value[1])
-      return
-    }
-    for (const nested of value) visitCoordinates(nested)
-  }
-  const visitGeometry = (value: Geometry): void => {
-    if (value.type === 'GeometryCollection') {
-      for (const nested of value.geometries) visitGeometry(nested)
-    } else {
-      visitCoordinates(value.coordinates)
-    }
-  }
-  visitGeometry(geometry)
-  return Number.isFinite(bounds[0]) ? bounds : null
-}
-
-function geometryCentre(geometry: Geometry): [number, number] | null {
-  const bounds = geometryBounds(geometry)
-  return bounds ? [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2] : null
-}
-
-function geometryIntersectsViewport(geometry: Geometry, target: MapLibreMap): boolean {
-  const featureBounds = geometryBounds(geometry)
-  if (!featureBounds) return false
-  const viewport = target.getBounds()
-  return !(
-    featureBounds[2] < viewport.getWest() ||
-    featureBounds[0] > viewport.getEast() ||
-    featureBounds[3] < viewport.getSouth() ||
-    featureBounds[1] > viewport.getNorth()
-  )
-}
-
-function flyToDiffLabel(change: DiffLabelChange): void {
-  const order = comparisonReleaseOrder()
-  if (!order) return
-  const source =
-    change.status === 'added'
-      ? order.newest === 'primary'
-        ? map
-        : comparisonMap
-      : order.oldest === 'primary'
-        ? map
-        : comparisonMap
-  const visibleMap = diffPresentationMap()
-  if (!source || !visibleMap) return
-  const feature = queryDiffFeatures(source, [change.sourceLayer]).find(
-    candidate => candidate.label?.trim() === change.label,
-  )
-  const centre = feature ? geometryCentre(feature.geometry) : null
-  if (!centre) return
-  visibleMap.flyTo({
-    center: centre,
-    zoom: Math.max(visibleMap.getZoom(), 14),
-    duration: 700,
-    essential: true,
-  })
+  viewportLabelDiff.applyVisibility(map)
+  viewportLabelDiff.applyVisibility(comparisonMap)
 }
 
 async function resizeComparisonView(): Promise<void> {
@@ -447,7 +366,7 @@ async function loadTileset(
     }
     if (!primaryLoad.isCurrent(operation) || !map || !groups) return
     applyMapState()
-    clearDiffPresentation(map)
+    viewportLabelDiff.clear(map)
     controls.setDiffSummary(null)
     if (comparisonMap && state.comparisonVersion) {
       disposeComparisonMap()
@@ -589,7 +508,7 @@ function applyMapState(
   const targetGroups =
     targetGroupsOverride ?? (target === comparisonMap ? comparisonGroups : groups)
   if (!target || !targetGroups) return
-  if (isLabelsMode() && target !== diffPresentationMap()) {
+  if (isLabelsMode() && target !== viewportLabelDiff.presentationMap()) {
     for (const layerIds of Object.values(targetGroups))
       for (const layerId of layerIds)
         target.setLayoutProperty(layerId, 'visibility', 'none')
@@ -611,177 +530,13 @@ function isLabelsMode(): boolean {
   return state.comparisonVersion !== null && state.comparisonMode === 'labels'
 }
 
-function comparisonReleaseOrder() {
-  if (!state.comparisonVersion) return null
-  return orderComparisonReleases(state.version, state.comparisonVersion, versions)
-}
-
-function diffPresentationMap(): MapLibreMap | null {
-  const order = comparisonReleaseOrder()
-  if (!order) return null
-  return order.newest === 'primary' ? map : comparisonMap
-}
-
-function diffLayerVisible(sourceLayer: string): boolean {
-  if (sourceLayer === 'roads') return state.labels.roads
-  if (sourceLayer === 'pois') return state.labels.pois
-  if (sourceLayer === 'places') return state.labels.places
-  if (sourceLayer === 'water') return state.labels.water
-  return true
-}
-
-function featureLabel(properties: Record<string, unknown> | null): string | undefined {
-  if (!properties) return undefined
-  const localized = properties[`name:${state.locale}`]
-  if (typeof localized === 'string' && localized.trim()) return localized
-  const name = properties.name
-  return typeof name === 'string' && name.trim() ? name : undefined
-}
-
-function queryDiffFeatures(
-  target: MapLibreMap,
-  sourceLayers: readonly string[],
-): DiffInputFeature[] {
-  return sourceLayers.flatMap(sourceLayer =>
-    diffLayerVisible(sourceLayer)
-      ? target
-          .querySourceFeatures(BASEMAP_SOURCE_ID, { sourceLayer })
-          .map(feature => ({
-            id: feature.id,
-            sourceLayer,
-            geometry: feature.geometry,
-            properties: feature.properties,
-            label: featureLabel(feature.properties),
-          }))
-          .filter(feature => geometryIntersectsViewport(feature.geometry, target))
-      : [],
-  )
-}
-
 function scheduleDiffRefresh(): void {
   if (!isLabelsMode()) return
   if (diffRefreshTimer !== null) window.clearTimeout(diffRefreshTimer)
   diffRefreshTimer = window.setTimeout(() => {
     diffRefreshTimer = null
-    refreshDiffPresentation()
+    viewportLabelDiff.refresh(primaryVectorLayers, comparisonVectorLayers)
   }, 180)
-}
-
-function refreshDiffPresentation(): void {
-  if (!isLabelsMode() || !map || !comparisonMap) return
-  const comparisonVersion = state.comparisonVersion
-  if (!comparisonVersion) return
-  if (isSameRelease(state.version, comparisonVersion, versions)) {
-    clearDiffPresentation(map)
-    clearDiffPresentation(comparisonMap)
-    controls.setDiffSummary({ added: 0, removed: 0, labelChanges: [] })
-    return
-  }
-  const order = comparisonReleaseOrder()
-  if (!order) return
-  const sourceLayers = [...new Set([...primaryVectorLayers, ...comparisonVectorLayers])]
-  const oldestMap = order.oldest === 'primary' ? map : comparisonMap
-  const newestMap = order.newest === 'primary' ? map : comparisonMap
-  const result = buildDiff(
-    queryDiffFeatures(oldestMap, sourceLayers),
-    queryDiffFeatures(newestMap, sourceLayers),
-  )
-  clearDiffPresentation(oldestMap)
-  setDiffPresentation(newestMap, result.data)
-  controls.setDiffSummary(result.summary)
-}
-
-function clearDiffPresentation(target: MapLibreMap | null): void {
-  if (!target) return
-  for (const status of DIFF_STATUSES) {
-    for (const geometry of ['label-point', 'label-line']) {
-      const layerId = `${DIFF_LAYER_PREFIX}-${status}-${geometry}`
-      if (target.getLayer(layerId)) target.removeLayer(layerId)
-    }
-  }
-  if (target.getSource(DIFF_SOURCE_ID)) target.removeSource(DIFF_SOURCE_ID)
-}
-
-function setDiffPresentation(target: MapLibreMap, data: DiffFeatureCollection): void {
-  const existingSource = target.getSource(DIFF_SOURCE_ID)
-  if (existingSource) {
-    if (existingSource.type === 'geojson') {
-      ;(existingSource as GeoJSONSource).setData(data)
-      applyDiffVisibility(target)
-    }
-    return
-  }
-
-  target.addSource(DIFF_SOURCE_ID, { type: 'geojson', data })
-  const labelColours = { added: '#16a34a', removed: '#dc2626' }
-  const labelHalo = '#ffffff'
-  for (const status of DIFF_STATUSES) {
-    const filter: FilterSpecification = ['==', ['get', 'diffStatus'], status]
-    target.addLayer({
-      id: `${DIFF_LAYER_PREFIX}-${status}-label-point`,
-      type: 'symbol',
-      source: DIFF_SOURCE_ID,
-      filter: [
-        'all',
-        filter,
-        ['has', 'diffLabel'],
-        ['!=', ['get', 'diffGeometry'], 'line'],
-      ],
-      layout: {
-        visibility: state.diffVisibility[status] ? 'visible' : 'none',
-        'text-field': ['get', 'diffLabel'],
-        'text-font': ['KlokanTech Noto Sans CJK Regular'],
-        'text-size': 12,
-        'text-padding': 2,
-        // Added labels also exist in the newest basemap layer. Render the
-        // diff label above that layer and do not let it lose the placement
-        // collision to the ordinary, white label.
-        'text-allow-overlap': true,
-      },
-      paint: {
-        'text-color': labelColours[status],
-        'text-halo-color': labelHalo,
-        'text-halo-width': 1.75,
-      },
-    })
-    target.addLayer({
-      id: `${DIFF_LAYER_PREFIX}-${status}-label-line`,
-      type: 'symbol',
-      source: DIFF_SOURCE_ID,
-      filter: [
-        'all',
-        filter,
-        ['has', 'diffLabel'],
-        ['==', ['get', 'diffGeometry'], 'line'],
-      ],
-      layout: {
-        visibility: state.diffVisibility[status] ? 'visible' : 'none',
-        'symbol-placement': 'line',
-        'text-field': ['get', 'diffLabel'],
-        'text-font': ['KlokanTech Noto Sans CJK Regular'],
-        'text-size': 12,
-        'text-padding': 2,
-        'text-allow-overlap': true,
-      },
-      paint: {
-        'text-color': labelColours[status],
-        'text-halo-color': labelHalo,
-        'text-halo-width': 1.75,
-      },
-    })
-  }
-}
-
-function applyDiffVisibility(target: MapLibreMap | null): void {
-  if (!target) return
-  for (const status of DIFF_STATUSES) {
-    const visibility = state.diffVisibility[status] ? 'visible' : 'none'
-    for (const geometry of ['label-point', 'label-line']) {
-      const layerId = `${DIFF_LAYER_PREFIX}-${status}-${geometry}`
-      if (target.getLayer(layerId))
-        target.setLayoutProperty(layerId, 'visibility', visibility)
-    }
-  }
 }
 
 function changeLocale(locale: AppState['locale']): void {
