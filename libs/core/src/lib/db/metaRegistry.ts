@@ -4118,31 +4118,14 @@ export async function listCurrentSnapshotCleanupCandidates(
   let protectedRows: Array<{ snapshotId: string }>
   try {
     const catalogs = await db
-      .select({
-        apiVersionId: metaApiCatalogRevisions.apiVersionId,
-        id: metaApiCatalogRevisions.id,
-        publishedAt: metaApiCatalogRevisions.publishedAt,
-        regionCode: metaApiCatalogRevisions.regionCode,
-        revision: metaApiCatalogRevisions.revision,
-      })
+      .select({ id: metaApiCatalogRevisions.id })
       .from(metaApiCatalogRevisions)
       .where(eq(metaApiCatalogRevisions.status, 'current'))
-      .orderBy(
-        desc(metaApiCatalogRevisions.publishedAt),
-        desc(metaApiCatalogRevisions.revision),
-      )
       .all()
-    const latestCatalogByScope = new Map<string, string>()
-    for (const catalog of catalogs) {
-      const scope = `${catalog.apiVersionId}\u0000${catalog.regionCode}`
-      if (!latestCatalogByScope.has(scope)) {
-        latestCatalogByScope.set(scope, catalog.id)
-      }
-    }
-    const latestCatalogIds = [...latestCatalogByScope.values()]
+    const retainedCatalogIds = catalogs.map(catalog => catalog.id)
 
     protectedRows =
-      latestCatalogIds.length > 0
+      retainedCatalogIds.length > 0
         ? await db
             .select({ snapshotId: metaApiReleaseSetSnapshots.snapshotId })
             .from(metaApiCatalogRevisionReleaseSets)
@@ -4157,9 +4140,8 @@ export async function listCurrentSnapshotCleanupCandidates(
               and(
                 inArray(
                   metaApiCatalogRevisionReleaseSets.apiCatalogRevisionId,
-                  latestCatalogIds,
+                  retainedCatalogIds,
                 ),
-                eq(metaApiCatalogRevisionReleaseSets.isDefault, true),
               ),
             )
             .all()

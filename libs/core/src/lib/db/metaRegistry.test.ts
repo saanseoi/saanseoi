@@ -1936,30 +1936,42 @@ describe('getLatestNewerDatasetRelease', () => {
 })
 
 describe('listCurrentSnapshotCleanupCandidates', () => {
-  test('ignores empty snapshot filters and draft snapshots', async () => {
+  test('protects every release set in retained catalogue revisions', async () => {
     const { sqlite, db } = createCleanupCandidatesDb()
 
     sqlite.exec(`
       INSERT INTO snapshots (id, resourceType, status) VALUES
         ('snapshot-draft', 'division', 'draft'),
-        ('snapshot-published-protected', 'division', 'published'),
+        ('snapshot-published-default', 'division', 'published'),
+        ('snapshot-published-historical-cohort', 'division', 'published'),
+        ('snapshot-published-retained-revision', 'division', 'published'),
         ('snapshot-published-candidate', 'division', 'published');
 
       INSERT INTO apiReleaseSets (id, code, status) VALUES
-        ('release-set-current', 'ss-hk-division-2026-05-20.0', 'published');
+        ('release-set-default', 'ss-hk-division-2026-05-20.0', 'published'),
+        ('release-set-historical-cohort', 'ss-hk-division-2026-04-20.0', 'published'),
+        ('release-set-retained-revision', 'ss-hk-division-2026-03-20.0', 'published');
 
       INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId) VALUES
-        ('release-set-current', 'snapshot-published-protected');
+        ('release-set-default', 'snapshot-published-default'),
+        ('release-set-historical-cohort', 'snapshot-published-historical-cohort'),
+        ('release-set-retained-revision', 'snapshot-published-retained-revision');
 
       INSERT INTO apiCatalogRevisions (
         id, apiVersionId, regionCode, revision, status, publishedAt
       ) VALUES (
-        'catalog-current', 'api-version-division', 'hk', 0, 'current', 1760000000000
+        'catalog-current', 'api-version-division', 'hk', 1, 'current', 1760000000000
+      ),
+      (
+        'catalog-retained', 'api-version-division', 'hk', 0, 'current', 1750000000000
       );
 
       INSERT INTO apiCatalogRevisionReleaseSets (
         apiCatalogRevisionId, apiReleaseSetId, isDefault
-      ) VALUES ('catalog-current', 'release-set-current', 1);
+      ) VALUES
+        ('catalog-current', 'release-set-default', 1),
+        ('catalog-current', 'release-set-historical-cohort', 0),
+        ('catalog-retained', 'release-set-retained-revision', 0);
     `)
 
     await expect(
