@@ -139,9 +139,10 @@ refreshes all four `-latest` preview objects.
 
 The same workflow creates the style-library previews: every official Protomaps flavour
 and SaanSeoi Midnight at 512 × 512 pixels. Hong Kong uses Central at z16 and Hollywood
-Road in Central at z19; Macao uses Senado Square, and the Greater Bay Area uses Canton
-Tower. Every style has a z16 and a z19 capture, published as immutable release artefacts
-and refreshed under a matching `-latest` name.
+Road in Central at z19; Macao uses Senado Square at z16 and Grand Lisboa at z19; and the
+Greater Bay Area uses Canton Tower at z16 and Beijing Road in Guangzhou at z19. Every
+style has a z16 and a z19 capture, published as immutable release artefacts and
+refreshed under a matching `-latest` name.
 
 Render imported or generated releases independently with:
 
