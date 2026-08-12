@@ -1,14 +1,6 @@
-import * as maplibregl from 'maplibre-gl'
-import type {
-  GeoJSONSource,
-  Map as MapLibreMap,
-  MapSourceDataEvent,
-  VectorTileSource,
-} from 'maplibre-gl'
+import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl'
 import type { FilterSpecification } from '@maplibre/maplibre-gl-style-spec'
 import type { Geometry } from 'geojson'
-import { BASEMAP_ATTRIBUTION } from '@repo/basemap'
-import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { AppState, CameraState } from './lib/types'
 import {
@@ -23,15 +15,10 @@ import {
   BASEMAP_SOURCE_ID,
   applyLocale,
   applyVisibility,
-  createPostcardStyle,
-  createStyle,
-  firstTextSymbolLayerId,
-  postcardPalette,
   type LayerGroups,
 } from './lib/style'
 import {
   boundaryBounds,
-  outsideBoundaryMask,
   parseRegionBoundary,
   type RegionBoundary,
 } from './lib/boundaries'
@@ -59,13 +46,12 @@ import {
   type ReleaseDiagnostic,
   type ViewerDiagnostics,
 } from './diagnostics'
+import {
+  closeAttributionControls,
+  createDefaultMapStyle,
+  MapController,
+} from './lib/map-controller'
 import './styles.css'
-
-// Vite optimizes MapLibre's main module but does not automatically expose the
-// worker file that MapLibre otherwise resolves beside that optimized module.
-// Build it as a worker before taking its URL, so Vite also bundles MapLibre's
-// runtime dependencies into the emitted worker asset.
-maplibregl.setWorkerUrl(maplibreWorkerUrl)
 
 const TILE_ORIGIN = import.meta.env.VITE_TILE_ORIGIN ?? 'https://tiles.saanseoi.hk'
 const GLYPH_URL = import.meta.env.VITE_GLYPH_URL
@@ -87,15 +73,10 @@ const POSTCARD_OFFSET = { gba: [-240, -160], hk: [-60, 70], mo: [80, -80] } as c
 const POSTCARD_ZOOM = { gba: 0.14, hk: 0, mo: 0.7 } as const
 
 const DEFAULT_REGION_CODE = 'hk'
-const BOUNDARY_MASK_SOURCE_ID = 'region-boundary-mask'
-const BOUNDARY_MASK_LAYER_ID = 'region-boundary-mask-fill'
-const BOUNDARY_SOURCE_ID = 'region-boundary'
-const BOUNDARY_LAYER_ID = 'region-boundary-line'
 const DIFF_SOURCE_ID = 'release-diff'
 const DIFF_LAYER_PREFIX = 'release-diff'
 const DIFF_STATUSES = ['added', 'removed'] as const
 const MAX_VIEWER_ZOOM = 22
-const MAX_TILE_CACHE_ZOOM_LEVELS = 10
 const REGION_RELEASE_PREFETCH_CONCURRENCY = 3
 const REGION_RELEASE_REQUEST_TIMEOUT_MS = 10_000
 
@@ -120,6 +101,7 @@ const regionReleaseCache = new Map<
 let currentBounds: Tilejson['bounds'] = null
 let map: MapLibreMap | null = null
 let comparisonMap: MapLibreMap | null = null
+let comparisonController: MapController | null = null
 let groups: LayerGroups | null = null
 let currentTilejsonUrl: string | null = null
 let currentBoundary: RegionBoundary | null = null
@@ -138,9 +120,34 @@ const tileWeightCollections = {
 }
 const diagnostics: ViewerDiagnostics = defaultDiagnostics()
 diagnostics.open = state.diagnosticsOpen
-const attributionControls = new Set<HTMLElement>()
 const splitTouchPointers = new Map<number, SplitTouchPointer>()
 let splitTouchGesture: SplitTouchGesture | null = null
+
+const primaryController = new MapController({
+  role: 'primary',
+  container: 'map',
+  headless: HEADLESS_MODE,
+  postcardRendering: POSTCARD_RENDERING,
+  getTheme: () => state.theme,
+  getRegionCode: () => state.regionCode,
+  createStyle: tilejsonUrl =>
+    createDefaultMapStyle(
+      tilejsonUrl,
+      state.regionCode,
+      GLYPH_URL,
+      state.theme,
+      POSTCARD_RENDERING,
+      POSTCARD_ILLUMINATED,
+    ),
+  applyState: (target, targetGroups) => applyMapState(target, targetGroups),
+  installDiagnostics,
+  resetTileWeight,
+  onMove: target => syncComparison(target, comparisonMap),
+  onMoveEnd: () => {
+    syncUrl()
+    scheduleDiffRefresh()
+  },
+})
 
 type SplitTouchPointer = {
   map: MapLibreMap
@@ -154,17 +161,7 @@ type SplitTouchGesture = {
   initialDistance: number
 }
 
-document.addEventListener('pointerdown', event => {
-  for (const attribution of attributionControls) {
-    if (!attribution.isConnected) {
-      attributionControls.delete(attribution)
-      continue
-    }
-    if (attribution.contains(event.target as Node)) continue
-    attribution.classList.remove('maplibregl-compact-show')
-    attribution.removeAttribute('open')
-  }
-})
+document.addEventListener('pointerdown', closeAttributionControls)
 document.addEventListener('touchstart', handleSplitTouchStart, {
   capture: true,
   passive: false,
@@ -375,9 +372,7 @@ async function changeComparisonVersion(version: string | null): Promise<void> {
   if (needsResize) await resizeComparisonView()
   if (!version) {
     ++comparisonRequestId
-    comparisonMap?.remove()
-    comparisonMap = null
-    comparisonGroups = null
+    disposeComparisonMap()
     comparisonVectorLayers = []
     diagnostics.comparison = null
     diagnostics.tileWeight.comparison = null
@@ -544,18 +539,14 @@ async function loadTileset(
     if (!map) {
       await createMap(url)
     } else {
-      await updateSources(map, url)
+      await primaryController.replaceSource(url, currentBoundary)
     }
     if (id !== requestId || !map || !groups) return
-    updateAttribution(map)
     applyMapState()
-    applyBoundaryPresentation(map, currentBoundary)
     clearDiffPresentation(map)
     controls.setDiffSummary(null)
     if (comparisonMap && state.comparisonVersion) {
-      comparisonMap.remove()
-      comparisonMap = null
-      comparisonGroups = null
+      disposeComparisonMap()
       resetTileWeight('comparison')
     }
     controls.setEnabled(true)
@@ -592,8 +583,8 @@ async function loadComparison(region: Region, version: string): Promise<void> {
     if (!comparisonMap) {
       await createComparisonMap(url, boundary)
     } else {
-      await updateSources(comparisonMap, url)
-      applyBoundaryPresentation(comparisonMap, boundary)
+      await comparisonController?.replaceSource(url, boundary)
+      comparisonGroups = comparisonController?.groups ?? comparisonGroups
       applyMapState(comparisonMap)
     }
     scheduleDiffRefresh()
@@ -604,124 +595,54 @@ async function loadComparison(region: Region, version: string): Promise<void> {
 }
 
 async function createMap(tilejsonUrl: string): Promise<void> {
-  resetTileWeight('primary')
-  const generated = createMapStyle(tilejsonUrl)
-  groups = generated.groups
-  const camera = state.camera
-  const createdMap = new maplibregl.Map({
-    container: 'map',
-    style: generated.style,
-    center: camera ? [camera.lng, camera.lat] : [114.169, 22.319],
-    zoom: camera?.zoom ?? 10,
-    bearing: camera?.bearing ?? 0,
-    pitch: camera?.pitch ?? 0,
-    maxZoom: MAX_VIEWER_ZOOM,
-    maxTileCacheZoomLevels: MAX_TILE_CACHE_ZOOM_LEVELS,
-    attributionControl: false,
-    collectResourceTiming: true,
+  map = await primaryController.create(tilejsonUrl, {
+    camera: state.camera,
+    boundary: currentBoundary,
   })
-  map = createdMap
-  if (!HEADLESS_MODE) {
-    createdMap.addControl(
-      new maplibregl.AttributionControl({ compact: true }),
-      'bottom-right',
-    )
-    createdMap.addControl(
-      new maplibregl.NavigationControl({ showCompass: true }),
-      'bottom-right',
-    )
-  }
-  createdMap.on('moveend', () => {
-    syncUrl()
-    scheduleDiffRefresh()
-  })
-  createdMap.on('move', () => syncComparison(createdMap, comparisonMap))
-  installDiagnostics(createdMap, 'primary')
-  await waitForMapLoad(createdMap)
-  if (!POSTCARD_RENDERING) await waitForSource(createdMap, BASEMAP_SOURCE_ID)
-  updateAttribution(createdMap, true)
+  groups = primaryController.groups
 }
 
 async function createComparisonMap(
   tilejsonUrl: string,
   boundary: RegionBoundary | null,
 ): Promise<void> {
-  resetTileWeight('comparison')
-  // Selecting a comparison release makes its Svelte container visible. Give
-  // that DOM update a frame before MapLibre measures it; constructing against
-  // the previous display:none size leaves the map with a zero-sized viewport
-  // and no visible tiles.
-  await new Promise<void>(resolve => window.requestAnimationFrame(() => resolve()))
-  const generated = createMapStyle(tilejsonUrl)
-  comparisonGroups = generated.groups
-  const primary = map
-  const createdMap = new maplibregl.Map({
-    container: 'comparison-map',
-    style: generated.style,
-    center: primary ? primary.getCenter().toArray() : [114.169, 22.319],
-    zoom: primary?.getZoom() ?? 10,
-    bearing: primary?.getBearing() ?? 0,
-    pitch: primary?.getPitch() ?? 0,
-    maxZoom: MAX_VIEWER_ZOOM,
-    maxTileCacheZoomLevels: MAX_TILE_CACHE_ZOOM_LEVELS,
-    attributionControl: false,
-    collectResourceTiming: true,
-  })
-  comparisonMap = createdMap
-  createdMap.addControl(
-    new maplibregl.AttributionControl({ compact: true }),
-    'bottom-right',
-  )
-  createdMap.addControl(
-    new maplibregl.NavigationControl({ showCompass: true }),
-    'bottom-right',
-  )
-  createdMap.on('move', () => syncComparison(createdMap, map))
-  installDiagnostics(createdMap, 'comparison')
-  await waitForMapLoad(createdMap)
-  createdMap.resize()
-  await resizeComparisonView()
-  await waitForSource(createdMap, BASEMAP_SOURCE_ID)
-  updateAttribution(createdMap, true)
-  applyMapState(createdMap)
-  applyBoundaryPresentation(createdMap, boundary)
-  // The primary map can change from a full-width canvas to a half-width canvas
-  // while the comparison source is loading. Resize once both sources are ready
-  // so side-by-side mode reliably renders both releases.
-  await resizeComparisonView()
-}
-
-async function updateSources(target: MapLibreMap, tilejsonUrl: string): Promise<void> {
-  resetTileWeight(target === map ? 'primary' : 'comparison')
-  const sourceUrls: Array<[string, string]> = [[BASEMAP_SOURCE_ID, tilejsonUrl]]
-  for (const [sourceId, sourceUrl] of sourceUrls) {
-    const source = target.getSource(sourceId)
-    if (source?.type !== 'vector') throw new Error('The basemap source is unavailable.')
-    ;(source as VectorTileSource).setUrl(sourceUrl)
+  if (!comparisonController) {
+    comparisonController = new MapController({
+      role: 'comparison',
+      container: 'comparison-map',
+      headless: HEADLESS_MODE,
+      postcardRendering: POSTCARD_RENDERING,
+      getTheme: () => state.theme,
+      getRegionCode: () => state.regionCode,
+      createStyle: url =>
+        createDefaultMapStyle(
+          url,
+          state.regionCode,
+          GLYPH_URL,
+          state.theme,
+          POSTCARD_RENDERING,
+          POSTCARD_ILLUMINATED,
+        ),
+      applyState: (target, targetGroups) => applyMapState(target, targetGroups),
+      installDiagnostics,
+      resetTileWeight,
+      onMove: target => syncComparison(target, map),
+    })
   }
-  await Promise.all(sourceUrls.map(([sourceId]) => waitForSource(target, sourceId)))
-  updateAttribution(target)
+  comparisonMap = await comparisonController.create(tilejsonUrl, {
+    camera: map ? mapCamera(map) : state.camera,
+    boundary,
+    waitForContainer: true,
+  })
+  comparisonGroups = comparisonController.groups
+  await resizeComparisonView()
 }
 
-function waitForMapLoad(target: MapLibreMap, timeoutMs = 15_000): Promise<void> {
-  // MapLibre's error event also covers optional resources such as glyphs and
-  // sprites. installDiagnostics records those errors, but they do not mean
-  // that the map style cannot load.
-  return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => {
-      cleanup()
-      reject(new Error('Timed out while loading the map style.'))
-    }, timeoutMs)
-    const onLoad = () => {
-      cleanup()
-      resolve()
-    }
-    const cleanup = () => {
-      window.clearTimeout(timeout)
-      target.off('load', onLoad)
-    }
-    target.once('load', onLoad)
-  })
+function disposeComparisonMap(): void {
+  comparisonController?.dispose()
+  comparisonController = null
+  comparisonMap = null
+  comparisonGroups = null
 }
 
 function syncComparison(source: MapLibreMap, target: MapLibreMap | null): void {
@@ -833,68 +754,12 @@ function handleSplitTouchEnd(event: TouchEvent): void {
   }
 }
 
-function updateAttribution(target: MapLibreMap, collapse = false): void {
-  for (const sourceId of [BASEMAP_SOURCE_ID]) {
-    const source = target.getSource(sourceId)
-    if (source) source.attribution = BASEMAP_ATTRIBUTION
-  }
-
-  const attribution = target
-    .getContainer()
-    .querySelector<HTMLElement>('.maplibregl-ctrl-attrib')
-  const attributionContent = attribution?.querySelector<HTMLElement>(
-    '.maplibregl-ctrl-attrib-inner',
-  )
-  if (attribution) attributionControls.add(attribution)
-  if (attributionContent) {
-    const openStreetMapLink = document.createElement('a')
-    openStreetMapLink.href = 'https://openstreetmap.org/copyright'
-    openStreetMapLink.textContent = 'OpenStreetMap (ODbL)'
-    const protomapsLink = document.createElement('a')
-    protomapsLink.href = 'https://protomaps.com/legal'
-    protomapsLink.textContent = 'Protomaps'
-    attributionContent.replaceChildren(
-      openStreetMapLink,
-      document.createTextNode('; '),
-      protomapsLink,
-    )
-  }
-  if (collapse) {
-    attribution?.classList.remove('maplibregl-compact-show')
-    attribution?.removeAttribute('open')
-  }
-}
-
-function waitForSource(
-  target: MapLibreMap,
-  sourceId: string,
-  timeoutMs = 15_000,
-): Promise<void> {
-  if (target.isSourceLoaded(sourceId)) return Promise.resolve()
-  // Error events are map-wide and can belong to another source or resource.
-  // The sourcedata signal plus isSourceLoaded is the source-specific success
-  // condition; diagnostics records individual errors independently.
-  return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => {
-      cleanup()
-      reject(new Error('Timed out while loading map tiles.'))
-    }, timeoutMs)
-    const onData = (event: MapSourceDataEvent) => {
-      if (event.sourceId === sourceId && target.isSourceLoaded(sourceId)) {
-        cleanup()
-        resolve()
-      }
-    }
-    const cleanup = () => {
-      window.clearTimeout(timeout)
-      target.off('sourcedata', onData)
-    }
-    target.on('sourcedata', onData)
-  })
-}
-
-function applyMapState(target: MapLibreMap | null = map): void {
-  const targetGroups = target === comparisonMap ? comparisonGroups : groups
+function applyMapState(
+  target: MapLibreMap | null = map,
+  targetGroupsOverride?: LayerGroups,
+): void {
+  const targetGroups =
+    targetGroupsOverride ?? (target === comparisonMap ? comparisonGroups : groups)
   if (!target || !targetGroups) return
   if (isLabelsMode() && target !== diffPresentationMap()) {
     for (const layerIds of Object.values(targetGroups))
@@ -1091,76 +956,6 @@ function applyDiffVisibility(target: MapLibreMap | null): void {
   }
 }
 
-function applyBoundaryPresentation(
-  target: MapLibreMap | null,
-  boundary: RegionBoundary | null,
-): void {
-  if (!target) return
-  for (const layerId of [BOUNDARY_LAYER_ID, BOUNDARY_MASK_LAYER_ID]) {
-    if (target.getLayer(layerId)) target.removeLayer(layerId)
-  }
-  for (const sourceId of [BOUNDARY_SOURCE_ID, BOUNDARY_MASK_SOURCE_ID]) {
-    if (target.getSource(sourceId)) target.removeSource(sourceId)
-  }
-  if (POSTCARD_RENDERING) return
-  if (!boundary) return
-
-  target.addSource(BOUNDARY_SOURCE_ID, { type: 'geojson', data: boundary })
-
-  const beforeLayerId = firstTextSymbolLayerId(target.getStyle().layers)
-  target.addSource(BOUNDARY_MASK_SOURCE_ID, {
-    type: 'geojson',
-    data: outsideBoundaryMask(boundary),
-  })
-  target.addLayer(
-    {
-      id: BOUNDARY_MASK_LAYER_ID,
-      type: 'fill',
-      source: BOUNDARY_MASK_SOURCE_ID,
-      paint: { 'fill-color': boundaryMaskColor(state.theme) },
-    },
-    beforeLayerId,
-  )
-  target.addLayer(
-    {
-      id: BOUNDARY_LAYER_ID,
-      type: 'line',
-      source: BOUNDARY_SOURCE_ID,
-      paint: {
-        'line-color': boundaryLineColor(state.theme),
-        'line-width': 1,
-        'line-opacity': 0.65,
-      },
-    },
-    beforeLayerId,
-  )
-}
-
-function boundaryMaskColor(theme: AppState['theme']): string {
-  if (POSTCARD_RENDERING) return '#F8F2E6'
-  if (theme === 'dark' || theme === 'black') return '#14181a'
-  if (theme === 'midnight') return '#020617'
-  return '#e7edf1'
-}
-
-function boundaryLineColor(theme: AppState['theme']): string {
-  if (POSTCARD_RENDERING) return postcardPalette(state.regionCode).accent
-  if (theme === 'dark' || theme === 'black') return '#536169'
-  if (theme === 'midnight') return '#6beaf5'
-  return '#82929a'
-}
-
-function createMapStyle(tilejsonUrl: string) {
-  return POSTCARD_RENDERING
-    ? createPostcardStyle(
-        tilejsonUrl,
-        state.regionCode,
-        GLYPH_URL,
-        POSTCARD_ILLUMINATED,
-      )
-    : createStyle(tilejsonUrl, GLYPH_URL, state.theme)
-}
-
 function changeLocale(locale: AppState['locale']): void {
   state.locale = locale
   applyMapState()
@@ -1179,24 +974,13 @@ async function changeTheme(theme: AppState['theme']): Promise<void> {
 
   controls.setEnabled(false)
   setStatus(`Applying ${theme} theme…`)
-  const generated = createMapStyle(currentTilejsonUrl)
-  groups = generated.groups
   try {
-    resetTileWeight('primary')
-    await new Promise<void>((resolve, reject) => {
-      map?.once('style.load', () => resolve())
-      map?.once('error', event => reject(event.error))
-      map?.setStyle(generated.style)
-    })
+    await primaryController.replaceStyle(currentTilejsonUrl)
+    groups = primaryController.groups
     if (!map) return
-    await waitForSource(map, BASEMAP_SOURCE_ID)
-    updateAttribution(map)
     applyMapState()
-    applyBoundaryPresentation(map, currentBoundary)
     if (comparisonMap && state.comparisonVersion) {
-      comparisonMap.remove()
-      comparisonMap = null
-      comparisonGroups = null
+      disposeComparisonMap()
       const region = currentRegion()
       if (region) await loadComparison(region, state.comparisonVersion)
     }
@@ -1311,7 +1095,7 @@ async function markHeadlessReady(): Promise<void> {
     // Browser Rendering session. A fixed delay can therefore capture Hong
     // Kong before its dense land-cover tiles finish, while the warmed follow-up
     // capture appears complete. Wait for the final postcard camera instead.
-    await waitForSource(map, BASEMAP_SOURCE_ID, 60_000)
+    await primaryController.waitForSource(map, BASEMAP_SOURCE_ID, 60_000)
   } else if (!(map.loaded() && map.areTilesLoaded())) {
     await new Promise<void>(resolve => map?.once('idle', () => resolve()))
   }
