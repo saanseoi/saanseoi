@@ -12,6 +12,7 @@ for command in \
     init:divisions:overture \
     init:divisions:hkgov-pland-pu \
     init:divisions:hkgov-pland-new-town \
+    init:divisions:hkgov-landsd \
     init:streets:hkgov-landsd \
     init:addresses:default
     switch $command
