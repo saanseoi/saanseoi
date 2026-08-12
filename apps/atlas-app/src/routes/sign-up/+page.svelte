@@ -44,21 +44,6 @@ const openEmailForm = () => {
   message = null
   showEmailForm = true
 }
-
-const passkeySignIn = async () => {
-  if (busy) return
-  busy = true
-  error = null
-  try {
-    const result = await authClient.signIn.passkey()
-    if (result.error) error = result.error.message ?? m.auth_passkey_error()
-    else window.location.assign(callbackUrl)
-  } catch {
-    error = m.auth_passkey_error()
-  } finally {
-    busy = false
-  }
-}
 </script>
 
 <svelte:head><title>{m.auth_sign_up_title()} | Saanseoi</title></svelte:head>
@@ -83,12 +68,9 @@ const passkeySignIn = async () => {
     >
     <div class="h-px flex-1 bg-border-card"></div>
   </div>
-  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+  <div>
     <Button disabled={busy} onclick={openEmailForm} variant="secondary"
       ><Icon icon="ion:mail-outline" class="size-5" />{m.common_email()}</Button
-    >
-    <Button disabled={busy} onclick={passkeySignIn} variant="secondary"
-      ><Icon icon="ion:key-outline" class="size-5" />{m.account_passkey()}</Button
     >
   </div>
   {#if showEmailForm}
