@@ -9,7 +9,12 @@ import { createCurrentDb, createHistoryDb, createMetaDb } from '@repo/db'
 import { isTransientD1ReadError } from './lib/d1'
 import { defaultOpenAPIHook } from './lib/openapi'
 import { resolvePublicKeyLease, retryAfterSeconds } from './lib/public-key-lease'
-import { readPublicApiKey } from '@repo/core/publicApiKey'
+import {
+  PublicKeyLeaseUnavailableError,
+  isPublicKeyOriginAllowed,
+  readPublicApiKey,
+  type PublicKeyLease,
+} from '@repo/core/publicApiKey'
 export { PublicKeyLeaseCoordinator } from './publicKeyLeaseCoordinator'
 import { metaRoutes } from './routes/v0/meta'
 import { probeRoutes } from './routes/v0/probe'
@@ -81,7 +86,20 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
         401,
       )
     }
-    const lease = await resolvePublicKeyLease(rawKey, c.env)
+    let lease: PublicKeyLease | null
+    try {
+      lease = await resolvePublicKeyLease(rawKey, c.env)
+    } catch (error) {
+      if (!(error instanceof PublicKeyLeaseUnavailableError)) throw error
+      return c.json(
+        {
+          error: 'public_key_validation_unavailable',
+          message:
+            'Public API key validation is temporarily unavailable. Please retry.',
+        },
+        503,
+      )
+    }
     if (!lease) {
       return c.json(
         {
@@ -89,6 +107,15 @@ for (const path of ['/v0/*', '/v0.1/*'] as const) {
           message: 'This public API key is invalid or revoked.',
         },
         401,
+      )
+    }
+    if (!isPublicKeyOriginAllowed(lease, c.req.header('origin') ?? null)) {
+      return c.json(
+        {
+          error: 'api_key_origin_not_allowed',
+          message: 'This public API key is not allowed from this origin.',
+        },
+        403,
       )
     }
     if (lease.status === 'exhausted') {

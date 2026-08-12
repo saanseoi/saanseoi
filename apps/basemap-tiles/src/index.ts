@@ -1,4 +1,5 @@
 import { TileType } from 'pmtiles'
+import { PublicKeyLeaseUnavailableError } from '@repo/core/publicApiKey'
 import {
   boundary_name,
   boundary_path,
@@ -79,13 +80,29 @@ export default {
       return new Response('Invalid URL', { status: 404 })
     }
 
-    const access = await authenticatePublicKeyRequest(request, env)
+    let access: Awaited<ReturnType<typeof authenticatePublicKeyRequest>>
+    try {
+      access = await authenticatePublicKeyRequest(request, env)
+    } catch (error) {
+      if (!(error instanceof PublicKeyLeaseUnavailableError)) throw error
+      return new Response(
+        'Public API key validation is temporarily unavailable. Please retry.',
+        {
+          status: 503,
+        },
+      )
+    }
     // Release manifests contain immutable, non-sensitive provenance and must be
     // linkable from the viewer's diagnostic report. Unlike tile data, they are
     // intentionally readable without a browser Origin or public key.
     if (!access && !manifestRequest && !renderRequest) {
       return new Response('A valid SaanSeoi public API key is required.', {
         status: 401,
+      })
+    }
+    if (access && !access.unmetered && !access.originAllowed) {
+      return new Response('This public API key is not allowed from this origin.', {
+        status: 403,
       })
     }
     if (access && !access.unmetered && access.lease.status === 'exhausted') {

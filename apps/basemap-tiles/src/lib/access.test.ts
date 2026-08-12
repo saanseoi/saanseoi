@@ -90,6 +90,7 @@ test('requires a production public key outside the unmetered browser origins', a
     {
       unmetered: false,
       lease,
+      originAllowed: true,
     },
   )
   assert.equal(
@@ -98,6 +99,36 @@ test('requires a production public key outside the unmetered browser origins', a
       env,
     ),
     null,
+  )
+})
+
+test('carries public-key origin policy to the tile edge', async () => {
+  const lease = {
+    keyId: 'key-123',
+    status: 'active' as const,
+    nextCheckAt: Date.now() + 60_000,
+    originPolicy: {
+      allowedHostnames: ['maps.example.com'],
+      blockedHostnames: ['rogue.example.com'],
+    },
+  }
+  const env = {
+    ...config,
+    AUTH_MODE: 'required',
+    ENVIRONMENT: 'production',
+    PUBLIC_KEY_LEASES: { get: async () => lease },
+    PUBLIC_KEY_LEASE_COORDINATOR: {},
+  } as unknown as Parameters<typeof authenticatePublicKeyRequest>[1]
+
+  assert.deepEqual(
+    await authenticatePublicKeyRequest(
+      new Request(
+        'https://tiles.saanseoi.hk/hk-latest/0/0/0.mvt?access_token=pk.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        { headers: { origin: 'https://rogue.example.com' } },
+      ),
+      env,
+    ),
+    { unmetered: false, lease, originAllowed: false },
   )
 })
 

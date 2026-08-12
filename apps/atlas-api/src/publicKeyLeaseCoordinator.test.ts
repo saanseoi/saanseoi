@@ -27,6 +27,7 @@ test('the global coordinator coalesces concurrent refreshes for one public key',
                 }
                 return null
               },
+              all: async () => ({ results: [], success: true }),
               run: async () => ({ success: true }),
             }),
           }
