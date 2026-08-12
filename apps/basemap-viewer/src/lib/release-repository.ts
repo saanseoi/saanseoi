@@ -63,14 +63,14 @@ export class ReleaseRepository {
     signal?: AbortSignal,
   ): Promise<LoadedRelease> {
     const url = tilejsonUrl(this.origin, region, version)
-    const cached = this.releaseCache.get(url)
+    const cached = version === 'latest' ? undefined : this.releaseCache.get(url)
     if (cached) return cached
     const tilejson = parseTilejson(await this.getJson(url, signal))
     const boundary = tilejson.boundary
       ? parseRegionBoundary(await this.getJsonIfAllowed(tilejson.boundary, signal))
       : null
     const release = { url, tilejson, boundary }
-    this.releaseCache.set(url, release)
+    if (version !== 'latest') this.releaseCache.set(url, release)
     return release
   }
 

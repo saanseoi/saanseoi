@@ -94,6 +94,10 @@ const primaryController = new MapController({
   onCreated: target => {
     map = target
   },
+  onDisposed: () => {
+    map = null
+    groups = null
+  },
   onMove: target => syncComparison(target, comparisonMap),
   onMoveEnd: () => {
     syncUrl()
@@ -429,12 +433,18 @@ async function loadComparison(region: Region, version: string): Promise<void> {
 }
 
 async function createMap(tilejsonUrl: string, signal?: AbortSignal): Promise<void> {
-  map = await primaryController.create(tilejsonUrl, {
-    camera: state.camera,
-    boundary: currentBoundary,
-    signal,
-  })
-  groups = primaryController.groups
+  try {
+    map = await primaryController.create(tilejsonUrl, {
+      camera: state.camera,
+      boundary: currentBoundary,
+      signal,
+    })
+    groups = primaryController.groups
+  } catch (error) {
+    map = null
+    groups = null
+    throw error
+  }
 }
 
 async function createComparisonMap(
@@ -464,6 +474,10 @@ async function createComparisonMap(
       resetTileWeight,
       onCreated: target => {
         comparisonMap = target
+      },
+      onDisposed: () => {
+        comparisonMap = null
+        comparisonGroups = null
       },
       onMove: target => syncComparison(target, map),
     })
@@ -557,10 +571,15 @@ async function changeTheme(theme: AppState['theme']): Promise<void> {
   dispatch({ type: 'setTheme', theme }, true)
   if (!map || !currentTilejsonUrl) return
 
+  const operation = primaryLoad.begin()
   controls.setEnabled(false)
   setStatus(`Applying ${theme} theme…`)
   try {
-    await primaryController.replaceStyle(currentTilejsonUrl)
+    await primaryController.replaceStyle(
+      currentTilejsonUrl,
+      operation.abortController.signal,
+    )
+    if (!primaryLoad.isCurrent(operation)) return
     groups = primaryController.groups
     if (!map) return
     applyMapState()
@@ -572,6 +591,7 @@ async function changeTheme(theme: AppState['theme']): Promise<void> {
     controls.setEnabled(true)
     controls.setState(state)
   } catch (error) {
+    if (isAbort(error) || !primaryLoad.isCurrent(operation)) return
     showError('Could not apply this basemap theme.', error)
     controls.setEnabled(true)
     controls.setState(state)

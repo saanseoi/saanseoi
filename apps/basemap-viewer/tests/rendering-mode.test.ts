@@ -10,7 +10,11 @@ describe('rendering mode', () => {
     expect(mode.illuminated).toBe(true)
     expect(mode.bounds('hk')).toEqual([113.82, 22.14, 114.48, 22.58])
     expect(mode.bearing('mo')).toBe(90)
+    expect(mode.bounds('xx')).toBeNull()
+    expect(mode.bearing('xx')).toBe(0)
+    expect(mode.offset('xx')).toEqual([0, 0])
     expect(mode.zoomAdjustment('mo')).toBe(0.7)
+    expect(mode.zoomAdjustment('xx')).toBe(0)
   })
 
   it('uses ordinary rendering defaults without headless mode', () => {

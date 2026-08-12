@@ -22,8 +22,8 @@ async function publishLatest<T>(
   if (slot.isCurrent(operation)) publish(value)
 }
 
-describe('viewer lifecycle races', () => {
-  it('publishes only the selected region when an earlier fetch finishes late', async () => {
+describe('latest-load publication rules', () => {
+  it('publishes only the current operation when an earlier fetch finishes late', async () => {
     const primary = new LatestLoad()
     const first = deferred<string>()
     const second = deferred<string>()
@@ -44,7 +44,7 @@ describe('viewer lifecycle races', () => {
     expect(applied).toEqual(['selected-region'])
   })
 
-  it('does not recreate comparison state after the comparison is cleared', async () => {
+  it('does not publish an operation after it is cancelled', async () => {
     const comparison = new LatestLoad()
     const pending = deferred<string>()
     const applied: string[] = []
@@ -60,7 +60,7 @@ describe('viewer lifecycle races', () => {
     expect(applied).toEqual([])
   })
 
-  it('allows a comparison load to finish across a theme transition', async () => {
+  it('publishes a current comparison operation', async () => {
     const comparison = new LatestLoad()
     const pending = deferred<string>()
     const applied: string[] = []
@@ -69,14 +69,13 @@ describe('viewer lifecycle races', () => {
       applied.push(value),
     )
 
-    // Theme replacement does not invalidate the selected comparison release.
     pending.resolve('comparison-with-current-theme')
     await load
 
     expect(applied).toEqual(['comparison-with-current-theme'])
   })
 
-  it('ignores a source error from an operation superseded by a replacement', async () => {
+  it('ignores a result from an operation superseded by a replacement', async () => {
     const primary = new LatestLoad()
     const first = deferred<string>()
     const second = deferred<string>()

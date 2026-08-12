@@ -8,6 +8,7 @@ const POSTCARD_BOUNDS = {
 const POSTCARD_BEARING = { gba: 0, hk: 0, mo: 90 } as const
 const POSTCARD_OFFSET = { gba: [-240, -160], hk: [-60, 70], mo: [80, -80] } as const
 const POSTCARD_ZOOM = { gba: 0.14, hk: 0, mo: 0.7 } as const
+const IDLE_TIMEOUT_MS = 15_000
 
 export type RenderingMode = {
   headless: boolean
@@ -64,7 +65,16 @@ export function createRenderingMode(search: string): RenderingMode {
     waitUntilReady: async (target, waitForSource) => {
       if (postcard) await waitForSource()
       else if (!(target.loaded() && target.areTilesLoaded()))
-        await new Promise<void>(resolve => target.once('idle', () => resolve()))
+        await new Promise<void>(resolve => {
+          let timeout: number
+          const onIdle = () => {
+            window.clearTimeout(timeout)
+            target.off('idle', onIdle)
+            resolve()
+          }
+          timeout = window.setTimeout(onIdle, IDLE_TIMEOUT_MS)
+          target.on('idle', onIdle)
+        })
       await new Promise<void>(resolve =>
         window.requestAnimationFrame(() =>
           window.requestAnimationFrame(() => resolve()),

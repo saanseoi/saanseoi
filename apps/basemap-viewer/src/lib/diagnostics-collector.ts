@@ -44,6 +44,7 @@ export class DiagnosticsCollector {
     comparison: createTileWeightCollection(),
   }
   private readonly onChange: ChangeListener
+  private publishScheduled = false
 
   constructor(onChange: ChangeListener) {
     this.onChange = onChange
@@ -98,17 +99,19 @@ export class DiagnosticsCollector {
   }
 
   recordError(error: string): void {
-    this.value.errors = [...this.value.errors, error].slice(-8)
+    this.appendError(error)
     this.publish()
   }
 
   record(event: DiagnosticEvent): void {
     if (event.type === 'mapError') {
-      this.recordError(event.message)
+      this.appendError(event.message)
       if (this.basemapSource(event.sourceId)) {
         this.value.tileFailures += 1
         this.tileWeightCollections[event.release].recordFailure()
         this.updateTileWeight(event.release)
+        this.publish(true)
+      } else {
         this.publish()
       }
       return
@@ -119,7 +122,7 @@ export class DiagnosticsCollector {
       this.updateTileWeight(event.release)
       const key = this.tileKey(event.release, event.sourceId, event.key)
       if (key) this.tileLoadStartedAt.set(key, performance.now())
-      this.publish()
+      this.publish(true)
       return
     }
     if (event.type === 'tileLoaded') {
@@ -129,7 +132,8 @@ export class DiagnosticsCollector {
       let observedDuration: number | null = null
       for (const timing of [...event.resourceTimings, ...event.tileTimings]) {
         const duration = knownTimingDuration(timing.duration)
-        if (duration !== null) observedDuration = duration
+        if (duration !== null)
+          observedDuration = Math.max(observedDuration ?? 0, duration)
         this.tileWeightCollections[event.release].add({
           identity: `${event.release}:${event.sourceId}:${timing.name}:${timing.startTime}`,
           source: BASEMAP_SOURCE_ID,
@@ -146,7 +150,7 @@ export class DiagnosticsCollector {
         observedDuration ??
         (startedAt !== undefined ? performance.now() - startedAt : null)
       if (duration !== null) this.value.lastTileDurationMs = Math.round(duration)
-      this.publish()
+      this.publish(true)
       return
     }
     this.value.feature = event.feature
@@ -180,6 +184,7 @@ export class DiagnosticsCollector {
     })
     target.on('sourcedata', (event: MapSourceDataEvent) => {
       if (!this.basemapSource(event.sourceId)) return
+      if (!event.tile) return
       const tileTimings = (
         event.tile as { resourceTiming?: PerformanceResourceTiming[] }
       )?.resourceTiming
@@ -216,6 +221,10 @@ export class DiagnosticsCollector {
     this.value.tileWeight[release] = this.tileWeightCollections[release].summary()
   }
 
+  private appendError(error: string): void {
+    this.value.errors = [...this.value.errors, error].slice(-8)
+  }
+
   private basemapSource(sourceId: string | undefined): BasemapTileSource | null {
     return sourceId === BASEMAP_SOURCE_ID ? BASEMAP_SOURCE_ID : null
   }
@@ -228,7 +237,21 @@ export class DiagnosticsCollector {
     return sourceId && key ? `${release}:${sourceId}:${key}` : null
   }
 
-  private publish(): void {
+  private publish(defer = false): void {
+    if (defer) {
+      if (this.publishScheduled) return
+      this.publishScheduled = true
+      const publish = () => {
+        if (!this.publishScheduled) return
+        this.publishScheduled = false
+        this.onChange(this.snapshot)
+      }
+      if (typeof window !== 'undefined' && window.requestAnimationFrame)
+        window.requestAnimationFrame(publish)
+      else queueMicrotask(publish)
+      return
+    }
+    this.publishScheduled = false
     this.onChange(this.snapshot)
   }
 }
