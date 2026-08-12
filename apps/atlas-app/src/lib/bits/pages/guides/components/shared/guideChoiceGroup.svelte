@@ -1,6 +1,7 @@
 <script lang="ts">
 import Icon from '@iconify/svelte'
 
+import GuideProgressMarker from './guideProgressMarker.svelte'
 import type { GuideChoice } from './guide.types'
 
 type Props = {
@@ -9,7 +10,13 @@ type Props = {
   hideLabel?: boolean
   hint?: string | string[]
   label: string
-  marker?: string
+  marker?:
+    | string
+    | {
+        current: number
+        label: string
+        total: number
+      }
   onchange?: (value: string) => void
   step?: string
   tileLayout?: 'fixed' | 'flow'
@@ -72,7 +79,11 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
     {#if marker}
       <span
         class="mb-1 block font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
-        >{@html marker}</span
+        >{#if typeof marker === 'string'}
+          {@html marker}
+        {:else}
+          <GuideProgressMarker {...marker} />
+        {/if}</span
       >
     {/if}
     {@html label}
