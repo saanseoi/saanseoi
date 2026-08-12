@@ -189,7 +189,7 @@ const selectManualCopyText = () => {
 </script>
 
 <div
-  class={`overflow-hidden border shadow-card ${
+  class={`overflow-hidden border shadow-card ${variant === 'prompt' ? 'flex max-h-[640px] flex-col' : ''} ${
     variant === 'prompt'
       ? 'border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521]'
       : variant === 'editor'
@@ -257,7 +257,7 @@ const selectManualCopyText = () => {
   <pre
     class={`m-0 whitespace-pre-wrap wrap-break-word p-4 ${
       variant === 'prompt'
-        ? 'bg-[#14121e] font-body text-body-md leading-7 text-[#eeeaff]'
+        ? 'min-h-0 overflow-y-auto overscroll-contain bg-[#14121e] font-body text-body-md leading-7 text-[#eeeaff]'
         : variant === 'editor'
           ? 'bg-[#131722] font-mono text-sm leading-6 text-[#d6e4ff]'
         : 'bg-[#0c1111] font-mono text-sm leading-6 text-[#d6e4df]'

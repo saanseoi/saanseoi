@@ -3,6 +3,7 @@ export type GuideChoice = {
   badgeIcon?: string
   description: string
   disabled?: boolean
+  darkImage?: string
   icon?: string
   image?: string
   label: string
