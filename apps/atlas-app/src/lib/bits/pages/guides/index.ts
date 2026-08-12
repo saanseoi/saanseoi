@@ -8,6 +8,8 @@ export { default as GuideRoot } from './components/shared/guideRoot.svelte'
 export { default as GuideScreenshot } from './components/shared/guideScreenshot.svelte'
 export { default as GuideSection } from './components/shared/guideSection.svelte'
 export { default as GuideSelectionSummary } from './components/shared/guideSelectionSummary.svelte'
+export { default as GuideSubSectionBody } from './components/shared/guideSubSectionBody.svelte'
+export { default as GuideSubSectionHeader } from './components/shared/guideSubSectionHeader.svelte'
 export type {
   GuideChoice,
   GuideDecision,
