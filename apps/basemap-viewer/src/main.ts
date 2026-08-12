@@ -33,26 +33,16 @@ import { LatestLoad, type LoadOperation } from './lib/load-operation'
 import { reduceViewerState, type ViewerAction } from './lib/viewer-state'
 import { ReleaseRepository } from './lib/release-repository'
 import { DiagnosticsCollector } from './lib/diagnostics-collector'
+import { createRenderingMode } from './lib/rendering-mode'
+import { installSplitTouchBridge } from './lib/split-touch-bridge'
 import './styles.css'
 
 const TILE_ORIGIN = import.meta.env.VITE_TILE_ORIGIN ?? 'https://tiles.saanseoi.hk'
 const GLYPH_URL = import.meta.env.VITE_GLYPH_URL
-const HEADLESS_MODE =
-  new URLSearchParams(window.location.search).get('headless') === 'true'
-const POSTCARD_RENDER_MODE = new URLSearchParams(window.location.search).get('render')
-const POSTCARD_RENDERING =
-  HEADLESS_MODE &&
-  (POSTCARD_RENDER_MODE === 'postcard' || POSTCARD_RENDER_MODE === 'postcard-lit')
-const POSTCARD_ILLUMINATED =
-  POSTCARD_RENDERING && POSTCARD_RENDER_MODE === 'postcard-lit'
-const POSTCARD_BOUNDS = {
-  gba: [112.4, 21.6, 115.2, 23.5],
-  hk: [113.82, 22.14, 114.48, 22.58],
-  mo: [113.48, 22.1, 113.62, 22.25],
-} as const
-const POSTCARD_BEARING = { gba: 0, hk: 0, mo: 90 } as const
-const POSTCARD_OFFSET = { gba: [-240, -160], hk: [-60, 70], mo: [80, -80] } as const
-const POSTCARD_ZOOM = { gba: 0.14, hk: 0, mo: 0.7 } as const
+const renderingMode = createRenderingMode(window.location.search)
+const HEADLESS_MODE = renderingMode.headless
+const POSTCARD_RENDERING = renderingMode.postcard
+const POSTCARD_ILLUMINATED = renderingMode.illuminated
 
 const DEFAULT_REGION_CODE = 'hk'
 const DIFF_SOURCE_ID = 'release-diff'
@@ -91,8 +81,6 @@ const comparisonLoad = new LatestLoad()
 let synchronisingComparison = false
 let diffRefreshTimer: number | null = null
 let diagnosticsCollector!: DiagnosticsCollector
-const splitTouchPointers = new Map<number, SplitTouchPointer>()
-let splitTouchGesture: SplitTouchGesture | null = null
 
 const primaryController = new MapController({
   role: 'primary',
@@ -120,29 +108,7 @@ const primaryController = new MapController({
   },
 })
 
-type SplitTouchPointer = {
-  map: MapLibreMap
-  x: number
-  y: number
-}
-
-type SplitTouchGesture = {
-  pointers: readonly [number, number]
-  initialCamera: CameraState
-  initialDistance: number
-}
-
 document.addEventListener('pointerdown', closeAttributionControls)
-document.addEventListener('touchstart', handleSplitTouchStart, {
-  capture: true,
-  passive: false,
-})
-document.addEventListener('touchmove', handleSplitTouchMove, {
-  capture: true,
-  passive: false,
-})
-document.addEventListener('touchend', handleSplitTouchEnd, { capture: true })
-document.addEventListener('touchcancel', handleSplitTouchEnd, { capture: true })
 
 function resolvePreferredLocale(languages: readonly string[]): AppState['locale'] {
   const locale = languages[0]?.toLowerCase() ?? 'en'
@@ -186,6 +152,13 @@ diagnosticsCollector = new DiagnosticsCollector(diagnostics =>
   controls.setDiagnostics(diagnostics),
 )
 diagnosticsCollector.setOpen(state.diagnosticsOpen)
+installSplitTouchBridge({
+  canBridge: canBridgeSplitTouch,
+  getPrimaryMap: () => map,
+  getComparisonMap: () => comparisonMap,
+  getCamera: mapCamera,
+  maxZoom: MAX_VIEWER_ZOOM,
+})
 
 void start()
 
@@ -609,93 +582,6 @@ function canBridgeSplitTouch(): boolean {
   )
 }
 
-function mapForTouchTarget(target: EventTarget | null): MapLibreMap | null {
-  if (!(target instanceof Node)) return null
-  if (map?.getContainer().contains(target)) return map
-  if (comparisonMap?.getContainer().contains(target)) return comparisonMap
-  return null
-}
-
-function touchDistance(first: SplitTouchPointer, second: SplitTouchPointer): number {
-  return Math.hypot(first.x - second.x, first.y - second.y)
-}
-
-/**
- * MapLibre receives touches per canvas. In a split comparison, one finger on
- * each canvas therefore cannot form a native pinch. This bridge activates only
- * for that cross-canvas gesture; every other touch continues to reach MapLibre.
- */
-function handleSplitTouchStart(event: TouchEvent): void {
-  if (!canBridgeSplitTouch()) {
-    splitTouchPointers.clear()
-    splitTouchGesture = null
-    return
-  }
-  for (const touch of event.changedTouches) {
-    const target = mapForTouchTarget(touch.target)
-    if (!target) continue
-    splitTouchPointers.set(touch.identifier, {
-      map: target,
-      x: touch.clientX,
-      y: touch.clientY,
-    })
-  }
-  if (splitTouchGesture || !map) return
-
-  const pointers = [...splitTouchPointers.entries()]
-  const first = pointers.at(-2)
-  const second = pointers.at(-1)
-  if (!first || !second || first[1].map === second[1].map) return
-
-  const initialDistance = touchDistance(first[1], second[1])
-  if (initialDistance === 0) return
-  splitTouchGesture = {
-    pointers: [first[0], second[0]],
-    initialCamera: mapCamera(map),
-    initialDistance,
-  }
-  if (event.cancelable) event.preventDefault()
-  event.stopImmediatePropagation()
-}
-
-function handleSplitTouchMove(event: TouchEvent): void {
-  if (!splitTouchGesture || !canBridgeSplitTouch() || !map) return
-  for (const touch of event.changedTouches) {
-    const pointer = splitTouchPointers.get(touch.identifier)
-    if (!pointer) continue
-    pointer.x = touch.clientX
-    pointer.y = touch.clientY
-  }
-
-  const [firstId, secondId] = splitTouchGesture.pointers
-  const first = splitTouchPointers.get(firstId)
-  const second = splitTouchPointers.get(secondId)
-  if (!first || !second) return
-  const distance = touchDistance(first, second)
-  if (distance === 0) return
-
-  const zoom = Math.min(
-    MAX_VIEWER_ZOOM,
-    Math.max(
-      0,
-      splitTouchGesture.initialCamera.zoom +
-        Math.log2(distance / splitTouchGesture.initialDistance),
-    ),
-  )
-  map.jumpTo({ ...splitTouchGesture.initialCamera, zoom })
-  if (event.cancelable) event.preventDefault()
-  event.stopImmediatePropagation()
-}
-
-function handleSplitTouchEnd(event: TouchEvent): void {
-  for (const touch of event.changedTouches) splitTouchPointers.delete(touch.identifier)
-  if (
-    splitTouchGesture?.pointers.some(identifier => !splitTouchPointers.has(identifier))
-  ) {
-    splitTouchGesture = null
-  }
-}
-
 function applyMapState(
   target: MapLibreMap | null = map,
   targetGroupsOverride?: LayerGroups,
@@ -952,7 +838,7 @@ function changeLabel(key: keyof AppState['labels'], enabled: boolean): void {
 
 function fitCurrentBounds(duration = 250): void {
   if (!map) return
-  const bounds = postcardBounds() ?? currentBounds
+  const bounds = renderingMode.bounds(state.regionCode) ?? currentBounds
   if (!bounds) {
     showWarning('This tileset has no valid bounds; the current camera was retained.')
     return
@@ -960,7 +846,7 @@ function fitCurrentBounds(duration = 250): void {
   const mobile =
     !HEADLESS_MODE && window.innerWidth <= (state.comparisonVersion ? 894 : 720)
   const padding = POSTCARD_RENDERING
-    ? postcardPadding()
+    ? renderingMode.padding(state.regionCode)
     : HEADLESS_MODE
       ? { top: 24, right: 24, bottom: 24, left: 24 }
       : mobile
@@ -981,10 +867,14 @@ function fitCurrentBounds(duration = 250): void {
 
   if (mobile && duration > 0)
     map.once('moveend', () => window.requestAnimationFrame(fitVertically))
-  map.fitBounds(bounds, { bearing: postcardBearing(), padding, duration })
-  const offset = postcardOffset()
+  map.fitBounds(bounds, {
+    bearing: renderingMode.bearing(state.regionCode),
+    padding,
+    duration,
+  })
+  const offset = renderingMode.offset(state.regionCode)
   if (offset[0] !== 0 || offset[1] !== 0) map.panBy(offset, { duration: 0 })
-  const zoom = postcardZoom()
+  const zoom = renderingMode.zoomAdjustment(state.regionCode)
   if (zoom !== 0) map.zoomTo(map.getZoom() + zoom, { duration: 0 })
   if (mobile && duration === 0)
     window.requestAnimationFrame(() => {
@@ -993,59 +883,11 @@ function fitCurrentBounds(duration = 250): void {
     })
 }
 
-function postcardBounds(): [number, number, number, number] | null {
-  if (!POSTCARD_RENDERING) return null
-  const bounds = state.regionCode
-    ? POSTCARD_BOUNDS[state.regionCode as keyof typeof POSTCARD_BOUNDS]
-    : undefined
-  return bounds ? [...bounds] : null
-}
-
-function postcardBearing(): number {
-  if (!POSTCARD_RENDERING || !state.regionCode) return 0
-  return POSTCARD_BEARING[state.regionCode as keyof typeof POSTCARD_BEARING] ?? 0
-}
-
-function postcardPadding() {
-  if (state.regionCode === 'gba') return { top: 48, right: 48, bottom: 48, left: 48 }
-  return { top: 0, right: 0, bottom: 0, left: 0 }
-}
-
-function postcardOffset(): [number, number] {
-  if (!POSTCARD_RENDERING || !state.regionCode) return [0, 0]
-  const offset = POSTCARD_OFFSET[state.regionCode as keyof typeof POSTCARD_OFFSET]
-  return offset ? [...offset] : [0, 0]
-}
-
-function postcardZoom(): number {
-  if (!POSTCARD_RENDERING || !state.regionCode) return 0
-  return POSTCARD_ZOOM[state.regionCode as keyof typeof POSTCARD_ZOOM] ?? 0
-}
-
 async function markHeadlessReady(): Promise<void> {
   if (!map) return
-  if (POSTCARD_RENDERING) {
-    // The illuminated postcard often follows the standard capture in the same
-    // Browser Rendering session. A fixed delay can therefore capture Hong
-    // Kong before its dense land-cover tiles finish, while the warmed follow-up
-    // capture appears complete. Wait for the final postcard camera instead.
-    await primaryController.waitForSource(map, BASEMAP_SOURCE_ID, 60_000)
-  } else if (!(map.loaded() && map.areTilesLoaded())) {
-    await new Promise<void>(resolve => map?.once('idle', () => resolve()))
-  }
-  await new Promise<void>(resolve =>
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve())),
+  await renderingMode.waitUntilReady(map, () =>
+    primaryController.waitForSource(map as MapLibreMap, BASEMAP_SOURCE_ID, 60_000),
   )
-  signalHeadlessReady()
-}
-
-function signalHeadlessReady(): void {
-  if (document.querySelector('#basemap-render-ready')) return
-  const signal = document.createElement('span')
-  signal.id = 'basemap-render-ready'
-  signal.dataset.ready = 'true'
-  signal.hidden = true
-  document.body.append(signal)
 }
 
 function currentRegion(): Region | undefined {
