@@ -9,6 +9,7 @@ type Props = {
   choices: GuideChoice[]
   hideLabel?: boolean
   hint?: string | string[]
+  illustratedLayout?: 'carousel' | 'grid'
   label: string
   marker?:
     | string
@@ -29,6 +30,7 @@ let {
   choices,
   hideLabel = false,
   hint,
+  illustratedLayout = 'carousel',
   label,
   marker,
   onchange,
@@ -107,7 +109,7 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
     </p>
   {/if}
   {#if variant === 'illustrated'}
-    {#if choices.length > 1}
+    {#if choices.length > 1 && illustratedLayout === 'carousel'}
       <fieldset
         class="illustrated-choice-mobile-controls"
         aria-label="Choice carousel controls"
@@ -139,13 +141,15 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
     <div
       bind:this={illustratedChoiceCarousel}
       onscroll={updateIllustratedScrollControls}
-      class={`illustrated-choice-grid ${alignment === 'left' ? 'illustrated-choice-grid-left md:justify-start' : 'md:justify-center'} ${hideLabel ? '' : 'mt-6'} flex w-full snap-x snap-mandatory gap-4 overflow-x-auto pr-6 pb-2 touch-pan-x md:mt-8 md:flex-nowrap md:gap-x-[clamp(0px,2vw,2rem)] md:gap-y-0 md:overflow-visible md:pr-0 md:pb-0`}
+      class={illustratedLayout === 'grid'
+        ? `mt-6 grid w-full min-w-0 grid-cols-1 gap-4 overflow-visible sm:grid-cols-2 lg:grid-cols-3 ${hideLabel ? 'md:mt-0' : 'md:mt-8'}`
+        : `illustrated-choice-grid ${alignment === 'left' ? 'illustrated-choice-grid-left md:justify-start' : 'md:justify-center'} ${hideLabel ? '' : 'mt-6'} flex w-full snap-x snap-mandatory gap-4 overflow-x-auto pr-6 pb-2 touch-pan-x md:mt-8 md:flex-nowrap md:gap-x-[clamp(0px,2vw,2rem)] md:gap-y-0 md:overflow-visible md:pr-0 md:pb-0`}
     >
       {#each choices as choice}
         <label
           for={`${label}-${choice.value}`}
           aria-label={choice.label}
-          class={`group relative flex w-[min(84vw,19rem)] shrink-0 snap-start flex-col select-none has-focus-visible:outline-2 has-focus-visible:outline-offset-4 has-[:focus-visible]:outline-secondary md:w-full md:min-w-0 md:max-w-64 md:flex-1 ${choice.disabled ? 'cursor-default opacity-55' : 'cursor-pointer'}`}
+          class={`group relative flex flex-col select-none has-focus-visible:outline-2 has-focus-visible:outline-offset-4 has-[:focus-visible]:outline-secondary ${illustratedLayout === 'grid' ? 'w-full min-w-0' : 'w-[min(84vw,19rem)] shrink-0 snap-start md:w-full md:min-w-0 md:max-w-64 md:flex-1'} ${choice.disabled ? 'cursor-default opacity-55' : 'cursor-pointer'}`}
         >
           <input
             id={`${label}-${choice.value}`}
@@ -157,7 +161,7 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
             onchange={() => onchange?.(choice.value)}
             disabled={choice.disabled}
           >
-          {#if choice.image}
+          {#if choice.image || illustratedLayout === 'grid'}
             <span class="relative flex h-64 items-center justify-center">
               {#if choice.badge}
                 <span
@@ -177,7 +181,7 @@ const scrollIllustratedChoices = (direction: -1 | 1) => {
                   src={choice.darkImage}
                   alt=""
                 >
-              {:else}
+              {:else if choice.image}
                 <img
                   class="max-h-full max-w-full object-contain"
                   src={choice.image}
