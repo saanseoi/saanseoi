@@ -1,5 +1,9 @@
 import { TileType } from 'pmtiles'
-import { PublicKeyLeaseUnavailableError } from '@repo/core/publicApiKey'
+import {
+  consumePublicKeyUsage,
+  PublicKeyLeaseUnavailableError,
+  readPublicApiKey,
+} from '@repo/core/publicApiKey'
 import {
   boundary_name,
   boundary_path,
@@ -14,7 +18,7 @@ import {
   authenticatePublicKeyRequest,
   retryAfterSeconds,
 } from './lib/public-key-access'
-import { ResponseCache, DYNAMIC_CACHE_CONTROL } from './lib/cache'
+import { ResponseCache, DYNAMIC_CACHE_CONTROL, tileBodyCacheKey } from './lib/cache'
 import { getRegionsIndex } from './lib/catalogue'
 import { KeyNotFoundError } from './lib/errors'
 import { openPmtiles } from './lib/pmtiles'
@@ -52,6 +56,12 @@ const expectedExtension = (tileType: TileType): string | undefined => {
       return 'avif'
   }
 }
+
+export const isLatestRequest = (
+  name: string,
+  renderLatest: boolean,
+  archiveVersion: string | null,
+): boolean => (name.endsWith('-latest') && !archiveVersion) || renderLatest
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -112,9 +122,38 @@ export default {
       })
     }
     if (access && !access.unmetered) {
+      const apiKey = readPublicApiKey(request)
+      if (!apiKey) {
+        return new Response('A valid SaanSeoi public API key is required.', {
+          status: 401,
+        })
+      }
       const rateLimit = await env.TILE_RATE_LIMIT.limit({ key: access.lease.keyId })
       if (!rateLimit.success)
         return new Response('Tile rate limit exceeded.', { status: 429 })
+      try {
+        const usage = await consumePublicKeyUsage(
+          apiKey,
+          env.PUBLIC_KEY_LEASE_COORDINATOR,
+        )
+        if (usage.status === 'exhausted') {
+          return new Response(
+            'This public API key has reached its current usage limit.',
+            {
+              headers: {
+                'Retry-After': String(retryAfterSeconds({ ...access.lease, ...usage })),
+              },
+              status: 429,
+            },
+          )
+        }
+      } catch (error) {
+        if (!(error instanceof PublicKeyLeaseUnavailableError)) throw error
+        return new Response(
+          'Public API key validation is temporarily unavailable. Please retry.',
+          { status: 503 },
+        )
+      }
       env.TILE_USAGE.writeDataPoint({
         indexes: [access.lease.keyId],
         blobs: [url.pathname, requestOrigin(request.headers.get('Origin'))],
@@ -122,10 +161,16 @@ export default {
       })
     }
 
-    const latestRequest =
-      (boundaryName ?? name).endsWith('-latest') || Boolean(renderRequest?.latest)
+    const latestRequest = isLatestRequest(
+      boundaryName ?? name,
+      Boolean(renderRequest?.latest),
+      url.searchParams.get('v'),
+    )
     const responseCache = new ResponseCache({
       request,
+      // TileJSON contains this caller's public key and therefore retains its
+      // complete URL cache key. Tile bodies are identical once authenticated.
+      cacheKey: tile ? tileBodyCacheKey(request) : undefined,
       env,
       ctx,
       allowedOrigin: getAllowedOrigin(request.headers.get('Origin'), env),
