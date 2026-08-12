@@ -23,6 +23,7 @@ export { default as GuideCreateAMapPricingTable } from './components/createAMap/
 export { default as GuideReadinessPanel } from './components/createAMap/guideReadinessPanel.svelte'
 export { default as GuideInstructionCallout } from './components/createAMap/guideInstructionCallout.svelte'
 export { default as GuideCodeInstructionStep } from './components/createAMap/guideCodeInstructionStep.svelte'
+export { default as GuideEditorReadiness } from './components/createAMap/guideEditorReadiness.svelte'
 export { default as GuideReadinessCompleteSummary } from './components/createAMap/guideReadinessCompleteSummary.svelte'
 export { default as GuideReadinessCompleteToggle } from './components/createAMap/guideReadinessCompleteToggle.svelte'
 export { default as GuideReadinessIncompleteSummary } from './components/createAMap/guideReadinessIncompleteSummary.svelte'
@@ -35,3 +36,5 @@ export { default as GuideCreateAMapZedSetup } from './patterns/createAMap/guideC
 export { default as GuideEditorProjectSetupSection } from './patterns/createAMap/guideEditorProjectSetupSection.svelte'
 export { default as GuidePlatformSelection } from './patterns/createAMap/guidePlatformSelection.svelte'
 export { default as GuidePromptBlock } from './components/shared/guidePromptBlock.svelte'
+export { default as GuideLlmPromptSection } from './components/shared/guideLlmPromptSection.svelte'
+export { default as GuideUrbanDensityExample } from './patterns/createAMap/guideUrbanDensityExample.svelte'
