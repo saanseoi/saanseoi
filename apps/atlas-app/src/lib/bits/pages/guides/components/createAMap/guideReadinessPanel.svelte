@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { Snippet } from 'svelte'
+import { tick, type Snippet } from 'svelte'
 
 type Props = {
   children?: Snippet
@@ -24,6 +24,33 @@ let {
   onExpandedChange,
   titleId,
 }: Props = $props()
+let panelElement = $state<HTMLElement>()
+let previousComplete = $state<boolean>()
+
+const scrollToPanelTop = async () => {
+  await tick()
+  requestAnimationFrame(() => {
+    const panel = panelElement
+    if (!panel) return
+
+    const headerHeight =
+      document.querySelector('header')?.getBoundingClientRect().height ?? 72
+    window.scrollTo({
+      behavior: 'smooth',
+      top: Math.max(
+        0,
+        window.scrollY + panel.getBoundingClientRect().top - headerHeight - 16,
+      ),
+    })
+  })
+}
+
+$effect(() => {
+  const hasJustCompleted = previousComplete === false && complete
+  previousComplete = complete
+
+  if (hasJustCompleted) void scrollToPanelTop()
+})
 
 const toggleExpanded = () => {
   expanded = !expanded
@@ -32,6 +59,7 @@ const toggleExpanded = () => {
 </script>
 
 <aside
+  bind:this={panelElement}
   {id}
   class={`-mt-4 mb-12 max-w-3xl border-l-4 px-5 py-5 ${complete ? 'border-[#6fdec9] bg-[#6fdec9]/12' : 'border-[#ef8b88] bg-[#ef8b88]/12'}`}
   aria-labelledby={titleId}

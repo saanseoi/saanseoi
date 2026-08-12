@@ -4,6 +4,10 @@ import {
   createAMapLlmAssistancePrerequisiteInstructions,
   createAMapLlmAssistancePrerequisiteVerificationInstructions,
 } from './createAMapLlmPrerequisitesInstructions'
+import {
+  createAMapRendererReferenceInstructions,
+  isCreateAMapRenderer,
+} from './createAMapRendererReference'
 
 export type CreateAMapLlmPromptSection =
   | 'prerequisites'
@@ -21,6 +25,7 @@ export type CreateAMapLlmPromptState = {
   dataSourceLabel?: string
   hosting?: string
   hostingValue?: string
+  mapboxAccessTokenConfigured?: boolean
   mobileLibrary?: string
   mobilePlatform?: string
   notebookLibrary?: string
@@ -92,6 +97,9 @@ const createSelections = (state: CreateAMapLlmPromptState) =>
     promptValue('Website platform', state.websitePlatform),
     promptValue('Mobile platform', state.mobilePlatform),
     promptValue('Notebook runtime', state.notebookRuntime),
+    ...(state.mapboxAccessTokenConfigured
+      ? ['- Mapbox access token: confirmed in local `.env` as `VITE_MAPBOX_TOKEN`']
+      : []),
   ].filter((line): line is string => Boolean(line))
 
 const createAMapObjectiveSummary = (state: CreateAMapLlmPromptState) => {
@@ -183,8 +191,14 @@ const createSectionInstructions = (
   state: CreateAMapLlmPromptState,
 ): Record<Exclude<CreateAMapLlmPromptSection, 'prerequisites'>, string[]> => ({
   render: [
+    'This continues a previous thread about the SaanSeoi mapping project. If you do not have that project context, stop and ask me to provide it before changing anything.',
     'Implement the map-rendering foundation in the actual project using the selected library. Keep the map container accessible and responsive, and verify that a blank map view can initialise.',
     'Choose current, compatible package versions from the project ecosystem. Do not rely on pasted guide snippets; write the implementation that suits the files you found.',
+    ...(state.renderer === 'mapbox'
+      ? [
+          'The Mapbox access token is already configured locally. Do not ask for or reveal it, and confirm that `.env` is excluded from version control.',
+        ]
+      : []),
   ],
   basemap: [
     'Integrate the selected SaanSeoi basemap. Create a server-side token exchange: the SaanSeoi API key must remain in server-side configuration and must never be sent to the browser, mobile client, notebook output, repository, or logs.',
@@ -221,6 +235,20 @@ const createSectionInstructions = (
       : []),
   ],
 })
+
+const createRenderReferenceInstructions = (state: CreateAMapLlmPromptState) => {
+  if (!isCreateAMapRenderer(state.renderer)) return []
+
+  return [
+    createAMapRendererReferenceInstructions(state.renderer),
+    '',
+    'These snippets are for reference only; write the implementation that suits the workspace configuration you found.',
+    '',
+    '### Verify',
+    '',
+    'Verify the development server, browser-visible blank map, and any relevant build or type check. If browser access is unavailable, ask me to open the reported local URL and describe the result.',
+  ]
+}
 
 const createAMapProgressivePrompt = (
   state: CreateAMapLlmPromptState,
@@ -264,6 +292,11 @@ const createAMapProgressivePrompt = (
 
   return [
     `Continue the “${sectionLabel(section)}” section of my SaanSeoi map project.`,
+    ...(section === 'render'
+      ? [
+          'If you have no context for the SaanSeoi project, stop immediately and tell me that I am likely in the wrong thread or should paste the project context again.',
+        ]
+      : []),
     '',
     ...createAMapLlmAssistanceModeInstructions(mode),
     ...(localeInstruction ? ['', localeInstruction] : []),
@@ -271,8 +304,22 @@ const createAMapProgressivePrompt = (
     'The following entries are the user’s supplied project decisions. Treat them as requirements: do not ask again about a listed decision, and use every applicable one when completing this section.',
     ...projectDecisions,
     '',
-    'This section:',
-    ...createSectionInstructions(state)[section].map(instruction => `- ${instruction}`),
+    ...(section === 'render'
+      ? [
+          '### This section',
+          '',
+          ...createSectionInstructions(state)[section].map(
+            instruction => `- ${instruction}`,
+          ),
+          '',
+          ...createRenderReferenceInstructions(state),
+        ]
+      : [
+          'This section:',
+          ...createSectionInstructions(state)[section].map(
+            instruction => `- ${instruction}`,
+          ),
+        ]),
     '',
     createSectionCompletionInstruction(section),
   ].join('\n')
