@@ -2067,6 +2067,42 @@ describe('resolveActiveSnapshotForType', () => {
 })
 
 describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
+  test('resolves an Overture division snapshot by its canonical dataset when it has no lineage', async () => {
+    const { sqlite, db } = createRegionalSnapshotLookupDb()
+
+    sqlite.exec(`
+      ALTER TABLE datasets ADD COLUMN code TEXT;
+      ALTER TABLE snapshots ADD COLUMN cohortKey TEXT;
+
+      INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
+      INSERT INTO datasets (id, publisherId, code, regionCode) VALUES
+        ('dataset-overture-division', 'publisher-overture', 'ds-hk-overture-division', 'hk');
+      INSERT INTO snapshots (
+        id, snapshotLineageId, resourceType, code, cohortKey, status, publishedAt, createdAt
+      ) VALUES
+        ('overture-division-2025', NULL, 'division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
+      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+        ('overture-division-2025', 'dataset-overture-division', 'release-overture-division-2025', 'primary');
+    `)
+
+    await expect(
+      resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+        db as never,
+        'division',
+        'hk',
+        '2025-09-24.0',
+        { variant: 'overture' },
+      ),
+    ).resolves.toEqual({
+      id: 'overture-division-2025',
+      code: 'ss-hk-division-2025-09-24.0',
+      resourceType: 'division',
+      status: 'published',
+    })
+
+    sqlite.close()
+  })
+
   test('selects the requested variant when a cohort has multiple division snapshots', async () => {
     const { sqlite, db } = createRegionalSnapshotLookupDb()
 

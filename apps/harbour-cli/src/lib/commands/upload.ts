@@ -1316,7 +1316,7 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
     { cacheTableProfile: 'division' },
   )
   try {
-    const db = dbContext.metaDb as unknown as HarbourReadableDb
+    const db = dbContext.metaDb
     return (
       (await db
         .select({
@@ -1412,7 +1412,7 @@ async function resolveLocalDivisionReleaseSetSnapshots(
     { cacheTableProfile: 'division' },
   )
   try {
-    const db = dbContext.metaDb as unknown as HarbourReadableDb
+    const db = dbContext.metaDb
     const resourceTypes = ['division', 'divisionArea', 'divisionBoundary'] as const
     const entries = await Promise.all(
       resourceTypes.map(
