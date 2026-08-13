@@ -66,6 +66,7 @@ import {
 import { LocalPipelineBucket } from './localBucket.ts'
 import {
   invalidateRemoteDbCache,
+  replayRemoteCacheWithRetry,
   refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
@@ -591,20 +592,24 @@ async function replayAddressSqlIntoRemoteCache(
   }
 
   try {
-    await importAddressSqlDataArtefacts(
-      createNoopHarbourClient(),
-      dbContext.metaDb,
-      bucket,
-      message,
-      cacheImportOptions,
+    await replayRemoteCacheWithRetry(
+      targetName,
+      dbContext.state.dbCacheDir,
+      message.releaseCode ?? message.releaseId ?? 'unknown-release',
+      () =>
+        importAddressSqlDataArtefacts(
+          createNoopHarbourClient(),
+          dbContext.metaDb,
+          bucket,
+          message,
+          cacheImportOptions,
+        ),
     )
     return true
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
-
-    await invalidateRemoteDbCache(targetName, dbContext.state.dbCacheDir, reason)
     throw new Error(
-      `Remote upload succeeded, but updating the ${targetName} local cache failed. The cache was invalidated and future uploads will stop until it is rebuilt explicitly. ${reason}`,
+      `Remote upload succeeded, but updating the ${targetName} local cache failed. ${reason}`,
     )
   }
 }
