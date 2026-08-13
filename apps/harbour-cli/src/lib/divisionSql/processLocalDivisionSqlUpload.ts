@@ -114,6 +114,7 @@ import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
 import {
   invalidateRemoteDbCache,
+  replayRemoteCacheWithRetry,
   refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
@@ -857,6 +858,7 @@ export async function processLocalDivisionSqlUpload(
           extraSourceSqlOperations,
           extraHistorySqlOperations,
           importOptions,
+          releaseCode,
         )
       } catch (error) {
         postPublishCacheError = normaliseError(error)
@@ -924,6 +926,7 @@ async function replayDivisionSqlIntoRemoteCache(
   extraSourceSqlOperations: ExtraSqlImportOperation[],
   extraHistorySqlOperations: ExtraSqlImportOperation[],
   importOptions: SqlImportExecutionOptions,
+  releaseCode: string,
 ) {
   const targetName = target.environment === 'production' ? 'production' : 'preview'
   const cacheImportOptions: SqlImportExecutionOptions = {
@@ -934,57 +937,62 @@ async function replayDivisionSqlIntoRemoteCache(
   }
 
   try {
-    await Promise.all([
-      importSqlArtefactKeys(
-        bucket,
-        importTargets.source,
-        [manifest.sourceKey],
-        cacheImportOptions,
-        async () => undefined,
-      ).then(async () => {
-        for (const operation of extraSourceSqlOperations) {
-          await executeSqlText(operation.target, operation.sql, cacheImportOptions)
-        }
-      }),
-      importSqlArtefactKeys(
-        bucket,
-        importTargets.history,
-        [manifest.historyKey],
-        cacheImportOptions,
-        async () => undefined,
-      ).then(async () => {
-        for (const operation of extraHistorySqlOperations) {
-          await executeSqlText(operation.target, operation.sql, cacheImportOptions)
-        }
-      }),
-      (async () => {
-        if (manifest.currentInitKey) {
-          await importSqlArtefactKeys(
+    await replayRemoteCacheWithRetry(
+      targetName,
+      dbContext.state.dbCacheDir,
+      releaseCode,
+      async () => {
+        await Promise.all([
+          importSqlArtefactKeys(
             bucket,
-            importTargets.current,
-            [manifest.currentInitKey],
+            importTargets.source,
+            [manifest.sourceKey],
             cacheImportOptions,
             async () => undefined,
-          )
-        }
+          ).then(async () => {
+            for (const operation of extraSourceSqlOperations) {
+              await executeSqlText(operation.target, operation.sql, cacheImportOptions)
+            }
+          }),
+          importSqlArtefactKeys(
+            bucket,
+            importTargets.history,
+            [manifest.historyKey],
+            cacheImportOptions,
+            async () => undefined,
+          ).then(async () => {
+            for (const operation of extraHistorySqlOperations) {
+              await executeSqlText(operation.target, operation.sql, cacheImportOptions)
+            }
+          }),
+          (async () => {
+            if (manifest.currentInitKey) {
+              await importSqlArtefactKeys(
+                bucket,
+                importTargets.current,
+                [manifest.currentInitKey],
+                cacheImportOptions,
+                async () => undefined,
+              )
+            }
 
-        await importSqlArtefactKeys(
-          bucket,
-          importTargets.current,
-          [manifest.currentKey],
-          cacheImportOptions,
-          async () => undefined,
-        )
-      })(),
-    ])
+            await importSqlArtefactKeys(
+              bucket,
+              importTargets.current,
+              [manifest.currentKey],
+              cacheImportOptions,
+              async () => undefined,
+            )
+          })(),
+        ])
+      },
+    )
 
     return true
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
-
-    await invalidateRemoteDbCache(targetName, dbContext.state.dbCacheDir, reason)
     throw new Error(
-      `Remote upload succeeded, but updating the ${targetName} local cache failed. The cache was invalidated and future uploads will stop until it is rebuilt explicitly. ${reason}`,
+      `Remote upload succeeded, but updating the ${targetName} local cache failed. ${reason}`,
     )
   }
 }
