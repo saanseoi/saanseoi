@@ -25,6 +25,10 @@ import {
 import { calculateGeoJsonBbox } from '@repo/core/pipeline/geojson'
 import { parseWkbGeometry } from '@repo/core/pipeline/services/division'
 import {
+  compressJsonBrotli,
+  MAX_BROTLI_QUALITY,
+} from '@repo/core/pipeline/services/brotliJson'
+import {
   chunkArray,
   createHash,
   getMaxItemsPerInClause,
@@ -62,6 +66,7 @@ import {
   resolveShardBindingName,
   type LocalAddressDbContext,
 } from '../addressSql/localDbCache.ts'
+import { geometryBuildUpsertSql } from './processLocalDivisionGeometrySqlUpload.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -685,6 +690,7 @@ async function replaceCurrentSnapshot(
       .values(
         chunk.map(record => ({
           ...record.base,
+          geometry: compressJsonBrotli(record.base.geometry, MAX_BROTLI_QUALITY),
           snapshotId,
           createdAt: now,
           updatedAt: now,
@@ -749,6 +755,7 @@ async function insertHistoryRows(
       .values(
         chunk.map(record => ({
           ...record.base,
+          geometry: compressJsonBrotli(record.base.geometry, MAX_BROTLI_QUALITY),
           versionHash: record.versionHash,
           sourceReleaseId: releaseId,
           snapshotId,
@@ -1276,25 +1283,6 @@ async function buildPlandHistorySql(
       .where(eq(historySchema.snapshotVersionChanges.snapshotId, state.snapshotId))
       .all(),
   ])
-  const divisionColumns = [
-    'id',
-    'identifiers',
-    'level',
-    'type',
-    'sourceKeys',
-    'wikidata',
-    'hierarchy',
-    'cartography',
-    'sources',
-    'geometry',
-    'bbox',
-    'versionHash',
-    'sourceReleaseId',
-    'snapshotId',
-    'isCurrent',
-    'createdAt',
-    'updatedAt',
-  ]
   const i18nColumns = [
     'divisionId',
     'locale',
@@ -1321,10 +1309,6 @@ async function buildPlandHistorySql(
     'createdAt',
     'updatedAt',
   ]
-  const divisionInsert = prepareRowsForSql(divisionRows, divisionColumns, [
-    'id',
-    'versionHash',
-  ])
   const i18nInsert = prepareRowsForSql(i18nRows, i18nColumns, [
     'divisionId',
     'versionHash',
@@ -1332,10 +1316,7 @@ async function buildPlandHistorySql(
   ])
   const statements = [
     ...buildCloseHistoryStatements(affectedIds),
-    ...buildInsertStatements('divisions', divisionColumns, divisionInsert.rows, {
-      suffix: buildUpdateSuffix(divisionColumns, ['id', 'versionHash']),
-    }),
-    ...buildLargeTextUpdates('divisions', divisionInsert.largeTextUpdates),
+    geometryBuildUpsertSql('divisions', divisionRows as Array<Record<string, unknown>>),
     ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows, {
       suffix: buildUpdateSuffix(i18nColumns, ['divisionId', 'versionHash', 'locale']),
     }),
@@ -1370,22 +1351,6 @@ async function buildPlandCurrentSql(
       .where(eq(currentSchema.divisionsI18n.snapshotId, state.snapshotId))
       .all(),
   ])
-  const divisionColumns = [
-    'snapshotId',
-    'id',
-    'identifiers',
-    'level',
-    'type',
-    'sourceKeys',
-    'wikidata',
-    'hierarchy',
-    'cartography',
-    'sources',
-    'geometry',
-    'bbox',
-    'createdAt',
-    'updatedAt',
-  ]
   const i18nColumns = [
     'snapshotId',
     'divisionId',
@@ -1398,10 +1363,6 @@ async function buildPlandCurrentSql(
     'createdAt',
     'updatedAt',
   ]
-  const divisionInsert = prepareRowsForSql(divisionRows, divisionColumns, [
-    'snapshotId',
-    'id',
-  ])
   const i18nInsert = prepareRowsForSql(i18nRows, i18nColumns, [
     'snapshotId',
     'divisionId',
@@ -1411,8 +1372,7 @@ async function buildPlandCurrentSql(
   return sqlFile([
     `DELETE FROM divisionsI18n WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
     `DELETE FROM divisions WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
-    ...buildInsertStatements('divisions', divisionColumns, divisionInsert.rows),
-    ...buildLargeTextUpdates('divisions', divisionInsert.largeTextUpdates),
+    geometryBuildUpsertSql('divisions', divisionRows as Array<Record<string, unknown>>),
     ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows),
     ...buildLargeTextUpdates('divisionsI18n', i18nInsert.largeTextUpdates),
   ])
