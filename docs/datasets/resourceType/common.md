@@ -129,9 +129,10 @@ source/history/current SQL cache when Wrangler has a short-lived connectivity fa
 
 Each replay has a durable per-release checkpoint under the target cache. Generated SQL
 is idempotent, so transient local replay failures are retried before the cache is
-invalidated and a remote clone is required. `--continue` only skips a published
-SQL-backed release when its cache record has a valid snapshot lineage and source
-membership, required shard assignments, and a materialised current snapshot.
+invalidated and a remote clone is required. `--continue` skips published and superseded
+SQL-backed releases only when their cache records have valid snapshot lineage and source
+membership, required shard assignments, and a materialised current snapshot; otherwise,
+a remote clone is required.
 
 At year rollover, uploads may need both the new year's source/history shards and earlier
 source/history shards for continuity checks. The cache resolver reuses any locally valid
