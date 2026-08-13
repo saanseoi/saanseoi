@@ -73,8 +73,12 @@ end
 
 function init_load_completed_release_codes
     if test "$saanseoi_init_target" != local
+        set -l cache_profile_args
+        if set -q saanseoi_init_cache_table_profile
+            set cache_profile_args --table-profile $saanseoi_init_cache_table_profile
+        end
         set -l output (./bin/saanseoi cache:completed-releases \
-            --target $saanseoi_init_target 2>&1)
+            --target $saanseoi_init_target $cache_profile_args 2>&1)
         set -l command_status $status
         if test $command_status -ne 0
             string join \n -- $output >&2
