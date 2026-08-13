@@ -5,7 +5,12 @@ import { brotliCompressSync, brotliDecompressSync, constants } from 'node:zlib'
 const BROTLI_QUALITY = 6
 
 export function compressJsonBrotli(value: unknown): Uint8Array {
-  return brotliCompressSync(JSON.stringify(value), {
+  const json = JSON.stringify(value)
+  if (json === undefined) {
+    throw new TypeError('Value cannot be serialized as JSON')
+  }
+
+  return brotliCompressSync(json, {
     params: {
       [constants.BROTLI_PARAM_QUALITY]: BROTLI_QUALITY,
     },
