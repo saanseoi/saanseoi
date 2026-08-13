@@ -1081,6 +1081,8 @@ const COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS: readonly CohortIndependentRe
     },
   ]
 
+const LEGACY_OVERTURE_DIVISION_DATASET_CODE = 'ds-hk-overture-division'
+
 type CohortIndependentReleaseReadiness = {
   cohortKey: string | null
   datasetCode: string
@@ -1336,7 +1338,7 @@ function matchesDivisionDomain(source: DivisionGeometryPlan['source'] | undefine
   return domainCode === 'overture'
     ? or(
         eq(metaSchema.metaSnapshotLineages.variant, domainCode),
-        eq(metaSchema.metaDatasets.code, 'ds-hk-overture-division'),
+        eq(metaSchema.metaDatasets.code, LEGACY_OVERTURE_DIVISION_DATASET_CODE),
       )
     : eq(metaSchema.metaSnapshotLineages.variant, domainCode)
 }
