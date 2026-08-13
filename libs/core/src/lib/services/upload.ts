@@ -725,11 +725,13 @@ function resolveUploadPlan(
     type,
     options.originalFileName,
   )
-  const datasetCode =
-    options.datasetCode?.trim() || buildDatasetCode(regionCode, source, type)
-  const releaseCode = options.datasetCode
-    ? buildDatasetReleaseCodeForDataset(datasetCode, resolvedSourceVersion)
-    : buildDatasetReleaseCode(regionCode, source, resolvedSourceVersion, type)
+  const canonicalDatasetCode = buildDatasetCode(regionCode, source, type)
+  const explicitDatasetCode = options.datasetCode?.trim()
+  const datasetCode = explicitDatasetCode || canonicalDatasetCode
+  const releaseCode =
+    explicitDatasetCode && explicitDatasetCode !== canonicalDatasetCode
+      ? buildDatasetReleaseCodeForDataset(datasetCode, resolvedSourceVersion)
+      : buildDatasetReleaseCode(regionCode, source, resolvedSourceVersion, type)
   const plan: UploadPlan = {
     datasetId: releaseCode,
     datasetCode,
