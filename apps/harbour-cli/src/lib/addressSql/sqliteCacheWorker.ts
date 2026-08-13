@@ -1,4 +1,5 @@
 import { readFile, rm } from 'node:fs/promises'
+import { basename } from 'node:path'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
@@ -81,7 +82,12 @@ async function importDatabaseDumpsToSqlite(
       const dumpSql = await readFile(dumpPath, 'utf8')
 
       if (dumpSql.trim().length > 0) {
-        sqlite.exec(dumpSql)
+        try {
+          sqlite.exec(dumpSql)
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          throw new Error(`Failed to import ${basename(dumpPath)}: ${message}`)
+        }
       }
     }
 
