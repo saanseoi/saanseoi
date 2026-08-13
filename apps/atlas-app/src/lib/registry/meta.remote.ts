@@ -27,9 +27,11 @@ import { CURRENT_BASEMAP_SCHEMA_VERSION } from './types'
 import type {
   ApiRelease,
   BasemapRelease,
+  LocalisedRow,
   RegistryApi,
   RegistryPublisher,
   RegistrySource,
+  SourceVersion,
 } from './types'
 
 const registryCodeSchema = z.string().trim().min(1).max(200)
@@ -44,6 +46,79 @@ const BASEMAP_REGIONS = {
   hk: { name: 'Hong Kong', tileset: 'hongkong' },
   mo: { name: 'Macao', tileset: 'macau' },
 } as const
+
+export type SourcesPageSource = Pick<
+  RegistrySource,
+  | 'code'
+  | 'publisherCode'
+  | 'releaseFrequency'
+  | 'sourceVariant'
+  | 'resourceTypes'
+  | 'theme'
+> & {
+  datasetI18n: LocalisedRow[]
+  license: Pick<NonNullable<RegistrySource['license']>, 'code'> | null
+  publisher: {
+    publisherI18n: LocalisedRow[]
+  } | null
+  sourceVersions: Array<
+    Pick<SourceVersion, 'code' | 'cohortKey' | 'status'> & {
+      license: Pick<NonNullable<SourceVersion['license']>, 'code'> | null
+      releaseAs: Array<
+        Pick<
+          NonNullable<SourceVersion['releaseAs']>[number],
+          'apiFamily' | 'domainCode'
+        >
+      >
+      stats: Array<
+        Pick<
+          NonNullable<SourceVersion['stats']>[number],
+          'dimension' | 'groupBy' | 'groupValue' | 'metric' | 'metricUnit' | 'value'
+        >
+      >
+    }
+  >
+}
+
+function toSourcesPageSource(source: RegistrySource): SourcesPageSource {
+  const version = source.sourceVersions?.find(item => item.status === 'published')
+
+  return {
+    code: source.code,
+    datasetI18n: source.datasetI18n ?? [],
+    license: source.license ? { code: source.license.code } : null,
+    publisher: source.publisher
+      ? { publisherI18n: source.publisher.publisherI18n ?? [] }
+      : null,
+    publisherCode: source.publisherCode,
+    releaseFrequency: source.releaseFrequency,
+    resourceTypes: source.resourceTypes,
+    sourceVariant: source.sourceVariant,
+    sourceVersions: version
+      ? [
+          {
+            code: version.code,
+            cohortKey: version.cohortKey,
+            license: version.license ? { code: version.license.code } : null,
+            releaseAs: (version.releaseAs ?? []).map(release => ({
+              apiFamily: release.apiFamily,
+              domainCode: release.domainCode,
+            })),
+            stats: (version.stats ?? []).filter(
+              stat =>
+                stat.dimension === 'records' &&
+                stat.metric === 'count' &&
+                stat.metricUnit === 'count' &&
+                !stat.groupBy &&
+                !stat.groupValue,
+            ),
+            status: version.status,
+          },
+        ]
+      : [],
+    theme: source.theme,
+  }
+}
 
 function isBasemapVersionEntry(
   value: unknown,
@@ -161,7 +236,7 @@ export const getSourcesPageData = query(async () => {
 
   return {
     domainsByApiFamily,
-    sources: sources as RegistrySource[],
+    sources: (sources as RegistrySource[]).map(toSourcesPageSource),
   }
 })
 

@@ -3,9 +3,9 @@ import { Main, SourceFlowMap, SourcesHeader } from '$lib/bits'
 import type { SourceFlowInput, SourceFlowLane } from '$lib/bits'
 import { getCurrentLocale, selectLocalisedRow } from '$lib/bits/internal/i18n'
 import { apiFamilyThemes } from '$lib/registry/apiFamilyTheme'
-import { getSourcesPageData } from '$lib/registry/meta.remote'
+import { getSourcesPageData, type SourcesPageSource } from '$lib/registry/meta.remote'
 import { getPublisherLogo } from '$lib/registry/publisherLogo'
-import type { LocalisedRow, RegistrySource } from '$lib/registry/types'
+import type { LocalisedRow } from '$lib/registry/types'
 
 let { sources, domainsByApiFamily } = $derived(await getSourcesPageData())
 let locale = $derived(getCurrentLocale())
@@ -26,15 +26,15 @@ const sourceAccentColors = {
   hkgov: '#ee2b24',
 } as const
 
-const sourceVersion = (source: RegistrySource) =>
+const sourceVersion = (source: SourcesPageSource) =>
   source.sourceVersions?.find(version => version.status === 'published') ?? null
 
-const sourceLicense = (source: RegistrySource) =>
+const sourceLicense = (source: SourcesPageSource) =>
   source.license?.code ?? sourceVersion(source)?.license?.code ?? 'unknown'
 
 const explicitCohort = (value: string) => value.match(/\b(19|20)\d{2}\b/)?.[0]
 
-const sourceCohort = (source: RegistrySource) => {
+const sourceCohort = (source: SourcesPageSource) => {
   const releaseCohort = sourceVersion(source)?.cohortKey
   if (releaseCohort) return releaseCohort
 
@@ -50,14 +50,14 @@ const sourceCohort = (source: RegistrySource) => {
   return 'CURRENT'
 }
 
-const sourceName = (source: RegistrySource) => {
+const sourceName = (source: SourcesPageSource) => {
   const name = selectLocalisedRow(source.datasetI18n, locale)?.name ?? source.code
   return source.theme === 'stats'
     ? name.replace(/^(?:\d{4}\s+(?:By-)?census):\s*/i, '')
     : name
 }
 
-const sourceFrequency = (source: RegistrySource) => {
+const sourceFrequency = (source: SourcesPageSource) => {
   if (
     source.releaseFrequency === 'census' ||
     source.publisherCode === 'hkgov-censtatd'
@@ -67,7 +67,7 @@ const sourceFrequency = (source: RegistrySource) => {
   return source.releaseFrequency
 }
 
-const sourceYear = (source: RegistrySource) => {
+const sourceYear = (source: SourcesPageSource) => {
   if (source.theme === 'stats' || !sourceVersion(source)) return null
 
   const cohort = sourceCohort(source)
@@ -77,7 +77,7 @@ const sourceYear = (source: RegistrySource) => {
     : year
 }
 
-const sourceRecordCount = (source: RegistrySource) =>
+const sourceRecordCount = (source: SourcesPageSource) =>
   sourceVersion(source)?.stats?.find(
     stat =>
       stat.dimension === 'records' &&
@@ -98,7 +98,7 @@ const formatRecordCount = (count: number | undefined) => {
   return count.toLocaleString(locale)
 }
 
-const publisherName = (source: RegistrySource) =>
+const publisherName = (source: SourcesPageSource) =>
   selectLocalisedRow(source.publisher?.publisherI18n, locale)?.name ??
   source.publisherCode
 
@@ -109,7 +109,7 @@ const publisherAccent = (publisherCode: string) => {
   return sourceAccentColors.overture
 }
 
-const sourceDomain = (source: RegistrySource, familyType: string) => {
+const sourceDomain = (source: SourcesPageSource, familyType: string) => {
   if (source.theme !== 'divisions') return 'default'
 
   const publishedDomain = sourceVersion(source)?.releaseAs?.find(
@@ -132,7 +132,7 @@ const domainLabel = (domain: string, i18n?: LocalisedRow[]) =>
   }[domain] ??
   domain.replaceAll('-', ' ').toUpperCase()
 
-const variantLabel = (source: RegistrySource, primaryType: string) => {
+const variantLabel = (source: SourcesPageSource, primaryType: string) => {
   if (source.resourceTypes.includes(primaryType)) {
     if (source.resourceTypes.length === 1) return undefined
     return 'GEOMETRY'
@@ -148,7 +148,7 @@ const variantLabel = (source: RegistrySource, primaryType: string) => {
 }
 
 const sourceFlowInput = (
-  source: RegistrySource,
+  source: SourcesPageSource,
   primaryType: string,
 ): SourceFlowInput => {
   const variant = variantLabel(source, primaryType)
@@ -194,7 +194,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
     const sourceGroup =
       familyType === 'stats'
         ? sourceCohort
-        : (source: RegistrySource) => sourceDomain(source, familyType)
+        : (source: SourcesPageSource) => sourceDomain(source, familyType)
     const domainMetadata = domainsByApiFamily[familyType]
     const defaultDomainCode = domainMetadata?.defaultDomainCode ?? 'default'
     const familySources = sources
@@ -252,7 +252,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
               : domainLabel(groupCode, domainMetadata?.i18n[groupCode]),
           primary: sourceFlowInput(primary, primaryType),
           variants: domainSources
-            .filter(source => source.id !== primary.id)
+            .filter(source => source.code !== primary.code)
             .map(source => sourceFlowInput(source, primaryType)),
         },
       ]
