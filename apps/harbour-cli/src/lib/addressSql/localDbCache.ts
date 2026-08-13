@@ -1951,7 +1951,9 @@ function resolveMirrorTablesForBinding(
       cacheTableProfile === 'divisionGeometry' ||
       cacheTableProfile === 'planningDivisionGeometry'
     ) {
-      return ['divisions', 'divisionAreas', 'divisionBoundaries']
+      return cacheTableProfile === 'planningDivisionGeometry'
+        ? ['divisions', 'divisionsI18n', 'divisionAreas', 'divisionBoundaries']
+        : ['divisions', 'divisionAreas', 'divisionBoundaries']
     }
 
     return [
