@@ -13,6 +13,7 @@ import type {
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { readRemoteCachedCompletedReleaseCodes } from '../../../harbour-cli/src/lib/addressSql/localDbCache.ts'
 import { buildDatasetReleaseCode } from '@repo/core'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
@@ -34,6 +35,7 @@ type BackfillDependencies = {
   prepareHkgovPlandNewTownNativeShpZip?: typeof prepareHkgovPlandNewTownNativeShpZip
   prepareHkgovPlandTpuNativeShpZip?: typeof prepareHkgovPlandTpuNativeShpZip
   runUploadCommand?: typeof runUploadCommand
+  getCompletedReleaseCodes?: (target: UploadTarget) => Promise<Set<string>>
 }
 
 const PLANNING_UNIT_RELEASES: BackfillRelease[] = [
@@ -105,13 +107,8 @@ export async function runHkgovPlandBackfillCommand(
 ) {
   assertBackfillArguments(args, printUsage)
   const continueUpload = Boolean(args.options.continue)
-  if (continueUpload && target.remote) {
-    throw new Error(
-      '`--continue` is only supported for local Planning Department backfills.',
-    )
-  }
   const completedReleaseCodes = continueUpload
-    ? await getCompletedLocalReleaseCodes()
+    ? await (dependencies.getCompletedReleaseCodes ?? getCompletedReleaseCodes)(target)
     : new Set<string>()
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const releases = kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES
@@ -170,6 +167,7 @@ export async function runHkgovPlandBackfillCommand(
           source,
           target,
           type,
+          forceUpload: continueUpload,
           runUploadCommand: dependencies.runUploadCommand,
         })
       }
@@ -237,6 +235,7 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
         source,
         target,
         type,
+        forceUpload: false,
       })
     }
   } finally {
@@ -251,6 +250,7 @@ async function uploadPreparedArtefact(args: {
   source: string
   target: UploadTarget
   type: 'division' | 'divisionArea'
+  forceUpload: boolean
   runUploadCommand?: typeof runUploadCommand
 }) {
   const uploadArgs: ParsedArgs = {
@@ -269,7 +269,7 @@ async function uploadPreparedArtefact(args: {
   }
   await (args.runUploadCommand ?? runUploadCommand)(uploadArgs, args.target, {
     dryRun: false,
-    forceUpload: false,
+    forceUpload: args.forceUpload,
     invocationCwd: args.invocationCwd,
     printUsage: () => undefined,
     skipConfirm: true,
@@ -318,6 +318,14 @@ async function getCompletedLocalReleaseCodes() {
   } finally {
     sqlite.close()
   }
+}
+
+async function getCompletedReleaseCodes(target: UploadTarget) {
+  if (target.remote) {
+    return new Set(await readRemoteCachedCompletedReleaseCodes(target))
+  }
+
+  return getCompletedLocalReleaseCodes()
 }
 
 async function resolveLocalMetaDatabasePath() {
