@@ -14,6 +14,7 @@ import {
   sql,
 } from '@repo/db'
 import {
+  buildDraftReleasePurgeSql,
   buildLatestReleaseRollbackSql,
   describeLatestReleaseRollbackPlan,
 } from '@repo/core/pipeline/rollback'
@@ -70,6 +71,7 @@ type RollbackArtefact = {
   statementCount: number
   target: SqlImportTargetContext
 }
+type RollbackOperation = 'purge' | 'rollback'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const ROLLBACK_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/rollbacks')
@@ -84,6 +86,7 @@ export async function runRollbackReleaseCommand(
   },
 ) {
   const releaseSpecifier = getStringOption(args, ['release']) ?? args.positionals[0]
+  const operation: RollbackOperation = args.options.purge ? 'purge' : 'rollback'
 
   if (!releaseSpecifier) {
     options.printUsage()
@@ -169,7 +172,10 @@ export async function runRollbackReleaseCommand(
       resourceType,
     )
 
-    if (!releaseSet || !activeReleaseSet || releaseSet.id !== activeReleaseSet.id) {
+    if (
+      operation === 'rollback' &&
+      (!releaseSet || !activeReleaseSet || releaseSet.id !== activeReleaseSet.id)
+    ) {
       throw new Error(
         `Rollback only supports the active latest ${resourceType} release. ${release.releaseCode} is not active.`,
       )
@@ -179,10 +185,21 @@ export async function runRollbackReleaseCommand(
       throw new Error(`Snapshot not found for release ${release.releaseCode}.`)
     }
 
-    const previousReleaseId = await resolvePreviousPublishedReleaseId(
-      dbContext.metaDb,
-      release.releaseId,
-    )
+    if (!releaseSet) {
+      throw new Error(`API release set not found for ${release.releaseCode}.`)
+    }
+
+    await assertReleaseOperationPreconditions({
+      activeReleaseSet,
+      operation,
+      release,
+      releaseSet,
+    })
+
+    const previousReleaseId =
+      operation === 'rollback'
+        ? await resolvePreviousPublishedReleaseId(dbContext.metaDb, release.releaseId)
+        : null
     const previousRelease = previousReleaseId
       ? await resolveDatasetRecord(metaDb, { releaseId: previousReleaseId })
       : null
@@ -190,7 +207,9 @@ export async function runRollbackReleaseCommand(
       ? await resolveReleaseSetForRelease(metaDb, previousReleaseId, resourceType)
       : null
 
-    await assertRollbackPreconditions(release, previousRelease, previousReleaseSet)
+    if (operation === 'rollback') {
+      await assertRollbackPreconditions(release, previousRelease, previousReleaseSet)
+    }
     const rollbackPlan = describeLatestReleaseRollbackPlan({
       source: release.source,
       type: resourceType,
@@ -202,6 +221,7 @@ export async function runRollbackReleaseCommand(
       release,
       snapshotId: snapshot.id,
       tables: rollbackPlan,
+      operation,
     })
     const totalRows = Object.values(planCounts).reduce(
       (sum, counts) => sum + counts.rows,
@@ -211,6 +231,7 @@ export async function runRollbackReleaseCommand(
     note(
       formatRollbackPlan({
         counts: planCounts,
+        operation,
         release,
         rowCount: totalRows,
         target,
@@ -218,7 +239,7 @@ export async function runRollbackReleaseCommand(
       'ROLLBACK PLAN',
     )
 
-    const rollbackSql = buildLatestReleaseRollbackSql({
+    const rollbackInput = {
       apiReleaseSetId: releaseSet.id,
       previousApiReleaseSetId: previousReleaseSet?.id ?? null,
       previousReleaseId,
@@ -227,7 +248,11 @@ export async function runRollbackReleaseCommand(
       source: release.source,
       sourceVersion: release.sourceVersion,
       type: resourceType,
-    })
+    }
+    const rollbackSql =
+      operation === 'purge'
+        ? buildDraftReleasePurgeSql(rollbackInput)
+        : buildLatestReleaseRollbackSql(rollbackInput)
     const rollbackRoot = resolve(
       ROLLBACK_ROOT,
       resolveTargetName(target),
@@ -328,17 +353,27 @@ export async function runRollbackReleaseCommand(
         )
       }
 
-      await verifyRollbackResult(metaDb, {
-        previousReleaseId: previousRelease?.releaseId ?? null,
-        previousReleaseSetId: previousReleaseSet?.id ?? null,
-        releaseId: release.releaseId,
-        resourceType,
-      })
+      if (operation === 'purge') {
+        await verifyPurgeResult(dbContext, {
+          apiReleaseSetId: releaseSet.id,
+          releaseId: release.releaseId,
+          snapshotId: snapshot.id,
+          tables: rollbackPlan,
+        })
+      } else {
+        await verifyRollbackResult(metaDb, {
+          previousReleaseId: previousRelease?.releaseId ?? null,
+          previousReleaseSetId: previousReleaseSet?.id ?? null,
+          releaseId: release.releaseId,
+          resourceType,
+        })
+      }
     }
 
     note(
       formatRollbackResult({
         dryRun: options.dryRun,
+        operation,
         previousRelease,
         previousReleaseSet,
         release,
@@ -409,6 +444,29 @@ async function assertRollbackPreconditions(
   if (previousRelease && !previousReleaseSet) {
     throw new Error(
       `Previous API release set not found for ${previousRelease.releaseCode}.`,
+    )
+  }
+}
+
+function assertReleaseOperationPreconditions(input: {
+  activeReleaseSet: Awaited<ReturnType<typeof resolveActiveReleaseSetForType>>
+  operation: RollbackOperation
+  release: ResolvedReleaseRecord
+  releaseSet: NonNullable<Awaited<ReturnType<typeof resolveReleaseSetForRelease>>>
+}) {
+  if (input.operation !== 'purge') {
+    return
+  }
+
+  if (input.releaseSet.status !== 'draft') {
+    throw new Error(
+      `Purge only supports draft API release sets. ${input.release.releaseCode} belongs to ${input.releaseSet.status}.`,
+    )
+  }
+
+  if (input.activeReleaseSet?.id === input.releaseSet.id) {
+    throw new Error(
+      `Purge only supports a non-current draft API release set. ${input.release.releaseCode} is active.`,
     )
   }
 }
@@ -490,6 +548,7 @@ async function countRollbackPlanRows(
     release: ResolvedReleaseRecord
     snapshotId: string
     tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+    operation: RollbackOperation
   },
 ): Promise<RollbackPlanCounts> {
   const [sourceRows, historyRows, currentRows, metaRows] = await Promise.all([
@@ -575,12 +634,17 @@ async function countSourceRollbackRows(
     previousReleaseId: string | null
     release: ResolvedReleaseRecord
     tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+    operation: RollbackOperation
   },
 ) {
   let total = 0
 
   for (const tableName of input.tables.sourceTables) {
     const table = resolveSourceTable(tableName)
+    if (input.operation === 'purge') {
+      total += await countRows(db, table, eq(table.releaseId, input.release.releaseId))
+      continue
+    }
     const deletedRows = await countRows(
       db,
       table,
@@ -622,6 +686,7 @@ async function countMetaRollbackRows(
     previousReleaseId: string | null
     release: ResolvedReleaseRecord
     snapshotId: string
+    operation: RollbackOperation
   },
 ) {
   const [
@@ -630,6 +695,7 @@ async function countMetaRollbackRows(
     journalRows,
     statsRows,
     ingestRunRows,
+    processingActionRows,
     shardAssignmentRows,
     assemblyRunRows,
     snapshotSourceRows,
@@ -657,12 +723,19 @@ async function countMetaRollbackRows(
     countRows(
       db,
       metaSchema.stats,
-      eq(metaSchema.stats.releaseId, input.release.releaseId),
+      input.operation === 'purge'
+        ? sql`${metaSchema.stats.releaseId} = ${input.release.releaseId} OR ${metaSchema.stats.snapshotId} = ${input.snapshotId} OR ${metaSchema.stats.apiReleaseSetId} = ${input.apiReleaseSetId}`
+        : eq(metaSchema.stats.releaseId, input.release.releaseId),
     ),
     countRows(
       db,
       metaSchema.ingestRuns,
       eq(metaSchema.ingestRuns.releaseId, input.release.releaseId),
+    ),
+    countRows(
+      db,
+      metaSchema.releaseProcessingActions,
+      eq(metaSchema.releaseProcessingActions.releaseId, input.release.releaseId),
     ),
     countRows(
       db,
@@ -716,6 +789,7 @@ async function countMetaRollbackRows(
     journalRows +
     statsRows +
     ingestRunRows +
+    processingActionRows +
     shardAssignmentRows +
     assemblyRunRows +
     snapshotSourceRows +
@@ -794,6 +868,118 @@ function resolveSourceTable(tableName: string) {
   }
 }
 
+async function verifyPurgeResult(
+  dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  input: {
+    apiReleaseSetId: string
+    releaseId: string
+    snapshotId: string
+    tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+  },
+) {
+  const [
+    releaseRows,
+    snapshotRows,
+    releaseSetRows,
+    sourceRows,
+    historyRows,
+    currentRows,
+  ] = await Promise.all([
+    countRows(
+      dbContext.metaDb,
+      metaSchema.metaReleases,
+      eq(metaSchema.metaReleases.id, input.releaseId),
+    ),
+    countRows(
+      dbContext.metaDb,
+      metaSchema.metaSnapshots,
+      eq(metaSchema.metaSnapshots.id, input.snapshotId),
+    ),
+    countRows(
+      dbContext.metaDb,
+      metaSchema.metaApiReleaseSets,
+      eq(metaSchema.metaApiReleaseSets.id, input.apiReleaseSetId),
+    ),
+    countPurgeSourceRows(dbContext.sourceDb, input),
+    countPurgeHistoryRows(dbContext.historyDb, input),
+    countPurgeCurrentRows(dbContext.currentDb, input),
+  ])
+  const remainingRows =
+    releaseRows + snapshotRows + releaseSetRows + sourceRows + historyRows + currentRows
+
+  if (remainingRows > 0) {
+    throw new Error(
+      `Purge verification failed: ${remainingRows} release-owned rows remain in the local mirror.`,
+    )
+  }
+}
+
+async function countPurgeSourceRows(
+  db: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['sourceDb'],
+  input: {
+    releaseId: string
+    tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+  },
+) {
+  let total = 0
+
+  for (const tableName of input.tables.sourceTables) {
+    total += await countRows(
+      db,
+      resolveSourceTable(tableName),
+      eq(resolveSourceTable(tableName).releaseId, input.releaseId),
+    )
+  }
+
+  return total
+}
+
+async function countPurgeHistoryRows(
+  db: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyDb'],
+  input: {
+    releaseId: string
+    snapshotId: string
+    tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+  },
+) {
+  let total = await countRows(
+    db,
+    historySchema.snapshotVersionChanges,
+    eq(historySchema.snapshotVersionChanges.snapshotId, input.snapshotId),
+  )
+
+  for (const tableName of input.tables.historyTables) {
+    const table = resolveHistoryTable(tableName)
+    total += await countRows(
+      db,
+      table,
+      and(
+        eq(table.snapshotId, input.snapshotId),
+        eq(table.sourceReleaseId, input.releaseId),
+      ),
+    )
+  }
+
+  return total
+}
+
+async function countPurgeCurrentRows(
+  db: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
+  input: {
+    snapshotId: string
+    tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+  },
+) {
+  let total = 0
+
+  for (const tableName of input.tables.currentTables) {
+    const table = resolveCurrentTable(tableName)
+    total += await countRows(db, table, eq(table.snapshotId, input.snapshotId))
+  }
+
+  return total
+}
+
 async function verifyRollbackResult(
   metaDb: HarbourReadableDb,
   input: {
@@ -856,11 +1042,13 @@ async function verifyRollbackResult(
 
 function formatRollbackPlan(input: {
   counts: RollbackPlanCounts
+  operation: RollbackOperation
   release: ResolvedReleaseRecord
   rowCount: number
   target: UploadTarget
 }) {
   return [
+    formatField('operation', input.operation),
     formatField('target', formatRollbackTarget(input.target)),
     formatField('dataset', input.release.datasetCode),
     formatField('release', input.release.releaseCode),
@@ -876,13 +1064,18 @@ function formatRollbackPlan(input: {
 
 function formatRollbackResult(input: {
   dryRun: boolean
+  operation: RollbackOperation
   previousRelease: ReleaseRecord
   previousReleaseSet: Awaited<ReturnType<typeof resolveReleaseSetForRelease>>
   release: ResolvedReleaseRecord
   rollbackRoot: string
 }) {
   return [
-    formatField('status', input.dryRun ? 'planned' : 'reverted'),
+    formatField(
+      'status',
+      input.dryRun ? 'planned' : input.operation === 'purge' ? 'purged' : 'reverted',
+    ),
+    formatField('operation', input.operation),
     formatField('dataset', input.release.datasetCode),
     formatField('release', input.release.releaseCode),
     formatField('releaseId', input.release.releaseId),

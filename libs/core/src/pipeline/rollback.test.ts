@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { buildLatestReleaseRollbackSql } from './rollback'
+import { buildDraftReleasePurgeSql, buildLatestReleaseRollbackSql } from './rollback'
 
 describe('latest release rollback SQL', () => {
   test('builds division rollback SQL in safe import order', () => {
@@ -81,6 +81,32 @@ describe('latest release rollback SQL', () => {
       "DELETE FROM apiReleaseSets WHERE id = 'address-release-set-new';",
     )
     expect(sql.meta).not.toContain('UPDATE apiReleaseSets')
+  })
+
+  test('purges a draft PLAND release without reopening or retaining its rows', () => {
+    const sql = buildDraftReleasePurgeSql({
+      apiReleaseSetId: 'release-set-draft',
+      releaseId: 'release-draft',
+      snapshotId: 'snapshot-draft',
+      source: 'hkgov-pland-new-town',
+      sourceVersion: '2006',
+      type: 'division',
+    })
+
+    expect(sql.source).toBe(
+      "DELETE FROM hkgovPlandNewTowns WHERE releaseId = 'release-draft';\n",
+    )
+    expect(sql.history).toContain(
+      "DELETE FROM divisions WHERE snapshotId = 'snapshot-draft' AND sourceReleaseId = 'release-draft';",
+    )
+    expect(sql.history).toContain(
+      "DELETE FROM divisionsI18n WHERE snapshotId = 'snapshot-draft' AND sourceReleaseId = 'release-draft';",
+    )
+    expect(sql.history).not.toContain('SET isCurrent')
+    expect(sql.meta).toContain(
+      "DELETE FROM apiReleaseSets WHERE id = 'release-set-draft';",
+    )
+    expect(sql.meta).toContain("DELETE FROM releases WHERE id = 'release-draft';")
   })
 
   test('rejects unsupported source/type combinations', () => {

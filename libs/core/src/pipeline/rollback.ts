@@ -37,6 +37,26 @@ export function buildLatestReleaseRollbackSql(
   }
 }
 
+/**
+ * Removes an unpublished API-family release which never became current.
+ *
+ * This is deliberately separate from a normal rollback: there is no prior
+ * release to reinstate and the release's canonical history is discarded,
+ * rather than retained as a non-current version.
+ */
+export function buildDraftReleasePurgeSql(
+  input: LatestReleaseRollbackInput,
+): LatestReleaseRollbackSql {
+  const plan = resolveRollbackPlan(input)
+
+  return {
+    current: buildCurrentRollbackSql(input, plan),
+    history: buildPurgeHistorySql(input, plan),
+    meta: buildPurgeMetaSql(input),
+    source: buildPurgeSourceSql(input, plan),
+  }
+}
+
 export function describeLatestReleaseRollbackPlan(
   input: Pick<LatestReleaseRollbackInput, 'source' | 'type'>,
 ): LatestReleaseRollbackPlan {
@@ -75,6 +95,8 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
     historyTables: [{ table: 'divisionsI18n' }, { table: 'divisions' }],
     sources: {
       overture: ['overtureDivisions'],
+      'hkgov-pland-pu': ['hkgovPlandPlanningCells'],
+      'hkgov-pland-new-town': ['hkgovPlandNewTowns'],
     },
   },
   divisionArea: {
@@ -177,6 +199,16 @@ function buildHistoryRollbackSql(
   ])
 }
 
+function buildPurgeHistorySql(input: LatestReleaseRollbackInput, plan: RollbackPlan) {
+  return joinStatements([
+    `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${literal(input.snapshotId)};`,
+    ...plan.historyTables.map(
+      ({ table }) =>
+        `DELETE FROM ${table} WHERE snapshotId = ${literal(input.snapshotId)} AND sourceReleaseId = ${literal(input.releaseId)};`,
+    ),
+  ])
+}
+
 function buildSourceRollbackSql(input: LatestReleaseRollbackInput, plan: RollbackPlan) {
   const now = sqlExpression("strftime('%Y-%m-%dT%H:%M:%fZ', 'now')")
 
@@ -204,6 +236,31 @@ function buildSourceRollbackSql(input: LatestReleaseRollbackInput, plan: Rollbac
       `DELETE FROM ${table} WHERE releaseId = ${literal(input.releaseId)} AND validFromRelease = ${literal(input.sourceVersion)};`,
     ]),
   )
+}
+
+function buildPurgeSourceSql(input: LatestReleaseRollbackInput, plan: RollbackPlan) {
+  return joinStatements(
+    plan.sourceTables.map(
+      table => `DELETE FROM ${table} WHERE releaseId = ${literal(input.releaseId)};`,
+    ),
+  )
+}
+
+function buildPurgeMetaSql(input: LatestReleaseRollbackInput) {
+  return joinStatements([
+    `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
+    `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
+    `DELETE FROM publishedDataJournal WHERE releaseId = ${literal(input.releaseId)} OR relatedReleaseId = ${literal(input.releaseId)};`,
+    `DELETE FROM stats WHERE releaseId = ${literal(input.releaseId)} OR snapshotId = ${literal(input.snapshotId)} OR apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
+    `DELETE FROM ingestRuns WHERE releaseId = ${literal(input.releaseId)};`,
+    `DELETE FROM releaseProcessingActions WHERE releaseId = ${literal(input.releaseId)};`,
+    `DELETE FROM releaseShardAssignments WHERE releaseId = ${literal(input.releaseId)};`,
+    `DELETE FROM snapshotAssemblyRuns WHERE snapshotId = ${literal(input.snapshotId)};`,
+    `DELETE FROM snapshotSources WHERE snapshotId = ${literal(input.snapshotId)} OR sourceReleaseId = ${literal(input.releaseId)};`,
+    `DELETE FROM apiReleaseSets WHERE id = ${literal(input.apiReleaseSetId)};`,
+    `DELETE FROM snapshots WHERE id = ${literal(input.snapshotId)};`,
+    `DELETE FROM releases WHERE id = ${literal(input.releaseId)};`,
+  ])
 }
 
 function resolveRollbackPlan(
