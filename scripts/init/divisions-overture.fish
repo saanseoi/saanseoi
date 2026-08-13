@@ -77,6 +77,12 @@ for year in 2016 2021
     init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 end
 
+# A resumed initialiser may skip C&SD releases that are already published.
+# Re-evaluate the draft Overture sets after every dependency is available.
+init_run_step ./bin/saanseoi release-sets:reconcile --target $saanseoi_init_target \
+    --api-family divisions --region hk
+set -g saanseoi_init_docs_pending 1
+
 # Publishing release documentation scans every published release. Defer it until
 # all cohort uploads have completed so an initial run does not repeat that scan
 # after each individual source release.
