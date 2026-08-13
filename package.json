@@ -66,6 +66,7 @@
     "db:snapshot:restore:production": "bun run --filter @repo/db db:snapshot:restore:production",
     "db:reset:local": "bun run --filter @repo/db db:reset:local",
     "db:reset:preview": "bun run --filter @repo/db db:reset:preview && ./bin/saanseoi docs:publish --target preview --scope all",
+    "db:reset:production": "bun run --filter @repo/db db:reset:production && ./bin/saanseoi docs:publish --target production --scope all",
     "db:migration:generate:meta": "bun run --cwd ./libs/db db:migration:generate:meta",
     "db:migration:generate:current": "bun run --cwd ./libs/db db:migration:generate:current",
     "db:migration:generate:history": "bun run --cwd ./libs/db db:migration:generate:history",
