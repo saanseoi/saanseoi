@@ -1,6 +1,7 @@
 import { and, eq, inArray } from 'drizzle-orm'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { parse } from 'comment-json'
 
 import type { RegionCode } from '@repo/core'
 import {
@@ -58,6 +59,7 @@ import {
   resetRemoteReleaseUploadCacheScope,
   resolveSharedRemoteDbCacheDir,
   resolveLocalAddressDbContext,
+  resolveShardBindingName,
   type LocalAddressDbContext,
 } from '../addressSql/localDbCache.ts'
 
@@ -451,6 +453,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     const publishResult = await client.publishDataset(releaseId, releaseCode, {
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
+    published = true
 
     if (target.remote) {
       await replayPlandSqlIntoSharedCache(
@@ -464,15 +467,17 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     }
     return { importedRows: records.length, publishResult, snapshotId: snapshot.id }
   } catch (error) {
-    await client
-      .stageFailed(
-        releaseId,
-        'processDataset',
-        error instanceof Error ? error.message : String(error),
-        undefined,
-        releaseCode,
-      )
-      .catch(() => undefined)
+    if (!published) {
+      await client
+        .stageFailed(
+          releaseId,
+          'processDataset',
+          error instanceof Error ? error.message : String(error),
+          undefined,
+          releaseCode,
+        )
+        .catch(() => undefined)
+    }
     throw error
   } finally {
     context.cleanup()
@@ -1050,7 +1055,7 @@ type PlandSqlState = {
   snapshotId: string
 }
 
-const PLAND_SQL_STATEMENT_BYTE_TARGET = 128 * 1024
+const PLAND_SQL_STATEMENT_BYTE_TARGET = 96 * 1024
 
 /**
  * Serialises the already-planned local mutations into idempotent SQL. The
@@ -1143,18 +1148,41 @@ async function buildPlandSourceSql(
     plan.source === 'hkgov-pland-new-town'
       ? 'hkgovPlandNewTowns'
       : 'hkgovPlandPlanningCells'
-  const rows =
+  const affectedIdChunks = chunkArray(
+    [...new Set([...state.changedNativeIds, ...state.missingNativeIds])],
+    getMaxItemsPerInClause(1, 1),
+  )
+  const affectedRows =
     plan.source === 'hkgov-pland-new-town'
-      ? await context.sourceDb
-          .select()
-          .from(sourceSchema.sourceHkgovPlandNewTowns)
-          .all()
-      : await context.sourceDb
-          .select()
-          .from(sourceSchema.sourceHkgovPlandPlanningCells)
-          .all()
-  const affectedIds = new Set([...state.changedNativeIds, ...state.missingNativeIds])
-  const affectedRows = rows.filter(row => affectedIds.has(row.sourceRecordId))
+      ? (
+          await Promise.all(
+            affectedIdChunks.map(chunk =>
+              context.sourceDb
+                .select()
+                .from(sourceSchema.sourceHkgovPlandNewTowns)
+                .where(
+                  inArray(sourceSchema.sourceHkgovPlandNewTowns.sourceRecordId, chunk),
+                )
+                .all(),
+            ),
+          )
+        ).flat()
+      : (
+          await Promise.all(
+            affectedIdChunks.map(chunk =>
+              context.sourceDb
+                .select()
+                .from(sourceSchema.sourceHkgovPlandPlanningCells)
+                .where(
+                  inArray(
+                    sourceSchema.sourceHkgovPlandPlanningCells.sourceRecordId,
+                    chunk,
+                  ),
+                )
+                .all(),
+            ),
+          )
+        ).flat()
   const columns =
     plan.source === 'hkgov-pland-new-town'
       ? [
@@ -1221,18 +1249,32 @@ async function buildPlandHistorySql(
   const affectedIds = [
     ...new Set([...state.changedHistoryIds, ...state.missingHistoryIds]),
   ]
-  const affectedIdSet = new Set(affectedIds)
+  const affectedIdChunks = chunkArray(affectedIds, getMaxItemsPerInClause(1, 1))
   const [divisionRows, i18nRows, changeRows] = await Promise.all([
-    context.historyDb.select().from(historySchema.divisions).all(),
-    context.historyDb.select().from(historySchema.divisionsI18n).all(),
+    Promise.all(
+      affectedIdChunks.map(chunk =>
+        context.historyDb
+          .select()
+          .from(historySchema.divisions)
+          .where(inArray(historySchema.divisions.id, chunk))
+          .all(),
+      ),
+    ).then(rows => rows.flat()),
+    Promise.all(
+      affectedIdChunks.map(chunk =>
+        context.historyDb
+          .select()
+          .from(historySchema.divisionsI18n)
+          .where(inArray(historySchema.divisionsI18n.divisionId, chunk))
+          .all(),
+      ),
+    ).then(rows => rows.flat()),
     context.historyDb
       .select()
       .from(historySchema.snapshotVersionChanges)
       .where(eq(historySchema.snapshotVersionChanges.snapshotId, state.snapshotId))
       .all(),
   ])
-  const divisions = divisionRows.filter(row => affectedIdSet.has(row.id))
-  const i18n = i18nRows.filter(row => affectedIdSet.has(row.divisionId))
   const divisionColumns = [
     'id',
     'identifiers',
@@ -1278,11 +1320,11 @@ async function buildPlandHistorySql(
     'createdAt',
     'updatedAt',
   ]
-  const divisionInsert = prepareRowsForSql(divisions, divisionColumns, [
+  const divisionInsert = prepareRowsForSql(divisionRows, divisionColumns, [
     'id',
     'versionHash',
   ])
-  const i18nInsert = prepareRowsForSql(i18n, i18nColumns, [
+  const i18nInsert = prepareRowsForSql(i18nRows, i18nColumns, [
     'divisionId',
     'versionHash',
     'locale',
@@ -1576,11 +1618,9 @@ function resolvePlandImportTargets(
   context: LocalAddressDbContext,
   sourceVersion: string,
 ): PlandImportTargets {
-  const year = sourceVersion.slice(0, 4)
-  const scope =
-    /^\d{4}$/.test(year) && Number.parseInt(year, 10) < 2025 ? 'BEFORE' : year
-  const historyBindingName = `DB_HISTORY_HK_${scope}`
-  const sourceBindingName = `DB_SOURCE_HK_${scope}`
+  const shardYear = sourceVersion.slice(0, 4)
+  const historyBindingName = resolveShardBindingName('history', 'HK', shardYear)
+  const sourceBindingName = resolveShardBindingName('source', 'HK', shardYear)
   return {
     current: {
       binding: context.currentBinding,
@@ -1838,6 +1878,12 @@ function buildInsertStatements(
     const rowRecord = row as Record<string, unknown>
     const value = `(${columns.map(column => sqlLiteral(rowRecord[column])).join(', ')})`
     const candidate = `${prefix}${[...values, value].join(', ')}${suffix};`
+    const rowBytes = new TextEncoder().encode(`${prefix}${value}${suffix};`).byteLength
+    if (rowBytes > PLAND_SQL_STATEMENT_BYTE_TARGET) {
+      throw new Error(
+        `Cannot serialise ${table} row: its ${rowBytes}-byte SQL statement exceeds the ${PLAND_SQL_STATEMENT_BYTE_TARGET}-byte safe limit.`,
+      )
+    }
     if (
       values.length > 0 &&
       new TextEncoder().encode(candidate).byteLength > PLAND_SQL_STATEMENT_BYTE_TARGET
@@ -1872,7 +1918,9 @@ function sqlLiteral(value: unknown): string {
 function resolveCloudflareAccountId(target: UploadTarget) {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim()
   if (accountId) return accountId
-  const config = JSON.parse(readFileSync(HARBOUR_WORKERS_WRANGLER_PATH, 'utf8')) as {
+  const config = parse(
+    readFileSync(HARBOUR_WORKERS_WRANGLER_PATH, 'utf8'),
+  ) as unknown as {
     env?: {
       preview?: { vars?: Record<string, unknown> }
       production?: { vars?: Record<string, unknown> }

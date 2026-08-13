@@ -176,6 +176,14 @@ describe('geometryBuildUpsertSql', () => {
     database.close()
   })
 
+  test('rejects an oversized geometry row without replay key columns', () => {
+    expect(() =>
+      geometryBuildUpsertSql('divisionAreas', [
+        { geometry: 'x'.repeat(MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES * 2) },
+      ]),
+    ).toThrow('Cannot replay divisionAreas geometry row')
+  })
+
   test('replays oversized Overture raw properties through bounded statements', () => {
     const rawProperties = {
       geometry: {

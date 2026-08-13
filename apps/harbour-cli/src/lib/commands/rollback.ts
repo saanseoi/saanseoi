@@ -194,7 +194,7 @@ export async function runRollbackReleaseCommand(
       throw new Error(`API release set not found for ${release.releaseCode}.`)
     }
 
-    await assertReleaseOperationPreconditions({
+    await assertReleaseOperationPreconditions(metaDb, {
       activeReleaseSet,
       operation,
       release,
@@ -487,12 +487,15 @@ async function resolveDraftReleaseSetForSnapshot(
   return releaseSets[0] ?? null
 }
 
-function assertReleaseOperationPreconditions(input: {
-  activeReleaseSet: Awaited<ReturnType<typeof resolveActiveReleaseSetForType>>
-  operation: RollbackOperation
-  release: ResolvedReleaseRecord
-  releaseSet: NonNullable<Awaited<ReturnType<typeof resolveReleaseSetForRelease>>>
-}) {
+async function assertReleaseOperationPreconditions(
+  metaDb: HarbourReadableDb,
+  input: {
+    activeReleaseSet: Awaited<ReturnType<typeof resolveActiveReleaseSetForType>>
+    operation: RollbackOperation
+    release: ResolvedReleaseRecord
+    releaseSet: NonNullable<Awaited<ReturnType<typeof resolveReleaseSetForRelease>>>
+  },
+) {
   if (input.operation !== 'purge') {
     return
   }
@@ -506,6 +509,20 @@ function assertReleaseOperationPreconditions(input: {
   if (input.activeReleaseSet?.id === input.releaseSet.id) {
     throw new Error(
       `Purge only supports a non-current draft API release set. ${input.release.releaseCode} is active.`,
+    )
+  }
+
+  const releaseSetSnapshots = await metaDb
+    .select({ snapshotId: metaSchema.metaApiReleaseSetSnapshots.snapshotId })
+    .from(metaSchema.metaApiReleaseSetSnapshots)
+    .where(
+      eq(metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId, input.releaseSet.id),
+    )
+    .all()
+
+  if (new Set(releaseSetSnapshots.map(row => row.snapshotId)).size > 1) {
+    throw new Error(
+      `Purge only supports single-snapshot API release sets. ${input.release.releaseCode} belongs to a release set with multiple snapshots.`,
     )
   }
 }
@@ -771,11 +788,13 @@ async function countMetaRollbackRows(
       metaSchema.ingestRuns,
       eq(metaSchema.ingestRuns.releaseId, input.release.releaseId),
     ),
-    countRows(
-      db,
-      metaSchema.releaseProcessingActions,
-      eq(metaSchema.releaseProcessingActions.releaseId, input.release.releaseId),
-    ),
+    input.operation === 'purge'
+      ? countRows(
+          db,
+          metaSchema.releaseProcessingActions,
+          eq(metaSchema.releaseProcessingActions.releaseId, input.release.releaseId),
+        )
+      : Promise.resolve(0),
     countRows(
       db,
       metaSchema.metaReleaseShardAssignments,
@@ -923,6 +942,12 @@ async function verifyPurgeResult(
     sourceRows,
     historyRows,
     currentRows,
+    statsRows,
+    journalRows,
+    provenanceRows,
+    snapshotSourceRows,
+    ingestRunRows,
+    processingActionRows,
   ] = await Promise.all([
     countRows(
       dbContext.metaDb,
@@ -942,9 +967,50 @@ async function verifyPurgeResult(
     countPurgeSourceRows(dbContext.sourceDb, input),
     countPurgeHistoryRows(dbContext.historyDb, input),
     countPurgeCurrentRows(dbContext.currentDb, input),
+    countRows(
+      dbContext.metaDb,
+      metaSchema.stats,
+      sql`${metaSchema.stats.releaseId} = ${input.releaseId} OR ${metaSchema.stats.snapshotId} = ${input.snapshotId} OR ${metaSchema.stats.apiReleaseSetId} = ${input.apiReleaseSetId}`,
+    ),
+    countRows(
+      dbContext.metaDb,
+      metaSchema.metaPublishedDataJournal,
+      sql`${metaSchema.metaPublishedDataJournal.releaseId} = ${input.releaseId} OR ${metaSchema.metaPublishedDataJournal.relatedReleaseId} = ${input.releaseId}`,
+    ),
+    countRows(
+      dbContext.metaDb,
+      metaSchema.metaApiFieldProvenance,
+      eq(metaSchema.metaApiFieldProvenance.apiReleaseSetId, input.apiReleaseSetId),
+    ),
+    countRows(
+      dbContext.metaDb,
+      metaSchema.metaSnapshotSources,
+      sql`${metaSchema.metaSnapshotSources.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSources.sourceReleaseId} = ${input.releaseId}`,
+    ),
+    countRows(
+      dbContext.metaDb,
+      metaSchema.ingestRuns,
+      eq(metaSchema.ingestRuns.releaseId, input.releaseId),
+    ),
+    countRows(
+      dbContext.metaDb,
+      metaSchema.releaseProcessingActions,
+      eq(metaSchema.releaseProcessingActions.releaseId, input.releaseId),
+    ),
   ])
   const remainingRows =
-    releaseRows + snapshotRows + releaseSetRows + sourceRows + historyRows + currentRows
+    releaseRows +
+    snapshotRows +
+    releaseSetRows +
+    sourceRows +
+    historyRows +
+    currentRows +
+    statsRows +
+    journalRows +
+    provenanceRows +
+    snapshotSourceRows +
+    ingestRunRows +
+    processingActionRows
 
   if (remainingRows > 0) {
     throw new Error(
@@ -963,11 +1029,8 @@ async function countPurgeSourceRows(
   let total = 0
 
   for (const tableName of input.tables.sourceTables) {
-    total += await countRows(
-      db,
-      resolveSourceTable(tableName),
-      eq(resolveSourceTable(tableName).releaseId, input.releaseId),
-    )
+    const table = resolveSourceTable(tableName)
+    total += await countRows(db, table, eq(table.releaseId, input.releaseId))
   }
 
   return total

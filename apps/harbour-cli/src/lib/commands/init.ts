@@ -55,13 +55,11 @@ export async function runInitialisationCommand(
   const command = args.command ? resolveInitialisationCommand(args.command) : undefined
   const supportsContinue = command?.supportsContinue ?? false
   const supportsTarget = command?.supportsTarget ?? false
-  const cacheArtefacts =
-    args.options.cacheArtefacts === true || args.options['cache-artefacts'] === true
+  const cacheArtefacts = args.options['cache-artefacts'] === true
   const invalidOptions = Object.keys(args.options).filter(
     key =>
       !(key === 'continue' && supportsContinue) &&
       !(key === 'target' && supportsTarget) &&
-      key !== 'cacheArtefacts' &&
       key !== 'cache-artefacts',
   )
   const target = args.options.target
@@ -71,9 +69,7 @@ export async function runInitialisationCommand(
     args.positionals.length > 0 ||
     invalidOptions.length > 0 ||
     (args.options.continue !== undefined && args.options.continue !== true) ||
-    ((args.options.cacheArtefacts !== undefined ||
-      args.options['cache-artefacts'] !== undefined) &&
-      !cacheArtefacts) ||
+    (args.options['cache-artefacts'] !== undefined && !cacheArtefacts) ||
     (target !== undefined &&
       (typeof target !== 'string' ||
         !['local', 'preview', 'production'].includes(target)))
@@ -82,7 +78,7 @@ export async function runInitialisationCommand(
     const acceptedOptions = [
       ...(supportsTarget ? ['`--target local|preview|production`'] : []),
       ...(supportsContinue ? ['`--continue`'] : []),
-      '`--cacheArtefacts`',
+      '`--cache-artefacts`',
     ]
     const suffix =
       acceptedOptions.length > 0
