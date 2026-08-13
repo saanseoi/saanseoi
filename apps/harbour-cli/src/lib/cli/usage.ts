@@ -23,7 +23,7 @@ export function printUsage() {
   saanseoi cleanup:snapshots [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
   saanseoi docs:new [--target local|preview|production] [--scope apiReleaseSets|releases] [--region hk|mo] [--api-family addresses|divisions|places] [--dataset CODE] [--release CODE] [--cohort-key VALUE]
   saanseoi docs:publish [--target local|preview|production] [--scope apiReleaseSets|releases|all] [--dry-run]
-  saanseoi rollback:release --release <latest-release-id|release-code> [--target local|preview|production] [--region hk|mo] [--shard-year YYYY] [--dry-run]
+  saanseoi rollback:release --release <latest-release-id|release-code> [--target local|preview|production] [--region hk|mo] [--shard-year YYYY] [--purge] [--dry-run]
   saanseoi version:bump [--type apiVersion|apiComposition|schemaVersion|rulesetVersion] [--code CODE] [--editor zed] [--no-open]
   saanseoi version:publish [--target local|preview|production] [--code CODE] [--dry-run]
   saanseoi version:promote [--target local|preview|production] [--code CODE]
