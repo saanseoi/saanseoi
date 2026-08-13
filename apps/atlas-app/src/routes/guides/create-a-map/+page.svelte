@@ -1568,6 +1568,14 @@ const urbanDensityMetricsCss = [
 
 const selectedStylePreview = (styleId: string) =>
   createAMapStylePreviewUrl(styleId, region, tileset)
+const styleChoiceDescription = (styleId: string) => {
+  if (styleId === 'light' || styleId === 'dark') return m.guide_style_protomap_default()
+  if (styleId === 'white' || styleId === 'grayscale' || styleId === 'black') {
+    return m.guide_style_protomap_dataviz()
+  }
+  if (styleId === 'midnight') return m.guide_style_midnight_description()
+  return ''
+}
 const styleChoices = $derived.by(() =>
   [
     ...mapStyleDefinitions.map(candidate => candidate.id),
@@ -1575,9 +1583,8 @@ const styleChoices = $derived.by(() =>
       value: 'custom',
       label: m.guide_style_custom(),
       description: m.guide_style_custom_choice_description(),
-      image: selectedStylePreview('light'),
-      darkImage: selectedStylePreview('dark'),
-      imageRotation: 90 as const,
+      imageSlices: ['light', 'white', 'grayscale', 'light'].map(selectedStylePreview),
+      darkImageSlices: ['dark', 'black', 'midnight', 'dark'].map(selectedStylePreview),
     },
   ].map(choice => {
     if (typeof choice === 'string') {
@@ -1586,7 +1593,7 @@ const styleChoices = $derived.by(() =>
       return {
         value: choice,
         label: definition?.name ?? choice,
-        description: '',
+        description: styleChoiceDescription(choice),
         image: selectedStylePreview(choice),
       }
     }
@@ -2336,6 +2343,7 @@ const styleChoices = $derived.by(() =>
         >
         <div id="style-choice" class="scroll-mt-28">
           <GuideChoiceGroup
+            alignment="left"
             label={m.guide_style_label()}
             marker={{
               current: 1,
@@ -2345,6 +2353,7 @@ const styleChoices = $derived.by(() =>
             choices={styleChoices}
             bind:value={style}
             illustratedCardSizing="fixed"
+            illustratedFullBleed
             variant="illustrated"
           />
         </div>
