@@ -57,6 +57,18 @@ and performs them in dependency order. The resulting geometry snapshot records t
 selected division source release as a lookup input, preserving replayable provenance
 without duplicating the dependency declaration in each source fixture.
 
+## Bootstrap recovery
+
+`saanseoi update --target <environment> --api-family divisions --download --yes` reads
+the selected environment's release report before choosing source work. A successful
+report is authoritative: saved local check state never represents a source release that
+the environment has not reported. An empty Overture report rebuilds the current STAC
+release and the retained Overturist archive catalogue in release order. C&SD district
+areas are independently keyed by their 2016 and 2021 cohorts, so an interrupted
+bootstrap rebuilds only an absent cohort; a cohort already reported by the target is not
+selected again. This lets the command resume safely after interruption without
+re-publishing completed source releases.
+
 The canonical `schemaVersion` may remain unchanged when a new source merely supplies
 more values in the same response shape. Merge rulesets are domain-scoped for new
 planning releases; the existing Overture ruleset keeps its legacy code. Adding a new
