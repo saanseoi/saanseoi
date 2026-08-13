@@ -1,4 +1,6 @@
 import { and, eq, inArray } from 'drizzle-orm'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 import type { RegionCode } from '@repo/core'
 import {
@@ -26,15 +28,38 @@ import {
   createHash,
   getMaxItemsPerInClause,
 } from '@repo/core/pipeline/utils'
-import { currentSchema, historySchema, sourceSchema, toIsoTimestamp } from '@repo/db'
+import {
+  currentSchema,
+  historySchema,
+  metaSchema,
+  sourceSchema,
+  toIsoTimestamp,
+} from '@repo/db'
+import {
+  buildSqlPipelineArtefactKey,
+  writeTextArtefact,
+} from '@repo/core/pipeline/services/pipelineArtefacts'
 
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
+import {
+  importSqlArtefactKeys,
+  type SqlImportExecutionOptions,
+  type SqlImportTargetContext,
+} from '../localPipeline/sqlImport.ts'
 import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
-import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
+import {
+  buildReleaseUploadDbCacheScopeKey,
+  refreshRemoteMetaCache,
+  replayRemoteCacheWithRetry,
+  resetRemoteReleaseUploadCacheScope,
+  resolveSharedRemoteDbCacheDir,
+  resolveLocalAddressDbContext,
+  type LocalAddressDbContext,
+} from '../addressSql/localDbCache.ts'
 
 type UploadResult = {
   datasetCode?: string
@@ -98,6 +123,12 @@ type PreparedDivision = {
 
 const LOCAL_RELEASE_ROOT = `${import.meta.dir}/../../../../../.local/harbour-sql/releases`
 const PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE = 'primary'
+const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
+const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
+  REPO_ROOT,
+  'apps/harbour-workers/wrangler.jsonc',
+)
+const REMOTE_IMPORT_BATCH_BYTES = 64 * 1024 * 1024
 
 export async function processLocalHkgovPlandDivisionSqlUpload(
   target: UploadTarget,
@@ -113,14 +144,37 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
   const releaseRoot = `${LOCAL_RELEASE_ROOT}/${target.remote ? 'remote' : 'local'}/${releaseCode}`
   const bucket = new LocalPipelineBucket(releaseRoot)
   await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
+  const shardYear = previewPlan.sourceVersion.slice(0, 4)
+  const cacheTableProfile = 'division'
+  const remoteCacheScopeKey = target.remote
+    ? buildReleaseUploadDbCacheScopeKey({
+        cacheTableProfile,
+        cohortKey: previewPlan.cohortKey,
+        regionCode: previewPlan.regionCode,
+        shardYear,
+        source: previewPlan.source,
+        sourceVersion: previewPlan.sourceVersion,
+        theme: previewPlan.theme,
+        type: previewPlan.type,
+      })
+    : undefined
+
+  if (remoteCacheScopeKey) {
+    await resetRemoteReleaseUploadCacheScope(
+      target,
+      remoteCacheScopeKey,
+      cacheTableProfile,
+    )
+  }
 
   const context = await resolveLocalAddressDbContext(
     target,
     previewPlan.regionCode,
     previewPlan.sourceVersion,
     {
-      cacheTableProfile: target.remote ? undefined : 'division',
+      cacheTableProfile,
       includePreviousShardYears: true,
+      remoteCacheScopeKey,
     },
   )
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
@@ -372,9 +426,42 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       },
       releaseCode,
     )
+    const sqlManifest = await writePlandSqlArtefacts(bucket, context, previewPlan, {
+      changedHistoryIds,
+      changedNativeIds,
+      missingHistoryIds,
+      missingNativeIds,
+      releaseId,
+      releaseCode,
+      records,
+      snapshotId: snapshot.id,
+    })
+    const importOptions = resolvePlandImportOptions(target, context)
+    const importTargets = resolvePlandImportTargets(context, previewPlan.sourceVersion)
+
+    await importPlandSqlArtefacts(
+      bucket,
+      sqlManifest,
+      importTargets,
+      importOptions,
+      client,
+      releaseId,
+      releaseCode,
+    )
     const publishResult = await client.publishDataset(releaseId, releaseCode, {
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
+
+    if (target.remote) {
+      await replayPlandSqlIntoSharedCache(
+        target,
+        bucket,
+        sqlManifest,
+        previewPlan,
+        importOptions,
+        releaseCode,
+      )
+    }
     return { importedRows: records.length, publishResult, snapshotId: snapshot.id }
   } catch (error) {
     await client
@@ -936,4 +1023,869 @@ function requireString(value: unknown, name: string): string {
 function requireValue(value: unknown, name: string) {
   if (value === null || value === undefined) throw new Error(`Missing ${name}.`)
   return value
+}
+
+type PlandSqlArtefactManifest = {
+  currentKey: string
+  historyKey: string
+  metaKey: string
+  sourceKey: string
+}
+
+type PlandImportTargets = {
+  current: SqlImportTargetContext
+  history: SqlImportTargetContext
+  meta: SqlImportTargetContext
+  source: SqlImportTargetContext
+}
+
+type PlandSqlState = {
+  changedHistoryIds: string[]
+  changedNativeIds: string[]
+  missingHistoryIds: string[]
+  missingNativeIds: string[]
+  records: PreparedDivision[]
+  releaseCode: string
+  releaseId: string
+  snapshotId: string
+}
+
+const PLAND_SQL_STATEMENT_BYTE_TARGET = 128 * 1024
+
+/**
+ * Serialises the already-planned local mutations into idempotent SQL. The
+ * planning cache is deliberately the source of truth here: it lets this
+ * specialised processor retain its existing data normalisation while making
+ * the remote D1 mutation and cache replay exactly the same operation.
+ */
+async function writePlandSqlArtefacts(
+  bucket: LocalPipelineBucket,
+  context: LocalAddressDbContext,
+  plan: HkgovPlandDivisionUploadPlan,
+  state: PlandSqlState,
+): Promise<PlandSqlArtefactManifest> {
+  const runId = [
+    'pland',
+    plan.source,
+    plan.regionCode,
+    plan.sourceVersion.slice(0, 4),
+    state.releaseId,
+  ]
+    .join('-')
+    .replace(/[^A-Za-z0-9._:-]+/g, '-')
+  const artefactKey = (target: string, filename: string) =>
+    buildSqlPipelineArtefactKey(
+      {
+        cohortKey: plan.cohortKey,
+        datasetId: state.releaseId,
+        rawObjectKey: '',
+        regionCode: plan.regionCode,
+        releaseCode: state.releaseCode,
+        releaseId: state.releaseId,
+        source: plan.source,
+        sourceVersion: plan.sourceVersion,
+        theme: plan.theme,
+        type: plan.type,
+      },
+      target,
+      filename,
+    )
+  const manifest = {
+    currentKey: artefactKey('current', `${runId}-current.sql`),
+    historyKey: artefactKey('history', `${runId}-history.sql`),
+    metaKey: artefactKey('meta', `${runId}-meta.sql`),
+    sourceKey: artefactKey('source', `${runId}-source.sql`),
+  } satisfies PlandSqlArtefactManifest
+
+  const [sourceSql, historySql, currentSql, metaSql] = await Promise.all([
+    buildPlandSourceSql(context, plan, state),
+    buildPlandHistorySql(context, state),
+    buildPlandCurrentSql(context, state),
+    buildPlandMetaSql(context, state),
+  ])
+
+  await Promise.all([
+    writeTextArtefact(
+      bucket,
+      manifest.sourceKey,
+      sourceSql,
+      'application/sql; charset=utf-8',
+    ),
+    writeTextArtefact(
+      bucket,
+      manifest.historyKey,
+      historySql,
+      'application/sql; charset=utf-8',
+    ),
+    writeTextArtefact(
+      bucket,
+      manifest.currentKey,
+      currentSql,
+      'application/sql; charset=utf-8',
+    ),
+    writeTextArtefact(
+      bucket,
+      manifest.metaKey,
+      metaSql,
+      'application/sql; charset=utf-8',
+    ),
+  ])
+
+  return manifest
+}
+
+async function buildPlandSourceSql(
+  context: LocalAddressDbContext,
+  plan: HkgovPlandDivisionUploadPlan,
+  state: PlandSqlState,
+) {
+  const tableName =
+    plan.source === 'hkgov-pland-new-town'
+      ? 'hkgovPlandNewTowns'
+      : 'hkgovPlandPlanningCells'
+  const rows =
+    plan.source === 'hkgov-pland-new-town'
+      ? await context.sourceDb
+          .select()
+          .from(sourceSchema.sourceHkgovPlandNewTowns)
+          .all()
+      : await context.sourceDb
+          .select()
+          .from(sourceSchema.sourceHkgovPlandPlanningCells)
+          .all()
+  const affectedIds = new Set([...state.changedNativeIds, ...state.missingNativeIds])
+  const affectedRows = rows.filter(row => affectedIds.has(row.sourceRecordId))
+  const columns =
+    plan.source === 'hkgov-pland-new-town'
+      ? [
+          'sourceRecordId',
+          'sources',
+          'rawProperties',
+          'version',
+          'versionHash',
+          'releaseId',
+          'validFromRelease',
+          'validToRelease',
+          'isCurrent',
+          'createdAt',
+          'updatedAt',
+          'sourceGeometry',
+          'newTownId',
+          'nameEn',
+          'nameZhHant',
+          'nameZhHans',
+          'wasGeometryRepaired',
+          'repairedGeometry',
+        ]
+      : [
+          'sourceRecordId',
+          'sources',
+          'rawProperties',
+          'version',
+          'versionHash',
+          'releaseId',
+          'validFromRelease',
+          'validToRelease',
+          'isCurrent',
+          'createdAt',
+          'updatedAt',
+          'sourceGeometry',
+          'ppuCode',
+          'spuCode',
+          'tpuCode',
+          'subunitCode',
+          'wasGeometryRepaired',
+          'repairedGeometry',
+        ]
+  const sourceInsert = prepareRowsForSql(
+    affectedRows,
+    columns,
+    ['sourceRecordId', 'versionHash'],
+    ['sourceGeometry'],
+  )
+  const statements = [
+    ...buildCloseSourceStatements(tableName, state.missingNativeIds, state.releaseCode),
+    ...buildInsertStatements(tableName, columns, sourceInsert.rows, {
+      suffix: buildUpdateSuffix(columns, ['sourceRecordId', 'versionHash']),
+    }),
+    ...buildLargeTextUpdates(tableName, sourceInsert.largeTextUpdates),
+  ]
+
+  return sqlFile(statements)
+}
+
+async function buildPlandHistorySql(
+  context: LocalAddressDbContext,
+  state: PlandSqlState,
+) {
+  const affectedIds = [
+    ...new Set([...state.changedHistoryIds, ...state.missingHistoryIds]),
+  ]
+  const affectedIdSet = new Set(affectedIds)
+  const [divisionRows, i18nRows, changeRows] = await Promise.all([
+    context.historyDb.select().from(historySchema.divisions).all(),
+    context.historyDb.select().from(historySchema.divisionsI18n).all(),
+    context.historyDb
+      .select()
+      .from(historySchema.snapshotVersionChanges)
+      .where(eq(historySchema.snapshotVersionChanges.snapshotId, state.snapshotId))
+      .all(),
+  ])
+  const divisions = divisionRows.filter(row => affectedIdSet.has(row.id))
+  const i18n = i18nRows.filter(row => affectedIdSet.has(row.divisionId))
+  const divisionColumns = [
+    'id',
+    'identifiers',
+    'level',
+    'type',
+    'sourceKeys',
+    'wikidata',
+    'hierarchy',
+    'cartography',
+    'sources',
+    'geometry',
+    'bbox',
+    'versionHash',
+    'sourceReleaseId',
+    'snapshotId',
+    'isCurrent',
+    'createdAt',
+    'updatedAt',
+  ]
+  const i18nColumns = [
+    'divisionId',
+    'locale',
+    'name',
+    'nameVariant',
+    'nameAlts',
+    'nameRules',
+    'isLocaleInferred',
+    'versionHash',
+    'sourceReleaseId',
+    'snapshotId',
+    'isCurrent',
+    'createdAt',
+    'updatedAt',
+  ]
+  const changeColumns = [
+    'snapshotId',
+    'recordType',
+    'recordId',
+    'locale',
+    'versionHash',
+    'operation',
+    'sourceReleaseId',
+    'createdAt',
+    'updatedAt',
+  ]
+  const divisionInsert = prepareRowsForSql(divisions, divisionColumns, [
+    'id',
+    'versionHash',
+  ])
+  const i18nInsert = prepareRowsForSql(i18n, i18nColumns, [
+    'divisionId',
+    'versionHash',
+    'locale',
+  ])
+  const statements = [
+    ...buildCloseHistoryStatements(affectedIds),
+    ...buildInsertStatements('divisions', divisionColumns, divisionInsert.rows, {
+      suffix: buildUpdateSuffix(divisionColumns, ['id', 'versionHash']),
+    }),
+    ...buildLargeTextUpdates('divisions', divisionInsert.largeTextUpdates),
+    ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows, {
+      suffix: buildUpdateSuffix(i18nColumns, ['divisionId', 'versionHash', 'locale']),
+    }),
+    ...buildLargeTextUpdates('divisionsI18n', i18nInsert.largeTextUpdates),
+    `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
+    ...buildInsertStatements('snapshotVersionChanges', changeColumns, changeRows, {
+      suffix: buildUpdateSuffix(changeColumns, [
+        'snapshotId',
+        'recordType',
+        'recordId',
+        'locale',
+      ]),
+    }),
+  ]
+
+  return sqlFile(statements)
+}
+
+async function buildPlandCurrentSql(
+  context: LocalAddressDbContext,
+  state: PlandSqlState,
+) {
+  const [divisionRows, i18nRows] = await Promise.all([
+    context.currentDb
+      .select()
+      .from(currentSchema.divisions)
+      .where(eq(currentSchema.divisions.snapshotId, state.snapshotId))
+      .all(),
+    context.currentDb
+      .select()
+      .from(currentSchema.divisionsI18n)
+      .where(eq(currentSchema.divisionsI18n.snapshotId, state.snapshotId))
+      .all(),
+  ])
+  const divisionColumns = [
+    'snapshotId',
+    'id',
+    'identifiers',
+    'level',
+    'type',
+    'sourceKeys',
+    'wikidata',
+    'hierarchy',
+    'cartography',
+    'sources',
+    'geometry',
+    'bbox',
+    'createdAt',
+    'updatedAt',
+  ]
+  const i18nColumns = [
+    'snapshotId',
+    'divisionId',
+    'locale',
+    'name',
+    'nameVariant',
+    'nameAlts',
+    'nameRules',
+    'isLocaleInferred',
+    'createdAt',
+    'updatedAt',
+  ]
+  const divisionInsert = prepareRowsForSql(divisionRows, divisionColumns, [
+    'snapshotId',
+    'id',
+  ])
+  const i18nInsert = prepareRowsForSql(i18nRows, i18nColumns, [
+    'snapshotId',
+    'divisionId',
+    'locale',
+  ])
+
+  return sqlFile([
+    `DELETE FROM divisionsI18n WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
+    `DELETE FROM divisions WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
+    ...buildInsertStatements('divisions', divisionColumns, divisionInsert.rows),
+    ...buildLargeTextUpdates('divisions', divisionInsert.largeTextUpdates),
+    ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows),
+    ...buildLargeTextUpdates('divisionsI18n', i18nInsert.largeTextUpdates),
+  ])
+}
+
+async function buildPlandMetaSql(context: LocalAddressDbContext, state: PlandSqlState) {
+  const [
+    snapshots,
+    sources,
+    assemblyRuns,
+    releaseAssignments,
+    snapshotAssignments,
+    actions,
+    stats,
+  ] = await Promise.all([
+    context.metaDb
+      .select()
+      .from(metaSchema.metaSnapshots)
+      .where(eq(metaSchema.metaSnapshots.id, state.snapshotId))
+      .all(),
+    context.metaDb
+      .select()
+      .from(metaSchema.metaSnapshotSources)
+      .where(eq(metaSchema.metaSnapshotSources.snapshotId, state.snapshotId))
+      .all(),
+    context.metaDb
+      .select()
+      .from(metaSchema.metaSnapshotAssemblyRuns)
+      .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, state.snapshotId))
+      .all(),
+    context.metaDb
+      .select()
+      .from(metaSchema.metaReleaseShardAssignments)
+      .where(eq(metaSchema.metaReleaseShardAssignments.releaseId, state.releaseId))
+      .all(),
+    context.metaDb
+      .select()
+      .from(metaSchema.metaSnapshotShardAssignments)
+      .where(eq(metaSchema.metaSnapshotShardAssignments.snapshotId, state.snapshotId))
+      .all(),
+    context.metaDb
+      .select()
+      .from(metaSchema.releaseProcessingActions)
+      .where(eq(metaSchema.releaseProcessingActions.releaseId, state.releaseId))
+      .all(),
+    context.metaDb
+      .select()
+      .from(metaSchema.stats)
+      .where(eq(metaSchema.stats.releaseId, state.releaseId))
+      .all(),
+  ])
+  if (
+    snapshots.length !== 1 ||
+    !sources.some(row => row.sourceReleaseId === state.releaseId)
+  ) {
+    throw new Error(`PLAND snapshot metadata is incomplete for ${state.releaseId}.`)
+  }
+  if (releaseAssignments.length === 0 || snapshotAssignments.length === 0) {
+    throw new Error(`PLAND shard assignments are incomplete for ${state.releaseId}.`)
+  }
+  const snapshotLineageId = snapshots[0]?.snapshotLineageId
+  const lineages = snapshotLineageId
+    ? await context.metaDb
+        .select()
+        .from(metaSchema.metaSnapshotLineages)
+        .where(eq(metaSchema.metaSnapshotLineages.id, snapshotLineageId))
+        .all()
+    : []
+  if (snapshotLineageId && lineages.length !== 1) {
+    throw new Error(`PLAND snapshot lineage is missing for ${state.snapshotId}.`)
+  }
+  const lineageColumns = [
+    'id',
+    'code',
+    'regionCode',
+    'resourceType',
+    'variant',
+    'identityMode',
+    'primaryDatasetId',
+    'versionHash',
+    'createdAt',
+    'updatedAt',
+  ]
+  const snapshotColumns = [
+    'id',
+    'snapshotLineageId',
+    'parentSnapshotId',
+    'resourceType',
+    'code',
+    'cohortKey',
+    'revision',
+    'status',
+    'publishedAt',
+    'validFrom',
+    'validTo',
+    'notes',
+    'createdAt',
+    'updatedAt',
+  ]
+  const sourceColumns = [
+    'snapshotId',
+    'datasetId',
+    'sourceReleaseId',
+    'role',
+    'selectedByRule',
+    'selectionMode',
+    'anchorReleaseId',
+    'sourceCohortKey',
+    'createdAt',
+  ]
+  const assemblyRunColumns = [
+    'id',
+    'snapshotId',
+    'snapshotAssemblyId',
+    'anchorReleaseId',
+    'anchorCohortKey',
+    'status',
+    'selectionSummaryJson',
+    'createdAt',
+    'updatedAt',
+  ]
+  const actionColumns = [
+    'id',
+    'releaseId',
+    'action',
+    'mode',
+    'summary',
+    'affectedRecordCount',
+    'evidence',
+    'createdAt',
+    'updatedAt',
+  ]
+  const statsColumns = [
+    'id',
+    'type',
+    'releaseId',
+    'snapshotId',
+    'apiReleaseSetId',
+    'dimension',
+    'metric',
+    'metricUnit',
+    'value',
+    'groupBy',
+    'groupValue',
+    'createdAt',
+    'updatedAt',
+  ]
+  return sqlFile([
+    ...buildInsertStatements('snapshotLineages', lineageColumns, lineages, {
+      suffix: buildUpdateSuffix(lineageColumns, ['id']),
+    }),
+    ...buildInsertStatements('snapshots', snapshotColumns, snapshots, {
+      suffix: buildUpdateSuffix(snapshotColumns, ['id']),
+    }),
+    ...buildInsertStatements('snapshotSources', sourceColumns, sources, {
+      suffix: buildUpdateSuffix(sourceColumns, ['snapshotId', 'sourceReleaseId']),
+    }),
+    ...buildInsertStatements('snapshotAssemblyRuns', assemblyRunColumns, assemblyRuns, {
+      suffix: buildUpdateSuffix(assemblyRunColumns, ['id']),
+    }),
+    ...buildInsertStatements(
+      'releaseShardAssignments',
+      ['releaseId', 'dataShardId'],
+      releaseAssignments,
+      {
+        suffix: 'ON CONFLICT(releaseId, dataShardId) DO NOTHING',
+      },
+    ),
+    ...buildInsertStatements(
+      'snapshotShardAssignments',
+      ['snapshotId', 'dataShardId'],
+      snapshotAssignments,
+      {
+        suffix: 'ON CONFLICT(snapshotId, dataShardId) DO NOTHING',
+      },
+    ),
+    `DELETE FROM releaseProcessingActions WHERE releaseId = ${sqlLiteral(state.releaseId)};`,
+    ...buildInsertStatements('releaseProcessingActions', actionColumns, actions),
+    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(state.releaseId)};`,
+    ...buildInsertStatements('stats', statsColumns, stats),
+  ])
+}
+
+function resolvePlandImportOptions(
+  target: UploadTarget,
+  context: LocalAddressDbContext,
+): SqlImportExecutionOptions {
+  const options: SqlImportExecutionOptions = {
+    accountId: resolveCloudflareAccountId(target),
+    apiToken: process.env.CLOUDFLARE_D1_TOKEN?.trim() || undefined,
+    isLocal: !target.remote,
+    metaDatabaseId: context.state.bindings.DB_META?.databaseId ?? null,
+    remoteImportBatchBytes: REMOTE_IMPORT_BATCH_BYTES,
+  }
+  if (target.remote && (!options.accountId || !options.apiToken)) {
+    throw new Error(
+      'Remote PLAND SQL import requires CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_D1_TOKEN.',
+    )
+  }
+  return options
+}
+
+function resolvePlandImportTargets(
+  context: LocalAddressDbContext,
+  sourceVersion: string,
+): PlandImportTargets {
+  const year = sourceVersion.slice(0, 4)
+  const scope =
+    /^\d{4}$/.test(year) && Number.parseInt(year, 10) < 2025 ? 'BEFORE' : year
+  const historyBindingName = `DB_HISTORY_HK_${scope}`
+  const sourceBindingName = `DB_SOURCE_HK_${scope}`
+  return {
+    current: {
+      binding: context.currentBinding,
+      databaseId: context.state.bindings.DB_CURRENT?.databaseId ?? null,
+      name: 'current',
+    },
+    history: {
+      binding: context.historyBinding,
+      databaseId: context.state.bindings[historyBindingName]?.databaseId ?? null,
+      name: 'history',
+    },
+    meta: {
+      binding: context.metaBinding,
+      databaseId: context.state.bindings.DB_META?.databaseId ?? null,
+      name: 'meta',
+    },
+    source: {
+      binding: context.sourceBinding,
+      databaseId: context.state.bindings[sourceBindingName]?.databaseId ?? null,
+      name: 'source',
+    },
+  }
+}
+
+async function importPlandSqlArtefacts(
+  bucket: LocalPipelineBucket,
+  manifest: PlandSqlArtefactManifest,
+  targets: PlandImportTargets,
+  options: SqlImportExecutionOptions,
+  client: HarbourClient,
+  releaseId: string,
+  releaseCode: string,
+) {
+  const imports: Array<[string, SqlImportTargetContext, string]> = [
+    ['importPlandSqlSource', targets.source, manifest.sourceKey],
+    ['importPlandSqlHistory', targets.history, manifest.historyKey],
+    ['importPlandSqlCurrent', targets.current, manifest.currentKey],
+    ['importPlandSqlMeta', targets.meta, manifest.metaKey],
+  ]
+  for (const [phase, importTarget, key] of imports) {
+    await client.stageRunning(releaseId, phase, undefined, releaseCode)
+    try {
+      const stats = await importSqlArtefactKeys(
+        bucket,
+        importTarget,
+        [key],
+        options,
+        async progress => {
+          await client.stageRunning(releaseId, phase, progress, releaseCode)
+        },
+      )
+      await client.stageCompleted(releaseId, phase, stats, releaseCode)
+    } catch (error) {
+      await client.stageFailed(
+        releaseId,
+        phase,
+        error instanceof Error ? error.message : String(error),
+        undefined,
+        releaseCode,
+      )
+      throw error
+    }
+  }
+}
+
+async function replayPlandSqlIntoSharedCache(
+  target: UploadTarget,
+  bucket: LocalPipelineBucket,
+  manifest: PlandSqlArtefactManifest,
+  plan: HkgovPlandDivisionUploadPlan,
+  importOptions: SqlImportExecutionOptions,
+  releaseCode: string,
+) {
+  const targetName = target.environment === 'production' ? 'production' : 'preview'
+  const sharedContext = await resolveLocalAddressDbContext(
+    target,
+    plan.regionCode,
+    plan.sourceVersion,
+    {
+      cacheTableProfile: 'division',
+      includePreviousShardYears: true,
+      requireExistingRemoteCache: true,
+    },
+  )
+  try {
+    const targets = resolvePlandImportTargets(sharedContext, plan.sourceVersion)
+    const localOptions: SqlImportExecutionOptions = {
+      ...importOptions,
+      accountId: undefined,
+      apiToken: undefined,
+      isLocal: true,
+    }
+    await replayRemoteCacheWithRetry(
+      targetName,
+      resolveSharedRemoteDbCacheDir(target),
+      releaseCode,
+      async () => {
+        await Promise.all([
+          importSqlArtefactKeys(
+            bucket,
+            targets.source,
+            [manifest.sourceKey],
+            localOptions,
+            async () => undefined,
+          ),
+          importSqlArtefactKeys(
+            bucket,
+            targets.history,
+            [manifest.historyKey],
+            localOptions,
+            async () => undefined,
+          ),
+          importSqlArtefactKeys(
+            bucket,
+            targets.current,
+            [manifest.currentKey],
+            localOptions,
+            async () => undefined,
+          ),
+          importSqlArtefactKeys(
+            bucket,
+            targets.meta,
+            [manifest.metaKey],
+            localOptions,
+            async () => undefined,
+          ),
+        ])
+      },
+    )
+  } finally {
+    sharedContext.cleanup()
+  }
+  await refreshRemoteMetaCache(targetName, resolveSharedRemoteDbCacheDir(target))
+}
+
+function buildCloseSourceStatements(
+  tableName: string,
+  ids: string[],
+  releaseCode: string,
+) {
+  return buildIdChunks(ids).map(idsSql =>
+    `
+UPDATE ${tableName}
+SET isCurrent = 0, validToRelease = ${sqlLiteral(releaseCode)}, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+WHERE isCurrent = 1 AND sourceRecordId IN (${idsSql});`.trim(),
+  )
+}
+
+function buildCloseHistoryStatements(ids: string[]) {
+  return buildIdChunks(ids).flatMap(idsSql => [
+    `UPDATE divisions SET isCurrent = 0, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE isCurrent = 1 AND id IN (${idsSql});`,
+    `UPDATE divisionsI18n SET isCurrent = 0, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE isCurrent = 1 AND divisionId IN (${idsSql});`,
+  ])
+}
+
+function buildIdChunks(ids: string[]) {
+  return chunkArray([...new Set(ids)], getMaxItemsPerInClause(1, 4))
+    .filter(chunk => chunk.length > 0)
+    .map(chunk => chunk.map(sqlLiteral).join(', '))
+}
+
+type LargeTextUpdate = {
+  column: string
+  keys: Record<string, unknown>
+  value: string
+}
+
+/** D1 rejects a single SQL statement above its statement-size limit. */
+function prepareRowsForSql(
+  rows: unknown[],
+  columns: string[],
+  keyColumns: string[],
+  requiredTextColumns: string[] = [],
+) {
+  const largeTextUpdates: LargeTextUpdate[] = []
+  const preparedRows = rows.map(value => {
+    const row = { ...(value as Record<string, unknown>) }
+    const keys = Object.fromEntries(keyColumns.map(column => [column, row[column]]))
+
+    for (const column of columns) {
+      const text = serialiseSqlText(row[column])
+
+      if (
+        text === null ||
+        new TextEncoder().encode(sqlLiteral(text)).byteLength <=
+          PLAND_SQL_STATEMENT_BYTE_TARGET / 4
+      ) {
+        continue
+      }
+
+      largeTextUpdates.push({ column, keys, value: text })
+      row[column] = requiredTextColumns.includes(column) ? '' : null
+    }
+
+    return row
+  })
+
+  return { largeTextUpdates, rows: preparedRows }
+}
+
+function buildLargeTextUpdates(table: string, updates: LargeTextUpdate[]) {
+  return updates.flatMap(update => {
+    const where = Object.entries(update.keys)
+      .map(([column, value]) => `${column} = ${sqlLiteral(value)}`)
+      .join(' AND ')
+    const statements = [`UPDATE ${table} SET ${update.column} = '' WHERE ${where};`]
+
+    for (const chunk of splitSqlText(update.value)) {
+      statements.push(
+        `UPDATE ${table} SET ${update.column} = ${update.column} || ${sqlLiteral(chunk)} WHERE ${where};`,
+      )
+    }
+
+    return statements
+  })
+}
+
+function splitSqlText(value: string) {
+  const maxBytes = 16 * 1024
+  const chunks: string[] = []
+  let chunk = ''
+  let chunkBytes = 0
+
+  for (const character of value) {
+    const characterBytes = new TextEncoder().encode(character).byteLength
+    if (chunk && chunkBytes + characterBytes > maxBytes) {
+      chunks.push(chunk)
+      chunk = ''
+      chunkBytes = 0
+    }
+    chunk += character
+    chunkBytes += characterBytes
+  }
+  if (chunk) chunks.push(chunk)
+  return chunks
+}
+
+function serialiseSqlText(value: unknown) {
+  if (typeof value === 'string') return value
+  if (value && typeof value === 'object') return JSON.stringify(value)
+  return null
+}
+
+function buildInsertStatements(
+  table: string,
+  columns: string[],
+  rows: unknown[],
+  options: { suffix?: string } = {},
+) {
+  if (rows.length === 0) return []
+  const statements: string[] = []
+  const prefix = `INSERT INTO ${table} (${columns.join(', ')}) VALUES `
+  const suffix = options.suffix ? ` ${options.suffix}` : ''
+  let values: string[] = []
+  for (const row of rows) {
+    const rowRecord = row as Record<string, unknown>
+    const value = `(${columns.map(column => sqlLiteral(rowRecord[column])).join(', ')})`
+    const candidate = `${prefix}${[...values, value].join(', ')}${suffix};`
+    if (
+      values.length > 0 &&
+      new TextEncoder().encode(candidate).byteLength > PLAND_SQL_STATEMENT_BYTE_TARGET
+    ) {
+      statements.push(`${prefix}${values.join(', ')}${suffix};`)
+      values = [value]
+    } else {
+      values.push(value)
+    }
+  }
+  if (values.length > 0) statements.push(`${prefix}${values.join(', ')}${suffix};`)
+  return statements
+}
+
+function buildUpdateSuffix(columns: string[], keys: string[]) {
+  const updates = columns.filter(column => !keys.includes(column))
+  return `ON CONFLICT(${keys.join(', ')}) DO UPDATE SET ${updates.map(column => `${column} = excluded.${column}`).join(', ')}`
+}
+
+function sqlFile(statements: string[]) {
+  return `${statements.filter(Boolean).join('\n\n')}\n`
+}
+
+function sqlLiteral(value: unknown): string {
+  if (value === null || value === undefined) return 'NULL'
+  if (typeof value === 'boolean') return value ? '1' : '0'
+  if (typeof value === 'number') return Number.isFinite(value) ? String(value) : 'NULL'
+  const text = typeof value === 'string' ? value : JSON.stringify(value)
+  return `'${text.replaceAll("'", "''")}'`
+}
+
+function resolveCloudflareAccountId(target: UploadTarget) {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim()
+  if (accountId) return accountId
+  const config = JSON.parse(readFileSync(HARBOUR_WORKERS_WRANGLER_PATH, 'utf8')) as {
+    env?: {
+      preview?: { vars?: Record<string, unknown> }
+      production?: { vars?: Record<string, unknown> }
+    }
+    vars?: Record<string, unknown>
+  }
+  const vars = target.remote
+    ? target.environment === 'production'
+      ? config.env?.production?.vars
+      : config.env?.preview?.vars
+    : config.vars
+  return typeof vars?.CLOUDFLARE_ACCOUNT_ID === 'string'
+    ? vars.CLOUDFLARE_ACCOUNT_ID.trim() || undefined
+    : undefined
 }

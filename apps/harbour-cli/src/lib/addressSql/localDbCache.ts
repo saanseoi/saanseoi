@@ -177,6 +177,8 @@ const VERSION_TABLES_WITH_CURRENT_ROWS = new Set([
   'hkgovAlsAddresses2d',
   'hkgovLandsdStreets',
   'hkgovLandsdStreetI18n',
+  'hkgovPlandNewTowns',
+  'hkgovPlandPlanningCells',
   'overtureDivisions',
   'overtureDivisionAreas',
   'overtureDivisionBoundaries',
@@ -204,6 +206,17 @@ function resolveRemoteCacheDir(
   return resolve(CACHE_ROOT, target, `${scopeSlug || 'scope'}-${scopeHash}`)
 }
 
+/** Returns the persistent cache directory, never a release planning scope. */
+export function resolveSharedRemoteDbCacheDir(target: UploadTarget) {
+  if (!target.remote) {
+    throw new Error('A shared remote cache is only available for remote targets.')
+  }
+
+  return resolveRemoteCacheDir(
+    target.environment === 'production' ? 'production' : 'preview',
+  )
+}
+
 export function buildReleaseUploadDbCacheScopeKey(options: {
   cacheTableProfile: CacheTableProfile
   cohortKey: string
@@ -225,6 +238,74 @@ export function buildReleaseUploadDbCacheScopeKey(options: {
     options.theme.trim().toLowerCase(),
     options.type.trim().toLowerCase(),
   ].join(':')
+}
+
+/**
+ * Creates an isolated, writeable planning surface for one remote release.
+ * The shared cache remains an exact representation of D1 until publication
+ * succeeds and the generated SQL is replayed through its journal.
+ */
+export async function resetRemoteReleaseUploadCacheScope(
+  target: UploadTarget,
+  cacheScopeKey: string,
+  cacheTableProfile: CacheTableProfile,
+) {
+  if (!target.remote) {
+    return
+  }
+
+  const targetName = target.environment === 'production' ? 'production' : 'preview'
+  const targets = await resolveD1Targets(targetName)
+  const sharedCacheDir = resolveRemoteCacheDir(targetName)
+  const sharedManifest = await readManifest(join(sharedCacheDir, 'manifest.json'))
+
+  if (
+    !sharedManifest ||
+    sharedManifest.cacheVersion !== DB_CACHE_MANIFEST_VERSION ||
+    sharedManifest.target !== targetName ||
+    !(await doCachedFilesExist(sharedManifest.files, targets))
+  ) {
+    throw new Error(
+      `No valid shared ${targetName} D1 cache is available. Rebuild it explicitly with bin/saanseoi cache:rebuild --target ${targetName}.`,
+    )
+  }
+
+  const cacheDir = resolveRemoteCacheDir(targetName, cacheScopeKey)
+
+  if (cacheDir === sharedCacheDir) {
+    throw new Error('Release upload cache scope must not overwrite the shared cache.')
+  }
+
+  await rm(cacheDir, { force: true, recursive: true })
+  await mkdir(cacheDir, { recursive: true })
+
+  const files: Record<string, string> = {}
+  for (const targetRecord of targets) {
+    const sourcePath = sharedManifest.files[targetRecord.bindingName]
+    if (!sourcePath) {
+      throw new Error(`Shared cache manifest is missing ${targetRecord.bindingName}.`)
+    }
+
+    const destinationPath = resolve(cacheDir, `${targetRecord.bindingName}.sqlite`)
+    await copyFile(sourcePath, destinationPath)
+    files[targetRecord.bindingName] = destinationPath
+  }
+
+  await writeFile(
+    join(cacheDir, 'manifest.json'),
+    JSON.stringify(
+      {
+        cacheVersion: DB_CACHE_MANIFEST_VERSION,
+        cacheScopeKey,
+        cacheTableProfile,
+        files,
+        preparedAt: new Date().toISOString(),
+        target: targetName,
+      } satisfies DbCacheManifest,
+      null,
+      2,
+    ),
+  )
 }
 
 export async function resolveLocalAddressDbContext(
