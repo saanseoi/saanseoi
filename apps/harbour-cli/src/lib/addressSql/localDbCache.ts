@@ -166,6 +166,8 @@ const WRANGLER_LOG_PATH = resolve(WRANGLER_CONFIG_HOME, 'logs')
 const DB_CACHE_PROGRESS_HEARTBEAT_MS = 1000
 const REMOTE_CACHE_REPLAY_RETRY_LIMIT = 3
 const REMOTE_CACHE_REPLAY_RETRY_DELAY_MS = 750
+const REMOTE_META_CACHE_REFRESH_RETRY_LIMIT = 3
+const REMOTE_META_CACHE_REFRESH_RETRY_DELAY_MS = 1_000
 const BEFORE_SHARD_CUTOFF_YEAR = 2025
 const LOCAL_SQLITE_OPEN_RETRY_LIMIT = 8
 const LOCAL_SQLITE_OPEN_RETRY_DELAY_MS = 250
@@ -1092,12 +1094,37 @@ export async function refreshRemoteMetaCache(
   await mkdir(workDir, { recursive: true })
 
   try {
-    await exportRemoteDatabase(targetRecord, target, dumpPath)
+    await retryRemoteMetaCacheRefresh(() =>
+      exportRemoteDatabase(targetRecord, target, dumpPath),
+    )
     await importDatabaseDumpsToSqlite([dumpPath], destinationPath)
     await assertCachedDatabaseHasExpectedTables(destinationPath, 'DB_META')
   } finally {
     await rm(workDir, { force: true, recursive: true }).catch(() => undefined)
   }
+}
+
+async function retryRemoteMetaCacheRefresh(refresh: () => Promise<void>) {
+  let lastError: unknown
+
+  for (
+    let attempt = 1;
+    attempt <= REMOTE_META_CACHE_REFRESH_RETRY_LIMIT;
+    attempt += 1
+  ) {
+    try {
+      await refresh()
+      return
+    } catch (error) {
+      lastError = error
+
+      if (attempt < REMOTE_META_CACHE_REFRESH_RETRY_LIMIT) {
+        await Bun.sleep(REMOTE_META_CACHE_REFRESH_RETRY_DELAY_MS * 2 ** (attempt - 1))
+      }
+    }
+  }
+
+  throw lastError
 }
 
 export async function invalidateRemoteDbCache(
