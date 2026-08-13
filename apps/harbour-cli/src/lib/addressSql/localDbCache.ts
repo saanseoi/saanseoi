@@ -764,6 +764,9 @@ export async function withRemoteCachedMetaDb<T>(
 export function updateDbCacheProgress(
   progress: LocalUploadProgress,
   event: LocalDbCacheProgressEvent,
+  options: {
+    completeOnReuse?: boolean
+  } = {},
 ) {
   if (event.target !== 'preview' && event.target !== 'production') {
     return
@@ -784,7 +787,7 @@ export function updateDbCacheProgress(
     })
   }
 
-  if (event.action === 'reuse-cache') {
+  if (event.action === 'reuse-cache' && options.completeOnReuse !== false) {
     progress.complete(
       appendPhaseDetails(
         formatCompletedPhaseLabel(colorTeal('Cache'), colorRed('hit'), 0),

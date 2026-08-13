@@ -21,6 +21,7 @@ import { and, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
 
 import {
   resolveLocalAddressDbContext,
+  updateDbCacheProgress,
   withRemoteCachedMetaDb,
 } from '../addressSql/localDbCache.ts'
 import {
@@ -54,7 +55,14 @@ import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
 import { validateOvertureSchema } from '../schema/overture.ts'
 import { uploadSourceReleaseAsset } from '../sources/sourceAssets.ts'
 import { dispatchUpload } from '../upload/upload.ts'
-import { formatDurationMs } from '../localPipeline/progressFormatting.ts'
+import {
+  appendPhaseDetails,
+  colorRed,
+  colorTeal,
+  formatCompletedPhaseLabel,
+  formatDurationMs,
+} from '../localPipeline/progressFormatting.ts'
+import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
   discardDerivedReleaseArtefacts,
   shouldCacheArtefacts,
@@ -233,22 +241,46 @@ ${mutedBar}  `)
       processingStrategy.mode === 'local-address-sql' ||
       processingStrategy.mode === 'local-division-geometry-sql'
     ) {
-      const prerequisiteSpinner = spinner()
-      prerequisiteSpinner.start('Prerequisites')
+      const prerequisiteProgress = new LocalUploadProgress()
 
       try {
         if (target.remote) {
+          const dbCacheStartedAt = Date.now()
+          let reusedDbCache = false
           const dbContext = await resolveLocalAddressDbContext(
             target,
             previewResult.plan.regionCode,
             previewResult.plan.sourceVersion.slice(0, 4),
             {
+              onProgress(event) {
+                reusedDbCache ||= event.action === 'reuse-cache'
+                updateDbCacheProgress(prerequisiteProgress, event, {
+                  completeOnReuse: false,
+                })
+              },
               includePreviousShardYears: true,
-              refreshRemoteTables: true,
             },
           )
           dbContext.cleanup()
+
+          if (prerequisiteProgress.hasActivePhase()) {
+            prerequisiteProgress.complete(
+              appendPhaseDetails(
+                formatCompletedPhaseLabel(
+                  colorTeal(reusedDbCache ? 'Use cache' : 'Clone cache'),
+                  colorRed(target.environment),
+                ),
+                [formatDurationMs(Date.now() - dbCacheStartedAt)],
+              ),
+            )
+          }
         }
+
+        const prerequisiteStartedAt = Date.now()
+        prerequisiteProgress.beginPhase('Check prerequisites', {
+          current: 0,
+          max: null,
+        })
         if (processingStrategy.mode === 'local-address-sql') {
           await assertAddressUploadPrerequisites(target, previewResult.plan, {
             divisionCohortKey: options.divisionCohortKey,
@@ -256,9 +288,14 @@ ${mutedBar}  `)
         } else {
           await assertDivisionGeometryUploadPrerequisites(target, previewResult.plan)
         }
-        prerequisiteSpinner.stop(`${greenText('✓')} Prerequisites`)
+        prerequisiteProgress.complete(
+          appendPhaseDetails(
+            formatCompletedPhaseLabel(colorTeal('Check'), colorRed('prerequisites')),
+            [formatDurationMs(Date.now() - prerequisiteStartedAt)],
+          ),
+        )
       } catch (error) {
-        prerequisiteSpinner.error('Prerequisites')
+        prerequisiteProgress.fail()
         throw error
       }
     }
