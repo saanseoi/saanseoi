@@ -9,7 +9,7 @@ const lanes = [
 </script>
 
 <div
-  class="source-flow-skeleton"
+  class="grid gap-4"
   aria-busy="true"
   aria-live="polite"
   data-source-flow-skeleton
@@ -17,121 +17,48 @@ const lanes = [
 >
   <span class="sr-only">Loading sources</span>
   {#each lanes as lane (lane.id)}
-    <div class="source-flow-skeleton-lane">
-      <div class="source-flow-skeleton-inputs">
+    <div
+      class="grid min-h-38 grid-cols-[minmax(0,1.25fr)_minmax(8rem,0.46fr)_minmax(14rem,0.72fr)] items-start gap-5 border-b border-[color-mix(in_srgb,var(--outline-variant)_82%,transparent)] py-4 last:border-b-0 max-[900px]:grid-cols-1 max-[900px]:gap-3 max-[900px]:pt-4 max-[900px]:pb-5"
+    >
+      <div class="grid gap-3">
         {#each Array(lane.inputs) as _, inputIndex (`${lane.id}-${inputIndex}`)}
-          <div class="source-flow-skeleton-card placeholder" aria-hidden="true">
-            <span class="source-flow-skeleton-icon"></span>
-            <span class="source-flow-skeleton-copy">
-              <span></span>
-              <span></span>
+          <div
+            class="grid min-h-[5.65rem] grid-cols-[4rem_minmax(0,1fr)] items-center gap-4 rounded-lg border border-[color-mix(in_srgb,var(--outline-variant)_78%,transparent)] p-[0.9rem_1rem] animate-[source-flow-skeleton-shimmer_1.4s_ease-in-out_infinite] overflow-hidden bg-[linear-gradient(105deg,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_0%,color-mix(in_srgb,var(--surface-container-high)_82%,transparent)_45%,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_72%)] bg-size-[200%_100%] motion-reduce:animate-none"
+            aria-hidden="true"
+          >
+            <span
+              class="size-16 rounded-[0.35rem] border border-[color-mix(in_srgb,var(--outline-variant)_68%,transparent)] bg-[color-mix(in_srgb,var(--foreground-alt)_10%,transparent)]"
+            ></span>
+            <span class="grid gap-[0.65rem]">
+              <span
+                class="block h-[0.72rem] rounded-full bg-[color-mix(in_srgb,var(--foreground-alt)_12%,transparent)]"
+              ></span>
+              <span
+                class="block h-[0.72rem] w-[58%] rounded-full bg-[color-mix(in_srgb,var(--foreground-alt)_12%,transparent)]"
+              ></span>
             </span>
           </div>
         {/each}
       </div>
-      <div class="source-flow-skeleton-gutter placeholder" aria-hidden="true"></div>
-      <div class="source-flow-skeleton-output placeholder" aria-hidden="true"></div>
+      <div
+        class="mt-[9px] min-h-[5.65rem] overflow-hidden rounded bg-[linear-gradient(105deg,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_0%,color-mix(in_srgb,var(--surface-container-high)_82%,transparent)_45%,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_72%)] bg-size-[200%_100%] animate-[source-flow-skeleton-shimmer_1.4s_ease-in-out_infinite] motion-reduce:animate-none max-[900px]:ml-4 max-[900px]:min-h-11"
+        aria-hidden="true"
+      ></div>
+      <div
+        class="mt-2 min-h-[5.65rem] overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--outline-variant)_78%,transparent)] bg-[linear-gradient(105deg,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_0%,color-mix(in_srgb,var(--surface-container-high)_82%,transparent)_45%,color-mix(in_srgb,var(--surface-container-low)_96%,transparent)_72%)] bg-size-[200%_100%] animate-[source-flow-skeleton-shimmer_1.4s_ease-in-out_infinite] motion-reduce:animate-none max-[900px]:ml-4"
+        aria-hidden="true"
+      ></div>
     </div>
   {/each}
 </div>
 
 <style>
-.source-flow-skeleton {
-  display: grid;
-  gap: 1rem;
-}
-.source-flow-skeleton-lane {
-  display: grid;
-  min-height: 9.5rem;
-  grid-template-columns: minmax(0, 1.25fr) minmax(8rem, 0.46fr) minmax(14rem, 0.72fr);
-  align-items: start;
-  gap: 1.25rem;
-  padding: 1rem 0;
-}
-.source-flow-skeleton-lane:not(:last-child) {
-  border-bottom: 1px solid color-mix(in srgb, var(--outline-variant) 82%, transparent);
-}
-.source-flow-skeleton-inputs {
-  display: grid;
-  gap: 0.75rem;
-}
-.source-flow-skeleton-card,
-.source-flow-skeleton-output {
-  min-height: 5.65rem;
-  border: 1px solid color-mix(in srgb, var(--outline-variant) 78%, transparent);
-  border-radius: 0.5rem;
-}
-.source-flow-skeleton-card {
-  display: grid;
-  grid-template-columns: 4rem minmax(0, 1fr);
-  align-items: center;
-  gap: 1rem;
-  padding: 0.9rem 1rem;
-}
-.source-flow-skeleton-icon {
-  width: 4rem;
-  height: 4rem;
-  border: 1px solid color-mix(in srgb, var(--outline-variant) 68%, transparent);
-  border-radius: 0.35rem;
-  background: color-mix(in srgb, var(--foreground-alt) 10%, transparent);
-}
-.source-flow-skeleton-copy {
-  display: grid;
-  gap: 0.65rem;
-}
-.source-flow-skeleton-copy span {
-  display: block;
-  height: 0.72rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--foreground-alt) 12%, transparent);
-}
-.source-flow-skeleton-copy span:last-child {
-  width: 58%;
-}
-.source-flow-skeleton-gutter {
-  min-height: 5.65rem;
-  margin-top: 9px;
-  border-radius: 0.25rem;
-}
-.source-flow-skeleton-output {
-  margin-top: 0.5rem;
-}
-.placeholder {
-  overflow: hidden;
-  background: linear-gradient(
-    105deg,
-    color-mix(in srgb, var(--surface-container-low) 96%, transparent) 0%,
-    color-mix(in srgb, var(--surface-container-high) 82%, transparent) 45%,
-    color-mix(in srgb, var(--surface-container-low) 96%, transparent) 72%
-  );
-  background-size: 200% 100%;
-  animation: source-flow-skeleton-shimmer 1.4s ease-in-out infinite;
-}
 @keyframes source-flow-skeleton-shimmer {
   from {
     background-position: 100% 0;
   }
   to {
     background-position: -100% 0;
-  }
-}
-@media (max-width: 900px) {
-  .source-flow-skeleton-lane {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-    padding: 1rem 0 1.25rem;
-  }
-  .source-flow-skeleton-gutter,
-  .source-flow-skeleton-output {
-    margin-left: 1rem;
-  }
-  .source-flow-skeleton-gutter {
-    min-height: 2.75rem;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .placeholder {
-    animation: none;
   }
 }
 </style>
