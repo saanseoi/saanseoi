@@ -265,7 +265,10 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
           )
         }
 
-        if (poll.status === 'error' || (poll.success === false && poll.error)) {
+        if (
+          !isImportNoLongerActive(poll) &&
+          (poll.status === 'error' || (poll.success === false && poll.error))
+        ) {
           if (
             isStorageResetImportPollWithoutBookmark(poll) &&
             storageResetAttempts < DEFAULT_STORAGE_RESET_RETRY_LIMIT
@@ -278,10 +281,7 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
           throw new Error(`D1 import did not succeed: ${formatPollState(poll)}`)
         }
 
-        while (
-          !isImportComplete(poll) &&
-          poll.error !== 'Not currently importing anything.'
-        ) {
+        while (!isImportComplete(poll) && !isImportNoLongerActive(poll)) {
           if (isBusyImportPollWithoutBookmark(poll)) {
             await sleep(pollIntervalMs)
             continue
@@ -309,16 +309,15 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
           currentBookmark = poll.atBookmark?.trim() || nextBookmark
         }
 
-        if (poll.error === 'Not currently importing anything.') {
-          if (storageResetAttempts < DEFAULT_STORAGE_RESET_RETRY_LIMIT) {
-            storageResetAttempts += 1
-            await sleep(pollIntervalMs)
-            continue
+        if (isImportNoLongerActive(poll)) {
+          // D1 can clear a completed import before its final poll response is
+          // available. Re-uploading in this state risks applying the SQL twice.
+          poll = {
+            ...poll,
+            error: undefined,
+            status: 'complete',
+            success: true,
           }
-
-          throw new Error(
-            `D1 import ended without reporting completion: ${formatPollState(poll)}`,
-          )
         }
 
         if (!poll.success) {
@@ -337,6 +336,14 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
 
 function isImportComplete(poll: D1ImportPollResult) {
   return poll.status === 'complete' || (poll.success && !poll.status)
+}
+
+function isImportNoLongerActive(poll: D1ImportPollResult) {
+  return (
+    poll.success === false &&
+    poll.status == null &&
+    poll.error === 'Not currently importing anything.'
+  )
 }
 
 function isRetryableUploadStatus(status: number) {
