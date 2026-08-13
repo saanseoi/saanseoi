@@ -2,6 +2,7 @@ import { resourceThemes, resourceTypes } from '@repo/core'
 
 export function printUsage() {
   console.log(`  Usage:
+  saanseoi cache:rebuild --target preview|production
   saanseoi upload <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--transform simplified] [--release-notes-url URL] [--dry-run] [--force] [--skip-cleanup] [--validate-geometry] [--yes] [--verbose]
   saanseoi init [--continue]
   saanseoi init:divisions:overture [--target local|preview|production] [--continue]
