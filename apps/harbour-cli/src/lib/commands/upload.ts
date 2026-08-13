@@ -237,6 +237,18 @@ ${mutedBar}  `)
       prerequisiteSpinner.start('Prerequisites')
 
       try {
+        if (target.remote) {
+          const dbContext = await resolveLocalAddressDbContext(
+            target,
+            previewResult.plan.regionCode,
+            previewResult.plan.sourceVersion.slice(0, 4),
+            {
+              includePreviousShardYears: true,
+              refreshRemoteTables: true,
+            },
+          )
+          dbContext.cleanup()
+        }
         if (processingStrategy.mode === 'local-address-sql') {
           await assertAddressUploadPrerequisites(target, previewResult.plan, {
             divisionCohortKey: options.divisionCohortKey,
