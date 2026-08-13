@@ -382,6 +382,32 @@ describe('upload', () => {
     )
   })
 
+  test('keeps the resource type in a Planning Department companion release code', async () => {
+    const tempDir = createTempDir()
+    const fixtureFile = join(tempDir, 'hkgov-pland-pu-hk-2001-division-area.parquet')
+    writeFileSync(fixtureFile, 'fixture')
+
+    const planned = await prepareUpload({
+      cohortKey: '2001',
+      datasetCode: 'ds-hk-hkgov-pland-division-pu',
+      filePath: fixtureFile,
+      inspection: {
+        rowCount: 18,
+        schema: fixtureInspection.schema,
+        distinctThemeValues: ['divisions'],
+        distinctTypeValues: ['divisionArea'],
+        distinctCountryValues: ['hk'],
+        distinctRegionValues: ['hk'],
+      },
+      source: 'hkgov-pland-pu',
+      sourceVersion: '2001',
+      type: 'divisionArea',
+    })
+
+    expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-pland-division-pu')
+    expect(planned.plan.releaseCode).toBe('dr-hk-hkgov-pland-division-area-pu-2001')
+  })
+
   test('rejects overture uploads for source versions that are not yet marked safe', async () => {
     const tempDir = createTempDir()
     const fixtureFile = join(tempDir, 'hk-address-2026-06.parquet')
