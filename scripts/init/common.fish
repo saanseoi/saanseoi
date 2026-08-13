@@ -9,6 +9,7 @@ function init_run_step
 end
 
 set -g saanseoi_init_continue 0
+set -g saanseoi_init_cache_artefacts 0
 set -g saanseoi_init_target local
 set -g saanseoi_init_last_upload_processed 0
 set -g saanseoi_init_completed_release_codes
@@ -23,9 +24,12 @@ function init_configure
             case --continue
                 set -g saanseoi_init_continue 1
                 set -e argv[1]
+            case --cache-artefacts --cacheArtefacts
+                set -g saanseoi_init_cache_artefacts 1
+                set -e argv[1]
             case --target
                 if test (count $argv) -lt 2
-                    echo "Usage: $usage [--target local|preview|production] [--continue]" >&2
+                    echo "Usage: $usage [--target local|preview|production] [--continue] [--cacheArtefacts]" >&2
                     exit 1
                 end
                 switch $argv[2]
@@ -37,7 +41,7 @@ function init_configure
                 end
                 set -e argv[1..2]
             case '*'
-                echo "Usage: $usage [--target local|preview|production] [--continue]" >&2
+                echo "Usage: $usage [--target local|preview|production] [--continue] [--cacheArtefacts]" >&2
                 exit 1
         end
     end
@@ -121,7 +125,11 @@ function init_run_upload
         # fails, the release remains staged and must be safely re-entrant.
         set retry_args --force
     end
-    init_run_step ./bin/saanseoi upload --target $saanseoi_init_target $argv $retry_args
+    set -l cache_artefact_args
+    if test "$saanseoi_init_cache_artefacts" -eq 1
+        set cache_artefact_args --cacheArtefacts
+    end
+    init_run_step ./bin/saanseoi upload --target $saanseoi_init_target $argv $retry_args $cache_artefact_args
     set -g saanseoi_init_last_upload_processed 1
 end
 
