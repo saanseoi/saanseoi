@@ -13,3 +13,9 @@ test('round-trips JSON through Brotli bytes', () => {
   expect(compressed).toBeInstanceOf(Uint8Array)
   expect(decompressJsonBrotli(compressed)).toEqual(value)
 })
+
+test('rejects values JSON cannot serialize', () => {
+  expect(() => compressJsonBrotli(undefined)).toThrow(
+    'Value cannot be serialized as JSON',
+  )
+})
