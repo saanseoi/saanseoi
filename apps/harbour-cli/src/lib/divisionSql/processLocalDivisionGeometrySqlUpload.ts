@@ -32,6 +32,7 @@ import {
   normaliseDivisionAreaGeometryRow,
   normaliseDivisionBoundaryGeometryRow,
 } from '@repo/core/pipeline/services/divisionGeometry'
+import { compressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
 import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
 import { and, eq } from 'drizzle-orm'
@@ -144,6 +145,7 @@ export async function processLocalDivisionGeometrySqlUpload(
 
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
   const dbCacheStartedAt = Date.now()
+  let reusedDbCache = false
 
   try {
     dbContext = await resolveLocalAddressDbContext(
@@ -152,6 +154,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       shardYear,
       {
         onProgress(event) {
+          reusedDbCache ||= event.action === 'reuse-cache'
           updateDbCacheProgress(progress, event)
         },
         cacheTableProfile: target.remote ? undefined : 'divisionGeometry',
@@ -168,8 +171,12 @@ export async function processLocalDivisionGeometrySqlUpload(
     progress.complete(
       appendPhaseDetails(
         formatCompletedPhaseLabel(
-          colorTeal(target.remote ? 'Clone cache' : 'Prepare'),
-          colorRed(target.remote ? 'local copy' : 'local database'),
+          colorTeal(target.remote ? 'Open local D1' : 'Prepare'),
+          colorRed(
+            target.remote
+              ? `${target.environment} mirror${reusedDbCache ? ' (hit)' : ''}`
+              : 'local database',
+          ),
         ),
         [
           formatDurationMs(
@@ -184,10 +191,13 @@ export async function processLocalDivisionGeometrySqlUpload(
 
   try {
     const releaseMetadataStartedAt = Date.now()
-    progress.beginPhase(formatGeometryProgressLabel('Prepare', 'release metadata'), {
-      current: 0,
-      max: null,
-    })
+    progress.beginPhase(
+      formatGeometryProgressLabel('Sync down', 'release metadata @ local'),
+      {
+        current: 0,
+        max: null,
+      },
+    )
     if (!options.reuseRunningRelease) {
       await syncStagedReleaseIntoLocalMetaCache(
         dbContext.metaDb,
@@ -198,17 +208,20 @@ export async function processLocalDivisionGeometrySqlUpload(
 
     progress.complete(
       formatGeometryCompletedLabel(
-        'Prepare',
-        'release metadata',
+        'Sync down',
+        'release metadata @ local',
         undefined,
         Date.now() - releaseMetadataStartedAt,
       ),
     )
     const processingStateStartedAt = Date.now()
-    progress.beginPhase(formatGeometryProgressLabel('Prepare', 'processing state'), {
-      current: 0,
-      max: null,
-    })
+    progress.beginPhase(
+      formatGeometryProgressLabel('Mark as', `'processing' @ ${target.environment}`),
+      {
+        current: 0,
+        max: null,
+      },
+    )
     const remoteClient = createHarbourControlClient(target) as HarbourClient
     const client = target.remote
       ? remoteClient
@@ -231,17 +244,20 @@ export async function processLocalDivisionGeometrySqlUpload(
 
     progress.complete(
       formatGeometryCompletedLabel(
-        'Prepare',
-        'processing state',
+        'Mark as',
+        `'processing' @ ${target.environment}`,
         undefined,
         Date.now() - processingStateStartedAt,
       ),
     )
     const snapshotStartedAt = Date.now()
-    progress.beginPhase(formatGeometryProgressLabel('Assemble', 'snapshot'), {
-      current: 0,
-      max: null,
-    })
+    progress.beginPhase(
+      formatGeometryProgressLabel('Assemble draft', `${previewPlan.type} snapshot`),
+      {
+        current: 0,
+        max: null,
+      },
+    )
     const metaDb = dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
     const dataset = await waitForDatasetRecord(metaDb, { releaseId })
     if (!dataset) {
@@ -308,8 +324,8 @@ export async function processLocalDivisionGeometrySqlUpload(
 
     progress.complete(
       formatGeometryCompletedLabel(
-        'Assemble',
-        'snapshot',
+        'Assemble draft',
+        `${previewPlan.type} snapshot`,
         undefined,
         Date.now() - snapshotStartedAt,
       ),
@@ -317,8 +333,8 @@ export async function processLocalDivisionGeometrySqlUpload(
     const normalisationStartedAt = Date.now()
     progress.beginPhase(
       formatGeometryProgressLabel(
-        'Normalise',
-        `${previewPlan.type} records`,
+        'Normalise source',
+        previewPlan.type,
         0,
         previewPlan.rowCount,
       ),
@@ -405,8 +421,8 @@ export async function processLocalDivisionGeometrySqlUpload(
       processedRows += batch.length
       progress.update(processedRows, {
         label: formatGeometryProgressLabel(
-          'Normalise',
-          `${previewPlan.type} records`,
+          'Normalise source',
+          previewPlan.type,
           processedRows,
           previewPlan.rowCount,
         ),
@@ -415,15 +431,15 @@ export async function processLocalDivisionGeometrySqlUpload(
 
     progress.complete(
       formatGeometryCompletedLabel(
-        'Normalise',
-        `${previewPlan.type} records`,
+        'Normalise source',
+        previewPlan.type,
         normalised.length,
         Date.now() - normalisationStartedAt,
       ),
     )
     const validationStartedAt = Date.now()
     progress.beginPhase(
-      formatGeometryProgressLabel('Validate', 'division references'),
+      formatGeometryProgressLabel('Validate', `${previewPlan.type} references`),
       {
         current: 0,
         max: null,
@@ -454,14 +470,14 @@ export async function processLocalDivisionGeometrySqlUpload(
     progress.complete(
       formatGeometryCompletedLabel(
         'Validate',
-        'division references',
+        `${previewPlan.type} references`,
         undefined,
         Date.now() - validationStartedAt,
       ),
     )
     const writeStartedAt = Date.now()
     progress.beginPhase(
-      formatGeometryProgressLabel('Write', `${previewPlan.type} rows`),
+      formatGeometryProgressLabel('Materialise', `${previewPlan.type} @ local`),
       {
         current: 0,
         max: null,
@@ -481,22 +497,25 @@ export async function processLocalDivisionGeometrySqlUpload(
         cohortKey: previewPlan.cohortKey,
         transform: previewPlan.transform,
       },
-      label => progress.message(formatGeometryProgressLabel('Write', label)),
+      label => progress.message(formatGeometryProgressLabel('Materialise', label)),
     )
 
     progress.complete(
       formatGeometryCompletedLabel(
-        'Write',
-        `${previewPlan.type} rows`,
+        'Materialise',
+        `${previewPlan.type} @ local`,
         normalised.length,
         Date.now() - writeStartedAt,
       ),
     )
     const statsStartedAt = Date.now()
-    progress.beginPhase(formatGeometryProgressLabel('Finalise', 'dataset statistics'), {
-      current: 0,
-      max: null,
-    })
+    progress.beginPhase(
+      formatGeometryProgressLabel('Calculate', 'release statistics'),
+      {
+        current: 0,
+        max: null,
+      },
+    )
     await replaceDatasetStats(
       metaDb,
       releaseId,
@@ -515,8 +534,8 @@ export async function processLocalDivisionGeometrySqlUpload(
     )
     progress.complete(
       formatGeometryCompletedLabel(
-        'Finalise',
-        'dataset statistics',
+        'Calculate',
+        'release statistics',
         undefined,
         Date.now() - statsStartedAt,
       ),
@@ -537,26 +556,30 @@ export async function processLocalDivisionGeometrySqlUpload(
         snapshot.id,
         writeResult.currentRows,
         (subject, operation) =>
-          runGeometryProgressPhase(progress, 'Publish', subject, operation),
+          runGeometryProgressPhase(progress, 'Sync up', subject, operation),
       )
     }
-    await runGeometryProgressPhase(progress, 'Record', 'dataset state', () =>
-      client.stageCompleted(
-        releaseId,
-        'processDataset',
-        {
-          resourceType: previewPlan.type,
-          sourceRows: previewPlan.rowCount,
-          importedRows: normalised.length,
-          rejectedRows,
-        },
-        releaseCode,
-      ),
+    await runGeometryProgressPhase(
+      progress,
+      'Mark as',
+      `'completed' @ ${target.environment}`,
+      () =>
+        client.stageCompleted(
+          releaseId,
+          'processDataset',
+          {
+            resourceType: previewPlan.type,
+            sourceRows: previewPlan.rowCount,
+            importedRows: normalised.length,
+            rejectedRows,
+          },
+          releaseCode,
+        ),
     )
     const publishResult = await runGeometryProgressPhase(
       progress,
       'Publish',
-      'release set',
+      'source release',
       () =>
         client.publishDataset(releaseId, releaseCode, {
           skipSnapshotCleanup: options.skipSnapshotCleanup,
@@ -567,8 +590,8 @@ export async function processLocalDivisionGeometrySqlUpload(
       try {
         await runGeometryProgressPhase(
           progress,
-          'Refresh',
-          'local metadata cache',
+          'Sync down',
+          `metadata @ ${target.environment}`,
           () =>
             refreshRemoteMetaCache(
               target.environment === 'production' ? 'production' : 'preview',
@@ -713,15 +736,17 @@ async function replayGeometryIntoRemote(
       async () => {
         for (const tableImport of tableImports) {
           if (!tableImport.sql.trim()) continue
-          await runProgressPhase(describeRemoteGeometryImport(tableImport.name), () =>
-            executeSqlText(
-              {
-                databaseId: tableImport.databaseId ?? null,
-                name: tableImport.name,
-              },
-              tableImport.sql,
-              options,
-            ),
+          await runProgressPhase(
+            describeRemoteGeometryImport(tableImport.name, plan, target),
+            () =>
+              executeSqlText(
+                {
+                  databaseId: tableImport.databaseId ?? null,
+                  name: tableImport.name,
+                },
+                tableImport.sql,
+                options,
+              ),
           )
         }
       },
@@ -849,9 +874,9 @@ function geometryBuildChunkedUpsertSql(
 ) {
   const keyColumns = geometryReplayKeyColumns(row)
   const oversizedColumns = columns
-    .map(column => ({ column, value: geometrySqlText(row[column]) }))
+    .map(column => ({ column, value: geometrySqlLargeValue(row[column]) }))
     .filter(
-      (entry): entry is { column: string; value: string } =>
+      (entry): entry is { column: string; value: string | Uint8Array } =>
         entry.value !== null &&
         new TextEncoder().encode(geometrySqlLiteral(entry.value)).byteLength >
           MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
@@ -888,12 +913,15 @@ function geometryBuildChunkedUpsertSql(
   return [
     upsert,
     ...oversizedColumns.flatMap(({ column, value }) => {
-      const updatePrefix = `UPDATE "${tableName}" SET "${column}" = "${column}" || `
-      const updateSuffix = ` WHERE ${where};`
+      const isBinary = value instanceof Uint8Array
+      const updatePrefix = isBinary
+        ? `UPDATE "${tableName}" SET "${column}" = CAST("${column}" || `
+        : `UPDATE "${tableName}" SET "${column}" = "${column}" || `
+      const updateSuffix = isBinary ? ` AS BLOB) WHERE ${where};` : ` WHERE ${where};`
       const chunkByteLimit =
         MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES -
         new TextEncoder().encode(
-          `${updatePrefix}${geometrySqlLiteral('')}${updateSuffix}`,
+          `${updatePrefix}${isBinary ? "X''" : geometrySqlLiteral('')}${updateSuffix}`,
         ).byteLength
 
       if (chunkByteLimit <= 0) {
@@ -902,7 +930,11 @@ function geometryBuildChunkedUpsertSql(
         )
       }
 
-      return geometrySplitUtf8(value, chunkByteLimit).map(
+      const chunks = isBinary
+        ? geometrySplitBytes(value, Math.floor(chunkByteLimit / 2))
+        : geometrySplitUtf8(value, chunkByteLimit)
+
+      return chunks.map(
         chunk => `${updatePrefix}${geometrySqlLiteral(chunk)}${updateSuffix}`,
       )
     }),
@@ -925,7 +957,9 @@ function geometryReplayKeyColumns(row: Record<string, unknown>) {
   return null
 }
 
-function geometrySqlText(value: unknown) {
+function geometrySqlLargeValue(value: unknown) {
+  if (value instanceof Uint8Array) return value
+  if (value instanceof ArrayBuffer) return new Uint8Array(value)
   if (typeof value === 'string') return value
   if (value && typeof value === 'object') return JSON.stringify(value)
   return null
@@ -952,6 +986,16 @@ function geometrySplitUtf8(value: string, byteLimit: number) {
 
   if (chunk) chunks.push(chunk)
 
+  return chunks
+}
+
+function geometrySplitBytes(value: Uint8Array, byteLimit: number) {
+  if (byteLimit <= 0) return []
+
+  const chunks: Uint8Array[] = []
+  for (let start = 0; start < value.byteLength; start += byteLimit) {
+    chunks.push(value.slice(start, start + byteLimit))
+  }
   return chunks
 }
 
@@ -1331,7 +1375,6 @@ async function writeGeometryRows(
       : sourceSchema.sourceOvertureDivisionBoundaries
   const isCenstatdDerivative =
     version.source === 'hkgov-censtatd' && version.transform === 'simplified'
-
   onProgress?.('clear current rows')
   await context.currentDb
     .delete(currentTable)
@@ -1404,6 +1447,9 @@ async function writeGeometryRows(
   onProgress?.('build write batches')
   const currentRows = rows.map(row => ({
     ...row.canonical,
+    geometry: shouldCompressCenstatdCanonicalGeometry(version.source, version.transform)
+      ? compressJsonBrotli(row.canonical.geometry)
+      : row.canonical.geometry,
     snapshotId: version.snapshotId,
     createdAt: now,
     updatedAt: now,
@@ -1411,6 +1457,12 @@ async function writeGeometryRows(
   const historyRows = await Promise.all(
     rows.map(async row => ({
       ...row.canonical,
+      geometry: shouldCompressCenstatdCanonicalGeometry(
+        version.source,
+        version.transform,
+      )
+        ? compressJsonBrotli(row.canonical.geometry)
+        : row.canonical.geometry,
       versionHash: await hashDivisionGeometryRow(row.canonical),
       sourceReleaseId: version.releaseId,
       snapshotId: version.snapshotId,
@@ -1455,7 +1507,7 @@ async function writeGeometryRows(
                         sourceProperties.dc_chi,
                         'C&SD dc_chi',
                       ),
-                      sourceGeometry,
+                      sourceGeometry: compressJsonBrotli(sourceGeometry),
                     }
                   : {}),
               versionHash: await hashGeometrySourceAssertion(
@@ -1687,7 +1739,7 @@ function updateDbCacheProgress(
 
   const current = Math.min(event.current, event.total)
   const label = formatGeometryProgressLabel(
-    'Clone cache',
+    'Open local D1',
     describeDbCacheSubject(event),
     current,
     event.total,
@@ -1741,16 +1793,22 @@ async function runGeometryProgressPhase<T>(
   return result
 }
 
-function describeRemoteGeometryImport(name: 'current' | 'history' | 'meta' | 'source') {
+function describeRemoteGeometryImport(
+  name: 'current' | 'history' | 'meta' | 'source',
+  plan: GeometryUploadPlan,
+  target: UploadTarget,
+) {
+  const targetName = target.environment
+
   switch (name) {
     case 'current':
-      return 'remote current geometry'
+      return `current ${plan.type} @ ${targetName}`
     case 'history':
-      return 'remote geometry history'
+      return `history ${plan.type} @ ${targetName}`
     case 'meta':
-      return 'remote release metadata'
+      return `snapshot metadata @ ${targetName}`
     case 'source':
-      return 'remote source geometry'
+      return `source ${plan.type} @ ${targetName}`
   }
 }
 
@@ -1825,6 +1883,13 @@ function geometryStatRow(
     groupBy,
     groupValue,
   }
+}
+
+export function shouldCompressCenstatdCanonicalGeometry(
+  source: GeometryUploadPlan['source'],
+  transform: GeometryUploadPlan['transform'],
+) {
+  return source === 'hkgov-censtatd' && transform === undefined
 }
 
 type GeometryChurnCounts = {

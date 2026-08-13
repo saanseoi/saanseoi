@@ -2,8 +2,15 @@ import type { CurrentDatabase } from '@repo/db'
 import { and, asc, eq, inArray, sql } from '@repo/db'
 import { currentSchema } from '@repo/db'
 import type { RequestedApiLocale, RequestedApiLocaleSelection } from '@repo/core'
+import { decompressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
 
 const { divisions, divisionsI18n, divisionAreas, divisionBoundaries } = currentSchema
+
+function decodeStoredDivisionGeometry(value: unknown) {
+  if (value instanceof Uint8Array) return decompressJsonBrotli(value)
+  if (value instanceof ArrayBuffer) return decompressJsonBrotli(value)
+  return value
+}
 
 export type DivisionNameRule = {
   value: string
@@ -119,28 +126,33 @@ export async function listDivisionAreasCurrentByDivisionIds(
   lookup: { snapshotId: string; divisionIds: string[]; variant?: string },
 ) {
   if (lookup.divisionIds.length === 0) return []
-  return (await db
-    .select({
-      id: divisionAreas.id,
-      variant: divisionAreas.variant,
-      divisionId: divisionAreas.divisionId,
-      bbox: divisionAreas.bbox,
-      geometry: divisionAreas.geometry,
-      sourceKeys: divisionAreas.sourceKeys,
-      sources: divisionAreas.sources,
-      type: divisionAreas.type,
-      isLand: divisionAreas.isLand,
-      isTerritorial: divisionAreas.isTerritorial,
-    })
-    .from(divisionAreas)
-    .where(
-      and(
-        eq(divisionAreas.snapshotId, lookup.snapshotId),
-        inArray(divisionAreas.divisionId, lookup.divisionIds),
-        ...(lookup.variant ? [eq(divisionAreas.variant, lookup.variant)] : []),
-      ),
-    )
-    .all()) as DivisionAreaRecord[]
+  return (
+    await db
+      .select({
+        id: divisionAreas.id,
+        variant: divisionAreas.variant,
+        divisionId: divisionAreas.divisionId,
+        bbox: divisionAreas.bbox,
+        geometry: divisionAreas.geometry,
+        sourceKeys: divisionAreas.sourceKeys,
+        sources: divisionAreas.sources,
+        type: divisionAreas.type,
+        isLand: divisionAreas.isLand,
+        isTerritorial: divisionAreas.isTerritorial,
+      })
+      .from(divisionAreas)
+      .where(
+        and(
+          eq(divisionAreas.snapshotId, lookup.snapshotId),
+          inArray(divisionAreas.divisionId, lookup.divisionIds),
+          ...(lookup.variant ? [eq(divisionAreas.variant, lookup.variant)] : []),
+        ),
+      )
+      .all()
+  ).map(row => ({
+    ...row,
+    geometry: decodeStoredDivisionGeometry(row.geometry),
+  })) as DivisionAreaRecord[]
 }
 
 export async function listDivisionBoundariesCurrentByDivisionIds(
@@ -197,7 +209,10 @@ export async function listDivisionBoundariesCurrentByDivisionIds(
   return [
     ...left,
     ...right.filter(item => !left.some(existing => existing.id === item.id)),
-  ] as DivisionBoundaryRecord[]
+  ].map(row => ({
+    ...row,
+    geometry: decodeStoredDivisionGeometry(row.geometry),
+  })) as DivisionBoundaryRecord[]
 }
 
 function buildDivisionI18nCondition(localeSelection: DivisionLocaleSelection) {

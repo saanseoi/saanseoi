@@ -7,6 +7,7 @@ import {
   formatMissingDivisionReferenceRecords,
   geometryBuildUpsertSql,
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
+  shouldCompressCenstatdCanonicalGeometry,
 } from './processLocalDivisionGeometrySqlUpload.ts'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
 
@@ -223,5 +224,56 @@ describe('geometryBuildUpsertSql', () => {
         .get('area-1', 'hash-1'),
     ).toEqual({ rawProperties: rawPropertiesText })
     database.close()
+  })
+
+  test('replays an oversized Brotli geometry blob through bounded statements', () => {
+    const sourceGeometry = Uint8Array.from(
+      { length: MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES },
+      (_, index) => index % 251,
+    )
+    const sql = geometryBuildUpsertSql('hkgovCenstatdDivisionAreas', [
+      {
+        sourceGeometry,
+        sourceRecordId: 'CENSTATD:T',
+        versionHash: 'hash-1',
+      },
+    ])
+    const statements = sql.split('\n')
+
+    for (const statement of statements) {
+      expect(new TextEncoder().encode(statement).byteLength).toBeLessThanOrEqual(
+        MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
+      )
+    }
+
+    const database = new Database(':memory:')
+    database.exec(
+      'CREATE TABLE hkgovCenstatdDivisionAreas (sourceRecordId TEXT NOT NULL, sourceGeometry BLOB NOT NULL, versionHash TEXT NOT NULL, PRIMARY KEY (sourceRecordId, versionHash));',
+    )
+    database.exec(sql)
+
+    expect(
+      database
+        .query(
+          'SELECT sourceGeometry FROM hkgovCenstatdDivisionAreas WHERE sourceRecordId = ? AND versionHash = ?',
+        )
+        .get('CENSTATD:T', 'hash-1'),
+    ).toEqual({ sourceGeometry: Buffer.from(sourceGeometry) })
+    database.close()
+  })
+})
+
+describe('shouldCompressCenstatdCanonicalGeometry', () => {
+  test('stores exact C&SD canonical geometry as a Brotli BLOB', () => {
+    expect(
+      shouldCompressCenstatdCanonicalGeometry('hkgov-censtatd', undefined),
+    ).toBeTrue()
+  })
+
+  test('keeps the C&SD simplified derivative and other geometry sources as JSON', () => {
+    expect(
+      shouldCompressCenstatdCanonicalGeometry('hkgov-censtatd', 'simplified'),
+    ).toBeFalse()
+    expect(shouldCompressCenstatdCanonicalGeometry('overture', undefined)).toBeFalse()
   })
 })

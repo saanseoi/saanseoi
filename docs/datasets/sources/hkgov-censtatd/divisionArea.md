@@ -32,6 +32,14 @@ geometry. The uploader calculates the canonical WGS84 bbox from that geometry ra
 than accepting an upstream bbox value, so source and canonical rows carry the same
 geometry-derived extent.
 
+To keep exact C&SD geometry available from the inline source-record API within D1's row
+limit, the source shard stores the publisher geometry as a Brotli-compressed BLOB. The
+API decompresses it before responding, so consumers receive the unchanged GeoJSON
+geometry and do not need to negotiate a separate download or decompression format. The
+exact WGS84 variant is likewise compressed in the current and history shards, then
+decompressed by the divisions API. The named `simplified` derivative remains ordinary
+JSON for map reads.
+
 The fixture records the observed CSDI archive slots and publisher-object hashes that are
 byte-identical within the 2016 and 2021 cohorts. The updater suppresses only those exact
 no-op objects; it continues to inspect the archive catalogue, so a changed slot or
