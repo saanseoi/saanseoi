@@ -10,13 +10,14 @@ import {
   formatLandsdIngestPrompt,
   formatUpdateProgressLine,
   resolveApiFamilySelection,
-  resolveTargetVersion,
   shouldRecordUpdateStateAfterProcessing,
   shouldIngestUpdate,
   shouldDownloadUpdate,
+  targetVersionsFromReport,
   wrapUpdateMessage,
 } from './update.ts'
 import {
+  type DatasetFixture,
   loadCurrentCompositionIngestDependencies,
   loadDatasetFixtures,
   orderDatasetsByCompositionDependencies,
@@ -570,9 +571,27 @@ test('formats division statistics and identifies the HyD nameplate source', () =
   ).toBe('HyD ∷ Street ∷ Nameplate')
 })
 
-test('falls back to the saved target version when the report has no rows', () => {
-  expect(resolveTargetVersion(undefined, '2026-06-04.0')).toBe('2026-06-04.0')
-  expect(resolveTargetVersion('2026-07-10.0', '2026-06-04.0')).toBe('2026-07-10.0')
+test('treats a partial target report as authoritative for every release cohort', () => {
+  const dataset = {
+    code: 'ds-example',
+    publisherCode: 'example',
+    regionCode: 'hk',
+    theme: 'places',
+    type: 'place',
+    versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
+    releases: [
+      { sourceVersion: '2021', sourceUrl: 'https://example.test/2021' },
+      { sourceVersion: '2026', sourceUrl: 'https://example.test/2026' },
+    ],
+  } satisfies DatasetFixture
+
+  expect(targetVersionsFromReport(dataset, [{ sourceVersion: '2021.0' }])).toEqual(
+    new Map([
+      ['2021.0', '2021.0'],
+      ['2021', '2021.0'],
+      ['2026', null],
+    ]),
+  )
 })
 
 test('wraps update errors to the guided output width, including long URLs', () => {
