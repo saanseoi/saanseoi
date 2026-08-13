@@ -1344,7 +1344,7 @@ function resolveMirrorTablesForBinding(
 
   if (/^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
     if (cacheTableProfile === 'street') {
-      return ['streets', 'streetsI18n']
+      return ['snapshotVersionChanges', 'streets', 'streetsI18n']
     }
 
     if (cacheTableProfile === 'division') {
@@ -1352,10 +1352,16 @@ function resolveMirrorTablesForBinding(
     }
 
     if (cacheTableProfile === 'divisionGeometry') {
-      return ['divisionAreas', 'divisionBoundaries']
+      return ['divisionAreas', 'divisionBoundaries', 'snapshotVersionChanges']
     }
 
-    return ['divisions', 'divisionsI18n', 'address2d', 'address2dI18n']
+    return [
+      'divisions',
+      'divisionsI18n',
+      'address2d',
+      'address2dI18n',
+      'snapshotVersionChanges',
+    ]
   }
 
   if (/^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
