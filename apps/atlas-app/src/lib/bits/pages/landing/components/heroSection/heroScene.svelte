@@ -23,10 +23,16 @@ onMount(() => {
 })
 </script>
 
+<svelte:head>
+  <link rel="preload" as="image" href={heroBackground} fetchpriority="high">
+</svelte:head>
+
 <div class="pointer-events-none absolute inset-0">
   <img
     alt=""
     class="hero-background dark-invert-image h-full w-full object-cover opacity-0 animate-[hero-background-reveal_900ms_ease-out_80ms_forwards] motion-reduce:animate-none motion-reduce:opacity-100"
+    fetchpriority="high"
+    loading="eager"
     src={heroBackground}
   >
   <div class="hero-image-fade-overlay absolute inset-0"></div>
@@ -45,6 +51,8 @@ onMount(() => {
           <img
             alt={m.hero_visual_alt()}
             class="hero-floating-image dark-invert-image h-full w-auto max-w-none origin-[100%_50%] object-contain object-left max-md:opacity-0"
+            fetchpriority="high"
+            loading="eager"
             src={heroForeground}
             style={floatStyle}
           >
