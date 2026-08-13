@@ -192,7 +192,7 @@ const endIllustratedDrag = (event: PointerEvent) => {
       onscroll={updateIllustratedScrollControls}
       class={illustratedLayout === 'grid'
         ? `mt-6 grid w-full min-w-0 grid-cols-1 gap-4 overflow-visible sm:grid-cols-2 lg:grid-cols-3 ${hideLabel ? 'md:mt-0' : 'md:mt-8'}`
-        : `illustrated-choice-grid ${illustratedCardSizing === 'fixed' ? 'illustrated-choice-grid-extended' : ''} ${alignment === 'left' ? 'illustrated-choice-grid-left md:justify-start' : 'md:justify-center'} ${hideLabel ? '' : 'mt-6'} flex w-full snap-x snap-mandatory gap-4 overflow-x-auto pr-6 pb-2 touch-pan-x md:mt-8 md:flex-nowrap md:gap-x-[clamp(0px,2vw,2rem)] md:gap-y-0 ${illustratedCardSizing === 'fixed' ? 'md:overflow-x-auto' : 'md:overflow-visible'} md:pr-0 md:pb-0`}
+        : `illustrated-choice-grid ${alignment === 'left' ? 'illustrated-choice-grid-left md:justify-start' : 'md:justify-center'} ${hideLabel ? '' : 'mt-6'} flex w-full snap-x snap-mandatory gap-4 overflow-x-auto pr-6 pb-2 touch-pan-x md:mt-8 md:flex-nowrap md:gap-x-[clamp(0px,2vw,2rem)] md:gap-y-0 ${illustratedCardSizing === 'fixed' ? 'md:overflow-x-auto' : 'md:overflow-visible'} md:pr-0 md:pb-0`}
     >
       {#each choices as choice}
         <label
@@ -423,11 +423,6 @@ const endIllustratedDrag = (event: PointerEvent) => {
   .illustrated-choice-grid-left {
     width: 100%;
     margin-left: 0;
-  }
-
-  .illustrated-choice-grid-extended {
-    width: calc(100vw - 8rem);
-    margin-left: calc(50% - 50vw + 4rem);
   }
 }
 </style>

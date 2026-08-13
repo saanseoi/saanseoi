@@ -846,10 +846,17 @@ function geometryBuildChunkedUpsertSql(
   prefix: string,
   suffix: string,
 ) {
-  const geometry = geometrySqlText(row.geometry)
   const keyColumns = geometryReplayKeyColumns(row)
+  const oversizedColumns = columns
+    .map(column => ({ column, value: geometrySqlText(row[column]) }))
+    .filter(
+      (entry): entry is { column: string; value: string } =>
+        entry.value !== null &&
+        new TextEncoder().encode(geometrySqlLiteral(entry.value)).byteLength >
+          MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
+    )
 
-  if (!geometry || !keyColumns) {
+  if (oversizedColumns.length === 0 || !keyColumns) {
     const rowBytes = new TextEncoder().encode(
       `${prefix}(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})${suffix}`,
     ).byteLength
@@ -859,38 +866,45 @@ function geometryBuildChunkedUpsertSql(
   }
 
   const placeholderValue = `(${columns
-    .map(column => geometrySqlLiteral(column === 'geometry' ? '' : row[column]))
+    .map(column =>
+      oversizedColumns.some(entry => entry.column === column)
+        ? geometrySqlLiteral('')
+        : geometrySqlLiteral(row[column]),
+    )
     .join(', ')})`
   const upsert = `${prefix}${placeholderValue}${suffix}`
   const upsertBytes = new TextEncoder().encode(upsert).byteLength
 
   if (upsertBytes > MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES) {
     throw new Error(
-      `Cannot replay ${tableName} geometry row: its non-geometry SQL is ${upsertBytes} bytes and exceeds D1's ${MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES}-byte safe limit.`,
+      `Cannot replay ${tableName} geometry row: its non-chunked SQL is ${upsertBytes} bytes and exceeds D1's ${MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES}-byte safe limit.`,
     )
   }
 
   const where = keyColumns
     .map(column => `"${column}" = ${geometrySqlLiteral(row[column])}`)
     .join(' AND ')
-  const updatePrefix = `UPDATE "${tableName}" SET "geometry" = "geometry" || `
-  const updateSuffix = ` WHERE ${where};`
-  const chunkByteLimit =
-    MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES -
-    new TextEncoder().encode(`${updatePrefix}${geometrySqlLiteral('')}${updateSuffix}`)
-      .byteLength
-
-  if (chunkByteLimit <= 0) {
-    throw new Error(
-      `Cannot replay ${tableName} geometry row: its key columns leave no space for geometry data within D1's ${MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES}-byte safe limit.`,
-    )
-  }
-
   return [
     upsert,
-    ...geometrySplitUtf8(geometry, chunkByteLimit).map(
-      chunk => `${updatePrefix}${geometrySqlLiteral(chunk)}${updateSuffix}`,
-    ),
+    ...oversizedColumns.flatMap(({ column, value }) => {
+      const updatePrefix = `UPDATE "${tableName}" SET "${column}" = "${column}" || `
+      const updateSuffix = ` WHERE ${where};`
+      const chunkByteLimit =
+        MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES -
+        new TextEncoder().encode(
+          `${updatePrefix}${geometrySqlLiteral('')}${updateSuffix}`,
+        ).byteLength
+
+      if (chunkByteLimit <= 0) {
+        throw new Error(
+          `Cannot replay ${tableName} geometry row: its key columns leave no space for ${column} data within D1's ${MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES}-byte safe limit.`,
+        )
+      }
+
+      return geometrySplitUtf8(value, chunkByteLimit).map(
+        chunk => `${updatePrefix}${geometrySqlLiteral(chunk)}${updateSuffix}`,
+      )
+    }),
   ].join('\n')
 }
 
