@@ -33,7 +33,7 @@ export default defineConfig({
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
   },
   ssr: {
-    noExternal: ['bits-ui', 'runed', 'svelte-toolbelt'],
+    noExternal: ['bits-ui', 'devalue', 'runed', 'svelte-toolbelt'],
   },
   test: {
     expect: { requireAssertions: true },
