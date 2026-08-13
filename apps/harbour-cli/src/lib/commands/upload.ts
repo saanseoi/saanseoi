@@ -261,7 +261,8 @@ ${mutedBar}  `)
         schemaVersionId,
         {
           force: options.forceUpload,
-          allowReprocessPublished: options.allowReprocessPublished,
+          allowReprocessPublished:
+            options.forceUpload || options.allowReprocessPublished,
         },
       )
 

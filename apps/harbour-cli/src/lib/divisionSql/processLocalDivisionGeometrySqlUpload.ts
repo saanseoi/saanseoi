@@ -463,7 +463,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         max: null,
       },
     )
-    const churn = await writeGeometryRows(
+    const writeResult = await writeGeometryRows(
       dbContext,
       previewPlan.type,
       normalised,
@@ -501,7 +501,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         metaDb,
         previewPlan,
         normalised,
-        churn,
+        writeResult.churn,
       ),
     )
     await replaceReleaseProcessingActions(
@@ -539,6 +539,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         previewPlan,
         releaseId,
         snapshot.id,
+        writeResult.currentRows,
       )
     }
     await client.stageCompleted(
@@ -614,6 +615,7 @@ async function replayGeometryIntoRemote(
   plan: GeometryUploadPlan,
   releaseId: string,
   snapshotId: string,
+  currentRows: Array<Record<string, unknown>>,
 ) {
   const targetName = target.environment === 'production' ? 'production' : 'preview'
   const metaBindingName = 'DB_META'
@@ -639,11 +641,6 @@ async function replayGeometryIntoRemote(
     plan.type === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries'
   const historyTable = currentTable
   const sourceTable = resolveGeometrySourceTable(plan)
-  const currentRows = readGeometryCacheRows(
-    context.state.dbCacheDir,
-    currentBindingName,
-    `SELECT * FROM "${currentTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
-  )
   const historyRows = readGeometryCacheRows(
     context.state.dbCacheDir,
     historyBindingName,
@@ -1409,7 +1406,7 @@ async function writeGeometryRows(
     )
   }
 
-  return churn
+  return { churn, currentRows }
 }
 
 function hashGeometrySourceAssertion(
