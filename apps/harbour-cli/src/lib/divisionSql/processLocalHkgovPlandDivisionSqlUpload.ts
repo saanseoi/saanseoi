@@ -1660,7 +1660,6 @@ async function replayPlandSqlIntoSharedCache(
     plan.regionCode,
     plan.sourceVersion,
     {
-      cacheTableProfile: 'division',
       includePreviousShardYears: true,
       requireExistingRemoteCache: true,
     },
