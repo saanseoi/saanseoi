@@ -263,14 +263,18 @@ export async function resetRemoteReleaseUploadCacheScope(
   const targets = await resolveD1Targets(targetName)
   const sharedCacheDir = resolveRemoteCacheDir(targetName)
   const sharedManifest = await readManifest(join(sharedCacheDir, 'manifest.json'))
+  const cachedTargets = sharedManifest
+    ? targets.filter(targetRecord => targetRecord.bindingName in sharedManifest.files)
+    : []
 
   if (
     !sharedManifest ||
     sharedManifest.cacheVersion !== DB_CACHE_MANIFEST_VERSION ||
     sharedManifest.target !== targetName ||
+    cachedTargets.length === 0 ||
     !(await doCachedFilesExist(
       sharedManifest.files,
-      targets,
+      cachedTargets,
       sharedManifest.cacheTableProfile,
     ))
   ) {
@@ -289,7 +293,7 @@ export async function resetRemoteReleaseUploadCacheScope(
   await mkdir(cacheDir, { recursive: true })
 
   const files: Record<string, string> = {}
-  for (const targetRecord of targets) {
+  for (const targetRecord of cachedTargets) {
     const sourcePath = sharedManifest.files[targetRecord.bindingName]
     if (!sourcePath) {
       throw new Error(`Shared cache manifest is missing ${targetRecord.bindingName}.`)
