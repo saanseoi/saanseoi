@@ -3,6 +3,7 @@ import {
   readRemoteCachedCompletedReleaseCodes,
   rebuildRemoteDbCache,
   updateDbCacheProgress,
+  type CacheTableProfile,
 } from '../addressSql/localDbCache.ts'
 import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
@@ -18,20 +19,30 @@ export async function runCacheRebuildCommand(
   target: UploadTarget,
   printUsage: () => void,
 ) {
+  const cacheTableProfile = args.options['table-profile']
   if (
     args.positionals.length > 0 ||
-    Object.keys(args.options).some(key => key !== 'target') ||
+    Object.keys(args.options).some(
+      key => key !== 'target' && key !== 'table-profile',
+    ) ||
+    (cacheTableProfile !== undefined && cacheTableProfile !== 'divisionGeometry') ||
     !target.remote
   ) {
     printUsage()
-    throw new Error('`cache:rebuild` accepts only `--target preview|production`.')
+    throw new Error(
+      '`cache:rebuild` accepts `--target preview|production` and optional `--table-profile divisionGeometry`.',
+    )
   }
 
   const progress = new LocalUploadProgress()
   const startedAt = Date.now()
 
   try {
-    await rebuildRemoteDbCache(target, event => updateDbCacheProgress(progress, event))
+    await rebuildRemoteDbCache(
+      target,
+      event => updateDbCacheProgress(progress, event),
+      cacheTableProfile as CacheTableProfile | undefined,
+    )
   } catch (error) {
     progress.fail()
     throw error

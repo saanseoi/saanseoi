@@ -147,7 +147,7 @@ type CachePruneOperation = {
   tableName: string
   whereSql: string
 }
-type CacheTableProfile =
+export type CacheTableProfile =
   | 'address'
   | 'division'
   | 'divisionGeometry'
@@ -502,6 +502,7 @@ export async function resolveLocalAddressDbContext(
 export async function rebuildRemoteDbCache(
   target: UploadTarget,
   onProgress?: (event: LocalDbCacheProgressEvent) => void,
+  cacheTableProfile?: CacheTableProfile,
 ) {
   if (!target.remote) {
     throw new Error(
@@ -512,6 +513,7 @@ export async function rebuildRemoteDbCache(
   const targetName = target.environment === 'production' ? 'production' : 'preview'
   const shardYear = await resolveLatestConfiguredShardYear(targetName)
   const dbContext = await resolveLocalAddressDbContext(target, 'hk', shardYear, {
+    cacheTableProfile,
     onProgress,
     includePreviousShardYears: true,
     refreshRemoteCache: true,

@@ -1,6 +1,7 @@
 #!/usr/bin/env fish
 
 source (command dirname (status filename))/common.fish
+set -g saanseoi_init_cache_table_profile divisionGeometry
 init_configure "saanseoi init:divisions:hkgov-pland-pu" $argv
 
 set -l continue_args
