@@ -682,5 +682,19 @@
   "guide_host_github_pages_badge": "推荐",
   "guide_host_github_pages_description": "从 GitHub 仓库部署静态网站。",
   "guide_embed_hint": "您的网站可能有用于地图的插件，但为确保所有功能都能正常运行，我们会采用网站原生的嵌入功能，让您无论使用哪一种建站工具，都能完全掌控地图：",
-  "guide_embed_host_hint": "要嵌入地图，我们需要先找个地方托管它。幸运的是，许多托管服务商可免费托管您的地图："
+  "guide_embed_host_hint": "要嵌入地图，我们需要先找个地方托管它。幸运的是，许多托管服务商可免费托管您的地图：",
+  "guide_best_for": "最适合",
+  "guide_works_with": "适用于",
+  "guide_works_with_map_libraries": "函式库",
+  "guide_works_with_site_platforms": "嵌入",
+  "guide_works_with_hosting": "托管",
+  "guide_works_with_languages": "语言",
+  "guide_works_with_standards": "标准",
+  "guide_build_modes": "方式",
+  "guide_build_mode_hands_on": "亲自动手",
+  "guide_build_mode_llm_assisted": "LLM 辅助",
+  "guide_build_mode_agentic_ai": "Agentic AI",
+  "guide_use_api_use_cases": "增强地图|搜索与发现|数据产品|地理空间分析",
+  "guide_create_map_use_cases": "网页嵌入|自定义样式|地理空间分析|互动叙事",
+  "guide_download_dataset_use_cases": "办公工具|批量处理|档案|时间分析"
 }
