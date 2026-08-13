@@ -4,6 +4,7 @@ import {
   metaDatasets,
   metaPublishers,
   metaReleases,
+  or,
   toIsoTimestamp,
 } from '@repo/db'
 import {
@@ -61,7 +62,11 @@ export async function syncStagedReleaseIntoLocalMetaCache(
     .where(eq(metaReleases.code, release.releaseCode))
     .limit(1)
     .get()
-  if (existingRelease && existingRelease.status !== 'staged') {
+  if (
+    existingRelease &&
+    existingRelease.status !== 'staged' &&
+    existingRelease.status !== 'failed'
+  ) {
     throw new Error(
       `Cannot replace source release ${release.releaseCode}: ${existingRelease.status} releases are immutable.`,
     )
@@ -117,7 +122,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
         ingestedAt: now,
         updatedAt: now,
       },
-      where: eq(metaReleases.status, 'staged'),
+      where: or(eq(metaReleases.status, 'staged'), eq(metaReleases.status, 'failed')),
     })
     .run()
 }
