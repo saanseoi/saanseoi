@@ -46,7 +46,10 @@ function init_configure
             # A failed remote SQL replay may leave the persistent cache
             # invalidated after the release itself has already published.
             # Rebuild that cache before using release status to skip work.
-            init_run_step ./bin/saanseoi cache:rebuild --target $saanseoi_init_target
+            set -l cache_dir "$saanseoi_init_repo/.local/harbour-sql/db-cache/$saanseoi_init_target"
+            if test -f "$cache_dir/invalidated.json"; or not test -f "$cache_dir/manifest.json"
+                init_run_step ./bin/saanseoi cache:rebuild --target $saanseoi_init_target
+            end
         end
         init_load_completed_release_codes
         or begin
