@@ -939,6 +939,12 @@ function geometrySqlLiteral(value: unknown): string {
   if (typeof value === 'number' || typeof value === 'bigint') {
     return String(value)
   }
+  if (value instanceof Uint8Array) {
+    return `X'${Buffer.from(value).toString('hex')}'`
+  }
+  if (value instanceof ArrayBuffer) {
+    return `X'${Buffer.from(new Uint8Array(value)).toString('hex')}'`
+  }
   if (typeof value === 'object') return geometrySqlLiteral(JSON.stringify(value))
   return `'${String(value).replaceAll("'", "''")}'`
 }
