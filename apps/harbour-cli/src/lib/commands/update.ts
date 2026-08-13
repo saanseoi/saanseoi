@@ -3,7 +3,7 @@ import { stat } from 'node:fs/promises'
 import { relative } from 'node:path'
 
 import { describeTarget } from '../cli/display.ts'
-import { fetchReleaseReport } from '../api/reporting.ts'
+import { fetchReleaseReport, type ReleaseReportRow } from '../api/reporting.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { runUploadCommand } from './upload.ts'
 import {
@@ -111,7 +111,7 @@ export async function runUpdateCommand(
   for (const dataset of selectedDatasets) {
     let targetVersions: Map<string, string | null>
     try {
-      targetVersions = await fetchTargetVersions(target, dataset, state[dataset.code])
+      targetVersions = await fetchTargetVersions(target, dataset)
     } catch {
       if (!reportedTargetLookupFailure) {
         log.warn(
@@ -512,25 +512,27 @@ function colorize(value: string, color: number) {
   return `\u001b[${color}m${value}\u001b[39m`
 }
 
-async function fetchTargetVersions(
-  target: UploadTarget,
-  dataset: DatasetFixture,
-  previous?: UpdateStateEntry,
-) {
+async function fetchTargetVersions(target: UploadTarget, dataset: DatasetFixture) {
   const report = await fetchReleaseReport(target, {
     datasetCode: dataset.code,
     limit: 100,
   })
+  return targetVersionsFromReport(dataset, report.rows)
+}
+
+export function targetVersionsFromReport(
+  dataset: DatasetFixture,
+  rows: ReadonlyArray<Pick<ReleaseReportRow, 'sourceVersion'>>,
+) {
   const targetVersions = new Map<string, string | null>()
   const releases = dataset.releases?.length ? dataset.releases : [undefined]
-  const targetHasNoReleases = report.rows.length === 0
+  const targetHasNoReleases = rows.length === 0
 
-  // A reset target has no release rows at all. Preserve that fact for datasets
-  // without an explicit release manifest (for example Overture), so local
-  // update state cannot make the first production bootstrap look current.
+  // A successful target report is authoritative. Missing manifest cohorts are
+  // absent from the target too, even when this operator has saved local state.
   if (targetHasNoReleases) targetVersions.set(dataset.code, null)
 
-  for (const sourceVersion of report.rows
+  for (const sourceVersion of rows
     .map(row => row.sourceVersion)
     .filter((version): version is string => Boolean(version))) {
     targetVersions.set(sourceVersion, normaliseDatasetVersion(dataset, sourceVersion))
@@ -539,16 +541,12 @@ async function fetchTargetVersions(
   for (const [index, release] of releases.entries()) {
     const releaseSourceVersion = release?.sourceVersion
     const sourceKey = releaseSourceVersion ?? dataset.code
-    const fallback = targetHasNoReleases
-      ? undefined
-      : (previous?.sourceChecks?.[sourceKey]?.version ??
-        (sourceKey === dataset.code ? previous?.version : undefined))
     const matchingVersions = releaseSourceVersion
-      ? report.rows
+      ? rows
           .map(row => row.sourceVersion)
           .filter(version => versionMatchesSourceRelease(version, releaseSourceVersion))
-      : report.rows.map(row => row.sourceVersion)
-    const resolvedTargetVersion = latestVersion(matchingVersions) ?? fallback
+      : rows.map(row => row.sourceVersion)
+    const resolvedTargetVersion = latestVersion(matchingVersions)
     const targetVersion = resolvedTargetVersion
       ? normaliseDatasetVersion(dataset, resolvedTargetVersion)
       : null
@@ -567,13 +565,6 @@ function latestVersion(versions: string[]) {
   return versions
     .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }))
     .at(-1)
-}
-
-export function resolveTargetVersion(
-  reportedVersion?: string,
-  fallbackVersion?: string,
-) {
-  return reportedVersion ?? fallbackVersion
 }
 
 async function processUpdate(
