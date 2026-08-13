@@ -454,6 +454,67 @@ export async function readRemoteCachedCompletedReleaseCodes(target: UploadTarget
   }
 }
 
+/**
+ * Reads the metadata mirror without contacting remote D1. Remote upload
+ * planning and post-publish checks use this so they observe the exact cache
+ * that was used to prepare the release, rather than requiring Wrangler's
+ * separate Cloudflare API credentials.
+ */
+export async function withRemoteCachedMetaDb<T>(
+  target: UploadTarget,
+  work: (db: MetaDatabase) => Promise<T> | T,
+): Promise<T> {
+  if (!target.remote) {
+    throw new Error('The remote metadata cache is only available for remote targets.')
+  }
+
+  const targetName = target.environment === 'production' ? 'production' : 'preview'
+  const cacheDir = resolveRemoteCacheDir(targetName)
+  const invalidated = await readInvalidatedManifest(join(cacheDir, 'invalidated.json'))
+
+  if (invalidated) {
+    throw new Error(
+      [
+        `The persistent ${targetName} D1 cache was invalidated at ${invalidated.invalidatedAt}.`,
+        invalidated.reason ? `Reason: ${invalidated.reason}` : null,
+        `Rebuild it explicitly with bin/saanseoi cache:rebuild --target ${targetName}.`,
+      ]
+        .filter(isNonEmptyString)
+        .join(' '),
+    )
+  }
+
+  const manifest = await readManifest(join(cacheDir, 'manifest.json'))
+  const metaPath = manifest?.files.DB_META
+
+  if (
+    !manifest ||
+    manifest.cacheVersion !== DB_CACHE_MANIFEST_VERSION ||
+    manifest.target !== targetName ||
+    !metaPath ||
+    !(await isValidCachedFile(metaPath, 'DB_META'))
+  ) {
+    throw new Error(
+      [
+        `No valid ${targetName} metadata cache is available for this operation.`,
+        `Rebuild it explicitly with bin/saanseoi cache:rebuild --target ${targetName}.`,
+      ].join(' '),
+    )
+  }
+
+  const meta = (await openSqliteDb(
+    metaPath,
+    metaSchema,
+    'DB_META',
+  )) as unknown as OpenSqliteDb<MetaDatabase>
+
+  try {
+    return await work(meta.db)
+  } finally {
+    meta.sqlite.close()
+  }
+}
+
 export function updateDbCacheProgress(
   progress: LocalUploadProgress,
   event: LocalDbCacheProgressEvent,
@@ -1044,7 +1105,7 @@ async function resolveReusableCachedFiles(
   return reusableFiles
 }
 
-function isNonEmptyString(value: string | undefined): value is string {
+function isNonEmptyString(value: string | null | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 

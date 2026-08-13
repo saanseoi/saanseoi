@@ -10,16 +10,19 @@ import {
 } from '@clack/prompts'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { join } from 'node:path'
 
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 import { metaSchema } from '@repo/db'
-import { and, desc, eq, inArray, lte, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
 
-import { resolveLocalAddressDbContext } from '../addressSql/localDbCache.ts'
+import {
+  resolveLocalAddressDbContext,
+  withRemoteCachedMetaDb,
+} from '../addressSql/localDbCache.ts'
 import {
   HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
   prepareHkgovCenstatdDistrictUpload,
@@ -52,12 +55,6 @@ import { validateOvertureSchema } from '../schema/overture.ts'
 import { uploadSourceReleaseAsset } from '../sources/sourceAssets.ts'
 import { dispatchUpload } from '../upload/upload.ts'
 import { formatDurationMs } from '../localPipeline/progressFormatting.ts'
-
-const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
-const HARBOUR_API_WRANGLER_CONFIG = resolve(
-  REPO_ROOT,
-  'apps/harbour-api/wrangler.jsonc',
-)
 
 export async function runUploadCommand(
   args: ParsedArgs,
@@ -1265,6 +1262,20 @@ function resolveDivisionDomainCode(source: DivisionGeometryPlan['source'] | unde
     : 'overture'
 }
 
+function matchesDivisionDomain(source: DivisionGeometryPlan['source'] | undefined) {
+  const domainCode = resolveDivisionDomainCode(source)
+
+  // The initial Overture division snapshot predates snapshot lineages. Its
+  // primary dataset is therefore the durable domain identity until it is
+  // superseded by a lineage-backed revision.
+  return domainCode === 'overture'
+    ? or(
+        eq(metaSchema.metaSnapshotLineages.variant, domainCode),
+        eq(metaSchema.metaDatasets.code, 'ds-hk-overture-division'),
+      )
+    : eq(metaSchema.metaSnapshotLineages.variant, domainCode)
+}
+
 export function rainbowWaveText(value: string) {
   const colors = [196, 202, 226, 46, 51, 21, 201]
   return [...value]
@@ -1313,7 +1324,7 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
           id: metaSchema.metaSnapshots.id,
         })
         .from(metaSchema.metaSnapshots)
-        .innerJoin(
+        .leftJoin(
           metaSchema.metaSnapshotLineages,
           eq(
             metaSchema.metaSnapshots.snapshotLineageId,
@@ -1334,10 +1345,7 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-            eq(
-              metaSchema.metaSnapshotLineages.variant,
-              resolveDivisionDomainCode(plan.source),
-            ),
+            matchesDivisionDomain(plan.source),
             eq(metaSchema.metaSnapshotSources.role, 'primary'),
           ),
         )
@@ -1353,24 +1361,43 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
   target: UploadTarget,
   plan: DivisionGeometryPlan,
 ) {
-  const rows = await runRemoteSnapshotQuery(
+  return withRemoteCachedMetaDb(
     target,
-    `
-    SELECT s.resourceType, s.id AS snapshotId
-    FROM snapshots s
-    INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
-    INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
-    INNER JOIN datasets d ON d.id = ss.datasetId
-    WHERE s.resourceType = 'division'
-      AND s.status = 'published'
-      AND d.regionCode = ${sqlLiteral(plan.regionCode)}
-      AND sl.variant = ${sqlLiteral(resolveDivisionDomainCode(plan.source))}
-      AND s.cohortKey LIKE ${sqlLiteral(`${plan.sourceVersion.slice(0, 4)}-%`)}
-      AND ss.role = 'primary'
-    LIMIT 1
-  `,
+    async db =>
+      (await db
+        .select({
+          resourceType: metaSchema.metaSnapshots.resourceType,
+          snapshotId: metaSchema.metaSnapshots.id,
+        })
+        .from(metaSchema.metaSnapshots)
+        .leftJoin(
+          metaSchema.metaSnapshotLineages,
+          eq(
+            metaSchema.metaSnapshots.snapshotLineageId,
+            metaSchema.metaSnapshotLineages.id,
+          ),
+        )
+        .innerJoin(
+          metaSchema.metaSnapshotSources,
+          eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
+        )
+        .innerJoin(
+          metaSchema.metaDatasets,
+          eq(metaSchema.metaSnapshotSources.datasetId, metaSchema.metaDatasets.id),
+        )
+        .where(
+          and(
+            eq(metaSchema.metaSnapshots.resourceType, 'division'),
+            eq(metaSchema.metaSnapshots.status, 'published'),
+            eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
+            matchesDivisionDomain(plan.source),
+            sql`${metaSchema.metaSnapshots.cohortKey} LIKE ${`${plan.sourceVersion.slice(0, 4)}-%`}`,
+            eq(metaSchema.metaSnapshotSources.role, 'primary'),
+          ),
+        )
+        .limit(1)
+        .get()) ?? null,
   )
-  return rows[0] ?? null
 }
 
 async function resolveLocalDivisionReleaseSetSnapshots(
@@ -1396,7 +1423,7 @@ async function resolveLocalDivisionReleaseSetSnapshots(
               await db
                 .select({ id: metaSchema.metaSnapshots.id })
                 .from(metaSchema.metaSnapshots)
-                .innerJoin(
+                .leftJoin(
                   metaSchema.metaSnapshotLineages,
                   eq(
                     metaSchema.metaSnapshots.snapshotLineageId,
@@ -1423,10 +1450,7 @@ async function resolveLocalDivisionReleaseSetSnapshots(
                     eq(metaSchema.metaSnapshots.status, 'published'),
                     eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
                     eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
-                    eq(
-                      metaSchema.metaSnapshotLineages.variant,
-                      resolveDivisionDomainCode(plan.source),
-                    ),
+                    matchesDivisionDomain(plan.source),
                     eq(metaSchema.metaSnapshotSources.role, 'primary'),
                   ),
                 )
@@ -1450,22 +1474,39 @@ async function resolveRemoteDivisionReleaseSetSnapshots(
   plan: DivisionGeometryPlan,
 ) {
   const resourceTypes = ['division', 'divisionArea', 'divisionBoundary'] as const
-  const values = resourceTypes.map(sqlLiteral).join(', ')
-  const rows = await runRemoteSnapshotQuery(
-    target,
-    `
-    SELECT s.resourceType, s.id AS snapshotId
-    FROM snapshots s
-    INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
-    INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
-    INNER JOIN datasets d ON d.id = ss.datasetId
-    WHERE s.resourceType IN (${values})
-      AND s.status = 'published'
-      AND d.regionCode = ${sqlLiteral(plan.regionCode)}
-      AND sl.variant = ${sqlLiteral(resolveDivisionDomainCode(plan.source))}
-      AND s.cohortKey LIKE ${sqlLiteral(`${plan.sourceVersion.slice(0, 4)}-%`)}
-      AND ss.role = 'primary'
-  `,
+  const rows = await withRemoteCachedMetaDb(target, db =>
+    db
+      .select({
+        resourceType: metaSchema.metaSnapshots.resourceType,
+        snapshotId: metaSchema.metaSnapshots.id,
+      })
+      .from(metaSchema.metaSnapshots)
+      .leftJoin(
+        metaSchema.metaSnapshotLineages,
+        eq(
+          metaSchema.metaSnapshots.snapshotLineageId,
+          metaSchema.metaSnapshotLineages.id,
+        ),
+      )
+      .innerJoin(
+        metaSchema.metaSnapshotSources,
+        eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
+      )
+      .innerJoin(
+        metaSchema.metaDatasets,
+        eq(metaSchema.metaSnapshotSources.datasetId, metaSchema.metaDatasets.id),
+      )
+      .where(
+        and(
+          inArray(metaSchema.metaSnapshots.resourceType, resourceTypes),
+          eq(metaSchema.metaSnapshots.status, 'published'),
+          eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
+          matchesDivisionDomain(plan.source),
+          sql`${metaSchema.metaSnapshots.cohortKey} LIKE ${`${plan.sourceVersion.slice(0, 4)}-%`}`,
+          eq(metaSchema.metaSnapshotSources.role, 'primary'),
+        ),
+      )
+      .all(),
   )
   const present = new Set(rows.map(row => row.resourceType))
   return Object.fromEntries(
@@ -1527,36 +1568,50 @@ async function resolveRemoteCohortIndependentDivisionReleases(
   target: UploadTarget,
   plan: DivisionGeometryPlan,
 ): Promise<CohortIndependentReleaseReadiness[]> {
-  const datasetCodes = COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS.map(dataset =>
-    sqlLiteral(dataset.datasetCode),
-  ).join(', ')
-  const rows = await runRemoteMetaQuery(
-    target,
-    `
-    SELECT d.code AS datasetCode, r.code AS releaseCode, r.cohortKey AS cohortKey
-    FROM releases r
-    INNER JOIN datasets d ON d.id = r.datasetId
-    WHERE d.code IN (${datasetCodes})
-      AND d.regionCode = ${sqlLiteral(plan.regionCode)}
-      AND r.status = 'published'
-      AND r.cohortKey <= ${sqlLiteral(plan.cohortKey)}
-    ORDER BY r.cohortKey DESC, r.ingestedAt DESC, r.createdAt DESC
-  `,
+  const rows = await withRemoteCachedMetaDb(target, db =>
+    db
+      .select({
+        cohortKey: metaSchema.metaReleases.cohortKey,
+        datasetCode: metaSchema.metaDatasets.code,
+        releaseCode: metaSchema.metaReleases.code,
+      })
+      .from(metaSchema.metaReleases)
+      .innerJoin(
+        metaSchema.metaDatasets,
+        eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      )
+      .where(
+        and(
+          inArray(
+            metaSchema.metaDatasets.code,
+            COHORT_INDEPENDENT_DIVISION_RELEASE_DATASETS.map(
+              dataset => dataset.datasetCode,
+            ),
+          ),
+          eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
+          eq(metaSchema.metaReleases.status, 'published'),
+          lte(metaSchema.metaReleases.cohortKey, plan.cohortKey),
+        ),
+      )
+      .orderBy(
+        desc(metaSchema.metaReleases.cohortKey),
+        desc(metaSchema.metaReleases.ingestedAt),
+        desc(metaSchema.metaReleases.createdAt),
+      )
+      .all(),
   )
 
   return resolveCohortIndependentReleaseReadiness(
     rows.flatMap(row =>
-      typeof row.datasetCode === 'string' &&
-      typeof row.releaseCode === 'string' &&
-      typeof row.cohortKey === 'string'
-        ? [
+      row.cohortKey === null
+        ? []
+        : [
             {
               cohortKey: row.cohortKey,
               datasetCode: row.datasetCode,
               releaseCode: row.releaseCode,
             },
-          ]
-        : [],
+          ],
     ),
   )
 }
@@ -1601,137 +1656,40 @@ async function resolveRemotePublishedDivisionSnapshotForAddressPlan(
   target: UploadTarget,
   plan: Awaited<ReturnType<typeof prepareUpload>>['plan'],
 ) {
-  const environment = target.environment === 'production' ? 'production' : 'preview'
-  const databaseName =
-    environment === 'production' ? 'ss-meta-db-prod' : 'ss-meta-db-preview'
-  const sql = `
-    SELECT s.id AS snapshotId
-    FROM snapshots s
-    INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
-    INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
-    INNER JOIN datasets d ON d.id = ss.datasetId
-    WHERE s.resourceType = 'division'
-      AND s.status = 'published'
-      AND s.cohortKey = ${sqlLiteral(plan.cohortKey)}
-      AND d.regionCode = ${sqlLiteral(plan.regionCode)}
-      AND sl.variant = 'overture'
-      AND ss.role = 'primary'
-    LIMIT 1
-  `
-  const process = Bun.spawn({
-    cmd: [
-      'bun',
-      'x',
-      'wrangler',
-      'd1',
-      'execute',
-      databaseName,
-      '--remote',
-      '--config',
-      HARBOUR_API_WRANGLER_CONFIG,
-      '--env',
-      environment,
-      '--json',
-      '--command',
-      sql,
-    ],
-    cwd: REPO_ROOT,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  })
-  const [stdout, stderr, exitCode] = await Promise.all([
-    new Response(process.stdout).text(),
-    new Response(process.stderr).text(),
-    process.exited,
-  ])
-
-  if (exitCode !== 0) {
-    throw new Error(
-      `Failed to query published division prerequisites from ${environment} meta D1.\n${stderr.trim() || stdout.trim()}`,
-    )
-  }
-
-  const payload = JSON.parse(stdout) as Array<{
-    results?: Array<{ snapshotId?: string }>
-    success?: boolean
-  }>
-  const firstResult = payload[0]
-
-  return firstResult?.success && firstResult.results?.[0]?.snapshotId
-    ? firstResult.results[0]
-    : null
-}
-
-function sqlLiteral(value: string | number | boolean | null | undefined) {
-  if (value == null) {
-    return 'NULL'
-  }
-
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? String(value) : 'NULL'
-  }
-
-  if (typeof value === 'boolean') {
-    return value ? '1' : '0'
-  }
-
-  return `'${value.replaceAll("'", "''")}'`
-}
-
-async function runRemoteSnapshotQuery(
-  target: UploadTarget,
-  sql: string,
-): Promise<Array<{ resourceType: string; snapshotId: string }>> {
-  const rows = await runRemoteMetaQuery(target, sql)
-  return rows.filter(
-    (row): row is { resourceType: string; snapshotId: string } =>
-      typeof row.resourceType === 'string' && typeof row.snapshotId === 'string',
+  return withRemoteCachedMetaDb(
+    target,
+    async db =>
+      (await db
+        .select({ snapshotId: metaSchema.metaSnapshots.id })
+        .from(metaSchema.metaSnapshots)
+        .leftJoin(
+          metaSchema.metaSnapshotLineages,
+          eq(
+            metaSchema.metaSnapshots.snapshotLineageId,
+            metaSchema.metaSnapshotLineages.id,
+          ),
+        )
+        .innerJoin(
+          metaSchema.metaSnapshotSources,
+          eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
+        )
+        .innerJoin(
+          metaSchema.metaDatasets,
+          eq(metaSchema.metaSnapshotSources.datasetId, metaSchema.metaDatasets.id),
+        )
+        .where(
+          and(
+            eq(metaSchema.metaSnapshots.resourceType, 'division'),
+            eq(metaSchema.metaSnapshots.status, 'published'),
+            eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
+            eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
+            matchesDivisionDomain('overture'),
+            eq(metaSchema.metaSnapshotSources.role, 'primary'),
+          ),
+        )
+        .limit(1)
+        .get()) ?? null,
   )
-}
-
-async function runRemoteMetaQuery(
-  target: UploadTarget,
-  sql: string,
-): Promise<Array<Record<string, unknown>>> {
-  const environment = target.environment === 'production' ? 'production' : 'preview'
-  const databaseName =
-    environment === 'production' ? 'ss-meta-db-prod' : 'ss-meta-db-preview'
-  const process = Bun.spawn({
-    cmd: [
-      'bun',
-      'x',
-      'wrangler',
-      'd1',
-      'execute',
-      databaseName,
-      '--remote',
-      '--config',
-      HARBOUR_API_WRANGLER_CONFIG,
-      '--env',
-      environment,
-      '--json',
-      '--command',
-      sql,
-    ],
-    cwd: REPO_ROOT,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  })
-  const [stdout, stderr, exitCode] = await Promise.all([
-    new Response(process.stdout).text(),
-    new Response(process.stderr).text(),
-    process.exited,
-  ])
-  if (exitCode !== 0) {
-    throw new Error(
-      `Failed to query published snapshots from ${environment} meta D1.\n${stderr.trim() || stdout.trim()}`,
-    )
-  }
-  const payload = JSON.parse(stdout) as Array<{
-    results?: Array<Record<string, unknown>>
-    success?: boolean
-  }>
-  return payload[0]?.success ? (payload[0].results ?? []) : []
 }
 
 async function resolveAssumptionWarnings(
