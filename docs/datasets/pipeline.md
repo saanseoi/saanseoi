@@ -62,6 +62,11 @@ including both the `2016` and `2021` C&SD variants. Re-run an interrupted Overtu
 Planning Department backfill with `--continue`; it skips completed source releases.
 `saanseoi init [--continue]` runs all the focused initialisers in the same order.
 
+Initialisers defer `docs:publish --scope all` until all their uploads have succeeded.
+This avoids rescanning and publishing the same release documentation after every cohort
+release. A failed initialiser therefore leaves documentation publication until its
+successful continuation.
+
 ## 1. Start with the contract and source evidence
 
 Before writing code, decide whether the provider publishes a new logical resource or a
