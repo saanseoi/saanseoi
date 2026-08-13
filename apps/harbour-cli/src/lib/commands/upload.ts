@@ -1569,7 +1569,7 @@ async function resolveRemoteDivisionReleaseSetSnapshots(
           eq(metaSchema.metaSnapshots.status, 'published'),
           eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
           matchesDivisionDomain(plan.source),
-          sql`${metaSchema.metaSnapshots.cohortKey} LIKE ${`${plan.sourceVersion.slice(0, 4)}-%`}`,
+          eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
           eq(metaSchema.metaSnapshotSources.role, 'primary'),
         ),
       )
