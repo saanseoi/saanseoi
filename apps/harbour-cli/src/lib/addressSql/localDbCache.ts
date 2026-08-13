@@ -1776,7 +1776,12 @@ async function mirrorRemoteTargetToLocal(
             },
             () =>
               retryRemoteCacheExport(() =>
-                exportRemoteDatabase(targetRecord, target, dumpPath),
+                exportRemoteDatabase(targetRecord, target, dumpPath, {
+                  schemaOnly: shouldMirrorBindingSchemaOnly(
+                    targetRecord.bindingName,
+                    options.cacheTableProfile,
+                  ),
+                }),
               ),
           )
           dumpPaths.push(dumpPath)
