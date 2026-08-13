@@ -161,7 +161,7 @@ export async function processLocalDivisionGeometrySqlUpload(
           reusedDbCache ||= event.action === 'reuse-cache'
           updateDbCacheProgress(progress, event)
         },
-        cacheTableProfile: target.remote ? undefined : 'divisionGeometry',
+        cacheTableProfile: 'divisionGeometry',
         includePreviousShardYears: true,
         refreshRemoteTables: false,
       },
