@@ -295,3 +295,27 @@ describe('Home Affairs Department geometry prerequisites', () => {
     expect(resolveRemotePublishedDivisionSnapshotMock).not.toHaveBeenCalled()
   })
 })
+
+describe('Planning Department geometry prerequisites', () => {
+  test('reports the exact missing cohort without referring to an address shard', async () => {
+    await expect(
+      assertDivisionGeometryUploadPrerequisites(
+        {
+          environment: 'production',
+          remote: true,
+        },
+        {
+          cohortKey: '2001',
+          regionCode: 'hk',
+          source: 'hkgov-pland-pu',
+          sourceVersion: '2001',
+          theme: 'divisions',
+          type: 'divisionArea',
+        } as never,
+        {
+          resolveRemotePublishedDivisionSnapshot: async () => null,
+        },
+      ),
+    ).rejects.toThrow('No published division snapshot was found for the 2001 cohort.')
+  })
+})
