@@ -34,6 +34,13 @@ updater uses that bounded catalogue to identify a displaced Overture release as 
 archive package whenever it discovers a new release; archive downloads do not hold up
 the current-release upload.
 
+For a target with no reported Overture release, this same bounded catalogue is the
+bootstrap set. The updater ignores the operator's saved source checks, selects the
+current STAC release and retained archive releases, and processes the archive releases
+in version order before the current release can be treated as complete. A rerun reads
+the target report again, so already materialised releases are not selected merely
+because another environment has a different local update state.
+
 ## 2026-06-17.0 Hong Kong profile
 
 The inspected artefacts were:
