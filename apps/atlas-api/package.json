@@ -29,14 +29,14 @@
     "wrangler": "^4.122.0"
   },
   "dependencies": {
-    "@hono/zod-openapi": "^1.5.2",
+    "@hono/zod-openapi": "^1.5.3",
     "@repo/auth": "workspace:*",
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
-    "@scalar/hono-api-reference": "^0.11.13",
-    "@scalar/openapi-to-markdown": "^0.5.38",
+    "@scalar/hono-api-reference": "^0.11.14",
+    "@scalar/openapi-to-markdown": "^0.5.39",
     "drizzle-orm": "^1.0.0-rc.4-5d5b77c",
-    "hono": "^4.13.1",
+    "hono": "^4.13.2",
     "zod": "^4.4.3"
   }
 }
