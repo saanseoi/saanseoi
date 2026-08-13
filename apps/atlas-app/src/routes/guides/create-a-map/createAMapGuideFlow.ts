@@ -198,6 +198,14 @@ export function createMissingPrerequisiteQuestions({
       reminderTitle: m.guide_missing_confirmation(),
       answered: !regularFlow || !selectedCodeEditor || isEditorReadinessComplete,
     },
+    {
+      id: 'map-library',
+      label: m.guide_renderer_label(),
+      answered:
+        objective === 'mobile-embed' ||
+        objective === 'notebook-embed' ||
+        Boolean(renderer),
+    },
     ...(platformQuestion ? [platformQuestion] : []),
     {
       id: 'mapbox-account-readiness',
