@@ -26,12 +26,11 @@ filter_output() {
     -e '/https:\/\/.*r2\.cloudflarestorage\.com\/d1-sqlio-outgoing/d'
 }
 
-# Do not let Bun auto-load the repository's .env files in this child process.
-# Authentication is intentionally inherited from the caller's environment.
+# Node avoids Bun's automatic repository .env loading, while preserving
+# authentication explicitly inherited from the caller's environment.
 if (
   cd /tmp
-  env -u CLOUDFLARE_API_TOKEN \
-    node "$repo_root/node_modules/wrangler/bin/wrangler.js" d1 export "$@"
+  node "$repo_root/node_modules/wrangler/bin/wrangler.js" d1 export "$@"
 ) >"$tmp_output" 2>&1; then
   filter_output <"$tmp_output"
   exit 0
