@@ -1430,6 +1430,24 @@ const rendererEditorInstruction = $derived(
     )
     .replace('{path}', rendererEditorPath),
 )
+const styleEditCode = $derived(
+  [
+    '// Before: the style declaration from the basemap step',
+    "// const style = await fetch('<existing style URL>').then(response => response.json())",
+    '',
+    '// After: the selected SaanSeoi style',
+    `const style = await fetch('${styleUrl}').then(response => response.json())`,
+  ].join('\n'),
+)
+const styleEditorInstruction = $derived(
+  m
+    .guide_style_editor_instruction()
+    .replace(
+      '{editor}',
+      selectedCodeEditor?.label ?? m.guide_setup_editor_your_editor(),
+    )
+    .replace('{path}', rendererEditorPath),
+)
 const rendererStylesheetInstruction = $derived(
   m.guide_renderer_stylesheet_instruction().replace('{path}', rendererStylesheetPath),
 )
@@ -1557,19 +1575,32 @@ const urbanDensityMetricsCss = [
 
 const selectedStylePreview = (styleId: string) =>
   createAMapStylePreviewUrl(styleId, region, tileset)
-const styleChoices = $derived.by(() => [
-  ...mapStyleDefinitions.map(candidate => ({
-    value: candidate.id,
-    label: candidate.name,
-    description: '',
-    image: selectedStylePreview(candidate.id),
-  })),
-  {
-    value: 'custom',
-    label: m.guide_style_custom(),
-    description: m.guide_style_custom_choice_description(),
-  },
-])
+const styleChoices = $derived.by(() =>
+  [
+    ...mapStyleDefinitions.map(candidate => candidate.id),
+    {
+      value: 'custom',
+      label: m.guide_style_custom(),
+      description: m.guide_style_custom_choice_description(),
+      imageSlices: mapStyleDefinitions.map(candidate =>
+        selectedStylePreview(candidate.id),
+      ),
+    },
+  ].map(choice => {
+    if (typeof choice === 'string') {
+      const definition = mapStyleDefinitions.find(candidate => candidate.id === choice)
+
+      return {
+        value: choice,
+        label: definition?.name ?? choice,
+        description: '',
+        image: selectedStylePreview(choice),
+      }
+    }
+
+    return choice
+  }),
+)
 </script>
 
 <svelte:head>
@@ -2303,11 +2334,7 @@ const styleChoices = $derived.by(() => [
 
       <GuideSection id="style" number={3} eyebrow={m.guide_style_eyebrow()}>
         <p class="max-w-3xl font-body text-body-md leading-7 text-foreground-alt">
-          {@html m.guide_style_description_before()}
-          <GuideReference
-            href={`saanseoi:${locale.toLowerCase()}:definition/map-style/v1`}
-            label={m.reference_map_style()}
-          />{@html m.guide_style_description_after()}
+          {@html m.guide_style_description()}
         </p>
         <a
           class="mt-4 inline-flex font-body text-label-md font-semibold text-secondary underline underline-offset-4"
@@ -2318,10 +2345,15 @@ const styleChoices = $derived.by(() => [
           <GuideChoiceGroup
             alignment="left"
             label={m.guide_style_label()}
+            marker={{
+              current: 1,
+              label: m.guide_prerequisites_requirement_label(),
+              total: 1,
+            }}
             choices={styleChoices}
             bind:value={style}
+            illustratedCardSizing="fixed"
             variant="illustrated"
-            illustratedLayout="grid"
           />
         </div>
         {#if style === 'custom'}
@@ -2346,23 +2378,19 @@ const styleChoices = $derived.by(() => [
               />
             </div>
           </GuideCallout>
-        {:else if selectedStyle}
-          <p class="mt-5 font-body text-body-sm text-foreground-alt">
-            <code class="font-mono">{styleUrl}</code>
-          </p>
         {/if}
         {#if selectedStyle && renderer}
           <div class="mt-10 max-w-3xl border-t border-border-card pt-10">
             <GuideSubSectionHeader
               eyebrow={m.guide_basemap_editor_eyebrow()}
               title={m
-                .guide_renderer_code_title()
+                .guide_style_editor_title()
                 .replace('{library}', selectedRenderer?.label ?? '')}
             />
             <GuideSubSectionBody>
               <GuideCodeBlock
                 label={rendererEditorPath}
-                code={basemapCode}
+                code={styleEditCode}
                 editorIcon={selectedCodeEditor?.icon}
                 language="typescript"
                 variant="editor"
@@ -2372,7 +2400,7 @@ const styleChoices = $derived.by(() => [
               <p
                 class="font-body text-body-md leading-7 text-foreground-alt [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
               >
-                {@html rendererEditorInstruction}
+                {@html styleEditorInstruction}
               </p>
             </GuideSubSectionBody>
           </div>

@@ -4,6 +4,7 @@ export type GuideChoice = {
   description: string
   disabled?: boolean
   darkImage?: string
+  imageSlices?: string[]
   icon?: string
   image?: string
   label: string
