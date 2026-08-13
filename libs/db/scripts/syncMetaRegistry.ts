@@ -101,6 +101,14 @@ function decodeOutput(output: ArrayBufferLike | Uint8Array | null | undefined) {
 }
 
 function runWranglerExecute(sqlInput: { command: string } | { file: string }) {
+  const wranglerEnvironment = { ...process.env }
+
+  if (process.env.CLOUDFLARE_D1_TOKEN) {
+    wranglerEnvironment.CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_D1_TOKEN
+  } else {
+    delete wranglerEnvironment.CLOUDFLARE_API_TOKEN
+  }
+
   const proc = Bun.spawnSync({
     cmd: [
       'bun',
@@ -117,7 +125,7 @@ function runWranglerExecute(sqlInput: { command: string } | { file: string }) {
     ],
     cwd: new URL('..', scriptDir).pathname,
     env: {
-      ...process.env,
+      ...wranglerEnvironment,
       XDG_CONFIG_HOME: process.env.XDG_CONFIG_HOME ?? xdgConfigHomePath.pathname,
       WRANGLER_LOG_PATH: process.env.WRANGLER_LOG_PATH ?? wranglerLogPath.pathname,
     },
