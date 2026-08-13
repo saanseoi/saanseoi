@@ -83,7 +83,7 @@ function updateIllustratedCarouselFit() {
   if (!viewport || !firstCard || !lastCard) return
 
   const cardsWidth = lastCard.offsetLeft + lastCard.offsetWidth - firstCard.offsetLeft
-  illustratedCarouselFits = cardsWidth + 640 <= viewport.clientWidth
+  illustratedCarouselFits = cardsWidth + 500 <= viewport.clientWidth
 }
 
 onMount(() => {
@@ -321,8 +321,8 @@ onMount(() => {
         <div
           bind:this={illustratedChoicesElement}
           class={illustratedCarouselFits
-            ? 'flex w-full min-w-0 justify-center gap-4 px-[320px]'
-            : `flex min-w-max snap-x snap-mandatory gap-4 ${illustratedFullBleed ? 'px-(--illustrated-content-inset)' : illustratedFitWhenPossible ? 'px-[320px]' : alignment === 'center' ? 'px-[max(1.5rem,calc((100vw-var(--spacing-container-max))/2+1.5rem))] md:px-[max(2rem,calc((100vw-var(--spacing-container-max))/2+2rem))]' : ''}`}
+            ? 'flex w-full min-w-0 justify-center gap-4 px-[250px]'
+            : `flex min-w-max snap-x snap-mandatory gap-4 ${illustratedFullBleed ? 'px-(--illustrated-content-inset)' : illustratedFitWhenPossible ? 'px-[250px]' : alignment === 'center' ? 'px-[max(1.5rem,calc((100vw-var(--spacing-container-max))/2+1.5rem))] md:px-[max(2rem,calc((100vw-var(--spacing-container-max))/2+2rem))]' : ''}`}
         >
           {#each choices as choice}
             <label

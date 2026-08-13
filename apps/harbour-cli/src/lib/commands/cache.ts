@@ -25,12 +25,14 @@ export async function runCacheRebuildCommand(
     Object.keys(args.options).some(
       key => key !== 'target' && key !== 'table-profile',
     ) ||
-    (cacheTableProfile !== undefined && cacheTableProfile !== 'divisionGeometry') ||
+    (cacheTableProfile !== undefined &&
+      cacheTableProfile !== 'divisionGeometry' &&
+      cacheTableProfile !== 'planningDivisionGeometry') ||
     !target.remote
   ) {
     printUsage()
     throw new Error(
-      '`cache:rebuild` accepts `--target preview|production` and optional `--table-profile divisionGeometry`.',
+      '`cache:rebuild` accepts `--target preview|production` and optional `--table-profile divisionGeometry|planningDivisionGeometry`.',
     )
   }
 
