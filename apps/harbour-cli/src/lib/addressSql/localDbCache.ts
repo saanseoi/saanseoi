@@ -1867,6 +1867,7 @@ function resolveMirrorTablesForBinding(
         'overtureDivisionAreas',
         'overtureDivisionBoundaries',
         'hkgovHadDivisionAreas',
+        'hkgovCenstatdDivisionAreas',
       ]
     }
 
@@ -1875,6 +1876,7 @@ function resolveMirrorTablesForBinding(
       'overtureDivisionAreas',
       'overtureDivisionBoundaries',
       'hkgovHadDivisionAreas',
+      'hkgovCenstatdDivisionAreas',
       'hkgovAlsAddresses2d',
     ]
   }
