@@ -527,14 +527,6 @@ export async function processLocalDivisionGeometrySqlUpload(
         publishResult: undefined,
       }
     }
-    // Remote replay is part of publishing this release. Start this phase before
-    // it so the CLI remains informative and the reported duration covers all
-    // work needed to make the dataset available remotely.
-    const publishStartedAt = Date.now()
-    progress.beginPhase(formatGeometryProgressLabel('Publish', 'dataset'), {
-      current: 0,
-      max: null,
-    })
     if (target.remote) {
       await replayGeometryIntoRemote(
         target,
@@ -543,36 +535,44 @@ export async function processLocalDivisionGeometrySqlUpload(
         releaseId,
         snapshot.id,
         writeResult.currentRows,
+        (subject, operation) =>
+          runGeometryProgressPhase(progress, 'Publish', subject, operation),
       )
     }
-    await client.stageCompleted(
-      releaseId,
-      'processDataset',
-      {
-        resourceType: previewPlan.type,
-        sourceRows: previewPlan.rowCount,
-        importedRows: normalised.length,
-        rejectedRows,
-      },
-      releaseCode,
-    )
-    const publishResult = await client.publishDataset(releaseId, releaseCode, {
-      skipSnapshotCleanup: options.skipSnapshotCleanup,
-    })
-    remotePublished = target.remote
-    progress.complete(
-      formatGeometryCompletedLabel(
-        'Publish',
-        'dataset',
-        undefined,
-        Date.now() - publishStartedAt,
+    await runGeometryProgressPhase(progress, 'Record', 'dataset state', () =>
+      client.stageCompleted(
+        releaseId,
+        'processDataset',
+        {
+          resourceType: previewPlan.type,
+          sourceRows: previewPlan.rowCount,
+          importedRows: normalised.length,
+          rejectedRows,
+        },
+        releaseCode,
       ),
     )
+    const publishResult = await runGeometryProgressPhase(
+      progress,
+      'Publish',
+      'release set',
+      () =>
+        client.publishDataset(releaseId, releaseCode, {
+          skipSnapshotCleanup: options.skipSnapshotCleanup,
+        }),
+    )
+    remotePublished = target.remote
     if (target.remote) {
       try {
-        await refreshRemoteMetaCache(
-          target.environment === 'production' ? 'production' : 'preview',
-          dbContext.state.dbCacheDir,
+        await runGeometryProgressPhase(
+          progress,
+          'Refresh',
+          'local metadata cache',
+          () =>
+            refreshRemoteMetaCache(
+              target.environment === 'production' ? 'production' : 'preview',
+              dbContext.state.dbCacheDir,
+            ),
         )
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error)
@@ -619,6 +619,7 @@ async function replayGeometryIntoRemote(
   releaseId: string,
   snapshotId: string,
   currentRows: Array<Record<string, unknown>>,
+  runProgressPhase: <T>(subject: string, operation: () => Promise<T>) => Promise<T>,
 ) {
   const targetName = target.environment === 'production' ? 'production' : 'preview'
   const metaBindingName = 'DB_META'
@@ -711,13 +712,15 @@ async function replayGeometryIntoRemote(
       async () => {
         for (const tableImport of tableImports) {
           if (!tableImport.sql.trim()) continue
-          await executeSqlText(
-            {
-              databaseId: tableImport.databaseId ?? null,
-              name: tableImport.name,
-            },
-            tableImport.sql,
-            options,
+          await runProgressPhase(describeRemoteGeometryImport(tableImport.name), () =>
+            executeSqlText(
+              {
+                databaseId: tableImport.databaseId ?? null,
+                name: tableImport.name,
+              },
+              tableImport.sql,
+              options,
+            ),
           )
         }
       },
@@ -1595,6 +1598,39 @@ function formatGeometryCompletedLabel(
     formatCompletedPhaseLabel(colorTeal(action), colorRed(subject), count),
     [formatDurationMs(durationMs ?? Number.NaN)],
   )
+}
+
+async function runGeometryProgressPhase<T>(
+  progress: LocalUploadProgress,
+  action: string,
+  subject: string,
+  operation: () => Promise<T>,
+) {
+  const startedAt = Date.now()
+  progress.beginPhase(formatGeometryProgressLabel(action, subject), {
+    current: 0,
+    max: null,
+  })
+
+  const result = await operation()
+
+  progress.complete(
+    formatGeometryCompletedLabel(action, subject, undefined, Date.now() - startedAt),
+  )
+  return result
+}
+
+function describeRemoteGeometryImport(name: 'current' | 'history' | 'meta' | 'source') {
+  switch (name) {
+    case 'current':
+      return 'remote current geometry'
+    case 'history':
+      return 'remote geometry history'
+    case 'meta':
+      return 'remote release metadata'
+    case 'source':
+      return 'remote source geometry'
+  }
 }
 
 function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {
