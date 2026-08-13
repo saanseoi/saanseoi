@@ -62,11 +62,14 @@ end
 
 function init_load_completed_release_codes
     if test "$saanseoi_init_target" != local
-        set -g saanseoi_init_completed_release_codes (./bin/saanseoi cache:completed-releases \
-            --target $saanseoi_init_target)
-        if test $status -ne 0
+        set -l output (./bin/saanseoi cache:completed-releases \
+            --target $saanseoi_init_target 2>&1)
+        set -l command_status $status
+        if test $command_status -ne 0
+            string join \n -- $output >&2
             return 1
         end
+        set -g saanseoi_init_completed_release_codes $output
         return 0
     end
 
