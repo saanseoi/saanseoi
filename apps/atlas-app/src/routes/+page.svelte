@@ -1,17 +1,58 @@
 <script lang="ts">
-import { onMount } from 'svelte'
+import { onMount, type Component } from 'svelte'
 
 import { Main, Divider } from '$lib/bits'
 
 import HeroSection from '$lib/bits/pages/landing/heroSection.svelte'
-import CommunitySection from '$lib/bits/pages/landing/communitySection.svelte'
-import FeatureSection from '$lib/bits/pages/landing/featureSection.svelte'
-import FoundationSection from '$lib/bits/pages/landing/foundationSection.svelte'
-import PipelineSection from '$lib/bits/pages/landing/pipelineSection.svelte'
 
 let landingPage = $state<HTMLElement>()
+let FoundationSection = $state<Component>()
+let FeatureSection = $state<Component>()
+let PipelineSection = $state<Component>()
+let CommunitySection = $state<Component>()
 
 onMount(() => {
+  let cancelled = false
+  let idleCallback: number | undefined
+  let preloadTimer: number | undefined
+
+  // Keep the hero's image and hydration work alone on the critical path. Each
+  // later section is then requested in reading order while the browser is idle.
+  const preloadSections = async () => {
+    const { default: foundationSection } = await import(
+      '$lib/bits/pages/landing/foundationSection.svelte'
+    )
+    if (cancelled) return
+    FoundationSection = foundationSection
+
+    const { default: featureSection } = await import(
+      '$lib/bits/pages/landing/featureSection.svelte'
+    )
+    if (cancelled) return
+    FeatureSection = featureSection
+
+    const { default: pipelineSection } = await import(
+      '$lib/bits/pages/landing/pipelineSection.svelte'
+    )
+    if (cancelled) return
+    PipelineSection = pipelineSection
+
+    const { default: communitySection } = await import(
+      '$lib/bits/pages/landing/communitySection.svelte'
+    )
+    if (!cancelled) CommunitySection = communitySection
+  }
+
+  const startPreload = () => void preloadSections()
+  const scheduleIdleCallback = window.requestIdleCallback as
+    | ((callback: () => void, options?: { timeout: number }) => number)
+    | undefined
+  if (scheduleIdleCallback) {
+    idleCallback = scheduleIdleCallback(startPreload, { timeout: 1_500 })
+  } else {
+    preloadTimer = window.setTimeout(startPreload, 0)
+  }
+
   if (!landingPage) return
   const page = landingPage
 
@@ -212,6 +253,9 @@ onMount(() => {
   window.addEventListener('keydown', onKeyDown)
 
   return () => {
+    cancelled = true
+    if (idleCallback !== undefined) window.cancelIdleCallback(idleCallback)
+    if (preloadTimer !== undefined) window.clearTimeout(preloadTimer)
     finishSettling()
     window.removeEventListener('wheel', onWheel)
     window.removeEventListener('scroll', resumeSectionScroll)
@@ -231,20 +275,28 @@ onMount(() => {
       <Divider />
     </div>
     <div data-landing-section>
-      <FoundationSection />
-      <Divider />
+      {#if FoundationSection}
+        <FoundationSection />
+        <Divider />
+      {/if}
     </div>
     <div data-landing-section>
-      <FeatureSection />
-      <Divider />
+      {#if FeatureSection}
+        <FeatureSection />
+        <Divider />
+      {/if}
     </div>
     <div data-landing-section>
-      <PipelineSection />
-      <Divider />
+      {#if PipelineSection}
+        <PipelineSection />
+        <Divider />
+      {/if}
     </div>
     <div data-landing-section>
-      <CommunitySection />
-      <Divider />
+      {#if CommunitySection}
+        <CommunitySection />
+        <Divider />
+      {/if}
     </div>
   </div>
 </Main>

@@ -115,11 +115,14 @@ const suppressDraggedClick = (node: HTMLElement) => {
 onMount(() => {
   if (!viewport) return
   const resizeObserver = new ResizeObserver(updateNavigation)
+  const mutationObserver = new MutationObserver(updateNavigation)
   resizeObserver.observe(viewport)
+  mutationObserver.observe(viewport, { childList: true, subtree: true })
   viewport.addEventListener('scroll', updateNavigation, { passive: true })
   updateNavigation()
   return () => {
     resizeObserver.disconnect()
+    mutationObserver.disconnect()
     viewport?.removeEventListener('scroll', updateNavigation)
   }
 })
