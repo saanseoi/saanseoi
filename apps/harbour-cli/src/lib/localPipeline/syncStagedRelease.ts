@@ -81,7 +81,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
   })
   const processingRules = dataset.processingRules
 
-  await runWithWriteRetry(() =>
+  const result = await runWithWriteRetry(() =>
     metaDb
       .insert(metaReleases)
       .values({
@@ -108,7 +108,6 @@ export async function syncStagedReleaseIntoLocalMetaCache(
       .onConflictDoUpdate({
         target: metaReleases.code,
         set: {
-          id: release.releaseId,
           datasetId: dataset.id,
           sourceVersion: plan.sourceVersion,
           sourceSchemaVersion,
@@ -128,4 +127,9 @@ export async function syncStagedReleaseIntoLocalMetaCache(
       })
       .run(),
   )
+  if (result.changes === 0) {
+    throw new Error(
+      `Cannot replace source release ${release.releaseCode}: its status changed while preparing the local cache.`,
+    )
+  }
 }

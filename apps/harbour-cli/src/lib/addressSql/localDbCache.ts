@@ -169,6 +169,8 @@ const REMOTE_CACHE_REPLAY_RETRY_DELAY_MS = 750
 const REMOTE_META_CACHE_REFRESH_RETRY_LIMIT = 3
 const REMOTE_META_CACHE_REFRESH_RETRY_DELAY_MS = 1_000
 const BEFORE_SHARD_CUTOFF_YEAR = 2025
+// Each release receives historyShard and sourceShard assignments on publication.
+const REQUIRED_RELEASE_SHARD_ASSIGNMENTS = 2
 const LOCAL_SQLITE_OPEN_RETRY_LIMIT = 8
 const LOCAL_SQLITE_OPEN_RETRY_DELAY_MS = 250
 const VERSION_TABLES_WITH_CURRENT_ROWS = new Set([
@@ -527,22 +529,8 @@ export async function readRemoteCachedCompletedReleaseCodes(target: UploadTarget
 
   const targetName = target.environment === 'production' ? 'production' : 'preview'
   const cacheDir = resolveRemoteCacheDir(targetName)
-  const manifest = await readManifest(join(cacheDir, 'manifest.json'))
-  const metaPath = manifest?.files.DB_META
-
-  if (!metaPath || !(await isValidCachedFile(metaPath, 'DB_META'))) {
-    throw new Error(
-      `No valid ${targetName} metadata cache is available. Rebuild it explicitly with bin/saanseoi cache:rebuild --target ${targetName}.`,
-    )
-  }
-  const meta = (await openSqliteDb(
-    metaPath,
-    metaSchema,
-    'DB_META',
-  )) as unknown as OpenSqliteDb<MetaDatabase>
-
-  try {
-    const rows = await meta.db
+  return withRemoteCachedMetaDb(target, async (metaDb, metaSqlite, manifest) => {
+    const rows = await metaDb
       .select({
         code: metaSchema.metaReleases.code,
         datasetId: metaSchema.metaReleases.datasetId,
@@ -561,7 +549,8 @@ export async function readRemoteCachedCompletedReleaseCodes(target: UploadTarget
 
     const incompleteReleases = await findIncompletePublishedReleases(
       cacheDir,
-      meta.sqlite,
+      manifest.files,
+      metaSqlite,
       rows,
     )
 
@@ -576,13 +565,12 @@ export async function readRemoteCachedCompletedReleaseCodes(target: UploadTarget
     }
 
     return rows.map(row => row.code)
-  } finally {
-    meta.sqlite.close()
-  }
+  })
 }
 
 async function findIncompletePublishedReleases(
   cacheDir: string,
+  files: Record<string, string>,
   metaSqlite: SQLiteDatabase,
   releases: Array<{
     code: string
@@ -592,7 +580,7 @@ async function findIncompletePublishedReleases(
     type: string
   }>,
 ) {
-  const currentPath = resolve(cacheDir, 'DB_CURRENT.sqlite')
+  const currentPath = files.DB_CURRENT ?? resolve(cacheDir, 'DB_CURRENT.sqlite')
   const currentSqlite = existsSync(currentPath)
     ? new SQLiteDatabase(currentPath, { readonly: true })
     : null
@@ -657,7 +645,7 @@ async function findIncompletePublishedReleases(
         .get(snapshot.snapshotId) as { count?: number }
 
       if (
-        (releaseShardCount.count ?? 0) < 2 ||
+        (releaseShardCount.count ?? 0) < REQUIRED_RELEASE_SHARD_ASSIGNMENTS ||
         (snapshot.snapshotLineageId && (snapshotShardCount.count ?? 0) < 1)
       ) {
         incomplete.push(`${release.code}: missing release or snapshot shard assignment`)
@@ -716,7 +704,11 @@ function quoteSqlIdentifier(value: string) {
  */
 export async function withRemoteCachedMetaDb<T>(
   target: UploadTarget,
-  work: (db: MetaDatabase) => Promise<T> | T,
+  work: (
+    db: MetaDatabase,
+    sqlite: SQLiteDatabase,
+    manifest: DbCacheManifest,
+  ) => Promise<T> | T,
 ): Promise<T> {
   if (!target.remote) {
     throw new Error('The remote metadata cache is only available for remote targets.')
@@ -763,7 +755,7 @@ export async function withRemoteCachedMetaDb<T>(
   )) as unknown as OpenSqliteDb<MetaDatabase>
 
   try {
-    return await work(meta.db)
+    return await work(meta.db, meta.sqlite, manifest)
   } finally {
     meta.sqlite.close()
   }
@@ -964,7 +956,7 @@ function parseBindingYear(bindingName: string, prefix: string) {
   return /^\d{4}$/.test(year) ? Number.parseInt(year, 10) : null
 }
 
-function resolveShardBindingName(
+export function resolveShardBindingName(
   kind: 'history' | 'source',
   regionCodeToken: string,
   shardYear: string,

@@ -48,6 +48,7 @@ import {
   replayRemoteCacheWithRetry,
   refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
+  resolveShardBindingName,
   type LocalDbCacheProgressEvent,
 } from '../addressSql/localDbCache.ts'
 import {
@@ -625,12 +626,12 @@ async function replayGeometryIntoRemote(
   const metaBindingName = 'DB_META'
   const currentBindingName = 'DB_CURRENT'
   const regionToken = plan.regionCode.toUpperCase()
-  const historyBindingName = resolveGeometryShardBindingName(
+  const historyBindingName = resolveShardBindingName(
     'history',
     regionToken,
     plan.sourceVersion.slice(0, 4),
   )
-  const sourceBindingName = resolveGeometryShardBindingName(
+  const sourceBindingName = resolveShardBindingName(
     'source',
     regionToken,
     plan.sourceVersion.slice(0, 4),
@@ -979,16 +980,6 @@ function resolveGeometrySourceTable(plan: GeometryUploadPlan) {
   if (plan.source === 'hkgov-censtatd') return 'hkgovCenstatdDivisionAreas'
   if (plan.source === 'overture') return 'overtureDivisionAreas'
   return null
-}
-
-function resolveGeometryShardBindingName(
-  kind: 'history' | 'source',
-  regionCode: string,
-  shardYear: string,
-) {
-  return Number.parseInt(shardYear, 10) < 2025
-    ? `DB_${kind.toUpperCase()}_${regionCode}_BEFORE`
-    : `DB_${kind.toUpperCase()}_${regionCode}_${shardYear}`
 }
 
 function resolveGeometryCloudflareAccountId(target: UploadTarget) {
