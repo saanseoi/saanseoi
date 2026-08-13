@@ -2315,19 +2315,34 @@ async function mapWithConcurrency<T>(
 ) {
   const limit = Math.max(1, Math.floor(concurrency))
   let nextIndex = 0
+  let failure: unknown = null
 
   await Promise.all(
     Array.from({ length: Math.min(limit, items.length) }, async () => {
       while (nextIndex < items.length) {
+        if (failure) {
+          return
+        }
         const item = items[nextIndex]
         nextIndex += 1
 
         if (item !== undefined) {
-          await worker(item)
+          try {
+            await worker(item)
+          } catch (error) {
+            // Wait for other in-flight workers before the caller removes a
+            // shared temporary directory. That preserves the primary error.
+            failure ??= error
+            return
+          }
         }
       }
     }),
   )
+
+  if (failure) {
+    throw failure
+  }
 }
 
 function resolveLocalD1SqlitePath(localDatabaseId: string) {
