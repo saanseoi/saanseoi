@@ -4,6 +4,8 @@ import {
   asOptionalInteger,
   createGeometryChurnCounts,
   formatMissingDivisionReferenceRecords,
+  geometryBuildUpsertSql,
+  MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
 } from './processLocalDivisionGeometrySqlUpload.ts'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
 
@@ -117,5 +119,34 @@ describe('createGeometryChurnCounts', () => {
       removed: 0,
       unchanged: 0,
     })
+  })
+})
+
+describe('geometryBuildUpsertSql', () => {
+  test('splits geometry upserts below D1’s SQL statement limit', () => {
+    const sql = geometryBuildUpsertSql(
+      'divisionAreas',
+      Array.from({ length: 3 }, (_, index) => ({
+        geometry: 'x'.repeat(40_000),
+        id: `area-${index}`,
+      })),
+    )
+
+    const statements = sql.split('\n')
+
+    expect(statements).toHaveLength(2)
+    for (const statement of statements) {
+      expect(new TextEncoder().encode(statement).byteLength).toBeLessThanOrEqual(
+        MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
+      )
+    }
+  })
+
+  test('rejects a geometry row that cannot fit in one D1 statement', () => {
+    expect(() =>
+      geometryBuildUpsertSql('divisionAreas', [
+        { geometry: 'x'.repeat(MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES), id: 'area-1' },
+      ]),
+    ).toThrow('Cannot replay divisionAreas geometry row')
   })
 })
