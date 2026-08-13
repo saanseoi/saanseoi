@@ -322,7 +322,11 @@ async function getCompletedLocalReleaseCodes() {
 
 async function getCompletedReleaseCodes(target: UploadTarget) {
   if (target.remote) {
-    return new Set(await readRemoteCachedCompletedReleaseCodes(target))
+    return new Set(
+      await readRemoteCachedCompletedReleaseCodes(target, {
+        allowPartialCache: true,
+      }),
+    )
   }
 
   return getCompletedLocalReleaseCodes()

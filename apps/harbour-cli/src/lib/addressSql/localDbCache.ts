@@ -530,7 +530,10 @@ export async function rebuildRemoteDbCache(
   dbContext.cleanup()
 }
 
-export async function readRemoteCachedCompletedReleaseCodes(target: UploadTarget) {
+export async function readRemoteCachedCompletedReleaseCodes(
+  target: UploadTarget,
+  options: { allowPartialCache?: boolean } = {},
+) {
   if (!target.remote) {
     throw new Error(
       'Completed remote releases can only be read for preview or production.',
@@ -557,21 +560,23 @@ export async function readRemoteCachedCompletedReleaseCodes(target: UploadTarget
       )
       .all()
 
-    const incompleteReleases = await findIncompletePublishedReleases(
-      cacheDir,
-      manifest.files,
-      metaSqlite,
-      rows,
-    )
-
-    if (incompleteReleases.length > 0) {
-      throw new Error(
-        [
-          `The ${targetName} cache contains published releases that are not safe to skip.`,
-          ...incompleteReleases.map(release => `- ${release}`),
-          'Reset or repair the target before continuing; published releases are never silently reprocessed.',
-        ].join('\n'),
+    if (!options.allowPartialCache) {
+      const incompleteReleases = await findIncompletePublishedReleases(
+        cacheDir,
+        manifest.files,
+        metaSqlite,
+        rows,
       )
+
+      if (incompleteReleases.length > 0) {
+        throw new Error(
+          [
+            `The ${targetName} cache contains published releases that are not safe to skip.`,
+            ...incompleteReleases.map(release => `- ${release}`),
+            'Reset or repair the target before continuing; published releases are never silently reprocessed.',
+          ].join('\n'),
+        )
+      }
     }
 
     return rows.map(row => row.code)

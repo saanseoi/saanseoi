@@ -73,18 +73,25 @@ export async function runCacheCompletedReleasesCommand(
   target: UploadTarget,
   printUsage: () => void,
 ) {
+  const cacheTableProfile = args.options['table-profile']
   if (
     args.positionals.length > 0 ||
-    Object.keys(args.options).some(key => key !== 'target') ||
+    Object.keys(args.options).some(
+      key => key !== 'target' && key !== 'table-profile',
+    ) ||
+    (cacheTableProfile !== undefined &&
+      cacheTableProfile !== 'planningDivisionGeometry') ||
     !target.remote
   ) {
     printUsage()
     throw new Error(
-      '`cache:completed-releases` accepts only `--target preview|production`.',
+      '`cache:completed-releases` accepts `--target preview|production` and optional `--table-profile planningDivisionGeometry`.',
     )
   }
 
-  const releaseCodes = await readRemoteCachedCompletedReleaseCodes(target)
+  const releaseCodes = await readRemoteCachedCompletedReleaseCodes(target, {
+    allowPartialCache: cacheTableProfile === 'planningDivisionGeometry',
+  })
   if (releaseCodes.length > 0) {
     process.stdout.write(`${releaseCodes.join('\n')}\n`)
   }
