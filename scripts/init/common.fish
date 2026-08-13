@@ -57,6 +57,9 @@ function init_configure
                 if set -q saanseoi_init_cache_table_profile
                     set cache_profile_args --table-profile $saanseoi_init_cache_table_profile
                 end
+                if set -q saanseoi_init_cache_cohort_key
+                    set cache_profile_args $cache_profile_args --cohort-key $saanseoi_init_cache_cohort_key
+                end
                 init_run_step ./bin/saanseoi cache:rebuild --target $saanseoi_init_target $cache_profile_args
             end
         end
