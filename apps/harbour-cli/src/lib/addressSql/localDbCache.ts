@@ -1534,7 +1534,12 @@ async function refreshRemoteCacheTables(
             },
             () =>
               retryRemoteCacheExport(() =>
-                exportRemoteDatabase(targetRecord, target, dumpPath),
+                exportRemoteDatabase(targetRecord, target, dumpPath, {
+                  schemaOnly: shouldMirrorBindingSchemaOnly(
+                    targetRecord.bindingName,
+                    options.cacheTableProfile,
+                  ),
+                }),
               ),
           )
           await runWithProgressHeartbeat(
@@ -2119,6 +2124,7 @@ async function exportRemoteDatabase(
   targetRecord: D1TargetRecord,
   target: 'preview' | 'production',
   outputPath: string,
+  options: { schemaOnly?: boolean } = {},
 ) {
   await runMirrorCommand([
     'bash',
@@ -2129,6 +2135,7 @@ async function exportRemoteDatabase(
     '--env',
     target,
     '--remote',
+    ...(options.schemaOnly ? ['--no-data'] : []),
     '--output',
     outputPath,
   ])
@@ -2164,6 +2171,16 @@ function shouldMirrorTableSchemaOnly(
   return (
     cacheTableProfile === 'planningDivisionGeometry' &&
     bindingName === 'DB_HISTORY_HK_BEFORE'
+  )
+}
+
+function shouldMirrorBindingSchemaOnly(
+  bindingName: string,
+  cacheTableProfile?: CacheTableProfile,
+) {
+  return (
+    cacheTableProfile === 'planningDivisionGeometry' &&
+    /^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)
   )
 }
 
