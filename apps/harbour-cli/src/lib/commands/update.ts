@@ -53,6 +53,7 @@ const PUBLISHER_COLUMN_WIDTH = 10
 const RESOURCE_TYPE_COLUMN_WIDTH = 16
 const VERSION_COLUMN_WIDTH = 'vXXXX-XX-XX.XX'.length
 const ANSI_SGR = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g')
+const TARGET_RELEASE_REPORT_LIMIT = 100
 
 function updateLineWidth() {
   const columns = process.stdout.isTTY ? process.stdout.columns : undefined
@@ -531,8 +532,13 @@ function colorize(value: string, color: number) {
 async function fetchTargetVersions(target: UploadTarget, dataset: DatasetFixture) {
   const report = await fetchReleaseReport(target, {
     datasetCode: dataset.code,
-    limit: 100,
+    limit: TARGET_RELEASE_REPORT_LIMIT,
   })
+  if (report.rows.length === TARGET_RELEASE_REPORT_LIMIT) {
+    throw new Error(
+      `Target release report for ${dataset.code} may be truncated at ${TARGET_RELEASE_REPORT_LIMIT} rows.`,
+    )
+  }
   return targetVersionsFromReport(dataset, report.rows)
 }
 
