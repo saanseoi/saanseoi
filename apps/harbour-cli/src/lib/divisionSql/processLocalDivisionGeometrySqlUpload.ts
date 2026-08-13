@@ -96,6 +96,9 @@ type NormalisedGeometry = ReturnType<
 const LOCAL_RELEASE_ROOT = `${import.meta.dir}/../../../../../.local/harbour-sql/releases`
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const HARBOUR_WRANGLER_PATH = resolve(REPO_ROOT, 'apps/harbour-workers/wrangler.jsonc')
+// D1 accepts statements no larger than 100 KB. Reserve a small margin for
+// platform-side import handling rather than producing statements at the limit.
+export const MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES = 96 * 1024
 
 /**
  * Imports Overture division area/boundary parquet into the source, history and
@@ -785,7 +788,7 @@ function readGeometryCacheRows(cacheDir: string, bindingName: string, query: str
   }
 }
 
-function geometryBuildUpsertSql(
+export function geometryBuildUpsertSql(
   tableName: string,
   rows: Array<Record<string, unknown>>,
 ) {
@@ -801,10 +804,15 @@ function geometryBuildUpsertSql(
   for (const row of rows) {
     const value = `(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})`
     const candidate = `${prefix}${[...values, value].join(', ')}${suffix}`
-    if (
-      values.length > 0 &&
-      new TextEncoder().encode(candidate).byteLength > 4 * 1024 * 1024
-    ) {
+    const candidateBytes = new TextEncoder().encode(candidate).byteLength
+
+    if (candidateBytes > MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES && values.length === 0) {
+      throw new Error(
+        `Cannot replay ${tableName} geometry row: its ${candidateBytes}-byte SQL statement exceeds D1's ${MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES}-byte safe limit.`,
+      )
+    }
+
+    if (candidateBytes > MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES) {
       statements.push(`${prefix}${values.join(', ')}${suffix}`)
       values = [value]
     } else {

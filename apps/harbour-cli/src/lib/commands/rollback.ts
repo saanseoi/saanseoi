@@ -25,7 +25,7 @@ import {
   resolveSnapshotForRelease,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import type { ResourceType } from '@repo/core'
+import { datasetVariantForSource, type ResourceType } from '@repo/core'
 import { note, outro } from '@clack/prompts'
 import { splitSqlStatements } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
 
@@ -160,17 +160,26 @@ export async function runRollbackReleaseCommand(
     }
 
     const resourceType = release.type as ResourceType
-    const releaseSet = await resolveReleaseSetForRelease(
-      metaDb,
-      release.releaseId,
-      resourceType,
-    )
-    const activeReleaseSet = await resolveActiveReleaseSetForType(metaDb, resourceType)
+    const releaseSource = datasetVariantForSource(resourceType, release.source, {
+      cohortKey: release.cohortKey ?? undefined,
+      datasetCode: release.datasetCode,
+    })
     const snapshot = await resolveSnapshotForRelease(
       metaDb,
       release.releaseId,
       resourceType,
     )
+
+    if (!snapshot) {
+      throw new Error(`Snapshot not found for release ${release.releaseCode}.`)
+    }
+
+    const releaseSet =
+      (await resolveReleaseSetForRelease(metaDb, release.releaseId, resourceType)) ??
+      (operation === 'purge'
+        ? await resolveDraftReleaseSetForSnapshot(metaDb, snapshot.id)
+        : null)
+    const activeReleaseSet = await resolveActiveReleaseSetForType(metaDb, resourceType)
 
     if (
       operation === 'rollback' &&
@@ -179,10 +188,6 @@ export async function runRollbackReleaseCommand(
       throw new Error(
         `Rollback only supports the active latest ${resourceType} release. ${release.releaseCode} is not active.`,
       )
-    }
-
-    if (!snapshot) {
-      throw new Error(`Snapshot not found for release ${release.releaseCode}.`)
     }
 
     if (!releaseSet) {
@@ -211,7 +216,7 @@ export async function runRollbackReleaseCommand(
       await assertRollbackPreconditions(release, previousRelease, previousReleaseSet)
     }
     const rollbackPlan = describeLatestReleaseRollbackPlan({
-      source: release.source,
+      source: releaseSource,
       type: resourceType,
     })
     const planCounts = await countRollbackPlanRows(dbContext, {
@@ -245,7 +250,7 @@ export async function runRollbackReleaseCommand(
       previousReleaseId,
       releaseId: release.releaseId,
       snapshotId: snapshot.id,
-      source: release.source,
+      source: releaseSource,
       sourceVersion: release.sourceVersion,
       type: resourceType,
     }
@@ -446,6 +451,40 @@ async function assertRollbackPreconditions(
       `Previous API release set not found for ${previousRelease.releaseCode}.`,
     )
   }
+}
+
+async function resolveDraftReleaseSetForSnapshot(
+  metaDb: HarbourReadableDb,
+  snapshotId: string,
+) {
+  const releaseSets = await metaDb
+    .select({
+      code: metaSchema.metaApiReleaseSets.code,
+      domainCode: metaSchema.metaApiReleaseSets.domainCode,
+      id: metaSchema.metaApiReleaseSets.id,
+      rulesetVersion: metaSchema.metaApiReleaseSets.rulesetVersion,
+      schemaVersion: metaSchema.metaApiReleaseSets.schemaVersion,
+      status: metaSchema.metaApiReleaseSets.status,
+    })
+    .from(metaSchema.metaApiReleaseSetSnapshots)
+    .innerJoin(
+      metaSchema.metaApiReleaseSets,
+      eq(
+        metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId,
+        metaSchema.metaApiReleaseSets.id,
+      ),
+    )
+    .where(eq(metaSchema.metaApiReleaseSetSnapshots.snapshotId, snapshotId))
+    .limit(2)
+    .all()
+
+  if (releaseSets.length > 1) {
+    throw new Error(
+      `Purge is ambiguous: snapshot ${snapshotId} belongs to multiple API release sets.`,
+    )
+  }
+
+  return releaseSets[0] ?? null
 }
 
 function assertReleaseOperationPreconditions(input: {
