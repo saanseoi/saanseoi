@@ -537,7 +537,7 @@ describe('dataset update registry', () => {
     })
   })
 
-  test('discovers native archives for every configured CSDI catalogue', async () => {
+  test('rebuilds only missing CSDI cohorts from a partial target report', async () => {
     const originalFetch = globalThis.fetch
     globalThis.fetch = Object.assign(
       async (input: Parameters<typeof fetch>[0]) => {
@@ -636,6 +636,7 @@ describe('dataset update registry', () => {
           version: '2021.0',
         }),
       ])
+      expect(updates[1]?.message).not.toContain('Rebuilding the reset target')
     } finally {
       globalThis.fetch = originalFetch
     }
