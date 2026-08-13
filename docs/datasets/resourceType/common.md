@@ -123,6 +123,10 @@ refreshes the cached `DB_META` file from remote. If cache replay or meta refresh
 the cache manifest is invalidated so the next upload rebuilds from remote instead of
 diffing against stale state.
 
+The post-publish `DB_META` refresh retries transient remote-export failures with
+exponential backoff before invalidating the cache. This preserves the replayed local
+source/history/current SQL cache when Wrangler has a short-lived connectivity failure.
+
 Each replay has a durable per-release checkpoint under the target cache. Generated SQL
 is idempotent, so transient local replay failures are retried before the cache is
 invalidated and a remote clone is required. `--continue` only skips a published
