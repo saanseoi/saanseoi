@@ -1,4 +1,6 @@
 <script lang="ts">
+import { flip } from 'svelte/animate'
+
 import CarouselRoot from '../carouselRoot.svelte'
 import { Release as CardRelease } from '$lib/bits/components/card'
 import { BasemapRelease as CardBasemapRelease } from '$lib/bits/components/card'
@@ -51,22 +53,24 @@ export function scrollByPage(direction: -1 | 1) {
     class="flex min-w-max gap-4 px-[max(1.5rem,calc((100vw-var(--spacing-container-max))/2+1.5rem))] md:px-[max(2rem,calc((100vw-var(--spacing-container-max))/2+2rem))]"
   >
     {#each items as item, index (item.release.code)}
-      {#if item.kind === 'basemap'}
-        <CardBasemapRelease
-          release={item.release}
-          {index}
-          displayDate={item.displayDate}
-          displayCode={item.displayCode}
-          size={item.size}
-          isDragging={draggedCardId === item.release.code}
-        />
-      {:else}
-        <CardRelease
-          {...item}
-          {index}
-          isDragging={draggedCardId === item.release.code}
-        />
-      {/if}
+      <div animate:flip={{ duration: 280 }}>
+        {#if item.kind === 'basemap'}
+          <CardBasemapRelease
+            release={item.release}
+            {index}
+            displayDate={item.displayDate}
+            displayCode={item.displayCode}
+            size={item.size}
+            isDragging={draggedCardId === item.release.code}
+          />
+        {:else}
+          <CardRelease
+            {...item}
+            {index}
+            isDragging={draggedCardId === item.release.code}
+          />
+        {/if}
+      </div>
     {/each}
     {#if isLoading}
       <ReleaseCarouselSkeleton />

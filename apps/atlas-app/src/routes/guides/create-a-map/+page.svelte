@@ -1575,9 +1575,9 @@ const styleChoices = $derived.by(() =>
       value: 'custom',
       label: m.guide_style_custom(),
       description: m.guide_style_custom_choice_description(),
-      imageSlices: mapStyleDefinitions.map(candidate =>
-        selectedStylePreview(candidate.id),
-      ),
+      image: selectedStylePreview('light'),
+      darkImage: selectedStylePreview('dark'),
+      imageRotation: 90 as const,
     },
   ].map(choice => {
     if (typeof choice === 'string') {
@@ -2336,7 +2336,6 @@ const styleChoices = $derived.by(() =>
         >
         <div id="style-choice" class="scroll-mt-28">
           <GuideChoiceGroup
-            alignment="left"
             label={m.guide_style_label()}
             marker={{
               current: 1,

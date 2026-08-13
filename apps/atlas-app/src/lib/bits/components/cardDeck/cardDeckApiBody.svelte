@@ -6,6 +6,7 @@ import ApiFacts from './cardDeckApiFacts.svelte'
 type Props = {
   active: boolean
   anotherCardActive: boolean
+  isLoading?: boolean
   familyLabel: string
   accessLabel: string
   name: string
@@ -23,6 +24,7 @@ type Props = {
 let {
   active,
   anotherCardActive,
+  isLoading = false,
   familyLabel,
   accessLabel,
   name,
@@ -81,5 +83,5 @@ const stopCardInteraction = (event: PointerEvent | MouseEvent) =>
       >
     </span>
   </span>
-  <ApiFacts {active} {versionLabel} {version} {releaseLabel} {release} />
+  <ApiFacts {active} {isLoading} {versionLabel} {version} {releaseLabel} {release} />
 </span>
