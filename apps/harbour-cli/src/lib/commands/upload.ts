@@ -588,31 +588,38 @@ ${mutedBar}  `)
             validateGeometry: options.validateGeometry,
           },
         )
-        const companionProcessingResult = hkgovCenstatdPreparation?.displayFilePath
-          ? await processLocalDivisionGeometrySqlUpload(
-              target,
-              {
-                cohortKey: previewResult.plan.cohortKey,
-                regionCode: previewResult.plan.regionCode,
-                releaseCode: previewResult.plan.releaseCode,
-                rowCount: previewResult.plan.rowCount,
-                source: 'hkgov-censtatd',
-                sourceVersion: previewResult.plan.sourceVersion,
-                transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
-                theme: 'divisions',
-                type: 'divisionArea',
-              },
-              uploadResult,
-              preparedUploadFile,
-              {
-                inputFilePath: hkgovCenstatdPreparation.displayFilePath,
-                reuseRunningRelease: true,
-                skipRawSeed: true,
-                skipSnapshotCleanup: options.skipSnapshotCleanup,
-                validateGeometry: options.validateGeometry,
-              },
-            )
-          : undefined
+        let companionProcessingResult:
+          | Awaited<ReturnType<typeof processLocalDivisionGeometrySqlUpload>>
+          | undefined
+        if (hkgovCenstatdPreparation?.displayFilePath) {
+          note(
+            'Building the derived simplified C&SD display geometry.',
+            'SIMPLIFYING GEOMETRY PASS',
+          )
+          companionProcessingResult = await processLocalDivisionGeometrySqlUpload(
+            target,
+            {
+              cohortKey: previewResult.plan.cohortKey,
+              regionCode: previewResult.plan.regionCode,
+              releaseCode: previewResult.plan.releaseCode,
+              rowCount: previewResult.plan.rowCount,
+              source: 'hkgov-censtatd',
+              sourceVersion: previewResult.plan.sourceVersion,
+              transform: HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM,
+              theme: 'divisions',
+              type: 'divisionArea',
+            },
+            uploadResult,
+            preparedUploadFile,
+            {
+              inputFilePath: hkgovCenstatdPreparation.displayFilePath,
+              reuseRunningRelease: true,
+              skipRawSeed: true,
+              skipSnapshotCleanup: options.skipSnapshotCleanup,
+              validateGeometry: options.validateGeometry,
+            },
+          )
+        }
 
         const releaseSetReadiness = await resolveDivisionApiReleaseSetReadiness(
           target,
