@@ -20,7 +20,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if bun x wrangler d1 migrations apply "$@" >"$tmp_output" 2>&1; then
+# See run-d1-execute.sh: schema administration must not inherit an application
+# API token that points at a different Cloudflare account.
+if env -u CLOUDFLARE_API_TOKEN bun x wrangler d1 migrations apply "$@" >"$tmp_output" 2>&1; then
   grep -E "Migrations to be applied:|Executing on (local|remote) database|commands executed successfully|status \||✅|No migrations to apply" "$tmp_output" || true
   exit 0
 fi
