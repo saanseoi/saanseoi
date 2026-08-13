@@ -1086,7 +1086,7 @@ export async function refreshRemoteMetaCache(
   await mkdir(workDir, { recursive: true })
 
   try {
-    await retryRemoteMetaCacheRefresh(() =>
+    await retryRemoteCacheExport(() =>
       exportRemoteDatabase(targetRecord, target, dumpPath),
     )
     await importDatabaseDumpsToSqlite([dumpPath], destinationPath)
@@ -1096,7 +1096,7 @@ export async function refreshRemoteMetaCache(
   }
 }
 
-async function retryRemoteMetaCacheRefresh(refresh: () => Promise<void>) {
+async function retryRemoteCacheExport(exportDatabase: () => Promise<void>) {
   let lastError: unknown
 
   for (
@@ -1105,7 +1105,7 @@ async function retryRemoteMetaCacheRefresh(refresh: () => Promise<void>) {
     attempt += 1
   ) {
     try {
-      await refresh()
+      await exportDatabase()
       return
     } catch (error) {
       lastError = error
@@ -1526,7 +1526,10 @@ async function refreshRemoteCacheTables(
               target,
               total: options.totalUnits,
             },
-            () => exportRemoteDatabase(targetRecord, target, dumpPath),
+            () =>
+              retryRemoteCacheExport(() =>
+                exportRemoteDatabase(targetRecord, target, dumpPath),
+              ),
           )
           await runWithProgressHeartbeat(
             options.onProgress,
@@ -1760,7 +1763,10 @@ async function mirrorRemoteTargetToLocal(
               target,
               total: options.totalUnits,
             },
-            () => exportRemoteDatabase(targetRecord, target, dumpPath),
+            () =>
+              retryRemoteCacheExport(() =>
+                exportRemoteDatabase(targetRecord, target, dumpPath),
+              ),
           )
           dumpPaths.push(dumpPath)
           currentUnit += 1
@@ -1781,7 +1787,9 @@ async function mirrorRemoteTargetToLocal(
               `${targetRecord.bindingName}-${tableName}.sql`,
             )
             await runWithProgressHeartbeat(options.onProgress, exportEvent, () =>
-              exportRemoteTable(targetRecord, target, tableName, dumpPath),
+              retryRemoteCacheExport(() =>
+                exportRemoteTable(targetRecord, target, tableName, dumpPath),
+              ),
             )
             dumpPaths.push(dumpPath)
             const pruneOperation = resolveCachePruneOperation(
