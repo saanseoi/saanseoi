@@ -187,6 +187,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           publishClient: createHarbourControlClient(target) as HarbourClient,
         })
   ) as HarbourClient
+  let published = false
 
   try {
     await syncStagedReleaseIntoLocalMetaCache(
