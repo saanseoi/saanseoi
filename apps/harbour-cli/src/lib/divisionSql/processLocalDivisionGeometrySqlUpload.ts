@@ -1,4 +1,7 @@
 import { datasetVariantForSource, type RegionCode } from '@repo/core'
+import { Database as SQLiteDatabase } from 'bun:sqlite'
+import { readFileSync } from 'node:fs'
+import { join, resolve } from 'node:path'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotLookupDependency,
@@ -41,9 +44,15 @@ import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStaged
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import { LocalPipelineBucket } from '../addressSql/localBucket.ts'
 import {
+  invalidateRemoteDbCache,
+  refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   type LocalDbCacheProgressEvent,
 } from '../addressSql/localDbCache.ts'
+import {
+  executeSqlText,
+  type SqlImportExecutionOptions,
+} from '../localPipeline/sqlImport.ts'
 import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
 import {
   appendPhaseDetails,
@@ -84,6 +93,8 @@ type NormalisedGeometry = ReturnType<
 >
 
 const LOCAL_RELEASE_ROOT = `${import.meta.dir}/../../../../../.local/harbour-sql/releases`
+const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
+const HARBOUR_WRANGLER_PATH = resolve(REPO_ROOT, 'apps/harbour-workers/wrangler.jsonc')
 
 /**
  * Imports Overture division area/boundary parquet into the source, history and
@@ -164,6 +175,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     )
   }
   let controlClient: HarbourClient | null = null
+  let remotePublished = false
 
   try {
     const releaseMetadataStartedAt = Date.now()
@@ -511,6 +523,15 @@ export async function processLocalDivisionGeometrySqlUpload(
         publishResult: undefined,
       }
     }
+    if (target.remote) {
+      await replayGeometryIntoRemote(
+        target,
+        dbContext,
+        previewPlan,
+        releaseId,
+        snapshot.id,
+      )
+    }
     const publishStartedAt = Date.now()
     progress.beginPhase(formatGeometryProgressLabel('Publish', 'dataset'), {
       current: 0,
@@ -530,6 +551,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     const publishResult = await client.publishDataset(releaseId, releaseCode, {
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
+    remotePublished = target.remote
     progress.complete(
       formatGeometryCompletedLabel(
         'Publish',
@@ -538,6 +560,24 @@ export async function processLocalDivisionGeometrySqlUpload(
         Date.now() - publishStartedAt,
       ),
     )
+    if (target.remote) {
+      try {
+        await refreshRemoteMetaCache(
+          target.environment === 'production' ? 'production' : 'preview',
+          dbContext.state.dbCacheDir,
+        )
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error)
+        await invalidateRemoteDbCache(
+          target.environment === 'production' ? 'production' : 'preview',
+          dbContext.state.dbCacheDir,
+          reason,
+        )
+        throw new Error(
+          `Remote publish succeeded, but refreshing the local meta cache failed. ${reason}`,
+        )
+      }
+    }
     return {
       snapshotId: snapshot.id,
       importedRows: normalised.length,
@@ -547,19 +587,278 @@ export async function processLocalDivisionGeometrySqlUpload(
     progress.fail()
     const failureClient =
       controlClient ?? (createHarbourControlClient(target) as HarbourClient)
-    await failureClient
-      .stageFailed(
-        releaseId,
-        'processDataset',
-        error instanceof Error ? error.message : String(error),
-        undefined,
-        releaseCode,
-      )
-      .catch(() => undefined)
+    if (!remotePublished) {
+      await failureClient
+        .stageFailed(
+          releaseId,
+          'processDataset',
+          error instanceof Error ? error.message : String(error),
+          undefined,
+          releaseCode,
+        )
+        .catch(() => undefined)
+    }
     throw error
   } finally {
     dbContext.cleanup()
   }
+}
+
+async function replayGeometryIntoRemote(
+  target: UploadTarget,
+  context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  plan: GeometryUploadPlan,
+  releaseId: string,
+  snapshotId: string,
+) {
+  const targetName = target.environment === 'production' ? 'production' : 'preview'
+  const metaBindingName = 'DB_META'
+  const currentBindingName = 'DB_CURRENT'
+  const regionToken = plan.regionCode.toUpperCase()
+  const historyBindingName = resolveGeometryShardBindingName(
+    'history',
+    regionToken,
+    plan.sourceVersion.slice(0, 4),
+  )
+  const sourceBindingName = resolveGeometryShardBindingName(
+    'source',
+    regionToken,
+    plan.sourceVersion.slice(0, 4),
+  )
+  const metaRows = readGeometryReplayMetadata(
+    context.state.dbCacheDir,
+    metaBindingName,
+    releaseId,
+    snapshotId,
+  )
+  const currentTable =
+    plan.type === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries'
+  const historyTable = currentTable
+  const sourceTable = resolveGeometrySourceTable(plan)
+  const currentRows = readGeometryCacheRows(
+    context.state.dbCacheDir,
+    currentBindingName,
+    `SELECT * FROM "${currentTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+  )
+  const historyRows = readGeometryCacheRows(
+    context.state.dbCacheDir,
+    historyBindingName,
+    `SELECT * FROM "${historyTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+  )
+  const changeRows = readGeometryCacheRows(
+    context.state.dbCacheDir,
+    historyBindingName,
+    `SELECT * FROM "snapshotVersionChanges" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+  )
+  const sourceRows = sourceTable
+    ? readGeometryCacheRows(
+        context.state.dbCacheDir,
+        sourceBindingName,
+        `SELECT * FROM "${sourceTable}" WHERE "releaseId" = ${geometrySqlLiteral(releaseId)}`,
+      )
+    : []
+  const options: SqlImportExecutionOptions = {
+    accountId: resolveGeometryCloudflareAccountId(target),
+    apiToken: process.env.CLOUDFLARE_D1_TOKEN?.trim(),
+    isLocal: false,
+  }
+
+  const tableImports = [
+    {
+      bindingName: metaBindingName,
+      databaseId: context.state.bindings[metaBindingName]?.databaseId,
+      name: 'meta' as const,
+      sql: metaRows,
+    },
+    {
+      bindingName: currentBindingName,
+      databaseId: context.state.bindings[currentBindingName]?.databaseId,
+      name: 'current' as const,
+      sql: `${geometrySqlLiteralDelete(currentTable, 'snapshotId', snapshotId)}\n${geometryBuildUpsertSql(currentTable, currentRows)}`,
+    },
+    {
+      bindingName: historyBindingName,
+      databaseId: context.state.bindings[historyBindingName]?.databaseId,
+      name: 'history' as const,
+      sql: [
+        geometrySqlLiteralDelete(historyTable, 'snapshotId', snapshotId),
+        geometrySqlLiteralDelete('snapshotVersionChanges', 'snapshotId', snapshotId),
+        geometryBuildUpsertSql(historyTable, historyRows),
+        geometryBuildUpsertSql('snapshotVersionChanges', changeRows),
+      ]
+        .filter(Boolean)
+        .join('\n'),
+    },
+    {
+      bindingName: sourceBindingName,
+      databaseId: context.state.bindings[sourceBindingName]?.databaseId,
+      name: 'source' as const,
+      sql: sourceTable
+        ? `${geometrySqlLiteralDelete(sourceTable, 'releaseId', releaseId)}\n${geometryBuildUpsertSql(sourceTable, sourceRows)}`
+        : '',
+    },
+  ]
+
+  try {
+    for (const tableImport of tableImports) {
+      if (!tableImport.sql.trim()) continue
+      await executeSqlText(
+        {
+          databaseId: tableImport.databaseId ?? null,
+          name: tableImport.name,
+        },
+        tableImport.sql,
+        options,
+      )
+    }
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error)
+    await invalidateRemoteDbCache(targetName, context.state.dbCacheDir, reason)
+    throw new Error(
+      `Remote geometry replay failed; the cache was invalidated. ${reason}`,
+    )
+  }
+}
+
+function readGeometryReplayMetadata(
+  cacheDir: string,
+  bindingName: string,
+  releaseId: string,
+  snapshotId: string,
+) {
+  const snapshot = readGeometryCacheRows(
+    cacheDir,
+    bindingName,
+    `SELECT * FROM "snapshots" WHERE "id" = ${geometrySqlLiteral(snapshotId)}`,
+  )
+  if (snapshot.length === 0) {
+    throw new Error(`Local meta cache is missing snapshot ${snapshotId}.`)
+  }
+  const lineageId = snapshot[0]?.snapshotLineageId
+  const assemblyRuns = readGeometryCacheRows(
+    cacheDir,
+    bindingName,
+    `SELECT * FROM "snapshotAssemblyRuns" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+  )
+  const assemblyIds = assemblyRuns
+    .map(row => row.snapshotAssemblyId)
+    .filter((value): value is string => typeof value === 'string')
+  const idList = assemblyIds.map(geometrySqlLiteral).join(', ')
+  const tables = [
+    ['snapshotLineages', lineageId ? `"id" = ${geometrySqlLiteral(lineageId)}` : '0'],
+    ['snapshots', `"id" = ${geometrySqlLiteral(snapshotId)}`],
+    ['snapshotSources', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
+    ['snapshotAssembly', idList ? `"id" IN (${idList})` : '0'],
+    ['snapshotAssemblySources', idList ? `"snapshotAssemblyId" IN (${idList})` : '0'],
+    ['snapshotAssemblyRuns', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
+    ['releaseShardAssignments', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],
+    ['snapshotShardAssignments', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
+    ['releaseProcessingActions', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],
+    ['stats', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],
+  ] as const
+
+  return tables
+    .flatMap(([tableName, where]) => {
+      const rows = readGeometryCacheRows(
+        cacheDir,
+        bindingName,
+        `SELECT * FROM "${tableName}" WHERE ${where}`,
+      )
+      return geometryBuildUpsertSql(tableName, rows)
+    })
+    .join('\n')
+}
+
+function readGeometryCacheRows(cacheDir: string, bindingName: string, query: string) {
+  const sqlite = new SQLiteDatabase(join(cacheDir, `${bindingName}.sqlite`), {
+    readonly: true,
+  })
+  try {
+    return sqlite.query(query).all() as Array<Record<string, unknown>>
+  } finally {
+    sqlite.close()
+  }
+}
+
+function geometryBuildUpsertSql(
+  tableName: string,
+  rows: Array<Record<string, unknown>>,
+) {
+  if (rows.length === 0) return ''
+  const columns = Object.keys(rows[0] ?? {})
+  const quotedColumns = columns.map(column => `"${column}"`).join(', ')
+  const updates = columns.map(column => `"${column}" = excluded."${column}"`).join(', ')
+  const prefix = `INSERT INTO "${tableName}" (${quotedColumns}) VALUES `
+  const suffix = ` ON CONFLICT DO UPDATE SET ${updates};`
+  const statements: string[] = []
+  let values: string[] = []
+
+  for (const row of rows) {
+    const value = `(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})`
+    const candidate = `${prefix}${[...values, value].join(', ')}${suffix}`
+    if (
+      values.length > 0 &&
+      new TextEncoder().encode(candidate).byteLength > 4 * 1024 * 1024
+    ) {
+      statements.push(`${prefix}${values.join(', ')}${suffix}`)
+      values = [value]
+    } else {
+      values.push(value)
+    }
+  }
+
+  if (values.length > 0) {
+    statements.push(`${prefix}${values.join(', ')}${suffix}`)
+  }
+
+  return statements.join('\n')
+}
+
+function geometrySqlLiteralDelete(tableName: string, column: string, value: string) {
+  return `DELETE FROM "${tableName}" WHERE "${column}" = ${geometrySqlLiteral(value)};`
+}
+
+function geometrySqlLiteral(value: unknown): string {
+  if (value === null || value === undefined) return 'NULL'
+  if (typeof value === 'boolean') return value ? '1' : '0'
+  if (typeof value === 'number' || typeof value === 'bigint') {
+    return String(value)
+  }
+  if (typeof value === 'object') return geometrySqlLiteral(JSON.stringify(value))
+  return `'${String(value).replaceAll("'", "''")}'`
+}
+
+function resolveGeometrySourceTable(plan: GeometryUploadPlan) {
+  if (plan.type === 'divisionBoundary') return 'overtureDivisionBoundaries'
+  if (plan.source === 'hkgov-had') return 'hkgovHadDivisionAreas'
+  if (plan.source === 'hkgov-censtatd') return 'hkgovCenstatdDivisionAreas'
+  if (plan.source === 'overture') return 'overtureDivisionAreas'
+  return null
+}
+
+function resolveGeometryShardBindingName(
+  kind: 'history' | 'source',
+  regionCode: string,
+  shardYear: string,
+) {
+  return Number.parseInt(shardYear, 10) < 2025
+    ? `DB_${kind.toUpperCase()}_${regionCode}_BEFORE`
+    : `DB_${kind.toUpperCase()}_${regionCode}_${shardYear}`
+}
+
+function resolveGeometryCloudflareAccountId(target: UploadTarget) {
+  const fromEnv = process.env.CLOUDFLARE_ACCOUNT_ID?.trim()
+  if (fromEnv) return fromEnv
+  const config = JSON.parse(readFileSync(HARBOUR_WRANGLER_PATH, 'utf8')) as {
+    vars?: Record<string, unknown>
+    env?: Record<string, { vars?: Record<string, unknown> }>
+  }
+  const accountId = (
+    target.environment === 'production'
+      ? config.env?.production?.vars
+      : config.env?.preview?.vars
+  )?.CLOUDFLARE_ACCOUNT_ID
+  return typeof accountId === 'string' ? accountId.trim() : undefined
 }
 
 function normaliseHkgovHadInputRow(
