@@ -110,7 +110,7 @@ onMount(() => {
 </script>
 
 <div class="flex flex-col">
-  <div class="min-w-0">{@render children?.()}</div>
+  <div class="min-w-0 lg:pr-56">{@render children?.()}</div>
   <aside class="order-first lg:order-0" aria-label={tocLabel}>
     <nav
       bind:this={navigationElement}
