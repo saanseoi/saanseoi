@@ -43,21 +43,38 @@ function init_configure
 
     if test "$saanseoi_init_continue" -eq 1
         if test "$saanseoi_init_target" != local
-            echo "Initialisation continuation is currently supported only for the local target." >&2
-            exit 1
+            # A failed remote SQL replay may leave the persistent cache
+            # invalidated after the release itself has already published.
+            # Rebuild that cache before using release status to skip work.
+            init_run_step ./bin/saanseoi cache:rebuild --target $saanseoi_init_target
         end
         init_load_completed_release_codes
         or begin
-            echo "Cannot continue initialisation: could not read completed local releases." >&2
+            echo "Cannot continue initialisation: could not read completed releases." >&2
             exit 1
         end
     end
 end
 
 function init_load_completed_release_codes
-    set -l output (bun x wrangler d1 execute ss-meta-db-preview \
+    set -l database_name ss-meta-db-preview
+    set -l wrangler_args \
         --config "$saanseoi_init_repo/apps/harbour-api/wrangler.jsonc" \
-        --env preview --local --persist-to "$saanseoi_init_repo/.local/d1/dev" --json \
+        --env preview --local --persist-to "$saanseoi_init_repo/.local/d1/dev" --json
+
+    if test "$saanseoi_init_target" = production
+        set database_name ss-meta-db-prod
+        set wrangler_args \
+            --config "$saanseoi_init_repo/apps/harbour-api/wrangler.jsonc" \
+            --env production --remote --json
+    else if test "$saanseoi_init_target" = preview
+        set database_name ss-meta-db-preview
+        set wrangler_args \
+            --config "$saanseoi_init_repo/apps/harbour-api/wrangler.jsonc" \
+            --env preview --remote --json
+    end
+
+    set -l output (bun x wrangler d1 execute $database_name $wrangler_args \
         --command "SELECT code FROM releases WHERE status IN ('published', 'superseded');" 2>&1)
 
     if test $status -ne 0

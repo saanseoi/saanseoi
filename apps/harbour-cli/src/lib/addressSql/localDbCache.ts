@@ -386,6 +386,28 @@ export async function resolveLocalAddressDbContext(
 }
 
 /**
+ * Rebuilds the shared remote cache from the configured production or preview
+ * D1 databases. This is intentionally explicit because it replaces the local
+ * cache rather than replaying a release into it.
+ */
+export async function rebuildRemoteDbCache(target: UploadTarget) {
+  if (!target.remote) {
+    throw new Error(
+      'The remote D1 cache can only be rebuilt for preview or production.',
+    )
+  }
+
+  const targetName = target.environment === 'production' ? 'production' : 'preview'
+  const shardYear = await resolveLatestConfiguredShardYear(targetName)
+  const dbContext = await resolveLocalAddressDbContext(target, 'hk', shardYear, {
+    includePreviousShardYears: true,
+    refreshRemoteCache: true,
+  })
+
+  dbContext.cleanup()
+}
+
+/**
  * Opens only the shared local metadata database. Use this for local services
  * that do not need a resource shard, such as immutable evidence registration.
  */
@@ -700,6 +722,14 @@ async function resolveD1Targets(target: 'local' | 'preview' | 'production') {
     databaseName: entry.database_name,
     localDatabaseId: entry.preview_database_id ?? entry.database_id ?? entry.binding,
   }))
+}
+
+async function resolveLatestConfiguredShardYear(target: 'preview' | 'production') {
+  const years = (await resolveD1Targets(target))
+    .map(record => parseBindingYear(record.bindingName, 'DB_HISTORY_HK_'))
+    .filter((year): year is number => year !== null)
+
+  return String(Math.max(...years, BEFORE_SHARD_CUTOFF_YEAR))
 }
 
 function isD1TargetEntry(entry: Record<string, unknown>): entry is {
