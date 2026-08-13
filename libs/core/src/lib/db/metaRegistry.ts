@@ -1968,6 +1968,41 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
   cohortKey: string,
   options: { variant?: string } = {},
 ) {
+  // Overture's canonical division dataset is itself the durable domain
+  // identity. This deliberately does not require a lineage join: it lets the
+  // canonical snapshot remain resolvable while its lineage is being created
+  // or repaired, and also matches every lineage-backed Overture snapshot.
+  if (options.variant === 'overture') {
+    return (
+      (await db
+        .select({
+          id: metaSnapshots.id,
+          code: metaSnapshots.code,
+          resourceType: metaSnapshots.resourceType,
+          status: metaSnapshots.status,
+        })
+        .from(metaSnapshots)
+        .innerJoin(
+          metaSnapshotSources,
+          eq(metaSnapshots.id, metaSnapshotSources.snapshotId),
+        )
+        .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+        .where(
+          and(
+            eq(metaSnapshots.resourceType, resourceType),
+            eq(metaSnapshots.status, 'published'),
+            eq(metaSnapshots.cohortKey, cohortKey),
+            eq(metaDatasets.regionCode, regionCode),
+            eq(metaDatasets.code, buildDatasetCode(regionCode, 'overture', 'division')),
+            eq(metaSnapshotSources.role, 'primary'),
+          ),
+        )
+        .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
+        .limit(1)
+        .get()) ?? null
+    )
+  }
+
   return (
     (await db
       .select({
