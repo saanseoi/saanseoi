@@ -65,6 +65,29 @@ describe('api field fixtures', () => {
     )
   })
 
+  test('keeps the Overture 1.15 mapping across the 2025 to 2026 boundary', () => {
+    const fixture = resolveApiFieldFixture({
+      apiVersion: 'api-divisions-v0.1',
+      domainCode: 'overture',
+      lineageSnapshotVersions: ['ss-hk-division-2026-01-21.0'],
+      schemaVersion: 'sv-division-v1',
+      rulesetVersion: 'rs-division-merge-v1',
+      sourceSchemas: {
+        'ds-hk-overture-division': '1.15.0',
+        'ds-hk-overture-division-area': '1.15.0',
+        'ds-hk-overture-division-boundary': '1.15.0',
+        'ds-hk-hkgov-had-division-area-district': '1.2',
+        'ds-hk-hkgov-censtatd-division-area-district': '1.0',
+      },
+    })
+
+    expect(fixture?.lineageAnchors).toContainEqual(
+      expect.objectContaining({
+        snapshotVersion: 'ss-hk-division-2026-01-21.0',
+      }),
+    )
+  })
+
   test('resolves Planning Department mappings with their shared division datasets', () => {
     const fixtures = [
       {
