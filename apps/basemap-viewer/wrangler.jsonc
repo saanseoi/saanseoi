@@ -26,7 +26,12 @@
   "routes": [{ "pattern": "viewer.saanseoi.hk", "custom_domain": true }],
   "env": {
     "preview": {
-      "name": "ss-basemap-preview"
+      "name": "ss-basemap-preview",
+      "routes": []
+    },
+    "production": {
+      "name": "ss-basemap",
+      "routes": [{ "pattern": "viewer.saanseoi.hk", "custom_domain": true }]
     }
   }
 }
