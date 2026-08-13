@@ -61,6 +61,7 @@ import {
   appendPhaseDetails,
   colorRed,
   colorTeal,
+  colorYellow,
   formatCompletedPhaseLabel,
   formatDurationMs,
   formatRunningPhaseLabel,
@@ -172,11 +173,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       appendPhaseDetails(
         formatCompletedPhaseLabel(
           colorTeal(target.remote ? 'Open local D1' : 'Prepare'),
-          colorRed(
-            target.remote
-              ? `${target.environment} mirror${reusedDbCache ? ' (hit)' : ''}`
-              : 'local database',
-          ),
+          formatMirrorSubject(target, reusedDbCache),
         ),
         [
           formatDurationMs(
@@ -192,7 +189,10 @@ export async function processLocalDivisionGeometrySqlUpload(
   try {
     const releaseMetadataStartedAt = Date.now()
     progress.beginPhase(
-      formatGeometryProgressLabel('Sync down', 'release metadata @ local'),
+      formatGeometryProgressLabel(
+        'Sync down',
+        formatLocalTargetSubject('release metadata'),
+      ),
       {
         current: 0,
         max: null,
@@ -209,14 +209,17 @@ export async function processLocalDivisionGeometrySqlUpload(
     progress.complete(
       formatGeometryCompletedLabel(
         'Sync down',
-        'release metadata @ local',
+        formatLocalTargetSubject('release metadata'),
         undefined,
         Date.now() - releaseMetadataStartedAt,
       ),
     )
     const processingStateStartedAt = Date.now()
     progress.beginPhase(
-      formatGeometryProgressLabel('Mark as', `'processing' @ ${target.environment}`),
+      formatGeometryProgressLabel(
+        'Mark as',
+        formatTargetSubject("'processing'", target),
+      ),
       {
         current: 0,
         max: null,
@@ -245,7 +248,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     progress.complete(
       formatGeometryCompletedLabel(
         'Mark as',
-        `'processing' @ ${target.environment}`,
+        formatTargetSubject("'processing'", target),
         undefined,
         Date.now() - processingStateStartedAt,
       ),
@@ -562,7 +565,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     await runGeometryProgressPhase(
       progress,
       'Mark as',
-      `'completed' @ ${target.environment}`,
+      formatTargetSubject("'completed'", target),
       () =>
         client.stageCompleted(
           releaseId,
@@ -591,7 +594,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         await runGeometryProgressPhase(
           progress,
           'Sync down',
-          `metadata @ ${target.environment}`,
+          formatTargetSubject('metadata', target),
           () =>
             refreshRemoteMetaCache(
               target.environment === 'production' ? 'production' : 'preview',
@@ -1798,18 +1801,36 @@ function describeRemoteGeometryImport(
   plan: GeometryUploadPlan,
   target: UploadTarget,
 ) {
-  const targetName = target.environment
-
   switch (name) {
     case 'current':
-      return `current ${plan.type} @ ${targetName}`
+      return formatTargetSubject(`current ${plan.type}`, target)
     case 'history':
-      return `history ${plan.type} @ ${targetName}`
+      return formatTargetSubject(`history ${plan.type}`, target)
     case 'meta':
-      return `snapshot metadata @ ${targetName}`
+      return formatTargetSubject('snapshot metadata', target)
     case 'source':
-      return `source ${plan.type} @ ${targetName}`
+      return formatTargetSubject(`source ${plan.type}`, target)
   }
+}
+
+function formatTargetEnvironment(target: UploadTarget) {
+  return target.remote && target.environment === 'production'
+    ? 'prod'
+    : target.environment
+}
+
+function formatTargetSubject(subject: string, target: UploadTarget) {
+  return `${colorRed(subject)} ${colorYellow(`@ ${formatTargetEnvironment(target)}`)}`
+}
+
+function formatLocalTargetSubject(subject: string) {
+  return `${colorRed(subject)} ${colorYellow('@ local')}`
+}
+
+function formatMirrorSubject(target: UploadTarget, reused: boolean) {
+  if (!target.remote) return colorRed('local database')
+
+  return `${colorYellow(formatTargetEnvironment(target))} ${colorRed(`mirror${reused ? ' (hit)' : ''}`)}`
 }
 
 function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {
