@@ -30,11 +30,25 @@ scripts, migrations, repairs, and future ingestion services, must participate in
 shared remote cache operation journal. The journal lives in `DB_META` and records a
 monotonically ordered operation checkpoint, the target environment, the affected
 bindings, a stable hash of the operation's declared changes, writer identity, and its
-state. A writer must:
+state. Because the affected bindings cannot share a transaction, the journal must
+serialize writers before any binding write. `DB_META` keeps one journal-head row with
+the next checkpoint and active operation; a writer must atomically claim that row in a
+`DB_META` transaction (or a compare-and-swap writer lease), allocate its checkpoint, and
+insert its `pending` operation. The claim fails while another operation is pending, so
+other writers must wait and retry rather than allocating a second pending operation or
+writing a binding. A writer must:
 
-1. record a `pending` operation before changing any binding;
+1. acquire the journal claim and record its sole `pending` operation before changing any
+   binding;
 2. apply its changes;
-3. mark the operation `committed` only after every affected binding has succeeded.
+3. mark the operation `committed`, and release the claim, only after every affected
+   binding has succeeded.
+
+If a writer fails after claiming the journal, the pending operation continues to block
+other writers. A recovery procedure must establish the affected bindings' state and then
+resolve the active operation before releasing the claim. It may not simply clear the
+pending marker; a later writer may proceed only after the active operation commits or
+recovery completes.
 
 The local cache manifest stores the last committed journal checkpoint it has applied.
 Before reusing a remote mirror, Harbour must retrieve the remote journal head and may
