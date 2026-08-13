@@ -5,7 +5,10 @@ import { runDocsNewCommand, runDocsPublishCommand } from './lib/commands/docs.ts
 import { runInspectCommand } from './lib/commands/inspect.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
-import { runCacheRebuildCommand } from './lib/commands/cache.ts'
+import {
+  runCacheCompletedReleasesCommand,
+  runCacheRebuildCommand,
+} from './lib/commands/cache.ts'
 import { runScheduleCommand, runScheduledCommand } from './lib/commands/schedule.ts'
 import { runUpdateCommand } from './lib/commands/update.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
@@ -49,6 +52,9 @@ async function main() {
   switch (args.command) {
     case 'cache:rebuild':
       await runCacheRebuildCommand(args, target, printUsage)
+      return
+    case 'cache:completed-releases':
+      await runCacheCompletedReleasesCommand(args, target, printUsage)
       return
     case 'inspect':
       await runInspectCommand(args)

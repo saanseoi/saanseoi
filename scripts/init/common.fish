@@ -57,6 +57,15 @@ function init_configure
 end
 
 function init_load_completed_release_codes
+    if test "$saanseoi_init_target" != local
+        set -g saanseoi_init_completed_release_codes (./bin/saanseoi cache:completed-releases \
+            --target $saanseoi_init_target)
+        if test $status -ne 0
+            return 1
+        end
+        return 0
+    end
+
     set -l database_name ss-meta-db-preview
     set -l wrangler_args \
         --config "$saanseoi_init_repo/apps/harbour-api/wrangler.jsonc" \
