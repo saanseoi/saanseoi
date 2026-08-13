@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:dfec9dbb7f05328805274ac41656fe5b9b4bc5f86bd26ed7b4231992f49d97c0",
+  "versionHash": "sha256:7485f4a511370c34085aec288f74b4786c5fd079c161033f3a38f5930c042186",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "overture",
   "schemaVersion": "sv-division-v1",
@@ -26,7 +26,37 @@
       }
     },
     {
+      "snapshotVersion": "ss-hk-division-2026-03-18.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.16.0",
+        "ds-hk-overture-division-area": "1.16.0",
+        "ds-hk-overture-division-boundary": "1.16.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-04-15.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.16.0",
+        "ds-hk-overture-division-area": "1.16.0",
+        "ds-hk-overture-division-boundary": "1.16.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+      }
+    },
+    {
       "snapshotVersion": "ss-hk-division-2026-05-20.0",
+      "sourceSchemas": {
+        "ds-hk-overture-division": "1.17.0",
+        "ds-hk-overture-division-area": "1.17.0",
+        "ds-hk-overture-division-boundary": "1.17.0",
+        "ds-hk-hkgov-had-division-area-district": "1.2",
+        "ds-hk-hkgov-censtatd-division-area-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-06-17.0",
       "sourceSchemas": {
         "ds-hk-overture-division": "1.17.0",
         "ds-hk-overture-division-area": "1.17.0",
