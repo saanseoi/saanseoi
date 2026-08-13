@@ -30,6 +30,12 @@ type SnapshotCleanupResponse = {
   status: 'queued' | 'skipped'
 }
 
+export type ReconcileDraftReleaseSetsResponse = {
+  inspected: number
+  pendingReleaseSetCodes: string[]
+  publishedReleaseSetCodes: string[]
+}
+
 type DispatchUploadOptions = {
   /** Restricted local repair path for a source-specific deterministic reprocess. */
   allowReprocessPublished?: boolean
@@ -69,6 +75,10 @@ export function buildRegisterUploadEndpoint(apiBaseUrl: string) {
 
 export function buildCleanupSnapshotsEndpoint(apiBaseUrl: string) {
   return `${apiBaseUrl}/v1/control/cleanupSnapshots`
+}
+
+export function buildReconcileDraftReleaseSetsEndpoint(apiBaseUrl: string) {
+  return `${apiBaseUrl}/v1/control/reconcileDraftReleaseSets`
 }
 
 /**
@@ -268,6 +278,31 @@ export async function scheduleSnapshotCleanup(
   return parseJsonResponse<SnapshotCleanupResponse>(
     response,
     'Harbour cleanupSnapshots',
+  )
+}
+
+export async function reconcileDraftReleaseSets(
+  target: UploadTarget,
+  options: {
+    apiFamily?: 'addresses' | 'divisions' | 'places' | 'stats' | 'streets'
+    regionCode?: 'hk' | 'mo'
+  } = {},
+) {
+  const response = await fetch(
+    buildReconcileDraftReleaseSetsEndpoint(resolveHarbourApiUrl(target)),
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(options),
+    },
+  )
+
+  return parseJsonResponse<ReconcileDraftReleaseSetsResponse>(
+    response,
+    'Harbour reconcileDraftReleaseSets',
   )
 }
 

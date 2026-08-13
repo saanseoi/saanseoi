@@ -1,5 +1,6 @@
 import { z } from '@hono/zod-openapi'
 import { resourceTypes } from '@repo/core'
+import { apiFamilyTypes } from '@repo/db'
 
 export const ErrorResponseSchema = z
   .object({
@@ -305,6 +306,21 @@ export const PublishDatasetRequestSchema = z
   .openapi('HarbourPublishDatasetRequest', {
     anyOf: [{ required: ['releaseId'] }, { required: ['releaseCode'] }],
   })
+
+export const ReconcileDraftReleaseSetsRequestSchema = z
+  .object({
+    apiFamily: z.enum(apiFamilyTypes).optional(),
+    regionCode: z.enum(['hk', 'mo']).optional(),
+  })
+  .openapi('HarbourReconcileDraftReleaseSetsRequest')
+
+export const ReconcileDraftReleaseSetsResponseSchema = z
+  .object({
+    inspected: z.number().int().nonnegative(),
+    pendingReleaseSetCodes: z.array(z.string()),
+    publishedReleaseSetCodes: z.array(z.string()),
+  })
+  .openapi('HarbourReconcileDraftReleaseSetsResponse')
 
 export const CleanupSnapshotsRequestSchema = z
   .object({
