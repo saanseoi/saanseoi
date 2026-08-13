@@ -55,10 +55,14 @@ export async function runInitialisationCommand(
   const command = args.command ? resolveInitialisationCommand(args.command) : undefined
   const supportsContinue = command?.supportsContinue ?? false
   const supportsTarget = command?.supportsTarget ?? false
+  const cacheArtefacts =
+    args.options.cacheArtefacts === true || args.options['cache-artefacts'] === true
   const invalidOptions = Object.keys(args.options).filter(
     key =>
       !(key === 'continue' && supportsContinue) &&
-      !(key === 'target' && supportsTarget),
+      !(key === 'target' && supportsTarget) &&
+      key !== 'cacheArtefacts' &&
+      key !== 'cache-artefacts',
   )
   const target = args.options.target
 
@@ -67,6 +71,9 @@ export async function runInitialisationCommand(
     args.positionals.length > 0 ||
     invalidOptions.length > 0 ||
     (args.options.continue !== undefined && args.options.continue !== true) ||
+    ((args.options.cacheArtefacts !== undefined ||
+      args.options['cache-artefacts'] !== undefined) &&
+      !cacheArtefacts) ||
     (target !== undefined &&
       (typeof target !== 'string' ||
         !['local', 'preview', 'production'].includes(target)))
@@ -75,6 +82,7 @@ export async function runInitialisationCommand(
     const acceptedOptions = [
       ...(supportsTarget ? ['`--target local|preview|production`'] : []),
       ...(supportsContinue ? ['`--continue`'] : []),
+      '`--cacheArtefacts`',
     ]
     const suffix =
       acceptedOptions.length > 0
@@ -83,19 +91,24 @@ export async function runInitialisationCommand(
     throw new Error(`\`${args.command}\`${suffix}`)
   }
 
-  const process = Bun.spawn({
+  const child = Bun.spawn({
     cmd: [
       'fish',
       resolve(REPO_ROOT, command.script),
       ...(typeof target === 'string' ? ['--target', target] : []),
       ...(args.options.continue ? ['--continue'] : []),
+      ...(cacheArtefacts ? ['--cache-artefacts'] : []),
     ],
     cwd: REPO_ROOT,
+    env: {
+      ...process.env,
+      SAANSEOI_CACHE_ARTEFACTS: cacheArtefacts ? '1' : '0',
+    },
     stdin: 'inherit',
     stdout: 'inherit',
     stderr: 'inherit',
   })
-  const exitCode = await process.exited
+  const exitCode = await child.exited
 
   if (exitCode !== 0) {
     throw new Error(`Initialisation failed with exit code ${exitCode}.`)

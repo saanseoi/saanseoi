@@ -1,11 +1,7 @@
 #!/usr/bin/env fish
 
 source (command dirname (status filename))/common.fish
-
-if test (count $argv) -ne 0
-    echo "Usage: saanseoi init:streets:hkgov-landsd" >&2
-    exit 1
-end
+init_configure "saanseoi init:streets:hkgov-landsd" $argv
 
 init_run_step bun run --silent dataops -- hkgov-landsd-streets:baseline --target local
 init_run_step bun run --silent dataops -- hkgov-landsd-streets:landsd-notices --target local
