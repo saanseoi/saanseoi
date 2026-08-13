@@ -32,7 +32,10 @@ import {
   normaliseDivisionAreaGeometryRow,
   normaliseDivisionBoundaryGeometryRow,
 } from '@repo/core/pipeline/services/divisionGeometry'
-import { compressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
+import {
+  compressJsonBrotli,
+  MAX_BROTLI_QUALITY,
+} from '@repo/core/pipeline/services/brotliJson.ts'
 import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
 import { and, eq } from 'drizzle-orm'
@@ -1480,7 +1483,10 @@ async function writeGeometryRows(
   const currentRows = rows.map(row => ({
     ...row.canonical,
     geometry: shouldCompressCanonicalGeometry(version.source, version.transform)
-      ? compressJsonBrotli(row.canonical.geometry)
+      ? compressJsonBrotli(
+          row.canonical.geometry,
+          version.source === 'hkgov-pland-pu' ? MAX_BROTLI_QUALITY : undefined,
+        )
       : row.canonical.geometry,
     snapshotId: version.snapshotId,
     createdAt: now,
@@ -1490,7 +1496,10 @@ async function writeGeometryRows(
     rows.map(async row => ({
       ...row.canonical,
       geometry: shouldCompressCanonicalGeometry(version.source, version.transform)
-        ? compressJsonBrotli(row.canonical.geometry)
+        ? compressJsonBrotli(
+            row.canonical.geometry,
+            version.source === 'hkgov-pland-pu' ? MAX_BROTLI_QUALITY : undefined,
+          )
         : row.canonical.geometry,
       versionHash: await hashDivisionGeometryRow(row.canonical),
       sourceReleaseId: version.releaseId,

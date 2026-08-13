@@ -71,9 +71,10 @@ The aggregate union step also removes zero-area interior rings. These can be emi
 otherwise valid unions, but are not valid canonical area geometry; source-cell geometry
 and non-degenerate rings remain unchanged.
 
-Canonical Planning Unit area geometry is stored as Brotli-compressed JSON in the current
-and history tables, then decompressed before API responses. This keeps detailed 2001
-unions within D1's row and SQL-statement limits without changing their geometry.
+Canonical Planning Unit area geometry is stored with maximum-quality Brotli compression
+in the current and history tables, then decompressed before API responses. This keeps
+detailed 2001 unions within D1's row and SQL-statement limits without changing their
+geometry.
 
 The native 2021 TPU archive repeats 49 provider cell keys across 172 extra geometry
 fragments and also has coincident boundaries between some adjacent cells. JSTS pairwise
