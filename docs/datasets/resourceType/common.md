@@ -123,6 +123,12 @@ refreshes the cached `DB_META` file from remote. If cache replay or meta refresh
 the cache manifest is invalidated so the next upload rebuilds from remote instead of
 diffing against stale state.
 
+Each replay has a durable per-release checkpoint under the target cache. Generated SQL
+is idempotent, so transient local replay failures are retried before the cache is
+invalidated and a remote clone is required. `--continue` only skips a published
+SQL-backed release when its cache record has a valid snapshot lineage and source
+membership, required shard assignments, and a materialised current snapshot.
+
 At year rollover, uploads may need both the new year's source/history shards and earlier
 source/history shards for continuity checks. The cache resolver reuses any locally valid
 cached shard files from earlier years and mirrors only missing or invalid bindings, so a
