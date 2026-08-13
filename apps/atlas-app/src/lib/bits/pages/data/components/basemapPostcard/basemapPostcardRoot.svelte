@@ -59,6 +59,7 @@ onMount(() => {
 
 <CardDeck.Card
   as="article"
+  data-basemap-postcard
   class={`group block select-none transform-(--postcard-transform) transition-[top,left,width,transform,opacity] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${isDragging || isThrowing || isSelected ? 'will-change-transform' : ''} ${throwPhase === 'launch' ? 'duration-520! ease-[cubic-bezier(0.18,0.72,0.32,1)]!' : throwPhase === 'flight' ? 'duration-640! ease-[cubic-bezier(0.14,0.9,0.25,1.08)]!' : throwPhase === 'settle' ? 'duration-460! ease-[cubic-bezier(0.16,1.32,0.32,1)]!' : ''} ${isSelected ? 'min-[901px]:transform-[translateX(-50%)_var(--postcard-transform)]' : ''} ${layoutClass} ${className}`}
   style={`--postcard-accent: ${accent}; --postcard-pattern: ${pattern}; --postcard-dark-pattern: ${darkPattern}; --postcard-transform: ${postcardTransform}; z-index: ${displayOrder};`}
 >
