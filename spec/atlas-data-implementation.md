@@ -16,6 +16,40 @@ dataset-ingestion worker and no `processDataset` queue contract.
 The local pipeline records stages such as `processDataset` in release metadata. Those
 are local processing phases, not remote queue messages.
 
+## Remote D1 mirror integrity
+
+The Harbour CLI maintains a local SQLite mirror of the remote D1 bindings as its SQL
+planning and replay surface. A successful Harbour-managed upload replays the exact
+generated SQL into that mirror and refreshes its metadata binding after publication.
+That is sufficient only while Harbour is the sole writer. A valid SQLite file and a
+matching local cache manifest prove that the mirror is usable; they do not prove that
+another writer has not changed production.
+
+All writers that can modify a remote SaanSeoi D1 binding, including administrative
+scripts, migrations, repairs, and future ingestion services, must participate in a
+shared remote cache operation journal. The journal lives in `DB_META` and records a
+monotonically ordered operation checkpoint, the target environment, the affected
+bindings, a stable hash of the operation's declared changes, writer identity, and its
+state. A writer must:
+
+1. record a `pending` operation before changing any binding;
+2. apply its changes;
+3. mark the operation `committed` only after every affected binding has succeeded.
+
+The local cache manifest stores the last committed journal checkpoint it has applied.
+Before reusing a remote mirror, Harbour must retrieve the remote journal head and may
+reuse the cache only when the local and remote committed checkpoints match and no
+operation is pending. A mismatch or pending operation blocks the upload and requires a
+cache rebuild or an explicit recovery procedure; it must never be treated as a cache
+hit. This is a constant-size checkpoint comparison, not a row-count comparison or a
+database download.
+
+Harbour's own remote replay must create and complete the same journal operation. Its
+local checkpoint advances only after both the remote write and local replay succeed. If
+either fails, the cache is invalidated. The journal is an integrity protocol for
+cooperating writers, rather than a content hash of every D1 database: unjournalled
+manual writes are unsupported and must be followed by an explicit cache rebuild.
+
 ## Artefacts
 
 The published product is the normalised data held in the current/history/source
