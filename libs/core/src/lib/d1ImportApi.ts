@@ -124,12 +124,9 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
       // `Uint8Array` may be backed by a SharedArrayBuffer, which is not accepted
       // by the DOM's `BodyInit` type. Copy it into an ordinary ArrayBuffer first.
       const bytes =
-        typeof sql === 'string'
-          ? new TextEncoder().encode(sql)
-          : sql instanceof Uint8Array
-            ? new Uint8Array(sql)
-            : new Uint8Array(sql)
-      const body = bytes.buffer
+        typeof sql === 'string' ? new TextEncoder().encode(sql) : new Uint8Array(sql)
+      const body = new ArrayBuffer(bytes.byteLength)
+      new Uint8Array(body).set(bytes)
 
       for (let attempt = 0; attempt <= uploadRetryLimit; attempt += 1) {
         try {

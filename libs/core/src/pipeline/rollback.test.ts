@@ -96,6 +96,13 @@ describe('latest release rollback SQL', () => {
     expect(sql.source).toBe(
       "DELETE FROM hkgovPlandNewTowns WHERE releaseId = 'release-draft';\n",
     )
+    expect(sql.current).toContain(
+      "DELETE FROM divisionsI18n WHERE snapshotId = 'snapshot-draft';",
+    )
+    expect(sql.current).toContain(
+      "DELETE FROM divisions WHERE snapshotId = 'snapshot-draft';",
+    )
+    expect(sql.current).not.toContain('SET isCurrent')
     expect(sql.history).toContain(
       "DELETE FROM divisions WHERE snapshotId = 'snapshot-draft' AND sourceReleaseId = 'release-draft';",
     )
@@ -107,6 +114,18 @@ describe('latest release rollback SQL', () => {
       "DELETE FROM apiReleaseSets WHERE id = 'release-set-draft';",
     )
     expect(sql.meta).toContain("DELETE FROM releases WHERE id = 'release-draft';")
+
+    const planningCellSql = buildDraftReleasePurgeSql({
+      apiReleaseSetId: 'release-set-draft',
+      releaseId: 'release-draft',
+      snapshotId: 'snapshot-draft',
+      source: 'hkgov-pland-pu',
+      sourceVersion: '2006',
+      type: 'division',
+    })
+    expect(planningCellSql.source).toBe(
+      "DELETE FROM hkgovPlandPlanningCells WHERE releaseId = 'release-draft';\n",
+    )
   })
 
   test('rejects unsupported source/type combinations', () => {
