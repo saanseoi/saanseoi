@@ -258,6 +258,14 @@ ${mutedBar}  `)
                   completeOnReuse: false,
                 })
               },
+              cacheTableProfile:
+                previewResult.plan.type === 'divisionArea' ||
+                previewResult.plan.type === 'divisionBoundary'
+                  ? previewResult.plan.source === 'hkgov-pland-pu' ||
+                    previewResult.plan.source === 'hkgov-pland-new-town'
+                    ? 'planningDivisionGeometry'
+                    : 'divisionGeometry'
+                  : undefined,
               includePreviousShardYears: true,
             },
           )
