@@ -499,7 +499,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     })
     await replaceDatasetStats(
       metaDb,
-      releaseCode,
+      releaseId,
       await buildGeometryStats(
         dbContext.currentDb,
         metaDb,
