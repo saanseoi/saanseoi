@@ -499,7 +499,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     })
     await replaceDatasetStats(
       metaDb,
-      releaseId,
+      releaseCode,
       await buildGeometryStats(
         dbContext.currentDb,
         metaDb,
@@ -937,9 +937,10 @@ function geometrySplitUtf8(value: string, byteLimit: number) {
   let chunkBytes = 0
 
   for (const character of value) {
-    const characterBytes = new TextEncoder().encode(character).byteLength
+    const characterBytes =
+      new TextEncoder().encode(geometrySqlLiteral(character)).byteLength - 2
 
-    if (chunkBytes + characterBytes > byteLimit) {
+    if (chunk && chunkBytes + characterBytes > byteLimit) {
       chunks.push(chunk)
       chunk = ''
       chunkBytes = 0
