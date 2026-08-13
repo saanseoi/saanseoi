@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { integer, real, text } from 'drizzle-orm/sqlite-core'
+import { customType, integer, real, text } from 'drizzle-orm/sqlite-core'
 
 export const streetEvidenceAssetRoles = [
   'gazettePlan',
@@ -75,6 +75,47 @@ export type StreetEvidenceAsset = EvidenceAsset<StreetEvidenceAssetRole>
 export const jsonText = <T = unknown>(name: string) =>
   text(name, { mode: 'json' }).$type<T>()
 
+/**
+ * A binary value stored in a legacy SQLite TEXT-affinity column. SQLite retains
+ * the bound BLOB storage class, allowing pre-release source shards to avoid a
+ * table rebuild while keeping compressed payloads binary.
+ */
+export const binaryText = customType<{
+  data: Uint8Array
+  driverData: Uint8Array
+  driverOutput: ArrayBuffer | Uint8Array
+}>({
+  dataType() {
+    return 'text'
+  },
+  fromDriver(value) {
+    return value instanceof Uint8Array ? value : new Uint8Array(value)
+  },
+  toDriver(value) {
+    return value
+  },
+})
+
+/** JSON text for ordinary geometries, or a compressed BLOB for large geometry rows. */
+export const jsonTextOrBinary = customType<{
+  data: unknown
+  driverData: unknown
+  driverOutput: ArrayBuffer | Uint8Array | string
+}>({
+  dataType() {
+    return 'text'
+  },
+  fromDriver(value) {
+    if (typeof value === 'string') return JSON.parse(value) as unknown
+    return value instanceof Uint8Array ? value : new Uint8Array(value)
+  },
+  toDriver(value) {
+    return value instanceof Uint8Array || value instanceof ArrayBuffer
+      ? value
+      : JSON.stringify(value)
+  },
+})
+
 export const isoTimestamp = (name: string) => text(name)
 
 export const defaultIsoTimestamp = (name: string) =>
@@ -123,7 +164,7 @@ export const canonicalDivisionGeometry = {
   id: text('id').notNull(),
   variant: text('variant').notNull().default('overture'),
   bbox: jsonText('bbox'),
-  geometry: jsonText('geometry'),
+  geometry: jsonTextOrBinary('geometry'),
   sourceKeys: jsonText('sourceKeys'),
   sources: jsonText('sources'),
   type: text('type').notNull(),

@@ -7,7 +7,7 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import { geoBbox, jsonText } from '../shared'
+import { binaryText, geoBbox, jsonText } from '../shared'
 import {
   sourceAssertionColumns,
   sourceSpatialAssertionColumns,
@@ -16,14 +16,16 @@ import {
 } from './shared'
 
 /**
- * C&SD District Council district assertions. `sourceGeometry` is retained in
- * the publisher's CRS. Canonical EPSG:4326 geometry belongs to history and
- * current; the display derivative retains its named transform for audit.
+ * C&SD District Council district assertions. `sourceGeometry` is retained as
+ * a Brotli-compressed publisher-CRS BLOB. Current and history retain the
+ * exact canonical geometry as a Brotli BLOB too, alongside the map-ready
+ * EPSG:4326 display derivative.
  */
 export const sourceHkgovCenstatdDivisionAreas = sqliteTable(
   'hkgovCenstatdDivisionAreas',
   {
-    ...sourceSpatialAssertionColumns(),
+    ...sourceAssertionColumns(),
+    sourceGeometry: binaryText('sourceGeometry').notNull(),
     districtClass: text('districtClass').notNull(),
     districtCode: integer('districtCode').notNull(),
     districtEn: text('districtEn').notNull(),
