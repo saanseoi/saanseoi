@@ -268,7 +268,11 @@ export async function resetRemoteReleaseUploadCacheScope(
     !sharedManifest ||
     sharedManifest.cacheVersion !== DB_CACHE_MANIFEST_VERSION ||
     sharedManifest.target !== targetName ||
-    !(await doCachedFilesExist(sharedManifest.files, targets))
+    !(await doCachedFilesExist(
+      sharedManifest.files,
+      targets,
+      sharedManifest.cacheTableProfile,
+    ))
   ) {
     throw new Error(
       `No valid shared ${targetName} D1 cache is available. Rebuild it explicitly with bin/saanseoi cache:rebuild --target ${targetName}.`,
