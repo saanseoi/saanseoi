@@ -1979,6 +1979,7 @@ function resolveMirrorTablesForBinding(
         'overtureDivisionBoundaries',
         'hkgovHadDivisionAreas',
         'hkgovCenstatdDivisionAreas',
+        'hkgovCenstatdDivisionAreaDerivatives',
       ]
     }
 
