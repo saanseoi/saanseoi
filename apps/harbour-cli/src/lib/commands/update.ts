@@ -35,6 +35,10 @@ type PlannedDatasetUpdates = {
   updates: DatasetUpdate[]
 }
 
+type TargetVersionLookup =
+  | { status: 'available'; versions: Map<string, string | null> }
+  | { status: 'unknown' }
+
 type UpdateProcessingResult =
   | 'downloaded'
   | 'ingested'
@@ -109,18 +113,30 @@ export async function runUpdateCommand(
   const planned: PlannedDatasetUpdates[] = []
 
   for (const dataset of selectedDatasets) {
-    let targetVersions: Map<string, string | null>
+    let targetVersionLookup: TargetVersionLookup
     try {
-      targetVersions = await fetchTargetVersions(target, dataset)
+      targetVersionLookup = {
+        status: 'available',
+        versions: await fetchTargetVersions(target, dataset),
+      }
     } catch {
       if (!reportedTargetLookupFailure) {
         log.warn(
-          'Target release report unavailable; comparing updates against local versions instead.',
+          'Target release report unavailable; skipping affected datasets until it can be retrieved.',
         )
         reportedTargetLookupFailure = true
       }
-      targetVersions = new Map()
+      targetVersionLookup = { status: 'unknown' }
     }
+
+    if (targetVersionLookup.status === 'unknown') {
+      const row = new UpdateRow(dataset)
+      row.start('checking target release')
+      row.finish('SKIPPED', undefined, null)
+      continue
+    }
+
+    const targetVersions = targetVersionLookup.versions
 
     const duePhases = getDueUpdatePhases(dataset, state[dataset.code], {
       force: forceCheck,
